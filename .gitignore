@@ -1,0 +1,38 @@
+# Environment credentials
+.env
+.env.backup
+*.local
+
+# IDE & Editor artifacts (Local Claude, Cursor, VS Code, JetBrains)
+.claude/
+.cursor/
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+
+# Python bytecode & cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Local database dumps & backups
+backups/
+*.sql
+*.dump
+
+# Operating system artifacts
+.DS_Store
+Thumbs.db
+desktop.ini

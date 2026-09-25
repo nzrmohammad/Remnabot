@@ -1,0 +1,45 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: remnawave-bot-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: remnabot
+      POSTGRES_PASSWORD: remnabot
+      POSTGRES_DB: remnabot
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U remnabot"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: remnawave-bot-redis
+    restart: unless-stopped
+    command: redis-server --save "" --appendonly no
+    volumes:
+      - redisdata:/data
+
+  bot:
+    build: .
+    container_name: remnawave-bot
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql+asyncpg://remnabot:remnabot@db:5432/remnabot
+      REDIS_URL: redis://redis:6379/0
+    # Connects to Remnawave panel running on host or Docker via host.docker.internal
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+
+volumes:
+  pgdata:
+  redisdata:

@@ -1,0 +1,8 @@
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+# E501: repo uses long HTML strings; UP017: codebase standard is timezone.utc.
+ignore = ["E501", "UP017"]

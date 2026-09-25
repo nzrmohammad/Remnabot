@@ -1,0 +1,27 @@
+# Core Telegram bot framework
+aiogram==3.31.0
+httpx==0.28.1
+
+# Database & async ORM
+SQLAlchemy==2.0.46
+asyncpg==0.31.0
+
+# Data validation & environment settings
+pydantic==2.13.5
+pydantic-settings==2.15.0
+
+# Localization (Jalali dates) & timezone
+jdatetime==6.1.0
+tzdata==2026.4
+
+# QR Code generation & image processing
+qrcode[pil]==8.2
+Pillow==12.3.0
+
+# Persistent FSM storage & monitoring
+redis==8.1.0
+sentry-sdk==2.70.0
+
+# Automated testing suite
+pytest==9.1.1
+anyio==4.15.0
