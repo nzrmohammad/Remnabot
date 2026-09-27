@@ -39,6 +39,7 @@ Remnabot provides a production-grade Telegram client portal and administrative o
 - **👤 Unified Client Hub**: Multi-subscription management under a single Telegram ID, one-step free trial provisioning, HWID device control, and persistent bilingual localization (English & Persian).
 - **⚡ Live 1-Tap Single Configs**: Instant extraction of raw subscription payloads into distinct VLESS, Trojan, and Shadowsocks nodes with native 1-tap clipboard copy buttons (`CopyTextButton`).
 - **💳 Financial & Wallet Integrity**: Card-to-card deposit processing with SHA-256 duplicate slip prevention, interactive review queues with instant push notifications, Telegram Supergroup Forum Topic routing, percentage/fixed discount coupons, and referral reward bonuses.
+- **💎 Direct On-Chain Crypto Payments**: Native The Open Network (TON) cryptocurrency top-up with 1-tap Tonkeeper and Telegram Wallet deep-links (auto-filling address, TON amount, and memo), multi-source resilient real-time rate queries (Nobitex / Bitpin / Wallex or global Binance / TonAPI / CoinGecko fallback), and 4x daily rate notifications with 1-click update buttons.
 - **👑 Autonomous Executive Reports**: Automated daily reports at 23:59 with country-level node bandwidth breakdowns, active user summaries, 3-day expiry alerts, and weekly top-20 rankings with daily champions.
 - **🤖 Intelligent Lifecycle & Retention Engine**: Autonomous asynchronous workers handling proactive expiration warnings (3-Day, 1-Day, Day-0), grace period policy enforcement, auto-disabling expired panel subscriptions, and automated 7-day win-back retention campaigns.
 - **📊 Real-Time Cluster Telemetry**: Proactive monitoring of all Remnawave v3 nodes with automated country flag resolution, core version detection (`Xray-core` / `Node`), hardware load metrics (CPU, RAM, Uptime), and real-time active user counts.
@@ -319,6 +320,19 @@ All primary credentials are configuration-driven via `.env`. In-bot operational 
 | `REMNAWAVE_BASE_URL` | **Yes** | — | Base URL of your Remnawave v3+ Panel (e.g. `https://panel.example.com` or `http://host.docker.internal:3000`). |
 | `REMNAWAVE_TOKEN` | **Yes** | — | API Token generated in Remnawave Panel (`Admin ➔ API Tokens`). |
 | `DATABASE_URL` | **Yes** | — | PostgreSQL async connection string (`postgresql+asyncpg://user:pass@host:5432/dbname`). |
+| `ADMIN_TOPIC_TOPUPS` | No | *(empty)* | Optional topic ID for card-to-card deposit review queues. |
+| `ADMIN_TOPIC_ORDERS` | No | *(empty)* | Optional topic ID for new service purchases and renewal logs. |
+| `ADMIN_TOPIC_SUPPORT` | No | *(empty)* | Optional topic ID for user support inquiries and forward messages. |
+| `ADMIN_TOPIC_ALERTS` | No | *(empty)* | Optional topic ID for system alerts, reconcile warnings, and database backups. |
+| `ADMIN_TOPIC_CRYPTO` | No | *(empty)* | Optional topic ID for automated crypto pricing alerts and TON payment logs. |
+| `CRYPTO_ENABLED` | No | `false` | Enable or disable direct crypto (TON) top-up option for users (`true` / `false`). |
+| `TON_WALLET_ADDRESS` | No | *(empty)* | Public TON wallet address (UQ... or EQ...) for receiving on-chain payments. |
+| `TON_RATE_TOMAN` | No | `0` | Manual fallback TON exchange rate in Toman (editable in-bot anytime). |
+| `USDT_RATE_TOMAN` | No | `95000` | Benchmark Tether (USDT) price in Toman used for global Binance/TonAPI price calculation. |
+| `IRAN_PROXY` | No | *(empty)* | Optional HTTP/SOCKS5 proxy for domestic Iranian exchanges when hosted on a foreign VPS. |
+| `CARD_NUMBER` | No | *(empty)* | Bank card number for manual card-to-card deposits (empty disables card deposits). |
+| `CARD_HOLDER` | No | *(empty)* | Cardholder full name displayed to users during card-to-card deposits. |
+| `TOPUP_MIN_AMOUNT` | No | `10000` | Minimum wallet deposit threshold in Toman. |
 | `TIMEZONE` | No | `Asia/Tehran` | Timezone identifier for Jalali conversions and scheduled fiscal reporting. |
 | `REDIS_URL` | No | *(empty)* | Optional Redis connection string for distributed FSM storage. Defaults to memory storage when empty. |
 | `SENTRY_DSN` | No | *(empty)* | Optional Sentry DSN endpoint for real-time error reporting and application telemetry. |
@@ -335,6 +349,7 @@ Remnabot executes asynchronous automation routines using an internal non-blockin
 | `devices_loop` | **5 min** | Inspects active HWID connections and terminates sessions exceeding plan device limits. |
 | `expiry_loop` | **60 min** | Dispatches pre-expiry countdown warnings (3 days, 1 day, Day 0), enforces grace periods, and auto-disables expired panel subscriptions. |
 | `alerts_loop` | **180 min** | Evaluates bandwidth consumption thresholds (80%, 90%, 100%) and delivers proactive renewal alerts. |
+| `crypto_rates_loop` | **4x Daily (00:00, 06:00, 12:00, 18:00)** | Queries live TON market rates (Nobitex/Bitpin or Binance/TonAPI global fallback) and dispatches interactive price alerts to the crypto topic. |
 | `retention_loop` | **12 hours** | Identifies users whose services expired 7 days ago and sends personalized win-back discount promotions. |
 | `auto_backup_loop` | **Daily @ 03:00** | Generates an encrypted database snapshot and dispatches the document to the Telegram admin chat. |
 | `nightly_report_loop`| **Daily @ 23:59** | Compiles panel status, node bandwidths by country flag, active users, and 3-day expirations. |
@@ -350,11 +365,20 @@ Administrators can configure live store variables on the fly without editing `.e
 
 ### Dynamic Settings Matrix (`Admin Panel ➔ ⚙️ Store Settings`)
 - **Card-to-Card Configuration**: Update bank card numbers, cardholder names, and minimum deposit thresholds.
+- **💎 Direct Crypto (TON) Gateway**:
+  - Toggle crypto payment status (`⚡️ وضعیت درگاه : ✅ / ❌`).
+  - Configure public TON wallet address (`UQ...` / `EQ...`).
+  - Configure manual fallback TON exchange rate (`قیمت تبدیل`).
+  - Set benchmark Tether price (`💵 نرخ مبنای تتر`) for resilient global calculation (`Binance TON/USD × USDT Rate`) with zero geo-blocking from foreign servers.
+  - Optional Iranian forward proxy support (`IRAN_PROXY`) for domestic exchanges.
+  - Real-time instant price query (`🔄 استعلام آنی قیمت`) directly inside Telegram.
+  - 1-click update buttons dispatched 4x daily to the dedicated Crypto forum topic.
 - **Free Trial Management**: Toggle 1-day free trial issuance (`✅` / `❌`), configure allowed quotas, and set trial duration.
 - **Affiliate & Referral Settings**: Enable or disable referral programs, set traffic reward percentages, and adjust qualification criteria.
 - **Supergroup Forum Topic Routing**: Route automated alerts and operational logs into dedicated Telegram forum topics:
   - 💳 **Top-ups Topic**: Deposit receipts and wallet verification queues.
   - 🛒 **Orders Topic**: New plan orders and subscription renewals.
+  - 💎 **Crypto Topic**: Live TON market rate notifications and crypto payment logs.
   - 🆘 **Support Topic**: Customer tickets and inquiry messages.
   - 🚨 **Alerts Topic**: Node health alerts and automated daily database dumps.
 
@@ -364,7 +388,8 @@ Administrators can configure live store variables on the fly without editing `.e
 
 - [ ] **📱 Telegram Mini App (TMA / WebApp)**: A sleek WebApp client featuring visual bandwidth gauges, interactive QR code displays, and in-app checkout.
 - [ ] **⚡ Remnawave v3 Event Webhooks**: Immediate real-time callback processing for instant traffic exhaustion and plan event synchronization.
-- [ ] **💎 Native Crypto Gateways**: Direct payment integration supporting USDT (TRC-20), TON, and TRX with zero manual verification.
+- [x] **💎 Direct On-Chain Crypto Gateway**: Native TON payments with Tonkeeper / Telegram Wallet 1-tap deep links, multi-source price fetching, and automated topic alerts.
+- [ ] **🌐 Automated Multi-Chain Crypto Gateways**: Automated on-chain transaction monitoring for USDT (TRC-20) and TRX.
 - [ ] **📲 Protocol Deep Links**: One-click configuration import for `v2rayNG`, `Sing-box`, `Streisand`, and `Happ`.
 - [ ] **📈 Advanced Financial Analytics**: CSV and Excel export for ledger records, customer rosters, and tax reporting.
 
@@ -372,7 +397,7 @@ Administrators can configure live store variables on the fly without editing `.e
 
 ## 🧪 Testing & Quality Assurance
 
-Remnabot maintains a strict test-driven development workflow with **58 passing unit & integration tests** covering database models, repositories, business logic services, and FSM handlers:
+Remnabot maintains a strict test-driven development workflow with **84 passing unit & integration tests** covering database models, repositories, business logic services, and FSM handlers:
 
 ```bash
 # Execute test suite

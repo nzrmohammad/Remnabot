@@ -19,6 +19,8 @@ from bot.middlewares.db import DbSessionMiddleware
 from bot.middlewares.rate_limit import RateLimitMiddleware
 from bot.services.alerts import alerts_loop
 from bot.services.backup import auto_backup_loop
+from bot.services.crypto.nobitex import nobitex_rate_loop
+from bot.services.crypto.ton import ton_watcher_loop
 from bot.services.devices import devices_loop
 from bot.services.expiry import expiry_loop
 from bot.services.reconcile import reconcile_loop
@@ -29,8 +31,6 @@ from bot.services.reports import (
     weekly_report_loop,
 )
 from bot.services.retention import retention_loop
-from bot.services.crypto.nobitex import nobitex_rate_loop
-from bot.services.crypto.ton import ton_watcher_loop
 
 logging.basicConfig(
     level=logging.INFO,

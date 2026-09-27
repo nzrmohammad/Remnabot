@@ -6,3 +6,7 @@ target-version = "py312"
 select = ["E", "F", "I", "UP", "B"]
 # E501: repo uses long HTML strings; UP017: codebase standard is timezone.utc.
 ignore = ["E501", "UP017"]
+
+[tool.pytest.ini_options]
+addopts = "--basetemp=./test_tmp"
+

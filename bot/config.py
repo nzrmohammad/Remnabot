@@ -29,6 +29,8 @@ class Settings(BaseSettings):
     TON_WALLET_ADDRESS: str = ""
     TON_RATE_TOMAN: int = 0
     CRYPTO_ENABLED: bool = False
+    USDT_RATE_TOMAN: int = 95000
+    IRAN_PROXY: str = ""
 
     # --- Database ---
     DATABASE_URL: str                  # postgresql+asyncpg://user:pass@host:5432/dbname

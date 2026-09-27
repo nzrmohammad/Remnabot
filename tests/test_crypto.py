@@ -1,27 +1,24 @@
 """Unit and integration tests for TON cryptocurrency payments and Nobitex integration."""
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from aiogram.types import CallbackQuery, Message, User
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
-from bot.config import get_settings
-from bot.db.models import Base, CryptoInvoice
+from bot.db.models import Base
 from bot.db.repositories.crypto_repo import CryptoRepository
 from bot.db.repositories.user_repo import UserRepository
 from bot.db.repositories.wallet_repo import WalletRepository
 from bot.handlers.admin_ops import apply_nobitex_rate
-from bot.services.app_settings import StoreSettings, get_store_settings
+from bot.services.app_settings import StoreSettings
 from bot.services.crypto.nobitex import (
-    fetch_nobitex_ton_price,
-    format_rate_alert,
-    _seconds_until_next_target,
     RATE_CHECK_HOURS,
+    _seconds_until_next_target,
+    format_rate_alert,
 )
 from bot.services.crypto.ton import (
     _extract_comment,
-    fetch_ton_transactions,
     verify_and_process_payments,
 )
 
@@ -270,7 +267,6 @@ async def test_admin_apply_rate_callback(async_session: AsyncSession):
 async def test_crypto_settings_and_overview_ui(session_factory):
     """Verify crypto settings menu title has no (TON), no italics, and overview has 2 lines."""
     from bot.handlers.admin_ops import _render_crypto_settings, _render_settings
-    from bot.db.models import User as UserModel
 
     async with session_factory() as session:
         user_repo = UserRepository(session)
@@ -315,13 +311,14 @@ async def test_crypto_settings_and_overview_ui(session_factory):
 
 
 @pytest.mark.anyio
-async def test_profile_no_login_status(session_factory):
-    """Verify profile view does not contain login status line."""
+async def test_profile_login_status_format(session_factory):
+    """Verify profile view contains login status icon without 'وارد شده'."""
     from bot.handlers.profile import _render_profile
 
     async with session_factory() as session:
         user_repo = UserRepository(session)
         user = await user_repo.get_or_create(telegram_id=222, username="norm_user")
+        user.is_verified = True
         bot = MagicMock()
         remnawave = MagicMock()
         remnawave.get_users_by_telegram_id = AsyncMock(return_value=[])
@@ -329,5 +326,41 @@ async def test_profile_no_login_status(session_factory):
         with patch("bot.handlers.profile.render_menu") as mock_render:
             await _render_profile(bot, user, user_repo, session, remnawave)
             text = mock_render.call_args[0][3]
-            assert "وضعیت ورود" not in text
+            assert "وضعیت ورود : ✅" in text
             assert "وارد شده" not in text
+
+
+@pytest.mark.anyio
+async def test_global_binance_fallback():
+    """Verify fetch_ton_market_price falls back to global Binance TON/USD * USDT rate."""
+    from bot.services.crypto.nobitex import fetch_ton_market_price
+
+    # Mock Binance response
+    mock_binance_resp = MagicMock()
+    mock_binance_resp.status = 200
+    mock_binance_resp.json = AsyncMock(return_value={"symbol": "TONUSDT", "price": "5.4000"})
+
+    class MockSession:
+        def __init__(self, *args, **kwargs):
+            pass
+        async def __aenter__(self):
+            return self
+        async def __aexit__(self, exc_type, exc_val, exc_tb):
+            pass
+        def get(self, url, *args, **kwargs):
+            class RequestContext:
+                async def __aenter__(self):
+                    if "binance" in url:
+                        return mock_binance_resp
+                    # Simulate failure on domestic Iranian APIs
+                    err_resp = MagicMock()
+                    err_resp.status = 403
+                    return err_resp
+                async def __aexit__(self, exc_type, exc_val, exc_tb):
+                    pass
+            return RequestContext()
+
+    with patch("aiohttp.ClientSession", MockSession):
+        price, source = await fetch_ton_market_price(usdt_rate=100000)
+        assert price == 540000
+        assert "بایننس" in source

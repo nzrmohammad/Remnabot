@@ -4,7 +4,7 @@ import logging
 import math
 import re
 import time
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 from html import escape
 
 from aiogram import Bot, F, Router
@@ -15,12 +15,11 @@ from sqlalchemy import distinct, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from bot.config import get_settings
-from bot.db.models import Order, User, Wallet
+from bot.db.models import Order, Wallet
 from bot.db.repositories.admin_log_repo import AdminLogRepository
 from bot.db.repositories.app_setting_repo import AppSettingRepository
 from bot.db.repositories.coupon_repo import CouponRepository
 from bot.db.repositories.order_repo import OrderRepository
-from bot.db.repositories.service_repo import ServiceRepository
 from bot.db.repositories.user_repo import UserRepository
 from bot.db.repositories.wallet_repo import WalletRepository
 from bot.locales.texts import t
@@ -34,8 +33,6 @@ from bot.services.formatting import (
     country_flag,
     format_datetime,
     human_bytes,
-    now_tz,
-    start_of_today,
 )
 from bot.services.menu import delete_message_silently, render_menu
 from bot.services.remnawave import RemnawaveClient
@@ -75,6 +72,7 @@ SETTING_FIELDS = {
     "topic_crypto": ("settings_topic_crypto", True),
     "ton_wallet_address": ("settings_ton_wallet", False),
     "ton_rate_toman": ("settings_ton_rate", True),
+    "usdt_rate_toman": ("settings_usdt_rate", True),
 }
 
 SETTING_DESCRIPTIONS = {
@@ -92,6 +90,7 @@ SETTING_DESCRIPTIONS = {
         "topic_crypto": "شناسه تاپیک کریپتو در سوپرگروه مدیریت جهت ارسال استعلام نرخ نوبیتکس و لاگ پرداخت‌های تون.",
         "ton_wallet_address": "آدرس عمومی کیف پول تون (مانند UQ... یا EQ...) جهت دریافت وجه از کاربران.",
         "ton_rate_toman": "نرخ تبدیل هر یک تون به تومان جهت صدور فاکتور شارژ کیف پول.",
+        "usdt_rate_toman": "نرخ هر تتر (USDT) به تومان جهت تبدیل قیمت دلاری تون در صرافی‌های جهانی.",
         "trial_enabled": "فعال (1) یا غیرفعال (0) بودن امکان دریافت اکانت تست رایگان توسط کاربران جدید.",
         "trial_traffic_gb": "حجم ترافیک اختصاص داده شده به اکانت تست رایگان به گیگابایت.",
         "trial_duration_days": "مدت زمان اعتبار اکانت تست رایگان به روز.",
@@ -112,6 +111,7 @@ SETTING_DESCRIPTIONS = {
         "topic_crypto": "Telegram topic ID for crypto rates and TON payment logs.",
         "ton_wallet_address": "Public TON wallet address for receiving user payments.",
         "ton_rate_toman": "Conversion rate of 1 TON in Toman for invoices.",
+        "usdt_rate_toman": "Benchmark USDT rate in Toman for global crypto price conversion.",
         "trial_enabled": "Enable (1) or disable (0) free trial accounts.",
         "trial_traffic_gb": "Free trial traffic volume in GB.",
         "trial_duration_days": "Free trial duration in days.",
@@ -784,7 +784,6 @@ async def _render_sessions_explorer(
 
     total_online = data["total_users_online"]
     total_conns = data["total_connections"]
-    total_unique_ips = data["total_unique_ips"]
     multi_users = data["multi_ip_users"]
     nodes_scanned = data["nodes_scanned"]
     total_nodes = data["total_nodes"]
@@ -1565,7 +1564,7 @@ async def _render_settings(
     t_alerts = f"هشدار ({store.topic_alerts}) : Alerts" if store.topic_alerts is not None else "هشدار : — (Alerts)"
     t_crypto = f"کریپتو ({store.topic_crypto}) : Crypto" if store.topic_crypto is not None else "کریپتو : — (Crypto)"
 
-    crypto_status_fa = "✅ فعال" if store.crypto_enabled else "❌ غیرفعال"
+    crypto_status_fa = "✅" if store.crypto_enabled else "❌"
     rate_fa = f"{store.ton_rate_toman:,} تومان" if store.ton_rate_toman > 0 else "—"
 
     maint_badge = "✅" if maint_on else "❌"
@@ -1623,7 +1622,7 @@ async def _render_settings(
         alerts_en = f"   Alerts ({store.topic_alerts}) : Alerts" if store.topic_alerts is not None else "   Alerts : — (Alerts)"
         crypto_en = f"   Crypto ({store.topic_crypto}) : Crypto" if store.topic_crypto is not None else "   Crypto : — (Crypto)"
 
-        crypto_status_en = "✅ Active" if store.crypto_enabled else "❌ Inactive"
+        crypto_status_en = "✅" if store.crypto_enabled else "❌"
         rate_en = f"{store.ton_rate_toman:,} Toman" if store.ton_rate_toman > 0 else "—"
 
         lines = [
@@ -1719,7 +1718,7 @@ async def _render_crypto_settings(
     store = await get_store_settings(session)
     kb = InlineKeyboardBuilder()
 
-    status_badge = "✅ فعال" if store.crypto_enabled else "❌ غیرفعال"
+    status_badge = "✅" if store.crypto_enabled else "❌"
     rate_str = f"{store.ton_rate_toman:,} تومان" if store.ton_rate_toman > 0 else "— (تنظیم‌نشده)"
     wallet_str = store.ton_wallet_address or "— (تنظیم‌نشده)"
 
@@ -1730,6 +1729,7 @@ async def _render_crypto_settings(
         )
         kb.button(text="📬 تنظیم آدرس والت", callback_data="adm:set:ton_wallet_address")
         kb.button(text="💰 تنظیم نرخ تبدیل", callback_data="adm:set:ton_rate_toman")
+        kb.button(text="💵 تنظیم نرخ مبنای تتر", callback_data="adm:set:usdt_rate_toman")
         kb.button(text="📊 استعلام آنی نرخ ارز", callback_data="adm:crypto:nobitex_now")
     else:
         kb.button(
@@ -1738,22 +1738,25 @@ async def _render_crypto_settings(
         )
         kb.button(text="📬 Set Wallet Address", callback_data="adm:set:ton_wallet_address")
         kb.button(text="💰 Set Exchange Rate", callback_data="adm:set:ton_rate_toman")
+        kb.button(text="💵 Set USDT Rate", callback_data="adm:set:usdt_rate_toman")
         kb.button(text="📊 Check Market Price", callback_data="adm:crypto:nobitex_now")
 
     kb.button(text=t(lang, "btn_back"), callback_data="adm:settings")
-    kb.adjust(1, 2, 1, 1)
+    kb.adjust(1, 2, 1, 1, 1)
 
     lines = [
         "💎 <b>تنظیمات پرداخت کریپتو</b>\n" + SEPARATOR,
         f"⚡️ وضعیت درگاه : <b>{status_badge}</b>",
         f"📬 آدرس والت مقصد : <code>{escape(wallet_str)}</code>",
-        f"💰 نرخ تبدیل (۱ تون) : <b>{rate_str}</b>\n",
+        f"💰 نرخ تبدیل (۱ تون) : <b>{rate_str}</b>",
+        f"💵 نرخ مبنای تتر : <b>{store.usdt_rate_toman:,} تومان</b>\n",
         "💡 ربات روزانه ۴ بار (ساعت‌های ۱۰:۰۰، ۱۴:۰۰، ۱۸:۰۰ و ۲۲:۰۰) قیمت لحظه‌ای را در تاپیک کریپتو ارسال می‌کند تا با یک کلیک بتوانید نرخ فروشگاه را آپدیت فرمایید.",
     ] if lang == "fa" else [
         "💎 <b>Crypto Payment Settings</b>\n" + SEPARATOR,
         f"⚡️ Status : <b>{status_badge}</b>",
         f"📬 Wallet : <code>{escape(wallet_str)}</code>",
         f"💰 Rate : <b>{rate_str}</b>",
+        f"💵 USDT Rate : <b>{store.usdt_rate_toman:,} Toman</b>",
     ]
 
     await render_menu(bot, user, user_repo, "\n".join(lines), kb.as_markup())
@@ -1797,7 +1800,8 @@ async def crypto_nobitex_now(
         await call.answer(t("fa", "not_authorized"), show_alert=True)
         return
     from bot.services.crypto.nobitex import fetch_ton_market_price, format_rate_alert
-    price, source = await fetch_ton_market_price()
+    store = await get_store_settings(session)
+    price, source = await fetch_ton_market_price(usdt_rate=store.usdt_rate_toman)
     if price is None:
         await call.answer(
             "❌ خطا در استعلام از صرافی‌ها (احتمال مسدود بودن دسترسی از خارج کشور). لطفاً نرخ را به‌صورت دستی تنظیم فرمایید.",
@@ -1805,7 +1809,6 @@ async def crypto_nobitex_now(
         )
         return
 
-    store = await get_store_settings(session)
     src_title = source or "نوبیتکس"
     text, kb = format_rate_alert(price, store.ton_rate_toman, source_name=src_title)
     user = await user_repo.get_or_create(call.from_user.id, call.from_user.username)
@@ -2106,7 +2109,7 @@ async def settings_edit_start(
     await state.update_data(settings_field=field)
 
     cancel_target = (
-        "adm:settings:crypto" if ("ton_" in field or field == "crypto_enabled")
+        "adm:settings:crypto" if ("ton_" in field or field in ("crypto_enabled", "usdt_rate_toman"))
         else ("adm:settings:topics" if field.startswith("topic_")
         else ("adm:settings:trial" if "trial" in field else ("adm:settings:referral" if "referral" in field else "adm:settings")))
     )
@@ -2169,7 +2172,7 @@ async def settings_value_save(
     value = raw
     SKIP_WORDS = ("/skip", "-", "—")
     cancel_target = (
-        "adm:settings:crypto" if ("ton_" in field or field == "crypto_enabled")
+        "adm:settings:crypto" if ("ton_" in field or field in ("crypto_enabled", "usdt_rate_toman"))
         else ("adm:settings:topics" if field.startswith("topic_")
         else ("adm:settings:trial" if "trial" in field else ("adm:settings:referral" if "referral" in field else "adm:settings")))
     )
@@ -2253,7 +2256,7 @@ async def settings_value_save(
     await state.clear()
     if field.startswith("topic_"):
         await _render_topics_settings(bot, user, user_repo, session)
-    elif "ton_" in field or field == "crypto_enabled":
+    elif "ton_" in field or field in ("crypto_enabled", "usdt_rate_toman"):
         await _render_crypto_settings(bot, user, user_repo, session)
     elif "trial" in field:
         await _render_trial_settings(bot, user, user_repo, session)

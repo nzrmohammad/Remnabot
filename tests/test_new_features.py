@@ -417,8 +417,9 @@ async def test_renewal_traffic_rollover_vs_reset(async_session: AsyncSession):
 @pytest.mark.anyio
 async def test_insufficient_balance_allows_service_view_and_coupon_flow(async_session: AsyncSession):
     from unittest.mock import AsyncMock, MagicMock, patch
+
     from bot.db.models import Service, Wallet
-    from bot.handlers.service_request import service_view, _render_buy_confirm
+    from bot.handlers.service_request import _render_buy_confirm, service_view
 
     w = Wallet(telegram_id=99002, balance=0)
     async_session.add(w)

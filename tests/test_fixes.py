@@ -1074,7 +1074,7 @@ async def test_live_sessions_explorer_render():
 
 def test_account_button_and_view_remaining_traffic():
     """Verify remaining traffic calculation in account button and account detail text."""
-    from bot.handlers.account import _format_account_btn, _account_view_text
+    from bot.handlers.account import _account_view_text, _format_account_btn
 
     acc = {
         "id": 1,
@@ -1375,7 +1375,7 @@ async def test_store_settings_full_overview():
 @pytest.mark.anyio
 async def test_trial_and_referral_submenus():
     """Verify trial and referral settings submenus have clean titles, badges, and button labels."""
-    from bot.handlers.admin_ops import _render_trial_settings, _render_referral_settings
+    from bot.handlers.admin_ops import _render_referral_settings, _render_trial_settings
     from bot.services.app_settings import StoreSettings
 
     bot = MagicMock()
@@ -1558,8 +1558,8 @@ async def test_support_contact_validation_and_toggle():
 @pytest.mark.anyio
 async def test_service_detail_and_edit_layout():
     """Verify service detail has clean badges/buttons and edit menu has correct RTL layout."""
-    from bot.handlers.admin import _render_service_detail, edit_service_pick
     from bot.db.models import Service
+    from bot.handlers.admin import _render_service_detail, edit_service_pick
 
     bot = MagicMock()
     user = MagicMock(language="fa", telegram_id=999)
@@ -1622,13 +1622,13 @@ async def test_service_detail_and_edit_layout():
 @pytest.mark.anyio
 async def test_receipt_and_admin_order_notification_fixes():
     """Verify receipt labels, single emoji, bidi minus in discount, and detailed admin order log."""
+    from bot.db.models import Service
     from bot.handlers.service_request import (
-        _render_purchase_result,
         _notify_admin,
         _render_buy_confirm,
+        _render_purchase_result,
     )
     from bot.services.purchases import PurchaseResult
-    from bot.db.models import Service
 
     bot = MagicMock()
     bot.send_message = AsyncMock()

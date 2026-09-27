@@ -1,7 +1,8 @@
 """Repository for on-chain cryptocurrency (TON) invoices."""
 import random
 from datetime import datetime, timedelta, timezone
-from sqlalchemy import select, and_, update
+
+from sqlalchemy import and_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from bot.db.models import CryptoInvoice

@@ -47,6 +47,7 @@ async def _render_profile(
         t(lang, "profile_title"),
         SEPARATOR,
         f"👛 {t(lang, 'user_balance')} : <b>{fmt(wallet.balance)}</b> {t(lang, 'svc_currency')}",
+        f"🔐 {t(lang, 'profile_status')} : {'✅' if user.is_verified else '❌'}",
         f"🗂 {t(lang, 'user_panel_accounts')} : <b>{len(accounts)}</b>",
         f"🧾 {t(lang, 'orders_count')} : <b>{orders_count}</b>",
     ]

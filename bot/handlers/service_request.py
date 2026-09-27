@@ -778,7 +778,6 @@ async def buy_for_account(
     state_data = await state.get_data()
     coupon_code = state_data.get("coupon_code")
     discount_amount = state_data.get("discount_amount", 0) if coupon_code else 0
-    effective_price = max(0, service.price - discount_amount)
 
     wallet = await WalletRepository(session).get_wallet(user.telegram_id)
     username = escape(str(chosen.get("username", "—")))
@@ -1015,7 +1014,6 @@ async def buy_new_account(
     state_data = await state.get_data()
     coupon_code = state_data.get("coupon_code")
     discount_amount = state_data.get("discount_amount", 0) if coupon_code else 0
-    effective_price = max(0, service.price - discount_amount)
 
     wallet = await WalletRepository(session).get_wallet(user.telegram_id)
     await _render_buy_confirm(
@@ -1151,7 +1149,6 @@ async def service_buy(
     state_data = await state.get_data()
     coupon_code = state_data.get("coupon_code")
     discount_amount = state_data.get("discount_amount", 0) if coupon_code else 0
-    effective_price = max(0, service.price - discount_amount)
 
     wallet = await WalletRepository(session).get_wallet(user.telegram_id)
 
