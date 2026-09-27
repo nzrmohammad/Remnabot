@@ -366,12 +366,12 @@ Administrators can configure live store variables on the fly without editing `.e
 ### Dynamic Settings Matrix (`Admin Panel ➔ ⚙️ Store Settings`)
 - **Card-to-Card Configuration**: Update bank card numbers, cardholder names, and minimum deposit thresholds.
 - **💎 Direct Crypto (TON) Gateway**:
-  - Toggle crypto payment status (`⚡️ وضعیت درگاه : ✅ / ❌`).
+  - Toggle crypto payment status (`⚡️ Gateway Status : ✅ / ❌`).
   - Configure public TON wallet address (`UQ...` / `EQ...`).
-  - Configure manual fallback TON exchange rate (`قیمت تبدیل`).
-  - Set benchmark Tether price (`💵 نرخ مبنای تتر`) for resilient global calculation (`Binance TON/USD × USDT Rate`) with zero geo-blocking from foreign servers.
+  - Configure manual fallback TON exchange rate (`Conversion Rate`).
+  - Set benchmark Tether price (`💵 Baseline USDT Rate`) for resilient global calculation (`Binance TON/USD × USDT Rate`) with zero geo-blocking from foreign servers.
   - Optional Iranian forward proxy support (`IRAN_PROXY`) for domestic exchanges.
-  - Real-time instant price query (`🔄 استعلام آنی قیمت`) directly inside Telegram.
+  - Real-time instant price query (`🔄 Live Rate Query`) directly inside Telegram.
   - 1-click update buttons dispatched 4x daily to the dedicated Crypto forum topic.
 - **Free Trial Management**: Toggle 1-day free trial issuance (`✅` / `❌`), configure allowed quotas, and set trial duration.
 - **Affiliate & Referral Settings**: Enable or disable referral programs, set traffic reward percentages, and adjust qualification criteria.
