@@ -3,6 +3,7 @@
 Only the endpoints the bot currently needs are implemented.
 Extend this class as the project grows (subscriptions, traffic, etc.).
 """
+import asyncio
 import logging
 from typing import Any
 
@@ -411,6 +412,97 @@ class RemnawaveClient:
             except Exception:
                 pass
         return None
+
+    async def get_live_sessions_explorer(self) -> dict[str, Any]:
+        """Scan real-time active connections across all online nodes to match Sessions Explorer in Remnawave v3."""
+        nodes = await self.get_nodes() or []
+        online_nodes = [n for n in nodes if n.get("isConnected") and not n.get("isDisabled")]
+
+        async def scan_node(node: dict[str, Any]) -> dict[str, Any] | None:
+            uuid = node.get("uuid")
+            if not uuid:
+                return None
+            try:
+                resp = await self._client.post(f"/api/connections/by-node/{uuid}", timeout=8.0)
+                if resp.status_code not in (200, 201):
+                    return None
+                job_id = resp.json().get("response", {}).get("jobId")
+                if not job_id:
+                    return None
+                for _ in range(12):
+                    await asyncio.sleep(0.5)
+                    r_res = await self._client.get(f"/api/connections/by-node/{job_id}", timeout=8.0)
+                    if r_res.status_code == 200:
+                        data = r_res.json().get("response") or {}
+                        if data.get("isCompleted"):
+                            result = data.get("result") or {}
+                            if result.get("success"):
+                                return {
+                                    "nodeUuid": uuid,
+                                    "nodeName": node.get("name") or "Node",
+                                    "countryCode": node.get("countryCode"),
+                                    "users": result.get("users") or [],
+                                }
+                            return None
+            except Exception:
+                return None
+            return None
+
+        node_results = await asyncio.gather(*(scan_node(n) for n in online_nodes))
+        valid_nodes = [r for r in node_results if r is not None]
+
+        panel_users = await self.get_all_panel_users() or []
+        user_map = {u["id"]: u.get("username", f"User {u['id']}") for u in panel_users if "id" in u}
+
+        # Aggregate users across nodes
+        agg: dict[int, dict[str, Any]] = {}
+        total_connections = 0
+        all_unique_ips: set[str] = set()
+
+        for nr in valid_nodes:
+            n_name = nr["nodeName"]
+            c_code = nr.get("countryCode")
+            for u in nr["users"]:
+                uid = u.get("userId")
+                if uid is None:
+                    continue
+                if uid not in agg:
+                    agg[uid] = {
+                        "userId": uid,
+                        "username": user_map.get(uid, f"User {uid}"),
+                        "uniqueIps": set(),
+                        "totalConnections": 0,
+                        "nodeConnections": [],
+                    }
+                ips_list = [item.get("ip") for item in u.get("ips", []) if item.get("ip")]
+                agg[uid]["nodeConnections"].append({
+                    "nodeName": n_name,
+                    "countryCode": c_code,
+                    "ips": ips_list,
+                })
+                for ip in ips_list:
+                    agg[uid]["uniqueIps"].add(ip)
+                    all_unique_ips.add(ip)
+                agg[uid]["totalConnections"] += len(ips_list)
+                total_connections += len(ips_list)
+
+        all_sorted = sorted(
+            agg.values(),
+            key=lambda x: (len(x["uniqueIps"]), x["totalConnections"]),
+            reverse=True,
+        )
+
+        multi_ip_users = [u for u in all_sorted if len(u["uniqueIps"]) > 1]
+
+        return {
+            "total_users_online": len(agg),
+            "total_connections": total_connections,
+            "total_unique_ips": len(all_unique_ips),
+            "nodes_scanned": len(valid_nodes),
+            "total_nodes": len(online_nodes),
+            "multi_ip_users": multi_ip_users,
+            "all_online_users": all_sorted,
+        }
 
     async def get_multi_ip_sessions(self) -> dict[str, Any]:
         """Audit active HWID devices to detect users connected via multiple concurrent/distinct IPs."""

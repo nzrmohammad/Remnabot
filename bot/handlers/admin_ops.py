@@ -487,7 +487,7 @@ async def _render_reports_hub(
         kb.button(text="🌐 SRH Inspector", callback_data="adm:rep:srh")
         kb.button(text="🔍 HWID Inspector", callback_data="adm:rep:hwid")
         # Row 2: Sessions Explorer (Full width)
-        kb.button(text="⚡ Sessions Explorer (کاوشگر نشست‌ها)", callback_data="adm:rep:sessions:0")
+        kb.button(text="⚡ Sessions Explorer", callback_data="adm:rep:sessions:0")
     else:
         kb.button(text="🔍 HWID Inspector", callback_data="adm:rep:hwid")
         kb.button(text="🌐 SRH Inspector", callback_data="adm:rep:srh")
@@ -568,7 +568,7 @@ async def _render_hwid_inspector(
             else:
                 emoji = "📱"
 
-            lines.append(f"{emoji} <b>{escape(str(plat_name))}</b>\n<code>{plat_count}</code> ({pct:.1f}%)")
+            lines.append(f"{emoji} <b>{escape(str(plat_name))}</b> : <code>{plat_count}</code> ({pct:.1f}%)")
             by_app = p.get("byApp") or []
             if by_app:
                 for a in by_app:
@@ -603,7 +603,7 @@ async def _render_srh_inspector(
         SEPARATOR,
         f"📥 <b>مجموع درخواست‌های ثبت‌شده:</b> <code>{fmt(total_app_reqs)}</code>",
         "",
-        "📱 <b>App distribution (توزیع نرم‌افزارها):</b>",
+        "📱 <b>توزیع نرم‌افزارها:</b>" if lang == "fa" else "📱 <b>App Distribution:</b>",
     ]
 
     if by_parsed_app:
@@ -618,24 +618,32 @@ async def _render_srh_inspector(
     lines.append("")
 
     if hourly_stats:
-        lines.append("⏱ <b>Hourly request statistics (آمار ساعتی درخواست‌ها):</b>")
+        lines.append("⏱ <b>آمار ساعتی درخواست‌ها:</b>" if lang == "fa" else "⏱ <b>Hourly Request Statistics:</b>")
         total_24h = sum(h.get("requestCount", 0) for h in hourly_stats)
         peak_entry = max(hourly_stats, key=lambda x: x.get("requestCount", 0))
         peak_cnt = peak_entry.get("requestCount", 0)
-        peak_dt = str(peak_entry.get("dateTime", ""))
-        peak_hour = peak_dt[11:16] if len(peak_dt) >= 16 else peak_dt
 
-        lines.append(f"📈 <b>مجموع کل ثبت‌شده:</b> <code>{total_24h}</code> درخواست")
-        lines.append(f"⚡ <b>اوج ترافیک ساعتی (Peak):</b> <code>{peak_cnt}</code> درخواست (ساعت {peak_hour} UTC)")
+        lines.append(
+            f"📈 <b>مجموع کل ثبت‌شده:</b> <code>{total_24h}</code> درخواست"
+            if lang == "fa"
+            else f"📈 <b>Total 24h Requests:</b> <code>{total_24h}</code>"
+        )
+        lines.append(
+            f"⚡ <b>اوج ترافیک ساعتی (Peak):</b> <code>{peak_cnt}</code> درخواست"
+            if lang == "fa"
+            else f"⚡ <b>Peak Hourly Traffic:</b> <code>{peak_cnt}</code> requests"
+        )
         lines.append("")
-        lines.append("📊 <b>ساعات اخیر:</b>")
+        lines.append("📊 <b>ساعات اخیر:</b>" if lang == "fa" else "📊 <b>Recent Hours:</b>")
         for h in hourly_stats[-6:]:
             dt_raw = str(h.get("dateTime", ""))
             hour_str = dt_raw[11:16] if len(dt_raw) >= 16 else dt_raw
             cnt = h.get("requestCount", 0)
-            bar_len = min(cnt, 12)
-            bar = "▮" * bar_len if bar_len > 0 else "▫️"
-            lines.append(f"  • {hour_str} : <code>{cnt}</code> {bar}")
+            lines.append(
+                f"  • {hour_str} : <code>{cnt}</code> درخواست"
+                if lang == "fa"
+                else f"  • {hour_str} : <code>{cnt}</code> requests"
+            )
 
     kb = InlineKeyboardBuilder()
     kb.button(text="🔄 بروزرسانی", callback_data="adm:rep:srh")
@@ -653,74 +661,60 @@ async def _render_sessions_explorer(
     page: int = 0,
 ) -> None:
     lang = user.language or "fa"
-    data = await remnawave.get_multi_ip_sessions()
+    data = await remnawave.get_live_sessions_explorer()
 
-    total_users = data["total_users_with_devices"]
-    total_devices = data["total_devices"]
-    multi_count = data["multi_ip_users_count"]
+    total_online = data["total_users_online"]
+    total_conns = data["total_connections"]
+    total_unique_ips = data["total_unique_ips"]
     multi_users = data["multi_ip_users"]
+    nodes_scanned = data["nodes_scanned"]
+    total_nodes = data["total_nodes"]
 
-    pct = (multi_count / total_users * 100) if total_users else 0
+    lines = [
+        "⚡ <b>Sessions Explorer</b>",
+        SEPARATOR,
+        f"🟢 <b>کاربران آنلاین:</b> <code>{total_online}</code>"
+        if lang == "fa"
+        else f"🟢 <b>Online Users:</b> <code>{total_online}</code>",
+        f"🌐 <b>کل اتصالات فعال:</b> <code>{total_conns}</code>"
+        if lang == "fa"
+        else f"🌐 <b>Total Active Connections:</b> <code>{total_conns}</code>",
+        f"⚠️ <b>کاربران با چند IP:</b> <code>{len(multi_users)}</code>"
+        if lang == "fa"
+        else f"⚠️ <b>Multi-IP Users:</b> <code>{len(multi_users)}</code>",
+        f"📡 <b>نودهای اسکن‌شده:</b> <code>{nodes_scanned}</code> از <code>{total_nodes}</code> نود"
+        if lang == "fa"
+        else f"📡 <b>Nodes Scanned:</b> <code>{nodes_scanned}</code> of <code>{total_nodes}</code>",
+        "",
+    ]
 
     PER_PAGE = 5
     total_pages = max(1, math.ceil(len(multi_users) / PER_PAGE))
     page = max(0, min(page, total_pages - 1))
-
-    start_idx = page * PER_PAGE
-    end_idx = start_idx + PER_PAGE
-    current_batch = multi_users[start_idx:end_idx]
-
-    lines = [
-        "⚡ <b>Sessions Explorer (کاوشگر نشست‌ها و چند IP)</b>" if lang == "fa" else "⚡ <b>Sessions Explorer</b>",
-        SEPARATOR,
-        f"👥 <b>کل کاربران دارای دستگاه فعال:</b> <code>{total_users}</code>"
-        if lang == "fa"
-        else f"👥 <b>Total Users with Active Devices:</b> <code>{total_users}</code>",
-        f"📱 <b>کل دستگاه‌های ثبت‌شده:</b> <code>{total_devices}</code>"
-        if lang == "fa"
-        else f"📱 <b>Total Registered Devices:</b> <code>{total_devices}</code>",
-        f"⚠️ <b>کاربران متصل با چند IP:</b> <code>{multi_count}</code> ({pct:.1f}%)"
-        if lang == "fa"
-        else f"⚠️ <b>Multi-IP Connected Users:</b> <code>{multi_count}</code> ({pct:.1f}%)",
-        "",
-    ]
+    current_batch = multi_users[page * PER_PAGE : (page + 1) * PER_PAGE]
 
     if current_batch:
         lines.append(
-            f"📋 <b>فهرست کاربران با چند IP (صفحه {page + 1} از {total_pages}):</b>"
+            f"📋 <b>کاربران متصل با بیش از یک IP (صفحه {page + 1} از {total_pages}):</b>"
             if lang == "fa"
             else f"📋 <b>Multi-IP Users List (Page {page + 1}/{total_pages}):</b>"
         )
         lines.append("")
-        for idx, u in enumerate(current_batch, start=start_idx + 1):
+        for idx, u in enumerate(current_batch, start=page * PER_PAGE + 1):
             uname = escape(str(u["username"]))
-            ip_cnt = u["ip_count"]
-            dev_cnt = u["device_count"]
-            lines.append(f" {idx}) 👤 <b>{uname}</b> — <code>{ip_cnt} IP مختلف</code> (دستگاه‌ها: {dev_cnt})")
-            for d in u["devices"]:
-                plat = d.get("platform") or "Device"
-                model = d.get("deviceModel") or d.get("model") or "—"
-                ip = d.get("requestIp") or "—"
-                p_lower = str(plat).lower()
-                if "android" in p_lower:
-                    d_emoji = "🤖"
-                elif "ios" in p_lower or "iphone" in p_lower or "ipad" in p_lower:
-                    d_emoji = "🍏"
-                elif "windows" in p_lower:
-                    d_emoji = "🪟"
-                elif "mac" in p_lower:
-                    d_emoji = "💻"
-                elif "linux" in p_lower:
-                    d_emoji = "🐧"
-                else:
-                    d_emoji = "📱"
-                lines.append(f"     ▫️ {d_emoji} {escape(str(model))} : <code>{escape(str(ip))}</code>")
+            ip_cnt = len(u["uniqueIps"])
+            lines.append(f" {idx}) 👤 <b>{uname}</b> — <code>{ip_cnt} IP</code>")
+            for nc in u["nodeConnections"]:
+                flag = country_flag(nc.get("countryCode"))
+                n_name = escape(str(nc.get("nodeName") or "Node"))
+                for ip in nc.get("ips", []):
+                    lines.append(f"     ▫️ {flag} {n_name} : <code>{escape(str(ip))}</code>")
             lines.append("")
     else:
         lines.append(
-            "✅ <i>هیچ کاربری با چند IP شناسایی نشد (تمامی اتصالات تک-IP هستند).</i>"
+            "✅ <i>در حال حاضر هیچ کاربری با بیش از یک IP متصل نیست (تمامی اتصالات تک-IP هستند).</i>"
             if lang == "fa"
-            else "✅ <i>No multi-IP users detected.</i>"
+            else "✅ <i>No multi-IP users detected (all users have a single IP).</i>"
         )
 
     kb = InlineKeyboardBuilder()

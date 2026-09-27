@@ -988,7 +988,7 @@ async def test_srh_inspector_rendering():
         assert "SRH Inspector" in text
         assert "Streisand" in text
         assert "Happ" in text
-        assert "Hourly request statistics" in text
+        assert "آمار ساعتی درخواست‌ها" in text
         assert "Peak" in text
         assert "20" in text
 
@@ -1022,6 +1022,54 @@ async def test_multi_ip_sessions_audit():
     assert res["multi_ip_users"][0]["username"] == "alice"
     assert res["multi_ip_users"][0]["ip_count"] == 2
     assert set(res["multi_ip_users"][0]["ips"]) == {"1.1.1.1", "2.2.2.2"}
+
+
+@pytest.mark.anyio
+async def test_live_sessions_explorer_render():
+    """Verify Sessions Explorer renders title without parentheses, shows multi-IP users without extra text."""
+    from bot.handlers.admin_ops import _render_sessions_explorer
+
+    bot = MagicMock()
+    user = MagicMock(language="fa", telegram_id=123)
+    user_repo = MagicMock()
+    remnawave = MagicMock()
+    remnawave.get_live_sessions_explorer = AsyncMock(return_value={
+        "total_users_online": 24,
+        "total_connections": 25,
+        "total_unique_ips": 8,
+        "nodes_scanned": 5,
+        "total_nodes": 5,
+        "multi_ip_users": [
+            {
+                "userId": 2,
+                "username": "Mohammad",
+                "uniqueIps": {"172.18.0.5", "151.233.64.90"},
+                "totalConnections": 2,
+                "nodeConnections": [
+                    {"nodeName": "Netherlands", "countryCode": "NL", "ips": ["172.18.0.5"]},
+                    {"nodeName": "Germany", "countryCode": "DE", "ips": ["151.233.64.90"]},
+                ],
+            }
+        ],
+        "all_online_users": [],
+    })
+
+    with patch("bot.handlers.admin_ops.render_menu", AsyncMock()) as mock_render:
+        await _render_sessions_explorer(bot, user, user_repo, remnawave, page=0)
+        mock_render.assert_awaited_once()
+        text = mock_render.call_args[0][3]
+
+        assert "⚡ <b>Sessions Explorer</b>" in text
+        assert "(کاوشگر نشست‌ها و چند IP)" not in text
+        assert "Mohammad" in text
+        assert "2 IP" in text
+        assert "دستگاه‌ها" not in text
+        assert "مختلف" not in text
+        assert "Netherlands" in text
+        assert "172.18.0.5" in text
+        assert "Germany" in text
+        assert "151.233.64.90" in text
+
 
 
 
