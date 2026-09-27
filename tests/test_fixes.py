@@ -886,6 +886,144 @@ async def test_admin_orders_list_filtered():
         assert "menu:admin" in all_cbs
 
 
+@pytest.mark.anyio
+async def test_reports_hub_layout():
+    """Verify Reports hub has HWID, SRH, and Sessions, and has removed Orders and System Info."""
+    from bot.handlers.admin_ops import _render_reports_hub
+
+    bot = MagicMock()
+    user = MagicMock(language="fa", telegram_id=123)
+    user_repo = MagicMock()
+    session = AsyncMock()
+    remnawave = MagicMock()
+    remnawave.get_all_panel_users = AsyncMock(return_value=[{"id": 1, "status": "ACTIVE"}])
+    remnawave.get_nodes = AsyncMock(return_value=[{"id": 1, "isConnected": True}])
+
+    with patch("bot.handlers.admin_ops.render_menu", AsyncMock()) as mock_render:
+        await _render_reports_hub(bot, user, user_repo, session, remnawave)
+        mock_render.assert_awaited_once()
+        markup = mock_render.call_args[0][4]
+        all_cbs = [btn.callback_data for row in markup.inline_keyboard for btn in row]
+
+        assert "adm:rep:hwid" in all_cbs
+        assert "adm:rep:srh" in all_cbs
+        assert "adm:rep:sessions:0" in all_cbs
+        assert "menu:admin" in all_cbs
+
+        # Must NOT contain orders or system info
+        assert "adm:orders:all:0" not in all_cbs
+        assert "adm:rep:sysinfo" not in all_cbs
+
+
+@pytest.mark.anyio
+async def test_hwid_inspector_rendering():
+    """Verify HWID inspector renders unique devices, total HWID, avg per user, platforms and apps."""
+    from bot.handlers.admin_ops import _render_hwid_inspector
+
+    bot = MagicMock()
+    user = MagicMock(language="fa", telegram_id=123)
+    user_repo = MagicMock()
+    remnawave = MagicMock()
+    remnawave.get_hwid_stats = AsyncMock(return_value={
+        "stats": {
+            "totalUniqueDevices": 68,
+            "totalHwidDevices": 75,
+            "averageHwidDevicesPerUser": 1.88,
+        },
+        "byPlatform": [
+            {
+                "platform": "Android",
+                "count": 34,
+                "byApp": [{"app": "Happ", "count": 28}, {"app": "v2box", "count": 4}],
+            },
+            {
+                "platform": "iOS",
+                "count": 33,
+                "byApp": [{"app": "Happ", "count": 12}, {"app": "V2Box 10.1.7", "count": 9}],
+            },
+        ],
+    })
+
+    with patch("bot.handlers.admin_ops.render_menu", AsyncMock()) as mock_render:
+        await _render_hwid_inspector(bot, user, user_repo, remnawave)
+        mock_render.assert_awaited_once()
+        text = mock_render.call_args[0][3]
+
+        assert "HWID Inspector" in text
+        assert "68" in text
+        assert "75" in text
+        assert "2 (1.88)" in text
+        assert "Android" in text
+        assert "Happ" in text
+        assert "v2box" in text
+        assert "iOS" in text
+        assert "V2Box 10.1.7" in text
+
+
+@pytest.mark.anyio
+async def test_srh_inspector_rendering():
+    """Verify SRH inspector renders app distribution and hourly request stats."""
+    from bot.handlers.admin_ops import _render_srh_inspector
+
+    bot = MagicMock()
+    user = MagicMock(language="fa", telegram_id=123)
+    user_repo = MagicMock()
+    remnawave = MagicMock()
+    remnawave.get_srh_stats = AsyncMock(return_value={
+        "byParsedApp": [
+            {"app": "Streisand", "count": 381},
+            {"app": "Happ", "count": 381},
+        ],
+        "hourlyRequestStats": [
+            {"dateTime": "2026-09-27T10:00:00.000Z", "requestCount": 20},
+            {"dateTime": "2026-09-27T11:00:00.000Z", "requestCount": 15},
+        ],
+    })
+
+    with patch("bot.handlers.admin_ops.render_menu", AsyncMock()) as mock_render:
+        await _render_srh_inspector(bot, user, user_repo, remnawave)
+        mock_render.assert_awaited_once()
+        text = mock_render.call_args[0][3]
+
+        assert "SRH Inspector" in text
+        assert "Streisand" in text
+        assert "Happ" in text
+        assert "Hourly request statistics" in text
+        assert "Peak" in text
+        assert "20" in text
+
+
+@pytest.mark.anyio
+async def test_multi_ip_sessions_audit():
+    """Verify get_multi_ip_sessions groups devices by user and isolates multi-IP users."""
+    from bot.services.remnawave import RemnawaveClient
+
+    client = RemnawaveClient("http://fake", "fake_token")
+    mock_devices = [
+        {"userId": 1, "requestIp": "1.1.1.1", "deviceModel": "Pixel", "platform": "Android"},
+        {"userId": 1, "requestIp": "2.2.2.2", "deviceModel": "iPhone", "platform": "iOS"},
+        {"userId": 2, "requestIp": "3.3.3.3", "deviceModel": "PC", "platform": "Windows"},
+        {"userId": 2, "requestIp": "3.3.3.3", "deviceModel": "PC2", "platform": "Windows"},
+    ]
+    mock_users = [
+        {"id": 1, "username": "alice"},
+        {"id": 2, "username": "bob"},
+    ]
+
+    client.get_all_hwid_devices = AsyncMock(return_value=mock_devices)
+    client.get_all_panel_users = AsyncMock(return_value=mock_users)
+
+    res = await client.get_multi_ip_sessions()
+    await client.close()
+
+    assert res["total_users_with_devices"] == 2
+    assert res["total_devices"] == 4
+    assert res["multi_ip_users_count"] == 1
+    assert res["multi_ip_users"][0]["username"] == "alice"
+    assert res["multi_ip_users"][0]["ip_count"] == 2
+    assert set(res["multi_ip_users"][0]["ips"]) == {"1.1.1.1", "2.2.2.2"}
+
+
 
 
 

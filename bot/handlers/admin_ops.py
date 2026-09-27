@@ -1,6 +1,7 @@
 """Admin panel: dashboard, sales report + refunds, top-up approvals,
 broadcast, store settings (incl. maintenance mode), action log."""
 import logging
+import math
 import re
 from datetime import datetime, timedelta, timezone
 from html import escape
@@ -456,16 +457,6 @@ async def _render_reports_hub(
     remnawave: RemnawaveClient,
 ) -> None:
     lang = user.language or "fa"
-    now = now_tz(get_settings().TIMEZONE)
-    today_start = now.replace(hour=0, minute=0, second=0, microsecond=0).astimezone(timezone.utc)
-
-    # Orders & Wallet Stats
-    order_repo = OrderRepository(session)
-    orders_count = await order_repo.count(since=today_start)
-    revenue_today = await order_repo.total_revenue(since=today_start)
-
-    wallet_repo = WalletRepository(session)
-    topup_count, topup_amount = await wallet_repo.topup_stats(since=today_start)
 
     # Panel users & Nodes count
     panel_users = await remnawave.get_all_panel_users() or []
@@ -476,10 +467,13 @@ async def _render_reports_hub(
     online_nodes = sum(1 for n in nodes if n.get("isConnected") or str(n.get("status", "")).upper() == "CONNECTED")
 
     lines = [
-        f"📊 <b>{t(lang, 'reports_hub_title')}</b>\n{SEPARATOR}",
-        f"💰 <b>فروش و تراکنش‌های امروز:</b> {orders_count + topup_count} مورد ({fmt(revenue_today + topup_amount)} تومان)",
-        f"👥 <b>کاربران پنل:</b> {active_users} فعال / {total_users} کل",
-        f"📡 <b>وضعیت نودها:</b> {online_nodes} متصل از {len(nodes)} نود",
+        f"{t(lang, 'reports_hub_title')}\n{SEPARATOR}",
+        f"👥 <b>کاربران پنل:</b> {active_users} فعال / {total_users} کل"
+        if lang == "fa"
+        else f"👥 <b>Panel Users:</b> {active_users} active / {total_users} total",
+        f"📡 <b>وضعیت نودها:</b> {online_nodes} متصل از {len(nodes)} نود"
+        if lang == "fa"
+        else f"📡 <b>Nodes Status:</b> {online_nodes} connected of {len(nodes)}",
         "",
         "جهت بررسی دقیق هر بخش، گزینه مورد نظر را انتخاب کنید:"
         if lang == "fa"
@@ -488,23 +482,19 @@ async def _render_reports_hub(
 
     kb = InlineKeyboardBuilder()
     if lang == "fa":
-        # Row 1: Orders (Full width)
-        kb.button(text="🧾 سفارشات و تراکنش‌ها", callback_data="adm:orders:all:0")
-        # Row 2: Right = HWID Inspector, Left = SRH Inspector
+        # Persian RTL: first added button appears on LEFT, second on RIGHT
+        # Row 1: Left = SRH Inspector, Right = HWID Inspector
         kb.button(text="🌐 SRH Inspector", callback_data="adm:rep:srh")
         kb.button(text="🔍 HWID Inspector", callback_data="adm:rep:hwid")
-        # Row 3: Right = Sessions Explorer, Left = System Info
-        kb.button(text="💻 System Info", callback_data="adm:rep:sysinfo")
-        kb.button(text="⚡ Sessions Explorer", callback_data="adm:rep:sessions")
+        # Row 2: Sessions Explorer (Full width)
+        kb.button(text="⚡ Sessions Explorer (کاوشگر نشست‌ها)", callback_data="adm:rep:sessions:0")
     else:
-        kb.button(text="🧾 Orders & Transactions", callback_data="adm:orders:all:0")
         kb.button(text="🔍 HWID Inspector", callback_data="adm:rep:hwid")
         kb.button(text="🌐 SRH Inspector", callback_data="adm:rep:srh")
-        kb.button(text="⚡ Sessions Explorer", callback_data="adm:rep:sessions")
-        kb.button(text="💻 System Info", callback_data="adm:rep:sysinfo")
+        kb.button(text="⚡ Sessions Explorer", callback_data="adm:rep:sessions:0")
 
     kb.button(text=t(lang, "btn_back"), callback_data="menu:admin")
-    kb.adjust(1, 2, 2, 1)
+    kb.adjust(2, 1, 1)
 
     await render_menu(bot, user, user_repo, "\n".join(lines), kb.as_markup())
 
@@ -513,36 +503,81 @@ async def _render_hwid_inspector(
     bot: Bot, user, user_repo: UserRepository, remnawave: RemnawaveClient
 ) -> None:
     lang = user.language or "fa"
-    stats = await remnawave.get_hwid_stats() or {}
-    devices = await remnawave.get_all_hwid_devices(size=30) or []
+    stats_data = await remnawave.get_hwid_stats() or {}
+
+    stats = stats_data.get("stats") or {}
+    total_unique = stats.get("totalUniqueDevices") or stats_data.get("totalUniqueDevices") or 0
+    total_hwid = stats.get("totalHwidDevices") or stats_data.get("totalHwidDevices") or 0
+    avg_per_user = stats.get("averageHwidDevicesPerUser") or stats_data.get("averageHwidDevicesPerUser") or 0
+    by_platform = stats_data.get("byPlatform") or []
+
+    # If byPlatform not in stats_data, fallback to querying devices
+    if not by_platform:
+        devices = await remnawave.get_all_hwid_devices(size=500) or []
+        if devices:
+            total_hwid = total_hwid or len(devices)
+            plat_map: dict[str, list] = {}
+            for d in devices:
+                p = d.get("platform") or "Other"
+                plat_map.setdefault(p, []).append(d)
+            by_platform = []
+            for p, d_list in plat_map.items():
+                app_map: dict[str, int] = {}
+                for d in d_list:
+                    app = d.get("deviceModel") or d.get("userAgent") or "App"
+                    app_map[app] = app_map.get(app, 0) + 1
+                by_platform.append({
+                    "platform": p,
+                    "count": len(d_list),
+                    "byApp": [{"app": a, "count": c} for a, c in app_map.items()],
+                })
+
+    if isinstance(avg_per_user, (int, float)):
+        avg_str = f"{round(avg_per_user)}" if avg_per_user == round(avg_per_user) else f"{round(avg_per_user)} ({avg_per_user:.2f})"
+    else:
+        avg_str = str(avg_per_user)
 
     lines = [
-        "🔍 <b>HWID Inspector (بازرس سخت‌افزار)</b>" if lang == "fa" else "🔍 <b>HWID Inspector</b>",
+        "🔍 <b>HWID Inspector (آمار دستگاه‌ها)</b>" if lang == "fa" else "🔍 <b>HWID Inspector</b>",
         SEPARATOR,
+        f"📱 <b>Total unique devices:</b> <code>{total_unique}</code>",
+        f"💻 <b>Total HWID devices:</b> <code>{total_hwid}</code>",
+        f"⚖️ <b>Avg devices per user:</b> <code>{avg_str}</code>",
+        "",
+        "📊 <b>Platform distribution:</b>",
+        "",
     ]
 
-    total_devs = stats.get("total") or stats.get("totalDevices") or len(devices)
-    android_count = stats.get("android") or sum(1 for d in devices if str(d.get("platform", "")).lower() == "android")
-    ios_count = stats.get("ios") or sum(1 for d in devices if str(d.get("platform", "")).lower() in ("ios", "iphone", "ipad"))
-    win_count = stats.get("windows") or sum(1 for d in devices if str(d.get("platform", "")).lower() == "windows")
-    mac_count = stats.get("macos") or sum(1 for d in devices if str(d.get("platform", "")).lower() in ("macos", "darwin"))
-    linux_count = stats.get("linux") or sum(1 for d in devices if str(d.get("platform", "")).lower() == "linux")
+    if by_platform:
+        for p in by_platform:
+            plat_name = p.get("platform") or "Other"
+            plat_count = p.get("count") or 0
+            pct = (plat_count / total_hwid * 100) if total_hwid else 0
 
-    lines.append(f"📱 <b>کل دستگاه‌های ثبت‌شده:</b> <code>{total_devs}</code> دستگاه")
-    lines.append(f"🤖 اندروید: <b>{android_count}</b> | 🍏 آیفون: <b>{ios_count}</b>")
-    lines.append(f"🖥 ویندوز: <b>{win_count}</b> | 💻 مک: <b>{mac_count}</b> | 🐧 لینوکس: <b>{linux_count}</b>")
-    lines.append("")
-    lines.append("📋 <b>آخرین دستگاه‌های فعال ثبت‌شده:</b>")
+            p_lower = str(plat_name).lower()
+            if "android" in p_lower:
+                emoji = "🤖"
+            elif "ios" in p_lower or "iphone" in p_lower or "ipad" in p_lower or "apple" in p_lower:
+                emoji = "🍏"
+            elif "windows" in p_lower:
+                emoji = "🪟"
+            elif "mac" in p_lower:
+                emoji = "💻"
+            elif "linux" in p_lower:
+                emoji = "🐧"
+            else:
+                emoji = "📱"
 
-    if not devices:
-        lines.append("<i>هیچ دستگاهی در حافظه ثبت نشده است.</i>")
+            lines.append(f"{emoji} <b>{escape(str(plat_name))}</b>\n<code>{plat_count}</code> ({pct:.1f}%)")
+            by_app = p.get("byApp") or []
+            if by_app:
+                for a in by_app:
+                    app_name = a.get("app") or "Unknown"
+                    app_count = a.get("count") or 0
+                    lines.append(f"  ▫️ {escape(str(app_name))}: <code>{app_count}</code>")
+            lines.append("")
     else:
-        for idx, d in enumerate(devices[:10], start=1):
-            plat = d.get("platform") or "Device"
-            model = d.get("deviceModel") or d.get("model") or "—"
-            ip = d.get("requestIp") or d.get("ip") or "—"
-            emoji = PLATFORM_EMOJI.get(str(plat).lower(), "📱")
-            lines.append(f" {idx}) {emoji} <b>{escape(str(plat))}</b> ({escape(str(model))}) — <code>{escape(str(ip))}</code>")
+        lines.append("<i>هیچ اطلاعاتی از دستگاه‌ها یافت نشد.</i>" if lang == "fa" else "<i>No device data found.</i>")
 
     kb = InlineKeyboardBuilder()
     kb.button(text="🔄 بروزرسانی", callback_data="adm:rep:hwid")
@@ -558,28 +593,49 @@ async def _render_srh_inspector(
     lang = user.language or "fa"
     srh_data = await remnawave.get_srh_stats() or {}
 
+    by_parsed_app = srh_data.get("byParsedApp") or []
+    hourly_stats = srh_data.get("hourlyRequestStats") or []
+
+    total_app_reqs = sum(item.get("count", 0) for item in by_parsed_app)
+
     lines = [
-        "🌐 <b>SRH Inspector (بازرس درخواست‌های اشتراک)</b>" if lang == "fa" else "🌐 <b>SRH Inspector</b>",
+        "🌐 <b>SRH Inspector (درخواست‌های سابسکریپشن)</b>" if lang == "fa" else "🌐 <b>SRH Inspector</b>",
         SEPARATOR,
+        f"📥 <b>مجموع درخواست‌های ثبت‌شده:</b> <code>{fmt(total_app_reqs)}</code>",
+        "",
+        "📱 <b>App distribution (توزیع نرم‌افزارها):</b>",
     ]
 
-    total_reqs = srh_data.get("total") or srh_data.get("count") or "—"
-    lines.append(f"📥 <b>کل درخواست‌های دریافت لینک سابسکریپشن:</b> <code>{total_reqs}</code>")
+    if by_parsed_app:
+        for item in by_parsed_app:
+            app_name = item.get("app") or "Unknown"
+            count = item.get("count") or 0
+            pct = (count / total_app_reqs * 100) if total_app_reqs else 0
+            lines.append(f"  ▫️ <b>{escape(str(app_name))}</b>: <code>{count}</code> ({pct:.1f}%)")
+    else:
+        lines.append("  <i>آماری از توزیع کلاینت‌ها یافت نشد.</i>" if lang == "fa" else "  <i>No app distribution data.</i>")
+
     lines.append("")
 
-    requests_list = srh_data.get("requests") or srh_data.get("data") if isinstance(srh_data, dict) else []
-    if isinstance(srh_data, list):
-        requests_list = srh_data
+    if hourly_stats:
+        lines.append("⏱ <b>Hourly request statistics (آمار ساعتی درخواست‌ها):</b>")
+        total_24h = sum(h.get("requestCount", 0) for h in hourly_stats)
+        peak_entry = max(hourly_stats, key=lambda x: x.get("requestCount", 0))
+        peak_cnt = peak_entry.get("requestCount", 0)
+        peak_dt = str(peak_entry.get("dateTime", ""))
+        peak_hour = peak_dt[11:16] if len(peak_dt) >= 16 else peak_dt
 
-    if requests_list:
-        lines.append("📊 <b>آخرین درخواست‌های سابسکریپشن دریافتی:</b>")
-        for idx, r in enumerate(requests_list[:10], start=1):
-            ua = r.get("userAgent") or r.get("client") or "Unknown App"
-            ip = r.get("ip") or r.get("clientIp") or "—"
-            time_str = str(r.get("createdAt") or r.get("time") or "")[-8:]
-            lines.append(f" {idx}) 📲 <b>{escape(str(ua)[:22])}</b> — <code>{escape(str(ip))}</code> ({time_str})")
-    else:
-        lines.append("ℹ️ این ماژول تمامی درخواست‌های دانلود و آپدیت لینک سابسکریپشن توسط کلاینت‌ها (v2rayNG, Happ, Streisand) را همراه با IP و شناسه نرم‌افزار مانیتور می‌کند.")
+        lines.append(f"📈 <b>مجموع کل ثبت‌شده:</b> <code>{total_24h}</code> درخواست")
+        lines.append(f"⚡ <b>اوج ترافیک ساعتی (Peak):</b> <code>{peak_cnt}</code> درخواست (ساعت {peak_hour} UTC)")
+        lines.append("")
+        lines.append("📊 <b>ساعات اخیر:</b>")
+        for h in hourly_stats[-6:]:
+            dt_raw = str(h.get("dateTime", ""))
+            hour_str = dt_raw[11:16] if len(dt_raw) >= 16 else dt_raw
+            cnt = h.get("requestCount", 0)
+            bar_len = min(cnt, 12)
+            bar = "▮" * bar_len if bar_len > 0 else "▫️"
+            lines.append(f"  • {hour_str} : <code>{cnt}</code> {bar}")
 
     kb = InlineKeyboardBuilder()
     kb.button(text="🔄 بروزرسانی", callback_data="adm:rep:srh")
@@ -590,100 +646,106 @@ async def _render_srh_inspector(
 
 
 async def _render_sessions_explorer(
-    bot: Bot, user, user_repo: UserRepository, remnawave: RemnawaveClient
+    bot: Bot,
+    user,
+    user_repo: UserRepository,
+    remnawave: RemnawaveClient,
+    page: int = 0,
 ) -> None:
     lang = user.language or "fa"
-    sessions = await remnawave.get_active_sessions() or []
-    nodes = await remnawave.get_nodes() or []
+    data = await remnawave.get_multi_ip_sessions()
+
+    total_users = data["total_users_with_devices"]
+    total_devices = data["total_devices"]
+    multi_count = data["multi_ip_users_count"]
+    multi_users = data["multi_ip_users"]
+
+    pct = (multi_count / total_users * 100) if total_users else 0
+
+    PER_PAGE = 5
+    total_pages = max(1, math.ceil(len(multi_users) / PER_PAGE))
+    page = max(0, min(page, total_pages - 1))
+
+    start_idx = page * PER_PAGE
+    end_idx = start_idx + PER_PAGE
+    current_batch = multi_users[start_idx:end_idx]
 
     lines = [
-        "⚡ <b>Sessions Explorer (کاوشگر نشست‌های فعال)</b>" if lang == "fa" else "⚡ <b>Sessions Explorer</b>",
+        "⚡ <b>Sessions Explorer (کاوشگر نشست‌ها و چند IP)</b>" if lang == "fa" else "⚡ <b>Sessions Explorer</b>",
         SEPARATOR,
+        f"👥 <b>کل کاربران دارای دستگاه فعال:</b> <code>{total_users}</code>"
+        if lang == "fa"
+        else f"👥 <b>Total Users with Active Devices:</b> <code>{total_users}</code>",
+        f"📱 <b>کل دستگاه‌های ثبت‌شده:</b> <code>{total_devices}</code>"
+        if lang == "fa"
+        else f"📱 <b>Total Registered Devices:</b> <code>{total_devices}</code>",
+        f"⚠️ <b>کاربران متصل با چند IP:</b> <code>{multi_count}</code> ({pct:.1f}%)"
+        if lang == "fa"
+        else f"⚠️ <b>Multi-IP Connected Users:</b> <code>{multi_count}</code> ({pct:.1f}%)",
+        "",
     ]
 
-    total_online = 0
-    for n in nodes:
-        u_online = n.get("usersOnline") or n.get("connectionCount") or 0
-        try:
-            total_online += int(u_online)
-        except (ValueError, TypeError):
-            pass
-
-    if len(sessions) > 0:
-        total_online = max(total_online, len(sessions))
-
-    lines.append(f"🟢 <b>تعداد کل اتصالات و کاربران آنلاین زنده:</b> <code>{total_online}</code> اتصال")
-    lines.append("")
-
-    if nodes:
-        lines.append("📡 <b>اتصالات آنلاین به تفکیک نودها:</b>")
-        for idx, n in enumerate(nodes, start=1):
-            n_name = n.get("name") or f"Node {idx}"
-            n_online = n.get("usersOnline") or n.get("connectionCount") or 0
-            flag = country_flag(n.get("countryCode"))
-            lines.append(f"   • {flag} <b>{escape(str(n_name))}</b> : <code>{n_online}</code> آنلاین")
+    if current_batch:
+        lines.append(
+            f"📋 <b>فهرست کاربران با چند IP (صفحه {page + 1} از {total_pages}):</b>"
+            if lang == "fa"
+            else f"📋 <b>Multi-IP Users List (Page {page + 1}/{total_pages}):</b>"
+        )
         lines.append("")
-
-    if sessions:
-        lines.append("👥 <b>نشست‌های آنلاین اخیر:</b>")
-        for idx, s in enumerate(sessions[:8], start=1):
-            u_name = s.get("username") or s.get("user") or "User"
-            proto = s.get("protocol") or s.get("inbound") or "VLESS"
-            ip = s.get("ip") or s.get("clientIp") or "—"
-            lines.append(f" {idx}) 👤 <b>{escape(str(u_name))}</b> ({escape(str(proto))}) — <code>{escape(str(ip))}</code>")
+        for idx, u in enumerate(current_batch, start=start_idx + 1):
+            uname = escape(str(u["username"]))
+            ip_cnt = u["ip_count"]
+            dev_cnt = u["device_count"]
+            lines.append(f" {idx}) 👤 <b>{uname}</b> — <code>{ip_cnt} IP مختلف</code> (دستگاه‌ها: {dev_cnt})")
+            for d in u["devices"]:
+                plat = d.get("platform") or "Device"
+                model = d.get("deviceModel") or d.get("model") or "—"
+                ip = d.get("requestIp") or "—"
+                p_lower = str(plat).lower()
+                if "android" in p_lower:
+                    d_emoji = "🤖"
+                elif "ios" in p_lower or "iphone" in p_lower or "ipad" in p_lower:
+                    d_emoji = "🍏"
+                elif "windows" in p_lower:
+                    d_emoji = "🪟"
+                elif "mac" in p_lower:
+                    d_emoji = "💻"
+                elif "linux" in p_lower:
+                    d_emoji = "🐧"
+                else:
+                    d_emoji = "📱"
+                lines.append(f"     ▫️ {d_emoji} {escape(str(model))} : <code>{escape(str(ip))}</code>")
+            lines.append("")
+    else:
+        lines.append(
+            "✅ <i>هیچ کاربری با چند IP شناسایی نشد (تمامی اتصالات تک-IP هستند).</i>"
+            if lang == "fa"
+            else "✅ <i>No multi-IP users detected.</i>"
+        )
 
     kb = InlineKeyboardBuilder()
-    kb.button(text="🔄 بروزرسانی", callback_data="adm:rep:sessions")
+    nav_row = []
+    if page > 0:
+        nav_row.append(("⬅️ قبلی", f"adm:rep:sessions:{page - 1}"))
+    if page < total_pages - 1:
+        nav_row.append(("بعدی ➡️", f"adm:rep:sessions:{page + 1}"))
+
+    if nav_row:
+        if lang == "fa" and len(nav_row) == 2:
+            kb.button(text=nav_row[0][0], callback_data=nav_row[0][1])  # Left: قبلی
+            kb.button(text=nav_row[1][0], callback_data=nav_row[1][1])  # Right: بعدی
+            kb.adjust(2)
+        else:
+            for text, cb in nav_row:
+                kb.button(text=text, callback_data=cb)
+            kb.adjust(len(nav_row))
+
+    kb.button(text="🔄 بروزرسانی", callback_data=f"adm:rep:sessions:{page}")
     kb.button(text="🔙 بازگشت به گزارشات", callback_data="adm:sales")
-    kb.adjust(1, 1)
+    kb.adjust(len(nav_row) if nav_row else 1, 1, 1)
 
     await render_menu(bot, user, user_repo, "\n".join(lines), kb.as_markup())
 
-
-async def _render_system_info(
-    bot: Bot, user, user_repo: UserRepository, remnawave: RemnawaveClient
-) -> None:
-    lang = user.language or "fa"
-    digest = await remnawave.get_system_digest() or {}
-    nodes = await remnawave.get_nodes() or []
-
-    lines = [
-        "💻 <b>System Info (اطلاعات سیستم و سرور)</b>" if lang == "fa" else "💻 <b>System Info</b>",
-        SEPARATOR,
-    ]
-
-    panel_ver = digest.get("version") or digest.get("panelVersion") or "v3.0+"
-    node_count = len(nodes)
-    online_count = sum(1 for n in nodes if n.get("isConnected") or str(n.get("status", "")).upper() == "CONNECTED")
-
-    lines.append(f"🚀 <b>نسخه پنل رمنـاویو:</b> <code>{escape(str(panel_ver))}</code>")
-    lines.append(f"📡 <b>خوشه سرورها (Nodes):</b> {online_count} فعال از {node_count} نود")
-    lines.append("")
-
-    cpu_usage = digest.get("cpu") or digest.get("cpuUsage")
-    mem_usage = digest.get("memory") or digest.get("ram") or digest.get("mem")
-    disk_usage = digest.get("disk") or digest.get("storage")
-    uptime_val = digest.get("uptime")
-
-    lines.append("🖥 <b>منابع سخت‌افزاری سرور:</b>")
-    if cpu_usage:
-        lines.append(f"   ⚙️ مصرف پردازنده (CPU): <code>{escape(str(cpu_usage))}</code>")
-    if mem_usage:
-        lines.append(f"   🧠 حافظه رم (RAM): <code>{escape(str(mem_usage))}</code>")
-    if disk_usage:
-        lines.append(f"   💾 فضای دیسک (Disk): <code>{escape(str(disk_usage))}</code>")
-    if uptime_val:
-        lines.append(f"   ⏱ آپ‌تایم سیستم: <code>{escape(str(uptime_val))}</code>")
-
-    lines.append("")
-    lines.append("<i>وضعیت نودها به صورت پیوسته توسط موتور ربات بررسی و در وضعیت سرور مانیتور می‌شود.</i>")
-
-    kb = InlineKeyboardBuilder()
-    kb.button(text="🔄 بروزرسانی", callback_data="adm:rep:sysinfo")
-    kb.button(text="🔙 بازگشت به گزارشات", callback_data="adm:sales")
-    kb.adjust(1, 1)
-
-    await render_menu(bot, user, user_repo, "\n".join(lines), kb.as_markup())
 
 
 @router.callback_query(F.data == "adm:sales")
@@ -734,7 +796,7 @@ async def report_srh_inspector_handler(
     await call.answer()
 
 
-@router.callback_query(F.data == "adm:rep:sessions")
+@router.callback_query(F.data.startswith("adm:rep:sessions"))
 async def report_sessions_explorer_handler(
     call: CallbackQuery,
     bot: Bot,
@@ -744,23 +806,12 @@ async def report_sessions_explorer_handler(
     if not _is_admin(call.from_user.id):
         await call.answer(t("fa", "not_authorized"), show_alert=True)
         return
+    page = 0
+    parts = call.data.split(":")
+    if len(parts) >= 4 and parts[3].isdigit():
+        page = int(parts[3])
     user = await user_repo.get_or_create(call.from_user.id, call.from_user.username)
-    await _render_sessions_explorer(bot, user, user_repo, remnawave)
-    await call.answer()
-
-
-@router.callback_query(F.data == "adm:rep:sysinfo")
-async def report_system_info_handler(
-    call: CallbackQuery,
-    bot: Bot,
-    user_repo: UserRepository,
-    remnawave: RemnawaveClient,
-):
-    if not _is_admin(call.from_user.id):
-        await call.answer(t("fa", "not_authorized"), show_alert=True)
-        return
-    user = await user_repo.get_or_create(call.from_user.id, call.from_user.username)
-    await _render_system_info(bot, user, user_repo, remnawave)
+    await _render_sessions_explorer(bot, user, user_repo, remnawave, page=page)
     await call.answer()
 
 

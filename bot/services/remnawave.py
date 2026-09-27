@@ -382,7 +382,7 @@ class RemnawaveClient:
                 pass
         return None
 
-    async def get_all_hwid_devices(self, size: int = 50) -> list[dict[str, Any]]:
+    async def get_all_hwid_devices(self, size: int = 500) -> list[dict[str, Any]]:
         """Fetch registered devices across all users."""
         for path in ("/api/hwid/devices", "/api/hwid/devices/all"):
             try:
@@ -398,14 +398,58 @@ class RemnawaveClient:
 
     async def get_srh_stats(self) -> dict[str, Any] | None:
         """Fetch Subscription Request History (SRH) stats."""
-        for path in ("/api/srh/stats", "/api/srh", "/api/srh/requests"):
+        for path in (
+            "/api/subscription-request-history/stats",
+            "/api/srh/stats",
+            "/api/srh",
+            "/api/srh/requests",
+        ):
             try:
-                resp = await self._client.get(path, params={"size": 30})
+                resp = await self._client.get(path, params={"size": 100})
                 if resp.status_code == 200:
                     return resp.json().get("response") or resp.json()
             except Exception:
                 pass
         return None
+
+    async def get_multi_ip_sessions(self) -> dict[str, Any]:
+        """Audit active HWID devices to detect users connected via multiple concurrent/distinct IPs."""
+        devices = await self.get_all_hwid_devices(size=500)
+        panel_users = await self.get_all_panel_users() or []
+        user_map = {
+            u.get("id"): u.get("username", f"User {u.get('id')}")
+            for u in panel_users
+            if "id" in u
+        }
+
+        from collections import defaultdict
+        user_devices: dict[int, list[dict[str, Any]]] = defaultdict(list)
+        for d in devices:
+            uid = d.get("userId")
+            if uid is not None:
+                user_devices[uid].append(d)
+
+        multi_ip_users = []
+        for uid, d_list in user_devices.items():
+            ips = {d.get("requestIp") for d in d_list if d.get("requestIp")}
+            if len(ips) > 1:
+                multi_ip_users.append({
+                    "userId": uid,
+                    "username": user_map.get(uid, f"User {uid}"),
+                    "ips": sorted(list(ips)),
+                    "devices": d_list,
+                    "ip_count": len(ips),
+                    "device_count": len(d_list),
+                })
+
+        multi_ip_users.sort(key=lambda x: (x["ip_count"], x["device_count"]), reverse=True)
+
+        return {
+            "total_users_with_devices": len(user_devices),
+            "total_devices": len(devices),
+            "multi_ip_users_count": len(multi_ip_users),
+            "multi_ip_users": multi_ip_users,
+        }
 
     async def get_active_sessions(self) -> list[dict[str, Any]] | None:
         """Fetch active user sessions and connection telemetry."""
