@@ -1554,6 +1554,70 @@ async def test_support_contact_validation_and_toggle():
         mock_app_setting_repo.set.assert_awaited_with("support_contact", "@MohammadSupport")
 
 
+@pytest.mark.anyio
+async def test_service_detail_and_edit_layout():
+    """Verify service detail has clean badges/buttons and edit menu has correct RTL layout."""
+    from bot.handlers.admin import _render_service_detail, edit_service_pick
+    from bot.db.models import Service
+
+    bot = MagicMock()
+    user = MagicMock(language="fa", telegram_id=999)
+    user_repo = MagicMock()
+    user_repo.get_or_create = AsyncMock(return_value=user)
+    session = AsyncMock()
+
+    service = Service(
+        id=1,
+        name="Silver",
+        price=180000,
+        duration_days=30,
+        traffic_gb=30,
+        is_active=True,
+    )
+
+    # 1. Detail view: no double emojis on buttons and no 'فعال' in title
+    with patch("bot.handlers.admin.ServiceRepository") as mock_repo_cls, \
+         patch("bot.handlers.admin.render_menu", AsyncMock()) as mock_render:
+        mock_repo_cls.return_value.get = AsyncMock(return_value=service)
+        await _render_service_detail(bot, user, user_repo, session, 1)
+
+        text = mock_render.call_args[0][3]
+        markup = mock_render.call_args[0][4]
+        btn_texts = [b.text for row in markup.inline_keyboard for b in row]
+
+        # Title state is just ✅ without word 'فعال'
+        assert "<b>Silver</b> — ✅" in text
+        assert "فعال" not in text.split("<b>Silver</b> — ")[1].split("\n")[0]
+
+        # Buttons do not have duplicate emojis
+        assert "✏️ ویرایش" in btn_texts
+        assert not any("✏️ ✏️" in b for b in btn_texts)
+        assert "🗑 حذف" in btn_texts
+        assert not any("🗑 🗑" in b for b in btn_texts)
+
+    # 2. Edit fields menu: RTL layout (first added is Left, second added is Right)
+    call = MagicMock()
+    call.from_user.id = 999
+    call.from_user.username = "admin"
+    call.data = "adm:svc:edit:1"
+    call.answer = AsyncMock()
+    state = MagicMock()
+    state.set_state = AsyncMock()
+    state.update_data = AsyncMock()
+
+    with patch("bot.handlers.admin._is_admin", return_value=True), \
+         patch("bot.handlers.admin.ServiceRepository") as mock_repo_cls, \
+         patch("bot.handlers.admin.render_menu", AsyncMock()) as mock_render:
+        mock_repo_cls.return_value.get = AsyncMock(return_value=service)
+        await edit_service_pick(call, bot, user_repo, session, state)
+
+        markup_edit = mock_render.call_args[0][4]
+        row1 = markup_edit.inline_keyboard[0]
+        # In Persian RTL: index 0 is Left (Price), index 1 is Right (Name)
+        assert "قیمت" in row1[0].text
+        assert "نام" in row1[1].text
+
+
 
 
 

@@ -153,8 +153,9 @@ async def _render_service_detail(
     ]
 
     kb = InlineKeyboardBuilder()
-    toggle_text = "🔴 " + t(lang, "btn_disable") if service.is_active else "🟢 " + t(lang, "btn_enable")
-    edit_text = "✏️ " + t(lang, "btn_edit")
+    toggle_text = t(lang, "btn_disable") if service.is_active else t(lang, "btn_enable")
+    edit_text = t(lang, "btn_edit")
+    del_text = t(lang, "btn_delete")
 
     if lang == "fa":
         # Persian RTL: Left = Toggle, Right = Edit
@@ -164,7 +165,7 @@ async def _render_service_detail(
         kb.button(text=edit_text, callback_data=f"adm:svc:edit:{service.id}")
         kb.button(text=toggle_text, callback_data=f"adm:svc:toggle:{service.id}")
 
-    kb.button(text="🗑 " + t(lang, "btn_delete"), callback_data=f"adm:svc:del:{service.id}")
+    kb.button(text=del_text, callback_data=f"adm:svc:del:{service.id}")
     kb.button(text=t(lang, "btn_back"), callback_data="adm:services")
     kb.adjust(2, 1, 1)
 
@@ -522,10 +523,34 @@ async def edit_service_pick(
     await state.update_data(service_id=service_id)
 
     kb = InlineKeyboardBuilder()
-    for field in EDIT_FIELDS:
+    if lang == "fa":
+        # Persian RTL: first added is LEFT, second added is RIGHT
+        # Row 1: Right = Name, Left = Price
+        # Row 2: Right = Duration, Left = Traffic
+        # Row 3: Right = Strategy, Left = HWID
+        # Row 4: Right = Squad, Left = Description
+        field_pairs = [
+            ("price", "name"),
+            ("traffic", "duration"),
+            ("hwid", "strategy"),
+            ("description", "squad"),
+        ]
+    else:
+        field_pairs = [
+            ("name", "price"),
+            ("duration", "traffic"),
+            ("strategy", "hwid"),
+            ("squad", "description"),
+        ]
+
+    for left_f, right_f in field_pairs:
         kb.button(
-            text=f"{ADMIN_EMOJI[field]} {t(lang, f'svc_field_{field}')}",
-            callback_data=f"adm:svc:edf:{service_id}:{field}",
+            text=f"{ADMIN_EMOJI[left_f]} {t(lang, f'svc_field_{left_f}')}",
+            callback_data=f"adm:svc:edf:{service_id}:{left_f}",
+        )
+        kb.button(
+            text=f"{ADMIN_EMOJI[right_f]} {t(lang, f'svc_field_{right_f}')}",
+            callback_data=f"adm:svc:edf:{service_id}:{right_f}",
         )
     kb.button(text=t(lang, "btn_cancel"), callback_data=f"adm:svc:view:{service_id}")
     kb.adjust(2, 2, 2, 2, 1)
