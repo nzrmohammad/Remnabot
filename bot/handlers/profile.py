@@ -43,12 +43,10 @@ async def _render_profile(
     accounts = await remnawave.get_users_by_telegram_id(user.telegram_id) or []
     orders_count = len(await OrderRepository(session).list_for_user(user.telegram_id, limit=100))
 
-    status_key = "profile_status_verified" if user.is_verified else "profile_status_unverified"
     lines = [
         t(lang, "profile_title"),
         SEPARATOR,
         f"👛 {t(lang, 'user_balance')} : <b>{fmt(wallet.balance)}</b> {t(lang, 'svc_currency')}",
-        f"🔐 {t(lang, 'profile_status')} : {t(lang, status_key)}",
         f"🗂 {t(lang, 'user_panel_accounts')} : <b>{len(accounts)}</b>",
         f"🧾 {t(lang, 'orders_count')} : <b>{orders_count}</b>",
     ]

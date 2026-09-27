@@ -1510,7 +1510,7 @@ async def _render_settings(
         kb.button(text="🤝 تنظیمات دعوت", callback_data="adm:settings:referral")
         kb.button(text="🎁 تنظیمات تست", callback_data="adm:settings:trial")
         # Row 8: Crypto Settings
-        kb.button(text="💎 تنظیمات کریپتو (TON)", callback_data="adm:settings:crypto")
+        kb.button(text="💎 تنظیمات پرداخت کریپتو", callback_data="adm:settings:crypto")
     else:
         kb.button(text=t(lang, "settings_card"), callback_data="adm:set:card_number")
         kb.button(text=t(lang, "settings_holder"), callback_data="adm:set:card_holder")
@@ -1527,7 +1527,7 @@ async def _render_settings(
         kb.button(text=t(lang, "settings_topics_btn"), callback_data="adm:settings:topics")
         kb.button(text="🎁 Trial Settings", callback_data="adm:settings:trial")
         kb.button(text="🤝 Invite Settings", callback_data="adm:settings:referral")
-        kb.button(text="💎 Crypto Settings (TON)", callback_data="adm:settings:crypto")
+        kb.button(text="💎 Crypto Payment Settings", callback_data="adm:settings:crypto")
 
     kb.button(text=t(lang, "btn_back"), callback_data="menu:admin")
     kb.adjust(1, 2, 2, 1, 2, 2, 2, 1, 1)
@@ -1581,7 +1581,8 @@ async def _render_settings(
             "",
             f"🎁 سرویس تست : {trial_desc}",
             f"🤝 سیستم دعوت : {ref_desc}",
-            f"💎 پرداخت کریپتو (TON) : {crypto_status_fa} (نرخ: {rate_fa})",
+            f"💎 پرداخت کریپتو : {crypto_status_fa}",
+            f"   قیمت تبدیل : {rate_fa}",
             "",
             f"⏳ {t(lang, 'settings_grace_days')} : {store.expiry_grace_days} روز",
             f"🔔 {t(lang, 'settings_remind_days')} : {escape(store.expiry_remind_days)}",
@@ -1635,7 +1636,8 @@ async def _render_settings(
             "",
             f"🎁 Free Trial : {trial_en}",
             f"🤝 Referral : {ref_en}",
-            f"💎 Crypto (TON) : {crypto_status_en} (Rate: {rate_en})",
+            f"💎 Crypto Payment : {crypto_status_en}",
+            f"   Exchange Rate : {rate_en}",
             "",
             f"⏳ {t(lang, 'settings_grace_days')} : {store.expiry_grace_days}d",
             f"🔔 {t(lang, 'settings_remind_days')} : {escape(store.expiry_remind_days)}",
@@ -1720,43 +1722,38 @@ async def _render_crypto_settings(
     status_badge = "✅ فعال" if store.crypto_enabled else "❌ غیرفعال"
     rate_str = f"{store.ton_rate_toman:,} تومان" if store.ton_rate_toman > 0 else "— (تنظیم‌نشده)"
     wallet_str = store.ton_wallet_address or "— (تنظیم‌نشده)"
-    topic_str = f"{store.topic_crypto} (Crypto)" if store.topic_crypto is not None else "— (پیش‌فرض: هشدارهای سیستم)"
 
     if lang == "fa":
         kb.button(
             text=f"⚡️ وضعیت درگاه : {status_badge}",
             callback_data="adm:settings:toggle:crypto_enabled",
         )
-        kb.button(text="📬 تنظیم آدرس والت TON", callback_data="adm:set:ton_wallet_address")
-        kb.button(text="💰 تنظیم نرخ هر تون", callback_data="adm:set:ton_rate_toman")
-        kb.button(text="📊 استعلام آنی از نوبیتکس", callback_data="adm:crypto:nobitex_now")
-        kb.button(text="🎧 تاپیک کریپتو و نرخ", callback_data="adm:set:topic_crypto")
+        kb.button(text="📬 تنظیم آدرس والت", callback_data="adm:set:ton_wallet_address")
+        kb.button(text="💰 تنظیم نرخ تبدیل", callback_data="adm:set:ton_rate_toman")
+        kb.button(text="📊 استعلام آنی نرخ ارز", callback_data="adm:crypto:nobitex_now")
     else:
         kb.button(
             text=f"⚡️ Status: {status_badge}",
             callback_data="adm:settings:toggle:crypto_enabled",
         )
-        kb.button(text="📬 Set TON Wallet", callback_data="adm:set:ton_wallet_address")
-        kb.button(text="💰 Set TON Rate", callback_data="adm:set:ton_rate_toman")
-        kb.button(text="📊 Check Nobitex Price", callback_data="adm:crypto:nobitex_now")
-        kb.button(text="🎧 Crypto Topic", callback_data="adm:set:topic_crypto")
+        kb.button(text="📬 Set Wallet Address", callback_data="adm:set:ton_wallet_address")
+        kb.button(text="💰 Set Exchange Rate", callback_data="adm:set:ton_rate_toman")
+        kb.button(text="📊 Check Market Price", callback_data="adm:crypto:nobitex_now")
 
     kb.button(text=t(lang, "btn_back"), callback_data="adm:settings")
-    kb.adjust(1, 2, 2, 1)
+    kb.adjust(1, 2, 1, 1)
 
     lines = [
-        "💎 <b>تنظیمات پرداخت کریپتو (TON)</b>\n" + SEPARATOR,
+        "💎 <b>تنظیمات پرداخت کریپتو</b>\n" + SEPARATOR,
         f"⚡️ وضعیت درگاه : <b>{status_badge}</b>",
         f"📬 آدرس والت مقصد : <code>{escape(wallet_str)}</code>",
-        f"💰 نرخ تبدیل (۱ تون) : <b>{rate_str}</b>",
-        f"🎧 تاپیک اختصاصی : <b>{escape(topic_str)}</b>\n",
-        "💡 <i>ربات روزانه ۴ بار (ساعت‌های ۱۰:۰۰، ۱۴:۰۰، ۱۸:۰۰ و ۲۲:۰۰) قیمت نوبیتکس را در تاپیک کریپتو ارسال می‌کند تا با یک کلیک بتوانید نرخ فروشگاه را آپدیت فرمایید.</i>",
+        f"💰 نرخ تبدیل (۱ تون) : <b>{rate_str}</b>\n",
+        "💡 ربات روزانه ۴ بار (ساعت‌های ۱۰:۰۰، ۱۴:۰۰، ۱۸:۰۰ و ۲۲:۰۰) قیمت لحظه‌ای را در تاپیک کریپتو ارسال می‌کند تا با یک کلیک بتوانید نرخ فروشگاه را آپدیت فرمایید.",
     ] if lang == "fa" else [
-        "💎 <b>Crypto (TON) Payment Settings</b>\n" + SEPARATOR,
+        "💎 <b>Crypto Payment Settings</b>\n" + SEPARATOR,
         f"⚡️ Status : <b>{status_badge}</b>",
         f"📬 Wallet : <code>{escape(wallet_str)}</code>",
         f"💰 Rate : <b>{rate_str}</b>",
-        f"🎧 Topic : <b>{escape(topic_str)}</b>",
     ]
 
     await render_menu(bot, user, user_repo, "\n".join(lines), kb.as_markup())
@@ -1799,17 +1796,21 @@ async def crypto_nobitex_now(
     if not _is_admin(call.from_user.id):
         await call.answer(t("fa", "not_authorized"), show_alert=True)
         return
-    from bot.services.crypto.nobitex import fetch_nobitex_ton_price, format_rate_alert
-    price = await fetch_nobitex_ton_price()
+    from bot.services.crypto.nobitex import fetch_ton_market_price, format_rate_alert
+    price, source = await fetch_ton_market_price()
     if price is None:
-        await call.answer("❌ خطا در استعلام از نوبیتکس. لطفاً دوباره تلاش کنید.", show_alert=True)
+        await call.answer(
+            "❌ خطا در استعلام از صرافی‌ها (احتمال مسدود بودن دسترسی از خارج کشور). لطفاً نرخ را به‌صورت دستی تنظیم فرمایید.",
+            show_alert=True,
+        )
         return
 
     store = await get_store_settings(session)
-    text, kb = format_rate_alert(price, store.ton_rate_toman)
+    src_title = source or "نوبیتکس"
+    text, kb = format_rate_alert(price, store.ton_rate_toman, source_name=src_title)
     user = await user_repo.get_or_create(call.from_user.id, call.from_user.username)
     await render_menu(bot, user, user_repo, text, kb)
-    await call.answer(f"قیمت نوبیتکس: {price:,} تومان")
+    await call.answer(f"قیمت {src_title}: {price:,} تومان")
 
 
 @router.callback_query(F.data.startswith("adm:rate:apply:"))

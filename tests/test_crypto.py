@@ -264,3 +264,70 @@ async def test_admin_apply_rate_callback(async_session: AsyncSession):
     assert val == "390000"
     cb.answer.assert_called_once()
     assert "390,000" in cb.answer.call_args[0][0]
+
+
+@pytest.mark.anyio
+async def test_crypto_settings_and_overview_ui(session_factory):
+    """Verify crypto settings menu title has no (TON), no italics, and overview has 2 lines."""
+    from bot.handlers.admin_ops import _render_crypto_settings, _render_settings
+    from bot.db.models import User as UserModel
+
+    async with session_factory() as session:
+        user_repo = UserRepository(session)
+        user = await user_repo.get_or_create(telegram_id=111, username="admin_ui")
+        bot = MagicMock()
+        bot.send_message = AsyncMock()
+
+        # Render crypto settings
+        with patch("bot.handlers.admin_ops.render_menu") as mock_render:
+            await _render_crypto_settings(bot, user, user_repo, session)
+            call_args = mock_render.call_args
+            text = call_args[0][3]
+            kb = call_args[0][4]
+
+            # Title must not contain (TON)
+            assert "💎 <b>تنظیمات پرداخت کریپتو</b>" in text
+            assert "(TON)" not in text
+            # No italics in tip
+            assert "<i>" not in text
+            # Topic line removed from crypto settings
+            assert "تاپیک اختصاصی" not in text
+
+            # Buttons check
+            all_buttons = [b.text for row in kb.inline_keyboard for b in row]
+            assert any("تنظیم آدرس والت" in b for b in all_buttons)
+            assert any("تنظیم نرخ تبدیل" in b for b in all_buttons)
+            assert not any("تاپیک کریپتو" in b for b in all_buttons)
+
+        # Render store settings overview
+        with patch("bot.handlers.admin_ops.render_menu") as mock_render_ov:
+            with patch("bot.handlers.admin_ops._get_admin_group_title", AsyncMock(return_value="Admin Group")):
+                await _render_settings(bot, user, user_repo, session)
+                ov_text = mock_render_ov.call_args[0][3]
+                ov_kb = mock_render_ov.call_args[0][4]
+                # Check two-line format
+                assert "💎 پرداخت کریپتو :" in ov_text
+                assert "قیمت تبدیل :" in ov_text
+                assert "💎 پرداخت کریپتو (TON) :" not in ov_text
+                # Check button
+                ov_buttons = [b.text for row in ov_kb.inline_keyboard for b in row]
+                assert any("💎 تنظیمات پرداخت کریپتو" in b for b in ov_buttons)
+
+
+@pytest.mark.anyio
+async def test_profile_no_login_status(session_factory):
+    """Verify profile view does not contain login status line."""
+    from bot.handlers.profile import _render_profile
+
+    async with session_factory() as session:
+        user_repo = UserRepository(session)
+        user = await user_repo.get_or_create(telegram_id=222, username="norm_user")
+        bot = MagicMock()
+        remnawave = MagicMock()
+        remnawave.get_users_by_telegram_id = AsyncMock(return_value=[])
+
+        with patch("bot.handlers.profile.render_menu") as mock_render:
+            await _render_profile(bot, user, user_repo, session, remnawave)
+            text = mock_render.call_args[0][3]
+            assert "وضعیت ورود" not in text
+            assert "وارد شده" not in text

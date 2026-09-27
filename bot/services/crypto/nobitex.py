@@ -19,12 +19,20 @@ logger = logging.getLogger(__name__)
 RATE_CHECK_HOURS = (10, 14, 18, 22)
 
 
-async def fetch_nobitex_ton_price() -> int | None:
-    """Fetch latest TON/IRT price in Toman from Nobitex."""
-    headers = {"User-Agent": "Remnabot/1.0"}
+async def fetch_ton_market_price() -> tuple[int | None, str]:
+    """Fetch latest TON price in Toman from Nobitex with Bitpin, Wallex, and Tabdeal fallbacks.
+
+    Returns (price_in_toman, source_name).
+    """
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36",
+        "Accept": "application/json, text/plain, */*",
+        "Accept-Language": "fa,en-US;q=0.9,en;q=0.8",
+        "Referer": "https://nobitex.ir/",
+    }
     timeout = aiohttp.ClientTimeout(total=8)
 
-    # 1. Try v2 orderbook
+    # 1. Nobitex v2 orderbook
     try:
         async with aiohttp.ClientSession(timeout=timeout) as session:
             async with session.get("https://api.nobitex.ir/v2/orderbook/TONIRT", headers=headers) as resp:
@@ -32,11 +40,13 @@ async def fetch_nobitex_ton_price() -> int | None:
                     data = await resp.json()
                     last_price = data.get("lastTradePrice")
                     if last_price:
-                        return int(float(last_price))
+                        return int(float(last_price)), "نوبیتکس"
+                else:
+                    logger.warning("Nobitex v2 orderbook returned HTTP %s", resp.status)
     except Exception as e:
-        logger.debug("nobitex v2 orderbook request failed: %s", e)
+        logger.debug("Nobitex v2 orderbook request failed: %s", e)
 
-    # 2. Try market/stats fallback
+    # 2. Nobitex market/stats fallback
     try:
         async with aiohttp.ClientSession(timeout=timeout) as session:
             async with session.get("https://api.nobitex.ir/market/stats?srcCurrency=ton&dstCurrency=rls", headers=headers) as resp:
@@ -46,15 +56,76 @@ async def fetch_nobitex_ton_price() -> int | None:
                     ton_rls = stats.get("ton-rls", {})
                     latest_rls = ton_rls.get("latest")
                     if latest_rls:
-                        return int(float(latest_rls) // 10)
+                        return int(float(latest_rls) // 10), "نوبیتکس"
+                else:
+                    logger.warning("Nobitex stats returned HTTP %s", resp.status)
     except Exception as e:
-        logger.debug("nobitex stats request failed: %s", e)
+        logger.debug("Nobitex stats request failed: %s", e)
 
-    return None
+    # 3. Bitpin API fallback (works from international / foreign IPs)
+    for bitpin_domain in ("api.bitpin.org", "api.bitpin.ir"):
+        try:
+            async with aiohttp.ClientSession(timeout=timeout) as session:
+                async with session.get(f"https://{bitpin_domain}/v1/mkt/markets/", headers=headers) as resp:
+                    if resp.status == 200:
+                        data = await resp.json()
+                        results = data.get("results") or (data if isinstance(data, list) else [])
+                        for m in results:
+                            code = m.get("code") or ""
+                            if code in ("TON_IRT", "TON_RLS"):
+                                price_raw = m.get("price") or (m.get("order_book_info") or {}).get("last_trade_price")
+                                if price_raw:
+                                    return int(float(price_raw) // 10), "بیت‌پین"
+                    else:
+                        logger.warning("Bitpin %s returned HTTP %s", bitpin_domain, resp.status)
+        except Exception as e:
+            logger.debug("Bitpin %s request failed: %s", bitpin_domain, e)
+
+    # 4. Wallex API fallback
+    try:
+        async with aiohttp.ClientSession(timeout=timeout) as session:
+            async with session.get("https://api.wallex.ir/v1/markets", headers=headers) as resp:
+                if resp.status == 200:
+                    data = await resp.json()
+                    symbols = (data.get("result") or {}).get("symbols") or {}
+                    for sym_name in ("TONTMN", "TONIRT"):
+                        if sym_name in symbols:
+                            last_price = (symbols[sym_name].get("stats") or {}).get("lastPrice")
+                            if last_price:
+                                return int(float(last_price)), "والکس"
+                else:
+                    logger.warning("Wallex returned HTTP %s", resp.status)
+    except Exception as e:
+        logger.debug("Wallex markets request failed: %s", e)
+
+    # 5. Tabdeal API fallback
+    try:
+        async with aiohttp.ClientSession(timeout=timeout) as session:
+            async with session.get("https://api.tabdeal.org/r/plots/currency/pairs", headers=headers) as resp:
+                if resp.status == 200:
+                    data = await resp.json()
+                    pairs = data if isinstance(data, list) else data.get("pairs") or []
+                    for p in pairs:
+                        if p.get("symbol") in ("TON_IRT", "TONIRT"):
+                            last_p = p.get("last_price")
+                            if last_p:
+                                return int(float(last_p)), "تبدیل"
+                else:
+                    logger.warning("Tabdeal returned HTTP %s", resp.status)
+    except Exception as e:
+        logger.debug("Tabdeal request failed: %s", e)
+
+    return None, ""
+
+
+async def fetch_nobitex_ton_price() -> int | None:
+    """Fetch latest TON/IRT price in Toman (backward compatible)."""
+    price, _ = await fetch_ton_market_price()
+    return price
 
 
 def format_rate_alert(
-    nobitex_price: int, current_rate: int, hour_str: str = ""
+    nobitex_price: int, current_rate: int, hour_str: str = "", source_name: str = "نوبیتکس"
 ) -> tuple[str, InlineKeyboardMarkup]:
     """Format the rate notification text and keyboard with proper LTR signs."""
     diff = nobitex_price - current_rate
@@ -77,10 +148,11 @@ def format_rate_alert(
     curr_rate_str = f"{current_rate:,} تومان" if current_rate > 0 else "— (تنظیم‌نشده)"
 
     time_header = f" — ساعت {hour_str}" if hour_str else ""
+    src_title = source_name or "نوبیتکس"
     text = (
-        f"💎 <b>استعلام نرخ تون (نوبیتکس){time_header}</b>\n"
+        f"💎 <b>استعلام نرخ تون ({src_title}){time_header}</b>\n"
         f"──────────────────\n"
-        f"📊 قیمت لحظه‌ای نوبیتکس : <b>{nobitex_price:,}</b> تومان\n"
+        f"📊 قیمت لحظه‌ای {src_title} : <b>{nobitex_price:,}</b> تومان\n"
         f"⚙️ نرخ فعلی در فروشگاه : <b>{curr_rate_str}</b>\n"
         f"📈 اختلاف : <b>{diff_str}</b> <b>{percent_str}</b>\n\n"
         f"💡 برای به‌روزرسانی نرخ در فروشگاه، دکمه زیر را لمس کنید:"
@@ -88,7 +160,7 @@ def format_rate_alert(
 
     kb = InlineKeyboardBuilder()
     kb.button(
-        text=f"🔄 اعمال قیمت نوبیتکس ({nobitex_price:,} تومان)",
+        text=f"🔄 اعمال قیمت {src_title} ({nobitex_price:,} تومان)",
         callback_data=f"adm:rate:apply:{nobitex_price}",
     )
     kb.button(
@@ -125,16 +197,16 @@ def _seconds_until_next_target(
 
 
 async def send_rate_notification(bot: Bot, session_factory, hour_str: str = "") -> bool:
-    """Fetch Nobitex price and send alert to crypto topic."""
-    price = await fetch_nobitex_ton_price()
+    """Fetch market price and send alert to crypto topic."""
+    price, source = await fetch_ton_market_price()
     if price is None:
-        logger.warning("Could not fetch TON price from Nobitex for scheduled alert")
+        logger.warning("Could not fetch TON price from any exchange for scheduled alert")
         return False
 
     settings = get_settings()
     async with session_factory() as session:
         store = await get_store_settings(session)
-        text, kb = format_rate_alert(price, store.ton_rate_toman, hour_str)
+        text, kb = format_rate_alert(price, store.ton_rate_toman, hour_str, source_name=source or "نوبیتکس")
 
         topic_id = (
             store.topic_crypto
