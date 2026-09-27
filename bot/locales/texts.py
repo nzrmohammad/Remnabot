@@ -756,10 +756,10 @@ TEXTS: dict[str, dict[str, str]] = {
         "btn_settings_trial": "🎁 Trial Settings",
         "btn_settings_referral": "🤝 Invite Settings",
         "settings_trial_enabled": "Trial (1/0)",
-        "settings_trial_traffic": "Trial Traffic (GB)",
-        "settings_trial_duration": "Trial Duration (Days)",
+        "settings_trial_traffic": "Traffic (GB)",
+        "settings_trial_duration": "Duration (Days)",
         "settings_referral_enabled": "Invite System (1/0)",
-        "settings_referral_reward": "Invite Reward (GB)",
+        "settings_referral_reward": "Traffic (GB)",
     },
     "fa": {
         "welcome": (
@@ -1495,10 +1495,10 @@ TEXTS: dict[str, dict[str, str]] = {
         "btn_settings_trial": "🎁 تنظیمات تست",
         "btn_settings_referral": "🤝 تنظیمات دعوت",
         "settings_trial_enabled": "تست (1/0)",
-        "settings_trial_traffic": "حجم تست (GB)",
-        "settings_trial_duration": "مدت تست (روز)",
+        "settings_trial_traffic": "حجم (GB)",
+        "settings_trial_duration": "زمان (روز)",
         "settings_referral_enabled": "سیستم دعوت (1/0)",
-        "settings_referral_reward": "پاداش دعوت (GB)",
+        "settings_referral_reward": "حجم (GB)",
     },
 }
 

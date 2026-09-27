@@ -3,6 +3,7 @@ broadcast, store settings (incl. maintenance mode), action log."""
 import logging
 import math
 import re
+import time
 from datetime import datetime, timedelta, timezone
 from html import escape
 
@@ -314,7 +315,7 @@ async def dashboard(
             )
         if version:
             v_clean = str(version).lstrip("v")
-            lines.append(f"⚙️ <b>نسخه پنل :</b> <code>v{v_clean}</code>")
+            lines.append(f"⚙️ <b>نسخه پنل :</b> v{v_clean}")
     else:
         lines = [
             "📊 <b>Panel Dashboard</b>",
@@ -339,7 +340,7 @@ async def dashboard(
             )
         if version:
             v_clean = str(version).lstrip("v")
-            lines.append(f"⚙️ <b>Panel Version :</b> <code>v{v_clean}</code>")
+            lines.append(f"⚙️ <b>Panel Version :</b> v{v_clean}")
 
     kb = InlineKeyboardBuilder()
     kb.button(text=t(lang, "btn_refresh"), callback_data="adm:dash")
@@ -649,9 +650,9 @@ async def _render_hwid_inspector(
     lines = [
         "🔍 <b>HWID Inspector (آمار دستگاه‌ها)</b>" if lang == "fa" else "🔍 <b>HWID Inspector</b>",
         SEPARATOR,
-        f"📱 <b>Total unique devices:</b> <code>{total_unique}</code>",
-        f"💻 <b>Total HWID devices:</b> <code>{total_hwid}</code>",
-        f"⚖️ <b>Avg devices per user:</b> <code>{avg_str}</code>",
+        f"📱 <b>Total unique devices:</b> {total_unique}",
+        f"💻 <b>Total HWID devices:</b> {total_hwid}",
+        f"⚖️ <b>Avg devices per user:</b> {avg_str}",
         "",
         "📊 <b>Platform distribution:</b>",
         "",
@@ -677,13 +678,13 @@ async def _render_hwid_inspector(
             else:
                 emoji = "📱"
 
-            lines.append(f"{emoji} <b>{escape(str(plat_name))}</b> : <code>{plat_count}</code> ({pct:.1f}%)")
+            lines.append(f"{emoji} <b>{escape(str(plat_name))}</b> : {plat_count} ({pct:.1f}%)")
             by_app = p.get("byApp") or []
             if by_app:
                 for a in by_app:
                     app_name = a.get("app") or "Unknown"
                     app_count = a.get("count") or 0
-                    lines.append(f"  ▫️ {escape(str(app_name))}: <code>{app_count}</code>")
+                    lines.append(f"  ▫️ {escape(str(app_name))}: {app_count}")
             lines.append("")
     else:
         lines.append("<i>هیچ اطلاعاتی از دستگاه‌ها یافت نشد.</i>" if lang == "fa" else "<i>No device data found.</i>")
@@ -710,7 +711,7 @@ async def _render_srh_inspector(
     lines = [
         "🌐 <b>SRH Inspector (درخواست‌های سابسکریپشن)</b>" if lang == "fa" else "🌐 <b>SRH Inspector</b>",
         SEPARATOR,
-        f"📥 <b>مجموع درخواست‌های ثبت‌شده:</b> <code>{fmt(total_app_reqs)}</code>",
+        f"📥 <b>مجموع درخواست‌های ثبت‌شده:</b> {fmt(total_app_reqs)}",
         "",
         "📱 <b>توزیع نرم‌افزارها:</b>" if lang == "fa" else "📱 <b>App Distribution:</b>",
     ]
@@ -720,7 +721,7 @@ async def _render_srh_inspector(
             app_name = item.get("app") or "Unknown"
             count = item.get("count") or 0
             pct = (count / total_app_reqs * 100) if total_app_reqs else 0
-            lines.append(f"  ▫️ <b>{escape(str(app_name))}</b>: <code>{count}</code> ({pct:.1f}%)")
+            lines.append(f"  ▫️ <b>{escape(str(app_name))}</b>: {count} ({pct:.1f}%)")
     else:
         lines.append("  <i>آماری از توزیع کلاینت‌ها یافت نشد.</i>" if lang == "fa" else "  <i>No app distribution data.</i>")
 
@@ -733,14 +734,14 @@ async def _render_srh_inspector(
         peak_cnt = peak_entry.get("requestCount", 0)
 
         lines.append(
-            f"📈 <b>مجموع کل ثبت‌شده:</b> <code>{total_24h}</code> درخواست"
+            f"📈 <b>مجموع کل ثبت‌شده:</b> {total_24h} درخواست"
             if lang == "fa"
-            else f"📈 <b>Total 24h Requests:</b> <code>{total_24h}</code>"
+            else f"📈 <b>Total 24h Requests:</b> {total_24h}"
         )
         lines.append(
-            f"⚡ <b>اوج ترافیک ساعتی (Peak):</b> <code>{peak_cnt}</code> درخواست"
+            f"⚡ <b>اوج ترافیک ساعتی (Peak):</b> {peak_cnt} درخواست"
             if lang == "fa"
-            else f"⚡ <b>Peak Hourly Traffic:</b> <code>{peak_cnt}</code> requests"
+            else f"⚡ <b>Peak Hourly Traffic:</b> {peak_cnt} requests"
         )
         lines.append("")
         lines.append("📊 <b>ساعات اخیر:</b>" if lang == "fa" else "📊 <b>Recent Hours:</b>")
@@ -749,9 +750,9 @@ async def _render_srh_inspector(
             hour_str = dt_raw[11:16] if len(dt_raw) >= 16 else dt_raw
             cnt = h.get("requestCount", 0)
             lines.append(
-                f"  • {hour_str} : <code>{cnt}</code> درخواست"
+                f"  • {hour_str} : {cnt} درخواست"
                 if lang == "fa"
-                else f"  • {hour_str} : <code>{cnt}</code> requests"
+                else f"  • {hour_str} : {cnt} requests"
             )
 
     kb = InlineKeyboardBuilder()
@@ -1438,6 +1439,28 @@ async def admin_logs(
 # --------------------------------------------------------------------- #
 # Store settings (+ maintenance toggle)
 # --------------------------------------------------------------------- #
+_cached_admin_group_title: str | None = None
+_cached_admin_group_title_time: float = 0
+
+
+async def _get_admin_group_title(bot: Bot) -> str | None:
+    global _cached_admin_group_title, _cached_admin_group_title_time
+    now = time.time()
+    if _cached_admin_group_title is not None and (now - _cached_admin_group_title_time) < 300:
+        return _cached_admin_group_title
+    cfg = get_settings()
+    chat_id = getattr(cfg, "ADMIN_CHAT_ID", None)
+    if not chat_id:
+        return None
+    try:
+        chat = await bot.get_chat(chat_id)
+        _cached_admin_group_title = chat.title or None
+        _cached_admin_group_title_time = now
+        return _cached_admin_group_title
+    except Exception:
+        return _cached_admin_group_title
+
+
 async def _render_settings(
     bot: Bot, user, user_repo: UserRepository, session: AsyncSession,
 ) -> None:
@@ -1502,23 +1525,27 @@ async def _render_settings(
     if has_contact:
         sup_status = "✅" if store.support_direct_enabled else "❌"
         support_block = (
-            f"📞 {t(lang, 'settings_support_contact')} : \u200e{escape(store.support_contact)}\n"
-            f"📞 پشتیبانی مستقیم : {sup_status}"
+            f"📞 پشتیبانی مستقیم : {sup_status}\n"
+            f"📞 {t(lang, 'settings_support_contact')} : \u200e{escape(store.support_contact)}"
         )
     else:
         support_block = f"📞 {t(lang, 'settings_support_contact')} : —"
 
     trial_desc = (
-        f"✅ {store.trial_traffic_gb} GB · {store.trial_duration_days} روز"
+        f"✅\n   حجم : \u200e{store.trial_traffic_gb} GB\n   زمان : {store.trial_duration_days} روز"
         if store.trial_enabled
         else "❌"
     )
 
     ref_desc = (
-        f"✅ {store.referral_reward_gb} GB هدیه"
+        f"✅\n   حجم : \u200e{store.referral_reward_gb} GB"
         if store.referral_enabled
         else "❌"
     )
+
+    grp_title = await _get_admin_group_title(bot)
+    topics_header = f"🎧 تاپیک‌ها ({escape(grp_title)}) :" if grp_title else "🎧 تاپیک‌ها :"
+    topics_header_en = f"🎧 Topics ({escape(grp_title)}) :" if grp_title else "🎧 Topics :"
 
     t_topups = f"شارژ ({store.topic_topups}) : Topups" if store.topic_topups is not None else "شارژ : — (Topups)"
     t_orders = f"سفارش ({store.topic_orders}) : Orders" if store.topic_orders is not None else "سفارش : — (Orders)"
@@ -1543,7 +1570,7 @@ async def _render_settings(
             f"🔔 {t(lang, 'settings_remind_days')} : {escape(store.expiry_remind_days)}",
             f"🧩 {t(lang, 'settings_squad')} : {escape(squad_show[:24])}",
             "",
-            "🎧 تاپیک‌ها :",
+            topics_header,
             f"   {t_topups}",
             f"   {t_orders}",
             f"   {t_support}",
@@ -1552,13 +1579,21 @@ async def _render_settings(
             f"🚧 {t(lang, 'settings_maintenance')} : {maint_badge}",
         ]
     else:
-        trial_en = f"✅ {store.trial_traffic_gb} GB · {store.trial_duration_days}d" if store.trial_enabled else "❌"
-        ref_en = f"✅ {store.referral_reward_gb} GB reward" if store.referral_enabled else "❌"
+        trial_en = (
+            f"✅\n   Traffic : {store.trial_traffic_gb} GB\n   Duration : {store.trial_duration_days}d"
+            if store.trial_enabled
+            else "❌"
+        )
+        ref_en = (
+            f"✅\n   Traffic : {store.referral_reward_gb} GB"
+            if store.referral_enabled
+            else "❌"
+        )
         sup_status_en = "✅" if store.support_direct_enabled else "❌"
         if has_contact:
             sup_block_en = (
-                f"📞 {t(lang, 'settings_support_contact')} : \u200e{escape(store.support_contact)}\n"
-                f"📞 Direct Support : {sup_status_en}"
+                f"📞 Direct Support : {sup_status_en}\n"
+                f"📞 {t(lang, 'settings_support_contact')} : \u200e{escape(store.support_contact)}"
             )
         else:
             sup_block_en = f"📞 {t(lang, 'settings_support_contact')} : —"
@@ -1583,7 +1618,7 @@ async def _render_settings(
             f"🔔 {t(lang, 'settings_remind_days')} : {escape(store.expiry_remind_days)}",
             f"🧩 {t(lang, 'settings_squad')} : {escape(squad_show[:24])}",
             "",
-            "🎧 Topics :",
+            topics_header_en,
             topup_en,
             orders_en,
             support_en,
@@ -1623,8 +1658,11 @@ async def _render_topics_settings(
     kb.button(text=t(lang, "btn_back"), callback_data="adm:settings")
     kb.adjust(2, 2, 1)
 
+    grp_title = await _get_admin_group_title(bot)
+    topics_title = f"{t(lang, 'settings_topics_title')} ({escape(grp_title)})" if grp_title else t(lang, 'settings_topics_title')
+
     text = (
-        f"{t(lang, 'settings_topics_title')}\n{SEPARATOR}\n"
+        f"{topics_title}\n{SEPARATOR}\n"
         f"💳 <b>تاپیک تایید شارژها :</b> {t_topups}\n"
         f"🛒 <b>تاپیک ثبت سفارشات :</b> {t_orders}\n"
         f"🎧 <b>تاپیک پیام‌های پشتیبانی :</b> {t_support}\n"
@@ -1632,7 +1670,7 @@ async def _render_topics_settings(
         f"💡 جهت اتصال هر بخش به تاپیک، روی دکمه مربوطه کلیک کنید و شناسه عددی (Topic ID) آن را ارسال نمایید.\n"
         f"(برای غیرفعال‌سازی هر تاپیک مقدار 0 یا /skip ارسال کنید)"
     ) if lang == "fa" else (
-        f"{t(lang, 'settings_topics_title')}\n{SEPARATOR}\n"
+        f"{topics_title}\n{SEPARATOR}\n"
         f"💳 <b>Top-ups Topic :</b> {t_topups}\n"
         f"🛒 <b>Orders Topic :</b> {t_orders}\n"
         f"🎧 <b>Support Topic :</b> {t_support}\n"
@@ -1673,35 +1711,35 @@ async def _render_trial_settings(
     store = await get_store_settings(session)
     kb = InlineKeyboardBuilder()
 
-    trial_badge = "فعال ✅" if store.trial_enabled else "غیرفعال ❌"
-    trial_btn_text = f"تست: {'✅ فعال' if store.trial_enabled else '❌ غیرفعال'}"
+    trial_badge = "✅" if store.trial_enabled else "❌"
+    trial_btn_text = f"وضعیت: {'✅' if store.trial_enabled else '❌'}"
 
     if lang == "fa":
         # Row 1 (RTL): Left = Duration, Right = Traffic
-        kb.button(text=f"⏳ مدت تست: {store.trial_duration_days} روز", callback_data="adm:set:trial_duration_days")
-        kb.button(text=f"📊 حجم تست: {store.trial_traffic_gb} GB", callback_data="adm:set:trial_traffic_gb")
+        kb.button(text=f"⏳ زمان: {store.trial_duration_days} روز", callback_data="adm:set:trial_duration_days")
+        kb.button(text=f"📊 حجم: {store.trial_traffic_gb} GB", callback_data="adm:set:trial_traffic_gb")
         # Row 2: Toggle
         kb.button(text=trial_btn_text, callback_data="adm:settings:toggle:trial_enabled")
     else:
-        kb.button(text=f"📊 Trial Traffic: {store.trial_traffic_gb} GB", callback_data="adm:set:trial_traffic_gb")
-        kb.button(text=f"⏳ Trial Days: {store.trial_duration_days}", callback_data="adm:set:trial_duration_days")
-        kb.button(text=f"Trial: {'✅ Active' if store.trial_enabled else '❌ Inactive'}", callback_data="adm:settings:toggle:trial_enabled")
+        kb.button(text=f"📊 Traffic: {store.trial_traffic_gb} GB", callback_data="adm:set:trial_traffic_gb")
+        kb.button(text=f"⏳ Days: {store.trial_duration_days}", callback_data="adm:set:trial_duration_days")
+        kb.button(text=f"Status: {'✅' if store.trial_enabled else '❌'}", callback_data="adm:settings:toggle:trial_enabled")
 
     kb.button(text=t(lang, "btn_back"), callback_data="adm:settings")
     kb.adjust(2, 1, 1)
 
     text = (
-        f"🎁 <b>{t(lang, 'store_settings_title')} — اکانت تست</b>\n{SEPARATOR}\n"
-        f"🎁 <b>وضعیت تست:</b> {trial_badge}\n"
-        f"📊 <b>حجم تست:</b> <code>{store.trial_traffic_gb} GB</code>\n"
-        f"⏳ <b>مدت تست:</b> <code>{store.trial_duration_days} روز</code>\n\n"
-        f"💡 جهت فعال یا غیرفعال‌سازی، روی دکمه وضعیت کلیک کنید. برای تغییر حجم یا مدت، دکمه مربوطه را انتخاب کنید."
+        f"🎁 <b>تنظیمات اکانت تست</b>\n{SEPARATOR}\n"
+        f"🎁 <b>وضعیت تست :</b> {trial_badge}\n"
+        f"📊 <b>حجم :</b> {store.trial_traffic_gb} GB\n"
+        f"⏳ <b>زمان :</b> {store.trial_duration_days} روز\n\n"
+        f"💡 جهت فعال یا غیرفعال‌سازی، روی دکمه وضعیت کلیک کنید. برای تغییر حجم یا زمان، دکمه مربوطه را انتخاب کنید."
     ) if lang == "fa" else (
-        f"🎁 <b>{t(lang, 'store_settings_title')} — Free Trial</b>\n{SEPARATOR}\n"
-        f"🎁 <b>Trial Status:</b> {trial_badge}\n"
-        f"📊 <b>Trial Traffic:</b> <code>{store.trial_traffic_gb} GB</code>\n"
-        f"⏳ <b>Trial Days:</b> <code>{store.trial_duration_days} Days</code>\n\n"
-        f"Tap the toggle button to enable/disable, or tap traffic/days to edit."
+        f"🎁 <b>Free Trial Settings</b>\n{SEPARATOR}\n"
+        f"🎁 <b>Trial Status :</b> {trial_badge}\n"
+        f"📊 <b>Traffic :</b> {store.trial_traffic_gb} GB\n"
+        f"⏳ <b>Days :</b> {store.trial_duration_days} Days\n\n"
+        f"Tap the status button to enable/disable, or tap traffic/days to edit."
     )
     await render_menu(bot, user, user_repo, text, kb.as_markup())
 
@@ -1713,24 +1751,29 @@ async def _render_referral_settings(
     store = await get_store_settings(session)
     kb = InlineKeyboardBuilder()
 
-    ref_badge = "فعال ✅" if store.referral_enabled else "غیرفعال ❌"
-    ref_btn_text = f"سیستم دعوت: {'✅ فعال' if store.referral_enabled else '❌ غیرفعال'}"
+    ref_badge = "✅" if store.referral_enabled else "❌"
+    ref_btn_text = f"وضعیت: {'✅' if store.referral_enabled else '❌'}"
 
-    kb.button(text=f"🎁 پاداش دعوت: {store.referral_reward_gb} GB", callback_data="adm:set:referral_reward_gb")
-    kb.button(text=ref_btn_text, callback_data="adm:settings:toggle:referral_enabled")
+    if lang == "fa":
+        kb.button(text=f"📊 حجم: {store.referral_reward_gb} GB", callback_data="adm:set:referral_reward_gb")
+        kb.button(text=ref_btn_text, callback_data="adm:settings:toggle:referral_enabled")
+    else:
+        kb.button(text=f"📊 Traffic: {store.referral_reward_gb} GB", callback_data="adm:set:referral_reward_gb")
+        kb.button(text=f"Status: {'✅' if store.referral_enabled else '❌'}", callback_data="adm:settings:toggle:referral_enabled")
+
     kb.button(text=t(lang, "btn_back"), callback_data="adm:settings")
     kb.adjust(1, 1, 1)
 
     text = (
-        f"🤝 <b>{t(lang, 'store_settings_title')} — سیستم دعوت</b>\n{SEPARATOR}\n"
-        f"🤝 <b>وضعیت سیستم دعوت:</b> {ref_badge}\n"
-        f"🎁 <b>پاداش دعوت:</b> <code>{store.referral_reward_gb} GB</code>\n\n"
-        f"💡 جهت فعال یا غیرفعال‌سازی، روی دکمه وضعیت کلیک کنید. برای تغییر مقدار هدیه، دکمه پاداش دعوت را انتخاب کنید."
+        f"🤝 <b>تنظیمات سیستم دعوت</b>\n{SEPARATOR}\n"
+        f"🤝 <b>وضعیت سیستم دعوت :</b> {ref_badge}\n"
+        f"🎁 <b>حجم :</b> {store.referral_reward_gb} GB\n\n"
+        f"💡 جهت فعال یا غیرفعال‌سازی، روی دکمه وضعیت کلیک کنید. برای تغییر مقدار هدیه، دکمه حجم را انتخاب کنید."
     ) if lang == "fa" else (
-        f"🤝 <b>{t(lang, 'store_settings_title')} — Invite System</b>\n{SEPARATOR}\n"
-        f"🤝 <b>Invite Status:</b> {ref_badge}\n"
-        f"🎁 <b>Invite Reward:</b> <code>{store.referral_reward_gb} GB</code>\n\n"
-        f"Tap the toggle button to enable/disable, or tap reward to edit."
+        f"🤝 <b>Invite System Settings</b>\n{SEPARATOR}\n"
+        f"🤝 <b>Invite Status :</b> {ref_badge}\n"
+        f"🎁 <b>Traffic :</b> {store.referral_reward_gb} GB\n\n"
+        f"Tap the status button to enable/disable, or tap traffic to edit."
     )
     await render_menu(bot, user, user_repo, text, kb.as_markup())
 
@@ -2285,11 +2328,11 @@ async def admin_nodes_monitor(
             ]
             if core_version:
                 node_desc.append(
-                    f"   ⚙️ نسخه هسته: <code>{escape(str(core_version))}</code>" if lang == "fa" else f"   ⚙️ Core: <code>{escape(str(core_version))}</code>"
+                    f"   ⚙️ نسخه هسته: {escape(str(core_version))}" if lang == "fa" else f"   ⚙️ Core: {escape(str(core_version))}"
                 )
             if node_version:
                 node_desc.append(
-                    f"   📡 نسخه نود: <code>{escape(str(node_version))}</code>" if lang == "fa" else f"   📡 Node: <code>{escape(str(node_version))}</code>"
+                    f"   📡 نسخه نود: {escape(str(node_version))}" if lang == "fa" else f"   📡 Node: {escape(str(node_version))}"
                 )
             specs_parts = []
             if cpu:
@@ -2307,7 +2350,7 @@ async def admin_nodes_monitor(
             if specs_parts:
                 specs_str = escape(" | ".join(specs_parts))
                 node_desc.append(
-                    f"   💻 مشخصات سرور: <code>{specs_str}</code>" if lang == "fa" else f"   💻 System: <code>{specs_str}</code>"
+                    f"   💻 مشخصات سرور: {specs_str}" if lang == "fa" else f"   💻 System: {specs_str}"
                 )
             if user_mult is not None:
                 node_desc.append(
@@ -2328,7 +2371,7 @@ async def admin_nodes_monitor(
                 )
             if uptime_str:
                 node_desc.append(
-                    f"   ⏱ آپ‌تایم: <code>{uptime_str}</code>" if lang == "fa" else f"   ⏱ Uptime: <code>{uptime_str}</code>"
+                    f"   ⏱ آپ‌تایم: {uptime_str}" if lang == "fa" else f"   ⏱ Uptime: {uptime_str}"
                 )
             if online_users is not None:
                 node_desc.append(

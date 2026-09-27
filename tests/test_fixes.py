@@ -1296,14 +1296,15 @@ async def test_store_settings_full_overview():
         # Name label
         assert "👤 نام : محمد جواد نظری" in text
         assert "نام دارنده کارت" not in text
-        # Support block: with LRM \u200e and no <code>
+        # Support block: direct support is ABOVE support contact
+        assert text.index("📞 پشتیبانی مستقیم") < text.index("📞 آیدی پشتیبانی")
         assert "📞 آیدی پشتیبانی : \u200e@Support_ID" in text
         assert "<code>@Support_ID</code>" not in text
         assert "📞 پشتیبانی مستقیم : ✅" in text
         assert "فعال" not in text.split("📞 پشتیبانی مستقیم")[1].split("\n")[0]
-        # Trial & referral: simplified without "فعال", clean formatting
-        assert "🎁 سرویس تست : ✅ 1 GB · 1 روز" in text
-        assert "🤝 سیستم دعوت : ✅ 2 GB هدیه" in text
+        # Trial & referral: multi-line layout with volume and duration
+        assert "🎁 سرویس تست : ✅\n   حجم : \u200e1 GB\n   زمان : 1 روز" in text
+        assert "🤝 سیستم دعوت : ✅\n   حجم : \u200e2 GB" in text
         # Grace period without (روز)
         assert "⏳ مهلت پس از انقضا : 3 روز" in text
         assert "مهلت پس از انقضا (روز)" not in text
@@ -1355,6 +1356,7 @@ async def test_store_settings_full_overview():
 
     # Case 3: Topics keyboard does NOT contain 🆘
     with patch("bot.handlers.admin_ops.get_store_settings", AsyncMock(return_value=store)), \
+         patch("bot.handlers.admin_ops._get_admin_group_title", AsyncMock(return_value="SupportSuperGroup")), \
          patch("bot.handlers.admin_ops.render_menu", AsyncMock()) as mock_render:
 
         await _render_topics_settings(bot, user, user_repo, session)
@@ -1366,6 +1368,132 @@ async def test_store_settings_full_overview():
         assert not any("🆘" in t for t in all_btn_texts)
         assert "10 (Topups)" in text_topics
         assert "<code>10" not in text_topics
+        assert "SupportSuperGroup" in text_topics
+
+
+@pytest.mark.anyio
+async def test_trial_and_referral_submenus():
+    """Verify trial and referral settings submenus have clean titles, badges, and button labels."""
+    from bot.handlers.admin_ops import _render_trial_settings, _render_referral_settings
+    from bot.services.app_settings import StoreSettings
+
+    bot = MagicMock()
+    user = MagicMock(language="fa", telegram_id=999)
+    user_repo = MagicMock()
+    session = AsyncMock()
+
+    store = StoreSettings(
+        card_number="6219-8618-1954-7695",
+        card_holder="محمد",
+        topup_min_amount=100000,
+        support_contact="@Support_ID",
+        support_direct_enabled=True,
+        trial_enabled=True,
+        trial_traffic_gb=5,
+        trial_duration_days=3,
+        referral_enabled=True,
+        referral_reward_gb=10,
+        expiry_grace_days=3,
+        expiry_remind_days="3,1,0",
+        default_squad_uuid=None,
+        topic_topups=10,
+        topic_orders=20,
+        topic_support=30,
+        topic_alerts=40,
+    )
+
+    # 1. Trial settings submenu
+    with patch("bot.handlers.admin_ops.get_store_settings", AsyncMock(return_value=store)), \
+         patch("bot.handlers.admin_ops.render_menu", AsyncMock()) as mock_render:
+
+        await _render_trial_settings(bot, user, user_repo, session)
+        mock_render.assert_awaited_once()
+        text = mock_render.call_args[0][3]
+        markup = mock_render.call_args[0][4]
+        btn_texts = [b.text for row in markup.inline_keyboard for b in row]
+
+        # Only one emoji in title
+        assert text.startswith("🎁 <b>تنظیمات اکانت تست</b>")
+        assert "⚙️" not in text.split("\n")[0]
+        # Clean status without 'فعال'
+        assert "🎁 <b>وضعیت تست :</b> ✅" in text
+        assert "فعال" not in text.split("🎁 <b>وضعیت تست :</b>")[1].split("\n")[0]
+        # Volume and Duration without 'تست' and without code tags
+        assert "📊 <b>حجم :</b> 5 GB" in text
+        assert "<code>5 GB</code>" not in text
+        assert "⏳ <b>زمان :</b> 3 روز" in text
+        assert "<code>3 روز</code>" not in text
+        # Button texts
+        assert any("📊 حجم: 5 GB" in b for b in btn_texts)
+        assert any("⏳ زمان: 3 روز" in b for b in btn_texts)
+        assert any("وضعیت: ✅" in b for b in btn_texts)
+        assert "برای تغییر حجم یا زمان، دکمه مربوطه را انتخاب کنید" in text
+
+    # 2. Referral settings submenu
+    with patch("bot.handlers.admin_ops.get_store_settings", AsyncMock(return_value=store)), \
+         patch("bot.handlers.admin_ops.render_menu", AsyncMock()) as mock_render:
+
+        await _render_referral_settings(bot, user, user_repo, session)
+        mock_render.assert_awaited_once()
+        text_ref = mock_render.call_args[0][3]
+        markup_ref = mock_render.call_args[0][4]
+        btn_ref_texts = [b.text for row in markup_ref.inline_keyboard for b in row]
+
+        # Only one emoji in title
+        assert text_ref.startswith("🤝 <b>تنظیمات سیستم دعوت</b>")
+        assert "⚙️" not in text_ref.split("\n")[0]
+        # Clean status without 'فعال'
+        assert "🤝 <b>وضعیت سیستم دعوت :</b> ✅" in text_ref
+        assert "فعال" not in text_ref.split("🤝 <b>وضعیت سیستم دعوت :</b>")[1].split("\n")[0]
+        # Volume without 'پاداش دعوت' and without code tags
+        assert "🎁 <b>حجم :</b> 10 GB" in text_ref
+        assert "<code>10 GB</code>" not in text_ref
+        # Button texts
+        assert any("📊 حجم: 10 GB" in b for b in btn_ref_texts)
+        assert any("وضعیت: ✅" in b for b in btn_ref_texts)
+        # Helper text matches button name (دکمه حجم)
+        assert "دکمه حجم را انتخاب کنید" in text_ref
+
+
+@pytest.mark.anyio
+async def test_inspectors_and_nodes_code_tags_cleanup():
+    """Verify that HWID, SRH, dashboard, and nodes screens do not use code tags except node address."""
+    from bot.handlers.admin_ops import _render_hwid_inspector, _render_srh_inspector
+    from bot.services.remnawave import RemnawaveClient
+
+    bot = MagicMock()
+    user = MagicMock(language="fa", telegram_id=999)
+    user_repo = MagicMock()
+    remnawave = MagicMock(spec=RemnawaveClient)
+
+    # 1. HWID Inspector: no <code> tags anywhere in rendered text
+    hwid_data = {
+        "totalUniqueDevices": 68,
+        "totalHwidDevices": 75,
+        "avgDevicesPerUser": 2,
+        "platformDistribution": [
+            {"platform": "Android", "count": 34, "byApp": [{"app": "Happ", "count": 28}]}
+        ]
+    }
+    remnawave.get_hwid_stats = AsyncMock(return_value={"stats": hwid_data})
+    remnawave.get_hwid_devices = AsyncMock(return_value=[])
+    with patch("bot.handlers.admin_ops.render_menu", AsyncMock()) as mock_render:
+        await _render_hwid_inspector(bot, user, user_repo, remnawave)
+        mock_render.assert_awaited_once()
+        text_hwid = mock_render.call_args[0][3]
+        assert "<code>" not in text_hwid
+
+    # 2. SRH Inspector: no <code> tags anywhere in rendered text
+    srh_data = {
+        "byParsedApp": [{"app": "Happ", "count": 50}],
+        "hourlyRequestStats": [{"dateTime": "2026-09-27T12:00:00Z", "requestCount": 100}],
+    }
+    remnawave.get_srh_stats = AsyncMock(return_value=srh_data)
+    with patch("bot.handlers.admin_ops.render_menu", AsyncMock()) as mock_render:
+        await _render_srh_inspector(bot, user, user_repo, remnawave)
+        mock_render.assert_awaited_once()
+        text_srh = mock_render.call_args[0][3]
+        assert "<code>" not in text_srh
 
 
 @pytest.mark.anyio
