@@ -1,10 +1,11 @@
 """Scheduled usage reports.
 
-* Nightly report — every night at 23:57 local time: account overview with
+* Nightly report — Saturday to Thursday at 23:59 local time (skipped on
+  Fridays and on the last day of the Jalali month): account overview with
   per-node used volume, today's per-node usage and expiry.
-* Weekly report — Friday 23:59: day-by-day usage of the last 7 days with
-  per-node breakdown, week total, comparison with the previous week,
-  busiest day and top server.
+* Weekly report — Friday 23:59 (skipped if Friday is the last day of the
+  Jalali month): day-by-day usage of the last 7 days with per-node breakdown,
+  week total, comparison with the previous week, busiest day and top server.
 * Monthly report — 23:59 on the LAST day of the Jalali (Shamsi) month:
   day-by-day usage of the current Jalali month with per-node breakdown,
   month total, comparison with the previous Jalali month, busiest day
@@ -969,11 +970,18 @@ async def nightly_report_loop(
         wait = _seconds_until(NIGHTLY_HOUR, NIGHTLY_MINUTE)
         logger.info("nightly report in %.0f s", wait)
         await asyncio.sleep(wait)
-        try:
-            await _sweep(bot, session_factory, remnawave, "nightly")
-        except Exception:  # noqa: BLE001
-            logger.exception("nightly sweep failed")
-        await asyncio.sleep(120)  # make sure we roll past 23:57
+        now = now_tz(get_settings().TIMEZONE)
+        # Skip on Friday (handled by weekly report) and on the last day of Jalali month (handled by monthly report)
+        if now.weekday() == FRIDAY:
+            logger.info("Skipping nightly report on Friday (covered by weekly report).")
+        elif is_last_jalali_day(now):
+            logger.info("Skipping nightly report on last day of Jalali month (covered by monthly report).")
+        else:
+            try:
+                await _sweep(bot, session_factory, remnawave, "nightly")
+            except Exception:  # noqa: BLE001
+                logger.exception("nightly sweep failed")
+        await asyncio.sleep(120)  # make sure we roll past 23:59
 
 
 async def weekly_report_loop(
@@ -983,10 +991,15 @@ async def weekly_report_loop(
         wait = _seconds_until(WEEKLY_HOUR, WEEKLY_MINUTE, weekday=FRIDAY)
         logger.info("weekly report in %.0f s", wait)
         await asyncio.sleep(wait)
-        try:
-            await _sweep(bot, session_factory, remnawave, "weekly")
-        except Exception:  # noqa: BLE001
-            logger.exception("weekly sweep failed")
+        now = now_tz(get_settings().TIMEZONE)
+        # Skip weekly report if Friday happens to be the last day of the Jalali month
+        if is_last_jalali_day(now):
+            logger.info("Skipping weekly report on last day of Jalali month (covered by monthly report).")
+        else:
+            try:
+                await _sweep(bot, session_factory, remnawave, "weekly")
+            except Exception:  # noqa: BLE001
+                logger.exception("weekly sweep failed")
         await asyncio.sleep(120)  # make sure we roll past 23:59
 
 

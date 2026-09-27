@@ -79,6 +79,39 @@ def _find_account(accounts: list[dict], account_id: str | int) -> dict | None:
     return None
 
 
+def _format_account_btn(account: dict, lang: str) -> str:
+    username = account.get("username", "—")
+    limit = int(account.get("trafficLimitBytes") or 0)
+    traffic = account.get("userTraffic") or {}
+    used = int(traffic.get("usedTrafficBytes") or account.get("usedTrafficBytes") or 0)
+
+    # Traffic compact string (e.g. 30 GB or 500 MB)
+    if limit > 0:
+        remaining = max(0, limit - used)
+        gb = remaining / (1024 ** 3)
+        if gb >= 1:
+            traffic_str = f"{gb:.0f} GB" if gb.is_integer() or round(gb, 1).is_integer() else f"{gb:.1f} GB"
+        else:
+            mb = remaining / (1024 ** 2)
+            traffic_str = f"{mb:.0f} MB" if mb >= 1 else "0 MB"
+    else:
+        traffic_str = t(lang, "stats_unlimited")
+
+    # Expiry days (e.g. 12 or 12 روز)
+    expire_at = parse_iso(account.get("expireAt"))
+    if expire_at is None:
+        days_str = t(lang, "stats_no_expire")
+    else:
+        now = now_tz(get_settings().TIMEZONE)
+        delta_days = (expire_at - now).days
+        if delta_days >= 0:
+            days_str = f"{delta_days} روز" if lang == "fa" else f"{delta_days}d"
+        else:
+            days_str = "منقضی" if lang == "fa" else "Expired"
+
+    return f"👤 {username} - {traffic_str} - {days_str}"
+
+
 # --------------------------------------------------------------------- #
 # Rendering helpers
 # --------------------------------------------------------------------- #
@@ -140,8 +173,8 @@ def _account_view_keyboard(
         sizes += [1, 1]
     if multi:
         kb.button(text=t(lang, "btn_back"), callback_data="menu:account")
-        sizes.append(1)
-    kb.button(text=t(lang, "btn_back_to_menu"), callback_data="nav:main_menu")
+    else:
+        kb.button(text=t(lang, "btn_back"), callback_data="nav:main_menu")
     sizes.append(1)
     kb.adjust(*sizes)
     return kb.as_markup()
@@ -269,10 +302,10 @@ async def account_entry(
     kb = InlineKeyboardBuilder()
     for account in accounts:
         kb.button(
-            text=f"👤 {account.get('username', '—')}",
+            text=_format_account_btn(account, lang),
             callback_data=f"acc:view:{account.get('id')}",
         )
-    kb.button(text=t(lang, "btn_back_to_menu"), callback_data="nav:main_menu")
+    kb.button(text=t(lang, "btn_back"), callback_data="nav:main_menu")
     kb.adjust(1)
 
     text = f"{t(lang, 'acc_title')}\n{SEPARATOR}\n{t(lang, 'acc_pick')}"
@@ -482,9 +515,10 @@ async def revoke_confirm(
         return
 
     kb = InlineKeyboardBuilder()
-    kb.button(text=t(lang, "btn_yes_revoke"), callback_data=f"acc:revoke_yes:{account_id}")
+    # 2 columns (RTL: first is Left = Cancel, second is Right = Yes)
     kb.button(text=t(lang, "btn_cancel"), callback_data=f"acc:view:{account_id}")
-    kb.adjust(1)
+    kb.button(text=t(lang, "btn_yes_revoke"), callback_data=f"acc:revoke_yes:{account_id}")
+    kb.adjust(2)
 
     await render_menu(bot, user, user_repo, t(lang, "revoke_confirm"), kb.as_markup())
     await call.answer()
@@ -525,7 +559,6 @@ async def revoke_do(
     if sub_url:
         kb.button(text=t(lang, "btn_open_sub"), url=sub_url)
     kb.button(text=t(lang, "btn_back"), callback_data=f"acc:view:{account_id}")
-    kb.button(text=t(lang, "btn_back_to_menu"), callback_data="nav:main_menu")
     kb.adjust(1)
 
     await render_menu(bot, user, user_repo, text, kb.as_markup())
