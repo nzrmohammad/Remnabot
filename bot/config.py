@@ -23,6 +23,12 @@ class Settings(BaseSettings):
     ADMIN_TOPIC_ORDERS: int | None = None   # Topic ID for purchase logs
     ADMIN_TOPIC_SUPPORT: int | None = None  # Topic ID for support messages
     ADMIN_TOPIC_ALERTS: int | None = None   # Topic ID for system/reconcile alerts
+    ADMIN_TOPIC_CRYPTO: int | None = None   # Topic ID for crypto rates and payments
+
+    # --- Crypto (TON on-chain top-up) ---
+    TON_WALLET_ADDRESS: str = ""
+    TON_RATE_TOMAN: int = 0
+    CRYPTO_ENABLED: bool = False
 
     # --- Database ---
     DATABASE_URL: str                  # postgresql+asyncpg://user:pass@host:5432/dbname
@@ -78,6 +84,7 @@ class Settings(BaseSettings):
         "ADMIN_TOPIC_ORDERS",
         "ADMIN_TOPIC_SUPPORT",
         "ADMIN_TOPIC_ALERTS",
+        "ADMIN_TOPIC_CRYPTO",
         mode="before",
     )
     @classmethod

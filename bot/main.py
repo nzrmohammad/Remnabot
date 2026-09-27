@@ -29,6 +29,8 @@ from bot.services.reports import (
     weekly_report_loop,
 )
 from bot.services.retention import retention_loop
+from bot.services.crypto.nobitex import nobitex_rate_loop
+from bot.services.crypto.ton import ton_watcher_loop
 
 logging.basicConfig(
     level=logging.INFO,
@@ -255,6 +257,12 @@ async def main() -> None:
         ),
         asyncio.create_task(
             auto_backup_loop(bot, session_factory), name="auto-backup-loop"
+        ),
+        asyncio.create_task(
+            nobitex_rate_loop(bot, session_factory), name="nobitex-rate-loop"
+        ),
+        asyncio.create_task(
+            ton_watcher_loop(bot, session_factory), name="ton-watcher-loop"
         ),
     ]
 

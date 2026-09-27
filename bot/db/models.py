@@ -331,3 +331,28 @@ class RetentionState(Base):
         DateTime(timezone=True), server_default=func.now()
     )
 
+
+class CryptoInvoice(Base):
+    """Invoice for on-chain cryptocurrency (TON) wallet top-up."""
+
+    __tablename__ = "crypto_invoices"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    telegram_id: Mapped[int] = mapped_column(BigInteger, index=True)
+    amount_toman: Mapped[int] = mapped_column(BigInteger)
+    amount_ton: Mapped[str] = mapped_column(String(32))
+    nanotons: Mapped[int] = mapped_column(BigInteger)
+    comment: Mapped[str] = mapped_column(String(32), unique=True, index=True)
+    pay_address: Mapped[str] = mapped_column(String(128))
+    status: Mapped[str] = mapped_column(String(16), default="pending")  # pending / paid / expired / cancelled
+    tx_hash: Mapped[str | None] = mapped_column(String(128), nullable=True)
+
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+    paid_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+
+

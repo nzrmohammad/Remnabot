@@ -191,20 +191,57 @@ async def topup_start(
         await call.answer(t(lang, "maintenance_user"), show_alert=True)
         return
 
-    if not store.card_number:
+    has_card = bool(store.card_number and store.card_number.strip())
+    has_crypto = bool(store.crypto_enabled and store.ton_wallet_address and store.ton_rate_toman > 0)
+
+    if not has_card and not has_crypto:
         await call.answer(t(lang, "topup_no_card"), show_alert=True)
         return
 
+    if has_card and has_crypto:
+        kb = InlineKeyboardBuilder()
+        if lang == "fa":
+            kb.button(text=t(lang, "btn_topup_ton"), callback_data="wallet:method:ton")
+            kb.button(text=t(lang, "btn_topup_card"), callback_data="wallet:method:card")
+        else:
+            kb.button(text=t(lang, "btn_topup_card"), callback_data="wallet:method:card")
+            kb.button(text=t(lang, "btn_topup_ton"), callback_data="wallet:method:ton")
+        kb.button(text=t(lang, "btn_cancel"), callback_data="menu:wallet")
+        kb.adjust(2, 1)
+        await render_menu(bot, user, user_repo, t(lang, "topup_select_method"), kb.as_markup())
+        await call.answer()
+        return
+
+    method = "ton" if has_crypto else "card"
+    await _render_topup_amount_prompt(bot, user, user_repo, session, state, method)
+    await call.answer()
+
+
+@router.callback_query(F.data.startswith("wallet:method:"))
+async def topup_method_pick(
+    call: CallbackQuery, bot: Bot, user_repo: UserRepository, session: AsyncSession,
+    state: FSMContext,
+):
+    method = call.data.split(":", 2)[2]
+    user = await user_repo.get_or_create(call.from_user.id, call.from_user.username)
+    await _render_topup_amount_prompt(bot, user, user_repo, session, state, method)
+    await call.answer()
+
+
+async def _render_topup_amount_prompt(
+    bot: Bot, user, user_repo: UserRepository, session: AsyncSession,
+    state: FSMContext, method: str,
+) -> None:
+    lang = user.language or "fa"
+    store = await get_store_settings(session)
     await state.set_state(TopupStates.waiting_amount)
+    await state.update_data(topup_method=method)
 
     min_amt = store.topup_min_amount
     presets = [min_amt, min_amt * 2, min_amt * 3, min_amt * 5]
 
     kb = InlineKeyboardBuilder()
     if lang == "fa":
-        # In RTL: first button added is on the left, second on the right.
-        # Row 1: Left = 200k, Right = 100k
-        # Row 2: Left = 500k, Right = 300k
         row1 = (presets[1], presets[0])
         row2 = (presets[3], presets[2])
     else:
@@ -224,12 +261,63 @@ async def topup_start(
     kb.button(text=t(lang, "btn_cancel"), callback_data="menu:wallet")
     kb.adjust(2, 2, 1)
 
-    await render_menu(
-        bot, user, user_repo,
-        t(lang, "topup_amount_prompt", min=_fmt(store.topup_min_amount)),
-        kb.as_markup(),
-    )
-    await call.answer()
+    hint_crypto = ""
+    if method == "ton" and store.ton_rate_toman > 0:
+        hint_crypto = (
+            f"\n\n💎 <b>نرخ محاسبه:</b> هر تون = <b>{store.ton_rate_toman:,}</b> تومان"
+            if lang == "fa"
+            else f"\n\n💎 <b>Conversion rate:</b> 1 TON = <b>{store.ton_rate_toman:,}</b> Toman"
+        )
+
+    prompt_text = t(lang, "topup_amount_prompt", min=_fmt(store.topup_min_amount)) + hint_crypto
+    await render_menu(bot, user, user_repo, prompt_text, kb.as_markup())
+
+
+async def _render_ton_invoice(
+    bot: Bot, user, user_repo: UserRepository, session: AsyncSession, invoice,
+) -> None:
+    lang = user.language or "fa"
+    deep_link = f"ton://transfer/{invoice.pay_address}?amount={invoice.nanotons}&text={invoice.comment}"
+
+    kb = InlineKeyboardBuilder()
+    tonkeeper_label = "🚀 پرداخت با Tonkeeper / ولت" if lang == "fa" else "🚀 Pay in Tonkeeper"
+    check_label = "🔄 بررسی وضعیت پرداخت" if lang == "fa" else "🔄 Check Payment Status"
+    cancel_label = "❌ لغو فاکتور" if lang == "fa" else "❌ Cancel Invoice"
+
+    kb.button(text=tonkeeper_label, url=deep_link)
+    kb.button(text=check_label, callback_data=f"wallet:ton:check:{invoice.id}")
+    kb.button(text=cancel_label, callback_data=f"wallet:ton:cancel:{invoice.id}")
+    kb.adjust(1)
+
+    if lang == "fa":
+        text = (
+            f"💎 <b>فاکتور پرداخت با تون (TON)</b>\n"
+            f"{SEPARATOR}\n"
+            f"💰 مبلغ شارژ : <b>{invoice.amount_toman:,}</b> تومان\n"
+            f"💎 مقدار قابل پرداخت : <code>{invoice.amount_ton} TON</code>\n\n"
+            f"📬 <b>آدرس والت مقصد (لمس برای کپی):</b>\n"
+            f"<code>{invoice.pay_address}</code>\n\n"
+            f"⚠️ <b>بسیار مهم — شناسه پرداخت (Comment / Memo):</b>\n"
+            f"<code>{invoice.comment}</code>\n"
+            f"<i>حتماً در بخش Comment یا پیام والت خود این شناسه را وارد کنید تا شارژ به‌طور خودکار انجام شود.</i>\n\n"
+            f"⏳ مهلت پرداخت : <b>۳۰ دقیقه</b>\n\n"
+            f"💡 <i>در صورت داشتن تون‌کیپر یا والت تلگرام، کافیست روی دکمه «پرداخت با Tonkeeper» کلیک کنید تا تمام فیلدها خودبه‌خود پر شوند.</i>"
+        )
+    else:
+        text = (
+            f"💎 <b>TON Payment Invoice</b>\n"
+            f"{SEPARATOR}\n"
+            f"💰 Top-up Amount : <b>{invoice.amount_toman:,}</b> Toman\n"
+            f"💎 Payable Amount : <code>{invoice.amount_ton} TON</code>\n\n"
+            f"📬 <b>Destination Wallet Address:</b>\n"
+            f"<code>{invoice.pay_address}</code>\n\n"
+            f"⚠️ <b>Important — Payment Memo / Comment:</b>\n"
+            f"<code>{invoice.comment}</code>\n"
+            f"<i>You must include this comment in your transfer so your wallet is credited automatically.</i>\n\n"
+            f"⏳ Valid for : <b>30 minutes</b>"
+        )
+
+    await render_menu(bot, user, user_repo, text, kb.as_markup())
 
 
 @router.callback_query(F.data.startswith("wallet:amt:"))
@@ -252,6 +340,32 @@ async def topup_preset_amount(
             t(lang, "topup_amount_invalid", min=_fmt(store.topup_min_amount)),
             show_alert=True,
         )
+        return
+
+    data = await state.get_data()
+    method = data.get("topup_method", "card")
+
+    if method == "ton":
+        if not (store.crypto_enabled and store.ton_wallet_address and store.ton_rate_toman > 0):
+            await call.answer("❌ پرداخت کریپتو موقتاً غیرفعال است.", show_alert=True)
+            return
+
+        from bot.db.repositories.crypto_repo import CryptoRepository
+        crypto_repo = CryptoRepository(session)
+        ton_amount = round(amount / store.ton_rate_toman, 4)
+        nanotons = int(round(ton_amount * 1_000_000_000))
+        invoice = await crypto_repo.create_invoice(
+            telegram_id=user.telegram_id,
+            amount_toman=amount,
+            amount_ton=f"{ton_amount:.4f}",
+            nanotons=nanotons,
+            pay_address=store.ton_wallet_address,
+            expires_minutes=30,
+        )
+        await session.commit()
+        await state.clear()
+        await _render_ton_invoice(bot, user, user_repo, session, invoice)
+        await call.answer()
         return
 
     await state.update_data(amount=amount)
@@ -297,6 +411,31 @@ async def topup_amount(
         )
         return
 
+    data = await state.get_data()
+    method = data.get("topup_method", "card")
+
+    if method == "ton":
+        if not (store.crypto_enabled and store.ton_wallet_address and store.ton_rate_toman > 0):
+            await render_menu(bot, user, user_repo, "❌ پرداخت کریپتو موقتاً غیرفعال است.", kb.as_markup())
+            return
+
+        from bot.db.repositories.crypto_repo import CryptoRepository
+        crypto_repo = CryptoRepository(session)
+        ton_amount = round(amount / store.ton_rate_toman, 4)
+        nanotons = int(round(ton_amount * 1_000_000_000))
+        invoice = await crypto_repo.create_invoice(
+            telegram_id=user.telegram_id,
+            amount_toman=amount,
+            amount_ton=f"{ton_amount:.4f}",
+            nanotons=nanotons,
+            pay_address=store.ton_wallet_address,
+            expires_minutes=30,
+        )
+        await session.commit()
+        await state.clear()
+        await _render_ton_invoice(bot, user, user_repo, session, invoice)
+        return
+
     await state.update_data(amount=amount)
     await state.set_state(TopupStates.waiting_receipt)
 
@@ -310,6 +449,104 @@ async def topup_amount(
         ),
         kb.as_markup(),
     )
+
+
+@router.callback_query(F.data.startswith("wallet:ton:check:"))
+async def ton_invoice_check(
+    call: CallbackQuery, bot: Bot, user_repo: UserRepository, session: AsyncSession,
+):
+    try:
+        inv_id = int(call.data.split(":", 3)[3])
+    except (ValueError, IndexError):
+        await call.answer()
+        return
+
+    from bot.db.repositories.crypto_repo import CryptoRepository
+    crypto_repo = CryptoRepository(session)
+    inv = await crypto_repo.get_by_id(inv_id)
+    if not inv:
+        await call.answer("❌ فاکتور یافت نشد.", show_alert=True)
+        return
+
+    if inv.status == "paid":
+        wallet_repo = WalletRepository(session)
+        w = await wallet_repo.get_wallet(inv.telegram_id)
+        user = await user_repo.get_or_create(call.from_user.id, call.from_user.username)
+        lang = user.language or "fa"
+        kb = InlineKeyboardBuilder()
+        kb.button(text="🛍 خرید سرویس" if lang == "fa" else "🛍 Buy Service", callback_data="menu:services")
+        kb.button(text="🏠 منوی اصلی" if lang == "fa" else "🏠 Main Menu", callback_data="nav:main_menu")
+        kb.adjust(1)
+        msg = (
+            f"🎉 <b>این فاکتور با موفقیت پرداخت و کیف پول شما شارژ شده است!</b>\n\n"
+            f"💰 مبلغ : <b>{inv.amount_toman:,}</b> تومان\n"
+            f"👛 موجودی فعلی : <b>{w.balance:,}</b> تومان"
+        )
+        await render_menu(bot, user, user_repo, msg, kb.as_markup())
+        await call.answer()
+        return
+
+    if inv.status in ("expired", "cancelled"):
+        await call.answer("⚠️ این فاکتور منقضی یا لغو شده است.", show_alert=True)
+        return
+
+    # Check on-chain immediately
+    from bot.services.crypto.ton import fetch_ton_transactions
+    store = await get_store_settings(session)
+    txs = await fetch_ton_transactions(store.ton_wallet_address)
+    matched = False
+    for tx in txs:
+        if tx["comment"] == inv.comment and tx["nanotons"] >= inv.nanotons:
+            paid_inv = await crypto_repo.mark_paid(inv.id, tx["tx_hash"])
+            if paid_inv:
+                wallet_repo = WalletRepository(session)
+                new_bal = await wallet_repo.add_balance_atomic(inv.telegram_id, inv.amount_toman)
+                await session.commit()
+                matched = True
+                user = await user_repo.get_or_create(call.from_user.id, call.from_user.username)
+                lang = user.language or "fa"
+                kb = InlineKeyboardBuilder()
+                kb.button(text="🛍 خرید سرویس" if lang == "fa" else "🛍 Buy Service", callback_data="menu:services")
+                kb.button(text="🏠 منوی اصلی" if lang == "fa" else "🏠 Main Menu", callback_data="nav:main_menu")
+                kb.adjust(1)
+                msg = (
+                    f"🎉 <b>کیف پول شما با موفقیت شارژ شد!</b>\n"
+                    f"{SEPARATOR}\n"
+                    f"💎 دریافتی : <code>{inv.amount_ton} TON</code>\n"
+                    f"💰 مبلغ شارژ : <b>{inv.amount_toman:,}</b> تومان\n"
+                    f"👛 موجودی جدید : <b>{new_bal:,}</b> تومان"
+                )
+                await render_menu(bot, user, user_repo, msg, kb.as_markup())
+                await call.answer("✅ پرداخت تایید و کیف پول شارژ شد!", show_alert=True)
+                return
+
+    if not matched:
+        await call.answer(
+            "⏳ هنوز تراکنشی با این شناسه در شبکه ثبت نشده است. لطفاً پس از ارسال کمی صبر کنید و دوباره امتحان نمایید.",
+            show_alert=True,
+        )
+
+
+@router.callback_query(F.data.startswith("wallet:ton:cancel:"))
+async def ton_invoice_cancel(
+    call: CallbackQuery, bot: Bot, user_repo: UserRepository, session: AsyncSession,
+):
+    try:
+        inv_id = int(call.data.split(":", 3)[3])
+    except (ValueError, IndexError):
+        await call.answer()
+        return
+
+    from bot.db.repositories.crypto_repo import CryptoRepository
+    crypto_repo = CryptoRepository(session)
+    await crypto_repo.mark_cancelled(inv_id)
+    await session.commit()
+
+    user = await user_repo.get_or_create(call.from_user.id, call.from_user.username)
+    lang = user.language or "fa"
+    wallet_repo = WalletRepository(session)
+    await _render_wallet(bot, user, user_repo, wallet_repo, lang)
+    await call.answer("❌ فاکتور پرداخت لغو شد.")
 
 
 @router.message(TopupStates.waiting_receipt, F.photo | F.text | F.document)

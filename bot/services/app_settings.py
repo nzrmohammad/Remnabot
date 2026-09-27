@@ -27,6 +27,10 @@ class StoreSettings:
     referral_enabled: bool = True
     referral_reward_gb: int = 5
     support_direct_enabled: bool = True
+    topic_crypto: int | None = None
+    ton_wallet_address: str = ""
+    ton_rate_toman: int = 0
+    crypto_enabled: bool = False
 
 
 async def get_store_settings(session: AsyncSession) -> StoreSettings:
@@ -71,6 +75,10 @@ async def get_store_settings(session: AsyncSession) -> StoreSettings:
         referral_enabled=_bool(values.get("referral_enabled"), True),
         referral_reward_gb=_int(values.get("referral_reward_gb"), 5),
         support_direct_enabled=_bool(values.get("support_direct_enabled"), True),
+        topic_crypto=_opt_int(values.get("topic_crypto"), env.ADMIN_TOPIC_CRYPTO),
+        ton_wallet_address=values.get("ton_wallet_address", env.TON_WALLET_ADDRESS),
+        ton_rate_toman=_int(values.get("ton_rate_toman"), env.TON_RATE_TOMAN),
+        crypto_enabled=_bool(values.get("crypto_enabled"), env.CRYPTO_ENABLED),
     )
 
 

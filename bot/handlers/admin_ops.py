@@ -72,6 +72,9 @@ SETTING_FIELDS = {
     "trial_duration_days": ("settings_trial_duration", True),
     "referral_enabled": ("settings_referral_enabled", True),
     "referral_reward_gb": ("settings_referral_reward", True),
+    "topic_crypto": ("settings_topic_crypto", True),
+    "ton_wallet_address": ("settings_ton_wallet", False),
+    "ton_rate_toman": ("settings_ton_rate", True),
 }
 
 SETTING_DESCRIPTIONS = {
@@ -86,6 +89,9 @@ SETTING_DESCRIPTIONS = {
         "topic_orders": "شناسه تاپیک سفارشات در سوپرگروه مدیریت تلگرام جهت ارسال لاگ خرید بسته‌ها.",
         "topic_support": "شناسه تاپیک پشتیبانی در سوپرگروه مدیریت تلگرام جهت فوروارد پیام‌های کاربران.",
         "topic_alerts": "شناسه تاپیک هشدارهای سیستم و ارسال خودکار فایل پشتیبان دیتابیس در سوپرگروه مدیریت.",
+        "topic_crypto": "شناسه تاپیک کریپتو در سوپرگروه مدیریت جهت ارسال استعلام نرخ نوبیتکس و لاگ پرداخت‌های تون.",
+        "ton_wallet_address": "آدرس عمومی کیف پول تون (مانند UQ... یا EQ...) جهت دریافت وجه از کاربران.",
+        "ton_rate_toman": "نرخ تبدیل هر یک تون به تومان جهت صدور فاکتور شارژ کیف پول.",
         "trial_enabled": "فعال (1) یا غیرفعال (0) بودن امکان دریافت اکانت تست رایگان توسط کاربران جدید.",
         "trial_traffic_gb": "حجم ترافیک اختصاص داده شده به اکانت تست رایگان به گیگابایت.",
         "trial_duration_days": "مدت زمان اعتبار اکانت تست رایگان به روز.",
@@ -103,6 +109,9 @@ SETTING_DESCRIPTIONS = {
         "topic_orders": "Telegram topic ID for order purchase notifications.",
         "topic_support": "Telegram topic ID for support message forwarding.",
         "topic_alerts": "Telegram topic ID for system alerts and auto database backups.",
+        "topic_crypto": "Telegram topic ID for crypto rates and TON payment logs.",
+        "ton_wallet_address": "Public TON wallet address for receiving user payments.",
+        "ton_rate_toman": "Conversion rate of 1 TON in Toman for invoices.",
         "trial_enabled": "Enable (1) or disable (0) free trial accounts.",
         "trial_traffic_gb": "Free trial traffic volume in GB.",
         "trial_duration_days": "Free trial duration in days.",
@@ -1500,6 +1509,8 @@ async def _render_settings(
         # Row 7: Invite Settings & Test Settings (2 columns RTL: Left = Invite, Right = Test)
         kb.button(text="🤝 تنظیمات دعوت", callback_data="adm:settings:referral")
         kb.button(text="🎁 تنظیمات تست", callback_data="adm:settings:trial")
+        # Row 8: Crypto Settings
+        kb.button(text="💎 تنظیمات کریپتو (TON)", callback_data="adm:settings:crypto")
     else:
         kb.button(text=t(lang, "settings_card"), callback_data="adm:set:card_number")
         kb.button(text=t(lang, "settings_holder"), callback_data="adm:set:card_holder")
@@ -1516,9 +1527,10 @@ async def _render_settings(
         kb.button(text=t(lang, "settings_topics_btn"), callback_data="adm:settings:topics")
         kb.button(text="🎁 Trial Settings", callback_data="adm:settings:trial")
         kb.button(text="🤝 Invite Settings", callback_data="adm:settings:referral")
+        kb.button(text="💎 Crypto Settings (TON)", callback_data="adm:settings:crypto")
 
     kb.button(text=t(lang, "btn_back"), callback_data="menu:admin")
-    kb.adjust(1, 2, 2, 1, 2, 2, 2, 1)
+    kb.adjust(1, 2, 2, 1, 2, 2, 2, 1, 1)
 
     squad_show = store.default_squad_uuid or "—"
 
@@ -1551,6 +1563,10 @@ async def _render_settings(
     t_orders = f"سفارش ({store.topic_orders}) : Orders" if store.topic_orders is not None else "سفارش : — (Orders)"
     t_support = f"پشتیبانی ({store.topic_support}) : Support" if store.topic_support is not None else "پشتیبانی : — (Support)"
     t_alerts = f"هشدار ({store.topic_alerts}) : Alerts" if store.topic_alerts is not None else "هشدار : — (Alerts)"
+    t_crypto = f"کریپتو ({store.topic_crypto}) : Crypto" if store.topic_crypto is not None else "کریپتو : — (Crypto)"
+
+    crypto_status_fa = "✅ فعال" if store.crypto_enabled else "❌ غیرفعال"
+    rate_fa = f"{store.ton_rate_toman:,} تومان" if store.ton_rate_toman > 0 else "—"
 
     maint_badge = "✅" if maint_on else "❌"
 
@@ -1565,6 +1581,7 @@ async def _render_settings(
             "",
             f"🎁 سرویس تست : {trial_desc}",
             f"🤝 سیستم دعوت : {ref_desc}",
+            f"💎 پرداخت کریپتو (TON) : {crypto_status_fa} (نرخ: {rate_fa})",
             "",
             f"⏳ {t(lang, 'settings_grace_days')} : {store.expiry_grace_days} روز",
             f"🔔 {t(lang, 'settings_remind_days')} : {escape(store.expiry_remind_days)}",
@@ -1575,6 +1592,7 @@ async def _render_settings(
             f"   {t_orders}",
             f"   {t_support}",
             f"   {t_alerts}",
+            f"   {t_crypto}",
             "",
             f"🚧 {t(lang, 'settings_maintenance')} : {maint_badge}",
         ]
@@ -1602,6 +1620,10 @@ async def _render_settings(
         orders_en = f"   Orders ({store.topic_orders}) : Orders" if store.topic_orders is not None else "   Orders : — (Orders)"
         support_en = f"   Support ({store.topic_support}) : Support" if store.topic_support is not None else "   Support : — (Support)"
         alerts_en = f"   Alerts ({store.topic_alerts}) : Alerts" if store.topic_alerts is not None else "   Alerts : — (Alerts)"
+        crypto_en = f"   Crypto ({store.topic_crypto}) : Crypto" if store.topic_crypto is not None else "   Crypto : — (Crypto)"
+
+        crypto_status_en = "✅ Active" if store.crypto_enabled else "❌ Inactive"
+        rate_en = f"{store.ton_rate_toman:,} Toman" if store.ton_rate_toman > 0 else "—"
 
         lines = [
             f"{t(lang, 'store_settings_title')}\n{SEPARATOR}",
@@ -1613,6 +1635,7 @@ async def _render_settings(
             "",
             f"🎁 Free Trial : {trial_en}",
             f"🤝 Referral : {ref_en}",
+            f"💎 Crypto (TON) : {crypto_status_en} (Rate: {rate_en})",
             "",
             f"⏳ {t(lang, 'settings_grace_days')} : {store.expiry_grace_days}d",
             f"🔔 {t(lang, 'settings_remind_days')} : {escape(store.expiry_remind_days)}",
@@ -1623,6 +1646,7 @@ async def _render_settings(
             orders_en,
             support_en,
             alerts_en,
+            crypto_en,
             "",
             f"🚧 {t(lang, 'settings_maintenance')} : {maint_badge}",
         ]
@@ -1640,6 +1664,7 @@ async def _render_topics_settings(
     t_orders = f"{store.topic_orders} (Orders)" if store.topic_orders is not None else "— (Orders)"
     t_support = f"{store.topic_support} (Support)" if store.topic_support is not None else "— (Support)"
     t_alerts = f"{store.topic_alerts} (Alerts)" if store.topic_alerts is not None else "— (Alerts)"
+    t_crypto = f"{store.topic_crypto} (Crypto)" if store.topic_crypto is not None else "— (Crypto)"
 
     if lang == "fa":
         # Persian RTL: first added is LEFT, second added is RIGHT
@@ -1649,14 +1674,17 @@ async def _render_topics_settings(
         # Row 2: Right = تاپیک پشتیبانی, Left = تاپیک هشدار و بکاپ
         kb.button(text="🚨 تاپیک هشدار و بکاپ", callback_data="adm:set:topic_alerts")
         kb.button(text="\u200f🎧 تاپیک پشتیبانی", callback_data="adm:set:topic_support")
+        # Row 3: تاپیک کریپتو و نرخ
+        kb.button(text="💎 تاپیک کریپتو و نرخ", callback_data="adm:set:topic_crypto")
     else:
         kb.button(text="💳 Top-ups Topic", callback_data="adm:set:topic_topups")
         kb.button(text="🛒 Orders Topic", callback_data="adm:set:topic_orders")
         kb.button(text="🎧 Support Topic", callback_data="adm:set:topic_support")
         kb.button(text="🚨 Alerts & Backup", callback_data="adm:set:topic_alerts")
+        kb.button(text="💎 Crypto & Rates Topic", callback_data="adm:set:topic_crypto")
 
     kb.button(text=t(lang, "btn_back"), callback_data="adm:settings")
-    kb.adjust(2, 2, 1)
+    kb.adjust(2, 2, 1, 1)
 
     grp_title = await _get_admin_group_title(bot)
     topics_title = f"{t(lang, 'settings_topics_title')} ({escape(grp_title)})" if grp_title else t(lang, 'settings_topics_title')
@@ -1666,7 +1694,8 @@ async def _render_topics_settings(
         f"💳 <b>تاپیک تایید شارژها :</b> {t_topups}\n"
         f"🛒 <b>تاپیک ثبت سفارشات :</b> {t_orders}\n"
         f"🎧 <b>تاپیک پیام‌های پشتیبانی :</b> {t_support}\n"
-        f"🚨 <b>تاپیک هشدارهای سیستم و بکاپ :</b> {t_alerts}\n\n"
+        f"🚨 <b>تاپیک هشدارهای سیستم و بکاپ :</b> {t_alerts}\n"
+        f"💎 <b>تاپیک کریپتو و نرخ ارز :</b> {t_crypto}\n\n"
         f"💡 جهت اتصال هر بخش به تاپیک، روی دکمه مربوطه کلیک کنید و شناسه عددی (Topic ID) آن را ارسال نمایید.\n"
         f"(برای غیرفعال‌سازی هر تاپیک مقدار 0 یا /skip ارسال کنید)"
     ) if lang == "fa" else (
@@ -1674,10 +1703,142 @@ async def _render_topics_settings(
         f"💳 <b>Top-ups Topic :</b> {t_topups}\n"
         f"🛒 <b>Orders Topic :</b> {t_orders}\n"
         f"🎧 <b>Support Topic :</b> {t_support}\n"
-        f"🚨 <b>System Alerts & Backup :</b> {t_alerts}\n\n"
+        f"🚨 <b>System Alerts & Backup :</b> {t_alerts}\n"
+        f"💎 <b>Crypto & Rates Topic :</b> {t_crypto}\n\n"
         f"<i>(Send 0 or /skip to disable any topic)</i>"
     )
     await render_menu(bot, user, user_repo, text, kb.as_markup())
+
+
+async def _render_crypto_settings(
+    bot: Bot, user, user_repo: UserRepository, session: AsyncSession,
+) -> None:
+    lang = user.language or "fa"
+    store = await get_store_settings(session)
+    kb = InlineKeyboardBuilder()
+
+    status_badge = "✅ فعال" if store.crypto_enabled else "❌ غیرفعال"
+    rate_str = f"{store.ton_rate_toman:,} تومان" if store.ton_rate_toman > 0 else "— (تنظیم‌نشده)"
+    wallet_str = store.ton_wallet_address or "— (تنظیم‌نشده)"
+    topic_str = f"{store.topic_crypto} (Crypto)" if store.topic_crypto is not None else "— (پیش‌فرض: هشدارهای سیستم)"
+
+    if lang == "fa":
+        kb.button(
+            text=f"⚡️ وضعیت درگاه : {status_badge}",
+            callback_data="adm:settings:toggle:crypto_enabled",
+        )
+        kb.button(text="📬 تنظیم آدرس والت TON", callback_data="adm:set:ton_wallet_address")
+        kb.button(text="💰 تنظیم نرخ هر تون", callback_data="adm:set:ton_rate_toman")
+        kb.button(text="📊 استعلام آنی از نوبیتکس", callback_data="adm:crypto:nobitex_now")
+        kb.button(text="🎧 تاپیک کریپتو و نرخ", callback_data="adm:set:topic_crypto")
+    else:
+        kb.button(
+            text=f"⚡️ Status: {status_badge}",
+            callback_data="adm:settings:toggle:crypto_enabled",
+        )
+        kb.button(text="📬 Set TON Wallet", callback_data="adm:set:ton_wallet_address")
+        kb.button(text="💰 Set TON Rate", callback_data="adm:set:ton_rate_toman")
+        kb.button(text="📊 Check Nobitex Price", callback_data="adm:crypto:nobitex_now")
+        kb.button(text="🎧 Crypto Topic", callback_data="adm:set:topic_crypto")
+
+    kb.button(text=t(lang, "btn_back"), callback_data="adm:settings")
+    kb.adjust(1, 2, 2, 1)
+
+    lines = [
+        "💎 <b>تنظیمات پرداخت کریپتو (TON)</b>\n" + SEPARATOR,
+        f"⚡️ وضعیت درگاه : <b>{status_badge}</b>",
+        f"📬 آدرس والت مقصد : <code>{escape(wallet_str)}</code>",
+        f"💰 نرخ تبدیل (۱ تون) : <b>{rate_str}</b>",
+        f"🎧 تاپیک اختصاصی : <b>{escape(topic_str)}</b>\n",
+        "💡 <i>ربات روزانه ۴ بار (ساعت‌های ۱۰:۰۰، ۱۴:۰۰، ۱۸:۰۰ و ۲۲:۰۰) قیمت نوبیتکس را در تاپیک کریپتو ارسال می‌کند تا با یک کلیک بتوانید نرخ فروشگاه را آپدیت فرمایید.</i>",
+    ] if lang == "fa" else [
+        "💎 <b>Crypto (TON) Payment Settings</b>\n" + SEPARATOR,
+        f"⚡️ Status : <b>{status_badge}</b>",
+        f"📬 Wallet : <code>{escape(wallet_str)}</code>",
+        f"💰 Rate : <b>{rate_str}</b>",
+        f"🎧 Topic : <b>{escape(topic_str)}</b>",
+    ]
+
+    await render_menu(bot, user, user_repo, "\n".join(lines), kb.as_markup())
+
+
+@router.callback_query(F.data == "adm:settings:crypto")
+async def crypto_settings_view(
+    call: CallbackQuery, bot: Bot, user_repo: UserRepository, session: AsyncSession,
+):
+    if not _is_admin(call.from_user.id):
+        await call.answer(t("fa", "not_authorized"), show_alert=True)
+        return
+    user = await user_repo.get_or_create(call.from_user.id, call.from_user.username)
+    await _render_crypto_settings(bot, user, user_repo, session)
+    await call.answer()
+
+
+@router.callback_query(F.data == "adm:settings:toggle:crypto_enabled")
+async def toggle_crypto_enabled(
+    call: CallbackQuery, bot: Bot, user_repo: UserRepository, session: AsyncSession,
+):
+    if not _is_admin(call.from_user.id):
+        await call.answer(t("fa", "not_authorized"), show_alert=True)
+        return
+    user = await user_repo.get_or_create(call.from_user.id, call.from_user.username)
+    store = await get_store_settings(session)
+    new_val = not store.crypto_enabled
+    await AppSettingRepository(session).set("crypto_enabled", "1" if new_val else "0")
+    await AdminLogRepository(session).log(
+        call.from_user.id, "setting", detail=f"crypto_enabled={'1' if new_val else '0'}"
+    )
+    await _render_crypto_settings(bot, user, user_repo, session)
+    await call.answer("✅ وضعیت پرداخت کریپتو تغییر یافت.")
+
+
+@router.callback_query(F.data == "adm:crypto:nobitex_now")
+async def crypto_nobitex_now(
+    call: CallbackQuery, bot: Bot, user_repo: UserRepository, session: AsyncSession,
+):
+    if not _is_admin(call.from_user.id):
+        await call.answer(t("fa", "not_authorized"), show_alert=True)
+        return
+    from bot.services.crypto.nobitex import fetch_nobitex_ton_price, format_rate_alert
+    price = await fetch_nobitex_ton_price()
+    if price is None:
+        await call.answer("❌ خطا در استعلام از نوبیتکس. لطفاً دوباره تلاش کنید.", show_alert=True)
+        return
+
+    store = await get_store_settings(session)
+    text, kb = format_rate_alert(price, store.ton_rate_toman)
+    user = await user_repo.get_or_create(call.from_user.id, call.from_user.username)
+    await render_menu(bot, user, user_repo, text, kb)
+    await call.answer(f"قیمت نوبیتکس: {price:,} تومان")
+
+
+@router.callback_query(F.data.startswith("adm:rate:apply:"))
+async def apply_nobitex_rate(
+    call: CallbackQuery, bot: Bot, user_repo: UserRepository, session: AsyncSession,
+):
+    if not _is_admin(call.from_user.id):
+        await call.answer(t("fa", "not_authorized"), show_alert=True)
+        return
+    try:
+        price_s = call.data.split(":", 3)[3]
+        price = int(price_s)
+    except (ValueError, IndexError):
+        await call.answer(t("fa", "acc_error"), show_alert=True)
+        return
+
+    await AppSettingRepository(session).set("ton_rate_toman", str(price))
+    await AdminLogRepository(session).log(
+        call.from_user.id, "setting", detail=f"ton_rate_toman={price}"
+    )
+    await session.commit()
+
+    await call.answer(f"✅ نرخ فروشگاه روی {price:,} تومان تنظیم شد.", show_alert=True)
+    try:
+        await call.message.edit_text(
+            f"{call.message.html_text}\n\n✅ <b>نرخ فروشگاه با موفقیت روی {price:,} تومان تنظیم شد.</b>"
+        )
+    except Exception:
+        pass
 
 
 @router.callback_query(F.data == "adm:settings")
@@ -1944,8 +2105,9 @@ async def settings_edit_start(
     await state.update_data(settings_field=field)
 
     cancel_target = (
-        "adm:settings:topics" if field.startswith("topic_")
-        else ("adm:settings:trial" if "trial" in field else ("adm:settings:referral" if "referral" in field else "adm:settings"))
+        "adm:settings:crypto" if ("ton_" in field or field == "crypto_enabled")
+        else ("adm:settings:topics" if field.startswith("topic_")
+        else ("adm:settings:trial" if "trial" in field else ("adm:settings:referral" if "referral" in field else "adm:settings")))
     )
     kb = InlineKeyboardBuilder()
     kb.button(text=t(lang, "btn_cancel"), callback_data=cancel_target)
@@ -2006,8 +2168,9 @@ async def settings_value_save(
     value = raw
     SKIP_WORDS = ("/skip", "-", "—")
     cancel_target = (
-        "adm:settings:topics" if field.startswith("topic_")
-        else ("adm:settings:trial" if "trial" in field else ("adm:settings:referral" if "referral" in field else "adm:settings"))
+        "adm:settings:crypto" if ("ton_" in field or field == "crypto_enabled")
+        else ("adm:settings:topics" if field.startswith("topic_")
+        else ("adm:settings:trial" if "trial" in field else ("adm:settings:referral" if "referral" in field else "adm:settings")))
     )
 
     if field.startswith("topic_") or field == "expiry_grace_days":
@@ -2089,6 +2252,8 @@ async def settings_value_save(
     await state.clear()
     if field.startswith("topic_"):
         await _render_topics_settings(bot, user, user_repo, session)
+    elif "ton_" in field or field == "crypto_enabled":
+        await _render_crypto_settings(bot, user, user_repo, session)
     elif "trial" in field:
         await _render_trial_settings(bot, user, user_repo, session)
     elif "referral" in field:
