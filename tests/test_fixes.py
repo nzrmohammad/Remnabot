@@ -1237,18 +1237,177 @@ async def test_dashboard_remnawave_overview():
         mock_render.assert_awaited_once()
         text = mock_render.call_args[0][3]
 
-        assert "داشبورد پنل ریمناوِیو" in text
+        assert "داشبورد پنل" in text
+        assert "ریمناوِیو" not in text
         assert "فعال : <b>1</b>" in text
         assert "غیرفعال : <b>1</b>" in text
         assert "محدود شده (اتمام حجم) : <b>1</b>" in text
-        assert "متصل و آنلاین : <b>1</b>" in text
-        assert "آفلاین و قطع : <b>1</b>" in text
+        assert "🟢 آنلاین : <b>1</b>" in text
+        assert "🔴 آفلاین : <b>1</b>" in text
+        assert "• 🟢" not in text  # Bullets removed!
         assert "35.00 GB" in text
         assert "v3.4.4" in text
         # Verify bot shop DB stats are removed:
         assert "درآمد" not in text
         assert "فروش" not in text
         assert "سفارش" not in text
+
+
+@pytest.mark.anyio
+async def test_store_settings_full_overview():
+    """Verify store settings displays all items, card name, and topics without SOS."""
+    from bot.handlers.admin_ops import _render_settings, _render_topics_settings
+    from bot.services.app_settings import StoreSettings
+
+    bot = MagicMock()
+    user = MagicMock(language="fa", telegram_id=999)
+    user_repo = MagicMock()
+    session = AsyncMock()
+
+    # Case 1: with support contact
+    store = StoreSettings(
+        card_number="6219-8618-1954-7695",
+        card_holder="محمد جواد نظری",
+        topup_min_amount=100000,
+        support_contact="@Support_ID",
+        support_direct_enabled=True,
+        trial_enabled=True,
+        trial_traffic_gb=1,
+        trial_duration_days=1,
+        referral_enabled=True,
+        referral_reward_gb=2,
+        expiry_grace_days=3,
+        expiry_remind_days="3,1,0",
+        default_squad_uuid=None,
+        topic_topups=10,
+        topic_orders=20,
+        topic_support=30,
+        topic_alerts=40,
+    )
+
+    with patch("bot.handlers.admin_ops.get_store_settings", AsyncMock(return_value=store)), \
+         patch("bot.handlers.admin_ops.is_maintenance", AsyncMock(return_value=False)), \
+         patch("bot.handlers.admin_ops.render_menu", AsyncMock()) as mock_render:
+
+        await _render_settings(bot, user, user_repo, session)
+        mock_render.assert_awaited_once()
+        text = mock_render.call_args[0][3]
+
+        # Name label
+        assert "👤 نام : محمد جواد نظری" in text
+        assert "نام دارنده کارت" not in text
+        # Two-line support block
+        assert "📞 آیدی پشتیبانی : <code>@Support_ID</code>" in text
+        assert "📞 پشتیبانی مستقیم : <b>✅ فعال</b>" in text
+        # Trial & referral
+        assert "🎁 سرویس تست : <b>✅ فعال</b> (1 GB / 1 روز)" in text
+        assert "🤝 سیستم دعوت : <b>✅ فعال</b> (2 GB هدیه)" in text
+        # Topics summary
+        assert "شارژ (10)" in text
+        assert "پشتیبانی (30)" in text
+
+    # Case 2: without support contact -> only single line 📞 آیدی پشتیبانی : —
+    store_no_sup = StoreSettings(
+        card_number="1234",
+        card_holder="Ali",
+        topup_min_amount=50000,
+        support_contact="",
+        support_direct_enabled=False,
+        trial_enabled=False,
+        trial_traffic_gb=1,
+        trial_duration_days=1,
+        referral_enabled=False,
+        referral_reward_gb=2,
+        expiry_grace_days=3,
+        expiry_remind_days="3,1",
+        default_squad_uuid=None,
+        topic_topups=None,
+        topic_orders=None,
+        topic_support=None,
+        topic_alerts=None,
+    )
+    with patch("bot.handlers.admin_ops.get_store_settings", AsyncMock(return_value=store_no_sup)), \
+         patch("bot.handlers.admin_ops.is_maintenance", AsyncMock(return_value=False)), \
+         patch("bot.handlers.admin_ops.render_menu", AsyncMock()) as mock_render:
+
+        await _render_settings(bot, user, user_repo, session)
+        mock_render.assert_awaited_once()
+        text = mock_render.call_args[0][3]
+
+        assert "📞 آیدی پشتیبانی : —" in text
+        assert "📞 پشتیبانی مستقیم" not in text
+        assert "🎁 سرویس تست : <b>❌ غیرفعال</b>" in text
+        assert "🤝 سیستم دعوت : <b>❌ غیرفعال</b>" in text
+
+    # Case 3: Topics keyboard does NOT contain 🆘
+    with patch("bot.handlers.admin_ops.get_store_settings", AsyncMock(return_value=store)), \
+         patch("bot.handlers.admin_ops.render_menu", AsyncMock()) as mock_render:
+
+        await _render_topics_settings(bot, user, user_repo, session)
+        mock_render.assert_awaited_once()
+        markup = mock_render.call_args[0][4]
+        all_btn_texts = [b.text for row in markup.inline_keyboard for b in row]
+        assert any("🎧 تاپیک پشتیبانی" in t for t in all_btn_texts)
+        assert not any("🆘" in t for t in all_btn_texts)
+
+
+@pytest.mark.anyio
+async def test_support_contact_validation_and_toggle():
+    """Verify support contact normalization and toggle behavior."""
+    from bot.handlers.admin_ops import setting_toggle_boolean, settings_value_save
+    from bot.services.app_settings import StoreSettings
+
+    bot = MagicMock()
+    user_repo = MagicMock()
+    user_repo.get_or_create = AsyncMock(return_value=MagicMock(language="fa"))
+    session = AsyncMock()
+
+    # 1. Toggling direct support with empty contact must fail with alert
+    call = MagicMock()
+    call.from_user.id = 999
+    call.from_user.username = "admin"
+    call.data = "adm:settings:toggle:support_direct_enabled"
+    call.answer = AsyncMock()
+
+    store_empty = StoreSettings(
+        card_number="", card_holder="", topup_min_amount=10000,
+        support_contact="", support_direct_enabled=False,
+        trial_enabled=False, trial_traffic_gb=1, trial_duration_days=1,
+        referral_enabled=False, referral_reward_gb=2,
+        expiry_grace_days=3, expiry_remind_days="3,1", default_squad_uuid=None,
+        topic_topups=None, topic_orders=None, topic_support=None, topic_alerts=None,
+    )
+    with patch("bot.handlers.admin_ops._is_admin", return_value=True), \
+         patch("bot.handlers.admin_ops.get_store_settings", AsyncMock(return_value=store_empty)):
+
+        await setting_toggle_boolean(call, bot, user_repo, session)
+        call.answer.assert_awaited_once()
+        args, kwargs = call.answer.call_args
+        assert "ابتدا باید آیدی پشتیبانی را در تنظیمات وارد کنید" in args[0]
+        assert kwargs.get("show_alert") is True
+
+    # 2. Saving username without @ normalizes to @
+    state = MagicMock()
+    state.get_data = AsyncMock(return_value={"settings_field": "support_contact"})
+    state.clear = AsyncMock()
+    msg = MagicMock()
+    msg.from_user.id = 999
+    msg.from_user.username = "admin"
+    msg.text = "MohammadSupport"
+    msg.chat.id = 123
+    msg.message_id = 456
+
+    mock_app_setting_repo = MagicMock()
+    mock_app_setting_repo.set = AsyncMock()
+
+    with patch("bot.handlers.admin_ops.delete_message_silently", AsyncMock()), \
+         patch("bot.handlers.admin_ops.AppSettingRepository", return_value=mock_app_setting_repo), \
+         patch("bot.handlers.admin_ops.AdminLogRepository", return_value=MagicMock(log=AsyncMock())), \
+         patch("bot.handlers.admin_ops._render_settings", AsyncMock()):
+
+        await settings_value_save(msg, bot, user_repo, session, state)
+        mock_app_setting_repo.set.assert_awaited_with("support_contact", "@MohammadSupport")
+
 
 
 

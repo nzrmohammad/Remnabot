@@ -292,17 +292,17 @@ async def dashboard(
 
     if lang == "fa":
         lines = [
-            "📊 <b>داشبورد پنل ریمناوِیو</b>",
+            "📊 <b>داشبورد پنل</b>",
             SEPARATOR,
             f"👥 <b>وضعیت کاربران ({total_users}) :</b>",
-            f"   • 🟢 فعال : <b>{active_users}</b>",
-            f"   • 🔴 غیرفعال : <b>{disabled_users}</b>",
-            f"   • 🟡 محدود شده (اتمام حجم) : <b>{limited_users}</b>",
-            f"   • ⚪️ منقضی شده : <b>{expired_users}</b>",
+            f"   🟢 فعال : <b>{active_users}</b>",
+            f"   🔴 غیرفعال : <b>{disabled_users}</b>",
+            f"   🟡 محدود شده (اتمام حجم) : <b>{limited_users}</b>",
+            f"   ⚪️ منقضی شده : <b>{expired_users}</b>",
             SEPARATOR,
             f"📡 <b>وضعیت نودها ({total_nodes}) :</b>",
-            f"   • 🟢 متصل و آنلاین : <b>{online_nodes}</b>",
-            f"   • 🔴 آفلاین و قطع : <b>{offline_nodes}</b>",
+            f"   🟢 آنلاین : <b>{online_nodes}</b>",
+            f"   🔴 آفلاین : <b>{offline_nodes}</b>",
         ]
         if node_lines:
             lines.extend(node_lines[:8])
@@ -317,17 +317,17 @@ async def dashboard(
             lines.append(f"⚙️ <b>نسخه پنل :</b> <code>v{v_clean}</code>")
     else:
         lines = [
-            "📊 <b>Remnawave Panel Dashboard</b>",
+            "📊 <b>Panel Dashboard</b>",
             SEPARATOR,
             f"👥 <b>Users Overview ({total_users}) :</b>",
-            f"   • 🟢 Active : <b>{active_users}</b>",
-            f"   • 🔴 Disabled : <b>{disabled_users}</b>",
-            f"   • 🟡 Limited : <b>{limited_users}</b>",
-            f"   • ⚪️ Expired : <b>{expired_users}</b>",
+            f"   🟢 Active : <b>{active_users}</b>",
+            f"   🔴 Disabled : <b>{disabled_users}</b>",
+            f"   🟡 Limited : <b>{limited_users}</b>",
+            f"   ⚪️ Expired : <b>{expired_users}</b>",
             SEPARATOR,
             f"📡 <b>Nodes Overview ({total_nodes}) :</b>",
-            f"   • 🟢 Connected : <b>{online_nodes}</b>",
-            f"   • 🔴 Offline : <b>{offline_nodes}</b>",
+            f"   🟢 Online : <b>{online_nodes}</b>",
+            f"   🔴 Offline : <b>{offline_nodes}</b>",
         ]
         if node_lines:
             lines.extend(node_lines[:8])
@@ -1448,16 +1448,25 @@ async def _render_settings(
     maint_label = t(lang, "btn_maintenance", state=t(lang, "toggle_on" if maint_on else "toggle_off"))
     kb.button(text=maint_label, callback_data="adm:maint")
 
+    has_contact = bool(
+        store.support_contact
+        and store.support_contact.strip()
+        and store.support_contact.strip() not in ("—", "-")
+    )
+
     if lang == "fa":
         # Persian RTL: first added is LEFT, second added is RIGHT
-        # Row 2: Right = Card Number, Left = Card Holder
+        # Row 2: Right = Card Number, Left = Name
         kb.button(text=t(lang, "settings_holder"), callback_data="adm:set:card_holder")
         kb.button(text=t(lang, "settings_card"), callback_data="adm:set:card_number")
         # Row 3: Right = Min Topup, Left = Support Contact
         kb.button(text=t(lang, "settings_support_contact"), callback_data="adm:set:support_contact")
         kb.button(text=t(lang, "settings_min"), callback_data="adm:set:topup_min_amount")
         # Row 4: Support Direct Toggle
-        sup_toggle_text = f"📞 پشتیبانی مستقیم: {'✅ فعال' if store.support_direct_enabled else '❌ غیرفعال'}"
+        if has_contact:
+            sup_toggle_text = f"📞 پشتیبانی مستقیم: {'✅ فعال' if store.support_direct_enabled else '❌ غیرفعال'}"
+        else:
+            sup_toggle_text = "📞 پشتیبانی مستقیم: ❌ غیرفعال"
         kb.button(text=sup_toggle_text, callback_data="adm:settings:toggle:support_direct_enabled")
         # Row 5: Right = Grace Days, Left = Reminder Days
         kb.button(text=t(lang, "settings_remind_days"), callback_data="adm:set:expiry_remind_days")
@@ -1473,7 +1482,10 @@ async def _render_settings(
         kb.button(text=t(lang, "settings_holder"), callback_data="adm:set:card_holder")
         kb.button(text=t(lang, "settings_min"), callback_data="adm:set:topup_min_amount")
         kb.button(text=t(lang, "settings_support_contact"), callback_data="adm:set:support_contact")
-        sup_toggle_text = f"📞 Direct Support: {'✅ ON' if store.support_direct_enabled else '❌ OFF'}"
+        if has_contact:
+            sup_toggle_text = f"📞 Direct Support: {'✅ ON' if store.support_direct_enabled else '❌ OFF'}"
+        else:
+            sup_toggle_text = "📞 Direct Support: ❌ OFF"
         kb.button(text=sup_toggle_text, callback_data="adm:settings:toggle:support_direct_enabled")
         kb.button(text=t(lang, "settings_grace_days"), callback_data="adm:set:expiry_grace_days")
         kb.button(text=t(lang, "settings_remind_days"), callback_data="adm:set:expiry_remind_days")
@@ -1486,21 +1498,89 @@ async def _render_settings(
     kb.adjust(1, 2, 2, 1, 2, 2, 2, 1)
 
     squad_show = store.default_squad_uuid or "—"
-    contact_show = store.support_contact or "—"
-    sup_status = "✅ فعال" if store.support_direct_enabled else "❌ غیرفعال"
-    text = (
-        f"{t(lang, 'store_settings_title')}\n{SEPARATOR}\n"
-        f"💳 {t(lang, 'settings_card')} : <code>{escape(store.card_number or '—')}</code>\n"
-        f"👤 {t(lang, 'settings_holder')} : {escape(store.card_holder or '—')}\n"
-        f"💰 {t(lang, 'settings_min')} : <b>{fmt(store.topup_min_amount)}</b> {t(lang, 'svc_currency')}\n"
-        f"📞 {t(lang, 'settings_support_contact')} : <code>{escape(contact_show)}</code> ({sup_status})\n\n"
-        f"⏳ {t(lang, 'settings_grace_days')} : <b>{store.expiry_grace_days}</b>\n"
-        f"🔔 {t(lang, 'settings_remind_days')} : <code>{escape(store.expiry_remind_days)}</code>\n"
-        f"🧩 {t(lang, 'settings_squad')} : <code>{escape(squad_show[:24])}</code>\n\n"
-        f"🚧 {t(lang, 'settings_maintenance')} : "
-        f"<b>{t(lang, 'toggle_on' if maint_on else 'toggle_off')}</b>"
+
+    if has_contact:
+        sup_status = "✅ فعال" if store.support_direct_enabled else "❌ غیرفعال"
+        if lang == "fa":
+            support_block = (
+                f"📞 {t(lang, 'settings_support_contact')} : <code>{escape(store.support_contact)}</code>\n"
+                f"📞 پشتیبانی مستقیم : <b>{sup_status}</b>"
+            )
+        else:
+            sup_en = "✅ ON" if store.support_direct_enabled else "❌ OFF"
+            support_block = (
+                f"📞 {t(lang, 'settings_support_contact')} : <code>{escape(store.support_contact)}</code>\n"
+                f"📞 Direct Support : <b>{sup_en}</b>"
+            )
+    else:
+        support_block = f"📞 {t(lang, 'settings_support_contact')} : —"
+
+    trial_desc = (
+        f"<b>✅ فعال</b> ({store.trial_traffic_gb} GB / {store.trial_duration_days} روز)"
+        if store.trial_enabled
+        else "<b>❌ غیرفعال</b>"
+    ) if lang == "fa" else (
+        f"<b>✅ Active</b> ({store.trial_traffic_gb} GB / {store.trial_duration_days}d)"
+        if store.trial_enabled
+        else "<b>❌ Inactive</b>"
     )
-    await render_menu(bot, user, user_repo, text, kb.as_markup())
+
+    ref_desc = (
+        f"<b>✅ فعال</b> ({store.referral_reward_gb} GB هدیه)"
+        if store.referral_enabled
+        else "<b>❌ غیرفعال</b>"
+    ) if lang == "fa" else (
+        f"<b>✅ Active</b> ({store.referral_reward_gb} GB reward)"
+        if store.referral_enabled
+        else "<b>❌ Inactive</b>"
+    )
+
+    t_topups = str(store.topic_topups) if store.topic_topups is not None else "—"
+    t_orders = str(store.topic_orders) if store.topic_orders is not None else "—"
+    t_support = str(store.topic_support) if store.topic_support is not None else "—"
+    t_alerts = str(store.topic_alerts) if store.topic_alerts is not None else "—"
+
+    if lang == "fa":
+        topics_summary = f"شارژ ({t_topups}) · سفارش ({t_orders}) · پشتیبانی ({t_support}) · هشدار ({t_alerts})"
+        lines = [
+            f"{t(lang, 'store_settings_title')}\n{SEPARATOR}",
+            f"💳 {t(lang, 'settings_card')} : <code>{escape(store.card_number or '—')}</code>",
+            f"👤 {t(lang, 'settings_holder')} : {escape(store.card_holder or '—')}",
+            f"💰 {t(lang, 'settings_min')} : <b>{fmt(store.topup_min_amount)}</b> {t(lang, 'svc_currency')}",
+            "",
+            support_block,
+            "",
+            f"🎁 سرویس تست : {trial_desc}",
+            f"🤝 سیستم دعوت : {ref_desc}",
+            "",
+            f"⏳ {t(lang, 'settings_grace_days')} : <b>{store.expiry_grace_days} روز</b>",
+            f"🔔 {t(lang, 'settings_remind_days')} : <code>{escape(store.expiry_remind_days)}</code>",
+            f"🧩 {t(lang, 'settings_squad')} : <code>{escape(squad_show[:24])}</code>",
+            "",
+            f"🎧 تاپیک‌ها : <code>{topics_summary}</code>",
+            f"🚧 {t(lang, 'settings_maintenance')} : <b>{'✅ روشن' if maint_on else '❌ خاموش'}</b>",
+        ]
+    else:
+        topics_summary = f"Top-ups ({t_topups}) · Orders ({t_orders}) · Support ({t_support}) · Alerts ({t_alerts})"
+        lines = [
+            f"{t(lang, 'store_settings_title')}\n{SEPARATOR}",
+            f"💳 {t(lang, 'settings_card')} : <code>{escape(store.card_number or '—')}</code>",
+            f"👤 {t(lang, 'settings_holder')} : {escape(store.card_holder or '—')}",
+            f"💰 {t(lang, 'settings_min')} : <b>{fmt(store.topup_min_amount)}</b> {t(lang, 'svc_currency')}",
+            "",
+            support_block,
+            "",
+            f"🎁 Free Trial : {trial_desc}",
+            f"🤝 Referral : {ref_desc}",
+            "",
+            f"⏳ {t(lang, 'settings_grace_days')} : <b>{store.expiry_grace_days}d</b>",
+            f"🔔 {t(lang, 'settings_remind_days')} : <code>{escape(store.expiry_remind_days)}</code>",
+            f"🧩 {t(lang, 'settings_squad')} : <code>{escape(squad_show[:24])}</code>",
+            "",
+            f"🎧 Topics : <code>{topics_summary}</code>",
+            f"🚧 {t(lang, 'settings_maintenance')} : <b>{'✅ ON' if maint_on else '❌ OFF'}</b>",
+        ]
+    await render_menu(bot, user, user_repo, "\n".join(lines), kb.as_markup())
 
 
 async def _render_topics_settings(
@@ -1522,11 +1602,11 @@ async def _render_topics_settings(
         kb.button(text="💳 تاپیک شارژها", callback_data="adm:set:topic_topups")
         # Row 2: Right = تاپیک پشتیبانی, Left = تاپیک هشدار و بکاپ
         kb.button(text="🚨 تاپیک هشدار و بکاپ", callback_data="adm:set:topic_alerts")
-        kb.button(text="🆘 تاپیک پشتیبانی", callback_data="adm:set:topic_support")
+        kb.button(text="\u200f🎧 تاپیک پشتیبانی", callback_data="adm:set:topic_support")
     else:
         kb.button(text="💳 Top-ups Topic", callback_data="adm:set:topic_topups")
         kb.button(text="🛒 Orders Topic", callback_data="adm:set:topic_orders")
-        kb.button(text="🆘 Support Topic", callback_data="adm:set:topic_support")
+        kb.button(text="🎧 Support Topic", callback_data="adm:set:topic_support")
         kb.button(text="🚨 Alerts & Backup", callback_data="adm:set:topic_alerts")
 
     kb.button(text=t(lang, "btn_back"), callback_data="adm:settings")
@@ -1536,7 +1616,7 @@ async def _render_topics_settings(
         f"{t(lang, 'settings_topics_title')}\n{SEPARATOR}\n"
         f"💳 <b>تاپیک تایید شارژها :</b> <code>{t_topups}</code>\n"
         f"🛒 <b>تاپیک ثبت سفارشات :</b> <code>{t_orders}</code>\n"
-        f"🆘 <b>تاپیک پیام‌های پشتیبانی :</b> <code>{t_support}</code>\n"
+        f"🎧 <b>تاپیک پیام‌های پشتیبانی :</b> <code>{t_support}</code>\n"
         f"🚨 <b>تاپیک هشدارهای سیستم و بکاپ :</b> <code>{t_alerts}</code>\n\n"
         f"💡 جهت اتصال هر بخش به تاپیک، روی دکمه مربوطه کلیک کنید و شناسه عددی (Topic ID) آن را ارسال نمایید.\n"
         f"(برای غیرفعال‌سازی هر تاپیک مقدار 0 یا /skip ارسال کنید)"
@@ -1544,7 +1624,7 @@ async def _render_topics_settings(
         f"{t(lang, 'settings_topics_title')}\n{SEPARATOR}\n"
         f"💳 <b>Top-ups Topic :</b> <code>{t_topups}</code>\n"
         f"🛒 <b>Orders Topic :</b> <code>{t_orders}</code>\n"
-        f"🆘 <b>Support Topic :</b> <code>{t_support}</code>\n"
+        f"🎧 <b>Support Topic :</b> <code>{t_support}</code>\n"
         f"🚨 <b>System Alerts & Backup :</b> <code>{t_alerts}</code>\n\n"
         f"<i>(Send 0 or /skip to disable any topic)</i>"
     )
@@ -1692,7 +1772,25 @@ async def setting_toggle_boolean(
         await call.answer(t("fa", "acc_error"), show_alert=True)
         return
 
+    user = await user_repo.get_or_create(call.from_user.id, call.from_user.username)
+    lang = user.language or "fa"
     store = await get_store_settings(session)
+
+    if field == "support_direct_enabled":
+        has_contact = bool(
+            store.support_contact
+            and store.support_contact.strip()
+            and store.support_contact.strip() not in ("—", "-")
+        )
+        if not has_contact:
+            alert_text = (
+                "⚠️ ابتدا باید آیدی پشتیبانی را در تنظیمات وارد کنید."
+                if lang == "fa"
+                else "⚠️ Please set the support contact ID first."
+            )
+            await call.answer(alert_text, show_alert=True)
+            return
+
     curr_val = getattr(store, field, False)
     new_val = not curr_val
     new_str = "1" if new_val else "0"
@@ -1702,17 +1800,20 @@ async def setting_toggle_boolean(
         call.from_user.id, "setting", detail=f"{field}={new_str}"
     )
 
-    user = await user_repo.get_or_create(call.from_user.id, call.from_user.username)
     if field == "trial_enabled":
         await _render_trial_settings(bot, user, user_repo, session)
-        label = "سرویس تست"
+        label = "سرویس تست" if lang == "fa" else "Free Trial"
     elif field == "referral_enabled":
         await _render_referral_settings(bot, user, user_repo, session)
-        label = "سیستم دعوت"
+        label = "سیستم دعوت" if lang == "fa" else "Referral"
     else:
-        await _render_store_settings(bot, user, user_repo, session)
-        label = "پشتیبانی مستقیم"
-    status_text = "فعال شد" if new_val else "غیرفعال شد"
+        await _render_settings(bot, user, user_repo, session)
+        label = "پشتیبانی مستقیم" if lang == "fa" else "Direct Support"
+    status_text = (
+        ("فعال شد" if new_val else "غیرفعال شد")
+        if lang == "fa"
+        else ("Enabled" if new_val else "Disabled")
+    )
     await call.answer(f"✅ {label} {status_text}")
 
 
@@ -1885,6 +1986,45 @@ async def settings_value_save(
             await render_menu(bot, user, user_repo, t(lang, "settings_invalid_number"), kb.as_markup())
             return
         value = str(parsed)
+    elif field == "support_contact":
+        if raw in SKIP_WORDS or raw == "0":
+            value = ""
+            await AppSettingRepository(session).set("support_direct_enabled", "0")
+        else:
+            clean_contact = raw.strip()
+            t_me_match = re.match(
+                r"^(?:https?://)?(?:www\.)?(?:t\.me|telegram\.me)/([A-Za-z0-9_]{3,32})/?$",
+                clean_contact,
+                re.IGNORECASE,
+            )
+            user_match = re.match(r"^@?([A-Za-z0-9_]{3,32})$", clean_contact)
+            url_match = re.match(r"^https?://[^\s]+$", clean_contact)
+
+            if t_me_match:
+                uname = t_me_match.group(1)
+                value = f"https://t.me/{uname}"
+            elif user_match:
+                uname = user_match.group(1)
+                value = f"@{uname}"
+            elif url_match:
+                value = clean_contact
+            else:
+                kb = InlineKeyboardBuilder()
+                kb.button(text=t(lang, "btn_cancel"), callback_data="adm:settings")
+                kb.adjust(1)
+                err_msg = (
+                    "❌ فرمت نامعتبر است.\n\n"
+                    "لطفاً آیدی پشتیبانی را با <b>@</b> (مانند <code>@SupportUsername</code>) "
+                    "یا لینک تلگرام (مانند <code>t.me/SupportUsername</code>) ارسال کنید:\n\n"
+                    "<i>(برای حذف مقدار می‌توانید /skip یا 0 بفرستید)</i>"
+                ) if lang == "fa" else (
+                    "❌ Invalid format.\n\n"
+                    "Please provide a Telegram username with <b>@</b> (e.g. <code>@SupportUsername</code>) "
+                    "or link (e.g. <code>t.me/SupportUsername</code>):\n\n"
+                    "<i>(Send /skip or 0 to clear)</i>"
+                )
+                await render_menu(bot, user, user_repo, err_msg, kb.as_markup())
+                return
     elif raw in SKIP_WORDS:
         value = ""
 
