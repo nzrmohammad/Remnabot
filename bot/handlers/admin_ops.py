@@ -993,13 +993,16 @@ async def _render_settings(
         # Row 3: Right = Min Topup, Left = Support Contact
         kb.button(text=t(lang, "settings_support_contact"), callback_data="adm:set:support_contact")
         kb.button(text=t(lang, "settings_min"), callback_data="adm:set:topup_min_amount")
-        # Row 4: Right = Grace Days, Left = Reminder Days
+        # Row 4: Support Direct Toggle
+        sup_toggle_text = f"📞 پشتیبانی مستقیم: {'✅ فعال' if store.support_direct_enabled else '❌ غیرفعال'}"
+        kb.button(text=sup_toggle_text, callback_data="adm:settings:toggle:support_direct_enabled")
+        # Row 5: Right = Grace Days, Left = Reminder Days
         kb.button(text=t(lang, "settings_remind_days"), callback_data="adm:set:expiry_remind_days")
         kb.button(text=t(lang, "settings_grace_days"), callback_data="adm:set:expiry_grace_days")
-        # Row 5: Right = Squad UUID, Left = Topics
+        # Row 6: Right = Squad UUID, Left = Topics
         kb.button(text=t(lang, "settings_topics_btn"), callback_data="adm:settings:topics")
         kb.button(text=t(lang, "settings_squad"), callback_data="adm:set:default_squad_uuid")
-        # Row 6: Invite Settings & Test Settings (2 columns RTL: Left = Invite, Right = Test)
+        # Row 7: Invite Settings & Test Settings (2 columns RTL: Left = Invite, Right = Test)
         kb.button(text="🤝 تنظیمات دعوت", callback_data="adm:settings:referral")
         kb.button(text="🎁 تنظیمات تست", callback_data="adm:settings:trial")
     else:
@@ -1007,6 +1010,8 @@ async def _render_settings(
         kb.button(text=t(lang, "settings_holder"), callback_data="adm:set:card_holder")
         kb.button(text=t(lang, "settings_min"), callback_data="adm:set:topup_min_amount")
         kb.button(text=t(lang, "settings_support_contact"), callback_data="adm:set:support_contact")
+        sup_toggle_text = f"📞 Direct Support: {'✅ ON' if store.support_direct_enabled else '❌ OFF'}"
+        kb.button(text=sup_toggle_text, callback_data="adm:settings:toggle:support_direct_enabled")
         kb.button(text=t(lang, "settings_grace_days"), callback_data="adm:set:expiry_grace_days")
         kb.button(text=t(lang, "settings_remind_days"), callback_data="adm:set:expiry_remind_days")
         kb.button(text=t(lang, "settings_squad"), callback_data="adm:set:default_squad_uuid")
@@ -1015,16 +1020,17 @@ async def _render_settings(
         kb.button(text="🤝 Invite Settings", callback_data="adm:settings:referral")
 
     kb.button(text=t(lang, "btn_back"), callback_data="menu:admin")
-    kb.adjust(1, 2, 2, 2, 2, 2, 1)
+    kb.adjust(1, 2, 2, 1, 2, 2, 2, 1)
 
     squad_show = store.default_squad_uuid or "—"
     contact_show = store.support_contact or "—"
+    sup_status = "✅ فعال" if store.support_direct_enabled else "❌ غیرفعال"
     text = (
         f"{t(lang, 'store_settings_title')}\n{SEPARATOR}\n"
         f"💳 {t(lang, 'settings_card')} : <code>{escape(store.card_number or '—')}</code>\n"
         f"👤 {t(lang, 'settings_holder')} : {escape(store.card_holder or '—')}\n"
         f"💰 {t(lang, 'settings_min')} : <b>{fmt(store.topup_min_amount)}</b> {t(lang, 'svc_currency')}\n"
-        f"📞 {t(lang, 'settings_support_contact')} : <code>{escape(contact_show)}</code>\n\n"
+        f"📞 {t(lang, 'settings_support_contact')} : <code>{escape(contact_show)}</code> ({sup_status})\n\n"
         f"⏳ {t(lang, 'settings_grace_days')} : <b>{store.expiry_grace_days}</b>\n"
         f"🔔 {t(lang, 'settings_remind_days')} : <code>{escape(store.expiry_remind_days)}</code>\n"
         f"🧩 {t(lang, 'settings_squad')} : <code>{escape(squad_show[:24])}</code>\n\n"
@@ -1219,7 +1225,7 @@ async def setting_toggle_boolean(
         await call.answer(t("fa", "not_authorized"), show_alert=True)
         return
     field = call.data.rsplit(":", 1)[1]
-    if field not in ("trial_enabled", "referral_enabled"):
+    if field not in ("trial_enabled", "referral_enabled", "support_direct_enabled"):
         await call.answer(t("fa", "acc_error"), show_alert=True)
         return
 
@@ -1236,10 +1242,13 @@ async def setting_toggle_boolean(
     user = await user_repo.get_or_create(call.from_user.id, call.from_user.username)
     if field == "trial_enabled":
         await _render_trial_settings(bot, user, user_repo, session)
-        label = "اکانت تست"
-    else:
+        label = "سرویس تست"
+    elif field == "referral_enabled":
         await _render_referral_settings(bot, user, user_repo, session)
         label = "سیستم دعوت"
+    else:
+        await _render_store_settings(bot, user, user_repo, session)
+        label = "پشتیبانی مستقیم"
     status_text = "فعال شد" if new_val else "غیرفعال شد"
     await call.answer(f"✅ {label} {status_text}")
 
@@ -1472,7 +1481,7 @@ COUNTRY_FLAGS_MAP: dict[str, tuple[str, str]] = {
 }
 
 
-def _extract_core_version(n: dict) -> str | None:
+def _extract_versions(n: dict) -> tuple[str | None, str | None]:
     versions = n.get("versions")
     if not isinstance(versions, dict):
         versions = {}
@@ -1514,13 +1523,15 @@ def _extract_core_version(n: dict) -> str | None:
     elif core_ver:
         core_label = f"Core {core_ver}" if not str(core_ver).lower().startswith("core") else str(core_ver)
 
-    if core_label and node_ver:
-        return f"{core_label} | Node {node_ver}"
-    if core_label:
-        return core_label
-    if node_ver:
-        return f"Node {node_ver}"
-    return None
+    node_label = f"Node {node_ver}" if node_ver else None
+    return core_label, node_label
+
+
+def _extract_core_version(n: dict) -> str | None:
+    core_label, node_label = _extract_versions(n)
+    if core_label and node_label:
+        return f"{core_label} | {node_label}"
+    return core_label or node_label
 
 
 def _format_node_title(n: dict, index: int) -> str:
@@ -1599,7 +1610,7 @@ async def admin_nodes_monitor(
                 is_connected = str(n.get("status", "")).upper() == "CONNECTED"
             status_badge = "🟢" if is_connected else "🔴"
 
-            core_version = _extract_core_version(n)
+            core_version, node_version = _extract_versions(n)
             user_mult = (
                 n.get("consumptionMultiplier")
                 if n.get("consumptionMultiplier") is not None
@@ -1662,6 +1673,10 @@ async def admin_nodes_monitor(
                 node_desc.append(
                     f"   ⚙️ نسخه هسته: <code>{escape(str(core_version))}</code>" if lang == "fa" else f"   ⚙️ Core: <code>{escape(str(core_version))}</code>"
                 )
+            if node_version:
+                node_desc.append(
+                    f"   📡 نسخه نود: <code>{escape(str(node_version))}</code>" if lang == "fa" else f"   📡 Node: <code>{escape(str(node_version))}</code>"
+                )
             specs_parts = []
             if cpu:
                 specs_parts.append(f"CPU: {cpu}")
@@ -1669,6 +1684,12 @@ async def admin_nodes_monitor(
                 specs_parts.append(f"RAM: {ram}")
             if os_name:
                 specs_parts.append(f"OS: {os_name}")
+            disk = sys_info.get("disk") or sys_info.get("storage") or n.get("disk")
+            if disk:
+                specs_parts.append(f"Disk: {disk}")
+            load = sys_info.get("load") or sys_info.get("loadAvg") or n.get("load")
+            if load:
+                specs_parts.append(f"Load: {load}")
             if specs_parts:
                 specs_str = escape(" | ".join(specs_parts))
                 node_desc.append(

@@ -452,7 +452,7 @@ async def service_trial_username(
 
     tg_username = f"@{user.username}" if user.username else "—"
     admin_text = (
-        f"🎁 <b>اکانت تست رایگان ایجاد شد</b>\n\n"
+        f"🎁 <b>سرویس تست ایجاد شد</b>\n\n"
         f"👤 کاربر: {escape(user.username or '')} (<code>{user.telegram_id}</code>)\n"
         f"🔑 اکانت پنل: <code>{escape(raw_name)}</code>\n"
         f"🌐 حجم: {store.trial_traffic_gb} GB | ⏳ مدت: {dur_days} روز\n"

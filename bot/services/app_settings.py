@@ -26,6 +26,7 @@ class StoreSettings:
     trial_duration_days: int = 1
     referral_enabled: bool = True
     referral_reward_gb: int = 5
+    support_direct_enabled: bool = True
 
 
 async def get_store_settings(session: AsyncSession) -> StoreSettings:
@@ -69,6 +70,7 @@ async def get_store_settings(session: AsyncSession) -> StoreSettings:
         trial_duration_days=_int(values.get("trial_duration_days"), 1),
         referral_enabled=_bool(values.get("referral_enabled"), True),
         referral_reward_gb=_int(values.get("referral_reward_gb"), 5),
+        support_direct_enabled=_bool(values.get("support_direct_enabled"), True),
     )
 
 

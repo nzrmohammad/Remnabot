@@ -7,12 +7,13 @@ from aiogram.types import CallbackQuery
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from bot.config import get_settings
 from bot.db.models import User
 from bot.db.repositories.order_repo import OrderRepository
 from bot.db.repositories.user_repo import UserRepository
 from bot.db.repositories.wallet_repo import WalletRepository
 from bot.locales.texts import t
-from bot.services.formatting import format_datetime
+from bot.services.formatting import format_date, format_datetime, now_tz, parse_iso
 from bot.services.menu import render_menu
 from bot.services.remnawave import RemnawaveClient
 from bot.services.topups import fmt
@@ -56,10 +57,20 @@ async def _render_profile(
                      f"{format_datetime(user.created_at, lang)}")
     if accounts:
         lines.append("")
+        now = now_tz(get_settings().TIMEZONE)
         for acc in accounts[:5]:
             uname = escape(str(acc.get("username", "—")))
-            expire = str(acc.get("expireAt", ""))[:10]
-            lines.append(f"   • <code>{uname}</code> ({expire})")
+            expire_at = parse_iso(acc.get("expireAt"))
+            if expire_at is None:
+                exp_text = t(lang, "stats_no_expire")
+            else:
+                date_str = format_date(expire_at.astimezone(now.tzinfo), lang)
+                delta_days = (expire_at - now).days
+                if delta_days >= 0:
+                    exp_text = f"{delta_days} روز ({date_str})" if lang == "fa" else f"{delta_days}d ({date_str})"
+                else:
+                    exp_text = f"منقضی ({date_str})" if lang == "fa" else f"Expired ({date_str})"
+            lines.append(f"   • <code>{uname}</code> — {exp_text}")
 
     kb = InlineKeyboardBuilder()
     if lang == "fa":

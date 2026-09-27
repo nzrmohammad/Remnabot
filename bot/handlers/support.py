@@ -38,11 +38,31 @@ async def support_entry(
     lang = user.language
 
     await state.set_state(SupportStates.waiting_message)
+    from bot.services.app_settings import get_store_settings
+
+    store = await get_store_settings(user_repo.session)
+
     kb = InlineKeyboardBuilder()
+    if store.support_direct_enabled and store.support_contact:
+        contact = store.support_contact.strip()
+        url = contact if contact.startswith("http") else f"https://t.me/{contact.lstrip('@')}"
+        kb.button(
+            text="💬 ارتباط مستقیم با پشتیبانی" if lang == "fa" else "💬 Direct Support",
+            url=url,
+        )
     kb.button(text=t(lang, "btn_cancel"), callback_data="nav:main_menu")
     kb.adjust(1)
 
-    await render_menu(bot, user, user_repo, t(lang, "support_prompt"), kb.as_markup())
+    prompt_text = t(lang, "support_prompt")
+    if store.support_direct_enabled and store.support_contact:
+        prompt_text = (
+            "💬 <b>پشتیبانی و ارتباط با ما</b>\n\n"
+            "می‌توانید از طریق دکمه زیر مستقیماً با پشتیبان در ارتباط باشید، یا پیام خود را همین‌جا ارسال کنید تا پاسخ داده شود:"
+            if lang == "fa"
+            else "💬 <b>Support</b>\n\nYou can contact support directly using the button below, or send your message here:"
+        )
+
+    await render_menu(bot, user, user_repo, prompt_text, kb.as_markup())
     await call.answer()
 
 

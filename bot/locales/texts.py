@@ -19,7 +19,7 @@ TEXTS: dict[str, dict[str, str]] = {
             "Please choose one of the options below:"
         ),
         "btn_login": "🔑 Login",
-        "btn_new_service": "🎁 Free Trial Account",
+        "btn_new_service": "🎁 Trial Service",
         "btn_back": "🔙 Back",
         "btn_back_to_menu": "🔙 Main Menu",
         "login_failed": (
@@ -766,7 +766,7 @@ TEXTS: dict[str, dict[str, str]] = {
             "لطفاً یکی از گزینه‌های زیر را انتخاب کنید:"
         ),
         "btn_login": "🔑 ورود",
-        "btn_new_service": "🎁 دریافت اکانت تست رایگان",
+        "btn_new_service": "🎁 سرویس تست",
         "btn_back": "🔙 بازگشت",
         "btn_back_to_menu": "🔙 منوی اصلی",
         "login_failed": (
@@ -1448,12 +1448,12 @@ TEXTS: dict[str, dict[str, str]] = {
         "retention_code_label": "کد تخفیف",
         "retention_cta": "همین حالا وارد منوی سرویس‌ها شوید و پلن مورد نظر خود را با تخفیف تمدید کنید! 🚀",
         # --- free trial ---
-        "trial_already_claimed": "❌ شما قبلاً از سهمیه اکانت تست رایگان استفاده کرده‌اید.",
-        "trial_prompt_username": "🎁 <b>دریافت اکانت تست رایگان ({traffic} گیگابایت - {days} روز)</b>\n\nلطفاً یک نام کاربری دلخواه (فقط حروف و اعداد انگلیسی، بین ۳ تا ۲۰ کاراکتر) ارسال کنید:\nمثال: <code>user123</code>",
+        "trial_already_claimed": "❌ شما قبلاً از سهمیه سرویس تست استفاده کرده‌اید.",
+        "trial_prompt_username": "🎁 <b>دریافت سرویس تست ({traffic} گیگابایت - {days} روز)</b>\n\nلطفاً یک نام کاربری دلخواه (فقط حروف و اعداد انگلیسی، بین ۳ تا ۲۰ کاراکتر) ارسال کنید:\nمثال: <code>user123</code>",
         "trial_username_invalid": "⚠️ نام کاربری نامعتبر است. فقط از حروف و اعداد انگلیسی استفاده کنید (۳ تا ۲۰ کاراکتر).",
         "trial_username_taken": "⚠️ این نام کاربری قبلاً در پنل ثبت شده است. لطفاً نام دیگری انتخاب کنید.",
-        "trial_receipt_title": "رسید فعال‌سازی اکانت تست رایگان",
-        "trial_welcome_hint": "اکانت تست شما فعال شد! از منوی اصلی می‌توانید وضعیت مصرف و تنظیمات را مدیریت کنید.",
+        "trial_receipt_title": "رسید فعال‌سازی سرویس تست",
+        "trial_welcome_hint": "سرویس تست شما فعال شد! از منوی اصلی می‌توانید وضعیت مصرف و تنظیمات را مدیریت کنید.",
         # --- referral ---
         "btn_referral": "🤝 دعوت از دوستان",
         "referral_title": "🤝 <b>دعوت از دوستان و دریافت اینترنت رایگان</b>",
