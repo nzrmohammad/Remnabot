@@ -65,11 +65,7 @@ async def _render_profile(
                 exp_text = t(lang, "stats_no_expire")
             else:
                 date_str = format_date(expire_at.astimezone(now.tzinfo), lang)
-                delta_days = (expire_at - now).days
-                if delta_days >= 0:
-                    exp_text = f"{delta_days} روز ({date_str})" if lang == "fa" else f"{delta_days}d ({date_str})"
-                else:
-                    exp_text = f"منقضی ({date_str})" if lang == "fa" else f"Expired ({date_str})"
+                exp_text = date_str
             lines.append(f"   • <code>{uname}</code> — {exp_text}")
 
     kb = InlineKeyboardBuilder()

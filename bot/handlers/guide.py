@@ -26,6 +26,7 @@ PLATFORMS: dict[str, tuple[str, list[tuple[str, str]]]] = {
     "android": (
         "btn_platform_android",
         [
+            ("INCY", "https://play.google.com/store/apps/details?id=llc.itdev.incy"),
             ("Happ", "https://play.google.com/store/apps/details?id=com.happproxy"),
             ("v2rayNG", "https://github.com/2dust/v2rayNG/releases/latest"),
             ("Hiddify", "https://github.com/hiddify/hiddify-next/releases/latest"),
@@ -34,6 +35,7 @@ PLATFORMS: dict[str, tuple[str, list[tuple[str, str]]]] = {
     "ios": (
         "btn_platform_ios",
         [
+            ("INCY", "https://apps.apple.com/app/incy/id6756943388"),
             ("Happ", "https://apps.apple.com/us/app/happ-proxy-utility/id6504287215"),
             ("Streisand", "https://apps.apple.com/us/app/streisand/id6450534064"),
             ("V2Box", "https://apps.apple.com/us/app/v2box-v2ray-client/id6446814690"),
@@ -42,6 +44,7 @@ PLATFORMS: dict[str, tuple[str, list[tuple[str, str]]]] = {
     "windows": (
         "btn_platform_windows",
         [
+            ("INCY", "https://github.com/INCY-DEV/incy-platforms/releases/latest"),
             ("Happ", "https://github.com/Happ-proxy/happ-desktop/releases/latest"),
             ("v2rayN", "https://github.com/2dust/v2rayN/releases/latest"),
             ("Hiddify", "https://github.com/hiddify/hiddify-next/releases/latest"),
@@ -50,6 +53,7 @@ PLATFORMS: dict[str, tuple[str, list[tuple[str, str]]]] = {
     "macos": (
         "btn_platform_macos",
         [
+            ("INCY", "https://apps.apple.com/app/incy/id6756943388"),
             ("Happ", "https://apps.apple.com/us/app/happ-proxy-utility/id6504287215"),
             ("Hiddify", "https://github.com/hiddify/hiddify-next/releases/latest"),
             ("V2Box", "https://apps.apple.com/us/app/v2box-v2ray-client/id6446814690"),
@@ -73,7 +77,7 @@ async def guide_entry(call: CallbackQuery, bot: Bot, user_repo: UserRepository):
     kb = InlineKeyboardBuilder()
     for key, (btn_key, _apps) in PLATFORMS.items():
         kb.button(text=t(lang, btn_key), callback_data=f"guide:{key}")
-    kb.button(text=t(lang, "btn_back_to_menu"), callback_data="nav:main_menu")
+    kb.button(text=t(lang, "btn_back"), callback_data="nav:main_menu")
     kb.adjust(2, 2, 1, 1)
 
     text = f"{t(lang, 'guide_title')}\n{SEPARATOR}\n{t(lang, 'guide_pick')}"
@@ -116,9 +120,8 @@ async def guide_platform(
     for name, url in apps:
         kb.button(text=f"⬇️ {name}", url=url)
     kb.button(text=t(lang, "btn_back"), callback_data="menu:guide")
-    kb.button(text=t(lang, "btn_back_to_menu"), callback_data="nav:main_menu")
     sizes = [2] * (len(apps) // 2) + ([1] if len(apps) % 2 else [])
-    kb.adjust(*sizes, 1, 1)
+    kb.adjust(*sizes, 1)
 
     await render_menu(bot, user, user_repo, "\n".join(lines), kb.as_markup())
     await call.answer()

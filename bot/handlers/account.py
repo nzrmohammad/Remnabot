@@ -85,12 +85,12 @@ def _format_account_btn(account: dict, lang: str) -> str:
     traffic = account.get("userTraffic") or {}
     used = int(traffic.get("usedTrafficBytes") or account.get("usedTrafficBytes") or 0)
 
-    # Traffic compact string (e.g. 30 GB or 500 MB)
+    # Traffic compact string (remaining traffic)
     if limit > 0:
         remaining = max(0, limit - used)
         gb = remaining / (1024 ** 3)
         if gb >= 1:
-            traffic_str = f"{gb:.0f} GB" if gb.is_integer() or round(gb, 1).is_integer() else f"{gb:.1f} GB"
+            traffic_str = f"{gb:.1f} GB" if round(gb, 1) != int(gb) else f"{int(gb)} GB"
         else:
             mb = remaining / (1024 ** 2)
             traffic_str = f"{mb:.0f} MB" if mb >= 1 else "0 MB"
@@ -139,6 +139,19 @@ def _account_view_text(account: dict, lang: str) -> str:
         else:
             when = t(lang, "stats_expired_ago", days=abs(delta_days))
         lines.append(f"{t(lang, 'stats_expire')} : <b>{when}</b> ({date_str})")
+
+    limit = int(account.get("trafficLimitBytes") or 0)
+    traffic = account.get("userTraffic") or {}
+    used = int(traffic.get("usedTrafficBytes") or account.get("usedTrafficBytes") or 0)
+    if limit > 0:
+        remaining = max(0, limit - used)
+        rem_gb = remaining / (1024 ** 3)
+        lim_gb = limit / (1024 ** 3)
+        rem_str = f"{rem_gb:.1f} GB" if round(rem_gb, 1) != int(rem_gb) else f"{int(rem_gb)} GB"
+        lim_str = f"{lim_gb:.1f} GB" if round(lim_gb, 1) != int(lim_gb) else f"{int(lim_gb)} GB"
+        lines.append(f"📊 {t(lang, 'stats_remaining')} : <b>{rem_str}</b> (از {lim_str})")
+    else:
+        lines.append(f"📊 {t(lang, 'stats_total')} : {t(lang, 'stats_unlimited')}")
 
     sub_url = account.get("subscriptionUrl")
     if sub_url:

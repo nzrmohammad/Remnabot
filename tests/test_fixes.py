@@ -1071,6 +1071,95 @@ async def test_live_sessions_explorer_render():
         assert "151.233.64.90" in text
 
 
+def test_account_button_and_view_remaining_traffic():
+    """Verify remaining traffic calculation in account button and account detail text."""
+    from bot.handlers.account import _format_account_btn, _account_view_text
+
+    acc = {
+        "id": 1,
+        "username": "Mohammad",
+        "status": "ACTIVE",
+        "trafficLimitBytes": 30 * (1024 ** 3),
+        "userTraffic": {"usedTrafficBytes": 10 * (1024 ** 3)},
+        "expireAt": "2026-10-18T00:00:00Z",
+    }
+    btn_text = _format_account_btn(acc, "fa")
+    assert "Mohammad" in btn_text
+    assert "20 GB" in btn_text
+
+    view_text = _account_view_text(acc, "fa")
+    assert "حجم باقی‌مانده" in view_text
+    assert "20 GB" in view_text
+    assert "30 GB" in view_text
+
+
+@pytest.mark.anyio
+async def test_guide_platform_incy_and_no_main_menu():
+    """Verify INCY is in guide download links and main menu button is removed."""
+    from bot.handlers.guide import PLATFORMS, guide_platform
+
+    # Check INCY in android, ios, windows
+    assert any(name == "INCY" for name, _ in PLATFORMS["android"][1])
+    assert any(name == "INCY" for name, _ in PLATFORMS["ios"][1])
+    assert any(name == "INCY" for name, _ in PLATFORMS["windows"][1])
+
+    bot = MagicMock()
+    user = MagicMock(language="fa", telegram_id=123)
+    user_repo = MagicMock()
+    user_repo.get_or_create = AsyncMock(return_value=user)
+    remnawave = MagicMock()
+    remnawave.get_users_by_telegram_id = AsyncMock(return_value=[])
+
+    call = MagicMock()
+    call.data = "guide:android"
+    call.from_user.id = 123
+    call.from_user.username = "test"
+    call.answer = AsyncMock()
+
+    with patch("bot.handlers.guide.render_menu", AsyncMock()) as mock_render:
+        await guide_platform(call, bot, user_repo, remnawave)
+        mock_render.assert_awaited_once()
+        markup = mock_render.call_args[0][4]
+        all_cbs = [btn.callback_data for row in markup.inline_keyboard for btn in row if btn.callback_data]
+
+        assert "menu:guide" in all_cbs
+        # nav:main_menu must NOT be in guide_platform keyboard
+        assert "nav:main_menu" not in all_cbs
+
+
+@pytest.mark.anyio
+async def test_profile_date_format():
+    """Verify profile shows only Jalali date without remaining days."""
+    from bot.handlers.profile import _render_profile
+
+    bot = MagicMock()
+    user = MagicMock(language="fa", telegram_id=123, username="test", is_verified=True, created_at=None)
+    user_repo = MagicMock()
+    wallet_repo = MagicMock()
+    wallet_repo.get_wallet = AsyncMock(return_value=MagicMock(balance=50000))
+    order_repo = MagicMock()
+    order_repo.list_for_user = AsyncMock(return_value=[MagicMock()])
+    session = AsyncMock()
+    remnawave = MagicMock()
+    remnawave.get_users_by_telegram_id = AsyncMock(return_value=[
+        {"id": 1, "username": "Mohammad", "expireAt": "2026-10-18T00:00:00Z"}
+    ])
+
+    with patch("bot.handlers.profile.WalletRepository", return_value=wallet_repo), \
+         patch("bot.handlers.profile.OrderRepository", return_value=order_repo), \
+         patch("bot.handlers.profile.render_menu", AsyncMock()) as mock_render:
+
+        await _render_profile(bot, user, user_repo, session, remnawave)
+        mock_render.assert_awaited_once()
+        text = mock_render.call_args[0][3]
+
+        assert "Mohammad" in text
+        # Date should be present (Jalali 1405/07/27 or similar)
+        assert "1405/07/" in text
+        # "روز" should NOT be in the account line
+        assert "روز (" not in text
+
+
 
 
 
