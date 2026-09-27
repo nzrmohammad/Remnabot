@@ -1464,9 +1464,9 @@ async def _render_settings(
         kb.button(text=t(lang, "settings_min"), callback_data="adm:set:topup_min_amount")
         # Row 4: Support Direct Toggle
         if has_contact:
-            sup_toggle_text = f"📞 پشتیبانی مستقیم: {'✅ فعال' if store.support_direct_enabled else '❌ غیرفعال'}"
+            sup_toggle_text = f"📞 پشتیبانی مستقیم: {'✅' if store.support_direct_enabled else '❌'}"
         else:
-            sup_toggle_text = "📞 پشتیبانی مستقیم: ❌ غیرفعال"
+            sup_toggle_text = "📞 پشتیبانی مستقیم: ❌"
         kb.button(text=sup_toggle_text, callback_data="adm:settings:toggle:support_direct_enabled")
         # Row 5: Right = Grace Days, Left = Reminder Days
         kb.button(text=t(lang, "settings_remind_days"), callback_data="adm:set:expiry_remind_days")
@@ -1483,9 +1483,9 @@ async def _render_settings(
         kb.button(text=t(lang, "settings_min"), callback_data="adm:set:topup_min_amount")
         kb.button(text=t(lang, "settings_support_contact"), callback_data="adm:set:support_contact")
         if has_contact:
-            sup_toggle_text = f"📞 Direct Support: {'✅ ON' if store.support_direct_enabled else '❌ OFF'}"
+            sup_toggle_text = f"📞 Direct Support: {'✅' if store.support_direct_enabled else '❌'}"
         else:
-            sup_toggle_text = "📞 Direct Support: ❌ OFF"
+            sup_toggle_text = "📞 Direct Support: ❌"
         kb.button(text=sup_toggle_text, callback_data="adm:settings:toggle:support_direct_enabled")
         kb.button(text=t(lang, "settings_grace_days"), callback_data="adm:set:expiry_grace_days")
         kb.button(text=t(lang, "settings_remind_days"), callback_data="adm:set:expiry_remind_days")
@@ -1500,85 +1500,96 @@ async def _render_settings(
     squad_show = store.default_squad_uuid or "—"
 
     if has_contact:
-        sup_status = "✅ فعال" if store.support_direct_enabled else "❌ غیرفعال"
-        if lang == "fa":
-            support_block = (
-                f"📞 {t(lang, 'settings_support_contact')} : <code>{escape(store.support_contact)}</code>\n"
-                f"📞 پشتیبانی مستقیم : <b>{sup_status}</b>"
-            )
-        else:
-            sup_en = "✅ ON" if store.support_direct_enabled else "❌ OFF"
-            support_block = (
-                f"📞 {t(lang, 'settings_support_contact')} : <code>{escape(store.support_contact)}</code>\n"
-                f"📞 Direct Support : <b>{sup_en}</b>"
-            )
+        sup_status = "✅" if store.support_direct_enabled else "❌"
+        support_block = (
+            f"📞 {t(lang, 'settings_support_contact')} : \u200e{escape(store.support_contact)}\n"
+            f"📞 پشتیبانی مستقیم : {sup_status}"
+        )
     else:
         support_block = f"📞 {t(lang, 'settings_support_contact')} : —"
 
     trial_desc = (
-        f"<b>✅ فعال</b> ({store.trial_traffic_gb} GB / {store.trial_duration_days} روز)"
+        f"✅ {store.trial_traffic_gb} GB · {store.trial_duration_days} روز"
         if store.trial_enabled
-        else "<b>❌ غیرفعال</b>"
-    ) if lang == "fa" else (
-        f"<b>✅ Active</b> ({store.trial_traffic_gb} GB / {store.trial_duration_days}d)"
-        if store.trial_enabled
-        else "<b>❌ Inactive</b>"
+        else "❌"
     )
 
     ref_desc = (
-        f"<b>✅ فعال</b> ({store.referral_reward_gb} GB هدیه)"
+        f"✅ {store.referral_reward_gb} GB هدیه"
         if store.referral_enabled
-        else "<b>❌ غیرفعال</b>"
-    ) if lang == "fa" else (
-        f"<b>✅ Active</b> ({store.referral_reward_gb} GB reward)"
-        if store.referral_enabled
-        else "<b>❌ Inactive</b>"
+        else "❌"
     )
 
-    t_topups = str(store.topic_topups) if store.topic_topups is not None else "—"
-    t_orders = str(store.topic_orders) if store.topic_orders is not None else "—"
-    t_support = str(store.topic_support) if store.topic_support is not None else "—"
-    t_alerts = str(store.topic_alerts) if store.topic_alerts is not None else "—"
+    t_topups = f"شارژ ({store.topic_topups}) : Topups" if store.topic_topups is not None else "شارژ : — (Topups)"
+    t_orders = f"سفارش ({store.topic_orders}) : Orders" if store.topic_orders is not None else "سفارش : — (Orders)"
+    t_support = f"پشتیبانی ({store.topic_support}) : Support" if store.topic_support is not None else "پشتیبانی : — (Support)"
+    t_alerts = f"هشدار ({store.topic_alerts}) : Alerts" if store.topic_alerts is not None else "هشدار : — (Alerts)"
+
+    maint_badge = "✅" if maint_on else "❌"
 
     if lang == "fa":
-        topics_summary = f"شارژ ({t_topups}) · سفارش ({t_orders}) · پشتیبانی ({t_support}) · هشدار ({t_alerts})"
         lines = [
             f"{t(lang, 'store_settings_title')}\n{SEPARATOR}",
             f"💳 {t(lang, 'settings_card')} : <code>{escape(store.card_number or '—')}</code>",
             f"👤 {t(lang, 'settings_holder')} : {escape(store.card_holder or '—')}",
-            f"💰 {t(lang, 'settings_min')} : <b>{fmt(store.topup_min_amount)}</b> {t(lang, 'svc_currency')}",
+            f"💰 {t(lang, 'settings_min')} : {fmt(store.topup_min_amount)} {t(lang, 'svc_currency')}",
             "",
             support_block,
             "",
             f"🎁 سرویس تست : {trial_desc}",
             f"🤝 سیستم دعوت : {ref_desc}",
             "",
-            f"⏳ {t(lang, 'settings_grace_days')} : <b>{store.expiry_grace_days} روز</b>",
-            f"🔔 {t(lang, 'settings_remind_days')} : <code>{escape(store.expiry_remind_days)}</code>",
-            f"🧩 {t(lang, 'settings_squad')} : <code>{escape(squad_show[:24])}</code>",
+            f"⏳ {t(lang, 'settings_grace_days')} : {store.expiry_grace_days} روز",
+            f"🔔 {t(lang, 'settings_remind_days')} : {escape(store.expiry_remind_days)}",
+            f"🧩 {t(lang, 'settings_squad')} : {escape(squad_show[:24])}",
             "",
-            f"🎧 تاپیک‌ها : <code>{topics_summary}</code>",
-            f"🚧 {t(lang, 'settings_maintenance')} : <b>{'✅ روشن' if maint_on else '❌ خاموش'}</b>",
+            "🎧 تاپیک‌ها :",
+            f"   {t_topups}",
+            f"   {t_orders}",
+            f"   {t_support}",
+            f"   {t_alerts}",
+            "",
+            f"🚧 {t(lang, 'settings_maintenance')} : {maint_badge}",
         ]
     else:
-        topics_summary = f"Top-ups ({t_topups}) · Orders ({t_orders}) · Support ({t_support}) · Alerts ({t_alerts})"
+        trial_en = f"✅ {store.trial_traffic_gb} GB · {store.trial_duration_days}d" if store.trial_enabled else "❌"
+        ref_en = f"✅ {store.referral_reward_gb} GB reward" if store.referral_enabled else "❌"
+        sup_status_en = "✅" if store.support_direct_enabled else "❌"
+        if has_contact:
+            sup_block_en = (
+                f"📞 {t(lang, 'settings_support_contact')} : \u200e{escape(store.support_contact)}\n"
+                f"📞 Direct Support : {sup_status_en}"
+            )
+        else:
+            sup_block_en = f"📞 {t(lang, 'settings_support_contact')} : —"
+
+        topup_en = f"   Top-ups ({store.topic_topups}) : Topups" if store.topic_topups is not None else "   Top-ups : — (Topups)"
+        orders_en = f"   Orders ({store.topic_orders}) : Orders" if store.topic_orders is not None else "   Orders : — (Orders)"
+        support_en = f"   Support ({store.topic_support}) : Support" if store.topic_support is not None else "   Support : — (Support)"
+        alerts_en = f"   Alerts ({store.topic_alerts}) : Alerts" if store.topic_alerts is not None else "   Alerts : — (Alerts)"
+
         lines = [
             f"{t(lang, 'store_settings_title')}\n{SEPARATOR}",
             f"💳 {t(lang, 'settings_card')} : <code>{escape(store.card_number or '—')}</code>",
             f"👤 {t(lang, 'settings_holder')} : {escape(store.card_holder or '—')}",
             f"💰 {t(lang, 'settings_min')} : <b>{fmt(store.topup_min_amount)}</b> {t(lang, 'svc_currency')}",
             "",
-            support_block,
+            sup_block_en,
             "",
-            f"🎁 Free Trial : {trial_desc}",
-            f"🤝 Referral : {ref_desc}",
+            f"🎁 Free Trial : {trial_en}",
+            f"🤝 Referral : {ref_en}",
             "",
-            f"⏳ {t(lang, 'settings_grace_days')} : <b>{store.expiry_grace_days}d</b>",
-            f"🔔 {t(lang, 'settings_remind_days')} : <code>{escape(store.expiry_remind_days)}</code>",
-            f"🧩 {t(lang, 'settings_squad')} : <code>{escape(squad_show[:24])}</code>",
+            f"⏳ {t(lang, 'settings_grace_days')} : {store.expiry_grace_days}d",
+            f"🔔 {t(lang, 'settings_remind_days')} : {escape(store.expiry_remind_days)}",
+            f"🧩 {t(lang, 'settings_squad')} : {escape(squad_show[:24])}",
             "",
-            f"🎧 Topics : <code>{topics_summary}</code>",
-            f"🚧 {t(lang, 'settings_maintenance')} : <b>{'✅ ON' if maint_on else '❌ OFF'}</b>",
+            "🎧 Topics :",
+            topup_en,
+            orders_en,
+            support_en,
+            alerts_en,
+            "",
+            f"🚧 {t(lang, 'settings_maintenance')} : {maint_badge}",
         ]
     await render_menu(bot, user, user_repo, "\n".join(lines), kb.as_markup())
 
@@ -1590,10 +1601,10 @@ async def _render_topics_settings(
     store = await get_store_settings(session)
     kb = InlineKeyboardBuilder()
 
-    t_topups = str(store.topic_topups) if store.topic_topups is not None else "—"
-    t_orders = str(store.topic_orders) if store.topic_orders is not None else "—"
-    t_support = str(store.topic_support) if store.topic_support is not None else "—"
-    t_alerts = str(store.topic_alerts) if store.topic_alerts is not None else "—"
+    t_topups = f"{store.topic_topups} (Topups)" if store.topic_topups is not None else "— (Topups)"
+    t_orders = f"{store.topic_orders} (Orders)" if store.topic_orders is not None else "— (Orders)"
+    t_support = f"{store.topic_support} (Support)" if store.topic_support is not None else "— (Support)"
+    t_alerts = f"{store.topic_alerts} (Alerts)" if store.topic_alerts is not None else "— (Alerts)"
 
     if lang == "fa":
         # Persian RTL: first added is LEFT, second added is RIGHT
@@ -1614,18 +1625,18 @@ async def _render_topics_settings(
 
     text = (
         f"{t(lang, 'settings_topics_title')}\n{SEPARATOR}\n"
-        f"💳 <b>تاپیک تایید شارژها :</b> <code>{t_topups}</code>\n"
-        f"🛒 <b>تاپیک ثبت سفارشات :</b> <code>{t_orders}</code>\n"
-        f"🎧 <b>تاپیک پیام‌های پشتیبانی :</b> <code>{t_support}</code>\n"
-        f"🚨 <b>تاپیک هشدارهای سیستم و بکاپ :</b> <code>{t_alerts}</code>\n\n"
+        f"💳 <b>تاپیک تایید شارژها :</b> {t_topups}\n"
+        f"🛒 <b>تاپیک ثبت سفارشات :</b> {t_orders}\n"
+        f"🎧 <b>تاپیک پیام‌های پشتیبانی :</b> {t_support}\n"
+        f"🚨 <b>تاپیک هشدارهای سیستم و بکاپ :</b> {t_alerts}\n\n"
         f"💡 جهت اتصال هر بخش به تاپیک، روی دکمه مربوطه کلیک کنید و شناسه عددی (Topic ID) آن را ارسال نمایید.\n"
         f"(برای غیرفعال‌سازی هر تاپیک مقدار 0 یا /skip ارسال کنید)"
     ) if lang == "fa" else (
         f"{t(lang, 'settings_topics_title')}\n{SEPARATOR}\n"
-        f"💳 <b>Top-ups Topic :</b> <code>{t_topups}</code>\n"
-        f"🛒 <b>Orders Topic :</b> <code>{t_orders}</code>\n"
-        f"🎧 <b>Support Topic :</b> <code>{t_support}</code>\n"
-        f"🚨 <b>System Alerts & Backup :</b> <code>{t_alerts}</code>\n\n"
+        f"💳 <b>Top-ups Topic :</b> {t_topups}\n"
+        f"🛒 <b>Orders Topic :</b> {t_orders}\n"
+        f"🎧 <b>Support Topic :</b> {t_support}\n"
+        f"🚨 <b>System Alerts & Backup :</b> {t_alerts}\n\n"
         f"<i>(Send 0 or /skip to disable any topic)</i>"
     )
     await render_menu(bot, user, user_repo, text, kb.as_markup())

@@ -1296,15 +1296,25 @@ async def test_store_settings_full_overview():
         # Name label
         assert "👤 نام : محمد جواد نظری" in text
         assert "نام دارنده کارت" not in text
-        # Two-line support block
-        assert "📞 آیدی پشتیبانی : <code>@Support_ID</code>" in text
-        assert "📞 پشتیبانی مستقیم : <b>✅ فعال</b>" in text
-        # Trial & referral
-        assert "🎁 سرویس تست : <b>✅ فعال</b> (1 GB / 1 روز)" in text
-        assert "🤝 سیستم دعوت : <b>✅ فعال</b> (2 GB هدیه)" in text
-        # Topics summary
-        assert "شارژ (10)" in text
-        assert "پشتیبانی (30)" in text
+        # Support block: with LRM \u200e and no <code>
+        assert "📞 آیدی پشتیبانی : \u200e@Support_ID" in text
+        assert "<code>@Support_ID</code>" not in text
+        assert "📞 پشتیبانی مستقیم : ✅" in text
+        assert "فعال" not in text.split("📞 پشتیبانی مستقیم")[1].split("\n")[0]
+        # Trial & referral: simplified without "فعال", clean formatting
+        assert "🎁 سرویس تست : ✅ 1 GB · 1 روز" in text
+        assert "🤝 سیستم دعوت : ✅ 2 GB هدیه" in text
+        # Grace period without (روز)
+        assert "⏳ مهلت پس از انقضا : 3 روز" in text
+        assert "مهلت پس از انقضا (روز)" not in text
+        # Only card number has <code>
+        assert "💳 شماره کارت : <code>6219-8618-1954-7695</code>" in text
+        assert "<code>3,1,0</code>" not in text
+        # Topics with names
+        assert "شارژ (10) : Topups" in text
+        assert "سفارش (20) : Orders" in text
+        assert "پشتیبانی (30) : Support" in text
+        assert "هشدار (40) : Alerts" in text
 
     # Case 2: without support contact -> only single line 📞 آیدی پشتیبانی : —
     store_no_sup = StoreSettings(
@@ -1336,8 +1346,12 @@ async def test_store_settings_full_overview():
 
         assert "📞 آیدی پشتیبانی : —" in text
         assert "📞 پشتیبانی مستقیم" not in text
-        assert "🎁 سرویس تست : <b>❌ غیرفعال</b>" in text
-        assert "🤝 سیستم دعوت : <b>❌ غیرفعال</b>" in text
+        assert "🎁 سرویس تست : ❌" in text
+        assert "🤝 سیستم دعوت : ❌" in text
+        assert "شارژ : — (Topups)" in text
+        assert "سفارش : — (Orders)" in text
+        assert "پشتیبانی : — (Support)" in text
+        assert "هشدار : — (Alerts)" in text
 
     # Case 3: Topics keyboard does NOT contain 🆘
     with patch("bot.handlers.admin_ops.get_store_settings", AsyncMock(return_value=store)), \
@@ -1345,10 +1359,13 @@ async def test_store_settings_full_overview():
 
         await _render_topics_settings(bot, user, user_repo, session)
         mock_render.assert_awaited_once()
+        text_topics = mock_render.call_args[0][3]
         markup = mock_render.call_args[0][4]
         all_btn_texts = [b.text for row in markup.inline_keyboard for b in row]
         assert any("🎧 تاپیک پشتیبانی" in t for t in all_btn_texts)
         assert not any("🆘" in t for t in all_btn_texts)
+        assert "10 (Topups)" in text_topics
+        assert "<code>10" not in text_topics
 
 
 @pytest.mark.anyio
