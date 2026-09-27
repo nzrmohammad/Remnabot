@@ -820,7 +820,8 @@ async def test_purchase_result_digital_receipt():
         assert "رسید دیجیتال خرید سرویس" in text
         assert "تاریخ و ساعت" in text
         assert "وضعیت پرداخت" in text
-        assert "موفق و پرداخت‌شده" in text
+        assert "موفق" in text
+        assert "نام سرویس" in text
         assert "Plan 50GB" in text
         assert "Mohammad" in text
         assert "30 روز" in text
@@ -1616,6 +1617,116 @@ async def test_service_detail_and_edit_layout():
         # In Persian RTL: index 0 is Left (Price), index 1 is Right (Name)
         assert "قیمت" in row1[0].text
         assert "نام" in row1[1].text
+
+
+@pytest.mark.anyio
+async def test_receipt_and_admin_order_notification_fixes():
+    """Verify receipt labels, single emoji, bidi minus in discount, and detailed admin order log."""
+    from bot.handlers.service_request import (
+        _render_purchase_result,
+        _notify_admin,
+        _render_buy_confirm,
+    )
+    from bot.services.purchases import PurchaseResult
+    from bot.db.models import Service
+
+    bot = MagicMock()
+    bot.send_message = AsyncMock()
+    user = MagicMock(language="fa", telegram_id=265455450, username="Nzrmohammad")
+    user_repo = MagicMock()
+    user_repo.set_verified = AsyncMock()
+    session = AsyncMock()
+
+    service = Service(
+        id=1,
+        name="💎 Diamond",
+        price=500000,
+        duration_days=30,
+        traffic_gb=100,
+        is_active=True,
+    )
+
+    result = PurchaseResult(
+        ok=True,
+        kind="success",
+        subscription_url="https://sub.example.com/diamond",
+        new_balance=0,
+        panel_user_id=10,
+        panel_username="Mohammad",
+    )
+
+    # 1. Receipt with 100% coupon
+    with patch("bot.handlers.service_request.render_menu", AsyncMock()) as mock_render:
+        await _render_purchase_result(
+            bot, user, user_repo, session, result, service, "fa",
+            coupon_code="NOROOZ", discount_amount=500000,
+        )
+        text = mock_render.call_args[0][3]
+
+        # No double emoji
+        assert "👤 👤" not in text
+        assert "👤 اکانت : <code>Mohammad</code>" in text
+
+        # Clean name label with LTR marks
+        assert "📦 نام سرویس : <b>\u200e💎 Diamond\u200e</b>" in text
+
+        # Status is 'موفق'
+        assert "💳 وضعیت پرداخت : <b>موفق</b>" in text
+
+        # Negative sign stays on left
+        assert "🏷 کد تخفیف (<code>NOROOZ</code>) : <b>\u200e-500,000 تومان</b>" in text
+        assert "💵 مبلغ پرداخت‌شده : <b>0 تومان</b>" in text
+        assert "👛 موجودی جدید کیف پول : <b>0 تومان</b>" in text
+
+    # 2. Buy confirm with discount
+    with patch("bot.handlers.service_request.render_menu", AsyncMock()) as mock_render:
+        await _render_buy_confirm(
+            bot, user, user_repo, session, service,
+            balance=0, confirm_callback="svc:pay", lang="fa",
+            back_callback="svc:back",
+            coupon_code="NOROOZ", discount_amount=500000,
+        )
+        confirm_text = mock_render.call_args[0][3]
+        assert "<b>\u200e-500,000</b>" in confirm_text
+
+    # 3. Admin notification with coupon
+    await _notify_admin(
+        bot, user, service, result, session=None,
+        coupon_code="NOROOZ", discount_amount=500000,
+        full_name="Nzrmohammad",
+    )
+    bot.send_message.assert_awaited_once()
+    admin_text = bot.send_message.call_args[0][1]
+
+    assert "🛒 <b>خرید جدید</b>" in admin_text
+    assert "📦 <b>\u200e💎 Diamond\u200e</b>" in admin_text
+    assert "💰 قیمت : <b>500,000</b> تومان" in admin_text
+    assert "🏷 کد تخفیف (<code>NOROOZ</code>) : <b>\u200e-500,000</b> تومان" in admin_text
+    assert "💵 پرداختی از کیف پول : <b>0</b> تومان" in admin_text
+    assert "👤 Nzrmohammad — <code>265455450</code>" in admin_text
+    assert "🔗 یوزرنیم : @Nzrmohammad" in admin_text
+    assert "🔑 <code>Mohammad</code>" in admin_text
+    assert "👛 موجودی باقی‌مانده : <b>0</b> تومان" in admin_text
+
+    # 4. Admin notification without coupon
+    bot.send_message.reset_mock()
+    normal_res = PurchaseResult(
+        ok=True,
+        kind="success",
+        subscription_url="https://sub.example.com/diamond",
+        new_balance=50000,
+        panel_user_id=10,
+        panel_username="Mohammad",
+    )
+    await _notify_admin(
+        bot, user, service, normal_res, session=None,
+        full_name="Nzrmohammad",
+    )
+    admin_text2 = bot.send_message.call_args[0][1]
+    assert "💰 مبلغ کل : <b>500,000</b> تومان" in admin_text2
+    assert "💵 پرداختی از کیف پول : <b>500,000</b> تومان" in admin_text2
+    assert "👛 موجودی باقی‌مانده : <b>50,000</b> تومان" in admin_text2
+
 
 
 

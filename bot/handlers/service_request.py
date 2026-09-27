@@ -173,7 +173,7 @@ async def _render_buy_confirm(
     price_lines = [f"💰 {t(lang, 'svc_field_price')} : <b>{fmt(service.price)}</b> {t(lang, 'svc_currency')}"]
     if coupon_code and discount_amount > 0:
         price_lines.append(
-            f"🏷 {t(lang, 'retention_code_label')} (<code>{coupon_code}</code>) : <b>-{fmt(discount_amount)}</b> {t(lang, 'svc_currency')}"
+            f"🏷 {t(lang, 'retention_code_label')} (<code>{coupon_code}</code>) : <b>\u200e-{fmt(discount_amount)}</b> {t(lang, 'svc_currency')}"
         )
         price_lines.append(
             f"💵 {t(lang, 'receipt_amount')} : <b>{fmt(effective_price)}</b> {t(lang, 'svc_currency')}"
@@ -456,7 +456,7 @@ async def service_trial_username(
         SEPARATOR,
         f"📅 {t(lang, 'receipt_date')} : <code>{dt_str}</code>",
         f"💳 {t(lang, 'receipt_status')} : <b>{t(lang, 'receipt_status_paid')}</b>",
-        f"👤 {t(lang, 'stats_account')} : <code>{escape(raw_name)}</code>",
+        f"{t(lang, 'stats_account')} : <code>{escape(raw_name)}</code>",
         f"⏳ {t(lang, 'receipt_duration')} : <b>{t(lang, 'svc_days', days=dur_days)}</b>",
         f"🌐 {t(lang, 'receipt_traffic')} : <b>{t(lang, 'svc_gb', gb=store.trial_traffic_gb)}</b>",
     ]
@@ -799,6 +799,8 @@ async def buy_for_account(
 async def _render_purchase_result(
     bot: Bot, user, user_repo: UserRepository, session: AsyncSession,
     result, service, lang: str,
+    coupon_code: str | None = None,
+    discount_amount: int = 0,
 ) -> None:
     if result.kind == "success":
         await user_repo.set_verified(user)
@@ -852,18 +854,35 @@ async def _render_purchase_result(
             SEPARATOR,
             f"📅 {t(lang, 'receipt_date')} : <code>{dt_str}</code>",
             f"💳 {t(lang, 'receipt_status')} : <b>{t(lang, 'receipt_status_paid')}</b>",
-            f"📦 {t(lang, 'receipt_service')} : <b>{escape(service.name)}</b>",
+            f"📦 {t(lang, 'receipt_service')} : <b>\u200e{escape(service.name)}\u200e</b>",
         ]
         if result.panel_username:
             receipt_lines.append(
-                f"👤 {t(lang, 'stats_account')} : <code>{escape(result.panel_username)}</code>"
+                f"{t(lang, 'stats_account')} : <code>{escape(result.panel_username)}</code>"
             )
         receipt_lines.extend([
             f"⏳ {t(lang, 'receipt_duration')} : <b>{dur_text}</b>",
             f"🌐 {t(lang, 'receipt_traffic')} : <b>{traf_text}</b>",
-            f"💰 {t(lang, 'receipt_amount')} : <b>{fmt(service.price)} {t(lang, 'svc_currency')}</b>",
-            f"👛 {t(lang, 'receipt_balance')} : <b>{fmt(result.new_balance)} {t(lang, 'svc_currency')}</b>",
         ])
+
+        effective_price = max(0, service.price - discount_amount)
+        if coupon_code and discount_amount > 0:
+            receipt_lines.append(
+                f"💰 {t(lang, 'svc_field_price')} : <b>{fmt(service.price)} {t(lang, 'svc_currency')}</b>"
+            )
+            receipt_lines.append(
+                f"🏷 {t(lang, 'retention_code_label')} (<code>{coupon_code}</code>) : <b>\u200e-{fmt(discount_amount)} {t(lang, 'svc_currency')}</b>"
+            )
+            receipt_lines.append(
+                f"💵 {t(lang, 'receipt_amount')} : <b>{fmt(effective_price)} {t(lang, 'svc_currency')}</b>"
+            )
+        else:
+            receipt_lines.append(
+                f"💰 {t(lang, 'receipt_amount')} : <b>{fmt(service.price)} {t(lang, 'svc_currency')}</b>"
+            )
+        receipt_lines.append(
+            f"👛 {t(lang, 'receipt_balance')} : <b>{fmt(result.new_balance)} {t(lang, 'svc_currency')}</b>"
+        )
         if result.subscription_url:
             receipt_lines.append(SEPARATOR)
             receipt_lines.append(
@@ -954,8 +973,15 @@ async def confirm_for_account(
                     await c_repo.record_usage(cpn.id, user.telegram_id, result.order_id, discount_amount)
             await _maybe_reward_referrer(bot, session, remnawave, user)
             await state.clear()
-            await _notify_admin(bot, user, service, result, session)
-        await _render_purchase_result(bot, user, user_repo, session, result, service, lang)
+            await _notify_admin(
+                bot, user, service, result, session,
+                coupon_code=coupon_code, discount_amount=discount_amount,
+                full_name=call.from_user.full_name,
+            )
+        await _render_purchase_result(
+            bot, user, user_repo, session, result, service, lang,
+            coupon_code=coupon_code, discount_amount=discount_amount,
+        )
         await call.answer()
     finally:
         _PURCHASE_LOCKS.discard(call.from_user.id)
@@ -1048,8 +1074,15 @@ async def confirm_new_account(
                     await c_repo.record_usage(cpn.id, user.telegram_id, result.order_id, discount_amount)
             await _maybe_reward_referrer(bot, session, remnawave, user)
             await state.clear()
-            await _notify_admin(bot, user, service, result, session)
-        await _render_purchase_result(bot, user, user_repo, session, result, service, lang)
+            await _notify_admin(
+                bot, user, service, result, session,
+                coupon_code=coupon_code, discount_amount=discount_amount,
+                full_name=call.from_user.full_name,
+            )
+        await _render_purchase_result(
+            bot, user, user_repo, session, result, service, lang,
+            coupon_code=coupon_code, discount_amount=discount_amount,
+        )
         await call.answer()
     finally:
         _PURCHASE_LOCKS.discard(call.from_user.id)
@@ -1234,9 +1267,16 @@ async def service_confirm(
                     await c_repo.record_usage(cpn.id, user.telegram_id, result.order_id, discount_amount)
             await _maybe_reward_referrer(bot, session, remnawave, user)
             await state.clear()
-            await _notify_admin(bot, user, service, result, session)
+            await _notify_admin(
+                bot, user, service, result, session,
+                coupon_code=coupon_code, discount_amount=discount_amount,
+                full_name=call.from_user.full_name,
+            )
 
-        await _render_purchase_result(bot, user, user_repo, session, result, service, lang)
+        await _render_purchase_result(
+            bot, user, user_repo, session, result, service, lang,
+            coupon_code=coupon_code, discount_amount=discount_amount,
+        )
         await call.answer()
     finally:
         _PURCHASE_LOCKS.discard(call.from_user.id)
@@ -1295,22 +1335,50 @@ async def service_choose_account(
                     await c_repo.record_usage(cpn.id, user.telegram_id, result.order_id, discount_amount)
             await _maybe_reward_referrer(bot, session, remnawave, user)
             await state.clear()
-            await _notify_admin(bot, user, service, result, session)
-        await _render_purchase_result(bot, user, user_repo, session, result, service, lang)
+            await _notify_admin(
+                bot, user, service, result, session,
+                coupon_code=coupon_code, discount_amount=discount_amount,
+                full_name=call.from_user.full_name,
+            )
+        await _render_purchase_result(
+            bot, user, user_repo, session, result, service, lang,
+            coupon_code=coupon_code, discount_amount=discount_amount,
+        )
         await call.answer()
     finally:
         _PURCHASE_LOCKS.discard(call.from_user.id)
 
 
 async def _notify_admin(
-    bot: Bot, user, service, result, session: AsyncSession | None = None,
+    bot: Bot,
+    user,
+    service,
+    result,
+    session: AsyncSession | None = None,
+    coupon_code: str | None = None,
+    discount_amount: int = 0,
+    full_name: str | None = None,
 ) -> None:
     tg_username = f"@{user.username}" if user.username else "—"
+    effective_price = max(0, service.price - discount_amount)
+    display_name = escape(full_name or user.username or str(user.telegram_id))
+
+    price_lines = []
+    if coupon_code and discount_amount > 0:
+        price_lines.append(f"💰 {t('fa', 'svc_field_price')} : <b>{fmt(service.price)}</b> {t('fa', 'svc_currency')}")
+        price_lines.append(f"🏷 {t('fa', 'retention_code_label')} (<code>{coupon_code}</code>) : <b>\u200e-{fmt(discount_amount)}</b> {t('fa', 'svc_currency')}")
+        price_lines.append(f"💵 پرداختی از کیف پول : <b>{fmt(effective_price)}</b> {t('fa', 'svc_currency')}")
+    else:
+        price_lines.append(f"💰 مبلغ کل : <b>{fmt(service.price)}</b> {t('fa', 'svc_currency')}")
+        price_lines.append(f"💵 پرداختی از کیف پول : <b>{fmt(service.price)}</b> {t('fa', 'svc_currency')}")
+
+    prices_str = "\n".join(price_lines)
+
     text = (
         f"🛒 <b>{t('fa', 'buy_admin_log')}</b>\n\n"
-        f"📦 <b>{escape(service.name)}</b>\n"
-        f"💰 {fmt(service.price)} {t('fa', 'svc_currency')}\n\n"
-        f"👤 {escape(user.username or '')} — <code>{user.telegram_id}</code>\n"
+        f"📦 <b>\u200e{escape(service.name)}\u200e</b>\n"
+        f"{prices_str}\n\n"
+        f"👤 {display_name} — <code>{user.telegram_id}</code>\n"
         f"🔗 {t('fa', 'svc_requested_username')} : {escape(tg_username)}\n"
         f"🔑 <code>{escape(str(result.panel_username or ''))}</code>\n\n"
         f"{t('fa', 'buy_remaining_balance', balance=fmt(result.new_balance), currency=t('fa', 'svc_currency'))}"
