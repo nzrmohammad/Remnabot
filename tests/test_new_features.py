@@ -415,11 +415,12 @@ async def test_renewal_traffic_rollover_vs_reset(async_session: AsyncSession):
 
 
 @pytest.mark.anyio
-async def test_insufficient_balance_blocks_service_view(async_session: AsyncSession):
+async def test_insufficient_balance_allows_service_view_and_coupon_flow(async_session: AsyncSession):
+    from unittest.mock import AsyncMock, MagicMock, patch
     from bot.db.models import Service, Wallet
-    from bot.handlers.service_request import service_view
+    from bot.handlers.service_request import service_view, _render_buy_confirm
 
-    w = Wallet(telegram_id=99002, balance=20_000)
+    w = Wallet(telegram_id=99002, balance=0)
     async_session.add(w)
 
     svc = Service(name="Expensive Plan", price=100_000, duration_days=30, traffic_gb=50, is_active=True)
@@ -440,11 +441,38 @@ async def test_insufficient_balance_blocks_service_view(async_session: AsyncSess
 
     bot = MagicMock()
 
-    await service_view(call, bot, u_repo, async_session)
+    # 1. service_view allows viewing even with 0 balance
+    with patch("bot.handlers.service_request.render_menu", AsyncMock()) as mock_render:
+        await service_view(call, bot, u_repo, async_session)
+        mock_render.assert_awaited_once()
+        text = mock_render.call_args[0][3]
+        markup = mock_render.call_args[0][4]
+        assert "Expensive Plan" in text
+        btn_texts = [b.text for row in markup.inline_keyboard for b in row]
+        assert any("خرید" in b for b in btn_texts)
 
-    assert call.answer.call_count == 1
-    assert call.answer.call_args[1].get("show_alert") is True
-    assert "کمتر از مبلغ این سرویس" in call.answer.call_args[0][0]
+    # 2. _render_buy_confirm with 0 balance shows topup and apply_coupon
+    with patch("bot.handlers.service_request.render_menu", AsyncMock()) as mock_render:
+        await _render_buy_confirm(
+            bot, user, u_repo, async_session, svc, balance=0,
+            confirm_callback=f"svc:confirmn:{svc.id}", lang="fa",
+        )
+        markup = mock_render.call_args[0][4]
+        btn_texts = [b.text for row in markup.inline_keyboard for b in row]
+        assert any("شارژ" in b for b in btn_texts)
+        assert any("کد تخفیف" in b for b in btn_texts)
+
+    # 3. _render_buy_confirm with 100% coupon (discount_amount=100_000) enables confirm_pay even with 0 balance
+    with patch("bot.handlers.service_request.render_menu", AsyncMock()) as mock_render:
+        await _render_buy_confirm(
+            bot, user, u_repo, async_session, svc, balance=0,
+            confirm_callback=f"svc:confirmn:{svc.id}", lang="fa",
+            coupon_code="FREE100", discount_amount=100_000,
+        )
+        markup = mock_render.call_args[0][4]
+        btn_texts = [b.text for row in markup.inline_keyboard for b in row]
+        assert any("پرداخت" in b for b in btn_texts)
+        assert not any("شارژ" in b for b in btn_texts)
 
 
 @pytest.mark.anyio

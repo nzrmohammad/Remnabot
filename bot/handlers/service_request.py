@@ -144,7 +144,11 @@ async def _render_buy_confirm(
 ) -> None:
     effective_price = max(0, service.price - discount_amount)
     kb = InlineKeyboardBuilder()
-    kb.button(text=t(lang, "btn_confirm_pay"), callback_data=confirm_callback)
+
+    if balance >= effective_price:
+        kb.button(text=t(lang, "btn_confirm_pay"), callback_data=confirm_callback)
+    else:
+        kb.button(text=t(lang, "btn_topup"), callback_data="wallet:topup")
 
     if coupon_code:
         kb.button(
@@ -175,13 +179,26 @@ async def _render_buy_confirm(
             f"💵 {t(lang, 'receipt_amount')} : <b>{fmt(effective_price)}</b> {t(lang, 'svc_currency')}"
         )
 
+    if balance < effective_price:
+        shortage = effective_price - balance
+        balance_note = (
+            f"\n\n⚠️ موجودی شما کافی نیست (کسری: <b>{fmt(shortage)}</b> {t(lang, 'svc_currency')}).\n"
+            f"می‌توانید کیف پول خود را شارژ کنید یا در صورت داشتن کد تخفیف، آن را ثبت نمایید."
+        ) if lang == "fa" else (
+            f"\n\n⚠️ Insufficient balance (need <b>{fmt(shortage)}</b> {t(lang, 'svc_currency')}).\n"
+            f"You can top up your wallet or apply a discount coupon."
+        )
+    else:
+        balance_note = ""
+
     await render_menu(
         bot, user, user_repo,
         f"{t(lang, 'buy_confirm_title')}\n{SEPARATOR}\n"
         f"{service_block(service, lang)}\n\n"
         f"{target_line}"
         f"{chr(10).join(price_lines)}\n"
-        f"👛 {t(lang, 'buy_current_balance')} : <b>{fmt(balance)}</b> {t(lang, 'svc_currency')}",
+        f"👛 {t(lang, 'buy_current_balance')} : <b>{fmt(balance)}</b> {t(lang, 'svc_currency')}"
+        f"{balance_note}",
         kb.as_markup(),
     )
 
@@ -764,24 +781,6 @@ async def buy_for_account(
     effective_price = max(0, service.price - discount_amount)
 
     wallet = await WalletRepository(session).get_wallet(user.telegram_id)
-    if wallet.balance < effective_price:
-        kb = InlineKeyboardBuilder()
-        kb.button(text=t(lang, "btn_topup"), callback_data="wallet:topup")
-        kb.button(text=t(lang, "btn_back_to_menu"), callback_data="nav:main_menu")
-        kb.adjust(1)
-        await render_menu(
-            bot, user, user_repo,
-            t(
-                lang, "buy_insufficient",
-                balance=fmt(wallet.balance),
-                price=fmt(effective_price),
-                currency=t(lang, "svc_currency"),
-            ),
-            kb.as_markup(),
-        )
-        await call.answer()
-        return
-
     username = escape(str(chosen.get("username", "—")))
     await _render_buy_confirm(
         bot, user, user_repo, session, service, wallet.balance,
@@ -993,24 +992,6 @@ async def buy_new_account(
     effective_price = max(0, service.price - discount_amount)
 
     wallet = await WalletRepository(session).get_wallet(user.telegram_id)
-    if wallet.balance < effective_price:
-        kb = InlineKeyboardBuilder()
-        kb.button(text=t(lang, "btn_topup"), callback_data="wallet:topup")
-        kb.button(text=t(lang, "btn_back"), callback_data="menu:services")
-        kb.adjust(1)
-        await render_menu(
-            bot, user, user_repo,
-            t(
-                lang, "buy_insufficient",
-                balance=fmt(wallet.balance),
-                price=fmt(effective_price),
-                currency=t(lang, "svc_currency"),
-            ),
-            kb.as_markup(),
-        )
-        await call.answer()
-        return
-
     await _render_buy_confirm(
         bot, user, user_repo, session, service, wallet.balance,
         confirm_callback=f"svc:confirmn:{service.id}",
@@ -1094,19 +1075,6 @@ async def service_view(
         await call.answer(t(lang, "acc_error"), show_alert=True)
         return
 
-    wallet = await WalletRepository(session).get_wallet(user.telegram_id)
-    if wallet.balance < service.price:
-        shortage = service.price - wallet.balance
-        alert_msg = (
-            f"❌ موجودی کیف پول شما ({fmt(wallet.balance)} تومان) کمتر از مبلغ این سرویس ({fmt(service.price)} تومان) است.\n\n"
-            f"برای خرید، لطفاً ابتدا کیف پول خود را حداقل به میزان {fmt(shortage)} تومان شارژ کنید."
-        ) if lang == "fa" else (
-            f"❌ Your wallet balance ({fmt(wallet.balance)}) is less than this plan ({fmt(service.price)}).\n\n"
-            f"Please top up at least {fmt(shortage)} first."
-        )
-        await call.answer(alert_msg, show_alert=True)
-        return
-
     kb = InlineKeyboardBuilder()
     kb.button(text=t(lang, "btn_buy"), callback_data=f"svc:buy:{service.id}")
     kb.button(text=t(lang, "btn_back"), callback_data="menu:services")
@@ -1153,23 +1121,6 @@ async def service_buy(
     effective_price = max(0, service.price - discount_amount)
 
     wallet = await WalletRepository(session).get_wallet(user.telegram_id)
-    if wallet.balance < effective_price:
-        kb = InlineKeyboardBuilder()
-        kb.button(text=t(lang, "btn_topup"), callback_data="wallet:topup")
-        kb.button(text=t(lang, "btn_back"), callback_data="menu:services")
-        kb.adjust(1)
-        await render_menu(
-            bot, user, user_repo,
-            t(
-                lang, "buy_insufficient",
-                balance=fmt(wallet.balance),
-                price=fmt(effective_price),
-                currency=t(lang, "svc_currency"),
-            ),
-            kb.as_markup(),
-        )
-        await call.answer()
-        return
 
     # Check if the user already has panel accounts
     accounts = await remnawave.get_users_by_telegram_id(user.telegram_id)
