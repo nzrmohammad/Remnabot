@@ -365,3 +365,72 @@ class RemnawaveClient:
         except httpx.HTTPError as exc:
             logger.error("Remnawave get_nodes error: %s", exc)
             return None
+
+    # ------------------------------------------------------------------ #
+    # Inspectors & Diagnostics (HWID, SRH, Sessions, System)
+    # ------------------------------------------------------------------ #
+    async def get_hwid_stats(self) -> dict[str, Any] | None:
+        """Fetch HWID device summary statistics."""
+        for path in ("/api/hwid/devices/stats", "/api/hwid/stats"):
+            try:
+                resp = await self._client.get(path)
+                if resp.status_code == 200:
+                    data = resp.json().get("response") or resp.json()
+                    if isinstance(data, dict):
+                        return data
+            except Exception:
+                pass
+        return None
+
+    async def get_all_hwid_devices(self, size: int = 50) -> list[dict[str, Any]]:
+        """Fetch registered devices across all users."""
+        for path in ("/api/hwid/devices", "/api/hwid/devices/all"):
+            try:
+                resp = await self._client.get(path, params={"size": size})
+                if resp.status_code == 200:
+                    data = resp.json().get("response") or {}
+                    devices = data.get("devices") if isinstance(data, dict) else data
+                    if isinstance(devices, list):
+                        return devices
+            except Exception:
+                pass
+        return []
+
+    async def get_srh_stats(self) -> dict[str, Any] | None:
+        """Fetch Subscription Request History (SRH) stats."""
+        for path in ("/api/srh/stats", "/api/srh", "/api/srh/requests"):
+            try:
+                resp = await self._client.get(path, params={"size": 30})
+                if resp.status_code == 200:
+                    return resp.json().get("response") or resp.json()
+            except Exception:
+                pass
+        return None
+
+    async def get_active_sessions(self) -> list[dict[str, Any]] | None:
+        """Fetch active user sessions and connection telemetry."""
+        for path in ("/api/sessions", "/api/v1/sessions/active", "/api/sessions/active"):
+            try:
+                resp = await self._client.get(path)
+                if resp.status_code == 200:
+                    data = resp.json().get("response") or resp.json()
+                    sessions = data.get("sessions") if isinstance(data, dict) else data
+                    if isinstance(sessions, list):
+                        return sessions
+            except Exception:
+                pass
+        return None
+
+    async def get_system_digest(self) -> dict[str, Any] | None:
+        """Fetch host and panel system metrics/digest."""
+        for path in ("/api/system/stats/digest", "/api/system/info", "/api/system/stats", "/api/system"):
+            try:
+                resp = await self._client.get(path)
+                if resp.status_code == 200:
+                    data = resp.json().get("response") or resp.json()
+                    if isinstance(data, dict):
+                        return data
+            except Exception:
+                pass
+        return None
+

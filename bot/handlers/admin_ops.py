@@ -427,8 +427,9 @@ async def _render_orders_list(
                 kb.button(text=" ", callback_data="adm:noop")
         kb.adjust(3)
 
+    kb.button(text="🔙 بازگشت به گزارشات" if lang == "fa" else "🔙 Back to Reports", callback_data="adm:sales")
     kb.button(text=t(lang, "btn_back"), callback_data="menu:admin")
-    kb.adjust(1)
+    kb.adjust(1, 1)
 
     await render_menu(bot, user, user_repo, "\n".join(lines), kb.as_markup())
 
@@ -438,20 +439,328 @@ async def admin_noop(call: CallbackQuery):
     await call.answer()
 
 
+PLATFORM_EMOJI = {
+    "android": "🤖",
+    "ios": "🍏",
+    "windows": "🖥",
+    "macos": "💻",
+    "linux": "🐧",
+}
+
+
+async def _render_reports_hub(
+    bot: Bot,
+    user,
+    user_repo: UserRepository,
+    session: AsyncSession,
+    remnawave: RemnawaveClient,
+) -> None:
+    lang = user.language or "fa"
+    now = now_tz(get_settings().TIMEZONE)
+    today_start = now.replace(hour=0, minute=0, second=0, microsecond=0).astimezone(timezone.utc)
+
+    # Orders & Wallet Stats
+    order_repo = OrderRepository(session)
+    orders_count = await order_repo.count(since=today_start)
+    revenue_today = await order_repo.total_revenue(since=today_start)
+
+    wallet_repo = WalletRepository(session)
+    topup_count, topup_amount = await wallet_repo.topup_stats(since=today_start)
+
+    # Panel users & Nodes count
+    panel_users = await remnawave.get_all_panel_users() or []
+    total_users = len(panel_users)
+    active_users = sum(1 for u in panel_users if str(u.get("status", "")).upper() == "ACTIVE")
+
+    nodes = await remnawave.get_nodes() or []
+    online_nodes = sum(1 for n in nodes if n.get("isConnected") or str(n.get("status", "")).upper() == "CONNECTED")
+
+    lines = [
+        f"📊 <b>{t(lang, 'reports_hub_title')}</b>\n{SEPARATOR}",
+        f"💰 <b>فروش و تراکنش‌های امروز:</b> {orders_count + topup_count} مورد ({fmt(revenue_today + topup_amount)} تومان)",
+        f"👥 <b>کاربران پنل:</b> {active_users} فعال / {total_users} کل",
+        f"📡 <b>وضعیت نودها:</b> {online_nodes} متصل از {len(nodes)} نود",
+        "",
+        "جهت بررسی دقیق هر بخش، گزینه مورد نظر را انتخاب کنید:"
+        if lang == "fa"
+        else "Select a section below for detailed reports & diagnostics:",
+    ]
+
+    kb = InlineKeyboardBuilder()
+    if lang == "fa":
+        # Row 1: Orders (Full width)
+        kb.button(text="🧾 سفارشات و تراکنش‌ها", callback_data="adm:orders:all:0")
+        # Row 2: Right = HWID Inspector, Left = SRH Inspector
+        kb.button(text="🌐 SRH Inspector", callback_data="adm:rep:srh")
+        kb.button(text="🔍 HWID Inspector", callback_data="adm:rep:hwid")
+        # Row 3: Right = Sessions Explorer, Left = System Info
+        kb.button(text="💻 System Info", callback_data="adm:rep:sysinfo")
+        kb.button(text="⚡ Sessions Explorer", callback_data="adm:rep:sessions")
+    else:
+        kb.button(text="🧾 Orders & Transactions", callback_data="adm:orders:all:0")
+        kb.button(text="🔍 HWID Inspector", callback_data="adm:rep:hwid")
+        kb.button(text="🌐 SRH Inspector", callback_data="adm:rep:srh")
+        kb.button(text="⚡ Sessions Explorer", callback_data="adm:rep:sessions")
+        kb.button(text="💻 System Info", callback_data="adm:rep:sysinfo")
+
+    kb.button(text=t(lang, "btn_back"), callback_data="menu:admin")
+    kb.adjust(1, 2, 2, 1)
+
+    await render_menu(bot, user, user_repo, "\n".join(lines), kb.as_markup())
+
+
+async def _render_hwid_inspector(
+    bot: Bot, user, user_repo: UserRepository, remnawave: RemnawaveClient
+) -> None:
+    lang = user.language or "fa"
+    stats = await remnawave.get_hwid_stats() or {}
+    devices = await remnawave.get_all_hwid_devices(size=30) or []
+
+    lines = [
+        "🔍 <b>HWID Inspector (بازرس سخت‌افزار)</b>" if lang == "fa" else "🔍 <b>HWID Inspector</b>",
+        SEPARATOR,
+    ]
+
+    total_devs = stats.get("total") or stats.get("totalDevices") or len(devices)
+    android_count = stats.get("android") or sum(1 for d in devices if str(d.get("platform", "")).lower() == "android")
+    ios_count = stats.get("ios") or sum(1 for d in devices if str(d.get("platform", "")).lower() in ("ios", "iphone", "ipad"))
+    win_count = stats.get("windows") or sum(1 for d in devices if str(d.get("platform", "")).lower() == "windows")
+    mac_count = stats.get("macos") or sum(1 for d in devices if str(d.get("platform", "")).lower() in ("macos", "darwin"))
+    linux_count = stats.get("linux") or sum(1 for d in devices if str(d.get("platform", "")).lower() == "linux")
+
+    lines.append(f"📱 <b>کل دستگاه‌های ثبت‌شده:</b> <code>{total_devs}</code> دستگاه")
+    lines.append(f"🤖 اندروید: <b>{android_count}</b> | 🍏 آیفون: <b>{ios_count}</b>")
+    lines.append(f"🖥 ویندوز: <b>{win_count}</b> | 💻 مک: <b>{mac_count}</b> | 🐧 لینوکس: <b>{linux_count}</b>")
+    lines.append("")
+    lines.append("📋 <b>آخرین دستگاه‌های فعال ثبت‌شده:</b>")
+
+    if not devices:
+        lines.append("<i>هیچ دستگاهی در حافظه ثبت نشده است.</i>")
+    else:
+        for idx, d in enumerate(devices[:10], start=1):
+            plat = d.get("platform") or "Device"
+            model = d.get("deviceModel") or d.get("model") or "—"
+            ip = d.get("requestIp") or d.get("ip") or "—"
+            emoji = PLATFORM_EMOJI.get(str(plat).lower(), "📱")
+            lines.append(f" {idx}) {emoji} <b>{escape(str(plat))}</b> ({escape(str(model))}) — <code>{escape(str(ip))}</code>")
+
+    kb = InlineKeyboardBuilder()
+    kb.button(text="🔄 بروزرسانی", callback_data="adm:rep:hwid")
+    kb.button(text="🔙 بازگشت به گزارشات", callback_data="adm:sales")
+    kb.adjust(1, 1)
+
+    await render_menu(bot, user, user_repo, "\n".join(lines), kb.as_markup())
+
+
+async def _render_srh_inspector(
+    bot: Bot, user, user_repo: UserRepository, remnawave: RemnawaveClient
+) -> None:
+    lang = user.language or "fa"
+    srh_data = await remnawave.get_srh_stats() or {}
+
+    lines = [
+        "🌐 <b>SRH Inspector (بازرس درخواست‌های اشتراک)</b>" if lang == "fa" else "🌐 <b>SRH Inspector</b>",
+        SEPARATOR,
+    ]
+
+    total_reqs = srh_data.get("total") or srh_data.get("count") or "—"
+    lines.append(f"📥 <b>کل درخواست‌های دریافت لینک سابسکریپشن:</b> <code>{total_reqs}</code>")
+    lines.append("")
+
+    requests_list = srh_data.get("requests") or srh_data.get("data") if isinstance(srh_data, dict) else []
+    if isinstance(srh_data, list):
+        requests_list = srh_data
+
+    if requests_list:
+        lines.append("📊 <b>آخرین درخواست‌های سابسکریپشن دریافتی:</b>")
+        for idx, r in enumerate(requests_list[:10], start=1):
+            ua = r.get("userAgent") or r.get("client") or "Unknown App"
+            ip = r.get("ip") or r.get("clientIp") or "—"
+            time_str = str(r.get("createdAt") or r.get("time") or "")[-8:]
+            lines.append(f" {idx}) 📲 <b>{escape(str(ua)[:22])}</b> — <code>{escape(str(ip))}</code> ({time_str})")
+    else:
+        lines.append("ℹ️ این ماژول تمامی درخواست‌های دانلود و آپدیت لینک سابسکریپشن توسط کلاینت‌ها (v2rayNG, Happ, Streisand) را همراه با IP و شناسه نرم‌افزار مانیتور می‌کند.")
+
+    kb = InlineKeyboardBuilder()
+    kb.button(text="🔄 بروزرسانی", callback_data="adm:rep:srh")
+    kb.button(text="🔙 بازگشت به گزارشات", callback_data="adm:sales")
+    kb.adjust(1, 1)
+
+    await render_menu(bot, user, user_repo, "\n".join(lines), kb.as_markup())
+
+
+async def _render_sessions_explorer(
+    bot: Bot, user, user_repo: UserRepository, remnawave: RemnawaveClient
+) -> None:
+    lang = user.language or "fa"
+    sessions = await remnawave.get_active_sessions() or []
+    nodes = await remnawave.get_nodes() or []
+
+    lines = [
+        "⚡ <b>Sessions Explorer (کاوشگر نشست‌های فعال)</b>" if lang == "fa" else "⚡ <b>Sessions Explorer</b>",
+        SEPARATOR,
+    ]
+
+    total_online = 0
+    for n in nodes:
+        u_online = n.get("usersOnline") or n.get("connectionCount") or 0
+        try:
+            total_online += int(u_online)
+        except (ValueError, TypeError):
+            pass
+
+    if len(sessions) > 0:
+        total_online = max(total_online, len(sessions))
+
+    lines.append(f"🟢 <b>تعداد کل اتصالات و کاربران آنلاین زنده:</b> <code>{total_online}</code> اتصال")
+    lines.append("")
+
+    if nodes:
+        lines.append("📡 <b>اتصالات آنلاین به تفکیک نودها:</b>")
+        for idx, n in enumerate(nodes, start=1):
+            n_name = n.get("name") or f"Node {idx}"
+            n_online = n.get("usersOnline") or n.get("connectionCount") or 0
+            flag = country_flag(n.get("countryCode"))
+            lines.append(f"   • {flag} <b>{escape(str(n_name))}</b> : <code>{n_online}</code> آنلاین")
+        lines.append("")
+
+    if sessions:
+        lines.append("👥 <b>نشست‌های آنلاین اخیر:</b>")
+        for idx, s in enumerate(sessions[:8], start=1):
+            u_name = s.get("username") or s.get("user") or "User"
+            proto = s.get("protocol") or s.get("inbound") or "VLESS"
+            ip = s.get("ip") or s.get("clientIp") or "—"
+            lines.append(f" {idx}) 👤 <b>{escape(str(u_name))}</b> ({escape(str(proto))}) — <code>{escape(str(ip))}</code>")
+
+    kb = InlineKeyboardBuilder()
+    kb.button(text="🔄 بروزرسانی", callback_data="adm:rep:sessions")
+    kb.button(text="🔙 بازگشت به گزارشات", callback_data="adm:sales")
+    kb.adjust(1, 1)
+
+    await render_menu(bot, user, user_repo, "\n".join(lines), kb.as_markup())
+
+
+async def _render_system_info(
+    bot: Bot, user, user_repo: UserRepository, remnawave: RemnawaveClient
+) -> None:
+    lang = user.language or "fa"
+    digest = await remnawave.get_system_digest() or {}
+    nodes = await remnawave.get_nodes() or []
+
+    lines = [
+        "💻 <b>System Info (اطلاعات سیستم و سرور)</b>" if lang == "fa" else "💻 <b>System Info</b>",
+        SEPARATOR,
+    ]
+
+    panel_ver = digest.get("version") or digest.get("panelVersion") or "v3.0+"
+    node_count = len(nodes)
+    online_count = sum(1 for n in nodes if n.get("isConnected") or str(n.get("status", "")).upper() == "CONNECTED")
+
+    lines.append(f"🚀 <b>نسخه پنل رمنـاویو:</b> <code>{escape(str(panel_ver))}</code>")
+    lines.append(f"📡 <b>خوشه سرورها (Nodes):</b> {online_count} فعال از {node_count} نود")
+    lines.append("")
+
+    cpu_usage = digest.get("cpu") or digest.get("cpuUsage")
+    mem_usage = digest.get("memory") or digest.get("ram") or digest.get("mem")
+    disk_usage = digest.get("disk") or digest.get("storage")
+    uptime_val = digest.get("uptime")
+
+    lines.append("🖥 <b>منابع سخت‌افزاری سرور:</b>")
+    if cpu_usage:
+        lines.append(f"   ⚙️ مصرف پردازنده (CPU): <code>{escape(str(cpu_usage))}</code>")
+    if mem_usage:
+        lines.append(f"   🧠 حافظه رم (RAM): <code>{escape(str(mem_usage))}</code>")
+    if disk_usage:
+        lines.append(f"   💾 فضای دیسک (Disk): <code>{escape(str(disk_usage))}</code>")
+    if uptime_val:
+        lines.append(f"   ⏱ آپ‌تایم سیستم: <code>{escape(str(uptime_val))}</code>")
+
+    lines.append("")
+    lines.append("<i>وضعیت نودها به صورت پیوسته توسط موتور ربات بررسی و در وضعیت سرور مانیتور می‌شود.</i>")
+
+    kb = InlineKeyboardBuilder()
+    kb.button(text="🔄 بروزرسانی", callback_data="adm:rep:sysinfo")
+    kb.button(text="🔙 بازگشت به گزارشات", callback_data="adm:sales")
+    kb.adjust(1, 1)
+
+    await render_menu(bot, user, user_repo, "\n".join(lines), kb.as_markup())
+
+
 @router.callback_query(F.data == "adm:sales")
-async def sales_report(
+async def reports_hub_entry(
     call: CallbackQuery,
     bot: Bot,
     user_repo: UserRepository,
     session: AsyncSession,
     state: FSMContext,
+    remnawave: RemnawaveClient,
 ):
     if not _is_admin(call.from_user.id):
         await call.answer(t("fa", "not_authorized"), show_alert=True)
         return
     user = await user_repo.get_or_create(call.from_user.id, call.from_user.username)
-    await state.update_data(order_search_query=None)
-    await _render_orders_list(bot, user, user_repo, session, status="all", page=0, query=None)
+    await state.clear()
+    await _render_reports_hub(bot, user, user_repo, session, remnawave)
+    await call.answer()
+
+
+@router.callback_query(F.data == "adm:rep:hwid")
+async def report_hwid_inspector_handler(
+    call: CallbackQuery,
+    bot: Bot,
+    user_repo: UserRepository,
+    remnawave: RemnawaveClient,
+):
+    if not _is_admin(call.from_user.id):
+        await call.answer(t("fa", "not_authorized"), show_alert=True)
+        return
+    user = await user_repo.get_or_create(call.from_user.id, call.from_user.username)
+    await _render_hwid_inspector(bot, user, user_repo, remnawave)
+    await call.answer()
+
+
+@router.callback_query(F.data == "adm:rep:srh")
+async def report_srh_inspector_handler(
+    call: CallbackQuery,
+    bot: Bot,
+    user_repo: UserRepository,
+    remnawave: RemnawaveClient,
+):
+    if not _is_admin(call.from_user.id):
+        await call.answer(t("fa", "not_authorized"), show_alert=True)
+        return
+    user = await user_repo.get_or_create(call.from_user.id, call.from_user.username)
+    await _render_srh_inspector(bot, user, user_repo, remnawave)
+    await call.answer()
+
+
+@router.callback_query(F.data == "adm:rep:sessions")
+async def report_sessions_explorer_handler(
+    call: CallbackQuery,
+    bot: Bot,
+    user_repo: UserRepository,
+    remnawave: RemnawaveClient,
+):
+    if not _is_admin(call.from_user.id):
+        await call.answer(t("fa", "not_authorized"), show_alert=True)
+        return
+    user = await user_repo.get_or_create(call.from_user.id, call.from_user.username)
+    await _render_sessions_explorer(bot, user, user_repo, remnawave)
+    await call.answer()
+
+
+@router.callback_query(F.data == "adm:rep:sysinfo")
+async def report_system_info_handler(
+    call: CallbackQuery,
+    bot: Bot,
+    user_repo: UserRepository,
+    remnawave: RemnawaveClient,
+):
+    if not _is_admin(call.from_user.id):
+        await call.answer(t("fa", "not_authorized"), show_alert=True)
+        return
+    user = await user_repo.get_or_create(call.from_user.id, call.from_user.username)
+    await _render_system_info(bot, user, user_repo, remnawave)
     await call.answer()
 
 

@@ -523,8 +523,9 @@ TEXTS: dict[str, dict[str, str]] = {
         "user_balance_invalid": "❌ Invalid number. Please send a plain number.",
         "user_balance_ok": "✅ Balance updated: <b>{balance}</b> Toman",
         # --- admin panel: sales ---
-        "btn_sales_report": "📈 Sales & Orders",
+        "btn_sales_report": "📊 Reports",
         "sales_title": "📈 <b>Sales & Orders Report</b>",
+        "reports_hub_title": "📊 <b>Reports & System Monitoring</b>",
         "sales_total": "Total revenue",
         "sales_count": "Total orders",
         "sales_recent": "Orders list",
@@ -1261,8 +1262,9 @@ TEXTS: dict[str, dict[str, str]] = {
         "user_balance_invalid": "❌ عدد نامعتبر است. فقط یک عدد بفرستید.",
         "user_balance_ok": "✅ موجودی به‌روزرسانی شد: <b>{balance}</b> تومان",
         # --- admin panel: sales ---
-        "btn_sales_report": "📈 گزارش و سفارشات",
+        "btn_sales_report": "📊 گزارش",
         "sales_title": "📈 <b>گزارش و لیست سفارشات</b>",
+        "reports_hub_title": "📊 <b>مرکز گزارشات و مانیتورینگ</b>",
         "sales_total": "مجموع درآمد",
         "sales_count": "کل سفارشات",
         "sales_recent": "لیست سفارشات",
