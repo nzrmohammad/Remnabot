@@ -1596,6 +1596,11 @@ async def test_service_detail_and_edit_layout():
         assert "🗑 حذف" in btn_texts
         assert not any("🗑 🗑" in b for b in btn_texts)
 
+        # Service fields: no ♾️ in reset strategy, and no 'پنل' in default devices
+        assert "ریست ترافیک : <b>بدون ریست</b>" in text
+        assert "دستگاه : <b>پیش‌فرض (نامحدود)</b>" in text
+        assert "پیش‌فرض پنل" not in text
+
     # 2. Edit fields menu: RTL layout (first added is Left, second added is Right)
     call = MagicMock()
     call.from_user.id = 999

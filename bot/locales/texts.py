@@ -312,7 +312,7 @@ TEXTS: dict[str, dict[str, str]] = {
         "svc_gb": "{gb} GB",
         "services_policy_hint": (
             "💡 <b>Traffic Policy Note:</b>\n"
-            "For plans with '<b>♾ No Reset</b>' strategy, renewing within <b>1 day</b> "
+            "For plans with '<b>No Reset</b>' strategy, renewing within <b>1 day</b> "
             "after expiration carries over your unused traffic to the next period. "
             "For all other reset periods (Daily, Weekly, Monthly), traffic resets at each renewal."
         ),
@@ -373,9 +373,9 @@ TEXTS: dict[str, dict[str, str]] = {
         "buy_admin_log": "New purchase",
         # --- service extras: strategy / hwid / squad ---
         "svc_prompt_strategy": "🔁 Choose the traffic reset strategy:",
-        "svc_prompt_hwid": "📱 Send max device limit (or /skip for panel default - Unlimited):",
+        "svc_prompt_hwid": "📱 Send max device limit (or /skip for default - Unlimited):",
         "svc_prompt_squad": "🧩 Send the internal squad UUID (or /skip for the store default):",
-        "stgy_no_reset": "♾ No reset",
+        "stgy_no_reset": "No reset",
         "stgy_day": "☀️ Daily",
         "stgy_week": "🗓 Weekly",
         "stgy_month": "📆 Monthly",
@@ -383,7 +383,7 @@ TEXTS: dict[str, dict[str, str]] = {
         "svc_field_hwid": "Devices",
         "svc_field_squad": "Squad",
         "svc_invalid_strategy": "❌ Invalid strategy. Use NO_RESET, DAY, WEEK or MONTH.",
-        "hwid_default": "Panel default (Unlimited)",
+        "hwid_default": "Default (Unlimited)",
         "hwid_zero": "Disabled",
         "svc_devices": "{n} devices",
         "skip_for_none": "Send /skip to clear this value.",
@@ -1066,7 +1066,7 @@ TEXTS: dict[str, dict[str, str]] = {
         "svc_gb": "{gb} گیگابایت",
         "services_policy_hint": (
             "💡 <b>نکته دوره‌های مصرف و تمدید:</b>\n"
-            "در سرویس‌های با ریست ترافیک «<b>♾️ بدون ریست</b>»، چنانچه تا <b>۱ روز</b> "
+            "در سرویس‌های با ریست ترافیک «<b>بدون ریست</b>»، چنانچه تا <b>۱ روز</b> "
             "پس از منقضی شدن سرویس اقدام به تمدید نمایید، باقیمانده حجم به دوره بعد منتقل خواهد شد. "
             "برای سایر حالت‌ها (روزانه، هفتگی و ماهانه)، حجم در هر دوره ریست می‌شود."
         ),
@@ -1127,9 +1127,9 @@ TEXTS: dict[str, dict[str, str]] = {
         "buy_admin_log": "خرید جدید",
         # --- service extras: strategy / hwid / squad ---
         "svc_prompt_strategy": "🔁 استراتژی ریست ترافیک را انتخاب کنید:",
-        "svc_prompt_hwid": "📱 سقف تعداد دستگاه متصل را وارد کنید (یا /skip برای پیش‌فرض پنل - نامحدود):",
+        "svc_prompt_hwid": "📱 سقف تعداد دستگاه متصل را وارد کنید (یا /skip برای پیش‌فرض - نامحدود):",
         "svc_prompt_squad": "🧩 اسکواد داخلی (UUID) را بفرستید (یا /skip برای پیش‌فرض فروشگاه):",
-        "stgy_no_reset": "♾ بدون ریست",
+        "stgy_no_reset": "بدون ریست",
         "stgy_day": "☀️ روزانه",
         "stgy_week": "🗓 هفتگی",
         "stgy_month": "📆 ماهانه",
@@ -1137,7 +1137,7 @@ TEXTS: dict[str, dict[str, str]] = {
         "svc_field_hwid": "دستگاه",
         "svc_field_squad": "اسکواد",
         "svc_invalid_strategy": "❌ مقدار نامعتبر. از NO_RESET، DAY، WEEK یا MONTH استفاده کنید.",
-        "hwid_default": "پیش‌فرض پنل (نامحدود)",
+        "hwid_default": "پیش‌فرض (نامحدود)",
         "hwid_zero": "غیرفعال",
         "svc_devices": "{n} دستگاه",
         "skip_for_none": "برای خالی‌کردن این مقدار /skip بفرستید.",
