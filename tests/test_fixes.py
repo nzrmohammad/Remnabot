@@ -1160,6 +1160,98 @@ async def test_profile_date_format():
         assert "روز (" not in text
 
 
+def test_no_double_emoji_in_account():
+    """Verify account detail does not render double emojis like 📊 📥."""
+    from bot.handlers.account import _account_view_text
+
+    acc = {
+        "id": 1,
+        "username": "Mohammad",
+        "status": "ACTIVE",
+        "trafficLimitBytes": 250 * (1024 ** 3),
+        "userTraffic": {"usedTrafficBytes": int(24.1 * (1024 ** 3))},
+        "expireAt": "2026-10-18T00:00:00Z",
+    }
+    text = _account_view_text(acc, "fa")
+    assert "📊 📥" not in text
+    assert "📥 حجم باقی‌مانده : <b>225.9 GB</b> (از 250 GB)" in text
+
+
+def test_support_and_report_icons_and_nightly_hint():
+    """Verify support icon, distinct report icon, and 23:59 nightly report hint."""
+    from bot.locales.texts import t
+
+    fa_sup = t("fa", "btn_support")
+    assert "🎧" in fa_sup
+    assert "🆘" not in fa_sup
+
+    fa_rep = t("fa", "btn_sales_report")
+    fa_dash = t("fa", "btn_dashboard")
+    assert "📑" in fa_rep
+    assert "📊" in fa_dash
+    assert fa_rep[0] != fa_dash[0]  # distinct icons!
+
+    hint_fa = t("fa", "settings_nightly_hint")
+    assert "۲۳:۵۹" in hint_fa or "23:59" in hint_fa
+    assert "۲۳:۵۷" not in hint_fa
+
+    hint_en = t("en", "settings_nightly_hint")
+    assert "23:59" in hint_en
+    assert "23:57" not in hint_en
+
+
+@pytest.mark.anyio
+async def test_dashboard_remnawave_overview():
+    """Verify admin dashboard displays Remnawave overview and no store revenue/orders."""
+    from bot.handlers.admin_ops import dashboard
+
+    call = MagicMock()
+    call.from_user.id = 999
+    call.from_user.username = "admin"
+    call.answer = AsyncMock()
+
+    bot = MagicMock()
+    user_repo = MagicMock()
+    user_repo.get_or_create = AsyncMock(return_value=MagicMock(language="fa"))
+    session = AsyncMock()
+
+    remnawave = MagicMock()
+    remnawave.get_all_panel_users = AsyncMock(return_value=[
+        {"id": 1, "username": "u1", "status": "ACTIVE", "usedTrafficBytes": 10 * 1024**3},
+        {"id": 2, "username": "u2", "status": "DISABLED", "usedTrafficBytes": 5 * 1024**3},
+        {"id": 3, "username": "u3", "status": "LIMITED", "usedTrafficBytes": 20 * 1024**3},
+    ])
+    remnawave.get_nodes = AsyncMock(return_value=[
+        {"id": 1, "name": "NL-1", "countryCode": "NL", "isConnected": True, "trafficUsedBytes": 35 * 1024**3},
+        {"id": 2, "name": "DE-1", "countryCode": "DE", "isConnected": False, "trafficUsedBytes": 0},
+    ])
+    remnawave.get_system_recap = AsyncMock(return_value={
+        "version": "3.4.4",
+        "traffic": {"totalBytes": 35 * 1024**3, "downloadBytes": 20 * 1024**3, "uploadBytes": 15 * 1024**3},
+    })
+
+    with patch("bot.handlers.admin_ops._is_admin", return_value=True), \
+         patch("bot.handlers.admin_ops.render_menu", AsyncMock()) as mock_render:
+
+        await dashboard(call, bot, user_repo, session, remnawave)
+        mock_render.assert_awaited_once()
+        text = mock_render.call_args[0][3]
+
+        assert "داشبورد پنل ریمناوِیو" in text
+        assert "فعال : <b>1</b>" in text
+        assert "غیرفعال : <b>1</b>" in text
+        assert "محدود شده (اتمام حجم) : <b>1</b>" in text
+        assert "متصل و آنلاین : <b>1</b>" in text
+        assert "آفلاین و قطع : <b>1</b>" in text
+        assert "35.00 GB" in text
+        assert "v3.4.4" in text
+        # Verify bot shop DB stats are removed:
+        assert "درآمد" not in text
+        assert "فروش" not in text
+        assert "سفارش" not in text
+
+
+
 
 
 

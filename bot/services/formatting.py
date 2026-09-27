@@ -6,11 +6,14 @@ import jdatetime
 
 GB = 1024 ** 3
 MB = 1024 ** 2
+TB = 1024 ** 4
 
 
 def human_bytes(n: int | float | None) -> str:
     if not n or n <= 0:
         return "0 MB"
+    if n >= TB:
+        return f"{n / TB:.2f} TB"
     if n >= GB:
         return f"{n / GB:.2f} GB"
     return f"{n / MB:.2f} MB"

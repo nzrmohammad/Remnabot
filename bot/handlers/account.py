@@ -149,9 +149,9 @@ def _account_view_text(account: dict, lang: str) -> str:
         lim_gb = limit / (1024 ** 3)
         rem_str = f"{rem_gb:.1f} GB" if round(rem_gb, 1) != int(rem_gb) else f"{int(rem_gb)} GB"
         lim_str = f"{lim_gb:.1f} GB" if round(lim_gb, 1) != int(lim_gb) else f"{int(lim_gb)} GB"
-        lines.append(f"📊 {t(lang, 'stats_remaining')} : <b>{rem_str}</b> (از {lim_str})")
+        lines.append(f"{t(lang, 'stats_remaining')} : <b>{rem_str}</b> (از {lim_str})")
     else:
-        lines.append(f"📊 {t(lang, 'stats_total')} : {t(lang, 'stats_unlimited')}")
+        lines.append(f"{t(lang, 'stats_total')} : {t(lang, 'stats_unlimited')}")
 
     sub_url = account.get("subscriptionUrl")
     if sub_url:

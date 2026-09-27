@@ -29,7 +29,13 @@ from bot.services.app_settings import (
     set_maintenance,
 )
 from bot.services.backup import create_database_backup
-from bot.services.formatting import country_flag, format_datetime, now_tz, start_of_today
+from bot.services.formatting import (
+    country_flag,
+    format_datetime,
+    human_bytes,
+    now_tz,
+    start_of_today,
+)
 from bot.services.menu import delete_message_silently, render_menu
 from bot.services.remnawave import RemnawaveClient
 from bot.services.topups import decide_topup, fmt
@@ -191,55 +197,158 @@ def _back_admin(lang: str) -> InlineKeyboardBuilder:
 # --------------------------------------------------------------------- #
 @router.callback_query(F.data == "adm:dash")
 async def dashboard(
-    call: CallbackQuery, bot: Bot, user_repo: UserRepository, session: AsyncSession,
+    call: CallbackQuery,
+    bot: Bot,
+    user_repo: UserRepository,
+    session: AsyncSession,
+    remnawave: RemnawaveClient,
 ):
     if not _is_admin(call.from_user.id):
         await call.answer(t("fa", "not_authorized"), show_alert=True)
         return
     user = await user_repo.get_or_create(call.from_user.id, call.from_user.username)
-    lang = user.language
+    lang = user.language or "fa"
 
-    tz = get_settings().TIMEZONE
-    today = start_of_today(tz)
-    week_ago = now_tz(tz) - timedelta(days=7)
+    panel_users = await remnawave.get_all_panel_users() or []
+    nodes = await remnawave.get_nodes() or []
+    recap = await remnawave.get_system_recap() or {}
 
-    user_repo_h = UserRepository(session)
-    order_repo = OrderRepository(session)
+    total_users = len(panel_users)
+    active_users = sum(1 for u in panel_users if str(u.get("status", "")).upper() == "ACTIVE")
+    disabled_users = sum(1 for u in panel_users if str(u.get("status", "")).upper() == "DISABLED")
+    limited_users = sum(1 for u in panel_users if str(u.get("status", "")).upper() == "LIMITED")
+    expired_users = sum(1 for u in panel_users if str(u.get("status", "")).upper() == "EXPIRED")
 
-    total_users = await user_repo_h.count()
-    online_users = await user_repo_h.count(condition=UserRepository.online_condition())
-    verified_users = await user_repo_h.count(condition=User.is_verified.is_(True))
-    new_today = await user_repo_h.count(condition=User.created_at >= today)
-    new_week = await user_repo_h.count(condition=User.created_at >= week_ago)
+    if isinstance(recap.get("users"), dict):
+        ru = recap["users"]
+        total_users = ru.get("total", total_users)
+        active_users = ru.get("active", active_users)
+        disabled_users = ru.get("disabled", disabled_users)
+        limited_users = ru.get("limited", limited_users)
+        expired_users = ru.get("expired", expired_users)
 
-    revenue_total = await order_repo.total_revenue()
-    revenue_today = await order_repo.total_revenue(since=today)
-    revenue_week = await order_repo.total_revenue(since=week_ago)
-    orders_total = await order_repo.count()
+    total_nodes = len(nodes)
+    online_nodes = sum(1 for n in nodes if n.get("isConnected") or str(n.get("status", "")).upper() == "CONNECTED")
+    offline_nodes = total_nodes - online_nodes
 
-    pending_topups = len(await WalletRepository(session).list_pending_topups())
-    active_services = len(await ServiceRepository(session).list_active())
+    if isinstance(recap.get("nodes"), dict):
+        rn = recap["nodes"]
+        total_nodes = rn.get("total", total_nodes)
+        online_nodes = rn.get("online", rn.get("connected", online_nodes))
+        offline_nodes = total_nodes - online_nodes
 
-    lines = [
-        t(lang, "dash_title"),
-        SEPARATOR,
-        f"👥 {t(lang, 'dash_users_total')} : <b>{total_users}</b>",
-        f"🟢 {t(lang, 'dash_online')} : <b>{online_users}</b>",
-        f"✅ {t(lang, 'dash_verified')} : <b>{verified_users}</b>",
-        f"🆕 {t(lang, 'dash_new_today')} : <b>{new_today}</b> | "
-        f"{t(lang, 'dash_new_week')} : <b>{new_week}</b>",
-        SEPARATOR,
-        f"📈 {t(lang, 'dash_revenue_today')} : <b>{fmt(revenue_today)}</b> {t(lang, 'svc_currency')}",
-        f"📈 {t(lang, 'dash_revenue_week')} : <b>{fmt(revenue_week)}</b> {t(lang, 'svc_currency')}",
-        f"💰 {t(lang, 'sales_total')} : <b>{fmt(revenue_total)}</b> {t(lang, 'svc_currency')}",
-        f"🧾 {t(lang, 'sales_count')} : <b>{orders_total}</b>",
-        SEPARATOR,
-        f"⏳ {t(lang, 'dash_topups_pending')} : <b>{pending_topups}</b>",
-        f"📦 {t(lang, 'dash_services_active')} : <b>{active_services}</b>",
-    ]
+    total_user_traffic = 0
+    for u in panel_users:
+        t_info = u.get("userTraffic") or {}
+        val = t_info.get("usedTrafficBytes") or u.get("usedTrafficBytes") or 0
+        try:
+            total_user_traffic += int(val)
+        except (ValueError, TypeError):
+            pass
 
-    await render_menu(bot, user, user_repo, "\n".join(lines), _back_admin(lang).as_markup())
+    total_node_traffic = 0
+    for n in nodes:
+        tb = (
+            n.get("trafficUsedBytes")
+            or n.get("todayTrafficBytes")
+            or n.get("traffic")
+            or (n.get("userTraffic") or {}).get("usedTrafficBytes")
+            or 0
+        )
+        try:
+            total_node_traffic += int(tb)
+        except (ValueError, TypeError):
+            pass
+
+    rt = recap.get("traffic") if isinstance(recap.get("traffic"), dict) else {}
+    traffic_total = rt.get("totalBytes") or rt.get("usedBytes") or max(total_user_traffic, total_node_traffic)
+    download_bytes = rt.get("downloadBytes") or rt.get("down")
+    upload_bytes = rt.get("uploadBytes") or rt.get("up")
+
+    node_lines = []
+    for n in nodes:
+        name = escape(str(n.get("name") or "Node"))
+        flag = country_flag(n.get("countryCode"))
+        is_conn = n.get("isConnected")
+        if is_conn is None:
+            is_conn = str(n.get("status", "")).upper() == "CONNECTED"
+        badge = "🟢" if is_conn else "🔴"
+        tb = (
+            n.get("trafficUsedBytes")
+            or n.get("todayTrafficBytes")
+            or n.get("traffic")
+            or 0
+        )
+        try:
+            val_tb = int(tb)
+            t_str = f" ({human_bytes(val_tb)})" if val_tb > 0 else ""
+        except (ValueError, TypeError):
+            t_str = ""
+        node_lines.append(f"   • {flag} {name} : {badge}{t_str}")
+
+    version = recap.get("version") or recap.get("panelVersion") or recap.get("appVersion")
+    if not version and isinstance(recap.get("system"), dict):
+        version = recap["system"].get("version")
+
+    if lang == "fa":
+        lines = [
+            "📊 <b>داشبورد پنل ریمناوِیو</b>",
+            SEPARATOR,
+            f"👥 <b>وضعیت کاربران ({total_users}) :</b>",
+            f"   • 🟢 فعال : <b>{active_users}</b>",
+            f"   • 🔴 غیرفعال : <b>{disabled_users}</b>",
+            f"   • 🟡 محدود شده (اتمام حجم) : <b>{limited_users}</b>",
+            f"   • ⚪️ منقضی شده : <b>{expired_users}</b>",
+            SEPARATOR,
+            f"📡 <b>وضعیت نودها ({total_nodes}) :</b>",
+            f"   • 🟢 متصل و آنلاین : <b>{online_nodes}</b>",
+            f"   • 🔴 آفلاین و قطع : <b>{offline_nodes}</b>",
+        ]
+        if node_lines:
+            lines.extend(node_lines[:8])
+        lines.append(SEPARATOR)
+        lines.append(f"📈 <b>مجموع مصرف ترافیک :</b> <b>{human_bytes(traffic_total)}</b>")
+        if download_bytes and upload_bytes:
+            lines.append(
+                f"   • 📥 دانلود: {human_bytes(download_bytes)} | 📤 آپلود: {human_bytes(upload_bytes)}"
+            )
+        if version:
+            v_clean = str(version).lstrip("v")
+            lines.append(f"⚙️ <b>نسخه پنل :</b> <code>v{v_clean}</code>")
+    else:
+        lines = [
+            "📊 <b>Remnawave Panel Dashboard</b>",
+            SEPARATOR,
+            f"👥 <b>Users Overview ({total_users}) :</b>",
+            f"   • 🟢 Active : <b>{active_users}</b>",
+            f"   • 🔴 Disabled : <b>{disabled_users}</b>",
+            f"   • 🟡 Limited : <b>{limited_users}</b>",
+            f"   • ⚪️ Expired : <b>{expired_users}</b>",
+            SEPARATOR,
+            f"📡 <b>Nodes Overview ({total_nodes}) :</b>",
+            f"   • 🟢 Connected : <b>{online_nodes}</b>",
+            f"   • 🔴 Offline : <b>{offline_nodes}</b>",
+        ]
+        if node_lines:
+            lines.extend(node_lines[:8])
+        lines.append(SEPARATOR)
+        lines.append(f"📈 <b>Total Traffic :</b> <b>{human_bytes(traffic_total)}</b>")
+        if download_bytes and upload_bytes:
+            lines.append(
+                f"   • 📥 Down: {human_bytes(download_bytes)} | 📤 Up: {human_bytes(upload_bytes)}"
+            )
+        if version:
+            v_clean = str(version).lstrip("v")
+            lines.append(f"⚙️ <b>Panel Version :</b> <code>v{v_clean}</code>")
+
+    kb = InlineKeyboardBuilder()
+    kb.button(text=t(lang, "btn_refresh"), callback_data="adm:dash")
+    kb.button(text=t(lang, "btn_back"), callback_data="menu:admin")
+    kb.adjust(1, 1)
+
+    await render_menu(bot, user, user_repo, "\n".join(lines), kb.as_markup())
     await call.answer()
+
 
 
 # --------------------------------------------------------------------- #

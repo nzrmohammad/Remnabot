@@ -46,7 +46,7 @@ TEXTS: dict[str, dict[str, str]] = {
         "btn_services": "📦 Services",
         "btn_connection_guide": "📚 Connection Guide",
         "btn_settings": "⚙️ Settings",
-        "btn_support": "🆘 Support",
+        "btn_support": "🎧 Support",
         "btn_profile": "👤 My Account",
         "btn_admin_panel": "🔐 Admin Panel",
         "section_placeholder": (
@@ -283,7 +283,7 @@ TEXTS: dict[str, dict[str, str]] = {
         "report_today_breakdown": "⚡️ Today's usage :",
         "settings_nightly_label": "🌙 Nightly report",
         "settings_weekly_label": "📊 Weekly report",
-        "settings_nightly_hint": "A usage summary every night at 23:57.",
+        "settings_nightly_hint": "A usage summary every night at 23:59.",
         "settings_weekly_hint": "A full usage report every Friday night at 23:59.",
         "settings_monthly_label": "🗓 Monthly report",
         "settings_monthly_hint": "A full usage report on the last day of the Jalali month at 23:59.",
@@ -449,7 +449,7 @@ TEXTS: dict[str, dict[str, str]] = {
         "orders_empty": "You have no orders yet.",
         # --- support ---
         "support_prompt": (
-            "🆘 <b>Support</b>\n\n"
+            "🎧 <b>Support</b>\n\n"
             "Send your question or problem in a single message.\n"
             "We will reply here as soon as possible."
         ),
@@ -523,9 +523,9 @@ TEXTS: dict[str, dict[str, str]] = {
         "user_balance_invalid": "❌ Invalid number. Please send a plain number.",
         "user_balance_ok": "✅ Balance updated: <b>{balance}</b> Toman",
         # --- admin panel: sales ---
-        "btn_sales_report": "📊 Reports",
+        "btn_sales_report": "📑 Reports",
         "sales_title": "📈 <b>Sales & Orders Report</b>",
-        "reports_hub_title": "📊 <b>Reports & System Monitoring</b>",
+        "reports_hub_title": "📑 <b>Reports & System Monitoring</b>",
         "sales_total": "Total revenue",
         "sales_count": "Total orders",
         "sales_recent": "Orders list",
@@ -794,7 +794,7 @@ TEXTS: dict[str, dict[str, str]] = {
         "btn_services": "📦 سرویس‌ها",
         "btn_connection_guide": "📚 آموزش اتصال",
         "btn_settings": "⚙️ تنظیمات",
-        "btn_support": "🆘 پشتیبانی",
+        "btn_support": "\u200f🎧 پشتیبانی",
         "btn_profile": "👤 حساب کاربری",
         "btn_admin_panel": "🔐 پنل مدیریت",
         "section_placeholder": (
@@ -1030,7 +1030,7 @@ TEXTS: dict[str, dict[str, str]] = {
         "report_today_breakdown": "⚡️ مصرف امروز :",
         "settings_nightly_label": "🌙 گزارش شبانه",
         "settings_weekly_label": "📊 گزارش هفتگی",
-        "settings_nightly_hint": "هر شب ساعت ۲۳:۵۷ خلاصه مصرف برایتان ارسال می‌شود.",
+        "settings_nightly_hint": "هر شب ساعت ۲۳:۵۹ خلاصه مصرف برایتان ارسال می‌شود.",
         "settings_weekly_hint": "جمعه‌شب‌ها ساعت ۲۳:۵۹ گزارش کامل هفته ارسال می‌شود.",
         "settings_monthly_label": "🗓 گزارش ماهانه",
         "settings_monthly_hint": "آخرین روز ماه شمسی ساعت ۲۳:۵۹ گزارش کامل ماه ارسال می‌شود.",
@@ -1195,7 +1195,7 @@ TEXTS: dict[str, dict[str, str]] = {
         "orders_empty": "هنوز سفارشی ثبت نکرده‌اید.",
         # --- support ---
         "support_prompt": (
-            "🆘 <b>پشتیبانی</b>\n\n"
+            "🎧 <b>پشتیبانی</b>\n\n"
             "سوال یا مشکل خود را در یک پیام بفرستید.\n"
             "پاسخ در همین چت به شما اعلام می‌شود."
         ),
@@ -1262,9 +1262,9 @@ TEXTS: dict[str, dict[str, str]] = {
         "user_balance_invalid": "❌ عدد نامعتبر است. فقط یک عدد بفرستید.",
         "user_balance_ok": "✅ موجودی به‌روزرسانی شد: <b>{balance}</b> تومان",
         # --- admin panel: sales ---
-        "btn_sales_report": "📊 گزارش",
+        "btn_sales_report": "📑 گزارش",
         "sales_title": "📈 <b>گزارش و لیست سفارشات</b>",
-        "reports_hub_title": "📊 <b>مرکز گزارشات و مانیتورینگ</b>",
+        "reports_hub_title": "📑 <b>مرکز گزارشات و مانیتورینگ</b>",
         "sales_total": "مجموع درآمد",
         "sales_count": "کل سفارشات",
         "sales_recent": "لیست سفارشات",

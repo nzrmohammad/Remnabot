@@ -570,3 +570,22 @@ class RemnawaveClient:
                 pass
         return None
 
+    async def get_system_recap(self) -> dict[str, Any] | None:
+        """Fetch system recap/overview from Remnawave."""
+        for path in (
+            "/api/system/stats/recap",
+            "/api/system/stats",
+            "/api/system/stats/digest",
+            "/api/system/info",
+        ):
+            try:
+                resp = await self._client.get(path)
+                if resp.status_code == 200:
+                    data = resp.json().get("response") or resp.json()
+                    if isinstance(data, dict):
+                        return data
+            except Exception:
+                pass
+        return None
+
+
