@@ -90,7 +90,7 @@ def _series_rows(series: list[dict]) -> list[dict]:
 
 
 def _breakdown_lines(rows: list[dict], value_key: int | None = None) -> list[str]:
-    """One indented line per node. value_key: index into `data` (per-day
+    """One line per node. value_key: index into `data` (per-day
     value) or None to use the range total."""
     lines = []
     for row in rows:
@@ -101,7 +101,7 @@ def _breakdown_lines(rows: list[dict], value_key: int | None = None) -> list[str
             value = int(data[value_key]) if value_key < len(data) else 0
         if value <= 0:
             continue
-        lines.append(f"      {_node_label(row)} : {human_bytes(value)}")
+        lines.append(f"{_node_label(row)} : {human_bytes(value)}")
     return lines
 
 
@@ -161,7 +161,7 @@ async def _nightly_account_block(
         data = row.get("data") or []
         value = int(data[-1]) if data else 0
         if value > 0:
-            today_lines.append(f"      {_node_label(row)} : {human_bytes(value)}")
+            today_lines.append(f"{_node_label(row)} : {human_bytes(value)}")
             today_total += value
     if today_lines:
         lines.append(t(lang, "report_today_breakdown"))
@@ -786,8 +786,11 @@ async def _send_admin_nightly_summary(
     lines.append(SEPARATOR)
     lines.append("✅ <b>کاربران فعال امروز و مصرفشان</b>")
     if active_users_today:
-        for uname, _, b_str in active_users_today:
-            lines.append(f"👤 {escape(uname)} : {b_str}")
+        for i, (uname, u_total, b_str) in enumerate(active_users_today):
+            lines.append(f"👤 {escape(uname)} : {human_bytes(u_total)}")
+            lines.append(f" {b_str}")
+            if i < len(active_users_today) - 1:
+                lines.append("")
     else:
         lines.append("  (هیچ کاربری امروز مصرف نداشته است)")
 

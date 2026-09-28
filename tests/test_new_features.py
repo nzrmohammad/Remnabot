@@ -866,6 +866,93 @@ async def test_backup_and_restore_json(async_session: AsyncSession, tmp_path):
     assert restored_wallet.balance == 50000
 
 
+@pytest.mark.anyio
+async def test_nightly_reports_formatting(async_session: AsyncSession):
+    """Verify nightly account report has no leading spaces and admin summary is sorted with separate lines."""
+    from unittest.mock import AsyncMock, MagicMock, patch
+
+    from bot.services.reports import (
+        _breakdown_lines,
+        _nightly_account_block,
+        _send_admin_nightly_summary,
+    )
+
+    # 1. Test _breakdown_lines has no leading 6 spaces
+    sample_rows = [
+        {"name": "Netherlands", "countryCode": "NL", "total": 18 * 1024**3},
+        {"name": "Germany 2", "countryCode": "DE", "total": 27 * 1024**3},
+    ]
+    bd_lines = _breakdown_lines(sample_rows)
+    for line in bd_lines:
+        assert not line.startswith(" ")
+        assert "🇳🇱" in line or "🇩🇪" in line
+
+    # 2. Test _nightly_account_block
+    now = datetime(2026, 9, 27, 23, 59, tzinfo=timezone.utc)
+    mock_remnawave = MagicMock()
+    mock_remnawave.get_user_bandwidth_stats = AsyncMock(return_value=[
+        {"name": "Germany 2", "countryCode": "DE", "total": 27 * 1024**3, "data": [4 * 1024**3]}
+    ])
+    account = {
+        "id": 101,
+        "username": "Outbound",
+        "trafficLimitBytes": 75 * 1024**3,
+        "usedTrafficBytes": 27 * 1024**3,
+        "expireAt": (now + timedelta(days=20)).isoformat(),
+    }
+    block = await _nightly_account_block(mock_remnawave, account, now, "fa")
+    # Verify no line has leading spaces before country flags
+    for line in block.split("\n"):
+        if "🇩🇪 Germany 2" in line:
+            assert not line.startswith(" ")
+            assert line.startswith("🇩🇪 Germany 2")
+
+    # 3. Test _send_admin_nightly_summary with multiple users sorted high to low
+    bot = MagicMock()
+    bot.send_message = AsyncMock()
+
+    remnawave = MagicMock()
+    remnawave.get_all_panel_users = AsyncMock(return_value=[
+        {"id": 1, "username": "Mohadeseh3", "status": "ACTIVE", "usedTrafficBytes": 5000},
+        {"id": 2, "username": "Sahba", "status": "ACTIVE", "usedTrafficBytes": 3000},
+        {"id": 3, "username": "TopUser", "status": "ACTIVE", "usedTrafficBytes": 10000},
+    ])
+    remnawave.get_nodes = AsyncMock(return_value=[])
+
+    async def mock_bandwidth_stats(uid, s_str, t_str):
+        if uid == 1:
+            return [{"countryCode": "NL", "data": [380 * 1024**2]}]
+        elif uid == 2:
+            return [{"countryCode": "NL", "data": [168 * 1024**2]}]
+        elif uid == 3:
+            return [{"countryCode": "DE", "data": [2 * 1024**3]}]
+        return []
+
+    remnawave.get_user_bandwidth_stats = AsyncMock(side_effect=mock_bandwidth_stats)
+
+    with patch("bot.services.reports.get_store_settings") as mock_store:
+        mock_store.return_value = MagicMock(topic_alerts=None)
+        await _send_admin_nightly_summary(bot, async_session, remnawave, now)
+    admin_text = bot.send_message.call_args[0][1]
+
+    # Verify order: TopUser (2.00 GB) > Mohadeseh3 (380.00 MB) > Sahba (168.00 MB)
+    pos_top = admin_text.find("👤 TopUser : 2.00 GB")
+    pos_moh = admin_text.find("👤 Mohadeseh3 : 380.00 MB")
+    pos_sah = admin_text.find("👤 Sahba : 168.00 MB")
+
+    assert pos_top != -1
+    assert pos_moh != -1
+    assert pos_sah != -1
+    assert pos_top < pos_moh < pos_sah
+
+    # Verify layout: username on top, breakdown on next line with 1 space indent
+    assert "👤 Mohadeseh3 : 380.00 MB\n 🇳🇱 380.00 MB" in admin_text
+    assert "👤 Sahba : 168.00 MB\n 🇳🇱 168.00 MB" in admin_text
+    # Verify blank line between users
+    assert "👤 Mohadeseh3 : 380.00 MB\n 🇳🇱 380.00 MB\n\n👤 Sahba : 168.00 MB" in admin_text
+
+
+
 
 
 
