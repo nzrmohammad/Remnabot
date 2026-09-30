@@ -36,30 +36,32 @@ async def fetch_ton_market_price(usdt_rate: int | None = None) -> tuple[int | No
     timeout = aiohttp.ClientTimeout(total=8)
 
     # 1. Nobitex v2 orderbook (with optional IRAN_PROXY)
-    try:
-        async with aiohttp.ClientSession(timeout=timeout) as session:
-            async with session.get("https://api.nobitex.ir/v2/orderbook/TONIRT", headers=headers, proxy=proxy) as resp:
-                if resp.status == 200:
-                    data = await resp.json()
-                    last_price = data.get("lastTradePrice")
-                    if last_price:
-                        return int(float(last_price)), "نوبیتکس"
-                else:
-                    logger.warning("Nobitex v2 orderbook returned HTTP %s", resp.status)
-    except Exception as e:
-        logger.debug("Nobitex v2 orderbook request failed: %s", e)
+    for symbol in ("GRAMIRT", "TONIRT"):
+        try:
+            async with aiohttp.ClientSession(timeout=timeout) as session:
+                async with session.get(f"https://apiv2.nobitex.ir/v2/orderbook/{symbol}", headers=headers, proxy=proxy) as resp:
+                    if resp.status == 200:
+                        data = await resp.json()
+                        last_price = data.get("lastTradePrice")
+                        if last_price:
+                            return int(float(last_price) // 10), "نوبیتکس"
+                    else:
+                        logger.warning("Nobitex v2 orderbook %s returned HTTP %s", symbol, resp.status)
+        except Exception as e:
+            logger.debug("Nobitex v2 orderbook %s request failed: %s", symbol, e)
 
     # 2. Nobitex market/stats fallback
     try:
         async with aiohttp.ClientSession(timeout=timeout) as session:
-            async with session.get("https://api.nobitex.ir/market/stats?srcCurrency=ton&dstCurrency=rls", headers=headers, proxy=proxy) as resp:
+            async with session.get("https://apiv2.nobitex.ir/market/stats", headers=headers, proxy=proxy) as resp:
                 if resp.status == 200:
                     data = await resp.json()
                     stats = data.get("stats", {})
-                    ton_rls = stats.get("ton-rls", {})
-                    latest_rls = ton_rls.get("latest")
-                    if latest_rls:
-                        return int(float(latest_rls) // 10), "نوبیتکس"
+                    market_info = stats.get("gram-rls") or stats.get("ton-rls")
+                    if market_info:
+                        latest_rls = market_info.get("latest")
+                        if latest_rls:
+                            return int(float(latest_rls) // 10), "نوبیتکس"
                 else:
                     logger.warning("Nobitex stats returned HTTP %s", resp.status)
     except Exception as e:
@@ -74,8 +76,12 @@ async def fetch_ton_market_price(usdt_rate: int | None = None) -> tuple[int | No
                         data = await resp.json()
                         results = data.get("results") or (data if isinstance(data, list) else [])
                         for m in results:
-                            code = m.get("code") or ""
-                            if code in ("TON_IRT", "TON_RLS"):
+                            code = (m.get("code") or "").upper()
+                            if code in ("GRAM_IRT", "TON_IRT"):
+                                price_raw = m.get("price") or (m.get("order_book_info") or {}).get("last_trade_price")
+                                if price_raw:
+                                    return int(float(price_raw)), "بیت‌پین"
+                            elif code in ("GRAM_RLS", "TON_RLS"):
                                 price_raw = m.get("price") or (m.get("order_book_info") or {}).get("last_trade_price")
                                 if price_raw:
                                     return int(float(price_raw) // 10), "بیت‌پین"
@@ -91,10 +97,10 @@ async def fetch_ton_market_price(usdt_rate: int | None = None) -> tuple[int | No
                 if resp.status == 200:
                     data = await resp.json()
                     symbols = (data.get("result") or {}).get("symbols") or {}
-                    for sym_name in ("TONTMN", "TONIRT"):
+                    for sym_name in ("GRAMTMN", "GRAMIRT", "TONTMN", "TONIRT"):
                         if sym_name in symbols:
                             last_price = (symbols[sym_name].get("stats") or {}).get("lastPrice")
-                            if last_price:
+                            if last_price and str(last_price).strip() not in ("", "-"):
                                 return int(float(last_price)), "والکس"
                 else:
                     logger.warning("Wallex returned HTTP %s", resp.status)
