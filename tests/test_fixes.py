@@ -1427,7 +1427,7 @@ async def test_trial_and_referral_submenus():
         # Button texts
         assert any("📊 حجم: 5 GB" in b for b in btn_texts)
         assert any("⏳ زمان: 3 روز" in b for b in btn_texts)
-        assert any("وضعیت: ✅" in b for b in btn_texts)
+        assert any("وضعیت ✅" in b for b in btn_texts)
         assert "برای تغییر حجم یا زمان، دکمه مربوطه را انتخاب کنید" in text
 
     # 2. Referral settings submenu
@@ -1451,7 +1451,7 @@ async def test_trial_and_referral_submenus():
         assert "<code>10 GB</code>" not in text_ref
         # Button texts
         assert any("📊 حجم: 10 GB" in b for b in btn_ref_texts)
-        assert any("وضعیت: ✅" in b for b in btn_ref_texts)
+        assert any("وضعیت ✅" in b for b in btn_ref_texts)
         # Helper text matches button name (دکمه حجم)
         assert "دکمه حجم را انتخاب کنید" in text_ref
 

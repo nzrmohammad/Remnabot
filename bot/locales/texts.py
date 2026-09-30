@@ -757,7 +757,7 @@ TEXTS: dict[str, dict[str, str]] = {
         "btn_nodes_monitor": "🖥 Server Status",
         "nodes_title": "Server Status",
         # --- database backup ---
-        "btn_backup_db": "💾 Database Backup",
+        "btn_backup_db": "💾 Backup",
         "backup_success": "✅ Database backup created successfully.",
         # --- settings labels ---
         "btn_settings_trial": "🎁 Trial Settings",
@@ -1503,7 +1503,7 @@ TEXTS: dict[str, dict[str, str]] = {
         "btn_nodes_monitor": "🖥 وضعیت سرور",
         "nodes_title": "وضعیت سرور",
         # --- database backup ---
-        "btn_backup_db": "💾 پشتیبان‌گیری دیتابیس",
+        "btn_backup_db": "💾 پشتیبان‌گیری",
         "backup_success": "✅ نسخه پشتیبان از دیتابیس با موفقیت ایجاد شد.",
         # --- settings labels ---
         "btn_settings_trial": "🎁 تنظیمات تست",

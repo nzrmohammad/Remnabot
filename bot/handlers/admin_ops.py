@@ -1528,11 +1528,11 @@ async def _render_settings(
         # Persian RTL: first added is LEFT, second added is RIGHT
         # Row 1: Right = Maintenance, Left = Direct Support
         if has_contact:
-            sup_toggle_text = f"📞 پشتیبانی مستقیم: {'✅' if store.support_direct_enabled else '❌'}"
+            sup_toggle_text = f"📞 پشتیبانی مستقیم {'✅' if store.support_direct_enabled else '❌'}"
         else:
-            sup_toggle_text = "📞 پشتیبانی مستقیم: ❌"
+            sup_toggle_text = "📞 پشتیبانی مستقیم ❌"
         kb.button(text=sup_toggle_text, callback_data="adm:settings:toggle:support_direct_enabled")
-        kb.button(text=f"🚧 حالت تعمیر: {'✅' if maint_on else '❌'}", callback_data="adm:maint")
+        kb.button(text=f"🚧 حالت تعمیر {'✅' if maint_on else '❌'}", callback_data="adm:maint")
 
         # Row 2: Right = Name, Left = Card Number
         kb.button(text=t(lang, "settings_card"), callback_data="adm:set:card_number")
@@ -1560,10 +1560,10 @@ async def _render_settings(
     else:
         # English LTR
         if has_contact:
-            sup_toggle_text = f"📞 Direct Support: {'✅' if store.support_direct_enabled else '❌'}"
+            sup_toggle_text = f"📞 Direct Support {'✅' if store.support_direct_enabled else '❌'}"
         else:
-            sup_toggle_text = "📞 Direct Support: ❌"
-        kb.button(text=f"🚧 Maintenance: {'✅' if maint_on else '❌'}", callback_data="adm:maint")
+            sup_toggle_text = "📞 Direct Support ❌"
+        kb.button(text=f"🚧 Maintenance {'✅' if maint_on else '❌'}", callback_data="adm:maint")
         kb.button(text=sup_toggle_text, callback_data="adm:settings:toggle:support_direct_enabled")
 
         kb.button(text=t(lang, "settings_card"), callback_data="adm:set:card_number")
@@ -1780,7 +1780,7 @@ async def _render_crypto_settings(
     if lang == "fa":
         # Row 1: Status
         kb.button(
-            text=f"⚡️ وضعیت درگاه : {status_badge}",
+            text=f"⚡️ وضعیت درگاه {status_badge}",
             callback_data="adm:settings:toggle:crypto_enabled",
         )
         # Row 2 (RTL): Right = Wallet Address, Left = Exchange Rate
@@ -1791,7 +1791,7 @@ async def _render_crypto_settings(
         kb.button(text="💵 نرخ مبنای تتر", callback_data="adm:set:usdt_rate_toman")
     else:
         kb.button(
-            text=f"⚡️ Status: {status_badge}",
+            text=f"⚡️ Status {status_badge}",
             callback_data="adm:settings:toggle:crypto_enabled",
         )
         kb.button(text="📬 Wallet Address", callback_data="adm:set:ton_wallet_address")
@@ -1954,7 +1954,7 @@ async def _render_trial_settings(
     kb = InlineKeyboardBuilder()
 
     trial_badge = "✅" if store.trial_enabled else "❌"
-    trial_btn_text = f"وضعیت: {'✅' if store.trial_enabled else '❌'}"
+    trial_btn_text = f"وضعیت {'✅' if store.trial_enabled else '❌'}"
 
     if lang == "fa":
         # Row 1 (RTL): Left = Duration, Right = Traffic
@@ -1966,7 +1966,7 @@ async def _render_trial_settings(
     else:
         kb.button(text=f"📊 Traffic: {store.trial_traffic_gb} GB", callback_data="adm:set:trial_traffic_gb")
         kb.button(text=f"⏳ Days: {store.trial_duration_days}", callback_data="adm:set:trial_duration_days")
-        kb.button(text=f"Status: {'✅' if store.trial_enabled else '❌'}", callback_data="adm:settings:toggle:trial_enabled")
+        kb.button(text=f"Status {'✅' if store.trial_enabled else '❌'}", callback_data="adm:settings:toggle:trial_enabled")
         kb.button(text=t(lang, "btn_back"), callback_data="adm:settings")
 
     kb.adjust(2, 2)
@@ -1995,7 +1995,7 @@ async def _render_referral_settings(
     kb = InlineKeyboardBuilder()
 
     ref_badge = "✅" if store.referral_enabled else "❌"
-    ref_btn_text = f"وضعیت: {'✅' if store.referral_enabled else '❌'}"
+    ref_btn_text = f"وضعیت {'✅' if store.referral_enabled else '❌'}"
 
     if lang == "fa":
         kb.button(text=f"📊 حجم: {store.referral_reward_gb} GB", callback_data="adm:set:referral_reward_gb")
@@ -2004,7 +2004,7 @@ async def _render_referral_settings(
         kb.button(text=ref_btn_text, callback_data="adm:settings:toggle:referral_enabled")
     else:
         kb.button(text=f"📊 Traffic: {store.referral_reward_gb} GB", callback_data="adm:set:referral_reward_gb")
-        kb.button(text=f"Status: {'✅' if store.referral_enabled else '❌'}", callback_data="adm:settings:toggle:referral_enabled")
+        kb.button(text=f"Status {'✅' if store.referral_enabled else '❌'}", callback_data="adm:settings:toggle:referral_enabled")
         kb.button(text=t(lang, "btn_back"), callback_data="adm:settings")
 
     kb.adjust(1, 2)
@@ -2168,9 +2168,8 @@ async def _render_remind_days_picker(
 
     if lang == "fa":
         for d in [3, 2, 1, 0]:
-            label = "روز انقضا (0)" if d == 0 else f"{d} روز"
             mark = " ✅" if d in active_days else ""
-            kb.button(text=f"{label}{mark}", callback_data=f"adm:remind:toggle:{d}")
+            kb.button(text=f"{d} روز{mark}", callback_data=f"adm:remind:toggle:{d}")
         for d in [14, 10, 7, 5]:
             mark = " ✅" if d in active_days else ""
             kb.button(text=f"{d} روز{mark}", callback_data=f"adm:remind:toggle:{d}")
@@ -2179,9 +2178,8 @@ async def _render_remind_days_picker(
         kb.button(text=t(lang, "btn_back"), callback_data="adm:settings")
     else:
         for d in [0, 1, 2, 3]:
-            label = "Expiry day (0)" if d == 0 else f"{d}d"
             mark = " ✅" if d in active_days else ""
-            kb.button(text=f"{label}{mark}", callback_data=f"adm:remind:toggle:{d}")
+            kb.button(text=f"{d}d{mark}", callback_data=f"adm:remind:toggle:{d}")
         for d in [5, 7, 10, 14]:
             mark = " ✅" if d in active_days else ""
             kb.button(text=f"{d}d{mark}", callback_data=f"adm:remind:toggle:{d}")
@@ -2194,7 +2192,7 @@ async def _render_remind_days_picker(
     active_sorted = sorted(active_days, reverse=True)
     if lang == "fa":
         if active_sorted:
-            display_str = "، ".join("روز انقضا (0)" if d == 0 else f"{d} روز" for d in active_sorted)
+            display_str = "، ".join(f"{d} روز" for d in active_sorted)
         else:
             display_str = "هیچ‌کدام (غیرفعال)"
         text = (
@@ -2205,7 +2203,7 @@ async def _render_remind_days_picker(
         )
     else:
         if active_sorted:
-            display_str = ", ".join("Day 0" if d == 0 else f"{d}d" for d in active_sorted)
+            display_str = ", ".join(f"{d}d" for d in active_sorted)
         else:
             display_str = "None (Disabled)"
         text = (
@@ -2434,8 +2432,8 @@ async def settings_edit_start(
     kb = InlineKeyboardBuilder()
     if field == "card_number":
         store = await get_store_settings(session)
-        c_badge = "✅ فعال" if store.card_enabled else "❌ غیرفعال"
-        card_toggle_txt = f"💳 وضعیت درگاه کارت: {c_badge}" if lang == "fa" else f"💳 Card Gateway: {c_badge}"
+        c_badge = "✅" if store.card_enabled else "❌"
+        card_toggle_txt = f"💳 وضعیت درگاه کارت {c_badge}" if lang == "fa" else f"💳 Card Gateway {c_badge}"
         kb.button(text=card_toggle_txt, callback_data="adm:settings:toggle:card_enabled")
     kb.button(text=t(lang, "btn_cancel"), callback_data=cancel_target)
     kb.adjust(1)
