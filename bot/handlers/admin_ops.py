@@ -1517,8 +1517,6 @@ async def _render_settings(
     store = await get_store_settings(session)
     maint_on = await is_maintenance(session)
     kb = InlineKeyboardBuilder()
-    maint_label = t(lang, "btn_maintenance", state=t(lang, "toggle_on" if maint_on else "toggle_off"))
-    kb.button(text=maint_label, callback_data="adm:maint")
 
     has_contact = bool(
         store.support_contact
@@ -1528,49 +1526,65 @@ async def _render_settings(
 
     if lang == "fa":
         # Persian RTL: first added is LEFT, second added is RIGHT
-        # Row 2: Right = Card Number, Left = Name
-        kb.button(text=t(lang, "settings_holder"), callback_data="adm:set:card_holder")
-        kb.button(text=t(lang, "settings_card"), callback_data="adm:set:card_number")
-        # Row 3: Right = Min Topup, Left = Support Contact
-        kb.button(text=t(lang, "settings_support_contact"), callback_data="adm:set:support_contact")
-        kb.button(text=t(lang, "settings_min"), callback_data="adm:set:topup_min_amount")
-        # Row 4: Support Direct Toggle
+        # Row 1: Right = Maintenance, Left = Direct Support
         if has_contact:
             sup_toggle_text = f"📞 پشتیبانی مستقیم: {'✅' if store.support_direct_enabled else '❌'}"
         else:
             sup_toggle_text = "📞 پشتیبانی مستقیم: ❌"
         kb.button(text=sup_toggle_text, callback_data="adm:settings:toggle:support_direct_enabled")
-        # Row 5: Right = Grace Days, Left = Reminder Days
-        kb.button(text=t(lang, "settings_remind_days"), callback_data="adm:set:expiry_remind_days")
-        kb.button(text=t(lang, "settings_grace_days"), callback_data="adm:set:expiry_grace_days")
-        # Row 6: Right = Squad UUID, Left = Topics
-        kb.button(text=t(lang, "settings_topics_btn"), callback_data="adm:settings:topics")
-        kb.button(text=t(lang, "settings_squad"), callback_data="adm:set:default_squad_uuid")
-        # Row 7: Invite Settings & Test Settings (2 columns RTL: Left = Invite, Right = Test)
-        kb.button(text="🤝 تنظیمات دعوت", callback_data="adm:settings:referral")
-        kb.button(text="🎁 تنظیمات تست", callback_data="adm:settings:trial")
-        # Row 8: Crypto Settings
-        kb.button(text="💎 تنظیمات پرداخت کریپتو", callback_data="adm:settings:crypto")
-    else:
+        kb.button(text=f"🚧 حالت تعمیر: {'✅' if maint_on else '❌'}", callback_data="adm:maint")
+
+        # Row 2: Right = Name, Left = Card Number
         kb.button(text=t(lang, "settings_card"), callback_data="adm:set:card_number")
         kb.button(text=t(lang, "settings_holder"), callback_data="adm:set:card_holder")
-        kb.button(text=t(lang, "settings_min"), callback_data="adm:set:topup_min_amount")
+
+        # Row 3: Right = Min Topup, Left = Support Contact (همینجوری بمونه)
         kb.button(text=t(lang, "settings_support_contact"), callback_data="adm:set:support_contact")
+        kb.button(text=t(lang, "settings_min"), callback_data="adm:set:topup_min_amount")
+
+        # Row 4: Right = Crypto, Left = Invite
+        kb.button(text="🤝 دعوت", callback_data="adm:settings:referral")
+        kb.button(text="💎 کریپتو", callback_data="adm:settings:crypto")
+
+        # Row 5: Right = Remind Days, Left = Grace Days
+        kb.button(text=t(lang, "settings_grace_days"), callback_data="adm:set:expiry_grace_days")
+        kb.button(text=t(lang, "settings_remind_days"), callback_data="adm:set:expiry_remind_days")
+
+        # Row 6: Right = Test, Left = Topics
+        kb.button(text=t(lang, "settings_topics_btn"), callback_data="adm:settings:topics")
+        kb.button(text="🎁 تست", callback_data="adm:settings:trial")
+
+        # Row 7: Right = Squad, Left = Back
+        kb.button(text=t(lang, "btn_back"), callback_data="menu:admin")
+        kb.button(text=t(lang, "settings_squad"), callback_data="adm:set:default_squad_uuid")
+    else:
+        # English LTR
         if has_contact:
             sup_toggle_text = f"📞 Direct Support: {'✅' if store.support_direct_enabled else '❌'}"
         else:
             sup_toggle_text = "📞 Direct Support: ❌"
+        kb.button(text=f"🚧 Maintenance: {'✅' if maint_on else '❌'}", callback_data="adm:maint")
         kb.button(text=sup_toggle_text, callback_data="adm:settings:toggle:support_direct_enabled")
+
+        kb.button(text=t(lang, "settings_card"), callback_data="adm:set:card_number")
+        kb.button(text=t(lang, "settings_holder"), callback_data="adm:set:card_holder")
+
+        kb.button(text=t(lang, "settings_min"), callback_data="adm:set:topup_min_amount")
+        kb.button(text=t(lang, "settings_support_contact"), callback_data="adm:set:support_contact")
+
+        kb.button(text="💎 Crypto", callback_data="adm:settings:crypto")
+        kb.button(text="🤝 Invite", callback_data="adm:settings:referral")
+
         kb.button(text=t(lang, "settings_grace_days"), callback_data="adm:set:expiry_grace_days")
         kb.button(text=t(lang, "settings_remind_days"), callback_data="adm:set:expiry_remind_days")
-        kb.button(text=t(lang, "settings_squad"), callback_data="adm:set:default_squad_uuid")
-        kb.button(text=t(lang, "settings_topics_btn"), callback_data="adm:settings:topics")
-        kb.button(text="🎁 Trial Settings", callback_data="adm:settings:trial")
-        kb.button(text="🤝 Invite Settings", callback_data="adm:settings:referral")
-        kb.button(text="💎 Crypto Payment Settings", callback_data="adm:settings:crypto")
 
-    kb.button(text=t(lang, "btn_back"), callback_data="menu:admin")
-    kb.adjust(1, 2, 2, 1, 2, 2, 2, 1, 1)
+        kb.button(text="🎁 Trial", callback_data="adm:settings:trial")
+        kb.button(text=t(lang, "settings_topics_btn"), callback_data="adm:settings:topics")
+
+        kb.button(text=t(lang, "settings_squad"), callback_data="adm:set:default_squad_uuid")
+        kb.button(text=t(lang, "btn_back"), callback_data="menu:admin")
+
+    kb.adjust(2, 2, 2, 2, 2, 2, 2)
 
     squad_show = store.default_squad_uuid or "—"
 
@@ -1613,7 +1627,7 @@ async def _render_settings(
     if lang == "fa":
         lines = [
             f"{t(lang, 'store_settings_title')}\n{SEPARATOR}",
-            f"💳 {t(lang, 'settings_card')} : <code>{escape(store.card_number or '—')}</code>",
+            f"💳 {t(lang, 'settings_card')} : <code>{escape(store.card_number or '—')}</code>{' (غیرفعال)' if not store.card_enabled else ''}",
             f"👤 {t(lang, 'settings_holder')} : {escape(store.card_holder or '—')}",
             f"💰 {t(lang, 'settings_min')} : {fmt(store.topup_min_amount)} {t(lang, 'svc_currency')}",
             "",
@@ -1668,7 +1682,7 @@ async def _render_settings(
 
         lines = [
             f"{t(lang, 'store_settings_title')}\n{SEPARATOR}",
-            f"💳 {t(lang, 'settings_card')} : <code>{escape(store.card_number or '—')}</code>",
+            f"💳 {t(lang, 'settings_card')} : <code>{escape(store.card_number or '—')}</code>{' (Disabled)' if not store.card_enabled else ''}",
             f"👤 {t(lang, 'settings_holder')} : {escape(store.card_holder or '—')}",
             f"💰 {t(lang, 'settings_min')} : <b>{fmt(store.topup_min_amount)}</b> {t(lang, 'svc_currency')}",
             "",
@@ -1764,26 +1778,29 @@ async def _render_crypto_settings(
     wallet_str = store.ton_wallet_address or "— (تنظیم‌نشده)"
 
     if lang == "fa":
+        # Row 1: Status
         kb.button(
             text=f"⚡️ وضعیت درگاه : {status_badge}",
             callback_data="adm:settings:toggle:crypto_enabled",
         )
-        kb.button(text="📬 تنظیم آدرس والت", callback_data="adm:set:ton_wallet_address")
-        kb.button(text="💰 تنظیم نرخ تبدیل", callback_data="adm:set:ton_rate_toman")
-        kb.button(text="💵 تنظیم نرخ مبنای تتر", callback_data="adm:set:usdt_rate_toman")
+        # Row 2 (RTL): Right = Wallet Address, Left = Exchange Rate
+        kb.button(text="💰 نرخ تبدیل", callback_data="adm:set:ton_rate_toman")
+        kb.button(text="📬 آدرس والت", callback_data="adm:set:ton_wallet_address")
+        # Row 3 (RTL): Right = USDT Rate, Left = Instant Check
         kb.button(text="📊 استعلام آنی نرخ ارز", callback_data="adm:crypto:nobitex_now")
+        kb.button(text="💵 نرخ مبنای تتر", callback_data="adm:set:usdt_rate_toman")
     else:
         kb.button(
             text=f"⚡️ Status: {status_badge}",
             callback_data="adm:settings:toggle:crypto_enabled",
         )
-        kb.button(text="📬 Set Wallet Address", callback_data="adm:set:ton_wallet_address")
-        kb.button(text="💰 Set Exchange Rate", callback_data="adm:set:ton_rate_toman")
-        kb.button(text="💵 Set USDT Rate", callback_data="adm:set:usdt_rate_toman")
+        kb.button(text="📬 Wallet Address", callback_data="adm:set:ton_wallet_address")
+        kb.button(text="💰 Exchange Rate", callback_data="adm:set:ton_rate_toman")
+        kb.button(text="💵 USDT Rate", callback_data="adm:set:usdt_rate_toman")
         kb.button(text="📊 Check Market Price", callback_data="adm:crypto:nobitex_now")
 
     kb.button(text=t(lang, "btn_back"), callback_data="adm:settings")
-    kb.adjust(1, 2, 1, 1, 1)
+    kb.adjust(1, 2, 2, 1)
 
     lines = [
         "💎 <b>تنظیمات پرداخت کریپتو</b>\n" + SEPARATOR,
@@ -1943,15 +1960,16 @@ async def _render_trial_settings(
         # Row 1 (RTL): Left = Duration, Right = Traffic
         kb.button(text=f"⏳ زمان: {store.trial_duration_days} روز", callback_data="adm:set:trial_duration_days")
         kb.button(text=f"📊 حجم: {store.trial_traffic_gb} GB", callback_data="adm:set:trial_traffic_gb")
-        # Row 2: Toggle
+        # Row 2 (RTL): Left = Back, Right = Status
+        kb.button(text=t(lang, "btn_back"), callback_data="adm:settings")
         kb.button(text=trial_btn_text, callback_data="adm:settings:toggle:trial_enabled")
     else:
         kb.button(text=f"📊 Traffic: {store.trial_traffic_gb} GB", callback_data="adm:set:trial_traffic_gb")
         kb.button(text=f"⏳ Days: {store.trial_duration_days}", callback_data="adm:set:trial_duration_days")
         kb.button(text=f"Status: {'✅' if store.trial_enabled else '❌'}", callback_data="adm:settings:toggle:trial_enabled")
+        kb.button(text=t(lang, "btn_back"), callback_data="adm:settings")
 
-    kb.button(text=t(lang, "btn_back"), callback_data="adm:settings")
-    kb.adjust(2, 1, 1)
+    kb.adjust(2, 2)
 
     text = (
         f"🎁 <b>تنظیمات اکانت تست</b>\n{SEPARATOR}\n"
@@ -1981,13 +1999,15 @@ async def _render_referral_settings(
 
     if lang == "fa":
         kb.button(text=f"📊 حجم: {store.referral_reward_gb} GB", callback_data="adm:set:referral_reward_gb")
+        # Row 2 (RTL): Left = Back, Right = Status
+        kb.button(text=t(lang, "btn_back"), callback_data="adm:settings")
         kb.button(text=ref_btn_text, callback_data="adm:settings:toggle:referral_enabled")
     else:
         kb.button(text=f"📊 Traffic: {store.referral_reward_gb} GB", callback_data="adm:set:referral_reward_gb")
         kb.button(text=f"Status: {'✅' if store.referral_enabled else '❌'}", callback_data="adm:settings:toggle:referral_enabled")
+        kb.button(text=t(lang, "btn_back"), callback_data="adm:settings")
 
-    kb.button(text=t(lang, "btn_back"), callback_data="adm:settings")
-    kb.adjust(1, 1, 1)
+    kb.adjust(1, 2)
 
     text = (
         f"🤝 <b>تنظیمات سیستم دعوت</b>\n{SEPARATOR}\n"
@@ -2042,14 +2062,18 @@ async def trial_ref_settings_view(
 @router.callback_query(F.data.startswith("adm:settings:toggle:"))
 async def setting_toggle_boolean(
     call: CallbackQuery, bot: Bot, user_repo: UserRepository, session: AsyncSession,
+    state: FSMContext | None = None,
 ):
     if not _is_admin(call.from_user.id):
         await call.answer(t("fa", "not_authorized"), show_alert=True)
         return
     field = call.data.rsplit(":", 1)[1]
-    if field not in ("trial_enabled", "referral_enabled", "support_direct_enabled"):
+    if field not in ("trial_enabled", "referral_enabled", "support_direct_enabled", "card_enabled"):
         await call.answer(t("fa", "acc_error"), show_alert=True)
         return
+
+    if state:
+        await state.clear()
 
     user = await user_repo.get_or_create(call.from_user.id, call.from_user.username)
     lang = user.language or "fa"
@@ -2085,6 +2109,9 @@ async def setting_toggle_boolean(
     elif field == "referral_enabled":
         await _render_referral_settings(bot, user, user_repo, session)
         label = "سیستم دعوت" if lang == "fa" else "Referral"
+    elif field == "card_enabled":
+        await _render_settings(bot, user, user_repo, session)
+        label = "درگاه کارت به کارت" if lang == "fa" else "Card Payment Gateway"
     else:
         await _render_settings(bot, user, user_repo, session)
         label = "پشتیبانی مستقیم" if lang == "fa" else "Direct Support"
@@ -2117,6 +2144,223 @@ async def maintenance_toggle(
     )
 
 
+REMIND_DAYS_CHOICES = [0, 1, 2, 3, 5, 7, 10, 14]
+
+
+def _parse_remind_days_set(raw: str | None) -> set[int]:
+    if not raw:
+        return set()
+    result = set()
+    for part in raw.split(","):
+        part = part.strip()
+        if part.isdigit():
+            result.add(int(part))
+    return result
+
+
+async def _render_remind_days_picker(
+    bot: Bot, user, user_repo: UserRepository, session: AsyncSession,
+) -> None:
+    lang = user.language or "fa"
+    store = await get_store_settings(session)
+    active_days = _parse_remind_days_set(store.expiry_remind_days)
+    kb = InlineKeyboardBuilder()
+
+    if lang == "fa":
+        for d in [3, 2, 1, 0]:
+            label = "روز انقضا (0)" if d == 0 else f"{d} روز"
+            mark = " ✅" if d in active_days else ""
+            kb.button(text=f"{label}{mark}", callback_data=f"adm:remind:toggle:{d}")
+        for d in [14, 10, 7, 5]:
+            mark = " ✅" if d in active_days else ""
+            kb.button(text=f"{d} روز{mark}", callback_data=f"adm:remind:toggle:{d}")
+
+        kb.button(text="❌ غیرفعال‌سازی همه هشدارهای انقضا", callback_data="adm:remind:toggle:clear")
+        kb.button(text=t(lang, "btn_back"), callback_data="adm:settings")
+    else:
+        for d in [0, 1, 2, 3]:
+            label = "Expiry day (0)" if d == 0 else f"{d}d"
+            mark = " ✅" if d in active_days else ""
+            kb.button(text=f"{label}{mark}", callback_data=f"adm:remind:toggle:{d}")
+        for d in [5, 7, 10, 14]:
+            mark = " ✅" if d in active_days else ""
+            kb.button(text=f"{d}d{mark}", callback_data=f"adm:remind:toggle:{d}")
+
+        kb.button(text="❌ Disable All Expiry Reminders", callback_data="adm:remind:toggle:clear")
+        kb.button(text=t(lang, "btn_back"), callback_data="adm:settings")
+
+    kb.adjust(4, 4, 1, 1)
+
+    active_sorted = sorted(active_days, reverse=True)
+    if lang == "fa":
+        if active_sorted:
+            display_str = "، ".join("روز انقضا (0)" if d == 0 else f"{d} روز" for d in active_sorted)
+        else:
+            display_str = "هیچ‌کدام (غیرفعال)"
+        text = (
+            f"🔔 <b>تنظیم روزهای هشدار انقضا</b>\n{SEPARATOR}\n"
+            f"روزهای انتخابی فعلی: <b>{display_str}</b>\n\n"
+            f"💡 با لمس هر گزینه، می‌توانید آن را فعال یا غیرفعال کنید (امکان انتخاب همزمان چند روز وجود دارد):\n"
+            f"پیام یادآوری تمدید اشتراک در این روزها به صورت خودکار برای کاربران ارسال خواهد شد."
+        )
+    else:
+        if active_sorted:
+            display_str = ", ".join("Day 0" if d == 0 else f"{d}d" for d in active_sorted)
+        else:
+            display_str = "None (Disabled)"
+        text = (
+            f"🔔 <b>Expiry Reminder Days</b>\n{SEPARATOR}\n"
+            f"Currently selected: <b>{display_str}</b>\n\n"
+            f"💡 Tap any option to toggle it on or off (multiple choices supported):\n"
+            f"Renewal reminder messages will be sent automatically to users on these days."
+        )
+
+    await render_menu(bot, user, user_repo, text, kb.as_markup())
+
+
+@router.callback_query(F.data == "adm:remind:picker")
+async def remind_days_picker_entry(
+    call: CallbackQuery, bot: Bot, user_repo: UserRepository, session: AsyncSession,
+):
+    if not _is_admin(call.from_user.id):
+        await call.answer(t("fa", "not_authorized"), show_alert=True)
+        return
+    user = await user_repo.get_or_create(call.from_user.id, call.from_user.username)
+    await _render_remind_days_picker(bot, user, user_repo, session)
+    await call.answer()
+
+
+@router.callback_query(F.data.startswith("adm:remind:toggle:"))
+async def remind_days_toggle(
+    call: CallbackQuery, bot: Bot, user_repo: UserRepository, session: AsyncSession,
+):
+    if not _is_admin(call.from_user.id):
+        await call.answer(t("fa", "not_authorized"), show_alert=True)
+        return
+    action = call.data.rsplit(":", 1)[1]
+    user = await user_repo.get_or_create(call.from_user.id, call.from_user.username)
+    store = await get_store_settings(session)
+    active_days = _parse_remind_days_set(store.expiry_remind_days)
+
+    if action == "clear":
+        active_days.clear()
+        new_val = ""
+        ans_msg = "❌ تمام هشدارهای انقضا غیرفعال شدند" if user.language == "fa" else "All reminders disabled"
+    else:
+        try:
+            day_num = int(action)
+        except ValueError:
+            await call.answer(t("fa", "acc_error"), show_alert=True)
+            return
+        if day_num in active_days:
+            active_days.remove(day_num)
+            ans_msg = f"❌ هشدار {day_num} روز حذف شد" if user.language == "fa" else f"Removed {day_num}d reminder"
+        else:
+            active_days.add(day_num)
+            ans_msg = f"✅ هشدار {day_num} روز افزوده شد" if user.language == "fa" else f"Added {day_num}d reminder"
+        new_val = ",".join(str(d) for d in sorted(active_days, reverse=True))
+
+    await AppSettingRepository(session).set("expiry_remind_days", new_val)
+    await AdminLogRepository(session).log(
+        call.from_user.id, "setting", detail=f"expiry_remind_days={new_val}"
+    )
+    await _render_remind_days_picker(bot, user, user_repo, session)
+    await call.answer(ans_msg)
+
+
+GRACE_DAYS_CHOICES = [0, 1, 2, 3, 5, 7, 10, 14, 30]
+
+
+async def _render_grace_days_picker(
+    bot: Bot, user, user_repo: UserRepository, session: AsyncSession,
+) -> None:
+    lang = user.language or "fa"
+    store = await get_store_settings(session)
+    current_grace = store.expiry_grace_days
+    kb = InlineKeyboardBuilder()
+
+    if lang == "fa":
+        for d in [2, 1, 0]:
+            label = "بدون مهلت (0)" if d == 0 else f"{d} روز"
+            mark = " ✅" if current_grace == d else ""
+            kb.button(text=f"{label}{mark}", callback_data=f"adm:grace:set:{d}")
+        for d in [7, 5, 3]:
+            mark = " ✅" if current_grace == d else ""
+            kb.button(text=f"{d} روز{mark}", callback_data=f"adm:grace:set:{d}")
+        for d in [30, 14, 10]:
+            mark = " ✅" if current_grace == d else ""
+            kb.button(text=f"{d} روز{mark}", callback_data=f"adm:grace:set:{d}")
+    else:
+        for d in [0, 1, 2]:
+            label = "No grace (0)" if d == 0 else f"{d}d"
+            mark = " ✅" if current_grace == d else ""
+            kb.button(text=f"{label}{mark}", callback_data=f"adm:grace:set:{d}")
+        for d in [3, 5, 7]:
+            mark = " ✅" if current_grace == d else ""
+            kb.button(text=f"{d}d{mark}", callback_data=f"adm:grace:set:{d}")
+        for d in [10, 14, 30]:
+            mark = " ✅" if current_grace == d else ""
+            kb.button(text=f"{d}d{mark}", callback_data=f"adm:grace:set:{d}")
+
+    kb.button(text=t(lang, "btn_back"), callback_data="adm:settings")
+    kb.adjust(3, 3, 3, 1)
+
+    grace_display = "بدون مهلت (سرویس بلافاصله مسدود می‌شود)" if current_grace == 0 else f"{current_grace} روز"
+    if lang == "fa":
+        text = (
+            f"⏳ <b>تنظیم مهلت پس از انقضا (Grace Period)</b>\n{SEPARATOR}\n"
+            f"مهلت فعلی: <b>{grace_display}</b>\n\n"
+            f"💡 تعداد روزهایی که سرویس کاربر پس از انقضا فعال می‌ماند (مهلت تمدید/پرداخت قبل از قطع شدن) را انتخاب کنید:"
+        )
+    else:
+        text = (
+            f"⏳ <b>Expiry Grace Period</b>\n{SEPARATOR}\n"
+            f"Current grace period: <b>{current_grace}d</b>\n\n"
+            f"💡 Select how many days after expiry the service remains active before being suspended:"
+        )
+
+    await render_menu(bot, user, user_repo, text, kb.as_markup())
+
+
+@router.callback_query(F.data == "adm:grace:picker")
+async def grace_days_picker_entry(
+    call: CallbackQuery, bot: Bot, user_repo: UserRepository, session: AsyncSession,
+):
+    if not _is_admin(call.from_user.id):
+        await call.answer(t("fa", "not_authorized"), show_alert=True)
+        return
+    user = await user_repo.get_or_create(call.from_user.id, call.from_user.username)
+    await _render_grace_days_picker(bot, user, user_repo, session)
+    await call.answer()
+
+
+@router.callback_query(F.data.startswith("adm:grace:set:"))
+async def grace_days_set(
+    call: CallbackQuery, bot: Bot, user_repo: UserRepository, session: AsyncSession,
+):
+    if not _is_admin(call.from_user.id):
+        await call.answer(t("fa", "not_authorized"), show_alert=True)
+        return
+    action = call.data.rsplit(":", 1)[1]
+    try:
+        days_num = int(action)
+    except ValueError:
+        await call.answer(t("fa", "acc_error"), show_alert=True)
+        return
+    if days_num not in GRACE_DAYS_CHOICES and not (0 <= days_num <= 365):
+        await call.answer(t("fa", "acc_error"), show_alert=True)
+        return
+
+    user = await user_repo.get_or_create(call.from_user.id, call.from_user.username)
+    await AppSettingRepository(session).set("expiry_grace_days", str(days_num))
+    await AdminLogRepository(session).log(
+        call.from_user.id, "setting", detail=f"expiry_grace_days={days_num}"
+    )
+    await _render_grace_days_picker(bot, user, user_repo, session)
+    ans_msg = f"✅ مهلت پس از انقضا: {days_num} روز" if user.language == "fa" else f"Grace period set to {days_num}d"
+    await call.answer(ans_msg)
+
+
 @router.callback_query(F.data.startswith("adm:set:"))
 async def settings_edit_start(
     call: CallbackQuery, bot: Bot, user_repo: UserRepository,
@@ -2131,6 +2375,20 @@ async def settings_edit_start(
         return
     user = await user_repo.get_or_create(call.from_user.id, call.from_user.username)
     lang = user.language
+
+    # Special handling for expiry remind days: show multi-select picker!
+    if field == "expiry_remind_days":
+        await state.clear()
+        await _render_remind_days_picker(bot, user, user_repo, session)
+        await call.answer()
+        return
+
+    # Special handling for expiry grace days: show single-select picker!
+    if field == "expiry_grace_days":
+        await state.clear()
+        await _render_grace_days_picker(bot, user, user_repo, session)
+        await call.answer()
+        return
 
     # Special handling for default squad: show squad list buttons!
     if field == "default_squad_uuid":
@@ -2174,6 +2432,11 @@ async def settings_edit_start(
         else ("adm:settings:trial" if "trial" in field else ("adm:settings:referral" if "referral" in field else "adm:settings")))
     )
     kb = InlineKeyboardBuilder()
+    if field == "card_number":
+        store = await get_store_settings(session)
+        c_badge = "✅ فعال" if store.card_enabled else "❌ غیرفعال"
+        card_toggle_txt = f"💳 وضعیت درگاه کارت: {c_badge}" if lang == "fa" else f"💳 Card Gateway: {c_badge}"
+        kb.button(text=card_toggle_txt, callback_data="adm:settings:toggle:card_enabled")
     kb.button(text=t(lang, "btn_cancel"), callback_data=cancel_target)
     kb.adjust(1)
 

@@ -315,8 +315,8 @@ async def test_crypto_settings_and_overview_ui(session_factory):
 
             # Buttons check
             all_buttons = [b.text for row in kb.inline_keyboard for b in row]
-            assert any("تنظیم آدرس والت" in b for b in all_buttons)
-            assert any("تنظیم نرخ تبدیل" in b for b in all_buttons)
+            assert any("آدرس والت" in b for b in all_buttons)
+            assert any("نرخ تبدیل" in b for b in all_buttons)
             assert not any("تاپیک کریپتو" in b for b in all_buttons)
 
         # Render store settings overview
@@ -331,7 +331,7 @@ async def test_crypto_settings_and_overview_ui(session_factory):
                 assert "💎 پرداخت کریپتو (TON) :" not in ov_text
                 # Check button
                 ov_buttons = [b.text for row in ov_kb.inline_keyboard for b in row]
-                assert any("💎 تنظیمات پرداخت کریپتو" in b for b in ov_buttons)
+                assert any("💎 کریپتو" in b for b in ov_buttons)
 
 
 @pytest.mark.anyio
@@ -388,3 +388,128 @@ async def test_global_binance_fallback():
         price, source = await fetch_ton_market_price(usdt_rate=100000)
         assert price == 540000
         assert "بایننس" in source
+
+
+@pytest.mark.anyio
+async def test_remind_and_grace_days_pickers(session_factory):
+    from bot.handlers.admin_ops import (
+        _render_remind_days_picker,
+        _render_grace_days_picker,
+        remind_days_toggle,
+        grace_days_set,
+    )
+    from bot.db.repositories.app_setting_repo import AppSettingRepository
+    from bot.services.app_settings import get_store_settings
+
+    async with session_factory() as session:
+        user_repo = UserRepository(session)
+        admin = await user_repo.get_or_create(telegram_id=12345, username="admin")
+        bot = MagicMock()
+        bot.send_message = AsyncMock()
+        bot.edit_message_text = AsyncMock()
+
+        # Set initial settings
+        app_repo = AppSettingRepository(session)
+        await app_repo.set("expiry_remind_days", "3,1")
+        await app_repo.set("expiry_grace_days", "5")
+        await session.commit()
+
+        # 1. Render remind days picker
+        with patch("bot.handlers.admin_ops.render_menu") as mock_render:
+            await _render_remind_days_picker(bot, admin, user_repo, session)
+            mock_render.assert_awaited_once()
+            text = mock_render.call_args[0][3]
+            kb = mock_render.call_args[0][4]
+            btn_texts = [b.text for row in kb.inline_keyboard for b in row]
+
+            assert "روزهای انتخابی فعلی" in text
+            assert any("3 روز ✅" in b for b in btn_texts)
+            assert any("1 روز ✅" in b for b in btn_texts)
+            assert any("5 روز" in b and "✅" not in b for b in btn_texts)
+
+        # 2. Toggle remind day (add 5)
+        call_mock = MagicMock()
+        call_mock.from_user.id = 12345
+        call_mock.from_user.username = "admin"
+        call_mock.data = "adm:remind:toggle:5"
+        call_mock.answer = AsyncMock()
+
+        with patch("bot.handlers.admin_ops._is_admin", return_value=True), \
+             patch("bot.handlers.admin_ops.render_menu"):
+            await remind_days_toggle(call_mock, bot, user_repo, session)
+            store = await get_store_settings(session)
+            assert "5" in store.expiry_remind_days
+            assert "3" in store.expiry_remind_days
+            assert "1" in store.expiry_remind_days
+
+        # 3. Render grace days picker
+        with patch("bot.handlers.admin_ops.render_menu") as mock_render_grace:
+            await _render_grace_days_picker(bot, admin, user_repo, session)
+            mock_render_grace.assert_awaited_once()
+            text_grace = mock_render_grace.call_args[0][3]
+            kb_grace = mock_render_grace.call_args[0][4]
+            grace_btns = [b.text for row in kb_grace.inline_keyboard for b in row]
+
+            assert "مهلت فعلی: <b>5 روز</b>" in text_grace
+            assert any("5 روز ✅" in b for b in grace_btns)
+            assert any("0" in b for b in grace_btns)
+
+        # 4. Set grace day to 0
+        call_grace = MagicMock()
+        call_grace.from_user.id = 12345
+        call_grace.from_user.username = "admin"
+        call_grace.data = "adm:grace:set:0"
+        call_grace.answer = AsyncMock()
+
+        with patch("bot.handlers.admin_ops._is_admin", return_value=True), \
+             patch("bot.handlers.admin_ops.render_menu"):
+            await grace_days_set(call_grace, bot, user_repo, session)
+            store = await get_store_settings(session)
+            assert store.expiry_grace_days == 0
+
+
+@pytest.mark.anyio
+async def test_card_enabled_toggle_and_wallet_guard(session_factory):
+    from bot.handlers.admin_ops import setting_toggle_boolean
+    from bot.services.app_settings import get_store_settings
+    from bot.handlers.wallet import topup_start
+
+    async with session_factory() as session:
+        user_repo = UserRepository(session)
+        admin = await user_repo.get_or_create(telegram_id=12345, username="admin")
+        bot = MagicMock()
+        bot.send_message = AsyncMock()
+        bot.edit_message_text = AsyncMock()
+
+        # Set card number
+        from bot.db.repositories.app_setting_repo import AppSettingRepository
+        app_repo = AppSettingRepository(session)
+        await app_repo.set("card_number", "6037-9918-1234-5678")
+        await app_repo.set("card_enabled", "1")
+        await session.commit()
+
+        # Toggle card_enabled off
+        call_toggle = MagicMock()
+        call_toggle.from_user.id = 12345
+        call_toggle.from_user.username = "admin"
+        call_toggle.data = "adm:settings:toggle:card_enabled"
+        call_toggle.answer = AsyncMock()
+
+        with patch("bot.handlers.admin_ops._is_admin", return_value=True), \
+             patch("bot.handlers.admin_ops._render_settings", AsyncMock()):
+            await setting_toggle_boolean(call_toggle, bot, user_repo, session)
+            store = await get_store_settings(session)
+            assert store.card_enabled is False
+
+        # When card_enabled is False and crypto is off, topup should reject
+        call_user = MagicMock()
+        call_user.from_user.id = admin.telegram_id
+        call_user.from_user.username = admin.username
+        call_user.answer = AsyncMock()
+        state = AsyncMock()
+
+        with patch("bot.handlers.wallet.render_menu", AsyncMock()):
+            await topup_start(call_user, bot, user_repo, session, state)
+            call_user.answer.assert_awaited_once()
+            assert "شارژ کیف پول فعلاً در دسترس نیست" in call_user.answer.call_args[0][0]
+

@@ -121,10 +121,9 @@ async def _render_admin_services(
         kb.button(text=t(lang, "btn_add_service"), callback_data="adm:svc:add")
         kb.button(text=t(lang, "btn_coupons_admin"), callback_data="adm:coupons")
     kb.button(text=t(lang, "btn_back"), callback_data="menu:admin")
-    kb.button(text=t(lang, "btn_back_to_menu"), callback_data="nav:main_menu")
 
     service_sizes = [2] * (len(services) // 2) + ([1] if len(services) % 2 else [])
-    sizes = service_sizes + [2, 1, 1]
+    sizes = service_sizes + [2, 1]
     kb.adjust(*sizes)
 
     text = "\n".join(lines)

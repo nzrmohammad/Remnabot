@@ -191,7 +191,7 @@ async def topup_start(
         await call.answer(t(lang, "maintenance_user"), show_alert=True)
         return
 
-    has_card = bool(store.card_number and store.card_number.strip())
+    has_card = bool(store.card_enabled and store.card_number and store.card_number.strip())
     has_crypto = bool(store.crypto_enabled and store.ton_wallet_address and store.ton_rate_toman > 0)
 
     if not has_card and not has_crypto:
@@ -434,6 +434,11 @@ async def topup_amount(
         await session.commit()
         await state.clear()
         await _render_ton_invoice(bot, user, user_repo, session, invoice)
+        return
+
+    if not (store.card_enabled and store.card_number and store.card_number.strip()):
+        err_msg = "❌ پرداخت کارت به کارت موقتاً غیرفعال است." if lang == "fa" else "❌ Card payment is temporarily disabled."
+        await render_menu(bot, user, user_repo, err_msg, kb.as_markup())
         return
 
     await state.update_data(amount=amount)
