@@ -70,6 +70,7 @@ SETTING_FIELDS = {
     "referral_enabled": ("settings_referral_enabled", True),
     "referral_reward_gb": ("settings_referral_reward", True),
     "topic_crypto": ("settings_topic_crypto", True),
+    "topic_errors": ("settings_topic_errors", True),
     "ton_wallet_address": ("settings_ton_wallet", False),
     "ton_rate_toman": ("settings_ton_rate", True),
     "usdt_rate_toman": ("settings_usdt_rate", True),
@@ -88,6 +89,7 @@ SETTING_DESCRIPTIONS = {
         "topic_support": "شناسه تاپیک پشتیبانی در سوپرگروه مدیریت تلگرام جهت فوروارد پیام‌های کاربران.",
         "topic_alerts": "شناسه تاپیک هشدارهای سیستم و ارسال خودکار فایل پشتیبان دیتابیس در سوپرگروه مدیریت.",
         "topic_crypto": "شناسه تاپیک کریپتو در سوپرگروه مدیریت جهت ارسال استعلام نرخ نوبیتکس و لاگ پرداخت‌های تون.",
+        "topic_errors": "شناسه تاپیک لاگ‌های خطا و ارورهای سیستم در سوپرگروه مدیریت تلگرام.",
         "ton_wallet_address": "آدرس عمومی کیف پول تون (مانند UQ... یا EQ...) جهت دریافت وجه از کاربران.",
         "ton_rate_toman": "نرخ تبدیل هر یک تون به تومان جهت صدور فاکتور شارژ کیف پول.",
         "usdt_rate_toman": "نرخ هر تتر (USDT) به تومان جهت تبدیل قیمت دلاری تون در صرافی‌های جهانی.",
@@ -109,6 +111,7 @@ SETTING_DESCRIPTIONS = {
         "topic_support": "Telegram topic ID for support message forwarding.",
         "topic_alerts": "Telegram topic ID for system alerts and auto database backups.",
         "topic_crypto": "Telegram topic ID for crypto rates and TON payment logs.",
+        "topic_errors": "Telegram topic ID for system error logs and exceptions in admin supergroup.",
         "ton_wallet_address": "Public TON wallet address for receiving user payments.",
         "ton_rate_toman": "Conversion rate of 1 TON in Toman for invoices.",
         "usdt_rate_toman": "Benchmark USDT rate in Toman for global crypto price conversion.",
@@ -639,24 +642,40 @@ async def trigger_admin_report_handler(
         _send_admin_weekly_summary,
         _send_admin_monthly_summary,
     )
-    from bot.utils.time import now_tz
+    from bot.services.formatting import now_tz
     from bot.config import get_settings
     now = now_tz(get_settings().TIMEZONE)
 
     await call.answer("⏳ در حال پردازش و ارسال گزارش...")
     try:
         if kind == "nightly":
-            await _send_admin_nightly_summary(bot, session, remnawave, now)
-            await call.answer("✅ گزارش شبانه به تاپیک ارسال شد.", show_alert=True)
+            report_name = "گزارش شبانه"
+            await _send_admin_nightly_summary(bot, session, remnawave, now, target_user_id=call.from_user.id)
         elif kind == "weekly":
-            await _send_admin_weekly_summary(bot, session, remnawave, now)
-            await call.answer("✅ گزارش هفتگی به تاپیک ارسال شد.", show_alert=True)
+            report_name = "گزارش هفتگی"
+            await _send_admin_weekly_summary(bot, session, remnawave, now, target_user_id=call.from_user.id)
         elif kind == "monthly":
-            await _send_admin_monthly_summary(bot, session, remnawave, now)
-            await call.answer("✅ گزارش ماهانه به تاپیک ارسال شد.", show_alert=True)
+            report_name = "گزارش ماهانه"
+            await _send_admin_monthly_summary(bot, session, remnawave, now, target_user_id=call.from_user.id)
+        else:
+            report_name = "گزارش"
+
+        try:
+            await bot.send_message(
+                call.from_user.id,
+                f"✅ <b>{report_name}</b> با موفقیت تولید و ارسال شد."
+            )
+        except Exception:
+            pass
     except Exception as exc:
         logger.exception("Manual trigger of admin report failed: %s", exc)
-        await call.answer(f"❌ خطا در ارسال گزارش: {exc}", show_alert=True)
+        try:
+            await bot.send_message(
+                call.from_user.id,
+                f"❌ <b>خطا در ارسال گزارش:</b>\n<code>{exc}</code>"
+            )
+        except Exception:
+            pass
 
 
 async def _render_hwid_inspector(
@@ -1535,20 +1554,20 @@ async def _render_settings(
         kb.button(text=f"🚧 حالت تعمیر {'✅' if maint_on else '❌'}", callback_data="adm:maint")
 
         # Row 2: Right = Name, Left = Card Number
-        kb.button(text=t(lang, "settings_card"), callback_data="adm:set:card_number")
-        kb.button(text=t(lang, "settings_holder"), callback_data="adm:set:card_holder")
+        kb.button(text=f"💳 {t(lang, 'settings_card')}", callback_data="adm:set:card_number")
+        kb.button(text=f"👤 {t(lang, 'settings_holder')}", callback_data="adm:set:card_holder")
 
         # Row 3: Right = Min Topup, Left = Support Contact (همینجوری بمونه)
-        kb.button(text=t(lang, "settings_support_contact"), callback_data="adm:set:support_contact")
-        kb.button(text=t(lang, "settings_min"), callback_data="adm:set:topup_min_amount")
+        kb.button(text=f"📞 {t(lang, 'settings_support_contact')}", callback_data="adm:set:support_contact")
+        kb.button(text=f"💰 {t(lang, 'settings_min')}", callback_data="adm:set:topup_min_amount")
 
         # Row 4: Right = Crypto, Left = Invite
         kb.button(text="🤝 دعوت", callback_data="adm:settings:referral")
         kb.button(text="💎 کریپتو", callback_data="adm:settings:crypto")
 
         # Row 5: Right = Remind Days, Left = Grace Days
-        kb.button(text=t(lang, "settings_grace_days"), callback_data="adm:set:expiry_grace_days")
-        kb.button(text=t(lang, "settings_remind_days"), callback_data="adm:set:expiry_remind_days")
+        kb.button(text=f"⏳ {t(lang, 'settings_grace_days')}", callback_data="adm:set:expiry_grace_days")
+        kb.button(text=f"🔔 {t(lang, 'settings_remind_days')}", callback_data="adm:set:expiry_remind_days")
 
         # Row 6: Right = Test, Left = Topics
         kb.button(text=t(lang, "settings_topics_btn"), callback_data="adm:settings:topics")
@@ -1556,7 +1575,7 @@ async def _render_settings(
 
         # Row 7: Right = Squad, Left = Back
         kb.button(text=t(lang, "btn_back"), callback_data="menu:admin")
-        kb.button(text=t(lang, "settings_squad"), callback_data="adm:set:default_squad_uuid")
+        kb.button(text=f"🧩 {t(lang, 'settings_squad')}", callback_data="adm:set:default_squad_uuid")
     else:
         # English LTR
         if has_contact:
@@ -1566,22 +1585,22 @@ async def _render_settings(
         kb.button(text=f"🚧 Maintenance {'✅' if maint_on else '❌'}", callback_data="adm:maint")
         kb.button(text=sup_toggle_text, callback_data="adm:settings:toggle:support_direct_enabled")
 
-        kb.button(text=t(lang, "settings_card"), callback_data="adm:set:card_number")
-        kb.button(text=t(lang, "settings_holder"), callback_data="adm:set:card_holder")
+        kb.button(text=f"💳 {t(lang, 'settings_card')}", callback_data="adm:set:card_number")
+        kb.button(text=f"👤 {t(lang, 'settings_holder')}", callback_data="adm:set:card_holder")
 
-        kb.button(text=t(lang, "settings_min"), callback_data="adm:set:topup_min_amount")
-        kb.button(text=t(lang, "settings_support_contact"), callback_data="adm:set:support_contact")
+        kb.button(text=f"💰 {t(lang, 'settings_min')}", callback_data="adm:set:topup_min_amount")
+        kb.button(text=f"📞 {t(lang, 'settings_support_contact')}", callback_data="adm:set:support_contact")
 
         kb.button(text="💎 Crypto", callback_data="adm:settings:crypto")
         kb.button(text="🤝 Invite", callback_data="adm:settings:referral")
 
-        kb.button(text=t(lang, "settings_grace_days"), callback_data="adm:set:expiry_grace_days")
-        kb.button(text=t(lang, "settings_remind_days"), callback_data="adm:set:expiry_remind_days")
+        kb.button(text=f"⏳ {t(lang, 'settings_grace_days')}", callback_data="adm:set:expiry_grace_days")
+        kb.button(text=f"🔔 {t(lang, 'settings_remind_days')}", callback_data="adm:set:expiry_remind_days")
 
         kb.button(text="🎁 Trial", callback_data="adm:settings:trial")
         kb.button(text=t(lang, "settings_topics_btn"), callback_data="adm:settings:topics")
 
-        kb.button(text=t(lang, "settings_squad"), callback_data="adm:set:default_squad_uuid")
+        kb.button(text=f"🧩 {t(lang, 'settings_squad')}", callback_data="adm:set:default_squad_uuid")
         kb.button(text=t(lang, "btn_back"), callback_data="menu:admin")
 
     kb.adjust(2, 2, 2, 2, 2, 2, 2)
@@ -1618,6 +1637,7 @@ async def _render_settings(
     t_support = f"پشتیبانی ({store.topic_support}) : Support" if store.topic_support is not None else "پشتیبانی : — (Support)"
     t_alerts = f"هشدار ({store.topic_alerts}) : Alerts" if store.topic_alerts is not None else "هشدار : — (Alerts)"
     t_crypto = f"کریپتو ({store.topic_crypto}) : Crypto" if store.topic_crypto is not None else "کریپتو : — (Crypto)"
+    t_errors = f"ارور ({store.topic_errors}) : Errors" if store.topic_errors is not None else "ارور : — (Errors)"
 
     crypto_status_fa = "✅" if store.crypto_enabled else "❌"
     rate_fa = f"{store.ton_rate_toman:,} تومان" if store.ton_rate_toman > 0 else "—"
@@ -1648,6 +1668,7 @@ async def _render_settings(
             f"   {t_support}",
             f"   {t_alerts}",
             f"   {t_crypto}",
+            f"   {t_errors}",
             "",
             f"🚧 {t(lang, 'settings_maintenance')} : {maint_badge}",
         ]
@@ -1676,6 +1697,7 @@ async def _render_settings(
         support_en = f"   Support ({store.topic_support}) : Support" if store.topic_support is not None else "   Support : — (Support)"
         alerts_en = f"   Alerts ({store.topic_alerts}) : Alerts" if store.topic_alerts is not None else "   Alerts : — (Alerts)"
         crypto_en = f"   Crypto ({store.topic_crypto}) : Crypto" if store.topic_crypto is not None else "   Crypto : — (Crypto)"
+        errors_en = f"   Errors ({store.topic_errors}) : Errors" if store.topic_errors is not None else "   Errors : — (Errors)"
 
         crypto_status_en = "✅" if store.crypto_enabled else "❌"
         rate_en = f"{store.ton_rate_toman:,} Toman" if store.ton_rate_toman > 0 else "—"
@@ -1703,6 +1725,7 @@ async def _render_settings(
             support_en,
             alerts_en,
             crypto_en,
+            errors_en,
             "",
             f"🚧 {t(lang, 'settings_maintenance')} : {maint_badge}",
         ]
@@ -1721,6 +1744,7 @@ async def _render_topics_settings(
     t_support = f"{store.topic_support} (Support)" if store.topic_support is not None else "— (Support)"
     t_alerts = f"{store.topic_alerts} (Alerts)" if store.topic_alerts is not None else "— (Alerts)"
     t_crypto = f"{store.topic_crypto} (Crypto)" if store.topic_crypto is not None else "— (Crypto)"
+    t_errors = f"{store.topic_errors} (Errors)" if store.topic_errors is not None else "— (Errors)"
 
     if lang == "fa":
         # Persian RTL: first added is LEFT, second added is RIGHT
@@ -1729,8 +1753,9 @@ async def _render_topics_settings(
         kb.button(text="💳 تاپیک شارژها", callback_data="adm:set:topic_topups")
         # Row 2: Right = تاپیک پشتیبانی, Left = تاپیک هشدار و بکاپ
         kb.button(text="🚨 تاپیک هشدار و بکاپ", callback_data="adm:set:topic_alerts")
-        kb.button(text="\u200f🎧 تاپیک پشتیبانی", callback_data="adm:set:topic_support")
-        # Row 3: تاپیک کریپتو و نرخ
+        kb.button(text="🎧 تاپیک پشتیبانی", callback_data="adm:set:topic_support")
+        # Row 3: Right = تاپیک کریپتو و نرخ, Left = تاپیک لاگ‌های ارور
+        kb.button(text="⚠️ تاپیک لاگ‌های ارور", callback_data="adm:set:topic_errors")
         kb.button(text="💎 تاپیک کریپتو و نرخ", callback_data="adm:set:topic_crypto")
     else:
         kb.button(text="💳 Top-ups Topic", callback_data="adm:set:topic_topups")
@@ -1738,9 +1763,10 @@ async def _render_topics_settings(
         kb.button(text="🎧 Support Topic", callback_data="adm:set:topic_support")
         kb.button(text="🚨 Alerts & Backup", callback_data="adm:set:topic_alerts")
         kb.button(text="💎 Crypto & Rates Topic", callback_data="adm:set:topic_crypto")
+        kb.button(text="⚠️ Error Logs Topic", callback_data="adm:set:topic_errors")
 
     kb.button(text=t(lang, "btn_back"), callback_data="adm:settings")
-    kb.adjust(2, 2, 1, 1)
+    kb.adjust(2, 2, 2, 1)
 
     grp_title = await _get_admin_group_title(bot)
     topics_title = f"{t(lang, 'settings_topics_title')} ({escape(grp_title)})" if grp_title else t(lang, 'settings_topics_title')
@@ -1751,7 +1777,8 @@ async def _render_topics_settings(
         f"🛒 <b>تاپیک ثبت سفارشات :</b> {t_orders}\n"
         f"🎧 <b>تاپیک پیام‌های پشتیبانی :</b> {t_support}\n"
         f"🚨 <b>تاپیک هشدارهای سیستم و بکاپ :</b> {t_alerts}\n"
-        f"💎 <b>تاپیک کریپتو و نرخ ارز :</b> {t_crypto}\n\n"
+        f"💎 <b>تاپیک کریپتو و نرخ ارز :</b> {t_crypto}\n"
+        f"⚠️ <b>تاپیک لاگ‌های ارور :</b> {t_errors}\n\n"
         f"💡 جهت اتصال هر بخش به تاپیک، روی دکمه مربوطه کلیک کنید و شناسه عددی (Topic ID) آن را ارسال نمایید.\n"
         f"(برای غیرفعال‌سازی هر تاپیک مقدار 0 یا /skip ارسال کنید)"
     ) if lang == "fa" else (
@@ -1760,7 +1787,8 @@ async def _render_topics_settings(
         f"🛒 <b>Orders Topic :</b> {t_orders}\n"
         f"🎧 <b>Support Topic :</b> {t_support}\n"
         f"🚨 <b>System Alerts & Backup :</b> {t_alerts}\n"
-        f"💎 <b>Crypto & Rates Topic :</b> {t_crypto}\n\n"
+        f"💎 <b>Crypto & Rates Topic :</b> {t_crypto}\n"
+        f"⚠️ <b>Error Logs Topic :</b> {t_errors}\n\n"
         f"<i>(Send 0 or /skip to disable any topic)</i>"
     )
     await render_menu(bot, user, user_repo, text, kb.as_markup())

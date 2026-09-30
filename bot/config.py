@@ -24,6 +24,7 @@ class Settings(BaseSettings):
     ADMIN_TOPIC_SUPPORT: int | None = None  # Topic ID for support messages
     ADMIN_TOPIC_ALERTS: int | None = None   # Topic ID for system/reconcile alerts
     ADMIN_TOPIC_CRYPTO: int | None = None   # Topic ID for crypto rates and payments
+    ADMIN_TOPIC_ERRORS: int | None = None   # Topic ID for system error logs and exceptions
 
     # --- Crypto (TON on-chain top-up) ---
     TON_WALLET_ADDRESS: str = ""
@@ -87,6 +88,7 @@ class Settings(BaseSettings):
         "ADMIN_TOPIC_SUPPORT",
         "ADMIN_TOPIC_ALERTS",
         "ADMIN_TOPIC_CRYPTO",
+        "ADMIN_TOPIC_ERRORS",
         mode="before",
     )
     @classmethod

@@ -1733,16 +1733,167 @@ async def test_receipt_and_admin_order_notification_fixes():
     assert "👛 موجودی باقی‌مانده : <b>50,000</b> تومان" in admin_text2
 
 
+@pytest.mark.anyio
+async def test_settings_buttons_icons_and_topics_errors():
+    """Verify that all buttons in _render_settings have emoji icons and topic_errors is supported."""
+    from bot.handlers.admin_ops import _render_settings, _render_topics_settings
+    from bot.services.app_settings import StoreSettings
+    from bot.config import Settings
+
+    # Test Settings validator with ADMIN_TOPIC_ERRORS
+    cfg = Settings(
+        BOT_TOKEN="123:ABC",
+        ADMIN_CHAT_ID=-100123456789,
+        ADMIN_TOPIC_ERRORS="999",
+        DATABASE_URL="sqlite+aiosqlite:///:memory:",
+        REMNAWAVE_BASE_URL="https://example.com",
+        REMNAWAVE_TOKEN="secret",
+    )
+    assert cfg.ADMIN_TOPIC_ERRORS == 999
+
+    store = StoreSettings(
+        card_number="6037-9911-2233-4455",
+        card_holder="Mohammad",
+        topup_min_amount=20000,
+        support_contact="@Support_Agent",
+        support_direct_enabled=True,
+        trial_enabled=True,
+        trial_traffic_gb=1,
+        trial_duration_days=1,
+        referral_enabled=True,
+        referral_reward_gb=5,
+        expiry_grace_days=3,
+        expiry_remind_days="3,1,0",
+        default_squad_uuid="sq-123",
+        topic_topups=101,
+        topic_orders=102,
+        topic_support=103,
+        topic_alerts=104,
+        topic_crypto=105,
+        topic_errors=106,
+    )
+    assert store.topic_errors == 106
+
+    bot = MagicMock()
+    user = MagicMock(language="fa", telegram_id=123)
+    user_repo = MagicMock()
+    session = AsyncMock()
+
+    # 1. Test _render_settings button icons
+    with patch("bot.handlers.admin_ops.get_store_settings", AsyncMock(return_value=store)), \
+         patch("bot.handlers.admin_ops.is_maintenance", AsyncMock(return_value=False)), \
+         patch("bot.handlers.admin_ops.render_menu", AsyncMock()) as mock_render:
+
+        await _render_settings(bot, user, user_repo, session)
+        mock_render.assert_awaited_once()
+        text = mock_render.call_args[0][3]
+        markup = mock_render.call_args[0][4]
+        btn_texts = [b.text for row in markup.inline_keyboard for b in row]
+
+        # All buttons in the matrix have icons
+        assert any("💳 شماره کارت" in b for b in btn_texts)
+        assert any("👤 نام" in b for b in btn_texts)
+        assert any("💰 حداقل مبلغ شارژ" in b for b in btn_texts)
+        assert any("📞 آیدی پشتیبانی" in b for b in btn_texts)
+        assert any("⏳ مهلت پس از انقضا" in b for b in btn_texts)
+        assert any("🔔 روزهای هشدار انقضا" in b for b in btn_texts)
+        assert any("🎧 تاپیک‌ها" in b for b in btn_texts)
+        assert any("🧩 اسکواد" in b for b in btn_texts)
+        assert any("💎 کریپتو" in b for b in btn_texts)
+        assert any("🤝 دعوت" in b for b in btn_texts)
+        assert any("🎁 تست" in b for b in btn_texts)
+        assert any("🚧 حالت تعمیر" in b for b in btn_texts)
+        assert any("📞 پشتیبانی مستقیم" in b for b in btn_texts)
+
+        # Overview text includes error topic
+        assert "ارور (106) : Errors" in text
+
+    # 2. Test _render_topics_settings
+    with patch("bot.handlers.admin_ops.get_store_settings", AsyncMock(return_value=store)), \
+         patch("bot.handlers.admin_ops._get_admin_group_title", AsyncMock(return_value="AdminGroup")), \
+         patch("bot.handlers.admin_ops.render_menu", AsyncMock()) as mock_render_topics:
+
+        await _render_topics_settings(bot, user, user_repo, session)
+        mock_render_topics.assert_awaited_once()
+        t_text = mock_render_topics.call_args[0][3]
+        t_markup = mock_render_topics.call_args[0][4]
+        t_btns = [b.text for row in t_markup.inline_keyboard for b in row]
+
+        assert any("⚠️ تاپیک لاگ‌های ارور" in b for b in t_btns)
+        assert "⚠️ <b>تاپیک لاگ‌های ارور :</b> 106 (Errors)" in t_text
 
 
+@pytest.mark.anyio
+async def test_report_trigger_resiliency_and_delivery():
+    """Verify manual report trigger calls summary with target_user_id and avoids double call.answer."""
+    from bot.handlers.admin_ops import trigger_admin_report_handler
+
+    call = MagicMock()
+    call.from_user.id = 999999
+    call.data = "adm:rep:trigger:nightly"
+    call.answer = AsyncMock()
+
+    bot = MagicMock()
+    bot.send_message = AsyncMock()
+    session = AsyncMock()
+    remnawave = MagicMock()
+
+    with patch("bot.handlers.admin_ops._is_admin", return_value=True), \
+         patch("bot.services.reports._send_admin_nightly_summary", AsyncMock()) as mock_nightly:
+
+        await trigger_admin_report_handler(call, bot, session, remnawave)
+
+        # call.answer called once (loading indicator)
+        assert call.answer.await_count == 1
+        # _send_admin_nightly_summary called with target_user_id
+        mock_nightly.assert_awaited_once()
+        assert mock_nightly.call_args.kwargs.get("target_user_id") == 999999
+        # Confirmation message sent directly to admin
+        bot.send_message.assert_awaited_once()
+        assert "گزارش شبانه" in bot.send_message.call_args[0][1]
 
 
+@pytest.mark.anyio
+async def test_error_reporter_service():
+    """Verify error_reporter dispatches formatted error alert with thread and fallback."""
+    from bot.services.error_reporter import report_error
 
+    bot = MagicMock()
+    bot.send_message = AsyncMock()
+    session_factory = MagicMock()
 
+    # Raise an exception to test
+    try:
+        raise ValueError("Simulated unexpected test error")
+    except Exception as test_exc:
+        exc = test_exc
 
+    with patch("bot.services.error_reporter.get_settings") as mock_settings, \
+         patch("bot.services.error_reporter.get_store_settings") as mock_store:
 
+        mock_settings.return_value = MagicMock(
+            ADMIN_CHAT_ID=-100987654321,
+            ADMIN_TOPIC_ERRORS=555,
+            TIMEZONE="Asia/Tehran",
+            ADMIN_IDS=[111],
+        )
+        mock_store.return_value = MagicMock(topic_errors=555)
 
+        await report_error(
+            bot, session_factory, exc, context="Unit Test Context", user_id=12345, username="testuser"
+        )
 
+        bot.send_message.assert_awaited_once()
+        sent_chat = bot.send_message.call_args[0][0]
+        sent_text = bot.send_message.call_args[0][1]
+        sent_thread = bot.send_message.call_args.kwargs.get("message_thread_id")
 
+        assert sent_chat == -100987654321
+        assert sent_thread == 555
+        assert "سیستم هشدار خطای ربات" in sent_text
+        assert "ValueError" in sent_text
+        assert "Simulated unexpected test error" in sent_text
+        assert "Unit Test Context" in sent_text
+        assert "12345" in sent_text
 
 

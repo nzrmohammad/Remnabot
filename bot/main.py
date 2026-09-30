@@ -8,6 +8,7 @@ from aiogram import Bot, Dispatcher
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 from aiogram.fsm.storage.memory import MemoryStorage
+from aiogram.types import ErrorEvent
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncEngine
 
@@ -228,6 +229,15 @@ async def main() -> None:
     dp.update.outer_middleware(BanCheckMiddleware())
 
     dp.include_router(get_main_router())
+
+    @dp.error()
+    async def global_error_handler(event: ErrorEvent):
+        logger.exception("Global unhandled error: %s", event.exception)
+        try:
+            from bot.services.error_reporter import report_error_event
+            await report_error_event(bot, session_factory, event)
+        except Exception as exc:
+            logger.warning("Failed to dispatch error report: %s", exc)
 
     background_tasks = [
         asyncio.create_task(

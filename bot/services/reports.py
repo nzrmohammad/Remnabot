@@ -18,6 +18,7 @@ import asyncio
 import logging
 from datetime import datetime, timedelta, timezone
 from html import escape
+import re
 
 from aiogram import Bot
 from aiogram.exceptions import TelegramAPIError
@@ -586,7 +587,26 @@ def _chunk_text(text: str, max_chars: int = 3800) -> list[str]:
     return chunks
 
 
-async def _deliver_admin_report(bot: Bot, session: AsyncSession, text: str) -> None:
+async def _safe_send_message(bot: Bot, chat_id: int, text: str, **kwargs) -> bool:
+    try:
+        await bot.send_message(chat_id, text, **kwargs)
+        return True
+    except Exception as exc:
+        err_msg = str(exc).lower()
+        if "entity" in err_msg or "parse" in err_msg or "html" in err_msg:
+            try:
+                plain_text = re.sub(r"<[^>]+>", "", text)
+                clean_kwargs = {k: v for k, v in kwargs.items() if k != "parse_mode"}
+                await bot.send_message(chat_id, plain_text, parse_mode=None, **clean_kwargs)
+                return True
+            except Exception as retry_exc:
+                logger.warning("Failed plain-text retry to %s: %s", chat_id, retry_exc)
+        raise exc
+
+
+async def _deliver_admin_report(
+    bot: Bot, session: AsyncSession, text: str, target_user_id: int | None = None
+) -> None:
     settings = get_settings()
     store = await get_store_settings(session)
     topic_id = store.topic_alerts if store.topic_alerts is not None else settings.ADMIN_TOPIC_ALERTS
@@ -594,24 +614,51 @@ async def _deliver_admin_report(bot: Bot, session: AsyncSession, text: str) -> N
 
     chunks = _chunk_text(text)
     for chunk in chunks:
-        delivered = False
+        delivered_to_group = False
         if settings.ADMIN_CHAT_ID:
             try:
-                await bot.send_message(settings.ADMIN_CHAT_ID, chunk, **thread_kwargs)
-                delivered = True
+                await _safe_send_message(bot, settings.ADMIN_CHAT_ID, chunk, **thread_kwargs)
+                delivered_to_group = True
             except Exception as exc:
-                logger.warning("Admin report delivery to chat %s failed: %s", settings.ADMIN_CHAT_ID, exc)
+                logger.warning(
+                    "Admin report delivery to chat %s (topic %s) failed: %s",
+                    settings.ADMIN_CHAT_ID,
+                    topic_id,
+                    exc,
+                )
+                if thread_kwargs:
+                    try:
+                        await _safe_send_message(bot, settings.ADMIN_CHAT_ID, chunk)
+                        delivered_to_group = True
+                    except Exception as fallback_exc:
+                        logger.warning(
+                            "Admin report delivery to chat %s without thread also failed: %s",
+                            settings.ADMIN_CHAT_ID,
+                            fallback_exc,
+                        )
 
-        if not delivered and settings.ADMIN_IDS:
+        if target_user_id:
+            try:
+                await _safe_send_message(bot, target_user_id, chunk)
+            except Exception as direct_exc:
+                logger.warning("Admin report direct delivery to admin %s failed: %s", target_user_id, direct_exc)
+
+        if not delivered_to_group and settings.ADMIN_IDS:
             for aid in settings.ADMIN_IDS:
+                if aid == target_user_id:
+                    continue
                 try:
-                    await bot.send_message(aid, chunk)
+                    await _safe_send_message(bot, aid, chunk)
                 except Exception as admin_exc:
                     logger.warning("Admin report fallback to admin %s failed: %s", aid, admin_exc)
 
 
 async def _send_admin_nightly_summary(
-    bot: Bot, session: AsyncSession, remnawave: RemnawaveClient, now: datetime
+    bot: Bot,
+    session: AsyncSession,
+    remnawave: RemnawaveClient,
+    now: datetime,
+    target_user_id: int | None = None,
 ) -> None:
     today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
     today_start_utc = today_start.astimezone(timezone.utc)
@@ -817,11 +864,15 @@ async def _send_admin_nightly_summary(
     lines.append(f"منقضی شده : {expired_count}")
 
     text = "\n".join(lines)
-    await _deliver_admin_report(bot, session, text)
+    await _deliver_admin_report(bot, session, text, target_user_id=target_user_id)
 
 
 async def _send_admin_weekly_summary(
-    bot: Bot, session: AsyncSession, remnawave: RemnawaveClient, now: datetime
+    bot: Bot,
+    session: AsyncSession,
+    remnawave: RemnawaveClient,
+    now: datetime,
+    target_user_id: int | None = None,
 ) -> None:
     # Week starts 6 days ago (Saturday) and ends today (Friday)
     week_start = now - timedelta(days=6)
@@ -966,11 +1017,15 @@ async def _send_admin_weekly_summary(
             lines.append(f"{prefix} {day_name}: —")
 
     text = "\n".join(lines)
-    await _deliver_admin_report(bot, session, text)
+    await _deliver_admin_report(bot, session, text, target_user_id=target_user_id)
 
 
 async def _send_admin_monthly_summary(
-    bot: Bot, session: AsyncSession, remnawave: RemnawaveClient, now: datetime
+    bot: Bot,
+    session: AsyncSession,
+    remnawave: RemnawaveClient,
+    now: datetime,
+    target_user_id: int | None = None,
 ) -> None:
     month_start, month_end = jalali_month_range(now)
     month_start_utc = month_start.astimezone(timezone.utc)
@@ -1096,7 +1151,7 @@ async def _send_admin_monthly_summary(
         lines.append("  (هیچ مصرفی در این ماه ثبت نشده است)")
 
     text = "\n".join(lines)
-    await _deliver_admin_report(bot, session, text)
+    await _deliver_admin_report(bot, session, text, target_user_id=target_user_id)
 
 
 # --------------------------------------------------------------------- #
