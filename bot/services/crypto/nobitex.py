@@ -18,11 +18,9 @@ logger = logging.getLogger(__name__)
 RATE_CHECK_HOURS = (10, 14, 18, 22)
 
 
-async def fetch_ton_market_price(usdt_rate: int | None = None) -> tuple[int | None, str]:
-    """Fetch latest TON price in Toman from Nobitex, with Bitpin, Wallex, Tabdeal,
-    and global Binance/TonAPI fallbacks (TON/USD * USDT rate).
-
-    Returns (price_in_toman, source_name).
+async def fetch_all_exchange_prices(usdt_rate: int | None = None) -> dict:
+    """Fetch live TON and USDT prices across domestic exchanges (Nobitex, Bitpin, Wallex)
+    and international benchmark (Binance TON/USDT).
     """
     settings = get_settings()
     proxy = settings.IRAN_PROXY.strip() if getattr(settings, "IRAN_PROXY", "") else None
@@ -35,125 +33,157 @@ async def fetch_ton_market_price(usdt_rate: int | None = None) -> tuple[int | No
     }
     timeout = aiohttp.ClientTimeout(total=8)
 
-    # 1. Nobitex v2 orderbook (with optional IRAN_PROXY)
-    for symbol in ("GRAMIRT", "TONIRT"):
-        try:
-            async with aiohttp.ClientSession(timeout=timeout) as session:
-                async with session.get(f"https://apiv2.nobitex.ir/v2/orderbook/{symbol}", headers=headers, proxy=proxy) as resp:
+    ton_prices: dict[str, int] = {}
+    usdt_prices: dict[str, int] = {}
+    binance_ton_usd: float | None = None
+
+    async with aiohttp.ClientSession(timeout=timeout) as session:
+        # 1. Nobitex
+        async def _fetch_nobitex():
+            for symbol in ("GRAMIRT", "TONIRT"):
+                try:
+                    async with session.get(f"https://apiv2.nobitex.ir/v2/orderbook/{symbol}", headers=headers, proxy=proxy) as resp:
+                        if resp.status == 200:
+                            data = await resp.json()
+                            p = data.get("lastTradePrice")
+                            if p:
+                                ton_prices["نوبیتکس"] = int(float(p) // 10)
+                                break
+                except Exception:
+                    pass
+
+            try:
+                async with session.get("https://apiv2.nobitex.ir/market/stats", headers=headers, proxy=proxy) as resp:
                     if resp.status == 200:
                         data = await resp.json()
-                        last_price = data.get("lastTradePrice")
-                        if last_price:
-                            return int(float(last_price) // 10), "نوبیتکس"
-                    else:
-                        logger.warning("Nobitex v2 orderbook %s returned HTTP %s", symbol, resp.status)
-        except Exception as e:
-            logger.debug("Nobitex v2 orderbook %s request failed: %s", symbol, e)
+                        st = data.get("stats", {})
+                        if "نوبیتکس" not in ton_prices:
+                            ton_info = st.get("gram-rls") or st.get("ton-rls")
+                            if ton_info and ton_info.get("latest"):
+                                ton_prices["نوبیتکس"] = int(float(ton_info["latest"]) // 10)
+                        usdt_info = st.get("usdt-rls")
+                        if usdt_info and usdt_info.get("latest"):
+                            usdt_prices["نوبیتکس"] = int(float(usdt_info["latest"]) // 10)
+            except Exception as e:
+                logger.debug("Nobitex stats failed: %s", e)
 
-    # 2. Nobitex market/stats fallback
-    try:
-        async with aiohttp.ClientSession(timeout=timeout) as session:
-            async with session.get("https://apiv2.nobitex.ir/market/stats", headers=headers, proxy=proxy) as resp:
-                if resp.status == 200:
-                    data = await resp.json()
-                    stats = data.get("stats", {})
-                    market_info = stats.get("gram-rls") or stats.get("ton-rls")
-                    if market_info:
-                        latest_rls = market_info.get("latest")
-                        if latest_rls:
-                            return int(float(latest_rls) // 10), "نوبیتکس"
-                else:
-                    logger.warning("Nobitex stats returned HTTP %s", resp.status)
-    except Exception as e:
-        logger.debug("Nobitex stats request failed: %s", e)
+        # 2. Bitpin
+        async def _fetch_bitpin():
+            for bitpin_domain in ("api.bitpin.org", "api.bitpin.ir"):
+                try:
+                    async with session.get(f"https://{bitpin_domain}/v1/mkt/markets/", headers=headers, proxy=proxy) as resp:
+                        if resp.status == 200:
+                            data = await resp.json()
+                            results = data.get("results") or (data if isinstance(data, list) else [])
+                            for m in results:
+                                code = (m.get("code") or "").upper()
+                                if code in ("GRAM_IRT", "TON_IRT"):
+                                    p = m.get("price") or (m.get("order_book_info") or {}).get("last_trade_price")
+                                    if p:
+                                        ton_prices["بیت‌پین"] = int(float(p))
+                                elif code in ("GRAM_RLS", "TON_RLS"):
+                                    p = m.get("price") or (m.get("order_book_info") or {}).get("last_trade_price")
+                                    if p:
+                                        ton_prices["بیت‌پین"] = int(float(p) // 10)
+                                elif code == "USDT_IRT":
+                                    p = m.get("price") or (m.get("order_book_info") or {}).get("last_trade_price")
+                                    if p:
+                                        usdt_prices["بیت‌پین"] = int(float(p))
+                                elif code == "USDT_RLS":
+                                    p = m.get("price") or (m.get("order_book_info") or {}).get("last_trade_price")
+                                    if p:
+                                        usdt_prices["بیت‌پین"] = int(float(p) // 10)
+                            if "بیت‌پین" in ton_prices or "بیت‌پین" in usdt_prices:
+                                break
+                except Exception as e:
+                    logger.debug("Bitpin %s failed: %s", bitpin_domain, e)
 
-    # 3. Bitpin API fallback
-    for bitpin_domain in ("api.bitpin.org", "api.bitpin.ir"):
-        try:
-            async with aiohttp.ClientSession(timeout=timeout) as session:
-                async with session.get(f"https://{bitpin_domain}/v1/mkt/markets/", headers=headers, proxy=proxy) as resp:
+        # 3. Wallex
+        async def _fetch_wallex():
+            try:
+                async with session.get("https://api.wallex.ir/v1/markets", headers=headers, proxy=proxy) as resp:
                     if resp.status == 200:
                         data = await resp.json()
-                        results = data.get("results") or (data if isinstance(data, list) else [])
-                        for m in results:
-                            code = (m.get("code") or "").upper()
-                            if code in ("GRAM_IRT", "TON_IRT"):
-                                price_raw = m.get("price") or (m.get("order_book_info") or {}).get("last_trade_price")
-                                if price_raw:
-                                    return int(float(price_raw)), "بیت‌پین"
-                            elif code in ("GRAM_RLS", "TON_RLS"):
-                                price_raw = m.get("price") or (m.get("order_book_info") or {}).get("last_trade_price")
-                                if price_raw:
-                                    return int(float(price_raw) // 10), "بیت‌پین"
-                    else:
-                        logger.warning("Bitpin %s returned HTTP %s", bitpin_domain, resp.status)
-        except Exception as e:
-            logger.debug("Bitpin %s request failed: %s", bitpin_domain, e)
+                        symbols = (data.get("result") or {}).get("symbols") or {}
+                        for sym in ("GRAMTMN", "GRAMIRT", "TONTMN", "TONIRT"):
+                            if sym in symbols:
+                                lp = (symbols[sym].get("stats") or {}).get("lastPrice")
+                                if lp and str(lp).strip() not in ("", "-"):
+                                    ton_prices["والکس"] = int(float(lp))
+                                    break
+                        for sym in ("USDTTMN", "USDTIRT"):
+                            if sym in symbols:
+                                lp = (symbols[sym].get("stats") or {}).get("lastPrice")
+                                if lp and str(lp).strip() not in ("", "-"):
+                                    usdt_prices["والکس"] = int(float(lp))
+                                    break
+            except Exception as e:
+                logger.debug("Wallex failed: %s", e)
 
-    # 4. Wallex API fallback
-    try:
-        async with aiohttp.ClientSession(timeout=timeout) as session:
-            async with session.get("https://api.wallex.ir/v1/markets", headers=headers, proxy=proxy) as resp:
-                if resp.status == 200:
-                    data = await resp.json()
-                    symbols = (data.get("result") or {}).get("symbols") or {}
-                    for sym_name in ("GRAMTMN", "GRAMIRT", "TONTMN", "TONIRT"):
-                        if sym_name in symbols:
-                            last_price = (symbols[sym_name].get("stats") or {}).get("lastPrice")
-                            if last_price and str(last_price).strip() not in ("", "-"):
-                                return int(float(last_price)), "والکس"
-                else:
-                    logger.warning("Wallex returned HTTP %s", resp.status)
-    except Exception as e:
-        logger.debug("Wallex markets request failed: %s", e)
+        # 4. Binance (global)
+        async def _fetch_binance():
+            nonlocal binance_ton_usd
+            try:
+                async with session.get("https://api.binance.com/api/v3/ticker/price?symbol=TONUSDT", headers=headers) as resp:
+                    if resp.status == 200:
+                        data = await resp.json()
+                        p = float(data.get("price", "0"))
+                        if p > 0:
+                            binance_ton_usd = p
+            except Exception as e:
+                logger.debug("Binance failed: %s", e)
 
-    # 5. Global Fallback: Binance TON/USDT * USDT Rate (100% accessible worldwide)
-    benchmark_usdt = usdt_rate or getattr(settings, "USDT_RATE_TOMAN", 95000) or 95000
-    try:
-        async with aiohttp.ClientSession(timeout=timeout) as session:
-            async with session.get("https://api.binance.com/api/v3/ticker/price?symbol=TONUSDT", headers=headers) as resp:
-                if resp.status == 200:
-                    data = await resp.json()
-                    usd_p = float(data.get("price", "0"))
-                    if usd_p > 0:
-                        toman_p = int(round(usd_p * benchmark_usdt))
-                        return toman_p, f"بایننس (${usd_p:.2f})"
-                else:
-                    logger.warning("Binance TONUSDT returned HTTP %s", resp.status)
-    except Exception as e:
-        logger.debug("Binance TONUSDT request failed: %s", e)
+        await asyncio.gather(_fetch_nobitex(), _fetch_bitpin(), _fetch_wallex(), _fetch_binance(), return_exceptions=True)
 
-    # 6. Global Fallback: TonAPI (TON Foundation official)
-    try:
-        async with aiohttp.ClientSession(timeout=timeout) as session:
-            async with session.get("https://tonapi.io/v2/rates?tokens=ton&currencies=usd", headers=headers) as resp:
-                if resp.status == 200:
-                    data = await resp.json()
-                    rates = data.get("rates", {}).get("TON", {}).get("prices", {})
-                    usd_p = float(rates.get("USD", 0))
-                    if usd_p > 0:
-                        toman_p = int(round(usd_p * benchmark_usdt))
-                        return toman_p, f"TonAPI (${usd_p:.2f})"
-                else:
-                    logger.warning("TonAPI returned HTTP %s", resp.status)
-    except Exception as e:
-        logger.debug("TonAPI request failed: %s", e)
+    # Priority for single best TON: Nobitex > Bitpin > Wallex > Binance
+    best_ton_price: int | None = None
+    best_ton_source = ""
+    for src in ("نوبیتکس", "بیت‌پین", "والکس"):
+        if src in ton_prices:
+            best_ton_price = ton_prices[src]
+            best_ton_source = src
+            break
 
-    # 7. Global Fallback: CoinGecko
-    try:
-        async with aiohttp.ClientSession(timeout=timeout) as session:
-            async with session.get("https://api.coingecko.com/api/v3/simple/price?ids=the-open-network&vs_currencies=usd", headers=headers) as resp:
-                if resp.status == 200:
-                    data = await resp.json()
-                    usd_p = float(data.get("the-open-network", {}).get("usd", 0))
-                    if usd_p > 0:
-                        toman_p = int(round(usd_p * benchmark_usdt))
-                        return toman_p, f"CoinGecko (${usd_p:.2f})"
-                else:
-                    logger.warning("CoinGecko returned HTTP %s", resp.status)
-    except Exception as e:
-        logger.debug("CoinGecko request failed: %s", e)
+    effective_usdt = (
+        usdt_prices.get("نوبیتکس")
+        or usdt_prices.get("بیت‌پین")
+        or usdt_prices.get("والکس")
+        or usdt_rate
+        or getattr(settings, "USDT_RATE_TOMAN", 95000)
+        or 95000
+    )
 
+    if best_ton_price is None and binance_ton_usd:
+        best_ton_price = int(round(binance_ton_usd * effective_usdt))
+        best_ton_source = f"بایننس (${binance_ton_usd:.2f})"
+
+    # Priority for single best USDT: Nobitex > Bitpin > Wallex
+    best_usdt_price: int | None = None
+    best_usdt_source = ""
+    for src in ("نوبیتکس", "بیت‌پین", "والکس"):
+        if src in usdt_prices:
+            best_usdt_price = usdt_prices[src]
+            best_usdt_source = src
+            break
+
+    return {
+        "ton": ton_prices,
+        "usdt": usdt_prices,
+        "binance_usd": binance_ton_usd,
+        "best_ton": (best_ton_price, best_ton_source),
+        "best_usdt": (best_usdt_price, best_usdt_source),
+    }
+
+
+async def fetch_ton_market_price(usdt_rate: int | None = None) -> tuple[int | None, str]:
+    """Fetch latest TON price in Toman from Nobitex, Bitpin, Wallex, or global Binance.
+
+    Returns (price_in_toman, source_name).
+    """
+    market_data = await fetch_all_exchange_prices(usdt_rate=usdt_rate)
+    p, src = market_data.get("best_ton", (None, ""))
+    if p is not None:
+        return p, src
     return None, ""
 
 
@@ -166,7 +196,7 @@ async def fetch_nobitex_ton_price() -> int | None:
 def format_rate_alert(
     nobitex_price: int, current_rate: int, hour_str: str = "", source_name: str = "نوبیتکس"
 ) -> tuple[str, InlineKeyboardMarkup]:
-    """Format the rate notification text and keyboard with proper LTR signs."""
+    """Format single-source rate notification text and keyboard with proper LTR signs."""
     diff = nobitex_price - current_rate
 
     if current_rate > 0:
@@ -206,7 +236,115 @@ def format_rate_alert(
         text="✏️ تنظیم نرخ دلخواه",
         callback_data="adm:set:ton_rate_toman",
     )
+    kb.button(
+        text="🔙 بازگشت",
+        callback_data="adm:settings:crypto",
+    )
     kb.adjust(1)
+
+    return text, kb.as_markup()
+
+
+def format_multi_rate_alert(
+    market_data: dict,
+    current_ton_rate: int,
+    current_usdt_rate: int,
+    hour_str: str = "",
+) -> tuple[str, InlineKeyboardMarkup]:
+    """Format comprehensive rate notification showing Nobitex, Bitpin, Wallex, and USDT rates."""
+    ton_prices = market_data.get("ton", {})
+    usdt_prices = market_data.get("usdt", {})
+    binance_usd = market_data.get("binance_usd")
+
+    best_ton_p, best_ton_src = market_data.get("best_ton", (None, ""))
+    ref_ton_price = best_ton_p or current_ton_rate
+
+    diff_ton = ref_ton_price - current_ton_rate
+    if current_ton_rate > 0:
+        percent = (diff_ton / current_ton_rate) * 100.0
+    else:
+        percent = 0.0
+
+    if diff_ton > 0:
+        diff_str = f"\u200e+{diff_ton:,} تومان"
+        percent_str = f"(\u200e+{percent:.1f}%)"
+    elif diff_ton < 0:
+        diff_str = f"\u200e-{abs(diff_ton):,} تومان"
+        percent_str = f"(\u200e-{abs(percent):.1f}%)"
+    else:
+        diff_str = "0 تومان"
+        percent_str = "(0%)"
+
+    curr_ton_str = f"{current_ton_rate:,} تومان" if current_ton_rate > 0 else "— (تنظیم‌نشده)"
+    curr_usdt_str = f"{current_usdt_rate:,} تومان" if current_usdt_rate > 0 else "—"
+
+    time_header = f" — ساعت {hour_str}" if hour_str else ""
+
+    lines = [
+        f"💎 <b>استعلام نرخ لحظه‌ای صرافی‌ها{time_header}</b>",
+        "──────────────────",
+        "📊 <b>قیمت لحظه‌ای تون (TON):</b>",
+    ]
+
+    for name in ("نوبیتکس", "بیت‌پین", "والکس"):
+        p = ton_prices.get(name)
+        val_str = f"<b>{p:,}</b> تومان" if p else "<i>عدم دسترسی</i>"
+        lines.append(f"   🔹 {name} : {val_str}")
+
+    if binance_usd:
+        lines.append(f"   🌐 بایننس جهانی : <b>${binance_usd:.2f}</b>")
+
+    lines.append("")
+    lines.append("💵 <b>قیمت لحظه‌ای تتر (USDT / دلار):</b>")
+    for name in ("نوبیتکس", "بیت‌پین", "والکس"):
+        p = usdt_prices.get(name)
+        val_str = f"<b>{p:,}</b> تومان" if p else "<i>عدم دسترسی</i>"
+        lines.append(f"   🔹 {name} : {val_str}")
+
+    lines.append("")
+    lines.append("⚙️ <b>وضعیت فعلی در فروشگاه:</b>")
+    lines.append(f"   💎 نرخ فعلی تون : <b>{curr_ton_str}</b>")
+    if current_ton_rate > 0 and ref_ton_price:
+        lines.append(f"   📈 اختلاف تون : <b>{diff_str}</b> <b>{percent_str}</b>")
+    lines.append(f"   💵 نرخ مبنای تتر : <b>{curr_usdt_str}</b>")
+    lines.append("")
+    lines.append("💡 برای به‌روزرسانی نرخ در فروشگاه، دکمه مورد نظر را لمس فرمایید:")
+
+    text = "\n".join(lines)
+
+    kb = InlineKeyboardBuilder()
+
+    # TON apply buttons
+    ton_btns_count = 0
+    for name in ("نوبیتکس", "بیت‌پین", "والکس"):
+        p = ton_prices.get(name)
+        if p:
+            kb.button(
+                text=f"🔄 اعمال تون {name} ({p:,} تومان)",
+                callback_data=f"adm:rate:apply:ton:{p}",
+            )
+            ton_btns_count += 1
+
+    # USDT apply buttons
+    usdt_btns_count = 0
+    for name in ("نوبیتکس", "بیت‌پین", "والکس"):
+        p = usdt_prices.get(name)
+        if p:
+            kb.button(
+                text=f"💵 اعمال تتر {name} ({p:,} تومان)",
+                callback_data=f"adm:rate:apply:usdt:{p}",
+            )
+            usdt_btns_count += 1
+
+    # Manual adjustments
+    kb.button(text="✏️ نرخ دلخواه تون", callback_data="adm:set:ton_rate_toman")
+    kb.button(text="✏️ نرخ دلخواه تتر", callback_data="adm:set:usdt_rate_toman")
+
+    # Back button
+    kb.button(text="🔙 بازگشت", callback_data="adm:settings:crypto")
+
+    adjust_spec = [1] * ton_btns_count + [1] * usdt_btns_count + [2, 1]
+    kb.adjust(*adjust_spec)
 
     return text, kb.as_markup()
 
@@ -226,7 +364,6 @@ def _seconds_until_next_target(
     if candidates:
         target_dt, target_h = candidates[0]
     else:
-        # First target hour tomorrow
         tomorrow = now + timedelta(days=1)
         target_h = sorted(target_hours)[0]
         target_dt = tomorrow.replace(hour=target_h, minute=0, second=0, microsecond=0)
@@ -236,16 +373,22 @@ def _seconds_until_next_target(
 
 
 async def send_rate_notification(bot: Bot, session_factory, hour_str: str = "") -> bool:
-    """Fetch market price and send alert to crypto topic."""
+    """Fetch market prices and send alert to crypto topic."""
     settings = get_settings()
     async with session_factory() as session:
         store = await get_store_settings(session)
-        price, source = await fetch_ton_market_price(usdt_rate=store.usdt_rate_toman)
-        if price is None:
-            logger.warning("Could not fetch TON price from any exchange for scheduled alert")
+        market_data = await fetch_all_exchange_prices(usdt_rate=store.usdt_rate_toman)
+        best_ton, _ = market_data.get("best_ton", (None, ""))
+        if best_ton is None and not market_data.get("usdt"):
+            logger.warning("Could not fetch TON or USDT price from any exchange for scheduled alert")
             return False
 
-        text, kb = format_rate_alert(price, store.ton_rate_toman, hour_str, source_name=source or "نوبیتکس")
+        text, kb = format_multi_rate_alert(
+            market_data=market_data,
+            current_ton_rate=store.ton_rate_toman,
+            current_usdt_rate=store.usdt_rate_toman,
+            hour_str=hour_str,
+        )
 
         topic_id = (
             store.topic_crypto
@@ -259,7 +402,7 @@ async def send_rate_notification(bot: Bot, session_factory, hour_str: str = "") 
 
         try:
             await bot.send_message(settings.ADMIN_CHAT_ID, text, reply_markup=kb, **thread_kwargs)
-            logger.info("Sent Nobitex TON rate alert to topic %s (price: %d)", topic_id, price)
+            logger.info("Sent multi-exchange TON rate alert to topic %s", topic_id)
             return True
         except Exception:
             logger.exception("Failed to send Nobitex rate alert to admin chat")

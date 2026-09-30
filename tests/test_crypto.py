@@ -79,6 +79,30 @@ def test_nobitex_rate_alert_formatting():
     assert "(0%)" in text_eq
 
 
+def test_multi_rate_alert_formatting():
+    """Verify multi-exchange alert displays all domestic exchanges, USDT, and back button."""
+    from bot.services.crypto.nobitex import format_multi_rate_alert
+
+    market_data = {
+        "ton": {"نوبیتکس": 387000, "بیت‌پین": 385000, "والکس": 388000},
+        "usdt": {"نوبیتکس": 255000, "بیت‌پین": 254000, "والکس": 256000},
+        "binance_usd": 1.55,
+        "best_ton": (387000, "نوبیتکس"),
+        "best_usdt": (255000, "نوبیتکس"),
+    }
+    text, kb = format_multi_rate_alert(market_data, current_ton_rate=400000, current_usdt_rate=250000, hour_str="10:00")
+    assert "نوبیتکس" in text
+    assert "بیت‌پین" in text
+    assert "والکس" in text
+    assert "387,000" in text
+    assert "255,000" in text
+    buttons = [b for row in kb.inline_keyboard for b in row]
+    cb_datas = [b.callback_data for b in buttons]
+    assert "adm:rate:apply:ton:387000" in cb_datas
+    assert "adm:rate:apply:usdt:255000" in cb_datas
+    assert "adm:settings:crypto" in cb_datas
+
+
 def test_nobitex_scheduled_hours():
     """Verify target check hours are 10, 14, 18, 22."""
     assert RATE_CHECK_HOURS == (10, 14, 18, 22)

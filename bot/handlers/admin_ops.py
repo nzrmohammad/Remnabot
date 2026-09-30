@@ -607,15 +607,56 @@ async def _render_reports_hub(
         kb.button(text="🔍 HWID Inspector", callback_data="adm:rep:hwid")
         # Row 2: Sessions Explorer (Full width)
         kb.button(text="⚡ Sessions Explorer", callback_data="adm:rep:sessions:0")
+        # Row 3: Manual Report Triggers
+        kb.button(text="📅 ارسال گزارش هفتگی", callback_data="adm:rep:trigger:weekly")
+        kb.button(text="🌙 ارسال گزارش شبانه", callback_data="adm:rep:trigger:nightly")
+        # Row 4: Monthly Report
+        kb.button(text="🗓️ ارسال گزارش ماهانه به تاپیک", callback_data="adm:rep:trigger:monthly")
     else:
         kb.button(text="🔍 HWID Inspector", callback_data="adm:rep:hwid")
         kb.button(text="🌐 SRH Inspector", callback_data="adm:rep:srh")
         kb.button(text="⚡ Sessions Explorer", callback_data="adm:rep:sessions:0")
+        kb.button(text="🌙 Send Nightly Report", callback_data="adm:rep:trigger:nightly")
+        kb.button(text="📅 Send Weekly Report", callback_data="adm:rep:trigger:weekly")
+        kb.button(text="🗓️ Send Monthly Report to Topic", callback_data="adm:rep:trigger:monthly")
 
     kb.button(text=t(lang, "btn_back"), callback_data="menu:admin")
-    kb.adjust(2, 1, 1)
+    kb.adjust(2, 1, 2, 1, 1)
 
     await render_menu(bot, user, user_repo, "\n".join(lines), kb.as_markup())
+
+
+@router.callback_query(F.data.startswith("adm:rep:trigger:"))
+async def trigger_admin_report_handler(
+    call: CallbackQuery, bot: Bot, session: AsyncSession, remnawave: RemnawaveClient,
+):
+    if not _is_admin(call.from_user.id):
+        await call.answer(t("fa", "not_authorized"), show_alert=True)
+        return
+    kind = call.data.split(":")[3]
+    from bot.services.reports import (
+        _send_admin_nightly_summary,
+        _send_admin_weekly_summary,
+        _send_admin_monthly_summary,
+    )
+    from bot.utils.time import now_tz
+    from bot.config import get_settings
+    now = now_tz(get_settings().TIMEZONE)
+
+    await call.answer("⏳ در حال پردازش و ارسال گزارش...")
+    try:
+        if kind == "nightly":
+            await _send_admin_nightly_summary(bot, session, remnawave, now)
+            await call.answer("✅ گزارش شبانه به تاپیک ارسال شد.", show_alert=True)
+        elif kind == "weekly":
+            await _send_admin_weekly_summary(bot, session, remnawave, now)
+            await call.answer("✅ گزارش هفتگی به تاپیک ارسال شد.", show_alert=True)
+        elif kind == "monthly":
+            await _send_admin_monthly_summary(bot, session, remnawave, now)
+            await call.answer("✅ گزارش ماهانه به تاپیک ارسال شد.", show_alert=True)
+    except Exception as exc:
+        logger.exception("Manual trigger of admin report failed: %s", exc)
+        await call.answer(f"❌ خطا در ارسال گزارش: {exc}", show_alert=True)
 
 
 async def _render_hwid_inspector(
@@ -1799,21 +1840,25 @@ async def crypto_nobitex_now(
     if not _is_admin(call.from_user.id):
         await call.answer(t("fa", "not_authorized"), show_alert=True)
         return
-    from bot.services.crypto.nobitex import fetch_ton_market_price, format_rate_alert
+    from bot.services.crypto.nobitex import fetch_all_exchange_prices, format_multi_rate_alert
     store = await get_store_settings(session)
-    price, source = await fetch_ton_market_price(usdt_rate=store.usdt_rate_toman)
-    if price is None:
+    market_data = await fetch_all_exchange_prices(usdt_rate=store.usdt_rate_toman)
+    best_ton, _ = market_data.get("best_ton", (None, ""))
+    if best_ton is None and not market_data.get("usdt"):
         await call.answer(
             "❌ خطا در استعلام از صرافی‌ها (احتمال مسدود بودن دسترسی از خارج کشور). لطفاً نرخ را به‌صورت دستی تنظیم فرمایید.",
             show_alert=True,
         )
         return
 
-    src_title = source or "نوبیتکس"
-    text, kb = format_rate_alert(price, store.ton_rate_toman, source_name=src_title)
+    text, kb = format_multi_rate_alert(
+        market_data=market_data,
+        current_ton_rate=store.ton_rate_toman,
+        current_usdt_rate=store.usdt_rate_toman,
+    )
     user = await user_repo.get_or_create(call.from_user.id, call.from_user.username)
     await render_menu(bot, user, user_repo, text, kb)
-    await call.answer(f"قیمت {src_title}: {price:,} تومان")
+    await call.answer("✅ استعلام قیمت لحظه‌ای انجام شد.")
 
 
 @router.callback_query(F.data.startswith("adm:rate:apply:"))
@@ -1824,22 +1869,37 @@ async def apply_nobitex_rate(
         await call.answer(t("fa", "not_authorized"), show_alert=True)
         return
     try:
-        price_s = call.data.split(":", 3)[3]
-        price = int(price_s)
+        parts = call.data.split(":")
+        # Format can be adm:rate:apply:ton:<price> or adm:rate:apply:usdt:<price> or legacy adm:rate:apply:<price>
+        if len(parts) >= 5 and parts[3] in ("ton", "usdt"):
+            kind = parts[3]
+            price = int(parts[4])
+        else:
+            kind = "ton"
+            price = int(parts[3])
     except (ValueError, IndexError):
         await call.answer(t("fa", "acc_error"), show_alert=True)
         return
 
-    await AppSettingRepository(session).set("ton_rate_toman", str(price))
+    setting_key = "ton_rate_toman" if kind == "ton" else "usdt_rate_toman"
+    kind_title = "نرخ تون" if kind == "ton" else "نرخ مبنای تتر"
+
+    await AppSettingRepository(session).set(setting_key, str(price))
     await AdminLogRepository(session).log(
-        call.from_user.id, "setting", detail=f"ton_rate_toman={price}"
+        call.from_user.id, "setting", detail=f"{setting_key}={price}"
     )
     await session.commit()
 
-    await call.answer(f"✅ نرخ فروشگاه روی {price:,} تومان تنظیم شد.", show_alert=True)
+    kb = InlineKeyboardBuilder()
+    kb.button(text="🔙 بازگشت به تنظیمات کریپتو", callback_data="adm:settings:crypto")
+    kb.button(text="⚙️ تنظیمات فروشگاه", callback_data="adm:settings")
+    kb.adjust(1)
+
+    await call.answer(f"✅ {kind_title} فروشگاه روی {price:,} تومان تنظیم شد.", show_alert=True)
     try:
         await call.message.edit_text(
-            f"{call.message.html_text}\n\n✅ <b>نرخ فروشگاه با موفقیت روی {price:,} تومان تنظیم شد.</b>"
+            f"{call.message.html_text}\n\n✅ <b>{kind_title} فروشگاه با موفقیت روی {price:,} تومان تنظیم شد.</b>",
+            reply_markup=kb.as_markup(),
         )
     except Exception:
         pass

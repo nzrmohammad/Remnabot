@@ -952,8 +952,30 @@ async def test_nightly_reports_formatting(async_session: AsyncSession):
     assert "👤 Mohadeseh3 : 380.00 MB\n 🇳🇱 380.00 MB\n\n👤 Sahba : 168.00 MB" in admin_text
 
 
+@pytest.mark.anyio
+async def test_admin_monthly_summary(async_session: AsyncSession):
+    from unittest.mock import patch
+    from bot.services.reports import _send_admin_monthly_summary
 
+    bot = MagicMock()
+    bot.send_message = AsyncMock()
 
+    remnawave = MagicMock()
+    remnawave.get_all_panel_users = AsyncMock(return_value=[
+        {"id": 10, "username": "Farinaz", "usedTrafficBytes": 5000},
+        {"id": 20, "username": "Benjamin", "usedTrafficBytes": 3000},
+    ])
+    remnawave.get_user_bandwidth_stats = AsyncMock(return_value=[
+        {"name": "DE", "countryCode": "DE", "total": 50 * 1024**3, "data": [10 * 1024**3] * 30}
+    ])
 
+    now = datetime(2026, 3, 20, 23, 59, tzinfo=timezone.utc)
+    with patch("bot.services.reports.get_store_settings") as mock_store:
+        mock_store.return_value = MagicMock(topic_alerts=None)
+        await _send_admin_monthly_summary(bot, async_session, remnawave, now)
 
-
+    assert bot.send_message.call_count >= 1
+    text = bot.send_message.call_args[0][1]
+    assert "گزارش جامع ماهانه پنل" in text
+    assert "خلاصه وضعیت ماه" in text
+    assert "مجموع مصرف کل ماه" in text
