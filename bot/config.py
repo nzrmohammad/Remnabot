@@ -58,6 +58,12 @@ class Settings(BaseSettings):
     # e.g. REDIS_URL=redis://localhost:6379/0 — empty keeps MemoryStorage.
     REDIS_URL: str = ""
 
+    # --- Web & Telegram Mini App (TMA) ---
+    WEB_ENABLED: bool = True
+    WEB_HOST: str = "0.0.0.0"
+    WEB_PORT: int = 8080
+    WEB_APP_URL: str = ""              # e.g. https://tma.yourdomain.com
+
     # --- Observability ---
     SENTRY_DSN: str = ""
 

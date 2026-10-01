@@ -37,3 +37,15 @@ backups/
 .DS_Store
 Thumbs.db
 desktop.ini
+
+# SSL certificates and private keys (Never commit private keys to Git!)
+*.pem
+*.key
+*.cer
+*.crt
+*.pfx
+*.p12
+
+# Local development & test scratchpads
+scratch/
+

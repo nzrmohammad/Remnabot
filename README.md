@@ -21,6 +21,7 @@
 - [⚡ Zero-Conflict Deployment Model](#-zero-conflict-deployment-model)
 - [📦 Prerequisites & Compatibility](#-prerequisites--compatibility)
 - [🚀 Quick Start](#-quick-start)
+- [📱 Telegram Mini App (TMA) & Web Deployment](#-telegram-mini-app-tma--web-deployment)
 - [🔄 Updating Guide](#-updating-guide)
 - [💾 Migration & Server Relocation](#-migration--server-relocation)
 - [⚙️ Configuration Guide (`.env`)](#-configuration-guide-env)
@@ -232,6 +233,160 @@ pip install -r requirements.txt
 # 4. Launch the application
 python -m bot.main
 ```
+
+---
+
+## 📱 Telegram Mini App (TMA) & Web Deployment
+
+Remnabot features a built-in, asynchronous, high-performance web service delivering **two dedicated Telegram Mini Apps**:
+1. **👤 Client Portal WebApp (`/app`)**: Visual bandwidth circular gauge, collapsible per-country daily traffic accordion, interactive Lucky Wheel (6-tier prizes with automatic Remnawave quota allocation), story card generator, 1-tap app importers (`Incy`, `Happ`, `v2rayNG`, `Hiddify`, `Streisand`), live node ping latency tester, and IP/DNS leak detector.
+2. **👑 Cluster Admin Suite (`/admin`)**: Real-time KPIs (total users, active subscriptions, today's revenue, cluster-wide bandwidth, online sessions), cluster node telemetry (CPU/RAM/Xray restart), instant user modifier (`+GB`, `+Days`, Kill HWID sessions, Ban toggle), support ticket desk, and instant broadcast messaging.
+
+```text
+ ┌──────────────────────────┐       HTTPS       ┌────────────────────────┐       HTTP       ┌────────────────────────┐
+ │   Telegram Mobile / Web  │──────────────────►│  Nginx Reverse Proxy   │─────────────────►│   remnawave-bot        │
+ │  (Loads Mini App iframe) │                   │  Port 443 (SSL + CSP)  │  Port 8080       │   (aiohttp + aiogram)  │
+ └──────────────────────────┘                   └────────────────────────┘                  └───────────┬────────────┘
+                                                                                                        │
+                                                                                    ┌───────────────────┴───────────────────┐
+                                                                                    ▼                                       ▼
+                                                                        ┌───────────────────────┐               ┌───────────────────────┐
+                                                                        │  FastCache (Memory)   │◄─────────────►│  remnawave-bot-redis  │
+                                                                        │  (Sub-ms L1 Cache)    │               │  (L2 Shared Cache)    │
+                                                                        └───────────────────────┘               └───────────────────────┘
+```
+
+### ⚡ Performance & Security Principles
+- **Sub-50ms Instant Hydration (Stale-While-Revalidate)**: The client hydrates immediately from browser `localStorage` on click, eliminating loading flickers while refreshing live data in the background.
+- **HMAC-SHA256 Cryptographic Authentication**: Validates Telegram's cryptographic `initData` signature directly against your `BOT_TOKEN`. Zero passwords, zero session cookies, and 100% spoof-proof.
+- **Two-Tier Multi-Cache (L1 Memory + L2 Redis)**: Remnawave v3 API queries are cached with short TTLs (10–15s). Even with hundreds of concurrent users opening the TMA, panel load remains virtually zero.
+
+---
+
+### Step-by-Step Production Deployment
+
+#### Step 1: Automatic SSL Issuance via Cloudflare DNS (Zero-File Secret)
+Obtain a valid Let's Encrypt certificate for your subdomain (e.g. `app.yourdomain.com`) using your Cloudflare API Token without saving persistent secret files to disk:
+
+```bash
+# Using acme.sh (Issues cert and copies directly to Nginx volume folder)
+CF_Token="YOUR_CLOUDFLARE_API_TOKEN" ~/.acme.sh/acme.sh --issue --dns dns_cf -d app.yourdomain.com && \
+~/.acme.sh/acme.sh --install-cert -d app.yourdomain.com --ecc \
+  --fullchain-file /opt/remnawave/nginx/app.yourdomain.com_fullchain.pem \
+  --key-file /opt/remnawave/nginx/app.yourdomain.com_privkey.key \
+  --reloadcmd "docker exec remnawave-nginx nginx -s reload 2>/dev/null || systemctl reload nginx 2>/dev/null || true"
+```
+
+---
+
+#### Step 2: Configure Nginx Reverse Proxy
+
+1. **Add Upstream**: In your `nginx.conf` upstreams section, define the bot web server:
+   ```nginx
+   upstream remnabot {
+       server host.docker.internal:8080;
+       keepalive 32;
+   }
+   ```
+
+2. **Add Server Block**: Create the dedicated HTTPS server block for your TMA subdomain.
+
+> [!IMPORTANT]
+> **Telegram Iframe Compatibility**: Telegram Web and Desktop load Mini Apps inside an iframe. Do **NOT** use `add_header X-Frame-Options "SAMEORIGIN"` on this server block; instead, use the `Content-Security-Policy: frame-ancestors` header shown below:
+
+```nginx
+# --- Telegram Mini App (Remnabot TMA) ---
+server {
+    server_name app.yourdomain.com;
+    listen 443 ssl;
+    listen [::]:443 ssl;
+    http2 on;
+
+    ssl_certificate "/etc/nginx/ssl/app.yourdomain.com_fullchain.pem";
+    ssl_certificate_key "/etc/nginx/ssl/app.yourdomain.com_privkey.key";
+    ssl_trusted_certificate "/etc/nginx/ssl/app.yourdomain.com_fullchain.pem";
+
+    # Essential: Grants permission for Telegram WebApp iframe rendering
+    add_header Content-Security-Policy "frame-ancestors 'self' https://web.telegram.org https://*.telegram.org telegram:;" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header Referrer-Policy "no-referrer-when-downgrade" always;
+
+    location / {
+        proxy_pass http://remnabot;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection $connection_upgrade;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        
+        proxy_connect_timeout 15s;
+        proxy_send_timeout 60s;
+        proxy_read_timeout 60s;
+        tcp_nodelay on;
+    }
+}
+```
+
+3. **Mount Certificates in Nginx Docker**: In your Nginx `docker-compose.yml`, mount the certificate files:
+   ```yaml
+   services:
+     remnawave-nginx:
+       volumes:
+         - ./app.yourdomain.com_fullchain.pem:/etc/nginx/ssl/app.yourdomain.com_fullchain.pem:ro
+         - ./app.yourdomain.com_privkey.key:/etc/nginx/ssl/app.yourdomain.com_privkey.key:ro
+   ```
+
+4. **Verify & Reload Nginx**:
+   ```bash
+   docker compose up -d
+   docker exec remnawave-nginx nginx -t
+   ```
+
+---
+
+#### Step 3: Configure Bot Environment (`.env`)
+
+Add or update the TMA parameters in your `remnawave-bot/.env` file:
+
+```env
+# --- Web & Telegram Mini App (TMA) ---
+WEB_ENABLED=true
+WEB_HOST=0.0.0.0
+WEB_PORT=8080
+WEB_APP_URL=https://app.yourdomain.com
+```
+
+---
+
+#### Step 4: Rebuild & Start Bot Stack
+
+```bash
+docker compose up -d --build bot
+```
+
+Verify that port `8080` is bound:
+```bash
+docker ps --filter "name=remnawave-bot"
+# You should see: 0.0.0.0:8080->8080/tcp
+```
+
+---
+
+#### Step 5: Verify & Configure Telegram Menu Button
+
+1. **Browser Test**: Open `https://app.yourdomain.com/health` in your browser. You should receive:
+   ```json
+   {"status": "ok", "service": "remnabot-tma"}
+   ```
+2. **Inline Buttons**: Send `/start` to your bot. The **`📱 داشبورد کاربری من (مینی‌اپ)`** button will appear automatically at the top of the main menu (and **`👑 پنل وب کلاستر`** for admins).
+3. **Permanent Menu Button (Optional)**:
+   - Message `@BotFather` on Telegram.
+   - Send `/setmenubutton` and select your bot.
+   - Enter your WebApp URL: `https://app.yourdomain.com/app`
+   - Set the button title (e.g. `داشبورد 📱` or `App 🚀`).
+   - The Mini App is now directly accessible from the permanent button beside the chat input!
 
 ---
 

@@ -30,15 +30,36 @@ def back_keyboard(lang: str, target: str = "nav:welcome") -> InlineKeyboardMarku
     return kb.as_markup()
 
 
-def main_menu_keyboard(lang: str, is_admin: bool) -> InlineKeyboardMarkup:
+def main_menu_keyboard(
+    lang: str,
+    is_admin: bool,
+    web_app_url: str | None = None,
+) -> InlineKeyboardMarkup:
     """Requested layout (right | left):
+    [📱 داشبورد کاربری من (مینی‌اپ)] (اگر WEB_APP_URL تنظیم شده باشد)
     آمار فوری      | مدیریت اکانت
     کیف پول        | سرویس‌ها
     آموزش          | تنظیمات
     پشتیبانی       | حساب کاربری
     پنل مدیریت (full width, admins only)
     """
+    if web_app_url is None:
+        try:
+            from bot.config import get_settings
+            web_app_url = get_settings().WEB_APP_URL or None
+        except Exception:
+            web_app_url = None
+
     kb = InlineKeyboardBuilder()
+    sizes: list[int] = []
+
+    # Optional Telegram Mini App (TMA) button at top
+    if web_app_url:
+        from aiogram.types import WebAppInfo
+        app_url = f"{web_app_url.rstrip('/')}/app"
+        kb.button(text="📱 داشبورد کاربری من (مینی‌اپ)", web_app=WebAppInfo(url=app_url))
+        sizes.append(1)
+
     # row 1  (left item first, right item second)
     kb.button(text=t(lang, "btn_account_mgmt"), callback_data="menu:account")
     kb.button(text=t(lang, "btn_quick_stats"), callback_data="menu:stats")
@@ -52,10 +73,17 @@ def main_menu_keyboard(lang: str, is_admin: bool) -> InlineKeyboardMarkup:
     kb.button(text=t(lang, "btn_profile"), callback_data="menu:profile")
     kb.button(text=t(lang, "btn_support"), callback_data="menu:support")
 
-    sizes = [2, 2, 2, 2]
+    sizes.extend([2, 2, 2, 2])
     if is_admin:
-        kb.button(text=t(lang, "btn_admin_panel"), callback_data="menu:admin")
-        sizes.append(1)
+        if web_app_url:
+            from aiogram.types import WebAppInfo
+            admin_url = f"{web_app_url.rstrip('/')}/admin"
+            kb.button(text="👑 پنل وب کلاستر", web_app=WebAppInfo(url=admin_url))
+            kb.button(text=t(lang, "btn_admin_panel"), callback_data="menu:admin")
+            sizes.append(2)
+        else:
+            kb.button(text=t(lang, "btn_admin_panel"), callback_data="menu:admin")
+            sizes.append(1)
 
     kb.adjust(*sizes)
     return kb.as_markup()

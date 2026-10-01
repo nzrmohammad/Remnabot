@@ -276,6 +276,25 @@ async def main() -> None:
         ),
     ]
 
+    web_runner = None
+    if settings.WEB_ENABLED:
+        try:
+            from bot.web.server import create_web_app, start_web_server
+
+            redis_client = getattr(dp.storage, "redis", None)
+            web_app = create_web_app(
+                bot=bot,
+                session_factory=session_factory,
+                remnawave=remnawave,
+                settings=settings,
+                redis_client=redis_client,
+            )
+            web_runner = await start_web_server(
+                web_app, host=settings.WEB_HOST, port=settings.WEB_PORT
+            )
+        except Exception:
+            logger.exception("Failed to start TMA web server")
+
     try:
         logger.info("Bot started.")
         # Keep pending updates: dropping them would silently lose top-up
@@ -285,6 +304,8 @@ async def main() -> None:
     finally:
         for task in background_tasks:
             task.cancel()
+        if web_runner:
+            await web_runner.cleanup()
         await remnawave.close()
         await bot.session.close()
         await engine.dispose()

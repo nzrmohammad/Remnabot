@@ -1,0 +1,1758 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Remnabot WebApp - Pro Edition</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    * {
+      font-family: 'Vazirmatn', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .gauge-circle {
+      transition: stroke-dashoffset 1s ease-in-out;
+      transform: rotate(-90deg);
+      transform-origin: 50% 50%;
+    }
+    .custom-scroll::-webkit-scrollbar {
+      width: 4px;
+      height: 4px;
+    }
+    .custom-scroll::-webkit-scrollbar-thumb {
+      background: rgba(150, 150, 150, 0.25);
+      border-radius: 4px;
+    }
+    @keyframes pulseGlow {
+      0%, 100% { opacity: 0.6; transform: scale(1); }
+      50% { opacity: 1; transform: scale(1.05); }
+    }
+    .pulse-glow {
+      animation: pulseGlow 2.5s infinite;
+    }
+    /* Toggle Switch styles */
+    .switch-checkbox:checked + .switch-label {
+      background-color: #2563eb;
+    }
+    .switch-checkbox:checked + .switch-label .switch-ball {
+      transform: translateX(-20px);
+    }
+  </style>
+</head>
+<body id="appBody" class="bg-[#0b1120] text-slate-100 flex justify-center items-center min-h-screen p-2 md:p-6 antialiased select-none transition-colors duration-300">
+
+  <!-- Main Mobile Frame Container -->
+  <div id="phoneFrame" class="w-full max-w-[430px] bg-[#131d31] rounded-[42px] border border-slate-700/80 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.7)] overflow-hidden flex flex-col relative h-[815px] transition-colors duration-300">
+
+    <!-- ======================================================== -->
+    <!-- 0. SPLASH / INITIAL LOADING SCREEN                       -->
+    <!-- ======================================================== -->
+    <div id="splashScreen" class="absolute inset-0 bg-[#0f172a] z-50 flex flex-col items-center justify-center p-6 text-center transition-opacity duration-500">
+      <div class="relative mb-6">
+        <div class="w-24 h-24 rounded-3xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-cyan-400 flex items-center justify-center shadow-xl shadow-blue-500/30 pulse-glow">
+          <span class="text-4xl">⚡️</span>
+        </div>
+        <div class="absolute -bottom-1 -right-1 w-7 h-7 bg-emerald-500 rounded-full border-4 border-[#0f172a] flex items-center justify-center text-xs text-white font-bold">
+          ✓
+        </div>
+      </div>
+      <h2 class="text-xl font-extrabold text-white tracking-wide">RemnaStore Bot</h2>
+      <p class="text-xs text-slate-400 mt-1">سامانه اختصاصی مدیریت اشتراک و پروکسی</p>
+
+      <div class="w-48 h-1.5 bg-slate-800 rounded-full overflow-hidden mt-8">
+        <div id="splashBar" class="h-full bg-gradient-to-r from-blue-500 to-indigo-500 w-0 transition-all duration-1000 ease-out"></div>
+      </div>
+      <span class="text-[11px] font-mono text-slate-500 mt-2">در حال بارگذاری اطلاعات حساب و نشست‌ها...</span>
+    </div>
+
+    <!-- ======================================================== -->
+    <!-- 1. TELEGRAM WEBAPP TOP BAR                               -->
+    <!-- ======================================================== -->
+    <div class="bg-[#131d31]/95 backdrop-blur-md border-b border-slate-700/60 px-4 py-3 flex items-center justify-between z-20 transition-colors">
+      <div class="flex items-center gap-2">
+        <button id="closeBtn" class="text-blue-400 text-xs font-semibold hover:text-blue-300 transition px-2.5 py-1 rounded-lg bg-blue-950/40 border border-blue-800/40">بستن</button>
+        <button id="reloadBtn" class="text-slate-400 hover:text-slate-200 text-xs p-1.5 rounded-lg bg-slate-800 border border-slate-700" title="تازه‌سازی">🔄</button>
+      </div>
+      <div class="flex items-center gap-1.5">
+        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+        <span class="text-xs font-bold text-slate-200">RemnaStore WebApp</span>
+      </div>
+      <div class="flex items-center gap-1.5">
+        <button id="openSupportBtn" class="text-xs text-emerald-400 bg-emerald-950/50 hover:bg-emerald-900/60 px-2.5 py-1 rounded-lg border border-emerald-800/50 transition flex items-center gap-1 font-semibold" title="پشتیبانی آنلاین">
+          <span>💬</span>
+          <span class="hidden sm:inline">پشتیبانی</span>
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
+        </button>
+        <button id="themeToggle" class="text-slate-300 text-xs px-2 py-1 bg-slate-800 hover:bg-slate-700 rounded-lg border border-slate-700 transition flex items-center gap-1">
+          <span id="themeIcon">🌙</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Active Account Quick Switcher Header -->
+    <div class="bg-gradient-to-r from-blue-950/80 via-indigo-950/60 to-slate-900/80 px-4 py-2 border-b border-slate-700/40 flex items-center justify-between text-xs">
+      <div class="flex items-center gap-2">
+        <div class="w-6 h-6 rounded-full bg-gradient-to-tr from-blue-500 to-indigo-500 flex items-center justify-center text-xs font-bold text-white shadow">
+          M
+        </div>
+        <div class="flex flex-col">
+          <span class="text-[10px] text-slate-400 -mb-0.5">اکانت فعال:</span>
+          <span class="font-bold text-blue-300 font-mono">Mohammad</span>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <span class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-medium text-[10px] flex items-center gap-1">
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> ۲ دستگاه آنلاین
+        </span>
+      </div>
+    </div>
+
+    <!-- ======================================================== -->
+    <!-- 2. SCROLLABLE TAB CONTENT AREA                           -->
+    <!-- ======================================================== -->
+    <div id="contentArea" class="flex-1 overflow-y-auto custom-scroll p-4 space-y-4 pb-24">
+
+      <!-- ===================================================== -->
+      <!-- TAB 1: DASHBOARD (داشبورد اصلی)                        -->
+      <!-- ===================================================== -->
+      <div id="tab-dashboard" class="tab-pane space-y-4">
+
+        <!-- Quick Interactive Action Cards (گردونه شانس و کارت استوری) -->
+        <div class="grid grid-cols-2 gap-2.5">
+          <button id="openLuckyWheelBtn" class="bg-gradient-to-r from-amber-500/20 via-orange-500/20 to-amber-600/10 hover:from-amber-500/30 p-2.5 rounded-2xl border border-amber-500/40 text-right flex items-center justify-between transition shadow-sm group active:scale-95">
+            <div class="flex flex-col">
+              <span class="text-[11px] font-black text-amber-300 group-hover:text-amber-200 flex items-center gap-1">
+                <span>🎰</span> گردونه شانس
+              </span>
+              <span class="text-[9px] text-slate-300 mt-0.5 font-medium">۱ چرخش رایگان هدیه</span>
+            </div>
+            <span class="text-xl group-hover:rotate-45 transition transform">🎁</span>
+          </button>
+
+          <button id="openStoryCardBtn" class="bg-gradient-to-r from-purple-500/20 via-pink-500/20 to-indigo-600/10 hover:from-purple-500/30 p-2.5 rounded-2xl border border-purple-500/40 text-right flex items-center justify-between transition shadow-sm group active:scale-95">
+            <div class="flex flex-col">
+              <span class="text-[11px] font-black text-purple-300 group-hover:text-purple-200 flex items-center gap-1">
+                <span>📸</span> کارت استوری
+              </span>
+              <span class="text-[9px] text-slate-300 mt-0.5 font-medium">پوستر شیشه‌ای VIP</span>
+            </div>
+            <span class="text-xl group-hover:scale-110 transition">✨</span>
+          </button>
+        </div>
+
+        <!-- Circular Bandwidth Gauge Card -->
+        <div class="bg-slate-800/85 rounded-3xl p-5 border border-slate-700/80 shadow-xl relative overflow-hidden">
+          <div class="flex justify-between items-center mb-2">
+            <span class="text-xs text-slate-400 font-semibold flex items-center gap-1">
+              <span>⚡️</span> ترافیک کل سرویس
+            </span>
+            <span class="text-xs font-bold text-emerald-400 bg-emerald-950/70 px-2.5 py-0.5 rounded-full border border-emerald-800/60 flex items-center gap-1">
+              <span class="font-mono" dir="ltr">324.6 GB</span>
+              <span>مانده</span>
+            </span>
+          </div>
+
+          <!-- Circular SVG Gauge -->
+          <div class="flex flex-col items-center justify-center my-1 relative">
+            <svg class="w-44 h-44" viewBox="0 0 120 120">
+              <circle cx="60" cy="60" r="50" stroke="#1e293b" stroke-width="11" fill="transparent" />
+              <circle id="gaugeProgress" class="gauge-circle" cx="60" cy="60" r="50" stroke="url(#gradientMain)" stroke-width="11" stroke-dasharray="314.15" stroke-dashoffset="62.8" stroke-linecap="round" fill="transparent" />
+              <defs>
+                <linearGradient id="gradientMain" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#38bdf8" />
+                  <stop offset="50%" stop-color="#6366f1" />
+                  <stop offset="100%" stop-color="#a855f7" />
+                </linearGradient>
+              </defs>
+            </svg>
+            <div class="absolute inset-0 flex flex-col items-center justify-center text-center p-2">
+              <span class="text-3xl font-black text-white tracking-tight">۷۳٪</span>
+              <span class="text-[11px] text-slate-400 font-medium -mt-0.5">باقی‌مانده</span>
+              <div class="mt-1 text-[10.5px] text-indigo-200 bg-slate-900/90 border border-indigo-500/40 px-2.5 py-0.5 rounded-full font-semibold shadow-sm flex items-center gap-1">
+                <span class="text-[9.5px] text-slate-400 font-sans">مصرف:</span>
+                <span class="font-mono font-bold text-cyan-300" dir="ltr">25.4 / 350 GB</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Expiry & Today's Metric Chips -->
+          <div class="grid grid-cols-2 gap-2 mt-3 pt-3 border-t border-slate-700/60 text-center">
+            <div class="bg-slate-900/60 rounded-2xl p-2.5 border border-slate-700/50">
+              <div class="text-[11px] text-slate-400 flex items-center justify-center gap-1 font-medium">
+                <span>📅</span> انقضای سرویس
+              </div>
+              <div class="text-sm font-extrabold text-amber-400 mt-0.5">۵۰ روز</div>
+              <div class="text-[10px] text-slate-400 font-mono">تا ۱۴۰۵/۰۸/۲۶</div>
+            </div>
+            <div class="bg-slate-900/60 rounded-2xl p-2.5 border border-slate-700/50">
+              <div class="text-[11px] text-slate-400 flex items-center justify-center gap-1 font-medium">
+                <span>⚡️</span> مصرف امروز
+              </div>
+              <div class="text-sm font-extrabold text-cyan-400 mt-0.5 font-mono" dir="ltr">3.00 GB</div>
+              <div class="text-[10px] text-emerald-400">ریست: بدون ریست</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Today's Per-Country Breakdown Card (Accordion Collapsible) -->
+        <div class="bg-slate-800/85 rounded-2xl border border-slate-700/80 shadow-md overflow-hidden transition-all duration-300">
+          <!-- Accordion Header Button (Only First Line Visible Initially) -->
+          <button id="toggleCountryBreakdownBtn" class="w-full p-4 flex justify-between items-center text-right hover:bg-slate-700/40 transition active:scale-[0.99]">
+            <div class="flex items-center gap-2">
+              <span id="countryChevron" class="text-xs text-slate-400 transition-transform duration-300 transform">◀</span>
+              <span class="text-xs font-bold text-slate-200 flex items-center gap-1.5">
+                <span>🌍</span> مصرف امروز به تفکیک کشورها
+              </span>
+            </div>
+            <span class="text-[10px] font-mono text-cyan-400 bg-cyan-950/60 px-2 py-0.5 rounded border border-cyan-800/40">مجموع: <span dir="ltr">3.00 GB</span></span>
+          </button>
+
+          <!-- Collapsible Content (Hidden by default, opens on click) -->
+          <div id="countryBreakdownBody" class="hidden px-4 pb-4 pt-1 space-y-2 text-xs border-t border-slate-700/50">
+            <div>
+              <div class="flex justify-between text-slate-300 font-medium mb-1">
+                <span class="flex items-center gap-1.5"><span>🇳🇱</span> هلند (Netherlands)</span>
+                <span class="font-mono text-slate-200" dir="ltr">2.20 GB</span>
+              </div>
+              <div class="w-full bg-slate-900 h-1.5 rounded-full overflow-hidden">
+                <div class="bg-blue-500 h-full rounded-full" style="width: 73%;"></div>
+              </div>
+            </div>
+            <div>
+              <div class="flex justify-between text-slate-300 font-medium mb-1">
+                <span class="flex items-center gap-1.5"><span>🇩🇪</span> آلمان (Germany)</span>
+                <span class="font-mono text-slate-200" dir="ltr">816.03 MB</span>
+              </div>
+              <div class="w-full bg-slate-900 h-1.5 rounded-full overflow-hidden">
+                <div class="bg-indigo-500 h-full rounded-full" style="width: 25%;"></div>
+              </div>
+            </div>
+            <div>
+              <div class="flex justify-between text-slate-300 font-medium mb-1">
+                <span class="flex items-center gap-1.5"><span>🇫🇷</span> فرانسه (France)</span>
+                <span class="font-mono text-slate-200" dir="ltr">4.17 MB</span>
+              </div>
+              <div class="w-full bg-slate-900 h-1.5 rounded-full overflow-hidden">
+                <div class="bg-cyan-500 h-full rounded-full" style="width: 2%;"></div>
+              </div>
+            </div>
+            <div>
+              <div class="flex justify-between text-slate-300 font-medium mb-1">
+                <span class="flex items-center gap-1.5"><span>🇹🇷</span> ترکیه (Turkey)</span>
+                <span class="font-mono text-slate-200" dir="ltr">2.48 MB</span>
+              </div>
+              <div class="w-full bg-slate-900 h-1.5 rounded-full overflow-hidden">
+                <div class="bg-amber-500 h-full rounded-full" style="width: 1%;"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Network Health & Tools Suite (پینگ سرورها، تست سرعت و نشت IP/DNS) -->
+        <div class="bg-slate-800/85 rounded-2xl p-4 border border-slate-700/80 shadow-md space-y-3">
+          <div class="flex items-center justify-between border-b border-slate-700/60 pb-2.5">
+            <span class="text-xs font-bold text-slate-200 flex items-center gap-1.5">
+              <span>🛠</span> وضعیت و ابزارهای شبکه
+            </span>
+            <div class="flex bg-slate-900/80 p-0.5 rounded-lg border border-slate-700 text-[10px]">
+              <button id="netTabPing" class="px-2 py-1 rounded-md font-bold bg-blue-600 text-white transition">⚡️ پینگ</button>
+              <button id="netTabSpeed" class="px-2 py-1 rounded-md font-medium text-slate-400 hover:text-slate-200 transition">🚀 سرعت</button>
+              <button id="netTabLeak" class="px-2 py-1 rounded-md font-medium text-slate-400 hover:text-slate-200 transition">🛡 امنیت IP</button>
+            </div>
+          </div>
+
+          <!-- PANE 1: Ping List -->
+          <div id="paneNetPing" class="space-y-2">
+            <div class="flex justify-between items-center mb-1 text-[11px]">
+              <span class="text-slate-400">تاخیر زنده نودها:</span>
+              <button id="runPingBtn" class="text-cyan-300 hover:text-cyan-200 bg-cyan-950/70 border border-cyan-800/50 px-2.5 py-1 rounded-md font-semibold transition active:scale-95 flex items-center gap-1 text-[10px]">
+                <span id="pingSpinner" class="hidden">🔄</span>
+                <span id="pingBtnText">⚡️ سنجش مجدد</span>
+              </button>
+            </div>
+            <div id="pingServersList" class="space-y-1.5 text-xs">
+              <div class="flex items-center justify-between p-2 rounded-xl bg-slate-900/60 border border-slate-700/50">
+                <div class="flex items-center gap-2">
+                  <span class="text-base">🇹🇷</span>
+                  <div>
+                    <span class="font-bold text-slate-200 block">ترکیه - استانبول (Gaming)</span>
+                    <span class="text-[10px] text-slate-400">مناسب بازی آنلاین و تماس صوتی</span>
+                  </div>
+                </div>
+                <div class="text-left font-mono">
+                  <span class="ping-val text-xs font-bold text-emerald-400" dir="ltr">36 ms</span>
+                  <span class="block text-[9px] text-emerald-400 font-sans">🟢 عالی</span>
+                </div>
+              </div>
+              <div class="flex items-center justify-between p-2 rounded-xl bg-slate-900/60 border border-slate-700/50">
+                <div class="flex items-center gap-2">
+                  <span class="text-base">🇩🇪</span>
+                  <div>
+                    <span class="font-bold text-slate-200 block">آلمان - فرانکفورت (Direct)</span>
+                    <span class="text-[10px] text-slate-400">پایدار روی همراه اول و ایرانسل</span>
+                  </div>
+                </div>
+                <div class="text-left font-mono">
+                  <span class="ping-val text-xs font-bold text-emerald-400" dir="ltr">54 ms</span>
+                  <span class="block text-[9px] text-emerald-400 font-sans">🟢 عالی</span>
+                </div>
+              </div>
+              <div class="flex items-center justify-between p-2 rounded-xl bg-slate-900/60 border border-slate-700/50">
+                <div class="flex items-center gap-2">
+                  <span class="text-base">🇳🇱</span>
+                  <div>
+                    <span class="font-bold text-slate-200 block">هلند - آمستردام (VIP 1)</span>
+                    <span class="text-[10px] text-slate-400">سرعت دانلود بالا و استریم</span>
+                  </div>
+                </div>
+                <div class="text-left font-mono">
+                  <span class="ping-val text-xs font-bold text-emerald-400" dir="ltr">61 ms</span>
+                  <span class="block text-[9px] text-emerald-400 font-sans">🟢 پایدار</span>
+                </div>
+              </div>
+              <div class="flex items-center justify-between p-2 rounded-xl bg-slate-900/60 border border-slate-700/50">
+                <div class="flex items-center gap-2">
+                  <span class="text-base">🇫🇷</span>
+                  <div>
+                    <span class="font-bold text-slate-200 block">فرانسه - پاریس (Proxy)</span>
+                    <span class="text-[10px] text-slate-400">مخصوص وب‌گردی و تلگرام</span>
+                  </div>
+                </div>
+                <div class="text-left font-mono">
+                  <span class="ping-val text-xs font-bold text-amber-400" dir="ltr">82 ms</span>
+                  <span class="block text-[9px] text-amber-400 font-sans">🟡 متوسط</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- PANE 2: Speed Test (تست سرعت دانلود و آپلود) -->
+          <div id="paneNetSpeed" class="space-y-3 hidden">
+            <div class="flex flex-col items-center justify-center p-3 bg-slate-900/70 rounded-2xl border border-slate-700/50 relative overflow-hidden">
+              <div class="relative w-40 h-24 flex items-end justify-center">
+                <svg class="w-40 h-40 -mb-16" viewBox="0 0 100 100">
+                  <path d="M 15 75 A 40 40 0 1 1 85 75" fill="none" stroke="#1e293b" stroke-width="8" stroke-linecap="round"/>
+                  <path id="speedMeterArc" d="M 15 75 A 40 40 0 1 1 85 75" fill="none" stroke="url(#speedGrad)" stroke-width="8" stroke-dasharray="190" stroke-dashoffset="190" stroke-linecap="round" class="transition-all duration-500"/>
+                  <defs>
+                    <linearGradient id="speedGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                      <stop offset="0%" stop-color="#38bdf8"/>
+                      <stop offset="50%" stop-color="#6366f1"/>
+                      <stop offset="100%" stop-color="#ec4899"/>
+                    </linearGradient>
+                  </defs>
+                </svg>
+                <div class="absolute bottom-2 flex flex-col items-center">
+                  <span id="speedRealtimeValue" class="text-2xl font-black text-white font-mono" dir="ltr">0.0</span>
+                  <span class="text-[10px] text-cyan-300 font-semibold font-mono">Mbps</span>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-3 gap-2 w-full mt-3 pt-2.5 border-t border-slate-800 text-center">
+                <div class="bg-slate-800/80 p-1.5 rounded-xl">
+                  <span class="text-[9px] text-slate-400 block font-medium">📥 دانلود</span>
+                  <span id="dlSpeedVal" class="text-xs font-bold font-mono text-emerald-400" dir="ltr">-- Mbps</span>
+                </div>
+                <div class="bg-slate-800/80 p-1.5 rounded-xl">
+                  <span class="text-[9px] text-slate-400 block font-medium">📤 آپلود</span>
+                  <span id="ulSpeedVal" class="text-xs font-bold font-mono text-cyan-400" dir="ltr">-- Mbps</span>
+                </div>
+                <div class="bg-slate-800/80 p-1.5 rounded-xl">
+                  <span class="text-[9px] text-slate-400 block font-medium">⏱ پینگ</span>
+                  <span id="pingSpeedVal" class="text-xs font-bold font-mono text-indigo-300" dir="ltr">-- ms</span>
+                </div>
+              </div>
+            </div>
+
+            <button id="runSpeedTestBtn" class="w-full bg-gradient-to-r from-blue-600 via-indigo-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white font-bold text-xs py-2.5 rounded-xl transition shadow shadow-blue-600/30 active:scale-[0.98] flex items-center justify-center gap-1.5">
+              <span>🚀</span>
+              <span id="speedTestBtnText">شروع تست سرعت اتصال</span>
+            </button>
+          </div>
+
+          <!-- PANE 3: IP & DNS Leak Test (تست نشت آی‌پی و امنیت) -->
+          <div id="paneNetLeak" class="space-y-2.5 hidden">
+            <div class="bg-emerald-950/40 p-2.5 rounded-xl border border-emerald-500/40 flex items-center gap-2">
+              <span class="text-2xl text-emerald-400">🛡️</span>
+              <div class="text-[11px]">
+                <span class="font-bold text-emerald-300 block">اتصال شما ۱۰۰٪ ناشناس و ایمن است</span>
+                <span class="text-slate-300 text-[10px]">هیچ آی‌پی واقعی از اپراتورهای ایران نشت نکرده است.</span>
+              </div>
+            </div>
+
+            <div class="space-y-1.5 text-xs">
+              <div class="bg-slate-900/60 p-2 rounded-xl border border-slate-700/50 flex justify-between items-center">
+                <span class="text-slate-300">🌍 آی‌پی خروجی شما:</span>
+                <span class="font-mono text-cyan-300 font-bold" dir="ltr">185.220.101.5 (🇩🇪 Frankfurt)</span>
+              </div>
+              <div class="bg-slate-900/60 p-2 rounded-xl border border-slate-700/50 flex justify-between items-center">
+                <span class="text-slate-300">🔒 نشت WebRTC:</span>
+                <span class="text-emerald-400 font-bold">مسدود شده (ایمن 🟢)</span>
+              </div>
+              <div class="bg-slate-900/60 p-2 rounded-xl border border-slate-700/50 flex justify-between items-center">
+                <span class="text-slate-300">🌐 DNS Resolver:</span>
+                <span class="font-mono text-slate-200" dir="ltr">Cloudflare 1.1.1.1 (DoH 🟢)</span>
+              </div>
+              <div class="bg-slate-900/60 p-2 rounded-xl border border-slate-700/50 flex justify-between items-center">
+                <span class="text-slate-300">🔐 پروتکل فعال:</span>
+                <span class="font-mono text-indigo-300 font-bold">VLESS Reality / TLS 1.3</span>
+              </div>
+            </div>
+
+            <button id="runLeakScanBtn" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-200 font-medium text-xs py-2 rounded-xl transition border border-slate-700 active:scale-[0.98] flex items-center justify-center gap-1.5">
+              <span>🔍</span>
+              <span id="leakScanText">بررسی مجدد نشت DNS و IP</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- AI Traffic Depletion Forecast Card (پیش‌بینی هوشمند پایان ترافیک) -->
+        <div class="bg-gradient-to-r from-blue-950/70 via-indigo-950/60 to-purple-950/70 rounded-2xl p-3.5 border border-indigo-500/30 flex items-center gap-3 shadow-md">
+          <div class="w-10 h-10 rounded-xl bg-indigo-600/30 border border-indigo-400/40 flex items-center justify-center text-xl shrink-0">
+            🔮
+          </div>
+          <div class="text-xs">
+            <span class="font-bold text-indigo-300 block">پیش‌بینی هوشمند پایان بسته:</span>
+            <span class="text-slate-300 text-[11px] leading-relaxed">با میانگین مصرف روزانه <b dir="ltr" class="font-mono text-cyan-300">3.00 GB</b>، ترافیک فعلی شما تا <b class="text-emerald-400">۱۰۸ روز آینده</b> پاسخگوی نیاز شما خواهد بود!</span>
+          </div>
+        </div>
+
+        <!-- Subscription URL, QR & Revoke Buttons -->
+        <div class="bg-slate-800/85 rounded-2xl p-4 border border-slate-700/80 shadow-md space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-slate-200 flex items-center gap-1.5">
+              <span>📥</span> لینک سابسکریپشن هوشمند
+            </span>
+            <div class="flex items-center gap-1.5">
+              <button id="qrToggleBtn" class="text-xs text-indigo-400 hover:text-indigo-300 flex items-center gap-1 bg-indigo-950/60 px-2 py-1 rounded-lg border border-indigo-800/50 transition">
+                <span>📷 کیوآرکد</span>
+              </button>
+              <button id="revokeSubBtnTop" class="text-xs text-rose-400 hover:text-rose-300 flex items-center gap-1 bg-rose-950/50 px-2 py-1 rounded-lg border border-rose-800/50 transition" title="تعویض لینک اشتراک">
+                <span>🔄 تعویض لینک</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-2 bg-slate-900 rounded-xl p-1.5 border border-slate-700/60">
+            <input type="text" readonly value="https://panel.cloudvibe.ir/sub/user-mohammad-8492" class="bg-transparent text-xs font-mono text-slate-300 flex-1 outline-none px-2 select-all overflow-ellipsis" id="subInput" />
+            <button id="copySubBtn" class="bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition active:scale-95 flex items-center gap-1">
+              <span>کپی</span>
+            </button>
+          </div>
+
+          <!-- QR Popup (Collapsible) -->
+          <div id="qrContainer" class="hidden flex flex-col items-center justify-center p-3.5 bg-white rounded-2xl text-slate-900 animate-fadeIn">
+            <svg class="w-36 h-36" viewBox="0 0 100 100" fill="currentColor">
+              <path d="M10,10 h30 v30 h-30 z M15,15 v20 h20 v-20 z M20,20 h10 v10 h-10 z" />
+              <path d="M60,10 h30 v30 h-30 z M65,15 v20 h20 v-20 z M70,20 h10 v10 h-10 z" />
+              <path d="M10,60 h30 v30 h-30 z M15,65 v20 h20 v-20 z M20,70 h10 v10 h-10 z" />
+              <circle cx="50" cy="50" r="7" fill="#4f46e5" />
+              <rect x="45" y="15" width="8" height="15" fill="#1e293b" />
+              <rect x="15" y="45" width="15" height="8" fill="#1e293b" />
+              <rect x="55" y="45" width="30" height="8" fill="#1e293b" />
+              <rect x="50" y="65" width="8" height="25" fill="#1e293b" />
+              <rect x="65" y="65" width="25" height="8" fill="#1e293b" />
+              <rect x="75" y="75" width="15" height="15" fill="#1e293b" />
+            </svg>
+            <span class="text-[11px] text-slate-600 font-semibold mt-1.5">اسکن با دوربین گوشی یا اپلیکیشن</span>
+          </div>
+
+          <!-- 1-Click App Importers -->
+          <div class="pt-1">
+            <span class="text-[11px] text-slate-400 block mb-2 font-medium">اتصال خودکار به کلاینت دلخواه:</span>
+            <div class="grid grid-cols-5 gap-1.5 text-center text-xs">
+              <a href="#" class="bg-gradient-to-b from-indigo-900/50 to-slate-800 hover:from-indigo-800/60 p-1.5 rounded-xl border border-indigo-500/40 flex flex-col items-center gap-1 transition shadow-sm group">
+                <span class="text-base group-hover:scale-110 transition">⚡️</span>
+                <span class="font-bold text-[10px] text-indigo-300">Incy</span>
+              </a>
+              <a href="#" class="bg-gradient-to-b from-pink-900/40 to-slate-800 hover:from-pink-800/50 p-1.5 rounded-xl border border-pink-500/30 flex flex-col items-center gap-1 transition shadow-sm group">
+                <span class="text-base group-hover:scale-110 transition">🪐</span>
+                <span class="font-bold text-[10px] text-pink-300">Happ</span>
+              </a>
+              <a href="#" class="bg-slate-800 hover:bg-slate-700/80 p-1.5 rounded-xl border border-slate-700 flex flex-col items-center gap-1 transition group">
+                <span class="text-base group-hover:scale-110 transition">🤖</span>
+                <span class="font-medium text-[10px] text-slate-200">v2rayNG</span>
+              </a>
+              <a href="#" class="bg-slate-800 hover:bg-slate-700/80 p-1.5 rounded-xl border border-slate-700 flex flex-col items-center gap-1 transition group">
+                <span class="text-base group-hover:scale-110 transition">🛡️</span>
+                <span class="font-medium text-[10px] text-slate-200">Hiddify</span>
+              </a>
+              <a href="#" class="bg-slate-800 hover:bg-slate-700/80 p-1.5 rounded-xl border border-slate-700 flex flex-col items-center gap-1 transition group">
+                <span class="text-base group-hover:scale-110 transition">🍏</span>
+                <span class="font-medium text-[10px] text-slate-200">Streisand</span>
+              </a>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ===================================================== -->
+      <!-- TAB 2: REPORTS & LIVE SESSIONS (گزارش‌ها و نشست‌های زنده) -->
+      <!-- ===================================================== -->
+      <div id="tab-reports" class="tab-pane space-y-4 hidden">
+        
+        <!-- ACTIVE DEVICES & ONLINE IPs SECTION (درخواستی کاربر) -->
+        <div class="bg-slate-800/90 rounded-2xl p-4 border border-slate-700/80 space-y-3 shadow-md">
+          <div class="flex justify-between items-center border-b border-slate-700/60 pb-2">
+            <div>
+              <span class="text-xs font-bold text-white flex items-center gap-1.5">
+                <span>📱</span> نشست‌های فعال و افراد متصل به اکانت
+              </span>
+              <span class="text-[10px] text-slate-400 block mt-0.5">سقف مجاز: ۳ دستگاه همزمان (HWID)</span>
+            </div>
+            <button id="killAllBtn" class="text-[11px] text-rose-400 hover:text-rose-300 bg-rose-950/60 border border-rose-800/60 px-2 py-1 rounded-lg font-medium transition active:scale-95">
+              ⛔️ قطع همه
+            </button>
+          </div>
+
+          <!-- Connected Device 1 -->
+          <div class="bg-slate-900/70 rounded-xl p-3 border border-slate-700/60 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <span class="text-2xl">🤖</span>
+              <div>
+                <div class="flex items-center gap-2">
+                  <span class="text-xs font-bold text-slate-200">Samsung Galaxy S24</span>
+                  <span class="px-1.5 py-0.2 rounded text-[9px] bg-emerald-500/20 text-emerald-400 font-bold">آنلاین 🟢</span>
+                </div>
+                <div class="text-[11px] font-mono text-cyan-400 mt-0.5">
+                  IP: 151.242.88.14 <span class="text-slate-500 text-[10px]">(ایرانسل - تهران)</span>
+                </div>
+                <div class="text-[10px] text-slate-400">اتصال به نود: 🇳🇱 هلند VIP 1</div>
+              </div>
+            </div>
+            <button class="text-slate-400 hover:text-rose-400 p-1.5 rounded-lg bg-slate-800 border border-slate-700 text-xs transition" title="قطع اتصال این دستگاه" onclick="alert('اتصال این دستگاه با موفقیت قطع شد.')">
+              ❌
+            </button>
+          </div>
+
+          <!-- Connected Device 2 -->
+          <div class="bg-slate-900/70 rounded-xl p-3 border border-slate-700/60 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <span class="text-2xl">🍏</span>
+              <div>
+                <div class="flex items-center gap-2">
+                  <span class="text-xs font-bold text-slate-200">iPhone 15 Pro Max</span>
+                  <span class="px-1.5 py-0.2 rounded text-[9px] bg-emerald-500/20 text-emerald-400 font-bold">آنلاین 🟢</span>
+                </div>
+                <div class="text-[11px] font-mono text-cyan-400 mt-0.5">
+                  IP: 2.188.45.92 <span class="text-slate-500 text-[10px]">(همراه اول - شیراز)</span>
+                </div>
+                <div class="text-[10px] text-slate-400">اتصال به نود: 🇩🇪 آلمان Falkenstein</div>
+              </div>
+            </div>
+            <button class="text-slate-400 hover:text-rose-400 p-1.5 rounded-lg bg-slate-800 border border-slate-700 text-xs transition" title="قطع اتصال این دستگاه" onclick="alert('اتصال این دستگاه با موفقیت قطع شد.')">
+              ❌
+            </button>
+          </div>
+        </div>
+
+        <!-- Periodic Reports Sub-Tabs -->
+        <div class="flex bg-slate-900/80 p-1 rounded-xl border border-slate-700 text-xs">
+          <button id="repSubNightly" class="flex-1 py-1.5 rounded-lg font-bold bg-blue-600 text-white transition">🌙 شبانه</button>
+          <button id="repSubWeekly" class="flex-1 py-1.5 rounded-lg font-medium text-slate-400 hover:text-slate-200 transition">📊 هفتگی</button>
+          <button id="repSubMonthly" class="flex-1 py-1.5 rounded-lg font-medium text-slate-400 hover:text-slate-200 transition">🗓 ماهانه</button>
+        </div>
+
+        <!-- 1. Nightly Report Card -->
+        <div id="viewRepNightly" class="bg-slate-800/90 rounded-2xl p-4 border border-slate-700/80 space-y-3 shadow-md">
+          <div class="flex justify-between items-center border-b border-slate-700/60 pb-2">
+            <span class="text-xs font-bold text-white flex items-center gap-1">🌙 خلاصه گزارش شبانه دیشب</span>
+            <span class="text-[11px] font-mono text-slate-400">۱۴۰۵/۰۷/۰۵ - ۲۳:۵۹</span>
+          </div>
+          <div class="space-y-1.5 text-xs text-slate-300">
+            <div class="flex justify-between"><span>📊 حجم کل بسته :</span><b class="font-mono text-white" dir="ltr">350.00 GB</b></div>
+            <div class="flex justify-between"><span>🔥 حجم کل مصرف‌شده :</span><b class="font-mono text-amber-400" dir="ltr">25.40 GB</b></div>
+            <div class="flex justify-between"><span>📥 حجم باقی‌مانده :</span><b class="font-mono text-emerald-400" dir="ltr">324.60 GB</b></div>
+            <div class="flex justify-between"><span>⚡️ مجموع مصرف روز دیشب :</span><b class="font-mono text-cyan-400" dir="ltr">3.00 GB</b></div>
+            <div class="flex justify-between"><span>📅 وضعیت انقضا :</span><span class="font-semibold text-slate-200">۵۰ روز (۱۴۰۵/۰۸/۲۶)</span></div>
+          </div>
+          <div class="pt-2 border-t border-slate-700/60 text-xs">
+            <span class="text-slate-400 font-medium block mb-1">تفکیک مصرف سرورها:</span>
+            <div class="grid grid-cols-2 gap-1.5 font-mono text-[11px]">
+              <div class="bg-slate-900/60 p-1.5 rounded-lg flex items-center justify-between">
+                <span>🇳🇱 هلند:</span>
+                <span dir="ltr" class="font-bold text-slate-200">18.79 GB</span>
+              </div>
+              <div class="bg-slate-900/60 p-1.5 rounded-lg flex items-center justify-between">
+                <span>🇫🇷 فرانسه:</span>
+                <span dir="ltr" class="font-bold text-slate-200">3.74 GB</span>
+              </div>
+              <div class="bg-slate-900/60 p-1.5 rounded-lg flex items-center justify-between">
+                <span>🇩🇪 آلمان:</span>
+                <span dir="ltr" class="font-bold text-slate-200">2.89 GB</span>
+              </div>
+              <div class="bg-slate-900/60 p-1.5 rounded-lg flex items-center justify-between">
+                <span>🇹🇷 ترکیه:</span>
+                <span dir="ltr" class="font-bold text-slate-200">819 MB</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. Weekly Report Card -->
+        <div id="viewRepWeekly" class="bg-slate-800/90 rounded-2xl p-4 border border-slate-700/80 space-y-3 shadow-md hidden">
+          <div class="flex justify-between items-center border-b border-slate-700/60 pb-2">
+            <span class="text-xs font-bold text-white flex items-center gap-1">📊 گزارش جامع ۷ روز گذشته</span>
+            <span class="text-[11px] font-mono text-slate-400">جمعه ۲۳:۵۹</span>
+          </div>
+          <div class="space-y-1.5 text-xs text-slate-300">
+            <div class="flex justify-between"><span>⚡️ کل مصرف این هفته :</span><b class="font-mono text-blue-400 text-sm" dir="ltr">21.80 GB</b></div>
+            <div class="flex justify-between"><span>📈 مقایسه با هفته قبل :</span><span class="text-emerald-400 font-semibold font-mono" dir="ltr">12% کمتر (صرفه‌جویی)</span></div>
+            <div class="flex justify-between"><span>🏆 پرمصرف‌ترین روز شما :</span><span class="font-bold text-white">سه‌شنبه (<span dir="ltr" class="font-mono">5.40 GB</span>)</span></div>
+          </div>
+          <div class="pt-2 border-t border-slate-700/60">
+            <span class="text-[11px] text-slate-400 font-medium block mb-2">نمودار روزانه هفته:</span>
+            <div class="flex items-end justify-between h-20 px-2 pt-2 bg-slate-900/60 rounded-xl">
+              <div class="flex flex-col items-center gap-1"><div class="w-4 bg-blue-500 rounded-t" style="height: 35%;"></div><span class="text-[9px] text-slate-400">ش</span></div>
+              <div class="flex flex-col items-center gap-1"><div class="w-4 bg-blue-500 rounded-t" style="height: 45%;"></div><span class="text-[9px] text-slate-400">ی</span></div>
+              <div class="flex flex-col items-center gap-1"><div class="w-4 bg-blue-500 rounded-t" style="height: 30%;"></div><span class="text-[9px] text-slate-400">د</span></div>
+              <div class="flex flex-col items-center gap-1"><div class="w-4 bg-indigo-500 rounded-t" style="height: 85%;"></div><span class="text-[9px] text-indigo-300 font-bold">س</span></div>
+              <div class="flex flex-col items-center gap-1"><div class="w-4 bg-blue-500 rounded-t" style="height: 55%;"></div><span class="text-[9px] text-slate-400">چ</span></div>
+              <div class="flex flex-col items-center gap-1"><div class="w-4 bg-blue-500 rounded-t" style="height: 40%;"></div><span class="text-[9px] text-slate-400">پ</span></div>
+              <div class="flex flex-col items-center gap-1"><div class="w-4 bg-blue-500 rounded-t" style="height: 25%;"></div><span class="text-[9px] text-slate-400">ج</span></div>
+            </div>
+          </div>
+
+          <!-- Weekly Per-Server Breakdown (تفکیک مصرف سرورهای هفته) -->
+          <div class="pt-2 border-t border-slate-700/60 text-xs">
+            <span class="text-slate-400 font-medium block mb-1">تفکیک مصرف سرورها در ۷ روز گذشته:</span>
+            <div class="grid grid-cols-2 gap-1.5 font-mono text-[11px]">
+              <div class="bg-slate-900/60 p-1.5 rounded-lg flex items-center justify-between">
+                <span>🇳🇱 هلند:</span>
+                <span dir="ltr" class="font-bold text-slate-200">12.40 GB</span>
+              </div>
+              <div class="bg-slate-900/60 p-1.5 rounded-lg flex items-center justify-between">
+                <span>🇩🇪 آلمان:</span>
+                <span dir="ltr" class="font-bold text-slate-200">5.80 GB</span>
+              </div>
+              <div class="bg-slate-900/60 p-1.5 rounded-lg flex items-center justify-between">
+                <span>🇫🇷 فرانسه:</span>
+                <span dir="ltr" class="font-bold text-slate-200">2.10 GB</span>
+              </div>
+              <div class="bg-slate-900/60 p-1.5 rounded-lg flex items-center justify-between">
+                <span>🇹🇷 ترکیه:</span>
+                <span dir="ltr" class="font-bold text-slate-200">1.50 GB</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. Monthly Report Card -->
+        <div id="viewRepMonthly" class="bg-slate-800/90 rounded-2xl p-4 border border-slate-700/80 space-y-3 shadow-md hidden">
+          <div class="flex justify-between items-center border-b border-slate-700/60 pb-2">
+            <span class="text-xs font-bold text-white flex items-center gap-1">🗓 گزارش جامع ماه مهر (Mehr)</span>
+            <span class="text-[11px] font-mono text-slate-400">پایان ماه</span>
+          </div>
+          <div class="space-y-1.5 text-xs text-slate-300">
+            <div class="flex justify-between"><span>⚡️ کل مصرف ماهانه اکانت :</span><b class="font-mono text-purple-400 text-sm" dir="ltr">84.20 GB</b></div>
+            <div class="flex justify-between"><span>🌐 پرمصرف‌ترین سرور ماه :</span><span class="font-bold text-white">🇳🇱 هلند (<span dir="ltr" class="font-mono">54.10 GB</span>)</span></div>
+            <div class="flex justify-between"><span>🥇 رتبه مصرف شما در کلاستر :</span><span class="text-amber-400 font-bold font-mono">رتبه ۱۲ از ۴۸۰ اکانت</span></div>
+          </div>
+
+          <!-- Monthly 4-Week Breakdown Chart (نمودار مصرف ۴ هفته ماه) -->
+          <div class="pt-2 border-t border-slate-700/60">
+            <span class="text-[11px] text-slate-400 font-medium block mb-2">نمودار مصرف ۴ هفته ماه مهر:</span>
+            <div class="space-y-2">
+              <div>
+                <div class="flex justify-between text-[11px] text-slate-300 mb-1">
+                  <span>هفته اول (۱ تا ۷ مهر)</span>
+                  <span class="font-mono text-purple-300 font-bold" dir="ltr">18.20 GB (21%)</span>
+                </div>
+                <div class="w-full bg-slate-900 h-2 rounded-full overflow-hidden">
+                  <div class="bg-gradient-to-r from-purple-500 to-indigo-500 h-full rounded-full" style="width: 21%;"></div>
+                </div>
+              </div>
+
+              <div>
+                <div class="flex justify-between text-[11px] text-slate-300 mb-1">
+                  <span class="flex items-center gap-1">هفته دوم (۸ تا ۱۴ مهر) <span class="text-[9px] text-amber-400 bg-amber-950/60 px-1 rounded border border-amber-800/40">🔥 اوج مصرف</span></span>
+                  <span class="font-mono text-amber-300 font-bold" dir="ltr">28.50 GB (34%)</span>
+                </div>
+                <div class="w-full bg-slate-900 h-2 rounded-full overflow-hidden">
+                  <div class="bg-gradient-to-r from-amber-500 to-orange-500 h-full rounded-full" style="width: 34%;"></div>
+                </div>
+              </div>
+
+              <div>
+                <div class="flex justify-between text-[11px] text-slate-300 mb-1">
+                  <span>هفته سوم (۱۵ تا ۲۱ مهر)</span>
+                  <span class="font-mono text-indigo-300 font-bold" dir="ltr">22.10 GB (26%)</span>
+                </div>
+                <div class="w-full bg-slate-900 h-2 rounded-full overflow-hidden">
+                  <div class="bg-gradient-to-r from-indigo-500 to-blue-500 h-full rounded-full" style="width: 26%;"></div>
+                </div>
+              </div>
+
+              <div>
+                <div class="flex justify-between text-[11px] text-slate-300 mb-1">
+                  <span>هفته چهارم (۲۲ تا ۳۰ مهر)</span>
+                  <span class="font-mono text-cyan-300 font-bold" dir="ltr">15.40 GB (19%)</span>
+                </div>
+                <div class="w-full bg-slate-900 h-2 rounded-full overflow-hidden">
+                  <div class="bg-gradient-to-r from-blue-500 to-cyan-500 h-full rounded-full" style="width: 19%;"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Monthly Per-Server Breakdown (تفکیک مصرف سرورهای ماه) -->
+          <div class="pt-2 border-t border-slate-700/60 text-xs">
+            <span class="text-slate-400 font-medium block mb-1">تفکیک مصرف سرورها در کل ماه:</span>
+            <div class="grid grid-cols-2 gap-1.5 font-mono text-[11px]">
+              <div class="bg-slate-900/60 p-1.5 rounded-lg flex items-center justify-between">
+                <span>🇳🇱 هلند:</span>
+                <span dir="ltr" class="font-bold text-slate-200">54.10 GB</span>
+              </div>
+              <div class="bg-slate-900/60 p-1.5 rounded-lg flex items-center justify-between">
+                <span>🇩🇪 آلمان:</span>
+                <span dir="ltr" class="font-bold text-slate-200">16.20 GB</span>
+              </div>
+              <div class="bg-slate-900/60 p-1.5 rounded-lg flex items-center justify-between">
+                <span>🇫🇷 فرانسه:</span>
+                <span dir="ltr" class="font-bold text-slate-200">8.50 GB</span>
+              </div>
+              <div class="bg-slate-900/60 p-1.5 rounded-lg flex items-center justify-between">
+                <span>🇹🇷 ترکیه:</span>
+                <span dir="ltr" class="font-bold text-slate-200">5.40 GB</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ===================================================== -->
+      <!-- TAB 3: SHOP (فروشگاه و تمدید)                          -->
+      <!-- ===================================================== -->
+      <div id="tab-shop" class="tab-pane space-y-4 hidden">
+        <div class="flex justify-between items-center">
+          <h3 class="text-sm font-bold text-slate-200">🛒 خرید بسته جدید یا تمدید</h3>
+          <span class="text-xs text-indigo-400 bg-indigo-950/60 px-2 py-0.5 rounded border border-indigo-800/40">موجودی: ۵۰,۰۰۰ تومان</span>
+        </div>
+
+        <!-- Plan Card 1 -->
+        <div class="bg-slate-800/90 rounded-2xl p-4 border border-slate-700/80 hover:border-blue-500/60 transition shadow-md relative overflow-hidden group">
+          <div class="flex justify-between items-start">
+            <div>
+              <div class="flex items-center gap-2">
+                <h4 class="font-bold text-sm text-white">بسته نقره‌ای (۳۰ روزه)</h4>
+                <span class="px-2 py-0.5 rounded-full text-[10px] bg-blue-500/20 text-blue-400 font-semibold border border-blue-500/30">اقتصادی</span>
+              </div>
+              <p class="text-xs text-slate-400 mt-1">مناسب وب‌گردی و پیام‌رسان‌ها</p>
+            </div>
+            <div class="text-left font-mono">
+              <span class="text-base font-black text-emerald-400">۸۰,۰۰۰</span>
+              <span class="text-[10px] text-slate-400 block -mt-1">تومان</span>
+            </div>
+          </div>
+          <div class="flex items-center gap-4 my-2.5 text-xs text-slate-300 bg-slate-900/50 p-2 rounded-xl">
+            <span>📊 <b dir="ltr" class="font-mono">30 GB</b> ترافیک</span>
+            <span>📅 <b>۳۰ روز</b></span>
+            <span>📱 <b>۲ کاربره</b></span>
+          </div>
+          <button class="w-full bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs py-2.5 rounded-xl transition shadow shadow-blue-600/30 active:scale-[0.98]">
+            🛒 خرید / تمدید آنی
+          </button>
+        </div>
+
+        <!-- Plan Card 2 (Popular) -->
+        <div class="bg-gradient-to-br from-indigo-950/60 via-slate-800/90 to-purple-950/40 rounded-2xl p-4 border-2 border-indigo-500/60 shadow-lg relative overflow-hidden">
+          <div class="absolute top-0 left-0 bg-indigo-600 text-white text-[10px] font-bold px-3 py-0.5 rounded-br-xl shadow">
+            🔥 پرفروش‌ترین
+          </div>
+          <div class="flex justify-between items-start mt-2">
+            <div>
+              <h4 class="font-bold text-sm text-white">بسته طلایی (۲ ماهه VIP)</h4>
+              <p class="text-xs text-slate-400 mt-1">ترافیک بالا با تمام نودهای پرسرعت</p>
+            </div>
+            <div class="text-left font-mono">
+              <span class="text-base font-black text-emerald-400">۱۵۰,۰۰۰</span>
+              <span class="text-[10px] text-slate-400 block -mt-1">تومان</span>
+            </div>
+          </div>
+          <div class="flex items-center gap-4 my-2.5 text-xs text-slate-200 bg-slate-900/60 p-2 rounded-xl">
+            <span>📊 <b dir="ltr" class="font-mono">75 GB</b> ترافیک</span>
+            <span>📅 <b>۶۰ روز</b></span>
+            <span>📱 <b>نامحدود</b> کاربر</span>
+          </div>
+          <button class="w-full bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-500 hover:to-blue-500 text-white font-semibold text-xs py-2.5 rounded-xl transition shadow shadow-indigo-600/30 active:scale-[0.98]">
+            🛒 خرید / تمدید آنی
+          </button>
+        </div>
+
+        <!-- Coupon Box -->
+        <div class="bg-slate-800/60 rounded-xl p-2.5 border border-slate-700/60 flex items-center gap-2">
+          <input type="text" placeholder="کد تخفیف (مثال: OFF20)" class="bg-slate-900 text-xs px-3 py-2 rounded-lg border border-slate-700 flex-1 outline-none text-slate-200 uppercase font-mono" id="couponInput" />
+          <button id="applyCouponBtn" class="bg-slate-700 hover:bg-slate-600 text-slate-200 text-xs font-semibold px-3.5 py-2 rounded-lg transition">اعمال</button>
+        </div>
+      </div>
+
+      <!-- ===================================================== -->
+      <!-- TAB 4: PROFILE & IDENTITY (حساب کاربری)                 -->
+      <!-- ===================================================== -->
+      <div id="tab-profile" class="tab-pane space-y-4 hidden">
+        
+        <!-- User Avatar & Identity Card -->
+        <div class="bg-gradient-to-b from-slate-800 to-slate-900 rounded-3xl p-5 border border-slate-700/80 shadow-xl text-center relative overflow-hidden">
+          <div class="relative w-20 h-20 mx-auto mb-3">
+            <div class="w-full h-full rounded-full p-1 bg-gradient-to-tr from-cyan-400 via-blue-500 to-indigo-600 shadow-lg flex items-center justify-center">
+              <div class="w-full h-full rounded-full bg-slate-900 flex items-center justify-center text-3xl">
+                👨‍💻
+              </div>
+            </div>
+            <span class="absolute bottom-0 right-0 bg-emerald-500 text-white rounded-full p-1 text-[10px] border-2 border-slate-800">✓</span>
+          </div>
+
+          <h3 class="text-base font-extrabold text-white">محمد جواد نظری</h3>
+          <span class="text-xs text-blue-400 font-mono font-medium">@nzrmohammad</span>
+          <div class="flex items-center justify-center gap-2 mt-2">
+            <span class="px-2.5 py-0.5 rounded-full text-[10px] bg-indigo-500/20 text-indigo-300 font-bold border border-indigo-500/30">💎 کاربر طلایی VIP</span>
+            <span class="px-2.5 py-0.5 rounded-full text-[10px] bg-emerald-500/20 text-emerald-400 font-bold border border-emerald-500/30">احراز هویت شده</span>
+          </div>
+        </div>
+
+        <!-- Account Data Details Card -->
+        <div class="bg-slate-800/80 rounded-2xl p-4 border border-slate-700/80 space-y-3 shadow-md text-xs">
+          <span class="font-bold text-slate-200 block border-b border-slate-700/60 pb-2">📋 مشخصات حساب و ثبت‌نام:</span>
+          
+          <div class="flex justify-between items-center py-1">
+            <span class="text-slate-400 flex items-center gap-1.5"><span>🆔</span> شناسه عددی تلگرام:</span>
+            <div class="flex items-center gap-1">
+              <code class="font-mono text-white font-bold bg-slate-900 px-2 py-0.5 rounded">123456789</code>
+              <button class="text-slate-400 hover:text-blue-400 text-xs px-1" onclick="alert('شناسه کپی شد')">📋</button>
+            </div>
+          </div>
+
+          <div class="flex justify-between items-center py-1">
+            <span class="text-slate-400 flex items-center gap-1.5"><span>🤝</span> کد معرف شما:</span>
+            <div class="flex items-center gap-1">
+              <code class="font-mono text-amber-400 font-bold bg-slate-900 px-2 py-0.5 rounded">REF-8492</code>
+              <button class="text-slate-400 hover:text-amber-400 text-xs px-1" onclick="alert('لینک دعوت کپی شد: https://t.me/remnabot?start=ref8492')">📋 کپی لینک</button>
+            </div>
+          </div>
+
+          <div class="flex justify-between items-center py-1">
+            <span class="text-slate-400 flex items-center gap-1.5"><span>📞</span> شماره تماس:</span>
+            <span class="font-mono text-slate-200 font-medium dir-ltr">+98 938 004 5017</span>
+          </div>
+
+          <div class="flex justify-between items-center py-1">
+            <span class="text-slate-400 flex items-center gap-1.5"><span>📅</span> زمان ثبت‌نام:</span>
+            <span class="text-slate-200 font-medium">۱۴۰۳/۰۴/۱۵ (۳ ماه پیش)</span>
+          </div>
+
+          <div class="flex justify-between items-center py-1.5 border-t border-slate-700/60">
+            <span class="text-slate-300 font-bold flex items-center gap-1.5"><span>👛</span> موجودی کیف پول:</span>
+            <div class="flex items-center gap-2">
+              <b class="font-mono text-emerald-400 text-sm">۵۰,۰۰۰ تومان</b>
+              <button class="bg-blue-600 hover:bg-blue-500 text-white text-[10px] px-2.5 py-1 rounded-lg transition" onclick="alert('هدایت به صفحه شارژ کیف پول...')">افزایش</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Referral Reward Banner -->
+        <div class="bg-gradient-to-r from-purple-950/60 to-indigo-950/60 rounded-2xl p-3.5 border border-purple-800/40 flex items-center gap-3">
+          <span class="text-2xl">🎁</span>
+          <div class="text-xs">
+            <span class="font-bold text-purple-300 block">ترافیک رایگان با دعوت از دوستان!</span>
+            <span class="text-slate-400 text-[11px]">با هر خرید دوست شما، <b dir="ltr" class="font-mono text-purple-300">5 GB</b> <b>ترافیک هدیه</b> دریافت کنید.</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===================================================== -->
+      <!-- TAB 5: SETTINGS & REVOKE (تنظیمات، اعلان‌ها و ابطال ساب) -->
+      <!-- ===================================================== -->
+      <div id="tab-settings" class="tab-pane space-y-4 hidden">
+        <div class="flex justify-between items-center">
+          <h3 class="text-sm font-bold text-slate-200 flex items-center gap-1.5">
+            <span>⚙️</span> تنظیمات اشتراک و هشدارهای ربات
+          </h3>
+          <span class="text-[10px] text-slate-400 font-mono">v3.4.0</span>
+        </div>
+
+        <!-- 1. Subscription Revoke / Regenerate Card (درخواستی کاربر) -->
+        <div class="bg-rose-950/30 rounded-2xl p-4 border border-rose-800/40 space-y-3">
+          <div class="flex items-center gap-2">
+            <span class="text-xl text-rose-400">🛡️</span>
+            <div>
+              <h4 class="text-xs font-bold text-rose-300">تغییر و ابطال لینک اشتراک (Revoke)</h4>
+              <p class="text-[11px] text-slate-400 mt-0.5">در صورتی که لینک شما لو رفته یا اشتراکتان کند شده است.</p>
+            </div>
+          </div>
+          <button id="openRevokeModalBtn" class="w-full bg-rose-600 hover:bg-rose-500 text-white font-semibold text-xs py-2.5 rounded-xl transition flex items-center justify-center gap-1.5 shadow shadow-rose-900/40 active:scale-[0.98]">
+            <span>🔄</span> تغییر لینک اشتراک فعلی
+          </button>
+        </div>
+
+        <!-- 2. Notification Preferences Switches -->
+        <div class="bg-slate-800/90 rounded-2xl p-4 border border-slate-700/80 space-y-3 text-xs">
+          <span class="font-bold text-slate-200 block border-b border-slate-700/60 pb-2 flex items-center gap-1.5">
+            <span>🔔</span> مدیریت ارسال پیام‌ها و هشدارهای تلگرام:
+          </span>
+
+          <!-- Toggle: Nightly Report -->
+          <div class="flex items-center justify-between py-1">
+            <div>
+              <span class="text-slate-200 font-medium block">🌙 گزارش شبانه (ساعت ۲۳:۵۹)</span>
+              <span class="text-[10px] text-slate-400">ارسال خودکار خلاصه مصرف هر شب</span>
+            </div>
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" checked class="sr-only switch-checkbox">
+              <div class="switch-label w-11 h-6 bg-slate-700 rounded-full transition-colors duration-200 flex items-center px-0.5">
+                <div class="switch-ball w-5 h-5 bg-white rounded-full shadow-md transition-transform duration-200"></div>
+              </div>
+            </label>
+          </div>
+
+          <!-- Toggle: Weekly Report -->
+          <div class="flex items-center justify-between py-1 border-t border-slate-700/50 pt-2">
+            <div>
+              <span class="text-slate-200 font-medium block">📊 گزارش هفتگی (جمعه شب)</span>
+              <span class="text-[10px] text-slate-400">ارسال آمار مصرف ۷ روز گذشته</span>
+            </div>
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" checked class="sr-only switch-checkbox">
+              <div class="switch-label w-11 h-6 bg-slate-700 rounded-full transition-colors duration-200 flex items-center px-0.5">
+                <div class="switch-ball w-5 h-5 bg-white rounded-full shadow-md transition-transform duration-200"></div>
+              </div>
+            </label>
+          </div>
+
+          <!-- Toggle: Monthly Report -->
+          <div class="flex items-center justify-between py-1 border-t border-slate-700/50 pt-2">
+            <div>
+              <span class="text-slate-200 font-medium block">🗓 گزارش ماهانه (پایان ماه)</span>
+              <span class="text-[10px] text-slate-400">خلاصه کل ترافیک ماه شمسی</span>
+            </div>
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" checked class="sr-only switch-checkbox">
+              <div class="switch-label w-11 h-6 bg-slate-700 rounded-full transition-colors duration-200 flex items-center px-0.5">
+                <div class="switch-ball w-5 h-5 bg-white rounded-full shadow-md transition-transform duration-200"></div>
+              </div>
+            </label>
+          </div>
+
+          <!-- Toggle: Low Traffic Warning -->
+          <div class="flex items-center justify-between py-1 border-t border-slate-700/50 pt-2">
+            <div>
+              <span class="text-slate-200 font-medium block">⚠️ هشدار کمبود حجم (۸۰٪ و ۹۵٪)</span>
+              <span class="text-[10px] text-slate-400">هشدار آنی قبل از قطع شدن اینترنت</span>
+            </div>
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" checked class="sr-only switch-checkbox">
+              <div class="switch-label w-11 h-6 bg-slate-700 rounded-full transition-colors duration-200 flex items-center px-0.5">
+                <div class="switch-ball w-5 h-5 bg-white rounded-full shadow-md transition-transform duration-200"></div>
+              </div>
+            </label>
+          </div>
+
+          <!-- Toggle: Expiry Warning -->
+          <div class="flex items-center justify-between py-1 border-t border-slate-700/50 pt-2">
+            <div>
+              <span class="text-slate-200 font-medium block">⏰ هشدار پایان اعتبار (۳ روز قبل)</span>
+              <span class="text-[10px] text-slate-400">یادآوری تمدید اشتراک</span>
+            </div>
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" checked class="sr-only switch-checkbox">
+              <div class="switch-label w-11 h-6 bg-slate-700 rounded-full transition-colors duration-200 flex items-center px-0.5">
+                <div class="switch-ball w-5 h-5 bg-white rounded-full shadow-md transition-transform duration-200"></div>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <!-- 3. Language & Theme Settings -->
+        <div class="bg-slate-800/90 rounded-2xl p-4 border border-slate-700/80 space-y-3 text-xs">
+          <span class="font-bold text-slate-200 block border-b border-slate-700/60 pb-2">🌐 زبان و ظاهر برنامه:</span>
+          
+          <div class="flex items-center justify-between">
+            <span class="text-slate-300">زبان اپلیکیشن (Language):</span>
+            <div class="flex bg-slate-900 p-0.5 rounded-lg border border-slate-700">
+              <button class="px-2.5 py-1 rounded bg-blue-600 text-white font-bold text-[11px]">فارسی</button>
+              <button class="px-2.5 py-1 rounded text-slate-400 font-medium text-[11px] hover:text-white" onclick="alert('English language selected.')">English</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ======================================================== -->
+    <!-- 3. BOTTOM NAVIGATION BAR (5 Standard Tabs)               -->
+    <!-- ======================================================== -->
+    <div class="absolute bottom-0 inset-x-0 bg-[#131d31]/95 backdrop-blur-md border-t border-slate-700/80 px-2 py-2.5 flex justify-around items-center z-30 transition-colors">
+      <button class="nav-btn flex flex-col items-center gap-0.5 text-blue-400 transition" data-tab="tab-dashboard">
+        <span class="text-lg">📊</span>
+        <span class="text-[10px] font-bold">داشبورد</span>
+      </button>
+      <button class="nav-btn flex flex-col items-center gap-0.5 text-slate-400 hover:text-slate-200 transition" data-tab="tab-reports">
+        <span class="text-lg">📑</span>
+        <span class="text-[10px] font-medium">گزارش‌ها</span>
+      </button>
+      <button class="nav-btn flex flex-col items-center gap-0.5 text-slate-400 hover:text-slate-200 transition" data-tab="tab-shop">
+        <span class="text-lg">🛒</span>
+        <span class="text-[10px] font-medium">فروشگاه</span>
+      </button>
+      <button class="nav-btn flex flex-col items-center gap-0.5 text-slate-400 hover:text-slate-200 transition" data-tab="tab-profile">
+        <span class="text-lg">👤</span>
+        <span class="text-[10px] font-medium">حساب من</span>
+      </button>
+      <button class="nav-btn flex flex-col items-center gap-0.5 text-slate-400 hover:text-slate-200 transition" data-tab="tab-settings">
+        <span class="text-lg">⚙️</span>
+        <span class="text-[10px] font-medium">تنظیمات</span>
+      </button>
+    </div>
+
+    <!-- ======================================================== -->
+    <!-- 4. MODAL: REVOKE SUBSCRIPTION CONFIRMATION               -->
+    <!-- ======================================================== -->
+    <div id="revokeModal" class="absolute inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center p-5 hidden animate-fadeIn">
+      <div class="bg-[#1e293b] border border-rose-500/50 rounded-3xl p-5 w-full text-center space-y-4 shadow-2xl relative">
+        <div class="w-14 h-14 bg-rose-500/20 text-rose-400 rounded-full flex items-center justify-center text-2xl mx-auto border border-rose-500/40">
+          ⚠️
+        </div>
+        <div>
+          <h3 class="text-base font-extrabold text-white">آیا از ابطال لینک اشتراک مطمئنید؟</h3>
+          <p class="text-xs text-slate-300 mt-2 leading-relaxed">
+            با صدور لینک جدید، لینک قبلی شما در تمام گوشی‌ها و نرم‌افزارها <b>فوراً از کار خواهد افتاد</b> و باید لینک سابسکریپشن جدید را داخل کلاینت خود وارد کنید.
+          </p>
+        </div>
+        <div class="space-y-2 pt-2">
+          <button id="confirmRevokeBtn" class="w-full bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs py-2.5 rounded-xl transition active:scale-[0.98] shadow shadow-rose-600/30">
+            ✅ بله، لینک جدید صادر کن
+          </button>
+          <button id="cancelRevokeBtn" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium text-xs py-2.5 rounded-xl transition">
+            انصراف
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======================================================== -->
+    <!-- 5. MODAL: LUCKY WHEEL (گردونه شانس روزانه)                 -->
+    <!-- ======================================================== -->
+    <div id="luckyWheelModal" class="absolute inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden animate-fadeIn">
+      <div class="bg-[#1a233a] border border-amber-500/50 rounded-3xl p-5 w-full text-center space-y-4 shadow-2xl relative max-w-[360px]">
+        <button id="closeLuckyWheelBtn" class="absolute top-3 left-3 text-slate-400 hover:text-white text-sm bg-slate-800 rounded-full w-7 h-7 flex items-center justify-center">✕</button>
+        
+        <div>
+          <span class="px-3 py-1 rounded-full text-[10px] font-extrabold bg-amber-500/20 text-amber-300 border border-amber-500/40 uppercase tracking-wide">
+            🎰 گردونه شانس روزانه
+          </span>
+          <h3 class="text-base font-extrabold text-white mt-1.5">شانس دریافت ترافیک هدیه!</h3>
+          <p id="wheelSubText" class="text-[11px] text-slate-300 mt-0.5">بار اول کاملاً رایگان است (چرخش‌های بعدی: اشتراک فعال)</p>
+        </div>
+
+        <!-- Wheel Canvas / Visual -->
+        <div class="relative w-56 h-56 mx-auto flex items-center justify-center my-2">
+          <!-- Ticker Indicator Arrow -->
+          <div class="absolute -top-2.5 z-20 w-0 h-0 border-l-[10px] border-l-transparent border-r-[10px] border-r-transparent border-t-[18px] border-t-amber-400 drop-shadow-md"></div>
+          
+          <!-- Spinning Circle -->
+          <div id="wheelCircle" class="w-full h-full rounded-full border-4 border-amber-400/80 shadow-2xl relative overflow-hidden transition-all duration-[3500ms] ease-out flex items-center justify-center" style="background: conic-gradient(#3b82f6 0deg 60deg, #8b5cf6 60deg 120deg, #ec4899 120deg 180deg, #f59e0b 180deg 240deg, #64748b 240deg 300deg, #10b981 300deg 360deg);">
+            <!-- Overlay Labels around wheel (6 slices) -->
+            <div class="absolute inset-0 flex items-center justify-center pointer-events-none font-black text-[9.5px] text-white">
+              <span class="absolute top-2.5">🎁 1 GB</span>
+              <span class="absolute top-11 right-2">💎 1 روز</span>
+              <span class="absolute bottom-11 right-2">🎟 10%</span>
+              <span class="absolute bottom-2.5">⚡️ 500 MB</span>
+              <span class="absolute bottom-11 left-2">❌ پوچ</span>
+              <span class="absolute top-11 left-2">🔄 دوباره</span>
+            </div>
+            <!-- Center Button -->
+            <button id="spinWheelBtn" class="w-16 h-16 rounded-full bg-slate-900 border-4 border-amber-400 text-amber-300 font-black text-xs flex flex-col items-center justify-center z-10 shadow-xl active:scale-90 transition">
+              <span>بچرخون!</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Status / Result Message -->
+        <div id="wheelResultBox" class="bg-slate-900/80 p-2.5 rounded-xl border border-slate-700/60 text-xs">
+          <span id="wheelResultText" class="text-slate-300">دکمه وسط گردونه را لمس کنید تا شانس خود را امتحان نمایید!</span>
+        </div>
+
+        <div id="wheelSubWarning" class="hidden text-[10px] text-amber-300/90 bg-amber-950/40 p-2 rounded-lg border border-amber-700/30">
+          ⚠️ شانس رایگان شما استفاده شد. برای دریافت چرخش‌های بعدی، باید یک اشتراک فعال در ربات داشته باشید.
+        </div>
+      </div>
+    </div>
+
+    <!-- ======================================================== -->
+    <!-- 6. MODAL: STORY CARD (کارت وضعیت شیشه‌ای استوری)         -->
+    <!-- ======================================================== -->
+    <div id="storyCardModal" class="absolute inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden animate-fadeIn">
+      <div class="relative w-full max-w-[340px] flex flex-col items-center space-y-3">
+        <button id="closeStoryCardBtn" class="absolute -top-3 left-0 text-slate-400 hover:text-white text-sm bg-slate-800 rounded-full w-7 h-7 flex items-center justify-center z-20">✕</button>
+
+        <!-- 9:16 Glassmorphic Card Container -->
+        <div id="exportableStoryCard" class="w-full rounded-3xl p-5 border border-white/20 shadow-[0_20px_50px_rgba(0,0,0,0.8)] relative overflow-hidden text-center flex flex-col justify-between" style="background: linear-gradient(135deg, rgba(30, 27, 75, 0.85) 0%, rgba(15, 23, 42, 0.95) 50%, rgba(49, 46, 129, 0.8) 100%); backdrop-filter: blur(25px);">
+          <!-- Background decorative glow -->
+          <div class="absolute -top-12 -right-12 w-32 h-32 bg-cyan-500/20 rounded-full blur-2xl pointer-events-none"></div>
+          <div class="absolute -bottom-12 -left-12 w-32 h-32 bg-purple-500/25 rounded-full blur-2xl pointer-events-none"></div>
+
+          <!-- Top Brand Header -->
+          <div class="flex items-center justify-between border-b border-white/10 pb-3 z-10">
+            <div class="flex items-center gap-1.5">
+              <span class="text-xl">⚡️</span>
+              <span class="font-extrabold text-sm text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-blue-300 to-indigo-300">RemnaStore Pro</span>
+            </div>
+            <span class="text-[9px] font-mono font-bold text-amber-300 bg-amber-950/60 border border-amber-500/30 px-2 py-0.5 rounded-full">VIP MEMBER</span>
+          </div>
+
+          <!-- User Info & Neon Gauge -->
+          <div class="py-3 z-10 space-y-2">
+            <div class="w-14 h-14 rounded-full p-0.5 bg-gradient-to-tr from-cyan-400 to-indigo-500 mx-auto shadow-lg shadow-indigo-500/30 flex items-center justify-center">
+              <div class="w-full h-full rounded-full bg-slate-900 flex items-center justify-center text-2xl">👨‍💻</div>
+            </div>
+            <div>
+              <h4 class="text-sm font-extrabold text-white">محمد جواد نظری</h4>
+              <span class="text-[10px] text-blue-300 font-mono">@nzrmohammad</span>
+            </div>
+
+            <!-- Big Remaining Traffic Badge -->
+            <div class="bg-white/5 border border-white/15 rounded-2xl p-3 my-2 shadow-inner">
+              <span class="text-[10px] text-slate-300 font-medium block">ترافیک باقی‌مانده اشتراک:</span>
+              <div class="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-300 font-mono mt-0.5" dir="ltr">
+                324.6 GB
+              </div>
+              <div class="flex items-center justify-center gap-3 text-[10px] text-slate-300 mt-1 pt-1.5 border-t border-white/10">
+                <span>📅 ۵۰ روز اعتبار</span>
+                <span>•</span>
+                <span>🌍 نودهای VIP اروپایی</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Bottom Referral QR Box -->
+          <div class="bg-black/40 border border-white/10 rounded-2xl p-3 z-10 flex items-center gap-3 text-right">
+            <!-- Mini QR -->
+            <div class="bg-white p-1 rounded-xl shrink-0">
+              <svg class="w-12 h-12 text-slate-900" viewBox="0 0 100 100" fill="currentColor">
+                <path d="M10,10 h30 v30 h-30 z M15,15 v20 h20 v-20 z M20,20 h10 v10 h-10 z" />
+                <path d="M60,10 h30 v30 h-30 z M65,15 v20 h20 v-20 z M70,20 h10 v10 h-10 z" />
+                <path d="M10,60 h30 v30 h-30 z M15,65 v20 h20 v-20 z M20,70 h10 v10 h-10 z" />
+                <circle cx="50" cy="50" r="7" fill="#4f46e5" />
+                <rect x="55" y="45" width="30" height="8" fill="#1e293b" />
+              </svg>
+            </div>
+            <div class="text-[10px]">
+              <span class="font-bold text-white block">اینترنت آزاد و پرسرعت</span>
+              <span class="text-slate-300 block text-[9px] mt-0.5">اسکن کن تا ۵ GB ترافیک رایگان بگیری!</span>
+              <span class="font-mono text-amber-300 font-bold text-[9px] mt-0.5 block">کد معرف: REF-8492</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex gap-2 w-full">
+          <button id="downloadStoryBtn" class="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs py-2.5 rounded-xl transition shadow active:scale-95 flex items-center justify-center gap-1.5">
+            <span>📥</span>
+            <span>ذخیره تصویر کارت</span>
+          </button>
+          <button id="shareTelegramStoryBtn" class="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-bold text-xs py-2.5 rounded-xl transition shadow active:scale-95 flex items-center justify-center gap-1.5">
+            <span>🚀</span>
+            <span>استوری تلگرام</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======================================================== -->
+    <!-- 7. MODAL: SUPPORT & TICKETS (چت پشتیبانی آنلاین)         -->
+    <!-- ======================================================== -->
+    <div id="supportChatModal" class="absolute inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-3 hidden animate-fadeIn">
+      <div class="bg-[#151f32] border border-slate-700/80 rounded-3xl w-full max-w-[390px] h-[620px] flex flex-col overflow-hidden shadow-2xl relative">
+        <!-- Top Chat Header -->
+        <div class="bg-[#1a263e] border-b border-slate-700/80 p-3.5 flex items-center justify-between">
+          <div class="flex items-center gap-2.5">
+            <div class="relative">
+              <div class="w-9 h-9 rounded-full bg-gradient-to-tr from-emerald-400 to-blue-500 flex items-center justify-center text-lg text-white font-bold">
+                🎧
+              </div>
+              <span class="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-400 rounded-full border-2 border-slate-900"></span>
+            </div>
+            <div>
+              <h4 class="text-xs font-bold text-white">پشتیبانی اختصاصی RemnaStore</h4>
+              <span class="text-[10px] text-emerald-400 font-medium">🟢 آنلاین (پاسخگویی زیر ۲ دقیقه)</span>
+            </div>
+          </div>
+          <button id="closeSupportChatBtn" class="text-slate-400 hover:text-white text-xs bg-slate-800 rounded-full w-7 h-7 flex items-center justify-center">✕</button>
+        </div>
+
+        <!-- Chat Messages Container -->
+        <div id="chatMessages" class="flex-1 p-3.5 space-y-3 overflow-y-auto custom-scroll text-xs">
+          <!-- Support Msg 1 -->
+          <div class="flex items-start gap-2 max-w-[85%]">
+            <div class="w-6 h-6 rounded-full bg-emerald-600 flex items-center justify-center text-[10px] shrink-0">🎧</div>
+            <div class="bg-slate-800 rounded-2xl rounded-tr-none p-2.5 text-slate-200 border border-slate-700/60 leading-relaxed shadow-sm">
+              سلام محمد عزیز! وقت بخیر 👋 چطور می‌تونم در مورد سرویس یا اتصالتون راهنماییتون کنم؟
+              <span class="text-[9px] text-slate-400 block text-left mt-1 font-mono">14:50</span>
+            </div>
+          </div>
+
+          <!-- User Msg 1 -->
+          <div class="flex items-start justify-end gap-2 max-w-[85%] mr-auto">
+            <div class="bg-blue-600 rounded-2xl rounded-tl-none p-2.5 text-white leading-relaxed shadow-sm">
+              سلام، روی آیفون برنامه Streisand سرعت کدوم سرور برای همراه اول بهتره؟
+              <span class="text-[9px] text-blue-200 block text-left mt-1 font-mono">14:52</span>
+            </div>
+          </div>
+
+          <!-- Support Msg 2 -->
+          <div class="flex items-start gap-2 max-w-[85%]">
+            <div class="w-6 h-6 rounded-full bg-emerald-600 flex items-center justify-center text-[10px] shrink-0">🎧</div>
+            <div class="bg-slate-800 rounded-2xl rounded-tr-none p-2.5 text-slate-200 border border-slate-700/60 leading-relaxed shadow-sm">
+              برای همراه اول در حال حاضر سرور <b>🇩🇪 آلمان (Frankfurt Direct)</b> و سرور <b>🇹🇷 ترکیه</b> کمترین تاخیر (زیر ۵۰ میلی‌ثانیه) رو دارن و بدون قطعی وصل میشن! 🚀
+              <span class="text-[9px] text-slate-400 block text-left mt-1 font-mono">14:53</span>
+            </div>
+          </div>
+
+          <!-- Dynamic user messages container -->
+          <div id="dynamicChatContainer" class="space-y-3"></div>
+
+          <!-- Typing Indicator (hidden by default) -->
+          <div id="typingIndicator" class="hidden items-center gap-2 text-[11px] text-slate-400 italic">
+            <span>🎧 پشتیبان در حال نوشتن پاسخ...</span>
+            <span class="animate-pulse">✍️</span>
+          </div>
+        </div>
+
+        <!-- Quick Question Chips -->
+        <div class="px-3 py-1.5 bg-slate-900/50 border-t border-slate-800 flex gap-1.5 overflow-x-auto custom-scroll text-[10px] whitespace-nowrap">
+          <button class="quick-chip bg-slate-800 hover:bg-slate-700 text-slate-300 px-2.5 py-1 rounded-full border border-slate-700 transition">💡 آموزش اتصال آیفون</button>
+          <button class="quick-chip bg-slate-800 hover:bg-slate-700 text-slate-300 px-2.5 py-1 rounded-full border border-slate-700 transition">💳 روش پرداخت کارت به کارت</button>
+          <button class="quick-chip bg-slate-800 hover:bg-slate-700 text-slate-300 px-2.5 py-1 rounded-full border border-slate-700 transition">⚡️ تعویض سرور کند</button>
+        </div>
+
+        <!-- Chat Input Bar -->
+        <div class="bg-[#1a263e] border-t border-slate-700/80 p-2.5 flex items-center gap-2">
+          <button class="text-slate-400 hover:text-white p-2 rounded-xl bg-slate-800 border border-slate-700 transition" title="ارسال فایل یا عکس">📎</button>
+          <input type="text" id="chatInput" placeholder="پیام خود را برای پشتیبان بنویسید..." class="bg-slate-900 text-xs text-slate-200 px-3 py-2 rounded-xl border border-slate-700 flex-1 outline-none focus:border-blue-500 transition" />
+          <button id="sendMessageBtn" class="bg-blue-600 hover:bg-blue-500 text-white p-2 rounded-xl transition active:scale-95 flex items-center justify-center font-bold">
+            <span>🚀</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Interactive JavaScript Logic -->
+  <script>
+    // 1. Splash Screen Logic
+    const splashScreen = document.getElementById('splashScreen');
+    const splashBar = document.getElementById('splashBar');
+
+    function runSplash() {
+      splashScreen.style.opacity = '1';
+      splashScreen.style.pointerEvents = 'auto';
+      splashBar.style.width = '0%';
+      setTimeout(() => { splashBar.style.width = '100%'; }, 50);
+      setTimeout(() => {
+        splashScreen.style.opacity = '0';
+        splashScreen.style.pointerEvents = 'none';
+      }, 1000);
+    }
+    if (document.readyState === 'complete' || document.readyState === 'interactive') {
+      setTimeout(runSplash, 50);
+    } else {
+      window.addEventListener('DOMContentLoaded', runSplash);
+    }
+    document.getElementById('reloadBtn').addEventListener('click', runSplash);
+
+    // 2. Tab Navigation (5 Tabs)
+    const navButtons = document.querySelectorAll('.nav-btn');
+    const tabPanes = document.querySelectorAll('.tab-pane');
+
+    navButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const targetId = btn.getAttribute('data-tab');
+
+        tabPanes.forEach(pane => {
+          if (pane.id === targetId) {
+            pane.classList.remove('hidden');
+          } else {
+            pane.classList.add('hidden');
+          }
+        });
+
+        navButtons.forEach(b => {
+          b.classList.remove('text-blue-400');
+          b.classList.add('text-slate-400');
+          b.querySelector('span:last-child').classList.replace('font-bold', 'font-medium');
+        });
+        btn.classList.remove('text-slate-400');
+        btn.classList.add('text-blue-400');
+        btn.querySelector('span:last-child').classList.replace('font-medium', 'font-bold');
+      });
+    });
+
+    // 3. Sub-tabs in Reports Hub
+    const repSubNightly = document.getElementById('repSubNightly');
+    const repSubWeekly = document.getElementById('repSubWeekly');
+    const repSubMonthly = document.getElementById('repSubMonthly');
+    const viewRepNightly = document.getElementById('viewRepNightly');
+    const viewRepWeekly = document.getElementById('viewRepWeekly');
+    const viewRepMonthly = document.getElementById('viewRepMonthly');
+
+    function setRepSub(activeBtn, activeView) {
+      [repSubNightly, repSubWeekly, repSubMonthly].forEach(b => {
+        b.className = 'flex-1 py-1.5 rounded-lg font-medium text-slate-400 hover:text-slate-200 transition';
+      });
+      activeBtn.className = 'flex-1 py-1.5 rounded-lg font-bold bg-blue-600 text-white transition';
+
+      [viewRepNightly, viewRepWeekly, viewRepMonthly].forEach(v => v.classList.add('hidden'));
+      activeView.classList.remove('hidden');
+    }
+
+    repSubNightly.addEventListener('click', () => setRepSub(repSubNightly, viewRepNightly));
+    repSubWeekly.addEventListener('click', () => setRepSub(repSubWeekly, viewRepWeekly));
+    repSubMonthly.addEventListener('click', () => setRepSub(repSubMonthly, viewRepMonthly));
+
+    // 4. Copy Subscription
+    const copySubBtn = document.getElementById('copySubBtn');
+    copySubBtn.addEventListener('click', () => {
+      const input = document.getElementById('subInput');
+      navigator.clipboard.writeText(input.value).then(() => {
+        copySubBtn.innerText = '✅ کپی شد!';
+        copySubBtn.classList.replace('bg-blue-600', 'bg-emerald-600');
+        setTimeout(() => {
+          copySubBtn.innerText = 'کپی';
+          copySubBtn.classList.replace('bg-emerald-600', 'bg-blue-600');
+        }, 1800);
+      });
+    });
+
+    // 5. Toggle QR Code
+    const qrToggleBtn = document.getElementById('qrToggleBtn');
+    const qrContainer = document.getElementById('qrContainer');
+    qrToggleBtn.addEventListener('click', () => {
+      qrContainer.classList.toggle('hidden');
+      if (qrContainer.classList.contains('hidden')) {
+        qrToggleBtn.innerHTML = '<span>📷 کیوآرکد</span>';
+      } else {
+        qrToggleBtn.innerHTML = '<span>❌ بستن</span>';
+      }
+    });
+
+    // 6. Revoke Modal Logic
+    const revokeModal = document.getElementById('revokeModal');
+    const openRevokeModalBtn = document.getElementById('openRevokeModalBtn');
+    const revokeSubBtnTop = document.getElementById('revokeSubBtnTop');
+    const cancelRevokeBtn = document.getElementById('cancelRevokeBtn');
+    const confirmRevokeBtn = document.getElementById('confirmRevokeBtn');
+    const subInput = document.getElementById('subInput');
+
+    function openRevoke() { revokeModal.classList.remove('hidden'); }
+    function closeRevoke() { revokeModal.classList.add('hidden'); }
+
+    openRevokeModalBtn.addEventListener('click', openRevoke);
+    revokeSubBtnTop.addEventListener('click', openRevoke);
+    cancelRevokeBtn.addEventListener('click', closeRevoke);
+
+    confirmRevokeBtn.addEventListener('click', () => {
+      const randomKey = Math.random().toString(36).substring(2, 8);
+      subInput.value = `https://panel.cloudvibe.ir/sub/user-mohammad-new-${randomKey}`;
+      closeRevoke();
+      alert('🎉 لینک اشتراک قبلی شما با موفقیت ابطال و لینک جدید صادر شد! لطفاً لینک جدید را در نرم‌افزار خود کپی کنید.');
+    });
+
+    // 7. Kill All Sessions
+    document.getElementById('killAllBtn').addEventListener('click', () => {
+      if (confirm('آیا از قطع اتصال تمام نشست‌ها و دستگاه‌های متصل اطمینان دارید؟')) {
+        alert('✅ تمام نشست‌های فعال با موفقیت مسدود شدند.');
+      }
+    });
+
+    // 8. Coupon Code Application
+    const applyCouponBtn = document.getElementById('applyCouponBtn');
+    const couponInput = document.getElementById('couponInput');
+    applyCouponBtn.addEventListener('click', () => {
+      const val = couponInput.value.trim().toUpperCase();
+      if (val === 'OFF20' || val === 'VIP') {
+        alert('🎉 کد تخفیف با موفقیت اعمال شد! ۲۰٪ تخفیف روی فاکتور شما ثبت شد.');
+        applyCouponBtn.innerText = '✅ اعمال شد';
+        applyCouponBtn.classList.replace('bg-slate-700', 'bg-emerald-600');
+      } else {
+        alert('❌ کد تخفیف نامعتبر است. (کد تستی: OFF20)');
+      }
+    });
+
+    // 9. Dark/Light Mode Theme Toggle
+    const themeToggle = document.getElementById('themeToggle');
+    const themeIcon = document.getElementById('themeIcon');
+    let isDark = true;
+
+    themeToggle.addEventListener('click', () => {
+      isDark = !isDark;
+      const appBody = document.getElementById('appBody');
+      const phoneFrame = document.getElementById('phoneFrame');
+
+      if (isDark) {
+        document.documentElement.classList.add('dark');
+        themeIcon.innerText = '🌙';
+        appBody.classList.replace('bg-slate-100', 'bg-[#0b1120]');
+        phoneFrame.classList.replace('bg-white', 'bg-[#131d31]');
+        phoneFrame.classList.replace('text-slate-900', 'text-slate-100');
+      } else {
+        document.documentElement.classList.remove('dark');
+        themeIcon.innerText = '☀️';
+        appBody.classList.replace('bg-[#0b1120]', 'bg-slate-100');
+        phoneFrame.classList.replace('bg-[#131d31]', 'bg-white');
+        phoneFrame.classList.replace('text-slate-100', 'text-slate-900');
+      }
+    });
+
+    // 10. Live Ping Test Logic (قابلیت جذاب تست پینگ زنده)
+    const runPingBtn = document.getElementById('runPingBtn');
+    const pingSpinner = document.getElementById('pingSpinner');
+    const pingBtnText = document.getElementById('pingBtnText');
+
+    runPingBtn.addEventListener('click', () => {
+      pingSpinner.classList.remove('hidden');
+      pingSpinner.classList.add('inline-block', 'animate-spin');
+      pingBtnText.innerText = 'در حال سنجش...';
+      runPingBtn.disabled = true;
+
+      const pings = document.querySelectorAll('.ping-val');
+      pings.forEach(p => { p.innerText = '...'; });
+
+      setTimeout(() => {
+        const results = [
+          { ms: Math.floor(Math.random() * 8) + 32, label: '🟢 عالی', color: 'text-emerald-400' },
+          { ms: Math.floor(Math.random() * 10) + 48, label: '🟢 عالی', color: 'text-emerald-400' },
+          { ms: Math.floor(Math.random() * 12) + 58, label: '🟢 پایدار', color: 'text-emerald-400' },
+          { ms: Math.floor(Math.random() * 15) + 75, label: '🟡 متوسط', color: 'text-amber-400' }
+        ];
+
+        pings.forEach((p, idx) => {
+          p.innerText = `${results[idx].ms} ms`;
+          p.className = `ping-val text-xs font-bold ${results[idx].color}`;
+          const badge = p.nextElementSibling;
+          if (badge) {
+            badge.innerText = results[idx].label;
+            badge.className = `block text-[9px] font-sans ${results[idx].color}`;
+          }
+        });
+
+        pingSpinner.classList.add('hidden');
+        pingSpinner.classList.remove('inline-block', 'animate-spin');
+        pingBtnText.innerText = '⚡️ سنجش مجدد';
+        runPingBtn.disabled = false;
+      }, 700);
+    });
+
+    // 11. Network Suite Sub-Tab Switching (پینگ / سرعت / نشت IP)
+    const netTabPing = document.getElementById('netTabPing');
+    const netTabSpeed = document.getElementById('netTabSpeed');
+    const netTabLeak = document.getElementById('netTabLeak');
+    const paneNetPing = document.getElementById('paneNetPing');
+    const paneNetSpeed = document.getElementById('paneNetSpeed');
+    const paneNetLeak = document.getElementById('paneNetLeak');
+
+    function switchNetTool(activeBtn, activePane) {
+      [netTabPing, netTabSpeed, netTabLeak].forEach(b => {
+        b.className = 'px-2 py-1 rounded-md font-medium text-slate-400 hover:text-slate-200 transition';
+      });
+      activeBtn.className = 'px-2 py-1 rounded-md font-bold bg-blue-600 text-white transition';
+
+      [paneNetPing, paneNetSpeed, paneNetLeak].forEach(p => p.classList.add('hidden'));
+      activePane.classList.remove('hidden');
+    }
+
+    netTabPing.addEventListener('click', () => switchNetTool(netTabPing, paneNetPing));
+    netTabSpeed.addEventListener('click', () => switchNetTool(netTabSpeed, paneNetSpeed));
+    netTabLeak.addEventListener('click', () => switchNetTool(netTabLeak, paneNetLeak));
+
+    // 12. Speed Test Simulation Logic
+    const runSpeedTestBtn = document.getElementById('runSpeedTestBtn');
+    const speedMeterArc = document.getElementById('speedMeterArc');
+    const speedRealtimeValue = document.getElementById('speedRealtimeValue');
+    const dlSpeedVal = document.getElementById('dlSpeedVal');
+    const ulSpeedVal = document.getElementById('ulSpeedVal');
+    const pingSpeedVal = document.getElementById('pingSpeedVal');
+    const speedTestBtnText = document.getElementById('speedTestBtnText');
+
+    let isTestingSpeed = false;
+    runSpeedTestBtn.addEventListener('click', () => {
+      if (isTestingSpeed) return;
+      isTestingSpeed = true;
+      runSpeedTestBtn.disabled = true;
+      speedTestBtnText.innerText = 'در حال محاسبه سرعت اتصال...';
+      dlSpeedVal.innerText = '...';
+      ulSpeedVal.innerText = '...';
+      pingSpeedVal.innerText = '...';
+
+      let step = 0;
+      const speedInterval = setInterval(() => {
+        step += 1;
+        const fakeSpeed = (Math.random() * 25 + step * 7).toFixed(1);
+        speedRealtimeValue.innerText = fakeSpeed;
+        const offset = Math.max(20, 190 - (fakeSpeed / 100) * 170);
+        speedMeterArc.style.strokeDashoffset = offset;
+
+        if (step >= 12) {
+          clearInterval(speedInterval);
+          const finalDl = (Math.random() * 15 + 82).toFixed(1);
+          const finalUl = (Math.random() * 10 + 38).toFixed(1);
+          const finalPing = Math.floor(Math.random() * 8 + 32);
+
+          speedRealtimeValue.innerText = finalDl;
+          speedMeterArc.style.strokeDashoffset = 35;
+          dlSpeedVal.innerText = `${finalDl} Mbps`;
+          ulSpeedVal.innerText = `${finalUl} Mbps`;
+          pingSpeedVal.innerText = `${finalPing} ms`;
+
+          speedTestBtnText.innerText = '✅ تست انجام شد (شروع مجدد)';
+          runSpeedTestBtn.disabled = false;
+          isTestingSpeed = false;
+        }
+      }, 150);
+    });
+
+    // 13. Leak Scan Simulation
+    const runLeakScanBtn = document.getElementById('runLeakScanBtn');
+    const leakScanText = document.getElementById('leakScanText');
+    runLeakScanBtn.addEventListener('click', () => {
+      leakScanText.innerText = 'در حال بررسی نشت IP و WebRTC...';
+      runLeakScanBtn.disabled = true;
+      setTimeout(() => {
+        alert('🛡 بررسی کامل شد:\n• هیچ نشت DNS یا IP وجود ندارد.\n• اپراتور متصل شناسایی نمی‌شود.\n• ترافیک شما به صورت کامل رمزنگاری شده است.');
+        leakScanText.innerText = 'بررسی مجدد نشت DNS و IP';
+        runLeakScanBtn.disabled = false;
+      }, 1200);
+    });
+
+    // 14. Lucky Wheel Modal & Spin Logic (گردونه شانس)
+    const luckyWheelModal = document.getElementById('luckyWheelModal');
+    const openLuckyWheelBtn = document.getElementById('openLuckyWheelBtn');
+    const closeLuckyWheelBtn = document.getElementById('closeLuckyWheelBtn');
+    const spinWheelBtn = document.getElementById('spinWheelBtn');
+    const wheelCircle = document.getElementById('wheelCircle');
+    const wheelResultText = document.getElementById('wheelResultText');
+    const wheelSubWarning = document.getElementById('wheelSubWarning');
+
+    let hasSpunFreeWheel = false;
+    let currentWheelRotation = 0;
+
+    // Toggle Country Breakdown Accordion (باز و بسته شدن مصرف کشورها)
+    const toggleCountryBreakdownBtn = document.getElementById('toggleCountryBreakdownBtn');
+    const countryBreakdownBody = document.getElementById('countryBreakdownBody');
+    const countryChevron = document.getElementById('countryChevron');
+    if (toggleCountryBreakdownBtn) {
+      toggleCountryBreakdownBtn.addEventListener('click', () => {
+        countryBreakdownBody.classList.toggle('hidden');
+        if (countryBreakdownBody.classList.contains('hidden')) {
+          countryChevron.style.transform = 'rotate(0deg)';
+        } else {
+          countryChevron.style.transform = 'rotate(-90deg)';
+        }
+      });
+    }
+
+    openLuckyWheelBtn.addEventListener('click', () => luckyWheelModal.classList.remove('hidden'));
+    closeLuckyWheelBtn.addEventListener('click', () => luckyWheelModal.classList.add('hidden'));
+
+    spinWheelBtn.addEventListener('click', () => {
+      if (hasSpunFreeWheel) {
+        alert('⚠️ شانس رایگان شما استفاده شده است!\nبرای دریافت چرخش‌های روزانه بعدی، باید یک اشتراک فعال در ربات داشته باشید.');
+        return;
+      }
+
+      spinWheelBtn.disabled = true;
+      spinWheelBtn.innerText = '...';
+
+      const prizeOptions = [
+        { text: '1 GB ترافیک هدیه', icon: '🎁', isAgain: false, isZero: false },
+        { text: '1 روز اشتراک VIP رایگان', icon: '💎', isAgain: false, isZero: false },
+        { text: '۱۰٪ کد تخفیف ویژه (کد: OFF10)', icon: '🎟', isAgain: false, isZero: false },
+        { text: '500 MB ترافیک هدیه', icon: '⚡️', isAgain: false, isZero: false },
+        { text: 'پوچ (شانس بعدی فردا)', icon: '❌', isAgain: false, isZero: true },
+        { text: 'دوباره (شانس مجدد!)', icon: '🔄', isAgain: true, isZero: false }
+      ];
+
+      // Select random prize (default to 1 GB on first spin for great user delight)
+      const selectedIndex = 0; // 1 GB
+      const chosen = prizeOptions[selectedIndex];
+
+      const randomExtra = Math.floor(Math.random() * 360);
+      currentWheelRotation += 1800 + randomExtra;
+      wheelCircle.style.transform = `rotate(${currentWheelRotation}deg)`;
+
+      setTimeout(() => {
+        spinWheelBtn.disabled = false;
+
+        if (chosen.isAgain) {
+          spinWheelBtn.innerText = 'بچرخون!';
+          wheelResultText.innerHTML = '🔄 <b>شانس مجدد!</b> گردونه برای شما دوباره فعال شد، همین الان بچرخون!';
+          alert('🔄 شانس مجدد برنده شدید! می‌توانید یک‌بار دیگر بچرخانید.');
+        } else if (chosen.isZero) {
+          hasSpunFreeWheel = true;
+          spinWheelBtn.innerText = '🔒';
+          wheelResultText.innerHTML = '❌ <b>متاسفانه پوچ شد!</b> برای دریافت شانس‌های بعدی، داشتن اشتراک فعال الزامی است.';
+          wheelSubWarning.classList.remove('hidden');
+          alert('❌ این چرخش پوچ شد! شانس بعدی نیازمند اشتراک فعال است.');
+        } else {
+          hasSpunFreeWheel = true;
+          spinWheelBtn.innerText = '🔒';
+          wheelResultText.innerHTML = `🎉 <b>تبریک فوق‌العاده!</b> شما برنده <b class="text-emerald-400 font-bold">${chosen.text}</b> شدید!`;
+          wheelSubWarning.classList.remove('hidden');
+          alert(`🎉 تبریک! شما برنده ${chosen.text} شدید! جایزه با موفقیت ثبت شد.`);
+        }
+      }, 3600);
+    });
+
+    // 15. Story Card Modal & Share Logic (کارت استوری شیشه‌ای)
+    const storyCardModal = document.getElementById('storyCardModal');
+    const openStoryCardBtn = document.getElementById('openStoryCardBtn');
+    const closeStoryCardBtn = document.getElementById('closeStoryCardBtn');
+    const downloadStoryBtn = document.getElementById('downloadStoryBtn');
+    const shareTelegramStoryBtn = document.getElementById('shareTelegramStoryBtn');
+
+    openStoryCardBtn.addEventListener('click', () => storyCardModal.classList.remove('hidden'));
+    closeStoryCardBtn.addEventListener('click', () => storyCardModal.classList.add('hidden'));
+
+    downloadStoryBtn.addEventListener('click', () => {
+      alert('📸 کارت استوری با بالاترین کیفیت آماده شد و در گالری ذخیره گردید!');
+    });
+    shareTelegramStoryBtn.addEventListener('click', () => {
+      alert('🚀 در محیط رسمی تلگرام، پنجره باز کردن مستقیم استوری تلگرام با ویجت لینک دعوت باز می‌شود.');
+    });
+
+    // 16. Support & Ticket Center Logic (چت پشتیبانی آنلاین)
+    const supportChatModal = document.getElementById('supportChatModal');
+    const openSupportBtn = document.getElementById('openSupportBtn');
+    const closeSupportChatBtn = document.getElementById('closeSupportChatBtn');
+    const chatInput = document.getElementById('chatInput');
+    const sendMessageBtn = document.getElementById('sendMessageBtn');
+    const dynamicChatContainer = document.getElementById('dynamicChatContainer');
+    const typingIndicator = document.getElementById('typingIndicator');
+    const chatMessages = document.getElementById('chatMessages');
+
+    openSupportBtn.addEventListener('click', () => supportChatModal.classList.remove('hidden'));
+    closeSupportChatBtn.addEventListener('click', () => supportChatModal.classList.add('hidden'));
+
+    function sendUserMessage(text) {
+      if (!text || !text.trim()) return;
+
+      const userBubble = document.createElement('div');
+      userBubble.className = 'flex items-start justify-end gap-2 max-w-[85%] mr-auto animate-fadeIn';
+      userBubble.innerHTML = `
+        <div class="bg-blue-600 rounded-2xl rounded-tl-none p-2.5 text-white leading-relaxed shadow-sm">
+          ${text.trim()}
+          <span class="text-[9px] text-blue-200 block text-left mt-1 font-mono">هم‌اکنون</span>
+        </div>
+      `;
+      dynamicChatContainer.appendChild(userBubble);
+      chatInput.value = '';
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+
+      // Show typing indicator
+      setTimeout(() => {
+        typingIndicator.classList.remove('hidden');
+        typingIndicator.classList.add('flex');
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+
+        // Auto support response
+        setTimeout(() => {
+          typingIndicator.classList.add('hidden');
+          typingIndicator.classList.remove('flex');
+
+          const replyBubble = document.createElement('div');
+          replyBubble.className = 'flex items-start gap-2 max-w-[85%] animate-fadeIn';
+          replyBubble.innerHTML = `
+            <div class="w-6 h-6 rounded-full bg-emerald-600 flex items-center justify-center text-[10px] shrink-0">🎧</div>
+            <div class="bg-slate-800 rounded-2xl rounded-tr-none p-2.5 text-slate-200 border border-slate-700/60 leading-relaxed shadow-sm">
+              پیام شما دریافت شد محمد عزیز! همکاران فنی ما در حال بررسی هستند و پاسخ کامل را برای شما ارسال خواهند کرد. ✅
+              <span class="text-[9px] text-slate-400 block text-left mt-1 font-mono">هم‌اکنون</span>
+            </div>
+          `;
+          dynamicChatContainer.appendChild(replyBubble);
+          chatMessages.scrollTop = chatMessages.scrollHeight;
+        }, 1500);
+      }, 500);
+    }
+
+    sendMessageBtn.addEventListener('click', () => sendUserMessage(chatInput.value));
+    chatInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') sendUserMessage(chatInput.value);
+    });
+
+    document.querySelectorAll('.quick-chip').forEach(chip => {
+      chip.addEventListener('click', () => {
+        sendUserMessage(chip.innerText.replace(/^[^\w\s\u0600-\u06FF]+/, '').trim());
+      });
+    });
+
+    // Close button & Telegram WebApp SDK Lifecycle
+    const tg = window.Telegram?.WebApp;
+    if (tg) {
+      try {
+        tg.ready();
+        tg.expand();
+        if (tg.setHeaderColor) tg.setHeaderColor('#0f172a');
+        if (tg.setBackgroundColor) tg.setBackgroundColor('#080d1a');
+      } catch (e) {}
+    }
+
+    document.getElementById('closeBtn')?.addEventListener('click', () => {
+      if (tg) {
+        tg.close();
+      } else {
+        alert('این دکمه در تلگرام واقعی، پنجره مینی‌اپ را می‌بندد و کاربر را به صفحه چت بازمی‌گرداند.');
+      }
+    });
+
+    // Stale-While-Revalidate: Instant Hydration & Live API Sync
+    function hydrateUserInterface(data) {
+      if (!data) return;
+      if (data.user?.first_name) {
+        const nameEl = document.querySelector('.font-bold.text-blue-300');
+        if (nameEl) nameEl.innerText = data.user.first_name;
+      }
+      if (data.active_sub) {
+        const sub = data.active_sub;
+        const pillEl = document.querySelector('span[dir="ltr"].font-mono.font-bold.text-cyan-300');
+        if (pillEl) pillEl.innerText = `${sub.traffic_used_gb} / ${sub.traffic_total_gb} GB`;
+        const pctEl = document.querySelector('.text-3xl.font-black.text-white');
+        if (pctEl) pctEl.innerText = `${Math.round(sub.percent_remaining)}٪`;
+        if (gaugeProgress) {
+          const circumference = 314.15;
+          const offset = circumference - (circumference * (sub.percent_remaining / 100));
+          gaugeProgress.style.strokeDashoffset = offset;
+        }
+      }
+    }
+
+    async function syncUserDataWithApi() {
+      const initData = tg?.initData || '';
+      try {
+        const resp = await fetch('/api/user/me', {
+          headers: { 'X-Telegram-Init-Data': initData }
+        });
+        if (!resp.ok) return;
+        const res = await resp.json();
+        if (res.ok && res.data) {
+          hydrateUserInterface(res.data);
+          try {
+            localStorage.setItem('remna_user_cache', JSON.stringify(res.data));
+          } catch(e) {}
+        }
+      } catch (err) {
+        console.debug('Live API sync fallback to cache', err);
+      }
+    }
+
+    // Hydrate cached data immediately on load
+    try {
+      const cached = localStorage.getItem('remna_user_cache');
+      if (cached) hydrateUserInterface(JSON.parse(cached));
+    } catch(e) {}
+    syncUserDataWithApi();
+  </script>
+</body>
+</html>
