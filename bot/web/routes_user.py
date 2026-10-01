@@ -55,14 +55,39 @@ async def get_user_me(request: web.Request) -> web.Response:
         )
         referrals_count = int(ref_count_res.scalar_one() or 0)
 
-        # 3. Active Remnawave account stats
+        # 3. Real plans / services defined by admin
+        from bot.db.models import Service
+        services_res = await session.execute(
+            select(Service).where(Service.is_active.is_(True)).order_by(Service.price.asc())
+        )
+        services = services_res.scalars().all()
+        plans_data = [
+            {
+                "id": s.id,
+                "name": s.name,
+                "price": s.price,
+                "duration_days": s.duration_days,
+                "traffic_gb": s.traffic_gb,
+                "description": s.description,
+            }
+            for s in services
+        ]
+
+        # 4. Real Jalali dates
+        import jdatetime
+        from datetime import timedelta
+        now_j = jdatetime.datetime.now()
+        today_jalali_str = f"{now_j.year}/{now_j.month:02d}/{now_j.day:02d}"
+        yesterday_j = now_j - timedelta(days=1)
+        yesterday_jalali_str = f"{yesterday_j.year}/{yesterday_j.month:02d}/{yesterday_j.day:02d}"
+
+        # 5. Active Remnawave account stats
         panel_users = await remnawave.get_users_by_telegram_id(telegram_id)
         active_sub = None
         has_active_sub = False
         panel_user_id = None
 
         if panel_users:
-            # Pick first active or main user
             primary = panel_users[0]
             panel_user_id = primary.get("id")
             has_active_sub = primary.get("status", "").upper() == "ACTIVE"
@@ -73,15 +98,29 @@ async def get_user_me(request: web.Request) -> web.Response:
             )
             devices = await remnawave.get_user_hwid_devices(panel_user_id)
 
-            # Calculate days left
+            # Calculate days left and Jalali expire date
             expire_at = primary.get("expire")
             days_left = 0
+            expire_jalali_str = ""
             if expire_at:
                 try:
                     exp_dt = datetime.fromtimestamp(expire_at, tz=timezone.utc)
                     days_left = max(0, (exp_dt - datetime.now(timezone.utc)).days)
+                    exp_j = jdatetime.datetime.fromtimestamp(expire_at)
+                    expire_jalali_str = f"{exp_j.year}/{exp_j.month:02d}/{exp_j.day:02d}"
                 except Exception:
                     pass
+
+            # Resolve real subscription URL from Remnawave (subscriptionUrl or fallback to Order)
+            sub_url = primary.get("subscriptionUrl") or primary.get("subscription_url")
+            if not sub_url:
+                order_res = await session.execute(
+                    select(Order.subscription_url).where(
+                        Order.telegram_id == telegram_id,
+                        Order.subscription_url.isnot(None),
+                    ).order_by(Order.id.desc()).limit(1)
+                )
+                sub_url = order_res.scalar_one_or_none() or ""
 
             active_sub = {
                 "account_id": panel_user_id,
@@ -93,14 +132,15 @@ async def get_user_me(request: web.Request) -> web.Response:
                 "percent_remaining": round(bw_stats.get("percent_remaining", 100), 1) if bw_stats else 100,
                 "days_left": days_left,
                 "expire_timestamp": expire_at,
+                "expire_jalali": expire_jalali_str,
                 "devices_count": len(devices),
                 "devices": devices,
-                "subscription_url": primary.get("subscription_url") or "",
+                "subscription_url": sub_url,
                 "today_used_gb": round(today_stats.get("used_today_gb", 0), 2) if today_stats else 0,
                 "today_breakdown": today_stats.get("breakdown", {}) if today_stats else {},
             }
 
-        # 4. Lucky wheel status
+        # 6. Lucky wheel status
         wheel_key = f"tma:user:{telegram_id}:wheel_spins"
         wheel_spun = bool(await cache.get(wheel_key))
 
@@ -116,14 +156,17 @@ async def get_user_me(request: web.Request) -> web.Response:
             },
             "active_sub": active_sub,
             "has_active_sub": has_active_sub,
+            "today_jalali": today_jalali_str,
+            "yesterday_jalali": yesterday_jalali_str,
+            "plans": plans_data,
             "wheel_status": {
                 "has_spun_free": wheel_spun,
                 "can_spin": not wheel_spun or has_active_sub,
             },
         }
 
-        # Cache for 12 seconds
-        await cache.set(cache_key, data, ttl_seconds=12)
+        # Cache for 10 seconds
+        await cache.set(cache_key, data, ttl_seconds=10)
         return web.json_response({"ok": True, "data": data, "cached": False})
 
 
@@ -230,9 +273,10 @@ async def post_user_revoke_sub(request: web.Request) -> web.Response:
     cache: FastCache = request.app["cache"]
     await cache.delete(f"tma:user:{telegram_id}:dashboard")
 
+    new_sub_url = revoked.get("subscriptionUrl") or revoked.get("subscription_url") or ""
     return web.json_response({
         "ok": True,
-        "subscription_url": revoked.get("subscription_url"),
+        "subscription_url": new_sub_url,
     })
 
 
@@ -289,3 +333,19 @@ async def get_user_nodes(request: web.Request) -> web.Response:
 
     await cache.set(cache_key, cleaned_nodes, ttl_seconds=30)
     return web.json_response({"ok": True, "nodes": cleaned_nodes})
+
+
+async def get_user_ip_info(request: web.Request) -> web.Response:
+    """Return the client's public IP detected by Nginx/proxy."""
+    client_ip = (
+        request.headers.get("X-Real-IP")
+        or request.headers.get("X-Forwarded-For", "").split(",")[0].strip()
+        or request.remote
+        or "127.0.0.1"
+    )
+    return web.json_response({
+        "ok": True,
+        "ip": client_ip,
+        "is_safe": not client_ip.startswith(("10.", "192.168.", "172.16.")),
+    })
+

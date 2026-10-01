@@ -18,6 +18,7 @@ from bot.web.routes_admin import (
     post_admin_toggle_ban,
 )
 from bot.web.routes_user import (
+    get_user_ip_info,
     get_user_me,
     get_user_nodes,
     post_user_kill_device,
@@ -113,6 +114,7 @@ def create_web_app(
     app.router.add_post("/api/user/revoke_sub", post_user_revoke_sub)
     app.router.add_post("/api/user/kill_device", post_user_kill_device)
     app.router.add_get("/api/user/nodes", get_user_nodes)
+    app.router.add_get("/api/user/ip_info", get_user_ip_info)
 
     # Admin APIs
     app.router.add_get("/api/admin/overview", get_admin_overview)
