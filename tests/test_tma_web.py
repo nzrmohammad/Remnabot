@@ -138,3 +138,99 @@ async def test_web_app_routes():
     assert "/api/user/me" in registered_paths
     assert "/api/user/spin" in registered_paths
     assert "/api/admin/overview" in registered_paths
+
+
+@pytest.mark.anyio
+async def test_auth_browser_preview_fallback():
+    from bot.web.auth import get_authenticated_user
+    from aiohttp.test_utils import make_mocked_request
+
+    app = {
+        "bot_token": "123:abc",
+        "admin_ids": [55555],
+        "is_dev": False,
+    }
+
+    # Direct browser request with no initData
+    req = make_mocked_request("GET", "/api/user/me", app=app)
+    user = get_authenticated_user(req)
+    assert user is not None
+    assert user["id"] == 55555
+    assert user["is_preview"] is True
+    assert user["is_admin"] is False  # Preview sessions are never admin
+
+    # Direct browser request with ?user_id=88888
+    req_user = make_mocked_request("GET", "/api/user/me?user_id=88888", app=app)
+    user_custom = get_authenticated_user(req_user)
+    assert user_custom is not None
+    assert user_custom["id"] == 88888
+    assert user_custom["is_preview"] is True
+    assert user_custom["is_admin"] is False
+
+
+@pytest.mark.anyio
+async def test_user_me_dashboard_with_panel_user():
+    from bot.web.routes_user import get_user_me
+    from aiohttp.test_utils import make_mocked_request
+    from unittest.mock import AsyncMock
+
+    mock_remnawave = AsyncMock()
+    mock_remnawave.get_users_by_telegram_id.return_value = [
+        {
+            "id": 101,
+            "username": "client_vpn",
+            "status": "ACTIVE",
+            "trafficLimitBytes": 10 * 1024 * 1024 * 1024,
+            "usedTrafficBytes": 2 * 1024 * 1024 * 1024,
+            "expireAt": "2026-11-20T10:00:00.000Z",
+            "subscriptionUrl": "https://sub.domain/xyz",
+        }
+    ]
+    mock_remnawave.get_user_today_usage.return_value = (500 * 1024 * 1024, [])
+    mock_remnawave.get_user_hwid_devices.return_value = [{"hwid": "hwid1", "platform": "android"}]
+
+    mock_db_user = MagicMock()
+    mock_db_user.created_at = None
+
+    class MockUserRepo:
+        def __init__(self, s): pass
+        async def get_or_create(self, tid, username): return mock_db_user
+
+    class MockSession:
+        async def __aenter__(self): return self
+        async def __aexit__(self, *args): pass
+        async def execute(self, stmt):
+            m = MagicMock()
+            m.scalar_one_or_none.return_value = None
+            m.scalar_one.return_value = 0
+            m.scalars.return_value.all.return_value = []
+            return m
+
+    def session_factory():
+        return MockSession()
+
+    from unittest.mock import patch
+    with patch("bot.web.routes_user.UserRepository", MockUserRepo):
+        app = {
+            "bot_token": "123:abc",
+            "admin_ids": [55555],
+            "is_dev": False,
+            "remnawave": mock_remnawave,
+            "session_factory": session_factory,
+            "settings": MagicMock(TIMEZONE="Asia/Tehran"),
+            "cache": FastCache(redis_client=None),
+        }
+
+        req = make_mocked_request("GET", "/api/user/me?user_id=77777", app=app)
+        resp = await get_user_me(req)
+        assert resp.status == 200
+        data = json.loads(resp.text)
+        assert data["ok"] is True
+        assert data["data"]["has_active_sub"] is True
+        sub = data["data"]["active_sub"]
+        assert sub["traffic_total_gb"] == 10.0
+        assert sub["traffic_used_gb"] == 2.0
+        assert sub["traffic_remaining_gb"] == 8.0
+        assert sub["devices_count"] == 1
+        assert sub["subscription_url"] == "https://sub.domain/xyz"
+

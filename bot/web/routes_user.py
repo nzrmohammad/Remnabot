@@ -76,13 +76,24 @@ async def get_user_me(request: web.Request) -> web.Response:
         # 4. Real Jalali dates
         import jdatetime
         from datetime import timedelta
-        now_j = jdatetime.datetime.now()
+        from zoneinfo import ZoneInfo
+        from bot.services.formatting import now_tz, parse_iso, start_of_today
+
+        tz_name = getattr(settings, "TIMEZONE", "Asia/Tehran")
+        now_dt = now_tz(tz_name)
+        now_j = jdatetime.datetime.fromgregorian(datetime=now_dt)
         today_jalali_str = f"{now_j.year}/{now_j.month:02d}/{now_j.day:02d}"
-        yesterday_j = now_j - timedelta(days=1)
+        yesterday_dt = now_dt - timedelta(days=1)
+        yesterday_j = jdatetime.datetime.fromgregorian(datetime=yesterday_dt)
         yesterday_jalali_str = f"{yesterday_j.year}/{yesterday_j.month:02d}/{yesterday_j.day:02d}"
 
         # 5. Active Remnawave account stats
-        panel_users = await remnawave.get_users_by_telegram_id(telegram_id)
+        panel_users = []
+        try:
+            panel_users = await remnawave.get_users_by_telegram_id(telegram_id) or []
+        except Exception as exc:
+            logger.warning("Failed to get panel users for telegram_id=%s: %s", telegram_id, exc)
+
         active_sub = None
         has_active_sub = False
         panel_user_id = None
@@ -92,24 +103,60 @@ async def get_user_me(request: web.Request) -> web.Response:
             panel_user_id = primary.get("id")
             has_active_sub = primary.get("status", "").upper() == "ACTIVE"
 
-            bw_stats = await remnawave.get_user_bandwidth_stats(panel_user_id)
-            today_stats = await remnawave.get_user_today_usage(
-                panel_user_id, timezone=settings.TIMEZONE
+            limit_bytes = int(primary.get("trafficLimitBytes") or 0)
+            traffic = primary.get("userTraffic") or {}
+            used_bytes = int(
+                traffic.get("usedTrafficBytes") or primary.get("usedTrafficBytes") or 0
             )
-            devices = await remnawave.get_user_hwid_devices(panel_user_id)
+
+            traffic_total_gb = round(limit_bytes / (1024**3), 2)
+            traffic_used_gb = round(used_bytes / (1024**3), 2)
+            if limit_bytes > 0:
+                traffic_remaining_gb = max(0.0, round(traffic_total_gb - traffic_used_gb, 2))
+                percent_remaining = round(
+                    max(0.0, min(100.0, (traffic_remaining_gb / traffic_total_gb) * 100)), 1
+                )
+            else:
+                traffic_remaining_gb = 9999.0
+                percent_remaining = 100.0
+
+            # Today's usage
+            today_bytes = 0
+            try:
+                start_today_dt = start_of_today(tz_name)
+                today_tuple = await remnawave.get_user_today_usage(
+                    int(panel_user_id), start_today_dt.isoformat(), now_dt.isoformat()
+                )
+                if today_tuple and isinstance(today_tuple, tuple):
+                    today_bytes = today_tuple[0]
+            except Exception as exc:
+                logger.warning("Failed to fetch today usage for %s: %s", panel_user_id, exc)
+            today_used_gb = round(today_bytes / (1024**3), 2)
+
+            # HWID devices
+            devices = []
+            try:
+                devices = await remnawave.get_user_hwid_devices(int(panel_user_id)) or []
+            except Exception as exc:
+                logger.warning("Failed to fetch HWID devices for %s: %s", panel_user_id, exc)
 
             # Calculate days left and Jalali expire date
-            expire_at = primary.get("expire")
             days_left = 0
             expire_jalali_str = ""
-            if expire_at:
-                try:
-                    exp_dt = datetime.fromtimestamp(expire_at, tz=timezone.utc)
-                    days_left = max(0, (exp_dt - datetime.now(timezone.utc)).days)
-                    exp_j = jdatetime.datetime.fromtimestamp(expire_at)
+            expire_at_raw = primary.get("expireAt")
+            expire_timestamp = primary.get("expire")
+            try:
+                expire_dt = parse_iso(expire_at_raw)
+                if not expire_dt and expire_timestamp:
+                    expire_dt = datetime.fromtimestamp(expire_timestamp, tz=timezone.utc)
+                if expire_dt:
+                    days_left = max(0, (expire_dt - datetime.now(timezone.utc)).days)
+                    exp_j = jdatetime.datetime.fromgregorian(
+                        datetime=expire_dt.astimezone(ZoneInfo(tz_name))
+                    )
                     expire_jalali_str = f"{exp_j.year}/{exp_j.month:02d}/{exp_j.day:02d}"
-                except Exception:
-                    pass
+            except Exception as exc:
+                logger.warning("Failed to calculate expiration for %s: %s", panel_user_id, exc)
 
             # Resolve real subscription URL from Remnawave (subscriptionUrl or fallback to Order)
             sub_url = primary.get("subscriptionUrl") or primary.get("subscription_url")
@@ -126,18 +173,17 @@ async def get_user_me(request: web.Request) -> web.Response:
                 "account_id": panel_user_id,
                 "username": primary.get("username", user_auth.get("username")),
                 "status": primary.get("status", "ACTIVE"),
-                "traffic_total_gb": round(bw_stats.get("traffic_total_gb", 0), 2) if bw_stats else 0,
-                "traffic_used_gb": round(bw_stats.get("traffic_used_gb", 0), 2) if bw_stats else 0,
-                "traffic_remaining_gb": round(bw_stats.get("traffic_remaining_gb", 0), 2) if bw_stats else 0,
-                "percent_remaining": round(bw_stats.get("percent_remaining", 100), 1) if bw_stats else 100,
+                "traffic_total_gb": traffic_total_gb,
+                "traffic_used_gb": traffic_used_gb,
+                "traffic_remaining_gb": traffic_remaining_gb,
+                "percent_remaining": percent_remaining,
                 "days_left": days_left,
-                "expire_timestamp": expire_at,
+                "expire_timestamp": expire_timestamp,
                 "expire_jalali": expire_jalali_str,
                 "devices_count": len(devices),
                 "devices": devices,
                 "subscription_url": sub_url,
-                "today_used_gb": round(today_stats.get("used_today_gb", 0), 2) if today_stats else 0,
-                "today_breakdown": today_stats.get("breakdown", {}) if today_stats else {},
+                "today_used_gb": today_used_gb,
             }
 
         # 6. Lucky wheel status
@@ -175,6 +221,12 @@ async def post_user_spin(request: web.Request) -> web.Response:
     user_auth = get_authenticated_user(request)
     if not user_auth:
         return web.json_response({"ok": False, "error": "Unauthorized"}, status=401)
+
+    if user_auth.get("is_preview"):
+        return web.json_response(
+            {"ok": False, "error": "چرخش گردونه فقط در محیط رسمی تلگرام امکان‌پذیر است."},
+            status=400,
+        )
 
     telegram_id = int(user_auth["id"])
     cache: FastCache = request.app["cache"]
@@ -258,6 +310,12 @@ async def post_user_revoke_sub(request: web.Request) -> web.Response:
     if not user_auth:
         return web.json_response({"ok": False, "error": "Unauthorized"}, status=401)
 
+    if user_auth.get("is_preview"):
+        return web.json_response(
+            {"ok": False, "error": "این عملیات فقط در محیط رسمی تلگرام امکان‌پذیر است."},
+            status=400,
+        )
+
     telegram_id = int(user_auth["id"])
     remnawave = request.app["remnawave"]
     panel_users = await remnawave.get_users_by_telegram_id(telegram_id)
@@ -285,6 +343,12 @@ async def post_user_kill_device(request: web.Request) -> web.Response:
     user_auth = get_authenticated_user(request)
     if not user_auth:
         return web.json_response({"ok": False, "error": "Unauthorized"}, status=401)
+
+    if user_auth.get("is_preview"):
+        return web.json_response(
+            {"ok": False, "error": "این عملیات فقط در محیط رسمی تلگرام امکان‌پذیر است."},
+            status=400,
+        )
 
     try:
         body = await request.json()

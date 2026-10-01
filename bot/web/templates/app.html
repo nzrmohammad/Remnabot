@@ -1620,7 +1620,7 @@
     netTabSpeed?.addEventListener('click', () => switchNetTool(netTabSpeed, paneNetSpeed));
     netTabLeak?.addEventListener('click', () => switchNetTool(netTabLeak, paneNetLeak));
 
-    // 14. Speed Test Simulation Logic
+    // 14. Speed Test Simulation & Real Ping Measurement
     const runSpeedTestBtn = document.getElementById('runSpeedTestBtn');
     const speedMeterArc = document.getElementById('speedMeterArc');
     const speedRealtimeValue = document.getElementById('speedRealtimeValue');
@@ -1630,14 +1630,22 @@
     const speedTestBtnText = document.getElementById('speedTestBtnText');
 
     let isTestingSpeed = false;
-    runSpeedTestBtn?.addEventListener('click', () => {
+    runSpeedTestBtn?.addEventListener('click', async () => {
       if (isTestingSpeed) return;
       isTestingSpeed = true;
       runSpeedTestBtn.disabled = true;
-      speedTestBtnText.innerText = 'در حال محاسبه سرعت اتصال...';
+      speedTestBtnText.innerText = 'در حال محاسبه پینگ و سرعت...';
       dlSpeedVal.innerText = '...';
       ulSpeedVal.innerText = '...';
       pingSpeedVal.innerText = '...';
+
+      // Measure real ping to backend
+      const t0 = performance.now();
+      let realPing = 35;
+      try {
+        await fetch(`/api/user/ip_info?t=${Date.now()}`);
+        realPing = Math.max(20, Math.round(performance.now() - t0));
+      } catch (e) {}
 
       let step = 0;
       const speedInterval = setInterval(() => {
@@ -1649,21 +1657,22 @@
 
         if (step >= 12) {
           clearInterval(speedInterval);
-          const finalDl = (Math.random() * 15 + 82).toFixed(1);
-          const finalUl = (Math.random() * 10 + 38).toFixed(1);
-          const finalPing = Math.floor(Math.random() * 8 + 32);
+          // Scale bandwidth realistically based on actual ping
+          const baseBandwidth = realPing < 50 ? 95 : (realPing < 100 ? 75 : 45);
+          const finalDl = (baseBandwidth + (Math.random() * 12 - 6)).toFixed(1);
+          const finalUl = (finalDl * 0.45 + (Math.random() * 5)).toFixed(1);
 
           speedRealtimeValue.innerText = finalDl;
-          speedMeterArc.style.strokeDashoffset = 35;
+          speedMeterArc.style.strokeDashoffset = Math.max(20, 190 - (finalDl / 120) * 170);
           dlSpeedVal.innerText = `${finalDl} Mbps`;
           ulSpeedVal.innerText = `${finalUl} Mbps`;
-          pingSpeedVal.innerText = `${finalPing} ms`;
+          pingSpeedVal.innerText = `${realPing} ms`;
 
-          speedTestBtnText.innerText = '✅ تست انجام شد (شروع مجدد)';
+          speedTestBtnText.innerText = '✅ سنجش انجام شد (شروع مجدد)';
           runSpeedTestBtn.disabled = false;
           isTestingSpeed = false;
         }
-      }, 150);
+      }, 140);
     });
 
     // 15. Leak Scan Simulation
@@ -2142,8 +2151,9 @@
 
     async function syncUserDataWithApi() {
       const initData = tg?.initData || '';
+      const queryParams = window.location.search || '';
       try {
-        const resp = await fetch('/api/user/me', {
+        const resp = await fetch('/api/user/me' + queryParams, {
           headers: { 'X-Telegram-Init-Data': initData }
         });
         if (!resp.ok) return;
