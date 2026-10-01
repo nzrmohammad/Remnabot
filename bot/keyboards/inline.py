@@ -34,7 +34,7 @@ def main_menu_keyboard(lang: str, is_admin: bool) -> InlineKeyboardMarkup:
     """Requested layout (right | left):
     آمار فوری      | مدیریت اکانت
     کیف پول        | سرویس‌ها
-    آموزش اتصال    | تنظیمات
+    آموزش          | تنظیمات
     پشتیبانی       | حساب کاربری
     پنل مدیریت (full width, admins only)
     """

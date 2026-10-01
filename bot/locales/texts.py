@@ -44,7 +44,7 @@ TEXTS: dict[str, dict[str, str]] = {
         "btn_account_mgmt": "🛠 Account Management",
         "btn_wallet": "👛 Wallet",
         "btn_services": "📦 Services",
-        "btn_connection_guide": "📚 Connection Guide",
+        "btn_connection_guide": "📚 Guide",
         "btn_settings": "⚙️ Settings",
         "btn_support": "🎧 Support",
         "btn_profile": "👤 My Account",
@@ -134,7 +134,7 @@ TEXTS: dict[str, dict[str, str]] = {
             "Your old link no longer works. New link (tap to copy):"
         ),
         # --- connection guide ---
-        "guide_title": "📚 <b>Connection Guide</b>",
+        "guide_title": "📚 <b>Guide</b>",
         "guide_pick": "Choose your operating system:",
         "guide_steps": (
             "1️⃣ Install one of the apps below.\n"
@@ -289,9 +289,9 @@ TEXTS: dict[str, dict[str, str]] = {
         "settings_monthly_hint": "A full usage report on the last day of the Jalali month at 23:59.",
         "toggle_on": "On",
         "toggle_off": "Off",
-        "btn_toggle_nightly": "🌙 Nightly report: {state}",
-        "btn_toggle_weekly": "📊 Weekly report: {state}",
-        "btn_toggle_monthly": "🗓 Monthly report: {state}",
+        "btn_toggle_nightly": "🌙 Nightly report {state}",
+        "btn_toggle_weekly": "📊 Weekly report {state}",
+        "btn_toggle_monthly": "🗓 Monthly report {state}",
         # --- services ---
         "services_title": "📦 <b>Services</b>",
         "services_active_empty": "No services are available right now. Please try again later.",
@@ -800,7 +800,7 @@ TEXTS: dict[str, dict[str, str]] = {
         "btn_account_mgmt": "🛠 مدیریت اکانت",
         "btn_wallet": "👛 کیف پول",
         "btn_services": "📦 سرویس‌ها",
-        "btn_connection_guide": "📚 آموزش اتصال",
+        "btn_connection_guide": "📚 آموزش",
         "btn_settings": "⚙️ تنظیمات",
         "btn_support": "\u200f🎧 پشتیبانی",
         "btn_profile": "👤 حساب کاربری",
@@ -890,7 +890,7 @@ TEXTS: dict[str, dict[str, str]] = {
             "لینک قبلی دیگر کار نمی‌کند. لینک جدید (برای کپی لمس کنید):"
         ),
         # --- connection guide ---
-        "guide_title": "📚 <b>آموزش اتصال</b>",
+        "guide_title": "📚 <b>آموزش</b>",
         "guide_pick": "سیستم‌عامل خود را انتخاب کنید:",
         "guide_steps": (
             "1️⃣ یکی از اپ‌های زیر را نصب کنید.\n"
@@ -1044,9 +1044,9 @@ TEXTS: dict[str, dict[str, str]] = {
         "settings_monthly_hint": "آخرین روز ماه شمسی ساعت ۲۳:۵۹ گزارش کامل ماه ارسال می‌شود.",
         "toggle_on": "روشن",
         "toggle_off": "خاموش",
-        "btn_toggle_nightly": "🌙 گزارش شبانه: {state}",
-        "btn_toggle_weekly": "📊 گزارش هفتگی: {state}",
-        "btn_toggle_monthly": "🗓 گزارش ماهانه: {state}",
+        "btn_toggle_nightly": "🌙 گزارش شبانه {state}",
+        "btn_toggle_weekly": "📊 گزارش هفتگی {state}",
+        "btn_toggle_monthly": "🗓 گزارش ماهانه {state}",
         # --- services ---
         "services_title": "📦 <b>سرویس‌ها</b>",
         "services_active_empty": "در حال حاضر سرویسی موجود نیست. کمی بعد دوباره تلاش کنید.",

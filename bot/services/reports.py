@@ -828,7 +828,7 @@ async def _send_admin_nightly_summary(
 
     if country_totals:
         for cc, val in sorted(country_totals.items(), key=lambda x: x[1], reverse=True):
-            lines.append(f" {country_flag(cc)} : {human_bytes(val)}")
+            lines.append(f"{country_flag(cc)} : {human_bytes(val)}")
 
     lines.append(SEPARATOR)
     lines.append("✅ <b>کاربران فعال امروز و مصرفشان</b>")
@@ -983,14 +983,14 @@ async def _send_admin_weekly_summary(
         sorted_nodes = sorted(day_nodes[d_idx].items(), key=lambda x: x[1], reverse=True)
         for lbl, val in sorted_nodes[:5]:
             if val > 0:
-                lines.append(f"      {lbl} : {human_bytes(val)}")
+                lines.append(f"{lbl} : {human_bytes(val)}")
 
     lines.append("")
     lines.append(SEPARATOR)
     lines.append(f"⚡️ <b>مجموع مصرف کل این هفته : {human_bytes(week_total)}</b>")
     for lbl, val in sorted(weekly_nodes.items(), key=lambda x: x[1], reverse=True)[:8]:
         if val > 0:
-            lines.append(f"      {lbl} : {human_bytes(val)}")
+            lines.append(f"{lbl} : {human_bytes(val)}")
 
     lines.append(SEPARATOR)
     lines.append("🏆 <b>گزارش هفتگی پرمصرفترین کاربران</b>")
@@ -1124,7 +1124,7 @@ async def _send_admin_monthly_summary(
 
     for lbl, val in sorted(monthly_nodes.items(), key=lambda x: x[1], reverse=True)[:8]:
         if val > 0:
-            lines.append(f"      {lbl} : {human_bytes(val)}")
+            lines.append(f"{lbl} : {human_bytes(val)}")
 
     busiest_days = sorted(
         [(d_idx, day_totals[d_idx]) for d_idx in range(days_count) if day_totals[d_idx] > 0],

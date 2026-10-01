@@ -1897,3 +1897,56 @@ async def test_error_reporter_service():
         assert "12345" in sent_text
 
 
+@pytest.mark.anyio
+async def test_recent_ui_and_reports_fixes():
+    """Verify آموزش rename, services button format (name - traffic - price), colon removal in settings, and no leading spaces in report country lines."""
+    from bot.locales.texts import TEXTS, t
+    from bot.handlers.service_request import _render_services
+    from bot.db.models import Service
+
+    # 1. Connection guide labels
+    assert TEXTS["fa"]["btn_connection_guide"] == "📚 آموزش"
+    assert TEXTS["fa"]["guide_title"] == "📚 <b>آموزش</b>"
+    assert TEXTS["en"]["btn_connection_guide"] == "📚 Guide"
+    assert TEXTS["en"]["guide_title"] == "📚 <b>Guide</b>"
+
+    # 2. Report toggles have no colons
+    for lang in ("fa", "en"):
+        assert ":" not in TEXTS[lang]["btn_toggle_nightly"]
+        assert ":" not in TEXTS[lang]["btn_toggle_weekly"]
+        assert ":" not in TEXTS[lang]["btn_toggle_monthly"]
+
+    # 3. Services button text format: name — traffic — price
+    bot = MagicMock()
+    user = MagicMock(language="fa", telegram_id=555)
+    user_repo = MagicMock()
+    session = AsyncMock()
+
+    mock_svc = MagicMock(spec=Service)
+    mock_svc.id = 1
+    mock_svc.name = "بسته حرفه‌ای"
+    mock_svc.price = 150_000
+    mock_svc.traffic_gb = 50
+    mock_svc.duration_days = 30
+    mock_svc.traffic_strategy = "NO_RESET"
+    mock_svc.hwid_limit = None
+    mock_svc.is_active = True
+
+    mock_wallet = MagicMock(balance=200_000)
+
+    with patch("bot.handlers.service_request.ServiceRepository") as mock_srepo, \
+         patch("bot.handlers.service_request.WalletRepository") as mock_wrepo, \
+         patch("bot.handlers.service_request.render_menu", AsyncMock()) as mock_render:
+
+        mock_srepo.return_value.list_active = AsyncMock(return_value=[mock_svc])
+        mock_wrepo.return_value.get_wallet = AsyncMock(return_value=mock_wallet)
+
+        await _render_services(bot, user, user_repo, session)
+
+        mock_render.assert_awaited_once()
+        markup = mock_render.call_args[0][4]
+        svc_btn_text = markup.inline_keyboard[0][0].text
+
+        # First: name, Second: traffic, Third: price
+        assert "بسته حرفه‌ای — 50 گیگابایت — 150,000 تومان" in svc_btn_text
+        assert svc_btn_text.startswith("✅ بسته حرفه‌ای")

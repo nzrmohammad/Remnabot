@@ -39,7 +39,7 @@ from bot.services.formatting import format_datetime, now_tz
 from bot.services.menu import delete_message_silently, render_menu
 from bot.services.purchases import execute_purchase
 from bot.services.remnawave import RemnawaveClient
-from bot.services.service_display import fmt_price, service_block
+from bot.services.service_display import fmt_price, fmt_traffic, service_block
 from bot.services.topups import fmt
 from bot.states.service_request import ServiceRequestStates
 
@@ -122,8 +122,10 @@ async def _render_services(
             if renew_account_id
             else f"svc:view:{service.id}"
         )
+        traffic_str = fmt_traffic(service.traffic_gb, lang)
+        price_str = f"{fmt_price(service.price)} {t(lang, 'svc_currency')}"
         kb.button(
-            text=f"{indicator} {service.name} — {fmt_price(service.price)} {t(lang, 'svc_currency')}",
+            text=f"{indicator} {service.name} — {traffic_str} — {price_str}",
             callback_data=cb,
         )
     kb.button(text=t(lang, "btn_back_to_menu"), callback_data="nav:main_menu")
