@@ -287,23 +287,6 @@
           </div>
         </div>
 
-        <!-- Active Sessions Quick Trigger Card on Dashboard (کلیک برای باز شدن مدال همه نشست‌ها) -->
-        <div id="openDashboardSessionsBtn" class="bg-slate-800/85 hover:bg-slate-800 rounded-2xl p-3.5 border border-slate-700/80 shadow-md flex items-center justify-between cursor-pointer transition active:scale-[0.99] group">
-          <div class="flex items-center gap-2.5">
-            <div class="w-8 h-8 rounded-xl bg-blue-500/15 border border-blue-500/30 flex items-center justify-center text-base text-blue-400 group-hover:scale-105 transition">
-              📱
-            </div>
-            <div>
-              <span class="text-xs font-bold text-slate-200 block">نشست‌های فعال (دستگاه‌های متصل)</span>
-              <span id="dashboardDevicesSummary" class="text-[10px] text-slate-400 block mt-0.5">مشاهده مشخصات و IP دستگاه‌ها</span>
-            </div>
-          </div>
-          <div class="flex items-center gap-1.5">
-            <span id="dashboardDevicesBadge" class="text-[11px] font-mono font-bold text-emerald-400 bg-emerald-950/60 border border-emerald-800/50 px-2 py-0.5 rounded-lg">۰ دستگاه</span>
-            <span class="text-xs text-slate-400 group-hover:text-slate-200 transition">◀</span>
-          </div>
-        </div>
-
         <!-- Today's Per-Country Breakdown Card (Accordion Collapsible) -->
         <div class="bg-slate-800/85 rounded-2xl border border-slate-700/80 shadow-md overflow-hidden transition-all duration-300">
           <!-- Accordion Header Button -->
@@ -400,24 +383,34 @@
       <!-- ===================================================== -->
       <div id="tab-reports" class="tab-pane space-y-4 hidden">
         
-        <!-- ACTIVE DEVICES & ONLINE IPs SECTION (درخواستی کاربر) -->
-        <div class="bg-slate-800/90 rounded-2xl p-4 border border-slate-700/80 space-y-3 shadow-md">
-          <div class="flex justify-between items-center border-b border-slate-700/60 pb-2">
-            <div>
-              <span class="text-xs font-bold text-white flex items-center gap-1.5">
+        <!-- ACTIVE DEVICES ACCORDION (کادری که باز می‌شود) -->
+        <div class="bg-slate-800/85 rounded-2xl border border-slate-700/80 shadow-md overflow-hidden transition-all duration-300">
+          <button id="toggleSessionsAccordionBtn" class="w-full p-4 flex justify-between items-center text-right hover:bg-slate-700/40 transition active:scale-[0.99]">
+            <div class="flex items-center gap-2">
+              <span id="sessionsChevron" class="text-xs text-slate-400 transition-transform duration-300 transform">◀</span>
+              <span class="text-xs font-bold text-slate-200 flex items-center gap-1.5">
                 <span>📱</span> نشست‌های فعال
               </span>
-              <span class="text-[10px] text-slate-400 block mt-0.5">مدیریت دستگاه‌های متصل (HWID)</span>
             </div>
-            <button id="killAllBtn" class="text-[11px] text-rose-400 hover:text-rose-300 bg-rose-950/60 border border-rose-800/60 px-2 py-1 rounded-lg font-medium transition active:scale-95">
-              ⛔️ قطع همه
-            </button>
-          </div>
+            <div class="flex items-center gap-2">
+              <span id="reportsSessionsBadge" class="text-[10px] font-mono font-bold text-emerald-400 bg-emerald-950/60 border border-emerald-800/40 px-2 py-0.5 rounded-lg">۰ دستگاه</span>
+            </div>
+          </button>
 
-          <!-- Dynamic Devices Container -->
-          <div id="activeDevicesContainer" class="space-y-2">
-            <div class="p-4 rounded-xl bg-slate-900/60 border border-slate-700/50 text-center text-xs text-slate-400">
-              در حال بارگذاری دستگاه‌های متصل...
+          <!-- Collapsible Content (Hidden by default, opens on click) -->
+          <div id="sessionsAccordionBody" class="hidden px-4 pb-4 pt-1 space-y-3 text-xs border-t border-slate-700/50">
+            <div class="flex justify-between items-center pt-2">
+              <span class="text-[10px] text-slate-400">دستگاه‌های متصل به این اکانت (HWID):</span>
+              <button id="killAllBtn" class="text-[10px] text-rose-400 hover:text-rose-300 bg-rose-950/60 border border-rose-800/60 px-2.5 py-1 rounded-lg font-medium transition active:scale-95">
+                ⛔️ قطع همه
+              </button>
+            </div>
+
+            <!-- Dynamic Devices Container -->
+            <div id="activeDevicesContainer" class="space-y-2">
+              <div class="p-4 rounded-xl bg-slate-900/60 border border-slate-700/50 text-center text-xs text-slate-400">
+                در حال بارگذاری دستگاه‌های متصل...
+              </div>
             </div>
           </div>
         </div>
@@ -1798,6 +1791,21 @@
       });
     }
 
+    // Toggle Active Sessions Accordion in Reports
+    const toggleSessionsAccordionBtn = document.getElementById('toggleSessionsAccordionBtn');
+    const sessionsAccordionBody = document.getElementById('sessionsAccordionBody');
+    const sessionsChevron = document.getElementById('sessionsChevron');
+    if (toggleSessionsAccordionBtn && sessionsAccordionBody && sessionsChevron) {
+      toggleSessionsAccordionBtn.addEventListener('click', () => {
+        sessionsAccordionBody.classList.toggle('hidden');
+        if (sessionsAccordionBody.classList.contains('hidden')) {
+          sessionsChevron.style.transform = 'rotate(0deg)';
+        } else {
+          sessionsChevron.style.transform = 'rotate(-90deg)';
+        }
+      });
+    }
+
     openLuckyWheelBtn?.addEventListener('click', () => luckyWheelModal?.classList.remove('hidden'));
     closeLuckyWheelBtn?.addEventListener('click', () => luckyWheelModal?.classList.add('hidden'));
 
@@ -2274,10 +2282,8 @@
       const devices = sub?.devices || [];
       const activeDevCount = sub?.devices_count ?? devices.length;
 
-      const dCountBadge = document.getElementById('dashboardDevicesBadge');
-      if (dCountBadge) dCountBadge.innerText = `${activeDevCount} دستگاه`;
-      const dSummary = document.getElementById('dashboardDevicesSummary');
-      if (dSummary) dSummary.innerText = activeDevCount > 0 ? `${activeDevCount} دستگاه متصل به این اکانت` : 'هیچ دستگاهی متصل نیست';
+      const repSessionsBadge = document.getElementById('reportsSessionsBadge');
+      if (repSessionsBadge) repSessionsBadge.innerText = `${activeDevCount} دستگاه`;
       const mCountText = document.getElementById('modalSessionsCount');
       if (mCountText) mCountText.innerText = `${activeDevCount} دستگاه متصل`;
 
