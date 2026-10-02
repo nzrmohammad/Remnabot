@@ -83,39 +83,30 @@ def get_authenticated_user(request: web.Request) -> dict[str, Any] | None:
 
     user = validate_telegram_init_data(init_data, bot_token) if init_data else None
 
-    # Browser preview fallback when opened directly outside Telegram WebApp
-    if not user:
+    # Browser preview fallback ONLY when explicitly in dev mode (is_dev=True)
+    if not user and is_dev:
         dev_id = request.query.get("dev_id") or request.query.get("user_id")
         if dev_id and dev_id.isdigit():
             user = {
                 "id": int(dev_id),
-                "first_name": "کاربر پیش‌نمایش",
-                "username": f"user_{dev_id}",
-                "is_dev": is_dev,
-                "is_preview": True,
+                "first_name": "کاربر توسعه",
+                "username": f"dev_{dev_id}",
+                "is_dev": True,
+                "is_preview": False,
             }
-        elif is_dev or request.headers.get("X-Dev-Mode") == "1":
+        elif request.headers.get("X-Dev-Mode") == "1" or not init_data:
+            primary_admin = admin_ids[0] if admin_ids else 123456789
             user = {
-                "id": admin_ids[0] if admin_ids else 123456789,
-                "first_name": "Dev Admin",
+                "id": primary_admin,
+                "first_name": "مدیر سیستم (توسعه)",
                 "username": "dev_admin",
                 "is_dev": True,
                 "is_preview": False,
             }
-        elif not init_data:
-            # Safe read-only preview fallback to primary admin account
-            primary_admin = admin_ids[0] if admin_ids else 123456789
-            user = {
-                "id": primary_admin,
-                "first_name": "مدیر سیستم (پیش‌نمایش)",
-                "username": "admin_preview",
-                "is_dev": False,
-                "is_preview": True,
-            }
 
     if user:
-        # A preview session never has administrative execution rights
-        user["is_admin"] = (int(user.get("id", 0)) in admin_ids) and not user.get("is_preview", False)
+        # Administrative rights require explicit telegram_id in admin_ids
+        user["is_admin"] = int(user.get("id", 0)) in admin_ids
 
     return user
 

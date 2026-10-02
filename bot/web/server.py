@@ -52,7 +52,20 @@ async def cors_and_security_middleware(request: web.Request, handler):
     else:
         response = await handler(request)
 
-    response.headers["Access-Control-Allow-Origin"] = "*"
+    settings = request.app.get("settings")
+    trusted_origins = {"https://web.telegram.org", "https://telegram.org"}
+    if settings and getattr(settings, "WEB_APP_URL", ""):
+        from urllib.parse import urlparse
+        parsed = urlparse(settings.WEB_APP_URL)
+        if parsed.scheme and parsed.netloc:
+            trusted_origins.add(f"{parsed.scheme}://{parsed.netloc}")
+
+    request_origin = request.headers.get("Origin", "")
+    if request_origin in trusted_origins or request.app.get("is_dev", False):
+        response.headers["Access-Control-Allow-Origin"] = request_origin or "*"
+    elif any(request_origin.endswith(domain) for domain in [".telegram.org", "telegram.org"]):
+        response.headers["Access-Control-Allow-Origin"] = request_origin
+
     response.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
     response.headers["Access-Control-Allow-Headers"] = (
         "Content-Type, Authorization, X-Telegram-Init-Data, X-Dev-Mode"

@@ -105,21 +105,58 @@ async def run_devices_check(
     session_factory: async_sessionmaker,
     remnawave: RemnawaveClient,
 ) -> None:
+    panel_users = await remnawave.get_all_panel_users()
+    sem = asyncio.Semaphore(5)
+
     async with session_factory() as session:
         user_repo = UserRepository(session)
         users = await user_repo.all_users()
-        for user in users:
-            try:
-                accounts = await remnawave.get_users_by_telegram_id(user.telegram_id)
-                if not accounts:
-                    continue
-                lang = user.language or "fa"
-                for account in accounts:
+        user_map = {u.telegram_id: u for u in users}
+
+        async def _check_account(account, tg_id, lang):
+            async with sem:
+                try:
                     await check_account_new_devices(
-                        bot, session, remnawave, account, user.telegram_id, lang
+                        bot, session, remnawave, account, tg_id, lang
                     )
-            except Exception:  # noqa: BLE001
-                logger.exception("device check error for user %s", user.telegram_id)
+                except Exception:
+                    logger.exception("device check error for user %s", tg_id)
+
+        tasks = []
+        if panel_users is not None:
+            # Efficient batch mode: 1 API call to get all users
+            for account in panel_users:
+                tg_id = account.get("telegramId") or account.get("telegram_id")
+                if not tg_id:
+                    continue
+                try:
+                    tg_id = int(tg_id)
+                except (ValueError, TypeError):
+                    continue
+
+                user = user_map.get(tg_id)
+                if not user:
+                    continue
+
+                tasks.append(_check_account(account, tg_id, user.language or "fa"))
+        else:
+            # Fallback with concurrency limiter
+            for user in users:
+                async def _fallback(u):
+                    async with sem:
+                        try:
+                            accounts = await remnawave.get_users_by_telegram_id(u.telegram_id)
+                            if accounts:
+                                for acc in accounts:
+                                    await check_account_new_devices(
+                                        bot, session, remnawave, acc, u.telegram_id, u.language or "fa"
+                                    )
+                        except Exception:
+                            logger.exception("device check error for user %s", u.telegram_id)
+                tasks.append(_fallback(user))
+
+        if tasks:
+            await asyncio.gather(*tasks)
         await session.commit()
 
 

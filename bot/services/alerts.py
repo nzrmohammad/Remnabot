@@ -11,6 +11,7 @@ Each alert fires exactly once per crossing: the sent-flag is stored in
 (usage drops below the threshold / expiry moves away again).
 """
 import asyncio
+from html import escape
 import logging
 from datetime import datetime
 
@@ -81,7 +82,7 @@ async def _check_user(
         if account_id is None:
             continue
         state = await alert_repo.get_state(str(account_id), user.telegram_id)
-        username = str(account.get("username", "—"))
+        username = escape(str(account.get("username", "—")))
 
         # ---- traffic ------------------------------------------------- #
         limit = int(account.get("trafficLimitBytes") or 0)

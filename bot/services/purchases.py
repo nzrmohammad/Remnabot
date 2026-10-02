@@ -20,8 +20,9 @@ import secrets
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 
-from sqlalchemy import text
+from sqlalchemy import select, text
 
+from bot.db.models import Wallet
 from bot.db.repositories.order_repo import OrderRepository
 from bot.services.app_settings import get_store_settings
 from bot.services.remnawave import RemnawaveClient
@@ -118,13 +119,13 @@ async def execute_purchase(
 
     effective_price = max(0, service.price - discount_amount)
 
-    # Atomic guard: only pass when the balance covers the price. The actual
-    # deduction happens after the panel call succeeds.
-    row = await session.execute(
-        text("SELECT balance FROM wallets WHERE telegram_id = :t"),
-        {"t": telegram_id},
+    # Atomic guard: lock wallet row with FOR UPDATE so concurrent requests
+    # for the same user cannot race to purchase simultaneously with stale balance.
+    wallet_res = await session.execute(
+        select(Wallet.balance).where(Wallet.telegram_id == telegram_id).with_for_update()
     )
-    current_balance = int(row.scalar_one_or_none() or 0)
+    val = wallet_res.scalar_one_or_none()
+    current_balance = int(getattr(val, "balance", val) or 0)
     if current_balance < effective_price:
         return PurchaseResult(ok=False, kind="insufficient", new_balance=current_balance)
 

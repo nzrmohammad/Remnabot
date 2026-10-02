@@ -145,27 +145,33 @@ async def test_auth_browser_preview_fallback():
     from bot.web.auth import get_authenticated_user
     from aiohttp.test_utils import make_mocked_request
 
-    app = {
+    # 1. In production (is_dev=False), unauthenticated requests MUST be rejected (returns None)
+    app_prod = {
         "bot_token": "123:abc",
         "admin_ids": [55555],
         "is_dev": False,
     }
+    req_prod = make_mocked_request("GET", "/api/user/me", app=app_prod)
+    assert get_authenticated_user(req_prod) is None
 
-    # Direct browser request with no initData
-    req = make_mocked_request("GET", "/api/user/me", app=app)
-    user = get_authenticated_user(req)
-    assert user is not None
-    assert user["id"] == 55555
-    assert user["is_preview"] is True
-    assert user["is_admin"] is False  # Preview sessions are never admin
+    req_prod_id = make_mocked_request("GET", "/api/user/me?user_id=88888", app=app_prod)
+    assert get_authenticated_user(req_prod_id) is None
 
-    # Direct browser request with ?user_id=88888
-    req_user = make_mocked_request("GET", "/api/user/me?user_id=88888", app=app)
-    user_custom = get_authenticated_user(req_user)
+    # 2. In dev mode (is_dev=True), preview fallback is permitted
+    app_dev = {
+        "bot_token": "123:abc",
+        "admin_ids": [55555],
+        "is_dev": True,
+    }
+    req_dev = make_mocked_request("GET", "/api/user/me", app=app_dev)
+    user_dev = get_authenticated_user(req_dev)
+    assert user_dev is not None
+    assert user_dev["id"] == 55555
+
+    req_dev_custom = make_mocked_request("GET", "/api/user/me?user_id=88888", app=app_dev)
+    user_custom = get_authenticated_user(req_dev_custom)
     assert user_custom is not None
     assert user_custom["id"] == 88888
-    assert user_custom["is_preview"] is True
-    assert user_custom["is_admin"] is False
 
 
 @pytest.mark.anyio
@@ -214,7 +220,7 @@ async def test_user_me_dashboard_with_panel_user():
         app = {
             "bot_token": "123:abc",
             "admin_ids": [55555],
-            "is_dev": False,
+            "is_dev": True,
             "remnawave": mock_remnawave,
             "session_factory": session_factory,
             "settings": MagicMock(TIMEZONE="Asia/Tehran"),
@@ -256,6 +262,7 @@ async def test_user_validate_coupon_endpoint():
     with patch("bot.db.repositories.coupon_repo.CouponRepository", return_value=mock_coupon_repo):
         app = {
             "bot_token": "123:abc",
+            "is_dev": True,
             "session_factory": session_factory,
             "cache": FastCache(redis_client=None),
         }
@@ -299,6 +306,7 @@ async def test_user_topup_info_endpoint():
 
     with patch("bot.services.app_settings.get_store_settings", AsyncMock(return_value=mock_store)):
         app = {
+            "is_dev": True,
             "session_factory": session_factory,
         }
         req = make_mocked_request("GET", "/api/user/topup_info?user_id=77777", app=app)
