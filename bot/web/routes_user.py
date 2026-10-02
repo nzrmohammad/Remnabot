@@ -124,95 +124,140 @@ async def get_user_me(request: web.Request) -> web.Response:
                 traffic_remaining_gb = 9999.0
                 percent_remaining = 100.0
 
-            # Today's usage & country breakdown
-            today_bytes = 0
-            today_nodes = []
-            try:
-                start_today_dt = start_of_today(tz_name)
-                today_tuple = await remnawave.get_user_today_usage(
-                    int(panel_user_id), start_today_dt.isoformat(), now_dt.isoformat()
-                )
-                if today_tuple and isinstance(today_tuple, tuple):
-                    today_bytes = today_tuple[0]
-                    today_nodes = today_tuple[1]
-            except Exception as exc:
-                logger.warning("Failed to fetch today usage for %s: %s", panel_user_id, exc)
-            today_used_gb = round(today_bytes / (1024**3), 2)
-
+            # Calculate bandwidth stats and per-node breakdown aligned with bot reports
             from bot.services.formatting import country_flag, human_bytes
-            today_breakdown = []
-            if today_nodes:
-                total_n_bytes = sum(int(n.get("total") or 0) for n in today_nodes)
-                for n in today_nodes:
-                    b_val = int(n.get("total") or 0)
-                    if b_val <= 0:
-                        continue
-                    c_code = (n.get("countryCode") or "EU").upper()
-                    pct = round((b_val / total_n_bytes) * 100) if total_n_bytes > 0 else 0
-                    today_breakdown.append({
-                        "name": n.get("name") or "Server",
-                        "country_code": c_code,
-                        "flag": country_flag(c_code),
-                        "total_formatted": human_bytes(b_val),
-                        "total_gb": round(b_val / (1024**3), 2),
-                        "percent": pct,
-                    })
 
-            # Yesterday's usage & breakdown
-            yesterday_start_dt = start_today_dt - timedelta(days=1)
-            yesterday_bytes = 0
-            yesterday_nodes = []
-            try:
-                yesterday_tuple = await remnawave.get_user_today_usage(
-                    int(panel_user_id), yesterday_start_dt.isoformat(), start_today_dt.isoformat()
-                )
-                if yesterday_tuple and isinstance(yesterday_tuple, tuple):
-                    yesterday_bytes = yesterday_tuple[0]
-                    yesterday_nodes = yesterday_tuple[1]
-            except Exception as exc:
-                logger.warning("Failed to fetch yesterday usage for %s: %s", panel_user_id, exc)
-            yesterday_used_gb = round(yesterday_bytes / (1024**3), 2)
-
-            yesterday_breakdown = []
-            if yesterday_nodes:
-                for n in yesterday_nodes:
-                    b_val = int(n.get("total") or 0)
-                    if b_val <= 0:
-                        continue
-                    c_code = (n.get("countryCode") or "EU").upper()
-                    yesterday_breakdown.append({
-                        "name": n.get("name") or "Server",
-                        "flag": country_flag(c_code),
-                        "total_formatted": human_bytes(b_val),
-                    })
-
-            # 7-day weekly stats & daily totals
+            since = parse_iso(primary.get("lastTrafficResetAt")) or parse_iso(primary.get("createdAt"))
+            stats_start_dt = now_dt - timedelta(days=90)
+            if since is not None and since > stats_start_dt:
+                stats_start_dt = since
             week_start_dt = now_dt - timedelta(days=6)
+            if stats_start_dt > week_start_dt:
+                stats_start_dt = week_start_dt
+
+            today_str = now_dt.strftime("%Y-%m-%d")
+            start_str = stats_start_dt.strftime("%Y-%m-%d")
+
+            series = []
+            try:
+                series = await remnawave.get_user_bandwidth_stats(int(panel_user_id), start_str, today_str) or []
+            except Exception as exc:
+                logger.warning("Failed to fetch bandwidth stats for %s: %s", panel_user_id, exc)
+
+            today_bytes = 0
+            today_breakdown = []
+            yesterday_bytes = 0
+            yesterday_breakdown = []
+            all_nodes_breakdown = []
             week_daily_totals = [0] * 7
             week_nodes_dict = {}
             week_total_bytes = 0
-            try:
-                week_series = await remnawave.get_user_bandwidth_stats(
-                    int(panel_user_id), week_start_dt.strftime("%Y-%m-%d"), now_dt.strftime("%Y-%m-%d")
-                ) or []
-                for r in week_series:
-                    n_name = r.get("name") or r.get("nodeName") or "Server"
-                    c_code = (r.get("countryCode") or "EU").upper()
+
+            if series and isinstance(series, list) and isinstance(series[0], dict):
+                # 1. Total volume since reset per node (matches 'used_breakdown' in reports)
+                for r in series:
                     tot = int(r.get("total") or 0)
-                    week_total_bytes += tot
                     if tot > 0:
-                        week_nodes_dict[n_name] = {
-                            "name": n_name,
+                        c_code = (r.get("countryCode") or "EU").upper()
+                        all_nodes_breakdown.append({
+                            "name": r.get("name") or r.get("nodeName") or "Server",
+                            "country_code": c_code,
                             "flag": country_flag(c_code),
                             "total_formatted": human_bytes(tot),
                             "total_bytes": tot,
-                        }
-                    data = r.get("data") or []
-                    for i, val in enumerate(data[:7]):
-                        week_daily_totals[i] += int(val or 0)
-            except Exception as exc:
-                logger.warning("Failed to fetch weekly stats for %s: %s", panel_user_id, exc)
+                            "total_gb": round(tot / (1024**3), 2),
+                        })
+                all_nodes_breakdown.sort(key=lambda x: x["total_bytes"], reverse=True)
 
+                # 2. Today's usage (last element in daily data array)
+                today_temp = []
+                for r in series:
+                    data = r.get("data") or []
+                    val = int(data[-1]) if data else 0
+                    if val > 0:
+                        today_bytes += val
+                        c_code = (r.get("countryCode") or "EU").upper()
+                        today_temp.append({
+                            "name": r.get("name") or r.get("nodeName") or "Server",
+                            "country_code": c_code,
+                            "flag": country_flag(c_code),
+                            "total_bytes": val,
+                            "total_formatted": human_bytes(val),
+                            "total_gb": round(val / (1024**3), 2),
+                        })
+                today_temp.sort(key=lambda x: x["total_bytes"], reverse=True)
+                for item in today_temp:
+                    pct = round((item["total_bytes"] / today_bytes) * 100) if today_bytes > 0 else 0
+                    item["percent"] = pct
+                    today_breakdown.append(item)
+
+                # 3. Yesterday's usage (second to last element in daily data array - strictly single day)
+                yesterday_temp = []
+                for r in series:
+                    data = r.get("data") or []
+                    val = int(data[-2]) if len(data) >= 2 else 0
+                    if val > 0:
+                        yesterday_bytes += val
+                        c_code = (r.get("countryCode") or "EU").upper()
+                        yesterday_temp.append({
+                            "name": r.get("name") or r.get("nodeName") or "Server",
+                            "country_code": c_code,
+                            "flag": country_flag(c_code),
+                            "total_bytes": val,
+                            "total_formatted": human_bytes(val),
+                            "total_gb": round(val / (1024**3), 2),
+                        })
+                yesterday_temp.sort(key=lambda x: x["total_bytes"], reverse=True)
+                for item in yesterday_temp:
+                    pct = round((item["total_bytes"] / yesterday_bytes) * 100) if yesterday_bytes > 0 else 0
+                    item["percent"] = pct
+                    yesterday_breakdown.append(item)
+
+                # 4. Weekly 7-day stats
+                for r in series:
+                    data = r.get("data") or []
+                    last_7 = data[-7:] if len(data) >= 7 else ([0] * (7 - len(data)) + data)
+                    node_week = sum(int(v or 0) for v in last_7)
+                    week_total_bytes += node_week
+                    n_name = r.get("name") or r.get("nodeName") or "Server"
+                    c_code = (r.get("countryCode") or "EU").upper()
+                    if node_week > 0:
+                        week_nodes_dict[n_name] = {
+                            "name": n_name,
+                            "flag": country_flag(c_code),
+                            "total_formatted": human_bytes(node_week),
+                            "total_bytes": node_week,
+                        }
+                    for i, val in enumerate(last_7):
+                        week_daily_totals[i] += int(val or 0)
+            else:
+                # Graceful fallback for mock tests or panels without series
+                try:
+                    start_today_dt = start_of_today(tz_name)
+                    today_tuple = await remnawave.get_user_today_usage(
+                        int(panel_user_id), start_today_dt.isoformat(), now_dt.isoformat()
+                    )
+                    if today_tuple and isinstance(today_tuple, tuple):
+                        today_bytes = today_tuple[0]
+                        for n in today_tuple[1]:
+                            b_val = int(n.get("total") or 0)
+                            if b_val <= 0:
+                                continue
+                            c_code = (n.get("countryCode") or "EU").upper()
+                            pct = round((b_val / today_bytes) * 100) if today_bytes > 0 else 0
+                            today_breakdown.append({
+                                "name": n.get("name") or "Server",
+                                "country_code": c_code,
+                                "flag": country_flag(c_code),
+                                "total_formatted": human_bytes(b_val),
+                                "total_gb": round(b_val / (1024**3), 2),
+                                "percent": pct,
+                            })
+                except Exception as exc:
+                    logger.warning("Fallback today usage failed for %s: %s", panel_user_id, exc)
+
+            today_used_gb = round(today_bytes / (1024**3), 2)
+            yesterday_used_gb = round(yesterday_bytes / (1024**3), 2)
             week_used_gb = round(week_total_bytes / (1024**3), 2)
             week_breakdown = sorted(week_nodes_dict.values(), key=lambda x: x["total_bytes"], reverse=True)
 
@@ -281,6 +326,7 @@ async def get_user_me(request: web.Request) -> web.Response:
                 "devices_count": len(devices),
                 "devices": devices,
                 "subscription_url": sub_url,
+                "all_nodes_breakdown": all_nodes_breakdown,
                 "today_used_gb": today_used_gb,
                 "today_breakdown": today_breakdown,
                 "yesterday_used_gb": yesterday_used_gb,

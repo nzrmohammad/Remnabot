@@ -28,12 +28,19 @@
     .switch-checkbox:checked + .switch-label .switch-ball {
       transform: translateX(-20px);
     }
+    html, body {
+      height: 100%;
+      height: 100dvh;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+    }
   </style>
 </head>
-<body id="appBody" class="bg-[#080d1a] text-slate-100 flex justify-center items-center min-h-screen p-2 md:p-6 antialiased select-none transition-colors duration-300">
+<body id="appBody" class="bg-[#080d1a] text-slate-100 h-screen h-[100dvh] overflow-hidden flex justify-center antialiased select-none transition-colors duration-300">
 
-  <!-- Mobile Frame Container -->
-  <div id="phoneFrame" class="w-full max-w-[430px] bg-[#0f172a] rounded-[42px] border border-slate-700/80 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.8)] overflow-hidden flex flex-col relative h-[840px] transition-colors duration-300">
+  <!-- Main Mobile Responsive Container -->
+  <div id="phoneFrame" class="w-full max-w-[460px] h-full flex flex-col relative overflow-hidden bg-[#0f172a] shadow-2xl border-x border-slate-800/80 transition-colors duration-300">
 
     <!-- Top Admin Bar -->
     <div class="bg-[#131d31]/95 backdrop-blur-md border-b border-slate-700/60 px-4 py-3 flex items-center justify-between z-20">
