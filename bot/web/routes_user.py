@@ -9,7 +9,7 @@ from typing import Any
 from aiohttp import web
 from sqlalchemy import func, select
 
-from bot.db.models import Order, User, Wallet
+from bot.db.models import Order, Topup, User, Wallet
 from bot.db.repositories.user_repo import UserRepository
 from bot.web.auth import get_authenticated_user
 from bot.web.cache import FastCache
@@ -290,7 +290,75 @@ async def get_user_me(request: web.Request) -> web.Response:
                 "month_used_gb": month_used_gb,
             }
 
-        # 6. Lucky wheel status
+        # 6. Orders and topups history for Wallet & History view
+        history_items = []
+        try:
+            orders_res = await session.execute(
+                select(Order).where(Order.telegram_id == telegram_id).order_by(Order.id.desc()).limit(15)
+            )
+            for o in orders_res.scalars().all():
+                o_dt = o.created_at
+                o_j_str = ""
+                if o_dt:
+                    o_j = jdatetime.datetime.fromgregorian(
+                        datetime=o_dt.astimezone(ZoneInfo(tz_name)) if o_dt.tzinfo else o_dt
+                    )
+                    o_j_str = f"{o_j.year}/{o_j.month:02d}/{o_j.day:02d} - {o_j.hour:02d}:{o_j.minute:02d}"
+                history_items.append({
+                    "id": o.id,
+                    "type": "order",
+                    "title": f"خرید {o.service_name}",
+                    "amount": o.amount,
+                    "amount_formatted": f"{o.amount:,} تومان",
+                    "is_positive": False,
+                    "status": "موفق",
+                    "status_color": "emerald",
+                    "date_jalali": o_j_str,
+                    "timestamp": o_dt.timestamp() if o_dt else 0,
+                })
+
+            topups_res = await session.execute(
+                select(Topup).where(Topup.telegram_id == telegram_id).order_by(Topup.id.desc()).limit(15)
+            )
+            for t in topups_res.scalars().all():
+                t_dt = t.created_at
+                t_j_str = ""
+                if t_dt:
+                    t_j = jdatetime.datetime.fromgregorian(
+                        datetime=t_dt.astimezone(ZoneInfo(tz_name)) if t_dt.tzinfo else t_dt
+                    )
+                    t_j_str = f"{t_j.year}/{t_j.month:02d}/{t_j.day:02d} - {t_j.hour:02d}:{t_j.minute:02d}"
+                st = (t.status or "pending").lower()
+                st_text = "تایید شده" if st == "approved" else ("رد شده" if st == "rejected" else "در انتظار بررسی")
+                st_color = "emerald" if st == "approved" else ("rose" if st == "rejected" else "amber")
+                history_items.append({
+                    "id": t.id,
+                    "type": "topup",
+                    "title": "افزایش موجودی (کارت به کارت)",
+                    "amount": t.amount,
+                    "amount_formatted": f"{t.amount:,} تومان",
+                    "is_positive": True if st == "approved" else False,
+                    "status": st_text,
+                    "status_color": st_color,
+                    "date_jalali": t_j_str,
+                    "timestamp": t_dt.timestamp() if t_dt else 0,
+                })
+
+            history_items.sort(key=lambda x: x["timestamp"], reverse=True)
+        except Exception as exc:
+            logger.warning("Failed to fetch transaction history for %s: %s", telegram_id, exc)
+
+        user_reg_jalali = ""
+        if db_user.created_at:
+            try:
+                u_j = jdatetime.datetime.fromgregorian(
+                    datetime=db_user.created_at.astimezone(ZoneInfo(tz_name)) if db_user.created_at.tzinfo else db_user.created_at
+                )
+                user_reg_jalali = f"{u_j.year}/{u_j.month:02d}/{u_j.day:02d}"
+            except Exception:
+                pass
+
+        # 7. Lucky wheel status
         wheel_key = f"tma:user:{telegram_id}:wheel_spins"
         wheel_spun = bool(await cache.get(wheel_key))
 
@@ -302,6 +370,7 @@ async def get_user_me(request: web.Request) -> web.Response:
                 "wallet_balance": wallet_balance,
                 "referrals_count": referrals_count,
                 "created_at": db_user.created_at.isoformat() if db_user.created_at else None,
+                "created_at_jalali": user_reg_jalali,
                 "is_admin": user_auth.get("is_admin", False),
             },
             "active_sub": active_sub,
@@ -309,6 +378,7 @@ async def get_user_me(request: web.Request) -> web.Response:
             "today_jalali": today_jalali_str,
             "yesterday_jalali": yesterday_jalali_str,
             "plans": plans_data,
+            "transactions": history_items[:20],
             "wheel_status": {
                 "has_spun_free": wheel_spun,
                 "can_spin": not wheel_spun or has_active_sub,

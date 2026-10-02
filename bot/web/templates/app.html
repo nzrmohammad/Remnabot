@@ -41,12 +41,19 @@
     .switch-checkbox:checked + .switch-label .switch-ball {
       transform: translateX(-20px);
     }
+    html, body {
+      height: 100%;
+      height: 100dvh;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+    }
   </style>
 </head>
-<body id="appBody" class="bg-[#0b1120] text-slate-100 min-h-screen antialiased select-none transition-colors duration-300">
+<body id="appBody" class="bg-[#080d1a] text-slate-100 h-screen h-[100dvh] overflow-hidden flex justify-center antialiased select-none transition-colors duration-300">
 
   <!-- Main Mobile Responsive Container (No artificial outer bezels) -->
-  <div id="phoneFrame" class="w-full max-w-lg mx-auto bg-[#131d31] min-h-screen flex flex-col relative transition-colors duration-300">
+  <div id="phoneFrame" class="w-full max-w-[460px] h-full flex flex-col relative overflow-hidden bg-[#131d31] shadow-2xl border-x border-slate-800/80 transition-colors duration-300">
 
     <!-- ======================================================== -->
     <!-- 0. SPLASH / INITIAL LOADING SCREEN                       -->
@@ -204,7 +211,7 @@
             <div class="flex items-center gap-2">
               <span id="countryChevron" class="text-xs text-slate-400 transition-transform duration-300 transform">◀</span>
               <span class="text-xs font-bold text-slate-200 flex items-center gap-1.5">
-                <span>🌍</span> مصرف امروز به تفکیک کشورها
+                <span>🌍</span> ریز مصرف
               </span>
             </div>
             <span class="text-[10px] font-mono text-cyan-400 bg-cyan-950/60 px-2 py-0.5 rounded border border-cyan-800/40">مجموع: <span id="countryTodayTotalHeader" dir="ltr">0.00 GB</span></span>
@@ -214,167 +221,9 @@
           <div id="countryBreakdownBody" class="hidden px-4 pb-4 pt-1 space-y-2 text-xs border-t border-slate-700/50">
             <div id="countryBreakdownList" class="space-y-2">
               <div class="text-center py-3 text-slate-400 text-[11px]">
-                در حال استخراج مصرف به تفکیک کشورها...
+                در حال استخراج ریز مصرف...
               </div>
             </div>
-          </div>
-        </div>
-
-        <!-- Network Health & Tools Suite (پینگ سرورها، تست سرعت و نشت IP/DNS) -->
-        <div class="bg-slate-800/85 rounded-2xl p-4 border border-slate-700/80 shadow-md space-y-3">
-          <div id="refreshNetworkToolsHeader" class="flex items-center justify-between border-b border-slate-700/60 pb-2.5 cursor-pointer hover:bg-slate-700/30 p-1.5 -m-1 rounded-xl transition group" title="لمس برای به‌روزرسانی پینگ و وضعیت شبکه">
-            <span class="text-xs font-bold text-slate-200 flex items-center gap-1.5 group-hover:text-cyan-300 transition">
-              <span id="netStatusIcon" class="transition-transform group-hover:rotate-180">🛠</span> وضعیت و ابزارهای شبکه
-              <span class="text-[9px] text-cyan-400 bg-cyan-950/60 border border-cyan-800/40 px-1.5 py-0.5 rounded font-normal flex items-center gap-1">🔄 لمس جهت آپدیت</span>
-            </span>
-            <div class="flex bg-slate-900/80 p-0.5 rounded-lg border border-slate-700 text-[10px]" onclick="event.stopPropagation()">
-              <button id="netTabPing" class="px-2 py-1 rounded-md font-bold bg-blue-600 text-white transition">⚡️ پینگ</button>
-              <button id="netTabSpeed" class="px-2 py-1 rounded-md font-medium text-slate-400 hover:text-slate-200 transition">🚀 سرعت</button>
-              <button id="netTabLeak" class="px-2 py-1 rounded-md font-medium text-slate-400 hover:text-slate-200 transition">🛡 امنیت IP</button>
-            </div>
-          </div>
-
-          <!-- PANE 1: Ping List -->
-          <div id="paneNetPing" class="space-y-2">
-            <div class="flex justify-between items-center mb-1 text-[11px]">
-              <span class="text-slate-400">تاخیر زنده نودها:</span>
-              <button id="runPingBtn" class="text-cyan-300 hover:text-cyan-200 bg-cyan-950/70 border border-cyan-800/50 px-2.5 py-1 rounded-md font-semibold transition active:scale-95 flex items-center gap-1 text-[10px]">
-                <span id="pingSpinner" class="hidden">🔄</span>
-                <span id="pingBtnText">⚡️ سنجش مجدد</span>
-              </button>
-            </div>
-            <div id="pingServersList" class="space-y-1.5 text-xs">
-              <div class="flex items-center justify-between p-2 rounded-xl bg-slate-900/60 border border-slate-700/50">
-                <div class="flex items-center gap-2">
-                  <span class="text-base">🇹🇷</span>
-                  <div>
-                    <span class="font-bold text-slate-200 block">ترکیه - استانبول (Gaming)</span>
-                    <span class="text-[10px] text-slate-400">مناسب بازی آنلاین و تماس صوتی</span>
-                  </div>
-                </div>
-                <div class="text-left font-mono">
-                  <span class="ping-val text-xs font-bold text-emerald-400" dir="ltr">36 ms</span>
-                  <span class="block text-[9px] text-emerald-400 font-sans">🟢 عالی</span>
-                </div>
-              </div>
-              <div class="flex items-center justify-between p-2 rounded-xl bg-slate-900/60 border border-slate-700/50">
-                <div class="flex items-center gap-2">
-                  <span class="text-base">🇩🇪</span>
-                  <div>
-                    <span class="font-bold text-slate-200 block">آلمان - فرانکفورت (Direct)</span>
-                    <span class="text-[10px] text-slate-400">پایدار روی همراه اول و ایرانسل</span>
-                  </div>
-                </div>
-                <div class="text-left font-mono">
-                  <span class="ping-val text-xs font-bold text-emerald-400" dir="ltr">54 ms</span>
-                  <span class="block text-[9px] text-emerald-400 font-sans">🟢 عالی</span>
-                </div>
-              </div>
-              <div class="flex items-center justify-between p-2 rounded-xl bg-slate-900/60 border border-slate-700/50">
-                <div class="flex items-center gap-2">
-                  <span class="text-base">🇳🇱</span>
-                  <div>
-                    <span class="font-bold text-slate-200 block">هلند - آمستردام (VIP 1)</span>
-                    <span class="text-[10px] text-slate-400">سرعت دانلود بالا و استریم</span>
-                  </div>
-                </div>
-                <div class="text-left font-mono">
-                  <span class="ping-val text-xs font-bold text-emerald-400" dir="ltr">61 ms</span>
-                  <span class="block text-[9px] text-emerald-400 font-sans">🟢 پایدار</span>
-                </div>
-              </div>
-              <div class="flex items-center justify-between p-2 rounded-xl bg-slate-900/60 border border-slate-700/50">
-                <div class="flex items-center gap-2">
-                  <span class="text-base">🇫🇷</span>
-                  <div>
-                    <span class="font-bold text-slate-200 block">فرانسه - پاریس (Proxy)</span>
-                    <span class="text-[10px] text-slate-400">مخصوص وب‌گردی و تلگرام</span>
-                  </div>
-                </div>
-                <div class="text-left font-mono">
-                  <span class="ping-val text-xs font-bold text-amber-400" dir="ltr">82 ms</span>
-                  <span class="block text-[9px] text-amber-400 font-sans">🟡 متوسط</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- PANE 2: Speed Test (تست سرعت دانلود و آپلود) -->
-          <div id="paneNetSpeed" class="space-y-3 hidden">
-            <div class="flex flex-col items-center justify-center p-3 bg-slate-900/70 rounded-2xl border border-slate-700/50 relative overflow-hidden">
-              <div class="relative w-40 h-24 flex items-end justify-center">
-                <svg class="w-40 h-40 -mb-16" viewBox="0 0 100 100">
-                  <path d="M 15 75 A 40 40 0 1 1 85 75" fill="none" stroke="#1e293b" stroke-width="8" stroke-linecap="round"/>
-                  <path id="speedMeterArc" d="M 15 75 A 40 40 0 1 1 85 75" fill="none" stroke="url(#speedGrad)" stroke-width="8" stroke-dasharray="190" stroke-dashoffset="190" stroke-linecap="round" class="transition-all duration-500"/>
-                  <defs>
-                    <linearGradient id="speedGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-                      <stop offset="0%" stop-color="#38bdf8"/>
-                      <stop offset="50%" stop-color="#6366f1"/>
-                      <stop offset="100%" stop-color="#ec4899"/>
-                    </linearGradient>
-                  </defs>
-                </svg>
-                <div class="absolute bottom-2 flex flex-col items-center">
-                  <span id="speedRealtimeValue" class="text-2xl font-black text-white font-mono" dir="ltr">0.0</span>
-                  <span class="text-[10px] text-cyan-300 font-semibold font-mono">Mbps</span>
-                </div>
-              </div>
-
-              <div class="grid grid-cols-3 gap-2 w-full mt-3 pt-2.5 border-t border-slate-800 text-center">
-                <div class="bg-slate-800/80 p-1.5 rounded-xl">
-                  <span class="text-[9px] text-slate-400 block font-medium">📥 دانلود</span>
-                  <span id="dlSpeedVal" class="text-xs font-bold font-mono text-emerald-400" dir="ltr">-- Mbps</span>
-                </div>
-                <div class="bg-slate-800/80 p-1.5 rounded-xl">
-                  <span class="text-[9px] text-slate-400 block font-medium">📤 آپلود</span>
-                  <span id="ulSpeedVal" class="text-xs font-bold font-mono text-cyan-400" dir="ltr">-- Mbps</span>
-                </div>
-                <div class="bg-slate-800/80 p-1.5 rounded-xl">
-                  <span class="text-[9px] text-slate-400 block font-medium">⏱ پینگ</span>
-                  <span id="pingSpeedVal" class="text-xs font-bold font-mono text-indigo-300" dir="ltr">-- ms</span>
-                </div>
-              </div>
-            </div>
-
-            <button id="runSpeedTestBtn" class="w-full bg-gradient-to-r from-blue-600 via-indigo-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white font-bold text-xs py-2.5 rounded-xl transition shadow shadow-blue-600/30 active:scale-[0.98] flex items-center justify-center gap-1.5">
-              <span>🚀</span>
-              <span id="speedTestBtnText">شروع تست سرعت اتصال</span>
-            </button>
-          </div>
-
-          <!-- PANE 3: IP & DNS Leak Test (تست نشت آی‌پی و امنیت) -->
-          <div id="paneNetLeak" class="space-y-2.5 hidden">
-            <div class="bg-emerald-950/40 p-2.5 rounded-xl border border-emerald-500/40 flex items-center gap-2">
-              <span class="text-2xl text-emerald-400">🛡️</span>
-              <div class="text-[11px]">
-                <span class="font-bold text-emerald-300 block">اتصال شما ۱۰۰٪ ناشناس و ایمن است</span>
-                <span class="text-slate-300 text-[10px]">هیچ آی‌پی واقعی از اپراتورهای ایران نشت نکرده است.</span>
-              </div>
-            </div>
-
-            <div class="space-y-1.5 text-xs">
-              <div class="bg-slate-900/60 p-2 rounded-xl border border-slate-700/50 flex justify-between items-center">
-                <span class="text-slate-300">🌍 آی‌پی خروجی شما:</span>
-                <span id="detectedClientIp" class="font-mono text-cyan-300 font-bold" dir="ltr">در حال شناسایی...</span>
-              </div>
-              <div class="bg-slate-900/60 p-2 rounded-xl border border-slate-700/50 flex justify-between items-center">
-                <span class="text-slate-300">🔒 نشت WebRTC:</span>
-                <span class="text-emerald-400 font-bold">مسدود شده (ایمن 🟢)</span>
-              </div>
-              <div class="bg-slate-900/60 p-2 rounded-xl border border-slate-700/50 flex justify-between items-center">
-                <span class="text-slate-300">🌐 DNS Resolver:</span>
-                <span class="font-mono text-slate-200" dir="ltr">Cloudflare 1.1.1.1 (DoH 🟢)</span>
-              </div>
-              <div class="bg-slate-900/60 p-2 rounded-xl border border-slate-700/50 flex justify-between items-center">
-                <span class="text-slate-300">🔐 پروتکل فعال:</span>
-                <span class="font-mono text-indigo-300 font-bold">VLESS Reality / TLS 1.3</span>
-              </div>
-            </div>
-
-            <button id="runLeakScanBtn" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-200 font-medium text-xs py-2 rounded-xl transition border border-slate-700 active:scale-[0.98] flex items-center justify-center gap-1.5">
-              <span>🔍</span>
-              <span id="leakScanText">بررسی مجدد نشت DNS و IP</span>
-            </button>
           </div>
         </div>
 
@@ -382,14 +231,14 @@
         <div class="bg-slate-800/85 rounded-2xl p-4 border border-slate-700/80 shadow-md space-y-3">
           <div class="flex items-center justify-between">
             <span class="text-xs font-bold text-slate-200 flex items-center gap-1.5">
-              <span>📥</span> لینک اختصاصی اشتراک
+              <span>📥</span> لینک اشتراک
             </span>
             <div class="flex items-center gap-1.5">
-              <button id="qrToggleBtn" class="text-xs text-indigo-400 hover:text-indigo-300 flex items-center gap-1 bg-indigo-950/60 px-2.5 py-1 rounded-lg border border-indigo-800/50 transition">
-                <span>📷 کیوآرکد</span>
+              <button id="qrToggleBtn" class="text-indigo-400 hover:text-indigo-300 flex items-center justify-center bg-indigo-950/60 w-8 h-8 rounded-lg border border-indigo-800/50 transition active:scale-95" title="کیوآرکد">
+                <span class="text-sm">📷</span>
               </button>
-              <button id="revokeSubBtnTop" class="text-xs text-rose-400 hover:text-rose-300 flex items-center gap-1 bg-rose-950/50 px-2.5 py-1 rounded-lg border border-rose-800/50 transition" title="تعویض لینک اشتراک">
-                <span>🔄 تعویض لینک</span>
+              <button id="revokeSubBtnTop" class="text-rose-400 hover:text-rose-300 flex items-center justify-center bg-rose-950/50 w-8 h-8 rounded-lg border border-rose-800/50 transition active:scale-95" title="تعویض لینک اشتراک">
+                <span class="text-sm">🔄</span>
               </button>
             </div>
           </div>
@@ -564,7 +413,54 @@
       </div>
 
       <!-- ===================================================== -->
-      <!-- TAB 4: PROFILE & IDENTITY (حساب کاربری)                 -->
+      <!-- TAB 4: WALLET & TRANSACTIONS (کیف پول و تاریخچه)       -->
+      <!-- ===================================================== -->
+      <div id="tab-wallet" class="tab-pane space-y-4 hidden">
+        <!-- Balance Card -->
+        <div class="bg-gradient-to-br from-slate-800 via-indigo-950/60 to-slate-900 rounded-3xl p-5 border border-indigo-500/40 shadow-xl relative overflow-hidden text-center space-y-3">
+          <div class="flex justify-between items-center text-xs text-slate-400">
+            <span class="flex items-center gap-1.5 font-medium">
+              <span>👛</span> موجودی کیف پول شما
+            </span>
+            <span class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 font-bold text-[10px]">آنلاین و معتبر</span>
+          </div>
+
+          <div class="py-2">
+            <div id="walletTabBalance" class="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-cyan-300 to-blue-400 font-mono" dir="ltr">
+              ۰ تومان
+            </div>
+            <span class="text-[11px] text-slate-400 block mt-1">قابل استفاده برای خرید، تمدید اشتراک و بسته‌های ترافیک</span>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2 pt-2 border-t border-slate-700/60">
+            <button id="chargeWalletBtn" class="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs py-2.5 rounded-xl transition shadow active:scale-95 flex items-center justify-center gap-1.5">
+              <span>💳</span> شارژ کیف پول
+            </button>
+            <button id="gotoShopFromWallet" class="bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-xs py-2.5 rounded-xl transition border border-slate-700 active:scale-95 flex items-center justify-center gap-1.5">
+              <span>🛒</span> خرید اشتراک
+            </button>
+          </div>
+        </div>
+
+        <!-- Transaction History -->
+        <div class="bg-slate-800/85 rounded-2xl p-4 border border-slate-700/80 shadow-md space-y-3">
+          <div class="flex items-center justify-between border-b border-slate-700/60 pb-2">
+            <span class="text-xs font-bold text-slate-200 flex items-center gap-1.5">
+              <span>📑</span> تاریخچه تراکنش‌ها و سفارشات
+            </span>
+            <span class="text-[10px] text-slate-400 font-mono">سفارشات اخیر</span>
+          </div>
+
+          <div id="walletTransactionsList" class="space-y-2">
+            <div class="text-center py-4 text-slate-400 text-xs">
+              در حال دریافت سابقه تراکنش‌ها...
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===================================================== -->
+      <!-- TAB 5: PROFILE & IDENTITY & SETTINGS (حساب کاربری و تنظیمات) -->
       <!-- ===================================================== -->
       <div id="tab-profile" class="tab-pane space-y-4 hidden">
         
@@ -572,106 +468,68 @@
         <div class="bg-gradient-to-b from-slate-800 to-slate-900 rounded-3xl p-5 border border-slate-700/80 shadow-xl text-center relative overflow-hidden">
           <div class="relative w-20 h-20 mx-auto mb-3">
             <div class="w-full h-full rounded-full p-1 bg-gradient-to-tr from-cyan-400 via-blue-500 to-indigo-600 shadow-lg flex items-center justify-center">
-              <div class="w-full h-full rounded-full bg-slate-900 flex items-center justify-center text-3xl">
-                👨‍💻
+              <div id="profileAvatarInitial" class="w-full h-full rounded-full bg-slate-900 flex items-center justify-center text-3xl font-extrabold text-white">
+                U
               </div>
             </div>
             <span class="absolute bottom-0 right-0 bg-emerald-500 text-white rounded-full p-1 text-[10px] border-2 border-slate-800">✓</span>
           </div>
 
-          <h3 class="text-base font-extrabold text-white">محمد جواد نظری</h3>
-          <span class="text-xs text-blue-400 font-mono font-medium">@nzrmohammad</span>
-          <div class="flex items-center justify-center gap-2 mt-2">
-            <span class="px-2.5 py-0.5 rounded-full text-[10px] bg-indigo-500/20 text-indigo-300 font-bold border border-indigo-500/30">💎 کاربر طلایی VIP</span>
-            <span class="px-2.5 py-0.5 rounded-full text-[10px] bg-emerald-500/20 text-emerald-400 font-bold border border-emerald-500/30">احراز هویت شده</span>
+          <h3 id="profileFullName" class="text-base font-extrabold text-white">کاربر گرامی</h3>
+          <span id="profileUsername" dir="ltr" class="text-xs text-blue-400 font-mono font-medium block mt-0.5">@user</span>
+          <div class="flex items-center justify-center gap-2 mt-2.5">
+            <span id="profileStatusBadge" class="px-2.5 py-0.5 rounded-full text-[10px] bg-emerald-500/20 text-emerald-400 font-bold border border-emerald-500/30">کاربر فعال 🟢</span>
+            <span class="px-2.5 py-0.5 rounded-full text-[10px] bg-indigo-500/20 text-indigo-300 font-bold border border-indigo-500/30">احراز هویت شده</span>
           </div>
         </div>
 
         <!-- Account Data Details Card -->
         <div class="bg-slate-800/80 rounded-2xl p-4 border border-slate-700/80 space-y-3 shadow-md text-xs">
-          <span class="font-bold text-slate-200 block border-b border-slate-700/60 pb-2">📋 مشخصات حساب و ثبت‌نام:</span>
+          <span class="font-bold text-slate-200 block border-b border-slate-700/60 pb-2">📋 مشخصات حساب کاربری:</span>
           
           <div class="flex justify-between items-center py-1">
             <span class="text-slate-400 flex items-center gap-1.5"><span>🆔</span> شناسه عددی تلگرام:</span>
             <div class="flex items-center gap-1">
-              <code class="font-mono text-white font-bold bg-slate-900 px-2 py-0.5 rounded">123456789</code>
-              <button class="text-slate-400 hover:text-blue-400 text-xs px-1" onclick="alert('شناسه کپی شد')">📋</button>
+              <code id="profileTelegramId" class="font-mono text-white font-bold bg-slate-900 px-2 py-0.5 rounded" dir="ltr">--</code>
+              <button id="copyProfileIdBtn" class="text-slate-400 hover:text-blue-400 text-xs px-1" title="کپی شناسه">📋</button>
             </div>
           </div>
 
           <div class="flex justify-between items-center py-1">
             <span class="text-slate-400 flex items-center gap-1.5"><span>🤝</span> کد معرف شما:</span>
             <div class="flex items-center gap-1">
-              <code class="font-mono text-amber-400 font-bold bg-slate-900 px-2 py-0.5 rounded">REF-8492</code>
-              <button class="text-slate-400 hover:text-amber-400 text-xs px-1" onclick="alert('لینک دعوت کپی شد: https://t.me/remnabot?start=ref8492')">📋 کپی لینک</button>
+              <code id="profileRefCode" class="font-mono text-amber-400 font-bold bg-slate-900 px-2 py-0.5 rounded" dir="ltr">--</code>
+              <button id="copyProfileRefBtn" class="text-slate-400 hover:text-amber-400 text-xs px-1" title="کپی کد معرف">📋</button>
             </div>
           </div>
 
           <div class="flex justify-between items-center py-1">
             <span class="text-slate-400 flex items-center gap-1.5"><span>📞</span> شماره تماس:</span>
-            <span class="font-mono text-slate-200 font-medium dir-ltr">+98 938 004 5017</span>
+            <span class="text-slate-400 font-medium">وارد نشده</span>
           </div>
 
           <div class="flex justify-between items-center py-1">
-            <span class="text-slate-400 flex items-center gap-1.5"><span>📅</span> زمان ثبت‌نام:</span>
-            <span class="text-slate-200 font-medium">۱۴۰۳/۰۴/۱۵ (۳ ماه پیش)</span>
+            <span class="text-slate-400 flex items-center gap-1.5"><span>📅</span> تاریخ عضویت:</span>
+            <span id="profileJoinDate" class="text-slate-200 font-medium font-mono" dir="ltr">--</span>
           </div>
 
           <div class="flex justify-between items-center py-1.5 border-t border-slate-700/60">
-            <span class="text-slate-300 font-bold flex items-center gap-1.5"><span>👛</span> موجودی کیف پول:</span>
-            <div class="flex items-center gap-2">
-              <b class="font-mono text-emerald-400 text-sm">۵۰,۰۰۰ تومان</b>
-              <button class="bg-blue-600 hover:bg-blue-500 text-white text-[10px] px-2.5 py-1 rounded-lg transition" onclick="alert('هدایت به صفحه شارژ کیف پول...')">افزایش</button>
-            </div>
+            <span class="text-slate-400 flex items-center gap-1.5"><span>⚡️</span> وضعیت سرویس:</span>
+            <span id="profileSubStatus" class="font-semibold text-emerald-400">فعال</span>
           </div>
         </div>
 
-        <!-- Referral Reward Banner -->
-        <div class="bg-gradient-to-r from-purple-950/60 to-indigo-950/60 rounded-2xl p-3.5 border border-purple-800/40 flex items-center gap-3">
-          <span class="text-2xl">🎁</span>
-          <div class="text-xs">
-            <span class="font-bold text-purple-300 block">ترافیک رایگان با دعوت از دوستان!</span>
-            <span class="text-slate-400 text-[11px]">با هر خرید دوست شما، <b dir="ltr" class="font-mono text-purple-300">5 GB</b> <b>ترافیک هدیه</b> دریافت کنید.</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- ===================================================== -->
-      <!-- TAB 5: SETTINGS & REVOKE (تنظیمات، اعلان‌ها و ابطال ساب) -->
-      <!-- ===================================================== -->
-      <div id="tab-settings" class="tab-pane space-y-4 hidden">
-        <div class="flex justify-between items-center">
-          <h3 class="text-sm font-bold text-slate-200 flex items-center gap-1.5">
-            <span>⚙️</span> تنظیمات اشتراک و هشدارهای ربات
-          </h3>
-          <span class="text-[10px] text-slate-400 font-mono">v3.4.0</span>
-        </div>
-
-        <!-- 1. Subscription Revoke / Regenerate Card (درخواستی کاربر) -->
-        <div class="bg-rose-950/30 rounded-2xl p-4 border border-rose-800/40 space-y-3">
-          <div class="flex items-center gap-2">
-            <span class="text-xl text-rose-400">🛡️</span>
-            <div>
-              <h4 class="text-xs font-bold text-rose-300">تغییر و ابطال لینک اشتراک (Revoke)</h4>
-              <p class="text-[11px] text-slate-400 mt-0.5">در صورتی که لینک شما لو رفته یا اشتراکتان کند شده است.</p>
-            </div>
-          </div>
-          <button id="openRevokeModalBtn" class="w-full bg-rose-600 hover:bg-rose-500 text-white font-semibold text-xs py-2.5 rounded-xl transition flex items-center justify-center gap-1.5 shadow shadow-rose-900/40 active:scale-[0.98]">
-            <span>🔄</span> تغییر لینک اشتراک فعلی
-          </button>
-        </div>
-
-        <!-- 2. Notification Preferences Switches -->
+        <!-- Merged Settings: Telegram Notification Switches -->
         <div class="bg-slate-800/90 rounded-2xl p-4 border border-slate-700/80 space-y-3 text-xs">
           <span class="font-bold text-slate-200 block border-b border-slate-700/60 pb-2 flex items-center gap-1.5">
-            <span>🔔</span> مدیریت ارسال پیام‌ها و هشدارهای تلگرام:
+            <span>🔔</span> هشدارهای تلگرام و تنظیمات:
           </span>
 
           <!-- Toggle: Nightly Report -->
           <div class="flex items-center justify-between py-1">
             <div>
               <span class="text-slate-200 font-medium block">🌙 گزارش شبانه (ساعت ۲۳:۵۹)</span>
-              <span class="text-[10px] text-slate-400">ارسال خودکار خلاصه مصرف هر شب</span>
+              <span class="text-[10px] text-slate-400">ارسال خلاصه مصرف دیشب در تلگرام</span>
             </div>
             <label class="relative inline-flex items-center cursor-pointer">
               <input type="checkbox" checked class="sr-only switch-checkbox">
@@ -684,22 +542,8 @@
           <!-- Toggle: Weekly Report -->
           <div class="flex items-center justify-between py-1 border-t border-slate-700/50 pt-2">
             <div>
-              <span class="text-slate-200 font-medium block">📊 گزارش هفتگی (جمعه شب)</span>
+              <span class="text-slate-200 font-medium block">📊 گزارش هفتگی</span>
               <span class="text-[10px] text-slate-400">ارسال آمار مصرف ۷ روز گذشته</span>
-            </div>
-            <label class="relative inline-flex items-center cursor-pointer">
-              <input type="checkbox" checked class="sr-only switch-checkbox">
-              <div class="switch-label w-11 h-6 bg-slate-700 rounded-full transition-colors duration-200 flex items-center px-0.5">
-                <div class="switch-ball w-5 h-5 bg-white rounded-full shadow-md transition-transform duration-200"></div>
-              </div>
-            </label>
-          </div>
-
-          <!-- Toggle: Monthly Report -->
-          <div class="flex items-center justify-between py-1 border-t border-slate-700/50 pt-2">
-            <div>
-              <span class="text-slate-200 font-medium block">🗓 گزارش ماهانه (پایان ماه)</span>
-              <span class="text-[10px] text-slate-400">خلاصه کل ترافیک ماه شمسی</span>
             </div>
             <label class="relative inline-flex items-center cursor-pointer">
               <input type="checkbox" checked class="sr-only switch-checkbox">
@@ -712,22 +556,8 @@
           <!-- Toggle: Low Traffic Warning -->
           <div class="flex items-center justify-between py-1 border-t border-slate-700/50 pt-2">
             <div>
-              <span class="text-slate-200 font-medium block">⚠️ هشدار کمبود حجم (۸۰٪ و ۹۵٪)</span>
-              <span class="text-[10px] text-slate-400">هشدار آنی قبل از قطع شدن اینترنت</span>
-            </div>
-            <label class="relative inline-flex items-center cursor-pointer">
-              <input type="checkbox" checked class="sr-only switch-checkbox">
-              <div class="switch-label w-11 h-6 bg-slate-700 rounded-full transition-colors duration-200 flex items-center px-0.5">
-                <div class="switch-ball w-5 h-5 bg-white rounded-full shadow-md transition-transform duration-200"></div>
-              </div>
-            </label>
-          </div>
-
-          <!-- Toggle: Expiry Warning -->
-          <div class="flex items-center justify-between py-1 border-t border-slate-700/50 pt-2">
-            <div>
-              <span class="text-slate-200 font-medium block">⏰ هشدار پایان اعتبار (۳ روز قبل)</span>
-              <span class="text-[10px] text-slate-400">یادآوری تمدید اشتراک</span>
+              <span class="text-slate-200 font-medium block">⚠️ هشدار کمبود حجم</span>
+              <span class="text-[10px] text-slate-400">هشدار قبل از پایان ترافیک</span>
             </div>
             <label class="relative inline-flex items-center cursor-pointer">
               <input type="checkbox" checked class="sr-only switch-checkbox">
@@ -738,17 +568,18 @@
           </div>
         </div>
 
-        <!-- 3. Language & Theme Settings -->
-        <div class="bg-slate-800/90 rounded-2xl p-4 border border-slate-700/80 space-y-3 text-xs">
-          <span class="font-bold text-slate-200 block border-b border-slate-700/60 pb-2">🌐 زبان و ظاهر برنامه:</span>
-          
-          <div class="flex items-center justify-between">
-            <span class="text-slate-300">زبان اپلیکیشن (Language):</span>
-            <div class="flex bg-slate-900 p-0.5 rounded-lg border border-slate-700">
-              <button class="px-2.5 py-1 rounded bg-blue-600 text-white font-bold text-[11px]">فارسی</button>
-              <button class="px-2.5 py-1 rounded text-slate-400 font-medium text-[11px] hover:text-white" onclick="alert('English language selected.')">English</button>
+        <!-- Merged Settings: Subscription Revoke Card -->
+        <div class="bg-rose-950/30 rounded-2xl p-4 border border-rose-800/40 space-y-2.5">
+          <div class="flex items-center gap-2">
+            <span class="text-xl text-rose-400">🛡️</span>
+            <div>
+              <h4 class="text-xs font-bold text-rose-300">ابطال و تغییر لینک اشتراک</h4>
+              <p class="text-[10px] text-slate-400 mt-0.5">در صورت کندی یا افشای لینک در کلاینت‌های متفرقه</p>
             </div>
           </div>
+          <button id="openRevokeModalBtn" class="w-full bg-rose-600 hover:bg-rose-500 text-white font-semibold text-xs py-2 rounded-xl transition flex items-center justify-center gap-1.5 shadow active:scale-[0.98]">
+            <span>🔄</span> تغییر لینک اشتراک فعلی
+          </button>
         </div>
       </div>
 
@@ -770,13 +601,13 @@
         <span class="text-lg">🛒</span>
         <span class="text-[10px] font-medium">فروشگاه</span>
       </button>
+      <button class="nav-btn flex flex-col items-center gap-0.5 text-slate-400 hover:text-slate-200 transition" data-tab="tab-wallet">
+        <span class="text-lg">👛</span>
+        <span class="text-[10px] font-medium">کیف پول</span>
+      </button>
       <button class="nav-btn flex flex-col items-center gap-0.5 text-slate-400 hover:text-slate-200 transition" data-tab="tab-profile">
         <span class="text-lg">👤</span>
         <span class="text-[10px] font-medium">حساب من</span>
-      </button>
-      <button class="nav-btn flex flex-col items-center gap-0.5 text-slate-400 hover:text-slate-200 transition" data-tab="tab-settings">
-        <span class="text-lg">⚙️</span>
-        <span class="text-[10px] font-medium">تنظیمات</span>
       </button>
     </div>
 
@@ -1079,6 +910,7 @@
     const splashBar = document.getElementById('splashBar');
 
     function runSplash() {
+      splashScreen.classList.remove('hidden');
       splashScreen.style.opacity = '1';
       splashScreen.style.pointerEvents = 'auto';
       splashBar.style.width = '0%';
@@ -1086,7 +918,8 @@
       setTimeout(() => {
         splashScreen.style.opacity = '0';
         splashScreen.style.pointerEvents = 'none';
-      }, 1000);
+        setTimeout(() => splashScreen.classList.add('hidden'), 500);
+      }, 750);
     }
     if (document.readyState === 'complete' || document.readyState === 'interactive') {
       setTimeout(runSplash, 50);
@@ -1158,15 +991,33 @@
       });
     });
 
+    // Toast notification utility
+    function showToast(msg) {
+      let toast = document.getElementById('appToast');
+      if (!toast) {
+        toast = document.createElement('div');
+        toast.id = 'appToast';
+        toast.className = 'fixed top-12 left-1/2 transform -translate-x-1/2 z-50 bg-slate-900/95 text-white border border-slate-700/80 px-4 py-2.5 rounded-2xl shadow-2xl text-xs font-semibold text-center transition-all duration-300 opacity-0 pointer-events-none max-w-[90%]';
+        document.body.appendChild(toast);
+      }
+      toast.innerText = msg;
+      toast.classList.remove('opacity-0', '-translate-y-2');
+      toast.classList.add('opacity-100', 'translate-y-0');
+      setTimeout(() => {
+        toast.classList.remove('opacity-100', 'translate-y-0');
+        toast.classList.add('opacity-0', '-translate-y-2');
+      }, 3000);
+    }
+
     // 5. Toggle QR Code
     const qrToggleBtn = document.getElementById('qrToggleBtn');
     const qrContainer = document.getElementById('qrContainer');
-    qrToggleBtn.addEventListener('click', () => {
-      qrContainer.classList.toggle('hidden');
-      if (qrContainer.classList.contains('hidden')) {
-        qrToggleBtn.innerHTML = '<span>📷 کیوآرکد</span>';
+    qrToggleBtn?.addEventListener('click', () => {
+      qrContainer?.classList.toggle('hidden');
+      if (qrContainer?.classList.contains('hidden')) {
+        qrToggleBtn.innerHTML = '<span class="text-sm">📷</span>';
       } else {
-        qrToggleBtn.innerHTML = '<span>❌ بستن</span>';
+        qrToggleBtn.innerHTML = '<span class="text-sm">✕</span>';
       }
     });
 
@@ -1178,16 +1029,16 @@
     const confirmRevokeBtn = document.getElementById('confirmRevokeBtn');
     const subInput = document.getElementById('subInput');
 
-    function openRevoke() { revokeModal.classList.remove('hidden'); }
-    function closeRevoke() { revokeModal.classList.add('hidden'); }
+    function openRevoke() { revokeModal?.classList.remove('hidden'); }
+    function closeRevoke() { revokeModal?.classList.add('hidden'); }
 
-    openRevokeModalBtn.addEventListener('click', openRevoke);
-    revokeSubBtnTop.addEventListener('click', openRevoke);
-    cancelRevokeBtn.addEventListener('click', closeRevoke);
+    openRevokeModalBtn?.addEventListener('click', openRevoke);
+    revokeSubBtnTop?.addEventListener('click', openRevoke);
+    cancelRevokeBtn?.addEventListener('click', closeRevoke);
 
-    confirmRevokeBtn.addEventListener('click', async () => {
+    confirmRevokeBtn?.addEventListener('click', async () => {
       confirmRevokeBtn.disabled = true;
-      confirmRevokeBtn.innerText = 'در حال ابطال و صدور لینک جدید...';
+      confirmRevokeBtn.innerText = 'در حال صدور لینک جدید...';
       const initData = window.Telegram?.WebApp?.initData || '';
       try {
         const resp = await fetch('/api/user/revoke_sub', {
@@ -1199,9 +1050,9 @@
         });
         const res = await resp.json();
         if (res.ok && res.subscription_url) {
-          subInput.value = res.subscription_url;
+          if (subInput) subInput.value = res.subscription_url;
           closeRevoke();
-          alert('🎉 لینک اشتراک قبلی شما با موفقیت ابطال و لینک جدید صادر شد! لطفاً لینک جدید را در نرم‌افزار خود کپی کنید.');
+          showToast('🎉 لینک اشتراک قبلی ابطال و لینک جدید با موفقیت صادر شد.');
           syncUserDataWithApi();
         } else {
           alert(res.error || 'خطا در تغییر لینک اشتراک.');
@@ -1229,7 +1080,7 @@
         });
         const res = await resp.json();
         if (res.ok) {
-          alert('✅ تمام نشست‌های فعال مسدود و لینک اشتراک امن جدید صادر شد.');
+          showToast('✅ تمام نشست‌های فعال مسدود و لینک اشتراک امن جدید صادر شد.');
           syncUserDataWithApi();
         } else {
           alert(res.error || 'خطا در قطع نشست‌ها.');
@@ -1244,33 +1095,59 @@
       const getSubUrl = () => {
         const url = (document.getElementById('subInput')?.value || '').trim();
         if (!url || url.includes('در حال') || url.includes('یافت نشد')) {
-          alert('اشتراک فعالی برای اتصال یافت نشد. لطفاً ابتدا اشتراک تهیه فرمایید.');
+          showToast('⚠️ اشتراک فعالی برای اتصال یافت نشد.');
           return null;
         }
         return url;
+      };
+
+      const copyToClipboard = (text) => {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(text).catch(() => fallbackCopy(text));
+        } else {
+          fallbackCopy(text);
+        }
+      };
+
+      const fallbackCopy = (text) => {
+        const el = document.createElement('textarea');
+        el.value = text;
+        el.setAttribute('readonly', '');
+        el.style.position = 'absolute';
+        el.style.left = '-9999px';
+        document.body.appendChild(el);
+        el.select();
+        try { document.execCommand('copy'); } catch (e) {}
+        document.body.removeChild(el);
       };
 
       const copyAndLaunch = (makeUri, appName) => {
         const url = getSubUrl();
         if (!url) return;
 
-        if (navigator.clipboard) {
-          navigator.clipboard.writeText(url).catch(() => {});
-        }
+        copyToClipboard(url);
+
         if (window.Telegram?.WebApp?.HapticFeedback) {
-          window.Telegram.WebApp.HapticFeedback.notificationOccurred('success');
+          try { window.Telegram.WebApp.HapticFeedback.notificationOccurred('success'); } catch(e) {}
         }
 
         const targetUri = makeUri(url);
-        window.location.href = targetUri;
-        alert(`📋 لینک اشتراک در کلیپ‌بورد کپی شد و درخواست اتصال به ${appName} ارسال گردید.\nدر صورت باز نشدن خودکار، لینک را در نرم‌افزار Paste نمایید.`);
+        // Dispatch intent via invisible anchor to avoid Telegram webview blocking
+        const link = document.createElement('a');
+        link.href = targetUri;
+        link.target = '_blank';
+        document.body.appendChild(link);
+        link.click();
+        setTimeout(() => link.remove(), 400);
+
+        showToast(`📋 لینک در کلیپ‌بورد کپی شد و درخواست اتصال به ${appName} ارسال گردید.`);
       };
 
       document.getElementById('appImportIncy')?.addEventListener('click', () => {
         copyAndLaunch(u => `incy://import?url=${encodeURIComponent(u)}`, 'Incy');
       });
       document.getElementById('appImportHapp')?.addEventListener('click', () => {
-        copyAndLaunch(u => `happ://import/${u}`, 'Happ');
+        copyAndLaunch(u => `happ://import/${encodeURIComponent(u)}`, 'Happ');
       });
       document.getElementById('appImportV2ray')?.addEventListener('click', () => {
         copyAndLaunch(u => `v2rayng://install-config?url=${encodeURIComponent(u)}`, 'v2rayNG');
@@ -1863,7 +1740,7 @@
         storyQr.src = `https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(sub.subscription_url)}`;
       }
 
-      // Today's Country Breakdown
+      // Today's Country Breakdown (ریز مصرف)
       const countryList = document.getElementById('countryBreakdownList');
       const countryTotalHeader = document.getElementById('countryTodayTotalHeader');
       if (countryTotalHeader) {
@@ -1880,14 +1757,14 @@
         } else {
           countryList.innerHTML = bDown.map(item => `
             <div>
-              <div class="flex justify-between text-slate-300 mb-1 text-[11px]">
+              <div dir="ltr" class="flex justify-between items-center text-slate-300 mb-1 text-[11px]">
                 <span class="flex items-center gap-1.5 font-medium">
                   <span>${item.flag || '🌐'}</span>
                   <span>${item.name}</span>
                 </span>
-                <span class="font-mono text-cyan-300 font-bold" dir="ltr">${item.total_formatted} (${item.percent}%)</span>
+                <span class="font-mono text-cyan-300 font-bold">${item.total_formatted} (${item.percent}%)</span>
               </div>
-              <div class="w-full bg-slate-900 h-2 rounded-full overflow-hidden">
+              <div dir="ltr" class="w-full bg-slate-900 h-2 rounded-full overflow-hidden">
                 <div class="bg-gradient-to-r from-blue-500 to-cyan-400 h-full rounded-full transition-all duration-500" style="width: ${Math.max(5, item.percent)}%;"></div>
               </div>
             </div>
@@ -1924,9 +1801,12 @@
             `;
           } else {
             repNightlyNodes.innerHTML = yBreakdown.map(n => `
-              <div class="bg-slate-900/60 p-1.5 rounded-lg flex items-center justify-between">
-                <span>${n.flag || '🌐'} ${n.name}:</span>
-                <span dir="ltr" class="font-bold text-slate-200">${n.total_formatted}</span>
+              <div dir="ltr" class="bg-slate-900/60 p-2 rounded-lg flex items-center justify-between">
+                <span class="flex items-center gap-1.5 font-medium text-slate-200">
+                  <span>${n.flag || '🌐'}</span>
+                  <span>${n.name}:</span>
+                </span>
+                <span class="font-bold text-slate-100 font-mono">${n.total_formatted}</span>
               </div>
             `).join('');
           }
@@ -1967,9 +1847,12 @@
             `;
           } else {
             repWeeklyNodes.innerHTML = wBreakdown.map(n => `
-              <div class="bg-slate-900/60 p-1.5 rounded-lg flex items-center justify-between">
-                <span>${n.flag || '🌐'} ${n.name}:</span>
-                <span dir="ltr" class="font-bold text-slate-200">${n.total_formatted}</span>
+              <div dir="ltr" class="bg-slate-900/60 p-2 rounded-lg flex items-center justify-between">
+                <span class="flex items-center gap-1.5 font-medium text-slate-200">
+                  <span>${n.flag || '🌐'}</span>
+                  <span>${n.name}:</span>
+                </span>
+                <span class="font-bold text-slate-100 font-mono">${n.total_formatted}</span>
               </div>
             `).join('');
           }
@@ -1992,9 +1875,12 @@
             `;
           } else {
             repMonthlyNodes.innerHTML = mBreakdown.map(n => `
-              <div class="bg-slate-900/60 p-1.5 rounded-lg flex items-center justify-between">
-                <span>${n.flag || '🌐'} ${n.name}:</span>
-                <span dir="ltr" class="font-bold text-slate-200">${n.total_formatted}</span>
+              <div dir="ltr" class="bg-slate-900/60 p-2 rounded-lg flex items-center justify-between">
+                <span class="flex items-center gap-1.5 font-medium text-slate-200">
+                  <span>${n.flag || '🌐'}</span>
+                  <span>${n.name}:</span>
+                </span>
+                <span class="font-bold text-slate-100 font-mono">${n.total_formatted}</span>
               </div>
             `).join('');
           }
@@ -2123,10 +2009,67 @@
         });
       }
 
-      // Wallet Balance
+      // Wallet Balance in Shop and Wallet Tab
       const walletEl = document.getElementById('shopWalletBalance');
-      if (walletEl) {
-        walletEl.innerText = `موجودی: ${(user.wallet_balance || 0).toLocaleString('fa-IR')} تومان`;
+      const walletTabBal = document.getElementById('walletTabBalance');
+      const formattedWallet = `${(user.wallet_balance || 0).toLocaleString('fa-IR')} تومان`;
+      if (walletEl) walletEl.innerText = `موجودی: ${formattedWallet}`;
+      if (walletTabBal) walletTabBal.innerText = formattedWallet;
+
+      // Profile Tab Identity & Data
+      const profName = document.getElementById('profileFullName');
+      const profUser = document.getElementById('profileUsername');
+      const profAvatar = document.getElementById('profileAvatarInitial');
+      const profId = document.getElementById('profileTelegramId');
+      const profRef = document.getElementById('profileRefCode');
+      const profJoin = document.getElementById('profileJoinDate');
+      const profSub = document.getElementById('profileSubStatus');
+
+      const userDisplayName = sub?.username || user.first_name || user.username || 'کاربر گرامی';
+      if (profName) profName.innerText = userDisplayName;
+      if (profUser) {
+        profUser.innerText = user.username ? `@${user.username}` : `شناسه: ${user.id || ''}`;
+      }
+      if (profAvatar) profAvatar.innerText = userDisplayName.charAt(0).toUpperCase();
+      if (profId) profId.innerText = user.id ? String(user.id) : '--';
+      if (profRef) profRef.innerText = user.id ? `REF-${user.id}` : 'REF-8492';
+      if (profJoin) profJoin.innerText = user.created_at_jalali || '۱۴۰۳/۰۷/۰۱';
+      if (profSub) {
+        profSub.innerText = data.has_active_sub ? 'فعال و متصل 🟢' : 'فاقد اشتراک فعال ⚪️';
+        profSub.className = data.has_active_sub ? 'font-semibold text-emerald-400' : 'font-semibold text-slate-400';
+      }
+
+      // Wallet Transactions List
+      const txContainer = document.getElementById('walletTransactionsList');
+      if (txContainer) {
+        const txList = data.transactions || [];
+        if (txList.length === 0) {
+          txContainer.innerHTML = `
+            <div class="p-4 rounded-xl bg-slate-900/60 border border-slate-700/50 text-center text-xs text-slate-400">
+              <span>🧾 هنوز تراکنش یا سفارشی برای این حساب ثبت نشده است.</span>
+            </div>
+          `;
+        } else {
+          txContainer.innerHTML = txList.map(tx => `
+            <div class="bg-slate-900/70 rounded-xl p-3 border border-slate-700/60 flex items-center justify-between text-xs">
+              <div class="flex items-center gap-2.5">
+                <span class="text-xl">${tx.type === 'topup' ? '💳' : '🛒'}</span>
+                <div>
+                  <span class="font-bold text-slate-200 block">${tx.title}</span>
+                  <span class="text-[10px] text-slate-400 font-mono mt-0.5" dir="ltr">${tx.date_jalali || ''}</span>
+                </div>
+              </div>
+              <div class="text-left font-mono">
+                <span class="font-bold ${tx.is_positive ? 'text-emerald-400' : 'text-slate-200'} block" dir="ltr">
+                  ${tx.is_positive ? '+' : '-'}${tx.amount_formatted}
+                </span>
+                <span class="text-[10px] text-${tx.status_color || 'emerald'}-400 font-sans">
+                  ${tx.status}
+                </span>
+              </div>
+            </div>
+          `).join('');
+        }
       }
 
       // Wheel Status
@@ -2138,6 +2081,37 @@
         }
       }
     }
+
+    // Profile & Wallet Action Listeners
+    document.getElementById('copyProfileIdBtn')?.addEventListener('click', () => {
+      const idVal = document.getElementById('profileTelegramId')?.innerText;
+      if (idVal && idVal !== '--') {
+        if (navigator.clipboard) navigator.clipboard.writeText(idVal);
+        showToast('📋 شناسه عددی تلگرام در کلیپ‌بورد کپی شد.');
+      }
+    });
+
+    document.getElementById('copyProfileRefBtn')?.addEventListener('click', () => {
+      const refVal = document.getElementById('profileRefCode')?.innerText;
+      if (refVal && refVal !== '--') {
+        if (navigator.clipboard) navigator.clipboard.writeText(refVal);
+        showToast('📋 کد معرف در کلیپ‌بورد کپی شد.');
+      }
+    });
+
+    document.getElementById('chargeWalletBtn')?.addEventListener('click', () => {
+      if (window.Telegram?.WebApp?.sendData) {
+        window.Telegram.WebApp.sendData(JSON.stringify({ action: 'topup' }));
+        window.Telegram.WebApp.close();
+      } else {
+        showToast('💳 جهت شارژ کیف پول، در ربات دستور /wallet یا افزایش موجودی را ارسال فرمایید.');
+      }
+    });
+
+    document.getElementById('gotoShopFromWallet')?.addEventListener('click', () => {
+      const shopNav = document.querySelector('.nav-btn[data-tab="tab-shop"]');
+      shopNav?.click();
+    });
 
     async function syncUserDataWithApi() {
       const initData = tg?.initData || '';
