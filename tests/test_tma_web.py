@@ -234,3 +234,80 @@ async def test_user_me_dashboard_with_panel_user():
         assert sub["devices_count"] == 1
         assert sub["subscription_url"] == "https://sub.domain/xyz"
 
+
+@pytest.mark.anyio
+async def test_user_validate_coupon_endpoint():
+    from bot.web.routes_user import post_user_validate_coupon
+    from aiohttp.test_utils import make_mocked_request
+    from unittest.mock import AsyncMock, patch
+
+    mock_coupon = MagicMock(code="OFF20", discount_percent=20, discount_amount=0)
+    mock_coupon_repo = MagicMock()
+    mock_coupon_repo.validate_coupon = AsyncMock(return_value=(True, None, 20))
+    mock_coupon_repo.get_by_code = AsyncMock(return_value=mock_coupon)
+
+    class MockSession:
+        async def __aenter__(self): return self
+        async def __aexit__(self, *args): pass
+
+    def session_factory():
+        return MockSession()
+
+    with patch("bot.db.repositories.coupon_repo.CouponRepository", return_value=mock_coupon_repo):
+        app = {
+            "bot_token": "123:abc",
+            "session_factory": session_factory,
+            "cache": FastCache(redis_client=None),
+        }
+        req = make_mocked_request(
+            "POST",
+            "/api/user/validate_coupon?user_id=77777",
+            headers={"Content-Type": "application/json"},
+            app=app,
+        )
+        req.json = AsyncMock(return_value={"code": "OFF20"})
+        resp = await post_user_validate_coupon(req)
+        assert resp.status == 200
+        data = json.loads(resp.text)
+        assert data["ok"] is True
+        assert data["data"]["code"] == "OFF20"
+        assert data["data"]["discount_percent"] == 20
+
+
+@pytest.mark.anyio
+async def test_user_topup_info_endpoint():
+    from bot.web.routes_user import get_user_topup_info
+    from aiohttp.test_utils import make_mocked_request
+    from unittest.mock import AsyncMock, patch
+
+    mock_store = MagicMock(
+        topup_min_amount=50000,
+        card_enabled=True,
+        card_number="6037991823456789",
+        card_holder="John Doe",
+        crypto_enabled=True,
+        ton_wallet_address="EQB...",
+        ton_rate_toman=600000,
+    )
+
+    class MockSession:
+        async def __aenter__(self): return self
+        async def __aexit__(self, *args): pass
+
+    def session_factory():
+        return MockSession()
+
+    with patch("bot.services.app_settings.get_store_settings", AsyncMock(return_value=mock_store)):
+        app = {
+            "session_factory": session_factory,
+        }
+        req = make_mocked_request("GET", "/api/user/topup_info?user_id=77777", app=app)
+        resp = await get_user_topup_info(req)
+        assert resp.status == 200
+        data = json.loads(resp.text)
+        assert data["ok"] is True
+        assert data["card_enabled"] is True
+        assert data["card_number"] == "6037991823456789"
+        assert data["ton_rate_toman"] == 600000
+
+

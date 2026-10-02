@@ -48,6 +48,73 @@
       padding: 0;
       overflow: hidden;
     }
+    /* Soft, comfortable Eye-Friendly Light Theme */
+    html.theme-light body {
+      background-color: #f1f5f9 !important;
+      color: #0f172a !important;
+    }
+    html.theme-light #phoneFrame {
+      background-color: #f8fafc !important;
+      border-color: #cbd5e1 !important;
+      color: #0f172a !important;
+    }
+    html.theme-light .bg-slate-800,
+    html.theme-light .bg-slate-800\/90,
+    html.theme-light .bg-slate-800\/85,
+    html.theme-light .bg-slate-800\/80,
+    html.theme-light .bg-slate-800\/70,
+    html.theme-light .bg-slate-800\/60 {
+      background-color: #ffffff !important;
+      border-color: #e2e8f0 !important;
+      box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05) !important;
+    }
+    html.theme-light .bg-slate-900,
+    html.theme-light .bg-slate-900\/90,
+    html.theme-light .bg-slate-900\/80,
+    html.theme-light .bg-slate-900\/60,
+    html.theme-light .bg-slate-900\/50 {
+      background-color: #f1f5f9 !important;
+      border-color: #e2e8f0 !important;
+    }
+    html.theme-light .bg-\[\#131d31\],
+    html.theme-light .bg-\[\#131d31\]\/95,
+    html.theme-light #navBottom {
+      background-color: rgba(255, 255, 255, 0.96) !important;
+      border-color: #e2e8f0 !important;
+    }
+    html.theme-light .border-slate-700,
+    html.theme-light .border-slate-700\/80,
+    html.theme-light .border-slate-700\/60,
+    html.theme-light .border-slate-700\/50,
+    html.theme-light .border-slate-700\/40,
+    html.theme-light .border-slate-800\/80 {
+      border-color: #e2e8f0 !important;
+    }
+    html.theme-light .text-white {
+      color: #0f172a !important;
+    }
+    html.theme-light .text-slate-100 {
+      color: #0f172a !important;
+    }
+    html.theme-light .text-slate-200 {
+      color: #1e293b !important;
+    }
+    html.theme-light .text-slate-300 {
+      color: #334155 !important;
+    }
+    html.theme-light .text-slate-400 {
+      color: #64748b !important;
+    }
+    html.theme-light .gauge-bg-circle {
+      stroke: #e2e8f0 !important;
+    }
+    html.theme-light input,
+    html.theme-light select,
+    html.theme-light textarea {
+      background-color: #ffffff !important;
+      border-color: #cbd5e1 !important;
+      color: #0f172a !important;
+    }
   </style>
 </head>
 <body id="appBody" class="bg-[#080d1a] text-slate-100 h-screen h-[100dvh] overflow-hidden flex justify-center antialiased select-none transition-colors duration-300">
@@ -84,7 +151,8 @@
         <button id="closeBtn" class="text-blue-400 text-xs font-semibold hover:text-blue-300 transition px-2.5 py-1 rounded-lg bg-blue-950/40 border border-blue-800/40">بستن</button>
         <button id="reloadBtn" class="text-slate-400 hover:text-slate-200 text-xs p-1.5 rounded-lg bg-slate-800 border border-slate-700" title="تازه‌سازی">🔄</button>
       </div>
-      <div class="flex items-center gap-1.5">
+      <!-- Green circle on the LEFT of RemnaStore -->
+      <div class="flex items-center gap-1.5" dir="ltr">
         <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
         <span class="text-xs font-bold text-slate-200">RemnaStore</span>
       </div>
@@ -103,12 +171,16 @@
     <!-- Active Account Quick Switcher Header -->
     <div class="bg-gradient-to-r from-blue-950/80 via-indigo-950/60 to-slate-900/80 px-4 py-2 border-b border-slate-700/40 flex items-center justify-between text-xs">
       <div class="flex items-center gap-2">
-        <div id="headerUserAvatar" class="w-6 h-6 rounded-full bg-gradient-to-tr from-blue-500 to-indigo-500 flex items-center justify-center text-xs font-bold text-white shadow">
-          U
+        <div id="headerUserAvatar" class="w-6 h-6 rounded-full bg-gradient-to-tr from-blue-500 to-indigo-500 flex items-center justify-center text-xs font-bold text-white shadow overflow-hidden flex-shrink-0">
+          <img id="headerUserAvatarImg" class="w-full h-full object-cover hidden" alt="Avatar" />
+          <span id="headerUserAvatarInitial">U</span>
         </div>
-        <div class="flex flex-col">
-          <span class="text-[10px] text-slate-400 -mb-0.5">اکانت فعال:</span>
+        <div class="flex items-center gap-1.5">
+          <span class="text-[11px] text-slate-400 whitespace-nowrap">اکانت فعال:</span>
           <span id="headerUsername" class="font-bold text-blue-300 font-mono">کاربر</span>
+          <button id="switchAccountBtn" class="hidden text-[10px] bg-blue-600/30 hover:bg-blue-600/50 text-blue-300 border border-blue-500/40 px-1.5 py-0.5 rounded transition flex items-center gap-0.5">
+            <span>🔄 تعویض</span>
+          </button>
         </div>
       </div>
       <div class="flex items-center gap-2">
@@ -166,7 +238,7 @@
           <!-- Circular SVG Gauge -->
           <div class="flex flex-col items-center justify-center my-1 relative">
             <svg class="w-44 h-44" viewBox="0 0 120 120">
-              <circle cx="60" cy="60" r="50" stroke="#1e293b" stroke-width="11" fill="transparent" />
+              <circle cx="60" cy="60" r="50" class="gauge-bg-circle" stroke="#1e293b" stroke-width="11" fill="transparent" />
               <circle id="gaugeProgress" class="gauge-circle" cx="60" cy="60" r="50" stroke="url(#gradientMain)" stroke-width="11" stroke-dasharray="314.15" stroke-dashoffset="62.8" stroke-linecap="round" fill="transparent" />
               <defs>
                 <linearGradient id="gradientMain" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -179,14 +251,14 @@
             <div class="absolute inset-0 flex flex-col items-center justify-center text-center p-2">
               <span id="dashboardPercentRemaining" class="text-3xl font-black text-white tracking-tight">--٪</span>
               <span class="text-[11px] text-slate-400 font-medium -mt-0.5">باقی‌مانده</span>
-              <div class="mt-1 text-[11px] text-indigo-200 bg-slate-900/90 border border-indigo-500/40 px-3 py-0.5 rounded-full font-semibold shadow-sm flex items-center justify-center">
+              <div class="mt-2.5 text-[11px] text-indigo-200 bg-slate-900/90 border border-indigo-500/40 px-3 py-0.5 rounded-full font-semibold shadow-sm flex items-center justify-center">
                 <span id="dashboardUsagePill" class="font-mono font-bold text-cyan-300" dir="ltr">-- / -- GB</span>
               </div>
             </div>
           </div>
 
           <!-- Expiry & Today's Metric Chips -->
-          <div class="grid grid-cols-2 gap-2 mt-3 pt-3 border-t border-slate-700/60 text-center">
+          <div class="grid grid-cols-2 gap-2 mt-4 pt-3.5 border-t border-slate-700/60 text-center">
             <div class="bg-slate-900/60 rounded-2xl p-2.5 border border-slate-700/50">
               <div class="text-[11px] text-slate-400 flex items-center justify-center gap-1 font-medium">
                 <span>📅</span> انقضای سرویس
@@ -330,7 +402,7 @@
             <div class="flex justify-between"><span>📊 حجم کل بسته :</span><b id="repNightlyTotal" class="font-mono text-white" dir="ltr">-- GB</b></div>
             <div class="flex justify-between"><span>🔥 حجم کل مصرف‌شده :</span><b id="repNightlyUsed" class="font-mono text-amber-400" dir="ltr">-- GB</b></div>
             <div class="flex justify-between"><span>📥 حجم باقی‌مانده :</span><b id="repNightlyRemain" class="font-mono text-emerald-400" dir="ltr">-- GB</b></div>
-            <div class="flex justify-between"><span>⚡️ مجموع مصرف روز دیشب :</span><b id="repNightlyYesterday" class="font-mono text-cyan-400" dir="ltr">0.00 GB</b></div>
+            <div class="flex justify-between"><span>⚡️ مجموع مصرف :</span><b id="repNightlyYesterday" class="font-mono text-cyan-400" dir="ltr">0.00 GB</b></div>
             <div class="flex justify-between"><span>📅 وضعیت انقضا :</span><span id="repNightlyExpire" class="font-semibold text-slate-200">--</span></div>
           </div>
           <div class="pt-2 border-t border-slate-700/60 text-xs">
@@ -375,7 +447,6 @@
           </div>
           <div class="space-y-1.5 text-xs text-slate-300">
             <div class="flex justify-between"><span>⚡️ کل مصرف ماهانه اکانت :</span><b id="repMonthlyTotal" class="font-mono text-purple-400 text-sm" dir="ltr">-- GB</b></div>
-            <div class="flex justify-between"><span>📊 وضعیت اتصال :</span><span class="text-emerald-400 font-bold font-mono">فعال و ایمن 🟢</span></div>
           </div>
 
           <!-- Monthly Per-Server Breakdown (تفکیک مصرف سرورهای ماه) -->
@@ -422,7 +493,7 @@
             <span class="flex items-center gap-1.5 font-medium">
               <span>👛</span> موجودی کیف پول شما
             </span>
-            <span class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 font-bold text-[10px]">آنلاین و معتبر</span>
+            <span class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 font-bold text-[10px]">معتبر</span>
           </div>
 
           <div class="py-2">
@@ -467,7 +538,8 @@
         <!-- User Avatar & Identity Card -->
         <div class="bg-gradient-to-b from-slate-800 to-slate-900 rounded-3xl p-5 border border-slate-700/80 shadow-xl text-center relative overflow-hidden">
           <div class="relative w-20 h-20 mx-auto mb-3">
-            <div class="w-full h-full rounded-full p-1 bg-gradient-to-tr from-cyan-400 via-blue-500 to-indigo-600 shadow-lg flex items-center justify-center">
+            <div class="w-full h-full rounded-full p-1 bg-gradient-to-tr from-cyan-400 via-blue-500 to-indigo-600 shadow-lg flex items-center justify-center overflow-hidden">
+              <img id="profileAvatarImg" class="w-full h-full rounded-full object-cover hidden" alt="Avatar" />
               <div id="profileAvatarInitial" class="w-full h-full rounded-full bg-slate-900 flex items-center justify-center text-3xl font-extrabold text-white">
                 U
               </div>
@@ -566,6 +638,18 @@
               </div>
             </label>
           </div>
+
+          <!-- Language Selector (تغییر زبان) -->
+          <div class="flex items-center justify-between py-1 border-t border-slate-700/50 pt-2">
+            <div>
+              <span class="text-slate-200 font-medium block">🌐 زبان برنامه (Language)</span>
+              <span class="text-[10px] text-slate-400">زبان پیش‌فرض ربات و داشبورد</span>
+            </div>
+            <div class="flex items-center gap-1 bg-slate-900 p-0.5 rounded-lg border border-slate-700">
+              <button id="langFaBtn" class="px-2.5 py-1 text-xs rounded-md font-bold transition bg-blue-600 text-white">فارسی</button>
+              <button id="langEnBtn" class="px-2.5 py-1 text-xs rounded-md font-medium transition text-slate-400 hover:text-slate-200">English</button>
+            </div>
+          </div>
         </div>
 
         <!-- Merged Settings: Subscription Revoke Card -->
@@ -633,6 +717,140 @@
             انصراف
           </button>
         </div>
+      </div>
+    </div>
+
+    <!-- ======================================================== -->
+    <!-- 4.1 MODAL: ACCOUNT SWITCHER (تغییر اکانت فعال)            -->
+    <!-- ======================================================== -->
+    <div id="switchAccountModal" class="absolute inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden animate-fadeIn">
+      <div class="bg-[#1e293b] border border-blue-500/50 rounded-3xl p-5 w-full space-y-4 shadow-2xl relative max-w-[340px]">
+        <div class="flex items-center justify-between border-b border-slate-700/60 pb-2.5">
+          <span class="text-xs font-bold text-white flex items-center gap-1.5">
+            <span>🔄</span> انتخاب اکانت فعال
+          </span>
+          <button id="closeSwitchAccountBtn" class="text-slate-400 hover:text-white text-xs bg-slate-800 rounded-full w-6 h-6 flex items-center justify-center">✕</button>
+        </div>
+        <p class="text-[11px] text-slate-300">لطفاً یکی از اشتراک‌های فعال خود را انتخاب کنید:</p>
+        <div id="switchAccountList" class="space-y-2 max-h-60 overflow-y-auto custom-scroll">
+          <div class="text-center py-3 text-slate-400 text-xs">در حال بارگذاری اشتراک‌ها...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======================================================== -->
+    <!-- 4.2 MODAL: TOP-UP WALLET (افزایش موجودی کیف پول)          -->
+    <!-- ======================================================== -->
+    <div id="topupModal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden animate-fadeIn overflow-y-auto">
+      <div class="bg-[#1a233a] border border-indigo-500/50 rounded-3xl p-5 w-full space-y-4 shadow-2xl relative max-w-[370px] my-auto text-xs">
+        <button id="closeTopupModalBtn" class="absolute top-3 left-3 text-slate-400 hover:text-white text-xs bg-slate-800 rounded-full w-7 h-7 flex items-center justify-center">✕</button>
+        
+        <div class="border-b border-slate-700/60 pb-2">
+          <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/40">
+            💳 افزایش موجودی کیف پول
+          </span>
+          <h3 class="text-sm font-bold text-white mt-1">شارژ سریع و خودکار حساب</h3>
+        </div>
+
+        <!-- Method Tabs -->
+        <div class="flex bg-slate-900/90 p-1 rounded-xl border border-slate-700/80 gap-1">
+          <button id="topupMethodCardBtn" class="flex-1 py-1.5 rounded-lg font-bold text-xs bg-blue-600 text-white transition flex items-center justify-center gap-1">
+            <span>💳</span> کارت به کارت
+          </button>
+          <button id="topupMethodCryptoBtn" class="flex-1 py-1.5 rounded-lg font-medium text-xs text-slate-400 hover:text-slate-200 transition flex items-center justify-center gap-1">
+            <span>💎</span> ارز دیجیتال (TON)
+          </button>
+        </div>
+
+        <!-- Amount Presets & Custom Input -->
+        <div class="space-y-1.5">
+          <label class="text-[11px] text-slate-300 font-medium block">مبلغ شارژ مورد نظر (تومان):</label>
+          <div class="grid grid-cols-2 gap-1.5 font-mono text-[11px]">
+            <button type="button" class="topup-preset-btn py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200" data-amt="50000">۵۰,۰۰۰ تومان</button>
+            <button type="button" class="topup-preset-btn py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200" data-amt="100000">۱۰۰,۰۰۰ تومان</button>
+            <button type="button" class="topup-preset-btn py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200" data-amt="200000">۲۰۰,۰۰۰ تومان</button>
+            <button type="button" class="topup-preset-btn py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200" data-amt="500000">۵۰۰,۰۰۰ تومان</button>
+          </div>
+          <input type="number" id="topupAmountInput" placeholder="مبلغ دلخواه به تومان (حداقل ۵۰,۰۰۰)" class="w-full bg-slate-900 px-3 py-2 rounded-xl border border-slate-700 text-slate-100 font-mono outline-none text-xs mt-1" />
+        </div>
+
+        <!-- 1. Card-to-Card Section -->
+        <div id="topupCardView" class="space-y-3">
+          <div class="bg-slate-900/80 rounded-2xl p-3 border border-slate-700/80 space-y-2">
+            <div class="flex justify-between items-center text-[11px]">
+              <span class="text-slate-400">شماره کارت مقصد:</span>
+              <div class="flex items-center gap-1">
+                <code id="topupCardNumber" class="text-white font-mono font-bold tracking-wider" dir="ltr">---- ---- ---- ----</code>
+                <button id="copyTopupCardBtn" class="text-blue-400 hover:text-blue-300 px-1" title="کپی شماره کارت">📋</button>
+              </div>
+            </div>
+            <div class="flex justify-between items-center text-[11px]">
+              <span class="text-slate-400">به نام:</span>
+              <b id="topupCardHolder" class="text-slate-200">در حال دریافت...</b>
+            </div>
+            <div class="flex justify-between items-center text-[11px] border-t border-slate-800 pt-1.5">
+              <span class="text-slate-400">مبلغ واریزی:</span>
+              <b id="topupCardAmountDisplay" class="text-emerald-400 font-mono">-- تومان</b>
+            </div>
+          </div>
+
+          <div class="space-y-1">
+            <label class="text-[11px] text-slate-300 font-medium block">کد پیگیری یا شماره ارجاع فیش:</label>
+            <textarea id="topupCardReceiptInput" rows="2" placeholder="کد پیگیری یا شماره ارجاع تراکنش را اینجا وارد فرمایید..." class="w-full bg-slate-900 p-2.5 rounded-xl border border-slate-700 text-slate-200 text-xs outline-none resize-none"></textarea>
+          </div>
+
+          <button id="submitCardTopupBtn" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold py-2.5 rounded-xl transition shadow active:scale-[0.98]">
+            📤 ثبت و ارسال رسید پرداخت
+          </button>
+        </div>
+
+        <!-- 2. Crypto / TON Section -->
+        <div id="topupCryptoView" class="space-y-3 hidden">
+          <div id="cryptoInvoiceInitial" class="text-center py-2 space-y-2">
+            <p class="text-[11px] text-slate-300">پرداخت خودکار و آنی از طریق شبکه ارز دیجیتال تون (TON)</p>
+            <button id="generateTonInvoiceBtn" class="w-full bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white font-bold py-2.5 rounded-xl transition shadow active:scale-[0.98]">
+              💎 ایجاد فاکتور پرداخت TON
+            </button>
+          </div>
+
+          <div id="cryptoInvoiceDetails" class="space-y-2.5 hidden">
+            <div class="bg-slate-900/90 rounded-2xl p-3 border border-sky-500/40 space-y-2">
+              <div class="flex justify-between items-center text-[11px]">
+                <span class="text-slate-400">مقدار قابل پرداخت:</span>
+                <div class="flex items-center gap-1">
+                  <b id="cryptoAmountTon" class="text-sky-400 font-mono font-bold" dir="ltr">-- TON</b>
+                  <button id="copyTonAmountBtn" class="text-sky-400 hover:text-sky-300 px-1" title="کپی مقدار">📋</button>
+                </div>
+              </div>
+              <div class="flex justify-between items-center text-[11px]">
+                <span class="text-slate-400">آدرس ولت TON:</span>
+                <button id="copyTonAddressBtn" class="text-slate-300 hover:text-white font-mono text-[10px] truncate max-w-[170px]" dir="ltr">
+                  <span id="cryptoPayAddress">--</span> 📋
+                </button>
+              </div>
+              <div class="bg-amber-500/10 border border-amber-500/30 p-2 rounded-xl space-y-1">
+                <div class="flex justify-between items-center text-[11px]">
+                  <span class="text-amber-300 font-bold">شناسه انتقال (Memo/Comment):</span>
+                  <div class="flex items-center gap-1">
+                    <code id="cryptoComment" class="text-amber-300 font-mono font-bold" dir="ltr">--</code>
+                    <button id="copyTonCommentBtn" class="text-amber-300 hover:text-amber-200 px-1" title="کپی کامنت">📋</button>
+                  </div>
+                </div>
+                <p class="text-[9px] text-amber-200/80 leading-tight">⚠️ حتماً این شناسه (Memo) را در پیام انتقال ولت وارد کنید تا شارژ به‌صورت آنی ثبت شود.</p>
+              </div>
+            </div>
+
+            <div class="space-y-1.5 pt-1">
+              <a id="cryptoTonkeeperLink" href="#" class="w-full bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-white font-bold py-2.5 rounded-xl transition shadow active:scale-[0.98] flex items-center justify-center gap-1.5 text-xs text-center block">
+                <span>🚀</span> پرداخت با Tonkeeper / ولت
+              </a>
+              <button id="cryptoCheckStatusBtn" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold py-2 rounded-xl transition border border-slate-700 flex items-center justify-center gap-1.5 text-xs">
+                <span>🔄</span> بررسی وضعیت پرداخت
+              </button>
+            </div>
+          </div>
+        </div>
+
       </div>
     </div>
 
@@ -1160,42 +1378,73 @@
       });
     }
 
-    // 9. Coupon Code Application
+    // 9. Coupon Code Application (Real API validation + shop recalculation)
+    window.activeCoupon = null;
     const applyCouponBtn = document.getElementById('applyCouponBtn');
     const couponInput = document.getElementById('couponInput');
-    applyCouponBtn?.addEventListener('click', () => {
-      const val = couponInput.value.trim().toUpperCase();
-      if (val === 'OFF20' || val === 'VIP' || val === 'OFF10') {
-        alert('🎉 کد تخفیف با موفقیت اعمال شد!');
-        applyCouponBtn.innerText = '✅ اعمال شد';
-        applyCouponBtn.classList.replace('bg-slate-700', 'bg-emerald-600');
-      } else {
-        alert('❌ کد تخفیف نامعتبر است. (کد تستی: OFF20)');
+    applyCouponBtn?.addEventListener('click', async () => {
+      const code = couponInput.value.trim().toUpperCase();
+      if (!code) {
+        showToast('⚠️ لطفاً کد تخفیف را وارد فرمایید.');
+        return;
+      }
+      applyCouponBtn.disabled = true;
+      applyCouponBtn.innerText = 'بررسی...';
+      const initData = window.Telegram?.WebApp?.initData || '';
+      try {
+        const resp = await fetch('/api/user/validate_coupon', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Telegram-Init-Data': initData
+          },
+          body: JSON.stringify({ code })
+        });
+        const res = await resp.json();
+        if (res.ok && res.data) {
+          window.activeCoupon = res.data;
+          let discMsg = '';
+          if (res.data.discount_percent > 0) discMsg = `${res.data.discount_percent}٪`;
+          else if (res.data.discount_amount > 0) discMsg = `${res.data.discount_amount.toLocaleString('fa-IR')} تومان`;
+          showToast(`🎉 کد تخفیف با موفقیت اعمال شد! (${discMsg} تخفیف)`);
+          applyCouponBtn.innerText = '✅ اعمال شد';
+          applyCouponBtn.classList.replace('bg-slate-700', 'bg-emerald-600');
+          // Re-render shop plans with discount
+          if (window.lastUserData) {
+            renderShopPlans(window.lastUserData);
+          }
+        } else {
+          window.activeCoupon = null;
+          showToast(`❌ ${res.message || 'کد تخفیف نامعتبر است.'}`);
+          applyCouponBtn.innerText = 'اعمال';
+          applyCouponBtn.classList.replace('bg-emerald-600', 'bg-slate-700');
+          if (window.lastUserData) {
+            renderShopPlans(window.lastUserData);
+          }
+        }
+      } catch (err) {
+        showToast('❌ خطا در بررسی کد تخفیف.');
+        applyCouponBtn.innerText = 'اعمال';
+      } finally {
+        applyCouponBtn.disabled = false;
       }
     });
 
-    // 10. Dark/Light Mode Theme Toggle
+    // 10. Dark/Light Mode Theme Toggle (Using comprehensive .theme-light palette)
     const themeToggle = document.getElementById('themeToggle');
     const themeIcon = document.getElementById('themeIcon');
     let isDark = true;
 
     themeToggle?.addEventListener('click', () => {
       isDark = !isDark;
-      const appBody = document.getElementById('appBody');
-      const phoneFrame = document.getElementById('phoneFrame');
-
       if (isDark) {
+        document.documentElement.classList.remove('theme-light');
         document.documentElement.classList.add('dark');
-        themeIcon.innerText = '🌙';
-        appBody?.classList.replace('bg-slate-100', 'bg-[#0b1120]');
-        phoneFrame?.classList.replace('bg-white', 'bg-[#131d31]');
-        phoneFrame?.classList.replace('text-slate-900', 'text-slate-100');
+        if (themeIcon) themeIcon.innerText = '🌙';
       } else {
         document.documentElement.classList.remove('dark');
-        themeIcon.innerText = '☀️';
-        appBody?.classList.replace('bg-[#0b1120]', 'bg-slate-100');
-        phoneFrame?.classList.replace('bg-[#131d31]', 'bg-white');
-        phoneFrame?.classList.replace('text-slate-100', 'text-slate-900');
+        document.documentElement.classList.add('theme-light');
+        if (themeIcon) themeIcon.innerText = '☀️';
       }
     });
 
@@ -1812,11 +2061,12 @@
           }
         }
 
-        // Reports Hub: Weekly Report
         const repWeeklyTotal = document.getElementById('repWeeklyTotal');
         if (repWeeklyTotal) repWeeklyTotal.innerText = `${sub.week_used_gb ?? '0.00'} GB`;
         const repWeeklyBusiest = document.getElementById('repWeeklyBusiest');
-        if (repWeeklyBusiest) repWeeklyBusiest.innerText = `${sub.busiest_day_name || '—'} (${sub.busiest_day_amount || '0 GB'})`;
+        if (repWeeklyBusiest) {
+          repWeeklyBusiest.innerHTML = `${sub.busiest_day_name || '—'} <span dir="ltr" class="font-mono inline-block text-cyan-300 font-semibold">(${sub.busiest_day_amount || '0 GB'})</span>`;
+        }
 
         const repChart = document.getElementById('repWeeklyChart');
         if (repChart) {
@@ -1962,52 +2212,7 @@
       }
 
       // Shop Plans (Admin services from database)
-      const shopContainer = document.getElementById('shopPlansContainer');
-      const plans = data.plans || [];
-      if (shopContainer && plans.length > 0) {
-        shopContainer.innerHTML = plans.map((p, idx) => {
-          const isPopular = idx === 0 || p.duration_days >= 60;
-          const formattedPrice = (p.price || 0).toLocaleString('fa-IR');
-          return `
-            <div class="bg-slate-800/90 rounded-2xl p-4 border ${isPopular ? 'border-indigo-500/60 shadow-lg' : 'border-slate-700/80'} relative overflow-hidden group">
-              ${isPopular ? '<div class="absolute top-0 left-0 bg-indigo-600 text-white text-[10px] font-bold px-3 py-0.5 rounded-br-xl shadow">🔥 پرفروش‌ترین</div>' : ''}
-              <div class="flex justify-between items-start ${isPopular ? 'mt-1' : ''}">
-                <div>
-                  <div class="flex items-center gap-2">
-                    <h4 class="font-bold text-sm text-white">${p.name}</h4>
-                  </div>
-                  <p class="text-xs text-slate-400 mt-1">${p.description || 'ترافیک بدون محدودیت با اتصال مستقیم VIP'}</p>
-                </div>
-                <div class="text-left font-mono">
-                  <span class="text-base font-black text-emerald-400">${formattedPrice}</span>
-                  <span class="text-[10px] text-slate-400 block -mt-1">تومان</span>
-                </div>
-              </div>
-              <div class="flex items-center gap-4 my-2.5 text-xs text-slate-300 bg-slate-900/50 p-2 rounded-xl">
-                <span>📊 <b dir="ltr" class="font-mono">${p.traffic_gb} GB</b> ترافیک</span>
-                <span>📅 <b>${p.duration_days} روز</b></span>
-                <span>⚡️ <b>کلاستر VIP</b></span>
-              </div>
-              <button class="buy-plan-btn w-full ${isPopular ? 'bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-500 hover:to-blue-500' : 'bg-blue-600 hover:bg-blue-500'} text-white font-semibold text-xs py-2.5 rounded-xl transition shadow active:scale-[0.98]" data-id="${p.id}" data-name="${p.name}">
-                🛒 خرید / تمدید آنی
-              </button>
-            </div>
-          `;
-        }).join('');
-
-        document.querySelectorAll('.buy-plan-btn').forEach(btn => {
-          btn.addEventListener('click', () => {
-            const planName = btn.getAttribute('data-name');
-            const planId = btn.getAttribute('data-id');
-            if (window.Telegram?.WebApp?.sendData) {
-              window.Telegram.WebApp.sendData(JSON.stringify({ action: 'buy_service', service_id: planId }));
-              window.Telegram.WebApp.close();
-            } else {
-              alert(`بسته "${planName}" انتخاب شد. دستور صدور فاکتور به ربات ارسال می‌شود.`);
-            }
-          });
-        });
-      }
+      renderShopPlans(data);
 
       // Wallet Balance in Shop and Wallet Tab
       const walletEl = document.getElementById('shopWalletBalance');
@@ -2035,8 +2240,55 @@
       if (profRef) profRef.innerText = user.id ? `REF-${user.id}` : 'REF-8492';
       if (profJoin) profJoin.innerText = user.created_at_jalali || '۱۴۰۳/۰۷/۰۱';
       if (profSub) {
-        profSub.innerText = data.has_active_sub ? 'فعال و متصل 🟢' : 'فاقد اشتراک فعال ⚪️';
-        profSub.className = data.has_active_sub ? 'font-semibold text-emerald-400' : 'font-semibold text-slate-400';
+        profSub.innerText = 'فعال';
+        profSub.className = 'font-semibold text-emerald-400';
+      }
+
+      // Language Buttons Style
+      const currentLang = user.language || 'fa';
+      const langFaBtn = document.getElementById('langFaBtn');
+      const langEnBtn = document.getElementById('langEnBtn');
+      if (currentLang === 'en') {
+        langEnBtn?.classList.add('bg-blue-600', 'text-white', 'font-bold');
+        langEnBtn?.classList.remove('text-slate-400');
+        langFaBtn?.classList.remove('bg-blue-600', 'text-white', 'font-bold');
+        langFaBtn?.classList.add('text-slate-400');
+      } else {
+        langFaBtn?.classList.add('bg-blue-600', 'text-white', 'font-bold');
+        langFaBtn?.classList.remove('text-slate-400');
+        langEnBtn?.classList.remove('bg-blue-600', 'text-white', 'font-bold');
+        langEnBtn?.classList.add('text-slate-400');
+      }
+
+      // Profile & Header Avatar Photo Loading
+      const tgUser = window.Telegram?.WebApp?.initDataUnsafe?.user;
+      const avatarUrl = tgUser?.photo_url || `/api/user/avatar?id=${user.id || tgUser?.id || ''}`;
+      if (avatarUrl) {
+        const profImg = document.getElementById('profileAvatarImg');
+        const headImg = document.getElementById('headerUserAvatarImg');
+        const testImg = new Image();
+        testImg.src = avatarUrl;
+        testImg.onload = () => {
+          if (profImg) {
+            profImg.src = avatarUrl;
+            profImg.classList.remove('hidden');
+            profAvatar?.classList.add('hidden');
+          }
+          if (headImg) {
+            headImg.src = avatarUrl;
+            headImg.classList.remove('hidden');
+            document.getElementById('headerUserAvatarInitial')?.classList.add('hidden');
+          }
+        };
+      }
+
+      // Multi-account Switcher Binding
+      const switchBtn = document.getElementById('switchAccountBtn');
+      const accounts = data.accounts || [];
+      if (switchBtn && accounts.length > 1) {
+        switchBtn.classList.remove('hidden');
+      } else if (switchBtn) {
+        switchBtn.classList.add('hidden');
       }
 
       // Wallet Transactions List
@@ -2082,6 +2334,383 @@
       }
     }
 
+    function renderShopPlans(data) {
+      const shopContainer = document.getElementById('shopPlansContainer');
+      const plans = data.plans || [];
+      if (!shopContainer || plans.length === 0) return;
+
+      shopContainer.innerHTML = plans.map((p, idx) => {
+        const isPopular = idx === 0 || p.duration_days >= 60;
+        let discountVal = 0;
+        if (window.activeCoupon) {
+          if (window.activeCoupon.discount_percent > 0) {
+            discountVal = Math.round(p.price * window.activeCoupon.discount_percent / 100);
+          } else if (window.activeCoupon.discount_amount > 0) {
+            discountVal = window.activeCoupon.discount_amount;
+          }
+        }
+        const finalPrice = Math.max(0, p.price - discountVal);
+        const formattedFinal = finalPrice.toLocaleString('fa-IR');
+        const formattedOriginal = (p.price || 0).toLocaleString('fa-IR');
+
+        return `
+          <div class="bg-slate-800/90 rounded-2xl p-4 border ${isPopular ? 'border-indigo-500/60 shadow-lg' : 'border-slate-700/80'} relative overflow-hidden group">
+            ${isPopular ? '<div class="absolute top-0 left-0 bg-indigo-600 text-white text-[10px] font-bold px-3 py-0.5 rounded-br-xl shadow">🔥 پرفروش‌ترین</div>' : ''}
+            <div class="flex justify-between items-start ${isPopular ? 'mt-1' : ''}">
+              <div>
+                <div class="flex items-center gap-2">
+                  <h4 class="font-bold text-sm text-white">${p.name}</h4>
+                  ${discountVal > 0 ? '<span class="text-[9px] bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-1.5 py-0.5 rounded font-bold">🏷 تخفیف ویژه</span>' : ''}
+                </div>
+                <p class="text-xs text-slate-400 mt-1">${p.description || 'ترافیک بدون محدودیت با اتصال مستقیم VIP'}</p>
+              </div>
+              <div class="text-left font-mono">
+                ${discountVal > 0 ? `<span class="line-through text-slate-400 text-xs block -mb-0.5">${formattedOriginal}</span>` : ''}
+                <span class="text-base font-black text-emerald-400">${formattedFinal}</span>
+                <span class="text-[10px] text-slate-400 block -mt-1">تومان</span>
+              </div>
+            </div>
+            <div class="flex items-center gap-4 my-2.5 text-xs text-slate-300 bg-slate-900/50 p-2 rounded-xl">
+              <span>📊 <b dir="ltr" class="font-mono">${p.traffic_gb} GB</b> ترافیک</span>
+              <span>📅 <b>${p.duration_days} روز</b></span>
+              <span>⚡️ <b>کلاستر VIP</b></span>
+            </div>
+            <button class="buy-plan-btn w-full ${isPopular ? 'bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-500 hover:to-blue-500' : 'bg-blue-600 hover:bg-blue-500'} text-white font-semibold text-xs py-2.5 rounded-xl transition shadow active:scale-[0.98]" data-id="${p.id}" data-price="${finalPrice}" data-name="${p.name}">
+              🛒 خرید / تمدید آنی (${formattedFinal} تومان)
+            </button>
+          </div>
+        `;
+      }).join('');
+
+      document.querySelectorAll('.buy-plan-btn').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const planId = btn.getAttribute('data-id');
+          const planPrice = parseInt(btn.getAttribute('data-price') || '0');
+          const planName = btn.getAttribute('data-name');
+          const userBalance = window.lastUserData?.user?.wallet_balance || 0;
+
+          if (userBalance < planPrice) {
+            const diff = planPrice - userBalance;
+            if (confirm(`موجودی کیف پول شما کافی نیست.\nموجودی فعلی: ${userBalance.toLocaleString('fa-IR')} تومان\nکسری: ${diff.toLocaleString('fa-IR')} تومان\n\nآیا مایلید هم‌اکنون کیف پول خود را شارژ فرمایید؟`)) {
+              openTopupModal(diff);
+            }
+            return;
+          }
+
+          if (!confirm(`آیا از خرید بسته «${planName}» به مبلغ ${planPrice.toLocaleString('fa-IR')} تومان اطمینان دارید؟`)) {
+            return;
+          }
+
+          btn.disabled = true;
+          btn.innerText = 'در حال ثبت خرید...';
+          try {
+            const initData = window.Telegram?.WebApp?.initData || '';
+            const resp = await fetch('/api/user/purchase', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', 'X-Telegram-Init-Data': initData },
+              body: JSON.stringify({
+                service_id: planId,
+                coupon_code: window.activeCoupon?.code || null,
+                account_id: window.currentAccountId || null,
+              })
+            });
+            const res = await resp.json();
+            if (res.ok) {
+              showToast('🎉 خرید شما با موفقیت انجام شد!');
+              syncUserDataWithApi(window.currentAccountId);
+            } else {
+              showToast(`❌ ${res.message || 'خطا در ثبت خرید'}`);
+            }
+          } catch (err) {
+            showToast('❌ خطا در برقراری ارتباط با سرور.');
+          } finally {
+            btn.disabled = false;
+            btn.innerText = `🛒 خرید / تمدید آنی (${planPrice.toLocaleString('fa-IR')} تومان)`;
+          }
+        });
+      });
+    }
+
+    // Account Switcher Modal logic
+    const switchAccountModal = document.getElementById('switchAccountModal');
+    const switchAccountBtn = document.getElementById('switchAccountBtn');
+    const closeSwitchAccountBtn = document.getElementById('closeSwitchAccountBtn');
+    const switchAccountList = document.getElementById('switchAccountList');
+
+    switchAccountBtn?.addEventListener('click', () => {
+      const accounts = window.lastUserData?.accounts || [];
+      if (!switchAccountList) return;
+      switchAccountList.innerHTML = accounts.map(acc => `
+        <button class="select-acc-item w-full p-2.5 rounded-xl border ${acc.is_active ? 'border-blue-500 bg-blue-950/50' : 'border-slate-700 bg-slate-900/60 hover:border-slate-600'} text-right flex items-center justify-between transition" data-id="${acc.id}">
+          <div>
+            <div class="font-bold text-white text-xs flex items-center gap-1.5">
+              <span>👤</span> ${acc.username}
+            </div>
+            <span class="text-[10px] text-slate-400 mt-0.5 block font-mono" dir="ltr">
+              ${acc.used_gb} GB / ${acc.total_gb > 0 ? acc.total_gb + ' GB' : 'نامحدود'}
+            </span>
+          </div>
+          ${acc.is_active ? '<span class="text-xs text-blue-400 font-bold bg-blue-500/20 px-2 py-0.5 rounded-full border border-blue-500/40">فعال ✓</span>' : '<span class="text-xs text-slate-300 bg-slate-800 px-2 py-0.5 rounded-full">انتخاب</span>'}
+        </button>
+      `).join('');
+
+      document.querySelectorAll('.select-acc-item').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const accId = btn.getAttribute('data-id');
+          window.currentAccountId = accId;
+          switchAccountModal?.classList.add('hidden');
+          syncUserDataWithApi(accId);
+          showToast('🔄 اکانت فعال تغییر یافت.');
+        });
+      });
+
+      switchAccountModal?.classList.remove('hidden');
+    });
+
+    closeSwitchAccountBtn?.addEventListener('click', () => {
+      switchAccountModal?.classList.add('hidden');
+    });
+
+    // Topup Modal Logic
+    const topupModal = document.getElementById('topupModal');
+    const closeTopupModalBtn = document.getElementById('closeTopupModalBtn');
+    const topupMethodCardBtn = document.getElementById('topupMethodCardBtn');
+    const topupMethodCryptoBtn = document.getElementById('topupMethodCryptoBtn');
+    const topupCardView = document.getElementById('topupCardView');
+    const topupCryptoView = document.getElementById('topupCryptoView');
+    const topupAmountInput = document.getElementById('topupAmountInput');
+    const topupCardAmountDisplay = document.getElementById('topupCardAmountDisplay');
+
+    let currentTopupInvoice = null;
+
+    function openTopupModal(defaultAmt) {
+      const amt = defaultAmt && defaultAmt >= 50000 ? defaultAmt : 50000;
+      if (topupAmountInput) topupAmountInput.value = amt;
+      updateTopupDisplays(amt);
+      loadTopupInfo();
+      topupModal?.classList.remove('hidden');
+    }
+
+    function updateTopupDisplays(amt) {
+      if (topupCardAmountDisplay) {
+        topupCardAmountDisplay.innerText = `${(amt || 0).toLocaleString('fa-IR')} تومان`;
+      }
+      if (window.storeSettings?.ton_rate_toman && window.storeSettings.ton_rate_toman > 0) {
+        const tonAmt = ((amt || 0) / window.storeSettings.ton_rate_toman).toFixed(4);
+        const cryptoTonEl = document.getElementById('cryptoAmountTon');
+        if (cryptoTonEl) cryptoTonEl.innerText = `${tonAmt} TON`;
+      }
+    }
+
+    topupAmountInput?.addEventListener('input', (e) => {
+      updateTopupDisplays(parseInt(e.target.value || '0'));
+    });
+
+    document.querySelectorAll('.topup-preset-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const amt = parseInt(btn.getAttribute('data-amt') || '50000');
+        if (topupAmountInput) topupAmountInput.value = amt;
+        updateTopupDisplays(amt);
+      });
+    });
+
+    topupMethodCardBtn?.addEventListener('click', () => {
+      topupMethodCardBtn.classList.replace('text-slate-400', 'text-white');
+      topupMethodCardBtn.classList.add('bg-blue-600');
+      topupMethodCryptoBtn.classList.replace('text-white', 'text-slate-400');
+      topupMethodCryptoBtn.classList.remove('bg-blue-600');
+      topupCardView?.classList.remove('hidden');
+      topupCryptoView?.classList.add('hidden');
+    });
+
+    topupMethodCryptoBtn?.addEventListener('click', () => {
+      topupMethodCryptoBtn.classList.replace('text-slate-400', 'text-white');
+      topupMethodCryptoBtn.classList.add('bg-blue-600');
+      topupMethodCardBtn.classList.replace('text-white', 'text-slate-400');
+      topupMethodCardBtn.classList.remove('bg-blue-600');
+      topupCryptoView?.classList.remove('hidden');
+      topupCardView?.classList.add('hidden');
+    });
+
+    closeTopupModalBtn?.addEventListener('click', () => {
+      topupModal?.classList.add('hidden');
+    });
+
+    document.getElementById('chargeWalletBtn')?.addEventListener('click', () => {
+      openTopupModal(50000);
+    });
+
+    async function loadTopupInfo() {
+      const initData = window.Telegram?.WebApp?.initData || '';
+      try {
+        const resp = await fetch('/api/user/topup_info', {
+          headers: { 'X-Telegram-Init-Data': initData }
+        });
+        const res = await resp.json();
+        if (res.ok) {
+          window.storeSettings = res;
+          const cardNumEl = document.getElementById('topupCardNumber');
+          const cardHolderEl = document.getElementById('topupCardHolder');
+          if (cardNumEl) cardNumEl.innerText = res.card_number || 'هنوز ثبت نشده';
+          if (cardHolderEl) cardHolderEl.innerText = res.card_holder || 'مدیریت سرور';
+          updateTopupDisplays(parseInt(topupAmountInput?.value || '50000'));
+        }
+      } catch (err) {}
+    }
+
+    document.getElementById('copyTopupCardBtn')?.addEventListener('click', () => {
+      const card = document.getElementById('topupCardNumber')?.innerText;
+      if (card && !card.includes('-')) {
+        if (navigator.clipboard) navigator.clipboard.writeText(card.replace(/\s+/g, ''));
+        showToast('📋 شماره کارت کپی شد.');
+      }
+    });
+
+    document.getElementById('submitCardTopupBtn')?.addEventListener('click', async () => {
+      const amt = parseInt(topupAmountInput?.value || '0');
+      const receipt = document.getElementById('topupCardReceiptInput')?.value?.trim();
+      if (!amt || amt < 10000) {
+        showToast('⚠️ لطفاً مبلغ معتبر وارد فرمایید.');
+        return;
+      }
+      if (!receipt) {
+        showToast('⚠️ لطفاً کد پیگیری یا شماره ارجاع فیش واریزی را وارد فرمایید.');
+        return;
+      }
+
+      const submitBtn = document.getElementById('submitCardTopupBtn');
+      submitBtn.disabled = true;
+      submitBtn.innerText = 'در حال ثبت...';
+      try {
+        const initData = window.Telegram?.WebApp?.initData || '';
+        const resp = await fetch('/api/user/topup/card', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-Telegram-Init-Data': initData },
+          body: JSON.stringify({ amount: amt, receipt_text: receipt })
+        });
+        const res = await resp.json();
+        if (res.ok) {
+          showToast('✅ رسید با موفقیت ثبت شد و پس از بررسی ادمین حساب شارژ می‌گردد.');
+          topupModal?.classList.add('hidden');
+          syncUserDataWithApi(window.currentAccountId);
+        } else {
+          showToast(`❌ ${res.message || 'خطا در ثبت رسید'}`);
+        }
+      } catch (e) {
+        showToast('❌ خطا در ارسال درخواست.');
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerText = '📤 ثبت و ارسال رسید پرداخت';
+      }
+    });
+
+    document.getElementById('generateTonInvoiceBtn')?.addEventListener('click', async () => {
+      const amt = parseInt(topupAmountInput?.value || '0');
+      if (!amt || amt < 10000) {
+        showToast('⚠️ لطفاً مبلغ معتبر وارد فرمایید.');
+        return;
+      }
+      const genBtn = document.getElementById('generateTonInvoiceBtn');
+      genBtn.disabled = true;
+      genBtn.innerText = 'ایجاد فاکتور...';
+      try {
+        const initData = window.Telegram?.WebApp?.initData || '';
+        const resp = await fetch('/api/user/topup/crypto', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-Telegram-Init-Data': initData },
+          body: JSON.stringify({ amount: amt })
+        });
+        const res = await resp.json();
+        if (res.ok && res.invoice) {
+          currentTopupInvoice = res.invoice;
+          document.getElementById('cryptoInvoiceInitial')?.classList.add('hidden');
+          document.getElementById('cryptoInvoiceDetails')?.classList.remove('hidden');
+          document.getElementById('cryptoAmountTon').innerText = `${res.invoice.amount_ton} TON`;
+          document.getElementById('cryptoPayAddress').innerText = res.invoice.pay_address;
+          document.getElementById('cryptoComment').innerText = res.invoice.comment;
+          document.getElementById('cryptoTonkeeperLink').href = res.invoice.deep_link;
+        } else {
+          showToast(`❌ ${res.message || 'خطا در ایجاد فاکتور کریپتو'}`);
+        }
+      } catch (e) {
+        showToast('❌ خطا در برقراری ارتباط.');
+      } finally {
+        genBtn.disabled = false;
+        genBtn.innerText = '💎 ایجاد فاکتور پرداخت TON';
+      }
+    });
+
+    document.getElementById('copyTonAmountBtn')?.addEventListener('click', () => {
+      if (currentTopupInvoice?.amount_ton) {
+        if (navigator.clipboard) navigator.clipboard.writeText(String(currentTopupInvoice.amount_ton));
+        showToast('📋 مقدار TON کپی شد.');
+      }
+    });
+
+    document.getElementById('copyTonAddressBtn')?.addEventListener('click', () => {
+      if (currentTopupInvoice?.pay_address) {
+        if (navigator.clipboard) navigator.clipboard.writeText(currentTopupInvoice.pay_address);
+        showToast('📋 آدرس ولت TON کپی شد.');
+      }
+    });
+
+    document.getElementById('copyTonCommentBtn')?.addEventListener('click', () => {
+      if (currentTopupInvoice?.comment) {
+        if (navigator.clipboard) navigator.clipboard.writeText(currentTopupInvoice.comment);
+        showToast('📋 کامنت (Memo) کپی شد.');
+      }
+    });
+
+    document.getElementById('cryptoCheckStatusBtn')?.addEventListener('click', async () => {
+      if (!currentTopupInvoice?.id) return;
+      const chkBtn = document.getElementById('cryptoCheckStatusBtn');
+      chkBtn.disabled = true;
+      chkBtn.innerText = 'در حال بررسی شبکه...';
+      try {
+        const initData = window.Telegram?.WebApp?.initData || '';
+        const resp = await fetch('/api/user/topup/crypto/check', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-Telegram-Init-Data': initData },
+          body: JSON.stringify({ invoice_id: currentTopupInvoice.id })
+        });
+        const res = await resp.json();
+        if (res.ok && res.paid) {
+          showToast('🎉 پرداخت تایید شد و کیف پول شارژ گردید!');
+          topupModal?.classList.add('hidden');
+          syncUserDataWithApi(window.currentAccountId);
+        } else {
+          showToast(res.message || 'تراکنش هنوز تایید نشده است.');
+        }
+      } catch (e) {
+        showToast('❌ خطا در استعلام پرداخت.');
+      } finally {
+        chkBtn.disabled = false;
+        chkBtn.innerText = '🔄 بررسی وضعیت پرداخت';
+      }
+    });
+
+    // Language Selector Buttons
+    document.getElementById('langFaBtn')?.addEventListener('click', () => changeAppLanguage('fa'));
+    document.getElementById('langEnBtn')?.addEventListener('click', () => changeAppLanguage('en'));
+
+    async function changeAppLanguage(lang) {
+      const initData = window.Telegram?.WebApp?.initData || '';
+      try {
+        const resp = await fetch('/api/user/settings', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-Telegram-Init-Data': initData },
+          body: JSON.stringify({ language: lang })
+        });
+        const res = await resp.json();
+        if (res.ok) {
+          showToast(lang === 'fa' ? '✅ زبان به فارسی تغییر یافت.' : '✅ Language changed to English.');
+          syncUserDataWithApi(window.currentAccountId);
+        }
+      } catch (e) {
+        showToast('❌ خطا در ذخیره تنظیمات زبان.');
+      }
+    }
+
     // Profile & Wallet Action Listeners
     document.getElementById('copyProfileIdBtn')?.addEventListener('click', () => {
       const idVal = document.getElementById('profileTelegramId')?.innerText;
@@ -2099,30 +2728,25 @@
       }
     });
 
-    document.getElementById('chargeWalletBtn')?.addEventListener('click', () => {
-      if (window.Telegram?.WebApp?.sendData) {
-        window.Telegram.WebApp.sendData(JSON.stringify({ action: 'topup' }));
-        window.Telegram.WebApp.close();
-      } else {
-        showToast('💳 جهت شارژ کیف پول، در ربات دستور /wallet یا افزایش موجودی را ارسال فرمایید.');
-      }
-    });
-
     document.getElementById('gotoShopFromWallet')?.addEventListener('click', () => {
       const shopNav = document.querySelector('.nav-btn[data-tab="tab-shop"]');
       shopNav?.click();
     });
 
-    async function syncUserDataWithApi() {
+    async function syncUserDataWithApi(accountId) {
       const initData = tg?.initData || '';
-      const queryParams = window.location.search || '';
+      let url = '/api/user/me' + (window.location.search || '');
+      if (accountId) {
+        url += (url.includes('?') ? '&' : '?') + `account_id=${accountId}`;
+      }
       try {
-        const resp = await fetch('/api/user/me' + queryParams, {
+        const resp = await fetch(url, {
           headers: { 'X-Telegram-Init-Data': initData }
         });
         if (!resp.ok) return;
         const res = await resp.json();
         if (res.ok && res.data) {
+          window.lastUserData = res.data;
           hydrateUserInterface(res.data);
           try {
             localStorage.setItem('remna_user_cache', JSON.stringify(res.data));
@@ -2140,7 +2764,11 @@
 
     try {
       const cached = localStorage.getItem('remna_user_cache');
-      if (cached) hydrateUserInterface(JSON.parse(cached));
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        window.lastUserData = parsed;
+        hydrateUserInterface(parsed);
+      }
     } catch(e) {}
     syncUserDataWithApi();
   </script>

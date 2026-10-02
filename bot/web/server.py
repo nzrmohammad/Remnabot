@@ -18,12 +18,20 @@ from bot.web.routes_admin import (
     post_admin_toggle_ban,
 )
 from bot.web.routes_user import (
+    get_user_avatar,
     get_user_ip_info,
     get_user_me,
     get_user_nodes,
+    get_user_topup_info,
     post_user_kill_device,
+    post_user_purchase,
     post_user_revoke_sub,
+    post_user_settings,
     post_user_spin,
+    post_user_topup_card,
+    post_user_topup_crypto,
+    post_user_topup_crypto_check,
+    post_user_validate_coupon,
 )
 
 logger = logging.getLogger(__name__)
@@ -110,6 +118,14 @@ def create_web_app(
 
     # User APIs
     app.router.add_get("/api/user/me", get_user_me)
+    app.router.add_get("/api/user/avatar", get_user_avatar)
+    app.router.add_get("/api/user/topup_info", get_user_topup_info)
+    app.router.add_post("/api/user/topup/card", post_user_topup_card)
+    app.router.add_post("/api/user/topup/crypto", post_user_topup_crypto)
+    app.router.add_post("/api/user/topup/crypto/check", post_user_topup_crypto_check)
+    app.router.add_post("/api/user/validate_coupon", post_user_validate_coupon)
+    app.router.add_post("/api/user/purchase", post_user_purchase)
+    app.router.add_post("/api/user/settings", post_user_settings)
     app.router.add_post("/api/user/spin", post_user_spin)
     app.router.add_post("/api/user/revoke_sub", post_user_revoke_sub)
     app.router.add_post("/api/user/kill_device", post_user_kill_device)
