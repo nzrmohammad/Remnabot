@@ -25,28 +25,17 @@ from bot.services.menu import delete_message_silently, render_menu
 from bot.services.topups import decide_topup
 from bot.states.wallet import TopupStates
 
+from bot.common import SEPARATOR, fmt, parse_int
+
 logger = logging.getLogger(__name__)
 router = Router(name="wallet")
-
-SEPARATOR = "─" * 18
-
-# Persian/Arabic digits → Latin, so «۱۰۰۰۰۰» works too
-_DIGIT_MAP = str.maketrans("۰۱۲۳۴۵۶۷۸۹٠١٢٣٤٥٦٧٨٩", "01234567890123456789")
 
 MAX_TOPUP = 500_000_000  # sanity cap, Toman
 MAX_PENDING_TOPUPS = 3
 MAX_RECEIPT_BYTES = 10 * 1024 * 1024  # 10 MB
 
-
-def _parse_amount(text: str) -> int | None:
-    cleaned = text.translate(_DIGIT_MAP).replace(",", "").replace("،", "").strip()
-    if not cleaned.isdigit():
-        return None
-    return int(cleaned)
-
-
-def _fmt(amount: int) -> str:
-    return f"{amount:,}"
+_parse_amount = parse_int
+_fmt = fmt
 
 
 async def _render_wallet(

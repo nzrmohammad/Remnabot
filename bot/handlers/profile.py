@@ -16,11 +16,9 @@ from bot.locales.texts import t
 from bot.services.formatting import format_date, format_datetime, now_tz, parse_iso
 from bot.services.menu import render_menu
 from bot.services.remnawave import RemnawaveClient
-from bot.services.topups import fmt
+from bot.common import SEPARATOR, fmt
 
 router = Router(name="profile")
-
-SEPARATOR = "─" * 18
 
 
 @router.callback_query(F.data == "menu:profile")

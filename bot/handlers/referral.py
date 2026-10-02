@@ -13,10 +13,10 @@ from bot.locales.texts import t
 from bot.services.app_settings import get_store_settings
 from bot.services.menu import render_menu
 
+from bot.common import SEPARATOR
+
 logger = logging.getLogger(__name__)
 router = Router(name="referral")
-
-SEPARATOR = "─" * 18
 
 
 @router.callback_query(F.data == "menu:referral")

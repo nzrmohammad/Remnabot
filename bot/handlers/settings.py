@@ -17,10 +17,10 @@ from bot.db.repositories.user_repo import UserRepository
 from bot.locales.texts import t
 from bot.services.menu import render_menu
 
+from bot.common import SEPARATOR
+
 logger = logging.getLogger(__name__)
 router = Router(name="settings")
-
-SEPARATOR = "─" * 18
 
 TRAFFIC_CHOICES = [70, 75, 80, 85, 90, 95]
 EXPIRE_CHOICES = [1, 2, 3, 5, 7]

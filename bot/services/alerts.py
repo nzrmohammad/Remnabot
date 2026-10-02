@@ -67,12 +67,14 @@ async def _check_user(
     alert_repo: AlertRepository,
     remnawave: RemnawaveClient,
     now: datetime,
+    accounts: list[dict] | None = None,
 ) -> None:
     prefs = await alert_repo.get_settings(user.telegram_id)
     if prefs.traffic_percent <= 0 and prefs.expire_days <= 0:
         return
 
-    accounts = await remnawave.get_users_by_telegram_id(user.telegram_id)
+    if accounts is None:
+        accounts = await remnawave.get_users_by_telegram_id(user.telegram_id)
     if accounts is None:
         return  # panel down — skip this round, keep is_verified untouched
     lang = user.language or "fa"
@@ -135,13 +137,25 @@ async def run_alert_check(
     remnawave: RemnawaveClient,
 ) -> None:
     now = now_tz(get_settings().TIMEZONE)
+    panel_users = await remnawave.get_all_panel_users()
+    panel_by_tid: dict[int, list[dict]] = {}
+    if panel_users is not None:
+        for acc in panel_users:
+            tg_id = acc.get("telegramId") or acc.get("telegram_id")
+            if tg_id:
+                try:
+                    panel_by_tid.setdefault(int(tg_id), []).append(acc)
+                except (ValueError, TypeError):
+                    pass
+
     async with session_factory() as session:
         user_repo = UserRepository(session)
         alert_repo = AlertRepository(session)
         users = await user_repo.all_users()
         for user in users:
             try:
-                await _check_user(bot, user, alert_repo, remnawave, now)
+                user_accounts = panel_by_tid.get(user.telegram_id) if panel_users is not None else None
+                await _check_user(bot, user, alert_repo, remnawave, now, accounts=user_accounts)
             except Exception:  # noqa: BLE001 — one bad user must not stop the sweep
                 logger.exception("alert check failed for user %s", user.telegram_id)
         await session.commit()

@@ -10,16 +10,13 @@ from aiogram.exceptions import TelegramAPIError
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from bot.common import fmt
 from bot.db.repositories.admin_log_repo import AdminLogRepository
 from bot.db.repositories.user_repo import UserRepository
 from bot.db.repositories.wallet_repo import WalletRepository
 from bot.locales.texts import t
 
 logger = logging.getLogger(__name__)
-
-
-def fmt(amount: int) -> str:
-    return f"{amount:,}"
 
 
 async def decide_topup(

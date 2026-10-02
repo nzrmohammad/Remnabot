@@ -1,7 +1,17 @@
 """Database models."""
 from datetime import datetime
 
-from sqlalchemy import BigInteger, Boolean, DateTime, Integer, String, Text, func
+from sqlalchemy import (
+    BigInteger,
+    Boolean,
+    DateTime,
+    ForeignKey,
+    Integer,
+    String,
+    Text,
+    UniqueConstraint,
+    func,
+)
 from sqlalchemy.orm import Mapped, mapped_column
 
 from bot.db.base import Base
@@ -293,9 +303,14 @@ class CouponUsage(Base):
     """Tracks which user used which coupon to prevent duplicate uses."""
 
     __tablename__ = "coupon_usages"
+    __table_args__ = (
+        UniqueConstraint("coupon_id", "telegram_id", name="uq_coupon_usages_coupon_user"),
+    )
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    coupon_id: Mapped[int] = mapped_column(Integer, index=True)
+    coupon_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("coupons.id", ondelete="CASCADE"), index=True
+    )
     telegram_id: Mapped[int] = mapped_column(BigInteger, index=True)
     order_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
     discount_applied: Mapped[int] = mapped_column(BigInteger, default=0)
@@ -309,6 +324,9 @@ class ReferralReward(Base):
     """Tracks referral invitations and granted rewards."""
 
     __tablename__ = "referral_rewards"
+    __table_args__ = (
+        UniqueConstraint("referee_id", name="uq_referral_rewards_referee"),
+    )
 
     id: Mapped[int] = mapped_column(primary_key=True)
     inviter_id: Mapped[int] = mapped_column(BigInteger, index=True)

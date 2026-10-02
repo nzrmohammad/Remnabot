@@ -79,6 +79,17 @@ async def run_expiry_check(
     settings = get_settings()
     tz = settings.TIMEZONE
     now = now_tz(tz)
+    panel_users = await remnawave.get_all_panel_users()
+    panel_by_tid: dict[int, list[dict]] = {}
+    if panel_users is not None:
+        for acc in panel_users:
+            tg_id = acc.get("telegramId") or acc.get("telegram_id")
+            if tg_id:
+                try:
+                    panel_by_tid.setdefault(int(tg_id), []).append(acc)
+                except (ValueError, TypeError):
+                    pass
+
     async with session_factory() as session:
         from bot.services.app_settings import get_store_settings
         store = await get_store_settings(session)
@@ -88,7 +99,7 @@ async def run_expiry_check(
         users = await UserRepository(session).all_users()
         for user in users:
             try:
-                accounts = await remnawave.get_users_by_telegram_id(user.telegram_id)
+                accounts = panel_by_tid.get(user.telegram_id) if panel_users is not None else await remnawave.get_users_by_telegram_id(user.telegram_id)
                 if accounts is None:
                     continue  # panel down — skip silently
                 lang = user.language or "fa"

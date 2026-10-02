@@ -28,10 +28,10 @@ from bot.services.formatting import format_date, format_datetime, now_tz, parse_
 from bot.services.menu import render_menu
 from bot.services.remnawave import RemnawaveClient
 
+from bot.common import SEPARATOR
+
 logger = logging.getLogger(__name__)
 router = Router(name="account")
-
-SEPARATOR = "─" * 18
 
 STATUS_KEYS = {
     "ACTIVE": "status_active",

@@ -16,10 +16,10 @@ from bot.locales.texts import t
 from bot.services.menu import render_menu
 from bot.services.remnawave import RemnawaveClient
 
+from bot.common import SEPARATOR
+
 logger = logging.getLogger(__name__)
 router = Router(name="guide")
-
-SEPARATOR = "─" * 18
 
 # platform key -> (locale key of the button, [(app name, download url), ...])
 PLATFORMS: dict[str, tuple[str, list[tuple[str, str]]]] = {

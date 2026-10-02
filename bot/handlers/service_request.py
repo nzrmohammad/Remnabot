@@ -40,13 +40,11 @@ from bot.services.menu import delete_message_silently, render_menu
 from bot.services.purchases import execute_purchase
 from bot.services.remnawave import RemnawaveClient
 from bot.services.service_display import fmt_price, fmt_traffic, service_block
-from bot.services.topups import fmt
 from bot.states.service_request import ServiceRequestStates
+from bot.common import SEPARATOR, fmt
 
 logger = logging.getLogger(__name__)
 router = Router(name="service_request")
-
-SEPARATOR = "─" * 18
 
 # In-memory per-user purchase lock: prevents double-tap double-charge.
 _PURCHASE_LOCKS: set[int] = set()
@@ -244,65 +242,11 @@ async def _maybe_reward_referrer(
         logger.exception("Failed to notify inviter %s of referral reward", user.referred_by_id)
 
 
-def _request_done_kb(telegram_id: int) -> InlineKeyboardMarkup:
-    kb = InlineKeyboardBuilder()
-    kb.button(
-        text=t("fa", "btn_request_done"),
-        callback_data=f"svc:reqdone:{telegram_id}",
-    )
-    kb.adjust(1)
-    return kb.as_markup()
+from bot.handlers.shop_trial import (
+    _request_done_kb,
+    request_done_notify,
+)
 
-
-@router.callback_query(F.data.startswith("svc:reqdone:"))
-async def request_done_notify(
-    call: CallbackQuery, bot: Bot, user_repo: UserRepository,
-    session: AsyncSession,
-):
-    """Admin pressed «سرویس ساخته شد» under a service request → tell the
-    user their account is ready and they can hit «ورود» in the bot."""
-    if call.from_user.id not in get_settings().ADMIN_IDS:
-        await call.answer(t("fa", "not_authorized"), show_alert=True)
-        return
-
-    telegram_id = _safe_int(call.data.rsplit(":", 1)[1])
-    if telegram_id is None:
-        await call.answer(t("fa", "acc_error"), show_alert=True)
-        return
-
-    # Idempotent: double admin click (or two admins) notifies only once.
-    # Keyed by target user; the button is also removed below.
-    if telegram_id in _REQUEST_DONE_NOTIFIED:
-        await call.answer(t("fa", "request_done_already"), show_alert=True)
-        return
-    _REQUEST_DONE_NOTIFIED.add(telegram_id)
-    if len(_REQUEST_DONE_NOTIFIED) > 2000:
-        _REQUEST_DONE_NOTIFIED.clear()
-
-    target = await UserRepository(session).get_by_telegram_id(telegram_id)
-    lang = (target.language if target else None) or "fa"
-
-    kb = InlineKeyboardBuilder()
-    kb.button(text=t(lang, "btn_login"), callback_data="auth:login")
-    kb.adjust(1)
-    notified = False
-    try:
-        await bot.send_message(
-            telegram_id,
-            t(lang, "request_done_user"),
-            reply_markup=kb.as_markup(),
-        )
-        notified = True
-    except Exception:
-        logger.exception("could not notify user %s about created service", telegram_id)
-        _REQUEST_DONE_NOTIFIED.discard(telegram_id)
-
-    if call.message is not None:
-        try:
-            await call.message.edit_reply_markup(reply_markup=None)
-        except Exception:
-            pass
-    await call.answer(t("fa", "request_done_admin") if notified else t("fa", "support_failed"))
 
 
 @router.callback_query(F.data == "menu:services")
@@ -314,391 +258,31 @@ async def services_entry(
     await call.answer()
 
 
-@router.callback_query(F.data == "service:new")
-async def service_new_request(
-    call: CallbackQuery, bot: Bot, user_repo: UserRepository,
-    session: AsyncSession, state: FSMContext,
-):
-    """«درخواست سرویس جدید» / «اکانت تست رایگان». If trial is enabled, asks for username
-    and provisions a 1-day / 1GB trial account, verifies user, and binds Telegram ID."""
-    await state.clear()
-    user = await user_repo.get_or_create(call.from_user.id, call.from_user.username)
-    lang = user.language
+# --------------------------------------------------------------------- #
+# Free Trial & Service Requests - delegated to bot.handlers.shop_trial
+# --------------------------------------------------------------------- #
+from bot.handlers.shop_trial import (
+    service_new_request,
+    service_trial_username,
+    service_new_forward,
+    router as _shop_trial_router,
+)
 
-    store = await get_store_settings(session)
-    if store.trial_enabled:
-        if user.has_claimed_trial:
-            kb = InlineKeyboardBuilder()
-            kb.button(text=t(lang, "btn_services"), callback_data="menu:services")
-            kb.button(text=t(lang, "btn_back"), callback_data="nav:welcome")
-            kb.adjust(1)
-            await render_menu(bot, user, user_repo, t(lang, "trial_already_claimed"), kb.as_markup())
-            await call.answer()
-            return
-
-        await state.set_state(ServiceRequestStates.waiting_trial_username)
-        kb = InlineKeyboardBuilder()
-        kb.button(text=t(lang, "btn_cancel"), callback_data="nav:welcome")
-        kb.adjust(1)
-        text = t(
-            lang,
-            "trial_prompt_username",
-            traffic=store.trial_traffic_gb,
-            days=store.trial_duration_days,
-        )
-        await render_menu(bot, user, user_repo, text, kb.as_markup())
-        await call.answer()
-        return
-
-    # Fallback to free-text request if trial is disabled in settings
-    await state.set_state(ServiceRequestStates.waiting_text)
-    kb = InlineKeyboardBuilder()
-    kb.button(text=t(lang, "btn_cancel"), callback_data="nav:welcome")
-    kb.adjust(1)
-    await render_menu(bot, user, user_repo, t(lang, "request_prompt"), kb.as_markup())
-    await call.answer()
-
-
-@router.message(ServiceRequestStates.waiting_trial_username)
-async def service_trial_username(
-    message: Message, bot: Bot, user_repo: UserRepository,
-    session: AsyncSession, remnawave: RemnawaveClient, state: FSMContext,
-):
-    user = await user_repo.get_or_create(message.from_user.id, message.from_user.username)
-    lang = user.language or "fa"
-    raw_name = (message.text or "").strip()
-
-    await delete_message_silently(bot, message.chat.id, message.message_id)
-
-    if not re.match(r"^[a-zA-Z0-9_]{3,32}$", raw_name):
-        kb = InlineKeyboardBuilder()
-        kb.button(text=t(lang, "btn_cancel"), callback_data="nav:welcome")
-        kb.adjust(1)
-        await render_menu(bot, user, user_repo, t(lang, "trial_username_invalid"), kb.as_markup())
-        return
-
-    store = await get_store_settings(session)
-    if not store.trial_enabled or user.has_claimed_trial:
-        await state.clear()
-        kb = InlineKeyboardBuilder()
-        kb.button(text=t(lang, "btn_back"), callback_data="nav:welcome")
-        kb.adjust(1)
-        await render_menu(bot, user, user_repo, t(lang, "trial_already_claimed"), kb.as_markup())
-        return
-
-    existing = await remnawave.get_user_by_username(raw_name)
-    if existing is not None:
-        kb = InlineKeyboardBuilder()
-        kb.button(text=t(lang, "btn_cancel"), callback_data="nav:welcome")
-        kb.adjust(1)
-        await render_menu(bot, user, user_repo, t(lang, "trial_username_taken"), kb.as_markup())
-        return
-
-    now = datetime.now(timezone.utc)
-    dur_days = store.trial_duration_days if store.trial_duration_days > 0 else 1
-    expire_at_iso = (now + timedelta(days=dur_days)).strftime("%Y-%m-%dT%H:%M:%SZ")
-    traffic_bytes = max(1, store.trial_traffic_gb) * (1024 ** 3)
-    squad_uuid = store.default_squad_uuid or None
-
-    created = await remnawave.create_user(
-        username=raw_name,
-        expire_at_iso=expire_at_iso,
-        traffic_limit_bytes=traffic_bytes,
-        telegram_id=user.telegram_id,
-        traffic_limit_strategy="NO_RESET",
-        internal_squads=[squad_uuid] if squad_uuid else None,
-    )
-
-    if created is None:
-        kb = InlineKeyboardBuilder()
-        kb.button(text=t(lang, "btn_cancel"), callback_data="nav:welcome")
-        kb.adjust(1)
-        await render_menu(bot, user, user_repo, t(lang, "acc_error"), kb.as_markup())
-        return
-
-    await user_repo.set_verified(user)
-    await user_repo.set_claimed_trial(user.telegram_id)
-    await state.clear()
-
-    # Reward referrer if applicable
-    await _maybe_reward_referrer(bot, session, remnawave, user)
-
-    sub_url = created.get("subscriptionUrl")
-    panel_user_id = created.get("id")
-
-    kb = InlineKeyboardBuilder()
-    if sub_url:
-        kb.button(text=t(lang, "btn_copy_sub_link"), copy_text=CopyTextButton(text=sub_url))
-
-    cfg_cb = f"cfg:acc:{panel_user_id}" if panel_user_id else "cfg:root"
-    if lang == "fa":
-        kb.button(text=t(lang, "btn_connection_guide"), callback_data="menu:guide")
-        kb.button(text=t(lang, "btn_get_configs"), callback_data=cfg_cb)
-    else:
-        kb.button(text=t(lang, "btn_get_configs"), callback_data=cfg_cb)
-        kb.button(text=t(lang, "btn_connection_guide"), callback_data="menu:guide")
-
-    if lang == "fa":
-        kb.button(text=t(lang, "btn_back_to_menu"), callback_data="nav:main_menu")
-        kb.button(text=t(lang, "btn_account_mgmt"), callback_data="menu:account")
-    else:
-        kb.button(text=t(lang, "btn_account_mgmt"), callback_data="menu:account")
-        kb.button(text=t(lang, "btn_back_to_menu"), callback_data="nav:main_menu")
-
-    if sub_url:
-        kb.adjust(1, 2, 2)
-    else:
-        kb.adjust(2, 2)
-
-    tz = get_settings().TIMEZONE
-    dt_str = format_datetime(now_tz(tz), lang)
-
-    receipt_lines = [
-        f"🎁 <b>{t(lang, 'trial_receipt_title')}</b>",
-        SEPARATOR,
-        f"📅 {t(lang, 'receipt_date')} : <code>{dt_str}</code>",
-        f"💳 {t(lang, 'receipt_status')} : <b>{t(lang, 'receipt_status_paid')}</b>",
-        f"{t(lang, 'stats_account')} : <code>{escape(raw_name)}</code>",
-        f"⏳ {t(lang, 'receipt_duration')} : <b>{t(lang, 'svc_days', days=dur_days)}</b>",
-        f"🌐 {t(lang, 'receipt_traffic')} : <b>{t(lang, 'svc_gb', gb=store.trial_traffic_gb)}</b>",
-    ]
-    if sub_url:
-        receipt_lines.append(SEPARATOR)
-        receipt_lines.append(t(lang, "buy_success_link", url=escape(sub_url)))
-    receipt_lines.append(f"\n💡 {t(lang, 'trial_welcome_hint')}")
-
-    await render_menu(bot, user, user_repo, "\n".join(receipt_lines), kb.as_markup())
-
-    tg_username = f"@{user.username}" if user.username else "—"
-    admin_text = (
-        f"🎁 <b>سرویس تست ایجاد شد</b>\n\n"
-        f"👤 کاربر: {escape(user.username or '')} (<code>{user.telegram_id}</code>)\n"
-        f"🔑 اکانت پنل: <code>{escape(raw_name)}</code>\n"
-        f"🌐 حجم: {store.trial_traffic_gb} GB | ⏳ مدت: {dur_days} روز\n"
-        f"🔗 شناسه تلگرام: {escape(tg_username)}"
-    )
-    topic_id = store.topic_orders or get_settings().ADMIN_TOPIC_ORDERS
-    thread_kwargs = {"message_thread_id": topic_id} if topic_id else {}
-    try:
-        await bot.send_message(get_settings().ADMIN_CHAT_ID, admin_text, **thread_kwargs)
-    except Exception:
-        logger.exception("failed to notify admin about trial user")
-
-
-@router.message(ServiceRequestStates.waiting_text)
-async def service_new_forward(
-    message: Message, bot: Bot, user_repo: UserRepository,
-    session: AsyncSession, state: FSMContext,
-):
-    user = await user_repo.get_or_create(message.from_user.id, message.from_user.username)
-    settings = get_settings()
-
-    store = await get_store_settings(session)
-    topic_id = (
-        store.topic_support
-        or store.topic_orders
-        or settings.ADMIN_TOPIC_SUPPORT
-        or settings.ADMIN_TOPIC_ORDERS
-    )
-    thread_kwargs = {"message_thread_id": topic_id} if topic_id else {}
-    sent = False
-    tg_username = f"@{message.from_user.username}" if message.from_user.username else "—"
-    admin_header_text = t(
-        "fa", "request_admin_header",
-        name=escape(message.from_user.full_name),
-        tid=user.telegram_id,
-        username=escape(tg_username),
-    )
-    repo = SupportMessageRepository(session)
-
-    try:
-        content = await bot.copy_message(
-            chat_id=settings.ADMIN_CHAT_ID,
-            from_chat_id=message.chat.id,
-            message_id=message.message_id,
-            **thread_kwargs,
-        )
-        header = await bot.send_message(
-            settings.ADMIN_CHAT_ID,
-            admin_header_text,
-            reply_parameters={"message_id": content.message_id},
-            reply_markup=_request_done_kb(user.telegram_id),
-            **thread_kwargs,
-        )
-        await repo.map_message(content.message_id, user.telegram_id)
-        await repo.map_message(header.message_id, user.telegram_id)
-        sent = True
-    except Exception as exc:
-        logger.warning(
-            "Failed to deliver new-service request to admin chat %s (%s). Attempting fallback...",
-            settings.ADMIN_CHAT_ID, exc,
-        )
-
-    if not sent and settings.ADMIN_IDS:
-        for admin_id in settings.ADMIN_IDS:
-            try:
-                content = await bot.copy_message(
-                    chat_id=admin_id,
-                    from_chat_id=message.chat.id,
-                    message_id=message.message_id,
-                )
-                header = await bot.send_message(
-                    admin_id,
-                    admin_header_text,
-                    reply_parameters={"message_id": content.message_id},
-                    reply_markup=_request_done_kb(user.telegram_id),
-                )
-                await repo.map_message(content.message_id, user.telegram_id)
-                await repo.map_message(header.message_id, user.telegram_id)
-                sent = True
-            except Exception as admin_exc:
-                logger.warning(
-                    "Fallback delivery of service request to admin %s failed: %s",
-                    admin_id, admin_exc,
-                )
-
-    await delete_message_silently(bot, message.chat.id, message.message_id)
-    await state.clear()
-
-    lang = user.language or "fa"
-    kb = InlineKeyboardBuilder()
-    kb.button(text=t(lang, "btn_back_to_menu"), callback_data="nav:main_menu")
-    kb.adjust(1)
-    await render_menu(
-        bot, user, user_repo,
-        t(lang, "request_sent" if sent else "support_failed"),
-        kb.as_markup(),
-    )
+router.include_router(_shop_trial_router)
 
 
 # --------------------------------------------------------------------- #
-# Coupon handling in purchase flow
+# Coupon handling in purchase flow - delegated to bot.handlers.shop_coupons
 # --------------------------------------------------------------------- #
-@router.callback_query(F.data.startswith("svc:cpn:"))
-async def apply_coupon_prompt(
-    call: CallbackQuery, bot: Bot, user_repo: UserRepository,
-    session: AsyncSession, state: FSMContext,
-):
-    parts = call.data.split(":")
-    service_id = int(parts[2])
-    flow_type = parts[3]
-    target_id = parts[4]
+from bot.handlers.shop_coupons import (
+    apply_coupon_prompt,
+    remove_coupon,
+    process_coupon_code,
+    router as _shop_coupons_router,
+)
 
-    user = await user_repo.get_or_create(call.from_user.id, call.from_user.username)
-    lang = user.language
+router.include_router(_shop_coupons_router)
 
-    await state.update_data(service_id=service_id, flow_type=flow_type, target_id=target_id)
-    await state.set_state(ServiceRequestStates.waiting_coupon)
-
-    kb = InlineKeyboardBuilder()
-    back_cb = (
-        f"svc:buya:{service_id}:{target_id}" if flow_type == "a"
-        else (f"svc:buynew:{service_id}" if flow_type == "n" else f"svc:buy:{service_id}")
-    )
-    kb.button(text=t(lang, "btn_cancel"), callback_data=back_cb)
-    kb.adjust(1)
-
-    await render_menu(bot, user, user_repo, t(lang, "coupon_prompt"), kb.as_markup())
-    await call.answer()
-
-
-@router.callback_query(F.data.startswith("svc:rmcpn:"))
-async def remove_coupon(
-    call: CallbackQuery, bot: Bot, user_repo: UserRepository,
-    session: AsyncSession, remnawave: RemnawaveClient, state: FSMContext,
-):
-    parts = call.data.split(":")
-    service_id = int(parts[2])
-    flow_type = parts[3]
-    target_id = parts[4]
-
-    await state.update_data(coupon_code=None, discount_amount=0)
-
-    if flow_type == "a":
-        call.data = f"svc:buya:{service_id}:{target_id}"
-        await buy_for_account(call, bot, user_repo, session, remnawave, state)
-    elif flow_type == "n":
-        call.data = f"svc:buynew:{service_id}"
-        await buy_new_account(call, bot, user_repo, session, remnawave, state)
-    else:
-        call.data = f"svc:buy:{service_id}"
-        await service_buy(call, bot, user_repo, session, remnawave, state)
-
-
-@router.message(ServiceRequestStates.waiting_coupon)
-async def process_coupon_code(
-    message: Message, bot: Bot, user_repo: UserRepository,
-    session: AsyncSession, remnawave: RemnawaveClient, state: FSMContext,
-):
-    user = await user_repo.get_or_create(message.from_user.id, message.from_user.username)
-    lang = user.language or "fa"
-    code = (message.text or "").strip().upper()
-    await delete_message_silently(bot, message.chat.id, message.message_id)
-
-    data = await state.get_data()
-    service_id = data.get("service_id")
-    flow_type = data.get("flow_type", "d")
-    target_id = data.get("target_id", "0")
-
-    if not service_id:
-        await state.clear()
-        return
-
-    service = await ServiceRepository(session).get(service_id)
-    if not service:
-        await state.clear()
-        return
-
-    coupon_repo = CouponRepository(session)
-    valid, err_key, discount_amount = await coupon_repo.validate_coupon(
-        code, user.telegram_id, service.price
-    )
-
-    if not valid:
-        kb = InlineKeyboardBuilder()
-        back_cb = (
-            f"svc:buya:{service_id}:{target_id}" if flow_type == "a"
-            else (f"svc:buynew:{service_id}" if flow_type == "n" else f"svc:buy:{service_id}")
-        )
-        kb.button(text=t(lang, "btn_cancel"), callback_data=back_cb)
-        kb.adjust(1)
-        err_msg = t(lang, err_key or "coupon_not_found")
-        await render_menu(
-            bot, user, user_repo,
-            f"{err_msg}\n\n{t(lang, 'coupon_prompt')}",
-            kb.as_markup(),
-        )
-        return
-
-    await state.update_data(coupon_code=code, discount_amount=discount_amount)
-
-    wallet = await WalletRepository(session).get_wallet(user.telegram_id)
-    target_name = None
-    confirm_cb = f"svc:confirm:{service.id}"
-    back_cb = "menu:services"
-
-    if flow_type == "a":
-        accounts = await remnawave.get_users_by_telegram_id(user.telegram_id) or []
-        target_acc = next((a for a in accounts if str(a.get("id")) == str(target_id)), None)
-        target_name = target_acc.get("username") if target_acc else None
-        confirm_cb = f"svc:confirma:{service.id}:{target_id}"
-        back_cb = f"svc:buy:{service.id}"
-    elif flow_type == "n":
-        target_name = t(lang, "buy_target_new")
-        confirm_cb = f"svc:confirmn:{service.id}"
-        back_cb = f"svc:buy:{service.id}"
-
-    await _render_buy_confirm(
-        bot, user, user_repo, session, service, wallet.balance,
-        confirm_callback=confirm_cb,
-        lang=lang,
-        target_name=target_name,
-        back_callback=back_cb,
-        flow_type=flow_type,
-        target_id=target_id,
-        coupon_code=code,
-        discount_amount=discount_amount,
-    )
 
 
 # --------------------------------------------------------------------- #
