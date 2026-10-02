@@ -2,7 +2,7 @@
 <html lang="fa" dir="rtl" class="dark">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>Remnabot Admin WebApp - Pro Management Suite</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
@@ -13,6 +13,7 @@
     * {
       font-family: 'Vazirmatn', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       -webkit-tap-highlight-color: transparent;
+      box-sizing: border-box;
     }
     .custom-scroll::-webkit-scrollbar {
       width: 4px;
@@ -39,7 +40,7 @@
 </head>
 <body id="appBody" class="bg-[#080d1a] text-slate-100 h-screen h-[100dvh] overflow-hidden flex justify-center antialiased select-none transition-colors duration-300">
 
-  <!-- Main Mobile Responsive Container -->
+  <!-- Main Responsive Container -->
   <div id="phoneFrame" class="w-full max-w-[460px] h-full flex flex-col relative overflow-hidden bg-[#0f172a] shadow-2xl border-x border-slate-800/80 transition-colors duration-300">
 
     <!-- Top Admin Bar -->
@@ -48,7 +49,7 @@
         <span class="px-2.5 py-0.5 rounded-lg bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[10px] font-black flex items-center gap-1">
           <span>👑</span> پنل مدیریت
         </span>
-        <button id="adminReloadBtn" class="text-slate-400 hover:text-slate-200 text-xs p-1.5 rounded-lg bg-slate-800 border border-slate-700" title="تازه‌سازی داده‌ها">🔄</button>
+        <button id="adminReloadBtn" class="text-slate-400 hover:text-slate-200 text-xs p-1.5 rounded-lg bg-slate-800 border border-slate-700 transition active:scale-95" title="تازه‌سازی">🔄</button>
       </div>
       
       <div class="flex items-center gap-2">
@@ -64,10 +65,10 @@
     <!-- Cluster Status Banner -->
     <div class="bg-gradient-to-r from-blue-950 via-slate-900 to-indigo-950 px-4 py-2 border-b border-slate-700/50 flex items-center justify-between text-xs">
       <div class="flex items-center gap-2">
-        <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-        <span class="text-[11px] text-slate-300 font-medium">وضعیت کلاستر: <b class="text-emerald-400">تمام ۶ نود آنلاین</b></span>
+        <span id="clusterStatusDot" class="w-2 h-2 rounded-full bg-emerald-500"></span>
+        <span id="adminClusterStatusText" class="text-[11px] text-slate-300 font-medium">وضعیت کلاستر: <b class="text-emerald-400">در حال بررسی...</b></span>
       </div>
-      <span class="text-[10px] font-mono text-cyan-400 bg-cyan-950/60 px-2 py-0.5 rounded border border-cyan-800/40">Sync: 10s پیش</span>
+      <span id="adminLastSyncText" class="text-[10px] font-mono text-cyan-400 bg-cyan-950/60 px-2 py-0.5 rounded border border-cyan-800/40">Sync: آنلاین</span>
     </div>
 
     <!-- Main Scrollable Content -->
@@ -78,7 +79,7 @@
       <!-- ===================================================== -->
       <div id="tab-admin-overview" class="admin-tab-pane space-y-4">
         
-        <!-- 4 Key Metrics Cards -->
+        <!-- 4 Key Real Metrics Cards -->
         <div class="grid grid-cols-2 gap-2.5">
           <!-- Card 1: Users -->
           <div class="bg-slate-800/80 p-3.5 rounded-2xl border border-slate-700/80 shadow relative overflow-hidden">
@@ -87,10 +88,9 @@
               <span class="text-base">👥</span>
             </div>
             <div class="mt-2 flex items-baseline gap-1.5">
-              <span class="text-2xl font-black text-white font-mono">1,482</span>
-              <span class="text-[10px] text-emerald-400 font-bold font-mono">+24 امروز</span>
+              <span id="adminTotalUsers" class="text-2xl font-black text-white font-mono">--</span>
             </div>
-            <div class="text-[10px] text-slate-400 mt-1">۱,۲۴۰ اکانت فعال پنل</div>
+            <div id="adminActiveUsers" class="text-[10px] text-slate-400 mt-1">-- اکانت فعال پنل</div>
           </div>
 
           <!-- Card 2: Today Revenue -->
@@ -100,22 +100,22 @@
               <span class="text-base">💳</span>
             </div>
             <div class="mt-2 flex items-baseline gap-1">
-              <span class="text-xl font-black text-emerald-400 font-mono">3,850,000</span>
+              <span id="adminTodayRevenue" class="text-xl font-black text-emerald-400 font-mono">--</span>
               <span class="text-[9px] text-slate-400 font-sans">تومان</span>
             </div>
-            <div class="text-[10px] text-slate-400 mt-1">۲۸ سفارش موفق</div>
+            <div class="text-[10px] text-slate-400 mt-1">سفارش‌های موفق ثبت‌شده</div>
           </div>
 
           <!-- Card 3: Bandwidth -->
           <div class="bg-slate-800/80 p-3.5 rounded-2xl border border-slate-700/80 shadow relative overflow-hidden">
             <div class="flex justify-between items-start">
-              <span class="text-slate-400 text-[11px] font-medium">⚡️ مصرف ماه جاری</span>
+              <span class="text-slate-400 text-[11px] font-medium">⚡️ مصرف کل ترافیک</span>
               <span class="text-base">🌐</span>
             </div>
             <div class="mt-2 flex items-baseline gap-1">
-              <span class="text-2xl font-black text-cyan-400 font-mono" dir="ltr">4.85 TB</span>
+              <span id="adminMonthTraffic" class="text-2xl font-black text-cyan-400 font-mono" dir="ltr">-- GB</span>
             </div>
-            <div class="text-[10px] text-slate-400 mt-1">امروز: <span dir="ltr" class="font-mono text-slate-300">182.4 GB</span></div>
+            <div class="text-[10px] text-slate-400 mt-1">مجموع مصرف روی سرورها</div>
           </div>
 
           <!-- Card 4: Active Online HWID -->
@@ -125,24 +125,24 @@
               <span class="text-base">⚡️</span>
             </div>
             <div class="mt-2 flex items-baseline gap-1.5">
-              <span class="text-2xl font-black text-indigo-300 font-mono">386</span>
+              <span id="adminOnlineDevices" class="text-2xl font-black text-indigo-300 font-mono">--</span>
               <span class="text-[10px] text-emerald-400 font-bold">آنلاین زنده</span>
             </div>
-            <div class="text-[10px] text-slate-400 mt-1">روی تمام نودها</div>
+            <div class="text-[10px] text-slate-400 mt-1">روی تمام نودهای فعال</div>
           </div>
         </div>
 
-        <!-- Pending Tasks Alert (فیش‌های در انتظار تایید و تیکت‌ها) -->
-        <div class="bg-amber-950/40 rounded-2xl p-3.5 border border-amber-500/40 flex items-center justify-between shadow-sm">
+        <!-- Pending Tasks Alert (فیش‌ها و تیکت‌ها) -->
+        <div id="adminPendingBanner" class="bg-amber-950/40 rounded-2xl p-3.5 border border-amber-500/40 flex items-center justify-between shadow-sm">
           <div class="flex items-center gap-2.5">
             <span class="text-2xl">⚠️</span>
             <div>
               <span class="text-xs font-bold text-amber-300 block">اقدامات نیازمند بررسی:</span>
-              <span class="text-[11px] text-slate-300">۲ فیش کارت‌به‌کارت جدید + ۳ تیکت بدون پاسخ</span>
+              <span id="adminPendingSummary" class="text-[11px] text-slate-300">در حال دریافت وضعیت...</span>
             </div>
           </div>
           <button id="viewPendingBtn" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-[10px] px-3 py-1.5 rounded-xl transition active:scale-95">
-            بررسی
+            مشاهده
           </button>
         </div>
 
@@ -152,53 +152,13 @@
             <span class="text-xs font-bold text-slate-200 flex items-center gap-1.5">
               <span>🌐</span> وضعیت لحظه‌ای نودهای کلاستر
             </span>
-            <button id="syncAllNodesBtn" class="text-[10px] text-blue-400 hover:text-blue-300 font-semibold bg-blue-950/60 px-2 py-0.5 rounded border border-blue-800/50">
-              🔄 سینک همه
+            <button id="syncAllNodesBtn" class="text-[10px] text-blue-400 hover:text-blue-300 font-semibold bg-blue-950/60 px-2 py-0.5 rounded border border-blue-800/50 transition">
+              🔄 سینک نودها
             </button>
           </div>
 
-          <div class="space-y-2 text-xs">
-            <div class="bg-slate-900/60 p-2.5 rounded-xl border border-slate-700/50 flex justify-between items-center">
-              <div class="flex items-center gap-2">
-                <span>🇳🇱</span>
-                <div>
-                  <span class="font-bold text-white block">هلند VIP 1</span>
-                  <span class="text-[10px] text-slate-400 font-mono">CPU: 24% | RAM: 58%</span>
-                </div>
-              </div>
-              <div class="text-left font-mono">
-                <span class="text-emerald-400 font-bold text-[11px]">142 آنلاین</span>
-                <span class="block text-[10px] text-slate-400" dir="ltr">2.10 TB</span>
-              </div>
-            </div>
-
-            <div class="bg-slate-900/60 p-2.5 rounded-xl border border-slate-700/50 flex justify-between items-center">
-              <div class="flex items-center gap-2">
-                <span>🇩🇪</span>
-                <div>
-                  <span class="font-bold text-white block">آلمان Falkenstein</span>
-                  <span class="text-[10px] text-slate-400 font-mono">CPU: 18% | RAM: 44%</span>
-                </div>
-              </div>
-              <div class="text-left font-mono">
-                <span class="text-emerald-400 font-bold text-[11px]">89 آنلاین</span>
-                <span class="block text-[10px] text-slate-400" dir="ltr">1.40 TB</span>
-              </div>
-            </div>
-
-            <div class="bg-slate-900/60 p-2.5 rounded-xl border border-slate-700/50 flex justify-between items-center">
-              <div class="flex items-center gap-2">
-                <span>🇹🇷</span>
-                <div>
-                  <span class="font-bold text-white block">ترکیه Istanbul (Gaming)</span>
-                  <span class="text-[10px] text-slate-400 font-mono">CPU: 32% | RAM: 64%</span>
-                </div>
-              </div>
-              <div class="text-left font-mono">
-                <span class="text-emerald-400 font-bold text-[11px]">110 آنلاین</span>
-                <span class="block text-[10px] text-slate-400" dir="ltr">890 GB</span>
-              </div>
-            </div>
+          <div id="adminOverviewNodesList" class="space-y-2 text-xs">
+            <div class="p-4 text-center text-slate-400 text-xs">در حال بارگذاری وضعیت نودها...</div>
           </div>
         </div>
 
@@ -208,15 +168,15 @@
             <span class="text-xl">📢</span>
             <div class="text-right">
               <span class="font-bold text-slate-200 block text-[11px]">پیام همگانی</span>
-              <span class="text-[9px] text-slate-400">ارسال به کل کاربران</span>
+              <span class="text-[9px] text-slate-400">ارسال به کل کاربران ربات</span>
             </div>
           </button>
 
-          <button id="openQuickBackupBtn" class="bg-slate-800/90 hover:bg-slate-750 p-3 rounded-2xl border border-slate-700/80 flex items-center gap-2.5 transition active:scale-95 shadow">
-            <span class="text-xl">💾</span>
+          <button id="quickRefreshMetricsBtn" class="bg-slate-800/90 hover:bg-slate-750 p-3 rounded-2xl border border-slate-700/80 flex items-center gap-2.5 transition active:scale-95 shadow">
+            <span class="text-xl">🔄</span>
             <div class="text-right">
-              <span class="font-bold text-slate-200 block text-[11px]">پشتیبان‌گیری</span>
-              <span class="text-[9px] text-slate-400">دانلود فایل دیتابیس</span>
+              <span class="font-bold text-slate-200 block text-[11px]">سینک کامل داده‌ها</span>
+              <span class="text-[9px] text-slate-400">به‌روزرسانی کش و آمار</span>
             </div>
           </button>
         </div>
@@ -231,101 +191,26 @@
         <div class="space-y-2">
           <div class="bg-slate-800/90 rounded-2xl p-2.5 border border-slate-700 flex items-center gap-2">
             <span class="text-slate-400 text-sm">🔍</span>
-            <input type="text" id="userSearchInput" placeholder="جستجو بر اساس نام، نام کاربری یا آیدی عددی..." class="bg-transparent text-xs text-slate-200 outline-none flex-1 font-sans" />
+            <input type="text" id="userSearchInput" placeholder="جستجو بر اساس نام کاربری یا شناسه عددی..." class="bg-transparent text-xs text-slate-200 outline-none flex-1 font-sans" />
+            <button id="userSearchClear" class="text-slate-400 hover:text-white text-xs px-1.5 hidden">✕</button>
           </div>
 
           <div class="flex gap-1.5 overflow-x-auto custom-scroll text-[10px] whitespace-nowrap pb-1">
-            <button class="user-filter-btn px-2.5 py-1 rounded-lg bg-blue-600 text-white font-bold transition">همه (۱,۴۸۲)</button>
-            <button class="user-filter-btn px-2.5 py-1 rounded-lg bg-slate-800 text-slate-400 hover:text-white transition">فعال (۱,۲۴۰)</button>
-            <button class="user-filter-btn px-2.5 py-1 rounded-lg bg-slate-800 text-slate-400 hover:text-white transition">منقضی (۱۸۵)</button>
-            <button class="user-filter-btn px-2.5 py-1 rounded-lg bg-slate-800 text-slate-400 hover:text-white transition">مسدود (۵۷)</button>
+            <button class="user-filter-btn px-2.5 py-1 rounded-lg bg-blue-600 text-white font-bold transition" data-filter="all">همه کاربران</button>
+            <button class="user-filter-btn px-2.5 py-1 rounded-lg bg-slate-800 text-slate-400 hover:text-white transition" data-filter="banned">مسدود شده</button>
           </div>
         </div>
 
-        <!-- User Card 1 -->
-        <div class="bg-slate-800/80 rounded-2xl p-3.5 border border-slate-700/80 space-y-2.5 shadow">
-          <div class="flex items-start justify-between">
-            <div class="flex items-center gap-2.5">
-              <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-cyan-400 to-blue-600 flex items-center justify-center font-bold text-white text-xs shadow">
-                MJ
-              </div>
-              <div>
-                <div class="flex items-center gap-1.5">
-                  <span class="text-xs font-bold text-white">محمد جواد نظری</span>
-                  <span class="px-1.5 py-0.2 rounded text-[9px] bg-emerald-500/20 text-emerald-400 font-bold border border-emerald-500/30">فعال</span>
-                </div>
-                <div class="text-[10px] text-slate-400 font-mono flex items-center gap-2 mt-0.5">
-                  <span>@nzrmohammad</span>
-                  <span>ID: 123456789</span>
-                </div>
-              </div>
-            </div>
-            <span class="text-[11px] font-mono font-bold text-amber-400">۵۰ روز مانده</span>
-          </div>
-
-          <div class="bg-slate-900/60 rounded-xl p-2 text-xs flex justify-between items-center text-slate-300">
-            <span>ترافیک باقی‌مانده:</span>
-            <b class="font-mono text-emerald-400" dir="ltr">324.6 GB / 350 GB</b>
-          </div>
-
-          <!-- Quick Actions on User -->
-          <div class="grid grid-cols-4 gap-1.5 text-center text-[10px]">
-            <button class="quick-user-action bg-blue-950/60 hover:bg-blue-900 text-blue-300 border border-blue-800/50 py-1.5 rounded-lg transition" onclick="openModifyUserModal('محمد نظری', 'traffic')">
-              ➕ ترافیک
-            </button>
-            <button class="quick-user-action bg-indigo-950/60 hover:bg-indigo-900 text-indigo-300 border border-indigo-800/50 py-1.5 rounded-lg transition" onclick="openModifyUserModal('محمد نظری', 'days')">
-              ⏳ تمدید روز
-            </button>
-            <button class="quick-user-action bg-amber-950/60 hover:bg-amber-900 text-amber-300 border border-amber-800/50 py-1.5 rounded-lg transition" onclick="alert('تمام ۲ نشست فعال کاربر با موفقیت قطع شد.')">
-              ⛔️ قطع نشست
-            </button>
-            <button class="quick-user-action bg-rose-950/60 hover:bg-rose-900 text-rose-300 border border-rose-800/50 py-1.5 rounded-lg transition" onclick="confirm('آیا از مسدودسازی این کاربر اطمینان دارید؟') && alert('کاربر مسدود شد.')">
-              🚫 مسدود
-            </button>
-          </div>
+        <!-- Dynamic User List Container -->
+        <div id="adminUsersList" class="space-y-2.5 min-h-[200px]">
+          <div class="p-8 text-center text-xs text-slate-400">در حال بارگذاری اطلاعات کاربران...</div>
         </div>
 
-        <!-- User Card 2 -->
-        <div class="bg-slate-800/80 rounded-2xl p-3.5 border border-slate-700/80 space-y-2.5 shadow">
-          <div class="flex items-start justify-between">
-            <div class="flex items-center gap-2.5">
-              <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-purple-400 to-indigo-600 flex items-center justify-center font-bold text-white text-xs shadow">
-                AM
-              </div>
-              <div>
-                <div class="flex items-center gap-1.5">
-                  <span class="text-xs font-bold text-white">علی مرادی</span>
-                  <span class="px-1.5 py-0.2 rounded text-[9px] bg-rose-500/20 text-rose-400 font-bold border border-rose-500/30">منقضی</span>
-                </div>
-                <div class="text-[10px] text-slate-400 font-mono flex items-center gap-2 mt-0.5">
-                  <span>@ali_moradi</span>
-                  <span>ID: 987654321</span>
-                </div>
-              </div>
-            </div>
-            <span class="text-[11px] font-mono text-rose-400 font-bold">پایان یافته</span>
-          </div>
-
-          <div class="bg-slate-900/60 rounded-xl p-2 text-xs flex justify-between items-center text-slate-300">
-            <span>ترافیک باقی‌مانده:</span>
-            <b class="font-mono text-rose-400" dir="ltr">0.00 GB / 50 GB</b>
-          </div>
-
-          <!-- Quick Actions on User -->
-          <div class="grid grid-cols-4 gap-1.5 text-center text-[10px]">
-            <button class="quick-user-action bg-blue-950/60 hover:bg-blue-900 text-blue-300 border border-blue-800/50 py-1.5 rounded-lg transition" onclick="openModifyUserModal('علی مرادی', 'traffic')">
-              ➕ ترافیک
-            </button>
-            <button class="quick-user-action bg-indigo-950/60 hover:bg-indigo-900 text-indigo-300 border border-indigo-800/50 py-1.5 rounded-lg transition" onclick="openModifyUserModal('علی مرادی', 'days')">
-              ⏳ تمدید روز
-            </button>
-            <button class="quick-user-action bg-emerald-950/60 hover:bg-emerald-900 text-emerald-300 border border-emerald-800/50 py-1.5 rounded-lg transition" onclick="alert('اکانت تست مجدد برای کاربر فعال شد.')">
-              🎁 تست مجدد
-            </button>
-            <button class="quick-user-action bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 py-1.5 rounded-lg transition" onclick="alert('لینک سابسکریپشن کپی شد.')">
-              📋 کپی ساب
-            </button>
-          </div>
+        <!-- Pagination Controls -->
+        <div id="adminUsersPagination" class="flex justify-between items-center text-xs text-slate-400 pt-2 px-1">
+          <button id="adminUsersPrevBtn" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 disabled:opacity-40 disabled:pointer-events-none transition">قبلی</button>
+          <span id="adminUsersPageInfo" class="font-mono text-[11px] text-slate-300">صفحه ۱</span>
+          <button id="adminUsersNextBtn" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 disabled:opacity-40 disabled:pointer-events-none transition">بعدی</button>
         </div>
       </div>
 
@@ -334,121 +219,51 @@
       <!-- ===================================================== -->
       <div id="tab-admin-nodes" class="admin-tab-pane space-y-3 hidden">
         <div class="flex justify-between items-center">
-          <h3 class="text-sm font-bold text-slate-200">🌐 مدیریت نودها و سرورهای Remnawave</h3>
-          <button class="text-xs bg-blue-600 hover:bg-blue-500 text-white px-2.5 py-1 rounded-lg font-semibold transition" onclick="alert('درخواست افزودن نود جدید...')">➕ نود جدید</button>
+          <h3 class="text-sm font-bold text-slate-200">🌐 وضعیت کامل نودهای کلاستر</h3>
+          <button id="refreshNodesTabBtn" class="text-xs bg-blue-600 hover:bg-blue-500 text-white px-2.5 py-1 rounded-lg font-semibold transition flex items-center gap-1">
+            <span>🔄</span> سینک وضعیت
+          </button>
         </div>
 
-        <!-- Node Card 1 -->
-        <div class="bg-slate-800/90 rounded-2xl p-4 border border-slate-700/80 space-y-3 shadow">
-          <div class="flex justify-between items-start">
-            <div class="flex items-center gap-2.5">
-              <span class="text-2xl">🇳🇱</span>
-              <div>
-                <div class="flex items-center gap-2">
-                  <h4 class="font-bold text-xs text-white">Netherlands VIP 1 (Amsterdam)</h4>
-                  <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
-                </div>
-                <span class="text-[10px] text-slate-400 font-mono mt-0.5 block">IP: 185.192.110.42 | Port: 443 Reality</span>
-              </div>
-            </div>
-            <span class="text-[10px] font-mono text-emerald-400 bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-800/40">ONLINE</span>
-          </div>
-
-          <div class="grid grid-cols-3 gap-2 text-center text-[10px]">
-            <div class="bg-slate-900/60 p-1.5 rounded-xl">
-              <span class="text-slate-400 block">CPU Core</span>
-              <b class="text-cyan-400 font-mono">24%</b>
-            </div>
-            <div class="bg-slate-900/60 p-1.5 rounded-xl">
-              <span class="text-slate-400 block">RAM (32GB)</span>
-              <b class="text-indigo-300 font-mono">58%</b>
-            </div>
-            <div class="bg-slate-900/60 p-1.5 rounded-xl">
-              <span class="text-slate-400 block">کاربران متصل</span>
-              <b class="text-emerald-400 font-mono">142</b>
-            </div>
-          </div>
-
-          <div class="flex gap-2 text-[10px]">
-            <button class="flex-1 bg-slate-900 hover:bg-slate-750 text-slate-200 py-1.5 rounded-lg border border-slate-700 transition" onclick="alert('سرویس هسته Xray این نود ری‌استارت شد.')">🔄 ری‌استارت Xray</button>
-            <button class="flex-1 bg-slate-900 hover:bg-slate-750 text-slate-200 py-1.5 rounded-lg border border-slate-700 transition" onclick="alert('نود به حالت تعمیر رفت.')">🛠 حالت تعمیر</button>
-            <button class="flex-1 bg-rose-950/60 hover:bg-rose-900 text-rose-300 py-1.5 rounded-lg border border-rose-800/50 transition" onclick="confirm('آیا این نود غیرفعال شود؟')">⛔️ قطع نود</button>
-          </div>
-        </div>
-
-        <!-- Node Card 2 -->
-        <div class="bg-slate-800/90 rounded-2xl p-4 border border-slate-700/80 space-y-3 shadow">
-          <div class="flex justify-between items-start">
-            <div class="flex items-center gap-2.5">
-              <span class="text-2xl">🇩🇪</span>
-              <div>
-                <div class="flex items-center gap-2">
-                  <h4 class="font-bold text-xs text-white">Germany Falkenstein (Hetzner)</h4>
-                  <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
-                </div>
-                <span class="text-[10px] text-slate-400 font-mono mt-0.5 block">IP: 65.21.144.18 | Direct Route</span>
-              </div>
-            </div>
-            <span class="text-[10px] font-mono text-emerald-400 bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-800/40">ONLINE</span>
-          </div>
-
-          <div class="grid grid-cols-3 gap-2 text-center text-[10px]">
-            <div class="bg-slate-900/60 p-1.5 rounded-xl">
-              <span class="text-slate-400 block">CPU Core</span>
-              <b class="text-cyan-400 font-mono">18%</b>
-            </div>
-            <div class="bg-slate-900/60 p-1.5 rounded-xl">
-              <span class="text-slate-400 block">RAM (16GB)</span>
-              <b class="text-indigo-300 font-mono">44%</b>
-            </div>
-            <div class="bg-slate-900/60 p-1.5 rounded-xl">
-              <span class="text-slate-400 block">کاربران متصل</span>
-              <b class="text-emerald-400 font-mono">89</b>
-            </div>
-          </div>
-
-          <div class="flex gap-2 text-[10px]">
-            <button class="flex-1 bg-slate-900 hover:bg-slate-750 text-slate-200 py-1.5 rounded-lg border border-slate-700 transition" onclick="alert('سرویس هسته Xray این نود ری‌استارت شد.')">🔄 ری‌استارت Xray</button>
-            <button class="flex-1 bg-slate-900 hover:bg-slate-750 text-slate-200 py-1.5 rounded-lg border border-slate-700 transition" onclick="alert('نود به حالت تعمیر رفت.')">🛠 حالت تعمیر</button>
-            <button class="flex-1 bg-rose-950/60 hover:bg-rose-900 text-rose-300 py-1.5 rounded-lg border border-rose-800/50 transition" onclick="confirm('آیا این نود غیرفعال شود؟')">⛔️ قطع نود</button>
-          </div>
+        <div id="adminNodesFullList" class="space-y-3">
+          <div class="p-8 text-center text-xs text-slate-400">در حال دریافت وضعیت نودها...</div>
         </div>
       </div>
 
       <!-- ===================================================== -->
-      <!-- TAB 4: SUPPORT DESK (میز تیکت‌ها و چت)                   -->
+      <!-- TAB 4: SUPPORT DESK & PENDING TOPUPS                    -->
       <!-- ===================================================== -->
-      <div id="tab-admin-tickets" class="admin-tab-pane space-y-3 hidden">
+      <div id="tab-admin-tickets" class="admin-tab-pane space-y-4 hidden">
         <div class="flex justify-between items-center">
           <h3 class="text-sm font-bold text-slate-200 flex items-center gap-1.5">
-            <span>💬</span> صندوق تیکت‌های پشتیبانی
+            <span>💳</span> فیش‌های واریزی در انتظار بررسی
           </h3>
-          <span class="text-[10px] text-amber-300 bg-amber-950/60 px-2 py-0.5 rounded border border-amber-800/40">۳ تیکت باز</span>
+          <button id="refreshTopupsBtn" class="text-[10px] bg-slate-800 hover:bg-slate-700 text-slate-300 px-2 py-1 rounded-lg border border-slate-700 transition">
+            🔄 تازه‌سازی
+          </button>
         </div>
 
-        <!-- Ticket Card 1 -->
-        <div class="bg-slate-800/80 rounded-2xl p-3.5 border border-slate-700/80 space-y-2 shadow cursor-pointer hover:border-blue-500/50 transition" onclick="openAdminReplyBox('محمد نظری', 'سلام، روی آیفون برنامه Streisand سرعت کدوم سرور برای همراه اول بهتره؟')">
-          <div class="flex justify-between items-center">
-            <span class="font-bold text-xs text-white">#1042 - سوال در مورد اتصال آیفون</span>
-            <span class="text-[9px] text-amber-400 bg-amber-950/60 px-1.5 py-0.5 rounded font-bold">پاسخ‌داده نشده</span>
-          </div>
-          <p class="text-[11px] text-slate-300 line-clamp-1">سلام، روی آیفون برنامه Streisand سرعت کدوم سرور برای همراه اول بهتره؟</p>
-          <div class="flex justify-between items-center text-[10px] text-slate-400 pt-1 border-t border-slate-700/50">
-            <span>کاربر: <b>محمد نظری (@nzrmohammad)</b></span>
-            <span class="font-mono">۵ دقیقه پیش</span>
-          </div>
+        <div id="adminPendingTopupsList" class="space-y-2.5">
+          <div class="p-4 text-center text-xs text-slate-400">در حال بررسی فیش‌ها...</div>
         </div>
 
-        <!-- Ticket Card 2 -->
-        <div class="bg-slate-800/80 rounded-2xl p-3.5 border border-slate-700/80 space-y-2 shadow cursor-pointer hover:border-blue-500/50 transition" onclick="openAdminReplyBox('رضا کریمی', 'فیش واریزی کارت به کارت ۵۰ تومانی رو ارسال کردم لطفا تایید کنید.')">
-          <div class="flex justify-between items-center">
-            <span class="font-bold text-xs text-white">#1041 - تایید واریز کارت به کارت</span>
-            <span class="text-[9px] text-cyan-400 bg-cyan-950/60 px-1.5 py-0.5 rounded font-bold">فیش واریزی 📎</span>
-          </div>
-          <p class="text-[11px] text-slate-300 line-clamp-1">فیش واریزی کارت به کارت ۵۰ تومانی رو ارسال کردم لطفا تایید کنید.</p>
-          <div class="flex justify-between items-center text-[10px] text-slate-400 pt-1 border-t border-slate-700/50">
-            <span>کاربر: <b>رضا کریمی (@reza_k)</b></span>
-            <span class="font-mono">۱۸ دقیقه پیش</span>
+        <!-- Quick Support Messenger Box -->
+        <div class="bg-slate-800/90 rounded-2xl p-4 border border-slate-700/80 space-y-3 text-xs shadow mt-4">
+          <span class="font-bold text-slate-200 block border-b border-slate-700/60 pb-2 flex items-center gap-1.5">
+            <span>💬</span> ارسال پیام / پاسخ پشتیبانی به کاربر
+          </span>
+          <div class="space-y-2">
+            <div>
+              <label class="text-[11px] text-slate-400 block mb-1">شناسه عددی تلگرام کاربر:</label>
+              <input type="number" id="directTicketUserId" placeholder="مثلاً: 123456789" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-cyan-300 outline-none" />
+            </div>
+            <div>
+              <label class="text-[11px] text-slate-400 block mb-1">متن پاسخ:</label>
+              <textarea id="directTicketMsg" rows="3" placeholder="متن پیام پشتیبانی را تایپ کنید..." class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-xs text-slate-200 outline-none resize-none"></textarea>
+            </div>
+            <button id="sendDirectTicketReplyBtn" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs py-2 rounded-xl transition shadow active:scale-95">
+              ارسال پیام به کاربر از طریق ربات
+            </button>
           </div>
         </div>
       </div>
@@ -458,12 +273,12 @@
       <!-- ===================================================== -->
       <div id="tab-admin-settings" class="admin-tab-pane space-y-3 hidden">
         <h3 class="text-sm font-bold text-slate-200 flex items-center gap-1.5">
-          <span>⚙️</span> پیکربندی و کنترل اصلی ربات
+          <span>⚙️</span> پیکربندی و درگاه‌های ربات
         </h3>
 
         <!-- Maintenance & Gateway Switches -->
         <div class="bg-slate-800/90 rounded-2xl p-4 border border-slate-700/80 space-y-3 text-xs shadow">
-          <span class="font-bold text-slate-200 block border-b border-slate-700/60 pb-2">سوییچ‌های امنیتی و درگاه‌ها:</span>
+          <span class="font-bold text-slate-200 block border-b border-slate-700/60 pb-2">سوییچ‌های زنده:</span>
 
           <!-- Maintenance Mode -->
           <div class="flex items-center justify-between py-1">
@@ -472,7 +287,7 @@
               <span class="text-[10px] text-slate-400">فقط ادمین‌ها دسترسی خواهند داشت</span>
             </div>
             <label class="relative inline-flex items-center cursor-pointer">
-              <input type="checkbox" class="sr-only switch-checkbox" id="maintSwitch">
+              <input type="checkbox" class="sr-only switch-checkbox" id="settingMaintSwitch">
               <div class="switch-label w-11 h-6 bg-slate-700 rounded-full transition-colors duration-200 flex items-center px-0.5">
                 <div class="switch-ball w-5 h-5 bg-white rounded-full shadow-md transition-transform duration-200"></div>
               </div>
@@ -483,10 +298,10 @@
           <div class="flex items-center justify-between py-1 border-t border-slate-700/50 pt-2">
             <div>
               <span class="text-slate-200 font-medium block">💳 درگاه کارت به کارت</span>
-              <span class="text-[10px] text-slate-400">دریافت فیش دستی</span>
+              <span class="text-[10px] text-slate-400">واریز و دریافت فیش دستی</span>
             </div>
             <label class="relative inline-flex items-center cursor-pointer">
-              <input type="checkbox" checked class="sr-only switch-checkbox">
+              <input type="checkbox" class="sr-only switch-checkbox" id="settingCardSwitch">
               <div class="switch-label w-11 h-6 bg-slate-700 rounded-full transition-colors duration-200 flex items-center px-0.5">
                 <div class="switch-ball w-5 h-5 bg-white rounded-full shadow-md transition-transform duration-200"></div>
               </div>
@@ -500,7 +315,7 @@
               <span class="text-[10px] text-slate-400">تایید آنی با بلاکچین</span>
             </div>
             <label class="relative inline-flex items-center cursor-pointer">
-              <input type="checkbox" checked class="sr-only switch-checkbox">
+              <input type="checkbox" class="sr-only switch-checkbox" id="settingCryptoSwitch">
               <div class="switch-label w-11 h-6 bg-slate-700 rounded-full transition-colors duration-200 flex items-center px-0.5">
                 <div class="switch-ball w-5 h-5 bg-white rounded-full shadow-md transition-transform duration-200"></div>
               </div>
@@ -508,22 +323,20 @@
           </div>
         </div>
 
-        <!-- Automatic Reports Config -->
+        <!-- Card details edit -->
         <div class="bg-slate-800/90 rounded-2xl p-4 border border-slate-700/80 space-y-3 text-xs shadow">
-          <span class="font-bold text-slate-200 block border-b border-slate-700/60 pb-2">زمان‌بندی ارسال گزارش‌ها به تاپیک لاگ:</span>
-
-          <div class="flex items-center justify-between py-1">
-            <span class="text-slate-300">گزارش شبانه به کانال لاگ (۲۳:۵۹):</span>
-            <span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 font-bold text-[10px]">فعال 🟢</span>
+          <span class="font-bold text-slate-200 block border-b border-slate-700/60 pb-2">اطلاعات حساب بانکی واریزی:</span>
+          <div>
+            <label class="text-[11px] text-slate-400 block mb-1">شماره کارت مقصد:</label>
+            <input type="text" id="settingCardNumber" dir="ltr" placeholder="6037..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-cyan-300 outline-none" />
           </div>
-          <div class="flex items-center justify-between py-1 border-t border-slate-700/50 pt-2">
-            <span class="text-slate-300">گزارش هفتگی جمعه‌ها:</span>
-            <span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 font-bold text-[10px]">فعال 🟢</span>
+          <div>
+            <label class="text-[11px] text-slate-400 block mb-1">نام صاحب حساب:</label>
+            <input type="text" id="settingCardHolder" placeholder="نام صاحب کارت..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-200 outline-none" />
           </div>
-          <div class="flex items-center justify-between py-1 border-t border-slate-700/50 pt-2">
-            <span class="text-slate-300">گزارش ماهانه پایان ماه:</span>
-            <span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 font-bold text-[10px]">فعال 🟢</span>
-          </div>
+          <button id="saveBankSettingsBtn" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs py-2 rounded-xl transition shadow active:scale-95">
+            ذخیره اطلاعات بانکی
+          </button>
         </div>
       </div>
 
@@ -544,8 +357,8 @@
         <span class="text-[10px] font-medium">سرورها</span>
       </button>
       <button class="admin-nav-btn flex flex-col items-center gap-0.5 text-slate-400 hover:text-slate-200 transition" data-admin-tab="tab-admin-tickets">
-        <span class="text-lg">💬</span>
-        <span class="text-[10px] font-medium">تیکت‌ها</span>
+        <span class="text-lg">💳</span>
+        <span class="text-[10px] font-medium">فیش‌ها</span>
       </button>
       <button class="admin-nav-btn flex flex-col items-center gap-0.5 text-slate-400 hover:text-slate-200 transition" data-admin-tab="tab-admin-settings">
         <span class="text-lg">⚙️</span>
@@ -554,7 +367,7 @@
     </div>
 
     <!-- MODAL 1: Quick Modify User (افزایش حجم یا روز) -->
-    <div id="modifyUserModal" class="absolute inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden animate-fadeIn">
+    <div id="modifyUserModal" class="absolute inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
       <div class="bg-[#1e293b] border border-slate-700 rounded-3xl p-5 w-full max-w-[340px] space-y-4 shadow-2xl relative">
         <div class="flex justify-between items-center border-b border-slate-700/60 pb-2">
           <h4 id="modifyModalTitle" class="text-xs font-bold text-white">ویرایش کاربر</h4>
@@ -562,17 +375,17 @@
         </div>
         <div class="space-y-2">
           <label id="modifyModalLabel" class="text-xs text-slate-300 block font-medium">مقدار حجم افزایشی (GB):</label>
-          <input type="number" id="modifyModalInput" value="10" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm font-mono text-cyan-300 outline-none" />
+          <input type="number" id="modifyModalInput" value="10" min="1" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm font-mono text-cyan-300 outline-none" />
         </div>
         <div class="flex gap-2">
-          <button onclick="applyUserModification()" class="flex-1 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs py-2 rounded-xl transition">ثبت تغییرات</button>
+          <button id="modifyModalSubmitBtn" onclick="applyUserModification()" class="flex-1 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs py-2 rounded-xl transition">ثبت تغییرات</button>
           <button onclick="closeModifyModal()" class="flex-1 bg-slate-800 text-slate-300 text-xs py-2 rounded-xl">انصراف</button>
         </div>
       </div>
     </div>
 
     <!-- MODAL 2: Broadcast Message (ارسال پیام همگانی) -->
-    <div id="broadcastModal" class="absolute inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden animate-fadeIn">
+    <div id="broadcastModal" class="absolute inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
       <div class="bg-[#1e293b] border border-slate-700 rounded-3xl p-5 w-full max-w-[360px] space-y-3.5 shadow-2xl relative">
         <div class="flex justify-between items-center border-b border-slate-700/60 pb-2">
           <h4 class="text-xs font-bold text-white flex items-center gap-1.5">
@@ -584,8 +397,8 @@
           <textarea id="broadcastTextArea" rows="4" placeholder="متن پیام همگانی خود را اینجا بنویسید (از ایموجی و متن فرمت‌شده تلگرام پشتیبانی می‌شود)..." class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-xs text-slate-200 outline-none resize-none"></textarea>
         </div>
         <div class="flex items-center justify-between text-[11px] text-slate-400">
-          <span>ارسال به: <b>۱,۴۸۲ کاربر</b></span>
-          <span class="text-emerald-400">بدون مسدودی</span>
+          <span>ارسال به: <b class="text-slate-200">کل کاربران فعال ربات</b></span>
+          <span class="text-emerald-400">در پس‌زمینه</span>
         </div>
         <button id="sendBroadcastBtn" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 text-white font-bold text-xs py-2.5 rounded-xl transition shadow active:scale-95 flex items-center justify-center gap-1.5">
           <span>🚀</span>
@@ -594,31 +407,56 @@
       </div>
     </div>
 
-    <!-- MODAL 3: Admin Ticket Reply Box -->
-    <div id="adminTicketReplyModal" class="absolute inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden animate-fadeIn">
-      <div class="bg-[#1e293b] border border-slate-700 rounded-3xl p-5 w-full max-w-[360px] space-y-3 shadow-2xl relative">
-        <div class="flex justify-between items-center border-b border-slate-700/60 pb-2">
-          <div>
-            <h4 id="ticketModalUserName" class="text-xs font-bold text-white">پاسخ به محمد نظری</h4>
-            <span class="text-[10px] text-slate-400">تیکت #1042</span>
-          </div>
-          <button onclick="closeAdminReplyBox()" class="text-slate-400 hover:text-white text-xs">✕</button>
-        </div>
-        <div class="bg-slate-900/70 p-2.5 rounded-xl border border-slate-700/50 text-xs text-slate-300">
-          <span class="text-[10px] text-slate-400 block mb-1">پیام کاربر:</span>
-          <p id="ticketModalUserMsg" class="leading-relaxed"></p>
-        </div>
-        <textarea id="adminReplyInput" rows="3" placeholder="پاسخ ادمین به این کاربر..." class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-xs text-slate-200 outline-none"></textarea>
-        <div class="flex gap-2">
-          <button onclick="sendAdminReply()" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs py-2 rounded-xl transition">ارسال پاسخ آنی</button>
-          <button onclick="closeAdminReplyBox()" class="bg-slate-800 text-slate-300 text-xs px-3 rounded-xl">بستن</button>
-        </div>
-      </div>
-    </div>
-
   </div>
 
   <script>
+    // State
+    const tg = window.Telegram?.WebApp;
+    if (tg) {
+      try {
+        tg.ready();
+        tg.expand();
+        if (tg.setHeaderColor) tg.setHeaderColor('#0f172a');
+        if (tg.setBackgroundColor) tg.setBackgroundColor('#080d1a');
+      } catch (e) {}
+    }
+
+    let currentPage = 1;
+    let currentFilter = 'all';
+    let currentSearch = '';
+    let currentModifyTarget = null;
+    let cachedOverviewData = null;
+
+    function getApiHeaders() {
+      const headers = { 'Content-Type': 'application/json' };
+      if (tg?.initData) headers['X-Telegram-Init-Data'] = tg.initData;
+      return headers;
+    }
+
+    function getCountryFlag(code) {
+      if (!code || code.length !== 2) return '🌐';
+      const c = code.toUpperCase();
+      const offset = 127397;
+      return String.fromCodePoint(c.charCodeAt(0) + offset, c.charCodeAt(1) + offset);
+    }
+
+    function showToast(msg) {
+      let toast = document.getElementById('adminToast');
+      if (!toast) {
+        toast = document.createElement('div');
+        toast.id = 'adminToast';
+        toast.className = 'fixed top-12 left-1/2 transform -translate-x-1/2 z-50 bg-slate-900/95 text-white border border-slate-700/80 px-4 py-2.5 rounded-2xl shadow-2xl text-xs font-semibold text-center transition-all duration-300 opacity-0 pointer-events-none max-w-[90%]';
+        document.body.appendChild(toast);
+      }
+      toast.innerText = msg;
+      toast.classList.remove('opacity-0', '-translate-y-2');
+      toast.classList.add('opacity-100', 'translate-y-0');
+      setTimeout(() => {
+        toast.classList.remove('opacity-100', 'translate-y-0');
+        toast.classList.add('opacity-0', '-translate-y-2');
+      }, 3000);
+    }
+
     // Tab Navigation
     const adminNavButtons = document.querySelectorAll('.admin-nav-btn');
     const adminTabPanes = document.querySelectorAll('.admin-tab-pane');
@@ -642,6 +480,15 @@
         btn.classList.remove('text-slate-400');
         btn.classList.add('text-blue-400');
         btn.querySelector('span:last-child').classList.replace('font-medium', 'font-bold');
+
+        // Lazy load tab data
+        if (targetId === 'tab-admin-users' && document.getElementById('adminUsersList').children.length <= 1) {
+          fetchAdminUsers(1);
+        } else if (targetId === 'tab-admin-tickets') {
+          fetchAdminTopups();
+        } else if (targetId === 'tab-admin-settings') {
+          fetchAdminSettings();
+        }
       });
     });
 
@@ -668,129 +515,619 @@
       }
     });
 
-    // Broadcast Modal
-    const broadcastModal = document.getElementById('broadcastModal');
-    const openBroadcastModalBtn = document.getElementById('openBroadcastModalBtn');
-    const closeBroadcastBtn = document.getElementById('closeBroadcastBtn');
-    const sendBroadcastBtn = document.getElementById('sendBroadcastBtn');
+    // 1. Fetch & Render Overview
+    async function syncAdminOverview() {
+      try {
+        const resp = await fetch('/api/admin/overview', { headers: getApiHeaders() });
+        if (!resp.ok) return;
+        const res = await resp.json();
+        if (!res.ok || !res.data) return;
 
-    openBroadcastModalBtn.addEventListener('click', () => broadcastModal.classList.remove('hidden'));
-    closeBroadcastBtn.addEventListener('click', () => broadcastModal.classList.add('hidden'));
+        const data = res.data;
+        cachedOverviewData = data;
+        const m = data.metrics || {};
+        const nodes = data.nodes || [];
 
-    sendBroadcastBtn.addEventListener('click', () => {
-      const txt = document.getElementById('broadcastTextArea').value.trim();
-      if (!txt) {
-        alert('لطفاً متن پیام همگانی را وارد کنید.');
+        // KPI Cards
+        const totalU = document.getElementById('adminTotalUsers');
+        if (totalU) totalU.innerText = (m.total_users || 0).toLocaleString('fa-IR');
+        const activeU = document.getElementById('adminActiveUsers');
+        if (activeU) activeU.innerText = `${(m.active_panel_users || 0).toLocaleString('fa-IR')} اکانت فعال پنل`;
+        const rev = document.getElementById('adminTodayRevenue');
+        if (rev) rev.innerText = (m.today_revenue_toman || 0).toLocaleString('fa-IR');
+        const bw = document.getElementById('adminMonthTraffic');
+        if (bw) bw.innerText = `${m.month_traffic_gb || 0} GB`;
+        const onDev = document.getElementById('adminOnlineDevices');
+        if (onDev) onDev.innerText = (m.online_devices || 0).toLocaleString('fa-IR');
+
+        // Pending banner
+        const pendingBox = document.getElementById('adminPendingBanner');
+        const pendingSum = document.getElementById('adminPendingSummary');
+        const pTopups = m.pending_topups || 0;
+        const pTickets = m.open_tickets || 0;
+        if (pendingSum) {
+          if (pTopups > 0 || pTickets > 0) {
+            pendingSum.innerText = `${pTopups} فیش واریزی در انتظار + ${pTickets} پیام ثبت‌شده`;
+            if (pendingBox) pendingBox.classList.remove('hidden');
+          } else {
+            pendingSum.innerText = 'همه فیش‌ها و پیام‌ها بررسی شده‌اند 🟢';
+          }
+        }
+
+        // Cluster Status Bar
+        const onlineNodes = nodes.filter(n => (n.status || '').toUpperCase() === 'ONLINE').length;
+        const clusterText = document.getElementById('adminClusterStatusText');
+        if (clusterText) {
+          clusterText.innerHTML = `وضعیت کلاستر: <b class="text-emerald-400">${onlineNodes} از ${nodes.length} نود آنلاین</b>`;
+        }
+        const syncText = document.getElementById('adminLastSyncText');
+        if (syncText) syncText.innerText = 'Sync: لحظاتی پیش';
+
+        // Render Nodes in Overview
+        renderOverviewNodes(nodes);
+        renderFullNodes(nodes);
+      } catch (err) {
+        console.error('Failed to sync admin overview:', err);
+      }
+    }
+
+    function renderOverviewNodes(nodes) {
+      const container = document.getElementById('adminOverviewNodesList');
+      if (!container) return;
+      if (!nodes || nodes.length === 0) {
+        container.innerHTML = '<div class="p-3 text-center text-slate-400">هیچ نودی یافت نشد</div>';
         return;
       }
-      sendBroadcastBtn.disabled = true;
-      sendBroadcastBtn.innerText = 'در حال ارسال به ۱,۴۸۲ کاربر...';
-      setTimeout(() => {
-        alert('🎉 پیام همگانی با موفقیت برای تمامی کاربران فعال ارسال گردید!');
-        broadcastModal.classList.add('hidden');
-        sendBroadcastBtn.disabled = false;
-        sendBroadcastBtn.innerHTML = '<span>🚀</span><span>شروع ارسال همگانی</span>';
-      }, 1500);
+      container.innerHTML = nodes.map(n => {
+        const flag = getCountryFlag(n.country_code);
+        const isOnline = (n.status || '').toUpperCase() === 'ONLINE';
+        const statusColor = isOnline ? 'text-emerald-400' : 'text-rose-400';
+        return `
+          <div class="bg-slate-900/60 p-2.5 rounded-xl border border-slate-700/50 flex justify-between items-center">
+            <div class="flex items-center gap-2">
+              <span class="text-lg">${flag}</span>
+              <div>
+                <span class="font-bold text-white block text-xs">${n.name || 'Node'}</span>
+                <span class="text-[10px] text-slate-400 font-mono">CPU: ${n.cpu_percent || 0}% | RAM: ${n.ram_percent || 0}%</span>
+              </div>
+            </div>
+            <div class="text-left font-mono">
+              <span class="${statusColor} font-bold text-[11px]">${n.connected_users || 0} آنلاین</span>
+              <span class="block text-[9px] ${isOnline ? 'text-slate-400' : 'text-rose-400'}">${isOnline ? 'ONLINE' : 'OFFLINE'}</span>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderFullNodes(nodes) {
+      const container = document.getElementById('adminNodesFullList');
+      if (!container) return;
+      if (!nodes || nodes.length === 0) {
+        container.innerHTML = '<div class="p-4 text-center text-slate-400">هیچ نودی ثبت نشده است</div>';
+        return;
+      }
+      container.innerHTML = nodes.map(n => {
+        const flag = getCountryFlag(n.country_code);
+        const isOnline = (n.status || '').toUpperCase() === 'ONLINE';
+        return `
+          <div class="bg-slate-800/90 rounded-2xl p-4 border border-slate-700/80 space-y-3 shadow">
+            <div class="flex justify-between items-start">
+              <div class="flex items-center gap-2.5">
+                <span class="text-2xl">${flag}</span>
+                <div>
+                  <div class="flex items-center gap-2">
+                    <h4 class="font-bold text-xs text-white">${n.name || 'Node'}</h4>
+                    <span class="w-2 h-2 rounded-full ${isOnline ? 'bg-emerald-400' : 'bg-rose-400'}"></span>
+                  </div>
+                  <span class="text-[10px] text-slate-400 font-mono mt-0.5 block">Node ID: ${n.id || '--'}</span>
+                </div>
+              </div>
+              <span class="text-[10px] font-mono ${isOnline ? 'text-emerald-400 bg-emerald-950/60 border-emerald-800/40' : 'text-rose-400 bg-rose-950/60 border-rose-800/40'} px-2 py-0.5 rounded border">${isOnline ? 'ONLINE' : 'OFFLINE'}</span>
+            </div>
+
+            <div class="grid grid-cols-3 gap-2 text-center text-[10px]">
+              <div class="bg-slate-900/60 p-2 rounded-xl">
+                <span class="text-slate-400 block mb-0.5">مصرف CPU</span>
+                <b class="text-cyan-400 font-mono text-xs">${n.cpu_percent || 0}%</b>
+              </div>
+              <div class="bg-slate-900/60 p-2 rounded-xl">
+                <span class="text-slate-400 block mb-0.5">مصرف RAM</span>
+                <b class="text-indigo-300 font-mono text-xs">${n.ram_percent || 0}%</b>
+              </div>
+              <div class="bg-slate-900/60 p-2 rounded-xl">
+                <span class="text-slate-400 block mb-0.5">کاربران متصل</span>
+                <b class="text-emerald-400 font-mono text-xs">${n.connected_users || 0}</b>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // 2. Fetch & Render Users
+    async function fetchAdminUsers(page = 1) {
+      currentPage = page;
+      const listContainer = document.getElementById('adminUsersList');
+      if (!listContainer) return;
+      listContainer.innerHTML = '<div class="p-8 text-center text-xs text-slate-400">در حال دریافت کاربران...</div>';
+
+      try {
+        let url = `/api/admin/users?page=${page}&limit=15&filter=${currentFilter}`;
+        if (currentSearch) url += `&q=${encodeURIComponent(currentSearch)}`;
+        const resp = await fetch(url, { headers: getApiHeaders() });
+        if (!resp.ok) {
+          listContainer.innerHTML = '<div class="p-6 text-center text-rose-400 text-xs">خطا در برقراری ارتباط با سرور</div>';
+          return;
+        }
+        const res = await resp.json();
+        if (!res.ok) {
+          listContainer.innerHTML = `<div class="p-6 text-center text-rose-400 text-xs">${res.error || 'خطا در بارگذاری'}</div>`;
+          return;
+        }
+
+        renderUsersList(res.users || []);
+
+        // Pagination
+        const total = res.total || 0;
+        const totalPages = Math.max(1, Math.ceil(total / 15));
+        const pageInfo = document.getElementById('adminUsersPageInfo');
+        if (pageInfo) pageInfo.innerText = `صفحه ${page} از ${totalPages} (${total} کاربر)`;
+        const prevBtn = document.getElementById('adminUsersPrevBtn');
+        const nextBtn = document.getElementById('adminUsersNextBtn');
+        if (prevBtn) prevBtn.disabled = page <= 1;
+        if (nextBtn) nextBtn.disabled = page >= totalPages;
+      } catch (err) {
+        listContainer.innerHTML = '<div class="p-6 text-center text-rose-400 text-xs">خطای شبکه در دریافت کاربران</div>';
+      }
+    }
+
+    function renderUsersList(users) {
+      const listContainer = document.getElementById('adminUsersList');
+      if (!listContainer) return;
+      if (users.length === 0) {
+        listContainer.innerHTML = '<div class="p-8 text-center text-xs text-slate-400">هیچ کاربری با این مشخصات یافت نشد.</div>';
+        return;
+      }
+
+      listContainer.innerHTML = users.map(u => {
+        const usernameDisp = u.username ? `@${u.username}` : 'بدون یوزرنیم';
+        const initial = (u.username || String(u.telegram_id))[0].toUpperCase();
+        const p = u.panel_account;
+        
+        let statusBadge = '<span class="px-1.5 py-0.5 rounded text-[9px] bg-slate-700 text-slate-300 font-medium">بدون اکانت</span>';
+        if (u.is_banned) {
+          statusBadge = '<span class="px-1.5 py-0.5 rounded text-[9px] bg-rose-500/20 text-rose-400 font-bold border border-rose-500/30">مسدود</span>';
+        } else if (p && p.exists) {
+          const st = (p.status || '').toUpperCase();
+          if (st === 'ACTIVE') statusBadge = '<span class="px-1.5 py-0.5 rounded text-[9px] bg-emerald-500/20 text-emerald-400 font-bold border border-emerald-500/30">فعال</span>';
+          else if (st === 'DISABLED') statusBadge = '<span class="px-1.5 py-0.5 rounded text-[9px] bg-amber-500/20 text-amber-400 font-bold border border-amber-500/30">غیرفعال</span>';
+          else if (st === 'EXPIRED') statusBadge = '<span class="px-1.5 py-0.5 rounded text-[9px] bg-rose-500/20 text-rose-400 font-bold border border-rose-500/30">منقضی</span>';
+          else statusBadge = `<span class="px-1.5 py-0.5 rounded text-[9px] bg-blue-500/20 text-blue-400 font-bold border border-blue-500/30">${st}</span>`;
+        }
+
+        const trafficText = p && p.exists
+          ? `${p.used_traffic_gb} GB / ${p.limit_traffic_gb > 0 ? p.limit_traffic_gb + ' GB' : 'نامحدود'}`
+          : 'بدون سرویس فعال';
+
+        return `
+          <div class="bg-slate-800/80 rounded-2xl p-3.5 border border-slate-700/80 space-y-2.5 shadow">
+            <div class="flex items-start justify-between">
+              <div class="flex items-center gap-2.5">
+                <div class="w-9 h-9 rounded-full bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center font-bold text-white text-xs shadow">
+                  ${initial}
+                </div>
+                <div>
+                  <div class="flex items-center gap-1.5">
+                    <span class="text-xs font-bold text-white">${usernameDisp}</span>
+                    ${statusBadge}
+                  </div>
+                  <div class="text-[10px] text-slate-400 font-mono mt-0.5">
+                    <span>ID: ${u.telegram_id}</span>
+                  </div>
+                </div>
+              </div>
+              <span class="text-[11px] font-mono font-bold text-emerald-400">${(u.wallet_balance || 0).toLocaleString('fa-IR')} ت</span>
+            </div>
+
+            <div class="bg-slate-900/60 rounded-xl p-2 text-xs flex justify-between items-center text-slate-300">
+              <span class="text-[11px] text-slate-400">ترافیک مصرفی:</span>
+              <b class="font-mono text-cyan-400 text-[11px]" dir="ltr">${trafficText}</b>
+            </div>
+
+            <div class="grid grid-cols-4 gap-1.5 text-center text-[10px]">
+              <button class="bg-blue-950/60 hover:bg-blue-900 text-blue-300 border border-blue-800/50 py-1.5 rounded-lg transition active:scale-95" onclick="openModifyUserModal(${u.telegram_id}, '${u.username || u.telegram_id}', 'traffic')">
+                ➕ ترافیک
+              </button>
+              <button class="bg-indigo-950/60 hover:bg-indigo-900 text-indigo-300 border border-indigo-800/50 py-1.5 rounded-lg transition active:scale-95" onclick="openModifyUserModal(${u.telegram_id}, '${u.username || u.telegram_id}', 'days')">
+                ⏳ تمدید
+              </button>
+              <button class="bg-amber-950/60 hover:bg-amber-900 text-amber-300 border border-amber-800/50 py-1.5 rounded-lg transition active:scale-95" onclick="killUserSessions(${u.telegram_id}, '${u.username || u.telegram_id}')">
+                ⛔️ نشست‌ها
+              </button>
+              <button class="${u.is_banned ? 'bg-emerald-950/60 hover:bg-emerald-900 text-emerald-300 border-emerald-800/50' : 'bg-rose-950/60 hover:bg-rose-900 text-rose-300 border-rose-800/50'} border py-1.5 rounded-lg transition active:scale-95" onclick="toggleUserBan(${u.telegram_id}, ${u.is_banned})">
+                ${u.is_banned ? '✅ آزاد' : '🚫 مسدود'}
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // User Search Debounce
+    let searchDebounce = null;
+    const userSearchInput = document.getElementById('userSearchInput');
+    const userSearchClear = document.getElementById('userSearchClear');
+    userSearchInput?.addEventListener('input', (e) => {
+      const val = e.target.value.trim();
+      if (userSearchClear) userSearchClear.classList.toggle('hidden', !val);
+      clearTimeout(searchDebounce);
+      searchDebounce = setTimeout(() => {
+        currentSearch = val;
+        fetchAdminUsers(1);
+      }, 350);
+    });
+    userSearchClear?.addEventListener('click', () => {
+      userSearchInput.value = '';
+      userSearchClear.classList.add('hidden');
+      currentSearch = '';
+      fetchAdminUsers(1);
     });
 
-    // Modify User Modal Logic
+    // User Filter Buttons
+    document.querySelectorAll('.user-filter-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.user-filter-btn').forEach(b => {
+          b.className = 'user-filter-btn px-2.5 py-1 rounded-lg bg-slate-800 text-slate-400 hover:text-white transition';
+        });
+        btn.className = 'user-filter-btn px-2.5 py-1 rounded-lg bg-blue-600 text-white font-bold transition';
+        currentFilter = btn.getAttribute('data-filter') || 'all';
+        fetchAdminUsers(1);
+      });
+    });
+
+    // Pagination Click Handlers
+    document.getElementById('adminUsersPrevBtn')?.addEventListener('click', () => {
+      if (currentPage > 1) fetchAdminUsers(currentPage - 1);
+    });
+    document.getElementById('adminUsersNextBtn')?.addEventListener('click', () => {
+      fetchAdminUsers(currentPage + 1);
+    });
+
+    // 3. User Actions (Modify Traffic/Days, Kill Sessions, Ban/Unban)
     const modifyUserModal = document.getElementById('modifyUserModal');
     const modifyModalTitle = document.getElementById('modifyModalTitle');
     const modifyModalLabel = document.getElementById('modifyModalLabel');
     const modifyModalInput = document.getElementById('modifyModalInput');
 
-    function openModifyUserModal(name, type) {
+    function openModifyUserModal(telegram_id, name, type) {
+      currentModifyTarget = { telegram_id, name, type };
       modifyUserModal.classList.remove('hidden');
       if (type === 'traffic') {
-        modifyModalTitle.innerText = `افزایش حجم کاربر: ${name}`;
-        modifyModalLabel.innerText = 'میزان حجم افزایشی (GB):';
+        modifyModalTitle.innerText = `افزایش ترافیک: ${name}`;
+        modifyModalLabel.innerText = 'مقدار ترافیک افزایشی (GB):';
         modifyModalInput.value = '10';
       } else {
-        modifyModalTitle.innerText = `تمدید اعتبار کاربر: ${name}`;
+        modifyModalTitle.innerText = `تمدید اشتراک: ${name}`;
         modifyModalLabel.innerText = 'تعداد روز افزایشی:';
         modifyModalInput.value = '30';
       }
+      modifyModalInput.focus();
     }
     function closeModifyModal() {
       modifyUserModal.classList.add('hidden');
-    }
-    function applyUserModification() {
-      alert(`✅ عملیات با موفقیت اعمال شد و رکورد کاربر در پنل Remnawave سینک گردید.`);
-      closeModifyModal();
+      currentModifyTarget = null;
     }
 
-    // Admin Ticket Reply Logic
-    const adminTicketReplyModal = document.getElementById('adminTicketReplyModal');
-    const ticketModalUserName = document.getElementById('ticketModalUserName');
-    const ticketModalUserMsg = document.getElementById('ticketModalUserMsg');
-    const adminReplyInput = document.getElementById('adminReplyInput');
-
-    function openAdminReplyBox(userName, userMsg) {
-      ticketModalUserName.innerText = `پاسخ به ${userName}`;
-      ticketModalUserMsg.innerText = userMsg;
-      adminReplyInput.value = '';
-      adminTicketReplyModal.classList.remove('hidden');
-    }
-    function closeAdminReplyBox() {
-      adminTicketReplyModal.classList.add('hidden');
-    }
-    function sendAdminReply() {
-      if (!adminReplyInput.value.trim()) {
-        alert('لطفاً پاسخ خود را تایپ نمایید.');
+    async function applyUserModification() {
+      if (!currentModifyTarget) return;
+      const amount = parseFloat(modifyModalInput.value);
+      if (isNaN(amount) || amount <= 0) {
+        showToast('لطفاً مقداری معتبر وارد نمایید.');
         return;
       }
-      alert('✅ پاسخ ادمین با موفقیت برای کاربر ارسال و تیکت بسته شد.');
-      closeAdminReplyBox();
+      const submitBtn = document.getElementById('modifyModalSubmitBtn');
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerText = 'در حال ثبت...';
+      }
+      try {
+        const resp = await fetch('/api/admin/user/modify', {
+          method: 'POST',
+          headers: getApiHeaders(),
+          body: JSON.stringify({
+            telegram_id: currentModifyTarget.telegram_id,
+            action: currentModifyTarget.type,
+            amount: amount,
+          }),
+        });
+        const res = await resp.json();
+        if (res.ok) {
+          showToast(`✅ ${res.message || 'عملیات با موفقیت اعمال شد'}`);
+          closeModifyModal();
+          fetchAdminUsers(currentPage);
+          syncAdminOverview();
+        } else {
+          showToast(`⚠️ ${res.error || 'خطا در ثبت تغییرات'}`);
+        }
+      } catch (e) {
+        showToast('خطای شبکه در ارتباط با سرور.');
+      } finally {
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.innerText = 'ثبت تغییرات';
+        }
+      }
     }
 
-    // Backup & Sync
-    document.getElementById('openQuickBackupBtn').addEventListener('click', () => {
-      alert('💾 فایل پشتیبان کامل SQLite دیتابیس ربات و تنظیمات آماده و ارسال شد.');
-    });
-    document.getElementById('syncAllNodesBtn').addEventListener('click', () => {
-      alert('🔄 درخواست هماهنگ‌سازی آنی با API پنل Remnawave برای تمام ۶ نود ارسال گردید.');
-    });
-    document.getElementById('viewPendingBtn').addEventListener('click', () => {
-      alert('هدایت به لیست فیش‌های بانکی در انتظار بررسی...');
-    });
-    // Telegram WebApp SDK Lifecycle & Live API sync
-    const tg = window.Telegram?.WebApp;
-    if (tg) {
+    async function killUserSessions(telegram_id, name) {
+      if (!confirm(`آیا از قطع تمام نشست‌های فعال دستگاه‌های کاربر ${name} اطمینان دارید؟`)) return;
       try {
-        tg.ready();
-        tg.expand();
-        if (tg.setHeaderColor) tg.setHeaderColor('#0f172a');
-        if (tg.setBackgroundColor) tg.setBackgroundColor('#080d1a');
+        const resp = await fetch('/api/admin/user/kill_sessions', {
+          method: 'POST',
+          headers: getApiHeaders(),
+          body: JSON.stringify({ telegram_id }),
+        });
+        const res = await resp.json();
+        if (res.ok) {
+          showToast(`✅ تعداد ${res.killed_devices || 0} نشست فعال قطع شدند.`);
+          syncAdminOverview();
+        } else {
+          showToast(`⚠️ ${res.error || 'خطا در قطع نشست‌ها'}`);
+        }
+      } catch (e) {
+        showToast('خطا در ارتباط با سرور');
+      }
+    }
+
+    async function toggleUserBan(telegram_id, isBanned) {
+      const actionText = isBanned ? 'رفع مسدودیت' : 'مسدود کردن';
+      if (!confirm(`آیا از ${actionText} این کاربر اطمینان دارید؟`)) return;
+      try {
+        const resp = await fetch('/api/admin/user/toggle_ban', {
+          method: 'POST',
+          headers: getApiHeaders(),
+          body: JSON.stringify({ telegram_id, ban: !isBanned }),
+        });
+        const res = await resp.json();
+        if (res.ok) {
+          showToast(`✅ کاربر با موفقیت ${res.banned ? 'مسدود' : 'آزاد'} شد.`);
+          fetchAdminUsers(currentPage);
+        } else {
+          showToast(`⚠️ ${res.error || 'خطا در تغییر وضعیت کاربر'}`);
+        }
+      } catch (e) {
+        showToast('خطا در برقراری ارتباط');
+      }
+    }
+
+    // 4. Pending Topups
+    async function fetchAdminTopups() {
+      const container = document.getElementById('adminPendingTopupsList');
+      if (!container) return;
+      container.innerHTML = '<div class="p-4 text-center text-xs text-slate-400">در حال دریافت فیش‌ها...</div>';
+
+      try {
+        const resp = await fetch('/api/admin/topups', { headers: getApiHeaders() });
+        const res = await resp.json();
+        if (!res.ok) {
+          container.innerHTML = `<div class="p-4 text-center text-rose-400 text-xs">${res.error || 'خطا'}</div>`;
+          return;
+        }
+        const topups = res.topups || [];
+        if (topups.length === 0) {
+          container.innerHTML = '<div class="bg-slate-900/40 p-4 rounded-xl text-center text-slate-400 text-xs border border-slate-800">هیچ فیش واریزی در انتظاری وجود ندارد 🟢</div>';
+          return;
+        }
+
+        container.innerHTML = topups.map(t => `
+          <div class="bg-slate-800/90 rounded-2xl p-3.5 border border-slate-700/80 space-y-2.5 shadow">
+            <div class="flex justify-between items-center">
+              <div>
+                <span class="text-xs font-bold text-white">فیش #${t.id}</span>
+                <span class="text-[10px] text-slate-400 block font-mono">کاربر: ${t.username ? '@' + t.username : t.telegram_id}</span>
+              </div>
+              <span class="text-sm font-black text-emerald-400 font-mono">${(t.amount || 0).toLocaleString('fa-IR')} ت</span>
+            </div>
+            <div class="flex gap-2 pt-1 text-[11px]">
+              <button onclick="handleTopupAction(${t.id}, true)" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-1.5 rounded-xl transition active:scale-95">
+                ✓ تایید و شارژ
+              </button>
+              <button onclick="handleTopupAction(${t.id}, false)" class="flex-1 bg-rose-600 hover:bg-rose-500 text-white font-bold py-1.5 rounded-xl transition active:scale-95">
+                ✕ رد فیش
+              </button>
+            </div>
+          </div>
+        `).join('');
+      } catch (err) {
+        container.innerHTML = '<div class="p-4 text-center text-rose-400 text-xs">خطای شبکه در دریافت فیش‌ها</div>';
+      }
+    }
+
+    async function handleTopupAction(topup_id, approved) {
+      if (!confirm(`آیا از ${approved ? 'تایید و شارژ' : 'رد'} این فیش مطمئن هستید؟`)) return;
+      try {
+        const resp = await fetch('/api/admin/topup/action', {
+          method: 'POST',
+          headers: getApiHeaders(),
+          body: JSON.stringify({ topup_id, approved }),
+        });
+        const res = await resp.json();
+        if (res.ok) {
+          showToast(`✅ ${res.message}`);
+          fetchAdminTopups();
+          syncAdminOverview();
+        } else {
+          showToast(`⚠️ ${res.error || 'خطا در تعیین تکلیف فیش'}`);
+        }
+      } catch (err) {
+        showToast('خطا در برقراری ارتباط');
+      }
+    }
+
+    // Direct Support Reply
+    document.getElementById('sendDirectTicketReplyBtn')?.addEventListener('click', async () => {
+      const uid = document.getElementById('directTicketUserId')?.value?.trim();
+      const txt = document.getElementById('directTicketMsg')?.value?.trim();
+      if (!uid || !txt) {
+        showToast('لطفاً شناسه کاربر و متن پیام را وارد کنید.');
+        return;
+      }
+      try {
+        const resp = await fetch('/api/admin/ticket/reply', {
+          method: 'POST',
+          headers: getApiHeaders(),
+          body: JSON.stringify({ telegram_id: parseInt(uid), reply_text: txt }),
+        });
+        const res = await resp.json();
+        if (res.ok) {
+          showToast('✅ پیام برای کاربر ارسال شد.');
+          document.getElementById('directTicketMsg').value = '';
+        } else {
+          showToast(`⚠️ ${res.error || 'خطا در ارسال'}`);
+        }
+      } catch (e) {
+        showToast('خطای شبکه در ارسال پیام');
+      }
+    });
+
+    // 5. Settings Management
+    async function fetchAdminSettings() {
+      try {
+        const resp = await fetch('/api/admin/settings', { headers: getApiHeaders() });
+        const res = await resp.json();
+        if (!res.ok || !res.settings) return;
+        const s = res.settings;
+
+        const maintSwitch = document.getElementById('settingMaintSwitch');
+        if (maintSwitch) maintSwitch.checked = !!s.maintenance;
+
+        const cardSwitch = document.getElementById('settingCardSwitch');
+        if (cardSwitch) cardSwitch.checked = !!s.card_enabled;
+
+        const cryptoSwitch = document.getElementById('settingCryptoSwitch');
+        if (cryptoSwitch) cryptoSwitch.checked = !!s.crypto_enabled;
+
+        const cardNum = document.getElementById('settingCardNumber');
+        if (cardNum) cardNum.value = s.card_number || '';
+
+        const cardHolder = document.getElementById('settingCardHolder');
+        if (cardHolder) cardHolder.value = s.card_holder || '';
       } catch (e) {}
     }
 
-    async function syncAdminMetrics() {
-      const initData = tg?.initData || '';
+    async function updateSettingToggle(key, val) {
       try {
-        const resp = await fetch('/api/admin/overview', {
-          headers: { 'X-Telegram-Init-Data': initData }
+        const resp = await fetch('/api/admin/settings', {
+          method: 'POST',
+          headers: getApiHeaders(),
+          body: JSON.stringify({ [key]: val }),
         });
-        if (!resp.ok) return;
         const res = await resp.json();
-        if (res.ok && res.data?.metrics) {
-          const m = res.data.metrics;
-          const usersEl = document.querySelector('.text-2xl.font-black.text-white.font-mono');
-          if (usersEl) usersEl.innerText = m.total_users;
-          const revEl = document.querySelector('.text-xl.font-black.text-emerald-400.font-mono');
-          if (revEl) revEl.innerText = m.today_revenue_toman.toLocaleString('fa-IR');
-          const bwEl = document.querySelector('.text-2xl.font-black.text-cyan-400.font-mono');
-          if (bwEl) bwEl.innerText = `${m.month_traffic_gb} GB`;
+        if (res.ok) {
+          showToast('✓ تنظیم ذخیره شد');
+        } else {
+          showToast(`⚠️ ${res.error || 'خطا در ذخیره تنظیم'}`);
         }
-      } catch (err) {
-        console.debug('Admin metrics sync error', err);
+      } catch (e) {
+        showToast('خطا در ذخیره تنظیم');
       }
     }
 
-    syncAdminMetrics();
-    document.getElementById('adminReloadBtn')?.addEventListener('click', () => {
-      syncAdminMetrics();
-      alert('آمار و وضعیت نودها به‌روزرسانی شد.');
+    document.getElementById('settingMaintSwitch')?.addEventListener('change', (e) => {
+      updateSettingToggle('maintenance', e.target.checked);
     });
+    document.getElementById('settingCardSwitch')?.addEventListener('change', (e) => {
+      updateSettingToggle('card_enabled', e.target.checked);
+    });
+    document.getElementById('settingCryptoSwitch')?.addEventListener('change', (e) => {
+      updateSettingToggle('crypto_enabled', e.target.checked);
+    });
+
+    document.getElementById('saveBankSettingsBtn')?.addEventListener('click', async () => {
+      const card_number = document.getElementById('settingCardNumber')?.value?.trim();
+      const card_holder = document.getElementById('settingCardHolder')?.value?.trim();
+      try {
+        const resp = await fetch('/api/admin/settings', {
+          method: 'POST',
+          headers: getApiHeaders(),
+          body: JSON.stringify({ card_number, card_holder }),
+        });
+        const res = await resp.json();
+        if (res.ok) {
+          showToast('✅ اطلاعات بانکی با موفقیت ذخیره شد.');
+        } else {
+          showToast(`⚠️ ${res.error || 'خطا'}`);
+        }
+      } catch (e) {
+        showToast('خطا در ذخیره اطلاعات');
+      }
+    });
+
+    // Broadcast Modal Logic
+    const broadcastModal = document.getElementById('broadcastModal');
+    const openBroadcastModalBtn = document.getElementById('openBroadcastModalBtn');
+    const closeBroadcastBtn = document.getElementById('closeBroadcastBtn');
+    const sendBroadcastBtn = document.getElementById('sendBroadcastBtn');
+
+    openBroadcastModalBtn?.addEventListener('click', () => broadcastModal.classList.remove('hidden'));
+    closeBroadcastBtn?.addEventListener('click', () => broadcastModal.classList.add('hidden'));
+
+    sendBroadcastBtn?.addEventListener('click', async () => {
+      const txt = document.getElementById('broadcastTextArea').value.trim();
+      if (!txt) {
+        showToast('لطفاً متن پیام را وارد کنید.');
+        return;
+      }
+      sendBroadcastBtn.disabled = true;
+      sendBroadcastBtn.innerText = 'در حال ارسال پیام...';
+      try {
+        const resp = await fetch('/api/admin/broadcast', {
+          method: 'POST',
+          headers: getApiHeaders(),
+          body: JSON.stringify({ message: txt }),
+        });
+        const res = await resp.json();
+        if (res.ok) {
+          showToast('🚀 ارسال پیام همگانی در پس‌زمینه آغاز شد.');
+          broadcastModal.classList.add('hidden');
+          document.getElementById('broadcastTextArea').value = '';
+        } else {
+          showToast(`⚠️ ${res.error || 'خطا در ارسال پیام'}`);
+        }
+      } catch (err) {
+        showToast('خطای شبکه در ارسال پیام همگانی');
+      } finally {
+        sendBroadcastBtn.disabled = false;
+        sendBroadcastBtn.innerHTML = '<span>🚀</span><span>شروع ارسال همگانی</span>';
+      }
+    });
+
+    // Quick Buttons
+    document.getElementById('adminReloadBtn')?.addEventListener('click', () => {
+      syncAdminOverview();
+      showToast('🔄 اطلاعات به‌روزرسانی شد.');
+    });
+    document.getElementById('quickRefreshMetricsBtn')?.addEventListener('click', () => {
+      syncAdminOverview();
+      showToast('🔄 داده‌ها سینک شدند.');
+    });
+    document.getElementById('syncAllNodesBtn')?.addEventListener('click', () => {
+      syncAdminOverview();
+      showToast('🔄 نودها همگام‌سازی شدند.');
+    });
+    document.getElementById('refreshNodesTabBtn')?.addEventListener('click', () => {
+      syncAdminOverview();
+      showToast('🔄 وضعیت نودها به‌روزرسانی شد.');
+    });
+    document.getElementById('refreshTopupsBtn')?.addEventListener('click', fetchAdminTopups);
+    document.getElementById('viewPendingBtn')?.addEventListener('click', () => {
+      const ticketsNav = document.querySelector('.admin-nav-btn[data-admin-tab="tab-admin-tickets"]');
+      ticketsNav?.click();
+    });
+
+    // Initial Sync
+    syncAdminOverview();
   </script>
 </body>
 </html>

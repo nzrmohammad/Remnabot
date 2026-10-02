@@ -143,6 +143,18 @@
       <span class="text-[11px] font-mono text-slate-500 mt-2">در حال بارگذاری اطلاعات حساب و نشست‌ها...</span>
     </div>
 
+    <script>
+      // Fail-safe auto-dismiss splash screen after max 950ms
+      setTimeout(function() {
+        var s = document.getElementById('splashScreen');
+        if (s && !s.classList.contains('hidden')) {
+          s.style.opacity = '0';
+          s.style.pointerEvents = 'none';
+          setTimeout(function() { s.classList.add('hidden'); }, 300);
+        }
+      }, 950);
+    </script>
+
     <!-- ======================================================== -->
     <!-- 1. TELEGRAM WEBAPP TOP BAR                               -->
     <!-- ======================================================== -->
@@ -2260,14 +2272,14 @@
 
       // Active Devices List (Real HWID devices - Both Tab 2 and Modal)
       const devices = sub?.devices || [];
-      const onlineCount = sub?.devices_count ?? devices.length;
+      const activeDevCount = sub?.devices_count ?? devices.length;
 
       const dCountBadge = document.getElementById('dashboardDevicesBadge');
-      if (dCountBadge) dCountBadge.innerText = `${onlineCount} دستگاه`;
+      if (dCountBadge) dCountBadge.innerText = `${activeDevCount} دستگاه`;
       const dSummary = document.getElementById('dashboardDevicesSummary');
-      if (dSummary) dSummary.innerText = onlineCount > 0 ? `${onlineCount} دستگاه متصل به این اکانت` : 'هیچ دستگاهی متصل نیست';
+      if (dSummary) dSummary.innerText = activeDevCount > 0 ? `${activeDevCount} دستگاه متصل به این اکانت` : 'هیچ دستگاهی متصل نیست';
       const mCountText = document.getElementById('modalSessionsCount');
-      if (mCountText) mCountText.innerText = `${onlineCount} دستگاه متصل`;
+      if (mCountText) mCountText.innerText = `${activeDevCount} دستگاه متصل`;
 
       function renderDeviceList(container) {
         if (!container) return;

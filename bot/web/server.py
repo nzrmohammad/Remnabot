@@ -10,12 +10,16 @@ from aiohttp import web
 from bot.web.cache import FastCache
 from bot.web.routes_admin import (
     get_admin_overview,
+    get_admin_settings,
+    get_admin_topups,
     get_admin_users,
     post_admin_broadcast,
     post_admin_kill_sessions,
     post_admin_modify_user,
     post_admin_reply_ticket,
+    post_admin_settings,
     post_admin_toggle_ban,
+    post_admin_topup_action,
 )
 from bot.web.routes_user import (
     get_user_avatar,
@@ -140,6 +144,10 @@ def create_web_app(
     app.router.add_post("/api/admin/user/toggle_ban", post_admin_toggle_ban)
     app.router.add_post("/api/admin/ticket/reply", post_admin_reply_ticket)
     app.router.add_post("/api/admin/broadcast", post_admin_broadcast)
+    app.router.add_get("/api/admin/topups", get_admin_topups)
+    app.router.add_post("/api/admin/topup/action", post_admin_topup_action)
+    app.router.add_get("/api/admin/settings", get_admin_settings)
+    app.router.add_post("/api/admin/settings", post_admin_settings)
 
     return app
 

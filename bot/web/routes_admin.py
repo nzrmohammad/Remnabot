@@ -9,7 +9,10 @@ from aiohttp import web
 from sqlalchemy import func, select
 
 from bot.db.models import AdminLog, AppSetting, Order, SupportMessage, Topup, User
+from bot.db.repositories.app_setting_repo import AppSettingRepository
 from bot.db.repositories.user_repo import UserRepository
+from bot.db.repositories.wallet_repo import WalletRepository
+from bot.services.app_settings import get_store_settings
 from bot.web.auth import get_authenticated_user
 from bot.web.cache import FastCache
 
@@ -349,3 +352,148 @@ async def post_admin_broadcast(request: web.Request) -> web.Response:
 
     asyncio.create_task(_broadcast_worker())
     return web.json_response({"ok": True, "message": "ارسال پیام همگانی در پس‌زمینه آغاز شد."})
+
+
+async def get_admin_topups(request: web.Request) -> web.Response:
+    """Return list of pending card-to-card topups."""
+    admin = _check_admin(request)
+    if not admin:
+        return web.json_response({"ok": False, "error": "Forbidden"}, status=403)
+
+    session_factory = request.app["session_factory"]
+    async with session_factory() as session:
+        wallet_repo = WalletRepository(session)
+        user_repo = UserRepository(session)
+        pending = await wallet_repo.list_pending_topups()
+
+        items = []
+        for t in pending:
+            u = await user_repo.get_by_telegram_id(t.telegram_id)
+            items.append({
+                "id": t.id,
+                "telegram_id": t.telegram_id,
+                "username": u.username if u else None,
+                "amount": t.amount,
+                "created_at": t.created_at.isoformat() if t.created_at else None,
+                "receipt_photo_id": t.receipt_photo_id,
+            })
+        return web.json_response({"ok": True, "topups": items})
+
+
+async def post_admin_topup_action(request: web.Request) -> web.Response:
+    """Approve or reject a pending card-to-card topup."""
+    admin = _check_admin(request)
+    if not admin:
+        return web.json_response({"ok": False, "error": "Forbidden"}, status=403)
+
+    try:
+        body = await request.json()
+    except Exception:
+        return web.json_response({"ok": False, "error": "Invalid JSON"}, status=400)
+
+    topup_id = body.get("topup_id")
+    approved = bool(body.get("approved", True))
+    if not topup_id:
+        return web.json_response({"ok": False, "error": "شناسه فیش الزامی است."}, status=400)
+
+    session_factory = request.app["session_factory"]
+    bot = request.app["bot"]
+
+    async with session_factory() as session:
+        wallet_repo = WalletRepository(session)
+        claimed = await wallet_repo.claim_topup(int(topup_id), approved)
+        if not claimed:
+            return web.json_response({"ok": False, "error": "این فیش قبلاً تعیین وضعیت شده است."}, status=400)
+
+        if approved:
+            await wallet_repo.add_balance(claimed.telegram_id, claimed.amount)
+            session.add(
+                AdminLog(
+                    admin_id=admin["id"],
+                    action="topup_approved",
+                    detail=f"تایید فیش #{claimed.id} و شارژ {claimed.amount:,} تومان برای {claimed.telegram_id}",
+                )
+            )
+            msg = f"✅ <b>واریز شما تایید شد!</b>\n\nمبلغ {claimed.amount:,} تومان به کیف پول شما اضافه شد."
+        else:
+            session.add(
+                AdminLog(
+                    admin_id=admin["id"],
+                    action="topup_rejected",
+                    detail=f"رد فیش #{claimed.id} برای {claimed.telegram_id}",
+                )
+            )
+            msg = "❌ <b>فیش ارسالی شما رد شد.</b>\n\nدر صورت وجود مغایرت با پشتیبانی در ارتباط باشید."
+
+        await session.commit()
+
+    # Clear cache
+    cache: FastCache = request.app["cache"]
+    await cache.delete(f"tma:user:{claimed.telegram_id}:dashboard")
+    await cache.delete("tma:admin:overview")
+
+    # Send telegram notification
+    try:
+        await bot.send_message(chat_id=claimed.telegram_id, text=msg, parse_mode="HTML")
+    except Exception as exc:
+        logger.warning("Could not send topup decision notice to %s: %s", claimed.telegram_id, exc)
+
+    return web.json_response({
+        "ok": True,
+        "message": "فیش با موفقیت تایید شد." if approved else "فیش با موفقیت رد شد.",
+    })
+
+
+async def get_admin_settings(request: web.Request) -> web.Response:
+    """Return runtime editable app settings."""
+    admin = _check_admin(request)
+    if not admin:
+        return web.json_response({"ok": False, "error": "Forbidden"}, status=403)
+
+    session_factory = request.app["session_factory"]
+    async with session_factory() as session:
+        store_settings = await get_store_settings(session)
+        app_repo = AppSettingRepository(session)
+        maint_val = await app_repo.get("maintenance")
+        is_maintenance = maint_val == "1"
+
+        data = {
+            "maintenance": is_maintenance,
+            "card_enabled": store_settings.card_enabled,
+            "crypto_enabled": store_settings.crypto_enabled,
+            "card_number": store_settings.card_number,
+            "card_holder": store_settings.card_holder,
+        }
+        return web.json_response({"ok": True, "settings": data})
+
+
+async def post_admin_settings(request: web.Request) -> web.Response:
+    """Update runtime editable app settings."""
+    admin = _check_admin(request)
+    if not admin:
+        return web.json_response({"ok": False, "error": "Forbidden"}, status=403)
+
+    try:
+        body = await request.json()
+    except Exception:
+        return web.json_response({"ok": False, "error": "Invalid JSON"}, status=400)
+
+    session_factory = request.app["session_factory"]
+    async with session_factory() as session:
+        app_repo = AppSettingRepository(session)
+
+        if "maintenance" in body:
+            await app_repo.set("maintenance", "1" if body["maintenance"] else "0")
+        if "card_enabled" in body:
+            await app_repo.set("card_enabled", "1" if body["card_enabled"] else "0")
+        if "crypto_enabled" in body:
+            await app_repo.set("crypto_enabled", "1" if body["crypto_enabled"] else "0")
+        if "card_number" in body:
+            await app_repo.set("card_number", str(body["card_number"]).strip())
+        if "card_holder" in body:
+            await app_repo.set("card_holder", str(body["card_holder"]).strip())
+
+        await session.commit()
+
+    return web.json_response({"ok": True, "message": "تنظیمات با موفقیت ذخیره شد."})
+
