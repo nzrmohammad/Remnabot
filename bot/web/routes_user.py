@@ -120,8 +120,9 @@ async def get_user_me(request: web.Request) -> web.Response:
                 traffic_remaining_gb = 9999.0
                 percent_remaining = 100.0
 
-            # Today's usage
+            # Today's usage & country breakdown
             today_bytes = 0
+            today_nodes = []
             try:
                 start_today_dt = start_of_today(tz_name)
                 today_tuple = await remnawave.get_user_today_usage(
@@ -129,9 +130,102 @@ async def get_user_me(request: web.Request) -> web.Response:
                 )
                 if today_tuple and isinstance(today_tuple, tuple):
                     today_bytes = today_tuple[0]
+                    today_nodes = today_tuple[1]
             except Exception as exc:
                 logger.warning("Failed to fetch today usage for %s: %s", panel_user_id, exc)
             today_used_gb = round(today_bytes / (1024**3), 2)
+
+            from bot.services.formatting import country_flag, human_bytes
+            today_breakdown = []
+            if today_nodes:
+                total_n_bytes = sum(int(n.get("total") or 0) for n in today_nodes)
+                for n in today_nodes:
+                    b_val = int(n.get("total") or 0)
+                    if b_val <= 0:
+                        continue
+                    c_code = (n.get("countryCode") or "EU").upper()
+                    pct = round((b_val / total_n_bytes) * 100) if total_n_bytes > 0 else 0
+                    today_breakdown.append({
+                        "name": n.get("name") or "Server",
+                        "country_code": c_code,
+                        "flag": country_flag(c_code),
+                        "total_formatted": human_bytes(b_val),
+                        "total_gb": round(b_val / (1024**3), 2),
+                        "percent": pct,
+                    })
+
+            # Yesterday's usage & breakdown
+            yesterday_start_dt = start_today_dt - timedelta(days=1)
+            yesterday_bytes = 0
+            yesterday_nodes = []
+            try:
+                yesterday_tuple = await remnawave.get_user_today_usage(
+                    int(panel_user_id), yesterday_start_dt.isoformat(), start_today_dt.isoformat()
+                )
+                if yesterday_tuple and isinstance(yesterday_tuple, tuple):
+                    yesterday_bytes = yesterday_tuple[0]
+                    yesterday_nodes = yesterday_tuple[1]
+            except Exception as exc:
+                logger.warning("Failed to fetch yesterday usage for %s: %s", panel_user_id, exc)
+            yesterday_used_gb = round(yesterday_bytes / (1024**3), 2)
+
+            yesterday_breakdown = []
+            if yesterday_nodes:
+                for n in yesterday_nodes:
+                    b_val = int(n.get("total") or 0)
+                    if b_val <= 0:
+                        continue
+                    c_code = (n.get("countryCode") or "EU").upper()
+                    yesterday_breakdown.append({
+                        "name": n.get("name") or "Server",
+                        "flag": country_flag(c_code),
+                        "total_formatted": human_bytes(b_val),
+                    })
+
+            # 7-day weekly stats & daily totals
+            week_start_dt = now_dt - timedelta(days=6)
+            week_daily_totals = [0] * 7
+            week_nodes_dict = {}
+            week_total_bytes = 0
+            try:
+                week_series = await remnawave.get_user_bandwidth_stats(
+                    int(panel_user_id), week_start_dt.strftime("%Y-%m-%d"), now_dt.strftime("%Y-%m-%d")
+                ) or []
+                for r in week_series:
+                    n_name = r.get("name") or r.get("nodeName") or "Server"
+                    c_code = (r.get("countryCode") or "EU").upper()
+                    tot = int(r.get("total") or 0)
+                    week_total_bytes += tot
+                    if tot > 0:
+                        week_nodes_dict[n_name] = {
+                            "name": n_name,
+                            "flag": country_flag(c_code),
+                            "total_formatted": human_bytes(tot),
+                            "total_bytes": tot,
+                        }
+                    data = r.get("data") or []
+                    for i, val in enumerate(data[:7]):
+                        week_daily_totals[i] += int(val or 0)
+            except Exception as exc:
+                logger.warning("Failed to fetch weekly stats for %s: %s", panel_user_id, exc)
+
+            week_used_gb = round(week_total_bytes / (1024**3), 2)
+            week_breakdown = sorted(week_nodes_dict.values(), key=lambda x: x["total_bytes"], reverse=True)
+
+            busiest_day_name = "—"
+            busiest_day_amount = "0 GB"
+            if any(week_daily_totals):
+                max_val = max(week_daily_totals)
+                max_idx = week_daily_totals.index(max_val)
+                busiest_dt = week_start_dt + timedelta(days=max_idx)
+                b_jd = jdatetime.datetime.fromgregorian(datetime=busiest_dt)
+                busiest_day_name = jdatetime.date.j_weekdays_fa[b_jd.weekday()]
+                busiest_day_amount = human_bytes(max_val)
+
+            # Month name & usage
+            month_names = ["فروردین", "اردیبهشت", "خرداد", "تیر", "مرداد", "شهریور", "مهر", "آبان", "آذر", "دی", "بهمن", "اسفند"]
+            current_month_name = month_names[now_j.month - 1] if 1 <= now_j.month <= 12 else "ماه جاری"
+            month_used_gb = traffic_used_gb
 
             # HWID devices
             devices = []
@@ -184,6 +278,16 @@ async def get_user_me(request: web.Request) -> web.Response:
                 "devices": devices,
                 "subscription_url": sub_url,
                 "today_used_gb": today_used_gb,
+                "today_breakdown": today_breakdown,
+                "yesterday_used_gb": yesterday_used_gb,
+                "yesterday_breakdown": yesterday_breakdown,
+                "week_used_gb": week_used_gb,
+                "week_breakdown": week_breakdown,
+                "week_daily_totals_gb": [round(b / (1024**3), 2) for b in week_daily_totals],
+                "busiest_day_name": busiest_day_name,
+                "busiest_day_amount": busiest_day_amount,
+                "current_month_name": current_month_name,
+                "month_used_gb": month_used_gb,
             }
 
         # 6. Lucky wheel status
