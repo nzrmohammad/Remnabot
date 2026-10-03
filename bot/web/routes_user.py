@@ -176,15 +176,16 @@ async def get_user_me(request: web.Request) -> web.Response:
                     val = int(data[-1]) if data else 0
                     if val > 0:
                         today_bytes += val
-                        c_code = (r.get("countryCode") or "EU").upper()
-                        today_temp.append({
-                            "name": r.get("name") or r.get("nodeName") or "Server",
-                            "country_code": c_code,
-                            "flag": country_flag(c_code),
-                            "total_bytes": val,
-                            "total_formatted": human_bytes(val),
-                            "total_gb": round(val / (1024**3), 2),
-                        })
+                        if round(val / (1024**2), 2) > 0:
+                            c_code = (r.get("countryCode") or "EU").upper()
+                            today_temp.append({
+                                "name": r.get("name") or r.get("nodeName") or "Server",
+                                "country_code": c_code,
+                                "flag": country_flag(c_code),
+                                "total_bytes": val,
+                                "total_formatted": human_bytes(val),
+                                "total_gb": round(val / (1024**3), 2),
+                            })
                 today_temp.sort(key=lambda x: x["total_bytes"], reverse=True)
                 for item in today_temp:
                     pct = round((item["total_bytes"] / today_bytes) * 100) if today_bytes > 0 else 0
@@ -198,15 +199,16 @@ async def get_user_me(request: web.Request) -> web.Response:
                     val = int(data[-2]) if len(data) >= 2 else 0
                     if val > 0:
                         yesterday_bytes += val
-                        c_code = (r.get("countryCode") or "EU").upper()
-                        yesterday_temp.append({
-                            "name": r.get("name") or r.get("nodeName") or "Server",
-                            "country_code": c_code,
-                            "flag": country_flag(c_code),
-                            "total_bytes": val,
-                            "total_formatted": human_bytes(val),
-                            "total_gb": round(val / (1024**3), 2),
-                        })
+                        if round(val / (1024**2), 2) > 0:
+                            c_code = (r.get("countryCode") or "EU").upper()
+                            yesterday_temp.append({
+                                "name": r.get("name") or r.get("nodeName") or "Server",
+                                "country_code": c_code,
+                                "flag": country_flag(c_code),
+                                "total_bytes": val,
+                                "total_formatted": human_bytes(val),
+                                "total_gb": round(val / (1024**3), 2),
+                            })
                 yesterday_temp.sort(key=lambda x: x["total_bytes"], reverse=True)
                 for item in yesterday_temp:
                     pct = round((item["total_bytes"] / yesterday_bytes) * 100) if yesterday_bytes > 0 else 0
@@ -230,7 +232,18 @@ async def get_user_me(request: web.Request) -> web.Response:
                         }
                     for i, val in enumerate(last_7):
                         week_daily_totals[i] += int(val or 0)
+
+                # 5. Monthly 4-week stats (last 28 days grouped into 4 weekly chunks)
+                month_4weeks_bytes = [0, 0, 0, 0]
+                for r in series:
+                    data = r.get("data") or []
+                    last_28 = data[-28:] if len(data) >= 28 else ([0] * (28 - len(data)) + data)
+                    for w_idx in range(4):
+                        chunk = last_28[w_idx * 7 : (w_idx + 1) * 7]
+                        month_4weeks_bytes[w_idx] += sum(int(v or 0) for v in chunk)
+                month_weeks_totals_gb = [round(b / (1024**3), 2) for b in month_4weeks_bytes]
             else:
+                month_weeks_totals_gb = [0.0, 0.0, 0.0, round(today_bytes / (1024**3), 2)]
                 # Graceful fallback for mock tests or panels without series
                 try:
                     start_today_dt = start_of_today(tz_name)
@@ -338,6 +351,7 @@ async def get_user_me(request: web.Request) -> web.Response:
                 "busiest_day_amount": busiest_day_amount,
                 "current_month_name": current_month_name,
                 "month_used_gb": month_used_gb,
+                "month_weeks_totals_gb": month_weeks_totals_gb,
             }
 
         # 6. Orders and topups history for Wallet & History view

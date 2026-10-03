@@ -178,18 +178,15 @@
         <div class="flex items-center gap-1.5 min-w-0">
           <span class="text-[11px] text-slate-400 whitespace-nowrap hidden min-[360px]:inline">اکانت:</span>
           <span id="headerUsername" class="font-bold text-blue-300 font-mono text-xs max-w-[100px] truncate">کاربر</span>
-          <button id="switchAccountBtn" class="hidden text-xs bg-blue-600/30 hover:bg-blue-600/50 text-blue-300 border border-blue-500/40 p-1 rounded-lg transition flex items-center justify-center active:scale-95 flex-shrink-0" title="تعویض اکانت">
-            <span>🔄</span>
+          <button id="switchAccountBtn" class="hidden text-cyan-400 hover:text-white bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700/60 p-1.5 rounded-full transition-all duration-200 flex items-center justify-center active:scale-90 flex-shrink-0 shadow-sm" title="تعویض اکانت">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
           </button>
         </div>
       </div>
 
-      <!-- Left Side (in RTL): Online Sessions Badge + Support + Theme Toggle + Fallback Close -->
+      <!-- Left Side (in RTL): Support + Theme Toggle + Fallback Close + Hidden Sessions Stub -->
       <div class="flex items-center gap-1.5 flex-shrink-0">
-        <button id="headerOnlineBadge" class="cursor-pointer hover:bg-emerald-500/30 px-2 py-1 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-medium text-[10px] flex items-center gap-1 transition active:scale-95 whitespace-nowrap" title="مشاهده نشست‌های فعال">
-          <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-          <span id="headerOnlineCount">۰ دستگاه آنلاین</span>
-        </button>
+        <button id="headerOnlineBadge" class="hidden"><span id="headerOnlineCount"></span></button>
         <button id="openSupportBtn" class="text-xs text-emerald-400 bg-emerald-950/50 hover:bg-emerald-900/60 p-1.5 rounded-lg border border-emerald-800/50 transition flex items-center justify-center font-semibold" title="پشتیبانی آنلاین">
           <span>💬</span>
         </button>
@@ -418,7 +415,7 @@
         <div class="flex bg-slate-900/80 p-1 rounded-xl border border-slate-700 text-xs">
           <button id="repSubNightly" class="flex-1 py-1.5 rounded-lg font-bold bg-blue-600 text-white transition">🌙 شبانه</button>
           <button id="repSubWeekly" class="flex-1 py-1.5 rounded-lg font-medium text-slate-400 hover:text-slate-200 transition">📊 هفتگی</button>
-          <button id="repSubMonthly" class="flex-1 py-1.5 rounded-lg font-medium text-slate-400 hover:text-slate-200 transition">🗓 ماهانه</button>
+          <button id="repSubMonthly" class="flex-1 py-1.5 rounded-lg font-medium text-slate-400 hover:text-slate-200 transition">📅 ماهانه</button>
         </div>
 
         <!-- 1. Nightly Report Card (مشابه هفتگی و ماهانه) -->
@@ -476,11 +473,19 @@
         <!-- 3. Monthly Report Card -->
         <div id="viewRepMonthly" class="bg-slate-800/90 rounded-2xl p-4 border border-slate-700/80 space-y-3 shadow-md hidden">
           <div class="flex justify-between items-center border-b border-slate-700/60 pb-2">
-            <span id="repMonthlyTitle" class="text-xs font-bold text-white flex items-center gap-1">🗓 گزارش جامع ماهانه</span>
+            <span id="repMonthlyTitle" class="text-xs font-bold text-white flex items-center gap-1">📅 گزارش جامع ماهانه</span>
             <span class="text-[11px] font-mono text-slate-400">ماه جاری</span>
           </div>
           <div class="space-y-1.5 text-xs text-slate-300">
             <div class="flex justify-between"><span>⚡️ کل مصرف ماهانه اکانت :</span><b id="repMonthlyTotal" class="font-mono text-purple-400 text-sm" dir="ltr">-- GB</b></div>
+          </div>
+
+          <!-- Monthly 4-Week Chart (نمودار مصرف ۴ هفته اخیر) -->
+          <div class="pt-2 border-t border-slate-700/60">
+            <span class="text-[11px] text-slate-400 font-medium block mb-2">نمودار مصرف ۴ هفته اخیر (ماهانه):</span>
+            <div id="repMonthlyChart" class="flex items-end justify-between h-20 px-4 pt-2 bg-slate-900/60 rounded-xl">
+              <!-- Rendered dynamically -->
+            </div>
           </div>
 
           <!-- Monthly Per-Server Breakdown (تفکیک مصرف سرورهای ماه) -->
@@ -1989,13 +1994,10 @@
       if (!topBar) return;
       let padTop = 10; // default ~0.625rem
       if (tg) {
-        const isMobile = tg.platform === 'android' || tg.platform === 'ios' || tg.platform === 'android_x';
         if (tg.contentSafeAreaInset && typeof tg.contentSafeAreaInset.top === 'number' && tg.contentSafeAreaInset.top > 0) {
-          padTop = tg.contentSafeAreaInset.top + 6;
+          padTop = tg.contentSafeAreaInset.top + 4;
         } else if (tg.safeAreaInset && typeof tg.safeAreaInset.top === 'number' && tg.safeAreaInset.top > 0) {
-          padTop = tg.safeAreaInset.top + (isMobile ? 48 : 8);
-        } else if (isMobile) {
-          padTop = 72; // safely clears native Android/iOS status bar and floating Close/Menu pills
+          padTop = tg.safeAreaInset.top + 4;
         }
       }
       topBar.style.paddingTop = padTop + 'px';
@@ -2214,12 +2216,9 @@
           const showBar = bDown.length > 1;
           countryList.innerHTML = bDown.map(item => {
             const pct = item.percent || 0;
-            const badgeHtml = showBar
-              ? `<span class="text-[10px] text-slate-400 bg-slate-800/80 px-2 py-0.5 rounded-full border border-slate-700/60 font-sans">${pct}٪ سهم از مصرف امروز</span>`
-              : `<span class="text-[10px] text-cyan-400/90 bg-slate-800/80 px-2 py-0.5 rounded-full border border-slate-700/60 font-sans">سرور فعال امروز</span>`;
-            const barHtml = showBar
-              ? `<div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden" dir="ltr">
-                  <div class="bg-gradient-to-r from-blue-500 to-cyan-400 h-full rounded-full transition-all duration-500" style="width: ${Math.min(100, Math.max(4, pct))}%;"></div>
+            const barHtml = (showBar && pct > 0)
+              ? `<div class="w-full bg-slate-800/80 h-1.5 rounded-full overflow-hidden" dir="ltr">
+                  <div class="bg-gradient-to-r from-blue-500 to-cyan-400 h-full rounded-full transition-all duration-500" style="width: ${pct}%;"></div>
                 </div>`
               : '';
             return `
@@ -2229,10 +2228,7 @@
                   <span class="text-base">${item.flag || '🌐'}</span>
                   <span>${item.name}</span>
                 </span>
-                <div class="flex items-center gap-2 font-mono">
-                  ${badgeHtml}
-                  <span class="text-cyan-300 font-black text-xs" dir="ltr">${item.total_formatted}</span>
-                </div>
+                <span class="text-cyan-300 font-black text-xs font-mono" dir="ltr">${item.total_formatted}</span>
               </div>
               ${barHtml}
             </div>
@@ -2320,9 +2316,27 @@
 
         // Reports Hub: Monthly Report
         const repMonthlyTitle = document.getElementById('repMonthlyTitle');
-        if (repMonthlyTitle) repMonthlyTitle.innerText = `🗓 گزارش جامع ماه ${sub.current_month_name || ''}`;
+        if (repMonthlyTitle) repMonthlyTitle.innerText = `📅 گزارش جامع ماه ${sub.current_month_name || ''}`;
         const repMonthlyTotal = document.getElementById('repMonthlyTotal');
         if (repMonthlyTotal) repMonthlyTotal.innerText = `${sub.month_used_gb ?? '0.00'} GB`;
+
+        const repMChart = document.getElementById('repMonthlyChart');
+        if (repMChart) {
+          const totals = sub.month_weeks_totals_gb || [0, 0, 0, sub.week_used_gb || 0];
+          const maxVal = Math.max(...totals, 0.1);
+          const weekLabels = ['هفته ۱', 'هفته ۲', 'هفته ۳', 'هفته ۴'];
+          repMChart.innerHTML = totals.map((val, idx) => {
+            const hPct = Math.min(100, Math.max(15, Math.round((val / maxVal) * 90)));
+            const isMax = val > 0 && val === Math.max(...totals);
+            return `
+              <div class="flex flex-col items-center gap-1 flex-1">
+                <span class="text-[8px] font-mono text-purple-300" dir="ltr">${val > 0 ? val : ''}</span>
+                <div class="w-6 ${isMax ? 'bg-purple-500 shadow-sm shadow-purple-500/50' : 'bg-indigo-600/80'} rounded-t transition-all duration-500" style="height: ${hPct}%;"></div>
+                <span class="text-[9px] ${isMax ? 'text-purple-300 font-bold' : 'text-slate-400'}">${weekLabels[idx] || ''}</span>
+              </div>
+            `;
+          }).join('');
+        }
 
         const repMonthlyNodes = document.getElementById('repMonthlyNodesContainer');
         if (repMonthlyNodes) {
