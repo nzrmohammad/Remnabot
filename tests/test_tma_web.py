@@ -408,3 +408,48 @@ async def test_user_topup_card_validation_and_duplicate_prevention():
         assert "قبلاً ثبت شده است" in data2["message"]
 
 
+@pytest.mark.anyio
+async def test_user_settings_persistence():
+    from aiohttp.test_utils import make_mocked_request
+    from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
+    from bot.db.models import Base
+    from bot.web.user_nodes import post_user_settings
+    from bot.web.routes_user import get_user_me
+
+    engine = create_async_engine("sqlite+aiosqlite:///:memory:")
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+    session_factory = async_sessionmaker(engine, expire_on_commit=False)
+
+    app = {
+        "bot_token": "123:abc",
+        "admin_ids": [55555],
+        "is_dev": True,
+        "session_factory": session_factory,
+        "cache": FastCache(redis_client=None),
+        "remnawave": AsyncMock(get_users_by_telegram_id=AsyncMock(return_value=[])),
+        "settings": MagicMock(TIMEZONE="Asia/Tehran"),
+    }
+
+    # 1. Update settings: toggle nightly=False
+    req = make_mocked_request("POST", "/api/user/settings?user_id=88888", app=app)
+    req.json = AsyncMock(return_value={"key": "nightly", "value": False})
+    resp = await post_user_settings(req)
+    assert resp.status == 200
+    res_data = json.loads(resp.text)
+    assert res_data["ok"] is True
+    assert res_data["settings"]["nightly"] is False
+
+    # 2. Get user me and check settings are persisted
+    req_me = make_mocked_request("GET", "/api/user/me?user_id=88888", app=app)
+    resp_me = await get_user_me(req_me)
+    assert resp_me.status == 200
+    me_data = json.loads(resp_me.text)["data"]
+    assert "settings" in me_data
+    assert me_data["settings"]["nightly"] is False
+    assert me_data["settings"]["weekly"] is True
+
+    await engine.dispose()
+
+
+

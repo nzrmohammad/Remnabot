@@ -118,6 +118,47 @@
     html.theme-light .gauge-bg-circle {
       stroke: #e2e8f0 !important;
     }
+    html.theme-light [class*="bg-slate-900"] {
+      background-color: #f1f5f9 !important;
+      border-color: #e2e8f0 !important;
+    }
+    html.theme-light [class*="bg-slate-800"] {
+      background-color: #ffffff !important;
+      border-color: #e2e8f0 !important;
+      box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05) !important;
+    }
+    html.theme-light #subDisplayBox {
+      color: #0284c7 !important;
+    }
+    html.theme-light code {
+      background-color: #e2e8f0 !important;
+      color: #0f172a !important;
+    }
+    html.theme-light .text-cyan-300,
+    html.theme-light .text-cyan-400 {
+      color: #0284c7 !important;
+    }
+    html.theme-light .text-blue-300,
+    html.theme-light .text-blue-400 {
+      color: #2563eb !important;
+    }
+    html.theme-light .text-indigo-300,
+    html.theme-light .text-indigo-400 {
+      color: #4f46e5 !important;
+    }
+    html.theme-light .text-emerald-400 {
+      color: #059669 !important;
+    }
+    html.theme-light .text-amber-400 {
+      color: #d97706 !important;
+    }
+    html.theme-light .text-rose-400 {
+      color: #e11d48 !important;
+    }
+    html.theme-light .text-purple-300,
+    html.theme-light .text-purple-400 {
+      color: #7c3aed !important;
+    }
     html.theme-light input,
     html.theme-light select,
     html.theme-light textarea {
@@ -176,7 +217,6 @@
           <span id="headerUserAvatarInitial">U</span>
         </div>
         <div class="flex items-center gap-1.5 min-w-0">
-          <span class="text-[11px] text-slate-400 whitespace-nowrap hidden min-[360px]:inline">اکانت:</span>
           <span id="headerUsername" class="font-bold text-blue-300 font-mono text-xs max-w-[100px] truncate">کاربر</span>
           <button id="switchAccountBtn" class="hidden text-cyan-400 hover:text-white bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700/60 p-1.5 rounded-full transition-all duration-200 flex items-center justify-center active:scale-90 flex-shrink-0 shadow-sm" title="تعویض اکانت">
             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
@@ -537,7 +577,7 @@
 
           <div class="py-2">
             <div id="walletTabBalance" class="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-cyan-300 to-blue-400 font-mono" dir="ltr">
-              ۰ تومان
+              تومان ۰
             </div>
             <span class="text-[11px] text-slate-400 block mt-1">قابل استفاده برای خرید، تمدید اشتراک و بسته‌های ترافیک</span>
           </div>
@@ -643,7 +683,7 @@
               <span class="text-[10px] text-slate-400">ارسال خلاصه مصرف دیشب در تلگرام</span>
             </div>
             <label class="relative inline-flex items-center cursor-pointer">
-              <input type="checkbox" checked class="sr-only switch-checkbox">
+              <input type="checkbox" id="settingToggleNightly" class="sr-only switch-checkbox">
               <div class="switch-label w-11 h-6 bg-slate-700 rounded-full transition-colors duration-200 flex items-center px-0.5">
                 <div class="switch-ball w-5 h-5 bg-white rounded-full shadow-md transition-transform duration-200"></div>
               </div>
@@ -653,11 +693,25 @@
           <!-- Toggle: Weekly Report -->
           <div class="flex items-center justify-between py-1 border-t border-slate-700/50 pt-2">
             <div>
-              <span class="text-slate-200 font-medium block">📊 گزارش هفتگی</span>
+              <span class="text-slate-200 font-medium block">📊 گزارش هفتگی (جمعه‌شب‌ها)</span>
               <span class="text-[10px] text-slate-400">ارسال آمار مصرف ۷ روز گذشته</span>
             </div>
             <label class="relative inline-flex items-center cursor-pointer">
-              <input type="checkbox" checked class="sr-only switch-checkbox">
+              <input type="checkbox" id="settingToggleWeekly" class="sr-only switch-checkbox">
+              <div class="switch-label w-11 h-6 bg-slate-700 rounded-full transition-colors duration-200 flex items-center px-0.5">
+                <div class="switch-ball w-5 h-5 bg-white rounded-full shadow-md transition-transform duration-200"></div>
+              </div>
+            </label>
+          </div>
+
+          <!-- Toggle: Monthly Report -->
+          <div class="flex items-center justify-between py-1 border-t border-slate-700/50 pt-2">
+            <div>
+              <span class="text-slate-200 font-medium block">🗓 گزارش ماهانه (پایان ماه)</span>
+              <span class="text-[10px] text-slate-400">ارسال گزارش جامع مصرف ماه شمسی</span>
+            </div>
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" id="settingToggleMonthly" class="sr-only switch-checkbox">
               <div class="switch-label w-11 h-6 bg-slate-700 rounded-full transition-colors duration-200 flex items-center px-0.5">
                 <div class="switch-ball w-5 h-5 bg-white rounded-full shadow-md transition-transform duration-200"></div>
               </div>
@@ -668,10 +722,24 @@
           <div class="flex items-center justify-between py-1 border-t border-slate-700/50 pt-2">
             <div>
               <span class="text-slate-200 font-medium block">⚠️ هشدار کمبود حجم</span>
-              <span class="text-[10px] text-slate-400">هشدار قبل از پایان ترافیک</span>
+              <span class="text-[10px] text-slate-400">هشدار قبل از پایان ترافیک (۸۰٪)</span>
             </div>
             <label class="relative inline-flex items-center cursor-pointer">
-              <input type="checkbox" checked class="sr-only switch-checkbox">
+              <input type="checkbox" id="settingToggleLowTraffic" class="sr-only switch-checkbox">
+              <div class="switch-label w-11 h-6 bg-slate-700 rounded-full transition-colors duration-200 flex items-center px-0.5">
+                <div class="switch-ball w-5 h-5 bg-white rounded-full shadow-md transition-transform duration-200"></div>
+              </div>
+            </label>
+          </div>
+
+          <!-- Toggle: Expiry Warning -->
+          <div class="flex items-center justify-between py-1 border-t border-slate-700/50 pt-2">
+            <div>
+              <span class="text-slate-200 font-medium block">⏰ هشدار پایان اعتبار سرویس</span>
+              <span class="text-[10px] text-slate-400">اطلاع‌رسانی ۳ روز مانده به انقضا</span>
+            </div>
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" id="settingToggleExpireWarning" class="sr-only switch-checkbox">
               <div class="switch-label w-11 h-6 bg-slate-700 rounded-full transition-colors duration-200 flex items-center px-0.5">
                 <div class="switch-ball w-5 h-5 bg-white rounded-full shadow-md transition-transform duration-200"></div>
               </div>
@@ -1264,6 +1332,27 @@
     repSubWeekly.addEventListener('click', () => setRepSub(repSubWeekly, viewRepWeekly));
     repSubMonthly.addEventListener('click', () => setRepSub(repSubMonthly, viewRepMonthly));
 
+    function robustCopy(text) {
+      let copied = false;
+      try {
+        const el = document.createElement('textarea');
+        el.value = text;
+        el.setAttribute('readonly', '');
+        el.style.position = 'fixed';
+        el.style.left = '-9999px';
+        document.body.appendChild(el);
+        el.focus();
+        el.select();
+        copied = document.execCommand('copy');
+        document.body.removeChild(el);
+      } catch (e) {}
+
+      if (!copied && navigator.clipboard && navigator.clipboard.writeText) {
+        return navigator.clipboard.writeText(text).then(() => true).catch(() => false);
+      }
+      return Promise.resolve(copied);
+    }
+
     // 4. Copy Subscription
     const copySubBtn = document.getElementById('copySubBtn');
     const copySubBtnText = document.getElementById('copySubBtnText');
@@ -1273,20 +1362,25 @@
         showToast('⚠️ لینک اشتراکی برای کپی یافت نشد');
         return;
       }
-      navigator.clipboard.writeText(urlToCopy).then(() => {
-        if (copySubBtnText) copySubBtnText.innerText = '✓ لینک اشتراک با موفقیت کپی شد!';
-        copySubBtn.classList.replace('from-blue-600', 'from-emerald-600');
-        copySubBtn.classList.replace('via-indigo-600', 'via-teal-600');
-        copySubBtn.classList.replace('to-blue-500', 'to-emerald-500');
-        showToast('📋 لینک اشتراک کپی شد');
-        setTimeout(() => {
-          if (copySubBtnText) copySubBtnText.innerText = 'کپی لینک اشتراک';
-          copySubBtn.classList.replace('from-emerald-600', 'from-blue-600');
-          copySubBtn.classList.replace('via-teal-600', 'via-indigo-600');
-          copySubBtn.classList.replace('to-emerald-500', 'to-blue-500');
-        }, 2200);
-      }).catch(() => {
-        showToast('خطا در کپی خودکار؛ لطفاً متن را دستی انتخاب و کپی کنید.');
+      robustCopy(urlToCopy).then((ok) => {
+        if (ok) {
+          if (copySubBtnText) copySubBtnText.innerText = '✓ لینک اشتراک با موفقیت کپی شد!';
+          copySubBtn.classList.replace('from-blue-600', 'from-emerald-600');
+          copySubBtn.classList.replace('via-indigo-600', 'via-teal-600');
+          copySubBtn.classList.replace('to-blue-500', 'to-emerald-500');
+          showToast('📋 لینک اشتراک کپی شد');
+          if (window.Telegram?.WebApp?.HapticFeedback) {
+            try { window.Telegram.WebApp.HapticFeedback.notificationOccurred('success'); } catch(e) {}
+          }
+          setTimeout(() => {
+            if (copySubBtnText) copySubBtnText.innerText = 'کپی لینک اشتراک';
+            copySubBtn.classList.replace('from-emerald-600', 'from-blue-600');
+            copySubBtn.classList.replace('via-teal-600', 'via-indigo-600');
+            copySubBtn.classList.replace('to-emerald-500', 'to-blue-500');
+          }, 2200);
+        } else {
+          showToast('خطا در کپی خودکار؛ لطفاً متن را دستی انتخاب و کپی کنید.');
+        }
       });
     });
 
@@ -2224,11 +2318,11 @@
             return `
             <div class="p-2.5 rounded-xl bg-slate-900/70 border border-slate-700/50 space-y-1.5">
               <div class="flex justify-between items-center text-xs">
-                <span class="flex items-center gap-2 font-bold text-slate-200">
-                  <span class="text-base">${item.flag || '🌐'}</span>
-                  <span>${item.name}</span>
-                </span>
                 <span class="text-cyan-300 font-black text-xs font-mono" dir="ltr">${item.total_formatted}</span>
+                <span class="flex items-center gap-2 font-bold text-slate-200">
+                  <span>${item.name}</span>
+                  <span class="text-base">${item.flag || '🌐'}</span>
+                </span>
               </div>
               ${barHtml}
             </div>
@@ -2281,7 +2375,7 @@
         if (repChart) {
           const totals = sub.week_daily_totals_gb || [0, 0, 0, 0, 0, 0, 0];
           const maxVal = Math.max(...totals, 0.1);
-          const dayLabels = ['ش', 'ی', 'د', 'س', 'چ', 'پ', 'ج'];
+          const dayLabels = sub.week_day_labels || ['ش', 'ی', 'د', 'س', 'چ', 'پ', 'ج'];
           repChart.innerHTML = totals.map((val, idx) => {
             const hPct = Math.min(100, Math.max(15, Math.round((val / maxVal) * 90)));
             const isMax = val > 0 && val === Math.max(...totals);
@@ -2462,7 +2556,7 @@
       // Wallet Balance in Shop and Wallet Tab
       const walletEl = document.getElementById('shopWalletBalance');
       const walletTabBal = document.getElementById('walletTabBalance');
-      const formattedWallet = `${(user.wallet_balance || 0).toLocaleString('fa-IR')} تومان`;
+      const formattedWallet = `تومان ${(user.wallet_balance || 0).toLocaleString('fa-IR')}`;
       if (walletEl) walletEl.innerText = `موجودی: ${formattedWallet}`;
       if (walletTabBal) walletTabBal.innerText = formattedWallet;
 
@@ -2482,12 +2576,56 @@
       }
       if (profAvatar) profAvatar.innerText = userDisplayName.charAt(0).toUpperCase();
       if (profId) profId.innerText = user.id ? String(user.id) : '--';
-      if (profRef) profRef.innerText = user.id ? `REF-${user.id}` : 'REF-8492';
+      if (profRef) profRef.innerText = user.id ? String(user.id) : '--';
       if (profJoin) profJoin.innerText = user.created_at_jalali || '۱۴۰۳/۰۷/۰۱';
       if (profSub) {
         profSub.innerText = 'فعال';
         profSub.className = 'font-semibold text-emerald-400';
       }
+
+      // Profile Settings Switches Sync & Persistence
+      const settings = data.settings || {};
+      const togglesMap = [
+        { id: 'settingToggleNightly', key: 'nightly', defaultVal: true },
+        { id: 'settingToggleWeekly', key: 'weekly', defaultVal: true },
+        { id: 'settingToggleMonthly', key: 'monthly', defaultVal: true },
+        { id: 'settingToggleLowTraffic', key: 'low_traffic', defaultVal: true },
+        { id: 'settingToggleExpireWarning', key: 'expire_warning', defaultVal: true },
+      ];
+
+      togglesMap.forEach(({ id, key, defaultVal }) => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        const val = (settings[key] !== undefined) ? Boolean(settings[key]) : defaultVal;
+        el.checked = val;
+
+        el.onchange = async () => {
+          const newVal = el.checked;
+          try {
+            const resp = await fetch('/api/user/settings', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'X-Telegram-Init-Data': window.Telegram?.WebApp?.initData || ''
+              },
+              body: JSON.stringify({ key, value: newVal })
+            });
+            const res = await resp.json();
+            if (res.ok) {
+              showToast('✅ تنظیمات با موفقیت ذخیره شد.');
+              if (window.Telegram?.WebApp?.HapticFeedback) {
+                try { window.Telegram.WebApp.HapticFeedback.notificationOccurred('success'); } catch(e) {}
+              }
+            } else {
+              el.checked = !newVal;
+              showToast('❌ خطا در ذخیره تنظیمات');
+            }
+          } catch (e) {
+            el.checked = !newVal;
+            showToast('خطا در برقراری ارتباط با سرور.');
+          }
+        };
+      });
 
       // Language Buttons Style
       const currentLang = user.language || 'fa';
@@ -2598,6 +2736,8 @@
         const formattedFinal = finalPrice.toLocaleString('fa-IR');
         const formattedOriginal = (p.price || 0).toLocaleString('fa-IR');
 
+        const devLimit = (p.hwid_limit && p.hwid_limit > 0) ? `${p.hwid_limit} کاربر` : 'نامحدود';
+
         return `
           <div class="bg-slate-800/90 rounded-2xl p-4 border ${isPopular ? 'border-indigo-500/60 shadow-lg' : 'border-slate-700/80'} relative overflow-hidden group">
             ${isPopular ? '<div class="absolute top-0 left-0 bg-indigo-600 text-white text-[10px] font-bold px-3 py-0.5 rounded-br-xl shadow">🔥 پرفروش‌ترین</div>' : ''}
@@ -2615,10 +2755,10 @@
                 <span class="text-[10px] text-slate-400 block -mt-1">تومان</span>
               </div>
             </div>
-            <div class="flex items-center gap-4 my-2.5 text-xs text-slate-300 bg-slate-900/50 p-2 rounded-xl">
-              <span>📊 <b dir="ltr" class="font-mono">${p.traffic_gb} GB</b> ترافیک</span>
+            <div class="flex items-center gap-3 my-2.5 text-xs text-slate-300 bg-slate-900/50 p-2 rounded-xl flex-wrap">
+              <span>📊 <b dir="ltr" class="font-mono">${p.traffic_gb} GB</b></span>
               <span>📅 <b>${p.duration_days} روز</b></span>
-              ${p.category ? `<span>🌐 <b>${p.category}</b></span>` : ''}
+              <span>📱 <b>محدودیت دستگاه: ${devLimit}</b></span>
             </div>
             <button class="buy-plan-btn w-full ${isPopular ? 'bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-500 hover:to-blue-500' : 'bg-blue-600 hover:bg-blue-500'} text-white font-semibold text-xs py-2.5 rounded-xl transition shadow active:scale-[0.98]" data-id="${p.id}" data-price="${finalPrice}" data-name="${p.name}">
               🛒 خرید / تمدید آنی (${formattedFinal} تومان)

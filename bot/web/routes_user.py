@@ -70,6 +70,7 @@ async def get_user_me(request: web.Request) -> web.Response:
                 "duration_days": s.duration_days,
                 "traffic_gb": s.traffic_gb,
                 "description": s.description,
+                "hwid_limit": s.hwid_limit,
             }
             for s in services
         ]
@@ -284,6 +285,12 @@ async def get_user_me(request: web.Request) -> web.Response:
                 busiest_day_name = jdatetime.date.j_weekdays_fa[b_jd.weekday()]
                 busiest_day_amount = human_bytes(max_val)
 
+            week_day_labels = []
+            for i in range(7):
+                d_dt = week_start_dt + timedelta(days=i)
+                d_jd = jdatetime.datetime.fromgregorian(datetime=d_dt)
+                week_day_labels.append(['ش', 'ی', 'د', 'س', 'چ', 'پ', 'ج'][d_jd.weekday()])
+
             # Month name & usage
             month_names = ["فروردین", "اردیبهشت", "خرداد", "تیر", "مرداد", "شهریور", "مهر", "آبان", "آذر", "دی", "بهمن", "اسفند"]
             current_month_name = month_names[now_j.month - 1] if 1 <= now_j.month <= 12 else "ماه جاری"
@@ -352,6 +359,7 @@ async def get_user_me(request: web.Request) -> web.Response:
                 "current_month_name": current_month_name,
                 "month_used_gb": month_used_gb,
                 "month_weeks_totals_gb": month_weeks_totals_gb,
+                "week_day_labels": week_day_labels,
             }
 
         # 6. Orders and topups history for Wallet & History view
@@ -441,6 +449,38 @@ async def get_user_me(request: web.Request) -> web.Response:
         wheel_key = f"tma:user:{telegram_id}:wheel_spins"
         wheel_spun = bool(await cache.get(wheel_key))
 
+        rep_settings_data = {
+            "nightly": True,
+            "weekly": True,
+            "monthly": True,
+        }
+        try:
+            from bot.db.repositories.report_repo import ReportRepository
+            rep_repo = ReportRepository(session)
+            rep_settings = await rep_repo.get_settings(telegram_id)
+            rep_settings_data = {
+                "nightly": bool(rep_settings.nightly),
+                "weekly": bool(rep_settings.weekly),
+                "monthly": bool(rep_settings.monthly),
+            }
+        except Exception as exc:
+            logger.warning("Failed to fetch report settings for %s: %s", telegram_id, exc)
+
+        alert_settings_data = {
+            "low_traffic": True,
+            "expire_warning": True,
+        }
+        try:
+            from bot.db.repositories.alert_repo import AlertRepository
+            alert_repo = AlertRepository(session)
+            alert_settings = await alert_repo.get_settings(telegram_id)
+            alert_settings_data = {
+                "low_traffic": bool(alert_settings.traffic_percent > 0),
+                "expire_warning": bool(alert_settings.expire_days > 0),
+            }
+        except Exception as exc:
+            logger.warning("Failed to fetch alert settings for %s: %s", telegram_id, exc)
+
         data = {
             "user": {
                 "id": telegram_id,
@@ -452,6 +492,10 @@ async def get_user_me(request: web.Request) -> web.Response:
                 "created_at_jalali": user_reg_jalali,
                 "language": db_user.language if isinstance(getattr(db_user, "language", None), str) else "fa",
                 "is_admin": user_auth.get("is_admin", False),
+            },
+            "settings": {
+                **rep_settings_data,
+                **alert_settings_data,
             },
             "accounts": accounts_list,
             "active_sub": active_sub,

@@ -294,7 +294,7 @@ FA_TEXTS: dict[str, str] = {
         "svc_currency": "تومان",
         "unlimited": "♾ نامحدود",
         "svc_days": "{days} روز",
-        "svc_gb": "{gb} گیگابایت",
+        "svc_gb": "{gb} GB",
         "services_policy_hint": (
             "💡 <b>نکته دوره‌های مصرف و تمدید:</b>\n"
             "در سرویس‌های با ریست ترافیک «<b>بدون ریست</b>»، چنانچه تا <b>۱ روز</b> "

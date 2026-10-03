@@ -188,11 +188,8 @@ def test_stats_account_block_burn_rate_and_flags():
     assert "🇳🇱 : <b>1.46 GB</b>" in block or "🇳🇱 : <b>" in block
     assert "  🇳🇱" not in block
     assert "Netherlands" not in block
-    # Burn rate should be below lifetime
-    lifetime_idx = block.index("مصرف کل از ابتدا")
-    burn_idx = block.index("با الگوی مصرف شما")
-    assert burn_idx > lifetime_idx
-    assert "108 روز" in block
+    # Burn rate is removed from quick stats as requested
+    assert "با الگوی مصرف شما" not in block
 
 
 def test_topup_amount_prompt_content():
@@ -229,9 +226,9 @@ def test_sparkline_in_account_block():
     block = _account_block(
         account, None, now, "fa", sparkline=(" ▂▃▅▇█", 15 * 1024**3)
     )
-    assert "روند ۷ روز اخیر" in block
-    assert " ▂▃▅▇█" in block
-    assert "15.00 GB" in block
+    # Sparkline is removed from quick stats as requested
+    assert "روند ۷ روز اخیر" not in block
+    assert " ▂▃▅▇█" not in block
 
 
 def test_new_texts_exist():
@@ -825,7 +822,7 @@ async def test_purchase_result_digital_receipt():
         assert "Plan 50GB" in text
         assert "Mohammad" in text
         assert "30 روز" in text
-        assert "50 گیگابایت" in text
+        assert "50 GB" in text
         assert "50,000 تومان" in text
         assert "150,000 تومان" in text
         assert "https://sub.example.com/token123" in text
@@ -1090,8 +1087,8 @@ def test_account_button_and_view_remaining_traffic():
 
     view_text = _account_view_text(acc, "fa")
     assert "حجم باقی‌مانده" in view_text
-    assert "20 GB" in view_text
-    assert "30 GB" in view_text
+    assert "GB 20" in view_text
+    assert "GB 30" in view_text
 
 
 @pytest.mark.anyio
@@ -1175,7 +1172,7 @@ def test_no_double_emoji_in_account():
     }
     text = _account_view_text(acc, "fa")
     assert "📊 📥" not in text
-    assert "📥 حجم باقی‌مانده : <b>225.9 GB</b> (از 250 GB)" in text
+    assert "📥 حجم باقی‌مانده : <b>GB 225.9</b> (از GB 250)" in text
 
 
 def test_support_and_report_icons_and_nightly_hint():
@@ -1948,5 +1945,5 @@ async def test_recent_ui_and_reports_fixes():
         svc_btn_text = markup.inline_keyboard[0][0].text
 
         # First: name, Second: traffic, Third: price
-        assert "بسته حرفه‌ای — 50 گیگابایت — 150,000 تومان" in svc_btn_text
+        assert "بسته حرفه‌ای — 50 GB — 150,000 تومان" in svc_btn_text
         assert svc_btn_text.startswith("✅ بسته حرفه‌ای")

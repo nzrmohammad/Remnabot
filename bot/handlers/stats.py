@@ -23,6 +23,9 @@ from bot.db.repositories.user_repo import UserRepository
 from bot.keyboards.inline import welcome_keyboard
 from bot.locales.texts import t
 from bot.services.formatting import (
+    GB,
+    MB,
+    TB,
     country_flag,
     format_date,
     format_datetime,
@@ -111,6 +114,19 @@ def generate_sparkline(daily_values: list[int]) -> str:
 
 
 
+def _format_bytes(n: int | float | None, lang: str = "fa") -> str:
+    if not n or n <= 0:
+        return "0 MB" if lang != "fa" else "GB 0"
+    if n >= TB:
+        val = f"{n / TB:.2f}"
+        return f"{val} TB" if lang != "fa" else f"TB {val}"
+    if n >= GB:
+        val = f"{n / GB:.2f}"
+        return f"{val} GB" if lang != "fa" else f"GB {val}"
+    val = f"{n / MB:.2f}"
+    return f"{val} MB" if lang != "fa" else f"MB {val}"
+
+
 def _connection_line(traffic: dict, now: datetime, lang: str) -> str:
     label = t(lang, "stats_online_label")
     online_at = parse_iso(traffic.get("onlineAt"))
@@ -119,6 +135,16 @@ def _connection_line(traffic: dict, now: datetime, lang: str) -> str:
     if now - online_at <= ONLINE_WINDOW:
         return f"{label} : 🟢"
     return f"{label} : 🔴 ({format_datetime(online_at.astimezone(now.tzinfo), lang)})"
+
+
+def _last_connection_line(traffic: dict, now: datetime, lang: str) -> str:
+    last_conn_label = "🕒 آخرین اتصال" if lang == "fa" else "🕒 Last connection"
+    online_at = parse_iso(traffic.get("onlineAt"))
+    if online_at is None:
+        time_txt = "ثبت نشده" if lang == "fa" else "None"
+    else:
+        time_txt = format_datetime(online_at.astimezone(now.tzinfo), lang)
+    return f"{last_conn_label} : <b>{time_txt}</b>"
 
 
 def _account_block(
@@ -149,21 +175,22 @@ def _account_block(
         f"{account_label} : <code>{username}</code>",
         f"{t(lang, 'stats_status')} : {status_text}",
         _connection_line(traffic, now, lang),
+        _last_connection_line(traffic, now, lang),
     ]
 
     if limit > 0:
         remaining = max(0, limit - used)
         percent = min(100.0, used / limit * 100)
         lines += [
-            f"{t(lang, 'stats_total')} : <b>{human_bytes(limit)}</b>",
-            f"{t(lang, 'stats_used')} : <b>{human_bytes(used)}</b>",
-            f"{t(lang, 'stats_remaining')} : <b>{human_bytes(remaining)}</b>",
+            f"{t(lang, 'stats_total')} : <b>{_format_bytes(limit, lang)}</b>",
+            f"{t(lang, 'stats_used')} : <b>{_format_bytes(used, lang)}</b>",
+            f"{t(lang, 'stats_remaining')} : <b>{_format_bytes(remaining, lang)}</b>",
             f"{progress_bar(percent)} {percent:.0f}%",
         ]
     else:
         lines += [
             f"{t(lang, 'stats_total')} : {t(lang, 'stats_unlimited')}",
-            f"{t(lang, 'stats_used')} : <b>{human_bytes(used)}</b>",
+            f"{t(lang, 'stats_used')} : <b>{_format_bytes(used, lang)}</b>",
         ]
 
     # expiration
@@ -181,23 +208,16 @@ def _account_block(
 
     if today is not None:
         today_bytes, nodes = today
-        lines.append(f"{t(lang, 'stats_today')} : <b>{human_bytes(today_bytes)}</b>")
+        lines.append(f"{t(lang, 'stats_today')} : <b>{_format_bytes(today_bytes, lang)}</b>")
         for node in nodes:
             if int(node.get("total") or 0) <= 0:
                 continue
             flag = country_flag(node.get("countryCode"))
-            lines.append(f"{flag} : <b>{human_bytes(node['total'])}</b>")
-
-    if sparkline is not None and sparkline[1] > 0:
-        bars_str, total_7d = sparkline
-        lines.append(t(lang, "stats_sparkline", bars=bars_str, total=human_bytes(total_7d)))
+            lines.append(f"{flag} : <b>{_format_bytes(node['total'], lang)}</b>")
 
     lifetime = int(traffic.get("lifetimeUsedTrafficBytes") or 0)
     if lifetime > 0:
-        lines.append(f"{t(lang, 'stats_lifetime')} : <b>{human_bytes(lifetime)}</b>")
-
-    if burn_rate_days is not None and burn_rate_days > 0:
-        lines.append(f"{t(lang, 'stats_burn_rate', days=burn_rate_days)}")
+        lines.append(f"{t(lang, 'stats_lifetime')} : <b>{_format_bytes(lifetime, lang)}</b>")
 
     return "\n".join(lines)
 
@@ -338,8 +358,6 @@ async def _render_stats_page(
     )
 
     header = f"{t(lang, 'stats_title')} - {format_datetime(now, lang)}\n"
-    if len(accounts) > 1:
-        header += f"{t(lang, 'page_info', page=page + 1, pages=len(accounts))}\n"
     text = header + f"{SEPARATOR}\n" + block
 
     await render_menu(

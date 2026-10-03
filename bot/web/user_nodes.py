@@ -61,19 +61,64 @@ async def post_user_settings(request: web.Request) -> web.Response:
 
     telegram_id = int(user_auth["id"])
     language = body.get("language")
+    key = body.get("key")
+    value = body.get("value")
 
     session_factory = request.app["session_factory"]
     cache: FastCache = request.app["cache"]
+
+    from bot.db.repositories.report_repo import ReportRepository
+    from bot.db.repositories.alert_repo import AlertRepository
 
     async with session_factory() as session:
         user_repo = UserRepository(session)
         user = await user_repo.get_or_create(telegram_id, user_auth.get("username"))
         if language in ("fa", "en"):
             user.language = language
-            await session.commit()
-            await cache.delete(f"tma:user:{telegram_id}:dashboard")
 
-        return web.json_response({"ok": True, "language": user.language})
+        rep_repo = ReportRepository(session)
+        rep_settings = await rep_repo.get_settings(telegram_id)
+        alert_repo = AlertRepository(session)
+        alert_settings = await alert_repo.get_settings(telegram_id)
+
+        # 1. Direct fields in JSON body
+        if "nightly" in body:
+            rep_settings.nightly = bool(body["nightly"])
+        if "weekly" in body:
+            rep_settings.weekly = bool(body["weekly"])
+        if "monthly" in body:
+            rep_settings.monthly = bool(body["monthly"])
+        if "low_traffic" in body:
+            alert_settings.traffic_percent = 80 if body["low_traffic"] else 0
+        if "expire_warning" in body:
+            alert_settings.expire_days = 3 if body["expire_warning"] else 0
+
+        # 2. Key-value pair style {key: "...", value: ...}
+        if key == "nightly":
+            rep_settings.nightly = bool(value)
+        elif key == "weekly":
+            rep_settings.weekly = bool(value)
+        elif key == "monthly":
+            rep_settings.monthly = bool(value)
+        elif key == "low_traffic":
+            alert_settings.traffic_percent = 80 if value else 0
+        elif key == "expire_warning":
+            alert_settings.expire_days = 3 if value else 0
+
+        await session.commit()
+        await cache.delete(f"tma:user:{telegram_id}:dashboard")
+
+        return web.json_response({
+            "ok": True,
+            "language": user.language,
+            "settings": {
+                "nightly": bool(rep_settings.nightly),
+                "weekly": bool(rep_settings.weekly),
+                "monthly": bool(rep_settings.monthly),
+                "low_traffic": bool(alert_settings.traffic_percent > 0),
+                "expire_warning": bool(alert_settings.expire_days > 0),
+            },
+        })
 
 
 async def get_user_avatar(request: web.Request) -> web.Response:
