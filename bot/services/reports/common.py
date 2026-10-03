@@ -38,6 +38,28 @@ def _node_label(row: dict) -> str:
     return f"{country_flag(row.get('countryCode'))} {row.get('name') or '—'}"
 
 
+def make_node_flag_map(nodes_or_series: list[dict]) -> dict[str, str]:
+    """Map node names to country flag representation.
+    If multiple nodes share the same country, the first is 'FLAG', subsequent
+    nodes are numbered: 'FLAG 2', 'FLAG 3', etc.
+    """
+    country_nodes: dict[str, list[str]] = {}
+    for r in nodes_or_series:
+        cc = (r.get("countryCode") or "").upper()
+        name = r.get("name") or r.get("nodeName") or "—"
+        if cc not in country_nodes:
+            country_nodes[cc] = []
+        if name not in country_nodes[cc]:
+            country_nodes[cc].append(name)
+
+    label_map: dict[str, str] = {}
+    for cc, names in country_nodes.items():
+        flag = country_flag(cc)
+        for idx, name in enumerate(names):
+            label_map[name] = flag if idx == 0 else f"{flag} {idx + 1}"
+    return label_map
+
+
 def _series_rows(series: list[dict]) -> list[dict]:
     """Normalize + sort a bandwidth-stats series by total, drop empty nodes."""
     rows = [r for r in series if int(r.get("total") or 0) > 0]

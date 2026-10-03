@@ -240,7 +240,7 @@ FA_TEXTS: dict[str, str] = {
         # --- reports ---
         "nightly_title": "🌙 <b>گزارش شبانه</b>",
         "weekly_title": "📊 <b>گزارش هفتگی</b>",
-        "weekly_day": "▪️ در {date} : <b>{total}</b>",
+        "weekly_day": "📅 {day} {date} : <b>{total}</b>",
         "weekly_others": "سایر",
         "weekly_total": "📊 مصرف کل این هفته : <b>{total}</b>",
         "weekly_hi": "سلام {name} 👋",
@@ -249,8 +249,7 @@ FA_TEXTS: dict[str, str] = {
         "weekly_sum_less": "این مصرف {percent}% کمتر از هفته قبل بود.",
         "weekly_sum_same": "تقریباً برابر با هفته قبل.",
         "weekly_sum_top": (
-            "پرمصرف‌ترین روزت <b>{day}</b> بود و بیشتر از سرور "
-            "{flag} <b>{node}</b> استفاده کردی."
+            "پرمصرف‌ترین روزت <b>{day}</b> بود و بیشترین مصرفت روی {flag} بود."
         ),
         "monthly_title": "🗓 <b>گزارش ماهانه — {month}</b>",
         "monthly_day": "▪️ در {date} : <b>{total}</b>",

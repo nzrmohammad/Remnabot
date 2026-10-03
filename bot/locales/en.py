@@ -241,7 +241,7 @@ EN_TEXTS: dict[str, str] = {
         # --- reports ---
         "nightly_title": "🌙 <b>Nightly report</b>",
         "weekly_title": "📊 <b>Weekly report</b>",
-        "weekly_day": "▪️ {date} : <b>{total}</b>",
+        "weekly_day": "📅 {day} {date} : <b>{total}</b>",
         "weekly_others": "others",
         "weekly_total": "📊 Total this week : <b>{total}</b>",
         "weekly_hi": "Hi {name} 👋",
@@ -250,8 +250,7 @@ EN_TEXTS: dict[str, str] = {
         "weekly_sum_less": "That's {percent}% less than last week.",
         "weekly_sum_same": "About the same as last week.",
         "weekly_sum_top": (
-            "Your busiest day was <b>{day}</b> and you mostly used the "
-            "{flag} <b>{node}</b> server."
+            "Your busiest day was <b>{day}</b> and you mostly used {flag}."
         ),
         "monthly_title": "🗓 <b>Monthly report — {month}</b>",
         "monthly_day": "▪️ {date} : <b>{total}</b>",

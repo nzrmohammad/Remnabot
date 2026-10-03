@@ -14,6 +14,7 @@ from bot.services.remnawave import RemnawaveClient
 from bot.services.reports.common import (
     _node_label,
     _weekday_name,
+    make_node_flag_map,
 )
 
 logger = logging.getLogger(__name__)
@@ -34,12 +35,9 @@ async def _weekly_text_for_user(
     week_start = now - timedelta(days=6)
     prev_start, prev_end = now - timedelta(days=13), now - timedelta(days=7)
 
-    # merge all accounts into one report (usually there is exactly one)
-    day_totals: dict[str, int] = {}
-    day_rows: dict[str, list[tuple[str, int]]] = {}
-    node_totals: dict[str, int] = {}
-    prev_total = 0
-
+    # Gather series across all accounts to build node flag map and stats
+    all_account_series: list[tuple[dict, list[dict], list[dict]]] = []
+    all_nodes: list[dict] = []
     for account in accounts:
         account_id = account.get("id")
         if account_id is None:
@@ -56,19 +54,32 @@ async def _weekly_text_for_user(
             )
             or []
         )
+        all_account_series.append((account, series, prev_series))
+        all_nodes.extend(series)
+
+    flag_map = make_node_flag_map(all_nodes)
+
+    day_totals: dict[str, int] = {}
+    day_rows: dict[str, list[tuple[str, int]]] = {}
+    node_totals: dict[str, int] = {}
+    prev_total = 0
+
+    for account, series, prev_series in all_account_series:
         prev_total += _week_total(prev_series)
 
         for row in series:
-            label = _node_label(row)
-            node_totals[label] = node_totals.get(label, 0) + int(row.get("total") or 0)
+            name = row.get("name") or row.get("nodeName") or "—"
+            lbl = flag_map.get(name) or country_flag(row.get("countryCode"))
+            node_totals[lbl] = node_totals.get(lbl, 0) + int(row.get("total") or 0)
             data = row.get("data") or []
-            for offset, value in enumerate(data):
+            last_7 = data[-7:] if len(data) >= 7 else ([0] * (7 - len(data)) + data)
+            for offset in range(7):
                 day = (week_start + timedelta(days=offset)).strftime("%Y-%m-%d")
-                value = int(value or 0)
+                value = int(last_7[offset] or 0)
                 if value <= 0:
                     continue
                 day_totals[day] = day_totals.get(day, 0) + value
-                day_rows.setdefault(day, []).append((label, value))
+                day_rows.setdefault(day, []).append((lbl, value))
 
     week_total = sum(day_totals.values())
 
@@ -82,19 +93,15 @@ async def _weekly_text_for_user(
         day_dt = week_start + timedelta(days=offset)
         day = day_dt.strftime("%Y-%m-%d")
         total = day_totals.get(day, 0)
+        d_name = _weekday_name(day_dt, lang)
         date_str = format_date(day_dt, lang)
         lines.append("")
-        lines.append(t(lang, "weekly_day", date=date_str, total=human_bytes(total)))
+        lines.append(t(lang, "weekly_day", day=d_name, date=date_str, total=human_bytes(total)))
         rows = sorted(day_rows.get(day, []), key=lambda x: x[1], reverse=True)
-        if len(rows) == 1:
-            lines.append(f"      ({rows[0][0]} {human_bytes(rows[0][1])})")
-        elif len(rows) > 1:
-            top_label, top_value = rows[0]
-            rest = sum(v for _, v in rows[1:])
-            lines.append(
-                f"      ({top_label} {human_bytes(top_value)}، "
-                f"{t(lang, 'weekly_others')} {human_bytes(rest)})"
-            )
+        if rows:
+            parts = [f"{lbl} {human_bytes(val)}" for lbl, val in rows if val > 0]
+            if parts:
+                lines.append(f"   {' '.join(parts)}")
 
     lines += [
         "",
@@ -122,13 +129,11 @@ async def _weekly_text_for_user(
         busiest_day = max(day_totals, key=day_totals.get)
         busiest_dt = datetime.strptime(busiest_day, "%Y-%m-%d")
         top_label = max(node_totals, key=node_totals.get)
-        flag, _, node_name = top_label.partition(" ")
         summary.append(
             t(
                 lang, "weekly_sum_top",
                 day=_weekday_name(busiest_dt, lang),
-                flag=flag,
-                node=node_name,
+                flag=top_label,
             )
         )
 

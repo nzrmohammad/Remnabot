@@ -979,3 +979,48 @@ async def test_admin_monthly_summary(async_session: AsyncSession):
     assert "گزارش جامع ماهانه پنل" in text
     assert "خلاصه وضعیت ماه" in text
     assert "مجموع مصرف کل ماه" in text
+
+
+@pytest.mark.anyio
+async def test_user_weekly_report_formatting_and_alignment():
+    from bot.db.models import User
+    from bot.services.reports.weekly import _weekly_text_for_user
+
+    user = User(telegram_id=999888, username="ali", language="fa")
+    remnawave = MagicMock()
+    remnawave.get_users_by_telegram_id = AsyncMock(return_value=[
+        {"id": 101, "username": "ali"}
+    ])
+
+    # 7 days: offsets 0..4 = 0, offset 5 (Thursday) = 6.35 GB, offset 6 (Friday) = 4 GB
+    gb = 1024**3
+    mb = 1024**2
+    thursday_bytes = int(4.35 * gb)
+    remnawave.get_user_bandwidth_stats = AsyncMock(side_effect=[
+        # current week
+        [
+            {"name": "NL-Server", "countryCode": "NL", "total": 6 * gb, "data": [0, 0, 0, 0, 0, 2 * gb, 4 * gb]},
+            {"name": "DE-Server-1", "countryCode": "DE", "total": 5 * gb, "data": [0, 0, 0, 0, 0, thursday_bytes, 0]},
+        ],
+        # previous week
+        [],
+    ])
+
+    now = datetime(2026, 10, 2, 23, 59, tzinfo=timezone.utc)  # Friday (جمعه)
+    text = await _weekly_text_for_user(user, remnawave, now)
+
+    assert text is not None
+    assert "گزارش هفتگی" in text
+    # Check date and weekday formatting
+    assert "📅 جمعه" in text
+    assert "📅 پنج‌شنبه" in text
+    # Check that countries show flags without country names
+    assert "🇳🇱" in text
+    assert "🇩🇪" in text
+    assert "NL-Server" not in text
+    assert "DE-Server" not in text
+    assert "سایر" not in text
+    # Thursday was peak with ~6.35 GB (2GB + 4.35GB)
+    assert "پنج‌شنبه" in text
+    assert "پرمصرف‌ترین روزت <b>پنج‌شنبه</b> بود" in text
+

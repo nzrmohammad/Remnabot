@@ -18,6 +18,7 @@ from bot.services.remnawave import RemnawaveClient
 from bot.services.reports.common import (
     _node_label,
     _weekday_name,
+    make_node_flag_map,
 )
 from bot.services.reports.delivery import _deliver_admin_report
 from bot.services.reports.jalali import (
@@ -304,6 +305,11 @@ async def _send_admin_weekly_summary(
 
     results = await asyncio.gather(*[_fetch_user_week(u) for u in active_traffic_users])
 
+    all_nodes: list[dict] = []
+    for u, stats in results:
+        all_nodes.extend(stats)
+    flag_map = make_node_flag_map(all_nodes)
+
     daily_champions: list[tuple[str, int]] = [("", 0) for _ in range(7)]
     user_weekly_totals: list[tuple[str, int]] = []
     day_totals: dict[int, int] = {i: 0 for i in range(7)}
@@ -313,17 +319,21 @@ async def _send_admin_weekly_summary(
     for u, stats in results:
         username = str(u.get("username", "—"))
         user_total = 0
+        user_day_totals = [0] * 7
+        for row in stats:
+            name = row.get("name") or row.get("nodeName") or "—"
+            lbl = flag_map.get(name) or country_flag(row.get("countryCode"))
+            data = row.get("data") or []
+            last_7 = data[-7:] if len(data) >= 7 else ([0] * (7 - len(data)) + data)
+            for d_idx in range(7):
+                val = int(last_7[d_idx] or 0)
+                if val > 0:
+                    user_day_totals[d_idx] += val
+                    day_nodes[d_idx][lbl] = day_nodes[d_idx].get(lbl, 0) + val
+                    weekly_nodes[lbl] = weekly_nodes.get(lbl, 0) + val
+
         for d_idx in range(7):
-            day_bytes = 0
-            for row in stats:
-                label = _node_label(row)
-                data = row.get("data") or []
-                if d_idx < len(data):
-                    val = int(data[d_idx] or 0)
-                    if val > 0:
-                        day_bytes += val
-                        day_nodes[d_idx][label] = day_nodes[d_idx].get(label, 0) + val
-                        weekly_nodes[label] = weekly_nodes.get(label, 0) + val
+            day_bytes = user_day_totals[d_idx]
             user_total += day_bytes
             day_totals[d_idx] += day_bytes
             if day_bytes > daily_champions[d_idx][1]:
@@ -355,16 +365,20 @@ async def _send_admin_weekly_summary(
         lines.append("")
         lines.append(f"📅 {d_name} {d_str} : <b>{human_bytes(d_val)}</b>")
         sorted_nodes = sorted(day_nodes[d_idx].items(), key=lambda x: x[1], reverse=True)
-        for lbl, val in sorted_nodes[:5]:
-            if val > 0:
-                lines.append(f"{lbl} : {human_bytes(val)}")
+        parts = [f"{lbl} {human_bytes(val)}" for lbl, val in sorted_nodes if val > 0]
+        if parts:
+            lines.append(f"   {' '.join(parts)}")
 
     lines.append("")
     lines.append(SEPARATOR)
     lines.append(f"⚡️ <b>مجموع مصرف کل این هفته : {human_bytes(week_total)}</b>")
-    for lbl, val in sorted(weekly_nodes.items(), key=lambda x: x[1], reverse=True)[:8]:
-        if val > 0:
-            lines.append(f"{lbl} : {human_bytes(val)}")
+    weekly_parts = [
+        f"{lbl} {human_bytes(val)}"
+        for lbl, val in sorted(weekly_nodes.items(), key=lambda x: x[1], reverse=True)
+        if val > 0
+    ]
+    if weekly_parts:
+        lines.append(f"   {' '.join(weekly_parts)}")
 
     lines.append(SEPARATOR)
     lines.append("🏆 <b>گزارش هفتگی پرمصرفترین کاربران</b>")

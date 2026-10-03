@@ -158,7 +158,7 @@
     <!-- ======================================================== -->
     <!-- 1. TELEGRAM WEBAPP TOP BAR                               -->
     <!-- ======================================================== -->
-    <div class="bg-[#131d31]/95 backdrop-blur-md border-b border-slate-700/60 px-4 py-3 flex items-center justify-between z-20 transition-colors">
+    <div class="bg-[#131d31]/95 backdrop-blur-md border-b border-slate-700/60 px-4 pt-[calc(0.625rem+env(safe-area-inset-top,0px))] pb-2.5 flex items-center justify-between z-20 transition-colors">
       <div class="flex items-center gap-2">
         <button id="closeBtn" class="text-blue-400 text-xs font-semibold hover:text-blue-300 transition px-2.5 py-1 rounded-lg bg-blue-950/40 border border-blue-800/40">بستن</button>
         <button id="reloadBtn" class="text-slate-400 hover:text-slate-200 text-xs p-1.5 rounded-lg bg-slate-800 border border-slate-700" title="تازه‌سازی">🔄</button>
@@ -317,11 +317,11 @@
               <span>📥</span> لینک اشتراک
             </span>
             <div class="flex items-center gap-1.5">
-              <button id="qrToggleBtn" class="text-indigo-400 hover:text-indigo-300 flex items-center justify-center bg-indigo-950/60 w-8 h-8 rounded-lg border border-indigo-800/50 transition active:scale-95" title="کیوآرکد">
-                <span class="text-sm">📷</span>
+              <button id="qrToggleBtn" class="text-slate-300 hover:text-cyan-300 flex items-center justify-center bg-slate-700/60 hover:bg-slate-700 w-8 h-8 rounded-xl border border-slate-600/60 transition active:scale-95 shadow-sm" title="کیوآرکد">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/></svg>
               </button>
-              <button id="revokeSubBtnTop" class="text-rose-400 hover:text-rose-300 flex items-center justify-center bg-rose-950/50 w-8 h-8 rounded-lg border border-rose-800/50 transition active:scale-95" title="تعویض لینک اشتراک">
-                <span class="text-sm">🔄</span>
+              <button id="revokeSubBtnTop" class="text-slate-300 hover:text-rose-400 flex items-center justify-center bg-slate-700/60 hover:bg-slate-700 w-8 h-8 rounded-xl border border-slate-600/60 transition active:scale-95 shadow-sm" title="تعویض لینک اشتراک">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
               </button>
             </div>
           </div>
@@ -338,7 +338,7 @@
               <svg class="w-4 h-4 text-blue-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
               </svg>
-              <span id="copySubBtnText">کپی کامل لینک اشتراک</span>
+              <span id="copySubBtnText">کپی لینک اشتراک</span>
             </button>
           </div>
 
@@ -400,7 +400,7 @@
           <!-- Collapsible Content (Hidden by default, opens on click) -->
           <div id="sessionsAccordionBody" class="hidden px-4 pb-4 pt-1 space-y-3 text-xs border-t border-slate-700/50">
             <div class="flex justify-between items-center pt-2">
-              <span class="text-[10px] text-slate-400">دستگاه‌های متصل به این اکانت (HWID):</span>
+              <span class="text-[10px] text-slate-400">دستگاه‌های فعال روی این اکانت (HWID):</span>
               <button id="killAllBtn" class="text-[10px] text-rose-400 hover:text-rose-300 bg-rose-950/60 border border-rose-800/60 px-2.5 py-1 rounded-lg font-medium transition active:scale-95">
                 ⛔️ قطع همه
               </button>
@@ -409,7 +409,7 @@
             <!-- Dynamic Devices Container -->
             <div id="activeDevicesContainer" class="space-y-2">
               <div class="p-4 rounded-xl bg-slate-900/60 border border-slate-700/50 text-center text-xs text-slate-400">
-                در حال بارگذاری دستگاه‌های متصل...
+                در حال بارگذاری دستگاه‌ها...
               </div>
             </div>
           </div>
@@ -422,7 +422,7 @@
           <button id="repSubMonthly" class="flex-1 py-1.5 rounded-lg font-medium text-slate-400 hover:text-slate-200 transition">🗓 ماهانه</button>
         </div>
 
-        <!-- 1. Nightly Report Card (دقیقاً مشابه گزارش شبانه بات) -->
+        <!-- 1. Nightly Report Card (مشابه هفتگی و ماهانه) -->
         <div id="viewRepNightly" class="bg-slate-800/90 rounded-2xl p-4 border border-slate-700/80 space-y-3 shadow-md">
           <div class="flex justify-between items-center border-b border-slate-700/60 pb-2">
             <span class="text-xs font-bold text-white flex items-center gap-1.5">
@@ -431,42 +431,19 @@
             <span id="repNightlyDate" class="text-[11px] font-mono text-slate-400">--/--/-- - ۲۳:۵۹</span>
           </div>
 
-          <div class="space-y-2.5 text-xs text-slate-300">
-            <div class="flex justify-between items-center">
-              <span>📊 حجم کل بسته :</span>
-              <b id="repNightlyTotal" class="font-mono text-white" dir="ltr">-- GB</b>
-            </div>
+          <div class="space-y-1.5 text-xs text-slate-300">
+            <div class="flex justify-between"><span>📊 حجم کل بسته :</span><b id="repNightlyTotal" class="font-mono text-white" dir="ltr">-- GB</b></div>
+            <div class="flex justify-between"><span>🔥 حجم مصرف‌شده :</span><b id="repNightlyUsed" class="font-mono text-amber-400" dir="ltr">-- GB</b></div>
+            <div class="flex justify-between"><span>📥 حجم باقیمانده :</span><b id="repNightlyRemain" class="font-mono text-emerald-400" dir="ltr">-- GB</b></div>
+            <div class="flex justify-between"><span>⚡️ مجموع مصرف دیشب :</span><b id="repNightlyYesterday" class="font-mono text-cyan-400 text-sm" dir="ltr">0.00 GB</b></div>
+            <div class="flex justify-between"><span>📅 انقضا :</span><span id="repNightlyExpire" class="font-semibold text-slate-200">--</span></div>
+          </div>
 
-            <!-- Total Used Traffic & All Servers Breakdown -->
-            <div class="space-y-1">
-              <div class="flex justify-between items-center">
-                <span>🔥 حجم مصرف‌شده :</span>
-                <b id="repNightlyUsed" class="font-mono text-amber-400" dir="ltr">-- GB</b>
-              </div>
-              <div id="repNightlyAllServersBox" class="bg-slate-900/70 rounded-xl p-2.5 border border-slate-700/50 space-y-1 font-mono text-[11px]">
-                <div class="text-center py-1 text-slate-400 text-[10px]">در حال دریافت تفکیک سرورها...</div>
-              </div>
-            </div>
-
-            <div class="flex justify-between items-center pt-1 border-t border-slate-700/40">
-              <span>📥 حجم باقیمانده :</span>
-              <b id="repNightlyRemain" class="font-mono text-emerald-400" dir="ltr">-- GB</b>
-            </div>
-
-            <!-- Single Day Used Traffic & Daily Breakdown -->
-            <div class="space-y-1 pt-1">
-              <div class="flex justify-between items-center">
-                <span>⚡️ مجموع مصرف روز :</span>
-                <b id="repNightlyYesterday" class="font-mono text-cyan-400" dir="ltr">0.00 GB</b>
-              </div>
-              <div id="repNightlyDailyServersBox" class="bg-slate-900/70 rounded-xl p-2.5 border border-slate-700/50 space-y-1 font-mono text-[11px]">
-                <div class="text-center py-1 text-slate-400 text-[10px]">در حال دریافت مصرف روزانه...</div>
-              </div>
-            </div>
-
-            <div class="flex justify-between items-center pt-1 border-t border-slate-700/40">
-              <span>📅 انقضا :</span>
-              <span id="repNightlyExpire" class="font-semibold text-slate-200">--</span>
+          <!-- Nightly Per-Server Breakdown (تفکیک مصرف سرورها) -->
+          <div class="pt-2 border-t border-slate-700/60 text-xs">
+            <span class="text-slate-400 font-medium block mb-1">تفکیک مصرف سرورها:</span>
+            <div id="repNightlyNodesContainer" class="grid grid-cols-2 gap-1.5 font-mono text-[11px]">
+              <div class="col-span-2 text-center py-2 text-slate-400 text-[10px]">در حال دریافت داده‌ها...</div>
             </div>
           </div>
         </div>
@@ -806,7 +783,7 @@
             <span class="text-base">📱</span>
             <div>
               <span class="text-xs font-bold text-white block">نشست‌های فعال و دستگاه‌ها</span>
-              <span class="text-[10px] text-slate-400 block">دستگاه‌های متصل به کانفیگ (HWID)</span>
+              <span class="text-[10px] text-slate-400 block">دستگاه‌های فعال روی این اشتراک (HWID)</span>
             </div>
           </div>
           <button id="closeSessionsModalBtn" class="text-slate-400 hover:text-white text-xs bg-slate-800 rounded-full w-6 h-6 flex items-center justify-center">✕</button>
@@ -1299,7 +1276,7 @@
         copySubBtn.classList.replace('to-blue-500', 'to-emerald-500');
         showToast('📋 لینک اشتراک کپی شد');
         setTimeout(() => {
-          if (copySubBtnText) copySubBtnText.innerText = 'کپی کامل لینک اشتراک';
+          if (copySubBtnText) copySubBtnText.innerText = 'کپی لینک اشتراک';
           copySubBtn.classList.replace('from-emerald-600', 'from-blue-600');
           copySubBtn.classList.replace('via-teal-600', 'via-indigo-600');
           copySubBtn.classList.replace('to-emerald-500', 'to-blue-500');
@@ -2009,9 +1986,16 @@
       try {
         tg.ready();
         tg.expand();
+        if (tg.disableVerticalSwipes) tg.disableVerticalSwipes();
         if (tg.setHeaderColor) tg.setHeaderColor('#0f172a');
         if (tg.setBackgroundColor) tg.setBackgroundColor('#080d1a');
       } catch (e) {}
+
+      // Hide redundant in-app close button if running inside Telegram WebApp
+      if (tg.initData) {
+        const cBtn = document.getElementById('closeBtn');
+        if (cBtn) cBtn.classList.add('hidden');
+      }
     }
 
     function syncTelegramBackButton() {
@@ -2197,8 +2181,17 @@
             </div>
           `;
         } else {
+          const showBar = bDown.length > 1;
           countryList.innerHTML = bDown.map(item => {
             const pct = item.percent || 0;
+            const badgeHtml = showBar
+              ? `<span class="text-[10px] text-slate-400 bg-slate-800/80 px-2 py-0.5 rounded-full border border-slate-700/60 font-sans">${pct}٪ سهم از مصرف امروز</span>`
+              : `<span class="text-[10px] text-cyan-400/90 bg-slate-800/80 px-2 py-0.5 rounded-full border border-slate-700/60 font-sans">سرور فعال امروز</span>`;
+            const barHtml = showBar
+              ? `<div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden" dir="ltr">
+                  <div class="bg-gradient-to-r from-blue-500 to-cyan-400 h-full rounded-full transition-all duration-500" style="width: ${Math.min(100, Math.max(4, pct))}%;"></div>
+                </div>`
+              : '';
             return `
             <div class="p-2.5 rounded-xl bg-slate-900/70 border border-slate-700/50 space-y-1.5">
               <div class="flex justify-between items-center text-xs">
@@ -2207,13 +2200,11 @@
                   <span>${item.name}</span>
                 </span>
                 <div class="flex items-center gap-2 font-mono">
-                  <span class="text-[10px] text-slate-400 bg-slate-800/80 px-2 py-0.5 rounded-full border border-slate-700/60 font-sans">${pct}٪ سهم از کل مصرف امروز</span>
+                  ${badgeHtml}
                   <span class="text-cyan-300 font-black text-xs" dir="ltr">${item.total_formatted}</span>
                 </div>
               </div>
-              <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden" dir="ltr">
-                <div class="bg-gradient-to-r from-blue-500 to-cyan-400 h-full rounded-full transition-all duration-500" style="width: ${Math.min(100, Math.max(4, pct))}%;"></div>
-              </div>
+              ${barHtml}
             </div>
             `;
           }).join('');
@@ -2237,38 +2228,16 @@
         const repExpire = document.getElementById('repNightlyExpire');
         if (repExpire) repExpire.innerText = `${sub.days_left ?? 0} روز (${sub.expire_jalali || 'نامحدود'})`;
 
-        // 1. All-time / Package-wide Servers Breakdown under used traffic
-        const repAllNodes = document.getElementById('repNightlyAllServersBox');
-        if (repAllNodes) {
-          const allNodes = sub.all_nodes_breakdown || [];
-          if (allNodes.length === 0) {
-            repAllNodes.innerHTML = `<div class="text-center py-1 text-slate-400 text-[10px]">تفکیک مصرفی برای این بسته ثبت نشده است.</div>`;
+        // Reports Hub: Nightly Server Breakdown (مشابه هفتگی و ماهانه، فقط پرچم)
+        const repNightlyNodes = document.getElementById('repNightlyNodesContainer');
+        if (repNightlyNodes) {
+          const nBreakdown = sub.yesterday_breakdown || sub.today_breakdown || [];
+          if (nBreakdown.length === 0) {
+            repNightlyNodes.innerHTML = `<div class="col-span-2 text-center py-2 text-slate-400 text-[10px]">دیشب مصرفی روی سرورها ثبت نشده است.</div>`;
           } else {
-            repAllNodes.innerHTML = allNodes.map(n => `
-              <div dir="ltr" class="flex items-center justify-between text-slate-200 py-0.5">
-                <span class="flex items-center gap-1.5 font-medium">
-                  <span>${n.flag || '🌐'}</span>
-                  <span>${n.name}:</span>
-                </span>
-                <span class="font-bold text-amber-300 font-mono">${n.total_formatted}</span>
-              </div>
-            `).join('');
-          }
-        }
-
-        // 2. Single Day (Yesterday) Servers Breakdown
-        const repDailyNodes = document.getElementById('repNightlyDailyServersBox');
-        if (repDailyNodes) {
-          const yBreakdown = sub.yesterday_breakdown || [];
-          if (yBreakdown.length === 0) {
-            repDailyNodes.innerHTML = `<div class="text-center py-1 text-slate-400 text-[10px]">دیشب مصرفی روی سرورها ثبت نشده است.</div>`;
-          } else {
-            repDailyNodes.innerHTML = yBreakdown.map(n => `
-              <div dir="ltr" class="flex items-center justify-between text-slate-200 py-0.5">
-                <span class="flex items-center gap-1.5 font-medium">
-                  <span>${n.flag || '🌐'}</span>
-                  <span>${n.name}:</span>
-                </span>
+            repNightlyNodes.innerHTML = nBreakdown.map(n => `
+              <div dir="ltr" class="bg-slate-900/60 p-2 rounded-lg flex items-center justify-between">
+                <span class="text-base">${n.flag || '🌐'}</span>
                 <span class="font-bold text-cyan-300 font-mono">${n.total_formatted}</span>
               </div>
             `).join('');
@@ -2312,10 +2281,7 @@
           } else {
             repWeeklyNodes.innerHTML = wBreakdown.map(n => `
               <div dir="ltr" class="bg-slate-900/60 p-2 rounded-lg flex items-center justify-between">
-                <span class="flex items-center gap-1.5 font-medium text-slate-200">
-                  <span>${n.flag || '🌐'}</span>
-                  <span>${n.name}:</span>
-                </span>
+                <span class="text-base">${n.flag || '🌐'}</span>
                 <span class="font-bold text-slate-100 font-mono">${n.total_formatted}</span>
               </div>
             `).join('');
@@ -2340,10 +2306,7 @@
           } else {
             repMonthlyNodes.innerHTML = mBreakdown.map(n => `
               <div dir="ltr" class="bg-slate-900/60 p-2 rounded-lg flex items-center justify-between">
-                <span class="flex items-center gap-1.5 font-medium text-slate-200">
-                  <span>${n.flag || '🌐'}</span>
-                  <span>${n.name}:</span>
-                </span>
+                <span class="text-base">${n.flag || '🌐'}</span>
                 <span class="font-bold text-slate-100 font-mono">${n.total_formatted}</span>
               </div>
             `).join('');
@@ -2358,14 +2321,14 @@
       const repSessionsBadge = document.getElementById('reportsSessionsBadge');
       if (repSessionsBadge) repSessionsBadge.innerText = `${activeDevCount} دستگاه`;
       const mCountText = document.getElementById('modalSessionsCount');
-      if (mCountText) mCountText.innerText = `${activeDevCount} دستگاه متصل`;
+      if (mCountText) mCountText.innerText = `${activeDevCount} دستگاه`;
 
       function renderDeviceList(container) {
         if (!container) return;
         if (devices.length === 0) {
           container.innerHTML = `
             <div class="p-4 rounded-xl bg-slate-900/60 border border-slate-700/50 text-center text-xs text-slate-400">
-              <span>📱 در حال حاضر هیچ دستگاهی به اشتراک شما متصل نیست.</span>
+              <span>📱 در حال حاضر هیچ دستگاه فعالی روی اشتراک شما ثبت نشده است.</span>
             </div>
           `;
           return;
@@ -2380,8 +2343,8 @@
           else if (platform.includes('mac')) icon = '🍏';
           else if (platform.includes('linux')) icon = '🐧';
 
-          const model = d.deviceModel || d.platform || 'دستگاه متصل';
-          const ip = d.requestIp || 'آی‌پی متصل';
+          const model = d.deviceModel || d.platform || 'دستگاه';
+          const ip = d.requestIp || '—';
           const hwid = d.hwid || '';
 
           return `
@@ -2389,15 +2352,15 @@
               <div class="flex items-center gap-2.5">
                 <span class="text-2xl">${icon}</span>
                 <div>
-                  <div class="flex items-center gap-1.5">
+                  <div class="flex items-center gap-2">
                     <span class="text-xs font-bold text-slate-200">${model}</span>
-                    <span class="px-1.5 py-0.2 rounded text-[9px] bg-emerald-500/20 text-emerald-400 font-bold">متصل 🟢</span>
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 inline-block shadow-sm shadow-emerald-400/50" title="فعال"></span>
                   </div>
                   <div class="text-[11px] font-mono text-cyan-400 mt-0.5">IP: ${ip}</div>
                 </div>
               </div>
-              <button class="kill-device-btn text-rose-400 hover:text-white p-1.5 rounded-lg bg-rose-950/50 hover:bg-rose-900 border border-rose-800/60 text-xs transition active:scale-95 flex items-center gap-1" title="قطع اتصال این دستگاه" data-hwid="${hwid}">
-                <span>قطع</span> ✕
+              <button class="kill-device-btn text-rose-400 hover:text-white w-8 h-8 rounded-xl bg-rose-950/40 hover:bg-rose-900 border border-rose-800/50 text-xs transition active:scale-95 flex items-center justify-center shadow-sm" title="قطع این دستگاه" data-hwid="${hwid}">
+                <svg class="w-4 h-4 text-rose-400 hover:text-rose-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
               </button>
             </div>
           `;
@@ -2611,7 +2574,7 @@
             <div class="flex items-center gap-4 my-2.5 text-xs text-slate-300 bg-slate-900/50 p-2 rounded-xl">
               <span>📊 <b dir="ltr" class="font-mono">${p.traffic_gb} GB</b> ترافیک</span>
               <span>📅 <b>${p.duration_days} روز</b></span>
-              <span>🌐 <b>${p.category || 'سرورهای اختصاصی (VIP)'}</b></span>
+              ${p.category ? `<span>🌐 <b>${p.category}</b></span>` : ''}
             </div>
             <button class="buy-plan-btn w-full ${isPopular ? 'bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-500 hover:to-blue-500' : 'bg-blue-600 hover:bg-blue-500'} text-white font-semibold text-xs py-2.5 rounded-xl transition shadow active:scale-[0.98]" data-id="${p.id}" data-price="${finalPrice}" data-name="${p.name}">
               🛒 خرید / تمدید آنی (${formattedFinal} تومان)
