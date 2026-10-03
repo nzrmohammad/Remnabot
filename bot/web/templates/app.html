@@ -346,76 +346,81 @@
           </div>
         </div>
 
-        <!-- Subscription URL, QR & Revoke Buttons -->
-        <div class="bg-slate-800/85 rounded-2xl p-4 border border-slate-700/80 shadow-md space-y-3">
-          <div class="flex items-center justify-between">
-            <span class="text-xs font-bold text-slate-200 flex items-center gap-1.5">
-              <span>📥</span> لینک اشتراک
-            </span>
-            <div class="flex items-center gap-1.5">
-              <button id="qrToggleBtn" class="text-slate-300 hover:text-cyan-300 flex items-center justify-center bg-slate-700/60 hover:bg-slate-700 w-8 h-8 rounded-xl border border-slate-600/60 transition active:scale-95 shadow-sm" title="کیوآرکد">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/></svg>
-              </button>
-              <button id="revokeSubBtnTop" class="text-slate-300 hover:text-rose-400 flex items-center justify-center bg-slate-700/60 hover:bg-slate-700 w-8 h-8 rounded-xl border border-slate-600/60 transition active:scale-95 shadow-sm" title="تعویض لینک اشتراک">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-              </button>
+        <!-- Subscription Accordion Card (کادر بازشونده لینک اشتراک) -->
+        <div class="bg-slate-800/85 rounded-2xl border border-slate-700/80 shadow-md overflow-hidden transition-all duration-300">
+          <!-- Accordion Header Button -->
+          <button id="toggleSubAccordionBtn" class="w-full p-4 flex justify-between items-center text-right hover:bg-slate-700/40 transition active:scale-[0.99]">
+            <div class="flex items-center gap-2">
+              <span id="subChevron" class="text-xs text-slate-400 transition-transform duration-300 transform">◀</span>
+              <span class="text-xs font-bold text-slate-200 flex items-center gap-1.5">
+                <span>📥</span> لینک اشتراک
+              </span>
             </div>
-          </div>
+            <span class="text-[10px] text-cyan-400 bg-cyan-950/60 px-2.5 py-0.5 rounded-lg border border-cyan-800/40 font-medium">مشاهده و کپی</span>
+          </button>
 
-          <!-- Full Subscription Link Container & Modern Copy Button -->
-          <div class="space-y-2">
-            <div id="subBoxWrapper" class="bg-slate-900/90 hover:bg-slate-900/95 rounded-xl p-3 border border-slate-700/70 hover:border-cyan-500/60 relative cursor-pointer transition active:scale-[0.99] group shadow-inner">
-              <div class="flex items-center justify-between pb-1.5 mb-1.5 border-b border-slate-800 text-[10px]">
-                <span class="text-slate-400 group-hover:text-cyan-300 transition flex items-center gap-1 font-medium">
-                  <span>🔗</span> کلیک جهت کپی و باز کردن مستقیم لینک
-                </span>
-                <span class="text-cyan-400 group-hover:translate-x-0.5 transition flex items-center gap-0.5 font-bold">
-                  باز کردن ↗
-                </span>
-              </div>
-              <input type="hidden" id="subInput" value="" />
-              <div id="subDisplayBox" dir="ltr" class="font-mono text-[11px] text-cyan-300 break-all select-all leading-relaxed max-h-20 overflow-y-auto custom-scroll p-0.5">
-                در حال دریافت لینک اشتراک...
+          <!-- Collapsible Content (Hidden by default, opens on click) -->
+          <div id="subAccordionBody" class="hidden px-4 pb-4 pt-1 space-y-3 text-xs border-t border-slate-700/50">
+            <!-- Manage & Action Header -->
+            <div class="flex items-center justify-between pt-1">
+              <span class="text-[11px] text-slate-400 font-medium">ابزارها و اقدامات:</span>
+              <div class="flex items-center gap-1.5">
+                <button id="qrToggleBtn" class="text-slate-300 hover:text-cyan-300 flex items-center justify-center bg-slate-700/60 hover:bg-slate-700 w-8 h-8 rounded-xl border border-slate-600/60 transition active:scale-95 shadow-sm" title="کیوآرکد">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/></svg>
+                </button>
+                <button id="revokeSubBtnTop" class="text-slate-300 hover:text-rose-400 flex items-center justify-center bg-slate-700/60 hover:bg-slate-700 w-8 h-8 rounded-xl border border-slate-600/60 transition active:scale-95 shadow-sm" title="تعویض لینک اشتراک">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                </button>
               </div>
             </div>
-            <button id="copySubBtn" class="w-full bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-500 hover:from-blue-500 hover:to-indigo-500 text-white text-xs font-bold py-2.5 px-4 rounded-xl shadow-md shadow-blue-600/20 transition active:scale-[0.98] flex items-center justify-center gap-2 border border-blue-400/30">
-              <svg class="w-4 h-4 text-blue-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
-              </svg>
-              <span id="copySubBtnText">کپی لینک اشتراک</span>
-            </button>
-          </div>
 
-          <!-- Dynamic QR Popup (Collapsible) -->
-          <div id="qrContainer" class="hidden flex flex-col items-center justify-center p-3.5 bg-slate-900/90 border border-slate-700/70 rounded-2xl text-slate-100 animate-fadeIn text-center">
-            <img id="qrImage" src="" alt="کیوآرکد اشتراک" class="w-36 h-36 rounded-xl bg-white p-1.5 shadow mb-2" />
-            <span class="text-[11px] text-slate-300 font-medium">اسکن مستقیم با دوربین گوشی یا نرم‌افزارهای VPN</span>
-          </div>
+            <!-- Full Subscription Link Container & Modern Copy Button -->
+            <div class="space-y-2">
+              <div id="subBoxWrapper" class="bg-slate-900/90 hover:bg-slate-900/95 rounded-xl p-3 border border-slate-700/70 hover:border-cyan-500/60 relative cursor-pointer transition active:scale-[0.99] group shadow-inner" title="کلیک جهت کپی کردن لینک">
+                <input type="hidden" id="subInput" value="" />
+                <div id="subDisplayBox" dir="ltr" class="font-mono text-[11px] text-cyan-300 break-all select-all leading-relaxed max-h-20 overflow-y-auto custom-scroll p-0.5">
+                  در حال دریافت لینک اشتراک...
+                </div>
+              </div>
+              <button id="copySubBtn" class="w-full bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-500 hover:from-blue-500 hover:to-indigo-500 text-white text-xs font-bold py-2.5 px-4 rounded-xl shadow-md shadow-blue-600/20 transition active:scale-[0.98] flex items-center justify-center gap-2 border border-blue-400/30">
+                <svg class="w-4 h-4 text-blue-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                </svg>
+                <span id="copySubBtnText">کپی لینک اشتراک</span>
+              </button>
+            </div>
 
-          <!-- 1-Click App Importers -->
-          <div class="pt-1">
-            <span class="text-[11px] text-slate-400 block mb-2 font-medium">اتصال خودکار به کلاینت دلخواه:</span>
-            <div class="grid grid-cols-5 gap-1.5 text-center text-xs">
-              <button id="appImportIncy" type="button" class="bg-gradient-to-b from-indigo-900/50 to-slate-800 hover:from-indigo-800/60 p-1.5 rounded-xl border border-indigo-500/40 flex flex-col items-center gap-1 transition shadow-sm group active:scale-95">
-                <span class="text-base group-hover:scale-110 transition">⚡️</span>
-                <span class="font-bold text-[10px] text-indigo-300">Incy</span>
-              </button>
-              <button id="appImportHapp" type="button" class="bg-gradient-to-b from-pink-900/40 to-slate-800 hover:from-pink-800/50 p-1.5 rounded-xl border border-pink-500/30 flex flex-col items-center gap-1 transition shadow-sm group active:scale-95">
-                <span class="text-base group-hover:scale-110 transition">🪐</span>
-                <span class="font-bold text-[10px] text-pink-300">Happ</span>
-              </button>
-              <button id="appImportV2ray" type="button" class="bg-slate-800 hover:bg-slate-700/80 p-1.5 rounded-xl border border-slate-700 flex flex-col items-center gap-1 transition group active:scale-95">
-                <span class="text-base group-hover:scale-110 transition">🤖</span>
-                <span class="font-medium text-[10px] text-slate-200">v2rayNG</span>
-              </button>
-              <button id="appImportHiddify" type="button" class="bg-slate-800 hover:bg-slate-700/80 p-1.5 rounded-xl border border-slate-700 flex flex-col items-center gap-1 transition group active:scale-95">
-                <span class="text-base group-hover:scale-110 transition">🛡️</span>
-                <span class="font-medium text-[10px] text-slate-200">Hiddify</span>
-              </button>
-              <button id="appImportStreisand" type="button" class="bg-slate-800 hover:bg-slate-700/80 p-1.5 rounded-xl border border-slate-700 flex flex-col items-center gap-1 transition group active:scale-95">
-                <span class="text-base group-hover:scale-110 transition">🍏</span>
-                <span class="font-medium text-[10px] text-slate-200">Streisand</span>
-              </button>
+            <!-- Dynamic QR Popup (Collapsible) -->
+            <div id="qrContainer" class="hidden flex flex-col items-center justify-center p-3.5 bg-slate-900/90 border border-slate-700/70 rounded-2xl text-slate-100 animate-fadeIn text-center">
+              <img id="qrImage" src="" alt="کیوآرکد اشتراک" class="w-36 h-36 rounded-xl bg-white p-1.5 shadow mb-2" />
+              <span class="text-[11px] text-slate-300 font-medium">اسکن مستقیم با دوربین گوشی یا نرم‌افزارهای VPN</span>
+            </div>
+
+            <!-- 1-Click App Importers -->
+            <div class="pt-1">
+              <span class="text-[11px] text-slate-400 block mb-2 font-medium">اتصال خودکار به کلاینت دلخواه:</span>
+              <div class="grid grid-cols-5 gap-1.5 text-center text-xs">
+                <button id="appImportIncy" type="button" class="bg-gradient-to-b from-indigo-900/50 to-slate-800 hover:from-indigo-800/60 p-1.5 rounded-xl border border-indigo-500/40 flex flex-col items-center gap-1 transition shadow-sm group active:scale-95">
+                  <span class="text-base group-hover:scale-110 transition">⚡️</span>
+                  <span class="font-bold text-[10px] text-indigo-300">Incy</span>
+                </button>
+                <button id="appImportHapp" type="button" class="bg-gradient-to-b from-pink-900/40 to-slate-800 hover:from-pink-800/50 p-1.5 rounded-xl border border-pink-500/30 flex flex-col items-center gap-1 transition shadow-sm group active:scale-95">
+                  <span class="text-base group-hover:scale-110 transition">🪐</span>
+                  <span class="font-bold text-[10px] text-pink-300">Happ</span>
+                </button>
+                <button id="appImportV2ray" type="button" class="bg-slate-800 hover:bg-slate-700/80 p-1.5 rounded-xl border border-slate-700 flex flex-col items-center gap-1 transition group active:scale-95">
+                  <span class="text-base group-hover:scale-110 transition">🤖</span>
+                  <span class="font-medium text-[10px] text-slate-200">v2rayNG</span>
+                </button>
+                <button id="appImportHiddify" type="button" class="bg-slate-800 hover:bg-slate-700/80 p-1.5 rounded-xl border border-slate-700 flex flex-col items-center gap-1 transition group active:scale-95">
+                  <span class="text-base group-hover:scale-110 transition">🛡️</span>
+                  <span class="font-medium text-[10px] text-slate-200">Hiddify</span>
+                </button>
+                <button id="appImportStreisand" type="button" class="bg-slate-800 hover:bg-slate-700/80 p-1.5 rounded-xl border border-slate-700 flex flex-col items-center gap-1 transition group active:scale-95">
+                  <span class="text-base group-hover:scale-110 transition">🍏</span>
+                  <span class="font-medium text-[10px] text-slate-200">Streisand</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -486,7 +491,7 @@
           <!-- Nightly Per-Server Breakdown (تفکیک مصرف سرورها) -->
           <div class="pt-2 border-t border-slate-700/60 text-xs">
             <span class="text-slate-400 font-medium block mb-1">تفکیک مصرف سرورها:</span>
-            <div id="repNightlyNodesContainer" class="grid grid-cols-2 gap-1.5 font-mono text-[11px]">
+            <div id="repNightlyNodesContainer" dir="ltr" class="grid grid-cols-2 gap-1.5 font-mono text-[11px]">
               <div class="col-span-2 text-center py-2 text-slate-400 text-[10px]">در حال دریافت داده‌ها...</div>
             </div>
           </div>
@@ -1125,27 +1130,40 @@
     <!-- 6. MODAL: STORY CARD (کارت وضعیت شیشه‌ای استوری)         -->
     <!-- ======================================================== -->
     <div id="storyCardModal" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-3 hidden animate-fadeIn overflow-y-auto">
-      <div class="relative w-full max-w-[310px] flex flex-col items-center space-y-2.5 my-auto">
+      <div class="relative w-full max-w-[325px] flex flex-col items-center space-y-2.5 my-auto">
         <button id="closeStoryCardBtn" class="absolute -top-3 left-0 text-slate-400 hover:text-white text-sm bg-slate-800 rounded-full w-7 h-7 flex items-center justify-center z-20">✕</button>
 
+        <!-- Preset Theme Switcher (۳ پوسته بصری اختصاصی) -->
+        <div class="flex items-center justify-center gap-1.5 w-full pt-1">
+          <button id="presetThemeGlassBtn" type="button" class="story-preset-btn active flex-1 py-1.5 px-2 rounded-xl text-[10px] font-bold transition border border-indigo-400/80 bg-indigo-600/30 text-indigo-200">
+            💎 لوکس شیشه‌ای
+          </button>
+          <button id="presetThemeCyberBtn" type="button" class="story-preset-btn flex-1 py-1.5 px-2 rounded-xl text-[10px] font-bold transition border border-slate-700 bg-slate-800/80 text-slate-300 hover:text-emerald-300">
+            ⚡️ سایبرپانک
+          </button>
+          <button id="presetThemeSpeedBtn" type="button" class="story-preset-btn flex-1 py-1.5 px-2 rounded-xl text-[10px] font-bold transition border border-slate-700 bg-slate-800/80 text-slate-300 hover:text-cyan-300">
+            🚀 تست پینگ
+          </button>
+        </div>
+
         <!-- Glassmorphic Card Container -->
-        <div id="exportableStoryCard" class="w-full rounded-3xl p-4 border border-white/20 shadow-[0_20px_50px_rgba(0,0,0,0.8)] relative overflow-hidden text-center flex flex-col justify-between" style="background: linear-gradient(135deg, rgba(30, 27, 75, 0.85) 0%, rgba(15, 23, 42, 0.95) 50%, rgba(49, 46, 129, 0.8) 100%); backdrop-filter: blur(25px);">
-          <!-- Background decorative glow -->
-          <div class="absolute -top-12 -right-12 w-32 h-32 bg-cyan-500/20 rounded-full blur-2xl pointer-events-none"></div>
-          <div class="absolute -bottom-12 -left-12 w-32 h-32 bg-purple-500/25 rounded-full blur-2xl pointer-events-none"></div>
+        <div id="exportableStoryCard" class="w-full rounded-3xl p-4 border border-white/20 shadow-[0_20px_50px_rgba(0,0,0,0.8)] relative overflow-hidden text-center flex flex-col justify-between transition-all duration-300" style="background: linear-gradient(135deg, rgba(30, 27, 75, 0.9) 0%, rgba(15, 23, 42, 0.96) 50%, rgba(49, 46, 129, 0.85) 100%); backdrop-filter: blur(25px);">
+          <!-- Background decorative glows -->
+          <div id="storyGlow1" class="absolute -top-12 -right-12 w-32 h-32 bg-cyan-500/20 rounded-full blur-2xl pointer-events-none transition-all duration-500"></div>
+          <div id="storyGlow2" class="absolute -bottom-12 -left-12 w-32 h-32 bg-purple-500/25 rounded-full blur-2xl pointer-events-none transition-all duration-500"></div>
 
           <!-- Top Brand Header -->
           <div class="flex items-center justify-between border-b border-white/10 pb-2.5 z-10">
             <div class="flex items-center gap-1.5">
-              <span class="text-lg">⚡️</span>
-              <span class="font-extrabold text-xs text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-blue-300 to-indigo-300">RemnaStore Pro</span>
+              <span id="storyBrandIcon" class="text-lg">⚡️</span>
+              <span id="storyBrandTitle" class="font-extrabold text-xs text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-blue-300 to-indigo-300">RemnaStore Pro</span>
             </div>
-            <span class="text-[9px] font-mono font-bold text-amber-300 bg-amber-950/60 border border-amber-500/30 px-2 py-0.5 rounded-full">VIP MEMBER</span>
+            <span id="storyBrandBadge" class="text-[9px] font-mono font-bold text-amber-300 bg-amber-950/60 border border-amber-500/30 px-2 py-0.5 rounded-full">VIP MEMBER</span>
           </div>
 
-          <!-- User Info & Dynamic Metrics -->
+          <!-- User Info & Metrics -->
           <div class="py-2.5 z-10 space-y-2">
-            <div class="w-12 h-12 rounded-full p-0.5 bg-gradient-to-tr from-cyan-400 to-indigo-500 mx-auto shadow-lg shadow-indigo-500/30 flex items-center justify-center">
+            <div id="storyAvatarBorder" class="w-12 h-12 rounded-full p-0.5 bg-gradient-to-tr from-cyan-400 to-indigo-500 mx-auto shadow-lg shadow-indigo-500/30 flex items-center justify-center transition-all duration-300">
               <div id="storyCardAvatarInitial" class="w-full h-full rounded-full bg-slate-900 flex items-center justify-center text-lg font-bold text-white">U</div>
             </div>
             <div>
@@ -1153,8 +1171,8 @@
               <span id="storyCardUsername" class="text-[10px] text-blue-300 font-mono">@user</span>
             </div>
 
-            <!-- Big Remaining Traffic Badge -->
-            <div class="bg-white/5 border border-white/15 rounded-2xl p-2.5 my-1.5 shadow-inner">
+            <!-- Preset Metrics: Standard Traffic View -->
+            <div id="storyMetricsStandard" class="bg-white/5 border border-white/15 rounded-2xl p-2.5 my-1.5 shadow-inner">
               <span class="text-[10px] text-slate-300 font-medium block">ترافیک باقی‌مانده اشتراک:</span>
               <div id="storyCardTraffic" class="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-300 font-mono mt-0.5" dir="ltr">
                 -- GB
@@ -1162,29 +1180,48 @@
               <div class="flex items-center justify-center gap-2.5 text-[10px] text-slate-300 mt-1 pt-1.5 border-t border-white/10">
                 <span id="storyCardDays">-- روز اعتبار</span>
                 <span>•</span>
-                <span>🌍 کلاستر VIP</span>
+                <span>🌍 سرورهای اختصاصی</span>
               </div>
+            </div>
+
+            <!-- Preset Metrics: Speed & Low Ping View (نمایش کیفیت و پایداری شبکه) -->
+            <div id="storyMetricsSpeed" class="hidden bg-slate-950/70 border border-cyan-500/30 rounded-2xl p-2.5 my-1.5 shadow-inner space-y-1.5">
+              <div class="flex items-center justify-between text-[11px]">
+                <span class="text-cyan-300 font-bold flex items-center gap-1">⚡️ پینگ زنده اختصاصی:</span>
+                <span class="font-mono font-extrabold text-emerald-400 text-xs" dir="ltr">32 ms</span>
+              </div>
+              <div class="grid grid-cols-2 gap-1.5 text-[10px] font-mono pt-1 border-t border-slate-800" dir="ltr">
+                <div class="bg-slate-900/80 p-1.5 rounded-lg border border-slate-700/60 text-slate-300">🇩🇪 DE: <b class="text-emerald-400">32ms</b></div>
+                <div class="bg-slate-900/80 p-1.5 rounded-lg border border-slate-700/60 text-slate-300">🇳🇱 NL: <b class="text-emerald-400">38ms</b></div>
+              </div>
+              <div class="text-[9px] text-emerald-400 font-medium pt-0.5">🟢 پایداری ۱۰۰٪ بدون قطعی و پکت‌لاس</div>
             </div>
           </div>
 
-          <!-- Bottom Referral QR Box -->
+          <!-- Bottom Viral Referral QR Box -->
           <div class="bg-black/40 border border-white/10 rounded-2xl p-2.5 z-10 flex items-center gap-2.5 text-right">
-            <!-- Dynamic Mini QR -->
-            <img id="storyCardQr" src="" class="w-10 h-10 rounded-lg bg-white p-0.5 shrink-0" alt="QR" />
+            <!-- Dynamic Mini QR for Referral Link -->
+            <img id="storyCardQr" src="" class="w-11 h-11 rounded-lg bg-white p-0.5 shrink-0" alt="QR" />
             <div class="text-[10px]">
-              <span class="font-bold text-white block">اینترنت آزاد و پرسرعت</span>
-              <span class="text-slate-300 block text-[9px] mt-0.5">اسکن کن تا ترافیک هدیه بگیری!</span>
+              <span class="font-bold text-white block">اینترنت بدون قطعی و پرسرعت</span>
+              <span class="text-emerald-400 block text-[9px] mt-0.5 font-semibold">🎁 با این کارت ۱ گیگابایت هدیه بگیرید</span>
             </div>
           </div>
         </div>
 
+        <!-- Gamification Banner (پاداش دعوت در ازای استوری) -->
+        <div class="bg-amber-500/10 border border-amber-500/30 rounded-2xl p-2.5 w-full text-right text-[10px] text-amber-200/90 leading-relaxed shadow-sm">
+          <span class="font-extrabold block text-amber-300">🎯 پاداش استوری و اشتراک‌گذاری:</span>
+          با انتشار این تصویر در استوری تلگرام، دوستانتان ۱ گیگ هدیه می‌گیرند و برای شما نیز پاداش معرف واریز می‌شود!
+        </div>
+
         <!-- Action Buttons -->
         <div class="flex gap-2 w-full">
-          <button id="downloadStoryBtn" class="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs py-2 rounded-xl transition shadow active:scale-95 flex items-center justify-center gap-1.5">
+          <button id="downloadStoryBtn" class="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs py-2.5 rounded-xl transition shadow active:scale-95 flex items-center justify-center gap-1.5">
             <span>📥</span>
             <span>ذخیره پوستر</span>
           </button>
-          <button id="shareTelegramStoryBtn" class="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-bold text-xs py-2 rounded-xl transition shadow active:scale-95 flex items-center justify-center gap-1.5">
+          <button id="shareTelegramStoryBtn" class="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-bold text-xs py-2.5 rounded-xl transition shadow active:scale-95 flex items-center justify-center gap-1.5">
             <span>🚀</span>
             <span>ارسال به تلگرام</span>
           </button>
@@ -1197,6 +1234,7 @@
     <!-- ======================================================== -->
     <div id="purchaseSuccessModal" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden animate-fadeIn overflow-y-auto">
       <div class="bg-[#1a233a] border border-emerald-500/50 rounded-3xl p-5 w-full text-center space-y-3.5 shadow-2xl relative max-w-[340px] my-auto">
+        <button id="psvcTopCloseBtn" class="absolute top-4 left-4 text-slate-400 hover:text-white text-sm bg-slate-800/80 hover:bg-slate-700 rounded-full w-7 h-7 flex items-center justify-center transition z-10" title="بستن">✕</button>
         <div class="w-16 h-16 bg-emerald-500/20 text-emerald-400 rounded-full flex items-center justify-center text-3xl mx-auto border border-emerald-500/40 shadow-lg shadow-emerald-500/30">
           🎉
         </div>
@@ -1207,7 +1245,13 @@
 
         <!-- Receipt Details Box -->
         <div class="bg-slate-900/80 rounded-2xl p-3 border border-slate-700/70 text-xs space-y-2 text-right">
-          <div class="flex justify-between items-center"><span class="text-slate-400">بسته خریداری‌شده:</span><b id="psvcName" class="text-white font-bold">--</b></div>
+          <div class="flex justify-between items-center">
+            <span class="text-slate-400">بسته خریداری‌شده:</span>
+            <div class="flex items-center gap-1.5">
+              <b id="psvcName" class="text-white font-bold">--</b>
+              <span id="psvcIcon" class="text-base">📦</span>
+            </div>
+          </div>
           <div class="flex justify-between items-center"><span class="text-slate-400">حجم ترافیک:</span><b id="psvcTraffic" class="text-cyan-400 font-mono" dir="ltr">-- GB</b></div>
           <div class="flex justify-between items-center"><span class="text-slate-400">مدت اعتبار:</span><b id="psvcDays" class="text-slate-200">-- روز</b></div>
           <div class="flex justify-between items-center"><span class="text-slate-400">نام کاربری:</span><code id="psvcUser" class="text-indigo-300 font-mono" dir="ltr">--</code></div>
@@ -1619,7 +1663,7 @@
         copyAndLaunch(u => `streisand://import/${encodeURIComponent(u)}`, 'Streisand');
       });
 
-      // Clickable Subscription Box Container (Direct Copy & Open)
+      // Clickable Subscription Box Container (Direct Copy without opening external window)
       document.getElementById('subBoxWrapper')?.addEventListener('click', () => {
         const url = getSubUrl();
         if (!url) return;
@@ -1627,12 +1671,7 @@
         if (window.Telegram?.WebApp?.HapticFeedback) {
           try { window.Telegram.WebApp.HapticFeedback.notificationOccurred('success'); } catch(e) {}
         }
-        showToast('📋 لینک اشتراک کپی شد و در حال باز شدن است...');
-        if (window.Telegram?.WebApp?.openLink) {
-          try { window.Telegram.WebApp.openLink(url); } catch(e) { window.open(url, '_blank'); }
-        } else {
-          window.open(url, '_blank');
-        }
+        showToast('📋 لینک اشتراک با موفقیت در کلیپ‌بورد کپی شد.');
       });
     }
 
@@ -2020,6 +2059,21 @@
       });
     }
 
+    // Toggle Subscription Accordion in Dashboard
+    const toggleSubAccordionBtn = document.getElementById('toggleSubAccordionBtn');
+    const subAccordionBody = document.getElementById('subAccordionBody');
+    const subChevron = document.getElementById('subChevron');
+    if (toggleSubAccordionBtn && subAccordionBody && subChevron) {
+      toggleSubAccordionBtn.addEventListener('click', () => {
+        subAccordionBody.classList.toggle('hidden');
+        if (subAccordionBody.classList.contains('hidden')) {
+          subChevron.style.transform = 'rotate(0deg)';
+        } else {
+          subChevron.style.transform = 'rotate(-90deg)';
+        }
+      });
+    }
+
     openLuckyWheelBtn?.addEventListener('click', () => luckyWheelModal?.classList.remove('hidden'));
     closeLuckyWheelBtn?.addEventListener('click', () => luckyWheelModal?.classList.add('hidden'));
 
@@ -2144,7 +2198,7 @@
       }, 3650);
     });
 
-    // 17. Story Card Modal & Share Logic
+    // 17. Story Card Themes, Canvas Export & Telegram Story Share
     const storyCardModal = document.getElementById('storyCardModal');
     const openStoryCardBtn = document.getElementById('openStoryCardBtn');
     const closeStoryCardBtn = document.getElementById('closeStoryCardBtn');
@@ -2154,11 +2208,255 @@
     openStoryCardBtn?.addEventListener('click', () => storyCardModal?.classList.remove('hidden'));
     closeStoryCardBtn?.addEventListener('click', () => storyCardModal?.classList.add('hidden'));
 
-    downloadStoryBtn?.addEventListener('click', () => {
-      alert('📸 کارت استوری با بالاترین کیفیت آماده شد و در گالری ذخیره گردید!');
-    });
+    let currentStoryTheme = 'glass'; // 'glass', 'cyber', 'speed'
+    const presetThemeGlassBtn = document.getElementById('presetThemeGlassBtn');
+    const presetThemeCyberBtn = document.getElementById('presetThemeCyberBtn');
+    const presetThemeSpeedBtn = document.getElementById('presetThemeSpeedBtn');
+    const exportableStoryCard = document.getElementById('exportableStoryCard');
+    const storyGlow1 = document.getElementById('storyGlow1');
+    const storyGlow2 = document.getElementById('storyGlow2');
+    const storyBrandIcon = document.getElementById('storyBrandIcon');
+    const storyBrandTitle = document.getElementById('storyBrandTitle');
+    const storyBrandBadge = document.getElementById('storyBrandBadge');
+    const storyMetricsStandard = document.getElementById('storyMetricsStandard');
+    const storyMetricsSpeed = document.getElementById('storyMetricsSpeed');
+    const storyAvatarBorder = document.getElementById('storyAvatarBorder');
+
+    function applyStoryTheme(theme) {
+      currentStoryTheme = theme;
+      const allBtns = [presetThemeGlassBtn, presetThemeCyberBtn, presetThemeSpeedBtn];
+      allBtns.forEach(b => {
+        b?.classList.remove('active', 'border-indigo-400/80', 'bg-indigo-600/30', 'text-indigo-200', 'border-emerald-400/80', 'bg-emerald-600/30', 'text-emerald-200', 'border-cyan-400/80', 'bg-cyan-600/30', 'text-cyan-200');
+        b?.classList.add('border-slate-700', 'bg-slate-800/80', 'text-slate-300');
+      });
+
+      if (theme === 'glass') {
+        presetThemeGlassBtn?.classList.add('active', 'border-indigo-400/80', 'bg-indigo-600/30', 'text-indigo-200');
+        presetThemeGlassBtn?.classList.remove('border-slate-700', 'bg-slate-800/80', 'text-slate-300');
+        if (exportableStoryCard) {
+          exportableStoryCard.style.background = 'linear-gradient(135deg, rgba(30, 27, 75, 0.9) 0%, rgba(15, 23, 42, 0.96) 50%, rgba(49, 46, 129, 0.85) 100%)';
+          exportableStoryCard.style.borderColor = 'rgba(255, 255, 255, 0.2)';
+          exportableStoryCard.style.boxShadow = '0 20px 50px rgba(0, 0, 0, 0.8)';
+        }
+        if (storyGlow1) { storyGlow1.className = 'absolute -top-12 -right-12 w-32 h-32 bg-cyan-500/20 rounded-full blur-2xl pointer-events-none transition-all duration-500'; }
+        if (storyGlow2) { storyGlow2.className = 'absolute -bottom-12 -left-12 w-32 h-32 bg-purple-500/25 rounded-full blur-2xl pointer-events-none transition-all duration-500'; }
+        if (storyBrandIcon) storyBrandIcon.innerText = '⚡️';
+        if (storyBrandTitle) {
+          storyBrandTitle.innerText = 'RemnaStore Pro';
+          storyBrandTitle.className = 'font-extrabold text-xs text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-blue-300 to-indigo-300';
+        }
+        if (storyBrandBadge) {
+          storyBrandBadge.innerText = 'VIP MEMBER';
+          storyBrandBadge.className = 'text-[9px] font-mono font-bold text-amber-300 bg-amber-950/60 border border-amber-500/30 px-2 py-0.5 rounded-full';
+        }
+        if (storyAvatarBorder) storyAvatarBorder.className = 'w-12 h-12 rounded-full p-0.5 bg-gradient-to-tr from-cyan-400 to-indigo-500 mx-auto shadow-lg shadow-indigo-500/30 flex items-center justify-center transition-all duration-300';
+        storyMetricsStandard?.classList.remove('hidden');
+        storyMetricsSpeed?.classList.add('hidden');
+      } else if (theme === 'cyber') {
+        presetThemeCyberBtn?.classList.add('active', 'border-emerald-400/80', 'bg-emerald-600/30', 'text-emerald-200');
+        presetThemeCyberBtn?.classList.remove('border-slate-700', 'bg-slate-800/80', 'text-slate-300');
+        if (exportableStoryCard) {
+          exportableStoryCard.style.background = '#060913';
+          exportableStoryCard.style.borderColor = 'rgba(16, 185, 129, 0.7)';
+          exportableStoryCard.style.boxShadow = '0 0 35px rgba(16, 185, 129, 0.25)';
+        }
+        if (storyGlow1) { storyGlow1.className = 'absolute -top-12 -right-12 w-32 h-32 bg-emerald-500/25 rounded-full blur-2xl pointer-events-none transition-all duration-500'; }
+        if (storyGlow2) { storyGlow2.className = 'absolute -bottom-12 -left-12 w-32 h-32 bg-teal-500/20 rounded-full blur-2xl pointer-events-none transition-all duration-500'; }
+        if (storyBrandIcon) storyBrandIcon.innerText = '👾';
+        if (storyBrandTitle) {
+          storyBrandTitle.innerText = 'REMNA CYBERNET';
+          storyBrandTitle.className = 'font-black text-xs text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-400 font-mono tracking-wide';
+        }
+        if (storyBrandBadge) {
+          storyBrandBadge.innerText = '⚡️ LOW PING';
+          storyBrandBadge.className = 'text-[9px] font-mono font-bold text-emerald-300 bg-emerald-950/80 border border-emerald-500/40 px-2 py-0.5 rounded-full';
+        }
+        if (storyAvatarBorder) storyAvatarBorder.className = 'w-12 h-12 rounded-full p-0.5 bg-gradient-to-tr from-emerald-400 to-teal-300 mx-auto shadow-lg shadow-emerald-500/40 flex items-center justify-center transition-all duration-300';
+        storyMetricsStandard?.classList.remove('hidden');
+        storyMetricsSpeed?.classList.add('hidden');
+      } else if (theme === 'speed') {
+        presetThemeSpeedBtn?.classList.add('active', 'border-cyan-400/80', 'bg-cyan-600/30', 'text-cyan-200');
+        presetThemeSpeedBtn?.classList.remove('border-slate-700', 'bg-slate-800/80', 'text-slate-300');
+        if (exportableStoryCard) {
+          exportableStoryCard.style.background = 'linear-gradient(135deg, #071026 0%, #0d224a 50%, #071026 100%)';
+          exportableStoryCard.style.borderColor = 'rgba(6, 182, 212, 0.7)';
+          exportableStoryCard.style.boxShadow = '0 0 35px rgba(6, 182, 212, 0.25)';
+        }
+        if (storyGlow1) { storyGlow1.className = 'absolute -top-12 -right-12 w-32 h-32 bg-cyan-500/30 rounded-full blur-2xl pointer-events-none transition-all duration-500'; }
+        if (storyGlow2) { storyGlow2.className = 'absolute -bottom-12 -left-12 w-32 h-32 bg-blue-500/25 rounded-full blur-2xl pointer-events-none transition-all duration-500'; }
+        if (storyBrandIcon) storyBrandIcon.innerText = '🚀';
+        if (storyBrandTitle) {
+          storyBrandTitle.innerText = 'SPEED & BENCHMARK';
+          storyBrandTitle.className = 'font-black text-xs text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-sky-300 to-blue-400 font-mono tracking-wide';
+        }
+        if (storyBrandBadge) {
+          storyBrandBadge.innerText = '🟢 100% ONLINE';
+          storyBrandBadge.className = 'text-[9px] font-mono font-bold text-cyan-300 bg-cyan-950/80 border border-cyan-500/40 px-2 py-0.5 rounded-full';
+        }
+        if (storyAvatarBorder) storyAvatarBorder.className = 'w-12 h-12 rounded-full p-0.5 bg-gradient-to-tr from-cyan-400 to-blue-500 mx-auto shadow-lg shadow-cyan-500/40 flex items-center justify-center transition-all duration-300';
+        storyMetricsStandard?.classList.add('hidden');
+        storyMetricsSpeed?.classList.remove('hidden');
+      }
+    }
+
+    presetThemeGlassBtn?.addEventListener('click', () => applyStoryTheme('glass'));
+    presetThemeCyberBtn?.addEventListener('click', () => applyStoryTheme('cyber'));
+    presetThemeSpeedBtn?.addEventListener('click', () => applyStoryTheme('speed'));
+
     shareTelegramStoryBtn?.addEventListener('click', () => {
-      alert('🚀 در محیط رسمی تلگرام، پنجره باز کردن مستقیم استوری تلگرام با ویجت لینک دعوت باز می‌شود.');
+      const refLink = window.currentReferralLink || `https://t.me/RemnaWaveBot?start=ref_${window.lastUserData?.user?.id || ''}`;
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(refLink).catch(() => {});
+      }
+      if (window.Telegram?.WebApp?.HapticFeedback) {
+        try { window.Telegram.WebApp.HapticFeedback.notificationOccurred('success'); } catch(e) {}
+      }
+
+      let sharedViaStory = false;
+      const qrEl = document.getElementById('storyCardQr');
+      const mediaUrl = qrEl?.src || '';
+      if (window.Telegram?.WebApp?.shareToStory && mediaUrl) {
+        try {
+          window.Telegram.WebApp.shareToStory(mediaUrl, {
+            text: '🚀 اتصال پرسرعت به اینترنت بدون قطعی\n🎁 با این کارت ۱ گیگابایت هدیه رایگان بگیرید!',
+            widget_link: {
+              url: refLink,
+              name: 'دریافت اینترنت هدیه'
+            }
+          });
+          sharedViaStory = true;
+        } catch(e) {
+          sharedViaStory = false;
+        }
+      }
+
+      if (!sharedViaStory) {
+        const shareMsg = '🚀 اتصال فوق‌سریع و بدون قطعی به اینترنت آزاد\n🎁 با لینک دعوت اختصاصی من ۱ گیگابایت اینترنت هدیه بگیرید:\n' + refLink;
+        const tgShareUrl = `https://t.me/share/url?url=${encodeURIComponent(refLink)}&text=${encodeURIComponent(shareMsg)}`;
+        if (window.Telegram?.WebApp?.openTelegramLink) {
+          try { window.Telegram.WebApp.openTelegramLink(tgShareUrl); } catch(e) { window.open(tgShareUrl, '_blank'); }
+        } else {
+          window.open(tgShareUrl, '_blank');
+        }
+      }
+      showToast('🚀 لینک دعوت کپی شد و صفحه اشتراک‌گذاری در استوری باز گردید.');
+    });
+
+    downloadStoryBtn?.addEventListener('click', () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = 600;
+      canvas.height = 780;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        showToast('⚠️ مرورگر شما از ایجاد تصویر پشتیبانی نمی‌کند.');
+        return;
+      }
+
+      if (currentStoryTheme === 'cyber') {
+        ctx.fillStyle = '#060913';
+        ctx.fillRect(0, 0, 600, 780);
+        ctx.strokeStyle = '#10b981';
+        ctx.lineWidth = 6;
+        ctx.strokeRect(15, 15, 570, 750);
+      } else if (currentStoryTheme === 'speed') {
+        const grad = ctx.createLinearGradient(0, 0, 600, 780);
+        grad.addColorStop(0, '#071026');
+        grad.addColorStop(0.5, '#0d224a');
+        grad.addColorStop(1, '#071026');
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, 600, 780);
+        ctx.strokeStyle = '#06b6d4';
+        ctx.lineWidth = 6;
+        ctx.strokeRect(15, 15, 570, 750);
+      } else {
+        const grad = ctx.createLinearGradient(0, 0, 600, 780);
+        grad.addColorStop(0, '#1e1b4b');
+        grad.addColorStop(0.5, '#0f172a');
+        grad.addColorStop(1, '#312e81');
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, 600, 780);
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+        ctx.lineWidth = 4;
+        ctx.strokeRect(15, 15, 570, 750);
+      }
+
+      ctx.textAlign = 'center';
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 28px Vazirmatn, sans-serif';
+      const title = currentStoryTheme === 'cyber' ? 'REMNA CYBERNET' : (currentStoryTheme === 'speed' ? 'SPEED & BENCHMARK' : 'RemnaStore Pro');
+      ctx.fillText(title, 300, 75);
+
+      ctx.beginPath();
+      ctx.arc(300, 160, 45, 0, Math.PI * 2);
+      ctx.fillStyle = currentStoryTheme === 'cyber' ? '#10b981' : (currentStoryTheme === 'speed' ? '#06b6d4' : '#6366f1');
+      ctx.fill();
+
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 36px Vazirmatn, sans-serif';
+      const initial = (document.getElementById('storyCardAvatarInitial')?.innerText || 'U').trim();
+      ctx.fillText(initial, 300, 172);
+
+      const sName = (document.getElementById('storyCardName')?.innerText || 'کاربر').trim();
+      const sUser = (document.getElementById('storyCardUsername')?.innerText || '').trim();
+      ctx.font = 'bold 24px Vazirmatn, sans-serif';
+      ctx.fillText(sName, 300, 240);
+      ctx.font = '16px monospace';
+      ctx.fillStyle = '#93c5fd';
+      ctx.fillText(sUser, 300, 268);
+
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
+      ctx.fillRect(60, 300, 480, 180);
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+      ctx.strokeRect(60, 300, 480, 180);
+
+      if (currentStoryTheme === 'speed') {
+        ctx.font = 'bold 22px Vazirmatn, sans-serif';
+        ctx.fillStyle = '#38bdf8';
+        ctx.fillText('⚡️ پینگ زنده سرورها: ۳۲ میلی‌ثانیه', 300, 345);
+        ctx.font = '18px monospace';
+        ctx.fillStyle = '#34d399';
+        ctx.fillText('🇩🇪 DE: 32ms    •    🇳🇱 NL: 38ms', 300, 395);
+        ctx.font = '16px Vazirmatn, sans-serif';
+        ctx.fillStyle = '#10b981';
+        ctx.fillText('🟢 ۱۰۰٪ آنلاین و بدون افت سرعت', 300, 445);
+      } else {
+        ctx.font = '16px Vazirmatn, sans-serif';
+        ctx.fillStyle = '#cbd5e1';
+        ctx.fillText('ترافیک باقی‌مانده اشتراک:', 300, 340);
+        ctx.font = 'bold 44px monospace';
+        ctx.fillStyle = '#34d399';
+        const sTraf = (document.getElementById('storyCardTraffic')?.innerText || '-- GB').trim();
+        ctx.fillText(sTraf, 300, 400);
+        ctx.font = '16px Vazirmatn, sans-serif';
+        ctx.fillStyle = '#cbd5e1';
+        const sDays = (document.getElementById('storyCardDays')?.innerText || '-- روز').trim();
+        ctx.fillText(`${sDays}  •  🌍 کلاستر اختصاصی`, 300, 445);
+      }
+
+      ctx.font = 'bold 22px Vazirmatn, sans-serif';
+      ctx.fillStyle = '#ffffff';
+      ctx.fillText('اینترنت بدون قطعی و پرسرعت', 300, 525);
+      ctx.font = '18px Vazirmatn, sans-serif';
+      ctx.fillStyle = '#34d399';
+      ctx.fillText('🎁 با این کارت ۱ گیگابایت هدیه رایگان بگیرید', 300, 560);
+
+      const qrImg = document.getElementById('storyCardQr');
+      const finishDownload = () => {
+        const link = document.createElement('a');
+        link.download = 'remna-story-card.png';
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+        showToast('📸 پوستر استوری با بالاترین کیفیت در گالری ذخیره شد.');
+      };
+
+      if (qrImg && qrImg.complete && qrImg.naturalWidth > 0) {
+        try {
+          ctx.drawImage(qrImg, 240, 590, 120, 120);
+        } catch(e) {}
+        finishDownload();
+      } else {
+        finishDownload();
+      }
     });
 
     // 18. Support & Ticket Center Logic
@@ -2435,8 +2733,11 @@
       if (storyAvatar) storyAvatar.innerText = displayName.charAt(0).toUpperCase();
       if (storyTraffic) storyTraffic.innerText = `${sub?.traffic_remaining_gb ?? '--'} GB`;
       if (storyDays) storyDays.innerText = `${sub?.days_left ?? 0} روز اعتبار`;
-      if (storyQr && sub?.subscription_url) {
-        storyQr.src = `https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(sub.subscription_url)}`;
+      const botUsername = data.bot_username || window.Telegram?.WebApp?.initDataUnsafe?.bot?.username || 'RemnaWaveBot';
+      const refLink = `https://t.me/${botUsername}?start=ref_${user.id || ''}`;
+      window.currentReferralLink = refLink;
+      if (storyQr) {
+        storyQr.src = `https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(refLink)}`;
       }
 
       // Today's Country Breakdown (ریز مصرف - تفکیک متناسب بدون پر نشان دادن بی‌مورد کادر)
@@ -2835,11 +3136,11 @@
           txContainer.innerHTML = txList.map(tx => `
             <div class="bg-slate-900/70 rounded-xl p-3 border border-slate-700/60 flex items-center justify-between text-xs">
               <div class="flex items-center gap-2.5">
-                <span class="text-xl">${tx.type === 'topup' ? '💳' : '🛒'}</span>
                 <div>
                   <span class="font-bold text-slate-200 block">${tx.title}</span>
                   <span class="text-[10px] text-slate-400 font-mono mt-0.5" dir="ltr">${tx.date_jalali || ''}</span>
                 </div>
+                <span class="text-xl">${tx.type === 'topup' ? '💳' : '🛒'}</span>
               </div>
               <div class="text-left font-mono">
                 <span class="font-bold ${tx.is_positive ? 'text-emerald-400' : 'text-slate-200'} block" dir="ltr">
@@ -2954,6 +3255,7 @@
               const pModal = document.getElementById('purchaseSuccessModal');
               if (pModal) {
                 const sNameEl = document.getElementById('psvcName');
+                const sIconEl = document.getElementById('psvcIcon');
                 const sTrafEl = document.getElementById('psvcTraffic');
                 const sDaysEl = document.getElementById('psvcDays');
                 const sUserEl = document.getElementById('psvcUser');
@@ -2961,7 +3263,19 @@
                 const sBalEl = document.getElementById('psvcNewBalance');
                 const sSubEl = document.getElementById('psvcSubDisplay');
 
-                if (sNameEl) sNameEl.innerText = res.service_name || planName;
+                const rawName = (res.service_name || planName || '').trim();
+                // Extract leading emoji if present
+                const emojiMatch = rawName.match(/^([\uD800-\uDBFF][\uDC00-\uDFFF]|[\u2600-\u27BF]|\p{Emoji_Presentation}|\p{Extended_Pictographic})/u);
+                if (emojiMatch) {
+                  const emoji = emojiMatch[0];
+                  const cleanName = rawName.replace(emoji, '').trim();
+                  if (sNameEl) sNameEl.innerText = cleanName;
+                  if (sIconEl) sIconEl.innerText = emoji;
+                } else {
+                  if (sNameEl) sNameEl.innerText = rawName;
+                  if (sIconEl) sIconEl.innerText = '📦';
+                }
+
                 if (sTrafEl) sTrafEl.innerText = `${res.traffic_gb ?? ''} GB`;
                 if (sDaysEl) sDaysEl.innerText = `${res.duration_days ?? ''} روز`;
                 if (sUserEl) sUserEl.innerText = res.panel_username || (window.lastUserData?.active_sub?.username || 'کاربر');
@@ -2992,14 +3306,31 @@
                     }
                   };
                 }
+
+                const handlePurchaseModalClose = () => {
+                  pModal.classList.add('hidden');
+                  // Reset coupon so subsequent shop views show original standard prices
+                  window.activeCoupon = null;
+                  const cInput = document.getElementById('couponInput');
+                  if (cInput) cInput.value = '';
+                  const cBtn = document.getElementById('applyCouponBtn');
+                  if (cBtn) {
+                    cBtn.disabled = false;
+                    cBtn.innerText = 'اعمال';
+                    cBtn.className = 'bg-slate-700 hover:bg-slate-600 text-slate-200 text-xs font-semibold px-3.5 py-2 rounded-lg transition';
+                  }
+                  if (window.lastUserData) renderShopPlans(window.lastUserData);
+                  // Refresh user data with API for immediate balance and subscription sync
+                  syncUserDataWithApi(window.currentAccountId);
+                  // Return to dashboard
+                  const dashNav = document.querySelector('.nav-btn[data-tab="tab-dashboard"]');
+                  dashNav?.click();
+                };
+
                 const closeSuccessBtn = document.getElementById('psvcCloseBtn');
-                if (closeSuccessBtn) {
-                  closeSuccessBtn.onclick = () => {
-                    pModal.classList.add('hidden');
-                    const dashNav = document.querySelector('.nav-btn[data-tab="tab-dashboard"]');
-                    dashNav?.click();
-                  };
-                }
+                if (closeSuccessBtn) closeSuccessBtn.onclick = handlePurchaseModalClose;
+                const psvcTopCloseBtn = document.getElementById('psvcTopCloseBtn');
+                if (psvcTopCloseBtn) psvcTopCloseBtn.onclick = handlePurchaseModalClose;
 
                 pModal.classList.remove('hidden');
               } else {

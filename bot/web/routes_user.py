@@ -495,7 +495,17 @@ async def get_user_me(request: web.Request) -> web.Response:
         except Exception as exc:
             logger.warning("Failed to fetch alert settings for %s: %s", telegram_id, exc)
 
+        bot = request.app.get("bot")
+        bot_username = ""
+        if bot:
+            me_obj = getattr(bot, "_me", None)
+            if me_obj and getattr(me_obj, "username", None):
+                bot_username = me_obj.username
+            elif getattr(bot, "username", None):
+                bot_username = bot.username
+
         data = {
+            "bot_username": bot_username,
             "user": {
                 "id": telegram_id,
                 "first_name": user_auth.get("first_name", "کاربر"),
