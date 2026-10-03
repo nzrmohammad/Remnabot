@@ -7,6 +7,7 @@ from pathlib import Path
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from bot.common import admin_thread_kwargs
 from bot.db.models import AdminLog, AppSetting, Coupon, Order, Service, User, Wallet
 
 logger = logging.getLogger(__name__)
@@ -329,8 +330,7 @@ async def auto_backup_loop(bot, session_factory) -> None:
                 async with session_factory() as session:
                     backup_path = await create_database_backup(session)
                     store = await get_store_settings(session)
-                    topic_id = store.topic_alerts or settings.ADMIN_TOPIC_ALERTS
-                    thread_kwargs = {"message_thread_id": topic_id} if topic_id else {}
+                    thread_kwargs = admin_thread_kwargs(store, settings, kind="alerts")
 
                     caption = (
                         "💾 <b>نسخه پشتیبان خودکار دیتابیس (ساعت ۰۱:۳۰ بامداد)</b>\n\n"

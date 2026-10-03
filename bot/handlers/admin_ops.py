@@ -74,11 +74,7 @@ GB = 1024 ** 3
 
 
 
-def _safe_int(value: str | int | None) -> int | None:
-    try:
-        return int(str(value))
-    except (ValueError, TypeError):
-        return None
+_safe_int = parse_int
 
 
 def _back_admin(lang: str) -> InlineKeyboardBuilder:

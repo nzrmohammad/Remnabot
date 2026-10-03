@@ -8,37 +8,40 @@ from aiogram.types import CallbackQuery, Message
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from bot.common import SEPARATOR, fmt, is_admin, parse_int
+from bot.common import (
+    SEPARATOR,
+    fmt,
+    get_limit_bytes,
+    get_online_at,
+    get_used_bytes,
+    is_admin,
+    parse_int,
+    resolve_op,
+)
 from bot.db.repositories.admin_log_repo import AdminLogRepository
 from bot.db.repositories.user_repo import UserRepository
+from bot.handlers.admin_user_devices import router as devices_router
+from bot.handlers.admin_user_squads import router as squads_router
 from bot.locales.texts import t
-from bot.services.formatting import format_date, format_datetime
+from bot.services.formatting import format_date, format_datetime, human_bytes
 from bot.services.menu import delete_message_silently, render_menu
 from bot.services.remnawave import RemnawaveClient
 from bot.states.admin import UserManagementStates
 
 logger = logging.getLogger(__name__)
 router = Router(name="admin_user_detail")
+router.include_router(squads_router)
+router.include_router(devices_router)
 
 _parse_int = parse_int
-
-
-def _is_admin(user_id: int) -> bool:
-    import bot.handlers.admin_users as _users
-    fn = getattr(_users, "_is_admin", is_admin)
-    return fn(user_id)
+_is_admin = is_admin
 
 
 async def _render_panel_user_detail(
     bot: Bot, user, user_repo: UserRepository, remnawave: RemnawaveClient,
     panel_user_id: int, category: str, page: int, toast: str | None = None,
 ) -> None:
-    import bot.handlers.admin_users as _users
-    get_used_bytes_fn = getattr(_users, "_get_used_bytes")
-    get_limit_bytes_fn = getattr(_users, "_get_limit_bytes")
-    format_gb_fn = getattr(_users, "_format_gb")
-    get_online_at_fn = getattr(_users, "_get_online_at")
-    render_menu_fn = getattr(_users, "render_menu", render_menu)
+    render_menu_fn = resolve_op("render_menu", render_menu)
 
     lang = user.language or "fa"
     puser = await remnawave.get_panel_user_by_id(panel_user_id)
@@ -54,11 +57,11 @@ async def _render_panel_user_detail(
     status = str(puser.get("status", "")).upper()
     status_label = "✅" if status == "ACTIVE" else "⛔️"
 
-    used_b = get_used_bytes_fn(puser)
-    limit_b = get_limit_bytes_fn(puser)
-    used_str = format_gb_fn(used_b)
-    limit_str = format_gb_fn(limit_b) if limit_b > 0 else ("نامحدود" if lang == "fa" else "Unlimited")
-    rem_str = format_gb_fn(max(0, limit_b - used_b)) if limit_b > 0 else "∞"
+    used_b = get_used_bytes(puser)
+    limit_b = get_limit_bytes(puser)
+    used_str = human_bytes(used_b)
+    limit_str = human_bytes(limit_b) if limit_b > 0 else ("نامحدود" if lang == "fa" else "Unlimited")
+    rem_str = human_bytes(max(0, limit_b - used_b)) if limit_b > 0 else "∞"
 
     # Expiry
     expire_str = "—"
@@ -80,7 +83,7 @@ async def _render_panel_user_detail(
 
     # Online
     online_str = "⚪️"
-    online_at = get_online_at_fn(puser)
+    online_at = get_online_at(puser)
     if online_at:
         now = datetime.now(timezone.utc)
         if (now - online_at) <= timedelta(minutes=5):
@@ -147,7 +150,6 @@ async def _render_panel_user_detail(
     # Row 1: Status toggle + Revoke link
     toggle_text = t(lang, "btn_disable") if status == "ACTIVE" else t(lang, "btn_enable")
     if lang == "fa":
-        # RTL: Left = Revoke, Right = Toggle
         kb.button(text=t(lang, "btn_revoke_sub"), callback_data=f"adm:puser:revoke:{panel_user_id}:{category}:{page}")
         kb.button(text=toggle_text, callback_data=f"adm:puser:toggle:{panel_user_id}:{category}:{page}")
     else:
@@ -223,10 +225,8 @@ async def panel_user_callback_dispatch(
     user = await user_repo.get_or_create(call.from_user.id, call.from_user.username)
     lang = user.language
 
-    import bot.handlers.admin_users as _users
-    render_detail_fn = getattr(_users, "_render_panel_user_detail", _render_panel_user_detail)
-    render_menu_fn = getattr(_users, "render_menu", render_menu)
-    admin_log_repo_cls = getattr(_users, "AdminLogRepository", AdminLogRepository)
+    render_detail_fn = resolve_op("_render_panel_user_detail", _render_panel_user_detail)
+    render_menu_fn = resolve_op("render_menu", render_menu)
 
     sub_action = parts[2]
     if sub_action == "toggle":
@@ -238,7 +238,7 @@ async def panel_user_callback_dispatch(
             cur_status = str(puser.get("status", "")).upper()
             new_status = "DISABLED" if cur_status == "ACTIVE" else "ACTIVE"
             await remnawave.set_user_status(p_id, new_status)
-            await admin_log_repo_cls(session).log(
+            await AdminLogRepository(session).log(
                 call.from_user.id, "toggle_user_status", detail=f"id={p_id} status={new_status}"
             )
             await render_detail_fn(bot, user, user_repo, remnawave, p_id, cat, page, toast=t(lang, "toast_status_toggled"))
@@ -250,7 +250,7 @@ async def panel_user_callback_dispatch(
         cat = parts[4]
         page = int(parts[5])
         await remnawave.reset_user_traffic(p_id)
-        await admin_log_repo_cls(session).log(
+        await AdminLogRepository(session).log(
             call.from_user.id, "reset_user_traffic", detail=f"id={p_id}"
         )
         await render_detail_fn(bot, user, user_repo, remnawave, p_id, cat, page, toast=t(lang, "toast_traffic_reset"))
@@ -262,7 +262,7 @@ async def panel_user_callback_dispatch(
         cat = parts[4]
         page = int(parts[5])
         await remnawave.revoke_user_sub(p_id)
-        await admin_log_repo_cls(session).log(
+        await AdminLogRepository(session).log(
             call.from_user.id, "revoke_user_sub", detail=f"id={p_id}"
         )
         await render_detail_fn(bot, user, user_repo, remnawave, p_id, cat, page, toast=t(lang, "toast_sub_revoked"))
@@ -303,40 +303,10 @@ async def panel_user_callback_dispatch(
         cat = parts[5]
         page = int(parts[6])
         await remnawave.update_user_fields(p_id, trafficLimitStrategy=strat)
-        await admin_log_repo_cls(session).log(
+        await AdminLogRepository(session).log(
             call.from_user.id, "traffic_strategy", detail=f"id={p_id} strat={strat}"
         )
         await render_detail_fn(bot, user, user_repo, remnawave, p_id, cat, page, toast=t(lang, "toast_strat_updated"))
-        await call.answer()
-        return
-
-    if sub_action == "hwidlim":
-        p_id = int(parts[3])
-        cat = parts[4]
-        page = int(parts[5])
-        kb = InlineKeyboardBuilder()
-        kb.button(text=t(lang, "hwid_n_devices", n=1), callback_data=f"adm:puser:sethwid:{p_id}:1:{cat}:{page}")
-        kb.button(text=t(lang, "hwid_n_devices", n=2), callback_data=f"adm:puser:sethwid:{p_id}:2:{cat}:{page}")
-        kb.button(text=t(lang, "hwid_n_devices", n=3), callback_data=f"adm:puser:sethwid:{p_id}:3:{cat}:{page}")
-        kb.button(text=t(lang, "hwid_n_devices", n=5), callback_data=f"adm:puser:sethwid:{p_id}:5:{cat}:{page}")
-        kb.button(text=t(lang, "hwid_unlimited"), callback_data=f"adm:puser:sethwid:{p_id}:0:{cat}:{page}")
-        kb.button(text=t(lang, "btn_back"), callback_data=f"adm:puser:{p_id}:{cat}:{page}")
-        kb.adjust(2, 2, 1, 1)
-        await render_menu_fn(bot, user, user_repo, t(lang, "hwid_limit_title"), kb.as_markup())
-        await call.answer()
-        return
-
-    if sub_action == "sethwid":
-        p_id = int(parts[3])
-        val = int(parts[4])
-        cat = parts[5]
-        page = int(parts[6])
-        new_limit = val if val > 0 else None
-        await remnawave.update_user_fields(p_id, hwidDeviceLimit=new_limit)
-        await admin_log_repo_cls(session).log(
-            call.from_user.id, "hwid_limit", detail=f"id={p_id} limit={new_limit}"
-        )
-        await render_detail_fn(bot, user, user_repo, remnawave, p_id, cat, page, toast=t(lang, "toast_hwid_updated"))
         await call.answer()
         return
 
@@ -366,137 +336,6 @@ async def panel_user_callback_dispatch(
         await call.answer()
         return
 
-    if sub_action == "squads":
-        p_id = int(parts[3])
-        cat = parts[4]
-        page = int(parts[5])
-        puser = await remnawave.get_panel_user_by_id(p_id)
-        if not puser:
-            await call.answer(t("fa", "acc_error"), show_alert=True)
-        active_uuids = set()
-        for item in (puser.get("activeInternalSquads") or []):
-            if isinstance(item, dict):
-                uid = item.get("uuid") or item.get("id")
-                if uid:
-                    active_uuids.add(str(uid))
-            elif item:
-                active_uuids.add(str(item))
-
-        all_squads = await remnawave.get_internal_squads()
-        lines = [t(lang, "puser_squads_title"), SEPARATOR, t(lang, "puser_squads_hint")]
-        kb = InlineKeyboardBuilder()
-        for sq in all_squads:
-            u_id = sq.get("uuid")
-            s_name = sq.get("name", "Squad")
-            is_active = u_id in active_uuids
-            icon = "✅" if is_active else "⬜️"
-            kb.button(
-                text=f"{icon} {s_name}",
-                callback_data=f"adm:puser:tgsq:{p_id}:{u_id}:{cat}:{page}",
-            )
-        kb.button(text=t(lang, "btn_back"), callback_data=f"adm:puser:{p_id}:{cat}:{page}")
-        kb.adjust(1)
-        await render_menu_fn(bot, user, user_repo, "\n".join(lines), kb.as_markup())
-        await call.answer()
-        return
-
-    if sub_action == "tgsq":
-        p_id = int(parts[3])
-        target_uuid = parts[4]
-        cat = parts[5]
-        page = int(parts[6])
-        puser = await remnawave.get_panel_user_by_id(p_id)
-        if not puser:
-            await call.answer(t("fa", "acc_error"), show_alert=True)
-            return
-        active_uuids = set()
-        for item in (puser.get("activeInternalSquads") or []):
-            if isinstance(item, dict):
-                uid = item.get("uuid") or item.get("id")
-                if uid:
-                    active_uuids.add(str(uid))
-            elif item:
-                active_uuids.add(str(item))
-
-        if target_uuid in active_uuids:
-            active_uuids.remove(target_uuid)
-        else:
-            active_uuids.add(target_uuid)
-        await remnawave.set_user_squads(p_id, list(active_uuids))
-        await admin_log_repo_cls(session).log(
-            call.from_user.id, "update_user_squads", detail=f"id={p_id} squads={len(active_uuids)}"
-        )
-        all_squads = await remnawave.get_internal_squads()
-        lines = [t(lang, "toast_squads_updated"), "", t(lang, "puser_squads_title"), SEPARATOR, t(lang, "puser_squads_hint")]
-        kb = InlineKeyboardBuilder()
-        for sq in all_squads:
-            u_id = sq.get("uuid")
-            s_name = sq.get("name", "Squad")
-            is_active = u_id in active_uuids
-            icon = "✅" if is_active else "⬜️"
-            kb.button(
-                text=f"{icon} {s_name}",
-                callback_data=f"adm:puser:tgsq:{p_id}:{u_id}:{cat}:{page}",
-            )
-        kb.button(text=t(lang, "btn_back"), callback_data=f"adm:puser:{p_id}:{cat}:{page}")
-        kb.adjust(1)
-        await render_menu_fn(bot, user, user_repo, "\n".join(lines), kb.as_markup())
-        await call.answer()
-        return
-
-    if sub_action == "hwid":
-        p_id = int(parts[3])
-        cat = parts[4]
-        page = int(parts[5])
-        devices = await remnawave.get_user_hwid_devices(p_id)
-        kb = InlineKeyboardBuilder()
-        lines = [f"📱 {t(lang, 'puser_devices')}:", SEPARATOR]
-        if not devices:
-            lines.append(t(lang, "puser_no_devices"))
-        else:
-            for dev in devices:
-                hwid = dev.get("hwid", "—")
-                dev_name = dev.get("deviceName") or dev.get("platform") or "Device"
-                lines.append(f"• <b>{dev_name}</b>\n  <code>{hwid}</code>")
-                kb.button(
-                    text=f"🗑 {dev_name[:16]}",
-                    callback_data=f"adm:puser:delhwid:{p_id}:{hwid}:{cat}:{page}",
-                )
-        kb.button(text=t(lang, "btn_back"), callback_data=f"adm:puser:{p_id}:{cat}:{page}")
-        kb.adjust(1)
-        await render_menu_fn(bot, user, user_repo, "\n".join(lines), kb.as_markup())
-        await call.answer()
-        return
-
-    if sub_action == "delhwid":
-        p_id = int(parts[3])
-        hwid = parts[4]
-        cat = parts[5]
-        page = int(parts[6])
-        await remnawave.delete_hwid_device(p_id, hwid)
-        await admin_log_repo_cls(session).log(
-            call.from_user.id, "delete_hwid", detail=f"id={p_id} hwid={hwid}"
-        )
-        devices = await remnawave.get_user_hwid_devices(p_id)
-        kb = InlineKeyboardBuilder()
-        lines = [t(lang, "puser_device_removed"), "", f"📱 {t(lang, 'puser_devices')}:", SEPARATOR]
-        if not devices:
-            lines.append(t(lang, "puser_no_devices"))
-        else:
-            for dev in devices:
-                dev_hwid = dev.get("hwid", "—")
-                dev_name = dev.get("deviceName") or dev.get("platform") or "Device"
-                lines.append(f"• <b>{dev_name}</b>\n  <code>{dev_hwid}</code>")
-                kb.button(
-                    text=f"🗑 {dev_name[:16]}",
-                    callback_data=f"adm:puser:delhwid:{p_id}:{dev_hwid}:{cat}:{page}",
-                )
-        kb.button(text=t(lang, "btn_back"), callback_data=f"adm:puser:{p_id}:{cat}:{page}")
-        kb.adjust(1)
-        await render_menu_fn(bot, user, user_repo, "\n".join(lines), kb.as_markup())
-        await call.answer()
-        return
-
     # Default: view user detail: adm:puser:{id}:{category}:{page}
     try:
         p_id = int(parts[2])
@@ -515,13 +354,11 @@ async def panel_user_callback_dispatch(
 async def puser_extend_days_step(
     message: Message, bot: Bot, user_repo: UserRepository, state: FSMContext,
 ):
-    import bot.handlers.admin_users as _users
-    del_msg_fn = getattr(_users, "delete_message_silently", delete_message_silently)
-    render_menu_fn = getattr(_users, "render_menu", render_menu)
+    render_menu_fn = resolve_op("render_menu", render_menu)
 
     user = await user_repo.get_or_create(message.from_user.id, message.from_user.username)
     lang = user.language
-    await del_msg_fn(bot, message.chat.id, message.message_id)
+    await delete_message_silently(bot, message.chat.id, message.message_id)
 
     data = await state.get_data()
     p_id = int(data.get("ext_p_id", 0))
@@ -550,17 +387,14 @@ async def puser_extend_traffic_step(
     message: Message, bot: Bot, user_repo: UserRepository,
     session: AsyncSession, state: FSMContext, remnawave: RemnawaveClient,
 ):
+    render_menu_fn = resolve_op("render_menu", render_menu)
+    render_detail_fn = resolve_op("_render_panel_user_detail", _render_panel_user_detail)
     import bot.handlers.admin_users as _users
-    del_msg_fn = getattr(_users, "delete_message_silently", delete_message_silently)
-    render_menu_fn = getattr(_users, "render_menu", render_menu)
-    render_detail_fn = getattr(_users, "_render_panel_user_detail", _render_panel_user_detail)
-    render_list_fn = getattr(_users, "_render_panel_users_list")
-    admin_log_repo_cls = getattr(_users, "AdminLogRepository", AdminLogRepository)
-    get_limit_bytes_fn = getattr(_users, "_get_limit_bytes")
+    render_list_fn = resolve_op("_render_panel_users_list", _users._render_panel_users_list)
 
     user = await user_repo.get_or_create(message.from_user.id, message.from_user.username)
     lang = user.language
-    await del_msg_fn(bot, message.chat.id, message.message_id)
+    await delete_message_silently(bot, message.chat.id, message.message_id)
 
     data = await state.get_data()
     p_id = int(data.get("ext_p_id", 0))
@@ -598,13 +432,13 @@ async def puser_extend_traffic_step(
     else:
         new_exp_iso = cur_exp_str or (now + timedelta(days=36500)).strftime("%Y-%m-%dT%H:%M:%SZ")
 
-    cur_limit = get_limit_bytes_fn(puser)
+    cur_limit = get_limit_bytes(puser)
     new_limit = cur_limit + (ext_gb * (1024 ** 3)) if ext_gb > 0 else cur_limit
 
     await remnawave.update_user_subscription(
         p_id, expire_at_iso=new_exp_iso, traffic_limit_bytes=new_limit, status="ACTIVE",
     )
-    await admin_log_repo_cls(session).log(
+    await AdminLogRepository(session).log(
         message.from_user.id, "quick_extend", detail=f"id={p_id} +days={ext_days} +gb={ext_gb}",
     )
     await state.clear()
@@ -616,15 +450,12 @@ async def puser_edit_tid_step(
     message: Message, bot: Bot, user_repo: UserRepository,
     session: AsyncSession, state: FSMContext, remnawave: RemnawaveClient,
 ):
-    import bot.handlers.admin_users as _users
-    del_msg_fn = getattr(_users, "delete_message_silently", delete_message_silently)
-    render_menu_fn = getattr(_users, "render_menu", render_menu)
-    render_detail_fn = getattr(_users, "_render_panel_user_detail", _render_panel_user_detail)
-    admin_log_repo_cls = getattr(_users, "AdminLogRepository", AdminLogRepository)
+    render_menu_fn = resolve_op("render_menu", render_menu)
+    render_detail_fn = resolve_op("_render_panel_user_detail", _render_panel_user_detail)
 
     user = await user_repo.get_or_create(message.from_user.id, message.from_user.username)
     lang = user.language
-    await del_msg_fn(bot, message.chat.id, message.message_id)
+    await delete_message_silently(bot, message.chat.id, message.message_id)
 
     data = await state.get_data()
     p_id = int(data.get("edit_p_id", 0))
@@ -645,7 +476,7 @@ async def puser_edit_tid_step(
         new_tid = parsed
 
     await remnawave.update_user_fields(p_id, telegramId=new_tid)
-    await admin_log_repo_cls(session).log(
+    await AdminLogRepository(session).log(
         message.from_user.id, "edit_telegram_id", detail=f"id={p_id} tid={new_tid}",
     )
     await state.clear()
@@ -657,14 +488,11 @@ async def puser_edit_desc_step(
     message: Message, bot: Bot, user_repo: UserRepository,
     session: AsyncSession, state: FSMContext, remnawave: RemnawaveClient,
 ):
-    import bot.handlers.admin_users as _users
-    del_msg_fn = getattr(_users, "delete_message_silently", delete_message_silently)
-    render_detail_fn = getattr(_users, "_render_panel_user_detail", _render_panel_user_detail)
-    admin_log_repo_cls = getattr(_users, "AdminLogRepository", AdminLogRepository)
+    render_detail_fn = resolve_op("_render_panel_user_detail", _render_panel_user_detail)
 
     user = await user_repo.get_or_create(message.from_user.id, message.from_user.username)
     lang = user.language
-    await del_msg_fn(bot, message.chat.id, message.message_id)
+    await delete_message_silently(bot, message.chat.id, message.message_id)
 
     data = await state.get_data()
     p_id = int(data.get("edit_p_id", 0))
@@ -676,7 +504,7 @@ async def puser_edit_desc_step(
     new_desc = "" if raw in SKIP_WORDS else raw
 
     await remnawave.update_user_fields(p_id, description=new_desc)
-    await admin_log_repo_cls(session).log(
+    await AdminLogRepository(session).log(
         message.from_user.id, "edit_description", detail=f"id={p_id} desc={new_desc[:30]}",
     )
     await state.clear()

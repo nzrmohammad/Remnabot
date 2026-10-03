@@ -12,6 +12,7 @@ import logging
 from aiogram import Bot
 from sqlalchemy.ext.asyncio import async_sessionmaker
 
+from bot.common import admin_thread_kwargs
 from bot.config import get_settings
 from bot.db.repositories.order_repo import OrderRepository
 
@@ -40,8 +41,7 @@ async def run_reconcile(
         from bot.services.app_settings import get_store_settings
         async with session_factory() as session:
             store = await get_store_settings(session)
-        topic_id = store.topic_alerts if store.topic_alerts is not None else settings.ADMIN_TOPIC_ALERTS
-        thread_kwargs = {"message_thread_id": topic_id} if topic_id else {}
+        thread_kwargs = admin_thread_kwargs(store, settings, kind="alerts")
         try:
             await bot.send_message(
                 settings.ADMIN_CHAT_ID,

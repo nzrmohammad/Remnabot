@@ -9,6 +9,7 @@ from aiogram import Bot
 from aiogram.types import ErrorEvent, Update
 from sqlalchemy.ext.asyncio import async_sessionmaker
 
+from bot.common import admin_thread_kwargs
 from bot.config import get_settings
 from bot.services.app_settings import get_store_settings
 from bot.services.formatting import format_datetime, now_tz
@@ -87,7 +88,7 @@ async def report_error(
         f"<pre><code>{html.escape(tb_tail)}</code></pre>"
     )
 
-    thread_kwargs = {"message_thread_id": topic_id} if topic_id else {}
+    thread_kwargs = admin_thread_kwargs(topic_id=topic_id)
     delivered = False
 
     try:

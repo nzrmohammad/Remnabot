@@ -7,6 +7,7 @@ import time
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from aiohttp import web
 
+from bot.common import admin_thread_kwargs
 from bot.db.repositories.crypto_repo import CryptoRepository
 from bot.db.repositories.wallet_repo import WalletRepository
 from bot.services.crypto.ton import fetch_ton_transactions
@@ -88,8 +89,7 @@ async def post_user_topup_card(request: web.Request) -> web.Response:
             kb.button(text="❌ رد", callback_data=f"topup:no:{topup.id}")
             kb.adjust(2)
 
-            topic_id = store.topic_topups if store.topic_topups is not None else settings.ADMIN_TOPIC_TOPUPS
-            thread_kwargs = {"message_thread_id": topic_id} if topic_id else {}
+            thread_kwargs = admin_thread_kwargs(store, settings, kind="topups")
 
             tg_username = f"@{user_auth.get('username')}" if user_auth.get("username") else "—"
             user_full_name = user_auth.get("first_name", "کاربر")

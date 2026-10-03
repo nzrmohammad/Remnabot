@@ -16,11 +16,7 @@ from bot.services.remnawave import RemnawaveClient
 
 logger = logging.getLogger(__name__)
 router = Router(name="admin_nodes")
-
-def _is_admin(user_id: int) -> bool:
-    import bot.handlers.admin_ops as _ops
-    fn = getattr(_ops, "_is_admin", is_admin)
-    return fn(user_id)
+_is_admin = is_admin
 
 # --------------------------------------------------------------------- #
 # Node / Server Status Monitor

@@ -28,7 +28,7 @@ from bot.services.formatting import format_date, format_datetime, now_tz, parse_
 from bot.services.menu import render_menu
 from bot.services.remnawave import RemnawaveClient
 
-from bot.common import SEPARATOR
+from bot.common import SEPARATOR, parse_int
 
 logger = logging.getLogger(__name__)
 router = Router(name="account")
@@ -65,11 +65,7 @@ async def _get_accounts(
     return deduped
 
 
-def _safe_int(value: str | int | None) -> int | None:
-    try:
-        return int(str(value))
-    except (ValueError, TypeError):
-        return None
+_safe_int = parse_int
 
 
 def _find_account(accounts: list[dict], account_id: str | int) -> dict | None:

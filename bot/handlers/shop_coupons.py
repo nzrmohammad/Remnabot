@@ -6,6 +6,7 @@ from aiogram.types import CallbackQuery, Message
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from bot.common import resolve_op
 from bot.db.repositories.coupon_repo import CouponRepository
 from bot.db.repositories.service_repo import ServiceRepository
 from bot.db.repositories.user_repo import UserRepository
@@ -14,6 +15,12 @@ from bot.locales.texts import t
 from bot.services.menu import delete_message_silently, render_menu
 from bot.services.remnawave import RemnawaveClient
 from bot.states.service_request import ServiceRequestStates
+from bot.handlers.shop_purchase import (
+    _render_buy_confirm,
+    buy_new_account,
+    service_buy,
+)
+from bot.handlers.shop_renew import buy_for_account
 
 logger = logging.getLogger(__name__)
 router = Router(name="shop_coupons")
@@ -24,8 +31,7 @@ async def apply_coupon_prompt(
     call: CallbackQuery, bot: Bot, user_repo: UserRepository,
     session: AsyncSession, state: FSMContext,
 ):
-    import bot.handlers.service_request as _sr
-    render_fn = getattr(_sr, "render_menu", render_menu)
+    render_fn = resolve_op("render_menu", render_menu)
 
     parts = call.data.split(":")
     service_id = int(parts[2])
@@ -55,8 +61,6 @@ async def remove_coupon(
     call: CallbackQuery, bot: Bot, user_repo: UserRepository,
     session: AsyncSession, remnawave: RemnawaveClient, state: FSMContext,
 ):
-    import bot.handlers.service_request as _sr
-
     parts = call.data.split(":")
     service_id = int(parts[2])
     flow_type = parts[3]
@@ -66,15 +70,15 @@ async def remove_coupon(
 
     if flow_type == "a":
         call.data = f"svc:buya:{service_id}:{target_id}"
-        buy_for_account_fn = getattr(_sr, "buy_for_account")
+        buy_for_account_fn = resolve_op("buy_for_account", buy_for_account)
         await buy_for_account_fn(call, bot, user_repo, session, remnawave, state)
     elif flow_type == "n":
         call.data = f"svc:buynew:{service_id}"
-        buy_new_account_fn = getattr(_sr, "buy_new_account")
+        buy_new_account_fn = resolve_op("buy_new_account", buy_new_account)
         await buy_new_account_fn(call, bot, user_repo, session, remnawave, state)
     else:
         call.data = f"svc:buy:{service_id}"
-        service_buy_fn = getattr(_sr, "service_buy")
+        service_buy_fn = resolve_op("service_buy", service_buy)
         await service_buy_fn(call, bot, user_repo, session, remnawave, state)
 
 
@@ -83,9 +87,8 @@ async def process_coupon_code(
     message: Message, bot: Bot, user_repo: UserRepository,
     session: AsyncSession, remnawave: RemnawaveClient, state: FSMContext,
 ):
-    import bot.handlers.service_request as _sr
-    render_fn = getattr(_sr, "render_menu", render_menu)
-    render_confirm_fn = getattr(_sr, "_render_buy_confirm")
+    render_fn = resolve_op("render_menu", render_menu)
+    render_confirm_fn = resolve_op("_render_buy_confirm", _render_buy_confirm)
 
     user = await user_repo.get_or_create(message.from_user.id, message.from_user.username)
     lang = user.language or "fa"
@@ -101,7 +104,8 @@ async def process_coupon_code(
         await state.clear()
         return
 
-    service = await ServiceRepository(session).get(service_id)
+    s_repo_cls = resolve_op("ServiceRepository", ServiceRepository)
+    service = await s_repo_cls(session).get(service_id)
     if not service:
         await state.clear()
         return
@@ -129,7 +133,8 @@ async def process_coupon_code(
 
     await state.update_data(coupon_code=code, discount_amount=discount_amount)
 
-    wallet = await WalletRepository(session).get_wallet(user.telegram_id)
+    w_repo_cls = resolve_op("WalletRepository", WalletRepository)
+    wallet = await w_repo_cls(session).get_wallet(user.telegram_id)
     target_name = None
     confirm_cb = f"svc:confirm:{service.id}"
     back_cb = "menu:services"

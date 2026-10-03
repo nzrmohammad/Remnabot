@@ -16,10 +16,7 @@ from bot.services.topups import decide_topup
 logger = logging.getLogger(__name__)
 router = Router(name="admin_topups")
 
-def _is_admin(user_id: int) -> bool:
-    import bot.handlers.admin_ops as _ops
-    fn = getattr(_ops, "_is_admin", is_admin)
-    return fn(user_id)
+_is_admin = is_admin
 
 
 async def _render_topups(

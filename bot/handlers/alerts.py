@@ -10,9 +10,11 @@ from aiogram.exceptions import TelegramBadRequest
 from aiogram.types import CallbackQuery
 
 from bot.db.repositories.user_repo import UserRepository
+from bot.db.repositories.wallet_repo import WalletRepository
 from bot.keyboards.inline import back_to_menu_keyboard
 from bot.locales.texts import t
 from bot.services.menu import render_menu
+from bot.services.render import render_services, render_wallet
 
 router = Router(name="alerts")
 
@@ -34,13 +36,9 @@ async def alert_goto(
         await call.message.delete()
 
     if section == "services":
-        # lazy import avoids a circular dependency between the modules
-        from bot.handlers.service_request import _render_services
-        await _render_services(bot, user, user_repo, session)
+        await render_services(bot, user, user_repo, session)
     elif section == "wallet":
-        from bot.db.repositories.wallet_repo import WalletRepository
-        from bot.handlers.wallet import _render_wallet
-        await _render_wallet(
+        await render_wallet(
             bot, user, user_repo, WalletRepository(session), user.language
         )
     else:

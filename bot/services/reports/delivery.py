@@ -5,7 +5,7 @@ import re
 from aiogram import Bot
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from bot.common import SEPARATOR
+from bot.common import SEPARATOR, admin_thread_kwargs
 from bot.config import get_settings
 from bot.services.app_settings import get_store_settings
 
@@ -79,8 +79,7 @@ async def _deliver_admin_report(
 ) -> None:
     settings = get_settings()
     store = await get_store_settings(session)
-    topic_id = store.topic_alerts if store.topic_alerts is not None else settings.ADMIN_TOPIC_ALERTS
-    thread_kwargs = {"message_thread_id": topic_id} if topic_id else {}
+    thread_kwargs = admin_thread_kwargs(store, settings, kind="alerts")
 
     chunks = _chunk_text(text)
     for chunk in chunks:

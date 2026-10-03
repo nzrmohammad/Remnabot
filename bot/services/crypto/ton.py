@@ -8,6 +8,7 @@ import aiohttp
 from aiogram import Bot
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
+from bot.common import admin_thread_kwargs
 from bot.config import get_settings
 from bot.db.repositories.crypto_repo import CryptoRepository
 from bot.db.repositories.user_repo import UserRepository
@@ -186,9 +187,8 @@ async def verify_and_process_payments(bot: Bot, session_factory) -> int:
                         store.topic_crypto
                         or settings.ADMIN_TOPIC_CRYPTO
                         or store.topic_topups
-                        or settings.ADMIN_TOPIC_TOPUPS
                     )
-                    thread_kwargs = {"message_thread_id": topic_id} if topic_id else {}
+                    thread_kwargs = admin_thread_kwargs(topic_id=topic_id)
 
                     tx_url = f"https://tonviewer.com/transaction/{tx_hash}"
                     admin_msg = (

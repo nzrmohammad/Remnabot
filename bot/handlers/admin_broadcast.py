@@ -11,7 +11,7 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 from sqlalchemy import distinct, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from bot.common import is_admin
+from bot.common import is_admin, resolve_op
 from bot.db.models import Order, Wallet
 from bot.db.repositories.admin_log_repo import AdminLogRepository
 from bot.db.repositories.user_repo import UserRepository
@@ -23,10 +23,7 @@ from bot.states.admin import BroadcastStates
 logger = logging.getLogger(__name__)
 router = Router(name="admin_broadcast")
 
-def _is_admin(user_id: int) -> bool:
-    import bot.handlers.admin_ops as _ops
-    fn = getattr(_ops, "_is_admin", is_admin)
-    return fn(user_id)
+_is_admin = is_admin
 
 BROADCAST_CONFIRM_KEY = "bcast:draft"
 
@@ -43,9 +40,7 @@ async def _resolve_broadcast_recipients(
     remnawave: RemnawaveClient,
     target: str,
 ) -> list[int]:
-    """Return a list of Telegram IDs matching the audience filter."""
-    import bot.handlers.admin_ops as _ops
-    u_repo_cls = getattr(_ops, "UserRepository", UserRepository)
+    u_repo_cls = resolve_op("UserRepository", UserRepository)
 
     if target == "all":
         users = await u_repo_cls(session).all_users()
@@ -209,8 +204,7 @@ async def broadcast_send(
         await call.answer(t("fa", "acc_error"), show_alert=True)
         return
 
-    import bot.handlers.admin_ops as _ops
-    log_repo_cls = getattr(_ops, "AdminLogRepository", AdminLogRepository)
+    log_repo_cls = resolve_op("AdminLogRepository", AdminLogRepository)
 
     ok = fail = 0
     safe_text = escape(draft)

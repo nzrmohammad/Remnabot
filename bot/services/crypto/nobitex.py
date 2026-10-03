@@ -9,6 +9,7 @@ from aiogram import Bot
 from aiogram.types import InlineKeyboardMarkup
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
+from bot.common import admin_thread_kwargs
 from bot.config import get_settings
 from bot.services.app_settings import get_store_settings
 
@@ -398,7 +399,7 @@ async def send_rate_notification(bot: Bot, session_factory, hour_str: str = "") 
             or store.topic_topups
             or settings.ADMIN_TOPIC_TOPUPS
         )
-        thread_kwargs = {"message_thread_id": topic_id} if topic_id else {}
+        thread_kwargs = admin_thread_kwargs(topic_id=topic_id)
 
         try:
             await bot.send_message(settings.ADMIN_CHAT_ID, text, reply_markup=kb, **thread_kwargs)

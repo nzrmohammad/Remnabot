@@ -10,7 +10,7 @@ from aiogram.types import CallbackQuery, CopyTextButton, InlineKeyboardMarkup, M
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from bot.common import SEPARATOR, parse_int
+from bot.common import SEPARATOR, admin_thread_kwargs, parse_int, resolve_op
 from bot.config import get_settings
 from bot.db.repositories.support_repo import SupportMessageRepository
 from bot.db.repositories.user_repo import UserRepository
@@ -20,6 +20,7 @@ from bot.services.formatting import format_datetime, now_tz
 from bot.services.menu import delete_message_silently, render_menu
 from bot.services.remnawave import RemnawaveClient
 from bot.states.service_request import ServiceRequestStates
+from bot.handlers.shop_purchase import _maybe_reward_referrer
 
 logger = logging.getLogger(__name__)
 router = Router(name="shop_trial")
@@ -94,8 +95,7 @@ async def service_new_request(
 ):
     """«درخواست سرویس جدید» / «اکانت تست رایگان». If trial is enabled, asks for username
     and provisions a 1-day / 1GB trial account, verifies user, and binds Telegram ID."""
-    import bot.handlers.service_request as _sr
-    render_fn = getattr(_sr, "render_menu", render_menu)
+    render_fn = resolve_op("render_menu", render_menu)
 
     await state.clear()
     user = await user_repo.get_or_create(call.from_user.id, call.from_user.username)
@@ -140,9 +140,8 @@ async def service_trial_username(
     message: Message, bot: Bot, user_repo: UserRepository,
     session: AsyncSession, remnawave: RemnawaveClient, state: FSMContext,
 ):
-    import bot.handlers.service_request as _sr
-    render_fn = getattr(_sr, "render_menu", render_menu)
-    reward_ref_fn = getattr(_sr, "_maybe_reward_referrer")
+    render_fn = resolve_op("render_menu", render_menu)
+    reward_ref_fn = resolve_op("_maybe_reward_referrer", _maybe_reward_referrer)
 
     user = await user_repo.get_or_create(message.from_user.id, message.from_user.username)
     lang = user.language or "fa"
@@ -257,8 +256,7 @@ async def service_trial_username(
         f"🌐 حجم: {store.trial_traffic_gb} GB | ⏳ مدت: {dur_days} روز\n"
         f"🔗 شناسه تلگرام: {escape(tg_username)}"
     )
-    topic_id = store.topic_orders or get_settings().ADMIN_TOPIC_ORDERS
-    thread_kwargs = {"message_thread_id": topic_id} if topic_id else {}
+    thread_kwargs = admin_thread_kwargs(store, get_settings(), kind="orders")
     try:
         await bot.send_message(get_settings().ADMIN_CHAT_ID, admin_text, **thread_kwargs)
     except Exception:
@@ -270,8 +268,7 @@ async def service_new_forward(
     message: Message, bot: Bot, user_repo: UserRepository,
     session: AsyncSession, state: FSMContext,
 ):
-    import bot.handlers.service_request as _sr
-    render_fn = getattr(_sr, "render_menu", render_menu)
+    render_fn = resolve_op("render_menu", render_menu)
 
     user = await user_repo.get_or_create(message.from_user.id, message.from_user.username)
     settings = get_settings()
@@ -283,7 +280,7 @@ async def service_new_forward(
         or settings.ADMIN_TOPIC_SUPPORT
         or settings.ADMIN_TOPIC_ORDERS
     )
-    thread_kwargs = {"message_thread_id": topic_id} if topic_id else {}
+    thread_kwargs = admin_thread_kwargs(topic_id=topic_id)
     sent = False
     tg_username = f"@{message.from_user.username}" if message.from_user.username else "—"
     admin_header_text = t(

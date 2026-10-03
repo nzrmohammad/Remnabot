@@ -19,7 +19,7 @@ from bot.services.configs import fetch_subscription_configs
 from bot.services.menu import render_menu
 from bot.services.remnawave import RemnawaveClient
 
-from bot.common import SEPARATOR
+from bot.common import SEPARATOR, parse_int
 
 logger = logging.getLogger(__name__)
 router = Router(name="configs")
@@ -58,11 +58,7 @@ async def _verify_account(
     return None
 
 
-def _safe_int(value: str | int | None) -> int | None:
-    try:
-        return int(str(value))
-    except (ValueError, TypeError):
-        return None
+_safe_int = parse_int
 
 
 async def _render_account_configs(

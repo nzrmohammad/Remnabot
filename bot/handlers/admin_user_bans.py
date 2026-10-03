@@ -6,7 +6,7 @@ from aiogram.types import CallbackQuery
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from bot.common import SEPARATOR, fmt, is_admin
+from bot.common import SEPARATOR, fmt, is_admin, resolve_op
 from bot.db.repositories.admin_log_repo import AdminLogRepository
 from bot.db.repositories.user_repo import UserRepository
 from bot.db.repositories.wallet_repo import WalletRepository
@@ -19,10 +19,7 @@ logger = logging.getLogger(__name__)
 router = Router(name="admin_user_bans")
 
 
-def _is_admin(user_id: int) -> bool:
-    import bot.handlers.admin_users as _users
-    fn = getattr(_users, "_is_admin", is_admin)
-    return fn(user_id)
+_is_admin = is_admin
 
 
 @router.callback_query(F.data.startswith("adm:user:"))
@@ -43,10 +40,9 @@ async def telegram_user_detail(
     user = await user_repo.get_or_create(call.from_user.id, call.from_user.username)
     lang = user.language
 
-    import bot.handlers.admin_users as _users
-    user_repo_cls = getattr(_users, "UserRepository", UserRepository)
-    wallet_repo_cls = getattr(_users, "WalletRepository", WalletRepository)
-    render_menu_fn = getattr(_users, "render_menu", render_menu)
+    user_repo_cls = resolve_op("UserRepository", UserRepository)
+    wallet_repo_cls = resolve_op("WalletRepository", WalletRepository)
+    render_menu_fn = resolve_op("render_menu", render_menu)
 
     target = await user_repo_cls(session).get_by_telegram_id(telegram_id)
     if target is None:
@@ -99,8 +95,7 @@ async def admin_ban_user(
     if not _is_admin(call.from_user.id):
         await call.answer(t("fa", "not_authorized"), show_alert=True)
         return
-    import bot.handlers.admin_users as _users
-    admin_log_repo_cls = getattr(_users, "AdminLogRepository", AdminLogRepository)
+    admin_log_repo_cls = resolve_op("AdminLogRepository", AdminLogRepository)
 
     telegram_id = int(call.data.rsplit(":", 1)[1])
     await user_repo.set_banned(telegram_id, True)
@@ -120,8 +115,7 @@ async def admin_unban_user(
     if not _is_admin(call.from_user.id):
         await call.answer(t("fa", "not_authorized"), show_alert=True)
         return
-    import bot.handlers.admin_users as _users
-    admin_log_repo_cls = getattr(_users, "AdminLogRepository", AdminLogRepository)
+    admin_log_repo_cls = resolve_op("AdminLogRepository", AdminLogRepository)
 
     telegram_id = int(call.data.rsplit(":", 1)[1])
     await user_repo.set_banned(telegram_id, False)
@@ -141,8 +135,7 @@ async def admin_banned_list(
     if not _is_admin(call.from_user.id):
         await call.answer(t("fa", "not_authorized"), show_alert=True)
         return
-    import bot.handlers.admin_users as _users
-    render_menu_fn = getattr(_users, "render_menu", render_menu)
+    render_menu_fn = resolve_op("render_menu", render_menu)
 
     user = await user_repo.get_or_create(call.from_user.id, call.from_user.username)
     lang = user.language or "fa"

@@ -38,9 +38,9 @@ from bot.db.repositories.admin_log_repo import AdminLogRepository
 from bot.db.repositories.user_repo import UserRepository
 from bot.db.repositories.wallet_repo import WalletRepository
 from bot.locales.texts import t
-from bot.services.formatting import format_date, format_datetime
+from bot.services.formatting import format_date, format_datetime, human_bytes
 from bot.services.menu import delete_message_silently, render_menu
-from bot.common import SEPARATOR, fmt, is_admin, parse_int
+from bot.common import SEPARATOR, fmt, get_limit_bytes, get_online_at, get_used_bytes, is_admin, parse_int
 from bot.services.remnawave import RemnawaveClient
 from bot.states.admin import UserManagementStates
 
@@ -61,47 +61,10 @@ PANEL_CATEGORIES = [
 ]
 
 
-def _get_online_at(u: dict[str, Any]) -> datetime | None:
-    online_str = None
-    if isinstance(u.get("userTraffic"), dict):
-        online_str = u["userTraffic"].get("onlineAt")
-    if not online_str:
-        online_str = u.get("onlineAt")
-    if not online_str:
-        return None
-    try:
-        return datetime.fromisoformat(str(online_str).replace("Z", "+00:00"))
-    except Exception:
-        return None
-
-
-def _get_used_bytes(u: dict[str, Any]) -> int:
-    if isinstance(u.get("userTraffic"), dict):
-        try:
-            return int(u["userTraffic"].get("usedTrafficBytes") or 0)
-        except (ValueError, TypeError):
-            pass
-    try:
-        return int(u.get("usedTrafficBytes") or 0)
-    except (ValueError, TypeError):
-        return 0
-
-
-def _get_limit_bytes(u: dict[str, Any]) -> int:
-    try:
-        return int(u.get("trafficLimitBytes") or 0)
-    except (ValueError, TypeError):
-        return 0
-
-
-def _format_gb(bytes_val: int) -> str:
-    gb = bytes_val / (1024 ** 3)
-    if gb >= 10:
-        return f"{gb:.0f} GB"
-    elif gb >= 1:
-        return f"{gb:.1f} GB"
-    mb = bytes_val / (1024 ** 2)
-    return f"{mb:.0f} MB"
+_get_online_at = get_online_at
+_get_used_bytes = get_used_bytes
+_get_limit_bytes = get_limit_bytes
+_format_gb = human_bytes
 
 
 def _format_days_left(expire_at_str: Any, lang: str) -> str:
