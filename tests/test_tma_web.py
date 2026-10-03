@@ -452,4 +452,111 @@ async def test_user_settings_persistence():
     await engine.dispose()
 
 
+@pytest.mark.anyio
+async def test_lucky_wheel_active_sub_and_24h_timer():
+    from aiohttp.test_utils import make_mocked_request
+    from bot.web.user_shop import post_user_spin
+
+    mock_remnawave = AsyncMock()
+    # 1. User without active subscription
+    mock_remnawave.get_users_by_telegram_id.return_value = [{"status": "DISABLED", "id": 1}]
+    cache = FastCache(redis_client=None)
+
+    app = {
+        "bot_token": "123:abc",
+        "admin_ids": [55555],
+        "is_dev": True,
+        "remnawave": mock_remnawave,
+        "cache": cache,
+    }
+
+    # Request without active sub -> rejected 400
+    req_no_sub = make_mocked_request("POST", "/api/user/spin?user_id=12345", app=app)
+    resp_no_sub = await post_user_spin(req_no_sub)
+    assert resp_no_sub.status == 400
+    assert "داشتن یک اشتراک فعال" in json.loads(resp_no_sub.text)["error"]
+
+    # 2. User with active sub -> first spin succeeds
+    mock_remnawave.get_users_by_telegram_id.return_value = [{"status": "ACTIVE", "id": 1}]
+    req_spin1 = make_mocked_request("POST", "/api/user/spin?user_id=12345", app=app)
+    resp_spin1 = await post_user_spin(req_spin1)
+    assert resp_spin1.status == 200
+    data_spin1 = json.loads(resp_spin1.text)
+    assert data_spin1["ok"] is True
+    assert "prize" in data_spin1
+
+    # 3. If prize wasn't "again", spin immediately again -> rejected due to 24h cooldown
+    if data_spin1["prize"]["id"] != "again":
+        req_spin2 = make_mocked_request("POST", "/api/user/spin?user_id=12345", app=app)
+        resp_spin2 = await post_user_spin(req_spin2)
+        assert resp_spin2.status == 400
+        data_spin2 = json.loads(resp_spin2.text)
+        assert data_spin2["ok"] is False
+        assert "۲۴ ساعت" in data_spin2["error"]
+        assert data_spin2["next_spin_seconds"] > 0
+
+
+@pytest.mark.anyio
+async def test_user_purchase_multi_account_fallback_and_payload():
+    from aiohttp.test_utils import make_mocked_request
+    from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
+    from bot.db.models import Base, Service, Wallet
+    from bot.web.user_shop import post_user_purchase
+
+    engine = create_async_engine("sqlite+aiosqlite:///:memory:")
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+    session_factory = async_sessionmaker(engine, expire_on_commit=False)
+
+    async with session_factory() as session:
+        # Create service and user wallet
+        svc = Service(
+            name="Gold 50GB",
+            traffic_gb=50,
+            duration_days=30,
+            price=100000,
+            is_active=True,
+        )
+        session.add(svc)
+        wallet = Wallet(telegram_id=22222, balance=250000)
+        session.add(wallet)
+        await session.commit()
+        svc_id = svc.id
+
+    mock_remnawave = AsyncMock()
+    # User has 2 panel accounts
+    mock_remnawave.get_users_by_telegram_id.return_value = [
+        {"id": 101, "username": "u22222_primary", "status": "ACTIVE", "subscriptionUrl": "https://sub/primary"},
+        {"id": 102, "username": "u22222_secondary", "status": "ACTIVE", "subscriptionUrl": "https://sub/secondary"},
+    ]
+    mock_remnawave.update_user_subscription.return_value = {
+        "id": 101, "username": "u22222_primary", "subscriptionUrl": "https://sub/primary"
+    }
+
+    app = {
+        "bot_token": "123:abc",
+        "admin_ids": [55555],
+        "is_dev": True,
+        "session_factory": session_factory,
+        "cache": FastCache(redis_client=None),
+        "remnawave": mock_remnawave,
+    }
+
+    # Purchase without account_id should gracefully renew primary account (101) instead of failing
+    req = make_mocked_request("POST", "/api/user/purchase?user_id=22222", app=app)
+    req.json = AsyncMock(return_value={"service_id": svc_id})
+
+    resp = await post_user_purchase(req)
+    assert resp.status == 200
+    res_data = json.loads(resp.text)
+    assert res_data["ok"] is True
+    assert res_data["service_name"] == "Gold 50GB"
+    assert res_data["traffic_gb"] == 50
+    assert res_data["duration_days"] == 30
+    assert res_data["new_balance"] == 150000
+    assert res_data["subscription_url"] == "https://sub/primary"
+
+    await engine.dispose()
+
+
 

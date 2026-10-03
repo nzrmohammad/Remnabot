@@ -132,9 +132,11 @@ async def get_user_me(request: web.Request) -> web.Response:
             stats_start_dt = now_dt - timedelta(days=90)
             if since is not None and since > stats_start_dt:
                 stats_start_dt = since
+            # Ensure at least 28 days of stats history for weekly and 4-week monthly breakdown
             week_start_dt = now_dt - timedelta(days=6)
-            if stats_start_dt > week_start_dt:
-                stats_start_dt = week_start_dt
+            month_start_dt = now_dt - timedelta(days=28)
+            if stats_start_dt > month_start_dt:
+                stats_start_dt = month_start_dt
 
             today_str = now_dt.strftime("%Y-%m-%d")
             start_str = stats_start_dt.strftime("%Y-%m-%d")
@@ -445,9 +447,21 @@ async def get_user_me(request: web.Request) -> web.Response:
                 "is_active": (pu.get("id") == panel_user_id),
             })
 
-        # 7. Lucky wheel status
-        wheel_key = f"tma:user:{telegram_id}:wheel_spins"
-        wheel_spun = bool(await cache.get(wheel_key))
+        # 7. Lucky wheel status (24h cooldown timer & active sub requirement)
+        import time
+        wheel_ts_key = f"tma:user:{telegram_id}:wheel_last_spin"
+        last_spin = await cache.get(wheel_ts_key)
+        now_epoch = time.time()
+        cooldown_left = 0
+        if last_spin is not None:
+            try:
+                elapsed = now_epoch - float(last_spin)
+                if elapsed < 86400:
+                    cooldown_left = max(1, int(86400 - elapsed))
+            except (ValueError, TypeError):
+                pass
+
+        can_spin = bool(has_active_sub and cooldown_left <= 0)
 
         rep_settings_data = {
             "nightly": True,
@@ -505,8 +519,9 @@ async def get_user_me(request: web.Request) -> web.Response:
             "plans": plans_data,
             "transactions": history_items[:20],
             "wheel_status": {
-                "has_spun_free": wheel_spun,
-                "can_spin": not wheel_spun or has_active_sub,
+                "can_spin": can_spin,
+                "has_active_sub": has_active_sub,
+                "next_spin_seconds": cooldown_left,
             },
         }
 

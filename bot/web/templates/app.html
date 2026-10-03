@@ -364,9 +364,17 @@
 
           <!-- Full Subscription Link Container & Modern Copy Button -->
           <div class="space-y-2">
-            <div class="bg-slate-900/90 rounded-xl p-2.5 border border-slate-700/70 relative">
+            <div id="subBoxWrapper" class="bg-slate-900/90 hover:bg-slate-900/95 rounded-xl p-3 border border-slate-700/70 hover:border-cyan-500/60 relative cursor-pointer transition active:scale-[0.99] group shadow-inner">
+              <div class="flex items-center justify-between pb-1.5 mb-1.5 border-b border-slate-800 text-[10px]">
+                <span class="text-slate-400 group-hover:text-cyan-300 transition flex items-center gap-1 font-medium">
+                  <span>🔗</span> کلیک جهت کپی و باز کردن مستقیم لینک
+                </span>
+                <span class="text-cyan-400 group-hover:translate-x-0.5 transition flex items-center gap-0.5 font-bold">
+                  باز کردن ↗
+                </span>
+              </div>
               <input type="hidden" id="subInput" value="" />
-              <div id="subDisplayBox" dir="ltr" class="font-mono text-[11px] text-cyan-300 break-all select-all leading-relaxed max-h-24 overflow-y-auto custom-scroll p-1">
+              <div id="subDisplayBox" dir="ltr" class="font-mono text-[11px] text-cyan-300 break-all select-all leading-relaxed max-h-20 overflow-y-auto custom-scroll p-0.5">
                 در حال دریافت لینک اشتراک...
               </div>
             </div>
@@ -501,10 +509,10 @@
             </div>
           </div>
 
-          <!-- Weekly Per-Server Breakdown (تفکیک مصرف سرورهای هفته) -->
+          <!-- Weekly Per-Server Breakdown (تفکیک مصرف سرورهای هفته - اول سمت چپ بعد سمت راست) -->
           <div class="pt-2 border-t border-slate-700/60 text-xs">
             <span class="text-slate-400 font-medium block mb-1">تفکیک مصرف سرورها در ۷ روز گذشته:</span>
-            <div id="repWeeklyNodesContainer" class="grid grid-cols-2 gap-1.5 font-mono text-[11px]">
+            <div id="repWeeklyNodesContainer" dir="ltr" class="grid grid-cols-2 gap-1.5 font-mono text-[11px]">
               <div class="col-span-2 text-center py-2 text-slate-400 text-[10px]">در حال دریافت داده‌ها...</div>
             </div>
           </div>
@@ -528,10 +536,10 @@
             </div>
           </div>
 
-          <!-- Monthly Per-Server Breakdown (تفکیک مصرف سرورهای ماه) -->
+          <!-- Monthly Per-Server Breakdown (تفکیک مصرف سرورهای ماه - اول سمت چپ بعد سمت راست) -->
           <div class="pt-2 border-t border-slate-700/60 text-xs">
             <span class="text-slate-400 font-medium block mb-1">تفکیک مصرف سرورها:</span>
-            <div id="repMonthlyNodesContainer" class="grid grid-cols-2 gap-1.5 font-mono text-[11px]">
+            <div id="repMonthlyNodesContainer" dir="ltr" class="grid grid-cols-2 gap-1.5 font-mono text-[11px]">
               <div class="col-span-2 text-center py-2 text-slate-400 text-[10px]">در حال دریافت داده‌ها...</div>
             </div>
           </div>
@@ -576,8 +584,8 @@
           </div>
 
           <div class="py-2">
-            <div id="walletTabBalance" class="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-cyan-300 to-blue-400 font-mono" dir="ltr">
-              تومان ۰
+            <div id="walletTabBalance" class="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-cyan-300 to-blue-400 font-mono">
+              ۰ تومان
             </div>
             <span class="text-[11px] text-slate-400 block mt-1">قابل استفاده برای خرید، تمدید اشتراک و بسته‌های ترافیک</span>
           </div>
@@ -1101,8 +1109,14 @@
           <span id="wheelResultText" class="text-slate-300">دکمه وسط گردونه را لمس کنید تا شانس خود را امتحان نمایید!</span>
         </div>
 
+        <!-- 24-Hour Countdown Timer Container -->
+        <div id="wheelTimerContainer" class="hidden bg-slate-900/90 border border-amber-500/40 rounded-xl p-2.5 text-center text-xs space-y-1">
+          <span class="text-slate-300 text-[10px] block font-medium">⏳ زمان باقیمانده تا شانس بعدی شما:</span>
+          <b id="wheelCountdownText" class="text-amber-400 font-mono font-bold text-base tracking-wider block" dir="ltr">00:00:00</b>
+        </div>
+
         <div id="wheelSubWarning" class="hidden text-[10px] text-amber-300/90 bg-amber-950/40 p-2 rounded-lg border border-amber-700/30">
-          ⚠️ شانس رایگان شما استفاده شد. برای دریافت چرخش‌های بعدی، باید یک اشتراک فعال در ربات داشته باشید.
+          ⚠️ برای استفاده از گردونه شانس، داشتن یک اشتراک فعال در پنل الزامی است.
         </div>
       </div>
     </div>
@@ -1175,6 +1189,51 @@
             <span>ارسال به تلگرام</span>
           </button>
         </div>
+      </div>
+    </div>
+
+    <!-- ======================================================== -->
+    <!-- 6.1 MODAL: PURCHASE SUCCESS RECEIPT (رسید خرید موفق سرویس) -->
+    <!-- ======================================================== -->
+    <div id="purchaseSuccessModal" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden animate-fadeIn overflow-y-auto">
+      <div class="bg-[#1a233a] border border-emerald-500/50 rounded-3xl p-5 w-full text-center space-y-3.5 shadow-2xl relative max-w-[340px] my-auto">
+        <div class="w-16 h-16 bg-emerald-500/20 text-emerald-400 rounded-full flex items-center justify-center text-3xl mx-auto border border-emerald-500/40 shadow-lg shadow-emerald-500/30">
+          🎉
+        </div>
+        <div>
+          <h3 class="text-base font-extrabold text-white">سفارش شما با موفقیت ثبت شد!</h3>
+          <p class="text-xs text-slate-300 mt-1">سرویس شما فعال و آماده اتصال سریع است.</p>
+        </div>
+
+        <!-- Receipt Details Box -->
+        <div class="bg-slate-900/80 rounded-2xl p-3 border border-slate-700/70 text-xs space-y-2 text-right">
+          <div class="flex justify-between items-center"><span class="text-slate-400">بسته خریداری‌شده:</span><b id="psvcName" class="text-white font-bold">--</b></div>
+          <div class="flex justify-between items-center"><span class="text-slate-400">حجم ترافیک:</span><b id="psvcTraffic" class="text-cyan-400 font-mono" dir="ltr">-- GB</b></div>
+          <div class="flex justify-between items-center"><span class="text-slate-400">مدت اعتبار:</span><b id="psvcDays" class="text-slate-200">-- روز</b></div>
+          <div class="flex justify-between items-center"><span class="text-slate-400">نام کاربری:</span><code id="psvcUser" class="text-indigo-300 font-mono" dir="ltr">--</code></div>
+          <div class="flex justify-between items-center border-t border-slate-800 pt-1.5"><span class="text-slate-400">مبلغ کسر شده:</span><b id="psvcPrice" class="text-emerald-400 font-mono">-- تومان</b></div>
+          <div class="flex justify-between items-center"><span class="text-slate-400">موجودی جدید ولت:</span><b id="psvcNewBalance" class="text-slate-300 font-mono">-- تومان</b></div>
+        </div>
+
+        <!-- Subscription URL Box -->
+        <div class="bg-slate-900/90 rounded-2xl p-2.5 border border-cyan-500/30 text-right space-y-1.5">
+          <span class="text-[10px] text-slate-400 block font-medium">لینک اشتراک سرویس شما:</span>
+          <div id="psvcSubDisplay" dir="ltr" class="font-mono text-[10px] text-cyan-300 break-all select-all leading-tight max-h-16 overflow-y-auto custom-scroll p-1.5 bg-slate-950/70 rounded-lg">
+            --
+          </div>
+          <div class="grid grid-cols-2 gap-1.5 pt-1">
+            <button id="psvcCopyBtn" type="button" class="bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs py-2 rounded-xl transition flex items-center justify-center gap-1 active:scale-95 shadow">
+              📋 کپی لینک
+            </button>
+            <button id="psvcOpenBtn" type="button" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs py-2 rounded-xl transition flex items-center justify-center gap-1 active:scale-95 shadow">
+              🚀 باز کردن لینک
+            </button>
+          </div>
+        </div>
+
+        <button id="psvcCloseBtn" type="button" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs py-2.5 rounded-xl transition border border-slate-700 active:scale-95">
+          مشاهده در داشبورد
+        </button>
       </div>
     </div>
 
@@ -1525,13 +1584,21 @@
         }
 
         const targetUri = makeUri(url);
-        // Dispatch intent via invisible anchor to avoid Telegram webview blocking
-        const link = document.createElement('a');
-        link.href = targetUri;
-        link.target = '_blank';
-        document.body.appendChild(link);
-        link.click();
-        setTimeout(() => link.remove(), 400);
+        // Robust custom scheme dispatch for Telegram WebApp
+        try {
+          if (targetUri.startsWith('http://') || targetUri.startsWith('https://')) {
+            if (window.Telegram?.WebApp?.openLink) {
+              window.Telegram.WebApp.openLink(targetUri);
+            } else {
+              window.open(targetUri, '_blank');
+            }
+          } else {
+            // Direct location assignment invokes OS app scheme intent
+            window.location.href = targetUri;
+          }
+        } catch (e) {
+          window.location.href = targetUri;
+        }
 
         showToast(`📋 لینک در کلیپ‌بورد کپی شد و درخواست اتصال به ${appName} ارسال گردید.`);
       };
@@ -1540,7 +1607,7 @@
         copyAndLaunch(u => `incy://import?url=${encodeURIComponent(u)}`, 'Incy');
       });
       document.getElementById('appImportHapp')?.addEventListener('click', () => {
-        copyAndLaunch(u => `happ://import/${encodeURIComponent(u)}`, 'Happ');
+        copyAndLaunch(u => `happ://add/${encodeURIComponent(u)}`, 'Happ');
       });
       document.getElementById('appImportV2ray')?.addEventListener('click', () => {
         copyAndLaunch(u => `v2rayng://install-config?url=${encodeURIComponent(u)}`, 'v2rayNG');
@@ -1550,6 +1617,22 @@
       });
       document.getElementById('appImportStreisand')?.addEventListener('click', () => {
         copyAndLaunch(u => `streisand://import/${encodeURIComponent(u)}`, 'Streisand');
+      });
+
+      // Clickable Subscription Box Container (Direct Copy & Open)
+      document.getElementById('subBoxWrapper')?.addEventListener('click', () => {
+        const url = getSubUrl();
+        if (!url) return;
+        copyToClipboard(url);
+        if (window.Telegram?.WebApp?.HapticFeedback) {
+          try { window.Telegram.WebApp.HapticFeedback.notificationOccurred('success'); } catch(e) {}
+        }
+        showToast('📋 لینک اشتراک کپی شد و در حال باز شدن است...');
+        if (window.Telegram?.WebApp?.openLink) {
+          try { window.Telegram.WebApp.openLink(url); } catch(e) { window.open(url, '_blank'); }
+        } else {
+          window.open(url, '_blank');
+        }
       });
     }
 
@@ -1853,6 +1936,59 @@
     let hasSpunFreeWheel = false;
     let currentWheelRotation = 0;
     let isSpinningWheel = false;
+    let wheelCooldownSeconds = 0;
+    let wheelCountdownInterval = null;
+
+    function formatCountdown(sec) {
+      if (sec <= 0) return '00:00:00';
+      const h = Math.floor(sec / 3600);
+      const m = Math.floor((sec % 3600) / 60);
+      const s = sec % 60;
+      return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+    }
+
+    function startWheelCountdown(sec) {
+      wheelCooldownSeconds = sec;
+      const timerBox = document.getElementById('wheelTimerContainer');
+      const timerText = document.getElementById('wheelCountdownText');
+      if (timerBox) timerBox.classList.remove('hidden');
+      if (timerText) timerText.innerText = formatCountdown(wheelCooldownSeconds);
+
+      if (wheelCountdownInterval) clearInterval(wheelCountdownInterval);
+      wheelCountdownInterval = setInterval(() => {
+        wheelCooldownSeconds -= 1;
+        if (wheelCooldownSeconds <= 0) {
+          clearInterval(wheelCountdownInterval);
+          if (timerBox) timerBox.classList.add('hidden');
+          updateWheelUIState(true, true, 0);
+        } else {
+          if (timerText) timerText.innerText = formatCountdown(wheelCooldownSeconds);
+        }
+      }, 1000);
+    }
+
+    function updateWheelUIState(canSpin, hasActiveSub, nextSeconds) {
+      const timerBox = document.getElementById('wheelTimerContainer');
+      if (!hasActiveSub) {
+        spinWheelBtn.disabled = true;
+        spinWheelBtn.innerHTML = '<span class="text-[9px] font-bold">🔒 نیاز به اشتراک</span>';
+        wheelSubWarning?.classList.remove('hidden');
+        if (timerBox) timerBox.classList.add('hidden');
+        return;
+      }
+      wheelSubWarning?.classList.add('hidden');
+
+      if (nextSeconds > 0) {
+        spinWheelBtn.disabled = true;
+        spinWheelBtn.innerHTML = '<span class="text-[9px] font-bold">🔒 ۲۴ ساعت</span>';
+        startWheelCountdown(nextSeconds);
+      } else {
+        if (wheelCountdownInterval) clearInterval(wheelCountdownInterval);
+        if (timerBox) timerBox.classList.add('hidden');
+        spinWheelBtn.disabled = false;
+        spinWheelBtn.innerHTML = '<span class="text-[10px] font-extrabold tracking-tight">بچرخون!</span>';
+      }
+    }
 
     // Toggle Country Breakdown Accordion
     const toggleCountryBreakdownBtn = document.getElementById('toggleCountryBreakdownBtn');
@@ -1914,9 +2050,16 @@
 
     spinWheelBtn?.addEventListener('click', async () => {
       if (isSpinningWheel) return;
-      if (hasSpunFreeWheel) {
-        alert('⚠️ شانس رایگان شما استفاده شده است!\nبرای دریافت چرخش‌های روزانه بعدی، باید یک اشتراک فعال در ربات داشته باشید.');
-        return;
+      if (window.lastUserData?.wheel_status) {
+        const ws = window.lastUserData.wheel_status;
+        if (!ws.has_active_sub) {
+          alert('⚠️ برای استفاده از گردونه شانس، داشتن یک اشتراک فعال در پنل الزامی است.');
+          return;
+        }
+        if (ws.next_spin_seconds > 0) {
+          alert(`⏳ گردونه هر ۲۴ ساعت یک‌بار قابل استفاده است.\nزمان باقیمانده تا شانس بعدی: ${formatCountdown(ws.next_spin_seconds)}`);
+          return;
+        }
       }
 
       isSpinningWheel = true;
@@ -1943,8 +2086,12 @@
         } else if (!res.ok && res.error) {
           alert(res.error);
           isSpinningWheel = false;
-          spinWheelBtn.disabled = false;
-          spinWheelBtn.innerText = 'بچرخون!';
+          if (res.next_spin_seconds) {
+            updateWheelUIState(false, true, res.next_spin_seconds);
+          } else {
+            spinWheelBtn.disabled = false;
+            spinWheelBtn.innerText = 'بچرخون!';
+          }
           return;
         }
       } catch (err) {
@@ -1970,32 +2117,29 @@
 
       setTimeout(() => {
         isSpinningWheel = false;
-        spinWheelBtn.disabled = false;
 
         if (window.Telegram?.WebApp?.HapticFeedback) {
-          window.Telegram.WebApp.HapticFeedback.notificationOccurred('success');
+          try { window.Telegram.WebApp.HapticFeedback.notificationOccurred('success'); } catch(e) {}
         }
 
         const isAgain = chosenPrize.id === 'again';
         const isBlank = chosenPrize.id === 'blank';
 
         if (isAgain) {
+          spinWheelBtn.disabled = false;
           spinWheelBtn.innerText = 'بچرخون!';
-          wheelResultText.innerHTML = '🔄 <b>شانس مجدد!</b> گردونه برای شما دوباره فعال شد، همین الان بچرخون!';
+          wheelResultText.innerHTML = '🔄 <b>شانس مجدد!</b> گردونه دوباره برای شما فعال شد، همین الان بچرخون!';
           alert('🔄 شانس مجدد برنده شدید! می‌توانید یک‌بار دیگر بچرخانید.');
-        } else if (isBlank) {
-          hasSpunFreeWheel = true;
-          spinWheelBtn.innerText = '🔒';
-          wheelResultText.innerHTML = '❌ <b>متاسفانه پوچ شد!</b> برای دریافت شانس‌های بعدی، داشتن اشتراک فعال الزامی است.';
-          wheelSubWarning?.classList.remove('hidden');
-          alert('❌ این چرخش پوچ شد! شانس بعدی نیازمند اشتراک فعال است.');
         } else {
-          hasSpunFreeWheel = true;
-          spinWheelBtn.innerText = '🔒';
-          wheelResultText.innerHTML = `🎉 <b>تبریک فوق‌العاده!</b> شما برنده <b class="text-emerald-400 font-bold">${chosenPrize.name || chosenPrize.text}</b> شدید!`;
-          wheelSubWarning?.classList.remove('hidden');
-          alert(`🎉 تبریک! شما برنده ${chosenPrize.name || chosenPrize.text} شدید! جایزه با موفقیت ثبت شد.`);
-          syncUserDataWithApi();
+          updateWheelUIState(false, true, 86400);
+          if (isBlank) {
+            wheelResultText.innerHTML = '❌ <b>متاسفانه پوچ شد!</b> شانس بعدی شما ۲۴ ساعت دیگر فعال می‌شود.';
+            alert('❌ این چرخش پوچ شد! شانس بعدی شما ۲۴ ساعت دیگر فعال خواهد شد.');
+          } else {
+            wheelResultText.innerHTML = `🎉 <b>تبریک فوق‌العاده!</b> شما برنده <b class="text-emerald-400 font-bold">${chosenPrize.name || chosenPrize.text}</b> شدید!`;
+            alert(`🎉 تبریک! شما برنده ${chosenPrize.name || chosenPrize.text} شدید! جایزه با موفقیت ثبت شد.`);
+          }
+          syncUserDataWithApi(window.currentAccountId);
         }
       }, 3650);
     });
@@ -2128,7 +2272,7 @@
       if (!tg?.BackButton) return;
       const modalIds = [
         'revokeModal', 'switchAccountModal', 'activeSessionsModal',
-        'topupModal', 'luckyWheelModal', 'storyModal'
+        'topupModal', 'luckyWheelModal', 'storyModal', 'purchaseSuccessModal'
       ];
       const hasOpenModal = modalIds.some(id => {
         const el = document.getElementById(id);
@@ -2154,7 +2298,7 @@
         // 1. Close open modal first if any
         const modalIds = [
           'revokeModal', 'switchAccountModal', 'activeSessionsModal',
-          'topupModal', 'luckyWheelModal', 'storyModal'
+          'topupModal', 'luckyWheelModal', 'storyModal', 'purchaseSuccessModal'
         ];
         for (const id of modalIds) {
           const el = document.getElementById(id);
@@ -2184,7 +2328,7 @@
       // Observe modals for class attribute mutations (hidden toggles)
       const observedModalIds = [
         'revokeModal', 'switchAccountModal', 'activeSessionsModal',
-        'topupModal', 'luckyWheelModal', 'storyModal', 'qrContainer'
+        'topupModal', 'luckyWheelModal', 'storyModal', 'qrContainer', 'purchaseSuccessModal'
       ];
       observedModalIds.forEach(id => {
         const el = document.getElementById(id);
@@ -2211,6 +2355,9 @@
       // User & Header
       const user = data.user || {};
       const sub = data.active_sub;
+      if (sub?.id && !window.currentAccountId) {
+        window.currentAccountId = sub.id;
+      }
 
       const avatarEl = document.getElementById('headerUserAvatarInitial') || document.getElementById('headerUserAvatar');
       if (avatarEl && (user.first_name || user.username)) {
@@ -2420,12 +2567,12 @@
           const maxVal = Math.max(...totals, 0.1);
           const weekLabels = ['هفته ۱', 'هفته ۲', 'هفته ۳', 'هفته ۴'];
           repMChart.innerHTML = totals.map((val, idx) => {
-            const hPct = Math.min(100, Math.max(15, Math.round((val / maxVal) * 90)));
+            const hPct = val > 0 ? Math.min(100, Math.max(15, Math.round((val / maxVal) * 90))) : 8;
             const isMax = val > 0 && val === Math.max(...totals);
             return `
               <div class="flex flex-col items-center gap-1 flex-1">
-                <span class="text-[8px] font-mono text-purple-300" dir="ltr">${val > 0 ? val : ''}</span>
-                <div class="w-6 ${isMax ? 'bg-purple-500 shadow-sm shadow-purple-500/50' : 'bg-indigo-600/80'} rounded-t transition-all duration-500" style="height: ${hPct}%;"></div>
+                <span class="text-[8px] font-mono text-purple-300" dir="ltr">${val > 0 ? val : '0'}</span>
+                <div class="w-6 ${isMax ? 'bg-purple-500 shadow-sm shadow-purple-500/50' : (val > 0 ? 'bg-indigo-600/80' : 'bg-slate-700/60')} rounded-t transition-all duration-500" style="height: ${hPct}%;"></div>
                 <span class="text-[9px] ${isMax ? 'text-purple-300 font-bold' : 'text-slate-400'}">${weekLabels[idx] || ''}</span>
               </div>
             `;
@@ -2556,7 +2703,7 @@
       // Wallet Balance in Shop and Wallet Tab
       const walletEl = document.getElementById('shopWalletBalance');
       const walletTabBal = document.getElementById('walletTabBalance');
-      const formattedWallet = `تومان ${(user.wallet_balance || 0).toLocaleString('fa-IR')}`;
+      const formattedWallet = `${(user.wallet_balance || 0).toLocaleString('fa-IR')} تومان`;
       if (walletEl) walletEl.innerText = `موجودی: ${formattedWallet}`;
       if (walletTabBal) walletTabBal.innerText = formattedWallet;
 
@@ -2707,13 +2854,14 @@
         }
       }
 
-      // Wheel Status
+      // Wheel Status (24h timer & active subscription sync)
       if (data.wheel_status) {
-        hasSpunFreeWheel = data.wheel_status.has_spun_free;
-        if (hasSpunFreeWheel && !data.wheel_status.can_spin) {
-          spinWheelBtn.innerText = '🔒';
-          wheelSubWarning?.classList.remove('hidden');
-        }
+        hasSpunFreeWheel = !data.wheel_status.can_spin;
+        updateWheelUIState(
+          data.wheel_status.can_spin,
+          data.wheel_status.has_active_sub,
+          data.wheel_status.next_spin_seconds || 0
+        );
       }
     }
 
@@ -2723,7 +2871,8 @@
       if (!shopContainer || plans.length === 0) return;
 
       shopContainer.innerHTML = plans.map((p, idx) => {
-        const isPopular = idx === 0 || p.duration_days >= 60;
+        const planNameLower = (p.name || '').toLowerCase();
+        const isPopular = planNameLower.includes('gold') || (p.name || '').includes('گلد');
         let discountVal = 0;
         if (window.activeCoupon) {
           if (window.activeCoupon.discount_percent > 0) {
@@ -2736,11 +2885,11 @@
         const formattedFinal = finalPrice.toLocaleString('fa-IR');
         const formattedOriginal = (p.price || 0).toLocaleString('fa-IR');
 
-        const devLimit = (p.hwid_limit && p.hwid_limit > 0) ? `${p.hwid_limit} کاربر` : 'نامحدود';
+        const devLimitText = (p.hwid_limit && p.hwid_limit > 0) ? `${p.hwid_limit} کاربر` : 'بدون محدودیت کاربر';
 
         return `
-          <div class="bg-slate-800/90 rounded-2xl p-4 border ${isPopular ? 'border-indigo-500/60 shadow-lg' : 'border-slate-700/80'} relative overflow-hidden group">
-            ${isPopular ? '<div class="absolute top-0 left-0 bg-indigo-600 text-white text-[10px] font-bold px-3 py-0.5 rounded-br-xl shadow">🔥 پرفروش‌ترین</div>' : ''}
+          <div class="bg-slate-800/90 rounded-2xl p-4 border ${isPopular ? 'border-amber-500/60 shadow-lg shadow-amber-500/10' : 'border-slate-700/80'} relative overflow-hidden group">
+            ${isPopular ? '<div class="absolute top-0 left-0 bg-gradient-to-r from-amber-500 to-yellow-500 text-slate-950 text-[10px] font-black px-3 py-0.5 rounded-br-xl shadow flex items-center gap-1">🔥 پرفروش‌ترین</div>' : ''}
             <div class="flex justify-between items-start ${isPopular ? 'mt-1' : ''}">
               <div>
                 <div class="flex items-center gap-2">
@@ -2755,12 +2904,12 @@
                 <span class="text-[10px] text-slate-400 block -mt-1">تومان</span>
               </div>
             </div>
-            <div class="flex items-center gap-3 my-2.5 text-xs text-slate-300 bg-slate-900/50 p-2 rounded-xl flex-wrap">
-              <span>📊 <b dir="ltr" class="font-mono">${p.traffic_gb} GB</b></span>
-              <span>📅 <b>${p.duration_days} روز</b></span>
-              <span>📱 <b>محدودیت دستگاه: ${devLimit}</b></span>
+            <div class="flex items-center justify-between my-2.5 text-[10px] text-slate-300 bg-slate-900/60 px-3 py-2 rounded-xl whitespace-nowrap overflow-hidden">
+              <span class="flex items-center gap-1">📊 <b dir="ltr" class="font-mono text-cyan-300">${p.traffic_gb} GB</b></span>
+              <span class="flex items-center gap-1">📅 <b class="text-slate-200">${p.duration_days} روز</b></span>
+              <span class="flex items-center gap-1">📱 <b class="text-slate-200">${devLimitText}</b></span>
             </div>
-            <button class="buy-plan-btn w-full ${isPopular ? 'bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-500 hover:to-blue-500' : 'bg-blue-600 hover:bg-blue-500'} text-white font-semibold text-xs py-2.5 rounded-xl transition shadow active:scale-[0.98]" data-id="${p.id}" data-price="${finalPrice}" data-name="${p.name}">
+            <button class="buy-plan-btn w-full ${isPopular ? 'bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-black' : 'bg-blue-600 hover:bg-blue-500 text-white font-semibold'} text-xs py-2.5 rounded-xl transition shadow active:scale-[0.98]" data-id="${p.id}" data-price="${finalPrice}" data-name="${p.name}">
               🛒 خرید / تمدید آنی (${formattedFinal} تومان)
             </button>
           </div>
@@ -2801,7 +2950,65 @@
             });
             const res = await resp.json();
             if (res.ok) {
-              showToast('🎉 خرید شما با موفقیت انجام شد!');
+              // Open beautiful purchase success receipt modal
+              const pModal = document.getElementById('purchaseSuccessModal');
+              if (pModal) {
+                const sNameEl = document.getElementById('psvcName');
+                const sTrafEl = document.getElementById('psvcTraffic');
+                const sDaysEl = document.getElementById('psvcDays');
+                const sUserEl = document.getElementById('psvcUser');
+                const sPriceEl = document.getElementById('psvcPrice');
+                const sBalEl = document.getElementById('psvcNewBalance');
+                const sSubEl = document.getElementById('psvcSubDisplay');
+
+                if (sNameEl) sNameEl.innerText = res.service_name || planName;
+                if (sTrafEl) sTrafEl.innerText = `${res.traffic_gb ?? ''} GB`;
+                if (sDaysEl) sDaysEl.innerText = `${res.duration_days ?? ''} روز`;
+                if (sUserEl) sUserEl.innerText = res.panel_username || (window.lastUserData?.active_sub?.username || 'کاربر');
+                if (sPriceEl) sPriceEl.innerText = `${(res.effective_price ?? planPrice).toLocaleString('fa-IR')} تومان`;
+                if (sBalEl) sBalEl.innerText = `${(res.new_balance || 0).toLocaleString('fa-IR')} تومان`;
+
+                const subUrl = res.subscription_url || window.lastUserData?.active_sub?.subscription_url || '';
+                if (sSubEl) sSubEl.innerText = subUrl || 'لینک اشتراک در داشبورد ثبت گردید.';
+
+                const copyBtn = document.getElementById('psvcCopyBtn');
+                if (copyBtn) {
+                  copyBtn.onclick = () => {
+                    if (subUrl && navigator.clipboard) {
+                      navigator.clipboard.writeText(subUrl);
+                      showToast('📋 لینک اشتراک در کلیپ‌بورد کپی شد.');
+                    }
+                  };
+                }
+                const openBtn = document.getElementById('psvcOpenBtn');
+                if (openBtn) {
+                  openBtn.onclick = () => {
+                    if (subUrl) {
+                      if (window.Telegram?.WebApp?.openLink) {
+                        try { window.Telegram.WebApp.openLink(subUrl); } catch(e) { window.open(subUrl, '_blank'); }
+                      } else {
+                        window.open(subUrl, '_blank');
+                      }
+                    }
+                  };
+                }
+                const closeSuccessBtn = document.getElementById('psvcCloseBtn');
+                if (closeSuccessBtn) {
+                  closeSuccessBtn.onclick = () => {
+                    pModal.classList.add('hidden');
+                    const dashNav = document.querySelector('.nav-btn[data-tab="tab-dashboard"]');
+                    dashNav?.click();
+                  };
+                }
+
+                pModal.classList.remove('hidden');
+              } else {
+                showToast('🎉 خرید شما با موفقیت انجام شد!');
+              }
+
+              if (window.Telegram?.WebApp?.HapticFeedback) {
+                try { window.Telegram.WebApp.HapticFeedback.notificationOccurred('success'); } catch(e) {}
+              }
               syncUserDataWithApi(window.currentAccountId);
             } else {
               showToast(`❌ ${res.message || 'خطا در ثبت خرید'}`);

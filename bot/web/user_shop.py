@@ -27,23 +27,45 @@ async def post_user_spin(request: web.Request) -> web.Response:
 
     telegram_id = int(user_auth["id"])
     cache: FastCache = request.app["cache"]
-    wheel_key = f"tma:user:{telegram_id}:wheel_spins"
-    has_spun_free = bool(await cache.get(wheel_key))
+    wheel_ts_key = f"tma:user:{telegram_id}:wheel_last_spin"
 
     remnawave = request.app["remnawave"]
-    panel_users = await remnawave.get_users_by_telegram_id(telegram_id)
-    has_active_sub = bool(
-        panel_users and panel_users[0].get("status", "").upper() == "ACTIVE"
+    panel_users = await remnawave.get_users_by_telegram_id(telegram_id) or []
+    has_active_sub = any(
+        (u.get("status") or "").upper() == "ACTIVE" for u in panel_users
     )
 
-    if has_spun_free and not has_active_sub:
+    if not has_active_sub:
         return web.json_response(
             {
                 "ok": False,
-                "error": "شانس رایگان شما مصرف شده است. برای دریافت جوایز روزانه به یک اشتراک فعال نیاز دارید.",
+                "error": "برای استفاده از گردونه شانس، داشتن یک اشتراک فعال در پنل الزامی است.",
+                "code": "sub_required",
             },
             status=400,
         )
+
+    import time
+    last_spin = await cache.get(wheel_ts_key)
+    now_ts = time.time()
+    if last_spin is not None:
+        try:
+            elapsed = now_ts - float(last_spin)
+            if elapsed < 86400:
+                rem_secs = max(1, int(86400 - elapsed))
+                hours = rem_secs // 3600
+                mins = (rem_secs % 3600) // 60
+                return web.json_response(
+                    {
+                        "ok": False,
+                        "error": f"گردونه شانس هر ۲۴ ساعت یک‌بار قابل استفاده است. زمان باقیمانده: {hours} ساعت و {mins} دقیقه.",
+                        "next_spin_seconds": rem_secs,
+                        "code": "cooldown",
+                    },
+                    status=400,
+                )
+        except (ValueError, TypeError):
+            pass
 
     # 6 configured prizes:
     # 1. 1 GB
@@ -88,8 +110,8 @@ async def post_user_spin(request: web.Request) -> web.Response:
 
     # Record spin unless it's "try again"
     if chosen["type"] != "again":
-        # Keep until end of day (86400s)
-        await cache.set(wheel_key, True, ttl_seconds=86400)
+        # Keep 24-hour cooldown
+        await cache.set(wheel_ts_key, now_ts, ttl_seconds=86400)
 
     # Invalidate dashboard cache
     await cache.delete(f"tma:user:{telegram_id}:dashboard")
@@ -259,9 +281,11 @@ async def post_user_purchase(request: web.Request) -> web.Response:
                 coupon_obj = await coupon_repo.get_by_code(coupon_code)
 
         chosen_acc = None
+        panel_users = await remnawave.get_users_by_telegram_id(telegram_id) or []
         if account_id:
-            panel_users = await remnawave.get_users_by_telegram_id(telegram_id) or []
             chosen_acc = next((u for u in panel_users if str(u.get("id")) == str(account_id)), None)
+        if not chosen_acc and panel_users:
+            chosen_acc = panel_users[0]
 
         result = await execute_purchase(
             remnawave=remnawave,
@@ -272,9 +296,9 @@ async def post_user_purchase(request: web.Request) -> web.Response:
             discount_amount=discount_amount,
         )
 
+        effective_price = max(0, service.price - discount_amount)
         if not result.ok:
             if result.kind == "insufficient":
-                effective_price = max(0, service.price - discount_amount)
                 return web.json_response({
                     "ok": False,
                     "error": "insufficient_balance",
@@ -282,7 +306,20 @@ async def post_user_purchase(request: web.Request) -> web.Response:
                     "current": result.new_balance,
                     "message": "موجودی کیف پول شما کافی نیست.",
                 }, status=400)
-            return web.json_response({"ok": False, "message": "خطا در پردازش خرید سرویس."}, status=500)
+            elif result.kind == "maintenance":
+                return web.json_response({
+                    "ok": False,
+                    "message": "فروشگاه در حال حاضر در دست تعمیر و به‌روزرسانی است.",
+                }, status=503)
+            elif result.kind == "needs_account":
+                return web.json_response({
+                    "ok": False,
+                    "error": "needs_account",
+                    "message": "لطفاً حساب کاربری مورد نظر جهت تمدید را انتخاب نمایید.",
+                }, status=400)
+
+            logger.error("Purchase failed for user %s, service %s, result_kind: %s", telegram_id, service_id, result.kind)
+            return web.json_response({"ok": False, "message": "خطا در ارتباط با سرور پنل جهت فعال‌سازی سرویس."}, status=500)
 
         if coupon_obj and result.order_id:
             try:
@@ -298,4 +335,10 @@ async def post_user_purchase(request: web.Request) -> web.Response:
             "message": "سرویس با موفقیت فعال / تمدید شد!",
             "subscription_url": result.subscription_url,
             "new_balance": result.new_balance,
+            "service_name": service.name,
+            "traffic_gb": service.traffic_gb,
+            "duration_days": service.duration_days,
+            "panel_username": result.panel_username,
+            "order_id": result.order_id,
+            "effective_price": effective_price,
         })
