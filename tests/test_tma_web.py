@@ -6,8 +6,6 @@ import time
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-from aiohttp import web
-from aiohttp.test_utils import AioHTTPTestCase, unittest_run_loop
 
 from bot.keyboards.inline import main_menu_keyboard
 from bot.web.auth import validate_telegram_init_data
@@ -142,8 +140,9 @@ async def test_web_app_routes():
 
 @pytest.mark.anyio
 async def test_auth_browser_preview_fallback():
-    from bot.web.auth import get_authenticated_user
     from aiohttp.test_utils import make_mocked_request
+
+    from bot.web.auth import get_authenticated_user
 
     # 1. In production (is_dev=False), unauthenticated requests MUST be rejected (returns None)
     app_prod = {
@@ -176,9 +175,9 @@ async def test_auth_browser_preview_fallback():
 
 @pytest.mark.anyio
 async def test_user_me_dashboard_with_panel_user():
-    from bot.web.routes_user import get_user_me
     from aiohttp.test_utils import make_mocked_request
-    from unittest.mock import AsyncMock
+
+    from bot.web.routes_user import get_user_me
 
     mock_remnawave = AsyncMock()
     mock_remnawave.get_users_by_telegram_id.return_value = [
@@ -243,9 +242,11 @@ async def test_user_me_dashboard_with_panel_user():
 
 @pytest.mark.anyio
 async def test_user_validate_coupon_endpoint():
-    from bot.web.routes_user import post_user_validate_coupon
+    from unittest.mock import patch
+
     from aiohttp.test_utils import make_mocked_request
-    from unittest.mock import AsyncMock, patch
+
+    from bot.web.routes_user import post_user_validate_coupon
 
     mock_coupon = MagicMock(code="OFF20", discount_percent=20, discount_amount=0)
     mock_coupon_repo = MagicMock()
@@ -283,9 +284,11 @@ async def test_user_validate_coupon_endpoint():
 
 @pytest.mark.anyio
 async def test_user_topup_info_endpoint():
-    from bot.web.routes_user import get_user_topup_info
+    from unittest.mock import patch
+
     from aiohttp.test_utils import make_mocked_request
-    from unittest.mock import AsyncMock, patch
+
+    from bot.web.routes_user import get_user_topup_info
 
     mock_store = MagicMock(
         topup_min_amount=50000,
@@ -317,5 +320,91 @@ async def test_user_topup_info_endpoint():
         assert data["card_enabled"] is True
         assert data["card_number"] == "6037991823456789"
         assert data["ton_rate_toman"] == 600000
+
+
+@pytest.mark.anyio
+async def test_user_topup_card_validation_and_duplicate_prevention():
+    from unittest.mock import patch
+
+    from aiohttp.test_utils import make_mocked_request
+
+    from bot.web.user_topup import post_user_topup_card
+
+    mock_store = MagicMock(
+        topup_min_amount=10000,
+        card_enabled=True,
+        topic_topups=None,
+    )
+
+    existing_hashes = set()
+
+    class MockWalletRepo:
+        def __init__(self, session):
+            pass
+
+        async def pending_count(self, telegram_id):
+            return 0
+
+        async def receipt_exists(self, receipt_hash):
+            return receipt_hash in existing_hashes
+
+        async def create_topup(self, telegram_id, amount, receipt_hash):
+            existing_hashes.add(receipt_hash)
+            return MagicMock(id=999)
+
+    class MockSession:
+        async def __aenter__(self): return self
+        async def __aexit__(self, *args): pass
+        async def commit(self): pass
+
+    def session_factory():
+        return MockSession()
+
+    mock_bot = AsyncMock()
+    mock_settings = MagicMock(ADMIN_CHAT_ID=12345, ADMIN_TOPIC_TOPUPS=None)
+
+    app = {
+        "is_dev": True,
+        "session_factory": session_factory,
+        "bot": mock_bot,
+        "settings": mock_settings,
+    }
+
+    with patch("bot.web.user_topup.get_store_settings", AsyncMock(return_value=mock_store)), \
+         patch("bot.web.user_topup.WalletRepository", MockWalletRepo):
+        # 1. Missing receipt text -> 400
+        req_empty = make_mocked_request(
+            "POST", "/api/user/topup/card?user_id=77777",
+            headers={"Content-Type": "application/json"},
+            app=app,
+        )
+        req_empty.json = AsyncMock(return_value={"amount": 20000, "receipt_text": "   "})
+        resp = await post_user_topup_card(req_empty)
+        assert resp.status == 400
+        assert "شماره پیگیری" in json.loads(resp.text)["message"]
+
+        # 2. First submission -> 200 OK
+        req_valid = make_mocked_request(
+            "POST", "/api/user/topup/card?user_id=77777",
+            headers={"Content-Type": "application/json"},
+            app=app,
+        )
+        req_valid.json = AsyncMock(return_value={"amount": 20000, "receipt_text": "TRX-123456789"})
+        resp1 = await post_user_topup_card(req_valid)
+        assert resp1.status == 200
+        assert json.loads(resp1.text)["ok"] is True
+
+        # 3. Duplicate submission with same receipt -> 400 Rejected
+        req_dup = make_mocked_request(
+            "POST", "/api/user/topup/card?user_id=77777",
+            headers={"Content-Type": "application/json"},
+            app=app,
+        )
+        req_dup.json = AsyncMock(return_value={"amount": 20000, "receipt_text": "  TRX-123456789  "})
+        resp2 = await post_user_topup_card(req_dup)
+        assert resp2.status == 400
+        data2 = json.loads(resp2.text)
+        assert data2["ok"] is False
+        assert "قبلاً ثبت شده است" in data2["message"]
 
 

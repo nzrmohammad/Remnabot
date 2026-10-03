@@ -18,10 +18,10 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
+from bot.common import admin_thread_kwargs
 from bot.config import get_settings
 from bot.db.repositories.support_repo import SupportMessageRepository
 from bot.db.repositories.user_repo import UserRepository
-from bot.common import admin_thread_kwargs
 from bot.locales.texts import t
 from bot.services.menu import delete_message_silently, render_menu
 from bot.states.support import SupportStates
@@ -77,6 +77,7 @@ async def support_forward(
 
     sent_to_admin = False
     from bot.services.app_settings import get_store_settings
+    store = await get_store_settings(user_repo.session)
     thread_kwargs = admin_thread_kwargs(store, settings, kind="support")
     try:
         # 1) copy the raw content so nothing is lost (media, captions, ...)

@@ -5,6 +5,7 @@ import random
 from aiohttp import web
 
 from bot.db.models import Service
+from bot.db.repositories.coupon_repo import CouponRepository
 from bot.services.purchases import execute_purchase
 from bot.web.auth import get_authenticated_user
 from bot.web.cache import FastCache

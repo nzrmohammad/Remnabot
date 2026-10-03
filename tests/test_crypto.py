@@ -513,3 +513,109 @@ async def test_card_enabled_toggle_and_wallet_guard(session_factory):
             call_user.answer.assert_awaited_once()
             assert "شارژ کیف پول فعلاً در دسترس نیست" in call_user.answer.call_args[0][0]
 
+
+@pytest.mark.anyio
+async def test_ton_unique_comment_and_replay_protection(session_factory):
+    async with session_factory() as session:
+        crypto_repo = CryptoRepository(session)
+        # Create an initial invoice and mark it paid
+        inv1 = await crypto_repo.create_invoice(
+            telegram_id=111,
+            amount_toman=100000,
+            amount_ton="0.5",
+            nanotons=500000000,
+            pay_address="EQB...",
+        )
+        await crypto_repo.mark_paid(inv1.id, tx_hash="hash_abc_123")
+        await session.commit()
+
+        # Generate 20 new comments - none should match inv1.comment
+        for _ in range(20):
+            c = await crypto_repo.generate_unique_comment()
+            assert c != inv1.comment
+
+        # Verify get_by_tx_hash
+        found_inv = await crypto_repo.get_by_tx_hash("hash_abc_123")
+        assert found_inv is not None
+        assert found_inv.id == inv1.id
+
+
+@pytest.mark.anyio
+async def test_ton_watcher_rejects_tx_replay_and_stale_utime(session_factory):
+    from bot.db.repositories.app_setting_repo import AppSettingRepository
+    from bot.services.crypto.ton import verify_and_process_payments
+
+    async with session_factory() as session:
+        # Setup store settings with TON wallet
+        app_repo = AppSettingRepository(session)
+        await app_repo.set("ton_wallet_address", "EQB_TEST_WALLET")
+        await app_repo.set("crypto_enabled", "1")
+        await app_repo.set("ton_rate_toman", "500000")
+
+        crypto_repo = CryptoRepository(session)
+        inv1 = await crypto_repo.create_invoice(
+            telegram_id=222,
+            amount_toman=50000,
+            amount_ton="0.1",
+            nanotons=100000000,
+            pay_address="EQB_TEST_WALLET",
+        )
+        # Mark inv1 paid with tx_hash_1
+        await crypto_repo.mark_paid(inv1.id, tx_hash="tx_hash_1")
+
+        # Now create inv2 with different comment
+        inv2 = await crypto_repo.create_invoice(
+            telegram_id=333,
+            amount_toman=50000,
+            amount_ton="0.1",
+            nanotons=100000000,
+            pay_address="EQB_TEST_WALLET",
+        )
+        await session.commit()
+
+    # Case 1: Replayed transaction with tx_hash_1 (already used)
+    replayed_txs = [
+        {
+            "nanotons": 100000000,
+            "comment": inv2.comment,
+            "tx_hash": "tx_hash_1",  # already used by inv1!
+            "utime": int(datetime.now(timezone.utc).timestamp()),
+        }
+    ]
+
+    mock_bot = MagicMock()
+    mock_bot.send_message = AsyncMock()
+
+    with patch("bot.services.crypto.ton.fetch_ton_transactions", AsyncMock(return_value=replayed_txs)):
+        processed = await verify_and_process_payments(mock_bot, session_factory)
+        assert processed == 0
+
+    # Case 2: Stale transaction with utime before invoice creation
+    stale_txs = [
+        {
+            "nanotons": 100000000,
+            "comment": inv2.comment,
+            "tx_hash": "tx_hash_2",
+            "utime": int(inv2.created_at.timestamp()) - 1000,  # 1000s in the past
+        }
+    ]
+
+    with patch("bot.services.crypto.ton.fetch_ton_transactions", AsyncMock(return_value=stale_txs)):
+        processed = await verify_and_process_payments(mock_bot, session_factory)
+        assert processed == 0
+
+    # Case 3: Legitimate matching transaction
+    valid_txs = [
+        {
+            "nanotons": 100000000,
+            "comment": inv2.comment,
+            "tx_hash": "tx_hash_2",
+            "utime": int(inv2.created_at.timestamp()) + 10,
+        }
+    ]
+
+    with patch("bot.services.crypto.ton.fetch_ton_transactions", AsyncMock(return_value=valid_txs)):
+        processed = await verify_and_process_payments(mock_bot, session_factory)
+        assert processed == 1
+
+

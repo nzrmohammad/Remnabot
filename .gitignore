@@ -21,6 +21,8 @@ __pycache__/
 .coverage
 htmlcov/
 test_tmp/
+.pytest_tmp/
+test_tmp_run/
 
 # Virtual environments
 .venv/

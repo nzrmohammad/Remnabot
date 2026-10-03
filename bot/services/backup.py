@@ -344,6 +344,7 @@ async def auto_backup_loop(bot, session_factory) -> None:
                         caption=caption,
                         **thread_kwargs,
                     )
+                    topic_id = thread_kwargs.get("message_thread_id")
                     logger.info("Auto database backup delivered to %s (topic: %s)", admin_chat_id, topic_id)
         except Exception:
             logger.exception("Failed to execute scheduled database backup")

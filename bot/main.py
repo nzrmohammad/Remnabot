@@ -185,6 +185,14 @@ async def _migrate_schema(engine: AsyncEngine) -> None:
                 )
                 logger.info("added users.referred_by_id")
 
+        # --- crypto_invoices: tx_hash index ------------------------------------ #
+        cols = await _table_columns(conn, "crypto_invoices")
+        if cols and "tx_hash" in cols:
+            await conn.execute(
+                text("CREATE INDEX IF NOT EXISTS ix_crypto_invoices_tx_hash ON crypto_invoices (tx_hash)")
+            )
+            logger.info("ensured ix_crypto_invoices_tx_hash index")
+
 
 async def main() -> None:
     settings = get_settings()

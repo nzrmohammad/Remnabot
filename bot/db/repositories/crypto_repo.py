@@ -43,15 +43,34 @@ class CryptoRepository:
         )
         return list(result.scalars().all())
 
+    async def get_by_tx_hash(self, tx_hash: str) -> CryptoInvoice | None:
+        if not tx_hash:
+            return None
+        result = await self.session.execute(
+            select(CryptoInvoice).where(CryptoInvoice.tx_hash == tx_hash)
+        )
+        return result.scalar_one_or_none()
+
     async def generate_unique_comment(self) -> str:
-        """Generate a unique 5-6 digit numeric memo comment for TON transfer."""
+        """Generate a globally unique 5-7 digit numeric memo comment for TON transfer."""
         for _ in range(100):
             cand = str(random.randint(10000, 99999))
             existing = await self.get_by_comment(cand)
-            if existing is None or existing.status in ("paid", "expired", "cancelled"):
+            if existing is None:
                 return cand
         # fallback 6 digits
-        return str(random.randint(100000, 999999))
+        for _ in range(100):
+            cand = str(random.randint(100000, 999999))
+            existing = await self.get_by_comment(cand)
+            if existing is None:
+                return cand
+        # fallback 7 digits
+        for _ in range(100):
+            cand = str(random.randint(1000000, 9999999))
+            existing = await self.get_by_comment(cand)
+            if existing is None:
+                return cand
+        return str(random.randint(10000000, 99999999))
 
     async def create_invoice(
         self,

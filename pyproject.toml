@@ -4,9 +4,10 @@ target-version = "py312"
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B"]
-# E501: repo uses long HTML strings; UP017: codebase standard is timezone.utc.
-ignore = ["E501", "UP017"]
+# E501: repo uses long HTML strings; UP017: codebase standard is timezone.utc; E402: intentional sub-router includes.
+ignore = ["E501", "UP017", "E402"]
 
 [tool.pytest.ini_options]
-addopts = "--basetemp=./test_tmp"
+testpaths = ["tests"]
+addopts = "--basetemp=./.pytest_tmp"
 

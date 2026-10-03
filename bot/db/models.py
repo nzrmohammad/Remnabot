@@ -109,7 +109,9 @@ class Wallet(Base):
 
     __tablename__ = "wallets"
 
-    telegram_id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    telegram_id: Mapped[int] = mapped_column(
+        BigInteger, ForeignKey("users.telegram_id", ondelete="CASCADE"), primary_key=True
+    )
     balance: Mapped[int] = mapped_column(BigInteger, default=0)
 
     updated_at: Mapped[datetime] = mapped_column(
@@ -145,7 +147,9 @@ class Order(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     telegram_id: Mapped[int] = mapped_column(BigInteger, index=True)
-    service_id: Mapped[int] = mapped_column(Integer)
+    service_id: Mapped[int | None] = mapped_column(
+        Integer, ForeignKey("services.id", ondelete="SET NULL"), nullable=True
+    )
     service_name: Mapped[str] = mapped_column(String(128))   # snapshot
     amount: Mapped[int] = mapped_column(BigInteger)          # Toman paid
     duration_days: Mapped[int] = mapped_column(Integer, default=0)
@@ -363,7 +367,7 @@ class CryptoInvoice(Base):
     comment: Mapped[str] = mapped_column(String(32), unique=True, index=True)
     pay_address: Mapped[str] = mapped_column(String(128))
     status: Mapped[str] = mapped_column(String(16), default="pending")  # pending / paid / expired / cancelled
-    tx_hash: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    tx_hash: Mapped[str | None] = mapped_column(String(128), nullable=True, index=True)
 
     expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
     created_at: Mapped[datetime] = mapped_column(

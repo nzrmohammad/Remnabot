@@ -1,8 +1,7 @@
 """TMA User Wallet and Top-up API endpoints."""
 import hashlib
-from html import escape
 import logging
-import time
+from html import escape
 
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from aiohttp import web
@@ -10,6 +9,7 @@ from aiohttp import web
 from bot.common import admin_thread_kwargs
 from bot.db.repositories.crypto_repo import CryptoRepository
 from bot.db.repositories.wallet_repo import WalletRepository
+from bot.services.app_settings import get_store_settings
 from bot.services.crypto.ton import fetch_ton_transactions
 from bot.web.auth import get_authenticated_user
 from bot.web.cache import FastCache
@@ -56,6 +56,11 @@ async def post_user_topup_card(request: web.Request) -> web.Response:
 
     amount = int(body.get("amount") or 0)
     receipt_info = (body.get("receipt_text") or "").strip()
+    if not receipt_info:
+        return web.json_response(
+            {"ok": False, "message": "لطفاً شماره پیگیری یا شرح فیش واریزی را وارد کنید."},
+            status=400,
+        )
 
     telegram_id = int(user_auth["id"])
     session_factory = request.app["session_factory"]
@@ -77,7 +82,14 @@ async def post_user_topup_card(request: web.Request) -> web.Response:
                 status=400,
             )
 
-        receipt_hash = "tma:" + hashlib.sha256(f"{telegram_id}:{amount}:{receipt_info}:{time.time()}".encode()).hexdigest()[:40]
+        normalized = " ".join(receipt_info.split())
+        receipt_hash = "text:" + hashlib.sha256(normalized.encode("utf-8")).hexdigest()[:48]
+        if await wallet_repo.receipt_exists(receipt_hash):
+            return web.json_response(
+                {"ok": False, "message": "این فیش یا شماره پیگیری قبلاً ثبت شده است و امکان ارسال مجدد آن وجود ندارد."},
+                status=400,
+            )
+
         topup = await wallet_repo.create_topup(telegram_id, amount, receipt_hash)
         await session.commit()
 

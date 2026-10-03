@@ -132,13 +132,28 @@ async def verify_and_process_payments(bot: Bot, session_factory) -> int:
         for inv in active_invoices:
             # Look for matching transaction
             matching_tx = None
+            inv_created_ts = int(inv.created_at.timestamp()) if inv.created_at else 0
             for tx in transactions:
-                if tx["comment"] == inv.comment and tx["nanotons"] >= inv.nanotons:
-                    matching_tx = tx
-                    break
+                if tx["comment"] != inv.comment or tx["nanotons"] < inv.nanotons:
+                    continue
+                # Timing check: transaction utime must not be before invoice creation (allow 60s clock skew)
+                if inv_created_ts and tx.get("utime", 0) and tx["utime"] < (inv_created_ts - 60):
+                    continue
+                matching_tx = tx
+                break
 
             if matching_tx:
-                tx_hash = matching_tx["tx_hash"]
+                tx_hash = matching_tx.get("tx_hash") or ""
+                # Prevent transaction replay: verify tx_hash has not been used by another invoice
+                if tx_hash:
+                    existing_tx_inv = await crypto_repo.get_by_tx_hash(tx_hash)
+                    if existing_tx_inv and existing_tx_inv.id != inv.id:
+                        logger.warning(
+                            "TON tx_hash %s already claimed by invoice %s, rejecting replay for invoice %s",
+                            tx_hash, existing_tx_inv.id, inv.id,
+                        )
+                        continue
+
                 paid_inv = await crypto_repo.mark_paid(inv.id, tx_hash)
                 if not paid_inv:
                     continue

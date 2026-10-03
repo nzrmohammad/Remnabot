@@ -205,7 +205,7 @@
     <!-- ======================================================== -->
     <!-- 2. SCROLLABLE TAB CONTENT AREA                           -->
     <!-- ======================================================== -->
-    <div id="contentArea" class="flex-1 overflow-y-auto custom-scroll p-4 space-y-4 pb-24">
+    <div id="contentArea" class="flex-1 overflow-y-auto custom-scroll p-4 space-y-4 pb-[calc(6.5rem+env(safe-area-inset-bottom,0px))]">
 
       <!-- ===================================================== -->
       <!-- TAB 1: DASHBOARD (داشبورد اصلی)                        -->
@@ -730,7 +730,7 @@
     <!-- ======================================================== -->
     <!-- 3. BOTTOM NAVIGATION BAR (5 Standard Tabs)               -->
     <!-- ======================================================== -->
-    <div class="absolute bottom-0 inset-x-0 bg-[#131d31]/95 backdrop-blur-md border-t border-slate-700/80 px-2 py-2.5 flex justify-around items-center z-30 transition-colors">
+    <div id="navBottom" class="absolute bottom-0 inset-x-0 bg-[#131d31]/95 backdrop-blur-md border-t border-slate-700/80 px-2 pt-2 pb-[calc(0.625rem+env(safe-area-inset-bottom,0px))] flex justify-around items-center z-30 transition-colors">
       <button class="nav-btn flex flex-col items-center gap-0.5 text-blue-400 transition" data-tab="tab-dashboard">
         <span class="text-lg">📊</span>
         <span class="text-[10px] font-bold">داشبورد</span>
@@ -1257,6 +1257,7 @@
         btn.classList.remove('text-slate-400');
         btn.classList.add('text-blue-400');
         btn.querySelector('span:last-child').classList.replace('font-medium', 'font-bold');
+        if (typeof syncTelegramBackButton === 'function') syncTelegramBackButton();
       });
     });
 
@@ -2011,6 +2012,78 @@
         if (tg.setHeaderColor) tg.setHeaderColor('#0f172a');
         if (tg.setBackgroundColor) tg.setBackgroundColor('#080d1a');
       } catch (e) {}
+    }
+
+    function syncTelegramBackButton() {
+      if (!tg?.BackButton) return;
+      const modalIds = [
+        'revokeModal', 'switchAccountModal', 'activeSessionsModal',
+        'topupModal', 'luckyWheelModal', 'storyModal'
+      ];
+      const hasOpenModal = modalIds.some(id => {
+        const el = document.getElementById(id);
+        return el && !el.classList.contains('hidden');
+      });
+
+      const qr = document.getElementById('qrContainer');
+      const hasOpenQr = qr && !qr.classList.contains('hidden');
+
+      const activeTabBtn = document.querySelector('.nav-btn.text-blue-400');
+      const activeTab = activeTabBtn?.getAttribute('data-tab');
+      const isSubTab = activeTab && activeTab !== 'tab-dashboard';
+
+      if (hasOpenModal || hasOpenQr || isSubTab) {
+        tg.BackButton.show();
+      } else {
+        tg.BackButton.hide();
+      }
+    }
+
+    if (tg?.BackButton) {
+      tg.BackButton.onClick(() => {
+        // 1. Close open modal first if any
+        const modalIds = [
+          'revokeModal', 'switchAccountModal', 'activeSessionsModal',
+          'topupModal', 'luckyWheelModal', 'storyModal'
+        ];
+        for (const id of modalIds) {
+          const el = document.getElementById(id);
+          if (el && !el.classList.contains('hidden')) {
+            el.classList.add('hidden');
+            syncTelegramBackButton();
+            return;
+          }
+        }
+        // 2. Close QR box if open
+        const qr = document.getElementById('qrContainer');
+        if (qr && !qr.classList.contains('hidden')) {
+          qr.classList.add('hidden');
+          const qrToggle = document.getElementById('qrToggleBtn');
+          if (qrToggle) qrToggle.innerHTML = '<span class="text-sm">📷</span>';
+          syncTelegramBackButton();
+          return;
+        }
+
+        // 3. Otherwise navigate back to primary dashboard tab
+        const dashBtn = document.querySelector('.nav-btn[data-tab="tab-dashboard"]');
+        if (dashBtn) {
+          dashBtn.click();
+        }
+      });
+
+      // Observe modals for class attribute mutations (hidden toggles)
+      const observedModalIds = [
+        'revokeModal', 'switchAccountModal', 'activeSessionsModal',
+        'topupModal', 'luckyWheelModal', 'storyModal', 'qrContainer'
+      ];
+      observedModalIds.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+          const obs = new MutationObserver(() => syncTelegramBackButton());
+          obs.observe(el, { attributes: true, attributeFilter: ['class'] });
+        }
+      });
+      syncTelegramBackButton();
     }
 
     document.getElementById('closeBtn')?.addEventListener('click', () => {
