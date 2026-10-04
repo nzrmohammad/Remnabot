@@ -50,6 +50,11 @@ def main_menu_keyboard(
         except Exception:
             web_app_url = None
 
+    if web_app_url:
+        web_app_url = str(web_app_url).strip().strip('"').strip("'")
+        if web_app_url and not web_app_url.startswith(("http://", "https://")):
+            web_app_url = f"https://{web_app_url}"
+
     kb = InlineKeyboardBuilder()
     sizes: list[int] = []
 

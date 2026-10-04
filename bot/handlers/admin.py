@@ -92,15 +92,23 @@ async def admin_panel(
 
     # Row 5: Admin Mini App Panel
     settings = get_settings()
-    web_app_url = getattr(settings, "WEB_APP_URL", "") or ""
+    web_app_url = str(getattr(settings, "WEB_APP_URL", "") or "").strip().strip('"').strip("'")
+    if not web_app_url:
+        try:
+            get_settings.cache_clear()
+            settings = get_settings()
+            web_app_url = str(getattr(settings, "WEB_APP_URL", "") or "").strip().strip('"').strip("'")
+        except Exception:
+            pass
+
+    if web_app_url and not web_app_url.startswith(("http://", "https://")):
+        web_app_url = f"https://{web_app_url}"
+
     tma_btn_text = "📱 پنل مدیریت Mini App" if lang == "fa" else "📱 Admin Mini App Panel"
 
-    if web_app_url and web_app_url.startswith("https://"):
+    if web_app_url:
         admin_tma_url = f"{web_app_url.rstrip('/')}/admin"
         kb.button(text=tma_btn_text, web_app=WebAppInfo(url=admin_tma_url))
-    elif web_app_url and web_app_url.startswith("http://"):
-        admin_tma_url = f"{web_app_url.rstrip('/')}/admin"
-        kb.button(text=tma_btn_text, url=admin_tma_url)
     else:
         kb.button(text=tma_btn_text, callback_data="adm:tma:nourl")
 
@@ -117,11 +125,44 @@ async def admin_panel(
 
 
 @router.callback_query(F.data == "adm:tma:nourl")
-async def admin_tma_nourl(call: CallbackQuery):
-    """Notify admin if WEB_APP_URL is not yet configured in .env."""
+async def admin_tma_nourl(
+    call: CallbackQuery,
+    bot: Bot,
+    user_repo: UserRepository,
+    state: FSMContext,
+):
+    """Fallback handler: if URL is configured, send direct link & refresh menu."""
     if not _is_admin(call.from_user.id):
         await call.answer()
         return
+
+    try:
+        get_settings.cache_clear()
+    except Exception:
+        pass
+    settings = get_settings()
+    web_app_url = str(getattr(settings, "WEB_APP_URL", "") or "").strip().strip('"').strip("'")
+    if web_app_url and not web_app_url.startswith(("http://", "https://")):
+        web_app_url = f"https://{web_app_url}"
+
+    if web_app_url:
+        admin_tma_url = f"{web_app_url.rstrip('/')}/admin"
+        from aiogram.utils.keyboard import InlineKeyboardBuilder
+        kb = InlineKeyboardBuilder()
+        kb.button(text="🚀 ورود به پنل مدیریت Mini App", web_app=WebAppInfo(url=admin_tma_url))
+        await call.message.answer(
+            "🔐 <b>لینک ورود به پنل مدیریت وب:</b>\n\n"
+            f"🔗 آدرس: <code>{admin_tma_url}</code>\n\n"
+            "جهت ورود، روی دکمه زیر کلیک فرمایید:",
+            reply_markup=kb.as_markup(),
+        )
+        try:
+            await admin_panel(call, bot, user_repo, state)
+        except Exception:
+            pass
+        await call.answer()
+        return
+
     await call.answer(
         "⚠️ لطفاً ابتدا آدرس اینترنتی WEB_APP_URL را با پروتکل https در فایل .env تنظیم فرمایید.",
         show_alert=True,
