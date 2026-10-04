@@ -26,17 +26,21 @@ _is_admin = is_admin
 async def telegram_user_detail(
     call: CallbackQuery, bot: Bot, user_repo: UserRepository,
     session: AsyncSession, remnawave: RemnawaveClient,
+    target_telegram_id: int | None = None,
 ):
     if call.data in ("adm:user:search", "adm:user:create"):
         return
     if not _is_admin(call.from_user.id):
         await call.answer(t("fa", "not_authorized"), show_alert=True)
         return
-    try:
-        telegram_id = int(call.data.rsplit(":", 1)[1])
-    except (ValueError, TypeError):
-        await call.answer(t("fa", "acc_error"), show_alert=True)
-        return
+    if target_telegram_id is not None:
+        telegram_id = target_telegram_id
+    else:
+        try:
+            telegram_id = int(call.data.rsplit(":", 1)[1])
+        except (ValueError, TypeError):
+            await call.answer(t("fa", "acc_error"), show_alert=True)
+            return
     user = await user_repo.get_or_create(call.from_user.id, call.from_user.username)
     lang = user.language
 
@@ -102,8 +106,7 @@ async def admin_ban_user(
     await admin_log_repo_cls(session).log(
         call.from_user.id, "setting", detail=f"ban_user={telegram_id}"
     )
-    call.data = f"adm:user:{telegram_id}"
-    await telegram_user_detail(call, bot, user_repo, session, remnawave)
+    await telegram_user_detail(call, bot, user_repo, session, remnawave, target_telegram_id=telegram_id)
     await call.answer(t(call.from_user.language_code, "user_banned_toast"))
 
 
@@ -122,8 +125,7 @@ async def admin_unban_user(
     await admin_log_repo_cls(session).log(
         call.from_user.id, "setting", detail=f"unban_user={telegram_id}"
     )
-    call.data = f"adm:user:{telegram_id}"
-    await telegram_user_detail(call, bot, user_repo, session, remnawave)
+    await telegram_user_detail(call, bot, user_repo, session, remnawave, target_telegram_id=telegram_id)
     await call.answer(t(call.from_user.language_code, "user_unbanned_toast"))
 
 

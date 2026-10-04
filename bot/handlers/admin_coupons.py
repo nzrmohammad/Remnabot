@@ -55,9 +55,13 @@ async def admin_coupons_list(
         status_icon = "🟢" if c.is_active else "🔴"
         disc_str = f"{c.discount_percent}%" if c.discount_percent else f"{fmt(c.discount_amount)}"
         kb.button(text=f"{status_icon} {c.code} ({disc_str})", callback_data=f"adm:cpn:view:{c.id}")
-    kb.button(text=t(lang, "btn_create_coupon"), callback_data="adm:cpn:add")
-    kb.button(text=t(lang, "btn_back"), callback_data="adm:services")
-    kb.adjust(1)
+    kb.adjust(2)
+
+    bottom_kb = InlineKeyboardBuilder()
+    bottom_kb.button(text=t(lang, "btn_create_coupon"), callback_data="adm:cpn:add")
+    bottom_kb.button(text=t(lang, "btn_back"), callback_data="adm:services")
+    bottom_kb.adjust(1)
+    kb.attach(bottom_kb)
 
     await render_menu(bot, user, user_repo, "\n".join(lines), kb.as_markup())
     await call.answer()
@@ -66,16 +70,17 @@ async def admin_coupons_list(
 @router.callback_query(F.data.startswith("adm:cpn:view:"))
 async def admin_coupon_detail(
     call: CallbackQuery, bot: Bot, user_repo: UserRepository,
-    session: AsyncSession,
+    session: AsyncSession, coupon_id: int | None = None,
 ):
     if not _is_admin(call.from_user.id):
         await call.answer(t("fa", "not_authorized"), show_alert=True)
         return
-    try:
-        coupon_id = int(call.data.rsplit(":", 1)[1])
-    except (ValueError, TypeError):
-        await call.answer(t("fa", "acc_error"), show_alert=True)
-        return
+    if coupon_id is None:
+        try:
+            coupon_id = int(call.data.rsplit(":", 1)[1])
+        except (ValueError, TypeError):
+            await call.answer(t("fa", "acc_error"), show_alert=True)
+            return
     user = await user_repo.get_or_create(call.from_user.id, call.from_user.username)
     lang = user.language or "fa"
 
@@ -119,8 +124,7 @@ async def admin_coupon_toggle(
     coupon_id = int(call.data.rsplit(":", 1)[1])
     coupon_repo = CouponRepository(session)
     await coupon_repo.toggle_active(coupon_id)
-    call.data = f"adm:cpn:view:{coupon_id}"
-    await admin_coupon_detail(call, bot, user_repo, session)
+    await admin_coupon_detail(call, bot, user_repo, session, coupon_id=coupon_id)
 
 
 @router.callback_query(F.data.startswith("adm:cpn:del:"))

@@ -1628,7 +1628,7 @@
         }
 
         const targetUri = makeUri(url);
-        // Robust custom scheme dispatch for Telegram WebApp
+        // Robust custom scheme dispatch without causing ERR_UNKNOWN_URL_SCHEME crash in WebApp
         try {
           if (targetUri.startsWith('http://') || targetUri.startsWith('https://')) {
             if (window.Telegram?.WebApp?.openLink) {
@@ -1637,30 +1637,37 @@
               window.open(targetUri, '_blank');
             }
           } else {
-            // Direct location assignment invokes OS app scheme intent
-            window.location.href = targetUri;
+            const a = document.createElement('a');
+            a.href = targetUri;
+            a.rel = 'noopener noreferrer';
+            a.style.display = 'none';
+            document.body.appendChild(a);
+            a.click();
+            setTimeout(() => {
+              try { if (a.parentNode) document.body.removeChild(a); } catch (e) {}
+            }, 500);
           }
         } catch (e) {
-          window.location.href = targetUri;
+          console.error('Deep link trigger error', e);
         }
 
         showToast(`📋 لینک در کلیپ‌بورد کپی شد و درخواست اتصال به ${appName} ارسال گردید.`);
       };
 
       document.getElementById('appImportIncy')?.addEventListener('click', () => {
-        copyAndLaunch(u => `incy://import?url=${encodeURIComponent(u)}`, 'Incy');
+        copyAndLaunch(u => `incy://import/${u}`, 'Incy');
       });
       document.getElementById('appImportHapp')?.addEventListener('click', () => {
-        copyAndLaunch(u => `happ://add/${encodeURIComponent(u)}`, 'Happ');
+        copyAndLaunch(u => `happ://add/${u}`, 'Happ');
       });
       document.getElementById('appImportV2ray')?.addEventListener('click', () => {
-        copyAndLaunch(u => `v2rayng://install-config?url=${encodeURIComponent(u)}`, 'v2rayNG');
+        copyAndLaunch(u => `v2rayng://install-sub?url=${encodeURIComponent(u)}`, 'v2rayNG');
       });
       document.getElementById('appImportHiddify')?.addEventListener('click', () => {
-        copyAndLaunch(u => `hiddify://import/${encodeURIComponent(u)}`, 'Hiddify');
+        copyAndLaunch(u => `hiddify://install-sub?url=${encodeURIComponent(u)}`, 'Hiddify');
       });
       document.getElementById('appImportStreisand')?.addEventListener('click', () => {
-        copyAndLaunch(u => `streisand://import/${encodeURIComponent(u)}`, 'Streisand');
+        copyAndLaunch(u => `streisand://import/${u}`, 'Streisand');
       });
 
       // Clickable Subscription Box Container (Direct Copy without opening external window)
@@ -3136,15 +3143,15 @@
           txContainer.innerHTML = txList.map(tx => `
             <div class="bg-slate-900/70 rounded-xl p-3 border border-slate-700/60 flex items-center justify-between text-xs">
               <div class="flex items-center gap-2.5">
+                <span class="text-xl">${tx.type === 'topup' ? '💳' : '🛒'}</span>
                 <div>
                   <span class="font-bold text-slate-200 block">${tx.title}</span>
                   <span class="text-[10px] text-slate-400 font-mono mt-0.5" dir="ltr">${tx.date_jalali || ''}</span>
                 </div>
-                <span class="text-xl">${tx.type === 'topup' ? '💳' : '🛒'}</span>
               </div>
               <div class="text-left font-mono">
-                <span class="font-bold ${tx.is_positive ? 'text-emerald-400' : 'text-slate-200'} block" dir="ltr">
-                  ${tx.is_positive ? '+' : '-'}${tx.amount_formatted}
+                <span class="font-bold ${tx.is_positive ? 'text-emerald-400' : 'text-slate-200'} block" dir="rtl">
+                  ${(tx.amount != null ? Number(tx.amount).toLocaleString('en-US') : '0')}${tx.is_positive ? '+' : '-'} تومان
                 </span>
                 <span class="text-[10px] text-${tx.status_color || 'emerald'}-400 font-sans">
                   ${tx.status}

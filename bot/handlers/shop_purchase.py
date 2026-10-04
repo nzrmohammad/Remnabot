@@ -352,8 +352,10 @@ async def _notify_admin(
 async def buy_new_account(
     call: CallbackQuery, bot: Bot, user_repo: UserRepository,
     session: AsyncSession, remnawave: RemnawaveClient, state: FSMContext,
+    service_id: int | None = None,
 ):
-    service_id = _safe_int(call.data.rsplit(":", 1)[1])
+    if service_id is None:
+        service_id = _safe_int(call.data.rsplit(":", 1)[1])
     if service_id is None:
         await call.answer(t("fa", "acc_error"), show_alert=True)
         return
@@ -494,8 +496,10 @@ async def service_view(
 async def service_buy(
     call: CallbackQuery, bot: Bot, user_repo: UserRepository,
     session: AsyncSession, remnawave: RemnawaveClient, state: FSMContext,
+    service_id: int | None = None,
 ):
-    service_id = _safe_int(call.data.rsplit(":", 1)[1])
+    if service_id is None:
+        service_id = _safe_int(call.data.rsplit(":", 1)[1])
     if service_id is None:
         await call.answer(t("fa", "acc_error"), show_alert=True)
         return

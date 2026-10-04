@@ -169,17 +169,19 @@ async def single_configs_account_view(
 
 @router.callback_query(F.data.startswith("cfg:show:"))
 async def single_config_detail(
-    call: CallbackQuery, bot: Bot, user_repo: UserRepository, remnawave: RemnawaveClient
+    call: CallbackQuery, bot: Bot, user_repo: UserRepository, remnawave: RemnawaveClient,
+    account_id: str | None = None, idx: int | None = None,
 ):
-    parts = call.data.split(":")
-    if len(parts) != 4:
-        await call.answer(t("fa", "acc_error"), show_alert=True)
-        return
-    _, _, account_id, idx_s = parts
-    idx = _safe_int(idx_s)
-    if idx is None:
-        await call.answer(t("fa", "acc_error"), show_alert=True)
-        return
+    if account_id is None or idx is None:
+        parts = call.data.split(":")
+        if len(parts) != 4:
+            await call.answer(t("fa", "acc_error"), show_alert=True)
+            return
+        _, _, account_id, idx_s = parts
+        idx = _safe_int(idx_s)
+        if idx is None:
+            await call.answer(t("fa", "acc_error"), show_alert=True)
+            return
 
     user = await user_repo.get_or_create(call.from_user.id, call.from_user.username)
     lang = user.language
@@ -232,10 +234,11 @@ async def single_config_get_legacy(
     parts = call.data.split(":")
     if len(parts) == 4:
         account_id, idx_s = parts[2], parts[3]
-        call.data = f"cfg:show:{account_id}:{idx_s}"
-        await single_config_detail(call, bot, user_repo, remnawave)
-    else:
-        await call.answer()
+        idx = _safe_int(idx_s)
+        if idx is not None:
+            await single_config_detail(call, bot, user_repo, remnawave, account_id=account_id, idx=idx)
+            return
+    await call.answer()
 
 
 @router.callback_query(F.data == "menu:single_configs")

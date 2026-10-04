@@ -69,17 +69,14 @@ async def remove_coupon(
     await state.update_data(coupon_code=None, discount_amount=0)
 
     if flow_type == "a":
-        call.data = f"svc:buya:{service_id}:{target_id}"
         buy_for_account_fn = resolve_op("buy_for_account", buy_for_account)
-        await buy_for_account_fn(call, bot, user_repo, session, remnawave, state)
+        await buy_for_account_fn(call, bot, user_repo, session, remnawave, state, service_id=service_id, panel_user_id=target_id)
     elif flow_type == "n":
-        call.data = f"svc:buynew:{service_id}"
         buy_new_account_fn = resolve_op("buy_new_account", buy_new_account)
-        await buy_new_account_fn(call, bot, user_repo, session, remnawave, state)
+        await buy_new_account_fn(call, bot, user_repo, session, remnawave, state, service_id=service_id)
     else:
-        call.data = f"svc:buy:{service_id}"
         service_buy_fn = resolve_op("service_buy", service_buy)
-        await service_buy_fn(call, bot, user_repo, session, remnawave, state)
+        await service_buy_fn(call, bot, user_repo, session, remnawave, state, service_id=service_id)
 
 
 @router.message(ServiceRequestStates.waiting_coupon)

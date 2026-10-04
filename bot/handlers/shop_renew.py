@@ -77,13 +77,15 @@ async def renew_pick_service(
 async def buy_for_account(
     call: CallbackQuery, bot: Bot, user_repo: UserRepository,
     session: AsyncSession, remnawave: RemnawaveClient, state: FSMContext,
+    service_id: int | None = None, panel_user_id: str | None = None,
 ):
-    try:
-        _, _, service_id_s, panel_user_id = call.data.split(":")
-        service_id = _safe_int(service_id_s)
-    except ValueError:
-        await call.answer(t("fa", "acc_error"), show_alert=True)
-        return
+    if service_id is None or panel_user_id is None:
+        try:
+            _, _, service_id_s, panel_user_id = call.data.split(":")
+            service_id = _safe_int(service_id_s)
+        except ValueError:
+            await call.answer(t("fa", "acc_error"), show_alert=True)
+            return
     if service_id is None:
         await call.answer(t("fa", "acc_error"), show_alert=True)
         return
