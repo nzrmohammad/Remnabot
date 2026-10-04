@@ -128,6 +128,13 @@ async def get_user_avatar(request: web.Request) -> web.Response:
         return web.Response(status=401)
 
     telegram_id = int(user_auth["id"])
+    target_id_param = request.query.get("user_id")
+    if target_id_param and user_auth.get("is_admin"):
+        try:
+            telegram_id = int(target_id_param)
+        except ValueError:
+            pass
+
     bot = request.app.get("bot")
     if not bot:
         return web.Response(status=404)

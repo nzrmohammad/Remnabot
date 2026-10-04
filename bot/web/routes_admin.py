@@ -8,11 +8,15 @@ from typing import Any
 from aiohttp import web
 from sqlalchemy import func, select
 
+from bot.common.helpers import get_limit_bytes, get_used_bytes
 from bot.db.models import AdminLog, AppSetting, Order, SupportMessage, Topup, User
 from bot.db.repositories.app_setting_repo import AppSettingRepository
 from bot.db.repositories.user_repo import UserRepository
 from bot.db.repositories.wallet_repo import WalletRepository
+from bot.handlers.admin_broadcast import _resolve_broadcast_recipients
+from bot.handlers.admin_nodes import COUNTRY_FLAGS_MAP
 from bot.services.app_settings import get_store_settings
+from bot.services.formatting import country_flag
 from bot.web.auth import get_authenticated_user
 from bot.web.cache import FastCache
 
@@ -71,28 +75,72 @@ async def get_admin_overview(request: web.Request) -> web.Response:
 
         # 5. Remnawave cluster metrics
         panel_users = await remnawave.get_all_panel_users(size=1000) or []
-        active_panel_users = sum(1 for u in panel_users if u.get("status", "").upper() == "ACTIVE")
+        active_panel_users = sum(1 for u in panel_users if str(u.get("status", "")).upper() == "ACTIVE")
 
-        # Sum of traffic used across panel
-        total_traffic_bytes = sum(u.get("used_traffic", 0) for u in panel_users)
+        # Sum of traffic used across panel using helper get_used_bytes
+        total_traffic_bytes = sum(get_used_bytes(u) for u in panel_users)
         total_traffic_gb = round(total_traffic_bytes / (1024 ** 3), 2)
 
-        # Node information
+        # Node information with country flags and real-time online status
         nodes = await remnawave.get_nodes() or []
         nodes_overview = []
-        for n in nodes:
+        for i, n in enumerate(nodes, start=1):
+            raw_name = str(n.get("name") or f"Node {i}").strip()
+            country_code = str(n.get("countryCode") or n.get("country_code") or "").strip().upper()
+            country_name = str(n.get("country") or "").strip().lower()
+
+            flag = None
+            if len(country_code) == 2 and country_code.isalpha() and country_code != "XX":
+                flag = country_flag(country_code)
+
+            if not flag or flag == "🌐":
+                for kw, (f_emoji, _) in sorted(COUNTRY_FLAGS_MAP.items(), key=lambda x: len(x[0]), reverse=True):
+                    if kw in raw_name.lower() or kw in country_name:
+                        flag = f_emoji
+                        break
+            if not flag:
+                flag = country_flag(country_code) if country_code else "🌐"
+
+            is_connected = n.get("isConnected")
+            if is_connected is None:
+                is_connected = str(n.get("status", "")).upper() in ("CONNECTED", "ONLINE")
+
+            online_users = int(
+                n.get("usersOnline")
+                or n.get("connectionCount")
+                or n.get("activeConnections")
+                or n.get("connected_users")
+                or 0
+            )
+
+            sys_info = n.get("system") or n.get("sys") or {}
+            cpu = sys_info.get("cpu") if sys_info.get("cpu") is not None else (n.get("cpu") or 0)
+            ram = sys_info.get("ram") if sys_info.get("ram") is not None else (sys_info.get("memory") or n.get("memory") or 0)
+
             nodes_overview.append({
                 "id": n.get("id"),
-                "name": n.get("name", "Node"),
-                "country_code": n.get("country_code", "NL"),
-                "status": n.get("status", "ONLINE"),
-                "connected_users": n.get("connected_users", 0),
-                "cpu_percent": n.get("cpu", 20),
-                "ram_percent": n.get("memory", 45),
+                "name": raw_name,
+                "country_code": country_code or "NL",
+                "flag": flag,
+                "status": "ONLINE" if is_connected else "OFFLINE",
+                "connected_users": online_users,
+                "cpu_percent": round(float(cpu), 1),
+                "ram_percent": round(float(ram), 1),
             })
 
         hwid_stats = await remnawave.get_hwid_stats() or {}
-        online_devices = hwid_stats.get("online_devices", sum(n.get("connected_users", 0) for n in nodes_overview))
+        sum_node_online = sum(n["connected_users"] for n in nodes_overview)
+        online_dev = (
+            hwid_stats.get("onlineDevices")
+            or hwid_stats.get("online_devices")
+            or hwid_stats.get("activeDevices")
+        )
+        if online_dev is not None and int(online_dev) > 0:
+            online_devices = int(online_dev)
+        else:
+            online_devices = sum_node_online
+
+        offline_nodes = sum(1 for n in nodes_overview if n["status"] == "OFFLINE")
 
         data = {
             "metrics": {
@@ -103,6 +151,7 @@ async def get_admin_overview(request: web.Request) -> web.Response:
                 "online_devices": online_devices,
                 "pending_topups": pending_topups,
                 "open_tickets": open_tickets,
+                "offline_nodes": offline_nodes,
             },
             "nodes": nodes_overview,
         }
@@ -142,23 +191,48 @@ async def get_admin_users(request: web.Request) -> web.Response:
 
         balances = await user_repo.balances_for([u.telegram_id for u in users])
 
-        # Fetch subscriptions in batch or on demand
+        # Fetch subscriptions and compute remaining volume and remaining days
         user_items = []
+        now_utc = datetime.now(timezone.utc)
         for u in users:
             panel_users = await remnawave.get_users_by_telegram_id(u.telegram_id) or []
             p = panel_users[0] if panel_users else {}
+            panel_exists = bool(panel_users)
+
+            used_bytes = get_used_bytes(p) if panel_exists else 0
+            limit_bytes = get_limit_bytes(p) if panel_exists else 0
+            used_gb = round(used_bytes / (1024**3), 2)
+            limit_gb = round(limit_bytes / (1024**3), 2)
+
+            if limit_bytes > 0:
+                remaining_gb = max(0.0, round((limit_bytes - used_bytes) / (1024**3), 2))
+            else:
+                remaining_gb = -1.0 if panel_exists else 0.0  # -1 signifies unlimited
+
+            days_left = None
+            expire_at_str = p.get("expireAt")
+            if expire_at_str:
+                try:
+                    exp_dt = datetime.fromisoformat(str(expire_at_str).replace("Z", "+00:00"))
+                    delta = exp_dt - now_utc
+                    days_left = max(0, delta.days) if delta.total_seconds() > 0 else 0
+                except Exception:
+                    pass
 
             user_items.append({
                 "telegram_id": u.telegram_id,
                 "username": u.username,
                 "wallet_balance": balances.get(u.telegram_id, 0),
                 "is_banned": u.is_banned,
+                "avatar_url": f"/api/user/avatar?user_id={u.telegram_id}",
                 "panel_account": {
-                    "exists": bool(panel_users),
+                    "exists": panel_exists,
                     "status": p.get("status", "NONE"),
-                    "used_traffic_gb": round(p.get("used_traffic", 0) / (1024**3), 2),
-                    "limit_traffic_gb": round(p.get("traffic_limit", 0) / (1024**3), 2),
-                } if panel_users else None,
+                    "used_traffic_gb": used_gb,
+                    "limit_traffic_gb": limit_gb,
+                    "remaining_traffic_gb": remaining_gb,
+                    "days_left": days_left,
+                } if panel_exists else None,
             })
 
         return web.json_response({
@@ -318,7 +392,7 @@ async def post_admin_reply_ticket(request: web.Request) -> web.Response:
 
 
 async def post_admin_broadcast(request: web.Request) -> web.Response:
-    """Queue a broadcast message to all bot users."""
+    """Queue a broadcast message to bot users with audience filtering."""
     admin = _check_admin(request)
     if not admin:
         return web.json_response({"ok": False, "error": "Forbidden"}, status=403)
@@ -332,26 +406,35 @@ async def post_admin_broadcast(request: web.Request) -> web.Response:
     if not text:
         return web.json_response({"ok": False, "error": "متن پیام خالی است."}, status=400)
 
+    target = str(body.get("target") or "all").strip().lower()
     bot = request.app["bot"]
     session_factory = request.app["session_factory"]
+    remnawave = request.app["remnawave"]
 
     async def _broadcast_worker():
         async with session_factory() as session:
-            user_repo = UserRepository(session)
-            users = await user_repo.all_users()
+            recipients = await _resolve_broadcast_recipients(session, remnawave, target)
 
         sent = 0
-        for u in users:
+        for tid in recipients:
             try:
-                await bot.send_message(chat_id=u.telegram_id, text=text, parse_mode="HTML")
+                await bot.send_message(chat_id=tid, text=text, parse_mode="HTML")
                 sent += 1
                 await asyncio.sleep(0.04)  # ~25 messages/sec rate limit
             except Exception:
                 pass
-        logger.info("Admin broadcast completed: sent to %d users", sent)
+        logger.info("Admin broadcast completed: target=%s sent to %d users", target, sent)
 
     asyncio.create_task(_broadcast_worker())
-    return web.json_response({"ok": True, "message": "ارسال پیام همگانی در پس‌زمینه آغاز شد."})
+    target_labels = {
+        "all": "همه کاربران",
+        "active": "کاربران با سرویس فعال",
+        "expired": "کاربران منقضی شده",
+        "buyers": "خریداران قبلی",
+        "balance": "کاربران دارای موجودی",
+    }
+    label = target_labels.get(target, "کاربران انتخاب شده")
+    return web.json_response({"ok": True, "message": f"ارسال پیام همگانی به {label} در پس‌زمینه آغاز شد."})
 
 
 async def get_admin_topups(request: web.Request) -> web.Response:

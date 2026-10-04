@@ -559,4 +559,179 @@ async def test_user_purchase_multi_account_fallback_and_payload():
     await engine.dispose()
 
 
+@pytest.mark.anyio
+async def test_admin_overview_metrics_flags_and_devices():
+    from aiohttp.test_utils import make_mocked_request
+    from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
+    from bot.db.models import Base, User
+    from bot.web.routes_admin import get_admin_overview
+
+    engine = create_async_engine("sqlite+aiosqlite:///:memory:")
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+    session_factory = async_sessionmaker(engine, expire_on_commit=False)
+
+    async with session_factory() as session:
+        session.add(User(telegram_id=99999, username="admin_user"))
+        await session.commit()
+
+    mock_remnawave = AsyncMock()
+    # Panel users with nested userTraffic and top-level usedTrafficBytes
+    mock_remnawave.get_all_panel_users.return_value = [
+        {"id": 1, "status": "ACTIVE", "userTraffic": {"usedTrafficBytes": 10 * (1024**3)}},
+        {"id": 2, "status": "ACTIVE", "usedTrafficBytes": 5 * (1024**3)},
+    ]
+    # Nodes with countryCode, isConnected, usersOnline, and system info
+    mock_remnawave.get_nodes.return_value = [
+        {
+            "id": 1,
+            "name": "Germany Main",
+            "countryCode": "DE",
+            "isConnected": True,
+            "usersOnline": 42,
+            "system": {"cpu": 15, "ram": 55},
+        },
+        {
+            "id": 2,
+            "name": "Netherlands #2",
+            "countryCode": "NL",
+            "isConnected": False,
+            "usersOnline": 0,
+            "system": {"cpu": 5, "ram": 20},
+        },
+    ]
+    mock_remnawave.get_hwid_stats.return_value = {"onlineDevices": 42}
+
+    app = {
+        "bot_token": "123:abc",
+        "admin_ids": [99999],
+        "is_dev": True,
+        "session_factory": session_factory,
+        "cache": FastCache(redis_client=None),
+        "remnawave": mock_remnawave,
+    }
+
+    req = make_mocked_request("GET", "/api/admin/overview?user_id=99999", app=app)
+    resp = await get_admin_overview(req)
+    assert resp.status == 200
+    res_data = json.loads(resp.text)
+    assert res_data["ok"] is True
+    metrics = res_data["data"]["metrics"]
+    assert metrics["month_traffic_gb"] == 15.0  # 10 + 5 GB
+    assert metrics["online_devices"] == 42
+    assert metrics["active_panel_users"] == 2
+    assert metrics["offline_nodes"] == 1
+
+    nodes = res_data["data"]["nodes"]
+    assert len(nodes) == 2
+    assert nodes[0]["flag"] == "🇩🇪"
+    assert nodes[0]["status"] == "ONLINE"
+    assert nodes[0]["connected_users"] == 42
+    assert nodes[1]["flag"] == "🇳🇱"
+    assert nodes[1]["status"] == "OFFLINE"
+
+    await engine.dispose()
+
+
+@pytest.mark.anyio
+async def test_admin_users_remaining_traffic_and_days():
+    from aiohttp.test_utils import make_mocked_request
+    from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
+    from bot.db.models import Base, User, Wallet
+    from bot.web.routes_admin import get_admin_users
+
+    engine = create_async_engine("sqlite+aiosqlite:///:memory:")
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+    session_factory = async_sessionmaker(engine, expire_on_commit=False)
+
+    async with session_factory() as session:
+        session.add(User(telegram_id=11111, username="test_client"))
+        session.add(Wallet(telegram_id=11111, balance=50000))
+        await session.commit()
+
+    mock_remnawave = AsyncMock()
+    # User with 50GB limit and 20GB used, expiring in 15 days
+    mock_remnawave.get_users_by_telegram_id.return_value = [{
+        "id": 505,
+        "status": "ACTIVE",
+        "trafficLimitBytes": 50 * (1024**3),
+        "userTraffic": {"usedTrafficBytes": 20 * (1024**3)},
+        "expireAt": "2099-01-01T00:00:00.000Z",
+    }]
+
+    app = {
+        "bot_token": "123:abc",
+        "admin_ids": [99999],
+        "is_dev": True,
+        "session_factory": session_factory,
+        "cache": FastCache(redis_client=None),
+        "remnawave": mock_remnawave,
+    }
+
+    req = make_mocked_request("GET", "/api/admin/users?user_id=99999", app=app)
+    resp = await get_admin_users(req)
+    assert resp.status == 200
+    res_data = json.loads(resp.text)
+    assert res_data["ok"] is True
+    users = res_data["users"]
+    assert len(users) == 1
+    u = users[0]
+    assert u["telegram_id"] == 11111
+    assert u["username"] == "test_client"
+    assert u["avatar_url"] == "/api/user/avatar?user_id=11111"
+    panel = u["panel_account"]
+    assert panel["exists"] is True
+    assert panel["used_traffic_gb"] == 20.0
+    assert panel["limit_traffic_gb"] == 50.0
+    assert panel["remaining_traffic_gb"] == 30.0  # 50 - 20 = 30 GB remaining
+    assert panel["days_left"] is not None and panel["days_left"] > 0
+
+    await engine.dispose()
+
+
+@pytest.mark.anyio
+async def test_admin_broadcast_audience_targeting():
+    from aiohttp.test_utils import make_mocked_request
+    from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
+    from bot.db.models import Base, User
+    from bot.web.routes_admin import post_admin_broadcast
+
+    engine = create_async_engine("sqlite+aiosqlite:///:memory:")
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+    session_factory = async_sessionmaker(engine, expire_on_commit=False)
+
+    async with session_factory() as session:
+        session.add(User(telegram_id=101, username="u1"))
+        session.add(User(telegram_id=102, username="u2"))
+        await session.commit()
+
+    mock_bot = AsyncMock()
+    mock_remnawave = AsyncMock()
+    mock_remnawave.get_all_panel_users.return_value = []
+
+    app = {
+        "bot_token": "123:abc",
+        "admin_ids": [99999],
+        "is_dev": True,
+        "session_factory": session_factory,
+        "cache": FastCache(redis_client=None),
+        "remnawave": mock_remnawave,
+        "bot": mock_bot,
+    }
+
+    req = make_mocked_request("POST", "/api/admin/broadcast?user_id=99999", app=app)
+    req.json = AsyncMock(return_value={"message": "سلام به همه کاربران", "target": "all"})
+
+    resp = await post_admin_broadcast(req)
+    assert resp.status == 200
+    res_data = json.loads(resp.text)
+    assert res_data["ok"] is True
+    assert "همه کاربران" in res_data["message"]
+
+    await engine.dispose()
+
+
+
 

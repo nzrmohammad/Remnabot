@@ -110,6 +110,51 @@ const api = {
   async getIpInfo() {
     return this.get('/api/user/ip_info');
   },
+
+  // Admin Suite Endpoints
+  async getAdminOverview() {
+    return this.get('/api/admin/overview');
+  },
+
+  async getAdminUsers(params = {}) {
+    return this.get('/api/admin/users', params);
+  },
+
+  async modifyUser(telegram_id, action, amount) {
+    return this.post('/api/admin/user/modify', { telegram_id, action, amount });
+  },
+
+  async killUserSessions(telegram_id) {
+    return this.post('/api/admin/user/kill_sessions', { telegram_id });
+  },
+
+  async toggleUserBan(telegram_id, ban) {
+    return this.post('/api/admin/user/toggle_ban', { telegram_id, ban });
+  },
+
+  async getAdminTopups() {
+    return this.get('/api/admin/topups');
+  },
+
+  async handleTopupAction(topup_id, approved) {
+    return this.post('/api/admin/topup/action', { topup_id, approved });
+  },
+
+  async replyDirectTicket(telegram_id, reply_text) {
+    return this.post('/api/admin/ticket/reply', { telegram_id, reply_text });
+  },
+
+  async getAdminSettings() {
+    return this.get('/api/admin/settings');
+  },
+
+  async saveAdminSettings(data) {
+    return this.post('/api/admin/settings', data);
+  },
+
+  async broadcastMessage(message, target = 'all') {
+    return this.post('/api/admin/broadcast', { message, target });
+  },
 };
 
 window.api = api;
