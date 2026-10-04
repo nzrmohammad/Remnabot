@@ -3,10 +3,11 @@ import logging
 
 from aiogram import Bot, F, Router
 from aiogram.fsm.context import FSMContext
-from aiogram.types import CallbackQuery
+from aiogram.types import CallbackQuery, WebAppInfo
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from bot.common import SEPARATOR, is_admin, parse_int
+from bot.config import get_settings
 from bot.db.repositories.service_repo import ServiceRepository
 from bot.db.repositories.user_repo import UserRepository
 from bot.handlers.admin_services_mgmt import (
@@ -88,9 +89,24 @@ async def admin_panel(
         # Row 4: Left = Database Backup, Right = Node Monitor
         kb.button(text=t(lang, "btn_backup_db"), callback_data="adm:backup")
         kb.button(text=t(lang, "btn_nodes_monitor"), callback_data="adm:nodes")
-    # Row 5: Main Menu
+
+    # Row 5: Admin Mini App Panel
+    settings = get_settings()
+    web_app_url = getattr(settings, "WEB_APP_URL", "") or ""
+    tma_btn_text = "📱 پنل مدیریت Mini App" if lang == "fa" else "📱 Admin Mini App Panel"
+
+    if web_app_url and web_app_url.startswith("https://"):
+        admin_tma_url = f"{web_app_url.rstrip('/')}/admin"
+        kb.button(text=tma_btn_text, web_app=WebAppInfo(url=admin_tma_url))
+    elif web_app_url and web_app_url.startswith("http://"):
+        admin_tma_url = f"{web_app_url.rstrip('/')}/admin"
+        kb.button(text=tma_btn_text, url=admin_tma_url)
+    else:
+        kb.button(text=tma_btn_text, callback_data="adm:tma:nourl")
+
+    # Row 6: Main Menu
     kb.button(text=t(lang, "btn_back_to_menu"), callback_data="nav:main_menu")
-    kb.adjust(2, 2, 2, 2, 1)
+    kb.adjust(2, 2, 2, 2, 1, 1)
 
     await render_menu(
         bot, user, user_repo,
@@ -98,6 +114,18 @@ async def admin_panel(
         kb.as_markup(),
     )
     await call.answer()
+
+
+@router.callback_query(F.data == "adm:tma:nourl")
+async def admin_tma_nourl(call: CallbackQuery):
+    """Notify admin if WEB_APP_URL is not yet configured in .env."""
+    if not _is_admin(call.from_user.id):
+        await call.answer()
+        return
+    await call.answer(
+        "⚠️ لطفاً ابتدا آدرس اینترنتی WEB_APP_URL را با پروتکل https در فایل .env تنظیم فرمایید.",
+        show_alert=True,
+    )
 
 
 __all__ = [
@@ -132,4 +160,5 @@ __all__ = [
     "toggle_service",
     "delete_service_confirm",
     "delete_service_do",
+    "admin_tma_nourl",
 ]
