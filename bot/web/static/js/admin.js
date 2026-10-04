@@ -293,10 +293,7 @@
 
       const cpuText = (n.cpu_percent && n.cpu_percent > 0) ? `CPU: ${n.cpu_percent}%` : null;
       const ramText = (n.ram_percent && n.ram_percent > 0) ? `RAM: ${n.ram_percent}%` : null;
-      let specs = [cpuText, ramText].filter(Boolean).join(' | ');
-      if (!specs) {
-        specs = `کد: ${n.country_code || 'XX'}`;
-      }
+      const specs = [cpuText, ramText].filter(Boolean).join(' | ');
 
       return `
         <div class="bg-slate-900/70 rounded-2xl border border-slate-700/60 overflow-hidden transition shadow-sm">
@@ -306,14 +303,11 @@
               <span class="text-xl flex-shrink-0">${flag}</span>
               <div>
                 <span class="font-bold text-white block text-xs">${n.name || 'Node'}</span>
-                <span class="text-[10px] text-slate-400 font-mono">${specs}</span>
+                ${specs ? `<span class="text-[10px] text-slate-400 font-mono">${specs}</span>` : ''}
               </div>
             </div>
             <div class="flex items-center gap-2">
-              <div class="text-left font-mono">
-                <span class="${statusColor} font-bold text-[11px] block">${formatNumber(n.connected_users || 0)} آنلاین</span>
-                <span class="text-[9px] ${isOnline ? 'text-emerald-400' : 'text-rose-400'}">${isOnline ? 'ONLINE' : 'OFFLINE'}</span>
-              </div>
+              <span class="${statusColor} font-bold text-[11px] font-mono">${formatNumber(n.connected_users || 0)} آنلاین</span>
               <span id="nodeChevron_${idx}" class="text-xs text-slate-400 transition-transform duration-200">▼</span>
             </div>
           </div>
@@ -371,18 +365,31 @@
       const isOnline = (n.status || '').toUpperCase() === 'ONLINE';
       return `
         <div class="bg-slate-800/90 rounded-2xl p-4 border border-slate-700/80 space-y-3 shadow">
-          <div class="flex justify-between items-start">
-            <div class="flex items-center gap-2.5">
+          <div class="flex justify-between items-center">
+            <div class="flex items-center gap-2.5 min-w-0">
               <span class="text-2xl flex-shrink-0">${flag}</span>
-              <div>
+              <div class="min-w-0">
                 <div class="flex items-center gap-2">
-                  <h4 class="font-bold text-xs text-white">${n.name || 'Node'}</h4>
-                  <span class="w-2 h-2 rounded-full ${isOnline ? 'bg-emerald-400' : 'bg-rose-400'}"></span>
+                  <h4 class="font-bold text-xs text-white truncate">${n.name || 'Node'}</h4>
+                  <span class="w-2 h-2 rounded-full flex-shrink-0 ${isOnline ? 'bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.6)]' : 'bg-rose-400'}"></span>
                 </div>
-                <span class="text-[10px] text-slate-400 font-mono mt-0.5 block">Host: ${n.address || '—'} | ID: ${n.id || '--'}</span>
               </div>
             </div>
-            <span class="text-[10px] font-mono ${isOnline ? 'text-emerald-400 bg-emerald-950/60 border-emerald-800/40' : 'text-rose-400 bg-rose-950/60 border-rose-800/40'} px-2 py-0.5 rounded border">${isOnline ? 'ONLINE' : 'OFFLINE'}</span>
+            <span class="text-[10px] font-bold font-mono ${isOnline ? 'text-emerald-400 bg-emerald-950/80 border-emerald-800/60' : 'text-rose-400 bg-rose-950/80 border-rose-800/60'} px-2.5 py-1 rounded-xl border flex-shrink-0">
+              ${isOnline ? 'ONLINE' : 'OFFLINE'}
+            </span>
+          </div>
+
+          <!-- Network & Identifier Details (Clean LTR Badges) -->
+          <div class="grid grid-cols-2 gap-2 text-xs">
+            <div class="bg-slate-900/80 p-2.5 rounded-xl border border-slate-800 flex flex-col justify-center">
+              <span class="text-[10px] text-slate-400 block mb-0.5">آدرس سرور (Host):</span>
+              <span class="font-mono text-cyan-300 text-xs truncate" dir="ltr" title="${n.address || '—'}">${n.address || '—'}</span>
+            </div>
+            <div class="bg-slate-900/80 p-2.5 rounded-xl border border-slate-800 flex flex-col justify-center">
+              <span class="text-[10px] text-slate-400 block mb-0.5">شناسه نود (ID):</span>
+              <span class="font-mono text-slate-300 text-xs truncate" dir="ltr" title="${n.id || '--'}">#${n.id || '--'}</span>
+            </div>
           </div>
 
           <div class="grid grid-cols-3 gap-2 text-center text-[10px]">
@@ -912,7 +919,9 @@
             ? '<span class="text-[10px] bg-emerald-950/80 text-emerald-400 border border-emerald-800/60 px-2 py-0.5 rounded-lg font-bold">فعال</span>'
             : '<span class="text-[10px] bg-slate-800 text-slate-400 border border-slate-700 px-2 py-0.5 rounded-lg font-medium">غیرفعال</span>';
 
-          const trafficText = p.traffic_gb > 0 ? `${p.traffic_gb} GB` : 'نامحدود';
+          const trafficHtml = p.traffic_gb > 0
+            ? `<span class="inline-flex items-center justify-center gap-1 font-mono font-bold" dir="rtl"><span class="text-cyan-400 text-[10px]">GB</span><span class="text-cyan-300 text-xs">${p.traffic_gb}</span></span>`
+            : '<span class="text-cyan-300 font-bold">نامحدود</span>';
           const durationText = p.duration_days > 0 ? `${p.duration_days} روز` : 'نامحدود';
           const hwidText = p.hwid_limit > 0 ? `${p.hwid_limit} کاربر` : 'پیش‌فرض';
 
@@ -932,7 +941,7 @@
               <div class="grid grid-cols-3 gap-1.5 text-center text-[10px] bg-slate-900/60 p-2 rounded-xl font-mono">
                 <div>
                   <span class="text-slate-400 block text-[9px] font-sans">حجم ترافیک</span>
-                  <b class="text-cyan-300">${trafficText}</b>
+                  ${trafficHtml}
                 </div>
                 <div>
                   <span class="text-slate-400 block text-[9px] font-sans">مدت زمان</span>
@@ -1551,9 +1560,24 @@
     if (window.hapticFeedback) window.hapticFeedback('impact');
   });
 
-  document.getElementById('syncAllNodesBtn')?.addEventListener('click', () => {
+  document.getElementById('syncAllNodesBtn')?.addEventListener('click', (e) => {
+    e.stopPropagation();
     syncAdminOverview();
     if (window.showToast) window.showToast('🔄 نودها همگام‌سازی شدند.');
+    if (window.hapticFeedback) window.hapticFeedback('impact');
+  });
+
+  const overviewNodesToggleHeader = document.getElementById('overviewNodesToggleHeader');
+  const overviewNodesCollapseBody = document.getElementById('overviewNodesCollapseBody');
+  const overviewNodesChevron = document.getElementById('overviewNodesChevron');
+
+  overviewNodesToggleHeader?.addEventListener('click', (e) => {
+    if (e.target.closest('#syncAllNodesBtn')) return;
+    if (!overviewNodesCollapseBody) return;
+    const isHidden = overviewNodesCollapseBody.classList.toggle('hidden');
+    if (overviewNodesChevron) {
+      overviewNodesChevron.style.transform = isHidden ? 'rotate(0deg)' : 'rotate(180deg)';
+    }
     if (window.hapticFeedback) window.hapticFeedback('impact');
   });
 
