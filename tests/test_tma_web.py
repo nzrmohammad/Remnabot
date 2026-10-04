@@ -808,3 +808,391 @@ async def test_admin_broadcast_status():
     assert res_data["stats"]["sent"] == 7
     assert res_data["stats"]["failed"] == 1
     assert res_data["stats"]["is_completed"] is False
+
+
+@pytest.mark.anyio
+async def test_admin_modify_user_traffic_and_days():
+    from aiohttp.test_utils import make_mocked_request
+    from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
+    from bot.db.models import Base
+    from bot.web.routes_admin import post_admin_modify_user
+
+    engine = create_async_engine("sqlite+aiosqlite:///:memory:")
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+    session_factory = async_sessionmaker(engine, expire_on_commit=False)
+
+    mock_remnawave = AsyncMock()
+    mock_remnawave.get_users_by_telegram_id.return_value = [{
+        "id": "user-uuid-1",
+        "trafficLimitBytes": 20 * (1024**3),
+        "expireAt": "2026-11-01T00:00:00Z",
+    }]
+    mock_remnawave.update_user_subscription.return_value = {"id": "user-uuid-1"}
+
+    app = {
+        "bot_token": "123:abc",
+        "admin_ids": [99999],
+        "is_dev": True,
+        "session_factory": session_factory,
+        "remnawave": mock_remnawave,
+        "cache": FastCache(redis_client=None),
+    }
+
+    # 1. Modify Traffic
+    req_traffic = make_mocked_request("POST", "/api/admin/user/modify?user_id=99999", app=app)
+    req_traffic.json = AsyncMock(return_value={"telegram_id": 555, "action": "traffic", "amount": 10})
+    resp_traffic = await post_admin_modify_user(req_traffic)
+    assert resp_traffic.status == 200
+    res_json = json.loads(resp_traffic.text)
+    assert res_json["ok"] is True
+    assert "افزایش 10 GB ترافیک" in res_json["message"]
+
+    # Verify update_user_subscription was called with the increased limit: 20GB + 10GB = 30GB
+    mock_remnawave.update_user_subscription.assert_called_with(
+        "user-uuid-1",
+        expire_at_iso="2026-11-01T00:00:00Z",
+        traffic_limit_bytes=30 * (1024**3),
+        status="ACTIVE",
+    )
+
+    # 2. Modify Days
+    req_days = make_mocked_request("POST", "/api/admin/user/modify?user_id=99999", app=app)
+    req_days.json = AsyncMock(return_value={"telegram_id": 555, "action": "days", "amount": 30})
+    resp_days = await post_admin_modify_user(req_days)
+    assert resp_days.status == 200
+    res_days_json = json.loads(resp_days.text)
+    assert res_days_json["ok"] is True
+    assert "تمدید 30 روز" in res_days_json["message"]
+
+    await engine.dispose()
+
+
+@pytest.mark.anyio
+async def test_admin_settings_full():
+    from aiohttp.test_utils import make_mocked_request
+    from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
+    from bot.db.models import Base
+    from bot.web.routes_admin import get_admin_settings, post_admin_settings
+
+    engine = create_async_engine("sqlite+aiosqlite:///:memory:")
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+    session_factory = async_sessionmaker(engine, expire_on_commit=False)
+
+    app = {
+        "bot_token": "123:abc",
+        "admin_ids": [99999],
+        "is_dev": True,
+        "session_factory": session_factory,
+    }
+
+    # Save settings
+    post_req = make_mocked_request("POST", "/api/admin/settings?user_id=99999", app=app)
+    post_req.json = AsyncMock(return_value={
+        "card_number": "6037991823456789",
+        "card_holder": "محمد رضایی",
+        "topup_min_amount": 50000,
+        "usdt_rate_toman": 105000,
+        "trial_enabled": True,
+        "trial_traffic_gb": 2,
+        "trial_duration_days": 3,
+        "referral_reward_gb": 10,
+        "support_contact": "@MySupportBot",
+    })
+    post_resp = await post_admin_settings(post_req)
+    assert post_resp.status == 200
+
+    # Retrieve and verify settings
+    get_req = make_mocked_request("GET", "/api/admin/settings?user_id=99999", app=app)
+    get_resp = await get_admin_settings(get_req)
+    assert get_resp.status == 200
+    data = json.loads(get_resp.text)["settings"]
+    assert data["card_number"] == "6037991823456789"
+    assert data["card_holder"] == "محمد رضایی"
+    assert data["topup_min_amount"] == 50000
+    assert data["usdt_rate_toman"] == 105000
+    assert data["trial_enabled"] is True
+    assert data["trial_traffic_gb"] == 2
+    assert data["trial_duration_days"] == 3
+    assert data["referral_reward_gb"] == 10
+    assert data["support_contact"] == "@MySupportBot"
+
+    await engine.dispose()
+
+
+@pytest.mark.anyio
+async def test_admin_user_wallet_modify():
+    from aiohttp.test_utils import make_mocked_request
+    from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
+    from bot.db.models import Base, Wallet
+    from bot.web.routes_admin import post_admin_user_wallet
+
+    engine = create_async_engine("sqlite+aiosqlite:///:memory:")
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+    session_factory = async_sessionmaker(engine, expire_on_commit=False)
+
+    async with session_factory() as session:
+        session.add(Wallet(telegram_id=12345, balance=50000))
+        await session.commit()
+
+    mock_bot = AsyncMock()
+    app = {
+        "bot_token": "123:abc",
+        "admin_ids": [99999],
+        "is_dev": True,
+        "session_factory": session_factory,
+        "cache": FastCache(redis_client=None),
+        "bot": mock_bot,
+    }
+
+    # Add 25,000 Toman
+    req_add = make_mocked_request("POST", "/api/admin/user/wallet?user_id=99999", app=app)
+    req_add.json = AsyncMock(return_value={"telegram_id": 12345, "amount": 25000, "reason": "هدیه ادمین"})
+    resp_add = await post_admin_user_wallet(req_add)
+    assert resp_add.status == 200
+    data_add = json.loads(resp_add.text)
+    assert data_add["ok"] is True
+    assert data_add["new_balance"] == 75000
+    mock_bot.send_message.assert_called_once()
+
+    # Deduct 15,000 Toman
+    req_sub = make_mocked_request("POST", "/api/admin/user/wallet?user_id=99999", app=app)
+    req_sub.json = AsyncMock(return_value={"telegram_id": 12345, "amount": -15000, "reason": "اصلاح موجودی"})
+    resp_sub = await post_admin_user_wallet(req_sub)
+    assert resp_sub.status == 200
+    data_sub = json.loads(resp_sub.text)
+    assert data_sub["ok"] is True
+    assert data_sub["new_balance"] == 60000
+
+    await engine.dispose()
+
+
+@pytest.mark.anyio
+async def test_admin_user_revoke_sub():
+    from aiohttp.test_utils import make_mocked_request
+    from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
+    from bot.db.models import Base
+    from bot.web.routes_admin import post_admin_user_revoke_sub
+
+    engine = create_async_engine("sqlite+aiosqlite:///:memory:")
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+    session_factory = async_sessionmaker(engine, expire_on_commit=False)
+
+    mock_remnawave = AsyncMock()
+    mock_remnawave.get_users_by_telegram_id.return_value = [{"id": "user-uuid-1"}]
+    mock_remnawave.revoke_user_subscription.return_value = {
+        "id": "user-uuid-1",
+        "subscriptionUrl": "https://remna.test/sub/new-token-123",
+    }
+
+    app = {
+        "bot_token": "123:abc",
+        "admin_ids": [99999],
+        "is_dev": True,
+        "session_factory": session_factory,
+        "cache": FastCache(redis_client=None),
+        "remnawave": mock_remnawave,
+    }
+
+    req = make_mocked_request("POST", "/api/admin/user/revoke_sub?user_id=99999", app=app)
+    req.json = AsyncMock(return_value={"telegram_id": 777})
+    resp = await post_admin_user_revoke_sub(req)
+    assert resp.status == 200
+    data = json.loads(resp.text)
+    assert data["ok"] is True
+    assert data["subscription_url"] == "https://remna.test/sub/new-token-123"
+    mock_remnawave.revoke_user_subscription.assert_called_with("user-uuid-1")
+
+    await engine.dispose()
+
+
+@pytest.mark.anyio
+async def test_admin_user_hwid_devices():
+    from aiohttp.test_utils import make_mocked_request
+    from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
+    from bot.db.models import Base
+    from bot.web.routes_admin import get_admin_user_hwid_devices, post_admin_user_delete_hwid
+
+    engine = create_async_engine("sqlite+aiosqlite:///:memory:")
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+    session_factory = async_sessionmaker(engine, expire_on_commit=False)
+
+    mock_remnawave = AsyncMock()
+    mock_remnawave.get_users_by_telegram_id.return_value = [{"id": "user-uuid-hwid"}]
+    mock_remnawave.get_user_hwid_devices.return_value = [
+        {"hwid": "hwid-abc-1", "os": "iOS 17.4", "ip": "1.2.3.4"}
+    ]
+    mock_remnawave.delete_hwid_device.return_value = True
+
+    app = {
+        "bot_token": "123:abc",
+        "admin_ids": [99999],
+        "is_dev": True,
+        "session_factory": session_factory,
+        "remnawave": mock_remnawave,
+    }
+
+    # 1. Get devices
+    req_get = make_mocked_request("GET", "/api/admin/user/hwid_devices?telegram_id=888&user_id=99999", app=app)
+    resp_get = await get_admin_user_hwid_devices(req_get)
+    assert resp_get.status == 200
+    data_get = json.loads(resp_get.text)
+    assert data_get["ok"] is True
+    assert len(data_get["devices"]) == 1
+    assert data_get["devices"][0]["hwid"] == "hwid-abc-1"
+
+    # 2. Delete device
+    req_del = make_mocked_request("POST", "/api/admin/user/delete_hwid?user_id=99999", app=app)
+    req_del.json = AsyncMock(return_value={"telegram_id": 888, "hwid": "hwid-abc-1"})
+    resp_del = await post_admin_user_delete_hwid(req_del)
+    assert resp_del.status == 200
+    data_del = json.loads(resp_del.text)
+    assert data_del["ok"] is True
+    mock_remnawave.delete_hwid_device.assert_called_with("user-uuid-hwid", "hwid-abc-1")
+
+    await engine.dispose()
+
+
+@pytest.mark.anyio
+async def test_admin_plans_crud():
+    from aiohttp.test_utils import make_mocked_request
+    from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
+    from bot.db.models import Base
+    from bot.web.routes_admin import (
+        get_admin_plans,
+        post_admin_plan_save,
+        post_admin_plan_toggle,
+        post_admin_plan_delete,
+    )
+
+    engine = create_async_engine("sqlite+aiosqlite:///:memory:")
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+    session_factory = async_sessionmaker(engine, expire_on_commit=False)
+
+    app = {
+        "bot_token": "123:abc",
+        "admin_ids": [99999],
+        "is_dev": True,
+        "session_factory": session_factory,
+    }
+
+    # 1. Create plan
+    req_save = make_mocked_request("POST", "/api/admin/plan/save?user_id=99999", app=app)
+    req_save.json = AsyncMock(return_value={
+        "name": "پلن پرسرعت 50 گیگ",
+        "price": 120000,
+        "traffic_gb": 50,
+        "duration_days": 30,
+        "hwid_limit": 2,
+        "description": "مناسب ترید و گیم",
+        "is_active": True,
+    })
+    resp_save = await post_admin_plan_save(req_save)
+    assert resp_save.status == 200
+    assert json.loads(resp_save.text)["ok"] is True
+
+    # 2. Get plans
+    req_list = make_mocked_request("GET", "/api/admin/plans?user_id=99999", app=app)
+    resp_list = await get_admin_plans(req_list)
+    assert resp_list.status == 200
+    plans = json.loads(resp_list.text)["plans"]
+    assert len(plans) == 1
+    plan_id = plans[0]["id"]
+    assert plans[0]["name"] == "پلن پرسرعت 50 گیگ"
+    assert plans[0]["hwid_limit"] == 2
+
+    # 3. Toggle status
+    req_toggle = make_mocked_request("POST", "/api/admin/plan/toggle?user_id=99999", app=app)
+    req_toggle.json = AsyncMock(return_value={"id": plan_id, "is_active": False})
+    resp_toggle = await post_admin_plan_toggle(req_toggle)
+    assert resp_toggle.status == 200
+    assert json.loads(resp_toggle.text)["is_active"] is False
+
+    # 4. Delete plan
+    req_del = make_mocked_request("POST", "/api/admin/plan/delete?user_id=99999", app=app)
+    req_del.json = AsyncMock(return_value={"id": plan_id})
+    resp_del = await post_admin_plan_delete(req_del)
+    assert resp_del.status == 200
+    assert json.loads(resp_del.text)["ok"] is True
+
+    # 5. Verify empty
+    resp_empty = await get_admin_plans(req_list)
+    assert len(json.loads(resp_empty.text)["plans"]) == 0
+
+    await engine.dispose()
+
+
+@pytest.mark.anyio
+async def test_admin_coupons_crud():
+    from aiohttp.test_utils import make_mocked_request
+    from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
+    from bot.db.models import Base
+    from bot.web.routes_admin import (
+        get_admin_coupons,
+        post_admin_coupon_save,
+        post_admin_coupon_toggle,
+        post_admin_coupon_delete,
+    )
+
+    engine = create_async_engine("sqlite+aiosqlite:///:memory:")
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+    session_factory = async_sessionmaker(engine, expire_on_commit=False)
+
+    app = {
+        "bot_token": "123:abc",
+        "admin_ids": [99999],
+        "is_dev": True,
+        "session_factory": session_factory,
+    }
+
+    # 1. Create coupon
+    req_save = make_mocked_request("POST", "/api/admin/coupon/save?user_id=99999", app=app)
+    req_save.json = AsyncMock(return_value={
+        "code": "NOROOZ1403",
+        "discount_percent": 20,
+        "discount_amount": 0,
+        "max_uses": 50,
+        "expires_days": 10,
+        "is_active": True,
+    })
+    resp_save = await post_admin_coupon_save(req_save)
+    assert resp_save.status == 200
+    assert json.loads(resp_save.text)["ok"] is True
+
+    # 2. Get coupons
+    req_list = make_mocked_request("GET", "/api/admin/coupons?user_id=99999", app=app)
+    resp_list = await get_admin_coupons(req_list)
+    assert resp_list.status == 200
+    coupons = json.loads(resp_list.text)["coupons"]
+    assert len(coupons) == 1
+    coupon_id = coupons[0]["id"]
+    assert coupons[0]["code"] == "NOROOZ1403"
+    assert coupons[0]["discount_percent"] == 20
+
+    # 3. Toggle status
+    req_toggle = make_mocked_request("POST", "/api/admin/coupon/toggle?user_id=99999", app=app)
+    req_toggle.json = AsyncMock(return_value={"id": coupon_id, "is_active": False})
+    resp_toggle = await post_admin_coupon_toggle(req_toggle)
+    assert resp_toggle.status == 200
+    assert json.loads(resp_toggle.text)["is_active"] is False
+
+    # 4. Delete coupon
+    req_del = make_mocked_request("POST", "/api/admin/coupon/delete?user_id=99999", app=app)
+    req_del.json = AsyncMock(return_value={"id": coupon_id})
+    resp_del = await post_admin_coupon_delete(req_del)
+    assert resp_del.status == 200
+    assert json.loads(resp_del.text)["ok"] is True
+
+    # 5. Verify empty
+    resp_empty = await get_admin_coupons(req_list)
+    assert len(json.loads(resp_empty.text)["coupons"]) == 0
+
+    await engine.dispose()
+
+

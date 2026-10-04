@@ -10,6 +10,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/static/css/app.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 </head>
 <body id="appBody" class="bg-[#080d1a] text-slate-100 h-screen h-[100dvh] overflow-hidden flex justify-center antialiased select-none transition-colors duration-300">
 
@@ -142,6 +143,19 @@
           </button>
         </div>
 
+        <!-- Analytics & 7-Day Revenue Trend Chart -->
+        <div class="bg-slate-800/80 rounded-2xl p-4 border border-slate-700/80 shadow space-y-3">
+          <div class="flex justify-between items-center border-b border-slate-700/60 pb-2">
+            <span class="text-xs font-bold text-slate-200 flex items-center gap-1.5">
+              <span>📈</span> روند فروش و درآمد ۷ روز اخیر
+            </span>
+            <span id="salesChartTotal" class="text-[10px] text-emerald-400 font-bold font-mono" dir="ltr">-- تومان</span>
+          </div>
+          <div class="h-36 w-full relative">
+            <canvas id="adminSalesChart"></canvas>
+          </div>
+        </div>
+
         <!-- Node Realtime Mini-Grid -->
         <div class="bg-slate-800/80 rounded-2xl p-4 border border-slate-700/80 shadow space-y-3">
           <div class="flex justify-between items-center border-b border-slate-700/60 pb-2">
@@ -215,6 +229,40 @@
       </div>
 
       <!-- ===================================================== -->
+      <!-- TAB: PLANS & SERVICES (مدیریت پلن‌ها و تعرفه‌ها)        -->
+      <!-- ===================================================== -->
+      <div id="tab-admin-plans" class="admin-tab-pane space-y-3 pb-8 hidden">
+        <div class="flex justify-between items-center">
+          <h3 class="text-sm font-bold text-slate-200 flex items-center gap-1.5">
+            <span>📦</span> تعرفه‌ها و پلن‌های فروش
+          </h3>
+          <button id="openCreatePlanBtn" class="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-[11px] font-bold px-3 py-1.5 rounded-xl transition shadow active:scale-95 flex items-center gap-1">
+            <span>+</span> پلن جدید
+          </button>
+        </div>
+        <div id="adminPlansList" class="space-y-2.5">
+          <div class="p-8 text-center text-xs text-slate-400">در حال دریافت پلن‌ها...</div>
+        </div>
+      </div>
+
+      <!-- ===================================================== -->
+      <!-- TAB: COUPONS & DISCOUNTS (مدیریت کدهای تخفیف)          -->
+      <!-- ===================================================== -->
+      <div id="tab-admin-coupons" class="admin-tab-pane space-y-3 pb-8 hidden">
+        <div class="flex justify-between items-center">
+          <h3 class="text-sm font-bold text-slate-200 flex items-center gap-1.5">
+            <span>🎟</span> کدهای تخفیف و پروموشن
+          </h3>
+          <button id="openCreateCouponBtn" class="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white text-[11px] font-bold px-3 py-1.5 rounded-xl transition shadow active:scale-95 flex items-center gap-1">
+            <span>+</span> کد تخفیف جدید
+          </button>
+        </div>
+        <div id="adminCouponsList" class="space-y-2.5">
+          <div class="p-8 text-center text-xs text-slate-400">در حال دریافت کدهای تخفیف...</div>
+        </div>
+      </div>
+
+      <!-- ===================================================== -->
       <!-- TAB 3: CLUSTER & NODES (مدیریت سرورها)                 -->
       <!-- ===================================================== -->
       <div id="tab-admin-nodes" class="admin-tab-pane space-y-3 hidden">
@@ -271,20 +319,27 @@
       <!-- ===================================================== -->
       <!-- TAB 5: BOT & SYSTEM SETTINGS (تنظیمات ربات)              -->
       <!-- ===================================================== -->
-      <div id="tab-admin-settings" class="admin-tab-pane space-y-3 hidden">
-        <h3 class="text-sm font-bold text-slate-200 flex items-center gap-1.5">
-          <span>⚙️</span> پیکربندی و درگاه‌های ربات
-        </h3>
+      <div id="tab-admin-settings" class="admin-tab-pane space-y-3 pb-8 hidden">
+        <div class="flex items-center justify-between">
+          <h3 class="text-sm font-bold text-slate-200 flex items-center gap-1.5">
+            <span>⚙️</span> پیکربندی و تنظیمات سامانه
+          </h3>
+          <button id="saveAllSettingsTopBtn" class="bg-blue-600 hover:bg-blue-500 text-white text-[11px] font-bold px-3 py-1 rounded-xl transition shadow active:scale-95 flex items-center gap-1">
+            <span>💾</span> ذخیره همه
+          </button>
+        </div>
 
-        <!-- Maintenance & Gateway Switches -->
-        <div class="bg-slate-800/90 rounded-2xl p-4 border border-slate-700/80 space-y-3 text-xs shadow">
-          <span class="font-bold text-slate-200 block border-b border-slate-700/60 pb-2">سوییچ‌های زنده:</span>
+        <!-- 1. Live System Switches -->
+        <div class="bg-slate-800/90 rounded-2xl p-4 border border-slate-700/80 space-y-2.5 text-xs shadow">
+          <span class="font-bold text-slate-200 block border-b border-slate-700/60 pb-2 flex items-center gap-1">
+            <span>🔘</span> سوئیچ‌های زنده ربات:
+          </span>
 
           <!-- Maintenance Mode -->
           <div class="flex items-center justify-between py-1">
             <div>
               <span class="text-slate-200 font-medium block">🛠 حالت تعمیر ربات (Maintenance)</span>
-              <span class="text-[10px] text-slate-400">فقط ادمین‌ها دسترسی خواهند داشت</span>
+              <span class="text-[10px] text-slate-400">فقط ادمین‌ها به ربات دسترسی دارند</span>
             </div>
             <label class="relative inline-flex items-center cursor-pointer">
               <input type="checkbox" class="sr-only switch-checkbox" id="settingMaintSwitch">
@@ -312,7 +367,7 @@
           <div class="flex items-center justify-between py-1 border-t border-slate-700/50 pt-2">
             <div>
               <span class="text-slate-200 font-medium block">💎 درگاه کریپتو (USDT / TON)</span>
-              <span class="text-[10px] text-slate-400">تایید آنی با بلاکچین</span>
+              <span class="text-[10px] text-slate-400">پرداخت خودکار و تایید بلاکچین</span>
             </div>
             <label class="relative inline-flex items-center cursor-pointer">
               <input type="checkbox" class="sr-only switch-checkbox" id="settingCryptoSwitch">
@@ -321,48 +376,154 @@
               </div>
             </label>
           </div>
+
+          <!-- Trial Subscription -->
+          <div class="flex items-center justify-between py-1 border-t border-slate-700/50 pt-2">
+            <div>
+              <span class="text-slate-200 font-medium block">🎁 اشتراک تست رایگان</span>
+              <span class="text-[10px] text-slate-400">امکان دریافت سرویس آزمایشی</span>
+            </div>
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" class="sr-only switch-checkbox" id="settingTrialSwitch">
+              <div class="switch-label w-11 h-6 bg-slate-700 rounded-full transition-colors duration-200 flex items-center px-0.5">
+                <div class="switch-ball w-5 h-5 bg-white rounded-full shadow-md transition-transform duration-200"></div>
+              </div>
+            </label>
+          </div>
+
+          <!-- Referral System -->
+          <div class="flex items-center justify-between py-1 border-t border-slate-700/50 pt-2">
+            <div>
+              <span class="text-slate-200 font-medium block">👥 سیستم زیرمجموعه‌گیری (رفرال)</span>
+              <span class="text-[10px] text-slate-400">پاداش ترافیک هدیه برای دعوت</span>
+            </div>
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" class="sr-only switch-checkbox" id="settingRefSwitch">
+              <div class="switch-label w-11 h-6 bg-slate-700 rounded-full transition-colors duration-200 flex items-center px-0.5">
+                <div class="switch-ball w-5 h-5 bg-white rounded-full shadow-md transition-transform duration-200"></div>
+              </div>
+            </label>
+          </div>
+
+          <!-- Direct Support in Bot -->
+          <div class="flex items-center justify-between py-1 border-t border-slate-700/50 pt-2">
+            <div>
+              <span class="text-slate-200 font-medium block">💬 چت پشتیبانی درون ربات</span>
+              <span class="text-[10px] text-slate-400">ارسال مستقیم تیکت به تاپیک ادمین</span>
+            </div>
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" class="sr-only switch-checkbox" id="settingSupportDirectSwitch">
+              <div class="switch-label w-11 h-6 bg-slate-700 rounded-full transition-colors duration-200 flex items-center px-0.5">
+                <div class="switch-ball w-5 h-5 bg-white rounded-full shadow-md transition-transform duration-200"></div>
+              </div>
+            </label>
+          </div>
         </div>
 
-        <!-- Card details edit -->
+        <!-- 2. Bank Card & Topup Settings -->
         <div class="bg-slate-800/90 rounded-2xl p-4 border border-slate-700/80 space-y-3 text-xs shadow">
-          <span class="font-bold text-slate-200 block border-b border-slate-700/60 pb-2">اطلاعات حساب بانکی واریزی:</span>
+          <span class="font-bold text-slate-200 block border-b border-slate-700/60 pb-2 flex items-center gap-1">
+            <span>💳</span> کارت بانکی و قوانین شارژ:
+          </span>
           <div>
             <label class="text-[11px] text-slate-400 block mb-1">شماره کارت مقصد:</label>
-            <input type="text" id="settingCardNumber" dir="ltr" placeholder="6037..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-cyan-300 outline-none" />
+            <input type="text" id="settingCardNumber" dir="ltr" placeholder="6037..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-cyan-300 outline-none focus:border-cyan-500 transition" />
           </div>
           <div>
             <label class="text-[11px] text-slate-400 block mb-1">نام صاحب حساب:</label>
-            <input type="text" id="settingCardHolder" placeholder="نام صاحب کارت..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-200 outline-none" />
+            <input type="text" id="settingCardHolder" placeholder="نام صاحب کارت..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-200 outline-none focus:border-blue-500 transition" />
           </div>
-          <button id="saveBankSettingsBtn" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs py-2 rounded-xl transition shadow active:scale-95">
-            ذخیره اطلاعات بانکی
-          </button>
+          <div>
+            <label class="text-[11px] text-slate-400 block mb-1">حداقل مبلغ افزایش موجودی (تومان):</label>
+            <input type="number" id="settingMinTopup" dir="ltr" placeholder="20000" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-amber-300 outline-none focus:border-amber-500 transition" />
+          </div>
         </div>
+
+        <!-- 3. Crypto & Rates Settings -->
+        <div class="bg-slate-800/90 rounded-2xl p-4 border border-slate-700/80 space-y-3 text-xs shadow">
+          <span class="font-bold text-slate-200 block border-b border-slate-700/60 pb-2 flex items-center gap-1">
+            <span>💎</span> نرخ ارزها و ولت کریپتو:
+          </span>
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="text-[11px] text-slate-400 block mb-1">نرخ هر تتر (تومان):</label>
+              <input type="number" id="settingUsdtRate" dir="ltr" placeholder="95000" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-emerald-300 outline-none focus:border-emerald-500 transition" />
+            </div>
+            <div>
+              <label class="text-[11px] text-slate-400 block mb-1">نرخ هر TON (تومان):</label>
+              <input type="number" id="settingTonRate" dir="ltr" placeholder="0" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-cyan-300 outline-none focus:border-cyan-500 transition" />
+            </div>
+          </div>
+          <div>
+            <label class="text-[11px] text-slate-400 block mb-1">آدرس ولت TON واریزی:</label>
+            <input type="text" id="settingTonWallet" dir="ltr" placeholder="UQ... یا EQ..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-slate-300 outline-none focus:border-blue-500 transition text-[11px]" />
+          </div>
+        </div>
+
+        <!-- 4. Trial & Referral Config -->
+        <div class="bg-slate-800/90 rounded-2xl p-4 border border-slate-700/80 space-y-3 text-xs shadow">
+          <span class="font-bold text-slate-200 block border-b border-slate-700/60 pb-2 flex items-center gap-1">
+            <span>🎁</span> مقادیر تست و پاداش رفرال:
+          </span>
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="text-[11px] text-slate-400 block mb-1">حجم تست (GB):</label>
+              <input type="number" id="settingTrialTraffic" dir="ltr" placeholder="1" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-blue-300 outline-none focus:border-blue-500 transition" />
+            </div>
+            <div>
+              <label class="text-[11px] text-slate-400 block mb-1">اعتبار تست (روز):</label>
+              <input type="number" id="settingTrialDays" dir="ltr" placeholder="1" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-blue-300 outline-none focus:border-blue-500 transition" />
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="text-[11px] text-slate-400 block mb-1">پاداش معرفی (GB):</label>
+              <input type="number" id="settingRefReward" dir="ltr" placeholder="5" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-purple-300 outline-none focus:border-purple-500 transition" />
+            </div>
+            <div>
+              <label class="text-[11px] text-slate-400 block mb-1">آیدی پشتیبان تلگرام:</label>
+              <input type="text" id="settingSupportContact" dir="ltr" placeholder="@Support_Admin" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-200 outline-none focus:border-indigo-500 transition" />
+            </div>
+          </div>
+        </div>
+
+        <!-- 5. Big Save Button -->
+        <button id="saveAllSettingsBtn" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs py-3 rounded-2xl transition shadow-lg shadow-blue-500/20 active:scale-95 flex items-center justify-center gap-2 mb-6">
+          <span>💾</span> ذخیره تمامی تغییرات تنظیمات
+        </button>
       </div>
 
     </div>
 
     <!-- Admin Bottom Navigation Bar -->
-    <div class="absolute bottom-0 inset-x-0 bg-[#131d31]/95 backdrop-blur-md border-t border-slate-700/80 px-2 py-2.5 flex justify-around items-center z-30">
-      <button class="admin-nav-btn flex flex-col items-center gap-0.5 text-blue-400 transition" data-admin-tab="tab-admin-overview">
-        <span class="text-lg">📊</span>
-        <span class="text-[10px] font-bold">داشبورد</span>
+    <div class="absolute bottom-0 inset-x-0 bg-[#131d31]/95 backdrop-blur-md border-t border-slate-700/80 px-1 py-2 flex justify-between items-center z-30 overflow-x-auto no-scrollbar">
+      <button class="admin-nav-btn flex flex-col items-center gap-0.5 text-blue-400 transition min-w-[46px]" data-admin-tab="tab-admin-overview">
+        <span class="text-base">📊</span>
+        <span class="text-[9px] font-bold">داشبورد</span>
       </button>
-      <button class="admin-nav-btn flex flex-col items-center gap-0.5 text-slate-400 hover:text-slate-200 transition" data-admin-tab="tab-admin-users">
-        <span class="text-lg">👥</span>
-        <span class="text-[10px] font-medium">کاربران</span>
+      <button class="admin-nav-btn flex flex-col items-center gap-0.5 text-slate-400 hover:text-slate-200 transition min-w-[46px]" data-admin-tab="tab-admin-users">
+        <span class="text-base">👥</span>
+        <span class="text-[9px] font-medium">کاربران</span>
       </button>
-      <button class="admin-nav-btn flex flex-col items-center gap-0.5 text-slate-400 hover:text-slate-200 transition" data-admin-tab="tab-admin-nodes">
-        <span class="text-lg">🌐</span>
-        <span class="text-[10px] font-medium">سرورها</span>
+      <button class="admin-nav-btn flex flex-col items-center gap-0.5 text-slate-400 hover:text-slate-200 transition min-w-[46px]" data-admin-tab="tab-admin-plans">
+        <span class="text-base">📦</span>
+        <span class="text-[9px] font-medium">پلن‌ها</span>
       </button>
-      <button class="admin-nav-btn flex flex-col items-center gap-0.5 text-slate-400 hover:text-slate-200 transition" data-admin-tab="tab-admin-tickets">
-        <span class="text-lg">💳</span>
-        <span class="text-[10px] font-medium">فیش‌ها</span>
+      <button class="admin-nav-btn flex flex-col items-center gap-0.5 text-slate-400 hover:text-slate-200 transition min-w-[46px]" data-admin-tab="tab-admin-coupons">
+        <span class="text-base">🎟</span>
+        <span class="text-[9px] font-medium">تخفیف‌ها</span>
       </button>
-      <button class="admin-nav-btn flex flex-col items-center gap-0.5 text-slate-400 hover:text-slate-200 transition" data-admin-tab="tab-admin-settings">
-        <span class="text-lg">⚙️</span>
-        <span class="text-[10px] font-medium">تنظیمات</span>
+      <button class="admin-nav-btn flex flex-col items-center gap-0.5 text-slate-400 hover:text-slate-200 transition min-w-[46px]" data-admin-tab="tab-admin-nodes">
+        <span class="text-base">🌐</span>
+        <span class="text-[9px] font-medium">سرورها</span>
+      </button>
+      <button class="admin-nav-btn flex flex-col items-center gap-0.5 text-slate-400 hover:text-slate-200 transition min-w-[46px]" data-admin-tab="tab-admin-tickets">
+        <span class="text-base">💳</span>
+        <span class="text-[9px] font-medium">فیش‌ها</span>
+      </button>
+      <button class="admin-nav-btn flex flex-col items-center gap-0.5 text-slate-400 hover:text-slate-200 transition min-w-[46px]" data-admin-tab="tab-admin-settings">
+        <span class="text-base">⚙️</span>
+        <span class="text-[9px] font-medium">تنظیمات</span>
       </button>
     </div>
 
@@ -380,6 +541,157 @@
         <div class="flex gap-2">
           <button id="modifyModalSubmitBtn" onclick="window.adminActions.applyUserModification()" class="flex-1 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs py-2 rounded-xl transition">ثبت تغییرات</button>
           <button onclick="window.adminActions.closeModifyModal()" class="flex-1 bg-slate-800 text-slate-300 text-xs py-2 rounded-xl">انصراف</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL: Charge / Deduct User Wallet -->
+    <div id="walletModal" class="absolute inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+      <div class="bg-[#1e293b] border border-slate-700 rounded-3xl p-5 w-full max-w-[340px] space-y-4 shadow-2xl relative">
+        <div class="flex justify-between items-center border-b border-slate-700/60 pb-2">
+          <h4 id="walletModalTitle" class="text-xs font-bold text-white flex items-center gap-1.5">
+            <span>💰</span> شارژ کیف پول کاربر
+          </h4>
+          <button onclick="window.adminActions.closeWalletModal()" class="text-slate-400 hover:text-white text-xs">✕</button>
+        </div>
+        <div class="space-y-2.5">
+          <div class="flex gap-2">
+            <button id="walletActionAddBtn" type="button" class="flex-1 py-1.5 text-xs font-bold rounded-xl border border-emerald-500/50 bg-emerald-950/70 text-emerald-300 transition">
+              ➕ افزایش موجودی
+            </button>
+            <button id="walletActionDeductBtn" type="button" class="flex-1 py-1.5 text-xs font-medium rounded-xl border border-slate-700 bg-slate-900/60 text-slate-400 transition">
+              ➖ کسر موجودی
+            </button>
+          </div>
+          <div>
+            <label class="text-[11px] text-slate-300 block mb-1">مبلغ به تومان:</label>
+            <input type="number" id="walletModalAmount" placeholder="مثلاً: 50000" min="1000" step="1000" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm font-mono text-emerald-300 outline-none" />
+          </div>
+          <div>
+            <label class="text-[11px] text-slate-300 block mb-1">توضیحات (اختیاری):</label>
+            <input type="text" id="walletModalReason" placeholder="شارژ دستی توسط مدیریت..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-200 outline-none" />
+          </div>
+        </div>
+        <div class="flex gap-2">
+          <button id="walletModalSubmitBtn" onclick="window.adminActions.applyWalletModification()" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs py-2 rounded-xl transition shadow active:scale-95">
+            ثبت تغییر موجودی
+          </button>
+          <button onclick="window.adminActions.closeWalletModal()" class="flex-1 bg-slate-800 text-slate-300 text-xs py-2 rounded-xl">انصراف</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL: Connected HWID Devices Inspector -->
+    <div id="hwidModal" class="absolute inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+      <div class="bg-[#1e293b] border border-slate-700 rounded-3xl p-5 w-full max-w-[380px] max-h-[85vh] flex flex-col space-y-3.5 shadow-2xl relative">
+        <div class="flex justify-between items-center border-b border-slate-700/60 pb-2">
+          <h4 id="hwidModalTitle" class="text-xs font-bold text-white flex items-center gap-1.5">
+            <span>📱</span> دستگاه‌های متصل به اکانت
+          </h4>
+          <button onclick="window.adminActions.closeHwidModal()" class="text-slate-400 hover:text-white text-xs">✕</button>
+        </div>
+        <div id="hwidDevicesList" class="space-y-2 overflow-y-auto max-h-[60vh] custom-scroll text-xs">
+          <div class="p-6 text-center text-slate-400">در حال دریافت دستگاه‌ها...</div>
+        </div>
+        <button onclick="window.adminActions.closeHwidModal()" class="w-full bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs py-2 rounded-xl">
+          بستن
+        </button>
+      </div>
+    </div>
+
+    <!-- MODAL: Create / Edit Plan -->
+    <div id="planModal" class="absolute inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+      <div class="bg-[#1e293b] border border-slate-700 rounded-3xl p-5 w-full max-w-[360px] space-y-3 shadow-2xl relative max-h-[90vh] overflow-y-auto custom-scroll">
+        <div class="flex justify-between items-center border-b border-slate-700/60 pb-2">
+          <h4 id="planModalTitle" class="text-xs font-bold text-white flex items-center gap-1.5">
+            <span>📦</span> پلن تعرفه
+          </h4>
+          <button onclick="window.adminActions.closePlanModal()" class="text-slate-400 hover:text-white text-xs">✕</button>
+        </div>
+        <input type="hidden" id="planModalId" value="" />
+        <div class="space-y-2 text-xs">
+          <div>
+            <label class="text-[11px] text-slate-300 block mb-1">نام پلن:</label>
+            <input type="text" id="planModalName" placeholder="مثلاً: پلن طلایی ۵۰ گیگ ۳۰ روزه" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-blue-500" />
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="text-[11px] text-slate-300 block mb-1">قیمت (تومان):</label>
+              <input type="number" id="planModalPrice" placeholder="95000" min="0" step="1000" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-emerald-300 outline-none" />
+            </div>
+            <div>
+              <label class="text-[11px] text-slate-300 block mb-1">حجم ترافیک (GB):</label>
+              <input type="number" id="planModalTraffic" placeholder="50" min="0" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-cyan-300 outline-none" />
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="text-[11px] text-slate-300 block mb-1">مدت زمان (روز):</label>
+              <input type="number" id="planModalDuration" placeholder="30" min="0" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-amber-300 outline-none" />
+            </div>
+            <div>
+              <label class="text-[11px] text-slate-300 block mb-1">محدودیت کاربر (HWID):</label>
+              <input type="number" id="planModalHwid" placeholder="0 = پیش‌فرض" min="0" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-purple-300 outline-none" />
+            </div>
+          </div>
+          <div>
+            <label class="text-[11px] text-slate-300 block mb-1">توضیحات کوتاه (اختیاری):</label>
+            <input type="text" id="planModalDesc" placeholder="مناسب بازی، بدون قطعی..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-200 outline-none" />
+          </div>
+          <div class="flex items-center justify-between pt-1">
+            <span class="text-[11px] text-slate-300">وضعیت فعال برای خرید:</span>
+            <input type="checkbox" id="planModalActive" checked class="w-4 h-4 rounded text-blue-600 bg-slate-900 border-slate-700" />
+          </div>
+        </div>
+        <div class="flex gap-2 pt-2">
+          <button id="planModalSaveBtn" onclick="window.adminActions.savePlan()" class="flex-1 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs py-2 rounded-xl transition shadow active:scale-95">
+            ذخیره پلن
+          </button>
+          <button onclick="window.adminActions.closePlanModal()" class="flex-1 bg-slate-800 text-slate-300 text-xs py-2 rounded-xl">انصراف</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL: Create Discount Coupon -->
+    <div id="couponModal" class="absolute inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+      <div class="bg-[#1e293b] border border-slate-700 rounded-3xl p-5 w-full max-w-[340px] space-y-3 shadow-2xl relative">
+        <div class="flex justify-between items-center border-b border-slate-700/60 pb-2">
+          <h4 class="text-xs font-bold text-white flex items-center gap-1.5">
+            <span>🎟</span> ساخت کد تخفیف جدید
+          </h4>
+          <button onclick="window.adminActions.closeCouponModal()" class="text-slate-400 hover:text-white text-xs">✕</button>
+        </div>
+        <div class="space-y-2 text-xs">
+          <div>
+            <label class="text-[11px] text-slate-300 block mb-1">کد تخفیف (لاتین):</label>
+            <input type="text" id="couponModalCode" placeholder="OFF20 یا NOROOZ" dir="ltr" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono font-bold text-pink-400 uppercase outline-none focus:border-pink-500" />
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="text-[11px] text-slate-300 block mb-1">درصد تخفیف (%):</label>
+              <input type="number" id="couponModalPercent" placeholder="20" min="0" max="100" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-cyan-300 outline-none" />
+            </div>
+            <div>
+              <label class="text-[11px] text-slate-300 block mb-1">یا مبلغ ثابت (تومان):</label>
+              <input type="number" id="couponModalAmount" placeholder="0" min="0" step="1000" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-emerald-300 outline-none" />
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="text-[11px] text-slate-300 block mb-1">سقف استفاده (تعداد):</label>
+              <input type="number" id="couponModalMaxUses" placeholder="0 = نامحدود" min="0" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-amber-300 outline-none" />
+            </div>
+            <div>
+              <label class="text-[11px] text-slate-300 block mb-1">اعتبار (تعداد روز):</label>
+              <input type="number" id="couponModalDays" placeholder="0 = دائمی" min="0" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-purple-300 outline-none" />
+            </div>
+          </div>
+        </div>
+        <div class="flex gap-2 pt-2">
+          <button id="couponModalSaveBtn" onclick="window.adminActions.saveCoupon()" class="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-bold text-xs py-2 rounded-xl transition shadow active:scale-95">
+            ایجاد کد تخفیف
+          </button>
+          <button onclick="window.adminActions.closeCouponModal()" class="flex-1 bg-slate-800 text-slate-300 text-xs py-2 rounded-xl">انصراف</button>
         </div>
       </div>
     </div>

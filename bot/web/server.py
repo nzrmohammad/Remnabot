@@ -10,18 +10,30 @@ from aiohttp import web
 from bot.web.cache import FastCache
 from bot.web.routes_admin import (
     get_admin_broadcast_status,
+    get_admin_coupons,
     get_admin_overview,
+    get_admin_plans,
     get_admin_settings,
     get_admin_topups,
+    get_admin_user_hwid_devices,
     get_admin_users,
     post_admin_broadcast,
+    post_admin_coupon_delete,
+    post_admin_coupon_save,
+    post_admin_coupon_toggle,
     post_admin_kill_sessions,
     post_admin_modify_user,
+    post_admin_plan_delete,
+    post_admin_plan_save,
+    post_admin_plan_toggle,
     post_admin_reply_ticket,
     post_admin_reset_trial,
     post_admin_settings,
     post_admin_toggle_ban,
     post_admin_topup_action,
+    post_admin_user_delete_hwid,
+    post_admin_user_revoke_sub,
+    post_admin_user_wallet,
 )
 from bot.web.routes_user import (
     get_user_avatar,
@@ -155,12 +167,24 @@ def create_web_app(
     app.router.add_get("/api/admin/overview", get_admin_overview)
     app.router.add_get("/api/admin/users", get_admin_users)
     app.router.add_post("/api/admin/user/modify", post_admin_modify_user)
+    app.router.add_post("/api/admin/user/wallet", post_admin_user_wallet)
+    app.router.add_post("/api/admin/user/revoke_sub", post_admin_user_revoke_sub)
+    app.router.add_get("/api/admin/user/hwid_devices", get_admin_user_hwid_devices)
+    app.router.add_post("/api/admin/user/delete_hwid", post_admin_user_delete_hwid)
     app.router.add_post("/api/admin/user/kill_sessions", post_admin_kill_sessions)
     app.router.add_post("/api/admin/user/toggle_ban", post_admin_toggle_ban)
     app.router.add_post("/api/admin/ticket/reply", post_admin_reply_ticket)
     app.router.add_post("/api/admin/broadcast", post_admin_broadcast)
     app.router.add_get("/api/admin/broadcast/status", get_admin_broadcast_status)
     app.router.add_post("/api/admin/user/reset_trial", post_admin_reset_trial)
+    app.router.add_get("/api/admin/plans", get_admin_plans)
+    app.router.add_post("/api/admin/plan/save", post_admin_plan_save)
+    app.router.add_post("/api/admin/plan/toggle", post_admin_plan_toggle)
+    app.router.add_post("/api/admin/plan/delete", post_admin_plan_delete)
+    app.router.add_get("/api/admin/coupons", get_admin_coupons)
+    app.router.add_post("/api/admin/coupon/save", post_admin_coupon_save)
+    app.router.add_post("/api/admin/coupon/toggle", post_admin_coupon_toggle)
+    app.router.add_post("/api/admin/coupon/delete", post_admin_coupon_delete)
     app.router.add_get("/api/admin/topups", get_admin_topups)
     app.router.add_post("/api/admin/topup/action", post_admin_topup_action)
     app.router.add_get("/api/admin/settings", get_admin_settings)

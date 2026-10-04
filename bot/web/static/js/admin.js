@@ -21,6 +21,10 @@
   let currentFilter = 'all';
   let currentSearch = '';
   let currentModifyTarget = null;
+  let currentWalletTarget = null;
+  let currentHwidTarget = null;
+  let adminPlansData = [];
+  let adminCouponsData = [];
   let currentBroadcastTarget = 'all';
   let cachedOverviewData = null;
 
@@ -93,6 +97,10 @@
       // Lazy load tab data
       if (targetId === 'tab-admin-users' && document.getElementById('adminUsersList')?.children.length <= 1) {
         fetchAdminUsers(1);
+      } else if (targetId === 'tab-admin-plans') {
+        fetchAdminPlans();
+      } else if (targetId === 'tab-admin-coupons') {
+        fetchAdminCoupons();
       } else if (targetId === 'tab-admin-tickets') {
         fetchAdminTopups();
       } else if (targetId === 'tab-admin-settings') {
@@ -193,6 +201,11 @@
       const syncText = document.getElementById('adminLastSyncText');
       if (syncText) syncText.innerText = 'Sync: آنلاین';
 
+      // Render 7-day Sales Chart
+      if (data.charts && typeof Chart !== 'undefined') {
+        renderAdminSalesChart(data.charts.sales_labels, data.charts.sales_data);
+      }
+
       // Render Accordion Nodes
       renderOverviewNodes(nodes);
       renderFullNodes(nodes);
@@ -201,6 +214,66 @@
       console.error('Failed to sync admin overview:', err);
       dismissSplash();
     }
+  }
+
+  let salesChartInstance = null;
+  function renderAdminSalesChart(labels, values) {
+    const canvas = document.getElementById('adminSalesChart');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const totalSum = (values || []).reduce((a, b) => a + b, 0);
+    const totalEl = document.getElementById('salesChartTotal');
+    if (totalEl) totalEl.innerText = `${formatNumber(totalSum)} تومان`;
+
+    if (salesChartInstance) {
+      salesChartInstance.data.labels = labels;
+      salesChartInstance.data.datasets[0].data = values;
+      salesChartInstance.update();
+      return;
+    }
+
+    salesChartInstance = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: labels,
+        datasets: [{
+          label: 'درآمد (تومان)',
+          data: values,
+          backgroundColor: 'rgba(59, 130, 246, 0.75)',
+          hoverBackgroundColor: 'rgba(96, 165, 250, 1)',
+          borderRadius: 6,
+          borderSkipped: false,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: (ctx) => `${formatNumber(ctx.raw)} تومان`
+            }
+          }
+        },
+        scales: {
+          x: {
+            grid: { display: false },
+            ticks: { color: '#94a3b8', font: { family: 'Vazirmatn', size: 9 } }
+          },
+          y: {
+            grid: { color: 'rgba(51, 65, 85, 0.3)' },
+            ticks: {
+              color: '#94a3b8',
+              font: { family: 'Vazirmatn', size: 9 },
+              callback: (val) => val >= 1000000 ? `${(val/1000000).toFixed(1)}M` : (val >= 1000 ? `${(val/1000).toFixed(0)}K` : val)
+            }
+          }
+        }
+      }
+    });
   }
 
   // Collapsible Accordion Node Card Renderer
@@ -457,23 +530,36 @@
           <!-- Compact Single-Line Service Metrics -->
           ${serviceLineHtml}
 
-          <!-- Quick Action Buttons (Including Trial Reset Option) -->
-          <div class="grid grid-cols-5 gap-1 text-center text-[10px]">
-            <button class="bg-blue-950/60 hover:bg-blue-900 text-blue-300 border border-blue-800/50 py-1.5 rounded-lg transition active:scale-95" onclick="window.adminActions.openModifyUser(${u.telegram_id}, '${u.username || u.telegram_id}', 'traffic')" title="افزایش حجم">
-              ➕ ترافیک
-            </button>
-            <button class="bg-indigo-950/60 hover:bg-indigo-900 text-indigo-300 border border-indigo-800/50 py-1.5 rounded-lg transition active:scale-95" onclick="window.adminActions.openModifyUser(${u.telegram_id}, '${u.username || u.telegram_id}', 'days')" title="تمدید زمان">
-              ⏳ تمدید
-            </button>
-            <button class="bg-purple-950/60 hover:bg-purple-900 text-purple-300 border border-purple-800/50 py-1.5 rounded-lg transition active:scale-95" onclick="window.adminActions.resetTrial(${u.telegram_id}, '${u.username || u.telegram_id}')" title="فعال‌سازی مجدد تست برای کاربر">
-              🎁 تست
-            </button>
-            <button class="bg-amber-950/60 hover:bg-amber-900 text-amber-300 border border-amber-800/50 py-1.5 rounded-lg transition active:scale-95" onclick="window.adminActions.killSessions(${u.telegram_id}, '${u.username || u.telegram_id}')" title="قطع نشست‌ها">
-              ⛔️ نشست
-            </button>
-            <button class="${u.is_banned ? 'bg-emerald-950/60 hover:bg-emerald-900 text-emerald-300 border-emerald-800/50' : 'bg-rose-950/60 hover:bg-rose-900 text-rose-300 border-rose-800/50'} border py-1.5 rounded-lg transition active:scale-95" onclick="window.adminActions.toggleBan(${u.telegram_id}, ${u.is_banned})">
-              ${u.is_banned ? '✅ آزاد' : '🚫 مسدود'}
-            </button>
+          <!-- Quick Action Buttons -->
+          <div class="space-y-1.5 pt-1">
+            <div class="grid grid-cols-4 gap-1 text-center text-[10px]">
+              <button class="bg-blue-950/60 hover:bg-blue-900 text-blue-300 border border-blue-800/50 py-1.5 rounded-lg transition active:scale-95 font-medium" onclick="window.adminActions.openModifyUser(${u.telegram_id}, '${u.username || u.telegram_id}', 'traffic')" title="افزایش حجم">
+                ➕ ترافیک
+              </button>
+              <button class="bg-indigo-950/60 hover:bg-indigo-900 text-indigo-300 border border-indigo-800/50 py-1.5 rounded-lg transition active:scale-95 font-medium" onclick="window.adminActions.openModifyUser(${u.telegram_id}, '${u.username || u.telegram_id}', 'days')" title="تمدید زمان">
+                ⏳ تمدید
+              </button>
+              <button class="bg-emerald-950/60 hover:bg-emerald-900 text-emerald-300 border border-emerald-800/50 py-1.5 rounded-lg transition active:scale-95 font-medium" onclick="window.adminActions.openWalletModal(${u.telegram_id}, '${u.username || u.telegram_id}')" title="شارژ یا کسر موجودی">
+                💰 موجودی
+              </button>
+              <button class="bg-purple-950/60 hover:bg-purple-900 text-purple-300 border border-purple-800/50 py-1.5 rounded-lg transition active:scale-95 font-medium" onclick="window.adminActions.resetTrial(${u.telegram_id}, '${u.username || u.telegram_id}')" title="فعال‌سازی مجدد تست">
+                🎁 تست
+              </button>
+            </div>
+            <div class="grid grid-cols-4 gap-1 text-center text-[10px]">
+              <button class="bg-cyan-950/60 hover:bg-cyan-900 text-cyan-300 border border-cyan-800/50 py-1.5 rounded-lg transition active:scale-95 font-medium" onclick="window.adminActions.revokeSub(${u.telegram_id}, '${u.username || u.telegram_id}')" title="تولید مجدد لینک سابسکریپشن">
+                🔄 ساب
+              </button>
+              <button class="bg-teal-950/60 hover:bg-teal-900 text-teal-300 border border-teal-800/50 py-1.5 rounded-lg transition active:scale-95 font-medium" onclick="window.adminActions.openHwidModal(${u.telegram_id}, '${u.username || u.telegram_id}')" title="دستگاه‌های متصل">
+                📱 دستگاه
+              </button>
+              <button class="bg-amber-950/60 hover:bg-amber-900 text-amber-300 border border-amber-800/50 py-1.5 rounded-lg transition active:scale-95 font-medium" onclick="window.adminActions.killSessions(${u.telegram_id}, '${u.username || u.telegram_id}')" title="قطع نشست‌ها">
+                ⛔️ نشست
+              </button>
+              <button class="${u.is_banned ? 'bg-emerald-950/60 hover:bg-emerald-900 text-emerald-300 border-emerald-800/50' : 'bg-rose-950/60 hover:bg-rose-900 text-rose-300 border-rose-800/50'} border py-1.5 rounded-lg transition active:scale-95 font-medium" onclick="window.adminActions.toggleBan(${u.telegram_id}, ${u.is_banned})">
+                ${u.is_banned ? '✅ آزاد' : '🚫 مسدود'}
+              </button>
+            </div>
           </div>
         </div>
       `;
@@ -529,6 +615,7 @@
   });
 
   // --- 6. Admin Actions Namespace ---
+
   const modifyUserModal = document.getElementById('modifyUserModal');
   const modifyModalTitle = document.getElementById('modifyModalTitle');
   const modifyModalLabel = document.getElementById('modifyModalLabel');
@@ -661,7 +748,469 @@
         if (window.showToast) window.showToast('خطا در برقراری ارتباط');
       }
     },
+
+    // --- Wallet Actions ---
+    openWalletModal(telegram_id, name) {
+      currentWalletTarget = { telegram_id, name };
+      const modal = document.getElementById('walletModal');
+      const title = document.getElementById('walletModalTitle');
+      const amtInput = document.getElementById('walletModalAmount');
+      const reasonInput = document.getElementById('walletModalReason');
+      if (modal) modal.classList.remove('hidden');
+      if (title) title.innerText = `💰 کیف پول: ${name}`;
+      if (amtInput) amtInput.value = '50000';
+      if (reasonInput) reasonInput.value = 'شارژ دستی توسط مدیریت';
+      amtInput?.focus();
+    },
+
+    closeWalletModal() {
+      document.getElementById('walletModal')?.classList.add('hidden');
+      currentWalletTarget = null;
+    },
+
+    async applyWalletModification() {
+      if (!currentWalletTarget) return;
+      const rawAmount = parseInt(document.getElementById('walletModalAmount')?.value || '0', 10);
+      if (isNaN(rawAmount) || rawAmount <= 0) {
+        if (window.showToast) window.showToast('لطفاً مبلغ معتبری وارد کنید.');
+        return;
+      }
+      const finalAmount = walletActionType === 'add' ? rawAmount : -rawAmount;
+      const reason = document.getElementById('walletModalReason')?.value?.trim() || 'شارژ توسط مدیریت';
+      const submitBtn = document.getElementById('walletModalSubmitBtn');
+      if (submitBtn) { submitBtn.disabled = true; submitBtn.innerText = 'در حال ثبت...'; }
+
+      try {
+        const res = await window.api.modifyUserWallet(currentWalletTarget.telegram_id, finalAmount, reason);
+        if (res && res.ok) {
+          if (window.showToast) window.showToast(`✅ ${res.message || 'موجودی به‌روز شد'}`);
+          if (window.hapticFeedback) window.hapticFeedback('success');
+          this.closeWalletModal();
+          fetchAdminUsers(currentPage);
+        } else {
+          if (window.showToast) window.showToast(`⚠️ ${res?.error || 'خطا در تغییر موجودی'}`);
+          if (window.hapticFeedback) window.hapticFeedback('error');
+        }
+      } catch (e) {
+        if (window.showToast) window.showToast('خطای شبکه در ثبت موجودی');
+      } finally {
+        if (submitBtn) { submitBtn.disabled = false; submitBtn.innerText = 'ثبت تغییر موجودی'; }
+      }
+    },
+
+    // --- Revoke Subscription URL ---
+    async revokeSub(telegram_id, name) {
+      if (!confirm(`آیا از ابطال لینک قبلی و ساخت لینک جدید سابسکریپشن برای کاربر ${name} اطمینان دارید؟`)) return;
+      try {
+        const res = await window.api.revokeUserSub(telegram_id);
+        if (res && res.ok) {
+          if (window.showToast) window.showToast('✅ لینک سابسکریپشن کاربر با موفقیت تغییر یافت.');
+          if (window.hapticFeedback) window.hapticFeedback('success');
+        } else {
+          if (window.showToast) window.showToast(`⚠️ ${res?.error || 'خطا در تغییر لینک'}`);
+          if (window.hapticFeedback) window.hapticFeedback('error');
+        }
+      } catch (e) {
+        if (window.showToast) window.showToast('خطا در ارتباط با سرور');
+      }
+    },
+
+    // --- HWID Devices Inspector ---
+    async openHwidModal(telegram_id, name) {
+      currentHwidTarget = { telegram_id, name };
+      const modal = document.getElementById('hwidModal');
+      const title = document.getElementById('hwidModalTitle');
+      const list = document.getElementById('hwidDevicesList');
+      if (modal) modal.classList.remove('hidden');
+      if (title) title.innerText = `📱 دستگاه‌های: ${name}`;
+      if (list) list.innerHTML = '<div class="p-6 text-center text-slate-400">در حال دریافت دستگاه‌ها...</div>';
+
+      try {
+        const res = await window.api.getUserHwidDevices(telegram_id);
+        if (!res || !res.ok) {
+          list.innerHTML = `<div class="p-4 text-center text-rose-400">${res?.error || 'خطا در دریافت لیست'}</div>`;
+          return;
+        }
+        const devices = res.devices || [];
+        if (devices.length === 0) {
+          list.innerHTML = '<div class="p-6 text-center text-slate-400">هیچ دستگاه فعالی متصل نیست 🟢</div>';
+          return;
+        }
+
+        list.innerHTML = devices.map(d => {
+          const hwid = d.hwid || d.id || '';
+          const os = d.os || d.platform || 'دستگاه متصل';
+          const brand = d.brand || d.model || '';
+          const ip = d.ip || d.lastIp || '-';
+          return `
+            <div class="bg-slate-900/80 p-3 rounded-2xl border border-slate-800 flex items-center justify-between">
+              <div>
+                <b class="text-white text-xs block">${os} ${brand ? '(' + brand + ')' : ''}</b>
+                <span class="text-[10px] text-slate-400 font-mono block">IP: ${ip}</span>
+                <span class="text-[9px] text-slate-500 font-mono block truncate max-w-[190px]">HWID: ${hwid}</span>
+              </div>
+              <button onclick="window.adminActions.deleteHwid(${telegram_id}, '${hwid}')" class="bg-rose-950/70 hover:bg-rose-900 text-rose-300 border border-rose-800/50 text-[10px] px-2.5 py-1.5 rounded-xl transition active:scale-95 font-bold">
+                قطع اتصال
+              </button>
+            </div>
+          `;
+        }).join('');
+      } catch (e) {
+        list.innerHTML = '<div class="p-4 text-center text-rose-400">خطای شبکه در دریافت اطلاعات دستگاه‌ها</div>';
+      }
+    },
+
+    closeHwidModal() {
+      document.getElementById('hwidModal')?.classList.add('hidden');
+      currentHwidTarget = null;
+    },
+
+    async deleteHwid(telegram_id, hwid) {
+      if (!confirm('آیا از قطع اتصال این دستگاه مطمئن هستید؟')) return;
+      try {
+        const res = await window.api.deleteUserHwid(telegram_id, hwid);
+        if (res && res.ok) {
+          if (window.showToast) window.showToast('✅ اتصال دستگاه با موفقیت قطع شد.');
+          if (window.hapticFeedback) window.hapticFeedback('success');
+          if (currentHwidTarget) this.openHwidModal(currentHwidTarget.telegram_id, currentHwidTarget.name);
+        } else {
+          if (window.showToast) window.showToast(`⚠️ ${res?.error || 'خطا در قطع اتصال'}`);
+          if (window.hapticFeedback) window.hapticFeedback('error');
+        }
+      } catch (e) {
+        if (window.showToast) window.showToast('خطا در برقراری ارتباط');
+      }
+    },
+
+    // --- Plans Actions ---
+    async fetchAdminPlans() {
+      const container = document.getElementById('adminPlansList');
+      if (!container) return;
+      container.innerHTML = '<div class="p-8 text-center text-xs text-slate-400">در حال دریافت تعرفه‌ها...</div>';
+      try {
+        const res = await window.api.getAdminPlans();
+        if (!res || !res.ok) {
+          container.innerHTML = `<div class="p-6 text-center text-rose-400 text-xs">${res?.error || 'خطا در دریافت تعرفه‌ها'}</div>`;
+          return;
+        }
+        adminPlansData = res.plans || [];
+        if (adminPlansData.length === 0) {
+          container.innerHTML = `
+            <div class="bg-slate-900/50 border border-slate-800 rounded-2xl p-6 text-center text-slate-400 space-y-3">
+              <span class="text-2xl block">📦</span>
+              <p class="text-xs">هیچ پلن یا تعرفه‌ای هنوز ثبت نشده است.</p>
+              <button onclick="window.adminActions.openPlanModal()" class="bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold px-4 py-2 rounded-xl transition shadow active:scale-95">
+                + ایجاد اولین پلن
+              </button>
+            </div>
+          `;
+          return;
+        }
+
+        container.innerHTML = adminPlansData.map(p => {
+          const statusBadge = p.is_active
+            ? '<span class="text-[10px] bg-emerald-950/80 text-emerald-400 border border-emerald-800/60 px-2 py-0.5 rounded-lg font-bold">فعال</span>'
+            : '<span class="text-[10px] bg-slate-800 text-slate-400 border border-slate-700 px-2 py-0.5 rounded-lg font-medium">غیرفعال</span>';
+
+          const trafficText = p.traffic_gb > 0 ? `${p.traffic_gb} GB` : 'نامحدود';
+          const durationText = p.duration_days > 0 ? `${p.duration_days} روز` : 'نامحدود';
+          const hwidText = p.hwid_limit > 0 ? `${p.hwid_limit} کاربر` : 'پیش‌فرض';
+
+          return `
+            <div class="bg-slate-800/80 rounded-2xl p-4 border border-slate-700/80 space-y-3 shadow transition">
+              <div class="flex items-start justify-between">
+                <div>
+                  <div class="flex items-center gap-2">
+                    <b class="text-white text-xs font-bold">${p.name}</b>
+                    ${statusBadge}
+                  </div>
+                  ${p.description ? `<p class="text-[10px] text-slate-400 mt-0.5 line-clamp-1">${p.description}</p>` : ''}
+                </div>
+                <span class="text-sm font-black text-emerald-400 font-mono">${formatNumber(p.price || 0)} <span class="text-[10px] font-sans font-normal text-slate-400">تومان</span></span>
+              </div>
+
+              <div class="grid grid-cols-3 gap-1.5 text-center text-[10px] bg-slate-900/60 p-2 rounded-xl font-mono">
+                <div>
+                  <span class="text-slate-400 block text-[9px] font-sans">حجم ترافیک</span>
+                  <b class="text-cyan-300">${trafficText}</b>
+                </div>
+                <div>
+                  <span class="text-slate-400 block text-[9px] font-sans">مدت زمان</span>
+                  <b class="text-amber-300">${durationText}</b>
+                </div>
+                <div>
+                  <span class="text-slate-400 block text-[9px] font-sans">محدودیت HWID</span>
+                  <b class="text-purple-300">${hwidText}</b>
+                </div>
+              </div>
+
+              <div class="flex gap-1.5 pt-1 text-[11px]">
+                <button onclick="window.adminActions.openPlanModal(${p.id})" class="flex-1 bg-slate-700/70 hover:bg-slate-700 text-white font-medium py-1.5 rounded-xl transition text-center">
+                  ✏️ ویرایش
+                </button>
+                <button onclick="window.adminActions.togglePlan(${p.id}, ${p.is_active})" class="flex-1 ${p.is_active ? 'bg-amber-950/60 text-amber-300 border border-amber-800/50' : 'bg-emerald-950/60 text-emerald-300 border border-emerald-800/50'} py-1.5 rounded-xl transition font-medium text-center">
+                  ${p.is_active ? 'غیرفعال‌سازی' : 'فعال‌سازی'}
+                </button>
+                <button onclick="window.adminActions.deletePlan(${p.id}, '${p.name}')" class="bg-rose-950/60 hover:bg-rose-900 text-rose-300 border border-rose-800/50 px-3 py-1.5 rounded-xl transition font-medium">
+                  🗑
+                </button>
+              </div>
+            </div>
+          `;
+        }).join('');
+      } catch (e) {
+        container.innerHTML = '<div class="p-6 text-center text-rose-400 text-xs">خطای شبکه در دریافت تعرفه‌ها</div>';
+      }
+    },
+
+    openPlanModal(planOrId = null) {
+      let plan = planOrId;
+      if (typeof planOrId === 'number') {
+        plan = adminPlansData.find(p => p.id === planOrId) || null;
+      }
+      const modal = document.getElementById('planModal');
+      if (modal) modal.classList.remove('hidden');
+      document.getElementById('planModalTitle').innerText = plan ? `ویرایش تعرفه: ${plan.name}` : 'ایجاد تعرفه جدید';
+      document.getElementById('planModalId').value = plan ? plan.id : '';
+      document.getElementById('planModalName').value = plan ? plan.name : '';
+      document.getElementById('planModalPrice').value = plan ? plan.price : '';
+      document.getElementById('planModalTraffic').value = plan ? plan.traffic_gb : '';
+      document.getElementById('planModalDuration').value = plan ? plan.duration_days : '';
+      document.getElementById('planModalHwid').value = plan ? (plan.hwid_limit || '') : '';
+      document.getElementById('planModalDesc').value = plan ? (plan.description || '') : '';
+      document.getElementById('planModalActive').checked = plan ? !!plan.is_active : true;
+    },
+
+    closePlanModal() {
+      document.getElementById('planModal')?.classList.add('hidden');
+    },
+
+    async savePlan() {
+      const id = document.getElementById('planModalId')?.value;
+      const name = document.getElementById('planModalName')?.value?.trim();
+      const price = parseInt(document.getElementById('planModalPrice')?.value || '0', 10);
+      const traffic_gb = parseInt(document.getElementById('planModalTraffic')?.value || '0', 10);
+      const duration_days = parseInt(document.getElementById('planModalDuration')?.value || '0', 10);
+      const hwid_limit = parseInt(document.getElementById('planModalHwid')?.value || '0', 10) || null;
+      const description = document.getElementById('planModalDesc')?.value?.trim();
+      const is_active = document.getElementById('planModalActive')?.checked ?? true;
+
+      if (!name) {
+        if (window.showToast) window.showToast('نام تعرفه الزامی است.');
+        return;
+      }
+
+      const saveBtn = document.getElementById('planModalSaveBtn');
+      if (saveBtn) { saveBtn.disabled = true; saveBtn.innerText = 'در حال ذخیره...'; }
+
+      try {
+        const payload = { id: id ? parseInt(id, 10) : undefined, name, price, traffic_gb, duration_days, hwid_limit, description, is_active };
+        const res = await window.api.saveAdminPlan(payload);
+        if (res && res.ok) {
+          if (window.showToast) window.showToast(`✅ ${res.message}`);
+          if (window.hapticFeedback) window.hapticFeedback('success');
+          this.closePlanModal();
+          this.fetchAdminPlans();
+        } else {
+          if (window.showToast) window.showToast(`⚠️ ${res?.error || 'خطا در ذخیره تعرفه'}`);
+        }
+      } catch (e) {
+        if (window.showToast) window.showToast('خطای شبکه در ذخیره تعرفه');
+      } finally {
+        if (saveBtn) { saveBtn.disabled = false; saveBtn.innerText = 'ذخیره پلن'; }
+      }
+    },
+
+    async togglePlan(id, is_active) {
+      try {
+        const res = await window.api.toggleAdminPlan(id, !is_active);
+        if (res && res.ok) {
+          if (window.showToast) window.showToast('✓ وضعیت تعرفه تغییر یافت');
+          this.fetchAdminPlans();
+        }
+      } catch (e) {}
+    },
+
+    async deletePlan(id, name) {
+      if (!confirm(`آیا از حذف کامل تعرفه «${name}» اطمینان دارید؟`)) return;
+      try {
+        const res = await window.api.deleteAdminPlan(id);
+        if (res && res.ok) {
+          if (window.showToast) window.showToast('✅ تعرفه با موفقیت حذف شد.');
+          this.fetchAdminPlans();
+        }
+      } catch (e) {}
+    },
+
+    // --- Coupons Actions ---
+    async fetchAdminCoupons() {
+      const container = document.getElementById('adminCouponsList');
+      if (!container) return;
+      container.innerHTML = '<div class="p-8 text-center text-xs text-slate-400">در حال دریافت کدهای تخفیف...</div>';
+      try {
+        const res = await window.api.getAdminCoupons();
+        if (!res || !res.ok) {
+          container.innerHTML = `<div class="p-6 text-center text-rose-400 text-xs">${res?.error || 'خطا در دریافت کدهای تخفیف'}</div>`;
+          return;
+        }
+        adminCouponsData = res.coupons || [];
+        if (adminCouponsData.length === 0) {
+          container.innerHTML = `
+            <div class="bg-slate-900/50 border border-slate-800 rounded-2xl p-6 text-center text-slate-400 space-y-3">
+              <span class="text-2xl block">🎟</span>
+              <p class="text-xs">هیچ کد تخفیفی ایجاد نشده است.</p>
+              <button onclick="window.adminActions.openCouponModal()" class="bg-gradient-to-r from-purple-600 to-pink-600 text-white text-xs font-bold px-4 py-2 rounded-xl transition shadow active:scale-95">
+                + ایجاد اولین کد تخفیف
+              </button>
+            </div>
+          `;
+          return;
+        }
+
+        container.innerHTML = adminCouponsData.map(c => {
+          const statusBadge = c.is_active
+            ? '<span class="text-[10px] bg-emerald-950/80 text-emerald-400 border border-emerald-800/60 px-2 py-0.5 rounded-lg font-bold">فعال</span>'
+            : '<span class="text-[10px] bg-slate-800 text-slate-400 border border-slate-700 px-2 py-0.5 rounded-lg font-medium">غیرفعال</span>';
+
+          const discountText = c.discount_percent > 0
+            ? `${c.discount_percent}٪ تخفیف`
+            : `${formatNumber(c.discount_amount || 0)} تومان`;
+
+          const maxText = c.max_uses > 0 ? `${c.used_count || 0} / ${c.max_uses}` : `${c.used_count || 0} (نامحدود)`;
+          const expiryText = c.expires_at || 'نامحدود (دائمی)';
+
+          return `
+            <div class="bg-slate-800/80 rounded-2xl p-4 border border-slate-700/80 space-y-3 shadow transition">
+              <div class="flex items-start justify-between">
+                <div>
+                  <div class="flex items-center gap-2">
+                    <span class="font-mono font-bold text-pink-400 text-sm tracking-wider uppercase bg-pink-950/50 border border-pink-800/40 px-2.5 py-0.5 rounded-xl">${c.code}</span>
+                    ${statusBadge}
+                  </div>
+                  <span class="text-[11px] text-emerald-400 font-bold block mt-1.5">${discountText}</span>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-2 gap-2 text-[10px] bg-slate-900/60 p-2 rounded-xl">
+                <div>
+                  <span class="text-slate-400 block text-[9px]">دفعات استفاده:</span>
+                  <b class="text-slate-200 font-mono">${maxText}</b>
+                </div>
+                <div>
+                  <span class="text-slate-400 block text-[9px]">تاریخ انقضا:</span>
+                  <b class="text-slate-200 font-mono">${expiryText}</b>
+                </div>
+              </div>
+
+              <div class="flex gap-2 pt-1 text-[11px]">
+                <button onclick="window.adminActions.toggleCoupon(${c.id}, ${c.is_active})" class="flex-1 ${c.is_active ? 'bg-amber-950/60 text-amber-300 border border-amber-800/50' : 'bg-emerald-950/60 text-emerald-300 border border-emerald-800/50'} py-1.5 rounded-xl transition font-medium text-center">
+                  ${c.is_active ? 'غیرفعال‌سازی' : 'فعال‌سازی'}
+                </button>
+                <button onclick="window.adminActions.deleteCoupon(${c.id}, '${c.code}')" class="bg-rose-950/60 hover:bg-rose-900 text-rose-300 border border-rose-800/50 px-3 py-1.5 rounded-xl transition font-medium">
+                  🗑
+                </button>
+              </div>
+            </div>
+          `;
+        }).join('');
+      } catch (e) {
+        container.innerHTML = '<div class="p-6 text-center text-rose-400 text-xs">خطای شبکه در دریافت کدهای تخفیف</div>';
+      }
+    },
+
+    openCouponModal() {
+      document.getElementById('couponModal')?.classList.remove('hidden');
+      document.getElementById('couponModalCode').value = '';
+      document.getElementById('couponModalPercent').value = '20';
+      document.getElementById('couponModalAmount').value = '0';
+      document.getElementById('couponModalMaxUses').value = '0';
+      document.getElementById('couponModalDays').value = '30';
+    },
+
+    closeCouponModal() {
+      document.getElementById('couponModal')?.classList.add('hidden');
+    },
+
+    async saveCoupon() {
+      const code = document.getElementById('couponModalCode')?.value?.trim();
+      const discount_percent = parseInt(document.getElementById('couponModalPercent')?.value || '0', 10);
+      const discount_amount = parseInt(document.getElementById('couponModalAmount')?.value || '0', 10);
+      const max_uses = parseInt(document.getElementById('couponModalMaxUses')?.value || '0', 10);
+      const expires_days = parseInt(document.getElementById('couponModalDays')?.value || '0', 10);
+
+      if (!code) {
+        if (window.showToast) window.showToast('کد تخفیف الزامی است.');
+        return;
+      }
+
+      const saveBtn = document.getElementById('couponModalSaveBtn');
+      if (saveBtn) { saveBtn.disabled = true; saveBtn.innerText = 'در حال ساخت...'; }
+
+      try {
+        const payload = { code, discount_percent, discount_amount, max_uses, expires_days, is_active: true };
+        const res = await window.api.saveAdminCoupon(payload);
+        if (res && res.ok) {
+          if (window.showToast) window.showToast(`✅ ${res.message}`);
+          if (window.hapticFeedback) window.hapticFeedback('success');
+          this.closeCouponModal();
+          this.fetchAdminCoupons();
+        } else {
+          if (window.showToast) window.showToast(`⚠️ ${res?.error || 'خطا در ساخت کد تخفیف'}`);
+        }
+      } catch (e) {
+        if (window.showToast) window.showToast('خطای شبکه در ساخت کد تخفیف');
+      } finally {
+        if (saveBtn) { saveBtn.disabled = false; saveBtn.innerText = 'ایجاد کد تخفیف'; }
+      }
+    },
+
+    async toggleCoupon(id, is_active) {
+      try {
+        const res = await window.api.toggleAdminCoupon(id, !is_active);
+        if (res && res.ok) {
+          if (window.showToast) window.showToast('✓ وضعیت کد تخفیف تغییر یافت');
+          this.fetchAdminCoupons();
+        }
+      } catch (e) {}
+    },
+
+    async deleteCoupon(id, code) {
+      if (!confirm(`آیا از حذف کد تخفیف «${code}» اطمینان دارید؟`)) return;
+      try {
+        const res = await window.api.deleteAdminCoupon(id);
+        if (res && res.ok) {
+          if (window.showToast) window.showToast('✅ کد تخفیف با موفقیت حذف شد.');
+          this.fetchAdminCoupons();
+        }
+      } catch (e) {}
+    },
   };
+
+  const fetchAdminPlans = () => window.adminActions.fetchAdminPlans();
+  const fetchAdminCoupons = () => window.adminActions.fetchAdminCoupons();
+
+  document.getElementById('openCreatePlanBtn')?.addEventListener('click', () => {
+    window.adminActions.openPlanModal();
+  });
+  document.getElementById('openCreateCouponBtn')?.addEventListener('click', () => {
+    window.adminActions.openCouponModal();
+  });
+
+  let walletActionType = 'add';
+  const walletActionAddBtn = document.getElementById('walletActionAddBtn');
+  const walletActionDeductBtn = document.getElementById('walletActionDeductBtn');
+
+  walletActionAddBtn?.addEventListener('click', () => {
+    walletActionType = 'add';
+    walletActionAddBtn.className = 'flex-1 py-1.5 text-xs font-bold rounded-xl border border-emerald-500/50 bg-emerald-950/70 text-emerald-300 transition';
+    walletActionDeductBtn.className = 'flex-1 py-1.5 text-xs font-medium rounded-xl border border-slate-700 bg-slate-900/60 text-slate-400 transition';
+  });
+
+  walletActionDeductBtn?.addEventListener('click', () => {
+    walletActionType = 'deduct';
+    walletActionDeductBtn.className = 'flex-1 py-1.5 text-xs font-bold rounded-xl border border-rose-500/50 bg-rose-950/70 text-rose-300 transition';
+    walletActionAddBtn.className = 'flex-1 py-1.5 text-xs font-medium rounded-xl border border-slate-700 bg-slate-900/60 text-slate-400 transition';
+  });
 
   // --- 7. Pending Topups Fetcher ---
   async function fetchAdminTopups() {
@@ -736,6 +1285,7 @@
       if (!res || !res.ok || !res.settings) return;
       const s = res.settings;
 
+      // Switches
       const maintSwitch = document.getElementById('settingMaintSwitch');
       if (maintSwitch) maintSwitch.checked = !!s.maintenance;
 
@@ -745,11 +1295,47 @@
       const cryptoSwitch = document.getElementById('settingCryptoSwitch');
       if (cryptoSwitch) cryptoSwitch.checked = !!s.crypto_enabled;
 
+      const trialSwitch = document.getElementById('settingTrialSwitch');
+      if (trialSwitch) trialSwitch.checked = !!s.trial_enabled;
+
+      const refSwitch = document.getElementById('settingRefSwitch');
+      if (refSwitch) refSwitch.checked = !!s.referral_enabled;
+
+      const supDirectSwitch = document.getElementById('settingSupportDirectSwitch');
+      if (supDirectSwitch) supDirectSwitch.checked = !!s.support_direct_enabled;
+
+      // Bank & Topup
       const cardNum = document.getElementById('settingCardNumber');
       if (cardNum) cardNum.value = s.card_number || '';
 
       const cardHolder = document.getElementById('settingCardHolder');
       if (cardHolder) cardHolder.value = s.card_holder || '';
+
+      const minTopup = document.getElementById('settingMinTopup');
+      if (minTopup) minTopup.value = s.topup_min_amount ?? 20000;
+
+      // Crypto & Rates
+      const usdtRate = document.getElementById('settingUsdtRate');
+      if (usdtRate) usdtRate.value = s.usdt_rate_toman ?? 95000;
+
+      const tonRate = document.getElementById('settingTonRate');
+      if (tonRate) tonRate.value = s.ton_rate_toman ?? 0;
+
+      const tonWallet = document.getElementById('settingTonWallet');
+      if (tonWallet) tonWallet.value = s.ton_wallet_address || '';
+
+      // Trial & Referral
+      const trialTraffic = document.getElementById('settingTrialTraffic');
+      if (trialTraffic) trialTraffic.value = s.trial_traffic_gb ?? 1;
+
+      const trialDays = document.getElementById('settingTrialDays');
+      if (trialDays) trialDays.value = s.trial_duration_days ?? 1;
+
+      const refReward = document.getElementById('settingRefReward');
+      if (refReward) refReward.value = s.referral_reward_gb ?? 5;
+
+      const supContact = document.getElementById('settingSupportContact');
+      if (supContact) supContact.value = s.support_contact || '';
     } catch (e) {}
   }
 
@@ -776,22 +1362,59 @@
   document.getElementById('settingCryptoSwitch')?.addEventListener('change', (e) => {
     updateSettingToggle('crypto_enabled', e.target.checked);
   });
+  document.getElementById('settingTrialSwitch')?.addEventListener('change', (e) => {
+    updateSettingToggle('trial_enabled', e.target.checked);
+  });
+  document.getElementById('settingRefSwitch')?.addEventListener('change', (e) => {
+    updateSettingToggle('referral_enabled', e.target.checked);
+  });
+  document.getElementById('settingSupportDirectSwitch')?.addEventListener('change', (e) => {
+    updateSettingToggle('support_direct_enabled', e.target.checked);
+  });
 
-  document.getElementById('saveBankSettingsBtn')?.addEventListener('click', async () => {
-    const card_number = document.getElementById('settingCardNumber')?.value?.trim();
-    const card_holder = document.getElementById('settingCardHolder')?.value?.trim();
+  async function handleSaveAllSettings() {
+    const payload = {
+      maintenance: document.getElementById('settingMaintSwitch')?.checked ?? false,
+      card_enabled: document.getElementById('settingCardSwitch')?.checked ?? true,
+      crypto_enabled: document.getElementById('settingCryptoSwitch')?.checked ?? false,
+      trial_enabled: document.getElementById('settingTrialSwitch')?.checked ?? true,
+      referral_enabled: document.getElementById('settingRefSwitch')?.checked ?? true,
+      support_direct_enabled: document.getElementById('settingSupportDirectSwitch')?.checked ?? true,
+      card_number: document.getElementById('settingCardNumber')?.value?.trim() || '',
+      card_holder: document.getElementById('settingCardHolder')?.value?.trim() || '',
+      topup_min_amount: parseInt(document.getElementById('settingMinTopup')?.value || '20000', 10),
+      usdt_rate_toman: parseInt(document.getElementById('settingUsdtRate')?.value || '95000', 10),
+      ton_rate_toman: parseInt(document.getElementById('settingTonRate')?.value || '0', 10),
+      ton_wallet_address: document.getElementById('settingTonWallet')?.value?.trim() || '',
+      trial_traffic_gb: parseInt(document.getElementById('settingTrialTraffic')?.value || '1', 10),
+      trial_duration_days: parseInt(document.getElementById('settingTrialDays')?.value || '1', 10),
+      referral_reward_gb: parseInt(document.getElementById('settingRefReward')?.value || '5', 10),
+      support_contact: document.getElementById('settingSupportContact')?.value?.trim() || '',
+    };
+
+    const saveBtns = [document.getElementById('saveAllSettingsBtn'), document.getElementById('saveAllSettingsTopBtn')];
+    saveBtns.forEach(b => { if (b) { b.disabled = true; b.innerText = 'در حال ذخیره...'; } });
+
     try {
-      const res = await window.api.saveAdminSettings({ card_number, card_holder });
+      const res = await window.api.saveAdminSettings(payload);
       if (res && res.ok) {
-        if (window.showToast) window.showToast('✅ اطلاعات بانکی با موفقیت ذخیره شد.');
+        if (window.showToast) window.showToast('✅ تمامی تنظیمات با موفقیت ذخیره شدند.');
         if (window.hapticFeedback) window.hapticFeedback('success');
       } else {
-        if (window.showToast) window.showToast(`⚠️ ${res?.error || 'خطا'}`);
+        if (window.showToast) window.showToast(`⚠️ ${res?.error || 'خطا در ثبت تنظیمات'}`);
+        if (window.hapticFeedback) window.hapticFeedback('error');
       }
     } catch (e) {
-      if (window.showToast) window.showToast('خطا در ذخیره اطلاعات');
+      if (window.showToast) window.showToast('خطای شبکه در ذخیره تنظیمات');
+    } finally {
+      saveBtns.forEach(b => { if (b) { b.disabled = false; b.innerText = '💾 ذخیره همه'; } });
+      const mainBtn = document.getElementById('saveAllSettingsBtn');
+      if (mainBtn) mainBtn.innerHTML = '<span>💾</span> ذخیره تمامی تغییرات تنظیمات';
     }
-  });
+  }
+
+  document.getElementById('saveAllSettingsBtn')?.addEventListener('click', handleSaveAllSettings);
+  document.getElementById('saveAllSettingsTopBtn')?.addEventListener('click', handleSaveAllSettings);
 
   // --- 9. Broadcast Modal & Live Report Modal ---
   const broadcastModal = document.getElementById('broadcastModal');

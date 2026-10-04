@@ -163,6 +163,54 @@ const api = {
   async resetUserTrial(telegram_id) {
     return this.post('/api/admin/user/reset_trial', { telegram_id });
   },
+
+  async modifyUserWallet(telegram_id, amount, reason) {
+    return this.post('/api/admin/user/wallet', { telegram_id, amount, reason });
+  },
+
+  async revokeUserSub(telegram_id) {
+    return this.post('/api/admin/user/revoke_sub', { telegram_id });
+  },
+
+  async getUserHwidDevices(telegram_id) {
+    return this.get('/api/admin/user/hwid_devices', { telegram_id });
+  },
+
+  async deleteUserHwid(telegram_id, hwid) {
+    return this.post('/api/admin/user/delete_hwid', { telegram_id, hwid });
+  },
+
+  async getAdminPlans() {
+    return this.get('/api/admin/plans');
+  },
+
+  async saveAdminPlan(data) {
+    return this.post('/api/admin/plan/save', data);
+  },
+
+  async toggleAdminPlan(id, is_active) {
+    return this.post('/api/admin/plan/toggle', { id, is_active });
+  },
+
+  async deleteAdminPlan(id) {
+    return this.post('/api/admin/plan/delete', { id });
+  },
+
+  async getAdminCoupons() {
+    return this.get('/api/admin/coupons');
+  },
+
+  async saveAdminCoupon(data) {
+    return this.post('/api/admin/coupon/save', data);
+  },
+
+  async toggleAdminCoupon(id, is_active) {
+    return this.post('/api/admin/coupon/toggle', { id, is_active });
+  },
+
+  async deleteAdminCoupon(id) {
+    return this.post('/api/admin/coupon/delete', { id });
+  },
 };
 
 window.api = api;
