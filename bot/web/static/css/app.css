@@ -1,0 +1,157 @@
+/* RemnaStore Pro - App Styles */
+* {
+  font-family: 'Vazirmatn', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  -webkit-tap-highlight-color: transparent;
+}
+html, body {
+  width: 100% !important;
+  min-width: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+#phoneFrame {
+  margin-left: auto !important;
+  margin-right: auto !important;
+}
+.gauge-circle {
+  transition: stroke-dashoffset 1s ease-in-out;
+  transform: rotate(-90deg);
+  transform-origin: 50% 50%;
+}
+.custom-scroll::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+.custom-scroll::-webkit-scrollbar-thumb {
+  background: rgba(150, 150, 150, 0.25);
+  border-radius: 4px;
+}
+@keyframes pulseGlow {
+  0%, 100% { opacity: 0.6; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.05); }
+}
+.pulse-glow {
+  animation: pulseGlow 2.5s infinite;
+}
+/* Toggle Switch styles */
+.switch-checkbox:checked + .switch-label {
+  background-color: #2563eb;
+}
+.switch-checkbox:checked + .switch-label .switch-ball {
+  transform: translateX(-20px);
+}
+html, body {
+  height: 100%;
+  height: 100dvh;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+/* Soft, comfortable Eye-Friendly Light Theme */
+html.theme-light body {
+  background-color: #f1f5f9 !important;
+  color: #0f172a !important;
+}
+html.theme-light #phoneFrame {
+  background-color: #f8fafc !important;
+  border-color: #cbd5e1 !important;
+  color: #0f172a !important;
+}
+html.theme-light .bg-slate-800,
+html.theme-light .bg-slate-800\/90,
+html.theme-light .bg-slate-800\/85,
+html.theme-light .bg-slate-800\/80,
+html.theme-light .bg-slate-800\/70,
+html.theme-light .bg-slate-800\/60 {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05) !important;
+}
+html.theme-light .bg-slate-900,
+html.theme-light .bg-slate-900\/90,
+html.theme-light .bg-slate-900\/80,
+html.theme-light .bg-slate-900\/60,
+html.theme-light .bg-slate-900\/50 {
+  background-color: #f1f5f9 !important;
+  border-color: #e2e8f0 !important;
+}
+html.theme-light .bg-\[\#131d31\],
+html.theme-light .bg-\[\#131d31\]\/95,
+html.theme-light #navBottom {
+  background-color: rgba(255, 255, 255, 0.96) !important;
+  border-color: #e2e8f0 !important;
+}
+html.theme-light .border-slate-700,
+html.theme-light .border-slate-700\/80,
+html.theme-light .border-slate-700\/60,
+html.theme-light .border-slate-700\/50,
+html.theme-light .border-slate-700\/40,
+html.theme-light .border-slate-800\/80 {
+  border-color: #e2e8f0 !important;
+}
+html.theme-light .text-white {
+  color: #0f172a !important;
+}
+html.theme-light .text-slate-100 {
+  color: #0f172a !important;
+}
+html.theme-light .text-slate-200 {
+  color: #1e293b !important;
+}
+html.theme-light .text-slate-300 {
+  color: #334155 !important;
+}
+html.theme-light .text-slate-400 {
+  color: #64748b !important;
+}
+html.theme-light .gauge-bg-circle {
+  stroke: #e2e8f0 !important;
+}
+html.theme-light [class*="bg-slate-900"] {
+  background-color: #f1f5f9 !important;
+  border-color: #e2e8f0 !important;
+}
+html.theme-light [class*="bg-slate-800"] {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05) !important;
+}
+html.theme-light #subDisplayBox {
+  color: #0284c7 !important;
+}
+html.theme-light code {
+  background-color: #e2e8f0 !important;
+  color: #0f172a !important;
+}
+html.theme-light .text-cyan-300,
+html.theme-light .text-cyan-400 {
+  color: #0284c7 !important;
+}
+html.theme-light .text-blue-300,
+html.theme-light .text-blue-400 {
+  color: #2563eb !important;
+}
+html.theme-light .text-indigo-300,
+html.theme-light .text-indigo-400 {
+  color: #4f46e5 !important;
+}
+html.theme-light .text-emerald-400 {
+  color: #059669 !important;
+}
+html.theme-light .text-amber-400 {
+  color: #d97706 !important;
+}
+html.theme-light .text-rose-400 {
+  color: #e11d48 !important;
+}
+html.theme-light .text-purple-300,
+html.theme-light .text-purple-400 {
+  color: #7c3aed !important;
+}
+html.theme-light input,
+html.theme-light select,
+html.theme-light textarea {
+  background-color: #ffffff !important;
+  border-color: #cbd5e1 !important;
+  color: #0f172a !important;
+}

@@ -51,3 +51,7 @@ desktop.ini
 # Local development & test scratchpads
 scratch/
 
+# Agent configuration (Local only - do not push to GitHub)
+AGENTS.md
+Agents.md
+Agent.md

@@ -1,0 +1,115 @@
+/**
+ * RemnaStore Pro - Centralized API Client
+ * Eliminates repetitive fetch headers, initData injection, and error handling.
+ */
+
+const api = {
+  getInitData() {
+    return window.Telegram?.WebApp?.initData || '';
+  },
+
+  async request(url, options = {}) {
+    const headers = {
+      'X-Telegram-Init-Data': this.getInitData(),
+      ...(options.headers || {}),
+    };
+
+    if (options.body && typeof options.body === 'object' && !(options.body instanceof FormData)) {
+      headers['Content-Type'] = 'application/json';
+      options.body = JSON.stringify(options.body);
+    }
+
+    const response = await fetch(url, {
+      ...options,
+      headers,
+    });
+
+    try {
+      const data = await response.json();
+      return { ok: response.ok, status: response.status, data };
+    } catch (e) {
+      return { ok: response.ok, status: response.status, data: null };
+    }
+  },
+
+  async get(url, queryParams = {}) {
+    const searchParams = new URLSearchParams(queryParams);
+    const qs = searchParams.toString();
+    const fullUrl = qs ? `${url}?${qs}` : url;
+    const res = await this.request(fullUrl, { method: 'GET' });
+    return res.data || {};
+  },
+
+  async post(url, body = {}) {
+    const res = await this.request(url, { method: 'POST', body });
+    return res.data || {};
+  },
+
+  // Specific Domain Endpoints
+  async getMe(accountId = null) {
+    let url = '/api/user/me' + (window.location.search || '');
+    if (accountId) {
+      url += (url.includes('?') ? '&' : '?') + `account_id=${accountId}`;
+    }
+    const res = await this.request(url, { method: 'GET' });
+    return res.data || {};
+  },
+
+  async revokeSub() {
+    return this.post('/api/user/revoke_sub');
+  },
+
+  async killDevice(hwid) {
+    return this.post('/api/user/kill_device', { hwid });
+  },
+
+  async validateCoupon(code) {
+    return this.post('/api/user/validate_coupon', { code });
+  },
+
+  async purchase(service_id, coupon_code = null, account_id = null) {
+    return this.post('/api/user/purchase', {
+      service_id,
+      coupon_code,
+      account_id,
+    });
+  },
+
+  async getTopupInfo() {
+    return this.get('/api/user/topup_info');
+  },
+
+  async submitCardTopup(amount, receipt_text) {
+    return this.post('/api/user/topup/card', { amount, receipt_text });
+  },
+
+  async createCryptoInvoice(amount) {
+    return this.post('/api/user/topup/crypto', { amount });
+  },
+
+  async checkCryptoInvoice(invoice_id) {
+    return this.post('/api/user/topup/crypto/check', { invoice_id });
+  },
+
+  async saveSetting(key, value) {
+    return this.post('/api/user/settings', { key, value });
+  },
+
+  async changeLanguage(language) {
+    return this.post('/api/user/settings', { language });
+  },
+
+  async spinWheel() {
+    return this.post('/api/user/spin');
+  },
+
+  async getNodes() {
+    return this.get(`/api/user/nodes?t=${Date.now()}`);
+  },
+
+  async getIpInfo() {
+    return this.get('/api/user/ip_info');
+  },
+};
+
+window.api = api;

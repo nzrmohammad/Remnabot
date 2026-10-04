@@ -88,25 +88,9 @@ async def admin_panel(
         # Row 4: Left = Database Backup, Right = Node Monitor
         kb.button(text=t(lang, "btn_backup_db"), callback_data="adm:backup")
         kb.button(text=t(lang, "btn_nodes_monitor"), callback_data="adm:nodes")
-
-    web_app_url = None
-    try:
-        from bot.config import get_settings
-        web_app_url = get_settings().WEB_APP_URL or None
-    except Exception:
-        web_app_url = None
-
-    sizes = [2, 2, 2, 2]
-    if web_app_url:
-        from aiogram.types import WebAppInfo
-        admin_tma_url = f"{web_app_url.rstrip('/')}/admin"
-        kb.button(text="📱 پنل مدیریت Mini App", web_app=WebAppInfo(url=admin_tma_url))
-        sizes.append(1)
-
     # Row 5: Main Menu
     kb.button(text=t(lang, "btn_back_to_menu"), callback_data="nav:main_menu")
-    sizes.append(1)
-    kb.adjust(*sizes)
+    kb.adjust(2, 2, 2, 2, 1)
 
     await render_menu(
         bot, user, user_repo,
