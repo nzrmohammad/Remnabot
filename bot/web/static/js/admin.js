@@ -23,6 +23,7 @@
   let currentModifyTarget = null;
   let currentWalletTarget = null;
   let currentHwidTarget = null;
+  let currentSubTarget = null;
   let adminPlansData = [];
   let adminCouponsData = [];
   let currentBroadcastTarget = 'all';
@@ -201,9 +202,10 @@
       const syncText = document.getElementById('adminLastSyncText');
       if (syncText) syncText.innerText = 'Sync: آنلاین';
 
-      // Render 7-day Sales Chart
+      // Render 7-day Sales & Traffic Charts
       if (data.charts && typeof Chart !== 'undefined') {
         renderAdminSalesChart(data.charts.sales_labels, data.charts.sales_data);
+        renderAdminTrafficChart(data.charts.traffic_labels, data.charts.traffic_data, data.charts.traffic_total_gb);
       }
 
       // Render Accordion Nodes
@@ -269,6 +271,75 @@
               color: '#94a3b8',
               font: { family: 'Vazirmatn', size: 9 },
               callback: (val) => val >= 1000000 ? `${(val/1000000).toFixed(1)}M` : (val >= 1000 ? `${(val/1000).toFixed(0)}K` : val)
+            }
+          }
+        }
+      }
+    });
+  }
+
+  let trafficChartInstance = null;
+  function renderAdminTrafficChart(labels, values, totalGb) {
+    const canvas = document.getElementById('adminTrafficChart');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const totalEl = document.getElementById('trafficChartTotal');
+    if (totalEl) totalEl.innerText = `${formatNumber(totalGb || 0)} GB`;
+
+    if (trafficChartInstance) {
+      trafficChartInstance.data.labels = labels;
+      trafficChartInstance.data.datasets[0].data = values;
+      trafficChartInstance.update();
+      return;
+    }
+
+    const gradient = ctx.createLinearGradient(0, 0, 0, 140);
+    gradient.addColorStop(0, 'rgba(6, 182, 212, 0.45)');
+    gradient.addColorStop(1, 'rgba(6, 182, 212, 0.0)');
+
+    trafficChartInstance = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [{
+          label: 'مصرف ترافیک (GB)',
+          data: values,
+          borderColor: '#06b6d4',
+          borderWidth: 2.5,
+          backgroundColor: gradient,
+          fill: true,
+          tension: 0.35,
+          pointBackgroundColor: '#22d3ee',
+          pointBorderColor: '#0f172a',
+          pointBorderWidth: 1.5,
+          pointRadius: 3.5,
+          pointHoverRadius: 5.5,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: (ctx) => `${formatNumber(ctx.raw)} GB`
+            }
+          }
+        },
+        scales: {
+          x: {
+            grid: { display: false },
+            ticks: { color: '#94a3b8', font: { family: 'Vazirmatn', size: 9 } }
+          },
+          y: {
+            grid: { color: 'rgba(51, 65, 85, 0.3)' },
+            ticks: {
+              color: '#94a3b8',
+              font: { family: 'Vazirmatn', size: 9 },
+              callback: (val) => `${val} GB`
             }
           }
         }
@@ -356,54 +427,93 @@
     const container = document.getElementById('adminNodesFullList');
     if (!container) return;
     if (!nodes || nodes.length === 0) {
-      container.innerHTML = '<div class="p-4 text-center text-slate-400">هیچ نودی ثبت نشده است</div>';
+      container.innerHTML = '<div class="p-8 text-center text-slate-400 text-xs">هیچ سروری در کلاستر یافت نشد.</div>';
       return;
     }
 
     container.innerHTML = nodes.map(n => {
       const flag = n.flag || getFlagEmoji(n.country_code);
       const isOnline = (n.status || '').toUpperCase() === 'ONLINE';
+      const statusColor = isOnline ? 'text-emerald-400' : 'text-rose-400';
+      const statusBadge = isOnline ? 'آنلاین' : 'آفلاین';
+      const statusBg = isOnline ? 'bg-emerald-950/80 border-emerald-800/60' : 'bg-rose-950/80 border-rose-800/60';
+      const dotPulse = isOnline ? 'bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.8)]' : 'bg-rose-500';
+
+      const cpu = Number(n.cpu_percent || 0);
+      const ram = Number(n.ram_percent || 0);
+
+      const cpuBarColor = cpu > 85 ? 'bg-rose-500' : (cpu > 60 ? 'bg-amber-500' : 'bg-cyan-500');
+      const ramBarColor = ram > 85 ? 'bg-rose-500' : (ram > 60 ? 'bg-amber-500' : 'bg-indigo-500');
+
       return `
-        <div class="bg-slate-800/90 rounded-2xl p-4 border border-slate-700/80 space-y-3 shadow">
+        <div class="bg-gradient-to-b from-slate-800/90 to-slate-900/95 rounded-2xl p-4 border border-slate-700/80 space-y-3.5 shadow-lg relative overflow-hidden group">
+          <!-- Top Accent Light -->
+          <div class="absolute top-0 right-0 left-0 h-[2px] ${isOnline ? 'bg-gradient-to-r from-emerald-500/0 via-emerald-400/50 to-emerald-500/0' : 'bg-gradient-to-r from-rose-500/0 via-rose-500/40 to-rose-500/0'}"></div>
+
+          <!-- Header: Flag, Name, Status -->
           <div class="flex justify-between items-center">
             <div class="flex items-center gap-2.5 min-w-0">
-              <span class="text-2xl flex-shrink-0">${flag}</span>
+              <span class="text-2xl flex-shrink-0 filter drop-shadow">${flag}</span>
               <div class="min-w-0">
                 <div class="flex items-center gap-2">
-                  <h4 class="font-bold text-xs text-white truncate">${n.name || 'Node'}</h4>
-                  <span class="w-2 h-2 rounded-full flex-shrink-0 ${isOnline ? 'bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.6)]' : 'bg-rose-400'}"></span>
+                  <h4 class="font-bold text-xs text-white truncate">${n.name || 'Server Node'}</h4>
+                  <span class="w-2 h-2 rounded-full flex-shrink-0 ${dotPulse}"></span>
                 </div>
+                <span class="text-[10px] text-slate-400 block mt-0.5 font-sans">${n.country_code ? 'موقعیت: ' + n.country_code : 'کلاستر رمنناویو'}</span>
               </div>
             </div>
-            <span class="text-[10px] font-bold font-mono ${isOnline ? 'text-emerald-400 bg-emerald-950/80 border-emerald-800/60' : 'text-rose-400 bg-rose-950/80 border-rose-800/60'} px-2.5 py-1 rounded-xl border flex-shrink-0">
-              ${isOnline ? 'ONLINE' : 'OFFLINE'}
+            <span class="text-[10px] font-bold font-mono ${statusColor} ${statusBg} px-2.5 py-1 rounded-xl border flex-shrink-0 flex items-center gap-1.5">
+              <span class="w-1.5 h-1.5 rounded-full ${isOnline ? 'bg-emerald-400' : 'bg-rose-400'}"></span>
+              ${statusBadge}
             </span>
           </div>
 
-          <!-- Network & Identifier Details (Clean LTR Badges) -->
+          <!-- Host & ID Identifiers Strip (Neat LTR Badges) -->
           <div class="grid grid-cols-2 gap-2 text-xs">
-            <div class="bg-slate-900/80 p-2.5 rounded-xl border border-slate-800 flex flex-col justify-center">
-              <span class="text-[10px] text-slate-400 block mb-0.5">آدرس سرور (Host):</span>
-              <span class="font-mono text-cyan-300 text-xs truncate" dir="ltr" title="${n.address || '—'}">${n.address || '—'}</span>
+            <div class="bg-slate-950/60 p-2.5 rounded-xl border border-slate-800/80 flex flex-col justify-center">
+              <span class="text-[9px] text-slate-400 block mb-0.5">آدرس سرور (Host):</span>
+              <span class="font-mono text-cyan-300 text-[11px] truncate" dir="ltr" title="${n.address || '—'}">${n.address || '—'}</span>
             </div>
-            <div class="bg-slate-900/80 p-2.5 rounded-xl border border-slate-800 flex flex-col justify-center">
-              <span class="text-[10px] text-slate-400 block mb-0.5">شناسه نود (ID):</span>
-              <span class="font-mono text-slate-300 text-xs truncate" dir="ltr" title="${n.id || '--'}">#${n.id || '--'}</span>
+            <div class="bg-slate-950/60 p-2.5 rounded-xl border border-slate-800/80 flex flex-col justify-center">
+              <span class="text-[9px] text-slate-400 block mb-0.5">شناسه نود (Node ID):</span>
+              <span class="font-mono text-indigo-300 text-[11px] truncate" dir="ltr" title="${n.id || '--'}">#${n.id || '--'}</span>
             </div>
           </div>
 
-          <div class="grid grid-cols-3 gap-2 text-center text-[10px]">
-            <div class="bg-slate-900/60 p-2 rounded-xl">
-              <span class="text-slate-400 block mb-0.5">کاربران متصل</span>
-              <b class="text-emerald-400 font-mono text-xs">${formatNumber(n.connected_users || 0)}</b>
+          <!-- System Resource Gauges (CPU & RAM Progress Bars) -->
+          <div class="space-y-2 bg-slate-950/40 p-2.5 rounded-xl border border-slate-800/50">
+            <!-- CPU Progress -->
+            <div class="space-y-1">
+              <div class="flex justify-between items-center text-[10px]">
+                <span class="text-slate-400">پردازنده (CPU):</span>
+                <span class="font-mono font-bold ${cpu > 80 ? 'text-rose-400' : 'text-slate-200'}">${cpu > 0 ? cpu + '%' : 'در دسترس نیست'}</span>
+              </div>
+              <div class="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
+                <div class="h-full ${cpuBarColor} transition-all duration-500" style="width: ${Math.min(100, Math.max(0, cpu))}%"></div>
+              </div>
             </div>
-            <div class="bg-slate-900/60 p-2 rounded-xl">
-              <span class="text-slate-400 block mb-0.5">ترافیک نود</span>
-              <b class="text-cyan-400 font-mono text-xs" dir="ltr">${n.traffic_used_gb ? n.traffic_used_gb + ' GB' : '—'}</b>
+
+            <!-- RAM Progress -->
+            <div class="space-y-1">
+              <div class="flex justify-between items-center text-[10px]">
+                <span class="text-slate-400">حافظه رم (RAM):</span>
+                <span class="font-mono font-bold ${ram > 80 ? 'text-rose-400' : 'text-slate-200'}">${ram > 0 ? ram + '%' : 'در دسترس نیست'}</span>
+              </div>
+              <div class="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
+                <div class="h-full ${ramBarColor} transition-all duration-500" style="width: ${Math.min(100, Math.max(0, ram))}%"></div>
+              </div>
             </div>
-            <div class="bg-slate-900/60 p-2 rounded-xl">
-              <span class="text-slate-400 block mb-0.5">کد کشور</span>
-              <b class="text-indigo-300 font-mono text-xs">${n.country_code || 'XX'}</b>
+          </div>
+
+          <!-- Bottom Metrics: Connected users & Traffic -->
+          <div class="grid grid-cols-2 gap-2 text-center text-[10px]">
+            <div class="bg-slate-950/60 p-2 rounded-xl border border-slate-800/80">
+              <span class="text-slate-400 block mb-0.5">کاربران متصل زنده</span>
+              <b class="text-emerald-400 font-mono text-xs">${formatNumber(n.connected_users || 0)} نفر</b>
+            </div>
+            <div class="bg-slate-950/60 p-2 rounded-xl border border-slate-800/80">
+              <span class="text-slate-400 block mb-0.5">ترافیک مصرفی نود</span>
+              <b class="text-cyan-400 font-mono text-xs" dir="ltr">${n.traffic_used_gb ? n.traffic_used_gb + ' GB' : '۰ GB'}</b>
             </div>
           </div>
         </div>
@@ -485,27 +595,50 @@
         else statusBadge = `<span class="px-1.5 py-0.5 rounded text-[9px] bg-blue-500/20 text-blue-400 font-bold border border-blue-500/30">${st}</span>`;
       }
 
-      // Compact LTR Service metrics: "400 G (200 G) - 30 روز"
-      let serviceLineHtml = '<span class="text-slate-400">بدون سرویس فعال</span>';
+      let serviceLineHtml = `
+        <div class="bg-slate-900/60 px-3 py-2 rounded-xl border border-slate-800 text-xs text-slate-400 text-center">
+          بدون اشتراک فعال
+        </div>
+      `;
       if (p && p.exists) {
-        const limitStr = p.limit_traffic_gb > 0 ? `${p.limit_traffic_gb} G` : 'نامحدود';
+        const limitStr = p.limit_traffic_gb > 0 ? `${p.limit_traffic_gb} GB` : 'نامحدود';
         const remStr = p.remaining_traffic_gb !== undefined && p.remaining_traffic_gb >= 0
-          ? `${p.remaining_traffic_gb} G`
-          : `${p.used_traffic_gb || 0} G`;
-        const daysStr = (p.days_left !== undefined && p.days_left !== null)
-          ? (p.days_left > 0 ? `${formatNumber(p.days_left)} روز` : 'منقضی شده')
-          : 'نامحدود';
+          ? `${p.remaining_traffic_gb} GB`
+          : `${p.used_traffic_gb || 0} GB`;
+
+        let daysText = 'نامحدود';
+        let daysColor = 'text-indigo-300';
+        let daysBg = 'bg-indigo-950/60 border-indigo-800/50';
+
+        if (p.days_left !== undefined && p.days_left !== null) {
+          if (p.days_left > 3) {
+            daysText = `${formatNumber(p.days_left)} روز`;
+            daysColor = 'text-emerald-300';
+            daysBg = 'bg-emerald-950/60 border-emerald-800/50';
+          } else if (p.days_left > 0) {
+            daysText = `${formatNumber(p.days_left)} روز`;
+            daysColor = 'text-amber-300';
+            daysBg = 'bg-amber-950/60 border-amber-800/50';
+          } else {
+            daysText = 'منقضی شده';
+            daysColor = 'text-rose-400';
+            daysBg = 'bg-rose-950/60 border-rose-800/50';
+          }
+        }
 
         serviceLineHtml = `
-          <div dir="ltr" class="text-xs font-mono font-bold text-cyan-400 bg-slate-900/60 px-3 py-1 rounded-xl border border-slate-700/60 flex items-center justify-between text-left">
-            <span>${limitStr} (${remStr})</span>
-            <span class="text-indigo-300 font-sans text-[11px] font-medium">- ${daysStr}</span>
-          </div>
-        `;
-      } else {
-        serviceLineHtml = `
-          <div class="bg-slate-900/60 px-3 py-1 rounded-xl border border-slate-800 text-xs text-slate-400 text-center">
-            بدون اشتراک فعال
+          <div class="bg-slate-900/70 p-2.5 rounded-xl border border-slate-700/60 flex items-center justify-between text-xs gap-2">
+            <div class="flex items-center gap-1.5 font-mono text-[11px] truncate">
+              <span class="text-slate-400 text-[10px] font-sans">ترافیک:</span>
+              <span dir="ltr" class="font-bold text-cyan-300">${limitStr}</span>
+              <span dir="ltr" class="text-slate-400 text-[10px]">(${remStr})</span>
+            </div>
+            <div class="flex items-center gap-1 flex-shrink-0">
+              <span class="text-slate-400 text-[10px]">زمان:</span>
+              <span class="${daysColor} ${daysBg} border px-2 py-0.5 rounded-lg text-[10px] font-bold">
+                ${daysText}
+              </span>
+            </div>
           </div>
         `;
       }
@@ -534,7 +667,7 @@
             <span class="text-[11px] font-mono font-bold text-emerald-400 flex-shrink-0">${formatNumber(u.wallet_balance || 0)} ت</span>
           </div>
 
-          <!-- Compact Single-Line Service Metrics -->
+          <!-- Structured Service Metrics -->
           ${serviceLineHtml}
 
           <!-- Quick Action Buttons -->
@@ -553,15 +686,12 @@
                 🎁 تست
               </button>
             </div>
-            <div class="grid grid-cols-4 gap-1 text-center text-[10px]">
-              <button class="bg-cyan-950/60 hover:bg-cyan-900 text-cyan-300 border border-cyan-800/50 py-1.5 rounded-lg transition active:scale-95 font-medium" onclick="window.adminActions.revokeSub(${u.telegram_id}, '${u.username || u.telegram_id}')" title="تولید مجدد لینک سابسکریپشن">
+            <div class="grid grid-cols-3 gap-1.5 text-center text-[10px]">
+              <button class="bg-cyan-950/60 hover:bg-cyan-900 text-cyan-300 border border-cyan-800/50 py-1.5 rounded-lg transition active:scale-95 font-medium" onclick="window.adminActions.openSubModal(${u.telegram_id}, '${u.username || u.telegram_id}', '${p?.subscription_url || ''}')" title="مشاهده و تغییر لینک سابسکریپشن">
                 🔄 ساب
               </button>
-              <button class="bg-teal-950/60 hover:bg-teal-900 text-teal-300 border border-teal-800/50 py-1.5 rounded-lg transition active:scale-95 font-medium" onclick="window.adminActions.openHwidModal(${u.telegram_id}, '${u.username || u.telegram_id}')" title="دستگاه‌های متصل">
-                📱 دستگاه
-              </button>
-              <button class="bg-amber-950/60 hover:bg-amber-900 text-amber-300 border border-amber-800/50 py-1.5 rounded-lg transition active:scale-95 font-medium" onclick="window.adminActions.killSessions(${u.telegram_id}, '${u.username || u.telegram_id}')" title="قطع نشست‌ها">
-                ⛔️ نشست
+              <button class="bg-teal-950/60 hover:bg-teal-900 text-teal-300 border border-teal-800/50 py-1.5 rounded-lg transition active:scale-95 font-medium" onclick="window.adminActions.openHwidModal(${u.telegram_id}, '${u.username || u.telegram_id}')" title="دستگاه‌های متصل و نشست‌ها">
+                📱 دستگاه‌ها
               </button>
               <button class="${u.is_banned ? 'bg-emerald-950/60 hover:bg-emerald-900 text-emerald-300 border-emerald-800/50' : 'bg-rose-950/60 hover:bg-rose-900 text-rose-300 border-rose-800/50'} border py-1.5 rounded-lg transition active:scale-95 font-medium" onclick="window.adminActions.toggleBan(${u.telegram_id}, ${u.is_banned})">
                 ${u.is_banned ? '✅ آزاد' : '🚫 مسدود'}
@@ -805,7 +935,81 @@
       }
     },
 
-    // --- Revoke Subscription URL ---
+    // --- Subscription URL Inspector & Regenerator ---
+    openSubModal(telegram_id, name, subUrl) {
+      currentSubTarget = { telegram_id, name, subUrl };
+      const modal = document.getElementById('subModal');
+      const title = document.getElementById('subModalTitle');
+      const input = document.getElementById('subModalInput');
+      if (modal) modal.classList.remove('hidden');
+      if (title) title.innerText = `🔄 لینک اشتراک: ${name}`;
+      if (input) {
+        input.value = subUrl || '';
+        if (!subUrl) input.placeholder = 'اکانت پنل برای این کاربر یافت نشد یا لینکی صادر نشده است';
+      }
+      if (window.hapticFeedback) window.hapticFeedback('impact');
+    },
+
+    closeSubModal() {
+      document.getElementById('subModal')?.classList.add('hidden');
+      currentSubTarget = null;
+    },
+
+    async copySubLink() {
+      const input = document.getElementById('subModalInput');
+      if (!input || !input.value) {
+        if (window.showToast) window.showToast('لینکی برای کپی کردن وجود ندارد.');
+        return;
+      }
+      try {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          await navigator.clipboard.writeText(input.value);
+        } else {
+          input.select();
+          document.execCommand('copy');
+        }
+        if (window.showToast) window.showToast('✅ لینک اشتراک با موفقیت کپی شد.');
+        if (window.hapticFeedback) window.hapticFeedback('success');
+      } catch (err) {
+        input.select();
+        document.execCommand('copy');
+        if (window.showToast) window.showToast('✅ لینک کپی شد.');
+      }
+    },
+
+    async confirmRegenerateSub() {
+      if (!currentSubTarget) return;
+      const { telegram_id, name } = currentSubTarget;
+      if (!confirm(`آیا از باطل کردن لینک قبلی و صدور لینک جدید برای ${name} اطمینان دارید؟`)) return;
+      const regenBtn = document.getElementById('subModalRegenBtn');
+      if (regenBtn) {
+        regenBtn.disabled = true;
+        regenBtn.innerText = 'در حال صدور لینک جدید...';
+      }
+      try {
+        const res = await window.api.revokeUserSub(telegram_id);
+        if (res && res.ok && res.subscription_url) {
+          currentSubTarget.subUrl = res.subscription_url;
+          const input = document.getElementById('subModalInput');
+          if (input) input.value = res.subscription_url;
+          if (window.showToast) window.showToast('✅ لینک جدید سابسکریپشن صادر و جایگزین شد.');
+          if (window.hapticFeedback) window.hapticFeedback('success');
+          fetchAdminUsers(currentPage);
+        } else {
+          if (window.showToast) window.showToast(`⚠️ ${res?.error || 'خطا در ایجاد لینک جدید'}`);
+          if (window.hapticFeedback) window.hapticFeedback('error');
+        }
+      } catch (err) {
+        if (window.showToast) window.showToast('خطای شبکه در ارتباط با سرور.');
+      } finally {
+        if (regenBtn) {
+          regenBtn.disabled = false;
+          regenBtn.innerHTML = '<span>🔄</span><span>باطل کردن و صدور لینک جدید</span>';
+        }
+      }
+    },
+
+    // --- Revoke Subscription URL (Quick trigger backward-compat) ---
     async revokeSub(telegram_id, name) {
       if (!confirm(`آیا از ابطال لینک قبلی و ساخت لینک جدید سابسکریپشن برای کاربر ${name} اطمینان دارید؟`)) return;
       try {
@@ -813,6 +1017,7 @@
         if (res && res.ok) {
           if (window.showToast) window.showToast('✅ لینک سابسکریپشن کاربر با موفقیت تغییر یافت.');
           if (window.hapticFeedback) window.hapticFeedback('success');
+          fetchAdminUsers(currentPage);
         } else {
           if (window.showToast) window.showToast(`⚠️ ${res?.error || 'خطا در تغییر لینک'}`);
           if (window.hapticFeedback) window.hapticFeedback('error');
@@ -848,16 +1053,22 @@
           const hwid = d.hwid || d.id || '';
           const os = d.os || d.platform || 'دستگاه متصل';
           const brand = d.brand || d.model || '';
-          const ip = d.ip || d.lastIp || '-';
+          const ip = d.requestIp || d.ip || d.lastIp || d.clientIp || '—';
           return `
-            <div class="bg-slate-900/80 p-3 rounded-2xl border border-slate-800 flex items-center justify-between">
-              <div>
-                <b class="text-white text-xs block">${os} ${brand ? '(' + brand + ')' : ''}</b>
-                <span class="text-[10px] text-slate-400 font-mono block">IP: ${ip}</span>
-                <span class="text-[9px] text-slate-500 font-mono block truncate max-w-[190px]">HWID: ${hwid}</span>
+            <div class="bg-slate-900/90 p-3 rounded-2xl border border-slate-800 flex items-center justify-between gap-2.5">
+              <div class="min-w-0 flex-1">
+                <b class="text-white text-xs block truncate">${os} ${brand ? '(' + brand + ')' : ''}</b>
+                <div class="flex items-center gap-1.5 mt-0.5 text-[10px] text-slate-400">
+                  <span>آی‌پی:</span>
+                  <span dir="ltr" class="font-mono text-cyan-300">${ip}</span>
+                </div>
+                <div class="flex items-center gap-1.5 mt-1">
+                  <span class="text-[9px] text-slate-500">HWID:</span>
+                  <span dir="ltr" class="font-mono text-[9px] text-slate-300 bg-slate-950/70 px-2 py-0.5 rounded border border-slate-800/80 truncate max-w-[170px]" title="${hwid}">${hwid}</span>
+                </div>
               </div>
-              <button onclick="window.adminActions.deleteHwid(${telegram_id}, '${hwid}')" class="bg-rose-950/70 hover:bg-rose-900 text-rose-300 border border-rose-800/50 text-[10px] px-2.5 py-1.5 rounded-xl transition active:scale-95 font-bold">
-                قطع اتصال
+              <button onclick="window.adminActions.deleteHwid(${telegram_id}, '${hwid}')" class="bg-rose-950/60 hover:bg-rose-900 text-rose-300 border border-rose-800/60 p-2.5 rounded-xl transition active:scale-95 flex items-center justify-center flex-shrink-0" title="قطع اتصال این دستگاه">
+                <span class="text-sm">🗑</span>
               </button>
             </div>
           `;
@@ -870,6 +1081,26 @@
     closeHwidModal() {
       document.getElementById('hwidModal')?.classList.add('hidden');
       currentHwidTarget = null;
+    },
+
+    async killSessionsFromModal() {
+      if (!currentHwidTarget) return;
+      const { telegram_id, name } = currentHwidTarget;
+      if (!confirm(`آیا از قطع تمام نشست‌ها و اتصالات دستگاه‌های کاربر ${name} اطمینان دارید؟`)) return;
+      try {
+        const res = await window.api.killUserSessions(telegram_id);
+        if (res && res.ok) {
+          if (window.showToast) window.showToast(`✅ تعداد ${formatNumber(res.killed_devices || 0)} نشست فعال قطع شدند.`);
+          if (window.hapticFeedback) window.hapticFeedback('success');
+          this.openHwidModal(telegram_id, name);
+          syncAdminOverview();
+        } else {
+          if (window.showToast) window.showToast(`⚠️ ${res?.error || 'خطا در قطع نشست‌ها'}`);
+          if (window.hapticFeedback) window.hapticFeedback('error');
+        }
+      } catch (e) {
+        if (window.showToast) window.showToast('خطا در ارتباط با سرور');
+      }
     },
 
     async deleteHwid(telegram_id, hwid) {
@@ -1605,6 +1836,11 @@
   window.killUserSessions = (id, name) => window.adminActions.killSessions(id, name);
   window.toggleUserBan = (id, ban) => window.adminActions.toggleBan(id, ban);
   window.handleTopupAction = (id, app) => window.adminActions.handleTopup(id, app);
+  window.openSubModal = (id, name, url) => window.adminActions.openSubModal(id, name, url);
+  window.closeSubModal = () => window.adminActions.closeSubModal();
+  window.copySubLink = () => window.adminActions.copySubLink();
+  window.confirmRegenerateSub = () => window.adminActions.confirmRegenerateSub();
+  window.killSessionsFromModal = () => window.adminActions.killSessionsFromModal();
 
   // Initial Sync
   syncAdminOverview();
