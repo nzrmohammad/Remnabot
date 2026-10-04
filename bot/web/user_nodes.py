@@ -122,18 +122,33 @@ async def post_user_settings(request: web.Request) -> web.Response:
 
 
 async def get_user_avatar(request: web.Request) -> web.Response:
-    """Fetch user Telegram avatar or redirect to it."""
-    user_auth = get_authenticated_user(request)
-    if not user_auth:
-        return web.Response(status=401)
-
-    telegram_id = int(user_auth["id"])
+    """Fetch user Telegram avatar and stream image bytes with caching."""
     target_id_param = request.query.get("user_id")
-    if target_id_param and user_auth.get("is_admin"):
+    telegram_id = None
+    if target_id_param:
         try:
             telegram_id = int(target_id_param)
         except ValueError:
             pass
+
+    if not telegram_id:
+        user_auth = get_authenticated_user(request)
+        if user_auth:
+            telegram_id = int(user_auth["id"])
+
+    if not telegram_id:
+        return web.Response(status=404)
+
+    cache = request.app.get("cache")
+    cache_key = f"tma:avatar:{telegram_id}"
+    if cache:
+        cached_bytes = await cache.get(cache_key)
+        if cached_bytes and isinstance(cached_bytes, (bytes, bytearray)):
+            return web.Response(
+                body=cached_bytes,
+                content_type="image/jpeg",
+                headers={"Cache-Control": "public, max-age=86400"},
+            )
 
     bot = request.app.get("bot")
     if not bot:
@@ -145,10 +160,18 @@ async def get_user_avatar(request: web.Request) -> web.Response:
             file_id = photos.photos[0][0].file_id
             tg_file = await bot.get_file(file_id)
             if tg_file and tg_file.file_path:
-                file_url = f"https://api.telegram.org/file/bot{bot.token}/{tg_file.file_path}"
-                raise web.HTTPFound(location=file_url)
-    except web.HTTPFound:
-        raise
+                import io
+                stream = io.BytesIO()
+                await bot.download_file(tg_file.file_path, destination=stream)
+                img_bytes = stream.getvalue()
+                if img_bytes:
+                    if cache:
+                        await cache.set(cache_key, img_bytes, ttl_seconds=86400)
+                    return web.Response(
+                        body=img_bytes,
+                        content_type="image/jpeg",
+                        headers={"Cache-Control": "public, max-age=86400"},
+                    )
     except Exception as exc:
         logger.debug("Failed to fetch avatar for %s: %s", telegram_id, exc)
 

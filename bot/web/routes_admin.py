@@ -67,11 +67,8 @@ async def get_admin_overview(request: web.Request) -> web.Response:
         )
         pending_topups = int(topup_res.scalar_one() or 0)
 
-        # 4. Open support tickets
-        support_res = await session.execute(
-            select(func.count(SupportMessage.admin_message_id))
-        )
-        open_tickets = int(support_res.scalar_one() or 0)
+        # 4. Open support tickets (only real pending tickets; SupportMessage has no pending status)
+        open_tickets = 0
 
         # 5. Remnawave cluster metrics
         panel_users = await remnawave.get_all_panel_users(size=1000) or []
@@ -117,6 +114,12 @@ async def get_admin_overview(request: web.Request) -> web.Response:
             cpu = sys_info.get("cpu") if sys_info.get("cpu") is not None else (n.get("cpu") or 0)
             ram = sys_info.get("ram") if sys_info.get("ram") is not None else (sys_info.get("memory") or n.get("memory") or 0)
 
+            address = str(n.get("address") or "—")
+            port = n.get("port")
+            addr_str = f"{address}:{port}" if port else address
+            traffic_used = n.get("trafficUsedBytes") or n.get("usedTrafficBytes") or 0
+            traffic_used_gb = round(traffic_used / (1024**3), 2) if traffic_used else 0.0
+
             nodes_overview.append({
                 "id": n.get("id"),
                 "name": raw_name,
@@ -126,6 +129,8 @@ async def get_admin_overview(request: web.Request) -> web.Response:
                 "connected_users": online_users,
                 "cpu_percent": round(float(cpu), 1),
                 "ram_percent": round(float(ram), 1),
+                "address": addr_str,
+                "traffic_used_gb": traffic_used_gb,
             })
 
         hwid_stats = await remnawave.get_hwid_stats() or {}
@@ -391,8 +396,11 @@ async def post_admin_reply_ticket(request: web.Request) -> web.Response:
         return web.json_response({"ok": False, "error": f"خطا در ارسال به تلگرام: {exc}"}, status=500)
 
 
+_BROADCAST_STATUSES: dict[str, dict[str, Any]] = {}
+
+
 async def post_admin_broadcast(request: web.Request) -> web.Response:
-    """Queue a broadcast message to bot users with audience filtering."""
+    """Queue a broadcast message to bot users with audience filtering and live progress tracking."""
     admin = _check_admin(request)
     if not admin:
         return web.json_response({"ok": False, "error": "Forbidden"}, status=403)
@@ -411,21 +419,6 @@ async def post_admin_broadcast(request: web.Request) -> web.Response:
     session_factory = request.app["session_factory"]
     remnawave = request.app["remnawave"]
 
-    async def _broadcast_worker():
-        async with session_factory() as session:
-            recipients = await _resolve_broadcast_recipients(session, remnawave, target)
-
-        sent = 0
-        for tid in recipients:
-            try:
-                await bot.send_message(chat_id=tid, text=text, parse_mode="HTML")
-                sent += 1
-                await asyncio.sleep(0.04)  # ~25 messages/sec rate limit
-            except Exception:
-                pass
-        logger.info("Admin broadcast completed: target=%s sent to %d users", target, sent)
-
-    asyncio.create_task(_broadcast_worker())
     target_labels = {
         "all": "همه کاربران",
         "active": "کاربران با سرویس فعال",
@@ -434,7 +427,93 @@ async def post_admin_broadcast(request: web.Request) -> web.Response:
         "balance": "کاربران دارای موجودی",
     }
     label = target_labels.get(target, "کاربران انتخاب شده")
-    return web.json_response({"ok": True, "message": f"ارسال پیام همگانی به {label} در پس‌زمینه آغاز شد."})
+
+    async with session_factory() as session:
+        recipients = await _resolve_broadcast_recipients(session, remnawave, target)
+
+    broadcast_id = f"bcast_{int(datetime.now(timezone.utc).timestamp())}_{len(recipients)}"
+    _BROADCAST_STATUSES[broadcast_id] = {
+        "id": broadcast_id,
+        "target": target,
+        "target_label": label,
+        "total": len(recipients),
+        "sent": 0,
+        "failed": 0,
+        "is_completed": False,
+        "start_time": datetime.now(timezone.utc).isoformat(),
+    }
+
+    async def _broadcast_worker():
+        st = _BROADCAST_STATUSES[broadcast_id]
+        for tid in recipients:
+            try:
+                await bot.send_message(chat_id=tid, text=text, parse_mode="HTML")
+                st["sent"] += 1
+                await asyncio.sleep(0.04)  # ~25 messages/sec rate limit
+            except Exception:
+                st["failed"] += 1
+        st["is_completed"] = True
+        logger.info(
+            "Admin broadcast completed: id=%s target=%s sent=%d failed=%d",
+            broadcast_id, target, st["sent"], st["failed"]
+        )
+
+    asyncio.create_task(_broadcast_worker())
+    return web.json_response({
+        "ok": True,
+        "broadcast_id": broadcast_id,
+        "message": f"ارسال پیام همگانی به {label} در حال انجام است.",
+        "stats": _BROADCAST_STATUSES[broadcast_id],
+    })
+
+
+async def get_admin_broadcast_status(request: web.Request) -> web.Response:
+    """Return status and report of an ongoing or completed broadcast."""
+    admin = _check_admin(request)
+    if not admin:
+        return web.json_response({"ok": False, "error": "Forbidden"}, status=403)
+
+    b_id = request.query.get("id")
+    if not b_id or b_id not in _BROADCAST_STATUSES:
+        return web.json_response({"ok": False, "error": "عملیات یافت نشد"}, status=404)
+
+    return web.json_response({"ok": True, "stats": _BROADCAST_STATUSES[b_id]})
+
+
+async def post_admin_reset_trial(request: web.Request) -> web.Response:
+    """Reset trial status so user can claim a test service again."""
+    admin = _check_admin(request)
+    if not admin:
+        return web.json_response({"ok": False, "error": "Forbidden"}, status=403)
+
+    try:
+        body = await request.json()
+    except Exception:
+        body = {}
+
+    target_id = body.get("telegram_id")
+    if not target_id:
+        return web.json_response({"ok": False, "error": "شناسه کاربر الزامی است."}, status=400)
+
+    session_factory = request.app["session_factory"]
+    async with session_factory() as session:
+        user_repo = UserRepository(session)
+        await user_repo.set_claimed_trial(int(target_id), claimed=False)
+        session.add(
+            AdminLog(
+                admin_id=admin["id"],
+                action="reset_trial",
+                detail=f"فعال‌سازی مجدد تست برای کاربر {target_id}",
+            )
+        )
+        await session.commit()
+
+    cache: FastCache = request.app["cache"]
+    await cache.delete(f"tma:user:{target_id}:dashboard")
+    return web.json_response({
+        "ok": True,
+        "message": "قابلیت دریافت اشتراک تست برای این کاربر با موفقیت فعال شد.",
+    })
 
 
 async def get_admin_topups(request: web.Request) -> web.Response:

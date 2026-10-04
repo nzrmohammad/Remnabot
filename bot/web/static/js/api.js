@@ -155,6 +155,14 @@ const api = {
   async broadcastMessage(message, target = 'all') {
     return this.post('/api/admin/broadcast', { message, target });
   },
+
+  async getBroadcastStatus(broadcastId) {
+    return this.get('/api/admin/broadcast/status', { id: broadcastId });
+  },
+
+  async resetUserTrial(telegram_id) {
+    return this.post('/api/admin/user/reset_trial', { telegram_id });
+  },
 };
 
 window.api = api;

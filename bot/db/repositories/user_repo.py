@@ -99,11 +99,11 @@ class UserRepository:
         if user:
             user.referred_by_id = referrer_id
 
-    async def set_claimed_trial(self, user: User | int) -> None:
+    async def set_claimed_trial(self, user: User | int, claimed: bool = True) -> None:
         if isinstance(user, int):
             user = await self.get_by_telegram_id(user)
         if user:
-            user.has_claimed_trial = True
+            user.has_claimed_trial = claimed
 
     async def set_banned(self, user: User | int, banned: bool = True) -> None:
         if isinstance(user, int):

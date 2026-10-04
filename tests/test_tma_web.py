@@ -136,6 +136,8 @@ async def test_web_app_routes():
     assert "/api/user/me" in registered_paths
     assert "/api/user/spin" in registered_paths
     assert "/api/admin/overview" in registered_paths
+    assert "/api/admin/broadcast/status" in registered_paths
+    assert "/api/admin/user/reset_trial" in registered_paths
 
 
 @pytest.mark.anyio
@@ -733,5 +735,76 @@ async def test_admin_broadcast_audience_targeting():
     await engine.dispose()
 
 
+@pytest.mark.anyio
+async def test_admin_reset_trial():
+    from aiohttp.test_utils import make_mocked_request
+    from sqlalchemy import select
+    from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
+    from bot.db.models import Base, User
+    from bot.web.routes_admin import post_admin_reset_trial
+
+    engine = create_async_engine("sqlite+aiosqlite:///:memory:")
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+    session_factory = async_sessionmaker(engine, expire_on_commit=False)
+
+    async with session_factory() as session:
+        user = User(telegram_id=202, username="test_trial", has_claimed_trial=True)
+        session.add(user)
+        await session.commit()
+
+    app = {
+        "bot_token": "123:abc",
+        "admin_ids": [99999],
+        "is_dev": True,
+        "session_factory": session_factory,
+        "cache": FastCache(redis_client=None),
+        "bot": AsyncMock(),
+    }
+
+    # Reset trial for user 202
+    req = make_mocked_request("POST", "/api/admin/user/reset_trial?user_id=99999", app=app)
+    req.json = AsyncMock(return_value={"telegram_id": 202})
+
+    resp = await post_admin_reset_trial(req)
+    assert resp.status == 200
+    res_data = json.loads(resp.text)
+    assert res_data["ok"] is True
+    assert "با موفقیت فعال شد" in res_data["message"]
+
+    # Verify in DB that has_claimed_trial is now False
+    async with session_factory() as session:
+        u = await session.scalar(select(User).where(User.telegram_id == 202))
+        assert u.has_claimed_trial is False
+
+    await engine.dispose()
 
 
+@pytest.mark.anyio
+async def test_admin_broadcast_status():
+    from aiohttp.test_utils import make_mocked_request
+    from bot.web.routes_admin import _BROADCAST_STATUSES, get_admin_broadcast_status
+
+    _BROADCAST_STATUSES["test-task-123"] = {
+        "broadcast_id": "test-task-123",
+        "target": "all",
+        "total": 10,
+        "sent": 7,
+        "failed": 1,
+        "is_completed": False,
+    }
+
+    app = {
+        "bot_token": "123:abc",
+        "admin_ids": [99999],
+        "is_dev": True,
+    }
+
+    req = make_mocked_request("GET", "/api/admin/broadcast/status?user_id=99999&id=test-task-123", app=app)
+    resp = await get_admin_broadcast_status(req)
+    assert resp.status == 200
+    res_data = json.loads(resp.text)
+    assert res_data["ok"] is True
+    assert res_data["stats"]["sent"] == 7
+    assert res_data["stats"]["failed"] == 1
+    assert res_data["stats"]["is_completed"] is False

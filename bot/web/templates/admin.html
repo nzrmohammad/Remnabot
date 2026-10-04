@@ -48,7 +48,7 @@
         <button id="adminReloadBtn" class="text-slate-400 hover:text-slate-200 text-xs p-1.5 rounded-lg bg-slate-800 border border-slate-700 transition active:scale-95" title="تازه‌سازی">🔄</button>
       </div>
       
-      <div class="flex items-center gap-2">
+      <div dir="ltr" class="flex items-center gap-1.5">
         <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
         <span class="text-xs font-bold text-slate-200 font-mono">RemnaAdmin v3.4</span>
       </div>
@@ -79,9 +79,9 @@
         <div class="grid grid-cols-2 gap-2.5">
           <!-- Card 1: Users -->
           <div class="bg-slate-800/80 p-3.5 rounded-2xl border border-slate-700/80 shadow relative overflow-hidden">
-            <div class="flex justify-between items-start">
-              <span class="text-slate-400 text-[11px] font-medium">👥 کل کاربران ربات</span>
-              <span class="text-base">👥</span>
+            <div class="flex items-center gap-1.5">
+              <span class="text-sm">👥</span>
+              <span class="text-slate-400 text-[11px] font-medium">کل کاربران ربات</span>
             </div>
             <div class="mt-2 flex items-baseline gap-1.5">
               <span id="adminTotalUsers" class="text-2xl font-black text-white font-mono">--</span>
@@ -91,9 +91,9 @@
 
           <!-- Card 2: Today Revenue -->
           <div class="bg-slate-800/80 p-3.5 rounded-2xl border border-slate-700/80 shadow relative overflow-hidden">
-            <div class="flex justify-between items-start">
-              <span class="text-slate-400 text-[11px] font-medium">💰 فروش امروز</span>
-              <span class="text-base">💳</span>
+            <div class="flex items-center gap-1.5">
+              <span class="text-sm">💰</span>
+              <span class="text-slate-400 text-[11px] font-medium">فروش امروز</span>
             </div>
             <div class="mt-2 flex items-baseline gap-1">
               <span id="adminTodayRevenue" class="text-xl font-black text-emerald-400 font-mono">--</span>
@@ -104,21 +104,21 @@
 
           <!-- Card 3: Bandwidth -->
           <div class="bg-slate-800/80 p-3.5 rounded-2xl border border-slate-700/80 shadow relative overflow-hidden">
-            <div class="flex justify-between items-start">
-              <span class="text-slate-400 text-[11px] font-medium">⚡️ مصرف کل ترافیک</span>
-              <span class="text-base">🌐</span>
+            <div class="flex items-center gap-1.5">
+              <span class="text-sm">🌐</span>
+              <span class="text-slate-400 text-[11px] font-medium">مصرف کل ترافیک</span>
             </div>
-            <div class="mt-2 flex items-baseline gap-1">
-              <span id="adminMonthTraffic" class="text-2xl font-black text-cyan-400 font-mono" dir="ltr">-- GB</span>
+            <div class="mt-2 flex items-baseline gap-1 whitespace-nowrap overflow-hidden">
+              <span id="adminMonthTraffic" class="text-xl font-black text-cyan-400 font-mono" dir="ltr">-- GB</span>
             </div>
             <div class="text-[10px] text-slate-400 mt-1">مجموع مصرف روی سرورها</div>
           </div>
 
           <!-- Card 4: Active Online HWID -->
           <div class="bg-slate-800/80 p-3.5 rounded-2xl border border-slate-700/80 shadow relative overflow-hidden">
-            <div class="flex justify-between items-start">
-              <span class="text-slate-400 text-[11px] font-medium">📱 دستگاه‌های متصل</span>
-              <span class="text-base">⚡️</span>
+            <div class="flex items-center gap-1.5">
+              <span class="text-sm">📱</span>
+              <span class="text-slate-400 text-[11px] font-medium">دستگاه‌های متصل</span>
             </div>
             <div class="mt-2 flex items-baseline gap-1.5">
               <span id="adminOnlineDevices" class="text-2xl font-black text-indigo-300 font-mono">--</span>
@@ -128,8 +128,8 @@
           </div>
         </div>
 
-        <!-- Pending Tasks Alert (اقدامات نیازمند بررسی) -->
-        <div id="adminPendingBanner" class="bg-amber-950/40 rounded-2xl p-3.5 border border-amber-500/40 flex items-center justify-between shadow-sm transition">
+        <!-- Pending Tasks Alert (اقدامات نیازمند بررسی - مخفی در صورت عدم وجود مورد معلق) -->
+        <div id="adminPendingBanner" class="hidden bg-amber-950/40 rounded-2xl p-3.5 border border-amber-500/40 flex items-center justify-between shadow-sm transition">
           <div class="flex items-center gap-2.5">
             <span class="text-2xl">⚠️</span>
             <div>
@@ -428,6 +428,54 @@
         <button id="sendBroadcastBtn" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 text-white font-bold text-xs py-2.5 rounded-xl transition shadow active:scale-95 flex items-center justify-center gap-1.5">
           <span>🚀</span>
           <span>شروع ارسال همگانی</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- MODAL 3: Broadcast Report & Progress Modal -->
+    <div id="broadcastReportModal" class="absolute inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+      <div class="bg-[#1e293b] border border-slate-700 rounded-3xl p-5 w-full max-w-[360px] space-y-4 shadow-2xl relative">
+        <div class="flex justify-between items-center border-b border-slate-700/60 pb-2.5">
+          <h4 class="text-xs font-bold text-white flex items-center gap-1.5">
+            <span>📊</span> گزارش ارسال پیام همگانی
+          </h4>
+          <button id="closeBroadcastReportBtn" class="text-slate-400 hover:text-white text-xs">✕</button>
+        </div>
+        
+        <div class="space-y-3">
+          <div class="bg-slate-900/70 p-3 rounded-2xl border border-slate-800 space-y-2 text-xs">
+            <div class="flex justify-between items-center">
+              <span class="text-slate-400 text-[11px]">گروه هدف:</span>
+              <b id="reportTargetLabel" class="text-cyan-300 font-bold text-[11px]">همه کاربران</b>
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="text-slate-400 text-[11px]">کل مخاطبان:</span>
+              <b id="reportTotalCount" class="text-white font-mono font-bold text-xs">۰ نفر</b>
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="text-slate-400 text-[11px]">ارسال موفق:</span>
+              <b id="reportSentCount" class="text-emerald-400 font-mono font-bold text-xs">۰ پیام</b>
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="text-slate-400 text-[11px]">ناموفق / بلاک:</span>
+              <b id="reportFailedCount" class="text-rose-400 font-mono font-bold text-xs">۰</b>
+            </div>
+          </div>
+
+          <!-- Progress Bar -->
+          <div class="space-y-1">
+            <div class="flex justify-between text-[10px] text-slate-400">
+              <span id="reportStatusText">در حال ارسال پیام‌ها...</span>
+              <span id="reportPercentText" class="font-mono text-cyan-400">۰%</span>
+            </div>
+            <div class="w-full h-2 bg-slate-900 rounded-full overflow-hidden border border-slate-800">
+              <div id="reportProgressBar" class="h-full bg-gradient-to-r from-blue-500 to-emerald-500 w-0 transition-all duration-300"></div>
+            </div>
+          </div>
+        </div>
+
+        <button id="dismissReportModalBtn" class="w-full bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs py-2.5 rounded-xl transition active:scale-95">
+          بستن گزارش
         </button>
       </div>
     </div>

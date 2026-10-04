@@ -1,6 +1,6 @@
 /**
  * RemnaAdmin Pro - Modular Admin Suite JavaScript
- * Follows DRY and high-performance asynchronous standards.
+ * Follows DRY, anti-bloat, and high-performance asynchronous standards.
  */
 
 (function () {
@@ -151,41 +151,37 @@
       const rev = document.getElementById('adminTodayRevenue');
       if (rev) rev.innerText = formatNumber(m.today_revenue_toman || 0);
 
+      // Traffic: if >= 1000 GB, convert to TB for concise and single-line layout
       const bw = document.getElementById('adminMonthTraffic');
-      if (bw) bw.innerText = `${m.month_traffic_gb || 0} GB`;
+      if (bw) {
+        const trafficGb = Number(m.month_traffic_gb || 0);
+        if (trafficGb >= 1000) {
+          bw.innerText = `${(trafficGb / 1024).toFixed(2)} TB`;
+        } else {
+          bw.innerText = `${trafficGb} GB`;
+        }
+      }
 
       const onDev = document.getElementById('adminOnlineDevices');
       if (onDev) onDev.innerText = formatNumber(m.online_devices || 0);
 
-      // Dynamic Pending Tasks Alert Banner
+      // Dynamic Pending Tasks Alert Banner (Hidden if no pending tasks)
       const pendingBox = document.getElementById('adminPendingBanner');
       const pendingSum = document.getElementById('adminPendingSummary');
       const viewPendingBtn = document.getElementById('viewPendingBtn');
       const pTopups = m.pending_topups || 0;
-      const pTickets = m.open_tickets || 0;
       const offNodes = m.offline_nodes || 0;
 
-      if (pendingSum) {
-        if (pTopups > 0 || pTickets > 0 || offNodes > 0) {
-          const parts = [];
-          if (pTopups > 0) parts.push(`${formatNumber(pTopups)} فیش واریزی در انتظار`);
-          if (pTickets > 0) parts.push(`${formatNumber(pTickets)} تیکت جدید`);
-          if (offNodes > 0) parts.push(`${formatNumber(offNodes)} سرور آفلاین`);
+      if (pTopups > 0 || offNodes > 0) {
+        const parts = [];
+        if (pTopups > 0) parts.push(`${formatNumber(pTopups)} فیش واریزی در انتظار`);
+        if (offNodes > 0) parts.push(`${formatNumber(offNodes)} سرور آفلاین`);
 
-          pendingSum.innerText = parts.join(' + ');
-          if (pendingBox) {
-            pendingBox.classList.remove('hidden', 'bg-emerald-950/40', 'border-emerald-500/40');
-            pendingBox.classList.add('bg-amber-950/40', 'border-amber-500/40');
-          }
-          if (viewPendingBtn) viewPendingBtn.classList.remove('hidden');
-        } else {
-          pendingSum.innerText = 'همه فیش‌ها، تیکت‌ها و سرورها پایدار و تایید شده‌اند 🟢';
-          if (pendingBox) {
-            pendingBox.classList.remove('bg-amber-950/40', 'border-amber-500/40');
-            pendingBox.classList.add('bg-emerald-950/40', 'border-emerald-500/40');
-          }
-          if (viewPendingBtn) viewPendingBtn.classList.add('hidden');
-        }
+        if (pendingSum) pendingSum.innerText = parts.join(' + ');
+        if (pendingBox) pendingBox.classList.remove('hidden');
+        if (viewPendingBtn) viewPendingBtn.classList.remove('hidden');
+      } else {
+        if (pendingBox) pendingBox.classList.add('hidden');
       }
 
       // Cluster Status Header Bar
@@ -197,7 +193,7 @@
       const syncText = document.getElementById('adminLastSyncText');
       if (syncText) syncText.innerText = 'Sync: آنلاین';
 
-      // Render Overview and Full Nodes
+      // Render Accordion Nodes
       renderOverviewNodes(nodes);
       renderFullNodes(nodes);
       dismissSplash();
@@ -207,6 +203,7 @@
     }
   }
 
+  // Collapsible Accordion Node Card Renderer
   function renderOverviewNodes(nodes) {
     const container = document.getElementById('adminOverviewNodesList');
     if (!container) return;
@@ -215,27 +212,78 @@
       return;
     }
 
-    container.innerHTML = nodes.map(n => {
+    container.innerHTML = nodes.map((n, idx) => {
       const flag = n.flag || getFlagEmoji(n.country_code);
       const isOnline = (n.status || '').toUpperCase() === 'ONLINE';
       const statusColor = isOnline ? 'text-emerald-400' : 'text-rose-400';
+      const statusBadge = isOnline ? '🟢 آنلاین' : '🔴 آفلاین';
+
+      const cpuText = (n.cpu_percent && n.cpu_percent > 0) ? `CPU: ${n.cpu_percent}%` : null;
+      const ramText = (n.ram_percent && n.ram_percent > 0) ? `RAM: ${n.ram_percent}%` : null;
+      let specs = [cpuText, ramText].filter(Boolean).join(' | ');
+      if (!specs) {
+        specs = `کد: ${n.country_code || 'XX'}`;
+      }
+
       return `
-        <div class="bg-slate-900/60 p-2.5 rounded-xl border border-slate-700/50 flex justify-between items-center transition">
-          <div class="flex items-center gap-2">
-            <span class="text-lg flex-shrink-0">${flag}</span>
-            <div>
-              <span class="font-bold text-white block text-xs">${n.name || 'Node'}</span>
-              <span class="text-[10px] text-slate-400 font-mono">CPU: ${n.cpu_percent || 0}% | RAM: ${n.ram_percent || 0}%</span>
+        <div class="bg-slate-900/70 rounded-2xl border border-slate-700/60 overflow-hidden transition shadow-sm">
+          <!-- Accordion Header -->
+          <div class="p-3 flex justify-between items-center cursor-pointer hover:bg-slate-800/40 transition select-none" onclick="window.toggleNodeAccordion(${idx})">
+            <div class="flex items-center gap-2.5">
+              <span class="text-xl flex-shrink-0">${flag}</span>
+              <div>
+                <span class="font-bold text-white block text-xs">${n.name || 'Node'}</span>
+                <span class="text-[10px] text-slate-400 font-mono">${specs}</span>
+              </div>
+            </div>
+            <div class="flex items-center gap-2">
+              <div class="text-left font-mono">
+                <span class="${statusColor} font-bold text-[11px] block">${formatNumber(n.connected_users || 0)} آنلاین</span>
+                <span class="text-[9px] ${isOnline ? 'text-emerald-400' : 'text-rose-400'}">${isOnline ? 'ONLINE' : 'OFFLINE'}</span>
+              </div>
+              <span id="nodeChevron_${idx}" class="text-xs text-slate-400 transition-transform duration-200">▼</span>
             </div>
           </div>
-          <div class="text-left font-mono">
-            <span class="${statusColor} font-bold text-[11px]">${formatNumber(n.connected_users || 0)} آنلاین</span>
-            <span class="block text-[9px] ${isOnline ? 'text-slate-400' : 'text-rose-400'}">${isOnline ? 'ONLINE' : 'OFFLINE'}</span>
+
+          <!-- Accordion Details Body -->
+          <div id="nodeBody_${idx}" class="hidden p-3 bg-slate-950/60 border-t border-slate-800/60 text-xs space-y-2">
+            <div class="grid grid-cols-2 gap-2 text-[11px]">
+              <div class="bg-slate-900/80 p-2 rounded-xl">
+                <span class="text-slate-400 text-[10px] block mb-0.5">آدرس سرور:</span>
+                <span class="font-mono text-cyan-300 text-xs block truncate" dir="ltr">${n.address || '—'}</span>
+              </div>
+              <div class="bg-slate-900/80 p-2 rounded-xl">
+                <span class="text-slate-400 text-[10px] block mb-0.5">وضعیت اتصال:</span>
+                <span class="font-bold text-xs ${statusColor}">${statusBadge}</span>
+              </div>
+            </div>
+            <div class="grid grid-cols-2 gap-2 text-[11px]">
+              <div class="bg-slate-900/80 p-2 rounded-xl">
+                <span class="text-slate-400 text-[10px] block mb-0.5">کاربران متصل زنده:</span>
+                <b class="text-emerald-400 font-mono text-xs">${formatNumber(n.connected_users || 0)} نفر</b>
+              </div>
+              <div class="bg-slate-900/80 p-2 rounded-xl">
+                <span class="text-slate-400 text-[10px] block mb-0.5">ترافیک مصرفی نود:</span>
+                <b class="text-cyan-400 font-mono text-xs" dir="ltr">${n.traffic_used_gb ? n.traffic_used_gb + ' GB' : '—'}</b>
+              </div>
+            </div>
           </div>
         </div>
       `;
     }).join('');
   }
+
+  window.toggleNodeAccordion = (idx) => {
+    const body = document.getElementById(`nodeBody_${idx}`);
+    const chev = document.getElementById(`nodeChevron_${idx}`);
+    if (body) {
+      body.classList.toggle('hidden');
+      if (chev) {
+        chev.style.transform = body.classList.contains('hidden') ? 'rotate(0deg)' : 'rotate(180deg)';
+      }
+    }
+    if (window.hapticFeedback) window.hapticFeedback('impact');
+  };
 
   function renderFullNodes(nodes) {
     const container = document.getElementById('adminNodesFullList');
@@ -258,7 +306,7 @@
                   <h4 class="font-bold text-xs text-white">${n.name || 'Node'}</h4>
                   <span class="w-2 h-2 rounded-full ${isOnline ? 'bg-emerald-400' : 'bg-rose-400'}"></span>
                 </div>
-                <span class="text-[10px] text-slate-400 font-mono mt-0.5 block">Node ID: ${n.id || '--'} | ${n.country_code || 'XX'}</span>
+                <span class="text-[10px] text-slate-400 font-mono mt-0.5 block">Host: ${n.address || '—'} | ID: ${n.id || '--'}</span>
               </div>
             </div>
             <span class="text-[10px] font-mono ${isOnline ? 'text-emerald-400 bg-emerald-950/60 border-emerald-800/40' : 'text-rose-400 bg-rose-950/60 border-rose-800/40'} px-2 py-0.5 rounded border">${isOnline ? 'ONLINE' : 'OFFLINE'}</span>
@@ -266,16 +314,16 @@
 
           <div class="grid grid-cols-3 gap-2 text-center text-[10px]">
             <div class="bg-slate-900/60 p-2 rounded-xl">
-              <span class="text-slate-400 block mb-0.5">مصرف CPU</span>
-              <b class="text-cyan-400 font-mono text-xs">${n.cpu_percent || 0}%</b>
-            </div>
-            <div class="bg-slate-900/60 p-2 rounded-xl">
-              <span class="text-slate-400 block mb-0.5">مصرف RAM</span>
-              <b class="text-indigo-300 font-mono text-xs">${n.ram_percent || 0}%</b>
-            </div>
-            <div class="bg-slate-900/60 p-2 rounded-xl">
               <span class="text-slate-400 block mb-0.5">کاربران متصل</span>
               <b class="text-emerald-400 font-mono text-xs">${formatNumber(n.connected_users || 0)}</b>
+            </div>
+            <div class="bg-slate-900/60 p-2 rounded-xl">
+              <span class="text-slate-400 block mb-0.5">ترافیک نود</span>
+              <b class="text-cyan-400 font-mono text-xs" dir="ltr">${n.traffic_used_gb ? n.traffic_used_gb + ' GB' : '—'}</b>
+            </div>
+            <div class="bg-slate-900/60 p-2 rounded-xl">
+              <span class="text-slate-400 block mb-0.5">کد کشور</span>
+              <b class="text-indigo-300 font-mono text-xs">${n.country_code || 'XX'}</b>
             </div>
           </div>
         </div>
@@ -315,7 +363,6 @@
       const nextBtn = document.getElementById('adminUsersNextBtn');
 
       if (paginationEl) {
-        // Show pagination only when pages > 1 (تعداد زیاد شد)
         if (totalPages > 1) {
           paginationEl.classList.remove('hidden');
         } else {
@@ -358,27 +405,29 @@
         else statusBadge = `<span class="px-1.5 py-0.5 rounded text-[9px] bg-blue-500/20 text-blue-400 font-bold border border-blue-500/30">${st}</span>`;
       }
 
-      // Remaining Traffic Volume & Days Left
-      let trafficRemainingText = 'بدون سرویس فعال';
-      let daysRemainingText = '—';
-
+      // Compact LTR Service metrics: "400 G (200 G) - 30 روز"
+      let serviceLineHtml = '<span class="text-slate-400">بدون سرویس فعال</span>';
       if (p && p.exists) {
-        if (p.remaining_traffic_gb !== undefined && p.remaining_traffic_gb >= 0) {
-          trafficRemainingText = `${p.remaining_traffic_gb} GB باقی‌مانده`;
-          if (p.limit_traffic_gb > 0) {
-            trafficRemainingText += ` (از ${p.limit_traffic_gb} GB)`;
-          }
-        } else if (p.remaining_traffic_gb < 0) {
-          trafficRemainingText = `نامحدود (مصرف: ${p.used_traffic_gb || 0} GB)`;
-        } else {
-          trafficRemainingText = `${p.used_traffic_gb || 0} GB مصرف‌شده`;
-        }
+        const limitStr = p.limit_traffic_gb > 0 ? `${p.limit_traffic_gb} G` : 'نامحدود';
+        const remStr = p.remaining_traffic_gb !== undefined && p.remaining_traffic_gb >= 0
+          ? `${p.remaining_traffic_gb} G`
+          : `${p.used_traffic_gb || 0} G`;
+        const daysStr = (p.days_left !== undefined && p.days_left !== null)
+          ? (p.days_left > 0 ? `${formatNumber(p.days_left)} روز` : 'منقضی شده')
+          : 'نامحدود';
 
-        if (p.days_left !== undefined && p.days_left !== null) {
-          daysRemainingText = p.days_left > 0 ? `${formatNumber(p.days_left)} روز مانده` : 'منقضی شده ⚠️';
-        } else {
-          daysRemainingText = 'نامحدود';
-        }
+        serviceLineHtml = `
+          <div dir="ltr" class="text-xs font-mono font-bold text-cyan-400 bg-slate-900/60 px-3 py-1 rounded-xl border border-slate-700/60 flex items-center justify-between text-left">
+            <span>${limitStr} (${remStr})</span>
+            <span class="text-indigo-300 font-sans text-[11px] font-medium">- ${daysStr}</span>
+          </div>
+        `;
+      } else {
+        serviceLineHtml = `
+          <div class="bg-slate-900/60 px-3 py-1 rounded-xl border border-slate-800 text-xs text-slate-400 text-center">
+            بدون اشتراک فعال
+          </div>
+        `;
       }
 
       const avatarSrc = u.avatar_url || `/api/user/avatar?user_id=${u.telegram_id}`;
@@ -405,28 +454,22 @@
             <span class="text-[11px] font-mono font-bold text-emerald-400 flex-shrink-0">${formatNumber(u.wallet_balance || 0)} ت</span>
           </div>
 
-          <!-- Subscription Metrics Card (Traffic + Days) -->
-          <div class="bg-slate-900/70 rounded-xl p-2.5 text-xs grid grid-cols-2 gap-2 border border-slate-800/60">
-            <div>
-              <span class="text-[10px] text-slate-400 block mb-0.5">📦 حجم باقی‌مانده:</span>
-              <b class="font-mono text-cyan-400 text-[11px] block truncate" dir="ltr">${trafficRemainingText}</b>
-            </div>
-            <div>
-              <span class="text-[10px] text-slate-400 block mb-0.5">⏳ زمان اشتراک:</span>
-              <b class="font-mono text-indigo-300 text-[11px] block truncate">${daysRemainingText}</b>
-            </div>
-          </div>
+          <!-- Compact Single-Line Service Metrics -->
+          ${serviceLineHtml}
 
-          <!-- Quick Action Buttons -->
-          <div class="grid grid-cols-4 gap-1.5 text-center text-[10px]">
-            <button class="bg-blue-950/60 hover:bg-blue-900 text-blue-300 border border-blue-800/50 py-1.5 rounded-lg transition active:scale-95" onclick="window.adminActions.openModifyUser(${u.telegram_id}, '${u.username || u.telegram_id}', 'traffic')">
+          <!-- Quick Action Buttons (Including Trial Reset Option) -->
+          <div class="grid grid-cols-5 gap-1 text-center text-[10px]">
+            <button class="bg-blue-950/60 hover:bg-blue-900 text-blue-300 border border-blue-800/50 py-1.5 rounded-lg transition active:scale-95" onclick="window.adminActions.openModifyUser(${u.telegram_id}, '${u.username || u.telegram_id}', 'traffic')" title="افزایش حجم">
               ➕ ترافیک
             </button>
-            <button class="bg-indigo-950/60 hover:bg-indigo-900 text-indigo-300 border border-indigo-800/50 py-1.5 rounded-lg transition active:scale-95" onclick="window.adminActions.openModifyUser(${u.telegram_id}, '${u.username || u.telegram_id}', 'days')">
+            <button class="bg-indigo-950/60 hover:bg-indigo-900 text-indigo-300 border border-indigo-800/50 py-1.5 rounded-lg transition active:scale-95" onclick="window.adminActions.openModifyUser(${u.telegram_id}, '${u.username || u.telegram_id}', 'days')" title="تمدید زمان">
               ⏳ تمدید
             </button>
-            <button class="bg-amber-950/60 hover:bg-amber-900 text-amber-300 border border-amber-800/50 py-1.5 rounded-lg transition active:scale-95" onclick="window.adminActions.killSessions(${u.telegram_id}, '${u.username || u.telegram_id}')">
-              ⛔️ نشست‌ها
+            <button class="bg-purple-950/60 hover:bg-purple-900 text-purple-300 border border-purple-800/50 py-1.5 rounded-lg transition active:scale-95" onclick="window.adminActions.resetTrial(${u.telegram_id}, '${u.username || u.telegram_id}')" title="فعال‌سازی مجدد تست برای کاربر">
+              🎁 تست
+            </button>
+            <button class="bg-amber-950/60 hover:bg-amber-900 text-amber-300 border border-amber-800/50 py-1.5 rounded-lg transition active:scale-95" onclick="window.adminActions.killSessions(${u.telegram_id}, '${u.username || u.telegram_id}')" title="قطع نشست‌ها">
+              ⛔️ نشست
             </button>
             <button class="${u.is_banned ? 'bg-emerald-950/60 hover:bg-emerald-900 text-emerald-300 border-emerald-800/50' : 'bg-rose-950/60 hover:bg-rose-900 text-rose-300 border-rose-800/50'} border py-1.5 rounded-lg transition active:scale-95" onclick="window.adminActions.toggleBan(${u.telegram_id}, ${u.is_banned})">
               ${u.is_banned ? '✅ آزاد' : '🚫 مسدود'}
@@ -547,6 +590,22 @@
           submitBtn.disabled = false;
           submitBtn.innerText = 'ثبت تغییرات';
         }
+      }
+    },
+
+    async resetTrial(telegram_id, name) {
+      if (!confirm(`آیا از فعال‌سازی مجدد قابلیت دریافت اکانت تست برای کاربر ${name} اطمینان دارید؟`)) return;
+      try {
+        const res = await window.api.resetUserTrial(telegram_id);
+        if (res && res.ok) {
+          if (window.showToast) window.showToast(`✅ ${res.message || 'قابلیت تست برای کاربر فعال شد.'}`);
+          if (window.hapticFeedback) window.hapticFeedback('success');
+        } else {
+          if (window.showToast) window.showToast(`⚠️ ${res?.error || 'خطا در فعال‌سازی تست'}`);
+          if (window.hapticFeedback) window.hapticFeedback('error');
+        }
+      } catch (e) {
+        if (window.showToast) window.showToast('خطا در برقراری ارتباط');
       }
     },
 
@@ -734,11 +793,14 @@
     }
   });
 
-  // --- 9. Broadcast Modal & Audience Targeting ---
+  // --- 9. Broadcast Modal & Live Report Modal ---
   const broadcastModal = document.getElementById('broadcastModal');
+  const broadcastReportModal = document.getElementById('broadcastReportModal');
   const openBroadcastModalBtn = document.getElementById('openBroadcastModalBtn');
   const closeBroadcastBtn = document.getElementById('closeBroadcastBtn');
   const sendBroadcastBtn = document.getElementById('sendBroadcastBtn');
+  const closeBroadcastReportBtn = document.getElementById('closeBroadcastReportBtn');
+  const dismissReportModalBtn = document.getElementById('dismissReportModalBtn');
 
   openBroadcastModalBtn?.addEventListener('click', () => {
     if (broadcastModal) broadcastModal.classList.remove('hidden');
@@ -747,6 +809,13 @@
 
   closeBroadcastBtn?.addEventListener('click', () => {
     if (broadcastModal) broadcastModal.classList.add('hidden');
+  });
+
+  closeBroadcastReportBtn?.addEventListener('click', () => {
+    broadcastReportModal?.classList.add('hidden');
+  });
+  dismissReportModalBtn?.addEventListener('click', () => {
+    broadcastReportModal?.classList.add('hidden');
   });
 
   // Audience selection chips
@@ -780,14 +849,60 @@
     }
     sendBroadcastBtn.disabled = true;
     sendBroadcastBtn.innerText = 'در حال آماده‌سازی و ارسال...';
+
     try {
       const res = await window.api.broadcastMessage(txt, currentBroadcastTarget);
-      if (res && res.ok) {
-        if (window.showToast) window.showToast(`🚀 ${res.message || 'ارسال پیام همگانی آغاز شد.'}`);
-        if (window.hapticFeedback) window.hapticFeedback('success');
+      if (res && res.ok && res.broadcast_id) {
         if (broadcastModal) broadcastModal.classList.add('hidden');
         const txtEl = document.getElementById('broadcastTextArea');
         if (txtEl) txtEl.value = '';
+
+        // Open Live Progress Report Modal
+        if (broadcastReportModal) {
+          broadcastReportModal.classList.remove('hidden');
+          const targetEl = document.getElementById('reportTargetLabel');
+          if (targetEl) targetEl.innerText = res.stats?.target_label || 'همه کاربران';
+          const totalEl = document.getElementById('reportTotalCount');
+          if (totalEl) totalEl.innerText = `${formatNumber(res.stats?.total || 0)} نفر`;
+          const sentEl = document.getElementById('reportSentCount');
+          if (sentEl) sentEl.innerText = '۰ پیام';
+          const failEl = document.getElementById('reportFailedCount');
+          if (failEl) failEl.innerText = '۰';
+          const statusEl = document.getElementById('reportStatusText');
+          if (statusEl) statusEl.innerText = 'در حال ارسال پیام‌ها...';
+          const pBar = document.getElementById('reportProgressBar');
+          if (pBar) pBar.style.width = '10%';
+          const pText = document.getElementById('reportPercentText');
+          if (pText) pText.innerText = '۰%';
+
+          // Poll progress
+          const bId = res.broadcast_id;
+          const pollTimer = setInterval(async () => {
+            try {
+              const statusRes = await window.api.getBroadcastStatus(bId);
+              if (statusRes && statusRes.ok && statusRes.stats) {
+                const s = statusRes.stats;
+                if (sentEl) sentEl.innerText = `${formatNumber(s.sent || 0)} پیام`;
+                if (failEl) failEl.innerText = formatNumber(s.failed || 0);
+
+                const total = s.total || 1;
+                const processed = (s.sent || 0) + (s.failed || 0);
+                const pct = Math.min(100, Math.round((processed / total) * 100));
+
+                if (pBar) pBar.style.width = `${pct}%`;
+                if (pText) pText.innerText = `${pct}%`;
+
+                if (s.is_completed) {
+                  clearInterval(pollTimer);
+                  if (statusEl) statusEl.innerText = '✅ ارسال پیام همگانی پایان یافت';
+                  if (window.hapticFeedback) window.hapticFeedback('success');
+                }
+              }
+            } catch (err) {
+              clearInterval(pollTimer);
+            }
+          }, 600);
+        }
       } else {
         if (window.showToast) window.showToast(`⚠️ ${res?.error || 'خطا در ارسال پیام'}`);
         if (window.hapticFeedback) window.hapticFeedback('error');
