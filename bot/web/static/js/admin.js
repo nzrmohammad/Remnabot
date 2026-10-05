@@ -58,9 +58,10 @@
   }
 
   function formatNumber(num) {
-    if (num === null || num === undefined) return '۰';
-    const str = String(num);
-    const [intPart, decPart] = str.split('.');
+    if (num === null || num === undefined || isNaN(Number(num))) return '۰';
+    const n = Number(num);
+    const rounded = Number.isInteger(n) ? n.toString() : (Math.round(n * 100) / 100).toString();
+    const [intPart, decPart] = rounded.split('.');
     const formattedInt = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
     const full = decPart !== undefined ? `${formattedInt}.${decPart}` : formattedInt;
     return full.replace(/\d/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]);
@@ -368,7 +369,7 @@
     const currentToday = Number(todayGb || (values && values[values.length - 1]) || 0);
     const totalEl = document.getElementById('trafficChartTotal');
     if (totalEl) {
-      totalEl.innerHTML = `<span class="text-[9px] text-slate-400">امروز:</span> <span class="font-bold text-cyan-300 font-mono text-xs">${formatNumber(currentToday)}</span> <span class="text-[9px] text-cyan-400 font-sans">GB</span> <span class="text-slate-600 px-0.5">|</span> <span class="text-[9px] text-slate-400">۷ روز:</span> <span class="font-bold text-slate-300 font-mono">${formatNumber(totalGb || 0)}</span> <span class="text-[9px] text-slate-400 font-sans">GB</span>`;
+      totalEl.innerHTML = `<span class="font-bold text-cyan-300 font-mono text-xs">${formatNumber(totalGb || currentToday || 0)}</span> <span class="text-[10px] text-cyan-400 font-sans">GB</span>`;
     }
 
     if (trafficChartInstance) {
@@ -438,7 +439,11 @@
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    const labels = locationShare?.labels || ['سایر'];
+    const rawLabels = locationShare?.labels || ['🌐'];
+    const labels = rawLabels.map(l => {
+      const clean = (l || '').replace(/[A-Za-z0-9_-]+/g, '').trim();
+      return clean || '🌐';
+    });
     const values = locationShare?.data || [1];
     const unit = locationShare?.unit || 'GB';
 
@@ -2430,9 +2435,9 @@
   document.querySelectorAll('.broadcast-audience-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       document.querySelectorAll('.broadcast-audience-btn').forEach(b => {
-        b.className = 'broadcast-audience-btn px-2.5 py-1 rounded-xl bg-slate-800 text-slate-400 hover:text-white text-[10px] transition border border-slate-700/60';
+        b.className = 'broadcast-audience-btn px-2.5 py-1 rounded-xl bg-transparent text-slate-400 hover:text-white text-[10px] transition border border-slate-700/60';
       });
-      btn.className = 'broadcast-audience-btn px-2.5 py-1 rounded-xl bg-blue-600 text-white font-bold text-[10px] transition border border-blue-500 shadow-sm';
+      btn.className = 'broadcast-audience-btn px-2.5 py-1 rounded-xl bg-blue-600/20 text-blue-400 font-bold text-[10px] transition border border-blue-500 shadow-sm';
       currentBroadcastTarget = btn.getAttribute('data-target') || 'all';
 
       const labelMap = {

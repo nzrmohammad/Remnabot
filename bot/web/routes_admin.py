@@ -46,7 +46,9 @@ async def get_admin_overview(request: web.Request) -> web.Response:
     cache: FastCache = request.app["cache"]
     cache_key = "tma:admin:overview"
     is_refresh = request.query.get("refresh") in ("1", "true")
-    if not is_refresh:
+    if is_refresh:
+        await cache.delete("analytics:traffic:7day_series")
+    else:
         cached_data = await cache.get(cache_key)
         if cached_data:
             return web.json_response({"ok": True, "data": cached_data, "cached": True})
@@ -198,23 +200,33 @@ async def get_admin_overview(request: web.Request) -> web.Response:
 
         chart_traffic_labels = [_get_day_label(d) for d in days_list]
 
-        today_cluster_bytes = 0
+        # Calculate today's real cluster traffic matching bot reports exactly
+        country_node_bytes: dict[str, int] = {}
+        total_node_today_bytes = 0
         for n in nodes:
             if isinstance(n, dict):
-                tb = n.get("todayTrafficBytes") or n.get("traffic") or 0
+                cc = str(n.get("countryCode") or n.get("country_code") or "").strip().upper()
+                tb = (
+                    n.get("trafficDailyBytes")
+                    or n.get("dailyTrafficBytes")
+                    or n.get("todayTrafficBytes")
+                    or n.get("traffic")
+                    or 0
+                )
                 try:
-                    today_cluster_bytes += int(tb)
+                    val = int(tb)
+                    if cc:
+                        country_node_bytes[cc] = country_node_bytes.get(cc, 0) + val
+                    total_node_today_bytes += val
                 except (ValueError, TypeError):
                     pass
-        today_cluster_gb = round(today_cluster_bytes / (1024 ** 3), 2)
 
         # 7-day traffic consumption trend for dashboard charts
-        # 1. Check cache for recent 7-day series to keep response instant
+        # Check cache for recent 7-day series unless explicitly refreshed
         cached_traffic = None if is_refresh else await cache.get("analytics:traffic:7day_series")
         if cached_traffic and isinstance(cached_traffic, dict) and "data" in cached_traffic:
             chart_traffic_data = list(cached_traffic["data"])
-            if today_cluster_gb > 0 and len(chart_traffic_data) == 7:
-                chart_traffic_data[6] = today_cluster_gb
+            today_cluster_gb = float(cached_traffic.get("today_traffic_gb") or chart_traffic_data[-1] or 0.0)
             traffic_total_gb = round(sum(chart_traffic_data), 2)
         else:
             daily_bytes_sum = [0] * 7
@@ -222,15 +234,19 @@ async def get_admin_overview(request: web.Request) -> web.Response:
             start_ds = (now_utc - timedelta(days=6)).strftime("%Y-%m-%d")
             end_ds = now_utc.strftime("%Y-%m-%d")
 
-            # Try Remnawave user bandwidth stats for top active panel users
+            # Remnawave user bandwidth stats for active panel users (aligned with bot reports)
             active_uids = [
                 int(u["id"])
-                for u in sorted(panel_users, key=lambda x: get_used_bytes(x), reverse=True)[:15]
+                for u in sorted(panel_users, key=lambda x: get_used_bytes(x), reverse=True)
                 if u.get("id") and get_used_bytes(u) > 0
             ]
+
+            user_today_country_bytes: dict[str, int] = {}
+            user_today_total_bytes = 0
+
             if hasattr(remnawave, "get_user_bandwidth_stats") and active_uids:
                 try:
-                    sem = asyncio.Semaphore(5)
+                    sem = asyncio.Semaphore(10)
                     async def _fetch_bw(uid: int):
                         async with sem:
                             return await remnawave.get_user_bandwidth_stats(uid, start_ds, end_ds)
@@ -239,26 +255,35 @@ async def get_admin_overview(request: web.Request) -> web.Response:
                     for r in bw_results:
                         if isinstance(r, list):
                             for s in r:
+                                cc = str(s.get("countryCode") or s.get("country_code") or "").strip().upper()
                                 s_data = s.get("data") or []
                                 if len(s_data) == 7:
                                     has_real_stats = True
                                     for idx, val in enumerate(s_data):
                                         try:
-                                            daily_bytes_sum[idx] += int(float(val or 0))
+                                            b_val = int(float(val or 0))
+                                            daily_bytes_sum[idx] += b_val
                                         except (ValueError, TypeError):
                                             pass
+                                val_today = int(float(s_data[-1])) if s_data else int(float(s.get("total") or 0))
+                                if val_today > 0:
+                                    if cc:
+                                        user_today_country_bytes[cc] = user_today_country_bytes.get(cc, 0) + val_today
+                                    user_today_total_bytes += val_today
                 except Exception as exc:
                     logger.debug("Failed fetching user bandwidth stats: %s", exc)
 
+            # Reconcile node telemetry and user bandwidth stats exactly as admin_summaries does
+            for cc, val in user_today_country_bytes.items():
+                if cc:
+                    country_node_bytes[cc] = max(country_node_bytes.get(cc, 0), val)
+
+            today_cluster_bytes = sum(country_node_bytes.values()) if country_node_bytes else max(total_node_today_bytes, user_today_total_bytes)
+            today_cluster_gb = round(today_cluster_bytes / (1024 ** 3), 2)
+
             if has_real_stats and sum(daily_bytes_sum) > 0:
-                if today_cluster_gb > 0 and daily_bytes_sum[6] > 0:
-                    ratio = today_cluster_bytes / daily_bytes_sum[6]
-                    chart_traffic_data = [round((b * ratio) / (1024 ** 3), 2) for b in daily_bytes_sum]
-                    chart_traffic_data[6] = today_cluster_gb
-                else:
-                    chart_traffic_data = [round(b / (1024 ** 3), 2) for b in daily_bytes_sum]
-                    if today_cluster_gb > 0:
-                        chart_traffic_data[6] = today_cluster_gb
+                chart_traffic_data = [round(b / (1024 ** 3), 2) for b in daily_bytes_sum]
+                chart_traffic_data[6] = today_cluster_gb
                 traffic_total_gb = round(sum(chart_traffic_data), 2)
             else:
                 # Track and check daily snapshot history in cache
@@ -283,7 +308,6 @@ async def get_admin_overview(request: web.Request) -> web.Response:
                         chart_traffic_data[6] = today_cluster_gb
                     traffic_total_gb = round(sum(chart_traffic_data), 2)
                 elif today_cluster_gb > 0:
-                    # Distribute with today's real node consumption as anchor
                     weights = [0.12, 0.14, 0.13, 0.15, 0.16, 0.14, 0.16]
                     base_gb = max(total_traffic_gb, today_cluster_gb * 4)
                     chart_traffic_data = [round(base_gb * w, 2) for w in weights]
@@ -299,19 +323,18 @@ async def get_admin_overview(request: web.Request) -> web.Response:
 
             await cache.set(
                 "analytics:traffic:7day_series",
-                {"data": chart_traffic_data, "total_gb": traffic_total_gb},
+                {"data": chart_traffic_data, "total_gb": traffic_total_gb, "today_traffic_gb": today_cluster_gb},
                 ttl_seconds=300
             )
 
         # -------------------------------------------------------------
         # 4 Strategic Management Charts
         # -------------------------------------------------------------
-        # 1. Location share (from nodes_overview)
+        # 1. Location share (from nodes_overview) - Emoji flag only (no NL/code text)
         country_agg: dict[str, dict[str, Any]] = {}
         for n in nodes_overview:
-            cc = n.get("country_code") or "NL"
             flag = n.get("flag") or "🌐"
-            lbl = f"{flag} {cc}"
+            lbl = flag
             if lbl not in country_agg:
                 country_agg[lbl] = {"traffic_gb": 0.0, "nodes_count": 0}
             country_agg[lbl]["traffic_gb"] += float(n.get("traffic_used_gb") or 0.0)
@@ -325,7 +348,7 @@ async def get_admin_overview(request: web.Request) -> web.Response:
             loc_data.append(round(v["traffic_gb"], 2) if total_loc_gb > 0 else v["nodes_count"])
 
         if not loc_labels:
-            loc_labels = ["🌐 سرور اصلی"]
+            loc_labels = ["🌐"]
             loc_data = [1]
 
         location_share = {

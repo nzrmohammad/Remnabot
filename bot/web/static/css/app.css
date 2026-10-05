@@ -267,3 +267,38 @@ html.theme-light .border-blue-800\/50 {
   border-color: #c7d2fe !important;
 }
 
+/* Light theme overrides for admin pending banner & modals */
+html.theme-light #adminPendingBanner {
+  background-color: #fffbeb !important;
+  border-color: #fde68a !important;
+}
+html.theme-light #adminPendingBanner span.font-bold,
+html.theme-light #adminPendingBanner .text-amber-800,
+html.theme-light #adminPendingBanner .text-amber-300 {
+  color: #b45309 !important;
+}
+html.theme-light #adminPendingBanner #adminPendingSummary,
+html.theme-light #adminPendingBanner .text-amber-900,
+html.theme-light #adminPendingBanner .text-slate-300 {
+  color: #78350f !important;
+}
+
+html.theme-light #broadcastModal > div,
+html.theme-light #broadcastReportModal > div {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+  color: #0f172a !important;
+}
+html.theme-light #broadcastModal textarea {
+  background-color: #f8fafc !important;
+  border-color: #cbd5e1 !important;
+  color: #0f172a !important;
+}
+html.theme-light .broadcast-audience-btn {
+  border-color: #cbd5e1 !important;
+  color: #475569 !important;
+}
+html.theme-light .broadcast-audience-btn:hover {
+  color: #0f172a !important;
+}
+
