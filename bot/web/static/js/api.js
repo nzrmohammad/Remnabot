@@ -112,8 +112,8 @@ const api = {
   },
 
   // Admin Suite Endpoints
-  async getAdminOverview() {
-    return this.get('/api/admin/overview');
+  async getAdminOverview(params = {}) {
+    return this.get('/api/admin/overview', params);
   },
 
   async getAdminUsers(params = {}) {

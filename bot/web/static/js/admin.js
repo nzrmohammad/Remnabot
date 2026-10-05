@@ -103,6 +103,10 @@
       if (targetId === 'tab-admin-dashboard') {
         salesChartInstance?.resize();
         trafficChartInstance?.resize();
+        locationChartInstance?.resize();
+        hourlyChartInstance?.resize();
+        retentionChartInstance?.resize();
+        planSalesChartInstance?.resize();
       }
 
       // Lazy load tab data
@@ -144,6 +148,26 @@
       }
       trafficChartInstance.update();
     }
+    if (hourlyChartInstance) {
+      if (hourlyChartInstance.options?.scales?.x?.ticks) hourlyChartInstance.options.scales.x.ticks.color = tickColor;
+      if (hourlyChartInstance.options?.scales?.y?.ticks) hourlyChartInstance.options.scales.y.ticks.color = tickColor;
+      if (hourlyChartInstance.options?.scales?.y?.grid) hourlyChartInstance.options.scales.y.grid.color = gridColor;
+      hourlyChartInstance.update();
+    }
+    if (retentionChartInstance) {
+      if (retentionChartInstance.options?.scales?.x?.ticks) retentionChartInstance.options.scales.x.ticks.color = tickColor;
+      if (retentionChartInstance.options?.scales?.y?.ticks) retentionChartInstance.options.scales.y.ticks.color = tickColor;
+      if (retentionChartInstance.options?.scales?.y?.grid) retentionChartInstance.options.scales.y.grid.color = gridColor;
+      retentionChartInstance.update();
+    }
+    if (locationChartInstance) {
+      if (locationChartInstance.options?.plugins?.legend?.labels) locationChartInstance.options.plugins.legend.labels.color = tickColor;
+      locationChartInstance.update();
+    }
+    if (planSalesChartInstance) {
+      if (planSalesChartInstance.options?.plugins?.legend?.labels) planSalesChartInstance.options.plugins.legend.labels.color = tickColor;
+      planSalesChartInstance.update();
+    }
   };
 
   adminThemeToggle?.addEventListener('click', () => {
@@ -170,9 +194,10 @@
   });
 
   // --- 4. Overview & Cluster Metrics ---
-  async function syncAdminOverview() {
+  async function syncAdminOverview(isForce = false) {
     try {
-      const res = await window.api.getAdminOverview();
+      const params = isForce ? { refresh: 1, t: Date.now() } : {};
+      const res = await window.api.getAdminOverview(params);
       if (!res || !res.ok || !res.data) {
         dismissSplash();
         return;
@@ -235,17 +260,27 @@
       const syncText = document.getElementById('adminLastSyncText');
       if (syncText) syncText.innerText = 'Sync: آنلاین';
 
-      // Render 7-day Sales & Traffic Charts
+      // Render Dashboard Analytics Charts
       lastOverviewData = data;
       if (data.charts) {
+        const c = data.charts;
         if (typeof Chart !== 'undefined') {
-          renderAdminSalesChart(data.charts.sales_labels, data.charts.sales_data);
-          renderAdminTrafficChart(data.charts.traffic_labels, data.charts.traffic_data, data.charts.traffic_total_gb);
+          renderAdminSalesChart(c.sales_labels, c.sales_data);
+          renderAdminTrafficChart(c.traffic_labels, c.traffic_data, c.traffic_total_gb, c.today_traffic_gb);
+          renderAdminLocationChart(c.location_share);
+          renderAdminHourlyChart(c.hourly_distribution);
+          renderAdminRetentionChart(c.retention_trend);
+          renderAdminPlanSalesChart(c.plan_distribution);
         } else {
           setTimeout(() => {
             if (typeof Chart !== 'undefined' && lastOverviewData?.charts) {
-              renderAdminSalesChart(lastOverviewData.charts.sales_labels, lastOverviewData.charts.sales_data);
-              renderAdminTrafficChart(lastOverviewData.charts.traffic_labels, lastOverviewData.charts.traffic_data, lastOverviewData.charts.traffic_total_gb);
+              const ch = lastOverviewData.charts;
+              renderAdminSalesChart(ch.sales_labels, ch.sales_data);
+              renderAdminTrafficChart(ch.traffic_labels, ch.traffic_data, ch.traffic_total_gb, ch.today_traffic_gb);
+              renderAdminLocationChart(ch.location_share);
+              renderAdminHourlyChart(ch.hourly_distribution);
+              renderAdminRetentionChart(ch.retention_trend);
+              renderAdminPlanSalesChart(ch.plan_distribution);
             }
           }, 350);
         }
@@ -324,14 +359,17 @@
   }
 
   let trafficChartInstance = null;
-  function renderAdminTrafficChart(labels, values, totalGb) {
+  function renderAdminTrafficChart(labels, values, totalGb, todayGb) {
     const canvas = document.getElementById('adminTrafficChart');
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
+    const currentToday = Number(todayGb || (values && values[values.length - 1]) || 0);
     const totalEl = document.getElementById('trafficChartTotal');
-    if (totalEl) totalEl.innerHTML = `<span class="text-[9px] text-cyan-300 font-sans">GB</span><span>${formatNumber(totalGb || 0)}</span>`;
+    if (totalEl) {
+      totalEl.innerHTML = `<span class="text-[9px] text-slate-400">امروز:</span> <span class="font-bold text-cyan-300 font-mono text-xs">${formatNumber(currentToday)}</span> <span class="text-[9px] text-cyan-400 font-sans">GB</span> <span class="text-slate-600 px-0.5">|</span> <span class="text-[9px] text-slate-400">۷ روز:</span> <span class="font-bold text-slate-300 font-mono">${formatNumber(totalGb || 0)}</span> <span class="text-[9px] text-slate-400 font-sans">GB</span>`;
+    }
 
     if (trafficChartInstance) {
       trafficChartInstance.data.labels = labels;
@@ -386,6 +424,277 @@
               color: isDark ? '#94a3b8' : '#64748b',
               font: { family: 'Vazirmatn', size: 9 },
               callback: (val) => `${val} GB`
+            }
+          }
+        }
+      }
+    });
+  }
+
+  let locationChartInstance = null;
+  function renderAdminLocationChart(locationShare) {
+    const canvas = document.getElementById('adminLocationChart');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const labels = locationShare?.labels || ['سایر'];
+    const values = locationShare?.data || [1];
+    const unit = locationShare?.unit || 'GB';
+
+    if (locationChartInstance) {
+      locationChartInstance.data.labels = labels;
+      locationChartInstance.data.datasets[0].data = values;
+      locationChartInstance.update();
+      return;
+    }
+
+    locationChartInstance = new Chart(ctx, {
+      type: 'doughnut',
+      data: {
+        labels: labels,
+        datasets: [{
+          data: values,
+          backgroundColor: [
+            'rgba(139, 92, 246, 0.85)',
+            'rgba(6, 182, 212, 0.85)',
+            'rgba(16, 185, 129, 0.85)',
+            'rgba(245, 158, 11, 0.85)',
+            'rgba(244, 63, 94, 0.85)',
+            'rgba(99, 102, 241, 0.85)',
+          ],
+          borderWidth: 2,
+          borderColor: isDark ? '#0f172a' : '#ffffff',
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        cutout: '68%',
+        plugins: {
+          legend: {
+            position: 'bottom',
+            labels: {
+              boxWidth: 9,
+              boxHeight: 9,
+              padding: 8,
+              color: isDark ? '#94a3b8' : '#64748b',
+              font: { family: 'Vazirmatn', size: 9 },
+            }
+          },
+          tooltip: {
+            callbacks: {
+              label: (ctx) => `${ctx.label}: ${formatNumber(ctx.raw)} ${unit}`
+            }
+          }
+        }
+      }
+    });
+  }
+
+  let hourlyChartInstance = null;
+  function renderAdminHourlyChart(hourlyDist) {
+    const canvas = document.getElementById('adminHourlyChart');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const labels = hourlyDist?.labels || [];
+    const values = hourlyDist?.data || [];
+    const peakBadge = document.getElementById('peakHourBadge');
+    if (peakBadge && hourlyDist?.peak_hour) {
+      peakBadge.innerText = `Peak: ${hourlyDist.peak_hour}`;
+    }
+
+    if (hourlyChartInstance) {
+      hourlyChartInstance.data.labels = labels;
+      hourlyChartInstance.data.datasets[0].data = values;
+      hourlyChartInstance.update();
+      return;
+    }
+
+    const gradient = ctx.createLinearGradient(0, 0, 0, 140);
+    gradient.addColorStop(0, 'rgba(245, 158, 11, 0.40)');
+    gradient.addColorStop(1, 'rgba(245, 158, 11, 0.0)');
+
+    hourlyChartInstance = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [{
+          label: 'مصرف ساعتی (GB)',
+          data: values,
+          borderColor: '#f59e0b',
+          borderWidth: 2,
+          backgroundColor: gradient,
+          fill: true,
+          tension: 0.38,
+          pointRadius: 1.5,
+          pointHoverRadius: 4.5,
+          pointBackgroundColor: '#fbbf24',
+          pointBorderColor: isDark ? '#0f172a' : '#ffffff',
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: (ctx) => `ساعت ${ctx.label}: ${formatNumber(ctx.raw)} GB`
+            }
+          }
+        },
+        scales: {
+          x: {
+            grid: { display: false },
+            ticks: {
+              color: isDark ? '#94a3b8' : '#64748b',
+              font: { family: 'Vazirmatn', size: 8 },
+              maxTicksLimit: 7,
+            }
+          },
+          y: {
+            beginAtZero: true,
+            grid: { color: isDark ? 'rgba(51, 65, 85, 0.3)' : 'rgba(226, 232, 240, 0.8)' },
+            ticks: {
+              color: isDark ? '#94a3b8' : '#64748b',
+              font: { family: 'Vazirmatn', size: 9 },
+              callback: (val) => `${val}G`
+            }
+          }
+        }
+      }
+    });
+  }
+
+  let retentionChartInstance = null;
+  function renderAdminRetentionChart(retentionTrend) {
+    const canvas = document.getElementById('adminRetentionChart');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const labels = retentionTrend?.labels || [];
+    const newSales = retentionTrend?.new_sales || [];
+    const renewalSales = retentionTrend?.renewal_sales || [];
+
+    if (retentionChartInstance) {
+      retentionChartInstance.data.labels = labels;
+      retentionChartInstance.data.datasets[0].data = newSales;
+      retentionChartInstance.data.datasets[1].data = renewalSales;
+      retentionChartInstance.update();
+      return;
+    }
+
+    retentionChartInstance = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: labels,
+        datasets: [
+          {
+            label: 'کاربر جدید',
+            data: newSales,
+            backgroundColor: 'rgba(16, 185, 129, 0.85)',
+            hoverBackgroundColor: 'rgba(52, 211, 153, 1)',
+            borderRadius: 4,
+            borderSkipped: false,
+          },
+          {
+            label: 'تمدید اشتراک',
+            data: renewalSales,
+            backgroundColor: 'rgba(59, 130, 246, 0.85)',
+            hoverBackgroundColor: 'rgba(96, 165, 250, 1)',
+            borderRadius: 4,
+            borderSkipped: false,
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: (ctx) => `${ctx.dataset.label}: ${formatNumber(ctx.raw)} کاربر`
+            }
+          }
+        },
+        scales: {
+          x: {
+            stacked: true,
+            grid: { display: false },
+            ticks: { color: isDark ? '#94a3b8' : '#64748b', font: { family: 'Vazirmatn', size: 9 } }
+          },
+          y: {
+            stacked: true,
+            beginAtZero: true,
+            grid: { color: isDark ? 'rgba(51, 65, 85, 0.3)' : 'rgba(226, 232, 240, 0.8)' },
+            ticks: {
+              color: isDark ? '#94a3b8' : '#64748b',
+              font: { family: 'Vazirmatn', size: 9 },
+              precision: 0,
+            }
+          }
+        }
+      }
+    });
+  }
+
+  let planSalesChartInstance = null;
+  function renderAdminPlanSalesChart(planDist) {
+    const canvas = document.getElementById('adminPlanSalesChart');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const labels = planDist?.labels || ['پلن استاندارد'];
+    const values = planDist?.sales_count || [1];
+
+    if (planSalesChartInstance) {
+      planSalesChartInstance.data.labels = labels;
+      planSalesChartInstance.data.datasets[0].data = values;
+      planSalesChartInstance.update();
+      return;
+    }
+
+    planSalesChartInstance = new Chart(ctx, {
+      type: 'doughnut',
+      data: {
+        labels: labels,
+        datasets: [{
+          data: values,
+          backgroundColor: [
+            'rgba(236, 72, 153, 0.85)',
+            'rgba(168, 85, 247, 0.85)',
+            'rgba(99, 102, 241, 0.85)',
+            'rgba(6, 182, 212, 0.85)',
+            'rgba(16, 185, 129, 0.85)',
+          ],
+          borderWidth: 2,
+          borderColor: isDark ? '#0f172a' : '#ffffff',
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        cutout: '66%',
+        plugins: {
+          legend: {
+            position: 'bottom',
+            labels: {
+              boxWidth: 9,
+              boxHeight: 9,
+              padding: 8,
+              color: isDark ? '#94a3b8' : '#64748b',
+              font: { family: 'Vazirmatn', size: 9 },
+            }
+          },
+          tooltip: {
+            callbacks: {
+              label: (ctx) => `${ctx.label}: ${formatNumber(ctx.raw)} سفارش`
             }
           }
         }
@@ -2216,20 +2525,20 @@
 
   // --- 10. Header & Action Trigger Buttons ---
   document.getElementById('adminReloadBtn')?.addEventListener('click', () => {
-    syncAdminOverview();
+    syncAdminOverview(true);
     if (window.showToast) window.showToast('🔄 اطلاعات به‌روزرسانی شد.');
     if (window.hapticFeedback) window.hapticFeedback('impact');
   });
 
   document.getElementById('quickRefreshMetricsBtn')?.addEventListener('click', () => {
-    syncAdminOverview();
+    syncAdminOverview(true);
     if (window.showToast) window.showToast('🔄 داده‌ها سینک شدند.');
     if (window.hapticFeedback) window.hapticFeedback('impact');
   });
 
   document.getElementById('syncAllNodesBtn')?.addEventListener('click', (e) => {
     e.stopPropagation();
-    syncAdminOverview();
+    syncAdminOverview(true);
     if (window.showToast) window.showToast('🔄 نودها همگام‌سازی شدند.');
     if (window.hapticFeedback) window.hapticFeedback('impact');
   });
@@ -2249,7 +2558,7 @@
   });
 
   document.getElementById('refreshNodesTabBtn')?.addEventListener('click', () => {
-    syncAdminOverview();
+    syncAdminOverview(true);
     if (window.showToast) window.showToast('🔄 وضعیت نودها به‌روزرسانی شد.');
     if (window.hapticFeedback) window.hapticFeedback('impact');
   });

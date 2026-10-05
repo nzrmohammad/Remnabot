@@ -184,3 +184,86 @@ html.theme-light .text-pink-600 {
   color: #db2777 !important;
 }
 
+/* Eye-Friendly harmonious light theme adaptations for dark background classes */
+html.theme-light [class*="bg-slate-950"],
+html.theme-light .bg-slate-950,
+html.theme-light .bg-slate-950\/80,
+html.theme-light .bg-slate-950\/60,
+html.theme-light .bg-slate-950\/40,
+html.theme-light .bg-slate-950\/30 {
+  background-color: #f1f5f9 !important;
+  border-color: #e2e8f0 !important;
+}
+
+html.theme-light [class*="bg-slate-750"],
+html.theme-light .bg-slate-750,
+html.theme-light .bg-slate-750\/70 {
+  background-color: #f8fafc !important;
+}
+
+html.theme-light .bg-blue-950\/60,
+html.theme-light .bg-blue-950\/50,
+html.theme-light .bg-blue-950\/40 {
+  background-color: #eff6ff !important;
+  border-color: #bfdbfe !important;
+}
+
+html.theme-light .bg-amber-950\/60,
+html.theme-light .bg-amber-950\/50,
+html.theme-light .bg-amber-950\/40 {
+  background-color: #fffbeb !important;
+  border-color: #fde68a !important;
+}
+
+html.theme-light .bg-emerald-950\/70,
+html.theme-light .bg-emerald-950\/60,
+html.theme-light .bg-emerald-950\/50,
+html.theme-light .bg-emerald-950\/40 {
+  background-color: #ecfdf5 !important;
+  border-color: #a7f3d0 !important;
+}
+
+html.theme-light .bg-rose-950\/70,
+html.theme-light .bg-rose-950\/60,
+html.theme-light .bg-rose-950\/50,
+html.theme-light .bg-rose-950\/40 {
+  background-color: #fff1f2 !important;
+  border-color: #fecdd3 !important;
+}
+
+html.theme-light .bg-indigo-950\/70,
+html.theme-light .bg-indigo-950\/60,
+html.theme-light .bg-indigo-950\/50,
+html.theme-light .bg-indigo-950\/40 {
+  background-color: #eef2ff !important;
+  border-color: #c7d2fe !important;
+}
+
+html.theme-light .bg-purple-950\/60,
+html.theme-light .bg-purple-950\/40 {
+  background-color: #faf5ff !important;
+  border-color: #e9d5ff !important;
+}
+
+html.theme-light .bg-teal-950\/70,
+html.theme-light .bg-cyan-950\/60 {
+  background-color: #ecfeff !important;
+  border-color: #a5f3fc !important;
+}
+
+html.theme-light .border-slate-800,
+html.theme-light .border-slate-800\/60,
+html.theme-light .border-slate-800\/50 {
+  border-color: #e2e8f0 !important;
+}
+
+html.theme-light .border-emerald-800\/60,
+html.theme-light .border-emerald-700\/50 {
+  border-color: #a7f3d0 !important;
+}
+
+html.theme-light .border-indigo-700\/50,
+html.theme-light .border-blue-800\/50 {
+  border-color: #c7d2fe !important;
+}
+
