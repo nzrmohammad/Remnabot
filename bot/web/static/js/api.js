@@ -120,8 +120,11 @@ const api = {
     return this.get('/api/admin/users', params);
   },
 
-  async modifyUser(telegram_id, action, amount) {
-    return this.post('/api/admin/user/modify', { telegram_id, action, amount });
+  async modifyUser(telegram_id, actionOrPayload, amount) {
+    if (typeof actionOrPayload === 'object' && actionOrPayload !== null) {
+      return this.post('/api/admin/user/modify', { telegram_id, ...actionOrPayload });
+    }
+    return this.post('/api/admin/user/modify', { telegram_id, action: actionOrPayload, amount });
   },
 
   async killUserSessions(telegram_id) {

@@ -302,3 +302,75 @@ html.theme-light .broadcast-audience-btn:hover {
   color: #0f172a !important;
 }
 
+/* Light theme overrides for admin modals */
+html.theme-light #planModal > div,
+html.theme-light #couponModal > div,
+html.theme-light #modifyUserModal > div,
+html.theme-light #walletModal > div,
+html.theme-light #hwidModal > div,
+html.theme-light #subModal > div,
+html.theme-light #trialModal > div,
+html.theme-light #confirmActionModal > div,
+html.theme-light #operationReportModal > div,
+html.theme-light #couponUsagesModal > div {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+  color: #0f172a !important;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1) !important;
+}
+
+html.theme-light #planModal input,
+html.theme-light #couponModal input,
+html.theme-light #modifyUserModal input,
+html.theme-light #walletModal input,
+html.theme-light #subModal input {
+  background-color: #f8fafc !important;
+  border-color: #cbd5e1 !important;
+  color: #0f172a !important;
+}
+
+html.theme-light #planModal label,
+html.theme-light #couponModal label,
+html.theme-light #modifyUserModal label,
+html.theme-light #walletModal label,
+html.theme-light #subModal label,
+html.theme-light #hwidModal label,
+html.theme-light #trialModal label {
+  color: #475569 !important;
+}
+
+html.theme-light #confirmActionModal p#confirmModalMessage,
+html.theme-light #trialModal .bg-slate-900\/70,
+html.theme-light #modifyUserModal .bg-slate-900\/60,
+html.theme-light #operationReportModal .bg-slate-900\/60 {
+  background-color: #f8fafc !important;
+  border-color: #e2e8f0 !important;
+  color: #334155 !important;
+}
+
+html.theme-light #operationReportModal .bg-emerald-950\/40 {
+  background-color: #ecfdf5 !important;
+  border-color: #a7f3d0 !important;
+}
+html.theme-light #operationReportModal .bg-emerald-950\/40 b {
+  color: #059669 !important;
+}
+
+html.theme-light #trialModal .bg-purple-950\/40 {
+  background-color: #faf5ff !important;
+  border-color: #e9d5ff !important;
+  color: #6b21a8 !important;
+}
+html.theme-light #trialModal .bg-purple-950\/40 p {
+  color: #581c87 !important;
+}
+
+html.theme-light #hwidModal .border-slate-700\/60,
+html.theme-light #hwidModal .border-slate-700\/80 {
+  border-color: #e2e8f0 !important;
+}
+
+html.theme-light #hwidModal .text-white {
+  color: #0f172a !important;
+}
+

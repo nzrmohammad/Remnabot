@@ -937,21 +937,28 @@
     }
 
     listContainer.innerHTML = users.map(u => {
-      // Username with @ strictly on the left (LTR display)
-      const usernameText = u.username ? `@${u.username}` : 'بدون یوزرنیم';
-      const initial = (u.username || String(u.telegram_id))[0].toUpperCase();
+      // Prioritize full_name over username
+      const displayName = u.full_name || (u.username ? `@${u.username}` : `کاربر ${u.telegram_id}`);
+      const safeDisplayName = (displayName || '').replace(/'/g, "\\'");
+      const initial = (u.full_name || u.username || String(u.telegram_id))[0].toUpperCase();
       const p = u.panel_account;
 
       let statusBadge = '<span class="px-1.5 py-0.5 rounded-lg text-[9px] bg-transparent border border-slate-400/30 text-slate-500 dark:text-slate-400 font-medium">بدون اکانت</span>';
       if (u.is_banned) {
         statusBadge = '<span class="px-1.5 py-0.5 rounded-lg text-[9px] bg-transparent text-rose-600 dark:text-rose-400 font-bold border border-rose-500/30">مسدود</span>';
+      } else if (u.is_expired || (p && p.exists && (p.status || '').toUpperCase() === 'EXPIRED')) {
+        statusBadge = '<span class="px-1.5 py-0.5 rounded-lg text-[9px] bg-transparent text-rose-600 dark:text-rose-400 font-bold border border-rose-500/30">منقضی</span>';
       } else if (p && p.exists) {
         const st = (p.status || '').toUpperCase();
         if (st === 'ACTIVE') statusBadge = '<span class="px-1.5 py-0.5 rounded-lg text-[9px] bg-transparent text-emerald-600 dark:text-emerald-400 font-bold border border-emerald-500/30">فعال</span>';
         else if (st === 'DISABLED') statusBadge = '<span class="px-1.5 py-0.5 rounded-lg text-[9px] bg-transparent text-amber-600 dark:text-amber-400 font-bold border border-amber-500/30">غیرفعال</span>';
-        else if (st === 'EXPIRED') statusBadge = '<span class="px-1.5 py-0.5 rounded-lg text-[9px] bg-transparent text-rose-600 dark:text-rose-400 font-bold border border-rose-500/30">منقضی</span>';
         else statusBadge = `<span class="px-1.5 py-0.5 rounded-lg text-[9px] bg-transparent text-blue-600 dark:text-blue-400 font-bold border border-blue-500/30">${st}</span>`;
       }
+
+      const isExpiring = u.is_expiring || (p && p.exists && !u.is_expired && ((p.days_left !== null && p.days_left > 0 && p.days_left <= 3) || (p.remaining_traffic_gb >= 0 && p.remaining_traffic_gb <= 2.0 && p.limit_traffic_gb > 0)));
+      const expiringBadgeHtml = isExpiring
+        ? '<span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-lg bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[9px] font-bold animate-pulse flex-shrink-0 whitespace-nowrap" title="هشدار: حجم یا زمان رو به اتمام است"><svg class="w-2.5 h-2.5 text-amber-300" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z"/></svg> رو به اتمام</span>'
+        : '';
 
       let serviceLineHtml = `
         <div class="bg-slate-900/60 px-3 py-2 rounded-xl border border-slate-800 text-xs text-slate-400 text-center">
@@ -1012,19 +1019,18 @@
                 <img src="${avatarSrc}" alt="Avatar" class="w-full h-full object-cover" onerror="this.classList.add('hidden'); if(this.nextElementSibling) this.nextElementSibling.classList.remove('hidden');" />
                 <span class="${u.avatar_url ? 'hidden' : ''} font-bold">${initial}</span>
               </div>
-              <div class="min-w-0">
-                <div class="flex items-center gap-1.5 flex-wrap">
-                  <div onclick="window.adminActions.quickCopy('@${u.username}', 'نام کاربری')" dir="ltr" class="text-xs font-bold text-white font-mono truncate max-w-[130px] cursor-pointer hover:text-cyan-300 active:scale-95 transition flex items-center gap-1 group" title="برای کپی نام کاربری کلیک کنید">
-                    <span>${usernameText}</span>
-                    <svg class="w-3 h-3 text-slate-500 group-hover:text-cyan-300 opacity-70 transition flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+              <div class="min-w-0 flex-1">
+                <div class="flex items-center gap-1.5 min-w-0">
+                  <div onclick="window.adminActions.quickCopy('${safeDisplayName}', 'نام کاربر')" class="text-xs font-bold text-white truncate max-w-[120px] sm:max-w-[160px] cursor-pointer hover:text-cyan-300 active:scale-95 transition" title="${displayName}">
+                    <span class="truncate">${displayName}</span>
                   </div>
-                  ${u.is_online ? '<span class="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)] animate-pulse" title="متصل به سرور"></span>' : ''}
-                  ${statusBadge}
-                  ${(u.is_expiring || (p && p.exists && ((p.days_left !== null && p.days_left > 0 && p.days_left <= 3) || (p.remaining_traffic_gb >= 0 && p.remaining_traffic_gb <= 2.0 && p.limit_traffic_gb > 0)))) ? '<span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-lg bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[9px] font-bold animate-pulse" title="هشدار: حجم یا زمان رو به اتمام است"><svg class="w-2.5 h-2.5 text-amber-300" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z"/></svg> رو به اتمام</span>' : ''}
+                  ${u.is_online ? '<span class="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)] animate-pulse flex-shrink-0" title="متصل به سرور"></span>' : ''}
+                  <div class="flex-shrink-0">${statusBadge}</div>
+                  ${expiringBadgeHtml}
                 </div>
-                <div onclick="window.adminActions.quickCopy('${u.telegram_id}', 'شناسه عددی')" class="text-[10px] text-slate-400 font-mono mt-0.5 cursor-pointer hover:text-cyan-300 active:scale-95 transition flex items-center gap-1 group w-fit" title="برای کپی شناسه عددی کلیک کنید">
-                  <span>ID: ${u.telegram_id}</span>
-                  <svg class="w-2.5 h-2.5 text-slate-500 group-hover:text-cyan-300 opacity-70 transition flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                <div class="flex items-center gap-2 mt-0.5 text-[10px] text-slate-400 font-mono">
+                  <span onclick="window.adminActions.quickCopy('${u.telegram_id}', 'شناسه عددی')" class="cursor-pointer hover:text-cyan-300">ID: ${u.telegram_id}</span>
+                  ${u.username ? `<span onclick="window.adminActions.quickCopy('@${u.username}', 'نام کاربری')" class="cursor-pointer hover:text-cyan-300 text-slate-400/80 font-sans truncate max-w-[100px]" dir="ltr">@${u.username}</span>` : ''}
                 </div>
               </div>
             </div>
@@ -1034,37 +1040,33 @@
           <!-- Structured Service Metrics -->
           ${serviceLineHtml}
 
-          <!-- Quick Action Buttons -->
+          <!-- Quick Action Buttons: 3x2 Symmetrical Grid -->
           <div class="space-y-1.5 pt-1">
-            <div class="grid grid-cols-4 gap-1 text-center text-[10px]">
-              <button class="bg-transparent hover:bg-blue-500/10 text-blue-500 dark:text-blue-400 border border-blue-500/30 hover:border-blue-400/60 py-1.5 rounded-xl transition active:scale-95 font-medium flex items-center justify-center gap-1" onclick="window.adminActions.openModifyUser(${u.telegram_id}, '${u.username || u.telegram_id}', 'traffic')" title="افزایش حجم">
-                <span>+</span>
-                <span>ترافیک</span>
+            <div class="grid grid-cols-3 gap-1.5 text-center text-[10px]">
+              <button class="bg-transparent hover:bg-blue-500/10 text-blue-500 dark:text-blue-400 border border-blue-500/30 hover:border-blue-400/60 py-1.5 rounded-xl transition active:scale-95 font-medium flex items-center justify-center gap-1" onclick="window.adminActions.openModifyUser(${u.telegram_id}, '${safeDisplayName}')" title="افزایش حجم یا تمدید زمان">
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
+                <span>حجم و تمدید</span>
               </button>
-              <button class="bg-transparent hover:bg-indigo-500/10 text-indigo-500 dark:text-indigo-400 border border-indigo-500/30 hover:border-indigo-400/60 py-1.5 rounded-xl transition active:scale-95 font-medium flex items-center justify-center gap-1" onclick="window.adminActions.openModifyUser(${u.telegram_id}, '${u.username || u.telegram_id}', 'days')" title="تمدید زمان">
-                <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                <span>تمدید</span>
-              </button>
-              <button class="bg-transparent hover:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 hover:border-emerald-400/60 py-1.5 rounded-xl transition active:scale-95 font-medium flex items-center justify-center gap-1" onclick="window.adminActions.openWalletModal(${u.telegram_id}, '${u.username || u.telegram_id}')" title="شارژ یا کسر موجودی">
-                <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+              <button class="bg-transparent hover:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 hover:border-emerald-400/60 py-1.5 rounded-xl transition active:scale-95 font-medium flex items-center justify-center gap-1" onclick="window.adminActions.openWalletModal(${u.telegram_id}, '${safeDisplayName}')" title="شارژ یا کسر موجودی">
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
                 <span>موجودی</span>
               </button>
-              <button class="bg-transparent hover:bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/30 hover:border-purple-400/60 py-1.5 rounded-xl transition active:scale-95 font-medium flex items-center justify-center gap-1" onclick="window.adminActions.resetTrial(${u.telegram_id}, '${u.username || u.telegram_id}')" title="فعال‌سازی مجدد تست">
-                <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 01-2-2V7a2 2 0 012-2h14a2 2 0 012 2v3a2 2 0 01-2 2M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"/></svg>
-                <span>تست</span>
+              <button class="bg-transparent hover:bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/30 hover:border-purple-400/60 py-1.5 rounded-xl transition active:scale-95 font-medium flex items-center justify-center gap-1" onclick="window.adminActions.openTrialModal(${u.telegram_id}, '${safeDisplayName}')" title="فعال‌سازی مجدد تست">
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 01-2-2V7a2 2 0 012-2h14a2 2 0 012 2v3a2 2 0 01-2 2M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"/></svg>
+                <span>اکانت تست</span>
               </button>
             </div>
             <div class="grid grid-cols-3 gap-1.5 text-center text-[10px]">
-              <button class="bg-transparent hover:bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border border-cyan-500/30 hover:border-cyan-400/60 py-1.5 rounded-xl transition active:scale-95 font-medium flex items-center justify-center gap-1" onclick="window.adminActions.openSubModal(${u.telegram_id}, '${u.username || u.telegram_id}', '${p?.subscription_url || ''}')" title="مشاهده و تغییر لینک سابسکریپشن">
-                <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
+              <button class="bg-transparent hover:bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border border-cyan-500/30 hover:border-cyan-400/60 py-1.5 rounded-xl transition active:scale-95 font-medium flex items-center justify-center gap-1" onclick="window.adminActions.openSubModal(${u.telegram_id}, '${safeDisplayName}', '${p?.subscription_url || ''}')" title="مشاهده و تغییر لینک سابسکریپشن">
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
                 <span>لینک ساب</span>
               </button>
-              <button class="bg-transparent hover:bg-teal-500/10 text-teal-600 dark:text-teal-400 border border-teal-500/30 hover:border-teal-400/60 py-1.5 rounded-xl transition active:scale-95 font-medium flex items-center justify-center gap-1" onclick="window.adminActions.openHwidModal(${u.telegram_id}, '${u.username || u.telegram_id}')" title="دستگاه‌های متصل و نشست‌ها">
-                <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+              <button class="bg-transparent hover:bg-teal-500/10 text-teal-600 dark:text-teal-400 border border-teal-500/30 hover:border-teal-400/60 py-1.5 rounded-xl transition active:scale-95 font-medium flex items-center justify-center gap-1" onclick="window.adminActions.openHwidModal(${u.telegram_id}, '${safeDisplayName}')" title="دستگاه‌های متصل و نشست‌ها">
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
                 <span>دستگاه‌ها</span>
               </button>
               <button class="${u.is_banned ? 'text-emerald-600 dark:text-emerald-400 border-emerald-500/30 hover:border-emerald-400/60 hover:bg-emerald-500/10' : 'text-rose-600 dark:text-rose-400 border-rose-500/30 hover:border-rose-400/60 hover:bg-rose-500/10'} bg-transparent border py-1.5 rounded-xl transition active:scale-95 font-medium flex items-center justify-center gap-1" onclick="window.adminActions.toggleBan(${u.telegram_id}, ${u.is_banned})">
-                ${u.is_banned ? '<svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg><span>آزاد</span>' : '<svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg><span>مسدود</span>'}
+                ${u.is_banned ? '<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg><span>آزاد</span>' : '<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg><span>مسدود</span>'}
               </button>
             </div>
           </div>
@@ -1099,9 +1101,9 @@
   document.querySelectorAll('.user-filter-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       document.querySelectorAll('.user-filter-btn').forEach(b => {
-        b.className = 'user-filter-btn px-2.5 py-1 rounded-lg bg-slate-800 text-slate-400 hover:text-white transition';
+        b.className = 'user-filter-btn px-2.5 py-1 rounded-xl bg-transparent text-slate-400 hover:text-white transition flex items-center gap-1 border border-slate-700/60';
       });
-      btn.className = 'user-filter-btn px-2.5 py-1 rounded-lg bg-blue-600 text-white font-bold transition';
+      btn.className = 'user-filter-btn px-2.5 py-1 rounded-xl bg-blue-600/20 text-blue-400 font-bold transition flex items-center gap-1 border border-blue-500 shadow-sm';
       currentFilter = btn.getAttribute('data-filter') || 'all';
       fetchAdminUsers(1);
       if (window.hapticFeedback) window.hapticFeedback('impact');
@@ -1121,12 +1123,103 @@
     if (window.hapticFeedback) window.hapticFeedback('impact');
   });
 
-  // --- 6. Admin Actions Namespace ---
+  // --- Confirmation & Report Modals ---
+  function showConfirmModal({ title = 'تایید عملیات', message = 'آیا از انجام این عملیات اطمینان دارید؟', confirmText = 'تایید و اجرا', isDanger = true }) {
+    return new Promise((resolve) => {
+      const modal = document.getElementById('confirmActionModal');
+      const titleEl = document.getElementById('confirmModalTitle');
+      const msgEl = document.getElementById('confirmModalMessage');
+      const confirmBtn = document.getElementById('confirmModalConfirmBtn');
+      const cancelBtn = document.getElementById('confirmModalCancelBtn');
+      const iconBox = document.getElementById('confirmModalIconBox');
 
-  const modifyUserModal = document.getElementById('modifyUserModal');
-  const modifyModalTitle = document.getElementById('modifyModalTitle');
-  const modifyModalLabel = document.getElementById('modifyModalLabel');
-  const modifyModalInput = document.getElementById('modifyModalInput');
+      if (!modal || !confirmBtn || !cancelBtn) {
+        resolve(window.confirm(message));
+        return;
+      }
+
+      if (titleEl) titleEl.innerText = title;
+      if (msgEl) msgEl.innerText = message;
+      if (confirmBtn) {
+        confirmBtn.innerText = confirmText;
+        if (isDanger) {
+          confirmBtn.className = 'flex-1 bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs py-2.5 rounded-xl transition shadow active:scale-95 flex items-center justify-center gap-1.5';
+          if (iconBox) iconBox.className = 'w-10 h-10 rounded-2xl bg-rose-500/20 text-rose-400 border border-rose-500/30 flex items-center justify-center flex-shrink-0';
+        } else {
+          confirmBtn.className = 'flex-1 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs py-2.5 rounded-xl transition shadow active:scale-95 flex items-center justify-center gap-1.5';
+          if (iconBox) iconBox.className = 'w-10 h-10 rounded-2xl bg-blue-500/20 text-blue-400 border border-blue-500/30 flex items-center justify-center flex-shrink-0';
+        }
+      }
+
+      const cleanup = () => {
+        modal.classList.add('hidden');
+        confirmBtn.removeEventListener('click', onConfirm);
+        cancelBtn.removeEventListener('click', onCancel);
+      };
+
+      const onConfirm = () => {
+        cleanup();
+        if (window.hapticFeedback) window.hapticFeedback('impact');
+        resolve(true);
+      };
+
+      const onCancel = () => {
+        cleanup();
+        resolve(false);
+      };
+
+      confirmBtn.addEventListener('click', onConfirm);
+      cancelBtn.addEventListener('click', onCancel);
+      modal.classList.remove('hidden');
+      if (window.hapticFeedback) window.hapticFeedback('warning');
+    });
+  }
+
+  function showOperationReportModal({ title, subtitle, iconType = 'success', items = [] }) {
+    const modal = document.getElementById('operationReportModal');
+    const titleEl = document.getElementById('opReportTitle');
+    const subEl = document.getElementById('opReportSubtitle');
+    const iconBox = document.getElementById('opReportIconBox');
+    const contentEl = document.getElementById('opReportContent');
+
+    if (!modal) return;
+    if (titleEl) titleEl.innerText = title || 'گزارش عملیات';
+    if (subEl) subEl.innerText = subtitle || 'عملیات با موفقیت ثبت شد';
+
+    if (iconBox) {
+      if (iconType === 'success') {
+        iconBox.className = 'w-10 h-10 rounded-2xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center flex-shrink-0';
+        iconBox.innerHTML = '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>';
+      } else if (iconType === 'purple') {
+        iconBox.className = 'w-10 h-10 rounded-2xl bg-purple-500/20 text-purple-400 border border-purple-500/30 flex items-center justify-center flex-shrink-0';
+        iconBox.innerHTML = '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>';
+      }
+    }
+
+    if (contentEl) {
+      contentEl.innerHTML = items.map(item => {
+        if (item.highlight) {
+          return `
+            <div class="bg-emerald-950/40 p-3 rounded-2xl border border-emerald-600/30 flex items-center justify-between text-xs">
+              <span class="text-slate-300 font-medium">${item.label}:</span>
+              <b class="text-emerald-400 font-mono font-bold text-sm" dir="ltr">${item.value}</b>
+            </div>
+          `;
+        }
+        return `
+          <div class="bg-slate-900/60 p-2.5 rounded-xl border border-slate-800 flex items-center justify-between text-xs">
+            <span class="text-slate-400 text-[11px]">${item.label}:</span>
+            <span class="${item.color || 'text-white'} font-semibold text-xs truncate max-w-[200px]" dir="${item.dir || 'auto'}">${item.value}</span>
+          </div>
+        `;
+      }).join('');
+    }
+
+    modal.classList.remove('hidden');
+    if (window.hapticFeedback) window.hapticFeedback('success');
+  }
+
+  // --- 6. Admin Actions Namespace ---
 
   window.adminActions = {
     async quickCopy(text, label = 'مقدار') {
@@ -1151,33 +1244,65 @@
       }
     },
 
-    openModifyUser(telegram_id, name, type) {
-      currentModifyTarget = { telegram_id, name, type };
-      if (modifyUserModal) modifyUserModal.classList.remove('hidden');
-      if (type === 'traffic') {
-        if (modifyModalTitle) modifyModalTitle.innerText = `افزایش ترافیک: ${name}`;
-        if (modifyModalLabel) modifyModalLabel.innerText = 'مقدار ترافیک افزایشی (GB):';
-        if (modifyModalInput) modifyModalInput.value = '10';
-      } else {
-        if (modifyModalTitle) modifyModalTitle.innerText = `تمدید اشتراک: ${name}`;
-        if (modifyModalLabel) modifyModalLabel.innerText = 'تعداد روز افزایشی:';
-        if (modifyModalInput) modifyModalInput.value = '30';
+    closeOperationReportModal() {
+      document.getElementById('operationReportModal')?.classList.add('hidden');
+    },
+
+    // Unified Modify User (Volume & Duration)
+    openModifyUser(telegram_id, name) {
+      currentModifyTarget = { telegram_id, name };
+      const modal = document.getElementById('modifyUserModal');
+      const nameEl = document.getElementById('modifyModalUserName');
+      const idEl = document.getElementById('modifyModalUserId');
+      const trInput = document.getElementById('modifyModalTraffic');
+      const daysInput = document.getElementById('modifyModalDays');
+
+      if (modal) modal.classList.remove('hidden');
+      if (nameEl) nameEl.innerText = name || String(telegram_id);
+      if (idEl) idEl.innerText = `#${telegram_id}`;
+      if (trInput) trInput.value = '';
+      if (daysInput) daysInput.value = '';
+      trInput?.focus();
+      if (window.hapticFeedback) window.hapticFeedback('impact');
+    },
+
+    setModifyTraffic(gb) {
+      const trInput = document.getElementById('modifyModalTraffic');
+      if (trInput) {
+        const cur = parseFloat(trInput.value) || 0;
+        trInput.value = (cur + gb);
       }
-      modifyModalInput?.focus();
+      if (window.hapticFeedback) window.hapticFeedback('selection');
+    },
+
+    setModifyDays(days) {
+      const daysInput = document.getElementById('modifyModalDays');
+      if (daysInput) {
+        const cur = parseInt(daysInput.value, 10) || 0;
+        daysInput.value = (cur + days);
+      }
+      if (window.hapticFeedback) window.hapticFeedback('selection');
     },
 
     closeModifyModal() {
-      if (modifyUserModal) modifyUserModal.classList.add('hidden');
+      const modal = document.getElementById('modifyUserModal');
+      if (modal) modal.classList.add('hidden');
       currentModifyTarget = null;
     },
 
     async applyUserModification() {
       if (!currentModifyTarget) return;
-      const amount = parseFloat(modifyModalInput?.value || 0);
-      if (isNaN(amount) || amount <= 0) {
-        if (window.showToast) window.showToast('لطفاً مقداری معتبر وارد نمایید.');
+      const trafficGb = parseFloat(document.getElementById('modifyModalTraffic')?.value || 0);
+      const days = parseInt(document.getElementById('modifyModalDays')?.value || 0, 10);
+
+      const validTraffic = !isNaN(trafficGb) && trafficGb > 0 ? trafficGb : 0;
+      const validDays = !isNaN(days) && days > 0 ? days : 0;
+
+      if (validTraffic <= 0 && validDays <= 0) {
+        if (window.showToast) window.showToast('لطفاً حداقل یکی از مقادیر حجم یا روز را وارد کنید.');
         return;
       }
+
       const submitBtn = document.getElementById('modifyModalSubmitBtn');
       if (submitBtn) {
         submitBtn.disabled = true;
@@ -1186,8 +1311,7 @@
       try {
         const res = await window.api.modifyUser(
           currentModifyTarget.telegram_id,
-          currentModifyTarget.type,
-          amount
+          { traffic_gb: validTraffic, days: validDays }
         );
         if (res && res.ok) {
           if (window.showToast) window.showToast(`✅ ${res.message || 'عملیات با موفقیت اعمال شد'}`);
@@ -1204,7 +1328,7 @@
       } finally {
         if (submitBtn) {
           submitBtn.disabled = false;
-          submitBtn.innerText = 'ثبت تغییرات';
+          submitBtn.innerHTML = '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg><span>ثبت تغییرات سرویس</span>';
         }
       }
     },
@@ -1226,7 +1350,7 @@
 
     async confirmResetTrial() {
       if (!currentTrialTarget) return;
-      const { telegram_id } = currentTrialTarget;
+      const { telegram_id, name } = currentTrialTarget;
       const btn = document.getElementById('confirmTrialResetBtn');
       if (btn) {
         btn.disabled = true;
@@ -1235,9 +1359,18 @@
       try {
         const res = await window.api.resetUserTrial(telegram_id);
         if (res && res.ok) {
-          if (window.showToast) window.showToast(`✅ ${res.message || 'قابلیت تست برای کاربر فعال شد.'}`);
-          if (window.hapticFeedback) window.hapticFeedback('success');
           this.closeTrialModal();
+          showOperationReportModal({
+            title: 'گزارش فعال‌سازی مجدد تست',
+            subtitle: 'محدودیت دریافت اکانت تست برای کاربر برداشته شد',
+            iconType: 'purple',
+            items: [
+              { label: 'کاربر منتخب', value: name },
+              { label: 'شناسه تلگرام', value: `#${telegram_id}`, dir: 'ltr' },
+              { label: 'وضعیت جدید', value: 'مجاز به دریافت تست رایگان', color: 'text-purple-400' },
+              { label: 'نتیجه عملیات', value: res.message || 'اکانت تست با موفقیت ریست شد و کاربر می‌تواند از ربات تست دریافت کند.' },
+            ]
+          });
         } else {
           if (window.showToast) window.showToast(`⚠️ ${res?.error || 'خطا در فعال‌سازی تست'}`);
           if (window.hapticFeedback) window.hapticFeedback('error');
@@ -1247,7 +1380,7 @@
       } finally {
         if (btn) {
           btn.disabled = false;
-          btn.innerText = 'تایید و فعال‌سازی مجدد تست';
+          btn.innerHTML = '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg><span>تایید و فعال‌سازی مجدد تست</span>';
         }
       }
     },
@@ -1257,7 +1390,14 @@
     },
 
     async killSessions(telegram_id, name) {
-      if (!confirm(`آیا از قطع تمام نشست‌های فعال دستگاه‌های کاربر ${name} اطمینان دارید؟`)) return;
+      const ok = await showConfirmModal({
+        title: 'قطع تمامی اتصالات',
+        message: `آیا از قطع کامل تمامی نشست‌ها و اتصالات دستگاه‌های کاربر ${name} اطمینان دارید؟`,
+        confirmText: 'قطع اتصالات کاربر',
+        isDanger: true,
+      });
+      if (!ok) return;
+
       try {
         const res = await window.api.killUserSessions(telegram_id);
         if (res && res.ok) {
@@ -1275,7 +1415,14 @@
 
     async toggleBan(telegram_id, isBanned) {
       const actionText = isBanned ? 'رفع مسدودیت' : 'مسدود کردن';
-      if (!confirm(`آیا از ${actionText} این کاربر اطمینان دارید؟`)) return;
+      const ok = await showConfirmModal({
+        title: `${actionText} کاربر`,
+        message: `آیا از ${actionText} این کاربر اطمینان دارید؟`,
+        confirmText: `بله، ${actionText}`,
+        isDanger: !isBanned,
+      });
+      if (!ok) return;
+
       try {
         const res = await window.api.toggleUserBan(telegram_id, !isBanned);
         if (res && res.ok) {
@@ -1292,7 +1439,14 @@
     },
 
     async handleTopup(topup_id, approved) {
-      if (!confirm(`آیا از ${approved ? 'تایید و شارژ' : 'رد'} این فیش مطمئن هستید؟`)) return;
+      const ok = await showConfirmModal({
+        title: approved ? 'تایید و شارژ فیش' : 'رد کردن فیش واریزی',
+        message: `آیا از ${approved ? 'تایید و شارژ' : 'رد کردن'} این فیش مطمئن هستید؟`,
+        confirmText: approved ? 'تایید و شارژ' : 'رد فیش',
+        isDanger: !approved,
+      });
+      if (!ok) return;
+
       try {
         const res = await window.api.handleTopupAction(topup_id, approved);
         if (res && res.ok) {
@@ -1343,10 +1497,31 @@
       try {
         const res = await window.api.modifyUserWallet(currentWalletTarget.telegram_id, finalAmount, reason);
         if (res && res.ok) {
-          if (window.showToast) window.showToast(`✅ ${res.message || 'موجودی به‌روز شد'}`);
-          if (window.hapticFeedback) window.hapticFeedback('success');
+          const oldBal = Number(res.old_balance !== undefined ? res.old_balance : 0);
+          const newBal = Number(res.new_balance !== undefined ? res.new_balance : 0);
+          const delta = Number(res.delta !== undefined ? res.delta : finalAmount);
+          const isAdd = delta > 0;
+          const targetName = currentWalletTarget.name;
+          const targetId = currentWalletTarget.telegram_id;
+
           this.closeWalletModal();
           fetchAdminUsers(currentPage);
+          syncAdminOverview();
+
+          showOperationReportModal({
+            title: 'گزارش تراکنش کیف پول',
+            subtitle: isAdd ? 'افزایش موجودی با موفقیت ثبت شد' : 'کسر موجودی با موفقیت ثبت شد',
+            iconType: 'success',
+            items: [
+              { label: 'کاربر منتخب', value: targetName },
+              { label: 'شناسه تلگرام', value: `#${targetId}`, dir: 'ltr' },
+              { label: 'نوع عملیات', value: isAdd ? 'افزایش اعتبار (شارژ دستی)' : 'کسر موجودی دستی', color: isAdd ? 'text-emerald-400' : 'text-rose-400' },
+              { label: 'موجودی قبلی', value: `${formatNumber(oldBal)} تومان`, dir: 'rtl' },
+              { label: 'مبلغ تغییر یافته', value: `${isAdd ? '+' : ''}${formatNumber(delta)} تومان`, color: isAdd ? 'text-emerald-400' : 'text-rose-400', dir: 'rtl' },
+              { label: 'موجودی جدید کیف پول', value: `${formatNumber(newBal)} تومان`, highlight: true },
+              { label: 'توضیحات / بابت', value: reason || 'ثبت توسط مدیریت' },
+            ]
+          });
         } else {
           if (window.showToast) window.showToast(`⚠️ ${res?.error || 'خطا در تغییر موجودی'}`);
           if (window.hapticFeedback) window.hapticFeedback('error');
@@ -1403,7 +1578,14 @@
     async confirmRegenerateSub() {
       if (!currentSubTarget) return;
       const { telegram_id, name } = currentSubTarget;
-      if (!confirm(`آیا از باطل کردن لینک قبلی و صدور لینک جدید برای ${name} اطمینان دارید؟`)) return;
+      const ok = await showConfirmModal({
+        title: 'ابطال و صدور لینک جدید',
+        message: `آیا از باطل کردن لینک قبلی و صدور لینک جدید برای ${name} اطمینان دارید؟ با این کار کانفیگ‌های قبلی باطل می‌شوند.`,
+        confirmText: 'صدور لینک جدید',
+        isDanger: false,
+      });
+      if (!ok) return;
+
       const regenBtn = document.getElementById('subModalRegenBtn');
       if (regenBtn) {
         regenBtn.disabled = true;
@@ -1434,7 +1616,14 @@
 
     // --- Revoke Subscription URL (Quick trigger backward-compat) ---
     async revokeSub(telegram_id, name) {
-      if (!confirm(`آیا از ابطال لینک قبلی و ساخت لینک جدید سابسکریپشن برای کاربر ${name} اطمینان دارید؟`)) return;
+      const ok = await showConfirmModal({
+        title: 'ابطال لینک سابسکریپشن',
+        message: `آیا از ابطال لینک قبلی و ساخت لینک جدید برای کاربر ${name} اطمینان دارید؟`,
+        confirmText: 'تایید و صدور مجدد',
+        isDanger: false,
+      });
+      if (!ok) return;
+
       try {
         const res = await window.api.revokeUserSub(telegram_id);
         if (res && res.ok) {
@@ -1478,19 +1667,19 @@
           const brand = d.brand || d.model || '';
           const ip = d.requestIp || d.ip || d.lastIp || d.clientIp || '—';
           return `
-            <div class="bg-slate-900/90 p-3 rounded-2xl border border-slate-800 flex items-center justify-between gap-2.5">
+            <div class="bg-transparent p-3 rounded-2xl border border-slate-700/60 dark:border-slate-700/60 flex items-center justify-between gap-2.5">
               <div class="min-w-0 flex-1">
                 <b class="text-white text-xs block truncate">${os} ${brand ? '(' + brand + ')' : ''}</b>
                 <div class="flex items-center gap-1.5 mt-0.5 text-[10px] text-slate-400">
                   <span>آی‌پی:</span>
-                  <span dir="ltr" class="font-mono text-cyan-300">${ip}</span>
+                  <span dir="ltr" class="font-mono text-cyan-400 dark:text-cyan-300">${ip}</span>
                 </div>
                 <div class="flex items-center gap-1.5 mt-1">
-                  <span class="text-[9px] text-slate-500">HWID:</span>
-                  <span dir="ltr" class="font-mono text-[9px] text-slate-300 bg-slate-950/70 px-2 py-0.5 rounded border border-slate-800/80 truncate max-w-[170px]" title="${hwid}">${hwid}</span>
+                  <span class="text-[9px] text-slate-400">HWID:</span>
+                  <span dir="ltr" class="font-mono text-[9px] text-slate-300 bg-transparent px-2 py-0.5 rounded-lg border border-slate-700/60 truncate max-w-[170px]" title="${hwid}">${hwid}</span>
                 </div>
               </div>
-              <button onclick="window.adminActions.deleteHwid(${telegram_id}, '${hwid}')" class="bg-rose-950/60 hover:bg-rose-900 text-rose-300 border border-rose-800/60 p-2.5 rounded-xl transition active:scale-95 flex items-center justify-center flex-shrink-0" title="قطع اتصال این دستگاه">
+              <button onclick="window.adminActions.deleteHwid(${telegram_id}, '${hwid}')" class="bg-transparent hover:bg-rose-500/10 text-rose-400 border border-rose-500/30 hover:border-rose-400 p-2.5 rounded-xl transition active:scale-95 flex items-center justify-center flex-shrink-0" title="قطع اتصال این دستگاه">
                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
               </button>
             </div>
@@ -1509,7 +1698,14 @@
     async killSessionsFromModal() {
       if (!currentHwidTarget) return;
       const { telegram_id, name } = currentHwidTarget;
-      if (!confirm(`آیا از قطع تمام نشست‌ها و اتصالات دستگاه‌های کاربر ${name} اطمینان دارید؟`)) return;
+      const ok = await showConfirmModal({
+        title: 'قطع تمامی نشست‌های فعال',
+        message: `آیا از قطع تمام نشست‌ها و اتصالات دستگاه‌های کاربر ${name} اطمینان دارید؟`,
+        confirmText: 'قطع تمامی نشست‌ها',
+        isDanger: true,
+      });
+      if (!ok) return;
+
       try {
         const res = await window.api.killUserSessions(telegram_id);
         if (res && res.ok) {
@@ -1527,7 +1723,14 @@
     },
 
     async deleteHwid(telegram_id, hwid) {
-      if (!confirm('آیا از قطع اتصال این دستگاه مطمئن هستید؟')) return;
+      const ok = await showConfirmModal({
+        title: 'قطع اتصال دستگاه',
+        message: 'آیا از قطع اتصال این دستگاه کاربر اطمینان دارید؟',
+        confirmText: 'قطع اتصال',
+        isDanger: true,
+      });
+      if (!ok) return;
+
       try {
         const res = await window.api.deleteUserHwid(telegram_id, hwid);
         if (res && res.ok) {

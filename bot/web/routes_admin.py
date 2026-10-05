@@ -560,23 +560,39 @@ async def get_admin_users(request: web.Request) -> web.Response:
 
             is_online = (u.telegram_id in online_telegram_ids) if online_telegram_ids else False
             is_expiring = False
+            is_expired = False
             if panel_exists:
-                if days_left is not None and 0 < days_left <= 3:
-                    is_expiring = True
-                elif 0 <= remaining_gb <= 2.0 and limit_bytes > 0:
-                    is_expiring = True
+                status_up = str(p.get("status") or "").upper()
+                if days_left is not None and days_left <= 0:
+                    is_expired = True
+                elif status_up == "EXPIRED":
+                    is_expired = True
+                elif remaining_gb == 0.0 and limit_bytes > 0:
+                    is_expired = True
 
-            # If filter is expiring and not matched, skip if filtering in-memory
+                if not is_expired:
+                    if days_left is not None and 0 < days_left <= 3:
+                        is_expiring = True
+                    elif 0 <= remaining_gb <= 2.0 and limit_bytes > 0:
+                        is_expiring = True
+
+            # If filter is expiring or expired and not matched, skip
             if status_filter == "expiring" and not is_expiring:
                 continue
+            if status_filter == "expired" and not is_expired:
+                continue
+
+            full_name = p.get("name") or p.get("description") or (f"@{u.username}" if u.username else f"کاربر {u.telegram_id}")
 
             user_items.append({
                 "telegram_id": u.telegram_id,
                 "username": u.username,
+                "full_name": full_name,
                 "wallet_balance": balances.get(u.telegram_id, 0),
                 "is_banned": u.is_banned,
                 "is_online": is_online,
                 "is_expiring": is_expiring,
+                "is_expired": is_expired,
                 "avatar_url": f"/api/user/avatar?user_id={u.telegram_id}",
                 "panel_account": {
                     "exists": panel_exists,
@@ -599,7 +615,7 @@ async def get_admin_users(request: web.Request) -> web.Response:
 
 
 async def post_admin_modify_user(request: web.Request) -> web.Response:
-    """Add traffic (GB) or extend days for a user."""
+    """Add traffic (GB) and/or extend days for a user in a unified action."""
     admin = _check_admin(request)
     if not admin:
         return web.json_response({"ok": False, "error": "Forbidden"}, status=403)
@@ -610,14 +626,34 @@ async def post_admin_modify_user(request: web.Request) -> web.Response:
         return web.json_response({"ok": False, "error": "Invalid JSON"}, status=400)
 
     target_id = body.get("telegram_id")
-    action = body.get("action")  # 'traffic' or 'days'
-    try:
-        amount = float(body.get("amount", 0))
-    except (ValueError, TypeError):
-        amount = 0
+    action = body.get("action")
 
-    if not target_id or amount <= 0:
-        return web.json_response({"ok": False, "error": "مقادیر وارد شده نامعتبر است."}, status=400)
+    # Unified traffic_gb and days, or legacy single action
+    traffic_gb = 0.0
+    days = 0
+
+    if "traffic_gb" in body or "days" in body:
+        try:
+            traffic_gb = max(0.0, float(body.get("traffic_gb") or 0))
+        except (ValueError, TypeError):
+            traffic_gb = 0.0
+        try:
+            days = max(0, int(body.get("days") or 0))
+        except (ValueError, TypeError):
+            days = 0
+    elif action == "traffic":
+        try:
+            traffic_gb = max(0.0, float(body.get("amount") or 0))
+        except (ValueError, TypeError):
+            traffic_gb = 0.0
+    elif action == "days":
+        try:
+            days = max(0, int(body.get("amount") or 0))
+        except (ValueError, TypeError):
+            days = 0
+
+    if not target_id or (traffic_gb <= 0 and days <= 0):
+        return web.json_response({"ok": False, "error": "حداقل یکی از مقادیر حجم یا روز را وارد کنید."}, status=400)
 
     remnawave = request.app["remnawave"]
     session_factory = request.app["session_factory"]
@@ -633,20 +669,12 @@ async def post_admin_modify_user(request: web.Request) -> web.Response:
     cur_exp_str = puser.get("expireAt")
     now = datetime.now(timezone.utc)
 
-    if action == "traffic":
-        bytes_delta = int(amount * 1024 * 1024 * 1024)
-        new_limit = cur_limit + bytes_delta
-        new_exp_iso = cur_exp_str or (now + timedelta(days=36500)).strftime("%Y-%m-%dT%H:%M:%SZ")
-        res = await remnawave.update_user_subscription(
-            primary_id,
-            expire_at_iso=new_exp_iso,
-            traffic_limit_bytes=new_limit,
-            status="ACTIVE",
-        )
-        if not res:
-            return web.json_response({"ok": False, "error": "خطا در اعمال تغییرات در پنل رمناویو."}, status=502)
-        log_detail = f"افزایش {amount:g} GB ترافیک به کاربر {target_id}"
-    elif action == "days":
+    new_limit = cur_limit
+    if traffic_gb > 0:
+        new_limit += int(traffic_gb * 1024 * 1024 * 1024)
+
+    new_exp_iso = cur_exp_str
+    if days > 0:
         base_dt = now
         if cur_exp_str:
             try:
@@ -655,22 +683,29 @@ async def post_admin_modify_user(request: web.Request) -> web.Response:
                     base_dt = dt
             except Exception:
                 pass
-        new_exp_iso = (base_dt + timedelta(days=int(amount))).strftime("%Y-%m-%dT%H:%M:%SZ")
-        res = await remnawave.update_user_subscription(
-            primary_id,
-            expire_at_iso=new_exp_iso,
-            traffic_limit_bytes=cur_limit,
-            status="ACTIVE",
-        )
-        if not res:
-            return web.json_response({"ok": False, "error": "خطا در اعمال تغییرات در پنل رمناویو."}, status=502)
-        log_detail = f"تمدید {int(amount)} روز اشتراک کاربر {target_id}"
-    else:
-        return web.json_response({"ok": False, "error": "عملیات نامعتبر است."}, status=400)
+        new_exp_iso = (base_dt + timedelta(days=days)).strftime("%Y-%m-%dT%H:%M:%SZ")
+    elif not new_exp_iso and traffic_gb > 0:
+        new_exp_iso = (now + timedelta(days=36500)).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+    res = await remnawave.update_user_subscription(
+        primary_id,
+        expire_at_iso=new_exp_iso,
+        traffic_limit_bytes=new_limit,
+        status="ACTIVE",
+    )
+    if not res:
+        return web.json_response({"ok": False, "error": "خطا در اعمال تغییرات در پنل رمناویو."}, status=502)
+
+    parts = []
+    if traffic_gb > 0:
+        parts.append(f"افزایش {traffic_gb:g} GB ترافیک")
+    if days > 0:
+        parts.append(f"تمدید {days} روز اشتراک")
+    log_detail = f"{' و '.join(parts)} کاربر {target_id}"
 
     # Record in admin log
     async with session_factory() as session:
-        session.add(AdminLog(admin_id=admin["id"], action=f"modify_{action}", detail=log_detail))
+        session.add(AdminLog(admin_id=admin["id"], action="modify_user_subscription", detail=log_detail))
         await session.commit()
 
     # Clear caches
@@ -1308,7 +1343,8 @@ async def post_admin_user_wallet(request: web.Request) -> web.Response:
     async with session_factory() as session:
         wallet_repo = WalletRepository(session)
         wallet = await wallet_repo.get_wallet(int(target_id))
-        new_balance = max(0, wallet.balance + amount)
+        old_balance = int(wallet.balance if wallet else 0)
+        new_balance = max(0, old_balance + amount)
         wallet.balance = new_balance
 
         action_name = "wallet_charge" if amount > 0 else "wallet_deduct"
@@ -1336,7 +1372,9 @@ async def post_admin_user_wallet(request: web.Request) -> web.Response:
 
     return web.json_response({
         "ok": True,
+        "old_balance": old_balance,
         "new_balance": new_balance,
+        "delta": amount,
         "message": f"موجودی کاربر با موفقیت به‌روزرسانی شد: {new_balance:,} تومان",
     })
 
