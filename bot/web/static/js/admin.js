@@ -100,6 +100,11 @@
 
       if (window.hapticFeedback) window.hapticFeedback('impact');
 
+      if (targetId === 'tab-admin-dashboard') {
+        salesChartInstance?.resize();
+        trafficChartInstance?.resize();
+      }
+
       // Lazy load tab data
       if (targetId === 'tab-admin-users' && document.getElementById('adminUsersList')?.children.length <= 1) {
         fetchAdminUsers(1);
@@ -119,6 +124,27 @@
   const adminThemeToggle = document.getElementById('adminThemeToggle');
   const adminThemeIcon = document.getElementById('adminThemeIcon');
   let isDark = true;
+
+  const updateChartsTheme = () => {
+    const gridColor = isDark ? 'rgba(51, 65, 85, 0.3)' : 'rgba(226, 232, 240, 0.8)';
+    const tickColor = isDark ? '#94a3b8' : '#64748b';
+    if (salesChartInstance) {
+      if (salesChartInstance.options?.scales?.x?.ticks) salesChartInstance.options.scales.x.ticks.color = tickColor;
+      if (salesChartInstance.options?.scales?.y?.ticks) salesChartInstance.options.scales.y.ticks.color = tickColor;
+      if (salesChartInstance.options?.scales?.y?.grid) salesChartInstance.options.scales.y.grid.color = gridColor;
+      salesChartInstance.update();
+    }
+    if (trafficChartInstance) {
+      if (trafficChartInstance.options?.scales?.x?.ticks) trafficChartInstance.options.scales.x.ticks.color = tickColor;
+      if (trafficChartInstance.options?.scales?.y?.ticks) trafficChartInstance.options.scales.y.ticks.color = tickColor;
+      if (trafficChartInstance.options?.scales?.y?.grid) trafficChartInstance.options.scales.y.grid.color = gridColor;
+      if (trafficChartInstance.data?.datasets?.[0]) {
+        trafficChartInstance.data.datasets[0].pointBorderColor = isDark ? '#0f172a' : '#ffffff';
+      }
+      trafficChartInstance.update();
+    }
+  };
+
   adminThemeToggle?.addEventListener('click', () => {
     isDark = !isDark;
     const appBody = document.getElementById('appBody');
@@ -138,6 +164,7 @@
       phoneFrame?.classList.replace('bg-[#0f172a]', 'bg-white');
       phoneFrame?.classList.replace('text-slate-100', 'text-slate-900');
     }
+    updateChartsTheme();
     if (window.hapticFeedback) window.hapticFeedback('impact');
   });
 
@@ -208,9 +235,19 @@
       if (syncText) syncText.innerText = 'Sync: آنلاین';
 
       // Render 7-day Sales & Traffic Charts
-      if (data.charts && typeof Chart !== 'undefined') {
-        renderAdminSalesChart(data.charts.sales_labels, data.charts.sales_data);
-        renderAdminTrafficChart(data.charts.traffic_labels, data.charts.traffic_data, data.charts.traffic_total_gb);
+      lastOverviewData = data;
+      if (data.charts) {
+        if (typeof Chart !== 'undefined') {
+          renderAdminSalesChart(data.charts.sales_labels, data.charts.sales_data);
+          renderAdminTrafficChart(data.charts.traffic_labels, data.charts.traffic_data, data.charts.traffic_total_gb);
+        } else {
+          setTimeout(() => {
+            if (typeof Chart !== 'undefined' && lastOverviewData?.charts) {
+              renderAdminSalesChart(lastOverviewData.charts.sales_labels, lastOverviewData.charts.sales_data);
+              renderAdminTrafficChart(lastOverviewData.charts.traffic_labels, lastOverviewData.charts.traffic_data, lastOverviewData.charts.traffic_total_gb);
+            }
+          }, 350);
+        }
       }
 
       // Render Accordion Nodes
@@ -223,6 +260,7 @@
     }
   }
 
+  let lastOverviewData = null;
   let salesChartInstance = null;
   function renderAdminSalesChart(labels, values) {
     const canvas = document.getElementById('adminSalesChart');
@@ -268,12 +306,13 @@
         scales: {
           x: {
             grid: { display: false },
-            ticks: { color: '#94a3b8', font: { family: 'Vazirmatn', size: 9 } }
+            ticks: { color: isDark ? '#94a3b8' : '#64748b', font: { family: 'Vazirmatn', size: 9 } }
           },
           y: {
-            grid: { color: 'rgba(51, 65, 85, 0.3)' },
+            beginAtZero: true,
+            grid: { color: isDark ? 'rgba(51, 65, 85, 0.3)' : 'rgba(226, 232, 240, 0.8)' },
             ticks: {
-              color: '#94a3b8',
+              color: isDark ? '#94a3b8' : '#64748b',
               font: { family: 'Vazirmatn', size: 9 },
               callback: (val) => val >= 1000000 ? `${(val/1000000).toFixed(1)}M` : (val >= 1000 ? `${(val/1000).toFixed(0)}K` : val)
             }
@@ -291,7 +330,7 @@
     if (!ctx) return;
 
     const totalEl = document.getElementById('trafficChartTotal');
-    if (totalEl) totalEl.innerHTML = `<span>${formatNumber(totalGb || 0)}</span><span class="text-[9px] text-cyan-300 font-sans">GB</span>`;
+    if (totalEl) totalEl.innerHTML = `<span class="text-[9px] text-cyan-300 font-sans">GB</span><span>${formatNumber(totalGb || 0)}</span>`;
 
     if (trafficChartInstance) {
       trafficChartInstance.data.labels = labels;
@@ -317,7 +356,7 @@
           fill: true,
           tension: 0.35,
           pointBackgroundColor: '#22d3ee',
-          pointBorderColor: '#0f172a',
+          pointBorderColor: isDark ? '#0f172a' : '#ffffff',
           pointBorderWidth: 1.5,
           pointRadius: 3.5,
           pointHoverRadius: 5.5,
@@ -330,19 +369,20 @@
           legend: { display: false },
           tooltip: {
             callbacks: {
-              label: (ctx) => `${formatNumber(ctx.raw)} GB`
+              label: (ctx) => `مصرف: ${formatNumber(ctx.raw)} GB`
             }
           }
         },
         scales: {
           x: {
             grid: { display: false },
-            ticks: { color: '#94a3b8', font: { family: 'Vazirmatn', size: 9 } }
+            ticks: { color: isDark ? '#94a3b8' : '#64748b', font: { family: 'Vazirmatn', size: 9 } }
           },
           y: {
-            grid: { color: 'rgba(51, 65, 85, 0.3)' },
+            beginAtZero: true,
+            grid: { color: isDark ? 'rgba(51, 65, 85, 0.3)' : 'rgba(226, 232, 240, 0.8)' },
             ticks: {
-              color: '#94a3b8',
+              color: isDark ? '#94a3b8' : '#64748b',
               font: { family: 'Vazirmatn', size: 9 },
               callback: (val) => `${val} GB`
             }
@@ -477,7 +517,7 @@
           <div class="bg-slate-950/60 px-3 py-2 rounded-xl border border-slate-800/80 flex items-center justify-between text-xs">
             <span class="text-[10px] text-slate-400 flex items-center gap-1.5">
               <svg class="w-3.5 h-3.5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/></svg>
-              <span>آدرس سرور (Host):</span>
+              <span>آدرس سرور:</span>
             </span>
             <span class="font-mono text-cyan-300 text-xs font-semibold truncate max-w-[210px] select-all" dir="ltr" title="${n.address || '—'}">${n.address || '—'}</span>
           </div>
@@ -510,7 +550,7 @@
           <!-- Bottom Metrics: Connected users & Traffic -->
           <div class="grid grid-cols-2 gap-2 text-center text-[10px]">
             <div class="bg-slate-950/60 p-2 rounded-xl border border-slate-800/80">
-              <span class="text-slate-400 block mb-0.5">کاربران متصل زنده</span>
+              <span class="text-slate-400 block mb-0.5">کاربران متصل</span>
               <b class="text-emerald-400 font-mono text-xs">${formatNumber(n.connected_users || 0)} نفر</b>
             </div>
             <div class="bg-slate-950/60 p-2 rounded-xl border border-slate-800/80">
@@ -662,7 +702,7 @@
                     <span>${usernameText}</span>
                     <svg class="w-3 h-3 text-slate-500 group-hover:text-cyan-300 opacity-70 transition flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
                   </div>
-                  ${u.is_online ? '<span class="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)] animate-pulse" title="متصل زنده به سرور"></span>' : ''}
+                  ${u.is_online ? '<span class="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)] animate-pulse" title="متصل به سرور"></span>' : ''}
                   ${statusBadge}
                   ${(u.is_expiring || (p && p.exists && ((p.days_left !== null && p.days_left > 0 && p.days_left <= 3) || (p.remaining_traffic_gb >= 0 && p.remaining_traffic_gb <= 2.0 && p.limit_traffic_gb > 0)))) ? '<span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-lg bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[9px] font-bold animate-pulse" title="هشدار: حجم یا زمان رو به اتمام است"><svg class="w-2.5 h-2.5 text-amber-300" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z"/></svg> رو به اتمام</span>' : ''}
                 </div>
@@ -681,33 +721,33 @@
           <!-- Quick Action Buttons -->
           <div class="space-y-1.5 pt-1">
             <div class="grid grid-cols-4 gap-1 text-center text-[10px]">
-              <button class="bg-blue-950/60 hover:bg-blue-900 text-blue-300 border border-blue-800/50 py-1.5 rounded-lg transition active:scale-95 font-medium flex items-center justify-center gap-1" onclick="window.adminActions.openModifyUser(${u.telegram_id}, '${u.username || u.telegram_id}', 'traffic')" title="افزایش حجم">
+              <button class="bg-transparent hover:bg-blue-500/10 text-blue-500 dark:text-blue-400 border border-blue-500/30 hover:border-blue-400/60 py-1.5 rounded-xl transition active:scale-95 font-medium flex items-center justify-center gap-1" onclick="window.adminActions.openModifyUser(${u.telegram_id}, '${u.username || u.telegram_id}', 'traffic')" title="افزایش حجم">
                 <span>+</span>
                 <span>ترافیک</span>
               </button>
-              <button class="bg-indigo-950/60 hover:bg-indigo-900 text-indigo-300 border border-indigo-800/50 py-1.5 rounded-lg transition active:scale-95 font-medium flex items-center justify-center gap-1" onclick="window.adminActions.openModifyUser(${u.telegram_id}, '${u.username || u.telegram_id}', 'days')" title="تمدید زمان">
+              <button class="bg-transparent hover:bg-indigo-500/10 text-indigo-500 dark:text-indigo-400 border border-indigo-500/30 hover:border-indigo-400/60 py-1.5 rounded-xl transition active:scale-95 font-medium flex items-center justify-center gap-1" onclick="window.adminActions.openModifyUser(${u.telegram_id}, '${u.username || u.telegram_id}', 'days')" title="تمدید زمان">
                 <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                 <span>تمدید</span>
               </button>
-              <button class="bg-emerald-950/60 hover:bg-emerald-900 text-emerald-300 border border-emerald-800/50 py-1.5 rounded-lg transition active:scale-95 font-medium flex items-center justify-center gap-1" onclick="window.adminActions.openWalletModal(${u.telegram_id}, '${u.username || u.telegram_id}')" title="شارژ یا کسر موجودی">
+              <button class="bg-transparent hover:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 hover:border-emerald-400/60 py-1.5 rounded-xl transition active:scale-95 font-medium flex items-center justify-center gap-1" onclick="window.adminActions.openWalletModal(${u.telegram_id}, '${u.username || u.telegram_id}')" title="شارژ یا کسر موجودی">
                 <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
                 <span>موجودی</span>
               </button>
-              <button class="bg-purple-950/60 hover:bg-purple-900 text-purple-300 border border-purple-800/50 py-1.5 rounded-lg transition active:scale-95 font-medium flex items-center justify-center gap-1" onclick="window.adminActions.resetTrial(${u.telegram_id}, '${u.username || u.telegram_id}')" title="فعال‌سازی مجدد تست">
+              <button class="bg-transparent hover:bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/30 hover:border-purple-400/60 py-1.5 rounded-xl transition active:scale-95 font-medium flex items-center justify-center gap-1" onclick="window.adminActions.resetTrial(${u.telegram_id}, '${u.username || u.telegram_id}')" title="فعال‌سازی مجدد تست">
                 <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 01-2-2V7a2 2 0 012-2h14a2 2 0 012 2v3a2 2 0 01-2 2M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"/></svg>
                 <span>تست</span>
               </button>
             </div>
             <div class="grid grid-cols-3 gap-1.5 text-center text-[10px]">
-              <button class="bg-cyan-950/60 hover:bg-cyan-900 text-cyan-300 border border-cyan-800/50 py-1.5 rounded-lg transition active:scale-95 font-medium flex items-center justify-center gap-1" onclick="window.adminActions.openSubModal(${u.telegram_id}, '${u.username || u.telegram_id}', '${p?.subscription_url || ''}')" title="مشاهده و تغییر لینک سابسکریپشن">
+              <button class="bg-transparent hover:bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border border-cyan-500/30 hover:border-cyan-400/60 py-1.5 rounded-xl transition active:scale-95 font-medium flex items-center justify-center gap-1" onclick="window.adminActions.openSubModal(${u.telegram_id}, '${u.username || u.telegram_id}', '${p?.subscription_url || ''}')" title="مشاهده و تغییر لینک سابسکریپشن">
                 <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
                 <span>لینک ساب</span>
               </button>
-              <button class="bg-teal-950/60 hover:bg-teal-900 text-teal-300 border border-teal-800/50 py-1.5 rounded-lg transition active:scale-95 font-medium flex items-center justify-center gap-1" onclick="window.adminActions.openHwidModal(${u.telegram_id}, '${u.username || u.telegram_id}')" title="دستگاه‌های متصل و نشست‌ها">
+              <button class="bg-transparent hover:bg-teal-500/10 text-teal-600 dark:text-teal-400 border border-teal-500/30 hover:border-teal-400/60 py-1.5 rounded-xl transition active:scale-95 font-medium flex items-center justify-center gap-1" onclick="window.adminActions.openHwidModal(${u.telegram_id}, '${u.username || u.telegram_id}')" title="دستگاه‌های متصل و نشست‌ها">
                 <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
                 <span>دستگاه‌ها</span>
               </button>
-              <button class="${u.is_banned ? 'bg-emerald-950/60 hover:bg-emerald-900 text-emerald-300 border-emerald-800/50' : 'bg-rose-950/60 hover:bg-rose-900 text-rose-300 border-rose-800/50'} border py-1.5 rounded-lg transition active:scale-95 font-medium flex items-center justify-center gap-1" onclick="window.adminActions.toggleBan(${u.telegram_id}, ${u.is_banned})">
+              <button class="${u.is_banned ? 'text-emerald-600 dark:text-emerald-400 border-emerald-500/30 hover:border-emerald-400/60 hover:bg-emerald-500/10' : 'text-rose-600 dark:text-rose-400 border-rose-500/30 hover:border-rose-400/60 hover:bg-rose-500/10'} bg-transparent border py-1.5 rounded-xl transition active:scale-95 font-medium flex items-center justify-center gap-1" onclick="window.adminActions.toggleBan(${u.telegram_id}, ${u.is_banned})">
                 ${u.is_banned ? '<svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg><span>آزاد</span>' : '<svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg><span>مسدود</span>'}
               </button>
             </div>
@@ -1220,7 +1260,7 @@
             : '<span class="text-[10px] bg-slate-800 text-slate-400 border border-slate-700 px-2 py-0.5 rounded-lg font-medium">غیرفعال</span>';
 
           const trafficHtml = p.traffic_gb > 0
-            ? `<span class="inline-flex items-center justify-center gap-1 font-mono font-bold" dir="ltr"><span class="text-cyan-300 text-xs">${p.traffic_gb}</span><span class="text-cyan-400 text-[10px]">GB</span></span>`
+            ? `<span class="inline-flex items-center justify-center gap-1 font-mono font-bold" dir="rtl"><span class="text-cyan-400 text-[10px]">GB</span><span class="text-cyan-300 text-xs">${p.traffic_gb}</span></span>`
             : '<span class="text-cyan-300 font-bold">نامحدود</span>';
           const durationText = p.duration_days > 0 ? `${p.duration_days} روز` : 'نامحدود';
           const hwidText = p.hwid_limit > 0 ? `${p.hwid_limit} کاربر` : 'پیش‌فرض';
@@ -1254,14 +1294,14 @@
               </div>
 
               <div class="flex gap-2 pt-1 text-[11px]">
-                <button onclick="window.adminActions.openPlanModal(${p.id})" class="flex-1 bg-slate-800/90 hover:bg-slate-750 text-slate-200 hover:text-white border border-slate-600/70 py-1.5 rounded-xl transition text-center flex items-center justify-center gap-1.5 font-semibold active:scale-95 shadow-sm">
-                  <svg class="w-3.5 h-3.5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                <button onclick="window.adminActions.openPlanModal(${p.id})" class="flex-1 bg-transparent hover:bg-slate-500/10 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-700 hover:border-slate-400 dark:hover:border-slate-600 py-1.5 rounded-xl transition text-center flex items-center justify-center gap-1.5 font-semibold active:scale-95">
+                  <svg class="w-3.5 h-3.5 text-blue-500 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                   <span>ویرایش</span>
                 </button>
-                <button onclick="window.adminActions.togglePlan(${p.id}, ${p.is_active})" class="flex-1 ${p.is_active ? 'bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border border-amber-500/40' : 'bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 border border-emerald-500/40'} py-1.5 rounded-xl transition font-semibold text-center active:scale-95 shadow-sm">
+                <button onclick="window.adminActions.togglePlan(${p.id}, ${p.is_active})" class="flex-1 bg-transparent hover:bg-slate-500/10 ${p.is_active ? 'text-amber-600 dark:text-amber-400 border border-amber-500/30 hover:border-amber-400/60' : 'text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 hover:border-emerald-400/60'} py-1.5 rounded-xl transition font-semibold text-center active:scale-95">
                   ${p.is_active ? 'غیرفعال‌سازی' : 'فعال‌سازی'}
                 </button>
-                <button onclick="window.adminActions.deletePlan(${p.id}, '${p.name}')" class="bg-rose-500/15 hover:bg-rose-500/25 text-rose-300 border border-rose-500/40 px-3 py-1.5 rounded-xl transition font-medium flex items-center justify-center active:scale-95 shadow-sm" title="حذف پلن">
+                <button onclick="window.adminActions.deletePlan(${p.id}, '${p.name}')" class="bg-transparent hover:bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/30 hover:border-rose-400/60 px-3 py-1.5 rounded-xl transition font-medium flex items-center justify-center active:scale-95" title="حذف پلن">
                   <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                 </button>
               </div>
@@ -1505,8 +1545,13 @@
       const modal = document.getElementById('couponUsagesModal');
       const subtitle = document.getElementById('couponUsagesModalSubtitle');
       const list = document.getElementById('couponUsagesList');
+      const countStat = document.getElementById('couponUsagesCountStat');
+      const totalDiscStat = document.getElementById('couponUsagesTotalDiscountStat');
+
       if (modal) modal.classList.remove('hidden');
       if (subtitle) subtitle.innerText = `کد تخفیف: ${code}`;
+      if (countStat) countStat.innerText = '۰ بار';
+      if (totalDiscStat) totalDiscStat.innerText = '۰ تومان';
       if (list) list.innerHTML = '<div class="p-6 text-center text-xs text-slate-400">در حال دریافت لیست استفاده‌کنندگان...</div>';
       if (window.hapticFeedback) window.hapticFeedback('impact');
 
@@ -1518,44 +1563,58 @@
         }
 
         const usages = res.usages || [];
+        const totalDiscountGranted = usages.reduce((sum, u) => sum + (Number(u.discount_applied) || 0), 0);
+
         if (subtitle) {
           subtitle.innerText = `کد: ${res.coupon?.code || code} | تعداد کل استفاده: ${formatNumber(usages.length)} بار`;
         }
+        if (countStat) countStat.innerText = `${formatNumber(usages.length)} بار`;
+        if (totalDiscStat) totalDiscStat.innerText = `${formatNumber(totalDiscountGranted)} تومان`;
 
         if (usages.length === 0) {
           list.innerHTML = `
             <div class="bg-slate-900/50 border border-slate-800 rounded-2xl p-6 text-center text-slate-400 space-y-2">
-              <div class="w-10 h-10 rounded-2xl bg-pink-500/15 text-pink-400 flex items-center justify-center mx-auto">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+              <div class="w-12 h-12 rounded-2xl bg-pink-500/15 text-pink-400 flex items-center justify-center mx-auto shadow-sm">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z"/></svg>
               </div>
-              <p class="text-xs">هیچ کاربری هنوز از این کد تخفیف استفاده نکرده است.</p>
+              <b class="text-xs text-slate-300 block">بدون استفاده</b>
+              <p class="text-[11px] text-slate-400">هیچ کاربری هنوز از این کد تخفیف استفاده نکرده است.</p>
             </div>
           `;
           return;
         }
 
         list.innerHTML = usages.map(u => {
-          const uName = u.full_name || u.username || `کاربر ${u.telegram_id}`;
+          const uName = (u.full_name || u.username || `کاربر ${u.telegram_id}`).trim();
           const uTag = u.username ? `@${u.username}` : `#${u.telegram_id}`;
-          const dateStr = u.created_at ? new Date(u.created_at).toLocaleDateString('fa-IR') : '—';
-          const discountStr = u.discount_applied > 0 ? `${formatNumber(u.discount_applied)} ت تخفیف` : 'اعمال‌شده';
+          const initial = (uName[0] || 'U').toUpperCase();
+          const dateStr = u.created_at ? new Date(u.created_at).toLocaleDateString('fa-IR', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }) : '—';
+          const discountStr = u.discount_applied > 0 ? `${formatNumber(u.discount_applied)} تومان` : 'اعمال‌شده';
 
           return `
-            <div class="bg-slate-900/80 rounded-2xl p-3 border border-slate-800 flex items-center justify-between gap-2 shadow-sm">
-              <div class="min-w-0">
-                <div class="flex items-center gap-1.5">
-                  <b class="text-white text-xs truncate max-w-[130px]">${uName}</b>
-                  <span class="text-[10px] text-pink-400 font-mono cursor-pointer hover:underline" onclick="window.adminActions.quickCopy('${u.username ? '@' + u.username : u.telegram_id}', 'شناسه کاربر')" title="کپی شناسه">${uTag}</span>
+            <div class="bg-slate-900/80 rounded-2xl p-3 border border-slate-800 flex items-center justify-between gap-2.5 shadow-sm hover:border-pink-500/30 transition">
+              <div class="flex items-center gap-2.5 min-w-0">
+                <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-pink-600 to-purple-600 text-white font-bold text-xs flex items-center justify-center flex-shrink-0 shadow-sm">
+                  ${initial}
                 </div>
-                <div class="flex items-center gap-2 mt-0.5 text-[9px] text-slate-400">
-                  <span>شناسه: <span class="font-mono text-slate-300">${u.telegram_id}</span></span>
-                  <span>•</span>
-                  <span>تاریخ: <span class="font-mono text-slate-300">${dateStr}</span></span>
+                <div class="min-w-0">
+                  <div class="flex items-center gap-1.5">
+                    <b class="text-white text-xs truncate max-w-[125px]">${uName}</b>
+                    <span class="text-[10px] text-pink-400 font-mono cursor-pointer hover:underline flex items-center gap-0.5" onclick="window.adminActions.quickCopy('${u.username ? '@' + u.username : u.telegram_id}', 'شناسه کاربر')" title="کپی شناسه">
+                      ${uTag}
+                      <svg class="w-2.5 h-2.5 opacity-60 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                    </span>
+                  </div>
+                  <div class="flex items-center gap-2 mt-0.5 text-[9px] text-slate-400">
+                    <span>شناسه: <span class="font-mono text-slate-300">${u.telegram_id}</span></span>
+                    <span>•</span>
+                    <span>${dateStr}</span>
+                    ${u.order_id ? `<span>•</span><span class="font-mono text-slate-400">سفارش #${u.order_id}</span>` : ''}
+                  </div>
                 </div>
               </div>
               <div class="text-left flex-shrink-0">
-                <span class="text-[11px] font-bold text-emerald-400 font-mono block">${discountStr}</span>
-                ${u.order_id ? `<span class="text-[9px] text-slate-500 font-mono">سفارش #${u.order_id}</span>` : ''}
+                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 text-[11px] font-mono font-bold">${discountStr}</span>
               </div>
             </div>
           `;

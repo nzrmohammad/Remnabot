@@ -155,3 +155,16 @@ html.theme-light textarea {
   border-color: #cbd5e1 !important;
   color: #0f172a !important;
 }
+html.theme-light .bg-transparent {
+  background-color: transparent !important;
+}
+html.theme-light .bg-\[\#1e293b\],
+html.theme-light .bg-\[\#0f172a\] {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+  color: #0f172a !important;
+}
+html.theme-light .border-pink-500\/30,
+html.theme-light .border-pink-800\/50 {
+  border-color: #fbcfe8 !important;
+}
