@@ -193,24 +193,24 @@
         </div>
 
         <!-- Quick Admin Commands Hub -->
-        <div class="grid grid-cols-2 gap-2 text-xs">
-          <button id="openBroadcastModalBtn" class="bg-slate-800/90 hover:bg-slate-750 p-3 rounded-2xl border border-slate-700/80 flex items-center gap-2.5 transition active:scale-95 shadow">
-            <div class="w-8 h-8 rounded-xl bg-blue-500/15 flex items-center justify-center text-blue-400 flex-shrink-0">
+        <div class="grid grid-cols-2 gap-2.5 text-xs">
+          <button id="openBroadcastModalBtn" class="bg-gradient-to-br from-indigo-950/70 via-slate-900/90 to-blue-950/60 hover:from-indigo-900/80 hover:to-blue-900/70 p-3 rounded-2xl border border-indigo-700/50 hover:border-indigo-500/80 flex items-center gap-2.5 transition active:scale-95 shadow-md group">
+            <div class="w-8 h-8 rounded-xl bg-indigo-500/20 border border-indigo-500/30 flex items-center justify-center text-indigo-300 flex-shrink-0 group-hover:scale-105 transition">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"/></svg>
             </div>
-            <div class="text-right">
-              <span class="font-bold text-slate-200 block text-[11px]">پیام همگانی</span>
-              <span class="text-[9px] text-slate-400">ارسال به گروه‌های کاربری</span>
+            <div class="text-right min-w-0">
+              <span class="font-bold text-white block text-[11px] truncate">پیام همگانی</span>
+              <span class="text-[9px] text-slate-400 block truncate">ارسال به گروه‌ها</span>
             </div>
           </button>
 
-          <button id="quickRefreshMetricsBtn" class="bg-slate-800/90 hover:bg-slate-750 p-3 rounded-2xl border border-slate-700/80 flex items-center gap-2.5 transition active:scale-95 shadow">
-            <div class="w-8 h-8 rounded-xl bg-cyan-500/15 flex items-center justify-center text-cyan-400 flex-shrink-0">
+          <button id="quickRefreshMetricsBtn" class="bg-gradient-to-br from-teal-950/70 via-slate-900/90 to-cyan-950/60 hover:from-teal-900/80 hover:to-cyan-900/70 p-3 rounded-2xl border border-teal-700/50 hover:border-teal-500/80 flex items-center gap-2.5 transition active:scale-95 shadow-md group">
+            <div class="w-8 h-8 rounded-xl bg-teal-500/20 border border-teal-500/30 flex items-center justify-center text-teal-300 flex-shrink-0 group-hover:scale-105 transition">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
             </div>
-            <div class="text-right">
-              <span class="font-bold text-slate-200 block text-[11px]">سینک کامل داده‌ها</span>
-              <span class="text-[9px] text-slate-400">به‌روزرسانی کش و آمار</span>
+            <div class="text-right min-w-0">
+              <span class="font-bold text-white block text-[11px] truncate">سینک کامل داده‌ها</span>
+              <span class="text-[9px] text-slate-400 block truncate">به‌روزرسانی کش و آمار</span>
             </div>
           </button>
         </div>
@@ -892,8 +892,77 @@
           </div>
         </div>
 
-        <button id="dismissReportModalBtn" class="w-full bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs py-2.5 rounded-xl transition active:scale-95">
+        <button id="dismissReportModalBtn" class="w-full bg-slate-800 hover:bg-slate-750 text-white font-bold text-xs py-2.5 rounded-xl transition active:scale-95">
           بستن گزارش
+        </button>
+      </div>
+    </div>
+
+    <!-- MODAL 4: Reset Trial Subscription (مودال فعال‌سازی مجدد اکانت تست) -->
+    <div id="trialModal" class="absolute inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+      <div class="bg-[#1e293b] border border-purple-800/60 rounded-3xl p-5 w-full max-w-[340px] space-y-4 shadow-2xl relative">
+        <div class="flex justify-between items-center border-b border-slate-700/60 pb-2.5">
+          <h4 class="text-xs font-bold text-white flex items-center gap-1.5">
+            <div class="w-6 h-6 rounded-lg bg-purple-500/20 text-purple-400 flex items-center justify-center">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
+            </div>
+            <span>فعال‌سازی مجدد اشتراک تست</span>
+          </h4>
+          <button onclick="window.adminActions.closeTrialModal()" class="text-slate-400 hover:text-white text-xs">✕</button>
+        </div>
+
+        <div class="space-y-3">
+          <div class="bg-slate-900/70 p-3 rounded-2xl border border-slate-800 space-y-1.5 text-xs">
+            <span class="text-[10px] text-slate-400 block">کاربر انتخاب‌شده:</span>
+            <div class="flex items-center justify-between">
+              <b id="trialModalUserName" class="text-white text-xs font-bold truncate max-w-[190px]">نام کاربر</b>
+              <span id="trialModalUserId" class="font-mono text-purple-300 text-[11px]" dir="ltr">#123456</span>
+            </div>
+          </div>
+
+          <div class="bg-purple-950/40 p-3 rounded-2xl border border-purple-800/40 text-[10px] text-purple-200/90 leading-relaxed space-y-1">
+            <div class="font-bold flex items-center gap-1 text-purple-300">
+              <svg class="w-3.5 h-3.5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              <span>توضیح عملیات:</span>
+            </div>
+            <p>
+              با فعال‌سازی مجدد، محدودیت دریافت تست برای این کاربر حذف شده و می‌تواند مجدداً از منوی ربات اکانت تست رایگان دریافت کند.
+            </p>
+          </div>
+        </div>
+
+        <div class="space-y-2 pt-1">
+          <button id="confirmTrialResetBtn" onclick="window.adminActions.confirmResetTrial()" class="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-xs py-2.5 rounded-xl transition shadow active:scale-95 flex items-center justify-center gap-1.5">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+            <span>تایید و فعال‌سازی مجدد تست</span>
+          </button>
+          <button onclick="window.adminActions.closeTrialModal()" class="w-full bg-slate-800 hover:bg-slate-750 text-slate-300 text-xs py-2 rounded-xl transition">
+            انصراف
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL 5: Coupon Usages List (لیست کاربران استفاده‌کننده از کد تخفیف) -->
+    <div id="couponUsagesModal" class="absolute inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+      <div class="bg-[#1e293b] border border-pink-800/50 rounded-3xl p-5 w-full max-w-[380px] space-y-3.5 shadow-2xl relative max-h-[88vh] flex flex-col">
+        <div class="flex justify-between items-center border-b border-slate-700/60 pb-2.5 flex-shrink-0">
+          <div>
+            <h4 class="text-xs font-bold text-white flex items-center gap-1.5">
+              <svg class="w-4 h-4 text-pink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+              <span>کاربران استفاده‌کننده از کد تخفیف</span>
+            </h4>
+            <span id="couponUsagesModalSubtitle" class="text-[10px] text-pink-300 font-mono block mt-0.5">کد: — | ۰ استفاده</span>
+          </div>
+          <button onclick="window.adminActions.closeCouponUsagesModal()" class="text-slate-400 hover:text-white text-xs">✕</button>
+        </div>
+
+        <div id="couponUsagesList" class="flex-1 overflow-y-auto custom-scroll space-y-2 pr-0.5 min-h-[140px] max-h-[50vh]">
+          <div class="p-4 text-center text-xs text-slate-400">در حال بارگذاری لیست...</div>
+        </div>
+
+        <button onclick="window.adminActions.closeCouponUsagesModal()" class="w-full bg-slate-800 hover:bg-slate-750 text-slate-300 text-xs py-2 rounded-xl transition flex-shrink-0">
+          بستن
         </button>
       </div>
     </div>

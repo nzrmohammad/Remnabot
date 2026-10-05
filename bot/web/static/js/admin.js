@@ -24,6 +24,7 @@
   let currentWalletTarget = null;
   let currentHwidTarget = null;
   let currentSubTarget = null;
+  let currentTrialTarget = null;
   let adminPlansData = [];
   let adminCouponsData = [];
   let currentBroadcastTarget = 'all';
@@ -472,16 +473,13 @@
             </span>
           </div>
 
-          <!-- Host & ID Identifiers Strip (Neat LTR Badges) -->
-          <div class="grid grid-cols-2 gap-2 text-xs">
-            <div class="bg-slate-950/60 p-2.5 rounded-xl border border-slate-800/80 flex flex-col justify-center">
-              <span class="text-[9px] text-slate-400 block mb-0.5">آدرس سرور (Host):</span>
-              <span class="font-mono text-cyan-300 text-[11px] truncate" dir="ltr" title="${n.address || '—'}">${n.address || '—'}</span>
-            </div>
-            <div class="bg-slate-950/60 p-2.5 rounded-xl border border-slate-800/80 flex flex-col justify-center">
-              <span class="text-[9px] text-slate-400 block mb-0.5">شناسه نود (Node ID):</span>
-              <span class="font-mono text-indigo-300 text-[11px] truncate" dir="ltr" title="${n.id || '--'}">#${n.id || '--'}</span>
-            </div>
+          <!-- Server Host Address Strip -->
+          <div class="bg-slate-950/60 px-3 py-2 rounded-xl border border-slate-800/80 flex items-center justify-between text-xs">
+            <span class="text-[10px] text-slate-400 flex items-center gap-1.5">
+              <svg class="w-3.5 h-3.5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/></svg>
+              <span>آدرس سرور (Host):</span>
+            </span>
+            <span class="font-mono text-cyan-300 text-xs font-semibold truncate max-w-[210px] select-all" dir="ltr" title="${n.address || '—'}">${n.address || '—'}</span>
           </div>
 
           <!-- System Resource Gauges (CPU & RAM Progress Bars) -->
@@ -855,20 +853,51 @@
       }
     },
 
-    async resetTrial(telegram_id, name) {
-      if (!confirm(`آیا از فعال‌سازی مجدد قابلیت دریافت اکانت تست برای کاربر ${name} اطمینان دارید؟`)) return;
+    openTrialModal(telegram_id, name) {
+      currentTrialTarget = { telegram_id, name };
+      const nameEl = document.getElementById('trialModalUserName');
+      if (nameEl) nameEl.innerText = name || String(telegram_id);
+      const idEl = document.getElementById('trialModalUserId');
+      if (idEl) idEl.innerText = `#${telegram_id}`;
+      document.getElementById('trialModal')?.classList.remove('hidden');
+      if (window.hapticFeedback) window.hapticFeedback('impact');
+    },
+
+    closeTrialModal() {
+      document.getElementById('trialModal')?.classList.add('hidden');
+      currentTrialTarget = null;
+    },
+
+    async confirmResetTrial() {
+      if (!currentTrialTarget) return;
+      const { telegram_id } = currentTrialTarget;
+      const btn = document.getElementById('confirmTrialResetBtn');
+      if (btn) {
+        btn.disabled = true;
+        btn.innerText = 'در حال فعال‌سازی...';
+      }
       try {
         const res = await window.api.resetUserTrial(telegram_id);
         if (res && res.ok) {
           if (window.showToast) window.showToast(`✅ ${res.message || 'قابلیت تست برای کاربر فعال شد.'}`);
           if (window.hapticFeedback) window.hapticFeedback('success');
+          this.closeTrialModal();
         } else {
           if (window.showToast) window.showToast(`⚠️ ${res?.error || 'خطا در فعال‌سازی تست'}`);
           if (window.hapticFeedback) window.hapticFeedback('error');
         }
       } catch (e) {
         if (window.showToast) window.showToast('خطا در برقراری ارتباط');
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerText = 'تایید و فعال‌سازی مجدد تست';
+        }
       }
+    },
+
+    resetTrial(telegram_id, name) {
+      this.openTrialModal(telegram_id, name);
     },
 
     async killSessions(telegram_id, name) {
@@ -1224,15 +1253,15 @@
                 </div>
               </div>
 
-              <div class="flex gap-1.5 pt-1 text-[11px]">
-                <button onclick="window.adminActions.openPlanModal(${p.id})" class="flex-1 bg-slate-700/70 hover:bg-slate-700 text-white font-medium py-1.5 rounded-xl transition text-center flex items-center justify-center gap-1">
-                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+              <div class="flex gap-2 pt-1 text-[11px]">
+                <button onclick="window.adminActions.openPlanModal(${p.id})" class="flex-1 bg-slate-800/90 hover:bg-slate-750 text-slate-200 hover:text-white border border-slate-600/70 py-1.5 rounded-xl transition text-center flex items-center justify-center gap-1.5 font-semibold active:scale-95 shadow-sm">
+                  <svg class="w-3.5 h-3.5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                   <span>ویرایش</span>
                 </button>
-                <button onclick="window.adminActions.togglePlan(${p.id}, ${p.is_active})" class="flex-1 ${p.is_active ? 'bg-amber-950/60 text-amber-300 border border-amber-800/50' : 'bg-emerald-950/60 text-emerald-300 border border-emerald-800/50'} py-1.5 rounded-xl transition font-medium text-center">
+                <button onclick="window.adminActions.togglePlan(${p.id}, ${p.is_active})" class="flex-1 ${p.is_active ? 'bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border border-amber-500/40' : 'bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 border border-emerald-500/40'} py-1.5 rounded-xl transition font-semibold text-center active:scale-95 shadow-sm">
                   ${p.is_active ? 'غیرفعال‌سازی' : 'فعال‌سازی'}
                 </button>
-                <button onclick="window.adminActions.deletePlan(${p.id}, '${p.name}')" class="bg-rose-950/60 hover:bg-rose-900 text-rose-300 border border-rose-800/50 px-3 py-1.5 rounded-xl transition font-medium flex items-center justify-center">
+                <button onclick="window.adminActions.deletePlan(${p.id}, '${p.name}')" class="bg-rose-500/15 hover:bg-rose-500/25 text-rose-300 border border-rose-500/40 px-3 py-1.5 rounded-xl transition font-medium flex items-center justify-center active:scale-95 shadow-sm" title="حذف پلن">
                   <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                 </button>
               </div>
@@ -1386,10 +1415,14 @@
               </div>
 
               <div class="flex gap-2 pt-1 text-[11px]">
-                <button onclick="window.adminActions.toggleCoupon(${c.id}, ${c.is_active})" class="flex-1 ${c.is_active ? 'bg-amber-950/60 text-amber-300 border border-amber-800/50' : 'bg-emerald-950/60 text-emerald-300 border border-emerald-800/50'} py-1.5 rounded-xl transition font-medium text-center">
+                <button onclick="window.adminActions.openCouponUsages(${c.id}, '${c.code}')" class="flex-1 bg-slate-800/90 hover:bg-slate-750 text-slate-200 hover:text-white border border-slate-600/70 py-1.5 rounded-xl transition font-medium text-center flex items-center justify-center gap-1.5 active:scale-95 shadow-sm">
+                  <svg class="w-3.5 h-3.5 text-pink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+                  <span>استفاده‌کنندگان (${formatNumber(c.used_count || 0)})</span>
+                </button>
+                <button onclick="window.adminActions.toggleCoupon(${c.id}, ${c.is_active})" class="${c.is_active ? 'bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border border-amber-500/40' : 'bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 border border-emerald-500/40'} py-1.5 px-3 rounded-xl transition font-semibold text-center active:scale-95 shadow-sm">
                   ${c.is_active ? 'غیرفعال‌سازی' : 'فعال‌سازی'}
                 </button>
-                <button onclick="window.adminActions.deleteCoupon(${c.id}, '${c.code}')" class="bg-rose-950/60 hover:bg-rose-900 text-rose-300 border border-rose-800/50 px-3 py-1.5 rounded-xl transition font-medium flex items-center justify-center">
+                <button onclick="window.adminActions.deleteCoupon(${c.id}, '${c.code}')" class="bg-rose-500/15 hover:bg-rose-500/25 text-rose-300 border border-rose-500/40 px-3 py-1.5 rounded-xl transition font-medium flex items-center justify-center active:scale-95 shadow-sm" title="حذف کد تخفیف">
                   <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                 </button>
               </div>
@@ -1467,6 +1500,74 @@
         }
       } catch (e) {}
     },
+
+    async openCouponUsages(coupon_id, code) {
+      const modal = document.getElementById('couponUsagesModal');
+      const subtitle = document.getElementById('couponUsagesModalSubtitle');
+      const list = document.getElementById('couponUsagesList');
+      if (modal) modal.classList.remove('hidden');
+      if (subtitle) subtitle.innerText = `کد تخفیف: ${code}`;
+      if (list) list.innerHTML = '<div class="p-6 text-center text-xs text-slate-400">در حال دریافت لیست استفاده‌کنندگان...</div>';
+      if (window.hapticFeedback) window.hapticFeedback('impact');
+
+      try {
+        const res = await window.api.getAdminCouponUsages(coupon_id);
+        if (!res || !res.ok) {
+          if (list) list.innerHTML = `<div class="p-6 text-center text-xs text-rose-400">${res?.error || 'خطا در دریافت لیست'}</div>`;
+          return;
+        }
+
+        const usages = res.usages || [];
+        if (subtitle) {
+          subtitle.innerText = `کد: ${res.coupon?.code || code} | تعداد کل استفاده: ${formatNumber(usages.length)} بار`;
+        }
+
+        if (usages.length === 0) {
+          list.innerHTML = `
+            <div class="bg-slate-900/50 border border-slate-800 rounded-2xl p-6 text-center text-slate-400 space-y-2">
+              <div class="w-10 h-10 rounded-2xl bg-pink-500/15 text-pink-400 flex items-center justify-center mx-auto">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+              </div>
+              <p class="text-xs">هیچ کاربری هنوز از این کد تخفیف استفاده نکرده است.</p>
+            </div>
+          `;
+          return;
+        }
+
+        list.innerHTML = usages.map(u => {
+          const uName = u.full_name || u.username || `کاربر ${u.telegram_id}`;
+          const uTag = u.username ? `@${u.username}` : `#${u.telegram_id}`;
+          const dateStr = u.created_at ? new Date(u.created_at).toLocaleDateString('fa-IR') : '—';
+          const discountStr = u.discount_applied > 0 ? `${formatNumber(u.discount_applied)} ت تخفیف` : 'اعمال‌شده';
+
+          return `
+            <div class="bg-slate-900/80 rounded-2xl p-3 border border-slate-800 flex items-center justify-between gap-2 shadow-sm">
+              <div class="min-w-0">
+                <div class="flex items-center gap-1.5">
+                  <b class="text-white text-xs truncate max-w-[130px]">${uName}</b>
+                  <span class="text-[10px] text-pink-400 font-mono cursor-pointer hover:underline" onclick="window.adminActions.quickCopy('${u.username ? '@' + u.username : u.telegram_id}', 'شناسه کاربر')" title="کپی شناسه">${uTag}</span>
+                </div>
+                <div class="flex items-center gap-2 mt-0.5 text-[9px] text-slate-400">
+                  <span>شناسه: <span class="font-mono text-slate-300">${u.telegram_id}</span></span>
+                  <span>•</span>
+                  <span>تاریخ: <span class="font-mono text-slate-300">${dateStr}</span></span>
+                </div>
+              </div>
+              <div class="text-left flex-shrink-0">
+                <span class="text-[11px] font-bold text-emerald-400 font-mono block">${discountStr}</span>
+                ${u.order_id ? `<span class="text-[9px] text-slate-500 font-mono">سفارش #${u.order_id}</span>` : ''}
+              </div>
+            </div>
+          `;
+        }).join('');
+      } catch (err) {
+        if (list) list.innerHTML = '<div class="p-6 text-center text-xs text-rose-400">خطای شبکه در دریافت لیست استفاده‌کنندگان</div>';
+      }
+    },
+
+    closeCouponUsagesModal() {
+      document.getElementById('couponUsagesModal')?.classList.add('hidden');
+    },
   };
 
   const fetchAdminPlans = () => window.adminActions.fetchAdminPlans();
@@ -1513,25 +1614,41 @@
         return;
       }
 
-      container.innerHTML = topups.map(t => `
-        <div class="bg-slate-800/90 rounded-2xl p-3.5 border border-slate-700/80 space-y-2.5 shadow">
-          <div class="flex justify-between items-center">
-            <div>
-              <span class="text-xs font-bold text-white">فیش #${t.id}</span>
-              <span class="text-[10px] text-slate-400 block font-mono">کاربر: ${t.username ? '@' + t.username : t.telegram_id}</span>
+      container.innerHTML = topups.map(t => {
+        const uLabel = t.full_name || (t.username ? '@' + t.username : `کاربر ${t.telegram_id}`);
+        const uId = t.username ? `@${t.username}` : `#${t.telegram_id}`;
+        const dateStr = t.created_at ? new Date(t.created_at).toLocaleDateString('fa-IR') : '—';
+        const receiptBadge = t.receipt_hash ? `<span class="font-mono text-[9px] bg-slate-900 px-2 py-0.5 rounded text-slate-400 border border-slate-700/60 truncate max-w-[130px] inline-block" title="${t.receipt_hash}">کد پیگیری: ${t.receipt_hash}</span>` : '';
+
+        return `
+          <div class="bg-slate-800/90 rounded-2xl p-3.5 border border-slate-700/80 space-y-2.5 shadow">
+            <div class="flex justify-between items-start">
+              <div class="min-w-0">
+                <div class="flex items-center gap-1.5">
+                  <span class="text-xs font-bold text-white">فیش #${t.id}</span>
+                  <span class="text-[10px] text-cyan-400 font-mono font-medium">${uId}</span>
+                </div>
+                <div class="flex items-center gap-2 mt-0.5">
+                  <span class="text-[10px] text-slate-300 truncate max-w-[150px]">${uLabel}</span>
+                  <span class="text-[9px] text-slate-500 font-mono">${dateStr}</span>
+                </div>
+                ${receiptBadge ? `<div class="mt-1">${receiptBadge}</div>` : ''}
+              </div>
+              <div class="text-left flex-shrink-0">
+                <span class="text-sm font-black text-emerald-400 font-mono">${formatNumber(t.amount || 0)} <span class="text-[10px] font-sans font-normal text-slate-400">ت</span></span>
+              </div>
             </div>
-            <span class="text-sm font-black text-emerald-400 font-mono">${formatNumber(t.amount || 0)} ت</span>
+            <div class="flex gap-2 pt-1 text-[11px]">
+              <button onclick="window.adminActions.handleTopup(${t.id}, true)" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-1.5 rounded-xl transition active:scale-95 shadow">
+                ✓ تایید و شارژ
+              </button>
+              <button onclick="window.adminActions.handleTopup(${t.id}, false)" class="flex-1 bg-rose-600 hover:bg-rose-500 text-white font-bold py-1.5 rounded-xl transition active:scale-95 shadow">
+                ✕ رد فیش
+              </button>
+            </div>
           </div>
-          <div class="flex gap-2 pt-1 text-[11px]">
-            <button onclick="window.adminActions.handleTopup(${t.id}, true)" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-1.5 rounded-xl transition active:scale-95">
-              ✓ تایید و شارژ
-            </button>
-            <button onclick="window.adminActions.handleTopup(${t.id}, false)" class="flex-1 bg-rose-600 hover:bg-rose-500 text-white font-bold py-1.5 rounded-xl transition active:scale-95">
-              ✕ رد فیش
-            </button>
-          </div>
-        </div>
-      `).join('');
+        `;
+      }).join('');
     } catch (err) {
       container.innerHTML = '<div class="p-4 text-center text-rose-400 text-xs">خطای شبکه در دریافت فیش‌ها</div>';
     }

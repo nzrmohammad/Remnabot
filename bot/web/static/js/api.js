@@ -200,6 +200,10 @@ const api = {
     return this.get('/api/admin/coupons');
   },
 
+  async getAdminCouponUsages(id) {
+    return this.get(`/api/admin/coupons/${id}/usages`);
+  },
+
   async saveAdminCoupon(data) {
     return this.post('/api/admin/coupon/save', data);
   },

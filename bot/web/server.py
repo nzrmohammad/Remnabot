@@ -10,6 +10,7 @@ from aiohttp import web
 from bot.web.cache import FastCache
 from bot.web.routes_admin import (
     get_admin_broadcast_status,
+    get_admin_coupon_usages,
     get_admin_coupons,
     get_admin_overview,
     get_admin_plans,
@@ -182,6 +183,7 @@ def create_web_app(
     app.router.add_post("/api/admin/plan/toggle", post_admin_plan_toggle)
     app.router.add_post("/api/admin/plan/delete", post_admin_plan_delete)
     app.router.add_get("/api/admin/coupons", get_admin_coupons)
+    app.router.add_get("/api/admin/coupons/{id}/usages", get_admin_coupon_usages)
     app.router.add_post("/api/admin/coupon/save", post_admin_coupon_save)
     app.router.add_post("/api/admin/coupon/toggle", post_admin_coupon_toggle)
     app.router.add_post("/api/admin/coupon/delete", post_admin_coupon_delete)

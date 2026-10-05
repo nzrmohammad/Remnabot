@@ -1275,4 +1275,88 @@ async def test_admin_users_filter_online_and_expiring():
     await engine.dispose()
 
 
+@pytest.mark.anyio
+async def test_admin_topups_listing():
+    from aiohttp.test_utils import make_mocked_request
+    from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
+    from bot.db.models import Base, User
+    from bot.db.repositories.wallet_repo import WalletRepository
+    from bot.web.routes_admin import get_admin_topups
+
+    engine = create_async_engine("sqlite+aiosqlite:///:memory:")
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+    session_factory = async_sessionmaker(engine, expire_on_commit=False)
+
+    async with session_factory() as session:
+        session.add(User(telegram_id=55555, username="payer_user"))
+        wallet_repo = WalletRepository(session)
+        await wallet_repo.create_topup(telegram_id=55555, amount=75000, receipt_hash="hash-receipt-123")
+        await session.commit()
+
+    app = {
+        "bot_token": "123:abc",
+        "admin_ids": [99999],
+        "is_dev": True,
+        "session_factory": session_factory,
+    }
+
+    req = make_mocked_request("GET", "/api/admin/topups?user_id=99999", app=app)
+    resp = await get_admin_topups(req)
+    assert resp.status == 200
+    data = json.loads(resp.text)
+    assert data["ok"] is True
+    assert len(data["topups"]) == 1
+    t = data["topups"][0]
+    assert t["telegram_id"] == 55555
+    assert t["amount"] == 75000
+    assert t["username"] == "payer_user"
+    assert t["receipt_hash"] == "hash-receipt-123"
+
+    await engine.dispose()
+
+
+@pytest.mark.anyio
+async def test_admin_coupon_usages():
+    from aiohttp.test_utils import make_mocked_request
+    from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
+    from bot.db.models import Base, User
+    from bot.db.repositories.coupon_repo import CouponRepository
+    from bot.web.routes_admin import get_admin_coupon_usages
+
+    engine = create_async_engine("sqlite+aiosqlite:///:memory:")
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+    session_factory = async_sessionmaker(engine, expire_on_commit=False)
+
+    async with session_factory() as session:
+        session.add(User(telegram_id=77777, username="lucky_user"))
+        coupon_repo = CouponRepository(session)
+        coupon = await coupon_repo.create(code="DISCOUNT50", discount_percent=50, max_uses=10)
+        await coupon_repo.record_usage(coupon=coupon, telegram_id=77777, discount_applied=25000)
+        await session.commit()
+        coupon_id = coupon.id
+
+    app = {
+        "bot_token": "123:abc",
+        "admin_ids": [99999],
+        "is_dev": True,
+        "session_factory": session_factory,
+    }
+
+    req = make_mocked_request("GET", f"/api/admin/coupons/{coupon_id}/usages?user_id=99999", match_info={"id": str(coupon_id)}, app=app)
+    resp = await get_admin_coupon_usages(req)
+    assert resp.status == 200
+    data = json.loads(resp.text)
+    assert data["ok"] is True
+    assert data["coupon"]["code"] == "DISCOUNT50"
+    assert len(data["usages"]) == 1
+    u = data["usages"][0]
+    assert u["telegram_id"] == 77777
+    assert u["username"] == "lucky_user"
+    assert u["discount_applied"] == 25000
+
+    await engine.dispose()
+
+
 

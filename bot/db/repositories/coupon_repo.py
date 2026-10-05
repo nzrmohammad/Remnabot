@@ -102,6 +102,15 @@ class CouponRepository:
         await self.session.flush()
         return usage
 
+    async def get_usages(self, coupon_id: int) -> list[CouponUsage]:
+        """List all usages of a coupon ordered by most recent."""
+        result = await self.session.execute(
+            select(CouponUsage)
+            .where(CouponUsage.coupon_id == coupon_id)
+            .order_by(CouponUsage.id.desc())
+        )
+        return list(result.scalars().all())
+
     async def validate_coupon(
         self, code: str, telegram_id: int, price: int = 0
     ) -> tuple[bool, str | None, int]:

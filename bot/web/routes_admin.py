@@ -12,6 +12,7 @@ from sqlalchemy import func, select
 from bot.common.helpers import get_limit_bytes, get_used_bytes
 from bot.db.models import AdminLog, AppSetting, Coupon, Order, Service, SupportMessage, Topup, User, Wallet
 from bot.db.repositories.app_setting_repo import AppSettingRepository
+from bot.db.repositories.coupon_repo import CouponRepository
 from bot.db.repositories.user_repo import UserRepository
 from bot.db.repositories.wallet_repo import WalletRepository
 from bot.handlers.admin_broadcast import _resolve_broadcast_recipients
@@ -20,6 +21,11 @@ from bot.services.app_settings import get_store_settings
 from bot.services.formatting import country_flag
 from bot.web.auth import get_authenticated_user
 from bot.web.cache import FastCache
+
+try:
+    import jdatetime
+except ImportError:
+    jdatetime = None
 
 logger = logging.getLogger(__name__)
 
@@ -162,12 +168,21 @@ async def get_admin_overview(request: web.Request) -> web.Response:
                 if ds in daily_revenue:
                     daily_revenue[ds] += (amt or 0)
 
-        chart_sales_labels = [(now_utc - timedelta(days=i)).strftime("%m/%d") for i in range(6, -1, -1)]
+        def _get_day_label(dt: datetime) -> str:
+            if jdatetime:
+                try:
+                    return jdatetime.datetime.fromgregorian(datetime=dt).strftime("%m/%d")
+                except Exception:
+                    pass
+            return dt.strftime("%m/%d")
+
+        days_list = [now_utc - timedelta(days=i) for i in range(6, -1, -1)]
+        chart_sales_labels = [_get_day_label(d) for d in days_list]
         chart_sales_data = list(daily_revenue.values())
 
         # 7-day traffic consumption trend for dashboard charts
         traffic_result = await session.execute(
-            select(Order.created_at, Service.traffic_gb)
+            select(Order.created_at, func.coalesce(Order.traffic_gb, Service.traffic_gb, 0))
             .join(Service, Order.service_id == Service.id, isouter=True)
             .where(Order.status == "paid", Order.created_at >= seven_days_ago)
         )
@@ -179,14 +194,39 @@ async def get_admin_overview(request: web.Request) -> web.Response:
                 if ds in daily_traffic:
                     daily_traffic[ds] += float(t_gb or 0)
 
-        chart_traffic_labels = [(now_utc - timedelta(days=i)).strftime("%m/%d") for i in range(6, -1, -1)]
+        chart_traffic_labels = [_get_day_label(d) for d in days_list]
+
+        # Record today's cluster traffic snapshot in cache for daily delta tracking
+        today_ds = now_utc.strftime("%Y-%m-%d")
+        await cache.set(f"analytics:traffic:snapshot:{today_ds}", total_traffic_gb, ttl_seconds=86400 * 30)
+
+        # Check for historical daily snapshots in cache to produce real consumption deltas
+        snapshot_deltas: list[float] = []
+        has_snapshots = True
+        for i in range(6, -1, -1):
+            target_ds = (now_utc - timedelta(days=i)).strftime("%Y-%m-%d")
+            prev_ds = (now_utc - timedelta(days=i + 1)).strftime("%Y-%m-%d")
+            s_curr = await cache.get(f"analytics:traffic:snapshot:{target_ds}")
+            s_prev = await cache.get(f"analytics:traffic:snapshot:{prev_ds}")
+            if s_curr is not None and s_prev is not None:
+                delta = max(0.0, float(s_curr) - float(s_prev))
+                snapshot_deltas.append(round(delta, 2))
+            else:
+                has_snapshots = False
+                break
+
         total_order_t_gb = sum(daily_traffic.values())
-        if total_order_t_gb > 0:
+        if has_snapshots and len(snapshot_deltas) == 7 and sum(snapshot_deltas) > 0:
+            chart_traffic_data = snapshot_deltas
+            traffic_total_gb = round(sum(snapshot_deltas), 2)
+        elif total_order_t_gb > 0:
             chart_traffic_data = [round(v, 2) for v in daily_traffic.values()]
+            traffic_total_gb = round(total_order_t_gb, 2)
         else:
-            # Baseline from current cluster metrics
+            # Baseline from current cluster metrics if no past orders/snapshots exist
             avg_daily = round(total_traffic_gb / 7.0, 2) if total_traffic_gb > 0 else 0.0
-            chart_traffic_data = [round(avg_daily * (0.8 + 0.05 * i), 2) for i in range(7)]
+            chart_traffic_data = [avg_daily] * 7
+            traffic_total_gb = total_traffic_gb
 
         data = {
             "metrics": {
@@ -205,7 +245,7 @@ async def get_admin_overview(request: web.Request) -> web.Response:
                 "sales_data": chart_sales_data,
                 "traffic_labels": chart_traffic_labels,
                 "traffic_data": chart_traffic_data,
-                "traffic_total_gb": round(sum(chart_traffic_data), 2),
+                "traffic_total_gb": traffic_total_gb,
             },
         }
 
@@ -651,23 +691,31 @@ async def get_admin_topups(request: web.Request) -> web.Response:
         return web.json_response({"ok": False, "error": "Forbidden"}, status=403)
 
     session_factory = request.app["session_factory"]
-    async with session_factory() as session:
-        wallet_repo = WalletRepository(session)
-        user_repo = UserRepository(session)
-        pending = await wallet_repo.list_pending_topups()
+    try:
+        async with session_factory() as session:
+            wallet_repo = WalletRepository(session)
+            user_repo = UserRepository(session)
+            pending = await wallet_repo.list_pending_topups()
 
-        items = []
-        for t in pending:
-            u = await user_repo.get_by_telegram_id(t.telegram_id)
-            items.append({
-                "id": t.id,
-                "telegram_id": t.telegram_id,
-                "username": u.username if u else None,
-                "amount": t.amount,
-                "created_at": t.created_at.isoformat() if t.created_at else None,
-                "receipt_photo_id": t.receipt_photo_id,
-            })
-        return web.json_response({"ok": True, "topups": items})
+            items = []
+            for t in pending:
+                u = await user_repo.get_by_telegram_id(t.telegram_id)
+                receipt_ref = getattr(t, "receipt_photo_id", None) or getattr(t, "receipt_hash", None)
+                items.append({
+                    "id": t.id,
+                    "telegram_id": t.telegram_id,
+                    "username": u.username if u else None,
+                    "full_name": getattr(u, "full_name", None),
+                    "amount": t.amount,
+                    "status": t.status,
+                    "created_at": t.created_at.isoformat() if t.created_at else None,
+                    "receipt_hash": getattr(t, "receipt_hash", None),
+                    "receipt_photo_id": receipt_ref,
+                })
+            return web.json_response({"ok": True, "topups": items})
+    except Exception as exc:
+        logger.exception("Error in get_admin_topups: %s", exc)
+        return web.json_response({"ok": False, "error": "خطا در پردازش لیست فیش‌ها"}, status=500)
 
 
 async def post_admin_topup_action(request: web.Request) -> web.Response:
@@ -1257,4 +1305,56 @@ async def post_admin_coupon_delete(request: web.Request) -> web.Response:
         await session.commit()
 
     return web.json_response({"ok": True, "message": "کد تخفیف با موفقیت حذف شد."})
+
+
+async def get_admin_coupon_usages(request: web.Request) -> web.Response:
+    """Get list of users who redeemed a specific coupon."""
+    admin = _check_admin(request)
+    if not admin:
+        return web.json_response({"ok": False, "error": "Forbidden"}, status=403)
+
+    coupon_id_raw = request.match_info.get("id") or request.query.get("id")
+    try:
+        coupon_id = int(coupon_id_raw)
+    except (TypeError, ValueError):
+        return web.json_response({"ok": False, "error": "شناسه کوپن نامعتبر است."}, status=400)
+
+    session_factory = request.app["session_factory"]
+    try:
+        async with session_factory() as session:
+            coupon_repo = CouponRepository(session)
+            user_repo = UserRepository(session)
+            coupon = await coupon_repo.get_by_id(coupon_id)
+            if not coupon:
+                return web.json_response({"ok": False, "error": "کد تخفیف یافت نشد."}, status=404)
+
+            usages = await coupon_repo.get_usages(coupon_id)
+            items = []
+            for u in usages:
+                user = await user_repo.get_by_telegram_id(u.telegram_id)
+                items.append({
+                    "id": u.id,
+                    "telegram_id": u.telegram_id,
+                    "username": user.username if user else None,
+                    "full_name": getattr(user, "full_name", None),
+                    "order_id": u.order_id,
+                    "discount_applied": u.discount_applied or 0,
+                    "created_at": u.created_at.isoformat() if u.created_at else None,
+                })
+
+            return web.json_response({
+                "ok": True,
+                "coupon": {
+                    "id": coupon.id,
+                    "code": coupon.code,
+                    "discount_percent": coupon.discount_percent,
+                    "discount_amount": coupon.discount_amount,
+                    "used_count": coupon.used_count,
+                    "max_uses": coupon.max_uses,
+                },
+                "usages": items,
+            })
+    except Exception as exc:
+        logger.exception("Error in get_admin_coupon_usages: %s", exc)
+        return web.json_response({"ok": False, "error": "خطا در دریافت لیست استفاده‌کنندگان"}, status=500)
 
