@@ -807,7 +807,7 @@
       const ramBarColor = ram > 85 ? 'bg-rose-500' : (ram > 60 ? 'bg-amber-500' : 'bg-indigo-500');
 
       return `
-        <div class="bg-gradient-to-b from-slate-800/90 to-slate-900/95 rounded-2xl p-4 border border-slate-700/80 space-y-3.5 shadow-lg relative overflow-hidden group">
+        <div class="node-card bg-slate-800/90 rounded-2xl p-4 border border-slate-700/80 space-y-3.5 shadow-md relative overflow-hidden group">
           <!-- Top Accent Light -->
           <div class="absolute top-0 right-0 left-0 h-[2px] ${isOnline ? 'bg-gradient-to-r from-emerald-500/0 via-emerald-400/50 to-emerald-500/0' : 'bg-gradient-to-r from-rose-500/0 via-rose-500/40 to-rose-500/0'}"></div>
 
@@ -830,7 +830,7 @@
           </div>
 
           <!-- Server Host Address Strip -->
-          <div class="bg-slate-950/60 px-3 py-2 rounded-xl border border-slate-800/80 flex items-center justify-between text-xs">
+          <div class="bg-slate-900/60 px-3 py-2 rounded-xl border border-slate-700/60 flex items-center justify-between text-xs">
             <span class="text-[10px] text-slate-400 flex items-center gap-1.5">
               <svg class="w-3.5 h-3.5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/></svg>
               <span>آدرس سرور:</span>
@@ -839,14 +839,14 @@
           </div>
 
           <!-- System Resource Gauges (CPU & RAM Progress Bars) -->
-          <div class="space-y-2 bg-slate-950/40 p-2.5 rounded-xl border border-slate-800/50">
+          <div class="space-y-2 bg-slate-900/40 p-2.5 rounded-xl border border-slate-700/50">
             <!-- CPU Progress -->
             <div class="space-y-1">
               <div class="flex justify-between items-center text-[10px]">
                 <span class="text-slate-400">پردازنده (CPU):</span>
                 <span class="font-mono font-bold ${cpu > 80 ? 'text-rose-400' : 'text-slate-200'}">${cpu > 0 ? cpu + '%' : 'در دسترس نیست'}</span>
               </div>
-              <div class="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
+              <div class="w-full h-1.5 bg-slate-700/60 rounded-full overflow-hidden">
                 <div class="h-full ${cpuBarColor} transition-all duration-500" style="width: ${Math.min(100, Math.max(0, cpu))}%"></div>
               </div>
             </div>
@@ -857,7 +857,7 @@
                 <span class="text-slate-400">حافظه رم (RAM):</span>
                 <span class="font-mono font-bold ${ram > 80 ? 'text-rose-400' : 'text-slate-200'}">${ram > 0 ? ram + '%' : 'در دسترس نیست'}</span>
               </div>
-              <div class="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
+              <div class="w-full h-1.5 bg-slate-700/60 rounded-full overflow-hidden">
                 <div class="h-full ${ramBarColor} transition-all duration-500" style="width: ${Math.min(100, Math.max(0, ram))}%"></div>
               </div>
             </div>
@@ -865,11 +865,11 @@
 
           <!-- Bottom Metrics: Connected users & Traffic -->
           <div class="grid grid-cols-2 gap-2 text-center text-[10px]">
-            <div class="bg-slate-950/60 p-2 rounded-xl border border-slate-800/80">
+            <div class="bg-slate-900/60 p-2 rounded-xl border border-slate-700/60">
               <span class="text-slate-400 block mb-0.5">کاربران متصل</span>
               <b class="text-emerald-400 font-mono text-xs">${formatNumber(n.connected_users || 0)} نفر</b>
             </div>
-            <div class="bg-slate-950/60 p-2 rounded-xl border border-slate-800/80">
+            <div class="bg-slate-900/60 p-2 rounded-xl border border-slate-700/60">
               <span class="text-slate-400 block mb-0.5">ترافیک مصرفی نود</span>
               <b class="text-cyan-400 font-mono text-xs" dir="ltr">${n.traffic_used_gb ? n.traffic_used_gb + ' GB' : '۰ GB'}</b>
             </div>
@@ -1022,7 +1022,7 @@
               <div class="min-w-0 flex-1">
                 <div class="flex items-center gap-1.5 min-w-0">
                   <div onclick="window.adminActions.quickCopy('${safeDisplayName}', 'نام کاربر')" class="text-xs font-bold text-white truncate max-w-[120px] sm:max-w-[160px] cursor-pointer hover:text-cyan-300 active:scale-95 transition" title="${displayName}">
-                    <span class="truncate">${displayName}</span>
+                    ${(displayName || '').startsWith('@') ? `<span class="truncate inline-block font-mono" dir="ltr" style="unicode-bidi: isolate;">${displayName}</span>` : `<span class="truncate">${displayName}</span>`}
                   </div>
                   ${u.is_online ? '<span class="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)] animate-pulse flex-shrink-0" title="متصل به سرور"></span>' : ''}
                   <div class="flex-shrink-0">${statusBadge}</div>
@@ -1030,7 +1030,7 @@
                 </div>
                 <div class="flex items-center gap-2 mt-0.5 text-[10px] text-slate-400 font-mono">
                   <span onclick="window.adminActions.quickCopy('${u.telegram_id}', 'شناسه عددی')" class="cursor-pointer hover:text-cyan-300">ID: ${u.telegram_id}</span>
-                  ${u.username ? `<span onclick="window.adminActions.quickCopy('@${u.username}', 'نام کاربری')" class="cursor-pointer hover:text-cyan-300 text-slate-400/80 font-sans truncate max-w-[100px]" dir="ltr">@${u.username}</span>` : ''}
+                  ${u.username ? `<span onclick="window.adminActions.quickCopy('@${u.username}', 'نام کاربری')" class="cursor-pointer hover:text-cyan-300 text-slate-400/90 font-mono truncate max-w-[110px] inline-block" dir="ltr" style="unicode-bidi: isolate;">@${u.username}</span>` : ''}
                 </div>
               </div>
             </div>
@@ -1043,7 +1043,7 @@
           <!-- Quick Action Buttons: 3x2 Symmetrical Grid -->
           <div class="space-y-1.5 pt-1">
             <div class="grid grid-cols-3 gap-1.5 text-center text-[10px]">
-              <button class="bg-transparent hover:bg-blue-500/10 text-blue-500 dark:text-blue-400 border border-blue-500/30 hover:border-blue-400/60 py-1.5 rounded-xl transition active:scale-95 font-medium flex items-center justify-center gap-1" onclick="window.adminActions.openModifyUser(${u.telegram_id}, '${safeDisplayName}')" title="افزایش حجم یا تمدید زمان">
+              <button class="bg-transparent hover:bg-blue-500/10 text-blue-500 dark:text-blue-400 border border-blue-500/30 hover:border-blue-400/60 py-1.5 rounded-xl transition active:scale-95 font-medium flex items-center justify-center gap-1" onclick="window.adminActions.openModifyUser(${u.telegram_id}, '${(u.username || '').replace(/'/g, "\\'")}', '${safeDisplayName}')" title="افزایش حجم یا تمدید زمان">
                 <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
                 <span>حجم و تمدید</span>
               </button>
@@ -1051,7 +1051,7 @@
                 <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
                 <span>موجودی</span>
               </button>
-              <button class="bg-transparent hover:bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/30 hover:border-purple-400/60 py-1.5 rounded-xl transition active:scale-95 font-medium flex items-center justify-center gap-1" onclick="window.adminActions.openTrialModal(${u.telegram_id}, '${safeDisplayName}')" title="فعال‌سازی مجدد تست">
+              <button class="bg-transparent hover:bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/30 hover:border-purple-400/60 py-1.5 rounded-xl transition active:scale-95 font-medium flex items-center justify-center gap-1" onclick="window.adminActions.openTrialModal(${u.telegram_id}, '${(u.username || '').replace(/'/g, "\\'")}', '${safeDisplayName}')" title="فعال‌سازی مجدد تست">
                 <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 01-2-2V7a2 2 0 012-2h14a2 2 0 012 2v3a2 2 0 01-2 2M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"/></svg>
                 <span>اکانت تست</span>
               </button>
@@ -1249,17 +1249,16 @@
     },
 
     // Unified Modify User (Volume & Duration)
-    openModifyUser(telegram_id, name) {
-      currentModifyTarget = { telegram_id, name };
+    openModifyUser(telegram_id, username = '', name = '') {
+      currentModifyTarget = { telegram_id, username, name };
       const modal = document.getElementById('modifyUserModal');
-      const nameEl = document.getElementById('modifyModalUserName');
-      const idEl = document.getElementById('modifyModalUserId');
+      const dispEl = document.getElementById('modifyModalUserDisplay');
       const trInput = document.getElementById('modifyModalTraffic');
       const daysInput = document.getElementById('modifyModalDays');
 
       if (modal) modal.classList.remove('hidden');
-      if (nameEl) nameEl.innerText = name || String(telegram_id);
-      if (idEl) idEl.innerText = `#${telegram_id}`;
+      const handle = username ? `@${username}` : (name || `کاربر ${telegram_id}`);
+      if (dispEl) dispEl.innerText = `${handle} - ${telegram_id}`;
       if (trInput) trInput.value = '';
       if (daysInput) daysInput.value = '';
       trInput?.focus();
@@ -1333,10 +1332,10 @@
       }
     },
 
-    openTrialModal(telegram_id, name) {
-      currentTrialTarget = { telegram_id, name };
+    openTrialModal(telegram_id, username = '', name = '') {
+      currentTrialTarget = { telegram_id, username, name };
       const nameEl = document.getElementById('trialModalUserName');
-      if (nameEl) nameEl.innerText = name || String(telegram_id);
+      if (nameEl) nameEl.innerText = name || (username ? `@${username}` : `کاربر ${telegram_id}`);
       const idEl = document.getElementById('trialModalUserId');
       if (idEl) idEl.innerText = `#${telegram_id}`;
       document.getElementById('trialModal')?.classList.remove('hidden');
@@ -1785,11 +1784,14 @@
           const hwidText = p.hwid_limit > 0 ? `${p.hwid_limit} کاربر` : 'پیش‌فرض';
 
           return `
-            <div class="bg-slate-800/80 rounded-2xl p-4 border border-slate-700/80 space-y-3 shadow transition">
+            <div class="plan-card bg-slate-800/80 rounded-2xl p-4 border border-slate-700/80 space-y-3 shadow transition">
               <div class="flex items-start justify-between">
                 <div>
                   <div class="flex items-center gap-2">
                     <b class="text-white text-xs font-bold">${p.name}</b>
+                    <span class="w-6 h-6 rounded-lg bg-blue-500/15 text-blue-400 border border-blue-500/30 flex items-center justify-center flex-shrink-0" title="بسته">
+                      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+                    </span>
                     ${statusBadge}
                   </div>
                   ${p.description ? `<p class="text-[10px] text-slate-400 mt-0.5 line-clamp-1">${p.description}</p>` : ''}
@@ -2105,45 +2107,39 @@
 
         list.innerHTML = usages.map(u => {
           const uName = (u.full_name || u.username || `کاربر ${u.telegram_id}`).trim();
-          const uTag = u.username ? `@${u.username}` : `#${u.telegram_id}`;
           const initial = (uName[0] || 'U').toUpperCase();
-          const dateStr = u.created_at ? new Date(u.created_at).toLocaleDateString('fa-IR', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }) : '—';
+          const dateStr = u.created_at ? new Date(u.created_at).toLocaleDateString('fa-IR', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' }) : '—';
           const discountStr = u.discount_applied > 0 ? `${formatNumber(u.discount_applied)} تومان` : 'اعمال‌شده';
 
           return `
-            <div class="bg-slate-900/90 rounded-2xl p-3 border border-slate-800 space-y-2.5 shadow-sm hover:border-pink-500/30 transition">
-              <!-- Row 1: Avatar, Name, Username & Discount Amount -->
-              <div class="flex items-center justify-between gap-2">
+            <div class="coupon-usage-card bg-slate-900/60 rounded-2xl p-3.5 border border-slate-700/60 space-y-3 shadow-sm hover:border-pink-500/40 transition">
+              <!-- Top Row: Avatar, Name, Handle & Discount Badge -->
+              <div class="flex items-center justify-between gap-3">
                 <div class="flex items-center gap-2.5 min-w-0">
                   <div class="w-9 h-9 rounded-full bg-gradient-to-tr from-pink-600 to-purple-600 text-white font-bold text-xs flex items-center justify-center flex-shrink-0 shadow-sm">
                     ${initial}
                   </div>
                   <div class="min-w-0">
-                    <b class="text-white text-xs font-bold block truncate max-w-[170px]">${uName}</b>
-                    <div class="flex items-center gap-1 mt-0.5">
-                      <span class="text-[10px] text-pink-400 font-mono cursor-pointer hover:underline flex items-center gap-0.5" onclick="window.adminActions.quickCopy('${u.username ? '@' + u.username : u.telegram_id}', 'شناسه کاربر')" title="کپی نام کاربری">
-                        <span>${uTag}</span>
-                        <svg class="w-2.5 h-2.5 opacity-60 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
-                      </span>
+                    <b class="text-white text-xs font-bold block truncate max-w-[160px] cursor-pointer hover:text-pink-300" onclick="window.adminActions.quickCopy('${(uName).replace(/'/g, "\\'")}', 'نام')" title="${uName}">${uName}</b>
+                    <div class="flex items-center gap-2 mt-0.5 font-mono text-[10px] text-slate-400">
+                      <span class="cursor-pointer hover:text-cyan-300" onclick="window.adminActions.quickCopy('${u.telegram_id}', 'شناسه عددی')">ID: ${u.telegram_id}</span>
+                      ${u.username ? `<span dir="ltr" class="cursor-pointer hover:text-pink-300 text-pink-400/90 font-mono inline-block" onclick="window.adminActions.quickCopy('@${u.username}', 'نام کاربری')">@${u.username}</span>` : ''}
                     </div>
                   </div>
                 </div>
                 <div class="text-left flex-shrink-0">
-                  <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-transparent text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 text-xs font-mono font-bold">${discountStr}</span>
+                  <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 text-xs font-mono font-bold">${discountStr}</span>
                 </div>
               </div>
 
-              <!-- Row 2: Metadata Footer Strip (ID, Order, Date) -->
-              <div class="bg-slate-950/60 rounded-xl px-2.5 py-1.5 flex items-center justify-between text-[10px] text-slate-400 gap-2">
+              <!-- Bottom Row: Order ID & Persian Timestamp Strip -->
+              <div class="bg-slate-950/40 rounded-xl px-3 py-2 flex items-center justify-between text-[11px] text-slate-400 gap-2 border border-slate-800/80">
                 <div class="flex items-center gap-2">
-                  <div onclick="window.adminActions.quickCopy('${u.telegram_id}', 'شناسه عددی')" class="cursor-pointer hover:text-cyan-300 transition flex items-center gap-1 font-mono text-slate-300" title="برای کپی شناسه عددی کلیک کنید">
-                    <span class="text-slate-500 text-[9px] font-sans">شناسه:</span>
-                    <span>${u.telegram_id}</span>
-                  </div>
-                  ${u.order_id ? `<span class="font-mono text-slate-300 bg-slate-900 px-1.5 py-0.5 rounded border border-slate-800 text-[9px]">سفارش #${u.order_id}</span>` : ''}
+                  <span class="text-slate-400 text-[10px]">شماره تراکنش:</span>
+                  ${u.order_id ? `<span class="font-mono text-cyan-300 bg-slate-900/80 px-2 py-0.5 rounded-lg border border-slate-700/60 text-[10px]">سفارش #${u.order_id}</span>` : '<span class="text-slate-500 text-[10px] font-mono">ثبت خودکار</span>'}
                 </div>
-                <div class="flex items-center gap-1 font-mono text-[9px] text-slate-400">
-                  <svg class="w-3 h-3 text-slate-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                <div class="flex items-center gap-1 font-mono text-[10px] text-slate-400" dir="ltr">
+                  <svg class="w-3 h-3 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                   <span>${dateStr}</span>
                 </div>
               </div>
@@ -2224,49 +2220,97 @@
     try {
       const res = await window.api.getAdminTopups();
       if (!res || !res.ok) {
-        container.innerHTML = `<div class="p-4 text-center text-rose-400 text-xs">${res?.error || 'خطا در دریافت فیش‌ها'}</div>`;
+        container.innerHTML = `<div class="p-6 text-center text-rose-400 text-xs">${res?.error || 'خطا در دریافت فیش‌ها'}</div>`;
         return;
       }
       const topups = res.topups || [];
       if (topups.length === 0) {
-        container.innerHTML = '<div class="bg-slate-900/40 p-4 rounded-xl text-center text-slate-400 text-xs border border-slate-800">هیچ فیش واریزی در انتظاری وجود ندارد 🟢</div>';
+        container.innerHTML = `
+          <div class="bg-slate-900/40 rounded-2xl p-6 text-center text-slate-400 text-xs border border-slate-800 space-y-2">
+            <div class="w-10 h-10 rounded-2xl bg-emerald-500/15 text-emerald-400 flex items-center justify-center mx-auto">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+            </div>
+            <p class="font-medium text-slate-300">هیچ فیش واریزی در انتظاری وجود ندارد</p>
+            <span class="text-[10px] text-slate-500">تمامی پرداخت‌های کارت به کارت بررسی شده‌اند.</span>
+          </div>
+        `;
         return;
       }
 
       container.innerHTML = topups.map(t => {
         const uLabel = t.full_name || (t.username ? '@' + t.username : `کاربر ${t.telegram_id}`);
-        const uId = t.username ? `@${t.username}` : `#${t.telegram_id}`;
-        const dateStr = t.created_at ? new Date(t.created_at).toLocaleDateString('fa-IR') : '—';
-        const receiptBadge = t.receipt_hash ? `<span class="font-mono text-[9px] bg-slate-900 px-2 py-0.5 rounded text-slate-400 border border-slate-700/60 truncate max-w-[130px] inline-block" title="${t.receipt_hash}">کد پیگیری: ${t.receipt_hash}</span>` : '';
+        const safeDisplayName = (uLabel || '').replace(/'/g, "\\'");
+        const initial = (uLabel[0] || 'U').toUpperCase();
+        const dateStr = t.created_at ? new Date(t.created_at).toLocaleDateString('fa-IR', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' }) : '—';
+        const avatarSrc = t.avatar_url || `/api/user/avatar?user_id=${t.telegram_id}`;
 
         return `
-          <div class="bg-slate-800/90 rounded-2xl p-3.5 border border-slate-700/80 space-y-2.5 shadow">
-            <div class="flex justify-between items-start">
-              <div class="min-w-0">
-                <div class="flex items-center gap-1.5">
-                  <span class="text-xs font-bold text-white">فیش #${t.id}</span>
-                  <span class="text-[10px] text-cyan-400 font-mono font-medium">${uId}</span>
-                </div>
-                <div class="flex items-center gap-2 mt-0.5">
-                  <span class="text-[10px] text-slate-300 truncate max-w-[150px]">${uLabel}</span>
-                  <span class="text-[9px] text-slate-500 font-mono">${dateStr}</span>
-                </div>
-                ${receiptBadge ? `<div class="mt-1">${receiptBadge}</div>` : ''}
+          <div class="topup-card bg-slate-800/90 rounded-2xl p-4 border border-slate-700/80 space-y-3.5 shadow-md relative overflow-hidden transition hover:border-slate-600">
+            <!-- Top Status & Timestamp Header -->
+            <div class="flex items-center justify-between border-b border-slate-700/60 pb-2.5">
+              <div class="flex items-center gap-2">
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-[10px] font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30">
+                  <span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>
+                  در انتظار بررسی
+                </span>
+                <span class="font-mono text-xs font-bold text-slate-300">#${t.id}</span>
               </div>
-              <div class="text-left flex-shrink-0">
-                <span class="text-sm font-black text-emerald-400 font-mono">${formatNumber(t.amount || 0)} <span class="text-[10px] font-sans font-normal text-slate-400">ت</span></span>
+              <span class="font-mono text-[10px] text-slate-400 flex items-center gap-1" dir="ltr">
+                <svg class="w-3 h-3 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                ${dateStr}
+              </span>
+            </div>
+
+            <!-- User Info & Amount Section -->
+            <div class="flex items-center justify-between gap-3">
+              <div class="flex items-center gap-2.5 min-w-0">
+                <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center font-bold text-white text-xs shadow flex-shrink-0 overflow-hidden relative">
+                  <img src="${avatarSrc}" alt="Avatar" class="w-full h-full object-cover" onerror="this.classList.add('hidden'); if(this.nextElementSibling) this.nextElementSibling.classList.remove('hidden');" />
+                  <span class="font-bold">${initial}</span>
+                </div>
+                <div class="min-w-0">
+                  <b class="text-white text-xs font-bold block truncate max-w-[140px] cursor-pointer hover:text-cyan-300" onclick="window.adminActions.quickCopy('${safeDisplayName}', 'نام')" title="${uLabel}">${uLabel}</b>
+                  <div class="flex items-center gap-2 mt-0.5 font-mono text-[10px] text-slate-400">
+                    <span class="cursor-pointer hover:text-cyan-300 text-slate-300" onclick="window.adminActions.quickCopy('${t.telegram_id}', 'شناسه عددی')">ID: ${t.telegram_id}</span>
+                    ${t.username ? `<span dir="ltr" class="cursor-pointer hover:text-cyan-300 text-slate-400/90 inline-block font-mono" onclick="window.adminActions.quickCopy('@${t.username}', 'نام کاربری')">@${t.username}</span>` : ''}
+                  </div>
+                </div>
+              </div>
+
+              <!-- Amount Banner -->
+              <div class="text-left bg-emerald-500/10 border border-emerald-500/25 px-3 py-1.5 rounded-xl flex-shrink-0">
+                <span class="text-[9px] text-emerald-400 block font-medium">مبلغ واریزی</span>
+                <div class="flex items-baseline gap-1">
+                  <b class="text-base font-black text-emerald-400 font-mono">${formatNumber(t.amount || 0)}</b>
+                  <span class="text-[10px] text-emerald-500/90 font-sans">تومان</span>
+                </div>
               </div>
             </div>
-            <div class="flex gap-2 pt-1 text-[11px]">
-              <button onclick="window.adminActions.handleTopup(${t.id}, true)" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-1.5 rounded-xl transition active:scale-95 shadow">
-                ✓ تایید و شارژ
+
+            <!-- Tracking Code Strip -->
+            <div class="bg-slate-900/70 px-3 py-2 rounded-xl border border-slate-700/60 flex items-center justify-between text-xs gap-2">
+              <span class="text-[10px] text-slate-400 flex items-center gap-1.5 flex-shrink-0">
+                <svg class="w-3.5 h-3.5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                <span>کد پیگیری / ارجاع:</span>
+              </span>
+              <span class="font-mono text-cyan-300 text-xs font-bold truncate max-w-[190px] select-all cursor-pointer hover:text-cyan-200" dir="ltr" onclick="window.adminActions.quickCopy('${t.receipt_hash || ''}', 'کد پیگیری')" title="${t.receipt_hash || 'ثبت نشده'}">
+                ${t.receipt_hash || 'ثبت نشده'}
+              </span>
+            </div>
+
+            <!-- Action Buttons Grid -->
+            <div class="grid grid-cols-3 gap-2 pt-0.5 text-xs">
+              <button onclick="window.adminActions.handleTopup(${t.id}, true)" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2 rounded-xl transition active:scale-95 shadow flex items-center justify-center gap-1">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                <span>تایید و شارژ</span>
               </button>
-              <button onclick="window.adminActions.openUserChat(${t.telegram_id}, '${(uLabel || '').replace(/'/g, "\\'")}', '${t.username ? '@' + t.username : '#' + t.telegram_id}')" class="bg-transparent hover:bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border border-cyan-500/30 px-3 py-1.5 rounded-xl transition font-medium flex items-center justify-center gap-1 active:scale-95" title="گفتگو با این کاربر">
+              <button onclick="window.adminActions.handleTopup(${t.id}, false)" class="bg-rose-600/90 hover:bg-rose-500 text-white font-bold py-2 rounded-xl transition active:scale-95 shadow flex items-center justify-center gap-1">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                <span>رد فیش</span>
+              </button>
+              <button onclick="window.adminActions.openUserChat(${t.telegram_id}, '${safeDisplayName}', '${t.username ? '@' + t.username : '#' + t.telegram_id}')" class="bg-transparent hover:bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 hover:border-cyan-400/60 py-2 rounded-xl transition font-medium flex items-center justify-center gap-1 active:scale-95" title="گفتگوی مستقیم با کاربر">
                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
-                <span>گفتگو</span>
-              </button>
-              <button onclick="window.adminActions.handleTopup(${t.id}, false)" class="flex-1 bg-rose-600 hover:bg-rose-500 text-white font-bold py-1.5 rounded-xl transition active:scale-95 shadow">
-                ✕ رد فیش
+                <span>چت با کاربر</span>
               </button>
             </div>
           </div>
@@ -2529,6 +2573,25 @@
 
       const supContact = document.getElementById('settingSupportContact');
       if (supContact) supContact.value = s.support_contact || '';
+
+      // Telegram Supergroup Forum Topics
+      const topicTopups = document.getElementById('settingTopicTopups');
+      if (topicTopups) topicTopups.value = s.topic_topups ?? '';
+
+      const topicOrders = document.getElementById('settingTopicOrders');
+      if (topicOrders) topicOrders.value = s.topic_orders ?? '';
+
+      const topicSupport = document.getElementById('settingTopicSupport');
+      if (topicSupport) topicSupport.value = s.topic_support ?? '';
+
+      const topicAlerts = document.getElementById('settingTopicAlerts');
+      if (topicAlerts) topicAlerts.value = s.topic_alerts ?? '';
+
+      const topicCrypto = document.getElementById('settingTopicCrypto');
+      if (topicCrypto) topicCrypto.value = s.topic_crypto ?? '';
+
+      const topicErrors = document.getElementById('settingTopicErrors');
+      if (topicErrors) topicErrors.value = s.topic_errors ?? '';
     } catch (e) {}
   }
 
@@ -2583,6 +2646,12 @@
       trial_duration_days: parseInt(document.getElementById('settingTrialDays')?.value || '1', 10),
       referral_reward_gb: parseInt(document.getElementById('settingRefReward')?.value || '5', 10),
       support_contact: document.getElementById('settingSupportContact')?.value?.trim() || '',
+      topic_topups: document.getElementById('settingTopicTopups')?.value?.trim() ? parseInt(document.getElementById('settingTopicTopups').value, 10) : null,
+      topic_orders: document.getElementById('settingTopicOrders')?.value?.trim() ? parseInt(document.getElementById('settingTopicOrders').value, 10) : null,
+      topic_support: document.getElementById('settingTopicSupport')?.value?.trim() ? parseInt(document.getElementById('settingTopicSupport').value, 10) : null,
+      topic_alerts: document.getElementById('settingTopicAlerts')?.value?.trim() ? parseInt(document.getElementById('settingTopicAlerts').value, 10) : null,
+      topic_crypto: document.getElementById('settingTopicCrypto')?.value?.trim() ? parseInt(document.getElementById('settingTopicCrypto').value, 10) : null,
+      topic_errors: document.getElementById('settingTopicErrors')?.value?.trim() ? parseInt(document.getElementById('settingTopicErrors').value, 10) : null,
     };
 
     const saveBtns = [document.getElementById('saveAllSettingsBtn'), document.getElementById('saveAllSettingsTopBtn')];

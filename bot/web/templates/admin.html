@@ -353,28 +353,6 @@
             <span>سینک</span>
           </button>
         </div>
-
-        <!-- Node Realtime Collapsible Box -->
-        <div class="bg-slate-800/80 rounded-2xl border border-slate-700/80 shadow overflow-hidden transition-all duration-200">
-          <div id="overviewNodesToggleHeader" class="p-3.5 flex justify-between items-center cursor-pointer select-none hover:bg-slate-750/70 transition">
-            <div class="flex items-center gap-2">
-              <svg class="w-4 h-4 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/></svg>
-              <span class="text-xs font-bold text-slate-200">وضعیت لحظه‌ای نودهای کلاستر</span>
-              <span id="overviewNodesChevron" class="text-xs text-slate-400 transition-transform duration-200">▼</span>
-            </div>
-            <button id="syncAllNodesBtn" class="text-[10px] text-blue-400 hover:text-blue-300 font-semibold bg-transparent hover:bg-blue-500/10 px-2 py-1 rounded-lg border border-blue-500/30 transition active:scale-95 flex items-center gap-1">
-              <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-              <span>سینک نودها</span>
-            </button>
-          </div>
-
-          <div id="overviewNodesCollapseBody" class="hidden border-t border-slate-700/60 p-3 bg-slate-900/40">
-            <div id="adminOverviewNodesList" class="space-y-2 text-xs">
-              <div class="p-3 text-center text-slate-400 text-xs">در حال بارگذاری وضعیت نودها...</div>
-            </div>
-          </div>
-        </div>
-
         <div id="adminNodesFullList" class="space-y-3">
           <div class="p-8 text-center text-xs text-slate-400">در حال دریافت وضعیت نودها...</div>
         </div>
@@ -643,7 +621,47 @@
           </div>
         </div>
 
-        <!-- 5. Big Save Button -->
+        <!-- 5. Forum Topics Configuration (تاپیک‌های سوپرگروه مدیریت تلگرام) -->
+        <div class="bg-slate-800/90 rounded-2xl p-4 border border-slate-700/80 space-y-3 text-xs shadow">
+          <div class="border-b border-slate-700/60 pb-2 flex items-center justify-between">
+            <span class="font-bold text-slate-200 flex items-center gap-1.5">
+              <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+              <span>شناسه تاپیک‌های تلگرام (Forum Topics):</span>
+            </span>
+            <span class="text-[10px] text-amber-400 font-mono">گروه تاپیک‌دار</span>
+          </div>
+          <p class="text-[10px] text-slate-400 leading-relaxed">
+            شناسه (Message Thread ID) هر تاپیک در سوپرگروه ادمین را وارد کنید تا پیام‌ها و اعلان‌ها تفکیک شوند:
+          </p>
+          <div class="grid grid-cols-2 gap-2.5">
+            <div>
+              <label class="text-[10px] text-slate-300 block mb-1">💳 تاپیک فیش‌های واریزی:</label>
+              <input type="number" id="settingTopicTopups" dir="ltr" placeholder="مثلاً: 2" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-cyan-300 outline-none focus:border-cyan-500 transition" />
+            </div>
+            <div>
+              <label class="text-[10px] text-slate-300 block mb-1">🛒 تاپیک سفارشات و خرید:</label>
+              <input type="number" id="settingTopicOrders" dir="ltr" placeholder="مثلاً: 3" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-emerald-300 outline-none focus:border-emerald-500 transition" />
+            </div>
+            <div>
+              <label class="text-[10px] text-slate-300 block mb-1">💬 تاپیک پشتیبانی و تیکت:</label>
+              <input type="number" id="settingTopicSupport" dir="ltr" placeholder="مثلاً: 4" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-blue-300 outline-none focus:border-blue-500 transition" />
+            </div>
+            <div>
+              <label class="text-[10px] text-slate-300 block mb-1">⚡ تاپیک هشدارها و انقضا:</label>
+              <input type="number" id="settingTopicAlerts" dir="ltr" placeholder="مثلاً: 5" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-amber-300 outline-none focus:border-amber-500 transition" />
+            </div>
+            <div>
+              <label class="text-[10px] text-slate-300 block mb-1">🪙 تاپیک پرداخت‌های کریپتو:</label>
+              <input type="number" id="settingTopicCrypto" dir="ltr" placeholder="مثلاً: 6" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-purple-300 outline-none focus:border-purple-500 transition" />
+            </div>
+            <div>
+              <label class="text-[10px] text-slate-300 block mb-1">⚠️ تاپیک لاگ و خطای سیستم:</label>
+              <input type="number" id="settingTopicErrors" dir="ltr" placeholder="مثلاً: 7" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-rose-300 outline-none focus:border-rose-500 transition" />
+            </div>
+          </div>
+        </div>
+
+        <!-- 6. Big Save Button -->
         <button id="saveAllSettingsBtn" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs py-3 rounded-2xl transition shadow-lg shadow-blue-500/20 active:scale-95 flex items-center justify-center gap-2 mb-6">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/></svg>
           <span>ذخیره تمامی تغییرات تنظیمات</span>
@@ -699,10 +717,7 @@
           <!-- User info preview line -->
           <div class="bg-slate-900/60 p-2.5 rounded-2xl border border-slate-800 flex items-center justify-between text-xs gap-2">
             <span class="text-[11px] text-slate-400 flex-shrink-0">کاربر منتخب:</span>
-            <div class="flex items-center gap-2 min-w-0">
-              <b id="modifyModalUserName" class="text-white text-xs font-bold truncate max-w-[150px]">نام کاربر</b>
-              <span id="modifyModalUserId" class="font-mono text-cyan-400 text-[11px] flex-shrink-0" dir="ltr">#123456</span>
-            </div>
+            <span id="modifyModalUserDisplay" class="font-mono text-cyan-300 text-xs font-semibold truncate select-all" dir="ltr">@user - 123456</span>
           </div>
 
           <!-- Traffic input & quick chips -->
@@ -712,7 +727,7 @@
               <span class="text-[10px] text-slate-400 font-sans">اختیاری (0 = بدون تغییر)</span>
             </div>
             <input type="number" id="modifyModalTraffic" placeholder="0" min="0" step="1" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-cyan-300 outline-none focus:border-cyan-500" />
-            <div class="flex gap-1.5 pt-0.5">
+            <div class="flex gap-1.5 pt-0.5" dir="ltr">
               <button type="button" onclick="window.adminActions.setModifyTraffic(5)" class="flex-1 py-1 rounded-lg bg-transparent hover:bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 text-[10px] font-mono transition">+5 GB</button>
               <button type="button" onclick="window.adminActions.setModifyTraffic(10)" class="flex-1 py-1 rounded-lg bg-transparent hover:bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 text-[10px] font-mono transition">+10 GB</button>
               <button type="button" onclick="window.adminActions.setModifyTraffic(20)" class="flex-1 py-1 rounded-lg bg-transparent hover:bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 text-[10px] font-mono transition">+20 GB</button>
@@ -727,11 +742,11 @@
               <span class="text-[10px] text-slate-400 font-sans">اختیاری (0 = بدون تغییر)</span>
             </div>
             <input type="number" id="modifyModalDays" placeholder="0" min="0" step="1" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-amber-300 outline-none focus:border-amber-500" />
-            <div class="flex gap-1.5 pt-0.5">
-              <button type="button" onclick="window.adminActions.setModifyDays(7)" class="flex-1 py-1 rounded-lg bg-transparent hover:bg-amber-500/10 border border-amber-500/30 text-amber-400 text-[10px] font-mono transition">+7 روز</button>
-              <button type="button" onclick="window.adminActions.setModifyDays(15)" class="flex-1 py-1 rounded-lg bg-transparent hover:bg-amber-500/10 border border-amber-500/30 text-amber-400 text-[10px] font-mono transition">+15 روز</button>
-              <button type="button" onclick="window.adminActions.setModifyDays(30)" class="flex-1 py-1 rounded-lg bg-transparent hover:bg-amber-500/10 border border-amber-500/30 text-amber-400 text-[10px] font-mono transition">+30 روز</button>
-              <button type="button" onclick="window.adminActions.setModifyDays(60)" class="flex-1 py-1 rounded-lg bg-transparent hover:bg-amber-500/10 border border-amber-500/30 text-amber-400 text-[10px] font-mono transition">+60 روز</button>
+            <div class="flex gap-1.5 pt-0.5" dir="rtl">
+              <button type="button" onclick="window.adminActions.setModifyDays(7)" class="flex-1 py-1 rounded-lg bg-transparent hover:bg-amber-500/10 border border-amber-500/30 text-amber-400 text-[10px] font-mono transition"><span dir="ltr">+7</span> روز</button>
+              <button type="button" onclick="window.adminActions.setModifyDays(15)" class="flex-1 py-1 rounded-lg bg-transparent hover:bg-amber-500/10 border border-amber-500/30 text-amber-400 text-[10px] font-mono transition"><span dir="ltr">+15</span> روز</button>
+              <button type="button" onclick="window.adminActions.setModifyDays(30)" class="flex-1 py-1 rounded-lg bg-transparent hover:bg-amber-500/10 border border-amber-500/30 text-amber-400 text-[10px] font-mono transition"><span dir="ltr">+30</span> روز</button>
+              <button type="button" onclick="window.adminActions.setModifyDays(60)" class="flex-1 py-1 rounded-lg bg-transparent hover:bg-amber-500/10 border border-amber-500/30 text-amber-400 text-[10px] font-mono transition"><span dir="ltr">+60</span> روز</button>
             </div>
           </div>
         </div>
@@ -759,11 +774,11 @@
         <div class="space-y-2.5">
           <div class="flex gap-2">
             <button id="walletActionAddBtn" type="button" class="flex-1 py-1.5 text-xs font-bold rounded-xl border border-emerald-500/50 bg-emerald-950/70 text-emerald-300 transition flex items-center justify-center gap-1">
-              <span>+</span>
+              <span dir="ltr">+</span>
               <span>افزایش موجودی</span>
             </button>
             <button id="walletActionDeductBtn" type="button" class="flex-1 py-1.5 text-xs font-medium rounded-xl border border-slate-700 bg-slate-900/60 text-slate-400 transition flex items-center justify-center gap-1">
-              <span>-</span>
+              <span dir="ltr">-</span>
               <span>کسر موجودی</span>
             </button>
           </div>
@@ -1061,11 +1076,11 @@
         </div>
 
         <div class="space-y-3">
-          <div class="bg-slate-900/70 p-3 rounded-2xl border border-slate-800 flex items-center justify-between text-xs gap-2">
+          <div class="bg-slate-900/70 p-3 rounded-2xl border border-slate-800 flex items-center justify-between text-xs gap-2 overflow-hidden">
             <span class="text-[11px] text-slate-400 flex-shrink-0">کاربر منتخب:</span>
-            <div class="flex items-center gap-2 min-w-0">
-              <b id="trialModalUserName" class="text-white text-xs font-bold truncate max-w-[150px]">نام کاربر</b>
-              <span id="trialModalUserId" class="font-mono text-purple-400 text-[11px] flex-shrink-0" dir="ltr">#123456</span>
+            <div class="flex items-center gap-1.5 min-w-0 overflow-hidden text-left" dir="ltr">
+              <b id="trialModalUserName" class="text-white text-xs font-bold truncate">نام کاربر</b>
+              <span id="trialModalUserId" class="font-mono text-purple-400 text-[11px] flex-shrink-0">#123456</span>
             </div>
           </div>
 
@@ -1146,7 +1161,7 @@
 
     <!-- MODAL 5: Coupon Usages List (لیست تفصیلی استفاده‌کنندگان از کد تخفیف) -->
     <div id="couponUsagesModal" class="absolute inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
-      <div class="bg-[#1e293b] border border-pink-500/30 rounded-3xl p-5 w-full max-w-[390px] space-y-3.5 shadow-2xl relative max-h-[88vh] flex flex-col">
+      <div class="bg-[#1e293b] border border-pink-500/30 rounded-3xl p-5 w-full max-w-[420px] space-y-3.5 shadow-2xl relative max-h-[86vh] flex flex-col">
         <!-- Header -->
         <div class="flex justify-between items-center border-b border-slate-700/60 pb-3 flex-shrink-0">
           <div class="flex items-center gap-2.5">
@@ -1165,18 +1180,18 @@
 
         <!-- KPI Mini Stats Ribbon -->
         <div id="couponUsagesStatsRibbon" class="grid grid-cols-2 gap-2 flex-shrink-0">
-          <div class="bg-slate-900/80 rounded-2xl p-2.5 border border-slate-800 text-center">
+          <div class="bg-slate-900/60 rounded-2xl p-2.5 border border-slate-700/60 text-center">
             <span class="text-[10px] text-slate-400 block mb-0.5">تعداد دفعات استفاده</span>
-            <b id="couponUsagesCountStat" class="text-sm font-black text-pink-400 font-mono">۰ بار</b>
+            <b id="couponUsagesCountStat" class="text-xs font-black text-pink-400 font-mono">۰ بار</b>
           </div>
-          <div class="bg-slate-900/80 rounded-2xl p-2.5 border border-slate-800 text-center">
+          <div class="bg-slate-900/60 rounded-2xl p-2.5 border border-slate-700/60 text-center">
             <span class="text-[10px] text-slate-400 block mb-0.5">مجموع تخفیف اعمال‌شده</span>
-            <b id="couponUsagesTotalDiscountStat" class="text-sm font-black text-emerald-400 font-mono">۰ تومان</b>
+            <b id="couponUsagesTotalDiscountStat" class="text-xs font-black text-emerald-400 font-mono">۰ تومان</b>
           </div>
         </div>
 
         <!-- Scrollable Usages List -->
-        <div id="couponUsagesList" class="flex-1 overflow-y-auto custom-scroll space-y-2 pr-0.5 min-h-[160px] max-h-[46vh]">
+        <div id="couponUsagesList" class="flex-1 overflow-y-auto custom-scroll space-y-2.5 pr-0.5 min-h-[160px] max-h-[48vh]">
           <div class="p-4 text-center text-xs text-slate-400">در حال بارگذاری لیست...</div>
         </div>
 

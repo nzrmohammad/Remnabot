@@ -374,3 +374,63 @@ html.theme-light #hwidModal .text-white {
   color: #0f172a !important;
 }
 
+/* Server nodes cards & Light theme fixes */
+html.theme-light .node-card {
+  background-color: #ffffff !important;
+  background-image: none !important;
+  border-color: #e2e8f0 !important;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05) !important;
+}
+html.theme-light .node-card .bg-slate-800\/40,
+html.theme-light .node-card .bg-slate-900\/40,
+html.theme-light .node-card [class*="bg-slate-800"],
+html.theme-light .node-card [class*="bg-slate-900"] {
+  background-color: #f8fafc !important;
+  border-color: #e2e8f0 !important;
+}
+html.theme-light .node-card .text-slate-200,
+html.theme-light .node-card .text-white {
+  color: #0f172a !important;
+}
+
+/* Receipts / Topup cards in Light theme */
+html.theme-light .topup-card {
+  background-color: #ffffff !important;
+  background-image: none !important;
+  border-color: #e2e8f0 !important;
+  box-shadow: 0 2px 6px 0 rgba(0, 0, 0, 0.05) !important;
+}
+html.theme-light .topup-card .bg-slate-950\/40,
+html.theme-light .topup-card .bg-slate-900\/50,
+html.theme-light .topup-card .bg-slate-800\/40 {
+  background-color: #f8fafc !important;
+  border-color: #e2e8f0 !important;
+}
+html.theme-light .topup-card .text-white {
+  color: #0f172a !important;
+}
+
+/* Coupon Usages modal in Light theme */
+html.theme-light .coupon-usage-card {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03) !important;
+}
+html.theme-light .coupon-usage-card .text-white,
+html.theme-light .coupon-usage-card .text-slate-200 {
+  color: #0f172a !important;
+}
+html.theme-light #couponUsagesModal .bg-slate-900\/60,
+html.theme-light #couponUsagesModal .bg-slate-900\/50 {
+  background-color: #f8fafc !important;
+  border-color: #e2e8f0 !important;
+}
+
+/* Settings tab input styling in light mode */
+html.theme-light #tab-admin-settings input {
+  background-color: #f8fafc !important;
+  border-color: #cbd5e1 !important;
+  color: #0f172a !important;
+}
+
+

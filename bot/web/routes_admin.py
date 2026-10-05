@@ -1138,11 +1138,15 @@ async def get_admin_topups(request: web.Request) -> web.Response:
             for t in pending:
                 u = await user_repo.get_by_telegram_id(t.telegram_id)
                 receipt_ref = getattr(t, "receipt_photo_id", None) or getattr(t, "receipt_hash", None)
+                u_full_name = getattr(u, "full_name", None)
+                if not u_full_name:
+                    u_full_name = f"@{u.username}" if (u and u.username) else f"کاربر {t.telegram_id}"
                 items.append({
                     "id": t.id,
                     "telegram_id": t.telegram_id,
                     "username": u.username if u else None,
-                    "full_name": getattr(u, "full_name", None),
+                    "full_name": u_full_name,
+                    "avatar_url": f"/api/user/avatar?user_id={t.telegram_id}",
                     "amount": t.amount,
                     "status": t.status,
                     "created_at": t.created_at.isoformat() if t.created_at else None,
@@ -1249,6 +1253,12 @@ async def get_admin_settings(request: web.Request) -> web.Response:
             "referral_reward_gb": store_settings.referral_reward_gb,
             "support_contact": store_settings.support_contact,
             "support_direct_enabled": store_settings.support_direct_enabled,
+            "topic_topups": store_settings.topic_topups,
+            "topic_orders": store_settings.topic_orders,
+            "topic_support": store_settings.topic_support,
+            "topic_alerts": store_settings.topic_alerts,
+            "topic_crypto": store_settings.topic_crypto,
+            "topic_errors": store_settings.topic_errors,
         }
         return web.json_response({"ok": True, "settings": data})
 
@@ -1304,6 +1314,27 @@ async def post_admin_settings(request: web.Request) -> web.Response:
                     await app_repo.set(num_key, str(num_val))
                 except (ValueError, TypeError):
                     pass
+
+        # Telegram Forum Topic IDs
+        topic_keys = (
+            "topic_topups",
+            "topic_orders",
+            "topic_support",
+            "topic_alerts",
+            "topic_crypto",
+            "topic_errors",
+        )
+        for t_key in topic_keys:
+            if t_key in body:
+                raw_t = body[t_key]
+                if raw_t is None or str(raw_t).strip() == "":
+                    await app_repo.set(t_key, "")
+                else:
+                    try:
+                        int_t = int(raw_t)
+                        await app_repo.set(t_key, str(int_t))
+                    except (ValueError, TypeError):
+                        pass
 
         session.add(
             AdminLog(
