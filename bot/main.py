@@ -162,6 +162,11 @@ async def _migrate_schema(engine: AsyncEngine) -> None:
                 )
             )
             logger.info("added topups.receipt_hash")
+        if cols and "receipt_photo_id" not in cols:
+            await conn.execute(
+                text("ALTER TABLE topups ADD COLUMN receipt_photo_id VARCHAR(256)")
+            )
+            logger.info("added topups.receipt_photo_id")
 
         # --- users: is_banned, has_claimed_trial, referred_by_id (new columns) --- #
         cols = await _table_columns(conn, "users")

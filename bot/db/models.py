@@ -131,6 +131,8 @@ class Topup(Base):
     # Stable receipt fingerprint (photo/document file_unique_id or text hash)
     # used to reject the same receipt submitted twice.
     receipt_hash: Mapped[str | None] = mapped_column(String(128), nullable=True, index=True)
+    # Telegram photo file_id for direct viewing by admins in TMA
+    receipt_photo_id: Mapped[str | None] = mapped_column(String(256), nullable=True)
 
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()

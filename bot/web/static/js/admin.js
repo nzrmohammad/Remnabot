@@ -307,7 +307,7 @@
 
     const totalSum = (values || []).reduce((a, b) => a + b, 0);
     const totalEl = document.getElementById('salesChartTotal');
-    if (totalEl) totalEl.innerText = `${formatNumber(totalSum)} تومان`;
+    if (totalEl) totalEl.innerHTML = `<span class="font-mono font-bold">${formatNumber(totalSum)}</span> <span>تومان</span>`;
 
     if (salesChartInstance) {
       salesChartInstance.data.labels = labels;
@@ -335,6 +335,8 @@
         plugins: {
           legend: { display: false },
           tooltip: {
+            rtl: true,
+            textDirection: 'rtl',
             callbacks: {
               label: (ctx) => `${formatNumber(ctx.raw)} تومان`
             }
@@ -369,7 +371,7 @@
     const currentToday = Number(todayGb || (values && values[values.length - 1]) || 0);
     const totalEl = document.getElementById('trafficChartTotal');
     if (totalEl) {
-      totalEl.innerHTML = `<span class="font-bold text-cyan-300 font-mono text-xs">${formatNumber(totalGb || currentToday || 0)}</span> <span class="text-[10px] text-cyan-400 font-sans">GB</span>`;
+      totalEl.innerHTML = `<span class="text-[9px] text-cyan-300 font-sans">GB</span> <span class="font-bold text-cyan-300 font-mono text-xs">${formatNumber(totalGb || currentToday || 0)}</span>`;
     }
 
     if (trafficChartInstance) {
@@ -408,8 +410,10 @@
         plugins: {
           legend: { display: false },
           tooltip: {
+            rtl: true,
+            textDirection: 'rtl',
             callbacks: {
-              label: (ctx) => `مصرف: ${formatNumber(ctx.raw)} GB`
+              label: (ctx) => `مصرف: GB ${formatNumber(ctx.raw)}`
             }
           }
         },
@@ -1783,15 +1787,18 @@
           const durationText = p.duration_days > 0 ? `${p.duration_days} روز` : 'نامحدود';
           const hwidText = p.hwid_limit > 0 ? `${p.hwid_limit} کاربر` : 'پیش‌فرض';
 
+          const rawName = (p.name || '').trim();
+          const emojiMatch = rawName.match(/^([\uD800-\uDBFF][\uDC00-\uDFFF]|[\u2600-\u27BF]|\p{Emoji_Presentation}|\p{Extended_Pictographic})/u);
+          const pkgIcon = emojiMatch ? emojiMatch[0] : '';
+          const cleanName = pkgIcon ? rawName.replace(pkgIcon, '').trim() : rawName;
+
           return `
             <div class="plan-card bg-slate-800/80 rounded-2xl p-4 border border-slate-700/80 space-y-3 shadow transition">
               <div class="flex items-start justify-between">
                 <div>
                   <div class="flex items-center gap-2">
-                    <b class="text-white text-xs font-bold">${p.name}</b>
-                    <span class="w-6 h-6 rounded-lg bg-blue-500/15 text-blue-400 border border-blue-500/30 flex items-center justify-center flex-shrink-0" title="بسته">
-                      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
-                    </span>
+                    <b class="text-white text-xs font-bold">${cleanName}</b>
+                    ${pkgIcon ? `<span class="text-sm select-none" title="آیکون بسته">${pkgIcon}</span>` : ''}
                     ${statusBadge}
                   </div>
                   ${p.description ? `<p class="text-[10px] text-slate-400 mt-0.5 line-clamp-1">${p.description}</p>` : ''}
@@ -2106,42 +2113,36 @@
         }
 
         list.innerHTML = usages.map(u => {
-          const uName = (u.full_name || u.username || `کاربر ${u.telegram_id}`).trim();
-          const initial = (uName[0] || 'U').toUpperCase();
+          const hasUsername = Boolean(u.username);
+          const hasFullName = Boolean(u.full_name && u.full_name !== u.username);
+          const title = hasFullName ? u.full_name : (hasUsername ? `@${u.username}` : `کاربر ${u.telegram_id}`);
+          const initial = (title.replace('@', '')[0] || 'U').toUpperCase();
           const dateStr = u.created_at ? new Date(u.created_at).toLocaleDateString('fa-IR', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' }) : '—';
           const discountStr = u.discount_applied > 0 ? `${formatNumber(u.discount_applied)} تومان` : 'اعمال‌شده';
 
           return `
-            <div class="coupon-usage-card bg-slate-900/60 rounded-2xl p-3.5 border border-slate-700/60 space-y-3 shadow-sm hover:border-pink-500/40 transition">
-              <!-- Top Row: Avatar, Name, Handle & Discount Badge -->
-              <div class="flex items-center justify-between gap-3">
-                <div class="flex items-center gap-2.5 min-w-0">
-                  <div class="w-9 h-9 rounded-full bg-gradient-to-tr from-pink-600 to-purple-600 text-white font-bold text-xs flex items-center justify-center flex-shrink-0 shadow-sm">
-                    ${initial}
-                  </div>
-                  <div class="min-w-0">
-                    <b class="text-white text-xs font-bold block truncate max-w-[160px] cursor-pointer hover:text-pink-300" onclick="window.adminActions.quickCopy('${(uName).replace(/'/g, "\\'")}', 'نام')" title="${uName}">${uName}</b>
-                    <div class="flex items-center gap-2 mt-0.5 font-mono text-[10px] text-slate-400">
-                      <span class="cursor-pointer hover:text-cyan-300" onclick="window.adminActions.quickCopy('${u.telegram_id}', 'شناسه عددی')">ID: ${u.telegram_id}</span>
-                      ${u.username ? `<span dir="ltr" class="cursor-pointer hover:text-pink-300 text-pink-400/90 font-mono inline-block" onclick="window.adminActions.quickCopy('@${u.username}', 'نام کاربری')">@${u.username}</span>` : ''}
-                    </div>
-                  </div>
+            <div class="coupon-usage-card bg-slate-900/60 rounded-2xl p-3.5 border border-slate-700/60 flex items-center justify-between gap-3 shadow-sm hover:border-pink-500/40 transition">
+              <div class="flex items-center gap-3 min-w-0">
+                <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-pink-600 to-purple-600 text-white font-bold text-xs flex items-center justify-center flex-shrink-0 shadow-sm">
+                  ${initial}
                 </div>
-                <div class="text-left flex-shrink-0">
-                  <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 text-xs font-mono font-bold">${discountStr}</span>
+                <div class="min-w-0 space-y-1">
+                  <div class="flex items-center gap-2">
+                    <b class="text-white text-xs font-bold truncate max-w-[150px] cursor-pointer hover:text-pink-300" onclick="window.adminActions.quickCopy('${title.replace(/'/g, "\\'")}', 'کاربر')" title="${title}">${title}</b>
+                    ${hasFullName && hasUsername ? `<span dir="ltr" class="text-[10px] text-pink-400 font-mono inline-block cursor-pointer hover:underline" onclick="window.adminActions.quickCopy('@${u.username}', 'نام کاربری')">@${u.username}</span>` : ''}
+                  </div>
+                  <div class="flex items-center gap-2 text-[10px] text-slate-400 font-mono">
+                    <span class="cursor-pointer hover:text-cyan-300" onclick="window.adminActions.quickCopy('${u.telegram_id}', 'شناسه عددی')">ID: ${u.telegram_id}</span>
+                    ${u.order_id ? `<span class="text-slate-500">•</span><span class="text-cyan-300 font-bold">سفارش #${u.order_id}</span>` : ''}
+                  </div>
+                  <div class="text-[10px] text-slate-400 font-mono flex items-center gap-1" dir="ltr">
+                    <svg class="w-3 h-3 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    <span>${dateStr}</span>
+                  </div>
                 </div>
               </div>
-
-              <!-- Bottom Row: Order ID & Persian Timestamp Strip -->
-              <div class="bg-slate-950/40 rounded-xl px-3 py-2 flex items-center justify-between text-[11px] text-slate-400 gap-2 border border-slate-800/80">
-                <div class="flex items-center gap-2">
-                  <span class="text-slate-400 text-[10px]">شماره تراکنش:</span>
-                  ${u.order_id ? `<span class="font-mono text-cyan-300 bg-slate-900/80 px-2 py-0.5 rounded-lg border border-slate-700/60 text-[10px]">سفارش #${u.order_id}</span>` : '<span class="text-slate-500 text-[10px] font-mono">ثبت خودکار</span>'}
-                </div>
-                <div class="flex items-center gap-1 font-mono text-[10px] text-slate-400" dir="ltr">
-                  <svg class="w-3 h-3 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                  <span>${dateStr}</span>
-                </div>
+              <div class="text-left flex-shrink-0">
+                <span class="inline-block px-2.5 py-1 rounded-xl bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 text-xs font-mono font-bold">${discountStr}</span>
               </div>
             </div>
           `;
@@ -2182,6 +2183,126 @@
       }
 
       if (window.hapticFeedback) window.hapticFeedback('impact');
+    },
+
+    openReceiptImageModal(photoUrl) {
+      const modal = document.getElementById('receiptPhotoModal');
+      const img = document.getElementById('receiptModalImage');
+      if (img) img.src = photoUrl;
+      if (modal) modal.classList.remove('hidden');
+      if (window.hapticFeedback) window.hapticFeedback('impact');
+    },
+
+    closeReceiptPhotoModal() {
+      const modal = document.getElementById('receiptPhotoModal');
+      if (modal) modal.classList.add('hidden');
+    },
+
+    openCryptoRatesModal() {
+      const modal = document.getElementById('cryptoRatesModal');
+      if (modal) modal.classList.remove('hidden');
+      this.refreshLiveCryptoRates();
+      if (window.hapticFeedback) window.hapticFeedback('impact');
+    },
+
+    closeCryptoRatesModal() {
+      document.getElementById('cryptoRatesModal')?.classList.add('hidden');
+    },
+
+    async refreshLiveCryptoRates() {
+      const container = document.getElementById('cryptoRatesContent');
+      if (!container) return;
+      container.innerHTML = '<div class="p-6 text-center text-xs text-slate-400">در حال استعلام جدیدترین نرخ‌ها از نوبیتکس، بیت‌پین و بایننس...</div>';
+      try {
+        const res = await window.api.getAdminCryptoRates();
+        if (!res || !res.ok) {
+          container.innerHTML = `<div class="p-6 text-center text-xs text-rose-400">${res?.error || 'خطا در دریافت نرخ‌ها'}</div>`;
+          return;
+        }
+
+        const bestTon = res.best_ton || {};
+        const bestUsdt = res.best_usdt || {};
+        window.lastLiveCryptoRates = { ton: bestTon.price, usdt: bestUsdt.price };
+
+        container.innerHTML = `
+          <!-- USDT Live Card -->
+          <div class="bg-slate-900/60 rounded-2xl p-3.5 border border-slate-700/60 flex items-center justify-between gap-3">
+            <div>
+              <div class="flex items-center gap-1.5">
+                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                <b class="text-white text-xs font-bold">تتر (USDT)</b>
+                <span class="text-[10px] text-slate-400">(${bestUsdt.source || 'نوبیتکس'})</span>
+              </div>
+              <div class="flex items-baseline gap-1 mt-1">
+                <b class="text-sm font-black text-emerald-400 font-mono">${formatNumber(bestUsdt.price || 0)}</b>
+                <span class="text-[10px] text-slate-400">تومان</span>
+              </div>
+            </div>
+            <button onclick="window.adminActions.applySpecificRate('usdt', ${bestUsdt.price || 0})" class="bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] font-bold px-3 py-1.5 rounded-xl transition shadow active:scale-95">
+              اعمال این نرخ
+            </button>
+          </div>
+
+          <!-- TON Live Card -->
+          <div class="bg-slate-900/60 rounded-2xl p-3.5 border border-slate-700/60 flex items-center justify-between gap-3">
+            <div>
+              <div class="flex items-center gap-1.5">
+                <span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
+                <b class="text-white text-xs font-bold">تون کوین (TON)</b>
+                <span class="text-[10px] text-slate-400">(${bestTon.source || 'بایننس / نوبیتکس'})</span>
+              </div>
+              <div class="flex items-baseline gap-1 mt-1">
+                <b class="text-sm font-black text-cyan-400 font-mono">${formatNumber(bestTon.price || 0)}</b>
+                <span class="text-[10px] text-slate-400">تومان</span>
+              </div>
+            </div>
+            <button onclick="window.adminActions.applySpecificRate('ton', ${bestTon.price || 0})" class="bg-cyan-600 hover:bg-cyan-500 text-white text-[11px] font-bold px-3 py-1.5 rounded-xl transition shadow active:scale-95">
+              اعمال این نرخ
+            </button>
+          </div>
+        `;
+      } catch (e) {
+        container.innerHTML = '<div class="p-6 text-center text-xs text-rose-400">خطای ارتباط با سرور در استعلام نرخ‌ها</div>';
+      }
+    },
+
+    applySpecificRate(type, val) {
+      if (!val) return;
+      if (type === 'usdt') {
+        const inp = document.getElementById('settingUsdtRate');
+        if (inp) inp.value = val;
+        if (window.showToast) window.showToast(`✓ نرخ تتر به ${formatNumber(val)} تومان تنظیم شد`);
+      } else if (type === 'ton') {
+        const inp = document.getElementById('settingTonRate');
+        if (inp) inp.value = val;
+        if (window.showToast) window.showToast(`✓ نرخ تون به ${formatNumber(val)} تومان تنظیم شد`);
+      }
+      if (window.hapticFeedback) window.hapticFeedback('success');
+    },
+
+    async applyLiveCryptoRates() {
+      const rates = window.lastLiveCryptoRates;
+      if (!rates) return;
+      const usdtInp = document.getElementById('settingUsdtRate');
+      const tonInp = document.getElementById('settingTonRate');
+      if (usdtInp && rates.usdt) usdtInp.value = rates.usdt;
+      if (tonInp && rates.ton) tonInp.value = rates.ton;
+
+      try {
+        const payload = {};
+        if (rates.usdt) payload.usdt_rate_toman = rates.usdt;
+        if (rates.ton) payload.ton_rate_toman = rates.ton;
+        const res = await window.api.saveAdminSettings(payload);
+        if (res && res.ok) {
+          if (window.showToast) window.showToast('✅ هر دو نرخ با موفقیت در تنظیمات ذخیره شدند');
+          this.closeCryptoRatesModal();
+          if (window.hapticFeedback) window.hapticFeedback('success');
+        } else {
+          if (window.showToast) window.showToast(`⚠️ ${res?.error || 'خطا در ثبت نرخ‌ها'}`);
+        }
+      } catch (e) {
+        if (window.showToast) window.showToast('خطا در ذخیره نرخ‌ها');
+      }
     },
   };
 
@@ -2243,6 +2364,7 @@
         const initial = (uLabel[0] || 'U').toUpperCase();
         const dateStr = t.created_at ? new Date(t.created_at).toLocaleDateString('fa-IR', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' }) : '—';
         const avatarSrc = t.avatar_url || `/api/user/avatar?user_id=${t.telegram_id}`;
+        const photoUrl = t.photo_url || (t.has_photo ? `/api/admin/topup/photo?id=${t.id}` : null);
 
         return `
           <div class="topup-card bg-slate-800/90 rounded-2xl p-4 border border-slate-700/80 space-y-3.5 shadow-md relative overflow-hidden transition hover:border-slate-600">
@@ -2286,6 +2408,36 @@
                 </div>
               </div>
             </div>
+
+            <!-- Receipt Photo Preview (if available) -->
+            ${photoUrl ? `
+              <div class="bg-slate-900/60 p-2.5 rounded-xl border border-slate-700/60 flex items-center justify-between gap-3">
+                <div class="flex items-center gap-3 min-w-0">
+                  <div class="w-14 h-14 rounded-xl bg-slate-950/60 border border-slate-700/80 overflow-hidden flex-shrink-0 relative group cursor-pointer" onclick="window.adminActions.openReceiptImageModal('${photoUrl}')">
+                    <img src="${photoUrl}" alt="فیش واریزی" class="w-full h-full object-cover transition-transform duration-200 group-hover:scale-110" loading="lazy" />
+                    <div class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                      <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7"/></svg>
+                    </div>
+                  </div>
+                  <div class="min-w-0">
+                    <span class="text-xs font-bold text-slate-200 block truncate">تصویر فیش ضمیمه شده</span>
+                    <span class="text-[10px] text-cyan-400 hover:text-cyan-300 cursor-pointer flex items-center gap-1 mt-1 font-medium" onclick="window.adminActions.openReceiptImageModal('${photoUrl}')">
+                      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                      بزرگنمایی و بررسی فیش
+                    </span>
+                  </div>
+                </div>
+                <button type="button" onclick="window.adminActions.openReceiptImageModal('${photoUrl}')" class="bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 flex-shrink-0 active:scale-95 shadow-sm">
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                  <span>مشاهده عکس</span>
+                </button>
+              </div>
+            ` : `
+              <div class="bg-slate-900/40 p-2.5 rounded-xl border border-dashed border-slate-700/60 flex items-center gap-2 text-slate-400 text-[11px]">
+                <svg class="w-4 h-4 text-slate-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                <span>واریز با شماره پیگیری متنی (بدون تصویر ضمیمه)</span>
+              </div>
+            `}
 
             <!-- Tracking Code Strip -->
             <div class="bg-slate-900/70 px-3 py-2 rounded-xl border border-slate-700/60 flex items-center justify-between text-xs gap-2">
@@ -2677,6 +2829,32 @@
 
   document.getElementById('saveAllSettingsBtn')?.addEventListener('click', handleSaveAllSettings);
   document.getElementById('saveAllSettingsTopBtn')?.addEventListener('click', handleSaveAllSettings);
+
+  // Settings Accordion Boxes toggle
+  document.querySelectorAll('.settings-box-header').forEach(header => {
+    header.addEventListener('click', () => {
+      const targetId = header.getAttribute('data-target');
+      if (!targetId) return;
+      const targetBody = document.getElementById(targetId);
+      const chevron = header.querySelector('.settings-box-chevron');
+      if (targetBody) {
+        const isHidden = targetBody.classList.contains('hidden');
+        if (isHidden) {
+          targetBody.classList.remove('hidden');
+          chevron?.classList.add('rotate-180');
+        } else {
+          targetBody.classList.add('hidden');
+          chevron?.classList.remove('rotate-180');
+        }
+      }
+      if (window.hapticFeedback) window.hapticFeedback('impact');
+    });
+  });
+
+  // Crypto rates modal trigger in settings
+  document.getElementById('openCryptoRatesModalBtn')?.addEventListener('click', () => {
+    window.adminActions.openCryptoRatesModal();
+  });
 
   // --- 9. Broadcast Modal & Live Report Modal ---
   const broadcastModal = document.getElementById('broadcastModal');

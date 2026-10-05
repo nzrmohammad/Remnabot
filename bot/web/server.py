@@ -12,11 +12,13 @@ from bot.web.routes_admin import (
     get_admin_broadcast_status,
     get_admin_coupon_usages,
     get_admin_coupons,
+    get_admin_crypto_rates,
     get_admin_overview,
     get_admin_plans,
     get_admin_settings,
     get_admin_ticket_messages,
     get_admin_ticket_threads,
+    get_admin_topup_photo,
     get_admin_topups,
     get_admin_user_hwid_devices,
     get_admin_users,
@@ -192,7 +194,9 @@ def create_web_app(
     app.router.add_post("/api/admin/coupon/toggle", post_admin_coupon_toggle)
     app.router.add_post("/api/admin/coupon/delete", post_admin_coupon_delete)
     app.router.add_get("/api/admin/topups", get_admin_topups)
+    app.router.add_get("/api/admin/topup/photo", get_admin_topup_photo)
     app.router.add_post("/api/admin/topup/action", post_admin_topup_action)
+    app.router.add_get("/api/admin/crypto/rates", get_admin_crypto_rates)
     app.router.add_get("/api/admin/settings", get_admin_settings)
     app.router.add_post("/api/admin/settings", post_admin_settings)
 

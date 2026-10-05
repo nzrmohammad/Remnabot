@@ -62,11 +62,15 @@ async def topup_receipt(
     import hashlib as _hl
 
     receipt_hash: str | None = None
+    receipt_photo_id = None
     if message.photo:
         biggest = message.photo[-1]
         receipt_hash = f"photo:{biggest.file_unique_id}"
+        receipt_photo_id = biggest.file_id
     elif message.document:
         receipt_hash = f"doc:{message.document.file_unique_id}"
+        if (message.document.mime_type or "").startswith("image/"):
+            receipt_photo_id = message.document.file_id
     elif message.text:
         normalized = " ".join(message.text.split())
         receipt_hash = "text:" + _hl.sha256(normalized.encode("utf-8")).hexdigest()[:48]
@@ -104,7 +108,9 @@ async def topup_receipt(
             )
             return
 
-    topup = await wallet_repo.create_topup(user.telegram_id, amount, receipt_hash)
+    topup = await wallet_repo.create_topup(
+        user.telegram_id, amount, receipt_hash, receipt_photo_id=receipt_photo_id
+    )
 
     # receipt + info with approve/reject buttons → admin chat
     tg_username = f"@{message.from_user.username}" if message.from_user.username else "—"

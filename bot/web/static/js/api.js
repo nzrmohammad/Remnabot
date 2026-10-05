@@ -226,6 +226,10 @@ const api = {
   async deleteAdminCoupon(id) {
     return this.post('/api/admin/coupon/delete', { id });
   },
+
+  async getAdminCryptoRates() {
+    return this.get('/api/admin/crypto/rates');
+  },
 };
 
 window.api = api;

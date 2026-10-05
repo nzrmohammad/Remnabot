@@ -104,9 +104,18 @@ class WalletRepository:
     # Top-ups
     # ------------------------------------------------------------------ #
     async def create_topup(
-        self, telegram_id: int, amount: int, receipt_hash: str | None = None
+        self,
+        telegram_id: int,
+        amount: int,
+        receipt_hash: str | None = None,
+        receipt_photo_id: str | None = None,
     ) -> Topup:
-        topup = Topup(telegram_id=telegram_id, amount=amount, receipt_hash=receipt_hash)
+        topup = Topup(
+            telegram_id=telegram_id,
+            amount=amount,
+            receipt_hash=receipt_hash,
+            receipt_photo_id=receipt_photo_id,
+        )
         self.session.add(topup)
         await self.session.flush()  # populates topup.id
         return topup

@@ -1141,6 +1141,7 @@ async def get_admin_topups(request: web.Request) -> web.Response:
                 u_full_name = getattr(u, "full_name", None)
                 if not u_full_name:
                     u_full_name = f"@{u.username}" if (u and u.username) else f"کاربر {t.telegram_id}"
+                has_photo = bool(getattr(t, "receipt_photo_id", None))
                 items.append({
                     "id": t.id,
                     "telegram_id": t.telegram_id,
@@ -1151,7 +1152,9 @@ async def get_admin_topups(request: web.Request) -> web.Response:
                     "status": t.status,
                     "created_at": t.created_at.isoformat() if t.created_at else None,
                     "receipt_hash": getattr(t, "receipt_hash", None),
-                    "receipt_photo_id": receipt_ref,
+                    "receipt_photo_id": getattr(t, "receipt_photo_id", None),
+                    "has_photo": has_photo,
+                    "photo_url": f"/api/admin/topup/photo?id={t.id}" if has_photo else None,
                 })
             return web.json_response({"ok": True, "topups": items})
     except Exception as exc:
@@ -1828,4 +1831,80 @@ async def get_admin_coupon_usages(request: web.Request) -> web.Response:
     except Exception as exc:
         logger.exception("Error in get_admin_coupon_usages: %s", exc)
         return web.json_response({"ok": False, "error": "خطا در دریافت لیست استفاده‌کنندگان"}, status=500)
+
+
+async def get_admin_topup_photo(request: web.Request) -> web.Response:
+    """Stream receipt photo for a topup request from Telegram servers."""
+    admin = _check_admin(request)
+    if not admin:
+        return web.json_response({"ok": False, "error": "Forbidden"}, status=403)
+
+    topup_id_raw = request.query.get("id")
+    if not topup_id_raw:
+        return web.json_response({"ok": False, "error": "شناسه فیش الزامی است."}, status=400)
+
+    try:
+        topup_id = int(topup_id_raw)
+    except (TypeError, ValueError):
+        return web.json_response({"ok": False, "error": "شناسه فیش نامعتبر است."}, status=400)
+
+    session_factory = request.app["session_factory"]
+    bot: Bot = request.app.get("bot")
+    if not bot:
+        return web.Response(text="Bot not available", status=503)
+
+    try:
+        async with session_factory() as session:
+            wallet_repo = WalletRepository(session)
+            topup = await wallet_repo.get_topup(topup_id)
+            if not topup or not topup.receipt_photo_id:
+                return web.Response(text="تصویری برای این فیش یافت نشد", status=404)
+
+            file_info = await bot.get_file(topup.receipt_photo_id)
+            if not file_info or not file_info.file_path:
+                return web.Response(text="فایل تصویر در سرور تلگرام یافت نشد", status=404)
+
+            file_bio = await bot.download_file(file_info.file_path)
+            content = file_bio.read() if hasattr(file_bio, "read") else file_bio.getvalue()
+            return web.Response(
+                body=content,
+                content_type="image/jpeg",
+                headers={
+                    "Cache-Control": "private, max-age=86400",
+                },
+            )
+    except Exception as exc:
+        logger.exception("Error serving topup photo for #%s: %s", topup_id, exc)
+        return web.Response(text="خطا در دریافت تصویر فیش", status=500)
+
+
+async def get_admin_crypto_rates(request: web.Request) -> web.Response:
+    """Fetch live market prices for TON and USDT from domestic exchanges (Nobitex, Bitpin, Wallex) and Binance."""
+    admin = _check_admin(request)
+    if not admin:
+        return web.json_response({"ok": False, "error": "Forbidden"}, status=403)
+
+    try:
+        from bot.services.crypto.nobitex import fetch_all_exchange_prices
+        session_factory = request.app["session_factory"]
+        async with session_factory() as session:
+            store = await get_store_settings(session)
+            current_usdt = store.usdt_rate_toman
+
+        market_data = await fetch_all_exchange_prices(usdt_rate=current_usdt)
+        best_ton_val, best_ton_src = market_data.get("best_ton") or (None, "")
+        best_usdt_val, best_usdt_src = market_data.get("best_usdt") or (None, "")
+
+        return web.json_response({
+            "ok": True,
+            "best_ton": {"price": best_ton_val, "source": best_ton_src},
+            "best_usdt": {"price": best_usdt_val, "source": best_usdt_src},
+            "ton_prices": market_data.get("ton") or {},
+            "usdt_prices": market_data.get("usdt") or {},
+            "binance_usd": market_data.get("binance_usd"),
+        })
+    except Exception as exc:
+        logger.exception("Error fetching crypto rates: %s", exc)
+        return web.json_response({"ok": False, "error": "خطا در استعلام آنلاین قیمت‌ها"}, status=500)
+
 

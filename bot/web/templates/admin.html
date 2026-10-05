@@ -142,7 +142,7 @@
               <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
               <span>روند فروش و درآمد ۷ روز اخیر</span>
             </span>
-            <span id="salesChartTotal" class="text-[10px] text-emerald-400 font-bold font-mono" dir="ltr">-- تومان</span>
+            <span id="salesChartTotal" class="text-[10px] text-emerald-400 font-bold" dir="rtl"><span class="font-mono">--</span> <span>تومان</span></span>
           </div>
           <div class="h-36 w-full relative">
             <canvas id="adminSalesChart"></canvas>
@@ -156,9 +156,9 @@
               <svg class="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
               <span>روند مصرف ترافیک</span>
             </span>
-            <div id="trafficChartTotal" class="text-[10px] text-cyan-400 font-bold font-mono inline-flex items-center gap-1" dir="rtl">
+            <div id="trafficChartTotal" class="text-[10px] text-cyan-400 font-bold inline-flex items-center gap-1" dir="rtl">
               <span class="text-[9px] text-cyan-300 font-sans">GB</span>
-              <span>--</span>
+              <span class="font-mono">--</span>
             </div>
           </div>
           <div class="h-36 w-full relative">
@@ -459,204 +459,256 @@
           </button>
         </div>
 
-        <!-- 1. Live System Switches -->
-        <div class="bg-slate-800/90 rounded-2xl p-4 border border-slate-700/80 space-y-2.5 text-xs shadow">
-          <span class="font-bold text-slate-200 block border-b border-slate-700/60 pb-2 flex items-center gap-1.5">
-            <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
-            <span>سوئیچ‌های ربات:</span>
-          </span>
-
-          <!-- Maintenance Mode -->
-          <div class="flex items-center justify-between py-1">
-            <div>
-              <span class="text-slate-200 font-medium block">حالت تعمیر ربات</span>
-              <span class="text-[10px] text-slate-400">فقط ادمین‌ها به ربات دسترسی دارند</span>
-            </div>
-            <label class="relative inline-flex items-center cursor-pointer">
-              <input type="checkbox" class="sr-only switch-checkbox" id="settingMaintSwitch">
-              <div class="switch-label w-11 h-6 bg-slate-700 rounded-full transition-colors duration-200 flex items-center px-0.5">
-                <div class="switch-ball w-5 h-5 bg-white rounded-full shadow-md transition-transform duration-200"></div>
+        <!-- 1. Live System Switches Box -->
+        <div class="settings-box bg-slate-800/90 rounded-2xl border border-slate-700/80 shadow overflow-hidden transition-all">
+          <div class="settings-box-header p-3.5 flex items-center justify-between cursor-pointer select-none hover:bg-slate-750/40 transition" data-target="settingsBoxSwitches">
+            <div class="flex items-center gap-2.5">
+              <div class="w-8 h-8 rounded-xl bg-blue-500/15 text-blue-400 border border-blue-500/30 flex items-center justify-center flex-shrink-0">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
               </div>
-            </label>
-          </div>
-
-          <!-- Card Payment -->
-          <div class="flex items-center justify-between py-1 border-t border-slate-700/50 pt-2">
-            <div>
-              <span class="text-slate-200 font-medium block">درگاه کارت به کارت</span>
-              <span class="text-[10px] text-slate-400">واریز و دریافت فیش دستی</span>
-            </div>
-            <label class="relative inline-flex items-center cursor-pointer">
-              <input type="checkbox" class="sr-only switch-checkbox" id="settingCardSwitch">
-              <div class="switch-label w-11 h-6 bg-slate-700 rounded-full transition-colors duration-200 flex items-center px-0.5">
-                <div class="switch-ball w-5 h-5 bg-white rounded-full shadow-md transition-transform duration-200"></div>
+              <div>
+                <b class="text-xs text-white block">سوئیچ‌ها و قابلیت‌های اصلی ربات</b>
+                <span class="text-[10px] text-slate-400 block mt-0.5">تعمیرات، درگاه‌ها، اشتراک تست، رفرال و تیکت</span>
               </div>
-            </label>
-          </div>
-
-          <!-- Crypto Payment -->
-          <div class="flex items-center justify-between py-1 border-t border-slate-700/50 pt-2">
-            <div>
-              <span class="text-slate-200 font-medium block">درگاه کریپتو (USDT / TON)</span>
-              <span class="text-[10px] text-slate-400">پرداخت خودکار و تایید بلاکچین</span>
             </div>
-            <label class="relative inline-flex items-center cursor-pointer">
-              <input type="checkbox" class="sr-only switch-checkbox" id="settingCryptoSwitch">
-              <div class="switch-label w-11 h-6 bg-slate-700 rounded-full transition-colors duration-200 flex items-center px-0.5">
-                <div class="switch-ball w-5 h-5 bg-white rounded-full shadow-md transition-transform duration-200"></div>
+            <svg class="settings-box-chevron w-4 h-4 text-slate-400 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+          </div>
+          <div id="settingsBoxSwitches" class="settings-box-body p-4 pt-1 border-t border-slate-700/60 space-y-2.5 text-xs">
+            <!-- Maintenance Mode -->
+            <div class="flex items-center justify-between py-1">
+              <div>
+                <span class="text-slate-200 font-medium block">حالت تعمیر ربات</span>
+                <span class="text-[10px] text-slate-400">فقط ادمین‌ها به ربات دسترسی دارند</span>
               </div>
-            </label>
-          </div>
-
-          <!-- Trial Subscription -->
-          <div class="flex items-center justify-between py-1 border-t border-slate-700/50 pt-2">
-            <div>
-              <span class="text-slate-200 font-medium block">اشتراک تست رایگان</span>
-              <span class="text-[10px] text-slate-400">امکان دریافت سرویس آزمایشی</span>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" class="sr-only switch-checkbox" id="settingMaintSwitch">
+                <div class="switch-label w-11 h-6 bg-slate-700 rounded-full transition-colors duration-200 flex items-center px-0.5">
+                  <div class="switch-ball w-5 h-5 bg-white rounded-full shadow-md transition-transform duration-200"></div>
+                </div>
+              </label>
             </div>
-            <label class="relative inline-flex items-center cursor-pointer">
-              <input type="checkbox" class="sr-only switch-checkbox" id="settingTrialSwitch">
-              <div class="switch-label w-11 h-6 bg-slate-700 rounded-full transition-colors duration-200 flex items-center px-0.5">
-                <div class="switch-ball w-5 h-5 bg-white rounded-full shadow-md transition-transform duration-200"></div>
+
+            <!-- Card Payment -->
+            <div class="flex items-center justify-between py-1 border-t border-slate-700/50 pt-2">
+              <div>
+                <span class="text-slate-200 font-medium block">درگاه کارت به کارت</span>
+                <span class="text-[10px] text-slate-400">واریز و دریافت فیش دستی</span>
               </div>
-            </label>
-          </div>
-
-          <!-- Referral System -->
-          <div class="flex items-center justify-between py-1 border-t border-slate-700/50 pt-2">
-            <div>
-              <span class="text-slate-200 font-medium block">سیستم زیرمجموعه‌گیری (رفرال)</span>
-              <span class="text-[10px] text-slate-400">پاداش ترافیک هدیه برای دعوت</span>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" class="sr-only switch-checkbox" id="settingCardSwitch">
+                <div class="switch-label w-11 h-6 bg-slate-700 rounded-full transition-colors duration-200 flex items-center px-0.5">
+                  <div class="switch-ball w-5 h-5 bg-white rounded-full shadow-md transition-transform duration-200"></div>
+                </div>
+              </label>
             </div>
-            <label class="relative inline-flex items-center cursor-pointer">
-              <input type="checkbox" class="sr-only switch-checkbox" id="settingRefSwitch">
-              <div class="switch-label w-11 h-6 bg-slate-700 rounded-full transition-colors duration-200 flex items-center px-0.5">
-                <div class="switch-ball w-5 h-5 bg-white rounded-full shadow-md transition-transform duration-200"></div>
+
+            <!-- Crypto Payment -->
+            <div class="flex items-center justify-between py-1 border-t border-slate-700/50 pt-2">
+              <div>
+                <span class="text-slate-200 font-medium block">درگاه کریپتو (USDT / TON)</span>
+                <span class="text-[10px] text-slate-400">پرداخت خودکار و تایید بلاکچین</span>
               </div>
-            </label>
-          </div>
-
-          <!-- Direct Support in Bot -->
-          <div class="flex items-center justify-between py-1 border-t border-slate-700/50 pt-2">
-            <div>
-              <span class="text-slate-200 font-medium block">چت پشتیبانی درون ربات</span>
-              <span class="text-[10px] text-slate-400">ارسال مستقیم تیکت به تاپیک ادمین</span>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" class="sr-only switch-checkbox" id="settingCryptoSwitch">
+                <div class="switch-label w-11 h-6 bg-slate-700 rounded-full transition-colors duration-200 flex items-center px-0.5">
+                  <div class="switch-ball w-5 h-5 bg-white rounded-full shadow-md transition-transform duration-200"></div>
+                </div>
+              </label>
             </div>
-            <label class="relative inline-flex items-center cursor-pointer">
-              <input type="checkbox" class="sr-only switch-checkbox" id="settingSupportDirectSwitch">
-              <div class="switch-label w-11 h-6 bg-slate-700 rounded-full transition-colors duration-200 flex items-center px-0.5">
-                <div class="switch-ball w-5 h-5 bg-white rounded-full shadow-md transition-transform duration-200"></div>
+
+            <!-- Trial Subscription -->
+            <div class="flex items-center justify-between py-1 border-t border-slate-700/50 pt-2">
+              <div>
+                <span class="text-slate-200 font-medium block">اشتراک تست رایگان</span>
+                <span class="text-[10px] text-slate-400">امکان دریافت سرویس آزمایشی</span>
               </div>
-            </label>
-          </div>
-        </div>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" class="sr-only switch-checkbox" id="settingTrialSwitch">
+                <div class="switch-label w-11 h-6 bg-slate-700 rounded-full transition-colors duration-200 flex items-center px-0.5">
+                  <div class="switch-ball w-5 h-5 bg-white rounded-full shadow-md transition-transform duration-200"></div>
+                </div>
+              </label>
+            </div>
 
-        <!-- 2. Bank Card & Topup Settings -->
-        <div class="bg-slate-800/90 rounded-2xl p-4 border border-slate-700/80 space-y-3 text-xs shadow">
-          <span class="font-bold text-slate-200 block border-b border-slate-700/60 pb-2 flex items-center gap-1.5">
-            <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
-            <span>کارت بانکی و قوانین شارژ:</span>
-          </span>
-          <div>
-            <label class="text-[11px] text-slate-400 block mb-1">شماره کارت مقصد:</label>
-            <input type="text" id="settingCardNumber" dir="ltr" placeholder="6037..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-cyan-300 outline-none focus:border-cyan-500 transition" />
-          </div>
-          <div>
-            <label class="text-[11px] text-slate-400 block mb-1">نام صاحب حساب:</label>
-            <input type="text" id="settingCardHolder" placeholder="نام صاحب کارت..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-200 outline-none focus:border-blue-500 transition" />
-          </div>
-          <div>
-            <label class="text-[11px] text-slate-400 block mb-1">حداقل مبلغ افزایش موجودی (تومان):</label>
-            <input type="number" id="settingMinTopup" dir="ltr" placeholder="20000" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-amber-300 outline-none focus:border-amber-500 transition" />
-          </div>
-        </div>
+            <!-- Referral System -->
+            <div class="flex items-center justify-between py-1 border-t border-slate-700/50 pt-2">
+              <div>
+                <span class="text-slate-200 font-medium block">سیستم زیرمجموعه‌گیری (رفرال)</span>
+                <span class="text-[10px] text-slate-400">پاداش ترافیک هدیه برای دعوت</span>
+              </div>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" class="sr-only switch-checkbox" id="settingRefSwitch">
+                <div class="switch-label w-11 h-6 bg-slate-700 rounded-full transition-colors duration-200 flex items-center px-0.5">
+                  <div class="switch-ball w-5 h-5 bg-white rounded-full shadow-md transition-transform duration-200"></div>
+                </div>
+              </label>
+            </div>
 
-        <!-- 3. Crypto & Rates Settings -->
-        <div class="bg-slate-800/90 rounded-2xl p-4 border border-slate-700/80 space-y-3 text-xs shadow">
-          <span class="font-bold text-slate-200 block border-b border-slate-700/60 pb-2 flex items-center gap-1.5">
-            <svg class="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-            <span>نرخ ارزها و ولت کریپتو:</span>
-          </span>
-          <div class="grid grid-cols-2 gap-2">
-            <div>
-              <label class="text-[11px] text-slate-400 block mb-1">نرخ هر تتر (تومان):</label>
-              <input type="number" id="settingUsdtRate" dir="ltr" placeholder="95000" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-emerald-300 outline-none focus:border-emerald-500 transition" />
-            </div>
-            <div>
-              <label class="text-[11px] text-slate-400 block mb-1">نرخ هر TON (تومان):</label>
-              <input type="number" id="settingTonRate" dir="ltr" placeholder="0" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-cyan-300 outline-none focus:border-cyan-500 transition" />
-            </div>
-          </div>
-          <div>
-            <label class="text-[11px] text-slate-400 block mb-1">آدرس ولت TON واریزی:</label>
-            <input type="text" id="settingTonWallet" dir="ltr" placeholder="UQ... یا EQ..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-slate-300 outline-none focus:border-blue-500 transition text-[11px]" />
-          </div>
-        </div>
-
-        <!-- 4. Trial & Referral Config -->
-        <div class="bg-slate-800/90 rounded-2xl p-4 border border-slate-700/80 space-y-3 text-xs shadow">
-          <span class="font-bold text-slate-200 block border-b border-slate-700/60 pb-2 flex items-center gap-1.5">
-            <svg class="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 01-2-2V7a2 2 0 012-2h14a2 2 0 012 2v3a2 2 0 01-2 2M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"/></svg>
-            <span>مقادیر تست و پاداش رفرال:</span>
-          </span>
-          <div class="grid grid-cols-2 gap-2">
-            <div>
-              <label class="text-[11px] text-slate-400 block mb-1">حجم تست (GB):</label>
-              <input type="number" id="settingTrialTraffic" dir="ltr" placeholder="1" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-blue-300 outline-none focus:border-blue-500 transition" />
-            </div>
-            <div>
-              <label class="text-[11px] text-slate-400 block mb-1">اعتبار تست (روز):</label>
-              <input type="number" id="settingTrialDays" dir="ltr" placeholder="1" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-blue-300 outline-none focus:border-blue-500 transition" />
-            </div>
-          </div>
-          <div class="grid grid-cols-2 gap-2">
-            <div>
-              <label class="text-[11px] text-slate-400 block mb-1">پاداش معرفی (GB):</label>
-              <input type="number" id="settingRefReward" dir="ltr" placeholder="5" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-purple-300 outline-none focus:border-purple-500 transition" />
-            </div>
-            <div>
-              <label class="text-[11px] text-slate-400 block mb-1">آیدی پشتیبان تلگرام:</label>
-              <input type="text" id="settingSupportContact" dir="ltr" placeholder="@Support_Admin" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-200 outline-none focus:border-indigo-500 transition" />
+            <!-- Direct Support in Bot -->
+            <div class="flex items-center justify-between py-1 border-t border-slate-700/50 pt-2">
+              <div>
+                <span class="text-slate-200 font-medium block">چت پشتیبانی درون ربات</span>
+                <span class="text-[10px] text-slate-400">ارسال مستقیم تیکت به تاپیک ادمین</span>
+              </div>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" class="sr-only switch-checkbox" id="settingSupportDirectSwitch">
+                <div class="switch-label w-11 h-6 bg-slate-700 rounded-full transition-colors duration-200 flex items-center px-0.5">
+                  <div class="switch-ball w-5 h-5 bg-white rounded-full shadow-md transition-transform duration-200"></div>
+                </div>
+              </label>
             </div>
           </div>
         </div>
 
-        <!-- 5. Forum Topics Configuration (تاپیک‌های سوپرگروه مدیریت تلگرام) -->
-        <div class="bg-slate-800/90 rounded-2xl p-4 border border-slate-700/80 space-y-3 text-xs shadow">
-          <div class="border-b border-slate-700/60 pb-2 flex items-center justify-between">
-            <span class="font-bold text-slate-200 flex items-center gap-1.5">
-              <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
-              <span>شناسه تاپیک‌های تلگرام (Forum Topics):</span>
-            </span>
-            <span class="text-[10px] text-amber-400 font-mono">گروه تاپیک‌دار</span>
+        <!-- 2. Bank Card & Topup Settings Box -->
+        <div class="settings-box bg-slate-800/90 rounded-2xl border border-slate-700/80 shadow overflow-hidden transition-all">
+          <div class="settings-box-header p-3.5 flex items-center justify-between cursor-pointer select-none hover:bg-slate-750/40 transition" data-target="settingsBoxCard">
+            <div class="flex items-center gap-2.5">
+              <div class="w-8 h-8 rounded-xl bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 flex items-center justify-center flex-shrink-0">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
+              </div>
+              <div>
+                <b class="text-xs text-white block">کارت بانکی و قوانین شارژ ریالی</b>
+                <span class="text-[10px] text-slate-400 block mt-0.5">شماره کارت مقصد، نام دارنده و سقف شارژ</span>
+              </div>
+            </div>
+            <svg class="settings-box-chevron w-4 h-4 text-slate-400 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
           </div>
-          <p class="text-[10px] text-slate-400 leading-relaxed">
-            شناسه (Message Thread ID) هر تاپیک در سوپرگروه ادمین را وارد کنید تا پیام‌ها و اعلان‌ها تفکیک شوند:
-          </p>
-          <div class="grid grid-cols-2 gap-2.5">
+          <div id="settingsBoxCard" class="settings-box-body p-4 pt-1 border-t border-slate-700/60 space-y-3 text-xs hidden">
             <div>
-              <label class="text-[10px] text-slate-300 block mb-1">💳 تاپیک فیش‌های واریزی:</label>
-              <input type="number" id="settingTopicTopups" dir="ltr" placeholder="مثلاً: 2" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-cyan-300 outline-none focus:border-cyan-500 transition" />
+              <label class="text-[11px] text-slate-400 block mb-1">شماره کارت مقصد:</label>
+              <input type="text" id="settingCardNumber" dir="ltr" placeholder="6037..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-cyan-300 outline-none focus:border-cyan-500 transition" />
             </div>
             <div>
-              <label class="text-[10px] text-slate-300 block mb-1">🛒 تاپیک سفارشات و خرید:</label>
-              <input type="number" id="settingTopicOrders" dir="ltr" placeholder="مثلاً: 3" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-emerald-300 outline-none focus:border-emerald-500 transition" />
+              <label class="text-[11px] text-slate-400 block mb-1">نام صاحب حساب:</label>
+              <input type="text" id="settingCardHolder" placeholder="نام صاحب کارت..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-200 outline-none focus:border-blue-500 transition" />
             </div>
             <div>
-              <label class="text-[10px] text-slate-300 block mb-1">💬 تاپیک پشتیبانی و تیکت:</label>
-              <input type="number" id="settingTopicSupport" dir="ltr" placeholder="مثلاً: 4" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-blue-300 outline-none focus:border-blue-500 transition" />
+              <label class="text-[11px] text-slate-400 block mb-1">حداقل مبلغ افزایش موجودی (تومان):</label>
+              <input type="number" id="settingMinTopup" dir="ltr" placeholder="20000" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-amber-300 outline-none focus:border-amber-500 transition" />
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. Crypto & Rates Settings Box -->
+        <div class="settings-box bg-slate-800/90 rounded-2xl border border-slate-700/80 shadow overflow-hidden transition-all">
+          <div class="settings-box-header p-3.5 flex items-center justify-between cursor-pointer select-none hover:bg-slate-750/40 transition" data-target="settingsBoxCrypto">
+            <div class="flex items-center gap-2.5">
+              <div class="w-8 h-8 rounded-xl bg-cyan-500/15 text-cyan-400 border border-cyan-500/30 flex items-center justify-center flex-shrink-0">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              </div>
+              <div>
+                <b class="text-xs text-white block">نرخ ارزهای دیجیتال و ولت کریپتو (USDT / TON)</b>
+                <span class="text-[10px] text-slate-400 block mt-0.5">نرخ تتر، نرخ تون و استعلام آنلاین</span>
+              </div>
+            </div>
+            <svg class="settings-box-chevron w-4 h-4 text-slate-400 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+          </div>
+          <div id="settingsBoxCrypto" class="settings-box-body p-4 pt-1 border-t border-slate-700/60 space-y-3 text-xs hidden">
+            <!-- Live Rates Online Modal Trigger Button -->
+            <button id="openCryptoRatesModalBtn" type="button" class="w-full bg-gradient-to-r from-cyan-600/20 to-blue-600/20 hover:from-cyan-600/30 hover:to-blue-600/30 border border-cyan-500/40 text-cyan-300 font-bold py-2 px-3 rounded-xl transition flex items-center justify-center gap-2 shadow active:scale-95 text-xs">
+              <svg class="w-3.5 h-3.5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+              <span>استعلام آنلاین و تنظیم خودکار نرخ‌ها (نوبیتکس / بیت‌پین)</span>
+            </button>
+
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <label class="text-[11px] text-slate-400 block mb-1">نرخ هر تتر (تومان):</label>
+                <input type="number" id="settingUsdtRate" dir="ltr" placeholder="95000" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-emerald-300 outline-none focus:border-emerald-500 transition" />
+              </div>
+              <div>
+                <label class="text-[11px] text-slate-400 block mb-1">نرخ هر TON (تومان):</label>
+                <input type="number" id="settingTonRate" dir="ltr" placeholder="0" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-cyan-300 outline-none focus:border-cyan-500 transition" />
+              </div>
             </div>
             <div>
-              <label class="text-[10px] text-slate-300 block mb-1">⚡ تاپیک هشدارها و انقضا:</label>
-              <input type="number" id="settingTopicAlerts" dir="ltr" placeholder="مثلاً: 5" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-amber-300 outline-none focus:border-amber-500 transition" />
+              <label class="text-[11px] text-slate-400 block mb-1">آدرس ولت TON واریزی:</label>
+              <input type="text" id="settingTonWallet" dir="ltr" placeholder="UQ... یا EQ..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-slate-300 outline-none focus:border-blue-500 transition text-[11px]" />
             </div>
-            <div>
-              <label class="text-[10px] text-slate-300 block mb-1">🪙 تاپیک پرداخت‌های کریپتو:</label>
-              <input type="number" id="settingTopicCrypto" dir="ltr" placeholder="مثلاً: 6" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-purple-300 outline-none focus:border-purple-500 transition" />
+          </div>
+        </div>
+
+        <!-- 4. Trial & Referral Config Box -->
+        <div class="settings-box bg-slate-800/90 rounded-2xl border border-slate-700/80 shadow overflow-hidden transition-all">
+          <div class="settings-box-header p-3.5 flex items-center justify-between cursor-pointer select-none hover:bg-slate-750/40 transition" data-target="settingsBoxTrial">
+            <div class="flex items-center gap-2.5">
+              <div class="w-8 h-8 rounded-xl bg-purple-500/15 text-purple-400 border border-purple-500/30 flex items-center justify-center flex-shrink-0">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 01-2-2V7a2 2 0 012-2h14a2 2 0 012 2v3a2 2 0 01-2 2M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"/></svg>
+              </div>
+              <div>
+                <b class="text-xs text-white block">اشتراک تست رایگان و سیستم معرف</b>
+                <span class="text-[10px] text-slate-400 block mt-0.5">حجم تست، روز اعتبار و پاداش دعوت</span>
+              </div>
             </div>
-            <div>
-              <label class="text-[10px] text-slate-300 block mb-1">⚠️ تاپیک لاگ و خطای سیستم:</label>
-              <input type="number" id="settingTopicErrors" dir="ltr" placeholder="مثلاً: 7" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-rose-300 outline-none focus:border-rose-500 transition" />
+            <svg class="settings-box-chevron w-4 h-4 text-slate-400 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+          </div>
+          <div id="settingsBoxTrial" class="settings-box-body p-4 pt-1 border-t border-slate-700/60 space-y-3 text-xs hidden">
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <label class="text-[11px] text-slate-400 block mb-1">حجم تست (GB):</label>
+                <input type="number" id="settingTrialTraffic" dir="ltr" placeholder="1" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-blue-300 outline-none focus:border-blue-500 transition" />
+              </div>
+              <div>
+                <label class="text-[11px] text-slate-400 block mb-1">اعتبار تست (روز):</label>
+                <input type="number" id="settingTrialDays" dir="ltr" placeholder="1" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-blue-300 outline-none focus:border-blue-500 transition" />
+              </div>
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <label class="text-[11px] text-slate-400 block mb-1">پاداش معرفی (GB):</label>
+                <input type="number" id="settingRefReward" dir="ltr" placeholder="5" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-purple-300 outline-none focus:border-purple-500 transition" />
+              </div>
+              <div>
+                <label class="text-[11px] text-slate-400 block mb-1">آیدی پشتیبان تلگرام:</label>
+                <input type="text" id="settingSupportContact" dir="ltr" placeholder="@Support_Admin" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-200 outline-none focus:border-indigo-500 transition" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 5. Forum Topics Configuration Box -->
+        <div class="settings-box bg-slate-800/90 rounded-2xl border border-slate-700/80 shadow overflow-hidden transition-all">
+          <div class="settings-box-header p-3.5 flex items-center justify-between cursor-pointer select-none hover:bg-slate-750/40 transition" data-target="settingsBoxTopics">
+            <div class="flex items-center gap-2.5">
+              <div class="w-8 h-8 rounded-xl bg-amber-500/15 text-amber-400 border border-amber-500/30 flex items-center justify-center flex-shrink-0">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+              </div>
+              <div>
+                <b class="text-xs text-white block">شناسه تاپیک‌های تلگرام (Forum Topics)</b>
+                <span class="text-[10px] text-slate-400 block mt-0.5">تفکیک فیش، سفارشات، تیکت، هشدار و خطا</span>
+              </div>
+            </div>
+            <svg class="settings-box-chevron w-4 h-4 text-slate-400 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+          </div>
+          <div id="settingsBoxTopics" class="settings-box-body p-4 pt-1 border-t border-slate-700/60 space-y-3 text-xs hidden">
+            <p class="text-[10px] text-slate-400 leading-relaxed">
+              شناسه (Message Thread ID) هر تاپیک در سوپرگروه ادمین را وارد کنید تا پیام‌ها و اعلان‌ها تفکیک شوند:
+            </p>
+            <div class="grid grid-cols-2 gap-2.5">
+              <div>
+                <label class="text-[10px] text-slate-300 block mb-1">💳 تاپیک فیش‌های واریزی:</label>
+                <input type="number" id="settingTopicTopups" dir="ltr" placeholder="مثلاً: 2" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-cyan-300 outline-none focus:border-cyan-500 transition" />
+              </div>
+              <div>
+                <label class="text-[10px] text-slate-300 block mb-1">🛒 تاپیک سفارشات و خرید:</label>
+                <input type="number" id="settingTopicOrders" dir="ltr" placeholder="مثلاً: 3" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-emerald-300 outline-none focus:border-emerald-500 transition" />
+              </div>
+              <div>
+                <label class="text-[10px] text-slate-300 block mb-1">💬 تاپیک پشتیبانی و تیکت:</label>
+                <input type="number" id="settingTopicSupport" dir="ltr" placeholder="مثلاً: 4" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-blue-300 outline-none focus:border-blue-500 transition" />
+              </div>
+              <div>
+                <label class="text-[10px] text-slate-300 block mb-1">⚡ تاپیک هشدارها و انقضا:</label>
+                <input type="number" id="settingTopicAlerts" dir="ltr" placeholder="مثلاً: 5" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-amber-300 outline-none focus:border-amber-500 transition" />
+              </div>
+              <div>
+                <label class="text-[10px] text-slate-300 block mb-1">🪙 تاپیک پرداخت‌های کریپتو:</label>
+                <input type="number" id="settingTopicCrypto" dir="ltr" placeholder="مثلاً: 6" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-purple-300 outline-none focus:border-purple-500 transition" />
+              </div>
+              <div>
+                <label class="text-[10px] text-slate-300 block mb-1">⚠️ تاپیک لاگ و خطای سیستم:</label>
+                <input type="number" id="settingTopicErrors" dir="ltr" placeholder="مثلاً: 7" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-rose-300 outline-none focus:border-rose-500 transition" />
+              </div>
             </div>
           </div>
         </div>
@@ -1198,6 +1250,56 @@
         <!-- Footer -->
         <button onclick="window.adminActions.closeCouponUsagesModal()" class="w-full bg-transparent hover:bg-slate-800/60 border border-slate-700/80 text-slate-300 hover:text-white text-xs py-2.5 rounded-xl transition flex-shrink-0 font-medium active:scale-95">
           بستن پنجره
+        </button>
+      </div>
+    </div>
+
+    <!-- MODAL 6: Live Crypto & Currency Rates Inspector & Fast Updater -->
+    <div id="cryptoRatesModal" class="absolute inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+      <div class="bg-[#1e293b] border border-cyan-500/30 rounded-3xl p-5 w-full max-w-[380px] space-y-4 shadow-2xl relative">
+        <div class="flex justify-between items-center border-b border-slate-700/60 pb-2.5">
+          <div class="flex items-center gap-2">
+            <div class="w-8 h-8 rounded-xl bg-cyan-500/15 text-cyan-400 border border-cyan-500/30 flex items-center justify-center flex-shrink-0">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            </div>
+            <div>
+              <h4 class="text-xs font-bold text-white">استعلام آنلاین نرخ لحظه‌ای ارزها</h4>
+              <span class="text-[10px] text-slate-400 block mt-0.5">نوبیتکس / بیت‌پین / والکس / بایننس</span>
+            </div>
+          </div>
+          <button onclick="window.adminActions.closeCryptoRatesModal()" class="w-7 h-7 rounded-full bg-slate-800/80 hover:bg-slate-750 text-slate-400 hover:text-white flex items-center justify-center text-xs transition">✕</button>
+        </div>
+
+        <div id="cryptoRatesContent" class="space-y-3 text-xs">
+          <div class="p-6 text-center text-slate-400">در حال استعلام نرخ‌های لحظه‌ای...</div>
+        </div>
+
+        <div class="flex gap-2 pt-1">
+          <button id="applyAllCryptoRatesBtn" onclick="window.adminActions.applyLiveCryptoRates()" class="flex-1 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-bold text-xs py-2.5 rounded-xl transition shadow active:scale-95 disabled:opacity-50">
+            اعمال و ذخیره هر دو نرخ
+          </button>
+          <button onclick="window.adminActions.refreshLiveCryptoRates()" class="bg-slate-800 hover:bg-slate-750 text-slate-300 hover:text-white px-3 py-2.5 rounded-xl transition text-xs flex items-center justify-center" title="استعلام مجدد">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL 7: Receipt Photo Fullscreen Preview Modal -->
+    <div id="receiptPhotoModal" class="absolute inset-0 bg-black/90 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+      <div class="bg-[#1e293b] border border-slate-700 rounded-3xl p-4 w-full max-w-[420px] max-h-[90vh] flex flex-col space-y-3 shadow-2xl relative">
+        <div class="flex justify-between items-center border-b border-slate-700/60 pb-2 flex-shrink-0">
+          <h4 class="text-xs font-bold text-white flex items-center gap-1.5">
+            <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+            <span>تصویر رسید واریزی کاربر</span>
+          </h4>
+          <button onclick="window.adminActions.closeReceiptPhotoModal()" class="w-7 h-7 rounded-full bg-slate-800/80 hover:bg-slate-750 text-slate-400 hover:text-white flex items-center justify-center text-xs transition">✕</button>
+        </div>
+        <div class="flex-1 overflow-auto flex items-center justify-center p-1 bg-black/40 rounded-2xl border border-slate-800">
+          <img id="receiptModalImage" src="" alt="رسید واریزی" class="max-h-[65vh] w-auto max-w-full rounded-xl object-contain shadow-lg" />
+        </div>
+        <button onclick="window.adminActions.closeReceiptPhotoModal()" class="w-full bg-transparent hover:bg-slate-800 border border-slate-700 text-slate-300 hover:text-white font-bold text-xs py-2 rounded-xl transition">
+          بستن
         </button>
       </div>
     </div>

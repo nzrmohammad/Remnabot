@@ -433,4 +433,49 @@ html.theme-light #tab-admin-settings input {
   color: #0f172a !important;
 }
 
+/* Settings accordion boxes */
+.settings-box {
+  transition: all 0.2s ease-in-out;
+}
+
+html.theme-light .settings-box {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05) !important;
+}
+
+html.theme-light .settings-box-header:hover {
+  background-color: #f8fafc !important;
+}
+
+html.theme-light .settings-box-header .text-white {
+  color: #0f172a !important;
+}
+
+html.theme-light .settings-box-chevron {
+  color: #64748b !important;
+}
+
+html.theme-light .settings-box-body {
+  border-top-color: #f1f5f9 !important;
+}
+
+html.theme-light .settings-box-body .text-slate-200 {
+  color: #334155 !important;
+}
+
+/* Modals in Light theme (Crypto Rates & Receipt Photo) */
+html.theme-light #cryptoRatesModal .bg-slate-900\/60,
+html.theme-light #cryptoRatesModal .bg-slate-900\/50,
+html.theme-light #receiptPhotoModal .bg-slate-900\/70 {
+  background-color: #f8fafc !important;
+  border-color: #e2e8f0 !important;
+}
+
+html.theme-light #cryptoRatesModal .text-white,
+html.theme-light #receiptPhotoModal .text-white {
+  color: #0f172a !important;
+}
+
+
 
