@@ -58,7 +58,11 @@
 
   function formatNumber(num) {
     if (num === null || num === undefined) return '۰';
-    return Number(num).toLocaleString('fa-IR');
+    const str = String(num);
+    const [intPart, decPart] = str.split('.');
+    const formattedInt = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    const full = decPart !== undefined ? `${formattedInt}.${decPart}` : formattedInt;
+    return full.replace(/\d/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]);
   }
 
   // --- 2. Tab Navigation ---
@@ -121,14 +125,14 @@
     if (isDark) {
       document.documentElement.classList.add('dark');
       document.documentElement.classList.remove('theme-light');
-      if (adminThemeIcon) adminThemeIcon.innerText = '🌙';
+      if (adminThemeIcon) adminThemeIcon.innerHTML = `<svg class="w-3.5 h-3.5 text-amber-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 18.75V21m-4.773-4.227l-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z" /></svg>`;
       appBody?.classList.replace('bg-slate-100', 'bg-[#080d1a]');
       phoneFrame?.classList.replace('bg-white', 'bg-[#0f172a]');
       phoneFrame?.classList.replace('text-slate-900', 'text-slate-100');
     } else {
       document.documentElement.classList.remove('dark');
       document.documentElement.classList.add('theme-light');
-      if (adminThemeIcon) adminThemeIcon.innerText = '☀️';
+      if (adminThemeIcon) adminThemeIcon.innerHTML = `<svg class="w-3.5 h-3.5 text-indigo-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21.752 15.002A9.718 9.718 0 0118 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 003 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 009.002-5.998z" /></svg>`;
       appBody?.classList.replace('bg-[#080d1a]', 'bg-slate-100');
       phoneFrame?.classList.replace('bg-[#0f172a]', 'bg-white');
       phoneFrame?.classList.replace('text-slate-100', 'text-slate-900');
@@ -286,7 +290,7 @@
     if (!ctx) return;
 
     const totalEl = document.getElementById('trafficChartTotal');
-    if (totalEl) totalEl.innerText = `${formatNumber(totalGb || 0)} GB`;
+    if (totalEl) totalEl.innerHTML = `<span>${formatNumber(totalGb || 0)}</span><span class="text-[9px] text-cyan-300 font-sans">GB</span>`;
 
     if (trafficChartInstance) {
       trafficChartInstance.data.labels = labels;
@@ -656,11 +660,17 @@
               </div>
               <div class="min-w-0">
                 <div class="flex items-center gap-1.5 flex-wrap">
-                  <span dir="ltr" class="text-xs font-bold text-white font-mono truncate max-w-[130px]">${usernameText}</span>
+                  <div onclick="window.adminActions.quickCopy('@${u.username}', 'نام کاربری')" dir="ltr" class="text-xs font-bold text-white font-mono truncate max-w-[130px] cursor-pointer hover:text-cyan-300 active:scale-95 transition flex items-center gap-1 group" title="برای کپی نام کاربری کلیک کنید">
+                    <span>${usernameText}</span>
+                    <svg class="w-3 h-3 text-slate-500 group-hover:text-cyan-300 opacity-70 transition flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                  </div>
+                  ${u.is_online ? '<span class="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)] animate-pulse" title="متصل زنده به سرور"></span>' : ''}
                   ${statusBadge}
+                  ${(u.is_expiring || (p && p.exists && ((p.days_left !== null && p.days_left > 0 && p.days_left <= 3) || (p.remaining_traffic_gb >= 0 && p.remaining_traffic_gb <= 2.0 && p.limit_traffic_gb > 0)))) ? '<span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-lg bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[9px] font-bold animate-pulse" title="هشدار: حجم یا زمان رو به اتمام است"><svg class="w-2.5 h-2.5 text-amber-300" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z"/></svg> رو به اتمام</span>' : ''}
                 </div>
-                <div class="text-[10px] text-slate-400 font-mono mt-0.5">
+                <div onclick="window.adminActions.quickCopy('${u.telegram_id}', 'شناسه عددی')" class="text-[10px] text-slate-400 font-mono mt-0.5 cursor-pointer hover:text-cyan-300 active:scale-95 transition flex items-center gap-1 group w-fit" title="برای کپی شناسه عددی کلیک کنید">
                   <span>ID: ${u.telegram_id}</span>
+                  <svg class="w-2.5 h-2.5 text-slate-500 group-hover:text-cyan-300 opacity-70 transition flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
                 </div>
               </div>
             </div>
@@ -673,28 +683,34 @@
           <!-- Quick Action Buttons -->
           <div class="space-y-1.5 pt-1">
             <div class="grid grid-cols-4 gap-1 text-center text-[10px]">
-              <button class="bg-blue-950/60 hover:bg-blue-900 text-blue-300 border border-blue-800/50 py-1.5 rounded-lg transition active:scale-95 font-medium" onclick="window.adminActions.openModifyUser(${u.telegram_id}, '${u.username || u.telegram_id}', 'traffic')" title="افزایش حجم">
-                ➕ ترافیک
+              <button class="bg-blue-950/60 hover:bg-blue-900 text-blue-300 border border-blue-800/50 py-1.5 rounded-lg transition active:scale-95 font-medium flex items-center justify-center gap-1" onclick="window.adminActions.openModifyUser(${u.telegram_id}, '${u.username || u.telegram_id}', 'traffic')" title="افزایش حجم">
+                <span>+</span>
+                <span>ترافیک</span>
               </button>
-              <button class="bg-indigo-950/60 hover:bg-indigo-900 text-indigo-300 border border-indigo-800/50 py-1.5 rounded-lg transition active:scale-95 font-medium" onclick="window.adminActions.openModifyUser(${u.telegram_id}, '${u.username || u.telegram_id}', 'days')" title="تمدید زمان">
-                ⏳ تمدید
+              <button class="bg-indigo-950/60 hover:bg-indigo-900 text-indigo-300 border border-indigo-800/50 py-1.5 rounded-lg transition active:scale-95 font-medium flex items-center justify-center gap-1" onclick="window.adminActions.openModifyUser(${u.telegram_id}, '${u.username || u.telegram_id}', 'days')" title="تمدید زمان">
+                <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                <span>تمدید</span>
               </button>
-              <button class="bg-emerald-950/60 hover:bg-emerald-900 text-emerald-300 border border-emerald-800/50 py-1.5 rounded-lg transition active:scale-95 font-medium" onclick="window.adminActions.openWalletModal(${u.telegram_id}, '${u.username || u.telegram_id}')" title="شارژ یا کسر موجودی">
-                💰 موجودی
+              <button class="bg-emerald-950/60 hover:bg-emerald-900 text-emerald-300 border border-emerald-800/50 py-1.5 rounded-lg transition active:scale-95 font-medium flex items-center justify-center gap-1" onclick="window.adminActions.openWalletModal(${u.telegram_id}, '${u.username || u.telegram_id}')" title="شارژ یا کسر موجودی">
+                <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                <span>موجودی</span>
               </button>
-              <button class="bg-purple-950/60 hover:bg-purple-900 text-purple-300 border border-purple-800/50 py-1.5 rounded-lg transition active:scale-95 font-medium" onclick="window.adminActions.resetTrial(${u.telegram_id}, '${u.username || u.telegram_id}')" title="فعال‌سازی مجدد تست">
-                🎁 تست
+              <button class="bg-purple-950/60 hover:bg-purple-900 text-purple-300 border border-purple-800/50 py-1.5 rounded-lg transition active:scale-95 font-medium flex items-center justify-center gap-1" onclick="window.adminActions.resetTrial(${u.telegram_id}, '${u.username || u.telegram_id}')" title="فعال‌سازی مجدد تست">
+                <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 01-2-2V7a2 2 0 012-2h14a2 2 0 012 2v3a2 2 0 01-2 2M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"/></svg>
+                <span>تست</span>
               </button>
             </div>
             <div class="grid grid-cols-3 gap-1.5 text-center text-[10px]">
-              <button class="bg-cyan-950/60 hover:bg-cyan-900 text-cyan-300 border border-cyan-800/50 py-1.5 rounded-lg transition active:scale-95 font-medium" onclick="window.adminActions.openSubModal(${u.telegram_id}, '${u.username || u.telegram_id}', '${p?.subscription_url || ''}')" title="مشاهده و تغییر لینک سابسکریپشن">
-                🔄 ساب
+              <button class="bg-cyan-950/60 hover:bg-cyan-900 text-cyan-300 border border-cyan-800/50 py-1.5 rounded-lg transition active:scale-95 font-medium flex items-center justify-center gap-1" onclick="window.adminActions.openSubModal(${u.telegram_id}, '${u.username || u.telegram_id}', '${p?.subscription_url || ''}')" title="مشاهده و تغییر لینک سابسکریپشن">
+                <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
+                <span>لینک ساب</span>
               </button>
-              <button class="bg-teal-950/60 hover:bg-teal-900 text-teal-300 border border-teal-800/50 py-1.5 rounded-lg transition active:scale-95 font-medium" onclick="window.adminActions.openHwidModal(${u.telegram_id}, '${u.username || u.telegram_id}')" title="دستگاه‌های متصل و نشست‌ها">
-                📱 دستگاه‌ها
+              <button class="bg-teal-950/60 hover:bg-teal-900 text-teal-300 border border-teal-800/50 py-1.5 rounded-lg transition active:scale-95 font-medium flex items-center justify-center gap-1" onclick="window.adminActions.openHwidModal(${u.telegram_id}, '${u.username || u.telegram_id}')" title="دستگاه‌های متصل و نشست‌ها">
+                <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+                <span>دستگاه‌ها</span>
               </button>
-              <button class="${u.is_banned ? 'bg-emerald-950/60 hover:bg-emerald-900 text-emerald-300 border-emerald-800/50' : 'bg-rose-950/60 hover:bg-rose-900 text-rose-300 border-rose-800/50'} border py-1.5 rounded-lg transition active:scale-95 font-medium" onclick="window.adminActions.toggleBan(${u.telegram_id}, ${u.is_banned})">
-                ${u.is_banned ? '✅ آزاد' : '🚫 مسدود'}
+              <button class="${u.is_banned ? 'bg-emerald-950/60 hover:bg-emerald-900 text-emerald-300 border-emerald-800/50' : 'bg-rose-950/60 hover:bg-rose-900 text-rose-300 border-rose-800/50'} border py-1.5 rounded-lg transition active:scale-95 font-medium flex items-center justify-center gap-1" onclick="window.adminActions.toggleBan(${u.telegram_id}, ${u.is_banned})">
+                ${u.is_banned ? '<svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg><span>آزاد</span>' : '<svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg><span>مسدود</span>'}
               </button>
             </div>
           </div>
@@ -759,6 +775,28 @@
   const modifyModalInput = document.getElementById('modifyModalInput');
 
   window.adminActions = {
+    async quickCopy(text, label = 'مقدار') {
+      if (!text) return;
+      try {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          await navigator.clipboard.writeText(String(text));
+        } else {
+          const tempInput = document.createElement('textarea');
+          tempInput.value = String(text);
+          tempInput.style.position = 'fixed';
+          tempInput.style.opacity = '0';
+          document.body.appendChild(tempInput);
+          tempInput.select();
+          document.execCommand('copy');
+          document.body.removeChild(tempInput);
+        }
+        if (window.showToast) window.showToast(`📋 ${label} کپی شد: ${text}`);
+        if (window.hapticFeedback) window.hapticFeedback('success');
+      } catch (e) {
+        if (window.showToast) window.showToast(`📋 کپی شد: ${text}`);
+      }
+    },
+
     openModifyUser(telegram_id, name, type) {
       currentModifyTarget = { telegram_id, name, type };
       if (modifyUserModal) modifyUserModal.classList.remove('hidden');
@@ -1068,7 +1106,7 @@
                 </div>
               </div>
               <button onclick="window.adminActions.deleteHwid(${telegram_id}, '${hwid}')" class="bg-rose-950/60 hover:bg-rose-900 text-rose-300 border border-rose-800/60 p-2.5 rounded-xl transition active:scale-95 flex items-center justify-center flex-shrink-0" title="قطع اتصال این دستگاه">
-                <span class="text-sm">🗑</span>
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
               </button>
             </div>
           `;
@@ -1135,7 +1173,9 @@
         if (adminPlansData.length === 0) {
           container.innerHTML = `
             <div class="bg-slate-900/50 border border-slate-800 rounded-2xl p-6 text-center text-slate-400 space-y-3">
-              <span class="text-2xl block">📦</span>
+              <div class="w-10 h-10 rounded-2xl bg-blue-500/15 text-blue-400 flex items-center justify-center mx-auto">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+              </div>
               <p class="text-xs">هیچ پلن یا تعرفه‌ای هنوز ثبت نشده است.</p>
               <button onclick="window.adminActions.openPlanModal()" class="bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold px-4 py-2 rounded-xl transition shadow active:scale-95">
                 + ایجاد اولین پلن
@@ -1151,7 +1191,7 @@
             : '<span class="text-[10px] bg-slate-800 text-slate-400 border border-slate-700 px-2 py-0.5 rounded-lg font-medium">غیرفعال</span>';
 
           const trafficHtml = p.traffic_gb > 0
-            ? `<span class="inline-flex items-center justify-center gap-1 font-mono font-bold" dir="rtl"><span class="text-cyan-400 text-[10px]">GB</span><span class="text-cyan-300 text-xs">${p.traffic_gb}</span></span>`
+            ? `<span class="inline-flex items-center justify-center gap-1 font-mono font-bold" dir="ltr"><span class="text-cyan-300 text-xs">${p.traffic_gb}</span><span class="text-cyan-400 text-[10px]">GB</span></span>`
             : '<span class="text-cyan-300 font-bold">نامحدود</span>';
           const durationText = p.duration_days > 0 ? `${p.duration_days} روز` : 'نامحدود';
           const hwidText = p.hwid_limit > 0 ? `${p.hwid_limit} کاربر` : 'پیش‌فرض';
@@ -1185,14 +1225,15 @@
               </div>
 
               <div class="flex gap-1.5 pt-1 text-[11px]">
-                <button onclick="window.adminActions.openPlanModal(${p.id})" class="flex-1 bg-slate-700/70 hover:bg-slate-700 text-white font-medium py-1.5 rounded-xl transition text-center">
-                  ✏️ ویرایش
+                <button onclick="window.adminActions.openPlanModal(${p.id})" class="flex-1 bg-slate-700/70 hover:bg-slate-700 text-white font-medium py-1.5 rounded-xl transition text-center flex items-center justify-center gap-1">
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                  <span>ویرایش</span>
                 </button>
                 <button onclick="window.adminActions.togglePlan(${p.id}, ${p.is_active})" class="flex-1 ${p.is_active ? 'bg-amber-950/60 text-amber-300 border border-amber-800/50' : 'bg-emerald-950/60 text-emerald-300 border border-emerald-800/50'} py-1.5 rounded-xl transition font-medium text-center">
                   ${p.is_active ? 'غیرفعال‌سازی' : 'فعال‌سازی'}
                 </button>
-                <button onclick="window.adminActions.deletePlan(${p.id}, '${p.name}')" class="bg-rose-950/60 hover:bg-rose-900 text-rose-300 border border-rose-800/50 px-3 py-1.5 rounded-xl transition font-medium">
-                  🗑
+                <button onclick="window.adminActions.deletePlan(${p.id}, '${p.name}')" class="bg-rose-950/60 hover:bg-rose-900 text-rose-300 border border-rose-800/50 px-3 py-1.5 rounded-xl transition font-medium flex items-center justify-center">
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                 </button>
               </div>
             </div>
@@ -1297,7 +1338,9 @@
         if (adminCouponsData.length === 0) {
           container.innerHTML = `
             <div class="bg-slate-900/50 border border-slate-800 rounded-2xl p-6 text-center text-slate-400 space-y-3">
-              <span class="text-2xl block">🎟</span>
+              <div class="w-10 h-10 rounded-2xl bg-pink-500/15 text-pink-400 flex items-center justify-center mx-auto">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z"/></svg>
+              </div>
               <p class="text-xs">هیچ کد تخفیفی ایجاد نشده است.</p>
               <button onclick="window.adminActions.openCouponModal()" class="bg-gradient-to-r from-purple-600 to-pink-600 text-white text-xs font-bold px-4 py-2 rounded-xl transition shadow active:scale-95">
                 + ایجاد اولین کد تخفیف
@@ -1346,8 +1389,8 @@
                 <button onclick="window.adminActions.toggleCoupon(${c.id}, ${c.is_active})" class="flex-1 ${c.is_active ? 'bg-amber-950/60 text-amber-300 border border-amber-800/50' : 'bg-emerald-950/60 text-emerald-300 border border-emerald-800/50'} py-1.5 rounded-xl transition font-medium text-center">
                   ${c.is_active ? 'غیرفعال‌سازی' : 'فعال‌سازی'}
                 </button>
-                <button onclick="window.adminActions.deleteCoupon(${c.id}, '${c.code}')" class="bg-rose-950/60 hover:bg-rose-900 text-rose-300 border border-rose-800/50 px-3 py-1.5 rounded-xl transition font-medium">
-                  🗑
+                <button onclick="window.adminActions.deleteCoupon(${c.id}, '${c.code}')" class="bg-rose-950/60 hover:bg-rose-900 text-rose-300 border border-rose-800/50 px-3 py-1.5 rounded-xl transition font-medium flex items-center justify-center">
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                 </button>
               </div>
             </div>
@@ -1841,6 +1884,7 @@
   window.copySubLink = () => window.adminActions.copySubLink();
   window.confirmRegenerateSub = () => window.adminActions.confirmRegenerateSub();
   window.killSessionsFromModal = () => window.adminActions.killSessionsFromModal();
+  window.quickCopy = (text, label) => window.adminActions.quickCopy(text, label);
 
   // Initial Sync
   syncAdminOverview();

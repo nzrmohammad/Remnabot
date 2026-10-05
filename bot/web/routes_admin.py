@@ -231,9 +231,39 @@ async def get_admin_users(request: web.Request) -> web.Response:
     async with session_factory() as session:
         user_repo = UserRepository(session)
 
+        # Collect online user Telegram IDs if available
+        online_telegram_ids: set[int] = set()
+        try:
+            sessions = await remnawave.get_active_sessions() or []
+            for s in sessions:
+                user_obj = s.get("user") if isinstance(s.get("user"), dict) else {}
+                tid = s.get("telegramId") or s.get("telegram_id") or user_obj.get("telegramId") or user_obj.get("telegram_id")
+                if not tid and user_obj.get("username", "").startswith("tg_"):
+                    try:
+                        tid = int(user_obj["username"].replace("tg_", ""))
+                    except ValueError:
+                        pass
+                if tid:
+                    online_telegram_ids.add(int(tid))
+            if not online_telegram_ids:
+                hwid_devs = await remnawave.get_all_hwid_devices(size=300) or []
+                active_uids = {d.get("userId") for d in hwid_devs if d.get("userId")}
+                if active_uids:
+                    p_users = await remnawave.get_all_panel_users() or []
+                    for pu in p_users:
+                        if pu.get("id") in active_uids and pu.get("telegramId"):
+                            online_telegram_ids.add(int(pu["telegramId"]))
+        except Exception as exc:
+            logger.debug("Failed fetching online sessions for admin: %s", exc)
+
         condition = None
         if status_filter == "banned":
             condition = User.is_banned.is_(True)
+        elif status_filter == "online":
+            if online_telegram_ids:
+                condition = User.telegram_id.in_(list(online_telegram_ids))
+            else:
+                condition = User.telegram_id.in_([-1])  # Empty match
 
         if query:
             users = await user_repo.search(query, limit=limit)
@@ -275,11 +305,25 @@ async def get_admin_users(request: web.Request) -> web.Response:
                 except Exception:
                     pass
 
+            is_online = (u.telegram_id in online_telegram_ids) if online_telegram_ids else False
+            is_expiring = False
+            if panel_exists:
+                if days_left is not None and 0 < days_left <= 3:
+                    is_expiring = True
+                elif 0 <= remaining_gb <= 2.0 and limit_bytes > 0:
+                    is_expiring = True
+
+            # If filter is expiring and not matched, skip if filtering in-memory
+            if status_filter == "expiring" and not is_expiring:
+                continue
+
             user_items.append({
                 "telegram_id": u.telegram_id,
                 "username": u.username,
                 "wallet_balance": balances.get(u.telegram_id, 0),
                 "is_banned": u.is_banned,
+                "is_online": is_online,
+                "is_expiring": is_expiring,
                 "avatar_url": f"/api/user/avatar?user_id={u.telegram_id}",
                 "panel_account": {
                     "exists": panel_exists,

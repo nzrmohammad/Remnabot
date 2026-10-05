@@ -1196,3 +1196,83 @@ async def test_admin_coupons_crud():
     await engine.dispose()
 
 
+@pytest.mark.anyio
+async def test_admin_users_filter_online_and_expiring():
+    from aiohttp.test_utils import make_mocked_request
+    from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
+    from bot.db.models import Base, User
+    from bot.web.routes_admin import get_admin_users
+
+    engine = create_async_engine("sqlite+aiosqlite:///:memory:")
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+    session_factory = async_sessionmaker(engine, expire_on_commit=False)
+
+    async with session_factory() as session:
+        session.add(User(telegram_id=99999, username="admin_user"))
+        session.add(User(telegram_id=11111, username="online_user"))
+        session.add(User(telegram_id=22222, username="expiring_user"))
+        await session.commit()
+
+    mock_remnawave = AsyncMock()
+    user_11 = {"username": "tg_11111", "status": "ACTIVE", "trafficLimitBytes": 50 * (1024**3), "userTraffic": {"usedTrafficBytes": 10 * (1024**3)}}
+    user_22 = {"username": "tg_22222", "status": "ACTIVE", "trafficLimitBytes": 10 * (1024**3), "userTraffic": {"usedTrafficBytes": 9 * (1024**3)}}
+
+    async def mock_get_by_tg(tg_id):
+        if tg_id == 11111:
+            return [user_11]
+        elif tg_id == 22222:
+            return [user_22]
+        return []
+
+    mock_remnawave.get_users_by_telegram_id.side_effect = mock_get_by_tg
+    mock_remnawave.get_all_panel_users.return_value = [user_11, user_22]
+    mock_remnawave.get_active_sessions.return_value = [
+        {"user": {"username": "tg_11111"}}
+    ]
+    mock_remnawave.get_active_hwid_devices.return_value = []
+
+    app = {
+        "bot_token": "123:abc",
+        "admin_ids": [99999],
+        "is_dev": True,
+        "session_factory": session_factory,
+        "remnawave": mock_remnawave,
+    }
+
+    # Test all users
+    req_all = make_mocked_request("GET", "/api/admin/users?user_id=99999", app=app)
+    resp_all = await get_admin_users(req_all)
+    assert resp_all.status == 200
+    users_all = json.loads(resp_all.text)["users"]
+    assert len(users_all) == 3
+
+    # Check is_online & is_expiring flags
+    u_online = next(u for u in users_all if u["telegram_id"] == 11111)
+    assert u_online["is_online"] is True
+    assert u_online["is_expiring"] is False
+
+    u_expiring = next(u for u in users_all if u["telegram_id"] == 22222)
+    assert u_expiring["is_online"] is False
+    assert u_expiring["is_expiring"] is True
+
+    # Test online filter
+    req_online = make_mocked_request("GET", "/api/admin/users?user_id=99999&filter=online", app=app)
+    resp_online = await get_admin_users(req_online)
+    assert resp_online.status == 200
+    users_online = json.loads(resp_online.text)["users"]
+    assert len(users_online) == 1
+    assert users_online[0]["telegram_id"] == 11111
+
+    # Test expiring filter
+    req_exp = make_mocked_request("GET", "/api/admin/users?user_id=99999&filter=expiring", app=app)
+    resp_exp = await get_admin_users(req_exp)
+    assert resp_exp.status == 200
+    users_exp = json.loads(resp_exp.text)["users"]
+    assert len(users_exp) == 1
+    assert users_exp[0]["telegram_id"] == 22222
+
+    await engine.dispose()
+
+
+

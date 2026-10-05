@@ -41,21 +41,26 @@
     <!-- ======================================================== -->
     <!-- Top Admin Bar                                            -->
     <!-- ======================================================== -->
-    <div class="bg-[#131d31]/95 backdrop-blur-md border-b border-slate-700/60 px-4 py-3 flex items-center justify-between z-20">
+    <div class="bg-[#131d31]/95 backdrop-blur-md border-b border-slate-700/60 px-4 py-2.5 flex items-center justify-between z-20">
       <div class="flex items-center gap-2">
-        <span class="px-2.5 py-0.5 rounded-lg bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[10px] font-black flex items-center gap-1">
-          <span>👑</span> پنل مدیریت
+        <span class="px-2.5 py-1 rounded-xl bg-amber-500/15 text-amber-300 border border-amber-500/30 text-[10px] font-bold flex items-center gap-1.5 shadow-sm">
+          <svg class="w-3.5 h-3.5 text-amber-400" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+          <span>پنل مدیریت</span>
         </span>
-        <button id="adminReloadBtn" class="text-slate-400 hover:text-slate-200 text-xs p-1.5 rounded-lg bg-slate-800 border border-slate-700 transition active:scale-95" title="تازه‌سازی">🔄</button>
+        <button id="adminReloadBtn" class="text-slate-400 hover:text-slate-200 text-xs p-1.5 rounded-xl bg-slate-800/80 hover:bg-slate-750 border border-slate-700/70 transition active:scale-95 flex items-center justify-center" title="تازه‌سازی داده‌ها">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" /></svg>
+        </button>
       </div>
       
       <div dir="ltr" class="flex items-center gap-1.5">
         <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-        <span class="text-xs font-bold text-slate-200 font-mono">RemnaAdmin v3.4</span>
+        <span class="text-xs font-bold text-slate-200 font-mono tracking-tight">RemnaAdmin v3.4</span>
       </div>
 
-      <button id="adminThemeToggle" class="text-slate-300 text-xs px-2 py-1 bg-slate-800 hover:bg-slate-700 rounded-lg border border-slate-700 transition">
-        <span id="adminThemeIcon">🌙</span>
+      <button id="adminThemeToggle" class="text-slate-300 text-xs p-1.5 bg-slate-800/80 hover:bg-slate-750 rounded-xl border border-slate-700/70 transition flex items-center justify-center" title="تغییر تم">
+        <span id="adminThemeIcon">
+          <svg class="w-3.5 h-3.5 text-amber-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 18.75V21m-4.773-4.227l-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z" /></svg>
+        </span>
       </button>
     </div>
 
@@ -73,7 +78,7 @@
           <!-- Card 1: Users -->
           <div class="bg-slate-800/80 p-3.5 rounded-2xl border border-slate-700/80 shadow relative overflow-hidden">
             <div class="flex items-center gap-1.5">
-              <span class="text-sm">👥</span>
+              <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
               <span class="text-slate-400 text-[11px] font-medium">کل کاربران ربات</span>
             </div>
             <div class="mt-2 flex items-baseline gap-1.5">
@@ -85,7 +90,7 @@
           <!-- Card 2: Today Revenue -->
           <div class="bg-slate-800/80 p-3.5 rounded-2xl border border-slate-700/80 shadow relative overflow-hidden">
             <div class="flex items-center gap-1.5">
-              <span class="text-sm">💰</span>
+              <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
               <span class="text-slate-400 text-[11px] font-medium">فروش امروز</span>
             </div>
             <div class="mt-2 flex items-baseline gap-1">
@@ -98,7 +103,7 @@
           <!-- Card 3: Bandwidth -->
           <div class="bg-slate-800/80 p-3.5 rounded-2xl border border-slate-700/80 shadow relative overflow-hidden">
             <div class="flex items-center gap-1.5">
-              <span class="text-sm">🌐</span>
+              <svg class="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
               <span class="text-slate-400 text-[11px] font-medium">مصرف کل ترافیک</span>
             </div>
             <div class="mt-2 flex items-baseline gap-1 whitespace-nowrap overflow-hidden">
@@ -110,7 +115,7 @@
           <!-- Card 4: Active Online HWID -->
           <div class="bg-slate-800/80 p-3.5 rounded-2xl border border-slate-700/80 shadow relative overflow-hidden">
             <div class="flex items-center gap-1.5">
-              <span class="text-sm">📱</span>
+              <svg class="w-4 h-4 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
               <span class="text-slate-400 text-[11px] font-medium">دستگاه‌های متصل</span>
             </div>
             <div class="mt-2 flex items-baseline gap-1.5">
@@ -124,7 +129,7 @@
         <!-- Pending Tasks Alert (اقدامات نیازمند بررسی - مخفی در صورت عدم وجود مورد معلق) -->
         <div id="adminPendingBanner" class="hidden bg-amber-950/40 rounded-2xl p-3.5 border border-amber-500/40 flex items-center justify-between shadow-sm transition">
           <div class="flex items-center gap-2.5">
-            <span class="text-2xl">⚠️</span>
+            <svg class="w-5 h-5 text-amber-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
             <div>
               <span class="text-xs font-bold text-amber-300 block">اقدامات نیازمند بررسی:</span>
               <span id="adminPendingSummary" class="text-[11px] text-slate-300">در حال دریافت وضعیت...</span>
@@ -139,7 +144,8 @@
         <div class="bg-slate-800/80 rounded-2xl p-4 border border-slate-700/80 shadow space-y-3">
           <div class="flex justify-between items-center border-b border-slate-700/60 pb-2">
             <span class="text-xs font-bold text-slate-200 flex items-center gap-1.5">
-              <span>📈</span> روند فروش و درآمد ۷ روز اخیر
+              <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
+              <span>روند فروش و درآمد ۷ روز اخیر</span>
             </span>
             <span id="salesChartTotal" class="text-[10px] text-emerald-400 font-bold font-mono" dir="ltr">-- تومان</span>
           </div>
@@ -152,9 +158,13 @@
         <div class="bg-slate-800/80 rounded-2xl p-4 border border-slate-700/80 shadow space-y-3">
           <div class="flex justify-between items-center border-b border-slate-700/60 pb-2">
             <span class="text-xs font-bold text-slate-200 flex items-center gap-1.5">
-              <span>📊</span> روند مصرف ترافیک ۷ روز اخیر
+              <svg class="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+              <span>روند مصرف ترافیک ۷ روز اخیر</span>
             </span>
-            <span id="trafficChartTotal" class="text-[10px] text-cyan-400 font-bold font-mono" dir="ltr">-- GB</span>
+            <div id="trafficChartTotal" class="text-[10px] text-cyan-400 font-bold font-mono inline-flex items-center gap-1" dir="ltr">
+              <span>--</span>
+              <span class="text-[9px] text-cyan-300 font-sans">GB</span>
+            </div>
           </div>
           <div class="h-36 w-full relative">
             <canvas id="adminTrafficChart"></canvas>
@@ -165,12 +175,13 @@
         <div class="bg-slate-800/80 rounded-2xl border border-slate-700/80 shadow overflow-hidden transition-all duration-200">
           <div id="overviewNodesToggleHeader" class="p-3.5 flex justify-between items-center cursor-pointer select-none hover:bg-slate-750/70 transition">
             <div class="flex items-center gap-2">
-              <span class="text-sm">🌐</span>
+              <svg class="w-4 h-4 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/></svg>
               <span class="text-xs font-bold text-slate-200">وضعیت لحظه‌ای نودهای کلاستر</span>
               <span id="overviewNodesChevron" class="text-xs text-slate-400 transition-transform duration-200">▼</span>
             </div>
-            <button id="syncAllNodesBtn" class="text-[10px] text-blue-400 hover:text-blue-300 font-semibold bg-blue-950/60 px-2.5 py-1 rounded-lg border border-blue-800/50 transition active:scale-95">
-              🔄 سینک نودها
+            <button id="syncAllNodesBtn" class="text-[10px] text-blue-400 hover:text-blue-300 font-semibold bg-blue-950/60 px-2.5 py-1 rounded-lg border border-blue-800/50 transition active:scale-95 flex items-center gap-1">
+              <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+              <span>سینک نودها</span>
             </button>
           </div>
 
@@ -184,7 +195,9 @@
         <!-- Quick Admin Commands Hub -->
         <div class="grid grid-cols-2 gap-2 text-xs">
           <button id="openBroadcastModalBtn" class="bg-slate-800/90 hover:bg-slate-750 p-3 rounded-2xl border border-slate-700/80 flex items-center gap-2.5 transition active:scale-95 shadow">
-            <span class="text-xl">📢</span>
+            <div class="w-8 h-8 rounded-xl bg-blue-500/15 flex items-center justify-center text-blue-400 flex-shrink-0">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"/></svg>
+            </div>
             <div class="text-right">
               <span class="font-bold text-slate-200 block text-[11px]">پیام همگانی</span>
               <span class="text-[9px] text-slate-400">ارسال به گروه‌های کاربری</span>
@@ -192,7 +205,9 @@
           </button>
 
           <button id="quickRefreshMetricsBtn" class="bg-slate-800/90 hover:bg-slate-750 p-3 rounded-2xl border border-slate-700/80 flex items-center gap-2.5 transition active:scale-95 shadow">
-            <span class="text-xl">🔄</span>
+            <div class="w-8 h-8 rounded-xl bg-cyan-500/15 flex items-center justify-center text-cyan-400 flex-shrink-0">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+            </div>
             <div class="text-right">
               <span class="font-bold text-slate-200 block text-[11px]">سینک کامل داده‌ها</span>
               <span class="text-[9px] text-slate-400">به‌روزرسانی کش و آمار</span>
@@ -209,14 +224,22 @@
         <!-- Search and Filter -->
         <div class="space-y-2">
           <div class="bg-slate-800/90 rounded-2xl p-2.5 border border-slate-700 flex items-center gap-2">
-            <span class="text-slate-400 text-sm">🔍</span>
+            <svg class="w-4 h-4 text-slate-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
             <input type="text" id="userSearchInput" placeholder="جستجو بر اساس نام کاربری یا شناسه عددی..." class="bg-transparent text-xs text-slate-200 outline-none flex-1 font-sans" />
             <button id="userSearchClear" class="text-slate-400 hover:text-white text-xs px-1.5 hidden">✕</button>
           </div>
 
           <div class="flex gap-1.5 overflow-x-auto custom-scroll text-[10px] whitespace-nowrap pb-1">
-            <button class="user-filter-btn px-2.5 py-1 rounded-lg bg-blue-600 text-white font-bold transition" data-filter="all">همه کاربران</button>
-            <button class="user-filter-btn px-2.5 py-1 rounded-lg bg-slate-800 text-slate-400 hover:text-white transition" data-filter="banned">مسدود شده</button>
+            <button class="user-filter-btn px-2.5 py-1 rounded-xl bg-blue-600 text-white font-bold transition shadow-sm" data-filter="all">همه کاربران</button>
+            <button class="user-filter-btn px-2.5 py-1 rounded-xl bg-slate-800 text-slate-400 hover:text-white transition flex items-center gap-1" data-filter="online">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block"></span>
+              <span>متصل زنده</span>
+            </button>
+            <button class="user-filter-btn px-2.5 py-1 rounded-xl bg-slate-800 text-slate-400 hover:text-white transition flex items-center gap-1" data-filter="expiring">
+              <svg class="w-2.5 h-2.5 text-amber-300" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z"/></svg>
+              <span>رو به اتمام</span>
+            </button>
+            <button class="user-filter-btn px-2.5 py-1 rounded-xl bg-slate-800 text-slate-400 hover:text-white transition" data-filter="banned">مسدود شده</button>
           </div>
         </div>
 
@@ -228,11 +251,11 @@
         <!-- Pagination Controls (Icon-only, hidden if total pages <= 1) -->
         <div id="adminUsersPagination" class="hidden flex justify-between items-center text-xs text-slate-400 pt-2 px-1">
           <button id="adminUsersPrevBtn" class="w-8 h-8 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 disabled:opacity-30 disabled:pointer-events-none transition flex items-center justify-center text-xs shadow-sm" title="صفحه قبلی">
-            ▶️
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
           </button>
           <span id="adminUsersPageInfo" class="font-mono text-[11px] text-slate-300">صفحه ۱</span>
           <button id="adminUsersNextBtn" class="w-8 h-8 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 disabled:opacity-30 disabled:pointer-events-none transition flex items-center justify-center text-xs shadow-sm" title="صفحه بعدی">
-            ◀️
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
           </button>
         </div>
       </div>
@@ -243,7 +266,8 @@
       <div id="tab-admin-plans" class="admin-tab-pane space-y-3 pb-8 hidden">
         <div class="flex justify-between items-center">
           <h3 class="text-sm font-bold text-slate-200 flex items-center gap-1.5">
-            <span>📦</span> تعرفه‌ها و پلن‌های فروش
+            <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+            <span>تعرفه‌ها و پلن‌های فروش</span>
           </h3>
           <button id="openCreatePlanBtn" class="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-[11px] font-bold px-3 py-1.5 rounded-xl transition shadow active:scale-95 flex items-center gap-1">
             <span>+</span> پلن جدید
@@ -260,7 +284,8 @@
       <div id="tab-admin-coupons" class="admin-tab-pane space-y-3 pb-8 hidden">
         <div class="flex justify-between items-center">
           <h3 class="text-sm font-bold text-slate-200 flex items-center gap-1.5">
-            <span>🎟</span> کدهای تخفیف و پروموشن
+            <svg class="w-4 h-4 text-pink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z"/></svg>
+            <span>کدهای تخفیف و پروموشن</span>
           </h3>
           <button id="openCreateCouponBtn" class="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white text-[11px] font-bold px-3 py-1.5 rounded-xl transition shadow active:scale-95 flex items-center gap-1">
             <span>+</span> کد تخفیف جدید
@@ -278,12 +303,14 @@
         <div class="flex justify-between items-center bg-slate-800/80 p-3.5 rounded-2xl border border-slate-700/80 shadow">
           <div>
             <h3 class="text-xs font-bold text-slate-200 flex items-center gap-1.5">
-              <span>🌐</span> وضعیت سرورها و نودهای کلاستر
+              <svg class="w-4 h-4 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01"/></svg>
+              <span>وضعیت سرورها و نودهای کلاستر</span>
             </h3>
             <span class="text-[10px] text-slate-400 mt-0.5 block">پایش لحظه‌ای مصرف منابع، کاربران متصل و پهنای باند</span>
           </div>
           <button id="refreshNodesTabBtn" class="text-[11px] bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 rounded-xl font-bold transition flex items-center gap-1 shadow active:scale-95">
-            <span>🔄</span> سینک
+            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+            <span>سینک</span>
           </button>
         </div>
 
@@ -298,10 +325,12 @@
       <div id="tab-admin-tickets" class="admin-tab-pane space-y-4 hidden">
         <div class="flex justify-between items-center">
           <h3 class="text-sm font-bold text-slate-200 flex items-center gap-1.5">
-            <span>💳</span> فیش‌های واریزی در انتظار بررسی
+            <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
+            <span>فیش‌های واریزی در انتظار بررسی</span>
           </h3>
-          <button id="refreshTopupsBtn" class="text-[10px] bg-slate-800 hover:bg-slate-700 text-slate-300 px-2 py-1 rounded-lg border border-slate-700 transition">
-            🔄 تازه‌سازی
+          <button id="refreshTopupsBtn" class="text-[10px] bg-slate-800 hover:bg-slate-700 text-slate-300 px-2 py-1 rounded-lg border border-slate-700 transition flex items-center gap-1">
+            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+            <span>تازه‌سازی</span>
           </button>
         </div>
 
@@ -312,7 +341,8 @@
         <!-- Quick Support Messenger Box -->
         <div class="bg-slate-800/90 rounded-2xl p-4 border border-slate-700/80 space-y-3 text-xs shadow mt-4">
           <span class="font-bold text-slate-200 block border-b border-slate-700/60 pb-2 flex items-center gap-1.5">
-            <span>💬</span> ارسال پیام / پاسخ پشتیبانی به کاربر
+            <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+            <span>ارسال پیام / پاسخ پشتیبانی به کاربر</span>
           </span>
           <div class="space-y-2">
             <div>
@@ -336,23 +366,26 @@
       <div id="tab-admin-settings" class="admin-tab-pane space-y-3 pb-8 hidden">
         <div class="flex items-center justify-between">
           <h3 class="text-sm font-bold text-slate-200 flex items-center gap-1.5">
-            <span>⚙️</span> پیکربندی و تنظیمات سامانه
+            <svg class="w-4 h-4 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+            <span>پیکربندی و تنظیمات سامانه</span>
           </h3>
           <button id="saveAllSettingsTopBtn" class="bg-blue-600 hover:bg-blue-500 text-white text-[11px] font-bold px-3 py-1 rounded-xl transition shadow active:scale-95 flex items-center gap-1">
-            <span>💾</span> ذخیره همه
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/></svg>
+            <span>ذخیره همه</span>
           </button>
         </div>
 
         <!-- 1. Live System Switches -->
         <div class="bg-slate-800/90 rounded-2xl p-4 border border-slate-700/80 space-y-2.5 text-xs shadow">
-          <span class="font-bold text-slate-200 block border-b border-slate-700/60 pb-2 flex items-center gap-1">
-            <span>🔘</span> سوئیچ‌های زنده ربات:
+          <span class="font-bold text-slate-200 block border-b border-slate-700/60 pb-2 flex items-center gap-1.5">
+            <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
+            <span>سوئیچ‌های زنده ربات:</span>
           </span>
 
           <!-- Maintenance Mode -->
           <div class="flex items-center justify-between py-1">
             <div>
-              <span class="text-slate-200 font-medium block">🛠 حالت تعمیر ربات (Maintenance)</span>
+              <span class="text-slate-200 font-medium block">حالت تعمیر ربات (Maintenance)</span>
               <span class="text-[10px] text-slate-400">فقط ادمین‌ها به ربات دسترسی دارند</span>
             </div>
             <label class="relative inline-flex items-center cursor-pointer">
@@ -366,7 +399,7 @@
           <!-- Card Payment -->
           <div class="flex items-center justify-between py-1 border-t border-slate-700/50 pt-2">
             <div>
-              <span class="text-slate-200 font-medium block">💳 درگاه کارت به کارت</span>
+              <span class="text-slate-200 font-medium block">درگاه کارت به کارت</span>
               <span class="text-[10px] text-slate-400">واریز و دریافت فیش دستی</span>
             </div>
             <label class="relative inline-flex items-center cursor-pointer">
@@ -380,7 +413,7 @@
           <!-- Crypto Payment -->
           <div class="flex items-center justify-between py-1 border-t border-slate-700/50 pt-2">
             <div>
-              <span class="text-slate-200 font-medium block">💎 درگاه کریپتو (USDT / TON)</span>
+              <span class="text-slate-200 font-medium block">درگاه کریپتو (USDT / TON)</span>
               <span class="text-[10px] text-slate-400">پرداخت خودکار و تایید بلاکچین</span>
             </div>
             <label class="relative inline-flex items-center cursor-pointer">
@@ -394,7 +427,7 @@
           <!-- Trial Subscription -->
           <div class="flex items-center justify-between py-1 border-t border-slate-700/50 pt-2">
             <div>
-              <span class="text-slate-200 font-medium block">🎁 اشتراک تست رایگان</span>
+              <span class="text-slate-200 font-medium block">اشتراک تست رایگان</span>
               <span class="text-[10px] text-slate-400">امکان دریافت سرویس آزمایشی</span>
             </div>
             <label class="relative inline-flex items-center cursor-pointer">
@@ -408,7 +441,7 @@
           <!-- Referral System -->
           <div class="flex items-center justify-between py-1 border-t border-slate-700/50 pt-2">
             <div>
-              <span class="text-slate-200 font-medium block">👥 سیستم زیرمجموعه‌گیری (رفرال)</span>
+              <span class="text-slate-200 font-medium block">سیستم زیرمجموعه‌گیری (رفرال)</span>
               <span class="text-[10px] text-slate-400">پاداش ترافیک هدیه برای دعوت</span>
             </div>
             <label class="relative inline-flex items-center cursor-pointer">
@@ -422,7 +455,7 @@
           <!-- Direct Support in Bot -->
           <div class="flex items-center justify-between py-1 border-t border-slate-700/50 pt-2">
             <div>
-              <span class="text-slate-200 font-medium block">💬 چت پشتیبانی درون ربات</span>
+              <span class="text-slate-200 font-medium block">چت پشتیبانی درون ربات</span>
               <span class="text-[10px] text-slate-400">ارسال مستقیم تیکت به تاپیک ادمین</span>
             </div>
             <label class="relative inline-flex items-center cursor-pointer">
@@ -436,8 +469,9 @@
 
         <!-- 2. Bank Card & Topup Settings -->
         <div class="bg-slate-800/90 rounded-2xl p-4 border border-slate-700/80 space-y-3 text-xs shadow">
-          <span class="font-bold text-slate-200 block border-b border-slate-700/60 pb-2 flex items-center gap-1">
-            <span>💳</span> کارت بانکی و قوانین شارژ:
+          <span class="font-bold text-slate-200 block border-b border-slate-700/60 pb-2 flex items-center gap-1.5">
+            <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
+            <span>کارت بانکی و قوانین شارژ:</span>
           </span>
           <div>
             <label class="text-[11px] text-slate-400 block mb-1">شماره کارت مقصد:</label>
@@ -455,8 +489,9 @@
 
         <!-- 3. Crypto & Rates Settings -->
         <div class="bg-slate-800/90 rounded-2xl p-4 border border-slate-700/80 space-y-3 text-xs shadow">
-          <span class="font-bold text-slate-200 block border-b border-slate-700/60 pb-2 flex items-center gap-1">
-            <span>💎</span> نرخ ارزها و ولت کریپتو:
+          <span class="font-bold text-slate-200 block border-b border-slate-700/60 pb-2 flex items-center gap-1.5">
+            <svg class="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            <span>نرخ ارزها و ولت کریپتو:</span>
           </span>
           <div class="grid grid-cols-2 gap-2">
             <div>
@@ -476,8 +511,9 @@
 
         <!-- 4. Trial & Referral Config -->
         <div class="bg-slate-800/90 rounded-2xl p-4 border border-slate-700/80 space-y-3 text-xs shadow">
-          <span class="font-bold text-slate-200 block border-b border-slate-700/60 pb-2 flex items-center gap-1">
-            <span>🎁</span> مقادیر تست و پاداش رفرال:
+          <span class="font-bold text-slate-200 block border-b border-slate-700/60 pb-2 flex items-center gap-1.5">
+            <svg class="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 01-2-2V7a2 2 0 012-2h14a2 2 0 012 2v3a2 2 0 01-2 2M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"/></svg>
+            <span>مقادیر تست و پاداش رفرال:</span>
           </span>
           <div class="grid grid-cols-2 gap-2">
             <div>
@@ -503,40 +539,41 @@
 
         <!-- 5. Big Save Button -->
         <button id="saveAllSettingsBtn" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs py-3 rounded-2xl transition shadow-lg shadow-blue-500/20 active:scale-95 flex items-center justify-center gap-2 mb-6">
-          <span>💾</span> ذخیره تمامی تغییرات تنظیمات
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/></svg>
+          <span>ذخیره تمامی تغییرات تنظیمات</span>
         </button>
       </div>
 
     </div>
 
     <!-- Admin Bottom Navigation Bar -->
-    <div class="absolute bottom-0 inset-x-0 bg-[#131d31]/95 backdrop-blur-md border-t border-slate-700/80 px-1 py-2 flex justify-between items-center z-30 overflow-x-auto no-scrollbar">
-      <button class="admin-nav-btn flex flex-col items-center gap-0.5 text-blue-400 transition min-w-[46px]" data-admin-tab="tab-admin-overview">
-        <span class="text-base">📊</span>
+    <div class="absolute bottom-0 inset-x-0 bg-[#131d31]/95 backdrop-blur-md border-t border-slate-700/80 px-1 py-1.5 flex justify-between items-center z-30 overflow-x-auto no-scrollbar">
+      <button class="admin-nav-btn flex flex-col items-center gap-1 text-blue-400 transition min-w-[46px] py-1" data-admin-tab="tab-admin-overview">
+        <svg class="w-5 h-5 transition-transform" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" /></svg>
         <span class="text-[9px] font-bold">داشبورد</span>
       </button>
-      <button class="admin-nav-btn flex flex-col items-center gap-0.5 text-slate-400 hover:text-slate-200 transition min-w-[46px]" data-admin-tab="tab-admin-users">
-        <span class="text-base">👥</span>
+      <button class="admin-nav-btn flex flex-col items-center gap-1 text-slate-400 hover:text-slate-200 transition min-w-[46px] py-1" data-admin-tab="tab-admin-users">
+        <svg class="w-5 h-5 transition-transform" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" /></svg>
         <span class="text-[9px] font-medium">کاربران</span>
       </button>
-      <button class="admin-nav-btn flex flex-col items-center gap-0.5 text-slate-400 hover:text-slate-200 transition min-w-[46px]" data-admin-tab="tab-admin-plans">
-        <span class="text-base">📦</span>
+      <button class="admin-nav-btn flex flex-col items-center gap-1 text-slate-400 hover:text-slate-200 transition min-w-[46px] py-1" data-admin-tab="tab-admin-plans">
+        <svg class="w-5 h-5 transition-transform" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 7.5l-9-5.25L3 7.5m18 0l-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9" /></svg>
         <span class="text-[9px] font-medium">پلن‌ها</span>
       </button>
-      <button class="admin-nav-btn flex flex-col items-center gap-0.5 text-slate-400 hover:text-slate-200 transition min-w-[46px]" data-admin-tab="tab-admin-coupons">
-        <span class="text-base">🎟</span>
+      <button class="admin-nav-btn flex flex-col items-center gap-1 text-slate-400 hover:text-slate-200 transition min-w-[46px] py-1" data-admin-tab="tab-admin-coupons">
+        <svg class="w-5 h-5 transition-transform" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 6v.75m0 3v.75m0 3v.75m0 3V18m-9-5.25h5.25M7.5 15h3M3.375 5.25c-.621 0-1.125.504-1.125 1.125v3.026a2.999 2.999 0 010 5.198v3.026c0 .621.504 1.125 1.125 1.125h17.25c.621 0 1.125-.504 1.125-1.125v-3.026a2.999 2.999 0 010-5.198V6.375c0-.621-.504-1.125-1.125-1.125H3.375z" /></svg>
         <span class="text-[9px] font-medium">تخفیف‌ها</span>
       </button>
-      <button class="admin-nav-btn flex flex-col items-center gap-0.5 text-slate-400 hover:text-slate-200 transition min-w-[46px]" data-admin-tab="tab-admin-nodes">
-        <span class="text-base">🌐</span>
+      <button class="admin-nav-btn flex flex-col items-center gap-1 text-slate-400 hover:text-slate-200 transition min-w-[46px] py-1" data-admin-tab="tab-admin-nodes">
+        <svg class="w-5 h-5 transition-transform" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5.25 14.25h13.5m-13.5 0a3 3 0 01-3-3m3 3a3 3 0 100 6h13.5a3 3 0 100-6m-16.5-3a3 3 0 013-3h13.5a3 3 0 013 3m-19.5 0a4.5 4.5 0 01.9-2.7L5.75 5.1a3 3 0 012.35-1.35h7.8a3 3 0 012.35 1.35l1.6 3.45a4.5 4.5 0 01.9 2.7" /></svg>
         <span class="text-[9px] font-medium">سرورها</span>
       </button>
-      <button class="admin-nav-btn flex flex-col items-center gap-0.5 text-slate-400 hover:text-slate-200 transition min-w-[46px]" data-admin-tab="tab-admin-tickets">
-        <span class="text-base">💳</span>
+      <button class="admin-nav-btn flex flex-col items-center gap-1 text-slate-400 hover:text-slate-200 transition min-w-[46px] py-1" data-admin-tab="tab-admin-tickets">
+        <svg class="w-5 h-5 transition-transform" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-6.75 3h18a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15A2.25 2.25 0 002.25 6.75v10.5A2.25 2.25 0 004.5 19.5z" /></svg>
         <span class="text-[9px] font-medium">فیش‌ها</span>
       </button>
-      <button class="admin-nav-btn flex flex-col items-center gap-0.5 text-slate-400 hover:text-slate-200 transition min-w-[46px]" data-admin-tab="tab-admin-settings">
-        <span class="text-base">⚙️</span>
+      <button class="admin-nav-btn flex flex-col items-center gap-1 text-slate-400 hover:text-slate-200 transition min-w-[46px] py-1" data-admin-tab="tab-admin-settings">
+        <svg class="w-5 h-5 transition-transform" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759 6.759 0 010 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 010-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
         <span class="text-[9px] font-medium">تنظیمات</span>
       </button>
     </div>
@@ -564,17 +601,20 @@
       <div class="bg-[#1e293b] border border-slate-700 rounded-3xl p-5 w-full max-w-[340px] space-y-4 shadow-2xl relative">
         <div class="flex justify-between items-center border-b border-slate-700/60 pb-2">
           <h4 id="walletModalTitle" class="text-xs font-bold text-white flex items-center gap-1.5">
-            <span>💰</span> شارژ کیف پول کاربر
+            <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+            <span>شارژ کیف پول کاربر</span>
           </h4>
           <button onclick="window.adminActions.closeWalletModal()" class="text-slate-400 hover:text-white text-xs">✕</button>
         </div>
         <div class="space-y-2.5">
           <div class="flex gap-2">
-            <button id="walletActionAddBtn" type="button" class="flex-1 py-1.5 text-xs font-bold rounded-xl border border-emerald-500/50 bg-emerald-950/70 text-emerald-300 transition">
-              ➕ افزایش موجودی
+            <button id="walletActionAddBtn" type="button" class="flex-1 py-1.5 text-xs font-bold rounded-xl border border-emerald-500/50 bg-emerald-950/70 text-emerald-300 transition flex items-center justify-center gap-1">
+              <span>+</span>
+              <span>افزایش موجودی</span>
             </button>
-            <button id="walletActionDeductBtn" type="button" class="flex-1 py-1.5 text-xs font-medium rounded-xl border border-slate-700 bg-slate-900/60 text-slate-400 transition">
-              ➖ کسر موجودی
+            <button id="walletActionDeductBtn" type="button" class="flex-1 py-1.5 text-xs font-medium rounded-xl border border-slate-700 bg-slate-900/60 text-slate-400 transition flex items-center justify-center gap-1">
+              <span>-</span>
+              <span>کسر موجودی</span>
             </button>
           </div>
           <div>
@@ -600,14 +640,15 @@
       <div class="bg-[#1e293b] border border-slate-700 rounded-3xl p-5 w-full max-w-[380px] max-h-[85vh] flex flex-col space-y-3.5 shadow-2xl relative">
         <div class="flex justify-between items-center border-b border-slate-700/60 pb-2">
           <h4 id="hwidModalTitle" class="text-xs font-bold text-white flex items-center gap-1.5">
-            <span>📱</span> دستگاه‌های متصل به اکانت
+            <svg class="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+            <span>دستگاه‌های متصل به اکانت</span>
           </h4>
           <button onclick="window.adminActions.closeHwidModal()" class="text-slate-400 hover:text-white text-xs">✕</button>
         </div>
 
         <!-- Integrated Kill All Sessions Action -->
         <button id="hwidKillAllSessionsBtn" onclick="window.adminActions.killSessionsFromModal()" class="w-full bg-rose-950/70 hover:bg-rose-900 border border-rose-800/60 text-rose-300 font-bold text-xs py-2 rounded-xl transition shadow active:scale-95 flex items-center justify-center gap-1.5">
-          <span>⛔️</span>
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg>
           <span>قطع تمامی نشست‌ها و اتصالات کاربر</span>
         </button>
 
@@ -625,7 +666,8 @@
       <div class="bg-[#1e293b] border border-slate-700 rounded-3xl p-5 w-full max-w-[360px] space-y-4 shadow-2xl relative">
         <div class="flex justify-between items-center border-b border-slate-700/60 pb-2">
           <h4 id="subModalTitle" class="text-xs font-bold text-white flex items-center gap-1.5">
-            <span>🔄</span> لینک اشتراک کاربر
+            <svg class="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
+            <span>لینک اشتراک کاربر</span>
           </h4>
           <button onclick="window.adminActions.closeSubModal()" class="text-slate-400 hover:text-white text-xs">✕</button>
         </div>
@@ -636,7 +678,8 @@
             <div class="relative">
               <input type="text" id="subModalInput" readonly dir="ltr" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2.5 text-[11px] font-mono text-cyan-300 outline-none pr-14 select-all" placeholder="در حال دریافت لینک..." />
               <button id="subModalCopyBtn" onclick="window.adminActions.copySubLink()" class="absolute right-1 top-1 bottom-1 bg-cyan-950/80 hover:bg-cyan-900 text-cyan-300 border border-cyan-800/60 text-[10px] px-2.5 rounded-lg font-bold transition flex items-center gap-1">
-                <span>📋</span> کپی
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                <span>کپی</span>
               </button>
             </div>
           </div>
@@ -648,7 +691,7 @@
 
         <div class="space-y-2 pt-1">
           <button id="subModalRegenBtn" onclick="window.adminActions.confirmRegenerateSub()" class="w-full bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-bold text-xs py-2.5 rounded-xl transition shadow active:scale-95 flex items-center justify-center gap-1.5">
-            <span>🔄</span>
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
             <span>باطل کردن و صدور لینک جدید</span>
           </button>
           <button onclick="window.adminActions.closeSubModal()" class="w-full bg-slate-800 text-slate-300 text-xs py-2 rounded-xl">
@@ -663,7 +706,8 @@
       <div class="bg-[#1e293b] border border-slate-700 rounded-3xl p-5 w-full max-w-[360px] space-y-3 shadow-2xl relative max-h-[90vh] overflow-y-auto custom-scroll">
         <div class="flex justify-between items-center border-b border-slate-700/60 pb-2">
           <h4 id="planModalTitle" class="text-xs font-bold text-white flex items-center gap-1.5">
-            <span>📦</span> پلن تعرفه
+            <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+            <span>پلن تعرفه</span>
           </h4>
           <button onclick="window.adminActions.closePlanModal()" class="text-slate-400 hover:text-white text-xs">✕</button>
         </div>
@@ -716,7 +760,8 @@
       <div class="bg-[#1e293b] border border-slate-700 rounded-3xl p-5 w-full max-w-[340px] space-y-3 shadow-2xl relative">
         <div class="flex justify-between items-center border-b border-slate-700/60 pb-2">
           <h4 class="text-xs font-bold text-white flex items-center gap-1.5">
-            <span>🎟</span> ساخت کد تخفیف جدید
+            <svg class="w-4 h-4 text-pink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z"/></svg>
+            <span>ساخت کد تخفیف جدید</span>
           </h4>
           <button onclick="window.adminActions.closeCouponModal()" class="text-slate-400 hover:text-white text-xs">✕</button>
         </div>
@@ -760,7 +805,8 @@
       <div class="bg-[#1e293b] border border-slate-700 rounded-3xl p-5 w-full max-w-[380px] space-y-3.5 shadow-2xl relative">
         <div class="flex justify-between items-center border-b border-slate-700/60 pb-2">
           <h4 class="text-xs font-bold text-white flex items-center gap-1.5">
-            <span>📢</span> ارسال پیام همگانی به کاربران
+            <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"/></svg>
+            <span>ارسال پیام همگانی به کاربران</span>
           </h4>
           <button id="closeBroadcastBtn" class="text-slate-400 hover:text-white text-xs">✕</button>
         </div>
@@ -770,19 +816,19 @@
           <label class="text-[11px] text-slate-300 font-medium block">گروه هدف دریافت‌کنندگان:</label>
           <div class="flex flex-wrap gap-1.5">
             <button class="broadcast-audience-btn px-2.5 py-1 rounded-xl bg-blue-600 text-white font-bold text-[10px] transition border border-blue-500 shadow-sm" data-target="all">
-              👥 همه کاربران
+              همه کاربران
             </button>
             <button class="broadcast-audience-btn px-2.5 py-1 rounded-xl bg-slate-800 text-slate-400 hover:text-white text-[10px] transition border border-slate-700/60" data-target="active">
-              🟢 اشتراک فعال
+              اشتراک فعال
             </button>
             <button class="broadcast-audience-btn px-2.5 py-1 rounded-xl bg-slate-800 text-slate-400 hover:text-white text-[10px] transition border border-slate-700/60" data-target="expired">
-              🔴 منقضی شده
+              منقضی شده
             </button>
             <button class="broadcast-audience-btn px-2.5 py-1 rounded-xl bg-slate-800 text-slate-400 hover:text-white text-[10px] transition border border-slate-700/60" data-target="buyers">
-              🛒 خریداران
+              خریداران
             </button>
             <button class="broadcast-audience-btn px-2.5 py-1 rounded-xl bg-slate-800 text-slate-400 hover:text-white text-[10px] transition border border-slate-700/60" data-target="balance">
-              💰 دارای موجودی
+              دارای موجودی
             </button>
           </div>
         </div>
@@ -797,7 +843,7 @@
         </div>
 
         <button id="sendBroadcastBtn" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 text-white font-bold text-xs py-2.5 rounded-xl transition shadow active:scale-95 flex items-center justify-center gap-1.5">
-          <span>🚀</span>
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
           <span>شروع ارسال همگانی</span>
         </button>
       </div>
@@ -808,7 +854,8 @@
       <div class="bg-[#1e293b] border border-slate-700 rounded-3xl p-5 w-full max-w-[360px] space-y-4 shadow-2xl relative">
         <div class="flex justify-between items-center border-b border-slate-700/60 pb-2.5">
           <h4 class="text-xs font-bold text-white flex items-center gap-1.5">
-            <span>📊</span> گزارش ارسال پیام همگانی
+            <svg class="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+            <span>گزارش ارسال پیام همگانی</span>
           </h4>
           <button id="closeBroadcastReportBtn" class="text-slate-400 hover:text-white text-xs">✕</button>
         </div>
