@@ -144,6 +144,14 @@ const api = {
     return this.post('/api/admin/ticket/reply', { telegram_id, reply_text });
   },
 
+  async getAdminTicketThreads() {
+    return this.get('/api/admin/tickets/threads');
+  },
+
+  async getAdminTicketMessages(telegram_id) {
+    return this.get('/api/admin/tickets/messages', { telegram_id });
+  },
+
   async getAdminSettings() {
     return this.get('/api/admin/settings');
   },

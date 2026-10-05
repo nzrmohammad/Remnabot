@@ -168,3 +168,19 @@ html.theme-light .border-pink-500\/30,
 html.theme-light .border-pink-800\/50 {
   border-color: #fbcfe8 !important;
 }
+html.theme-light .text-emerald-600 {
+  color: #059669 !important;
+}
+html.theme-light .text-blue-600 {
+  color: #2563eb !important;
+}
+html.theme-light .text-amber-600 {
+  color: #d97706 !important;
+}
+html.theme-light .text-rose-600 {
+  color: #e11d48 !important;
+}
+html.theme-light .text-pink-600 {
+  color: #db2777 !important;
+}
+

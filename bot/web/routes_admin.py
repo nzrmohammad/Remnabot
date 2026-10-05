@@ -196,12 +196,21 @@ async def get_admin_overview(request: web.Request) -> web.Response:
 
         chart_traffic_labels = [_get_day_label(d) for d in days_list]
 
+        today_cluster_bytes = sum(
+            int(n.get("todayTrafficBytes") or n.get("traffic") or 0)
+            for n in nodes
+            if isinstance(n, dict)
+        )
+        today_cluster_gb = round(today_cluster_bytes / (1024 ** 3), 2)
+
         # 7-day traffic consumption trend for dashboard charts
         # 1. Check cache for recent 7-day series to keep response instant
         cached_traffic = await cache.get("analytics:traffic:7day_series")
         if cached_traffic and isinstance(cached_traffic, dict) and "data" in cached_traffic:
-            chart_traffic_data = cached_traffic["data"]
-            traffic_total_gb = cached_traffic.get("total_gb", total_traffic_gb)
+            chart_traffic_data = list(cached_traffic["data"])
+            if today_cluster_gb > 0 and len(chart_traffic_data) == 7:
+                chart_traffic_data[6] = today_cluster_gb
+            traffic_total_gb = round(sum(chart_traffic_data), 2)
         else:
             daily_bytes_sum = [0] * 7
             has_real_stats = False
@@ -236,11 +245,15 @@ async def get_admin_overview(request: web.Request) -> web.Response:
                 except Exception as exc:
                     logger.debug("Failed fetching user bandwidth stats: %s", exc)
 
-            today_cluster_bytes = sum(int(n.get("todayTrafficBytes") or 0) for n in nodes if isinstance(n, dict))
-            today_cluster_gb = round(today_cluster_bytes / (1024 ** 3), 2)
-
             if has_real_stats and sum(daily_bytes_sum) > 0:
-                chart_traffic_data = [round(b / (1024 ** 3), 2) for b in daily_bytes_sum]
+                if today_cluster_gb > 0 and daily_bytes_sum[6] > 0:
+                    ratio = today_cluster_bytes / daily_bytes_sum[6]
+                    chart_traffic_data = [round((b * ratio) / (1024 ** 3), 2) for b in daily_bytes_sum]
+                    chart_traffic_data[6] = today_cluster_gb
+                else:
+                    chart_traffic_data = [round(b / (1024 ** 3), 2) for b in daily_bytes_sum]
+                    if today_cluster_gb > 0:
+                        chart_traffic_data[6] = today_cluster_gb
                 traffic_total_gb = round(sum(chart_traffic_data), 2)
             else:
                 # Track and check daily snapshot history in cache
@@ -261,13 +274,15 @@ async def get_admin_overview(request: web.Request) -> web.Response:
 
                 if len(snapshot_deltas) == 7 and sum(snapshot_deltas) > 0:
                     chart_traffic_data = snapshot_deltas
-                    traffic_total_gb = round(sum(snapshot_deltas), 2)
+                    if today_cluster_gb > 0:
+                        chart_traffic_data[6] = today_cluster_gb
+                    traffic_total_gb = round(sum(chart_traffic_data), 2)
                 elif today_cluster_gb > 0:
                     # Distribute with today's real node consumption as anchor
                     weights = [0.12, 0.14, 0.13, 0.15, 0.16, 0.14, 0.16]
-                    base_gb = max(total_traffic_gb, today_cluster_gb)
+                    base_gb = max(total_traffic_gb, today_cluster_gb * 4)
                     chart_traffic_data = [round(base_gb * w, 2) for w in weights]
-                    chart_traffic_data[6] = max(chart_traffic_data[6], today_cluster_gb)
+                    chart_traffic_data[6] = today_cluster_gb
                     traffic_total_gb = round(sum(chart_traffic_data), 2)
                 elif total_traffic_gb > 0:
                     weights = [0.12, 0.14, 0.13, 0.15, 0.16, 0.14, 0.16]
@@ -592,8 +607,147 @@ async def post_admin_toggle_ban(request: web.Request) -> web.Response:
     return web.json_response({"ok": True, "banned": ban_state})
 
 
+async def get_admin_ticket_threads(request: web.Request) -> web.Response:
+    """Return active user conversation threads (pending receipts + recent support messages)."""
+    admin = _check_admin(request)
+    if not admin:
+        return web.json_response({"ok": False, "error": "Forbidden"}, status=403)
+
+    session_factory = request.app["session_factory"]
+    cache: FastCache = request.app["cache"]
+
+    threads: list[dict[str, Any]] = []
+    seen_ids: set[int] = set()
+
+    async with session_factory() as session:
+        # 1. Prioritize users with pending topups
+        pending_res = await session.execute(
+            select(Topup)
+            .where(Topup.status == "pending")
+            .order_by(Topup.created_at.desc())
+        )
+        pending_topups = pending_res.scalars().all()
+        user_repo = UserRepository(session)
+
+        for t in pending_topups:
+            if t.telegram_id in seen_ids:
+                continue
+            seen_ids.add(t.telegram_id)
+            user = await user_repo.get_by_telegram_id(t.telegram_id)
+            u_name = (getattr(user, "full_name", None) or (f"@{user.username}" if user and user.username else f"کاربر {t.telegram_id}")).strip()
+
+            chat_msgs = await cache.get(f"support:chat:{t.telegram_id}") or []
+            last_msg = chat_msgs[-1]["text"] if chat_msgs else f"فیش واریزی #{t.id} ({t.amount:,} تومان)"
+            last_time = chat_msgs[-1].get("created_at") if chat_msgs else (t.created_at.strftime("%H:%M") if t.created_at else "—")
+
+            threads.append({
+                "telegram_id": t.telegram_id,
+                "full_name": u_name,
+                "username": user.username if user else None,
+                "has_pending_topup": True,
+                "topup_id": t.id,
+                "topup_amount": t.amount,
+                "last_message": last_msg,
+                "last_time": last_time,
+                "timestamp": int(t.created_at.timestamp()) if t.created_at else 0,
+            })
+
+        # 2. Add other active threads from cache
+        active_ids = await cache.get("support:active_thread_ids") or []
+        for tid in active_ids:
+            try:
+                tid_int = int(tid)
+            except (ValueError, TypeError):
+                continue
+            if tid_int in seen_ids:
+                continue
+            seen_ids.add(tid_int)
+            user = await user_repo.get_by_telegram_id(tid_int)
+            u_name = (getattr(user, "full_name", None) or (f"@{user.username}" if user and user.username else f"کاربر {tid_int}")).strip()
+            chat_msgs = await cache.get(f"support:chat:{tid_int}") or []
+            if not chat_msgs:
+                continue
+            last_msg = chat_msgs[-1]["text"]
+            last_time = chat_msgs[-1].get("created_at", "—")
+            threads.append({
+                "telegram_id": tid_int,
+                "full_name": u_name,
+                "username": user.username if user else None,
+                "has_pending_topup": False,
+                "topup_id": None,
+                "topup_amount": 0,
+                "last_message": last_msg,
+                "last_time": last_time,
+                "timestamp": chat_msgs[-1].get("timestamp", 0),
+            })
+
+    threads.sort(key=lambda x: (x["has_pending_topup"], x.get("timestamp", 0)), reverse=True)
+    return web.json_response({"ok": True, "threads": threads})
+
+
+async def get_admin_ticket_messages(request: web.Request) -> web.Response:
+    """Return chat conversation history for a specific user."""
+    admin = _check_admin(request)
+    if not admin:
+        return web.json_response({"ok": False, "error": "Forbidden"}, status=403)
+
+    target_id_raw = request.query.get("telegram_id")
+    if not target_id_raw:
+        return web.json_response({"ok": False, "error": "شناسه کاربر الزامی است."}, status=400)
+
+    try:
+        target_id = int(target_id_raw)
+    except (ValueError, TypeError):
+        return web.json_response({"ok": False, "error": "شناسه کاربر نامعتبر است."}, status=400)
+
+    session_factory = request.app["session_factory"]
+    cache: FastCache = request.app["cache"]
+
+    async with session_factory() as session:
+        user_repo = UserRepository(session)
+        user = await user_repo.get_by_telegram_id(target_id)
+        u_name = (getattr(user, "full_name", None) or (f"@{user.username}" if user and user.username else f"کاربر {target_id}")).strip()
+        balance = user.wallet_balance if user else 0
+
+        topup_res = await session.execute(
+            select(Topup)
+            .where(Topup.telegram_id == target_id, Topup.status == "pending")
+            .order_by(Topup.created_at.desc())
+            .limit(1)
+        )
+        pending_topup = topup_res.scalar_one_or_none()
+
+    chat_msgs = await cache.get(f"support:chat:{target_id}") or []
+
+    if not chat_msgs and pending_topup:
+        time_str = pending_topup.created_at.strftime("%H:%M") if pending_topup.created_at else "—"
+        receipt_text = f"فیش واریزی #{pending_topup.id} به مبلغ {pending_topup.amount:,} تومان ثبت شد."
+        if pending_topup.receipt_hash:
+            receipt_text += f"\nکد پیگیری: {pending_topup.receipt_hash}"
+        chat_msgs = [{
+            "id": f"topup_{pending_topup.id}",
+            "sender": "system",
+            "text": receipt_text,
+            "created_at": time_str,
+            "timestamp": int(pending_topup.created_at.timestamp()) if pending_topup.created_at else 0,
+        }]
+
+    return web.json_response({
+        "ok": True,
+        "user": {
+            "telegram_id": target_id,
+            "full_name": u_name,
+            "username": user.username if user else None,
+            "wallet_balance": balance,
+            "pending_topup_id": pending_topup.id if pending_topup else None,
+            "pending_amount": pending_topup.amount if pending_topup else None,
+        },
+        "messages": chat_msgs,
+    })
+
+
 async def post_admin_reply_ticket(request: web.Request) -> web.Response:
-    """Send an instant reply message from admin to user via Telegram Bot."""
+    """Send an instant reply message from admin to user via Telegram Bot and record into thread history."""
     admin = _check_admin(request)
     if not admin:
         return web.json_response({"ok": False, "error": "Forbidden"}, status=403)
@@ -603,20 +757,53 @@ async def post_admin_reply_ticket(request: web.Request) -> web.Response:
     except Exception:
         return web.json_response({"ok": False, "error": "Invalid JSON"}, status=400)
 
-    target_id = body.get("telegram_id")
-    reply_text = body.get("reply_text")
+    target_id_raw = body.get("telegram_id")
+    reply_text = str(body.get("reply_text") or "").strip()
 
-    if not target_id or not reply_text:
+    if not target_id_raw or not reply_text:
         return web.json_response({"ok": False, "error": "شناسه کاربر و متن پاسخ الزامی است."}, status=400)
+
+    try:
+        target_id = int(target_id_raw)
+    except (ValueError, TypeError):
+        return web.json_response({"ok": False, "error": "شناسه کاربر نامعتبر است."}, status=400)
 
     bot = request.app["bot"]
     msg_formatted = f"💬 <b>پاسخ پشتیبانی به پیام شما:</b>\n\n{reply_text}"
     try:
-        await bot.send_message(chat_id=int(target_id), text=msg_formatted, parse_mode="HTML")
-        return web.json_response({"ok": True, "message": "پاسخ برای کاربر ارسال شد."})
+        await bot.send_message(chat_id=target_id, text=msg_formatted, parse_mode="HTML")
     except Exception as exc:
         logger.warning("Failed to send reply to user %s: %s", target_id, exc)
         return web.json_response({"ok": False, "error": f"خطا در ارسال به تلگرام: {exc}"}, status=500)
+
+    cache: FastCache = request.app["cache"]
+    now_dt = datetime.now()
+    chat_key = f"support:chat:{target_id}"
+    chat_msgs = await cache.get(chat_key) or []
+    new_msg = {
+        "id": f"admin_{int(now_dt.timestamp() * 1000)}",
+        "sender": "admin",
+        "text": reply_text,
+        "created_at": now_dt.strftime("%H:%M"),
+        "timestamp": int(now_dt.timestamp()),
+    }
+    chat_msgs.append(new_msg)
+    if len(chat_msgs) > 50:
+        chat_msgs = chat_msgs[-50:]
+    await cache.set(chat_key, chat_msgs, ttl_seconds=86400 * 30)
+
+    active_ids = await cache.get("support:active_thread_ids") or []
+    if target_id not in active_ids:
+        active_ids.insert(0, target_id)
+        if len(active_ids) > 100:
+            active_ids = active_ids[:100]
+        await cache.set("support:active_thread_ids", active_ids, ttl_seconds=86400 * 30)
+
+    return web.json_response({
+        "ok": True,
+        "message": "پاسخ با موفقیت ارسال شد.",
+        "chat_message": new_msg,
+    })
 
 
 _BROADCAST_STATUSES: dict[str, dict[str, Any]] = {}

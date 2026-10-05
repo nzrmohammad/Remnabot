@@ -106,6 +106,35 @@ async def support_forward(
         await repo.map_message(content.message_id, user.telegram_id)
         await repo.map_message(header.message_id, user.telegram_id)
         sent_to_admin = True
+
+        # Cache message for web admin chat room
+        try:
+            redis = getattr(state.storage, "redis", None)
+            if redis:
+                import json, time
+                from datetime import datetime
+                user_msg = {
+                    "id": str(message.message_id),
+                    "sender": "user",
+                    "text": message.text or message.caption or "[تصویر / فایل]",
+                    "created_at": datetime.now().strftime("%H:%M"),
+                    "timestamp": int(time.time()),
+                }
+                chat_key = f"support:chat:{user.telegram_id}"
+                raw = await redis.get(chat_key)
+                msgs = json.loads(raw) if raw else []
+                msgs.append(user_msg)
+                if len(msgs) > 50:
+                    msgs = msgs[-50:]
+                await redis.set(chat_key, json.dumps(msgs, ensure_ascii=False), ex=86400 * 30)
+
+                raw_threads = await redis.get("support:active_thread_ids")
+                threads = json.loads(raw_threads) if raw_threads else []
+                if user.telegram_id not in threads:
+                    threads.insert(0, user.telegram_id)
+                    await redis.set("support:active_thread_ids", json.dumps(threads[:100]), ex=86400 * 30)
+        except Exception:
+            pass
     except Exception:
         logger.exception("failed to deliver support message to admin chat")
 
@@ -171,6 +200,35 @@ async def admin_support_reply(
                 from_chat_id=message.chat.id,
                 message_id=message.message_id,
             )
+
+        # Cache admin reply for web admin chat room
+        try:
+            redis = getattr(state.storage, "redis", None)
+            if redis and message.text:
+                import json, time
+                from datetime import datetime
+                admin_msg = {
+                    "id": str(message.message_id),
+                    "sender": "admin",
+                    "text": message.text,
+                    "created_at": datetime.now().strftime("%H:%M"),
+                    "timestamp": int(time.time()),
+                }
+                chat_key = f"support:chat:{telegram_id}"
+                raw = await redis.get(chat_key)
+                msgs = json.loads(raw) if raw else []
+                msgs.append(admin_msg)
+                if len(msgs) > 50:
+                    msgs = msgs[-50:]
+                await redis.set(chat_key, json.dumps(msgs, ensure_ascii=False), ex=86400 * 30)
+
+                raw_threads = await redis.get("support:active_thread_ids")
+                threads = json.loads(raw_threads) if raw_threads else []
+                if telegram_id not in threads:
+                    threads.insert(0, telegram_id)
+                    await redis.set("support:active_thread_ids", json.dumps(threads[:100]), ex=86400 * 30)
+        except Exception:
+            pass
     except Exception:
         logger.exception("could not deliver support reply to %s", telegram_id)
         return

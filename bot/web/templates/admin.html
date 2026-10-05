@@ -338,24 +338,69 @@
           <div class="p-4 text-center text-xs text-slate-400">در حال بررسی فیش‌ها...</div>
         </div>
 
-        <!-- Quick Support Messenger Box -->
-        <div class="bg-slate-800/90 rounded-2xl p-4 border border-slate-700/80 space-y-3 text-xs shadow mt-4">
-          <span class="font-bold text-slate-200 block border-b border-slate-700/60 pb-2 flex items-center gap-1.5">
-            <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
-            <span>ارسال پیام / پاسخ پشتیبانی به کاربر</span>
-          </span>
-          <div class="space-y-2">
-            <div>
-              <label class="text-[11px] text-slate-400 block mb-1">شناسه عددی تلگرام کاربر:</label>
-              <input type="number" id="directTicketUserId" placeholder="مثلاً: 123456789" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-cyan-300 outline-none" />
-            </div>
-            <div>
-              <label class="text-[11px] text-slate-400 block mb-1">متن پاسخ:</label>
-              <textarea id="directTicketMsg" rows="3" placeholder="متن پیام پشتیبانی را تایپ کنید..." class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-xs text-slate-200 outline-none resize-none"></textarea>
-            </div>
-            <button id="sendDirectTicketReplyBtn" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs py-2 rounded-xl transition shadow active:scale-95">
-              ارسال پیام به کاربر از طریق ربات
+        <!-- Live Support Chat Room & Messenger Hub -->
+        <div class="bg-slate-800/90 rounded-2xl p-4 border border-slate-700/80 space-y-3.5 text-xs shadow mt-4">
+          <div class="flex items-center justify-between border-b border-slate-700/60 pb-2.5">
+            <span class="font-bold text-slate-200 flex items-center gap-1.5">
+              <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+              <span>مرکز پاسخگویی و گفتگوی زنده با کاربران</span>
+            </span>
+            <button id="refreshChatThreadsBtn" class="text-[10px] text-slate-400 hover:text-white bg-slate-900 px-2 py-1 rounded-lg border border-slate-700/80 transition flex items-center gap-1">
+              <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+              <span>به‌روزرسانی</span>
             </button>
+          </div>
+
+          <!-- Horizontal User Threads Carousel -->
+          <div class="space-y-1">
+            <span class="text-[10px] text-slate-400 block font-medium">گفتگوهای فعال (کاربران دارای فیش یا پیام):</span>
+            <div id="ticketThreadsList" class="flex gap-2 overflow-x-auto custom-scroll pb-1 pt-0.5 text-xs">
+              <div class="p-2 text-slate-400 text-[11px]">در حال بارگذاری گفتگوها...</div>
+            </div>
+          </div>
+
+          <!-- Active Conversation Pane -->
+          <div id="activeChatWindow" class="bg-slate-950/70 rounded-2xl border border-slate-700/60 overflow-hidden space-y-0">
+            <!-- Active Thread User Header -->
+            <div class="p-2.5 bg-slate-900/80 border-b border-slate-800 flex items-center justify-between gap-2">
+              <div class="flex items-center gap-2 min-w-0">
+                <div id="activeChatUserAvatar" class="w-7 h-7 rounded-full bg-gradient-to-tr from-cyan-600 to-blue-600 text-white font-bold text-[10px] flex items-center justify-center flex-shrink-0">
+                  U
+                </div>
+                <div class="min-w-0">
+                  <div class="flex items-center gap-1.5">
+                    <b id="activeChatUserName" class="text-white text-xs truncate max-w-[140px]">انتخاب کاربر</b>
+                    <span id="activeChatUserTag" class="text-[10px] text-cyan-400 font-mono truncate max-w-[100px]">—</span>
+                  </div>
+                  <div id="activeChatUserId" class="text-[9px] text-slate-400 font-mono mt-0.5">شناسه: —</div>
+                </div>
+              </div>
+              <div class="flex items-center gap-1 flex-shrink-0">
+                <span id="activeChatStatusBadge" class="text-[9px] bg-transparent text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded-lg font-bold">فعال</span>
+              </div>
+            </div>
+
+            <!-- Speech Bubbles Feed -->
+            <div id="ticketChatStream" class="p-3 space-y-2.5 min-h-[170px] max-h-[260px] overflow-y-auto custom-scroll text-xs">
+              <div class="p-6 text-center text-slate-400 text-[11px]">یک گفتگو را از لیست بالا انتخاب کنید</div>
+            </div>
+
+            <!-- Quick Template Reply Chips -->
+            <div class="p-2 bg-slate-900/60 border-t border-slate-850 flex gap-1.5 overflow-x-auto custom-scroll text-[10px] whitespace-nowrap">
+              <button class="chat-template-chip px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300 hover:text-white border border-slate-700/60 transition" data-msg="فیش واریزی شما بررسی و تایید شد. حساب شما شارژ گردید ✅">✅ تایید فیش</button>
+              <button class="chat-template-chip px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300 hover:text-white border border-slate-700/60 transition" data-msg="لطفاً تصویر واضح‌تری از رسید بانکی همراه با کد پیگیری ارسال فرمایید 📷">📷 عکس واضح‌تر</button>
+              <button class="chat-template-chip px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300 hover:text-white border border-slate-700/60 transition" data-msg="سرویس شما بررسی و با موفقیت تمدید و فعال گردید ⚡">⚡ فعال‌سازی سرویس</button>
+            </div>
+
+            <!-- Message Composer Form -->
+            <div class="p-2.5 bg-slate-900 border-t border-slate-800 flex items-center gap-2">
+              <input type="hidden" id="directTicketUserId" value="" />
+              <input type="text" id="directTicketMsg" placeholder="پاسخ را تایپ کنید و ارسال را بزنید..." class="flex-1 bg-slate-950 border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-slate-200 outline-none focus:border-emerald-500 transition" />
+              <button id="sendDirectTicketReplyBtn" class="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs px-3.5 py-2 rounded-xl transition shadow active:scale-95 flex items-center gap-1.5 flex-shrink-0">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
+                <span>ارسال</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -675,11 +720,10 @@
         <div class="space-y-3 text-xs">
           <div class="space-y-1.5">
             <label class="text-[11px] text-slate-300 block font-medium">لینک اتصال کاربر (Subscription URL):</label>
-            <div class="relative">
-              <input type="text" id="subModalInput" readonly dir="ltr" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2.5 text-[11px] font-mono text-cyan-300 outline-none pr-14 select-all" placeholder="در حال دریافت لینک..." />
-              <button id="subModalCopyBtn" onclick="window.adminActions.copySubLink()" class="absolute right-1 top-1 bottom-1 bg-cyan-950/80 hover:bg-cyan-900 text-cyan-300 border border-cyan-800/60 text-[10px] px-2.5 rounded-lg font-bold transition flex items-center gap-1">
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
-                <span>کپی</span>
+            <div class="flex items-center gap-2">
+              <input type="text" id="subModalInput" readonly dir="ltr" class="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-3 py-2.5 text-[11px] font-mono text-cyan-300 outline-none select-all focus:border-cyan-500" placeholder="در حال دریافت لینک..." />
+              <button id="subModalCopyBtn" onclick="window.adminActions.copySubLink()" title="کپی لینک" class="w-10 h-10 rounded-xl bg-transparent hover:bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 flex items-center justify-center transition active:scale-95 flex-shrink-0">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
               </button>
             </div>
           </div>

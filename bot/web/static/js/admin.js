@@ -114,6 +114,7 @@
         fetchAdminCoupons();
       } else if (targetId === 'tab-admin-tickets') {
         fetchAdminTopups();
+        fetchTicketThreads();
       } else if (targetId === 'tab-admin-settings') {
         fetchAdminSettings();
       }
@@ -404,8 +405,10 @@
     container.innerHTML = nodes.map((n, idx) => {
       const flag = n.flag || getFlagEmoji(n.country_code);
       const isOnline = (n.status || '').toUpperCase() === 'ONLINE';
-      const statusColor = isOnline ? 'text-emerald-400' : 'text-rose-400';
-      const statusBadge = isOnline ? '🟢 آنلاین' : '🔴 آفلاین';
+      const statusColor = isOnline ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400';
+      const statusBadge = isOnline
+        ? '<span class="inline-flex items-center gap-1 text-[10px] font-bold bg-transparent text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded-lg"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>آنلاین</span>'
+        : '<span class="inline-flex items-center gap-1 text-[10px] font-bold bg-transparent text-rose-600 dark:text-rose-400 border border-rose-500/30 px-2 py-0.5 rounded-lg"><span class="w-1.5 h-1.5 rounded-full bg-rose-400"></span>آفلاین</span>';
 
       const cpuText = (n.cpu_percent && n.cpu_percent > 0) ? `CPU: ${n.cpu_percent}%` : null;
       const ramText = (n.ram_percent && n.ram_percent > 0) ? `RAM: ${n.ram_percent}%` : null;
@@ -437,7 +440,7 @@
               </div>
               <div class="bg-slate-900/80 p-2 rounded-xl">
                 <span class="text-slate-400 text-[10px] block mb-0.5">وضعیت اتصال:</span>
-                <span class="font-bold text-xs ${statusColor}">${statusBadge}</span>
+                <span>${statusBadge}</span>
               </div>
             </div>
             <div class="grid grid-cols-2 gap-2 text-[11px]">
@@ -479,9 +482,8 @@
     container.innerHTML = nodes.map(n => {
       const flag = n.flag || getFlagEmoji(n.country_code);
       const isOnline = (n.status || '').toUpperCase() === 'ONLINE';
-      const statusColor = isOnline ? 'text-emerald-400' : 'text-rose-400';
       const statusBadge = isOnline ? 'آنلاین' : 'آفلاین';
-      const statusBg = isOnline ? 'bg-emerald-950/80 border-emerald-800/60' : 'bg-rose-950/80 border-rose-800/60';
+      const statusBorder = isOnline ? 'border-emerald-500/30 text-emerald-600 dark:text-emerald-400' : 'border-rose-500/30 text-rose-600 dark:text-rose-400';
       const dotPulse = isOnline ? 'bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.8)]' : 'bg-rose-500';
 
       const cpu = Number(n.cpu_percent || 0);
@@ -507,7 +509,7 @@
                 <span class="text-[10px] text-slate-400 block mt-0.5 font-sans">${n.country_code ? 'موقعیت: ' + n.country_code : 'کلاستر رمنناویو'}</span>
               </div>
             </div>
-            <span class="text-[10px] font-bold font-mono ${statusColor} ${statusBg} px-2.5 py-1 rounded-xl border flex-shrink-0 flex items-center gap-1.5">
+            <span class="text-[10px] font-bold font-mono ${statusBorder} bg-transparent px-2.5 py-1 rounded-xl border flex-shrink-0 flex items-center gap-1.5">
               <span class="w-1.5 h-1.5 rounded-full ${isOnline ? 'bg-emerald-400' : 'bg-rose-400'}"></span>
               ${statusBadge}
             </span>
@@ -626,15 +628,15 @@
       const initial = (u.username || String(u.telegram_id))[0].toUpperCase();
       const p = u.panel_account;
 
-      let statusBadge = '<span class="px-1.5 py-0.5 rounded text-[9px] bg-slate-700 text-slate-300 font-medium">بدون اکانت</span>';
+      let statusBadge = '<span class="px-1.5 py-0.5 rounded-lg text-[9px] bg-transparent border border-slate-400/30 text-slate-500 dark:text-slate-400 font-medium">بدون اکانت</span>';
       if (u.is_banned) {
-        statusBadge = '<span class="px-1.5 py-0.5 rounded text-[9px] bg-rose-500/20 text-rose-400 font-bold border border-rose-500/30">مسدود</span>';
+        statusBadge = '<span class="px-1.5 py-0.5 rounded-lg text-[9px] bg-transparent text-rose-600 dark:text-rose-400 font-bold border border-rose-500/30">مسدود</span>';
       } else if (p && p.exists) {
         const st = (p.status || '').toUpperCase();
-        if (st === 'ACTIVE') statusBadge = '<span class="px-1.5 py-0.5 rounded text-[9px] bg-emerald-500/20 text-emerald-400 font-bold border border-emerald-500/30">فعال</span>';
-        else if (st === 'DISABLED') statusBadge = '<span class="px-1.5 py-0.5 rounded text-[9px] bg-amber-500/20 text-amber-400 font-bold border border-amber-500/30">غیرفعال</span>';
-        else if (st === 'EXPIRED') statusBadge = '<span class="px-1.5 py-0.5 rounded text-[9px] bg-rose-500/20 text-rose-400 font-bold border border-rose-500/30">منقضی</span>';
-        else statusBadge = `<span class="px-1.5 py-0.5 rounded text-[9px] bg-blue-500/20 text-blue-400 font-bold border border-blue-500/30">${st}</span>`;
+        if (st === 'ACTIVE') statusBadge = '<span class="px-1.5 py-0.5 rounded-lg text-[9px] bg-transparent text-emerald-600 dark:text-emerald-400 font-bold border border-emerald-500/30">فعال</span>';
+        else if (st === 'DISABLED') statusBadge = '<span class="px-1.5 py-0.5 rounded-lg text-[9px] bg-transparent text-amber-600 dark:text-amber-400 font-bold border border-amber-500/30">غیرفعال</span>';
+        else if (st === 'EXPIRED') statusBadge = '<span class="px-1.5 py-0.5 rounded-lg text-[9px] bg-transparent text-rose-600 dark:text-rose-400 font-bold border border-rose-500/30">منقضی</span>';
+        else statusBadge = `<span class="px-1.5 py-0.5 rounded-lg text-[9px] bg-transparent text-blue-600 dark:text-blue-400 font-bold border border-blue-500/30">${st}</span>`;
       }
 
       let serviceLineHtml = `
@@ -649,22 +651,22 @@
           : `${p.used_traffic_gb || 0} GB`;
 
         let daysText = 'نامحدود';
-        let daysColor = 'text-indigo-300';
-        let daysBg = 'bg-indigo-950/60 border-indigo-800/50';
+        let daysColor = 'text-indigo-600 dark:text-indigo-300';
+        let daysBorder = 'border-indigo-500/30';
 
         if (p.days_left !== undefined && p.days_left !== null) {
           if (p.days_left > 3) {
             daysText = `${formatNumber(p.days_left)} روز`;
-            daysColor = 'text-emerald-300';
-            daysBg = 'bg-emerald-950/60 border-emerald-800/50';
+            daysColor = 'text-emerald-600 dark:text-emerald-300';
+            daysBorder = 'border-emerald-500/30';
           } else if (p.days_left > 0) {
             daysText = `${formatNumber(p.days_left)} روز`;
-            daysColor = 'text-amber-300';
-            daysBg = 'bg-amber-950/60 border-amber-800/50';
+            daysColor = 'text-amber-600 dark:text-amber-300';
+            daysBorder = 'border-amber-500/30';
           } else {
             daysText = 'منقضی شده';
-            daysColor = 'text-rose-400';
-            daysBg = 'bg-rose-950/60 border-rose-800/50';
+            daysColor = 'text-rose-600 dark:text-rose-400';
+            daysBorder = 'border-rose-500/30';
           }
         }
 
@@ -672,12 +674,12 @@
           <div class="bg-slate-900/70 p-2.5 rounded-xl border border-slate-700/60 flex items-center justify-between text-xs gap-2">
             <div class="flex items-center gap-1.5 font-mono text-[11px] truncate">
               <span class="text-slate-400 text-[10px] font-sans">ترافیک:</span>
-              <span dir="ltr" class="font-bold text-cyan-300">${limitStr}</span>
+              <span dir="ltr" class="font-bold text-cyan-400 dark:text-cyan-300">${limitStr}</span>
               <span dir="ltr" class="text-slate-400 text-[10px]">(${remStr})</span>
             </div>
             <div class="flex items-center gap-1 flex-shrink-0">
               <span class="text-slate-400 text-[10px]">زمان:</span>
-              <span class="${daysColor} ${daysBg} border px-2 py-0.5 rounded-lg text-[10px] font-bold">
+              <span class="${daysColor} ${daysBorder} bg-transparent border px-2 py-0.5 rounded-lg text-[10px] font-bold">
                 ${daysText}
               </span>
             </div>
@@ -1256,8 +1258,8 @@
 
         container.innerHTML = adminPlansData.map(p => {
           const statusBadge = p.is_active
-            ? '<span class="text-[10px] bg-emerald-950/80 text-emerald-400 border border-emerald-800/60 px-2 py-0.5 rounded-lg font-bold">فعال</span>'
-            : '<span class="text-[10px] bg-slate-800 text-slate-400 border border-slate-700 px-2 py-0.5 rounded-lg font-medium">غیرفعال</span>';
+            ? '<span class="text-[10px] bg-transparent text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded-lg font-bold">فعال</span>'
+            : '<span class="text-[10px] bg-transparent text-slate-500 dark:text-slate-400 border border-slate-400/30 px-2 py-0.5 rounded-lg font-medium">غیرفعال</span>';
 
           const trafficHtml = p.traffic_gb > 0
             ? `<span class="inline-flex items-center justify-center gap-1 font-mono font-bold" dir="rtl"><span class="text-cyan-400 text-[10px]">GB</span><span class="text-cyan-300 text-xs">${p.traffic_gb}</span></span>`
@@ -1294,7 +1296,7 @@
               </div>
 
               <div class="flex gap-2 pt-1 text-[11px]">
-                <button onclick="window.adminActions.openPlanModal(${p.id})" class="flex-1 bg-transparent hover:bg-slate-500/10 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-700 hover:border-slate-400 dark:hover:border-slate-600 py-1.5 rounded-xl transition text-center flex items-center justify-center gap-1.5 font-semibold active:scale-95">
+                <button onclick="window.adminActions.openPlanModal(${p.id})" class="flex-1 bg-transparent hover:bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/30 hover:border-blue-400/60 py-1.5 rounded-xl transition text-center flex items-center justify-center gap-1.5 font-bold active:scale-95">
                   <svg class="w-3.5 h-3.5 text-blue-500 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                   <span>ویرایش</span>
                 </button>
@@ -1421,8 +1423,8 @@
 
         container.innerHTML = adminCouponsData.map(c => {
           const statusBadge = c.is_active
-            ? '<span class="text-[10px] bg-emerald-950/80 text-emerald-400 border border-emerald-800/60 px-2 py-0.5 rounded-lg font-bold">فعال</span>'
-            : '<span class="text-[10px] bg-slate-800 text-slate-400 border border-slate-700 px-2 py-0.5 rounded-lg font-medium">غیرفعال</span>';
+            ? '<span class="text-[10px] bg-transparent text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded-lg font-bold">فعال</span>'
+            : '<span class="text-[10px] bg-transparent text-slate-500 dark:text-slate-400 border border-slate-400/30 px-2 py-0.5 rounded-lg font-medium">غیرفعال</span>';
 
           const discountText = c.discount_percent > 0
             ? `${c.discount_percent}٪ تخفیف`
@@ -1436,7 +1438,7 @@
               <div class="flex items-start justify-between">
                 <div>
                   <div class="flex items-center gap-2">
-                    <span class="font-mono font-bold text-pink-400 text-sm tracking-wider uppercase bg-pink-950/50 border border-pink-800/40 px-2.5 py-0.5 rounded-xl">${c.code}</span>
+                    <span class="font-mono font-bold text-pink-600 dark:text-pink-400 text-sm tracking-wider uppercase bg-transparent border border-pink-500/30 px-2.5 py-0.5 rounded-xl">${c.code}</span>
                     ${statusBadge}
                   </div>
                   <span class="text-[11px] text-emerald-400 font-bold block mt-1.5">${discountText}</span>
@@ -1455,14 +1457,14 @@
               </div>
 
               <div class="flex gap-2 pt-1 text-[11px]">
-                <button onclick="window.adminActions.openCouponUsages(${c.id}, '${c.code}')" class="flex-1 bg-slate-800/90 hover:bg-slate-750 text-slate-200 hover:text-white border border-slate-600/70 py-1.5 rounded-xl transition font-medium text-center flex items-center justify-center gap-1.5 active:scale-95 shadow-sm">
-                  <svg class="w-3.5 h-3.5 text-pink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+                <button onclick="window.adminActions.openCouponUsages(${c.id}, '${c.code}')" class="flex-1 bg-transparent hover:bg-slate-500/10 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-700 hover:border-slate-400 dark:hover:border-slate-600 py-1.5 rounded-xl transition font-medium text-center flex items-center justify-center gap-1.5 active:scale-95">
+                  <svg class="w-3.5 h-3.5 text-pink-500 dark:text-pink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
                   <span>استفاده‌کنندگان (${formatNumber(c.used_count || 0)})</span>
                 </button>
-                <button onclick="window.adminActions.toggleCoupon(${c.id}, ${c.is_active})" class="${c.is_active ? 'bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border border-amber-500/40' : 'bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 border border-emerald-500/40'} py-1.5 px-3 rounded-xl transition font-semibold text-center active:scale-95 shadow-sm">
+                <button onclick="window.adminActions.toggleCoupon(${c.id}, ${c.is_active})" class="bg-transparent hover:bg-slate-500/10 ${c.is_active ? 'text-amber-600 dark:text-amber-400 border border-amber-500/30 hover:border-amber-400/60' : 'text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 hover:border-emerald-400/60'} py-1.5 px-3 rounded-xl transition font-semibold text-center active:scale-95">
                   ${c.is_active ? 'غیرفعال‌سازی' : 'فعال‌سازی'}
                 </button>
-                <button onclick="window.adminActions.deleteCoupon(${c.id}, '${c.code}')" class="bg-rose-500/15 hover:bg-rose-500/25 text-rose-300 border border-rose-500/40 px-3 py-1.5 rounded-xl transition font-medium flex items-center justify-center active:scale-95 shadow-sm" title="حذف کد تخفیف">
+                <button onclick="window.adminActions.deleteCoupon(${c.id}, '${c.code}')" class="bg-transparent hover:bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/30 hover:border-rose-400/60 px-3 py-1.5 rounded-xl transition font-medium flex items-center justify-center active:scale-95" title="حذف کد تخفیف">
                   <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                 </button>
               </div>
@@ -1592,29 +1594,41 @@
           const discountStr = u.discount_applied > 0 ? `${formatNumber(u.discount_applied)} تومان` : 'اعمال‌شده';
 
           return `
-            <div class="bg-slate-900/80 rounded-2xl p-3 border border-slate-800 flex items-center justify-between gap-2.5 shadow-sm hover:border-pink-500/30 transition">
-              <div class="flex items-center gap-2.5 min-w-0">
-                <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-pink-600 to-purple-600 text-white font-bold text-xs flex items-center justify-center flex-shrink-0 shadow-sm">
-                  ${initial}
+            <div class="bg-slate-900/90 rounded-2xl p-3 border border-slate-800 space-y-2.5 shadow-sm hover:border-pink-500/30 transition">
+              <!-- Row 1: Avatar, Name, Username & Discount Amount -->
+              <div class="flex items-center justify-between gap-2">
+                <div class="flex items-center gap-2.5 min-w-0">
+                  <div class="w-9 h-9 rounded-full bg-gradient-to-tr from-pink-600 to-purple-600 text-white font-bold text-xs flex items-center justify-center flex-shrink-0 shadow-sm">
+                    ${initial}
+                  </div>
+                  <div class="min-w-0">
+                    <b class="text-white text-xs font-bold block truncate max-w-[170px]">${uName}</b>
+                    <div class="flex items-center gap-1 mt-0.5">
+                      <span class="text-[10px] text-pink-400 font-mono cursor-pointer hover:underline flex items-center gap-0.5" onclick="window.adminActions.quickCopy('${u.username ? '@' + u.username : u.telegram_id}', 'شناسه کاربر')" title="کپی نام کاربری">
+                        <span>${uTag}</span>
+                        <svg class="w-2.5 h-2.5 opacity-60 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                      </span>
+                    </div>
+                  </div>
                 </div>
-                <div class="min-w-0">
-                  <div class="flex items-center gap-1.5">
-                    <b class="text-white text-xs truncate max-w-[125px]">${uName}</b>
-                    <span class="text-[10px] text-pink-400 font-mono cursor-pointer hover:underline flex items-center gap-0.5" onclick="window.adminActions.quickCopy('${u.username ? '@' + u.username : u.telegram_id}', 'شناسه کاربر')" title="کپی شناسه">
-                      ${uTag}
-                      <svg class="w-2.5 h-2.5 opacity-60 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
-                    </span>
-                  </div>
-                  <div class="flex items-center gap-2 mt-0.5 text-[9px] text-slate-400">
-                    <span>شناسه: <span class="font-mono text-slate-300">${u.telegram_id}</span></span>
-                    <span>•</span>
-                    <span>${dateStr}</span>
-                    ${u.order_id ? `<span>•</span><span class="font-mono text-slate-400">سفارش #${u.order_id}</span>` : ''}
-                  </div>
+                <div class="text-left flex-shrink-0">
+                  <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-transparent text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 text-xs font-mono font-bold">${discountStr}</span>
                 </div>
               </div>
-              <div class="text-left flex-shrink-0">
-                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 text-[11px] font-mono font-bold">${discountStr}</span>
+
+              <!-- Row 2: Metadata Footer Strip (ID, Order, Date) -->
+              <div class="bg-slate-950/60 rounded-xl px-2.5 py-1.5 flex items-center justify-between text-[10px] text-slate-400 gap-2">
+                <div class="flex items-center gap-2">
+                  <div onclick="window.adminActions.quickCopy('${u.telegram_id}', 'شناسه عددی')" class="cursor-pointer hover:text-cyan-300 transition flex items-center gap-1 font-mono text-slate-300" title="برای کپی شناسه عددی کلیک کنید">
+                    <span class="text-slate-500 text-[9px] font-sans">شناسه:</span>
+                    <span>${u.telegram_id}</span>
+                  </div>
+                  ${u.order_id ? `<span class="font-mono text-slate-300 bg-slate-900 px-1.5 py-0.5 rounded border border-slate-800 text-[9px]">سفارش #${u.order_id}</span>` : ''}
+                </div>
+                <div class="flex items-center gap-1 font-mono text-[9px] text-slate-400">
+                  <svg class="w-3 h-3 text-slate-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                  <span>${dateStr}</span>
+                </div>
               </div>
             </div>
           `;
@@ -1626,6 +1640,35 @@
 
     closeCouponUsagesModal() {
       document.getElementById('couponUsagesModal')?.classList.add('hidden');
+    },
+
+    openUserChat(telegram_id, name, tag) {
+      activeChatTelegramId = telegram_id;
+      activeChatUserName = name || String(telegram_id);
+      const inputId = document.getElementById('directTicketUserId');
+      if (inputId) inputId.value = String(telegram_id);
+
+      const listEl = document.getElementById('ticketThreadsList');
+      if (listEl) {
+        listEl.querySelectorAll('button').forEach(btn => {
+          btn.className = 'flex-shrink-0 flex items-center gap-2 px-3 py-1.5 rounded-xl border transition active:scale-95 text-right bg-slate-900/80 hover:bg-slate-850 border-slate-700/70 text-slate-300';
+        });
+      }
+
+      loadUserChatMessages(telegram_id);
+
+      const msgInput = document.getElementById('directTicketMsg');
+      if (msgInput) {
+        msgInput.placeholder = `ارسال پیام به ${name}...`;
+        msgInput.focus();
+      }
+
+      const chatPane = document.getElementById('activeChatWindow');
+      if (chatPane) {
+        chatPane.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+
+      if (window.hapticFeedback) window.hapticFeedback('impact');
     },
   };
 
@@ -1701,6 +1744,10 @@
               <button onclick="window.adminActions.handleTopup(${t.id}, true)" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-1.5 rounded-xl transition active:scale-95 shadow">
                 ✓ تایید و شارژ
               </button>
+              <button onclick="window.adminActions.openUserChat(${t.telegram_id}, '${(uLabel || '').replace(/'/g, "\\'")}', '${t.username ? '@' + t.username : '#' + t.telegram_id}')" class="bg-transparent hover:bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border border-cyan-500/30 px-3 py-1.5 rounded-xl transition font-medium flex items-center justify-center gap-1 active:scale-95" title="گفتگو با این کاربر">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+                <span>گفتگو</span>
+              </button>
               <button onclick="window.adminActions.handleTopup(${t.id}, false)" class="flex-1 bg-rose-600 hover:bg-rose-500 text-white font-bold py-1.5 rounded-xl transition active:scale-95 shadow">
                 ✕ رد فیش
               </button>
@@ -1713,27 +1760,197 @@
     }
   }
 
-  // Direct Ticket Reply Handler
+  // --- Live Support Chat Room & Thread Manager ---
+  let activeChatTelegramId = null;
+  let activeChatUserName = '';
+
+  async function fetchTicketThreads() {
+    const listEl = document.getElementById('ticketThreadsList');
+    if (!listEl) return;
+    try {
+      const res = await window.api.getAdminTicketThreads();
+      if (!res || !res.ok) {
+        listEl.innerHTML = '<div class="p-2 text-rose-400 text-[11px]">خطا در دریافت گفتگوها</div>';
+        return;
+      }
+      const threads = res.threads || [];
+      if (threads.length === 0) {
+        listEl.innerHTML = '<div class="p-2 text-slate-400 text-[11px]">هیچ گفتگوی فعالی ثبت نشده است 🟢</div>';
+        return;
+      }
+      listEl.innerHTML = threads.map(th => {
+        const initial = (th.full_name || String(th.telegram_id))[0].toUpperCase();
+        const isSelected = activeChatTelegramId === th.telegram_id;
+        const tag = th.username ? `@${th.username}` : `#${th.telegram_id}`;
+        const topupBadge = th.has_pending_topup ? '<span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse inline-block" title="دارای فیش در انتظار"></span>' : '';
+        return `
+          <button onclick="window.adminActions.openUserChat(${th.telegram_id}, '${(th.full_name || '').replace(/'/g, "\\'")}', '${tag}')" class="flex-shrink-0 flex items-center gap-2 px-3 py-1.5 rounded-xl border transition active:scale-95 text-right ${isSelected ? 'bg-blue-600/20 border-blue-500 text-white shadow-sm' : 'bg-slate-900/80 hover:bg-slate-850 border-slate-700/70 text-slate-300'}">
+            <div class="w-6 h-6 rounded-full bg-gradient-to-tr from-cyan-600 to-blue-600 text-white font-bold text-[9px] flex items-center justify-center flex-shrink-0 relative">
+              ${initial}
+            </div>
+            <div class="min-w-0">
+              <div class="flex items-center gap-1">
+                <span class="text-[11px] font-bold block truncate max-w-[110px]">${th.full_name}</span>
+                ${topupBadge}
+              </div>
+              <span class="text-[9px] text-slate-400 font-mono block truncate max-w-[110px]">${th.last_message || tag}</span>
+            </div>
+          </button>
+        `;
+      }).join('');
+
+      // Auto-select first thread if none is selected
+      if (!activeChatTelegramId && threads.length > 0) {
+        const first = threads[0];
+        const tag = first.username ? `@${first.username}` : `#${first.telegram_id}`;
+        window.adminActions.openUserChat(first.telegram_id, first.full_name, tag);
+      }
+    } catch (e) {
+      listEl.innerHTML = '<div class="p-2 text-rose-400 text-[11px]">خطای شبکه در دریافت گفتگوها</div>';
+    }
+  }
+
+  async function loadUserChatMessages(telegram_id) {
+    const streamEl = document.getElementById('ticketChatStream');
+    if (!streamEl) return;
+    streamEl.innerHTML = '<div class="p-6 text-center text-slate-400 text-[11px]">در حال بارگذاری پیام‌ها...</div>';
+    try {
+      const res = await window.api.getAdminTicketMessages(telegram_id);
+      if (!res || !res.ok) {
+        streamEl.innerHTML = `<div class="p-4 text-center text-rose-400 text-[11px]">${res?.error || 'خطا در دریافت پیام‌ها'}</div>`;
+        return;
+      }
+      const messages = res.messages || [];
+      const user = res.user || {};
+
+      // Update header
+      const nameEl = document.getElementById('activeChatUserName');
+      if (nameEl) nameEl.innerText = user.full_name || `کاربر ${telegram_id}`;
+      const tagEl = document.getElementById('activeChatUserTag');
+      if (tagEl) tagEl.innerText = user.username ? `@${user.username}` : `#${telegram_id}`;
+      const idEl = document.getElementById('activeChatUserId');
+      if (idEl) idEl.innerHTML = `<span onclick="window.adminActions.quickCopy('${telegram_id}', 'شناسه عددی')" class="cursor-pointer hover:text-cyan-300 transition">شناسه: ${telegram_id}</span>`;
+      const avatarEl = document.getElementById('activeChatUserAvatar');
+      if (avatarEl) avatarEl.innerText = (user.full_name || String(telegram_id))[0].toUpperCase();
+
+      const badgeEl = document.getElementById('activeChatStatusBadge');
+      if (badgeEl) {
+        if (user.pending_topup_id) {
+          badgeEl.className = 'text-[9px] bg-transparent text-amber-500 border border-amber-500/30 px-2 py-0.5 rounded-lg font-bold flex items-center gap-1';
+          badgeEl.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>فیش #${user.pending_topup_id}`;
+        } else {
+          badgeEl.className = 'text-[9px] bg-transparent text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded-lg font-bold';
+          badgeEl.innerText = `${formatNumber(user.wallet_balance || 0)} ت`;
+        }
+      }
+
+      if (messages.length === 0) {
+        streamEl.innerHTML = `
+          <div class="p-6 text-center text-slate-400 text-[11px] space-y-1.5">
+            <div class="text-xl">💬</div>
+            <p>پیامی برای این کاربر ثبت نشده است.</p>
+            <p class="text-[10px] text-slate-500">می‌توانید اولین پیام یا راهنمایی را ارسال کنید.</p>
+          </div>
+        `;
+        return;
+      }
+
+      streamEl.innerHTML = messages.map(m => {
+        if (m.sender === 'system') {
+          return `
+            <div class="flex justify-center my-1.5">
+              <span class="bg-amber-950/40 text-amber-300 border border-amber-500/30 text-[10px] px-3 py-1 rounded-xl text-center leading-relaxed">
+                🔔 ${m.text}
+              </span>
+            </div>
+          `;
+        }
+
+        const isAdmin = m.sender === 'admin';
+        return `
+          <div class="flex ${isAdmin ? 'justify-start' : 'justify-end'}">
+            <div class="max-w-[82%] rounded-2xl p-2.5 space-y-1 shadow-sm ${isAdmin ? 'bg-emerald-950/70 border border-emerald-800/60 text-emerald-100 rounded-tr-sm' : 'bg-slate-900 border border-slate-800 text-slate-200 rounded-tl-sm'}">
+              <div class="flex items-center justify-between gap-3 text-[9px] ${isAdmin ? 'text-emerald-400' : 'text-slate-400'}">
+                <span class="font-bold">${isAdmin ? '🛡️ پشتیبانی (مدیر)' : '👤 کاربر'}</span>
+                <span class="font-mono opacity-80">${m.created_at || ''}</span>
+              </div>
+              <p class="text-xs leading-relaxed break-words whitespace-pre-wrap">${m.text}</p>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      // Auto-scroll to bottom
+      streamEl.scrollTop = streamEl.scrollHeight;
+    } catch (e) {
+      streamEl.innerHTML = '<div class="p-4 text-center text-rose-400 text-[11px]">خطای شبکه در دریافت پیام‌ها</div>';
+    }
+  }
+
+  // Direct Ticket Reply Form Handler
   document.getElementById('sendDirectTicketReplyBtn')?.addEventListener('click', async () => {
-    const uid = document.getElementById('directTicketUserId')?.value?.trim();
-    const txt = document.getElementById('directTicketMsg')?.value?.trim();
-    if (!uid || !txt) {
-      if (window.showToast) window.showToast('لطفاً شناسه کاربر و متن پیام را وارد کنید.');
+    const uid = document.getElementById('directTicketUserId')?.value?.trim() || activeChatTelegramId;
+    const txtEl = document.getElementById('directTicketMsg');
+    const txt = txtEl?.value?.trim();
+    if (!uid) {
+      if (window.showToast) window.showToast('لطفاً ابتدا یک کاربر را از لیست بالا انتخاب کنید.');
       return;
+    }
+    if (!txt) {
+      if (window.showToast) window.showToast('لطفاً متن پیام را وارد کنید.');
+      return;
+    }
+    const sendBtn = document.getElementById('sendDirectTicketReplyBtn');
+    if (sendBtn) {
+      sendBtn.disabled = true;
+      sendBtn.innerText = 'در حال ارسال...';
     }
     try {
       const res = await window.api.replyDirectTicket(parseInt(uid), txt);
       if (res && res.ok) {
         if (window.showToast) window.showToast('✅ پیام برای کاربر ارسال شد.');
         if (window.hapticFeedback) window.hapticFeedback('success');
-        const txtEl = document.getElementById('directTicketMsg');
         if (txtEl) txtEl.value = '';
+        loadUserChatMessages(parseInt(uid));
+        fetchTicketThreads();
       } else {
         if (window.showToast) window.showToast(`⚠️ ${res?.error || 'خطا در ارسال پیام'}`);
         if (window.hapticFeedback) window.hapticFeedback('error');
       }
     } catch (e) {
       if (window.showToast) window.showToast('خطای شبکه در ارسال پیام');
+    } finally {
+      if (sendBtn) {
+        sendBtn.disabled = false;
+        sendBtn.innerHTML = '<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg><span>ارسال</span>';
+      }
+    }
+  });
+
+  // Template Quick Reply Chips
+  document.querySelectorAll('.chat-template-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      const msg = chip.getAttribute('data-msg');
+      const input = document.getElementById('directTicketMsg');
+      if (input && msg) {
+        input.value = msg;
+        input.focus();
+      }
+      if (window.hapticFeedback) window.hapticFeedback('impact');
+    });
+  });
+
+  document.getElementById('refreshChatThreadsBtn')?.addEventListener('click', () => {
+    fetchTicketThreads();
+    if (activeChatTelegramId) loadUserChatMessages(activeChatTelegramId);
+    if (window.showToast) window.showToast('🔄 گفتگوها به‌روزرسانی شد');
+    if (window.hapticFeedback) window.hapticFeedback('impact');
+  });
+
+  document.getElementById('directTicketMsg')?.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      document.getElementById('sendDirectTicketReplyBtn')?.click();
     }
   });
 

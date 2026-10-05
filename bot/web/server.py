@@ -15,6 +15,8 @@ from bot.web.routes_admin import (
     get_admin_overview,
     get_admin_plans,
     get_admin_settings,
+    get_admin_ticket_messages,
+    get_admin_ticket_threads,
     get_admin_topups,
     get_admin_user_hwid_devices,
     get_admin_users,
@@ -175,6 +177,8 @@ def create_web_app(
     app.router.add_post("/api/admin/user/kill_sessions", post_admin_kill_sessions)
     app.router.add_post("/api/admin/user/toggle_ban", post_admin_toggle_ban)
     app.router.add_post("/api/admin/ticket/reply", post_admin_reply_ticket)
+    app.router.add_get("/api/admin/tickets/threads", get_admin_ticket_threads)
+    app.router.add_get("/api/admin/tickets/messages", get_admin_ticket_messages)
     app.router.add_post("/api/admin/broadcast", post_admin_broadcast)
     app.router.add_get("/api/admin/broadcast/status", get_admin_broadcast_status)
     app.router.add_post("/api/admin/user/reset_trial", post_admin_reset_trial)
