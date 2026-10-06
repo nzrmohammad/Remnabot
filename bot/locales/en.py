@@ -203,7 +203,7 @@ EN_TEXTS: dict[str, str] = {
             "If you think this is a mistake, contact support."
         ),
         "admin_topup_request": (
-            "💳 <b>Wallet top-up request</b> #{id}\n\n"
+            "💳 <b>Wallet top-up request</b> (Receipt {id})\n\n"
             "👤 {name}\n"
             "🆔 <code>{tid}</code>\n"
             "🔗 {username}\n"

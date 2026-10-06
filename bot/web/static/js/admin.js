@@ -2203,9 +2203,17 @@
       if (chatContainer) chatContainer.classList.remove('hidden');
 
       const badgeEl = document.getElementById('activeChatReceiptBadge');
-      if (badgeEl) {
-        badgeEl.textContent = topup_id ? `#${topup_id}` : '';
-        badgeEl.style.display = topup_id ? 'inline-block' : 'none';
+      if (badgeEl) badgeEl.style.display = 'none';
+
+      const statusBadgeEl = document.getElementById('activeChatStatusBadge');
+      if (statusBadgeEl) {
+        if (topup_id) {
+          statusBadgeEl.className = 'inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30';
+          statusBadgeEl.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>فیش ${topup_id}`;
+        } else {
+          statusBadgeEl.className = 'inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-bold bg-blue-500/15 text-blue-400 border border-blue-500/30';
+          statusBadgeEl.innerText = 'پشتیبانی کاربر';
+        }
       }
 
       const nameEl = document.getElementById('activeChatUserName');
@@ -2221,11 +2229,11 @@
       if (tagEl) {
         const cleanTag = tag && tag.startsWith('@') ? tag : (name && name.startsWith('@') ? name : '');
         tagEl.textContent = cleanTag || '';
-        tagEl.style.display = cleanTag ? 'inline-block' : 'none';
+        tagEl.style.display = cleanTag ? 'block' : 'none';
       }
 
       const idEl = document.getElementById('activeChatUserId');
-      if (idEl) idEl.textContent = `ID: ${telegram_id}`;
+      if (idEl) idEl.innerHTML = `<span onclick="window.adminActions.quickCopy('${telegram_id}', 'شناسه عددی')" class="cursor-pointer hover:text-cyan-300 transition">ID: ${telegram_id}</span>`;
 
       loadUserChatMessages(telegram_id);
 
@@ -2277,7 +2285,7 @@
       const textBox = document.getElementById('receiptModalTextInfo');
       const titleEl = document.getElementById('receiptModalTitle');
 
-      if (titleEl) titleEl.textContent = topupId ? `تصویر رسید فیش #${topupId}` : 'تصویر رسید واریزی';
+      if (titleEl) titleEl.textContent = topupId ? `تصویر رسید فیش ${topupId}` : 'تصویر رسید واریزی';
       if (modal) modal.classList.remove('hidden');
       if (img) {
         img.src = '';
@@ -2336,7 +2344,7 @@
       const textContent = document.getElementById('receiptModalTextContent');
       const titleEl = document.getElementById('receiptModalTitle');
 
-      if (titleEl) titleEl.textContent = `مشخصات فیش واریزی #${topupId}`;
+      if (titleEl) titleEl.textContent = `مشخصات فیش واریزی ${topupId}`;
       if (modal) modal.classList.remove('hidden');
       if (spinner) spinner.classList.add('hidden');
       if (errBox) errBox.classList.add('hidden');
@@ -2614,38 +2622,36 @@
 
         return `
           <div class="topup-card bg-slate-800/90 rounded-2xl p-3.5 border border-slate-700/80 space-y-3 shadow-md relative overflow-hidden transition hover:border-slate-600">
-            <!-- Top Status & Amount Header: #id right of status, Amount and date on left (بدون برچسب مبلغ واریزی) -->
+            <!-- Top Status Row: Receipt & Status on right (بدون علامت #), Date on left -->
             <div class="flex items-center justify-between border-b border-slate-700/60 pb-2">
               <div class="flex items-center gap-1.5">
-                <span class="font-mono text-xs font-bold text-amber-400">#${t.id}</span>
+                <span class="font-mono text-xs font-bold text-amber-400">فیش ${t.id}</span>
                 <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30">
                   <span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>
                   در انتظار بررسی
                 </span>
               </div>
-              <div class="flex items-center gap-2">
-                <div class="flex items-baseline gap-1 text-emerald-400 dark:text-emerald-400 font-bold">
-                  <span class="text-sm font-black font-mono leading-none">${formatNumber(t.amount || 0)}</span>
-                  <span class="text-[10px] text-emerald-500/90 font-sans">تومان</span>
-                </div>
-                <span class="font-mono text-[10px] text-slate-500" dir="ltr">${dateStr}</span>
-              </div>
+              <span class="font-mono text-[10px] text-slate-500" dir="ltr">${dateStr}</span>
             </div>
 
-            <!-- Middle Row: Photo + Name on right, Username + ID sticking to left in one line -->
-            <div class="flex items-center justify-between gap-2.5">
+            <!-- Middle Row: Photo + Name on right, Price + Username + ID on left (قیمت خط بعدی، آیدی زیر یوزرنیم) -->
+            <div class="flex items-start justify-between gap-2.5">
               <div class="flex items-center gap-2.5 min-w-0">
                 <div class="w-9 h-9 rounded-full bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center font-bold text-white text-xs shadow flex-shrink-0 overflow-hidden relative">
                   <img src="${avatarSrc}" alt="Avatar" class="w-full h-full object-cover" onerror="this.classList.add('hidden'); if(this.nextElementSibling) this.nextElementSibling.classList.remove('hidden');" />
                   <span class="font-bold">${initial}</span>
                 </div>
-                <b class="text-white text-xs font-bold block truncate max-w-[150px] cursor-pointer hover:text-cyan-300" onclick="window.adminActions.quickCopy('${safeDisplayName}', 'نام')" title="${uLabel}">${uLabel}</b>
+                <b class="text-white text-xs font-bold block truncate max-w-[140px] cursor-pointer hover:text-cyan-300" onclick="window.adminActions.quickCopy('${safeDisplayName}', 'نام')" title="${uLabel}">${uLabel}</b>
               </div>
 
-              <!-- Username and ID in one line, sticking strictly to left -->
-              <div class="flex items-center gap-1.5 font-mono text-[10px] text-slate-400 flex-shrink-0 text-left" dir="ltr">
-                ${t.username ? `<span onclick="window.adminActions.quickCopy('@${t.username}', 'نام کاربری')" class="cursor-pointer hover:text-cyan-300 text-slate-300 font-mono truncate max-w-[110px] inline-block" title="@${t.username}">@${t.username}</span><span class="text-slate-600">-</span>` : ''}
-                <span class="cursor-pointer hover:text-cyan-300 text-slate-400" onclick="window.adminActions.quickCopy('${t.telegram_id}', 'شناسه عددی')">ID: ${t.telegram_id}</span>
+              <!-- Left column: Price on line 1, Username on line 2, ID on line 3 directly under username -->
+              <div class="flex flex-col items-end gap-1 font-mono text-[10px] text-slate-400 flex-shrink-0 text-left" dir="ltr">
+                <div class="flex items-baseline gap-1 text-emerald-400 dark:text-emerald-400 font-bold justify-end" dir="rtl">
+                  <span class="text-sm font-black font-mono leading-none">${formatNumber(t.amount || 0)}</span>
+                  <span class="text-[10px] text-emerald-500/90 font-sans">تومان</span>
+                </div>
+                ${t.username ? `<span onclick="window.adminActions.quickCopy('@${t.username}', 'نام کاربری')" class="cursor-pointer hover:text-cyan-300 text-slate-300 font-mono truncate max-w-[130px] block" title="@${t.username}">@${t.username}</span>` : ''}
+                <span class="cursor-pointer hover:text-cyan-300 text-slate-400 font-mono block" onclick="window.adminActions.quickCopy('${t.telegram_id}', 'شناسه عددی')">ID: ${t.telegram_id}</span>
               </div>
             </div>
 
@@ -2710,9 +2716,12 @@
       const nameEl = document.getElementById('activeChatUserName');
       if (nameEl) nameEl.innerText = user.full_name || `کاربر ${telegram_id}`;
       const tagEl = document.getElementById('activeChatUserTag');
-      if (tagEl) tagEl.innerText = user.username ? `@${user.username}` : `#${telegram_id}`;
+      if (tagEl) {
+        tagEl.innerText = user.username ? `@${user.username}` : '';
+        tagEl.style.display = user.username ? 'block' : 'none';
+      }
       const idEl = document.getElementById('activeChatUserId');
-      if (idEl) idEl.innerHTML = `<span onclick="window.adminActions.quickCopy('${telegram_id}', 'شناسه عددی')" class="cursor-pointer hover:text-cyan-300 transition">شناسه: ${telegram_id}</span>`;
+      if (idEl) idEl.innerHTML = `<span onclick="window.adminActions.quickCopy('${telegram_id}', 'شناسه عددی')" class="cursor-pointer hover:text-cyan-300 transition">ID: ${telegram_id}</span>`;
       const avatarEl = document.getElementById('activeChatUserAvatar');
       if (avatarEl) avatarEl.innerText = (user.full_name || String(telegram_id))[0].toUpperCase();
 
@@ -2720,7 +2729,7 @@
       if (badgeEl) {
         if (user.pending_topup_id) {
           badgeEl.className = 'text-[9px] bg-transparent text-amber-500 border border-amber-500/30 px-2 py-0.5 rounded-lg font-bold flex items-center gap-1';
-          badgeEl.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>فیش #${user.pending_topup_id}`;
+          badgeEl.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>فیش ${user.pending_topup_id}`;
         } else {
           badgeEl.className = 'text-[9px] bg-transparent text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded-lg font-bold';
           badgeEl.innerText = `${formatNumber(user.wallet_balance || 0)} ت`;

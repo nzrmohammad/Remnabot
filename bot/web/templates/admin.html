@@ -382,10 +382,9 @@
           <div id="activeChatWindow" class="bg-slate-950/70 rounded-2xl border border-slate-700/60 overflow-hidden space-y-0 shadow-md">
             <!-- Header matching top card structure -->
             <div class="p-3 bg-slate-900/95 border-b border-slate-800 space-y-2">
-              <!-- Top Header Row: Receipt # and Status on right, Close (✕) on left -->
+              <!-- Top Header Row: Status on right (بدون تکرار #2), Close (✕) on left -->
               <div class="flex items-center justify-between">
                 <div class="flex items-center gap-1.5">
-                  <span id="activeChatReceiptBadge" class="font-mono text-xs font-bold text-amber-400">#--</span>
                   <span id="activeChatStatusBadge" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30">
                     <span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>
                     در انتظار بررسی
@@ -394,7 +393,7 @@
                 <button type="button" onclick="window.adminActions.closeUserChat()" class="w-6 h-6 rounded-lg bg-transparent hover:bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center text-xs transition" title="بستن چت">✕</button>
               </div>
 
-              <!-- Second Header Row: Photo + Name on right, Username + ID sticking to left in one line -->
+              <!-- Second Header Row: Photo + Name on right, Username on line 1, ID on line 2 under username sticking to left -->
               <div class="flex items-center justify-between gap-2.5">
                 <div class="flex items-center gap-2 min-w-0">
                   <div id="activeChatUserAvatar" class="w-8 h-8 rounded-full bg-gradient-to-tr from-cyan-600 to-blue-600 text-white font-bold text-xs flex items-center justify-center flex-shrink-0 shadow overflow-hidden relative">
@@ -403,10 +402,9 @@
                   <b id="activeChatUserName" class="text-white text-xs font-bold truncate max-w-[140px]">کاربر</b>
                 </div>
 
-                <div class="flex items-center gap-1.5 font-mono text-[10px] text-slate-400 flex-shrink-0 text-left" dir="ltr">
-                  <span id="activeChatUserTag" class="text-slate-300 font-mono truncate max-w-[110px] inline-block">—</span>
-                  <span class="text-slate-600">-</span>
-                  <span id="activeChatUserId" class="text-slate-400">ID: —</span>
+                <div class="flex flex-col items-end gap-0.5 font-mono text-[10px] text-slate-400 flex-shrink-0 text-left" dir="ltr">
+                  <span id="activeChatUserTag" class="text-slate-300 font-mono truncate max-w-[130px] block">—</span>
+                  <span id="activeChatUserId" class="text-slate-400 font-mono block">ID: —</span>
                 </div>
               </div>
             </div>

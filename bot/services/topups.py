@@ -61,7 +61,7 @@ async def decide_topup(
         await AdminLogRepository(session).log(
             admin_id,
             "topup_ok" if approved else "topup_no",
-            detail=f"#{topup_id} user={topup.telegram_id} amount={topup.amount}",
+            detail=f"topup={topup_id} user={topup.telegram_id} amount={topup.amount}",
         )
 
     try:

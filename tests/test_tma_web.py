@@ -1409,6 +1409,19 @@ async def test_admin_topup_action_syncs_with_supergroup():
     )
     # Check that notification was sent to user and announcement to admin chat
     assert mock_bot.send_message.call_count >= 2
+    user_call = mock_bot.send_message.call_args_list[0]
+    assert user_call.kwargs["chat_id"] == 12345
+    assert "واریز شما تایید شد!" in user_call.kwargs["text"]
+    assert user_call.kwargs["reply_markup"] is not None
+    button_callbacks = [
+        btn.callback_data for row in user_call.kwargs["reply_markup"].inline_keyboard for btn in row
+    ]
+    assert "menu:services" in button_callbacks
+    assert "menu:wallet" in button_callbacks
+
+    admin_call = mock_bot.send_message.call_args_list[1]
+    assert f"تعیین وضعیت فیش {topup_id}" in admin_call.kwargs["text"]
+    assert f"#{topup_id}" not in admin_call.kwargs["text"]
 
     await engine.dispose()
 

@@ -842,7 +842,7 @@ async def get_admin_ticket_threads(request: web.Request) -> web.Response:
             u_name = (getattr(user, "full_name", None) or (f"@{user.username}" if user and user.username else f"کاربر {t.telegram_id}")).strip()
 
             chat_msgs = await cache.get(f"support:chat:{t.telegram_id}") or []
-            last_msg = chat_msgs[-1]["text"] if chat_msgs else f"فیش واریزی #{t.id} ({t.amount:,} تومان)"
+            last_msg = chat_msgs[-1]["text"] if chat_msgs else f"فیش واریزی {t.id} ({t.amount:,} تومان)"
             last_time = chat_msgs[-1].get("created_at") if chat_msgs else (t.created_at.strftime("%H:%M") if t.created_at else "—")
 
             threads.append({
@@ -943,7 +943,7 @@ async def get_admin_ticket_messages(request: web.Request) -> web.Response:
 
     if not chat_msgs and pending_topup:
         time_str = pending_topup.created_at.strftime("%H:%M") if pending_topup.created_at else "—"
-        receipt_text = f"فیش واریزی #{pending_topup.id} به مبلغ {pending_topup.amount:,} تومان ثبت شد."
+        receipt_text = f"فیش واریزی {pending_topup.id} به مبلغ {pending_topup.amount:,} تومان ثبت شد."
         if pending_topup.receipt_hash:
             receipt_text += f"\nکد پیگیری: {pending_topup.receipt_hash}"
         chat_msgs = [{
@@ -1220,7 +1220,7 @@ async def post_admin_topup_action(request: web.Request) -> web.Response:
                 AdminLog(
                     admin_id=admin["id"],
                     action="topup_approved",
-                    detail=f"تایید فیش #{claimed.id} و شارژ {claimed.amount:,} تومان برای {claimed.telegram_id}",
+                    detail=f"تایید فیش {claimed.id} و شارژ {claimed.amount:,} تومان برای {claimed.telegram_id}",
                 )
             )
             msg = f"✅ <b>واریز شما تایید شد!</b>\n\nمبلغ {claimed.amount:,} تومان به کیف پول شما اضافه شد."
@@ -1229,7 +1229,7 @@ async def post_admin_topup_action(request: web.Request) -> web.Response:
                 AdminLog(
                     admin_id=admin["id"],
                     action="topup_rejected",
-                    detail=f"رد فیش #{claimed.id} برای {claimed.telegram_id}",
+                    detail=f"رد فیش {claimed.id} برای {claimed.telegram_id}",
                 )
             )
             msg = "❌ <b>فیش ارسالی شما رد شد.</b>\n\nدر صورت وجود مغایرت با پشتیبانی در ارتباط باشید."
@@ -1241,9 +1241,40 @@ async def post_admin_topup_action(request: web.Request) -> web.Response:
     await cache.delete(f"tma:user:{claimed.telegram_id}:dashboard")
     await cache.delete("tma:admin:overview")
 
-    # Send telegram notification to user
+    # Send telegram notification to user with navigation keyboard
     try:
-        await bot.send_message(chat_id=claimed.telegram_id, text=msg, parse_mode="HTML")
+        from aiogram.utils.keyboard import InlineKeyboardBuilder
+        from bot.locales.texts import t
+
+        user_lang = "fa"
+        try:
+            async with session_factory() as session:
+                user_repo = UserRepository(session)
+                u_obj = await user_repo.get_by_telegram_id(claimed.telegram_id)
+                if u_obj and u_obj.language:
+                    user_lang = u_obj.language
+        except Exception:
+            pass
+
+        kb = InlineKeyboardBuilder()
+        if approved:
+            if user_lang == "fa":
+                kb.button(text=t(user_lang, "btn_services"), callback_data="menu:services")
+                kb.button(text=t(user_lang, "btn_wallet"), callback_data="menu:wallet")
+            else:
+                kb.button(text=t(user_lang, "btn_wallet"), callback_data="menu:wallet")
+                kb.button(text=t(user_lang, "btn_services"), callback_data="menu:services")
+            kb.adjust(2)
+        else:
+            kb.button(text=t(user_lang, "btn_support"), callback_data="menu:support")
+            kb.adjust(1)
+
+        await bot.send_message(
+            chat_id=claimed.telegram_id,
+            text=msg,
+            reply_markup=kb.as_markup(),
+            parse_mode="HTML",
+        )
     except Exception as exc:
         logger.warning("Could not send topup decision notice to %s: %s", claimed.telegram_id, exc)
 
@@ -1271,11 +1302,11 @@ async def post_admin_topup_action(request: web.Request) -> web.Response:
                     reply_markup=None,
                 )
             except Exception as exc:
-                logger.debug("Could not remove reply markup for topup #%s: %s", claimed.id, exc)
+                logger.debug("Could not remove reply markup for topup %s: %s", claimed.id, exc)
 
         # 2. Announce resolution into the admin supergroup topic
         notice_text = (
-            f"📌 <b>تعیین وضعیت فیش #{claimed.id}</b>\n"
+            f"📌 <b>تعیین وضعیت فیش {claimed.id}</b>\n"
             f"👤 کاربر: <code>{claimed.telegram_id}</code>\n"
             f"💰 مبلغ: <b>{claimed.amount:,}</b> تومان\n"
             f"📊 وضعیت: <b>{status_badge}</b>\n"
