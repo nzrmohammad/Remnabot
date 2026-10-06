@@ -4,6 +4,7 @@ import json
 import logging
 import math
 from datetime import datetime, timedelta, timezone
+import time
 from typing import Any
 
 from aiohttp import web
@@ -999,15 +1000,16 @@ async def post_admin_reply_ticket(request: web.Request) -> web.Response:
         return web.json_response({"ok": False, "error": f"خطا در ارسال به تلگرام: {exc}"}, status=500)
 
     cache: FastCache = request.app["cache"]
-    now_dt = datetime.now()
+    now_ts = int(time.time())
+    now_dt = datetime.fromtimestamp(now_ts)
     chat_key = f"support:chat:{target_id}"
     chat_msgs = await cache.get(chat_key) or []
     new_msg = {
-        "id": f"admin_{int(now_dt.timestamp() * 1000)}",
+        "id": f"admin_{int(now_ts * 1000)}",
         "sender": "admin",
         "text": reply_text,
         "created_at": now_dt.strftime("%H:%M"),
-        "timestamp": int(now_dt.timestamp()),
+        "timestamp": now_ts,
     }
     chat_msgs.append(new_msg)
     if len(chat_msgs) > 50:

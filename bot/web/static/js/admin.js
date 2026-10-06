@@ -66,6 +66,27 @@
     return decPart !== undefined ? `${formattedInt}.${decPart}` : formattedInt;
   }
 
+  function formatChatTimestamp(m) {
+    if (!m) return '';
+    if (m.timestamp) {
+      const tsMs = m.timestamp > 1e11 ? m.timestamp : m.timestamp * 1000;
+      const d = new Date(tsMs);
+      if (!isNaN(d.getTime())) {
+        return d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hourCycle: 'h23' });
+      }
+    }
+    if (m.created_at) {
+      if (typeof m.created_at === 'string' && m.created_at.includes('T')) {
+        const d = new Date(m.created_at);
+        if (!isNaN(d.getTime())) {
+          return d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hourCycle: 'h23' });
+        }
+      }
+      return m.created_at;
+    }
+    return '';
+  }
+
   // --- 2. Tab Navigation ---
   const adminNavButtons = document.querySelectorAll('.admin-nav-btn');
   const adminTabPanes = document.querySelectorAll('.admin-tab-pane');
@@ -2243,7 +2264,7 @@
       }
 
       const idEl = document.getElementById('activeChatUserId');
-      if (idEl) idEl.innerHTML = `<span onclick="window.adminActions.quickCopy('${telegram_id}', 'شناسه عددی')" class="cursor-pointer hover:text-cyan-300 transition">ID: ${telegram_id}</span>`;
+      if (idEl) idEl.innerHTML = `<span onclick="window.adminActions.quickCopy('${telegram_id}', 'شناسه عددی')" class="cursor-pointer hover:text-cyan-300 transition">${telegram_id}</span>`;
 
       loadUserChatMessages(telegram_id);
 
@@ -2644,24 +2665,26 @@
               <span class="font-mono text-[10px] text-slate-500" dir="ltr">${dateStr}</span>
             </div>
 
-            <!-- Middle Row: Photo + Name on right, Price + Username + ID on left (قیمت خط بعدی، آیدی زیر یوزرنیم) -->
-            <div class="flex items-start justify-between gap-2.5">
+            <!-- Middle Row: Photo + Name & Price on right, Username + ID on left (بدون فاصله، کاملاً چسبیده به چپ) -->
+            <div class="flex items-center justify-between gap-2.5">
               <div class="flex items-center gap-2.5 min-w-0">
-                <div class="w-9 h-9 rounded-full bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center font-bold text-white text-xs shadow flex-shrink-0 overflow-hidden relative">
+                <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center font-bold text-white text-xs shadow flex-shrink-0 overflow-hidden relative">
                   <img src="${avatarSrc}" alt="Avatar" class="w-full h-full object-cover" onerror="this.classList.add('hidden'); if(this.nextElementSibling) this.nextElementSibling.classList.remove('hidden');" />
                   <span class="font-bold">${initial}</span>
                 </div>
-                <b class="text-white text-xs font-bold block truncate max-w-[140px] cursor-pointer hover:text-cyan-300" onclick="window.adminActions.quickCopy('${safeDisplayName}', 'نام')" title="${uLabel}">${uLabel}</b>
+                <div class="min-w-0 space-y-0.5">
+                  <b class="text-white text-xs font-bold block truncate max-w-[140px] cursor-pointer hover:text-cyan-300" onclick="window.adminActions.quickCopy('${safeDisplayName}', 'نام')" title="${uLabel}">${uLabel}</b>
+                  <div class="flex items-baseline gap-1 text-emerald-400 font-bold" dir="rtl">
+                    <span class="text-sm font-black font-mono leading-none">${formatNumber(t.amount || 0)}</span>
+                    <span class="text-[10px] text-emerald-500/90 font-sans">تومان</span>
+                  </div>
+                </div>
               </div>
 
-              <!-- Left column: Price on line 1, Username on line 2, ID on line 3 directly under username -->
-              <div class="flex flex-col items-end gap-1 font-mono text-[10px] text-slate-400 flex-shrink-0 text-left" dir="ltr">
-                <div class="flex items-baseline gap-1 text-emerald-400 dark:text-emerald-400 font-bold justify-end" dir="rtl">
-                  <span class="text-sm font-black font-mono leading-none">${formatNumber(t.amount || 0)}</span>
-                  <span class="text-[10px] text-emerald-500/90 font-sans">تومان</span>
-                </div>
-                ${t.username ? `<span onclick="window.adminActions.quickCopy('@${t.username}', 'نام کاربری')" class="cursor-pointer hover:text-cyan-300 text-slate-300 font-mono truncate max-w-[130px] block" title="@${t.username}">@${t.username}</span>` : ''}
-                <span class="cursor-pointer hover:text-cyan-300 text-slate-400 font-mono block" onclick="window.adminActions.quickCopy('${t.telegram_id}', 'شناسه عددی')">ID: ${t.telegram_id}</span>
+              <!-- Left column: Username on line 1, Numeric ID on line 2 (بدون ID: و کاملاً چسبیده به چپ بدون فاصله) -->
+              <div class="flex flex-col items-start justify-center gap-0.5 font-mono text-[11px] text-slate-400 flex-shrink-0 text-left" dir="ltr">
+                ${t.username ? `<span onclick="window.adminActions.quickCopy('@${t.username}', 'نام کاربری')" class="cursor-pointer hover:text-cyan-300 text-slate-300 font-mono truncate max-w-[130px] block leading-tight" title="@${t.username}">@${t.username}</span>` : ''}
+                <span class="cursor-pointer hover:text-cyan-300 text-slate-400 font-mono block leading-tight" onclick="window.adminActions.quickCopy('${t.telegram_id}', 'شناسه عددی')" title="شناسه عددی">${t.telegram_id}</span>
               </div>
             </div>
 
@@ -2731,7 +2754,7 @@
         tagEl.style.display = user.username ? 'block' : 'none';
       }
       const idEl = document.getElementById('activeChatUserId');
-      if (idEl) idEl.innerHTML = `<span onclick="window.adminActions.quickCopy('${telegram_id}', 'شناسه عددی')" class="cursor-pointer hover:text-cyan-300 transition">ID: ${telegram_id}</span>`;
+      if (idEl) idEl.innerHTML = `<span onclick="window.adminActions.quickCopy('${telegram_id}', 'شناسه عددی')" class="cursor-pointer hover:text-cyan-300 transition">${telegram_id}</span>`;
       const avatarEl = document.getElementById('activeChatUserAvatar');
       if (avatarEl) avatarEl.innerText = (user.full_name || String(telegram_id))[0].toUpperCase();
 
@@ -2769,12 +2792,13 @@
         }
 
         const isAdmin = m.sender === 'admin';
+        const timeDisplay = formatChatTimestamp(m);
         return `
           <div class="flex ${isAdmin ? 'justify-start' : 'justify-end'}">
             <div class="max-w-[85%] rounded-2xl p-2.5 space-y-1 shadow-sm ${isAdmin ? 'bg-blue-600/20 border border-blue-500/30 text-blue-100 rounded-tr-sm' : 'bg-slate-900 border border-slate-700/60 text-slate-200 rounded-tl-sm'}">
               <div class="flex items-center justify-between gap-3 text-[9px] ${isAdmin ? 'text-blue-400' : 'text-slate-400'}">
                 <span class="font-bold">${isAdmin ? '🛡️ پشتیبانی' : '👤 کاربر'}</span>
-                <span class="font-mono opacity-80" dir="ltr">${m.created_at || ''}</span>
+                <span class="font-mono opacity-80" dir="ltr">${timeDisplay}</span>
               </div>
               <p class="text-xs leading-relaxed break-words whitespace-pre-wrap">${m.text}</p>
             </div>
