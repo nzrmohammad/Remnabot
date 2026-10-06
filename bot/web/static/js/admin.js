@@ -2193,23 +2193,39 @@
       document.getElementById('couponUsagesModal')?.classList.add('hidden');
     },
 
-    openUserChat(telegram_id, name, tag) {
+    openUserChat(telegram_id, name, tag, topup_id) {
       activeChatTelegramId = telegram_id;
       activeChatUserName = name || String(telegram_id);
       const inputId = document.getElementById('directTicketUserId');
       if (inputId) inputId.value = String(telegram_id);
 
-      const listEl = document.getElementById('ticketThreadsList');
-      if (listEl) {
-        listEl.querySelectorAll('.ticket-thread-btn').forEach(btn => {
-          const tid = Number(btn.getAttribute('data-tid'));
-          if (tid === telegram_id) {
-            btn.className = 'ticket-thread-btn flex-shrink-0 flex items-center gap-2.5 px-3 py-2 rounded-2xl border transition active:scale-95 text-right bg-blue-600/20 border-blue-500 text-white shadow-sm ring-1 ring-blue-500/40';
-          } else {
-            btn.className = 'ticket-thread-btn flex-shrink-0 flex items-center gap-2.5 px-3 py-2 rounded-2xl border transition active:scale-95 text-right bg-slate-900/80 hover:bg-slate-800 border-slate-700/70 text-slate-300';
-          }
-        });
+      const chatContainer = document.getElementById('adminChatContainer');
+      if (chatContainer) chatContainer.classList.remove('hidden');
+
+      const badgeEl = document.getElementById('activeChatReceiptBadge');
+      if (badgeEl) {
+        badgeEl.textContent = topup_id ? `#${topup_id}` : '';
+        badgeEl.style.display = topup_id ? 'inline-block' : 'none';
       }
+
+      const nameEl = document.getElementById('activeChatUserName');
+      if (nameEl) nameEl.textContent = name || `کاربر ${telegram_id}`;
+
+      const avatarEl = document.getElementById('activeChatUserAvatar');
+      if (avatarEl) {
+        const initial = ((name || 'U').replace('@', '')[0] || 'U').toUpperCase();
+        avatarEl.innerHTML = `<img src="/api/user/avatar?user_id=${telegram_id}" alt="Avatar" class="w-full h-full object-cover" onerror="this.classList.add('hidden'); if(this.nextElementSibling) this.nextElementSibling.classList.remove('hidden');" /><span class="font-bold">${initial}</span>`;
+      }
+
+      const tagEl = document.getElementById('activeChatUserTag');
+      if (tagEl) {
+        const cleanTag = tag && tag.startsWith('@') ? tag : (name && name.startsWith('@') ? name : '');
+        tagEl.textContent = cleanTag || '';
+        tagEl.style.display = cleanTag ? 'inline-block' : 'none';
+      }
+
+      const idEl = document.getElementById('activeChatUserId');
+      if (idEl) idEl.textContent = `ID: ${telegram_id}`;
 
       loadUserChatMessages(telegram_id);
 
@@ -2219,12 +2235,17 @@
         msgInput.focus();
       }
 
-      const chatPane = document.getElementById('activeChatWindow');
-      if (chatPane) {
-        chatPane.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      if (chatContainer) {
+        chatContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
       }
 
       if (window.hapticFeedback) window.hapticFeedback('impact');
+    },
+
+    closeUserChat() {
+      const chatContainer = document.getElementById('adminChatContainer');
+      if (chatContainer) chatContainer.classList.add('hidden');
+      if (window.hapticFeedback) window.hapticFeedback('light');
     },
 
     toggleSettingsBox(targetId) {
@@ -2248,11 +2269,89 @@
       this.toggleSettingsBox(targetId);
     },
 
-    openReceiptImageModal(photoUrl) {
+    async openReceiptImageModal(photoUrl, topupId) {
       const modal = document.getElementById('receiptPhotoModal');
       const img = document.getElementById('receiptModalImage');
-      if (img) img.src = photoUrl;
+      const spinner = document.getElementById('receiptModalSpinner');
+      const errBox = document.getElementById('receiptModalError');
+      const textBox = document.getElementById('receiptModalTextInfo');
+      const titleEl = document.getElementById('receiptModalTitle');
+
+      if (titleEl) titleEl.textContent = topupId ? `تصویر رسید فیش #${topupId}` : 'تصویر رسید واریزی';
       if (modal) modal.classList.remove('hidden');
+      if (img) {
+        img.src = '';
+        img.classList.add('hidden');
+      }
+      if (textBox) textBox.classList.add('hidden');
+      if (errBox) errBox.classList.add('hidden');
+      if (spinner) spinner.classList.remove('hidden');
+
+      try {
+        const initData = window.Telegram?.WebApp?.initData || '';
+        const fetchUrl = (photoUrl && photoUrl.includes('?'))
+          ? `${photoUrl}&initData=${encodeURIComponent(initData)}`
+          : `/api/admin/topup/photo?id=${topupId || ''}&initData=${encodeURIComponent(initData)}`;
+
+        const response = await fetch(fetchUrl, {
+          headers: {
+            'X-Telegram-Init-Data': initData,
+          }
+        });
+
+        if (!response.ok) {
+          throw new Error(response.status === 404 ? 'تصویری برای این فیش یافت نشد یا ثبت نشده است.' : 'خطا در دریافت تصویر رسید از تلگرام');
+        }
+
+        const blob = await response.blob();
+        if (!blob || blob.size === 0) {
+          throw new Error('فایل تصویر دریافت نشد.');
+        }
+
+        const objectUrl = URL.createObjectURL(blob);
+        if (img) {
+          img.onload = () => {
+            if (spinner) spinner.classList.add('hidden');
+            img.classList.remove('hidden');
+          };
+          img.src = objectUrl;
+        }
+      } catch (err) {
+        if (spinner) spinner.classList.add('hidden');
+        if (errBox) {
+          errBox.textContent = err.message || 'خطا در بارگذاری تصویر فیش';
+          errBox.classList.remove('hidden');
+        }
+      }
+
+      if (window.hapticFeedback) window.hapticFeedback('impact');
+    },
+
+    showReceiptInfoModal(topupId, receiptHash, amount) {
+      const modal = document.getElementById('receiptPhotoModal');
+      const img = document.getElementById('receiptModalImage');
+      const spinner = document.getElementById('receiptModalSpinner');
+      const errBox = document.getElementById('receiptModalError');
+      const textBox = document.getElementById('receiptModalTextInfo');
+      const textContent = document.getElementById('receiptModalTextContent');
+      const titleEl = document.getElementById('receiptModalTitle');
+
+      if (titleEl) titleEl.textContent = `مشخصات فیش واریزی #${topupId}`;
+      if (modal) modal.classList.remove('hidden');
+      if (spinner) spinner.classList.add('hidden');
+      if (errBox) errBox.classList.add('hidden');
+      if (img) img.classList.add('hidden');
+
+      let cleanText = receiptHash || 'بدون اطلاعات پیگیری';
+      if (cleanText.startsWith('text:')) {
+        cleanText = cleanText.substring(5);
+      }
+
+      if (textContent) {
+        textContent.textContent = `${cleanText}\nمبلغ: ${amount} تومان`;
+      }
+      if (textBox) textBox.classList.remove('hidden');
+
       if (window.hapticFeedback) window.hapticFeedback('impact');
     },
 
@@ -2508,11 +2607,14 @@
         const initial = (uLabel[0] || 'U').toUpperCase();
         const dateStr = t.created_at ? new Date(t.created_at).toLocaleDateString('fa-IR', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' }) : '—';
         const avatarSrc = t.avatar_url || `/api/user/avatar?user_id=${t.telegram_id}`;
-        const photoUrl = t.photo_url || (t.has_photo ? `/api/admin/topup/photo?id=${t.id}` : null);
+        const hasPhoto = Boolean(t.has_photo || t.receipt_photo_id);
+        const photoUrl = hasPhoto ? `/api/admin/topup/photo?id=${t.id}` : null;
+        const usernameTag = t.username ? `@${t.username}` : '';
+        const userTagArg = (usernameTag || ('#' + t.telegram_id)).replace(/'/g, "\\'");
 
         return `
           <div class="topup-card bg-slate-800/90 rounded-2xl p-3.5 border border-slate-700/80 space-y-3 shadow-md relative overflow-hidden transition hover:border-slate-600">
-            <!-- Top Status & Timestamp Header: #id right of status in RTL -->
+            <!-- Top Status & Amount Header: #id right of status, Amount and date on left (بدون برچسب مبلغ واریزی) -->
             <div class="flex items-center justify-between border-b border-slate-700/60 pb-2">
               <div class="flex items-center gap-1.5">
                 <span class="font-mono text-xs font-bold text-amber-400">#${t.id}</span>
@@ -2521,55 +2623,53 @@
                   در انتظار بررسی
                 </span>
               </div>
-              <span class="font-mono text-[10px] text-slate-400 flex items-center gap-1" dir="ltr">
-                <svg class="w-3 h-3 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                ${dateStr}
-              </span>
+              <div class="flex items-center gap-2">
+                <div class="flex items-baseline gap-1 text-emerald-400 dark:text-emerald-400 font-bold">
+                  <span class="text-sm font-black font-mono leading-none">${formatNumber(t.amount || 0)}</span>
+                  <span class="text-[10px] text-emerald-500/90 font-sans">تومان</span>
+                </div>
+                <span class="font-mono text-[10px] text-slate-500" dir="ltr">${dateStr}</span>
+              </div>
             </div>
 
-            <!-- User Info & Clean Amount Section (No bulky box) -->
-            <div class="flex items-center justify-between gap-3">
+            <!-- Middle Row: Photo + Name on right, Username + ID sticking to left in one line -->
+            <div class="flex items-center justify-between gap-2.5">
               <div class="flex items-center gap-2.5 min-w-0">
                 <div class="w-9 h-9 rounded-full bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center font-bold text-white text-xs shadow flex-shrink-0 overflow-hidden relative">
                   <img src="${avatarSrc}" alt="Avatar" class="w-full h-full object-cover" onerror="this.classList.add('hidden'); if(this.nextElementSibling) this.nextElementSibling.classList.remove('hidden');" />
                   <span class="font-bold">${initial}</span>
                 </div>
-                <div class="min-w-0">
-                  <b class="text-white text-xs font-bold block truncate max-w-[145px] cursor-pointer hover:text-cyan-300" onclick="window.adminActions.quickCopy('${safeDisplayName}', 'نام')" title="${uLabel}">${uLabel}</b>
-                  <div class="flex items-center gap-1.5 mt-0.5 font-mono text-[10px] text-slate-400" dir="ltr">
-                    ${t.username ? `<span onclick="window.adminActions.quickCopy('@${t.username}', 'نام کاربری')" class="cursor-pointer hover:text-cyan-300 text-slate-300 font-mono truncate max-w-[95px] inline-block" title="@${t.username}">@${t.username}</span><span class="text-slate-600">•</span>` : ''}
-                    <span class="cursor-pointer hover:text-cyan-300 text-slate-400" onclick="window.adminActions.quickCopy('${t.telegram_id}', 'شناسه عددی')">ID: ${t.telegram_id}</span>
-                  </div>
-                </div>
+                <b class="text-white text-xs font-bold block truncate max-w-[150px] cursor-pointer hover:text-cyan-300" onclick="window.adminActions.quickCopy('${safeDisplayName}', 'نام')" title="${uLabel}">${uLabel}</b>
               </div>
 
-              <!-- Clean Amount Typography -->
-              <div class="text-left flex flex-col items-end flex-shrink-0">
-                <span class="text-[10px] text-slate-400 block font-medium">مبلغ واریزی</span>
-                <div class="flex items-baseline gap-1 text-emerald-400 dark:text-emerald-400">
-                  <span class="text-base font-black font-mono leading-none">${formatNumber(t.amount || 0)}</span>
-                  <span class="text-[10px] text-emerald-500/80 font-sans">تومان</span>
-                </div>
+              <!-- Username and ID in one line, sticking strictly to left -->
+              <div class="flex items-center gap-1.5 font-mono text-[10px] text-slate-400 flex-shrink-0 text-left" dir="ltr">
+                ${t.username ? `<span onclick="window.adminActions.quickCopy('@${t.username}', 'نام کاربری')" class="cursor-pointer hover:text-cyan-300 text-slate-300 font-mono truncate max-w-[110px] inline-block" title="@${t.username}">@${t.username}</span><span class="text-slate-600">-</span>` : ''}
+                <span class="cursor-pointer hover:text-cyan-300 text-slate-400" onclick="window.adminActions.quickCopy('${t.telegram_id}', 'شناسه عددی')">ID: ${t.telegram_id}</span>
               </div>
             </div>
 
-            <!-- Action Buttons: Chat on right, Photo icon & Emoji buttons on left -->
+            <!-- Action Buttons: Chat on right, Photo icon & Action buttons on left (همه بدون پس‌زمینه) -->
             <div class="flex items-center justify-between gap-2 pt-1 border-t border-slate-700/50">
-              <button onclick="window.adminActions.openUserChat(${t.telegram_id}, '${safeDisplayName}', '${t.username ? '@' + t.username : '#' + t.telegram_id}')" class="bg-slate-700/30 hover:bg-slate-700/60 text-slate-300 hover:text-white px-3 py-1.5 rounded-xl text-xs font-medium transition flex items-center gap-1.5 active:scale-95 border border-slate-700/50" title="گفتگوی مستقیم با کاربر">
+              <button onclick="window.adminActions.openUserChat(${t.telegram_id}, '${safeDisplayName}', '${userTagArg}', ${t.id})" class="bg-transparent hover:bg-slate-750/30 text-slate-300 hover:text-white px-3 py-1.5 rounded-xl text-xs font-medium transition flex items-center gap-1.5 active:scale-95 border border-slate-700/60" title="گفتگوی مستقیم با کاربر">
                 <svg class="w-3.5 h-3.5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
                 <span>چت با کاربر</span>
               </button>
 
               <div class="flex items-center gap-1.5">
-                ${photoUrl ? `
-                  <button type="button" onclick="window.adminActions.openReceiptImageModal('${photoUrl}')" class="w-8 h-8 rounded-xl bg-cyan-500/15 hover:bg-cyan-500/25 text-cyan-400 border border-cyan-500/30 flex items-center justify-center transition active:scale-95 shadow-sm" title="مشاهده تصویر فیش">
+                ${hasPhoto ? `
+                  <button type="button" onclick="window.adminActions.openReceiptImageModal('${photoUrl}', ${t.id})" class="w-8 h-8 rounded-xl bg-transparent hover:bg-cyan-500/10 text-cyan-400 border border-cyan-500/40 flex items-center justify-center transition active:scale-95 shadow-sm" title="مشاهده تصویر فیش">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                   </button>
-                ` : ''}
-                <button type="button" onclick="window.adminActions.handleTopup(${t.id}, false)" class="w-8 h-8 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 text-rose-500 hover:text-rose-400 border border-rose-500/30 flex items-center justify-center transition active:scale-95 font-bold text-sm shadow-sm" title="رد فیش">
+                ` : `
+                  <button type="button" onclick="window.adminActions.showReceiptInfoModal(${t.id}, '${(t.receipt_hash || '').replace(/'/g, "\\'")}', '${formatNumber(t.amount || 0)}')" class="w-8 h-8 rounded-xl bg-transparent hover:bg-cyan-500/10 text-cyan-400 border border-cyan-500/40 flex items-center justify-center transition active:scale-95 shadow-sm" title="مشاهده مشخصات رسید / کد پیگیری">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                  </button>
+                `}
+                <button type="button" onclick="window.adminActions.handleTopup(${t.id}, false)" class="w-8 h-8 rounded-xl bg-transparent hover:bg-rose-500/10 text-rose-500 hover:text-rose-400 border border-rose-500/40 flex items-center justify-center transition active:scale-95 font-bold text-sm shadow-sm" title="رد فیش">
                   ✕
                 </button>
-                <button type="button" onclick="window.adminActions.handleTopup(${t.id}, true)" class="w-8 h-8 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-400 hover:text-emerald-300 border border-emerald-500/30 flex items-center justify-center transition active:scale-95 font-bold text-sm shadow-sm" title="تایید و شارژ موجودی">
+                <button type="button" onclick="window.adminActions.handleTopup(${t.id}, true)" class="w-8 h-8 rounded-xl bg-transparent hover:bg-emerald-500/10 text-emerald-400 hover:text-emerald-300 border border-emerald-500/40 flex items-center justify-center transition active:scale-95 font-bold text-sm shadow-sm" title="تایید و شارژ موجودی">
                   ✓
                 </button>
               </div>
@@ -2587,48 +2687,9 @@
   let activeChatUserName = '';
 
   async function fetchTicketThreads() {
-    const listEl = document.getElementById('ticketThreadsList');
-    if (!listEl) return;
-    try {
-      const res = await window.api.getAdminTicketThreads();
-      if (!res || !res.ok) {
-        listEl.innerHTML = '<div class="p-2 text-rose-400 text-[11px]">خطا در دریافت گفتگوها</div>';
-        return;
-      }
-      const threads = res.threads || [];
-      if (threads.length === 0) {
-        listEl.innerHTML = '<div class="p-2 text-slate-400 text-[11px]">هیچ گفتگوی فعالی ثبت نشده است 🟢</div>';
-        return;
-      }
-      listEl.innerHTML = threads.map(th => {
-        const initial = (th.full_name || String(th.telegram_id))[0].toUpperCase();
-        const isSelected = activeChatTelegramId === th.telegram_id;
-        const tag = th.username ? `@${th.username}` : `#${th.telegram_id}`;
-        const topupBadge = th.has_pending_topup ? '<span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse inline-block" title="دارای فیش در انتظار"></span>' : '';
-        return `
-          <button data-tid="${th.telegram_id}" onclick="window.adminActions.openUserChat(${th.telegram_id}, '${(th.full_name || '').replace(/'/g, "\\'")}', '${tag}')" class="ticket-thread-btn flex-shrink-0 flex items-center gap-2.5 px-3 py-2 rounded-2xl border transition active:scale-95 text-right ${isSelected ? 'bg-blue-600/20 border-blue-500 text-white shadow-sm ring-1 ring-blue-500/40' : 'bg-slate-900/80 hover:bg-slate-800 border-slate-700/70 text-slate-300'}">
-            <div class="w-7 h-7 rounded-full bg-gradient-to-tr from-cyan-600 to-blue-600 text-white font-bold text-[10px] flex items-center justify-center flex-shrink-0 relative shadow">
-              ${initial}
-            </div>
-            <div class="min-w-0">
-              <div class="flex items-center gap-1.5">
-                <span class="text-xs font-bold block truncate max-w-[110px]">${th.full_name || 'کاربر'}</span>
-                ${topupBadge}
-              </div>
-              <span class="text-[9px] text-slate-400 block truncate max-w-[110px] font-mono" dir="ltr">${th.last_message ? `<span dir="rtl">${th.last_message}</span>` : tag}</span>
-            </div>
-          </button>
-        `;
-      }).join('');
-
-      // Auto-select first thread if none is selected
-      if (!activeChatTelegramId && threads.length > 0) {
-        const first = threads[0];
-        const tag = first.username ? `@${first.username}` : `#${first.telegram_id}`;
-        window.adminActions.openUserChat(first.telegram_id, first.full_name, tag);
-      }
-    } catch (e) {
-      listEl.innerHTML = '<div class="p-2 text-rose-400 text-[11px]">خطای شبکه در دریافت گفتگوها</div>';
+    // Active chat threads list was removed from UI; refresh active chat if one is open
+    if (activeChatTelegramId) {
+      loadUserChatMessages(activeChatTelegramId);
     }
   }
 

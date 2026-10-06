@@ -1947,7 +1947,15 @@ async def get_admin_topup_photo(request: web.Request) -> web.Response:
                 return web.Response(text="فایل تصویر در سرور تلگرام یافت نشد", status=404)
 
             file_bio = await bot.download_file(file_info.file_path)
-            content = file_bio.read() if hasattr(file_bio, "read") else file_bio.getvalue()
+            if isinstance(file_bio, bytes):
+                content = file_bio
+            elif hasattr(file_bio, "getvalue"):
+                content = file_bio.getvalue()
+            elif hasattr(file_bio, "read"):
+                content = file_bio.read()
+            else:
+                content = bytes(file_bio)
+
             return web.Response(
                 body=content,
                 content_type="image/jpeg",
