@@ -139,13 +139,15 @@ async def topup_receipt(
             message_id=message.message_id,
             **thread_kwargs,
         )
-        await bot.send_message(
+        msg_obj = await bot.send_message(
             settings.ADMIN_CHAT_ID,
             admin_req_text,
             reply_markup=kb.as_markup(),
             **thread_kwargs,
         )
         delivered = True
+        topup.admin_message_id = msg_obj.message_id
+        await session.commit()
     except TelegramAPIError as exc:
         logger.warning(
             "Failed to deliver top-up %s to admin chat %s (%s). Attempting fallback to admins...",
@@ -161,12 +163,15 @@ async def topup_receipt(
                     from_chat_id=message.chat.id,
                     message_id=message.message_id,
                 )
-                await bot.send_message(
+                msg_obj = await bot.send_message(
                     admin_id,
                     admin_req_text,
                     reply_markup=kb.as_markup(),
                 )
                 delivered = True
+                if not topup.admin_message_id:
+                    topup.admin_message_id = msg_obj.message_id
+                    await session.commit()
             except Exception as admin_exc:
                 logger.warning(
                     "Fallback delivery of top-up %s to admin %s failed: %s",

@@ -619,3 +619,41 @@ async def test_ton_watcher_rejects_tx_replay_and_stale_utime(session_factory):
         assert processed == 1
 
 
+@pytest.mark.anyio
+async def test_fetch_all_exchange_prices_mock():
+    from bot.services.crypto.nobitex import fetch_all_exchange_prices
+
+    class DummyResponse:
+        def __init__(self, data, status=200):
+            self._data = data
+            self.status = status
+
+        async def json(self):
+            return self._data
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, exc_type, exc_val, exc_tb):
+            pass
+
+    def mock_get(url, *args, **kwargs):
+        if "tetherland" in url:
+            return DummyResponse({"data": {"currencies": {"USDT": {"price": "268500"}}}})
+        elif "ramzinex.com" in url and "pairs/11" in url:
+            return DummyResponse({"data": {"sell": 2690000}})
+        elif "ramzinex.com" in url and "pairs/272" in url:
+            return DummyResponse({"data": {"sell": 4130000}})
+        elif "binance" in url:
+            return DummyResponse({"price": "1.54"})
+        return DummyResponse({}, status=404)
+
+    with patch("aiohttp.ClientSession.get", side_effect=mock_get):
+        res = await fetch_all_exchange_prices(usdt_rate=268000)
+        assert res["usdt"].get("تترلند") == 268500
+        assert res["usdt"].get("رمزینکس") == 269000
+        assert res["ton"].get("رمزینکس") == 413000
+        assert res["best_usdt"][0] in (268500, 269000)
+        assert res["best_ton"][0] == 413000
+
+

@@ -121,7 +121,41 @@ async def fetch_all_exchange_prices(usdt_rate: int | None = None) -> dict:
             except Exception as e:
                 logger.debug("Wallex failed: %s", e)
 
-        # 4. Binance (global)
+        # 4. TetherLand (تترلند)
+        async def _fetch_tetherland():
+            try:
+                async with session.get("https://api.tetherland.com/currencies", headers=headers, proxy=proxy) as resp:
+                    if resp.status == 200:
+                        data = await resp.json()
+                        p = (data.get("data", {}).get("currencies", {}).get("USDT", {})).get("price")
+                        if p:
+                            usdt_prices["تترلند"] = int(float(p))
+            except Exception as e:
+                logger.debug("Tetherland failed: %s", e)
+
+        # 5. Ramzinex (رمزینکس)
+        async def _fetch_ramzinex():
+            try:
+                async with session.get("https://publicapi.ramzinex.com/exchange/api/v1.0/exchange/pairs/11", headers=headers, proxy=proxy) as resp:
+                    if resp.status == 200:
+                        data = await resp.json()
+                        sell = (data.get("data") or {}).get("sell")
+                        if sell:
+                            usdt_prices["رمزینکس"] = int(float(sell) // 10)
+            except Exception as e:
+                logger.debug("Ramzinex USDT failed: %s", e)
+
+            try:
+                async with session.get("https://publicapi.ramzinex.com/exchange/api/v1.0/exchange/pairs/272", headers=headers, proxy=proxy) as resp:
+                    if resp.status == 200:
+                        data = await resp.json()
+                        sell = (data.get("data") or {}).get("sell")
+                        if sell:
+                            ton_prices["رمزینکس"] = int(float(sell) // 10)
+            except Exception as e:
+                logger.debug("Ramzinex TON failed: %s", e)
+
+        # 6. Binance (global)
         async def _fetch_binance():
             nonlocal binance_ton_usd
             try:
@@ -134,12 +168,20 @@ async def fetch_all_exchange_prices(usdt_rate: int | None = None) -> dict:
             except Exception as e:
                 logger.debug("Binance failed: %s", e)
 
-        await asyncio.gather(_fetch_nobitex(), _fetch_bitpin(), _fetch_wallex(), _fetch_binance(), return_exceptions=True)
+        await asyncio.gather(
+            _fetch_nobitex(),
+            _fetch_bitpin(),
+            _fetch_wallex(),
+            _fetch_tetherland(),
+            _fetch_ramzinex(),
+            _fetch_binance(),
+            return_exceptions=True,
+        )
 
-    # Priority for single best TON: Nobitex > Bitpin > Wallex > Binance
+    # Priority for single best TON: Nobitex > Ramzinex > Bitpin > Wallex > Binance
     best_ton_price: int | None = None
     best_ton_source = ""
-    for src in ("نوبیتکس", "بیت‌پین", "والکس"):
+    for src in ("نوبیتکس", "رمزینکس", "بیت‌پین", "والکس"):
         if src in ton_prices:
             best_ton_price = ton_prices[src]
             best_ton_source = src
@@ -147,6 +189,8 @@ async def fetch_all_exchange_prices(usdt_rate: int | None = None) -> dict:
 
     effective_usdt = (
         usdt_prices.get("نوبیتکس")
+        or usdt_prices.get("تترلند")
+        or usdt_prices.get("رمزینکس")
         or usdt_prices.get("بیت‌پین")
         or usdt_prices.get("والکس")
         or usdt_rate
@@ -158,10 +202,10 @@ async def fetch_all_exchange_prices(usdt_rate: int | None = None) -> dict:
         best_ton_price = int(round(binance_ton_usd * effective_usdt))
         best_ton_source = f"بایننس (${binance_ton_usd:.2f})"
 
-    # Priority for single best USDT: Nobitex > Bitpin > Wallex
+    # Priority for single best USDT: Nobitex > Tetherland > Ramzinex > Bitpin > Wallex
     best_usdt_price: int | None = None
     best_usdt_source = ""
-    for src in ("نوبیتکس", "بیت‌پین", "والکس"):
+    for src in ("نوبیتکس", "تترلند", "رمزینکس", "بیت‌پین", "والکس"):
         if src in usdt_prices:
             best_usdt_price = usdt_prices[src]
             best_usdt_source = src

@@ -371,7 +371,7 @@
     const currentToday = Number(todayGb || (values && values[values.length - 1]) || 0);
     const totalEl = document.getElementById('trafficChartTotal');
     if (totalEl) {
-      totalEl.innerHTML = `<span class="text-[9px] text-cyan-300 font-sans">GB</span> <span class="font-bold text-cyan-300 font-mono text-xs">${formatNumber(totalGb || currentToday || 0)}</span>`;
+      totalEl.innerHTML = `<span dir="ltr" class="inline-flex items-baseline gap-1"><span class="font-bold text-cyan-300 font-mono text-xs">${formatNumber(totalGb || currentToday || 0)}</span> <span class="text-[9px] text-cyan-300 font-sans">GB</span></span>`;
     }
 
     if (trafficChartInstance) {
@@ -413,7 +413,7 @@
             rtl: true,
             textDirection: 'rtl',
             callbacks: {
-              label: (ctx) => `مصرف: GB ${formatNumber(ctx.raw)}`
+              label: (ctx) => `مصرف: \u200E${formatNumber(ctx.raw)} GB`
             }
           }
         },
@@ -428,7 +428,7 @@
             ticks: {
               color: isDark ? '#94a3b8' : '#64748b',
               font: { family: 'Vazirmatn', size: 9 },
-              callback: (val) => `${val} GB`
+              callback: (val) => `\u200E${val} GB`
             }
           }
         }
@@ -2275,7 +2275,7 @@
     async refreshLiveCryptoRates() {
       const container = document.getElementById('cryptoRatesContent');
       if (!container) return;
-      container.innerHTML = '<div class="p-6 text-center text-xs text-slate-400">در حال استعلام جدیدترین نرخ‌ها از نوبیتکس، بیت‌پین و بایننس...</div>';
+      container.innerHTML = '<div class="p-6 text-center text-xs text-slate-400">در حال استعلام جدیدترین نرخ‌ها از صرافی‌های معتبر...</div>';
       try {
         const res = await window.api.getAdminCryptoRates();
         if (!res || !res.ok) {
@@ -2287,14 +2287,64 @@
         const bestUsdt = res.best_usdt || {};
         window.lastLiveCryptoRates = { ton: bestTon.price, usdt: bestUsdt.price };
 
+        const usdtList = Object.entries(res.usdt_prices || {});
+        const tonList = Object.entries(res.ton_prices || {});
+        const binanceUsd = res.binance_usd;
+
+        let usdtRowsHtml = '';
+        if (usdtList.length > 0) {
+          usdtRowsHtml = usdtList.map(([src, p]) => `
+            <div class="flex items-center justify-between py-1.5 px-2.5 rounded-xl bg-slate-800/60 border border-slate-700/50 hover:border-slate-600 transition">
+              <span class="text-slate-300 font-medium text-[11px]">${src}</span>
+              <div class="flex items-center gap-2">
+                <span class="font-mono font-bold text-slate-100 text-[11px]">${formatNumber(p)} <span class="text-[9px] text-slate-400 font-sans">تومان</span></span>
+                <button onclick="window.adminActions.applySpecificRate('usdt', ${p})" class="bg-emerald-600/25 hover:bg-emerald-600 text-emerald-300 hover:text-white border border-emerald-500/40 text-[10px] font-bold px-2 py-0.5 rounded-lg transition active:scale-95">
+                  اعمال
+                </button>
+              </div>
+            </div>
+          `).join('');
+        }
+
+        let tonRowsHtml = '';
+        if (tonList.length > 0) {
+          tonRowsHtml = tonList.map(([src, p]) => `
+            <div class="flex items-center justify-between py-1.5 px-2.5 rounded-xl bg-slate-800/60 border border-slate-700/50 hover:border-slate-600 transition">
+              <span class="text-slate-300 font-medium text-[11px]">${src}</span>
+              <div class="flex items-center gap-2">
+                <span class="font-mono font-bold text-slate-100 text-[11px]">${formatNumber(p)} <span class="text-[9px] text-slate-400 font-sans">تومان</span></span>
+                <button onclick="window.adminActions.applySpecificRate('ton', ${p})" class="bg-cyan-600/25 hover:bg-cyan-600 text-cyan-300 hover:text-white border border-cyan-500/40 text-[10px] font-bold px-2 py-0.5 rounded-lg transition active:scale-95">
+                  اعمال
+                </button>
+              </div>
+            </div>
+          `).join('');
+        }
+
+        if (binanceUsd) {
+          const tonTomanBinance = bestTon.price;
+          tonRowsHtml += `
+            <div class="flex items-center justify-between py-1.5 px-2.5 rounded-xl bg-slate-800/60 border border-slate-700/50 hover:border-slate-600 transition">
+              <span class="text-slate-300 font-medium text-[11px]">بایننس (جهانی)</span>
+              <div class="flex items-center gap-2">
+                <span class="font-mono font-bold text-cyan-300 text-[11px]">$${Number(binanceUsd).toFixed(2)}</span>
+                ${tonTomanBinance ? `
+                <button onclick="window.adminActions.applySpecificRate('ton', ${tonTomanBinance})" class="bg-cyan-600/25 hover:bg-cyan-600 text-cyan-300 hover:text-white border border-cyan-500/40 text-[10px] font-bold px-2 py-0.5 rounded-lg transition active:scale-95">
+                  اعمال
+                </button>` : ''}
+              </div>
+            </div>
+          `;
+        }
+
         container.innerHTML = `
-          <!-- USDT Live Card -->
-          <div class="bg-slate-900/60 rounded-2xl p-3.5 border border-slate-700/60 flex items-center justify-between gap-3">
+          <!-- Best USDT Card -->
+          <div class="bg-slate-900/80 rounded-2xl p-3 border border-emerald-500/30 flex items-center justify-between gap-2.5 shadow-sm">
             <div>
               <div class="flex items-center gap-1.5">
                 <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                <b class="text-white text-xs font-bold">تتر (USDT)</b>
-                <span class="text-[10px] text-slate-400">(${bestUsdt.source || 'نوبیتکس'})</span>
+                <b class="text-white text-xs font-bold">نرخ پیشنهادی تتر (USDT)</b>
+                <span class="text-[10px] text-emerald-400 font-medium">(${bestUsdt.source || 'بهترین نرخ'})</span>
               </div>
               <div class="flex items-baseline gap-1 mt-1">
                 <b class="text-sm font-black text-emerald-400 font-mono">${formatNumber(bestUsdt.price || 0)}</b>
@@ -2306,13 +2356,21 @@
             </button>
           </div>
 
-          <!-- TON Live Card -->
-          <div class="bg-slate-900/60 rounded-2xl p-3.5 border border-slate-700/60 flex items-center justify-between gap-3">
+          <!-- All USDT Exchanges List -->
+          <div class="space-y-1.5">
+            <span class="text-[10px] font-bold text-slate-400 block px-1">استعلام صرافی‌های داخلی (USDT):</span>
+            <div class="space-y-1">
+              ${usdtRowsHtml || '<div class="text-[10px] text-slate-500 text-center py-1">اطلاعاتی دریافت نشد</div>'}
+            </div>
+          </div>
+
+          <!-- Best TON Card -->
+          <div class="bg-slate-900/80 rounded-2xl p-3 border border-cyan-500/30 flex items-center justify-between gap-2.5 shadow-sm mt-3">
             <div>
               <div class="flex items-center gap-1.5">
                 <span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
-                <b class="text-white text-xs font-bold">تون کوین (TON)</b>
-                <span class="text-[10px] text-slate-400">(${bestTon.source || 'بایننس / نوبیتکس'})</span>
+                <b class="text-white text-xs font-bold">نرخ پیشنهادی تون (TON)</b>
+                <span class="text-[10px] text-cyan-400 font-medium">(${bestTon.source || 'بهترین نرخ'})</span>
               </div>
               <div class="flex items-baseline gap-1 mt-1">
                 <b class="text-sm font-black text-cyan-400 font-mono">${formatNumber(bestTon.price || 0)}</b>
@@ -2323,24 +2381,47 @@
               اعمال این نرخ
             </button>
           </div>
+
+          <!-- All TON Exchanges List -->
+          <div class="space-y-1.5">
+            <span class="text-[10px] font-bold text-slate-400 block px-1">استعلام صرافی‌ها (TON):</span>
+            <div class="space-y-1">
+              ${tonRowsHtml || '<div class="text-[10px] text-slate-500 text-center py-1">اطلاعاتی دریافت نشد</div>'}
+            </div>
+          </div>
         `;
       } catch (e) {
         container.innerHTML = '<div class="p-6 text-center text-xs text-rose-400">خطای ارتباط با سرور در استعلام نرخ‌ها</div>';
       }
     },
 
-    applySpecificRate(type, val) {
+    async applySpecificRate(type, val) {
       if (!val) return;
+      const numVal = parseInt(val, 10);
+      if (isNaN(numVal) || numVal <= 0) return;
+
+      const payload = {};
       if (type === 'usdt') {
         const inp = document.getElementById('settingUsdtRate');
-        if (inp) inp.value = val;
-        if (window.showToast) window.showToast(`✓ نرخ تتر به ${formatNumber(val)} تومان تنظیم شد`);
+        if (inp) inp.value = numVal;
+        payload.usdt_rate_toman = numVal;
       } else if (type === 'ton') {
         const inp = document.getElementById('settingTonRate');
-        if (inp) inp.value = val;
-        if (window.showToast) window.showToast(`✓ نرخ تون به ${formatNumber(val)} تومان تنظیم شد`);
+        if (inp) inp.value = numVal;
+        payload.ton_rate_toman = numVal;
       }
-      if (window.hapticFeedback) window.hapticFeedback('success');
+
+      try {
+        const res = await window.api.saveAdminSettings(payload);
+        if (res && res.ok) {
+          if (window.showToast) window.showToast(`✅ نرخ ${type === 'usdt' ? 'تتر' : 'تون'} به ${formatNumber(numVal)} تومان ذخیره شد`);
+          if (window.hapticFeedback) window.hapticFeedback('success');
+        } else {
+          if (window.showToast) window.showToast(`⚠️ نرخ تنظیم شد اما در سرور ذخیره نشد: ${res?.error || ''}`);
+        }
+      } catch (err) {
+        if (window.showToast) window.showToast('خطا در ذخیره نرخ در سرور');
+      }
     },
 
     async applyLiveCryptoRates() {

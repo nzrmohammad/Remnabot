@@ -141,6 +141,8 @@ class Topup(Base):
     decided_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
+    # Message ID in admin chat/topic for syncing status updates
+    admin_message_id: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
 
 
 class Order(Base):

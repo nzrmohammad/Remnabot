@@ -9,6 +9,8 @@ from typing import Any
 from aiohttp import web
 from sqlalchemy import func, select
 
+from html import escape
+from bot.common import admin_thread_kwargs
 from bot.common.helpers import get_limit_bytes, get_used_bytes
 from bot.db.models import AdminLog, AppSetting, Coupon, Order, Service, SupportMessage, Topup, User, Wallet
 from bot.db.repositories.app_setting_repo import AppSettingRepository
@@ -1239,11 +1241,66 @@ async def post_admin_topup_action(request: web.Request) -> web.Response:
     await cache.delete(f"tma:user:{claimed.telegram_id}:dashboard")
     await cache.delete("tma:admin:overview")
 
-    # Send telegram notification
+    # Send telegram notification to user
     try:
         await bot.send_message(chat_id=claimed.telegram_id, text=msg, parse_mode="HTML")
     except Exception as exc:
         logger.warning("Could not send topup decision notice to %s: %s", claimed.telegram_id, exc)
+
+    # Sync status with admin supergroup / topic
+    settings = request.app.get("settings")
+    admin_chat_id = settings.ADMIN_CHAT_ID if settings else None
+    if admin_chat_id and bot:
+        store = None
+        try:
+            async with session_factory() as session:
+                store = await get_store_settings(session)
+        except Exception:
+            pass
+
+        thread_kwargs = admin_thread_kwargs(store, settings, kind="topups") if store and settings else {}
+        status_badge = "✅ تایید شد (از طریق پنل ادمین)" if approved else "❌ رد شد (از طریق پنل ادمین)"
+        admin_name = admin.get("first_name") or admin.get("username") or str(admin.get("id"))
+
+        # 1. Remove pending inline buttons from the original receipt prompt
+        if claimed.admin_message_id:
+            try:
+                await bot.edit_message_reply_markup(
+                    chat_id=admin_chat_id,
+                    message_id=claimed.admin_message_id,
+                    reply_markup=None,
+                )
+            except Exception as exc:
+                logger.debug("Could not remove reply markup for topup #%s: %s", claimed.id, exc)
+
+        # 2. Announce resolution into the admin supergroup topic
+        notice_text = (
+            f"📌 <b>تعیین وضعیت فیش #{claimed.id}</b>\n"
+            f"👤 کاربر: <code>{claimed.telegram_id}</code>\n"
+            f"💰 مبلغ: <b>{claimed.amount:,}</b> تومان\n"
+            f"📊 وضعیت: <b>{status_badge}</b>\n"
+            f"👮 توسط ادمین: <b>{escape(str(admin_name))}</b>"
+        )
+        try:
+            kwargs = dict(thread_kwargs)
+            if claimed.admin_message_id:
+                kwargs["reply_to_message_id"] = claimed.admin_message_id
+            await bot.send_message(
+                chat_id=admin_chat_id,
+                text=notice_text,
+                parse_mode="HTML",
+                **kwargs,
+            )
+        except Exception:
+            try:
+                await bot.send_message(
+                    chat_id=admin_chat_id,
+                    text=notice_text,
+                    parse_mode="HTML",
+                    **thread_kwargs,
+                )
+            except Exception as exc:
+                logger.warning("Failed to send topup update notice to admin chat: %s", exc)
 
     return web.json_response({
         "ok": True,

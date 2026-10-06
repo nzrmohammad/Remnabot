@@ -156,13 +156,13 @@
               <svg class="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
               <span>روند مصرف ترافیک</span>
             </span>
-            <div id="trafficChartTotal" class="text-[10px] text-cyan-400 font-bold inline-flex items-center gap-1" dir="rtl">
-              <span class="text-[9px] text-cyan-300 font-sans">GB</span>
+            <div id="trafficChartTotal" class="text-[10px] text-cyan-400 font-bold inline-flex items-center gap-1" dir="ltr">
               <span class="font-mono">--</span>
+              <span class="text-[9px] text-cyan-300 font-sans">GB</span>
             </div>
           </div>
           <div class="h-36 w-full relative">
-            <canvas id="adminTrafficChart"></canvas>
+            <canvas id="adminTrafficChart" dir="ltr"></canvas>
           </div>
         </div>
 
@@ -1256,7 +1256,7 @@
 
     <!-- MODAL 6: Live Crypto & Currency Rates Inspector & Fast Updater -->
     <div id="cryptoRatesModal" class="absolute inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
-      <div class="bg-[#1e293b] border border-cyan-500/30 rounded-3xl p-5 w-full max-w-[380px] space-y-4 shadow-2xl relative">
+      <div class="bg-[#1e293b] border border-cyan-500/30 rounded-3xl p-5 w-full max-w-[420px] space-y-4 shadow-2xl relative">
         <div class="flex justify-between items-center border-b border-slate-700/60 pb-2.5">
           <div class="flex items-center gap-2">
             <div class="w-8 h-8 rounded-xl bg-cyan-500/15 text-cyan-400 border border-cyan-500/30 flex items-center justify-center flex-shrink-0">
@@ -1264,13 +1264,13 @@
             </div>
             <div>
               <h4 class="text-xs font-bold text-white">استعلام آنلاین نرخ لحظه‌ای ارزها</h4>
-              <span class="text-[10px] text-slate-400 block mt-0.5">نوبیتکس / بیت‌پین / والکس / بایننس</span>
+              <span class="text-[10px] text-slate-400 block mt-0.5">نوبیتکس / تترلند / رمزینکس / بیت‌پین / والکس / بایننس</span>
             </div>
           </div>
           <button onclick="window.adminActions.closeCryptoRatesModal()" class="w-7 h-7 rounded-full bg-slate-800/80 hover:bg-slate-750 text-slate-400 hover:text-white flex items-center justify-center text-xs transition">✕</button>
         </div>
 
-        <div id="cryptoRatesContent" class="space-y-3 text-xs">
+        <div id="cryptoRatesContent" class="max-h-[62vh] overflow-y-auto custom-scroll space-y-3 text-xs pr-1">
           <div class="p-6 text-center text-slate-400">در حال استعلام نرخ‌های لحظه‌ای...</div>
         </div>
 
@@ -1307,8 +1307,8 @@
   </div>
 
   <!-- Shared & Modular Scripts -->
-  <script src="/static/js/utils.js?v=3.8"></script>
-  <script src="/static/js/api.js?v=3.8"></script>
-  <script src="/static/js/admin.js?v=3.8"></script>
+  <script src="/static/js/utils.js?v=3.9"></script>
+  <script src="/static/js/api.js?v=3.9"></script>
+  <script src="/static/js/admin.js?v=3.9"></script>
 </body>
 </html>

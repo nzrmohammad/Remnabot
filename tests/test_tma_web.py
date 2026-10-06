@@ -1359,4 +1359,58 @@ async def test_admin_coupon_usages():
     await engine.dispose()
 
 
+@pytest.mark.anyio
+async def test_admin_topup_action_syncs_with_supergroup():
+    from aiohttp.test_utils import make_mocked_request
+    from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
+    from bot.db.models import Base, Topup, Wallet
+    from bot.web.routes_admin import post_admin_topup_action
+
+    engine = create_async_engine("sqlite+aiosqlite:///:memory:")
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+    session_factory = async_sessionmaker(engine, expire_on_commit=False)
+
+    async with session_factory() as session:
+        t = Topup(telegram_id=12345, amount=50000, status="pending", admin_message_id=888)
+        w = Wallet(telegram_id=12345, balance=10000)
+        session.add_all([t, w])
+        await session.commit()
+        topup_id = t.id
+
+    mock_bot = AsyncMock()
+    mock_settings = MagicMock()
+    mock_settings.ADMIN_CHAT_ID = -100123456789
+    mock_settings.TOPIC_TOPUPS = None
+
+    app = {
+        "bot_token": "123:abc",
+        "admin_ids": [99999],
+        "is_dev": True,
+        "session_factory": session_factory,
+        "bot": mock_bot,
+        "settings": mock_settings,
+        "cache": FastCache(redis_client=None),
+    }
+
+    req = make_mocked_request("POST", "/api/admin/topup/action?user_id=99999", app=app)
+    req.json = AsyncMock(return_value={"topup_id": topup_id, "approved": True})
+
+    resp = await post_admin_topup_action(req)
+    assert resp.status == 200
+    data = json.loads(resp.text)
+    assert data["ok"] is True
+
+    # Check that reply markup on supergroup message 888 was removed
+    mock_bot.edit_message_reply_markup.assert_called_once_with(
+        chat_id=-100123456789,
+        message_id=888,
+        reply_markup=None,
+    )
+    # Check that notification was sent to user and announcement to admin chat
+    assert mock_bot.send_message.call_count >= 2
+
+    await engine.dispose()
+
+
 

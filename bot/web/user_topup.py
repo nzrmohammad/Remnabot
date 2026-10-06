@@ -120,12 +120,14 @@ async def post_user_topup_card(request: web.Request) -> web.Response:
             )
 
             try:
-                await bot.send_message(
+                msg_obj = await bot.send_message(
                     chat_id=admin_chat_id,
                     text=caption,
                     reply_markup=kb.as_markup(),
                     **thread_kwargs,
                 )
+                topup.admin_message_id = msg_obj.message_id
+                await session.commit()
             except Exception as exc:
                 logger.error("Failed to notify admin of TMA topup: %s", exc)
 
