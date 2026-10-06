@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/static/css/app.css">
+  <link rel="stylesheet" href="/static/css/app.css?v=3.6">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 </head>
 <body id="appBody" class="bg-[#080d1a] text-slate-100 h-screen h-[100dvh] overflow-hidden flex justify-center antialiased select-none transition-colors duration-300">
@@ -461,7 +461,7 @@
 
         <!-- 1. Live System Switches Box -->
         <div class="settings-box bg-slate-800/90 rounded-2xl border border-slate-700/80 shadow overflow-hidden transition-all">
-          <div class="settings-box-header p-3.5 flex items-center justify-between cursor-pointer select-none hover:bg-slate-750/40 transition" data-target="settingsBoxSwitches">
+          <div class="settings-box-header p-3.5 flex items-center justify-between cursor-pointer select-none hover:bg-slate-750/40 transition" onclick="window.adminActions.toggleSettingsBox('settingsBoxSwitches')" data-target="settingsBoxSwitches">
             <div class="flex items-center gap-2.5">
               <div class="w-8 h-8 rounded-xl bg-blue-500/15 text-blue-400 border border-blue-500/30 flex items-center justify-center flex-shrink-0">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
@@ -471,7 +471,7 @@
                 <span class="text-[10px] text-slate-400 block mt-0.5">تعمیرات، درگاه‌ها، اشتراک تست، رفرال و تیکت</span>
               </div>
             </div>
-            <svg class="settings-box-chevron w-4 h-4 text-slate-400 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+            <svg class="settings-box-chevron w-4 h-4 text-slate-400 transition-transform duration-200 rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
           </div>
           <div id="settingsBoxSwitches" class="settings-box-body p-4 pt-1 border-t border-slate-700/60 space-y-2.5 text-xs">
             <!-- Maintenance Mode -->
@@ -562,7 +562,7 @@
 
         <!-- 2. Bank Card & Topup Settings Box -->
         <div class="settings-box bg-slate-800/90 rounded-2xl border border-slate-700/80 shadow overflow-hidden transition-all">
-          <div class="settings-box-header p-3.5 flex items-center justify-between cursor-pointer select-none hover:bg-slate-750/40 transition" data-target="settingsBoxCard">
+          <div class="settings-box-header p-3.5 flex items-center justify-between cursor-pointer select-none hover:bg-slate-750/40 transition" onclick="window.adminActions.toggleSettingsBox('settingsBoxCard')" data-target="settingsBoxCard">
             <div class="flex items-center gap-2.5">
               <div class="w-8 h-8 rounded-xl bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 flex items-center justify-center flex-shrink-0">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
@@ -592,7 +592,7 @@
 
         <!-- 3. Crypto & Rates Settings Box -->
         <div class="settings-box bg-slate-800/90 rounded-2xl border border-slate-700/80 shadow overflow-hidden transition-all">
-          <div class="settings-box-header p-3.5 flex items-center justify-between cursor-pointer select-none hover:bg-slate-750/40 transition" data-target="settingsBoxCrypto">
+          <div class="settings-box-header p-3.5 flex items-center justify-between cursor-pointer select-none hover:bg-slate-750/40 transition" onclick="window.adminActions.toggleSettingsBox('settingsBoxCrypto')" data-target="settingsBoxCrypto">
             <div class="flex items-center gap-2.5">
               <div class="w-8 h-8 rounded-xl bg-cyan-500/15 text-cyan-400 border border-cyan-500/30 flex items-center justify-center flex-shrink-0">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
@@ -630,7 +630,7 @@
 
         <!-- 4. Trial & Referral Config Box -->
         <div class="settings-box bg-slate-800/90 rounded-2xl border border-slate-700/80 shadow overflow-hidden transition-all">
-          <div class="settings-box-header p-3.5 flex items-center justify-between cursor-pointer select-none hover:bg-slate-750/40 transition" data-target="settingsBoxTrial">
+          <div class="settings-box-header p-3.5 flex items-center justify-between cursor-pointer select-none hover:bg-slate-750/40 transition" onclick="window.adminActions.toggleSettingsBox('settingsBoxTrial')" data-target="settingsBoxTrial">
             <div class="flex items-center gap-2.5">
               <div class="w-8 h-8 rounded-xl bg-purple-500/15 text-purple-400 border border-purple-500/30 flex items-center justify-center flex-shrink-0">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 01-2-2V7a2 2 0 012-2h14a2 2 0 012 2v3a2 2 0 01-2 2M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"/></svg>
@@ -668,7 +668,7 @@
 
         <!-- 5. Forum Topics Configuration Box -->
         <div class="settings-box bg-slate-800/90 rounded-2xl border border-slate-700/80 shadow overflow-hidden transition-all">
-          <div class="settings-box-header p-3.5 flex items-center justify-between cursor-pointer select-none hover:bg-slate-750/40 transition" data-target="settingsBoxTopics">
+          <div class="settings-box-header p-3.5 flex items-center justify-between cursor-pointer select-none hover:bg-slate-750/40 transition" onclick="window.adminActions.toggleSettingsBox('settingsBoxTopics')" data-target="settingsBoxTopics">
             <div class="flex items-center gap-2.5">
               <div class="w-8 h-8 rounded-xl bg-amber-500/15 text-amber-400 border border-amber-500/30 flex items-center justify-center flex-shrink-0">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
@@ -1307,8 +1307,8 @@
   </div>
 
   <!-- Shared & Modular Scripts -->
-  <script src="/static/js/utils.js"></script>
-  <script src="/static/js/api.js"></script>
-  <script src="/static/js/admin.js"></script>
+  <script src="/static/js/utils.js?v=3.6"></script>
+  <script src="/static/js/api.js?v=3.6"></script>
+  <script src="/static/js/admin.js?v=3.6"></script>
 </body>
 </html>

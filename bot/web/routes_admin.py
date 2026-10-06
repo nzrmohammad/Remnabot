@@ -582,7 +582,32 @@ async def get_admin_users(request: web.Request) -> web.Response:
             if status_filter == "expired" and not is_expired:
                 continue
 
-            full_name = p.get("name") or p.get("description") or (f"@{u.username}" if u.username else f"کاربر {u.telegram_id}")
+            # Determine real Telegram profile name:
+            profile_name = getattr(u, "full_name", None)
+            if not profile_name:
+                p_desc = p.get("description") if (p and p.get("description") and p.get("description") != u.username and not str(p.get("description")).startswith("@")) else None
+                p_name = p.get("name") if (p and p.get("name") and p.get("name") != u.username and not str(p.get("name")).startswith("@")) else None
+                profile_name = p_desc or p_name
+
+            if not profile_name:
+                bot = request.app.get("bot")
+                cache = request.app.get("cache")
+                cached_name = await cache.get(f"tg:user:{u.telegram_id}:profile_name") if cache else None
+                if cached_name:
+                    profile_name = cached_name
+                elif bot:
+                    try:
+                        chat_info = await bot.get_chat(u.telegram_id)
+                        if chat_info and chat_info.full_name:
+                            profile_name = chat_info.full_name.strip()
+                            if cache:
+                                await cache.set(f"tg:user:{u.telegram_id}:profile_name", profile_name, ttl=86400)
+                            u.full_name = profile_name
+                            await session.commit()
+                    except Exception:
+                        pass
+
+            full_name = profile_name or (f"@{u.username}" if u.username else f"کاربر {u.telegram_id}")
 
             user_items.append({
                 "telegram_id": u.telegram_id,

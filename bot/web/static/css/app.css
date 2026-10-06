@@ -477,5 +477,23 @@ html.theme-light #receiptPhotoModal .text-white {
   color: #0f172a !important;
 }
 
+/* Plan cards in Light theme */
+html.theme-light .plan-card {
+  background-color: #ffffff !important;
+  background-image: none !important;
+  border-color: #e2e8f0 !important;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05) !important;
+}
+
+html.theme-light .plan-card .text-white {
+  color: #0f172a !important;
+}
+
+html.theme-light .plan-card .bg-slate-900\/60 {
+  background-color: #f8fafc !important;
+  border-color: #e2e8f0 !important;
+}
+
+
 
 

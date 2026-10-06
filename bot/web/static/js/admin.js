@@ -1016,29 +1016,46 @@
 
       return `
         <div class="bg-slate-800/80 rounded-2xl p-3.5 border border-slate-700/80 space-y-2.5 shadow transition">
-          <div class="flex items-start justify-between">
+          <div class="flex items-center justify-between gap-3">
+            <!-- Right: Avatar + Profile Name + Status Badge underneath -->
             <div class="flex items-center gap-2.5 min-w-0">
               <!-- User Profile Avatar with Initials Fallback -->
               <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center font-bold text-white text-xs shadow overflow-hidden flex-shrink-0 relative">
                 <img src="${avatarSrc}" alt="Avatar" class="w-full h-full object-cover" onerror="this.classList.add('hidden'); if(this.nextElementSibling) this.nextElementSibling.classList.remove('hidden');" />
                 <span class="${u.avatar_url ? 'hidden' : ''} font-bold">${initial}</span>
               </div>
+
+              <!-- Name on top, Status Badge underneath -->
               <div class="min-w-0 flex-1">
+                <!-- 1. Profile Name (اسم پروفایل کاربر) -->
                 <div class="flex items-center gap-1.5 min-w-0">
-                  <div onclick="window.adminActions.quickCopy('${safeDisplayName}', 'نام کاربر')" class="text-xs font-bold text-white truncate max-w-[120px] sm:max-w-[160px] cursor-pointer hover:text-cyan-300 active:scale-95 transition" title="${displayName}">
+                  <div onclick="window.adminActions.quickCopy('${safeDisplayName}', 'نام کاربر')" class="text-xs font-bold text-white truncate max-w-[130px] sm:max-w-[170px] cursor-pointer hover:text-cyan-300 active:scale-95 transition" title="${displayName}">
                     ${(displayName || '').startsWith('@') ? `<span class="truncate inline-block font-mono" dir="ltr" style="unicode-bidi: isolate;">${displayName}</span>` : `<span class="truncate">${displayName}</span>`}
                   </div>
                   ${u.is_online ? '<span class="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)] animate-pulse flex-shrink-0" title="متصل به سرور"></span>' : ''}
-                  <div class="flex-shrink-0">${statusBadge}</div>
-                  ${expiringBadgeHtml}
                 </div>
-                <div class="flex items-center gap-2 mt-0.5 text-[10px] text-slate-400 font-mono">
-                  <span onclick="window.adminActions.quickCopy('${u.telegram_id}', 'شناسه عددی')" class="cursor-pointer hover:text-cyan-300">ID: ${u.telegram_id}</span>
-                  ${u.username ? `<span onclick="window.adminActions.quickCopy('@${u.username}', 'نام کاربری')" class="cursor-pointer hover:text-cyan-300 text-slate-400/90 font-mono truncate max-w-[110px] inline-block" dir="ltr" style="unicode-bidi: isolate;">@${u.username}</span>` : ''}
+
+                <!-- Status Badge (فعال / بدون اکانت) Under the name -->
+                <div class="flex items-center gap-1.5 mt-1">
+                  <div>${statusBadge}</div>
+                  ${expiringBadgeHtml}
                 </div>
               </div>
             </div>
-            <span class="text-[11px] font-mono font-bold text-emerald-400 flex-shrink-0">${formatNumber(u.wallet_balance || 0)} ت</span>
+
+            <!-- Left: Top = Wallet Balance, Bottom = @Username + ID on ONE line -->
+            <div class="text-left flex flex-col items-end gap-1 flex-shrink-0">
+              <span class="text-[11px] font-mono font-bold text-emerald-400">
+                ${formatNumber(u.wallet_balance || 0)} ت
+              </span>
+
+              <!-- Items 2 & 3: Username + Telegram ID together on ONE line on the left side -->
+              <div class="flex items-center gap-1.5 text-[10px] text-slate-400 font-mono" dir="ltr">
+                ${u.username ? `<span onclick="window.adminActions.quickCopy('@${u.username}', 'نام کاربری')" class="cursor-pointer hover:text-cyan-300 text-slate-300 font-mono truncate max-w-[95px] inline-block" title="@${u.username}">@${u.username}</span>` : ''}
+                ${u.username ? '<span class="text-slate-600">•</span>' : ''}
+                <span onclick="window.adminActions.quickCopy('${u.telegram_id}', 'شناسه عددی')" class="cursor-pointer hover:text-cyan-300 text-slate-400" title="شناسه تلگرام">ID: ${u.telegram_id}</span>
+              </div>
+            </div>
           </div>
 
           <!-- Structured Service Metrics -->
@@ -1788,23 +1805,33 @@
           const hwidText = p.hwid_limit > 0 ? `${p.hwid_limit} کاربر` : 'پیش‌فرض';
 
           const rawName = (p.name || '').trim();
-          const emojiMatch = rawName.match(/^([\uD800-\uDBFF][\uDC00-\uDFFF]|[\u2600-\u27BF]|\p{Emoji_Presentation}|\p{Extended_Pictographic})/u);
+          const emojiRegex = /([\uD800-\uDBFF][\uDC00-\uDFFF]|[\u2600-\u27BF]|\p{Extended_Pictographic}|\p{Emoji_Presentation})/u;
+          const emojiMatch = rawName.match(emojiRegex);
           const pkgIcon = emojiMatch ? emojiMatch[0] : '';
-          const cleanName = pkgIcon ? rawName.replace(pkgIcon, '').trim() : rawName;
+          const cleanName = pkgIcon ? rawName.replace(emojiRegex, '').trim() : rawName;
 
           return `
             <div class="plan-card bg-slate-800/80 rounded-2xl p-4 border border-slate-700/80 space-y-3 shadow transition">
-              <div class="flex items-start justify-between">
-                <div>
-                  <div class="flex items-center gap-2">
-                    <b class="text-white text-xs font-bold">${cleanName}</b>
-                    ${pkgIcon ? `<span class="text-sm select-none" title="آیکون بسته">${pkgIcon}</span>` : ''}
+              <div class="flex items-center justify-between gap-3">
+                <div class="flex items-center gap-2.5 min-w-0">
+                  <!-- 1. General Box Icon on the FAR RIGHT of the item -->
+                  <span class="w-7 h-7 rounded-xl bg-blue-500/15 text-blue-400 border border-blue-500/30 flex items-center justify-center flex-shrink-0" title="بسته">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+                  </span>
+
+                  <!-- 2. Plan Name + 3. Package Emoji (on the left of the name) + 4. Status Badge -->
+                  <div class="flex items-center gap-1.5 min-w-0">
+                    <b class="text-white text-xs font-bold truncate">${cleanName}</b>
+                    ${pkgIcon ? `<span class="text-sm select-none leading-none flex-shrink-0" title="آیکون بسته">${pkgIcon}</span>` : ''}
                     ${statusBadge}
                   </div>
-                  ${p.description ? `<p class="text-[10px] text-slate-400 mt-0.5 line-clamp-1">${p.description}</p>` : ''}
                 </div>
-                <span class="text-sm font-black text-emerald-400 font-mono">${formatNumber(p.price || 0)} <span class="text-[10px] font-sans font-normal text-slate-400">تومان</span></span>
+
+                <!-- Price on the left -->
+                <span class="text-sm font-black text-emerald-400 font-mono flex-shrink-0">${formatNumber(p.price || 0)} <span class="text-[10px] font-sans font-normal text-slate-400">تومان</span></span>
               </div>
+
+              ${p.description ? `<p class="text-[10px] text-slate-400 line-clamp-1 pr-9.5">${p.description}</p>` : ''}
 
               <div class="grid grid-cols-3 gap-1.5 text-center text-[10px] bg-slate-900/60 p-2 rounded-xl font-mono">
                 <div>
@@ -2182,6 +2209,23 @@
         chatPane.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
       }
 
+      if (window.hapticFeedback) window.hapticFeedback('impact');
+    },
+
+    toggleSettingsBox(targetId) {
+      if (!targetId) return;
+      const targetBody = document.getElementById(targetId);
+      if (!targetBody) return;
+      const isHidden = targetBody.classList.contains('hidden');
+      const box = targetBody.closest('.settings-box');
+      const chevron = box ? box.querySelector('.settings-box-chevron') : null;
+      if (isHidden) {
+        targetBody.classList.remove('hidden');
+        chevron?.classList.add('rotate-180');
+      } else {
+        targetBody.classList.add('hidden');
+        chevron?.classList.remove('rotate-180');
+      }
       if (window.hapticFeedback) window.hapticFeedback('impact');
     },
 
@@ -2830,26 +2874,7 @@
   document.getElementById('saveAllSettingsBtn')?.addEventListener('click', handleSaveAllSettings);
   document.getElementById('saveAllSettingsTopBtn')?.addEventListener('click', handleSaveAllSettings);
 
-  // Settings Accordion Boxes toggle
-  document.querySelectorAll('.settings-box-header').forEach(header => {
-    header.addEventListener('click', () => {
-      const targetId = header.getAttribute('data-target');
-      if (!targetId) return;
-      const targetBody = document.getElementById(targetId);
-      const chevron = header.querySelector('.settings-box-chevron');
-      if (targetBody) {
-        const isHidden = targetBody.classList.contains('hidden');
-        if (isHidden) {
-          targetBody.classList.remove('hidden');
-          chevron?.classList.add('rotate-180');
-        } else {
-          targetBody.classList.add('hidden');
-          chevron?.classList.remove('rotate-180');
-        }
-      }
-      if (window.hapticFeedback) window.hapticFeedback('impact');
-    });
-  });
+  // Settings Accordion Boxes toggle handled by window.adminActions.toggleSettingsBox
 
   // Crypto rates modal trigger in settings
   document.getElementById('openCryptoRatesModalBtn')?.addEventListener('click', () => {

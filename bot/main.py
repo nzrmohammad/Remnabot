@@ -189,6 +189,11 @@ async def _migrate_schema(engine: AsyncEngine) -> None:
                     text("CREATE INDEX IF NOT EXISTS ix_users_referred_by_id ON users (referred_by_id)")
                 )
                 logger.info("added users.referred_by_id")
+            if "full_name" not in cols:
+                await conn.execute(
+                    text("ALTER TABLE users ADD COLUMN full_name VARCHAR(128)")
+                )
+                logger.info("added users.full_name")
 
         # --- crypto_invoices: tx_hash index ------------------------------------ #
         cols = await _table_columns(conn, "crypto_invoices")

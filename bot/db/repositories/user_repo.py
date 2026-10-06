@@ -20,14 +20,19 @@ class UserRepository:
         )
         return result.scalar_one_or_none()
 
-    async def get_or_create(self, telegram_id: int, username: str | None) -> User:
+    async def get_or_create(
+        self, telegram_id: int, username: str | None, full_name: str | None = None
+    ) -> User:
         user = await self.get_by_telegram_id(telegram_id)
         if user is None:
-            user = User(telegram_id=telegram_id, username=username)
+            user = User(telegram_id=telegram_id, username=username, full_name=full_name)
             self.session.add(user)
             await self.session.flush()
-        elif username and user.username != username:
-            user.username = username
+        else:
+            if username and user.username != username:
+                user.username = username
+            if full_name and user.full_name != full_name:
+                user.full_name = full_name
         user.last_active_at = datetime.now(timezone.utc)
         return user
 

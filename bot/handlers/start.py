@@ -35,6 +35,7 @@ async def cmd_start(
     user = await user_repo.get_or_create(
         telegram_id=message.from_user.id,
         username=message.from_user.username,
+        full_name=message.from_user.full_name,
     )
 
     # Referral link extraction: /start ref_123456 (do not delete the /start message)
