@@ -392,6 +392,12 @@ html.theme-light .node-card .text-slate-200,
 html.theme-light .node-card .text-white {
   color: #0f172a !important;
 }
+html.theme-light .node-header:hover {
+  background-color: #f8fafc !important;
+}
+html.theme-light .node-card .border-t {
+  border-color: #e2e8f0 !important;
+}
 
 /* Receipts / Topup cards in Light theme */
 html.theme-light .topup-card {
@@ -407,6 +413,58 @@ html.theme-light .topup-card .bg-slate-800\/40 {
   border-color: #e2e8f0 !important;
 }
 html.theme-light .topup-card .text-white {
+  color: #0f172a !important;
+}
+html.theme-light .topup-card .border-slate-700\/60,
+html.theme-light .topup-card .border-slate-700\/50,
+html.theme-light .topup-card .border-slate-700\/80 {
+  border-color: #f1f5f9 !important;
+}
+
+/* Chat & Ticket Desk in Light theme */
+html.theme-light #tab-admin-tickets .bg-slate-800\/90 {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+}
+html.theme-light #tab-admin-tickets .text-slate-200 {
+  color: #0f172a !important;
+}
+html.theme-light #activeChatWindow {
+  background-color: #f8fafc !important;
+  border-color: #e2e8f0 !important;
+}
+html.theme-light #activeChatWindow .bg-slate-900\/90,
+html.theme-light #activeChatWindow .bg-slate-900\/80,
+html.theme-light #activeChatWindow .bg-slate-900\/60,
+html.theme-light #activeChatWindow .bg-slate-900 {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+}
+html.theme-light #activeChatWindow .text-white {
+  color: #0f172a !important;
+}
+html.theme-light #activeChatWindow input#directTicketMsg {
+  background-color: #f8fafc !important;
+  border-color: #cbd5e1 !important;
+  color: #0f172a !important;
+}
+html.theme-light #activeChatWindow #ticketChatStream .bg-slate-900 {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+  color: #0f172a !important;
+}
+html.theme-light #ticketThreadsList .ticket-thread-btn {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+  color: #334155 !important;
+}
+html.theme-light .chat-template-chip {
+  background-color: #f1f5f9 !important;
+  color: #334155 !important;
+  border-color: #e2e8f0 !important;
+}
+html.theme-light .chat-template-chip:hover {
+  background-color: #e2e8f0 !important;
   color: #0f172a !important;
 }
 

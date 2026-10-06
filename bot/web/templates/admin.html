@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/static/css/app.css?v=3.6">
+  <link rel="stylesheet" href="/static/css/app.css?v=3.8">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 </head>
 <body id="appBody" class="bg-[#080d1a] text-slate-100 h-screen h-[100dvh] overflow-hidden flex justify-center antialiased select-none transition-colors duration-300">
@@ -399,33 +399,33 @@
           </div>
 
           <!-- Active Conversation Pane -->
-          <div id="activeChatWindow" class="bg-slate-950/70 rounded-2xl border border-slate-700/60 overflow-hidden space-y-0">
+          <div id="activeChatWindow" class="bg-slate-950/70 rounded-2xl border border-slate-700/60 overflow-hidden space-y-0 shadow-md">
             <!-- Active Thread User Header -->
-            <div class="p-2.5 bg-slate-900/80 border-b border-slate-800 flex items-center justify-between gap-2">
-              <div class="flex items-center gap-2 min-w-0">
-                <div id="activeChatUserAvatar" class="w-7 h-7 rounded-full bg-gradient-to-tr from-cyan-600 to-blue-600 text-white font-bold text-[10px] flex items-center justify-center flex-shrink-0">
+            <div class="p-3 bg-slate-900/90 border-b border-slate-800/80 flex items-center justify-between gap-2.5">
+              <div class="flex items-center gap-2.5 min-w-0">
+                <div id="activeChatUserAvatar" class="w-8 h-8 rounded-full bg-gradient-to-tr from-cyan-600 to-blue-600 text-white font-bold text-xs flex items-center justify-center flex-shrink-0 shadow">
                   U
                 </div>
                 <div class="min-w-0">
-                  <div class="flex items-center gap-1.5">
+                  <div class="flex items-center gap-1.5 min-w-0">
                     <b id="activeChatUserName" class="text-white text-xs truncate max-w-[140px]">انتخاب کاربر</b>
-                    <span id="activeChatUserTag" class="text-[10px] text-cyan-400 font-mono truncate max-w-[100px]">—</span>
+                    <span id="activeChatUserTag" dir="ltr" class="text-[10px] text-cyan-400 font-mono truncate max-w-[110px] inline-block">—</span>
                   </div>
-                  <div id="activeChatUserId" class="text-[9px] text-slate-400 font-mono mt-0.5">شناسه: —</div>
+                  <div id="activeChatUserId" class="text-[10px] text-slate-400 font-mono mt-0.5">شناسه: —</div>
                 </div>
               </div>
               <div class="flex items-center gap-1 flex-shrink-0">
-                <span id="activeChatStatusBadge" class="text-[9px] bg-transparent text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded-lg font-bold">فعال</span>
+                <span id="activeChatStatusBadge" class="text-[9px] bg-transparent text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 px-2.5 py-0.5 rounded-lg font-bold">فعال</span>
               </div>
             </div>
 
             <!-- Speech Bubbles Feed -->
-            <div id="ticketChatStream" class="p-3 space-y-2.5 min-h-[170px] max-h-[260px] overflow-y-auto custom-scroll text-xs">
+            <div id="ticketChatStream" class="p-3.5 space-y-2.5 min-h-[180px] max-h-[280px] overflow-y-auto custom-scroll text-xs">
               <div class="p-6 text-center text-slate-400 text-[11px]">یک گفتگو را از لیست بالا انتخاب کنید</div>
             </div>
 
             <!-- Quick Template Reply Chips -->
-            <div class="p-2 bg-slate-900/60 border-t border-slate-850 flex gap-1.5 overflow-x-auto custom-scroll text-[10px] whitespace-nowrap">
+            <div class="p-2 bg-slate-900/60 border-t border-slate-800/60 flex gap-1.5 overflow-x-auto custom-scroll text-[10px] whitespace-nowrap">
               <button class="chat-template-chip px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300 hover:text-white border border-slate-700/60 transition" data-msg="فیش واریزی شما بررسی و تایید شد. حساب شما شارژ گردید ✅">✅ تایید فیش</button>
               <button class="chat-template-chip px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300 hover:text-white border border-slate-700/60 transition" data-msg="لطفاً تصویر واضح‌تری از رسید بانکی همراه با کد پیگیری ارسال فرمایید 📷">📷 عکس واضح‌تر</button>
               <button class="chat-template-chip px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300 hover:text-white border border-slate-700/60 transition" data-msg="سرویس شما بررسی و با موفقیت تمدید و فعال گردید ⚡">⚡ فعال‌سازی سرویس</button>
@@ -434,8 +434,8 @@
             <!-- Message Composer Form -->
             <div class="p-2.5 bg-slate-900 border-t border-slate-800 flex items-center gap-2">
               <input type="hidden" id="directTicketUserId" value="" />
-              <input type="text" id="directTicketMsg" placeholder="پاسخ را تایپ کنید و ارسال را بزنید..." class="flex-1 bg-slate-950 border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-slate-200 outline-none focus:border-emerald-500 transition" />
-              <button id="sendDirectTicketReplyBtn" class="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs px-3.5 py-2 rounded-xl transition shadow active:scale-95 flex items-center gap-1.5 flex-shrink-0">
+              <input type="text" id="directTicketMsg" placeholder="پاسخ را تایپ کنید و ارسال را بزنید..." class="flex-1 bg-slate-950 border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-slate-200 outline-none focus:border-blue-500 transition" />
+              <button id="sendDirectTicketReplyBtn" class="bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs px-3.5 py-2 rounded-xl transition shadow active:scale-95 flex items-center gap-1.5 flex-shrink-0">
                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
                 <span>ارسال</span>
               </button>
@@ -1307,8 +1307,8 @@
   </div>
 
   <!-- Shared & Modular Scripts -->
-  <script src="/static/js/utils.js?v=3.6"></script>
-  <script src="/static/js/api.js?v=3.6"></script>
-  <script src="/static/js/admin.js?v=3.6"></script>
+  <script src="/static/js/utils.js?v=3.8"></script>
+  <script src="/static/js/api.js?v=3.8"></script>
+  <script src="/static/js/admin.js?v=3.8"></script>
 </body>
 </html>

@@ -797,7 +797,7 @@
       return;
     }
 
-    container.innerHTML = nodes.map(n => {
+    container.innerHTML = nodes.map((n, idx) => {
       const flag = n.flag || getFlagEmoji(n.country_code);
       const isOnline = (n.status || '').toUpperCase() === 'ONLINE';
       const statusBadge = isOnline ? 'آنلاین' : 'آفلاین';
@@ -810,72 +810,82 @@
       const cpuBarColor = cpu > 85 ? 'bg-rose-500' : (cpu > 60 ? 'bg-amber-500' : 'bg-cyan-500');
       const ramBarColor = ram > 85 ? 'bg-rose-500' : (ram > 60 ? 'bg-amber-500' : 'bg-indigo-500');
 
+      const boxId = `nodeBox_${n.id || idx}`;
+
       return `
-        <div class="node-card bg-slate-800/90 rounded-2xl p-4 border border-slate-700/80 space-y-3.5 shadow-md relative overflow-hidden group">
+        <div class="node-card settings-box bg-slate-800/90 rounded-2xl border border-slate-700/80 shadow-md relative overflow-hidden transition-all">
           <!-- Top Accent Light -->
           <div class="absolute top-0 right-0 left-0 h-[2px] ${isOnline ? 'bg-gradient-to-r from-emerald-500/0 via-emerald-400/50 to-emerald-500/0' : 'bg-gradient-to-r from-rose-500/0 via-rose-500/40 to-rose-500/0'}"></div>
 
-          <!-- Header: Flag, Name, Status -->
-          <div class="flex justify-between items-center">
+          <!-- Header: Flag, Name, Status & Chevron (Clickable) -->
+          <div class="node-header p-3.5 flex justify-between items-center cursor-pointer select-none hover:bg-slate-750/30 transition active:scale-[0.99]" onclick="window.adminActions.toggleSettingsBox('${boxId}')">
+            <!-- Right: Flag and Server Name -->
             <div class="flex items-center gap-2.5 min-w-0">
               <span class="text-2xl flex-shrink-0 filter drop-shadow">${flag}</span>
-              <div class="min-w-0">
-                <div class="flex items-center gap-2">
-                  <h4 class="font-bold text-xs text-white truncate">${n.name || 'Server Node'}</h4>
-                  <span class="w-2 h-2 rounded-full flex-shrink-0 ${dotPulse}"></span>
+              <div class="flex items-center gap-2 min-w-0">
+                <h4 class="font-bold text-xs text-white truncate">${n.name || 'Server Node'}</h4>
+                <span class="w-2 h-2 rounded-full flex-shrink-0 ${dotPulse}"></span>
+              </div>
+            </div>
+
+            <!-- Left: Online Status + Chevron Arrow -->
+            <div class="flex items-center gap-2 flex-shrink-0">
+              <span class="text-[10px] font-bold font-mono ${statusBorder} bg-transparent px-2.5 py-1 rounded-xl border flex items-center gap-1.5">
+                <span class="w-1.5 h-1.5 rounded-full ${isOnline ? 'bg-emerald-400' : 'bg-rose-400'}"></span>
+                ${statusBadge}
+              </span>
+              <svg class="settings-box-chevron node-chevron w-4 h-4 text-slate-400 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+              </svg>
+            </div>
+          </div>
+
+          <!-- Collapsible Body Details (Hidden by default, expands on click) -->
+          <div id="${boxId}" class="node-body p-3.5 pt-2 border-t border-slate-700/60 space-y-3 hidden">
+            <!-- Server Host Address Strip -->
+            <div class="bg-slate-900/60 px-3 py-2 rounded-xl border border-slate-700/60 flex items-center justify-between text-xs">
+              <span class="text-[10px] text-slate-400 flex items-center gap-1.5">
+                <svg class="w-3.5 h-3.5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/></svg>
+                <span>آدرس سرور:</span>
+              </span>
+              <span class="font-mono text-blue-600 dark:text-cyan-300 text-xs font-semibold truncate max-w-[210px] select-all" dir="ltr" title="${n.address || '—'}">${n.address || '—'}</span>
+            </div>
+
+            <!-- System Resource Gauges (CPU & RAM Progress Bars) -->
+            <div class="space-y-2 bg-slate-900/40 p-2.5 rounded-xl border border-slate-700/50">
+              <!-- CPU Progress -->
+              <div class="space-y-1">
+                <div class="flex justify-between items-center text-[10px]">
+                  <span class="text-slate-400">پردازنده (CPU):</span>
+                  <span class="font-mono font-bold ${cpu > 80 ? 'text-rose-400' : 'text-slate-700 dark:text-slate-200'}">${cpu > 0 ? cpu + '%' : 'در دسترس نیست'}</span>
                 </div>
-                <span class="text-[10px] text-slate-400 block mt-0.5 font-sans">${n.country_code ? 'موقعیت: ' + n.country_code : 'کلاستر رمنناویو'}</span>
+                <div class="w-full h-1.5 bg-slate-700/60 rounded-full overflow-hidden">
+                  <div class="h-full ${cpuBarColor} transition-all duration-500" style="width: ${Math.min(100, Math.max(0, cpu))}%"></div>
+                </div>
               </div>
-            </div>
-            <span class="text-[10px] font-bold font-mono ${statusBorder} bg-transparent px-2.5 py-1 rounded-xl border flex-shrink-0 flex items-center gap-1.5">
-              <span class="w-1.5 h-1.5 rounded-full ${isOnline ? 'bg-emerald-400' : 'bg-rose-400'}"></span>
-              ${statusBadge}
-            </span>
-          </div>
 
-          <!-- Server Host Address Strip -->
-          <div class="bg-slate-900/60 px-3 py-2 rounded-xl border border-slate-700/60 flex items-center justify-between text-xs">
-            <span class="text-[10px] text-slate-400 flex items-center gap-1.5">
-              <svg class="w-3.5 h-3.5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/></svg>
-              <span>آدرس سرور:</span>
-            </span>
-            <span class="font-mono text-cyan-300 text-xs font-semibold truncate max-w-[210px] select-all" dir="ltr" title="${n.address || '—'}">${n.address || '—'}</span>
-          </div>
-
-          <!-- System Resource Gauges (CPU & RAM Progress Bars) -->
-          <div class="space-y-2 bg-slate-900/40 p-2.5 rounded-xl border border-slate-700/50">
-            <!-- CPU Progress -->
-            <div class="space-y-1">
-              <div class="flex justify-between items-center text-[10px]">
-                <span class="text-slate-400">پردازنده (CPU):</span>
-                <span class="font-mono font-bold ${cpu > 80 ? 'text-rose-400' : 'text-slate-200'}">${cpu > 0 ? cpu + '%' : 'در دسترس نیست'}</span>
-              </div>
-              <div class="w-full h-1.5 bg-slate-700/60 rounded-full overflow-hidden">
-                <div class="h-full ${cpuBarColor} transition-all duration-500" style="width: ${Math.min(100, Math.max(0, cpu))}%"></div>
+              <!-- RAM Progress -->
+              <div class="space-y-1">
+                <div class="flex justify-between items-center text-[10px]">
+                  <span class="text-slate-400">حافظه رم (RAM):</span>
+                  <span class="font-mono font-bold ${ram > 80 ? 'text-rose-400' : 'text-slate-700 dark:text-slate-200'}">${ram > 0 ? ram + '%' : 'در دسترس نیست'}</span>
+                </div>
+                <div class="w-full h-1.5 bg-slate-700/60 rounded-full overflow-hidden">
+                  <div class="h-full ${ramBarColor} transition-all duration-500" style="width: ${Math.min(100, Math.max(0, ram))}%"></div>
+                </div>
               </div>
             </div>
 
-            <!-- RAM Progress -->
-            <div class="space-y-1">
-              <div class="flex justify-between items-center text-[10px]">
-                <span class="text-slate-400">حافظه رم (RAM):</span>
-                <span class="font-mono font-bold ${ram > 80 ? 'text-rose-400' : 'text-slate-200'}">${ram > 0 ? ram + '%' : 'در دسترس نیست'}</span>
+            <!-- Bottom Metrics: Connected users & Traffic -->
+            <div class="grid grid-cols-2 gap-2 text-center text-[10px]">
+              <div class="bg-slate-900/60 p-2 rounded-xl border border-slate-700/60">
+                <span class="text-slate-400 block mb-0.5">کاربران متصل</span>
+                <b class="text-emerald-600 dark:text-emerald-400 font-mono text-xs">${formatNumber(n.connected_users || 0)} نفر</b>
               </div>
-              <div class="w-full h-1.5 bg-slate-700/60 rounded-full overflow-hidden">
-                <div class="h-full ${ramBarColor} transition-all duration-500" style="width: ${Math.min(100, Math.max(0, ram))}%"></div>
+              <div class="bg-slate-900/60 p-2 rounded-xl border border-slate-700/60">
+                <span class="text-slate-400 block mb-0.5">ترافیک مصرفی نود</span>
+                <b class="text-blue-600 dark:text-cyan-400 font-mono text-xs" dir="ltr">${n.traffic_used_gb ? n.traffic_used_gb + ' GB' : '۰ GB'}</b>
               </div>
-            </div>
-          </div>
-
-          <!-- Bottom Metrics: Connected users & Traffic -->
-          <div class="grid grid-cols-2 gap-2 text-center text-[10px]">
-            <div class="bg-slate-900/60 p-2 rounded-xl border border-slate-700/60">
-              <span class="text-slate-400 block mb-0.5">کاربران متصل</span>
-              <b class="text-emerald-400 font-mono text-xs">${formatNumber(n.connected_users || 0)} نفر</b>
-            </div>
-            <div class="bg-slate-900/60 p-2 rounded-xl border border-slate-700/60">
-              <span class="text-slate-400 block mb-0.5">ترافیک مصرفی نود</span>
-              <b class="text-cyan-400 font-mono text-xs" dir="ltr">${n.traffic_used_gb ? n.traffic_used_gb + ' GB' : '۰ GB'}</b>
             </div>
           </div>
         </div>
@@ -2191,8 +2201,13 @@
 
       const listEl = document.getElementById('ticketThreadsList');
       if (listEl) {
-        listEl.querySelectorAll('button').forEach(btn => {
-          btn.className = 'flex-shrink-0 flex items-center gap-2 px-3 py-1.5 rounded-xl border transition active:scale-95 text-right bg-slate-900/80 hover:bg-slate-850 border-slate-700/70 text-slate-300';
+        listEl.querySelectorAll('.ticket-thread-btn').forEach(btn => {
+          const tid = Number(btn.getAttribute('data-tid'));
+          if (tid === telegram_id) {
+            btn.className = 'ticket-thread-btn flex-shrink-0 flex items-center gap-2.5 px-3 py-2 rounded-2xl border transition active:scale-95 text-right bg-blue-600/20 border-blue-500 text-white shadow-sm ring-1 ring-blue-500/40';
+          } else {
+            btn.className = 'ticket-thread-btn flex-shrink-0 flex items-center gap-2.5 px-3 py-2 rounded-2xl border transition active:scale-95 text-right bg-slate-900/80 hover:bg-slate-800 border-slate-700/70 text-slate-300';
+          }
         });
       }
 
@@ -2217,8 +2232,8 @@
       const targetBody = document.getElementById(targetId);
       if (!targetBody) return;
       const isHidden = targetBody.classList.contains('hidden');
-      const box = targetBody.closest('.settings-box');
-      const chevron = box ? box.querySelector('.settings-box-chevron') : null;
+      const box = targetBody.closest('.settings-box, .node-card');
+      const chevron = box ? box.querySelector('.settings-box-chevron, .node-chevron') : null;
       if (isHidden) {
         targetBody.classList.remove('hidden');
         chevron?.classList.add('rotate-180');
@@ -2227,6 +2242,10 @@
         chevron?.classList.remove('rotate-180');
       }
       if (window.hapticFeedback) window.hapticFeedback('impact');
+    },
+
+    toggleNodeBox(targetId) {
+      this.toggleSettingsBox(targetId);
     },
 
     openReceiptImageModal(photoUrl) {
@@ -2411,15 +2430,15 @@
         const photoUrl = t.photo_url || (t.has_photo ? `/api/admin/topup/photo?id=${t.id}` : null);
 
         return `
-          <div class="topup-card bg-slate-800/90 rounded-2xl p-4 border border-slate-700/80 space-y-3.5 shadow-md relative overflow-hidden transition hover:border-slate-600">
-            <!-- Top Status & Timestamp Header -->
-            <div class="flex items-center justify-between border-b border-slate-700/60 pb-2.5">
-              <div class="flex items-center gap-2">
-                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-[10px] font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30">
+          <div class="topup-card bg-slate-800/90 rounded-2xl p-3.5 border border-slate-700/80 space-y-3 shadow-md relative overflow-hidden transition hover:border-slate-600">
+            <!-- Top Status & Timestamp Header: #id right of status in RTL -->
+            <div class="flex items-center justify-between border-b border-slate-700/60 pb-2">
+              <div class="flex items-center gap-1.5">
+                <span class="font-mono text-xs font-bold text-amber-400">#${t.id}</span>
+                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30">
                   <span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>
                   در انتظار بررسی
                 </span>
-                <span class="font-mono text-xs font-bold text-slate-300">#${t.id}</span>
               </div>
               <span class="font-mono text-[10px] text-slate-400 flex items-center gap-1" dir="ltr">
                 <svg class="w-3 h-3 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
@@ -2427,87 +2446,52 @@
               </span>
             </div>
 
-            <!-- User Info & Amount Section -->
+            <!-- User Info & Clean Amount Section (No bulky box) -->
             <div class="flex items-center justify-between gap-3">
               <div class="flex items-center gap-2.5 min-w-0">
-                <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center font-bold text-white text-xs shadow flex-shrink-0 overflow-hidden relative">
+                <div class="w-9 h-9 rounded-full bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center font-bold text-white text-xs shadow flex-shrink-0 overflow-hidden relative">
                   <img src="${avatarSrc}" alt="Avatar" class="w-full h-full object-cover" onerror="this.classList.add('hidden'); if(this.nextElementSibling) this.nextElementSibling.classList.remove('hidden');" />
                   <span class="font-bold">${initial}</span>
                 </div>
                 <div class="min-w-0">
-                  <b class="text-white text-xs font-bold block truncate max-w-[140px] cursor-pointer hover:text-cyan-300" onclick="window.adminActions.quickCopy('${safeDisplayName}', 'نام')" title="${uLabel}">${uLabel}</b>
-                  <div class="flex items-center gap-2 mt-0.5 font-mono text-[10px] text-slate-400">
-                    <span class="cursor-pointer hover:text-cyan-300 text-slate-300" onclick="window.adminActions.quickCopy('${t.telegram_id}', 'شناسه عددی')">ID: ${t.telegram_id}</span>
-                    ${t.username ? `<span dir="ltr" class="cursor-pointer hover:text-cyan-300 text-slate-400/90 inline-block font-mono" onclick="window.adminActions.quickCopy('@${t.username}', 'نام کاربری')">@${t.username}</span>` : ''}
+                  <b class="text-white text-xs font-bold block truncate max-w-[145px] cursor-pointer hover:text-cyan-300" onclick="window.adminActions.quickCopy('${safeDisplayName}', 'نام')" title="${uLabel}">${uLabel}</b>
+                  <div class="flex items-center gap-1.5 mt-0.5 font-mono text-[10px] text-slate-400" dir="ltr">
+                    ${t.username ? `<span onclick="window.adminActions.quickCopy('@${t.username}', 'نام کاربری')" class="cursor-pointer hover:text-cyan-300 text-slate-300 font-mono truncate max-w-[95px] inline-block" title="@${t.username}">@${t.username}</span><span class="text-slate-600">•</span>` : ''}
+                    <span class="cursor-pointer hover:text-cyan-300 text-slate-400" onclick="window.adminActions.quickCopy('${t.telegram_id}', 'شناسه عددی')">ID: ${t.telegram_id}</span>
                   </div>
                 </div>
               </div>
 
-              <!-- Amount Banner -->
-              <div class="text-left bg-emerald-500/10 border border-emerald-500/25 px-3 py-1.5 rounded-xl flex-shrink-0">
-                <span class="text-[9px] text-emerald-400 block font-medium">مبلغ واریزی</span>
-                <div class="flex items-baseline gap-1">
-                  <b class="text-base font-black text-emerald-400 font-mono">${formatNumber(t.amount || 0)}</b>
-                  <span class="text-[10px] text-emerald-500/90 font-sans">تومان</span>
+              <!-- Clean Amount Typography -->
+              <div class="text-left flex flex-col items-end flex-shrink-0">
+                <span class="text-[10px] text-slate-400 block font-medium">مبلغ واریزی</span>
+                <div class="flex items-baseline gap-1 text-emerald-400 dark:text-emerald-400">
+                  <span class="text-base font-black font-mono leading-none">${formatNumber(t.amount || 0)}</span>
+                  <span class="text-[10px] text-emerald-500/80 font-sans">تومان</span>
                 </div>
               </div>
             </div>
 
-            <!-- Receipt Photo Preview (if available) -->
-            ${photoUrl ? `
-              <div class="bg-slate-900/60 p-2.5 rounded-xl border border-slate-700/60 flex items-center justify-between gap-3">
-                <div class="flex items-center gap-3 min-w-0">
-                  <div class="w-14 h-14 rounded-xl bg-slate-950/60 border border-slate-700/80 overflow-hidden flex-shrink-0 relative group cursor-pointer" onclick="window.adminActions.openReceiptImageModal('${photoUrl}')">
-                    <img src="${photoUrl}" alt="فیش واریزی" class="w-full h-full object-cover transition-transform duration-200 group-hover:scale-110" loading="lazy" />
-                    <div class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                      <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7"/></svg>
-                    </div>
-                  </div>
-                  <div class="min-w-0">
-                    <span class="text-xs font-bold text-slate-200 block truncate">تصویر فیش ضمیمه شده</span>
-                    <span class="text-[10px] text-cyan-400 hover:text-cyan-300 cursor-pointer flex items-center gap-1 mt-1 font-medium" onclick="window.adminActions.openReceiptImageModal('${photoUrl}')">
-                      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
-                      بزرگنمایی و بررسی فیش
-                    </span>
-                  </div>
-                </div>
-                <button type="button" onclick="window.adminActions.openReceiptImageModal('${photoUrl}')" class="bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 flex-shrink-0 active:scale-95 shadow-sm">
-                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                  <span>مشاهده عکس</span>
-                </button>
-              </div>
-            ` : `
-              <div class="bg-slate-900/40 p-2.5 rounded-xl border border-dashed border-slate-700/60 flex items-center gap-2 text-slate-400 text-[11px]">
-                <svg class="w-4 h-4 text-slate-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                <span>واریز با شماره پیگیری متنی (بدون تصویر ضمیمه)</span>
-              </div>
-            `}
-
-            <!-- Tracking Code Strip -->
-            <div class="bg-slate-900/70 px-3 py-2 rounded-xl border border-slate-700/60 flex items-center justify-between text-xs gap-2">
-              <span class="text-[10px] text-slate-400 flex items-center gap-1.5 flex-shrink-0">
-                <svg class="w-3.5 h-3.5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                <span>کد پیگیری / ارجاع:</span>
-              </span>
-              <span class="font-mono text-cyan-300 text-xs font-bold truncate max-w-[190px] select-all cursor-pointer hover:text-cyan-200" dir="ltr" onclick="window.adminActions.quickCopy('${t.receipt_hash || ''}', 'کد پیگیری')" title="${t.receipt_hash || 'ثبت نشده'}">
-                ${t.receipt_hash || 'ثبت نشده'}
-              </span>
-            </div>
-
-            <!-- Action Buttons Grid -->
-            <div class="grid grid-cols-3 gap-2 pt-0.5 text-xs">
-              <button onclick="window.adminActions.handleTopup(${t.id}, true)" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2 rounded-xl transition active:scale-95 shadow flex items-center justify-center gap-1">
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                <span>تایید و شارژ</span>
-              </button>
-              <button onclick="window.adminActions.handleTopup(${t.id}, false)" class="bg-rose-600/90 hover:bg-rose-500 text-white font-bold py-2 rounded-xl transition active:scale-95 shadow flex items-center justify-center gap-1">
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                <span>رد فیش</span>
-              </button>
-              <button onclick="window.adminActions.openUserChat(${t.telegram_id}, '${safeDisplayName}', '${t.username ? '@' + t.username : '#' + t.telegram_id}')" class="bg-transparent hover:bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 hover:border-cyan-400/60 py-2 rounded-xl transition font-medium flex items-center justify-center gap-1 active:scale-95" title="گفتگوی مستقیم با کاربر">
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+            <!-- Action Buttons: Chat on right, Photo icon & Emoji buttons on left -->
+            <div class="flex items-center justify-between gap-2 pt-1 border-t border-slate-700/50">
+              <button onclick="window.adminActions.openUserChat(${t.telegram_id}, '${safeDisplayName}', '${t.username ? '@' + t.username : '#' + t.telegram_id}')" class="bg-slate-700/30 hover:bg-slate-700/60 text-slate-300 hover:text-white px-3 py-1.5 rounded-xl text-xs font-medium transition flex items-center gap-1.5 active:scale-95 border border-slate-700/50" title="گفتگوی مستقیم با کاربر">
+                <svg class="w-3.5 h-3.5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
                 <span>چت با کاربر</span>
               </button>
+
+              <div class="flex items-center gap-1.5">
+                ${photoUrl ? `
+                  <button type="button" onclick="window.adminActions.openReceiptImageModal('${photoUrl}')" class="w-8 h-8 rounded-xl bg-cyan-500/15 hover:bg-cyan-500/25 text-cyan-400 border border-cyan-500/30 flex items-center justify-center transition active:scale-95 shadow-sm" title="مشاهده تصویر فیش">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                  </button>
+                ` : ''}
+                <button type="button" onclick="window.adminActions.handleTopup(${t.id}, false)" class="w-8 h-8 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 text-rose-500 hover:text-rose-400 border border-rose-500/30 flex items-center justify-center transition active:scale-95 font-bold text-sm shadow-sm" title="رد فیش">
+                  ✕
+                </button>
+                <button type="button" onclick="window.adminActions.handleTopup(${t.id}, true)" class="w-8 h-8 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-400 hover:text-emerald-300 border border-emerald-500/30 flex items-center justify-center transition active:scale-95 font-bold text-sm shadow-sm" title="تایید و شارژ موجودی">
+                  ✓
+                </button>
+              </div>
             </div>
           </div>
         `;
@@ -2541,16 +2525,16 @@
         const tag = th.username ? `@${th.username}` : `#${th.telegram_id}`;
         const topupBadge = th.has_pending_topup ? '<span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse inline-block" title="دارای فیش در انتظار"></span>' : '';
         return `
-          <button onclick="window.adminActions.openUserChat(${th.telegram_id}, '${(th.full_name || '').replace(/'/g, "\\'")}', '${tag}')" class="flex-shrink-0 flex items-center gap-2 px-3 py-1.5 rounded-xl border transition active:scale-95 text-right ${isSelected ? 'bg-blue-600/20 border-blue-500 text-white shadow-sm' : 'bg-slate-900/80 hover:bg-slate-850 border-slate-700/70 text-slate-300'}">
-            <div class="w-6 h-6 rounded-full bg-gradient-to-tr from-cyan-600 to-blue-600 text-white font-bold text-[9px] flex items-center justify-center flex-shrink-0 relative">
+          <button data-tid="${th.telegram_id}" onclick="window.adminActions.openUserChat(${th.telegram_id}, '${(th.full_name || '').replace(/'/g, "\\'")}', '${tag}')" class="ticket-thread-btn flex-shrink-0 flex items-center gap-2.5 px-3 py-2 rounded-2xl border transition active:scale-95 text-right ${isSelected ? 'bg-blue-600/20 border-blue-500 text-white shadow-sm ring-1 ring-blue-500/40' : 'bg-slate-900/80 hover:bg-slate-800 border-slate-700/70 text-slate-300'}">
+            <div class="w-7 h-7 rounded-full bg-gradient-to-tr from-cyan-600 to-blue-600 text-white font-bold text-[10px] flex items-center justify-center flex-shrink-0 relative shadow">
               ${initial}
             </div>
             <div class="min-w-0">
-              <div class="flex items-center gap-1">
-                <span class="text-[11px] font-bold block truncate max-w-[110px]">${th.full_name}</span>
+              <div class="flex items-center gap-1.5">
+                <span class="text-xs font-bold block truncate max-w-[110px]">${th.full_name || 'کاربر'}</span>
                 ${topupBadge}
               </div>
-              <span class="text-[9px] text-slate-400 font-mono block truncate max-w-[110px]">${th.last_message || tag}</span>
+              <span class="text-[9px] text-slate-400 block truncate max-w-[110px] font-mono" dir="ltr">${th.last_message ? `<span dir="rtl">${th.last_message}</span>` : tag}</span>
             </div>
           </button>
         `;
@@ -2626,10 +2610,10 @@
         const isAdmin = m.sender === 'admin';
         return `
           <div class="flex ${isAdmin ? 'justify-start' : 'justify-end'}">
-            <div class="max-w-[82%] rounded-2xl p-2.5 space-y-1 shadow-sm ${isAdmin ? 'bg-emerald-950/70 border border-emerald-800/60 text-emerald-100 rounded-tr-sm' : 'bg-slate-900 border border-slate-800 text-slate-200 rounded-tl-sm'}">
-              <div class="flex items-center justify-between gap-3 text-[9px] ${isAdmin ? 'text-emerald-400' : 'text-slate-400'}">
-                <span class="font-bold">${isAdmin ? '🛡️ پشتیبانی (مدیر)' : '👤 کاربر'}</span>
-                <span class="font-mono opacity-80">${m.created_at || ''}</span>
+            <div class="max-w-[85%] rounded-2xl p-2.5 space-y-1 shadow-sm ${isAdmin ? 'bg-blue-600/20 border border-blue-500/30 text-blue-100 rounded-tr-sm' : 'bg-slate-900 border border-slate-700/60 text-slate-200 rounded-tl-sm'}">
+              <div class="flex items-center justify-between gap-3 text-[9px] ${isAdmin ? 'text-blue-400' : 'text-slate-400'}">
+                <span class="font-bold">${isAdmin ? '🛡️ پشتیبانی' : '👤 کاربر'}</span>
+                <span class="font-mono opacity-80" dir="ltr">${m.created_at || ''}</span>
               </div>
               <p class="text-xs leading-relaxed break-words whitespace-pre-wrap">${m.text}</p>
             </div>
