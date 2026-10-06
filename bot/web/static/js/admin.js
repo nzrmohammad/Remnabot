@@ -58,13 +58,12 @@
   }
 
   function formatNumber(num) {
-    if (num === null || num === undefined || isNaN(Number(num))) return '۰';
+    if (num === null || num === undefined || isNaN(Number(num))) return '0';
     const n = Number(num);
     const rounded = Number.isInteger(n) ? n.toString() : (Math.round(n * 100) / 100).toString();
     const [intPart, decPart] = rounded.split('.');
     const formattedInt = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-    const full = decPart !== undefined ? `${formattedInt}.${decPart}` : formattedInt;
-    return full.replace(/\d/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]);
+    return decPart !== undefined ? `${formattedInt}.${decPart}` : formattedInt;
   }
 
   // --- 2. Tab Navigation ---
@@ -802,7 +801,6 @@
       const isOnline = (n.status || '').toUpperCase() === 'ONLINE';
       const statusBadge = isOnline ? 'آنلاین' : 'آفلاین';
       const statusBorder = isOnline ? 'border-emerald-500/30 text-emerald-600 dark:text-emerald-400' : 'border-rose-500/30 text-rose-600 dark:text-rose-400';
-      const dotPulse = isOnline ? 'bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.8)]' : 'bg-rose-500';
 
       const cpu = Number(n.cpu_percent || 0);
       const ram = Number(n.ram_percent || 0);
@@ -819,13 +817,10 @@
 
           <!-- Header: Flag, Name, Status & Chevron (Clickable) -->
           <div class="node-header p-3.5 flex justify-between items-center cursor-pointer select-none hover:bg-slate-750/30 transition active:scale-[0.99]" onclick="window.adminActions.toggleSettingsBox('${boxId}')">
-            <!-- Right: Flag and Server Name -->
+            <!-- Right: Flag and Server Name (بدون دایره اضافی وضعیت) -->
             <div class="flex items-center gap-2.5 min-w-0">
               <span class="text-2xl flex-shrink-0 filter drop-shadow">${flag}</span>
-              <div class="flex items-center gap-2 min-w-0">
-                <h4 class="font-bold text-xs text-white truncate">${n.name || 'Server Node'}</h4>
-                <span class="w-2 h-2 rounded-full flex-shrink-0 ${dotPulse}"></span>
-              </div>
+              <h4 class="font-bold text-xs text-white truncate">${n.name || 'Server Node'}</h4>
             </div>
 
             <!-- Left: Online Status + Chevron Arrow -->
@@ -884,7 +879,7 @@
               </div>
               <div class="bg-slate-900/60 p-2 rounded-xl border border-slate-700/60">
                 <span class="text-slate-400 block mb-0.5">ترافیک مصرفی نود</span>
-                <b class="text-blue-600 dark:text-cyan-400 font-mono text-xs" dir="ltr">${n.traffic_used_gb ? n.traffic_used_gb + ' GB' : '۰ GB'}</b>
+                <b class="text-blue-600 dark:text-cyan-400 font-mono text-xs" dir="ltr">${n.traffic_used_gb ? n.traffic_used_gb + ' GB' : '0 GB'}</b>
               </div>
             </div>
           </div>
@@ -2115,8 +2110,8 @@
 
       if (modal) modal.classList.remove('hidden');
       if (subtitle) subtitle.innerText = `کد تخفیف: ${code}`;
-      if (countStat) countStat.innerText = '۰ بار';
-      if (totalDiscStat) totalDiscStat.innerText = '۰ تومان';
+      if (countStat) countStat.innerText = '0 بار';
+      if (totalDiscStat) totalDiscStat.innerText = '0 تومان';
       if (list) list.innerHTML = '<div class="p-6 text-center text-xs text-slate-400">در حال دریافت لیست استفاده‌کنندگان...</div>';
       if (window.hapticFeedback) window.hapticFeedback('impact');
 
@@ -2151,35 +2146,50 @@
 
         list.innerHTML = usages.map(u => {
           const hasUsername = Boolean(u.username);
-          const hasFullName = Boolean(u.full_name && u.full_name !== u.username);
-          const title = hasFullName ? u.full_name : (hasUsername ? `@${u.username}` : `کاربر ${u.telegram_id}`);
-          const initial = (title.replace('@', '')[0] || 'U').toUpperCase();
-          const dateStr = u.created_at ? new Date(u.created_at).toLocaleDateString('fa-IR', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' }) : '—';
+          const displayName = u.full_name || (hasUsername ? `@${u.username}` : `کاربر ${u.telegram_id}`);
+          const safeDisplayName = displayName.replace(/'/g, "\\'");
+          const initial = (displayName.replace('@', '')[0] || 'U').toUpperCase();
+          const dateStr = u.created_at ? new Date(u.created_at).toLocaleDateString('fa-IR', { numberingSystem: 'latn', hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' }) : '—';
           const discountStr = u.discount_applied > 0 ? `${formatNumber(u.discount_applied)} تومان` : 'اعمال‌شده';
 
           return `
-            <div class="coupon-usage-card bg-slate-900/60 rounded-2xl p-3.5 border border-slate-700/60 flex items-center justify-between gap-3 shadow-sm hover:border-pink-500/40 transition">
-              <div class="flex items-center gap-3 min-w-0">
-                <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-pink-600 to-purple-600 text-white font-bold text-xs flex items-center justify-center flex-shrink-0 shadow-sm">
-                  ${initial}
+            <div class="coupon-usage-card bg-slate-900/60 rounded-2xl p-3 border border-slate-700/60 space-y-2.5 shadow-sm hover:border-pink-500/40 transition">
+              <!-- Top Row: Order on right, Date on top-left -->
+              <div class="flex items-center justify-between border-b border-slate-800/80 pb-2">
+                <div class="flex items-center gap-1.5 min-w-0">
+                  ${u.order_id ? `<span class="text-[11px] font-mono text-cyan-400 font-medium">سفارش ${u.order_id}</span>` : `<span class="text-[11px] text-slate-400">ثبت تخفیف</span>`}
                 </div>
-                <div class="min-w-0 space-y-1">
-                  <div class="flex items-center gap-2">
-                    <b class="text-white text-xs font-bold truncate max-w-[150px] cursor-pointer hover:text-pink-300" onclick="window.adminActions.quickCopy('${title.replace(/'/g, "\\'")}', 'کاربر')" title="${title}">${title}</b>
-                    ${hasFullName && hasUsername ? `<span dir="ltr" class="text-[10px] text-pink-400 font-mono inline-block cursor-pointer hover:underline" onclick="window.adminActions.quickCopy('@${u.username}', 'نام کاربری')">@${u.username}</span>` : ''}
-                  </div>
-                  <div class="flex items-center gap-2 text-[10px] text-slate-400 font-mono">
-                    <span class="cursor-pointer hover:text-cyan-300" onclick="window.adminActions.quickCopy('${u.telegram_id}', 'شناسه عددی')">ID: ${u.telegram_id}</span>
-                    ${u.order_id ? `<span class="text-slate-500">•</span><span class="text-cyan-300 font-bold">سفارش #${u.order_id}</span>` : ''}
-                  </div>
-                  <div class="text-[10px] text-slate-400 font-mono flex items-center gap-1" dir="ltr">
-                    <svg class="w-3 h-3 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                    <span>${dateStr}</span>
-                  </div>
+                <div class="text-[10px] text-slate-400 font-mono flex items-center gap-1" dir="ltr">
+                  <svg class="w-3 h-3 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                  <span>${dateStr}</span>
                 </div>
               </div>
-              <div class="text-left flex-shrink-0">
-                <span class="inline-block px-2.5 py-1 rounded-xl bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 text-xs font-mono font-bold">${discountStr}</span>
+
+              <!-- Main Content: Name & Avatar on right, Amount, Username & ID on left -->
+              <div class="flex items-center justify-between gap-3">
+                <div class="flex items-center gap-2.5 min-w-0">
+                  <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-pink-600 to-purple-600 text-white font-bold text-xs flex items-center justify-center flex-shrink-0 shadow-sm">
+                    ${initial}
+                  </div>
+                  <div class="min-w-0">
+                    <b class="text-white text-xs font-bold block truncate max-w-[130px] sm:max-w-[160px] cursor-pointer hover:text-pink-300" onclick="window.adminActions.quickCopy('${safeDisplayName}', 'نام کاربر')" title="${displayName}">${displayName}</b>
+                    <span class="text-[10px] text-slate-400 block mt-0.5">${u.full_name ? 'کاربر سرویس' : 'کاربر'}</span>
+                  </div>
+                </div>
+
+                <div class="flex flex-col items-end text-left flex-shrink-0 gap-0.5" dir="ltr">
+                  <div class="text-xs font-bold font-mono text-emerald-400">
+                    ${discountStr}
+                  </div>
+                  ${hasUsername ? `
+                    <div class="text-[11px] text-pink-400 font-mono cursor-pointer hover:underline truncate max-w-[130px]" onclick="window.adminActions.quickCopy('@${u.username}', 'نام کاربری')" title="@${u.username}">
+                      @${u.username}
+                    </div>
+                  ` : ''}
+                  <div class="text-[10px] text-slate-400 font-mono cursor-pointer hover:text-cyan-300" onclick="window.adminActions.quickCopy('${u.telegram_id}', 'شناسه عددی')">
+                    ID: ${u.telegram_id}
+                  </div>
+                </div>
               </div>
             </div>
           `;
@@ -2613,7 +2623,7 @@
         const uLabel = t.full_name || (t.username ? '@' + t.username : `کاربر ${t.telegram_id}`);
         const safeDisplayName = (uLabel || '').replace(/'/g, "\\'");
         const initial = (uLabel[0] || 'U').toUpperCase();
-        const dateStr = t.created_at ? new Date(t.created_at).toLocaleDateString('fa-IR', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' }) : '—';
+        const dateStr = t.created_at ? new Date(t.created_at).toLocaleDateString('fa-IR', { numberingSystem: 'latn', hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' }) : '—';
         const avatarSrc = t.avatar_url || `/api/user/avatar?user_id=${t.telegram_id}`;
         const hasPhoto = Boolean(t.has_photo || t.receipt_photo_id);
         const photoUrl = hasPhoto ? `/api/admin/topup/photo?id=${t.id}` : null;
@@ -3088,15 +3098,15 @@
           const totalEl = document.getElementById('reportTotalCount');
           if (totalEl) totalEl.innerText = `${formatNumber(res.stats?.total || 0)} نفر`;
           const sentEl = document.getElementById('reportSentCount');
-          if (sentEl) sentEl.innerText = '۰ پیام';
+          if (sentEl) sentEl.innerText = '0 پیام';
           const failEl = document.getElementById('reportFailedCount');
-          if (failEl) failEl.innerText = '۰';
+          if (failEl) failEl.innerText = '0';
           const statusEl = document.getElementById('reportStatusText');
           if (statusEl) statusEl.innerText = 'در حال ارسال پیام‌ها...';
           const pBar = document.getElementById('reportProgressBar');
           if (pBar) pBar.style.width = '10%';
           const pText = document.getElementById('reportPercentText');
-          if (pText) pText.innerText = '۰%';
+          if (pText) pText.innerText = '0%';
 
           // Poll progress
           const bId = res.broadcast_id;
