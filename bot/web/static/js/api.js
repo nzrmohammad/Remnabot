@@ -230,6 +230,10 @@ const api = {
   async getAdminCryptoRates() {
     return this.get('/api/admin/crypto/rates');
   },
+
+  async getSessionsExplorer() {
+    return this.get('/api/admin/sessions-explorer');
+  },
 };
 
 window.api = api;

@@ -517,6 +517,33 @@
     });
   }
 
+  function createDoughnutLegendLabels() {
+    return {
+      usePointStyle: true,
+      pointStyle: 'circle',
+      boxWidth: 7,
+      boxHeight: 7,
+      padding: 8,
+      color: isDark ? '#94a3b8' : '#64748b',
+      font: { family: 'Vazirmatn', size: 9 },
+      generateLabels: (chart) => {
+        const data = chart.data;
+        if (!data.labels?.length || !data.datasets?.length) return [];
+        const dataset = data.datasets[0];
+        return data.labels.map((label, i) => ({
+          text: label,
+          fillStyle: Array.isArray(dataset.backgroundColor) ? dataset.backgroundColor[i] : dataset.backgroundColor,
+          strokeStyle: 'transparent',
+          lineWidth: 0,
+          pointStyle: 'circle',
+          hidden: isNaN(dataset.data[i]) || chart.getDataVisibility(i) === false,
+          index: i,
+          datasetIndex: 0
+        }));
+      }
+    };
+  }
+
   let locationChartInstance = null;
   function renderAdminLocationChart(locationShare) {
     const canvas = document.getElementById('adminLocationChart');
@@ -553,8 +580,8 @@
             'rgba(244, 63, 94, 0.85)',
             'rgba(99, 102, 241, 0.85)',
           ],
-          borderWidth: 2,
-          borderColor: isDark ? '#0f172a' : '#ffffff',
+          borderWidth: 0,
+          borderColor: 'transparent',
         }]
       },
       options: {
@@ -566,13 +593,7 @@
             position: 'bottom',
             rtl: true,
             textDirection: 'rtl',
-            labels: {
-              boxWidth: 9,
-              boxHeight: 9,
-              padding: 8,
-              color: isDark ? '#94a3b8' : '#64748b',
-              font: { family: 'Vazirmatn', size: 9 },
-            }
+            labels: createDoughnutLegendLabels()
           },
           tooltip: {
             rtl: true,
@@ -767,8 +788,8 @@
             'rgba(6, 182, 212, 0.85)',
             'rgba(16, 185, 129, 0.85)',
           ],
-          borderWidth: 2,
-          borderColor: isDark ? '#0f172a' : '#ffffff',
+          borderWidth: 0,
+          borderColor: 'transparent',
         }]
       },
       options: {
@@ -780,13 +801,7 @@
             position: 'bottom',
             rtl: true,
             textDirection: 'rtl',
-            labels: {
-              boxWidth: 9,
-              boxHeight: 9,
-              padding: 8,
-              color: isDark ? '#94a3b8' : '#64748b',
-              font: { family: 'Vazirmatn', size: 9 },
-            }
+            labels: createDoughnutLegendLabels()
           },
           tooltip: {
             rtl: true,
@@ -831,8 +846,8 @@
             'rgba(168, 85, 247, 0.85)',
             'rgba(148, 163, 184, 0.85)',
           ],
-          borderWidth: 2,
-          borderColor: isDark ? '#0f172a' : '#ffffff',
+          borderWidth: 0,
+          borderColor: 'transparent',
         }]
       },
       options: {
@@ -844,13 +859,7 @@
             position: 'bottom',
             rtl: true,
             textDirection: 'rtl',
-            labels: {
-              boxWidth: 9,
-              boxHeight: 9,
-              padding: 8,
-              color: isDark ? '#94a3b8' : '#64748b',
-              font: { family: 'Vazirmatn', size: 9 },
-            }
+            labels: createDoughnutLegendLabels()
           },
           tooltip: {
             rtl: true,
@@ -893,8 +902,8 @@
             'rgba(6, 182, 212, 0.85)',
             'rgba(168, 85, 247, 0.85)',
           ],
-          borderWidth: 2,
-          borderColor: isDark ? '#0f172a' : '#ffffff',
+          borderWidth: 0,
+          borderColor: 'transparent',
         }]
       },
       options: {
@@ -906,13 +915,7 @@
             position: 'bottom',
             rtl: true,
             textDirection: 'rtl',
-            labels: {
-              boxWidth: 9,
-              boxHeight: 9,
-              padding: 8,
-              color: isDark ? '#94a3b8' : '#64748b',
-              font: { family: 'Vazirmatn', size: 9 },
-            }
+            labels: createDoughnutLegendLabels()
           },
           tooltip: {
             rtl: true,
@@ -962,8 +965,8 @@
             'rgba(16, 185, 129, 0.85)',
             'rgba(244, 63, 94, 0.85)',
           ],
-          borderWidth: 2,
-          borderColor: isDark ? '#0f172a' : '#ffffff',
+          borderWidth: 0,
+          borderColor: 'transparent',
         }]
       },
       options: {
@@ -975,13 +978,7 @@
             position: 'bottom',
             rtl: true,
             textDirection: 'rtl',
-            labels: {
-              boxWidth: 9,
-              boxHeight: 9,
-              padding: 8,
-              color: isDark ? '#94a3b8' : '#64748b',
-              font: { family: 'Vazirmatn', size: 9 },
-            }
+            labels: createDoughnutLegendLabels()
           },
           tooltip: {
             rtl: true,
@@ -1453,9 +1450,9 @@
                 <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
                 <span>لینک ساب</span>
               </button>
-              <button class="bg-transparent hover:bg-teal-500/10 text-teal-600 dark:text-teal-400 border border-teal-500/30 hover:border-teal-400/60 py-1.5 rounded-xl transition active:scale-95 font-medium flex items-center justify-center gap-1" onclick="window.adminActions.openHwidModal(${u.telegram_id}, '${safeDisplayName}')" title="کاوشگر نشست‌ها و دستگاه‌های فعال (Session Explorer)">
+              <button class="bg-transparent hover:bg-teal-500/10 text-teal-600 dark:text-teal-400 border border-teal-500/30 hover:border-teal-400/60 py-1.5 rounded-xl transition active:scale-95 font-medium flex items-center justify-center gap-1" onclick="window.adminActions.openHwidModal(${u.telegram_id}, '${safeDisplayName}')" title="دستگاه‌های فعال (HWID)">
                 <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
-                <span>سشن‌ها (HWID)</span>
+                <span>دستگاه‌ها</span>
               </button>
               <button class="${u.is_banned ? 'text-emerald-600 dark:text-emerald-400 border-emerald-500/30 hover:border-emerald-400/60 hover:bg-emerald-500/10' : 'text-rose-600 dark:text-rose-400 border-rose-500/30 hover:border-rose-400/60 hover:bg-rose-500/10'} bg-transparent border py-1.5 rounded-xl transition active:scale-95 font-medium flex items-center justify-center gap-1" onclick="window.adminActions.toggleBan(${u.telegram_id}, ${u.is_banned})">
                 ${u.is_banned ? '<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg><span>آزاد</span>' : '<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg><span>مسدود</span>'}
@@ -2037,7 +2034,7 @@
       const title = document.getElementById('hwidModalTitle');
       const list = document.getElementById('hwidDevicesList');
       if (modal) modal.classList.remove('hidden');
-      if (title) title.innerText = `📱 کاوشگر نشست‌ها (HWID): ${name}`;
+      if (title) title.innerText = `📱 دستگاه‌های: ${name}`;
       if (list) list.innerHTML = '<div class="p-6 text-center text-slate-400">در حال دریافت دستگاه‌ها...</div>';
 
       try {
@@ -2135,6 +2132,131 @@
       } catch (e) {
         if (window.showToast) window.showToast('خطا در برقراری ارتباط');
       }
+    },
+
+    // --- Sessions Explorer Actions ---
+    _sessionsExplorerData: null,
+
+    async openSessionsExplorerModal() {
+      const modal = document.getElementById('sessionsExplorerModal');
+      if (modal) modal.classList.remove('hidden');
+      if (window.hapticFeedback) window.hapticFeedback('impact');
+      await this.refreshSessionsExplorer();
+    },
+
+    closeSessionsExplorerModal() {
+      const modal = document.getElementById('sessionsExplorerModal');
+      if (modal) modal.classList.add('hidden');
+      if (window.hapticFeedback) window.hapticFeedback('selection');
+    },
+
+    async refreshSessionsExplorer() {
+      const list = document.getElementById('sessionsExplorerList');
+      const summary = document.getElementById('sessionsExplorerSummary');
+      const searchInput = document.getElementById('sessionsExplorerSearch');
+      if (searchInput) searchInput.value = '';
+
+      if (list) {
+        list.innerHTML = `
+          <div class="p-8 text-center text-xs text-slate-400 flex flex-col items-center gap-2">
+            <span class="w-6 h-6 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin"></span>
+            <span>در حال اسکن نودها و دریافت اتصالات زنده...</span>
+          </div>
+        `;
+      }
+
+      try {
+        const res = await window.api.getSessionsExplorer();
+        if (!res || !res.ok) {
+          if (list) list.innerHTML = `<div class="p-4 text-center text-rose-400 text-xs">${res?.error || 'خطا در دریافت اتصالات'}</div>`;
+          return;
+        }
+
+        const data = res.data || {};
+        this._sessionsExplorerData = data;
+        const totalUsers = data.total_users_online || 0;
+        const totalConns = data.total_connections || 0;
+        const totalIps = data.total_unique_ips || 0;
+
+        if (summary) {
+          summary.innerText = `${formatNumber(totalUsers)} کاربر آنلاین | ${formatNumber(totalConns)} اتصال (${formatNumber(totalIps)} IP)`;
+        }
+
+        this.renderSessionsExplorerList(data.all_online_users || []);
+      } catch (e) {
+        if (list) list.innerHTML = '<div class="p-4 text-center text-rose-400 text-xs">خطای شبکه در دریافت اتصالات</div>';
+      }
+    },
+
+    filterSessionsExplorer(query) {
+      if (!this._sessionsExplorerData) return;
+      const q = (query || '').trim().toLowerCase();
+      const allUsers = this._sessionsExplorerData.all_online_users || [];
+      if (!q) {
+        this.renderSessionsExplorerList(allUsers);
+        return;
+      }
+
+      const filtered = allUsers.filter(u => {
+        const uname = (u.username || '').toLowerCase();
+        const ips = (u.uniqueIps || []).join(' ').toLowerCase();
+        const nodes = (u.nodeConnections || []).map(nc => nc.nodeName || '').join(' ').toLowerCase();
+        return uname.includes(q) || ips.includes(q) || nodes.includes(q);
+      });
+      this.renderSessionsExplorerList(filtered);
+    },
+
+    renderSessionsExplorerList(users) {
+      const list = document.getElementById('sessionsExplorerList');
+      if (!list) return;
+
+      if (!users || users.length === 0) {
+        list.innerHTML = '<div class="p-8 text-center text-xs text-slate-400">هیچ اتصال فعالی یافت نشد 🟢</div>';
+        return;
+      }
+
+      list.innerHTML = users.map((u, idx) => {
+        const uname = u.username || `کاربر ${u.userId}`;
+        const uniqueIps = u.uniqueIps || [];
+        const isMultiIp = uniqueIps.length > 1;
+        const conns = u.nodeConnections || [];
+
+        const connsHtml = conns.map(nc => {
+          const flag = getFlagEmoji(nc.countryCode);
+          const nodeName = nc.nodeName || 'Node';
+          const ipsHtml = (nc.ips || []).map(ip => `
+            <span dir="ltr" class="font-mono text-[10px] text-cyan-400 dark:text-cyan-300 bg-slate-900/80 px-2 py-0.5 rounded-md border border-slate-700/60">${ip}</span>
+          `).join('');
+
+          return `
+            <div class="flex items-center justify-between text-[11px] bg-slate-900/40 p-2 rounded-xl border border-slate-800">
+              <span class="text-slate-300 font-medium flex items-center gap-1">
+                <span>${flag}</span>
+                <span class="truncate max-w-[120px]">${nodeName}</span>
+              </span>
+              <div class="flex flex-wrap gap-1 justify-end">${ipsHtml || '<span class="text-slate-500">—</span>'}</div>
+            </div>
+          `;
+        }).join('');
+
+        return `
+          <div class="bg-slate-800/80 rounded-2xl p-3 border ${isMultiIp ? 'border-amber-500/40' : 'border-slate-700/60'} space-y-2">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-1.5 min-w-0">
+                <span class="w-2 h-2 rounded-full ${isMultiIp ? 'bg-amber-400 animate-pulse' : 'bg-emerald-400'}"></span>
+                <b class="text-white text-xs truncate">${uname}</b>
+              </div>
+              <div class="flex items-center gap-1 text-[10px]">
+                ${isMultiIp ? `<span class="bg-amber-500/20 text-amber-300 border border-amber-500/40 px-1.5 py-0.5 rounded-lg font-bold">⚠️ ${uniqueIps.length} IP</span>` : `<span class="text-emerald-400 font-mono">1 IP</span>`}
+                <span class="text-slate-400 font-mono">(${u.totalConnections || 1} conn)</span>
+              </div>
+            </div>
+            <div class="space-y-1.5 pt-1">
+              ${connsHtml}
+            </div>
+          </div>
+        `;
+      }).join('');
     },
 
     // --- Plans Actions ---

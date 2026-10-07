@@ -1710,6 +1710,29 @@ async def get_admin_user_hwid_devices(request: web.Request) -> web.Response:
     return web.json_response({"ok": True, "devices": devices or []})
 
 
+async def get_admin_sessions_explorer(request: web.Request) -> web.Response:
+    """Scan and fetch real-time active connections and sessions across all nodes (Sessions Explorer)."""
+    admin = _check_admin(request)
+    if not admin:
+        return web.json_response({"ok": False, "error": "Forbidden"}, status=403)
+
+    remnawave = request.app["remnawave"]
+    try:
+        data = await remnawave.get_live_sessions_explorer()
+        # Convert any sets in data to lists for JSON serialization
+        if data and isinstance(data, dict):
+            for u in data.get("all_online_users", []):
+                if "uniqueIps" in u and isinstance(u["uniqueIps"], set):
+                    u["uniqueIps"] = sorted(list(u["uniqueIps"]))
+            for u in data.get("multi_ip_users", []):
+                if "uniqueIps" in u and isinstance(u["uniqueIps"], set):
+                    u["uniqueIps"] = sorted(list(u["uniqueIps"]))
+        return web.json_response({"ok": True, "data": data})
+    except Exception as exc:
+        logger.warning("Error fetching sessions explorer data: %s", exc)
+        return web.json_response({"ok": False, "error": str(exc)}, status=500)
+
+
 async def post_admin_user_delete_hwid(request: web.Request) -> web.Response:
     """Disconnect/delete a single specific HWID device for a user."""
     admin = _check_admin(request)

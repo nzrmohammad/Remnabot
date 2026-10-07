@@ -324,22 +324,29 @@ async def _render_sessions_explorer(
         "",
     ]
 
+    target_users = multi_users if multi_users else data.get("all_online_users", [])
     PER_PAGE = 5
-    total_pages = max(1, math.ceil(len(multi_users) / PER_PAGE))
+    total_pages = max(1, math.ceil(len(target_users) / PER_PAGE))
     page = max(0, min(page, total_pages - 1))
-    current_batch = multi_users[page * PER_PAGE : (page + 1) * PER_PAGE]
+    current_batch = target_users[page * PER_PAGE : (page + 1) * PER_PAGE]
 
     if current_batch:
-        lines.append(
-            f"📋 <b>کاربران متصل با بیش از یک IP (صفحه {page + 1} از {total_pages}):</b>"
-            if lang == "fa"
-            else f"📋 <b>Multi-IP Users List (Page {page + 1}/{total_pages}):</b>"
+        header_title = (
+            f"📋 <b>کاربران با بیش از یک IP (صفحه {page + 1} از {total_pages}):</b>"
+            if multi_users
+            else f"📋 <b>لیست اتصالات کاربران آنلاین (صفحه {page + 1} از {total_pages}):</b>"
+        ) if lang == "fa" else (
+            f"📋 <b>Multi-IP Users List (Page {page + 1}/{total_pages}):</b>"
+            if multi_users
+            else f"📋 <b>Online Connected Users (Page {page + 1}/{total_pages}):</b>"
         )
+        lines.append(header_title)
         lines.append("")
         for idx, u in enumerate(current_batch, start=page * PER_PAGE + 1):
             uname = escape(str(u["username"]))
             ip_cnt = len(u["uniqueIps"])
-            lines.append(f" {idx}) 👤 <b>{uname}</b> — <code>{ip_cnt} IP</code>")
+            badge = f" — ⚠️ <code>{ip_cnt} IP</code>" if ip_cnt > 1 else f" — <code>{ip_cnt} IP</code>"
+            lines.append(f" {idx}) 👤 <b>{uname}</b>{badge}")
             for nc in u["nodeConnections"]:
                 flag = country_flag(nc.get("countryCode"))
                 n_name = escape(str(nc.get("nodeName") or "Node"))
@@ -348,9 +355,9 @@ async def _render_sessions_explorer(
             lines.append("")
     else:
         lines.append(
-            "✅ <i>در حال حاضر هیچ کاربری با بیش از یک IP متصل نیست (تمامی اتصالات تک-IP هستند).</i>"
+            "🟢 <i>در حال حاضر اتصال فعالی روی نودها ثبت نشده است.</i>"
             if lang == "fa"
-            else "✅ <i>No multi-IP users detected (all users have a single IP).</i>"
+            else "🟢 <i>No active sessions found across nodes.</i>"
         )
 
     kb = InlineKeyboardBuilder()
@@ -371,8 +378,12 @@ async def _render_sessions_explorer(
             kb.adjust(len(nav_row))
 
     kb.button(text="🔄 بروزرسانی", callback_data=f"adm:rep:sessions:{page}")
+    kb.button(
+        text="🌐 Sessions Explorer در پنل",
+        url="https://dashboard.cloudvibe.ir/dashboard/tools/sessions-explorer",
+    )
     kb.button(text="🔙 بازگشت به گزارشات", callback_data="adm:sales")
-    kb.adjust(len(nav_row) if nav_row else 1, 1, 1)
+    kb.adjust(len(nav_row) if nav_row else 1, 1, 1, 1)
 
     await render_menu_fn(bot, user, user_repo, "\n".join(lines), kb.as_markup())
 

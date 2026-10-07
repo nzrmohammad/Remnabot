@@ -20,6 +20,7 @@ from bot.web.routes_admin import (
     get_admin_ticket_threads,
     get_admin_topup_photo,
     get_admin_topups,
+    get_admin_sessions_explorer,
     get_admin_user_hwid_devices,
     get_admin_users,
     post_admin_broadcast,
@@ -175,6 +176,7 @@ def create_web_app(
     app.router.add_post("/api/admin/user/wallet", post_admin_user_wallet)
     app.router.add_post("/api/admin/user/revoke_sub", post_admin_user_revoke_sub)
     app.router.add_get("/api/admin/user/hwid_devices", get_admin_user_hwid_devices)
+    app.router.add_get("/api/admin/sessions-explorer", get_admin_sessions_explorer)
     app.router.add_post("/api/admin/user/delete_hwid", post_admin_user_delete_hwid)
     app.router.add_post("/api/admin/user/kill_sessions", post_admin_kill_sessions)
     app.router.add_post("/api/admin/user/toggle_ban", post_admin_toggle_ban)
