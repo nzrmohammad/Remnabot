@@ -542,7 +542,7 @@ async def get_admin_overview(request: web.Request) -> web.Response:
         high_risk_sharing = sum(1 for cnt in user_hwid_counts.values() if cnt >= 4)
 
         hwid_distribution = {
-            "labels": ["۱ دستگاه", "۲ دستگاه", "۳ دستگاه و بیشتر", "ریسک بالا (۴+)"],
+            "labels": ["1 دستگاه", "2 دستگاه", "3+ دستگاه", "ریسک بالا (4+)"],
             "data": [single_device_users, two_device_users, three_plus_device_users, high_risk_sharing],
             "high_risk_count": high_risk_sharing,
             "total_monitored_users": len(user_hwid_counts),
@@ -1708,6 +1708,38 @@ async def get_admin_user_hwid_devices(request: web.Request) -> web.Response:
     primary_id = panel_users[0].get("id")
     devices = await remnawave.get_user_hwid_devices(primary_id)
     return web.json_response({"ok": True, "devices": devices or []})
+
+
+async def get_admin_user_sessions(request: web.Request) -> web.Response:
+    """Fetch real-time active connections and sessions for a single user."""
+    admin = _check_admin(request)
+    if not admin:
+        return web.json_response({"ok": False, "error": "Forbidden"}, status=403)
+
+    target_id = request.query.get("telegram_id")
+    if not target_id:
+        return web.json_response({"ok": False, "error": "شناسه کاربر الزامی است."}, status=400)
+
+    remnawave = request.app["remnawave"]
+    try:
+        panel_users = await remnawave.get_users_by_telegram_id(int(target_id))
+        if not panel_users:
+            return web.json_response({
+                "ok": True,
+                "data": {
+                    "isOnline": False,
+                    "totalConnections": 0,
+                    "uniqueIps": [],
+                    "nodeConnections": [],
+                }
+            })
+
+        primary_id = panel_users[0].get("id")
+        user_sessions = await remnawave.get_user_live_sessions(primary_id)
+        return web.json_response({"ok": True, "data": user_sessions})
+    except Exception as exc:
+        logger.warning("Error fetching user live sessions: %s", exc)
+        return web.json_response({"ok": False, "error": str(exc)}, status=500)
 
 
 async def get_admin_sessions_explorer(request: web.Request) -> web.Response:

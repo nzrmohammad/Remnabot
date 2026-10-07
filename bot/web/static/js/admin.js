@@ -517,29 +517,56 @@
     });
   }
 
+  const circleCanvasCache = {};
+  function getElevatedCircleIcon(color, size = 7, shiftUp = 2) {
+    if (typeof document === 'undefined') return 'circle';
+    const key = `${color}_${size}_${shiftUp}`;
+    if (circleCanvasCache[key]) return circleCanvasCache[key];
+    try {
+      const canvas = document.createElement('canvas');
+      const h = size + 4;
+      const w = size;
+      canvas.width = w;
+      canvas.height = h;
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        ctx.fillStyle = color || '#3b82f6';
+        ctx.beginPath();
+        ctx.arc(w / 2, (h / 2) - shiftUp, size / 2, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      circleCanvasCache[key] = canvas;
+      return canvas;
+    } catch (_) {
+      return 'circle';
+    }
+  }
+
   function createDoughnutLegendLabels() {
     return {
       usePointStyle: true,
-      pointStyle: 'circle',
       boxWidth: 7,
-      boxHeight: 7,
-      padding: 8,
-      color: isDark ? '#94a3b8' : '#64748b',
-      font: { family: 'Vazirmatn', size: 9 },
+      boxHeight: 9,
+      padding: 9,
+      color: isDark ? '#e2e8f0' : '#334155',
+      font: { family: 'Vazirmatn', size: 9.5, weight: '500' },
       generateLabels: (chart) => {
         const data = chart.data;
         if (!data.labels?.length || !data.datasets?.length) return [];
         const dataset = data.datasets[0];
-        return data.labels.map((label, i) => ({
-          text: label,
-          fillStyle: Array.isArray(dataset.backgroundColor) ? dataset.backgroundColor[i] : dataset.backgroundColor,
-          strokeStyle: 'transparent',
-          lineWidth: 0,
-          pointStyle: 'circle',
-          hidden: isNaN(dataset.data[i]) || chart.getDataVisibility(i) === false,
-          index: i,
-          datasetIndex: 0
-        }));
+        return data.labels.map((label, i) => {
+          const fill = Array.isArray(dataset.backgroundColor) ? dataset.backgroundColor[i] : dataset.backgroundColor;
+          return {
+            text: label,
+            fillStyle: fill,
+            strokeStyle: 'transparent',
+            lineWidth: 0,
+            pointStyle: getElevatedCircleIcon(fill),
+            hidden: isNaN(dataset.data[i]) || chart.getDataVisibility(i) === false,
+            index: i,
+            datasetIndex: 0
+          };
+        });
       }
     };
   }
@@ -1000,7 +1027,7 @@
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    const labels = hwidDist?.labels || ['۱ دستگاه', '۲ دستگاه', '۳ دستگاه و بیشتر', 'ریسک بالا (۴+)'];
+    const labels = hwidDist?.labels || ['1 دستگاه', '2 دستگاه', '3+ دستگاه', 'ریسک بالا (4+)'];
     const values = hwidDist?.data || [0, 0, 0, 0];
     const riskCount = hwidDist?.high_risk_count || 0;
 
@@ -1020,7 +1047,7 @@
     }
 
     const gridColor = isDark ? 'rgba(51, 65, 85, 0.3)' : 'rgba(226, 232, 240, 0.8)';
-    const tickColor = isDark ? '#94a3b8' : '#64748b';
+    const tickColor = isDark ? '#e2e8f0' : '#334155';
 
     hwidChartInstance = new Chart(ctx, {
       type: 'bar',
@@ -1057,14 +1084,14 @@
             grid: { display: false },
             ticks: {
               color: tickColor,
-              font: { family: 'Vazirmatn', size: 9 },
+              font: { family: 'Vazirmatn', size: 9.5, weight: '500' },
             }
           },
           y: {
             grid: { color: gridColor },
             ticks: {
               color: tickColor,
-              font: { family: 'Vazirmatn', size: 9 },
+              font: { family: 'Vazirmatn', size: 9.5, weight: '500' },
               precision: 0,
             }
           }
@@ -1445,14 +1472,18 @@
                 <span>اکانت تست</span>
               </button>
             </div>
-            <div class="grid grid-cols-3 gap-1.5 text-center text-[10px]">
-              <button class="bg-transparent hover:bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border border-cyan-500/30 hover:border-cyan-400/60 py-1.5 rounded-xl transition active:scale-95 font-medium flex items-center justify-center gap-1" onclick="window.adminActions.openSubModal(${u.telegram_id}, '${safeDisplayName}', '${p?.subscription_url || ''}')" title="مشاهده و تغییر لینک سابسکریپشن">
+            <div class="grid grid-cols-4 gap-1 text-center text-[9px]">
+              <button class="bg-transparent hover:bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border border-cyan-500/30 hover:border-cyan-400/60 py-1.5 rounded-xl transition active:scale-95 font-medium flex items-center justify-center gap-1" onclick="window.adminActions.openSubModal(${u.telegram_id}, '${safeDisplayName}', '${p?.subscription_url || ''}')" title="لینک سابسکریپشن">
                 <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
                 <span>لینک ساب</span>
               </button>
               <button class="bg-transparent hover:bg-teal-500/10 text-teal-600 dark:text-teal-400 border border-teal-500/30 hover:border-teal-400/60 py-1.5 rounded-xl transition active:scale-95 font-medium flex items-center justify-center gap-1" onclick="window.adminActions.openHwidModal(${u.telegram_id}, '${safeDisplayName}')" title="دستگاه‌های فعال (HWID)">
                 <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
                 <span>دستگاه‌ها</span>
+              </button>
+              <button class="bg-transparent hover:bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-500/30 hover:border-sky-400/60 py-1.5 rounded-xl transition active:scale-95 font-medium flex items-center justify-center gap-1" onclick="window.adminActions.openUserSessionsModal(${u.telegram_id}, '${safeDisplayName}')" title="نشست‌ها و اتصالات زنده">
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                <span>نشست‌ها</span>
               </button>
               <button class="${u.is_banned ? 'text-emerald-600 dark:text-emerald-400 border-emerald-500/30 hover:border-emerald-400/60 hover:bg-emerald-500/10' : 'text-rose-600 dark:text-rose-400 border-rose-500/30 hover:border-rose-400/60 hover:bg-rose-500/10'} bg-transparent border py-1.5 rounded-xl transition active:scale-95 font-medium flex items-center justify-center gap-1" onclick="window.adminActions.toggleBan(${u.telegram_id}, ${u.is_banned})">
                 ${u.is_banned ? '<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg><span>آزاد</span>' : '<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg><span>مسدود</span>'}
@@ -2134,129 +2165,155 @@
       }
     },
 
-    // --- Sessions Explorer Actions ---
-    _sessionsExplorerData: null,
+    // --- User Live Sessions Inspector Actions ---
+    currentUserSessionsTarget: null,
 
-    async openSessionsExplorerModal() {
-      const modal = document.getElementById('sessionsExplorerModal');
+    async openUserSessionsModal(telegram_id, name) {
+      this.currentUserSessionsTarget = { telegram_id, name };
+      const modal = document.getElementById('userSessionsModal');
+      const title = document.getElementById('userSessionsModalTitle');
+      const subtitle = document.getElementById('userSessionsModalSubtitle');
       if (modal) modal.classList.remove('hidden');
+      if (title) title.innerText = `🌐 نشست‌های زنده: ${name}`;
+      if (subtitle) {
+        subtitle.innerText = 'در حال بررسی نودها...';
+        subtitle.className = 'text-[9px] text-cyan-400 block font-mono';
+      }
       if (window.hapticFeedback) window.hapticFeedback('impact');
-      await this.refreshSessionsExplorer();
+      await this.refreshUserSessions();
     },
 
-    closeSessionsExplorerModal() {
-      const modal = document.getElementById('sessionsExplorerModal');
+    closeUserSessionsModal() {
+      const modal = document.getElementById('userSessionsModal');
       if (modal) modal.classList.add('hidden');
+      this.currentUserSessionsTarget = null;
       if (window.hapticFeedback) window.hapticFeedback('selection');
     },
 
-    async refreshSessionsExplorer() {
-      const list = document.getElementById('sessionsExplorerList');
-      const summary = document.getElementById('sessionsExplorerSummary');
-      const searchInput = document.getElementById('sessionsExplorerSearch');
-      if (searchInput) searchInput.value = '';
+    async refreshUserSessions() {
+      if (!this.currentUserSessionsTarget) return;
+      const { telegram_id } = this.currentUserSessionsTarget;
+      const list = document.getElementById('userSessionsList');
+      const subtitle = document.getElementById('userSessionsModalSubtitle');
 
       if (list) {
         list.innerHTML = `
           <div class="p-8 text-center text-xs text-slate-400 flex flex-col items-center gap-2">
             <span class="w-6 h-6 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin"></span>
-            <span>در حال اسکن نودها و دریافت اتصالات زنده...</span>
+            <span>در حال بررسی نودها و دریافت اتصالات...</span>
           </div>
         `;
       }
 
       try {
-        const res = await window.api.getSessionsExplorer();
+        const res = await window.api.getUserLiveSessions(telegram_id);
         if (!res || !res.ok) {
-          if (list) list.innerHTML = `<div class="p-4 text-center text-rose-400 text-xs">${res?.error || 'خطا در دریافت اتصالات'}</div>`;
+          if (list) list.innerHTML = `<div class="p-4 text-center text-rose-400 text-xs">${res?.error || 'خطا در دریافت اطلاعات اتصالات'}</div>`;
+          if (subtitle) {
+            subtitle.innerText = 'خطا در استعلام';
+            subtitle.className = 'text-[9px] text-rose-400 block font-mono';
+          }
           return;
         }
 
         const data = res.data || {};
-        this._sessionsExplorerData = data;
-        const totalUsers = data.total_users_online || 0;
-        const totalConns = data.total_connections || 0;
-        const totalIps = data.total_unique_ips || 0;
+        const isOnline = !!data.isOnline;
+        const totalConns = data.totalConnections || 0;
+        const uniqueIps = data.uniqueIps || [];
 
-        if (summary) {
-          summary.innerText = `${formatNumber(totalUsers)} کاربر آنلاین | ${formatNumber(totalConns)} اتصال (${formatNumber(totalIps)} IP)`;
+        if (subtitle) {
+          if (isOnline) {
+            subtitle.innerText = `🟢 آنلاین (${formatNumber(totalConns)} اتصال فعال | ${formatNumber(uniqueIps.length)} آی‌پی)`;
+            subtitle.className = 'text-[9px] text-emerald-400 block font-mono';
+          } else {
+            subtitle.innerText = '⚪ آفلاین (بدون اتصال فعال)';
+            subtitle.className = 'text-[9px] text-slate-400 block font-mono';
+          }
         }
 
-        this.renderSessionsExplorerList(data.all_online_users || []);
+        this.renderUserSessionsList(data);
       } catch (e) {
         if (list) list.innerHTML = '<div class="p-4 text-center text-rose-400 text-xs">خطای شبکه در دریافت اتصالات</div>';
+        if (subtitle) {
+          subtitle.innerText = 'خطای شبکه';
+          subtitle.className = 'text-[9px] text-rose-400 block font-mono';
+        }
       }
     },
 
-    filterSessionsExplorer(query) {
-      if (!this._sessionsExplorerData) return;
-      const q = (query || '').trim().toLowerCase();
-      const allUsers = this._sessionsExplorerData.all_online_users || [];
-      if (!q) {
-        this.renderSessionsExplorerList(allUsers);
-        return;
-      }
-
-      const filtered = allUsers.filter(u => {
-        const uname = (u.username || '').toLowerCase();
-        const ips = (u.uniqueIps || []).join(' ').toLowerCase();
-        const nodes = (u.nodeConnections || []).map(nc => nc.nodeName || '').join(' ').toLowerCase();
-        return uname.includes(q) || ips.includes(q) || nodes.includes(q);
-      });
-      this.renderSessionsExplorerList(filtered);
-    },
-
-    renderSessionsExplorerList(users) {
-      const list = document.getElementById('sessionsExplorerList');
+    renderUserSessionsList(data) {
+      const list = document.getElementById('userSessionsList');
       if (!list) return;
 
-      if (!users || users.length === 0) {
-        list.innerHTML = '<div class="p-8 text-center text-xs text-slate-400">هیچ اتصال فعالی یافت نشد 🟢</div>';
+      const isOnline = !!data?.isOnline;
+      const conns = data?.nodeConnections || [];
+
+      if (!isOnline || conns.length === 0) {
+        list.innerHTML = `
+          <div class="p-8 text-center text-xs text-slate-400 flex flex-col items-center gap-2">
+            <span class="w-10 h-10 rounded-2xl bg-slate-800/80 flex items-center justify-center text-slate-500 text-lg">💤</span>
+            <b class="text-white text-xs">هیچ نشست یا اتصال فعالی یافت نشد</b>
+            <span class="text-[10px] text-slate-400">کاربر در حال حاضر به هیچ سروری متصل نیست.</span>
+          </div>
+        `;
         return;
       }
 
-      list.innerHTML = users.map((u, idx) => {
-        const uname = u.username || `کاربر ${u.userId}`;
-        const uniqueIps = u.uniqueIps || [];
-        const isMultiIp = uniqueIps.length > 1;
-        const conns = u.nodeConnections || [];
-
-        const connsHtml = conns.map(nc => {
-          const flag = getFlagEmoji(nc.countryCode);
-          const nodeName = nc.nodeName || 'Node';
-          const ipsHtml = (nc.ips || []).map(ip => `
-            <span dir="ltr" class="font-mono text-[10px] text-cyan-400 dark:text-cyan-300 bg-slate-900/80 px-2 py-0.5 rounded-md border border-slate-700/60">${ip}</span>
-          `).join('');
-
-          return `
-            <div class="flex items-center justify-between text-[11px] bg-slate-900/40 p-2 rounded-xl border border-slate-800">
-              <span class="text-slate-300 font-medium flex items-center gap-1">
-                <span>${flag}</span>
-                <span class="truncate max-w-[120px]">${nodeName}</span>
-              </span>
-              <div class="flex flex-wrap gap-1 justify-end">${ipsHtml || '<span class="text-slate-500">—</span>'}</div>
-            </div>
-          `;
-        }).join('');
+      list.innerHTML = conns.map(nc => {
+        const flag = getFlagEmoji(nc.countryCode);
+        const nodeName = nc.nodeName || 'سرور';
+        const ips = nc.ips || [];
+        const ipsHtml = ips.map(ip => `
+          <div class="flex items-center justify-between bg-slate-900/80 px-2.5 py-1 rounded-xl border border-slate-700/60 text-xs">
+            <span class="text-slate-400 text-[10px]">آی‌پی کلاینت:</span>
+            <span dir="ltr" class="font-mono text-cyan-400 dark:text-cyan-300 font-bold">${ip}</span>
+          </div>
+        `).join('');
 
         return `
-          <div class="bg-slate-800/80 rounded-2xl p-3 border ${isMultiIp ? 'border-amber-500/40' : 'border-slate-700/60'} space-y-2">
+          <div class="bg-slate-800/80 rounded-2xl p-3 border border-slate-700/60 space-y-2">
             <div class="flex items-center justify-between">
-              <div class="flex items-center gap-1.5 min-w-0">
-                <span class="w-2 h-2 rounded-full ${isMultiIp ? 'bg-amber-400 animate-pulse' : 'bg-emerald-400'}"></span>
-                <b class="text-white text-xs truncate">${uname}</b>
-              </div>
-              <div class="flex items-center gap-1 text-[10px]">
-                ${isMultiIp ? `<span class="bg-amber-500/20 text-amber-300 border border-amber-500/40 px-1.5 py-0.5 rounded-lg font-bold">⚠️ ${uniqueIps.length} IP</span>` : `<span class="text-emerald-400 font-mono">1 IP</span>`}
-                <span class="text-slate-400 font-mono">(${u.totalConnections || 1} conn)</span>
-              </div>
+              <span class="text-white font-bold text-xs flex items-center gap-1.5">
+                <span class="text-sm">${flag}</span>
+                <span>${nodeName}</span>
+              </span>
+              <span class="text-[10px] bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 px-2 py-0.5 rounded-lg font-mono">
+                ${formatNumber(ips.length)} اتصال
+              </span>
             </div>
-            <div class="space-y-1.5 pt-1">
-              ${connsHtml}
+            <div class="space-y-1 pt-1">
+              ${ipsHtml || '<div class="text-slate-500 text-[10px] text-center">آی‌پی ثبت‌نشده</div>'}
             </div>
           </div>
         `;
       }).join('');
+    },
+
+    async killUserSessionsFromModal() {
+      if (!this.currentUserSessionsTarget) return;
+      const { telegram_id, name } = this.currentUserSessionsTarget;
+      const ok = await showConfirmModal({
+        title: 'قطع تمامی اتصالات فعال',
+        message: `آیا از قطع کامل تمامی نشست‌ها و اتصالات زنده کاربر ${name} اطمینان دارید؟`,
+        confirmText: 'قطع اتصال',
+        isDanger: true,
+      });
+      if (!ok) return;
+
+      try {
+        const res = await window.api.killUserSessions(telegram_id);
+        if (res && res.ok) {
+          if (window.showToast) window.showToast('✅ تمامی نشست‌های فعال کاربر با موفقیت قطع شدند.');
+          if (window.hapticFeedback) window.hapticFeedback('success');
+          await this.refreshUserSessions();
+          syncAdminOverview();
+        } else {
+          if (window.showToast) window.showToast(`⚠️ ${res?.error || 'خطا در قطع نشست‌ها'}`);
+          if (window.hapticFeedback) window.hapticFeedback('error');
+        }
+      } catch (e) {
+        if (window.showToast) window.showToast('خطا در ارتباط با سرور');
+      }
     },
 
     // --- Plans Actions ---

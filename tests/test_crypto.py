@@ -57,9 +57,9 @@ def test_nobitex_rate_alert_formatting():
     assert "14:00" in text_inc
     assert "385,000" in text_inc
     assert "370,000" in text_inc
-    # Must contain LTR sign before +
-    assert "\u200e+15,000" in text_inc
-    assert "\u200e+4.1%" in text_inc
+    # Must contain sign on left of number and percent
+    assert "15,000+ تومان" in text_inc
+    assert "(%4.1+)" in text_inc
     # Button to apply rate directly
     apply_btn = kb_inc.inline_keyboard[0][0]
     assert apply_btn.callback_data == "adm:rate:apply:385000"
@@ -68,8 +68,8 @@ def test_nobitex_rate_alert_formatting():
     # 2. Lower price (decrease)
     text_dec, kb_dec = format_rate_alert(nobitex_price=350000, current_rate=370000, hour_str="22:00")
     assert "22:00" in text_dec
-    assert "\u200e-20,000" in text_dec
-    assert "\u200e-5.4%" in text_dec
+    assert "20,000- تومان" in text_dec
+    assert "(%5.4-)" in text_dec
     apply_btn_dec = kb_dec.inline_keyboard[0][0]
     assert apply_btn_dec.callback_data == "adm:rate:apply:350000"
 
@@ -77,6 +77,39 @@ def test_nobitex_rate_alert_formatting():
     text_eq, kb_eq = format_rate_alert(nobitex_price=370000, current_rate=370000, hour_str="10:00")
     assert "0 تومان" in text_eq
     assert "(0%)" in text_eq
+
+
+def test_ton_and_usdt_rate_alerts():
+    """Verify ton and usdt rate alert format and compact keyboards."""
+    from bot.services.crypto.nobitex import format_ton_rate_alert, format_usdt_rate_alert
+
+    market_data = {
+        "ton": {"نوبیتکس": 399000, "بیت‌پین": 395753, "والکس": 398013},
+        "usdt": {"نوبیتکس": 268888, "بیت‌پین": 267369, "والکس": 268056},
+        "best_ton": (399000, "نوبیتکس"),
+        "best_usdt": (268888, "نوبیتکس"),
+    }
+    # TON Alert
+    ton_text, ton_kb = format_ton_rate_alert(market_data, current_ton_rate=397050, hour_str="10:00")
+    assert "1,950+ تومان" in ton_text
+    assert "(%0.5+)" in ton_text
+    ton_buttons = [b for row in ton_kb.inline_keyboard for b in row]
+    ton_cb = [b.callback_data for b in ton_buttons]
+    assert "adm:rate:apply:ton:399000" in ton_cb
+    assert "adm:set:ton_rate_toman" not in ton_cb
+    assert "adm:crypto:rate:usdt" not in ton_cb
+    assert "adm:settings:crypto" not in ton_cb
+
+    # USDT Alert
+    usdt_text, usdt_kb = format_usdt_rate_alert(market_data, current_usdt_rate=269750, hour_str="10:00")
+    assert "862- تومان" in usdt_text
+    assert "(%0.3-)" in usdt_text
+    usdt_buttons = [b for row in usdt_kb.inline_keyboard for b in row]
+    usdt_cb = [b.callback_data for b in usdt_buttons]
+    assert "adm:rate:apply:usdt:268888" in usdt_cb
+    assert "adm:set:usdt_rate_toman" not in usdt_cb
+    assert "adm:crypto:rate:ton" not in usdt_cb
+    assert "adm:settings:crypto" not in usdt_cb
 
 
 def test_multi_rate_alert_formatting():

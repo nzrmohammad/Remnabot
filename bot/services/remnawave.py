@@ -504,6 +504,29 @@ class RemnawaveClient:
             "all_online_users": all_sorted,
         }
 
+    async def get_user_live_sessions(self, user_id: int | str) -> dict[str, Any]:
+        """Scan active connections and find live sessions for a specific user across all nodes."""
+        explorer = await self.get_live_sessions_explorer()
+        all_online = explorer.get("all_online_users", [])
+        user_id_int = int(user_id) if str(user_id).isdigit() else user_id
+        for u in all_online:
+            if u.get("userId") == user_id_int or str(u.get("userId")) == str(user_id):
+                ips = list(u.get("uniqueIps", []))
+                if isinstance(ips, set):
+                    ips = sorted(list(ips))
+                return {
+                    "isOnline": True,
+                    "totalConnections": u.get("totalConnections", 0),
+                    "uniqueIps": ips,
+                    "nodeConnections": u.get("nodeConnections", []),
+                }
+        return {
+            "isOnline": False,
+            "totalConnections": 0,
+            "uniqueIps": [],
+            "nodeConnections": [],
+        }
+
     async def get_multi_ip_sessions(self) -> dict[str, Any]:
         """Audit active HWID devices to detect users connected via multiple concurrent/distinct IPs."""
         devices = await self.get_all_hwid_devices(size=500)

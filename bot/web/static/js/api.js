@@ -234,6 +234,10 @@ const api = {
   async getSessionsExplorer() {
     return this.get('/api/admin/sessions-explorer');
   },
+
+  async getUserLiveSessions(telegram_id) {
+    return this.get(`/api/admin/user/sessions?telegram_id=${telegram_id}`);
+  },
 };
 
 window.api = api;

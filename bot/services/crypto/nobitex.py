@@ -250,11 +250,11 @@ def format_rate_alert(
         percent = 0.0
 
     if diff > 0:
-        diff_str = f"\u200e+{diff:,} تومان"
-        percent_str = f"(\u200e+{percent:.1f}%)"
+        diff_str = f"{diff:,}+ تومان"
+        percent_str = f"(%{percent:.1f}+)"
     elif diff < 0:
-        diff_str = f"\u200e-{abs(diff):,} تومان"
-        percent_str = f"(\u200e-{abs(percent):.1f}%)"
+        diff_str = f"{abs(diff):,}- تومان"
+        percent_str = f"(%{abs(percent):.1f}-)"
     else:
         diff_str = "0 تومان"
         percent_str = "(0%)"
@@ -311,11 +311,11 @@ def format_multi_rate_alert(
         percent = 0.0
 
     if diff_ton > 0:
-        diff_str = f"\u200e+{diff_ton:,} تومان"
-        percent_str = f"(\u200e+{percent:.1f}%)"
+        diff_str = f"{diff_ton:,}+ تومان"
+        percent_str = f"(%{percent:.1f}+)"
     elif diff_ton < 0:
-        diff_str = f"\u200e-{abs(diff_ton):,} تومان"
-        percent_str = f"(\u200e-{abs(percent):.1f}%)"
+        diff_str = f"{abs(diff_ton):,}- تومان"
+        percent_str = f"(%{abs(percent):.1f}-)"
     else:
         diff_str = "0 تومان"
         percent_str = "(0%)"
@@ -413,11 +413,11 @@ def format_ton_rate_alert(
         percent = 0.0
 
     if diff_ton > 0:
-        diff_str = f"\u200e+{diff_ton:,} تومان"
-        percent_str = f"(\u200e+{percent:.1f}%)"
+        diff_str = f"{diff_ton:,}+ تومان"
+        percent_str = f"(%{percent:.1f}+)"
     elif diff_ton < 0:
-        diff_str = f"\u200e-{abs(diff_ton):,} تومان"
-        percent_str = f"(\u200e-{abs(percent):.1f}%)"
+        diff_str = f"{abs(diff_ton):,}- تومان"
+        percent_str = f"(%{abs(percent):.1f}-)"
     else:
         diff_str = "0 تومان"
         percent_str = "(0%)"
@@ -460,12 +460,7 @@ def format_ton_rate_alert(
             )
             ton_btns_count += 1
 
-    kb.button(text="✏️ نرخ دلخواه تون", callback_data="adm:set:ton_rate_toman")
-    kb.button(text="💵 استعلام نرخ تتر", callback_data="adm:crypto:rate:usdt")
-    kb.button(text="🔙 بازگشت به تنظیمات کریپتو", callback_data="adm:settings:crypto")
-
-    adjust_spec = [1] * ton_btns_count + [1, 1, 1]
-    kb.adjust(*adjust_spec)
+    kb.adjust(1)
 
     return text, kb.as_markup()
 
@@ -488,11 +483,11 @@ def format_usdt_rate_alert(
         percent = 0.0
 
     if diff_usdt > 0:
-        diff_str = f"\u200e+{diff_usdt:,} تومان"
-        percent_str = f"(\u200e+{percent:.1f}%)"
+        diff_str = f"{diff_usdt:,}+ تومان"
+        percent_str = f"(%{percent:.1f}+)"
     elif diff_usdt < 0:
-        diff_str = f"\u200e-{abs(diff_usdt):,} تومان"
-        percent_str = f"(\u200e-{abs(percent):.1f}%)"
+        diff_str = f"{abs(diff_usdt):,}- تومان"
+        percent_str = f"(%{abs(percent):.1f}-)"
     else:
         diff_str = "0 تومان"
         percent_str = "(0%)"
@@ -532,12 +527,7 @@ def format_usdt_rate_alert(
             )
             usdt_btns_count += 1
 
-    kb.button(text="✏️ نرخ دلخواه تتر", callback_data="adm:set:usdt_rate_toman")
-    kb.button(text="💎 استعلام نرخ تون", callback_data="adm:crypto:rate:ton")
-    kb.button(text="🔙 بازگشت به تنظیمات کریپتو", callback_data="adm:settings:crypto")
-
-    adjust_spec = [1] * usdt_btns_count + [1, 1, 1]
-    kb.adjust(*adjust_spec)
+    kb.adjust(1)
 
     return text, kb.as_markup()
 
