@@ -207,8 +207,7 @@ EN_TEXTS: dict[str, str] = {
             "👤 {name}\n"
             "🆔 <code>{tid}</code>\n"
             "🔗 {username}\n"
-            "💰 Amount : <b>{amount} Toman</b>\n\n"
-            "⬆️ Receipt is the message above."
+            "💰 Amount : <b>{amount} Toman</b>"
         ),
         "btn_approve": "✅ Approve",
         "btn_reject": "❌ Reject",

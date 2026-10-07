@@ -211,7 +211,7 @@ async def _send_admin_nightly_summary(
     if active_users_today:
         for i, (uname, u_total, b_str) in enumerate(active_users_today):
             lines.append(f"👤 {escape(uname)} : {human_bytes(u_total)}")
-            lines.append(f" {b_str}")
+            lines.append(b_str)
             if i < len(active_users_today) - 1:
                 lines.append("")
     else:

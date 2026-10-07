@@ -2170,45 +2170,48 @@
           const displayName = u.full_name || (hasUsername ? `@${u.username}` : `کاربر ${u.telegram_id}`);
           const safeDisplayName = displayName.replace(/'/g, "\\'");
           const initial = (displayName.replace('@', '')[0] || 'U').toUpperCase();
+          const avatarSrc = u.avatar_url || `/api/user/avatar?user_id=${u.telegram_id}`;
           const dateStr = u.created_at ? new Date(u.created_at).toLocaleDateString('fa-IR', { numberingSystem: 'latn', hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' }) : '—';
           const discountStr = u.discount_applied > 0 ? `${formatNumber(u.discount_applied)} تومان` : 'اعمال‌شده';
 
           return `
-            <div class="coupon-usage-card bg-slate-900/60 rounded-2xl p-3 border border-slate-700/60 space-y-2.5 shadow-sm hover:border-pink-500/40 transition">
+            <div class="coupon-usage-card bg-white dark:bg-slate-900/60 rounded-2xl p-3 border border-slate-200 dark:border-slate-700/60 space-y-2.5 shadow-sm hover:border-pink-500/40 transition">
               <!-- Top Row: Order on right, Date on top-left -->
-              <div class="flex items-center justify-between border-b border-slate-800/80 pb-2">
+              <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-800/80 pb-2">
                 <div class="flex items-center gap-1.5 min-w-0">
-                  ${u.order_id ? `<span class="text-[11px] font-mono text-cyan-400 font-medium">سفارش ${u.order_id}</span>` : `<span class="text-[11px] text-slate-400">ثبت تخفیف</span>`}
+                  ${u.order_id ? `<span class="text-[11px] font-mono text-cyan-600 dark:text-cyan-400 font-medium">سفارش ${u.order_id}</span>` : `<span class="text-[11px] text-slate-500 dark:text-slate-400">ثبت تخفیف</span>`}
                 </div>
-                <div class="text-[10px] text-slate-400 font-mono flex items-center gap-1" dir="ltr">
-                  <svg class="w-3 h-3 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                <div class="text-[10px] text-slate-500 dark:text-slate-400 font-mono flex items-center gap-1" dir="ltr">
+                  <svg class="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                   <span>${dateStr}</span>
                 </div>
               </div>
 
-              <!-- Main Content: Name & Avatar on right, Amount, Username & ID on left -->
+              <!-- Main Content: Name, Avatar & Price on right, Username & ID on top-left -->
               <div class="flex items-center justify-between gap-3">
                 <div class="flex items-center gap-2.5 min-w-0">
-                  <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-pink-600 to-purple-600 text-white font-bold text-xs flex items-center justify-center flex-shrink-0 shadow-sm">
-                    ${initial}
+                  <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-pink-600 to-purple-600 text-white font-bold text-xs flex items-center justify-center flex-shrink-0 shadow-sm overflow-hidden relative">
+                    <img src="${avatarSrc}" alt="Avatar" class="w-full h-full object-cover" onerror="this.classList.add('hidden'); if(this.nextElementSibling) this.nextElementSibling.classList.remove('hidden');" />
+                    <span class="font-bold">${initial}</span>
                   </div>
-                  <div class="min-w-0">
-                    <b class="text-white text-xs font-bold block truncate max-w-[130px] sm:max-w-[160px] cursor-pointer hover:text-pink-300" onclick="window.adminActions.quickCopy('${safeDisplayName}', 'نام کاربر')" title="${displayName}">${displayName}</b>
-                    <span class="text-[10px] text-slate-400 block mt-0.5">${u.full_name ? 'کاربر سرویس' : 'کاربر'}</span>
+                  <div class="min-w-0 space-y-0.5">
+                    <b class="text-slate-900 dark:text-white text-xs font-bold block truncate max-w-[130px] sm:max-w-[160px] cursor-pointer hover:text-pink-400" onclick="window.adminActions.quickCopy('${safeDisplayName}', 'نام کاربر')" title="${displayName}">${displayName}</b>
+                    <div class="flex items-baseline gap-1 text-emerald-600 dark:text-emerald-400 font-bold" dir="rtl">
+                      <span class="text-xs font-black font-mono leading-none">${formatNumber(u.discount_applied || 0)}</span>
+                      <span class="text-[10px] text-emerald-600/90 dark:text-emerald-500/90 font-sans">تومان</span>
+                    </div>
                   </div>
                 </div>
 
-                <div class="flex flex-col items-end text-left flex-shrink-0 gap-0.5" dir="ltr">
-                  <div class="text-xs font-bold font-mono text-emerald-400">
-                    ${discountStr}
-                  </div>
+                <!-- Left column: Username on line 1, Numeric ID on line 2 (سمت چپ‌ترین نقطه، بالا و بدون ID:) -->
+                <div class="flex flex-col items-start justify-center gap-0.5 font-mono text-[11px] text-slate-500 dark:text-slate-400 flex-shrink-0 text-left" dir="ltr">
                   ${hasUsername ? `
-                    <div class="text-[11px] text-pink-400 font-mono cursor-pointer hover:underline truncate max-w-[130px]" onclick="window.adminActions.quickCopy('@${u.username}', 'نام کاربری')" title="@${u.username}">
+                    <div class="text-[11px] text-pink-500 dark:text-pink-400 font-mono cursor-pointer hover:underline truncate max-w-[130px] leading-tight" onclick="window.adminActions.quickCopy('@${u.username}', 'نام کاربری')" title="@${u.username}">
                       @${u.username}
                     </div>
                   ` : ''}
-                  <div class="text-[10px] text-slate-400 font-mono cursor-pointer hover:text-cyan-300" onclick="window.adminActions.quickCopy('${u.telegram_id}', 'شناسه عددی')">
-                    ID: ${u.telegram_id}
+                  <div class="cursor-pointer hover:text-cyan-500 dark:hover:text-cyan-300 text-slate-500 dark:text-slate-400 font-mono leading-tight" onclick="window.adminActions.quickCopy('${u.telegram_id}', 'شناسه عددی')" title="شناسه عددی">
+                    ${u.telegram_id}
                   </div>
                 </div>
               </div>
@@ -2756,7 +2759,10 @@
       const idEl = document.getElementById('activeChatUserId');
       if (idEl) idEl.innerHTML = `<span onclick="window.adminActions.quickCopy('${telegram_id}', 'شناسه عددی')" class="cursor-pointer hover:text-cyan-300 transition">${telegram_id}</span>`;
       const avatarEl = document.getElementById('activeChatUserAvatar');
-      if (avatarEl) avatarEl.innerText = (user.full_name || String(telegram_id))[0].toUpperCase();
+      if (avatarEl) {
+        const initial = ((user.full_name || user.username || String(telegram_id)).replace('@', '')[0] || 'U').toUpperCase();
+        avatarEl.innerHTML = `<img src="/api/user/avatar?user_id=${telegram_id}" alt="Avatar" class="w-full h-full object-cover" onerror="this.classList.add('hidden'); if(this.nextElementSibling) this.nextElementSibling.classList.remove('hidden');" /><span class="font-bold">${initial}</span>`;
+      }
 
       const badgeEl = document.getElementById('activeChatStatusBadge');
       if (badgeEl) {
@@ -2795,12 +2801,12 @@
         const timeDisplay = formatChatTimestamp(m);
         return `
           <div class="flex ${isAdmin ? 'justify-start' : 'justify-end'}">
-            <div class="max-w-[85%] rounded-2xl p-2.5 space-y-1 shadow-sm ${isAdmin ? 'bg-blue-600/20 border border-blue-500/30 text-blue-100 rounded-tr-sm' : 'bg-slate-900 border border-slate-700/60 text-slate-200 rounded-tl-sm'}">
-              <div class="flex items-center justify-between gap-3 text-[9px] ${isAdmin ? 'text-blue-400' : 'text-slate-400'}">
-                <span class="font-bold">${isAdmin ? '🛡️ پشتیبانی' : '👤 کاربر'}</span>
-                <span class="font-mono opacity-80" dir="ltr">${timeDisplay}</span>
+            <div class="max-w-[85%] rounded-2xl p-2.5 space-y-1 shadow-sm ${isAdmin ? 'bg-blue-600/15 dark:bg-blue-600/25 border border-blue-400/40 dark:border-blue-500/30 text-blue-950 dark:text-blue-100 rounded-tr-sm' : 'bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700/60 text-slate-900 dark:text-slate-200 rounded-tl-sm shadow-sm'}">
+              <div class="flex items-center justify-between gap-3 text-[9px] ${isAdmin ? 'text-blue-700 dark:text-blue-300 font-bold' : 'text-slate-600 dark:text-slate-400 font-bold'}">
+                <span>${isAdmin ? '🛡️ پشتیبانی' : '👤 کاربر'}</span>
+                <span class="font-mono ${isAdmin ? 'text-blue-600 dark:text-blue-400' : 'text-slate-500 dark:text-slate-400'}" dir="ltr">${timeDisplay}</span>
               </div>
-              <p class="text-xs leading-relaxed break-words whitespace-pre-wrap">${m.text}</p>
+              <p class="text-xs leading-relaxed break-words whitespace-pre-wrap text-slate-900 dark:text-slate-100 font-medium dark:font-normal">${m.text}</p>
             </div>
           </div>
         `;

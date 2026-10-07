@@ -206,8 +206,7 @@ FA_TEXTS: dict[str, str] = {
             "👤 {name}\n"
             "🆔 <code>{tid}</code>\n"
             "🔗 {username}\n"
-            "💰 مبلغ : <b>{amount} تومان</b>\n\n"
-            "⬆️ رسید، پیام بالاست."
+            "💰 مبلغ : <b>{amount} تومان</b>"
         ),
         "btn_approve": "✅ تایید",
         "btn_reject": "❌ رد",

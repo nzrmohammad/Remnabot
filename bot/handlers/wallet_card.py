@@ -131,20 +131,34 @@ async def topup_receipt(
         amount=_fmt(amount),
     )
 
+    async def _send_admin_receipt(target_chat_id: int | str, **extra_kwargs):
+        if message.photo:
+            return await bot.send_photo(
+                chat_id=target_chat_id,
+                photo=message.photo[-1].file_id,
+                caption=admin_req_text,
+                reply_markup=kb.as_markup(),
+                **extra_kwargs,
+            )
+        elif message.document:
+            return await bot.send_document(
+                chat_id=target_chat_id,
+                document=message.document.file_id,
+                caption=admin_req_text,
+                reply_markup=kb.as_markup(),
+                **extra_kwargs,
+            )
+        else:
+            return await bot.send_message(
+                chat_id=target_chat_id,
+                text=admin_req_text,
+                reply_markup=kb.as_markup(),
+                **extra_kwargs,
+            )
+
     # 1. Primary delivery to configured ADMIN_CHAT_ID (with topic if set)
     try:
-        await bot.copy_message(
-            chat_id=settings.ADMIN_CHAT_ID,
-            from_chat_id=message.chat.id,
-            message_id=message.message_id,
-            **thread_kwargs,
-        )
-        msg_obj = await bot.send_message(
-            settings.ADMIN_CHAT_ID,
-            admin_req_text,
-            reply_markup=kb.as_markup(),
-            **thread_kwargs,
-        )
+        msg_obj = await _send_admin_receipt(settings.ADMIN_CHAT_ID, **thread_kwargs)
         delivered = True
         topup.admin_message_id = msg_obj.message_id
         await session.commit()
@@ -158,16 +172,7 @@ async def topup_receipt(
     if not delivered and settings.ADMIN_IDS:
         for admin_id in settings.ADMIN_IDS:
             try:
-                await bot.copy_message(
-                    chat_id=admin_id,
-                    from_chat_id=message.chat.id,
-                    message_id=message.message_id,
-                )
-                msg_obj = await bot.send_message(
-                    admin_id,
-                    admin_req_text,
-                    reply_markup=kb.as_markup(),
-                )
+                msg_obj = await _send_admin_receipt(admin_id)
                 delivered = True
                 if not topup.admin_message_id:
                     topup.admin_message_id = msg_obj.message_id
@@ -222,9 +227,14 @@ async def topup_decide(call: CallbackQuery, bot: Bot, session: AsyncSession):
 
     # stamp the admin message so it can't be pressed twice
     if call.message is not None:
-        new_text = f"{call.message.html_text}\n\n{note}"
         try:
-            await call.message.edit_text(new_text)
+            if call.message.photo or call.message.document:
+                base_text = call.message.caption or ""
+                new_caption = f"{base_text}\n\n{note}"
+                await call.message.edit_caption(caption=new_caption, reply_markup=None)
+            else:
+                new_text = f"{call.message.html_text}\n\n{note}"
+                await call.message.edit_text(new_text, reply_markup=None)
         except TelegramAPIError:
             pass
     await call.answer(note)

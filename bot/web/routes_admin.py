@@ -1307,12 +1307,14 @@ async def post_admin_topup_action(request: web.Request) -> web.Response:
                 logger.debug("Could not remove reply markup for topup %s: %s", claimed.id, exc)
 
         # 2. Announce resolution into the admin supergroup topic
+        admin_id_val = admin.get("id")
+        admin_id_str = f" (<code>{admin_id_val}</code>)" if admin_id_val else ""
         notice_text = (
             f"📌 <b>تعیین وضعیت فیش {claimed.id}</b>\n"
             f"👤 کاربر: <code>{claimed.telegram_id}</code>\n"
             f"💰 مبلغ: <b>{claimed.amount:,}</b> تومان\n"
             f"📊 وضعیت: <b>{status_badge}</b>\n"
-            f"👮 توسط ادمین: <b>{escape(str(admin_name))}</b>"
+            f"👮 توسط ادمین: <b>{escape(str(admin_name))}</b>{admin_id_str}"
         )
         try:
             kwargs = dict(thread_kwargs)

@@ -91,24 +91,22 @@ async def test_fast_cache():
 
 
 def test_main_menu_keyboard_with_webapp_url():
-    # Without web_app_url: regular menu
+    # Regular menu without web app buttons
     kb_no_web = main_menu_keyboard(lang="fa", is_admin=False, web_app_url="")
     all_buttons = [btn.text for row in kb_no_web.inline_keyboard for btn in row]
     assert not any("مینی‌اپ" in b for b in all_buttons)
 
-    # With web_app_url: user button added at top
+    # Even with web_app_url, main menu should not have TMA buttons per design
     kb_web = main_menu_keyboard(lang="fa", is_admin=False, web_app_url="https://app.test.com")
-    first_row_btns = kb_web.inline_keyboard[0]
-    assert len(first_row_btns) == 1
-    assert "مینی‌اپ" in first_row_btns[0].text
-    assert first_row_btns[0].web_app.url == "https://app.test.com/app"
+    all_web_buttons = [btn.text for row in kb_web.inline_keyboard for btn in row]
+    assert not any("مینی‌اپ" in b for b in all_web_buttons)
+    assert not any("پنل وب کلاستر" in b for b in all_web_buttons)
 
-    # With admin and web_app_url: admin panel button added
-    kb_admin_web = main_menu_keyboard(lang="fa", is_admin=True, web_app_url="https://app.test.com")
-    last_row_btns = kb_admin_web.inline_keyboard[-1]
-    assert any("پنل وب کلاستر" in btn.text for btn in last_row_btns)
-    web_admin_btn = [btn for btn in last_row_btns if "پنل وب کلاستر" in btn.text][0]
-    assert web_admin_btn.web_app.url == "https://app.test.com/admin"
+    # Admin menu has bot admin panel button
+    kb_admin = main_menu_keyboard(lang="fa", is_admin=True, web_app_url="https://app.test.com")
+    admin_buttons = [btn.text for row in kb_admin.inline_keyboard for btn in row]
+    assert any("مدیریت" in b for b in admin_buttons)
+    assert not any("پنل وب کلاستر" in b for b in admin_buttons)
 
 
 @pytest.mark.anyio

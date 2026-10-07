@@ -394,6 +394,154 @@ def format_multi_rate_alert(
     return text, kb.as_markup()
 
 
+def format_ton_rate_alert(
+    market_data: dict,
+    current_ton_rate: int,
+    hour_str: str = "",
+) -> tuple[str, InlineKeyboardMarkup]:
+    """Format TON price notification showing Nobitex, Bitpin, Wallex, and Binance."""
+    ton_prices = market_data.get("ton", {})
+    binance_usd = market_data.get("binance_usd")
+
+    best_ton_p, best_ton_src = market_data.get("best_ton", (None, ""))
+    ref_ton_price = best_ton_p or current_ton_rate
+
+    diff_ton = ref_ton_price - current_ton_rate
+    if current_ton_rate > 0:
+        percent = (diff_ton / current_ton_rate) * 100.0
+    else:
+        percent = 0.0
+
+    if diff_ton > 0:
+        diff_str = f"\u200e+{diff_ton:,} تومان"
+        percent_str = f"(\u200e+{percent:.1f}%)"
+    elif diff_ton < 0:
+        diff_str = f"\u200e-{abs(diff_ton):,} تومان"
+        percent_str = f"(\u200e-{abs(percent):.1f}%)"
+    else:
+        diff_str = "0 تومان"
+        percent_str = "(0%)"
+
+    curr_ton_str = f"{current_ton_rate:,} تومان" if current_ton_rate > 0 else "— (تنظیم‌نشده)"
+    time_header = f" — ساعت {hour_str}" if hour_str else ""
+
+    lines = [
+        f"💎 <b>استعلام نرخ لحظه‌ای تون (TON){time_header}</b>",
+        "──────────────────",
+        "📊 <b>قیمت لحظه‌ای تون در صرافی‌ها:</b>",
+    ]
+
+    for name in ("نوبیتکس", "بیت‌پین", "والکس"):
+        p = ton_prices.get(name)
+        val_str = f"<b>{p:,}</b> تومان" if p else "<i>عدم دسترسی</i>"
+        lines.append(f"   🔹 {name} : {val_str}")
+
+    if binance_usd:
+        lines.append(f"   🌐 بایننس جهانی : <b>${binance_usd:.2f}</b>")
+
+    lines.append("")
+    lines.append("⚙️ <b>وضعیت فعلی در فروشگاه:</b>")
+    lines.append(f"   💎 نرخ فعلی تون : <b>{curr_ton_str}</b>")
+    if current_ton_rate > 0 and ref_ton_price:
+        lines.append(f"   📈 اختلاف تون : <b>{diff_str}</b> <b>{percent_str}</b>")
+    lines.append("")
+    lines.append("💡 برای به‌روزرسانی نرخ در فروشگاه، دکمه مورد نظر را لمس فرمایید:")
+
+    text = "\n".join(lines)
+    kb = InlineKeyboardBuilder()
+
+    ton_btns_count = 0
+    for name in ("نوبیتکس", "بیت‌پین", "والکس"):
+        p = ton_prices.get(name)
+        if p:
+            kb.button(
+                text=f"🔄 اعمال تون {name} ({p:,} تومان)",
+                callback_data=f"adm:rate:apply:ton:{p}",
+            )
+            ton_btns_count += 1
+
+    kb.button(text="✏️ نرخ دلخواه تون", callback_data="adm:set:ton_rate_toman")
+    kb.button(text="💵 استعلام نرخ تتر", callback_data="adm:crypto:rate:usdt")
+    kb.button(text="🔙 بازگشت به تنظیمات کریپتو", callback_data="adm:settings:crypto")
+
+    adjust_spec = [1] * ton_btns_count + [1, 1, 1]
+    kb.adjust(*adjust_spec)
+
+    return text, kb.as_markup()
+
+
+def format_usdt_rate_alert(
+    market_data: dict,
+    current_usdt_rate: int,
+    hour_str: str = "",
+) -> tuple[str, InlineKeyboardMarkup]:
+    """Format USDT price notification showing Nobitex, Bitpin, Wallex."""
+    usdt_prices = market_data.get("usdt", {})
+
+    best_usdt_p, best_usdt_src = market_data.get("best_usdt", (None, ""))
+    ref_usdt_price = best_usdt_p or current_usdt_rate
+
+    diff_usdt = ref_usdt_price - current_usdt_rate
+    if current_usdt_rate > 0:
+        percent = (diff_usdt / current_usdt_rate) * 100.0
+    else:
+        percent = 0.0
+
+    if diff_usdt > 0:
+        diff_str = f"\u200e+{diff_usdt:,} تومان"
+        percent_str = f"(\u200e+{percent:.1f}%)"
+    elif diff_usdt < 0:
+        diff_str = f"\u200e-{abs(diff_usdt):,} تومان"
+        percent_str = f"(\u200e-{abs(percent):.1f}%)"
+    else:
+        diff_str = "0 تومان"
+        percent_str = "(0%)"
+
+    curr_usdt_str = f"{current_usdt_rate:,} تومان" if current_usdt_rate > 0 else "—"
+    time_header = f" — ساعت {hour_str}" if hour_str else ""
+
+    lines = [
+        f"💵 <b>استعلام نرخ لحظه‌ای تتر (USDT / دلار){time_header}</b>",
+        "──────────────────",
+        "📊 <b>قیمت لحظه‌ای تتر در صرافی‌ها:</b>",
+    ]
+
+    for name in ("نوبیتکس", "بیت‌پین", "والکس"):
+        p = usdt_prices.get(name)
+        val_str = f"<b>{p:,}</b> تومان" if p else "<i>عدم دسترسی</i>"
+        lines.append(f"   🔹 {name} : {val_str}")
+
+    lines.append("")
+    lines.append("⚙️ <b>وضعیت فعلی در فروشگاه:</b>")
+    lines.append(f"   💵 نرخ مبنای تتر : <b>{curr_usdt_str}</b>")
+    if current_usdt_rate > 0 and ref_usdt_price:
+        lines.append(f"   📈 اختلاف تتر : <b>{diff_str}</b> <b>{percent_str}</b>")
+    lines.append("")
+    lines.append("💡 برای به‌روزرسانی نرخ در فروشگاه، دکمه مورد نظر را لمس فرمایید:")
+
+    text = "\n".join(lines)
+    kb = InlineKeyboardBuilder()
+
+    usdt_btns_count = 0
+    for name in ("نوبیتکس", "بیت‌پین", "والکس"):
+        p = usdt_prices.get(name)
+        if p:
+            kb.button(
+                text=f"💵 اعمال تتر {name} ({p:,} تومان)",
+                callback_data=f"adm:rate:apply:usdt:{p}",
+            )
+            usdt_btns_count += 1
+
+    kb.button(text="✏️ نرخ دلخواه تتر", callback_data="adm:set:usdt_rate_toman")
+    kb.button(text="💎 استعلام نرخ تون", callback_data="adm:crypto:rate:ton")
+    kb.button(text="🔙 بازگشت به تنظیمات کریپتو", callback_data="adm:settings:crypto")
+
+    adjust_spec = [1] * usdt_btns_count + [1, 1, 1]
+    kb.adjust(*adjust_spec)
+
+    return text, kb.as_markup()
+
+
 def _seconds_until_next_target(
     target_hours: tuple[int, ...] = RATE_CHECK_HOURS,
     tz_name: str = "Asia/Tehran",
@@ -418,7 +566,7 @@ def _seconds_until_next_target(
 
 
 async def send_rate_notification(bot: Bot, session_factory, hour_str: str = "") -> bool:
-    """Fetch market prices and send alert to crypto topic."""
+    """Fetch market prices and send separate TON and USDT rate alerts to crypto topic."""
     settings = get_settings()
     async with session_factory() as session:
         store = await get_store_settings(session)
@@ -427,13 +575,6 @@ async def send_rate_notification(bot: Bot, session_factory, hour_str: str = "") 
         if best_ton is None and not market_data.get("usdt"):
             logger.warning("Could not fetch TON or USDT price from any exchange for scheduled alert")
             return False
-
-        text, kb = format_multi_rate_alert(
-            market_data=market_data,
-            current_ton_rate=store.ton_rate_toman,
-            current_usdt_rate=store.usdt_rate_toman,
-            hour_str=hour_str,
-        )
 
         topic_id = (
             store.topic_crypto
@@ -445,13 +586,34 @@ async def send_rate_notification(bot: Bot, session_factory, hour_str: str = "") 
         )
         thread_kwargs = admin_thread_kwargs(topic_id=topic_id)
 
-        try:
-            await bot.send_message(settings.ADMIN_CHAT_ID, text, reply_markup=kb, **thread_kwargs)
-            logger.info("Sent multi-exchange TON rate alert to topic %s", topic_id)
-            return True
-        except Exception:
-            logger.exception("Failed to send Nobitex rate alert to admin chat")
-            return False
+        delivered = False
+        # 1. Send TON alert
+        if market_data.get("ton") or best_ton is not None:
+            ton_text, ton_kb = format_ton_rate_alert(
+                market_data=market_data,
+                current_ton_rate=store.ton_rate_toman,
+                hour_str=hour_str,
+            )
+            try:
+                await bot.send_message(settings.ADMIN_CHAT_ID, ton_text, reply_markup=ton_kb, **thread_kwargs)
+                delivered = True
+            except Exception:
+                logger.exception("Failed to send TON rate alert to admin chat")
+
+        # 2. Send USDT alert
+        if market_data.get("usdt"):
+            usdt_text, usdt_kb = format_usdt_rate_alert(
+                market_data=market_data,
+                current_usdt_rate=store.usdt_rate_toman,
+                hour_str=hour_str,
+            )
+            try:
+                await bot.send_message(settings.ADMIN_CHAT_ID, usdt_text, reply_markup=usdt_kb, **thread_kwargs)
+                delivered = True
+            except Exception:
+                logger.exception("Failed to send USDT rate alert to admin chat")
+
+        return delivered
 
 
 async def nobitex_rate_loop(bot: Bot, session_factory) -> None:

@@ -40,22 +40,24 @@ async def _render_crypto_settings(
             text=f"⚡️ وضعیت درگاه {status_badge}",
             callback_data="adm:settings:toggle:crypto_enabled",
         )
-        kb.button(text="💰 نرخ تبدیل", callback_data="adm:set:ton_rate_toman")
-        kb.button(text="📬 آدرس والت", callback_data="adm:set:ton_wallet_address")
-        kb.button(text="📊 استعلام آنی نرخ ارز", callback_data="adm:crypto:nobitex_now")
+        kb.button(text="💰 نرخ تبدیل تون", callback_data="adm:set:ton_rate_toman")
         kb.button(text="💵 نرخ مبنای تتر", callback_data="adm:set:usdt_rate_toman")
+        kb.button(text="📬 آدرس والت", callback_data="adm:set:ton_wallet_address")
+        kb.button(text="💎 استعلام نرخ تون", callback_data="adm:crypto:rate:ton")
+        kb.button(text="💵 استعلام نرخ تتر", callback_data="adm:crypto:rate:usdt")
     else:
         kb.button(
             text=f"⚡️ Status {status_badge}",
             callback_data="adm:settings:toggle:crypto_enabled",
         )
-        kb.button(text="📬 Wallet Address", callback_data="adm:set:ton_wallet_address")
-        kb.button(text="💰 Exchange Rate", callback_data="adm:set:ton_rate_toman")
+        kb.button(text="💰 TON Rate", callback_data="adm:set:ton_rate_toman")
         kb.button(text="💵 USDT Rate", callback_data="adm:set:usdt_rate_toman")
-        kb.button(text="📊 Check Market Price", callback_data="adm:crypto:nobitex_now")
+        kb.button(text="📬 Wallet Address", callback_data="adm:set:ton_wallet_address")
+        kb.button(text="💎 Check TON Price", callback_data="adm:crypto:rate:ton")
+        kb.button(text="💵 Check USDT Price", callback_data="adm:crypto:rate:usdt")
 
     kb.button(text=t(lang, "btn_back"), callback_data="adm:settings")
-    kb.adjust(1, 2, 2, 1)
+    kb.adjust(1, 2, 1, 2, 1)
 
     lines = [
         "💎 <b>تنظیمات پرداخت کریپتو</b>\n" + SEPARATOR,
@@ -111,8 +113,8 @@ async def toggle_crypto_enabled(
     await call.answer("✅ وضعیت پرداخت کریپتو تغییر یافت.")
 
 
-@router.callback_query(F.data == "adm:crypto:nobitex_now")
-async def crypto_nobitex_now(
+@router.callback_query(F.data.in_({"adm:crypto:rate:ton", "adm:crypto:nobitex_now"}))
+async def crypto_ton_rate_now(
     call: CallbackQuery, bot: Bot, user_repo: UserRepository, session: AsyncSession,
 ):
     if not is_admin(call.from_user.id):
@@ -121,25 +123,57 @@ async def crypto_nobitex_now(
     store_fn = resolve_op("get_store_settings", get_store_settings)
     render_menu_fn = resolve_op("render_menu", render_menu)
 
-    from bot.services.crypto.nobitex import fetch_all_exchange_prices, format_multi_rate_alert
+    from bot.services.crypto.nobitex import fetch_all_exchange_prices, format_ton_rate_alert
     store = await store_fn(session)
     market_data = await fetch_all_exchange_prices(usdt_rate=store.usdt_rate_toman)
     best_ton, _ = market_data.get("best_ton", (None, ""))
-    if best_ton is None and not market_data.get("usdt"):
+    if best_ton is None and not market_data.get("ton"):
         await call.answer(
-            "❌ خطا در استعلام از صرافی‌ها (احتمال مسدود بودن دسترسی از خارج کشور). لطفاً نرخ را به‌صورت دستی تنظیم فرمایید.",
+            "❌ خطا در استعلام قیمت تون از صرافی‌ها.",
             show_alert=True,
         )
         return
 
-    text, kb = format_multi_rate_alert(
+    text, kb = format_ton_rate_alert(
         market_data=market_data,
         current_ton_rate=store.ton_rate_toman,
+    )
+    user = await user_repo.get_or_create(call.from_user.id, call.from_user.username)
+    await render_menu_fn(bot, user, user_repo, text, kb)
+    await call.answer("✅ استعلام قیمت لحظه‌ای تون انجام شد.")
+
+
+crypto_nobitex_now = crypto_ton_rate_now
+
+
+@router.callback_query(F.data == "adm:crypto:rate:usdt")
+async def crypto_usdt_rate_now(
+    call: CallbackQuery, bot: Bot, user_repo: UserRepository, session: AsyncSession,
+):
+    if not is_admin(call.from_user.id):
+        await call.answer(t("fa", "not_authorized"), show_alert=True)
+        return
+    store_fn = resolve_op("get_store_settings", get_store_settings)
+    render_menu_fn = resolve_op("render_menu", render_menu)
+
+    from bot.services.crypto.nobitex import fetch_all_exchange_prices, format_usdt_rate_alert
+    store = await store_fn(session)
+    market_data = await fetch_all_exchange_prices(usdt_rate=store.usdt_rate_toman)
+    best_usdt, _ = market_data.get("best_usdt", (None, ""))
+    if best_usdt is None and not market_data.get("usdt"):
+        await call.answer(
+            "❌ خطا در استعلام قیمت تتر از صرافی‌ها.",
+            show_alert=True,
+        )
+        return
+
+    text, kb = format_usdt_rate_alert(
+        market_data=market_data,
         current_usdt_rate=store.usdt_rate_toman,
     )
     user = await user_repo.get_or_create(call.from_user.id, call.from_user.username)
     await render_menu_fn(bot, user, user_repo, text, kb)
-    await call.answer("✅ استعلام قیمت لحظه‌ای انجام شد.")
+    await call.answer("✅ استعلام قیمت لحظه‌ای تتر انجام شد.")
 
 
 @router.callback_query(F.data.startswith("adm:rate:apply:"))

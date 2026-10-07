@@ -90,7 +90,7 @@ async def admin_panel(
         kb.button(text=t(lang, "btn_backup_db"), callback_data="adm:backup")
         kb.button(text=t(lang, "btn_nodes_monitor"), callback_data="adm:nodes")
 
-    # Row 5: Admin Mini App Panel
+    # Row 5: Admin Web Panel
     settings = get_settings()
     web_app_url = str(getattr(settings, "WEB_APP_URL", "") or "").strip().strip('"').strip("'")
     if not web_app_url:
@@ -104,7 +104,7 @@ async def admin_panel(
     if web_app_url and not web_app_url.startswith(("http://", "https://")):
         web_app_url = f"https://{web_app_url}"
 
-    tma_btn_text = "📱 پنل مدیریت Mini App" if lang == "fa" else "📱 Admin Mini App Panel"
+    tma_btn_text = "👑 پنل مدیریت سایت" if lang == "fa" else "👑 Site Admin Panel"
 
     if web_app_url:
         admin_tma_url = f"{web_app_url.rstrip('/')}/admin"
@@ -149,9 +149,9 @@ async def admin_tma_nourl(
         admin_tma_url = f"{web_app_url.rstrip('/')}/admin"
         from aiogram.utils.keyboard import InlineKeyboardBuilder
         kb = InlineKeyboardBuilder()
-        kb.button(text="🚀 ورود به پنل مدیریت Mini App", web_app=WebAppInfo(url=admin_tma_url))
+        kb.button(text="🚀 ورود به پنل مدیریت سایت", web_app=WebAppInfo(url=admin_tma_url))
         await call.message.answer(
-            "🔐 <b>لینک ورود به پنل مدیریت وب:</b>\n\n"
+            "🔐 <b>لینک ورود به پنل مدیریت سایت:</b>\n\n"
             f"🔗 آدرس: <code>{admin_tma_url}</code>\n\n"
             "جهت ورود، روی دکمه زیر کلیک فرمایید:",
             reply_markup=kb.as_markup(),
