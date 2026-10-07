@@ -413,6 +413,90 @@ class RemnawaveClient:
                 pass
         return None
 
+    async def get_user_srh(self, user_id: int | str, size: int = 50) -> list[dict[str, Any]]:
+        """Fetch Subscription Request History for a specific panel user."""
+        for path, params in (
+            ("/api/subscription-request-history", {"userId": str(user_id), "size": size}),
+            (f"/api/subscription-request-history/user/{user_id}", {"size": size}),
+            ("/api/srh", {"userId": str(user_id), "size": size}),
+            (f"/api/srh/user/{user_id}", {"size": size}),
+        ):
+            try:
+                resp = await self._client.get(path, params=params)
+                if resp.status_code == 200:
+                    data = resp.json().get("response") or resp.json()
+                    if isinstance(data, list):
+                        return data
+                    if isinstance(data, dict):
+                        records = data.get("requests") or data.get("history") or data.get("items") or []
+                        if isinstance(records, list):
+                            return records
+            except Exception:
+                pass
+        return []
+
+    async def bulk_update_users(
+        self,
+        users_list: list[dict[str, Any]],
+        extra_gb: int = 0,
+        extra_days: int = 0,
+    ) -> dict[str, Any]:
+        """Perform bulk credit or extension across users in safe concurrent batches."""
+        from datetime import datetime, timedelta, timezone
+
+        now_utc = datetime.now(timezone.utc)
+        success_count = 0
+        failed_count = 0
+
+        async def _update_single(user: dict[str, Any]) -> bool:
+            u_id = user.get("id")
+            if not u_id:
+                return False
+
+            payload: dict[str, Any] = {"id": u_id}
+
+            if extra_gb > 0:
+                current_limit = int(user.get("trafficLimitBytes") or 0)
+                payload["trafficLimitBytes"] = current_limit + (extra_gb * (1024**3))
+
+            if extra_days > 0:
+                current_expire_raw = user.get("expireAt") or user.get("expire")
+                base_dt = now_utc
+                if current_expire_raw:
+                    try:
+                        parsed = datetime.fromisoformat(str(current_expire_raw).replace("Z", "+00:00"))
+                        if parsed > now_utc:
+                            base_dt = parsed
+                    except Exception:
+                        pass
+                new_expire = base_dt + timedelta(days=extra_days)
+                payload["expireAt"] = new_expire.isoformat()
+
+            try:
+                resp = await self._client.patch("/api/users", json=payload)
+                return resp.status_code in (200, 201, 204)
+            except Exception as e:
+                logger.warning("Bulk update failed for user %s: %s", u_id, e)
+                return False
+
+        chunk_size = 15
+        for i in range(0, len(users_list), chunk_size):
+            chunk = users_list[i : i + chunk_size]
+            results = await asyncio.gather(*(_update_single(u) for u in chunk), return_exceptions=True)
+            for res in results:
+                if res is True:
+                    success_count += 1
+                else:
+                    failed_count += 1
+            if i + chunk_size < len(users_list):
+                await asyncio.sleep(0.05)
+
+        return {
+            "success_count": success_count,
+            "failed_count": failed_count,
+            "total": len(users_list),
+        }
+
     async def get_live_sessions_explorer(self) -> dict[str, Any]:
         """Scan real-time active connections across all online nodes to match Sessions Explorer in Remnawave v3."""
         nodes = await self.get_nodes() or []

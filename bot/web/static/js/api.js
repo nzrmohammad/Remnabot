@@ -238,6 +238,14 @@ const api = {
   async getUserLiveSessions(telegram_id) {
     return this.get(`/api/admin/user/sessions?telegram_id=${telegram_id}`);
   },
+
+  async getUserSrh(params) {
+    return this.get('/api/admin/user/srh', params);
+  },
+
+  async bulkUsersAction(data) {
+    return this.post('/api/admin/users/bulk-action', data);
+  },
 };
 
 window.api = api;

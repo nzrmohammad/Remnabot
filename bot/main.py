@@ -31,6 +31,7 @@ from bot.services.reports import (
     nightly_report_loop,
     weekly_report_loop,
 )
+from bot.services.node_monitor import nodes_monitor_loop
 from bot.services.retention import retention_loop
 
 logging.basicConfig(
@@ -296,6 +297,9 @@ async def main() -> None:
         ),
         asyncio.create_task(
             ton_watcher_loop(bot, session_factory), name="ton-watcher-loop"
+        ),
+        asyncio.create_task(
+            nodes_monitor_loop(bot, remnawave), name="nodes-monitor-loop"
         ),
     ]
 

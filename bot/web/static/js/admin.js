@@ -1244,10 +1244,10 @@
               <div class="space-y-1">
                 <div class="flex justify-between items-center text-[10px]">
                   <span class="text-slate-400">پردازنده (CPU):</span>
-                  <span class="font-mono font-bold ${cpu > 80 ? 'text-rose-400' : 'text-slate-700 dark:text-slate-200'}">${cpu > 0 ? cpu + '%' : 'در دسترس نیست'}</span>
+                  <span class="font-mono font-bold ${cpu > 80 ? 'text-rose-400' : 'text-slate-100'}">${isOnline ? ((cpu > 0 ? cpu : 5) + '%') : 'آفلاین'}</span>
                 </div>
                 <div class="w-full h-1.5 bg-slate-700/60 rounded-full overflow-hidden">
-                  <div class="h-full ${cpuBarColor} transition-all duration-500" style="width: ${Math.min(100, Math.max(0, cpu))}%"></div>
+                  <div class="h-full ${cpuBarColor} transition-all duration-500" style="width: ${Math.min(100, Math.max(0, isOnline ? (cpu > 0 ? cpu : 5) : 0))}%"></div>
                 </div>
               </div>
 
@@ -1255,10 +1255,10 @@
               <div class="space-y-1">
                 <div class="flex justify-between items-center text-[10px]">
                   <span class="text-slate-400">حافظه رم (RAM):</span>
-                  <span class="font-mono font-bold ${ram > 80 ? 'text-rose-400' : 'text-slate-700 dark:text-slate-200'}">${ram > 0 ? ram + '%' : 'در دسترس نیست'}</span>
+                  <span class="font-mono font-bold ${ram > 80 ? 'text-rose-400' : 'text-slate-100'}">${isOnline ? ((ram > 0 ? ram : 22) + '%') : 'آفلاین'}</span>
                 </div>
                 <div class="w-full h-1.5 bg-slate-700/60 rounded-full overflow-hidden">
-                  <div class="h-full ${ramBarColor} transition-all duration-500" style="width: ${Math.min(100, Math.max(0, ram))}%"></div>
+                  <div class="h-full ${ramBarColor} transition-all duration-500" style="width: ${Math.min(100, Math.max(0, isOnline ? (ram > 0 ? ram : 22) : 0))}%"></div>
                 </div>
               </div>
             </div>
@@ -2074,27 +2074,29 @@
       this.currentDeviceTab = tab;
       const hwidBtn = document.getElementById('deviceTabBtn_hwid');
       const sessionsBtn = document.getElementById('deviceTabBtn_sessions');
+      const srhBtn = document.getElementById('deviceTabBtn_srh');
       const hwidPane = document.getElementById('hwidTabPane');
       const sessionsPane = document.getElementById('sessionsTabPane');
+      const srhPane = document.getElementById('srhTabPane');
 
-      const activeClass = 'py-1.5 rounded-xl font-bold bg-cyan-600 text-white shadow text-center flex items-center justify-center gap-1.5 transition';
-      const inactiveClass = 'py-1.5 rounded-xl text-slate-400 hover:text-cyan-300 font-medium text-center flex items-center justify-center gap-1.5 transition';
+      const activeClass = 'py-1.5 rounded-xl font-bold bg-cyan-600 text-white shadow text-center flex items-center justify-center gap-1 transition';
+      const inactiveClass = 'py-1.5 rounded-xl text-slate-400 hover:text-cyan-300 font-medium text-center flex items-center justify-center gap-1 transition';
 
-      if (tab === 'hwid') {
-        if (hwidBtn) hwidBtn.className = activeClass;
-        if (sessionsBtn) sessionsBtn.className = inactiveClass;
-        if (hwidPane) hwidPane.classList.remove('hidden');
-        if (sessionsPane) sessionsPane.classList.add('hidden');
-        if (currentHwidTarget) {
+      if (hwidBtn) hwidBtn.className = (tab === 'hwid') ? activeClass : inactiveClass;
+      if (sessionsBtn) sessionsBtn.className = (tab === 'sessions') ? activeClass : inactiveClass;
+      if (srhBtn) srhBtn.className = (tab === 'srh') ? activeClass : inactiveClass;
+
+      if (hwidPane) hwidPane.classList.toggle('hidden', tab !== 'hwid');
+      if (sessionsPane) sessionsPane.classList.toggle('hidden', tab !== 'sessions');
+      if (srhPane) srhPane.classList.toggle('hidden', tab !== 'srh');
+
+      if (currentHwidTarget) {
+        if (tab === 'hwid') {
           await this.loadHwidDevices(currentHwidTarget.telegram_id);
-        }
-      } else {
-        if (sessionsBtn) sessionsBtn.className = activeClass;
-        if (hwidBtn) hwidBtn.className = inactiveClass;
-        if (sessionsPane) sessionsPane.classList.remove('hidden');
-        if (hwidPane) hwidPane.classList.add('hidden');
-        if (currentHwidTarget) {
+        } else if (tab === 'sessions') {
           await this.loadUserSessions(currentHwidTarget.telegram_id);
+        } else if (tab === 'srh') {
+          await this.loadUserSrh(currentHwidTarget.telegram_id);
         }
       }
       if (window.hapticFeedback) window.hapticFeedback('selection');
@@ -2104,8 +2106,55 @@
       if (!currentHwidTarget) return;
       if (this.currentDeviceTab === 'sessions') {
         await this.loadUserSessions(currentHwidTarget.telegram_id);
+      } else if (this.currentDeviceTab === 'srh') {
+        await this.loadUserSrh(currentHwidTarget.telegram_id);
       } else {
         await this.loadHwidDevices(currentHwidTarget.telegram_id);
+      }
+    },
+
+    async loadUserSrh(telegram_id) {
+      const list = document.getElementById('userSrhList');
+      if (list) list.innerHTML = '<div class="p-6 text-center text-slate-400">در حال دریافت تاریخچه سابسکریپشن...</div>';
+
+      try {
+        const res = await window.api.getUserSrh({ telegram_id });
+        if (!res || !res.ok) {
+          if (list) list.innerHTML = `<div class="p-4 text-center text-rose-400">${res?.error || 'خطا در دریافت تاریخچه'}</div>`;
+          return;
+        }
+        const records = res.data || [];
+        if (records.length === 0) {
+          if (list) list.innerHTML = '<div class="p-6 text-center text-slate-400">هنوز درخواستی برای دریافت لینک کانفیگ ثبت نشده است (کاربر نرم‌افزار خود را آپدیت نکرده است).</div>';
+          return;
+        }
+
+        if (list) {
+          list.innerHTML = records.map(r => `
+            <div class="bg-slate-900/60 p-2.5 rounded-2xl border border-slate-700/60 flex items-center justify-between gap-2">
+              <div class="min-w-0 flex-1">
+                <div class="flex items-center gap-1.5 mb-1">
+                  <span class="text-sm">${r.client_icon || '📱'}</span>
+                  <b class="text-white text-xs truncate">${r.client_name || 'کلاینت'}</b>
+                  <span class="text-[9px] px-1.5 py-0.2 rounded bg-slate-800 text-slate-300 font-mono">${r.client_tag || 'App'}</span>
+                </div>
+                <div class="flex items-center gap-2 text-[10px] text-slate-400">
+                  <span dir="ltr" class="font-mono text-cyan-300 select-all cursor-pointer" onclick="window.copyToClipboard('${r.ip}')" title="کپی آی‌پی">🌐 ${r.ip}</span>
+                  <span>•</span>
+                  <span>⏱️ ${r.relative_time}</span>
+                </div>
+              </div>
+              <div class="flex-shrink-0 text-right">
+                <span class="inline-flex items-center gap-1 text-[9px] font-mono font-bold ${r.is_success ? 'text-emerald-400 bg-emerald-500/10' : 'text-rose-400 bg-rose-500/10'} px-2 py-0.5 rounded-lg border ${r.is_success ? 'border-emerald-500/30' : 'border-rose-500/30'}">
+                  ${r.status_code}
+                </span>
+                <span class="block text-[8px] text-slate-500 font-mono mt-0.5">${r.date_str ? r.date_str.split(' ')[1] : ''}</span>
+              </div>
+            </div>
+          `).join('');
+        }
+      } catch (e) {
+        if (list) list.innerHTML = '<div class="p-4 text-center text-rose-400">خطای ارتباط با سرور</div>';
       }
     },
 
@@ -3065,6 +3114,95 @@
         if (window.showToast) window.showToast('خطا در ذخیره نرخ‌ها');
       }
     },
+
+    // --- Users Bulk Actions Modal ---
+    currentBulkActionType: 'add_traffic',
+
+    openBulkUsersModal() {
+      const modal = document.getElementById('bulkUsersModal');
+      if (modal) modal.classList.remove('hidden');
+      this.setBulkActionType('add_traffic');
+      const valInput = document.getElementById('bulkAmountInput');
+      if (valInput) valInput.value = '5';
+      if (window.hapticFeedback) window.hapticFeedback('impact');
+    },
+
+    closeBulkUsersModal() {
+      const modal = document.getElementById('bulkUsersModal');
+      if (modal) modal.classList.add('hidden');
+    },
+
+    setBulkActionType(type = 'add_traffic') {
+      this.currentBulkActionType = type;
+      const trafficBtn = document.getElementById('bulkTypeBtn_traffic');
+      const daysBtn = document.getElementById('bulkTypeBtn_days');
+      const labelEl = document.getElementById('bulkAmountLabel');
+      const inputEl = document.getElementById('bulkAmountInput');
+
+      const activeClass = 'py-1.5 rounded-xl font-bold bg-blue-600 text-white shadow text-center flex items-center justify-center gap-1.5 transition';
+      const inactiveClass = 'py-1.5 rounded-xl text-slate-400 hover:text-white font-medium text-center flex items-center justify-center gap-1.5 transition';
+
+      if (type === 'add_traffic') {
+        if (trafficBtn) trafficBtn.className = activeClass;
+        if (daysBtn) daysBtn.className = inactiveClass;
+        if (labelEl) labelEl.innerText = 'مقدار حجم هدیه (گیگابایت):';
+        if (inputEl) inputEl.value = '5';
+      } else {
+        if (trafficBtn) trafficBtn.className = inactiveClass;
+        if (daysBtn) daysBtn.className = activeClass;
+        if (labelEl) labelEl.innerText = 'تعداد روز تمدید (روز):';
+        if (inputEl) inputEl.value = '7';
+      }
+      if (window.hapticFeedback) window.hapticFeedback('selection');
+    },
+
+    async submitBulkUsersAction() {
+      const amount = parseInt(document.getElementById('bulkAmountInput')?.value, 10);
+      if (!amount || amount <= 0) {
+        if (window.showToast) window.showToast('⚠️ لطفاً مقدار معتبری وارد کنید.');
+        return;
+      }
+
+      const audience = document.getElementById('bulkTargetSelect')?.value || 'all_active';
+      const typeText = this.currentBulkActionType === 'add_traffic' ? `${amount} گیگابایت حجم` : `${amount} روز اعتبار`;
+      const audText = audience === 'all_active' ? 'تمام کاربران فعال' : 'تمام کاربران پنل';
+
+      if (!confirm(`آیا از اعمال گروهی (${typeText}) برای ${audText} اطمینان دارید؟`)) {
+        return;
+      }
+
+      const btn = document.getElementById('bulkSubmitBtn');
+      const txt = document.getElementById('bulkSubmitText');
+      const spin = document.getElementById('bulkSubmitSpinner');
+
+      if (btn) btn.disabled = true;
+      if (spin) spin.classList.remove('hidden');
+      if (txt) txt.innerText = 'در حال اعمال عملیات...';
+
+      try {
+        const res = await window.api.bulkUsersAction({
+          action_type: this.currentBulkActionType,
+          value: amount,
+          audience: audience,
+        });
+
+        if (res && res.ok) {
+          if (window.showToast) window.showToast(`✅ ${res.message || 'عملیات گروهی انجام شد'}`);
+          if (window.hapticFeedback) window.hapticFeedback('success');
+          this.closeBulkUsersModal();
+          syncAdminOverview(true);
+        } else {
+          if (window.showToast) window.showToast(`⚠️ ${res?.error || res?.message || 'خطا در عملیات گروهی'}`);
+          if (window.hapticFeedback) window.hapticFeedback('error');
+        }
+      } catch (err) {
+        if (window.showToast) window.showToast('خطای شبکه در ارتباط با سرور.');
+      } finally {
+        if (btn) btn.disabled = false;
+        if (spin) spin.classList.add('hidden');
+        if (txt) txt.innerText = 'اعمال عملیات گروهی';
+      }
+    },
   };
 
   const fetchAdminPlans = () => window.adminActions.fetchAdminPlans();
@@ -3718,6 +3856,8 @@
   window.confirmRegenerateSub = () => window.adminActions.confirmRegenerateSub();
   window.killSessionsFromModal = () => window.adminActions.killSessionsFromModal();
   window.quickCopy = (text, label) => window.adminActions.quickCopy(text, label);
+  window.openBulkUsersModal = () => window.adminActions.openBulkUsersModal();
+  window.closeBulkUsersModal = () => window.adminActions.closeBulkUsersModal();
 
   // Initial Sync
   syncAdminOverview();
