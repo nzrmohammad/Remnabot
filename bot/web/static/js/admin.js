@@ -525,40 +525,12 @@
     });
   }
 
-  const circleCanvasCache = {};
-  function getElevatedCircleIcon(color, size = 7, shiftUp = 3) {
-    if (typeof document === 'undefined') return 'circle';
-    const dpr = Math.min(window.devicePixelRatio || 2, 3);
-    const key = `${color}_${size}_${shiftUp}_${dpr}`;
-    if (circleCanvasCache[key]) return circleCanvasCache[key];
-    try {
-      const canvas = document.createElement('canvas');
-      const w = 8;
-      const h = 14;
-      canvas.width = w * dpr;
-      canvas.height = h * dpr;
-      canvas.style.width = `${w}px`;
-      canvas.style.height = `${h}px`;
-      const ctx = canvas.getContext('2d');
-      if (ctx) {
-        ctx.scale(dpr, dpr);
-        ctx.fillStyle = color || '#3b82f6';
-        ctx.beginPath();
-        ctx.arc(4, 3.5, 3.5, 0, Math.PI * 2);
-        ctx.fill();
-      }
-      circleCanvasCache[key] = canvas;
-      return canvas;
-    } catch (_) {
-      return 'circle';
-    }
-  }
-
   function createDoughnutLegendLabels() {
     return {
       usePointStyle: true,
-      boxWidth: 8,
-      boxHeight: 14,
+      pointStyle: 'circle',
+      boxWidth: 7,
+      boxHeight: 7,
       padding: 10,
       color: isDark ? '#f8fafc' : '#0f172a',
       font: { family: 'Vazirmatn', size: 10, weight: '600' },
@@ -573,9 +545,9 @@
             text: label,
             fontColor: textColor,
             fillStyle: fill,
-            strokeStyle: 'transparent',
+            strokeStyle: fill,
             lineWidth: 0,
-            pointStyle: getElevatedCircleIcon(fill),
+            pointStyle: 'circle',
             hidden: isNaN(dataset.data[i]) || chart.getDataVisibility(i) === false,
             index: i,
             datasetIndex: 0
@@ -1486,18 +1458,14 @@
                 <span>اکانت تست</span>
               </button>
             </div>
-            <div class="grid grid-cols-4 gap-1 text-center text-[9px]">
+            <div class="grid grid-cols-3 gap-1.5 text-center text-[10px]">
               <button class="bg-transparent hover:bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border border-cyan-500/30 hover:border-cyan-400/60 py-1.5 rounded-xl transition active:scale-95 font-medium flex items-center justify-center gap-1" onclick="window.adminActions.openSubModal(${u.telegram_id}, '${safeDisplayName}', '${p?.subscription_url || ''}')" title="لینک سابسکریپشن">
                 <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
                 <span>لینک ساب</span>
               </button>
-              <button class="bg-transparent hover:bg-teal-500/10 text-teal-600 dark:text-teal-400 border border-teal-500/30 hover:border-teal-400/60 py-1.5 rounded-xl transition active:scale-95 font-medium flex items-center justify-center gap-1" onclick="window.adminActions.openHwidModal(${u.telegram_id}, '${safeDisplayName}')" title="دستگاه‌های فعال (HWID)">
+              <button class="bg-transparent hover:bg-teal-500/10 text-teal-600 dark:text-teal-400 border border-teal-500/30 hover:border-teal-400/60 py-1.5 rounded-xl transition active:scale-95 font-medium flex items-center justify-center gap-1" onclick="window.adminActions.openHwidModal(${u.telegram_id}, '${safeDisplayName}')" title="دستگاه‌های فعال و نشست‌ها">
                 <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
                 <span>دستگاه‌ها</span>
-              </button>
-              <button class="bg-cyan-500/15 hover:bg-cyan-500/25 text-cyan-400 border border-cyan-500/40 py-1.5 rounded-xl transition active:scale-95 font-bold flex items-center justify-center gap-1 shadow-sm" onclick="window.adminActions.openUserSessionsModal(${u.telegram_id}, '${safeDisplayName}')" title="نشست‌ها و اتصالات زنده">
-                <svg class="w-3 h-3 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-                <span>نشست‌ها</span>
               </button>
               <button class="${u.is_banned ? 'text-emerald-600 dark:text-emerald-400 border-emerald-500/30 hover:border-emerald-400/60 hover:bg-emerald-500/10' : 'text-rose-600 dark:text-rose-400 border-rose-500/30 hover:border-rose-400/60 hover:bg-rose-500/10'} bg-transparent border py-1.5 rounded-xl transition active:scale-95 font-medium flex items-center justify-center gap-1" onclick="window.adminActions.toggleBan(${u.telegram_id}, ${u.is_banned})">
                 ${u.is_banned ? '<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg><span>آزاد</span>' : '<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg><span>مسدود</span>'}
@@ -2072,158 +2040,108 @@
       }
     },
 
-    // --- HWID Devices Inspector ---
-    async openHwidModal(telegram_id, name) {
+    // --- Unified Devices & Live Sessions Modal ---
+    currentDeviceTab: 'hwid',
+
+    async openHwidModal(telegram_id, name, initialTab = 'hwid') {
       currentHwidTarget = { telegram_id, name };
+      this.currentUserSessionsTarget = { telegram_id, name };
       const modal = document.getElementById('hwidModal');
       const title = document.getElementById('hwidModalTitle');
-      const list = document.getElementById('hwidDevicesList');
       if (modal) modal.classList.remove('hidden');
-      if (title) title.innerText = `📱 دستگاه‌های: ${name}`;
+      if (title) title.innerText = `📱 دستگاه‌ها و نشست‌ها: ${name}`;
+      if (window.hapticFeedback) window.hapticFeedback('impact');
+      await this.switchDeviceModalTab(initialTab);
+    },
+
+    async switchDeviceModalTab(tab = 'hwid') {
+      this.currentDeviceTab = tab;
+      const hwidBtn = document.getElementById('deviceTabBtn_hwid');
+      const sessionsBtn = document.getElementById('deviceTabBtn_sessions');
+      const hwidPane = document.getElementById('hwidTabPane');
+      const sessionsPane = document.getElementById('sessionsTabPane');
+
+      const activeClass = 'py-1.5 rounded-xl font-bold bg-cyan-600 text-white shadow text-center flex items-center justify-center gap-1.5 transition';
+      const inactiveClass = 'py-1.5 rounded-xl text-slate-400 hover:text-cyan-300 font-medium text-center flex items-center justify-center gap-1.5 transition';
+
+      if (tab === 'hwid') {
+        if (hwidBtn) hwidBtn.className = activeClass;
+        if (sessionsBtn) sessionsBtn.className = inactiveClass;
+        if (hwidPane) hwidPane.classList.remove('hidden');
+        if (sessionsPane) sessionsPane.classList.add('hidden');
+        if (currentHwidTarget) {
+          await this.loadHwidDevices(currentHwidTarget.telegram_id);
+        }
+      } else {
+        if (sessionsBtn) sessionsBtn.className = activeClass;
+        if (hwidBtn) hwidBtn.className = inactiveClass;
+        if (sessionsPane) sessionsPane.classList.remove('hidden');
+        if (hwidPane) hwidPane.classList.add('hidden');
+        if (currentHwidTarget) {
+          await this.loadUserSessions(currentHwidTarget.telegram_id);
+        }
+      }
+      if (window.hapticFeedback) window.hapticFeedback('selection');
+    },
+
+    async refreshCurrentDeviceTab() {
+      if (!currentHwidTarget) return;
+      if (this.currentDeviceTab === 'sessions') {
+        await this.loadUserSessions(currentHwidTarget.telegram_id);
+      } else {
+        await this.loadHwidDevices(currentHwidTarget.telegram_id);
+      }
+    },
+
+    async loadHwidDevices(telegram_id) {
+      const list = document.getElementById('hwidDevicesList');
       if (list) list.innerHTML = '<div class="p-6 text-center text-slate-400">در حال دریافت دستگاه‌ها...</div>';
 
       try {
         const res = await window.api.getUserHwidDevices(telegram_id);
         if (!res || !res.ok) {
-          list.innerHTML = `<div class="p-4 text-center text-rose-400">${res?.error || 'خطا در دریافت لیست'}</div>`;
+          if (list) list.innerHTML = `<div class="p-4 text-center text-rose-400">${res?.error || 'خطا در دریافت لیست'}</div>`;
           return;
         }
         const devices = res.devices || [];
         if (devices.length === 0) {
-          list.innerHTML = '<div class="p-6 text-center text-slate-400">هیچ دستگاه فعالی متصل نیست 🟢</div>';
+          if (list) list.innerHTML = '<div class="p-6 text-center text-slate-400">هیچ دستگاه فعالی متصل نیست 🟢</div>';
           return;
         }
 
-        list.innerHTML = devices.map(d => {
-          const hwid = d.hwid || d.id || '';
-          const os = d.os || d.platform || 'دستگاه متصل';
-          const brand = d.brand || d.model || '';
-          const ip = d.requestIp || d.ip || d.lastIp || d.clientIp || '—';
-          return `
-            <div class="bg-transparent p-3 rounded-2xl border border-slate-700/60 dark:border-slate-700/60 flex items-center justify-between gap-2.5">
-              <div class="min-w-0 flex-1">
-                <b class="text-white text-xs block truncate">${os} ${brand ? '(' + brand + ')' : ''}</b>
-                <div class="flex items-center gap-1.5 mt-0.5 text-[10px] text-slate-400">
-                  <span>آی‌پی:</span>
-                  <span dir="ltr" class="font-mono text-cyan-400 dark:text-cyan-300">${ip}</span>
+        if (list) {
+          list.innerHTML = devices.map(d => {
+            const hwid = d.hwid || d.id || '';
+            const os = d.os || d.platform || 'دستگاه متصل';
+            const brand = d.brand || d.model || '';
+            const ip = d.requestIp || d.ip || d.lastIp || d.clientIp || '—';
+            return `
+              <div class="bg-transparent p-3 rounded-2xl border border-slate-700/60 dark:border-slate-700/60 flex items-center justify-between gap-2.5">
+                <div class="min-w-0 flex-1">
+                  <b class="text-white text-xs block truncate">${os} ${brand ? '(' + brand + ')' : ''}</b>
+                  <div class="flex items-center gap-1.5 mt-0.5 text-[10px] text-slate-400">
+                    <span>آی‌پی:</span>
+                    <span dir="ltr" class="font-mono text-cyan-400 dark:text-cyan-300">${ip}</span>
+                  </div>
+                  <div class="flex items-center gap-1.5 mt-1">
+                    <span class="text-[9px] text-slate-400">HWID:</span>
+                    <span dir="ltr" class="font-mono text-[9px] text-slate-300 bg-transparent px-2 py-0.5 rounded-lg border border-slate-700/60 truncate max-w-[170px]" title="${hwid}">${hwid}</span>
+                  </div>
                 </div>
-                <div class="flex items-center gap-1.5 mt-1">
-                  <span class="text-[9px] text-slate-400">HWID:</span>
-                  <span dir="ltr" class="font-mono text-[9px] text-slate-300 bg-transparent px-2 py-0.5 rounded-lg border border-slate-700/60 truncate max-w-[170px]" title="${hwid}">${hwid}</span>
-                </div>
+                <button onclick="window.adminActions.deleteHwid(${telegram_id}, '${hwid}')" class="bg-transparent hover:bg-rose-500/10 text-rose-400 border border-rose-500/30 hover:border-rose-400 p-2.5 rounded-xl transition active:scale-95 flex items-center justify-center flex-shrink-0" title="قطع اتصال این دستگاه">
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                </button>
               </div>
-              <button onclick="window.adminActions.deleteHwid(${telegram_id}, '${hwid}')" class="bg-transparent hover:bg-rose-500/10 text-rose-400 border border-rose-500/30 hover:border-rose-400 p-2.5 rounded-xl transition active:scale-95 flex items-center justify-center flex-shrink-0" title="قطع اتصال این دستگاه">
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-              </button>
-            </div>
-          `;
-        }).join('');
-      } catch (e) {
-        list.innerHTML = '<div class="p-4 text-center text-rose-400">خطای شبکه در دریافت اطلاعات دستگاه‌ها</div>';
-      }
-    },
-
-    closeHwidModal() {
-      document.getElementById('hwidModal')?.classList.add('hidden');
-      currentHwidTarget = null;
-    },
-
-    async killSessionsFromModal() {
-      if (!currentHwidTarget) return;
-      const { telegram_id, name } = currentHwidTarget;
-      const ok = await showConfirmModal({
-        title: 'قطع تمامی نشست‌های فعال',
-        message: `آیا از قطع تمام نشست‌ها و اتصالات دستگاه‌های کاربر ${name} اطمینان دارید؟`,
-        confirmText: 'قطع تمامی نشست‌ها',
-        isDanger: true,
-      });
-      if (!ok) return;
-
-      try {
-        const res = await window.api.killUserSessions(telegram_id);
-        if (res && res.ok) {
-          if (window.showToast) window.showToast(`✅ تعداد ${formatNumber(res.killed_devices || 0)} نشست فعال قطع شدند.`);
-          if (window.hapticFeedback) window.hapticFeedback('success');
-          this.openHwidModal(telegram_id, name);
-          syncAdminOverview();
-        } else {
-          if (window.showToast) window.showToast(`⚠️ ${res?.error || 'خطا در قطع نشست‌ها'}`);
-          if (window.hapticFeedback) window.hapticFeedback('error');
+            `;
+          }).join('');
         }
       } catch (e) {
-        if (window.showToast) window.showToast('خطا در ارتباط با سرور');
+        if (list) list.innerHTML = '<div class="p-4 text-center text-rose-400">خطای شبکه در دریافت اطلاعات دستگاه‌ها</div>';
       }
     },
 
-    async deleteHwid(telegram_id, hwid) {
-      const ok = await showConfirmModal({
-        title: 'قطع اتصال دستگاه',
-        message: 'آیا از قطع اتصال این دستگاه کاربر اطمینان دارید؟',
-        confirmText: 'قطع اتصال',
-        isDanger: true,
-      });
-      if (!ok) return;
-
-      try {
-        const res = await window.api.deleteUserHwid(telegram_id, hwid);
-        if (res && res.ok) {
-          if (window.showToast) window.showToast('✅ اتصال دستگاه با موفقیت قطع شد.');
-          if (window.hapticFeedback) window.hapticFeedback('success');
-          if (currentHwidTarget) this.openHwidModal(currentHwidTarget.telegram_id, currentHwidTarget.name);
-        } else {
-          if (window.showToast) window.showToast(`⚠️ ${res?.error || 'خطا در قطع اتصال'}`);
-          if (window.hapticFeedback) window.hapticFeedback('error');
-        }
-      } catch (e) {
-        if (window.showToast) window.showToast('خطا در برقراری ارتباط');
-      }
-    },
-
-    switchFromHwidToSessions() {
-      if (!currentHwidTarget) return;
-      const { telegram_id, name } = currentHwidTarget;
-      this.closeHwidModal();
-      this.openUserSessionsModal(telegram_id, name);
-    },
-
-    switchFromSessionsToHwid() {
-      if (!this.currentUserSessionsTarget) return;
-      const { telegram_id, name } = this.currentUserSessionsTarget;
-      this.closeUserSessionsModal();
-      this.openHwidModal(telegram_id, name);
-    },
-
-    // --- User Live Sessions Inspector Actions ---
-    currentUserSessionsTarget: null,
-
-    async openUserSessionsModal(telegram_id, name) {
-      this.currentUserSessionsTarget = { telegram_id, name };
-      const modal = document.getElementById('userSessionsModal');
-      const title = document.getElementById('userSessionsModalTitle');
-      const subtitle = document.getElementById('userSessionsModalSubtitle');
-      if (modal) modal.classList.remove('hidden');
-      if (title) title.innerText = `🌐 نشست‌های زنده: ${name}`;
-      if (subtitle) {
-        subtitle.innerText = 'در حال بررسی نودها...';
-        subtitle.className = 'text-[9px] text-cyan-400 block font-mono';
-      }
-      if (window.hapticFeedback) window.hapticFeedback('impact');
-      await this.refreshUserSessions();
-    },
-
-    closeUserSessionsModal() {
-      const modal = document.getElementById('userSessionsModal');
-      if (modal) modal.classList.add('hidden');
-      this.currentUserSessionsTarget = null;
-      if (window.hapticFeedback) window.hapticFeedback('selection');
-    },
-
-    async refreshUserSessions() {
-      if (!this.currentUserSessionsTarget) return;
-      const { telegram_id } = this.currentUserSessionsTarget;
+    async loadUserSessions(telegram_id) {
       const list = document.getElementById('userSessionsList');
-      const subtitle = document.getElementById('userSessionsModalSubtitle');
-
       if (list) {
         list.innerHTML = `
           <div class="p-8 text-center text-xs text-slate-400 flex flex-col items-center gap-2">
@@ -2237,35 +2155,13 @@
         const res = await window.api.getUserLiveSessions(telegram_id);
         if (!res || !res.ok) {
           if (list) list.innerHTML = `<div class="p-4 text-center text-rose-400 text-xs">${res?.error || 'خطا در دریافت اطلاعات اتصالات'}</div>`;
-          if (subtitle) {
-            subtitle.innerText = 'خطا در استعلام';
-            subtitle.className = 'text-[9px] text-rose-400 block font-mono';
-          }
           return;
         }
 
         const data = res.data || {};
-        const isOnline = !!data.isOnline;
-        const totalConns = data.totalConnections || 0;
-        const uniqueIps = data.uniqueIps || [];
-
-        if (subtitle) {
-          if (isOnline) {
-            subtitle.innerText = `🟢 آنلاین (${formatNumber(totalConns)} اتصال فعال | ${formatNumber(uniqueIps.length)} آی‌پی)`;
-            subtitle.className = 'text-[9px] text-emerald-400 block font-mono';
-          } else {
-            subtitle.innerText = '⚪ آفلاین (بدون اتصال فعال)';
-            subtitle.className = 'text-[9px] text-slate-400 block font-mono';
-          }
-        }
-
         this.renderUserSessionsList(data);
       } catch (e) {
         if (list) list.innerHTML = '<div class="p-4 text-center text-rose-400 text-xs">خطای شبکه در دریافت اتصالات</div>';
-        if (subtitle) {
-          subtitle.innerText = 'خطای شبکه';
-          subtitle.className = 'text-[9px] text-rose-400 block font-mono';
-        }
       }
     },
 
@@ -2317,13 +2213,33 @@
       }).join('');
     },
 
-    async killUserSessionsFromModal() {
-      if (!this.currentUserSessionsTarget) return;
-      const { telegram_id, name } = this.currentUserSessionsTarget;
+    closeHwidModal() {
+      document.getElementById('hwidModal')?.classList.add('hidden');
+      currentHwidTarget = null;
+      this.currentUserSessionsTarget = null;
+    },
+
+    closeUserSessionsModal() {
+      this.closeHwidModal();
+    },
+
+    async openUserSessionsModal(telegram_id, name) {
+      await this.openHwidModal(telegram_id, name, 'sessions');
+    },
+
+    async refreshUserSessions() {
+      if (currentHwidTarget) {
+        await this.loadUserSessions(currentHwidTarget.telegram_id);
+      }
+    },
+
+    async killSessionsFromModal() {
+      if (!currentHwidTarget) return;
+      const { telegram_id, name } = currentHwidTarget;
       const ok = await showConfirmModal({
-        title: 'قطع تمامی اتصالات فعال',
-        message: `آیا از قطع کامل تمامی نشست‌ها و اتصالات زنده کاربر ${name} اطمینان دارید؟`,
-        confirmText: 'قطع اتصال',
+        title: 'قطع تمامی نشست‌های فعال',
+        message: `آیا از قطع تمام نشست‌ها و اتصالات کاربر ${name} اطمینان دارید؟`,
+        confirmText: 'قطع تمامی نشست‌ها',
         isDanger: true,
       });
       if (!ok) return;
@@ -2331,9 +2247,9 @@
       try {
         const res = await window.api.killUserSessions(telegram_id);
         if (res && res.ok) {
-          if (window.showToast) window.showToast('✅ تمامی نشست‌های فعال کاربر با موفقیت قطع شدند.');
+          if (window.showToast) window.showToast(`✅ تمامی نشست‌های فعال کاربر قطع شدند.`);
           if (window.hapticFeedback) window.hapticFeedback('success');
-          await this.refreshUserSessions();
+          await this.refreshCurrentDeviceTab();
           syncAdminOverview();
         } else {
           if (window.showToast) window.showToast(`⚠️ ${res?.error || 'خطا در قطع نشست‌ها'}`);
@@ -2341,6 +2257,34 @@
         }
       } catch (e) {
         if (window.showToast) window.showToast('خطا در ارتباط با سرور');
+      }
+    },
+
+    async killUserSessionsFromModal() {
+      await this.killSessionsFromModal();
+    },
+
+    async deleteHwid(telegram_id, hwid) {
+      const ok = await showConfirmModal({
+        title: 'قطع اتصال دستگاه',
+        message: 'آیا از قطع اتصال این دستگاه کاربر اطمینان دارید؟',
+        confirmText: 'قطع اتصال',
+        isDanger: true,
+      });
+      if (!ok) return;
+
+      try {
+        const res = await window.api.deleteUserHwid(telegram_id, hwid);
+        if (res && res.ok) {
+          if (window.showToast) window.showToast('✅ اتصال دستگاه با موفقیت قطع شد.');
+          if (window.hapticFeedback) window.hapticFeedback('success');
+          if (currentHwidTarget) await this.loadHwidDevices(currentHwidTarget.telegram_id);
+        } else {
+          if (window.showToast) window.showToast(`⚠️ ${res?.error || 'خطا در قطع اتصال'}`);
+          if (window.hapticFeedback) window.hapticFeedback('error');
+        }
+      } catch (e) {
+        if (window.showToast) window.showToast('خطا در برقراری ارتباط');
       }
     },
 

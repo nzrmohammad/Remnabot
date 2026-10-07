@@ -890,41 +890,61 @@
       </div>
     </div>
 
-    <!-- MODAL: Connected HWID Devices Inspector -->
-    <div id="hwidModal" class="absolute inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
-      <div class="bg-[#1e293b] border border-slate-700 rounded-3xl p-5 w-full max-w-[380px] max-h-[85vh] flex flex-col space-y-3.5 shadow-2xl relative">
-        <div class="flex justify-between items-center border-b border-slate-700/60 pb-2">
-          <h4 id="hwidModalTitle" class="text-xs font-bold text-white flex items-center gap-1.5">
-            <svg class="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
-            <span>دستگاه‌های متصل به اکانت</span>
-          </h4>
-          <button onclick="window.adminActions.closeHwidModal()" class="text-slate-400 hover:text-white text-xs">✕</button>
+    <!-- MODAL: Connected HWID Devices & Live Sessions Inspector -->
+    <div id="hwidModal" class="absolute inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-4 hidden">
+      <div class="bg-[#1e293b] border border-slate-700/80 rounded-3xl p-4 sm:p-5 w-full max-w-[390px] max-h-[85vh] flex flex-col space-y-3 shadow-2xl relative">
+        <!-- Header -->
+        <div class="flex justify-between items-center border-b border-slate-700/60 pb-2.5 flex-shrink-0">
+          <div class="flex items-center gap-2 min-w-0">
+            <div class="w-7 h-7 rounded-lg bg-cyan-500/20 border border-cyan-500/40 flex items-center justify-center text-cyan-400 flex-shrink-0">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+            </div>
+            <h4 id="hwidModalTitle" class="text-xs font-bold text-white truncate">دستگاه‌ها و نشست‌های کاربر</h4>
+          </div>
+          <div class="flex items-center gap-1.5 flex-shrink-0">
+            <button onclick="window.adminActions.refreshCurrentDeviceTab()" class="w-7 h-7 rounded-xl bg-slate-800 hover:bg-slate-750 text-slate-300 hover:text-white flex items-center justify-center text-xs transition active:scale-95" title="تازه‌سازی">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+            </button>
+            <button onclick="window.adminActions.closeHwidModal()" class="w-7 h-7 rounded-xl bg-slate-800/80 hover:bg-slate-750 text-slate-400 hover:text-white flex items-center justify-center text-xs transition active:scale-95">✕</button>
+          </div>
         </div>
 
-        <!-- Integrated Fast Switch: HWID vs Live Sessions -->
-        <div class="grid grid-cols-2 gap-1 p-1 bg-slate-900/60 rounded-2xl border border-slate-700/60 text-[11px]">
-          <button type="button" class="py-1.5 rounded-xl font-bold bg-teal-600 text-white shadow text-center flex items-center justify-center gap-1">
+        <!-- Symmetrical Fixed Tabs: Right = دستگاه‌ها (HWID), Left = نشست‌های زنده -->
+        <div class="grid grid-cols-2 p-1 bg-slate-900/70 rounded-2xl border border-slate-700/60 text-[11px] flex-shrink-0">
+          <button id="deviceTabBtn_hwid" type="button" onclick="window.adminActions.switchDeviceModalTab('hwid')" class="py-1.5 rounded-xl font-bold bg-cyan-600 text-white shadow text-center flex items-center justify-center gap-1.5 transition">
             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
             <span>دستگاه‌ها (HWID)</span>
           </button>
-          <button type="button" onclick="window.adminActions.switchFromHwidToSessions()" class="py-1.5 rounded-xl text-slate-400 hover:text-cyan-300 transition text-center flex items-center justify-center gap-1">
+          <button id="deviceTabBtn_sessions" type="button" onclick="window.adminActions.switchDeviceModalTab('sessions')" class="py-1.5 rounded-xl text-slate-400 hover:text-cyan-300 font-medium text-center flex items-center justify-center gap-1.5 transition">
             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
             <span>نشست‌های زنده</span>
           </button>
         </div>
 
-        <!-- Integrated Kill All Sessions Action -->
-        <button id="hwidKillAllSessionsBtn" onclick="window.adminActions.killSessionsFromModal()" class="w-full bg-transparent hover:bg-rose-500/10 border border-rose-500/40 hover:border-rose-400/70 text-rose-400 hover:text-rose-300 font-bold text-xs py-2.5 rounded-xl transition shadow active:scale-95 flex items-center justify-center gap-1.5">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg>
-          <span>قطع تمامی نشست‌ها و اتصالات کاربر</span>
-        </button>
-
-        <div id="hwidDevicesList" class="space-y-2 overflow-y-auto max-h-[50vh] custom-scroll text-xs">
-          <div class="p-6 text-center text-slate-400">در حال دریافت دستگاه‌ها...</div>
+        <!-- Tab 1: HWID Devices Pane -->
+        <div id="hwidTabPane" class="flex-1 overflow-y-auto space-y-2 max-h-[50vh] custom-scroll text-xs">
+          <div id="hwidDevicesList" class="space-y-2">
+            <div class="p-6 text-center text-slate-400">در حال دریافت دستگاه‌ها...</div>
+          </div>
         </div>
-        <button onclick="window.adminActions.closeHwidModal()" class="w-full bg-transparent hover:bg-slate-800/60 border border-slate-700/80 text-slate-300 hover:text-white font-bold text-xs py-2 rounded-xl transition">
-          بستن
-        </button>
+
+        <!-- Tab 2: Live Sessions Pane -->
+        <div id="sessionsTabPane" class="flex-1 overflow-y-auto space-y-2 max-h-[50vh] custom-scroll text-xs hidden">
+          <div id="userSessionsList" class="space-y-2">
+            <div class="p-6 text-center text-slate-400">در حال دریافت نشست‌ها...</div>
+          </div>
+        </div>
+
+        <!-- Compact Footer Actions: Compact Kill Button + Close Button -->
+        <div class="flex items-center gap-2 pt-2 border-t border-slate-700/60 flex-shrink-0">
+          <button id="hwidKillAllSessionsBtn" onclick="window.adminActions.killSessionsFromModal()" class="flex-1 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 hover:border-rose-400/60 text-rose-400 hover:text-rose-300 font-bold text-[11px] py-2 px-2.5 rounded-xl transition shadow active:scale-95 flex items-center justify-center gap-1.5" title="قطع کامل تمامی نشست‌های این کاربر">
+            <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+            <span class="truncate">قطع کامل نشست‌های این کاربر</span>
+          </button>
+          <button onclick="window.adminActions.closeHwidModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-750 text-slate-300 hover:text-white font-medium text-[11px] rounded-xl transition flex-shrink-0">
+            بستن
+          </button>
+        </div>
       </div>
     </div>
 
@@ -1367,59 +1387,7 @@
       </div>
     </div>
 
-    <!-- MODAL 8: User Live Sessions Modal (کاوشگر اتصالات زنده کاربر) -->
-    <div id="userSessionsModal" class="absolute inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-3 hidden">
-      <div class="bg-[#1e293b] border border-slate-700/80 rounded-3xl p-4 w-full max-w-[420px] max-h-[85vh] flex flex-col space-y-3 shadow-2xl relative">
-        <div class="flex justify-between items-center border-b border-slate-700/60 pb-2 flex-shrink-0">
-          <div class="flex items-center gap-2">
-            <div class="w-7 h-7 rounded-lg bg-cyan-500/20 border border-cyan-500/40 flex items-center justify-center text-cyan-400">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-            </div>
-            <div>
-              <h4 id="userSessionsModalTitle" class="text-xs font-bold text-white">🌐 نشست‌های زنده کاربر</h4>
-              <span id="userSessionsModalSubtitle" class="text-[9px] text-cyan-400 block font-mono">در حال بررسی اتصالات...</span>
-            </div>
-          </div>
-          <div class="flex items-center gap-1.5">
-            <button onclick="window.adminActions.refreshUserSessions()" class="w-7 h-7 rounded-xl bg-slate-800 hover:bg-slate-750 text-slate-300 hover:text-white flex items-center justify-center text-xs transition" title="تازه‌سازی اتصالات">
-              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-            </button>
-            <button onclick="window.adminActions.closeUserSessionsModal()" class="w-7 h-7 rounded-xl bg-slate-800/80 hover:bg-slate-750 text-slate-400 hover:text-white flex items-center justify-center text-xs transition">✕</button>
-          </div>
-        </div>
 
-        <!-- Integrated Fast Switch: Live Sessions vs HWID -->
-        <div class="grid grid-cols-2 gap-1 p-1 bg-slate-900/60 rounded-2xl border border-slate-700/60 text-[11px] flex-shrink-0">
-          <button type="button" class="py-1.5 rounded-xl font-bold bg-cyan-600 text-white shadow text-center flex items-center justify-center gap-1">
-            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-            <span>نشست‌های زنده</span>
-          </button>
-          <button type="button" onclick="window.adminActions.switchFromSessionsToHwid()" class="py-1.5 rounded-xl text-slate-400 hover:text-teal-300 transition text-center flex items-center justify-center gap-1">
-            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
-            <span>دستگاه‌ها (HWID)</span>
-          </button>
-        </div>
-
-        <!-- Sessions List Container -->
-        <div id="userSessionsList" class="flex-1 overflow-y-auto space-y-2 pr-0.5 max-h-[55vh]">
-          <div class="p-6 text-center text-xs text-slate-400 flex flex-col items-center gap-2">
-            <span class="w-6 h-6 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin"></span>
-            <span>در حال بررسی نودها و دریافت اتصالات زنده...</span>
-          </div>
-        </div>
-
-        <!-- Footer Actions -->
-        <div class="flex items-center gap-2 pt-1 border-t border-slate-700/60 flex-shrink-0">
-          <button onclick="window.adminActions.killUserSessionsFromModal()" class="flex-1 bg-rose-600/20 hover:bg-rose-600/30 border border-rose-500/40 text-rose-300 font-bold text-[11px] py-2 rounded-xl transition text-center flex items-center justify-center gap-1.5 shadow active:scale-95">
-            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-            <span>قطع کامل نشست‌های این کاربر</span>
-          </button>
-          <button onclick="window.adminActions.closeUserSessionsModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-750 text-slate-300 font-bold text-[11px] rounded-xl transition">
-            بستن
-          </button>
-        </div>
-      </div>
-    </div>
 
   </div>
 
