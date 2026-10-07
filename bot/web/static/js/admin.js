@@ -184,72 +184,62 @@
   // --- 3. Theme Toggle ---
   const adminThemeToggle = document.getElementById('adminThemeToggle');
   const adminThemeIcon = document.getElementById('adminThemeIcon');
-  let isDark = true;
+  const savedAdminTheme = localStorage.getItem('remna_admin_theme');
+  let isDark = savedAdminTheme ? (savedAdminTheme === 'dark') : true;
+
+  const getThemeColors = () => ({
+    grid: isDark ? 'rgba(51, 65, 85, 0.3)' : 'rgba(203, 213, 225, 0.7)',
+    tick: isDark ? '#cbd5e1' : '#0f172a',
+    legendText: isDark ? '#f8fafc' : '#0f172a',
+    pointBorder: isDark ? '#0f172a' : '#ffffff',
+  });
 
   const updateChartsTheme = () => {
-    const gridColor = isDark ? 'rgba(51, 65, 85, 0.3)' : 'rgba(226, 232, 240, 0.8)';
-    const tickColor = isDark ? '#e2e8f0' : '#334155';
-    const legendTextColor = isDark ? '#f8fafc' : '#0f172a';
+    const { grid, tick, legendText, pointBorder } = getThemeColors();
 
-    for (const k in circleCanvasCache) delete circleCanvasCache[k];
+    const updateScaleChart = (chart) => {
+      if (!chart) return;
+      if (chart.options?.scales?.x?.ticks) chart.options.scales.x.ticks.color = tick;
+      if (chart.options?.scales?.y?.ticks) chart.options.scales.y.ticks.color = tick;
+      if (chart.options?.scales?.y?.grid) chart.options.scales.y.grid.color = grid;
+      chart.update();
+    };
 
-    if (salesChartInstance) {
-      if (salesChartInstance.options?.scales?.x?.ticks) salesChartInstance.options.scales.x.ticks.color = tickColor;
-      if (salesChartInstance.options?.scales?.y?.ticks) salesChartInstance.options.scales.y.ticks.color = tickColor;
-      if (salesChartInstance.options?.scales?.y?.grid) salesChartInstance.options.scales.y.grid.color = gridColor;
-      salesChartInstance.update();
-    }
-    if (trafficChartInstance) {
-      if (trafficChartInstance.options?.scales?.x?.ticks) trafficChartInstance.options.scales.x.ticks.color = tickColor;
-      if (trafficChartInstance.options?.scales?.y?.ticks) trafficChartInstance.options.scales.y.ticks.color = tickColor;
-      if (trafficChartInstance.options?.scales?.y?.grid) trafficChartInstance.options.scales.y.grid.color = gridColor;
-      if (trafficChartInstance.data?.datasets?.[0]) {
-        trafficChartInstance.data.datasets[0].pointBorderColor = isDark ? '#0f172a' : '#ffffff';
+    const updateDoughnutChart = (chart) => {
+      if (!chart) return;
+      if (chart.options?.plugins?.legend?.labels) {
+        chart.options.plugins.legend.labels.color = legendText;
       }
-      trafficChartInstance.update();
+      if (chart.legend?.legendItems) {
+        chart.legend.legendItems.forEach(i => { i.fontColor = legendText; });
+      }
+      chart.update();
+    };
+
+    updateScaleChart(salesChartInstance);
+    if (trafficChartInstance) {
+      if (trafficChartInstance.data?.datasets?.[0]) {
+        trafficChartInstance.data.datasets[0].pointBorderColor = pointBorder;
+      }
+      updateScaleChart(trafficChartInstance);
     }
     if (hourlyChartInstance) {
-      if (hourlyChartInstance.options?.scales?.x?.ticks) hourlyChartInstance.options.scales.x.ticks.color = tickColor;
-      if (hourlyChartInstance.options?.scales?.y?.ticks) hourlyChartInstance.options.scales.y.ticks.color = tickColor;
-      if (hourlyChartInstance.options?.scales?.y?.grid) hourlyChartInstance.options.scales.y.grid.color = gridColor;
-      hourlyChartInstance.update();
+      if (hourlyChartInstance.data?.datasets?.[0]) {
+        hourlyChartInstance.data.datasets[0].pointBorderColor = pointBorder;
+      }
+      updateScaleChart(hourlyChartInstance);
     }
-    if (retentionChartInstance) {
-      if (retentionChartInstance.options?.scales?.x?.ticks) retentionChartInstance.options.scales.x.ticks.color = tickColor;
-      if (retentionChartInstance.options?.scales?.y?.ticks) retentionChartInstance.options.scales.y.ticks.color = tickColor;
-      if (retentionChartInstance.options?.scales?.y?.grid) retentionChartInstance.options.scales.y.grid.color = gridColor;
-      retentionChartInstance.update();
-    }
-    if (locationChartInstance) {
-      if (locationChartInstance.options?.plugins?.legend?.labels) locationChartInstance.options.plugins.legend.labels.color = legendTextColor;
-      locationChartInstance.update();
-    }
-    if (planSalesChartInstance) {
-      if (planSalesChartInstance.options?.plugins?.legend?.labels) planSalesChartInstance.options.plugins.legend.labels.color = legendTextColor;
-      planSalesChartInstance.update();
-    }
-    if (platformChartInstance) {
-      if (platformChartInstance.options?.plugins?.legend?.labels) platformChartInstance.options.plugins.legend.labels.color = legendTextColor;
-      platformChartInstance.update();
-    }
-    if (paymentChartInstance) {
-      if (paymentChartInstance.options?.plugins?.legend?.labels) paymentChartInstance.options.plugins.legend.labels.color = legendTextColor;
-      paymentChartInstance.update();
-    }
-    if (churnChartInstance) {
-      if (churnChartInstance.options?.plugins?.legend?.labels) churnChartInstance.options.plugins.legend.labels.color = legendTextColor;
-      churnChartInstance.update();
-    }
-    if (hwidChartInstance) {
-      if (hwidChartInstance.options?.scales?.x?.ticks) hwidChartInstance.options.scales.x.ticks.color = tickColor;
-      if (hwidChartInstance.options?.scales?.y?.ticks) hwidChartInstance.options.scales.y.ticks.color = tickColor;
-      if (hwidChartInstance.options?.scales?.y?.grid) hwidChartInstance.options.scales.y.grid.color = gridColor;
-      hwidChartInstance.update();
-    }
+    updateScaleChart(retentionChartInstance);
+    updateScaleChart(hwidChartInstance);
+
+    updateDoughnutChart(locationChartInstance);
+    updateDoughnutChart(planSalesChartInstance);
+    updateDoughnutChart(platformChartInstance);
+    updateDoughnutChart(paymentChartInstance);
+    updateDoughnutChart(churnChartInstance);
   };
 
-  adminThemeToggle?.addEventListener('click', () => {
-    isDark = !isDark;
+  const applyThemeClasses = () => {
     const appBody = document.getElementById('appBody');
     const phoneFrame = document.getElementById('phoneFrame');
     if (isDark) {
@@ -267,6 +257,16 @@
       phoneFrame?.classList.replace('bg-[#0f172a]', 'bg-white');
       phoneFrame?.classList.replace('text-slate-100', 'text-slate-900');
     }
+  };
+
+  if (savedAdminTheme) {
+    applyThemeClasses();
+  }
+
+  adminThemeToggle?.addEventListener('click', () => {
+    isDark = !isDark;
+    localStorage.setItem('remna_admin_theme', isDark ? 'dark' : 'light');
+    applyThemeClasses();
     updateChartsTheme();
     if (window.hapticFeedback) window.hapticFeedback('impact');
   });
@@ -434,13 +434,13 @@
         scales: {
           x: {
             grid: { display: false },
-            ticks: { color: isDark ? '#94a3b8' : '#64748b', font: { family: 'Vazirmatn', size: 9 } }
+            ticks: { color: isDark ? '#cbd5e1' : '#0f172a', font: { family: 'Vazirmatn', size: 9 } }
           },
           y: {
             beginAtZero: true,
-            grid: { color: isDark ? 'rgba(51, 65, 85, 0.3)' : 'rgba(226, 232, 240, 0.8)' },
+            grid: { color: isDark ? 'rgba(51, 65, 85, 0.3)' : 'rgba(203, 213, 225, 0.7)' },
             ticks: {
-              color: isDark ? '#94a3b8' : '#64748b',
+              color: isDark ? '#cbd5e1' : '#0f172a',
               font: { family: 'Vazirmatn', size: 9 },
               callback: (val) => val >= 1000000 ? `${(val/1000000).toFixed(1)}M` : (val >= 1000 ? `${(val/1000).toFixed(0)}K` : val)
             }
@@ -509,13 +509,13 @@
         scales: {
           x: {
             grid: { display: false },
-            ticks: { color: isDark ? '#94a3b8' : '#64748b', font: { family: 'Vazirmatn', size: 9 } }
+            ticks: { color: isDark ? '#cbd5e1' : '#0f172a', font: { family: 'Vazirmatn', size: 9 } }
           },
           y: {
             beginAtZero: true,
-            grid: { color: isDark ? 'rgba(51, 65, 85, 0.3)' : 'rgba(226, 232, 240, 0.8)' },
+            grid: { color: isDark ? 'rgba(51, 65, 85, 0.3)' : 'rgba(203, 213, 225, 0.7)' },
             ticks: {
-              color: isDark ? '#94a3b8' : '#64748b',
+              color: isDark ? '#cbd5e1' : '#0f172a',
               font: { family: 'Vazirmatn', size: 9 },
               callback: (val) => `\u200E${val} GB`
             }
@@ -678,16 +678,16 @@
           x: {
             grid: { display: false },
             ticks: {
-              color: isDark ? '#94a3b8' : '#64748b',
+              color: isDark ? '#cbd5e1' : '#0f172a',
               font: { family: 'Vazirmatn', size: 8 },
               maxTicksLimit: 7,
             }
           },
           y: {
             beginAtZero: true,
-            grid: { color: isDark ? 'rgba(51, 65, 85, 0.3)' : 'rgba(226, 232, 240, 0.8)' },
+            grid: { color: isDark ? 'rgba(51, 65, 85, 0.3)' : 'rgba(203, 213, 225, 0.7)' },
             ticks: {
-              color: isDark ? '#94a3b8' : '#64748b',
+              color: isDark ? '#cbd5e1' : '#0f172a',
               font: { family: 'Vazirmatn', size: 9 },
               callback: (val) => `${val}G`
             }
@@ -754,14 +754,14 @@
           x: {
             stacked: true,
             grid: { display: false },
-            ticks: { color: isDark ? '#94a3b8' : '#64748b', font: { family: 'Vazirmatn', size: 9 } }
+            ticks: { color: isDark ? '#cbd5e1' : '#0f172a', font: { family: 'Vazirmatn', size: 9 } }
           },
           y: {
             stacked: true,
             beginAtZero: true,
-            grid: { color: isDark ? 'rgba(51, 65, 85, 0.3)' : 'rgba(226, 232, 240, 0.8)' },
+            grid: { color: isDark ? 'rgba(51, 65, 85, 0.3)' : 'rgba(203, 213, 225, 0.7)' },
             ticks: {
-              color: isDark ? '#94a3b8' : '#64748b',
+              color: isDark ? '#cbd5e1' : '#0f172a',
               font: { family: 'Vazirmatn', size: 9 },
               precision: 0,
             }
@@ -771,6 +771,19 @@
     });
   }
 
+  function formatPlanLabelWithIconFirst(label) {
+    if (!label) return '💎 پلن';
+    const str = String(label).trim();
+    const emojiRegex = /(\p{Extended_Pictographic}|\p{Emoji_Presentation})/gu;
+    const matches = str.match(emojiRegex);
+    const cleanText = str.replace(emojiRegex, '').trim();
+    if (matches && matches.length > 0) {
+      const icons = matches.join('');
+      return `${icons} ${cleanText}`;
+    }
+    return `💎 ${cleanText || str}`;
+  }
+
   let planSalesChartInstance = null;
   function renderAdminPlanSalesChart(planDist) {
     const canvas = document.getElementById('adminPlanSalesChart');
@@ -778,7 +791,8 @@
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    const labels = planDist?.labels || ['پلن استاندارد'];
+    const rawLabels = planDist?.labels || ['پلن استاندارد'];
+    const labels = rawLabels.map(formatPlanLabelWithIconFirst);
     const values = planDist?.sales_count || [1];
 
     if (planSalesChartInstance) {
@@ -839,9 +853,18 @@
     const labels = platformDist?.labels || ['اندروید (Android)', 'آیفون (iOS)', 'ویندوز (Windows)', 'مک و لینوکس', 'سایر'];
     const values = platformDist?.data || [0, 0, 0, 0, 0];
 
+    const platformColors = [
+      'rgba(16, 185, 129, 0.9)', // Android: Emerald Green
+      'rgba(99, 102, 241, 0.9)', // iPhone (iOS): Royal Indigo / Blue
+      'rgba(245, 158, 11, 0.9)', // Windows: Amber / Vibrant Orange
+      'rgba(244, 63, 94, 0.9)',  // macOS / Linux: Rose / Coral
+      'rgba(6, 182, 212, 0.9)',  // Other: Cyan
+    ];
+
     if (platformChartInstance) {
       platformChartInstance.data.labels = labels;
       platformChartInstance.data.datasets[0].data = values;
+      platformChartInstance.data.datasets[0].backgroundColor = platformColors;
       platformChartInstance.update();
       return;
     }
@@ -852,13 +875,7 @@
         labels: labels,
         datasets: [{
           data: values,
-          backgroundColor: [
-            'rgba(16, 185, 129, 0.85)',
-            'rgba(59, 130, 246, 0.85)',
-            'rgba(14, 165, 233, 0.85)',
-            'rgba(168, 85, 247, 0.85)',
-            'rgba(148, 163, 184, 0.85)',
-          ],
+          backgroundColor: platformColors,
           borderWidth: 0,
           borderColor: 'transparent',
         }]
@@ -1032,8 +1049,7 @@
       return;
     }
 
-    const gridColor = isDark ? 'rgba(51, 65, 85, 0.3)' : 'rgba(226, 232, 240, 0.8)';
-    const tickColor = isDark ? '#e2e8f0' : '#334155';
+    const { grid: gridColor, tick: tickColor } = getThemeColors();
 
     hwidChartInstance = new Chart(ctx, {
       type: 'bar',

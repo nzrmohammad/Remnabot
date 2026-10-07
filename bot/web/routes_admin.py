@@ -3,6 +3,7 @@ import asyncio
 import json
 import logging
 import math
+import re
 from collections import defaultdict
 from datetime import datetime, timedelta, timezone
 import time
@@ -39,6 +40,23 @@ def _check_admin(request: web.Request) -> dict[str, Any] | None:
     if not user or not user.get("is_admin"):
         return None
     return user
+
+
+EMOJI_PATTERN = re.compile(
+    r"[\U00010000-\U0010ffff]|[\u200d\u200c\u2600-\u27bf\u2300-\u23ff\u2b50-\u2b55\u203c-\u2049\u2122\u2139\u24c2\u3030\u303d\u3297\u3299]"
+)
+
+
+def format_service_name_icon_first(name: str | None) -> str:
+    """Format service name to guarantee the icon/emoji appears first."""
+    if not name:
+        return "💎 پلن"
+    raw = str(name).strip()
+    emojis = "".join(EMOJI_PATTERN.findall(raw)).strip()
+    clean_text = EMOJI_PATTERN.sub("", raw).strip()
+    if not emojis:
+        emojis = "💎"
+    return f"{emojis} {clean_text}" if clean_text else emojis
 
 
 async def get_admin_overview(request: web.Request) -> web.Response:
@@ -361,20 +379,62 @@ async def get_admin_overview(request: web.Request) -> web.Response:
             "unit": "GB" if total_loc_gb > 0 else "سرور",
         }
 
-        # 2. 24h Peak Usage Distribution (Hourly traffic curve)
-        hourly_weights = [
-            0.038, 0.024, 0.015, 0.010, 0.008, 0.012, 0.022, 0.035,
-            0.045, 0.052, 0.058, 0.055, 0.050, 0.048, 0.052, 0.058,
-            0.065, 0.075, 0.082, 0.088, 0.078, 0.062, 0.042, 0.026
+        # 2. 24h Dynamic Peak Usage Distribution (Hourly traffic curve)
+        now_dt = datetime.now(timezone.utc)
+        twenty_four_h_ago = now_dt - timedelta(hours=24)
+
+        baseline_weights = [
+            0.025, 0.015, 0.010, 0.008, 0.006, 0.010, 0.018, 0.028,
+            0.038, 0.048, 0.055, 0.052, 0.048, 0.045, 0.050, 0.058,
+            0.068, 0.078, 0.088, 0.092, 0.082, 0.068, 0.050, 0.032
         ]
-        w_sum = sum(hourly_weights)
-        hourly_labels = [f"{h:02d}:00" for h in range(24)]
+
+        hourly_counts = [0] * 24
+
+        act_res = await session.execute(
+            select(User.last_active_at).where(User.last_active_at >= twenty_four_h_ago)
+        )
+        for (u_act,) in act_res.all():
+            if u_act:
+                hourly_counts[u_act.hour] += 2
+
+        ord_res = await session.execute(
+            select(Order.created_at).where(Order.created_at >= twenty_four_h_ago)
+        )
+        for (o_dt,) in ord_res.all():
+            if o_dt:
+                hourly_counts[o_dt.hour] += 3
+
+        dev_res = await session.execute(
+            select(KnownDevice.created_at).where(KnownDevice.created_at >= twenty_four_h_ago)
+        )
+        for (d_dt,) in dev_res.all():
+            if d_dt:
+                hourly_counts[d_dt.hour] += 1
+
+        total_real_events = sum(hourly_counts)
         base_h_gb = today_cluster_gb if today_cluster_gb > 0 else (total_traffic_gb / 30.0 if total_traffic_gb > 0 else 50.0)
-        hourly_data = [round((w / w_sum) * base_h_gb, 2) for w in hourly_weights]
+
+        combined_weights = []
+        for h in range(24):
+            if total_real_events > 0:
+                real_ratio = hourly_counts[h] / total_real_events
+                weight = (real_ratio * 0.70) + (baseline_weights[h] * 0.30)
+            else:
+                weight = baseline_weights[h]
+            combined_weights.append(weight)
+
+        c_sum = sum(combined_weights) or 1.0
+        hourly_labels = [f"{h:02d}:00" for h in range(24)]
+        hourly_data = [round((w / c_sum) * base_h_gb, 2) for w in combined_weights]
+
+        peak_idx = max(range(24), key=lambda i: hourly_data[i])
+        peak_hour_str = f"{peak_idx:02d}:00"
+
         hourly_distribution = {
             "labels": hourly_labels,
             "data": hourly_data,
-            "peak_hour": "20:00",
+            "peak_hour": peak_hour_str,
             "unit": "GB",
         }
 
@@ -424,13 +484,13 @@ async def get_admin_overview(request: web.Request) -> web.Response:
         )
         plan_rows = plan_res.all()
         if plan_rows:
-            plan_labels = [str(r[0]) for r in plan_rows]
+            plan_labels = [format_service_name_icon_first(str(r[0])) for r in plan_rows]
             plan_sales = [int(r[1]) for r in plan_rows]
             plan_revenue = [int(r[2]) for r in plan_rows]
         else:
             srv_res = await session.execute(select(Service.name).where(Service.is_active.is_(True)).limit(5))
             srv_names = srv_res.scalars().all()
-            plan_labels = [str(n) for n in srv_names] if srv_names else ["پلن ۱ ماهه", "پلن ۳ ماهه", "پلن نامحدود"]
+            plan_labels = [format_service_name_icon_first(str(n)) for n in srv_names] if srv_names else ["💎 پلن ۱ ماهه", "🚀 پلن ۳ ماهه", "⚡ پلن نامحدود"]
             plan_sales = [0] * len(plan_labels)
             plan_revenue = [0] * len(plan_labels)
 
