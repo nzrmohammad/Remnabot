@@ -3,6 +3,7 @@ import asyncio
 import json
 import logging
 import math
+from collections import defaultdict
 from datetime import datetime, timedelta, timezone
 import time
 from typing import Any
@@ -13,7 +14,7 @@ from sqlalchemy import func, select
 from html import escape
 from bot.common import admin_thread_kwargs
 from bot.common.helpers import get_limit_bytes, get_used_bytes
-from bot.db.models import AdminLog, AppSetting, Coupon, Order, Service, SupportMessage, Topup, User, Wallet
+from bot.db.models import AdminLog, AppSetting, Coupon, CryptoInvoice, KnownDevice, Order, Service, SupportMessage, Topup, User, Wallet
 from bot.db.repositories.app_setting_repo import AppSettingRepository
 from bot.db.repositories.coupon_repo import CouponRepository
 from bot.db.repositories.user_repo import UserRepository
@@ -439,6 +440,114 @@ async def get_admin_overview(request: web.Request) -> web.Response:
             "revenue": plan_revenue,
         }
 
+        # 5. OS & Platform Share (Android / iOS / Windows / macOS / Linux)
+        platform_counts = {"Android": 0, "iOS": 0, "Windows": 0, "macOS/Linux": 0, "Other": 0}
+        devices_raw: list[dict[str, Any]] = []
+        try:
+            devices_raw = await remnawave.get_all_hwid_devices(size=500) or []
+        except Exception:
+            pass
+        if not devices_raw:
+            kd_res = await session.execute(select(KnownDevice.platform, KnownDevice.device_model, KnownDevice.telegram_id))
+            kd_rows = kd_res.all()
+            for p_val, m_val, t_val in kd_rows:
+                devices_raw.append({"platform": p_val, "os": p_val, "model": m_val, "userId": t_val})
+
+        for dev in devices_raw:
+            p_str = str(dev.get("platform") or dev.get("os") or dev.get("model") or "").lower()
+            if any(k in p_str for k in ("android", "v2rayng", "hiddify", "sing-box", "nekobox", "clash")):
+                platform_counts["Android"] += 1
+            elif any(k in p_str for k in ("ios", "iphone", "ipad", "streisand", "v2box", "shadowrocket", "loon", "surge")):
+                platform_counts["iOS"] += 1
+            elif any(k in p_str for k in ("windows", "win32", "win64")):
+                platform_counts["Windows"] += 1
+            elif any(k in p_str for k in ("darwin", "mac", "macos", "linux", "ubuntu")):
+                platform_counts["macOS/Linux"] += 1
+            else:
+                platform_counts["Other"] += 1
+
+        platform_distribution = {
+            "labels": ["اندروید (Android)", "آیفون (iOS)", "ویندوز (Windows)", "مک و لینوکس", "سایر"],
+            "data": [
+                platform_counts["Android"],
+                platform_counts["iOS"],
+                platform_counts["Windows"],
+                platform_counts["macOS/Linux"],
+                platform_counts["Other"],
+            ],
+        }
+
+        # 6. Payment Methods Breakdown (Card vs Crypto)
+        topup_res = await session.execute(
+            select(func.count(Topup.id), func.coalesce(func.sum(Topup.amount), 0)).where(Topup.status == "approved")
+        )
+        t_count, t_sum = topup_res.first() or (0, 0)
+
+        crypto_res = await session.execute(
+            select(func.count(CryptoInvoice.id), func.coalesce(func.sum(CryptoInvoice.amount_toman), 0)).where(CryptoInvoice.status == "paid")
+        )
+        c_count, c_sum = crypto_res.first() or (0, 0)
+
+        payment_distribution = {
+            "labels": ["کارت به کارت (ریالی)", "ارز دیجیتال (کریپتو / TON)"],
+            "counts": [int(t_count or 0), int(c_count or 0)],
+            "volumes": [int(t_sum or 0), int(c_sum or 0)],
+        }
+
+        # 7. Retention & Churn Rate Analysis
+        user_orders_res = await session.execute(
+            select(Order.telegram_id, func.count(Order.id))
+            .where(Order.status == "paid")
+            .group_by(Order.telegram_id)
+        )
+        user_orders = dict(user_orders_res.all())
+        total_customers = len(user_orders)
+        renewed_customers = sum(1 for cnt in user_orders.values() if cnt > 1)
+        single_order_customers = total_customers - renewed_customers
+
+        thirty_days_ago = now_utc - timedelta(days=30)
+        old_single_res = await session.execute(
+            select(Order.telegram_id)
+            .where(Order.status == "paid", Order.created_at < thirty_days_ago)
+            .group_by(Order.telegram_id)
+            .having(func.count(Order.id) == 1)
+        )
+        churned_count = len(old_single_res.scalars().all())
+        active_single = max(0, single_order_customers - churned_count)
+
+        retention_rate = round((renewed_customers / total_customers * 100), 1) if total_customers > 0 else 0
+        churn_rate = round((churned_count / total_customers * 100), 1) if total_customers > 0 else 0
+
+        retention_stats = {
+            "total_customers": total_customers,
+            "renewed": renewed_customers,
+            "active_single": active_single,
+            "churned": churned_count,
+            "retention_rate": retention_rate,
+            "churn_rate": churn_rate,
+            "labels": ["تمدید شده (مشتریان وفادار)", "دوره اول (فعال)", "ریزش (عدم تمدید)"],
+            "data": [renewed_customers, active_single, churned_count],
+        }
+
+        # 8. HWID Inspector Distribution & Account Sharing Risk
+        user_hwid_counts: dict[Any, int] = defaultdict(int)
+        for d in devices_raw:
+            uid = d.get("userId") or d.get("telegram_id")
+            if uid:
+                user_hwid_counts[uid] += 1
+
+        single_device_users = sum(1 for cnt in user_hwid_counts.values() if cnt == 1)
+        two_device_users = sum(1 for cnt in user_hwid_counts.values() if cnt == 2)
+        three_plus_device_users = sum(1 for cnt in user_hwid_counts.values() if cnt >= 3)
+        high_risk_sharing = sum(1 for cnt in user_hwid_counts.values() if cnt >= 4)
+
+        hwid_distribution = {
+            "labels": ["۱ دستگاه", "۲ دستگاه", "۳ دستگاه و بیشتر", "ریسک بالا (۴+)"],
+            "data": [single_device_users, two_device_users, three_plus_device_users, high_risk_sharing],
+            "high_risk_count": high_risk_sharing,
+            "total_monitored_users": len(user_hwid_counts),
+        }
+
         data = {
             "metrics": {
                 "total_users": total_bot_users,
@@ -462,6 +571,10 @@ async def get_admin_overview(request: web.Request) -> web.Response:
                 "hourly_distribution": hourly_distribution,
                 "retention_trend": retention_trend,
                 "plan_distribution": plan_distribution,
+                "platform_distribution": platform_distribution,
+                "payment_distribution": payment_distribution,
+                "retention_stats": retention_stats,
+                "hwid_distribution": hwid_distribution,
             },
         }
 

@@ -121,13 +121,17 @@
 
       if (window.hapticFeedback) window.hapticFeedback('impact');
 
-      if (targetId === 'tab-admin-dashboard') {
+      if (targetId === 'tab-admin-overview' || targetId === 'tab-admin-dashboard') {
         salesChartInstance?.resize();
         trafficChartInstance?.resize();
         locationChartInstance?.resize();
         hourlyChartInstance?.resize();
         retentionChartInstance?.resize();
         planSalesChartInstance?.resize();
+        platformChartInstance?.resize();
+        paymentChartInstance?.resize();
+        churnChartInstance?.resize();
+        hwidChartInstance?.resize();
       }
 
       // Lazy load tab data
@@ -135,6 +139,7 @@
         fetchAdminUsers(1);
       } else if (targetId === 'tab-admin-plans') {
         fetchAdminPlans();
+        fetchAdminCoupons();
       } else if (targetId === 'tab-admin-coupons') {
         fetchAdminCoupons();
       } else if (targetId === 'tab-admin-tickets') {
@@ -145,6 +150,36 @@
       }
     });
   });
+
+  // Subtab switcher for Unified Plans & Discounts Tab
+  window.switchServicesSubtab = function(subtab) {
+    const btnPlans = document.getElementById('subtabBtnPlans');
+    const btnCoupons = document.getElementById('subtabBtnCoupons');
+    const contentPlans = document.getElementById('subtabContentPlans');
+    const contentCoupons = document.getElementById('subtabContentCoupons');
+
+    if (window.hapticFeedback) window.hapticFeedback('selection');
+
+    if (subtab === 'plans') {
+      btnPlans?.classList.add('bg-blue-600', 'text-white', 'shadow');
+      btnPlans?.classList.remove('text-slate-400', 'hover:text-slate-200');
+      btnCoupons?.classList.remove('bg-purple-600', 'bg-blue-600', 'text-white', 'shadow');
+      btnCoupons?.classList.add('text-slate-400', 'hover:text-slate-200');
+
+      contentPlans?.classList.remove('hidden');
+      contentCoupons?.classList.add('hidden');
+      if (typeof fetchAdminPlans === 'function') fetchAdminPlans();
+    } else {
+      btnCoupons?.classList.add('bg-purple-600', 'text-white', 'shadow');
+      btnCoupons?.classList.remove('text-slate-400', 'hover:text-slate-200');
+      btnPlans?.classList.remove('bg-blue-600', 'text-white', 'shadow');
+      btnPlans?.classList.add('text-slate-400', 'hover:text-slate-200');
+
+      contentCoupons?.classList.remove('hidden');
+      contentPlans?.classList.add('hidden');
+      if (typeof fetchAdminCoupons === 'function') fetchAdminCoupons();
+    }
+  };
 
   // --- 3. Theme Toggle ---
   const adminThemeToggle = document.getElementById('adminThemeToggle');
@@ -188,6 +223,24 @@
     if (planSalesChartInstance) {
       if (planSalesChartInstance.options?.plugins?.legend?.labels) planSalesChartInstance.options.plugins.legend.labels.color = tickColor;
       planSalesChartInstance.update();
+    }
+    if (platformChartInstance) {
+      if (platformChartInstance.options?.plugins?.legend?.labels) platformChartInstance.options.plugins.legend.labels.color = tickColor;
+      platformChartInstance.update();
+    }
+    if (paymentChartInstance) {
+      if (paymentChartInstance.options?.plugins?.legend?.labels) paymentChartInstance.options.plugins.legend.labels.color = tickColor;
+      paymentChartInstance.update();
+    }
+    if (churnChartInstance) {
+      if (churnChartInstance.options?.plugins?.legend?.labels) churnChartInstance.options.plugins.legend.labels.color = tickColor;
+      churnChartInstance.update();
+    }
+    if (hwidChartInstance) {
+      if (hwidChartInstance.options?.scales?.x?.ticks) hwidChartInstance.options.scales.x.ticks.color = tickColor;
+      if (hwidChartInstance.options?.scales?.y?.ticks) hwidChartInstance.options.scales.y.ticks.color = tickColor;
+      if (hwidChartInstance.options?.scales?.y?.grid) hwidChartInstance.options.scales.y.grid.color = gridColor;
+      hwidChartInstance.update();
     }
   };
 
@@ -292,6 +345,10 @@
           renderAdminHourlyChart(c.hourly_distribution);
           renderAdminRetentionChart(c.retention_trend);
           renderAdminPlanSalesChart(c.plan_distribution);
+          renderAdminPlatformChart(c.platform_distribution);
+          renderAdminPaymentChart(c.payment_distribution);
+          renderAdminRetentionStatsChart(c.retention_stats);
+          renderAdminHwidChart(c.hwid_distribution);
         } else {
           setTimeout(() => {
             if (typeof Chart !== 'undefined' && lastOverviewData?.charts) {
@@ -302,6 +359,10 @@
               renderAdminHourlyChart(ch.hourly_distribution);
               renderAdminRetentionChart(ch.retention_trend);
               renderAdminPlanSalesChart(ch.plan_distribution);
+              renderAdminPlatformChart(ch.platform_distribution);
+              renderAdminPaymentChart(ch.payment_distribution);
+              renderAdminRetentionStatsChart(ch.retention_stats);
+              renderAdminHwidChart(ch.hwid_distribution);
             }
           }, 350);
         }
@@ -503,6 +564,8 @@
         plugins: {
           legend: {
             position: 'bottom',
+            rtl: true,
+            textDirection: 'rtl',
             labels: {
               boxWidth: 9,
               boxHeight: 9,
@@ -512,6 +575,8 @@
             }
           },
           tooltip: {
+            rtl: true,
+            textDirection: 'rtl',
             callbacks: {
               label: (ctx) => `${ctx.label}: ${formatNumber(ctx.raw)} ${unit}`
             }
@@ -713,6 +778,8 @@
         plugins: {
           legend: {
             position: 'bottom',
+            rtl: true,
+            textDirection: 'rtl',
             labels: {
               boxWidth: 9,
               boxHeight: 9,
@@ -722,8 +789,286 @@
             }
           },
           tooltip: {
+            rtl: true,
+            textDirection: 'rtl',
             callbacks: {
               label: (ctx) => `${ctx.label}: ${formatNumber(ctx.raw)} سفارش`
+            }
+          }
+        }
+      }
+    });
+  }
+
+  // OS & Platform Share Chart
+  let platformChartInstance = null;
+  function renderAdminPlatformChart(platformDist) {
+    const canvas = document.getElementById('adminPlatformChart');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const labels = platformDist?.labels || ['اندروید (Android)', 'آیفون (iOS)', 'ویندوز (Windows)', 'مک و لینوکس', 'سایر'];
+    const values = platformDist?.data || [0, 0, 0, 0, 0];
+
+    if (platformChartInstance) {
+      platformChartInstance.data.labels = labels;
+      platformChartInstance.data.datasets[0].data = values;
+      platformChartInstance.update();
+      return;
+    }
+
+    platformChartInstance = new Chart(ctx, {
+      type: 'doughnut',
+      data: {
+        labels: labels,
+        datasets: [{
+          data: values,
+          backgroundColor: [
+            'rgba(16, 185, 129, 0.85)',
+            'rgba(59, 130, 246, 0.85)',
+            'rgba(14, 165, 233, 0.85)',
+            'rgba(168, 85, 247, 0.85)',
+            'rgba(148, 163, 184, 0.85)',
+          ],
+          borderWidth: 2,
+          borderColor: isDark ? '#0f172a' : '#ffffff',
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        cutout: '66%',
+        plugins: {
+          legend: {
+            position: 'bottom',
+            rtl: true,
+            textDirection: 'rtl',
+            labels: {
+              boxWidth: 9,
+              boxHeight: 9,
+              padding: 8,
+              color: isDark ? '#94a3b8' : '#64748b',
+              font: { family: 'Vazirmatn', size: 9 },
+            }
+          },
+          tooltip: {
+            rtl: true,
+            textDirection: 'rtl',
+            callbacks: {
+              label: (ctx) => `${ctx.label}: ${formatNumber(ctx.raw)} دستگاه`
+            }
+          }
+        }
+      }
+    });
+  }
+
+  // Payment Methods Breakdown Chart (Card-to-card vs Crypto)
+  let paymentChartInstance = null;
+  function renderAdminPaymentChart(paymentDist) {
+    const canvas = document.getElementById('adminPaymentChart');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const labels = paymentDist?.labels || ['کارت به کارت (ریالی)', 'ارز دیجیتال (کریپتو / TON)'];
+    const values = paymentDist?.counts || [0, 0];
+    const volumes = paymentDist?.volumes || [0, 0];
+
+    if (paymentChartInstance) {
+      paymentChartInstance.data.labels = labels;
+      paymentChartInstance.data.datasets[0].data = values;
+      paymentChartInstance.update();
+      return;
+    }
+
+    paymentChartInstance = new Chart(ctx, {
+      type: 'doughnut',
+      data: {
+        labels: labels,
+        datasets: [{
+          data: values,
+          backgroundColor: [
+            'rgba(6, 182, 212, 0.85)',
+            'rgba(168, 85, 247, 0.85)',
+          ],
+          borderWidth: 2,
+          borderColor: isDark ? '#0f172a' : '#ffffff',
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        cutout: '66%',
+        plugins: {
+          legend: {
+            position: 'bottom',
+            rtl: true,
+            textDirection: 'rtl',
+            labels: {
+              boxWidth: 9,
+              boxHeight: 9,
+              padding: 8,
+              color: isDark ? '#94a3b8' : '#64748b',
+              font: { family: 'Vazirmatn', size: 9 },
+            }
+          },
+          tooltip: {
+            rtl: true,
+            textDirection: 'rtl',
+            callbacks: {
+              label: (ctx) => {
+                const vol = volumes[ctx.dataIndex] || 0;
+                return `${ctx.label}: ${formatNumber(ctx.raw)} تراکنش (${formatNumber(vol)} تومان)`;
+              }
+            }
+          }
+        }
+      }
+    });
+  }
+
+  // Retention & Churn Rate Chart
+  let churnChartInstance = null;
+  function renderAdminRetentionStatsChart(retentionStats) {
+    const canvas = document.getElementById('adminChurnChart');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const labels = retentionStats?.labels || ['تمدید شده (مشتریان وفادار)', 'دوره اول (فعال)', 'ریزش (عدم تمدید)'];
+    const values = retentionStats?.data || [0, 0, 0];
+    const retRate = retentionStats?.retention_rate !== undefined ? retentionStats.retention_rate : 0;
+
+    const badge = document.getElementById('churnRateBadge');
+    if (badge) badge.innerText = `تمدید: ${retRate}%`;
+
+    if (churnChartInstance) {
+      churnChartInstance.data.labels = labels;
+      churnChartInstance.data.datasets[0].data = values;
+      churnChartInstance.update();
+      return;
+    }
+
+    churnChartInstance = new Chart(ctx, {
+      type: 'doughnut',
+      data: {
+        labels: labels,
+        datasets: [{
+          data: values,
+          backgroundColor: [
+            'rgba(99, 102, 241, 0.85)',
+            'rgba(16, 185, 129, 0.85)',
+            'rgba(244, 63, 94, 0.85)',
+          ],
+          borderWidth: 2,
+          borderColor: isDark ? '#0f172a' : '#ffffff',
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        cutout: '66%',
+        plugins: {
+          legend: {
+            position: 'bottom',
+            rtl: true,
+            textDirection: 'rtl',
+            labels: {
+              boxWidth: 9,
+              boxHeight: 9,
+              padding: 8,
+              color: isDark ? '#94a3b8' : '#64748b',
+              font: { family: 'Vazirmatn', size: 9 },
+            }
+          },
+          tooltip: {
+            rtl: true,
+            textDirection: 'rtl',
+            callbacks: {
+              label: (ctx) => `${ctx.label}: ${formatNumber(ctx.raw)} کاربر`
+            }
+          }
+        }
+      }
+    });
+  }
+
+  // HWID Inspector Distribution & Account Sharing Risk Chart
+  let hwidChartInstance = null;
+  function renderAdminHwidChart(hwidDist) {
+    const canvas = document.getElementById('adminHwidChart');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const labels = hwidDist?.labels || ['۱ دستگاه', '۲ دستگاه', '۳ دستگاه و بیشتر', 'ریسک بالا (۴+)'];
+    const values = hwidDist?.data || [0, 0, 0, 0];
+    const riskCount = hwidDist?.high_risk_count || 0;
+
+    const badge = document.getElementById('hwidRiskBadge');
+    if (badge) {
+      badge.innerText = riskCount > 0 ? `⚠️ ${riskCount} کاربر پرخطر` : 'توزیع HWID';
+      if (riskCount > 0) {
+        badge.className = 'text-[10px] text-rose-400 font-bold font-mono animate-pulse';
+      }
+    }
+
+    if (hwidChartInstance) {
+      hwidChartInstance.data.labels = labels;
+      hwidChartInstance.data.datasets[0].data = values;
+      hwidChartInstance.update();
+      return;
+    }
+
+    const gridColor = isDark ? 'rgba(51, 65, 85, 0.3)' : 'rgba(226, 232, 240, 0.8)';
+    const tickColor = isDark ? '#94a3b8' : '#64748b';
+
+    hwidChartInstance = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: labels,
+        datasets: [{
+          label: 'تعداد کاربران',
+          data: values,
+          backgroundColor: [
+            'rgba(16, 185, 129, 0.8)',
+            'rgba(59, 130, 246, 0.8)',
+            'rgba(245, 158, 11, 0.8)',
+            'rgba(244, 63, 94, 0.85)',
+          ],
+          borderRadius: 6,
+          borderSkipped: false,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            rtl: true,
+            textDirection: 'rtl',
+            callbacks: {
+              label: (ctx) => `${ctx.label}: ${formatNumber(ctx.raw)} کاربر`
+            }
+          }
+        },
+        scales: {
+          x: {
+            grid: { display: false },
+            ticks: {
+              color: tickColor,
+              font: { family: 'Vazirmatn', size: 9 },
+            }
+          },
+          y: {
+            grid: { color: gridColor },
+            ticks: {
+              color: tickColor,
+              font: { family: 'Vazirmatn', size: 9 },
+              precision: 0,
             }
           }
         }
@@ -1108,9 +1453,9 @@
                 <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
                 <span>لینک ساب</span>
               </button>
-              <button class="bg-transparent hover:bg-teal-500/10 text-teal-600 dark:text-teal-400 border border-teal-500/30 hover:border-teal-400/60 py-1.5 rounded-xl transition active:scale-95 font-medium flex items-center justify-center gap-1" onclick="window.adminActions.openHwidModal(${u.telegram_id}, '${safeDisplayName}')" title="دستگاه‌های متصل و نشست‌ها">
+              <button class="bg-transparent hover:bg-teal-500/10 text-teal-600 dark:text-teal-400 border border-teal-500/30 hover:border-teal-400/60 py-1.5 rounded-xl transition active:scale-95 font-medium flex items-center justify-center gap-1" onclick="window.adminActions.openHwidModal(${u.telegram_id}, '${safeDisplayName}')" title="کاوشگر نشست‌ها و دستگاه‌های فعال (Session Explorer)">
                 <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
-                <span>دستگاه‌ها</span>
+                <span>سشن‌ها (HWID)</span>
               </button>
               <button class="${u.is_banned ? 'text-emerald-600 dark:text-emerald-400 border-emerald-500/30 hover:border-emerald-400/60 hover:bg-emerald-500/10' : 'text-rose-600 dark:text-rose-400 border-rose-500/30 hover:border-rose-400/60 hover:bg-rose-500/10'} bg-transparent border py-1.5 rounded-xl transition active:scale-95 font-medium flex items-center justify-center gap-1" onclick="window.adminActions.toggleBan(${u.telegram_id}, ${u.is_banned})">
                 ${u.is_banned ? '<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg><span>آزاد</span>' : '<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg><span>مسدود</span>'}
@@ -1692,7 +2037,7 @@
       const title = document.getElementById('hwidModalTitle');
       const list = document.getElementById('hwidDevicesList');
       if (modal) modal.classList.remove('hidden');
-      if (title) title.innerText = `📱 دستگاه‌های: ${name}`;
+      if (title) title.innerText = `📱 کاوشگر نشست‌ها (HWID): ${name}`;
       if (list) list.innerHTML = '<div class="p-6 text-center text-slate-400">در حال دریافت دستگاه‌ها...</div>';
 
       try {
@@ -2479,24 +2824,6 @@
         }
 
         container.innerHTML = `
-          <!-- Best USDT Card -->
-          <div class="bg-slate-900/80 rounded-2xl p-3 border border-emerald-500/30 flex items-center justify-between gap-2.5 shadow-sm">
-            <div>
-              <div class="flex items-center gap-1.5">
-                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                <b class="text-white text-xs font-bold">نرخ پیشنهادی تتر (USDT)</b>
-                <span class="text-[10px] text-emerald-400 font-medium">(${bestUsdt.source || 'بهترین نرخ'})</span>
-              </div>
-              <div class="flex items-baseline gap-1 mt-1">
-                <b class="text-sm font-black text-emerald-400 font-mono">${formatNumber(bestUsdt.price || 0)}</b>
-                <span class="text-[10px] text-slate-400">تومان</span>
-              </div>
-            </div>
-            <button onclick="window.adminActions.applySpecificRate('usdt', ${bestUsdt.price || 0})" class="bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] font-bold px-3 py-1.5 rounded-xl transition shadow active:scale-95">
-              اعمال این نرخ
-            </button>
-          </div>
-
           <!-- All USDT Exchanges List -->
           <div class="space-y-1.5">
             <span class="text-[10px] font-bold text-slate-400 block px-1">استعلام صرافی‌های داخلی (USDT):</span>
@@ -2505,26 +2832,8 @@
             </div>
           </div>
 
-          <!-- Best TON Card -->
-          <div class="bg-slate-900/80 rounded-2xl p-3 border border-cyan-500/30 flex items-center justify-between gap-2.5 shadow-sm mt-3">
-            <div>
-              <div class="flex items-center gap-1.5">
-                <span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
-                <b class="text-white text-xs font-bold">نرخ پیشنهادی تون (TON)</b>
-                <span class="text-[10px] text-cyan-400 font-medium">(${bestTon.source || 'بهترین نرخ'})</span>
-              </div>
-              <div class="flex items-baseline gap-1 mt-1">
-                <b class="text-sm font-black text-cyan-400 font-mono">${formatNumber(bestTon.price || 0)}</b>
-                <span class="text-[10px] text-slate-400">تومان</span>
-              </div>
-            </div>
-            <button onclick="window.adminActions.applySpecificRate('ton', ${bestTon.price || 0})" class="bg-cyan-600 hover:bg-cyan-500 text-white text-[11px] font-bold px-3 py-1.5 rounded-xl transition shadow active:scale-95">
-              اعمال این نرخ
-            </button>
-          </div>
-
           <!-- All TON Exchanges List -->
-          <div class="space-y-1.5">
+          <div class="space-y-1.5 mt-3">
             <span class="text-[10px] font-bold text-slate-400 block px-1">استعلام صرافی‌ها (TON):</span>
             <div class="space-y-1">
               ${tonRowsHtml || '<div class="text-[10px] text-slate-500 text-center py-1">اطلاعاتی دریافت نشد</div>'}
