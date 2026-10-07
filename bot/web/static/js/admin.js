@@ -188,7 +188,11 @@
 
   const updateChartsTheme = () => {
     const gridColor = isDark ? 'rgba(51, 65, 85, 0.3)' : 'rgba(226, 232, 240, 0.8)';
-    const tickColor = isDark ? '#94a3b8' : '#64748b';
+    const tickColor = isDark ? '#e2e8f0' : '#334155';
+    const legendTextColor = isDark ? '#f8fafc' : '#0f172a';
+
+    for (const k in circleCanvasCache) delete circleCanvasCache[k];
+
     if (salesChartInstance) {
       if (salesChartInstance.options?.scales?.x?.ticks) salesChartInstance.options.scales.x.ticks.color = tickColor;
       if (salesChartInstance.options?.scales?.y?.ticks) salesChartInstance.options.scales.y.ticks.color = tickColor;
@@ -217,23 +221,23 @@
       retentionChartInstance.update();
     }
     if (locationChartInstance) {
-      if (locationChartInstance.options?.plugins?.legend?.labels) locationChartInstance.options.plugins.legend.labels.color = tickColor;
+      if (locationChartInstance.options?.plugins?.legend?.labels) locationChartInstance.options.plugins.legend.labels.color = legendTextColor;
       locationChartInstance.update();
     }
     if (planSalesChartInstance) {
-      if (planSalesChartInstance.options?.plugins?.legend?.labels) planSalesChartInstance.options.plugins.legend.labels.color = tickColor;
+      if (planSalesChartInstance.options?.plugins?.legend?.labels) planSalesChartInstance.options.plugins.legend.labels.color = legendTextColor;
       planSalesChartInstance.update();
     }
     if (platformChartInstance) {
-      if (platformChartInstance.options?.plugins?.legend?.labels) platformChartInstance.options.plugins.legend.labels.color = tickColor;
+      if (platformChartInstance.options?.plugins?.legend?.labels) platformChartInstance.options.plugins.legend.labels.color = legendTextColor;
       platformChartInstance.update();
     }
     if (paymentChartInstance) {
-      if (paymentChartInstance.options?.plugins?.legend?.labels) paymentChartInstance.options.plugins.legend.labels.color = tickColor;
+      if (paymentChartInstance.options?.plugins?.legend?.labels) paymentChartInstance.options.plugins.legend.labels.color = legendTextColor;
       paymentChartInstance.update();
     }
     if (churnChartInstance) {
-      if (churnChartInstance.options?.plugins?.legend?.labels) churnChartInstance.options.plugins.legend.labels.color = tickColor;
+      if (churnChartInstance.options?.plugins?.legend?.labels) churnChartInstance.options.plugins.legend.labels.color = legendTextColor;
       churnChartInstance.update();
     }
     if (hwidChartInstance) {
@@ -379,6 +383,10 @@
   }
 
   let lastOverviewData = null;
+  if (typeof Chart !== 'undefined') {
+    Chart.defaults.color = isDark ? '#f8fafc' : '#0f172a';
+    Chart.defaults.font.family = 'Vazirmatn';
+  }
   let salesChartInstance = null;
   function renderAdminSalesChart(labels, values) {
     const canvas = document.getElementById('adminSalesChart');
@@ -518,21 +526,25 @@
   }
 
   const circleCanvasCache = {};
-  function getElevatedCircleIcon(color, size = 7, shiftUp = 2) {
+  function getElevatedCircleIcon(color, size = 7, shiftUp = 3) {
     if (typeof document === 'undefined') return 'circle';
-    const key = `${color}_${size}_${shiftUp}`;
+    const dpr = Math.min(window.devicePixelRatio || 2, 3);
+    const key = `${color}_${size}_${shiftUp}_${dpr}`;
     if (circleCanvasCache[key]) return circleCanvasCache[key];
     try {
       const canvas = document.createElement('canvas');
-      const h = size + 4;
-      const w = size;
-      canvas.width = w;
-      canvas.height = h;
+      const w = 8;
+      const h = 14;
+      canvas.width = w * dpr;
+      canvas.height = h * dpr;
+      canvas.style.width = `${w}px`;
+      canvas.style.height = `${h}px`;
       const ctx = canvas.getContext('2d');
       if (ctx) {
+        ctx.scale(dpr, dpr);
         ctx.fillStyle = color || '#3b82f6';
         ctx.beginPath();
-        ctx.arc(w / 2, (h / 2) - shiftUp, size / 2, 0, Math.PI * 2);
+        ctx.arc(4, 3.5, 3.5, 0, Math.PI * 2);
         ctx.fill();
       }
       circleCanvasCache[key] = canvas;
@@ -545,19 +557,21 @@
   function createDoughnutLegendLabels() {
     return {
       usePointStyle: true,
-      boxWidth: 7,
-      boxHeight: 9,
-      padding: 9,
-      color: isDark ? '#e2e8f0' : '#334155',
-      font: { family: 'Vazirmatn', size: 9.5, weight: '500' },
+      boxWidth: 8,
+      boxHeight: 14,
+      padding: 10,
+      color: isDark ? '#f8fafc' : '#0f172a',
+      font: { family: 'Vazirmatn', size: 10, weight: '600' },
       generateLabels: (chart) => {
         const data = chart.data;
         if (!data.labels?.length || !data.datasets?.length) return [];
         const dataset = data.datasets[0];
+        const textColor = isDark ? '#f8fafc' : '#0f172a';
         return data.labels.map((label, i) => {
           const fill = Array.isArray(dataset.backgroundColor) ? dataset.backgroundColor[i] : dataset.backgroundColor;
           return {
             text: label,
+            fontColor: textColor,
             fillStyle: fill,
             strokeStyle: 'transparent',
             lineWidth: 0,
@@ -1445,10 +1459,10 @@
               </span>
 
               <!-- Items 2 & 3: Username + Telegram ID together on ONE line on the left side -->
-              <div class="flex items-center gap-1.5 text-[10px] text-slate-400 font-mono" dir="ltr">
+              <div class="flex items-center gap-1 text-[10px] text-slate-400 font-mono" dir="ltr">
                 ${u.username ? `<span onclick="window.adminActions.quickCopy('@${u.username}', 'نام کاربری')" class="cursor-pointer hover:text-cyan-300 text-slate-300 font-mono truncate max-w-[95px] inline-block" title="@${u.username}">@${u.username}</span>` : ''}
                 ${u.username ? '<span class="text-slate-600">•</span>' : ''}
-                <span onclick="window.adminActions.quickCopy('${u.telegram_id}', 'شناسه عددی')" class="cursor-pointer hover:text-cyan-300 text-slate-400" title="شناسه تلگرام">ID: ${u.telegram_id}</span>
+                <span onclick="window.adminActions.quickCopy('${u.telegram_id}', 'شناسه عددی')" class="cursor-pointer hover:text-cyan-300 text-slate-400" title="شناسه تلگرام">${u.telegram_id}</span>
               </div>
             </div>
           </div>
@@ -1481,8 +1495,8 @@
                 <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
                 <span>دستگاه‌ها</span>
               </button>
-              <button class="bg-transparent hover:bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-500/30 hover:border-sky-400/60 py-1.5 rounded-xl transition active:scale-95 font-medium flex items-center justify-center gap-1" onclick="window.adminActions.openUserSessionsModal(${u.telegram_id}, '${safeDisplayName}')" title="نشست‌ها و اتصالات زنده">
-                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+              <button class="bg-cyan-500/15 hover:bg-cyan-500/25 text-cyan-400 border border-cyan-500/40 py-1.5 rounded-xl transition active:scale-95 font-bold flex items-center justify-center gap-1 shadow-sm" onclick="window.adminActions.openUserSessionsModal(${u.telegram_id}, '${safeDisplayName}')" title="نشست‌ها و اتصالات زنده">
+                <svg class="w-3 h-3 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
                 <span>نشست‌ها</span>
               </button>
               <button class="${u.is_banned ? 'text-emerald-600 dark:text-emerald-400 border-emerald-500/30 hover:border-emerald-400/60 hover:bg-emerald-500/10' : 'text-rose-600 dark:text-rose-400 border-rose-500/30 hover:border-rose-400/60 hover:bg-rose-500/10'} bg-transparent border py-1.5 rounded-xl transition active:scale-95 font-medium flex items-center justify-center gap-1" onclick="window.adminActions.toggleBan(${u.telegram_id}, ${u.is_banned})">
@@ -2163,6 +2177,20 @@
       } catch (e) {
         if (window.showToast) window.showToast('خطا در برقراری ارتباط');
       }
+    },
+
+    switchFromHwidToSessions() {
+      if (!currentHwidTarget) return;
+      const { telegram_id, name } = currentHwidTarget;
+      this.closeHwidModal();
+      this.openUserSessionsModal(telegram_id, name);
+    },
+
+    switchFromSessionsToHwid() {
+      if (!this.currentUserSessionsTarget) return;
+      const { telegram_id, name } = this.currentUserSessionsTarget;
+      this.closeUserSessionsModal();
+      this.openHwidModal(telegram_id, name);
     },
 
     // --- User Live Sessions Inspector Actions ---
