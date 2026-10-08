@@ -11,12 +11,12 @@ TB = 1024 ** 4
 
 def human_bytes(n: int | float | None) -> str:
     if not n or n <= 0:
-        return "\u200e0 MB"
+        return "0 MB"
     if n >= TB:
-        return f"\u200e{n / TB:.2f} TB"
+        return f"{n / TB:.2f} TB"
     if n >= GB:
-        return f"\u200e{n / GB:.2f} GB"
-    return f"\u200e{n / MB:.2f} MB"
+        return f"{n / GB:.2f} GB"
+    return f"{n / MB:.2f} MB"
 
 
 def country_flag(code: str | None) -> str:

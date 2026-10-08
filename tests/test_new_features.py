@@ -936,9 +936,9 @@ async def test_nightly_reports_formatting(async_session: AsyncSession):
     admin_text = bot.send_message.call_args[0][1]
 
     # Verify order: TopUser (2.00 GB) > Mohadeseh3 (380.00 MB) > Sahba (168.00 MB)
-    pos_top = admin_text.find("👤 TopUser : \u200e2.00 GB")
-    pos_moh = admin_text.find("👤 Mohadeseh3 : \u200e380.00 MB")
-    pos_sah = admin_text.find("👤 Sahba : \u200e168.00 MB")
+    pos_top = admin_text.find("👤 TopUser : 2.00 GB")
+    pos_moh = admin_text.find("👤 Mohadeseh3 : 380.00 MB")
+    pos_sah = admin_text.find("👤 Sahba : 168.00 MB")
 
     assert pos_top != -1
     assert pos_moh != -1
@@ -946,10 +946,10 @@ async def test_nightly_reports_formatting(async_session: AsyncSession):
     assert pos_top < pos_moh < pos_sah
 
     # Verify layout: username on top, breakdown on next line without leading space
-    assert "👤 Mohadeseh3 : \u200e380.00 MB\n🇳🇱 \u200e380.00 MB" in admin_text
-    assert "👤 Sahba : \u200e168.00 MB\n🇳🇱 \u200e168.00 MB" in admin_text
+    assert "👤 Mohadeseh3 : 380.00 MB\n🇳🇱 380.00 MB" in admin_text
+    assert "👤 Sahba : 168.00 MB\n🇳🇱 168.00 MB" in admin_text
     # Verify blank line between users
-    assert "👤 Mohadeseh3 : \u200e380.00 MB\n🇳🇱 \u200e380.00 MB\n\n👤 Sahba : \u200e168.00 MB" in admin_text
+    assert "👤 Mohadeseh3 : 380.00 MB\n🇳🇱 380.00 MB\n\n👤 Sahba : 168.00 MB" in admin_text
 
 
 @pytest.mark.anyio
