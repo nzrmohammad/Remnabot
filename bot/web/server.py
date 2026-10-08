@@ -97,6 +97,17 @@ async def cors_and_security_middleware(request: web.Request, handler):
     )
     # Telegram Mini Apps run inside iframe in web.telegram.org
     response.headers["X-Frame-Options"] = "ALLOWALL"
+
+    # Long-term caching for static assets (/static/...)
+    if request.path.startswith("/static/"):
+        response.headers["Cache-Control"] = "public, max-age=604800, stale-while-revalidate=86400"
+
+    # Enable automatic gzip/deflate compression for responses > 512 bytes
+    if isinstance(response, web.Response) and response.body and len(response.body) > 512:
+        accept_enc = request.headers.get("Accept-Encoding", "")
+        if "gzip" in accept_enc or "deflate" in accept_enc:
+            response.enable_compression()
+
     return response
 
 
@@ -156,7 +167,7 @@ def create_web_app(
 
     # Static files
     if STATIC_DIR.exists():
-        app.router.add_static("/static", str(STATIC_DIR))
+        app.router.add_static("/static", str(STATIC_DIR), append_version=True)
 
     # User APIs
     app.router.add_get("/api/user/me", get_user_me)

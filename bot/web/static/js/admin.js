@@ -147,15 +147,10 @@
         hwidChartInstance?.resize();
       }
 
-      // Lazy load tab data & auto-refresh
+      // Lazy load tab data
       if (targetId === 'tab-admin-nodes') {
         syncAdminOverview(false);
-        startNodesAutoRefresh();
-      } else {
-        stopNodesAutoRefresh();
-      }
-
-      if (targetId === 'tab-admin-users' && document.getElementById('adminUsersList')?.children.length <= 1) {
+      } else if (targetId === 'tab-admin-users' && document.getElementById('adminUsersList')?.children.length <= 1) {
         fetchAdminUsers(1);
       } else if (targetId === 'tab-admin-plans') {
         fetchAdminPlans();
@@ -170,26 +165,6 @@
       }
     });
   });
-
-  let nodesAutoRefreshTimer = null;
-  function startNodesAutoRefresh() {
-    stopNodesAutoRefresh();
-    nodesAutoRefreshTimer = setInterval(() => {
-      const pane = document.getElementById('tab-admin-nodes');
-      if (pane && !pane.classList.contains('hidden')) {
-        syncAdminOverview(false);
-      } else {
-        stopNodesAutoRefresh();
-      }
-    }, 20000);
-  }
-
-  function stopNodesAutoRefresh() {
-    if (nodesAutoRefreshTimer) {
-      clearInterval(nodesAutoRefreshTimer);
-      nodesAutoRefreshTimer = null;
-    }
-  }
 
   // Subtab switcher for Unified Plans & Discounts Tab
   window.switchServicesSubtab = function(subtab) {

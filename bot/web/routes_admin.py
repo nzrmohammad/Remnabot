@@ -68,8 +68,9 @@ async def get_admin_overview(request: web.Request) -> web.Response:
 
     cache: FastCache = request.app["cache"]
     cache_key = "tma:admin:overview"
-    is_refresh = request.query.get("refresh") in ("1", "true")
+    is_refresh = request.query.get("refresh") in ("1", "true") or request.query.get("force") in ("1", "true")
     if is_refresh:
+        await cache.delete(cache_key)
         await cache.delete("analytics:traffic:7day_series")
     else:
         cached_data = await cache.get(cache_key)
@@ -643,9 +644,19 @@ async def get_admin_overview(request: web.Request) -> web.Response:
                 weight = baseline_weights[h]
             combined_weights.append(weight)
 
+        from bot.db.repositories.traffic_snapshot_repo import TrafficSnapshotRepository
+        snapshot_repo = TrafficSnapshotRepository(session)
+        snapshots_24h = await snapshot_repo.get_last_24_hours(now_utc)
+        snapshots_by_hour = {s.timestamp.hour: s.delta_bytes for s in snapshots_24h}
+
         c_sum = sum(combined_weights) or 1.0
         hourly_labels = [f"{h:02d}:00" for h in range(24)]
-        hourly_data = [round((w / c_sum) * base_h_gb, 2) for w in combined_weights]
+        hourly_data = []
+        for h in range(24):
+            if h in snapshots_by_hour and snapshots_by_hour[h] > 0:
+                hourly_data.append(round(snapshots_by_hour[h] / (1024 ** 3), 2))
+            else:
+                hourly_data.append(round((combined_weights[h] / c_sum) * base_h_gb, 2))
 
         peak_idx = max(range(24), key=lambda i: hourly_data[i])
         peak_hour_str = f"{peak_idx:02d}:00"
@@ -655,6 +666,7 @@ async def get_admin_overview(request: web.Request) -> web.Response:
             "data": hourly_data,
             "peak_hour": peak_hour_str,
             "unit": "GB",
+            "is_real_telemetry": bool(snapshots_by_hour),
         }
 
         # 3. New vs Retention Users (7-day stacked bar)
@@ -863,7 +875,7 @@ async def get_admin_overview(request: web.Request) -> web.Response:
             },
         }
 
-        await cache.set(cache_key, data, ttl_seconds=15)
+        await cache.set(cache_key, data, ttl_seconds=30)
         return web.json_response({"ok": True, "data": data, "cached": False})
 
 

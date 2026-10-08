@@ -32,6 +32,7 @@ from bot.services.reports import (
     weekly_report_loop,
 )
 from bot.services.node_monitor import nodes_monitor_loop
+from bot.services.traffic_monitor import traffic_monitor_loop
 from bot.services.retention import retention_loop
 
 logging.basicConfig(
@@ -300,6 +301,9 @@ async def main() -> None:
         ),
         asyncio.create_task(
             nodes_monitor_loop(bot, remnawave, session_factory=session_factory), name="nodes-monitor-loop"
+        ),
+        asyncio.create_task(
+            traffic_monitor_loop(remnawave, session_factory), name="traffic-monitor-loop"
         ),
     ]
 

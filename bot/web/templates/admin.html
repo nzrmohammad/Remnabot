@@ -6,10 +6,7 @@
   <title>Remnabot Admin WebApp - Pro Management Suite</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/static/css/app.css?v=5.2">
+  <link rel="stylesheet" href="/static/css/app.css?v=6.0">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 </head>
 <body id="appBody" class="bg-[#080d1a] text-slate-100 h-screen h-[100dvh] overflow-hidden flex justify-center antialiased select-none transition-colors duration-300">
@@ -463,12 +460,9 @@
             </h3>
             <span class="text-[10px] text-slate-400 mt-0.5 block">پایش لحظه‌ای مصرف منابع، سرعت و پهنای باند</span>
           </div>
-          <div class="flex items-center gap-2">
-            <button id="refreshNodesTabBtn" class="text-[10px] bg-slate-900/60 hover:bg-slate-700/80 text-cyan-400 hover:text-cyan-300 px-2.5 py-1.5 rounded-xl border border-cyan-500/30 hover:border-cyan-400/60 transition flex items-center gap-1.5 active:scale-95 shadow-sm" title="تازه‌سازی فوری سرورها">
-              <svg id="refreshNodesTabIcon" class="w-3.5 h-3.5 text-cyan-400 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-              <span>تازه‌سازی زنده</span>
+            <button id="refreshNodesTabBtn" class="p-2 bg-slate-900/60 hover:bg-slate-700/80 text-cyan-400 hover:text-cyan-300 rounded-xl border border-cyan-500/30 hover:border-cyan-400/60 transition flex items-center justify-center active:scale-95 shadow-sm" title="تازه‌سازی فوری سرورها">
+              <svg id="refreshNodesTabIcon" class="w-4 h-4 text-cyan-400 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
             </button>
-          </div>
         </div>
         <div id="adminNodesFullList" class="space-y-3">
           <div class="p-8 text-center text-xs text-slate-400">در حال دریافت وضعیت نودها...</div>

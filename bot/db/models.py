@@ -408,3 +408,18 @@ class NodeCost(Base):
     )
 
 
+class HourlyTrafficSnapshot(Base):
+    """Hourly traffic consumption metrics across the entire Remnawave cluster."""
+
+    __tablename__ = "hourly_traffic_snapshots"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    timestamp: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
+    total_bytes: Mapped[int] = mapped_column(BigInteger, default=0)
+    delta_bytes: Mapped[int] = mapped_column(BigInteger, default=0)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+
+
+
