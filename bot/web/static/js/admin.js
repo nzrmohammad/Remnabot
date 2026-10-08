@@ -823,16 +823,13 @@
   }
 
   function formatPlanLabelWithIconFirst(label) {
-    if (!label) return 'پلن 💎';
+    if (!label) return '\u200E💎 پلن';
     const str = String(label).trim();
     const emojiRegex = /(\p{Extended_Pictographic}|\p{Emoji_Presentation})/gu;
     const matches = str.match(emojiRegex);
     const cleanText = str.replace(emojiRegex, '').trim();
-    if (matches && matches.length > 0) {
-      const icons = matches.join('');
-      return cleanText ? `${cleanText} ${icons}` : icons;
-    }
-    return cleanText ? `${cleanText} 💎` : (str || 'پلن 💎');
+    const icons = (matches && matches.length > 0) ? matches.join('') : '💎';
+    return cleanText ? `\u200E${icons} ${cleanText}` : icons;
   }
 
   let planSalesChartInstance = null;
@@ -2874,12 +2871,12 @@
 
         if (usages.length === 0) {
           list.innerHTML = `
-            <div class="bg-slate-900/50 border border-slate-800 rounded-2xl p-6 text-center text-slate-400 space-y-2">
-              <div class="w-12 h-12 rounded-2xl bg-pink-500/15 text-pink-400 flex items-center justify-center mx-auto shadow-sm">
+            <div class="bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 text-center text-slate-500 dark:text-slate-400 space-y-2">
+              <div class="w-12 h-12 rounded-2xl bg-pink-500/15 text-pink-500 dark:text-pink-400 flex items-center justify-center mx-auto shadow-sm">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z"/></svg>
               </div>
-              <b class="text-xs text-slate-300 block">بدون استفاده</b>
-              <p class="text-[11px] text-slate-400">هیچ کاربری هنوز از این کد تخفیف استفاده نکرده است.</p>
+              <b class="text-xs text-slate-800 dark:text-slate-300 block">بدون استفاده</b>
+              <p class="text-[11px] text-slate-500 dark:text-slate-400">هیچ کاربری هنوز از این کد تخفیف استفاده نکرده است.</p>
             </div>
           `;
           return;

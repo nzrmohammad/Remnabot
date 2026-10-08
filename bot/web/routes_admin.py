@@ -51,13 +51,13 @@ EMOJI_PATTERN = re.compile(
 def format_service_name_icon_first(name: str | None) -> str:
     """Format service name to place the icon on the visual left in RTL charts."""
     if not name:
-        return "پلن 💎"
+        return "\u200e💎 پلن"
     raw = str(name).strip()
     emojis = "".join(EMOJI_PATTERN.findall(raw)).strip()
     clean_text = EMOJI_PATTERN.sub("", raw).strip()
     if not emojis:
         emojis = "💎"
-    return f"{clean_text} {emojis}" if clean_text else emojis
+    return f"\u200e{emojis} {clean_text}" if clean_text else emojis
 
 
 async def get_admin_overview(request: web.Request) -> web.Response:
@@ -943,11 +943,18 @@ async def get_admin_users(request: web.Request) -> web.Response:
         # Fetch subscriptions and compute remaining volume and remaining days
         user_items = []
         now_utc = datetime.now(timezone.utc)
-        for u in users:
+
+        async def _fetch_single_panel(uid: int):
             try:
-                panel_users = await remnawave.get_users_by_telegram_id(u.telegram_id) or []
+                return await asyncio.wait_for(remnawave.get_users_by_telegram_id(uid), timeout=4.0) or []
             except Exception as exc:
-                logger.warning("Failed to fetch panel users for %s: %s", u.telegram_id, exc)
+                logger.debug("Failed fetching panel user for %s: %s", uid, exc)
+                return []
+
+        panel_fetch_results = await asyncio.gather(*[_fetch_single_panel(u.telegram_id) for u in users])
+
+        for u, panel_users in zip(users, panel_fetch_results):
+            if not isinstance(panel_users, list):
                 panel_users = []
             p = panel_users[0] if panel_users else {}
             panel_exists = bool(panel_users)
@@ -1005,24 +1012,6 @@ async def get_admin_users(request: web.Request) -> web.Response:
                 p_desc = p.get("description") if (p and p.get("description") and p.get("description") != u.username and not str(p.get("description")).startswith("@")) else None
                 p_name = p.get("name") if (p and p.get("name") and p.get("name") != u.username and not str(p.get("name")).startswith("@")) else None
                 profile_name = p_desc or p_name
-
-            if not profile_name:
-                bot = request.app.get("bot")
-                cache = request.app.get("cache")
-                cached_name = await cache.get(f"tg:user:{u.telegram_id}:profile_name") if cache else None
-                if cached_name:
-                    profile_name = cached_name
-                elif bot:
-                    try:
-                        chat_info = await bot.get_chat(u.telegram_id)
-                        if chat_info and chat_info.full_name:
-                            profile_name = chat_info.full_name.strip()
-                            if cache:
-                                await cache.set(f"tg:user:{u.telegram_id}:profile_name", profile_name, ttl=86400)
-                            u.full_name = profile_name
-                            await session.commit()
-                    except Exception:
-                        pass
 
             full_name = profile_name or (f"@{u.username}" if u.username else f"کاربر {u.telegram_id}")
 
