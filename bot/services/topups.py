@@ -65,7 +65,15 @@ async def decide_topup(
         )
 
     try:
-        await bot.send_message(topup.telegram_id, user_text, reply_markup=kb.as_markup())
+        user_repo = UserRepository(session)
+        if target:
+            from bot.services.menu import delete_message_silently
+            await delete_message_silently(bot, target.telegram_id, target.menu_message_id)
+            sent_msg = await bot.send_message(topup.telegram_id, user_text, reply_markup=kb.as_markup())
+            if isinstance(getattr(sent_msg, "message_id", None), int):
+                await user_repo.set_menu_message_id(target, sent_msg.message_id)
+        else:
+            await bot.send_message(topup.telegram_id, user_text, reply_markup=kb.as_markup())
     except TelegramAPIError:
         logger.warning("could not notify user %s about top-up", topup.telegram_id)
 

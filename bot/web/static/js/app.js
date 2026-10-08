@@ -248,10 +248,19 @@ function setupClientImporters() {
 function setupThemeToggle() {
   const themeToggle = document.getElementById('themeToggle');
   const themeIcon = document.getElementById('themeIcon');
-  let isDark = true;
 
-  themeToggle?.addEventListener('click', () => {
-    isDark = !isDark;
+  const getInitialUserTheme = () => {
+    const saved = localStorage.getItem('remna_user_theme');
+    if (saved) return saved === 'dark';
+    if (window.Telegram?.WebApp?.colorScheme) {
+      return window.Telegram.WebApp.colorScheme === 'dark';
+    }
+    return !(window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches);
+  };
+
+  let isDark = getInitialUserTheme();
+
+  const applyTheme = () => {
     if (isDark) {
       document.documentElement.classList.remove('theme-light');
       document.documentElement.classList.add('dark');
@@ -263,6 +272,24 @@ function setupThemeToggle() {
       if (themeIcon) themeIcon.innerText = '☀️';
       try { if (window.Telegram?.WebApp?.setHeaderColor) window.Telegram.WebApp.setHeaderColor('#ffffff'); } catch(e) {}
     }
+  };
+
+  applyTheme();
+
+  try {
+    window.Telegram?.WebApp?.onEvent('themeChanged', () => {
+      if (!localStorage.getItem('remna_user_theme')) {
+        isDark = window.Telegram.WebApp.colorScheme === 'dark';
+        applyTheme();
+      }
+    });
+  } catch(e) {}
+
+  themeToggle?.addEventListener('click', () => {
+    isDark = !isDark;
+    localStorage.setItem('remna_user_theme', isDark ? 'dark' : 'light');
+    applyTheme();
+    if (window.hapticFeedback) window.hapticFeedback('impact');
   });
 }
 

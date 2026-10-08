@@ -199,8 +199,15 @@
   // --- 3. Theme Toggle ---
   const adminThemeToggle = document.getElementById('adminThemeToggle');
   const adminThemeIcon = document.getElementById('adminThemeIcon');
-  const savedAdminTheme = localStorage.getItem('remna_admin_theme');
-  let isDark = savedAdminTheme ? (savedAdminTheme === 'dark') : true;
+  const getInitialAdminTheme = () => {
+    const saved = localStorage.getItem('remna_admin_theme');
+    if (saved) return saved === 'dark';
+    if (window.Telegram?.WebApp?.colorScheme) {
+      return window.Telegram.WebApp.colorScheme === 'dark';
+    }
+    return !(window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches);
+  };
+  let isDark = getInitialAdminTheme();
 
   const getThemeColors = () => ({
     grid: isDark ? 'rgba(51, 65, 85, 0.3)' : 'rgba(203, 213, 225, 0.7)',
@@ -274,9 +281,18 @@
     }
   };
 
-  if (savedAdminTheme) {
-    applyThemeClasses();
-  }
+  // Apply initial theme immediately (saved or auto-detected)
+  applyThemeClasses();
+
+  try {
+    window.Telegram?.WebApp?.onEvent('themeChanged', () => {
+      if (!localStorage.getItem('remna_admin_theme')) {
+        isDark = window.Telegram.WebApp.colorScheme === 'dark';
+        applyThemeClasses();
+        updateChartsTheme();
+      }
+    });
+  } catch (e) {}
 
   adminThemeToggle?.addEventListener('click', () => {
     isDark = !isDark;
@@ -348,13 +364,13 @@
         const marginVal = m.profit_margin_percent;
         if (!hasRevenue || marginVal === null || marginVal === undefined) {
           pMargin.innerText = 'مارجین: —';
-          pMargin.className = 'text-[9px] font-mono font-bold bg-slate-700/40 text-slate-400 border border-slate-600/40 px-1.5 py-0.5 rounded-md';
+          pMargin.className = 'text-[9px] font-mono font-bold bg-transparent text-slate-400 border border-slate-600/40 px-1.5 py-0.5 rounded-md';
         } else {
           const sign = marginVal > 0 ? '+' : '';
           pMargin.innerText = `مارجین: ${sign}${marginVal}%`;
           pMargin.className = marginVal >= 0
-            ? 'text-[9px] font-mono font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 px-1.5 py-0.5 rounded-md'
-            : 'text-[9px] font-mono font-bold bg-rose-500/15 text-rose-400 border border-rose-500/30 px-1.5 py-0.5 rounded-md';
+            ? 'text-[9px] font-mono font-bold bg-transparent text-emerald-400 border border-emerald-500/30 px-1.5 py-0.5 rounded-md'
+            : 'text-[9px] font-mono font-bold bg-transparent text-rose-400 border border-rose-500/30 px-1.5 py-0.5 rounded-md';
         }
       }
 
@@ -2287,12 +2303,12 @@
 
         if (list) {
           list.innerHTML = records.map(r => `
-            <div class="bg-slate-900/60 p-2.5 rounded-2xl border border-slate-700/60 flex items-center justify-between gap-2">
+            <div class="srh-card bg-slate-900/60 p-2.5 rounded-2xl border border-slate-700/60 flex items-center justify-between gap-2">
               <div class="min-w-0 flex-1">
                 <div class="flex items-center gap-1.5 mb-1">
                   <span class="text-sm">${r.client_icon || '📱'}</span>
                   <b class="text-white text-xs truncate">${r.client_name || 'کلاینت'}</b>
-                  <span class="text-[9px] px-1.5 py-0.2 rounded bg-slate-800 text-slate-300 font-mono">${r.client_tag || 'App'}</span>
+                  <span class="text-[9px] px-1.5 py-0.5 rounded bg-transparent border border-slate-700/60 text-slate-400 font-mono">${r.client_tag || 'App'}</span>
                 </div>
                 <div class="flex items-center gap-2 text-[10px] text-slate-400">
                   <span dir="ltr" class="font-mono text-cyan-300 select-all cursor-pointer" onclick="window.copyToClipboard('${r.ip}')" title="کپی آی‌پی">🌐 ${r.ip}</span>
@@ -2301,8 +2317,8 @@
                 </div>
               </div>
               <div class="flex-shrink-0 text-right">
-                <span class="inline-flex items-center gap-1 text-[9px] font-mono font-bold ${r.is_success ? 'text-emerald-400 bg-emerald-500/10' : 'text-rose-400 bg-rose-500/10'} px-2 py-0.5 rounded-lg border ${r.is_success ? 'border-emerald-500/30' : 'border-rose-500/30'}">
-                  ${r.status_code}
+                <span class="inline-flex items-center gap-1 text-[9px] font-bold ${r.is_success ? 'text-emerald-400 border-emerald-500/30' : 'text-rose-400 border-rose-500/30'} bg-transparent px-2 py-0.5 rounded-lg border">
+                  ${r.is_success ? 'موفق' : (r.status_code ? 'خطا ' + r.status_code : 'خطا')}
                 </span>
                 <span class="block text-[8px] text-slate-500 font-mono mt-0.5">${r.date_str ? r.date_str.split(' ')[1] : ''}</span>
               </div>

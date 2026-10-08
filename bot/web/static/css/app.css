@@ -326,6 +326,7 @@ html.theme-light #couponModal > div,
 html.theme-light #modifyUserModal > div,
 html.theme-light #walletModal > div,
 html.theme-light #hwidModal > div,
+html.theme-light #bulkUsersModal > div,
 html.theme-light #subModal > div,
 html.theme-light #trialModal > div,
 html.theme-light #confirmActionModal > div,
@@ -341,7 +342,9 @@ html.theme-light #planModal input,
 html.theme-light #couponModal input,
 html.theme-light #modifyUserModal input,
 html.theme-light #walletModal input,
-html.theme-light #subModal input {
+html.theme-light #subModal input,
+html.theme-light #bulkUsersModal input,
+html.theme-light #bulkUsersModal select {
   background-color: #f8fafc !important;
   border-color: #cbd5e1 !important;
   color: #0f172a !important;
@@ -353,6 +356,7 @@ html.theme-light #modifyUserModal label,
 html.theme-light #walletModal label,
 html.theme-light #subModal label,
 html.theme-light #hwidModal label,
+html.theme-light #bulkUsersModal label,
 html.theme-light #trialModal label {
   color: #475569 !important;
 }
@@ -384,12 +388,40 @@ html.theme-light #trialModal .bg-purple-950\/40 p {
 }
 
 html.theme-light #hwidModal .border-slate-700\/60,
-html.theme-light #hwidModal .border-slate-700\/80 {
+html.theme-light #hwidModal .border-slate-700\/80,
+html.theme-light #bulkUsersModal .border-slate-700\/60,
+html.theme-light #bulkUsersModal .border-slate-700\/80 {
   border-color: #e2e8f0 !important;
 }
 
-html.theme-light #hwidModal .text-white {
+html.theme-light #hwidModal .text-white,
+html.theme-light #bulkUsersModal .text-white {
   color: #0f172a !important;
+}
+
+html.theme-light #hwidModal .bg-slate-900\/70,
+html.theme-light #hwidModal .bg-slate-900\/60,
+html.theme-light #hwidModal .bg-slate-900\/80,
+html.theme-light #bulkUsersModal .bg-slate-900\/70 {
+  background-color: #f1f5f9 !important;
+  border-color: #e2e8f0 !important;
+}
+
+html.theme-light #hwidModal .srh-card,
+html.theme-light #hwidModal .bg-slate-800\/80 {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+}
+
+html.theme-light #hwidModal .text-slate-300,
+html.theme-light #hwidModal .text-slate-200 {
+  color: #334155 !important;
+}
+
+html.theme-light #bulkUsersModal button[type="button"] {
+  background-color: #f8fafc !important;
+  border-color: #cbd5e1 !important;
+  color: #334155 !important;
 }
 
 /* Server nodes cards & Light theme fixes */

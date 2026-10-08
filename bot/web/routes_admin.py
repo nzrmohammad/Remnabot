@@ -1652,34 +1652,37 @@ async def post_admin_topup_action(request: web.Request) -> web.Response:
         from bot.locales.texts import t
 
         user_lang = "fa"
-        try:
-            async with session_factory() as session:
-                user_repo = UserRepository(session)
-                u_obj = await user_repo.get_by_telegram_id(claimed.telegram_id)
-                if u_obj and u_obj.language:
-                    user_lang = u_obj.language
-        except Exception:
-            pass
+        async with session_factory() as session:
+            user_repo = UserRepository(session)
+            u_obj = await user_repo.get_by_telegram_id(claimed.telegram_id)
+            if u_obj and u_obj.language:
+                user_lang = u_obj.language
 
-        kb = InlineKeyboardBuilder()
-        if approved:
-            if user_lang == "fa":
-                kb.button(text=t(user_lang, "btn_services"), callback_data="menu:services")
-                kb.button(text=t(user_lang, "btn_wallet"), callback_data="menu:wallet")
+            kb = InlineKeyboardBuilder()
+            if approved:
+                if user_lang == "fa":
+                    kb.button(text=t(user_lang, "btn_services"), callback_data="menu:services")
+                    kb.button(text=t(user_lang, "btn_wallet"), callback_data="menu:wallet")
+                else:
+                    kb.button(text=t(user_lang, "btn_wallet"), callback_data="menu:wallet")
+                    kb.button(text=t(user_lang, "btn_services"), callback_data="menu:services")
+                kb.adjust(2)
             else:
-                kb.button(text=t(user_lang, "btn_wallet"), callback_data="menu:wallet")
-                kb.button(text=t(user_lang, "btn_services"), callback_data="menu:services")
-            kb.adjust(2)
-        else:
-            kb.button(text=t(user_lang, "btn_support"), callback_data="menu:support")
-            kb.adjust(1)
+                kb.button(text=t(user_lang, "btn_support"), callback_data="menu:support")
+                kb.adjust(1)
 
-        await bot.send_message(
-            chat_id=claimed.telegram_id,
-            text=msg,
-            reply_markup=kb.as_markup(),
-            parse_mode="HTML",
-        )
+            if bot:
+                if u_obj:
+                    from bot.services.menu import delete_message_silently
+                    await delete_message_silently(bot, u_obj.telegram_id, u_obj.menu_message_id)
+                sent_msg = await bot.send_message(
+                    chat_id=claimed.telegram_id,
+                    text=msg,
+                    reply_markup=kb.as_markup(),
+                    parse_mode="HTML",
+                )
+                if u_obj and isinstance(getattr(sent_msg, "message_id", None), int):
+                    await user_repo.set_menu_message_id(u_obj, sent_msg.message_id)
     except Exception as exc:
         logger.warning("Could not send topup decision notice to %s: %s", claimed.telegram_id, exc)
 
@@ -2128,21 +2131,40 @@ async def get_admin_user_srh(request: web.Request) -> web.Response:
         if rule_name and client_info["name"] == "کلاینت ناشناس":
             client_info["name"] = rule_name
 
-        created_at_raw = r.get("createdAt") or r.get("timestamp") or r.get("date") or r.get("time")
-        rel_time = "به تازگی"
+        created_at_raw = (
+            r.get("requestDate")
+            or r.get("requestedAt")
+            or r.get("dateTime")
+            or r.get("createdAt")
+            or r.get("timestamp")
+            or r.get("date")
+            or r.get("time")
+            or r.get("created_at")
+            or r.get("updatedAt")
+        )
+        rel_time = "—"
         date_str = ""
         if created_at_raw:
             try:
+                if isinstance(created_at_raw, str) and created_at_raw.strip().isdigit():
+                    created_at_raw = int(created_at_raw.strip())
+
                 if isinstance(created_at_raw, (int, float)):
                     if created_at_raw > 1e11:
                         parsed_dt = datetime.fromtimestamp(created_at_raw / 1000, tz=timezone.utc)
                     else:
                         parsed_dt = datetime.fromtimestamp(created_at_raw, tz=timezone.utc)
                 else:
-                    parsed_dt = datetime.fromisoformat(str(created_at_raw).replace("Z", "+00:00"))
+                    s = str(created_at_raw).strip()
+                    if s.endswith("Z"):
+                        s = s[:-1] + "+00:00"
+                    parsed_dt = datetime.fromisoformat(s)
+                    if parsed_dt.tzinfo is None:
+                        parsed_dt = parsed_dt.replace(tzinfo=timezone.utc)
+
                 diff_sec = max(0, int((now_utc - parsed_dt).total_seconds()))
                 if diff_sec < 60:
-                    rel_time = "چند لحظه پیش"
+                    rel_time = "لحظاتی پیش"
                 elif diff_sec < 3600:
                     rel_time = f"{diff_sec // 60} دقیقه پیش"
                 elif diff_sec < 86400:
@@ -2152,6 +2174,7 @@ async def get_admin_user_srh(request: web.Request) -> web.Response:
                 date_str = parsed_dt.strftime("%Y/%m/%d %H:%M")
             except Exception:
                 date_str = str(created_at_raw)
+                rel_time = "ثبت‌شده"
 
         is_success = str(status_code) in ("200", "201", "304", "OK")
 

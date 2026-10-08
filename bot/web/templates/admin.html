@@ -11,7 +11,7 @@
       darkMode: 'class'
     };
   </script>
-  <link rel="stylesheet" href="/static/css/app.css?v=7.1">
+  <link rel="stylesheet" href="/static/css/app.css?v=7.2">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 </head>
 <body id="appBody" class="bg-[#080d1a] text-slate-100 h-screen h-[100dvh] overflow-hidden flex justify-center antialiased select-none transition-colors duration-300">
@@ -138,7 +138,7 @@
               <span class="text-[9px] text-slate-400 font-sans">تومان</span>
             </div>
             <div class="flex items-center justify-between mt-1 pt-0.5">
-              <span id="adminProfitMarginBadge" class="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded-md bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">مارجین: --%</span>
+              <span id="adminProfitMarginBadge" class="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded-md bg-transparent text-emerald-400 border border-emerald-500/30">مارجین: --%</span>
               <span class="text-[9px] text-slate-400">کسر سرورها</span>
             </div>
           </div>
@@ -276,7 +276,7 @@
                 <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
                 <span>سهم سیستم‌عامل‌ها و کلاینت‌ها</span>
               </span>
-              <span class="text-[10px] text-emerald-400 font-medium">OS Share</span>
+              <span class="text-[10px] text-emerald-400 font-medium">سهم پلتفرم‌ها</span>
             </div>
             <div class="h-40 w-full relative flex items-center justify-center">
               <canvas id="adminPlatformChart"></canvas>
@@ -986,21 +986,21 @@
         </div>
 
         <!-- Tab 1: HWID Devices Pane -->
-        <div id="hwidTabPane" class="flex-1 overflow-y-auto space-y-2 max-h-[50vh] custom-scroll text-xs">
+        <div id="hwidTabPane" class="flex-1 overflow-y-auto space-y-2 max-h-[50vh] custom-scroll px-1 text-xs">
           <div id="hwidDevicesList" class="space-y-2">
             <div class="p-6 text-center text-slate-400">در حال دریافت دستگاه‌ها...</div>
           </div>
         </div>
 
         <!-- Tab 2: Live Sessions Pane -->
-        <div id="sessionsTabPane" class="flex-1 overflow-y-auto space-y-2 max-h-[50vh] custom-scroll text-xs hidden">
+        <div id="sessionsTabPane" class="flex-1 overflow-y-auto space-y-2 max-h-[50vh] custom-scroll px-1 text-xs hidden">
           <div id="userSessionsList" class="space-y-2">
             <div class="p-6 text-center text-slate-400">در حال دریافت نشست‌ها...</div>
           </div>
         </div>
 
         <!-- Tab 3: Subscription Request History (SRH) Pane -->
-        <div id="srhTabPane" class="flex-1 overflow-y-auto space-y-2 max-h-[50vh] custom-scroll text-xs hidden">
+        <div id="srhTabPane" class="flex-1 overflow-y-auto space-y-2 max-h-[50vh] custom-scroll px-1 text-xs hidden">
           <div id="userSrhList" class="space-y-2">
             <div class="p-6 text-center text-slate-400">در حال دریافت تاریخچه سابسکریپشن...</div>
           </div>
@@ -1047,10 +1047,10 @@
             <label id="bulkAmountLabel" class="text-slate-400 text-[11px] block mb-1">مقدار حجم هدیه (گیگابایت):</label>
             <div class="flex items-center gap-2">
               <input type="number" id="bulkAmountInput" min="1" max="1000" value="5" class="w-full bg-slate-900/90 border border-slate-700/80 rounded-xl p-2.5 text-white font-mono text-xs outline-none focus:border-indigo-500" />
-              <div class="flex gap-1 flex-shrink-0" dir="ltr">
-                <button type="button" onclick="document.getElementById('bulkAmountInput').value = '5'" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 text-[10px] rounded-lg font-mono flex items-center justify-center transition active:scale-95" dir="ltr"><span dir="ltr">+5</span></button>
-                <button type="button" onclick="document.getElementById('bulkAmountInput').value = '10'" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 text-[10px] rounded-lg font-mono flex items-center justify-center transition active:scale-95" dir="ltr"><span dir="ltr">+10</span></button>
-                <button type="button" onclick="document.getElementById('bulkAmountInput').value = '30'" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 text-[10px] rounded-lg font-mono flex items-center justify-center transition active:scale-95" dir="ltr"><span dir="ltr">+30</span></button>
+              <div class="flex gap-1.5 flex-shrink-0" dir="ltr">
+                <button type="button" onclick="document.getElementById('bulkAmountInput').value = '5'" class="px-2.5 py-1 bg-slate-800/90 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700/80 hover:border-indigo-500/50 text-[10px] rounded-lg font-mono flex items-center justify-center transition active:scale-95 shadow-sm" dir="ltr"><span dir="ltr">+5</span></button>
+                <button type="button" onclick="document.getElementById('bulkAmountInput').value = '10'" class="px-2.5 py-1 bg-slate-800/90 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700/80 hover:border-indigo-500/50 text-[10px] rounded-lg font-mono flex items-center justify-center transition active:scale-95 shadow-sm" dir="ltr"><span dir="ltr">+10</span></button>
+                <button type="button" onclick="document.getElementById('bulkAmountInput').value = '30'" class="px-2.5 py-1 bg-slate-800/90 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700/80 hover:border-indigo-500/50 text-[10px] rounded-lg font-mono flex items-center justify-center transition active:scale-95 shadow-sm" dir="ltr"><span dir="ltr">+30</span></button>
               </div>
             </div>
           </div>
@@ -1594,8 +1594,8 @@
   </div>
 
   <!-- Shared & Modular Scripts -->
-  <script src="/static/js/utils.js?v=7.1"></script>
-  <script src="/static/js/api.js?v=7.1"></script>
-  <script src="/static/js/admin.js?v=7.1"></script>
+  <script src="/static/js/utils.js?v=7.2"></script>
+  <script src="/static/js/api.js?v=7.2"></script>
+  <script src="/static/js/admin.js?v=7.2"></script>
 </body>
 </html>
