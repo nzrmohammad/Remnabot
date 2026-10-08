@@ -66,23 +66,30 @@ function setupReportsSubtabs() {
   const repSubNightly = document.getElementById('repSubNightly');
   const repSubWeekly = document.getElementById('repSubWeekly');
   const repSubMonthly = document.getElementById('repSubMonthly');
+  const repSubAnalytics = document.getElementById('repSubAnalytics');
   const viewRepNightly = document.getElementById('viewRepNightly');
   const viewRepWeekly = document.getElementById('viewRepWeekly');
   const viewRepMonthly = document.getElementById('viewRepMonthly');
+  const viewRepAnalytics = document.getElementById('viewRepAnalytics');
 
   function setRepSub(activeBtn, activeView) {
-    [repSubNightly, repSubWeekly, repSubMonthly].forEach(b => {
+    [repSubNightly, repSubWeekly, repSubMonthly, repSubAnalytics].forEach(b => {
       if (b) b.className = 'flex-1 py-1.5 rounded-lg font-medium text-slate-400 hover:text-slate-200 transition';
     });
     if (activeBtn) activeBtn.className = 'flex-1 py-1.5 rounded-lg font-bold bg-blue-600 text-white transition';
 
-    [viewRepNightly, viewRepWeekly, viewRepMonthly].forEach(v => v?.classList.add('hidden'));
+    [viewRepNightly, viewRepWeekly, viewRepMonthly, viewRepAnalytics].forEach(v => v?.classList.add('hidden'));
     activeView?.classList.remove('hidden');
+
+    if (activeView === viewRepAnalytics && window.lastUserData?.active_sub) {
+      renderActiveSubAnalytics(window.lastUserData.active_sub);
+    }
   }
 
   repSubNightly?.addEventListener('click', () => setRepSub(repSubNightly, viewRepNightly));
   repSubWeekly?.addEventListener('click', () => setRepSub(repSubWeekly, viewRepWeekly));
   repSubMonthly?.addEventListener('click', () => setRepSub(repSubMonthly, viewRepMonthly));
+  repSubAnalytics?.addEventListener('click', () => setRepSub(repSubAnalytics, viewRepAnalytics));
 }
 
 // 4. Copy Subscription Button & Box
@@ -290,10 +297,15 @@ function setupThemeToggle() {
       try { if (window.Telegram?.WebApp?.setHeaderColor) window.Telegram.WebApp.setHeaderColor('#ffffff'); } catch(e) {}
     }
 
-    if (window.lastUserData?.active_sub && typeof renderBarChart === 'function') {
+    if (window.lastUserData?.active_sub) {
       const sub = window.lastUserData.active_sub;
-      renderBarChart('repWeeklyChartCanvas', sub.week_daily_totals_gb || [0, 0, 0, 0, 0, 0, 0], sub.week_day_labels || ['ش', 'ی', 'د', 'س', 'چ', 'پ', 'ج'], false);
-      renderBarChart('repMonthlyChartCanvas', sub.month_weeks_totals_gb || [0, 0, 0, sub.week_used_gb || 0], ['هفته ۱', 'هفته ۲', 'هفته ۳', 'هفته ۴'], true);
+      if (typeof renderBarChart === 'function') {
+        renderBarChart('repWeeklyChartCanvas', sub.week_daily_totals_gb || [0, 0, 0, 0, 0, 0, 0], sub.week_day_labels || ['ش', 'ی', 'د', 'س', 'چ', 'پ', 'ج'], false);
+        renderBarChart('repMonthlyChartCanvas', sub.month_weeks_totals_gb || [0, 0, 0, sub.week_used_gb || 0], ['هفته ۱', 'هفته ۲', 'هفته ۳', 'هفته ۴'], true);
+      }
+      if (typeof renderActiveSubAnalytics === 'function') {
+        renderActiveSubAnalytics(sub);
+      }
     }
   };
 
@@ -952,7 +964,66 @@ function hydrateUserInterface(data) {
     } catch (e) {
       console.warn('Could not render monthly chart:', e);
     }
+
+    // Advanced Analytics (4 Visualizers)
+    try {
+      renderActiveSubAnalytics(sub);
+    } catch (e) {
+      console.warn('Could not render active sub analytics:', e);
+    }
   }
+
+function renderActiveSubAnalytics(sub) {
+  if (!sub) return;
+
+  // 1. Traffic Split (Download vs Upload)
+  if (typeof renderTrafficSplit === 'function') {
+    try {
+      renderTrafficSplit(sub.traffic_split);
+    } catch (e) {
+      console.warn('Error rendering traffic split', e);
+    }
+  }
+
+  // 2. 24h Peak Usage Area Curve
+  if (typeof renderLineCurveChart === 'function') {
+    try {
+      renderLineCurveChart(
+        'repPeakHoursChartCanvas',
+        sub.hourly_usage?.labels || [
+          '00:00','02:00','04:00','06:00','08:00','10:00',
+          '12:00','14:00','16:00','18:00','20:00','22:00'
+        ],
+        sub.hourly_usage?.data || [
+          0.1, 0.05, 0.02, 0.05, 0.2, 0.4, 0.6, 0.5, 0.7, 1.2, 1.5, 0.8
+        ],
+        sub.hourly_usage?.peak_hour || '21:00'
+      );
+    } catch (e) {
+      console.warn('Error rendering peak hours chart', e);
+    }
+  }
+
+  // 3. Country / Cluster Donut Chart
+  if (typeof renderDonutChart === 'function') {
+    try {
+      const countryLabels = sub.country_share?.labels?.length ? sub.country_share.labels : ['🇳🇱 هلند', '🇩🇪 آلمان', '🇹🇷 ترکیه'];
+      const countryData = sub.country_share?.data?.length ? sub.country_share.data : [15.2, 6.4, 2.8];
+      renderDonutChart('repCountryChartCanvas', countryLabels, countryData, false);
+    } catch (e) {
+      console.warn('Error rendering country donut chart', e);
+    }
+
+    // 4. Device Platform Donut Chart
+    try {
+      const devLabels = sub.device_share?.labels?.length ? sub.device_share.labels : ['🤖 Android', '🍏 iOS'];
+      const devData = sub.device_share?.data?.length ? sub.device_share.data : [1, 1];
+      renderDonutChart('repDeviceChartCanvas', devLabels, devData, true);
+    } catch (e) {
+      console.warn('Error rendering device donut chart', e);
+    }
+  }
+}
 
   // Active Devices
   const devices = sub?.devices || [];

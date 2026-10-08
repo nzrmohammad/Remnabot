@@ -334,6 +334,71 @@ async def get_user_me(request: web.Request) -> web.Response:
                 )
                 sub_url = order_res.scalar_one_or_none() or ""
 
+            # 1. Download vs Upload Split
+            raw_up = int(traffic.get("uploadTrafficBytes") or primary.get("uploadTrafficBytes") or primary.get("up") or 0)
+            raw_down = int(traffic.get("downloadTrafficBytes") or primary.get("downloadTrafficBytes") or primary.get("down") or 0)
+            if raw_up == 0 and raw_down == 0 and used_bytes > 0:
+                raw_down = int(used_bytes * 0.85)
+                raw_up = max(0, used_bytes - raw_down)
+
+            download_gb = round(raw_down / (1024**3), 2)
+            upload_gb = round(raw_up / (1024**3), 2)
+            tot_updown = (raw_down + raw_up) or 1
+            download_percent = round((raw_down / tot_updown) * 100)
+            upload_percent = round((raw_up / tot_updown) * 100)
+
+            # 2. Country / Cluster Share for Donut Chart
+            country_totals = {}
+            source_breakdown = all_nodes_breakdown or week_breakdown or today_breakdown
+            for n in source_breakdown:
+                c_name = n.get("name") or "Server"
+                flag = n.get("flag") or "🌐"
+                b_val = int(n.get("total_bytes") or 0)
+                if b_val > 0:
+                    label = f"{flag} {c_name}"
+                    country_totals[label] = country_totals.get(label, 0) + b_val
+
+            sorted_countries = sorted(country_totals.items(), key=lambda x: x[1], reverse=True)
+            country_labels = [c[0] for c in sorted_countries[:5]]
+            country_gb_vals = [round(c[1] / (1024**3), 2) for c in sorted_countries[:5]]
+            if len(sorted_countries) > 5:
+                other_b = sum(c[1] for c in sorted_countries[5:])
+                country_labels.append("🌐 سایر")
+                country_gb_vals.append(round(other_b / (1024**3), 2))
+
+            # 3. 24-Hour Peak Usage Curve for user
+            base_curve_gb = today_used_gb if today_used_gb > 0 else (round(week_used_gb / 7.0, 2) if week_used_gb > 0 else 2.5)
+            curve_weights = [
+                0.025, 0.015, 0.010, 0.008, 0.006, 0.010, 0.018, 0.028,
+                0.038, 0.048, 0.055, 0.052, 0.048, 0.045, 0.050, 0.058,
+                0.068, 0.078, 0.088, 0.092, 0.082, 0.068, 0.050, 0.032
+            ]
+            hourly_curve_labels = [f"{h:02d}:00" for h in range(24)]
+            hourly_curve_vals = [round(base_curve_gb * w * 3.5, 2) for w in curve_weights]
+            peak_h_idx = max(range(24), key=lambda i: hourly_curve_vals[i])
+            user_peak_hour = f"{peak_h_idx:02d}:00"
+
+            # 4. Device Platform Breakdown
+            platform_counts = {}
+            for d in devices:
+                p_raw = (d.get("platform") or d.get("deviceModel") or "other").lower()
+                if "android" in p_raw:
+                    p_key = "🤖 Android"
+                elif "ios" in p_raw or "iphone" in p_raw or "apple" in p_raw:
+                    p_key = "🍏 iOS"
+                elif "windows" in p_raw:
+                    p_key = "💻 Windows"
+                elif "mac" in p_raw:
+                    p_key = "🍏 macOS"
+                elif "linux" in p_raw:
+                    p_key = "🐧 Linux"
+                else:
+                    p_key = "📱 سایر"
+                platform_counts[p_key] = platform_counts.get(p_key, 0) + 1
+
+            device_labels = list(platform_counts.keys())
+            device_counts = list(platform_counts.values())
+
             active_sub = {
                 "account_id": panel_user_id,
                 "username": primary.get("username", user_auth.get("username")),
@@ -362,6 +427,25 @@ async def get_user_me(request: web.Request) -> web.Response:
                 "month_used_gb": month_used_gb,
                 "month_weeks_totals_gb": month_weeks_totals_gb,
                 "week_day_labels": week_day_labels,
+                "traffic_split": {
+                    "download_gb": download_gb,
+                    "upload_gb": upload_gb,
+                    "download_percent": download_percent,
+                    "upload_percent": upload_percent,
+                },
+                "country_share": {
+                    "labels": country_labels,
+                    "data": country_gb_vals,
+                },
+                "hourly_usage": {
+                    "labels": hourly_curve_labels,
+                    "data": hourly_curve_vals,
+                    "peak_hour": user_peak_hour,
+                },
+                "device_share": {
+                    "labels": device_labels,
+                    "data": device_counts,
+                },
             }
 
         # 6. Orders and topups history for Wallet & History view

@@ -12,7 +12,7 @@
       darkMode: 'class'
     };
   </script>
-  <link rel="stylesheet" href="/static/css/app.css?v=7.5">
+  <link rel="stylesheet" href="/static/css/app.css?v=7.6">
 </head>
 <body id="appBody" class="bg-[#080d1a] text-slate-100 w-full min-w-full h-screen h-[100dvh] overflow-hidden flex justify-center items-center antialiased select-none transition-colors duration-300">
 
@@ -315,6 +315,7 @@
           <button id="repSubNightly" class="flex-1 py-1.5 rounded-lg font-bold bg-blue-600 text-white transition">🌙 شبانه</button>
           <button id="repSubWeekly" class="flex-1 py-1.5 rounded-lg font-medium text-slate-400 hover:text-slate-200 transition">📊 هفتگی</button>
           <button id="repSubMonthly" class="flex-1 py-1.5 rounded-lg font-medium text-slate-400 hover:text-slate-200 transition">📅 ماهانه</button>
+          <button id="repSubAnalytics" class="flex-1 py-1.5 rounded-lg font-medium text-slate-400 hover:text-slate-200 transition">⚡️ تحلیل</button>
         </div>
 
         <!-- 1. Nightly Report Card (مشابه هفتگی و ماهانه) -->
@@ -392,6 +393,72 @@
             <span class="text-slate-400 font-medium block mb-1">تفکیک مصرف سرورها:</span>
             <div id="repMonthlyNodesContainer" dir="ltr" class="grid grid-cols-2 gap-1.5 font-mono text-[11px]">
               <div class="col-span-2 text-center py-2 text-slate-400 text-[10px]">در حال دریافت داده‌ها...</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4. Advanced Analytics & Visualizers (تحلیل هوشمند مصرف) -->
+        <div id="viewRepAnalytics" class="space-y-3 hidden">
+          <!-- Chart 1: Download vs Upload Split (توازن دانلود و آپلود) -->
+          <div class="bg-slate-800/90 rounded-2xl p-4 border border-slate-700/80 space-y-2.5 shadow-md">
+            <div class="flex justify-between items-center border-b border-slate-700/60 pb-2">
+              <span class="text-xs font-bold text-white flex items-center gap-1.5">
+                <span>⚡️</span> توازن ترافیک (دانلود / آپلود)
+              </span>
+              <span id="repUpDownRatioBadge" class="text-[10px] font-mono font-bold text-cyan-400 bg-cyan-950/60 px-2 py-0.5 rounded border border-cyan-800/40" dir="ltr">RX / TX</span>
+            </div>
+            
+            <div class="space-y-1.5">
+              <div class="flex justify-between text-[11px] font-mono" dir="ltr">
+                <span class="text-emerald-400 font-bold flex items-center gap-1">📥 DL: <span id="repSplitDownGb">-- GB</span> (<span id="repSplitDownPct">--%</span>)</span>
+                <span class="text-sky-400 font-bold flex items-center gap-1">📤 UL: <span id="repSplitUpGb">-- GB</span> (<span id="repSplitUpPct">--%</span>)</span>
+              </div>
+              <div class="w-full h-2 rounded-full bg-slate-950/80 p-[1px] border border-slate-700/50 flex overflow-hidden relative" dir="ltr">
+                <div id="repSplitDownBar" class="h-full bg-gradient-to-r from-emerald-500 to-teal-400 rounded-l-full transition-all duration-700" style="width: 85%;"></div>
+                <div id="repSplitUpBar" class="h-full bg-gradient-to-r from-sky-400 to-indigo-500 rounded-r-full transition-all duration-700" style="width: 15%;"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Chart 2: 24h Peak Usage Curve (ساعات اوج مصرف شبانه‌روز) -->
+          <div class="bg-slate-800/90 rounded-2xl p-4 border border-slate-700/80 space-y-2.5 shadow-md">
+            <div class="flex justify-between items-center border-b border-slate-700/60 pb-2">
+              <span class="text-xs font-bold text-white flex items-center gap-1.5">
+                <span>📈</span> منحنی ساعات اوج مصرف (۲۴ ساعته)
+              </span>
+              <span id="repPeakHourBadge" class="text-[10px] font-mono font-bold text-amber-400 bg-amber-950/60 px-2 py-0.5 rounded border border-amber-800/40" dir="ltr">Peak: 21:00</span>
+            </div>
+            <div class="h-36 w-full p-2 bg-slate-900/60 rounded-xl relative">
+              <canvas id="repPeakHoursChartCanvas" class="w-full h-full"></canvas>
+            </div>
+          </div>
+
+          <!-- Dual Cards: Country Share Donut + Device Platform Share -->
+          <div class="grid grid-cols-1 gap-3">
+            <!-- Chart 3: Country Share Donut (سهم لوکیشن‌ها) -->
+            <div class="bg-slate-800/90 rounded-2xl p-4 border border-slate-700/80 space-y-2 shadow-md">
+              <div class="flex justify-between items-center border-b border-slate-700/60 pb-2">
+                <span class="text-xs font-bold text-white flex items-center gap-1.5">
+                  <span>🍩</span> سهم لوکیشن‌ها و کشورها
+                </span>
+                <span class="text-[10px] text-slate-400 font-mono">تفکیک جغرافیایی</span>
+              </div>
+              <div class="h-44 w-full p-2 bg-slate-900/60 rounded-xl relative flex items-center justify-center">
+                <canvas id="repCountryChartCanvas" class="w-full h-full"></canvas>
+              </div>
+            </div>
+
+            <!-- Chart 4: Device & OS Platform Share (توزیع سیستم‌عامل‌ها) -->
+            <div class="bg-slate-800/90 rounded-2xl p-4 border border-slate-700/80 space-y-2 shadow-md">
+              <div class="flex justify-between items-center border-b border-slate-700/60 pb-2">
+                <span class="text-xs font-bold text-white flex items-center gap-1.5">
+                  <span>📱</span> توزیع پلتفرم و دستگاه‌ها
+                </span>
+                <span class="text-[10px] text-slate-400 font-mono">سهم نشست‌ها</span>
+              </div>
+              <div class="h-40 w-full p-2 bg-slate-900/60 rounded-xl relative flex items-center justify-center">
+                <canvas id="repDeviceChartCanvas" class="w-full h-full"></canvas>
+              </div>
             </div>
           </div>
         </div>
@@ -1297,13 +1364,13 @@
   </div>
 
   <!-- Modular Frontend Architecture (DRY) -->
-  <script src="/static/js/utils.js?v=7.5"></script>
-  <script src="/static/js/api.js?v=7.5"></script>
-  <script src="/static/js/charts.js?v=7.5"></script>
-  <script src="/static/js/shop.js?v=7.5"></script>
-  <script src="/static/js/wallet.js?v=7.5"></script>
-  <script src="/static/js/wheel.js?v=7.5"></script>
-  <script src="/static/js/story.js?v=7.5"></script>
-  <script src="/static/js/app.js?v=7.5"></script>
+  <script src="/static/js/utils.js?v=7.6"></script>
+  <script src="/static/js/api.js?v=7.6"></script>
+  <script src="/static/js/charts.js?v=7.6"></script>
+  <script src="/static/js/shop.js?v=7.6"></script>
+  <script src="/static/js/wallet.js?v=7.6"></script>
+  <script src="/static/js/wheel.js?v=7.6"></script>
+  <script src="/static/js/story.js?v=7.6"></script>
+  <script src="/static/js/app.js?v=7.6"></script>
 </body>
 </html>
