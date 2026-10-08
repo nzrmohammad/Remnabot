@@ -13,6 +13,7 @@ from bot.web.routes_admin import (
     get_admin_coupon_usages,
     get_admin_coupons,
     get_admin_crypto_rates,
+    get_admin_infra_billing,
     get_admin_overview,
     get_admin_plans,
     get_admin_settings,
@@ -32,6 +33,7 @@ from bot.web.routes_admin import (
     post_admin_coupon_toggle,
     post_admin_kill_sessions,
     post_admin_modify_user,
+    post_admin_node_cost,
     post_admin_plan_delete,
     post_admin_plan_save,
     post_admin_plan_toggle,
@@ -207,6 +209,8 @@ def create_web_app(
     app.router.add_get("/api/admin/crypto/rates", get_admin_crypto_rates)
     app.router.add_get("/api/admin/settings", get_admin_settings)
     app.router.add_post("/api/admin/settings", post_admin_settings)
+    app.router.add_get("/api/admin/infra/billing", get_admin_infra_billing)
+    app.router.add_post("/api/admin/infra/node-cost", post_admin_node_cost)
 
     return app
 

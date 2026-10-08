@@ -115,16 +115,79 @@ async def check_nodes_health_once(bot: Bot, remnawave: RemnawaveClient) -> None:
                 await _notify_admins(bot, msg)
 
 
+async def check_nodes_billing_due_dates(bot: Bot, session_factory: Any) -> None:
+    """Check if any nodes are approaching their billing due date (<= 3 days) and alert admins."""
+    if not session_factory:
+        return
+    try:
+        from bot.db.repositories.node_cost_repo import NodeCostRepository
+        async with session_factory() as session:
+            repo = NodeCostRepository(session)
+            due_nodes = await repo.list_due_soon(days_threshold=3)
+            if not due_nodes:
+                return
+
+            now_utc = datetime.now(timezone.utc)
+            for node in due_nodes:
+                if not node.due_date:
+                    continue
+                days_left = (node.due_date.date() - now_utc.date()).days
+                node_name = node.node_name or f"Node {node.node_id or (node.node_uuid[:8] if node.node_uuid else '')}"
+                provider = node.provider or "نامشخص"
+
+                cost_parts = []
+                if node.monthly_cost_toman:
+                    cost_parts.append(f"{node.monthly_cost_toman:,} تومان")
+                if node.monthly_cost_eur:
+                    cost_parts.append(f"€{node.monthly_cost_eur:.2f}")
+                cost_str = " / ".join(cost_parts) if cost_parts else "ثبت نشده"
+
+                due_date_str = node.due_date.strftime("%Y-%m-%d")
+
+                if days_left < 0:
+                    status_text = f"🚨 <b>سررسید منقضی شده است! ({abs(days_left)} روز گذشته)</b>"
+                elif days_left == 0:
+                    status_text = "⚠️ <b>موعد سررسید امروز است!</b>"
+                else:
+                    status_text = f"⏳ <b>فقط {days_left} روز تا موعد تمدید باقی مانده</b>"
+
+                msg = (
+                    f"💳 <b>هشدار موعد تمدید سرور (Server Billing Due)</b>\n\n"
+                    f"سرور: <b>🖥️ {node_name}</b>\n"
+                    f"ارائه‌دهنده: <b>{provider}</b>\n"
+                    f"هزینه ماهانه: <b>{cost_str}</b>\n"
+                    f"تاریخ سررسید: <code>{due_date_str}</code>\n"
+                    f"وضعیت: {status_text}\n\n"
+                    f"<i>لطفاً جهت جلوگیری از مسدود شدن یا حذف سرور نسبت به پرداخت فاکتور اقدام فرمایید.</i>"
+                )
+                await _notify_admins(bot, msg)
+                await repo.mark_alert_sent(node.node_uuid, True)
+
+            await session.commit()
+    except Exception as exc:
+        logger.warning("Error checking node billing due dates: %s", exc)
+
+
 async def nodes_monitor_loop(
-    bot: Bot, remnawave: RemnawaveClient, interval_seconds: int = 120
+    bot: Bot,
+    remnawave: RemnawaveClient,
+    session_factory: Any = None,
+    interval_seconds: int = 120,
 ) -> None:
-    """Loop that continuously monitors node health and resource limits."""
+    """Loop that continuously monitors node health, resource limits, and billing renewal dates."""
     logger.info("📡 Nodes health monitor loop started (every %ds)", interval_seconds)
     # Initial sleep to allow system boot & network stabilization
     await asyncio.sleep(20)
+    last_billing_check_ts = 0.0
     while True:
         try:
             await check_nodes_health_once(bot, remnawave)
+
+            # Check billing due dates once every hour
+            now_ts = datetime.now(timezone.utc).timestamp()
+            if session_factory and (now_ts - last_billing_check_ts >= 3600):
+                last_billing_check_ts = now_ts
+                await check_nodes_billing_due_dates(bot, session_factory)
         except asyncio.CancelledError:
             logger.info("Nodes monitor loop canceled.")
             break
@@ -132,3 +195,4 @@ async def nodes_monitor_loop(
             logger.error("Error in nodes monitor loop: %s", exc)
 
         await asyncio.sleep(interval_seconds)
+

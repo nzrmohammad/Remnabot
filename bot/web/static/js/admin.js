@@ -66,6 +66,19 @@
     return decPart !== undefined ? `${formattedInt}.${decPart}` : formattedInt;
   }
 
+  function formatSpeed(bytesPerSec) {
+    const bytes = Number(bytesPerSec || 0);
+    if (!bytes || bytes <= 0) return '0 B/s';
+    const units = ['B/s', 'KB/s', 'MB/s', 'GB/s'];
+    let i = 0;
+    let val = bytes;
+    while (val >= 1024 && i < units.length - 1) {
+      val /= 1024;
+      i++;
+    }
+    return `${val.toFixed(val >= 10 ? 1 : 2)} ${units[i]}`;
+  }
+
   function formatChatTimestamp(m) {
     if (!m) return '';
     if (m.timestamp) {
@@ -134,7 +147,14 @@
         hwidChartInstance?.resize();
       }
 
-      // Lazy load tab data
+      // Lazy load tab data & auto-refresh
+      if (targetId === 'tab-admin-nodes') {
+        syncAdminOverview(false);
+        startNodesAutoRefresh();
+      } else {
+        stopNodesAutoRefresh();
+      }
+
       if (targetId === 'tab-admin-users' && document.getElementById('adminUsersList')?.children.length <= 1) {
         fetchAdminUsers(1);
       } else if (targetId === 'tab-admin-plans') {
@@ -150,6 +170,26 @@
       }
     });
   });
+
+  let nodesAutoRefreshTimer = null;
+  function startNodesAutoRefresh() {
+    stopNodesAutoRefresh();
+    nodesAutoRefreshTimer = setInterval(() => {
+      const pane = document.getElementById('tab-admin-nodes');
+      if (pane && !pane.classList.contains('hidden')) {
+        syncAdminOverview(false);
+      } else {
+        stopNodesAutoRefresh();
+      }
+    }, 20000);
+  }
+
+  function stopNodesAutoRefresh() {
+    if (nodesAutoRefreshTimer) {
+      clearInterval(nodesAutoRefreshTimer);
+      nodesAutoRefreshTimer = null;
+    }
+  }
 
   // Subtab switcher for Unified Plans & Discounts Tab
   window.switchServicesSubtab = function(subtab) {
@@ -309,6 +349,34 @@
 
       const onDev = document.getElementById('adminOnlineDevices');
       if (onDev) onDev.innerText = formatNumber(m.online_devices || 0);
+
+      // Infra-Billing & Net Profit Analytics
+      const mRev = document.getElementById('adminMonthlyRevenue');
+      if (mRev) mRev.innerText = formatNumber(m.monthly_revenue_toman || 0);
+
+      const iCost = document.getElementById('adminTotalInfraCost');
+      if (iCost) iCost.innerText = formatNumber(m.total_infra_cost_toman || 0);
+
+      const nProf = document.getElementById('adminNetProfit');
+      if (nProf) {
+        const netVal = m.net_profit_toman || 0;
+        nProf.innerText = formatNumber(netVal);
+        nProf.className = netVal >= 0
+          ? 'text-emerald-400 font-mono font-bold text-sm'
+          : 'text-rose-400 font-mono font-bold text-sm';
+      }
+
+      const pMargin = document.getElementById('adminProfitMarginBadge');
+      if (pMargin) {
+        const marginVal = m.profit_margin_percent !== undefined ? m.profit_margin_percent : 0;
+        pMargin.innerText = `مارجین: ${marginVal}%`;
+        pMargin.className = marginVal >= 0
+          ? 'text-[10px] font-mono font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded-lg'
+          : 'text-[10px] font-mono font-bold bg-rose-500/15 text-rose-400 border border-rose-500/30 px-2 py-0.5 rounded-lg';
+      }
+
+      const costGb = document.getElementById('adminAvgCostPerGb');
+      if (costGb) costGb.innerText = formatNumber(m.avg_cost_per_gb || 0);
 
       // Dynamic Pending Tasks Alert Banner (Hidden if no pending tasks)
       const pendingBox = document.getElementById('adminPendingBanner');
@@ -1121,7 +1189,10 @@
 
       const cpuText = (n.cpu_percent && n.cpu_percent > 0) ? `CPU: ${n.cpu_percent}%` : null;
       const ramText = (n.ram_percent && n.ram_percent > 0) ? `RAM: ${n.ram_percent}%` : null;
-      const specs = [cpuText, ramText].filter(Boolean).join(' | ');
+      const dlSpeed = Number(n.download_speed || 0);
+      const ulSpeed = Number(n.upload_speed || 0);
+      const speedText = (dlSpeed > 0 || ulSpeed > 0) ? `↓${formatSpeed(dlSpeed)} ↑${formatSpeed(ulSpeed)}` : null;
+      const specs = [cpuText, ramText, speedText].filter(Boolean).join(' | ');
 
       return `
         <div class="bg-slate-900/70 rounded-2xl border border-slate-700/60 overflow-hidden transition shadow-sm">
@@ -1196,9 +1267,27 @@
 
       const cpu = Number(n.cpu_percent || 0);
       const ram = Number(n.ram_percent || 0);
+      const dlSpeed = Number(n.download_speed || 0);
+      const ulSpeed = Number(n.upload_speed || 0);
 
       const cpuBarColor = cpu > 85 ? 'bg-rose-500' : (cpu > 60 ? 'bg-amber-500' : 'bg-cyan-500');
       const ramBarColor = ram > 85 ? 'bg-rose-500' : (ram > 60 ? 'bg-amber-500' : 'bg-indigo-500');
+
+      const cpuDisplay = isOnline ? (cpu > 0 ? (cpu % 1 === 0 ? cpu : cpu.toFixed(1)) + '%' : '< 1%') : 'آفلاین';
+      const ramDisplay = isOnline ? (ram > 0 ? (ram % 1 === 0 ? ram : ram.toFixed(1)) + '%' : '< 1%') : 'آفلاین';
+
+      let dueBadgeHtml = '<span class="text-slate-500 font-medium">ثبت‌نشده</span>';
+      if (n.days_until_due !== null && n.days_until_due !== undefined) {
+        if (n.days_until_due < 0) {
+          dueBadgeHtml = `<span class="bg-rose-500/15 text-rose-400 border border-rose-500/30 px-2 py-0.5 rounded-lg font-bold">⚠️ منقضی (${Math.abs(n.days_until_due)} روز پیش)</span>`;
+        } else if (n.days_until_due === 0) {
+          dueBadgeHtml = `<span class="bg-rose-500/20 text-rose-400 border border-rose-500/40 px-2 py-0.5 rounded-lg font-bold animate-pulse">⚠️ سررسید امروز!</span>`;
+        } else if (n.days_until_due <= 3) {
+          dueBadgeHtml = `<span class="bg-amber-500/15 text-amber-400 border border-amber-500/30 px-2 py-0.5 rounded-lg font-bold">⏳ ${n.days_until_due} روز تا تمدید</span>`;
+        } else {
+          dueBadgeHtml = `<span class="bg-slate-800 text-slate-300 border border-slate-700 px-2 py-0.5 rounded-lg font-mono">🗓️ ${n.days_until_due} روز (${n.due_date})</span>`;
+        }
+      }
 
       const boxId = `nodeBox_${n.id || idx}`;
 
@@ -1209,14 +1298,27 @@
 
           <!-- Header: Flag, Name, Status & Chevron (Clickable) -->
           <div class="node-header p-3.5 flex justify-between items-center cursor-pointer select-none hover:bg-slate-750/30 transition active:scale-[0.99]" onclick="window.adminActions.toggleSettingsBox('${boxId}')">
-            <!-- Right: Flag and Server Name (بدون دایره اضافی وضعیت) -->
+            <!-- Right: Flag and Server Name -->
             <div class="flex items-center gap-2.5 min-w-0">
               <span class="text-2xl flex-shrink-0 filter drop-shadow">${flag}</span>
               <h4 class="font-bold text-xs text-white truncate">${n.name || 'Server Node'}</h4>
             </div>
 
-            <!-- Left: Online Status + Chevron Arrow -->
+            <!-- Left: Online Status + Speeds + Renewal Alert + Chevron Arrow -->
             <div class="flex items-center gap-2 flex-shrink-0">
+              ${(n.days_until_due !== null && n.days_until_due <= 3) ? `
+                <span class="text-[9px] font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30 px-2 py-0.5 rounded-xl flex items-center gap-1">
+                  <span>⏳</span>
+                  <span>${n.days_until_due <= 0 ? 'سررسید!' : n.days_until_due + ' روز'}</span>
+                </span>
+              ` : ''}
+              ${isOnline && (dlSpeed > 0 || ulSpeed > 0) ? `
+                <div class="hidden sm:flex items-center gap-1.5 text-[9px] font-mono text-slate-300 bg-slate-900/60 px-2 py-0.5 rounded-xl border border-slate-700/60" dir="ltr">
+                  <span class="text-emerald-400 font-bold">↓${formatSpeed(dlSpeed)}</span>
+                  <span class="text-slate-600">|</span>
+                  <span class="text-indigo-400 font-bold">↑${formatSpeed(ulSpeed)}</span>
+                </div>
+              ` : ''}
               <span class="text-[10px] font-bold font-mono ${statusBorder} bg-transparent px-2.5 py-1 rounded-xl border flex items-center gap-1.5">
                 <span class="w-1.5 h-1.5 rounded-full ${isOnline ? 'bg-emerald-400' : 'bg-rose-400'}"></span>
                 ${statusBadge}
@@ -1238,16 +1340,40 @@
               <span class="font-mono text-blue-600 dark:text-cyan-300 text-xs font-semibold truncate max-w-[210px] select-all" dir="ltr" title="${n.address || '—'}">${n.address || '—'}</span>
             </div>
 
+            <!-- Real-time Speeds: Download & Upload -->
+            <div class="grid grid-cols-2 gap-2 text-center text-[10px]">
+              <div class="bg-slate-900/60 p-2.5 rounded-xl border border-slate-700/60">
+                <div class="flex items-center justify-between text-[10px] mb-1">
+                  <span class="text-slate-400 flex items-center gap-1">
+                    <svg class="w-3 h-3 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"/></svg>
+                    <span>سرعت دانلود (DL):</span>
+                  </span>
+                  <span class="text-[8px] text-slate-500 font-mono">RX</span>
+                </div>
+                <b class="text-emerald-400 font-mono text-xs block text-left" dir="ltr">↓ ${formatSpeed(dlSpeed)}</b>
+              </div>
+              <div class="bg-slate-900/60 p-2.5 rounded-xl border border-slate-700/60">
+                <div class="flex items-center justify-between text-[10px] mb-1">
+                  <span class="text-slate-400 flex items-center gap-1">
+                    <svg class="w-3 h-3 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"/></svg>
+                    <span>سرعت آپلود (UL):</span>
+                  </span>
+                  <span class="text-[8px] text-slate-500 font-mono">TX</span>
+                </div>
+                <b class="text-indigo-400 font-mono text-xs block text-left" dir="ltr">↑ ${formatSpeed(ulSpeed)}</b>
+              </div>
+            </div>
+
             <!-- System Resource Gauges (CPU & RAM Progress Bars) -->
             <div class="space-y-2 bg-slate-900/40 p-2.5 rounded-xl border border-slate-700/50">
               <!-- CPU Progress -->
               <div class="space-y-1">
                 <div class="flex justify-between items-center text-[10px]">
                   <span class="text-slate-400">پردازنده (CPU):</span>
-                  <span class="font-mono font-bold ${cpu > 80 ? 'text-rose-400' : 'text-slate-100'}">${isOnline ? ((cpu > 0 ? cpu : 5) + '%') : 'آفلاین'}</span>
+                  <span class="font-mono font-bold ${cpu > 80 ? 'text-rose-400' : 'text-slate-100'}">${cpuDisplay}</span>
                 </div>
                 <div class="w-full h-1.5 bg-slate-700/60 rounded-full overflow-hidden">
-                  <div class="h-full ${cpuBarColor} transition-all duration-500" style="width: ${Math.min(100, Math.max(0, isOnline ? (cpu > 0 ? cpu : 5) : 0))}%"></div>
+                  <div class="h-full ${cpuBarColor} transition-all duration-500" style="width: ${Math.min(100, Math.max(0, isOnline ? (cpu > 0 ? cpu : 1) : 0))}%"></div>
                 </div>
               </div>
 
@@ -1255,10 +1381,10 @@
               <div class="space-y-1">
                 <div class="flex justify-between items-center text-[10px]">
                   <span class="text-slate-400">حافظه رم (RAM):</span>
-                  <span class="font-mono font-bold ${ram > 80 ? 'text-rose-400' : 'text-slate-100'}">${isOnline ? ((ram > 0 ? ram : 22) + '%') : 'آفلاین'}</span>
+                  <span class="font-mono font-bold ${ram > 80 ? 'text-rose-400' : 'text-slate-100'}">${ramDisplay}</span>
                 </div>
                 <div class="w-full h-1.5 bg-slate-700/60 rounded-full overflow-hidden">
-                  <div class="h-full ${ramBarColor} transition-all duration-500" style="width: ${Math.min(100, Math.max(0, isOnline ? (ram > 0 ? ram : 22) : 0))}%"></div>
+                  <div class="h-full ${ramBarColor} transition-all duration-500" style="width: ${Math.min(100, Math.max(0, isOnline ? (ram > 0 ? ram : 1) : 0))}%"></div>
                 </div>
               </div>
             </div>
@@ -1272,6 +1398,47 @@
               <div class="bg-slate-900/60 p-2 rounded-xl border border-slate-700/60">
                 <span class="text-slate-400 block mb-0.5">ترافیک مصرفی نود</span>
                 <b class="text-blue-600 dark:text-cyan-400 font-mono text-xs" dir="ltr">${n.traffic_used_gb ? n.traffic_used_gb + ' GB' : '0 GB'}</b>
+              </div>
+            </div>
+
+            <!-- Infra-Billing & Server Cost Details Strip -->
+            <div class="bg-slate-900/70 p-2.5 rounded-xl border border-slate-700/60 space-y-2 text-[10px]">
+              <div class="flex items-center justify-between">
+                <span class="text-slate-400 flex items-center gap-1">
+                  <svg class="w-3.5 h-3.5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                  <span>هزینه ماهانه سرور:</span>
+                </span>
+                <span class="font-mono font-bold text-emerald-400" dir="ltr">
+                  ${n.monthly_cost_toman ? formatNumber(n.monthly_cost_toman) + ' تومان' : 'ثبت‌نشده'}
+                  ${n.monthly_cost_eur ? `(€${n.monthly_cost_eur})` : ''}
+                </span>
+              </div>
+
+              <div class="flex items-center justify-between">
+                <span class="text-slate-400 flex items-center gap-1">
+                  <svg class="w-3.5 h-3.5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                  <span>موعد سررسید تمدید:</span>
+                </span>
+                <div>${dueBadgeHtml}</div>
+              </div>
+
+              <div class="grid grid-cols-2 gap-2 pt-1 border-t border-slate-800 text-[10px]">
+                <div>
+                  <span class="text-slate-400 block mb-0.5">ارائه‌دهنده (هاست):</span>
+                  <b class="text-cyan-300 truncate block">${n.provider || 'ثبت‌نشده'}</b>
+                </div>
+                <div>
+                  <span class="text-slate-400 block mb-0.5">قیمت تمام‌شده هر گیگ:</span>
+                  <b class="text-indigo-300 font-mono block" dir="ltr">${n.cost_per_gb ? formatNumber(n.cost_per_gb) + ' تومان/GB' : '—'}</b>
+                </div>
+              </div>
+
+              <!-- Button to configure node billing -->
+              <div class="pt-1">
+                <button type="button" onclick="event.stopPropagation(); window.adminActions.openNodeBillingModal('${(n.uuid || n.id || '').replace(/'/g, "\\'")}', '${(n.name || '').replace(/'/g, "\\'")}', '${(n.provider || '').replace(/'/g, "\\'")}', ${Number(n.monthly_cost_toman || 0)}, ${Number(n.monthly_cost_eur || 0)}, '${n.due_date || ''}', '${(n.notes || '').replace(/'/g, "\\'")}', '${flag}')" class="w-full bg-slate-800 hover:bg-slate-750 text-cyan-400 hover:text-cyan-300 py-1.5 rounded-xl border border-cyan-500/30 transition flex items-center justify-center gap-1.5 font-bold active:scale-95 shadow-sm">
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                  <span>مدیریت هزینه و تمدید سرور</span>
+                </button>
               </div>
             </div>
           </div>
@@ -3203,6 +3370,78 @@
         if (txt) txt.innerText = 'اعمال عملیات گروهی';
       }
     },
+
+    // --- Node Infra-Billing & Cost Actions ---
+    openNodeBillingModal(nodeUuid, nodeName, provider = '', costToman = 0, costEur = 0, dueDate = '', notes = '', flag = '🖥️') {
+      const modal = document.getElementById('nodeBillingModal');
+      if (!modal) return;
+      document.getElementById('nodeBillingUuid').value = nodeUuid || '';
+      document.getElementById('nodeBillingName').value = nodeName || '';
+      document.getElementById('nodeBillingModalTitle').innerText = nodeName ? `هزینه و تمدید: ${nodeName}` : 'هزینه و تمدید سرور';
+      document.getElementById('nodeBillingModalFlag').innerText = flag || '🖥️';
+      document.getElementById('nodeBillingProvider').value = provider || '';
+      document.getElementById('nodeBillingCostToman').value = costToman || '';
+      document.getElementById('nodeBillingCostEur').value = costEur || '';
+      document.getElementById('nodeBillingDueDate').value = dueDate ? dueDate.slice(0, 10) : '';
+      document.getElementById('nodeBillingNotes').value = notes || '';
+      modal.classList.remove('hidden');
+      if (window.hapticFeedback) window.hapticFeedback('selection');
+    },
+
+    closeNodeBillingModal() {
+      const modal = document.getElementById('nodeBillingModal');
+      if (modal) modal.classList.add('hidden');
+    },
+
+    async saveNodeBilling() {
+      const node_uuid = document.getElementById('nodeBillingUuid')?.value?.trim();
+      const node_name = document.getElementById('nodeBillingName')?.value?.trim();
+      const provider = document.getElementById('nodeBillingProvider')?.value?.trim();
+      const monthly_cost_toman = parseInt(document.getElementById('nodeBillingCostToman')?.value || '0', 10);
+      const monthly_cost_eur = parseFloat(document.getElementById('nodeBillingCostEur')?.value || '0');
+      const due_date = document.getElementById('nodeBillingDueDate')?.value?.trim() || null;
+      const notes = document.getElementById('nodeBillingNotes')?.value?.trim();
+
+      if (!node_uuid) {
+        if (window.showToast) window.showToast('شناسه سرور یافت نشد.');
+        return;
+      }
+
+      const saveBtn = document.getElementById('saveNodeBillingBtn');
+      if (saveBtn) {
+        saveBtn.disabled = true;
+        saveBtn.innerHTML = '<span>در حال ذخیره...</span>';
+      }
+
+      try {
+        const payload = {
+          node_uuid,
+          node_name,
+          provider,
+          monthly_cost_toman,
+          monthly_cost_eur,
+          due_date,
+          notes,
+        };
+        const res = await window.api.saveNodeCost(payload);
+        if (res && res.ok) {
+          if (window.showToast) window.showToast('✅ اطلاعات مالی و تمدید سرور با موفقیت ثبت شد');
+          if (window.hapticFeedback) window.hapticFeedback('success');
+          this.closeNodeBillingModal();
+          syncAdminOverview(true);
+        } else {
+          if (window.showToast) window.showToast(`⚠️ ${res?.error || 'خطا در ذخیره هزینه‌های سرور'}`);
+          if (window.hapticFeedback) window.hapticFeedback('error');
+        }
+      } catch (err) {
+        if (window.showToast) window.showToast('خطای شبکه در ذخیره اطلاعات سرور');
+      } finally {
+        if (saveBtn) {
+          saveBtn.disabled = false;
+          saveBtn.innerHTML = '<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg><span>ذخیره اطلاعات سرور</span>';
+        }
+      }
+    },
   };
 
   const fetchAdminPlans = () => window.adminActions.fetchAdminPlans();
@@ -3826,10 +4065,18 @@
     if (window.hapticFeedback) window.hapticFeedback('impact');
   });
 
-  document.getElementById('refreshNodesTabBtn')?.addEventListener('click', () => {
-    syncAdminOverview(true);
-    if (window.showToast) window.showToast('🔄 وضعیت نودها به‌روزرسانی شد.');
-    if (window.hapticFeedback) window.hapticFeedback('impact');
+  document.getElementById('refreshNodesTabBtn')?.addEventListener('click', async () => {
+    const icon = document.getElementById('refreshNodesTabIcon');
+    if (icon) icon.classList.add('animate-spin');
+    try {
+      await syncAdminOverview(true);
+      if (window.showToast) window.showToast('🔄 وضعیت سرورها و سرعت شبکه به‌روزرسانی شد');
+      if (window.hapticFeedback) window.hapticFeedback('success');
+    } finally {
+      setTimeout(() => {
+        if (icon) icon.classList.remove('animate-spin');
+      }, 500);
+    }
   });
 
   document.getElementById('refreshTopupsBtn')?.addEventListener('click', () => {
@@ -3858,6 +4105,9 @@
   window.quickCopy = (text, label) => window.adminActions.quickCopy(text, label);
   window.openBulkUsersModal = () => window.adminActions.openBulkUsersModal();
   window.closeBulkUsersModal = () => window.adminActions.closeBulkUsersModal();
+  window.openNodeBillingModal = (...args) => window.adminActions.openNodeBillingModal(...args);
+  window.closeNodeBillingModal = () => window.adminActions.closeNodeBillingModal();
+  window.saveNodeBilling = () => window.adminActions.saveNodeBilling();
 
   // Initial Sync
   syncAdminOverview();

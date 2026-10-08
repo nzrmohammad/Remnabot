@@ -299,7 +299,7 @@ async def main() -> None:
             ton_watcher_loop(bot, session_factory), name="ton-watcher-loop"
         ),
         asyncio.create_task(
-            nodes_monitor_loop(bot, remnawave), name="nodes-monitor-loop"
+            nodes_monitor_loop(bot, remnawave, session_factory=session_factory), name="nodes-monitor-loop"
         ),
     ]
 

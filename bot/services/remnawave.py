@@ -413,14 +413,26 @@ class RemnawaveClient:
                 pass
         return None
 
-    async def get_user_srh(self, user_id: int | str, size: int = 50) -> list[dict[str, Any]]:
+    async def get_user_srh(
+        self,
+        user_id: int | str,
+        user_uuid: str | None = None,
+        size: int = 50,
+    ) -> list[dict[str, Any]]:
         """Fetch Subscription Request History for a specific panel user."""
-        for path, params in (
-            ("/api/subscription-request-history", {"userId": str(user_id), "size": size}),
-            (f"/api/subscription-request-history/user/{user_id}", {"size": size}),
-            ("/api/srh", {"userId": str(user_id), "size": size}),
-            (f"/api/srh/user/{user_id}", {"size": size}),
-        ):
+        candidates = []
+        if user_id:
+            candidates.append((f"/api/users/{user_id}/subscription-request-history", {"size": size}))
+            candidates.append((f"/api/users/{user_id}/srh", {"size": size}))
+            candidates.append((f"/api/subscription-request-history/user/{user_id}", {"size": size}))
+            candidates.append((f"/api/subscription-request-history/{user_id}", {"size": size}))
+        if user_uuid and str(user_uuid) != str(user_id):
+            candidates.append((f"/api/users/{user_uuid}/subscription-request-history", {"size": size}))
+            candidates.append((f"/api/users/{user_uuid}/srh", {"size": size}))
+            candidates.append((f"/api/subscription-request-history/user/{user_uuid}", {"size": size}))
+
+        # Try user-specific endpoints first
+        for path, params in candidates:
             try:
                 resp = await self._client.get(path, params=params)
                 if resp.status_code == 200:
@@ -428,11 +440,59 @@ class RemnawaveClient:
                     if isinstance(data, list):
                         return data
                     if isinstance(data, dict):
-                        records = data.get("requests") or data.get("history") or data.get("items") or []
-                        if isinstance(records, list):
+                        records = (
+                            data.get("records")
+                            or data.get("requests")
+                            or data.get("history")
+                            or data.get("items")
+                            or data.get("data")
+                            or []
+                        )
+                        if isinstance(records, list) and records:
                             return records
             except Exception:
                 pass
+
+        # Try global subscription-request-history endpoint with filter or client-side filtering
+        for path, params in (
+            ("/api/subscription-request-history", {"userId": str(user_id), "size": size}),
+            ("/api/subscription-request-history", {"userUuid": str(user_uuid or user_id), "size": size}),
+            ("/api/subscription-request-history", {"size": 100}),
+            ("/api/srh", {"userId": str(user_id), "size": size}),
+        ):
+            try:
+                resp = await self._client.get(path, params=params)
+                if resp.status_code == 200:
+                    data = resp.json().get("response") or resp.json()
+                    records = []
+                    if isinstance(data, list):
+                        records = data
+                    elif isinstance(data, dict):
+                        records = (
+                            data.get("records")
+                            or data.get("requests")
+                            or data.get("history")
+                            or data.get("items")
+                            or data.get("data")
+                            or []
+                        )
+                    if isinstance(records, list) and records:
+                        if "userId" not in params and "userUuid" not in params:
+                            target_uids = {str(user_id)}
+                            if user_uuid:
+                                target_uids.add(str(user_uuid).lower())
+                            filtered = [
+                                r for r in records
+                                if str(r.get("userId") or (r.get("user") or {}).get("id") or "").lower() in target_uids
+                                or str(r.get("userUuid") or (r.get("user") or {}).get("uuid") or "").lower() in target_uids
+                            ]
+                            if filtered:
+                                return filtered
+                        else:
+                            return records
+            except Exception:
+                pass
+
         return []
 
     async def bulk_update_users(
@@ -695,4 +755,14 @@ class RemnawaveClient:
                 pass
         return None
 
-
+    async def get_system_nodes_metrics(self) -> dict[str, Any] | list[Any] | None:
+        """Fetch system-level node telemetry & metrics from Remnawave."""
+        for path in ("/api/system/nodes/metrics", "/api/system/nodes", "/api/system/metrics"):
+            try:
+                resp = await self._client.get(path, timeout=5.0)
+                if resp.status_code == 200:
+                    data = resp.json().get("response") or resp.json()
+                    return data
+            except Exception:
+                pass
+        return None

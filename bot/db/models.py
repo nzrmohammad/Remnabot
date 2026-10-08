@@ -5,6 +5,7 @@ from sqlalchemy import (
     BigInteger,
     Boolean,
     DateTime,
+    Float,
     ForeignKey,
     Integer,
     String,
@@ -380,6 +381,30 @@ class CryptoInvoice(Base):
     )
     paid_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
+    )
+
+
+class NodeCost(Base):
+    """Infrastructure cost and billing details for Remnawave nodes / servers."""
+
+    __tablename__ = "node_costs"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    node_uuid: Mapped[str] = mapped_column(String(64), unique=True, index=True)
+    node_id: Mapped[int | None] = mapped_column(Integer, nullable=True, index=True)
+    node_name: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    provider: Mapped[str | None] = mapped_column(String(64), nullable=True)  # Hetzner, OVH, etc.
+    monthly_cost_toman: Mapped[int] = mapped_column(BigInteger, default=0)
+    monthly_cost_eur: Mapped[float] = mapped_column(Float, default=0.0)
+    due_date: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True, index=True)
+    notes: Mapped[str | None] = mapped_column(Text, nullable=True)
+    alert_notified: Mapped[bool] = mapped_column(Boolean, default=False)
+
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )
 
 

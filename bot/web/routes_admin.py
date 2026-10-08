@@ -15,9 +15,10 @@ from sqlalchemy import func, select
 from html import escape
 from bot.common import admin_thread_kwargs
 from bot.common.helpers import get_limit_bytes, get_used_bytes
-from bot.db.models import AdminLog, AppSetting, Coupon, CryptoInvoice, KnownDevice, Order, Service, SupportMessage, Topup, User, Wallet
+from bot.db.models import AdminLog, AppSetting, Coupon, CryptoInvoice, KnownDevice, NodeCost, Order, Service, SupportMessage, Topup, User, Wallet
 from bot.db.repositories.app_setting_repo import AppSettingRepository
 from bot.db.repositories.coupon_repo import CouponRepository
+from bot.db.repositories.node_cost_repo import NodeCostRepository
 from bot.db.repositories.user_repo import UserRepository
 from bot.db.repositories.wallet_repo import WalletRepository
 from bot.handlers.admin_broadcast import _resolve_broadcast_recipients
@@ -111,6 +112,27 @@ async def get_admin_overview(request: web.Request) -> web.Response:
         total_traffic_bytes = sum(get_used_bytes(u) for u in panel_users)
         total_traffic_gb = round(total_traffic_bytes / (1024 ** 3), 2)
 
+        # 30-day revenue for Net Profit & Infra-Billing
+        thirty_days_ago = now_utc - timedelta(days=30)
+        rev_30d_res = await session.execute(
+            select(func.coalesce(func.sum(Order.amount), 0)).where(
+                Order.created_at >= thirty_days_ago,
+                Order.status == "paid",
+            )
+        )
+        monthly_revenue = int(rev_30d_res.scalar_one() or 0)
+
+        # Node infra costs mapping
+        node_cost_repo = NodeCostRepository(session)
+        all_node_costs = await node_cost_repo.list_all()
+        costs_by_uuid = {str(c.node_uuid): c for c in all_node_costs}
+        costs_by_id = {str(c.node_id): c for c in all_node_costs if c.node_id is not None}
+        total_infra_cost_toman = sum(c.monthly_cost_toman for c in all_node_costs)
+        total_infra_cost_eur = round(sum(c.monthly_cost_eur for c in all_node_costs), 2)
+        net_profit_toman = monthly_revenue - total_infra_cost_toman
+        profit_margin_percent = round((net_profit_toman / monthly_revenue * 100), 1) if monthly_revenue > 0 else 0.0
+        avg_cost_per_gb = round(total_infra_cost_toman / total_traffic_gb, 0) if total_traffic_gb > 0 else 0.0
+
         # Node information with country flags and real-time online status
         nodes = await remnawave.get_nodes() or []
         nodes_overview = []
@@ -144,49 +166,124 @@ async def get_admin_overview(request: web.Request) -> web.Response:
             )
 
             sys_info = n.get("system") or n.get("sys") or n.get("metrics") or n.get("usage") or {}
-            raw_cpu = (
-                sys_info.get("cpu")
-                or sys_info.get("cpuUsage")
-                or sys_info.get("cpuPercent")
-                or n.get("cpuUsage")
-                or n.get("cpuPercent")
-                or n.get("cpu")
-                or 0
-            )
-            raw_ram = (
-                sys_info.get("ram")
-                or sys_info.get("memory")
-                or sys_info.get("memoryUsage")
-                or sys_info.get("memoryPercent")
-                or n.get("ramPercent")
-                or n.get("memoryUsage")
-                or n.get("memoryPercent")
-                or n.get("memory")
-                or 0
-            )
 
-            if isinstance(raw_ram, dict):
-                u = raw_ram.get("used") or raw_ram.get("usedBytes") or 0
-                t = raw_ram.get("total") or raw_ram.get("totalBytes") or 1
+            # Helper functions to extract metrics safely without altering genuine panel values
+            def _extract_cpu(src: dict) -> float | None:
+                if not isinstance(src, dict):
+                    return None
+                for k in ("cpu", "cpuUsage", "cpuPercent", "load", "cpu_percent", "cpu_usage"):
+                    v = src.get(k)
+                    if v is not None:
+                        if isinstance(v, dict):
+                            for sub_k in ("usage", "percent", "load", "value"):
+                                sub_v = v.get(sub_k)
+                                if sub_v is not None:
+                                    try:
+                                        return float(sub_v)
+                                    except (ValueError, TypeError):
+                                        pass
+                        elif isinstance(v, (int, float, str)):
+                            try:
+                                return float(v)
+                            except (ValueError, TypeError):
+                                pass
+                return None
+
+            def _extract_ram(src: dict) -> float | None:
+                if not isinstance(src, dict):
+                    return None
+                for k in ("ram", "memory", "memoryUsage", "memoryPercent", "ramPercent", "ram_percent", "ram_usage"):
+                    v = src.get(k)
+                    if v is not None:
+                        if isinstance(v, dict):
+                            used = v.get("used") or v.get("usedBytes")
+                            total = v.get("total") or v.get("totalBytes")
+                            free = v.get("free") or v.get("freeBytes")
+                            if total and used:
+                                try:
+                                    return (float(used) / float(total)) * 100.0
+                                except (ValueError, TypeError, ZeroDivisionError):
+                                    pass
+                            if total and free:
+                                try:
+                                    return ((float(total) - float(free)) / float(total)) * 100.0
+                                except (ValueError, TypeError, ZeroDivisionError):
+                                    pass
+                            for sub_k in ("usage", "percent", "value"):
+                                sub_v = v.get(sub_k)
+                                if sub_v is not None:
+                                    try:
+                                        return float(sub_v)
+                                    except (ValueError, TypeError):
+                                        pass
+                        elif isinstance(v, (int, float, str)):
+                            try:
+                                return float(v)
+                            except (ValueError, TypeError):
+                                pass
+                return None
+
+            def _extract_speeds(src: dict) -> tuple[float, float]:
+                if not isinstance(src, dict):
+                    return 0.0, 0.0
+                net = src.get("network") if isinstance(src.get("network"), dict) else {}
+                rx = (
+                    net.get("rxBytesPerSec")
+                    or net.get("rx")
+                    or net.get("download")
+                    or src.get("networkRxBytesPerSec")
+                    or src.get("rxBytesPerSec")
+                    or src.get("downloadSpeed")
+                    or src.get("speedIn")
+                    or 0.0
+                )
+                tx = (
+                    net.get("txBytesPerSec")
+                    or net.get("tx")
+                    or net.get("upload")
+                    or src.get("networkTxBytesPerSec")
+                    or src.get("txBytesPerSec")
+                    or src.get("uploadSpeed")
+                    or src.get("speedOut")
+                    or 0.0
+                )
                 try:
-                    cpu_val = float(raw_cpu)
+                    rx_f = float(rx)
                 except (ValueError, TypeError):
-                    cpu_val = 0.0
-                ram_val = float((u / t) * 100) if t > 0 else 0.0
-            else:
+                    rx_f = 0.0
                 try:
-                    cpu_val = float(raw_cpu)
+                    tx_f = float(tx)
                 except (ValueError, TypeError):
-                    cpu_val = 0.0
-                try:
-                    ram_val = float(raw_ram)
-                except (ValueError, TypeError):
-                    ram_val = 0.0
+                    tx_f = 0.0
+                return rx_f, tx_f
+
+            # Extract CPU & RAM prioritising sys_info then root node
+            cpu_val = _extract_cpu(sys_info)
+            if cpu_val is None:
+                cpu_val = _extract_cpu(n)
+
+            ram_val = _extract_ram(sys_info)
+            if ram_val is None:
+                ram_val = _extract_ram(n)
+
+            # Extract Network download & upload speeds
+            dl_speed, ul_speed = _extract_speeds(sys_info)
+            if dl_speed <= 0.0 and ul_speed <= 0.0:
+                dl_speed, ul_speed = _extract_speeds(n)
+
+            cpu_val = cpu_val if cpu_val is not None else 0.0
+            ram_val = ram_val if ram_val is not None else 0.0
 
             if 0.0 < cpu_val <= 1.0:
                 cpu_val *= 100.0
             if 0.0 < ram_val <= 1.0:
                 ram_val *= 100.0
+
+            if not is_connected:
+                cpu_val = 0.0
+                ram_val = 0.0
+                dl_speed = 0.0
+                ul_speed = 0.0
 
             address = str(n.get("address") or "—")
             port = n.get("port")
@@ -194,19 +291,25 @@ async def get_admin_overview(request: web.Request) -> web.Response:
             traffic_used = n.get("trafficUsedBytes") or n.get("usedTrafficBytes") or 0
             traffic_used_gb = round(traffic_used / (1024**3), 2) if traffic_used else 0.0
 
-            # If node is online, ensure realistic dynamic metrics so it's never "not available"
-            if is_connected:
-                h_seed = abs(hash(raw_name))
-                if cpu_val <= 0:
-                    cpu_val = min(92.0, max(5.0, (online_users * 1.5) + (traffic_used_gb * 0.08) + (h_seed % 7) + 3.0))
-                if ram_val <= 0:
-                    ram_val = min(95.0, max(18.0, (online_users * 0.8) + (traffic_used_gb * 0.05) + (h_seed % 9) + 20.0))
-            else:
-                cpu_val = 0.0
-                ram_val = 0.0
+            n_uuid = str(n.get("uuid") or n.get("id") or "")
+            n_id_str = str(n.get("id") or "")
+            cost_entry = costs_by_uuid.get(n_uuid) or costs_by_id.get(n_id_str)
+
+            due_date_str = None
+            days_until_due = None
+            if cost_entry and cost_entry.due_date:
+                due_date_str = cost_entry.due_date.strftime("%Y-%m-%d")
+                days_until_due = (cost_entry.due_date.date() - now_utc.date()).days
+
+            n_cost_toman = cost_entry.monthly_cost_toman if cost_entry else 0
+            n_cost_eur = cost_entry.monthly_cost_eur if cost_entry else 0.0
+            n_provider = cost_entry.provider if cost_entry else None
+            n_notes = cost_entry.notes if cost_entry else None
+            n_cost_per_gb = round(n_cost_toman / traffic_used_gb, 0) if (n_cost_toman > 0 and traffic_used_gb > 0) else 0.0
 
             nodes_overview.append({
                 "id": n.get("id"),
+                "uuid": n_uuid,
                 "name": raw_name,
                 "country_code": country_code or "NL",
                 "flag": flag,
@@ -214,8 +317,17 @@ async def get_admin_overview(request: web.Request) -> web.Response:
                 "connected_users": online_users,
                 "cpu_percent": round(cpu_val, 1),
                 "ram_percent": round(ram_val, 1),
+                "download_speed": round(dl_speed, 1),
+                "upload_speed": round(ul_speed, 1),
                 "address": addr_str,
                 "traffic_used_gb": traffic_used_gb,
+                "provider": n_provider,
+                "monthly_cost_toman": n_cost_toman,
+                "monthly_cost_eur": n_cost_eur,
+                "due_date": due_date_str,
+                "days_until_due": days_until_due,
+                "cost_per_gb": n_cost_per_gb,
+                "notes": n_notes,
             })
 
         hwid_stats = await remnawave.get_hwid_stats() or {}
@@ -670,6 +782,12 @@ async def get_admin_overview(request: web.Request) -> web.Response:
                 "pending_topups": pending_topups,
                 "open_tickets": open_tickets,
                 "offline_nodes": offline_nodes,
+                "monthly_revenue_toman": monthly_revenue,
+                "total_infra_cost_toman": total_infra_cost_toman,
+                "total_infra_cost_eur": total_infra_cost_eur,
+                "net_profit_toman": net_profit_toman,
+                "profit_margin_percent": profit_margin_percent,
+                "avg_cost_per_gb": avg_cost_per_gb,
             },
             "nodes": nodes_overview,
             "charts": {
@@ -1885,21 +2003,28 @@ async def get_admin_user_srh(request: web.Request) -> web.Response:
 
     target_id = request.query.get("telegram_id")
     panel_user_id = request.query.get("user_id") or request.query.get("panel_user_id")
+    panel_user_uuid = request.query.get("uuid")
 
     remnawave = request.app["remnawave"]
 
-    if not panel_user_id and target_id:
+    if target_id:
         try:
             panel_users = await remnawave.get_users_by_telegram_id(int(target_id))
             if panel_users:
-                panel_user_id = panel_users[0].get("id")
+                primary = panel_users[0]
+                panel_user_id = panel_user_id or primary.get("id")
+                panel_user_uuid = panel_user_uuid or primary.get("uuid")
         except Exception:
             pass
 
-    if not panel_user_id:
+    if not panel_user_id and not panel_user_uuid:
         return web.json_response({"ok": False, "error": "شناسه کاربر الزامی است."}, status=400)
 
-    raw_records = await remnawave.get_user_srh(panel_user_id, size=40)
+    raw_records = await remnawave.get_user_srh(
+        panel_user_id or panel_user_uuid,
+        user_uuid=panel_user_uuid,
+        size=50,
+    )
 
     def _parse_client_app(ua: str) -> dict[str, str]:
         ua_lower = (ua or "").lower()
@@ -1933,18 +2058,27 @@ async def get_admin_user_srh(request: web.Request) -> web.Response:
     formatted = []
     now_utc = datetime.now(timezone.utc)
     for r in raw_records:
-        ip = r.get("ip") or r.get("clientIp") or "—"
-        ua = r.get("userAgent") or r.get("user_agent") or ""
-        status_code = r.get("responseStatus") or r.get("status") or 200
+        ip = r.get("ip") or r.get("clientIp") or r.get("requestIp") or "—"
+        ua = r.get("userAgent") or r.get("user_agent") or r.get("clientApp") or ""
+        status_code = r.get("responseStatus") or r.get("status") or r.get("statusCode") or 200
+        rule_name = r.get("srrRuleName") or r.get("ruleName") or ""
         client_info = _parse_client_app(ua)
+        if rule_name and client_info["name"] == "کلاینت ناشناس":
+            client_info["name"] = rule_name
 
-        created_at_raw = r.get("createdAt") or r.get("timestamp") or r.get("date")
+        created_at_raw = r.get("createdAt") or r.get("timestamp") or r.get("date") or r.get("time")
         rel_time = "به تازگی"
         date_str = ""
         if created_at_raw:
             try:
-                parsed_dt = datetime.fromisoformat(str(created_at_raw).replace("Z", "+00:00"))
-                diff_sec = int((now_utc - parsed_dt).total_seconds())
+                if isinstance(created_at_raw, (int, float)):
+                    if created_at_raw > 1e11:
+                        parsed_dt = datetime.fromtimestamp(created_at_raw / 1000, tz=timezone.utc)
+                    else:
+                        parsed_dt = datetime.fromtimestamp(created_at_raw, tz=timezone.utc)
+                else:
+                    parsed_dt = datetime.fromisoformat(str(created_at_raw).replace("Z", "+00:00"))
+                diff_sec = max(0, int((now_utc - parsed_dt).total_seconds()))
                 if diff_sec < 60:
                     rel_time = "چند لحظه پیش"
                 elif diff_sec < 3600:
@@ -1957,6 +2091,8 @@ async def get_admin_user_srh(request: web.Request) -> web.Response:
             except Exception:
                 date_str = str(created_at_raw)
 
+        is_success = str(status_code) in ("200", "201", "304", "OK")
+
         formatted.append({
             "ip": ip,
             "user_agent": ua,
@@ -1964,7 +2100,7 @@ async def get_admin_user_srh(request: web.Request) -> web.Response:
             "client_icon": client_info["icon"],
             "client_tag": client_info["tag"],
             "status_code": status_code,
-            "is_success": status_code in (200, 201, 204),
+            "is_success": is_success,
             "relative_time": rel_time,
             "date_str": date_str,
         })
@@ -2471,5 +2607,187 @@ async def get_admin_crypto_rates(request: web.Request) -> web.Response:
     except Exception as exc:
         logger.exception("Error fetching crypto rates: %s", exc)
         return web.json_response({"ok": False, "error": "خطا در استعلام آنلاین قیمت‌ها"}, status=500)
+
+
+async def get_admin_infra_billing(request: web.Request) -> web.Response:
+    """Return infrastructure billing analytics, server costs, net profit, and renewal dates."""
+    admin = _check_admin(request)
+    if not admin:
+        return web.json_response({"ok": False, "error": "Forbidden"}, status=403)
+
+    session_factory = request.app["session_factory"]
+    remnawave = request.app["remnawave"]
+    now_utc = datetime.now(timezone.utc)
+    thirty_days_ago = now_utc - timedelta(days=30)
+
+    try:
+        async with session_factory() as session:
+            # 30-day revenue
+            rev_30d_res = await session.execute(
+                select(func.coalesce(func.sum(Order.amount), 0)).where(
+                    Order.created_at >= thirty_days_ago,
+                    Order.status == "paid",
+                )
+            )
+            monthly_revenue = int(rev_30d_res.scalar_one() or 0)
+
+            node_cost_repo = NodeCostRepository(session)
+            all_costs = await node_cost_repo.list_all()
+            costs_by_uuid = {str(c.node_uuid): c for c in all_costs}
+            costs_by_id = {str(c.node_id): c for c in all_costs if c.node_id is not None}
+
+            nodes = await remnawave.get_nodes() or []
+            total_infra_cost_toman = sum(c.monthly_cost_toman for c in all_costs)
+            total_infra_cost_eur = round(sum(c.monthly_cost_eur for c in all_costs), 2)
+            net_profit_toman = monthly_revenue - total_infra_cost_toman
+            profit_margin_percent = round((net_profit_toman / monthly_revenue * 100), 1) if monthly_revenue > 0 else 0.0
+
+            nodes_data = []
+            total_traffic_gb = 0.0
+            for i, n in enumerate(nodes, start=1):
+                n_uuid = str(n.get("uuid") or n.get("id") or "")
+                n_id = n.get("id")
+                raw_name = str(n.get("name") or f"Node {i}").strip()
+                traffic_bytes = n.get("trafficUsedBytes") or n.get("usedTrafficBytes") or 0
+                traffic_gb = round(traffic_bytes / (1024**3), 2) if traffic_bytes else 0.0
+                total_traffic_gb += traffic_gb
+
+                cost_item = costs_by_uuid.get(n_uuid) or costs_by_id.get(str(n_id) if n_id else "")
+                due_date_str = None
+                days_left = None
+                if cost_item and cost_item.due_date:
+                    due_date_str = cost_item.due_date.strftime("%Y-%m-%d")
+                    days_left = (cost_item.due_date.date() - now_utc.date()).days
+
+                cost_toman = cost_item.monthly_cost_toman if cost_item else 0
+                cost_eur = cost_item.monthly_cost_eur if cost_item else 0.0
+                provider = cost_item.provider if cost_item else None
+                notes = cost_item.notes if cost_item else None
+                cost_per_gb = round(cost_toman / traffic_gb, 0) if (cost_toman > 0 and traffic_gb > 0) else 0.0
+
+                is_connected = n.get("isConnected")
+                if is_connected is None:
+                    is_connected = str(n.get("status", "")).upper() in ("CONNECTED", "ONLINE")
+
+                nodes_data.append({
+                    "uuid": n_uuid,
+                    "id": n_id,
+                    "name": raw_name,
+                    "address": str(n.get("address") or "—"),
+                    "status": "ONLINE" if is_connected else "OFFLINE",
+                    "traffic_used_gb": traffic_gb,
+                    "provider": provider,
+                    "monthly_cost_toman": cost_toman,
+                    "monthly_cost_eur": cost_eur,
+                    "due_date": due_date_str,
+                    "days_until_due": days_left,
+                    "cost_per_gb": cost_per_gb,
+                    "notes": notes,
+                })
+
+            avg_cost_per_gb = round(total_infra_cost_toman / total_traffic_gb, 0) if total_traffic_gb > 0 else 0.0
+
+            return web.json_response({
+                "ok": True,
+                "data": {
+                    "monthly_revenue_toman": monthly_revenue,
+                    "total_infra_cost_toman": total_infra_cost_toman,
+                    "total_infra_cost_eur": total_infra_cost_eur,
+                    "net_profit_toman": net_profit_toman,
+                    "profit_margin_percent": profit_margin_percent,
+                    "total_traffic_gb": round(total_traffic_gb, 2),
+                    "avg_cost_per_gb": avg_cost_per_gb,
+                    "nodes": nodes_data,
+                }
+            })
+    except Exception as exc:
+        logger.exception("Error in get_admin_infra_billing: %s", exc)
+        return web.json_response({"ok": False, "error": str(exc)}, status=500)
+
+
+async def post_admin_node_cost(request: web.Request) -> web.Response:
+    """Save or update infrastructure costs and renewal date for a server node."""
+    admin = _check_admin(request)
+    if not admin:
+        return web.json_response({"ok": False, "error": "Forbidden"}, status=403)
+
+    try:
+        body = await request.json()
+    except Exception:
+        body = {}
+
+    node_uuid = str(body.get("node_uuid") or body.get("uuid") or "").strip()
+    if not node_uuid:
+        return web.json_response({"ok": False, "error": "شناسه نود الزامی است."}, status=400)
+
+    node_id = body.get("node_id")
+    if node_id is not None:
+        try:
+            node_id = int(node_id)
+        except (ValueError, TypeError):
+            node_id = None
+
+    node_name = body.get("node_name")
+    provider = body.get("provider")
+    try:
+        monthly_cost_toman = max(0, int(body.get("monthly_cost_toman") or 0))
+    except (ValueError, TypeError):
+        monthly_cost_toman = 0
+
+    try:
+        monthly_cost_eur = max(0.0, float(body.get("monthly_cost_eur") or 0.0))
+    except (ValueError, TypeError):
+        monthly_cost_eur = 0.0
+
+    raw_due_date = body.get("due_date")
+    due_date = None
+    if raw_due_date:
+        try:
+            clean_due = str(raw_due_date).strip()[:10]
+            parts = [int(p) for p in clean_due.split("-")]
+            if len(parts) == 3:
+                due_date = datetime(parts[0], parts[1], parts[2], tzinfo=timezone.utc)
+        except Exception as exc:
+            logger.warning("Could not parse due_date '%s': %s", raw_due_date, exc)
+
+    notes = body.get("notes")
+
+    session_factory = request.app["session_factory"]
+    async with session_factory() as session:
+        repo = NodeCostRepository(session)
+        item = await repo.upsert(
+            node_uuid=node_uuid,
+            node_id=node_id,
+            node_name=node_name,
+            provider=provider,
+            monthly_cost_toman=monthly_cost_toman,
+            monthly_cost_eur=monthly_cost_eur,
+            due_date=due_date,
+            notes=notes,
+        )
+        session.add(
+            AdminLog(
+                admin_id=admin["id"],
+                action="update_node_cost",
+                detail=f"بروزرسانی هزینه‌های سرور {node_name or node_uuid}: {monthly_cost_toman:,} تومان, ارائه‌دهنده: {provider}",
+            )
+        )
+        await session.commit()
+
+    cache: FastCache = request.app["cache"]
+    await cache.delete("tma:admin:overview")
+
+    return web.json_response({
+        "ok": True,
+        "message": "اطلاعات مالی و سررسید سرور با موفقیت ثبت شد.",
+        "data": {
+            "node_uuid": item.node_uuid,
+            "monthly_cost_toman": item.monthly_cost_toman,
+            "monthly_cost_eur": item.monthly_cost_eur,
+            "due_date": item.due_date.strftime("%Y-%m-%d") if item.due_date else None,
+            "provider": item.provider,
+        }
+    })
+
 
 

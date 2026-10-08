@@ -118,6 +118,60 @@
           </div>
         </div>
 
+        <!-- Infra-Billing & Financial Analytics Card -->
+        <div class="bg-slate-800/80 rounded-2xl p-4 border border-slate-700/80 shadow space-y-3">
+          <div class="flex justify-between items-center border-b border-slate-700/60 pb-2.5">
+            <div class="flex items-center gap-2">
+              <div class="w-7 h-7 rounded-xl bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 flex items-center justify-center flex-shrink-0">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              </div>
+              <div>
+                <span class="text-xs font-bold text-white block">تحلیل سود خالص و زیرساخت (Infra-Billing)</span>
+                <span class="text-[10px] text-slate-400 block mt-0.5">درآمد ۳۰ روزه، هزینه ماهانه سرورها و حاشیه سود</span>
+              </div>
+            </div>
+            <span id="adminProfitMarginBadge" class="text-[10px] font-mono font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded-lg" dir="ltr">مارجین: --%</span>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2 text-xs">
+            <!-- 30-day Revenue -->
+            <div class="bg-slate-900/60 p-2.5 rounded-xl border border-slate-700/60">
+              <span class="text-[10px] text-slate-400 block mb-1">فروش ۳۰ روز اخیر:</span>
+              <div class="flex items-baseline gap-1">
+                <span id="adminMonthlyRevenue" class="text-emerald-400 font-mono font-bold text-sm">--</span>
+                <span class="text-[9px] text-slate-400">تومان</span>
+              </div>
+            </div>
+
+            <!-- Total Server Cost -->
+            <div class="bg-slate-900/60 p-2.5 rounded-xl border border-slate-700/60">
+              <span class="text-[10px] text-slate-400 block mb-1">هزینه سرورها:</span>
+              <div class="flex items-baseline gap-1">
+                <span id="adminTotalInfraCost" class="text-rose-400 font-mono font-bold text-sm">--</span>
+                <span class="text-[9px] text-slate-400">تومان</span>
+              </div>
+            </div>
+
+            <!-- Net Profit -->
+            <div class="bg-slate-900/60 p-2.5 rounded-xl border border-slate-700/60">
+              <span class="text-[10px] text-slate-400 block mb-1">سود خالص (Net Profit):</span>
+              <div class="flex items-baseline gap-1">
+                <span id="adminNetProfit" class="text-cyan-300 font-mono font-bold text-sm">--</span>
+                <span class="text-[9px] text-slate-400">تومان</span>
+              </div>
+            </div>
+
+            <!-- Avg Cost per GB -->
+            <div class="bg-slate-900/60 p-2.5 rounded-xl border border-slate-700/60">
+              <span class="text-[10px] text-slate-400 block mb-1">هزینه هر گیگابایت:</span>
+              <div class="flex items-baseline gap-1">
+                <span id="adminAvgCostPerGb" class="text-indigo-300 font-mono font-bold text-sm">--</span>
+                <span class="text-[9px] text-slate-400">تومان/GB</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <!-- Pending Tasks Alert (اقدامات نیازمند بررسی - مخفی در صورت عدم وجود مورد معلق) -->
         <div id="adminPendingBanner" class="hidden bg-amber-50 dark:bg-amber-950/40 rounded-2xl p-3.5 border border-amber-200 dark:border-amber-500/40 flex items-center justify-between shadow-sm transition">
           <div class="flex items-center gap-2.5">
@@ -318,7 +372,7 @@
               <input type="text" id="userSearchInput" placeholder="جستجو بر اساس نام کاربری یا شناسه عددی..." class="bg-transparent text-xs text-slate-200 outline-none flex-1 font-sans" />
               <button id="userSearchClear" class="text-slate-400 hover:text-white text-xs px-1.5 hidden">✕</button>
             </div>
-            <button onclick="window.adminActions.openBulkUsersModal()" class="px-3 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs rounded-2xl flex items-center gap-1.5 shadow transition active:scale-95 flex-shrink-0" title="عملیات گروهی روی کاربران">
+            <button onclick="window.adminActions.openBulkUsersModal()" class="px-3 py-2.5 bg-transparent hover:bg-slate-800 text-indigo-400 hover:text-indigo-300 border border-indigo-500/30 hover:border-indigo-400/70 font-bold text-xs rounded-2xl flex items-center gap-1.5 transition active:scale-95 flex-shrink-0" title="عملیات گروهی روی کاربران">
               <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
               <span>عملیات گروهی</span>
             </button>
@@ -412,12 +466,20 @@
       <!-- TAB 3: CLUSTER & NODES (مدیریت سرورها)                 -->
       <!-- ===================================================== -->
       <div id="tab-admin-nodes" class="admin-tab-pane space-y-3.5 pb-8 hidden">
-        <div class="bg-slate-800/80 p-3.5 rounded-2xl border border-slate-700/80 shadow">
-          <h3 class="text-xs font-bold text-slate-200 flex items-center gap-1.5">
-            <svg class="w-4 h-4 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01"/></svg>
-            <span>وضعیت سرورها</span>
-          </h3>
-          <span class="text-[10px] text-slate-400 mt-0.5 block">پایش لحظه‌ای مصرف منابع، کاربران متصل و پهنای باند</span>
+        <div class="bg-slate-800/80 p-3.5 rounded-2xl border border-slate-700/80 shadow flex items-center justify-between">
+          <div>
+            <h3 class="text-xs font-bold text-slate-200 flex items-center gap-1.5">
+              <svg class="w-4 h-4 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01"/></svg>
+              <span>وضعیت سرورها</span>
+            </h3>
+            <span class="text-[10px] text-slate-400 mt-0.5 block">پایش لحظه‌ای مصرف منابع، سرعت و پهنای باند</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <button id="refreshNodesTabBtn" class="text-[10px] bg-slate-900/60 hover:bg-slate-700/80 text-cyan-400 hover:text-cyan-300 px-2.5 py-1.5 rounded-xl border border-cyan-500/30 hover:border-cyan-400/60 transition flex items-center gap-1.5 active:scale-95 shadow-sm" title="تازه‌سازی فوری سرورها">
+              <svg id="refreshNodesTabIcon" class="w-3.5 h-3.5 text-cyan-400 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+              <span>تازه‌سازی زنده</span>
+            </button>
+          </div>
         </div>
         <div id="adminNodesFullList" class="space-y-3">
           <div class="p-8 text-center text-xs text-slate-400">در حال دریافت وضعیت نودها...</div>
@@ -993,10 +1055,10 @@
             <label id="bulkAmountLabel" class="text-slate-400 text-[11px] block mb-1">مقدار حجم هدیه (گیگابایت):</label>
             <div class="flex items-center gap-2">
               <input type="number" id="bulkAmountInput" min="1" max="1000" value="5" class="w-full bg-slate-900/90 border border-slate-700/80 rounded-xl p-2.5 text-white font-mono text-xs outline-none focus:border-indigo-500" />
-              <div class="flex gap-1 flex-shrink-0">
-                <button type="button" onclick="document.getElementById('bulkAmountInput').value = '5'" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 text-[10px] rounded-lg font-mono">+5</button>
-                <button type="button" onclick="document.getElementById('bulkAmountInput').value = '10'" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 text-[10px] rounded-lg font-mono">+10</button>
-                <button type="button" onclick="document.getElementById('bulkAmountInput').value = '30'" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 text-[10px] rounded-lg font-mono">+30</button>
+              <div class="flex gap-1 flex-shrink-0" dir="ltr">
+                <button type="button" onclick="document.getElementById('bulkAmountInput').value = '5'" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 text-[10px] rounded-lg font-mono flex items-center justify-center transition active:scale-95" dir="ltr"><span dir="ltr">+5</span></button>
+                <button type="button" onclick="document.getElementById('bulkAmountInput').value = '10'" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 text-[10px] rounded-lg font-mono flex items-center justify-center transition active:scale-95" dir="ltr"><span dir="ltr">+10</span></button>
+                <button type="button" onclick="document.getElementById('bulkAmountInput').value = '30'" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 text-[10px] rounded-lg font-mono flex items-center justify-center transition active:scale-95" dir="ltr"><span dir="ltr">+30</span></button>
               </div>
             </div>
           </div>
@@ -1464,7 +1526,69 @@
       </div>
     </div>
 
+    <!-- MODAL: Node Billing & Cost Settings Modal -->
+    <div id="nodeBillingModal" class="absolute inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+      <div class="bg-[#1e293b] border border-slate-700 rounded-3xl p-5 w-full max-w-[370px] space-y-4 shadow-2xl relative">
+        <div class="flex justify-between items-center border-b border-slate-700/60 pb-2.5">
+          <div class="flex items-center gap-2">
+            <span class="text-xl" id="nodeBillingModalFlag">🖥️</span>
+            <div>
+              <h4 id="nodeBillingModalTitle" class="text-xs font-bold text-white truncate max-w-[200px]">هزینه و تمدید سرور</h4>
+              <span class="text-[10px] text-slate-400 block mt-0.5">ثبت هزینه ماهانه و تاریخ سررسید</span>
+            </div>
+          </div>
+          <button type="button" onclick="window.adminActions.closeNodeBillingModal()" class="w-6 h-6 rounded-lg bg-transparent hover:bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center text-xs transition">✕</button>
+        </div>
 
+        <form id="nodeBillingForm" onsubmit="event.preventDefault(); window.adminActions.saveNodeBilling();" class="space-y-3 text-xs">
+          <input type="hidden" id="nodeBillingUuid" value="" />
+          <input type="hidden" id="nodeBillingId" value="" />
+          <input type="hidden" id="nodeBillingName" value="" />
+
+          <!-- Provider -->
+          <div>
+            <label class="text-[11px] text-slate-300 block mb-1">شرکت ارائه‌دهنده (Hosting Provider):</label>
+            <input type="text" id="nodeBillingProvider" placeholder="مثلاً: Hetzner, OVH, Contabo..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-100 outline-none focus:border-cyan-500 transition" />
+          </div>
+
+          <!-- Monthly Cost Toman & EUR -->
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="text-[11px] text-slate-300 block mb-1">هزینه ماهانه (تومان):</label>
+              <input type="number" id="nodeBillingCostToman" dir="ltr" placeholder="مثلاً: 2500000" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-cyan-300 outline-none focus:border-cyan-500 transition" />
+            </div>
+            <div>
+              <label class="text-[11px] text-slate-300 block mb-1">هزینه ارزی (یورو €):</label>
+              <input type="number" step="0.01" id="nodeBillingCostEur" dir="ltr" placeholder="مثلاً: 35.00" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-indigo-300 outline-none focus:border-indigo-500 transition" />
+            </div>
+          </div>
+
+          <!-- Renewal Due Date -->
+          <div>
+            <label class="text-[11px] text-slate-300 block mb-1">تاریخ سررسید بعدی (Due Date):</label>
+            <input type="date" id="nodeBillingDueDate" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-amber-300 outline-none focus:border-amber-500 transition" />
+            <span class="text-[9px] text-slate-400 mt-1 block">در صورت رسیدن به ۳ روز باقی‌مانده، پیام هشدار در تلگرام ارسال می‌شود.</span>
+          </div>
+
+          <!-- Notes -->
+          <div>
+            <label class="text-[11px] text-slate-300 block mb-1">یادداشت و مشخصات (اختیاری):</label>
+            <input type="text" id="nodeBillingNotes" placeholder="مثلاً: سرور فنلاند - 32GB RAM" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-200 outline-none focus:border-cyan-500 transition" />
+          </div>
+
+          <!-- Submit & Cancel Buttons -->
+          <div class="flex items-center gap-2 pt-2">
+            <button type="submit" id="saveNodeBillingBtn" class="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs py-2.5 rounded-xl transition shadow active:scale-95 flex items-center justify-center gap-1.5">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+              <span>ذخیره اطلاعات سرور</span>
+            </button>
+            <button type="button" onclick="window.adminActions.closeNodeBillingModal()" class="px-4 bg-slate-800 hover:bg-slate-750 text-slate-300 text-xs py-2.5 rounded-xl border border-slate-700 transition">
+              انصراف
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
 
   </div>
 

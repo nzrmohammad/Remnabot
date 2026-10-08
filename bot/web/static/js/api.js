@@ -246,6 +246,14 @@ const api = {
   async bulkUsersAction(data) {
     return this.post('/api/admin/users/bulk-action', data);
   },
+
+  async getInfraBilling() {
+    return this.get('/api/admin/infra/billing');
+  },
+
+  async saveNodeCost(data) {
+    return this.post('/api/admin/infra/node-cost', data);
+  },
 };
 
 window.api = api;
