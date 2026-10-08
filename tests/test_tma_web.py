@@ -1424,4 +1424,143 @@ async def test_admin_topup_action_syncs_with_supergroup():
     await engine.dispose()
 
 
+@pytest.mark.anyio
+async def test_post_user_purchase_commits_session_without_coupon():
+    """Verify that purchase without a coupon permanently commits wallet deduction and order."""
+    from aiohttp.test_utils import make_mocked_request
+    from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
+    from sqlalchemy import select
+    from bot.db.models import Base, Service, Wallet, Order
+    from bot.web.user_shop import post_user_purchase
+
+    engine = create_async_engine("sqlite+aiosqlite:///:memory:")
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+    session_factory = async_sessionmaker(engine, expire_on_commit=False)
+
+    async with session_factory() as session:
+        svc = Service(name="Plan Test", traffic_gb=20, duration_days=30, price=50000, is_active=True)
+        session.add(svc)
+        wallet = Wallet(telegram_id=33333, balance=100000)
+        session.add(wallet)
+        await session.commit()
+        svc_id = svc.id
+
+    mock_remnawave = AsyncMock()
+    mock_remnawave.get_users_by_telegram_id.return_value = [
+        {"id": 555, "username": "u33333_acc", "status": "ACTIVE", "subscriptionUrl": "https://sub/555"}
+    ]
+    mock_remnawave.update_user_subscription.return_value = {
+        "id": 555, "username": "u33333_acc", "subscriptionUrl": "https://sub/555"
+    }
+
+    app = {
+        "bot_token": "123:abc",
+        "admin_ids": [55555],
+        "is_dev": True,
+        "session_factory": session_factory,
+        "cache": FastCache(redis_client=None),
+        "remnawave": mock_remnawave,
+    }
+
+    req = make_mocked_request("POST", "/api/user/purchase?user_id=33333", app=app)
+    req.json = AsyncMock(return_value={"service_id": svc_id})
+
+    resp = await post_user_purchase(req)
+    assert resp.status == 200
+    res_data = json.loads(resp.text)
+    assert res_data["ok"] is True
+    assert res_data["new_balance"] == 50000
+
+    # In a brand new session, verify the wallet balance and order actually persisted in DB!
+    async with session_factory() as verify_session:
+        w = (await verify_session.execute(select(Wallet).where(Wallet.telegram_id == 33333))).scalar_one()
+        assert w.balance == 50000
+
+        ord_row = (await verify_session.execute(select(Order).where(Order.telegram_id == 33333))).scalar_one()
+        assert ord_row.status == "paid"
+        assert ord_row.amount == 50000
+
+    await engine.dispose()
+
+
+@pytest.mark.anyio
+async def test_api_rate_limit_middleware_blocks_excessive_requests():
+    from aiohttp import web
+    from aiohttp.test_utils import make_mocked_request
+    from bot.web.server import api_rate_limit_middleware, _api_buckets
+
+    _api_buckets.clear()
+
+    async def mock_handler(request):
+        return web.json_response({"ok": True})
+
+    app = web.Application()
+    app["is_dev"] = False
+
+    # Simulate 21 sensitive requests from same IP (limit is 20)
+    for i in range(20):
+        req = make_mocked_request(
+            "POST", "/api/user/validate_coupon",
+            headers={"X-Real-IP": "198.51.100.1"},
+            app=app,
+        )
+        res = await api_rate_limit_middleware(req, mock_handler)
+        assert res.status == 200
+
+    # 21st request should be rate-limited (HTTP 429)
+    req_excess = make_mocked_request(
+        "POST", "/api/user/validate_coupon",
+        headers={"X-Real-IP": "198.51.100.1"},
+        app=app,
+    )
+    res_excess = await api_rate_limit_middleware(req_excess, mock_handler)
+    assert res_excess.status == 429
+    data = json.loads(res_excess.text)
+    assert data["ok"] is False
+    assert data["code"] == "rate_limited"
+
+
+@pytest.mark.anyio
+async def test_crypto_mark_paid_atomic():
+    from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
+    from bot.db.models import Base
+    from bot.db.repositories.crypto_repo import CryptoRepository
+
+    engine = create_async_engine("sqlite+aiosqlite:///:memory:")
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+    session_factory = async_sessionmaker(engine, expire_on_commit=False)
+
+    async with session_factory() as session:
+        repo = CryptoRepository(session)
+        inv = await repo.create_invoice(
+            telegram_id=44444,
+            amount_toman=100000,
+            amount_ton="1.5000",
+            nanotons=1500000000,
+            pay_address="EQB_test_addr",
+        )
+        inv_id = inv.id
+        await session.commit()
+
+    # First mark_paid should succeed
+    async with session_factory() as session:
+        repo = CryptoRepository(session)
+        paid = await repo.mark_paid(inv_id, "tx_hash_123")
+        assert paid is not None
+        assert paid.status == "paid"
+        assert paid.tx_hash == "tx_hash_123"
+        await session.commit()
+
+    # Second mark_paid with same invoice should return None (already paid, no double crediting)
+    async with session_factory() as session:
+        repo = CryptoRepository(session)
+        second = await repo.mark_paid(inv_id, "tx_hash_duplicate")
+        assert second is None
+
+    await engine.dispose()
+
+
+
 

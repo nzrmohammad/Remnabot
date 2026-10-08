@@ -2,7 +2,7 @@
 import random
 from datetime import datetime, timedelta, timezone
 
-from sqlalchemy import and_, select
+from sqlalchemy import and_, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from bot.db.models import CryptoInvoice
@@ -99,14 +99,25 @@ class CryptoRepository:
         return invoice
 
     async def mark_paid(self, invoice_id: int, tx_hash: str) -> CryptoInvoice | None:
+        """Atomically transition invoice from pending -> paid.
+        Prevents race-condition double-crediting if concurrent checks occur.
+        """
+        now = datetime.now(timezone.utc)
+        row = await self.session.execute(
+            text(
+                "UPDATE crypto_invoices SET status = 'paid', tx_hash = :tx, paid_at = :now "
+                "WHERE id = :i AND status = 'pending' RETURNING id"
+            ),
+            {"tx": tx_hash, "now": now, "i": invoice_id},
+        )
+        claimed = row.scalar_one_or_none()
+        await self.session.flush()
+        if claimed is None:
+            return None
         invoice = await self.get_by_id(invoice_id)
-        if invoice and invoice.status == "pending":
-            invoice.status = "paid"
-            invoice.tx_hash = tx_hash
-            invoice.paid_at = datetime.now(timezone.utc)
-            await self.session.flush()
-            return invoice
-        return None
+        if invoice:
+            await self.session.refresh(invoice)
+        return invoice
 
     async def mark_expired(self, invoice_id: int) -> None:
         invoice = await self.get_by_id(invoice_id)

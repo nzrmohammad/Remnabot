@@ -3,6 +3,8 @@
 Integrates seamlessly into the same asyncio event loop as aiogram.
 """
 import logging
+import time
+from collections import defaultdict, deque
 from pathlib import Path
 
 from aiohttp import web
@@ -67,6 +69,64 @@ logger = logging.getLogger(__name__)
 
 TEMPLATES_DIR = Path(__file__).parent / "templates"
 STATIC_DIR = Path(__file__).parent / "static"
+
+
+_API_WINDOW = 60.0
+_API_MAX_GENERAL = 120  # 120 requests/min per IP
+_API_MAX_SENSITIVE = 20 # 20 requests/min on sensitive financial/coupon endpoints
+_api_buckets: dict[str, deque[float]] = defaultdict(deque)
+
+
+@web.middleware
+async def api_rate_limit_middleware(request: web.Request, handler):
+    """Protect TMA API endpoints against DoS and brute-force attacks."""
+    if not request.path.startswith("/api/"):
+        return await handler(request)
+
+    if request.app.get("is_dev", False) or request.method == "OPTIONS":
+        return await handler(request)
+
+    client_ip = (
+        request.headers.get("X-Real-IP")
+        or request.headers.get("X-Forwarded-For", "").split(",")[0].strip()
+        or request.remote
+        or "127.0.0.1"
+    )
+
+    sensitive_paths = {
+        "/api/user/validate_coupon",
+        "/api/user/purchase",
+        "/api/user/spin",
+        "/api/user/topup/card",
+        "/api/user/topup/crypto",
+        "/api/user/topup/crypto/check",
+    }
+    is_sensitive = request.path in sensitive_paths and request.method == "POST"
+    max_reqs = _API_MAX_SENSITIVE if is_sensitive else _API_MAX_GENERAL
+
+    now = time.monotonic()
+    bucket_key = f"{client_ip}:sens" if is_sensitive else f"{client_ip}:gen"
+    bucket = _api_buckets[bucket_key]
+
+    while bucket and now - bucket[0] > _API_WINDOW:
+        bucket.popleft()
+
+    if len(bucket) >= max_reqs:
+        logger.warning("API rate limit exceeded for IP %s on %s", client_ip, request.path)
+        return web.json_response(
+            {"ok": False, "error": "درخواست‌های بیش از حد مجاز. لطفاً کمی صبر کنید.", "code": "rate_limited"},
+            status=429,
+            headers={"Retry-After": "30"},
+        )
+
+    bucket.append(now)
+
+    if len(_api_buckets) > 5000:
+        stale = [k for k, b in _api_buckets.items() if not b or now - b[-1] > _API_WINDOW]
+        for k in stale:
+            del _api_buckets[k]
+
+    return await handler(request)
 
 
 @web.middleware
@@ -147,7 +207,7 @@ def create_web_app(
     is_dev: bool = False,
 ) -> web.Application:
     """Build and configure the aiohttp web application."""
-    app = web.Application(middlewares=[cors_and_security_middleware])
+    app = web.Application(middlewares=[api_rate_limit_middleware, cors_and_security_middleware])
 
     # Injected dependencies
     app["bot"] = bot

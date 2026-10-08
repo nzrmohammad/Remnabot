@@ -1585,8 +1585,8 @@
               <div class="min-w-0 flex-1">
                 <!-- 1. Profile Name (اسم پروفایل کاربر) -->
                 <div class="flex items-center gap-1.5 min-w-0">
-                  <div onclick="window.adminActions.quickCopy('${safeDisplayName}', 'نام کاربر')" class="text-xs font-bold text-white truncate max-w-[130px] sm:max-w-[170px] cursor-pointer hover:text-cyan-300 active:scale-95 transition" title="${displayName}">
-                    ${(displayName || '').startsWith('@') ? `<span class="truncate inline-block font-mono" dir="ltr" style="unicode-bidi: isolate;">${displayName}</span>` : `<span class="truncate">${displayName}</span>`}
+                  <div onclick="window.adminActions.quickCopy('${safeDisplayName}', 'نام کاربر')" class="text-xs font-bold text-white truncate max-w-[130px] sm:max-w-[170px] cursor-pointer hover:text-cyan-300 active:scale-95 transition" title="${escapeHtml(displayName)}">
+                    ${(displayName || '').startsWith('@') ? `<span class="truncate inline-block font-mono" dir="ltr" style="unicode-bidi: isolate;">${escapeHtml(displayName)}</span>` : `<span class="truncate">${escapeHtml(displayName)}</span>`}
                   </div>
                   ${u.is_online ? '<span class="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)] animate-pulse flex-shrink-0" title="متصل به سرور"></span>' : ''}
                 </div>
@@ -3580,7 +3580,7 @@
                   <span class="font-bold">${initial}</span>
                 </div>
                 <div class="min-w-0 space-y-0.5">
-                  <b class="text-white text-xs font-bold block truncate max-w-[140px] cursor-pointer hover:text-cyan-300" onclick="window.adminActions.quickCopy('${safeDisplayName}', 'نام')" title="${uLabel}">${uLabel}</b>
+                  <b class="text-white text-xs font-bold block truncate max-w-[140px] cursor-pointer hover:text-cyan-300" onclick="window.adminActions.quickCopy('${safeDisplayName}', 'نام')" title="${escapeHtml(uLabel)}">${escapeHtml(uLabel)}</b>
                   <div class="flex items-baseline gap-1 text-emerald-400 font-bold" dir="rtl">
                     <span class="text-sm font-black font-mono leading-none">${formatNumber(t.amount || 0)}</span>
                     <span class="text-[10px] text-emerald-500/90 font-sans">تومان</span>
@@ -3695,7 +3695,7 @@
           return `
             <div class="flex justify-center my-1.5">
               <span class="bg-amber-950/40 text-amber-300 border border-amber-500/30 text-[10px] px-3 py-1 rounded-xl text-center leading-relaxed">
-                🔔 ${m.text}
+                🔔 ${escapeHtml(m.text)}
               </span>
             </div>
           `;
@@ -3710,7 +3710,7 @@
                 <span>${isAdmin ? '🛡️ پشتیبانی' : '👤 کاربر'}</span>
                 <span class="font-mono ${isAdmin ? 'text-blue-600 dark:text-blue-400' : 'text-slate-500 dark:text-slate-400'}" dir="ltr">${timeDisplay}</span>
               </div>
-              <p class="text-xs leading-relaxed break-words whitespace-pre-wrap text-slate-900 dark:text-slate-100 font-medium dark:font-normal">${m.text}</p>
+              <p class="text-xs leading-relaxed break-words whitespace-pre-wrap text-slate-900 dark:text-slate-100 font-medium dark:font-normal">${escapeHtml(m.text)}</p>
             </div>
           </div>
         `;

@@ -324,10 +324,30 @@ async def post_user_purchase(request: web.Request) -> web.Response:
         if coupon_obj and result.order_id:
             try:
                 await coupon_repo.record_usage(coupon_obj.id, telegram_id, result.order_id, discount_amount)
-                await session.commit()
             except Exception as exc:
                 logger.warning("Failed to record coupon usage in TMA purchase: %s", exc)
 
+        bot = request.app.get("bot")
+        if bot:
+            try:
+                from bot.handlers.shop_purchase import _maybe_reward_referrer, _notify_admin
+                from bot.db.repositories.user_repo import UserRepository
+                db_user = await UserRepository(session).get_by_telegram_id(telegram_id)
+                if db_user:
+                    await _maybe_reward_referrer(bot, session, remnawave, db_user)
+                    user_full_name = user_auth.get("first_name", "")
+                    if user_auth.get("last_name"):
+                        user_full_name += f" {user_auth.get('last_name')}"
+                    await _notify_admin(
+                        bot, db_user, service, result, session,
+                        coupon_code=coupon_code if coupon_obj else None,
+                        discount_amount=discount_amount,
+                        full_name=user_full_name or None,
+                    )
+            except Exception as exc:
+                logger.warning("TMA purchase post-actions failed: %s", exc)
+
+        await session.commit()
         await cache.delete(f"tma:user:{telegram_id}:dashboard")
 
         return web.json_response({
