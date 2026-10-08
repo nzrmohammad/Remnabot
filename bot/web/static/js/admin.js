@@ -1534,48 +1534,141 @@
         : '';
 
       let serviceLineHtml = `
-        <div class="bg-slate-900/60 px-3 py-2 rounded-xl border border-slate-800 text-xs text-slate-400 text-center">
-          بدون اشتراک فعال
+        <div class="bg-slate-900/40 dark:bg-slate-900/60 p-2.5 rounded-xl border border-dashed border-slate-700/60 flex flex-col gap-2">
+          <div class="flex items-center justify-between text-[11px]">
+            <div class="flex items-center gap-1.5 text-slate-400">
+              <span class="w-1.5 h-1.5 rounded-full bg-slate-500"></span>
+              <span>فاقد اشتراک فعال در پنل</span>
+            </div>
+            <span class="text-[10px] text-slate-500 font-mono">آماده صدور</span>
+          </div>
+          <div class="grid grid-cols-2 gap-1.5 pt-0.5">
+            <button onclick="window.adminActions.openModifyUser(${u.telegram_id}, '${(u.username || '').replace(/'/g, "\\'")}', '${safeDisplayName}')" class="bg-blue-600/15 hover:bg-blue-600/25 text-blue-500 dark:text-blue-400 border border-blue-500/30 rounded-lg py-1 px-2 text-[10px] font-medium transition active:scale-95 flex items-center justify-center gap-1">
+              <span>＋ صدور اشتراک جدید</span>
+            </button>
+            <button onclick="window.adminActions.openTrialModal(${u.telegram_id}, '${(u.username || '').replace(/'/g, "\\'")}', '${safeDisplayName}')" class="bg-purple-600/15 hover:bg-purple-600/25 text-purple-600 dark:text-purple-400 border border-purple-500/30 rounded-lg py-1 px-2 text-[10px] font-medium transition active:scale-95 flex items-center justify-center gap-1">
+              <span>🎁 اکانت تست</span>
+            </button>
+          </div>
         </div>
       `;
       if (p && p.exists) {
-        const limitStr = p.limit_traffic_gb > 0 ? `${p.limit_traffic_gb} GB` : 'نامحدود';
-        const remStr = p.remaining_traffic_gb !== undefined && p.remaining_traffic_gb >= 0
-          ? `${p.remaining_traffic_gb} GB`
-          : `${p.used_traffic_gb || 0} GB`;
+        const isUnlimited = !(p.limit_traffic_gb > 0);
+        const limitGb = p.limit_traffic_gb || 0;
+        const usedGb = p.used_traffic_gb !== undefined && p.used_traffic_gb !== null ? p.used_traffic_gb : 0;
+        const remGb = p.remaining_traffic_gb !== undefined && p.remaining_traffic_gb >= 0 
+          ? p.remaining_traffic_gb 
+          : (limitGb > 0 ? Math.max(0, limitGb - usedGb) : 0);
 
-        let daysText = 'نامحدود';
-        let daysColor = 'text-indigo-600 dark:text-indigo-300';
-        let daysBorder = 'border-indigo-500/30';
+        let percentUsed = 0;
+        if (!isUnlimited && limitGb > 0) {
+          percentUsed = Math.min(100, Math.max(0, Math.round((usedGb / limitGb) * 100)));
+        }
+
+        let barGradient = 'from-emerald-500 via-teal-400 to-cyan-400';
+        let barGlow = 'shadow-[0_0_10px_rgba(52,211,153,0.35)]';
+        let badgeColor = 'text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border-emerald-500/25';
+        let statusLabel = `${percentUsed}% مصرف`;
+
+        if (isUnlimited) {
+          barGradient = 'from-blue-500 to-indigo-500';
+          barGlow = 'shadow-[0_0_10px_rgba(59,130,246,0.3)]';
+          badgeColor = 'text-blue-600 dark:text-blue-400 bg-blue-500/10 border-blue-500/25';
+          statusLabel = 'ترافیک نامحدود';
+          percentUsed = 100;
+        } else if (percentUsed >= 90) {
+          barGradient = 'from-rose-500 to-red-500';
+          barGlow = 'shadow-[0_0_10px_rgba(244,63,94,0.4)]';
+          badgeColor = 'text-rose-600 dark:text-rose-400 bg-rose-500/10 border-rose-500/25';
+          statusLabel = `${percentUsed}% مصرف (بحرانی)`;
+        } else if (percentUsed >= 70) {
+          barGradient = 'from-amber-500 to-orange-400';
+          barGlow = 'shadow-[0_0_10px_rgba(245,158,11,0.35)]';
+          badgeColor = 'text-amber-600 dark:text-amber-400 bg-amber-500/10 border-amber-500/25';
+          statusLabel = `${percentUsed}% مصرف`;
+        }
+
+        const expireJalali = p.expire_jalali || (p.expire_at && typeof formatDateToJalali === 'function' ? formatDateToJalali(p.expire_at) : '');
+        let timeText = 'نامحدود';
+        let timeSub = 'بدون انقضا';
+        let timeColor = 'text-indigo-600 dark:text-indigo-400';
+        let timeBoxBorder = 'border-indigo-500/20';
+        let timeBoxBg = 'bg-indigo-500/10';
 
         if (p.days_left !== undefined && p.days_left !== null) {
           if (p.days_left > 3) {
-            daysText = `${formatNumber(p.days_left)} روز`;
-            daysColor = 'text-emerald-600 dark:text-emerald-300';
-            daysBorder = 'border-emerald-500/30';
+            timeText = `${formatNumber(p.days_left)} روز اعتبار`;
+            timeSub = expireJalali ? `تا ${expireJalali}` : 'اعتبار فعال';
+            timeColor = 'text-emerald-600 dark:text-emerald-400';
+            timeBoxBorder = 'border-emerald-500/20';
+            timeBoxBg = 'bg-emerald-500/10';
           } else if (p.days_left > 0) {
-            daysText = `${formatNumber(p.days_left)} روز`;
-            daysColor = 'text-amber-600 dark:text-amber-300';
-            daysBorder = 'border-amber-500/30';
+            timeText = `${formatNumber(p.days_left)} روز اعتبار`;
+            timeSub = expireJalali ? `تا ${expireJalali}` : 'رو به اتمام';
+            timeColor = 'text-amber-600 dark:text-amber-400';
+            timeBoxBorder = 'border-amber-500/20';
+            timeBoxBg = 'bg-amber-500/10';
           } else {
-            daysText = 'منقضی شده';
-            daysColor = 'text-rose-600 dark:text-rose-400';
-            daysBorder = 'border-rose-500/30';
+            timeText = 'منقضی شده';
+            timeSub = expireJalali ? `انقضا: ${expireJalali}` : 'پایان مهلت';
+            timeColor = 'text-rose-600 dark:text-rose-400';
+            timeBoxBorder = 'border-rose-500/20';
+            timeBoxBg = 'bg-rose-500/10';
           }
         }
 
+        const remDisplay = isUnlimited ? 'نامحدود' : `${formatNumber(remGb)} GB`;
+        const totalDisplay = isUnlimited ? 'نامحدود' : `${formatNumber(limitGb)} GB`;
+        const usedDisplay = `${formatNumber(usedGb)} GB`;
+
         serviceLineHtml = `
-          <div class="bg-slate-900/70 p-2.5 rounded-xl border border-slate-700/60 flex items-center justify-between text-xs gap-2">
-            <div class="flex items-center gap-1.5 font-mono text-[11px] truncate">
-              <span class="text-slate-400 text-[10px] font-sans">ترافیک:</span>
-              <span dir="ltr" class="font-bold text-cyan-400 dark:text-cyan-300">${limitStr}</span>
-              <span dir="ltr" class="text-slate-400 text-[10px]">(${remStr})</span>
+          <div class="bg-slate-900/70 rounded-xl p-2.5 border border-slate-700/60 space-y-2">
+            <!-- Glass Progress Bar & Top Metrics -->
+            <div class="space-y-1">
+              <div class="flex items-center justify-between text-[10px]">
+                <div class="flex items-center gap-1 font-mono text-slate-300">
+                  <span class="text-slate-400 text-[10px] font-sans">مصرف:</span>
+                  <span dir="ltr" class="font-bold text-white dark:text-slate-100">${usedDisplay}</span>
+                  <span class="text-slate-400 font-sans">از</span>
+                  <span dir="ltr" class="text-slate-400 font-mono">${totalDisplay}</span>
+                </div>
+                <span class="px-1.5 py-0.5 rounded-md text-[9px] font-mono font-bold border ${badgeColor}">
+                  ${statusLabel}
+                </span>
+              </div>
+              <!-- Vercel-Style Glass Track -->
+              <div class="w-full h-1.5 rounded-full bg-slate-950/80 p-[1px] border border-slate-700/40 overflow-hidden relative" dir="ltr">
+                <div class="h-full rounded-full bg-gradient-to-r ${barGradient} ${barGlow} transition-all duration-500" style="width: ${percentUsed}%;"></div>
+              </div>
             </div>
-            <div class="flex items-center gap-1 flex-shrink-0">
-              <span class="text-slate-400 text-[10px]">زمان:</span>
-              <span class="${daysColor} ${daysBorder} bg-transparent border px-2 py-0.5 rounded-lg text-[10px] font-bold">
-                ${daysText}
-              </span>
+
+            <!-- Dual Metric Grid (گرید دوقلو سبک ورسل) -->
+            <div class="grid grid-cols-2 gap-2 pt-1 border-t border-slate-800/80 text-[10px]">
+              <!-- Column 1: Remaining Volume -->
+              <div class="bg-slate-950/40 rounded-lg p-1.5 border border-slate-800/60 flex items-center gap-2">
+                <div class="w-7 h-7 rounded-md bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-500 dark:text-cyan-400 text-xs shrink-0">
+                  ⚡
+                </div>
+                <div class="min-w-0 flex-1 leading-tight">
+                  <span class="text-slate-400 text-[9px] block">حجم باقی‌مانده</span>
+                  <span dir="ltr" class="font-mono font-bold text-cyan-600 dark:text-cyan-300 truncate block text-[11px]">
+                    ${remDisplay}
+                  </span>
+                </div>
+              </div>
+
+              <!-- Column 2: Time & Expiration -->
+              <div class="bg-slate-950/40 rounded-lg p-1.5 border border-slate-800/60 flex items-center gap-2">
+                <div class="w-7 h-7 rounded-md ${timeBoxBg} border ${timeBoxBorder} flex items-center justify-center ${timeColor} text-xs shrink-0">
+                  ⏳
+                </div>
+                <div class="min-w-0 flex-1 leading-tight">
+                  <span class="text-slate-400 text-[9px] block truncate" title="${timeSub}">${timeSub}</span>
+                  <span class="font-bold ${timeColor} truncate block text-[10px]">
+                    ${timeText}
+                  </span>
+                </div>
+              </div>
             </div>
           </div>
         `;

@@ -129,6 +129,10 @@ html.theme-light [class*="bg-slate-900"] {
   background-color: #f1f5f9 !important;
   border-color: #e2e8f0 !important;
 }
+html.theme-light [class*="bg-slate-950"] {
+  background-color: #f8fafc !important;
+  border-color: #e2e8f0 !important;
+}
 html.theme-light [class*="bg-slate-800"] {
   background-color: #ffffff !important;
   border-color: #e2e8f0 !important;

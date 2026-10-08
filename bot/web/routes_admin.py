@@ -970,6 +970,7 @@ async def get_admin_users(request: web.Request) -> web.Response:
                 remaining_gb = -1.0 if panel_exists else 0.0  # -1 signifies unlimited
 
             days_left = None
+            expire_jalali_str = ""
             expire_at_str = p.get("expireAt")
             if expire_at_str:
                 try:
@@ -979,6 +980,9 @@ async def get_admin_users(request: web.Request) -> web.Response:
                         days_left = int(math.ceil(delta.total_seconds() / 86400.0))
                     else:
                         days_left = 0
+                    if jdatetime:
+                        exp_j = jdatetime.datetime.fromgregorian(datetime=exp_dt)
+                        expire_jalali_str = f"{exp_j.year}/{exp_j.month:02d}/{exp_j.day:02d}"
                 except Exception:
                     pass
 
@@ -1032,6 +1036,8 @@ async def get_admin_users(request: web.Request) -> web.Response:
                     "limit_traffic_gb": limit_gb,
                     "remaining_traffic_gb": remaining_gb,
                     "days_left": days_left,
+                    "expire_jalali": expire_jalali_str,
+                    "expire_at": expire_at_str,
                     "subscription_url": p.get("subscriptionUrl") or p.get("subscription_url") or "",
                 } if panel_exists else None,
             })

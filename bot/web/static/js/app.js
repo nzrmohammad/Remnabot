@@ -684,14 +684,14 @@ function setupTelegramSDK() {
       });
       syncTelegramBackButton();
     }
+
+    document.getElementById('closeBtn')?.addEventListener('click', () => {
+      if (tg) tg.close();
+      else alert('این دکمه در تلگرام واقعی، پنجره مینی‌اپ را می‌بندد.');
+    });
   } else {
     updateTopPadding();
   }
-}
-  document.getElementById('closeBtn')?.addEventListener('click', () => {
-    if (tg) tg.close();
-    else alert('این دکمه در تلگرام واقعی، پنجره مینی‌اپ را می‌بندد.');
-  });
 }
 
 // 12. Multi-Account Switcher
@@ -936,14 +936,22 @@ function hydrateUserInterface(data) {
     }
 
     // Weekly & Monthly Charts using DRY Chart.js renderBarChart
-    renderBarChart('repWeeklyChartCanvas', sub.week_daily_totals_gb || [0, 0, 0, 0, 0, 0, 0], sub.week_day_labels || ['ش', 'ی', 'د', 'س', 'چ', 'پ', 'ج'], false);
+    try {
+      renderBarChart('repWeeklyChartCanvas', sub.week_daily_totals_gb || [0, 0, 0, 0, 0, 0, 0], sub.week_day_labels || ['ش', 'ی', 'د', 'س', 'چ', 'پ', 'ج'], false);
+    } catch (e) {
+      console.warn('Could not render weekly chart:', e);
+    }
 
     const repMonthlyTitle = document.getElementById('repMonthlyTitle');
     if (repMonthlyTitle) repMonthlyTitle.innerText = `📅 گزارش جامع ماه ${sub.current_month_name || ''}`;
     const repMonthlyTotal = document.getElementById('repMonthlyTotal');
     if (repMonthlyTotal) repMonthlyTotal.innerText = `${sub.month_used_gb ?? '0.00'} GB`;
 
-    renderBarChart('repMonthlyChartCanvas', sub.month_weeks_totals_gb || [0, 0, 0, sub.week_used_gb || 0], ['هفته ۱', 'هفته ۲', 'هفته ۳', 'هفته ۴'], true);
+    try {
+      renderBarChart('repMonthlyChartCanvas', sub.month_weeks_totals_gb || [0, 0, 0, sub.week_used_gb || 0], ['هفته ۱', 'هفته ۲', 'هفته ۳', 'هفته ۴'], true);
+    } catch (e) {
+      console.warn('Could not render monthly chart:', e);
+    }
   }
 
   // Active Devices
