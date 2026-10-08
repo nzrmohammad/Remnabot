@@ -823,16 +823,16 @@
   }
 
   function formatPlanLabelWithIconFirst(label) {
-    if (!label) return '💎 پلن';
+    if (!label) return 'پلن 💎';
     const str = String(label).trim();
     const emojiRegex = /(\p{Extended_Pictographic}|\p{Emoji_Presentation})/gu;
     const matches = str.match(emojiRegex);
     const cleanText = str.replace(emojiRegex, '').trim();
     if (matches && matches.length > 0) {
       const icons = matches.join('');
-      return `${icons} ${cleanText}`;
+      return cleanText ? `${cleanText} ${icons}` : icons;
     }
-    return `💎 ${cleanText || str}`;
+    return cleanText ? `${cleanText} 💎` : (str || 'پلن 💎');
   }
 
   let planSalesChartInstance = null;
@@ -2733,37 +2733,37 @@
           const expiryText = c.expires_at || 'نامحدود (دائمی)';
 
           return `
-            <div class="bg-slate-800/80 rounded-2xl p-4 border border-slate-700/80 space-y-3 shadow transition">
+            <div class="bg-white dark:bg-slate-800/80 rounded-2xl p-4 border border-slate-200 dark:border-slate-700/80 space-y-3 shadow-sm transition">
               <div class="flex items-start justify-between">
                 <div>
                   <div class="flex items-center gap-2">
-                    <span class="font-mono font-bold text-pink-600 dark:text-pink-400 text-sm tracking-wider uppercase bg-transparent border border-pink-500/30 px-2.5 py-0.5 rounded-xl">${c.code}</span>
+                    <span class="font-mono font-bold text-pink-600 dark:text-pink-400 text-sm tracking-wider uppercase bg-pink-500/10 border border-pink-500/30 px-2.5 py-0.5 rounded-xl">${c.code}</span>
                     ${statusBadge}
                   </div>
-                  <span class="text-[11px] text-emerald-400 font-bold block mt-1.5">${discountText}</span>
+                  <span class="text-[11px] text-emerald-600 dark:text-emerald-400 font-bold block mt-1.5">${discountText}</span>
                 </div>
               </div>
 
-              <div class="grid grid-cols-2 gap-2 text-[10px] bg-slate-900/60 p-2 rounded-xl">
+              <div class="grid grid-cols-2 gap-2 text-[10px] bg-slate-50 dark:bg-slate-900/60 p-2 rounded-xl border border-slate-100 dark:border-slate-800/60">
                 <div>
-                  <span class="text-slate-400 block text-[9px]">دفعات استفاده:</span>
-                  <b class="text-slate-200 font-mono">${maxText}</b>
+                  <span class="text-slate-500 dark:text-slate-400 block text-[9px]">دفعات استفاده:</span>
+                  <b class="text-slate-800 dark:text-slate-200 font-mono">${maxText}</b>
                 </div>
                 <div>
-                  <span class="text-slate-400 block text-[9px]">تاریخ انقضا:</span>
-                  <b class="text-slate-200 font-mono">${expiryText}</b>
+                  <span class="text-slate-500 dark:text-slate-400 block text-[9px]">تاریخ انقضا:</span>
+                  <b class="text-slate-800 dark:text-slate-200 font-mono">${expiryText}</b>
                 </div>
               </div>
 
               <div class="flex gap-2 pt-1 text-[11px]">
-                <button onclick="window.adminActions.openCouponUsages(${c.id}, '${c.code}')" class="flex-1 bg-transparent hover:bg-slate-500/10 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-700 hover:border-slate-400 dark:hover:border-slate-600 py-1.5 rounded-xl transition font-medium text-center flex items-center justify-center gap-1.5 active:scale-95">
-                  <svg class="w-3.5 h-3.5 text-pink-500 dark:text-pink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+                <button onclick="window.adminActions.openCouponUsages(${c.id}, '${c.code}')" class="flex-1 bg-slate-100 hover:bg-slate-200/80 dark:bg-slate-800/60 dark:hover:bg-slate-700/60 text-slate-800 dark:text-slate-200 border border-slate-300 dark:border-slate-700 hover:border-pink-500/50 py-1.5 rounded-xl transition font-semibold text-center flex items-center justify-center gap-1.5 active:scale-95 shadow-sm">
+                  <svg class="w-3.5 h-3.5 text-pink-600 dark:text-pink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
                   <span>استفاده‌کنندگان (${formatNumber(c.used_count || 0)})</span>
                 </button>
-                <button onclick="window.adminActions.toggleCoupon(${c.id}, ${c.is_active})" class="bg-transparent hover:bg-slate-500/10 ${c.is_active ? 'text-amber-600 dark:text-amber-400 border border-amber-500/30 hover:border-amber-400/60' : 'text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 hover:border-emerald-400/60'} py-1.5 px-3 rounded-xl transition font-semibold text-center active:scale-95">
+                <button onclick="window.adminActions.toggleCoupon(${c.id}, ${c.is_active})" class="bg-transparent hover:bg-slate-500/10 ${c.is_active ? 'text-amber-600 dark:text-amber-400 border border-amber-500/40 hover:border-amber-500' : 'text-emerald-600 dark:text-emerald-400 border border-emerald-500/40 hover:border-emerald-500'} py-1.5 px-3 rounded-xl transition font-semibold text-center active:scale-95">
                   ${c.is_active ? 'غیرفعال‌سازی' : 'فعال‌سازی'}
                 </button>
-                <button onclick="window.adminActions.deleteCoupon(${c.id}, '${c.code}')" class="bg-transparent hover:bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/30 hover:border-rose-400/60 px-3 py-1.5 rounded-xl transition font-medium flex items-center justify-center active:scale-95" title="حذف کد تخفیف">
+                <button onclick="window.adminActions.deleteCoupon(${c.id}, '${c.code}')" class="bg-transparent hover:bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/40 hover:border-rose-500 px-3 py-1.5 rounded-xl transition font-medium flex items-center justify-center active:scale-95" title="حذف کد تخفیف">
                   <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                 </button>
               </div>

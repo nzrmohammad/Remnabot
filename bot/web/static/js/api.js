@@ -5,7 +5,11 @@
 
 const api = {
   getInitData() {
-    return window.Telegram?.WebApp?.initData || '';
+    if (window.Telegram?.WebApp?.initData) {
+      return window.Telegram.WebApp.initData;
+    }
+    const params = new URLSearchParams(window.location.search);
+    return params.get('initData') || '';
   },
 
   async request(url, options = {}) {
@@ -19,21 +23,32 @@ const api = {
       options.body = JSON.stringify(options.body);
     }
 
-    const response = await fetch(url, {
-      ...options,
-      headers,
-    });
-
     try {
-      const data = await response.json();
-      return { ok: response.ok, status: response.status, data };
-    } catch (e) {
-      return { ok: response.ok, status: response.status, data: null };
+      const response = await fetch(url, {
+        ...options,
+        headers,
+      });
+
+      try {
+        const data = await response.json();
+        return { ok: response.ok, status: response.status, data };
+      } catch (e) {
+        return { ok: response.ok, status: response.status, data: null };
+      }
+    } catch (netErr) {
+      console.warn('API network error for ' + url + ':', netErr);
+      return { ok: false, status: 0, data: { ok: false, error: 'خطای شبکه در ارتباط با سرور' } };
     }
   },
 
   async get(url, queryParams = {}) {
     const searchParams = new URLSearchParams(queryParams);
+    const locParams = new URLSearchParams(window.location.search);
+    for (const key of ['dev_id', 'user_id', 'initData']) {
+      if (locParams.has(key) && !searchParams.has(key)) {
+        searchParams.set(key, locParams.get(key));
+      }
+    }
     const qs = searchParams.toString();
     const fullUrl = qs ? `${url}?${qs}` : url;
     const res = await this.request(fullUrl, { method: 'GET' });
@@ -41,7 +56,19 @@ const api = {
   },
 
   async post(url, body = {}) {
-    const res = await this.request(url, { method: 'POST', body });
+    let fullUrl = url;
+    const locParams = new URLSearchParams(window.location.search);
+    const forwardParams = new URLSearchParams();
+    for (const key of ['dev_id', 'user_id', 'initData']) {
+      if (locParams.has(key)) {
+        forwardParams.set(key, locParams.get(key));
+      }
+    }
+    const qs = forwardParams.toString();
+    if (qs && !fullUrl.includes('?')) {
+      fullUrl = `${fullUrl}?${qs}`;
+    }
+    const res = await this.request(fullUrl, { method: 'POST', body });
     return res.data || {};
   },
 

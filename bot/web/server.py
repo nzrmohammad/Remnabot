@@ -79,8 +79,8 @@ _api_buckets: dict[str, deque[float]] = defaultdict(deque)
 
 @web.middleware
 async def api_rate_limit_middleware(request: web.Request, handler):
-    """Protect TMA API endpoints against DoS and brute-force attacks."""
-    if not request.path.startswith("/api/"):
+    # Only rate-limit public /api/user/ endpoints; administrative endpoints are completely exempt
+    if not request.path.startswith("/api/user/"):
         return await handler(request)
 
     if request.app.get("is_dev", False) or request.method == "OPTIONS":
@@ -207,7 +207,7 @@ def create_web_app(
     is_dev: bool = False,
 ) -> web.Application:
     """Build and configure the aiohttp web application."""
-    app = web.Application(middlewares=[api_rate_limit_middleware, cors_and_security_middleware])
+    app = web.Application(middlewares=[cors_and_security_middleware, api_rate_limit_middleware])
 
     # Injected dependencies
     app["bot"] = bot

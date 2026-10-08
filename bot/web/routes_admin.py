@@ -49,15 +49,15 @@ EMOJI_PATTERN = re.compile(
 
 
 def format_service_name_icon_first(name: str | None) -> str:
-    """Format service name to guarantee the icon/emoji appears first."""
+    """Format service name to place the icon on the visual left in RTL charts."""
     if not name:
-        return "💎 پلن"
+        return "پلن 💎"
     raw = str(name).strip()
     emojis = "".join(EMOJI_PATTERN.findall(raw)).strip()
     clean_text = EMOJI_PATTERN.sub("", raw).strip()
     if not emojis:
         emojis = "💎"
-    return f"{emojis} {clean_text}" if clean_text else emojis
+    return f"{clean_text} {emojis}" if clean_text else emojis
 
 
 async def get_admin_overview(request: web.Request) -> web.Response:
@@ -721,7 +721,7 @@ async def get_admin_overview(request: web.Request) -> web.Response:
         else:
             srv_res = await session.execute(select(Service.name).where(Service.is_active.is_(True)).limit(5))
             srv_names = srv_res.scalars().all()
-            plan_labels = [format_service_name_icon_first(str(n)) for n in srv_names] if srv_names else ["💎 پلن ۱ ماهه", "🚀 پلن ۳ ماهه", "⚡ پلن نامحدود"]
+            plan_labels = [format_service_name_icon_first(str(n)) for n in srv_names] if srv_names else ["پلن ۱ ماهه 💎", "پلن ۳ ماهه 🚀", "پلن نامحدود ⚡"]
             plan_sales = [0] * len(plan_labels)
             plan_revenue = [0] * len(plan_labels)
 
@@ -944,7 +944,11 @@ async def get_admin_users(request: web.Request) -> web.Response:
         user_items = []
         now_utc = datetime.now(timezone.utc)
         for u in users:
-            panel_users = await remnawave.get_users_by_telegram_id(u.telegram_id) or []
+            try:
+                panel_users = await remnawave.get_users_by_telegram_id(u.telegram_id) or []
+            except Exception as exc:
+                logger.warning("Failed to fetch panel users for %s: %s", u.telegram_id, exc)
+                panel_users = []
             p = panel_users[0] if panel_users else {}
             panel_exists = bool(panel_users)
 
