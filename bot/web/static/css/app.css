@@ -884,3 +884,103 @@ html.theme-light #closeSupportChatBtn:hover {
   background-color: #e2e8f0 !important;
   color: #0f172a !important;
 }
+
+/* ======================================================== */
+/* Light Theme: Universal Pastel Badges (*-950 overrides)   */
+/* ======================================================== */
+html.theme-light [class*="bg-cyan-950"] {
+  background-color: #ecfeff !important;
+  border-color: #a5f3fc !important;
+  color: #0891b2 !important;
+}
+
+html.theme-light [class*="bg-indigo-950"] {
+  background-color: #eef2ff !important;
+  border-color: #c7d2fe !important;
+  color: #4f46e5 !important;
+}
+
+html.theme-light [class*="bg-emerald-950"] {
+  background-color: #ecfdf5 !important;
+  border-color: #a7f3d0 !important;
+  color: #059669 !important;
+}
+
+html.theme-light [class*="bg-rose-950"] {
+  background-color: #fff1f2 !important;
+  border-color: #fecdd3 !important;
+  color: #e11d48 !important;
+}
+
+html.theme-light [class*="bg-amber-950"] {
+  background-color: #fffbeb !important;
+  border-color: #fde68a !important;
+  color: #b45309 !important;
+}
+
+html.theme-light [class*="bg-blue-950"] {
+  background-color: #eff6ff !important;
+  border-color: #bfdbfe !important;
+  color: #2563eb !important;
+}
+
+/* Light Theme: Breakdown Accordion & List Items */
+html.theme-light #countryBreakdownBody,
+html.theme-light #subAccordionBody,
+html.theme-light #countryBreakdownList > div {
+  background-color: #f8fafc !important;
+  border-color: #e2e8f0 !important;
+}
+
+html.theme-light #countryBreakdownList .text-cyan-300 {
+  color: #0284c7 !important;
+}
+
+html.theme-light #countryBreakdownList .text-slate-200 {
+  color: #1e293b !important;
+}
+
+html.theme-light #toggleCountryBreakdownBtn:hover,
+html.theme-light #toggleSubAccordionBtn:hover,
+html.theme-light #toggleSessionsAccordionBtn:hover {
+  background-color: #f8fafc !important;
+}
+
+/* Light Theme: Copy Subscription Button */
+html.theme-light #copySubBtn {
+  background: linear-gradient(135deg, #2563eb, #3b82f6) !important;
+  border-color: #3b82f6 !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.25) !important;
+}
+
+html.theme-light #copySubBtn:hover {
+  background: linear-gradient(135deg, #1d4ed8, #2563eb) !important;
+}
+
+/* Light Theme: Crypto Topup Memo/Comment High-Contrast Box */
+html.theme-light #cryptoInvoiceDetails .bg-amber-500\/10,
+html.theme-light .bg-amber-500\/10 {
+  background-color: #fefce8 !important;
+  border-color: #fef08a !important;
+}
+
+html.theme-light #cryptoInvoiceDetails .text-amber-300,
+html.theme-light #cryptoInvoiceDetails #cryptoComment,
+html.theme-light .text-amber-300 {
+  color: #b45309 !important;
+}
+
+html.theme-light #cryptoInvoiceDetails p.text-amber-200\/80,
+html.theme-light .text-amber-200\/80 {
+  color: #92400e !important;
+}
+
+html.theme-light #cryptoInvoiceDetails #cryptoPayAddress,
+html.theme-light #cryptoInvoiceDetails #copyTonAddressBtn {
+  color: #1e293b !important;
+}
+
+html.theme-light #cryptoInvoiceDetails #cryptoAmountTon {
+  color: #0284c7 !important;
+}

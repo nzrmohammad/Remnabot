@@ -77,7 +77,8 @@ function renderBarChart(containerId, totals, labels, isMonthly = false) {
       plugins: {
         legend: { display: false },
         tooltip: {
-          rtl: true,
+          rtl: false,
+          textDirection: 'ltr',
           displayColors: false,
           backgroundColor: isLight ? '#1e293b' : '#0f172a',
           titleColor: '#ffffff',
@@ -87,9 +88,13 @@ function renderBarChart(containerId, totals, labels, isMonthly = false) {
           padding: 8,
           cornerRadius: 8,
           callbacks: {
+            title: function(context) {
+              const lbl = context[0]?.label || '';
+              return isMonthly ? `هفته ${lbl}` : `روز ${lbl}`;
+            },
             label: function(context) {
               const val = context.raw != null ? Number(context.raw).toFixed(2) : '0.00';
-              return ` ${val} GB`;
+              return `\u200E${val} GB\u200E`;
             }
           }
         }
@@ -103,6 +108,7 @@ function renderBarChart(containerId, totals, labels, isMonthly = false) {
           }
         },
         y: {
+          position: 'left',
           beginAtZero: true,
           grid: {
             color: gridColor,
@@ -112,7 +118,7 @@ function renderBarChart(containerId, totals, labels, isMonthly = false) {
             color: textColor,
             font: { family: 'monospace', size: 9 },
             callback: function(val) {
-              return val + ' GB';
+              return `\u200E${val} GB\u200E`;
             }
           }
         }
@@ -137,7 +143,7 @@ function renderNodeBreakdown(containerId, nodes, emptyText = 'مصرفی ثبت 
   container.innerHTML = nodes.map(n => `
     <div dir="ltr" class="bg-slate-900/60 p-2 rounded-lg flex items-center justify-between border border-slate-700/40">
       <span class="text-base">${n.flag || '🌐'}</span>
-      <span class="font-bold text-slate-100 font-mono">${toEnglishDigits(n.total_formatted || '0 GB')}</span>
+      <span class="font-bold text-slate-100 font-mono inline-block" dir="ltr">\u200E${toEnglishDigits(n.total_formatted || '0 GB')}\u200E</span>
     </div>
   `).join('');
 }

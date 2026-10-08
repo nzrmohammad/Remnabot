@@ -929,10 +929,10 @@ function hydrateUserInterface(data) {
     renderNodeBreakdown('repMonthlyNodesContainer', sub.week_breakdown || sub.today_breakdown || [], 'مصرفی در ماه جاری ثبت نشده است.');
 
     const repWeeklyTotal = document.getElementById('repWeeklyTotal');
-    if (repWeeklyTotal) repWeeklyTotal.innerText = `${sub.week_used_gb ?? '0.00'} GB`;
+    if (repWeeklyTotal) repWeeklyTotal.innerHTML = `<span dir="ltr" class="font-mono inline-block">\u200E${sub.week_used_gb ?? '0.00'} GB\u200E</span>`;
     const repWeeklyBusiest = document.getElementById('repWeeklyBusiest');
     if (repWeeklyBusiest) {
-      repWeeklyBusiest.innerHTML = `${sub.busiest_day_name || '—'} <span dir="ltr" class="font-mono inline-block text-cyan-300 font-semibold">(${toEnglishDigits(sub.busiest_day_amount || '0 GB')})</span>`;
+      repWeeklyBusiest.innerHTML = `${sub.busiest_day_name || '—'} <span dir="ltr" class="font-mono inline-block text-cyan-300 font-semibold">\u200E(${toEnglishDigits(sub.busiest_day_amount || '0 GB')})\u200E</span>`;
     }
 
     // Weekly & Monthly Charts using DRY Chart.js renderBarChart
@@ -945,7 +945,7 @@ function hydrateUserInterface(data) {
     const repMonthlyTitle = document.getElementById('repMonthlyTitle');
     if (repMonthlyTitle) repMonthlyTitle.innerText = `📅 گزارش جامع ماه ${sub.current_month_name || ''}`;
     const repMonthlyTotal = document.getElementById('repMonthlyTotal');
-    if (repMonthlyTotal) repMonthlyTotal.innerText = `${sub.month_used_gb ?? '0.00'} GB`;
+    if (repMonthlyTotal) repMonthlyTotal.innerHTML = `<span dir="ltr" class="font-mono inline-block">\u200E${sub.month_used_gb ?? '0.00'} GB\u200E</span>`;
 
     try {
       renderBarChart('repMonthlyChartCanvas', sub.month_weeks_totals_gb || [0, 0, 0, sub.week_used_gb || 0], ['هفته ۱', 'هفته ۲', 'هفته ۳', 'هفته ۴'], true);
