@@ -1,8 +1,10 @@
 /**
  * RemnaStore Pro - Shop Plans & Checkout Logic
+ * Native TMA checkout modal without browser confirm alerts.
  */
 
 window.activeCoupon = null;
+let currentPendingPlan = null;
 
 function setupCouponInput() {
   const applyCouponBtn = document.getElementById('applyCouponBtn');
@@ -24,16 +26,16 @@ function setupCouponInput() {
         window.activeCoupon = res.data;
         let discMsg = '';
         if (res.data.discount_percent > 0) discMsg = `${res.data.discount_percent}٪`;
-        else if (res.data.discount_amount > 0) discMsg = `${res.data.discount_amount.toLocaleString('fa-IR')} تومان`;
+        else if (res.data.discount_amount > 0) discMsg = `${Number(res.data.discount_amount).toLocaleString('en-US')} تومان`;
         showToast(`🎉 کد تخفیف با موفقیت اعمال شد! (${discMsg} تخفیف)`);
         applyCouponBtn.innerText = '✅ اعمال شد';
-        applyCouponBtn.classList.replace('bg-slate-700', 'bg-emerald-600');
+        applyCouponBtn.classList.replace('bg-blue-600', 'bg-emerald-600');
         if (window.lastUserData) renderShopPlans(window.lastUserData);
       } else {
         window.activeCoupon = null;
         showToast(`❌ ${res.message || 'کد تخفیف نامعتبر است.'}`);
         applyCouponBtn.innerText = 'اعمال';
-        applyCouponBtn.classList.replace('bg-emerald-600', 'bg-slate-700');
+        applyCouponBtn.classList.replace('bg-emerald-600', 'bg-blue-600');
         if (window.lastUserData) renderShopPlans(window.lastUserData);
       }
     } catch (err) {
@@ -62,12 +64,12 @@ function renderShopPlans(data) {
       }
     }
     const finalPrice = Math.max(0, p.price - discountVal);
-    const formattedFinal = finalPrice.toLocaleString('fa-IR');
-    const formattedOriginal = (p.price || 0).toLocaleString('fa-IR');
+    const formattedFinal = Number(finalPrice).toLocaleString('en-US');
+    const formattedOriginal = Number(p.price || 0).toLocaleString('en-US');
     const devLimitText = (p.hwid_limit && p.hwid_limit > 0) ? `${p.hwid_limit} کاربر` : 'بدون محدودیت کاربر';
 
     return `
-      <div class="bg-slate-800/90 rounded-2xl p-4 border ${isPopular ? 'border-amber-500/60 shadow-lg shadow-amber-500/10' : 'border-slate-700/80'} relative overflow-hidden group">
+      <div class="shop-plan-card bg-slate-800/90 rounded-2xl p-4 border ${isPopular ? 'border-amber-500/60 shadow-lg shadow-amber-500/10' : 'border-slate-700/80'} relative overflow-hidden group">
         ${isPopular ? '<div class="absolute top-0 left-0 bg-gradient-to-r from-amber-500 to-yellow-500 text-slate-950 text-[10px] font-black px-3 py-0.5 rounded-br-xl shadow flex items-center gap-1">🔥 پرفروش‌ترین</div>' : ''}
         <div class="flex justify-between items-start ${isPopular ? 'mt-1' : ''}">
           <div>
@@ -80,7 +82,7 @@ function renderShopPlans(data) {
           <div class="text-left font-mono">
             ${discountVal > 0 ? `<span class="line-through text-slate-400 text-xs block -mb-0.5">${formattedOriginal}</span>` : ''}
             <span class="text-base font-black text-emerald-400">${formattedFinal}</span>
-            <span class="text-[10px] text-slate-400 block -mt-1">تومان</span>
+            <span class="text-[10px] text-slate-400 block -mt-1 font-sans">تومان</span>
           </div>
         </div>
         <div class="flex items-center justify-between my-2.5 text-[10px] text-slate-300 bg-slate-900/60 px-3 py-2 rounded-xl whitespace-nowrap overflow-hidden">
@@ -88,7 +90,7 @@ function renderShopPlans(data) {
           <span class="flex items-center gap-1">📅 <b class="text-slate-200">${p.duration_days} روز</b></span>
           <span class="flex items-center gap-1">📱 <b class="text-slate-200">${devLimitText}</b></span>
         </div>
-        <button class="buy-plan-btn w-full ${isPopular ? 'bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-black' : 'bg-blue-600 hover:bg-blue-500 text-white font-semibold'} text-xs py-2.5 rounded-xl transition shadow active:scale-[0.98]" data-id="${p.id}" data-price="${finalPrice}" data-name="${p.name}">
+        <button class="buy-plan-btn w-full ${isPopular ? 'bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-black' : 'bg-blue-600 hover:bg-blue-500 text-white font-semibold'} text-xs py-2.5 rounded-xl transition shadow active:scale-[0.98]" data-id="${p.id}" data-price="${finalPrice}" data-name="${p.name}" data-traffic="${p.traffic_gb}" data-days="${p.duration_days}">
           🛒 خرید / تمدید آنی (${formattedFinal} تومان)
         </button>
       </div>
@@ -98,51 +100,115 @@ function renderShopPlans(data) {
   setupBuyButtons();
 }
 
+function openCheckoutConfirmModal(plan) {
+  currentPendingPlan = plan;
+  const userBalance = window.lastUserData?.user?.wallet_balance || 0;
+  const planPrice = plan.price;
+  const isShortage = userBalance < planPrice;
+  const shortageAmount = planPrice - userBalance;
+
+  const modal = document.getElementById('checkoutConfirmModal');
+  if (!modal) return;
+
+  const nameEl = document.getElementById('checkoutPlanName');
+  const trafEl = document.getElementById('checkoutPlanTraffic');
+  const daysEl = document.getElementById('checkoutPlanDays');
+  const priceEl = document.getElementById('checkoutPlanPrice');
+  const balEl = document.getElementById('checkoutWalletBalance');
+  const remRow = document.getElementById('checkoutRemainRow');
+  const remBalEl = document.getElementById('checkoutRemainingBalance');
+  const shortageBox = document.getElementById('checkoutShortageBox');
+  const shortageAmtEl = document.getElementById('checkoutShortageAmount');
+  const topupBtn = document.getElementById('checkoutTopupBtn');
+  const confirmBtn = document.getElementById('confirmPurchaseBtn');
+
+  if (nameEl) nameEl.innerText = plan.name;
+  if (trafEl) trafEl.innerText = `${plan.traffic} GB`;
+  if (daysEl) daysEl.innerText = `${plan.days} روز`;
+  if (priceEl) priceEl.innerText = `${Number(planPrice).toLocaleString('en-US')} تومان`;
+  if (balEl) balEl.innerText = `${Number(userBalance).toLocaleString('en-US')} تومان`;
+
+  if (isShortage) {
+    if (remRow) remRow.classList.add('hidden');
+    if (shortageBox) shortageBox.classList.remove('hidden');
+    if (shortageAmtEl) shortageAmtEl.innerText = `${Number(shortageAmount).toLocaleString('en-US')} تومان`;
+    if (topupBtn) {
+      topupBtn.classList.remove('hidden');
+      topupBtn.onclick = () => {
+        closeModal('checkoutConfirmModal');
+        if (typeof openTopupModal === 'function') openTopupModal(shortageAmount);
+      };
+    }
+    if (confirmBtn) confirmBtn.classList.add('hidden');
+  } else {
+    if (shortageBox) shortageBox.classList.add('hidden');
+    if (topupBtn) topupBtn.classList.add('hidden');
+    if (remRow) remRow.classList.remove('hidden');
+    if (remBalEl) remBalEl.innerText = `${Number(userBalance - planPrice).toLocaleString('en-US')} تومان`;
+    if (confirmBtn) {
+      confirmBtn.classList.remove('hidden');
+      confirmBtn.disabled = false;
+      confirmBtn.innerText = '✅ تایید و خرید آنی';
+      confirmBtn.onclick = executePurchase;
+    }
+  }
+
+  openModal('checkoutConfirmModal');
+}
+
+async function executePurchase() {
+  if (!currentPendingPlan) return;
+  const { id: planId, price: planPrice, name: planName } = currentPendingPlan;
+  const confirmBtn = document.getElementById('confirmPurchaseBtn');
+
+  if (confirmBtn) {
+    confirmBtn.disabled = true;
+    confirmBtn.innerText = 'در حال ثبت خرید...';
+  }
+
+  try {
+    const res = await window.api.purchase(
+      planId,
+      window.activeCoupon?.code || null,
+      window.currentAccountId || null
+    );
+
+    if (res.ok) {
+      closeModal('checkoutConfirmModal');
+      showPurchaseModal(res, planName, planPrice);
+      hapticFeedback('success');
+      if (typeof syncUserDataWithApi === 'function') {
+        syncUserDataWithApi(window.currentAccountId);
+      }
+    } else {
+      showToast(`❌ ${res.message || 'خطا در ثبت خرید'}`);
+    }
+  } catch (err) {
+    showToast('❌ خطا در برقراری ارتباط با سرور.');
+  } finally {
+    if (confirmBtn) {
+      confirmBtn.disabled = false;
+      confirmBtn.innerText = '✅ تایید و خرید آنی';
+    }
+  }
+}
+
 function setupBuyButtons() {
   document.querySelectorAll('.buy-plan-btn').forEach(btn => {
-    btn.addEventListener('click', async () => {
+    btn.addEventListener('click', () => {
       const planId = btn.getAttribute('data-id');
       const planPrice = parseInt(btn.getAttribute('data-price') || '0');
       const planName = btn.getAttribute('data-name');
-      const userBalance = window.lastUserData?.user?.wallet_balance || 0;
+      const planTraffic = btn.getAttribute('data-traffic') || '--';
+      const planDays = btn.getAttribute('data-days') || '--';
 
-      if (userBalance < planPrice) {
-        const diff = planPrice - userBalance;
-        if (confirm(`موجودی کیف پول شما کافی نیست.\nموجودی فعلی: ${userBalance.toLocaleString('fa-IR')} تومان\nکسری: ${diff.toLocaleString('fa-IR')} تومان\n\nآیا مایلید هم‌اکنون کیف پول خود را شارژ فرمایید؟`)) {
-          if (typeof openTopupModal === 'function') openTopupModal(diff);
-        }
-        return;
-      }
-
-      if (!confirm(`آیا از خرید بسته «${planName}» به مبلغ ${planPrice.toLocaleString('fa-IR')} تومان اطمینان دارید؟`)) {
-        return;
-      }
-
-      btn.disabled = true;
-      btn.innerText = 'در حال ثبت خرید...';
-
-      try {
-        const res = await window.api.purchase(
-          planId,
-          window.activeCoupon?.code || null,
-          window.currentAccountId || null
-        );
-
-        if (res.ok) {
-          showPurchaseModal(res, planName, planPrice);
-          hapticFeedback('success');
-          if (typeof syncUserDataWithApi === 'function') {
-            syncUserDataWithApi(window.currentAccountId);
-          }
-        } else {
-          showToast(`❌ ${res.message || 'خطا در ثبت خرید'}`);
-        }
-      } catch (err) {
-        showToast('❌ خطا در برقراری ارتباط با سرور.');
-      } finally {
-        btn.disabled = false;
-        btn.innerText = `🛒 خرید / تمدید آنی (${planPrice.toLocaleString('fa-IR')} تومان)`;
-      }
+      openCheckoutConfirmModal({
+        id: planId,
+        price: planPrice,
+        name: planName,
+        traffic: planTraffic,
+        days: planDays
+      });
     });
   });
 }
@@ -178,8 +244,8 @@ function showPurchaseModal(res, fallbackPlanName, fallbackPlanPrice) {
   if (sTrafEl) sTrafEl.innerText = `${res.traffic_gb ?? ''} GB`;
   if (sDaysEl) sDaysEl.innerText = `${res.duration_days ?? ''} روز`;
   if (sUserEl) sUserEl.innerText = res.panel_username || (window.lastUserData?.active_sub?.username || 'کاربر');
-  if (sPriceEl) sPriceEl.innerText = `${(res.effective_price ?? fallbackPlanPrice).toLocaleString('fa-IR')} تومان`;
-  if (sBalEl) sBalEl.innerText = `${(res.new_balance || 0).toLocaleString('fa-IR')} تومان`;
+  if (sPriceEl) sPriceEl.innerText = `${Number(res.effective_price ?? fallbackPlanPrice).toLocaleString('en-US')} تومان`;
+  if (sBalEl) sBalEl.innerText = `${Number(res.new_balance || 0).toLocaleString('en-US')} تومان`;
 
   const subUrl = res.subscription_url || window.lastUserData?.active_sub?.subscription_url || '';
   if (sSubEl) sSubEl.innerText = subUrl || 'لینک اشتراک در داشبورد ثبت گردید.';
@@ -213,7 +279,7 @@ function showPurchaseModal(res, fallbackPlanName, fallbackPlanPrice) {
     if (cBtn) {
       cBtn.disabled = false;
       cBtn.innerText = 'اعمال';
-      cBtn.className = 'bg-slate-700 hover:bg-slate-600 text-slate-200 text-xs font-semibold px-3.5 py-2 rounded-lg transition';
+      cBtn.className = 'bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold px-4 py-2 rounded-lg transition';
     }
     if (window.lastUserData) renderShopPlans(window.lastUserData);
     if (typeof syncUserDataWithApi === 'function') syncUserDataWithApi(window.currentAccountId);
@@ -231,3 +297,4 @@ function showPurchaseModal(res, fallbackPlanName, fallbackPlanPrice) {
 
 window.renderShopPlans = renderShopPlans;
 window.setupCouponInput = setupCouponInput;
+window.openCheckoutConfirmModal = openCheckoutConfirmModal;

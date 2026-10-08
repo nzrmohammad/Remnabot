@@ -119,18 +119,35 @@ function setupSubscriptionActions() {
   });
 }
 
-// 5. Toggle QR Code
+// 5. Toggle QR Code (Dedicated Modern Modal)
 function setupQrToggle() {
   const qrToggleBtn = document.getElementById('qrToggleBtn');
-  const qrContainer = document.getElementById('qrContainer');
+  const closeQrModalBtn = document.getElementById('closeQrModalBtn');
+  const copySubFromQrModalBtn = document.getElementById('copySubFromQrModalBtn');
+  const qrModal = document.getElementById('qrModal');
+
   qrToggleBtn?.addEventListener('click', () => {
-    qrContainer?.classList.toggle('hidden');
-    if (qrContainer?.classList.contains('hidden')) {
-      qrToggleBtn.innerHTML = '<span class="text-sm">📷</span>';
-    } else {
-      qrToggleBtn.innerHTML = '<span class="text-sm">✕</span>';
-    }
+    openModal('qrModal');
     syncTelegramBackButton();
+  });
+
+  closeQrModalBtn?.addEventListener('click', () => {
+    closeModal('qrModal');
+    syncTelegramBackButton();
+  });
+
+  copySubFromQrModalBtn?.addEventListener('click', () => {
+    const url = (document.getElementById('subInput')?.value || '').trim();
+    if (url && !url.includes('در حال') && !url.includes('یافت نشد')) {
+      copyToClipboard(url, '📋 لینک اشتراک با موفقیت در کلیپ‌بورد کپی شد.');
+    }
+  });
+
+  qrModal?.addEventListener('click', (e) => {
+    if (e.target === qrModal) {
+      closeModal('qrModal');
+      syncTelegramBackButton();
+    }
   });
 }
 
@@ -271,6 +288,12 @@ function setupThemeToggle() {
       document.documentElement.classList.add('theme-light');
       if (themeIcon) themeIcon.innerText = '☀️';
       try { if (window.Telegram?.WebApp?.setHeaderColor) window.Telegram.WebApp.setHeaderColor('#ffffff'); } catch(e) {}
+    }
+
+    if (window.lastUserData?.active_sub && typeof renderBarChart === 'function') {
+      const sub = window.lastUserData.active_sub;
+      renderBarChart('repWeeklyChartCanvas', sub.week_daily_totals_gb || [0, 0, 0, 0, 0, 0, 0], sub.week_day_labels || ['ش', 'ی', 'د', 'س', 'چ', 'پ', 'ج'], false);
+      renderBarChart('repMonthlyChartCanvas', sub.month_weeks_totals_gb || [0, 0, 0, sub.week_used_gb || 0], ['هفته ۱', 'هفته ۲', 'هفته ۳', 'هفته ۴'], true);
     }
   };
 
@@ -574,7 +597,8 @@ function syncTelegramBackButton() {
   if (!tg?.BackButton) return;
   const modalIds = [
     'revokeModal', 'switchAccountModal', 'activeSessionsModal',
-    'topupModal', 'luckyWheelModal', 'storyModal', 'purchaseSuccessModal'
+    'topupModal', 'luckyWheelModal', 'storyModal', 'purchaseSuccessModal',
+    'qrModal', 'checkoutConfirmModal'
   ];
   const hasOpenModal = modalIds.some(id => {
     const el = document.getElementById(id);
@@ -622,7 +646,8 @@ function setupTelegramSDK() {
       tg.BackButton.onClick(() => {
         const modalIds = [
           'revokeModal', 'switchAccountModal', 'activeSessionsModal',
-          'topupModal', 'luckyWheelModal', 'storyModal', 'purchaseSuccessModal'
+          'topupModal', 'luckyWheelModal', 'storyModal', 'purchaseSuccessModal',
+          'qrModal', 'checkoutConfirmModal'
         ];
         for (const id of modalIds) {
           const el = document.getElementById(id);
@@ -647,7 +672,8 @@ function setupTelegramSDK() {
 
       const observedModalIds = [
         'revokeModal', 'switchAccountModal', 'activeSessionsModal',
-        'topupModal', 'luckyWheelModal', 'storyModal', 'qrContainer', 'purchaseSuccessModal'
+        'topupModal', 'luckyWheelModal', 'storyModal', 'qrContainer',
+        'purchaseSuccessModal', 'qrModal', 'checkoutConfirmModal'
       ];
       observedModalIds.forEach(id => {
         const el = document.getElementById(id);
@@ -661,7 +687,7 @@ function setupTelegramSDK() {
   } else {
     updateTopPadding();
   }
-
+}
   document.getElementById('closeBtn')?.addEventListener('click', () => {
     if (tg) tg.close();
     else alert('این دکمه در تلگرام واقعی، پنجره مینی‌اپ را می‌بندد.');
@@ -812,6 +838,10 @@ function hydrateUserInterface(data) {
     if (qrImg && sub.subscription_url) {
       qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(sub.subscription_url)}`;
     }
+    const modalQrImg = document.getElementById('modalQrImage');
+    if (modalQrImg && sub.subscription_url) {
+      modalQrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=260x260&data=${encodeURIComponent(sub.subscription_url)}`;
+    }
   } else {
     const subInputEl = document.getElementById('subInput');
     if (subInputEl) subInputEl.value = 'اشتراک فعالی یافت نشد - لطفاً از تب فروشگاه اقدام فرمایید.';
@@ -831,7 +861,7 @@ function hydrateUserInterface(data) {
   if (storyUser) storyUser.innerText = user.username ? `@${user.username}` : `شناسه: ${user.id || ''}`;
   if (storyAvatar) storyAvatar.innerText = displayName.charAt(0).toUpperCase();
   if (storyTraffic) storyTraffic.innerText = `${sub?.traffic_remaining_gb ?? '--'} GB`;
-  if (storyDays) storyDays.innerText = `${sub?.days_left ?? 0} روز اعتبار`;
+  if (storyDays) storyDays.innerText = `${toEnglishDigits(sub?.days_left ?? 0)} روز اعتبار`;
   const botUsername = data.bot_username || window.Telegram?.WebApp?.initDataUnsafe?.bot?.username || 'RemnaWaveBot';
   const refLink = `https://t.me/${botUsername}?start=ref_${user.id || ''}`;
   window.currentReferralLink = refLink;
@@ -863,7 +893,7 @@ function hydrateUserInterface(data) {
         return `
         <div class="p-2.5 rounded-xl bg-slate-900/70 border border-slate-700/50 space-y-1.5">
           <div class="flex justify-between items-center text-xs">
-            <span class="text-cyan-300 font-black text-xs font-mono" dir="ltr">${item.total_formatted}</span>
+            <span class="text-cyan-300 font-black text-xs font-mono" dir="ltr">${toEnglishDigits(item.total_formatted)}</span>
             <span class="flex items-center gap-2 font-bold text-slate-200">
               <span>${item.name}</span>
               <span class="text-base">${item.flag || '🌐'}</span>
@@ -876,10 +906,10 @@ function hydrateUserInterface(data) {
     }
   }
 
-  // Reports Hub
+  // Reports Hub (All Numbers in English ASCII format)
   if (data.yesterday_jalali) {
     const repDateEl = document.getElementById('repNightlyDate');
-    if (repDateEl) repDateEl.innerText = `${data.yesterday_jalali} - ۲۳:۵۹`;
+    if (repDateEl) repDateEl.innerText = `${toEnglishDigits(data.yesterday_jalali)} - 23:59`;
   }
   if (sub) {
     const repTotal = document.getElementById('repNightlyTotal');
@@ -891,7 +921,7 @@ function hydrateUserInterface(data) {
     const repYesterday = document.getElementById('repNightlyYesterday');
     if (repYesterday) repYesterday.innerText = `${sub.yesterday_used_gb ?? '0.00'} GB`;
     const repExpire = document.getElementById('repNightlyExpire');
-    if (repExpire) repExpire.innerText = `${sub.days_left ?? 0} روز (${sub.expire_jalali || 'نامحدود'})`;
+    if (repExpire) repExpire.innerText = `${toEnglishDigits(sub.days_left ?? 0)} روز (${toEnglishDigits(sub.expire_jalali || 'نامحدود')})`;
 
     // Reusable Server Breakdown for Nightly, Weekly, Monthly
     renderNodeBreakdown('repNightlyNodesContainer', sub.yesterday_breakdown || sub.today_breakdown || [], 'دیشب مصرفی روی سرورها ثبت نشده است.');
@@ -902,27 +932,27 @@ function hydrateUserInterface(data) {
     if (repWeeklyTotal) repWeeklyTotal.innerText = `${sub.week_used_gb ?? '0.00'} GB`;
     const repWeeklyBusiest = document.getElementById('repWeeklyBusiest');
     if (repWeeklyBusiest) {
-      repWeeklyBusiest.innerHTML = `${sub.busiest_day_name || '—'} <span dir="ltr" class="font-mono inline-block text-cyan-300 font-semibold">(${sub.busiest_day_amount || '0 GB'})</span>`;
+      repWeeklyBusiest.innerHTML = `${sub.busiest_day_name || '—'} <span dir="ltr" class="font-mono inline-block text-cyan-300 font-semibold">(${toEnglishDigits(sub.busiest_day_amount || '0 GB')})</span>`;
     }
 
-    // Weekly & Monthly Charts using DRY renderBarChart
-    renderBarChart('repWeeklyChart', sub.week_daily_totals_gb || [0, 0, 0, 0, 0, 0, 0], sub.week_day_labels || ['ش', 'ی', 'د', 'س', 'چ', 'پ', 'ج'], false);
+    // Weekly & Monthly Charts using DRY Chart.js renderBarChart
+    renderBarChart('repWeeklyChartCanvas', sub.week_daily_totals_gb || [0, 0, 0, 0, 0, 0, 0], sub.week_day_labels || ['ش', 'ی', 'د', 'س', 'چ', 'پ', 'ج'], false);
 
     const repMonthlyTitle = document.getElementById('repMonthlyTitle');
     if (repMonthlyTitle) repMonthlyTitle.innerText = `📅 گزارش جامع ماه ${sub.current_month_name || ''}`;
     const repMonthlyTotal = document.getElementById('repMonthlyTotal');
     if (repMonthlyTotal) repMonthlyTotal.innerText = `${sub.month_used_gb ?? '0.00'} GB`;
 
-    renderBarChart('repMonthlyChart', sub.month_weeks_totals_gb || [0, 0, 0, sub.week_used_gb || 0], ['هفته ۱', 'هفته ۲', 'هفته ۳', 'هفته ۴'], true);
+    renderBarChart('repMonthlyChartCanvas', sub.month_weeks_totals_gb || [0, 0, 0, sub.week_used_gb || 0], ['هفته ۱', 'هفته ۲', 'هفته ۳', 'هفته ۴'], true);
   }
 
   // Active Devices
   const devices = sub?.devices || [];
   const activeDevCount = sub?.devices_count ?? devices.length;
   const repSessionsBadge = document.getElementById('reportsSessionsBadge');
-  if (repSessionsBadge) repSessionsBadge.innerText = `${activeDevCount} دستگاه`;
+  if (repSessionsBadge) repSessionsBadge.innerText = `${toEnglishDigits(activeDevCount)} دستگاه`;
   const mCountText = document.getElementById('modalSessionsCount');
-  if (mCountText) mCountText.innerText = `${activeDevCount} دستگاه`;
+  if (mCountText) mCountText.innerText = `${toEnglishDigits(activeDevCount)} دستگاه`;
 
   function renderDeviceList(container) {
     if (!container) return;
@@ -1002,7 +1032,7 @@ function hydrateUserInterface(data) {
   // Wallet Balances
   const walletEl = document.getElementById('shopWalletBalance');
   const walletTabBal = document.getElementById('walletTabBalance');
-  const formattedWallet = `${(user.wallet_balance || 0).toLocaleString('fa-IR')} تومان`;
+  const formattedWallet = `${Number(user.wallet_balance || 0).toLocaleString('en-US')} تومان`;
   if (walletEl) walletEl.innerText = `موجودی: ${formattedWallet}`;
   if (walletTabBal) walletTabBal.innerText = formattedWallet;
 
@@ -1021,7 +1051,7 @@ function hydrateUserInterface(data) {
   if (profAvatar) profAvatar.innerText = userDisplayName.charAt(0).toUpperCase();
   if (profId) profId.innerText = user.id ? String(user.id) : '--';
   if (profRef) profRef.innerText = user.id ? String(user.id) : '--';
-  if (profJoin) profJoin.innerText = user.created_at_jalali || '۱۴۰۳/۰۷/۰۱';
+  if (profJoin) profJoin.innerText = toEnglishDigits(user.created_at_jalali || '1403/07/01');
   if (profSub) {
     profSub.innerText = 'فعال';
     profSub.className = 'font-semibold text-emerald-400';

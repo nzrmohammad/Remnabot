@@ -6,12 +6,13 @@
   <title>RemnaStore Pro</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <script>
     tailwind.config = {
       darkMode: 'class'
     };
   </script>
-  <link rel="stylesheet" href="/static/css/app.css?v=7.2">
+  <link rel="stylesheet" href="/static/css/app.css?v=7.3">
 </head>
 <body id="appBody" class="bg-[#080d1a] text-slate-100 w-full min-w-full h-screen h-[100dvh] overflow-hidden flex justify-center items-center antialiased select-none transition-colors duration-300">
 
@@ -72,7 +73,7 @@
       <!-- Left Side (in RTL): Support + Theme Toggle + Fallback Close + Hidden Sessions Stub -->
       <div class="flex items-center gap-1.5 flex-shrink-0">
         <button id="headerOnlineBadge" class="hidden"><span id="headerOnlineCount"></span></button>
-        <button id="openSupportBtn" class="text-xs text-emerald-400 bg-emerald-950/50 hover:bg-emerald-900/60 p-1.5 rounded-lg border border-emerald-800/50 transition flex items-center justify-center font-semibold" title="پشتیبانی آنلاین">
+        <button id="openSupportBtn" class="header-support-btn text-xs text-emerald-400 bg-emerald-950/50 hover:bg-emerald-900/60 p-1.5 rounded-lg border border-emerald-800/50 transition flex items-center justify-center font-semibold" title="پشتیبانی آنلاین">
           <span>💬</span>
         </button>
         <button id="themeToggle" class="text-slate-300 text-xs p-1.5 bg-slate-800 hover:bg-slate-700 rounded-lg border border-slate-700 transition flex items-center justify-center" title="تغییر تم">
@@ -95,22 +96,22 @@
 
         <!-- Quick Interactive Action Cards (گردونه شانس و کارت استوری) -->
         <div class="grid grid-cols-2 gap-2.5">
-          <button id="openLuckyWheelBtn" class="bg-gradient-to-r from-amber-500/20 via-orange-500/20 to-amber-600/10 hover:from-amber-500/30 p-2.5 rounded-2xl border border-amber-500/40 text-right flex items-center justify-between transition shadow-sm group active:scale-95">
+          <button id="openLuckyWheelBtn" class="lucky-wheel-entry-btn bg-gradient-to-r from-amber-500/20 via-orange-500/20 to-amber-600/10 hover:from-amber-500/30 p-2.5 rounded-2xl border border-amber-500/40 text-right flex items-center justify-between transition shadow-sm group active:scale-95">
             <div class="flex flex-col">
-              <span class="text-[11px] font-black text-amber-300 group-hover:text-amber-200 flex items-center gap-1">
+              <span class="text-[11px] font-black text-amber-300 group-hover:text-amber-200 flex items-center gap-1 lucky-wheel-title">
                 <span>🎰</span> گردونه شانس
               </span>
-              <span class="text-[9px] text-slate-300 mt-0.5 font-medium">۱ چرخش رایگان هدیه</span>
+              <span class="text-[9px] text-slate-300 mt-0.5 font-medium lucky-wheel-sub">۱ چرخش رایگان هدیه</span>
             </div>
             <span class="text-xl group-hover:rotate-45 transition transform">🎁</span>
           </button>
 
-          <button id="openStoryCardBtn" class="bg-gradient-to-r from-purple-500/20 via-pink-500/20 to-indigo-600/10 hover:from-purple-500/30 p-2.5 rounded-2xl border border-purple-500/40 text-right flex items-center justify-between transition shadow-sm group active:scale-95">
+          <button id="openStoryCardBtn" class="story-entry-btn bg-gradient-to-r from-purple-500/20 via-pink-500/20 to-indigo-600/10 hover:from-purple-500/30 p-2.5 rounded-2xl border border-purple-500/40 text-right flex items-center justify-between transition shadow-sm group active:scale-95">
             <div class="flex flex-col">
-              <span class="text-[11px] font-black text-purple-300 group-hover:text-purple-200 flex items-center gap-1">
+              <span class="text-[11px] font-black text-purple-300 group-hover:text-purple-200 flex items-center gap-1 story-title">
                 <span>📸</span> کارت استوری
               </span>
-              <span class="text-[9px] text-slate-300 mt-0.5 font-medium">پوستر شیشه‌ای VIP</span>
+              <span class="text-[9px] text-slate-300 mt-0.5 font-medium story-sub">پوستر شیشه‌ای VIP</span>
             </div>
             <span class="text-xl group-hover:scale-110 transition">✨</span>
           </button>
@@ -210,10 +211,10 @@
             <div class="flex items-center justify-between pt-1">
               <span class="text-[11px] text-slate-400 font-medium">ابزارها و اقدامات:</span>
               <div class="flex items-center gap-1.5">
-                <button id="qrToggleBtn" class="text-slate-300 hover:text-cyan-300 flex items-center justify-center bg-slate-700/60 hover:bg-slate-700 w-8 h-8 rounded-xl border border-slate-600/60 transition active:scale-95 shadow-sm" title="کیوآرکد">
+                <button id="qrToggleBtn" class="sub-action-btn text-slate-300 hover:text-cyan-300 flex items-center justify-center bg-slate-700/60 hover:bg-slate-700 w-8 h-8 rounded-xl border border-slate-600/60 transition active:scale-95 shadow-sm" title="کیوآرکد">
                   <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/></svg>
                 </button>
-                <button id="revokeSubBtnTop" class="text-slate-300 hover:text-rose-400 flex items-center justify-center bg-slate-700/60 hover:bg-slate-700 w-8 h-8 rounded-xl border border-slate-600/60 transition active:scale-95 shadow-sm" title="تعویض لینک اشتراک">
+                <button id="revokeSubBtnTop" class="sub-action-btn text-slate-300 hover:text-rose-400 flex items-center justify-center bg-slate-700/60 hover:bg-slate-700 w-8 h-8 rounded-xl border border-slate-600/60 transition active:scale-95 shadow-sm" title="تعویض لینک اشتراک">
                   <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
                 </button>
               </div>
@@ -221,7 +222,7 @@
 
             <!-- Full Subscription Link Container & Modern Copy Button -->
             <div class="space-y-2">
-              <div id="subBoxWrapper" class="bg-slate-900/90 hover:bg-slate-900/95 rounded-xl p-3 border border-slate-700/70 hover:border-cyan-500/60 relative cursor-pointer transition active:scale-[0.99] group shadow-inner" title="کلیک جهت کپی کردن لینک">
+              <div id="subBoxWrapper" class="sub-box-card bg-slate-900/90 hover:bg-slate-900/95 rounded-xl p-3 border border-slate-700/70 hover:border-cyan-500/60 relative cursor-pointer transition active:scale-[0.99] group shadow-inner" title="کلیک جهت کپی کردن لینک">
                 <input type="hidden" id="subInput" value="" />
                 <div id="subDisplayBox" dir="ltr" class="font-mono text-[11px] text-cyan-300 break-all select-all leading-relaxed max-h-20 overflow-y-auto custom-scroll p-0.5">
                   در حال دریافت لینک اشتراک...
@@ -235,35 +236,35 @@
               </button>
             </div>
 
-            <!-- Dynamic QR Popup (Collapsible) -->
+            <!-- Dynamic QR Popup (Collapsible fallback) -->
             <div id="qrContainer" class="hidden flex flex-col items-center justify-center p-3.5 bg-slate-900/90 border border-slate-700/70 rounded-2xl text-slate-100 animate-fadeIn text-center">
               <img id="qrImage" src="" alt="کیوآرکد اشتراک" class="w-36 h-36 rounded-xl bg-white p-1.5 shadow mb-2" />
               <span class="text-[11px] text-slate-300 font-medium">اسکن مستقیم با دوربین گوشی یا نرم‌افزارهای VPN</span>
             </div>
 
-            <!-- 1-Click App Importers -->
+            <!-- 1-Click App Importers (Unified Harmonious Design) -->
             <div class="pt-1">
               <span class="text-[11px] text-slate-400 block mb-2 font-medium">اتصال خودکار به کلاینت دلخواه:</span>
               <div class="grid grid-cols-5 gap-1.5 text-center text-xs">
-                <button id="appImportIncy" type="button" class="bg-gradient-to-b from-indigo-900/50 to-slate-800 hover:from-indigo-800/60 p-1.5 rounded-xl border border-indigo-500/40 flex flex-col items-center gap-1 transition shadow-sm group active:scale-95">
+                <button id="appImportIncy" type="button" class="client-import-btn bg-slate-800/80 hover:bg-slate-700/80 p-1.5 rounded-xl border border-slate-700/80 flex flex-col items-center gap-1 transition group active:scale-95 shadow-sm">
                   <span class="text-base group-hover:scale-110 transition">⚡️</span>
-                  <span class="font-bold text-[10px] text-indigo-300">Incy</span>
+                  <span class="font-bold text-[10px] text-indigo-400 group-hover:text-indigo-300">Incy</span>
                 </button>
-                <button id="appImportHapp" type="button" class="bg-gradient-to-b from-pink-900/40 to-slate-800 hover:from-pink-800/50 p-1.5 rounded-xl border border-pink-500/30 flex flex-col items-center gap-1 transition shadow-sm group active:scale-95">
+                <button id="appImportHapp" type="button" class="client-import-btn bg-slate-800/80 hover:bg-slate-700/80 p-1.5 rounded-xl border border-slate-700/80 flex flex-col items-center gap-1 transition group active:scale-95 shadow-sm">
                   <span class="text-base group-hover:scale-110 transition">🪐</span>
-                  <span class="font-bold text-[10px] text-pink-300">Happ</span>
+                  <span class="font-bold text-[10px] text-pink-400 group-hover:text-pink-300">Happ</span>
                 </button>
-                <button id="appImportV2ray" type="button" class="bg-slate-800 hover:bg-slate-700/80 p-1.5 rounded-xl border border-slate-700 flex flex-col items-center gap-1 transition group active:scale-95">
+                <button id="appImportV2ray" type="button" class="client-import-btn bg-slate-800/80 hover:bg-slate-700/80 p-1.5 rounded-xl border border-slate-700/80 flex flex-col items-center gap-1 transition group active:scale-95 shadow-sm">
                   <span class="text-base group-hover:scale-110 transition">🤖</span>
-                  <span class="font-medium text-[10px] text-slate-200">v2rayNG</span>
+                  <span class="font-bold text-[10px] text-emerald-400 group-hover:text-emerald-300">v2rayNG</span>
                 </button>
-                <button id="appImportHiddify" type="button" class="bg-slate-800 hover:bg-slate-700/80 p-1.5 rounded-xl border border-slate-700 flex flex-col items-center gap-1 transition group active:scale-95">
+                <button id="appImportHiddify" type="button" class="client-import-btn bg-slate-800/80 hover:bg-slate-700/80 p-1.5 rounded-xl border border-slate-700/80 flex flex-col items-center gap-1 transition group active:scale-95 shadow-sm">
                   <span class="text-base group-hover:scale-110 transition">🛡️</span>
-                  <span class="font-medium text-[10px] text-slate-200">Hiddify</span>
+                  <span class="font-bold text-[10px] text-cyan-400 group-hover:text-cyan-300">Hiddify</span>
                 </button>
-                <button id="appImportStreisand" type="button" class="bg-slate-800 hover:bg-slate-700/80 p-1.5 rounded-xl border border-slate-700 flex flex-col items-center gap-1 transition group active:scale-95">
+                <button id="appImportStreisand" type="button" class="client-import-btn bg-slate-800/80 hover:bg-slate-700/80 p-1.5 rounded-xl border border-slate-700/80 flex flex-col items-center gap-1 transition group active:scale-95 shadow-sm">
                   <span class="text-base group-hover:scale-110 transition">🍏</span>
-                  <span class="font-medium text-[10px] text-slate-200">Streisand</span>
+                  <span class="font-bold text-[10px] text-amber-400 group-hover:text-amber-300">Streisand</span>
                 </button>
               </div>
             </div>
@@ -287,7 +288,7 @@
               </span>
             </div>
             <div class="flex items-center gap-2">
-              <span id="reportsSessionsBadge" class="text-[10px] font-mono font-bold text-emerald-400 bg-emerald-950/60 border border-emerald-800/40 px-2 py-0.5 rounded-lg">۰ دستگاه</span>
+              <span id="reportsSessionsBadge" class="text-[10px] font-mono font-bold text-emerald-400 bg-emerald-950/60 border border-emerald-800/40 px-2 py-0.5 rounded-lg">0 دستگاه</span>
             </div>
           </button>
 
@@ -322,7 +323,7 @@
             <span class="text-xs font-bold text-white flex items-center gap-1.5">
               <span>🌙</span> گزارش شبانه
             </span>
-            <span id="repNightlyDate" class="text-[11px] font-mono text-slate-400">--/--/-- - ۲۳:۵۹</span>
+            <span id="repNightlyDate" class="text-[11px] font-mono text-slate-400">--/--/-- - 23:59</span>
           </div>
 
           <div class="space-y-1.5 text-xs text-slate-300">
@@ -354,8 +355,8 @@
           </div>
           <div class="pt-2 border-t border-slate-700/60">
             <span class="text-[11px] text-slate-400 font-medium block mb-2">نمودار مصرف روزانه (۷ روز اخیر):</span>
-            <div id="repWeeklyChart" class="flex items-end justify-between h-20 px-2 pt-2 bg-slate-900/60 rounded-xl">
-              <!-- Rendered dynamically -->
+            <div class="h-36 w-full p-2 bg-slate-900/60 rounded-xl relative">
+              <canvas id="repWeeklyChartCanvas" class="w-full h-full"></canvas>
             </div>
           </div>
 
@@ -381,8 +382,8 @@
           <!-- Monthly 4-Week Chart (نمودار مصرف ۴ هفته اخیر) -->
           <div class="pt-2 border-t border-slate-700/60">
             <span class="text-[11px] text-slate-400 font-medium block mb-2">نمودار مصرف ۴ هفته اخیر (ماهانه):</span>
-            <div id="repMonthlyChart" class="flex items-end justify-between h-20 px-4 pt-2 bg-slate-900/60 rounded-xl">
-              <!-- Rendered dynamically -->
+            <div class="h-36 w-full p-2 bg-slate-900/60 rounded-xl relative">
+              <canvas id="repMonthlyChartCanvas" class="w-full h-full"></canvas>
             </div>
           </div>
 
@@ -403,7 +404,7 @@
       <div id="tab-shop" class="tab-pane space-y-4 hidden">
         <div class="flex justify-between items-center">
           <h3 class="text-sm font-bold text-slate-200">🛒 خرید بسته جدید یا تمدید</h3>
-          <span id="shopWalletBalance" class="text-xs text-indigo-400 bg-indigo-950/60 px-2 py-0.5 rounded border border-indigo-800/40">موجودی: ۰ تومان</span>
+          <span id="shopWalletBalance" class="text-xs text-indigo-400 bg-indigo-950/60 px-2 py-0.5 rounded border border-indigo-800/40">موجودی: 0 تومان</span>
         </div>
 
         <!-- Dynamic Plans Container (Loaded from Admin DB) -->
@@ -416,7 +417,7 @@
         <!-- Coupon Box -->
         <div class="bg-slate-800/60 rounded-xl p-2.5 border border-slate-700/60 flex items-center gap-2">
           <input type="text" placeholder="کد تخفیف (مثال: OFF20)" class="bg-slate-900 text-xs px-3 py-2 rounded-lg border border-slate-700 flex-1 outline-none text-slate-200 uppercase font-mono" id="couponInput" />
-          <button id="applyCouponBtn" class="bg-slate-700 hover:bg-slate-600 text-slate-200 text-xs font-semibold px-3.5 py-2 rounded-lg transition">اعمال</button>
+          <button id="applyCouponBtn" class="bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold px-4 py-2 rounded-lg transition active:scale-95 shadow">اعمال</button>
         </div>
       </div>
 
@@ -425,7 +426,7 @@
       <!-- ===================================================== -->
       <div id="tab-wallet" class="tab-pane space-y-4 hidden">
         <!-- Balance Card -->
-        <div class="bg-gradient-to-br from-slate-800 via-indigo-950/60 to-slate-900 rounded-3xl p-5 border border-indigo-500/40 shadow-xl relative overflow-hidden text-center space-y-3">
+        <div class="wallet-hero-card bg-gradient-to-br from-slate-800 via-indigo-950/60 to-slate-900 rounded-3xl p-5 border border-indigo-500/40 shadow-xl relative overflow-hidden text-center space-y-3">
           <div class="flex justify-between items-center text-xs text-slate-400">
             <span class="flex items-center gap-1.5 font-medium">
               <span>👛</span> موجودی کیف پول شما
@@ -435,7 +436,7 @@
 
           <div class="py-2">
             <div id="walletTabBalance" class="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-cyan-300 to-blue-400 font-mono">
-              ۰ تومان
+              0 تومان
             </div>
             <span class="text-[11px] text-slate-400 block mt-1">قابل استفاده برای خرید، تمدید اشتراک و بسته‌های ترافیک</span>
           </div>
@@ -473,7 +474,7 @@
       <div id="tab-profile" class="tab-pane space-y-4 hidden">
         
         <!-- User Avatar & Identity Card -->
-        <div class="bg-gradient-to-b from-slate-800 to-slate-900 rounded-3xl p-5 border border-slate-700/80 shadow-xl text-center relative overflow-hidden">
+        <div class="profile-hero-card bg-gradient-to-b from-slate-800 to-slate-900 rounded-3xl p-5 border border-slate-700/80 shadow-xl text-center relative overflow-hidden">
           <div class="relative w-20 h-20 mx-auto mb-3">
             <div class="w-full h-full rounded-full p-1 bg-gradient-to-tr from-cyan-400 via-blue-500 to-indigo-600 shadow-lg flex items-center justify-center overflow-hidden">
               <img id="profileAvatarImg" class="w-full h-full rounded-full object-cover hidden" alt="Avatar" />
@@ -686,6 +687,30 @@
     </div>
 
     <!-- ======================================================== -->
+    <!-- 4.0 MODAL: QR CODE (کیوآرکد اشتراک)                      -->
+    <!-- ======================================================== -->
+    <div id="qrModal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden animate-fadeIn overflow-y-auto">
+      <div class="qr-modal-card bg-[#1a233a] border border-cyan-500/40 rounded-3xl p-5 w-full space-y-4 shadow-2xl relative max-w-[340px] my-auto text-center">
+        <button id="closeQrModalBtn" class="absolute top-3 left-3 text-slate-400 hover:text-white text-xs bg-slate-800 rounded-full w-7 h-7 flex items-center justify-center transition" title="بستن">✕</button>
+        <div>
+          <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/40">
+            📷 اسکن مستقیم
+          </span>
+          <h3 class="text-sm font-bold text-white mt-1">کیوآرکد اتصال به کانفیگ</h3>
+          <p class="text-[11px] text-slate-300 mt-0.5">اسکن با دوربین گوشی یا نرم‌افزارهای VPN</p>
+        </div>
+        <div class="flex justify-center p-3 bg-white rounded-2xl shadow-inner mx-auto w-fit">
+          <img id="modalQrImage" src="" alt="کیوآرکد اشتراک" class="w-44 h-44 object-contain" />
+        </div>
+        <div class="space-y-2 pt-1">
+          <button id="copySubFromQrModalBtn" class="w-full bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold py-2.5 rounded-xl transition shadow active:scale-95 flex items-center justify-center gap-2">
+            <span>📋 کپی لینک اشتراک</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======================================================== -->
     <!-- 4.1 MODAL: ACCOUNT SWITCHER (تغییر اکانت فعال)            -->
     <!-- ======================================================== -->
     <div id="switchAccountModal" class="absolute inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden animate-fadeIn">
@@ -724,7 +749,7 @@
         </div>
 
         <div class="pt-2 border-t border-slate-700/60 flex items-center justify-between">
-          <span id="modalSessionsCount" class="text-[11px] text-slate-400 font-mono">۰ دستگاه</span>
+          <span id="modalSessionsCount" class="text-[11px] text-slate-400 font-mono">0 دستگاه</span>
           <button id="modalKillAllBtn" class="text-[11px] text-rose-300 hover:text-white bg-rose-950/80 hover:bg-rose-900 border border-rose-800/80 px-2.5 py-1.5 rounded-xl font-bold transition flex items-center gap-1 active:scale-95">
             <span>⛔️ قطع همه</span>
           </button>
@@ -736,7 +761,7 @@
     <!-- 4.2 MODAL: TOP-UP WALLET (افزایش موجودی کیف پول)          -->
     <!-- ======================================================== -->
     <div id="topupModal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden animate-fadeIn overflow-y-auto">
-      <div class="bg-[#1a233a] border border-indigo-500/50 rounded-3xl p-5 w-full space-y-4 shadow-2xl relative max-w-[370px] my-auto text-xs">
+      <div class="topup-modal-card bg-[#1a233a] border border-indigo-500/50 rounded-3xl p-5 w-full space-y-4 shadow-2xl relative max-w-[370px] my-auto text-xs">
         <button id="closeTopupModalBtn" class="absolute top-3 left-3 text-slate-400 hover:text-white text-xs bg-slate-800 rounded-full w-7 h-7 flex items-center justify-center">✕</button>
         
         <div class="border-b border-slate-700/60 pb-2">
@@ -760,12 +785,12 @@
         <div class="space-y-1.5">
           <label class="text-[11px] text-slate-300 font-medium block">مبلغ شارژ مورد نظر (تومان):</label>
           <div class="grid grid-cols-2 gap-1.5 font-mono text-[11px]">
-            <button type="button" class="topup-preset-btn py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200" data-amt="50000">۵۰,۰۰۰ تومان</button>
-            <button type="button" class="topup-preset-btn py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200" data-amt="100000">۱۰۰,۰۰۰ تومان</button>
-            <button type="button" class="topup-preset-btn py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200" data-amt="200000">۲۰۰,۰۰۰ تومان</button>
-            <button type="button" class="topup-preset-btn py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200" data-amt="500000">۵۰۰,۰۰۰ تومان</button>
+            <button type="button" class="topup-preset-btn py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200" data-amt="50000">50,000 تومان</button>
+            <button type="button" class="topup-preset-btn py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200" data-amt="100000">100,000 تومان</button>
+            <button type="button" class="topup-preset-btn py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200" data-amt="200000">200,000 تومان</button>
+            <button type="button" class="topup-preset-btn py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200" data-amt="500000">500,000 تومان</button>
           </div>
-          <input type="number" id="topupAmountInput" placeholder="مبلغ دلخواه به تومان (حداقل ۵۰,۰۰۰)" class="w-full bg-slate-900 px-3 py-2 rounded-xl border border-slate-700 text-slate-100 font-mono outline-none text-xs mt-1" />
+          <input type="number" id="topupAmountInput" placeholder="مبلغ دلخواه به تومان (حداقل 50,000)" class="w-full bg-slate-900 px-3 py-2 rounded-xl border border-slate-700 text-slate-100 font-mono outline-none text-xs mt-1" />
         </div>
 
         <!-- 1. Card-to-Card Section -->
@@ -845,6 +870,72 @@
           </div>
         </div>
 
+      </div>
+    </div>
+
+    <!-- ======================================================== -->
+    <!-- 4.3 MODAL: CHECKOUT CONFIRM (تایید نهایی خرید بسته)       -->
+    <!-- ======================================================== -->
+    <div id="checkoutConfirmModal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden animate-fadeIn overflow-y-auto">
+      <div class="checkout-modal-card bg-[#1a233a] border border-blue-500/40 rounded-3xl p-5 w-full space-y-4 shadow-2xl relative max-w-[350px] my-auto text-xs text-right">
+        <button id="closeCheckoutModalBtn" class="absolute top-3 left-3 text-slate-400 hover:text-white text-xs bg-slate-800 rounded-full w-7 h-7 flex items-center justify-center transition" onclick="closeModal('checkoutConfirmModal')" title="انصراف">✕</button>
+        <div class="border-b border-slate-700/60 pb-2">
+          <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-500/20 text-blue-300 border border-blue-500/40">
+            🛒 تایید سفارش
+          </span>
+          <h3 class="text-sm font-bold text-white mt-1">پیش‌فاکتور خرید بسته</h3>
+        </div>
+
+        <div class="bg-slate-900/80 rounded-2xl p-3 border border-slate-700/70 space-y-2">
+          <div class="flex justify-between items-center">
+            <span class="text-slate-400">بسته انتخابی:</span>
+            <b id="checkoutPlanName" class="text-white font-bold">--</b>
+          </div>
+          <div class="flex justify-between items-center">
+            <span class="text-slate-400">حجم ترافیک:</span>
+            <b id="checkoutPlanTraffic" class="text-cyan-400 font-mono" dir="ltr">-- GB</b>
+          </div>
+          <div class="flex justify-between items-center">
+            <span class="text-slate-400">مدت اعتبار:</span>
+            <b id="checkoutPlanDays" class="text-slate-200">-- روز</b>
+          </div>
+          <div class="flex justify-between items-center border-t border-slate-800 pt-1.5">
+            <span class="text-slate-400">مبلغ قابل پرداخت:</span>
+            <b id="checkoutPlanPrice" class="text-emerald-400 font-mono font-bold text-sm">-- تومان</b>
+          </div>
+        </div>
+
+        <div class="bg-slate-900/60 rounded-xl p-2.5 border border-slate-700/50 space-y-1.5 text-[11px]">
+          <div class="flex justify-between items-center">
+            <span class="text-slate-400">موجودی کیف پول شما:</span>
+            <span id="checkoutWalletBalance" class="text-slate-200 font-mono font-bold">-- تومان</span>
+          </div>
+          <div id="checkoutRemainRow" class="flex justify-between items-center">
+            <span class="text-slate-400">موجودی پس از کسر:</span>
+            <span id="checkoutRemainingBalance" class="text-emerald-400 font-mono font-bold">-- تومان</span>
+          </div>
+        </div>
+
+        <!-- Shortage Warning Box (shown only when balance is insufficient) -->
+        <div id="checkoutShortageBox" class="hidden bg-rose-500/10 border border-rose-500/30 rounded-xl p-2.5 text-[11px] text-rose-300 space-y-1">
+          <div class="flex justify-between items-center font-bold">
+            <span>⚠️ کسری موجودی کیف پول:</span>
+            <span id="checkoutShortageAmount" class="font-mono">-- تومان</span>
+          </div>
+          <p class="text-[10px] text-rose-200/80">برای خرید این بسته ابتدا باید کیف پول خود را شارژ فرمایید.</p>
+        </div>
+
+        <div class="space-y-2 pt-1">
+          <button id="confirmPurchaseBtn" class="w-full bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-500 hover:from-blue-500 hover:to-indigo-500 text-white font-bold py-2.5 rounded-xl transition shadow active:scale-[0.98] flex items-center justify-center gap-1.5">
+            ✅ تایید و خرید آنی
+          </button>
+          <button id="checkoutTopupBtn" class="hidden w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold py-2.5 rounded-xl transition shadow active:scale-[0.98] flex items-center justify-center gap-1.5">
+            💳 شارژ کیف پول
+          </button>
+          <button id="cancelCheckoutBtn" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium text-xs py-2 rounded-xl transition" onclick="closeModal('checkoutConfirmModal')">
+            انصراف
+          </button>
+        </div>
       </div>
     </div>
 
@@ -1206,13 +1297,13 @@
   </div>
 
   <!-- Modular Frontend Architecture (DRY) -->
-  <script src="/static/js/utils.js?v=7.2"></script>
-  <script src="/static/js/api.js?v=7.2"></script>
-  <script src="/static/js/charts.js?v=7.2"></script>
-  <script src="/static/js/shop.js?v=7.2"></script>
-  <script src="/static/js/wallet.js?v=7.2"></script>
-  <script src="/static/js/wheel.js?v=7.2"></script>
-  <script src="/static/js/story.js?v=7.2"></script>
-  <script src="/static/js/app.js?v=7.2"></script>
+  <script src="/static/js/utils.js?v=7.3"></script>
+  <script src="/static/js/api.js?v=7.3"></script>
+  <script src="/static/js/charts.js?v=7.3"></script>
+  <script src="/static/js/shop.js?v=7.3"></script>
+  <script src="/static/js/wallet.js?v=7.3"></script>
+  <script src="/static/js/wheel.js?v=7.3"></script>
+  <script src="/static/js/story.js?v=7.3"></script>
+  <script src="/static/js/app.js?v=7.3"></script>
 </body>
 </html>

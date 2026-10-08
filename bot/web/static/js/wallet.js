@@ -24,14 +24,16 @@ function renderWalletTransactions(transactions) {
         <span class="text-xl">${tx.type === 'topup' ? '💳' : '🛒'}</span>
         <div>
           <span class="font-bold text-slate-200 block">${tx.title}</span>
-          <span class="text-[10px] text-slate-400 font-mono mt-0.5" dir="ltr">${tx.date_jalali || ''}</span>
+          <span class="text-[10px] text-slate-400 font-mono mt-0.5" dir="ltr">${toEnglishDigits(tx.date_jalali || '')}</span>
         </div>
       </div>
-      <div class="text-left font-mono">
-        <span class="font-bold ${tx.is_positive ? 'text-emerald-400' : 'text-slate-200'} block" dir="ltr">
-          ${(tx.amount != null ? Number(tx.amount).toLocaleString('en-US') : '0')}${tx.is_positive ? '+' : '-'} تومان
-        </span>
-        <span class="text-[10px] text-${tx.status_color || 'emerald'}-400 font-sans">
+      <div class="text-left space-y-0.5">
+        <div class="inline-flex items-center gap-1 font-bold ${tx.is_positive ? 'text-emerald-400' : 'text-slate-200'}" dir="rtl">
+          <span class="font-mono text-xs" dir="ltr">${Number(tx.amount != null ? tx.amount : 0).toLocaleString('en-US')}</span>
+          <span class="font-mono text-sm leading-none font-bold">${tx.is_positive ? '+' : '-'}</span>
+          <span class="font-sans text-[10px] text-slate-400 font-normal">تومان</span>
+        </div>
+        <span class="text-[10px] text-${tx.status_color || 'emerald'}-400 font-sans block">
           ${tx.status}
         </span>
       </div>
@@ -42,7 +44,7 @@ function renderWalletTransactions(transactions) {
 function updateTopupDisplays(amt) {
   const cardAmountDisplay = document.getElementById('topupCardAmountDisplay');
   if (cardAmountDisplay) {
-    cardAmountDisplay.innerText = `${(amt || 0).toLocaleString('fa-IR')} تومان`;
+    cardAmountDisplay.innerText = `${Number(amt || 0).toLocaleString('en-US')} تومان`;
   }
   if (window.storeSettings?.ton_rate_toman && window.storeSettings.ton_rate_toman > 0) {
     const tonAmt = ((amt || 0) / window.storeSettings.ton_rate_toman).toFixed(4);

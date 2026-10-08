@@ -156,3 +156,26 @@ function formatDateToJalali(dateStr) {
   return dateStr;
 }
 
+// Convert Persian and Arabic digits to ASCII English digits
+function toEnglishDigits(str) {
+  if (str === null || str === undefined) return '';
+  const fa = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
+  const ar = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
+  let res = String(str);
+  for (let i = 0; i < 10; i++) {
+    res = res.replaceAll(fa[i], String(i)).replaceAll(ar[i], String(i));
+  }
+  return res;
+}
+
+function formatPrice(amt) {
+  if (amt == null || isNaN(amt)) return '0';
+  return Number(amt).toLocaleString('en-US');
+}
+
+if (typeof window !== 'undefined') {
+  window.toEnglishDigits = toEnglishDigits;
+  window.formatPrice = formatPrice;
+}
+
+

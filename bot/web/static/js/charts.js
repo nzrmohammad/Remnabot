@@ -1,34 +1,124 @@
 /**
  * RemnaStore Pro - Charts & Reporting Visualizers
- * DRY reusable chart and breakdown generators.
+ * DRY reusable chart and breakdown generators using Chart.js.
  */
 
+window.chartInstances = window.chartInstances || {};
+
 function renderBarChart(containerId, totals, labels, isMonthly = false) {
-  const container = document.getElementById(containerId);
-  if (!container) return;
+  let canvas = document.getElementById(containerId);
+  if (!canvas) return;
 
-  const maxVal = Math.max(...totals, 0.1);
-  const activeColor = isMonthly ? 'bg-purple-500 shadow-sm shadow-purple-500/50' : 'bg-indigo-500 shadow-sm shadow-indigo-500/50';
-  const normalColor = isMonthly ? 'bg-indigo-600/80' : 'bg-blue-500';
-  const zeroColor = isMonthly ? 'bg-slate-700/60' : 'bg-slate-700/60';
-  const textHighlight = isMonthly ? 'text-purple-300' : 'text-indigo-300';
-  const barWidth = isMonthly ? 'w-6' : 'w-4';
+  // If container is a div instead of a canvas, find or create canvas inside it
+  if (canvas.tagName.toLowerCase() !== 'canvas') {
+    let innerCanvas = canvas.querySelector('canvas');
+    if (!innerCanvas) {
+      canvas.innerHTML = '<canvas class="w-full h-full"></canvas>';
+      innerCanvas = canvas.querySelector('canvas');
+    }
+    canvas = innerCanvas;
+  }
 
-  container.innerHTML = totals.map((val, idx) => {
-    const isZero = !val || val <= 0;
-    const hPct = isZero ? (isMonthly ? 8 : 10) : Math.min(100, Math.max(15, Math.round((val / maxVal) * 90)));
-    const isMax = val > 0 && val === Math.max(...totals);
-    const valText = val > 0 ? val : (isMonthly ? '0' : '');
-    const bgClass = isMax ? activeColor : (val > 0 ? normalColor : zeroColor);
+  // Fallback if Chart.js is not yet loaded
+  if (typeof Chart === 'undefined') {
+    return;
+  }
 
-    return `
-      <div class="flex flex-col items-center gap-1 flex-1">
-        <span class="text-[8px] font-mono ${isMonthly ? 'text-purple-300' : 'text-slate-400'}" dir="ltr">${valText}</span>
-        <div class="${barWidth} ${bgClass} rounded-t transition-all duration-500" style="height: ${hPct}%;"></div>
-        <span class="text-[9px] ${isMax ? `${textHighlight} font-bold` : 'text-slate-400'}">${labels[idx] || ''}</span>
-      </div>
-    `;
-  }).join('');
+  const isLight = document.documentElement.classList.contains('theme-light');
+  const textColor = isLight ? '#475569' : '#94a3b8';
+  const gridColor = isLight ? 'rgba(0, 0, 0, 0.05)' : 'rgba(255, 255, 255, 0.06)';
+  
+  // Color palette
+  const mainColor = isMonthly 
+    ? (isLight ? 'rgba(147, 51, 234, 0.8)' : 'rgba(168, 85, 247, 0.85)')
+    : (isLight ? 'rgba(37, 99, 235, 0.8)' : 'rgba(56, 189, 248, 0.85)');
+  const borderColor = isMonthly
+    ? (isLight ? '#7e22ce' : '#c084fc')
+    : (isLight ? '#1d4ed8' : '#38bdf8');
+
+  // Clean English data & labels
+  const cleanData = (totals || []).map(v => {
+    const num = parseFloat(toEnglishDigits(v));
+    return isNaN(num) ? 0 : num;
+  });
+  const cleanLabels = (labels || []).map(l => toEnglishDigits(l));
+
+  // Destroy previous instance on this canvas
+  const chartKey = canvas.id || containerId;
+  if (window.chartInstances[chartKey]) {
+    try {
+      window.chartInstances[chartKey].destroy();
+    } catch (e) {}
+    delete window.chartInstances[chartKey];
+  }
+
+  const ctx = canvas.getContext('2d');
+  window.chartInstances[chartKey] = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: cleanLabels,
+      datasets: [{
+        data: cleanData,
+        backgroundColor: mainColor,
+        borderColor: borderColor,
+        borderWidth: 1.5,
+        borderRadius: 6,
+        borderSkipped: false,
+        maxBarThickness: isMonthly ? 32 : 22,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      animation: {
+        duration: 600,
+        easing: 'easeOutQuart'
+      },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          rtl: true,
+          displayColors: false,
+          backgroundColor: isLight ? '#1e293b' : '#0f172a',
+          titleColor: '#ffffff',
+          bodyColor: '#38bdf8',
+          titleFont: { family: 'Vazirmatn', size: 11, weight: 'bold' },
+          bodyFont: { family: 'monospace', size: 12, weight: 'bold' },
+          padding: 8,
+          cornerRadius: 8,
+          callbacks: {
+            label: function(context) {
+              const val = context.raw != null ? Number(context.raw).toFixed(2) : '0.00';
+              return ` ${val} GB`;
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          grid: { display: false },
+          ticks: {
+            color: textColor,
+            font: { family: 'Vazirmatn', size: 10, weight: '500' }
+          }
+        },
+        y: {
+          beginAtZero: true,
+          grid: {
+            color: gridColor,
+            drawBorder: false
+          },
+          ticks: {
+            color: textColor,
+            font: { family: 'monospace', size: 9 },
+            callback: function(val) {
+              return val + ' GB';
+            }
+          }
+        }
+      }
+    }
+  });
 }
 
 function renderNodeBreakdown(containerId, nodes, emptyText = 'مصرفی ثبت نشده است.') {
@@ -45,9 +135,9 @@ function renderNodeBreakdown(containerId, nodes, emptyText = 'مصرفی ثبت 
   }
 
   container.innerHTML = nodes.map(n => `
-    <div dir="ltr" class="bg-slate-900/60 p-2 rounded-lg flex items-center justify-between">
+    <div dir="ltr" class="bg-slate-900/60 p-2 rounded-lg flex items-center justify-between border border-slate-700/40">
       <span class="text-base">${n.flag || '🌐'}</span>
-      <span class="font-bold text-slate-100 font-mono">${n.total_formatted || '0 GB'}</span>
+      <span class="font-bold text-slate-100 font-mono">${toEnglishDigits(n.total_formatted || '0 GB')}</span>
     </div>
   `).join('');
 }

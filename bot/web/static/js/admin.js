@@ -2543,9 +2543,9 @@
               <div class="w-10 h-10 rounded-2xl bg-blue-500/15 text-blue-400 flex items-center justify-center mx-auto">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
               </div>
-              <p class="text-xs">هیچ پلن یا تعرفه‌ای هنوز ثبت نشده است.</p>
+              <p class="text-xs">هیچ سرویس یا تعرفه‌ای هنوز ثبت نشده است.</p>
               <button onclick="window.adminActions.openPlanModal()" class="bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold px-4 py-2 rounded-xl transition shadow active:scale-95">
-                + ایجاد اولین پلن
+                + ایجاد اولین سرویس
               </button>
             </div>
           `;
@@ -2615,7 +2615,7 @@
                 <button onclick="window.adminActions.togglePlan(${p.id}, ${p.is_active})" class="flex-1 bg-transparent hover:bg-slate-500/10 ${p.is_active ? 'text-amber-600 dark:text-amber-400 border border-amber-500/30 hover:border-amber-400/60' : 'text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 hover:border-emerald-400/60'} py-1.5 rounded-xl transition font-semibold text-center active:scale-95">
                   ${p.is_active ? 'غیرفعال‌سازی' : 'فعال‌سازی'}
                 </button>
-                <button onclick="window.adminActions.deletePlan(${p.id}, '${p.name}')" class="bg-transparent hover:bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/30 hover:border-rose-400/60 px-3 py-1.5 rounded-xl transition font-medium flex items-center justify-center active:scale-95" title="حذف پلن">
+                <button onclick="window.adminActions.deletePlan(${p.id}, '${p.name}')" class="bg-transparent hover:bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/30 hover:border-rose-400/60 px-3 py-1.5 rounded-xl transition font-medium flex items-center justify-center active:scale-95" title="حذف سرویس">
                   <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                 </button>
               </div>
@@ -2681,7 +2681,7 @@
       } catch (e) {
         if (window.showToast) window.showToast('خطای شبکه در ذخیره تعرفه');
       } finally {
-        if (saveBtn) { saveBtn.disabled = false; saveBtn.innerText = 'ذخیره پلن'; }
+        if (saveBtn) { saveBtn.disabled = false; saveBtn.innerText = 'ذخیره سرویس'; }
       }
     },
 

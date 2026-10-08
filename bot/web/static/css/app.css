@@ -611,7 +611,272 @@ html.theme-light .coupon-card .bg-slate-900 {
   border-color: #e2e8f0 !important;
 }
 
+/* User TMA Light Theme Component Overrides */
+html.theme-light .sub-box-card {
+  background-color: #ffffff !important;
+  border-color: #cbd5e1 !important;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05) !important;
+}
 
+html.theme-light .sub-box-card:hover {
+  border-color: #0284c7 !important;
+}
 
+html.theme-light .sub-action-btn {
+  background-color: #f1f5f9 !important;
+  border-color: #cbd5e1 !important;
+  color: #334155 !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05) !important;
+}
 
+html.theme-light .sub-action-btn:hover {
+  background-color: #e2e8f0 !important;
+  color: #0f172a !important;
+}
 
+/* Harmonized Client Importer Buttons in Light Theme */
+html.theme-light .client-import-btn {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03) !important;
+}
+
+html.theme-light .client-import-btn:hover {
+  background-color: #f8fafc !important;
+  border-color: #cbd5e1 !important;
+}
+
+/* Header Support Icon Button */
+html.theme-light .header-support-btn {
+  background-color: #ecfdf5 !important;
+  border-color: #a7f3d0 !important;
+  color: #059669 !important;
+  box-shadow: 0 1px 2px rgba(16, 185, 129, 0.08) !important;
+}
+
+html.theme-light .header-support-btn:hover {
+  background-color: #d1fae5 !important;
+}
+
+/* Lucky Wheel & Story Quick Cards in Light Theme */
+html.theme-light .lucky-wheel-entry-btn {
+  background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%) !important;
+  border-color: #fde68a !important;
+  box-shadow: 0 1px 3px rgba(245, 158, 11, 0.1) !important;
+}
+
+html.theme-light .lucky-wheel-entry-btn .lucky-wheel-title,
+html.theme-light .lucky-wheel-entry-btn .text-amber-300 {
+  color: #b45309 !important;
+  font-weight: 800 !important;
+}
+
+html.theme-light .lucky-wheel-entry-btn .lucky-wheel-sub,
+html.theme-light .lucky-wheel-entry-btn .text-slate-300 {
+  color: #92400e !important;
+  font-weight: 600 !important;
+}
+
+html.theme-light .story-entry-btn {
+  background: linear-gradient(135deg, #faf5ff 0%, #f3e8ff 100%) !important;
+  border-color: #e9d5ff !important;
+  box-shadow: 0 1px 3px rgba(168, 85, 247, 0.1) !important;
+}
+
+html.theme-light .story-entry-btn .story-title,
+html.theme-light .story-entry-btn .text-purple-300 {
+  color: #7e22ce !important;
+  font-weight: 800 !important;
+}
+
+html.theme-light .story-entry-btn .story-sub,
+html.theme-light .story-entry-btn .text-slate-300 {
+  color: #6b21a8 !important;
+  font-weight: 600 !important;
+}
+
+/* User Profile Identity Hero Card in Light Theme */
+html.theme-light .profile-hero-card {
+  background: #ffffff !important;
+  border-color: #e2e8f0 !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05) !important;
+}
+
+html.theme-light .profile-hero-card #profileFullName {
+  color: #0f172a !important;
+}
+
+html.theme-light .profile-hero-card #profileAvatarInitial {
+  background-color: #f1f5f9 !important;
+  color: #2563eb !important;
+}
+
+/* Wallet Hero Card in Light Theme */
+html.theme-light .wallet-hero-card {
+  background: #ffffff !important;
+  border-color: #e2e8f0 !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05) !important;
+}
+
+html.theme-light .wallet-hero-card .text-slate-400 {
+  color: #64748b !important;
+}
+
+html.theme-light #walletTabBalance {
+  background: linear-gradient(135deg, #059669, #0284c7) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+}
+
+html.theme-light #gotoShopFromWallet {
+  background-color: #f1f5f9 !important;
+  border-color: #cbd5e1 !important;
+  color: #1e293b !important;
+}
+
+html.theme-light #gotoShopFromWallet:hover {
+  background-color: #e2e8f0 !important;
+}
+
+/* Shop Plan Cards in Light Theme */
+html.theme-light .shop-plan-card {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04) !important;
+}
+
+html.theme-light .shop-plan-card .text-white {
+  color: #0f172a !important;
+}
+
+html.theme-light .shop-plan-card .bg-slate-900\/60 {
+  background-color: #f8fafc !important;
+  border-color: #e2e8f0 !important;
+}
+
+html.theme-light .shop-plan-card .text-slate-300,
+html.theme-light .shop-plan-card .text-slate-200 {
+  color: #334155 !important;
+}
+
+html.theme-light #applyCouponBtn {
+  background-color: #2563eb !important;
+  color: #ffffff !important;
+}
+
+html.theme-light #applyCouponBtn:hover {
+  background-color: #1d4ed8 !important;
+}
+
+html.theme-light #couponInput {
+  background-color: #ffffff !important;
+  border-color: #cbd5e1 !important;
+  color: #0f172a !important;
+}
+
+/* Modals in Light Theme: Top-up, QR, Checkout, Sessions, Revoke */
+html.theme-light .topup-modal-card,
+html.theme-light .qr-modal-card,
+html.theme-light .checkout-modal-card,
+html.theme-light #activeSessionsModal > div,
+html.theme-light #switchAccountModal > div,
+html.theme-light #revokeModal > div,
+html.theme-light #purchaseSuccessModal > div,
+html.theme-light #luckyWheelModal > div,
+html.theme-light #supportChatModal > div {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+  color: #0f172a !important;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1) !important;
+}
+
+html.theme-light .topup-modal-card .text-white,
+html.theme-light .qr-modal-card .text-white,
+html.theme-light .checkout-modal-card .text-white,
+html.theme-light #activeSessionsModal .text-white,
+html.theme-light #switchAccountModal .text-white,
+html.theme-light #revokeModal .text-white,
+html.theme-light #purchaseSuccessModal .text-white,
+html.theme-light #luckyWheelModal .text-white,
+html.theme-light #supportChatModal .text-white {
+  color: #0f172a !important;
+}
+
+html.theme-light .topup-modal-card .text-slate-200,
+html.theme-light .topup-modal-card .text-slate-300,
+html.theme-light .qr-modal-card .text-slate-300,
+html.theme-light .checkout-modal-card .text-slate-200,
+html.theme-light .checkout-modal-card .text-slate-300,
+html.theme-light #activeSessionsModal .text-slate-200,
+html.theme-light #activeSessionsModal .text-slate-300,
+html.theme-light #revokeModal .text-slate-300,
+html.theme-light #purchaseSuccessModal .text-slate-300 {
+  color: #334155 !important;
+}
+
+html.theme-light .topup-modal-card .bg-slate-900,
+html.theme-light .topup-modal-card .bg-slate-900\/90,
+html.theme-light .topup-modal-card .bg-slate-900\/80,
+html.theme-light .checkout-modal-card .bg-slate-900\/80,
+html.theme-light .checkout-modal-card .bg-slate-900\/60,
+html.theme-light #purchaseSuccessModal .bg-slate-900\/80,
+html.theme-light #purchaseSuccessModal .bg-slate-900\/90 {
+  background-color: #f8fafc !important;
+  border-color: #e2e8f0 !important;
+}
+
+html.theme-light .topup-preset-btn {
+  background-color: #ffffff !important;
+  border-color: #cbd5e1 !important;
+  color: #1e293b !important;
+}
+
+html.theme-light .topup-preset-btn:hover {
+  background-color: #f1f5f9 !important;
+  border-color: #94a3b8 !important;
+}
+
+html.theme-light #topupModal input,
+html.theme-light #topupModal textarea {
+  background-color: #f8fafc !important;
+  border-color: #cbd5e1 !important;
+  color: #0f172a !important;
+}
+
+html.theme-light #topupModal #topupCardNumber {
+  background-color: #f1f5f9 !important;
+  color: #0f172a !important;
+}
+
+html.theme-light #closeTopupModalBtn,
+html.theme-light #closeQrModalBtn,
+html.theme-light #closeCheckoutModalBtn,
+html.theme-light #closeSessionsModalBtn,
+html.theme-light #closeSwitchAccountBtn,
+html.theme-light #cancelRevokeBtn,
+html.theme-light #cancelCheckoutBtn,
+html.theme-light #psvcCloseBtn,
+html.theme-light #psvcTopCloseBtn,
+html.theme-light #closeLuckyWheelBtn,
+html.theme-light #closeStoryCardBtn,
+html.theme-light #closeSupportChatBtn {
+  background-color: #f1f5f9 !important;
+  border-color: #e2e8f0 !important;
+  color: #64748b !important;
+}
+
+html.theme-light #closeTopupModalBtn:hover,
+html.theme-light #closeQrModalBtn:hover,
+html.theme-light #closeCheckoutModalBtn:hover,
+html.theme-light #closeSessionsModalBtn:hover,
+html.theme-light #closeSwitchAccountBtn:hover,
+html.theme-light #cancelRevokeBtn:hover,
+html.theme-light #cancelCheckoutBtn:hover,
+html.theme-light #psvcCloseBtn:hover,
+html.theme-light #psvcTopCloseBtn:hover,
+html.theme-light #closeLuckyWheelBtn:hover,
+html.theme-light #closeStoryCardBtn:hover,
+html.theme-light #closeSupportChatBtn:hover {
+  background-color: #e2e8f0 !important;
+  color: #0f172a !important;
+}
