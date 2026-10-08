@@ -226,13 +226,21 @@ async def fetch_all_exchange_prices(usdt_rate: int | None = None) -> dict:
             best_usdt_source = src
             break
 
-    # Calculate EUR in Toman
+    # Calculate EUR in Toman for all domestic exchanges (Nobitex, Tetherland, Ramzinex, Bitpin, Wallex)
+    # based on their live USDT exchange rate and international Binance EUR/USDT benchmark
+    eur_rate_mult = binance_eur_usd if (binance_eur_usd and binance_eur_usd > 0) else 1.085
+    for exch_name in ("نوبیتکس", "تترلند", "رمزینکس", "بیت‌پین", "والکس"):
+        if exch_name not in eur_prices and exch_name in usdt_prices:
+            u_price = usdt_prices[exch_name]
+            if u_price > 0:
+                eur_prices[exch_name] = int(round(u_price * eur_rate_mult))
+
     if binance_eur_usd and "بایننس" not in eur_prices:
         eur_prices["بایننس"] = int(round(binance_eur_usd * effective_usdt))
 
     best_eur_price: int | None = None
     best_eur_source = ""
-    for src in ("نوبیتکس", "بایننس"):
+    for src in ("نوبیتکس", "تترلند", "رمزینکس", "بیت‌پین", "والکس", "بایننس"):
         if src in eur_prices:
             best_eur_price = eur_prices[src]
             best_eur_source = src if src != "بایننس" else f"بایننس (${binance_eur_usd:.3f})"
