@@ -65,7 +65,7 @@
       <!-- ===================================================== -->
       <div id="tab-admin-overview" class="admin-tab-pane space-y-4">
         
-        <!-- 4 Key Real Metrics Cards -->
+        <!-- 6 Unified Key Metrics Cards (عملیات، شبکه و تحلیل مالی سرورها) -->
         <div class="grid grid-cols-2 gap-2.5">
           <!-- Card 1: Users -->
           <div class="bg-slate-800/80 p-3.5 rounded-2xl border border-slate-700/80 shadow relative overflow-hidden">
@@ -79,17 +79,17 @@
             <div id="adminActiveUsers" class="text-[10px] text-slate-400 mt-1">-- اکانت فعال پنل</div>
           </div>
 
-          <!-- Card 2: Today Revenue -->
+          <!-- Card 2: Active Online HWID -->
           <div class="bg-slate-800/80 p-3.5 rounded-2xl border border-slate-700/80 shadow relative overflow-hidden">
             <div class="flex items-center gap-1.5">
-              <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-              <span class="text-slate-400 text-[11px] font-medium">فروش امروز</span>
+              <svg class="w-4 h-4 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+              <span class="text-slate-400 text-[11px] font-medium">دستگاه‌های متصل</span>
             </div>
-            <div class="mt-2 flex items-baseline gap-1">
-              <span id="adminTodayRevenue" class="text-xl font-black text-emerald-400 font-mono">--</span>
-              <span class="text-[9px] text-slate-400 font-sans">تومان</span>
+            <div class="mt-2 flex items-baseline gap-1.5">
+              <span id="adminOnlineDevices" class="text-2xl font-black text-indigo-300 font-mono">--</span>
+              <span class="text-[10px] text-emerald-400 font-bold">آنلاین</span>
             </div>
-            <div class="text-[10px] text-slate-400 mt-1">سفارش‌های موفق ثبت‌شده</div>
+            <div class="text-[10px] text-slate-400 mt-1">روی تمام نودهای فعال</div>
           </div>
 
           <!-- Card 3: Bandwidth -->
@@ -104,71 +104,48 @@
             <div class="text-[10px] text-slate-400 mt-1">مجموع مصرف روی سرورها</div>
           </div>
 
-          <!-- Card 4: Active Online HWID -->
+          <!-- Card 4: Today Revenue & 30-day -->
           <div class="bg-slate-800/80 p-3.5 rounded-2xl border border-slate-700/80 shadow relative overflow-hidden">
             <div class="flex items-center gap-1.5">
-              <svg class="w-4 h-4 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
-              <span class="text-slate-400 text-[11px] font-medium">دستگاه‌های متصل</span>
+              <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              <span class="text-slate-400 text-[11px] font-medium">فروش امروز</span>
             </div>
-            <div class="mt-2 flex items-baseline gap-1.5">
-              <span id="adminOnlineDevices" class="text-2xl font-black text-indigo-300 font-mono">--</span>
-              <span class="text-[10px] text-emerald-400 font-bold">آنلاین</span>
+            <div class="mt-2 flex items-baseline gap-1">
+              <span id="adminTodayRevenue" class="text-xl font-black text-emerald-400 font-mono">--</span>
+              <span class="text-[9px] text-slate-400 font-sans">تومان</span>
             </div>
-            <div class="text-[10px] text-slate-400 mt-1">روی تمام نودهای فعال</div>
-          </div>
-        </div>
-
-        <!-- Infra-Billing & Financial Analytics Card -->
-        <div class="bg-slate-800/80 rounded-2xl p-4 border border-slate-700/80 shadow space-y-3">
-          <div class="flex justify-between items-center border-b border-slate-700/60 pb-2.5">
-            <div class="flex items-center gap-2">
-              <div class="w-7 h-7 rounded-xl bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 flex items-center justify-center flex-shrink-0">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-              </div>
-              <div>
-                <span class="text-xs font-bold text-white block">تحلیل سود خالص و زیرساخت (Infra-Billing)</span>
-                <span class="text-[10px] text-slate-400 block mt-0.5">درآمد ۳۰ روزه، هزینه ماهانه سرورها و حاشیه سود</span>
-              </div>
-            </div>
-            <span id="adminProfitMarginBadge" class="text-[10px] font-mono font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded-lg" dir="ltr">مارجین: --%</span>
+            <div class="text-[10px] text-slate-400 mt-1 truncate">۳۰ روز: <b id="adminMonthlyRevenue" class="font-mono text-slate-300">--</b> تومان</div>
           </div>
 
-          <div class="grid grid-cols-2 gap-2 text-xs">
-            <!-- 30-day Revenue -->
-            <div class="bg-slate-900/60 p-2.5 rounded-xl border border-slate-700/60">
-              <span class="text-[10px] text-slate-400 block mb-1">فروش ۳۰ روز اخیر:</span>
-              <div class="flex items-baseline gap-1">
-                <span id="adminMonthlyRevenue" class="text-emerald-400 font-mono font-bold text-sm">--</span>
-                <span class="text-[9px] text-slate-400">تومان</span>
+          <!-- Card 5: Net Profit & Margin (سود خالص ماهانه) -->
+          <div class="bg-slate-800/80 p-3.5 rounded-2xl border border-slate-700/80 shadow relative overflow-hidden">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-1.5">
+                <svg class="w-4 h-4 text-teal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                <span class="text-slate-400 text-[11px] font-medium">سود خالص ماهانه</span>
               </div>
             </div>
+            <div class="mt-2 flex items-baseline gap-1">
+              <span id="adminNetProfit" dir="ltr" class="text-lg font-black font-mono">--</span>
+              <span class="text-[9px] text-slate-400 font-sans">تومان</span>
+            </div>
+            <div class="flex items-center justify-between mt-1 pt-0.5">
+              <span id="adminProfitMarginBadge" class="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded-md bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">مارجین: --%</span>
+              <span class="text-[9px] text-slate-400">کسر سرورها</span>
+            </div>
+          </div>
 
-            <!-- Total Server Cost -->
-            <div class="bg-slate-900/60 p-2.5 rounded-xl border border-slate-700/60">
-              <span class="text-[10px] text-slate-400 block mb-1">هزینه سرورها:</span>
-              <div class="flex items-baseline gap-1">
-                <span id="adminTotalInfraCost" class="text-rose-400 font-mono font-bold text-sm">--</span>
-                <span class="text-[9px] text-slate-400">تومان</span>
-              </div>
+          <!-- Card 6: Cost per GB & Server Expenses (بهای تمام‌شده هر گیگ) -->
+          <div class="bg-slate-800/80 p-3.5 rounded-2xl border border-slate-700/80 shadow relative overflow-hidden">
+            <div class="flex items-center gap-1.5">
+              <svg class="w-4 h-4 text-pink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+              <span class="text-slate-400 text-[11px] font-medium">قیمت هر گیگابایت</span>
             </div>
-
-            <!-- Net Profit -->
-            <div class="bg-slate-900/60 p-2.5 rounded-xl border border-slate-700/60">
-              <span class="text-[10px] text-slate-400 block mb-1">سود خالص (Net Profit):</span>
-              <div class="flex items-baseline gap-1">
-                <span id="adminNetProfit" class="text-cyan-300 font-mono font-bold text-sm">--</span>
-                <span class="text-[9px] text-slate-400">تومان</span>
-              </div>
+            <div class="mt-2 flex items-baseline gap-1">
+              <span id="adminAvgCostPerGb" class="text-xl font-black text-indigo-300 font-mono">--</span>
+              <span class="text-[9px] text-slate-400 font-sans">تومان</span>
             </div>
-
-            <!-- Avg Cost per GB -->
-            <div class="bg-slate-900/60 p-2.5 rounded-xl border border-slate-700/60">
-              <span class="text-[10px] text-slate-400 block mb-1">هزینه هر گیگابایت:</span>
-              <div class="flex items-baseline gap-1">
-                <span id="adminAvgCostPerGb" class="text-indigo-300 font-mono font-bold text-sm">--</span>
-                <span class="text-[9px] text-slate-400">تومان/GB</span>
-              </div>
-            </div>
+            <div class="text-[10px] text-slate-400 mt-1 truncate">هزینه سرورها: <b id="adminTotalInfraCost" class="font-mono text-slate-300">--</b> تومان</div>
           </div>
         </div>
 
@@ -721,14 +698,18 @@
               <span>استعلام آنلاین</span>
             </button>
 
-            <div class="grid grid-cols-2 gap-2">
+            <div class="grid grid-cols-3 gap-2">
               <div>
-                <label class="text-[11px] text-slate-400 block mb-1">نرخ هر تتر (تومان):</label>
-                <input type="number" id="settingUsdtRate" dir="ltr" placeholder="95000" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-emerald-300 outline-none focus:border-emerald-500 transition" />
+                <label class="text-[10px] text-slate-400 block mb-1">نرخ تتر (تومان):</label>
+                <input type="number" id="settingUsdtRate" dir="ltr" placeholder="95000" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-xs font-mono text-emerald-300 outline-none focus:border-emerald-500 transition" />
               </div>
               <div>
-                <label class="text-[11px] text-slate-400 block mb-1">نرخ هر TON (تومان):</label>
-                <input type="number" id="settingTonRate" dir="ltr" placeholder="0" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-cyan-300 outline-none focus:border-cyan-500 transition" />
+                <label class="text-[10px] text-slate-400 block mb-1">نرخ یورو (تومان):</label>
+                <input type="number" id="settingEurRate" dir="ltr" placeholder="105000" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-xs font-mono text-indigo-300 outline-none focus:border-indigo-500 transition" />
+              </div>
+              <div>
+                <label class="text-[10px] text-slate-400 block mb-1">نرخ TON (تومان):</label>
+                <input type="number" id="settingTonRate" dir="ltr" placeholder="0" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-xs font-mono text-cyan-300 outline-none focus:border-cyan-500 transition" />
               </div>
             </div>
             <div>
@@ -1552,20 +1533,29 @@
           </div>
 
           <!-- Monthly Cost Toman & EUR -->
-          <div class="grid grid-cols-2 gap-2">
-            <div>
-              <label class="text-[11px] text-slate-300 block mb-1">هزینه ماهانه (تومان):</label>
-              <input type="number" id="nodeBillingCostToman" dir="ltr" placeholder="مثلاً: 2500000" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-cyan-300 outline-none focus:border-cyan-500 transition" />
+          <div class="space-y-1.5">
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <label class="text-[11px] text-slate-300 block mb-1">هزینه ماهانه (تومان):</label>
+                <input type="number" id="nodeBillingCostToman" dir="ltr" placeholder="مثلاً: 2500000" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-cyan-300 outline-none focus:border-cyan-500 transition" />
+              </div>
+              <div>
+                <label class="text-[11px] text-slate-300 block mb-1">هزینه ارزی (یورو €):</label>
+                <input type="number" step="0.01" id="nodeBillingCostEur" dir="ltr" placeholder="مثلاً: 35.00" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-indigo-300 outline-none focus:border-indigo-500 transition" />
+              </div>
             </div>
-            <div>
-              <label class="text-[11px] text-slate-300 block mb-1">هزینه ارزی (یورو €):</label>
-              <input type="number" step="0.01" id="nodeBillingCostEur" dir="ltr" placeholder="مثلاً: 35.00" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-indigo-300 outline-none focus:border-indigo-500 transition" />
+            <div id="nodeBillingEurConvertHint" class="text-[10px] text-cyan-300/90 font-medium px-1 hidden flex items-center gap-1">
+              <svg class="w-3 h-3 text-cyan-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              <span id="nodeBillingEurConvertText"></span>
             </div>
           </div>
 
           <!-- Renewal Due Date -->
           <div>
-            <label class="text-[11px] text-slate-300 block mb-1">تاریخ سررسید بعدی (Due Date):</label>
+            <div class="flex items-center justify-between mb-1">
+              <label class="text-[11px] text-slate-300">تاریخ سررسید بعدی (Due Date):</label>
+              <span id="nodeBillingJalaliPreview" class="text-[10px] font-mono text-amber-400 font-bold" title="تاریخ به شمسی"></span>
+            </div>
             <input type="date" id="nodeBillingDueDate" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-amber-300 outline-none focus:border-amber-500 transition" />
             <span class="text-[9px] text-slate-400 mt-1 block">در صورت رسیدن به ۳ روز باقی‌مانده، پیام هشدار در تلگرام ارسال می‌شود.</span>
           </div>

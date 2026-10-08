@@ -130,7 +130,7 @@ async def get_admin_overview(request: web.Request) -> web.Response:
         total_infra_cost_toman = sum(c.monthly_cost_toman for c in all_node_costs)
         total_infra_cost_eur = round(sum(c.monthly_cost_eur for c in all_node_costs), 2)
         net_profit_toman = monthly_revenue - total_infra_cost_toman
-        profit_margin_percent = round((net_profit_toman / monthly_revenue * 100), 1) if monthly_revenue > 0 else 0.0
+        profit_margin_percent = round((net_profit_toman / monthly_revenue * 100), 1) if monthly_revenue > 0 else None
         avg_cost_per_gb = round(total_infra_cost_toman / total_traffic_gb, 0) if total_traffic_gb > 0 else 0.0
 
         # Node information with country flags and real-time online status
@@ -257,17 +257,59 @@ async def get_admin_overview(request: web.Request) -> web.Response:
                     tx_f = 0.0
                 return rx_f, tx_f
 
-            # Extract CPU & RAM prioritising sys_info then root node
-            cpu_val = _extract_cpu(sys_info)
+            # Extract CPU, RAM & speeds from Remnawave v3 contract structure (system.info and system.stats)
+            raw_sys = n.get("system") or n.get("sys") or {}
+            sys_stats = raw_sys.get("stats") if isinstance(raw_sys, dict) else {}
+            sys_info_meta = raw_sys.get("info") if isinstance(raw_sys, dict) else {}
+
+            # CPU percentage (loadAvg[0] / cpus * 100)
+            cpu_val = None
+            if isinstance(sys_stats, dict) and "loadAvg" in sys_stats:
+                load_avg = sys_stats.get("loadAvg")
+                cpus = (sys_info_meta.get("cpus") if isinstance(sys_info_meta, dict) else None) or 1
+                if isinstance(load_avg, list) and len(load_avg) > 0:
+                    try:
+                        cpu_val = (float(load_avg[0]) / max(1, int(cpus))) * 100.0
+                    except (ValueError, TypeError, ZeroDivisionError):
+                        pass
+
+            if cpu_val is None:
+                cpu_val = _extract_cpu(raw_sys)
             if cpu_val is None:
                 cpu_val = _extract_cpu(n)
 
-            ram_val = _extract_ram(sys_info)
+            # RAM percentage (memoryUsed / memoryTotal * 100)
+            ram_val = None
+            if isinstance(sys_stats, dict) and "memoryUsed" in sys_stats:
+                mem_used = sys_stats.get("memoryUsed")
+                mem_free = sys_stats.get("memoryFree")
+                mem_total = (sys_info_meta.get("memoryTotal") if isinstance(sys_info_meta, dict) else None)
+                if not mem_total and mem_used is not None and mem_free is not None:
+                    mem_total = mem_used + mem_free
+                if mem_used is not None and mem_total:
+                    try:
+                        ram_val = (float(mem_used) / float(mem_total)) * 100.0
+                    except (ValueError, TypeError, ZeroDivisionError):
+                        pass
+
+            if ram_val is None:
+                ram_val = _extract_ram(raw_sys)
             if ram_val is None:
                 ram_val = _extract_ram(n)
 
-            # Extract Network download & upload speeds
-            dl_speed, ul_speed = _extract_speeds(sys_info)
+            # Network download & upload speeds
+            dl_speed = 0.0
+            ul_speed = 0.0
+            if isinstance(sys_stats, dict) and isinstance(sys_stats.get("interface"), dict):
+                iface = sys_stats["interface"]
+                try:
+                    dl_speed = float(iface.get("rxBytesPerSec") or 0.0)
+                    ul_speed = float(iface.get("txBytesPerSec") or 0.0)
+                except (ValueError, TypeError):
+                    pass
+
+            if dl_speed <= 0.0 and ul_speed <= 0.0:
+                dl_speed, ul_speed = _extract_speeds(raw_sys)
             if dl_speed <= 0.0 and ul_speed <= 0.0:
                 dl_speed, ul_speed = _extract_speeds(n)
 
@@ -278,6 +320,9 @@ async def get_admin_overview(request: web.Request) -> web.Response:
                 cpu_val *= 100.0
             if 0.0 < ram_val <= 1.0:
                 ram_val *= 100.0
+
+            cpu_val = max(0.0, min(100.0, cpu_val))
+            ram_val = max(0.0, min(100.0, ram_val))
 
             if not is_connected:
                 cpu_val = 0.0
@@ -296,10 +341,19 @@ async def get_admin_overview(request: web.Request) -> web.Response:
             cost_entry = costs_by_uuid.get(n_uuid) or costs_by_id.get(n_id_str)
 
             due_date_str = None
+            due_date_jalali = None
             days_until_due = None
             if cost_entry and cost_entry.due_date:
                 due_date_str = cost_entry.due_date.strftime("%Y-%m-%d")
                 days_until_due = (cost_entry.due_date.date() - now_utc.date()).days
+                if jdatetime:
+                    try:
+                        j_dt = jdatetime.datetime.fromgregorian(datetime=cost_entry.due_date)
+                        due_date_jalali = j_dt.strftime("%Y/%m/%d")
+                    except Exception:
+                        due_date_jalali = due_date_str
+                else:
+                    due_date_jalali = due_date_str
 
             n_cost_toman = cost_entry.monthly_cost_toman if cost_entry else 0
             n_cost_eur = cost_entry.monthly_cost_eur if cost_entry else 0.0
@@ -325,6 +379,7 @@ async def get_admin_overview(request: web.Request) -> web.Response:
                 "monthly_cost_toman": n_cost_toman,
                 "monthly_cost_eur": n_cost_eur,
                 "due_date": due_date_str,
+                "due_date_jalali": due_date_jalali,
                 "days_until_due": days_until_due,
                 "cost_per_gb": n_cost_per_gb,
                 "notes": n_notes,
@@ -1707,6 +1762,7 @@ async def get_admin_settings(request: web.Request) -> web.Response:
             "card_holder": store_settings.card_holder,
             "topup_min_amount": store_settings.topup_min_amount,
             "usdt_rate_toman": store_settings.usdt_rate_toman,
+            "eur_rate_toman": store_settings.eur_rate_toman,
             "ton_rate_toman": store_settings.ton_rate_toman,
             "ton_wallet_address": store_settings.ton_wallet_address,
             "trial_enabled": store_settings.trial_enabled,
@@ -1765,6 +1821,7 @@ async def post_admin_settings(request: web.Request) -> web.Response:
         num_keys = (
             "topup_min_amount",
             "usdt_rate_toman",
+            "eur_rate_toman",
             "ton_rate_toman",
             "trial_traffic_gb",
             "trial_duration_days",
@@ -2595,14 +2652,18 @@ async def get_admin_crypto_rates(request: web.Request) -> web.Response:
         market_data = await fetch_all_exchange_prices(usdt_rate=current_usdt)
         best_ton_val, best_ton_src = market_data.get("best_ton") or (None, "")
         best_usdt_val, best_usdt_src = market_data.get("best_usdt") or (None, "")
+        best_eur_val, best_eur_src = market_data.get("best_eur") or (None, "")
 
         return web.json_response({
             "ok": True,
             "best_ton": {"price": best_ton_val, "source": best_ton_src},
             "best_usdt": {"price": best_usdt_val, "source": best_usdt_src},
+            "best_eur": {"price": best_eur_val, "source": best_eur_src},
             "ton_prices": market_data.get("ton") or {},
             "usdt_prices": market_data.get("usdt") or {},
+            "eur_prices": market_data.get("eur") or {},
             "binance_usd": market_data.get("binance_usd"),
+            "binance_eur_usd": market_data.get("binance_eur_usd"),
         })
     except Exception as exc:
         logger.exception("Error fetching crypto rates: %s", exc)
@@ -2640,7 +2701,7 @@ async def get_admin_infra_billing(request: web.Request) -> web.Response:
             total_infra_cost_toman = sum(c.monthly_cost_toman for c in all_costs)
             total_infra_cost_eur = round(sum(c.monthly_cost_eur for c in all_costs), 2)
             net_profit_toman = monthly_revenue - total_infra_cost_toman
-            profit_margin_percent = round((net_profit_toman / monthly_revenue * 100), 1) if monthly_revenue > 0 else 0.0
+            profit_margin_percent = round((net_profit_toman / monthly_revenue * 100), 1) if monthly_revenue > 0 else None
 
             nodes_data = []
             total_traffic_gb = 0.0
@@ -2654,10 +2715,19 @@ async def get_admin_infra_billing(request: web.Request) -> web.Response:
 
                 cost_item = costs_by_uuid.get(n_uuid) or costs_by_id.get(str(n_id) if n_id else "")
                 due_date_str = None
+                due_date_jalali = None
                 days_left = None
                 if cost_item and cost_item.due_date:
                     due_date_str = cost_item.due_date.strftime("%Y-%m-%d")
                     days_left = (cost_item.due_date.date() - now_utc.date()).days
+                    if jdatetime:
+                        try:
+                            j_dt = jdatetime.datetime.fromgregorian(datetime=cost_item.due_date)
+                            due_date_jalali = j_dt.strftime("%Y/%m/%d")
+                        except Exception:
+                            due_date_jalali = due_date_str
+                    else:
+                        due_date_jalali = due_date_str
 
                 cost_toman = cost_item.monthly_cost_toman if cost_item else 0
                 cost_eur = cost_item.monthly_cost_eur if cost_item else 0.0
@@ -2680,6 +2750,7 @@ async def get_admin_infra_billing(request: web.Request) -> web.Response:
                     "monthly_cost_toman": cost_toman,
                     "monthly_cost_eur": cost_eur,
                     "due_date": due_date_str,
+                    "due_date_jalali": due_date_jalali,
                     "days_until_due": days_left,
                     "cost_per_gb": cost_per_gb,
                     "notes": notes,

@@ -36,7 +36,9 @@ async def fetch_all_exchange_prices(usdt_rate: int | None = None) -> dict:
 
     ton_prices: dict[str, int] = {}
     usdt_prices: dict[str, int] = {}
+    eur_prices: dict[str, int] = {}
     binance_ton_usd: float | None = None
+    binance_eur_usd: float | None = None
 
     async with aiohttp.ClientSession(timeout=timeout) as session:
         # 1. Nobitex
@@ -65,6 +67,9 @@ async def fetch_all_exchange_prices(usdt_rate: int | None = None) -> dict:
                         usdt_info = st.get("usdt-rls")
                         if usdt_info and usdt_info.get("latest"):
                             usdt_prices["نوبیتکس"] = int(float(usdt_info["latest"]) // 10)
+                        eur_info = st.get("eur-rls") or st.get("eur-irt")
+                        if eur_info and eur_info.get("latest"):
+                            eur_prices["نوبیتکس"] = int(float(eur_info["latest"]) // 10)
             except Exception as e:
                 logger.debug("Nobitex stats failed: %s", e)
 
@@ -157,7 +162,7 @@ async def fetch_all_exchange_prices(usdt_rate: int | None = None) -> dict:
 
         # 6. Binance (global)
         async def _fetch_binance():
-            nonlocal binance_ton_usd
+            nonlocal binance_ton_usd, binance_eur_usd
             try:
                 async with session.get("https://api.binance.com/api/v3/ticker/price?symbol=TONUSDT", headers=headers) as resp:
                     if resp.status == 200:
@@ -166,7 +171,17 @@ async def fetch_all_exchange_prices(usdt_rate: int | None = None) -> dict:
                         if p > 0:
                             binance_ton_usd = p
             except Exception as e:
-                logger.debug("Binance failed: %s", e)
+                logger.debug("Binance TON failed: %s", e)
+
+            try:
+                async with session.get("https://api.binance.com/api/v3/ticker/price?symbol=EURUSDT", headers=headers) as resp:
+                    if resp.status == 200:
+                        data = await resp.json()
+                        p = float(data.get("price", "0"))
+                        if p > 0:
+                            binance_eur_usd = p
+            except Exception as e:
+                logger.debug("Binance EUR failed: %s", e)
 
         await asyncio.gather(
             _fetch_nobitex(),
@@ -211,12 +226,27 @@ async def fetch_all_exchange_prices(usdt_rate: int | None = None) -> dict:
             best_usdt_source = src
             break
 
+    # Calculate EUR in Toman
+    if binance_eur_usd and "بایننس" not in eur_prices:
+        eur_prices["بایننس"] = int(round(binance_eur_usd * effective_usdt))
+
+    best_eur_price: int | None = None
+    best_eur_source = ""
+    for src in ("نوبیتکس", "بایننس"):
+        if src in eur_prices:
+            best_eur_price = eur_prices[src]
+            best_eur_source = src if src != "بایننس" else f"بایننس (${binance_eur_usd:.3f})"
+            break
+
     return {
         "ton": ton_prices,
         "usdt": usdt_prices,
+        "eur": eur_prices,
         "binance_usd": binance_ton_usd,
+        "binance_eur_usd": binance_eur_usd,
         "best_ton": (best_ton_price, best_ton_source),
         "best_usdt": (best_usdt_price, best_usdt_source),
+        "best_eur": (best_eur_price, best_eur_source),
     }
 
 

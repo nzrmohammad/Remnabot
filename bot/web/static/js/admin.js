@@ -359,20 +359,28 @@
 
       const nProf = document.getElementById('adminNetProfit');
       if (nProf) {
-        const netVal = m.net_profit_toman || 0;
-        nProf.innerText = formatNumber(netVal);
+        const netVal = Number(m.net_profit_toman || 0);
+        const sign = netVal > 0 ? '+' : (netVal < 0 ? '-' : '');
+        nProf.innerHTML = `<span dir="ltr">${sign}${formatNumber(Math.abs(netVal))}</span>`;
         nProf.className = netVal >= 0
-          ? 'text-emerald-400 font-mono font-bold text-sm'
-          : 'text-rose-400 font-mono font-bold text-sm';
+          ? 'text-emerald-400 font-mono font-bold text-lg'
+          : 'text-rose-400 font-mono font-bold text-lg';
       }
 
       const pMargin = document.getElementById('adminProfitMarginBadge');
       if (pMargin) {
-        const marginVal = m.profit_margin_percent !== undefined ? m.profit_margin_percent : 0;
-        pMargin.innerText = `مارجین: ${marginVal}%`;
-        pMargin.className = marginVal >= 0
-          ? 'text-[10px] font-mono font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded-lg'
-          : 'text-[10px] font-mono font-bold bg-rose-500/15 text-rose-400 border border-rose-500/30 px-2 py-0.5 rounded-lg';
+        const hasRevenue = Number(m.monthly_revenue_toman || 0) > 0;
+        const marginVal = m.profit_margin_percent;
+        if (!hasRevenue || marginVal === null || marginVal === undefined) {
+          pMargin.innerText = 'مارجین: —';
+          pMargin.className = 'text-[9px] font-mono font-bold bg-slate-700/40 text-slate-400 border border-slate-600/40 px-1.5 py-0.5 rounded-md';
+        } else {
+          const sign = marginVal > 0 ? '+' : '';
+          pMargin.innerText = `مارجین: ${sign}${marginVal}%`;
+          pMargin.className = marginVal >= 0
+            ? 'text-[9px] font-mono font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 px-1.5 py-0.5 rounded-md'
+            : 'text-[9px] font-mono font-bold bg-rose-500/15 text-rose-400 border border-rose-500/30 px-1.5 py-0.5 rounded-md';
+        }
       }
 
       const costGb = document.getElementById('adminAvgCostPerGb');
@@ -1276,16 +1284,17 @@
       const cpuDisplay = isOnline ? (cpu > 0 ? (cpu % 1 === 0 ? cpu : cpu.toFixed(1)) + '%' : '< 1%') : 'آفلاین';
       const ramDisplay = isOnline ? (ram > 0 ? (ram % 1 === 0 ? ram : ram.toFixed(1)) + '%' : '< 1%') : 'آفلاین';
 
+      const shamsiDate = n.due_date_jalali || n.due_date;
       let dueBadgeHtml = '<span class="text-slate-500 font-medium">ثبت‌نشده</span>';
       if (n.days_until_due !== null && n.days_until_due !== undefined) {
         if (n.days_until_due < 0) {
-          dueBadgeHtml = `<span class="bg-rose-500/15 text-rose-400 border border-rose-500/30 px-2 py-0.5 rounded-lg font-bold">⚠️ منقضی (${Math.abs(n.days_until_due)} روز پیش)</span>`;
+          dueBadgeHtml = `<span class="bg-rose-500/15 text-rose-400 border border-rose-500/30 px-2 py-0.5 rounded-lg font-bold">⚠️ منقضی (${Math.abs(n.days_until_due)} روز پیش - ${shamsiDate})</span>`;
         } else if (n.days_until_due === 0) {
-          dueBadgeHtml = `<span class="bg-rose-500/20 text-rose-400 border border-rose-500/40 px-2 py-0.5 rounded-lg font-bold animate-pulse">⚠️ سررسید امروز!</span>`;
+          dueBadgeHtml = `<span class="bg-rose-500/20 text-rose-400 border border-rose-500/40 px-2 py-0.5 rounded-lg font-bold animate-pulse">⚠️ سررسید امروز! (${shamsiDate})</span>`;
         } else if (n.days_until_due <= 3) {
-          dueBadgeHtml = `<span class="bg-amber-500/15 text-amber-400 border border-amber-500/30 px-2 py-0.5 rounded-lg font-bold">⏳ ${n.days_until_due} روز تا تمدید</span>`;
+          dueBadgeHtml = `<span class="bg-amber-500/15 text-amber-400 border border-amber-500/30 px-2 py-0.5 rounded-lg font-bold">⏳ ${n.days_until_due} روز تا تمدید (${shamsiDate})</span>`;
         } else {
-          dueBadgeHtml = `<span class="bg-slate-800 text-slate-300 border border-slate-700 px-2 py-0.5 rounded-lg font-mono">🗓️ ${n.days_until_due} روز (${n.due_date})</span>`;
+          dueBadgeHtml = `<span class="bg-slate-800 text-slate-300 border border-slate-700 px-2 py-0.5 rounded-lg font-mono">🗓️ ${shamsiDate} (${n.days_until_due} روز)</span>`;
         }
       }
 
@@ -1408,10 +1417,13 @@
                   <svg class="w-3.5 h-3.5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                   <span>هزینه ماهانه سرور:</span>
                 </span>
-                <span class="font-mono font-bold text-emerald-400" dir="ltr">
-                  ${n.monthly_cost_toman ? formatNumber(n.monthly_cost_toman) + ' تومان' : 'ثبت‌نشده'}
-                  ${n.monthly_cost_eur ? `(€${n.monthly_cost_eur})` : ''}
-                </span>
+                <div class="flex items-center gap-1 font-bold">
+                  ${n.monthly_cost_toman ? `
+                    <span class="font-mono text-emerald-400">${formatNumber(n.monthly_cost_toman)}</span>
+                    <span class="text-[9px] text-slate-400 font-sans">تومان</span>
+                    ${n.monthly_cost_eur ? `<span class="text-indigo-300 font-mono text-[10px] mr-1">(€${n.monthly_cost_eur})</span>` : ''}
+                  ` : '<span class="text-slate-500 font-medium">ثبت‌نشده</span>'}
+                </div>
               </div>
 
               <div class="flex items-center justify-between">
@@ -1429,7 +1441,12 @@
                 </div>
                 <div>
                   <span class="text-slate-400 block mb-0.5">قیمت تمام‌شده هر گیگ:</span>
-                  <b class="text-indigo-300 font-mono block" dir="ltr">${n.cost_per_gb ? formatNumber(n.cost_per_gb) + ' تومان/GB' : '—'}</b>
+                  <b class="text-indigo-300 font-bold block">
+                    ${n.cost_per_gb ? `
+                      <span class="font-mono">${formatNumber(n.cost_per_gb)}</span>
+                      <span class="text-[9px] text-slate-400 font-sans">تومان</span>
+                    ` : '—'}
+                  </b>
                 </div>
               </div>
 
@@ -3154,11 +3171,15 @@
 
         const bestTon = res.best_ton || {};
         const bestUsdt = res.best_usdt || {};
-        window.lastLiveCryptoRates = { ton: bestTon.price, usdt: bestUsdt.price };
+        const bestEur = res.best_eur || {};
+        window.lastLiveCryptoRates = { ton: bestTon.price, usdt: bestUsdt.price, eur: bestEur.price };
+        if (bestEur.price) window.currentEurRate = bestEur.price;
 
         const usdtList = Object.entries(res.usdt_prices || {});
+        const eurList = Object.entries(res.eur_prices || {});
         const tonList = Object.entries(res.ton_prices || {});
         const binanceUsd = res.binance_usd;
+        const binanceEurUsd = res.binance_eur_usd;
 
         let usdtRowsHtml = '';
         if (usdtList.length > 0) {
@@ -3168,6 +3189,21 @@
               <div class="flex items-center gap-2">
                 <span class="font-mono font-bold text-slate-100 text-[11px]">${formatNumber(p)} <span class="text-[9px] text-slate-400 font-sans">تومان</span></span>
                 <button onclick="window.adminActions.applySpecificRate('usdt', ${p})" class="bg-emerald-600/25 hover:bg-emerald-600 text-emerald-300 hover:text-white border border-emerald-500/40 text-[10px] font-bold px-2 py-0.5 rounded-lg transition active:scale-95">
+                  اعمال
+                </button>
+              </div>
+            </div>
+          `).join('');
+        }
+
+        let eurRowsHtml = '';
+        if (eurList.length > 0) {
+          eurRowsHtml = eurList.map(([src, p]) => `
+            <div class="flex items-center justify-between py-1.5 px-2.5 rounded-xl bg-slate-800/60 border border-slate-700/50 hover:border-slate-600 transition">
+              <span class="text-slate-300 font-medium text-[11px]">${src}</span>
+              <div class="flex items-center gap-2">
+                <span class="font-mono font-bold text-slate-100 text-[11px]">${formatNumber(p)} <span class="text-[9px] text-slate-400 font-sans">تومان</span></span>
+                <button onclick="window.adminActions.applySpecificRate('eur', ${p})" class="bg-indigo-600/25 hover:bg-indigo-600 text-indigo-300 hover:text-white border border-indigo-500/40 text-[10px] font-bold px-2 py-0.5 rounded-lg transition active:scale-95">
                   اعمال
                 </button>
               </div>
@@ -3215,6 +3251,14 @@
             </div>
           </div>
 
+          <!-- All EUR Rates List -->
+          <div class="space-y-1.5 mt-3">
+            <span class="text-[10px] font-bold text-slate-400 block px-1">استعلام نرخ ارز یورو (EUR):</span>
+            <div class="space-y-1">
+              ${eurRowsHtml || '<div class="text-[10px] text-slate-500 text-center py-1">اطلاعاتی دریافت نشد</div>'}
+            </div>
+          </div>
+
           <!-- All TON Exchanges List -->
           <div class="space-y-1.5 mt-3">
             <span class="text-[10px] font-bold text-slate-400 block px-1">استعلام صرافی‌ها (TON):</span>
@@ -3238,6 +3282,11 @@
         const inp = document.getElementById('settingUsdtRate');
         if (inp) inp.value = numVal;
         payload.usdt_rate_toman = numVal;
+      } else if (type === 'eur') {
+        const inp = document.getElementById('settingEurRate');
+        if (inp) inp.value = numVal;
+        payload.eur_rate_toman = numVal;
+        window.currentEurRate = numVal;
       } else if (type === 'ton') {
         const inp = document.getElementById('settingTonRate');
         if (inp) inp.value = numVal;
@@ -3247,7 +3296,8 @@
       try {
         const res = await window.api.saveAdminSettings(payload);
         if (res && res.ok) {
-          if (window.showToast) window.showToast(`✅ نرخ ${type === 'usdt' ? 'تتر' : 'تون'} به ${formatNumber(numVal)} تومان ذخیره شد`);
+          const typeName = type === 'usdt' ? 'تتر' : (type === 'eur' ? 'یورو' : 'تون');
+          if (window.showToast) window.showToast(`✅ نرخ ${typeName} به ${formatNumber(numVal)} تومان ذخیره شد`);
           if (window.hapticFeedback) window.hapticFeedback('success');
         } else {
           if (window.showToast) window.showToast(`⚠️ نرخ تنظیم شد اما در سرور ذخیره نشد: ${res?.error || ''}`);
@@ -3261,17 +3311,23 @@
       const rates = window.lastLiveCryptoRates;
       if (!rates) return;
       const usdtInp = document.getElementById('settingUsdtRate');
+      const eurInp = document.getElementById('settingEurRate');
       const tonInp = document.getElementById('settingTonRate');
       if (usdtInp && rates.usdt) usdtInp.value = rates.usdt;
+      if (eurInp && rates.eur) {
+        eurInp.value = rates.eur;
+        window.currentEurRate = rates.eur;
+      }
       if (tonInp && rates.ton) tonInp.value = rates.ton;
 
       try {
         const payload = {};
         if (rates.usdt) payload.usdt_rate_toman = rates.usdt;
+        if (rates.eur) payload.eur_rate_toman = rates.eur;
         if (rates.ton) payload.ton_rate_toman = rates.ton;
         const res = await window.api.saveAdminSettings(payload);
         if (res && res.ok) {
-          if (window.showToast) window.showToast('✅ هر دو نرخ با موفقیت در تنظیمات ذخیره شدند');
+          if (window.showToast) window.showToast('✅ تمامی نرخ‌ها با موفقیت در تنظیمات ذخیره شدند');
           this.closeCryptoRatesModal();
           if (window.hapticFeedback) window.hapticFeedback('success');
         } else {
@@ -3384,6 +3440,26 @@
       document.getElementById('nodeBillingCostEur').value = costEur || '';
       document.getElementById('nodeBillingDueDate').value = dueDate ? dueDate.slice(0, 10) : '';
       document.getElementById('nodeBillingNotes').value = notes || '';
+
+      const jalaliPreview = document.getElementById('nodeBillingJalaliPreview');
+      if (jalaliPreview) {
+        jalaliPreview.innerText = dueDate ? (window.formatDateToJalali ? window.formatDateToJalali(dueDate) : dueDate.slice(0, 10)) : '';
+      }
+
+      const eurHint = document.getElementById('nodeBillingEurConvertHint');
+      const eurText = document.getElementById('nodeBillingEurConvertText');
+      if (eurHint && eurText) {
+        const eurVal = parseFloat(costEur || 0);
+        if (eurVal > 0) {
+          const rate = window.currentEurRate || 105000;
+          const calculatedToman = Math.round(eurVal * rate);
+          eurText.innerText = `محاسبه خودکار: €${eurVal} × ${formatNumber(rate)} = ${formatNumber(costToman || calculatedToman)} تومان`;
+          eurHint.classList.remove('hidden');
+        } else {
+          eurHint.classList.add('hidden');
+        }
+      }
+
       modal.classList.remove('hidden');
       if (window.hapticFeedback) window.hapticFeedback('selection');
     },
@@ -3779,6 +3855,10 @@
       const usdtRate = document.getElementById('settingUsdtRate');
       if (usdtRate) usdtRate.value = s.usdt_rate_toman ?? 95000;
 
+      const eurRate = document.getElementById('settingEurRate');
+      if (eurRate) eurRate.value = s.eur_rate_toman ?? 105000;
+      if (s.eur_rate_toman) window.currentEurRate = s.eur_rate_toman;
+
       const tonRate = document.getElementById('settingTonRate');
       if (tonRate) tonRate.value = s.ton_rate_toman ?? 0;
 
@@ -3864,6 +3944,7 @@
       card_holder: document.getElementById('settingCardHolder')?.value?.trim() || '',
       topup_min_amount: parseInt(document.getElementById('settingMinTopup')?.value || '20000', 10),
       usdt_rate_toman: parseInt(document.getElementById('settingUsdtRate')?.value || '95000', 10),
+      eur_rate_toman: parseInt(document.getElementById('settingEurRate')?.value || '105000', 10),
       ton_rate_toman: parseInt(document.getElementById('settingTonRate')?.value || '0', 10),
       ton_wallet_address: document.getElementById('settingTonWallet')?.value?.trim() || '',
       trial_traffic_gb: parseInt(document.getElementById('settingTrialTraffic')?.value || '1', 10),
@@ -4076,6 +4157,45 @@
       setTimeout(() => {
         if (icon) icon.classList.remove('animate-spin');
       }, 500);
+    }
+  });
+
+  // Node Billing auto-convert EUR to Toman & Shamsi preview
+  const nodeCostEurInput = document.getElementById('nodeBillingCostEur');
+  const nodeCostTomanInput = document.getElementById('nodeBillingCostToman');
+  const nodeEurHint = document.getElementById('nodeBillingEurConvertHint');
+  const nodeEurHintText = document.getElementById('nodeBillingEurConvertText');
+  const nodeDueDateInput = document.getElementById('nodeBillingDueDate');
+  const nodeJalaliPreview = document.getElementById('nodeBillingJalaliPreview');
+
+  nodeCostEurInput?.addEventListener('input', (e) => {
+    const eurVal = parseFloat(e.target.value || '0');
+    if (!isNaN(eurVal) && eurVal > 0) {
+      const rate = window.currentEurRate || 105000;
+      const convertedToman = Math.round(eurVal * rate);
+      if (nodeCostTomanInput) {
+        nodeCostTomanInput.value = convertedToman;
+      }
+      if (nodeEurHint && nodeEurHintText) {
+        nodeEurHintText.innerText = `محاسبه خودکار: €${eurVal} × ${formatNumber(rate)} = ${formatNumber(convertedToman)} تومان`;
+        nodeEurHint.classList.remove('hidden');
+      }
+    } else {
+      if (nodeEurHint) nodeEurHint.classList.add('hidden');
+    }
+  });
+
+  nodeDueDateInput?.addEventListener('input', (e) => {
+    const d = e.target.value;
+    if (nodeJalaliPreview) {
+      nodeJalaliPreview.innerText = d ? (window.formatDateToJalali ? window.formatDateToJalali(d) : d) : '';
+    }
+  });
+
+  document.getElementById('settingEurRate')?.addEventListener('input', (e) => {
+    const val = parseInt(e.target.value, 10);
+    if (!isNaN(val) && val > 0) {
+      window.currentEurRate = val;
     }
   });
 

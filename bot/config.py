@@ -31,6 +31,7 @@ class Settings(BaseSettings):
     TON_RATE_TOMAN: int = 0
     CRYPTO_ENABLED: bool = False
     USDT_RATE_TOMAN: int = 95000
+    EUR_RATE_TOMAN: int = 105000
     IRAN_PROXY: str = ""
 
     # --- Database ---

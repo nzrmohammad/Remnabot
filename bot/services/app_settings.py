@@ -32,6 +32,7 @@ class StoreSettings:
     ton_rate_toman: int = 0
     crypto_enabled: bool = False
     usdt_rate_toman: int = 95000
+    eur_rate_toman: int = 105000
     card_enabled: bool = True
     topic_errors: int | None = None
 
@@ -83,6 +84,7 @@ async def get_store_settings(session: AsyncSession) -> StoreSettings:
         ton_rate_toman=_int(values.get("ton_rate_toman"), env.TON_RATE_TOMAN),
         crypto_enabled=_bool(values.get("crypto_enabled"), env.CRYPTO_ENABLED),
         usdt_rate_toman=_int(values.get("usdt_rate_toman"), env.USDT_RATE_TOMAN),
+        eur_rate_toman=_int(values.get("eur_rate_toman"), getattr(env, "EUR_RATE_TOMAN", 105000) or 105000),
         card_enabled=_bool(values.get("card_enabled"), True),
         topic_errors=_opt_int(values.get("topic_errors"), env.ADMIN_TOPIC_ERRORS),
     )
