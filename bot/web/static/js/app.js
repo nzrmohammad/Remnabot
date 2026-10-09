@@ -95,26 +95,22 @@ function setupReportsSubtabs() {
 // 4. Copy Subscription Button & Box
 function setupSubscriptionActions() {
   const copySubBtn = document.getElementById('copySubBtn');
-  const copySubBtnText = document.getElementById('copySubBtnText');
 
   copySubBtn?.addEventListener('click', async () => {
     const urlToCopy = window.lastUserData?.active_sub?.subscription_url || document.getElementById('subInput')?.value || document.getElementById('subDisplayBox')?.innerText?.trim();
     if (!urlToCopy || urlToCopy.includes('در حال') || urlToCopy.includes('یافت نشد')) {
-      showToast('⚠️ لینک اشتراکی برای کپی یافت نشد');
+      showToast('⚠️ لینک اشتراکی برای کپی یافت نشد.');
       return;
     }
-    const ok = await copyToClipboard(urlToCopy, '📋 لینک اشتراک کپی شد');
+    const ok = await copyToClipboard(urlToCopy, '📋 لینک اشتراک با موفقیت در کلیپ‌بورد کپی شد.');
     if (ok) {
-      if (copySubBtnText) copySubBtnText.innerText = '✓ لینک اشتراک با موفقیت کپی شد!';
-      copySubBtn.classList.replace('from-blue-600', 'from-emerald-600');
-      copySubBtn.classList.replace('via-indigo-600', 'via-teal-600');
-      copySubBtn.classList.replace('to-blue-500', 'to-emerald-500');
+      hapticFeedback('success');
+      copySubBtn.classList.add('text-emerald-400', 'border-emerald-500');
+      copySubBtn.classList.remove('text-slate-300');
       setTimeout(() => {
-        if (copySubBtnText) copySubBtnText.innerText = 'کپی لینک اشتراک';
-        copySubBtn.classList.replace('from-emerald-600', 'from-blue-600');
-        copySubBtn.classList.replace('via-teal-600', 'via-indigo-600');
-        copySubBtn.classList.replace('to-emerald-500', 'to-blue-500');
-      }, 2200);
+        copySubBtn.classList.remove('text-emerald-400', 'border-emerald-500');
+        copySubBtn.classList.add('text-slate-300');
+      }, 1800);
     }
   });
 
@@ -122,6 +118,7 @@ function setupSubscriptionActions() {
     const url = (document.getElementById('subInput')?.value || '').trim();
     if (url && !url.includes('در حال') && !url.includes('یافت نشد')) {
       copyToClipboard(url, '📋 لینک اشتراک با موفقیت در کلیپ‌بورد کپی شد.');
+      hapticFeedback('success');
     }
   });
 }
@@ -155,6 +152,152 @@ function setupQrToggle() {
       closeModal('qrModal');
       syncTelegramBackButton();
     }
+  });
+}
+
+// 5.1 Subscription Configs Modal
+function setupConfigsModal() {
+  const openConfigsModalBtn = document.getElementById('openConfigsModalBtn');
+  const closeConfigsModalBtn = document.getElementById('closeConfigsModalBtn');
+  const configsModal = document.getElementById('configsModal');
+  const configsModalList = document.getElementById('configsModalList');
+  const configsModalCount = document.getElementById('configsModalCount');
+  const copyAllConfigsBtn = document.getElementById('copyAllConfigsBtn');
+
+  let currentConfigsList = [];
+
+  const loadAndRenderConfigs = async () => {
+    if (!configsModalList) return;
+    configsModalList.innerHTML = `
+      <div class="text-center py-6 text-slate-400 text-xs">
+        <span class="inline-block animate-spin mb-2 text-base">🔄</span>
+        <div>در حال دریافت و تفکیک کانفیگ‌ها...</div>
+      </div>
+    `;
+
+    try {
+      const res = await window.api.getSubscriptionConfigs(window.currentAccountId);
+      if (res.ok && res.configs && res.configs.length > 0) {
+        currentConfigsList = res.configs;
+        if (configsModalCount) configsModalCount.innerText = `${currentConfigsList.length} کانفیگ`;
+
+        const protoColors = {
+          vless: 'text-cyan-400 bg-cyan-950/60 border border-cyan-800/50',
+          vmess: 'text-indigo-400 bg-indigo-950/60 border border-indigo-800/50',
+          trojan: 'text-purple-400 bg-purple-950/60 border border-purple-800/50',
+          ss: 'text-amber-400 bg-amber-950/60 border border-amber-800/50',
+          hysteria2: 'text-rose-400 bg-rose-950/60 border border-rose-800/50',
+          hy2: 'text-rose-400 bg-rose-950/60 border border-rose-800/50',
+          tuic: 'text-emerald-400 bg-emerald-950/60 border border-emerald-800/50',
+          wireguard: 'text-sky-400 bg-sky-950/60 border border-sky-800/50',
+        };
+
+        configsModalList.innerHTML = currentConfigsList.map(c => {
+          const proto = (c.protocol || 'vpn').toLowerCase();
+          const colorClass = protoColors[proto] || 'text-slate-300 bg-slate-800 border border-slate-700';
+          const safeName = escapeHtml(c.name || 'کانفیگ سرور');
+
+          return `
+            <div class="bg-transparent rounded-2xl p-3 border border-slate-700/60 space-y-2">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2 overflow-hidden">
+                  <span class="text-xl shrink-0">${c.flag || '🌐'}</span>
+                  <div class="truncate text-right">
+                    <span class="text-xs font-bold text-slate-200 block truncate" title="${safeName}">${safeName}</span>
+                    <span class="text-[10px] text-slate-400 font-mono">${c.country_name || 'سرور'}</span>
+                  </div>
+                </div>
+                <span class="text-[9px] font-mono font-bold uppercase px-2 py-0.5 rounded-lg shrink-0 ${colorClass}">${proto}</span>
+              </div>
+              <div class="flex items-center gap-2 pt-1 border-t border-slate-800/50">
+                <button type="button" class="copy-single-cfg-btn flex-1 bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white py-1.5 px-2 rounded-xl text-[11px] font-medium border border-slate-700 transition flex items-center justify-center gap-1 active:scale-95 shadow-sm" data-uri="${encodeURIComponent(c.uri)}">
+                  <span>📋</span>
+                  <span>کپی کانفیگ</span>
+                </button>
+                <button type="button" class="qr-single-cfg-btn bg-slate-800 hover:bg-slate-700 text-cyan-400 hover:text-cyan-300 py-1.5 px-3 rounded-xl text-[11px] font-medium border border-slate-700 transition flex items-center justify-center gap-1 active:scale-95 shadow-sm" data-uri="${encodeURIComponent(c.uri)}" data-name="${encodeURIComponent(c.name)}" title="نمایش کیوآرکد">
+                  <span>📷</span>
+                  <span>QR</span>
+                </button>
+              </div>
+            </div>
+          `;
+        }).join('');
+
+        // Wire single copy buttons
+        configsModalList.querySelectorAll('.copy-single-cfg-btn').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const uri = decodeURIComponent(btn.getAttribute('data-uri') || '');
+            if (uri) {
+              copyToClipboard(uri, '📋 کانفیگ اختصاصی با موفقیت در کلیپ‌بورد کپی شد.');
+              hapticFeedback('success');
+              btn.innerHTML = '<span>✅</span> <span>کپی شد!</span>';
+              setTimeout(() => {
+                btn.innerHTML = '<span>📋</span> <span>کپی کانفیگ</span>';
+              }, 1800);
+            }
+          });
+        });
+
+        // Wire single QR buttons
+        configsModalList.querySelectorAll('.qr-single-cfg-btn').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const uri = decodeURIComponent(btn.getAttribute('data-uri') || '');
+            if (uri) {
+              const modalQrImg = document.getElementById('modalQrImage');
+              if (modalQrImg) {
+                modalQrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=260x260&data=${encodeURIComponent(uri)}`;
+              }
+              openModal('qrModal');
+              syncTelegramBackButton();
+            }
+          });
+        });
+      } else {
+        currentConfigsList = [];
+        if (configsModalCount) configsModalCount.innerText = '0 کانفیگ';
+        configsModalList.innerHTML = `
+          <div class="text-center py-6 text-slate-400 text-xs">
+            <span>⚠️</span>
+            <div class="mt-1">${res.message || 'کانفیگی در لینک اشتراک یافت نشد یا اشتراک منقضی شده است.'}</div>
+          </div>
+        `;
+      }
+    } catch (e) {
+      configsModalList.innerHTML = `
+        <div class="text-center py-6 text-rose-400 text-xs">
+          <span>❌</span>
+          <div class="mt-1">خطا در بارگذاری کانفیگ‌های اشتراک.</div>
+        </div>
+      `;
+    }
+  };
+
+  openConfigsModalBtn?.addEventListener('click', () => {
+    openModal('configsModal');
+    syncTelegramBackButton();
+    loadAndRenderConfigs();
+  });
+
+  closeConfigsModalBtn?.addEventListener('click', () => {
+    closeModal('configsModal');
+    syncTelegramBackButton();
+  });
+
+  configsModal?.addEventListener('click', (e) => {
+    if (e.target === configsModal) {
+      closeModal('configsModal');
+      syncTelegramBackButton();
+    }
+  });
+
+  copyAllConfigsBtn?.addEventListener('click', () => {
+    if (!currentConfigsList || currentConfigsList.length === 0) {
+      showToast('⚠️ کانفیگی برای کپی یافت نشد.');
+      return;
+    }
+    const allText = currentConfigsList.map(c => c.uri).join('\n');
+    copyToClipboard(allText, `📋 تمام ${currentConfigsList.length} کانفیگ در کلیپ‌بورد کپی شدند.`);
+    hapticFeedback('success');
   });
 }
 
@@ -687,7 +830,7 @@ function syncTelegramBackButton() {
     'revokeModal', 'switchAccountModal', 'activeSessionsModal',
     'topupModal', 'luckyWheelModal', 'storyModal', 'storyCardModal',
     'supportChatModal', 'purchaseSuccessModal',
-    'qrModal', 'checkoutConfirmModal'
+    'qrModal', 'checkoutConfirmModal', 'configsModal'
   ];
   const hasOpenModal = modalIds.some(id => {
     const el = document.getElementById(id);
@@ -735,8 +878,9 @@ function setupTelegramSDK() {
       tg.BackButton.onClick(() => {
         const modalIds = [
           'revokeModal', 'switchAccountModal', 'activeSessionsModal',
-          'topupModal', 'luckyWheelModal', 'storyModal', 'purchaseSuccessModal',
-          'qrModal', 'checkoutConfirmModal'
+          'topupModal', 'luckyWheelModal', 'storyModal', 'storyCardModal',
+          'supportChatModal', 'purchaseSuccessModal',
+          'qrModal', 'checkoutConfirmModal', 'configsModal'
         ];
         for (const id of modalIds) {
           const el = document.getElementById(id);
@@ -761,8 +905,9 @@ function setupTelegramSDK() {
 
       const observedModalIds = [
         'revokeModal', 'switchAccountModal', 'activeSessionsModal',
-        'topupModal', 'luckyWheelModal', 'storyModal', 'qrContainer',
-        'purchaseSuccessModal', 'qrModal', 'checkoutConfirmModal'
+        'topupModal', 'luckyWheelModal', 'storyModal', 'storyCardModal',
+        'supportChatModal', 'qrContainer',
+        'purchaseSuccessModal', 'qrModal', 'checkoutConfirmModal', 'configsModal'
       ];
       observedModalIds.forEach(id => {
         const el = document.getElementById(id);
@@ -1219,9 +1364,12 @@ function renderActiveSubAnalytics(sub) {
 
   // Wallet Balances
   const walletEl = document.getElementById('shopWalletBalance');
+  const shopBalAmt = document.getElementById('shopWalletBalanceAmount');
   const walletTabBal = document.getElementById('walletTabBalance');
-  const formattedWallet = `${Number(user.wallet_balance || 0).toLocaleString('en-US')} تومان`;
+  const rawBalNum = Number(user.wallet_balance || 0).toLocaleString('en-US');
+  const formattedWallet = `${rawBalNum} تومان`;
   if (walletEl) walletEl.innerText = `موجودی: ${formattedWallet}`;
+  if (shopBalAmt) shopBalAmt.innerText = rawBalNum;
   if (walletTabBal) walletTabBal.innerText = formattedWallet;
 
   // Profile Identity
@@ -1449,6 +1597,7 @@ document.addEventListener('DOMContentLoaded', () => {
   setupReportsSubtabs();
   setupSubscriptionActions();
   setupQrToggle();
+  setupConfigsModal();
   setupRevokeAndKill();
   setupClientImporters();
   setupThemeToggle();

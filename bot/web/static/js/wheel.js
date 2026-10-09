@@ -159,6 +159,17 @@ function setupLuckyWheel() {
           alert('❌ این چرخش پوچ شد! شانس بعدی شما ۲۴ ساعت دیگر فعال خواهد شد.');
         } else if (chosenPrize.code || chosenPrize.type === 'coupon') {
           const couponCode = chosenPrize.code || 'ارسال‌شده در تلگرام';
+          if (chosenPrize.code) {
+            try {
+              const localCoupons = JSON.parse(localStorage.getItem('user_won_coupons') || '[]');
+              localCoupons.unshift({
+                code: chosenPrize.code,
+                discount_percent: chosenPrize.percent || 10,
+                expires_at: new Date(Date.now() + 86400000).toISOString(),
+              });
+              localStorage.setItem('user_won_coupons', JSON.stringify(localCoupons.slice(0, 10)));
+            } catch(e) {}
+          }
           if (wheelResultText) {
             wheelResultText.innerHTML = `🎉 <b>تبریک!</b> شما برنده <b class="text-amber-400 font-bold">${chosenPrize.name || chosenPrize.text}</b> شدید!<br/><span class="font-mono text-cyan-400 font-bold block mt-1 select-all" dir="ltr">کد: ${couponCode}</span><span class="text-[10px] text-slate-400 block mt-0.5">⏱ مهلت استفاده: ۲۴ ساعت آینده در تب فروشگاه</span>`;
           }

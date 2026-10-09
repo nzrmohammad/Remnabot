@@ -146,6 +146,14 @@ const api = {
     return this.post('/api/user/support/messages', { text });
   },
 
+  async getSubscriptionConfigs(accountId = null) {
+    let url = '/api/user/subscription/configs';
+    if (accountId) {
+      url += `?account_id=${accountId}`;
+    }
+    return this.get(url);
+  },
+
   // Admin Suite Endpoints
   async getAdminOverview(params = {}) {
     return this.get('/api/admin/overview', params);

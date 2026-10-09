@@ -179,7 +179,7 @@
                 <span>🌍</span> ریز مصرف
               </span>
             </div>
-            <span class="text-[10px] font-mono text-cyan-400 bg-cyan-950/60 px-2 py-0.5 rounded border border-cyan-800/40">مجموع: <span id="countryTodayTotalHeader" dir="ltr">0.00 GB</span></span>
+            <span class="text-[10px] font-mono text-cyan-400 bg-transparent px-1 py-0.5 font-medium">مجموع: <span id="countryTodayTotalHeader" dir="ltr">0.00 GB</span></span>
           </button>
 
           <!-- Collapsible Content (Hidden by default, opens on click) -->
@@ -202,7 +202,7 @@
                 <span>📥</span> لینک اشتراک
               </span>
             </div>
-            <span class="text-[10px] text-cyan-400 bg-cyan-950/60 px-2.5 py-0.5 rounded-lg border border-cyan-800/40 font-medium">مشاهده و کپی</span>
+            <span class="text-[10px] text-cyan-400 bg-transparent px-1 py-0.5 font-medium">مشاهده و کپی</span>
           </button>
 
           <!-- Collapsible Content (Hidden by default, opens on click) -->
@@ -211,6 +211,9 @@
             <div class="flex items-center justify-between pt-1">
               <span class="text-[11px] text-slate-400 font-medium">ابزارها و اقدامات:</span>
               <div class="flex items-center gap-1.5">
+                <button id="copySubBtn" class="sub-action-btn text-slate-300 hover:text-cyan-300 flex items-center justify-center bg-slate-700/60 hover:bg-slate-700 w-8 h-8 rounded-xl border border-slate-600/60 transition active:scale-95 shadow-sm" title="کپی لینک اشتراک">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                </button>
                 <button id="qrToggleBtn" class="sub-action-btn text-slate-300 hover:text-cyan-300 flex items-center justify-center bg-slate-700/60 hover:bg-slate-700 w-8 h-8 rounded-xl border border-slate-600/60 transition active:scale-95 shadow-sm" title="کیوآرکد">
                   <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/></svg>
                 </button>
@@ -220,7 +223,7 @@
               </div>
             </div>
 
-            <!-- Full Subscription Link Container & Modern Copy Button -->
+            <!-- Full Subscription Link Container -->
             <div class="space-y-2">
               <div id="subBoxWrapper" class="sub-box-card bg-slate-900/90 hover:bg-slate-900/95 rounded-xl p-3 border border-slate-700/70 hover:border-cyan-500/60 relative cursor-pointer transition active:scale-[0.99] group shadow-inner" title="کلیک جهت کپی کردن لینک">
                 <input type="hidden" id="subInput" value="" />
@@ -228,12 +231,6 @@
                   در حال دریافت لینک اشتراک...
                 </div>
               </div>
-              <button id="copySubBtn" class="w-full bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-500 hover:from-blue-500 hover:to-indigo-500 text-white text-xs font-bold py-2.5 px-4 rounded-xl shadow-md shadow-blue-600/20 transition active:scale-[0.98] flex items-center justify-center gap-2 border border-blue-400/30">
-                <svg class="w-4 h-4 text-blue-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
-                </svg>
-                <span id="copySubBtnText">کپی لینک اشتراک</span>
-              </button>
             </div>
 
             <!-- Dynamic QR Popup (Collapsible fallback) -->
@@ -267,6 +264,14 @@
                   <span class="font-bold text-[10px] text-amber-400 group-hover:text-amber-300">Streisand</span>
                 </button>
               </div>
+            </div>
+
+            <!-- Configs Viewer Button -->
+            <div class="pt-2">
+              <button id="openConfigsModalBtn" type="button" class="w-full bg-gradient-to-r from-cyan-600/20 via-blue-600/20 to-indigo-600/20 hover:from-cyan-600/30 hover:to-indigo-600/30 border border-cyan-500/40 text-cyan-300 hover:text-white text-xs font-bold py-2.5 px-3 rounded-xl transition flex items-center justify-center gap-2 active:scale-[0.98] shadow-sm">
+                <span>🧩</span>
+                <span>مشاهده کانفیگ‌های درون اشتراک (VLESS / VMess / Reality / Hysteria)</span>
+              </button>
             </div>
           </div>
         </div>
@@ -311,7 +316,7 @@
         </div>
 
         <!-- Periodic Reports Sub-Tabs -->
-        <div class="flex bg-slate-900/80 p-1 rounded-xl border border-slate-700 text-xs">
+        <div class="flex bg-transparent p-1 rounded-xl border border-slate-700 text-xs">
           <button id="repSubNightly" class="flex-1 py-1.5 rounded-lg font-bold bg-blue-600 text-white transition">🌙 شبانه</button>
           <button id="repSubWeekly" class="flex-1 py-1.5 rounded-lg font-medium text-slate-400 hover:text-slate-200 transition">📊 هفتگی</button>
           <button id="repSubMonthly" class="flex-1 py-1.5 rounded-lg font-medium text-slate-400 hover:text-slate-200 transition">📅 ماهانه</button>
@@ -356,7 +361,7 @@
           </div>
           <div class="pt-2 border-t border-slate-700/60">
             <span class="text-[11px] text-slate-400 font-medium block mb-2">نمودار مصرف روزانه (7 روز اخیر):</span>
-            <div class="h-36 w-full p-2 bg-slate-900/60 rounded-xl relative">
+            <div class="h-36 w-full p-2 bg-transparent rounded-xl relative">
               <canvas id="repWeeklyChartCanvas" class="w-full h-full"></canvas>
             </div>
           </div>
@@ -424,7 +429,7 @@
           <div class="bg-slate-800/90 rounded-2xl p-4 border border-slate-700/80 space-y-2.5 shadow-md">
             <div class="flex justify-between items-center border-b border-slate-700/60 pb-2">
               <span class="text-xs font-bold text-white flex items-center gap-1.5">
-                <span>📈</span> منحنی ساعات اوج مصرف (12 بازه 2 ساعته)
+                <span>📈</span> منحنی ساعات اوج مصرف
               </span>
               <span id="repPeakHourBadge" class="text-[10px] font-mono font-bold text-amber-400 bg-transparent p-0" dir="ltr">Peak: 20:00 - 22:00</span>
             </div>
@@ -471,7 +476,11 @@
       <div id="tab-shop" class="tab-pane space-y-4 hidden">
         <div class="flex justify-between items-center">
           <h3 class="text-sm font-bold text-slate-200">🛒 خرید بسته جدید یا تمدید</h3>
-          <span id="shopWalletBalance" class="text-xs font-semibold text-slate-400 dark:text-indigo-400 bg-transparent border-0 px-0 py-0">موجودی: 0 تومان</span>
+          <div class="text-left font-mono">
+            <span class="text-[10px] text-slate-400 block -mb-0.5 font-sans">موجودی کیف پول</span>
+            <span id="shopWalletBalanceAmount" class="text-sm font-black text-emerald-400">0</span>
+            <span class="text-[10px] text-slate-400 block -mt-1 font-sans">تومان</span>
+          </div>
         </div>
 
         <!-- Dynamic Plans Container (Loaded from Admin DB) -->
@@ -482,10 +491,19 @@
         </div>
 
         <!-- Coupon Box -->
-        <div class="bg-slate-800/60 rounded-xl p-2.5 border border-slate-700/60 flex items-center gap-2">
-          <input type="text" placeholder="کد تخفیف (مثال: OFF20)" class="bg-slate-900 text-xs px-3 py-2 rounded-lg border border-slate-700 flex-1 outline-none text-slate-200 uppercase font-mono" id="couponInput" />
-          <button id="applyCouponBtn" class="bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold px-4 py-2 rounded-lg transition active:scale-95 shadow shrink-0">اعمال</button>
-          <button id="removeCouponBtn" type="button" class="hidden bg-rose-600/90 hover:bg-rose-500 text-white text-xs font-semibold px-3 py-2 rounded-lg transition active:scale-95 shadow shrink-0">✕ حذف</button>
+        <div class="space-y-2">
+          <div class="bg-slate-800/60 rounded-xl p-2.5 border border-slate-700/60 flex items-center gap-2">
+            <input type="text" placeholder="کد تخفیف (مثال: OFF20)" class="bg-slate-900 text-xs px-3 py-2 rounded-lg border border-slate-700 flex-1 outline-none text-slate-200 uppercase font-mono" id="couponInput" />
+            <button id="applyCouponBtn" type="button" class="bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold px-4 py-2 rounded-lg transition active:scale-95 shadow shrink-0">اعمال</button>
+          </div>
+
+          <!-- Won Lucky Wheel Coupons (User Active Discounts) -->
+          <div id="userCouponsContainer" class="space-y-1.5 hidden">
+            <span class="text-[11px] font-bold text-slate-300 flex items-center gap-1">
+              <span>🎟</span> کدهای تخفیف شانس شما (کلیک جهت اعمال خودکار):
+            </span>
+            <div id="userCouponsList" class="flex flex-wrap gap-1.5"></div>
+          </div>
         </div>
       </div>
 
@@ -566,17 +584,17 @@
           
           <div class="flex justify-between items-center py-1">
             <span class="text-slate-400 flex items-center gap-1.5"><span>🆔</span> شناسه عددی تلگرام:</span>
-            <div class="flex items-center gap-1">
-              <code id="profileTelegramId" class="font-mono text-white dark:text-white font-bold bg-transparent border-0 p-0" dir="ltr">--</code>
+            <div class="flex items-center gap-1.5" dir="rtl">
               <button id="copyProfileIdBtn" class="text-slate-400 hover:text-blue-400 text-xs px-1" title="کپی شناسه">📋</button>
+              <code id="profileTelegramId" class="font-mono text-white dark:text-white font-bold bg-transparent border-0 p-0" dir="ltr">--</code>
             </div>
           </div>
 
           <div class="flex justify-between items-center py-1">
             <span class="text-slate-400 flex items-center gap-1.5"><span>🤝</span> کد معرف شما:</span>
-            <div class="flex items-center gap-1">
-              <code id="profileRefCode" class="font-mono text-amber-400 dark:text-amber-400 font-bold bg-transparent border-0 p-0" dir="ltr">--</code>
+            <div class="flex items-center gap-1.5" dir="rtl">
               <button id="copyProfileRefBtn" class="text-slate-400 hover:text-amber-400 text-xs px-1" title="کپی کد معرف">📋</button>
+              <code id="profileRefCode" class="font-mono text-amber-400 dark:text-amber-400 font-bold bg-transparent border-0 p-0" dir="ltr">--</code>
             </div>
           </div>
 
@@ -830,6 +848,38 @@
     </div>
 
     <!-- ======================================================== -->
+    <!-- 4.0.1 MODAL: SUBSCRIPTION CONFIGS (مشاهده کانفیگ‌های درون ساب) -->
+    <!-- ======================================================== -->
+    <div id="configsModal" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden animate-fadeIn overflow-y-auto">
+      <div class="bg-[#1a233a] border border-cyan-500/50 rounded-3xl p-5 w-full space-y-3.5 shadow-2xl relative max-w-[370px] my-auto text-xs max-h-[85vh] flex flex-col">
+        <button id="closeConfigsModalBtn" class="absolute top-3.5 left-3.5 text-slate-400 hover:text-white text-xs bg-slate-800 rounded-full w-7 h-7 flex items-center justify-center transition" title="بستن">✕</button>
+        <div class="border-b border-slate-700/60 pb-2.5 text-right">
+          <div class="flex items-center gap-2">
+            <span class="text-xl">🧩</span>
+            <div>
+              <h3 class="text-sm font-bold text-white">کانفیگ‌های درون اشتراک</h3>
+              <p class="text-[10px] text-slate-300 mt-0.5">تفکیک پروتکل‌ها جهت اتصال در مودم، روتر یا نرم‌افزارهای VPN</p>
+            </div>
+          </div>
+        </div>
+
+        <div id="configsModalList" class="flex-1 overflow-y-auto custom-scroll space-y-2 py-1 max-h-[50vh]">
+          <div class="text-center py-6 text-slate-400 text-xs">
+            در حال دریافت و تفکیک کانفیگ‌ها...
+          </div>
+        </div>
+
+        <div class="pt-2 border-t border-slate-700/60 flex items-center justify-between">
+          <span id="configsModalCount" class="text-[11px] text-slate-400 font-mono">0 کانفیگ</span>
+          <button id="copyAllConfigsBtn" class="text-[11px] bg-blue-600 hover:bg-blue-500 text-white font-bold px-3 py-1.5 rounded-xl transition shadow active:scale-95 flex items-center gap-1">
+            <span>📋</span>
+            <span>کپی همه کانفیگ‌ها</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======================================================== -->
     <!-- 4.1 MODAL: ACCOUNT SWITCHER (تغییر اکانت فعال)            -->
     <!-- ======================================================== -->
     <div id="switchAccountModal" class="absolute inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden animate-fadeIn">
@@ -975,7 +1025,7 @@
           </div>
 
           <div id="cryptoInvoiceDetails" class="space-y-2.5 hidden">
-            <div class="bg-slate-900/90 rounded-2xl p-3 border border-sky-500/40 space-y-2">
+            <div class="bg-transparent rounded-2xl p-3 border border-sky-500/40 space-y-2">
               <div class="flex justify-between items-center text-[11px] pb-1.5 border-b border-slate-800">
                 <span class="text-slate-400 flex items-center gap-1"><span>⏳</span> مهلت پرداخت:</span>
                 <span id="cryptoCountdownTimer" class="font-mono font-bold text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-md border border-amber-500/20" dir="ltr">30:00</span>
@@ -992,7 +1042,7 @@
                   <span class="text-slate-400">آدرس کیف پول مقصد (TON):</span>
                   <span class="text-[10px] text-sky-400 font-medium">📋 لمس جهت کپی آدرس</span>
                 </div>
-                <button id="copyTonAddressBtn" type="button" class="w-full text-left bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700/90 p-2.5 rounded-xl font-mono text-[10px] break-all select-all transition text-sky-300 cursor-pointer active:scale-[0.99] flex items-center justify-between gap-2" dir="ltr" title="برای کپی آدرس کلیک کنید">
+                <button id="copyTonAddressBtn" type="button" class="w-full text-left bg-transparent hover:bg-slate-800/40 border border-slate-700/90 p-2.5 rounded-xl font-mono text-[10px] break-all select-all transition text-sky-300 cursor-pointer active:scale-[0.99] flex items-center justify-between gap-2" dir="ltr" title="برای کپی آدرس کلیک کنید">
                   <span id="cryptoPayAddress" class="break-all leading-relaxed">--</span>
                   <span class="text-xs shrink-0 text-sky-400">📋</span>
                 </button>

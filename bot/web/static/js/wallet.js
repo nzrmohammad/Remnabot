@@ -165,12 +165,25 @@ function stopCryptoCountdownTimer() {
     openTopupModal(50000);
   });
 
-  document.getElementById('copyTopupCardBtn')?.addEventListener('click', () => {
-    const card = document.getElementById('topupCardNumber')?.innerText;
-    if (card && !card.includes('-')) {
-      copyToClipboard(card.replace(/\s+/g, ''), '📋 شماره کارت کپی شد.');
+  const handleCopyCard = () => {
+    const cardEl = document.getElementById('topupCardNumber');
+    const card = cardEl?.innerText?.trim();
+    if (card && !card.includes('----') && !card.includes('ثبت نشده')) {
+      const cleanDigits = card.replace(/[^\d]/g, '');
+      copyToClipboard(cleanDigits || card, '📋 شماره کارت در کلیپ‌بورد کپی شد.');
+      hapticFeedback('success');
+      const btn = document.getElementById('copyTopupCardBtn');
+      if (btn) {
+        btn.innerText = '✅';
+        setTimeout(() => { btn.innerText = '📋'; }, 1500);
+      }
+    } else {
+      showToast('⚠️ شماره کارتی برای کپی کردن یافت نشد.');
     }
-  });
+  };
+
+  document.getElementById('copyTopupCardBtn')?.addEventListener('click', handleCopyCard);
+  document.getElementById('topupCardNumber')?.addEventListener('click', handleCopyCard);
 
   let selectedReceiptImageBase64 = null;
   const imageInput = document.getElementById('topupCardImageInput');

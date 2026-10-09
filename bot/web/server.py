@@ -65,6 +65,7 @@ from bot.web.routes_user import (
     post_user_validate_coupon,
     get_user_support_messages,
     post_user_support_message,
+    get_user_subscription_configs,
 )
 
 logger = logging.getLogger(__name__)
@@ -248,6 +249,7 @@ def create_web_app(
     app.router.add_get("/api/user/ip_info", get_user_ip_info)
     app.router.add_get("/api/user/support/messages", get_user_support_messages)
     app.router.add_post("/api/user/support/messages", post_user_support_message)
+    app.router.add_get("/api/user/subscription/configs", get_user_subscription_configs)
 
     # Admin APIs
     app.router.add_get("/api/admin/overview", get_admin_overview)

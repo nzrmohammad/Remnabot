@@ -143,6 +143,14 @@ async def post_user_spin(request: web.Request) -> web.Response:
                     await session.commit()
                     chosen["code"] = unique_code
                     chosen["name"] = f"کد تخفیف ۱۰٪ (مهلت ۲۴ ساعت): {unique_code}"
+
+                    user_coupons = await cache.get(f"wheel:user_coupons:{telegram_id}") or []
+                    user_coupons.insert(0, {
+                        "code": unique_code,
+                        "discount_percent": 10,
+                        "expires_at": expire_time.isoformat(),
+                    })
+                    await cache.set(f"wheel:user_coupons:{telegram_id}", user_coupons[:10], ttl_seconds=86400 * 2)
                 applied = True
         except Exception as exc:
             logger.warning("Failed to prepare coupon for wheel prize: %s", exc)

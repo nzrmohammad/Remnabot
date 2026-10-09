@@ -642,8 +642,9 @@ async def get_user_me(request: web.Request) -> web.Response:
             me_obj = getattr(bot, "_me", None)
             if me_obj and getattr(me_obj, "username", None):
                 bot_username = me_obj.username
-            elif getattr(bot, "username", None):
-                bot_username = bot.username
+        won_coupons_raw = await cache.get(f"wheel:user_coupons:{telegram_id}") or []
+        now_iso = datetime.now(timezone.utc).isoformat()
+        active_won_coupons = [c for c in won_coupons_raw if c.get("expires_at", "") > now_iso]
 
         data = {
             "bot_username": bot_username,
@@ -671,6 +672,7 @@ async def get_user_me(request: web.Request) -> web.Response:
             "yesterday_jalali": yesterday_jalali_str,
             "plans": plans_data,
             "transactions": history_items[:20],
+            "won_coupons": active_won_coupons,
             "wheel_status": {
                 "can_spin": can_spin,
                 "has_active_sub": has_active_sub,
@@ -816,6 +818,123 @@ async def post_user_support_message(request: web.Request) -> web.Response:
             logger.warning("Failed to forward support message to admin chat: %s", exc)
 
     return web.json_response({"ok": True, "message": user_msg})
+
+
+async def get_user_subscription_configs(request: web.Request) -> web.Response:
+    """Fetch parsed individual configs from the user's active subscription."""
+    user_auth = get_authenticated_user(request)
+    if not user_auth:
+        return web.json_response({"ok": False, "error": "احراز هویت نامعتبر است."}, status=401)
+
+    telegram_id = user_auth.get("id")
+    account_id_param = request.query.get("account_id")
+
+    cache: FastCache = request.app["cache"]
+    cache_key = f"tma:user:{telegram_id}:configs:{account_id_param or 'def'}"
+    cached = await cache.get(cache_key)
+    if cached is not None:
+        return web.json_response({"ok": True, "configs": cached, "cached": True})
+
+    session_factory = request.app.get("session_factory")
+    remnawave = request.app.get("remnawave")
+    if not session_factory or not remnawave:
+        return web.json_response({"ok": False, "error": "سرویس سرور در دسترس نیست."}, status=503)
+
+    sub_url = ""
+    async with session_factory() as session:
+        # 1. Fetch user accounts from Remnawave
+        try:
+            panel_users = await remnawave.get_user_by_telegram_id(telegram_id) or []
+            target = None
+            if account_id_param:
+                for pu in panel_users:
+                    if str(pu.get("id")) == str(account_id_param):
+                        target = pu
+                        break
+            if not target and panel_users:
+                target = panel_users[0]
+
+            if target:
+                sub_url = target.get("subscriptionUrl") or target.get("subscription_url") or ""
+        except Exception as exc:
+            logger.warning("Error fetching panel users for configs %s: %s", telegram_id, exc)
+
+        # Fallback to Order table if not in panel response
+        if not sub_url:
+            order_res = await session.execute(
+                select(Order.subscription_url).where(
+                    Order.telegram_id == telegram_id,
+                    Order.subscription_url.isnot(None),
+                ).order_by(Order.id.desc()).limit(1)
+            )
+            sub_url = order_res.scalar_one_or_none() or ""
+
+    if not sub_url:
+        return web.json_response({
+            "ok": True,
+            "configs": [],
+            "message": "اشتراک فعالی برای این حساب یافت نشد.",
+        })
+
+    # Download and parse configs
+    from bot.services.configs import fetch_subscription_configs
+    raw_configs = await fetch_subscription_configs(sub_url)
+
+    # Country mapping helper
+    COUNTRY_MAP = [
+        ("🇩🇪", "آلمان", ["de", "germany", "frankfurt", "berlin"]),
+        ("🇳🇱", "هلند", ["nl", "netherlands", "amsterdam"]),
+        ("🇫🇮", "فنلاند", ["fi", "finland", "helsinki"]),
+        ("🇫🇷", "فرانسه", ["fr", "france", "paris"]),
+        ("🇺🇸", "آمریکا", ["us", "usa", "america", "united states", "los angeles", "new york"]),
+        ("🇬🇧", "انگلیس", ["gb", "uk", "england", "london", "britain"]),
+        ("🇹🇷", "ترکیه", ["tr", "turkey", "istanbul"]),
+        ("🇨🇦", "کانادا", ["ca", "canada", "toronto"]),
+        ("🇸🇪", "سوئد", ["se", "sweden", "stockholm"]),
+        ("🇵🇱", "لهستان", ["pl", "poland", "warsaw"]),
+        ("🇨🇭", "سوئیس", ["ch", "switzerland", "zurich"]),
+        ("🇦🇪", "امارات", ["ae", "uae", "dubai"]),
+        ("🇸🇬", "سنگاپور", ["sg", "singapore"]),
+        ("🇮🇷", "ایران", ["ir", "iran", "tehran"]),
+    ]
+
+    configs = []
+    for idx, cfg in enumerate(raw_configs, start=1):
+        name = cfg.get("name", "").strip()
+        proto = cfg.get("protocol", "").lower()
+        uri = cfg.get("uri", "")
+
+        flag = "🌐"
+        country_name = "سرور"
+        name_lower = name.lower()
+
+        # Check existing emoji in name
+        for f, c_name, keywords in COUNTRY_MAP:
+            if f in name:
+                flag = f
+                country_name = c_name
+                break
+        if flag == "🌐":
+            for f, c_name, keywords in COUNTRY_MAP:
+                if any(kw in name_lower for kw in keywords):
+                    flag = f
+                    country_name = c_name
+                    break
+
+        configs.append({
+            "id": idx,
+            "name": name or f"Config #{idx}",
+            "protocol": proto,
+            "flag": flag,
+            "country_name": country_name,
+            "uri": uri,
+        })
+
+    # Cache for 60 seconds
+    if configs:
+        await cache.set(cache_key, configs, ttl_seconds=60)
+
+    return web.json_response({"ok": True, "configs": configs})
 
 
 

@@ -142,7 +142,7 @@ function renderNodeBreakdown(containerId, nodes, emptyText = 'مصرفی ثبت 
   }
 
   container.innerHTML = nodes.map(n => `
-    <div dir="ltr" class="bg-slate-900/60 p-2 rounded-lg flex items-center justify-between border border-slate-700/40">
+    <div dir="ltr" class="bg-transparent p-2 rounded-lg flex items-center justify-between border border-slate-700/40">
       <span class="text-base">${n.flag || '🌐'}</span>
       <span class="font-bold text-slate-100 font-mono inline-block" dir="ltr">\u200E${toEnglishDigits(n.total_formatted || '0 GB')}\u200E</span>
     </div>

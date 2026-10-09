@@ -8,27 +8,30 @@ let currentPendingPlan = null;
 
 function setupCouponInput() {
   const applyCouponBtn = document.getElementById('applyCouponBtn');
-  const removeCouponBtn = document.getElementById('removeCouponBtn');
   const couponInput = document.getElementById('couponInput');
   if (!applyCouponBtn || !couponInput) return;
 
-  const resetCouponState = () => {
+  const resetCouponState = (showFeedback = true) => {
     window.activeCoupon = null;
     couponInput.value = '';
     couponInput.disabled = false;
     applyCouponBtn.disabled = false;
     applyCouponBtn.innerText = 'اعمال';
-    applyCouponBtn.classList.replace('bg-emerald-600', 'bg-blue-600');
-    removeCouponBtn?.classList.add('hidden');
+    applyCouponBtn.className = 'bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold px-4 py-2 rounded-lg transition active:scale-95 shadow shrink-0';
+    if (showFeedback) {
+      showToast('ℹ️ کد تخفیف حذف گردید.');
+      hapticFeedback('selection');
+    }
     if (window.lastUserData) renderShopPlans(window.lastUserData);
   };
 
-  removeCouponBtn?.addEventListener('click', () => {
-    resetCouponState();
-    showToast('کد تخفیف حذف گردید.');
-  });
-
   applyCouponBtn.addEventListener('click', async () => {
+    // If coupon is already applied, button acts as "✕ حذف"
+    if (window.activeCoupon) {
+      resetCouponState(true);
+      return;
+    }
+
     const code = couponInput.value.trim().toUpperCase();
     if (!code) {
       showToast('⚠️ لطفاً کد تخفیف را وارد فرمایید.');
@@ -44,30 +47,79 @@ function setupCouponInput() {
         let discMsg = '';
         if (res.data.discount_percent > 0) discMsg = `${res.data.discount_percent}٪`;
         else if (res.data.discount_amount > 0) discMsg = `${Number(res.data.discount_amount).toLocaleString('en-US')} تومان`;
-        showToast(`🎉 کد تخفیف با موفقیت اعمال شد! (${discMsg} تخفیف)`);
-        applyCouponBtn.innerText = '✓ اعمال شد';
-        applyCouponBtn.classList.replace('bg-blue-600', 'bg-emerald-600');
+        showToast(`🎉 کد تخفیف اعمال شد! (${discMsg} تخفیف)`);
+        hapticFeedback('success');
+        applyCouponBtn.innerText = '✕ حذف';
+        applyCouponBtn.className = 'bg-rose-600 hover:bg-rose-500 text-white text-xs font-semibold px-4 py-2 rounded-lg transition active:scale-95 shadow shrink-0';
         couponInput.disabled = true;
-        removeCouponBtn?.classList.remove('hidden');
         if (window.lastUserData) renderShopPlans(window.lastUserData);
       } else {
         window.activeCoupon = null;
         showToast(`❌ ${res.message || 'کد تخفیف نامعتبر است.'}`);
+        hapticFeedback('error');
         applyCouponBtn.innerText = 'اعمال';
-        applyCouponBtn.classList.replace('bg-emerald-600', 'bg-blue-600');
-        removeCouponBtn?.classList.add('hidden');
+        applyCouponBtn.className = 'bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold px-4 py-2 rounded-lg transition active:scale-95 shadow shrink-0';
+        couponInput.disabled = false;
         if (window.lastUserData) renderShopPlans(window.lastUserData);
       }
     } catch (err) {
       showToast('❌ خطا در بررسی کد تخفیف.');
       applyCouponBtn.innerText = 'اعمال';
+      applyCouponBtn.className = 'bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold px-4 py-2 rounded-lg transition active:scale-95 shadow shrink-0';
+      couponInput.disabled = false;
     } finally {
       applyCouponBtn.disabled = false;
     }
   });
+
+  window.applyCouponCodeDirectly = (code) => {
+    if (window.activeCoupon) resetCouponState(false);
+    couponInput.value = code;
+    applyCouponBtn.click();
+  };
+}
+
+function renderWonCoupons(data) {
+  const container = document.getElementById('userCouponsContainer');
+  const list = document.getElementById('userCouponsList');
+  if (!container || !list) return;
+
+  let coupons = data?.won_coupons || [];
+  if (coupons.length === 0) {
+    try {
+      const local = JSON.parse(localStorage.getItem('user_won_coupons') || '[]');
+      if (Array.isArray(local)) coupons = local;
+    } catch(e) {}
+  }
+
+  if (!coupons || coupons.length === 0) {
+    container.classList.add('hidden');
+    list.innerHTML = '';
+    return;
+  }
+
+  container.classList.remove('hidden');
+  list.innerHTML = coupons.map(c => `
+    <button type="button" class="won-coupon-chip flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-amber-300 transition text-[11px] font-mono active:scale-95 shadow-sm group cursor-pointer" data-code="${c.code}" title="کلیک جهت اعمال خودکار کد تخفیف">
+      <span class="text-xs">🎟</span>
+      <span class="font-bold text-white group-hover:text-amber-200">${c.code}</span>
+      <span class="text-[10px] text-emerald-400 font-sans font-bold">(${c.discount_percent || 10}٪)</span>
+      <span class="text-[9px] text-cyan-400 font-sans bg-cyan-950/40 px-1.5 py-0.5 rounded border border-cyan-800/40 mr-1">⚡️ اعمال</span>
+    </button>
+  `).join('');
+
+  list.querySelectorAll('.won-coupon-chip').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const code = btn.getAttribute('data-code');
+      if (code && typeof window.applyCouponCodeDirectly === 'function') {
+        window.applyCouponCodeDirectly(code);
+      }
+    });
+  });
 }
 
 function renderShopPlans(data) {
+  renderWonCoupons(data);
   const shopContainer = document.getElementById('shopPlansContainer');
   const plans = data?.plans || [];
   if (!shopContainer || plans.length === 0) return;
