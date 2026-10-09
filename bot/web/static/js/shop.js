@@ -45,7 +45,7 @@ function setupCouponInput() {
       if (res.ok && res.data) {
         window.activeCoupon = res.data;
         let discMsg = '';
-        if (res.data.discount_percent > 0) discMsg = `${res.data.discount_percent}٪`;
+        if (res.data.discount_percent > 0) discMsg = `٪${res.data.discount_percent}`;
         else if (res.data.discount_amount > 0) discMsg = `${Number(res.data.discount_amount).toLocaleString('en-US')} تومان`;
         showToast(`🎉 کد تخفیف اعمال شد! (${discMsg} تخفیف)`);
         hapticFeedback('success');
@@ -103,7 +103,7 @@ function renderWonCoupons(data) {
     <button type="button" class="won-coupon-chip flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-amber-300 transition text-[11px] font-mono active:scale-95 shadow-sm group cursor-pointer" data-code="${c.code}" title="کلیک جهت اعمال خودکار کد تخفیف">
       <span class="text-xs">🎟</span>
       <span class="font-bold text-white group-hover:text-amber-200">${c.code}</span>
-      <span class="text-[10px] text-emerald-400 font-sans font-bold">(${c.discount_percent || 10}٪)</span>
+      <span class="text-[10px] text-emerald-400 font-sans font-bold">(٪${c.discount_percent || 10})</span>
       <span class="text-[9px] text-cyan-400 font-sans bg-cyan-950/40 px-1.5 py-0.5 rounded border border-cyan-800/40 mr-1">⚡️ اعمال</span>
     </button>
   `).join('');
@@ -120,6 +120,10 @@ function renderWonCoupons(data) {
 
 function renderShopPlans(data) {
   renderWonCoupons(data);
+  const shopBalAmt = document.getElementById('shopWalletBalanceAmount');
+  if (shopBalAmt && data?.user?.wallet_balance !== undefined) {
+    shopBalAmt.innerText = Number(data.user.wallet_balance || 0).toLocaleString('en-US');
+  }
   const shopContainer = document.getElementById('shopPlansContainer');
   const plans = data?.plans || [];
   if (!shopContainer || plans.length === 0) return;

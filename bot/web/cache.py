@@ -57,11 +57,16 @@ class FastCache:
                 logger.debug("Redis cache set error for %s: %s", key, exc)
 
     async def delete(self, key: str) -> None:
-        """Invalidate key from memory and Redis."""
-        self._memory.pop(key, None)
+        """Invalidate key and all sub-keys from memory and Redis."""
+        keys_to_pop = [k for k in list(self._memory.keys()) if k == key or k.startswith(f"{key}:")]
+        for k in keys_to_pop:
+            self._memory.pop(k, None)
         if self._redis:
             try:
                 await self._redis.delete(key)
+                matched = await self._redis.keys(f"{key}:*")
+                if matched:
+                    await self._redis.delete(*matched)
             except Exception:
                 pass
 

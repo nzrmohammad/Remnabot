@@ -11,7 +11,7 @@ function renderWalletTransactions(transactions) {
   const txList = transactions || [];
   if (txList.length === 0) {
     txContainer.innerHTML = `
-      <div class="p-4 rounded-xl bg-slate-900/60 border border-slate-700/50 text-center text-xs text-slate-400">
+      <div class="p-4 rounded-xl bg-transparent border border-slate-700/50 text-center text-xs text-slate-400">
         <span>🧾 هنوز تراکنش یا سفارشی برای این حساب ثبت نشده است.</span>
       </div>
     `;
@@ -19,7 +19,7 @@ function renderWalletTransactions(transactions) {
   }
 
   txContainer.innerHTML = txList.map(tx => `
-    <div class="bg-slate-900/70 rounded-xl p-3 border border-slate-700/60 flex items-center justify-between text-xs">
+    <div class="bg-transparent rounded-xl p-3 border border-slate-700/60 flex items-center justify-between text-xs">
       <div class="flex items-center gap-2.5">
         <span class="text-xl">${tx.type === 'topup' ? '💳' : '🛒'}</span>
         <div>

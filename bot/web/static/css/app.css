@@ -946,16 +946,19 @@ html.theme-light #toggleSessionsAccordionBtn:hover {
   background-color: #f8fafc !important;
 }
 
-/* Light Theme: Copy Subscription Button */
+/* Copy Subscription Button Transparent */
+#copySubBtn,
 html.theme-light #copySubBtn {
-  background: linear-gradient(135deg, #2563eb, #3b82f6) !important;
-  border-color: #3b82f6 !important;
-  color: #ffffff !important;
-  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.25) !important;
+  background: transparent !important;
+  background-color: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
 }
-
+html.theme-light #copySubBtn {
+  color: #64748b !important;
+}
 html.theme-light #copySubBtn:hover {
-  background: linear-gradient(135deg, #1d4ed8, #2563eb) !important;
+  color: #0284c7 !important;
 }
 
 /* Light Theme: Crypto Topup Memo/Comment High-Contrast Box & Wallet Controls */
@@ -1198,6 +1201,51 @@ html.theme-light #settingExpireDaysSelect {
   background-color: #ffffff !important;
   border-color: #cbd5e1 !important;
   color: #0f172a !important;
+}
+
+/* Zero-background overrides for seamless UI styling */
+#switchAccountBtn,
+#openSupportBtn,
+#themeToggle,
+#closeBtn,
+#reloadBtn,
+html.theme-light #switchAccountBtn,
+html.theme-light #openSupportBtn,
+html.theme-light #themeToggle,
+html.theme-light #closeBtn,
+html.theme-light #reloadBtn {
+  background: transparent !important;
+  background-color: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+#walletTransactionsList > div,
+html.theme-light #walletTransactionsList > div {
+  background: transparent !important;
+  background-color: transparent !important;
+}
+
+#repNightlyNodesContainer > div,
+#repWeeklyNodesContainer > div,
+#repMonthlyNodesContainer > div,
+html.theme-light #repNightlyNodesContainer > div,
+html.theme-light #repWeeklyNodesContainer > div,
+html.theme-light #repMonthlyNodesContainer > div {
+  background: transparent !important;
+  background-color: transparent !important;
+}
+
+#switchAccountList button,
+html.theme-light #switchAccountList button {
+  background: transparent !important;
+  background-color: transparent !important;
+}
+
+#repSubTabs,
+html.theme-light #repSubTabs {
+  background: transparent !important;
+  background-color: transparent !important;
 }
 
 

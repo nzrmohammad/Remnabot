@@ -939,7 +939,7 @@ function setupAccountSwitcher() {
     const accounts = window.lastUserData?.accounts || [];
     if (!switchAccountList) return;
     switchAccountList.innerHTML = accounts.map(acc => `
-      <button class="select-acc-item w-full p-2.5 rounded-xl border ${acc.is_active ? 'border-blue-500 bg-blue-950/50' : 'border-slate-700 bg-slate-900/60 hover:border-slate-600'} text-right flex items-center justify-between transition" data-id="${acc.id}">
+      <button class="select-acc-item w-full p-2.5 rounded-xl border ${acc.is_active ? 'border-blue-500 bg-transparent' : 'border-slate-700/60 bg-transparent hover:border-slate-500'} text-right flex items-center justify-between transition" data-id="${acc.id}">
         <div>
           <div class="font-bold text-white text-xs flex items-center gap-1.5">
             <span>👤</span> ${acc.username}
@@ -948,7 +948,7 @@ function setupAccountSwitcher() {
             ${acc.used_gb} GB / ${acc.total_gb > 0 ? acc.total_gb + ' GB' : 'نامحدود'}
           </span>
         </div>
-        ${acc.is_active ? '<span class="text-xs text-blue-400 font-bold bg-blue-500/20 px-2 py-0.5 rounded-full border border-blue-500/40">فعال ✓</span>' : '<span class="text-xs text-slate-300 bg-slate-800 px-2 py-0.5 rounded-full">انتخاب</span>'}
+        ${acc.is_active ? '<span class="text-xs text-blue-400 font-bold bg-transparent px-2 py-0.5 rounded-full border border-blue-500/40">فعال ✓</span>' : '<span class="text-xs text-slate-400 bg-transparent border border-slate-700/60 px-2 py-0.5 rounded-full">انتخاب</span>'}
       </button>
     `).join('');
 
@@ -1411,7 +1411,7 @@ function renderActiveSubAnalytics(sub) {
       profAuthBadge.innerText = 'احراز هویت شده ✅';
       profAuthBadge.className = 'px-2.5 py-0.5 rounded-full text-[10px] font-bold border badge-auth transition';
     } else {
-      profAuthBadge.innerText = 'عدم احراز هویت ⚠️';
+      profAuthBadge.innerText = '⚠️ عدم احراز هویت';
       profAuthBadge.className = 'px-2.5 py-0.5 rounded-full text-[10px] font-bold border badge-unauth transition';
     }
   }
@@ -1582,6 +1582,9 @@ async function syncUserDataWithApi(accountId) {
     if (res.ok && res.data) {
       window.lastUserData = res.data;
       hydrateUserInterface(res.data);
+      if (res.data.active_sub && typeof renderActiveSubAnalytics === 'function') {
+        renderActiveSubAnalytics(res.data.active_sub);
+      }
       try {
         localStorage.setItem('remna_user_cache', JSON.stringify(res.data));
       } catch(e) {}

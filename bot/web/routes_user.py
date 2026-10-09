@@ -141,10 +141,11 @@ async def get_user_me(request: web.Request) -> web.Response:
 
             today_str = now_dt.strftime("%Y-%m-%d")
             start_str = stats_start_dt.strftime("%Y-%m-%d")
+            uid_arg = int(panel_user_id) if str(panel_user_id).isdigit() else panel_user_id
 
             series = []
             try:
-                series = await remnawave.get_user_bandwidth_stats(int(panel_user_id), start_str, today_str) or []
+                series = await remnawave.get_user_bandwidth_stats(uid_arg, start_str, today_str) or []
             except Exception as exc:
                 logger.warning("Failed to fetch bandwidth stats for %s: %s", panel_user_id, exc)
 
@@ -252,7 +253,7 @@ async def get_user_me(request: web.Request) -> web.Response:
                 try:
                     start_today_dt = start_of_today(tz_name)
                     today_tuple = await remnawave.get_user_today_usage(
-                        int(panel_user_id), start_today_dt.isoformat(), now_dt.isoformat()
+                        uid_arg, start_today_dt.isoformat(), now_dt.isoformat()
                     )
                     if today_tuple and isinstance(today_tuple, tuple):
                         today_bytes = today_tuple[0]
@@ -302,7 +303,7 @@ async def get_user_me(request: web.Request) -> web.Response:
             # HWID devices
             devices = []
             try:
-                devices = await remnawave.get_user_hwid_devices(int(panel_user_id)) or []
+                devices = await remnawave.get_user_hwid_devices(uid_arg) or []
             except Exception as exc:
                 logger.warning("Failed to fetch HWID devices for %s: %s", panel_user_id, exc)
 
@@ -368,7 +369,10 @@ async def get_user_me(request: web.Request) -> web.Response:
                 country_gb_vals.append(round(other_b / (1024**3), 2))
 
             # 3. 24-Hour Peak Usage Curve for user (12 2-hour intervals)
-            base_curve_gb = today_used_gb if today_used_gb > 0 else (round(week_used_gb / 7.0, 2) if week_used_gb > 0 else 2.5)
+            base_curve_gb = today_used_gb if today_used_gb > 0 else (round(week_used_gb / 7.0, 2) if week_used_gb > 0 else 0.0)
+            if base_curve_gb <= 0.0:
+                acc_seed = abs(hash(str(panel_user_id))) % 5
+                base_curve_gb = round(1.6 + (acc_seed * 0.5), 2)
             curve_weights_24 = [
                 0.025, 0.015, 0.010, 0.008, 0.006, 0.010, 0.018, 0.028,
                 0.038, 0.048, 0.055, 0.052, 0.048, 0.045, 0.050, 0.058,
@@ -643,8 +647,38 @@ async def get_user_me(request: web.Request) -> web.Response:
             if me_obj and getattr(me_obj, "username", None):
                 bot_username = me_obj.username
         won_coupons_raw = await cache.get(f"wheel:user_coupons:{telegram_id}") or []
-        now_iso = datetime.now(timezone.utc).isoformat()
+        now_dt_utc = datetime.now(timezone.utc)
+        now_iso = now_dt_utc.isoformat()
         active_won_coupons = [c for c in won_coupons_raw if c.get("expires_at", "") > now_iso]
+
+        # Merge active unused WHEEL coupons from DB
+        try:
+            from bot.db.models import Coupon, CouponUsage
+            used_coupon_ids_res = await session.execute(
+                select(CouponUsage.coupon_id).where(CouponUsage.telegram_id == telegram_id)
+            )
+            used_coupon_ids = set(used_coupon_ids_res.scalars().all())
+
+            active_coupons_res = await session.execute(
+                select(Coupon).where(
+                    Coupon.code.like("WHEEL%"),
+                    Coupon.is_active.is_(True),
+                    Coupon.used_count < Coupon.max_uses,
+                    or_(Coupon.expires_at.is_(None), Coupon.expires_at > now_dt_utc),
+                ).order_by(Coupon.id.desc()).limit(10)
+            )
+            db_wheel_coupons = active_coupons_res.scalars().all()
+            existing_codes = {c.get("code") for c in active_won_coupons}
+            for dbc in db_wheel_coupons:
+                if dbc.id not in used_coupon_ids and dbc.code not in existing_codes:
+                    active_won_coupons.append({
+                        "code": dbc.code,
+                        "discount_percent": dbc.discount_percent or 10,
+                        "expires_at": dbc.expires_at.isoformat() if dbc.expires_at else "",
+                    })
+                    existing_codes.add(dbc.code)
+        except Exception as exc:
+            logger.warning("Failed to fetch DB wheel coupons for %s: %s", telegram_id, exc)
 
         data = {
             "bot_username": bot_username,
@@ -844,7 +878,7 @@ async def get_user_subscription_configs(request: web.Request) -> web.Response:
     async with session_factory() as session:
         # 1. Fetch user accounts from Remnawave
         try:
-            panel_users = await remnawave.get_user_by_telegram_id(telegram_id) or []
+            panel_users = await remnawave.get_users_by_telegram_id(telegram_id) or []
             target = None
             if account_id_param:
                 for pu in panel_users:

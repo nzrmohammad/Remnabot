@@ -165,7 +165,7 @@ function renderDonutChart(containerId, labels, data, isDevice = false) {
   if (typeof Chart === 'undefined') return;
 
   const isLight = document.documentElement.classList.contains('theme-light');
-  const textColor = isLight ? '#475569' : '#94a3b8';
+  const textColor = isLight ? '#334155' : '#e2e8f0';
 
   const defaultColors = isDevice
     ? ['#10b981', '#06b6d4', '#6366f1', '#ec4899', '#f59e0b', '#64748b']
@@ -218,8 +218,18 @@ function renderDonutChart(containerId, labels, data, isDevice = false) {
             usePointStyle: true,
             pointStyle: 'circle',
             color: textColor,
-            font: { family: 'Vazirmatn', size: 9 },
+            font: { family: 'Vazirmatn', size: 10, weight: '500' },
             padding: 8,
+            generateLabels: function(chart) {
+              const original = Chart.overrides?.doughnut?.plugins?.legend?.labels?.generateLabels
+                ? Chart.overrides.doughnut.plugins.legend.labels.generateLabels(chart)
+                : Chart.defaults.plugins.legend.labels.generateLabels(chart);
+              original.forEach(item => {
+                item.strokeStyle = item.fillStyle;
+                item.lineWidth = 0;
+              });
+              return original;
+            }
           }
         },
         tooltip: {
