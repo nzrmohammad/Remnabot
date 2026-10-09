@@ -63,6 +63,8 @@ from bot.web.routes_user import (
     post_user_topup_crypto,
     post_user_topup_crypto_check,
     post_user_validate_coupon,
+    get_user_support_messages,
+    post_user_support_message,
 )
 
 logger = logging.getLogger(__name__)
@@ -244,6 +246,8 @@ def create_web_app(
     app.router.add_post("/api/user/kill_device", post_user_kill_device)
     app.router.add_get("/api/user/nodes", get_user_nodes)
     app.router.add_get("/api/user/ip_info", get_user_ip_info)
+    app.router.add_get("/api/user/support/messages", get_user_support_messages)
+    app.router.add_post("/api/user/support/messages", post_user_support_message)
 
     # Admin APIs
     app.router.add_get("/api/admin/overview", get_admin_overview)

@@ -114,7 +114,50 @@ function setupWalletListeners() {
     cardView?.classList.add('hidden');
   });
 
+let cryptoCountdownTimerInterval = null;
+
+function startCryptoCountdownTimer(seconds = 1800) {
+  if (cryptoCountdownTimerInterval) {
+    clearInterval(cryptoCountdownTimerInterval);
+    cryptoCountdownTimerInterval = null;
+  }
+  let remaining = seconds;
+  const timerEl = document.getElementById('cryptoCountdownTimer');
+  if (timerEl) {
+    timerEl.classList.remove('text-rose-400', 'bg-rose-500/10', 'border-rose-500/20');
+    timerEl.classList.add('text-amber-400', 'bg-amber-500/10', 'border-amber-500/20');
+  }
+
+  const updateDisplay = () => {
+    if (!timerEl) return;
+    if (remaining <= 0) {
+      timerEl.innerText = '00:00 (منقضی شد)';
+      timerEl.classList.remove('text-amber-400', 'bg-amber-500/10', 'border-amber-500/20');
+      timerEl.classList.add('text-rose-400', 'bg-rose-500/10', 'border-rose-500/20');
+      if (cryptoCountdownTimerInterval) clearInterval(cryptoCountdownTimerInterval);
+      return;
+    }
+    const mins = Math.floor(remaining / 60);
+    const secs = remaining % 60;
+    timerEl.innerText = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+  };
+
+  updateDisplay();
+  cryptoCountdownTimerInterval = setInterval(() => {
+    remaining -= 1;
+    updateDisplay();
+  }, 1000);
+}
+
+function stopCryptoCountdownTimer() {
+  if (cryptoCountdownTimerInterval) {
+    clearInterval(cryptoCountdownTimerInterval);
+    cryptoCountdownTimerInterval = null;
+  }
+}
+
   document.getElementById('closeTopupModalBtn')?.addEventListener('click', () => {
+    stopCryptoCountdownTimer();
     closeModal('topupModal');
   });
 
@@ -180,6 +223,7 @@ function setupWalletListeners() {
         document.getElementById('cryptoPayAddress').innerText = res.invoice.pay_address;
         document.getElementById('cryptoComment').innerText = res.invoice.comment;
         document.getElementById('cryptoTonkeeperLink').href = res.invoice.deep_link;
+        startCryptoCountdownTimer(1800);
       } else {
         showToast(`❌ ${res.message || 'خطا در ایجاد فاکتور کریپتو'}`);
       }
@@ -218,6 +262,7 @@ function setupWalletListeners() {
       const res = await window.api.checkCryptoInvoice(currentTopupInvoice.id);
       if (res.ok && res.paid) {
         showToast('🎉 پرداخت تایید شد و کیف پول شارژ گردید!');
+        stopCryptoCountdownTimer();
         closeModal('topupModal');
         if (typeof syncUserDataWithApi === 'function') syncUserDataWithApi(window.currentAccountId);
       } else {

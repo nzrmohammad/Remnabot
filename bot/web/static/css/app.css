@@ -1118,4 +1118,78 @@ html.theme-light .bg-rose-950\/30 .text-slate-400 {
   color: #64748b !important;
 }
 
+/* Support Chat Modal - Light Mode */
+html.theme-light #supportChatModal .bg-\[\#151f32\] {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12) !important;
+}
+html.theme-light #supportChatModal .bg-\[\#1a263e\] {
+  background-color: #f8fafc !important;
+  border-color: #e2e8f0 !important;
+}
+html.theme-light #supportChatModal #chatMessages {
+  background-color: #f8fafc !important;
+}
+html.theme-light #supportChatModal .chat-admin-bubble {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+  color: #1e293b !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
+}
+html.theme-light #supportChatModal .chat-admin-bubble span {
+  color: #64748b !important;
+}
+html.theme-light #supportChatModal .quick-chip {
+  background-color: #ffffff !important;
+  border-color: #cbd5e1 !important;
+  color: #334155 !important;
+}
+html.theme-light #supportChatModal #chatInput {
+  background-color: #ffffff !important;
+  border-color: #cbd5e1 !important;
+  color: #0f172a !important;
+}
+
+/* Story Card Modal - Light Mode */
+html.theme-light #exportableStoryCard {
+  background: linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%) !important;
+  border-color: #cbd5e1 !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08) !important;
+}
+html.theme-light #storyCardName {
+  color: #0f172a !important;
+}
+html.theme-light #storyMetricsStandard {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+}
+html.theme-light #storyCardModal .bg-slate-900\/80 {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+}
+html.theme-light #storyCardModal .bg-slate-900\/80 span.text-white {
+  color: #0f172a !important;
+}
+
+/* Alert Threshold Dropdowns */
+#settingTrafficPercentSelect,
+#settingExpireDaysSelect {
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: left 0.5rem center;
+  background-size: 1em;
+  padding-left: 1.5rem;
+}
+html.theme-light #settingTrafficPercentSelect,
+html.theme-light #settingExpireDaysSelect {
+  background-color: #ffffff !important;
+  border-color: #cbd5e1 !important;
+  color: #0f172a !important;
+}
+
+
 

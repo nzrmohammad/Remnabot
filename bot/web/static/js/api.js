@@ -138,6 +138,14 @@ const api = {
     return this.get('/api/user/ip_info');
   },
 
+  async getSupportMessages() {
+    return this.get('/api/user/support/messages');
+  },
+
+  async sendSupportMessage(text) {
+    return this.post('/api/user/support/messages', { text });
+  },
+
   // Admin Suite Endpoints
   async getAdminOverview(params = {}) {
     return this.get('/api/admin/overview', params);

@@ -12,7 +12,7 @@
       darkMode: 'class'
     };
   </script>
-  <link rel="stylesheet" href="/static/css/app.css?v=7.8">
+  <link rel="stylesheet" href="/static/css/app.css?v=7.9">
 </head>
 <body id="appBody" class="bg-[#080d1a] text-slate-100 w-full min-w-full h-screen h-[100dvh] overflow-hidden flex justify-center items-center antialiased select-none transition-colors duration-300">
 
@@ -183,7 +183,7 @@
           </button>
 
           <!-- Collapsible Content (Hidden by default, opens on click) -->
-          <div id="countryBreakdownBody" class="hidden px-4 pb-4 pt-1 space-y-2 text-xs border-t border-slate-700/50">
+          <div id="countryBreakdownBody" class="hidden p-3.5 space-y-2 text-xs border-t border-slate-700/50">
             <div id="countryBreakdownList" class="space-y-2">
               <div class="text-center py-3 text-slate-400 text-[11px]">
                 در حال استخراج ریز مصرف...
@@ -206,7 +206,7 @@
           </button>
 
           <!-- Collapsible Content (Hidden by default, opens on click) -->
-          <div id="subAccordionBody" class="hidden px-4 pb-4 pt-1 space-y-3 text-xs border-t border-slate-700/50">
+          <div id="subAccordionBody" class="hidden p-3.5 space-y-3 text-xs border-t border-slate-700/50">
             <!-- Manage & Action Header -->
             <div class="flex items-center justify-between pt-1">
               <span class="text-[11px] text-slate-400 font-medium">ابزارها و اقدامات:</span>
@@ -383,7 +383,7 @@
           <!-- Monthly 4-Week Chart (نمودار مصرف 4 هفته اخیر) -->
           <div class="pt-2 border-t border-slate-700/60">
             <span class="text-[11px] text-slate-400 font-medium block mb-2">نمودار مصرف 4 هفته اخیر (ماهانه):</span>
-            <div class="h-36 w-full p-2 bg-slate-900/60 rounded-xl relative">
+            <div class="h-36 w-full p-1 bg-transparent rounded-xl relative">
               <canvas id="repMonthlyChartCanvas" class="w-full h-full"></canvas>
             </div>
           </div>
@@ -405,7 +405,7 @@
               <span class="text-xs font-bold text-white flex items-center gap-1.5">
                 <span>⚡️</span> توازن ترافیک (دانلود / آپلود)
               </span>
-              <span id="repUpDownRatioBadge" class="text-[10px] font-mono font-bold text-cyan-400 bg-cyan-950/60 px-2 py-0.5 rounded border border-cyan-800/40" dir="ltr">RX / TX</span>
+              <span id="repUpDownRatioBadge" class="text-[10px] font-mono font-bold text-cyan-400 bg-transparent p-0" dir="ltr">RX / TX</span>
             </div>
             
             <div class="space-y-1.5">
@@ -424,11 +424,11 @@
           <div class="bg-slate-800/90 rounded-2xl p-4 border border-slate-700/80 space-y-2.5 shadow-md">
             <div class="flex justify-between items-center border-b border-slate-700/60 pb-2">
               <span class="text-xs font-bold text-white flex items-center gap-1.5">
-                <span>📈</span> منحنی ساعات اوج مصرف (24 ساعته)
+                <span>📈</span> منحنی ساعات اوج مصرف (12 بازه 2 ساعته)
               </span>
-              <span id="repPeakHourBadge" class="text-[10px] font-mono font-bold text-amber-400 bg-amber-950/60 px-2 py-0.5 rounded border border-amber-800/40" dir="ltr">Peak: 21:00</span>
+              <span id="repPeakHourBadge" class="text-[10px] font-mono font-bold text-amber-400 bg-transparent p-0" dir="ltr">Peak: 20:00 - 22:00</span>
             </div>
-            <div class="h-36 w-full p-2 bg-slate-900/60 rounded-xl relative">
+            <div class="h-36 w-full p-1 bg-transparent rounded-xl relative">
               <canvas id="repPeakHoursChartCanvas" class="w-full h-full"></canvas>
             </div>
           </div>
@@ -681,28 +681,47 @@
           <div class="flex items-center justify-between py-1 border-t border-slate-700/50 pt-2">
             <div>
               <span class="text-slate-200 font-medium block">⚠️ هشدار کمبود حجم</span>
-              <span class="text-[10px] text-slate-400">هشدار قبل از پایان ترافیک (80%)</span>
+              <span id="settingTrafficSubtext" class="text-[10px] text-slate-400">هشدار قبل از پایان ترافیک (80%)</span>
             </div>
-            <label class="relative inline-flex items-center cursor-pointer">
-              <input type="checkbox" id="settingToggleLowTraffic" class="sr-only switch-checkbox">
-              <div class="switch-label w-11 h-6 bg-slate-700 rounded-full transition-colors duration-200 flex items-center px-0.5">
-                <div class="switch-ball w-5 h-5 bg-white rounded-full shadow-md transition-transform duration-200"></div>
-              </div>
-            </label>
+            <div class="flex items-center gap-2">
+              <select id="settingTrafficPercentSelect" class="bg-slate-900 border border-slate-700 text-cyan-400 text-[11px] rounded-lg px-2 py-0.5 outline-none font-mono">
+                <option value="70">70%</option>
+                <option value="75">75%</option>
+                <option value="80" selected>80%</option>
+                <option value="85">85%</option>
+                <option value="90">90%</option>
+                <option value="95">95%</option>
+              </select>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" id="settingToggleLowTraffic" class="sr-only switch-checkbox">
+                <div class="switch-label w-11 h-6 bg-slate-700 rounded-full transition-colors duration-200 flex items-center px-0.5">
+                  <div class="switch-ball w-5 h-5 bg-white rounded-full shadow-md transition-transform duration-200"></div>
+                </div>
+              </label>
+            </div>
           </div>
 
           <!-- Toggle: Expiry Warning -->
           <div class="flex items-center justify-between py-1 border-t border-slate-700/50 pt-2">
             <div>
               <span class="text-slate-200 font-medium block">⏰ هشدار پایان اعتبار سرویس</span>
-              <span class="text-[10px] text-slate-400">اطلاع‌رسانی 3 روز مانده به انقضا</span>
+              <span id="settingExpireSubtext" class="text-[10px] text-slate-400">اطلاع‌رسانی 3 روز مانده به انقضا</span>
             </div>
-            <label class="relative inline-flex items-center cursor-pointer">
-              <input type="checkbox" id="settingToggleExpireWarning" class="sr-only switch-checkbox">
-              <div class="switch-label w-11 h-6 bg-slate-700 rounded-full transition-colors duration-200 flex items-center px-0.5">
-                <div class="switch-ball w-5 h-5 bg-white rounded-full shadow-md transition-transform duration-200"></div>
-              </div>
-            </label>
+            <div class="flex items-center gap-2">
+              <select id="settingExpireDaysSelect" class="bg-slate-900 border border-slate-700 text-amber-400 text-[11px] rounded-lg px-2 py-0.5 outline-none font-mono">
+                <option value="1">1 روز</option>
+                <option value="2">2 روز</option>
+                <option value="3" selected>3 روز</option>
+                <option value="5">5 روز</option>
+                <option value="7">7 روز</option>
+              </select>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" id="settingToggleExpireWarning" class="sr-only switch-checkbox">
+                <div class="switch-label w-11 h-6 bg-slate-700 rounded-full transition-colors duration-200 flex items-center px-0.5">
+                  <div class="switch-ball w-5 h-5 bg-white rounded-full shadow-md transition-transform duration-200"></div>
+                </div>
+              </label>
+            </div>
           </div>
 
           <!-- Language Selector (تغییر زبان) -->
@@ -940,6 +959,10 @@
 
           <div id="cryptoInvoiceDetails" class="space-y-2.5 hidden">
             <div class="bg-slate-900/90 rounded-2xl p-3 border border-sky-500/40 space-y-2">
+              <div class="flex justify-between items-center text-[11px] pb-1.5 border-b border-slate-800">
+                <span class="text-slate-400 flex items-center gap-1"><span>⏳</span> مهلت پرداخت:</span>
+                <span id="cryptoCountdownTimer" class="font-mono font-bold text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-md border border-amber-500/20" dir="ltr">30:00</span>
+              </div>
               <div class="flex justify-between items-center text-[11px]">
                 <span class="text-slate-400">مقدار قابل پرداخت:</span>
                 <div class="flex items-center gap-1">
@@ -1180,73 +1203,48 @@
       <div class="relative w-full max-w-[325px] flex flex-col items-center space-y-2.5 my-auto">
         <button id="closeStoryCardBtn" class="absolute -top-3 left-0 text-slate-400 hover:text-white text-sm bg-slate-800 rounded-full w-7 h-7 flex items-center justify-center z-20">✕</button>
 
-        <!-- Preset Theme Switcher (3 پوسته بصری اختصاصی) -->
-        <div class="flex items-center justify-center gap-1.5 w-full pt-1">
-          <button id="presetThemeGlassBtn" type="button" class="story-preset-btn active flex-1 py-1.5 px-2 rounded-xl text-[10px] font-bold transition border border-indigo-400/80 bg-indigo-600/30 text-indigo-200">
-            💎 لوکس شیشه‌ای
-          </button>
-          <button id="presetThemeCyberBtn" type="button" class="story-preset-btn flex-1 py-1.5 px-2 rounded-xl text-[10px] font-bold transition border border-slate-700 bg-slate-800/80 text-slate-300 hover:text-emerald-300">
-            ⚡️ سایبرپانک
-          </button>
-          <button id="presetThemeSpeedBtn" type="button" class="story-preset-btn flex-1 py-1.5 px-2 rounded-xl text-[10px] font-bold transition border border-slate-700 bg-slate-800/80 text-slate-300 hover:text-cyan-300">
-            🚀 تست پینگ
-          </button>
-        </div>
-
         <!-- Glassmorphic Card Container -->
-        <div id="exportableStoryCard" class="w-full rounded-3xl p-4 border border-white/20 shadow-[0_20px_50px_rgba(0,0,0,0.8)] relative overflow-hidden text-center flex flex-col justify-between transition-all duration-300" style="background: linear-gradient(135deg, rgba(30, 27, 75, 0.9) 0%, rgba(15, 23, 42, 0.96) 50%, rgba(49, 46, 129, 0.85) 100%); backdrop-filter: blur(25px);">
+        <div id="exportableStoryCard" class="w-full rounded-3xl p-4 border border-slate-700/80 shadow-[0_20px_50px_rgba(0,0,0,0.8)] relative overflow-hidden text-center flex flex-col justify-between transition-all duration-300 bg-[#0f172a]/95 backdrop-blur-xl">
           <!-- Background decorative glows -->
-          <div id="storyGlow1" class="absolute -top-12 -right-12 w-32 h-32 bg-cyan-500/20 rounded-full blur-2xl pointer-events-none transition-all duration-500"></div>
-          <div id="storyGlow2" class="absolute -bottom-12 -left-12 w-32 h-32 bg-purple-500/25 rounded-full blur-2xl pointer-events-none transition-all duration-500"></div>
+          <div id="storyGlow1" class="absolute -top-12 -right-12 w-32 h-32 bg-cyan-500/15 rounded-full blur-2xl pointer-events-none"></div>
+          <div id="storyGlow2" class="absolute -bottom-12 -left-12 w-32 h-32 bg-blue-500/20 rounded-full blur-2xl pointer-events-none"></div>
 
           <!-- Top Brand Header -->
-          <div class="flex items-center justify-between border-b border-white/10 pb-2.5 z-10">
+          <div class="flex items-center justify-between border-b border-slate-700/60 pb-2.5 z-10">
             <div class="flex items-center gap-1.5">
               <span id="storyBrandIcon" class="text-lg">⚡️</span>
-              <span id="storyBrandTitle" class="font-extrabold text-xs text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-blue-300 to-indigo-300">RemnaStore Pro</span>
+              <span id="storyBrandTitle" class="font-extrabold text-xs text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-400 to-indigo-400">RemnaStore Pro</span>
             </div>
-            <span id="storyBrandBadge" class="text-[9px] font-mono font-bold text-amber-300 bg-amber-950/60 border border-amber-500/30 px-2 py-0.5 rounded-full">VIP MEMBER</span>
+            <span id="storyBrandBadge" class="text-[9px] font-mono font-bold text-amber-400 bg-amber-500/10 border border-amber-500/30 px-2 py-0.5 rounded-full">VIP MEMBER</span>
           </div>
 
           <!-- User Info & Metrics -->
           <div class="py-2.5 z-10 space-y-2">
-            <div id="storyAvatarBorder" class="w-12 h-12 rounded-full p-0.5 bg-gradient-to-tr from-cyan-400 to-indigo-500 mx-auto shadow-lg shadow-indigo-500/30 flex items-center justify-center transition-all duration-300">
-              <div id="storyCardAvatarInitial" class="w-full h-full rounded-full bg-slate-900 flex items-center justify-center text-lg font-bold text-white">U</div>
+            <div id="storyAvatarBorder" class="w-14 h-14 rounded-full p-0.5 bg-gradient-to-tr from-cyan-400 via-blue-500 to-indigo-500 mx-auto shadow-lg shadow-blue-500/20 flex items-center justify-center transition-all duration-300 overflow-hidden">
+              <img id="storyCardAvatarImg" class="w-full h-full rounded-full object-cover hidden" alt="Avatar" />
+              <div id="storyCardAvatarInitial" class="w-full h-full rounded-full bg-slate-900 flex items-center justify-center text-xl font-extrabold text-white">U</div>
             </div>
             <div>
               <h4 id="storyCardName" class="text-sm font-extrabold text-white">کاربر</h4>
-              <span id="storyCardUsername" class="text-[10px] text-blue-300 font-mono">@user</span>
+              <span id="storyCardUsername" dir="ltr" class="text-[11px] text-blue-400 font-mono inline-block mt-0.5">@user</span>
             </div>
 
-            <!-- Preset Metrics: Standard Traffic View -->
-            <div id="storyMetricsStandard" class="bg-white/5 border border-white/15 rounded-2xl p-2.5 my-1.5 shadow-inner">
-              <span class="text-[10px] text-slate-300 font-medium block">ترافیک باقی‌مانده اشتراک:</span>
+            <!-- Standard Traffic View -->
+            <div id="storyMetricsStandard" class="bg-slate-900/80 border border-slate-700/70 rounded-2xl p-2.5 my-1.5 shadow-inner">
+              <span class="text-[10px] text-slate-400 font-medium block">ترافیک باقی‌مانده اشتراک:</span>
               <div id="storyCardTraffic" class="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-300 font-mono mt-0.5" dir="ltr">
                 -- GB
               </div>
-              <div class="flex items-center justify-center gap-2.5 text-[10px] text-slate-300 mt-1 pt-1.5 border-t border-white/10">
+              <div class="flex items-center justify-center gap-2.5 text-[10px] text-slate-400 mt-1 pt-1.5 border-t border-slate-800">
                 <span id="storyCardDays">-- روز اعتبار</span>
                 <span>•</span>
-                <span>🌍 سرورهای اختصاصی</span>
+                <span class="text-emerald-400 font-medium">🟢 پایداری 100%</span>
               </div>
-            </div>
-
-            <!-- Preset Metrics: Speed & Low Ping View (نمایش کیفیت و پایداری شبکه) -->
-            <div id="storyMetricsSpeed" class="hidden bg-slate-950/70 border border-cyan-500/30 rounded-2xl p-2.5 my-1.5 shadow-inner space-y-1.5">
-              <div class="flex items-center justify-between text-[11px]">
-                <span class="text-cyan-300 font-bold flex items-center gap-1">⚡️ پینگ زنده اختصاصی:</span>
-                <span class="font-mono font-extrabold text-emerald-400 text-xs" dir="ltr">32 ms</span>
-              </div>
-              <div class="grid grid-cols-2 gap-1.5 text-[10px] font-mono pt-1 border-t border-slate-800" dir="ltr">
-                <div class="bg-slate-900/80 p-1.5 rounded-lg border border-slate-700/60 text-slate-300">🇩🇪 DE: <b class="text-emerald-400">32ms</b></div>
-                <div class="bg-slate-900/80 p-1.5 rounded-lg border border-slate-700/60 text-slate-300">🇳🇱 NL: <b class="text-emerald-400">38ms</b></div>
-              </div>
-              <div class="text-[9px] text-emerald-400 font-medium pt-0.5">🟢 پایداری 100% بدون قطعی و پکت‌لاس</div>
             </div>
           </div>
 
           <!-- Bottom Viral Referral QR Box -->
-          <div class="bg-black/40 border border-white/10 rounded-2xl p-2.5 z-10 flex items-center gap-2.5 text-right">
+          <div class="bg-slate-900/80 border border-slate-700/70 rounded-2xl p-2.5 z-10 flex items-center gap-2.5 text-right">
             <!-- Dynamic Mini QR for Referral Link -->
             <img id="storyCardQr" src="" class="w-11 h-11 rounded-lg bg-white p-0.5 shrink-0" alt="QR" />
             <div class="text-[10px]">
@@ -1352,33 +1350,21 @@
 
         <!-- Chat Messages Container -->
         <div id="chatMessages" class="flex-1 p-3.5 space-y-3 overflow-y-auto custom-scroll text-xs">
-          <!-- Support Msg 1 -->
-          <div class="flex items-start gap-2 max-w-[85%]">
-            <div class="w-6 h-6 rounded-full bg-emerald-600 flex items-center justify-center text-[10px] shrink-0">🎧</div>
-            <div class="bg-slate-800 rounded-2xl rounded-tr-none p-2.5 text-slate-200 border border-slate-700/60 leading-relaxed shadow-sm">
-              سلام محمد عزیز! وقت بخیر 👋 چطور می‌تونم در مورد سرویس یا اتصالتون راهنماییتون کنم؟
-              <span class="text-[9px] text-slate-400 block text-left mt-1 font-mono">14:50</span>
-            </div>
+          <!-- Chat Loading State -->
+          <div id="chatLoadingState" class="text-center py-6 text-slate-400 text-xs">
+            در حال دریافت پیام‌های پشتیبانی...
           </div>
 
-          <!-- User Msg 1 -->
-          <div class="flex items-start justify-end gap-2 max-w-[85%] mr-auto">
-            <div class="bg-blue-600 rounded-2xl rounded-tl-none p-2.5 text-white leading-relaxed shadow-sm">
-              سلام، روی آیفون برنامه Streisand سرعت کدوم سرور برای همراه اول بهتره؟
-              <span class="text-[9px] text-blue-200 block text-left mt-1 font-mono">14:52</span>
+          <!-- Chat Empty State -->
+          <div id="chatEmptyState" class="hidden text-center py-8 space-y-2">
+            <div class="w-12 h-12 rounded-full bg-slate-800/80 text-2xl flex items-center justify-center mx-auto text-blue-400">
+              💬
             </div>
+            <p class="text-xs text-slate-300 font-medium">گفتگوی مستقیم با پشتیبانی</p>
+            <p class="text-[10px] text-slate-400 max-w-[240px] mx-auto leading-relaxed">سؤال، درخواست یا مشکل خود را مطرح فرمایید. پیام شما به پشتیبانی ارسال و پاسخ در همین بخش نمایش داده می‌شود.</p>
           </div>
 
-          <!-- Support Msg 2 -->
-          <div class="flex items-start gap-2 max-w-[85%]">
-            <div class="w-6 h-6 rounded-full bg-emerald-600 flex items-center justify-center text-[10px] shrink-0">🎧</div>
-            <div class="bg-slate-800 rounded-2xl rounded-tr-none p-2.5 text-slate-200 border border-slate-700/60 leading-relaxed shadow-sm">
-              برای همراه اول در حال حاضر سرور <b>🇩🇪 آلمان (Frankfurt Direct)</b> و سرور <b>🇹🇷 ترکیه</b> کمترین تاخیر (زیر 50 میلی‌ثانیه) رو دارن و بدون قطعی وصل میشن! 🚀
-              <span class="text-[9px] text-slate-400 block text-left mt-1 font-mono">14:53</span>
-            </div>
-          </div>
-
-          <!-- Dynamic user messages container -->
+          <!-- Dynamic user and support messages container -->
           <div id="dynamicChatContainer" class="space-y-3"></div>
 
           <!-- Typing Indicator (hidden by default) -->
@@ -1408,13 +1394,13 @@
   </div>
 
   <!-- Modular Frontend Architecture (DRY) -->
-  <script src="/static/js/utils.js?v=7.8"></script>
-  <script src="/static/js/api.js?v=7.8"></script>
-  <script src="/static/js/charts.js?v=7.8"></script>
-  <script src="/static/js/shop.js?v=7.8"></script>
-  <script src="/static/js/wallet.js?v=7.8"></script>
-  <script src="/static/js/wheel.js?v=7.8"></script>
-  <script src="/static/js/story.js?v=7.8"></script>
-  <script src="/static/js/app.js?v=7.8"></script>
+  <script src="/static/js/utils.js?v=7.9"></script>
+  <script src="/static/js/api.js?v=7.9"></script>
+  <script src="/static/js/charts.js?v=7.9"></script>
+  <script src="/static/js/shop.js?v=7.9"></script>
+  <script src="/static/js/wallet.js?v=7.9"></script>
+  <script src="/static/js/wheel.js?v=7.9"></script>
+  <script src="/static/js/story.js?v=7.9"></script>
+  <script src="/static/js/app.js?v=7.9"></script>
 </body>
 </html>

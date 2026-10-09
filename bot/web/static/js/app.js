@@ -531,59 +531,137 @@ function setupSupportChat() {
   const chatInput = document.getElementById('chatInput');
   const sendMessageBtn = document.getElementById('sendMessageBtn');
   const dynamicChatContainer = document.getElementById('dynamicChatContainer');
-  const typingIndicator = document.getElementById('typingIndicator');
   const chatMessages = document.getElementById('chatMessages');
+  const chatLoadingState = document.getElementById('chatLoadingState');
+  const chatEmptyState = document.getElementById('chatEmptyState');
 
-  openSupportBtn?.addEventListener('click', () => openModal('supportChatModal'));
-  closeSupportChatBtn?.addEventListener('click', () => closeModal('supportChatModal'));
+  let pollInterval = null;
+  let lastMessageCount = 0;
 
-  function sendUserMessage(text) {
-    if (!text || !text.trim()) return;
+  function renderMessageItem(msg) {
+    const isUser = msg.sender === 'user';
+    const timeStr = msg.created_at ? toEnglishDigits(msg.created_at) : '';
+    const safeText = escapeHtml(msg.text || '').replace(/\n/g, '<br/>');
 
-    const userBubble = document.createElement('div');
-    userBubble.className = 'flex items-start justify-end gap-2 max-w-[85%] mr-auto animate-fadeIn';
-    userBubble.innerHTML = `
-      <div class="bg-blue-600 rounded-2xl rounded-tl-none p-2.5 text-white leading-relaxed shadow-sm">
-        ${text.trim()}
-        <span class="text-[9px] text-blue-200 block text-left mt-1 font-mono">هم‌اکنون</span>
-      </div>
-    `;
-    dynamicChatContainer?.appendChild(userBubble);
-    if (chatInput) chatInput.value = '';
-    if (chatMessages) chatMessages.scrollTop = chatMessages.scrollHeight;
-
-    setTimeout(() => {
-      typingIndicator?.classList.remove('hidden');
-      typingIndicator?.classList.add('flex');
-      if (chatMessages) chatMessages.scrollTop = chatMessages.scrollHeight;
-
-      setTimeout(() => {
-        typingIndicator?.classList.add('hidden');
-        typingIndicator?.classList.remove('flex');
-
-        const replyBubble = document.createElement('div');
-        replyBubble.className = 'flex items-start gap-2 max-w-[85%] animate-fadeIn';
-        replyBubble.innerHTML = `
-          <div class="w-6 h-6 rounded-full bg-emerald-600 flex items-center justify-center text-[10px] shrink-0">🎧</div>
-          <div class="bg-slate-800 rounded-2xl rounded-tr-none p-2.5 text-slate-200 border border-slate-700/60 leading-relaxed shadow-sm">
-            پیام شما دریافت شد! همکاران فنی ما در حال بررسی هستند و پاسخ کامل را برای شما ارسال خواهند کرد. ✅
-            <span class="text-[9px] text-slate-400 block text-left mt-1 font-mono">هم‌اکنون</span>
-          </div>
-        `;
-        dynamicChatContainer?.appendChild(replyBubble);
-        if (chatMessages) chatMessages.scrollTop = chatMessages.scrollHeight;
-      }, 1500);
-    }, 500);
+    const bubble = document.createElement('div');
+    if (isUser) {
+      bubble.className = 'flex items-start justify-end gap-2 max-w-[85%] mr-auto animate-fadeIn';
+      bubble.innerHTML = `
+        <div class="bg-blue-600 rounded-2xl rounded-tl-none p-2.5 text-white leading-relaxed shadow-sm">
+          ${safeText}
+          <span class="text-[9px] text-blue-200 block text-left mt-1 font-mono" dir="ltr">${timeStr}</span>
+        </div>
+      `;
+    } else {
+      bubble.className = 'flex items-start gap-2 max-w-[85%] animate-fadeIn';
+      bubble.innerHTML = `
+        <div class="w-6 h-6 rounded-full bg-emerald-600 flex items-center justify-center text-[10px] shrink-0 text-white">🎧</div>
+        <div class="bg-slate-800 rounded-2xl rounded-tr-none p-2.5 text-slate-200 border border-slate-700/60 leading-relaxed shadow-sm chat-admin-bubble">
+          ${safeText}
+          <span class="text-[9px] text-slate-400 block text-left mt-1 font-mono" dir="ltr">${timeStr}</span>
+        </div>
+      `;
+    }
+    return bubble;
   }
 
-  sendMessageBtn?.addEventListener('click', () => sendUserMessage(chatInput?.value));
+  async function loadChatMessages(isSilent = false) {
+    try {
+      if (!isSilent && chatLoadingState) {
+        chatLoadingState.classList.remove('hidden');
+      }
+      const res = await window.api.getSupportMessages();
+      if (chatLoadingState) chatLoadingState.classList.add('hidden');
+
+      if (res.ok) {
+        const messages = res.messages || [];
+        if (messages.length === 0) {
+          if (chatEmptyState) chatEmptyState.classList.remove('hidden');
+          if (dynamicChatContainer) dynamicChatContainer.innerHTML = '';
+          lastMessageCount = 0;
+        } else {
+          if (chatEmptyState) chatEmptyState.classList.add('hidden');
+          if (messages.length !== lastMessageCount || !isSilent) {
+            if (dynamicChatContainer) {
+              dynamicChatContainer.innerHTML = '';
+              messages.forEach(m => dynamicChatContainer.appendChild(renderMessageItem(m)));
+            }
+            lastMessageCount = messages.length;
+            if (chatMessages) chatMessages.scrollTop = chatMessages.scrollHeight;
+          }
+        }
+      }
+    } catch (err) {
+      if (chatLoadingState) chatLoadingState.classList.add('hidden');
+    }
+  }
+
+  function startPolling() {
+    loadChatMessages(false);
+    if (pollInterval) clearInterval(pollInterval);
+    pollInterval = setInterval(() => {
+      const modal = document.getElementById('supportChatModal');
+      if (modal && !modal.classList.contains('hidden')) {
+        loadChatMessages(true);
+      } else {
+        clearInterval(pollInterval);
+        pollInterval = null;
+      }
+    }, 4000);
+  }
+
+  function stopPolling() {
+    if (pollInterval) {
+      clearInterval(pollInterval);
+      pollInterval = null;
+    }
+  }
+
+  openSupportBtn?.addEventListener('click', () => {
+    openModal('supportChatModal');
+    startPolling();
+  });
+
+  closeSupportChatBtn?.addEventListener('click', () => {
+    stopPolling();
+    closeModal('supportChatModal');
+  });
+
+  async function handleSendMessage(text) {
+    if (!text || !text.trim()) return;
+    const cleanText = text.trim();
+    if (chatInput) chatInput.value = '';
+
+    if (chatEmptyState) chatEmptyState.classList.add('hidden');
+    const tempMsg = {
+      sender: 'user',
+      text: cleanText,
+      created_at: new Date().toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' }),
+    };
+    dynamicChatContainer?.appendChild(renderMessageItem(tempMsg));
+    lastMessageCount += 1;
+    if (chatMessages) chatMessages.scrollTop = chatMessages.scrollHeight;
+
+    try {
+      const res = await window.api.sendSupportMessage(cleanText);
+      if (!res.ok) {
+        showToast(`❌ ${res.error || 'خطا در ارسال پیام'}`);
+      } else {
+        hapticFeedback('success');
+      }
+    } catch (e) {
+      showToast('خطا در ارسال پیام به سرور.');
+    }
+  }
+
+  sendMessageBtn?.addEventListener('click', () => handleSendMessage(chatInput?.value));
   chatInput?.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') sendUserMessage(chatInput?.value);
+    if (e.key === 'Enter') handleSendMessage(chatInput?.value);
   });
 
   document.querySelectorAll('.quick-chip').forEach(chip => {
     chip.addEventListener('click', () => {
-      sendUserMessage(chip.innerText.replace(/^[^\w\s\u0600-\u06FF]+/, '').trim());
+      handleSendMessage(chip.innerText.replace(/^[^\w\s\u0600-\u06FF]+/, '').trim());
     });
   });
 }
@@ -609,7 +687,8 @@ function syncTelegramBackButton() {
   if (!tg?.BackButton) return;
   const modalIds = [
     'revokeModal', 'switchAccountModal', 'activeSessionsModal',
-    'topupModal', 'luckyWheelModal', 'storyModal', 'purchaseSuccessModal',
+    'topupModal', 'luckyWheelModal', 'storyModal', 'storyCardModal',
+    'supportChatModal', 'purchaseSuccessModal',
     'qrModal', 'checkoutConfirmModal'
   ];
   const hasOpenModal = modalIds.some(id => {
@@ -864,20 +943,52 @@ function hydrateUserInterface(data) {
   // Story Card Data Binding
   const storyName = document.getElementById('storyCardName');
   const storyUser = document.getElementById('storyCardUsername');
+  const storyAvatarImg = document.getElementById('storyCardAvatarImg');
   const storyAvatar = document.getElementById('storyCardAvatarInitial');
   const storyTraffic = document.getElementById('storyCardTraffic');
   const storyDays = document.getElementById('storyCardDays');
   const storyQr = document.getElementById('storyCardQr');
   const displayName = sub?.username || user.first_name || user.username || 'کاربر گرامی';
   if (storyName) storyName.innerText = displayName;
-  if (storyUser) storyUser.innerText = user.username ? `@${user.username}` : `شناسه: ${user.id || ''}`;
-  if (storyAvatar) storyAvatar.innerText = displayName.charAt(0).toUpperCase();
+  if (storyUser) {
+    if (user.username) {
+      storyUser.innerText = `@${user.username.replace(/^@/, '')}`;
+    } else {
+      storyUser.innerText = `ID: ${user.id || ''}`;
+    }
+    storyUser.dir = 'ltr';
+  }
+
+  const tgPhoto = window.Telegram?.WebApp?.initDataUnsafe?.user?.photo_url || user.photo_url;
+  if (tgPhoto && storyAvatarImg) {
+    storyAvatarImg.crossOrigin = 'anonymous';
+    storyAvatarImg.src = tgPhoto;
+    storyAvatarImg.onload = () => {
+      storyAvatarImg.classList.remove('hidden');
+      if (storyAvatar) storyAvatar.classList.add('hidden');
+    };
+    storyAvatarImg.onerror = () => {
+      storyAvatarImg.classList.add('hidden');
+      if (storyAvatar) {
+        storyAvatar.classList.remove('hidden');
+        storyAvatar.innerText = displayName.charAt(0).toUpperCase();
+      }
+    };
+  } else {
+    if (storyAvatarImg) storyAvatarImg.classList.add('hidden');
+    if (storyAvatar) {
+      storyAvatar.classList.remove('hidden');
+      storyAvatar.innerText = displayName.charAt(0).toUpperCase();
+    }
+  }
+
   if (storyTraffic) storyTraffic.innerText = `${sub?.traffic_remaining_gb ?? '--'} GB`;
   if (storyDays) storyDays.innerText = `${toEnglishDigits(sub?.days_left ?? 0)} روز اعتبار`;
   const botUsername = data.bot_username || window.Telegram?.WebApp?.initDataUnsafe?.bot?.username || 'RemnaWaveBot';
   const refLink = `https://t.me/${botUsername}?start=ref_${user.id || ''}`;
   window.currentReferralLink = refLink;
   if (storyQr) {
+    storyQr.crossOrigin = 'anonymous';
     storyQr.src = `https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(refLink)}`;
   }
 
@@ -1204,6 +1315,45 @@ function renderActiveSubAnalytics(sub) {
       }
     };
   });
+
+  // Configurable Alert Thresholds Selects
+  const trafficPercentSelect = document.getElementById('settingTrafficPercentSelect');
+  if (trafficPercentSelect) {
+    if (settings.traffic_percent) trafficPercentSelect.value = String(settings.traffic_percent);
+    trafficPercentSelect.onchange = async () => {
+      const val = parseInt(trafficPercentSelect.value, 10);
+      try {
+        const res = await window.api.saveSetting('traffic_percent', val);
+        if (res.ok) {
+          showToast(`✅ درصد هشدار مصرف روی ${val}٪ تنظیم شد.`);
+          hapticFeedback('success');
+        } else {
+          showToast('❌ خطا در ذخیره تنظیمات');
+        }
+      } catch (e) {
+        showToast('خطا در برقراری ارتباط با سرور.');
+      }
+    };
+  }
+
+  const expireDaysSelect = document.getElementById('settingExpireDaysSelect');
+  if (expireDaysSelect) {
+    if (settings.expire_days) expireDaysSelect.value = String(settings.expire_days);
+    expireDaysSelect.onchange = async () => {
+      const val = parseInt(expireDaysSelect.value, 10);
+      try {
+        const res = await window.api.saveSetting('expire_days', val);
+        if (res.ok) {
+          showToast(`✅ مهلت هشدار انقضا روی ${val} روز تنظیم شد.`);
+          hapticFeedback('success');
+        } else {
+          showToast('❌ خطا در ذخیره تنظیمات');
+        }
+      } catch (e) {
+        showToast('خطا در برقراری ارتباط با سرور.');
+      }
+    };
+  }
 
   // Language buttons
   const currentLang = user.language || 'fa';

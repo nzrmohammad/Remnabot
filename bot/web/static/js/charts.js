@@ -102,6 +102,7 @@ function renderBarChart(containerId, totals, labels, isMonthly = false) {
       scales: {
         x: {
           grid: { display: false },
+          border: { display: false },
           ticks: {
             color: textColor,
             font: { family: 'Vazirmatn', size: 10, weight: '500' }
@@ -112,8 +113,8 @@ function renderBarChart(containerId, totals, labels, isMonthly = false) {
           beginAtZero: true,
           grid: {
             color: gridColor,
-            drawBorder: false
           },
+          border: { display: false },
           ticks: {
             color: textColor,
             font: { family: 'monospace', size: 9 },
@@ -319,7 +320,7 @@ function renderLineCurveChart(containerId, labels, data, peakHour = null) {
           padding: 8,
           cornerRadius: 8,
           callbacks: {
-            title: (items) => `ساعت ${items[0]?.label || ''}`,
+            title: (items) => `بازه ${items[0]?.label || ''}`,
             label: (ctx) => ` \u200E${ctx.raw} GB\u200E`
           }
         }
@@ -327,16 +328,18 @@ function renderLineCurveChart(containerId, labels, data, peakHour = null) {
       scales: {
         x: {
           grid: { display: false },
+          border: { display: false },
           ticks: {
             color: textColor,
             font: { family: 'monospace', size: 8 },
-            maxTicksLimit: 8,
+            maxTicksLimit: 12,
           }
         },
         y: {
           position: 'left',
           beginAtZero: true,
-          grid: { color: gridColor, drawBorder: false },
+          grid: { color: gridColor },
+          border: { display: false },
           ticks: {
             color: textColor,
             font: { family: 'monospace', size: 8 },

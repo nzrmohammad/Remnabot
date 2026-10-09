@@ -2,98 +2,6 @@
  * RemnaStore Pro - Story Cards & Viral Sharing Generator
  */
 
-let currentStoryTheme = 'glass';
-
-function applyStoryTheme(theme) {
-  currentStoryTheme = theme;
-  const presetThemeGlassBtn = document.getElementById('presetThemeGlassBtn');
-  const presetThemeCyberBtn = document.getElementById('presetThemeCyberBtn');
-  const presetThemeSpeedBtn = document.getElementById('presetThemeSpeedBtn');
-  const exportableStoryCard = document.getElementById('exportableStoryCard');
-  const storyGlow1 = document.getElementById('storyGlow1');
-  const storyGlow2 = document.getElementById('storyGlow2');
-  const storyBrandIcon = document.getElementById('storyBrandIcon');
-  const storyBrandTitle = document.getElementById('storyBrandTitle');
-  const storyBrandBadge = document.getElementById('storyBrandBadge');
-  const storyMetricsStandard = document.getElementById('storyMetricsStandard');
-  const storyMetricsSpeed = document.getElementById('storyMetricsSpeed');
-  const storyAvatarBorder = document.getElementById('storyAvatarBorder');
-
-  const allBtns = [presetThemeGlassBtn, presetThemeCyberBtn, presetThemeSpeedBtn];
-  allBtns.forEach(b => {
-    b?.classList.remove('active', 'border-indigo-400/80', 'bg-indigo-600/30', 'text-indigo-200', 'border-emerald-400/80', 'bg-emerald-600/30', 'text-emerald-200', 'border-cyan-400/80', 'bg-cyan-600/30', 'text-cyan-200');
-    b?.classList.add('border-slate-700', 'bg-slate-800/80', 'text-slate-300');
-  });
-
-  if (theme === 'glass') {
-    presetThemeGlassBtn?.classList.add('active', 'border-indigo-400/80', 'bg-indigo-600/30', 'text-indigo-200');
-    presetThemeGlassBtn?.classList.remove('border-slate-700', 'bg-slate-800/80', 'text-slate-300');
-    if (exportableStoryCard) {
-      exportableStoryCard.style.background = 'linear-gradient(135deg, rgba(30, 27, 75, 0.9) 0%, rgba(15, 23, 42, 0.96) 50%, rgba(49, 46, 129, 0.85) 100%)';
-      exportableStoryCard.style.borderColor = 'rgba(255, 255, 255, 0.2)';
-      exportableStoryCard.style.boxShadow = '0 20px 50px rgba(0, 0, 0, 0.8)';
-    }
-    if (storyGlow1) storyGlow1.className = 'absolute -top-12 -right-12 w-32 h-32 bg-cyan-500/20 rounded-full blur-2xl pointer-events-none transition-all duration-500';
-    if (storyGlow2) storyGlow2.className = 'absolute -bottom-12 -left-12 w-32 h-32 bg-purple-500/25 rounded-full blur-2xl pointer-events-none transition-all duration-500';
-    if (storyBrandIcon) storyBrandIcon.innerText = '⚡️';
-    if (storyBrandTitle) {
-      storyBrandTitle.innerText = 'RemnaStore Pro';
-      storyBrandTitle.className = 'font-extrabold text-xs text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-blue-300 to-indigo-300';
-    }
-    if (storyBrandBadge) {
-      storyBrandBadge.innerText = 'VIP MEMBER';
-      storyBrandBadge.className = 'text-[9px] font-mono font-bold text-amber-300 bg-amber-950/60 border border-amber-500/30 px-2 py-0.5 rounded-full';
-    }
-    if (storyAvatarBorder) storyAvatarBorder.className = 'w-12 h-12 rounded-full p-0.5 bg-gradient-to-tr from-cyan-400 to-indigo-500 mx-auto shadow-lg shadow-indigo-500/30 flex items-center justify-center transition-all duration-300';
-    storyMetricsStandard?.classList.remove('hidden');
-    storyMetricsSpeed?.classList.add('hidden');
-  } else if (theme === 'cyber') {
-    presetThemeCyberBtn?.classList.add('active', 'border-emerald-400/80', 'bg-emerald-600/30', 'text-emerald-200');
-    presetThemeCyberBtn?.classList.remove('border-slate-700', 'bg-slate-800/80', 'text-slate-300');
-    if (exportableStoryCard) {
-      exportableStoryCard.style.background = '#060913';
-      exportableStoryCard.style.borderColor = 'rgba(16, 185, 129, 0.7)';
-      exportableStoryCard.style.boxShadow = '0 0 35px rgba(16, 185, 129, 0.25)';
-    }
-    if (storyGlow1) storyGlow1.className = 'absolute -top-12 -right-12 w-32 h-32 bg-emerald-500/25 rounded-full blur-2xl pointer-events-none transition-all duration-500';
-    if (storyGlow2) storyGlow2.className = 'absolute -bottom-12 -left-12 w-32 h-32 bg-teal-500/20 rounded-full blur-2xl pointer-events-none transition-all duration-500';
-    if (storyBrandIcon) storyBrandIcon.innerText = '👾';
-    if (storyBrandTitle) {
-      storyBrandTitle.innerText = 'REMNA CYBERNET';
-      storyBrandTitle.className = 'font-black text-xs text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-400 font-mono tracking-wide';
-    }
-    if (storyBrandBadge) {
-      storyBrandBadge.innerText = '⚡️ LOW PING';
-      storyBrandBadge.className = 'text-[9px] font-mono font-bold text-emerald-300 bg-emerald-950/80 border border-emerald-500/40 px-2 py-0.5 rounded-full';
-    }
-    if (storyAvatarBorder) storyAvatarBorder.className = 'w-12 h-12 rounded-full p-0.5 bg-gradient-to-tr from-emerald-400 to-teal-300 mx-auto shadow-lg shadow-emerald-500/40 flex items-center justify-center transition-all duration-300';
-    storyMetricsStandard?.classList.remove('hidden');
-    storyMetricsSpeed?.classList.add('hidden');
-  } else if (theme === 'speed') {
-    presetThemeSpeedBtn?.classList.add('active', 'border-cyan-400/80', 'bg-cyan-600/30', 'text-cyan-200');
-    presetThemeSpeedBtn?.classList.remove('border-slate-700', 'bg-slate-800/80', 'text-slate-300');
-    if (exportableStoryCard) {
-      exportableStoryCard.style.background = 'linear-gradient(135deg, #071026 0%, #0d224a 50%, #071026 100%)';
-      exportableStoryCard.style.borderColor = 'rgba(6, 182, 212, 0.7)';
-      exportableStoryCard.style.boxShadow = '0 0 35px rgba(6, 182, 212, 0.25)';
-    }
-    if (storyGlow1) storyGlow1.className = 'absolute -top-12 -right-12 w-32 h-32 bg-cyan-500/30 rounded-full blur-2xl pointer-events-none transition-all duration-500';
-    if (storyGlow2) storyGlow2.className = 'absolute -bottom-12 -left-12 w-32 h-32 bg-blue-500/25 rounded-full blur-2xl pointer-events-none transition-all duration-500';
-    if (storyBrandIcon) storyBrandIcon.innerText = '🚀';
-    if (storyBrandTitle) {
-      storyBrandTitle.innerText = 'SPEED & BENCHMARK';
-      storyBrandTitle.className = 'font-black text-xs text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-sky-300 to-blue-400 font-mono tracking-wide';
-    }
-    if (storyBrandBadge) {
-      storyBrandBadge.innerText = '🟢 100% ONLINE';
-      storyBrandBadge.className = 'text-[9px] font-mono font-bold text-cyan-300 bg-cyan-950/80 border border-cyan-500/40 px-2 py-0.5 rounded-full';
-    }
-    if (storyAvatarBorder) storyAvatarBorder.className = 'w-12 h-12 rounded-full p-0.5 bg-gradient-to-tr from-cyan-400 to-blue-500 mx-auto shadow-lg shadow-cyan-500/40 flex items-center justify-center transition-all duration-300';
-    storyMetricsStandard?.classList.add('hidden');
-    storyMetricsSpeed?.classList.remove('hidden');
-  }
-}
-
 function setupStoryCard() {
   const openStoryCardBtn = document.getElementById('openStoryCardBtn');
   const closeStoryCardBtn = document.getElementById('closeStoryCardBtn');
@@ -102,10 +10,6 @@ function setupStoryCard() {
 
   openStoryCardBtn?.addEventListener('click', () => openModal('storyCardModal'));
   closeStoryCardBtn?.addEventListener('click', () => closeModal('storyCardModal'));
-
-  document.getElementById('presetThemeGlassBtn')?.addEventListener('click', () => applyStoryTheme('glass'));
-  document.getElementById('presetThemeCyberBtn')?.addEventListener('click', () => applyStoryTheme('cyber'));
-  document.getElementById('presetThemeSpeedBtn')?.addEventListener('click', () => applyStoryTheme('speed'));
 
   shareTelegramStoryBtn?.addEventListener('click', () => {
     const refLink = window.currentReferralLink || `https://t.me/RemnaWaveBot?start=ref_${window.lastUserData?.user?.id || ''}`;
@@ -120,11 +24,11 @@ function setupStoryCard() {
           text: '🚀 اتصال پرسرعت به اینترنت بدون قطعی\n🎁 با این کارت ۱ گیگابایت هدیه رایگان بگیرید!',
           widget_link: {
             url: refLink,
-            name: 'دریافت اینترنت هدیه'
-          }
+            name: 'دریافت اینترنت هدیه',
+          },
         });
         sharedViaStory = true;
-      } catch(e) {
+      } catch (e) {
         sharedViaStory = false;
       }
     }
@@ -133,7 +37,7 @@ function setupStoryCard() {
       const shareMsg = '🚀 اتصال فوق‌سریع و بدون قطعی به اینترنت آزاد\n🎁 با لینک دعوت اختصاصی من ۱ گیگابایت اینترنت هدیه بگیرید:\n' + refLink;
       const tgShareUrl = `https://t.me/share/url?url=${encodeURIComponent(refLink)}&text=${encodeURIComponent(shareMsg)}`;
       if (window.Telegram?.WebApp?.openTelegramLink) {
-        try { window.Telegram.WebApp.openTelegramLink(tgShareUrl); } catch(e) { window.open(tgShareUrl, '_blank'); }
+        try { window.Telegram.WebApp.openTelegramLink(tgShareUrl); } catch (e) { window.open(tgShareUrl, '_blank'); }
       } else {
         window.open(tgShareUrl, '_blank');
       }
@@ -151,105 +55,152 @@ function setupStoryCard() {
       return;
     }
 
-    if (currentStoryTheme === 'cyber') {
-      ctx.fillStyle = '#060913';
-      ctx.fillRect(0, 0, 600, 780);
-      ctx.strokeStyle = '#10b981';
-      ctx.lineWidth = 6;
-      ctx.strokeRect(15, 15, 570, 750);
-    } else if (currentStoryTheme === 'speed') {
-      const grad = ctx.createLinearGradient(0, 0, 600, 780);
-      grad.addColorStop(0, '#071026');
-      grad.addColorStop(0.5, '#0d224a');
-      grad.addColorStop(1, '#071026');
-      ctx.fillStyle = grad;
-      ctx.fillRect(0, 0, 600, 780);
-      ctx.strokeStyle = '#06b6d4';
-      ctx.lineWidth = 6;
-      ctx.strokeRect(15, 15, 570, 750);
-    } else {
-      const grad = ctx.createLinearGradient(0, 0, 600, 780);
-      grad.addColorStop(0, '#1e1b4b');
-      grad.addColorStop(0.5, '#0f172a');
-      grad.addColorStop(1, '#312e81');
-      ctx.fillStyle = grad;
-      ctx.fillRect(0, 0, 600, 780);
-      ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
-      ctx.lineWidth = 4;
-      ctx.strokeRect(15, 15, 570, 750);
-    }
+    // Modern glassmorphism gradient card background
+    const bgGrad = ctx.createLinearGradient(0, 0, 600, 780);
+    bgGrad.addColorStop(0, '#0b0f19');
+    bgGrad.addColorStop(0.5, '#131b2e');
+    bgGrad.addColorStop(1, '#1e1b4b');
+    ctx.fillStyle = bgGrad;
+    ctx.fillRect(0, 0, 600, 780);
 
+    // Subtle border
+    ctx.strokeStyle = 'rgba(99, 102, 241, 0.4)';
+    ctx.lineWidth = 4;
+    ctx.strokeRect(12, 12, 576, 756);
+
+    // Decorative glow circles
+    const drawGlow = (gx, gy, r, col) => {
+      const g = ctx.createRadialGradient(gx, gy, 0, gx, gy, r);
+      g.addColorStop(0, col);
+      g.addColorStop(1, 'transparent');
+      ctx.fillStyle = g;
+      ctx.beginPath();
+      ctx.arc(gx, gy, r, 0, Math.PI * 2);
+      ctx.fill();
+    };
+    drawGlow(520, 80, 140, 'rgba(6, 182, 212, 0.18)');
+    drawGlow(80, 700, 160, 'rgba(99, 102, 241, 0.22)');
+
+    // Header bar
     ctx.textAlign = 'center';
     ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 28px Vazirmatn, sans-serif';
-    const title = currentStoryTheme === 'cyber' ? 'REMNA CYBERNET' : (currentStoryTheme === 'speed' ? 'SPEED & BENCHMARK' : 'RemnaStore Pro');
-    ctx.fillText(title, 300, 75);
+    ctx.font = 'bold 26px Vazirmatn, sans-serif';
+    ctx.fillText('⚡️ RemnaStore Pro', 300, 65);
 
-    ctx.beginPath();
-    ctx.arc(300, 160, 45, 0, Math.PI * 2);
-    ctx.fillStyle = currentStoryTheme === 'cyber' ? '#10b981' : (currentStoryTheme === 'speed' ? '#06b6d4' : '#6366f1');
-    ctx.fill();
+    ctx.font = 'bold 12px monospace';
+    ctx.fillStyle = '#fbbf24';
+    ctx.fillText('VIP MEMBER', 300, 92);
 
-    ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 36px Vazirmatn, sans-serif';
-    const initial = (document.getElementById('storyCardAvatarInitial')?.innerText || 'U').trim();
-    ctx.fillText(initial, 300, 172);
+    // Avatar drawing
+    const avatarImg = document.getElementById('storyCardAvatarImg');
+    const avatarInitial = (document.getElementById('storyCardAvatarInitial')?.innerText || 'U').trim();
+    const hasPhoto = avatarImg && !avatarImg.classList.contains('hidden') && avatarImg.complete && avatarImg.naturalWidth > 0;
 
-    const sName = (document.getElementById('storyCardName')?.innerText || 'کاربر').trim();
-    const sUser = (document.getElementById('storyCardUsername')?.innerText || '').trim();
-    ctx.font = 'bold 24px Vazirmatn, sans-serif';
-    ctx.fillText(sName, 300, 240);
-    ctx.font = '16px monospace';
-    ctx.fillStyle = '#93c5fd';
-    ctx.fillText(sUser, 300, 268);
+    const avX = 300;
+    const avY = 165;
+    const avR = 48;
 
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
-    ctx.fillRect(60, 300, 480, 180);
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
-    ctx.strokeRect(60, 300, 480, 180);
-
-    if (currentStoryTheme === 'speed') {
-      ctx.font = 'bold 22px Vazirmatn, sans-serif';
-      ctx.fillStyle = '#38bdf8';
-      ctx.fillText('⚡️ پینگ زنده سرورها: ۳۲ میلی‌ثانیه', 300, 345);
-      ctx.font = '18px monospace';
-      ctx.fillStyle = '#34d399';
-      ctx.fillText('🇩🇪 DE: 32ms    •    🇳🇱 NL: 38ms', 300, 395);
-      ctx.font = '16px Vazirmatn, sans-serif';
-      ctx.fillStyle = '#10b981';
-      ctx.fillText('🟢 ۱۰۰٪ آنلاین و بدون افت سرعت', 300, 445);
+    if (hasPhoto) {
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(avX, avY, avR, 0, Math.PI * 2);
+      ctx.clip();
+      try {
+        ctx.drawImage(avatarImg, avX - avR, avY - avR, avR * 2, avR * 2);
+      } catch (e) {
+        // Fallback to circle on tainted canvas
+        ctx.fillStyle = '#3b82f6';
+        ctx.fill();
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 36px Vazirmatn, sans-serif';
+        ctx.fillText(avatarInitial, avX, avY + 12);
+      }
+      ctx.restore();
     } else {
-      ctx.font = '16px Vazirmatn, sans-serif';
-      ctx.fillStyle = '#cbd5e1';
-      ctx.fillText('ترافیک باقی‌مانده اشتراک:', 300, 340);
-      ctx.font = 'bold 44px monospace';
-      ctx.fillStyle = '#34d399';
-      const sTraf = (document.getElementById('storyCardTraffic')?.innerText || '-- GB').trim();
-      ctx.fillText(sTraf, 300, 400);
-      ctx.font = '16px Vazirmatn, sans-serif';
-      ctx.fillStyle = '#cbd5e1';
-      const sDays = (document.getElementById('storyCardDays')?.innerText || '-- روز').trim();
-      ctx.fillText(`${sDays}  •  🌍 کلاستر اختصاصی`, 300, 445);
+      const avGrad = ctx.createLinearGradient(avX - avR, avY - avR, avX + avR, avY + avR);
+      avGrad.addColorStop(0, '#06b6d4');
+      avGrad.addColorStop(1, '#6366f1');
+      ctx.fillStyle = avGrad;
+      ctx.beginPath();
+      ctx.arc(avX, avY, avR, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 38px Vazirmatn, sans-serif';
+      ctx.fillText(avatarInitial, avX, avY + 13);
     }
 
-    ctx.font = 'bold 22px Vazirmatn, sans-serif';
+    // Avatar ring
+    ctx.strokeStyle = '#38bdf8';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.arc(avX, avY, avR + 2, 0, Math.PI * 2);
+    ctx.stroke();
+
+    // User Name and LTR Username
+    const sName = (document.getElementById('storyCardName')?.innerText || 'کاربر گرامی').trim();
+    const sUser = (document.getElementById('storyCardUsername')?.innerText || '').trim();
+
     ctx.fillStyle = '#ffffff';
-    ctx.fillText('اینترنت بدون قطعی و پرسرعت', 300, 525);
-    ctx.font = '18px Vazirmatn, sans-serif';
+    ctx.font = 'bold 24px Vazirmatn, sans-serif';
+    ctx.fillText(sName, 300, 250);
+
+    ctx.fillStyle = '#60a5fa';
+    ctx.font = '15px monospace';
+    ctx.fillText(sUser, 300, 276);
+
+    // Metrics container box
+    ctx.fillStyle = 'rgba(15, 23, 42, 0.75)';
+    ctx.fillRect(50, 310, 500, 160);
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.12)';
+    ctx.lineWidth = 1.5;
+    ctx.strokeRect(50, 310, 500, 160);
+
+    ctx.fillStyle = '#94a3b8';
+    ctx.font = '15px Vazirmatn, sans-serif';
+    ctx.fillText('ترافیک باقی‌مانده اشتراک:', 300, 345);
+
+    const sTraf = (document.getElementById('storyCardTraffic')?.innerText || '-- GB').trim();
     ctx.fillStyle = '#34d399';
-    ctx.fillText('🎁 با این کارت ۱ گیگابایت هدیه رایگان بگیرید', 300, 560);
+    ctx.font = 'bold 42px monospace';
+    ctx.fillText(sTraf, 300, 400);
+
+    const sDays = (document.getElementById('storyCardDays')?.innerText || '--').trim();
+    ctx.fillStyle = '#cbd5e1';
+    ctx.font = '15px Vazirmatn, sans-serif';
+    ctx.fillText(`${sDays}  •  🟢 پایداری 100%`, 300, 442);
+
+    // Bottom Viral Referral Promo box
+    ctx.fillStyle = 'rgba(15, 23, 42, 0.75)';
+    ctx.fillRect(50, 490, 500, 240);
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.12)';
+    ctx.strokeRect(50, 490, 500, 240);
+
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 22px Vazirmatn, sans-serif';
+    ctx.fillText('اینترنت بدون قطعی و فوق‌سریع', 300, 535);
+
+    ctx.fillStyle = '#34d399';
+    ctx.font = 'bold 17px Vazirmatn, sans-serif';
+    ctx.fillText('🎁 با این کارت ۱ گیگابایت هدیه رایگان بگیرید', 300, 568);
 
     const qrImg = document.getElementById('storyCardQr');
     const finishDownload = () => {
-      const link = document.createElement('a');
-      link.download = 'remna-story-card.png';
-      link.href = canvas.toDataURL('image/png');
-      link.click();
-      showToast('📸 پوستر استوری با بالاترین کیفیت در گالری ذخیره شد.');
+      try {
+        const link = document.createElement('a');
+        link.download = 'remna-story-card.png';
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+        showToast('📸 پوستر استوری با بالاترین کیفیت در گالری ذخیره شد.');
+      } catch (err) {
+        showToast('⚠️ امکان ذخیره مستقیم پوستر به دلیل سیاست مرورگر نبود.');
+      }
     };
 
     if (qrImg && qrImg.complete && qrImg.naturalWidth > 0) {
-      try { ctx.drawImage(qrImg, 240, 590, 120, 120); } catch(e) {}
+      try {
+        ctx.drawImage(qrImg, 240, 595, 120, 120);
+      } catch (e) {}
       finishDownload();
     } else {
       finishDownload();
@@ -257,5 +208,4 @@ function setupStoryCard() {
   });
 }
 
-window.applyStoryTheme = applyStoryTheme;
 window.setupStoryCard = setupStoryCard;

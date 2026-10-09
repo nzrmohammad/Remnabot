@@ -366,17 +366,20 @@ async def get_user_me(request: web.Request) -> web.Response:
                 country_labels.append("🌐 سایر")
                 country_gb_vals.append(round(other_b / (1024**3), 2))
 
-            # 3. 24-Hour Peak Usage Curve for user
+            # 3. 24-Hour Peak Usage Curve for user (12 2-hour intervals)
             base_curve_gb = today_used_gb if today_used_gb > 0 else (round(week_used_gb / 7.0, 2) if week_used_gb > 0 else 2.5)
-            curve_weights = [
+            curve_weights_24 = [
                 0.025, 0.015, 0.010, 0.008, 0.006, 0.010, 0.018, 0.028,
                 0.038, 0.048, 0.055, 0.052, 0.048, 0.045, 0.050, 0.058,
                 0.068, 0.078, 0.088, 0.092, 0.082, 0.068, 0.050, 0.032
             ]
-            hourly_curve_labels = [f"{h:02d}:00" for h in range(24)]
-            hourly_curve_vals = [round(base_curve_gb * w * 3.5, 2) for w in curve_weights]
-            peak_h_idx = max(range(24), key=lambda i: hourly_curve_vals[i])
-            user_peak_hour = f"{peak_h_idx:02d}:00"
+            hourly_curve_labels = [f"{h:02d}-{h+2:02d}" for h in range(0, 24, 2)]
+            hourly_curve_vals = [
+                round(base_curve_gb * (curve_weights_24[i*2] + curve_weights_24[i*2 + 1]) * 1.8, 2)
+                for i in range(12)
+            ]
+            peak_2h_idx = max(range(12), key=lambda i: hourly_curve_vals[i])
+            user_peak_hour = f"{peak_2h_idx*2:02d}:00 - {peak_2h_idx*2 + 2:02d}:00"
 
             # 4. Device Platform Breakdown
             platform_counts = {}
@@ -502,6 +505,51 @@ async def get_user_me(request: web.Request) -> web.Response:
                     "timestamp": t_dt.timestamp() if t_dt else 0,
                 })
 
+            # Admin manual wallet adjustments (charges/deductions)
+            try:
+                from bot.db.models import AdminLog
+                import re
+                admin_logs_res = await session.execute(
+                    select(AdminLog).where(
+                        AdminLog.action.in_(["wallet_charge", "wallet_deduct", "balance_add", "balance_sub"]),
+                        AdminLog.detail.like(f"%{telegram_id}%"),
+                    ).order_by(AdminLog.id.desc()).limit(15)
+                )
+                for al in admin_logs_res.scalars().all():
+                    al_dt = al.created_at
+                    al_j_str = ""
+                    if al_dt:
+                        al_j = jdatetime.datetime.fromgregorian(
+                            datetime=al_dt.astimezone(ZoneInfo(tz_name)) if al_dt.tzinfo else al_dt
+                        )
+                        al_j_str = f"{al_j.year}/{al_j.month:02d}/{al_j.day:02d} - {al_j.hour:02d}:{al_j.minute:02d}"
+
+                    is_pos = al.action in ("wallet_charge", "balance_add")
+                    parsed_amt = 0
+                    m = re.search(r'amount=(\d+)', al.detail or '')
+                    if not m:
+                        m = re.search(r'([\d,]+)\s*تومان', al.detail or '')
+                    if m:
+                        try:
+                            parsed_amt = int(m.group(1).replace(',', ''))
+                        except Exception:
+                            parsed_amt = 0
+
+                    history_items.append({
+                        "id": al.id,
+                        "type": "admin_adjust",
+                        "title": "شارژ دستی مدیریت" if is_pos else "کسر دستی مدیریت",
+                        "amount": parsed_amt,
+                        "amount_formatted": f"{parsed_amt:,} تومان" if parsed_amt else "--",
+                        "is_positive": is_pos,
+                        "status": "ثبت شد",
+                        "status_color": "emerald" if is_pos else "rose",
+                        "date_jalali": al_j_str,
+                        "timestamp": al_dt.timestamp() if al_dt else 0,
+                    })
+            except Exception as exc:
+                logger.warning("Failed to fetch admin adjustments for %s: %s", telegram_id, exc)
+
             history_items.sort(key=lambda x: x["timestamp"], reverse=True)
         except Exception as exc:
             logger.warning("Failed to fetch transaction history for %s: %s", telegram_id, exc)
@@ -571,6 +619,8 @@ async def get_user_me(request: web.Request) -> web.Response:
         alert_settings_data = {
             "low_traffic": True,
             "expire_warning": True,
+            "traffic_percent": 80,
+            "expire_days": 3,
         }
         try:
             from bot.db.repositories.alert_repo import AlertRepository
@@ -579,6 +629,8 @@ async def get_user_me(request: web.Request) -> web.Response:
             alert_settings_data = {
                 "low_traffic": bool(alert_settings.traffic_percent > 0),
                 "expire_warning": bool(alert_settings.expire_days > 0),
+                "traffic_percent": alert_settings.traffic_percent if alert_settings.traffic_percent > 0 else 80,
+                "expire_days": alert_settings.expire_days if alert_settings.expire_days > 0 else 3,
             }
         except Exception as exc:
             logger.warning("Failed to fetch alert settings for %s: %s", telegram_id, exc)
@@ -668,6 +720,101 @@ __all__ = [
     "post_user_topup_card",
     "post_user_topup_crypto",
     "post_user_topup_crypto_check",
+    "get_user_support_messages",
+    "post_user_support_message",
 ]
+
+
+async def get_user_support_messages(request: web.Request) -> web.Response:
+    """Fetch existing chat messages for authenticated user from support Redis thread."""
+    user_auth = get_authenticated_user(request)
+    if not user_auth:
+        return web.json_response({"ok": False, "error": "Unauthorized"}, status=401)
+
+    telegram_id = int(user_auth["id"])
+    cache: FastCache = request.app["cache"]
+    chat_key = f"support:chat:{telegram_id}"
+    messages = await cache.get(chat_key) or []
+    return web.json_response({"ok": True, "messages": messages})
+
+
+async def post_user_support_message(request: web.Request) -> web.Response:
+    """Send user message from TMA chat modal directly to Telegram support group/admin."""
+    user_auth = get_authenticated_user(request)
+    if not user_auth:
+        return web.json_response({"ok": False, "error": "Unauthorized"}, status=401)
+
+    telegram_id = int(user_auth["id"])
+    try:
+        body = await request.json()
+    except Exception:
+        body = {}
+
+    text = str(body.get("text") or "").strip()
+    if not text:
+        return web.json_response({"ok": False, "error": "متن پیام نمی‌تواند خالی باشد."}, status=400)
+
+    import time
+    from datetime import datetime
+    now_ts = int(time.time())
+    now_dt = datetime.fromtimestamp(now_ts)
+    msg_id = f"user_{int(now_ts * 1000)}"
+
+    user_msg = {
+        "id": msg_id,
+        "sender": "user",
+        "text": text,
+        "created_at": now_dt.strftime("%H:%M"),
+        "timestamp": now_ts,
+    }
+
+    cache: FastCache = request.app["cache"]
+    chat_key = f"support:chat:{telegram_id}"
+    messages = await cache.get(chat_key) or []
+    messages.append(user_msg)
+    if len(messages) > 50:
+        messages = messages[-50:]
+    await cache.set(chat_key, messages, ttl_seconds=86400 * 30)
+
+    active_ids = await cache.get("support:active_thread_ids") or []
+    if telegram_id not in active_ids:
+        active_ids.insert(0, telegram_id)
+        if len(active_ids) > 100:
+            active_ids = active_ids[:100]
+        await cache.set("support:active_thread_ids", active_ids, ttl_seconds=86400 * 30)
+
+    # Forward to Telegram admin chat
+    bot = request.app.get("bot")
+    settings = request.app.get("settings")
+    if bot and settings and getattr(settings, "ADMIN_CHAT_ID", None):
+        user_name = user_auth.get("first_name") or user_auth.get("username") or "کاربر"
+        header = (
+            f"💬 <b>پیام پشتیبانی از مینی‌اپ:</b>\n"
+            f"👤 <b>کاربر:</b> {escape(user_name)} (<code>{telegram_id}</code>)\n\n"
+            f"{escape(text)}"
+        )
+        try:
+            from bot.services.app_settings import get_store_settings
+            from bot.common import admin_thread_kwargs
+            session_factory = request.app["session_factory"]
+            async with session_factory() as session:
+                store = await get_store_settings(session)
+                thread_kwargs = admin_thread_kwargs(store, settings, kind="support")
+            sent_msg = await bot.send_message(
+                chat_id=settings.ADMIN_CHAT_ID,
+                text=header,
+                parse_mode="HTML",
+                **thread_kwargs,
+            )
+            async with session_factory() as session:
+                from bot.db.repositories.support_repo import SupportMessageRepository
+                repo = SupportMessageRepository(session)
+                await repo.map_message(sent_msg.message_id, telegram_id)
+                await session.commit()
+        except Exception as exc:
+            logger.warning("Failed to forward support message to admin chat: %s", exc)
+
+    return web.json_response({"ok": True, "message": user_msg})
+
 
 

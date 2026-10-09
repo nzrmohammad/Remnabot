@@ -92,9 +92,20 @@ async def post_user_settings(request: web.Request) -> web.Response:
             rep_settings.clean_reports = bool(body["clean_reports"])
         if "wheel_notify" in body:
             rep_settings.wheel_notify = bool(body["wheel_notify"])
-        if "low_traffic" in body:
+        if "traffic_percent" in body:
+            try:
+                alert_settings.traffic_percent = max(0, min(99, int(body["traffic_percent"])))
+            except (ValueError, TypeError):
+                pass
+        elif "low_traffic" in body:
             alert_settings.traffic_percent = 80 if body["low_traffic"] else 0
-        if "expire_warning" in body:
+
+        if "expire_days" in body:
+            try:
+                alert_settings.expire_days = max(0, min(30, int(body["expire_days"])))
+            except (ValueError, TypeError):
+                pass
+        elif "expire_warning" in body:
             alert_settings.expire_days = 3 if body["expire_warning"] else 0
 
         # 2. Key-value pair style {key: "...", value: ...}
@@ -112,6 +123,16 @@ async def post_user_settings(request: web.Request) -> web.Response:
             alert_settings.traffic_percent = 80 if value else 0
         elif key == "expire_warning":
             alert_settings.expire_days = 3 if value else 0
+        elif key == "traffic_percent":
+            try:
+                alert_settings.traffic_percent = max(0, min(99, int(value)))
+            except (ValueError, TypeError):
+                pass
+        elif key == "expire_days":
+            try:
+                alert_settings.expire_days = max(0, min(30, int(value)))
+            except (ValueError, TypeError):
+                pass
 
         await session.commit()
         await cache.delete(f"tma:user:{telegram_id}:dashboard")
@@ -127,6 +148,8 @@ async def post_user_settings(request: web.Request) -> web.Response:
                 "wheel_notify": bool(rep_settings.wheel_notify),
                 "low_traffic": bool(alert_settings.traffic_percent > 0),
                 "expire_warning": bool(alert_settings.expire_days > 0),
+                "traffic_percent": alert_settings.traffic_percent if alert_settings.traffic_percent > 0 else 80,
+                "expire_days": alert_settings.expire_days if alert_settings.expire_days > 0 else 3,
             },
         })
 
