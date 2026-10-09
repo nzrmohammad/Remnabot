@@ -1140,6 +1140,15 @@ html.theme-light #supportChatModal .chat-admin-bubble {
 html.theme-light #supportChatModal .chat-admin-bubble span {
   color: #64748b !important;
 }
+html.theme-light #supportChatModal .chat-user-bubble {
+  background-color: rgba(37, 99, 235, 0.08) !important;
+  border-color: rgba(37, 99, 235, 0.25) !important;
+  color: #1d4ed8 !important;
+  box-shadow: 0 1px 3px rgba(37, 99, 235, 0.05) !important;
+}
+html.theme-light #supportChatModal .chat-user-bubble span {
+  color: #64748b !important;
+}
 html.theme-light #supportChatModal .quick-chip {
   background-color: #ffffff !important;
   border-color: #cbd5e1 !important;

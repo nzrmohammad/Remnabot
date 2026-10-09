@@ -234,21 +234,19 @@ function setupClientImporters() {
           window.open(targetUri, '_blank');
         }
       } else {
-        const a = document.createElement('a');
-        a.href = targetUri;
-        a.rel = 'noopener noreferrer';
-        a.style.display = 'none';
-        document.body.appendChild(a);
-        a.click();
+        const iframe = document.createElement('iframe');
+        iframe.style.display = 'none';
+        iframe.src = targetUri;
+        document.body.appendChild(iframe);
         setTimeout(() => {
-          try { if (a.parentNode) document.body.removeChild(a); } catch (e) {}
-        }, 500);
+          try { if (iframe.parentNode) document.body.removeChild(iframe); } catch (e) {}
+        }, 1000);
       }
     } catch (e) {
-      console.error('Deep link trigger error', e);
+      console.debug('Deep link trigger handled', e);
     }
 
-    showToast(`📋 لینک در کلیپ‌بورد کپی شد و درخواست اتصال به ${appName} ارسال گردید.`);
+    showToast(`📋 لینک کپی شد! در برنامه ${appName} از گزینه Import from Clipboard استفاده فرمایید.`);
   };
 
   document.getElementById('appImportIncy')?.addEventListener('click', () => {
@@ -547,16 +545,16 @@ function setupSupportChat() {
     if (isUser) {
       bubble.className = 'flex items-start justify-end gap-2 max-w-[85%] mr-auto animate-fadeIn';
       bubble.innerHTML = `
-        <div class="bg-blue-600 rounded-2xl rounded-tl-none p-2.5 text-white leading-relaxed shadow-sm">
+        <div class="chat-user-bubble border border-blue-500/40 bg-blue-500/10 rounded-2xl rounded-tl-none p-2.5 text-blue-100 leading-relaxed shadow-sm">
           ${safeText}
-          <span class="text-[9px] text-blue-200 block text-left mt-1 font-mono" dir="ltr">${timeStr}</span>
+          <span class="text-[9px] text-blue-300 block text-left mt-1 font-mono" dir="ltr">${timeStr}</span>
         </div>
       `;
     } else {
       bubble.className = 'flex items-start gap-2 max-w-[85%] animate-fadeIn';
       bubble.innerHTML = `
         <div class="w-6 h-6 rounded-full bg-emerald-600 flex items-center justify-center text-[10px] shrink-0 text-white">🎧</div>
-        <div class="bg-slate-800 rounded-2xl rounded-tr-none p-2.5 text-slate-200 border border-slate-700/60 leading-relaxed shadow-sm chat-admin-bubble">
+        <div class="chat-admin-bubble border border-slate-700/60 bg-slate-800/25 rounded-2xl rounded-tr-none p-2.5 text-slate-200 leading-relaxed shadow-sm">
           ${safeText}
           <span class="text-[9px] text-slate-400 block text-left mt-1 font-mono" dir="ltr">${timeStr}</span>
         </div>
@@ -1148,7 +1146,7 @@ function renderActiveSubAnalytics(sub) {
     if (!container) return;
     if (devices.length === 0) {
       container.innerHTML = `
-        <div class="p-4 rounded-xl bg-slate-900/60 border border-slate-700/50 text-center text-xs text-slate-400">
+        <div class="p-4 rounded-xl bg-transparent border border-slate-700/50 text-center text-xs text-slate-400">
           <span>📱 در حال حاضر هیچ دستگاه فعالی روی اشتراک شما ثبت نشده است.</span>
         </div>
       `;
@@ -1169,7 +1167,7 @@ function renderActiveSubAnalytics(sub) {
       const hwid = d.hwid || '';
 
       return `
-        <div class="bg-slate-900/70 rounded-xl p-3 border border-slate-700/60 flex items-center justify-between">
+        <div class="bg-transparent rounded-xl p-3 border border-slate-700/60 flex items-center justify-between">
           <div class="flex items-center gap-2.5">
             <span class="text-2xl">${icon}</span>
             <div>
@@ -1316,12 +1314,24 @@ function renderActiveSubAnalytics(sub) {
     };
   });
 
-  // Configurable Alert Thresholds Selects
+  // Configurable Alert Thresholds Selects & Dynamic Subtexts
+  function updateAlertSubtexts(percent, days) {
+    if (percent !== undefined && percent !== null) {
+      const traf = document.getElementById('settingTrafficSubtext');
+      if (traf) traf.innerText = `هشدار قبل از پایان ترافیک (${toEnglishDigits(percent)}%)`;
+    }
+    if (days !== undefined && days !== null) {
+      const exp = document.getElementById('settingExpireSubtext');
+      if (exp) exp.innerText = `اطلاع‌رسانی ${toEnglishDigits(days)} روز مانده به انقضا`;
+    }
+  }
+
   const trafficPercentSelect = document.getElementById('settingTrafficPercentSelect');
   if (trafficPercentSelect) {
     if (settings.traffic_percent) trafficPercentSelect.value = String(settings.traffic_percent);
     trafficPercentSelect.onchange = async () => {
       const val = parseInt(trafficPercentSelect.value, 10);
+      updateAlertSubtexts(val, undefined);
       try {
         const res = await window.api.saveSetting('traffic_percent', val);
         if (res.ok) {
@@ -1341,6 +1351,7 @@ function renderActiveSubAnalytics(sub) {
     if (settings.expire_days) expireDaysSelect.value = String(settings.expire_days);
     expireDaysSelect.onchange = async () => {
       const val = parseInt(expireDaysSelect.value, 10);
+      updateAlertSubtexts(undefined, val);
       try {
         const res = await window.api.saveSetting('expire_days', val);
         if (res.ok) {
@@ -1354,6 +1365,8 @@ function renderActiveSubAnalytics(sub) {
       }
     };
   }
+
+  updateAlertSubtexts(settings.traffic_percent || 80, settings.expire_days || 3);
 
   // Language buttons
   const currentLang = user.language || 'fa';

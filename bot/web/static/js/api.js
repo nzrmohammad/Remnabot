@@ -106,8 +106,8 @@ const api = {
     return this.get('/api/user/topup_info');
   },
 
-  async submitCardTopup(amount, receipt_text) {
-    return this.post('/api/user/topup/card', { amount, receipt_text });
+  async submitCardTopup(amount, receipt_text, receipt_image = null) {
+    return this.post('/api/user/topup/card', { amount, receipt_text, receipt_image });
   },
 
   async createCryptoInvoice(amount) {

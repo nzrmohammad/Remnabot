@@ -130,14 +130,19 @@ async def post_user_spin(request: web.Request) -> web.Response:
             if session_factory:
                 async with session_factory() as session:
                     coupon_repo = CouponRepository(session)
-                    existing = await coupon_repo.get_by_code(chosen.get("code", "OFF10"))
-                    if not existing:
-                        await coupon_repo.create(
-                            code=chosen.get("code", "OFF10"),
-                            discount_percent=10,
-                            max_uses=0,
-                        )
+                    import secrets
+                    from datetime import datetime, timezone, timedelta
+                    unique_code = f"WHEEL10_{secrets.token_hex(2).upper()}"
+                    expire_time = datetime.now(timezone.utc) + timedelta(hours=24)
+                    await coupon_repo.create(
+                        code=unique_code,
+                        discount_percent=10,
+                        max_uses=1,
+                        expires_at=expire_time,
+                    )
                     await session.commit()
+                    chosen["code"] = unique_code
+                    chosen["name"] = f"کد تخفیف ۱۰٪ (مهلت ۲۴ ساعت): {unique_code}"
                 applied = True
         except Exception as exc:
             logger.warning("Failed to prepare coupon for wheel prize: %s", exc)
@@ -165,11 +170,23 @@ async def post_user_spin(request: web.Request) -> web.Response:
     bot = request.app.get("bot")
     if bot and applied and chosen["type"] not in ("blank", "again"):
         try:
+            if chosen["type"] == "coupon":
+                msg_text = (
+                    f"🎉 <b>تبریک! شما در گردونه شانس برنده شدید:</b>\n\n"
+                    f"🎟 <b>کد تخفیف ۱۰٪ اختصاصی شما:</b> <code>{chosen.get('code')}</code>\n\n"
+                    f"⏳ <b>مهلت استفاده:</b> ۲۴ ساعت (تا فردا همین ساعت)\n"
+                    f"💡 <i>این کد اختصاصی شماست و پس از ۲۴ ساعت منقضی خواهد شد. برای استفاده، آن را در بخش فروشگاه وارد نمایید.</i>"
+                )
+            else:
+                msg_text = (
+                    f"🎉 <b>تبریک! شما در گردونه شانس برنده شدید:</b>\n"
+                    f"✨ <b>{chosen['name']}</b>\n\n"
+                    f"این جایزه با موفقیت به حساب شما اعمال گردید."
+                )
             await bot.send_message(
                 telegram_id,
-                f"🎉 <b>تبریک! شما در گردونه شانس برنده شدید:</b>\n"
-                f"✨ <b>{chosen['name']}</b>\n\n"
-                f"این جایزه با موفقیت به حساب شما اعمال گردید.",
+                msg_text,
+                parse_mode="HTML",
             )
         except Exception:
             pass

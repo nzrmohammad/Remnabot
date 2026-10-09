@@ -8,8 +8,25 @@ let currentPendingPlan = null;
 
 function setupCouponInput() {
   const applyCouponBtn = document.getElementById('applyCouponBtn');
+  const removeCouponBtn = document.getElementById('removeCouponBtn');
   const couponInput = document.getElementById('couponInput');
   if (!applyCouponBtn || !couponInput) return;
+
+  const resetCouponState = () => {
+    window.activeCoupon = null;
+    couponInput.value = '';
+    couponInput.disabled = false;
+    applyCouponBtn.disabled = false;
+    applyCouponBtn.innerText = 'اعمال';
+    applyCouponBtn.classList.replace('bg-emerald-600', 'bg-blue-600');
+    removeCouponBtn?.classList.add('hidden');
+    if (window.lastUserData) renderShopPlans(window.lastUserData);
+  };
+
+  removeCouponBtn?.addEventListener('click', () => {
+    resetCouponState();
+    showToast('کد تخفیف حذف گردید.');
+  });
 
   applyCouponBtn.addEventListener('click', async () => {
     const code = couponInput.value.trim().toUpperCase();
@@ -28,14 +45,17 @@ function setupCouponInput() {
         if (res.data.discount_percent > 0) discMsg = `${res.data.discount_percent}٪`;
         else if (res.data.discount_amount > 0) discMsg = `${Number(res.data.discount_amount).toLocaleString('en-US')} تومان`;
         showToast(`🎉 کد تخفیف با موفقیت اعمال شد! (${discMsg} تخفیف)`);
-        applyCouponBtn.innerText = '✅ اعمال شد';
+        applyCouponBtn.innerText = '✓ اعمال شد';
         applyCouponBtn.classList.replace('bg-blue-600', 'bg-emerald-600');
+        couponInput.disabled = true;
+        removeCouponBtn?.classList.remove('hidden');
         if (window.lastUserData) renderShopPlans(window.lastUserData);
       } else {
         window.activeCoupon = null;
         showToast(`❌ ${res.message || 'کد تخفیف نامعتبر است.'}`);
         applyCouponBtn.innerText = 'اعمال';
         applyCouponBtn.classList.replace('bg-emerald-600', 'bg-blue-600');
+        removeCouponBtn?.classList.add('hidden');
         if (window.lastUserData) renderShopPlans(window.lastUserData);
       }
     } catch (err) {
@@ -75,7 +95,7 @@ function renderShopPlans(data) {
           <div>
             <div class="flex items-center gap-2">
               <h4 class="font-bold text-sm text-white">${p.name}</h4>
-              ${discountVal > 0 ? '<span class="text-[9px] bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-1.5 py-0.5 rounded font-bold">🏷 تخفیف ویژه</span>' : ''}
+              ${discountVal > 0 ? '<span class="text-[10px] text-emerald-400 font-bold bg-transparent border-0 px-0 py-0">🏷 تخفیف ویژه</span>' : ''}
             </div>
             <p class="text-xs text-slate-400 mt-1">${p.description || 'ترافیک پایدار و بدون محدودیت روی تمام سرورها'}</p>
           </div>

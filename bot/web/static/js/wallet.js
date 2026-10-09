@@ -172,6 +172,43 @@ function stopCryptoCountdownTimer() {
     }
   });
 
+  let selectedReceiptImageBase64 = null;
+  const imageInput = document.getElementById('topupCardImageInput');
+  const uploadImgBtn = document.getElementById('uploadCardReceiptImageBtn');
+  const previewContainer = document.getElementById('receiptImagePreviewContainer');
+  const previewImg = document.getElementById('receiptImagePreview');
+  const previewName = document.getElementById('receiptImageName');
+  const removeImgBtn = document.getElementById('removeReceiptImageBtn');
+
+  uploadImgBtn?.addEventListener('click', () => {
+    imageInput?.click();
+  });
+
+  imageInput?.addEventListener('change', (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      showToast('⚠️ حداکثر حجم مجاز تصویر ۵ مگابایت است.');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (loadEvt) => {
+      selectedReceiptImageBase64 = loadEvt.target.result;
+      if (previewImg) previewImg.src = selectedReceiptImageBase64;
+      if (previewName) previewName.innerText = file.name || 'تصویر رسید انتخاب شد';
+      previewContainer?.classList.remove('hidden');
+      uploadImgBtn?.classList.add('hidden');
+    };
+    reader.readAsDataURL(file);
+  });
+
+  removeImgBtn?.addEventListener('click', () => {
+    selectedReceiptImageBase64 = null;
+    if (imageInput) imageInput.value = '';
+    previewContainer?.classList.add('hidden');
+    uploadImgBtn?.classList.remove('hidden');
+  });
+
   document.getElementById('submitCardTopupBtn')?.addEventListener('click', async () => {
     const amt = parseInt(topupAmountInput?.value || '0');
     const receipt = document.getElementById('topupCardReceiptInput')?.value?.trim();
@@ -179,8 +216,8 @@ function stopCryptoCountdownTimer() {
       showToast('⚠️ لطفاً مبلغ معتبر وارد فرمایید.');
       return;
     }
-    if (!receipt) {
-      showToast('⚠️ لطفاً کد پیگیری یا شماره ارجاع فیش واریزی را وارد فرمایید.');
+    if (!receipt && !selectedReceiptImageBase64) {
+      showToast('⚠️ لطفاً کد پیگیری یا تصویر رسید واریزی را وارد فرمایید.');
       return;
     }
 
@@ -188,9 +225,13 @@ function stopCryptoCountdownTimer() {
     submitBtn.disabled = true;
     submitBtn.innerText = 'در حال ثبت...';
     try {
-      const res = await window.api.submitCardTopup(amt, receipt);
+      const res = await window.api.submitCardTopup(amt, receipt || 'تصویر فیش پیوست شد', selectedReceiptImageBase64);
       if (res.ok) {
         showToast('✅ رسید با موفقیت ثبت شد و پس از بررسی ادمین حساب شارژ می‌گردد.');
+        selectedReceiptImageBase64 = null;
+        if (imageInput) imageInput.value = '';
+        previewContainer?.classList.add('hidden');
+        uploadImgBtn?.classList.remove('hidden');
         closeModal('topupModal');
         if (typeof syncUserDataWithApi === 'function') syncUserDataWithApi(window.currentAccountId);
       } else {
@@ -222,7 +263,9 @@ function stopCryptoCountdownTimer() {
         document.getElementById('cryptoAmountTon').innerText = `${res.invoice.amount_ton} TON`;
         document.getElementById('cryptoPayAddress').innerText = res.invoice.pay_address;
         document.getElementById('cryptoComment').innerText = res.invoice.comment;
-        document.getElementById('cryptoTonkeeperLink').href = res.invoice.deep_link;
+        const targetLink = res.invoice.universal_link || res.invoice.deep_link || '#';
+        const tonBtn = document.getElementById('cryptoTonkeeperLink');
+        if (tonBtn) tonBtn.href = targetLink;
         startCryptoCountdownTimer(1800);
       } else {
         showToast(`❌ ${res.message || 'خطا در ایجاد فاکتور کریپتو'}`);
@@ -232,6 +275,22 @@ function stopCryptoCountdownTimer() {
     } finally {
       genBtn.disabled = false;
       genBtn.innerText = '💎 ایجاد فاکتور پرداخت TON';
+    }
+  });
+
+  document.getElementById('cryptoTonkeeperLink')?.addEventListener('click', (e) => {
+    e.preventDefault();
+    const targetLink = currentTopupInvoice?.universal_link || currentTopupInvoice?.deep_link;
+    if (targetLink) {
+      if (window.Telegram?.WebApp?.openLink) {
+        try {
+          window.Telegram.WebApp.openLink(targetLink);
+        } catch(err) {
+          window.open(targetLink, '_blank');
+        }
+      } else {
+        window.open(targetLink, '_blank');
+      }
     }
   });
 

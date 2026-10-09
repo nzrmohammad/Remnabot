@@ -56,9 +56,20 @@ async def post_user_topup_card(request: web.Request) -> web.Response:
 
     amount = int(body.get("amount") or 0)
     receipt_info = (body.get("receipt_text") or "").strip()
-    if not receipt_info:
+    receipt_image = body.get("receipt_image")
+
+    img_bytes = None
+    if receipt_image and isinstance(receipt_image, str) and "base64," in receipt_image:
+        try:
+            import base64
+            b64_data = receipt_image.split("base64,")[1]
+            img_bytes = base64.b64decode(b64_data)
+        except Exception as b64_err:
+            logger.warning("Failed to decode receipt image: %s", b64_err)
+
+    if not receipt_info and not img_bytes:
         return web.json_response(
-            {"ok": False, "message": "لطفاً شماره پیگیری یا شرح فیش واریزی را وارد کنید."},
+            {"ok": False, "message": "لطفاً شماره پیگیری یا تصویر فیش واریزی را وارد کنید."},
             status=400,
         )
 
@@ -82,8 +93,14 @@ async def post_user_topup_card(request: web.Request) -> web.Response:
                 status=400,
             )
 
-        normalized = " ".join(receipt_info.split())
-        receipt_hash = "text:" + hashlib.sha256(normalized.encode("utf-8")).hexdigest()[:48]
+        if receipt_info:
+            normalized = " ".join(receipt_info.split())
+            receipt_hash = "text:" + hashlib.sha256(normalized.encode("utf-8")).hexdigest()[:48]
+        elif img_bytes:
+            receipt_hash = "img:" + hashlib.sha256(img_bytes).hexdigest()[:48]
+        else:
+            receipt_hash = f"tma:{telegram_id}:{int(time.time())}"
+
         if await wallet_repo.receipt_exists(receipt_hash):
             return web.json_response(
                 {"ok": False, "message": "این فیش یا شماره پیگیری قبلاً ثبت شده است و امکان ارسال مجدد آن وجود ندارد."},
@@ -116,16 +133,29 @@ async def post_user_topup_card(request: web.Request) -> web.Response:
                 f"🔢 شناسه تلگرام : <code>{telegram_id}</code>\n"
                 f"🏷 نام کاربری : {escape(tg_username)}\n"
                 f"💰 مبلغ شارژ : <b>{amount:,}</b> تومان\n"
-                f"📝 اطلاعات رسید / پیگیری :\n<code>{escape(receipt_info or 'رسید ثبت‌شده در وب‌اپ')}</code>"
+                f"📝 اطلاعات رسید / پیگیری :\n<code>{escape(receipt_info or ('تصویر فیش پیوست شد' if img_bytes else 'رسید ثبت‌شده در وب‌اپ'))}</code>"
             )
 
             try:
-                msg_obj = await bot.send_message(
-                    chat_id=admin_chat_id,
-                    text=caption,
-                    reply_markup=kb.as_markup(),
-                    **thread_kwargs,
-                )
+                if img_bytes:
+                    from aiogram.types import BufferedInputFile
+                    photo_file = BufferedInputFile(img_bytes, filename=f"receipt_{topup.id}.jpg")
+                    msg_obj = await bot.send_photo(
+                        chat_id=admin_chat_id,
+                        photo=photo_file,
+                        caption=caption,
+                        reply_markup=kb.as_markup(),
+                        parse_mode="HTML",
+                        **thread_kwargs,
+                    )
+                else:
+                    msg_obj = await bot.send_message(
+                        chat_id=admin_chat_id,
+                        text=caption,
+                        reply_markup=kb.as_markup(),
+                        parse_mode="HTML",
+                        **thread_kwargs,
+                    )
                 topup.admin_message_id = msg_obj.message_id
                 await session.commit()
             except Exception as exc:
@@ -177,6 +207,7 @@ async def post_user_topup_crypto(request: web.Request) -> web.Response:
         await session.commit()
 
         deep_link = f"ton://transfer/{invoice.pay_address}?amount={invoice.nanotons}&text={invoice.comment}"
+        universal_link = f"https://app.tonkeeper.com/transfer/{invoice.pay_address}?amount={invoice.nanotons}&text={invoice.comment}"
 
         return web.json_response({
             "ok": True,
@@ -187,6 +218,7 @@ async def post_user_topup_crypto(request: web.Request) -> web.Response:
                 "pay_address": invoice.pay_address,
                 "comment": invoice.comment,
                 "deep_link": deep_link,
+                "universal_link": universal_link,
                 "expires_minutes": 30,
             }
         })

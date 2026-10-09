@@ -12,7 +12,7 @@
       darkMode: 'class'
     };
   </script>
-  <link rel="stylesheet" href="/static/css/app.css?v=7.9">
+  <link rel="stylesheet" href="/static/css/app.css?v=8.0">
 </head>
 <body id="appBody" class="bg-[#080d1a] text-slate-100 w-full min-w-full h-screen h-[100dvh] overflow-hidden flex justify-center items-center antialiased select-none transition-colors duration-300">
 
@@ -303,7 +303,7 @@
 
             <!-- Dynamic Devices Container -->
             <div id="activeDevicesContainer" class="space-y-2">
-              <div class="p-4 rounded-xl bg-slate-900/60 border border-slate-700/50 text-center text-xs text-slate-400">
+              <div class="p-4 rounded-xl bg-transparent border border-slate-700/50 text-center text-xs text-slate-400">
                 در حال بارگذاری دستگاه‌ها...
               </div>
             </div>
@@ -443,7 +443,7 @@
                 </span>
                 <span class="text-[10px] text-slate-400 font-mono">تفکیک جغرافیایی</span>
               </div>
-              <div class="h-44 w-full p-2 bg-slate-900/60 rounded-xl relative flex items-center justify-center">
+              <div class="h-44 w-full p-2 bg-transparent rounded-xl relative flex items-center justify-center">
                 <canvas id="repCountryChartCanvas" class="w-full h-full"></canvas>
               </div>
             </div>
@@ -456,7 +456,7 @@
                 </span>
                 <span class="text-[10px] text-slate-400 font-mono">سهم نشست‌ها</span>
               </div>
-              <div class="h-40 w-full p-2 bg-slate-900/60 rounded-xl relative flex items-center justify-center">
+              <div class="h-40 w-full p-2 bg-transparent rounded-xl relative flex items-center justify-center">
                 <canvas id="repDeviceChartCanvas" class="w-full h-full"></canvas>
               </div>
             </div>
@@ -484,7 +484,8 @@
         <!-- Coupon Box -->
         <div class="bg-slate-800/60 rounded-xl p-2.5 border border-slate-700/60 flex items-center gap-2">
           <input type="text" placeholder="کد تخفیف (مثال: OFF20)" class="bg-slate-900 text-xs px-3 py-2 rounded-lg border border-slate-700 flex-1 outline-none text-slate-200 uppercase font-mono" id="couponInput" />
-          <button id="applyCouponBtn" class="bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold px-4 py-2 rounded-lg transition active:scale-95 shadow">اعمال</button>
+          <button id="applyCouponBtn" class="bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold px-4 py-2 rounded-lg transition active:scale-95 shadow shrink-0">اعمال</button>
+          <button id="removeCouponBtn" type="button" class="hidden bg-rose-600/90 hover:bg-rose-500 text-white text-xs font-semibold px-3 py-2 rounded-lg transition active:scale-95 shadow shrink-0">✕ حذف</button>
         </div>
       </div>
 
@@ -498,7 +499,6 @@
             <span class="flex items-center gap-1.5 font-medium">
               <span>👛</span> موجودی کیف پول شما
             </span>
-            <span class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 font-bold text-[10px]">معتبر</span>
           </div>
 
           <div class="py-2">
@@ -917,9 +917,9 @@
           <div class="bg-slate-900/80 rounded-2xl p-3 border border-slate-700/80 space-y-2">
             <div class="flex justify-between items-center text-[11px]">
               <span class="text-slate-400">شماره کارت مقصد:</span>
-              <div class="flex items-center gap-1">
+              <div class="flex items-center gap-1.5" dir="rtl">
+                <button id="copyTopupCardBtn" class="text-blue-400 hover:text-blue-300 px-1 text-xs" title="کپی شماره کارت">📋</button>
                 <code id="topupCardNumber" class="text-white font-mono font-bold tracking-wider" dir="ltr">---- ---- ---- ----</code>
-                <button id="copyTopupCardBtn" class="text-blue-400 hover:text-blue-300 px-1" title="کپی شماره کارت">📋</button>
               </div>
             </div>
             <div class="flex justify-between items-center text-[11px]">
@@ -938,8 +938,25 @@
               <span class="text-[10px] text-slate-400">شماره ارجاع / RRN</span>
             </div>
             <textarea id="topupCardReceiptInput" rows="2" placeholder="کد پیگیری، شماره ارجاع یا 4 رقم آخر کارت واریزکننده..." class="w-full bg-slate-900 p-2.5 rounded-xl border border-slate-700 text-slate-200 text-xs outline-none resize-none"></textarea>
+
+            <!-- Optional Receipt Image Upload -->
+            <div class="pt-1 space-y-1.5">
+              <input type="file" id="topupCardImageInput" accept="image/*" class="hidden">
+              <button id="uploadCardReceiptImageBtn" type="button" class="w-full bg-slate-900 hover:bg-slate-800 text-slate-300 text-xs py-2 px-3 rounded-xl border border-dashed border-slate-700 hover:border-blue-500 transition flex items-center justify-center gap-2 active:scale-95">
+                <span>📸</span>
+                <span id="uploadReceiptBtnText">ارسال عکس فیش واریزی</span>
+              </button>
+              <div id="receiptImagePreviewContainer" class="hidden relative p-1.5 bg-slate-900/90 rounded-xl border border-slate-700 flex items-center justify-between">
+                <div class="flex items-center gap-2 overflow-hidden">
+                  <img id="receiptImagePreview" class="h-10 w-10 object-cover rounded-lg border border-slate-700 shrink-0" src="" alt="رسید">
+                  <span class="text-[10px] text-slate-300 truncate max-w-[170px]" id="receiptImageName">تصویر رسید انتخاب شد</span>
+                </div>
+                <button id="removeReceiptImageBtn" type="button" class="text-rose-400 hover:text-rose-300 text-xs px-2 py-1 bg-rose-950/40 rounded-lg border border-rose-800/40" title="حذف تصویر">✕ حذف</button>
+              </div>
+            </div>
+
             <p class="text-[9.5px] text-slate-400 leading-relaxed bg-slate-800/50 p-2 rounded-xl border border-slate-700/50">
-              💡 <b>راهنما:</b> شماره پیگیری یا شماره ارجاع (RRN)، کد چندرقمی درج‌شده در رسید پرداخت برنامه بانکی (آپ، همراه بانک و...) یا در پیامک بانکی تراکنش پس از انتقال وجه است.
+              💡 <b>راهنما:</b> شماره پیگیری یا شماره ارجاع (RRN)، کد چندرقمی درج‌شده در رسید پرداخت بانکی است. همچنین می‌توانید تصویر فیش واریز را بارگذاری نمایید.
             </p>
           </div>
 
@@ -1374,16 +1391,8 @@
           </div>
         </div>
 
-        <!-- Quick Question Chips -->
-        <div class="px-3 py-1.5 bg-slate-900/50 border-t border-slate-800 flex gap-1.5 overflow-x-auto custom-scroll text-[10px] whitespace-nowrap">
-          <button class="quick-chip bg-slate-800 hover:bg-slate-700 text-slate-300 px-2.5 py-1 rounded-full border border-slate-700 transition">💡 آموزش اتصال آیفون</button>
-          <button class="quick-chip bg-slate-800 hover:bg-slate-700 text-slate-300 px-2.5 py-1 rounded-full border border-slate-700 transition">💳 روش پرداخت کارت به کارت</button>
-          <button class="quick-chip bg-slate-800 hover:bg-slate-700 text-slate-300 px-2.5 py-1 rounded-full border border-slate-700 transition">⚡️ تعویض سرور کند</button>
-        </div>
-
         <!-- Chat Input Bar -->
         <div class="bg-[#1a263e] border-t border-slate-700/80 p-2.5 flex items-center gap-2">
-          <button class="text-slate-400 hover:text-white p-2 rounded-xl bg-slate-800 border border-slate-700 transition" title="ارسال فایل یا عکس">📎</button>
           <input type="text" id="chatInput" placeholder="پیام خود را برای پشتیبان بنویسید..." class="bg-slate-900 text-xs text-slate-200 px-3 py-2 rounded-xl border border-slate-700 flex-1 outline-none focus:border-blue-500 transition" />
           <button id="sendMessageBtn" class="bg-blue-600 hover:bg-blue-500 text-white p-2 rounded-xl transition active:scale-95 flex items-center justify-center font-bold">
             <span>🚀</span>
@@ -1394,13 +1403,13 @@
   </div>
 
   <!-- Modular Frontend Architecture (DRY) -->
-  <script src="/static/js/utils.js?v=7.9"></script>
-  <script src="/static/js/api.js?v=7.9"></script>
-  <script src="/static/js/charts.js?v=7.9"></script>
-  <script src="/static/js/shop.js?v=7.9"></script>
-  <script src="/static/js/wallet.js?v=7.9"></script>
-  <script src="/static/js/wheel.js?v=7.9"></script>
-  <script src="/static/js/story.js?v=7.9"></script>
-  <script src="/static/js/app.js?v=7.9"></script>
+  <script src="/static/js/utils.js?v=8.0"></script>
+  <script src="/static/js/api.js?v=8.0"></script>
+  <script src="/static/js/charts.js?v=8.0"></script>
+  <script src="/static/js/shop.js?v=8.0"></script>
+  <script src="/static/js/wallet.js?v=8.0"></script>
+  <script src="/static/js/wheel.js?v=8.0"></script>
+  <script src="/static/js/story.js?v=8.0"></script>
+  <script src="/static/js/app.js?v=8.0"></script>
 </body>
 </html>

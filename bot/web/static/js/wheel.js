@@ -157,6 +157,12 @@ function setupLuckyWheel() {
         if (isBlank) {
           if (wheelResultText) wheelResultText.innerHTML = '❌ <b>متاسفانه پوچ شد!</b> شانس بعدی شما ۲۴ ساعت دیگر فعال می‌شود.';
           alert('❌ این چرخش پوچ شد! شانس بعدی شما ۲۴ ساعت دیگر فعال خواهد شد.');
+        } else if (chosenPrize.code || chosenPrize.type === 'coupon') {
+          const couponCode = chosenPrize.code || 'ارسال‌شده در تلگرام';
+          if (wheelResultText) {
+            wheelResultText.innerHTML = `🎉 <b>تبریک!</b> شما برنده <b class="text-amber-400 font-bold">${chosenPrize.name || chosenPrize.text}</b> شدید!<br/><span class="font-mono text-cyan-400 font-bold block mt-1 select-all" dir="ltr">کد: ${couponCode}</span><span class="text-[10px] text-slate-400 block mt-0.5">⏱ مهلت استفاده: ۲۴ ساعت آینده در تب فروشگاه</span>`;
+          }
+          alert(`🎉 تبریک! شما برنده ${chosenPrize.name || chosenPrize.text} شدید!\nکد تخفیف: ${couponCode}\nمهلت استفاده: تا ۲۴ ساعت آینده در تب فروشگاه`);
         } else {
           if (wheelResultText) wheelResultText.innerHTML = `🎉 <b>تبریک فوق‌العاده!</b> شما برنده <b class="text-emerald-400 font-bold">${chosenPrize.name || chosenPrize.text}</b> شدید!`;
           alert(`🎉 تبریک! شما برنده ${chosenPrize.name || chosenPrize.text} شدید! جایزه با موفقیت ثبت شد.`);

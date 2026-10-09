@@ -4,6 +4,7 @@ import logging
 import random
 import time
 from datetime import datetime, timezone
+from html import escape
 from typing import Any
 
 from aiohttp import web
