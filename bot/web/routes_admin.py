@@ -7,6 +7,7 @@ import re
 from collections import defaultdict
 from datetime import datetime, timedelta, timezone
 import time
+from pathlib import Path
 from typing import Any
 
 from aiohttp import web
@@ -1576,13 +1577,22 @@ async def get_admin_topups(request: web.Request) -> web.Response:
             pending = await wallet_repo.list_pending_topups()
 
             items = []
+            receipts_dir = Path("data/receipts")
             for t in pending:
                 u = await user_repo.get_by_telegram_id(t.telegram_id)
                 receipt_ref = getattr(t, "receipt_photo_id", None) or getattr(t, "receipt_hash", None)
                 u_full_name = getattr(u, "full_name", None)
                 if not u_full_name:
                     u_full_name = f"@{u.username}" if (u and u.username) else f"کاربر {t.telegram_id}"
-                has_photo = bool(getattr(t, "receipt_photo_id", None))
+                r_hash = getattr(t, "receipt_hash", "") or ""
+                photo_id = getattr(t, "receipt_photo_id", None)
+                local_file = receipts_dir / f"receipt_{t.id}.jpg"
+                has_photo = bool(
+                    photo_id
+                    or local_file.exists()
+                    or r_hash.startswith("img:")
+                    or r_hash.startswith("photo:")
+                )
                 items.append({
                     "id": t.id,
                     "telegram_id": t.telegram_id,
@@ -1593,7 +1603,7 @@ async def get_admin_topups(request: web.Request) -> web.Response:
                     "status": t.status,
                     "created_at": t.created_at.isoformat() if t.created_at else None,
                     "receipt_hash": getattr(t, "receipt_hash", None),
-                    "receipt_photo_id": getattr(t, "receipt_photo_id", None),
+                    "receipt_photo_id": photo_id,
                     "has_photo": has_photo,
                     "photo_url": f"/api/admin/topup/photo?id={t.id}" if has_photo else None,
                 })
@@ -2637,17 +2647,43 @@ async def get_admin_topup_photo(request: web.Request) -> web.Response:
 
     session_factory = request.app["session_factory"]
     bot: Bot = request.app.get("bot")
-    if not bot:
-        return web.Response(text="Bot not available", status=503)
+
+    # 1. Fast local disk check (highest speed and reliability)
+    local_file = Path("data/receipts") / f"receipt_{topup_id}.jpg"
+    if local_file.exists():
+        content = await asyncio.to_thread(local_file.read_bytes)
+        return web.Response(
+            body=content,
+            content_type="image/jpeg",
+            headers={"Cache-Control": "private, max-age=86400"},
+        )
 
     try:
         async with session_factory() as session:
             wallet_repo = WalletRepository(session)
             topup = await wallet_repo.get_topup(topup_id)
-            if not topup or not topup.receipt_photo_id:
+            if not topup:
+                return web.Response(text="فیش مورد نظر یافت نشد", status=404)
+
+            photo_id = getattr(topup, "receipt_photo_id", None)
+            if photo_id and photo_id.startswith("local:"):
+                target_name = photo_id.split("local:", 1)[1]
+                target_path = Path("data/receipts") / target_name
+                if target_path.exists():
+                    content = await asyncio.to_thread(target_path.read_bytes)
+                    return web.Response(
+                        body=content,
+                        content_type="image/jpeg",
+                        headers={"Cache-Control": "private, max-age=86400"},
+                    )
+
+            if not photo_id:
                 return web.Response(text="تصویری برای این فیش یافت نشد", status=404)
 
-            file_info = await bot.get_file(topup.receipt_photo_id)
+            if not bot:
+                return web.Response(text="Bot not available", status=503)
+
+            file_info = await bot.get_file(photo_id)
             if not file_info or not file_info.file_path:
                 return web.Response(text="فایل تصویر در سرور تلگرام یافت نشد", status=404)
 
@@ -2660,6 +2696,13 @@ async def get_admin_topup_photo(request: web.Request) -> web.Response:
                 content = file_bio.read()
             else:
                 content = bytes(file_bio)
+
+            # Cache locally to disk for instant subsequent loads
+            try:
+                local_file.parent.mkdir(parents=True, exist_ok=True)
+                await asyncio.to_thread(local_file.write_bytes, content)
+            except Exception as cache_err:
+                logger.debug("Could not cache receipt photo locally: %s", cache_err)
 
             return web.Response(
                 body=content,

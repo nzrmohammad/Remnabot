@@ -108,6 +108,16 @@ async def post_user_topup_card(request: web.Request) -> web.Response:
             )
 
         topup = await wallet_repo.create_topup(telegram_id, amount, receipt_hash)
+
+        if img_bytes:
+            from pathlib import Path
+            import asyncio
+            receipt_dir = Path("data/receipts")
+            receipt_dir.mkdir(parents=True, exist_ok=True)
+            local_file = receipt_dir / f"receipt_{topup.id}.jpg"
+            await asyncio.to_thread(local_file.write_bytes, img_bytes)
+            topup.receipt_photo_id = f"local:receipt_{topup.id}.jpg"
+
         await session.commit()
 
         # Send alert with inline buttons to admin chat
@@ -148,6 +158,8 @@ async def post_user_topup_card(request: web.Request) -> web.Response:
                         parse_mode="HTML",
                         **thread_kwargs,
                     )
+                    if msg_obj and msg_obj.photo:
+                        topup.receipt_photo_id = msg_obj.photo[-1].file_id
                 else:
                     msg_obj = await bot.send_message(
                         chat_id=admin_chat_id,

@@ -1640,6 +1640,83 @@ async def test_serve_open_client_bridge():
     assert res_bad.status == 400
 
 
+@pytest.mark.anyio
+async def test_topup_image_upload_and_admin_viewing():
+    import base64
+    from unittest.mock import AsyncMock, MagicMock, patch
+    from aiohttp.test_utils import make_mocked_request
+    from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
+    from bot.db.models import Base
+    from bot.web.user_topup import post_user_topup_card
+    from bot.web.routes_admin import get_admin_topups, get_admin_topup_photo
+    from pathlib import Path
+
+    engine = create_async_engine("sqlite+aiosqlite:///:memory:")
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+    session_factory = async_sessionmaker(engine, expire_on_commit=False)
+
+    fake_img = b"\xff\xd8\xff\xe0\x00\x10JFIF" + b"\x00" * 50
+    b64_img = "data:image/jpeg;base64," + base64.b64encode(fake_img).decode("ascii")
+
+    mock_bot = AsyncMock()
+    mock_sent_msg = MagicMock(message_id=1234, photo=[MagicMock(file_id="tg_photo_file_123")])
+    mock_bot.send_photo.return_value = mock_sent_msg
+
+    mock_store = MagicMock(
+        topup_min_amount=10000,
+        card_enabled=True,
+        topic_topups=None,
+    )
+    mock_settings = MagicMock(ADMIN_CHAT_ID=12345, ADMIN_TOPIC_TOPUPS=None)
+
+    app = {
+        "bot_token": "123:abc",
+        "admin_ids": [99999],
+        "is_dev": True,
+        "session_factory": session_factory,
+        "bot": mock_bot,
+        "settings": mock_settings,
+    }
+
+    # 1. Post topup with image
+    req_upload = make_mocked_request(
+        "POST",
+        "/api/user/topup/card?user_id=77777",
+        headers={"Content-Type": "application/json"},
+        app=app,
+    )
+    req_upload.json = AsyncMock(return_value={"amount": 50000, "receipt_image": b64_img})
+
+    with patch("bot.web.user_topup.get_store_settings", AsyncMock(return_value=mock_store)):
+        resp_upload = await post_user_topup_card(req_upload)
+        assert resp_upload.status == 200
+
+    # 2. Admin list topups
+    req_list = make_mocked_request("GET", "/api/admin/topups?user_id=99999", app=app)
+    resp_list = await get_admin_topups(req_list)
+    assert resp_list.status == 200
+    topups_data = json.loads(resp_list.text)["topups"]
+    assert len(topups_data) == 1
+    t = topups_data[0]
+    assert t["has_photo"] is True
+    assert t["photo_url"] == f"/api/admin/topup/photo?id={t['id']}"
+
+    # 3. Admin fetch photo
+    req_photo = make_mocked_request("GET", f"/api/admin/topup/photo?id={t['id']}&user_id=99999", app=app)
+    resp_photo = await get_admin_topup_photo(req_photo)
+    assert resp_photo.status == 200
+    assert resp_photo.content_type == "image/jpeg"
+    assert resp_photo.body == fake_img
+
+    # Clean up local file created during test
+    receipt_file = Path("data/receipts") / f"receipt_{t['id']}.jpg"
+    if receipt_file.exists():
+        receipt_file.unlink()
+
+    await engine.dispose()
+
+
 
 
 

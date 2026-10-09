@@ -333,8 +333,10 @@ def create_web_app(
     redis_client=None,
     is_dev: bool = False,
 ) -> web.Application:
-    """Build and configure the aiohttp web application."""
-    app = web.Application(middlewares=[cors_and_security_middleware, global_error_middleware, api_rate_limit_middleware])
+    app = web.Application(
+        middlewares=[cors_and_security_middleware, global_error_middleware, api_rate_limit_middleware],
+        client_max_size=16 * 1024 * 1024,
+    )
 
     # Injected dependencies
     app["bot"] = bot

@@ -399,22 +399,55 @@ function setupWalletListeners() {
     imageInput?.click();
   });
 
-  imageInput?.addEventListener('change', (e) => {
+  function compressReceiptImage(file, maxDimension = 1400, quality = 0.85) {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = (evt) => {
+        const rawData = evt.target.result;
+        const img = new Image();
+        img.onload = () => {
+          let { width, height } = img;
+          if (width > maxDimension || height > maxDimension) {
+            if (width > height) {
+              height = Math.round((height * maxDimension) / width);
+              width = maxDimension;
+            } else {
+              width = Math.round((width * maxDimension) / height);
+              height = maxDimension;
+            }
+          }
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+          resolve(canvas.toDataURL('image/jpeg', quality));
+        };
+        img.onerror = () => resolve(rawData);
+        img.src = rawData;
+      };
+      reader.onerror = () => resolve(null);
+      reader.readAsDataURL(file);
+    });
+  }
+
+  imageInput?.addEventListener('change', async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (file.size > 5 * 1024 * 1024) {
-      showToast('⚠️ حداکثر حجم مجاز تصویر ۵ مگابایت است.');
+    if (file.size > 10 * 1024 * 1024) {
+      showToast('⚠️ حداکثر حجم مجاز تصویر ۱۰ مگابایت است.');
       return;
     }
-    const reader = new FileReader();
-    reader.onload = (loadEvt) => {
-      selectedReceiptImageBase64 = loadEvt.target.result;
-      if (previewImg) previewImg.src = selectedReceiptImageBase64;
-      if (previewName) previewName.innerText = file.name || 'تصویر رسید انتخاب شد';
-      previewContainer?.classList.remove('hidden');
-      uploadImgBtn?.classList.add('hidden');
-    };
-    reader.readAsDataURL(file);
+    const compressedBase64 = await compressReceiptImage(file);
+    if (!compressedBase64) {
+      showToast('⚠️ خطا در پردازش تصویر فیش.');
+      return;
+    }
+    selectedReceiptImageBase64 = compressedBase64;
+    if (previewImg) previewImg.src = selectedReceiptImageBase64;
+    if (previewName) previewName.innerText = file.name || 'تصویر رسید انتخاب شد';
+    previewContainer?.classList.remove('hidden');
+    uploadImgBtn?.classList.add('hidden');
   });
 
   removeImgBtn?.addEventListener('click', () => {

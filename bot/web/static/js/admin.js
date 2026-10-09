@@ -3171,6 +3171,13 @@
             if (spinner) spinner.classList.add('hidden');
             img.classList.remove('hidden');
           };
+          img.onerror = () => {
+            if (spinner) spinner.classList.add('hidden');
+            if (errBox) {
+              errBox.textContent = 'خطا در نمایش تصویر رسید';
+              errBox.classList.remove('hidden');
+            }
+          };
           img.src = objectUrl;
         }
       } catch (err) {
@@ -3695,7 +3702,7 @@
         const initial = (uLabel[0] || 'U').toUpperCase();
         const dateStr = t.created_at ? new Date(t.created_at).toLocaleDateString('fa-IR', { numberingSystem: 'latn', hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' }) : '—';
         const avatarSrc = t.avatar_url || `/api/user/avatar?user_id=${t.telegram_id}`;
-        const hasPhoto = Boolean(t.has_photo || t.receipt_photo_id);
+        const hasPhoto = Boolean(t.has_photo || t.receipt_photo_id || (t.receipt_hash && (t.receipt_hash.startsWith('img:') || t.receipt_hash.startsWith('photo:'))));
         const photoUrl = hasPhoto ? `/api/admin/topup/photo?id=${t.id}` : null;
         const usernameTag = t.username ? `@${t.username}` : '';
         const userTagArg = (usernameTag || ('#' + t.telegram_id)).replace(/'/g, "\\'");
