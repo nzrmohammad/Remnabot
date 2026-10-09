@@ -293,6 +293,9 @@ async def main() -> None:
         token=settings.BOT_TOKEN,
         default=DefaultBotProperties(parse_mode=ParseMode.HTML),
     )
+    from bot.services.error_reporter import setup_telegram_error_logging
+    setup_telegram_error_logging(bot, session_factory)
+
     # NOTE: MemoryStorage loses all FSM states (top-up flow, admin wizards,
     # broadcast drafts) on every restart. For production, switch to
     # aiogram.fsm.storage.redis.RedisStorage(redis) — no code changes

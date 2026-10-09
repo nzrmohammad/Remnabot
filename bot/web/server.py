@@ -201,6 +201,21 @@ async def health_check(request: web.Request) -> web.Response:
     return web.json_response({"status": "ok", "service": "remnabot-tma"})
 
 
+@web.middleware
+async def global_error_middleware(request: web.Request, handler):
+    """Catch unhandled exceptions in TMA web routes and log them with context."""
+    try:
+        return await handler(request)
+    except web.HTTPException:
+        raise
+    except Exception as exc:
+        logger.exception("Unhandled TMA web error on %s %s: %s", request.method, request.path, exc)
+        return web.json_response(
+            {"ok": False, "error": "خطای داخلی سرور رخ داد.", "code": "internal_error"},
+            status=500,
+        )
+
+
 def create_web_app(
     bot,
     session_factory,
@@ -210,7 +225,7 @@ def create_web_app(
     is_dev: bool = False,
 ) -> web.Application:
     """Build and configure the aiohttp web application."""
-    app = web.Application(middlewares=[cors_and_security_middleware, api_rate_limit_middleware])
+    app = web.Application(middlewares=[cors_and_security_middleware, global_error_middleware, api_rate_limit_middleware])
 
     # Injected dependencies
     app["bot"] = bot

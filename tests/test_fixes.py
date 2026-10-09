@@ -1895,6 +1895,61 @@ async def test_error_reporter_service():
 
 
 @pytest.mark.anyio
+async def test_telegram_error_log_handler():
+    """Verify TelegramErrorLogHandler catches logger.error/exception and reports it."""
+    import asyncio
+    import logging
+    from bot.services.error_reporter import TelegramErrorLogHandler
+
+    bot = MagicMock()
+    session_factory = MagicMock()
+
+    handler = TelegramErrorLogHandler(bot, session_factory)
+    test_logger = logging.getLogger("bot.tests.fake_module")
+    test_logger.setLevel(logging.ERROR)
+    test_logger.addHandler(handler)
+
+    with patch("bot.services.error_reporter.report_error") as mock_report:
+        mock_report.return_value = None
+        test_logger.error("Fake simulated log error in worker")
+        await asyncio.sleep(0.05)
+
+        mock_report.assert_awaited_once()
+        assert "Fake simulated log error in worker" in str(mock_report.call_args.kwargs.get("exc"))
+        assert "bot.tests.fake_module" in mock_report.call_args.kwargs.get("context")
+
+    test_logger.removeHandler(handler)
+
+
+@pytest.mark.anyio
+async def test_send_test_error_report():
+    """Verify send_test_error_report dispatches test message to error topic."""
+    from bot.services.error_reporter import send_test_error_report
+
+    bot = MagicMock()
+    bot.send_message = AsyncMock()
+
+    with patch("bot.services.error_reporter.get_settings") as mock_settings:
+        mock_settings.return_value = MagicMock(
+            ADMIN_CHAT_ID=-1001234567,
+            ADMIN_TOPIC_ERRORS=777,
+            TIMEZONE="Asia/Tehran",
+        )
+        mock_session = MagicMock()
+        with patch("bot.services.error_reporter.get_store_settings") as mock_store:
+            mock_store.return_value = MagicMock(topic_errors=777)
+            ok, msg, topic_id = await send_test_error_report(bot, session=mock_session)
+
+            assert ok is True
+            assert topic_id == 777
+            assert "موفقیت" in msg
+            bot.send_message.assert_awaited_once()
+            assert bot.send_message.call_args[0][0] == -1001234567
+            assert bot.send_message.call_args.kwargs.get("message_thread_id") == 777
+            assert "تست موفق اتصال به تاپیک لاگ‌های ارور" in bot.send_message.call_args[0][1]
+
+
+@pytest.mark.anyio
 async def test_recent_ui_and_reports_fixes():
     """Verify آموزش rename, services button format (name - traffic - price), colon removal in settings, and no leading spaces in report country lines."""
     from bot.locales.texts import TEXTS, t

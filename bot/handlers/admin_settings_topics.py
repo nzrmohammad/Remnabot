@@ -65,6 +65,8 @@ async def _render_topics_settings(
         kb.button(text="🎧 تاپیک پشتیبانی", callback_data="adm:set:topic_support")
         kb.button(text="⚠️ تاپیک لاگ‌های ارور", callback_data="adm:set:topic_errors")
         kb.button(text="💎 تاپیک کریپتو و نرخ", callback_data="adm:set:topic_crypto")
+        if store.topic_errors is not None:
+            kb.button(text="🧪 تست تاپیک لاگ خطا", callback_data="adm:test:topic_errors")
     else:
         kb.button(text="💳 Top-ups Topic", callback_data="adm:set:topic_topups")
         kb.button(text="🛒 Orders Topic", callback_data="adm:set:topic_orders")
@@ -72,9 +74,14 @@ async def _render_topics_settings(
         kb.button(text="🚨 Alerts & Backup", callback_data="adm:set:topic_alerts")
         kb.button(text="💎 Crypto & Rates Topic", callback_data="adm:set:topic_crypto")
         kb.button(text="⚠️ Error Logs Topic", callback_data="adm:set:topic_errors")
+        if store.topic_errors is not None:
+            kb.button(text="🧪 Test Error Topic", callback_data="adm:test:topic_errors")
 
     kb.button(text=t(lang, "btn_back"), callback_data="adm:settings")
-    kb.adjust(2, 2, 2, 1)
+    if store.topic_errors is not None:
+        kb.adjust(2, 2, 2, 1, 1)
+    else:
+        kb.adjust(2, 2, 2, 1)
 
     grp_title = await group_title_fn(bot)
     topics_title = f"{t(lang, 'settings_topics_title')} ({escape(grp_title)})" if grp_title else t(lang, 'settings_topics_title')
@@ -113,3 +120,15 @@ async def topics_settings_view(
     user = await user_repo.get_or_create(call.from_user.id, call.from_user.username)
     await render_topics_fn(bot, user, user_repo, session)
     await call.answer()
+
+
+@router.callback_query(F.data == "adm:test:topic_errors")
+async def test_topic_errors_view(
+    call: CallbackQuery, bot: Bot, session: AsyncSession,
+):
+    if not is_admin(call.from_user.id):
+        await call.answer(t("fa", "not_authorized"), show_alert=True)
+        return
+    from bot.services.error_reporter import send_test_error_report
+    ok, msg, topic_id = await send_test_error_report(bot, session=session)
+    await call.answer(msg, show_alert=True)
