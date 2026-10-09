@@ -410,6 +410,7 @@ class NodeCost(Base):
     provider: Mapped[str | None] = mapped_column(String(64), nullable=True)  # Hetzner, OVH, etc.
     monthly_cost_toman: Mapped[int] = mapped_column(BigInteger, default=0)
     monthly_cost_eur: Mapped[float] = mapped_column(Float, default=0.0)
+    currency: Mapped[str | None] = mapped_column(String(8), default="EUR", nullable=True)
     due_date: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True, index=True)
     notes: Mapped[str | None] = mapped_column(Text, nullable=True)
     alert_notified: Mapped[bool] = mapped_column(Boolean, default=False)

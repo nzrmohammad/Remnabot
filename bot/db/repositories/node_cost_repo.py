@@ -30,6 +30,7 @@ class NodeCostRepository:
         provider: str | None = None,
         monthly_cost_toman: int = 0,
         monthly_cost_eur: float = 0.0,
+        currency: str = "EUR",
         due_date: datetime | None = None,
         notes: str | None = None,
     ) -> NodeCost:
@@ -42,6 +43,7 @@ class NodeCostRepository:
                 provider=provider,
                 monthly_cost_toman=monthly_cost_toman,
                 monthly_cost_eur=monthly_cost_eur,
+                currency=currency,
                 due_date=due_date,
                 notes=notes,
                 alert_notified=False,
@@ -56,6 +58,7 @@ class NodeCostRepository:
                 item.provider = provider
             item.monthly_cost_toman = monthly_cost_toman
             item.monthly_cost_eur = monthly_cost_eur
+            item.currency = currency
             # If due date changed, reset alert_notified
             if item.due_date != due_date:
                 item.due_date = due_date

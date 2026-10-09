@@ -39,10 +39,14 @@ async def get_user_me(request: web.Request) -> web.Response:
     session_factory = request.app["session_factory"]
     remnawave = request.app["remnawave"]
     settings = request.app["settings"]
-
     async with session_factory() as session:
         user_repo = UserRepository(session)
+        first_name = user_auth.get("first_name", "")
+        last_name = user_auth.get("last_name", "")
+        auth_full_name = f"{first_name} {last_name}".strip() or None
         db_user = await user_repo.get_or_create(telegram_id, user_auth.get("username"))
+        if auth_full_name and hasattr(db_user, "full_name"):
+            db_user.full_name = auth_full_name
 
         # 1. Wallet balance
         wallet_res = await session.execute(

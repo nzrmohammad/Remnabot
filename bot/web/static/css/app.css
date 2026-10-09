@@ -442,6 +442,11 @@ html.theme-light .node-card [class*="bg-slate-900"] {
   background-color: #f8fafc !important;
   border-color: #e2e8f0 !important;
 }
+html.theme-light .node-card .bg-transparent,
+html.theme-light .node-card .node-body .bg-transparent {
+  background-color: transparent !important;
+  background-image: none !important;
+}
 html.theme-light .node-card .text-slate-200,
 html.theme-light .node-card .text-white {
   color: #0f172a !important;
@@ -451,6 +456,16 @@ html.theme-light .node-header:hover {
 }
 html.theme-light .node-card .border-t {
   border-color: #e2e8f0 !important;
+}
+
+/* Node billing currency convert hint & buttons in Light mode */
+html.theme-light #nodeBillingEurConvertHint {
+  background-color: #ecfdf5 !important;
+  border-color: #a7f3d0 !important;
+  color: #047857 !important;
+}
+html.theme-light #nodeBillingEurConvertHint svg {
+  color: #059669 !important;
 }
 
 /* Receipts / Topup cards in Light theme */

@@ -39,6 +39,7 @@ async def test_node_cost_repo_crud_and_due_dates(async_session_factory):
             provider="Hetzner",
             monthly_cost_toman=2500000,
             monthly_cost_eur=35.0,
+            currency="USD",
             due_date=now_utc + timedelta(days=2),  # Due in 2 days (<= 3 days)
             notes="CX31 Hetzner VPS",
         )
@@ -46,6 +47,7 @@ async def test_node_cost_repo_crud_and_due_dates(async_session_factory):
         assert node1.node_uuid == "node-uuid-hetzner-1"
         assert node1.monthly_cost_toman == 2500000
         assert node1.monthly_cost_eur == 35.0
+        assert node1.currency == "USD"
         assert node1.alert_notified is False
 
         # 2. Add second node due in 15 days (> 3 days)
@@ -103,6 +105,7 @@ async def test_check_nodes_billing_due_dates_alert(async_session_factory):
             provider="Hetzner",
             monthly_cost_toman=1800000,
             monthly_cost_eur=25.0,
+            currency="USD",
             due_date=now_utc + timedelta(days=1),  # 1 day left
         )
         await session.commit()
@@ -121,6 +124,7 @@ async def test_check_nodes_billing_due_dates_alert(async_session_factory):
         assert "Server Netherlands" in msg_text
         assert "Hetzner" in msg_text
         assert "1,800,000 تومان" in msg_text
+        assert "$25.00" in msg_text
 
     # Second check should not send duplicate message
     bot_mock.reset_mock()
@@ -205,6 +209,7 @@ async def test_admin_infra_billing_api_handlers(async_session_factory):
         "provider": "Hetzner",
         "monthly_cost_toman": 1000000,
         "monthly_cost_eur": 15.0,
+        "currency": "USD",
         "due_date": (now_utc + timedelta(days=20)).strftime("%Y-%m-%d"),
         "notes": "Fast NVMe VPS",
     }
@@ -238,4 +243,5 @@ async def test_admin_infra_billing_api_handlers(async_session_factory):
         assert len(data["nodes"]) == 1
         assert data["nodes"][0]["provider"] == "Hetzner"
         assert data["nodes"][0]["cost_per_gb"] == 10000.0
+        assert data["nodes"][0]["currency"] == "USD"
 

@@ -139,7 +139,8 @@ async def check_nodes_billing_due_dates(bot: Bot, session_factory: Any) -> None:
                 if node.monthly_cost_toman:
                     cost_parts.append(f"{node.monthly_cost_toman:,} تومان")
                 if node.monthly_cost_eur:
-                    cost_parts.append(f"€{node.monthly_cost_eur:.2f}")
+                    curr_sym = "$" if getattr(node, "currency", "EUR") == "USD" else "€"
+                    cost_parts.append(f"{curr_sym}{node.monthly_cost_eur:.2f}")
                 cost_str = " / ".join(cost_parts) if cost_parts else "ثبت نشده"
 
                 due_date_str = node.due_date.strftime("%Y-%m-%d")

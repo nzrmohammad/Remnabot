@@ -263,6 +263,14 @@ async def _migrate_schema(engine: AsyncEngine) -> None:
             )
             logger.info("ensured ix_crypto_invoices_tx_hash index")
 
+        # --- node_costs: currency column --------------------------------------- #
+        cols = await _table_columns(conn, "node_costs")
+        if cols and "currency" not in cols:
+            await conn.execute(
+                text("ALTER TABLE node_costs ADD COLUMN currency VARCHAR(8) DEFAULT 'EUR'")
+            )
+            logger.info("added node_costs.currency")
+
 
 async def main() -> None:
     settings = get_settings()

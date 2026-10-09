@@ -1330,7 +1330,7 @@
           <!-- Collapsible Body Details (Hidden by default, expands on click) -->
           <div id="${boxId}" class="node-body p-3.5 pt-2 border-t border-slate-700/60 space-y-3 hidden">
             <!-- Server Host Address Strip -->
-            <div class="bg-slate-900/60 px-3 py-2 rounded-xl border border-slate-700/60 flex items-center justify-between text-xs">
+            <div class="bg-transparent px-3 py-2 rounded-xl border border-slate-700/60 flex items-center justify-between text-xs">
               <span class="text-[10px] text-slate-400 flex items-center gap-1.5">
                 <svg class="w-3.5 h-3.5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/></svg>
                 <span>آدرس سرور:</span>
@@ -1340,7 +1340,7 @@
 
             <!-- Real-time Speeds: Download & Upload -->
             <div class="grid grid-cols-2 gap-2 text-center text-[10px]">
-              <div class="bg-slate-900/60 p-2.5 rounded-xl border border-slate-700/60">
+              <div class="bg-transparent p-2.5 rounded-xl border border-slate-700/60">
                 <div class="flex items-center justify-between text-[10px] mb-1">
                   <span class="text-slate-400 flex items-center gap-1">
                     <svg class="w-3 h-3 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"/></svg>
@@ -1350,7 +1350,7 @@
                 </div>
                 <b class="text-emerald-400 font-mono text-xs block text-left" dir="ltr">↓ ${formatSpeed(dlSpeed)}</b>
               </div>
-              <div class="bg-slate-900/60 p-2.5 rounded-xl border border-slate-700/60">
+              <div class="bg-transparent p-2.5 rounded-xl border border-slate-700/60">
                 <div class="flex items-center justify-between text-[10px] mb-1">
                   <span class="text-slate-400 flex items-center gap-1">
                     <svg class="w-3 h-3 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"/></svg>
@@ -1363,7 +1363,7 @@
             </div>
 
             <!-- System Resource Gauges (CPU & RAM Progress Bars) -->
-            <div class="space-y-2 bg-slate-900/40 p-2.5 rounded-xl border border-slate-700/50">
+            <div class="space-y-2 bg-transparent p-2.5 rounded-xl border border-slate-700/50">
               <!-- CPU Progress -->
               <div class="space-y-1">
                 <div class="flex justify-between items-center text-[10px]">
@@ -1389,18 +1389,18 @@
 
             <!-- Bottom Metrics: Connected users & Traffic -->
             <div class="grid grid-cols-2 gap-2 text-center text-[10px]">
-              <div class="bg-slate-900/60 p-2 rounded-xl border border-slate-700/60">
+              <div class="bg-transparent p-2 rounded-xl border border-slate-700/60">
                 <span class="text-slate-400 block mb-0.5">کاربران متصل</span>
                 <b class="text-emerald-600 dark:text-emerald-400 font-mono text-xs">${formatNumber(n.connected_users || 0)} نفر</b>
               </div>
-              <div class="bg-slate-900/60 p-2 rounded-xl border border-slate-700/60">
+              <div class="bg-transparent p-2 rounded-xl border border-slate-700/60">
                 <span class="text-slate-400 block mb-0.5">ترافیک مصرفی نود</span>
                 <b class="text-blue-600 dark:text-cyan-400 font-mono text-xs" dir="ltr">${n.traffic_used_gb ? n.traffic_used_gb + ' GB' : '0 GB'}</b>
               </div>
             </div>
 
             <!-- Infra-Billing & Server Cost Details Strip -->
-            <div class="bg-slate-900/70 p-2.5 rounded-xl border border-slate-700/60 space-y-2 text-[10px]">
+            <div class="bg-transparent p-2.5 rounded-xl border border-slate-700/60 space-y-2 text-[10px]">
               <div class="flex items-center justify-between">
                 <span class="text-slate-400 flex items-center gap-1">
                   <svg class="w-3.5 h-3.5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
@@ -1410,7 +1410,7 @@
                   ${n.monthly_cost_toman ? `
                     <span class="font-mono text-emerald-400">${formatNumber(n.monthly_cost_toman)}</span>
                     <span class="text-[9px] text-slate-400 font-sans">تومان</span>
-                    ${n.monthly_cost_eur ? `<span class="text-indigo-300 font-mono text-[10px] mr-1">(€${n.monthly_cost_eur})</span>` : ''}
+                    ${n.monthly_cost_eur ? `<span class="text-indigo-300 font-mono text-[10px] mr-1">(${n.currency === 'USD' ? '$' : '€'}${n.monthly_cost_eur})</span>` : ''}
                   ` : '<span class="text-slate-500 font-medium">ثبت‌نشده</span>'}
                 </div>
               </div>
@@ -1441,7 +1441,7 @@
 
               <!-- Button to configure node billing -->
               <div class="pt-1">
-                <button type="button" onclick="event.stopPropagation(); window.adminActions.openNodeBillingModal('${(n.uuid || n.id || '').replace(/'/g, "\\'")}', '${(n.name || '').replace(/'/g, "\\'")}', '${(n.provider || '').replace(/'/g, "\\'")}', ${Number(n.monthly_cost_toman || 0)}, ${Number(n.monthly_cost_eur || 0)}, '${n.due_date || ''}', '${(n.notes || '').replace(/'/g, "\\'")}', '${flag}')" class="w-full bg-slate-800 hover:bg-slate-750 text-cyan-400 hover:text-cyan-300 py-1.5 rounded-xl border border-cyan-500/30 transition flex items-center justify-center gap-1.5 font-bold active:scale-95 shadow-sm">
+                <button type="button" onclick="event.stopPropagation(); window.adminActions.openNodeBillingModal('${(n.uuid || n.id || '').replace(/'/g, "\\'")}', '${(n.name || '').replace(/'/g, "\\'")}', '${(n.provider || '').replace(/'/g, "\\'")}', ${Number(n.monthly_cost_toman || 0)}, ${Number(n.monthly_cost_eur || 0)}, '${n.due_date || ''}', '${(n.notes || '').replace(/'/g, "\\'")}', '${flag}', '${n.currency || 'EUR'}')" class="w-full bg-transparent hover:bg-cyan-500/10 text-cyan-500 dark:text-cyan-400 py-1.5 rounded-xl border border-cyan-500/30 transition flex items-center justify-center gap-1.5 font-bold active:scale-95 shadow-sm">
                   <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                   <span>مدیریت هزینه و تمدید سرور</span>
                 </button>
@@ -1511,10 +1511,11 @@
     }
 
     listContainer.innerHTML = users.map(u => {
-      // Prioritize full_name over username
-      const displayName = u.full_name || (u.username ? `@${u.username}` : `کاربر ${u.telegram_id}`);
+      // Prioritize real full_name; fallback to 'کاربر ID' if missing or starts with @
+      const rawName = u.full_name || '';
+      const displayName = (rawName && !rawName.startsWith('@')) ? rawName : `کاربر ${u.telegram_id}`;
       const safeDisplayName = (displayName || '').replace(/'/g, "\\'");
-      const initial = (u.full_name || u.username || String(u.telegram_id))[0].toUpperCase();
+      const initial = (displayName || String(u.telegram_id))[0].toUpperCase();
       const p = u.panel_account;
 
       let statusBadge = '<span class="px-1.5 py-0.5 rounded-lg text-[9px] bg-transparent border border-slate-400/30 text-slate-500 dark:text-slate-400 font-medium">بدون اکانت</span>';
@@ -1535,22 +1536,9 @@
         : '';
 
       let serviceLineHtml = `
-        <div class="bg-slate-900/40 dark:bg-slate-900/60 p-2.5 rounded-xl border border-dashed border-slate-700/60 flex flex-col gap-2">
-          <div class="flex items-center justify-between text-[11px]">
-            <div class="flex items-center gap-1.5 text-slate-400">
-              <span class="w-1.5 h-1.5 rounded-full bg-slate-500"></span>
-              <span>فاقد اشتراک فعال در پنل</span>
-            </div>
-            <span class="text-[10px] text-slate-500 font-mono">آماده صدور</span>
-          </div>
-          <div class="grid grid-cols-2 gap-1.5 pt-0.5">
-            <button onclick="window.adminActions.openModifyUser(${u.telegram_id}, '${(u.username || '').replace(/'/g, "\\'")}', '${safeDisplayName}')" class="bg-blue-600/15 hover:bg-blue-600/25 text-blue-500 dark:text-blue-400 border border-blue-500/30 rounded-lg py-1 px-2 text-[10px] font-medium transition active:scale-95 flex items-center justify-center gap-1">
-              <span>＋ صدور اشتراک جدید</span>
-            </button>
-            <button onclick="window.adminActions.openTrialModal(${u.telegram_id}, '${(u.username || '').replace(/'/g, "\\'")}', '${safeDisplayName}')" class="bg-purple-600/15 hover:bg-purple-600/25 text-purple-600 dark:text-purple-400 border border-purple-500/30 rounded-lg py-1 px-2 text-[10px] font-medium transition active:scale-95 flex items-center justify-center gap-1">
-              <span>🎁 اکانت تست</span>
-            </button>
-          </div>
+        <div class="bg-transparent p-2.5 rounded-xl border border-dashed border-slate-700/60 flex items-center justify-center text-[11px] text-slate-400 gap-1.5">
+          <span class="w-1.5 h-1.5 rounded-full bg-slate-500"></span>
+          <span>فاقد اشتراک فعال در پنل</span>
         </div>
       `;
       if (p && p.exists) {
@@ -1568,24 +1556,24 @@
 
         let barGradient = 'from-emerald-500 via-teal-400 to-cyan-400';
         let barGlow = 'shadow-[0_0_10px_rgba(52,211,153,0.35)]';
-        let badgeColor = 'text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border-emerald-500/25';
+        let badgeColor = 'text-emerald-600 dark:text-emerald-400 bg-transparent border-emerald-500/30';
         let statusLabel = `${percentUsed}% مصرف`;
 
         if (isUnlimited) {
           barGradient = 'from-blue-500 to-indigo-500';
           barGlow = 'shadow-[0_0_10px_rgba(59,130,246,0.3)]';
-          badgeColor = 'text-blue-600 dark:text-blue-400 bg-blue-500/10 border-blue-500/25';
+          badgeColor = 'text-blue-600 dark:text-blue-400 bg-transparent border-blue-500/30';
           statusLabel = 'ترافیک نامحدود';
           percentUsed = 100;
         } else if (percentUsed >= 90) {
           barGradient = 'from-rose-500 to-red-500';
           barGlow = 'shadow-[0_0_10px_rgba(244,63,94,0.4)]';
-          badgeColor = 'text-rose-600 dark:text-rose-400 bg-rose-500/10 border-rose-500/25';
+          badgeColor = 'text-rose-600 dark:text-rose-400 bg-transparent border-rose-500/30';
           statusLabel = `${percentUsed}% مصرف (بحرانی)`;
         } else if (percentUsed >= 70) {
           barGradient = 'from-amber-500 to-orange-400';
           barGlow = 'shadow-[0_0_10px_rgba(245,158,11,0.35)]';
-          badgeColor = 'text-amber-600 dark:text-amber-400 bg-amber-500/10 border-amber-500/25';
+          badgeColor = 'text-amber-600 dark:text-amber-400 bg-transparent border-amber-500/30';
           statusLabel = `${percentUsed}% مصرف`;
         }
 
@@ -1593,28 +1581,28 @@
         let timeText = 'نامحدود';
         let timeSub = 'بدون انقضا';
         let timeColor = 'text-indigo-600 dark:text-indigo-400';
-        let timeBoxBorder = 'border-indigo-500/20';
-        let timeBoxBg = 'bg-indigo-500/10';
+        let timeBoxBorder = 'border-indigo-500/30';
+        let timeBoxBg = 'bg-transparent';
 
         if (p.days_left !== undefined && p.days_left !== null) {
           if (p.days_left > 3) {
             timeText = `${formatNumber(p.days_left)} روز اعتبار`;
             timeSub = expireJalali ? `تا ${expireJalali}` : 'اعتبار فعال';
             timeColor = 'text-emerald-600 dark:text-emerald-400';
-            timeBoxBorder = 'border-emerald-500/20';
-            timeBoxBg = 'bg-emerald-500/10';
+            timeBoxBorder = 'border-emerald-500/30';
+            timeBoxBg = 'bg-transparent';
           } else if (p.days_left > 0) {
             timeText = `${formatNumber(p.days_left)} روز اعتبار`;
             timeSub = expireJalali ? `تا ${expireJalali}` : 'رو به اتمام';
             timeColor = 'text-amber-600 dark:text-amber-400';
-            timeBoxBorder = 'border-amber-500/20';
-            timeBoxBg = 'bg-amber-500/10';
+            timeBoxBorder = 'border-amber-500/30';
+            timeBoxBg = 'bg-transparent';
           } else {
             timeText = 'منقضی شده';
             timeSub = expireJalali ? `انقضا: ${expireJalali}` : 'پایان مهلت';
             timeColor = 'text-rose-600 dark:text-rose-400';
-            timeBoxBorder = 'border-rose-500/20';
-            timeBoxBg = 'bg-rose-500/10';
+            timeBoxBorder = 'border-rose-500/30';
+            timeBoxBg = 'bg-transparent';
           }
         }
 
@@ -1623,7 +1611,7 @@
         const usedDisplay = `${formatNumber(usedGb)} GB`;
 
         serviceLineHtml = `
-          <div class="bg-slate-900/70 rounded-xl p-2.5 border border-slate-700/60 space-y-2">
+          <div class="bg-transparent rounded-xl p-2.5 border border-slate-700/60 space-y-2">
             <!-- Glass Progress Bar & Top Metrics -->
             <div class="space-y-1">
               <div class="flex items-center justify-between text-[10px]">
@@ -1638,16 +1626,16 @@
                 </span>
               </div>
               <!-- Vercel-Style Glass Track -->
-              <div class="w-full h-1.5 rounded-full bg-slate-950/80 p-[1px] border border-slate-700/40 overflow-hidden relative" dir="ltr">
+              <div class="w-full h-1.5 rounded-full bg-slate-800/40 p-[1px] border border-slate-700/40 overflow-hidden relative" dir="ltr">
                 <div class="h-full rounded-full bg-gradient-to-r ${barGradient} ${barGlow} transition-all duration-500" style="width: ${percentUsed}%;"></div>
               </div>
             </div>
 
-            <!-- Dual Metric Grid (گرید دوقلو سبک ورسل) -->
+            <!-- Dual Metric Grid (گرید دوقلو بدون پس‌زمینه) -->
             <div class="grid grid-cols-2 gap-2 pt-1 border-t border-slate-800/80 text-[10px]">
               <!-- Column 1: Remaining Volume -->
-              <div class="bg-slate-950/40 rounded-lg p-1.5 border border-slate-800/60 flex items-center gap-2">
-                <div class="w-7 h-7 rounded-md bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-500 dark:text-cyan-400 text-xs shrink-0">
+              <div class="bg-transparent rounded-lg p-1.5 border border-slate-700/60 flex items-center gap-2">
+                <div class="w-7 h-7 rounded-md bg-transparent border border-cyan-500/30 flex items-center justify-center text-cyan-500 dark:text-cyan-400 text-xs shrink-0">
                   ⚡
                 </div>
                 <div class="min-w-0 flex-1 leading-tight">
@@ -1659,8 +1647,8 @@
               </div>
 
               <!-- Column 2: Time & Expiration -->
-              <div class="bg-slate-950/40 rounded-lg p-1.5 border border-slate-800/60 flex items-center gap-2">
-                <div class="w-7 h-7 rounded-md ${timeBoxBg} border ${timeBoxBorder} flex items-center justify-center ${timeColor} text-xs shrink-0">
+              <div class="bg-transparent rounded-lg p-1.5 border border-slate-700/60 flex items-center gap-2">
+                <div class="w-7 h-7 rounded-md bg-transparent border ${timeBoxBorder} flex items-center justify-center ${timeColor} text-xs shrink-0">
                   ⏳
                 </div>
                 <div class="min-w-0 flex-1 leading-tight">
@@ -3256,6 +3244,7 @@
         const bestEur = res.best_eur || {};
         window.lastLiveCryptoRates = { ton: bestTon.price, usdt: bestUsdt.price, eur: bestEur.price };
         if (bestEur.price) window.currentEurRate = bestEur.price;
+        if (bestUsdt.price) window.currentUsdRate = bestUsdt.price;
 
         const usdtList = Object.entries(res.usdt_prices || {});
         const eurList = Object.entries(res.eur_prices || {});
@@ -3364,6 +3353,7 @@
         const inp = document.getElementById('settingUsdtRate');
         if (inp) inp.value = numVal;
         payload.usdt_rate_toman = numVal;
+        window.currentUsdRate = numVal;
       } else if (type === 'eur') {
         const inp = document.getElementById('settingEurRate');
         if (inp) inp.value = numVal;
@@ -3395,7 +3385,10 @@
       const usdtInp = document.getElementById('settingUsdtRate');
       const eurInp = document.getElementById('settingEurRate');
       const tonInp = document.getElementById('settingTonRate');
-      if (usdtInp && rates.usdt) usdtInp.value = rates.usdt;
+      if (usdtInp && rates.usdt) {
+        usdtInp.value = rates.usdt;
+        window.currentUsdRate = rates.usdt;
+      }
       if (eurInp && rates.eur) {
         eurInp.value = rates.eur;
         window.currentEurRate = rates.eur;
@@ -3510,7 +3503,7 @@
     },
 
     // --- Node Infra-Billing & Cost Actions ---
-    openNodeBillingModal(nodeUuid, nodeName, provider = '', costToman = 0, costEur = 0, dueDate = '', notes = '', flag = '🖥️') {
+    openNodeBillingModal(nodeUuid, nodeName, provider = '', costToman = 0, costEur = 0, dueDate = '', notes = '', flag = '🖥️', currency = 'EUR') {
       const modal = document.getElementById('nodeBillingModal');
       if (!modal) return;
       document.getElementById('nodeBillingUuid').value = nodeUuid || '';
@@ -3528,22 +3521,62 @@
         jalaliPreview.innerText = dueDate ? (window.formatDateToJalali ? window.formatDateToJalali(dueDate) : dueDate.slice(0, 10)) : '';
       }
 
-      const eurHint = document.getElementById('nodeBillingEurConvertHint');
-      const eurText = document.getElementById('nodeBillingEurConvertText');
-      if (eurHint && eurText) {
-        const eurVal = parseFloat(costEur || 0);
-        if (eurVal > 0) {
-          const rate = window.currentEurRate || 105000;
-          const calculatedToman = Math.round(eurVal * rate);
-          eurText.innerText = `محاسبه خودکار: €${eurVal} × ${formatNumber(rate)} = ${formatNumber(costToman || calculatedToman)} تومان`;
-          eurHint.classList.remove('hidden');
-        } else {
-          eurHint.classList.add('hidden');
-        }
-      }
+      this.setNodeBillingCurrency(currency || 'EUR', false);
+      this.updateNodeBillingConversion(false);
 
       modal.classList.remove('hidden');
       if (window.hapticFeedback) window.hapticFeedback('selection');
+    },
+
+    setNodeBillingCurrency(curr = 'EUR', recalculate = true) {
+      const isEur = String(curr).toUpperCase() === 'EUR';
+      const hiddenInput = document.getElementById('nodeBillingCurrency');
+      if (hiddenInput) hiddenInput.value = isEur ? 'EUR' : 'USD';
+
+      const eurBtn = document.getElementById('nodeBillingCurrEur');
+      const usdBtn = document.getElementById('nodeBillingCurrUsd');
+      const symbolSpan = document.getElementById('nodeBillingCurrencySymbol');
+
+      if (eurBtn && usdBtn) {
+        if (isEur) {
+          eurBtn.className = 'px-2 py-0.5 rounded font-bold transition text-cyan-400 bg-slate-700 shadow-sm';
+          usdBtn.className = 'px-2 py-0.5 rounded font-bold transition text-slate-400 hover:text-white';
+        } else {
+          usdBtn.className = 'px-2 py-0.5 rounded font-bold transition text-emerald-400 bg-slate-700 shadow-sm';
+          eurBtn.className = 'px-2 py-0.5 rounded font-bold transition text-slate-400 hover:text-white';
+        }
+      }
+      if (symbolSpan) {
+        symbolSpan.innerText = isEur ? '€' : '$';
+      }
+
+      if (recalculate) {
+        this.updateNodeBillingConversion(true);
+      }
+    },
+
+    updateNodeBillingConversion(forceRecalcToman = false) {
+      const curr = (document.getElementById('nodeBillingCurrency')?.value || 'EUR').toUpperCase();
+      const valInput = document.getElementById('nodeBillingCostEur');
+      const tomanInput = document.getElementById('nodeBillingCostToman');
+      const hint = document.getElementById('nodeBillingEurConvertHint');
+      const text = document.getElementById('nodeBillingEurConvertText');
+      if (!valInput || !hint || !text) return;
+
+      const numVal = parseFloat(valInput.value || '0');
+      if (!isNaN(numVal) && numVal > 0) {
+        const rate = curr === 'USD' ? (window.currentUsdRate || 95000) : (window.currentEurRate || 105000);
+        const symbol = curr === 'USD' ? '$' : '€';
+        const convertedToman = Math.round(numVal * rate);
+        if (tomanInput && (forceRecalcToman || document.activeElement === valInput || !tomanInput.value)) {
+          tomanInput.value = convertedToman;
+        }
+        const currentTomanVal = parseInt(tomanInput?.value || '0', 10);
+        text.innerText = `محاسبه خودکار: ${symbol}${numVal} × ${formatNumber(rate)} = ${formatNumber(currentTomanVal || convertedToman)} تومان`;
+        hint.classList.remove('hidden');
+      } else {
+        hint.classList.add('hidden');
+      }
     },
 
     closeNodeBillingModal() {
@@ -3557,6 +3590,7 @@
       const provider = document.getElementById('nodeBillingProvider')?.value?.trim();
       const monthly_cost_toman = parseInt(document.getElementById('nodeBillingCostToman')?.value || '0', 10);
       const monthly_cost_eur = parseFloat(document.getElementById('nodeBillingCostEur')?.value || '0');
+      const currency = (document.getElementById('nodeBillingCurrency')?.value || 'EUR').toUpperCase();
       const due_date = document.getElementById('nodeBillingDueDate')?.value?.trim() || null;
       const notes = document.getElementById('nodeBillingNotes')?.value?.trim();
 
@@ -3578,6 +3612,7 @@
           provider,
           monthly_cost_toman,
           monthly_cost_eur,
+          currency,
           due_date,
           notes,
         };
@@ -3936,6 +3971,7 @@
       // Crypto & Rates
       const usdtRate = document.getElementById('settingUsdtRate');
       if (usdtRate) usdtRate.value = s.usdt_rate_toman ?? 95000;
+      if (s.usdt_rate_toman) window.currentUsdRate = s.usdt_rate_toman;
 
       const eurRate = document.getElementById('settingEurRate');
       if (eurRate) eurRate.value = s.eur_rate_toman ?? 105000;
@@ -4250,21 +4286,8 @@
   const nodeDueDateInput = document.getElementById('nodeBillingDueDate');
   const nodeJalaliPreview = document.getElementById('nodeBillingJalaliPreview');
 
-  nodeCostEurInput?.addEventListener('input', (e) => {
-    const eurVal = parseFloat(e.target.value || '0');
-    if (!isNaN(eurVal) && eurVal > 0) {
-      const rate = window.currentEurRate || 105000;
-      const convertedToman = Math.round(eurVal * rate);
-      if (nodeCostTomanInput) {
-        nodeCostTomanInput.value = convertedToman;
-      }
-      if (nodeEurHint && nodeEurHintText) {
-        nodeEurHintText.innerText = `محاسبه خودکار: €${eurVal} × ${formatNumber(rate)} = ${formatNumber(convertedToman)} تومان`;
-        nodeEurHint.classList.remove('hidden');
-      }
-    } else {
-      if (nodeEurHint) nodeEurHint.classList.add('hidden');
-    }
+  nodeCostEurInput?.addEventListener('input', () => {
+    window.adminActions?.updateNodeBillingConversion();
   });
 
   nodeDueDateInput?.addEventListener('input', (e) => {
@@ -4278,6 +4301,13 @@
     const val = parseInt(e.target.value, 10);
     if (!isNaN(val) && val > 0) {
       window.currentEurRate = val;
+    }
+  });
+
+  document.getElementById('settingUsdtRate')?.addEventListener('input', (e) => {
+    const val = parseInt(e.target.value, 10);
+    if (!isNaN(val) && val > 0) {
+      window.currentUsdRate = val;
     }
   });
 
@@ -4310,6 +4340,7 @@
   window.openNodeBillingModal = (...args) => window.adminActions.openNodeBillingModal(...args);
   window.closeNodeBillingModal = () => window.adminActions.closeNodeBillingModal();
   window.saveNodeBilling = () => window.adminActions.saveNodeBilling();
+  window.setNodeBillingCurrency = (curr) => window.adminActions.setNodeBillingCurrency(curr);
 
   // Initial Sync
   syncAdminOverview();

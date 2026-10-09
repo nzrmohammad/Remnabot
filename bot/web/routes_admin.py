@@ -358,6 +358,7 @@ async def get_admin_overview(request: web.Request) -> web.Response:
 
             n_cost_toman = cost_entry.monthly_cost_toman if cost_entry else 0
             n_cost_eur = cost_entry.monthly_cost_eur if cost_entry else 0.0
+            n_currency = getattr(cost_entry, "currency", "EUR") or "EUR" if cost_entry else "EUR"
             n_provider = cost_entry.provider if cost_entry else None
             n_notes = cost_entry.notes if cost_entry else None
             n_cost_per_gb = round(n_cost_toman / traffic_used_gb, 0) if (n_cost_toman > 0 and traffic_used_gb > 0) else 0.0
@@ -379,6 +380,7 @@ async def get_admin_overview(request: web.Request) -> web.Response:
                 "provider": n_provider,
                 "monthly_cost_toman": n_cost_toman,
                 "monthly_cost_eur": n_cost_eur,
+                "currency": n_currency,
                 "due_date": due_date_str,
                 "due_date_jalali": due_date_jalali,
                 "days_until_due": days_until_due,
@@ -1018,7 +1020,7 @@ async def get_admin_users(request: web.Request) -> web.Response:
                 p_name = p.get("name") if (p and p.get("name") and p.get("name") != u.username and not str(p.get("name")).startswith("@")) else None
                 profile_name = p_desc or p_name
 
-            full_name = profile_name or (f"@{u.username}" if u.username else f"کاربر {u.telegram_id}")
+            full_name = profile_name or f"کاربر {u.telegram_id}"
 
             user_items.append({
                 "telegram_id": u.telegram_id,
@@ -2766,6 +2768,7 @@ async def get_admin_infra_billing(request: web.Request) -> web.Response:
 
                 cost_toman = cost_item.monthly_cost_toman if cost_item else 0
                 cost_eur = cost_item.monthly_cost_eur if cost_item else 0.0
+                currency = getattr(cost_item, "currency", "EUR") or "EUR" if cost_item else "EUR"
                 provider = cost_item.provider if cost_item else None
                 notes = cost_item.notes if cost_item else None
                 cost_per_gb = round(cost_toman / traffic_gb, 0) if (cost_toman > 0 and traffic_gb > 0) else 0.0
@@ -2784,6 +2787,7 @@ async def get_admin_infra_billing(request: web.Request) -> web.Response:
                     "provider": provider,
                     "monthly_cost_toman": cost_toman,
                     "monthly_cost_eur": cost_eur,
+                    "currency": currency,
                     "due_date": due_date_str,
                     "due_date_jalali": due_date_jalali,
                     "days_until_due": days_left,
@@ -2845,6 +2849,10 @@ async def post_admin_node_cost(request: web.Request) -> web.Response:
     except (ValueError, TypeError):
         monthly_cost_eur = 0.0
 
+    currency = str(body.get("currency") or "EUR").strip().upper()
+    if currency not in ("EUR", "USD"):
+        currency = "EUR"
+
     raw_due_date = body.get("due_date")
     due_date = None
     if raw_due_date:
@@ -2868,6 +2876,7 @@ async def post_admin_node_cost(request: web.Request) -> web.Response:
             provider=provider,
             monthly_cost_toman=monthly_cost_toman,
             monthly_cost_eur=monthly_cost_eur,
+            currency=currency,
             due_date=due_date,
             notes=notes,
         )
