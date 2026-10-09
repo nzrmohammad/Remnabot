@@ -92,23 +92,40 @@ function renderWonCoupons(data) {
     } catch(e) {}
   }
 
+  container.classList.remove('hidden');
+
   if (!coupons || coupons.length === 0) {
-    container.classList.add('hidden');
-    list.innerHTML = '';
+    list.innerHTML = `
+      <div class="w-full p-2.5 rounded-xl bg-slate-900/50 border border-slate-700/50 flex items-center justify-between text-xs">
+        <div class="flex items-center gap-1.5 text-slate-400">
+          <span>🎟</span>
+          <span class="text-[11px]">هنوز کد تخفیفی برنده نشده‌اید</span>
+        </div>
+        <button type="button" onclick="openModal('luckyWheelModal')" class="text-[11px] text-amber-400 hover:text-amber-300 font-bold flex items-center gap-1 transition">
+          <span>🎡</span>
+          <span>گردونه شانس</span>
+        </button>
+      </div>
+    `;
     return;
   }
 
-  container.classList.remove('hidden');
   list.innerHTML = coupons.map(c => `
-    <button type="button" class="won-coupon-chip flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-amber-300 transition text-[11px] font-mono active:scale-95 shadow-sm group cursor-pointer" data-code="${c.code}" title="کلیک جهت اعمال خودکار کد تخفیف">
-      <span class="text-xs">🎟</span>
-      <span class="font-bold text-white group-hover:text-amber-200">${c.code}</span>
-      <span class="text-[10px] text-emerald-400 font-sans font-bold">(٪${c.discount_percent || 10})</span>
-      <span class="text-[9px] text-cyan-400 font-sans bg-cyan-950/40 px-1.5 py-0.5 rounded border border-cyan-800/40 mr-1">⚡️ اعمال</span>
-    </button>
+    <div class="won-coupon-card flex-1 min-w-[140px] flex items-center justify-between gap-2 p-2 rounded-xl bg-amber-500/10 border border-amber-500/30 transition shadow-sm">
+      <div class="text-right">
+        <div class="flex items-center gap-1">
+          <span class="text-xs">🎟</span>
+          <span class="font-bold font-mono text-white text-xs">${escapeHtml(c.code)}</span>
+        </div>
+        <span class="text-[10px] text-emerald-400 font-sans block mt-0.5">٪${c.discount_percent || 10} تخفیف</span>
+      </div>
+      <button type="button" class="won-coupon-apply-btn bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-2.5 py-1 rounded-lg text-[10px] transition active:scale-95 shadow shrink-0" data-code="${escapeHtml(c.code)}">
+        ⚡️ اعمال
+      </button>
+    </div>
   `).join('');
 
-  list.querySelectorAll('.won-coupon-chip').forEach(btn => {
+  list.querySelectorAll('.won-coupon-apply-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       const code = btn.getAttribute('data-code');
       if (code && typeof window.applyCouponCodeDirectly === 'function') {
@@ -116,6 +133,18 @@ function renderWonCoupons(data) {
       }
     });
   });
+}
+
+function formatPlanTitle(name) {
+  if (!name) return '';
+  const emojiRegex = /[\p{Extended_Pictographic}\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu;
+  const emojis = name.match(emojiRegex);
+  if (!emojis || emojis.length === 0) {
+    return `<span class="inline-block font-bold">${escapeHtml(name)}</span>`;
+  }
+  const emojiStr = emojis.join('');
+  const cleanText = name.replace(emojiRegex, '').trim();
+  return `<span class="inline-flex items-center gap-1.5" dir="ltr"><span class="shrink-0 text-base">${emojiStr}</span><span class="font-bold">${escapeHtml(cleanText)}</span></span>`;
 }
 
 function renderShopPlans(data) {
@@ -150,7 +179,7 @@ function renderShopPlans(data) {
         <div class="flex justify-between items-start ${isPopular ? 'mt-1' : ''}">
           <div>
             <div class="flex items-center gap-2">
-              <h4 class="font-bold text-sm text-white">${p.name}</h4>
+              <h4 class="font-bold text-sm text-white">${formatPlanTitle(p.name)}</h4>
               ${discountVal > 0 ? '<span class="text-[10px] text-emerald-400 font-bold bg-transparent border-0 px-0 py-0">🏷 تخفیف ویژه</span>' : ''}
             </div>
             <p class="text-xs text-slate-400 mt-1">${p.description || 'ترافیک پایدار و بدون محدودیت روی تمام سرورها'}</p>
@@ -198,7 +227,7 @@ function openCheckoutConfirmModal(plan) {
   const topupBtn = document.getElementById('checkoutTopupBtn');
   const confirmBtn = document.getElementById('confirmPurchaseBtn');
 
-  if (nameEl) nameEl.innerText = plan.name;
+  if (nameEl) nameEl.innerHTML = formatPlanTitle(plan.name);
   if (trafEl) trafEl.innerText = `${plan.traffic} GB`;
   if (daysEl) daysEl.innerText = `${plan.days} روز`;
   if (priceEl) priceEl.innerText = `${Number(planPrice).toLocaleString('en-US')} تومان`;

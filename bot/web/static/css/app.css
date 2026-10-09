@@ -778,10 +778,12 @@ html.theme-light #couponInput {
   color: #0f172a !important;
 }
 
-/* Modals in Light Theme: Top-up, QR, Checkout, Sessions, Revoke */
+/* Modals in Light Theme: Top-up, QR, Checkout, Sessions, Revoke, Configs */
 html.theme-light .topup-modal-card,
 html.theme-light .qr-modal-card,
 html.theme-light .checkout-modal-card,
+html.theme-light .configs-modal-card,
+html.theme-light #configsModal > div,
 html.theme-light #activeSessionsModal > div,
 html.theme-light #switchAccountModal > div,
 html.theme-light #revokeModal > div,
@@ -797,6 +799,8 @@ html.theme-light #supportChatModal > div {
 html.theme-light .topup-modal-card .text-white,
 html.theme-light .qr-modal-card .text-white,
 html.theme-light .checkout-modal-card .text-white,
+html.theme-light .configs-modal-card .text-white,
+html.theme-light #configsModal .text-white,
 html.theme-light #activeSessionsModal .text-white,
 html.theme-light #switchAccountModal .text-white,
 html.theme-light #revokeModal .text-white,
@@ -811,11 +815,37 @@ html.theme-light .topup-modal-card .text-slate-300,
 html.theme-light .qr-modal-card .text-slate-300,
 html.theme-light .checkout-modal-card .text-slate-200,
 html.theme-light .checkout-modal-card .text-slate-300,
+html.theme-light .configs-modal-card .text-slate-300,
+html.theme-light #configsModal .text-slate-300,
 html.theme-light #activeSessionsModal .text-slate-200,
 html.theme-light #activeSessionsModal .text-slate-300,
 html.theme-light #revokeModal .text-slate-300,
 html.theme-light #purchaseSuccessModal .text-slate-300 {
   color: #334155 !important;
+}
+
+html.theme-light .config-row-item {
+  background-color: #f8fafc !important;
+  border-color: #e2e8f0 !important;
+}
+
+html.theme-light .config-row-item .config-name-label {
+  color: #0f172a !important;
+}
+
+html.theme-light .copy-single-cfg-btn,
+html.theme-light .qr-single-cfg-btn {
+  color: #475569 !important;
+  background-color: transparent !important;
+}
+
+html.theme-light .copy-single-cfg-btn:hover,
+html.theme-light .qr-single-cfg-btn:hover {
+  color: #0284c7 !important;
+}
+
+html.theme-light .kill-device-btn {
+  background-color: transparent !important;
 }
 
 html.theme-light .topup-modal-card .bg-slate-900,

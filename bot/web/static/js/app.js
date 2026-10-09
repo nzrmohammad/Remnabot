@@ -198,25 +198,18 @@ function setupConfigsModal() {
           const safeName = escapeHtml(c.name || 'کانفیگ سرور');
 
           return `
-            <div class="bg-transparent rounded-2xl p-3 border border-slate-700/60 space-y-2">
-              <div class="flex items-center justify-between">
-                <div class="flex items-center gap-2 overflow-hidden">
-                  <span class="text-xl shrink-0">${c.flag || '🌐'}</span>
-                  <div class="truncate text-right">
-                    <span class="text-xs font-bold text-slate-200 block truncate" title="${safeName}">${safeName}</span>
-                    <span class="text-[10px] text-slate-400 font-mono">${c.country_name || 'سرور'}</span>
-                  </div>
-                </div>
-                <span class="text-[9px] font-mono font-bold uppercase px-2 py-0.5 rounded-lg shrink-0 ${colorClass}">${proto}</span>
+            <div class="config-row-item bg-transparent rounded-2xl p-2.5 border border-slate-700/60 flex items-center justify-between gap-2 transition hover:border-slate-600">
+              <div class="flex items-center gap-2 overflow-hidden flex-1">
+                <span class="text-base shrink-0">${c.flag || '🌐'}</span>
+                <span class="text-xs font-bold text-slate-200 truncate config-name-label" title="${safeName}">${safeName}</span>
+                <span class="text-[9px] font-mono font-bold uppercase px-1.5 py-0.5 rounded-md shrink-0 ${colorClass}">${proto}</span>
               </div>
-              <div class="flex items-center gap-2 pt-1 border-t border-slate-800/50">
-                <button type="button" class="copy-single-cfg-btn flex-1 bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white py-1.5 px-2 rounded-xl text-[11px] font-medium border border-slate-700 transition flex items-center justify-center gap-1 active:scale-95 shadow-sm" data-uri="${encodeURIComponent(c.uri)}">
-                  <span>📋</span>
-                  <span>کپی کانفیگ</span>
+              <div class="flex items-center gap-1 shrink-0">
+                <button type="button" class="copy-single-cfg-btn text-slate-300 hover:text-cyan-400 bg-transparent border-0 p-1.5 rounded-lg transition active:scale-95 text-sm" data-uri="${encodeURIComponent(c.uri)}" title="کپی کانفیگ">
+                  📋
                 </button>
-                <button type="button" class="qr-single-cfg-btn bg-slate-800 hover:bg-slate-700 text-cyan-400 hover:text-cyan-300 py-1.5 px-3 rounded-xl text-[11px] font-medium border border-slate-700 transition flex items-center justify-center gap-1 active:scale-95 shadow-sm" data-uri="${encodeURIComponent(c.uri)}" data-name="${encodeURIComponent(c.name)}" title="نمایش کیوآرکد">
-                  <span>📷</span>
-                  <span>QR</span>
+                <button type="button" class="qr-single-cfg-btn text-slate-300 hover:text-cyan-400 bg-transparent border-0 p-1.5 rounded-lg transition active:scale-95 text-sm" data-uri="${encodeURIComponent(c.uri)}" data-name="${encodeURIComponent(c.name)}" title="نمایش کیوآرکد">
+                  📷
                 </button>
               </div>
             </div>
@@ -230,9 +223,9 @@ function setupConfigsModal() {
             if (uri) {
               copyToClipboard(uri, '📋 کانفیگ اختصاصی با موفقیت در کلیپ‌بورد کپی شد.');
               hapticFeedback('success');
-              btn.innerHTML = '<span>✅</span> <span>کپی شد!</span>';
+              btn.innerText = '✅';
               setTimeout(() => {
-                btn.innerHTML = '<span>📋</span> <span>کپی کانفیگ</span>';
+                btn.innerText = '📋';
               }, 1800);
             }
           });
@@ -288,16 +281,6 @@ function setupConfigsModal() {
       closeModal('configsModal');
       syncTelegramBackButton();
     }
-  });
-
-  copyAllConfigsBtn?.addEventListener('click', () => {
-    if (!currentConfigsList || currentConfigsList.length === 0) {
-      showToast('⚠️ کانفیگی برای کپی یافت نشد.');
-      return;
-    }
-    const allText = currentConfigsList.map(c => c.uri).join('\n');
-    copyToClipboard(allText, `📋 تمام ${currentConfigsList.length} کانفیگ در کلیپ‌بورد کپی شدند.`);
-    hapticFeedback('success');
   });
 }
 
@@ -686,18 +669,18 @@ function setupSupportChat() {
 
     const bubble = document.createElement('div');
     if (isUser) {
-      bubble.className = 'flex items-start justify-end gap-2 max-w-[85%] mr-auto animate-fadeIn';
+      bubble.className = 'self-start ml-auto mr-0 max-w-[85%] animate-fadeIn';
       bubble.innerHTML = `
-        <div class="chat-user-bubble border border-blue-500/40 bg-blue-500/10 rounded-2xl rounded-tl-none p-2.5 text-blue-100 leading-relaxed shadow-sm">
+        <div class="chat-user-bubble border border-blue-500/40 bg-blue-500/10 rounded-2xl rounded-tr-none p-2.5 text-blue-100 leading-relaxed shadow-sm text-right">
           ${safeText}
           <span class="text-[9px] text-blue-300 block text-left mt-1 font-mono" dir="ltr">${timeStr}</span>
         </div>
       `;
     } else {
-      bubble.className = 'flex items-start gap-2 max-w-[85%] animate-fadeIn';
+      bubble.className = 'self-end mr-auto ml-0 max-w-[85%] flex items-start gap-2 animate-fadeIn';
       bubble.innerHTML = `
-        <div class="w-6 h-6 rounded-full bg-emerald-600 flex items-center justify-center text-[10px] shrink-0 text-white">🎧</div>
-        <div class="chat-admin-bubble border border-slate-700/60 bg-slate-800/25 rounded-2xl rounded-tr-none p-2.5 text-slate-200 leading-relaxed shadow-sm">
+        <div class="w-6 h-6 rounded-full bg-emerald-600 flex items-center justify-center text-[10px] shrink-0 text-white mt-0.5">🎧</div>
+        <div class="chat-admin-bubble border border-slate-700/60 bg-slate-800/25 rounded-2xl rounded-tl-none p-2.5 text-slate-200 leading-relaxed shadow-sm text-right">
           ${safeText}
           <span class="text-[9px] text-slate-400 block text-left mt-1 font-mono" dir="ltr">${timeStr}</span>
         </div>
@@ -1323,8 +1306,8 @@ function renderActiveSubAnalytics(sub) {
               <div class="text-[11px] font-mono text-cyan-400 mt-0.5">IP: ${ip}</div>
             </div>
           </div>
-          <button class="kill-device-btn text-rose-400 hover:text-white w-8 h-8 rounded-xl bg-rose-950/40 hover:bg-rose-900 border border-rose-800/50 text-xs transition active:scale-95 flex items-center justify-center shadow-sm" title="قطع این دستگاه" data-hwid="${hwid}">
-            <svg class="w-4 h-4 text-rose-400 hover:text-rose-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+          <button class="kill-device-btn text-rose-400 hover:text-rose-300 w-8 h-8 rounded-xl bg-transparent hover:bg-rose-950/30 border-0 text-xs transition active:scale-95 flex items-center justify-center" title="قطع این دستگاه" data-hwid="${hwid}">
+            <svg class="w-4 h-4 text-rose-400 hover:text-rose-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
           </button>
         </div>
       `;
