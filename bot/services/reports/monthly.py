@@ -7,7 +7,7 @@ from aiogram import Bot
 from aiogram.exceptions import TelegramAPIError
 
 from bot.common import SEPARATOR
-from bot.db.models import User
+from bot.db.models import ReportSettings, User
 from bot.locales.texts import t
 from bot.services.formatting import format_date, format_datetime, human_bytes
 from bot.services.remnawave import RemnawaveClient
@@ -145,12 +145,25 @@ async def _monthly_text_for_user(
 
 
 async def _send_monthly_for_user(
-    bot: Bot, user: User, remnawave: RemnawaveClient, now: datetime
+    bot: Bot,
+    user: User,
+    remnawave: RemnawaveClient,
+    now: datetime,
+    prefs: ReportSettings | None = None,
 ) -> None:
     text = await _monthly_text_for_user(user, remnawave, now)
     if not text:
         return
+
+    if prefs and prefs.clean_reports and prefs.last_report_message_id:
+        try:
+            await bot.delete_message(user.telegram_id, prefs.last_report_message_id)
+        except Exception:
+            pass
+
     try:
-        await bot.send_message(user.telegram_id, text)
+        sent_msg = await bot.send_message(user.telegram_id, text)
+        if prefs and prefs.clean_reports and sent_msg:
+            prefs.last_report_message_id = sent_msg.message_id
     except TelegramAPIError as exc:
         logger.warning("monthly report not delivered to %s: %s", user.telegram_id, exc)

@@ -271,11 +271,22 @@ FA_TEXTS: dict[str, str] = {
         "settings_weekly_hint": "جمعه‌شب‌ها ساعت ۲۳:۵۹ گزارش کامل هفته ارسال می‌شود.",
         "settings_monthly_label": "🗓 گزارش ماهانه",
         "settings_monthly_hint": "آخرین روز ماه شمسی ساعت ۲۳:۵۹ گزارش کامل ماه ارسال می‌شود.",
+        "settings_clean_reports_label": "🧹 پاکسازی گزارش‌های قبلی",
+        "settings_clean_reports_hint": "قبل از ارسال گزارش جدید، گزارش قبلی در چت حذف می‌شود تا صفحه شلوغ نشود.",
+        "settings_wheel_notify_label": "🎡 یادآور گردونه شانس",
+        "settings_wheel_notify_hint": "به محض اتمام ۲۴ ساعت و شارژ مجدد گردونه، پیام یادآوری ارسال می‌شود.",
         "toggle_on": "روشن",
         "toggle_off": "خاموش",
         "btn_toggle_nightly": "🌙 گزارش شبانه {state}",
         "btn_toggle_weekly": "📊 گزارش هفتگی {state}",
         "btn_toggle_monthly": "🗓 گزارش ماهانه {state}",
+        "btn_toggle_clean_reports": "🧹 پاکسازی قبلی {state}",
+        "btn_toggle_wheel_notify": "🎡 یادآور گردونه {state}",
+        "wheel_ready_notify": (
+            "🎡 <b>گردونه شانس آماده چرخش است!</b>\n\n"
+            "هم‌اکنون شانس روزانه شما شارژ شده و می‌توانید با چرخاندن گردونه در مینی‌اپ، "
+            "جوایز ویژه (حجم، اعتبار یا تخفیف) دریافت کنید 👇"
+        ),
         # --- services ---
         "services_title": "📦 <b>سرویس‌ها</b>",
         "services_active_empty": "در حال حاضر سرویسی موجود نیست. کمی بعد دوباره تلاش کنید.",

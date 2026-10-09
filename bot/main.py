@@ -30,6 +30,7 @@ from bot.services.reports import (
     monthly_report_loop,
     nightly_report_loop,
     weekly_report_loop,
+    wheel_reminder_loop,
 )
 from bot.services.node_monitor import nodes_monitor_loop
 from bot.services.traffic_monitor import traffic_monitor_loop
@@ -140,16 +141,57 @@ async def _migrate_schema(engine: AsyncEngine) -> None:
                 )
                 logger.info("added orders.refunded_at")
 
-        # --- report_settings.monthly (new column) ---------------------- #
+        # --- report_settings columns (monthly, clean_reports, last_report_message_id, wheel_notify, wheel_notified, wheel_last_spin_at) --- #
         cols = await _table_columns(conn, "report_settings")
-        if cols and "monthly" not in cols:
-            await conn.execute(
-                text(
-                    "ALTER TABLE report_settings ADD COLUMN monthly "
-                    "BOOLEAN NOT NULL DEFAULT TRUE"
+        if cols:
+            if "monthly" not in cols:
+                await conn.execute(
+                    text(
+                        "ALTER TABLE report_settings ADD COLUMN monthly "
+                        "BOOLEAN NOT NULL DEFAULT TRUE"
+                    )
                 )
-            )
-            logger.info("added report_settings.monthly")
+                logger.info("added report_settings.monthly")
+            if "clean_reports" not in cols:
+                await conn.execute(
+                    text(
+                        "ALTER TABLE report_settings ADD COLUMN clean_reports "
+                        "BOOLEAN NOT NULL DEFAULT TRUE"
+                    )
+                )
+                logger.info("added report_settings.clean_reports")
+            if "last_report_message_id" not in cols:
+                await conn.execute(
+                    text(
+                        "ALTER TABLE report_settings ADD COLUMN last_report_message_id "
+                        "BIGINT"
+                    )
+                )
+                logger.info("added report_settings.last_report_message_id")
+            if "wheel_notify" not in cols:
+                await conn.execute(
+                    text(
+                        "ALTER TABLE report_settings ADD COLUMN wheel_notify "
+                        "BOOLEAN NOT NULL DEFAULT TRUE"
+                    )
+                )
+                logger.info("added report_settings.wheel_notify")
+            if "wheel_notified" not in cols:
+                await conn.execute(
+                    text(
+                        "ALTER TABLE report_settings ADD COLUMN wheel_notified "
+                        "BOOLEAN NOT NULL DEFAULT FALSE"
+                    )
+                )
+                logger.info("added report_settings.wheel_notified")
+            if "wheel_last_spin_at" not in cols:
+                await conn.execute(
+                    text(
+                        "ALTER TABLE report_settings ADD COLUMN wheel_last_spin_at "
+                        "TIMESTAMPTZ"
+                    )
+                )
+                logger.info("added report_settings.wheel_last_spin_at")
 
         # --- topups.receipt_hash (duplicate-receipt fingerprint) --------- #
         cols = await _table_columns(conn, "topups")
@@ -304,6 +346,9 @@ async def main() -> None:
         ),
         asyncio.create_task(
             traffic_monitor_loop(remnawave, session_factory), name="traffic-monitor-loop"
+        ),
+        asyncio.create_task(
+            wheel_reminder_loop(bot, session_factory), name="wheel-reminder-loop"
         ),
     ]
 

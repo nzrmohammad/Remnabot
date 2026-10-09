@@ -88,6 +88,10 @@ async def post_user_settings(request: web.Request) -> web.Response:
             rep_settings.weekly = bool(body["weekly"])
         if "monthly" in body:
             rep_settings.monthly = bool(body["monthly"])
+        if "clean_reports" in body:
+            rep_settings.clean_reports = bool(body["clean_reports"])
+        if "wheel_notify" in body:
+            rep_settings.wheel_notify = bool(body["wheel_notify"])
         if "low_traffic" in body:
             alert_settings.traffic_percent = 80 if body["low_traffic"] else 0
         if "expire_warning" in body:
@@ -100,6 +104,10 @@ async def post_user_settings(request: web.Request) -> web.Response:
             rep_settings.weekly = bool(value)
         elif key == "monthly":
             rep_settings.monthly = bool(value)
+        elif key == "clean_reports":
+            rep_settings.clean_reports = bool(value)
+        elif key == "wheel_notify":
+            rep_settings.wheel_notify = bool(value)
         elif key == "low_traffic":
             alert_settings.traffic_percent = 80 if value else 0
         elif key == "expire_warning":
@@ -115,6 +123,8 @@ async def post_user_settings(request: web.Request) -> web.Response:
                 "nightly": bool(rep_settings.nightly),
                 "weekly": bool(rep_settings.weekly),
                 "monthly": bool(rep_settings.monthly),
+                "clean_reports": bool(rep_settings.clean_reports),
+                "wheel_notify": bool(rep_settings.wheel_notify),
                 "low_traffic": bool(alert_settings.traffic_percent > 0),
                 "expire_warning": bool(alert_settings.expire_days > 0),
             },

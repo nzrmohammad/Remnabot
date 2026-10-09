@@ -272,11 +272,22 @@ EN_TEXTS: dict[str, str] = {
         "settings_weekly_hint": "A full usage report every Friday night at 23:59.",
         "settings_monthly_label": "🗓 Monthly report",
         "settings_monthly_hint": "A full usage report on the last day of the Jalali month at 23:59.",
+        "settings_clean_reports_label": "🧹 Auto Clean Reports",
+        "settings_clean_reports_hint": "Deletes the previous report message before sending a new one to keep chat tidy.",
+        "settings_wheel_notify_label": "🎡 Lucky Wheel Reminder",
+        "settings_wheel_notify_hint": "Receive a Telegram message as soon as your 24h wheel cooldown ends.",
         "toggle_on": "On",
         "toggle_off": "Off",
         "btn_toggle_nightly": "🌙 Nightly report {state}",
         "btn_toggle_weekly": "📊 Weekly report {state}",
         "btn_toggle_monthly": "🗓 Monthly report {state}",
+        "btn_toggle_clean_reports": "🧹 Clean old {state}",
+        "btn_toggle_wheel_notify": "🎡 Wheel reminder {state}",
+        "wheel_ready_notify": (
+            "🎡 <b>Lucky Wheel is Ready!</b>\n\n"
+            "Your 24h daily chance has recharged! Spin the wheel in the Mini App "
+            "to win extra traffic, VIP days, or coupons 👇"
+        ),
         # --- services ---
         "services_title": "📦 <b>Services</b>",
         "services_active_empty": "No services are available right now. Please try again later.",

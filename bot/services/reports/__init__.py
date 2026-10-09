@@ -47,6 +47,7 @@ from bot.services.reports.scheduler import (
     monthly_report_loop,
     nightly_report_loop,
     weekly_report_loop,
+    wheel_reminder_loop,
 )
 from bot.services.reports.weekly import (
     _send_weekly_for_user,
@@ -94,4 +95,5 @@ __all__ = [
     "nightly_report_loop",
     "weekly_report_loop",
     "monthly_report_loop",
+    "wheel_reminder_loop",
 ]

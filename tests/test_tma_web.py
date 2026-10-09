@@ -497,6 +497,58 @@ async def test_lucky_wheel_active_sub_and_24h_timer():
 
 
 @pytest.mark.anyio
+async def test_lucky_wheel_prize_application_traffic_and_days():
+    from unittest.mock import patch
+    from aiohttp.test_utils import make_mocked_request
+    from bot.web.user_shop import post_user_spin
+
+    mock_remnawave = AsyncMock()
+    mock_remnawave.get_users_by_telegram_id.return_value = [
+        {"status": "ACTIVE", "id": 101, "trafficLimitBytes": 10 * 1024**3, "expireAt": "2026-12-01T00:00:00Z"}
+    ]
+    mock_remnawave.update_user_subscription.return_value = {"id": 101}
+    cache = FastCache(redis_client=None)
+
+    app = {
+        "bot_token": "123:abc",
+        "admin_ids": [55555],
+        "is_dev": True,
+        "remnawave": mock_remnawave,
+        "cache": cache,
+    }
+
+    # Force prize to traffic (1 GB)
+    with patch("random.choice", return_value={"id": "1gb", "name": "1 GB", "icon": "🎁", "type": "traffic", "value": 1}):
+        req = make_mocked_request("POST", "/api/user/spin?user_id=111222", app=app)
+        resp = await post_user_spin(req)
+        assert resp.status == 200
+        data = json.loads(resp.text)
+        assert data["ok"] is True
+        assert data["applied"] is True
+        # Verify call arguments: id, expireAt, new_limit (10GB + 1GB = 11GB)
+        mock_remnawave.update_user_subscription.assert_awaited_once_with(
+            101, "2026-12-01T00:00:00Z", 11 * 1024**3
+        )
+
+    # Force prize to days (1 day)
+    mock_remnawave.update_user_subscription.reset_mock()
+    await cache.delete("tma:user:111222:wheel_last_spin")
+    with patch("random.choice", return_value={"id": "1day", "name": "1 day", "icon": "💎", "type": "days", "value": 1}):
+        req = make_mocked_request("POST", "/api/user/spin?user_id=111222", app=app)
+        resp = await post_user_spin(req)
+        assert resp.status == 200
+        data = json.loads(resp.text)
+        assert data["ok"] is True
+        assert data["applied"] is True
+        mock_remnawave.update_user_subscription.assert_awaited_once()
+        call_args = mock_remnawave.update_user_subscription.call_args[0]
+        assert call_args[0] == 101
+        assert "2026-12-02" in call_args[1]  # 2026-12-01 + 1 day = 2026-12-02
+        assert call_args[2] == 10 * 1024**3
+
+
+
+@pytest.mark.anyio
 async def test_user_purchase_multi_account_fallback_and_payload():
     from aiohttp.test_utils import make_mocked_request
     from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker

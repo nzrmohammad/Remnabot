@@ -1024,3 +1024,85 @@ async def test_user_weekly_report_formatting_and_alignment():
     assert "پنج‌شنبه" in text
     assert "پرمصرف‌ترین روزت <b>پنج‌شنبه</b> بود" in text
 
+
+@pytest.mark.anyio
+async def test_report_settings_auto_clean_reports(async_session: AsyncSession):
+    from bot.db.models import User
+    from bot.db.repositories.report_repo import ReportRepository
+    from bot.services.reports.nightly import _send_nightly_for_user
+    from bot.services.reports.weekly import _send_weekly_for_user
+    from bot.services.reports.monthly import _send_monthly_for_user
+
+    repo = ReportRepository(async_session)
+    prefs = await repo.get_settings(555444)
+    assert prefs.clean_reports is True
+
+    # Test toggling
+    await repo.toggle_clean_reports(555444)
+    assert prefs.clean_reports is False
+    await repo.toggle_clean_reports(555444)
+    assert prefs.clean_reports is True
+
+    # Set dummy last message ID
+    prefs.last_report_message_id = 12345
+
+    bot = MagicMock()
+    bot.delete_message = AsyncMock()
+    sent_msg = MagicMock(message_id=67890)
+    bot.send_message = AsyncMock(return_value=sent_msg)
+
+    user = User(telegram_id=555444, username="reza", language="fa")
+    remnawave = MagicMock()
+    remnawave.get_users_by_telegram_id = AsyncMock(return_value=[
+        {"id": 1, "username": "reza", "trafficLimitBytes": 10 * 1024**3, "usedTrafficBytes": 1024**3}
+    ])
+    remnawave.get_user_bandwidth_stats = AsyncMock(return_value=[])
+
+    now = datetime(2026, 10, 2, 23, 59, tzinfo=timezone.utc)
+
+    # 1. Test nightly report cleanup
+    await _send_nightly_for_user(bot, user, remnawave, now, prefs)
+    bot.delete_message.assert_awaited_once_with(555444, 12345)
+    assert prefs.last_report_message_id == 67890
+
+    # 2. Test weekly report cleanup
+    sent_msg2 = MagicMock(message_id=99999)
+    bot.send_message = AsyncMock(return_value=sent_msg2)
+    bot.delete_message.reset_mock()
+    await _send_weekly_for_user(bot, user, remnawave, now, prefs)
+    bot.delete_message.assert_awaited_once_with(555444, 67890)
+    assert prefs.last_report_message_id == 99999
+
+
+@pytest.mark.anyio
+async def test_wheel_repo_reminder_helpers(async_session: AsyncSession):
+    from datetime import timedelta
+    from bot.db.repositories.report_repo import ReportRepository
+
+    repo = ReportRepository(async_session)
+    prefs = await repo.get_settings(888777)
+    assert prefs.wheel_notify is True
+    assert prefs.wheel_notified is False
+
+    await repo.toggle_wheel_notify(888777)
+    assert prefs.wheel_notify is False
+    await repo.toggle_wheel_notify(888777)
+    assert prefs.wheel_notify is True
+
+    # Record a wheel spin
+    await repo.record_wheel_spin(888777)
+    assert prefs.wheel_last_spin_at is not None
+    assert prefs.wheel_notified is False
+
+    # Check due users: should be empty right now (less than 24h)
+    due = await repo.get_users_due_for_wheel_reminder()
+    assert not any(p.telegram_id == 888777 for p in due)
+
+    # Manually shift last_spin_at back 25 hours
+    prefs.wheel_last_spin_at = datetime.now(timezone.utc) - timedelta(hours=25)
+    await async_session.commit()
+
+    due = await repo.get_users_due_for_wheel_reminder()
+    assert any(p.telegram_id == 888777 for p in due)
+
+

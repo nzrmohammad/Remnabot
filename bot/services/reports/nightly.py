@@ -7,7 +7,7 @@ from aiogram import Bot
 from aiogram.exceptions import TelegramAPIError
 
 from bot.common import SEPARATOR
-from bot.db.models import User
+from bot.db.models import ReportSettings, User
 from bot.locales.texts import t
 from bot.services.formatting import format_date, format_datetime, human_bytes, parse_iso
 from bot.services.remnawave import RemnawaveClient
@@ -96,7 +96,11 @@ async def _nightly_account_block(
 
 
 async def _send_nightly_for_user(
-    bot: Bot, user: User, remnawave: RemnawaveClient, now: datetime
+    bot: Bot,
+    user: User,
+    remnawave: RemnawaveClient,
+    now: datetime,
+    prefs: ReportSettings | None = None,
 ) -> None:
     accounts = await remnawave.get_users_by_telegram_id(user.telegram_id)
     if not accounts:
@@ -111,7 +115,16 @@ async def _send_nightly_for_user(
         f"{t(lang, 'nightly_title')} - {format_datetime(now, lang)}\n"
         f"{SEPARATOR}\n" + f"\n{SEPARATOR}\n".join(blocks)
     )
+
+    if prefs and prefs.clean_reports and prefs.last_report_message_id:
+        try:
+            await bot.delete_message(user.telegram_id, prefs.last_report_message_id)
+        except Exception:
+            pass
+
     try:
-        await bot.send_message(user.telegram_id, text)
+        sent_msg = await bot.send_message(user.telegram_id, text)
+        if prefs and prefs.clean_reports and sent_msg:
+            prefs.last_report_message_id = sent_msg.message_id
     except TelegramAPIError as exc:
         logger.warning("nightly report not delivered to %s: %s", user.telegram_id, exc)

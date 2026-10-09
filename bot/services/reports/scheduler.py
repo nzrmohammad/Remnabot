@@ -47,11 +47,11 @@ async def _sweep(
             try:
                 prefs = await report_repo.get_settings(user.telegram_id)
                 if kind == "nightly" and prefs.nightly:
-                    await _send_nightly_for_user(bot, user, remnawave, now)
+                    await _send_nightly_for_user(bot, user, remnawave, now, prefs)
                 elif kind == "weekly" and prefs.weekly:
-                    await _send_weekly_for_user(bot, user, remnawave, now)
+                    await _send_weekly_for_user(bot, user, remnawave, now, prefs)
                 elif kind == "monthly" and prefs.monthly:
-                    await _send_monthly_for_user(bot, user, remnawave, now)
+                    await _send_monthly_for_user(bot, user, remnawave, now, prefs)
             except Exception:  # noqa: BLE001 — one bad user must not stop the sweep
                 logger.exception("%s report failed for %s", kind, user.telegram_id)
 
@@ -162,3 +162,61 @@ async def monthly_report_loop(
             logger.exception("monthly sweep failed")
         # Roll past 23:59 so the same month-end is not picked twice.
         await asyncio.sleep(120)
+
+
+async def wheel_reminder_loop(
+    bot: Bot, session_factory: async_sessionmaker
+) -> None:
+    """Check every 60 seconds if any user's 24h wheel cooldown has elapsed,
+    and send a Telegram reminder if enabled."""
+    from aiogram.types import WebAppInfo
+    from aiogram.utils.keyboard import InlineKeyboardBuilder
+
+    from bot.db.repositories.user_repo import UserRepository
+    from bot.locales.texts import t
+
+    while True:
+        try:
+            await asyncio.sleep(60)
+            async with session_factory() as session:
+                rep_repo = ReportRepository(session)
+                user_repo = UserRepository(session)
+                due_prefs = await rep_repo.get_users_due_for_wheel_reminder()
+                if due_prefs:
+                    settings = get_settings()
+                    web_app_url = (settings.WEB_APP_URL or "").strip()
+                    if web_app_url and not web_app_url.startswith(("http://", "https://")):
+                        web_app_url = f"https://{web_app_url}"
+
+                    for prefs in due_prefs:
+                        try:
+                            user = await user_repo.get_by_telegram_id(prefs.telegram_id)
+                            lang = (user.language if user else None) or "fa"
+                            text = t(lang, "wheel_ready_notify")
+
+                            kb = InlineKeyboardBuilder()
+                            if web_app_url:
+                                kb.button(text="🎡 چرخاندن گردونه شانس", web_app=WebAppInfo(url=web_app_url))
+                            else:
+                                kb.button(text="🏠 منوی اصلی", callback_data="nav:main_menu")
+
+                            await bot.send_message(
+                                prefs.telegram_id,
+                                text,
+                                reply_markup=kb.as_markup(),
+                            )
+                            prefs.wheel_notified = True
+                        except Exception as exc:
+                            logger.warning(
+                                "Failed to send wheel reminder to %s: %s",
+                                prefs.telegram_id,
+                                exc,
+                            )
+                            prefs.wheel_notified = True  # Prevent endless retry flood
+                    await session.commit()
+        except asyncio.CancelledError:
+            break
+        except Exception as exc:
+            logger.exception("Error in wheel_reminder_loop: %s", exc)
+            await asyncio.sleep(10)
+

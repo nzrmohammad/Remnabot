@@ -221,7 +221,8 @@ class AppSetting(Base):
 
 
 class ReportSettings(Base):
-    """Per-user on/off switches for the nightly, weekly and monthly reports."""
+    """Per-user on/off switches for nightly/weekly/monthly reports,
+    automatic cleanup of old reports, and lucky wheel reminders."""
 
     __tablename__ = "report_settings"
 
@@ -229,6 +230,13 @@ class ReportSettings(Base):
     nightly: Mapped[bool] = mapped_column(Boolean, default=True)
     weekly: Mapped[bool] = mapped_column(Boolean, default=True)
     monthly: Mapped[bool] = mapped_column(Boolean, default=True)
+    clean_reports: Mapped[bool] = mapped_column(Boolean, default=True)
+    last_report_message_id: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
+    wheel_notify: Mapped[bool] = mapped_column(Boolean, default=True)
+    wheel_notified: Mapped[bool] = mapped_column(Boolean, default=False)
+    wheel_last_spin_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
 
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()

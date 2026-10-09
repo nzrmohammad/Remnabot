@@ -12,7 +12,7 @@
       darkMode: 'class'
     };
   </script>
-  <link rel="stylesheet" href="/static/css/app.css?v=7.6">
+  <link rel="stylesheet" href="/static/css/app.css?v=7.7">
 </head>
 <body id="appBody" class="bg-[#080d1a] text-slate-100 w-full min-w-full h-screen h-[100dvh] overflow-hidden flex justify-center items-center antialiased select-none transition-colors duration-300">
 
@@ -288,7 +288,7 @@
               </span>
             </div>
             <div class="flex items-center gap-2">
-              <span id="reportsSessionsBadge" class="text-[10px] font-mono font-bold text-emerald-400 bg-emerald-950/60 border border-emerald-800/40 px-2 py-0.5 rounded-lg">0 دستگاه</span>
+              <span id="reportsSessionsBadge" class="text-[10px] font-mono font-bold text-emerald-500 dark:text-emerald-400 bg-transparent border-0 px-0 py-0">0 دستگاه</span>
             </div>
           </button>
 
@@ -347,15 +347,15 @@
         <!-- 2. Weekly Report Card -->
         <div id="viewRepWeekly" class="bg-slate-800/90 rounded-2xl p-4 border border-slate-700/80 space-y-3 shadow-md hidden">
           <div class="flex justify-between items-center border-b border-slate-700/60 pb-2">
-            <span class="text-xs font-bold text-white flex items-center gap-1">📊 گزارش جامع ۷ روز گذشته</span>
-            <span class="text-[11px] font-mono text-slate-400">۷ روز اخیر</span>
+            <span class="text-xs font-bold text-white flex items-center gap-1">📊 گزارش جامع 7 روز گذشته</span>
+            <span class="text-[11px] font-mono text-slate-400">7 روز اخیر</span>
           </div>
           <div class="space-y-1.5 text-xs text-slate-300">
             <div class="flex justify-between"><span>⚡️ کل مصرف این هفته :</span><b id="repWeeklyTotal" class="font-mono text-blue-400 text-sm" dir="ltr">-- GB</b></div>
             <div class="flex justify-between"><span>🏆 پرمصرف‌ترین روز شما :</span><span id="repWeeklyBusiest" class="font-bold text-white">—</span></div>
           </div>
           <div class="pt-2 border-t border-slate-700/60">
-            <span class="text-[11px] text-slate-400 font-medium block mb-2">نمودار مصرف روزانه (۷ روز اخیر):</span>
+            <span class="text-[11px] text-slate-400 font-medium block mb-2">نمودار مصرف روزانه (7 روز اخیر):</span>
             <div class="h-36 w-full p-2 bg-slate-900/60 rounded-xl relative">
               <canvas id="repWeeklyChartCanvas" class="w-full h-full"></canvas>
             </div>
@@ -363,7 +363,7 @@
 
           <!-- Weekly Per-Server Breakdown (تفکیک مصرف سرورهای هفته - اول سمت چپ بعد سمت راست) -->
           <div class="pt-2 border-t border-slate-700/60 text-xs">
-            <span class="text-slate-400 font-medium block mb-1">تفکیک مصرف سرورها در ۷ روز گذشته:</span>
+            <span class="text-slate-400 font-medium block mb-1">تفکیک مصرف سرورها در 7 روز گذشته:</span>
             <div id="repWeeklyNodesContainer" dir="ltr" class="grid grid-cols-2 gap-1.5 font-mono text-[11px]">
               <div class="col-span-2 text-center py-2 text-slate-400 text-[10px]">در حال دریافت داده‌ها...</div>
             </div>
@@ -471,7 +471,7 @@
       <div id="tab-shop" class="tab-pane space-y-4 hidden">
         <div class="flex justify-between items-center">
           <h3 class="text-sm font-bold text-slate-200">🛒 خرید بسته جدید یا تمدید</h3>
-          <span id="shopWalletBalance" class="text-xs text-indigo-400 bg-indigo-950/60 px-2 py-0.5 rounded border border-indigo-800/40">موجودی: 0 تومان</span>
+          <span id="shopWalletBalance" class="text-xs font-semibold text-slate-400 dark:text-indigo-400 bg-transparent border-0 px-0 py-0">موجودی: 0 تومان</span>
         </div>
 
         <!-- Dynamic Plans Container (Loaded from Admin DB) -->
@@ -620,7 +620,7 @@
           <div class="flex items-center justify-between py-1 border-t border-slate-700/50 pt-2">
             <div>
               <span class="text-slate-200 font-medium block">📊 گزارش هفتگی (جمعه‌شب‌ها)</span>
-              <span class="text-[10px] text-slate-400">ارسال آمار مصرف ۷ روز گذشته</span>
+              <span class="text-[10px] text-slate-400">ارسال آمار مصرف 7 روز گذشته</span>
             </div>
             <label class="relative inline-flex items-center cursor-pointer">
               <input type="checkbox" id="settingToggleWeekly" class="sr-only switch-checkbox">
@@ -644,11 +644,39 @@
             </label>
           </div>
 
+          <!-- Toggle: Auto Clean Old Reports -->
+          <div class="flex items-center justify-between py-1 border-t border-slate-700/50 pt-2">
+            <div>
+              <span class="text-slate-200 font-medium block">🧹 پاکسازی خودکار گزارش‌ها</span>
+              <span class="text-[10px] text-slate-400">حذف گزارش قبلی در تلگرام قبل از ارسال جدید</span>
+            </div>
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" id="settingToggleCleanReports" class="sr-only switch-checkbox">
+              <div class="switch-label w-11 h-6 bg-slate-700 rounded-full transition-colors duration-200 flex items-center px-0.5">
+                <div class="switch-ball w-5 h-5 bg-white rounded-full shadow-md transition-transform duration-200"></div>
+              </div>
+            </label>
+          </div>
+
+          <!-- Toggle: Lucky Wheel Reminder -->
+          <div class="flex items-center justify-between py-1 border-t border-slate-700/50 pt-2">
+            <div>
+              <span class="text-slate-200 font-medium block">🎡 یادآور گردونه شانس</span>
+              <span class="text-[10px] text-slate-400">پیام یادآوری تلگرام به محض اتمام ۲۴ ساعت</span>
+            </div>
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" id="settingToggleWheelNotify" class="sr-only switch-checkbox">
+              <div class="switch-label w-11 h-6 bg-slate-700 rounded-full transition-colors duration-200 flex items-center px-0.5">
+                <div class="switch-ball w-5 h-5 bg-white rounded-full shadow-md transition-transform duration-200"></div>
+              </div>
+            </label>
+          </div>
+
           <!-- Toggle: Low Traffic Warning -->
           <div class="flex items-center justify-between py-1 border-t border-slate-700/50 pt-2">
             <div>
               <span class="text-slate-200 font-medium block">⚠️ هشدار کمبود حجم</span>
-              <span class="text-[10px] text-slate-400">هشدار قبل از پایان ترافیک (۸۰٪)</span>
+              <span class="text-[10px] text-slate-400">هشدار قبل از پایان ترافیک (80%)</span>
             </div>
             <label class="relative inline-flex items-center cursor-pointer">
               <input type="checkbox" id="settingToggleLowTraffic" class="sr-only switch-checkbox">
@@ -662,7 +690,7 @@
           <div class="flex items-center justify-between py-1 border-t border-slate-700/50 pt-2">
             <div>
               <span class="text-slate-200 font-medium block">⏰ هشدار پایان اعتبار سرویس</span>
-              <span class="text-[10px] text-slate-400">اطلاع‌رسانی ۳ روز مانده به انقضا</span>
+              <span class="text-[10px] text-slate-400">اطلاع‌رسانی 3 روز مانده به انقضا</span>
             </div>
             <label class="relative inline-flex items-center cursor-pointer">
               <input type="checkbox" id="settingToggleExpireWarning" class="sr-only switch-checkbox">
@@ -833,9 +861,9 @@
         
         <div class="border-b border-slate-700/60 pb-2">
           <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/40">
-            💳 افزایش موجودی کیف پول
+            💳 شارژ کیف پول
           </span>
-          <h3 class="text-sm font-bold text-white mt-1">شارژ سریع و خودکار حساب</h3>
+          <h3 class="text-sm font-bold text-white mt-1">افزایش اعتبار و شارژ کیف پول</h3>
         </div>
 
         <!-- Method Tabs -->
@@ -881,8 +909,14 @@
           </div>
 
           <div class="space-y-1">
-            <label class="text-[11px] text-slate-300 font-medium block">کد پیگیری یا شماره ارجاع فیش:</label>
-            <textarea id="topupCardReceiptInput" rows="2" placeholder="کد پیگیری یا شماره ارجاع تراکنش را اینجا وارد فرمایید..." class="w-full bg-slate-900 p-2.5 rounded-xl border border-slate-700 text-slate-200 text-xs outline-none resize-none"></textarea>
+            <div class="flex items-center justify-between">
+              <label class="text-[11px] text-slate-300 font-medium">کد پیگیری یا شماره ارجاع فیش:</label>
+              <span class="text-[10px] text-slate-400">شماره ارجاع / RRN</span>
+            </div>
+            <textarea id="topupCardReceiptInput" rows="2" placeholder="کد پیگیری، شماره ارجاع یا ۴ رقم آخر کارت واریزکننده..." class="w-full bg-slate-900 p-2.5 rounded-xl border border-slate-700 text-slate-200 text-xs outline-none resize-none"></textarea>
+            <p class="text-[9.5px] text-slate-400 leading-relaxed bg-slate-800/50 p-2 rounded-xl border border-slate-700/50">
+              💡 <b>راهنما:</b> شماره پیگیری یا شماره ارجاع (RRN)، کد چندرقمی درج‌شده در رسید پرداخت برنامه بانکی (آپ، همراه بانک و...) یا در پیامک بانکی تراکنش پس از انتقال وجه است.
+            </p>
           </div>
 
           <button id="submitCardTopupBtn" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold py-2.5 rounded-xl transition shadow active:scale-[0.98]">
@@ -908,17 +942,22 @@
                   <button id="copyTonAmountBtn" class="text-sky-400 hover:text-sky-300 px-1" title="کپی مقدار">📋</button>
                 </div>
               </div>
-              <div class="flex justify-between items-center text-[11px]">
-                <span class="text-slate-400">آدرس ولت TON:</span>
-                <button id="copyTonAddressBtn" class="text-slate-300 hover:text-white font-mono text-[10px] truncate max-w-[170px]" dir="ltr">
-                  <span id="cryptoPayAddress">--</span> 📋
+              <div class="space-y-1">
+                <div class="flex justify-between items-center text-[11px]">
+                  <span class="text-slate-400">آدرس کیف پول مقصد (TON):</span>
+                  <span class="text-[10px] text-sky-400 font-medium">📋 لمس جهت کپی آدرس</span>
+                </div>
+                <button id="copyTonAddressBtn" type="button" class="w-full text-left bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700/90 p-2.5 rounded-xl font-mono text-[10px] break-all select-all transition text-sky-300 cursor-pointer active:scale-[0.99] flex items-center justify-between gap-2" dir="ltr" title="برای کپی آدرس کلیک کنید">
+                  <span id="cryptoPayAddress" class="break-all leading-relaxed">--</span>
+                  <span class="text-xs shrink-0 text-sky-400">📋</span>
                 </button>
+                <p class="text-[9.5px] text-slate-400 leading-tight">💡 آدرس را کپی کنید و در برنامه ولت خود (Tonkeeper) ارسال را انجام دهید.</p>
               </div>
-              <div class="bg-amber-500/10 border border-amber-500/30 p-2 rounded-xl space-y-1">
+              <div class="bg-amber-500/10 border border-amber-500/30 p-2.5 rounded-xl space-y-1">
                 <div class="flex justify-between items-center text-[11px]">
                   <span class="text-amber-300 font-bold">شناسه انتقال (Memo/Comment):</span>
                   <div class="flex items-center gap-1">
-                    <code id="cryptoComment" class="text-amber-300 font-mono font-bold" dir="ltr">--</code>
+                    <code id="cryptoComment" class="text-amber-300 font-mono font-bold bg-transparent border-0 p-0" dir="ltr">--</code>
                     <button id="copyTonCommentBtn" class="text-amber-300 hover:text-amber-200 px-1" title="کپی کامنت">📋</button>
                   </div>
                 </div>
@@ -1364,13 +1403,13 @@
   </div>
 
   <!-- Modular Frontend Architecture (DRY) -->
-  <script src="/static/js/utils.js?v=7.6"></script>
-  <script src="/static/js/api.js?v=7.6"></script>
-  <script src="/static/js/charts.js?v=7.6"></script>
-  <script src="/static/js/shop.js?v=7.6"></script>
-  <script src="/static/js/wallet.js?v=7.6"></script>
-  <script src="/static/js/wheel.js?v=7.6"></script>
-  <script src="/static/js/story.js?v=7.6"></script>
-  <script src="/static/js/app.js?v=7.6"></script>
+  <script src="/static/js/utils.js?v=7.7"></script>
+  <script src="/static/js/api.js?v=7.7"></script>
+  <script src="/static/js/charts.js?v=7.7"></script>
+  <script src="/static/js/shop.js?v=7.7"></script>
+  <script src="/static/js/wallet.js?v=7.7"></script>
+  <script src="/static/js/wheel.js?v=7.7"></script>
+  <script src="/static/js/story.js?v=7.7"></script>
+  <script src="/static/js/app.js?v=7.7"></script>
 </body>
 </html>

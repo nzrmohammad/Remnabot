@@ -76,6 +76,14 @@ async def _render_settings(
             f"{t(lang, 'settings_monthly_label')} : "
             f"<b>{_fmt_toggle(reports.monthly, lang)}</b>",
             f"▫️ {t(lang, 'settings_monthly_hint')}",
+            "",
+            f"{t(lang, 'settings_clean_reports_label')} : "
+            f"<b>{_fmt_toggle(reports.clean_reports, lang)}</b>",
+            f"▫️ {t(lang, 'settings_clean_reports_hint')}",
+            "",
+            f"{t(lang, 'settings_wheel_notify_label')} : "
+            f"<b>{_fmt_toggle(reports.wheel_notify, lang)}</b>",
+            f"▫️ {t(lang, 'settings_wheel_notify_hint')}",
         ]
     )
 
@@ -84,7 +92,7 @@ async def _render_settings(
     kb.button(text=t(lang, "btn_set_traffic"), callback_data="set:traffic")
     kb.button(text=t(lang, "btn_set_expire"), callback_data="set:expire")
 
-    # ردیف ۲: گزارش‌های هفتگی و شبانه (جابجا شده)
+    # ردیف ۲: گزارش‌های هفتگی و شبانه
     kb.button(
         text=t(lang, "btn_toggle_weekly", state=_fmt_toggle(reports.weekly, lang)),
         callback_data="set:wr",
@@ -94,18 +102,28 @@ async def _render_settings(
         callback_data="set:nr",
     )
 
-    # ردیف ۳: تغییر زبان و گزارش ماهانه (جابجا شده)
-    kb.button(text=t(lang, "btn_language"), callback_data="set:lang")
+    # ردیف ۳: گزارش ماهانه و پاکسازی گزارش‌های قبلی
     kb.button(
         text=t(lang, "btn_toggle_monthly", state=_fmt_toggle(reports.monthly, lang)),
         callback_data="set:mr",
     )
+    kb.button(
+        text=t(lang, "btn_toggle_clean_reports", state=_fmt_toggle(reports.clean_reports, lang)),
+        callback_data="set:cr",
+    )
 
-    # ردیف ۴: منوی اصلی
+    # ردیف ۴: یادآور گردونه شانس و تغییر زبان
+    kb.button(
+        text=t(lang, "btn_toggle_wheel_notify", state=_fmt_toggle(reports.wheel_notify, lang)),
+        callback_data="set:wn",
+    )
+    kb.button(text=t(lang, "btn_language"), callback_data="set:lang")
+
+    # ردیف ۵: منوی اصلی
     menu_label = "🏠 منوی اصلی" if lang == "fa" else "🏠 Main Menu"
     kb.button(text=menu_label, callback_data="nav:main_menu")
 
-    kb.adjust(2, 2, 2, 1)
+    kb.adjust(2, 2, 2, 2, 1)
 
     await render_menu(bot, user, user_repo, text, kb.as_markup())
 
@@ -170,6 +188,32 @@ async def toggle_monthly(
     user = await user_repo.get_or_create(call.from_user.id, call.from_user.username)
     report_repo = ReportRepository(session)
     await report_repo.toggle_monthly(user.telegram_id)
+    await _render_settings(
+        bot, user, user_repo, AlertRepository(session), report_repo, user.language
+    )
+    await call.answer(t(user.language, "settings_saved"))
+
+
+@router.callback_query(F.data == "set:cr")
+async def toggle_clean_reports(
+    call: CallbackQuery, bot: Bot, user_repo: UserRepository, session: AsyncSession
+):
+    user = await user_repo.get_or_create(call.from_user.id, call.from_user.username)
+    report_repo = ReportRepository(session)
+    await report_repo.toggle_clean_reports(user.telegram_id)
+    await _render_settings(
+        bot, user, user_repo, AlertRepository(session), report_repo, user.language
+    )
+    await call.answer(t(user.language, "settings_saved"))
+
+
+@router.callback_query(F.data == "set:wn")
+async def toggle_wheel_notify(
+    call: CallbackQuery, bot: Bot, user_repo: UserRepository, session: AsyncSession
+):
+    user = await user_repo.get_or_create(call.from_user.id, call.from_user.username)
+    report_repo = ReportRepository(session)
+    await report_repo.toggle_wheel_notify(user.telegram_id)
     await _render_settings(
         bot, user, user_repo, AlertRepository(session), report_repo, user.language
     )

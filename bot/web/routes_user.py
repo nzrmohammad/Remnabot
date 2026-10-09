@@ -551,6 +551,8 @@ async def get_user_me(request: web.Request) -> web.Response:
             "nightly": True,
             "weekly": True,
             "monthly": True,
+            "clean_reports": True,
+            "wheel_notify": True,
         }
         try:
             from bot.db.repositories.report_repo import ReportRepository
@@ -560,6 +562,8 @@ async def get_user_me(request: web.Request) -> web.Response:
                 "nightly": bool(rep_settings.nightly),
                 "weekly": bool(rep_settings.weekly),
                 "monthly": bool(rep_settings.monthly),
+                "clean_reports": bool(rep_settings.clean_reports),
+                "wheel_notify": bool(rep_settings.wheel_notify),
             }
         except Exception as exc:
             logger.warning("Failed to fetch report settings for %s: %s", telegram_id, exc)

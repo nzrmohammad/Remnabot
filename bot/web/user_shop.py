@@ -88,33 +88,91 @@ async def post_user_spin(request: web.Request) -> web.Response:
     # If prize is traffic or days, apply to active account if available
     applied = False
     if panel_users and chosen["type"] in ("traffic", "days"):
-        primary_id = panel_users[0].get("id")
+        primary = next(
+            (u for u in panel_users if (u.get("status") or "").upper() == "ACTIVE"),
+            panel_users[0],
+        )
+        primary_id = int(primary.get("id"))
+        current_expire = primary.get("expireAt")
+        current_limit = int(primary.get("trafficLimitBytes") or 0)
         try:
             if chosen["type"] == "traffic":
                 # Add GB
                 traffic_bytes = int(chosen["value"] * 1024 * 1024 * 1024)
+                new_limit = current_limit + traffic_bytes
                 await remnawave.update_user_subscription(
                     primary_id,
-                    bandwidth_limit_delta=traffic_bytes,
+                    current_expire,
+                    new_limit,
                 )
                 applied = True
             elif chosen["type"] == "days":
                 # Add 1 day
+                from datetime import datetime, timezone, timedelta
+                from bot.services.formatting import parse_iso
+                cur_dt = parse_iso(current_expire)
+                now_utc = datetime.now(timezone.utc)
+                base = cur_dt if cur_dt and cur_dt > now_utc else now_utc
+                new_expire_dt = base + timedelta(days=int(chosen["value"]))
+                new_expire_iso = new_expire_dt.isoformat()
                 await remnawave.update_user_subscription(
                     primary_id,
-                    expire_delta_seconds=86400,
+                    new_expire_iso,
+                    current_limit,
                 )
                 applied = True
         except Exception as exc:
             logger.warning("Failed to auto-apply wheel prize to panel: %s", exc)
 
+    if chosen["type"] == "coupon":
+        try:
+            session_factory = request.app.get("session_factory")
+            if session_factory:
+                async with session_factory() as session:
+                    coupon_repo = CouponRepository(session)
+                    existing = await coupon_repo.get_by_code(chosen.get("code", "OFF10"))
+                    if not existing:
+                        await coupon_repo.create(
+                            code=chosen.get("code", "OFF10"),
+                            discount_percent=10,
+                            max_uses=0,
+                        )
+                    await session.commit()
+                applied = True
+        except Exception as exc:
+            logger.warning("Failed to prepare coupon for wheel prize: %s", exc)
+
     # Record spin unless it's "try again"
     if chosen["type"] != "again":
         # Keep 24-hour cooldown
         await cache.set(wheel_ts_key, now_ts, ttl_seconds=86400)
+        try:
+            session_factory = request.app.get("session_factory")
+            if session_factory:
+                async with session_factory() as session:
+                    from bot.db.repositories.report_repo import ReportRepository
+                    rep_repo = ReportRepository(session)
+                    await rep_repo.record_wheel_spin(telegram_id)
+                    await session.commit()
+        except Exception as exc:
+            logger.warning("Failed to record wheel spin in DB for %s: %s", telegram_id, exc)
 
     # Invalidate dashboard cache
     await cache.delete(f"tma:user:{telegram_id}:dashboard")
+    await cache.delete(f"tma:user:{telegram_id}:profile")
+
+    # If applied, notify user via Telegram bot
+    bot = request.app.get("bot")
+    if bot and applied and chosen["type"] not in ("blank", "again"):
+        try:
+            await bot.send_message(
+                telegram_id,
+                f"🎉 <b>تبریک! شما در گردونه شانس برنده شدید:</b>\n"
+                f"✨ <b>{chosen['name']}</b>\n\n"
+                f"این جایزه با موفقیت به حساب شما اعمال گردید.",
+            )
+        except Exception:
+            pass
 
     return web.json_response({
         "ok": True,

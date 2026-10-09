@@ -958,7 +958,15 @@ html.theme-light #copySubBtn:hover {
   background: linear-gradient(135deg, #1d4ed8, #2563eb) !important;
 }
 
-/* Light Theme: Crypto Topup Memo/Comment High-Contrast Box */
+/* Light Theme: Crypto Topup Memo/Comment High-Contrast Box & Wallet Controls */
+#cryptoComment {
+  background: transparent !important;
+  background-color: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+}
+
 html.theme-light #cryptoInvoiceDetails .bg-amber-500\/10,
 html.theme-light .bg-amber-500\/10 {
   background-color: #fefce8 !important;
@@ -976,11 +984,59 @@ html.theme-light .text-amber-200\/80 {
   color: #92400e !important;
 }
 
-html.theme-light #cryptoInvoiceDetails #cryptoPayAddress,
 html.theme-light #cryptoInvoiceDetails #copyTonAddressBtn {
-  color: #1e293b !important;
+  background-color: #f8fafc !important;
+  border-color: #cbd5e1 !important;
+  color: #0369a1 !important;
+}
+
+html.theme-light #cryptoInvoiceDetails #copyTonAddressBtn:hover {
+  background-color: #f1f5f9 !important;
+}
+
+html.theme-light #cryptoInvoiceDetails #cryptoPayAddress {
+  color: #0369a1 !important;
 }
 
 html.theme-light #cryptoInvoiceDetails #cryptoAmountTon {
   color: #0284c7 !important;
 }
+
+html.theme-light #cryptoTonkeeperLink {
+  background: linear-gradient(135deg, #0284c7, #2563eb) !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 14px rgba(2, 132, 199, 0.25) !important;
+}
+
+html.theme-light #cryptoCheckStatusBtn {
+  background-color: #f1f5f9 !important;
+  border-color: #cbd5e1 !important;
+  color: #1e293b !important;
+}
+
+html.theme-light #shopWalletBalance {
+  background: transparent !important;
+  border: none !important;
+  color: #64748b !important;
+}
+
+html.theme-light #reportsSessionsBadge {
+  background: transparent !important;
+  border: none !important;
+  color: #059669 !important;
+}
+
+html.theme-light #topupCardView p.bg-slate-800\/50,
+html.theme-light #topupCardView .bg-slate-800\/50 {
+  background-color: #f8fafc !important;
+  border-color: #e2e8f0 !important;
+  color: #475569 !important;
+}
+
+html.theme-light #killAllBtn,
+html.theme-light #modalKillAllBtn {
+  background-color: #fff1f2 !important;
+  border-color: #fecdd3 !important;
+  color: #e11d48 !important;
+}
+

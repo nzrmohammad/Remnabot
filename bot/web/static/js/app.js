@@ -937,7 +937,7 @@ function hydrateUserInterface(data) {
 
     // Reusable Server Breakdown for Nightly, Weekly, Monthly
     renderNodeBreakdown('repNightlyNodesContainer', sub.yesterday_breakdown || sub.today_breakdown || [], 'دیشب مصرفی روی سرورها ثبت نشده است.');
-    renderNodeBreakdown('repWeeklyNodesContainer', sub.week_breakdown || [], 'مصرفی در ۷ روز گذشته ثبت نشده است.');
+    renderNodeBreakdown('repWeeklyNodesContainer', sub.week_breakdown || [], 'مصرفی در 7 روز گذشته ثبت نشده است.');
     renderNodeBreakdown('repMonthlyNodesContainer', sub.week_breakdown || sub.today_breakdown || [], 'مصرفی در ماه جاری ثبت نشده است.');
 
     const repWeeklyTotal = document.getElementById('repWeeklyTotal');
@@ -1142,6 +1142,8 @@ function renderActiveSubAnalytics(sub) {
     { id: 'settingToggleNightly', key: 'nightly', defaultVal: true },
     { id: 'settingToggleWeekly', key: 'weekly', defaultVal: true },
     { id: 'settingToggleMonthly', key: 'monthly', defaultVal: true },
+    { id: 'settingToggleCleanReports', key: 'clean_reports', defaultVal: true },
+    { id: 'settingToggleWheelNotify', key: 'wheel_notify', defaultVal: true },
     { id: 'settingToggleLowTraffic', key: 'low_traffic', defaultVal: true },
     { id: 'settingToggleExpireWarning', key: 'expire_warning', defaultVal: true },
   ];
