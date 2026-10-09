@@ -12,7 +12,7 @@
       darkMode: 'class'
     };
   </script>
-  <link rel="stylesheet" href="/static/css/app.css?v=10.0">
+  <link rel="stylesheet" href="/static/css/app.css?v=11.0">
 </head>
 <body id="appBody" class="bg-[#080d1a] text-slate-100 w-full min-w-full h-screen h-[100dvh] overflow-hidden flex justify-center items-center antialiased select-none transition-colors duration-300">
 
@@ -64,7 +64,6 @@
         </div>
         <button id="switchAccountBtn" class="flex items-center gap-1 min-w-0 bg-transparent border-0 p-0 text-right cursor-pointer hover:opacity-85 transition group active:scale-95" title="کلیک جهت تعویض اکانت">
           <span id="headerUsername" class="font-bold text-blue-300 group-hover:text-blue-200 font-mono text-xs max-w-[105px] truncate">کاربر</span>
-          <svg class="w-3 h-3 text-cyan-400 group-hover:text-cyan-300 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
         </button>
       </div>
 
@@ -826,7 +825,7 @@
     <!-- ======================================================== -->
     <!-- 4.0 MODAL: QR CODE (کیوآرکد اشتراک)                      -->
     <!-- ======================================================== -->
-    <div id="qrModal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden animate-fadeIn overflow-y-auto">
+    <div id="qrModal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-[70] flex items-center justify-center p-4 hidden animate-fadeIn overflow-y-auto">
       <div class="qr-modal-card bg-[#1a233a] border border-cyan-500/40 rounded-3xl p-5 w-full space-y-4 shadow-2xl relative max-w-[340px] my-auto text-center">
         <button id="closeQrModalBtn" class="absolute top-3 left-3 text-slate-400 hover:text-white text-xs bg-slate-800 rounded-full w-7 h-7 flex items-center justify-center transition" title="بستن">✕</button>
         <div>
@@ -863,7 +862,7 @@
           </div>
         </div>
 
-        <div id="configsModalList" class="flex-1 overflow-y-auto custom-scroll space-y-2 py-1 max-h-[50vh]">
+        <div id="configsModalList" class="flex-1 overflow-y-auto custom-scroll space-y-2 py-1.5 px-2 max-h-[50vh]">
           <div class="text-center py-6 text-slate-400 text-xs">
             در حال دریافت و تفکیک کانفیگ‌ها...
           </div>
@@ -1061,6 +1060,9 @@
               </a>
               <button id="cryptoCheckStatusBtn" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold py-2 rounded-xl transition border border-slate-700 flex items-center justify-center gap-1.5 text-xs">
                 <span>🔄</span> بررسی وضعیت پرداخت
+              </button>
+              <button id="cryptoCancelInvoiceBtn" type="button" class="w-full text-slate-400 hover:text-rose-400 py-1.5 rounded-xl transition bg-transparent border-0 text-[11px] text-center">
+                <span>✕</span> انصراف و ساخت فاکتور جدید
               </button>
             </div>
           </div>
@@ -1448,13 +1450,13 @@
   </div>
 
   <!-- Modular Frontend Architecture (DRY) -->
-  <script src="/static/js/utils.js?v=10.0"></script>
-  <script src="/static/js/api.js?v=10.0"></script>
-  <script src="/static/js/charts.js?v=10.0"></script>
-  <script src="/static/js/shop.js?v=10.0"></script>
-  <script src="/static/js/wallet.js?v=10.0"></script>
-  <script src="/static/js/wheel.js?v=10.0"></script>
-  <script src="/static/js/story.js?v=10.0"></script>
-  <script src="/static/js/app.js?v=10.0"></script>
+  <script src="/static/js/utils.js?v=11.0"></script>
+  <script src="/static/js/api.js?v=11.0"></script>
+  <script src="/static/js/charts.js?v=11.0"></script>
+  <script src="/static/js/shop.js?v=11.0"></script>
+  <script src="/static/js/wallet.js?v=11.0"></script>
+  <script src="/static/js/wheel.js?v=11.0"></script>
+  <script src="/static/js/story.js?v=11.0"></script>
+  <script src="/static/js/app.js?v=11.0"></script>
 </body>
 </html>

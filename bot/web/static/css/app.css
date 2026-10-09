@@ -824,9 +824,14 @@ html.theme-light #purchaseSuccessModal .text-slate-300 {
   color: #334155 !important;
 }
 
+.config-row-item,
 html.theme-light .config-row-item {
-  background-color: #f8fafc !important;
-  border-color: #e2e8f0 !important;
+  background: transparent !important;
+  background-color: transparent !important;
+}
+
+html.theme-light .config-row-item {
+  border-color: #cbd5e1 !important;
 }
 
 html.theme-light .config-row-item .config-name-label {
@@ -981,14 +986,14 @@ html.theme-light #toggleSessionsAccordionBtn:hover {
 html.theme-light #copySubBtn {
   background: transparent !important;
   background-color: transparent !important;
-  border: none !important;
-  box-shadow: none !important;
 }
 html.theme-light #copySubBtn {
   color: #64748b !important;
+  border-color: #cbd5e1 !important;
 }
 html.theme-light #copySubBtn:hover {
   color: #0284c7 !important;
+  border-color: #94a3b8 !important;
 }
 
 /* Light Theme: Crypto Topup Memo/Comment High-Contrast Box & Wallet Controls */

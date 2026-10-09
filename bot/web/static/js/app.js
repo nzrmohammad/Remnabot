@@ -131,17 +131,19 @@ function setupQrToggle() {
   const qrModal = document.getElementById('qrModal');
 
   qrToggleBtn?.addEventListener('click', () => {
+    window.currentModalQrUri = null;
     openModal('qrModal');
     syncTelegramBackButton();
   });
 
   closeQrModalBtn?.addEventListener('click', () => {
+    window.currentModalQrUri = null;
     closeModal('qrModal');
     syncTelegramBackButton();
   });
 
   copySubFromQrModalBtn?.addEventListener('click', () => {
-    const url = (document.getElementById('subInput')?.value || '').trim();
+    const url = (window.currentModalQrUri || document.getElementById('subInput')?.value || '').trim();
     if (url && !url.includes('در حال') && !url.includes('یافت نشد')) {
       copyToClipboard(url, '📋 لینک اشتراک با موفقیت در کلیپ‌بورد کپی شد.');
     }
@@ -149,6 +151,7 @@ function setupQrToggle() {
 
   qrModal?.addEventListener('click', (e) => {
     if (e.target === qrModal) {
+      window.currentModalQrUri = null;
       closeModal('qrModal');
       syncTelegramBackButton();
     }
@@ -181,28 +184,13 @@ function setupConfigsModal() {
         currentConfigsList = res.configs;
         if (configsModalCount) configsModalCount.innerText = `${currentConfigsList.length} کانفیگ`;
 
-        const protoColors = {
-          vless: 'text-cyan-400 bg-cyan-950/60 border border-cyan-800/50',
-          vmess: 'text-indigo-400 bg-indigo-950/60 border border-indigo-800/50',
-          trojan: 'text-purple-400 bg-purple-950/60 border border-purple-800/50',
-          ss: 'text-amber-400 bg-amber-950/60 border border-amber-800/50',
-          hysteria2: 'text-rose-400 bg-rose-950/60 border border-rose-800/50',
-          hy2: 'text-rose-400 bg-rose-950/60 border border-rose-800/50',
-          tuic: 'text-emerald-400 bg-emerald-950/60 border border-emerald-800/50',
-          wireguard: 'text-sky-400 bg-sky-950/60 border border-sky-800/50',
-        };
-
         configsModalList.innerHTML = currentConfigsList.map(c => {
-          const proto = (c.protocol || 'vpn').toLowerCase();
-          const colorClass = protoColors[proto] || 'text-slate-300 bg-slate-800 border border-slate-700';
           const safeName = escapeHtml(c.name || 'کانفیگ سرور');
 
           return `
             <div class="config-row-item bg-transparent rounded-2xl p-2.5 border border-slate-700/60 flex items-center justify-between gap-2 transition hover:border-slate-600">
               <div class="flex items-center gap-2 overflow-hidden flex-1">
-                <span class="text-base shrink-0">${c.flag || '🌐'}</span>
                 <span class="text-xs font-bold text-slate-200 truncate config-name-label" title="${safeName}">${safeName}</span>
-                <span class="text-[9px] font-mono font-bold uppercase px-1.5 py-0.5 rounded-md shrink-0 ${colorClass}">${proto}</span>
               </div>
               <div class="flex items-center gap-1 shrink-0">
                 <button type="button" class="copy-single-cfg-btn text-slate-300 hover:text-cyan-400 bg-transparent border-0 p-1.5 rounded-lg transition active:scale-95 text-sm" data-uri="${encodeURIComponent(c.uri)}" title="کپی کانفیگ">
@@ -236,6 +224,7 @@ function setupConfigsModal() {
           btn.addEventListener('click', () => {
             const uri = decodeURIComponent(btn.getAttribute('data-uri') || '');
             if (uri) {
+              window.currentModalQrUri = uri;
               const modalQrImg = document.getElementById('modalQrImage');
               if (modalQrImg) {
                 modalQrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=260x260&data=${encodeURIComponent(uri)}`;
@@ -352,27 +341,22 @@ function setupClientImporters() {
     copyToClipboard(url);
 
     const targetUri = makeUri(url);
+    const redirectUrl = `${window.location.origin}/open-client?scheme=${encodeURIComponent(targetUri)}&name=${encodeURIComponent(appName)}&url=${encodeURIComponent(url)}`;
+
     try {
-      if (targetUri.startsWith('http://') || targetUri.startsWith('https://')) {
-        if (window.Telegram?.WebApp?.openLink) {
-          window.Telegram.WebApp.openLink(targetUri);
-        } else {
-          window.open(targetUri, '_blank');
-        }
+      if (window.Telegram?.WebApp?.openLink) {
+        window.Telegram.WebApp.openLink(redirectUrl);
       } else {
-        const iframe = document.createElement('iframe');
-        iframe.style.display = 'none';
-        iframe.src = targetUri;
-        document.body.appendChild(iframe);
-        setTimeout(() => {
-          try { if (iframe.parentNode) document.body.removeChild(iframe); } catch (e) {}
-        }, 1000);
+        window.location.href = targetUri;
       }
     } catch (e) {
-      console.debug('Deep link trigger handled', e);
+      console.debug('Deep link trigger fallback', e);
+      try {
+        window.open(redirectUrl, '_blank');
+      } catch (e2) {}
     }
 
-    showToast(`📋 لینک کپی شد! در برنامه ${appName} از گزینه Import from Clipboard استفاده فرمایید.`);
+    showToast(`🚀 در حال انتقال به ${appName} (لینک در کلیپ‌بورد کپی شد)`);
   };
 
   document.getElementById('appImportIncy')?.addEventListener('click', () => {

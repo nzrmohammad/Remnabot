@@ -1616,5 +1616,30 @@ async def test_crypto_mark_paid_atomic():
     await engine.dispose()
 
 
+@pytest.mark.anyio
+async def test_serve_open_client_bridge():
+    from aiohttp.test_utils import make_mocked_request
+    from bot.web.server import serve_open_client
+
+    # 1. Valid scheme
+    req = make_mocked_request(
+        "GET",
+        "/open-client?scheme=v2rayng%3A%2F%2Finstall-sub%3Furl%3Dhttps%253A%252F%252Fsub.example.com&name=v2rayNG&url=https%3A%2F%2Fsub.example.com",
+    )
+    res = await serve_open_client(req)
+    assert res.status == 200
+    assert "v2rayng://" in res.text
+    assert "v2rayNG" in res.text
+
+    # 2. Invalid/unsafe scheme rejected with 400
+    req_bad = make_mocked_request(
+        "GET",
+        "/open-client?scheme=javascript%3Aalert(1)&name=Hacker",
+    )
+    res_bad = await serve_open_client(req_bad)
+    assert res_bad.status == 400
+
+
+
 
 

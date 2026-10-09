@@ -71,29 +71,29 @@ function renderWalletTransactions(transactions) {
   } else {
     pagEl.classList.remove('hidden');
     pagEl.innerHTML = `
-      <button type="button" id="walletPrevPageBtn" class="text-[11px] px-2.5 py-1 rounded-lg border border-slate-700 hover:border-slate-500 bg-transparent text-slate-300 hover:text-white transition active:scale-95 flex items-center gap-1 ${currentWalletPage === 1 ? 'opacity-40 cursor-not-allowed pointer-events-none' : ''}">
-        <span>◀️</span>
-        <span>قبلی</span>
-      </button>
-      <span class="text-[11px] text-slate-400 font-mono">
-        صفحه <b class="text-slate-200">${currentWalletPage}</b> از <b class="text-slate-200">${totalPages}</b>
-      </span>
       <button type="button" id="walletNextPageBtn" class="text-[11px] px-2.5 py-1 rounded-lg border border-slate-700 hover:border-slate-500 bg-transparent text-slate-300 hover:text-white transition active:scale-95 flex items-center gap-1 ${currentWalletPage === totalPages ? 'opacity-40 cursor-not-allowed pointer-events-none' : ''}">
         <span>بعدی</span>
         <span>▶️</span>
       </button>
+      <span class="text-[11px] text-slate-400 font-mono">
+        صفحه <b class="text-slate-200">${currentWalletPage}</b> از <b class="text-slate-200">${totalPages}</b>
+      </span>
+      <button type="button" id="walletPrevPageBtn" class="text-[11px] px-2.5 py-1 rounded-lg border border-slate-700 hover:border-slate-500 bg-transparent text-slate-300 hover:text-white transition active:scale-95 flex items-center gap-1 ${currentWalletPage === 1 ? 'opacity-40 cursor-not-allowed pointer-events-none' : ''}">
+        <span>◀️</span>
+        <span>قبلی</span>
+      </button>
     `;
-
-    pagEl.querySelector('#walletPrevPageBtn')?.addEventListener('click', () => {
-      if (currentWalletPage > 1) {
-        currentWalletPage--;
-        renderWalletTransactions();
-      }
-    });
 
     pagEl.querySelector('#walletNextPageBtn')?.addEventListener('click', () => {
       if (currentWalletPage < totalPages) {
         currentWalletPage++;
+        renderWalletTransactions();
+      }
+    });
+
+    pagEl.querySelector('#walletPrevPageBtn')?.addEventListener('click', () => {
+      if (currentWalletPage > 1) {
+        currentWalletPage--;
         renderWalletTransactions();
       }
     });
@@ -133,7 +133,58 @@ function openTopupModal(defaultAmt) {
   if (inputEl) inputEl.value = amt;
   updateTopupDisplays(amt);
   loadTopupInfo();
+  restoreActiveCryptoInvoice();
   openModal('topupModal');
+}
+
+function saveActiveCryptoInvoice(inv, durationSec = 1800) {
+  try {
+    const expiresAt = Date.now() + (durationSec * 1000);
+    localStorage.setItem('remna_active_crypto_invoice', JSON.stringify({
+      invoice: inv,
+      expires_at: expiresAt
+    }));
+  } catch (e) {}
+}
+
+function clearActiveCryptoInvoice() {
+  try {
+    localStorage.removeItem('remna_active_crypto_invoice');
+  } catch (e) {}
+  currentTopupInvoice = null;
+  stopCryptoCountdownTimer();
+  document.getElementById('cryptoInvoiceDetails')?.classList.add('hidden');
+  document.getElementById('cryptoInvoiceInitial')?.classList.remove('hidden');
+}
+
+function restoreActiveCryptoInvoice() {
+  try {
+    const raw = localStorage.getItem('remna_active_crypto_invoice');
+    if (!raw) return false;
+    const data = JSON.parse(raw);
+    const now = Date.now();
+    const remainingSec = Math.floor((data.expires_at - now) / 1000);
+    if (remainingSec <= 0 || !data.invoice) {
+      clearActiveCryptoInvoice();
+      return false;
+    }
+    currentTopupInvoice = data.invoice;
+    document.getElementById('cryptoInvoiceInitial')?.classList.add('hidden');
+    document.getElementById('cryptoInvoiceDetails')?.classList.remove('hidden');
+    const amtEl = document.getElementById('cryptoAmountTon');
+    if (amtEl) amtEl.innerText = `${data.invoice.amount_ton} TON`;
+    const addrEl = document.getElementById('cryptoPayAddress');
+    if (addrEl) addrEl.innerText = data.invoice.pay_address;
+    const commEl = document.getElementById('cryptoComment');
+    if (commEl) commEl.innerText = data.invoice.comment;
+    const targetLink = data.invoice.universal_link || data.invoice.deep_link || '#';
+    const tonBtn = document.getElementById('cryptoTonkeeperLink');
+    if (tonBtn) tonBtn.href = targetLink;
+    startCryptoCountdownTimer(remainingSec);
+    return true;
+  } catch (e) {
+    return false;
+  }
 }
 
 function setupWalletListeners() {
@@ -171,6 +222,7 @@ function setupWalletListeners() {
     methodCardBtn.classList.remove('bg-blue-600');
     cryptoView?.classList.remove('hidden');
     cardView?.classList.add('hidden');
+    restoreActiveCryptoInvoice();
   });
 
 let cryptoCountdownTimerInterval = null;
@@ -194,6 +246,7 @@ function startCryptoCountdownTimer(seconds = 1800) {
       timerEl.classList.remove('text-amber-400', 'bg-amber-500/10', 'border-amber-500/20');
       timerEl.classList.add('text-rose-400', 'bg-rose-500/10', 'border-rose-500/20');
       if (cryptoCountdownTimerInterval) clearInterval(cryptoCountdownTimerInterval);
+      try { localStorage.removeItem('remna_active_crypto_invoice'); } catch (e) {}
       return;
     }
     const mins = Math.floor(remaining / 60);
@@ -330,6 +383,7 @@ function stopCryptoCountdownTimer() {
       const res = await window.api.createCryptoInvoice(amt);
       if (res.ok && res.invoice) {
         currentTopupInvoice = res.invoice;
+        saveActiveCryptoInvoice(res.invoice, 1800);
         document.getElementById('cryptoInvoiceInitial')?.classList.add('hidden');
         document.getElementById('cryptoInvoiceDetails')?.classList.remove('hidden');
         document.getElementById('cryptoAmountTon').innerText = `${res.invoice.amount_ton} TON`;
@@ -384,6 +438,11 @@ function stopCryptoCountdownTimer() {
     }
   });
 
+  document.getElementById('cryptoCancelInvoiceBtn')?.addEventListener('click', () => {
+    clearActiveCryptoInvoice();
+    showToast('فاکتور قبلی لغو شد. می‌توانید فاکتور جدید صادر فرمایید.');
+  });
+
   document.getElementById('cryptoCheckStatusBtn')?.addEventListener('click', async () => {
     if (!currentTopupInvoice?.id) return;
     const chkBtn = document.getElementById('cryptoCheckStatusBtn');
@@ -393,7 +452,7 @@ function stopCryptoCountdownTimer() {
       const res = await window.api.checkCryptoInvoice(currentTopupInvoice.id);
       if (res.ok && res.paid) {
         showToast('🎉 پرداخت تایید شد و کیف پول شارژ گردید!');
-        stopCryptoCountdownTimer();
+        clearActiveCryptoInvoice();
         closeModal('topupModal');
         if (typeof syncUserDataWithApi === 'function') syncUserDataWithApi(window.currentAccountId);
       } else {
@@ -406,6 +465,8 @@ function stopCryptoCountdownTimer() {
       chkBtn.innerText = '🔄 بررسی وضعیت پرداخت';
     }
   });
+
+  restoreActiveCryptoInvoice();
 }
 
 window.renderWalletTransactions = renderWalletTransactions;

@@ -2,6 +2,8 @@
 
 Integrates seamlessly into the same asyncio event loop as aiogram.
 """
+import html
+import json
 import logging
 import time
 from collections import defaultdict, deque
@@ -201,6 +203,113 @@ async def health_check(request: web.Request) -> web.Response:
     return web.json_response({"status": "ok", "service": "remnabot-tma"})
 
 
+async def serve_open_client(request: web.Request) -> web.Response:
+    """Serve a bridge page to launch external VPN clients from Telegram Mini App."""
+    scheme = request.query.get("scheme", "").strip()
+    name = request.query.get("name", "نرم‌افزار").strip()
+    sub_url = request.query.get("url", "").strip()
+
+    safe_schemes = ("v2rayng://", "hiddify://", "happ://", "incy://", "streisand://", "v2box://", "sing-box://")
+    if not any(scheme.lower().startswith(s) for s in safe_schemes):
+        return web.Response(text="طرح‌واره نامعتبر است.", status=400)
+
+    html_content = f"""<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>اتصال به {html.escape(name)}</title>
+  <style>
+    body {{
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Vazirmatn", sans-serif;
+      background: #0f172a;
+      color: #f8fafc;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      margin: 0;
+      padding: 1rem;
+      box-sizing: border-box;
+      text-align: center;
+    }}
+    .card {{
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 1.5rem;
+      padding: 2rem 1.5rem;
+      max-width: 400px;
+      width: 100%;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+    }}
+    .btn {{
+      display: block;
+      width: 100%;
+      padding: 0.75rem 1rem;
+      margin-top: 0.75rem;
+      border-radius: 0.75rem;
+      font-weight: bold;
+      font-size: 0.875rem;
+      text-decoration: none;
+      cursor: pointer;
+      box-sizing: border-box;
+      transition: all 0.2s;
+    }}
+    .btn-primary {{
+      background: #0284c7;
+      color: #ffffff;
+      border: none;
+    }}
+    .btn-primary:hover {{
+      background: #0369a1;
+    }}
+    .btn-secondary {{
+      background: transparent;
+      border: 1px solid #475569;
+      color: #94a3b8;
+    }}
+    .btn-secondary:hover {{
+      background: #334155;
+      color: #ffffff;
+    }}
+    .hint {{
+      font-size: 0.75rem;
+      color: #94a3b8;
+      margin-top: 1rem;
+      line-height: 1.6;
+    }}
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">🚀</div>
+    <h2 style="font-size: 1.125rem; margin-bottom: 0.5rem;">در حال انتقال به {html.escape(name)}...</h2>
+    <p style="font-size: 0.8125rem; color: #cbd5e1; margin-bottom: 1.25rem;">
+      در صورت باز نشدن خودکار برنامه، دکمه زیر را لمس نمایید یا از گزینه کپی لینک استفاده کنید.
+    </p>
+    <a href="{html.escape(scheme)}" class="btn btn-primary" id="launchBtn">باز کردن برنامه {html.escape(name)}</a>
+    <button type="button" class="btn btn-secondary" id="copyBtn">📋 کپی لینک اشتراک</button>
+    <p class="hint">
+      اگر برنامه روی دستگاه شما نصب نیست، ابتدا آن را نصب کرده و سپس اشتراک را ایمپورت کنید.
+    </p>
+  </div>
+  <script>
+    const scheme = {json.dumps(scheme)};
+    const subUrl = {json.dumps(sub_url)};
+    try {{
+      window.location.href = scheme;
+    }} catch(e) {{}}
+    document.getElementById('copyBtn').addEventListener('click', () => {{
+      if (navigator.clipboard && subUrl) {{
+        navigator.clipboard.writeText(subUrl).then(() => alert('لینک اشتراک با موفقیت کپی شد.'));
+      }}
+    }});
+  </script>
+</body>
+</html>"""
+    return web.Response(text=html_content, content_type="text/html", charset="utf-8")
+
+
 @web.middleware
 async def global_error_middleware(request: web.Request, handler):
     """Catch unhandled exceptions in TMA web routes and log them with context."""
@@ -242,6 +351,7 @@ def create_web_app(
     app.router.add_get("/app", serve_app_html)
     app.router.add_get("/admin", serve_admin_html)
     app.router.add_get("/health", health_check)
+    app.router.add_get("/open-client", serve_open_client)
 
     # Static files
     if STATIC_DIR.exists():
