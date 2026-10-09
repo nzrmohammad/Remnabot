@@ -163,8 +163,11 @@ html.theme-light .text-emerald-400 {
 html.theme-light .text-amber-400 {
   color: #d97706 !important;
 }
+html.theme-light .text-rose-200,
+html.theme-light .text-rose-200\/80,
+html.theme-light .text-rose-300,
 html.theme-light .text-rose-400 {
-  color: #e11d48 !important;
+  color: #be123c !important;
 }
 html.theme-light .text-purple-300,
 html.theme-light .text-purple-400 {
@@ -1181,6 +1184,23 @@ html.theme-light .bg-rose-950\/30 .text-rose-300 {
 html.theme-light .bg-rose-950\/30 p.text-slate-400,
 html.theme-light .bg-rose-950\/30 .text-slate-400 {
   color: #64748b !important;
+}
+
+/* Light Theme: Checkout Shortage Warning Box */
+html.theme-light #checkoutShortageBox,
+html.theme-light .bg-rose-500\/10 {
+  background-color: #fff1f2 !important;
+  border-color: #fecdd3 !important;
+}
+html.theme-light #checkoutShortageBox,
+html.theme-light #checkoutShortageBox span,
+html.theme-light #checkoutShortageBox #checkoutShortageAmount {
+  color: #be123c !important;
+}
+html.theme-light #checkoutShortageBox p,
+html.theme-light #checkoutShortageBox .text-rose-200\/80 {
+  color: #9f1239 !important;
+  opacity: 1 !important;
 }
 
 /* Support Chat Modal - Light Mode */

@@ -25,8 +25,11 @@ function renderBarChart(containerId, totals, labels, isMonthly = false) {
   }
 
   const isLight = document.documentElement.classList.contains('theme-light');
-  const textColor = isLight ? '#475569' : '#94a3b8';
-  const gridColor = isLight ? 'rgba(0, 0, 0, 0.05)' : 'rgba(255, 255, 255, 0.06)';
+  const textColor = isLight ? '#1e293b' : '#94a3b8';
+  const gridColor = isLight ? 'rgba(0, 0, 0, 0.06)' : 'rgba(255, 255, 255, 0.06)';
+  if (typeof Chart !== 'undefined') {
+    Chart.defaults.color = isLight ? '#1e293b' : '#cbd5e1';
+  }
   
   // Color palette
   const mainColor = isMonthly 
@@ -105,7 +108,7 @@ function renderBarChart(containerId, totals, labels, isMonthly = false) {
           border: { display: false },
           ticks: {
             color: textColor,
-            font: { family: 'Vazirmatn', size: 10, weight: '500' }
+            font: { family: 'Vazirmatn', size: 10, weight: isLight ? '600' : '500' }
           }
         },
         y: {
@@ -117,7 +120,7 @@ function renderBarChart(containerId, totals, labels, isMonthly = false) {
           border: { display: false },
           ticks: {
             color: textColor,
-            font: { family: 'monospace', size: 9 },
+            font: { family: 'monospace', size: 9, weight: isLight ? '600' : '500' },
             callback: function(val) {
               return `\u200E${val} GB\u200E`;
             }
@@ -165,7 +168,11 @@ function renderDonutChart(containerId, labels, data, isDevice = false) {
   if (typeof Chart === 'undefined') return;
 
   const isLight = document.documentElement.classList.contains('theme-light');
-  const textColor = isLight ? '#334155' : '#e2e8f0';
+  const textColor = isLight ? '#0f172a' : '#f1f5f9';
+
+  if (typeof Chart !== 'undefined') {
+    Chart.defaults.color = isLight ? '#1e293b' : '#cbd5e1';
+  }
 
   const defaultColors = isDevice
     ? ['#10b981', '#06b6d4', '#6366f1', '#ec4899', '#f59e0b', '#64748b']
@@ -218,17 +225,26 @@ function renderDonutChart(containerId, labels, data, isDevice = false) {
             usePointStyle: true,
             pointStyle: 'circle',
             color: textColor,
-            font: { family: 'Vazirmatn', size: 10, weight: '500' },
+            font: { family: 'Vazirmatn', size: 10.5, weight: '600' },
             padding: 8,
             generateLabels: function(chart) {
-              const original = Chart.overrides?.doughnut?.plugins?.legend?.labels?.generateLabels
-                ? Chart.overrides.doughnut.plugins.legend.labels.generateLabels(chart)
-                : Chart.defaults.plugins.legend.labels.generateLabels(chart);
-              original.forEach(item => {
-                item.strokeStyle = item.fillStyle;
-                item.lineWidth = 0;
+              const data = chart.data;
+              if (!data.labels?.length || !data.datasets?.length) return [];
+              const dataset = data.datasets[0];
+              return data.labels.map((label, i) => {
+                const fill = Array.isArray(dataset.backgroundColor) ? dataset.backgroundColor[i] : dataset.backgroundColor;
+                return {
+                  text: label,
+                  fontColor: textColor,
+                  fillStyle: fill,
+                  strokeStyle: fill,
+                  lineWidth: 0,
+                  pointStyle: 'circle',
+                  hidden: isNaN(dataset.data[i]) || chart.getDataVisibility(i) === false,
+                  index: i,
+                  datasetIndex: 0
+                };
               });
-              return original;
             }
           }
         },
@@ -273,8 +289,12 @@ function renderLineCurveChart(containerId, labels, data, peakHour = null) {
   if (typeof Chart === 'undefined') return;
 
   const isLight = document.documentElement.classList.contains('theme-light');
-  const textColor = isLight ? '#475569' : '#94a3b8';
-  const gridColor = isLight ? 'rgba(0, 0, 0, 0.05)' : 'rgba(255, 255, 255, 0.06)';
+  const textColor = isLight ? '#1e293b' : '#cbd5e1';
+  const gridColor = isLight ? 'rgba(0, 0, 0, 0.06)' : 'rgba(255, 255, 255, 0.06)';
+
+  if (typeof Chart !== 'undefined') {
+    Chart.defaults.color = isLight ? '#1e293b' : '#cbd5e1';
+  }
 
   const cleanData = (data || []).map(v => {
     const num = parseFloat(toEnglishDigits(v));
@@ -341,7 +361,7 @@ function renderLineCurveChart(containerId, labels, data, peakHour = null) {
           border: { display: false },
           ticks: {
             color: textColor,
-            font: { family: 'monospace', size: 8 },
+            font: { family: 'monospace', size: 9.5, weight: isLight ? '600' : '500' },
             maxTicksLimit: 12,
           }
         },
@@ -352,7 +372,7 @@ function renderLineCurveChart(containerId, labels, data, peakHour = null) {
           border: { display: false },
           ticks: {
             color: textColor,
-            font: { family: 'monospace', size: 8 },
+            font: { family: 'monospace', size: 9, weight: isLight ? '600' : '500' },
             callback: (v) => `\u200E${v} G\u200E`
           }
         }

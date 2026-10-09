@@ -405,6 +405,10 @@ function setupThemeToggle() {
       try { if (window.Telegram?.WebApp?.setHeaderColor) window.Telegram.WebApp.setHeaderColor('#ffffff'); } catch(e) {}
     }
 
+    if (typeof Chart !== 'undefined') {
+      Chart.defaults.color = isDark ? '#cbd5e1' : '#1e293b';
+    }
+
     if (window.lastUserData?.active_sub) {
       const sub = window.lastUserData.active_sub;
       if (typeof renderBarChart === 'function') {
