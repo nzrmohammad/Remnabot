@@ -837,27 +837,32 @@ def test_chunk_text():
 
 
 @pytest.mark.anyio
-async def test_backup_and_restore_json(async_session: AsyncSession, tmp_path):
+async def test_backup_and_restore_json(async_session: AsyncSession):
+    import tempfile
+    from pathlib import Path
     from bot.db.models import AppSetting, User, Wallet
     from bot.services.backup import create_database_backup, restore_database_backup
 
-    # Insert test user and wallet
-    user = User(telegram_id=987654321, username="backup_user")
-    wallet = Wallet(telegram_id=987654321, balance=50000)
-    setting = AppSetting(key="test_backup_key", value="test_backup_val")
-    async_session.add_all([user, wallet, setting])
-    await async_session.commit()
+    with tempfile.TemporaryDirectory() as td:
+        tmp_path = Path(td)
 
-    # Create backup
-    backup_file = await create_database_backup(async_session, out_dir=tmp_path)
-    assert backup_file.is_file()
+        # Insert test user and wallet
+        user = User(telegram_id=987654321, username="backup_user")
+        wallet = Wallet(telegram_id=987654321, balance=50000)
+        setting = AppSetting(key="test_backup_key", value="test_backup_val")
+        async_session.add_all([user, wallet, setting])
+        await async_session.commit()
 
-    # Clear user username and wallet balance to test restore
-    wallet.balance = 0
-    await async_session.commit()
+        # Create backup
+        backup_file = await create_database_backup(async_session, out_dir=tmp_path)
+        assert backup_file.is_file()
 
-    # Restore backup
-    stats = await restore_database_backup(async_session, backup_file)
+        # Clear user username and wallet balance to test restore
+        wallet.balance = 0
+        await async_session.commit()
+
+        # Restore backup
+        stats = await restore_database_backup(async_session, backup_file)
     assert stats["users"] >= 1
     assert stats["wallets"] >= 1
 

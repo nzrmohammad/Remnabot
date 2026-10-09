@@ -127,14 +127,102 @@ async function loadTopupInfo() {
   } catch (err) {}
 }
 
-function openTopupModal(defaultAmt) {
-  const amt = defaultAmt && defaultAmt >= 50000 ? defaultAmt : 50000;
-  const inputEl = document.getElementById('topupAmountInput');
-  if (inputEl) inputEl.value = amt;
-  updateTopupDisplays(amt);
-  loadTopupInfo();
-  restoreActiveCryptoInvoice();
-  openModal('topupModal');
+let cryptoCountdownTimerInterval = null;
+
+function switchToCryptoTab() {
+  const methodCardBtn = document.getElementById('topupMethodCardBtn');
+  const methodCryptoBtn = document.getElementById('topupMethodCryptoBtn');
+  const cardView = document.getElementById('topupCardView');
+  const cryptoView = document.getElementById('topupCryptoView');
+
+  methodCryptoBtn?.classList.replace('text-slate-400', 'text-white');
+  methodCryptoBtn?.classList.add('bg-blue-600');
+  methodCardBtn?.classList.replace('text-white', 'text-slate-400');
+  methodCardBtn?.classList.remove('bg-blue-600');
+  cryptoView?.classList.remove('hidden');
+  cardView?.classList.add('hidden');
+}
+
+function switchToCardTab() {
+  const methodCardBtn = document.getElementById('topupMethodCardBtn');
+  const methodCryptoBtn = document.getElementById('topupMethodCryptoBtn');
+  const cardView = document.getElementById('topupCardView');
+  const cryptoView = document.getElementById('topupCryptoView');
+
+  methodCardBtn?.classList.replace('text-slate-400', 'text-white');
+  methodCardBtn?.classList.add('bg-blue-600');
+  methodCryptoBtn?.classList.replace('text-white', 'text-slate-400');
+  methodCryptoBtn?.classList.remove('bg-blue-600');
+  cardView?.classList.remove('hidden');
+  cryptoView?.classList.add('hidden');
+}
+
+function updatePendingCardUI(invoice, remainingSec) {
+  const card = document.getElementById('activeCryptoPendingCard');
+  if (!card) return;
+  if (!invoice) {
+    card.classList.add('hidden');
+    return;
+  }
+  card.classList.remove('hidden');
+  const amtEl = document.getElementById('activeCryptoPendingAmount');
+  if (amtEl) amtEl.innerText = `${invoice.amount_ton} TON`;
+  const timerEl = document.getElementById('activeCryptoPendingTimer');
+  if (timerEl && remainingSec !== undefined) {
+    const mins = Math.max(0, Math.floor(remainingSec / 60));
+    const secs = Math.max(0, remainingSec % 60);
+    timerEl.innerText = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+  }
+}
+
+function startCryptoCountdownTimer(seconds = 1800) {
+  if (cryptoCountdownTimerInterval) {
+    clearInterval(cryptoCountdownTimerInterval);
+    cryptoCountdownTimerInterval = null;
+  }
+  let remaining = seconds;
+  const timerEl = document.getElementById('cryptoCountdownTimer');
+  if (timerEl) {
+    timerEl.classList.remove('text-rose-400', 'bg-rose-500/10', 'border-rose-500/20');
+    timerEl.classList.add('text-amber-400', 'bg-amber-500/10', 'border-amber-500/20');
+  }
+
+  const updateDisplay = () => {
+    if (remaining <= 0) {
+      if (timerEl) {
+        timerEl.innerText = '00:00 (منقضی شد)';
+        timerEl.classList.remove('text-amber-400', 'bg-amber-500/10', 'border-amber-500/20');
+        timerEl.classList.add('text-rose-400', 'bg-rose-500/10', 'border-rose-500/20');
+      }
+      const pendingTimer = document.getElementById('activeCryptoPendingTimer');
+      if (pendingTimer) {
+        pendingTimer.innerText = '00:00 (منقضی شد)';
+      }
+      if (cryptoCountdownTimerInterval) clearInterval(cryptoCountdownTimerInterval);
+      try { localStorage.removeItem('remna_active_crypto_invoice'); } catch (e) {}
+      updatePendingCardUI(null);
+      return;
+    }
+    const mins = Math.floor(remaining / 60);
+    const secs = remaining % 60;
+    const timeStr = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+    if (timerEl) timerEl.innerText = timeStr;
+    const pendingTimer = document.getElementById('activeCryptoPendingTimer');
+    if (pendingTimer) pendingTimer.innerText = timeStr;
+  };
+
+  updateDisplay();
+  cryptoCountdownTimerInterval = setInterval(() => {
+    remaining -= 1;
+    updateDisplay();
+  }, 1000);
+}
+
+function stopCryptoCountdownTimer() {
+  if (cryptoCountdownTimerInterval) {
+    clearInterval(cryptoCountdownTimerInterval);
+    cryptoCountdownTimerInterval = null;
+  }
 }
 
 function saveActiveCryptoInvoice(inv, durationSec = 1800) {
@@ -153,14 +241,47 @@ function clearActiveCryptoInvoice() {
   } catch (e) {}
   currentTopupInvoice = null;
   stopCryptoCountdownTimer();
-  document.getElementById('cryptoInvoiceDetails')?.classList.add('hidden');
-  document.getElementById('cryptoInvoiceInitial')?.classList.remove('hidden');
+
+  const detailsEl = document.getElementById('cryptoInvoiceDetails');
+  const initialEl = document.getElementById('cryptoInvoiceInitial');
+  if (detailsEl) detailsEl.classList.add('hidden');
+  if (initialEl) initialEl.classList.remove('hidden');
+
+  updatePendingCardUI(null);
+
+  const genBtn = document.getElementById('generateTonInvoiceBtn');
+  if (genBtn) {
+    genBtn.disabled = false;
+    genBtn.innerText = '💎 ایجاد فاکتور پرداخت TON';
+  }
+
+  const timerEl = document.getElementById('cryptoCountdownTimer');
+  if (timerEl) {
+    timerEl.innerText = '30:00';
+    timerEl.classList.remove('text-rose-400', 'bg-rose-500/10', 'border-rose-500/20');
+    timerEl.classList.add('text-amber-400', 'bg-amber-500/10', 'border-amber-500/20');
+  }
+
+  const amtEl = document.getElementById('cryptoAmountTon');
+  if (amtEl) amtEl.innerText = '-- TON';
+  const addrEl = document.getElementById('cryptoPayAddress');
+  if (addrEl) addrEl.innerText = '--';
+  const commEl = document.getElementById('cryptoComment');
+  if (commEl) commEl.innerText = '--';
 }
+
+window.cancelCryptoInvoice = function() {
+  clearActiveCryptoInvoice();
+  showToast('✅ فاکتور لغو شد. می‌توانید فاکتور جدید صادر فرمایید.');
+};
 
 function restoreActiveCryptoInvoice() {
   try {
     const raw = localStorage.getItem('remna_active_crypto_invoice');
-    if (!raw) return false;
+    if (!raw) {
+      updatePendingCardUI(null);
+      return false;
+    }
     const data = JSON.parse(raw);
     const now = Date.now();
     const remainingSec = Math.floor((data.expires_at - now) / 1000);
@@ -181,10 +302,26 @@ function restoreActiveCryptoInvoice() {
     const tonBtn = document.getElementById('cryptoTonkeeperLink');
     if (tonBtn) tonBtn.href = targetLink;
     startCryptoCountdownTimer(remainingSec);
+    updatePendingCardUI(data.invoice, remainingSec);
     return true;
   } catch (e) {
     return false;
   }
+}
+
+function openTopupModal(defaultAmt, forceCrypto = false) {
+  const amt = defaultAmt && defaultAmt >= 50000 ? defaultAmt : 50000;
+  const inputEl = document.getElementById('topupAmountInput');
+  if (inputEl) inputEl.value = amt;
+  updateTopupDisplays(amt);
+  loadTopupInfo();
+  const hasActiveCrypto = restoreActiveCryptoInvoice();
+  if (hasActiveCrypto || forceCrypto) {
+    switchToCryptoTab();
+  } else {
+    switchToCardTab();
+  }
+  openModal('topupModal');
 }
 
 function setupWalletListeners() {
@@ -203,74 +340,27 @@ function setupWalletListeners() {
 
   const methodCardBtn = document.getElementById('topupMethodCardBtn');
   const methodCryptoBtn = document.getElementById('topupMethodCryptoBtn');
-  const cardView = document.getElementById('topupCardView');
-  const cryptoView = document.getElementById('topupCryptoView');
 
   methodCardBtn?.addEventListener('click', () => {
-    methodCardBtn.classList.replace('text-slate-400', 'text-white');
-    methodCardBtn.classList.add('bg-blue-600');
-    methodCryptoBtn.classList.replace('text-white', 'text-slate-400');
-    methodCryptoBtn.classList.remove('bg-blue-600');
-    cardView?.classList.remove('hidden');
-    cryptoView?.classList.add('hidden');
+    switchToCardTab();
   });
 
   methodCryptoBtn?.addEventListener('click', () => {
-    methodCryptoBtn.classList.replace('text-slate-400', 'text-white');
-    methodCryptoBtn.classList.add('bg-blue-600');
-    methodCardBtn.classList.replace('text-white', 'text-slate-400');
-    methodCardBtn.classList.remove('bg-blue-600');
-    cryptoView?.classList.remove('hidden');
-    cardView?.classList.add('hidden');
+    switchToCryptoTab();
     restoreActiveCryptoInvoice();
   });
-
-let cryptoCountdownTimerInterval = null;
-
-function startCryptoCountdownTimer(seconds = 1800) {
-  if (cryptoCountdownTimerInterval) {
-    clearInterval(cryptoCountdownTimerInterval);
-    cryptoCountdownTimerInterval = null;
-  }
-  let remaining = seconds;
-  const timerEl = document.getElementById('cryptoCountdownTimer');
-  if (timerEl) {
-    timerEl.classList.remove('text-rose-400', 'bg-rose-500/10', 'border-rose-500/20');
-    timerEl.classList.add('text-amber-400', 'bg-amber-500/10', 'border-amber-500/20');
-  }
-
-  const updateDisplay = () => {
-    if (!timerEl) return;
-    if (remaining <= 0) {
-      timerEl.innerText = '00:00 (منقضی شد)';
-      timerEl.classList.remove('text-amber-400', 'bg-amber-500/10', 'border-amber-500/20');
-      timerEl.classList.add('text-rose-400', 'bg-rose-500/10', 'border-rose-500/20');
-      if (cryptoCountdownTimerInterval) clearInterval(cryptoCountdownTimerInterval);
-      try { localStorage.removeItem('remna_active_crypto_invoice'); } catch (e) {}
-      return;
-    }
-    const mins = Math.floor(remaining / 60);
-    const secs = remaining % 60;
-    timerEl.innerText = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
-  };
-
-  updateDisplay();
-  cryptoCountdownTimerInterval = setInterval(() => {
-    remaining -= 1;
-    updateDisplay();
-  }, 1000);
-}
-
-function stopCryptoCountdownTimer() {
-  if (cryptoCountdownTimerInterval) {
-    clearInterval(cryptoCountdownTimerInterval);
-    cryptoCountdownTimerInterval = null;
-  }
-}
 
   document.getElementById('closeTopupModalBtn')?.addEventListener('click', () => {
     stopCryptoCountdownTimer();
     closeModal('topupModal');
+  });
+
+  document.getElementById('chargeWalletBtn')?.addEventListener('click', () => {
+    openTopupModal(50000);
+  });
+
+  document.getElementById('openActiveCryptoBtn')?.addEventListener('click', () => {
+    openTopupModal(50000, true);
   });
 
   document.getElementById('chargeWalletBtn')?.addEventListener('click', () => {

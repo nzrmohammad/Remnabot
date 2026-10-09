@@ -981,17 +981,29 @@ html.theme-light #toggleSessionsAccordionBtn:hover {
   background-color: #f8fafc !important;
 }
 
-/* Copy Subscription Button Transparent */
+/* Subscription Action Buttons (Copy, QR, Revoke) Transparent */
+.sub-action-btn,
 #copySubBtn,
-html.theme-light #copySubBtn {
+#qrToggleBtn,
+#revokeSubBtnTop,
+html.theme-light .sub-action-btn,
+html.theme-light #copySubBtn,
+html.theme-light #qrToggleBtn,
+html.theme-light #revokeSubBtnTop {
   background: transparent !important;
   background-color: transparent !important;
 }
-html.theme-light #copySubBtn {
+html.theme-light .sub-action-btn,
+html.theme-light #copySubBtn,
+html.theme-light #qrToggleBtn,
+html.theme-light #revokeSubBtnTop {
   color: #64748b !important;
   border-color: #cbd5e1 !important;
 }
-html.theme-light #copySubBtn:hover {
+html.theme-light .sub-action-btn:hover,
+html.theme-light #copySubBtn:hover,
+html.theme-light #qrToggleBtn:hover,
+html.theme-light #revokeSubBtnTop:hover {
   color: #0284c7 !important;
   border-color: #94a3b8 !important;
 }

@@ -1010,7 +1010,7 @@ function hydrateUserInterface(data) {
     if (remainEl) remainEl.innerText = `${sub.traffic_remaining_gb ?? '--'} GB`;
 
     const pctEl = document.getElementById('dashboardPercentRemaining');
-    if (pctEl) pctEl.innerText = `${Math.round(sub.percent_remaining ?? 100)}٪`;
+    if (pctEl) pctEl.innerText = `${toEnglishDigits(Math.round(sub.percent_remaining ?? 100))}%`;
 
     const pillEl = document.getElementById('dashboardUsagePill');
     if (pillEl) pillEl.innerText = `${sub.traffic_used_gb ?? 0} / ${sub.traffic_total_gb ?? 0} GB`;
@@ -1365,21 +1365,21 @@ function renderActiveSubAnalytics(sub) {
   const hasActiveSub = Boolean(data.has_active_sub && (sub?.status === 'ACTIVE' || !sub?.status));
   if (profStatusBadge) {
     if (hasActiveSub) {
-      profStatusBadge.innerText = 'کاربر فعال 🟢';
-      profStatusBadge.className = 'px-2.5 py-0.5 rounded-full text-[10px] font-bold border badge-active transition';
+      profStatusBadge.innerHTML = '<span class="inline-flex items-center gap-1"><span>🟢</span><span>کاربر فعال</span></span>';
+      profStatusBadge.className = 'px-2.5 py-0.5 rounded-full text-[10px] font-bold border badge-active transition inline-flex items-center gap-1';
     } else {
-      profStatusBadge.innerText = 'بدون سرویس فعال ⚪️';
-      profStatusBadge.className = 'px-2.5 py-0.5 rounded-full text-[10px] font-bold border badge-inactive transition';
+      profStatusBadge.innerHTML = '<span class="inline-flex items-center gap-1"><span>⚪️</span><span>بدون سرویس فعال</span></span>';
+      profStatusBadge.className = 'px-2.5 py-0.5 rounded-full text-[10px] font-bold border badge-inactive transition inline-flex items-center gap-1';
     }
   }
 
   if (profAuthBadge) {
     if (user.phone_number) {
-      profAuthBadge.innerText = 'احراز هویت شده ✅';
-      profAuthBadge.className = 'px-2.5 py-0.5 rounded-full text-[10px] font-bold border badge-auth transition';
+      profAuthBadge.innerHTML = '<span class="inline-flex items-center gap-1"><span>✅</span><span>احراز هویت شده</span></span>';
+      profAuthBadge.className = 'px-2.5 py-0.5 rounded-full text-[10px] font-bold border badge-auth transition inline-flex items-center gap-1';
     } else {
-      profAuthBadge.innerText = '⚠️ عدم احراز هویت';
-      profAuthBadge.className = 'px-2.5 py-0.5 rounded-full text-[10px] font-bold border badge-unauth transition';
+      profAuthBadge.innerHTML = '<span class="inline-flex items-center gap-1"><span>⚠️</span><span>عدم احراز هویت</span></span>';
+      profAuthBadge.className = 'px-2.5 py-0.5 rounded-full text-[10px] font-bold border badge-unauth transition inline-flex items-center gap-1';
     }
   }
 

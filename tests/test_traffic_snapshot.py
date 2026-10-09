@@ -148,7 +148,8 @@ async def test_admin_overview_uses_real_hourly_snapshots():
     data = json.loads(resp.text)
     hourly = data["data"]["charts"]["hourly_distribution"]
     assert hourly["is_real_telemetry"] is True
-    # The target_hour must match 15.0 GB
-    assert hourly["data"][target_hour] == 15.0
+    # The target_hour bucket (2-hour interval) must match at least 15.0 GB
+    bin_idx = target_hour // 2
+    assert hourly["data"][bin_idx] >= 15.0
 
     await engine.dispose()

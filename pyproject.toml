@@ -9,5 +9,4 @@ ignore = ["E501", "UP017", "E402"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-addopts = "--basetemp=./.pytest_tmp"
 

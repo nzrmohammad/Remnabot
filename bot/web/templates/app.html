@@ -12,7 +12,7 @@
       darkMode: 'class'
     };
   </script>
-  <link rel="stylesheet" href="/static/css/app.css?v=11.0">
+  <link rel="stylesheet" href="/static/css/app.css?v=12.0">
 </head>
 <body id="appBody" class="bg-[#080d1a] text-slate-100 w-full min-w-full h-screen h-[100dvh] overflow-hidden flex justify-center items-center antialiased select-none transition-colors duration-300">
 
@@ -140,7 +140,7 @@
               </defs>
             </svg>
             <div class="absolute inset-0 flex flex-col items-center justify-center text-center p-2">
-              <span id="dashboardPercentRemaining" class="text-3xl font-black text-white tracking-tight leading-none">--٪</span>
+              <span id="dashboardPercentRemaining" class="text-3xl font-black text-white tracking-tight leading-none font-mono" dir="ltr">--%</span>
               <span class="text-[10px] text-slate-400 font-medium mt-1">باقی‌مانده</span>
               <div class="mt-1.5 text-[10px] text-indigo-200 bg-slate-900/90 border border-indigo-500/40 px-2.5 py-0.5 rounded-full font-semibold shadow-sm flex items-center justify-center">
                 <span id="dashboardUsagePill" class="font-mono font-bold text-cyan-300" dir="ltr">-- / -- GB</span>
@@ -211,10 +211,10 @@
                 <button id="copySubBtn" class="sub-action-btn text-slate-300 hover:text-cyan-300 flex items-center justify-center bg-transparent w-8 h-8 rounded-xl border border-slate-600/60 transition active:scale-95 shadow-sm" title="کپی لینک اشتراک">
                   <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
                 </button>
-                <button id="qrToggleBtn" class="sub-action-btn text-slate-300 hover:text-cyan-300 flex items-center justify-center bg-slate-700/60 hover:bg-slate-700 w-8 h-8 rounded-xl border border-slate-600/60 transition active:scale-95 shadow-sm" title="کیوآرکد">
+                <button id="qrToggleBtn" class="sub-action-btn text-slate-300 hover:text-cyan-300 flex items-center justify-center bg-transparent hover:bg-slate-800/40 w-8 h-8 rounded-xl border border-slate-600/60 transition active:scale-95 shadow-sm" title="کیوآرکد">
                   <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/></svg>
                 </button>
-                <button id="revokeSubBtnTop" class="sub-action-btn text-slate-300 hover:text-rose-400 flex items-center justify-center bg-slate-700/60 hover:bg-slate-700 w-8 h-8 rounded-xl border border-slate-600/60 transition active:scale-95 shadow-sm" title="تعویض لینک اشتراک">
+                <button id="revokeSubBtnTop" class="sub-action-btn text-slate-300 hover:text-rose-400 flex items-center justify-center bg-transparent hover:bg-slate-800/40 w-8 h-8 rounded-xl border border-slate-600/60 transition active:scale-95 shadow-sm" title="تعویض لینک اشتراک">
                   <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
                 </button>
               </div>
@@ -535,6 +535,22 @@
           </div>
         </div>
 
+        <!-- Active Pending Crypto Invoice Notification -->
+        <div id="activeCryptoPendingCard" class="hidden bg-sky-950/40 border border-sky-500/50 rounded-2xl p-3 text-right space-y-2 animate-fadeIn">
+          <div class="flex justify-between items-center text-xs">
+            <span class="font-bold text-sky-300 flex items-center gap-1.5">
+              <span class="animate-pulse">⏳</span> فاکتور ارز دیجیتال در جریان
+            </span>
+            <span id="activeCryptoPendingTimer" class="font-mono text-[11px] font-bold text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20" dir="ltr">30:00</span>
+          </div>
+          <div class="flex justify-between items-center text-[11px] text-slate-300">
+            <span>مبلغ: <b id="activeCryptoPendingAmount" class="font-mono text-sky-300 font-bold" dir="ltr">-- TON</b></span>
+            <button type="button" id="openActiveCryptoBtn" class="bg-sky-600 hover:bg-sky-500 text-white font-bold px-3 py-1 rounded-xl text-xs transition active:scale-95 shadow">
+              مشاهده و پرداخت
+            </button>
+          </div>
+        </div>
+
         <!-- Transaction History -->
         <div class="bg-transparent rounded-2xl p-4 border border-slate-700/60 space-y-3">
           <div class="flex items-center justify-between border-b border-slate-700/60 pb-2">
@@ -572,8 +588,8 @@
           <h3 id="profileFullName" class="text-base font-extrabold text-white">کاربر گرامی</h3>
           <span id="profileUsername" dir="ltr" class="text-xs text-blue-400 font-mono font-medium block mt-0.5">@user</span>
           <div class="flex items-center justify-center gap-2 mt-2.5">
-            <span id="profileStatusBadge" class="px-2.5 py-0.5 rounded-full text-[10px] bg-emerald-500/20 text-emerald-400 font-bold border border-emerald-500/30">کاربر فعال 🟢</span>
-            <span id="profileAuthBadge" class="px-2.5 py-0.5 rounded-full text-[10px] bg-indigo-500/20 text-indigo-300 font-bold border border-indigo-500/30">احراز هویت شده</span>
+            <span id="profileStatusBadge" class="px-2.5 py-0.5 rounded-full text-[10px] bg-emerald-500/20 text-emerald-400 font-bold border border-emerald-500/30 inline-flex items-center gap-1"><span>🟢</span><span>کاربر فعال</span></span>
+            <span id="profileAuthBadge" class="px-2.5 py-0.5 rounded-full text-[10px] bg-indigo-500/20 text-indigo-300 font-bold border border-indigo-500/30 inline-flex items-center gap-1"><span>✅</span><span>احراز هویت شده</span></span>
           </div>
         </div>
 
@@ -1061,7 +1077,7 @@
               <button id="cryptoCheckStatusBtn" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold py-2 rounded-xl transition border border-slate-700 flex items-center justify-center gap-1.5 text-xs">
                 <span>🔄</span> بررسی وضعیت پرداخت
               </button>
-              <button id="cryptoCancelInvoiceBtn" type="button" class="w-full text-slate-400 hover:text-rose-400 py-1.5 rounded-xl transition bg-transparent border-0 text-[11px] text-center">
+              <button id="cryptoCancelInvoiceBtn" type="button" onclick="window.cancelCryptoInvoice && window.cancelCryptoInvoice()" class="w-full text-slate-400 hover:text-rose-400 py-1.5 rounded-xl transition bg-transparent border-0 text-[11px] text-center cursor-pointer">
                 <span>✕</span> انصراف و ساخت فاکتور جدید
               </button>
             </div>
@@ -1450,13 +1466,13 @@
   </div>
 
   <!-- Modular Frontend Architecture (DRY) -->
-  <script src="/static/js/utils.js?v=11.0"></script>
-  <script src="/static/js/api.js?v=11.0"></script>
-  <script src="/static/js/charts.js?v=11.0"></script>
-  <script src="/static/js/shop.js?v=11.0"></script>
-  <script src="/static/js/wallet.js?v=11.0"></script>
-  <script src="/static/js/wheel.js?v=11.0"></script>
-  <script src="/static/js/story.js?v=11.0"></script>
-  <script src="/static/js/app.js?v=11.0"></script>
+  <script src="/static/js/utils.js?v=12.0"></script>
+  <script src="/static/js/api.js?v=12.0"></script>
+  <script src="/static/js/charts.js?v=12.0"></script>
+  <script src="/static/js/shop.js?v=12.0"></script>
+  <script src="/static/js/wallet.js?v=12.0"></script>
+  <script src="/static/js/wheel.js?v=12.0"></script>
+  <script src="/static/js/story.js?v=12.0"></script>
+  <script src="/static/js/app.js?v=12.0"></script>
 </body>
 </html>
