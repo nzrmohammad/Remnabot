@@ -1119,9 +1119,13 @@ function renderActiveSubAnalytics(sub) {
   const profName = document.getElementById('profileFullName');
   const profUser = document.getElementById('profileUsername');
   const profAvatar = document.getElementById('profileAvatarInitial');
+  const profStatusBadge = document.getElementById('profileStatusBadge');
+  const profAuthBadge = document.getElementById('profileAuthBadge');
   const profId = document.getElementById('profileTelegramId');
   const profRef = document.getElementById('profileRefCode');
+  const profPhone = document.getElementById('profilePhone');
   const profJoin = document.getElementById('profileJoinDate');
+  const profBirth = document.getElementById('profileBirthDate');
   const profSub = document.getElementById('profileSubStatus');
 
   const userDisplayName = sub?.username || user.first_name || user.username || 'کاربر گرامی';
@@ -1130,10 +1134,39 @@ function renderActiveSubAnalytics(sub) {
   if (profAvatar) profAvatar.innerText = userDisplayName.charAt(0).toUpperCase();
   if (profId) profId.innerText = user.id ? String(user.id) : '--';
   if (profRef) profRef.innerText = user.id ? String(user.id) : '--';
+  if (profPhone) profPhone.innerText = user.phone_number ? toEnglishDigits(user.phone_number) : 'وارد نشده';
   if (profJoin) profJoin.innerText = toEnglishDigits(user.created_at_jalali || '1403/07/01');
+  if (profBirth) profBirth.innerText = user.birth_date ? toEnglishDigits(user.birth_date) : 'ثبت‌نشده';
+
+  const hasActiveSub = Boolean(data.has_active_sub && (sub?.status === 'ACTIVE' || !sub?.status));
+  if (profStatusBadge) {
+    if (hasActiveSub) {
+      profStatusBadge.innerText = 'کاربر فعال 🟢';
+      profStatusBadge.className = 'px-2.5 py-0.5 rounded-full text-[10px] font-bold border badge-active transition';
+    } else {
+      profStatusBadge.innerText = 'بدون سرویس فعال ⚪️';
+      profStatusBadge.className = 'px-2.5 py-0.5 rounded-full text-[10px] font-bold border badge-inactive transition';
+    }
+  }
+
+  if (profAuthBadge) {
+    if (user.phone_number) {
+      profAuthBadge.innerText = 'احراز هویت شده ✅';
+      profAuthBadge.className = 'px-2.5 py-0.5 rounded-full text-[10px] font-bold border badge-auth transition';
+    } else {
+      profAuthBadge.innerText = 'عدم احراز هویت ⚠️';
+      profAuthBadge.className = 'px-2.5 py-0.5 rounded-full text-[10px] font-bold border badge-unauth transition';
+    }
+  }
+
   if (profSub) {
-    profSub.innerText = 'فعال';
-    profSub.className = 'font-semibold text-emerald-400';
+    if (hasActiveSub) {
+      profSub.innerText = 'فعال';
+      profSub.className = 'font-semibold text-emerald-400';
+    } else {
+      profSub.innerText = 'غیرفعال';
+      profSub.className = 'font-semibold text-rose-400';
+    }
   }
 
   // Profile Settings Switches

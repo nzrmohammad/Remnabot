@@ -238,6 +238,8 @@ async def test_user_me_dashboard_with_panel_user():
         assert sub["traffic_remaining_gb"] == 8.0
         assert sub["devices_count"] == 1
         assert sub["subscription_url"] == "https://sub.domain/xyz"
+        assert "phone_number" in data["data"]["user"]
+        assert "birth_date" in data["data"]["user"]
 
 
 @pytest.mark.anyio

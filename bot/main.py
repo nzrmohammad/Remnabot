@@ -98,13 +98,24 @@ async def _migrate_schema(engine: AsyncEngine) -> None:
             )
             logger.info("migrated alert_state.account_uuid -> account_id")
 
-        # --- users.last_active_at (new column) ------------------------- #
+        # --- users.last_active_at, phone_number, birth_date (new columns) #
         cols = await _table_columns(conn, "users")
-        if cols and "last_active_at" not in cols:
-            await conn.execute(
-                text("ALTER TABLE users ADD COLUMN last_active_at TIMESTAMPTZ")
-            )
-            logger.info("added users.last_active_at")
+        if cols:
+            if "last_active_at" not in cols:
+                await conn.execute(
+                    text("ALTER TABLE users ADD COLUMN last_active_at TIMESTAMPTZ")
+                )
+                logger.info("added users.last_active_at")
+            if "phone_number" not in cols:
+                await conn.execute(
+                    text("ALTER TABLE users ADD COLUMN phone_number VARCHAR(32)")
+                )
+                logger.info("added users.phone_number")
+            if "birth_date" not in cols:
+                await conn.execute(
+                    text("ALTER TABLE users ADD COLUMN birth_date VARCHAR(32)")
+                )
+                logger.info("added users.birth_date")
 
         # --- services: strategy / hwid / squad (new columns) ----------- #
         cols = await _table_columns(conn, "services")

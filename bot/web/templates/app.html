@@ -12,7 +12,7 @@
       darkMode: 'class'
     };
   </script>
-  <link rel="stylesheet" href="/static/css/app.css?v=7.7">
+  <link rel="stylesheet" href="/static/css/app.css?v=7.8">
 </head>
 <body id="appBody" class="bg-[#080d1a] text-slate-100 w-full min-w-full h-screen h-[100dvh] overflow-hidden flex justify-center items-center antialiased select-none transition-colors duration-300">
 
@@ -101,7 +101,7 @@
               <span class="text-[11px] font-black text-amber-300 group-hover:text-amber-200 flex items-center gap-1 lucky-wheel-title">
                 <span>🎰</span> گردونه شانس
               </span>
-              <span class="text-[9px] text-slate-300 mt-0.5 font-medium lucky-wheel-sub">۱ چرخش رایگان هدیه</span>
+              <span class="text-[9px] text-slate-300 mt-0.5 font-medium lucky-wheel-sub">1 چرخش رایگان هدیه</span>
             </div>
             <span class="text-xl group-hover:rotate-45 transition transform">🎁</span>
           </button>
@@ -380,9 +380,9 @@
             <div class="flex justify-between"><span>⚡️ کل مصرف ماهانه اکانت :</span><b id="repMonthlyTotal" class="font-mono text-purple-400 text-sm" dir="ltr">-- GB</b></div>
           </div>
 
-          <!-- Monthly 4-Week Chart (نمودار مصرف ۴ هفته اخیر) -->
+          <!-- Monthly 4-Week Chart (نمودار مصرف 4 هفته اخیر) -->
           <div class="pt-2 border-t border-slate-700/60">
-            <span class="text-[11px] text-slate-400 font-medium block mb-2">نمودار مصرف ۴ هفته اخیر (ماهانه):</span>
+            <span class="text-[11px] text-slate-400 font-medium block mb-2">نمودار مصرف 4 هفته اخیر (ماهانه):</span>
             <div class="h-36 w-full p-2 bg-slate-900/60 rounded-xl relative">
               <canvas id="repMonthlyChartCanvas" class="w-full h-full"></canvas>
             </div>
@@ -424,7 +424,7 @@
           <div class="bg-slate-800/90 rounded-2xl p-4 border border-slate-700/80 space-y-2.5 shadow-md">
             <div class="flex justify-between items-center border-b border-slate-700/60 pb-2">
               <span class="text-xs font-bold text-white flex items-center gap-1.5">
-                <span>📈</span> منحنی ساعات اوج مصرف (۲۴ ساعته)
+                <span>📈</span> منحنی ساعات اوج مصرف (24 ساعته)
               </span>
               <span id="repPeakHourBadge" class="text-[10px] font-mono font-bold text-amber-400 bg-amber-950/60 px-2 py-0.5 rounded border border-amber-800/40" dir="ltr">Peak: 21:00</span>
             </div>
@@ -556,7 +556,7 @@
           <span id="profileUsername" dir="ltr" class="text-xs text-blue-400 font-mono font-medium block mt-0.5">@user</span>
           <div class="flex items-center justify-center gap-2 mt-2.5">
             <span id="profileStatusBadge" class="px-2.5 py-0.5 rounded-full text-[10px] bg-emerald-500/20 text-emerald-400 font-bold border border-emerald-500/30">کاربر فعال 🟢</span>
-            <span class="px-2.5 py-0.5 rounded-full text-[10px] bg-indigo-500/20 text-indigo-300 font-bold border border-indigo-500/30">احراز هویت شده</span>
+            <span id="profileAuthBadge" class="px-2.5 py-0.5 rounded-full text-[10px] bg-indigo-500/20 text-indigo-300 font-bold border border-indigo-500/30">احراز هویت شده</span>
           </div>
         </div>
 
@@ -567,7 +567,7 @@
           <div class="flex justify-between items-center py-1">
             <span class="text-slate-400 flex items-center gap-1.5"><span>🆔</span> شناسه عددی تلگرام:</span>
             <div class="flex items-center gap-1">
-              <code id="profileTelegramId" class="font-mono text-white font-bold bg-slate-900 px-2 py-0.5 rounded" dir="ltr">--</code>
+              <code id="profileTelegramId" class="font-mono text-white dark:text-white font-bold bg-transparent border-0 p-0" dir="ltr">--</code>
               <button id="copyProfileIdBtn" class="text-slate-400 hover:text-blue-400 text-xs px-1" title="کپی شناسه">📋</button>
             </div>
           </div>
@@ -575,19 +575,24 @@
           <div class="flex justify-between items-center py-1">
             <span class="text-slate-400 flex items-center gap-1.5"><span>🤝</span> کد معرف شما:</span>
             <div class="flex items-center gap-1">
-              <code id="profileRefCode" class="font-mono text-amber-400 font-bold bg-slate-900 px-2 py-0.5 rounded" dir="ltr">--</code>
+              <code id="profileRefCode" class="font-mono text-amber-400 dark:text-amber-400 font-bold bg-transparent border-0 p-0" dir="ltr">--</code>
               <button id="copyProfileRefBtn" class="text-slate-400 hover:text-amber-400 text-xs px-1" title="کپی کد معرف">📋</button>
             </div>
           </div>
 
           <div class="flex justify-between items-center py-1">
             <span class="text-slate-400 flex items-center gap-1.5"><span>📞</span> شماره تماس:</span>
-            <span class="text-slate-400 font-medium">وارد نشده</span>
+            <span id="profilePhone" class="text-slate-400 font-medium font-mono" dir="ltr">وارد نشده</span>
           </div>
 
           <div class="flex justify-between items-center py-1">
             <span class="text-slate-400 flex items-center gap-1.5"><span>📅</span> تاریخ عضویت:</span>
             <span id="profileJoinDate" class="text-slate-200 font-medium font-mono" dir="ltr">--</span>
+          </div>
+
+          <div class="flex justify-between items-center py-1">
+            <span class="text-slate-400 flex items-center gap-1.5"><span>🎂</span> تاریخ تولد:</span>
+            <span id="profileBirthDate" class="text-slate-200 font-medium font-mono" dir="ltr">ثبت‌نشده</span>
           </div>
 
           <div class="flex justify-between items-center py-1.5 border-t border-slate-700/60">
@@ -605,7 +610,7 @@
           <!-- Toggle: Nightly Report -->
           <div class="flex items-center justify-between py-1">
             <div>
-              <span class="text-slate-200 font-medium block">🌙 گزارش شبانه (ساعت ۲۳:۵۹)</span>
+              <span class="text-slate-200 font-medium block">🌙 گزارش شبانه (ساعت 23:59)</span>
               <span class="text-[10px] text-slate-400">ارسال خلاصه مصرف دیشب در تلگرام</span>
             </div>
             <label class="relative inline-flex items-center cursor-pointer">
@@ -662,7 +667,7 @@
           <div class="flex items-center justify-between py-1 border-t border-slate-700/50 pt-2">
             <div>
               <span class="text-slate-200 font-medium block">🎡 یادآور گردونه شانس</span>
-              <span class="text-[10px] text-slate-400">پیام یادآوری تلگرام به محض اتمام ۲۴ ساعت</span>
+              <span class="text-[10px] text-slate-400">پیام یادآوری تلگرام به محض اتمام 24 ساعت</span>
             </div>
             <label class="relative inline-flex items-center cursor-pointer">
               <input type="checkbox" id="settingToggleWheelNotify" class="sr-only switch-checkbox">
@@ -913,7 +918,7 @@
               <label class="text-[11px] text-slate-300 font-medium">کد پیگیری یا شماره ارجاع فیش:</label>
               <span class="text-[10px] text-slate-400">شماره ارجاع / RRN</span>
             </div>
-            <textarea id="topupCardReceiptInput" rows="2" placeholder="کد پیگیری، شماره ارجاع یا ۴ رقم آخر کارت واریزکننده..." class="w-full bg-slate-900 p-2.5 rounded-xl border border-slate-700 text-slate-200 text-xs outline-none resize-none"></textarea>
+            <textarea id="topupCardReceiptInput" rows="2" placeholder="کد پیگیری، شماره ارجاع یا 4 رقم آخر کارت واریزکننده..." class="w-full bg-slate-900 p-2.5 rounded-xl border border-slate-700 text-slate-200 text-xs outline-none resize-none"></textarea>
             <p class="text-[9.5px] text-slate-400 leading-relaxed bg-slate-800/50 p-2 rounded-xl border border-slate-700/50">
               💡 <b>راهنما:</b> شماره پیگیری یا شماره ارجاع (RRN)، کد چندرقمی درج‌شده در رسید پرداخت برنامه بانکی (آپ، همراه بانک و...) یا در پیامک بانکی تراکنش پس از انتقال وجه است.
             </p>
@@ -1175,7 +1180,7 @@
       <div class="relative w-full max-w-[325px] flex flex-col items-center space-y-2.5 my-auto">
         <button id="closeStoryCardBtn" class="absolute -top-3 left-0 text-slate-400 hover:text-white text-sm bg-slate-800 rounded-full w-7 h-7 flex items-center justify-center z-20">✕</button>
 
-        <!-- Preset Theme Switcher (۳ پوسته بصری اختصاصی) -->
+        <!-- Preset Theme Switcher (3 پوسته بصری اختصاصی) -->
         <div class="flex items-center justify-center gap-1.5 w-full pt-1">
           <button id="presetThemeGlassBtn" type="button" class="story-preset-btn active flex-1 py-1.5 px-2 rounded-xl text-[10px] font-bold transition border border-indigo-400/80 bg-indigo-600/30 text-indigo-200">
             💎 لوکس شیشه‌ای
@@ -1236,7 +1241,7 @@
                 <div class="bg-slate-900/80 p-1.5 rounded-lg border border-slate-700/60 text-slate-300">🇩🇪 DE: <b class="text-emerald-400">32ms</b></div>
                 <div class="bg-slate-900/80 p-1.5 rounded-lg border border-slate-700/60 text-slate-300">🇳🇱 NL: <b class="text-emerald-400">38ms</b></div>
               </div>
-              <div class="text-[9px] text-emerald-400 font-medium pt-0.5">🟢 پایداری ۱۰۰٪ بدون قطعی و پکت‌لاس</div>
+              <div class="text-[9px] text-emerald-400 font-medium pt-0.5">🟢 پایداری 100% بدون قطعی و پکت‌لاس</div>
             </div>
           </div>
 
@@ -1246,7 +1251,7 @@
             <img id="storyCardQr" src="" class="w-11 h-11 rounded-lg bg-white p-0.5 shrink-0" alt="QR" />
             <div class="text-[10px]">
               <span class="font-bold text-white block">اینترنت بدون قطعی و پرسرعت</span>
-              <span class="text-emerald-400 block text-[9px] mt-0.5 font-semibold">🎁 با این کارت ۱ گیگابایت هدیه بگیرید</span>
+              <span class="text-emerald-400 block text-[9px] mt-0.5 font-semibold">🎁 با این کارت 1 گیگابایت هدیه بگیرید</span>
             </div>
           </div>
         </div>
@@ -1254,7 +1259,7 @@
         <!-- Gamification Banner (پاداش دعوت در ازای استوری) -->
         <div class="bg-amber-500/10 border border-amber-500/30 rounded-2xl p-2.5 w-full text-right text-[10px] text-amber-200/90 leading-relaxed shadow-sm">
           <span class="font-extrabold block text-amber-300">🎯 پاداش استوری و اشتراک‌گذاری:</span>
-          با انتشار این تصویر در استوری تلگرام، دوستانتان ۱ گیگ هدیه می‌گیرند و برای شما نیز پاداش معرف واریز می‌شود!
+          با انتشار این تصویر در استوری تلگرام، دوستانتان 1 گیگ هدیه می‌گیرند و برای شما نیز پاداش معرف واریز می‌شود!
         </div>
 
         <!-- Action Buttons -->
@@ -1339,7 +1344,7 @@
             </div>
             <div>
               <h4 class="text-xs font-bold text-white">پشتیبانی اختصاصی RemnaStore</h4>
-              <span class="text-[10px] text-emerald-400 font-medium">🟢 آنلاین (پاسخگویی زیر ۲ دقیقه)</span>
+              <span class="text-[10px] text-emerald-400 font-medium">🟢 آنلاین (پاسخگویی زیر 2 دقیقه)</span>
             </div>
           </div>
           <button id="closeSupportChatBtn" class="text-slate-400 hover:text-white text-xs bg-slate-800 rounded-full w-7 h-7 flex items-center justify-center">✕</button>
@@ -1368,7 +1373,7 @@
           <div class="flex items-start gap-2 max-w-[85%]">
             <div class="w-6 h-6 rounded-full bg-emerald-600 flex items-center justify-center text-[10px] shrink-0">🎧</div>
             <div class="bg-slate-800 rounded-2xl rounded-tr-none p-2.5 text-slate-200 border border-slate-700/60 leading-relaxed shadow-sm">
-              برای همراه اول در حال حاضر سرور <b>🇩🇪 آلمان (Frankfurt Direct)</b> و سرور <b>🇹🇷 ترکیه</b> کمترین تاخیر (زیر ۵۰ میلی‌ثانیه) رو دارن و بدون قطعی وصل میشن! 🚀
+              برای همراه اول در حال حاضر سرور <b>🇩🇪 آلمان (Frankfurt Direct)</b> و سرور <b>🇹🇷 ترکیه</b> کمترین تاخیر (زیر 50 میلی‌ثانیه) رو دارن و بدون قطعی وصل میشن! 🚀
               <span class="text-[9px] text-slate-400 block text-left mt-1 font-mono">14:53</span>
             </div>
           </div>
@@ -1403,13 +1408,13 @@
   </div>
 
   <!-- Modular Frontend Architecture (DRY) -->
-  <script src="/static/js/utils.js?v=7.7"></script>
-  <script src="/static/js/api.js?v=7.7"></script>
-  <script src="/static/js/charts.js?v=7.7"></script>
-  <script src="/static/js/shop.js?v=7.7"></script>
-  <script src="/static/js/wallet.js?v=7.7"></script>
-  <script src="/static/js/wheel.js?v=7.7"></script>
-  <script src="/static/js/story.js?v=7.7"></script>
-  <script src="/static/js/app.js?v=7.7"></script>
+  <script src="/static/js/utils.js?v=7.8"></script>
+  <script src="/static/js/api.js?v=7.8"></script>
+  <script src="/static/js/charts.js?v=7.8"></script>
+  <script src="/static/js/shop.js?v=7.8"></script>
+  <script src="/static/js/wallet.js?v=7.8"></script>
+  <script src="/static/js/wheel.js?v=7.8"></script>
+  <script src="/static/js/story.js?v=7.8"></script>
+  <script src="/static/js/app.js?v=7.8"></script>
 </body>
 </html>

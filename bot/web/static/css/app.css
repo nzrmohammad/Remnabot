@@ -1040,3 +1040,82 @@ html.theme-light #modalKillAllBtn {
   color: #e11d48 !important;
 }
 
+/* Profile Tab: ID and Referral Code transparent background */
+#profileTelegramId,
+#profileRefCode {
+  background: transparent !important;
+  background-color: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+}
+html.theme-light #profileTelegramId {
+  color: #0f172a !important;
+}
+html.theme-light #profileRefCode {
+  color: #d97706 !important;
+}
+html.theme-light #profilePhone,
+html.theme-light #profileBirthDate,
+html.theme-light #profileJoinDate {
+  color: #334155 !important;
+}
+
+/* Profile Badges: Dynamic Active and Auth States */
+#profileStatusBadge.badge-active {
+  background-color: rgba(16, 185, 129, 0.2);
+  border-color: rgba(16, 185, 129, 0.3);
+  color: #34d399;
+}
+#profileStatusBadge.badge-inactive {
+  background-color: rgba(100, 116, 139, 0.2);
+  border-color: rgba(100, 116, 139, 0.3);
+  color: #94a3b8;
+}
+#profileAuthBadge.badge-auth {
+  background-color: rgba(99, 102, 241, 0.2);
+  border-color: rgba(99, 102, 241, 0.3);
+  color: #a5b4fc;
+}
+#profileAuthBadge.badge-unauth {
+  background-color: rgba(245, 158, 11, 0.2);
+  border-color: rgba(245, 158, 11, 0.3);
+  color: #fbbf24;
+}
+
+html.theme-light #profileStatusBadge.badge-active {
+  background-color: #ecfdf5 !important;
+  border-color: #a7f3d0 !important;
+  color: #059669 !important;
+}
+html.theme-light #profileStatusBadge.badge-inactive {
+  background-color: #f1f5f9 !important;
+  border-color: #e2e8f0 !important;
+  color: #64748b !important;
+}
+html.theme-light #profileAuthBadge.badge-auth {
+  background-color: #eff6ff !important;
+  border-color: #bfdbfe !important;
+  color: #2563eb !important;
+}
+html.theme-light #profileAuthBadge.badge-unauth {
+  background-color: #fffbeb !important;
+  border-color: #fde68a !important;
+  color: #b45309 !important;
+}
+
+/* Light Theme: Revoke Subscription Card in Profile Tab */
+html.theme-light .bg-rose-950\/30 {
+  background-color: #fff1f2 !important;
+  border-color: #fecdd3 !important;
+}
+html.theme-light .bg-rose-950\/30 h4.text-rose-300,
+html.theme-light .bg-rose-950\/30 .text-rose-300 {
+  color: #9f1239 !important;
+}
+html.theme-light .bg-rose-950\/30 p.text-slate-400,
+html.theme-light .bg-rose-950\/30 .text-slate-400 {
+  color: #64748b !important;
+}
+
+

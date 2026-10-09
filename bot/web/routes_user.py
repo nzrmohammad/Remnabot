@@ -600,6 +600,8 @@ async def get_user_me(request: web.Request) -> web.Response:
                 "username": user_auth.get("username"),
                 "wallet_balance": wallet_balance,
                 "referrals_count": referrals_count,
+                "phone_number": db_user.phone_number if isinstance(getattr(db_user, "phone_number", None), str) else "",
+                "birth_date": db_user.birth_date if isinstance(getattr(db_user, "birth_date", None), str) else "",
                 "created_at": db_user.created_at.isoformat() if db_user.created_at else None,
                 "created_at_jalali": user_reg_jalali,
                 "language": db_user.language if isinstance(getattr(db_user, "language", None), str) else "fa",
