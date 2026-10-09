@@ -11,7 +11,7 @@
       darkMode: 'class'
     };
   </script>
-  <link rel="stylesheet" href="/static/css/app.css?v=7.5">
+  <link rel="stylesheet" href="/static/css/app.css?v=10.0">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 </head>
 <body id="appBody" class="bg-[#080d1a] text-slate-100 h-screen h-[100dvh] overflow-hidden flex justify-center antialiased select-none transition-colors duration-300">
@@ -138,7 +138,7 @@
               <span class="text-[9px] text-slate-400 font-sans">تومان</span>
             </div>
             <div class="flex items-center justify-between mt-1 pt-0.5">
-              <span id="adminProfitMarginBadge" class="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded-md bg-transparent text-emerald-400 border border-emerald-500/30">مارجین: --%</span>
+              <span id="adminProfitMarginBadge" class="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded-md bg-transparent text-emerald-400 border border-emerald-500/30">مارجین: —</span>
               <span class="text-[9px] text-slate-400">کسر سرورها</span>
             </div>
           </div>
@@ -229,9 +229,9 @@
             <div class="flex justify-between items-center border-b border-slate-700/60 pb-2">
               <span class="text-xs font-bold text-slate-200 flex items-center gap-1.5">
                 <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                <span>ساعات اوج مصرف شبانه‌روز</span>
+                <span>ساعات اوج مصرف شبانه‌روز (۱۲ بازه ۲ ساعته)</span>
               </span>
-              <span id="peakHourBadge" class="text-[10px] text-amber-400 font-mono font-bold" dir="ltr">Peak: 20:00</span>
+              <span id="peakHourBadge" class="text-[10px] text-amber-400 font-mono font-bold" dir="ltr">Peak: 20-22</span>
             </div>
             <div class="h-40 w-full relative">
               <canvas id="adminHourlyChart"></canvas>
@@ -427,7 +427,7 @@
               <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
               <span>تعرفه‌های فروش</span>
             </h3>
-            <button id="openCreatePlanBtn" class="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-[11px] font-bold px-3 py-1.5 rounded-xl transition shadow active:scale-95 flex items-center gap-1">
+            <button id="openCreatePlanBtn" class="bg-transparent hover:bg-blue-600/10 text-blue-400 hover:text-blue-300 border border-blue-500/40 text-[11px] font-bold px-3 py-1.5 rounded-xl transition active:scale-95 flex items-center gap-1">
               <span>+</span> سرویس جدید
             </button>
           </div>
@@ -443,7 +443,7 @@
               <svg class="w-4 h-4 text-pink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z"/></svg>
               <span>کدهای تخفیف</span>
             </h3>
-            <button id="openCreateCouponBtn" class="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white text-[11px] font-bold px-3 py-1.5 rounded-xl transition shadow active:scale-95 flex items-center gap-1">
+            <button id="openCreateCouponBtn" class="bg-transparent hover:bg-pink-600/10 text-pink-400 hover:text-pink-300 border border-pink-500/40 text-[11px] font-bold px-3 py-1.5 rounded-xl transition active:scale-95 flex items-center gap-1">
               <span>+</span> کد تخفیف جدید
             </button>
           </div>
@@ -465,7 +465,7 @@
             </h3>
             <span class="text-[10px] text-slate-400 mt-0.5 block">پایش لحظه‌ای مصرف منابع، سرعت و پهنای باند</span>
           </div>
-            <button id="refreshNodesTabBtn" class="p-2 bg-slate-900/60 hover:bg-slate-700/80 text-cyan-400 hover:text-cyan-300 rounded-xl border border-cyan-500/30 hover:border-cyan-400/60 transition flex items-center justify-center active:scale-95 shadow-sm" title="تازه‌سازی فوری سرورها">
+            <button id="refreshNodesTabBtn" class="p-2 bg-transparent hover:bg-cyan-500/10 text-cyan-400 hover:text-cyan-300 rounded-xl border border-cyan-500/30 hover:border-cyan-400/60 transition flex items-center justify-center active:scale-95" title="تازه‌سازی فوری سرورها">
               <svg id="refreshNodesTabIcon" class="w-4 h-4 text-cyan-400 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
             </button>
         </div>
@@ -483,9 +483,8 @@
             <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
             <span>فیش‌های واریزی در انتظار بررسی</span>
           </h3>
-          <button id="refreshTopupsBtn" class="text-[10px] bg-slate-800 hover:bg-slate-700 text-slate-300 px-2 py-1 rounded-lg border border-slate-700 transition flex items-center gap-1">
-            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-            <span>تازه‌سازی</span>
+          <button id="refreshTopupsBtn" class="p-1.5 bg-transparent hover:bg-slate-700/40 text-slate-400 hover:text-slate-200 rounded-lg border border-slate-700 transition flex items-center justify-center active:scale-95" title="تازه‌سازی">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
           </button>
         </div>
 
@@ -551,7 +550,7 @@
             <svg class="w-4 h-4 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
             <span>تنظیمات سامانه</span>
           </h3>
-          <button id="saveAllSettingsTopBtn" class="bg-blue-600 hover:bg-blue-500 text-white text-[11px] font-bold px-3 py-1 rounded-xl transition shadow active:scale-95 flex items-center gap-1">
+          <button id="saveAllSettingsTopBtn" class="bg-transparent hover:bg-blue-600/10 text-blue-400 hover:text-blue-300 border border-blue-500/40 text-[11px] font-bold px-3 py-1 rounded-xl transition active:scale-95 flex items-center gap-1">
             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/></svg>
             <span>ذخیره همه</span>
           </button>
@@ -704,7 +703,7 @@
           </div>
           <div id="settingsBoxCrypto" class="settings-box-body p-4 pt-1 border-t border-slate-700/60 space-y-3 text-xs hidden">
             <!-- Live Rates Online Modal Trigger Button -->
-            <button id="openCryptoRatesModalBtn" type="button" class="w-full bg-gradient-to-r from-cyan-600/20 to-blue-600/20 hover:from-cyan-600/30 hover:to-blue-600/30 border border-cyan-500/40 text-cyan-300 font-bold py-2 px-3 rounded-xl transition flex items-center justify-center gap-2 shadow active:scale-95 text-xs">
+            <button id="openCryptoRatesModalBtn" type="button" class="w-full bg-transparent hover:bg-cyan-500/10 border border-cyan-500/40 text-cyan-400 hover:text-cyan-300 font-bold py-2 px-3 rounded-xl transition flex items-center justify-center gap-2 active:scale-95 text-xs">
               <svg class="w-3.5 h-3.5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
               <span>استعلام آنلاین</span>
             </button>
@@ -816,7 +815,7 @@
         </div>
 
         <!-- 6. Big Save Button -->
-        <button id="saveAllSettingsBtn" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs py-3 rounded-2xl transition shadow-lg shadow-blue-500/20 active:scale-95 flex items-center justify-center gap-2 mb-6">
+        <button id="saveAllSettingsBtn" class="w-full bg-transparent hover:bg-blue-600/10 border border-blue-500/40 text-blue-400 hover:text-blue-300 font-bold text-xs py-3 rounded-2xl transition active:scale-95 flex items-center justify-center gap-2 mb-6">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/></svg>
           <span>ذخیره تمامی تغییرات تنظیمات</span>
         </button>
@@ -1476,7 +1475,7 @@
         </div>
 
         <div class="flex gap-2 pt-1">
-          <button id="applyAllCryptoRatesBtn" onclick="window.adminActions.applyLiveCryptoRates()" class="flex-1 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-bold text-xs py-2.5 rounded-xl transition shadow active:scale-95 disabled:opacity-50">
+          <button id="applyAllCryptoRatesBtn" onclick="window.adminActions.applyLiveCryptoRates()" class="flex-1 bg-transparent hover:bg-cyan-500/10 border border-cyan-500/40 text-cyan-400 hover:text-cyan-300 font-bold text-xs py-2.5 rounded-xl transition active:scale-95 disabled:opacity-50">
             ذخیره قیمت‌ها
           </button>
           <button onclick="window.adminActions.refreshLiveCryptoRates()" class="bg-slate-800 hover:bg-slate-750 text-slate-300 hover:text-white px-3 py-2.5 rounded-xl transition text-xs flex items-center justify-center" title="استعلام مجدد">
@@ -1594,8 +1593,8 @@
   </div>
 
   <!-- Shared & Modular Scripts -->
-  <script src="/static/js/utils.js?v=7.5"></script>
-  <script src="/static/js/api.js?v=7.5"></script>
-  <script src="/static/js/admin.js?v=7.5"></script>
+  <script src="/static/js/utils.js?v=10.0"></script>
+  <script src="/static/js/api.js?v=10.0"></script>
+  <script src="/static/js/admin.js?v=10.0"></script>
 </body>
 </html>

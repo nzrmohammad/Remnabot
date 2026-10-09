@@ -366,8 +366,9 @@
           pMargin.innerText = 'مارجین: —';
           pMargin.className = 'text-[9px] font-mono font-bold bg-transparent text-slate-400 border border-slate-600/40 px-1.5 py-0.5 rounded-md';
         } else {
-          const sign = marginVal > 0 ? '+' : '';
-          pMargin.innerText = `مارجین: ${sign}${marginVal}%`;
+          const sign = marginVal > 0 ? '+' : (marginVal < 0 ? '-' : '');
+          const absVal = Math.abs(marginVal);
+          pMargin.innerHTML = `<span class="inline-flex items-center gap-0.5" dir="rtl"><span>مارجین:</span><span class="inline-flex items-center font-mono" dir="ltr"><span>${sign}</span><span>${absVal}</span><span>%</span></span></span>`;
           pMargin.className = marginVal >= 0
             ? 'text-[9px] font-mono font-bold bg-transparent text-emerald-400 border border-emerald-500/30 px-1.5 py-0.5 rounded-md'
             : 'text-[9px] font-mono font-bold bg-transparent text-rose-400 border border-rose-500/30 px-1.5 py-0.5 rounded-md';
@@ -2667,7 +2668,7 @@
               <div class="flex items-center justify-between gap-3">
                 <div class="flex items-center gap-2.5 min-w-0">
                   <!-- 1. General Box Icon on the FAR RIGHT of the item -->
-                  <span class="w-7 h-7 rounded-xl bg-blue-500/15 text-blue-400 border border-blue-500/30 flex items-center justify-center flex-shrink-0" title="بسته">
+                  <span class="w-7 h-7 rounded-xl bg-transparent text-blue-400 border border-blue-500/30 flex items-center justify-center flex-shrink-0" title="بسته">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
                   </span>
 
@@ -2850,7 +2851,7 @@
                 </div>
               </div>
 
-              <div class="grid grid-cols-2 gap-2 text-[10px] bg-slate-900/60 p-2 rounded-xl border border-slate-800/60 font-mono">
+              <div class="grid grid-cols-2 gap-2 text-[10px] bg-transparent p-2 rounded-xl border border-slate-700/60 font-mono">
                 <div>
                   <span class="text-slate-400 block text-[9px] font-sans">دفعات استفاده:</span>
                   <b class="text-slate-200">${maxText}</b>
@@ -3269,7 +3270,7 @@
               <span class="text-slate-300 font-medium text-[11px]">${src}</span>
               <div class="flex items-center gap-2">
                 <span class="font-mono font-bold text-slate-100 text-[11px]">${formatNumber(p)} <span class="text-[9px] text-slate-400 font-sans">تومان</span></span>
-                <button onclick="window.adminActions.applySpecificRate('usdt', ${p})" class="bg-emerald-600/25 hover:bg-emerald-600 text-emerald-300 hover:text-white border border-emerald-500/40 text-[10px] font-bold px-2 py-0.5 rounded-lg transition active:scale-95">
+                <button onclick="window.adminActions.applySpecificRate('usdt', ${p})" class="bg-transparent hover:bg-emerald-500/10 text-emerald-400 hover:text-emerald-300 border border-emerald-500/40 text-[10px] font-bold px-2 py-0.5 rounded-lg transition active:scale-95">
                   اعمال
                 </button>
               </div>
@@ -3284,7 +3285,7 @@
               <span class="text-slate-300 font-medium text-[11px]">${src}</span>
               <div class="flex items-center gap-2">
                 <span class="font-mono font-bold text-slate-100 text-[11px]">${formatNumber(p)} <span class="text-[9px] text-slate-400 font-sans">تومان</span></span>
-                <button onclick="window.adminActions.applySpecificRate('eur', ${p})" class="bg-indigo-600/25 hover:bg-indigo-600 text-indigo-300 hover:text-white border border-indigo-500/40 text-[10px] font-bold px-2 py-0.5 rounded-lg transition active:scale-95">
+                <button onclick="window.adminActions.applySpecificRate('eur', ${p})" class="bg-transparent hover:bg-indigo-500/10 text-indigo-400 hover:text-indigo-300 border border-indigo-500/40 text-[10px] font-bold px-2 py-0.5 rounded-lg transition active:scale-95">
                   اعمال
                 </button>
               </div>
@@ -3299,7 +3300,7 @@
               <span class="text-slate-300 font-medium text-[11px]">${src}</span>
               <div class="flex items-center gap-2">
                 <span class="font-mono font-bold text-slate-100 text-[11px]">${formatNumber(p)} <span class="text-[9px] text-slate-400 font-sans">تومان</span></span>
-                <button onclick="window.adminActions.applySpecificRate('ton', ${p})" class="bg-cyan-600/25 hover:bg-cyan-600 text-cyan-300 hover:text-white border border-cyan-500/40 text-[10px] font-bold px-2 py-0.5 rounded-lg transition active:scale-95">
+                <button onclick="window.adminActions.applySpecificRate('ton', ${p})" class="bg-transparent hover:bg-cyan-500/10 text-cyan-400 hover:text-cyan-300 border border-cyan-500/40 text-[10px] font-bold px-2 py-0.5 rounded-lg transition active:scale-95">
                   اعمال
                 </button>
               </div>
@@ -3315,7 +3316,7 @@
               <div class="flex items-center gap-2">
                 <span class="font-mono font-bold text-cyan-300 text-[11px]">$${Number(binanceUsd).toFixed(2)}</span>
                 ${tonTomanBinance ? `
-                <button onclick="window.adminActions.applySpecificRate('ton', ${tonTomanBinance})" class="bg-cyan-600/25 hover:bg-cyan-600 text-cyan-300 hover:text-white border border-cyan-500/40 text-[10px] font-bold px-2 py-0.5 rounded-lg transition active:scale-95">
+                <button onclick="window.adminActions.applySpecificRate('ton', ${tonTomanBinance})" class="bg-transparent hover:bg-cyan-500/10 text-cyan-400 hover:text-cyan-300 border border-cyan-500/40 text-[10px] font-bold px-2 py-0.5 rounded-lg transition active:scale-95">
                   اعمال
                 </button>` : ''}
               </div>

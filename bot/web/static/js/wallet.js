@@ -3,27 +3,44 @@
  */
 
 let currentTopupInvoice = null;
+let allWalletTransactions = [];
+let currentWalletPage = 1;
+const TX_PER_PAGE = 10;
 
 function renderWalletTransactions(transactions) {
   const txContainer = document.getElementById('walletTransactionsList');
   if (!txContainer) return;
 
-  const txList = transactions || [];
+  if (transactions !== undefined && transactions !== null) {
+    allWalletTransactions = transactions;
+    currentWalletPage = 1;
+  }
+
+  const txList = allWalletTransactions || [];
   if (txList.length === 0) {
     txContainer.innerHTML = `
       <div class="p-4 rounded-xl bg-transparent border border-slate-700/50 text-center text-xs text-slate-400">
         <span>🧾 هنوز تراکنش یا سفارشی برای این حساب ثبت نشده است.</span>
       </div>
     `;
+    const oldPag = document.getElementById('walletTxPagination');
+    if (oldPag) oldPag.classList.add('hidden');
     return;
   }
 
-  txContainer.innerHTML = txList.map(tx => `
+  const totalPages = Math.ceil(txList.length / TX_PER_PAGE);
+  if (currentWalletPage > totalPages) currentWalletPage = totalPages;
+  if (currentWalletPage < 1) currentWalletPage = 1;
+
+  const startIdx = (currentWalletPage - 1) * TX_PER_PAGE;
+  const pageItems = txList.slice(startIdx, startIdx + TX_PER_PAGE);
+
+  txContainer.innerHTML = pageItems.map(tx => `
     <div class="bg-transparent rounded-xl p-3 border border-slate-700/60 flex items-center justify-between text-xs">
       <div class="flex items-center gap-2.5">
-        <span class="text-xl">${tx.type === 'topup' ? '💳' : '🛒'}</span>
+        <span class="text-xl">${tx.type === 'topup' ? '💳' : (tx.type === 'admin_adjust' ? '⚡️' : '🛒')}</span>
         <div>
-          <span class="font-bold text-slate-200 block">${tx.title}</span>
+          <span class="font-bold text-slate-200 block">${escapeHtml(tx.title || 'تراکنش')}</span>
           <span class="text-[10px] text-slate-400 font-mono mt-0.5" dir="ltr">${toEnglishDigits(tx.date_jalali || '')}</span>
         </div>
       </div>
@@ -34,11 +51,53 @@ function renderWalletTransactions(transactions) {
           <span class="font-sans text-[10px] text-slate-400 font-normal">تومان</span>
         </div>
         <span class="text-[10px] text-${tx.status_color || 'emerald'}-400 font-sans block">
-          ${tx.status}
+          ${escapeHtml(tx.status || 'موفق')}
         </span>
       </div>
     </div>
   `).join('');
+
+  // Pagination Controls
+  let pagEl = document.getElementById('walletTxPagination');
+  if (!pagEl) {
+    pagEl = document.createElement('div');
+    pagEl.id = 'walletTxPagination';
+    pagEl.className = 'flex items-center justify-between pt-2 border-t border-slate-700/50 text-xs';
+    txContainer.parentNode.appendChild(pagEl);
+  }
+
+  if (totalPages <= 1) {
+    pagEl.classList.add('hidden');
+  } else {
+    pagEl.classList.remove('hidden');
+    pagEl.innerHTML = `
+      <button type="button" id="walletPrevPageBtn" class="text-[11px] px-2.5 py-1 rounded-lg border border-slate-700 hover:border-slate-500 bg-transparent text-slate-300 hover:text-white transition active:scale-95 flex items-center gap-1 ${currentWalletPage === 1 ? 'opacity-40 cursor-not-allowed pointer-events-none' : ''}">
+        <span>◀️</span>
+        <span>قبلی</span>
+      </button>
+      <span class="text-[11px] text-slate-400 font-mono">
+        صفحه <b class="text-slate-200">${currentWalletPage}</b> از <b class="text-slate-200">${totalPages}</b>
+      </span>
+      <button type="button" id="walletNextPageBtn" class="text-[11px] px-2.5 py-1 rounded-lg border border-slate-700 hover:border-slate-500 bg-transparent text-slate-300 hover:text-white transition active:scale-95 flex items-center gap-1 ${currentWalletPage === totalPages ? 'opacity-40 cursor-not-allowed pointer-events-none' : ''}">
+        <span>بعدی</span>
+        <span>▶️</span>
+      </button>
+    `;
+
+    pagEl.querySelector('#walletPrevPageBtn')?.addEventListener('click', () => {
+      if (currentWalletPage > 1) {
+        currentWalletPage--;
+        renderWalletTransactions();
+      }
+    });
+
+    pagEl.querySelector('#walletNextPageBtn')?.addEventListener('click', () => {
+      if (currentWalletPage < totalPages) {
+        currentWalletPage++;
+        renderWalletTransactions();
+      }
+    });
+  }
 }
 
 function updateTopupDisplays(amt) {

@@ -650,20 +650,21 @@ async def get_admin_overview(request: web.Request) -> web.Response:
         snapshots_by_hour = {s.timestamp.hour: s.delta_bytes for s in snapshots_24h}
 
         c_sum = sum(combined_weights) or 1.0
-        hourly_labels = [f"{h:02d}:00" for h in range(24)]
-        hourly_data = []
-        for h in range(24):
-            if h in snapshots_by_hour and snapshots_by_hour[h] > 0:
-                hourly_data.append(round(snapshots_by_hour[h] / (1024 ** 3), 2))
-            else:
-                hourly_data.append(round((combined_weights[h] / c_sum) * base_h_gb, 2))
+        two_hour_labels = [f"{b*2:02d}-{(b+1)*2:02d}" for b in range(12)]
+        two_hour_data = []
+        for b in range(12):
+            h1 = b * 2
+            h2 = b * 2 + 1
+            val1 = round(snapshots_by_hour[h1] / (1024 ** 3), 2) if (h1 in snapshots_by_hour and snapshots_by_hour[h1] > 0) else round((combined_weights[h1] / c_sum) * base_h_gb, 2)
+            val2 = round(snapshots_by_hour[h2] / (1024 ** 3), 2) if (h2 in snapshots_by_hour and snapshots_by_hour[h2] > 0) else round((combined_weights[h2] / c_sum) * base_h_gb, 2)
+            two_hour_data.append(round(val1 + val2, 2))
 
-        peak_idx = max(range(24), key=lambda i: hourly_data[i])
-        peak_hour_str = f"{peak_idx:02d}:00"
+        peak_idx = max(range(12), key=lambda i: two_hour_data[i])
+        peak_hour_str = two_hour_labels[peak_idx]
 
         hourly_distribution = {
-            "labels": hourly_labels,
-            "data": hourly_data,
+            "labels": two_hour_labels,
+            "data": two_hour_data,
             "peak_hour": peak_hour_str,
             "unit": "GB",
             "is_real_telemetry": bool(snapshots_by_hour),

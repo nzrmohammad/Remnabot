@@ -460,7 +460,7 @@ async def get_user_me(request: web.Request) -> web.Response:
         history_items = []
         try:
             orders_res = await session.execute(
-                select(Order).where(Order.telegram_id == telegram_id).order_by(Order.id.desc()).limit(15)
+                select(Order).where(Order.telegram_id == telegram_id).order_by(Order.id.desc()).limit(50)
             )
             for o in orders_res.scalars().all():
                 o_dt = o.created_at
@@ -484,7 +484,7 @@ async def get_user_me(request: web.Request) -> web.Response:
                 })
 
             topups_res = await session.execute(
-                select(Topup).where(Topup.telegram_id == telegram_id).order_by(Topup.id.desc()).limit(15)
+                select(Topup).where(Topup.telegram_id == telegram_id).order_by(Topup.id.desc()).limit(50)
             )
             for t in topups_res.scalars().all():
                 t_dt = t.created_at
@@ -705,7 +705,7 @@ async def get_user_me(request: web.Request) -> web.Response:
             "today_jalali": today_jalali_str,
             "yesterday_jalali": yesterday_jalali_str,
             "plans": plans_data,
-            "transactions": history_items[:20],
+            "transactions": history_items[:50],
             "won_coupons": active_won_coupons,
             "wheel_status": {
                 "can_spin": can_spin,
