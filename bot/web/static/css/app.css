@@ -1210,25 +1210,82 @@ html.theme-light #supportChatModal #chatInput {
   color: #0f172a !important;
 }
 
-/* Story Card Modal - Light Mode */
-html.theme-light #exportableStoryCard {
-  background: linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%) !important;
+/* Story Card Modal - Light Mode High Contrast */
+html.theme-light #closeStoryCardBtn {
+  background-color: #e2e8f0 !important;
+  color: #0f172a !important;
   border-color: #cbd5e1 !important;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08) !important;
+}
+html.theme-light #exportableStoryCard {
+  background: #ffffff !important;
+  border-color: #cbd5e1 !important;
+  box-shadow: 0 16px 45px rgba(0, 0, 0, 0.08) !important;
+}
+html.theme-light #storyBrandTitle {
+  background: none !important;
+  -webkit-background-clip: unset !important;
+  -webkit-text-fill-color: #0284c7 !important;
+  color: #0284c7 !important;
+}
+html.theme-light #storyBrandBadge {
+  background-color: #fef3c7 !important;
+  border-color: #fde68a !important;
+  color: #b45309 !important;
 }
 html.theme-light #storyCardName {
   color: #0f172a !important;
 }
+html.theme-light #storyCardUsername {
+  color: #2563eb !important;
+}
+html.theme-light #storyCardAvatarInitial {
+  background-color: #e2e8f0 !important;
+  color: #0f172a !important;
+}
 html.theme-light #storyMetricsStandard {
-  background-color: #ffffff !important;
+  background-color: #f8fafc !important;
   border-color: #e2e8f0 !important;
 }
-html.theme-light #storyCardModal .bg-slate-900\/80 {
-  background-color: #ffffff !important;
+html.theme-light #storyMetricsStandard span.text-slate-400 {
+  color: #475569 !important;
+  font-weight: 600 !important;
+}
+html.theme-light #storyCardTraffic {
+  background: none !important;
+  -webkit-background-clip: unset !important;
+  -webkit-text-fill-color: #059669 !important;
+  color: #059669 !important;
+}
+html.theme-light #storyCardDays {
+  color: #1e293b !important;
+  font-weight: 700 !important;
+}
+html.theme-light #storyMetricsStandard .border-t {
   border-color: #e2e8f0 !important;
 }
+html.theme-light #storyCardQrBox,
+html.theme-light #storyCardModal .bg-slate-900\/80,
+html.theme-light #storyCardModal .bg-slate-900\/85 {
+  background-color: #f8fafc !important;
+  border-color: #e2e8f0 !important;
+}
+html.theme-light #storyCardQrBox span.text-white,
 html.theme-light #storyCardModal .bg-slate-900\/80 span.text-white {
   color: #0f172a !important;
+  font-weight: 800 !important;
+}
+html.theme-light #storyCardRewardText {
+  color: #059669 !important;
+  font-weight: 800 !important;
+}
+html.theme-light #storyGamificationBanner {
+  background-color: #fffbeb !important;
+  border-color: #fde68a !important;
+  color: #78350f !important;
+}
+html.theme-light #storyGamificationBanner span,
+html.theme-light #storyGamificationBanner b {
+  color: #92400e !important;
 }
 
 /* Alert Threshold Dropdowns */

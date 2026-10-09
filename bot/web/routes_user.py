@@ -51,11 +51,14 @@ async def get_user_me(request: web.Request) -> web.Response:
         wallet = wallet_res.scalar_one_or_none()
         wallet_balance = wallet.balance if wallet else 0
 
-        # 2. Referrals count
+        # 2. Referrals count & store referral settings
+        from bot.services.app_settings import get_store_settings
+        store_settings = await get_store_settings(session)
         ref_count_res = await session.execute(
             select(func.count(User.id)).where(User.referred_by_id == telegram_id)
         )
         referrals_count = int(ref_count_res.scalar_one() or 0)
+        referral_reward_gb = store_settings.referral_reward_gb if store_settings.referral_enabled else 5
 
         # 3. Real plans / services defined by admin
         from bot.db.models import Service
@@ -682,6 +685,8 @@ async def get_user_me(request: web.Request) -> web.Response:
 
         data = {
             "bot_username": bot_username,
+            "referral_reward_gb": referral_reward_gb,
+            "referral_enabled": store_settings.referral_enabled,
             "user": {
                 "id": telegram_id,
                 "first_name": user_auth.get("first_name", "کاربر"),

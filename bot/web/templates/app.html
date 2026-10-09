@@ -499,7 +499,7 @@
           <!-- Won Lucky Wheel Coupons (User Active Discounts) -->
           <div id="userCouponsContainer" class="space-y-1.5 hidden">
             <span class="text-[11px] font-bold text-slate-300 flex items-center gap-1">
-              <span>🎟</span> کدهای تخفیف شانس شما (کلیک جهت اعمال خودکار):
+              <span>🎟</span> کدهای تخفیف شانس شما :
             </span>
             <div id="userCouponsList" class="flex flex-wrap gap-1.5"></div>
           </div>
@@ -1280,64 +1280,74 @@
     <!-- 6. MODAL: STORY CARD (کارت وضعیت شیشه‌ای استوری)         -->
     <!-- ======================================================== -->
     <div id="storyCardModal" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-3 hidden animate-fadeIn overflow-y-auto">
-      <div class="relative w-full max-w-[325px] flex flex-col items-center space-y-2.5 my-auto">
-        <button id="closeStoryCardBtn" class="absolute -top-3 left-0 text-slate-400 hover:text-white text-sm bg-slate-800 rounded-full w-7 h-7 flex items-center justify-center z-20">✕</button>
+      <div class="relative w-full max-w-[330px] flex flex-col items-center space-y-3 my-auto">
+        <button id="closeStoryCardBtn" class="absolute -top-3.5 left-0 text-slate-300 hover:text-white text-xs bg-slate-800/90 hover:bg-slate-700 border border-slate-600/50 rounded-full w-7 h-7 flex items-center justify-center z-20 shadow-md transition">✕</button>
 
-        <!-- Glassmorphic Card Container -->
-        <div id="exportableStoryCard" class="w-full rounded-3xl p-4 border border-slate-700/80 shadow-[0_20px_50px_rgba(0,0,0,0.8)] relative overflow-hidden text-center flex flex-col justify-between transition-all duration-300 bg-[#0f172a]/95 backdrop-blur-xl">
+        <!-- Redesigned Premium Glassmorphic Card Container -->
+        <div id="exportableStoryCard" class="w-full rounded-[28px] p-4 border border-indigo-500/30 shadow-[0_20px_50px_rgba(0,0,0,0.7)] relative overflow-hidden text-center flex flex-col justify-between transition-all duration-300 bg-gradient-to-b from-[#131b2e] via-[#0d1322] to-[#0a0f1d] backdrop-blur-xl">
           <!-- Background decorative glows -->
-          <div id="storyGlow1" class="absolute -top-12 -right-12 w-32 h-32 bg-cyan-500/15 rounded-full blur-2xl pointer-events-none"></div>
-          <div id="storyGlow2" class="absolute -bottom-12 -left-12 w-32 h-32 bg-blue-500/20 rounded-full blur-2xl pointer-events-none"></div>
+          <div id="storyGlow1" class="absolute -top-10 -right-10 w-36 h-36 bg-cyan-500/20 rounded-full blur-3xl pointer-events-none"></div>
+          <div id="storyGlow2" class="absolute -bottom-10 -left-10 w-36 h-36 bg-purple-500/25 rounded-full blur-3xl pointer-events-none"></div>
+          <div class="absolute inset-0 bg-[radial-gradient(#38bdf8_1px,transparent_1px)] [background-size:16px_16px] opacity-[0.04] pointer-events-none"></div>
 
           <!-- Top Brand Header -->
-          <div class="flex items-center justify-between border-b border-slate-700/60 pb-2.5 z-10">
+          <div class="flex items-center justify-between border-b border-slate-700/60 pb-2.5 z-10 relative">
             <div class="flex items-center gap-1.5">
-              <span id="storyBrandIcon" class="text-lg">⚡️</span>
-              <span id="storyBrandTitle" class="font-extrabold text-xs text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-400 to-indigo-400">RemnaStore Pro</span>
+              <span id="storyBrandIcon" class="text-base">⚡️</span>
+              <span id="storyBrandTitle" class="font-black text-xs text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-sky-300 to-indigo-400">RemnaStore Pro</span>
             </div>
-            <span id="storyBrandBadge" class="text-[9px] font-mono font-bold text-amber-400 bg-amber-500/10 border border-amber-500/30 px-2 py-0.5 rounded-full">VIP MEMBER</span>
+            <span id="storyBrandBadge" class="text-[9px] font-mono font-extrabold text-amber-300 bg-amber-500/15 border border-amber-500/40 px-2 py-0.5 rounded-full shadow-sm flex items-center gap-1">
+              <span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span> VIP PASS
+            </span>
           </div>
 
           <!-- User Info & Metrics -->
-          <div class="py-2.5 z-10 space-y-2">
-            <div id="storyAvatarBorder" class="w-14 h-14 rounded-full p-0.5 bg-gradient-to-tr from-cyan-400 via-blue-500 to-indigo-500 mx-auto shadow-lg shadow-blue-500/20 flex items-center justify-center transition-all duration-300 overflow-hidden">
-              <img id="storyCardAvatarImg" class="w-full h-full rounded-full object-cover hidden" alt="Avatar" />
-              <div id="storyCardAvatarInitial" class="w-full h-full rounded-full bg-slate-900 flex items-center justify-center text-xl font-extrabold text-white">U</div>
+          <div class="py-3 z-10 space-y-2.5 relative">
+            <div id="storyAvatarBorder" class="w-16 h-16 rounded-full p-[2px] bg-gradient-to-tr from-cyan-400 via-indigo-500 to-purple-500 mx-auto shadow-lg shadow-indigo-500/25 flex items-center justify-center transition-all duration-300 overflow-hidden">
+              <img id="storyCardAvatarImg" class="w-full h-full rounded-full object-cover hidden" alt="Avatar" crossorigin="anonymous" />
+              <div id="storyCardAvatarInitial" class="w-full h-full rounded-full bg-slate-900 flex items-center justify-center text-xl font-black text-white">U</div>
             </div>
             <div>
-              <h4 id="storyCardName" class="text-sm font-extrabold text-white">کاربر</h4>
-              <span id="storyCardUsername" dir="ltr" class="text-[11px] text-blue-400 font-mono inline-block mt-0.5">@user</span>
+              <div class="flex items-center justify-center gap-1">
+                <h4 id="storyCardName" class="text-sm font-black text-white">کاربر</h4>
+                <svg class="w-3.5 h-3.5 text-cyan-400 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+              </div>
+              <span id="storyCardUsername" dir="ltr" class="text-[11px] text-sky-400 font-mono inline-block mt-0.5 font-medium">@user</span>
             </div>
 
-            <!-- Standard Traffic View -->
-            <div id="storyMetricsStandard" class="bg-slate-900/80 border border-slate-700/70 rounded-2xl p-2.5 my-1.5 shadow-inner">
+            <!-- Modern Metric Card -->
+            <div id="storyMetricsStandard" class="bg-slate-900/80 border border-slate-700/70 rounded-2xl p-3 my-1 shadow-inner relative overflow-hidden">
               <span class="text-[10px] text-slate-400 font-medium block">ترافیک باقی‌مانده اشتراک:</span>
-              <div id="storyCardTraffic" class="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-300 font-mono mt-0.5" dir="ltr">
+              <div id="storyCardTraffic" class="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-300 font-mono mt-0.5 tracking-tight" dir="ltr">
                 -- GB
               </div>
-              <div class="flex items-center justify-center gap-2.5 text-[10px] text-slate-400 mt-1 pt-1.5 border-t border-slate-800">
-                <span id="storyCardDays">-- روز اعتبار</span>
-                <span>•</span>
-                <span class="text-emerald-400 font-medium">🟢 پایداری 100%</span>
+              <div class="flex items-center justify-center gap-2.5 text-[10px] text-slate-300 mt-1.5 pt-1.5 border-t border-slate-800/80">
+                <span id="storyCardDays" class="font-semibold text-slate-200">-- روز اعتبار</span>
+                <span class="text-slate-500">•</span>
+                <span class="text-emerald-400 font-semibold flex items-center gap-1">
+                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> پایداری ۱۰۰٪
+                </span>
               </div>
             </div>
           </div>
 
-          <!-- Bottom Viral Referral QR Box -->
-          <div class="bg-slate-900/80 border border-slate-700/70 rounded-2xl p-2.5 z-10 flex items-center gap-2.5 text-right">
+          <!-- Bottom Viral Referral QR Card -->
+          <div id="storyCardQrBox" class="bg-slate-900/85 border border-slate-700/70 rounded-2xl p-2.5 z-10 flex items-center gap-2.5 text-right relative">
             <!-- Dynamic Mini QR for Referral Link -->
-            <img id="storyCardQr" src="" class="w-11 h-11 rounded-lg bg-white p-0.5 shrink-0" alt="QR" />
-            <div class="text-[10px]">
-              <span class="font-bold text-white block">اینترنت بدون قطعی و پرسرعت</span>
-              <span class="text-emerald-400 block text-[9px] mt-0.5 font-semibold">🎁 با این کارت 1 گیگابایت هدیه بگیرید</span>
+            <img id="storyCardQr" src="" class="w-12 h-12 rounded-xl bg-white p-1 shrink-0 shadow-sm" alt="QR" crossorigin="anonymous" />
+            <div class="text-[10px] space-y-0.5 leading-snug">
+              <span class="font-extrabold text-white block">اتصال امن و اینترنت آزاد</span>
+              <span id="storyCardRewardText" class="text-emerald-400 block text-[10px] font-bold">
+                🎁 با این کارت <span id="storyCardRewardGb" class="font-mono">5</span> گیگابایت هدیه بگیرید
+              </span>
             </div>
           </div>
         </div>
 
         <!-- Gamification Banner (پاداش دعوت در ازای استوری) -->
-        <div class="bg-amber-500/10 border border-amber-500/30 rounded-2xl p-2.5 w-full text-right text-[10px] text-amber-200/90 leading-relaxed shadow-sm">
-          <span class="font-extrabold block text-amber-300">🎯 پاداش استوری و اشتراک‌گذاری:</span>
-          با انتشار این تصویر در استوری تلگرام، دوستانتان 1 گیگ هدیه می‌گیرند و برای شما نیز پاداش معرف واریز می‌شود!
+        <div id="storyGamificationBanner" class="bg-amber-500/10 border border-amber-500/30 rounded-2xl p-2.5 w-full text-right text-[11px] text-amber-200/95 leading-relaxed shadow-sm">
+          <span class="font-black block text-amber-300 mb-0.5">🎯 پاداش استوری و اشتراک‌گذاری:</span>
+          با انتشار این تصویر در استوری تلگرام، دوستانتان <b id="storyRewardBannerGb" class="text-amber-300 font-mono">5</b> گیگابایت هدیه می‌گیرند و برای شما نیز پاداش معرف واریز می‌شود!
         </div>
 
         <!-- Action Buttons -->
@@ -1466,13 +1476,13 @@
   </div>
 
   <!-- Modular Frontend Architecture (DRY) -->
-  <script src="/static/js/utils.js?v=12.0"></script>
-  <script src="/static/js/api.js?v=12.0"></script>
-  <script src="/static/js/charts.js?v=12.0"></script>
-  <script src="/static/js/shop.js?v=12.0"></script>
-  <script src="/static/js/wallet.js?v=12.0"></script>
-  <script src="/static/js/wheel.js?v=12.0"></script>
-  <script src="/static/js/story.js?v=12.0"></script>
-  <script src="/static/js/app.js?v=12.0"></script>
+  <script src="/static/js/utils.js?v=13.0"></script>
+  <script src="/static/js/api.js?v=13.0"></script>
+  <script src="/static/js/charts.js?v=13.0"></script>
+  <script src="/static/js/shop.js?v=13.0"></script>
+  <script src="/static/js/wallet.js?v=13.0"></script>
+  <script src="/static/js/wheel.js?v=13.0"></script>
+  <script src="/static/js/story.js?v=13.0"></script>
+  <script src="/static/js/app.js?v=13.0"></script>
 </body>
 </html>

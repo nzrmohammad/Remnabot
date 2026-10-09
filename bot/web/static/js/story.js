@@ -15,13 +15,14 @@ function setupStoryCard() {
     const refLink = window.currentReferralLink || `https://t.me/RemnaWaveBot?start=ref_${window.lastUserData?.user?.id || ''}`;
     copyToClipboard(refLink);
 
+    const rewardGb = (document.getElementById('storyCardRewardGb')?.innerText || '5').trim();
     let sharedViaStory = false;
     const qrEl = document.getElementById('storyCardQr');
     const mediaUrl = qrEl?.src || '';
     if (window.Telegram?.WebApp?.shareToStory && mediaUrl) {
       try {
         window.Telegram.WebApp.shareToStory(mediaUrl, {
-          text: '🚀 اتصال پرسرعت به اینترنت بدون قطعی\n🎁 با این کارت ۱ گیگابایت هدیه رایگان بگیرید!',
+          text: `🚀 اتصال پرسرعت به اینترنت بدون قطعی\n🎁 با این کارت ${rewardGb} گیگابایت هدیه رایگان بگیرید!`,
           widget_link: {
             url: refLink,
             name: 'دریافت اینترنت هدیه',
@@ -34,7 +35,7 @@ function setupStoryCard() {
     }
 
     if (!sharedViaStory) {
-      const shareMsg = '🚀 اتصال فوق‌سریع و بدون قطعی به اینترنت آزاد\n🎁 با لینک دعوت اختصاصی من ۱ گیگابایت اینترنت هدیه بگیرید:\n' + refLink;
+      const shareMsg = `🚀 اتصال فوق‌سریع و بدون قطعی به اینترنت آزاد\n🎁 با لینک دعوت اختصاصی من ${rewardGb} گیگابایت اینترنت هدیه بگیرید:\n` + refLink;
       const tgShareUrl = `https://t.me/share/url?url=${encodeURIComponent(refLink)}&text=${encodeURIComponent(shareMsg)}`;
       if (window.Telegram?.WebApp?.openTelegramLink) {
         try { window.Telegram.WebApp.openTelegramLink(tgShareUrl); } catch (e) { window.open(tgShareUrl, '_blank'); }
@@ -89,7 +90,7 @@ function setupStoryCard() {
 
     ctx.font = 'bold 12px monospace';
     ctx.fillStyle = '#fbbf24';
-    ctx.fillText('VIP MEMBER', 300, 92);
+    ctx.fillText('VIP PASS', 300, 92);
 
     // Avatar drawing
     const avatarImg = document.getElementById('storyCardAvatarImg');
@@ -180,9 +181,10 @@ function setupStoryCard() {
     ctx.font = 'bold 22px Vazirmatn, sans-serif';
     ctx.fillText('اینترنت بدون قطعی و فوق‌سریع', 300, 535);
 
+    const rewardGb = (document.getElementById('storyCardRewardGb')?.innerText || '5').trim();
     ctx.fillStyle = '#34d399';
     ctx.font = 'bold 17px Vazirmatn, sans-serif';
-    ctx.fillText('🎁 با این کارت ۱ گیگابایت هدیه رایگان بگیرید', 300, 568);
+    ctx.fillText(`🎁 با این کارت ${toEnglishDigits(rewardGb)} گیگابایت هدیه رایگان بگیرید`, 300, 568);
 
     const qrImg = document.getElementById('storyCardQr');
     const finishDownload = () => {

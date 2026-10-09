@@ -155,8 +155,8 @@ async def post_user_settings(request: web.Request) -> web.Response:
 
 
 async def get_user_avatar(request: web.Request) -> web.Response:
-    """Fetch user Telegram avatar and stream image bytes with caching."""
-    target_id_param = request.query.get("user_id")
+    """Fetch user Telegram avatar and stream image bytes with caching and CORS."""
+    target_id_param = request.query.get("user_id") or request.query.get("id")
     telegram_id = None
     if target_id_param:
         try:
@@ -172,6 +172,11 @@ async def get_user_avatar(request: web.Request) -> web.Response:
     if not telegram_id:
         return web.Response(status=404)
 
+    cors_headers = {
+        "Cache-Control": "public, max-age=86400",
+        "Access-Control-Allow-Origin": "*",
+    }
+
     cache = request.app.get("cache")
     cache_key = f"tma:avatar:{telegram_id}"
     if cache:
@@ -180,32 +185,50 @@ async def get_user_avatar(request: web.Request) -> web.Response:
             return web.Response(
                 body=cached_bytes,
                 content_type="image/jpeg",
-                headers={"Cache-Control": "public, max-age=86400"},
+                headers=cors_headers,
             )
 
     bot = request.app.get("bot")
-    if not bot:
-        return web.Response(status=404)
+    if bot:
+        try:
+            photos = await bot.get_user_profile_photos(telegram_id, limit=1)
+            if photos.total_count > 0 and photos.photos:
+                file_id = photos.photos[0][0].file_id
+                tg_file = await bot.get_file(file_id)
+                if tg_file and tg_file.file_path:
+                    import io
+                    stream = io.BytesIO()
+                    await bot.download_file(tg_file.file_path, destination=stream)
+                    img_bytes = stream.getvalue()
+                    if img_bytes:
+                        if cache:
+                            await cache.set(cache_key, img_bytes, ttl_seconds=86400)
+                        return web.Response(
+                            body=img_bytes,
+                            content_type="image/jpeg",
+                            headers=cors_headers,
+                        )
+        except Exception as exc:
+            logger.debug("Failed to fetch avatar for %s via bot: %s", telegram_id, exc)
 
-    try:
-        photos = await bot.get_user_profile_photos(telegram_id, limit=1)
-        if photos.total_count > 0 and photos.photos:
-            file_id = photos.photos[0][0].file_id
-            tg_file = await bot.get_file(file_id)
-            if tg_file and tg_file.file_path:
-                import io
-                stream = io.BytesIO()
-                await bot.download_file(tg_file.file_path, destination=stream)
-                img_bytes = stream.getvalue()
-                if img_bytes:
-                    if cache:
-                        await cache.set(cache_key, img_bytes, ttl_seconds=86400)
-                    return web.Response(
-                        body=img_bytes,
-                        content_type="image/jpeg",
-                        headers={"Cache-Control": "public, max-age=86400"},
-                    )
-    except Exception as exc:
-        logger.debug("Failed to fetch avatar for %s: %s", telegram_id, exc)
+    # Fallback: if user supplied photo_url parameter from Telegram initData
+    fallback_url = request.query.get("url")
+    if fallback_url and (fallback_url.startswith("https://t.me/") or fallback_url.startswith("https://cdn")):
+        try:
+            import aiohttp
+            async with aiohttp.ClientSession() as client:
+                async with client.get(fallback_url, timeout=aiohttp.ClientTimeout(total=5)) as resp:
+                    if resp.status == 200:
+                        img_bytes = await resp.read()
+                        if img_bytes:
+                            if cache:
+                                await cache.set(cache_key, img_bytes, ttl_seconds=86400)
+                            return web.Response(
+                                body=img_bytes,
+                                content_type=resp.headers.get("Content-Type", "image/jpeg"),
+                                headers=cors_headers,
+                            )
+        except Exception as exc:
+            logger.debug("Failed to proxy fallback avatar for %s: %s", telegram_id, exc)
 
     return web.Response(status=404)

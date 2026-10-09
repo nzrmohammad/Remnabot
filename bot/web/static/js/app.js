@@ -1069,10 +1069,23 @@ function hydrateUserInterface(data) {
     storyUser.dir = 'ltr';
   }
 
-  const tgPhoto = window.Telegram?.WebApp?.initDataUnsafe?.user?.photo_url || user.photo_url;
-  if (tgPhoto && storyAvatarImg) {
+  // Story Reward GB from Bot Settings
+  const rewardGb = data.referral_reward_gb ?? 5;
+  const rewardEl = document.getElementById('storyCardRewardGb');
+  if (rewardEl) rewardEl.innerText = toEnglishDigits(rewardGb);
+  const bannerRewardEl = document.getElementById('storyRewardBannerGb');
+  if (bannerRewardEl) bannerRewardEl.innerText = toEnglishDigits(rewardGb);
+
+  // Avatar Loading via CORS-safe Server Avatar Endpoint
+  const tgUser = window.Telegram?.WebApp?.initDataUnsafe?.user;
+  const uid = user.id || tgUser?.id;
+  const tgPhotoUrl = tgUser?.photo_url || user.photo_url || '';
+  const photoParam = tgPhotoUrl ? `&url=${encodeURIComponent(tgPhotoUrl)}` : '';
+  const resolvedAvatarUrl = uid ? `/api/user/avatar?id=${uid}${photoParam}` : tgPhotoUrl;
+
+  if (resolvedAvatarUrl && storyAvatarImg) {
     storyAvatarImg.crossOrigin = 'anonymous';
-    storyAvatarImg.src = tgPhoto;
+    storyAvatarImg.src = resolvedAvatarUrl;
     storyAvatarImg.onload = () => {
       storyAvatarImg.classList.remove('hidden');
       if (storyAvatar) storyAvatar.classList.add('hidden');
@@ -1500,8 +1513,10 @@ function renderActiveSubAnalytics(sub) {
   }
 
   // Avatar photos
-  const tgUser = window.Telegram?.WebApp?.initDataUnsafe?.user;
-  const avatarUrl = tgUser?.photo_url || `/api/user/avatar?id=${user.id || tgUser?.id || ''}`;
+  const profUid = user.id || tgUser?.id;
+  const profPhotoUrl = tgUser?.photo_url || user.photo_url || '';
+  const profParam = profPhotoUrl ? `&url=${encodeURIComponent(profPhotoUrl)}` : '';
+  const avatarUrl = profUid ? `/api/user/avatar?id=${profUid}${profParam}` : profPhotoUrl;
   if (avatarUrl) {
     const profImg = document.getElementById('profileAvatarImg');
     const headImg = document.getElementById('headerUserAvatarImg');
