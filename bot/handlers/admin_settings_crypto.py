@@ -35,6 +35,9 @@ async def _render_crypto_settings(
     rate_str = f"{store.ton_rate_toman:,} تومان" if store.ton_rate_toman > 0 else "— (تنظیم‌نشده)"
     wallet_str = store.ton_wallet_address or "— (تنظیم‌نشده)"
 
+    lossless_stars = max(100, round(store.usdt_rate_toman * 0.013))
+    stars_rate_str = f"{store.stars_rate_toman:,} تومان" if store.stars_rate_toman > 0 else f"{lossless_stars:,} تومان (محاسبه خودکار)"
+
     if lang == "fa":
         kb.button(
             text=f"⚡️ وضعیت درگاه {status_badge}",
@@ -42,6 +45,7 @@ async def _render_crypto_settings(
         )
         kb.button(text="💰 نرخ تبدیل تون", callback_data="adm:set:ton_rate_toman")
         kb.button(text="💵 نرخ مبنای تتر", callback_data="adm:set:usdt_rate_toman")
+        kb.button(text="⭐️ نرخ هر استارز", callback_data="adm:set:stars_rate_toman")
         kb.button(text="📬 آدرس والت", callback_data="adm:set:ton_wallet_address")
         kb.button(text="💎 استعلام نرخ تون", callback_data="adm:crypto:rate:ton")
         kb.button(text="💵 استعلام نرخ تتر", callback_data="adm:crypto:rate:usdt")
@@ -52,26 +56,29 @@ async def _render_crypto_settings(
         )
         kb.button(text="💰 TON Rate", callback_data="adm:set:ton_rate_toman")
         kb.button(text="💵 USDT Rate", callback_data="adm:set:usdt_rate_toman")
+        kb.button(text="⭐️ Stars Rate", callback_data="adm:set:stars_rate_toman")
         kb.button(text="📬 Wallet Address", callback_data="adm:set:ton_wallet_address")
         kb.button(text="💎 Check TON Price", callback_data="adm:crypto:rate:ton")
         kb.button(text="💵 Check USDT Price", callback_data="adm:crypto:rate:usdt")
 
     kb.button(text=t(lang, "btn_back"), callback_data="adm:settings")
-    kb.adjust(1, 2, 1, 2, 1)
+    kb.adjust(1, 3, 1, 2, 1)
 
     lines = [
         "💎 <b>تنظیمات پرداخت کریپتو</b>\n" + SEPARATOR,
         f"⚡️ وضعیت درگاه : <b>{status_badge}</b>",
         f"📬 آدرس والت مقصد : <code>{escape(wallet_str)}</code>",
         f"💰 نرخ تبدیل (۱ تون) : <b>{rate_str}</b>",
-        f"💵 نرخ مبنای تتر : <b>{store.usdt_rate_toman:,} تومان</b>\n",
+        f"💵 نرخ مبنای تتر : <b>{store.usdt_rate_toman:,} تومان</b>",
+        f"⭐️ نرخ هر استارز : <b>{stars_rate_str}</b> (فرمول بدون ضرر: <b>{lossless_stars:,} ت</b>)\n",
         "💡 ربات روزانه ۴ بار (ساعت‌های ۱۰:۰۰، ۱۴:۰۰، ۱۸:۰۰ و ۲۲:۰۰) قیمت لحظه‌ای را در تاپیک کریپتو ارسال می‌کند تا با یک کلیک بتوانید نرخ فروشگاه را آپدیت فرمایید.",
     ] if lang == "fa" else [
-        "💎 <b>Crypto Payment Settings</b>\n" + SEPARATOR,
+        "💎 <b>Crypto & Currency Settings</b>\n" + SEPARATOR,
         f"⚡️ Status : <b>{status_badge}</b>",
         f"📬 Wallet : <code>{escape(wallet_str)}</code>",
         f"💰 Rate : <b>{rate_str}</b>",
         f"💵 USDT Rate : <b>{store.usdt_rate_toman:,} Toman</b>",
+        f"⭐️ Stars Rate : <b>{stars_rate_str}</b>",
     ]
 
     await render_menu_fn(bot, user, user_repo, "\n".join(lines), kb.as_markup())
@@ -188,7 +195,7 @@ async def apply_nobitex_rate(
 
     try:
         parts = call.data.split(":")
-        if len(parts) >= 5 and parts[3] in ("ton", "usdt"):
+        if len(parts) >= 5 and parts[3] in ("ton", "usdt", "stars"):
             kind = parts[3]
             price = int(parts[4])
         else:
@@ -198,8 +205,15 @@ async def apply_nobitex_rate(
         await call.answer(t("fa", "acc_error"), show_alert=True)
         return
 
-    setting_key = "ton_rate_toman" if kind == "ton" else "usdt_rate_toman"
-    kind_title = "نرخ تون" if kind == "ton" else "نرخ مبنای تتر"
+    if kind == "ton":
+        setting_key = "ton_rate_toman"
+        kind_title = "نرخ تون"
+    elif kind == "stars":
+        setting_key = "stars_rate_toman"
+        kind_title = "نرخ استارز تلگرام"
+    else:
+        setting_key = "usdt_rate_toman"
+        kind_title = "نرخ مبنای تتر"
 
     await app_setting_repo_cls(session).set(setting_key, str(price))
     await admin_log_repo_cls(session).log(

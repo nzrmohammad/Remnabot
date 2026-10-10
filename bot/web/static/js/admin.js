@@ -160,6 +160,10 @@
       } else if (targetId === 'tab-admin-tickets') {
         fetchAdminTopups();
         fetchTicketThreads();
+        const contentCampaigns = document.getElementById('subtabContentCampaigns');
+        if (contentCampaigns && !contentCampaigns.classList.contains('hidden')) {
+          window.adminActions?.fetchAdminCampaigns?.();
+        }
       } else if (targetId === 'tab-admin-campaigns') {
         window.adminActions.fetchAdminCampaigns();
       } else if (targetId === 'tab-admin-settings') {
@@ -198,6 +202,38 @@
     }
   };
 
+  // Subtab switcher for Unified Financial Tab (Topups vs Campaigns)
+  window.switchFinanceSubtab = function(subtab) {
+    const btnTopups = document.getElementById('subtabBtnTopups');
+    const btnCampaigns = document.getElementById('subtabBtnCampaigns');
+    const contentTopups = document.getElementById('subtabContentTopups');
+    const contentCampaigns = document.getElementById('subtabContentCampaigns');
+
+    if (window.hapticFeedback) window.hapticFeedback('selection');
+
+    if (subtab === 'topups') {
+      btnTopups?.classList.add('bg-blue-600', 'text-white', 'shadow');
+      btnTopups?.classList.remove('text-slate-400', 'hover:text-slate-200');
+      btnCampaigns?.classList.remove('bg-blue-600', 'text-white', 'shadow');
+      btnCampaigns?.classList.add('text-slate-400', 'hover:text-slate-200');
+
+      contentTopups?.classList.remove('hidden');
+      contentCampaigns?.classList.add('hidden');
+      if (typeof fetchAdminTopups === 'function') fetchAdminTopups();
+    } else {
+      btnCampaigns?.classList.add('bg-blue-600', 'text-white', 'shadow');
+      btnCampaigns?.classList.remove('text-slate-400', 'hover:text-slate-200');
+      btnTopups?.classList.remove('bg-blue-600', 'text-white', 'shadow');
+      btnTopups?.classList.add('text-slate-400', 'hover:text-slate-200');
+
+      contentCampaigns?.classList.remove('hidden');
+      contentTopups?.classList.add('hidden');
+      if (window.adminActions && typeof window.adminActions.fetchAdminCampaigns === 'function') {
+        window.adminActions.fetchAdminCampaigns();
+      }
+    }
+  };
+
   // --- 3. Theme Toggle ---
   const adminThemeToggle = document.getElementById('adminThemeToggle');
   const adminThemeIcon = document.getElementById('adminThemeIcon');
@@ -212,7 +248,7 @@
   let isDark = getInitialAdminTheme();
 
   const getThemeColors = () => ({
-    grid: isDark ? 'rgba(51, 65, 85, 0.3)' : 'rgba(203, 213, 225, 0.7)',
+    grid: isDark ? 'rgba(51, 65, 85, 0.3)' : 'rgba(148, 163, 184, 0.45)',
     tick: isDark ? '#cbd5e1' : '#0f172a',
     legendText: isDark ? '#f8fafc' : '#0f172a',
     pointBorder: isDark ? '#0f172a' : '#ffffff',
@@ -226,6 +262,7 @@
       if (chart.options?.scales?.x?.ticks) chart.options.scales.x.ticks.color = tick;
       if (chart.options?.scales?.y?.ticks) chart.options.scales.y.ticks.color = tick;
       if (chart.options?.scales?.y?.grid) chart.options.scales.y.grid.color = grid;
+      if (chart.options?.scales?.x?.grid) chart.options.scales.x.grid.color = grid;
       chart.update();
     };
 
@@ -235,12 +272,21 @@
         chart.options.plugins.legend.labels.color = legendText;
       }
       if (chart.legend?.legendItems) {
-        chart.legend.legendItems.forEach(i => { i.fontColor = legendText; });
+        chart.legend.legendItems.forEach(i => {
+          i.fontColor = legendText;
+          i.color = legendText;
+        });
       }
       chart.update();
     };
 
     updateScaleChart(salesChartInstance);
+    if (monthlySalesChartInstance) {
+      if (monthlySalesChartInstance.data?.datasets?.[0]) {
+        monthlySalesChartInstance.data.datasets[0].pointBorderColor = pointBorder;
+      }
+      updateScaleChart(monthlySalesChartInstance);
+    }
     if (trafficChartInstance) {
       if (trafficChartInstance.data?.datasets?.[0]) {
         trafficChartInstance.data.datasets[0].pointBorderColor = pointBorder;
@@ -581,7 +627,7 @@
         },
         scales: {
           x: {
-            grid: { display: false },
+            grid: { display: true, color: isDark ? 'rgba(51, 65, 85, 0.25)' : 'rgba(148, 163, 184, 0.45)' },
             ticks: {
               color: isDark ? '#cbd5e1' : '#0f172a',
               font: { family: 'Vazirmatn', size: 9 },
@@ -590,7 +636,7 @@
           },
           y: {
             beginAtZero: true,
-            grid: { color: isDark ? 'rgba(51, 65, 85, 0.3)' : 'rgba(203, 213, 225, 0.7)' },
+            grid: { color: isDark ? 'rgba(51, 65, 85, 0.3)' : 'rgba(148, 163, 184, 0.45)' },
             ticks: {
               color: isDark ? '#cbd5e1' : '#0f172a',
               font: { family: 'Vazirmatn', size: 9 },
@@ -684,18 +730,23 @@
       boxWidth: 7,
       boxHeight: 7,
       padding: 10,
-      color: isDark ? '#f8fafc' : '#0f172a',
+      color: () => {
+        const curIsDark = document.documentElement.classList.contains('dark') || !document.documentElement.classList.contains('theme-light');
+        return curIsDark ? '#f8fafc' : '#0f172a';
+      },
       font: { family: 'Vazirmatn', size: 10, weight: '600' },
       generateLabels: (chart) => {
         const data = chart.data;
         if (!data.labels?.length || !data.datasets?.length) return [];
         const dataset = data.datasets[0];
-        const textColor = isDark ? '#f8fafc' : '#0f172a';
+        const curIsDark = document.documentElement.classList.contains('dark') || !document.documentElement.classList.contains('theme-light');
+        const textColor = curIsDark ? '#f8fafc' : '#0f172a';
         return data.labels.map((label, i) => {
           const fill = Array.isArray(dataset.backgroundColor) ? dataset.backgroundColor[i] : dataset.backgroundColor;
           return {
             text: label,
             fontColor: textColor,
+            color: textColor,
             fillStyle: fill,
             strokeStyle: fill,
             lineWidth: 0,
@@ -3441,6 +3492,39 @@
               ${tonRowsHtml || '<div class="text-[10px] text-slate-500 text-center py-1">اطلاعاتی دریافت نشد</div>'}
             </div>
           </div>
+
+          <!-- Stars Auto-Calculation from Live USDT Benchmark -->
+          <div class="space-y-1.5 mt-3 pt-2.5 border-t border-slate-700/60">
+            <div class="flex items-center justify-between px-1">
+              <span class="text-[10px] font-bold text-amber-400">⭐️ نرخ پیشنهادی استارز تلگرام (بر اساس دلار ${formatNumber(bestUsdt.price || 0)} ت):</span>
+            </div>
+            <div class="space-y-1.5">
+              <div class="flex items-center justify-between py-1.5 px-2.5 rounded-xl bg-slate-800/60 border border-slate-700/50 hover:border-slate-600 transition">
+                <div>
+                  <span class="text-slate-200 font-bold text-[11px] block">🛡️ فرمول بدون ضرر (Bot Payout)</span>
+                  <span class="text-[9px] text-slate-400">نقد کردن فرگمنت با کسر کارمزد تلگرام (۰.۰۱۳$)</span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <span class="font-mono font-bold text-amber-300 text-[11px]">${formatNumber(Math.round((bestUsdt.price || 95000) * 0.013))} <span class="text-[9px] text-slate-400 font-sans">تومان</span></span>
+                  <button onclick="window.adminActions.applySpecificRate('stars', ${Math.round((bestUsdt.price || 95000) * 0.013)})" class="bg-transparent hover:bg-amber-500/10 text-amber-400 hover:text-amber-300 border border-amber-500/40 text-[10px] font-bold px-2 py-0.5 rounded-lg transition active:scale-95">
+                    اعمال
+                  </button>
+                </div>
+              </div>
+              <div class="flex items-center justify-between py-1.5 px-2.5 rounded-xl bg-slate-800/60 border border-slate-700/50 hover:border-slate-600 transition">
+                <div>
+                  <span class="text-slate-200 font-bold text-[11px] block">🏷️ نرخ خرید فرگمنت (Fragment Buy)</span>
+                  <span class="text-[9px] text-slate-400">بر اساس قیمت خرید استارز در فرگمنت (۰.۰۱۵$)</span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <span class="font-mono font-bold text-blue-300 text-[11px]">${formatNumber(Math.round((bestUsdt.price || 95000) * 0.015))} <span class="text-[9px] text-slate-400 font-sans">تومان</span></span>
+                  <button onclick="window.adminActions.applySpecificRate('stars', ${Math.round((bestUsdt.price || 95000) * 0.015)})" class="bg-transparent hover:bg-blue-500/10 text-blue-400 hover:text-blue-300 border border-blue-500/40 text-[10px] font-bold px-2 py-0.5 rounded-lg transition active:scale-95">
+                    اعمال
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
         `;
       } catch (e) {
         container.innerHTML = '<div class="p-6 text-center text-xs text-rose-400">خطای ارتباط با سرور در استعلام نرخ‌ها</div>';
@@ -3458,6 +3542,7 @@
         if (inp) inp.value = numVal;
         payload.usdt_rate_toman = numVal;
         window.currentUsdRate = numVal;
+        this.updateStarsHint();
       } else if (type === 'eur') {
         const inp = document.getElementById('settingEurRate');
         if (inp) inp.value = numVal;
@@ -3467,12 +3552,16 @@
         const inp = document.getElementById('settingTonRate');
         if (inp) inp.value = numVal;
         payload.ton_rate_toman = numVal;
+      } else if (type === 'stars') {
+        const inp = document.getElementById('settingStarsRate');
+        if (inp) inp.value = numVal;
+        payload.stars_rate_toman = numVal;
       }
 
       try {
         const res = await window.api.saveAdminSettings(payload);
         if (res && res.ok) {
-          const typeName = type === 'usdt' ? 'تتر' : (type === 'eur' ? 'یورو' : 'تون');
+          const typeName = type === 'usdt' ? 'تتر' : (type === 'eur' ? 'یورو' : (type === 'ton' ? 'تون' : 'استارز'));
           if (window.showToast) window.showToast(`✅ نرخ ${typeName} به ${formatNumber(numVal)} تومان ذخیره شد`);
           if (window.hapticFeedback) window.hapticFeedback('success');
         } else {
@@ -3489,6 +3578,7 @@
       const usdtInp = document.getElementById('settingUsdtRate');
       const eurInp = document.getElementById('settingEurRate');
       const tonInp = document.getElementById('settingTonRate');
+      const starsInp = document.getElementById('settingStarsRate');
       if (usdtInp && rates.usdt) {
         usdtInp.value = rates.usdt;
         window.currentUsdRate = rates.usdt;
@@ -3501,13 +3591,19 @@
 
       try {
         const payload = {};
-        if (rates.usdt) payload.usdt_rate_toman = rates.usdt;
+        if (rates.usdt) {
+          payload.usdt_rate_toman = rates.usdt;
+          const starsLossless = Math.round(rates.usdt * 0.013);
+          if (starsInp) starsInp.value = starsLossless;
+          payload.stars_rate_toman = starsLossless;
+        }
         if (rates.eur) payload.eur_rate_toman = rates.eur;
         if (rates.ton) payload.ton_rate_toman = rates.ton;
         const res = await window.api.saveAdminSettings(payload);
         if (res && res.ok) {
-          if (window.showToast) window.showToast('✅ تمامی نرخ‌ها با موفقیت در تنظیمات ذخیره شدند');
+          if (window.showToast) window.showToast('✅ تمامی نرخ‌ها (شامل استارز بدون ضرر) ذخیره شدند');
           this.closeCryptoRatesModal();
+          this.updateStarsHint();
           if (window.hapticFeedback) window.hapticFeedback('success');
         } else {
           if (window.showToast) window.showToast(`⚠️ ${res?.error || 'خطا در ثبت نرخ‌ها'}`);
@@ -3921,6 +4017,31 @@
         container.innerHTML = '<div class="p-6 text-center text-xs text-rose-400">خطای شبکه در بارگذاری کمپین‌ها</div>';
       }
     },
+
+    calcStarsRate(mode = 'lossless') {
+      const usdtInp = document.getElementById('settingUsdtRate');
+      const usdtVal = parseInt(usdtInp?.value || '0', 10) || window.currentUsdRate || 95000;
+      const multiplier = mode === 'fragment' ? 0.015 : 0.013;
+      const calculated = Math.round(usdtVal * multiplier);
+      const starsInp = document.getElementById('settingStarsRate');
+      if (starsInp) {
+        starsInp.value = calculated;
+        if (window.hapticFeedback) window.hapticFeedback('success');
+        const modeLabel = mode === 'fragment' ? 'فرگمنت (۰.۰۱۵$)' : 'بدون ضرر (۰.۰۱۳$)';
+        if (window.showToast) window.showToast(`✅ نرخ استارز بر اساس دلار ${formatNumber(usdtVal)} تومان روی ${formatNumber(calculated)} ت (${modeLabel}) تنظیم شد`);
+      }
+      this.updateStarsHint();
+    },
+
+    updateStarsHint() {
+      const usdtInp = document.getElementById('settingUsdtRate');
+      const usdtVal = parseInt(usdtInp?.value || '0', 10) || window.currentUsdRate || 0;
+      const hint = document.getElementById('starsAutoCalcHint');
+      if (hint && usdtVal > 0) {
+        const lossless = Math.round(usdtVal * 0.013);
+        hint.innerText = `بدون ضرر: ${formatNumber(lossless)} ت`;
+      }
+    },
   };
 
   const fetchAdminPlans = () => window.adminActions.fetchAdminPlans();
@@ -4274,8 +4395,15 @@
 
       // Crypto & Rates
       const usdtRate = document.getElementById('settingUsdtRate');
-      if (usdtRate) usdtRate.value = s.usdt_rate_toman ?? 95000;
+      if (usdtRate) {
+        usdtRate.value = s.usdt_rate_toman ?? 95000;
+        if (!usdtRate._hasStarsListener) {
+          usdtRate.addEventListener('input', () => window.adminActions.updateStarsHint());
+          usdtRate._hasStarsListener = true;
+        }
+      }
       if (s.usdt_rate_toman) window.currentUsdRate = s.usdt_rate_toman;
+      window.adminActions.updateStarsHint();
 
       const eurRate = document.getElementById('settingEurRate');
       if (eurRate) eurRate.value = s.eur_rate_toman ?? 105000;

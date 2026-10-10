@@ -561,6 +561,7 @@ FA_TEXTS: dict[str, str] = {
         "settings_ton_wallet": "آدرس والت TON",
         "settings_ton_rate": "نرخ هر تون (تومان)",
         "settings_usdt_rate": "نرخ مبنای تتر (تومان)",
+        "settings_stars_rate": "نرخ هر استارز (تومان)",
         "btn_topup_card": "💳 کارت به کارت (فیش بانکی)",
         "btn_topup_ton": "💎 پرداخت با تون (آنلاین و آنی)",
         "topup_select_method": "👛 <b>انتخاب روش شارژ کیف پول</b>\n\nلطفاً روش افزایش موجودی مورد نظر خود را انتخاب کنید:",

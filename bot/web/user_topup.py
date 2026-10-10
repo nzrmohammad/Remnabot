@@ -37,8 +37,12 @@ async def get_user_topup_info(request: web.Request) -> web.Response:
             "crypto_enabled": bool(store.crypto_enabled and store.ton_wallet_address and store.ton_rate_toman > 0),
             "ton_wallet_address": store.ton_wallet_address or "",
             "ton_rate_toman": store.ton_rate_toman or 0,
-            "stars_enabled": bool(getattr(store, "stars_enabled", False) is True and isinstance(getattr(store, "stars_rate_toman", None), (int, float)) and getattr(store, "stars_rate_toman", 0) > 0),
-            "stars_rate_toman": getattr(store, "stars_rate_toman", 1500) if isinstance(getattr(store, "stars_rate_toman", None), (int, float)) else 1500,
+            "stars_enabled": bool(getattr(store, "stars_enabled", False) is True),
+            "stars_rate_toman": (
+                getattr(store, "stars_rate_toman", 0)
+                if isinstance(getattr(store, "stars_rate_toman", None), (int, float)) and getattr(store, "stars_rate_toman", 0) > 0
+                else max(100, round((getattr(store, "usdt_rate_toman", 95000) if isinstance(getattr(store, "usdt_rate_toman", None), (int, float)) and getattr(store, "usdt_rate_toman", 0) > 0 else 95000) * 0.013))
+            ),
             "cryptobot_enabled": bool(getattr(store, "cryptobot_enabled", False) is True and bool(getattr(store, "cryptobot_token", ""))),
         })
 
@@ -326,7 +330,13 @@ async def post_user_topup_stars(request: web.Request) -> web.Response:
         if amount < min_amt:
             return web.json_response({"ok": False, "message": f"حداقل مبلغ شارژ {min_amt:,} تومان است."}, status=400)
 
-        rate = getattr(store, "stars_rate_toman", 1500) or 1500
+        rate = getattr(store, "stars_rate_toman", 0)
+        if not isinstance(rate, (int, float)) or rate <= 0:
+            usdt_rate = getattr(store, "usdt_rate_toman", 95000)
+            if not isinstance(usdt_rate, (int, float)) or usdt_rate <= 0:
+                usdt_rate = 95000
+            rate = max(100, round(usdt_rate * 0.013))
+
         stars_count = max(1, round(amount / rate))
 
         bot = request.app["bot"]

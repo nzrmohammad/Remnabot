@@ -426,7 +426,9 @@ def create_web_app(
     app.router.add_post("/api/admin/settings", post_admin_settings)
     app.router.add_get("/api/admin/campaigns", get_admin_campaigns)
     app.router.add_post("/api/admin/campaigns", post_admin_campaign_create)
+    app.router.add_post("/api/admin/campaign/create", post_admin_campaign_create)
     app.router.add_post("/api/admin/campaigns/delete", post_admin_campaign_delete)
+    app.router.add_post("/api/admin/campaign/delete", post_admin_campaign_delete)
     app.router.add_get("/api/admin/infra/billing", get_admin_infra_billing)
     app.router.add_post("/api/admin/infra/node-cost", post_admin_node_cost)
 

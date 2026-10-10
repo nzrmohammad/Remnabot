@@ -11,7 +11,7 @@
       darkMode: 'class'
     };
   </script>
-  <link rel="stylesheet" href="/static/css/app.css?v=18.0">
+  <link rel="stylesheet" href="/static/css/app.css?v=18.2">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 </head>
 <body id="appBody" class="bg-[#080d1a] text-slate-100 h-screen h-[100dvh] overflow-hidden flex justify-center antialiased select-none transition-colors duration-300">
@@ -489,67 +489,106 @@
       </div>
 
       <!-- ===================================================== -->
-      <!-- TAB 4: SUPPORT DESK & PENDING TOPUPS                    -->
+      <!-- TAB 4: SUPPORT DESK, TOPUPS & CAMPAIGNS (مالی و کمپین‌ها) -->
       <!-- ===================================================== -->
-      <div id="tab-admin-tickets" class="admin-tab-pane space-y-4 hidden">
-        <div class="flex justify-between items-center">
-          <h3 class="text-sm font-bold text-slate-200 flex items-center gap-1.5">
-            <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
-            <span>فیش‌های واریزی در انتظار بررسی</span>
-          </h3>
-          <button id="refreshTopupsBtn" class="p-1.5 bg-transparent hover:bg-slate-700/40 text-slate-400 hover:text-slate-200 rounded-lg border border-slate-700 transition flex items-center justify-center active:scale-95" title="تازه‌سازی">
-            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+      <div id="tab-admin-tickets" class="admin-tab-pane space-y-3.5 hidden">
+        <!-- Subtab Switcher: Pending Topups vs Campaigns -->
+        <div class="flex items-center p-1 bg-slate-800/90 dark:bg-slate-800/90 rounded-2xl border border-slate-700/70 shadow-sm">
+          <button id="subtabBtnTopups" type="button" onclick="window.switchFinanceSubtab('topups')" class="flex-1 py-2 px-3 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 bg-blue-600 text-white shadow">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
+            <span>فیش‌های واریزی</span>
+          </button>
+          <button id="subtabBtnCampaigns" type="button" onclick="window.switchFinanceSubtab('campaigns')" class="flex-1 py-2 px-3 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 text-slate-400 hover:text-slate-200">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"/></svg>
+            <span>کمپین‌های تبلیغاتی</span>
           </button>
         </div>
 
-        <div id="adminPendingTopupsList" class="space-y-2.5">
-          <div class="p-4 text-center text-xs text-slate-400">در حال بررسی فیش‌ها...</div>
+        <!-- Subtab 1: Pending Topups & Support Desk -->
+        <div id="subtabContentTopups" class="space-y-4">
+          <div class="flex justify-between items-center">
+            <h3 class="text-sm font-bold text-slate-200 flex items-center gap-1.5">
+              <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
+              <span>فیش‌های واریزی در انتظار بررسی</span>
+            </h3>
+            <button id="refreshTopupsBtn" class="p-1.5 bg-transparent hover:bg-slate-700/40 text-slate-400 hover:text-slate-200 rounded-lg border border-slate-700 transition flex items-center justify-center active:scale-95" title="تازه‌سازی">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+            </button>
+          </div>
+
+          <div id="adminPendingTopupsList" class="space-y-2.5">
+            <div class="p-4 text-center text-xs text-slate-400">در حال بررسی فیش‌ها...</div>
+          </div>
+
+          <!-- Live Support Chat Room (Hidden by default, opens on 'چت با کاربر') -->
+          <div id="adminChatContainer" class="bg-slate-800/90 rounded-2xl p-4 border border-slate-700/80 space-y-3 text-xs shadow mt-3 hidden">
+            <div id="activeChatWindow" class="bg-slate-950/70 rounded-2xl border border-slate-700/60 overflow-hidden space-y-0 shadow-md">
+              <!-- Header matching top card structure -->
+              <div class="p-3 bg-slate-900/95 border-b border-slate-800 space-y-2">
+                <!-- Top Header Row: Status on right (بدون تکرار #2), Close (✕) on left -->
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-1.5">
+                    <span id="activeChatStatusBadge" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30">
+                      <span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>
+                      در انتظار بررسی
+                    </span>
+                  </div>
+                  <button type="button" onclick="window.adminActions.closeUserChat()" class="w-6 h-6 rounded-lg bg-transparent hover:bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center text-xs transition" title="بستن چت">✕</button>
+                </div>
+
+                <!-- Second Header Row: Photo + Name on right, Username on line 1, ID on line 2 under username sticking to left -->
+                <div class="flex items-center justify-between gap-2.5">
+                  <div class="flex items-center gap-2 min-w-0">
+                    <div id="activeChatUserAvatar" class="w-8 h-8 rounded-full bg-gradient-to-tr from-cyan-600 to-blue-600 text-white font-bold text-xs flex items-center justify-center flex-shrink-0 shadow overflow-hidden relative">
+                      U
+                    </div>
+                    <b id="activeChatUserName" class="text-white text-xs font-bold truncate max-w-[140px]">کاربر</b>
+                  </div>
+
+                  <div class="flex flex-col items-start gap-0.5 font-mono text-[10px] text-slate-400 flex-shrink-0 text-left" dir="ltr">
+                    <span id="activeChatUserTag" class="text-slate-300 font-mono truncate max-w-[130px] block leading-tight">—</span>
+                    <span id="activeChatUserId" class="text-slate-400 font-mono block leading-tight">—</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Speech Bubbles Feed -->
+              <div id="ticketChatStream" class="p-3.5 space-y-2.5 min-h-[180px] max-h-[300px] overflow-y-auto custom-scroll text-xs">
+                <div class="p-6 text-center text-slate-400 text-[11px]">در حال اتصال به چت...</div>
+              </div>
+
+              <!-- Message Composer Form: Send Icon on RIGHT (start in RTL), Input on LEFT (بدون پس‌زمینه) -->
+              <div class="p-2.5 bg-slate-900 border-t border-slate-800 flex items-center gap-2">
+                <input type="hidden" id="directTicketUserId" value="" />
+                <button id="sendDirectTicketReplyBtn" class="bg-transparent hover:bg-blue-500/10 text-blue-400 hover:text-blue-300 p-2 rounded-xl transition active:scale-95 flex items-center justify-center flex-shrink-0" title="ارسال پیام">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
+                </button>
+                <input type="text" id="directTicketMsg" placeholder="پاسخ را بنویسید..." class="flex-1 bg-slate-950 border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-slate-200 outline-none focus:border-blue-500 transition" />
+              </div>
+            </div>
+          </div>
         </div>
 
-        <!-- Live Support Chat Room (Hidden by default, opens on 'چت با کاربر') -->
-        <div id="adminChatContainer" class="bg-slate-800/90 rounded-2xl p-4 border border-slate-700/80 space-y-3 text-xs shadow mt-3 hidden">
-          <div id="activeChatWindow" class="bg-slate-950/70 rounded-2xl border border-slate-700/60 overflow-hidden space-y-0 shadow-md">
-            <!-- Header matching top card structure -->
-            <div class="p-3 bg-slate-900/95 border-b border-slate-800 space-y-2">
-              <!-- Top Header Row: Status on right (بدون تکرار #2), Close (✕) on left -->
-              <div class="flex items-center justify-between">
-                <div class="flex items-center gap-1.5">
-                  <span id="activeChatStatusBadge" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30">
-                    <span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>
-                    در انتظار بررسی
-                  </span>
-                </div>
-                <button type="button" onclick="window.adminActions.closeUserChat()" class="w-6 h-6 rounded-lg bg-transparent hover:bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center text-xs transition" title="بستن چت">✕</button>
+        <!-- Subtab 2: Campaigns & Ad Tracking -->
+        <div id="subtabContentCampaigns" class="space-y-3.5 hidden">
+          <!-- Top Action Card -->
+          <div class="bg-slate-800/80 p-3.5 rounded-2xl border border-slate-700/80 shadow flex items-center justify-between">
+            <div>
+              <div class="flex items-center gap-1.5">
+                <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"/></svg>
+                <b class="text-xs text-white">کمپین‌ها و لینک‌های تبلیغاتی</b>
               </div>
-
-              <!-- Second Header Row: Photo + Name on right, Username on line 1, ID on line 2 under username sticking to left -->
-              <div class="flex items-center justify-between gap-2.5">
-                <div class="flex items-center gap-2 min-w-0">
-                  <div id="activeChatUserAvatar" class="w-8 h-8 rounded-full bg-gradient-to-tr from-cyan-600 to-blue-600 text-white font-bold text-xs flex items-center justify-center flex-shrink-0 shadow overflow-hidden relative">
-                    U
-                  </div>
-                  <b id="activeChatUserName" class="text-white text-xs font-bold truncate max-w-[140px]">کاربر</b>
-                </div>
-
-                <div class="flex flex-col items-start gap-0.5 font-mono text-[10px] text-slate-400 flex-shrink-0 text-left" dir="ltr">
-                  <span id="activeChatUserTag" class="text-slate-300 font-mono truncate max-w-[130px] block leading-tight">—</span>
-                  <span id="activeChatUserId" class="text-slate-400 font-mono block leading-tight">—</span>
-                </div>
-              </div>
+              <span class="text-[10px] text-slate-400 block mt-0.5">ردیابی نرخ تبدیل و درآمد هر منبع تبلیغات</span>
             </div>
+            <button type="button" onclick="window.adminActions.openCreateCampaignModal()" class="px-3 py-1.5 bg-transparent hover:bg-blue-600/10 text-blue-400 hover:text-blue-300 border border-blue-500/40 rounded-xl text-xs font-bold transition flex items-center gap-1 active:scale-95">
+              <span>➕ ساخت لینک جدید</span>
+            </button>
+          </div>
 
-            <!-- Speech Bubbles Feed -->
-            <div id="ticketChatStream" class="p-3.5 space-y-2.5 min-h-[180px] max-h-[300px] overflow-y-auto custom-scroll text-xs">
-              <div class="p-6 text-center text-slate-400 text-[11px]">در حال اتصال به چت...</div>
-            </div>
-
-            <!-- Message Composer Form: Send Icon on RIGHT (start in RTL), Input on LEFT (بدون پس‌زمینه) -->
-            <div class="p-2.5 bg-slate-900 border-t border-slate-800 flex items-center gap-2">
-              <input type="hidden" id="directTicketUserId" value="" />
-              <button id="sendDirectTicketReplyBtn" class="bg-transparent hover:bg-blue-500/10 text-blue-400 hover:text-blue-300 p-2 rounded-xl transition active:scale-95 flex items-center justify-center flex-shrink-0" title="ارسال پیام">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
-              </button>
-              <input type="text" id="directTicketMsg" placeholder="پاسخ را بنویسید..." class="flex-1 bg-slate-950 border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-slate-200 outline-none focus:border-blue-500 transition" />
+          <!-- Campaigns List -->
+          <div id="adminCampaignsList" class="space-y-2.5">
+            <div class="p-4 rounded-xl bg-transparent border border-slate-700/50 text-center text-xs text-slate-400">
+              <span>در حال بارگذاری لیست کمپین‌ها...</span>
             </div>
           </div>
         </div>
@@ -783,14 +822,32 @@
             </div>
 
             <!-- Stars & CryptoBot Settings Grid -->
-            <div class="grid grid-cols-2 gap-2 pt-2 border-t border-slate-700/50">
-              <div>
-                <label class="text-[10px] text-slate-400 block mb-1">نرخ هر استارز (تومان):</label>
-                <input type="number" id="settingStarsRate" dir="ltr" placeholder="1500" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-xs font-mono text-amber-300 outline-none focus:border-amber-500 transition" />
+            <div class="space-y-2 pt-2 border-t border-slate-700/50">
+              <div class="grid grid-cols-2 gap-2">
+                <div>
+                  <div class="flex items-center justify-between mb-1">
+                    <label class="text-[10px] text-slate-400 block">نرخ هر استارز (تومان):</label>
+                    <span id="starsAutoCalcHint" class="text-[9px] text-amber-400 font-mono font-bold"></span>
+                  </div>
+                  <input type="number" id="settingStarsRate" dir="ltr" placeholder="1500" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-xs font-mono text-amber-300 outline-none focus:border-amber-500 transition" />
+                </div>
+                <div>
+                  <label class="text-[10px] text-slate-400 block mb-1">توکن API کریپتوبات (@CryptoBot):</label>
+                  <input type="password" id="settingCryptoBotToken" dir="ltr" placeholder="12345:AA..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-xs font-mono text-cyan-300 outline-none focus:border-cyan-500 transition" />
+                </div>
               </div>
-              <div>
-                <label class="text-[10px] text-slate-400 block mb-1">توکن API کریپتوبات (@CryptoBot):</label>
-                <input type="password" id="settingCryptoBotToken" dir="ltr" placeholder="12345:AA..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-xs font-mono text-cyan-300 outline-none focus:border-cyan-500 transition" />
+
+              <!-- Quick Auto-Calc Presets for Stars -->
+              <div class="p-2 rounded-xl bg-slate-800/60 border border-slate-700/50 flex flex-wrap items-center justify-between gap-1.5 text-[10px]">
+                <span class="text-slate-300 font-medium">⚡️ محاسبه هوشمند نرخ استارز بر اساس دلار:</span>
+                <div class="flex items-center gap-1.5 flex-1 min-w-[200px] justify-end">
+                  <button type="button" onclick="window.adminActions.calcStarsRate('lossless')" class="flex-1 bg-transparent hover:bg-amber-500/10 text-amber-400 hover:text-amber-300 border border-amber-500/40 text-[10px] font-bold py-1 px-2 rounded-lg transition active:scale-95 flex items-center justify-center gap-1" title="نقد کردن در فرگمنت بدون ضرر با کسر کارمزد تلگرام">
+                    <span>🛡️ بدون ضرر (۰.۰۱۳ × دلار)</span>
+                  </button>
+                  <button type="button" onclick="window.adminActions.calcStarsRate('fragment')" class="flex-1 bg-transparent hover:bg-blue-500/10 text-blue-400 hover:text-blue-300 border border-blue-500/40 text-[10px] font-bold py-1 px-2 rounded-lg transition active:scale-95 flex items-center justify-center gap-1" title="معادل نرخ خرید استارز در فرگمنت">
+                    <span>🏷️ نرخ فرگمنت (۰.۰۱۵ × دلار)</span>
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -888,32 +945,6 @@
         </button>
       </div>
 
-      <!-- ===================================================== -->
-      <!-- TAB 7: CAMPAIGNS & AD TRACKING (لینک‌های تبلیغاتی)    -->
-      <!-- ===================================================== -->
-      <div id="tab-admin-campaigns" class="admin-tab-pane space-y-3.5 hidden">
-        <!-- Top Action Card -->
-        <div class="bg-slate-800/80 p-3.5 rounded-2xl border border-slate-700/80 shadow flex items-center justify-between">
-          <div>
-            <div class="flex items-center gap-1.5">
-              <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"/></svg>
-              <b class="text-xs text-white">کمپین‌ها و لینک‌های تبلیغاتی</b>
-            </div>
-            <span class="text-[10px] text-slate-400 block mt-0.5">ردیابی نرخ تبدیل و درآمد هر منبع تبلیغات</span>
-          </div>
-          <button type="button" onclick="window.adminActions.openCreateCampaignModal()" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold transition flex items-center gap-1 active:scale-95 shadow">
-            <span>➕ ساخت لینک جدید</span>
-          </button>
-        </div>
-
-        <!-- Campaigns List -->
-        <div id="adminCampaignsList" class="space-y-2.5">
-          <div class="p-4 rounded-xl bg-transparent border border-slate-700/50 text-center text-xs text-slate-400">
-            <span>در حال بارگذاری لیست کمپین‌ها...</span>
-          </div>
-        </div>
-      </div>
-
     </div>
 
     <!-- Admin Bottom Navigation Bar -->
@@ -936,11 +967,7 @@
       </button>
       <button class="admin-nav-btn flex flex-col items-center gap-1 text-slate-400 hover:text-slate-200 transition min-w-[46px] py-1" data-admin-tab="tab-admin-tickets">
         <svg class="w-5 h-5 transition-transform" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-6.75 3h18a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15A2.25 2.25 0 002.25 6.75v10.5A2.25 2.25 0 004.5 19.5z" /></svg>
-        <span class="text-[9px] font-medium">مالی</span>
-      </button>
-      <button class="admin-nav-btn flex flex-col items-center gap-1 text-slate-400 hover:text-slate-200 transition min-w-[46px] py-1" data-admin-tab="tab-admin-campaigns">
-        <svg class="w-5 h-5 transition-transform" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" /></svg>
-        <span class="text-[9px] font-medium">کمپین‌ها</span>
+        <span class="text-[9px] font-medium">مالی و کمپین</span>
       </button>
       <button class="admin-nav-btn flex flex-col items-center gap-1 text-slate-400 hover:text-slate-200 transition min-w-[46px] py-1" data-admin-tab="tab-admin-settings">
         <svg class="w-5 h-5 transition-transform" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759 6.759 0 010 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 010-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
@@ -1739,10 +1766,10 @@
           </div>
 
           <div class="flex items-center gap-2 pt-2">
-            <button type="submit" id="createCampaignSubmitBtn" class="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs py-2.5 rounded-xl transition shadow active:scale-95 flex items-center justify-center gap-1.5">
+            <button type="submit" id="createCampaignSubmitBtn" class="flex-1 bg-transparent hover:bg-blue-600/10 text-blue-400 hover:text-blue-300 border border-blue-500/40 font-bold text-xs py-2.5 rounded-xl transition active:scale-95 flex items-center justify-center gap-1.5">
               <span>ساخت لینک</span>
             </button>
-            <button type="button" onclick="window.adminActions.closeCreateCampaignModal()" class="px-4 bg-slate-800 hover:bg-slate-750 text-slate-300 text-xs py-2.5 rounded-xl border border-slate-700 transition">
+            <button type="button" onclick="window.adminActions.closeCreateCampaignModal()" class="px-4 bg-transparent hover:bg-slate-800/40 text-slate-400 hover:text-slate-200 text-xs py-2.5 rounded-xl border border-slate-700/60 transition">
               انصراف
             </button>
           </div>
@@ -1753,8 +1780,8 @@
   </div>
 
   <!-- Shared & Modular Scripts -->
-  <script src="/static/js/utils.js?v=18.0"></script>
-  <script src="/static/js/api.js?v=18.0"></script>
-  <script src="/static/js/admin.js?v=18.0"></script>
+  <script src="/static/js/utils.js?v=18.2"></script>
+  <script src="/static/js/api.js?v=18.2"></script>
+  <script src="/static/js/admin.js?v=18.2"></script>
 </body>
 </html>

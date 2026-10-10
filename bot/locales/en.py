@@ -570,6 +570,7 @@ EN_TEXTS: dict[str, str] = {
         "settings_ton_wallet": "TON Wallet Address",
         "settings_ton_rate": "TON Exchange Rate (Toman)",
         "settings_usdt_rate": "Benchmark USDT Rate (Toman)",
+        "settings_stars_rate": "Telegram Stars Rate (Toman)",
         "btn_topup_card": "💳 Card-to-Card",
         "btn_topup_ton": "💎 Pay with TON",
         "topup_select_method": "👛 <b>Select Top-up Method:</b>\n\nChoose your preferred payment method to add balance to your wallet:",

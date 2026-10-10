@@ -167,11 +167,11 @@ function renderDonutChart(containerId, labels, data, isDevice = false) {
 
   if (typeof Chart === 'undefined') return;
 
-  const isLight = document.documentElement.classList.contains('theme-light');
-  const textColor = isLight ? '#0f172a' : '#f1f5f9';
+  const isLight = document.documentElement.classList.contains('theme-light') || !document.documentElement.classList.contains('dark');
+  const textColor = isLight ? '#0f172a' : '#f8fafc';
 
   if (typeof Chart !== 'undefined') {
-    Chart.defaults.color = isLight ? '#1e293b' : '#cbd5e1';
+    Chart.defaults.color = isLight ? '#0f172a' : '#cbd5e1';
   }
 
   const defaultColors = isDevice
@@ -224,18 +224,24 @@ function renderDonutChart(containerId, labels, data, isDevice = false) {
             boxHeight: 8,
             usePointStyle: true,
             pointStyle: 'circle',
-            color: textColor,
+            color: () => {
+              const curIsLight = document.documentElement.classList.contains('theme-light') || !document.documentElement.classList.contains('dark');
+              return curIsLight ? '#0f172a' : '#f8fafc';
+            },
             font: { family: 'Vazirmatn', size: 10.5, weight: '600' },
             padding: 8,
             generateLabels: function(chart) {
               const data = chart.data;
               if (!data.labels?.length || !data.datasets?.length) return [];
               const dataset = data.datasets[0];
+              const curIsLight = document.documentElement.classList.contains('theme-light') || !document.documentElement.classList.contains('dark');
+              const curTextColor = curIsLight ? '#0f172a' : '#f8fafc';
               return data.labels.map((label, i) => {
                 const fill = Array.isArray(dataset.backgroundColor) ? dataset.backgroundColor[i] : dataset.backgroundColor;
                 return {
                   text: label,
-                  fontColor: textColor,
+                  fontColor: curTextColor,
+                  color: curTextColor,
                   fillStyle: fill,
                   strokeStyle: fill,
                   lineWidth: 0,

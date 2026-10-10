@@ -549,6 +549,10 @@ def format_usdt_rate_alert(
     lines.append(f"   💵 نرخ مبنای تتر : <b>{curr_usdt_str}</b>")
     if current_usdt_rate > 0 and ref_usdt_price:
         lines.append(f"   📈 اختلاف تتر : <b>{diff_str}</b> <b>{percent_str}</b>")
+    lossless_stars = round(ref_usdt_price * 0.013)
+    fragment_stars = round(ref_usdt_price * 0.015)
+    lines.append(f"   ⭐️ نرخ بدون ضرر استارز (۰.۰۱۳$) : <b>{lossless_stars:,} تومان</b>")
+    lines.append(f"   🏷 نرخ فرگمنت استارز (۰.۰۱۵$) : <b>{fragment_stars:,} تومان</b>")
     lines.append("")
     lines.append("💡 برای به‌روزرسانی نرخ در فروشگاه، دکمه مورد نظر را لمس فرمایید:")
 
@@ -564,6 +568,13 @@ def format_usdt_rate_alert(
                 callback_data=f"adm:rate:apply:usdt:{p}",
             )
             usdt_btns_count += 1
+
+    if best_usdt_p:
+        lossless_stars_best = round(best_usdt_p * 0.013)
+        kb.button(
+            text=f"⭐️ اعمال استارز بدون ضرر ({lossless_stars_best:,} تومان)",
+            callback_data=f"adm:rate:apply:stars:{lossless_stars_best}",
+        )
 
     kb.adjust(1)
 

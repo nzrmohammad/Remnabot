@@ -406,7 +406,31 @@ function setupThemeToggle() {
     }
 
     if (typeof Chart !== 'undefined') {
-      Chart.defaults.color = isDark ? '#cbd5e1' : '#1e293b';
+      Chart.defaults.color = isDark ? '#cbd5e1' : '#0f172a';
+    }
+
+    if (window.chartInstances) {
+      const curIsLight = !isDark;
+      const curTextColor = curIsLight ? '#0f172a' : '#f8fafc';
+      Object.values(window.chartInstances).forEach(chart => {
+        if (!chart) return;
+        if (chart.options?.plugins?.legend?.labels) {
+          chart.options.plugins.legend.labels.color = curTextColor;
+        }
+        if (chart.legend?.legendItems) {
+          chart.legend.legendItems.forEach(item => {
+            item.fontColor = curTextColor;
+            item.color = curTextColor;
+          });
+        }
+        if (chart.options?.scales) {
+          if (chart.options.scales.x?.ticks) chart.options.scales.x.ticks.color = curIsLight ? '#0f172a' : '#cbd5e1';
+          if (chart.options.scales.y?.ticks) chart.options.scales.y.ticks.color = curIsLight ? '#0f172a' : '#cbd5e1';
+          if (chart.options.scales.y?.grid) chart.options.scales.y.grid.color = curIsLight ? 'rgba(148, 163, 184, 0.45)' : 'rgba(51, 65, 85, 0.3)';
+          if (chart.options.scales.x?.grid) chart.options.scales.x.grid.color = curIsLight ? 'rgba(148, 163, 184, 0.45)' : 'rgba(51, 65, 85, 0.3)';
+        }
+        try { chart.update(); } catch(e) {}
+      });
     }
 
     if (window.lastUserData?.active_sub) {

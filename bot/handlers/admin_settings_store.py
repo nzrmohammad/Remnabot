@@ -67,6 +67,7 @@ SETTING_FIELDS = {
     "ton_wallet_address": ("settings_ton_wallet", False),
     "ton_rate_toman": ("settings_ton_rate", True),
     "usdt_rate_toman": ("settings_usdt_rate", True),
+    "stars_rate_toman": ("settings_stars_rate", True),
 }
 
 SETTING_DESCRIPTIONS = {
@@ -86,6 +87,7 @@ SETTING_DESCRIPTIONS = {
         "ton_wallet_address": "آدرس عمومی کیف پول تون (مانند UQ... یا EQ...) جهت دریافت وجه از کاربران.",
         "ton_rate_toman": "نرخ تبدیل هر یک تون به تومان جهت صدور فاکتور شارژ کیف پول.",
         "usdt_rate_toman": "نرخ هر تتر (USDT) به تومان جهت تبدیل قیمت دلاری تون در صرافی‌های جهانی.",
+        "stars_rate_toman": "نرخ هر استارز تلگرام به تومان جهت شارژ کیف پول و خرید سرویس‌ها (پیشنهادی بدون ضرر: ۰.۰۱۳ × نرخ دلار).",
         "trial_enabled": "فعال (1) یا غیرفعال (0) بودن امکان دریافت اکانت تست رایگان توسط کاربران جدید.",
         "trial_traffic_gb": "حجم ترافیک اختصاص داده شده به اکانت تست رایگان به گیگابایت.",
         "trial_duration_days": "مدت زمان اعتبار اکانت تست رایگان به روز.",
