@@ -120,6 +120,12 @@ function updateTopupDisplays(amt) {
     const cryptoTonEl = document.getElementById('cryptoAmountTon');
     if (cryptoTonEl) cryptoTonEl.innerText = `${tonAmt} TON`;
   }
+  const starsRate = window.storeSettings?.stars_rate_toman || 1600;
+  const starsCount = Math.max(1, Math.ceil((amt || 0) / starsRate));
+  const starsReqEl = document.getElementById('starsRequiredCount');
+  if (starsReqEl) starsReqEl.innerText = `${starsCount} ⭐️`;
+  const starsRateEl = document.getElementById('starsRateDisplay');
+  if (starsRateEl) starsRateEl.innerText = `${Number(starsRate).toLocaleString('en-US')} تومان`;
 }
 
 async function loadTopupInfo() {
@@ -131,6 +137,25 @@ async function loadTopupInfo() {
       const cardHolderEl = document.getElementById('topupCardHolder');
       if (cardNumEl) cardNumEl.innerText = res.card_number || 'هنوز ثبت نشده';
       if (cardHolderEl) cardHolderEl.innerText = res.card_holder || 'مدیریت سرور';
+
+      if (res.stars_enabled === false) {
+        document.getElementById('topupMethodStarsBtn')?.classList.add('hidden');
+      } else {
+        document.getElementById('topupMethodStarsBtn')?.classList.remove('hidden');
+      }
+
+      if (res.card_enabled === false) {
+        document.getElementById('topupMethodCardBtn')?.classList.add('hidden');
+      } else {
+        document.getElementById('topupMethodCardBtn')?.classList.remove('hidden');
+      }
+
+      if (res.crypto_enabled === false) {
+        document.getElementById('topupMethodCryptoBtn')?.classList.add('hidden');
+      } else {
+        document.getElementById('topupMethodCryptoBtn')?.classList.remove('hidden');
+      }
+
       const inputEl = document.getElementById('topupAmountInput');
       updateTopupDisplays(parseInt(inputEl?.value || '50000'));
     }
@@ -139,33 +164,43 @@ async function loadTopupInfo() {
 
 let cryptoCountdownTimerInterval = null;
 
-function switchToCryptoTab() {
-  const methodCardBtn = document.getElementById('topupMethodCardBtn');
-  const methodCryptoBtn = document.getElementById('topupMethodCryptoBtn');
-  const cardView = document.getElementById('topupCardView');
-  const cryptoView = document.getElementById('topupCryptoView');
+function switchTopupTab(tab) {
+  const btnCard = document.getElementById('topupMethodCardBtn');
+  const btnStars = document.getElementById('topupMethodStarsBtn');
+  const btnCrypto = document.getElementById('topupMethodCryptoBtn');
 
-  methodCryptoBtn?.classList.replace('text-slate-400', 'text-white');
-  methodCryptoBtn?.classList.add('bg-blue-600');
-  methodCardBtn?.classList.replace('text-white', 'text-slate-400');
-  methodCardBtn?.classList.remove('bg-blue-600');
-  cryptoView?.classList.remove('hidden');
-  cardView?.classList.add('hidden');
+  const viewCard = document.getElementById('topupCardView');
+  const viewStars = document.getElementById('topupStarsView');
+  const viewCrypto = document.getElementById('topupCryptoView');
+
+  [btnCard, btnStars, btnCrypto].forEach(b => {
+    if (b) {
+      b.classList.remove('bg-blue-600', 'text-white');
+      b.classList.add('text-slate-400');
+    }
+  });
+  [viewCard, viewStars, viewCrypto].forEach(v => {
+    if (v) v.classList.add('hidden');
+  });
+
+  if (tab === 'card') {
+    btnCard?.classList.add('bg-blue-600', 'text-white');
+    btnCard?.classList.remove('text-slate-400');
+    viewCard?.classList.remove('hidden');
+  } else if (tab === 'stars') {
+    btnStars?.classList.add('bg-blue-600', 'text-white');
+    btnStars?.classList.remove('text-slate-400');
+    viewStars?.classList.remove('hidden');
+  } else if (tab === 'crypto') {
+    btnCrypto?.classList.add('bg-blue-600', 'text-white');
+    btnCrypto?.classList.remove('text-slate-400');
+    viewCrypto?.classList.remove('hidden');
+  }
 }
 
-function switchToCardTab() {
-  const methodCardBtn = document.getElementById('topupMethodCardBtn');
-  const methodCryptoBtn = document.getElementById('topupMethodCryptoBtn');
-  const cardView = document.getElementById('topupCardView');
-  const cryptoView = document.getElementById('topupCryptoView');
-
-  methodCardBtn?.classList.replace('text-slate-400', 'text-white');
-  methodCardBtn?.classList.add('bg-blue-600');
-  methodCryptoBtn?.classList.replace('text-white', 'text-slate-400');
-  methodCryptoBtn?.classList.remove('bg-blue-600');
-  cardView?.classList.remove('hidden');
-  cryptoView?.classList.add('hidden');
-}
+function switchToCryptoTab() { switchTopupTab('crypto'); }
+function switchToCardTab() { switchTopupTab('card'); }
+function switchToStarsTab() { switchTopupTab('stars'); }
 
 function updatePendingCardUI(invoice, remainingSec) {
   const card = document.getElementById('activeCryptoPendingCard');
@@ -349,14 +384,19 @@ function setupWalletListeners() {
   });
 
   const methodCardBtn = document.getElementById('topupMethodCardBtn');
+  const methodStarsBtn = document.getElementById('topupMethodStarsBtn');
   const methodCryptoBtn = document.getElementById('topupMethodCryptoBtn');
 
   methodCardBtn?.addEventListener('click', () => {
-    switchToCardTab();
+    switchTopupTab('card');
+  });
+
+  methodStarsBtn?.addEventListener('click', () => {
+    switchTopupTab('stars');
   });
 
   methodCryptoBtn?.addEventListener('click', () => {
-    switchToCryptoTab();
+    switchTopupTab('crypto');
     restoreActiveCryptoInvoice();
   });
 
@@ -500,6 +540,48 @@ function setupWalletListeners() {
     } finally {
       submitBtn.disabled = false;
       submitBtn.innerText = '📤 ثبت و ارسال رسید پرداخت';
+    }
+  });
+
+  document.getElementById('submitStarsTopupBtn')?.addEventListener('click', async () => {
+    const amt = parseInt(topupAmountInput?.value || '0', 10);
+    if (!amt || amt < 10000) {
+      showToast('⚠️ لطفاً مبلغ معتبر وارد فرمایید.');
+      return;
+    }
+    const btn = document.getElementById('submitStarsTopupBtn');
+    if (btn) {
+      btn.disabled = true;
+      btn.innerHTML = '<span>⏳</span> در حال ایجاد فاکتور استارز...';
+    }
+    try {
+      const res = await window.api.createStarsInvoice(amt);
+      if (res && res.ok && res.invoice_link) {
+        if (window.Telegram?.WebApp?.openInvoice) {
+          window.Telegram.WebApp.openInvoice(res.invoice_link, (status) => {
+            if (status === 'paid') {
+              showToast('🎉 پرداخت استارز با موفقیت تایید شد و کیف پول شارژ گردید!');
+              closeModal('topupModal');
+              if (typeof syncUserDataWithApi === 'function') syncUserDataWithApi(window.currentAccountId);
+            } else if (status === 'cancelled') {
+              showToast('پرداخت استارز لغو شد.');
+            } else if (status === 'failed') {
+              showToast('❌ پرداخت استارز انجام نشد.');
+            }
+          });
+        } else {
+          window.open(res.invoice_link, '_blank');
+        }
+      } else {
+        showToast(`❌ ${res?.error || res?.message || 'خطا در ایجاد فاکتور استارز'}`);
+      }
+    } catch (e) {
+      showToast('❌ خطا در ارتباط با سرور.');
+    } finally {
+      if (btn) {
+        btn.disabled = false;
+        btn.innerHTML = '<span>⭐</span> پرداخت با استارز تلگرام';
+      }
     }
   });
 

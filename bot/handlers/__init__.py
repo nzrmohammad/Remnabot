@@ -15,6 +15,7 @@ from bot.handlers import (
     configs,
     guide,
     main_menu,
+    payment_stars,
     profile,
     referral,
     service_request,
@@ -30,6 +31,7 @@ def get_main_router() -> Router:
     router = Router(name="main")
     router.include_router(start.router)
     router.include_router(auth.router)
+    router.include_router(payment_stars.router)
     router.include_router(service_request.router)
     router.include_router(stats.router)      # must come BEFORE main_menu ("menu:*" catch-all)
     router.include_router(account.router)    # must come BEFORE main_menu ("menu:*" catch-all)

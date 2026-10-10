@@ -37,6 +37,9 @@ async def get_user_topup_info(request: web.Request) -> web.Response:
             "crypto_enabled": bool(store.crypto_enabled and store.ton_wallet_address and store.ton_rate_toman > 0),
             "ton_wallet_address": store.ton_wallet_address or "",
             "ton_rate_toman": store.ton_rate_toman or 0,
+            "stars_enabled": bool(getattr(store, "stars_enabled", False) is True and isinstance(getattr(store, "stars_rate_toman", None), (int, float)) and getattr(store, "stars_rate_toman", 0) > 0),
+            "stars_rate_toman": getattr(store, "stars_rate_toman", 1500) if isinstance(getattr(store, "stars_rate_toman", None), (int, float)) else 1500,
+            "cryptobot_enabled": bool(getattr(store, "cryptobot_enabled", False) is True and bool(getattr(store, "cryptobot_token", ""))),
         })
 
 
@@ -294,3 +297,134 @@ async def post_user_topup_crypto_check(request: web.Request) -> web.Response:
             "paid": False,
             "message": "تراکنش هنوز در شبکه تون شناسایی نشده است. لطفاً چند لحظه بعد دوباره بررسی کنید.",
         })
+
+
+async def post_user_topup_stars(request: web.Request) -> web.Response:
+    """Create a Telegram Stars (XTR) invoice link for the Mini App."""
+    user_auth = get_authenticated_user(request)
+    if not user_auth:
+        return web.json_response({"ok": False, "error": "Unauthorized"}, status=401)
+
+    if user_auth.get("is_preview"):
+        return web.json_response({"ok": False, "message": "این عملیات در حالت پیش‌نمایش در دسترس نیست."}, status=400)
+
+    try:
+        body = await request.json()
+    except Exception:
+        body = {}
+
+    amount = int(body.get("amount") or 0)
+    telegram_id = int(user_auth.get("id"))
+
+    session_factory = request.app["session_factory"]
+    async with session_factory() as session:
+        store = await get_store_settings(session)
+        if not getattr(store, "stars_enabled", False):
+            return web.json_response({"ok": False, "message": "پرداخت با استارز در حال حاضر غیرفعال است."}, status=400)
+
+        min_amt = store.topup_min_amount or 10000
+        if amount < min_amt:
+            return web.json_response({"ok": False, "message": f"حداقل مبلغ شارژ {min_amt:,} تومان است."}, status=400)
+
+        rate = getattr(store, "stars_rate_toman", 1500) or 1500
+        stars_count = max(1, round(amount / rate))
+
+        bot = request.app["bot"]
+        from aiogram.types import LabeledPrice
+        payload = f"stars_topup:{telegram_id}:{amount}:{stars_count}"
+        try:
+            link = await bot.create_invoice_link(
+                title="شارژ کیف پول",
+                description=f"شارژ مبلغ {amount:,} تومان در کیف پول کاربری",
+                payload=payload,
+                currency="XTR",
+                prices=[LabeledPrice(label=f"شارژ {amount:,} تومان", amount=stars_count)],
+            )
+            return web.json_response({
+                "ok": True,
+                "invoice_link": link,
+                "stars": stars_count,
+                "amount": amount,
+            })
+        except Exception as exc:
+            logger.exception("Failed to generate stars invoice link: %s", exc)
+            return web.json_response({"ok": False, "message": "خطا در تولید فاکتور استارز تلگرام."}, status=500)
+
+
+async def post_user_topup_cryptobot(request: web.Request) -> web.Response:
+    """Create a CryptoBot invoice link."""
+    user_auth = get_authenticated_user(request)
+    if not user_auth:
+        return web.json_response({"ok": False, "error": "Unauthorized"}, status=401)
+
+    try:
+        body = await request.json()
+    except Exception:
+        body = {}
+
+    amount = int(body.get("amount") or 0)
+    telegram_id = int(user_auth.get("id"))
+
+    session_factory = request.app["session_factory"]
+    async with session_factory() as session:
+        store = await get_store_settings(session)
+        if not getattr(store, "cryptobot_enabled", False) or not getattr(store, "cryptobot_token", ""):
+            return web.json_response({"ok": False, "message": "درگاه کریپتوبات فعال نیست."}, status=400)
+
+        usdt_rate = store.usdt_rate_toman or 95000
+        amount_usdt = max(0.1, round(amount / usdt_rate, 2))
+
+        import aiohttp
+        token = store.cryptobot_token
+        url = "https://pay.crypt.bot/api/createInvoice"
+        payload_data = {
+            "asset": "USDT",
+            "amount": str(amount_usdt),
+            "description": f"Top-up wallet {amount:,} Toman",
+            "payload": f"cryptobot:{telegram_id}:{amount}",
+        }
+        headers = {"Crypto-Pay-API-Token": token}
+        try:
+            async with aiohttp.ClientSession() as s:
+                async with s.post(url, json=payload_data, headers=headers, timeout=aiohttp.ClientTimeout(total=10)) as resp:
+                    res = await resp.json()
+                    if res.get("ok"):
+                        inv = res.get("result", {})
+                        pay_url = inv.get("pay_url") or inv.get("bot_invoice_url")
+                        return web.json_response({"ok": True, "pay_url": pay_url, "amount_usdt": amount_usdt})
+                    else:
+                        return web.json_response({"ok": False, "message": res.get("error", {}).get("name", "خطا در کریپتوبات")}, status=400)
+        except Exception as exc:
+            logger.exception("CryptoBot request failed: %s", exc)
+            return web.json_response({"ok": False, "message": "خطا در ارتباط با سرور کریپتوبات."}, status=500)
+
+
+async def post_cryptobot_webhook(request: web.Request) -> web.Response:
+    """Handle CryptoPay webhook notifications."""
+    try:
+        body = await request.json()
+    except Exception:
+        return web.Response(status=400)
+
+    if body.get("update_type") == "invoice_paid":
+        payload = body.get("payload", {})
+        custom_payload = str(payload.get("payload") or "")
+        parts = custom_payload.split(":")
+        if len(parts) >= 3 and parts[0] == "cryptobot":
+            user_tid = int(parts[1])
+            amount_toman = int(parts[2])
+            session_factory = request.app["session_factory"]
+            bot = request.app["bot"]
+            async with session_factory() as session:
+                wallet_repo = WalletRepository(session)
+                new_bal = await wallet_repo.adjust_balance(user_tid, amount_toman)
+                await session.commit()
+                try:
+                    await bot.send_message(
+                        chat_id=user_tid,
+                        text=f"💎 <b>پرداخت کریپتوبات با موفقیت انجام شد!</b>\n\nمبلغ <b>{amount_toman:,} تومان</b> به کیف پول شما اضافه شد.\nموجودی جدید: <b>{new_bal:,} تومان</b>",
+                    )
+                except Exception:
+                    pass
+    return web.json_response({"ok": True})
+

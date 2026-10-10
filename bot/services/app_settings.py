@@ -35,6 +35,11 @@ class StoreSettings:
     eur_rate_toman: int = 105000
     card_enabled: bool = True
     topic_errors: int | None = None
+    access_mode: str = "open"  # open, invite_only, closed
+    stars_enabled: bool = False
+    stars_rate_toman: int = 1500
+    cryptobot_enabled: bool = False
+    cryptobot_token: str = ""
 
 
 async def get_store_settings(session: AsyncSession) -> StoreSettings:
@@ -87,13 +92,22 @@ async def get_store_settings(session: AsyncSession) -> StoreSettings:
         eur_rate_toman=_int(values.get("eur_rate_toman"), getattr(env, "EUR_RATE_TOMAN", 105000) or 105000),
         card_enabled=_bool(values.get("card_enabled"), True),
         topic_errors=_opt_int(values.get("topic_errors"), env.ADMIN_TOPIC_ERRORS),
+        access_mode=str(values.get("access_mode") or "open").strip().lower(),
+        stars_enabled=_bool(values.get("stars_enabled"), False),
+        stars_rate_toman=_int(values.get("stars_rate_toman"), 1500),
+        cryptobot_enabled=_bool(values.get("cryptobot_enabled"), False),
+        cryptobot_token=str(values.get("cryptobot_token") or "").strip(),
     )
 
 
 async def is_maintenance(session: AsyncSession) -> bool:
-    """True when the admin turned on maintenance mode from the panel."""
-    value = await AppSettingRepository(session).get("maintenance")
-    return value == "1"
+    """True when the admin turned on maintenance mode or access_mode is closed."""
+    repo = AppSettingRepository(session)
+    value = await repo.get("maintenance")
+    if value == "1":
+        return True
+    acc = await repo.get("access_mode")
+    return acc == "closed"
 
 
 async def set_maintenance(session: AsyncSession, enabled: bool) -> None:

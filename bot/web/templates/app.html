@@ -27,7 +27,7 @@
       }
     } catch(e) {}
   </script>
-  <link rel="stylesheet" href="/static/css/app.css?v=14.0">
+  <link rel="stylesheet" href="/static/css/app.css?v=18.0">
 </head>
 <body id="appBody" class="bg-[#080d1a] text-slate-100 w-full min-w-full h-screen h-[100dvh] overflow-hidden flex justify-center items-center antialiased select-none transition-colors duration-300">
 
@@ -969,10 +969,13 @@
         <!-- Method Tabs -->
         <div class="flex bg-slate-900/90 p-1 rounded-xl border border-slate-700/80 gap-1">
           <button id="topupMethodCardBtn" class="flex-1 py-1.5 rounded-lg font-bold text-xs bg-blue-600 text-white transition flex items-center justify-center gap-1">
-            <span>💳</span> کارت به کارت
+            <span>💳</span> کارت
+          </button>
+          <button id="topupMethodStarsBtn" class="flex-1 py-1.5 rounded-lg font-medium text-xs text-slate-400 hover:text-slate-200 transition flex items-center justify-center gap-1">
+            <span>⭐</span> استارز
           </button>
           <button id="topupMethodCryptoBtn" class="flex-1 py-1.5 rounded-lg font-medium text-xs text-slate-400 hover:text-slate-200 transition flex items-center justify-center gap-1">
-            <span>💎</span> ارز دیجیتال (TON)
+            <span>💎</span> کریپتو (TON)
           </button>
         </div>
 
@@ -1106,6 +1109,31 @@
               </button>
             </div>
           </div>
+        </div>
+
+        <!-- 3. Telegram Stars Section -->
+        <div id="topupStarsView" class="space-y-3 hidden">
+          <div class="bg-transparent rounded-2xl p-3 border border-amber-500/40 space-y-2.5">
+            <div class="flex justify-between items-center text-[11px] pb-1.5 border-b border-slate-800">
+              <span class="text-slate-400 flex items-center gap-1"><span>⭐</span> پرداخت آنی تلگرام:</span>
+              <span class="font-bold text-amber-400 bg-transparent px-2 py-0.5 rounded-md border border-amber-500/30">Telegram Stars</span>
+            </div>
+            <div class="flex justify-between items-center text-[11px]">
+              <span class="text-slate-400">تعداد استارز مورد نیاز:</span>
+              <b id="starsRequiredCount" class="text-amber-400 font-mono font-bold text-sm" dir="ltr">-- ⭐️</b>
+            </div>
+            <div class="flex justify-between items-center text-[10px] text-slate-400">
+              <span>نرخ تبدیل تقریبی:</span>
+              <span id="starsRateDisplay" class="font-mono text-slate-300">-- تومان</span>
+            </div>
+            <p class="text-[9.5px] text-slate-400 leading-relaxed bg-transparent p-2 rounded-xl border border-slate-700/50">
+              💡 با زدن دکمه پرداخت، پنجره امن پرداخت تلگرام باز شده و اعتبار حساب بلافاصله واریز می‌شود.
+            </p>
+          </div>
+
+          <button id="submitStarsTopupBtn" class="w-full bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-slate-950 font-bold py-2.5 rounded-xl transition shadow active:scale-[0.98] flex items-center justify-center gap-1.5 text-xs">
+            <span>⭐</span> پرداخت با استارز تلگرام
+          </button>
         </div>
 
       </div>
@@ -1500,13 +1528,13 @@
   </div>
 
   <!-- Modular Frontend Architecture (DRY) -->
-  <script src="/static/js/utils.js?v=16.0"></script>
-  <script src="/static/js/api.js?v=16.0"></script>
-  <script src="/static/js/charts.js?v=16.0"></script>
-  <script src="/static/js/shop.js?v=16.0"></script>
-  <script src="/static/js/wallet.js?v=16.0"></script>
-  <script src="/static/js/wheel.js?v=16.0"></script>
-  <script src="/static/js/story.js?v=16.0"></script>
-  <script src="/static/js/app.js?v=16.0"></script>
+  <script src="/static/js/utils.js?v=18.0"></script>
+  <script src="/static/js/api.js?v=18.0"></script>
+  <script src="/static/js/charts.js?v=18.0"></script>
+  <script src="/static/js/shop.js?v=18.0"></script>
+  <script src="/static/js/wallet.js?v=18.0"></script>
+  <script src="/static/js/wheel.js?v=18.0"></script>
+  <script src="/static/js/story.js?v=18.0"></script>
+  <script src="/static/js/app.js?v=18.0"></script>
 </body>
 </html>

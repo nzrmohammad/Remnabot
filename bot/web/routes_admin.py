@@ -1820,6 +1820,11 @@ async def get_admin_settings(request: web.Request) -> web.Response:
             "topic_alerts": store_settings.topic_alerts,
             "topic_crypto": store_settings.topic_crypto,
             "topic_errors": store_settings.topic_errors,
+            "access_mode": store_settings.access_mode,
+            "stars_enabled": store_settings.stars_enabled,
+            "stars_rate_toman": store_settings.stars_rate_toman,
+            "cryptobot_enabled": store_settings.cryptobot_enabled,
+            "cryptobot_token": store_settings.cryptobot_token,
         }
         return web.json_response({"ok": True, "settings": data})
 
@@ -1847,6 +1852,8 @@ async def post_admin_settings(request: web.Request) -> web.Response:
             "trial_enabled",
             "referral_enabled",
             "support_direct_enabled",
+            "stars_enabled",
+            "cryptobot_enabled",
         )
         for bool_key in bool_keys:
             if bool_key in body:
@@ -1854,7 +1861,14 @@ async def post_admin_settings(request: web.Request) -> web.Response:
                 await app_repo.set(bool_key, "1" if val else "0")
 
         # String fields
-        str_keys = ("card_number", "card_holder", "ton_wallet_address", "support_contact")
+        str_keys = (
+            "card_number",
+            "card_holder",
+            "ton_wallet_address",
+            "support_contact",
+            "access_mode",
+            "cryptobot_token",
+        )
         for str_key in str_keys:
             if str_key in body:
                 await app_repo.set(str_key, str(body[str_key]).strip())
@@ -1868,6 +1882,7 @@ async def post_admin_settings(request: web.Request) -> web.Response:
             "trial_traffic_gb",
             "trial_duration_days",
             "referral_reward_gb",
+            "stars_rate_toman",
         )
         for num_key in num_keys:
             if num_key in body:
@@ -2998,6 +3013,85 @@ async def post_admin_node_cost(request: web.Request) -> web.Response:
             "provider": item.provider,
         }
     })
+
+
+async def get_admin_campaigns(request: web.Request) -> web.Response:
+    """Return list of ad/marketing campaigns with aggregated stats."""
+    admin = _check_admin(request)
+    if not admin:
+        return web.json_response({"ok": False, "error": "Forbidden"}, status=403)
+
+    session_factory = request.app["session_factory"]
+    from bot.db.repositories.campaign_repo import CampaignRepository
+    settings = request.app["settings"]
+    bot_username = getattr(settings, "BOT_USERNAME", "") or ""
+
+    async with session_factory() as session:
+        repo = CampaignRepository(session)
+        stats = await repo.get_campaigns_with_stats(bot_username)
+        return web.json_response({"ok": True, "campaigns": stats})
+
+
+async def post_admin_campaign_create(request: web.Request) -> web.Response:
+    """Create a new ad/marketing campaign."""
+    admin = _check_admin(request)
+    if not admin:
+        return web.json_response({"ok": False, "error": "Forbidden"}, status=403)
+
+    try:
+        body = await request.json()
+    except Exception:
+        return web.json_response({"ok": False, "error": "Invalid JSON"}, status=400)
+
+    name = str(body.get("name") or "").strip()
+    code = str(body.get("code") or "").strip().lower()
+    cost = int(body.get("cost") or 0)
+
+    if not name or not code:
+        return web.json_response({"ok": False, "error": "نام و شناسه کمپین الزامی است."}, status=400)
+
+    import re
+    if not re.match(r"^[a-zA-Z0-9_\-]+$", code):
+        return web.json_response({"ok": False, "error": "شناسه کمپین فقط می‌تواند شامل حروف، اعداد، خط تیره و زیرخط باشد."}, status=400)
+
+    session_factory = request.app["session_factory"]
+    from bot.db.repositories.campaign_repo import CampaignRepository
+
+    async with session_factory() as session:
+        repo = CampaignRepository(session)
+        existing = await repo.get_by_code(code)
+        if existing:
+            return web.json_response({"ok": False, "error": "این شناسه کمپین قبلاً تعریف شده است."}, status=400)
+
+        created = await repo.create(code=code, name=name, cost=cost)
+        return web.json_response({
+            "ok": True,
+            "campaign": {"id": created.id, "code": created.code, "name": created.name, "cost": created.cost}
+        })
+
+
+async def post_admin_campaign_delete(request: web.Request) -> web.Response:
+    """Delete an ad/marketing campaign."""
+    admin = _check_admin(request)
+    if not admin:
+        return web.json_response({"ok": False, "error": "Forbidden"}, status=403)
+
+    try:
+        body = await request.json()
+    except Exception:
+        return web.json_response({"ok": False, "error": "Invalid JSON"}, status=400)
+
+    cid = body.get("id")
+    if not cid:
+        return web.json_response({"ok": False, "error": "شناسه کمپین الزامی است."}, status=400)
+
+    session_factory = request.app["session_factory"]
+    from bot.db.repositories.campaign_repo import CampaignRepository
+
+    async with session_factory() as session:
+        repo = CampaignRepository(session)
+        ok = await repo.delete(int(cid))
+        return web.json_response({"ok": ok})
 
 
 

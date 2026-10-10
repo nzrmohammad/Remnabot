@@ -11,7 +11,7 @@ from bot.keyboards.inline import (
     main_menu_keyboard,
     welcome_keyboard,
 )
-from bot.locales.texts import CHOOSE_LANGUAGE, MAINTENANCE_NOTICE, t
+from bot.locales.texts import CHOOSE_LANGUAGE, INVITE_ONLY_NOTICE, MAINTENANCE_NOTICE, t
 from bot.services.menu import render_menu, reset_menu
 
 router = Router(name="start")
@@ -24,13 +24,28 @@ async def cmd_start(
 ):
     await state.clear()
 
-    # Maintenance mode: new users cannot register.
+    # Maintenance mode & Access mode checks:
     existing = await user_repo.get_by_telegram_id(message.from_user.id)
-    if existing is None:
-        from bot.services.app_settings import is_maintenance
+    is_admin = message.from_user.id in get_settings().ADMIN_IDS
+
+    if not is_admin:
+        from bot.services.app_settings import get_store_settings, is_maintenance
         if await is_maintenance(session):
             await message.answer(MAINTENANCE_NOTICE)
             return
+
+        store_settings = await get_store_settings(session)
+        if getattr(store_settings, "access_mode", "open") == "invite_only" and existing is None:
+            text_check = message.text or ""
+            parts_check = text_check.split()
+            has_invite = False
+            if len(parts_check) > 1:
+                param = parts_check[1]
+                if param.startswith("ref_") or param.startswith("ad_") or param.startswith("inv_"):
+                    has_invite = True
+            if not has_invite:
+                await message.answer(INVITE_ONLY_NOTICE)
+                return
 
     user = await user_repo.get_or_create(
         telegram_id=message.from_user.id,
@@ -38,15 +53,21 @@ async def cmd_start(
         full_name=message.from_user.full_name,
     )
 
-    # Referral link extraction: /start ref_123456 (do not delete the /start message)
+    # Referral & Campaign deep link extraction: /start ref_123456 or /start ad_mychannel
     text = message.text or ""
     parts = text.split()
-    if len(parts) > 1 and parts[1].startswith("ref_"):
-        ref_raw = parts[1].removeprefix("ref_")
-        if ref_raw.isdigit():
-            inviter_id = int(ref_raw)
-            if inviter_id != message.from_user.id and getattr(user, "referred_by_id", None) is None:
-                await user_repo.set_referrer(user, inviter_id)
+    if len(parts) > 1:
+        param = parts[1]
+        if param.startswith("ref_"):
+            ref_raw = param.removeprefix("ref_")
+            if ref_raw.isdigit():
+                inviter_id = int(ref_raw)
+                if inviter_id != message.from_user.id and getattr(user, "referred_by_id", None) is None:
+                    await user_repo.set_referrer(user, inviter_id)
+        elif param.startswith("ad_"):
+            ad_code = param.removeprefix("ad_").strip().lower()
+            if ad_code and getattr(user, "campaign_code", None) is None:
+                await user_repo.set_campaign(user, ad_code)
 
     # fresh menu message at the bottom of the chat
     if not user.language:

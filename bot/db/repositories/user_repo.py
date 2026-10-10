@@ -104,6 +104,12 @@ class UserRepository:
         if user:
             user.referred_by_id = referrer_id
 
+    async def set_campaign(self, user: User | int, campaign_code: str) -> None:
+        if isinstance(user, int):
+            user = await self.get_by_telegram_id(user)
+        if user and not getattr(user, "campaign_code", None):
+            user.campaign_code = campaign_code.strip().lower()
+
     async def set_claimed_trial(self, user: User | int, claimed: bool = True) -> None:
         if isinstance(user, int):
             user = await self.get_by_telegram_id(user)

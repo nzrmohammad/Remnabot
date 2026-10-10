@@ -14,6 +14,7 @@ from aiohttp import web
 from bot.web.cache import FastCache
 from bot.web.routes_admin import (
     get_admin_broadcast_status,
+    get_admin_campaigns,
     get_admin_coupon_usages,
     get_admin_coupons,
     get_admin_crypto_rates,
@@ -32,6 +33,8 @@ from bot.web.routes_admin import (
     get_admin_users,
     post_admin_users_bulk_action,
     post_admin_broadcast,
+    post_admin_campaign_create,
+    post_admin_campaign_delete,
     post_admin_coupon_delete,
     post_admin_coupon_save,
     post_admin_coupon_toggle,
@@ -64,6 +67,9 @@ from bot.web.routes_user import (
     post_user_topup_card,
     post_user_topup_crypto,
     post_user_topup_crypto_check,
+    post_user_topup_stars,
+    post_user_topup_cryptobot,
+    post_cryptobot_webhook,
     post_user_validate_coupon,
     get_user_support_messages,
     post_user_support_message,
@@ -105,6 +111,8 @@ async def api_rate_limit_middleware(request: web.Request, handler):
         "/api/user/topup/card",
         "/api/user/topup/crypto",
         "/api/user/topup/crypto/check",
+        "/api/user/topup/stars",
+        "/api/user/topup/cryptobot",
     }
     is_sensitive = request.path in sensitive_paths and request.method == "POST"
     max_reqs = _API_MAX_SENSITIVE if is_sensitive else _API_MAX_GENERAL
@@ -366,6 +374,9 @@ def create_web_app(
     app.router.add_post("/api/user/topup/card", post_user_topup_card)
     app.router.add_post("/api/user/topup/crypto", post_user_topup_crypto)
     app.router.add_post("/api/user/topup/crypto/check", post_user_topup_crypto_check)
+    app.router.add_post("/api/user/topup/stars", post_user_topup_stars)
+    app.router.add_post("/api/user/topup/cryptobot", post_user_topup_cryptobot)
+    app.router.add_post("/api/webhook/cryptobot", post_cryptobot_webhook)
     app.router.add_post("/api/user/validate_coupon", post_user_validate_coupon)
     app.router.add_post("/api/user/purchase", post_user_purchase)
     app.router.add_post("/api/user/settings", post_user_settings)
@@ -413,6 +424,9 @@ def create_web_app(
     app.router.add_get("/api/admin/crypto/rates", get_admin_crypto_rates)
     app.router.add_get("/api/admin/settings", get_admin_settings)
     app.router.add_post("/api/admin/settings", post_admin_settings)
+    app.router.add_get("/api/admin/campaigns", get_admin_campaigns)
+    app.router.add_post("/api/admin/campaigns", post_admin_campaign_create)
+    app.router.add_post("/api/admin/campaigns/delete", post_admin_campaign_delete)
     app.router.add_get("/api/admin/infra/billing", get_admin_infra_billing)
     app.router.add_post("/api/admin/infra/node-cost", post_admin_node_cost)
 

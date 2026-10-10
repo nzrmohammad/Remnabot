@@ -14,6 +14,14 @@ MAINTENANCE_NOTICE = (
     "🛠 <b>ربات در حال بروزرسانی است. لطفاً کمی بعد دوباره تلاش کنید.</b>"
 )
 
+# Shown to brand-new users when invite-only mode is active and they lack an invite code.
+INVITE_ONLY_NOTICE = (
+    "🔒 <b>Registration is by invitation only.</b>\n"
+    "Please join using an invite link from an existing member.\n\n"
+    "🔒 <b>ورود به ربات نیازمند دعوت است.</b>\n"
+    "ثبت‌نام در حال حاضر تنها از طریق لینک دعوت یا معرفی اعضا امکان‌پذیر است."
+)
+
 TEXTS: dict[str, dict[str, str]] = {
     "en": EN_TEXTS,
     "fa": FA_TEXTS,

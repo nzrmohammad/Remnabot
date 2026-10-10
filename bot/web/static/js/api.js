@@ -118,6 +118,14 @@ const api = {
     return this.post('/api/user/topup/crypto/check', { invoice_id });
   },
 
+  async createStarsInvoice(amount) {
+    return this.post('/api/user/topup/stars', { amount });
+  },
+
+  async createCryptoBotInvoice(amount, asset = 'USDT') {
+    return this.post('/api/user/topup/cryptobot', { amount, asset });
+  },
+
   async saveSetting(key, value) {
     return this.post('/api/user/settings', { key, value });
   },
@@ -296,6 +304,18 @@ const api = {
 
   async saveNodeCost(data) {
     return this.post('/api/admin/infra/node-cost', data);
+  },
+
+  async getAdminCampaigns() {
+    return this.get('/api/admin/campaigns');
+  },
+
+  async createAdminCampaign(data) {
+    return this.post('/api/admin/campaign/create', data);
+  },
+
+  async deleteAdminCampaign(id) {
+    return this.post('/api/admin/campaign/delete', { id });
   },
 };
 

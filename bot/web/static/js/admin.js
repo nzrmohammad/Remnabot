@@ -160,6 +160,8 @@
       } else if (targetId === 'tab-admin-tickets') {
         fetchAdminTopups();
         fetchTicketThreads();
+      } else if (targetId === 'tab-admin-campaigns') {
+        window.adminActions.fetchAdminCampaigns();
       } else if (targetId === 'tab-admin-settings') {
         fetchAdminSettings();
       }
@@ -3740,6 +3742,185 @@
         }
       }
     },
+
+    // --- Ad Campaigns & Deep-link Tracking Actions ---
+    openCreateCampaignModal() {
+      const modal = document.getElementById('createCampaignModal');
+      if (!modal) return;
+      const n = document.getElementById('campaignNameInput');
+      const c = document.getElementById('campaignCodeInput');
+      const co = document.getElementById('campaignCostInput');
+      if (n) n.value = '';
+      if (c) c.value = '';
+      if (co) co.value = '';
+      modal.classList.remove('hidden');
+      if (window.hapticFeedback) window.hapticFeedback('selection');
+    },
+
+    closeCreateCampaignModal() {
+      const modal = document.getElementById('createCampaignModal');
+      if (modal) modal.classList.add('hidden');
+    },
+
+    async submitCreateCampaign(e) {
+      if (e) e.preventDefault();
+      const name = document.getElementById('campaignNameInput')?.value?.trim();
+      const code = document.getElementById('campaignCodeInput')?.value?.trim().toLowerCase();
+      const cost = parseInt(document.getElementById('campaignCostInput')?.value || '0', 10);
+
+      if (!name || !code) {
+        if (window.showToast) window.showToast('⚠️ نام و شناسه کمپین الزامی است.');
+        return;
+      }
+
+      const submitBtn = document.getElementById('createCampaignSubmitBtn');
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerText = 'در حال ساخت...';
+      }
+
+      try {
+        const res = await window.api.createAdminCampaign({ name, code, cost });
+        if (res && res.ok) {
+          if (window.showToast) window.showToast('✅ کمپین و لینک با موفقیت ایجاد شد.');
+          if (window.hapticFeedback) window.hapticFeedback('success');
+          this.closeCreateCampaignModal();
+          this.fetchAdminCampaigns();
+        } else {
+          if (window.showToast) window.showToast(`⚠️ ${res?.error || 'خطا در ساخت کمپین'}`);
+          if (window.hapticFeedback) window.hapticFeedback('error');
+        }
+      } catch (err) {
+        if (window.showToast) window.showToast('خطای شبکه در ارتباط با سرور.');
+      } finally {
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.innerText = 'ساخت لینک';
+        }
+      }
+    },
+
+    async deleteCampaign(id, name) {
+      if (!confirm(`آیا از حذف کمپین «${name}» اطمینان دارید؟`)) return;
+      try {
+        const res = await window.api.deleteAdminCampaign(id);
+        if (res && res.ok) {
+          if (window.showToast) window.showToast('🗑 کمپین با موفقیت حذف شد.');
+          if (window.hapticFeedback) window.hapticFeedback('success');
+          this.fetchAdminCampaigns();
+        } else {
+          if (window.showToast) window.showToast(`⚠️ ${res?.error || 'خطا در حذف کمپین'}`);
+        }
+      } catch (err) {
+        if (window.showToast) window.showToast('خطای شبکه در حذف کمپین.');
+      }
+    },
+
+    copyCampaignLink(deepLink) {
+      if (!deepLink) return;
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(deepLink).then(() => {
+          if (window.showToast) window.showToast('📋 لینک تبلیغاتی کپی شد');
+          if (window.hapticFeedback) window.hapticFeedback('light');
+        }).catch(() => {
+          prompt('لینک تبلیغاتی:', deepLink);
+        });
+      } else {
+        prompt('لینک تبلیغاتی:', deepLink);
+      }
+    },
+
+    async fetchAdminCampaigns() {
+      const container = document.getElementById('adminCampaignsList');
+      if (!container) return;
+
+      container.innerHTML = `
+        <div class="p-6 rounded-2xl bg-transparent border border-slate-700/50 text-center text-xs text-slate-400">
+          در حال بارگذاری لیست کمپین‌ها...
+        </div>
+      `;
+
+      try {
+        const res = await window.api.getAdminCampaigns();
+        if (!res || !res.ok) {
+          container.innerHTML = '<div class="p-6 text-center text-xs text-rose-400">خطا در بارگذاری لیست کمپین‌ها</div>';
+          return;
+        }
+
+        const campaigns = res.campaigns || [];
+        if (campaigns.length === 0) {
+          container.innerHTML = `
+            <div class="p-8 rounded-2xl bg-slate-800/40 border border-slate-700/60 text-center space-y-2">
+              <div class="w-12 h-12 mx-auto rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"/></svg>
+              </div>
+              <p class="text-xs text-white font-bold">هنوز هیچ کمپین یا لینکی ساخته نشده است</p>
+              <p class="text-[11px] text-slate-400">با ساخت اولین لینک تبلیغاتی، می‌توانید ورودی‌ها و خرید کاربران از کانال‌ها و افراد مختلف را ردیابی کنید.</p>
+            </div>
+          `;
+          return;
+        }
+
+        container.innerHTML = campaigns.map(c => {
+          const roiText = c.roi !== null && c.roi !== undefined ? `${c.roi > 0 ? '+' : ''}${c.roi}%` : null;
+          const roiColor = c.roi !== null && c.roi > 0 ? 'text-emerald-400' : (c.roi !== null && c.roi < 0 ? 'text-rose-400' : 'text-slate-400');
+          const costText = c.cost ? `${formatNumber(c.cost)} تومان` : 'بدون هزینه (۰ تومان)';
+
+          return `
+            <div class="bg-slate-800/80 p-3.5 rounded-2xl border border-slate-700/80 space-y-3 transition hover:border-slate-600">
+              <!-- Top Row: Name & Actions -->
+              <div class="flex items-center justify-between gap-2">
+                <div class="flex items-center gap-2 min-w-0">
+                  <div class="w-8 h-8 rounded-xl bg-amber-500/15 border border-amber-500/30 text-amber-400 flex items-center justify-center flex-shrink-0">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"/></svg>
+                  </div>
+                  <div class="min-w-0">
+                    <b class="text-xs text-white block truncate">${escapeHtml(c.name)}</b>
+                    <span class="text-[10px] font-mono text-cyan-400 dir-ltr block mt-0.5">ad_${c.code}</span>
+                  </div>
+                </div>
+                <div class="flex items-center gap-1.5 flex-shrink-0">
+                  <button type="button" onclick="window.adminActions.copyCampaignLink('${c.deep_link}')" class="px-2.5 py-1 bg-transparent hover:bg-cyan-500/10 text-cyan-400 border border-cyan-500/40 rounded-xl text-[10px] font-bold transition flex items-center gap-1 active:scale-95 shadow-sm" title="کپی لینک اختصاصی">
+                    <span>کپی لینک</span>
+                  </button>
+                  <button type="button" onclick="window.adminActions.deleteCampaign(${c.id}, '${escapeHtml(c.name).replace(/'/g, "\\'")}')" class="w-7 h-7 bg-transparent hover:bg-rose-500/10 text-rose-400 border border-rose-500/40 rounded-xl flex items-center justify-center transition active:scale-95" title="حذف کمپین">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Stats Grid -->
+              <div class="grid grid-cols-4 gap-2 pt-1 border-t border-slate-700/50 text-center">
+                <div class="p-2 rounded-xl bg-slate-900/40 border border-slate-700/40">
+                  <span class="text-[9px] text-slate-400 block mb-0.5">ورودی جدید</span>
+                  <b class="text-xs font-mono text-white">${formatNumber(c.users_count)}</b>
+                </div>
+                <div class="p-2 rounded-xl bg-slate-900/40 border border-slate-700/40">
+                  <span class="text-[9px] text-slate-400 block mb-0.5">خریداران</span>
+                  <b class="text-xs font-mono text-cyan-300">${formatNumber(c.buyers_count)}</b>
+                </div>
+                <div class="p-2 rounded-xl bg-slate-900/40 border border-slate-700/40">
+                  <span class="text-[9px] text-slate-400 block mb-0.5">درآمد فروش</span>
+                  <b class="text-xs font-mono text-emerald-400">${formatNumber(c.total_revenue)}</b>
+                </div>
+                <div class="p-2 rounded-xl bg-slate-900/40 border border-slate-700/40">
+                  <span class="text-[9px] text-slate-400 block mb-0.5">بازگشت (ROI)</span>
+                  <b class="text-xs font-mono ${roiColor}">${roiText || '—'}</b>
+                </div>
+              </div>
+
+              <!-- Deep Link preview row -->
+              <div class="flex items-center justify-between text-[10px] text-slate-400 pt-1 border-t border-slate-700/30">
+                <span class="truncate dir-ltr font-mono text-slate-400" dir="ltr">${c.deep_link}</span>
+                <span class="flex-shrink-0 text-[9px] text-slate-400 mr-2">${costText}</span>
+              </div>
+            </div>
+          `;
+        }).join('');
+      } catch (e) {
+        container.innerHTML = '<div class="p-6 text-center text-xs text-rose-400">خطای شبکه در بارگذاری کمپین‌ها</div>';
+      }
+    },
   };
 
   const fetchAdminPlans = () => window.adminActions.fetchAdminPlans();
@@ -4063,6 +4244,24 @@
       const supDirectSwitch = document.getElementById('settingSupportDirectSwitch');
       if (supDirectSwitch) supDirectSwitch.checked = !!s.support_direct_enabled;
 
+      // Access Mode (Invite-Only, Open, Closed)
+      const accessMode = document.getElementById('settingAccessMode');
+      if (accessMode) accessMode.value = s.access_mode || (s.maintenance ? 'closed' : 'open');
+
+      // Telegram Stars Gateway
+      const starsSwitch = document.getElementById('settingStarsSwitch');
+      if (starsSwitch) starsSwitch.checked = !!s.stars_enabled;
+
+      const starsRate = document.getElementById('settingStarsRate');
+      if (starsRate) starsRate.value = s.stars_rate_toman ?? 1600;
+
+      // CryptoBot Gateway
+      const cryptoBotSwitch = document.getElementById('settingCryptoBotSwitch');
+      if (cryptoBotSwitch) cryptoBotSwitch.checked = !!s.cryptobot_enabled;
+
+      const cryptoBotToken = document.getElementById('settingCryptoBotToken');
+      if (cryptoBotToken) cryptoBotToken.value = s.cryptobot_token || '';
+
       // Bank & Topup
       const cardNum = document.getElementById('settingCardNumber');
       if (cardNum) cardNum.value = s.card_number || '';
@@ -4154,12 +4353,26 @@
   document.getElementById('settingSupportDirectSwitch')?.addEventListener('change', (e) => {
     updateSettingToggle('support_direct_enabled', e.target.checked);
   });
+  document.getElementById('settingStarsSwitch')?.addEventListener('change', (e) => {
+    updateSettingToggle('stars_enabled', e.target.checked);
+  });
+  document.getElementById('settingCryptoBotSwitch')?.addEventListener('change', (e) => {
+    updateSettingToggle('cryptobot_enabled', e.target.checked);
+  });
+  document.getElementById('settingAccessMode')?.addEventListener('change', (e) => {
+    updateSettingToggle('access_mode', e.target.value);
+  });
 
   async function handleSaveAllSettings() {
     const payload = {
       maintenance: document.getElementById('settingMaintSwitch')?.checked ?? false,
+      access_mode: document.getElementById('settingAccessMode')?.value || 'open',
       card_enabled: document.getElementById('settingCardSwitch')?.checked ?? true,
       crypto_enabled: document.getElementById('settingCryptoSwitch')?.checked ?? false,
+      stars_enabled: document.getElementById('settingStarsSwitch')?.checked ?? false,
+      stars_rate_toman: parseInt(document.getElementById('settingStarsRate')?.value || '1600', 10),
+      cryptobot_enabled: document.getElementById('settingCryptoBotSwitch')?.checked ?? false,
+      cryptobot_token: document.getElementById('settingCryptoBotToken')?.value?.trim() || '',
       trial_enabled: document.getElementById('settingTrialSwitch')?.checked ?? true,
       referral_enabled: document.getElementById('settingRefSwitch')?.checked ?? true,
       support_direct_enabled: document.getElementById('settingSupportDirectSwitch')?.checked ?? true,
@@ -4450,6 +4663,12 @@
   window.closeNodeBillingModal = () => window.adminActions.closeNodeBillingModal();
   window.saveNodeBilling = () => window.adminActions.saveNodeBilling();
   window.setNodeBillingCurrency = (curr) => window.adminActions.setNodeBillingCurrency(curr);
+  window.openCreateCampaignModal = () => window.adminActions.openCreateCampaignModal();
+  window.closeCreateCampaignModal = () => window.adminActions.closeCreateCampaignModal();
+  window.submitCreateCampaign = (e) => window.adminActions.submitCreateCampaign(e);
+  window.deleteCampaign = (id, name) => window.adminActions.deleteCampaign(id, name);
+  window.copyCampaignLink = (url) => window.adminActions.copyCampaignLink(url);
+  window.fetchAdminCampaigns = () => window.adminActions.fetchAdminCampaigns();
 
   // Initial Sync
   fetchAdminSettings();

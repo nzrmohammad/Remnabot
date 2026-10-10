@@ -116,6 +116,11 @@ async def _migrate_schema(engine: AsyncEngine) -> None:
                     text("ALTER TABLE users ADD COLUMN birth_date VARCHAR(32)")
                 )
                 logger.info("added users.birth_date")
+            if "campaign_code" not in cols:
+                await conn.execute(
+                    text("ALTER TABLE users ADD COLUMN campaign_code VARCHAR(32)")
+                )
+                logger.info("added users.campaign_code")
 
         # --- services: strategy / hwid / squad (new columns) ----------- #
         cols = await _table_columns(conn, "services")

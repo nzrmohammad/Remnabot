@@ -750,6 +750,9 @@ from bot.web.user_topup import (
     post_user_topup_card,
     post_user_topup_crypto,
     post_user_topup_crypto_check,
+    post_user_topup_stars,
+    post_user_topup_cryptobot,
+    post_cryptobot_webhook,
 )
 
 __all__ = [
@@ -767,6 +770,9 @@ __all__ = [
     "post_user_topup_card",
     "post_user_topup_crypto",
     "post_user_topup_crypto_check",
+    "post_user_topup_stars",
+    "post_user_topup_cryptobot",
+    "post_cryptobot_webhook",
     "get_user_support_messages",
     "post_user_support_message",
 ]

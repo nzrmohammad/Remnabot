@@ -1402,5 +1402,55 @@ html.theme-light #hwidKillAllSessionsBtn {
   background-color: transparent !important;
 }
 
+/* Access Mode selector & settings styling */
+#settingAccessMode,
+html.theme-light #settingAccessMode {
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: left 0.75rem center;
+  background-size: 1em;
+  padding-left: 2rem;
+}
+
+html.theme-light #settingAccessMode {
+  background-color: #ffffff !important;
+  border-color: #cbd5e1 !important;
+  color: #0f172a !important;
+}
+
+html.theme-light #settingAccessMode option {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+}
+
+/* Campaign tracking cards and deep-links in light theme */
+html.theme-light #adminCampaignsList > div {
+  background-color: #ffffff !important;
+  border-color: #cbd5e1 !important;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05) !important;
+}
+
+html.theme-light #adminCampaignsList .grid > div {
+  background-color: #f8fafc !important;
+  border-color: #e2e8f0 !important;
+}
+
+/* Telegram Stars and Topup tabs in light theme */
+html.theme-light #topupStarsView > div {
+  background-color: transparent !important;
+  border-color: rgba(245, 158, 11, 0.4) !important;
+}
+
+html.theme-light #starsRequiredCount {
+  color: #b45309 !important;
+}
+
+html.theme-light #starsRateDisplay {
+  color: #334155 !important;
+}
+
+
 
 

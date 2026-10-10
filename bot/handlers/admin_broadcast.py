@@ -183,6 +183,9 @@ async def broadcast_text(
     await render_menu(bot, user, user_repo, preview_text, kb.as_markup())
 
 
+ACTIVE_BROADCASTS: dict[str, dict] = {}
+
+
 @router.callback_query(F.data == BROADCAST_CONFIRM_KEY)
 async def broadcast_send(
     call: CallbackQuery, bot: Bot, user_repo: UserRepository,
@@ -204,38 +207,161 @@ async def broadcast_send(
         await call.answer(t("fa", "acc_error"), show_alert=True)
         return
 
-    log_repo_cls = resolve_op("AdminLogRepository", AdminLogRepository)
+    import time
+    bcast_id = f"bc_{int(time.time())}_{call.from_user.id}"
+    ACTIVE_BROADCASTS[bcast_id] = {
+        "status": "running",
+        "sent": [],  # list of (chat_id, message_id)
+        "ok": 0,
+        "fail": 0,
+        "total": len(recipient_ids),
+        "target": target,
+        "admin_id": call.from_user.id,
+    }
 
-    ok = fail = 0
+    # Show initial running UI with Cancel button
+    kb_cancel = InlineKeyboardBuilder()
+    kb_cancel.button(text="🛑 توقف ارسال", callback_data=f"adm:bcast:stop:{bcast_id}")
+    kb_cancel.adjust(1)
+
+    target_label = t(lang, f"bcast_target_{target}")
+    progress_text = (
+        f"🚀 <b>در حال ارسال همگانی...</b>\n\n"
+        f"🎯 مخاطبان: {target_label}\n"
+        f"👥 کل دریافت‌کنندگان: {len(recipient_ids):,}\n"
+        f"📊 وضعیت: در حال ارسال (0 از {len(recipient_ids):,})"
+    )
+    await render_menu(bot, user, user_repo, progress_text, kb_cancel.as_markup())
+    await call.answer("🚀 ارسال همگانی آغاز شد.")
+
+    log_repo_cls = resolve_op("AdminLogRepository", AdminLogRepository)
     safe_text = escape(draft)
-    for tid in recipient_ids:
+
+    for idx, tid in enumerate(recipient_ids, 1):
+        if ACTIVE_BROADCASTS[bcast_id]["status"] == "stopped":
+            break
+
         try:
-            await bot.send_message(tid, safe_text)
-            ok += 1
+            sent_msg = await bot.send_message(tid, safe_text)
+            ACTIVE_BROADCASTS[bcast_id]["sent"].append((tid, sent_msg.message_id))
+            ACTIVE_BROADCASTS[bcast_id]["ok"] += 1
         except Exception as exc:
             from aiogram.exceptions import TelegramRetryAfter
-
             if isinstance(exc, TelegramRetryAfter):
                 try:
                     await asyncio.sleep(exc.retry_after + 1)
                 except Exception:
                     pass
                 try:
-                    await bot.send_message(tid, safe_text)
-                    ok += 1
+                    sent_msg = await bot.send_message(tid, safe_text)
+                    ACTIVE_BROADCASTS[bcast_id]["sent"].append((tid, sent_msg.message_id))
+                    ACTIVE_BROADCASTS[bcast_id]["ok"] += 1
                     continue
                 except Exception:
                     pass
-            fail += 1
-        if (ok + fail) % 20 == 0:
+            ACTIVE_BROADCASTS[bcast_id]["fail"] += 1
+
+        if idx % 20 == 0:
             await asyncio.sleep(1)
+            # Periodic status edit
+            if ACTIVE_BROADCASTS[bcast_id]["status"] == "running":
+                cur_ok = ACTIVE_BROADCASTS[bcast_id]["ok"]
+                cur_fail = ACTIVE_BROADCASTS[bcast_id]["fail"]
+                try:
+                    live_text = (
+                        f"🚀 <b>در حال ارسال همگانی...</b>\n\n"
+                        f"🎯 مخاطبان: {target_label}\n"
+                        f"👥 کل: {len(recipient_ids):,}\n"
+                        f"✅ ارسال شده: {cur_ok:,} | ❌ ناموفق: {cur_fail:,}"
+                    )
+                    await render_menu(bot, user, user_repo, live_text, kb_cancel.as_markup())
+                except Exception:
+                    pass
+
+    final_state = ACTIVE_BROADCASTS[bcast_id]["status"]
+    final_ok = ACTIVE_BROADCASTS[bcast_id]["ok"]
+    final_fail = ACTIVE_BROADCASTS[bcast_id]["fail"]
+    ACTIVE_BROADCASTS[bcast_id]["status"] = "finished" if final_state != "stopped" else "stopped"
 
     await log_repo_cls(session).log(
-        call.from_user.id, "broadcast", detail=f"target={target} ok={ok} fail={fail}"
+        call.from_user.id, "broadcast", detail=f"target={target} ok={final_ok} fail={final_fail} stopped={final_state == 'stopped'}"
     )
-    await render_menu(
-        bot, user, user_repo,
-        t(lang, "broadcast_sent", ok=ok, fail=fail),
-        _back_admin(lang).as_markup(),
+
+    kb_done = InlineKeyboardBuilder()
+    if len(ACTIVE_BROADCASTS[bcast_id]["sent"]) > 0:
+        kb_done.button(text="🗑 پاک‌کردن پیام‌های ارسال‌شده", callback_data=f"adm:bcast:del:{bcast_id}")
+    kb_done.button(text=t(lang, "btn_back"), callback_data="menu:admin")
+    kb_done.adjust(1)
+
+    if final_state == "stopped":
+        done_text = (
+            f"🛑 <b>ارسال همگانی متوقف شد.</b>\n\n"
+            f"✅ ارسال‌شده تا توقف: {final_ok:,}\n"
+            f"❌ ناموفق: {final_fail:,}\n\n"
+            f"می‌توانید پیام‌های ارسال شده را از چت کاربران پاک کنید."
+        )
+    else:
+        done_text = (
+            f"✅ <b>ارسال همگانی با موفقیت پایان یافت.</b>\n\n"
+            f"🎯 مخاطبان: {target_label}\n"
+            f"✅ ارسال موفق: {final_ok:,}\n"
+            f"❌ ناموفق: {final_fail:,}"
+        )
+
+    await render_menu(bot, user, user_repo, done_text, kb_done.as_markup())
+
+
+@router.callback_query(F.data.startswith("adm:bcast:stop:"))
+async def broadcast_stop_handler(
+    call: CallbackQuery, bot: Bot, user_repo: UserRepository,
+):
+    if not _is_admin(call.from_user.id):
+        await call.answer(t("fa", "not_authorized"), show_alert=True)
+        return
+    bcast_id = call.data.removeprefix("adm:bcast:stop:")
+    task = ACTIVE_BROADCASTS.get(bcast_id)
+    if task and task.get("status") == "running":
+        task["status"] = "stopped"
+        await call.answer("🛑 دستور توقف ارسال همگانی صادر شد.", show_alert=True)
+    else:
+        await call.answer("ارسال در حال اجرا نیست یا به پایان رسیده است.", show_alert=True)
+
+
+@router.callback_query(F.data.startswith("adm:bcast:del:"))
+async def broadcast_revoke_handler(
+    call: CallbackQuery, bot: Bot, user_repo: UserRepository,
+):
+    if not _is_admin(call.from_user.id):
+        await call.answer(t("fa", "not_authorized"), show_alert=True)
+        return
+    bcast_id = call.data.removeprefix("adm:bcast:del:")
+    task = ACTIVE_BROADCASTS.get(bcast_id)
+    if not task:
+        await call.answer("اطلاعات این ارسال یافت نشد.", show_alert=True)
+        return
+
+    sent_list = task.get("sent", [])
+    if not sent_list:
+        await call.answer("پیامی برای حذف وجود ندارد.", show_alert=True)
+        return
+
+    await call.answer("⏳ در حال حذف پیام‌های ارسال‌شده از چت کاربران...", show_alert=False)
+    del_count = 0
+    for chat_id, msg_id in sent_list:
+        try:
+            await bot.delete_message(chat_id=chat_id, message_id=msg_id)
+            del_count += 1
+        except Exception:
+            pass
+        if del_count % 30 == 0:
+            await asyncio.sleep(0.5)
+
+    task["sent"] = []
+    user = await user_repo.get_or_create(call.from_user.id, call.from_user.username)
+    lang = user.language
+
+    result_text = (
+        f"🗑 <b>پیام‌های همگانی با موفقیت حذف شدند.</b>\n\n"
+        f"تعداد {del_count:,} پیام از چت کاربران با موفقیت پاک شد."
     )
-    await call.answer()
+    await render_menu(bot, user, user_repo, result_text, _back_admin(lang).as_markup())
