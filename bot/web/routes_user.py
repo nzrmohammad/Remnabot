@@ -481,6 +481,7 @@ async def get_user_me(request: web.Request) -> web.Response:
                     "id": o.id,
                     "type": "order",
                     "title": f"خرید {o.service_name}",
+                    "service_name": o.service_name,
                     "amount": o.amount,
                     "amount_formatted": f"{o.amount:,} تومان",
                     "is_positive": False,

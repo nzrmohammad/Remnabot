@@ -7,6 +7,16 @@ let allWalletTransactions = [];
 let currentWalletPage = 1;
 const TX_PER_PAGE = 10;
 
+function formatTxTitle(tx) {
+  if (!tx) return 'تراکنش';
+  if (tx.type === 'order' || (tx.title && tx.title.startsWith('خرید '))) {
+    const rawPlan = (tx.service_name || tx.title.replace(/^خرید\s+/, '')).trim();
+    const formattedPlan = typeof formatPlanTitle === 'function' ? formatPlanTitle(rawPlan) : escapeHtml(rawPlan);
+    return `<span class="inline-flex items-center gap-1"><span class="text-slate-400 font-normal">خرید</span> ${formattedPlan}</span>`;
+  }
+  return escapeHtml(tx.title || 'تراکنش');
+}
+
 function renderWalletTransactions(transactions) {
   const txContainer = document.getElementById('walletTransactionsList');
   if (!txContainer) return;
@@ -40,7 +50,7 @@ function renderWalletTransactions(transactions) {
       <div class="flex items-center gap-2.5">
         <span class="text-xl">${tx.type === 'topup' ? '💳' : (tx.type === 'admin_adjust' ? '⚡️' : '🛒')}</span>
         <div>
-          <span class="font-bold text-slate-200 block">${escapeHtml(tx.title || 'تراکنش')}</span>
+          <span class="font-bold text-slate-200 block">${formatTxTitle(tx)}</span>
           <span class="text-[10px] text-slate-400 font-mono mt-0.5" dir="ltr">${toEnglishDigits(tx.date_jalali || '')}</span>
         </div>
       </div>

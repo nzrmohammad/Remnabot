@@ -1365,6 +1365,13 @@ html.theme-light #walletTransactionsList > div {
   background-color: transparent !important;
 }
 
+html.theme-light #walletTransactionsList .text-slate-200 {
+  color: #0f172a !important;
+}
+html.theme-light #walletTransactionsList .text-slate-400 {
+  color: #64748b !important;
+}
+
 #repNightlyNodesContainer > div,
 #repWeeklyNodesContainer > div,
 #repMonthlyNodesContainer > div,

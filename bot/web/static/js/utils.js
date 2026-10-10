@@ -173,9 +173,26 @@ function formatPrice(amt) {
   return Number(amt).toLocaleString('en-US');
 }
 
+// Plan Title Formatter (places icon on the visual left of the plan name)
+function formatPlanTitle(name) {
+  if (!name) return '';
+  const emojiRegex = /[\p{Extended_Pictographic}\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu;
+  const emojis = name.match(emojiRegex);
+  if (!emojis || emojis.length === 0) {
+    return `<span class="inline-block font-bold">${escapeHtml(name)}</span>`;
+  }
+  const emojiStr = emojis.join('');
+  const cleanText = name.replace(emojiRegex, '').trim();
+  if (!cleanText) {
+    return `<span class="inline-block text-base">${emojiStr}</span>`;
+  }
+  return `<span class="inline-flex items-center gap-1.5" dir="ltr"><span class="shrink-0 text-base">${emojiStr}</span><span class="font-bold">${escapeHtml(cleanText)}</span></span>`;
+}
+
 if (typeof window !== 'undefined') {
   window.toEnglishDigits = toEnglishDigits;
   window.formatPrice = formatPrice;
+  window.formatPlanTitle = formatPlanTitle;
 }
 
 

@@ -134,18 +134,7 @@ function renderWonCoupons(data) {
     });
   });
 }
-
-function formatPlanTitle(name) {
-  if (!name) return '';
-  const emojiRegex = /[\p{Extended_Pictographic}\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu;
-  const emojis = name.match(emojiRegex);
-  if (!emojis || emojis.length === 0) {
-    return `<span class="inline-block font-bold">${escapeHtml(name)}</span>`;
-  }
-  const emojiStr = emojis.join('');
-  const cleanText = name.replace(emojiRegex, '').trim();
-  return `<span class="inline-flex items-center gap-1.5" dir="ltr"><span class="shrink-0 text-base">${emojiStr}</span><span class="font-bold">${escapeHtml(cleanText)}</span></span>`;
-}
+// Note: formatPlanTitle is centralized in utils.js (SSOT)
 
 function renderShopPlans(data) {
   renderWonCoupons(data);
