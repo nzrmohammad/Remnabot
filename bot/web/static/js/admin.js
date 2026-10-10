@@ -2465,6 +2465,7 @@
           return;
         }
 
+        if (list) {
           list.innerHTML = records.map(r => `
             <div class="srh-card bg-transparent p-2.5 rounded-2xl border border-slate-700/60 space-y-1.5">
               <!-- Line 1: Client name on right, status badge on left -->
