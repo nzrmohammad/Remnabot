@@ -408,6 +408,10 @@
 
       // Render Dashboard Analytics Charts
       lastOverviewData = data;
+      if (data.rates) {
+        if (data.rates.usdt_rate_toman) window.currentUsdRate = Number(data.rates.usdt_rate_toman);
+        if (data.rates.eur_rate_toman) window.currentEurRate = Number(data.rates.eur_rate_toman);
+      }
       if (data.charts) {
         const c = data.charts;
         if (typeof Chart !== 'undefined') {
@@ -3540,6 +3544,9 @@
       const hiddenInput = document.getElementById('nodeBillingCurrency');
       if (hiddenInput) hiddenInput.value = isEur ? 'EUR' : 'USD';
 
+      const selectEl = document.getElementById('nodeBillingCurrencySelect');
+      if (selectEl) selectEl.value = isEur ? 'EUR' : 'USD';
+
       const eurBtn = document.getElementById('nodeBillingCurrEur');
       const usdBtn = document.getElementById('nodeBillingCurrUsd');
       const symbolSpan = document.getElementById('nodeBillingCurrencySymbol');
@@ -3579,7 +3586,7 @@
           tomanInput.value = convertedToman;
         }
         const currentTomanVal = parseInt(tomanInput?.value || '0', 10);
-        text.innerText = `محاسبه خودکار: ${symbol}${numVal} × ${formatNumber(rate)} = ${formatNumber(currentTomanVal || convertedToman)} تومان`;
+        text.innerText = `محاسبه خودکار: ${numVal}${symbol} × ${formatNumber(rate)} = ${formatNumber(currentTomanVal || convertedToman)} تومان`;
         hint.classList.remove('hidden');
       } else {
         hint.classList.add('hidden');
@@ -4297,6 +4304,10 @@
     window.adminActions?.updateNodeBillingConversion();
   });
 
+  nodeCostTomanInput?.addEventListener('input', () => {
+    window.adminActions?.updateNodeBillingConversion();
+  });
+
   nodeDueDateInput?.addEventListener('input', (e) => {
     const d = e.target.value;
     if (nodeJalaliPreview) {
@@ -4350,5 +4361,6 @@
   window.setNodeBillingCurrency = (curr) => window.adminActions.setNodeBillingCurrency(curr);
 
   // Initial Sync
+  fetchAdminSettings();
   syncAdminOverview();
 })();

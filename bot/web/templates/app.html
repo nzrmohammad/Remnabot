@@ -1008,31 +1008,40 @@
             </div>
           </div>
 
-          <div class="space-y-1">
-            <div class="flex items-center justify-between">
-              <label class="text-[11px] text-slate-300 font-medium">کد پیگیری یا شماره ارجاع فیش:</label>
-              <span class="text-[10px] text-slate-400">شماره ارجاع</span>
-            </div>
-            <textarea id="topupCardReceiptInput" rows="2" placeholder="کد پیگیری، شماره ارجاع یا 4 رقم آخر کارت واریزکننده..." class="w-full bg-slate-900 p-2.5 rounded-xl border border-slate-700 text-slate-200 text-xs outline-none resize-none"></textarea>
-
-            <!-- Optional Receipt Image Upload -->
-            <div class="pt-1 space-y-1.5">
+          <div class="space-y-2">
+            <!-- Mandatory Receipt Image Upload -->
+            <div class="space-y-1.5">
+              <div class="flex items-center justify-between">
+                <label class="text-[11px] text-slate-300 font-bold flex items-center gap-1.5">
+                  <span>📸</span> تصویر فیش واریزی:
+                </label>
+                <span class="text-[10px] text-rose-400 font-bold bg-rose-500/10 px-2 py-0.5 rounded-full border border-rose-500/20">الزامی</span>
+              </div>
               <input type="file" id="topupCardImageInput" accept="image/*" class="hidden">
-              <button id="uploadCardReceiptImageBtn" type="button" class="w-full bg-slate-900 hover:bg-slate-800 text-slate-300 text-xs py-2 px-3 rounded-xl border border-dashed border-slate-700 hover:border-blue-500 transition flex items-center justify-center gap-2 active:scale-95">
-                <span>📸</span>
-                <span id="uploadReceiptBtnText">ارسال عکس فیش واریزی</span>
+              <button id="uploadCardReceiptImageBtn" type="button" class="w-full bg-slate-900 hover:bg-slate-800 text-slate-200 text-xs py-2.5 px-3 rounded-xl border border-dashed border-cyan-500/50 hover:border-cyan-400 transition flex items-center justify-center gap-2 active:scale-95 shadow-sm">
+                <span class="text-base">📸</span>
+                <span id="uploadReceiptBtnText" class="font-bold">انتخاب و بارگذاری عکس فیش</span>
               </button>
-              <div id="receiptImagePreviewContainer" class="hidden relative p-1.5 bg-slate-900/90 rounded-xl border border-slate-700 flex items-center justify-between">
+              <div id="receiptImagePreviewContainer" class="hidden relative p-2 bg-slate-900/90 rounded-xl border border-emerald-500/40 flex items-center justify-between">
                 <div class="flex items-center gap-2 overflow-hidden">
                   <img id="receiptImagePreview" class="h-10 w-10 object-cover rounded-lg border border-slate-700 shrink-0" src="" alt="رسید">
-                  <span class="text-[10px] text-slate-300 truncate max-w-[170px]" id="receiptImageName">تصویر رسید انتخاب شد</span>
+                  <span class="text-[10px] text-slate-200 truncate max-w-[170px]" id="receiptImageName">تصویر فیش انتخاب شد</span>
                 </div>
-                <button id="removeReceiptImageBtn" type="button" class="text-rose-400 hover:text-rose-300 text-xs px-2 py-1 bg-rose-950/40 rounded-lg border border-rose-800/40" title="حذف تصویر">✕ حذف</button>
+                <button id="removeReceiptImageBtn" type="button" class="text-rose-400 hover:text-rose-300 text-xs px-2 py-1 bg-rose-950/40 rounded-lg border border-rose-800/40 transition active:scale-95" title="حذف تصویر">✕ حذف</button>
               </div>
             </div>
 
+            <!-- Optional Tracking Code / Notes -->
+            <div class="space-y-1 pt-1">
+              <div class="flex items-center justify-between">
+                <label class="text-[11px] text-slate-300 font-medium">کد پیگیری یا توضیحات (اختیاری):</label>
+                <span class="text-[10px] text-slate-400">اختیاری</span>
+              </div>
+              <textarea id="topupCardReceiptInput" rows="2" placeholder="کد پیگیری، شماره ارجاع یا توضیح دلخواه (اختیاری)..." class="w-full bg-slate-900 p-2.5 rounded-xl border border-slate-700 text-slate-200 text-xs outline-none resize-none focus:border-cyan-500 transition"></textarea>
+            </div>
+
             <p class="text-[9.5px] text-slate-400 leading-relaxed bg-slate-800/50 p-2 rounded-xl border border-slate-700/50">
-              💡 <b>راهنما:</b> شماره پیگیری یا شماره ارجاع، کد چندرقمی درج‌شده در رسید پرداخت بانکی است. همچنین می‌توانید تصویر فیش واریز را بارگذاری نمایید.
+              💡 <b>راهنما:</b> بارگذاری عکس فیش واریزی الزامی است. درج کد پیگیری اختیاری بوده و به تسریع تایید فیش توسط ادمین کمک می‌کند.
             </p>
           </div>
 

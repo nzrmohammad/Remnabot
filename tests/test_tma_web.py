@@ -374,35 +374,35 @@ async def test_user_topup_card_validation_and_duplicate_prevention():
 
     with patch("bot.web.user_topup.get_store_settings", AsyncMock(return_value=mock_store)), \
          patch("bot.web.user_topup.WalletRepository", MockWalletRepo):
-        # 1. Missing receipt text -> 400
+        # 1. Missing receipt image -> 400
         req_empty = make_mocked_request(
             "POST", "/api/user/topup/card?user_id=77777",
             headers={"Content-Type": "application/json"},
             app=app,
         )
-        req_empty.json = AsyncMock(return_value={"amount": 20000, "receipt_text": "   "})
+        req_empty.json = AsyncMock(return_value={"amount": 20000, "receipt_text": "TRX-123", "receipt_image": None})
         resp = await post_user_topup_card(req_empty)
         assert resp.status == 400
-        assert "شماره پیگیری" in json.loads(resp.text)["message"]
+        assert "تصویر فیش" in json.loads(resp.text)["message"]
 
-        # 2. First submission -> 200 OK
+        # 2. First submission with image and optional text -> 200 OK
         req_valid = make_mocked_request(
             "POST", "/api/user/topup/card?user_id=77777",
             headers={"Content-Type": "application/json"},
             app=app,
         )
-        req_valid.json = AsyncMock(return_value={"amount": 20000, "receipt_text": "TRX-123456789"})
+        req_valid.json = AsyncMock(return_value={"amount": 20000, "receipt_text": "TRX-123456789", "receipt_image": "data:image/jpeg;base64,AQIDBA=="})
         resp1 = await post_user_topup_card(req_valid)
         assert resp1.status == 200
         assert json.loads(resp1.text)["ok"] is True
 
-        # 3. Duplicate submission with same receipt -> 400 Rejected
+        # 3. Duplicate submission with same image -> 400 Rejected
         req_dup = make_mocked_request(
             "POST", "/api/user/topup/card?user_id=77777",
             headers={"Content-Type": "application/json"},
             app=app,
         )
-        req_dup.json = AsyncMock(return_value={"amount": 20000, "receipt_text": "  TRX-123456789  "})
+        req_dup.json = AsyncMock(return_value={"amount": 20000, "receipt_text": "OTHER-TEXT", "receipt_image": "data:image/jpeg;base64,AQIDBA=="})
         resp2 = await post_user_topup_card(req_dup)
         assert resp2.status == 400
         data2 = json.loads(resp2.text)

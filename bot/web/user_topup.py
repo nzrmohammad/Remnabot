@@ -67,9 +67,9 @@ async def post_user_topup_card(request: web.Request) -> web.Response:
         except Exception as b64_err:
             logger.warning("Failed to decode receipt image: %s", b64_err)
 
-    if not receipt_info and not img_bytes:
+    if not img_bytes:
         return web.json_response(
-            {"ok": False, "message": "لطفاً شماره پیگیری یا تصویر فیش واریزی را وارد کنید."},
+            {"ok": False, "message": "بارگذاری تصویر فیش واریزی الزامی است."},
             status=400,
         )
 
@@ -93,20 +93,23 @@ async def post_user_topup_card(request: web.Request) -> web.Response:
                 status=400,
             )
 
-        if receipt_info:
-            normalized = " ".join(receipt_info.split())
-            receipt_hash = "text:" + hashlib.sha256(normalized.encode("utf-8")).hexdigest()[:48]
-        elif img_bytes:
-            receipt_hash = "img:" + hashlib.sha256(img_bytes).hexdigest()[:48]
-        else:
-            receipt_hash = f"tma:{telegram_id}:{int(time.time())}"
-
-        if await wallet_repo.receipt_exists(receipt_hash):
+        img_hash = "img:" + hashlib.sha256(img_bytes).hexdigest()[:48]
+        if await wallet_repo.receipt_exists(img_hash):
             return web.json_response(
-                {"ok": False, "message": "این فیش یا شماره پیگیری قبلاً ثبت شده است و امکان ارسال مجدد آن وجود ندارد."},
+                {"ok": False, "message": "این فیش واریزی قبلاً ثبت شده است و امکان ارسال مجدد آن وجود ندارد."},
                 status=400,
             )
 
+        if receipt_info:
+            normalized = " ".join(receipt_info.split())
+            text_hash = "text:" + hashlib.sha256(normalized.encode("utf-8")).hexdigest()[:48]
+            if await wallet_repo.receipt_exists(text_hash):
+                return web.json_response(
+                    {"ok": False, "message": "این فیش یا شماره پیگیری قبلاً ثبت شده است و امکان ارسال مجدد آن وجود ندارد."},
+                    status=400,
+                )
+
+        receipt_hash = img_hash
         topup = await wallet_repo.create_topup(telegram_id, amount, receipt_hash)
 
         if img_bytes:

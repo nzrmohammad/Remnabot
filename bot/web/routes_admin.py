@@ -82,6 +82,8 @@ async def get_admin_overview(request: web.Request) -> web.Response:
     remnawave = request.app["remnawave"]
 
     async with session_factory() as session:
+        store_settings = await get_store_settings(session)
+
         # 1. Total users count in bot DB
         user_count_res = await session.execute(select(func.count(User.id)))
         total_bot_users = int(user_count_res.scalar_one() or 0)
@@ -876,6 +878,10 @@ async def get_admin_overview(request: web.Request) -> web.Response:
                 "payment_distribution": payment_distribution,
                 "retention_stats": retention_stats,
                 "hwid_distribution": hwid_distribution,
+            },
+            "rates": {
+                "usdt_rate_toman": store_settings.usdt_rate_toman,
+                "eur_rate_toman": store_settings.eur_rate_toman,
             },
         }
 

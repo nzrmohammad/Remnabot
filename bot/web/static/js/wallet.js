@@ -464,8 +464,8 @@ function setupWalletListeners() {
       showToast('⚠️ لطفاً مبلغ معتبر وارد فرمایید.');
       return;
     }
-    if (!receipt && !selectedReceiptImageBase64) {
-      showToast('⚠️ لطفاً کد پیگیری یا تصویر رسید واریزی را وارد فرمایید.');
+    if (!selectedReceiptImageBase64) {
+      showToast('⚠️ لطفاً تصویر فیش واریزی را بارگذاری فرمایید.');
       return;
     }
 
