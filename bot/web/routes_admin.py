@@ -1826,6 +1826,20 @@ async def get_admin_settings(request: web.Request) -> web.Response:
             "cryptobot_enabled": store_settings.cryptobot_enabled,
             "cryptobot_token": store_settings.cryptobot_token,
         }
+        bot = request.app.get("bot")
+        settings_cfg = request.app.get("settings")
+        bot_username = getattr(settings_cfg, "BOT_USERNAME", "") or ""
+        if not bot_username and bot:
+            me_obj = getattr(bot, "_me", None)
+            if me_obj and getattr(me_obj, "username", None):
+                bot_username = me_obj.username
+            elif hasattr(bot, "get_me"):
+                try:
+                    bot_info = await bot.get_me()
+                    bot_username = bot_info.username or ""
+                except Exception:
+                    pass
+        data["bot_username"] = bot_username
         return web.json_response({"ok": True, "settings": data})
 
 
@@ -3024,12 +3038,23 @@ async def get_admin_campaigns(request: web.Request) -> web.Response:
     session_factory = request.app["session_factory"]
     from bot.db.repositories.campaign_repo import CampaignRepository
     settings = request.app["settings"]
+    bot = request.app.get("bot")
     bot_username = getattr(settings, "BOT_USERNAME", "") or ""
+    if not bot_username and bot:
+        me_obj = getattr(bot, "_me", None)
+        if me_obj and getattr(me_obj, "username", None):
+            bot_username = me_obj.username
+        elif hasattr(bot, "get_me"):
+            try:
+                bot_info = await bot.get_me()
+                bot_username = bot_info.username or ""
+            except Exception:
+                pass
 
     async with session_factory() as session:
         repo = CampaignRepository(session)
         stats = await repo.get_campaigns_with_stats(bot_username)
-        return web.json_response({"ok": True, "campaigns": stats})
+        return web.json_response({"ok": True, "bot_username": bot_username, "campaigns": stats})
 
 
 async def post_admin_campaign_create(request: web.Request) -> web.Response:
@@ -3056,6 +3081,19 @@ async def post_admin_campaign_create(request: web.Request) -> web.Response:
 
     session_factory = request.app["session_factory"]
     from bot.db.repositories.campaign_repo import CampaignRepository
+    settings = request.app["settings"]
+    bot = request.app.get("bot")
+    bot_username = getattr(settings, "BOT_USERNAME", "") or ""
+    if not bot_username and bot:
+        me_obj = getattr(bot, "_me", None)
+        if me_obj and getattr(me_obj, "username", None):
+            bot_username = me_obj.username
+        elif hasattr(bot, "get_me"):
+            try:
+                bot_info = await bot.get_me()
+                bot_username = bot_info.username or ""
+            except Exception:
+                pass
 
     async with session_factory() as session:
         repo = CampaignRepository(session)
@@ -3064,9 +3102,17 @@ async def post_admin_campaign_create(request: web.Request) -> web.Response:
             return web.json_response({"ok": False, "error": "این شناسه کمپین قبلاً تعریف شده است."}, status=400)
 
         created = await repo.create(code=code, name=name, cost=cost)
+        deep_link = f"https://t.me/{bot_username}?start=ad_{created.code}" if bot_username else f"t.me/?start=ad_{created.code}"
         return web.json_response({
             "ok": True,
-            "campaign": {"id": created.id, "code": created.code, "name": created.name, "cost": created.cost}
+            "bot_username": bot_username,
+            "campaign": {
+                "id": created.id,
+                "code": created.code,
+                "name": created.name,
+                "cost": created.cost,
+                "deep_link": deep_link,
+            }
         })
 
 

@@ -638,17 +638,27 @@
               </label>
             </div>
 
-            <!-- Access Mode (سطح دسترسی ربات) -->
+            <!-- Access Mode (حالت دسترسی ربات) -->
             <div class="py-2 border-t border-slate-700/50">
-              <div class="flex items-center justify-between mb-1.5">
-                <span class="text-slate-200 font-medium block">حالت دسترسی ربات</span>
-                <span class="text-[10px] text-slate-400">کنترل ثبت‌نام کاربران</span>
+              <div class="flex items-center justify-between cursor-pointer p-2.5 rounded-xl bg-slate-800/40 hover:bg-slate-800/70 border border-slate-700/50 transition active:scale-[0.99]" onclick="window.adminActions.openAccessModeModal()">
+                <div class="flex items-center gap-2.5">
+                  <div id="accessModeIconBox" class="w-8 h-8 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 flex items-center justify-center text-sm flex-shrink-0">
+                    🌐
+                  </div>
+                  <div>
+                    <div class="flex items-center gap-1.5">
+                      <span class="text-slate-200 font-semibold text-xs block">حالت دسترسی ربات</span>
+                      <span id="accessModeBadge" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">عمومی (آزاد)</span>
+                    </div>
+                    <span id="accessModeSubtext" class="text-[10px] text-slate-400 block mt-0.5">ورود و ثبت‌نام برای تمامی کاربران آزاد است</span>
+                  </div>
+                </div>
+                <div class="flex items-center text-slate-400 text-xs gap-1">
+                  <span class="text-[11px]">تغییر</span>
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                </div>
               </div>
-              <select id="settingAccessMode" class="w-full bg-transparent border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-slate-200 outline-none focus:border-blue-500 transition cursor-pointer">
-                <option value="open" class="bg-slate-900 text-slate-200">عمومی (Open) — ورود و ثبت‌نام برای همه آزاد است</option>
-                <option value="invite_only" class="bg-slate-900 text-slate-200">فقط با دعوت (Invite-Only) — کاربران جدید نیازمند لینک دعوت هستند</option>
-                <option value="closed" class="bg-slate-900 text-slate-200">بسته / تعمیرات (Closed) — ثبت‌نام جدید کاملاً متوقف است</option>
-              </select>
+              <input type="hidden" id="settingAccessMode" value="open" />
             </div>
 
             <!-- Card Payment -->
@@ -802,53 +812,43 @@
               <span>استعلام آنلاین</span>
             </button>
 
-            <div class="grid grid-cols-3 gap-2">
+            <!-- 4 Currency Rates: 2 per row -->
+            <div class="grid grid-cols-2 gap-2.5">
               <div>
                 <label class="text-[10px] text-slate-400 block mb-1">نرخ تتر (تومان):</label>
-                <input type="number" id="settingUsdtRate" dir="ltr" placeholder="95000" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-xs font-mono text-emerald-300 outline-none focus:border-emerald-500 transition" />
-              </div>
-              <div>
-                <label class="text-[10px] text-slate-400 block mb-1">نرخ یورو (تومان):</label>
-                <input type="number" id="settingEurRate" dir="ltr" placeholder="105000" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-xs font-mono text-indigo-300 outline-none focus:border-indigo-500 transition" />
+                <input type="number" id="settingUsdtRate" dir="ltr" placeholder="95000" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-2 text-xs font-mono text-emerald-300 outline-none focus:border-emerald-500 transition" />
               </div>
               <div>
                 <label class="text-[10px] text-slate-400 block mb-1">نرخ TON (تومان):</label>
-                <input type="number" id="settingTonRate" dir="ltr" placeholder="0" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-xs font-mono text-cyan-300 outline-none focus:border-cyan-500 transition" />
+                <input type="number" id="settingTonRate" dir="ltr" placeholder="0" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-2 text-xs font-mono text-cyan-300 outline-none focus:border-cyan-500 transition" />
+              </div>
+              <div>
+                <div class="flex items-center justify-between mb-1">
+                  <label class="text-[10px] text-slate-400 block">نرخ هر استارز (تومان):</label>
+                  <span id="starsAutoCalcHint" class="text-[9px] text-amber-400 font-mono font-bold"></span>
+                </div>
+                <input type="number" id="settingStarsRate" dir="ltr" placeholder="1500" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-2 text-xs font-mono text-amber-300 outline-none focus:border-amber-500 transition" />
+              </div>
+              <div>
+                <label class="text-[10px] text-slate-400 block mb-1">نرخ یورو (تومان):</label>
+                <input type="number" id="settingEurRate" dir="ltr" placeholder="105000" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-2 text-xs font-mono text-indigo-300 outline-none focus:border-indigo-500 transition" />
               </div>
             </div>
+
+            <!-- TON Wallet Address -->
             <div>
               <label class="text-[11px] text-slate-400 block mb-1">آدرس ولت TON واریزی:</label>
               <input type="text" id="settingTonWallet" dir="ltr" placeholder="UQ... یا EQ..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-slate-300 outline-none focus:border-blue-500 transition text-[11px]" />
             </div>
 
-            <!-- Stars & CryptoBot Settings Grid -->
-            <div class="space-y-2 pt-2 border-t border-slate-700/50">
-              <div class="grid grid-cols-2 gap-2">
-                <div>
-                  <div class="flex items-center justify-between mb-1">
-                    <label class="text-[10px] text-slate-400 block">نرخ هر استارز (تومان):</label>
-                    <span id="starsAutoCalcHint" class="text-[9px] text-amber-400 font-mono font-bold"></span>
-                  </div>
-                  <input type="number" id="settingStarsRate" dir="ltr" placeholder="1500" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-xs font-mono text-amber-300 outline-none focus:border-amber-500 transition" />
-                </div>
-                <div>
-                  <label class="text-[10px] text-slate-400 block mb-1">توکن API کریپتوبات (@CryptoBot):</label>
-                  <input type="password" id="settingCryptoBotToken" dir="ltr" placeholder="12345:AA..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-xs font-mono text-cyan-300 outline-none focus:border-cyan-500 transition" />
-                </div>
+            <!-- CryptoBot API Token (Full Row with Sanction Note) -->
+            <div class="pt-2 border-t border-slate-700/50 space-y-1.5">
+              <div class="flex items-center justify-between">
+                <label class="text-[11px] text-slate-300 font-medium block">توکن API کریپتوبات (@CryptoBot):</label>
+                <span class="text-[9px] text-rose-400 font-bold bg-rose-500/10 border border-rose-500/30 px-1.5 py-0.5 rounded-full">تحریم ایران</span>
               </div>
-
-              <!-- Quick Auto-Calc Presets for Stars -->
-              <div class="p-2 rounded-xl bg-slate-800/60 border border-slate-700/50 flex flex-wrap items-center justify-between gap-1.5 text-[10px]">
-                <span class="text-slate-300 font-medium">⚡️ محاسبه هوشمند نرخ استارز بر اساس دلار:</span>
-                <div class="flex items-center gap-1.5 flex-1 min-w-[200px] justify-end">
-                  <button type="button" onclick="window.adminActions.calcStarsRate('lossless')" class="flex-1 bg-transparent hover:bg-amber-500/10 text-amber-400 hover:text-amber-300 border border-amber-500/40 text-[10px] font-bold py-1 px-2 rounded-lg transition active:scale-95 flex items-center justify-center gap-1" title="نقد کردن در فرگمنت بدون ضرر با کسر کارمزد تلگرام">
-                    <span>🛡️ بدون ضرر (۰.۰۱۳ × دلار)</span>
-                  </button>
-                  <button type="button" onclick="window.adminActions.calcStarsRate('fragment')" class="flex-1 bg-transparent hover:bg-blue-500/10 text-blue-400 hover:text-blue-300 border border-blue-500/40 text-[10px] font-bold py-1 px-2 rounded-lg transition active:scale-95 flex items-center justify-center gap-1" title="معادل نرخ خرید استارز در فرگمنت">
-                    <span>🏷️ نرخ فرگمنت (۰.۰۱۵ × دلار)</span>
-                  </button>
-                </div>
-              </div>
+              <input type="password" id="settingCryptoBotToken" dir="ltr" placeholder="12345:AA..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-cyan-300 outline-none focus:border-cyan-500 transition" />
+              <span class="text-[10px] text-slate-400 block leading-tight">⚠️ کریپتوبات تلگرام سرورها و IPهای ایران را تحریم کرده است؛ جهت کارکرد صحیح، هاست ربات یا وب‌هوک باید در خارج از ایران باشد.</span>
             </div>
           </div>
         </div>
@@ -1578,6 +1578,84 @@
       </div>
     </div>
 
+    <!-- MODAL: Bot Access Mode Selector (حالت دسترسی و ثبت‌نام ربات) -->
+    <div id="accessModeModal" class="absolute inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+      <div class="bg-[#1e293b] border border-slate-700/80 rounded-3xl p-5 w-full max-w-[400px] space-y-4 shadow-2xl relative">
+        <div class="flex justify-between items-center border-b border-slate-700/60 pb-3">
+          <div class="flex items-center gap-2">
+            <div class="w-8 h-8 rounded-xl bg-blue-500/15 text-blue-400 border border-blue-500/30 flex items-center justify-center flex-shrink-0">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+            </div>
+            <div>
+              <h4 class="text-xs font-bold text-white">حالت دسترسی و ثبت‌نام ربات</h4>
+              <span class="text-[10px] text-slate-400 block mt-0.5">سطح دسترسی کاربران به ربات را تعیین فرمایید</span>
+            </div>
+          </div>
+          <button onclick="window.adminActions.closeAccessModeModal()" class="w-7 h-7 rounded-full bg-slate-800/80 hover:bg-slate-750 text-slate-400 hover:text-white flex items-center justify-center text-xs transition">✕</button>
+        </div>
+
+        <!-- Options List -->
+        <div class="space-y-2.5">
+          <!-- Option 1: Open -->
+          <div onclick="window.adminActions.selectAccessMode('open')" id="accessOpt-open" class="access-mode-opt cursor-pointer p-3.5 rounded-2xl border transition flex items-start gap-3 bg-slate-800/60 border-slate-700/70 hover:border-emerald-500/50">
+            <div class="w-9 h-9 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 flex items-center justify-center text-lg flex-shrink-0 mt-0.5">
+              🌐
+            </div>
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center justify-between">
+                <b class="text-xs text-white">عمومی (Open)</b>
+                <span class="text-[10px] font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 px-2 py-0.5 rounded-full">پیش‌فرض</span>
+              </div>
+              <p class="text-[11px] text-slate-300 mt-1 leading-relaxed">ورود و ثبت‌نام برای تمامی کاربران تلگرام آزاد است و هر شخصی می‌تواند ربات را استارت کند.</p>
+            </div>
+            <div class="radio-check w-5 h-5 rounded-full border-2 border-slate-600 flex items-center justify-center mt-1 flex-shrink-0">
+              <div class="radio-dot w-2.5 h-2.5 rounded-full bg-emerald-400 hidden"></div>
+            </div>
+          </div>
+
+          <!-- Option 2: Invite-Only -->
+          <div onclick="window.adminActions.selectAccessMode('invite_only')" id="accessOpt-invite_only" class="access-mode-opt cursor-pointer p-3.5 rounded-2xl border transition flex items-start gap-3 bg-slate-800/60 border-slate-700/70 hover:border-cyan-500/50">
+            <div class="w-9 h-9 rounded-xl bg-cyan-500/15 border border-cyan-500/30 text-cyan-400 flex items-center justify-center text-lg flex-shrink-0 mt-0.5">
+              🎟️
+            </div>
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center justify-between">
+                <b class="text-xs text-white">فقط با دعوت (Invite-Only)</b>
+                <span class="text-[10px] font-bold text-cyan-400 bg-cyan-500/10 border border-cyan-500/30 px-2 py-0.5 rounded-full">اختصاصی</span>
+              </div>
+              <p class="text-[11px] text-slate-300 mt-1 leading-relaxed">تنها کاربرانی که از طریق لینک دعوت/رفرال وارد شوند اجازه ثبت‌نام دارند.</p>
+            </div>
+            <div class="radio-check w-5 h-5 rounded-full border-2 border-slate-600 flex items-center justify-center mt-1 flex-shrink-0">
+              <div class="radio-dot w-2.5 h-2.5 rounded-full bg-cyan-400 hidden"></div>
+            </div>
+          </div>
+
+          <!-- Option 3: Closed -->
+          <div onclick="window.adminActions.selectAccessMode('closed')" id="accessOpt-closed" class="access-mode-opt cursor-pointer p-3.5 rounded-2xl border transition flex items-start gap-3 bg-slate-800/60 border-slate-700/70 hover:border-rose-500/50">
+            <div class="w-9 h-9 rounded-xl bg-rose-500/15 border border-rose-500/30 text-rose-400 flex items-center justify-center text-lg flex-shrink-0 mt-0.5">
+              🔒
+            </div>
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center justify-between">
+                <b class="text-xs text-white">بسته / تعمیرات (Closed)</b>
+                <span class="text-[10px] font-bold text-rose-400 bg-rose-500/10 border border-rose-500/30 px-2 py-0.5 rounded-full">محدود</span>
+              </div>
+              <p class="text-[11px] text-slate-300 mt-1 leading-relaxed">ثبت‌نام کاربران جدید متوقف است؛ کاربران فعلی می‌توانند سرویس‌های خود را مدیریت کنند.</p>
+            </div>
+            <div class="radio-check w-5 h-5 rounded-full border-2 border-slate-600 flex items-center justify-center mt-1 flex-shrink-0">
+              <div class="radio-dot w-2.5 h-2.5 rounded-full bg-rose-400 hidden"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="pt-2">
+          <button type="button" onclick="window.adminActions.closeAccessModeModal()" class="w-full bg-slate-800 hover:bg-slate-750 text-slate-300 hover:text-white font-bold text-xs py-2.5 rounded-xl border border-slate-700 transition">
+            بستن
+          </button>
+        </div>
+      </div>
+    </div>
+
     <!-- MODAL 6: Live Crypto & Currency Rates Inspector & Fast Updater -->
     <div id="cryptoRatesModal" class="absolute inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
       <div class="bg-[#1e293b] border border-cyan-500/30 rounded-3xl p-5 w-full max-w-[420px] space-y-4 shadow-2xl relative">
@@ -1594,7 +1672,7 @@
           <button onclick="window.adminActions.closeCryptoRatesModal()" class="w-7 h-7 rounded-full bg-slate-800/80 hover:bg-slate-750 text-slate-400 hover:text-white flex items-center justify-center text-xs transition">✕</button>
         </div>
 
-        <div id="cryptoRatesContent" class="max-h-[62vh] overflow-y-auto custom-scroll space-y-3 text-xs pr-1">
+        <div id="cryptoRatesContent" class="max-h-[62vh] overflow-y-auto custom-scroll space-y-3.5 text-xs px-2.5 py-1">
           <div class="p-6 text-center text-slate-400">در حال استعلام نرخ‌های لحظه‌ای...</div>
         </div>
 
@@ -1780,8 +1858,8 @@
   </div>
 
   <!-- Shared & Modular Scripts -->
-  <script src="/static/js/utils.js?v=18.2"></script>
-  <script src="/static/js/api.js?v=18.2"></script>
-  <script src="/static/js/admin.js?v=18.2"></script>
+  <script src="/static/js/utils.js?v=18.3"></script>
+  <script src="/static/js/api.js?v=18.3"></script>
+  <script src="/static/js/admin.js?v=18.3"></script>
 </body>
 </html>

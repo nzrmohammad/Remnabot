@@ -338,11 +338,34 @@ html.theme-light #subModal > div,
 html.theme-light #trialModal > div,
 html.theme-light #confirmActionModal > div,
 html.theme-light #operationReportModal > div,
-html.theme-light #couponUsagesModal > div {
+html.theme-light #couponUsagesModal > div,
+html.theme-light #accessModeModal > div,
+html.theme-light #createCampaignModal > div {
   background-color: #ffffff !important;
   border-color: #e2e8f0 !important;
   color: #0f172a !important;
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1) !important;
+}
+
+html.theme-light #accessModeModal .text-white {
+  color: #0f172a !important;
+}
+
+html.theme-light #accessModeModal .text-slate-300 {
+  color: #475569 !important;
+}
+
+html.theme-light #accessModeModal .access-mode-opt {
+  background-color: #f8fafc !important;
+  border-color: #e2e8f0 !important;
+}
+
+html.theme-light #accessModeModal .access-mode-opt:hover {
+  background-color: #f1f5f9 !important;
+}
+
+html.theme-light #accessModeModal .radio-check {
+  border-color: #cbd5e1 !important;
 }
 
 html.theme-light #planModal input,

@@ -75,7 +75,8 @@ class CampaignRepository:
             profit = total_revenue - c.cost
             roi_pct = round((profit / c.cost) * 100, 1) if c.cost > 0 else 0
 
-            deep_link = f"https://t.me/{bot_username}?start=ad_{c.code}" if bot_username else f"t.me/?start=ad_{c.code}"
+            clean_username = bot_username.strip().lstrip("@") if bot_username else ""
+            deep_link = f"https://t.me/{clean_username}?start=ad_{c.code}" if clean_username else f"https://t.me/?start=ad_{c.code}"
 
             stats.append({
                 "id": c.id,

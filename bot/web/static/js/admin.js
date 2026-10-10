@@ -3414,7 +3414,7 @@
               <span class="text-slate-300 font-medium text-[11px]">${src}</span>
               <div class="flex items-center gap-2">
                 <span class="font-mono font-bold text-slate-100 text-[11px]">${formatNumber(p)} <span class="text-[9px] text-slate-400 font-sans">تومان</span></span>
-                <button onclick="window.adminActions.applySpecificRate('usdt', ${p})" class="bg-transparent hover:bg-emerald-500/10 text-emerald-400 hover:text-emerald-300 border border-emerald-500/40 text-[10px] font-bold px-2 py-0.5 rounded-lg transition active:scale-95">
+                <button onclick="window.adminActions.applySpecificRate('usdt', ${p}, this)" class="bg-transparent hover:bg-emerald-500/10 text-emerald-400 hover:text-emerald-300 border border-emerald-500/40 text-[10px] font-bold px-2 py-0.5 rounded-lg transition active:scale-95">
                   اعمال
                 </button>
               </div>
@@ -3429,7 +3429,7 @@
               <span class="text-slate-300 font-medium text-[11px]">${src}</span>
               <div class="flex items-center gap-2">
                 <span class="font-mono font-bold text-slate-100 text-[11px]">${formatNumber(p)} <span class="text-[9px] text-slate-400 font-sans">تومان</span></span>
-                <button onclick="window.adminActions.applySpecificRate('eur', ${p})" class="bg-transparent hover:bg-indigo-500/10 text-indigo-400 hover:text-indigo-300 border border-indigo-500/40 text-[10px] font-bold px-2 py-0.5 rounded-lg transition active:scale-95">
+                <button onclick="window.adminActions.applySpecificRate('eur', ${p}, this)" class="bg-transparent hover:bg-indigo-500/10 text-indigo-400 hover:text-indigo-300 border border-indigo-500/40 text-[10px] font-bold px-2 py-0.5 rounded-lg transition active:scale-95">
                   اعمال
                 </button>
               </div>
@@ -3444,7 +3444,7 @@
               <span class="text-slate-300 font-medium text-[11px]">${src}</span>
               <div class="flex items-center gap-2">
                 <span class="font-mono font-bold text-slate-100 text-[11px]">${formatNumber(p)} <span class="text-[9px] text-slate-400 font-sans">تومان</span></span>
-                <button onclick="window.adminActions.applySpecificRate('ton', ${p})" class="bg-transparent hover:bg-cyan-500/10 text-cyan-400 hover:text-cyan-300 border border-cyan-500/40 text-[10px] font-bold px-2 py-0.5 rounded-lg transition active:scale-95">
+                <button onclick="window.adminActions.applySpecificRate('ton', ${p}, this)" class="bg-transparent hover:bg-cyan-500/10 text-cyan-400 hover:text-cyan-300 border border-cyan-500/40 text-[10px] font-bold px-2 py-0.5 rounded-lg transition active:scale-95">
                   اعمال
                 </button>
               </div>
@@ -3460,7 +3460,7 @@
               <div class="flex items-center gap-2">
                 <span class="font-mono font-bold text-cyan-300 text-[11px]">$${Number(binanceUsd).toFixed(2)}</span>
                 ${tonTomanBinance ? `
-                <button onclick="window.adminActions.applySpecificRate('ton', ${tonTomanBinance})" class="bg-transparent hover:bg-cyan-500/10 text-cyan-400 hover:text-cyan-300 border border-cyan-500/40 text-[10px] font-bold px-2 py-0.5 rounded-lg transition active:scale-95">
+                <button onclick="window.adminActions.applySpecificRate('ton', ${tonTomanBinance}, this)" class="bg-transparent hover:bg-cyan-500/10 text-cyan-400 hover:text-cyan-300 border border-cyan-500/40 text-[10px] font-bold px-2 py-0.5 rounded-lg transition active:scale-95">
                   اعمال
                 </button>` : ''}
               </div>
@@ -3501,24 +3501,24 @@
             <div class="space-y-1.5">
               <div class="flex items-center justify-between py-1.5 px-2.5 rounded-xl bg-slate-800/60 border border-slate-700/50 hover:border-slate-600 transition">
                 <div>
-                  <span class="text-slate-200 font-bold text-[11px] block">🛡️ فرمول بدون ضرر (Bot Payout)</span>
+                  <span class="text-slate-200 font-bold text-[11px] block">🛡️ فرمول بدون ضرر (تسویه فرگمنت)</span>
                   <span class="text-[9px] text-slate-400">نقد کردن فرگمنت با کسر کارمزد تلگرام (۰.۰۱۳$)</span>
                 </div>
                 <div class="flex items-center gap-2">
                   <span class="font-mono font-bold text-amber-300 text-[11px]">${formatNumber(Math.round((bestUsdt.price || 95000) * 0.013))} <span class="text-[9px] text-slate-400 font-sans">تومان</span></span>
-                  <button onclick="window.adminActions.applySpecificRate('stars', ${Math.round((bestUsdt.price || 95000) * 0.013)})" class="bg-transparent hover:bg-amber-500/10 text-amber-400 hover:text-amber-300 border border-amber-500/40 text-[10px] font-bold px-2 py-0.5 rounded-lg transition active:scale-95">
+                  <button onclick="window.adminActions.applySpecificRate('stars', ${Math.round((bestUsdt.price || 95000) * 0.013)}, this)" class="bg-transparent hover:bg-amber-500/10 text-amber-400 hover:text-amber-300 border border-amber-500/40 text-[10px] font-bold px-2 py-0.5 rounded-lg transition active:scale-95">
                     اعمال
                   </button>
                 </div>
               </div>
               <div class="flex items-center justify-between py-1.5 px-2.5 rounded-xl bg-slate-800/60 border border-slate-700/50 hover:border-slate-600 transition">
                 <div>
-                  <span class="text-slate-200 font-bold text-[11px] block">🏷️ نرخ خرید فرگمنت (Fragment Buy)</span>
+                  <span class="text-slate-200 font-bold text-[11px] block">🏷️ نرخ خرید فرگمنت</span>
                   <span class="text-[9px] text-slate-400">بر اساس قیمت خرید استارز در فرگمنت (۰.۰۱۵$)</span>
                 </div>
                 <div class="flex items-center gap-2">
                   <span class="font-mono font-bold text-blue-300 text-[11px]">${formatNumber(Math.round((bestUsdt.price || 95000) * 0.015))} <span class="text-[9px] text-slate-400 font-sans">تومان</span></span>
-                  <button onclick="window.adminActions.applySpecificRate('stars', ${Math.round((bestUsdt.price || 95000) * 0.015)})" class="bg-transparent hover:bg-blue-500/10 text-blue-400 hover:text-blue-300 border border-blue-500/40 text-[10px] font-bold px-2 py-0.5 rounded-lg transition active:scale-95">
+                  <button onclick="window.adminActions.applySpecificRate('stars', ${Math.round((bestUsdt.price || 95000) * 0.015)}, this)" class="bg-transparent hover:bg-blue-500/10 text-blue-400 hover:text-blue-300 border border-blue-500/40 text-[10px] font-bold px-2 py-0.5 rounded-lg transition active:scale-95">
                     اعمال
                   </button>
                 </div>
@@ -3531,10 +3531,13 @@
       }
     },
 
-    async applySpecificRate(type, val) {
+    async applySpecificRate(type, val, btnEl) {
       if (!val) return;
       const numVal = parseInt(val, 10);
       if (isNaN(numVal) || numVal <= 0) return;
+
+      if (!window.lastLiveCryptoRates) window.lastLiveCryptoRates = {};
+      window.lastLiveCryptoRates[type] = numVal;
 
       const payload = {};
       if (type === 'usdt') {
@@ -3558,6 +3561,18 @@
         payload.stars_rate_toman = numVal;
       }
 
+      if (btnEl) {
+        const parent = btnEl.closest('.space-y-1') || btnEl.closest('.space-y-1\\.5');
+        if (parent) {
+          parent.querySelectorAll('button').forEach(b => {
+            b.textContent = 'اعمال';
+            b.classList.remove('bg-emerald-500/20', 'text-emerald-300', 'border-emerald-500');
+          });
+        }
+        btnEl.textContent = '✓ اعمال شد';
+        btnEl.classList.add('bg-emerald-500/20', 'text-emerald-300', 'border-emerald-500');
+      }
+
       try {
         const res = await window.api.saveAdminSettings(payload);
         if (res && res.ok) {
@@ -3573,35 +3588,37 @@
     },
 
     async applyLiveCryptoRates() {
-      const rates = window.lastLiveCryptoRates;
-      if (!rates) return;
       const usdtInp = document.getElementById('settingUsdtRate');
       const eurInp = document.getElementById('settingEurRate');
       const tonInp = document.getElementById('settingTonRate');
       const starsInp = document.getElementById('settingStarsRate');
-      if (usdtInp && rates.usdt) {
-        usdtInp.value = rates.usdt;
-        window.currentUsdRate = rates.usdt;
+
+      const usdtVal = window.lastLiveCryptoRates?.usdt || parseInt(usdtInp?.value || '95000', 10);
+      const tonVal = window.lastLiveCryptoRates?.ton || parseInt(tonInp?.value || '0', 10);
+      const eurVal = window.lastLiveCryptoRates?.eur || parseInt(eurInp?.value || '105000', 10);
+      const starsVal = window.lastLiveCryptoRates?.stars || parseInt(starsInp?.value || '0', 10) || Math.round(usdtVal * 0.013);
+
+      if (usdtInp && usdtVal) {
+        usdtInp.value = usdtVal;
+        window.currentUsdRate = usdtVal;
       }
-      if (eurInp && rates.eur) {
-        eurInp.value = rates.eur;
-        window.currentEurRate = rates.eur;
+      if (tonInp && tonVal) tonInp.value = tonVal;
+      if (eurInp && eurVal) {
+        eurInp.value = eurVal;
+        window.currentEurRate = eurVal;
       }
-      if (tonInp && rates.ton) tonInp.value = rates.ton;
+      if (starsInp && starsVal) starsInp.value = starsVal;
 
       try {
-        const payload = {};
-        if (rates.usdt) {
-          payload.usdt_rate_toman = rates.usdt;
-          const starsLossless = Math.round(rates.usdt * 0.013);
-          if (starsInp) starsInp.value = starsLossless;
-          payload.stars_rate_toman = starsLossless;
-        }
-        if (rates.eur) payload.eur_rate_toman = rates.eur;
-        if (rates.ton) payload.ton_rate_toman = rates.ton;
+        const payload = {
+          usdt_rate_toman: usdtVal,
+          ton_rate_toman: tonVal,
+          eur_rate_toman: eurVal,
+          stars_rate_toman: starsVal,
+        };
         const res = await window.api.saveAdminSettings(payload);
         if (res && res.ok) {
-          if (window.showToast) window.showToast('✅ تمامی نرخ‌ها (شامل استارز بدون ضرر) ذخیره شدند');
+          if (window.showToast) window.showToast('✅ تمامی نرخ‌ها با موفقیت ذخیره شدند');
           this.closeCryptoRatesModal();
           this.updateStarsHint();
           if (window.hapticFeedback) window.hapticFeedback('success');
@@ -3914,15 +3931,23 @@
 
     copyCampaignLink(deepLink) {
       if (!deepLink) return;
+      let finalLink = deepLink;
+      const botUser = window.botUsername || window.Telegram?.WebApp?.initDataUnsafe?.bot?.username || '';
+      if (botUser && finalLink.includes('t.me/?start=')) {
+        finalLink = finalLink.replace('t.me/?start=', `t.me/${botUser}?start=`);
+      }
+      if (!finalLink.startsWith('https://') && !finalLink.startsWith('http://')) {
+        finalLink = 'https://' + finalLink;
+      }
       if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(deepLink).then(() => {
-          if (window.showToast) window.showToast('📋 لینک تبلیغاتی کپی شد');
+        navigator.clipboard.writeText(finalLink).then(() => {
+          if (window.showToast) window.showToast('📋 لینک تبلیغاتی کپی شد: ' + finalLink);
           if (window.hapticFeedback) window.hapticFeedback('light');
         }).catch(() => {
-          prompt('لینک تبلیغاتی:', deepLink);
+          prompt('لینک تبلیغاتی:', finalLink);
         });
       } else {
-        prompt('لینک تبلیغاتی:', deepLink);
+        prompt('لینک تبلیغاتی:', finalLink);
       }
     },
 
@@ -3943,6 +3968,8 @@
           return;
         }
 
+        if (res.bot_username) window.botUsername = res.bot_username;
+        const botUser = window.botUsername || window.Telegram?.WebApp?.initDataUnsafe?.bot?.username || '';
         const campaigns = res.campaigns || [];
         if (campaigns.length === 0) {
           container.innerHTML = `
@@ -3958,6 +3985,13 @@
         }
 
         container.innerHTML = campaigns.map(c => {
+          let link = c.deep_link || '';
+          if (botUser && link.includes('t.me/?start=')) {
+            link = link.replace('t.me/?start=', `t.me/${botUser}?start=`);
+          }
+          if (!link.startsWith('https://') && !link.startsWith('http://')) {
+            link = 'https://' + link;
+          }
           const roiText = c.roi !== null && c.roi !== undefined ? `${c.roi > 0 ? '+' : ''}${c.roi}%` : null;
           const roiColor = c.roi !== null && c.roi > 0 ? 'text-emerald-400' : (c.roi !== null && c.roi < 0 ? 'text-rose-400' : 'text-slate-400');
           const costText = c.cost ? `${formatNumber(c.cost)} تومان` : 'بدون هزینه (۰ تومان)';
@@ -4040,6 +4074,99 @@
       if (hint && usdtVal > 0) {
         const lossless = Math.round(usdtVal * 0.013);
         hint.innerText = `بدون ضرر: ${formatNumber(lossless)} ت`;
+      }
+    },
+
+    // --- Access Mode Modal (حالت دسترسی ربات) ---
+    openAccessModeModal() {
+      const modal = document.getElementById('accessModeModal');
+      if (modal) modal.classList.remove('hidden');
+      const curMode = document.getElementById('settingAccessMode')?.value || 'open';
+      this.highlightAccessModeOption(curMode);
+      if (window.hapticFeedback) window.hapticFeedback('impact');
+    },
+
+    closeAccessModeModal() {
+      document.getElementById('accessModeModal')?.classList.add('hidden');
+    },
+
+    highlightAccessModeOption(mode) {
+      document.querySelectorAll('.access-mode-opt').forEach(el => {
+        el.classList.remove('border-emerald-500', 'border-cyan-500', 'border-rose-500', 'bg-emerald-500/10', 'bg-cyan-500/10', 'bg-rose-500/10');
+        const dot = el.querySelector('.radio-dot');
+        if (dot) dot.classList.add('hidden');
+        const radio = el.querySelector('.radio-check');
+        if (radio) radio.classList.remove('border-emerald-400', 'border-cyan-400', 'border-rose-400');
+      });
+
+      const activeEl = document.getElementById(`accessOpt-${mode}`);
+      if (activeEl) {
+        const color = mode === 'open' ? 'emerald' : (mode === 'invite_only' ? 'cyan' : 'rose');
+        activeEl.classList.add(`border-${color}-500`, `bg-${color}-500/10`);
+        const dot = activeEl.querySelector('.radio-dot');
+        if (dot) dot.classList.remove('hidden');
+        const radio = activeEl.querySelector('.radio-check');
+        if (radio) radio.classList.add(`border-${color}-400`);
+      }
+    },
+
+    async selectAccessMode(mode) {
+      const inp = document.getElementById('settingAccessMode');
+      if (inp) inp.value = mode;
+      this.renderAccessModeUI(mode);
+      this.closeAccessModeModal();
+      if (window.hapticFeedback) window.hapticFeedback('success');
+
+      try {
+        const res = await window.api.saveAdminSettings({ access_mode: mode });
+        if (res && res.ok) {
+          const names = { open: 'عمومی (آزاد)', invite_only: 'فقط با دعوت', closed: 'بسته / تعمیرات' };
+          if (window.showToast) window.showToast(`✓ حالت دسترسی به «${names[mode] || mode}» تغییر یافت`);
+        } else {
+          if (window.showToast) window.showToast(`⚠️ ${res?.error || 'خطا در ذخیره حالت دسترسی'}`);
+        }
+      } catch (e) {
+        if (window.showToast) window.showToast('خطا در ذخیره حالت دسترسی');
+      }
+    },
+
+    renderAccessModeUI(mode) {
+      const badge = document.getElementById('accessModeBadge');
+      const sub = document.getElementById('accessModeSubtext');
+      const icon = document.getElementById('accessModeIconBox');
+      const inp = document.getElementById('settingAccessMode');
+      if (inp) inp.value = mode;
+
+      if (mode === 'invite_only') {
+        if (badge) {
+          badge.textContent = 'فقط با دعوت';
+          badge.className = 'px-2 py-0.5 rounded-full text-[10px] font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/30';
+        }
+        if (sub) sub.textContent = 'کاربران جدید نیازمند لینک دعوت/رفرال هستند';
+        if (icon) {
+          icon.textContent = '🎟️';
+          icon.className = 'w-8 h-8 rounded-xl bg-cyan-500/15 border border-cyan-500/30 text-cyan-400 flex items-center justify-center text-sm flex-shrink-0';
+        }
+      } else if (mode === 'closed') {
+        if (badge) {
+          badge.textContent = 'بسته (تعمیرات)';
+          badge.className = 'px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-500/20 text-rose-300 border border-rose-500/30';
+        }
+        if (sub) sub.textContent = 'ثبت‌نام متوقف شده است؛ سرویس‌های فعلی فعالند';
+        if (icon) {
+          icon.textContent = '🔒';
+          icon.className = 'w-8 h-8 rounded-xl bg-rose-500/15 border border-rose-500/30 text-rose-400 flex items-center justify-center text-sm flex-shrink-0';
+        }
+      } else {
+        if (badge) {
+          badge.textContent = 'عمومی (آزاد)';
+          badge.className = 'px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30';
+        }
+        if (sub) sub.textContent = 'ورود و ثبت‌نام برای تمامی کاربران آزاد است';
+        if (icon) {
+          icon.textContent = '🌐';
+          icon.className = 'w-8 h-8 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 flex items-center justify-center text-sm flex-shrink-0';
+        }
       }
     },
   };
@@ -4366,8 +4493,11 @@
       if (supDirectSwitch) supDirectSwitch.checked = !!s.support_direct_enabled;
 
       // Access Mode (Invite-Only, Open, Closed)
+      const curMode = s.access_mode || (s.maintenance ? 'closed' : 'open');
       const accessMode = document.getElementById('settingAccessMode');
-      if (accessMode) accessMode.value = s.access_mode || (s.maintenance ? 'closed' : 'open');
+      if (accessMode) accessMode.value = curMode;
+      window.adminActions.renderAccessModeUI(curMode);
+      if (s.bot_username) window.botUsername = s.bot_username;
 
       // Telegram Stars Gateway
       const starsSwitch = document.getElementById('settingStarsSwitch');
