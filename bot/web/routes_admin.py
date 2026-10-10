@@ -405,19 +405,23 @@ async def get_admin_overview(request: web.Request) -> web.Response:
 
         offline_nodes = sum(1 for n in nodes_overview if n["status"] == "OFFLINE")
 
-        # 7-day sales trend for dashboard charts
+        # 7-day and 30-day sales trend for dashboard charts
         seven_days_ago = now_utc - timedelta(days=6)
-        rev_result = await session.execute(
+        thirty_days_ago = now_utc - timedelta(days=29)
+        rev_30d_res = await session.execute(
             select(Order.created_at, Order.amount)
-            .where(Order.status == "paid", Order.created_at >= seven_days_ago)
+            .where(Order.status == "paid", Order.created_at >= thirty_days_ago)
         )
-        rev_rows = rev_result.all()
+        rev_30d_rows = rev_30d_res.all()
         daily_revenue = {(now_utc - timedelta(days=i)).strftime("%Y-%m-%d"): 0 for i in range(6, -1, -1)}
-        for cat_dt, amt in rev_rows:
+        monthly_revenue = {(now_utc - timedelta(days=i)).strftime("%Y-%m-%d"): 0 for i in range(29, -1, -1)}
+        for cat_dt, amt in rev_30d_rows:
             if cat_dt:
                 ds = cat_dt.strftime("%Y-%m-%d")
                 if ds in daily_revenue:
                     daily_revenue[ds] += (amt or 0)
+                if ds in monthly_revenue:
+                    monthly_revenue[ds] += (amt or 0)
 
         def _get_day_label(dt: datetime) -> str:
             if jdatetime:
@@ -430,6 +434,11 @@ async def get_admin_overview(request: web.Request) -> web.Response:
         days_list = [now_utc - timedelta(days=i) for i in range(6, -1, -1)]
         chart_sales_labels = [_get_day_label(d) for d in days_list]
         chart_sales_data = list(daily_revenue.values())
+
+        days_30_list = [now_utc - timedelta(days=i) for i in range(29, -1, -1)]
+        chart_monthly_sales_labels = [_get_day_label(d) for d in days_30_list]
+        chart_monthly_sales_data = list(monthly_revenue.values())
+        monthly_sales_total = sum(chart_monthly_sales_data)
 
         # 7-day traffic consumption trend for dashboard charts
         traffic_result = await session.execute(
@@ -655,21 +664,18 @@ async def get_admin_overview(request: web.Request) -> web.Response:
         snapshots_by_hour = {s.timestamp.hour: s.delta_bytes for s in snapshots_24h}
 
         c_sum = sum(combined_weights) or 1.0
-        two_hour_labels = [f"{b*2:02d}-{(b+1)*2:02d}" for b in range(12)]
-        two_hour_data = []
-        for b in range(12):
-            h1 = b * 2
-            h2 = b * 2 + 1
-            val1 = round(snapshots_by_hour[h1] / (1024 ** 3), 2) if (h1 in snapshots_by_hour and snapshots_by_hour[h1] > 0) else round((combined_weights[h1] / c_sum) * base_h_gb, 2)
-            val2 = round(snapshots_by_hour[h2] / (1024 ** 3), 2) if (h2 in snapshots_by_hour and snapshots_by_hour[h2] > 0) else round((combined_weights[h2] / c_sum) * base_h_gb, 2)
-            two_hour_data.append(round(val1 + val2, 2))
+        hourly_labels = [f"{h:02d}:00" for h in range(24)]
+        hourly_data = []
+        for h in range(24):
+            val = round(snapshots_by_hour[h] / (1024 ** 3), 2) if (h in snapshots_by_hour and snapshots_by_hour[h] > 0) else round((combined_weights[h] / c_sum) * base_h_gb, 2)
+            hourly_data.append(round(val, 2))
 
-        peak_idx = max(range(12), key=lambda i: two_hour_data[i])
-        peak_hour_str = two_hour_labels[peak_idx]
+        peak_idx = max(range(24), key=lambda i: hourly_data[i])
+        peak_hour_str = f"{peak_idx:02d}:00"
 
         hourly_distribution = {
-            "labels": two_hour_labels,
-            "data": two_hour_data,
+            "labels": hourly_labels,
+            "data": hourly_data,
             "peak_hour": peak_hour_str,
             "unit": "GB",
             "is_real_telemetry": bool(snapshots_by_hour),
@@ -866,6 +872,9 @@ async def get_admin_overview(request: web.Request) -> web.Response:
             "charts": {
                 "sales_labels": chart_sales_labels,
                 "sales_data": chart_sales_data,
+                "sales_30d_labels": chart_monthly_sales_labels,
+                "sales_30d_data": chart_monthly_sales_data,
+                "sales_30d_total": monthly_sales_total,
                 "traffic_labels": chart_traffic_labels,
                 "traffic_data": chart_traffic_data,
                 "traffic_total_gb": traffic_total_gb,
@@ -2159,15 +2168,29 @@ async def get_admin_user_srh(request: web.Request) -> web.Response:
         created_at_raw = (
             r.get("requestDate")
             or r.get("requestedAt")
-            or r.get("dateTime")
+            or r.get("request_date")
+            or r.get("requested_at")
             or r.get("createdAt")
-            or r.get("timestamp")
-            or r.get("date")
-            or r.get("time")
             or r.get("created_at")
             or r.get("updatedAt")
+            or r.get("updated_at")
+            or r.get("dateTime")
+            or r.get("date_time")
+            or r.get("timestamp")
+            or r.get("time")
+            or r.get("date")
+            or r.get("lastActivity")
+            or r.get("last_activity")
+            or r.get("lastSeen")
+            or r.get("last_seen")
         )
-        rel_time = "—"
+        if not created_at_raw and isinstance(r, dict):
+            for k, v in r.items():
+                if any(x in k.lower() for x in ("date", "time", "created", "requested")) and v:
+                    created_at_raw = v
+                    break
+
+        rel_time = "لحظاتی پیش"
         date_str = ""
         if created_at_raw:
             try:
@@ -2183,6 +2206,19 @@ async def get_admin_user_srh(request: web.Request) -> web.Response:
                     s = str(created_at_raw).strip()
                     if s.endswith("Z"):
                         s = s[:-1] + "+00:00"
+                    if "." in s:
+                        parts = s.split(".")
+                        tail = parts[1]
+                        tz_part = ""
+                        if "+" in tail:
+                            tail_sub, tz_part = tail.split("+", 1)
+                            tz_part = "+" + tz_part
+                        elif "-" in tail:
+                            tail_sub, tz_part = tail.split("-", 1)
+                            tz_part = "-" + tz_part
+                        else:
+                            tail_sub = tail
+                        s = f"{parts[0]}.{tail_sub[:6]}{tz_part}"
                     parsed_dt = datetime.fromisoformat(s)
                     if parsed_dt.tzinfo is None:
                         parsed_dt = parsed_dt.replace(tzinfo=timezone.utc)
@@ -2196,9 +2232,19 @@ async def get_admin_user_srh(request: web.Request) -> web.Response:
                     rel_time = f"{diff_sec // 3600} ساعت پیش"
                 else:
                     rel_time = f"{diff_sec // 86400} روز پیش"
-                date_str = parsed_dt.strftime("%Y/%m/%d %H:%M")
+
+                if jdatetime:
+                    try:
+                        p_j = jdatetime.datetime.fromgregorian(
+                            datetime=parsed_dt.astimezone(ZoneInfo("Asia/Tehran"))
+                        )
+                        date_str = f"{p_j.year}/{p_j.month:02d}/{p_j.day:02d} - {p_j.hour:02d}:{p_j.minute:02d}"
+                    except Exception:
+                        date_str = parsed_dt.strftime("%Y/%m/%d %H:%M")
+                else:
+                    date_str = parsed_dt.strftime("%Y/%m/%d %H:%M")
             except Exception:
-                date_str = str(created_at_raw)
+                date_str = str(created_at_raw)[:19]
                 rel_time = "ثبت‌شده"
 
         is_success = str(status_code) in ("200", "201", "304", "OK")

@@ -416,6 +416,7 @@
         const c = data.charts;
         if (typeof Chart !== 'undefined') {
           renderAdminSalesChart(c.sales_labels, c.sales_data);
+          renderAdminMonthlySalesChart(c.sales_30d_labels, c.sales_30d_data, c.sales_30d_total);
           renderAdminTrafficChart(c.traffic_labels, c.traffic_data, c.traffic_total_gb, c.today_traffic_gb);
           renderAdminLocationChart(c.location_share);
           renderAdminHourlyChart(c.hourly_distribution);
@@ -430,6 +431,7 @@
             if (typeof Chart !== 'undefined' && lastOverviewData?.charts) {
               const ch = lastOverviewData.charts;
               renderAdminSalesChart(ch.sales_labels, ch.sales_data);
+              renderAdminMonthlySalesChart(ch.sales_30d_labels, ch.sales_30d_data, ch.sales_30d_total);
               renderAdminTrafficChart(ch.traffic_labels, ch.traffic_data, ch.traffic_total_gb, ch.today_traffic_gb);
               renderAdminLocationChart(ch.location_share);
               renderAdminHourlyChart(ch.hourly_distribution);
@@ -507,6 +509,82 @@
           x: {
             grid: { display: false },
             ticks: { color: isDark ? '#cbd5e1' : '#0f172a', font: { family: 'Vazirmatn', size: 9 } }
+          },
+          y: {
+            beginAtZero: true,
+            grid: { color: isDark ? 'rgba(51, 65, 85, 0.3)' : 'rgba(203, 213, 225, 0.7)' },
+            ticks: {
+              color: isDark ? '#cbd5e1' : '#0f172a',
+              font: { family: 'Vazirmatn', size: 9 },
+              callback: (val) => val >= 1000000 ? `${(val/1000000).toFixed(1)}M` : (val >= 1000 ? `${(val/1000).toFixed(0)}K` : val)
+            }
+          }
+        }
+      }
+    });
+  }
+
+  let monthlySalesChartInstance = null;
+  function renderAdminMonthlySalesChart(labels, values, totalSum) {
+    const canvas = document.getElementById('adminMonthlySalesChart');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const total = totalSum != null ? totalSum : (values || []).reduce((a, b) => a + b, 0);
+    const totalEl = document.getElementById('monthlySalesChartTotal');
+    if (totalEl) totalEl.innerHTML = `<span class="font-mono font-bold">${formatNumber(total)}</span> <span>تومان</span>`;
+
+    if (monthlySalesChartInstance) {
+      monthlySalesChartInstance.data.labels = labels || [];
+      monthlySalesChartInstance.data.datasets[0].data = values || [];
+      monthlySalesChartInstance.update();
+      return;
+    }
+
+    const gradient = ctx.createLinearGradient(0, 0, 0, 140);
+    gradient.addColorStop(0, 'rgba(16, 185, 129, 0.40)');
+    gradient.addColorStop(1, 'rgba(16, 185, 129, 0.0)');
+
+    monthlySalesChartInstance = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: labels || [],
+        datasets: [{
+          label: 'فروش ۳۰ روزه (تومان)',
+          data: values || [],
+          borderColor: '#10b981',
+          borderWidth: 2,
+          backgroundColor: gradient,
+          fill: true,
+          tension: 0.35,
+          pointRadius: (ctx) => ((labels || []).length > 15 ? 1 : 2),
+          pointHoverRadius: 5,
+          pointBackgroundColor: '#34d399',
+          pointBorderColor: isDark ? '#0f172a' : '#ffffff',
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            rtl: true,
+            textDirection: 'rtl',
+            callbacks: {
+              label: (ctx) => `${formatNumber(ctx.raw)} تومان`
+            }
+          }
+        },
+        scales: {
+          x: {
+            grid: { display: false },
+            ticks: {
+              color: isDark ? '#cbd5e1' : '#0f172a',
+              font: { family: 'Vazirmatn', size: 9 },
+              maxTicksLimit: 10,
+            }
           },
           y: {
             beginAtZero: true,
@@ -752,7 +830,7 @@
             ticks: {
               color: isDark ? '#cbd5e1' : '#0f172a',
               font: { family: 'Vazirmatn', size: 8 },
-              maxTicksLimit: 7,
+              maxTicksLimit: 12,
             }
           },
           y: {
@@ -1561,7 +1639,7 @@
         let barGradient = 'from-emerald-500 via-teal-400 to-cyan-400';
         let barGlow = 'shadow-[0_0_10px_rgba(52,211,153,0.35)]';
         let badgeColor = 'text-emerald-600 dark:text-emerald-400 bg-transparent border-emerald-500/30';
-        let statusLabel = `${percentUsed}% مصرف`;
+        let statusLabel = `${percentUsed}%`;
 
         if (isUnlimited) {
           barGradient = 'from-blue-500 to-indigo-500';
@@ -1573,12 +1651,12 @@
           barGradient = 'from-rose-500 to-red-500';
           barGlow = 'shadow-[0_0_10px_rgba(244,63,94,0.4)]';
           badgeColor = 'text-rose-600 dark:text-rose-400 bg-transparent border-rose-500/30';
-          statusLabel = `${percentUsed}% مصرف (بحرانی)`;
+          statusLabel = `${percentUsed}% (بحرانی)`;
         } else if (percentUsed >= 70) {
           barGradient = 'from-amber-500 to-orange-400';
           barGlow = 'shadow-[0_0_10px_rgba(245,158,11,0.35)]';
           badgeColor = 'text-amber-600 dark:text-amber-400 bg-transparent border-amber-500/30';
-          statusLabel = `${percentUsed}% مصرف`;
+          statusLabel = `${percentUsed}%`;
         }
 
         const expireJalali = p.expire_jalali || (p.expire_at && typeof formatDateToJalali === 'function' ? formatDateToJalali(p.expire_at) : '');
@@ -2387,26 +2465,32 @@
           return;
         }
 
-        if (list) {
           list.innerHTML = records.map(r => `
-            <div class="srh-card bg-slate-900/60 p-2.5 rounded-2xl border border-slate-700/60 flex items-center justify-between gap-2">
-              <div class="min-w-0 flex-1">
-                <div class="flex items-center gap-1.5 mb-1">
-                  <span class="text-sm">${r.client_icon || '📱'}</span>
-                  <b class="text-white text-xs truncate">${r.client_name || 'کلاینت'}</b>
-                  <span class="text-[9px] px-1.5 py-0.5 rounded bg-transparent border border-slate-700/60 text-slate-400 font-mono">${r.client_tag || 'App'}</span>
+            <div class="srh-card bg-transparent p-2.5 rounded-2xl border border-slate-700/60 space-y-1.5">
+              <!-- Line 1: Client name on right, status badge on left -->
+              <div class="flex items-center justify-between gap-2">
+                <div class="flex items-center gap-1.5 min-w-0 flex-1">
+                  <span class="text-base flex-shrink-0">${r.client_icon || '📱'}</span>
+                  <b class="text-white text-xs truncate" title="${escapeHtml(r.user_agent || r.client_name || '')}">${escapeHtml(r.client_name || 'کلاینت')}</b>
                 </div>
-                <div class="flex items-center gap-2 text-[10px] text-slate-400">
-                  <span dir="ltr" class="font-mono text-cyan-300 select-all cursor-pointer" onclick="window.copyToClipboard('${r.ip}')" title="کپی آی‌پی">🌐 ${r.ip}</span>
-                  <span>•</span>
-                  <span>⏱️ ${r.relative_time}</span>
-                </div>
-              </div>
-              <div class="flex-shrink-0 text-right">
-                <span class="inline-flex items-center gap-1 text-[9px] font-bold ${r.is_success ? 'text-emerald-400 border-emerald-500/30' : 'text-rose-400 border-rose-500/30'} bg-transparent px-2 py-0.5 rounded-lg border">
+                <span class="inline-flex items-center gap-1 text-[9px] font-bold ${r.is_success ? 'text-emerald-400 border-emerald-500/30' : 'text-rose-400 border-rose-500/30'} bg-transparent px-2 py-0.5 rounded-lg border flex-shrink-0">
                   ${r.is_success ? 'موفق' : (r.status_code ? 'خطا ' + r.status_code : 'خطا')}
                 </span>
-                <span class="block text-[8px] text-slate-500 font-mono mt-0.5">${r.date_str ? r.date_str.split(' ')[1] : ''}</span>
+              </div>
+
+              <!-- Line 2: Tag badge, IP with tap-to-copy, and update time -->
+              <div class="flex items-center justify-between text-[10px] pt-1 border-t border-slate-800/60 text-slate-400 gap-2">
+                <div class="flex items-center gap-1.5 flex-wrap min-w-0">
+                  <span class="text-[9px] px-1.5 py-0.5 rounded-md bg-transparent border border-slate-700/80 text-slate-300 font-mono flex-shrink-0">${escapeHtml(r.client_tag || 'App')}</span>
+                  <button type="button" dir="ltr" class="font-mono text-cyan-400 dark:text-cyan-300 font-semibold select-all hover:underline cursor-pointer flex items-center gap-1 active:scale-95 transition" onclick="window.copyToClipboard('${r.ip}', 'آدرس IP کپی شد')" title="کلیک جهت کپی آی‌پی">
+                    <span>🌐 ${r.ip}</span>
+                    <span class="text-[9px] opacity-70">📋</span>
+                  </button>
+                </div>
+                <div class="flex items-center gap-1 text-[9.5px] text-slate-400 font-mono flex-shrink-0" dir="ltr" title="${escapeHtml(r.date_str || '')}">
+                  <span>⏱</span>
+                  <span>${toEnglishDigits(r.relative_time && r.relative_time !== '—' ? r.relative_time : (r.date_str ? r.date_str.split(' - ')[1] || r.date_str : 'لحظاتی پیش'))}</span>
+                </div>
               </div>
             </div>
           `).join('');
@@ -2444,7 +2528,10 @@
                   <b class="text-white text-xs block truncate">${os} ${brand ? '(' + brand + ')' : ''}</b>
                   <div class="flex items-center gap-1.5 mt-0.5 text-[10px] text-slate-400">
                     <span>آی‌پی:</span>
-                    <span dir="ltr" class="font-mono text-cyan-400 dark:text-cyan-300">${ip}</span>
+                    <button type="button" dir="ltr" class="font-mono text-cyan-400 dark:text-cyan-300 font-semibold select-all hover:underline cursor-pointer flex items-center gap-1 active:scale-95 transition" onclick="window.copyToClipboard('${ip}', 'آدرس IP کپی شد')" title="کپی آی‌پی">
+                      <span>${ip}</span>
+                      <span class="text-[9px] opacity-70">📋</span>
+                    </button>
                   </div>
                   <div class="flex items-center gap-1.5 mt-1">
                     <span class="text-[9px] text-slate-400">HWID:</span>
@@ -2511,20 +2598,23 @@
         const nodeName = nc.nodeName || 'سرور';
         const ips = nc.ips || [];
         const ipsHtml = ips.map(ip => `
-          <div class="flex items-center justify-between bg-slate-900/80 px-2.5 py-1 rounded-xl border border-slate-700/60 text-xs">
+          <div class="flex items-center justify-between bg-transparent px-2.5 py-1.5 rounded-xl border border-slate-700/60 text-xs">
             <span class="text-slate-400 text-[10px]">آی‌پی کلاینت:</span>
-            <span dir="ltr" class="font-mono text-cyan-400 dark:text-cyan-300 font-bold">${ip}</span>
+            <button type="button" dir="ltr" class="font-mono text-cyan-400 dark:text-cyan-300 font-bold select-all hover:underline cursor-pointer flex items-center gap-1 active:scale-95 transition" onclick="window.copyToClipboard('${ip}', 'آدرس IP کپی شد')" title="کلیک جهت کپی آی‌پی">
+              <span>${ip}</span>
+              <span class="text-[9px] opacity-70">📋</span>
+            </button>
           </div>
         `).join('');
 
         return `
-          <div class="bg-slate-800/80 rounded-2xl p-3 border border-slate-700/60 space-y-2">
+          <div class="bg-transparent rounded-2xl p-3 border border-slate-700/60 space-y-2">
             <div class="flex items-center justify-between">
               <span class="text-white font-bold text-xs flex items-center gap-1.5">
                 <span class="text-sm">${flag}</span>
                 <span>${nodeName}</span>
               </span>
-              <span class="text-[10px] bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 px-2 py-0.5 rounded-lg font-mono">
+              <span class="text-[10px] bg-transparent text-cyan-400 border border-cyan-500/30 px-2 py-0.5 rounded-lg font-mono">
                 ${formatNumber(ips.length)} اتصال
               </span>
             </div>

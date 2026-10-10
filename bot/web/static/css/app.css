@@ -1389,7 +1389,15 @@ html.theme-light #switchAccountList button {
 }
 
 #repSubTabs,
-html.theme-light #repSubTabs {
+html.theme-light #repSubTabs,
+.srh-card,
+#userSessionsList > div,
+#hwidDevicesList > div,
+#hwidKillAllSessionsBtn,
+html.theme-light .srh-card,
+html.theme-light #userSessionsList > div,
+html.theme-light #hwidDevicesList > div,
+html.theme-light #hwidKillAllSessionsBtn {
   background: transparent !important;
   background-color: transparent !important;
 }

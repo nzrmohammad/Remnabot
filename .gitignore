@@ -56,3 +56,9 @@ data/
 AGENTS.md
 Agents.md
 Agent.md
+
+# Graphify knowledge graph outputs (Local only)
+graphify-out/
+.graphify*
+graph.html
+GRAPH_REPORT.md
