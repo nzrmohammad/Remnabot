@@ -4684,6 +4684,10 @@
           const appOverrides = typeof s.client_apps_json === 'string' ? JSON.parse(s.client_apps_json) : s.client_apps_json;
           if (appOverrides && typeof appOverrides === 'object') {
             for (const [os, appIds] of Object.entries(OS_APPS_MAP)) {
+              const recSelect = document.getElementById(`appRecommended_${os}`);
+              if (recSelect) {
+                recSelect.value = appOverrides.recommended?.[os] || '';
+              }
               for (const appId of appIds) {
                 const item = appOverrides[os]?.[appId] || (appOverrides[appId] ? { enabled: true, download_url: appOverrides[appId], tutorial_url: '' } : null);
                 const toggleEl = document.getElementById(`appEnabled_${os}_${appId}`);
@@ -4827,7 +4831,13 @@
           android: ['v2rayng', 'happ', 'hiddify', 'incy'],
           desktop: ['v2rayn', 'hiddify', 'happ', 'incy']
         };
-        const clientAppsObj = {};
+        const clientAppsObj = {
+          recommended: {
+            ios: document.getElementById('appRecommended_ios')?.value || '',
+            android: document.getElementById('appRecommended_android')?.value || '',
+            desktop: document.getElementById('appRecommended_desktop')?.value || ''
+          }
+        };
         for (const [os, appIds] of Object.entries(OS_APPS_MAP)) {
           clientAppsObj[os] = {};
           for (const appId of appIds) {

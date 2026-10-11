@@ -382,8 +382,6 @@ const CLIENT_APPS_DATA = {
     {
       id: 'streisand',
       name: 'Streisand',
-      badge: 'پیشنهادی iOS',
-      badgeClass: 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/30',
       desc: 'سریع‌ترین کلاینت iOS با قابلیت اتصال آسان و پشتیبانی کامل',
       icon: '🛡️',
       scheme: (url) => `streisand://import/${encodeURIComponent(url)}`
@@ -391,8 +389,6 @@ const CLIENT_APPS_DATA = {
     {
       id: 'v2box',
       name: 'V2Box',
-      badge: 'محبوب و قدرتمند',
-      badgeClass: 'bg-blue-500/15 text-blue-300 border border-blue-500/30',
       desc: 'کلاینت باسابقه و پایدار اپ استور با قابلیت تست پینگ خودکار',
       icon: '📦',
       scheme: (url) => `v2box://install-sub?url=${encodeURIComponent(url)}&name=RemnaVPN`
@@ -400,8 +396,6 @@ const CLIENT_APPS_DATA = {
     {
       id: 'incy',
       name: 'Incy',
-      badge: 'مدرن و سبک',
-      badgeClass: 'bg-cyan-500/15 text-cyan-300 border border-cyan-500/30',
       desc: 'ظاهر زیبا و کاربری فوق‌العاده راحت با اتصال فوری یک‌کلیکه',
       icon: '⚡',
       scheme: (url) => `incy://import/${url}`
@@ -409,8 +403,6 @@ const CLIENT_APPS_DATA = {
     {
       id: 'happ',
       name: 'Happ',
-      badge: 'نسل جدید',
-      badgeClass: 'bg-purple-500/15 text-purple-300 border border-purple-500/30',
       desc: 'پشتیبانی از پروتکل‌های نوین با سرعت و پایداری فوق‌العاده',
       icon: '🚀',
       scheme: (url) => `happ://add/${url}`
@@ -420,8 +412,6 @@ const CLIENT_APPS_DATA = {
     {
       id: 'v2rayng',
       name: 'v2rayNG',
-      badge: 'پیشنهادی اندروید',
-      badgeClass: 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/30',
       desc: 'استانداردترین و سازگارترین نرم‌افزار برای تمامی گوشی‌های اندروید',
       icon: '🤖',
       scheme: (url) => `v2rayng://install-sub?url=${encodeURIComponent(url)}`
@@ -429,8 +419,6 @@ const CLIENT_APPS_DATA = {
     {
       id: 'happ',
       name: 'Happ',
-      badge: 'محبوب و پرسرعت',
-      badgeClass: 'bg-purple-500/15 text-purple-300 border border-purple-500/30',
       desc: 'کلاینت جدید و بسیار قدرتمند با طراحی مدرن و سرعت بالا',
       icon: '🚀',
       scheme: (url) => `happ://add/${url}`
@@ -438,8 +426,6 @@ const CLIENT_APPS_DATA = {
     {
       id: 'hiddify',
       name: 'Hiddify',
-      badge: 'هوشمند',
-      badgeClass: 'bg-cyan-500/15 text-cyan-300 border border-cyan-500/30',
       desc: 'اتصال هوشمند به کم‌پینگ‌ترین سرور و تفکیک خودکار ترافیک',
       icon: '✨',
       scheme: (url) => `hiddify://install-sub?url=${encodeURIComponent(url)}`
@@ -447,8 +433,6 @@ const CLIENT_APPS_DATA = {
     {
       id: 'incy',
       name: 'Incy',
-      badge: 'سبک و روان',
-      badgeClass: 'bg-amber-500/15 text-amber-300 border border-amber-500/30',
       desc: 'محیط خلوت و مینیمال با اتصال یک‌کلیکه و مصرف کم باتری',
       icon: '⚡',
       scheme: (url) => `incy://import/${url}`
@@ -458,8 +442,6 @@ const CLIENT_APPS_DATA = {
     {
       id: 'v2rayn',
       name: 'v2rayN',
-      badge: 'پیشنهادی ویندوز',
-      badgeClass: 'bg-blue-500/15 text-blue-300 border border-blue-500/30',
       desc: 'قدرتمندترین کلاینت ویندوز با پشتیبانی کامل از انواع کانفیگ‌ها',
       icon: '🪟',
       scheme: null
@@ -467,8 +449,6 @@ const CLIENT_APPS_DATA = {
     {
       id: 'hiddify',
       name: 'Hiddify (ویندوز و مک)',
-      badge: 'مولتی‌پلتفرم',
-      badgeClass: 'bg-cyan-500/15 text-cyan-300 border border-cyan-500/30',
       desc: 'نرم‌افزار مدرن مشترک ویندوز و مک با محیط ساده و تست پینگ',
       icon: '✨',
       scheme: (url) => `hiddify://install-sub?url=${encodeURIComponent(url)}`
@@ -476,8 +456,6 @@ const CLIENT_APPS_DATA = {
     {
       id: 'happ',
       name: 'Happ Desktop',
-      badge: 'مدرن دسکتاپ',
-      badgeClass: 'bg-purple-500/15 text-purple-300 border border-purple-500/30',
       desc: 'نسخه دسکتاپ اپلیکیشن Happ با کاربری بسیار سریع و سبک',
       icon: '🚀',
       scheme: (url) => `happ://add/${url}`
@@ -485,8 +463,6 @@ const CLIENT_APPS_DATA = {
     {
       id: 'incy',
       name: 'Incy Desktop',
-      badge: 'مینیمال دسکتاپ',
-      badgeClass: 'bg-amber-500/15 text-amber-300 border border-amber-500/30',
       desc: 'کلاینت مینیمال برای اتصال فوری و بدون دردسر در کامپیوتر و لپ‌تاپ',
       icon: '⚡',
       scheme: null
@@ -533,6 +509,8 @@ function renderTutorialApps(osKey) {
     } catch (e) {}
   }
 
+  const recommendedAppId = overrides?.recommended?.[currentTutorialOS] || '';
+
   // Filter apps: only show if enabled and has a download URL set by admin
   const activeApps = allApps.map(app => {
     const appCfg = (overrides && overrides[currentTutorialOS] && overrides[currentTutorialOS][app.id])
@@ -540,8 +518,12 @@ function renderTutorialApps(osKey) {
     const isEnabled = appCfg ? (appCfg.enabled !== false) : false;
     const downloadUrl = (appCfg && appCfg.download_url) ? appCfg.download_url.trim() : '';
     const tutorialUrl = (appCfg && appCfg.tutorial_url) ? appCfg.tutorial_url.trim() : '';
-    return { ...app, isEnabled, downloadUrl, tutorialUrl };
+    const isRecommended = Boolean(recommendedAppId && recommendedAppId.toLowerCase() === app.id.toLowerCase());
+    return { ...app, isEnabled, downloadUrl, tutorialUrl, isRecommended };
   }).filter(app => app.isEnabled && app.downloadUrl);
+
+  // Recommended app comes first in the list
+  activeApps.sort((a, b) => (b.isRecommended ? 1 : 0) - (a.isRecommended ? 1 : 0));
 
   if (activeApps.length === 0) {
     listContainer.innerHTML = `
@@ -560,45 +542,47 @@ function renderTutorialApps(osKey) {
 
   listContainer.innerHTML = activeApps.map(app => {
     const tutorialBtnHtml = app.tutorialUrl ? `
-      <button type="button" class="btn-tutorial-app bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/40 text-[11px] font-bold py-1.5 px-2 rounded-xl transition flex items-center justify-center gap-1 active:scale-95 shadow-sm" data-url="${escapeHtml(app.tutorialUrl)}">
-        <span>📖</span> آموزش برنامه
+      <button type="button" class="btn-tutorial-app bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/40 text-[10.5px] font-bold py-1.5 px-2 rounded-xl transition flex items-center justify-center gap-1 active:scale-95 shadow-sm" data-url="${escapeHtml(app.tutorialUrl)}">
+        <span>📖</span> آموزش
       </button>
     ` : '';
 
     const actionButtonsHtml = app.tutorialUrl ? `
-      <div class="grid grid-cols-2 gap-2 pt-1 border-t border-slate-800/80">
-        <button type="button" class="btn-download-app bg-slate-800 hover:bg-slate-750 text-slate-200 text-[11px] font-bold py-1.5 px-2 rounded-xl transition border border-slate-700/80 flex items-center justify-center gap-1 active:scale-95 shadow-sm" data-url="${escapeHtml(app.downloadUrl)}">
-          <span>📥</span> دانلود برنامه
+      <div class="grid grid-cols-2 gap-1.5 pt-1 border-t border-slate-800/60">
+        <button type="button" class="btn-download-app bg-slate-800 hover:bg-slate-750 text-slate-200 text-[10.5px] font-bold py-1.5 px-2 rounded-xl transition border border-slate-700/80 flex items-center justify-center gap-1 active:scale-95 shadow-sm" data-url="${escapeHtml(app.downloadUrl)}">
+          <span>📥</span> دانلود
         </button>
         ${tutorialBtnHtml}
-        <button type="button" class="btn-autoconnect-app col-span-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-[11px] font-bold py-1.5 px-2 rounded-xl transition flex items-center justify-center gap-1 active:scale-95 shadow-sm" data-id="${app.id}" data-name="${escapeHtml(app.name)}">
+        <button type="button" class="btn-autoconnect-app col-span-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-[10.5px] font-bold py-1.5 px-2 rounded-xl transition flex items-center justify-center gap-1 active:scale-95 shadow-sm" data-id="${app.id}" data-name="${escapeHtml(app.name)}">
           <span>⚡️</span> اتصال خودکار
         </button>
       </div>
     ` : `
-      <div class="flex items-center gap-2 pt-1 border-t border-slate-800/80">
-        <button type="button" class="btn-download-app flex-1 bg-slate-800 hover:bg-slate-750 text-slate-200 text-[11px] font-bold py-1.5 px-2 rounded-xl transition border border-slate-700/80 flex items-center justify-center gap-1 active:scale-95 shadow-sm" data-url="${escapeHtml(app.downloadUrl)}">
+      <div class="flex items-center gap-1.5 pt-1 border-t border-slate-800/60">
+        <button type="button" class="btn-download-app flex-1 bg-slate-800 hover:bg-slate-750 text-slate-200 text-[10.5px] font-bold py-1.5 px-2 rounded-xl transition border border-slate-700/80 flex items-center justify-center gap-1 active:scale-95 shadow-sm" data-url="${escapeHtml(app.downloadUrl)}">
           <span>📥</span> دانلود برنامه
         </button>
-        <button type="button" class="btn-autoconnect-app flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-[11px] font-bold py-1.5 px-2 rounded-xl transition flex items-center justify-center gap-1 active:scale-95 shadow-sm" data-id="${app.id}" data-name="${escapeHtml(app.name)}">
+        <button type="button" class="btn-autoconnect-app flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-[10.5px] font-bold py-1.5 px-2 rounded-xl transition flex items-center justify-center gap-1 active:scale-95 shadow-sm" data-id="${app.id}" data-name="${escapeHtml(app.name)}">
           <span>⚡️</span> اتصال خودکار
         </button>
       </div>
     `;
 
+    const cardBorder = app.isRecommended ? 'border-amber-500/50 bg-slate-900/90 shadow-sm' : 'border-slate-700/60 bg-slate-900/60';
+
     return `
-      <div class="tutorial-app-card bg-slate-900/80 rounded-2xl p-3 border border-slate-700/70 space-y-2.5 transition hover:border-slate-600">
-        <div class="flex items-start justify-between gap-2">
+      <div class="tutorial-app-card rounded-2xl p-2.5 border ${cardBorder} space-y-2 transition hover:border-slate-600">
+        <div class="flex items-center justify-between gap-2">
           <div class="flex items-center gap-2.5 min-w-0">
-            <div class="w-10 h-10 rounded-xl bg-slate-800 border border-slate-700/80 flex items-center justify-center text-xl flex-shrink-0">
+            <div class="w-9 h-9 rounded-xl bg-slate-800/90 border border-slate-700/70 flex items-center justify-center text-lg flex-shrink-0">
               ${app.icon}
             </div>
             <div class="min-w-0">
               <div class="flex items-center gap-1.5">
                 <b class="text-xs text-white font-bold truncate">${app.name}</b>
-                <span class="px-2 py-0.5 rounded-md text-[9.5px] font-bold ${app.badgeClass}">${app.badge}</span>
+                ${app.isRecommended ? '<span class="px-2 py-0.5 rounded-md text-[9.5px] font-bold bg-amber-500/15 text-amber-300 border border-amber-500/30">⭐️ پیشنهادی</span>' : ''}
               </div>
-              <p class="text-[10px] text-slate-300 mt-0.5 leading-relaxed">${app.desc}</p>
+              <p class="text-[10px] text-slate-400 mt-0.5 leading-relaxed truncate">${app.desc}</p>
             </div>
           </div>
         </div>

@@ -1535,11 +1535,6 @@ html.theme-light .tutorial-modal-card {
   border-color: #e2e8f0 !important;
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04) !important;
 }
-html.theme-light .tutorial-modal-card > div:first-child,
-html.theme-light .tutorial-modal-card > div:last-child {
-  background-color: #f8fafc !important;
-  border-color: #e2e8f0 !important;
-}
 html.theme-light .tutorial-modal-card h4.text-white {
   color: #0f172a !important;
 }
@@ -1556,10 +1551,11 @@ html.theme-light .tutorial-app-card {
 html.theme-light .tutorial-app-card b.text-white {
   color: #0f172a !important;
 }
-html.theme-light .tutorial-app-card p.text-slate-300 {
+html.theme-light .tutorial-app-card p.text-slate-400 {
   color: #475569 !important;
 }
-html.theme-light .tutorial-app-card .bg-slate-800 {
+html.theme-light .tutorial-app-card .bg-slate-800,
+html.theme-light .tutorial-app-card .bg-slate-800\/90 {
   background-color: #ffffff !important;
   border-color: #e2e8f0 !important;
   color: #1e293b !important;
@@ -1572,14 +1568,9 @@ html.theme-light .tutorial-app-card .btn-download-app {
 html.theme-light .tutorial-app-card .btn-download-app:hover {
   background-color: #f1f5f9 !important;
 }
-html.theme-light #tutorialModal .bg-slate-900\/70,
-html.theme-light #tutorialModal .bg-slate-900\/90 {
+html.theme-light #tutorialModal .bg-slate-900\/80 {
   background-color: #f1f5f9 !important;
   border-color: #e2e8f0 !important;
-}
-html.theme-light #tutorialModal .bg-slate-900\/70 li,
-html.theme-light #tutorialModal .bg-slate-900\/70 span {
-  color: #334155 !important;
 }
 html.theme-light #tutorialCopySubBtn {
   background-color: #ffffff !important;

@@ -971,6 +971,21 @@
 
             <!-- PANE: iOS Apps (Streisand, V2Box, Incy, Happ) -->
             <div id="adminAppsPane_ios" class="admin-apps-pane space-y-2.5">
+              <!-- Recommended App Selector: iOS -->
+              <div class="flex items-center justify-between p-2.5 bg-slate-900/60 rounded-2xl border border-slate-700/60">
+                <div class="flex items-center gap-2">
+                  <span class="text-sm">⭐️</span>
+                  <span class="text-[11px] text-slate-300 font-medium">برنامه پیشنهادی iOS:</span>
+                </div>
+                <select id="appRecommended_ios" class="bg-slate-800 text-cyan-300 border border-slate-700 rounded-xl px-2.5 py-1 text-xs outline-none focus:border-cyan-500 transition font-medium">
+                  <option value="">بدون برنامه پیشنهادی</option>
+                  <option value="streisand">Streisand</option>
+                  <option value="v2box">V2Box</option>
+                  <option value="incy">Incy</option>
+                  <option value="happ">Happ</option>
+                </select>
+              </div>
+
               <!-- Streisand -->
               <div class="p-3 rounded-2xl border border-slate-700/50 space-y-2 bg-transparent">
                 <div class="flex items-center justify-between">
@@ -1070,6 +1085,21 @@
 
             <!-- PANE: Android Apps (v2rayNG, Happ, Hiddify, Incy) -->
             <div id="adminAppsPane_android" class="admin-apps-pane space-y-2.5 hidden">
+              <!-- Recommended App Selector: Android -->
+              <div class="flex items-center justify-between p-2.5 bg-slate-900/60 rounded-2xl border border-slate-700/60">
+                <div class="flex items-center gap-2">
+                  <span class="text-sm">⭐️</span>
+                  <span class="text-[11px] text-slate-300 font-medium">برنامه پیشنهادی اندروید:</span>
+                </div>
+                <select id="appRecommended_android" class="bg-slate-800 text-cyan-300 border border-slate-700 rounded-xl px-2.5 py-1 text-xs outline-none focus:border-cyan-500 transition font-medium">
+                  <option value="">بدون برنامه پیشنهادی</option>
+                  <option value="v2rayng">v2rayNG</option>
+                  <option value="happ">Happ</option>
+                  <option value="hiddify">Hiddify</option>
+                  <option value="incy">Incy</option>
+                </select>
+              </div>
+
               <!-- v2rayNG -->
               <div class="p-3 rounded-2xl border border-slate-700/50 space-y-2 bg-transparent">
                 <div class="flex items-center justify-between">
@@ -1169,6 +1199,20 @@
 
             <!-- PANE: Desktop Apps (v2rayN, Hiddify, Happ, Incy) -->
             <div id="adminAppsPane_desktop" class="admin-apps-pane space-y-2.5 hidden">
+              <!-- Recommended App Selector: Desktop -->
+              <div class="flex items-center justify-between p-2.5 bg-slate-900/60 rounded-2xl border border-slate-700/60">
+                <div class="flex items-center gap-2">
+                  <span class="text-sm">⭐️</span>
+                  <span class="text-[11px] text-slate-300 font-medium">برنامه پیشنهادی دسکتاپ:</span>
+                </div>
+                <select id="appRecommended_desktop" class="bg-slate-800 text-cyan-300 border border-slate-700 rounded-xl px-2.5 py-1 text-xs outline-none focus:border-cyan-500 transition font-medium">
+                  <option value="">بدون برنامه پیشنهادی</option>
+                  <option value="v2rayn">v2rayN</option>
+                  <option value="hiddify">Hiddify</option>
+                  <option value="happ">Happ</option>
+                  <option value="incy">Incy</option>
+                </select>
+              </div>
               <!-- v2rayN -->
               <div class="p-3 rounded-2xl border border-slate-700/50 space-y-2 bg-transparent">
                 <div class="flex items-center justify-between">
@@ -2213,8 +2257,8 @@
   </div>
 
   <!-- Shared & Modular Scripts -->
-  <script src="/static/js/utils.js?v=19.0"></script>
-  <script src="/static/js/api.js?v=19.0"></script>
-  <script src="/static/js/admin.js?v=19.0"></script>
+  <script src="/static/js/utils.js?v=19.1"></script>
+  <script src="/static/js/api.js?v=19.1"></script>
+  <script src="/static/js/admin.js?v=19.1"></script>
 </body>
 </html>

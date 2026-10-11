@@ -1567,63 +1567,47 @@
     <!-- ======================================================== -->
     <!-- 8. MODAL: CONNECTION GUIDE & APPS (راهنمای اتصال و دانلود برنامه‌ها) -->
     <!-- ======================================================== -->
-    <div id="tutorialModal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-3 hidden animate-fadeIn overflow-y-auto">
-      <div class="tutorial-modal-card bg-[#151f32] border border-cyan-500/40 rounded-3xl w-full max-w-[420px] max-h-[92vh] flex flex-col overflow-hidden shadow-2xl relative my-auto">
-        <!-- Modal Top Header -->
-        <div class="bg-[#1a263e] border-b border-slate-700/80 p-3.5 flex items-center justify-between">
-          <div class="flex items-center gap-2.5">
-            <div class="w-9 h-9 rounded-2xl bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center text-lg text-white font-bold shadow-md shadow-cyan-500/20">
-              📱
-            </div>
-            <div>
-              <h4 class="text-xs font-bold text-white">راهنمای اتصال و دانلود نرم‌افزارها</h4>
-              <span class="text-[10px] text-cyan-300 font-medium">نرم‌افزار مناسب دستگاه خود را انتخاب فرمایید</span>
-            </div>
+    <div id="tutorialModal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden animate-fadeIn overflow-y-auto">
+      <div class="tutorial-modal-card bg-[#1a233a] border border-cyan-500/40 rounded-3xl p-4 sm:p-5 w-full max-w-[380px] shadow-2xl relative my-auto text-xs max-h-[85vh] flex flex-col space-y-3">
+        <!-- Close Button -->
+        <button id="closeTutorialModalBtn" type="button" class="absolute top-3.5 left-3.5 text-slate-400 hover:text-white text-xs bg-slate-800 rounded-full w-7 h-7 flex items-center justify-center transition active:scale-95" title="بستن">✕</button>
+
+        <!-- Modal Header -->
+        <div class="flex items-center gap-2.5 pb-2 border-b border-slate-700/60 pl-8 flex-shrink-0">
+          <div class="w-8 h-8 rounded-xl bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 flex items-center justify-center text-sm flex-shrink-0">
+            📱
           </div>
-          <button id="closeTutorialModalBtn" type="button" class="text-slate-400 hover:text-white text-xs bg-slate-800 rounded-full w-7 h-7 flex items-center justify-center transition active:scale-95" title="بستن">✕</button>
+          <div>
+            <h4 class="font-bold text-white text-xs">راهنمای اتصال و دانلود برنامه‌ها</h4>
+            <span class="text-[10px] text-slate-400">نرم‌افزار مناسب سیستم‌عامل خود را انتخاب کنید</span>
+          </div>
         </div>
 
-        <!-- Modal Scrollable Content -->
-        <div class="p-3.5 space-y-3 overflow-y-auto custom-scroll flex-1 text-xs">
-          <!-- OS Selection Tabs (iOS, Android, Desktop) -->
-          <div class="flex bg-slate-900/90 p-1 rounded-2xl border border-slate-700/80 gap-1">
-            <button type="button" class="tutorial-os-tab flex-1 py-1.5 px-2 rounded-xl font-bold text-[11px] transition flex items-center justify-center gap-1 bg-cyan-600 text-white shadow" data-os="ios">
-              <span>🍏</span> iOS
-            </button>
-            <button type="button" class="tutorial-os-tab flex-1 py-1.5 px-2 rounded-xl font-medium text-[11px] text-slate-400 hover:text-slate-200 transition flex items-center justify-center gap-1" data-os="android">
-              <span>🤖</span> اندروید
-            </button>
-            <button type="button" class="tutorial-os-tab flex-1 py-1.5 px-2 rounded-xl font-medium text-[11px] text-slate-400 hover:text-slate-200 transition flex items-center justify-center gap-1" data-os="desktop">
-              <span>🪟</span> دسکتاپ
-            </button>
-          </div>
+        <!-- OS Selection Tabs (iOS, Android, Desktop) -->
+        <div class="flex bg-slate-900/80 p-1 rounded-2xl border border-slate-700/70 gap-1 flex-shrink-0">
+          <button type="button" class="tutorial-os-tab flex-1 py-1.5 px-2 rounded-xl font-bold text-[11px] transition flex items-center justify-center gap-1 bg-cyan-600 text-white shadow" data-os="ios">
+            <span>🍏</span> iOS
+          </button>
+          <button type="button" class="tutorial-os-tab flex-1 py-1.5 px-2 rounded-xl font-medium text-[11px] text-slate-400 hover:text-slate-200 transition flex items-center justify-center gap-1" data-os="android">
+            <span>🤖</span> اندروید
+          </button>
+          <button type="button" class="tutorial-os-tab flex-1 py-1.5 px-2 rounded-xl font-medium text-[11px] text-slate-400 hover:text-slate-200 transition flex items-center justify-center gap-1" data-os="desktop">
+            <span>🪟</span> دسکتاپ
+          </button>
+        </div>
 
-          <!-- Apps List Container -->
-          <div id="tutorialAppsList" class="space-y-2.5">
-            <!-- Dynamically populated based on active OS -->
-          </div>
-
-          <!-- Connection Quick Tips -->
-          <div class="bg-slate-900/70 border border-slate-800 rounded-2xl p-2.5 text-[10px] text-slate-300 leading-relaxed space-y-1">
-            <div class="flex items-center gap-1 font-bold text-cyan-300">
-              <span>💡</span>
-              <span>نحوه اتصال سریع:</span>
-            </div>
-            <ol class="list-decimal list-inside space-y-0.5 text-slate-400 pr-1">
-              <li>نرم‌افزار مورد نظر را دانلود و روی دستگاه خود نصب کنید.</li>
-              <li>دکمه <b>«⚡️ اتصال خودکار»</b> را بزنید یا از دکمه کپی لینک استفاده کنید.</li>
-              <li>در نرم‌افزار، گزینه افزودن سابسکریپشن (+ یا Import) را انتخاب کنید.</li>
-            </ol>
-          </div>
+        <!-- Apps List Container -->
+        <div id="tutorialAppsList" class="flex-1 overflow-y-auto custom-scroll space-y-2 py-0.5 max-h-[48vh]">
+          <!-- Dynamically populated based on active OS -->
         </div>
 
         <!-- Modal Footer Actions -->
-        <div class="bg-[#1a263e] border-t border-slate-700/80 p-2.5 flex items-center justify-between gap-2">
-          <button id="tutorialCopySubBtn" type="button" class="flex-1 bg-slate-800 hover:bg-slate-700 text-cyan-300 font-bold text-xs py-2 rounded-xl transition border border-cyan-500/30 flex items-center justify-center gap-1.5 active:scale-95">
+        <div class="flex items-center gap-2 pt-2 border-t border-slate-700/60 flex-shrink-0">
+          <button id="tutorialCopySubBtn" type="button" class="flex-1 bg-slate-800 hover:bg-slate-750 text-cyan-300 font-bold text-xs py-2 rounded-xl transition border border-cyan-500/30 flex items-center justify-center gap-1.5 active:scale-95">
             <span>📋</span>
             <span>کپی لینک سابسکریپشن</span>
           </button>
-          <button id="tutorialDoneBtn" type="button" class="px-4 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs py-2 rounded-xl transition active:scale-95">
+          <button id="tutorialDoneBtn" type="button" class="px-5 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs py-2 rounded-xl transition active:scale-95">
             بستن
           </button>
         </div>
@@ -1632,13 +1616,13 @@
   </div>
 
   <!-- Modular Frontend Architecture (DRY) -->
-  <script src="/static/js/utils.js?v=19.0"></script>
-  <script src="/static/js/api.js?v=19.0"></script>
-  <script src="/static/js/charts.js?v=19.0"></script>
-  <script src="/static/js/shop.js?v=19.0"></script>
-  <script src="/static/js/wallet.js?v=19.0"></script>
-  <script src="/static/js/wheel.js?v=19.0"></script>
-  <script src="/static/js/story.js?v=19.0"></script>
-  <script src="/static/js/app.js?v=19.0"></script>
+  <script src="/static/js/utils.js?v=19.1"></script>
+  <script src="/static/js/api.js?v=19.1"></script>
+  <script src="/static/js/charts.js?v=19.1"></script>
+  <script src="/static/js/shop.js?v=19.1"></script>
+  <script src="/static/js/wallet.js?v=19.1"></script>
+  <script src="/static/js/wheel.js?v=19.1"></script>
+  <script src="/static/js/story.js?v=19.1"></script>
+  <script src="/static/js/app.js?v=19.1"></script>
 </body>
 </html>
