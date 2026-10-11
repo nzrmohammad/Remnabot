@@ -3496,17 +3496,17 @@
           <!-- Stars Auto-Calculation from Live USDT Benchmark -->
           <div class="space-y-1.5 mt-3 pt-2.5 border-t border-slate-700/60">
             <div class="flex items-center justify-between px-1">
-              <span class="text-[10px] font-bold text-amber-400">⭐️ نرخ پیشنهادی استارز تلگرام (بر اساس دلار ${formatNumber(bestUsdt.price || 0)} ت):</span>
+              <span id="modalStarsBenchmarkTitle" class="text-[10px] font-bold text-amber-400">⭐️ نرخ پیشنهادی استارز تلگرام:</span>
             </div>
             <div class="space-y-1.5">
               <div class="flex items-center justify-between py-1.5 px-2.5 rounded-xl bg-slate-800/60 border border-slate-700/50 hover:border-slate-600 transition">
                 <div>
-                  <span class="text-slate-200 font-bold text-[11px] block">🛡️ فرمول بدون ضرر (تسویه فرگمنت)</span>
-                  <span class="text-[9px] text-slate-400">نقد کردن فرگمنت با کسر کارمزد تلگرام (۰.۰۱۳$)</span>
+                  <span class="text-slate-200 font-bold text-[11px] block">🛡️ فرمول بدون ضرر</span>
+                  <span class="text-[9px] text-slate-400">نقد کردن با کسر کارمزد تلگرام</span>
                 </div>
                 <div class="flex items-center gap-2">
-                  <span class="font-mono font-bold text-amber-300 text-[11px]">${formatNumber(Math.round((bestUsdt.price || 95000) * 0.013))} <span class="text-[9px] text-slate-400 font-sans">تومان</span></span>
-                  <button onclick="window.adminActions.applySpecificRate('stars', ${Math.round((bestUsdt.price || 95000) * 0.013)}, this)" class="bg-transparent hover:bg-amber-500/10 text-amber-400 hover:text-amber-300 border border-amber-500/40 text-[10px] font-bold px-2 py-0.5 rounded-lg transition active:scale-95">
+                  <span id="modalStarsLosslessPrice" class="font-mono font-bold text-amber-300 text-[11px]"></span>
+                  <button id="modalStarsLosslessBtn" class="bg-transparent hover:bg-amber-500/10 text-amber-400 hover:text-amber-300 border border-amber-500/40 text-[10px] font-bold px-2 py-0.5 rounded-lg transition active:scale-95">
                     اعمال
                   </button>
                 </div>
@@ -3514,11 +3514,11 @@
               <div class="flex items-center justify-between py-1.5 px-2.5 rounded-xl bg-slate-800/60 border border-slate-700/50 hover:border-slate-600 transition">
                 <div>
                   <span class="text-slate-200 font-bold text-[11px] block">🏷️ نرخ خرید فرگمنت</span>
-                  <span class="text-[9px] text-slate-400">بر اساس قیمت خرید استارز در فرگمنت (۰.۰۱۵$)</span>
+                  <span class="text-[9px] text-slate-400">بر اساس قیمت خرید استارز در فرگمنت</span>
                 </div>
                 <div class="flex items-center gap-2">
-                  <span class="font-mono font-bold text-blue-300 text-[11px]">${formatNumber(Math.round((bestUsdt.price || 95000) * 0.015))} <span class="text-[9px] text-slate-400 font-sans">تومان</span></span>
-                  <button onclick="window.adminActions.applySpecificRate('stars', ${Math.round((bestUsdt.price || 95000) * 0.015)}, this)" class="bg-transparent hover:bg-blue-500/10 text-blue-400 hover:text-blue-300 border border-blue-500/40 text-[10px] font-bold px-2 py-0.5 rounded-lg transition active:scale-95">
+                  <span id="modalStarsFragmentPrice" class="font-mono font-bold text-blue-300 text-[11px]"></span>
+                  <button id="modalStarsFragmentBtn" class="bg-transparent hover:bg-blue-500/10 text-blue-400 hover:text-blue-300 border border-blue-500/40 text-[10px] font-bold px-2 py-0.5 rounded-lg transition active:scale-95">
                     اعمال
                   </button>
                 </div>
@@ -3526,8 +3526,40 @@
             </div>
           </div>
         `;
+
+        const initialUsdt = bestUsdt.price || window.lastLiveCryptoRates?.usdt || window.currentUsdRate || 95000;
+        this.updateModalStarsRates(initialUsdt);
       } catch (e) {
         container.innerHTML = '<div class="p-6 text-center text-xs text-rose-400">خطای ارتباط با سرور در استعلام نرخ‌ها</div>';
+      }
+    },
+
+    updateModalStarsRates(usdtPrice) {
+      const p = parseInt(usdtPrice || '0', 10) || window.currentUsdRate || 95000;
+      const lossless = Math.round(p * 0.013);
+      const fragment = Math.round(p * 0.015);
+
+      const titleEl = document.getElementById('modalStarsBenchmarkTitle');
+      if (titleEl) titleEl.textContent = `⭐️ نرخ پیشنهادی استارز تلگرام (بر اساس دلار ${formatNumber(p)} ت):`;
+
+      const losslessPriceEl = document.getElementById('modalStarsLosslessPrice');
+      if (losslessPriceEl) losslessPriceEl.innerHTML = `${formatNumber(lossless)} <span class="text-[9px] text-slate-400 font-sans">تومان</span>`;
+
+      const fragmentPriceEl = document.getElementById('modalStarsFragmentPrice');
+      if (fragmentPriceEl) fragmentPriceEl.innerHTML = `${formatNumber(fragment)} <span class="text-[9px] text-slate-400 font-sans">تومان</span>`;
+
+      const losslessBtn = document.getElementById('modalStarsLosslessBtn');
+      if (losslessBtn) {
+        losslessBtn.onclick = () => window.adminActions.applySpecificRate('stars', lossless, losslessBtn);
+        losslessBtn.textContent = 'اعمال';
+        losslessBtn.classList.remove('bg-emerald-500/20', 'text-emerald-300', 'border-emerald-500');
+      }
+
+      const fragmentBtn = document.getElementById('modalStarsFragmentBtn');
+      if (fragmentBtn) {
+        fragmentBtn.onclick = () => window.adminActions.applySpecificRate('stars', fragment, fragmentBtn);
+        fragmentBtn.textContent = 'اعمال';
+        fragmentBtn.classList.remove('bg-emerald-500/20', 'text-emerald-300', 'border-emerald-500');
       }
     },
 
@@ -3546,6 +3578,7 @@
         payload.usdt_rate_toman = numVal;
         window.currentUsdRate = numVal;
         this.updateStarsHint();
+        this.updateModalStarsRates(numVal);
       } else if (type === 'eur') {
         const inp = document.getElementById('settingEurRate');
         if (inp) inp.value = numVal;
@@ -4035,7 +4068,7 @@
                 </div>
                 <div class="p-2 rounded-xl bg-slate-900/40 border border-slate-700/40">
                   <span class="text-[9px] text-slate-400 block mb-0.5">بازگشت (ROI)</span>
-                  <b class="text-xs font-mono ${roiColor}">${roiText || '—'}</b>
+                  <b class="text-xs font-mono ${roiColor} inline-block" dir="ltr">${roiText || '—'}</b>
                 </div>
               </div>
 
@@ -4068,12 +4101,9 @@
     },
 
     updateStarsHint() {
-      const usdtInp = document.getElementById('settingUsdtRate');
-      const usdtVal = parseInt(usdtInp?.value || '0', 10) || window.currentUsdRate || 0;
       const hint = document.getElementById('starsAutoCalcHint');
-      if (hint && usdtVal > 0) {
-        const lossless = Math.round(usdtVal * 0.013);
-        hint.innerText = `بدون ضرر: ${formatNumber(lossless)} ت`;
+      if (hint) {
+        hint.innerText = 'Telegram Stars';
       }
     },
 
@@ -4117,8 +4147,12 @@
       this.closeAccessModeModal();
       if (window.hapticFeedback) window.hapticFeedback('success');
 
+      const isMaint = (mode === 'closed');
+      const maintSwitch = document.getElementById('settingMaintSwitch');
+      if (maintSwitch) maintSwitch.checked = isMaint;
+
       try {
-        const res = await window.api.saveAdminSettings({ access_mode: mode });
+        const res = await window.api.saveAdminSettings({ access_mode: mode, maintenance: isMaint });
         if (res && res.ok) {
           const names = { open: 'عمومی (آزاد)', invite_only: 'فقط با دعوت', closed: 'بسته / تعمیرات' };
           if (window.showToast) window.showToast(`✓ حالت دسترسی به «${names[mode] || mode}» تغییر یافت`);
@@ -4467,16 +4501,51 @@
   });
 
   // --- 8. System Settings ---
+  function formatTopicVal(inputEl, val) {
+    if (!inputEl) return;
+    const num = String(val ?? '').match(/\d+/)?.[0];
+    if (num) {
+      const label = inputEl.getAttribute('data-topic-label') || '';
+      inputEl.value = label ? `${num} (${label})` : num;
+    } else {
+      inputEl.value = '';
+    }
+  }
+
+  function parseTopicVal(val) {
+    const num = String(val ?? '').match(/\d+/)?.[0];
+    return num ? parseInt(num, 10) : null;
+  }
+
+  const topicInputIds = [
+    'settingTopicTopups',
+    'settingTopicOrders',
+    'settingTopicSupport',
+    'settingTopicAlerts',
+    'settingTopicCrypto',
+    'settingTopicErrors'
+  ];
+
   async function fetchAdminSettings() {
     try {
       const res = await window.api.getAdminSettings();
       if (!res || !res.ok || !res.settings) return;
       const s = res.settings;
 
-      // Switches
-      const maintSwitch = document.getElementById('settingMaintSwitch');
-      if (maintSwitch) maintSwitch.checked = !!s.maintenance;
+      // Access Mode & Maintenance Sync
+      const isMaint = !!s.maintenance;
+      const curMode = s.access_mode || (isMaint ? 'closed' : 'open');
+      const finalMode = isMaint ? 'closed' : curMode;
 
+      const maintSwitch = document.getElementById('settingMaintSwitch');
+      if (maintSwitch) maintSwitch.checked = (finalMode === 'closed');
+
+      const accessMode = document.getElementById('settingAccessMode');
+      if (accessMode) accessMode.value = finalMode;
+      window.adminActions.renderAccessModeUI(finalMode);
+      if (s.bot_username) window.botUsername = s.bot_username;
+
+      // Other Switches
       const cardSwitch = document.getElementById('settingCardSwitch');
       if (cardSwitch) cardSwitch.checked = !!s.card_enabled;
 
@@ -4491,13 +4560,6 @@
 
       const supDirectSwitch = document.getElementById('settingSupportDirectSwitch');
       if (supDirectSwitch) supDirectSwitch.checked = !!s.support_direct_enabled;
-
-      // Access Mode (Invite-Only, Open, Closed)
-      const curMode = s.access_mode || (s.maintenance ? 'closed' : 'open');
-      const accessMode = document.getElementById('settingAccessMode');
-      if (accessMode) accessMode.value = curMode;
-      window.adminActions.renderAccessModeUI(curMode);
-      if (s.bot_username) window.botUsername = s.bot_username;
 
       // Telegram Stars Gateway
       const starsSwitch = document.getElementById('settingStarsSwitch');
@@ -4559,23 +4621,30 @@
       if (supContact) supContact.value = s.support_contact || '';
 
       // Telegram Supergroup Forum Topics
-      const topicTopups = document.getElementById('settingTopicTopups');
-      if (topicTopups) topicTopups.value = s.topic_topups ?? '';
-
-      const topicOrders = document.getElementById('settingTopicOrders');
-      if (topicOrders) topicOrders.value = s.topic_orders ?? '';
-
-      const topicSupport = document.getElementById('settingTopicSupport');
-      if (topicSupport) topicSupport.value = s.topic_support ?? '';
-
-      const topicAlerts = document.getElementById('settingTopicAlerts');
-      if (topicAlerts) topicAlerts.value = s.topic_alerts ?? '';
-
-      const topicCrypto = document.getElementById('settingTopicCrypto');
-      if (topicCrypto) topicCrypto.value = s.topic_crypto ?? '';
-
-      const topicErrors = document.getElementById('settingTopicErrors');
-      if (topicErrors) topicErrors.value = s.topic_errors ?? '';
+      const topicSettings = {
+        settingTopicTopups: s.topic_topups,
+        settingTopicOrders: s.topic_orders,
+        settingTopicSupport: s.topic_support,
+        settingTopicAlerts: s.topic_alerts,
+        settingTopicCrypto: s.topic_crypto,
+        settingTopicErrors: s.topic_errors,
+      };
+      topicInputIds.forEach(id => {
+        const inp = document.getElementById(id);
+        if (inp) {
+          formatTopicVal(inp, topicSettings[id]);
+          if (!inp._hasTopicListeners) {
+            inp.addEventListener('focus', () => {
+              const num = String(inp.value).match(/\d+/)?.[0] || '';
+              inp.value = num;
+            });
+            inp.addEventListener('blur', () => {
+              formatTopicVal(inp, inp.value);
+            });
+            inp._hasTopicListeners = true;
+          }
+        }
+      });
     } catch (e) {}
   }
 
@@ -4593,8 +4662,21 @@
     }
   }
 
-  document.getElementById('settingMaintSwitch')?.addEventListener('change', (e) => {
-    updateSettingToggle('maintenance', e.target.checked);
+  document.getElementById('settingMaintSwitch')?.addEventListener('change', async (e) => {
+    const isMaint = e.target.checked;
+    const newMode = isMaint ? 'closed' : 'open';
+    const accInp = document.getElementById('settingAccessMode');
+    if (accInp) accInp.value = newMode;
+    window.adminActions.renderAccessModeUI(newMode);
+    try {
+      const res = await window.api.saveAdminSettings({ maintenance: isMaint, access_mode: newMode });
+      if (res && res.ok) {
+        if (window.showToast) window.showToast(isMaint ? '🔒 حالت تعمیرات فعال شد (دسترسی ربات بسته شد)' : '✅ حالت تعمیرات غیرفعال شد (دسترسی عمومی)');
+        if (window.hapticFeedback) window.hapticFeedback('success');
+      }
+    } catch (err) {
+      if (window.showToast) window.showToast('خطا در ذخیره وضعیت تعمیرات');
+    }
   });
   document.getElementById('settingCardSwitch')?.addEventListener('change', (e) => {
     updateSettingToggle('card_enabled', e.target.checked);
@@ -4622,9 +4704,17 @@
   });
 
   async function handleSaveAllSettings() {
+    const isMaint = document.getElementById('settingMaintSwitch')?.checked ?? false;
+    let accessModeVal = document.getElementById('settingAccessMode')?.value || 'open';
+    if (isMaint) {
+      accessModeVal = 'closed';
+    } else if (accessModeVal === 'closed') {
+      accessModeVal = 'open';
+    }
+
     const payload = {
-      maintenance: document.getElementById('settingMaintSwitch')?.checked ?? false,
-      access_mode: document.getElementById('settingAccessMode')?.value || 'open',
+      maintenance: isMaint,
+      access_mode: accessModeVal,
       card_enabled: document.getElementById('settingCardSwitch')?.checked ?? true,
       crypto_enabled: document.getElementById('settingCryptoSwitch')?.checked ?? false,
       stars_enabled: document.getElementById('settingStarsSwitch')?.checked ?? false,
@@ -4645,12 +4735,12 @@
       trial_duration_days: parseInt(document.getElementById('settingTrialDays')?.value || '1', 10),
       referral_reward_gb: parseInt(document.getElementById('settingRefReward')?.value || '5', 10),
       support_contact: document.getElementById('settingSupportContact')?.value?.trim() || '',
-      topic_topups: document.getElementById('settingTopicTopups')?.value?.trim() ? parseInt(document.getElementById('settingTopicTopups').value, 10) : null,
-      topic_orders: document.getElementById('settingTopicOrders')?.value?.trim() ? parseInt(document.getElementById('settingTopicOrders').value, 10) : null,
-      topic_support: document.getElementById('settingTopicSupport')?.value?.trim() ? parseInt(document.getElementById('settingTopicSupport').value, 10) : null,
-      topic_alerts: document.getElementById('settingTopicAlerts')?.value?.trim() ? parseInt(document.getElementById('settingTopicAlerts').value, 10) : null,
-      topic_crypto: document.getElementById('settingTopicCrypto')?.value?.trim() ? parseInt(document.getElementById('settingTopicCrypto').value, 10) : null,
-      topic_errors: document.getElementById('settingTopicErrors')?.value?.trim() ? parseInt(document.getElementById('settingTopicErrors').value, 10) : null,
+      topic_topups: parseTopicVal(document.getElementById('settingTopicTopups')?.value),
+      topic_orders: parseTopicVal(document.getElementById('settingTopicOrders')?.value),
+      topic_support: parseTopicVal(document.getElementById('settingTopicSupport')?.value),
+      topic_alerts: parseTopicVal(document.getElementById('settingTopicAlerts')?.value),
+      topic_crypto: parseTopicVal(document.getElementById('settingTopicCrypto')?.value),
+      topic_errors: parseTopicVal(document.getElementById('settingTopicErrors')?.value),
     };
 
     const saveBtns = [document.getElementById('saveAllSettingsBtn'), document.getElementById('saveAllSettingsTopBtn')];
@@ -4659,6 +4749,10 @@
     try {
       const res = await window.api.saveAdminSettings(payload);
       if (res && res.ok) {
+        topicInputIds.forEach(id => {
+          const inp = document.getElementById(id);
+          if (inp) formatTopicVal(inp, inp.value);
+        });
         if (window.showToast) window.showToast('✅ تمامی تنظیمات با موفقیت ذخیره شدند.');
         if (window.hapticFeedback) window.hapticFeedback('success');
       } else {
