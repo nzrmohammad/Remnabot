@@ -6,6 +6,7 @@ import math
 import re
 from collections import defaultdict
 from datetime import datetime, timedelta, timezone
+from zoneinfo import ZoneInfo
 import time
 from pathlib import Path
 from typing import Any
@@ -2219,8 +2220,9 @@ async def get_admin_user_srh(request: web.Request) -> web.Response:
                     created_at_raw = v
                     break
 
-        rel_time = "لحظاتی پیش"
-        date_str = ""
+        rel_time = "—"
+        date_str = "—"
+        time_str = "—"
         if created_at_raw:
             try:
                 if isinstance(created_at_raw, str) and created_at_raw.strip().isdigit():
@@ -2252,7 +2254,16 @@ async def get_admin_user_srh(request: web.Request) -> web.Response:
                     if parsed_dt.tzinfo is None:
                         parsed_dt = parsed_dt.replace(tzinfo=timezone.utc)
 
-                diff_sec = max(0, int((now_utc - parsed_dt).total_seconds()))
+                # Ensure parsed_dt is timezone-aware in UTC
+                parsed_utc = parsed_dt.astimezone(timezone.utc)
+                total_sec = (now_utc - parsed_utc).total_seconds()
+
+                # If timestamp was recorded in local Tehran time (+3:30) without timezone, it appears in the future
+                if -15000 <= total_sec <= -60:
+                    parsed_utc = parsed_utc - timedelta(hours=3, minutes=30)
+                    total_sec = (now_utc - parsed_utc).total_seconds()
+
+                diff_sec = max(0, int(total_sec))
                 if diff_sec < 60:
                     rel_time = "لحظاتی پیش"
                 elif diff_sec < 3600:
@@ -2262,16 +2273,19 @@ async def get_admin_user_srh(request: web.Request) -> web.Response:
                 else:
                     rel_time = f"{diff_sec // 86400} روز پیش"
 
+                tehran_tz = ZoneInfo("Asia/Tehran")
+                dt_tehran = parsed_utc.astimezone(tehran_tz)
+                time_str = dt_tehran.strftime("%H:%M")
+
                 if jdatetime:
                     try:
-                        p_j = jdatetime.datetime.fromgregorian(
-                            datetime=parsed_dt.astimezone(ZoneInfo("Asia/Tehran"))
-                        )
-                        date_str = f"{p_j.year}/{p_j.month:02d}/{p_j.day:02d} - {p_j.hour:02d}:{p_j.minute:02d}"
+                        p_j = jdatetime.datetime.fromgregorian(datetime=dt_tehran)
+                        date_str = f"{p_j.year}/{p_j.month:02d}/{p_j.day:02d} {p_j.hour:02d}:{p_j.minute:02d}"
+                        time_str = f"{p_j.hour:02d}:{p_j.minute:02d}"
                     except Exception:
-                        date_str = parsed_dt.strftime("%Y/%m/%d %H:%M")
+                        date_str = dt_tehran.strftime("%Y/%m/%d %H:%M")
                 else:
-                    date_str = parsed_dt.strftime("%Y/%m/%d %H:%M")
+                    date_str = dt_tehran.strftime("%Y/%m/%d %H:%M")
             except Exception:
                 date_str = str(created_at_raw)[:19]
                 rel_time = "ثبت‌شده"
@@ -2288,6 +2302,7 @@ async def get_admin_user_srh(request: web.Request) -> web.Response:
             "is_success": is_success,
             "relative_time": rel_time,
             "date_str": date_str,
+            "time_str": time_str,
         })
 
     return web.json_response({
@@ -2538,8 +2553,16 @@ async def get_admin_coupons(request: web.Request) -> web.Response:
     async with session_factory() as session:
         result = await session.execute(select(Coupon).order_by(Coupon.id.desc()))
         coupons = result.scalars().all()
-        data = [
-            {
+        data = []
+        for c in coupons:
+            jalali_exp = None
+            if c.expires_at and jdatetime:
+                try:
+                    pj = jdatetime.datetime.fromgregorian(datetime=c.expires_at)
+                    jalali_exp = f"{pj.year}/{pj.month:02d}/{pj.day:02d}"
+                except Exception:
+                    pass
+            data.append({
                 "id": c.id,
                 "code": c.code,
                 "discount_percent": c.discount_percent,
@@ -2547,10 +2570,9 @@ async def get_admin_coupons(request: web.Request) -> web.Response:
                 "max_uses": c.max_uses,
                 "used_count": c.used_count,
                 "expires_at": c.expires_at.strftime("%Y-%m-%d") if c.expires_at else None,
+                "expires_at_jalali": jalali_exp,
                 "is_active": c.is_active,
-            }
-            for c in coupons
-        ]
+            })
     return web.json_response({"ok": True, "coupons": data})
 
 

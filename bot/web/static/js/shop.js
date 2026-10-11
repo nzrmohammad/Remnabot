@@ -117,7 +117,7 @@ function renderWonCoupons(data) {
           <span class="text-xs">🎟</span>
           <span class="font-bold font-mono text-white text-xs">${escapeHtml(c.code)}</span>
         </div>
-        <span class="text-[10px] text-emerald-400 font-sans block mt-0.5">٪${c.discount_percent || 10} تخفیف</span>
+        <span class="text-[10px] text-emerald-400 font-sans block mt-0.5"><span dir="ltr" class="font-mono font-bold inline-block">${toEnglishDigits(c.discount_percent || 10)}%</span> تخفیف</span>
       </div>
       <button type="button" class="won-coupon-apply-btn bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-2.5 py-1 rounded-lg text-[10px] transition active:scale-95 shadow shrink-0" data-code="${escapeHtml(c.code)}">
         ⚡️ اعمال

@@ -1474,6 +1474,17 @@ html.theme-light #starsRateDisplay {
   color: #334155 !important;
 }
 
-
-
-
+/* Server Cost Due Date picker styling */
+#nodeBillingDueDate {
+  direction: ltr !important;
+  text-align: left !important;
+}
+#nodeBillingDueDate::-webkit-datetime-edit {
+  padding: 0 !important;
+  margin: 0 !important;
+}
+#nodeBillingDueDate::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  filter: invert(0.8);
+  margin-left: auto;
+}

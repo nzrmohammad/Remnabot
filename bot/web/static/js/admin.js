@@ -2536,14 +2536,15 @@
               <div class="flex items-center justify-between text-[10px] pt-1 border-t border-slate-800/60 text-slate-400 gap-2">
                 <div class="flex items-center gap-1.5 flex-wrap min-w-0">
                   <span class="text-[9px] px-1.5 py-0.5 rounded-md bg-transparent border border-slate-700/80 text-slate-300 font-mono flex-shrink-0">${escapeHtml(r.client_tag || 'App')}</span>
-                  <button type="button" dir="ltr" class="font-mono text-cyan-400 dark:text-cyan-300 font-semibold select-all hover:underline cursor-pointer flex items-center gap-1 active:scale-95 transition" onclick="window.copyToClipboard('${r.ip}', 'آدرس IP کپی شد')" title="کلیک جهت کپی آی‌پی">
+                  <button type="button" dir="ltr" class="font-mono text-cyan-400 dark:text-cyan-300 font-semibold select-all hover:underline cursor-pointer flex items-center gap-1" onclick="window.copyToClipboard('${r.ip}', 'آدرس IP کپی شد')" title="کلیک جهت کپی آی‌پی">
                     <span>🌐 ${r.ip}</span>
                     <span class="text-[9px] opacity-70">📋</span>
                   </button>
                 </div>
                 <div class="flex items-center gap-1 text-[9.5px] text-slate-400 font-mono flex-shrink-0" dir="ltr" title="${escapeHtml(r.date_str || '')}">
                   <span>⏱</span>
-                  <span>${toEnglishDigits(r.relative_time && r.relative_time !== '—' ? r.relative_time : (r.date_str ? r.date_str.split(' - ')[1] || r.date_str : 'لحظاتی پیش'))}</span>
+                  <span>${toEnglishDigits(r.relative_time && r.relative_time !== '—' ? r.relative_time : (r.date_str && r.date_str !== '—' ? r.date_str : 'ثبت‌شده'))}</span>
+                  ${r.time_str && r.time_str !== '—' && r.relative_time !== r.time_str ? `<span class="text-slate-500 font-sans">(${toEnglishDigits(r.time_str)})</span>` : ''}
                 </div>
               </div>
             </div>
@@ -2582,7 +2583,7 @@
                   <b class="text-white text-xs block truncate">${os} ${brand ? '(' + brand + ')' : ''}</b>
                   <div class="flex items-center gap-1.5 mt-0.5 text-[10px] text-slate-400">
                     <span>آی‌پی:</span>
-                    <button type="button" dir="ltr" class="font-mono text-cyan-400 dark:text-cyan-300 font-semibold select-all hover:underline cursor-pointer flex items-center gap-1 active:scale-95 transition" onclick="window.copyToClipboard('${ip}', 'آدرس IP کپی شد')" title="کپی آی‌پی">
+                    <button type="button" dir="ltr" class="font-mono text-cyan-400 dark:text-cyan-300 font-semibold select-all hover:underline cursor-pointer flex items-center gap-1" onclick="window.copyToClipboard('${ip}', 'آدرس IP کپی شد')" title="کپی آی‌پی">
                       <span>${ip}</span>
                       <span class="text-[9px] opacity-70">📋</span>
                     </button>
@@ -2654,7 +2655,7 @@
         const ipsHtml = ips.map(ip => `
           <div class="flex items-center justify-between bg-transparent px-2.5 py-1.5 rounded-xl border border-slate-700/60 text-xs">
             <span class="text-slate-400 text-[10px]">آی‌پی کلاینت:</span>
-            <button type="button" dir="ltr" class="font-mono text-cyan-400 dark:text-cyan-300 font-bold select-all hover:underline cursor-pointer flex items-center gap-1 active:scale-95 transition" onclick="window.copyToClipboard('${ip}', 'آدرس IP کپی شد')" title="کلیک جهت کپی آی‌پی">
+            <button type="button" dir="ltr" class="font-mono text-cyan-400 dark:text-cyan-300 font-bold select-all hover:underline cursor-pointer flex items-center gap-1" onclick="window.copyToClipboard('${ip}', 'آدرس IP کپی شد')" title="کلیک جهت کپی آی‌پی">
               <span>${ip}</span>
               <span class="text-[9px] opacity-70">📋</span>
             </button>
@@ -2969,11 +2970,11 @@
             : '<span class="text-[10px] bg-transparent text-slate-500 dark:text-slate-400 border border-slate-400/30 px-2 py-0.5 rounded-lg font-medium">غیرفعال</span>';
 
           const discountText = c.discount_percent > 0
-            ? `${c.discount_percent}٪ تخفیف`
+            ? `<span dir="ltr">${toEnglishDigits(c.discount_percent)}%</span> تخفیف`
             : `${formatNumber(c.discount_amount || 0)} تومان`;
 
-          const maxText = c.max_uses > 0 ? `${c.used_count || 0} / ${c.max_uses}` : `${c.used_count || 0} (نامحدود)`;
-          const expiryText = c.expires_at || 'نامحدود (دائمی)';
+          const maxText = c.max_uses > 0 ? `${toEnglishDigits(c.used_count || 0)} / ${toEnglishDigits(c.max_uses)}` : `${toEnglishDigits(c.used_count || 0)} (نامحدود)`;
+          const expiryText = c.expires_at_jalali || (c.expires_at ? (window.formatDateToJalali ? window.formatDateToJalali(c.expires_at) : c.expires_at) : 'نامحدود (دائمی)');
 
           return `
             <div class="coupon-card bg-slate-800/80 rounded-2xl p-4 border border-slate-700/80 space-y-3 shadow transition">
@@ -3825,7 +3826,7 @@
           tomanInput.value = convertedToman;
         }
         const currentTomanVal = parseInt(tomanInput?.value || '0', 10);
-        text.innerText = `محاسبه خودکار: ${numVal}${symbol} × ${formatNumber(rate)} = ${formatNumber(currentTomanVal || convertedToman)} تومان`;
+        text.innerText = `${numVal}${symbol} × ${formatNumber(rate)} = ${formatNumber(currentTomanVal || convertedToman)} تومان`;
         hint.classList.remove('hidden');
       } else {
         hint.classList.add('hidden');
