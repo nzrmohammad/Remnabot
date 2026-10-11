@@ -4690,10 +4690,8 @@
               }
               for (const appId of appIds) {
                 const item = appOverrides[os]?.[appId] || (appOverrides[appId] ? { enabled: true, download_url: appOverrides[appId], tutorial_url: '' } : null);
-                const toggleEl = document.getElementById(`appEnabled_${os}_${appId}`);
                 const downloadEl = document.getElementById(`appDownload_${os}_${appId}`);
                 const tutorialEl = document.getElementById(`appTutorial_${os}_${appId}`);
-                if (toggleEl) toggleEl.checked = item ? item.enabled !== false : true;
                 if (downloadEl) downloadEl.value = item?.download_url || '';
                 if (tutorialEl) tutorialEl.value = item?.tutorial_url || '';
               }
@@ -4841,12 +4839,12 @@
         for (const [os, appIds] of Object.entries(OS_APPS_MAP)) {
           clientAppsObj[os] = {};
           for (const appId of appIds) {
-            const toggleEl = document.getElementById(`appEnabled_${os}_${appId}`);
             const downloadEl = document.getElementById(`appDownload_${os}_${appId}`);
             const tutorialEl = document.getElementById(`appTutorial_${os}_${appId}`);
+            const downloadUrl = downloadEl?.value?.trim() || '';
             clientAppsObj[os][appId] = {
-              enabled: toggleEl ? Boolean(toggleEl.checked) : true,
-              download_url: downloadEl?.value?.trim() || '',
+              enabled: Boolean(downloadUrl),
+              download_url: downloadUrl,
               tutorial_url: tutorialEl?.value?.trim() || ''
             };
           }
@@ -5144,14 +5142,6 @@
       const id = btn.id || '';
       const os = id.replace('adminAppTab_', '');
       if (os) window.switchAdminAppsTab(os);
-    });
-  });
-
-  document.querySelectorAll('.btn-node-add-days').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      e.preventDefault();
-      const days = parseInt(btn.getAttribute('data-add-days') || '30', 10);
-      window.addDaysToNodeBillingDueDate(days);
     });
   });
 

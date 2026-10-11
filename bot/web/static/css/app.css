@@ -1501,23 +1501,28 @@ html.theme-light #starsRateDisplay {
 /* ======================================================== */
 html.theme-light #profileReferralCard,
 html.theme-light .profile-ref-card {
-  background: linear-gradient(135deg, rgba(241, 245, 249, 0.95), rgba(238, 242, 255, 0.95)) !important;
-  border-color: rgba(99, 102, 241, 0.3) !important;
-  box-shadow: 0 4px 14px rgba(99, 102, 241, 0.08) !important;
+  background: #ffffff !important;
+  background-image: none !important;
+  border-color: #e2e8f0 !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05) !important;
 }
 html.theme-light #profileReferralCard span.text-indigo-200 {
-  color: #312e81 !important;
+  color: #1e293b !important;
+}
+html.theme-light #profileReferralCard .border-indigo-500\/20 {
+  border-color: #e2e8f0 !important;
 }
 html.theme-light #profileReferralCard .ref-stat-box {
-  background-color: #ffffff !important;
+  background: #f8fafc !important;
+  background-image: none !important;
   border-color: #e2e8f0 !important;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
 }
 html.theme-light #profileReferralCard .ref-stat-box .text-slate-400 {
   color: #64748b !important;
 }
 html.theme-light #profileReferralCard .ref-input-box {
-  background-color: #ffffff !important;
+  background: #f8fafc !important;
+  background-image: none !important;
   border-color: #cbd5e1 !important;
 }
 html.theme-light #profileReferralLinkInput {
@@ -1525,6 +1530,13 @@ html.theme-light #profileReferralLinkInput {
 }
 html.theme-light #profileReferralCard .text-slate-300 {
   color: #334155 !important;
+}
+html.theme-light #copyReferralLinkBtn {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  color: #4f46e5 !important;
 }
 
 /* ======================================================== */

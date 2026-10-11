@@ -448,21 +448,21 @@ const CLIENT_APPS_DATA = {
     },
     {
       id: 'hiddify',
-      name: 'Hiddify (ویندوز و مک)',
+      name: 'Hiddify',
       desc: 'نرم‌افزار مدرن مشترک ویندوز و مک با محیط ساده و تست پینگ',
       icon: '✨',
       scheme: (url) => `hiddify://install-sub?url=${encodeURIComponent(url)}`
     },
     {
       id: 'happ',
-      name: 'Happ Desktop',
+      name: 'Happ',
       desc: 'نسخه دسکتاپ اپلیکیشن Happ با کاربری بسیار سریع و سبک',
       icon: '🚀',
       scheme: (url) => `happ://add/${url}`
     },
     {
       id: 'incy',
-      name: 'Incy Desktop',
+      name: 'Incy',
       desc: 'کلاینت مینیمال برای اتصال فوری و بدون دردسر در کامپیوتر و لپ‌تاپ',
       icon: '⚡',
       scheme: null
