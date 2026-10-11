@@ -1827,6 +1827,7 @@ async def get_admin_settings(request: web.Request) -> web.Response:
             "cryptobot_enabled": store_settings.cryptobot_enabled,
             "cryptobot_token": store_settings.cryptobot_token,
             "tutorial_channel_url": store_settings.tutorial_channel_url,
+            "routing_tutorial_url": store_settings.routing_tutorial_url,
             "client_apps_json": store_settings.client_apps_json,
         }
         bot = request.app.get("bot")
@@ -1886,6 +1887,7 @@ async def post_admin_settings(request: web.Request) -> web.Response:
             "access_mode",
             "cryptobot_token",
             "tutorial_channel_url",
+            "routing_tutorial_url",
             "client_apps_json",
         )
         for str_key in str_keys:

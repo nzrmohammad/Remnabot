@@ -3784,20 +3784,17 @@
       const hiddenInput = document.getElementById('nodeBillingCurrency');
       if (hiddenInput) hiddenInput.value = isEur ? 'EUR' : 'USD';
 
-      const selectEl = document.getElementById('nodeBillingCurrencySelect');
-      if (selectEl) selectEl.value = isEur ? 'EUR' : 'USD';
-
       const eurBtn = document.getElementById('nodeBillingCurrEur');
       const usdBtn = document.getElementById('nodeBillingCurrUsd');
       const symbolSpan = document.getElementById('nodeBillingCurrencySymbol');
 
       if (eurBtn && usdBtn) {
         if (isEur) {
-          eurBtn.className = 'px-2 py-0.5 rounded font-bold transition text-cyan-400 bg-slate-700 shadow-sm';
-          usdBtn.className = 'px-2 py-0.5 rounded font-bold transition text-slate-400 hover:text-white';
+          eurBtn.className = 'flex-1 h-full rounded-lg text-[10px] font-bold transition flex items-center justify-center text-cyan-400 bg-slate-700 shadow-sm';
+          usdBtn.className = 'flex-1 h-full rounded-lg text-[10px] font-medium transition flex items-center justify-center text-slate-400 hover:text-white';
         } else {
-          usdBtn.className = 'px-2 py-0.5 rounded font-bold transition text-emerald-400 bg-slate-700 shadow-sm';
-          eurBtn.className = 'px-2 py-0.5 rounded font-bold transition text-slate-400 hover:text-white';
+          usdBtn.className = 'flex-1 h-full rounded-lg text-[10px] font-bold transition flex items-center justify-center text-emerald-400 bg-slate-700 shadow-sm';
+          eurBtn.className = 'flex-1 h-full rounded-lg text-[10px] font-medium transition flex items-center justify-center text-slate-400 hover:text-white';
         }
       }
       if (symbolSpan) {
@@ -3807,6 +3804,51 @@
       if (recalculate) {
         this.updateNodeBillingConversion(true);
       }
+    },
+
+    addDaysToNodeBillingDueDate(days = 30) {
+      const input = document.getElementById('nodeBillingDueDate');
+      const jalaliPreview = document.getElementById('nodeBillingJalaliPreview');
+      if (!input) return;
+      const baseDate = new Date();
+      baseDate.setDate(baseDate.getDate() + Number(days));
+      const isoStr = baseDate.toISOString().slice(0, 10);
+      input.value = isoStr;
+      if (jalaliPreview) {
+        jalaliPreview.innerText = window.formatDateToJalali ? window.formatDateToJalali(isoStr) : isoStr;
+      }
+      if (window.hapticFeedback) window.hapticFeedback('selection');
+    },
+
+    clearNodeBillingDueDate() {
+      const input = document.getElementById('nodeBillingDueDate');
+      const jalaliPreview = document.getElementById('nodeBillingJalaliPreview');
+      if (input) input.value = '';
+      if (jalaliPreview) jalaliPreview.innerText = '';
+      if (window.hapticFeedback) window.hapticFeedback('selection');
+    },
+
+    switchAdminAppsTab(osKey = 'ios') {
+      ['ios', 'android', 'desktop'].forEach(os => {
+        const tabBtn = document.getElementById(`adminAppTab_${os}`);
+        const pane = document.getElementById(`adminAppsPane_${os}`);
+        const isTarget = os === osKey;
+        if (tabBtn) {
+          if (isTarget) {
+            tabBtn.className = 'admin-app-os-tab flex-1 py-1.5 rounded-lg font-bold text-[11px] transition flex items-center justify-center gap-1 bg-cyan-600 text-white shadow';
+          } else {
+            tabBtn.className = 'admin-app-os-tab flex-1 py-1.5 rounded-lg font-medium text-[11px] text-slate-400 hover:text-slate-200 transition flex items-center justify-center gap-1';
+          }
+        }
+        if (pane) {
+          if (isTarget) {
+            pane.classList.remove('hidden');
+          } else {
+            pane.classList.add('hidden');
+          }
+        }
+      });
+      if (window.hapticFeedback) window.hapticFeedback('selection');
     },
 
     updateNodeBillingConversion(forceRecalcToman = false) {
@@ -4616,18 +4658,34 @@
       const supContact = document.getElementById('settingSupportContact');
       if (supContact) supContact.value = s.support_contact || '';
 
-      // Tutorial Channel URL & Client App Overrides
+      // Tutorial Channel URL, Routing Tutorial URL & Client App Overrides
       const tutChannelInp = document.getElementById('settingTutorialChannelUrl');
       if (tutChannelInp) tutChannelInp.value = s.tutorial_channel_url || '';
+
+      const routingTutInp = document.getElementById('settingRoutingTutorialUrl');
+      if (routingTutInp) routingTutInp.value = s.routing_tutorial_url || '';
+
+      const OS_APPS_MAP = {
+        ios: ['streisand', 'v2box', 'incy', 'happ'],
+        android: ['v2rayng', 'happ', 'hiddify', 'incy'],
+        desktop: ['v2rayn', 'hiddify', 'happ', 'incy']
+      };
 
       if (s.client_apps_json) {
         try {
           const appOverrides = typeof s.client_apps_json === 'string' ? JSON.parse(s.client_apps_json) : s.client_apps_json;
           if (appOverrides && typeof appOverrides === 'object') {
-            ['streisand', 'v2box', 'v2rayng', 'hiddify', 'happ', 'incy', 'v2rayn'].forEach(id => {
-              const el = document.getElementById(`settingAppUrl_${id}`);
-              if (el) el.value = appOverrides[id] || '';
-            });
+            for (const [os, appIds] of Object.entries(OS_APPS_MAP)) {
+              for (const appId of appIds) {
+                const item = appOverrides[os]?.[appId] || (appOverrides[appId] ? { enabled: true, download_url: appOverrides[appId], tutorial_url: '' } : null);
+                const toggleEl = document.getElementById(`appEnabled_${os}_${appId}`);
+                const downloadEl = document.getElementById(`appDownload_${os}_${appId}`);
+                const tutorialEl = document.getElementById(`appTutorial_${os}_${appId}`);
+                if (toggleEl) toggleEl.checked = item ? item.enabled !== false : true;
+                if (downloadEl) downloadEl.value = item?.download_url || '';
+                if (tutorialEl) tutorialEl.value = item?.tutorial_url || '';
+              }
+            }
           }
         } catch (e) {}
       }
@@ -4754,13 +4812,28 @@
       topic_crypto: parseTopicVal(document.getElementById('settingTopicCrypto')?.value),
       topic_errors: parseTopicVal(document.getElementById('settingTopicErrors')?.value),
       tutorial_channel_url: document.getElementById('settingTutorialChannelUrl')?.value?.trim() || '',
+      routing_tutorial_url: document.getElementById('settingRoutingTutorialUrl')?.value?.trim() || '',
       client_apps_json: (() => {
-        const appOverridesObj = {};
-        ['streisand', 'v2box', 'v2rayng', 'hiddify', 'happ', 'incy', 'v2rayn'].forEach(id => {
-          const val = document.getElementById(`settingAppUrl_${id}`)?.value?.trim();
-          if (val) appOverridesObj[id] = val;
-        });
-        return Object.keys(appOverridesObj).length > 0 ? JSON.stringify(appOverridesObj) : '';
+        const OS_APPS_MAP = {
+          ios: ['streisand', 'v2box', 'incy', 'happ'],
+          android: ['v2rayng', 'happ', 'hiddify', 'incy'],
+          desktop: ['v2rayn', 'hiddify', 'happ', 'incy']
+        };
+        const clientAppsObj = {};
+        for (const [os, appIds] of Object.entries(OS_APPS_MAP)) {
+          clientAppsObj[os] = {};
+          for (const appId of appIds) {
+            const toggleEl = document.getElementById(`appEnabled_${os}_${appId}`);
+            const downloadEl = document.getElementById(`appDownload_${os}_${appId}`);
+            const tutorialEl = document.getElementById(`appTutorial_${os}_${appId}`);
+            clientAppsObj[os][appId] = {
+              enabled: toggleEl ? Boolean(toggleEl.checked) : true,
+              download_url: downloadEl?.value?.trim() || '',
+              tutorial_url: tutorialEl?.value?.trim() || ''
+            };
+          }
+        }
+        return JSON.stringify(clientAppsObj);
       })(),
     };
 
@@ -5036,6 +5109,9 @@
   window.closeNodeBillingModal = () => window.adminActions.closeNodeBillingModal();
   window.saveNodeBilling = () => window.adminActions.saveNodeBilling();
   window.setNodeBillingCurrency = (curr) => window.adminActions.setNodeBillingCurrency(curr);
+  window.addDaysToNodeBillingDueDate = (days) => window.adminActions.addDaysToNodeBillingDueDate(days);
+  window.clearNodeBillingDueDate = () => window.adminActions.clearNodeBillingDueDate();
+  window.switchAdminAppsTab = (os) => window.adminActions.switchAdminAppsTab(os);
   window.openCreateCampaignModal = () => window.adminActions.openCreateCampaignModal();
   window.closeCreateCampaignModal = () => window.adminActions.closeCreateCampaignModal();
   window.submitCreateCampaign = (e) => window.adminActions.submitCreateCampaign(e);

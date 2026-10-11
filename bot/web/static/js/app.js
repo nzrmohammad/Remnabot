@@ -386,7 +386,6 @@ const CLIENT_APPS_DATA = {
       badgeClass: 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/30',
       desc: 'سریع‌ترین کلاینت iOS با قابلیت اتصال آسان و پشتیبانی کامل',
       icon: '🛡️',
-      defaultDownload: 'https://apps.apple.com/app/streisand/id6450534064',
       scheme: (url) => `streisand://import/${encodeURIComponent(url)}`
     },
     {
@@ -396,7 +395,6 @@ const CLIENT_APPS_DATA = {
       badgeClass: 'bg-blue-500/15 text-blue-300 border border-blue-500/30',
       desc: 'کلاینت باسابقه و پایدار اپ استور با قابلیت تست پینگ خودکار',
       icon: '📦',
-      defaultDownload: 'https://apps.apple.com/app/v2box-v2ray-client/id6446814690',
       scheme: (url) => `v2box://install-sub?url=${encodeURIComponent(url)}&name=RemnaVPN`
     },
     {
@@ -406,7 +404,6 @@ const CLIENT_APPS_DATA = {
       badgeClass: 'bg-cyan-500/15 text-cyan-300 border border-cyan-500/30',
       desc: 'ظاهر زیبا و کاربری فوق‌العاده راحت با اتصال فوری یک‌کلیکه',
       icon: '⚡',
-      defaultDownload: 'https://apps.apple.com/app/incy/id6502693892',
       scheme: (url) => `incy://import/${url}`
     },
     {
@@ -416,7 +413,6 @@ const CLIENT_APPS_DATA = {
       badgeClass: 'bg-purple-500/15 text-purple-300 border border-purple-500/30',
       desc: 'پشتیبانی از پروتکل‌های نوین با سرعت و پایداری فوق‌العاده',
       icon: '🚀',
-      defaultDownload: 'https://apps.apple.com/app/happ-proxy-utility/id6504287215',
       scheme: (url) => `happ://add/${url}`
     }
   ],
@@ -428,7 +424,6 @@ const CLIENT_APPS_DATA = {
       badgeClass: 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/30',
       desc: 'استانداردترین و سازگارترین نرم‌افزار برای تمامی گوشی‌های اندروید',
       icon: '🤖',
-      defaultDownload: 'https://play.google.com/store/apps/details?id=com.v2ray.ang',
       scheme: (url) => `v2rayng://install-sub?url=${encodeURIComponent(url)}`
     },
     {
@@ -438,7 +433,6 @@ const CLIENT_APPS_DATA = {
       badgeClass: 'bg-purple-500/15 text-purple-300 border border-purple-500/30',
       desc: 'کلاینت جدید و بسیار قدرتمند با طراحی مدرن و سرعت بالا',
       icon: '🚀',
-      defaultDownload: 'https://github.com/happ-proxy/happ/releases',
       scheme: (url) => `happ://add/${url}`
     },
     {
@@ -448,7 +442,6 @@ const CLIENT_APPS_DATA = {
       badgeClass: 'bg-cyan-500/15 text-cyan-300 border border-cyan-500/30',
       desc: 'اتصال هوشمند به کم‌پینگ‌ترین سرور و تفکیک خودکار ترافیک',
       icon: '✨',
-      defaultDownload: 'https://play.google.com/store/apps/details?id=app.hiddify.com',
       scheme: (url) => `hiddify://install-sub?url=${encodeURIComponent(url)}`
     },
     {
@@ -458,7 +451,6 @@ const CLIENT_APPS_DATA = {
       badgeClass: 'bg-amber-500/15 text-amber-300 border border-amber-500/30',
       desc: 'محیط خلوت و مینیمال با اتصال یک‌کلیکه و مصرف کم باتری',
       icon: '⚡',
-      defaultDownload: 'https://play.google.com/store/apps/details?id=com.incy.app',
       scheme: (url) => `incy://import/${url}`
     }
   ],
@@ -470,7 +462,6 @@ const CLIENT_APPS_DATA = {
       badgeClass: 'bg-blue-500/15 text-blue-300 border border-blue-500/30',
       desc: 'قدرتمندترین کلاینت ویندوز با پشتیبانی کامل از انواع کانفیگ‌ها',
       icon: '🪟',
-      defaultDownload: 'https://github.com/2dust/v2rayN/releases',
       scheme: null
     },
     {
@@ -480,7 +471,6 @@ const CLIENT_APPS_DATA = {
       badgeClass: 'bg-cyan-500/15 text-cyan-300 border border-cyan-500/30',
       desc: 'نرم‌افزار مدرن مشترک ویندوز و مک با محیط ساده و تست پینگ',
       icon: '✨',
-      defaultDownload: 'https://github.com/hiddify/hiddify-next/releases',
       scheme: (url) => `hiddify://install-sub?url=${encodeURIComponent(url)}`
     },
     {
@@ -490,7 +480,6 @@ const CLIENT_APPS_DATA = {
       badgeClass: 'bg-purple-500/15 text-purple-300 border border-purple-500/30',
       desc: 'نسخه دسکتاپ اپلیکیشن Happ با کاربری بسیار سریع و سبک',
       icon: '🚀',
-      defaultDownload: 'https://github.com/happ-proxy/happ/releases',
       scheme: (url) => `happ://add/${url}`
     },
     {
@@ -500,7 +489,6 @@ const CLIENT_APPS_DATA = {
       badgeClass: 'bg-amber-500/15 text-amber-300 border border-amber-500/30',
       desc: 'کلاینت مینیمال برای اتصال فوری و بدون دردسر در کامپیوتر و لپ‌تاپ',
       icon: '⚡',
-      defaultDownload: 'https://github.com/incy-app/incy/releases',
       scheme: null
     }
   ]
@@ -527,13 +515,111 @@ function renderTutorialApps(osKey) {
   document.querySelectorAll('.tutorial-os-tab').forEach(tab => {
     const isTarget = tab.getAttribute('data-os') === currentTutorialOS;
     if (isTarget) {
-      tab.className = 'tutorial-os-tab flex-1 py-1.5 rounded-xl font-bold text-[11px] transition flex items-center justify-center gap-1 bg-cyan-600 text-white shadow';
+      tab.className = 'tutorial-os-tab flex-1 py-1.5 px-2 rounded-xl font-bold text-[11px] transition flex items-center justify-center gap-1 bg-cyan-600 text-white shadow';
     } else {
-      tab.className = 'tutorial-os-tab flex-1 py-1.5 rounded-xl font-medium text-[11px] text-slate-400 hover:text-slate-200 transition flex items-center justify-center gap-1';
+      tab.className = 'tutorial-os-tab flex-1 py-1.5 px-2 rounded-xl font-medium text-[11px] text-slate-400 hover:text-slate-200 transition flex items-center justify-center gap-1';
     }
   });
 
-  const apps = CLIENT_APPS_DATA[currentTutorialOS] || [];
+  // Handle Routing Tab
+  if (currentTutorialOS === 'routing') {
+    const routingVideoUrl = window.lastUserData?.routing_tutorial_url;
+    const videoBtnHtml = routingVideoUrl ? `
+      <a href="${escapeHtml(routingVideoUrl)}" target="_blank" rel="noopener noreferrer" class="btn-routing-video flex items-center justify-between p-3 rounded-2xl bg-gradient-to-r from-cyan-600/30 via-indigo-600/20 to-blue-600/30 border border-cyan-500/40 text-cyan-200 hover:text-white transition group shadow-md active:scale-95">
+        <div class="flex items-center gap-2.5">
+          <span class="w-8 h-8 rounded-xl bg-cyan-500/20 text-cyan-300 flex items-center justify-center text-sm flex-shrink-0">🎥</span>
+          <div>
+            <span class="font-bold text-xs block">مشاهده ویدیو / پست آموزش تفکیک ترافیک</span>
+            <span class="text-[10px] text-slate-300 block">آموزش تصویری باز شدن سایت‌های بانکی و ایرانی بدون قطع فیلترشکن</span>
+          </div>
+        </div>
+        <span class="text-sm group-hover:-translate-x-1 transition-transform">⬅️</span>
+      </a>
+    ` : '';
+
+    listContainer.innerHTML = `
+      <div class="space-y-3 text-xs leading-relaxed">
+        ${videoBtnHtml}
+
+        <div class="bg-indigo-950/30 border border-indigo-500/30 rounded-2xl p-3.5 space-y-2">
+          <div class="flex items-center gap-2 text-indigo-300 font-bold text-xs">
+            <span>🔀</span> آموزش تفکیک ترافیک داخلی و خارجی (روتینگ)
+          </div>
+          <p class="text-[11px] text-slate-300 leading-relaxed">
+            با فعال‌سازی روتینگ در نرم‌افزار، ترافیک سایت‌های ایرانی و اپ‌های بانکی بدون عبور از فیلترشکن باز می‌شوند. بنابراین نیازی به قطع کردن فیلترشکن برای کارهای بانکی یا خرید اینترنتی نخواهید داشت.
+          </p>
+        </div>
+
+        <!-- App-specific routing instructions -->
+        <div class="space-y-2.5">
+          <!-- v2rayNG (Android) -->
+          <div class="tutorial-app-card bg-slate-900/80 rounded-2xl p-3 border border-slate-700/70 space-y-1.5">
+            <div class="flex items-center gap-2">
+              <span class="text-base">🤖</span>
+              <b class="text-white text-xs font-bold">v2rayNG (اندروید)</b>
+            </div>
+            <ol class="list-decimal list-inside text-[10.5px] text-slate-300 space-y-1 pr-1 leading-relaxed">
+              <li>منوی سه‌خط (☰) بالا سمت چپ را باز کنید و وارد <b>تنظیمات (Settings)</b> شوید.</li>
+              <li>گزینه <b>حالت روتینگ (Routing Mode)</b> را لمس کنید.</li>
+              <li>گزینه <b>بای‌پس شبکه‌های محلی و ایران (Bypass LAN & Iran)</b> را انتخاب فرمایید.</li>
+            </ol>
+          </div>
+
+          <!-- Streisand / V2Box (iOS) -->
+          <div class="tutorial-app-card bg-slate-900/80 rounded-2xl p-3 border border-slate-700/70 space-y-1.5">
+            <div class="flex items-center gap-2">
+              <span class="text-base">🍏</span>
+              <b class="text-white text-xs font-bold">Streisand و V2Box (آیفون و آیپد)</b>
+            </div>
+            <ol class="list-decimal list-inside text-[10.5px] text-slate-300 space-y-1 pr-1 leading-relaxed">
+              <li>وارد بخش <b>Settings</b> برنامه شوید.</li>
+              <li>گزینه <b>Routing</b> یا <b>Rules</b> را لمس کنید.</li>
+              <li>حالت <b>Bypass CN & IR</b> یا تفکیک دامنه‌های محلی را فعال نمایید.</li>
+            </ol>
+          </div>
+
+          <!-- Hiddify -->
+          <div class="tutorial-app-card bg-slate-900/80 rounded-2xl p-3 border border-slate-700/70 space-y-1.5">
+            <div class="flex items-center gap-2">
+              <span class="text-base">✨</span>
+              <b class="text-white text-xs font-bold">Hiddify (تمامی پلتفرم‌ها)</b>
+            </div>
+            <ol class="list-decimal list-inside text-[10.5px] text-slate-300 space-y-1 pr-1 leading-relaxed">
+              <li>در صفحه اصلی وارد بخش <b>تنظیمات</b> شوید.</li>
+              <li>گزینه <b>حالت روتینگ (Routing Mode)</b> را روی <b>بای‌پس ایران (Bypass Iran)</b> بگذارید.</li>
+            </ol>
+          </div>
+
+          <!-- v2rayN (Windows) -->
+          <div class="tutorial-app-card bg-slate-900/80 rounded-2xl p-3 border border-slate-700/70 space-y-1.5">
+            <div class="flex items-center gap-2">
+              <span class="text-base">🪟</span>
+              <b class="text-white text-xs font-bold">v2rayN (ویندوز دسکتاپ)</b>
+            </div>
+            <ol class="list-decimal list-inside text-[10.5px] text-slate-300 space-y-1 pr-1 leading-relaxed">
+              <li>در نوار پایین نرم‌افزار، تب <b>Routing</b> را باز کنید.</li>
+              <li>گزینه <b>Bypass LAN and Iran / Mainland</b> را انتخاب کنید.</li>
+            </ol>
+          </div>
+        </div>
+      </div>
+    `;
+
+    listContainer.querySelectorAll('.btn-routing-video').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const href = btn.getAttribute('href');
+        if (href && window.Telegram?.WebApp?.openLink) {
+          e.preventDefault();
+          window.Telegram.WebApp.openLink(href);
+        }
+        hapticFeedback('impact');
+      });
+    });
+    return;
+  }
+
+  // OS Apps Rendering
+  const allApps = CLIENT_APPS_DATA[currentTutorialOS] || [];
 
   let overrides = {};
   if (window.lastUserData?.client_apps_override) {
@@ -544,8 +630,59 @@ function renderTutorialApps(osKey) {
     } catch (e) {}
   }
 
-  listContainer.innerHTML = apps.map(app => {
-    const downloadUrl = (overrides && overrides[app.id]) ? overrides[app.id] : app.defaultDownload;
+  // Filter apps: only show if enabled and has a download URL set by admin
+  const activeApps = allApps.map(app => {
+    const appCfg = (overrides && overrides[currentTutorialOS] && overrides[currentTutorialOS][app.id])
+      || (overrides && typeof overrides[app.id] === 'string' ? { enabled: true, download_url: overrides[app.id], tutorial_url: '' } : null);
+    const isEnabled = appCfg ? (appCfg.enabled !== false) : false;
+    const downloadUrl = (appCfg && appCfg.download_url) ? appCfg.download_url.trim() : '';
+    const tutorialUrl = (appCfg && appCfg.tutorial_url) ? appCfg.tutorial_url.trim() : '';
+    return { ...app, isEnabled, downloadUrl, tutorialUrl };
+  }).filter(app => app.isEnabled && app.downloadUrl);
+
+  if (activeApps.length === 0) {
+    listContainer.innerHTML = `
+      <div class="py-8 px-4 text-center space-y-2.5">
+        <div class="w-12 h-12 rounded-2xl bg-slate-800/80 border border-slate-700/80 mx-auto flex items-center justify-center text-2xl">
+          📱
+        </div>
+        <b class="text-xs text-slate-200 block">برنامه‌ای برای نمایش یافت نشد</b>
+        <p class="text-[11px] text-slate-400 max-w-[260px] mx-auto leading-relaxed">
+          هنوز لینک دانلودی برای برنامه‌های این بخش ثبت نشده است. لطفاً از طریق پشتیبانی پیگیری فرمایید.
+        </p>
+      </div>
+    `;
+    return;
+  }
+
+  listContainer.innerHTML = activeApps.map(app => {
+    const tutorialBtnHtml = app.tutorialUrl ? `
+      <button type="button" class="btn-tutorial-app bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/40 text-[11px] font-bold py-1.5 px-2 rounded-xl transition flex items-center justify-center gap-1 active:scale-95 shadow-sm" data-url="${escapeHtml(app.tutorialUrl)}">
+        <span>📖</span> آموزش برنامه
+      </button>
+    ` : '';
+
+    const actionButtonsHtml = app.tutorialUrl ? `
+      <div class="grid grid-cols-2 gap-2 pt-1 border-t border-slate-800/80">
+        <button type="button" class="btn-download-app bg-slate-800 hover:bg-slate-750 text-slate-200 text-[11px] font-bold py-1.5 px-2 rounded-xl transition border border-slate-700/80 flex items-center justify-center gap-1 active:scale-95 shadow-sm" data-url="${escapeHtml(app.downloadUrl)}">
+          <span>📥</span> دانلود برنامه
+        </button>
+        ${tutorialBtnHtml}
+        <button type="button" class="btn-autoconnect-app col-span-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-[11px] font-bold py-1.5 px-2 rounded-xl transition flex items-center justify-center gap-1 active:scale-95 shadow-sm" data-id="${app.id}" data-name="${escapeHtml(app.name)}">
+          <span>⚡️</span> اتصال خودکار
+        </button>
+      </div>
+    ` : `
+      <div class="flex items-center gap-2 pt-1 border-t border-slate-800/80">
+        <button type="button" class="btn-download-app flex-1 bg-slate-800 hover:bg-slate-750 text-slate-200 text-[11px] font-bold py-1.5 px-2 rounded-xl transition border border-slate-700/80 flex items-center justify-center gap-1 active:scale-95 shadow-sm" data-url="${escapeHtml(app.downloadUrl)}">
+          <span>📥</span> دانلود برنامه
+        </button>
+        <button type="button" class="btn-autoconnect-app flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-[11px] font-bold py-1.5 px-2 rounded-xl transition flex items-center justify-center gap-1 active:scale-95 shadow-sm" data-id="${app.id}" data-name="${escapeHtml(app.name)}">
+          <span>⚡️</span> اتصال خودکار
+        </button>
+      </div>
+    `;
+
     return `
       <div class="tutorial-app-card bg-slate-900/80 rounded-2xl p-3 border border-slate-700/70 space-y-2.5 transition hover:border-slate-600">
         <div class="flex items-start justify-between gap-2">
@@ -562,19 +699,29 @@ function renderTutorialApps(osKey) {
             </div>
           </div>
         </div>
-        <div class="flex items-center gap-2 pt-1 border-t border-slate-800">
-          <button type="button" class="btn-download-app flex-1 bg-slate-800 hover:bg-slate-750 text-slate-200 text-[11px] font-bold py-1.5 px-2 rounded-xl transition border border-slate-700/80 flex items-center justify-center gap-1 active:scale-95 shadow-sm" data-url="${escapeHtml(downloadUrl)}">
-            <span>📥</span> دانلود برنامه
-          </button>
-          <button type="button" class="btn-autoconnect-app flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-[11px] font-bold py-1.5 px-2 rounded-xl transition flex items-center justify-center gap-1 active:scale-95 shadow-sm" data-id="${app.id}" data-name="${escapeHtml(app.name)}">
-            <span>⚡️</span> اتصال خودکار
-          </button>
-        </div>
+        ${actionButtonsHtml}
       </div>
     `;
   }).join('');
 
   listContainer.querySelectorAll('.btn-download-app').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const url = btn.getAttribute('data-url');
+      if (!url) return;
+      try {
+        if (window.Telegram?.WebApp?.openLink) {
+          window.Telegram.WebApp.openLink(url);
+        } else {
+          window.open(url, '_blank');
+        }
+      } catch (e) {
+        window.open(url, '_blank');
+      }
+      hapticFeedback('impact');
+    });
+  });
+
+  listContainer.querySelectorAll('.btn-tutorial-app').forEach(btn => {
     btn.addEventListener('click', () => {
       const url = btn.getAttribute('data-url');
       if (!url) return;

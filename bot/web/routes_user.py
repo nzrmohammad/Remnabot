@@ -695,6 +695,7 @@ async def get_user_me(request: web.Request) -> web.Response:
             "referral_enabled": store_settings.referral_enabled,
             "referral_link": ref_link,
             "tutorial_channel_url": store_settings.tutorial_channel_url,
+            "routing_tutorial_url": store_settings.routing_tutorial_url,
             "client_apps_override": store_settings.client_apps_json,
             "user": {
                 "id": telegram_id,

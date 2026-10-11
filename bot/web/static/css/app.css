@@ -1495,3 +1495,95 @@ html.theme-light #starsRateDisplay {
   margin-right: auto !important;
   margin-left: 0 !important;
 }
+
+/* ======================================================== */
+/* Profile Referral Card Theme Light Styling                */
+/* ======================================================== */
+html.theme-light #profileReferralCard,
+html.theme-light .profile-ref-card {
+  background: linear-gradient(135deg, rgba(241, 245, 249, 0.95), rgba(238, 242, 255, 0.95)) !important;
+  border-color: rgba(99, 102, 241, 0.3) !important;
+  box-shadow: 0 4px 14px rgba(99, 102, 241, 0.08) !important;
+}
+html.theme-light #profileReferralCard span.text-indigo-200 {
+  color: #312e81 !important;
+}
+html.theme-light #profileReferralCard .ref-stat-box {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
+}
+html.theme-light #profileReferralCard .ref-stat-box .text-slate-400 {
+  color: #64748b !important;
+}
+html.theme-light #profileReferralCard .ref-input-box {
+  background-color: #ffffff !important;
+  border-color: #cbd5e1 !important;
+}
+html.theme-light #profileReferralLinkInput {
+  color: #0f172a !important;
+}
+html.theme-light #profileReferralCard .text-slate-300 {
+  color: #334155 !important;
+}
+
+/* ======================================================== */
+/* Connection Guide (Tutorial Modal) Theme Light Styling   */
+/* ======================================================== */
+html.theme-light .tutorial-modal-card {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04) !important;
+}
+html.theme-light .tutorial-modal-card > div:first-child,
+html.theme-light .tutorial-modal-card > div:last-child {
+  background-color: #f8fafc !important;
+  border-color: #e2e8f0 !important;
+}
+html.theme-light .tutorial-modal-card h4.text-white {
+  color: #0f172a !important;
+}
+html.theme-light .tutorial-os-tab:not(.bg-cyan-600) {
+  color: #64748b !important;
+}
+html.theme-light .tutorial-os-tab:not(.bg-cyan-600):hover {
+  color: #0f172a !important;
+}
+html.theme-light .tutorial-app-card {
+  background-color: #f8fafc !important;
+  border-color: #e2e8f0 !important;
+}
+html.theme-light .tutorial-app-card b.text-white {
+  color: #0f172a !important;
+}
+html.theme-light .tutorial-app-card p.text-slate-300 {
+  color: #475569 !important;
+}
+html.theme-light .tutorial-app-card .bg-slate-800 {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+  color: #1e293b !important;
+}
+html.theme-light .tutorial-app-card .btn-download-app {
+  background-color: #ffffff !important;
+  border-color: #cbd5e1 !important;
+  color: #1e293b !important;
+}
+html.theme-light .tutorial-app-card .btn-download-app:hover {
+  background-color: #f1f5f9 !important;
+}
+html.theme-light #tutorialModal .bg-slate-900\/70,
+html.theme-light #tutorialModal .bg-slate-900\/90 {
+  background-color: #f1f5f9 !important;
+  border-color: #e2e8f0 !important;
+}
+html.theme-light #tutorialModal .bg-slate-900\/70 li,
+html.theme-light #tutorialModal .bg-slate-900\/70 span {
+  color: #334155 !important;
+}
+html.theme-light #tutorialCopySubBtn {
+  background-color: #ffffff !important;
+  border-color: #cbd5e1 !important;
+  color: #0891b2 !important;
+}
+

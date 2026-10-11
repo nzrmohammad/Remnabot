@@ -41,6 +41,7 @@ class StoreSettings:
     cryptobot_enabled: bool = False
     cryptobot_token: str = ""
     tutorial_channel_url: str = ""
+    routing_tutorial_url: str = ""
     client_apps_json: str = ""
 
 
@@ -100,6 +101,7 @@ async def get_store_settings(session: AsyncSession) -> StoreSettings:
         cryptobot_enabled=_bool(values.get("cryptobot_enabled"), False),
         cryptobot_token=str(values.get("cryptobot_token") or "").strip(),
         tutorial_channel_url=str(values.get("tutorial_channel_url") or "").strip(),
+        routing_tutorial_url=str(values.get("routing_tutorial_url") or "").strip(),
         client_apps_json=str(values.get("client_apps_json") or "").strip(),
     )
 
