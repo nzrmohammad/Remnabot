@@ -957,15 +957,21 @@
             </div>
 
             <!-- OS Segmented Tabs -->
-            <div class="flex bg-slate-900/90 p-1 rounded-xl border border-slate-700/80 gap-1">
-              <button type="button" onclick="switchAdminAppsTab('ios')" id="adminAppTab_ios" class="admin-app-os-tab flex-1 py-1.5 rounded-lg font-bold text-[11px] transition flex items-center justify-center gap-1 bg-cyan-600 text-white shadow">
+            <div class="flex bg-slate-900/90 p-1 rounded-xl border border-slate-700/80 gap-1 overflow-x-auto no-scrollbar">
+              <button type="button" onclick="switchAdminAppsTab('ios')" id="adminAppTab_ios" class="admin-app-os-tab flex-1 py-1.5 px-2 rounded-lg font-bold text-[11px] whitespace-nowrap transition flex items-center justify-center gap-1 bg-cyan-600 text-white shadow">
                 <span>🍏</span> iOS
               </button>
-              <button type="button" onclick="switchAdminAppsTab('android')" id="adminAppTab_android" class="admin-app-os-tab flex-1 py-1.5 rounded-lg font-medium text-[11px] text-slate-400 hover:text-slate-200 transition flex items-center justify-center gap-1">
+              <button type="button" onclick="switchAdminAppsTab('android')" id="adminAppTab_android" class="admin-app-os-tab flex-1 py-1.5 px-2 rounded-lg font-medium text-[11px] whitespace-nowrap text-slate-400 hover:text-slate-200 transition flex items-center justify-center gap-1">
                 <span>🤖</span> اندروید
               </button>
-              <button type="button" onclick="switchAdminAppsTab('desktop')" id="adminAppTab_desktop" class="admin-app-os-tab flex-1 py-1.5 rounded-lg font-medium text-[11px] text-slate-400 hover:text-slate-200 transition flex items-center justify-center gap-1">
-                <span>🪟</span> دسکتاپ
+              <button type="button" onclick="switchAdminAppsTab('windows')" id="adminAppTab_windows" class="admin-app-os-tab flex-1 py-1.5 px-2 rounded-lg font-medium text-[11px] whitespace-nowrap text-slate-400 hover:text-slate-200 transition flex items-center justify-center gap-1">
+                <span>🪟</span> ویندوز
+              </button>
+              <button type="button" onclick="switchAdminAppsTab('macos')" id="adminAppTab_macos" class="admin-app-os-tab flex-1 py-1.5 px-2 rounded-lg font-medium text-[11px] whitespace-nowrap text-slate-400 hover:text-slate-200 transition flex items-center justify-center gap-1">
+                <span>🍎</span> مک
+              </button>
+              <button type="button" onclick="switchAdminAppsTab('linux')" id="adminAppTab_linux" class="admin-app-os-tab flex-1 py-1.5 px-2 rounded-lg font-medium text-[11px] whitespace-nowrap text-slate-400 hover:text-slate-200 transition flex items-center justify-center gap-1">
+                <span>🐧</span> لینوکس
               </button>
             </div>
 
@@ -1165,15 +1171,15 @@
               </div>
             </div>
 
-            <!-- PANE: Desktop Apps (v2rayN, Hiddify, Happ, Incy) -->
-            <div id="adminAppsPane_desktop" class="admin-apps-pane space-y-2.5 hidden">
-              <!-- Recommended App Selector: Desktop -->
+            <!-- PANE: Windows Apps (v2rayN, Hiddify, Happ, Incy) -->
+            <div id="adminAppsPane_windows" class="admin-apps-pane space-y-2.5 hidden">
+              <!-- Recommended App Selector: Windows -->
               <div class="flex items-center justify-between p-2.5 bg-slate-900/60 rounded-2xl border border-slate-700/60">
                 <div class="flex items-center gap-2">
                   <span class="text-sm">⭐️</span>
-                  <span class="text-[11px] text-slate-300 font-medium">برنامه پیشنهادی دسکتاپ:</span>
+                  <span class="text-[11px] text-slate-300 font-medium">برنامه پیشنهادی ویندوز:</span>
                 </div>
-                <select id="appRecommended_desktop" class="bg-slate-800 text-cyan-300 border border-slate-700 rounded-xl px-2.5 py-1 text-xs outline-none focus:border-cyan-500 transition font-medium">
+                <select id="appRecommended_windows" class="bg-slate-800 text-cyan-300 border border-slate-700 rounded-xl px-2.5 py-1 text-xs outline-none focus:border-cyan-500 transition font-medium">
                   <option value="">بدون برنامه پیشنهادی</option>
                   <option value="v2rayn">v2rayN</option>
                   <option value="hiddify">Hiddify</option>
@@ -1181,6 +1187,7 @@
                   <option value="incy">Incy</option>
                 </select>
               </div>
+
               <!-- v2rayN -->
               <div class="p-3 rounded-2xl border border-slate-700/50 space-y-2 bg-transparent">
                 <div class="flex items-center gap-2">
@@ -1188,16 +1195,20 @@
                   <b class="text-white text-xs">v2rayN</b>
                 </div>
                 <div>
-                  <label class="text-[10px] text-slate-400 block mb-1">لینک دانلود نرم‌افزار (گیت‌هاب):</label>
-                  <input type="text" id="appDownload_desktop_v2rayn" dir="ltr" placeholder="پیش‌فرض خالی (عدم نمایش)" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-cyan-300 outline-none focus:border-cyan-500 transition" />
+                  <label class="text-[10px] text-slate-400 block mb-1">لینک دانلود نسخه اصلی / نصبی (Setup):</label>
+                  <input type="text" id="appDownload_windows_v2rayn" dir="ltr" placeholder="پیش‌فرض خالی (عدم نمایش)" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-cyan-300 outline-none focus:border-cyan-500 transition" />
                 </div>
                 <div>
-                  <label class="text-[10px] text-slate-400 block mb-1">لینک دانلود کمکی / مستقیم (اختیاری):</label>
-                  <input type="text" id="appDownloadExtra_desktop_v2rayn" dir="ltr" placeholder="لینک دوم یا فایل zip" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-purple-300 outline-none focus:border-purple-500 transition" />
+                  <label class="text-[10px] text-amber-300 block mb-1">💼 لینک دانلود نسخه پرتابل (Portable - بدون نیاز به نصب):</label>
+                  <input type="text" id="appDownloadPortable_windows_v2rayn" dir="ltr" placeholder="مثلاً: https://github.com/.../v2rayN-portable.zip" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-amber-300 outline-none focus:border-amber-500 transition" />
+                </div>
+                <div>
+                  <label class="text-[10px] text-slate-400 block mb-1">لینک کمکی / گیت‌هاب (اختیاری):</label>
+                  <input type="text" id="appDownloadExtra_windows_v2rayn" dir="ltr" placeholder="لینک دوم یا مستقیم" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-purple-300 outline-none focus:border-purple-500 transition" />
                 </div>
                 <div>
                   <label class="text-[10px] text-slate-400 block mb-1">لینک پست آموزش v2rayN (اختیاری):</label>
-                  <input type="text" id="appTutorial_desktop_v2rayn" dir="ltr" placeholder="مثلاً: https://t.me/..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-emerald-300 outline-none focus:border-emerald-500 transition" />
+                  <input type="text" id="appTutorial_windows_v2rayn" dir="ltr" placeholder="مثلاً: https://t.me/..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-emerald-300 outline-none focus:border-emerald-500 transition" />
                 </div>
               </div>
 
@@ -1208,16 +1219,20 @@
                   <b class="text-white text-xs">Hiddify</b>
                 </div>
                 <div>
-                  <label class="text-[10px] text-slate-400 block mb-1">لینک دانلود نرم‌افزار (دسکتاپ):</label>
-                  <input type="text" id="appDownload_desktop_hiddify" dir="ltr" placeholder="پیش‌فرض خالی (عدم نمایش)" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-cyan-300 outline-none focus:border-cyan-500 transition" />
+                  <label class="text-[10px] text-slate-400 block mb-1">لینک دانلود نسخه اصلی / نصبی (Setup):</label>
+                  <input type="text" id="appDownload_windows_hiddify" dir="ltr" placeholder="پیش‌فرض خالی (عدم نمایش)" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-cyan-300 outline-none focus:border-cyan-500 transition" />
                 </div>
                 <div>
-                  <label class="text-[10px] text-slate-400 block mb-1">لینک دانلود کمکی / گیت‌هاب (اختیاری):</label>
-                  <input type="text" id="appDownloadExtra_desktop_hiddify" dir="ltr" placeholder="لینک دوم یا مستقیم" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-purple-300 outline-none focus:border-purple-500 transition" />
+                  <label class="text-[10px] text-amber-300 block mb-1">💼 لینک دانلود نسخه پرتابل (Portable - بدون نیاز به نصب):</label>
+                  <input type="text" id="appDownloadPortable_windows_hiddify" dir="ltr" placeholder="لینک نسخه بدون نصب" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-amber-300 outline-none focus:border-amber-500 transition" />
+                </div>
+                <div>
+                  <label class="text-[10px] text-slate-400 block mb-1">لینک کمکی / گیت‌هاب (اختیاری):</label>
+                  <input type="text" id="appDownloadExtra_windows_hiddify" dir="ltr" placeholder="لینک دوم یا مستقیم" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-purple-300 outline-none focus:border-purple-500 transition" />
                 </div>
                 <div>
                   <label class="text-[10px] text-slate-400 block mb-1">لینک پست آموزش Hiddify (اختیاری):</label>
-                  <input type="text" id="appTutorial_desktop_hiddify" dir="ltr" placeholder="مثلاً: https://t.me/..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-emerald-300 outline-none focus:border-emerald-500 transition" />
+                  <input type="text" id="appTutorial_windows_hiddify" dir="ltr" placeholder="مثلاً: https://t.me/..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-emerald-300 outline-none focus:border-emerald-500 transition" />
                 </div>
               </div>
 
@@ -1228,16 +1243,20 @@
                   <b class="text-white text-xs">Happ</b>
                 </div>
                 <div>
-                  <label class="text-[10px] text-slate-400 block mb-1">لینک دانلود نرم‌افزار (دسکتاپ):</label>
-                  <input type="text" id="appDownload_desktop_happ" dir="ltr" placeholder="پیش‌فرض خالی (عدم نمایش)" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-cyan-300 outline-none focus:border-cyan-500 transition" />
+                  <label class="text-[10px] text-slate-400 block mb-1">لینک دانلود نسخه اصلی / نصبی (Setup):</label>
+                  <input type="text" id="appDownload_windows_happ" dir="ltr" placeholder="پیش‌فرض خالی (عدم نمایش)" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-cyan-300 outline-none focus:border-cyan-500 transition" />
                 </div>
                 <div>
-                  <label class="text-[10px] text-slate-400 block mb-1">لینک دانلود کمکی (اختیاری):</label>
-                  <input type="text" id="appDownloadExtra_desktop_happ" dir="ltr" placeholder="لینک دوم یا مستقیم" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-purple-300 outline-none focus:border-purple-500 transition" />
+                  <label class="text-[10px] text-amber-300 block mb-1">💼 لینک دانلود نسخه پرتابل (Portable - بدون نیاز به نصب):</label>
+                  <input type="text" id="appDownloadPortable_windows_happ" dir="ltr" placeholder="لینک نسخه بدون نصب" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-amber-300 outline-none focus:border-amber-500 transition" />
+                </div>
+                <div>
+                  <label class="text-[10px] text-slate-400 block mb-1">لینک کمکی / گیت‌هاب (اختیاری):</label>
+                  <input type="text" id="appDownloadExtra_windows_happ" dir="ltr" placeholder="لینک دوم یا مستقیم" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-purple-300 outline-none focus:border-purple-500 transition" />
                 </div>
                 <div>
                   <label class="text-[10px] text-slate-400 block mb-1">لینک پست آموزش Happ (اختیاری):</label>
-                  <input type="text" id="appTutorial_desktop_happ" dir="ltr" placeholder="مثلاً: https://t.me/..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-emerald-300 outline-none focus:border-emerald-500 transition" />
+                  <input type="text" id="appTutorial_windows_happ" dir="ltr" placeholder="مثلاً: https://t.me/..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-emerald-300 outline-none focus:border-emerald-500 transition" />
                 </div>
               </div>
 
@@ -1248,16 +1267,216 @@
                   <b class="text-white text-xs">Incy</b>
                 </div>
                 <div>
-                  <label class="text-[10px] text-slate-400 block mb-1">لینک دانلود نرم‌افزار (دسکتاپ):</label>
-                  <input type="text" id="appDownload_desktop_incy" dir="ltr" placeholder="پیش‌فرض خالی (عدم نمایش)" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-cyan-300 outline-none focus:border-cyan-500 transition" />
+                  <label class="text-[10px] text-slate-400 block mb-1">لینک دانلود نسخه اصلی / نصبی (Setup):</label>
+                  <input type="text" id="appDownload_windows_incy" dir="ltr" placeholder="پیش‌فرض خالی (عدم نمایش)" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-cyan-300 outline-none focus:border-cyan-500 transition" />
                 </div>
                 <div>
-                  <label class="text-[10px] text-slate-400 block mb-1">لینک دانلود کمکی (اختیاری):</label>
-                  <input type="text" id="appDownloadExtra_desktop_incy" dir="ltr" placeholder="لینک دوم یا مستقیم" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-purple-300 outline-none focus:border-purple-500 transition" />
+                  <label class="text-[10px] text-amber-300 block mb-1">💼 لینک دانلود نسخه پرتابل (Portable - بدون نیاز به نصب):</label>
+                  <input type="text" id="appDownloadPortable_windows_incy" dir="ltr" placeholder="لینک نسخه بدون نصب" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-amber-300 outline-none focus:border-amber-500 transition" />
+                </div>
+                <div>
+                  <label class="text-[10px] text-slate-400 block mb-1">لینک کمکی / گیت‌هاب (اختیاری):</label>
+                  <input type="text" id="appDownloadExtra_windows_incy" dir="ltr" placeholder="لینک دوم یا مستقیم" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-purple-300 outline-none focus:border-purple-500 transition" />
                 </div>
                 <div>
                   <label class="text-[10px] text-slate-400 block mb-1">لینک پست آموزش Incy (اختیاری):</label>
-                  <input type="text" id="appTutorial_desktop_incy" dir="ltr" placeholder="مثلاً: https://t.me/..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-emerald-300 outline-none focus:border-emerald-500 transition" />
+                  <input type="text" id="appTutorial_windows_incy" dir="ltr" placeholder="مثلاً: https://t.me/..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-emerald-300 outline-none focus:border-emerald-500 transition" />
+                </div>
+              </div>
+            </div>
+
+            <!-- PANE: macOS Apps (Hiddify, Happ, Incy, V2Box) -->
+            <div id="adminAppsPane_macos" class="admin-apps-pane space-y-2.5 hidden">
+              <!-- Recommended App Selector: macOS -->
+              <div class="flex items-center justify-between p-2.5 bg-slate-900/60 rounded-2xl border border-slate-700/60">
+                <div class="flex items-center gap-2">
+                  <span class="text-sm">⭐️</span>
+                  <span class="text-[11px] text-slate-300 font-medium">برنامه پیشنهادی مک (macOS):</span>
+                </div>
+                <select id="appRecommended_macos" class="bg-slate-800 text-cyan-300 border border-slate-700 rounded-xl px-2.5 py-1 text-xs outline-none focus:border-cyan-500 transition font-medium">
+                  <option value="">بدون برنامه پیشنهادی</option>
+                  <option value="hiddify">Hiddify</option>
+                  <option value="happ">Happ</option>
+                  <option value="incy">Incy</option>
+                  <option value="v2box">V2Box</option>
+                </select>
+              </div>
+
+              <!-- Hiddify (macOS) -->
+              <div class="p-3 rounded-2xl border border-slate-700/50 space-y-2 bg-transparent">
+                <div class="flex items-center gap-2">
+                  <img src="/static/img/apps/hiddify.png" class="w-5 h-5 rounded-md object-contain" alt="Hiddify" onerror="this.style.display='none'" />
+                  <b class="text-white text-xs">Hiddify</b>
+                </div>
+                <div>
+                  <label class="text-[10px] text-slate-400 block mb-1">لینک دانلود نرم‌افزار:</label>
+                  <input type="text" id="appDownload_macos_hiddify" dir="ltr" placeholder="پیش‌فرض خالی (عدم نمایش)" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-cyan-300 outline-none focus:border-cyan-500 transition" />
+                </div>
+                <div>
+                  <label class="text-[10px] text-slate-400 block mb-1">لینک کمکی / گیت‌هاب (اختیاری):</label>
+                  <input type="text" id="appDownloadExtra_macos_hiddify" dir="ltr" placeholder="لینک دوم یا مستقیم" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-purple-300 outline-none focus:border-purple-500 transition" />
+                </div>
+                <div>
+                  <label class="text-[10px] text-slate-400 block mb-1">لینک پست آموزش Hiddify (اختیاری):</label>
+                  <input type="text" id="appTutorial_macos_hiddify" dir="ltr" placeholder="مثلاً: https://t.me/..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-emerald-300 outline-none focus:border-emerald-500 transition" />
+                </div>
+              </div>
+
+              <!-- Happ (macOS) -->
+              <div class="p-3 rounded-2xl border border-slate-700/50 space-y-2 bg-transparent">
+                <div class="flex items-center gap-2">
+                  <img src="/static/img/apps/happ.png" class="w-5 h-5 rounded-md object-contain" alt="Happ" onerror="this.style.display='none'" />
+                  <b class="text-white text-xs">Happ</b>
+                </div>
+                <div>
+                  <label class="text-[10px] text-slate-400 block mb-1">لینک دانلود نرم‌افزار:</label>
+                  <input type="text" id="appDownload_macos_happ" dir="ltr" placeholder="پیش‌فرض خالی (عدم نمایش)" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-cyan-300 outline-none focus:border-cyan-500 transition" />
+                </div>
+                <div>
+                  <label class="text-[10px] text-slate-400 block mb-1">لینک کمکی (اختیاری):</label>
+                  <input type="text" id="appDownloadExtra_macos_happ" dir="ltr" placeholder="لینک دوم یا مستقیم" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-purple-300 outline-none focus:border-purple-500 transition" />
+                </div>
+                <div>
+                  <label class="text-[10px] text-slate-400 block mb-1">لینک پست آموزش Happ (اختیاری):</label>
+                  <input type="text" id="appTutorial_macos_happ" dir="ltr" placeholder="مثلاً: https://t.me/..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-emerald-300 outline-none focus:border-emerald-500 transition" />
+                </div>
+              </div>
+
+              <!-- Incy (macOS) -->
+              <div class="p-3 rounded-2xl border border-slate-700/50 space-y-2 bg-transparent">
+                <div class="flex items-center gap-2">
+                  <img src="/static/img/apps/incy.png" class="w-5 h-5 rounded-md object-contain" alt="Incy" onerror="this.style.display='none'" />
+                  <b class="text-white text-xs">Incy</b>
+                </div>
+                <div>
+                  <label class="text-[10px] text-slate-400 block mb-1">لینک دانلود نرم‌افزار:</label>
+                  <input type="text" id="appDownload_macos_incy" dir="ltr" placeholder="پیش‌فرض خالی (عدم نمایش)" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-cyan-300 outline-none focus:border-cyan-500 transition" />
+                </div>
+                <div>
+                  <label class="text-[10px] text-slate-400 block mb-1">لینک کمکی (اختیاری):</label>
+                  <input type="text" id="appDownloadExtra_macos_incy" dir="ltr" placeholder="لینک دوم یا مستقیم" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-purple-300 outline-none focus:border-purple-500 transition" />
+                </div>
+                <div>
+                  <label class="text-[10px] text-slate-400 block mb-1">لینک پست آموزش Incy (اختیاری):</label>
+                  <input type="text" id="appTutorial_macos_incy" dir="ltr" placeholder="مثلاً: https://t.me/..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-emerald-300 outline-none focus:border-emerald-500 transition" />
+                </div>
+              </div>
+
+              <!-- V2Box (macOS) -->
+              <div class="p-3 rounded-2xl border border-slate-700/50 space-y-2 bg-transparent">
+                <div class="flex items-center gap-2">
+                  <img src="/static/img/apps/v2box.png" class="w-5 h-5 rounded-md object-contain" alt="V2Box" onerror="this.style.display='none'" />
+                  <b class="text-white text-xs">V2Box</b>
+                </div>
+                <div>
+                  <label class="text-[10px] text-slate-400 block mb-1">لینک دانلود نرم‌افزار (اپ‌استور مک):</label>
+                  <input type="text" id="appDownload_macos_v2box" dir="ltr" placeholder="پیش‌فرض خالی (عدم نمایش)" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-cyan-300 outline-none focus:border-cyan-500 transition" />
+                </div>
+                <div>
+                  <label class="text-[10px] text-slate-400 block mb-1">لینک کمکی (اختیاری):</label>
+                  <input type="text" id="appDownloadExtra_macos_v2box" dir="ltr" placeholder="لینک دوم یا مستقیم" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-purple-300 outline-none focus:border-purple-500 transition" />
+                </div>
+                <div>
+                  <label class="text-[10px] text-slate-400 block mb-1">لینک پست آموزش V2Box (اختیاری):</label>
+                  <input type="text" id="appTutorial_macos_v2box" dir="ltr" placeholder="مثلاً: https://t.me/..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-emerald-300 outline-none focus:border-emerald-500 transition" />
+                </div>
+              </div>
+            </div>
+
+            <!-- PANE: Linux Apps (Hiddify, NekoRay, v2rayA, Incy) -->
+            <div id="adminAppsPane_linux" class="admin-apps-pane space-y-2.5 hidden">
+              <!-- Recommended App Selector: Linux -->
+              <div class="flex items-center justify-between p-2.5 bg-slate-900/60 rounded-2xl border border-slate-700/60">
+                <div class="flex items-center gap-2">
+                  <span class="text-sm">⭐️</span>
+                  <span class="text-[11px] text-slate-300 font-medium">برنامه پیشنهادی لینوکس:</span>
+                </div>
+                <select id="appRecommended_linux" class="bg-slate-800 text-cyan-300 border border-slate-700 rounded-xl px-2.5 py-1 text-xs outline-none focus:border-cyan-500 transition font-medium">
+                  <option value="">بدون برنامه پیشنهادی</option>
+                  <option value="hiddify">Hiddify</option>
+                  <option value="nekoray">NekoRay</option>
+                  <option value="v2raya">v2rayA</option>
+                  <option value="incy">Incy</option>
+                </select>
+              </div>
+
+              <!-- Hiddify (Linux) -->
+              <div class="p-3 rounded-2xl border border-slate-700/50 space-y-2 bg-transparent">
+                <div class="flex items-center gap-2">
+                  <img src="/static/img/apps/hiddify.png" class="w-5 h-5 rounded-md object-contain" alt="Hiddify" onerror="this.style.display='none'" />
+                  <b class="text-white text-xs">Hiddify</b>
+                </div>
+                <div>
+                  <label class="text-[10px] text-slate-400 block mb-1">لینک دانلود نرم‌افزار (AppImage / DEB):</label>
+                  <input type="text" id="appDownload_linux_hiddify" dir="ltr" placeholder="پیش‌فرض خالی (عدم نمایش)" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-cyan-300 outline-none focus:border-cyan-500 transition" />
+                </div>
+                <div>
+                  <label class="text-[10px] text-slate-400 block mb-1">لینک کمکی / گیت‌هاب (اختیاری):</label>
+                  <input type="text" id="appDownloadExtra_linux_hiddify" dir="ltr" placeholder="لینک دوم یا مستقیم" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-purple-300 outline-none focus:border-purple-500 transition" />
+                </div>
+                <div>
+                  <label class="text-[10px] text-slate-400 block mb-1">لینک پست آموزش Hiddify (اختیاری):</label>
+                  <input type="text" id="appTutorial_linux_hiddify" dir="ltr" placeholder="مثلاً: https://t.me/..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-emerald-300 outline-none focus:border-emerald-500 transition" />
+                </div>
+              </div>
+
+              <!-- NekoRay (Linux) -->
+              <div class="p-3 rounded-2xl border border-slate-700/50 space-y-2 bg-transparent">
+                <div class="flex items-center gap-2">
+                  <img src="/static/img/apps/nekoray.png" class="w-5 h-5 rounded-md object-contain" alt="NekoRay" onerror="this.style.display='none'" />
+                  <b class="text-white text-xs">NekoRay</b>
+                </div>
+                <div>
+                  <label class="text-[10px] text-slate-400 block mb-1">لینک دانلود نرم‌افزار (گیت‌هاب):</label>
+                  <input type="text" id="appDownload_linux_nekoray" dir="ltr" placeholder="پیش‌فرض خالی (عدم نمایش)" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-cyan-300 outline-none focus:border-cyan-500 transition" />
+                </div>
+                <div>
+                  <label class="text-[10px] text-slate-400 block mb-1">لینک کمکی / آرشیو (اختیاری):</label>
+                  <input type="text" id="appDownloadExtra_linux_nekoray" dir="ltr" placeholder="لینک دوم یا مستقیم" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-purple-300 outline-none focus:border-purple-500 transition" />
+                </div>
+                <div>
+                  <label class="text-[10px] text-slate-400 block mb-1">لینک پست آموزش NekoRay (اختیاری):</label>
+                  <input type="text" id="appTutorial_linux_nekoray" dir="ltr" placeholder="مثلاً: https://t.me/..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-emerald-300 outline-none focus:border-emerald-500 transition" />
+                </div>
+              </div>
+
+              <!-- v2rayA (Linux) -->
+              <div class="p-3 rounded-2xl border border-slate-700/50 space-y-2 bg-transparent">
+                <div class="flex items-center gap-2">
+                  <img src="/static/img/apps/v2raya.png" class="w-5 h-5 rounded-md object-contain" alt="v2rayA" onerror="this.style.display='none'" />
+                  <b class="text-white text-xs">v2rayA</b>
+                </div>
+                <div>
+                  <label class="text-[10px] text-slate-400 block mb-1">لینک دانلود / مخزن بسته نرم‌افزار:</label>
+                  <input type="text" id="appDownload_linux_v2raya" dir="ltr" placeholder="پیش‌فرض خالی (عدم نمایش)" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-cyan-300 outline-none focus:border-cyan-500 transition" />
+                </div>
+                <div>
+                  <label class="text-[10px] text-slate-400 block mb-1">لینک کمکی / راهنما (اختیاری):</label>
+                  <input type="text" id="appDownloadExtra_linux_v2raya" dir="ltr" placeholder="لینک دوم یا مستقیم" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-purple-300 outline-none focus:border-purple-500 transition" />
+                </div>
+                <div>
+                  <label class="text-[10px] text-slate-400 block mb-1">لینک پست آموزش v2rayA (اختیاری):</label>
+                  <input type="text" id="appTutorial_linux_v2raya" dir="ltr" placeholder="مثلاً: https://t.me/..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-emerald-300 outline-none focus:border-emerald-500 transition" />
+                </div>
+              </div>
+
+              <!-- Incy (Linux) -->
+              <div class="p-3 rounded-2xl border border-slate-700/50 space-y-2 bg-transparent">
+                <div class="flex items-center gap-2">
+                  <img src="/static/img/apps/incy.png" class="w-5 h-5 rounded-md object-contain" alt="Incy" onerror="this.style.display='none'" />
+                  <b class="text-white text-xs">Incy</b>
+                </div>
+                <div>
+                  <label class="text-[10px] text-slate-400 block mb-1">لینک دانلود نرم‌افزار:</label>
+                  <input type="text" id="appDownload_linux_incy" dir="ltr" placeholder="پیش‌فرض خالی (عدم نمایش)" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-cyan-300 outline-none focus:border-cyan-500 transition" />
+                </div>
+                <div>
+                  <label class="text-[10px] text-slate-400 block mb-1">لینک کمکی (اختیاری):</label>
+                  <input type="text" id="appDownloadExtra_linux_incy" dir="ltr" placeholder="لینک دوم یا مستقیم" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-purple-300 outline-none focus:border-purple-500 transition" />
+                </div>
+                <div>
+                  <label class="text-[10px] text-slate-400 block mb-1">لینک پست آموزش Incy (اختیاری):</label>
+                  <input type="text" id="appTutorial_linux_incy" dir="ltr" placeholder="مثلاً: https://t.me/..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-emerald-300 outline-none focus:border-emerald-500 transition" />
                 </div>
               </div>
             </div>

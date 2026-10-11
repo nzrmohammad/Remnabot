@@ -438,37 +438,99 @@ const CLIENT_APPS_DATA = {
       scheme: (url) => `incy://import/${url}`
     }
   ],
-  desktop: [
+  windows: [
     {
       id: 'v2rayn',
       name: 'v2rayN',
-      desc: 'قدرتمندترین کلاینت ویندوز با پشتیبانی کامل از انواع کانفیگ‌ها',
+      desc: 'قدرتمندترین کلاینت ویندوز با پشتیبانی کامل از انواع پروتکل‌ها',
       icon: '🪟',
       scheme: null
     },
     {
       id: 'hiddify',
       name: 'Hiddify',
-      desc: 'نرم‌افزار مدرن مشترک ویندوز و مک با محیط ساده و تست پینگ',
+      desc: 'نرم‌افزار مدرن ویندوز با قابلیت فعال‌سازی سرویس TUN و تست پینگ',
       icon: '✨',
       scheme: (url) => `hiddify://install-sub?url=${encodeURIComponent(url)}`
     },
     {
       id: 'happ',
       name: 'Happ',
-      desc: 'نسخه دسکتاپ اپلیکیشن Happ با کاربری بسیار سریع و سبک',
+      desc: 'نسخه ویندوز اپلیکیشن Happ با محیط سبک، مدرن و سرعت بالا',
       icon: '🚀',
       scheme: (url) => `happ://add/${url}`
     },
     {
       id: 'incy',
       name: 'Incy',
-      desc: 'کلاینت مینیمال برای اتصال فوری و بدون دردسر در کامپیوتر و لپ‌تاپ',
+      desc: 'کلاینت سبک برای اتصال فوری و بدون دردسر در کامپیوتر و لپ‌تاپ',
       icon: '⚡',
       scheme: null
     }
+  ],
+  macos: [
+    {
+      id: 'hiddify',
+      name: 'Hiddify',
+      desc: 'نسخه مک کلاینت Hiddify با پشتیبانی از پردازنده‌های Apple Silicon و اینتل',
+      icon: '✨',
+      scheme: (url) => `hiddify://install-sub?url=${encodeURIComponent(url)}`
+    },
+    {
+      id: 'happ',
+      name: 'Happ',
+      desc: 'کلاینت پرسرعت و سبک ویژه macOS با رابط مینیمال و اتصال فوری',
+      icon: '🚀',
+      scheme: (url) => `happ://add/${url}`
+    },
+    {
+      id: 'incy',
+      name: 'Incy',
+      desc: 'نرم‌افزار زیبا و ساده سازگار با تمامی نسخه‌های مک',
+      icon: '⚡',
+      scheme: (url) => `incy://import/${url}`
+    },
+    {
+      id: 'v2box',
+      name: 'V2Box',
+      desc: 'نسخه مک اپلیکیشن باسابقه V2Box در اپ‌استور با تست پینگ',
+      icon: '📦',
+      scheme: (url) => `v2box://install-sub?url=${encodeURIComponent(url)}&name=RemnaVPN`
+    }
+  ],
+  linux: [
+    {
+      id: 'hiddify',
+      name: 'Hiddify',
+      desc: 'کلاینت مدرن لینوکس در قالب بسته‌های AppImage و deb با هسته پیشرفته',
+      icon: '✨',
+      scheme: (url) => `hiddify://install-sub?url=${encodeURIComponent(url)}`
+    },
+    {
+      id: 'nekoray',
+      name: 'NekoRay',
+      desc: 'کلاینت محبوب و قدرتمند لینوکس با پشتیبانی کامل از sing-box و Xray',
+      icon: '🐱',
+      scheme: null
+    },
+    {
+      id: 'v2raya',
+      name: 'v2rayA',
+      desc: 'کلاینت تحت وب با سرویس سیستمی و هدایت شفاف ترافیک در لینوکس',
+      icon: '🐧',
+      scheme: null
+    },
+    {
+      id: 'incy',
+      name: 'Incy',
+      desc: 'کلاینت سبک و مدرن برای توزیع‌های مختلف لینوکس',
+      icon: '⚡',
+      scheme: (url) => `incy://import/${url}`
+    }
   ]
 };
+// Backward compatibility mirror
+CLIENT_APPS_DATA.desktop = CLIENT_APPS_DATA.windows;
 
 function detectUserOS() {
   const ua = navigator.userAgent || '';
@@ -478,7 +540,13 @@ function detectUserOS() {
   if (/Android/i.test(ua)) {
     return 'android';
   }
-  return 'desktop';
+  if (/Macintosh|MacIntel|MacPPC|Mac68K/i.test(ua)) {
+    return 'macos';
+  }
+  if (/Linux/i.test(ua)) {
+    return 'linux';
+  }
+  return 'windows';
 }
 
 let currentTutorialOS = 'ios';
@@ -509,14 +577,14 @@ function renderTutorialApps(osKey) {
   document.querySelectorAll('.tutorial-os-tab').forEach(tab => {
     const isTarget = tab.getAttribute('data-os') === currentTutorialOS;
     if (isTarget) {
-      tab.className = 'tutorial-os-tab flex-1 py-1.5 px-2 rounded-xl font-bold text-[11px] transition flex items-center justify-center gap-1 bg-cyan-600 text-white shadow';
+      tab.className = 'tutorial-os-tab flex-1 py-1.5 px-2 rounded-xl font-bold text-[11px] whitespace-nowrap transition flex items-center justify-center gap-1 bg-cyan-600 text-white shadow';
     } else {
-      tab.className = 'tutorial-os-tab flex-1 py-1.5 px-2 rounded-xl font-medium text-[11px] text-slate-400 hover:text-slate-200 transition flex items-center justify-center gap-1';
+      tab.className = 'tutorial-os-tab flex-1 py-1.5 px-2 rounded-xl font-medium text-[11px] whitespace-nowrap text-slate-400 hover:text-slate-200 transition flex items-center justify-center gap-1';
     }
   });
 
   // OS Apps Rendering
-  const allApps = CLIENT_APPS_DATA[currentTutorialOS] || [];
+  const allApps = CLIENT_APPS_DATA[currentTutorialOS] || CLIENT_APPS_DATA.windows || [];
 
   let overrides = {};
   if (window.lastUserData?.client_apps_override) {
@@ -527,19 +595,21 @@ function renderTutorialApps(osKey) {
     } catch (e) {}
   }
 
-  const recommendedAppId = overrides?.recommended?.[currentTutorialOS] || '';
+  const recommendedAppId = overrides?.recommended?.[currentTutorialOS] || (currentTutorialOS === 'windows' ? overrides?.recommended?.desktop : '') || '';
 
   // Filter apps: only show if enabled and has a download URL set by admin
   const activeApps = allApps.map(app => {
-    const appCfg = (overrides && overrides[currentTutorialOS] && overrides[currentTutorialOS][app.id])
+    const osOverrides = (overrides && overrides[currentTutorialOS]) || (currentTutorialOS === 'windows' ? overrides?.desktop : null);
+    const appCfg = (osOverrides && osOverrides[app.id])
       || (overrides && typeof overrides[app.id] === 'string' ? { enabled: true, download_url: overrides[app.id], tutorial_url: '' } : null);
     const downloadUrl = (appCfg && appCfg.download_url) ? appCfg.download_url.trim() : '';
+    const downloadPortableUrl = (appCfg && appCfg.download_portable_url) ? appCfg.download_portable_url.trim() : '';
     const downloadExtraUrl = (appCfg && appCfg.download_extra_url) ? appCfg.download_extra_url.trim() : '';
-    const isEnabled = appCfg ? (appCfg.enabled !== false && Boolean(downloadUrl || downloadExtraUrl)) : false;
+    const isEnabled = appCfg ? (appCfg.enabled !== false && Boolean(downloadUrl || downloadPortableUrl || downloadExtraUrl)) : false;
     const tutorialUrl = (appCfg && appCfg.tutorial_url) ? appCfg.tutorial_url.trim() : '';
     const isRecommended = Boolean(recommendedAppId && recommendedAppId.toLowerCase() === app.id.toLowerCase());
-    return { ...app, isEnabled, downloadUrl, downloadExtraUrl, tutorialUrl, isRecommended };
-  }).filter(app => app.isEnabled && (app.downloadUrl || app.downloadExtraUrl));
+    return { ...app, isEnabled, downloadUrl, downloadPortableUrl, downloadExtraUrl, tutorialUrl, isRecommended };
+  }).filter(app => app.isEnabled && (app.downloadUrl || app.downloadPortableUrl || app.downloadExtraUrl));
 
   // Recommended app comes first in the list
   activeApps.sort((a, b) => (b.isRecommended ? 1 : 0) - (a.isRecommended ? 1 : 0));
@@ -552,7 +622,7 @@ function renderTutorialApps(osKey) {
         </div>
         <b class="text-xs text-slate-200 block">برنامه‌ای برای نمایش یافت نشد</b>
         <p class="text-[11px] text-slate-400 max-w-[260px] mx-auto leading-relaxed">
-          هنوز لینک دانلودی برای برنامه‌های این بخش ثبت نشده است. لطفاً از طریق پشتیبانی پیگیری فرمایید.
+          هنوز لینک دانلودی برای برنامه‌های این سیستم‌عامل ثبت نشده است. لطفاً از طریق پشتیبانی پیگیری فرمایید.
         </p>
       </div>
     `;
@@ -560,28 +630,59 @@ function renderTutorialApps(osKey) {
   }
 
   listContainer.innerHTML = activeApps.map(app => {
-    const hasDownload1 = Boolean(app.downloadUrl);
-    const hasDownload2 = Boolean(app.downloadExtraUrl);
-    const hasBothDownloads = hasDownload1 && hasDownload2;
+    const dlButtons = [];
+    if (app.downloadUrl) {
+      const d = getDownloadButtonInfo(app.downloadUrl, 'دانلود اصلی', '📥');
+      dlButtons.push({ url: app.downloadUrl, label: d.label, icon: d.icon });
+    }
+    if (app.downloadPortableUrl) {
+      dlButtons.push({ url: app.downloadPortableUrl, label: 'نسخه پرتابل (Portable)', icon: '💼' });
+    }
+    if (app.downloadExtraUrl) {
+      const d = getDownloadButtonInfo(app.downloadExtraUrl, 'گیت‌هاب / کمکی', '🐙');
+      dlButtons.push({ url: app.downloadExtraUrl, label: d.label, icon: d.icon });
+    }
+
+    const tutorialBtnHtml = app.tutorialUrl ? `
+      <button type="button" class="btn-tutorial-app bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/40 text-[10.5px] font-bold py-1.5 px-2 rounded-xl transition flex items-center justify-center gap-1 active:scale-95 shadow-sm" data-url="${escapeHtml(app.tutorialUrl)}">
+        <span>📖</span> آموزش
+      </button>
+    ` : '';
 
     let actionButtonsHtml = '';
 
-    if (hasBothDownloads) {
-      const d1 = getDownloadButtonInfo(app.downloadUrl, 'دانلود اصلی', '📥');
-      const d2 = getDownloadButtonInfo(app.downloadExtraUrl, 'گیت‌هاب / مستقیم', '🐙');
-      const tutorialBtnHtml = app.tutorialUrl ? `
-        <button type="button" class="btn-tutorial-app bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/40 text-[10.5px] font-bold py-1.5 px-2 rounded-xl transition flex items-center justify-center gap-1 active:scale-95 shadow-sm" data-url="${escapeHtml(app.tutorialUrl)}">
-          <span>📖</span> آموزش
-        </button>
-      ` : '';
-
+    if (dlButtons.length === 1) {
+      const d = dlButtons[0];
+      actionButtonsHtml = app.tutorialUrl ? `
+        <div class="grid grid-cols-2 gap-1.5 pt-1 border-t border-slate-800/60">
+          <button type="button" class="btn-download-app bg-slate-800 hover:bg-slate-750 text-slate-200 text-[10.5px] font-bold py-1.5 px-2 rounded-xl transition border border-slate-700/80 flex items-center justify-center gap-1 active:scale-95 shadow-sm truncate" data-url="${escapeHtml(d.url)}">
+            <span>${d.icon}</span> <span class="truncate">${d.label}</span>
+          </button>
+          ${tutorialBtnHtml}
+          <button type="button" class="btn-autoconnect-app col-span-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-[10.5px] font-bold py-1.5 px-2 rounded-xl transition flex items-center justify-center gap-1 active:scale-95 shadow-sm" data-id="${app.id}" data-name="${escapeHtml(app.name)}">
+            <span>⚡️</span> اتصال خودکار
+          </button>
+        </div>
+      ` : `
+        <div class="flex items-center gap-1.5 pt-1 border-t border-slate-800/60">
+          <button type="button" class="btn-download-app flex-1 bg-slate-800 hover:bg-slate-750 text-slate-200 text-[10.5px] font-bold py-1.5 px-2 rounded-xl transition border border-slate-700/80 flex items-center justify-center gap-1 active:scale-95 shadow-sm truncate" data-url="${escapeHtml(d.url)}">
+            <span>${d.icon}</span> <span class="truncate">${d.label}</span>
+          </button>
+          <button type="button" class="btn-autoconnect-app flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-[10.5px] font-bold py-1.5 px-2 rounded-xl transition flex items-center justify-center gap-1 active:scale-95 shadow-sm" data-id="${app.id}" data-name="${escapeHtml(app.name)}">
+            <span>⚡️</span> اتصال خودکار
+          </button>
+        </div>
+      `;
+    } else if (dlButtons.length === 2) {
+      const d1 = dlButtons[0];
+      const d2 = dlButtons[1];
       actionButtonsHtml = `
         <div class="space-y-1.5 pt-1 border-t border-slate-800/60">
           <div class="grid grid-cols-2 gap-1.5">
-            <button type="button" class="btn-download-app bg-slate-800 hover:bg-slate-750 text-slate-200 text-[10.5px] font-bold py-1.5 px-2 rounded-xl transition border border-slate-700/80 flex items-center justify-center gap-1.5 active:scale-95 shadow-sm truncate" data-url="${escapeHtml(app.downloadUrl)}">
+            <button type="button" class="btn-download-app bg-slate-800 hover:bg-slate-750 text-slate-200 text-[10.5px] font-bold py-1.5 px-2 rounded-xl transition border border-slate-700/80 flex items-center justify-center gap-1.5 active:scale-95 shadow-sm truncate" data-url="${escapeHtml(d1.url)}">
               <span>${d1.icon}</span> <span class="truncate">${d1.label}</span>
             </button>
-            <button type="button" class="btn-download-app bg-slate-800 hover:bg-slate-750 text-slate-200 text-[10.5px] font-bold py-1.5 px-2 rounded-xl transition border border-slate-700/80 flex items-center justify-center gap-1.5 active:scale-95 shadow-sm truncate" data-url="${escapeHtml(app.downloadExtraUrl)}">
+            <button type="button" class="btn-download-app bg-slate-800 hover:bg-slate-750 text-slate-200 text-[10.5px] font-bold py-1.5 px-2 rounded-xl transition border border-slate-700/80 flex items-center justify-center gap-1.5 active:scale-95 shadow-sm truncate" data-url="${escapeHtml(d2.url)}">
               <span>${d2.icon}</span> <span class="truncate">${d2.label}</span>
             </button>
           </div>
@@ -593,33 +694,28 @@ function renderTutorialApps(osKey) {
           </div>
         </div>
       `;
-    } else {
-      const primaryUrl = app.downloadUrl || app.downloadExtraUrl;
-      const d = getDownloadButtonInfo(primaryUrl, 'دانلود برنامه', '📥');
-      const tutorialBtnHtml = app.tutorialUrl ? `
-        <button type="button" class="btn-tutorial-app bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/40 text-[10.5px] font-bold py-1.5 px-2 rounded-xl transition flex items-center justify-center gap-1 active:scale-95 shadow-sm" data-url="${escapeHtml(app.tutorialUrl)}">
-          <span>📖</span> آموزش
-        </button>
-      ` : '';
-
-      actionButtonsHtml = app.tutorialUrl ? `
-        <div class="grid grid-cols-2 gap-1.5 pt-1 border-t border-slate-800/60">
-          <button type="button" class="btn-download-app bg-slate-800 hover:bg-slate-750 text-slate-200 text-[10.5px] font-bold py-1.5 px-2 rounded-xl transition border border-slate-700/80 flex items-center justify-center gap-1 active:scale-95 shadow-sm truncate" data-url="${escapeHtml(primaryUrl)}">
-            <span>${d.icon}</span> <span class="truncate">${d.label}</span>
-          </button>
-          ${tutorialBtnHtml}
-          <button type="button" class="btn-autoconnect-app col-span-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-[10.5px] font-bold py-1.5 px-2 rounded-xl transition flex items-center justify-center gap-1 active:scale-95 shadow-sm" data-id="${app.id}" data-name="${escapeHtml(app.name)}">
-            <span>⚡️</span> اتصال خودکار
-          </button>
-        </div>
-      ` : `
-        <div class="flex items-center gap-1.5 pt-1 border-t border-slate-800/60">
-          <button type="button" class="btn-download-app flex-1 bg-slate-800 hover:bg-slate-750 text-slate-200 text-[10.5px] font-bold py-1.5 px-2 rounded-xl transition border border-slate-700/80 flex items-center justify-center gap-1 active:scale-95 shadow-sm truncate" data-url="${escapeHtml(primaryUrl)}">
-            <span>${d.icon}</span> <span class="truncate">${d.label}</span>
-          </button>
-          <button type="button" class="btn-autoconnect-app flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-[10.5px] font-bold py-1.5 px-2 rounded-xl transition flex items-center justify-center gap-1 active:scale-95 shadow-sm" data-id="${app.id}" data-name="${escapeHtml(app.name)}">
-            <span>⚡️</span> اتصال خودکار
-          </button>
+    } else if (dlButtons.length >= 3) {
+      actionButtonsHtml = `
+        <div class="space-y-1.5 pt-1 border-t border-slate-800/60">
+          <div class="grid grid-cols-2 gap-1.5">
+            <button type="button" class="btn-download-app bg-slate-800 hover:bg-slate-750 text-slate-200 text-[10.5px] font-bold py-1.5 px-2 rounded-xl transition border border-slate-700/80 flex items-center justify-center gap-1.5 active:scale-95 shadow-sm truncate" data-url="${escapeHtml(dlButtons[0].url)}">
+              <span>${dlButtons[0].icon}</span> <span class="truncate">${dlButtons[0].label}</span>
+            </button>
+            <button type="button" class="btn-download-app bg-slate-800 hover:bg-slate-750 text-slate-200 text-[10.5px] font-bold py-1.5 px-2 rounded-xl transition border border-slate-700/80 flex items-center justify-center gap-1.5 active:scale-95 shadow-sm truncate" data-url="${escapeHtml(dlButtons[1].url)}">
+              <span>${dlButtons[1].icon}</span> <span class="truncate">${dlButtons[1].label}</span>
+            </button>
+          </div>
+          <div class="grid ${app.tutorialUrl ? 'grid-cols-2' : 'grid-cols-1'} gap-1.5">
+            <button type="button" class="btn-download-app bg-slate-800 hover:bg-slate-750 text-slate-200 text-[10.5px] font-bold py-1.5 px-2 rounded-xl transition border border-slate-700/80 flex items-center justify-center gap-1.5 active:scale-95 shadow-sm truncate" data-url="${escapeHtml(dlButtons[2].url)}">
+              <span>${dlButtons[2].icon}</span> <span class="truncate">${dlButtons[2].label}</span>
+            </button>
+            ${tutorialBtnHtml}
+          </div>
+          <div>
+            <button type="button" class="btn-autoconnect-app w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-[10.5px] font-bold py-1.5 px-2 rounded-xl transition flex items-center justify-center gap-1 active:scale-95 shadow-sm" data-id="${app.id}" data-name="${escapeHtml(app.name)}">
+              <span>⚡️</span> اتصال خودکار
+            </button>
+          </div>
         </div>
       `;
     }

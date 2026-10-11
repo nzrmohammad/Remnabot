@@ -3836,16 +3836,16 @@
     },
 
     switchAdminAppsTab(osKey = 'ios') {
-      const osList = ['ios', 'android', 'desktop'];
+      const osList = ['ios', 'android', 'windows', 'macos', 'linux'];
       osList.forEach(os => {
         const tabBtn = document.getElementById(`adminAppTab_${os}`);
         const pane = document.getElementById(`adminAppsPane_${os}`);
         const isTarget = os === osKey;
         if (tabBtn) {
           if (isTarget) {
-            tabBtn.className = 'admin-app-os-tab flex-1 py-1.5 rounded-lg font-bold text-[11px] transition flex items-center justify-center gap-1 bg-cyan-600 text-white shadow';
+            tabBtn.className = 'admin-app-os-tab flex-1 py-1.5 px-2 rounded-lg font-bold text-[11px] whitespace-nowrap transition flex items-center justify-center gap-1 bg-cyan-600 text-white shadow';
           } else {
-            tabBtn.className = 'admin-app-os-tab flex-1 py-1.5 rounded-lg font-medium text-[11px] text-slate-400 hover:text-slate-200 transition flex items-center justify-center gap-1';
+            tabBtn.className = 'admin-app-os-tab flex-1 py-1.5 px-2 rounded-lg font-medium text-[11px] whitespace-nowrap text-slate-400 hover:text-slate-200 transition flex items-center justify-center gap-1';
           }
         }
         if (pane) {
@@ -4676,7 +4676,9 @@
       const OS_APPS_MAP = {
         ios: ['streisand', 'v2box', 'incy', 'happ'],
         android: ['v2rayng', 'happ', 'hiddify', 'incy'],
-        desktop: ['v2rayn', 'hiddify', 'happ', 'incy']
+        windows: ['v2rayn', 'hiddify', 'happ', 'incy'],
+        macos: ['hiddify', 'happ', 'incy', 'v2box'],
+        linux: ['hiddify', 'incy', 'nekoray', 'v2raya']
       };
 
       if (s.client_apps_json) {
@@ -4686,14 +4688,17 @@
             for (const [os, appIds] of Object.entries(OS_APPS_MAP)) {
               const recSelect = document.getElementById(`appRecommended_${os}`);
               if (recSelect) {
-                recSelect.value = appOverrides.recommended?.[os] || '';
+                recSelect.value = appOverrides.recommended?.[os] || (os === 'windows' ? appOverrides.recommended?.desktop : '') || '';
               }
+              const osSource = appOverrides[os] || (os === 'windows' ? appOverrides.desktop : null);
               for (const appId of appIds) {
-                const item = appOverrides[os]?.[appId] || (appOverrides[appId] ? { enabled: true, download_url: appOverrides[appId], tutorial_url: '' } : null);
+                const item = osSource?.[appId] || (appOverrides[appId] ? { enabled: true, download_url: appOverrides[appId], tutorial_url: '' } : null);
                 const downloadEl = document.getElementById(`appDownload_${os}_${appId}`);
+                const downloadPortableEl = document.getElementById(`appDownloadPortable_${os}_${appId}`);
                 const downloadExtraEl = document.getElementById(`appDownloadExtra_${os}_${appId}`);
                 const tutorialEl = document.getElementById(`appTutorial_${os}_${appId}`);
                 if (downloadEl) downloadEl.value = item?.download_url || '';
+                if (downloadPortableEl) downloadPortableEl.value = item?.download_portable_url || '';
                 if (downloadExtraEl) downloadExtraEl.value = item?.download_extra_url || '';
                 if (tutorialEl) tutorialEl.value = item?.tutorial_url || '';
               }
@@ -4829,31 +4834,40 @@
         const OS_APPS_MAP = {
           ios: ['streisand', 'v2box', 'incy', 'happ'],
           android: ['v2rayng', 'happ', 'hiddify', 'incy'],
-          desktop: ['v2rayn', 'hiddify', 'happ', 'incy']
+          windows: ['v2rayn', 'hiddify', 'happ', 'incy'],
+          macos: ['hiddify', 'happ', 'incy', 'v2box'],
+          linux: ['hiddify', 'incy', 'nekoray', 'v2raya']
         };
         const clientAppsObj = {
           recommended: {
             ios: document.getElementById('appRecommended_ios')?.value || '',
             android: document.getElementById('appRecommended_android')?.value || '',
-            desktop: document.getElementById('appRecommended_desktop')?.value || ''
+            windows: document.getElementById('appRecommended_windows')?.value || '',
+            desktop: document.getElementById('appRecommended_windows')?.value || '',
+            macos: document.getElementById('appRecommended_macos')?.value || '',
+            linux: document.getElementById('appRecommended_linux')?.value || ''
           }
         };
         for (const [os, appIds] of Object.entries(OS_APPS_MAP)) {
           clientAppsObj[os] = {};
           for (const appId of appIds) {
             const downloadEl = document.getElementById(`appDownload_${os}_${appId}`);
+            const downloadPortableEl = document.getElementById(`appDownloadPortable_${os}_${appId}`);
             const downloadExtraEl = document.getElementById(`appDownloadExtra_${os}_${appId}`);
             const tutorialEl = document.getElementById(`appTutorial_${os}_${appId}`);
             const downloadUrl = downloadEl?.value?.trim() || '';
+            const downloadPortableUrl = downloadPortableEl?.value?.trim() || '';
             const downloadExtraUrl = downloadExtraEl?.value?.trim() || '';
             clientAppsObj[os][appId] = {
-              enabled: Boolean(downloadUrl || downloadExtraUrl),
+              enabled: Boolean(downloadUrl || downloadPortableUrl || downloadExtraUrl),
               download_url: downloadUrl,
+              download_portable_url: downloadPortableUrl,
               download_extra_url: downloadExtraUrl,
               tutorial_url: tutorialEl?.value?.trim() || ''
             };
           }
         }
+        clientAppsObj.desktop = clientAppsObj.windows;
         return JSON.stringify(clientAppsObj);
       })(),
     };

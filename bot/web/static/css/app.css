@@ -1590,3 +1590,10 @@ html.theme-light #tutorialCopySubBtn {
   color: #0891b2 !important;
 }
 
+#tutorialAppsList {
+  padding-left: 0.625rem;
+  padding-right: 0.625rem;
+  scrollbar-gutter: stable;
+}
+
+

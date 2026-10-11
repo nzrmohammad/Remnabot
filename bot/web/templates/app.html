@@ -1583,21 +1583,27 @@
           </div>
         </div>
 
-        <!-- OS Selection Tabs (iOS, Android, Desktop) -->
-        <div class="flex bg-slate-900/80 p-1 rounded-2xl border border-slate-700/70 gap-1 flex-shrink-0">
-          <button type="button" class="tutorial-os-tab flex-1 py-1.5 px-2 rounded-xl font-bold text-[11px] transition flex items-center justify-center gap-1 bg-cyan-600 text-white shadow" data-os="ios">
+        <!-- OS Selection Tabs (iOS, Android, Windows, Mac, Linux) -->
+        <div class="flex items-center bg-slate-900/80 p-1 rounded-2xl border border-slate-700/70 gap-1 flex-shrink-0 overflow-x-auto no-scrollbar">
+          <button type="button" class="tutorial-os-tab flex-1 py-1.5 px-2 rounded-xl font-bold text-[11px] whitespace-nowrap transition flex items-center justify-center gap-1 bg-cyan-600 text-white shadow" data-os="ios">
             <span>🍏</span> iOS
           </button>
-          <button type="button" class="tutorial-os-tab flex-1 py-1.5 px-2 rounded-xl font-medium text-[11px] text-slate-400 hover:text-slate-200 transition flex items-center justify-center gap-1" data-os="android">
+          <button type="button" class="tutorial-os-tab flex-1 py-1.5 px-2 rounded-xl font-medium text-[11px] whitespace-nowrap text-slate-400 hover:text-slate-200 transition flex items-center justify-center gap-1" data-os="android">
             <span>🤖</span> اندروید
           </button>
-          <button type="button" class="tutorial-os-tab flex-1 py-1.5 px-2 rounded-xl font-medium text-[11px] text-slate-400 hover:text-slate-200 transition flex items-center justify-center gap-1" data-os="desktop">
-            <span>🪟</span> دسکتاپ
+          <button type="button" class="tutorial-os-tab flex-1 py-1.5 px-2 rounded-xl font-medium text-[11px] whitespace-nowrap text-slate-400 hover:text-slate-200 transition flex items-center justify-center gap-1" data-os="windows">
+            <span>🪟</span> ویندوز
+          </button>
+          <button type="button" class="tutorial-os-tab flex-1 py-1.5 px-2 rounded-xl font-medium text-[11px] whitespace-nowrap text-slate-400 hover:text-slate-200 transition flex items-center justify-center gap-1" data-os="macos">
+            <span>🍎</span> مک
+          </button>
+          <button type="button" class="tutorial-os-tab flex-1 py-1.5 px-2 rounded-xl font-medium text-[11px] whitespace-nowrap text-slate-400 hover:text-slate-200 transition flex items-center justify-center gap-1" data-os="linux">
+            <span>🐧</span> لینوکس
           </button>
         </div>
 
-        <!-- Apps List Container -->
-        <div id="tutorialAppsList" class="flex-1 overflow-y-auto custom-scroll space-y-2 py-0.5 max-h-[48vh]">
+        <!-- Apps List Container (with breathing room so cards never touch the scrollbar) -->
+        <div id="tutorialAppsList" class="flex-1 overflow-y-auto custom-scroll space-y-2.5 py-1 px-2.5 max-h-[48vh]">
           <!-- Dynamically populated based on active OS -->
         </div>
 
