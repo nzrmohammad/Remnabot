@@ -948,325 +948,320 @@
             </div>
             <svg class="settings-box-chevron w-4 h-4 text-slate-400 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
           </div>
-          <div id="settingsBoxApps" class="settings-box-body p-4 pt-1 border-t border-slate-700/60 space-y-3.5 text-xs hidden">
-            <!-- 1. Video Tutorial Links -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+          <div id="settingsBoxApps" class="settings-box-body p-4 pt-1 border-t border-slate-700/60 space-y-3 text-xs hidden">
+            <div class="flex items-center justify-between">
               <div>
-                <label class="text-[11px] text-slate-300 block mb-1">🎥 لینک کانال ویدیوهای آموزشی (اختیاری):</label>
-                <input type="text" id="settingTutorialChannelUrl" dir="ltr" placeholder="https://t.me/your_channel_or_post" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-cyan-300 outline-none focus:border-cyan-500 transition" />
-                <span class="text-[9.5px] text-slate-400 mt-1 block">نمایش دکمه ویدیوی آموزشی در بالای مودال راهنمای کاربران.</span>
-              </div>
-              <div>
-                <label class="text-[11px] text-slate-300 block mb-1">🔀 لینک ویدیوی آموزش روتینگ و ضد فیلتر (اختیاری):</label>
-                <input type="text" id="settingRoutingTutorialUrl" dir="ltr" placeholder="https://t.me/your_channel_or_post" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-cyan-300 outline-none focus:border-cyan-500 transition" />
-                <span class="text-[9.5px] text-slate-400 mt-1 block">نمایش دکمه ویدیو در تب روتینگ (تفکیک سایت‌های داخلی و بانکی).</span>
+                <b class="text-[11px] text-slate-200 block">📱 کلاینت‌ها و نرم‌افزارهای اتصال:</b>
+                <span class="text-[9.5px] text-slate-400 block mt-0.5">در صورت خالی بودن لینک دانلود، برنامه در لیست کاربر نمایش داده نمی‌شود.</span>
               </div>
             </div>
 
-            <!-- 2. Client Apps Section -->
-            <div class="border-t border-slate-700/60 pt-3 space-y-2.5">
-              <div class="flex items-center justify-between">
+            <!-- OS Segmented Tabs -->
+            <div class="flex bg-slate-900/90 p-1 rounded-xl border border-slate-700/80 gap-1">
+              <button type="button" onclick="switchAdminAppsTab('ios')" id="adminAppTab_ios" class="admin-app-os-tab flex-1 py-1.5 rounded-lg font-bold text-[11px] transition flex items-center justify-center gap-1 bg-cyan-600 text-white shadow">
+                <span>🍏</span> iOS
+              </button>
+              <button type="button" onclick="switchAdminAppsTab('android')" id="adminAppTab_android" class="admin-app-os-tab flex-1 py-1.5 rounded-lg font-medium text-[11px] text-slate-400 hover:text-slate-200 transition flex items-center justify-center gap-1">
+                <span>🤖</span> اندروید
+              </button>
+              <button type="button" onclick="switchAdminAppsTab('desktop')" id="adminAppTab_desktop" class="admin-app-os-tab flex-1 py-1.5 rounded-lg font-medium text-[11px] text-slate-400 hover:text-slate-200 transition flex items-center justify-center gap-1">
+                <span>🪟</span> دسکتاپ
+              </button>
+            </div>
+
+            <!-- PANE: iOS Apps (Streisand, V2Box, Incy, Happ) -->
+            <div id="adminAppsPane_ios" class="admin-apps-pane space-y-2.5">
+              <!-- Streisand -->
+              <div class="p-3 rounded-2xl border border-slate-700/50 space-y-2 bg-transparent">
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-2">
+                    <span class="text-base">🍏</span>
+                    <b class="text-white text-xs">Streisand (iOS)</b>
+                  </div>
+                  <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" class="sr-only switch-checkbox" id="appEnabled_ios_streisand" checked>
+                    <div class="switch-label w-11 h-6 bg-slate-700 rounded-full transition-colors duration-200 flex items-center px-0.5">
+                      <div class="switch-ball w-5 h-5 bg-white rounded-full shadow-md transition-transform duration-200"></div>
+                    </div>
+                  </label>
+                </div>
                 <div>
-                  <b class="text-[11px] text-slate-200 block">📱 کلاینت‌ها و نرم‌افزارهای اتصال:</b>
-                  <span class="text-[9.5px] text-slate-400 block mt-0.5">در صورت خالی بودن لینک دانلود، برنامه در لیست کاربر نمایش داده نمی‌شود.</span>
+                  <label class="text-[10px] text-slate-400 block mb-1">لینک دانلود نرم‌افزار:</label>
+                  <input type="text" id="appDownload_ios_streisand" dir="ltr" placeholder="پیش‌فرض خالی (عدم نمایش)" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-cyan-300 outline-none focus:border-cyan-500 transition" />
+                </div>
+                <div>
+                  <label class="text-[10px] text-slate-400 block mb-1">لینک پست آموزش Streisand (اختیاری):</label>
+                  <input type="text" id="appTutorial_ios_streisand" dir="ltr" placeholder="مثلاً: https://t.me/..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-emerald-300 outline-none focus:border-emerald-500 transition" />
                 </div>
               </div>
 
-              <!-- OS Segmented Tabs -->
-              <div class="flex bg-slate-900/90 p-1 rounded-xl border border-slate-700/80 gap-1">
-                <button type="button" onclick="window.adminActions.switchAdminAppsTab('ios')" id="adminAppTab_ios" class="admin-app-os-tab flex-1 py-1.5 rounded-lg font-bold text-[11px] transition flex items-center justify-center gap-1 bg-cyan-600 text-white shadow">
-                  <span>🍏</span> iOS
-                </button>
-                <button type="button" onclick="window.adminActions.switchAdminAppsTab('android')" id="adminAppTab_android" class="admin-app-os-tab flex-1 py-1.5 rounded-lg font-medium text-[11px] text-slate-400 hover:text-slate-200 transition flex items-center justify-center gap-1">
-                  <span>🤖</span> اندروید
-                </button>
-                <button type="button" onclick="window.adminActions.switchAdminAppsTab('desktop')" id="adminAppTab_desktop" class="admin-app-os-tab flex-1 py-1.5 rounded-lg font-medium text-[11px] text-slate-400 hover:text-slate-200 transition flex items-center justify-center gap-1">
-                  <span>🪟</span> دسکتاپ
-                </button>
-              </div>
-
-              <!-- PANE: iOS Apps (Streisand, V2Box, Incy, Happ) -->
-              <div id="adminAppsPane_ios" class="admin-apps-pane space-y-2.5">
-                <!-- Streisand -->
-                <div class="bg-slate-900/70 border border-slate-700/70 rounded-xl p-2.5 space-y-2">
-                  <div class="flex items-center justify-between">
-                    <div class="flex items-center gap-2">
-                      <span class="text-base">🍏</span>
-                      <b class="text-white text-xs">Streisand (iOS)</b>
+              <!-- V2Box -->
+              <div class="p-3 rounded-2xl border border-slate-700/50 space-y-2 bg-transparent">
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-2">
+                    <span class="text-base">📦</span>
+                    <b class="text-white text-xs">V2Box (iOS)</b>
+                  </div>
+                  <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" class="sr-only switch-checkbox" id="appEnabled_ios_v2box" checked>
+                    <div class="switch-label w-11 h-6 bg-slate-700 rounded-full transition-colors duration-200 flex items-center px-0.5">
+                      <div class="switch-ball w-5 h-5 bg-white rounded-full shadow-md transition-transform duration-200"></div>
                     </div>
-                    <label class="relative inline-flex items-center cursor-pointer">
-                      <input type="checkbox" id="appEnabled_ios_streisand" checked class="sr-only peer" />
-                      <div class="w-8 h-4.5 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3.5 after:w-3.5 after:transition-all peer-checked:bg-cyan-600"></div>
-                      <span class="mr-1.5 text-[10px] text-slate-300 select-none">فعال</span>
-                    </label>
-                  </div>
-                  <div>
-                    <label class="text-[9.5px] text-slate-400 block mb-0.5">لینک دانلود نرم‌افزار:</label>
-                    <input type="text" id="appDownload_ios_streisand" dir="ltr" placeholder="پیش‌فرض خالی (بدون لینک = عدم نمایش)" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1 text-[11px] font-mono text-cyan-300 outline-none focus:border-cyan-500 transition" />
-                  </div>
-                  <div>
-                    <label class="text-[9.5px] text-slate-400 block mb-0.5">لینک پست آموزش Streisand (اختیاری):</label>
-                    <input type="text" id="appTutorial_ios_streisand" dir="ltr" placeholder="مثلاً: https://t.me/..." class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1 text-[11px] font-mono text-emerald-300 outline-none focus:border-emerald-500 transition" />
-                  </div>
+                  </label>
                 </div>
-
-                <!-- V2Box -->
-                <div class="bg-slate-900/70 border border-slate-700/70 rounded-xl p-2.5 space-y-2">
-                  <div class="flex items-center justify-between">
-                    <div class="flex items-center gap-2">
-                      <span class="text-base">📦</span>
-                      <b class="text-white text-xs">V2Box (iOS)</b>
-                    </div>
-                    <label class="relative inline-flex items-center cursor-pointer">
-                      <input type="checkbox" id="appEnabled_ios_v2box" checked class="sr-only peer" />
-                      <div class="w-8 h-4.5 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3.5 after:w-3.5 after:transition-all peer-checked:bg-cyan-600"></div>
-                      <span class="mr-1.5 text-[10px] text-slate-300 select-none">فعال</span>
-                    </label>
-                  </div>
-                  <div>
-                    <label class="text-[9.5px] text-slate-400 block mb-0.5">لینک دانلود نرم‌افزار:</label>
-                    <input type="text" id="appDownload_ios_v2box" dir="ltr" placeholder="پیش‌فرض خالی (بدون لینک = عدم نمایش)" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1 text-[11px] font-mono text-cyan-300 outline-none focus:border-cyan-500 transition" />
-                  </div>
-                  <div>
-                    <label class="text-[9.5px] text-slate-400 block mb-0.5">لینک پست آموزش V2Box (اختیاری):</label>
-                    <input type="text" id="appTutorial_ios_v2box" dir="ltr" placeholder="مثلاً: https://t.me/..." class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1 text-[11px] font-mono text-emerald-300 outline-none focus:border-emerald-500 transition" />
-                  </div>
+                <div>
+                  <label class="text-[10px] text-slate-400 block mb-1">لینک دانلود نرم‌افزار:</label>
+                  <input type="text" id="appDownload_ios_v2box" dir="ltr" placeholder="پیش‌فرض خالی (عدم نمایش)" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-cyan-300 outline-none focus:border-cyan-500 transition" />
                 </div>
-
-                <!-- Incy iOS -->
-                <div class="bg-slate-900/70 border border-slate-700/70 rounded-xl p-2.5 space-y-2">
-                  <div class="flex items-center justify-between">
-                    <div class="flex items-center gap-2">
-                      <span class="text-base">⚡</span>
-                      <b class="text-white text-xs">Incy (iOS)</b>
-                    </div>
-                    <label class="relative inline-flex items-center cursor-pointer">
-                      <input type="checkbox" id="appEnabled_ios_incy" checked class="sr-only peer" />
-                      <div class="w-8 h-4.5 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3.5 after:w-3.5 after:transition-all peer-checked:bg-cyan-600"></div>
-                      <span class="mr-1.5 text-[10px] text-slate-300 select-none">فعال</span>
-                    </label>
-                  </div>
-                  <div>
-                    <label class="text-[9.5px] text-slate-400 block mb-0.5">لینک دانلود نرم‌افزار:</label>
-                    <input type="text" id="appDownload_ios_incy" dir="ltr" placeholder="پیش‌فرض خالی (بدون لینک = عدم نمایش)" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1 text-[11px] font-mono text-cyan-300 outline-none focus:border-cyan-500 transition" />
-                  </div>
-                  <div>
-                    <label class="text-[9.5px] text-slate-400 block mb-0.5">لینک پست آموزش Incy (اختیاری):</label>
-                    <input type="text" id="appTutorial_ios_incy" dir="ltr" placeholder="مثلاً: https://t.me/..." class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1 text-[11px] font-mono text-emerald-300 outline-none focus:border-emerald-500 transition" />
-                  </div>
-                </div>
-
-                <!-- Happ iOS -->
-                <div class="bg-slate-900/70 border border-slate-700/70 rounded-xl p-2.5 space-y-2">
-                  <div class="flex items-center justify-between">
-                    <div class="flex items-center gap-2">
-                      <span class="text-base">🚀</span>
-                      <b class="text-white text-xs">Happ (iOS)</b>
-                    </div>
-                    <label class="relative inline-flex items-center cursor-pointer">
-                      <input type="checkbox" id="appEnabled_ios_happ" checked class="sr-only peer" />
-                      <div class="w-8 h-4.5 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3.5 after:w-3.5 after:transition-all peer-checked:bg-cyan-600"></div>
-                      <span class="mr-1.5 text-[10px] text-slate-300 select-none">فعال</span>
-                    </label>
-                  </div>
-                  <div>
-                    <label class="text-[9.5px] text-slate-400 block mb-0.5">لینک دانلود نرم‌افزار:</label>
-                    <input type="text" id="appDownload_ios_happ" dir="ltr" placeholder="پیش‌فرض خالی (بدون لینک = عدم نمایش)" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1 text-[11px] font-mono text-cyan-300 outline-none focus:border-cyan-500 transition" />
-                  </div>
-                  <div>
-                    <label class="text-[9.5px] text-slate-400 block mb-0.5">لینک پست آموزش Happ (اختیاری):</label>
-                    <input type="text" id="appTutorial_ios_happ" dir="ltr" placeholder="مثلاً: https://t.me/..." class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1 text-[11px] font-mono text-emerald-300 outline-none focus:border-emerald-500 transition" />
-                  </div>
+                <div>
+                  <label class="text-[10px] text-slate-400 block mb-1">لینک پست آموزش V2Box (اختیاری):</label>
+                  <input type="text" id="appTutorial_ios_v2box" dir="ltr" placeholder="مثلاً: https://t.me/..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-emerald-300 outline-none focus:border-emerald-500 transition" />
                 </div>
               </div>
 
-              <!-- PANE: Android Apps (v2rayNG, Happ, Hiddify, Incy) -->
-              <div id="adminAppsPane_android" class="admin-apps-pane space-y-2.5 hidden">
-                <!-- v2rayNG -->
-                <div class="bg-slate-900/70 border border-slate-700/70 rounded-xl p-2.5 space-y-2">
-                  <div class="flex items-center justify-between">
-                    <div class="flex items-center gap-2">
-                      <span class="text-base">🤖</span>
-                      <b class="text-white text-xs">v2rayNG (اندروید)</b>
+              <!-- Incy iOS -->
+              <div class="p-3 rounded-2xl border border-slate-700/50 space-y-2 bg-transparent">
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-2">
+                    <span class="text-base">⚡</span>
+                    <b class="text-white text-xs">Incy (iOS)</b>
+                  </div>
+                  <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" class="sr-only switch-checkbox" id="appEnabled_ios_incy" checked>
+                    <div class="switch-label w-11 h-6 bg-slate-700 rounded-full transition-colors duration-200 flex items-center px-0.5">
+                      <div class="switch-ball w-5 h-5 bg-white rounded-full shadow-md transition-transform duration-200"></div>
                     </div>
-                    <label class="relative inline-flex items-center cursor-pointer">
-                      <input type="checkbox" id="appEnabled_android_v2rayng" checked class="sr-only peer" />
-                      <div class="w-8 h-4.5 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3.5 after:w-3.5 after:transition-all peer-checked:bg-cyan-600"></div>
-                      <span class="mr-1.5 text-[10px] text-slate-300 select-none">فعال</span>
-                    </label>
-                  </div>
-                  <div>
-                    <label class="text-[9.5px] text-slate-400 block mb-0.5">لینک دانلود نرم‌افزار:</label>
-                    <input type="text" id="appDownload_android_v2rayng" dir="ltr" placeholder="پیش‌فرض خالی (بدون لینک = عدم نمایش)" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1 text-[11px] font-mono text-cyan-300 outline-none focus:border-cyan-500 transition" />
-                  </div>
-                  <div>
-                    <label class="text-[9.5px] text-slate-400 block mb-0.5">لینک پست آموزش v2rayNG (اختیاری):</label>
-                    <input type="text" id="appTutorial_android_v2rayng" dir="ltr" placeholder="مثلاً: https://t.me/..." class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1 text-[11px] font-mono text-emerald-300 outline-none focus:border-emerald-500 transition" />
-                  </div>
+                  </label>
                 </div>
-
-                <!-- Happ Android -->
-                <div class="bg-slate-900/70 border border-slate-700/70 rounded-xl p-2.5 space-y-2">
-                  <div class="flex items-center justify-between">
-                    <div class="flex items-center gap-2">
-                      <span class="text-base">🚀</span>
-                      <b class="text-white text-xs">Happ (اندروید)</b>
-                    </div>
-                    <label class="relative inline-flex items-center cursor-pointer">
-                      <input type="checkbox" id="appEnabled_android_happ" checked class="sr-only peer" />
-                      <div class="w-8 h-4.5 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3.5 after:w-3.5 after:transition-all peer-checked:bg-cyan-600"></div>
-                      <span class="mr-1.5 text-[10px] text-slate-300 select-none">فعال</span>
-                    </label>
-                  </div>
-                  <div>
-                    <label class="text-[9.5px] text-slate-400 block mb-0.5">لینک دانلود نرم‌افزار:</label>
-                    <input type="text" id="appDownload_android_happ" dir="ltr" placeholder="پیش‌فرض خالی (بدون لینک = عدم نمایش)" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1 text-[11px] font-mono text-cyan-300 outline-none focus:border-cyan-500 transition" />
-                  </div>
-                  <div>
-                    <label class="text-[9.5px] text-slate-400 block mb-0.5">لینک پست آموزش Happ (اختیاری):</label>
-                    <input type="text" id="appTutorial_android_happ" dir="ltr" placeholder="مثلاً: https://t.me/..." class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1 text-[11px] font-mono text-emerald-300 outline-none focus:border-emerald-500 transition" />
-                  </div>
+                <div>
+                  <label class="text-[10px] text-slate-400 block mb-1">لینک دانلود نرم‌افزار:</label>
+                  <input type="text" id="appDownload_ios_incy" dir="ltr" placeholder="پیش‌فرض خالی (عدم نمایش)" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-cyan-300 outline-none focus:border-cyan-500 transition" />
                 </div>
-
-                <!-- Hiddify Android -->
-                <div class="bg-slate-900/70 border border-slate-700/70 rounded-xl p-2.5 space-y-2">
-                  <div class="flex items-center justify-between">
-                    <div class="flex items-center gap-2">
-                      <span class="text-base">✨</span>
-                      <b class="text-white text-xs">Hiddify (اندروید)</b>
-                    </div>
-                    <label class="relative inline-flex items-center cursor-pointer">
-                      <input type="checkbox" id="appEnabled_android_hiddify" checked class="sr-only peer" />
-                      <div class="w-8 h-4.5 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3.5 after:w-3.5 after:transition-all peer-checked:bg-cyan-600"></div>
-                      <span class="mr-1.5 text-[10px] text-slate-300 select-none">فعال</span>
-                    </label>
-                  </div>
-                  <div>
-                    <label class="text-[9.5px] text-slate-400 block mb-0.5">لینک دانلود نرم‌افزار:</label>
-                    <input type="text" id="appDownload_android_hiddify" dir="ltr" placeholder="پیش‌فرض خالی (بدون لینک = عدم نمایش)" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1 text-[11px] font-mono text-cyan-300 outline-none focus:border-cyan-500 transition" />
-                  </div>
-                  <div>
-                    <label class="text-[9.5px] text-slate-400 block mb-0.5">لینک پست آموزش Hiddify (اختیاری):</label>
-                    <input type="text" id="appTutorial_android_hiddify" dir="ltr" placeholder="مثلاً: https://t.me/..." class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1 text-[11px] font-mono text-emerald-300 outline-none focus:border-emerald-500 transition" />
-                  </div>
-                </div>
-
-                <!-- Incy Android -->
-                <div class="bg-slate-900/70 border border-slate-700/70 rounded-xl p-2.5 space-y-2">
-                  <div class="flex items-center justify-between">
-                    <div class="flex items-center gap-2">
-                      <span class="text-base">⚡</span>
-                      <b class="text-white text-xs">Incy (اندروید)</b>
-                    </div>
-                    <label class="relative inline-flex items-center cursor-pointer">
-                      <input type="checkbox" id="appEnabled_android_incy" checked class="sr-only peer" />
-                      <div class="w-8 h-4.5 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3.5 after:w-3.5 after:transition-all peer-checked:bg-cyan-600"></div>
-                      <span class="mr-1.5 text-[10px] text-slate-300 select-none">فعال</span>
-                    </label>
-                  </div>
-                  <div>
-                    <label class="text-[9.5px] text-slate-400 block mb-0.5">لینک دانلود نرم‌افزار:</label>
-                    <input type="text" id="appDownload_android_incy" dir="ltr" placeholder="پیش‌فرض خالی (بدون لینک = عدم نمایش)" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1 text-[11px] font-mono text-cyan-300 outline-none focus:border-cyan-500 transition" />
-                  </div>
-                  <div>
-                    <label class="text-[9.5px] text-slate-400 block mb-0.5">لینک پست آموزش Incy (اختیاری):</label>
-                    <input type="text" id="appTutorial_android_incy" dir="ltr" placeholder="مثلاً: https://t.me/..." class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1 text-[11px] font-mono text-emerald-300 outline-none focus:border-emerald-500 transition" />
-                  </div>
+                <div>
+                  <label class="text-[10px] text-slate-400 block mb-1">لینک پست آموزش Incy (اختیاری):</label>
+                  <input type="text" id="appTutorial_ios_incy" dir="ltr" placeholder="مثلاً: https://t.me/..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-emerald-300 outline-none focus:border-emerald-500 transition" />
                 </div>
               </div>
 
-              <!-- PANE: Desktop Apps (v2rayN, Hiddify, Happ, Incy) -->
-              <div id="adminAppsPane_desktop" class="admin-apps-pane space-y-2.5 hidden">
-                <!-- v2rayN -->
-                <div class="bg-slate-900/70 border border-slate-700/70 rounded-xl p-2.5 space-y-2">
-                  <div class="flex items-center justify-between">
-                    <div class="flex items-center gap-2">
-                      <span class="text-base">🪟</span>
-                      <b class="text-white text-xs">v2rayN (ویندوز دسکتاپ)</b>
+              <!-- Happ iOS -->
+              <div class="p-3 rounded-2xl border border-slate-700/50 space-y-2 bg-transparent">
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-2">
+                    <span class="text-base">🚀</span>
+                    <b class="text-white text-xs">Happ (iOS)</b>
+                  </div>
+                  <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" class="sr-only switch-checkbox" id="appEnabled_ios_happ" checked>
+                    <div class="switch-label w-11 h-6 bg-slate-700 rounded-full transition-colors duration-200 flex items-center px-0.5">
+                      <div class="switch-ball w-5 h-5 bg-white rounded-full shadow-md transition-transform duration-200"></div>
                     </div>
-                    <label class="relative inline-flex items-center cursor-pointer">
-                      <input type="checkbox" id="appEnabled_desktop_v2rayn" checked class="sr-only peer" />
-                      <div class="w-8 h-4.5 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3.5 after:w-3.5 after:transition-all peer-checked:bg-cyan-600"></div>
-                      <span class="mr-1.5 text-[10px] text-slate-300 select-none">فعال</span>
-                    </label>
-                  </div>
-                  <div>
-                    <label class="text-[9.5px] text-slate-400 block mb-0.5">لینک دانلود نرم‌افزار:</label>
-                    <input type="text" id="appDownload_desktop_v2rayn" dir="ltr" placeholder="پیش‌فرض خالی (بدون لینک = عدم نمایش)" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1 text-[11px] font-mono text-cyan-300 outline-none focus:border-cyan-500 transition" />
-                  </div>
-                  <div>
-                    <label class="text-[9.5px] text-slate-400 block mb-0.5">لینک پست آموزش v2rayN (اختیاری):</label>
-                    <input type="text" id="appTutorial_desktop_v2rayn" dir="ltr" placeholder="مثلاً: https://t.me/..." class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1 text-[11px] font-mono text-emerald-300 outline-none focus:border-emerald-500 transition" />
-                  </div>
+                  </label>
                 </div>
-
-                <!-- Hiddify Desktop -->
-                <div class="bg-slate-900/70 border border-slate-700/70 rounded-xl p-2.5 space-y-2">
-                  <div class="flex items-center justify-between">
-                    <div class="flex items-center gap-2">
-                      <span class="text-base">✨</span>
-                      <b class="text-white text-xs">Hiddify (ویندوز و مک)</b>
-                    </div>
-                    <label class="relative inline-flex items-center cursor-pointer">
-                      <input type="checkbox" id="appEnabled_desktop_hiddify" checked class="sr-only peer" />
-                      <div class="w-8 h-4.5 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3.5 after:w-3.5 after:transition-all peer-checked:bg-cyan-600"></div>
-                      <span class="mr-1.5 text-[10px] text-slate-300 select-none">فعال</span>
-                    </label>
-                  </div>
-                  <div>
-                    <label class="text-[9.5px] text-slate-400 block mb-0.5">لینک دانلود نرم‌افزار:</label>
-                    <input type="text" id="appDownload_desktop_hiddify" dir="ltr" placeholder="پیش‌فرض خالی (بدون لینک = عدم نمایش)" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1 text-[11px] font-mono text-cyan-300 outline-none focus:border-cyan-500 transition" />
-                  </div>
-                  <div>
-                    <label class="text-[9.5px] text-slate-400 block mb-0.5">لینک پست آموزش Hiddify (اختیاری):</label>
-                    <input type="text" id="appTutorial_desktop_hiddify" dir="ltr" placeholder="مثلاً: https://t.me/..." class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1 text-[11px] font-mono text-emerald-300 outline-none focus:border-emerald-500 transition" />
-                  </div>
+                <div>
+                  <label class="text-[10px] text-slate-400 block mb-1">لینک دانلود نرم‌افزار:</label>
+                  <input type="text" id="appDownload_ios_happ" dir="ltr" placeholder="پیش‌فرض خالی (عدم نمایش)" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-cyan-300 outline-none focus:border-cyan-500 transition" />
                 </div>
-
-                <!-- Happ Desktop -->
-                <div class="bg-slate-900/70 border border-slate-700/70 rounded-xl p-2.5 space-y-2">
-                  <div class="flex items-center justify-between">
-                    <div class="flex items-center gap-2">
-                      <span class="text-base">🚀</span>
-                      <b class="text-white text-xs">Happ (دسکتاپ)</b>
-                    </div>
-                    <label class="relative inline-flex items-center cursor-pointer">
-                      <input type="checkbox" id="appEnabled_desktop_happ" checked class="sr-only peer" />
-                      <div class="w-8 h-4.5 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3.5 after:w-3.5 after:transition-all peer-checked:bg-cyan-600"></div>
-                      <span class="mr-1.5 text-[10px] text-slate-300 select-none">فعال</span>
-                    </label>
-                  </div>
-                  <div>
-                    <label class="text-[9.5px] text-slate-400 block mb-0.5">لینک دانلود نرم‌افزار:</label>
-                    <input type="text" id="appDownload_desktop_happ" dir="ltr" placeholder="پیش‌فرض خالی (بدون لینک = عدم نمایش)" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1 text-[11px] font-mono text-cyan-300 outline-none focus:border-cyan-500 transition" />
-                  </div>
-                  <div>
-                    <label class="text-[9.5px] text-slate-400 block mb-0.5">لینک پست آموزش Happ (اختیاری):</label>
-                    <input type="text" id="appTutorial_desktop_happ" dir="ltr" placeholder="مثلاً: https://t.me/..." class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1 text-[11px] font-mono text-emerald-300 outline-none focus:border-emerald-500 transition" />
-                  </div>
+                <div>
+                  <label class="text-[10px] text-slate-400 block mb-1">لینک پست آموزش Happ (اختیاری):</label>
+                  <input type="text" id="appTutorial_ios_happ" dir="ltr" placeholder="مثلاً: https://t.me/..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-emerald-300 outline-none focus:border-emerald-500 transition" />
                 </div>
+              </div>
+            </div>
 
-                <!-- Incy Desktop -->
-                <div class="bg-slate-900/70 border border-slate-700/70 rounded-xl p-2.5 space-y-2">
-                  <div class="flex items-center justify-between">
-                    <div class="flex items-center gap-2">
-                      <span class="text-base">⚡</span>
-                      <b class="text-white text-xs">Incy (دسکتاپ)</b>
+            <!-- PANE: Android Apps (v2rayNG, Happ, Hiddify, Incy) -->
+            <div id="adminAppsPane_android" class="admin-apps-pane space-y-2.5 hidden">
+              <!-- v2rayNG -->
+              <div class="p-3 rounded-2xl border border-slate-700/50 space-y-2 bg-transparent">
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-2">
+                    <span class="text-base">🤖</span>
+                    <b class="text-white text-xs">v2rayNG (اندروید)</b>
+                  </div>
+                  <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" class="sr-only switch-checkbox" id="appEnabled_android_v2rayng" checked>
+                    <div class="switch-label w-11 h-6 bg-slate-700 rounded-full transition-colors duration-200 flex items-center px-0.5">
+                      <div class="switch-ball w-5 h-5 bg-white rounded-full shadow-md transition-transform duration-200"></div>
                     </div>
-                    <label class="relative inline-flex items-center cursor-pointer">
-                      <input type="checkbox" id="appEnabled_desktop_incy" checked class="sr-only peer" />
-                      <div class="w-8 h-4.5 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3.5 after:w-3.5 after:transition-all peer-checked:bg-cyan-600"></div>
-                      <span class="mr-1.5 text-[10px] text-slate-300 select-none">فعال</span>
-                    </label>
+                  </label>
+                </div>
+                <div>
+                  <label class="text-[10px] text-slate-400 block mb-1">لینک دانلود نرم‌افزار:</label>
+                  <input type="text" id="appDownload_android_v2rayng" dir="ltr" placeholder="پیش‌فرض خالی (عدم نمایش)" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-cyan-300 outline-none focus:border-cyan-500 transition" />
+                </div>
+                <div>
+                  <label class="text-[10px] text-slate-400 block mb-1">لینک پست آموزش v2rayNG (اختیاری):</label>
+                  <input type="text" id="appTutorial_android_v2rayng" dir="ltr" placeholder="مثلاً: https://t.me/..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-emerald-300 outline-none focus:border-emerald-500 transition" />
+                </div>
+              </div>
+
+              <!-- Happ Android -->
+              <div class="p-3 rounded-2xl border border-slate-700/50 space-y-2 bg-transparent">
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-2">
+                    <span class="text-base">🚀</span>
+                    <b class="text-white text-xs">Happ (اندروید)</b>
                   </div>
-                  <div>
-                    <label class="text-[9.5px] text-slate-400 block mb-0.5">لینک دانلود نرم‌افزار:</label>
-                    <input type="text" id="appDownload_desktop_incy" dir="ltr" placeholder="پیش‌فرض خالی (بدون لینک = عدم نمایش)" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1 text-[11px] font-mono text-cyan-300 outline-none focus:border-cyan-500 transition" />
+                  <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" class="sr-only switch-checkbox" id="appEnabled_android_happ" checked>
+                    <div class="switch-label w-11 h-6 bg-slate-700 rounded-full transition-colors duration-200 flex items-center px-0.5">
+                      <div class="switch-ball w-5 h-5 bg-white rounded-full shadow-md transition-transform duration-200"></div>
+                    </div>
+                  </label>
+                </div>
+                <div>
+                  <label class="text-[10px] text-slate-400 block mb-1">لینک دانلود نرم‌افزار:</label>
+                  <input type="text" id="appDownload_android_happ" dir="ltr" placeholder="پیش‌فرض خالی (عدم نمایش)" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-cyan-300 outline-none focus:border-cyan-500 transition" />
+                </div>
+                <div>
+                  <label class="text-[10px] text-slate-400 block mb-1">لینک پست آموزش Happ (اختیاری):</label>
+                  <input type="text" id="appTutorial_android_happ" dir="ltr" placeholder="مثلاً: https://t.me/..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-emerald-300 outline-none focus:border-emerald-500 transition" />
+                </div>
+              </div>
+
+              <!-- Hiddify Android -->
+              <div class="p-3 rounded-2xl border border-slate-700/50 space-y-2 bg-transparent">
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-2">
+                    <span class="text-base">✨</span>
+                    <b class="text-white text-xs">Hiddify (اندروید)</b>
                   </div>
-                  <div>
-                    <label class="text-[9.5px] text-slate-400 block mb-0.5">لینک پست آموزش Incy (اختیاری):</label>
-                    <input type="text" id="appTutorial_desktop_incy" dir="ltr" placeholder="مثلاً: https://t.me/..." class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1 text-[11px] font-mono text-emerald-300 outline-none focus:border-emerald-500 transition" />
+                  <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" class="sr-only switch-checkbox" id="appEnabled_android_hiddify" checked>
+                    <div class="switch-label w-11 h-6 bg-slate-700 rounded-full transition-colors duration-200 flex items-center px-0.5">
+                      <div class="switch-ball w-5 h-5 bg-white rounded-full shadow-md transition-transform duration-200"></div>
+                    </div>
+                  </label>
+                </div>
+                <div>
+                  <label class="text-[10px] text-slate-400 block mb-1">لینک دانلود نرم‌افزار:</label>
+                  <input type="text" id="appDownload_android_hiddify" dir="ltr" placeholder="پیش‌فرض خالی (عدم نمایش)" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-cyan-300 outline-none focus:border-cyan-500 transition" />
+                </div>
+                <div>
+                  <label class="text-[10px] text-slate-400 block mb-1">لینک پست آموزش Hiddify (اختیاری):</label>
+                  <input type="text" id="appTutorial_android_hiddify" dir="ltr" placeholder="مثلاً: https://t.me/..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-emerald-300 outline-none focus:border-emerald-500 transition" />
+                </div>
+              </div>
+
+              <!-- Incy Android -->
+              <div class="p-3 rounded-2xl border border-slate-700/50 space-y-2 bg-transparent">
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-2">
+                    <span class="text-base">⚡</span>
+                    <b class="text-white text-xs">Incy (اندروید)</b>
                   </div>
+                  <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" class="sr-only switch-checkbox" id="appEnabled_android_incy" checked>
+                    <div class="switch-label w-11 h-6 bg-slate-700 rounded-full transition-colors duration-200 flex items-center px-0.5">
+                      <div class="switch-ball w-5 h-5 bg-white rounded-full shadow-md transition-transform duration-200"></div>
+                    </div>
+                  </label>
+                </div>
+                <div>
+                  <label class="text-[10px] text-slate-400 block mb-1">لینک دانلود نرم‌افزار:</label>
+                  <input type="text" id="appDownload_android_incy" dir="ltr" placeholder="پیش‌فرض خالی (عدم نمایش)" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-cyan-300 outline-none focus:border-cyan-500 transition" />
+                </div>
+                <div>
+                  <label class="text-[10px] text-slate-400 block mb-1">لینک پست آموزش Incy (اختیاری):</label>
+                  <input type="text" id="appTutorial_android_incy" dir="ltr" placeholder="مثلاً: https://t.me/..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-emerald-300 outline-none focus:border-emerald-500 transition" />
+                </div>
+              </div>
+            </div>
+
+            <!-- PANE: Desktop Apps (v2rayN, Hiddify, Happ, Incy) -->
+            <div id="adminAppsPane_desktop" class="admin-apps-pane space-y-2.5 hidden">
+              <!-- v2rayN -->
+              <div class="p-3 rounded-2xl border border-slate-700/50 space-y-2 bg-transparent">
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-2">
+                    <span class="text-base">🪟</span>
+                    <b class="text-white text-xs">v2rayN (ویندوز دسکتاپ)</b>
+                  </div>
+                  <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" class="sr-only switch-checkbox" id="appEnabled_desktop_v2rayn" checked>
+                    <div class="switch-label w-11 h-6 bg-slate-700 rounded-full transition-colors duration-200 flex items-center px-0.5">
+                      <div class="switch-ball w-5 h-5 bg-white rounded-full shadow-md transition-transform duration-200"></div>
+                    </div>
+                  </label>
+                </div>
+                <div>
+                  <label class="text-[10px] text-slate-400 block mb-1">لینک دانلود نرم‌افزار:</label>
+                  <input type="text" id="appDownload_desktop_v2rayn" dir="ltr" placeholder="پیش‌فرض خالی (عدم نمایش)" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-cyan-300 outline-none focus:border-cyan-500 transition" />
+                </div>
+                <div>
+                  <label class="text-[10px] text-slate-400 block mb-1">لینک پست آموزش v2rayN (اختیاری):</label>
+                  <input type="text" id="appTutorial_desktop_v2rayn" dir="ltr" placeholder="مثلاً: https://t.me/..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-emerald-300 outline-none focus:border-emerald-500 transition" />
+                </div>
+              </div>
+
+              <!-- Hiddify Desktop -->
+              <div class="p-3 rounded-2xl border border-slate-700/50 space-y-2 bg-transparent">
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-2">
+                    <span class="text-base">✨</span>
+                    <b class="text-white text-xs">Hiddify (ویندوز و مک)</b>
+                  </div>
+                  <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" class="sr-only switch-checkbox" id="appEnabled_desktop_hiddify" checked>
+                    <div class="switch-label w-11 h-6 bg-slate-700 rounded-full transition-colors duration-200 flex items-center px-0.5">
+                      <div class="switch-ball w-5 h-5 bg-white rounded-full shadow-md transition-transform duration-200"></div>
+                    </div>
+                  </label>
+                </div>
+                <div>
+                  <label class="text-[10px] text-slate-400 block mb-1">لینک دانلود نرم‌افزار:</label>
+                  <input type="text" id="appDownload_desktop_hiddify" dir="ltr" placeholder="پیش‌فرض خالی (عدم نمایش)" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-cyan-300 outline-none focus:border-cyan-500 transition" />
+                </div>
+                <div>
+                  <label class="text-[10px] text-slate-400 block mb-1">لینک پست آموزش Hiddify (اختیاری):</label>
+                  <input type="text" id="appTutorial_desktop_hiddify" dir="ltr" placeholder="مثلاً: https://t.me/..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-emerald-300 outline-none focus:border-emerald-500 transition" />
+                </div>
+              </div>
+
+              <!-- Happ Desktop -->
+              <div class="p-3 rounded-2xl border border-slate-700/50 space-y-2 bg-transparent">
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-2">
+                    <span class="text-base">🚀</span>
+                    <b class="text-white text-xs">Happ (دسکتاپ)</b>
+                  </div>
+                  <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" class="sr-only switch-checkbox" id="appEnabled_desktop_happ" checked>
+                    <div class="switch-label w-11 h-6 bg-slate-700 rounded-full transition-colors duration-200 flex items-center px-0.5">
+                      <div class="switch-ball w-5 h-5 bg-white rounded-full shadow-md transition-transform duration-200"></div>
+                    </div>
+                  </label>
+                </div>
+                <div>
+                  <label class="text-[10px] text-slate-400 block mb-1">لینک دانلود نرم‌افزار:</label>
+                  <input type="text" id="appDownload_desktop_happ" dir="ltr" placeholder="پیش‌فرض خالی (عدم نمایش)" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-cyan-300 outline-none focus:border-cyan-500 transition" />
+                </div>
+                <div>
+                  <label class="text-[10px] text-slate-400 block mb-1">لینک پست آموزش Happ (اختیاری):</label>
+                  <input type="text" id="appTutorial_desktop_happ" dir="ltr" placeholder="مثلاً: https://t.me/..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-emerald-300 outline-none focus:border-emerald-500 transition" />
+                </div>
+              </div>
+
+              <!-- Incy Desktop -->
+              <div class="p-3 rounded-2xl border border-slate-700/50 space-y-2 bg-transparent">
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-2">
+                    <span class="text-base">⚡</span>
+                    <b class="text-white text-xs">Incy (دسکتاپ)</b>
+                  </div>
+                  <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" class="sr-only switch-checkbox" id="appEnabled_desktop_incy" checked>
+                    <div class="switch-label w-11 h-6 bg-slate-700 rounded-full transition-colors duration-200 flex items-center px-0.5">
+                      <div class="switch-ball w-5 h-5 bg-white rounded-full shadow-md transition-transform duration-200"></div>
+                    </div>
+                  </label>
+                </div>
+                <div>
+                  <label class="text-[10px] text-slate-400 block mb-1">لینک دانلود نرم‌افزار:</label>
+                  <input type="text" id="appDownload_desktop_incy" dir="ltr" placeholder="پیش‌فرض خالی (عدم نمایش)" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-cyan-300 outline-none focus:border-cyan-500 transition" />
+                </div>
+                <div>
+                  <label class="text-[10px] text-slate-400 block mb-1">لینک پست آموزش Incy (اختیاری):</label>
+                  <input type="text" id="appTutorial_desktop_incy" dir="ltr" placeholder="مثلاً: https://t.me/..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-emerald-300 outline-none focus:border-emerald-500 transition" />
                 </div>
               </div>
             </div>
@@ -2097,15 +2092,15 @@
                 </div>
               </div>
 
-              <!-- Left: Currency Selector (4 cols - custom segmented toggle) -->
+              <!-- Left: Currency Selector (4 cols - clean segmented toggle) -->
               <div class="col-span-4">
                 <label class="text-[11px] text-slate-300 block mb-1 truncate">واحد ارز:</label>
-                <div class="flex items-center bg-slate-900 border border-slate-700 rounded-xl p-0.5 h-9">
-                  <button type="button" id="nodeBillingCurrEur" onclick="window.adminActions.setNodeBillingCurrency('EUR')" class="flex-1 h-full rounded-lg text-[10px] font-bold transition flex items-center justify-center text-cyan-400 bg-slate-700 shadow-sm">
-                    یورو (€)
+                <div class="flex items-center bg-slate-900 border border-slate-700 rounded-xl p-0.5 h-9 gap-1">
+                  <button type="button" id="nodeBillingCurrEur" onclick="setNodeBillingCurrency('EUR')" class="flex-1 h-full rounded-lg text-xs font-bold transition flex items-center justify-center text-white bg-blue-600 shadow">
+                    یورو
                   </button>
-                  <button type="button" id="nodeBillingCurrUsd" onclick="window.adminActions.setNodeBillingCurrency('USD')" class="flex-1 h-full rounded-lg text-[10px] font-medium transition flex items-center justify-center text-slate-400 hover:text-white">
-                    دلار ($)
+                  <button type="button" id="nodeBillingCurrUsd" onclick="setNodeBillingCurrency('USD')" class="flex-1 h-full rounded-lg text-xs font-medium transition flex items-center justify-center text-slate-400 hover:text-white">
+                    دلار
                   </button>
                 </div>
                 <input type="hidden" id="nodeBillingCurrency" value="EUR" />
@@ -2128,19 +2123,22 @@
             <div class="space-y-1.5">
               <div class="flex items-center gap-1.5">
                 <input type="text" id="nodeBillingDueDate" dir="ltr" placeholder="YYYY-MM-DD" class="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-amber-300 outline-none focus:border-amber-500 transition text-center" />
-                <button type="button" onclick="window.adminActions.clearNodeBillingDueDate()" class="px-2.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white rounded-xl text-[10px] transition border border-slate-700" title="پاک کردن تاریخ">
+                <button type="button" onclick="clearNodeBillingDueDate()" class="px-2.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white rounded-xl text-[10px] transition border border-slate-700" title="پاک کردن تاریخ">
                   ✕
                 </button>
               </div>
               <div class="grid grid-cols-3 gap-1.5">
-                <button type="button" onclick="window.adminActions.addDaysToNodeBillingDueDate(30)" class="py-1 bg-slate-800/80 hover:bg-slate-750 text-slate-300 hover:text-white rounded-lg text-[10px] font-medium border border-slate-700/60 transition active:scale-95">
-                  +۳۰ روز
+                <button type="button" onclick="addDaysToNodeBillingDueDate(30)" data-add-days="30" class="btn-node-add-days py-1.5 bg-slate-800/80 hover:bg-slate-750 text-slate-200 hover:text-white rounded-xl text-xs font-medium border border-slate-700 transition active:scale-95 flex items-center justify-center gap-1">
+                  <span dir="ltr" class="font-mono font-bold text-cyan-400">+30</span>
+                  <span>روز</span>
                 </button>
-                <button type="button" onclick="window.adminActions.addDaysToNodeBillingDueDate(60)" class="py-1 bg-slate-800/80 hover:bg-slate-750 text-slate-300 hover:text-white rounded-lg text-[10px] font-medium border border-slate-700/60 transition active:scale-95">
-                  +۶۰ روز
+                <button type="button" onclick="addDaysToNodeBillingDueDate(60)" data-add-days="60" class="btn-node-add-days py-1.5 bg-slate-800/80 hover:bg-slate-750 text-slate-200 hover:text-white rounded-xl text-xs font-medium border border-slate-700 transition active:scale-95 flex items-center justify-center gap-1">
+                  <span dir="ltr" class="font-mono font-bold text-cyan-400">+60</span>
+                  <span>روز</span>
                 </button>
-                <button type="button" onclick="window.adminActions.addDaysToNodeBillingDueDate(90)" class="py-1 bg-slate-800/80 hover:bg-slate-750 text-slate-300 hover:text-white rounded-lg text-[10px] font-medium border border-slate-700/60 transition active:scale-95">
-                  +۹۰ روز
+                <button type="button" onclick="addDaysToNodeBillingDueDate(90)" data-add-days="90" class="btn-node-add-days py-1.5 bg-slate-800/80 hover:bg-slate-750 text-slate-200 hover:text-white rounded-xl text-xs font-medium border border-slate-700 transition active:scale-95 flex items-center justify-center gap-1">
+                  <span dir="ltr" class="font-mono font-bold text-cyan-400">+90</span>
+                  <span>روز</span>
                 </button>
               </div>
             </div>
@@ -2215,8 +2213,8 @@
   </div>
 
   <!-- Shared & Modular Scripts -->
-  <script src="/static/js/utils.js?v=18.8"></script>
-  <script src="/static/js/api.js?v=18.8"></script>
-  <script src="/static/js/admin.js?v=18.8"></script>
+  <script src="/static/js/utils.js?v=19.0"></script>
+  <script src="/static/js/api.js?v=19.0"></script>
+  <script src="/static/js/admin.js?v=19.0"></script>
 </body>
 </html>

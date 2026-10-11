@@ -3790,11 +3790,11 @@
 
       if (eurBtn && usdBtn) {
         if (isEur) {
-          eurBtn.className = 'flex-1 h-full rounded-lg text-[10px] font-bold transition flex items-center justify-center text-cyan-400 bg-slate-700 shadow-sm';
-          usdBtn.className = 'flex-1 h-full rounded-lg text-[10px] font-medium transition flex items-center justify-center text-slate-400 hover:text-white';
+          eurBtn.className = 'flex-1 h-full rounded-lg text-xs font-bold transition flex items-center justify-center text-white bg-blue-600 shadow';
+          usdBtn.className = 'flex-1 h-full rounded-lg text-xs font-medium transition flex items-center justify-center text-slate-400 hover:text-white';
         } else {
-          usdBtn.className = 'flex-1 h-full rounded-lg text-[10px] font-bold transition flex items-center justify-center text-emerald-400 bg-slate-700 shadow-sm';
-          eurBtn.className = 'flex-1 h-full rounded-lg text-[10px] font-medium transition flex items-center justify-center text-slate-400 hover:text-white';
+          usdBtn.className = 'flex-1 h-full rounded-lg text-xs font-bold transition flex items-center justify-center text-white bg-blue-600 shadow';
+          eurBtn.className = 'flex-1 h-full rounded-lg text-xs font-medium transition flex items-center justify-center text-slate-400 hover:text-white';
         }
       }
       if (symbolSpan) {
@@ -3812,8 +3812,12 @@
       if (!input) return;
       const baseDate = new Date();
       baseDate.setDate(baseDate.getDate() + Number(days));
-      const isoStr = baseDate.toISOString().slice(0, 10);
+      const yyyy = baseDate.getFullYear();
+      const mm = String(baseDate.getMonth() + 1).padStart(2, '0');
+      const dd = String(baseDate.getDate()).padStart(2, '0');
+      const isoStr = `${yyyy}-${mm}-${dd}`;
       input.value = isoStr;
+      input.dispatchEvent(new Event('input', { bubbles: true }));
       if (jalaliPreview) {
         jalaliPreview.innerText = window.formatDateToJalali ? window.formatDateToJalali(isoStr) : isoStr;
       }
@@ -3823,13 +3827,17 @@
     clearNodeBillingDueDate() {
       const input = document.getElementById('nodeBillingDueDate');
       const jalaliPreview = document.getElementById('nodeBillingJalaliPreview');
-      if (input) input.value = '';
+      if (input) {
+        input.value = '';
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+      }
       if (jalaliPreview) jalaliPreview.innerText = '';
       if (window.hapticFeedback) window.hapticFeedback('selection');
     },
 
     switchAdminAppsTab(osKey = 'ios') {
-      ['ios', 'android', 'desktop'].forEach(os => {
+      const osList = ['ios', 'android', 'desktop'];
+      osList.forEach(os => {
         const tabBtn = document.getElementById(`adminAppTab_${os}`);
         const pane = document.getElementById(`adminAppsPane_${os}`);
         const isTarget = os === osKey;
@@ -5118,6 +5126,24 @@
   window.deleteCampaign = (id, name) => window.adminActions.deleteCampaign(id, name);
   window.copyCampaignLink = (url) => window.adminActions.copyCampaignLink(url);
   window.fetchAdminCampaigns = () => window.adminActions.fetchAdminCampaigns();
+
+  // Explicit event listeners for Admin App Tabs and Due Date buttons
+  document.querySelectorAll('.admin-app-os-tab').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      const id = btn.id || '';
+      const os = id.replace('adminAppTab_', '');
+      if (os) window.switchAdminAppsTab(os);
+    });
+  });
+
+  document.querySelectorAll('.btn-node-add-days').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      const days = parseInt(btn.getAttribute('data-add-days') || '30', 10);
+      window.addDaysToNodeBillingDueDate(days);
+    });
+  });
 
   // Initial Sync
   fetchAdminSettings();

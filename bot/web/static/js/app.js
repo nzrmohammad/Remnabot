@@ -521,103 +521,6 @@ function renderTutorialApps(osKey) {
     }
   });
 
-  // Handle Routing Tab
-  if (currentTutorialOS === 'routing') {
-    const routingVideoUrl = window.lastUserData?.routing_tutorial_url;
-    const videoBtnHtml = routingVideoUrl ? `
-      <a href="${escapeHtml(routingVideoUrl)}" target="_blank" rel="noopener noreferrer" class="btn-routing-video flex items-center justify-between p-3 rounded-2xl bg-gradient-to-r from-cyan-600/30 via-indigo-600/20 to-blue-600/30 border border-cyan-500/40 text-cyan-200 hover:text-white transition group shadow-md active:scale-95">
-        <div class="flex items-center gap-2.5">
-          <span class="w-8 h-8 rounded-xl bg-cyan-500/20 text-cyan-300 flex items-center justify-center text-sm flex-shrink-0">🎥</span>
-          <div>
-            <span class="font-bold text-xs block">مشاهده ویدیو / پست آموزش تفکیک ترافیک</span>
-            <span class="text-[10px] text-slate-300 block">آموزش تصویری باز شدن سایت‌های بانکی و ایرانی بدون قطع فیلترشکن</span>
-          </div>
-        </div>
-        <span class="text-sm group-hover:-translate-x-1 transition-transform">⬅️</span>
-      </a>
-    ` : '';
-
-    listContainer.innerHTML = `
-      <div class="space-y-3 text-xs leading-relaxed">
-        ${videoBtnHtml}
-
-        <div class="bg-indigo-950/30 border border-indigo-500/30 rounded-2xl p-3.5 space-y-2">
-          <div class="flex items-center gap-2 text-indigo-300 font-bold text-xs">
-            <span>🔀</span> آموزش تفکیک ترافیک داخلی و خارجی (روتینگ)
-          </div>
-          <p class="text-[11px] text-slate-300 leading-relaxed">
-            با فعال‌سازی روتینگ در نرم‌افزار، ترافیک سایت‌های ایرانی و اپ‌های بانکی بدون عبور از فیلترشکن باز می‌شوند. بنابراین نیازی به قطع کردن فیلترشکن برای کارهای بانکی یا خرید اینترنتی نخواهید داشت.
-          </p>
-        </div>
-
-        <!-- App-specific routing instructions -->
-        <div class="space-y-2.5">
-          <!-- v2rayNG (Android) -->
-          <div class="tutorial-app-card bg-slate-900/80 rounded-2xl p-3 border border-slate-700/70 space-y-1.5">
-            <div class="flex items-center gap-2">
-              <span class="text-base">🤖</span>
-              <b class="text-white text-xs font-bold">v2rayNG (اندروید)</b>
-            </div>
-            <ol class="list-decimal list-inside text-[10.5px] text-slate-300 space-y-1 pr-1 leading-relaxed">
-              <li>منوی سه‌خط (☰) بالا سمت چپ را باز کنید و وارد <b>تنظیمات (Settings)</b> شوید.</li>
-              <li>گزینه <b>حالت روتینگ (Routing Mode)</b> را لمس کنید.</li>
-              <li>گزینه <b>بای‌پس شبکه‌های محلی و ایران (Bypass LAN & Iran)</b> را انتخاب فرمایید.</li>
-            </ol>
-          </div>
-
-          <!-- Streisand / V2Box (iOS) -->
-          <div class="tutorial-app-card bg-slate-900/80 rounded-2xl p-3 border border-slate-700/70 space-y-1.5">
-            <div class="flex items-center gap-2">
-              <span class="text-base">🍏</span>
-              <b class="text-white text-xs font-bold">Streisand و V2Box (آیفون و آیپد)</b>
-            </div>
-            <ol class="list-decimal list-inside text-[10.5px] text-slate-300 space-y-1 pr-1 leading-relaxed">
-              <li>وارد بخش <b>Settings</b> برنامه شوید.</li>
-              <li>گزینه <b>Routing</b> یا <b>Rules</b> را لمس کنید.</li>
-              <li>حالت <b>Bypass CN & IR</b> یا تفکیک دامنه‌های محلی را فعال نمایید.</li>
-            </ol>
-          </div>
-
-          <!-- Hiddify -->
-          <div class="tutorial-app-card bg-slate-900/80 rounded-2xl p-3 border border-slate-700/70 space-y-1.5">
-            <div class="flex items-center gap-2">
-              <span class="text-base">✨</span>
-              <b class="text-white text-xs font-bold">Hiddify (تمامی پلتفرم‌ها)</b>
-            </div>
-            <ol class="list-decimal list-inside text-[10.5px] text-slate-300 space-y-1 pr-1 leading-relaxed">
-              <li>در صفحه اصلی وارد بخش <b>تنظیمات</b> شوید.</li>
-              <li>گزینه <b>حالت روتینگ (Routing Mode)</b> را روی <b>بای‌پس ایران (Bypass Iran)</b> بگذارید.</li>
-            </ol>
-          </div>
-
-          <!-- v2rayN (Windows) -->
-          <div class="tutorial-app-card bg-slate-900/80 rounded-2xl p-3 border border-slate-700/70 space-y-1.5">
-            <div class="flex items-center gap-2">
-              <span class="text-base">🪟</span>
-              <b class="text-white text-xs font-bold">v2rayN (ویندوز دسکتاپ)</b>
-            </div>
-            <ol class="list-decimal list-inside text-[10.5px] text-slate-300 space-y-1 pr-1 leading-relaxed">
-              <li>در نوار پایین نرم‌افزار، تب <b>Routing</b> را باز کنید.</li>
-              <li>گزینه <b>Bypass LAN and Iran / Mainland</b> را انتخاب کنید.</li>
-            </ol>
-          </div>
-        </div>
-      </div>
-    `;
-
-    listContainer.querySelectorAll('.btn-routing-video').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        const href = btn.getAttribute('href');
-        if (href && window.Telegram?.WebApp?.openLink) {
-          e.preventDefault();
-          window.Telegram.WebApp.openLink(href);
-        }
-        hapticFeedback('impact');
-      });
-    });
-    return;
-  }
-
   // OS Apps Rendering
   const allApps = CLIENT_APPS_DATA[currentTutorialOS] || [];
 
@@ -758,18 +661,6 @@ function renderTutorialApps(osKey) {
 function openTutorialModal() {
   const modal = document.getElementById('tutorialModal');
   if (!modal) return;
-
-  const channelUrl = window.lastUserData?.tutorial_channel_url;
-  const banner = document.getElementById('tutorialChannelBanner');
-  const bannerLink = document.getElementById('tutorialChannelLinkBtn');
-  if (banner && bannerLink) {
-    if (channelUrl) {
-      banner.classList.remove('hidden');
-      bannerLink.href = channelUrl;
-    } else {
-      banner.classList.add('hidden');
-    }
-  }
 
   renderTutorialApps(detectUserOS());
   openModal('tutorialModal');
