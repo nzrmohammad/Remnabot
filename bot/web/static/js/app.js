@@ -483,6 +483,24 @@ function detectUserOS() {
 
 let currentTutorialOS = 'ios';
 
+function getDownloadButtonInfo(url, defaultLabel, defaultIcon = '📥') {
+  if (!url) return { label: defaultLabel, icon: defaultIcon };
+  const lower = url.toLowerCase();
+  if (lower.includes('play.google.com') || lower.includes('market://') || lower.includes('google.com/store')) {
+    return { label: 'گوگل‌پلی', icon: '🛍' };
+  }
+  if (lower.includes('apps.apple.com') || lower.includes('itunes.apple.com')) {
+    return { label: 'اپ‌استور', icon: '🍏' };
+  }
+  if (lower.includes('github.com')) {
+    return { label: 'گیت‌هاب', icon: '🐙' };
+  }
+  if (lower.endsWith('.apk') || lower.includes('/releases/download/')) {
+    return { label: 'دانلود مستقیم', icon: '📦' };
+  }
+  return { label: defaultLabel, icon: defaultIcon };
+}
+
 function renderTutorialApps(osKey) {
   currentTutorialOS = osKey || 'ios';
   const listContainer = document.getElementById('tutorialAppsList');
@@ -515,12 +533,13 @@ function renderTutorialApps(osKey) {
   const activeApps = allApps.map(app => {
     const appCfg = (overrides && overrides[currentTutorialOS] && overrides[currentTutorialOS][app.id])
       || (overrides && typeof overrides[app.id] === 'string' ? { enabled: true, download_url: overrides[app.id], tutorial_url: '' } : null);
-    const isEnabled = appCfg ? (appCfg.enabled !== false) : false;
     const downloadUrl = (appCfg && appCfg.download_url) ? appCfg.download_url.trim() : '';
+    const downloadExtraUrl = (appCfg && appCfg.download_extra_url) ? appCfg.download_extra_url.trim() : '';
+    const isEnabled = appCfg ? (appCfg.enabled !== false && Boolean(downloadUrl || downloadExtraUrl)) : false;
     const tutorialUrl = (appCfg && appCfg.tutorial_url) ? appCfg.tutorial_url.trim() : '';
     const isRecommended = Boolean(recommendedAppId && recommendedAppId.toLowerCase() === app.id.toLowerCase());
-    return { ...app, isEnabled, downloadUrl, tutorialUrl, isRecommended };
-  }).filter(app => app.isEnabled && app.downloadUrl);
+    return { ...app, isEnabled, downloadUrl, downloadExtraUrl, tutorialUrl, isRecommended };
+  }).filter(app => app.isEnabled && (app.downloadUrl || app.downloadExtraUrl));
 
   // Recommended app comes first in the list
   activeApps.sort((a, b) => (b.isRecommended ? 1 : 0) - (a.isRecommended ? 1 : 0));
@@ -541,32 +560,69 @@ function renderTutorialApps(osKey) {
   }
 
   listContainer.innerHTML = activeApps.map(app => {
-    const tutorialBtnHtml = app.tutorialUrl ? `
-      <button type="button" class="btn-tutorial-app bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/40 text-[10.5px] font-bold py-1.5 px-2 rounded-xl transition flex items-center justify-center gap-1 active:scale-95 shadow-sm" data-url="${escapeHtml(app.tutorialUrl)}">
-        <span>📖</span> آموزش
-      </button>
-    ` : '';
+    const hasDownload1 = Boolean(app.downloadUrl);
+    const hasDownload2 = Boolean(app.downloadExtraUrl);
+    const hasBothDownloads = hasDownload1 && hasDownload2;
 
-    const actionButtonsHtml = app.tutorialUrl ? `
-      <div class="grid grid-cols-2 gap-1.5 pt-1 border-t border-slate-800/60">
-        <button type="button" class="btn-download-app bg-slate-800 hover:bg-slate-750 text-slate-200 text-[10.5px] font-bold py-1.5 px-2 rounded-xl transition border border-slate-700/80 flex items-center justify-center gap-1 active:scale-95 shadow-sm" data-url="${escapeHtml(app.downloadUrl)}">
-          <span>📥</span> دانلود
+    let actionButtonsHtml = '';
+
+    if (hasBothDownloads) {
+      const d1 = getDownloadButtonInfo(app.downloadUrl, 'دانلود اصلی', '📥');
+      const d2 = getDownloadButtonInfo(app.downloadExtraUrl, 'گیت‌هاب / مستقیم', '🐙');
+      const tutorialBtnHtml = app.tutorialUrl ? `
+        <button type="button" class="btn-tutorial-app bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/40 text-[10.5px] font-bold py-1.5 px-2 rounded-xl transition flex items-center justify-center gap-1 active:scale-95 shadow-sm" data-url="${escapeHtml(app.tutorialUrl)}">
+          <span>📖</span> آموزش
         </button>
-        ${tutorialBtnHtml}
-        <button type="button" class="btn-autoconnect-app col-span-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-[10.5px] font-bold py-1.5 px-2 rounded-xl transition flex items-center justify-center gap-1 active:scale-95 shadow-sm" data-id="${app.id}" data-name="${escapeHtml(app.name)}">
-          <span>⚡️</span> اتصال خودکار
+      ` : '';
+
+      actionButtonsHtml = `
+        <div class="space-y-1.5 pt-1 border-t border-slate-800/60">
+          <div class="grid grid-cols-2 gap-1.5">
+            <button type="button" class="btn-download-app bg-slate-800 hover:bg-slate-750 text-slate-200 text-[10.5px] font-bold py-1.5 px-2 rounded-xl transition border border-slate-700/80 flex items-center justify-center gap-1.5 active:scale-95 shadow-sm truncate" data-url="${escapeHtml(app.downloadUrl)}">
+              <span>${d1.icon}</span> <span class="truncate">${d1.label}</span>
+            </button>
+            <button type="button" class="btn-download-app bg-slate-800 hover:bg-slate-750 text-slate-200 text-[10.5px] font-bold py-1.5 px-2 rounded-xl transition border border-slate-700/80 flex items-center justify-center gap-1.5 active:scale-95 shadow-sm truncate" data-url="${escapeHtml(app.downloadExtraUrl)}">
+              <span>${d2.icon}</span> <span class="truncate">${d2.label}</span>
+            </button>
+          </div>
+          <div class="${app.tutorialUrl ? 'grid grid-cols-3 gap-1.5' : 'block'}">
+            <button type="button" class="btn-autoconnect-app ${app.tutorialUrl ? 'col-span-2' : 'w-full'} bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-[10.5px] font-bold py-1.5 px-2 rounded-xl transition flex items-center justify-center gap-1 active:scale-95 shadow-sm" data-id="${app.id}" data-name="${escapeHtml(app.name)}">
+              <span>⚡️</span> اتصال خودکار
+            </button>
+            ${tutorialBtnHtml}
+          </div>
+        </div>
+      `;
+    } else {
+      const primaryUrl = app.downloadUrl || app.downloadExtraUrl;
+      const d = getDownloadButtonInfo(primaryUrl, 'دانلود برنامه', '📥');
+      const tutorialBtnHtml = app.tutorialUrl ? `
+        <button type="button" class="btn-tutorial-app bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/40 text-[10.5px] font-bold py-1.5 px-2 rounded-xl transition flex items-center justify-center gap-1 active:scale-95 shadow-sm" data-url="${escapeHtml(app.tutorialUrl)}">
+          <span>📖</span> آموزش
         </button>
-      </div>
-    ` : `
-      <div class="flex items-center gap-1.5 pt-1 border-t border-slate-800/60">
-        <button type="button" class="btn-download-app flex-1 bg-slate-800 hover:bg-slate-750 text-slate-200 text-[10.5px] font-bold py-1.5 px-2 rounded-xl transition border border-slate-700/80 flex items-center justify-center gap-1 active:scale-95 shadow-sm" data-url="${escapeHtml(app.downloadUrl)}">
-          <span>📥</span> دانلود برنامه
-        </button>
-        <button type="button" class="btn-autoconnect-app flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-[10.5px] font-bold py-1.5 px-2 rounded-xl transition flex items-center justify-center gap-1 active:scale-95 shadow-sm" data-id="${app.id}" data-name="${escapeHtml(app.name)}">
-          <span>⚡️</span> اتصال خودکار
-        </button>
-      </div>
-    `;
+      ` : '';
+
+      actionButtonsHtml = app.tutorialUrl ? `
+        <div class="grid grid-cols-2 gap-1.5 pt-1 border-t border-slate-800/60">
+          <button type="button" class="btn-download-app bg-slate-800 hover:bg-slate-750 text-slate-200 text-[10.5px] font-bold py-1.5 px-2 rounded-xl transition border border-slate-700/80 flex items-center justify-center gap-1 active:scale-95 shadow-sm truncate" data-url="${escapeHtml(primaryUrl)}">
+            <span>${d.icon}</span> <span class="truncate">${d.label}</span>
+          </button>
+          ${tutorialBtnHtml}
+          <button type="button" class="btn-autoconnect-app col-span-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-[10.5px] font-bold py-1.5 px-2 rounded-xl transition flex items-center justify-center gap-1 active:scale-95 shadow-sm" data-id="${app.id}" data-name="${escapeHtml(app.name)}">
+            <span>⚡️</span> اتصال خودکار
+          </button>
+        </div>
+      ` : `
+        <div class="flex items-center gap-1.5 pt-1 border-t border-slate-800/60">
+          <button type="button" class="btn-download-app flex-1 bg-slate-800 hover:bg-slate-750 text-slate-200 text-[10.5px] font-bold py-1.5 px-2 rounded-xl transition border border-slate-700/80 flex items-center justify-center gap-1 active:scale-95 shadow-sm truncate" data-url="${escapeHtml(primaryUrl)}">
+            <span>${d.icon}</span> <span class="truncate">${d.label}</span>
+          </button>
+          <button type="button" class="btn-autoconnect-app flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-[10.5px] font-bold py-1.5 px-2 rounded-xl transition flex items-center justify-center gap-1 active:scale-95 shadow-sm" data-id="${app.id}" data-name="${escapeHtml(app.name)}">
+            <span>⚡️</span> اتصال خودکار
+          </button>
+        </div>
+      `;
+    }
 
     const cardBorder = app.isRecommended ? 'border-amber-500/50 bg-slate-900/90 shadow-sm' : 'border-slate-700/60 bg-slate-900/60';
 
@@ -574,8 +630,8 @@ function renderTutorialApps(osKey) {
       <div class="tutorial-app-card rounded-2xl p-2.5 border ${cardBorder} space-y-2 transition hover:border-slate-600">
         <div class="flex items-center justify-between gap-2">
           <div class="flex items-center gap-2.5 min-w-0">
-            <div class="w-9 h-9 rounded-xl bg-slate-800/90 border border-slate-700/70 flex items-center justify-center text-lg flex-shrink-0">
-              ${app.icon}
+            <div class="w-10 h-10 rounded-xl bg-slate-800/90 border border-slate-700/70 p-1 flex items-center justify-center flex-shrink-0 shadow-inner overflow-hidden">
+              <img src="/static/img/apps/${app.id}.png" alt="${app.name}" class="w-full h-full object-contain rounded-lg" onerror="this.onerror=null; this.src=''; this.parentElement.innerHTML='<span class=\\'text-lg\\'>${app.icon}</span>';" />
             </div>
             <div class="min-w-0">
               <div class="flex items-center gap-1.5">
@@ -664,10 +720,6 @@ function setupTutorialModal() {
   });
 
   document.getElementById('closeTutorialModalBtn')?.addEventListener('click', () => {
-    closeModal('tutorialModal');
-    syncTelegramBackButton();
-  });
-  document.getElementById('tutorialDoneBtn')?.addEventListener('click', () => {
     closeModal('tutorialModal');
     syncTelegramBackButton();
   });

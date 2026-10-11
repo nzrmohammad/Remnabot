@@ -4691,8 +4691,10 @@
               for (const appId of appIds) {
                 const item = appOverrides[os]?.[appId] || (appOverrides[appId] ? { enabled: true, download_url: appOverrides[appId], tutorial_url: '' } : null);
                 const downloadEl = document.getElementById(`appDownload_${os}_${appId}`);
+                const downloadExtraEl = document.getElementById(`appDownloadExtra_${os}_${appId}`);
                 const tutorialEl = document.getElementById(`appTutorial_${os}_${appId}`);
                 if (downloadEl) downloadEl.value = item?.download_url || '';
+                if (downloadExtraEl) downloadExtraEl.value = item?.download_extra_url || '';
                 if (tutorialEl) tutorialEl.value = item?.tutorial_url || '';
               }
             }
@@ -4840,11 +4842,14 @@
           clientAppsObj[os] = {};
           for (const appId of appIds) {
             const downloadEl = document.getElementById(`appDownload_${os}_${appId}`);
+            const downloadExtraEl = document.getElementById(`appDownloadExtra_${os}_${appId}`);
             const tutorialEl = document.getElementById(`appTutorial_${os}_${appId}`);
             const downloadUrl = downloadEl?.value?.trim() || '';
+            const downloadExtraUrl = downloadExtraEl?.value?.trim() || '';
             clientAppsObj[os][appId] = {
-              enabled: Boolean(downloadUrl),
+              enabled: Boolean(downloadUrl || downloadExtraUrl),
               download_url: downloadUrl,
+              download_extra_url: downloadExtraUrl,
               tutorial_url: tutorialEl?.value?.trim() || ''
             };
           }
