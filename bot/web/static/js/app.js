@@ -323,42 +323,42 @@ function setupRevokeAndKill() {
   });
 }
 
-// 7. 1-Click Client Importers
-function setupClientImporters() {
-  const getSubUrl = () => {
-    const url = (document.getElementById('subInput')?.value || '').trim();
-    if (!url || url.includes('در حال') || url.includes('یافت نشد')) {
-      showToast('⚠️ اشتراک فعالی برای اتصال یافت نشد.');
-      return null;
+// 7. 1-Click Client Importers & Tutorial Guide System
+const getSubUrl = () => {
+  const url = (window.lastUserData?.active_sub?.subscription_url || document.getElementById('subInput')?.value || '').trim();
+  if (!url || url.includes('در حال') || url.includes('یافت نشد')) {
+    showToast('⚠️ اشتراک فعالی برای اتصال یافت نشد.');
+    return null;
+  }
+  return url;
+};
+
+const copyAndLaunch = (makeUri, appName) => {
+  const url = getSubUrl();
+  if (!url) return;
+
+  copyToClipboard(url);
+
+  const targetUri = makeUri(url);
+  const redirectUrl = `${window.location.origin}/open-client?scheme=${encodeURIComponent(targetUri)}&name=${encodeURIComponent(appName)}&url=${encodeURIComponent(url)}`;
+
+  try {
+    if (window.Telegram?.WebApp?.openLink) {
+      window.Telegram.WebApp.openLink(redirectUrl);
+    } else {
+      window.location.href = targetUri;
     }
-    return url;
-  };
-
-  const copyAndLaunch = (makeUri, appName) => {
-    const url = getSubUrl();
-    if (!url) return;
-
-    copyToClipboard(url);
-
-    const targetUri = makeUri(url);
-    const redirectUrl = `${window.location.origin}/open-client?scheme=${encodeURIComponent(targetUri)}&name=${encodeURIComponent(appName)}&url=${encodeURIComponent(url)}`;
-
+  } catch (e) {
+    console.debug('Deep link trigger fallback', e);
     try {
-      if (window.Telegram?.WebApp?.openLink) {
-        window.Telegram.WebApp.openLink(redirectUrl);
-      } else {
-        window.location.href = targetUri;
-      }
-    } catch (e) {
-      console.debug('Deep link trigger fallback', e);
-      try {
-        window.open(redirectUrl, '_blank');
-      } catch (e2) {}
-    }
+      window.open(redirectUrl, '_blank');
+    } catch (e2) {}
+  }
 
-    showToast(`🚀 در حال انتقال به ${appName} (لینک در کلیپ‌بورد کپی شد)`);
-  };
+  showToast(`🚀 در حال انتقال به ${appName} (لینک در کلیپ‌بورد کپی شد)`);
+};
 
+function setupClientImporters() {
   document.getElementById('appImportIncy')?.addEventListener('click', () => {
     copyAndLaunch(u => `incy://import/${u}`, 'Incy');
   });
@@ -374,6 +374,299 @@ function setupClientImporters() {
   document.getElementById('appImportStreisand')?.addEventListener('click', () => {
     copyAndLaunch(u => `streisand://import/${u}`, 'Streisand');
   });
+}
+
+// 7.1 Client Apps Structure & Tutorial Guide
+const CLIENT_APPS_DATA = {
+  ios: [
+    {
+      id: 'streisand',
+      name: 'Streisand',
+      badge: 'پیشنهادی iOS',
+      badgeClass: 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/30',
+      desc: 'سریع‌ترین کلاینت iOS با قابلیت اتصال آسان و پشتیبانی کامل',
+      icon: '🛡️',
+      defaultDownload: 'https://apps.apple.com/app/streisand/id6450534064',
+      scheme: (url) => `streisand://import/${encodeURIComponent(url)}`
+    },
+    {
+      id: 'v2box',
+      name: 'V2Box',
+      badge: 'محبوب و قدرتمند',
+      badgeClass: 'bg-blue-500/15 text-blue-300 border border-blue-500/30',
+      desc: 'کلاینت باسابقه و پایدار اپ استور با قابلیت تست پینگ خودکار',
+      icon: '📦',
+      defaultDownload: 'https://apps.apple.com/app/v2box-v2ray-client/id6446814690',
+      scheme: (url) => `v2box://install-sub?url=${encodeURIComponent(url)}&name=RemnaVPN`
+    },
+    {
+      id: 'incy',
+      name: 'Incy',
+      badge: 'مدرن و سبک',
+      badgeClass: 'bg-cyan-500/15 text-cyan-300 border border-cyan-500/30',
+      desc: 'ظاهر زیبا و کاربری فوق‌العاده راحت با اتصال فوری یک‌کلیکه',
+      icon: '⚡',
+      defaultDownload: 'https://apps.apple.com/app/incy/id6502693892',
+      scheme: (url) => `incy://import/${url}`
+    },
+    {
+      id: 'happ',
+      name: 'Happ',
+      badge: 'نسل جدید',
+      badgeClass: 'bg-purple-500/15 text-purple-300 border border-purple-500/30',
+      desc: 'پشتیبانی از پروتکل‌های نوین با سرعت و پایداری فوق‌العاده',
+      icon: '🚀',
+      defaultDownload: 'https://apps.apple.com/app/happ-proxy-utility/id6504287215',
+      scheme: (url) => `happ://add/${url}`
+    }
+  ],
+  android: [
+    {
+      id: 'v2rayng',
+      name: 'v2rayNG',
+      badge: 'پیشنهادی اندروید',
+      badgeClass: 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/30',
+      desc: 'استانداردترین و سازگارترین نرم‌افزار برای تمامی گوشی‌های اندروید',
+      icon: '🤖',
+      defaultDownload: 'https://play.google.com/store/apps/details?id=com.v2ray.ang',
+      scheme: (url) => `v2rayng://install-sub?url=${encodeURIComponent(url)}`
+    },
+    {
+      id: 'happ',
+      name: 'Happ',
+      badge: 'محبوب و پرسرعت',
+      badgeClass: 'bg-purple-500/15 text-purple-300 border border-purple-500/30',
+      desc: 'کلاینت جدید و بسیار قدرتمند با طراحی مدرن و سرعت بالا',
+      icon: '🚀',
+      defaultDownload: 'https://github.com/happ-proxy/happ/releases',
+      scheme: (url) => `happ://add/${url}`
+    },
+    {
+      id: 'hiddify',
+      name: 'Hiddify',
+      badge: 'هوشمند',
+      badgeClass: 'bg-cyan-500/15 text-cyan-300 border border-cyan-500/30',
+      desc: 'اتصال هوشمند به کم‌پینگ‌ترین سرور و تفکیک خودکار ترافیک',
+      icon: '✨',
+      defaultDownload: 'https://play.google.com/store/apps/details?id=app.hiddify.com',
+      scheme: (url) => `hiddify://install-sub?url=${encodeURIComponent(url)}`
+    },
+    {
+      id: 'incy',
+      name: 'Incy',
+      badge: 'سبک و روان',
+      badgeClass: 'bg-amber-500/15 text-amber-300 border border-amber-500/30',
+      desc: 'محیط خلوت و مینیمال با اتصال یک‌کلیکه و مصرف کم باتری',
+      icon: '⚡',
+      defaultDownload: 'https://play.google.com/store/apps/details?id=com.incy.app',
+      scheme: (url) => `incy://import/${url}`
+    }
+  ],
+  desktop: [
+    {
+      id: 'v2rayn',
+      name: 'v2rayN',
+      badge: 'پیشنهادی ویندوز',
+      badgeClass: 'bg-blue-500/15 text-blue-300 border border-blue-500/30',
+      desc: 'قدرتمندترین کلاینت ویندوز با پشتیبانی کامل از انواع کانفیگ‌ها',
+      icon: '🪟',
+      defaultDownload: 'https://github.com/2dust/v2rayN/releases',
+      scheme: null
+    },
+    {
+      id: 'hiddify',
+      name: 'Hiddify (ویندوز و مک)',
+      badge: 'مولتی‌پلتفرم',
+      badgeClass: 'bg-cyan-500/15 text-cyan-300 border border-cyan-500/30',
+      desc: 'نرم‌افزار مدرن مشترک ویندوز و مک با محیط ساده و تست پینگ',
+      icon: '✨',
+      defaultDownload: 'https://github.com/hiddify/hiddify-next/releases',
+      scheme: (url) => `hiddify://install-sub?url=${encodeURIComponent(url)}`
+    },
+    {
+      id: 'happ',
+      name: 'Happ Desktop',
+      badge: 'مدرن دسکتاپ',
+      badgeClass: 'bg-purple-500/15 text-purple-300 border border-purple-500/30',
+      desc: 'نسخه دسکتاپ اپلیکیشن Happ با کاربری بسیار سریع و سبک',
+      icon: '🚀',
+      defaultDownload: 'https://github.com/happ-proxy/happ/releases',
+      scheme: (url) => `happ://add/${url}`
+    },
+    {
+      id: 'incy',
+      name: 'Incy Desktop',
+      badge: 'مینیمال دسکتاپ',
+      badgeClass: 'bg-amber-500/15 text-amber-300 border border-amber-500/30',
+      desc: 'کلاینت مینیمال برای اتصال فوری و بدون دردسر در کامپیوتر و لپ‌تاپ',
+      icon: '⚡',
+      defaultDownload: 'https://github.com/incy-app/incy/releases',
+      scheme: null
+    }
+  ]
+};
+
+function detectUserOS() {
+  const ua = navigator.userAgent || '';
+  if (/iPad|iPhone|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)) {
+    return 'ios';
+  }
+  if (/Android/i.test(ua)) {
+    return 'android';
+  }
+  return 'desktop';
+}
+
+let currentTutorialOS = 'ios';
+
+function renderTutorialApps(osKey) {
+  currentTutorialOS = osKey || 'ios';
+  const listContainer = document.getElementById('tutorialAppsList');
+  if (!listContainer) return;
+
+  document.querySelectorAll('.tutorial-os-tab').forEach(tab => {
+    const isTarget = tab.getAttribute('data-os') === currentTutorialOS;
+    if (isTarget) {
+      tab.className = 'tutorial-os-tab flex-1 py-1.5 rounded-xl font-bold text-[11px] transition flex items-center justify-center gap-1 bg-cyan-600 text-white shadow';
+    } else {
+      tab.className = 'tutorial-os-tab flex-1 py-1.5 rounded-xl font-medium text-[11px] text-slate-400 hover:text-slate-200 transition flex items-center justify-center gap-1';
+    }
+  });
+
+  const apps = CLIENT_APPS_DATA[currentTutorialOS] || [];
+
+  let overrides = {};
+  if (window.lastUserData?.client_apps_override) {
+    try {
+      overrides = typeof window.lastUserData.client_apps_override === 'string'
+        ? JSON.parse(window.lastUserData.client_apps_override)
+        : window.lastUserData.client_apps_override;
+    } catch (e) {}
+  }
+
+  listContainer.innerHTML = apps.map(app => {
+    const downloadUrl = (overrides && overrides[app.id]) ? overrides[app.id] : app.defaultDownload;
+    return `
+      <div class="tutorial-app-card bg-slate-900/80 rounded-2xl p-3 border border-slate-700/70 space-y-2.5 transition hover:border-slate-600">
+        <div class="flex items-start justify-between gap-2">
+          <div class="flex items-center gap-2.5 min-w-0">
+            <div class="w-10 h-10 rounded-xl bg-slate-800 border border-slate-700/80 flex items-center justify-center text-xl flex-shrink-0">
+              ${app.icon}
+            </div>
+            <div class="min-w-0">
+              <div class="flex items-center gap-1.5">
+                <b class="text-xs text-white font-bold truncate">${app.name}</b>
+                <span class="px-2 py-0.5 rounded-md text-[9.5px] font-bold ${app.badgeClass}">${app.badge}</span>
+              </div>
+              <p class="text-[10px] text-slate-300 mt-0.5 leading-relaxed">${app.desc}</p>
+            </div>
+          </div>
+        </div>
+        <div class="flex items-center gap-2 pt-1 border-t border-slate-800">
+          <button type="button" class="btn-download-app flex-1 bg-slate-800 hover:bg-slate-750 text-slate-200 text-[11px] font-bold py-1.5 px-2 rounded-xl transition border border-slate-700/80 flex items-center justify-center gap-1 active:scale-95 shadow-sm" data-url="${escapeHtml(downloadUrl)}">
+            <span>📥</span> دانلود برنامه
+          </button>
+          <button type="button" class="btn-autoconnect-app flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-[11px] font-bold py-1.5 px-2 rounded-xl transition flex items-center justify-center gap-1 active:scale-95 shadow-sm" data-id="${app.id}" data-name="${escapeHtml(app.name)}">
+            <span>⚡️</span> اتصال خودکار
+          </button>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  listContainer.querySelectorAll('.btn-download-app').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const url = btn.getAttribute('data-url');
+      if (!url) return;
+      try {
+        if (window.Telegram?.WebApp?.openLink) {
+          window.Telegram.WebApp.openLink(url);
+        } else {
+          window.open(url, '_blank');
+        }
+      } catch (e) {
+        window.open(url, '_blank');
+      }
+      hapticFeedback('impact');
+    });
+  });
+
+  listContainer.querySelectorAll('.btn-autoconnect-app').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const appId = btn.getAttribute('data-id');
+      const appName = btn.getAttribute('data-name');
+      const url = getSubUrl();
+      if (!url) return;
+      const appDef = (CLIENT_APPS_DATA[currentTutorialOS] || []).find(a => a.id === appId);
+      if (appDef && appDef.scheme) {
+        copyAndLaunch(appDef.scheme, appName || appDef.name);
+      } else {
+        copyToClipboard(url, `📋 لینک اشتراک کپی شد. لطفاً آن را داخل نرم‌افزار ${appName || ''} وارد کنید.`);
+        hapticFeedback('success');
+      }
+    });
+  });
+}
+
+function openTutorialModal() {
+  const modal = document.getElementById('tutorialModal');
+  if (!modal) return;
+
+  const channelUrl = window.lastUserData?.tutorial_channel_url;
+  const banner = document.getElementById('tutorialChannelBanner');
+  const bannerLink = document.getElementById('tutorialChannelLinkBtn');
+  if (banner && bannerLink) {
+    if (channelUrl) {
+      banner.classList.remove('hidden');
+      bannerLink.href = channelUrl;
+    } else {
+      banner.classList.add('hidden');
+    }
+  }
+
+  renderTutorialApps(detectUserOS());
+  openModal('tutorialModal');
+  syncTelegramBackButton();
+  hapticFeedback('selection');
+}
+
+function setupTutorialModal() {
+  document.querySelectorAll('.tutorial-os-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      const os = tab.getAttribute('data-os');
+      if (os) {
+        renderTutorialApps(os);
+        hapticFeedback('selection');
+      }
+    });
+  });
+
+  document.getElementById('closeTutorialModalBtn')?.addEventListener('click', () => {
+    closeModal('tutorialModal');
+    syncTelegramBackButton();
+  });
+  document.getElementById('tutorialDoneBtn')?.addEventListener('click', () => {
+    closeModal('tutorialModal');
+    syncTelegramBackButton();
+  });
+
+  document.getElementById('tutorialCopySubBtn')?.addEventListener('click', async () => {
+    const url = getSubUrl();
+    if (!url) return;
+    await copyToClipboard(url, '📋 لینک اشتراک با موفقیت در کلیپ‌بورد کپی شد.');
+    hapticFeedback('success');
+  });
+
+  const modal = document.getElementById('tutorialModal');
+  modal?.addEventListener('click', (e) => {
+    if (e.target === modal) {
+      closeModal('tutorialModal');
+      syncTelegramBackButton();
+    }
+  });
+
+  document.getElementById('openTutorialModalBtn')?.addEventListener('click', openTutorialModal);
+  window.openTutorialModal = openTutorialModal;
 }
 
 // 8. Dark / Light Mode Toggle
@@ -825,7 +1118,7 @@ function syncTelegramBackButton() {
     'revokeModal', 'switchAccountModal', 'activeSessionsModal',
     'topupModal', 'luckyWheelModal', 'storyModal', 'storyCardModal',
     'supportChatModal', 'purchaseSuccessModal',
-    'qrModal', 'checkoutConfirmModal', 'configsModal'
+    'qrModal', 'checkoutConfirmModal', 'configsModal', 'tutorialModal'
   ];
   const hasOpenModal = modalIds.some(id => {
     const el = document.getElementById(id);
@@ -875,7 +1168,7 @@ function setupTelegramSDK() {
           'revokeModal', 'switchAccountModal', 'activeSessionsModal',
           'topupModal', 'luckyWheelModal', 'storyModal', 'storyCardModal',
           'supportChatModal', 'purchaseSuccessModal',
-          'qrModal', 'checkoutConfirmModal', 'configsModal'
+          'qrModal', 'checkoutConfirmModal', 'configsModal', 'tutorialModal'
         ];
         for (const id of modalIds) {
           const el = document.getElementById(id);
@@ -902,7 +1195,7 @@ function setupTelegramSDK() {
         'revokeModal', 'switchAccountModal', 'activeSessionsModal',
         'topupModal', 'luckyWheelModal', 'storyModal', 'storyCardModal',
         'supportChatModal', 'qrContainer',
-        'purchaseSuccessModal', 'qrModal', 'checkoutConfirmModal', 'configsModal'
+        'purchaseSuccessModal', 'qrModal', 'checkoutConfirmModal', 'configsModal', 'tutorialModal'
       ];
       observedModalIds.forEach(id => {
         const el = document.getElementById(id);
@@ -1001,6 +1294,31 @@ function setupProfileHandlers() {
   document.getElementById('gotoShopFromWallet')?.addEventListener('click', () => {
     const shopNav = document.querySelector('.nav-btn[data-tab="tab-shop"]');
     shopNav?.click();
+  });
+
+  // Referral Link Copy & Share Actions
+  document.getElementById('copyReferralLinkBtn')?.addEventListener('click', async () => {
+    const link = document.getElementById('profileReferralLinkInput')?.value || '';
+    if (link && !link.includes('در حال')) {
+      await copyToClipboard(link, '📋 لینک اختصاصی دعوت با موفقیت کپی شد.');
+      hapticFeedback('success');
+    }
+  });
+
+  document.getElementById('shareReferralLinkBtn')?.addEventListener('click', () => {
+    const link = document.getElementById('profileReferralLinkInput')?.value || '';
+    if (!link || link.includes('در حال')) return;
+    const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent('🚀 فیلترشکن پرسرعت و پایدار RemnaVPN\nثبت‌نام کنید و هدیه بگیرید!')}`;
+    try {
+      if (window.Telegram?.WebApp?.openTelegramLink) {
+        window.Telegram.WebApp.openTelegramLink(shareUrl);
+      } else {
+        window.open(shareUrl, '_blank');
+      }
+    } catch (e) {
+      window.open(shareUrl, '_blank');
+    }
+    hapticFeedback('impact');
   });
 }
 
@@ -1434,6 +1752,31 @@ function renderActiveSubAnalytics(sub) {
     }
   }
 
+  // Referral & Invite Card
+  const refCard = document.getElementById('profileReferralCard');
+  const refLinkInp = document.getElementById('profileReferralLinkInput');
+  const refCountEl = document.getElementById('profileReferralsCount');
+  const refRewardTotalEl = document.getElementById('profileReferralRewardTotal');
+  const refRewardBadge = document.getElementById('profileReferralRewardBadge');
+
+  const refEnabled = data.referral_enabled !== false;
+  if (refCard) {
+    if (!refEnabled) {
+      refCard.classList.add('hidden');
+    } else {
+      refCard.classList.remove('hidden');
+    }
+  }
+
+  const referralLink = data.referral_link || (data.bot_username ? `https://t.me/${data.bot_username}?start=ref_${user.id}` : `https://t.me/?start=ref_${user.id}`);
+  if (refLinkInp) refLinkInp.value = referralLink;
+
+  const refCount = Number(user.referrals_count || 0);
+  const refRewardGb = Number(data.referral_reward_gb || 1);
+  if (refCountEl) refCountEl.innerText = `${toEnglishDigits(refCount)} نفر`;
+  if (refRewardTotalEl) refRewardTotalEl.innerText = `${toEnglishDigits(refCount * refRewardGb)} GB`;
+  if (refRewardBadge) refRewardBadge.innerText = `🎁 ${toEnglishDigits(refRewardGb)} گیگابایت هدیه به ازای هر دعوت`;
+
   // Profile Settings Switches
   const settings = data.settings || {};
   const togglesMap = [
@@ -1613,6 +1956,7 @@ document.addEventListener('DOMContentLoaded', () => {
   setupConfigsModal();
   setupRevokeAndKill();
   setupClientImporters();
+  setupTutorialModal();
   setupThemeToggle();
   setupNetworkTools();
   setupSupportChat();

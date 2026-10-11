@@ -4616,6 +4616,22 @@
       const supContact = document.getElementById('settingSupportContact');
       if (supContact) supContact.value = s.support_contact || '';
 
+      // Tutorial Channel URL & Client App Overrides
+      const tutChannelInp = document.getElementById('settingTutorialChannelUrl');
+      if (tutChannelInp) tutChannelInp.value = s.tutorial_channel_url || '';
+
+      if (s.client_apps_json) {
+        try {
+          const appOverrides = typeof s.client_apps_json === 'string' ? JSON.parse(s.client_apps_json) : s.client_apps_json;
+          if (appOverrides && typeof appOverrides === 'object') {
+            ['streisand', 'v2box', 'v2rayng', 'hiddify', 'happ', 'incy', 'v2rayn'].forEach(id => {
+              const el = document.getElementById(`settingAppUrl_${id}`);
+              if (el) el.value = appOverrides[id] || '';
+            });
+          }
+        } catch (e) {}
+      }
+
       // Telegram Supergroup Forum Topics
       const topicSettings = {
         settingTopicTopups: s.topic_topups,
@@ -4737,6 +4753,15 @@
       topic_alerts: parseTopicVal(document.getElementById('settingTopicAlerts')?.value),
       topic_crypto: parseTopicVal(document.getElementById('settingTopicCrypto')?.value),
       topic_errors: parseTopicVal(document.getElementById('settingTopicErrors')?.value),
+      tutorial_channel_url: document.getElementById('settingTutorialChannelUrl')?.value?.trim() || '',
+      client_apps_json: (() => {
+        const appOverridesObj = {};
+        ['streisand', 'v2box', 'v2rayng', 'hiddify', 'happ', 'incy', 'v2rayn'].forEach(id => {
+          const val = document.getElementById(`settingAppUrl_${id}`)?.value?.trim();
+          if (val) appOverridesObj[id] = val;
+        });
+        return Object.keys(appOverridesObj).length > 0 ? JSON.stringify(appOverridesObj) : '';
+      })(),
     };
 
     const saveBtns = [document.getElementById('saveAllSettingsBtn'), document.getElementById('saveAllSettingsTopBtn')];

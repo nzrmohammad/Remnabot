@@ -688,10 +688,14 @@ async def get_user_me(request: web.Request) -> web.Response:
         except Exception as exc:
             logger.warning("Failed to fetch DB wheel coupons for %s: %s", telegram_id, exc)
 
+        ref_link = f"https://t.me/{bot_username}?start=ref_{telegram_id}" if bot_username else f"https://t.me/?start=ref_{telegram_id}"
         data = {
             "bot_username": bot_username,
             "referral_reward_gb": referral_reward_gb,
             "referral_enabled": store_settings.referral_enabled,
+            "referral_link": ref_link,
+            "tutorial_channel_url": store_settings.tutorial_channel_url,
+            "client_apps_override": store_settings.client_apps_json,
             "user": {
                 "id": telegram_id,
                 "first_name": user_auth.get("first_name", "کاربر"),

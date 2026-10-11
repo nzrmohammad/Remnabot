@@ -1474,17 +1474,24 @@ html.theme-light #starsRateDisplay {
   color: #334155 !important;
 }
 
-/* Server Cost Due Date picker styling */
+/* Server Cost Due Date picker styling (arrow on left for Persian/RTL UX, date on right) */
 #nodeBillingDueDate {
   direction: ltr !important;
-  text-align: left !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
 }
 #nodeBillingDueDate::-webkit-datetime-edit {
+  order: 1 !important;
+  margin-left: auto !important;
+  margin-right: 0 !important;
   padding: 0 !important;
-  margin: 0 !important;
+  text-align: right !important;
 }
 #nodeBillingDueDate::-webkit-calendar-picker-indicator {
+  order: -1 !important;
   cursor: pointer;
   filter: invert(0.8);
-  margin-left: auto;
+  margin-right: auto !important;
+  margin-left: 0 !important;
 }
