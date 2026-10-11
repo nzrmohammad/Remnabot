@@ -192,11 +192,20 @@ async def execute_purchase(
             base = now
             current_expire = _parse_expire(account.get("expireAt"))
             if current_expire is not None and current_expire > now:
+                # Still active -> extend from existing expiration date, stack traffic
                 base = current_expire
-            expire_iso = _iso(_expire_from(service.duration_days, base))
-            traffic = _traffic_bytes(
-                service.traffic_gb, int(account.get("trafficLimitBytes") or 0), strategy
-            )
+                expire_iso = _iso(_expire_from(service.duration_days, base))
+                traffic = _traffic_bytes(
+                    service.traffic_gb, int(account.get("trafficLimitBytes") or 0), strategy
+                )
+            else:
+                # Already expired -> start fresh from today, reset used traffic
+                expire_iso = _iso(_expire_from(service.duration_days, base))
+                traffic = _traffic_bytes(service.traffic_gb, 0, strategy)
+                try:
+                    await remnawave.reset_user_traffic(int(account["id"]))
+                except Exception:
+                    logger.exception("Failed to reset traffic on renewal for expired user %s", account["id"])
         else:
             # Periodic strategies (DAY, WEEK, MONTH): reset days from today & reset traffic to 0
             base = now

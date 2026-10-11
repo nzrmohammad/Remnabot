@@ -36,12 +36,7 @@ async def _monthly_text_for_user(
     month_start, month_end = jalali_month_range(now)
     prev_start, prev_end = prev_jalali_month_range(now)
 
-    # merge all accounts into one report (usually there is exactly one)
-    day_totals: dict[str, int] = {}
-    day_rows: dict[str, list[tuple[str, int]]] = {}
-    node_totals: dict[str, int] = {}
-    prev_total = 0
-
+    account_data = []
     for account in accounts:
         account_id = account.get("id")
         if account_id is None:
@@ -62,11 +57,33 @@ async def _monthly_text_for_user(
             )
             or []
         )
-        prev_total += _week_total(prev_series)
+        account_data.append((account, series, prev_series))
+
+    if not account_data:
+        return None
+
+    multi_account = len(account_data) > 1
+    blocks = []
+    grand_month_total = 0
+    grand_prev_total = 0
+    all_day_totals: dict[str, int] = {}
+    all_node_totals: dict[str, int] = {}
+
+    days_in_month = (month_end.date() - month_start.date()).days
+
+    for account, series, prev_series in account_data:
+        u_name = escape(str(account.get("username") or "—"))
+        acc_prev_total = _week_total(prev_series)
+        grand_prev_total += acc_prev_total
+
+        day_totals: dict[str, int] = {}
+        day_rows: dict[str, list[tuple[str, int]]] = {}
+        node_totals: dict[str, int] = {}
 
         for row in series:
             label = _node_label(row)
             node_totals[label] = node_totals.get(label, 0) + int(row.get("total") or 0)
+            all_node_totals[label] = all_node_totals.get(label, 0) + int(row.get("total") or 0)
             data = row.get("data") or []
             for offset, value in enumerate(data):
                 day = (month_start + timedelta(days=offset)).strftime("%Y-%m-%d")
@@ -74,51 +91,60 @@ async def _monthly_text_for_user(
                 if value <= 0:
                     continue
                 day_totals[day] = day_totals.get(day, 0) + value
+                all_day_totals[day] = all_day_totals.get(day, 0) + value
                 day_rows.setdefault(day, []).append((label, value))
 
-    month_total = sum(day_totals.values())
-    month = month_name(now, lang)
+        acc_month_total = sum(day_totals.values())
+        grand_month_total += acc_month_total
 
+        acc_lines = []
+        if multi_account:
+            acc_lines.append(f"👤 {t(lang, 'stats_account')} : <code>{u_name}</code>")
+
+        for offset in range(days_in_month, -1, -1):
+            day_dt = month_start + timedelta(days=offset)
+            day = day_dt.strftime("%Y-%m-%d")
+            total = day_totals.get(day, 0)
+            date_str = format_date(day_dt, lang)
+            acc_lines.append("")
+            acc_lines.append(t(lang, "monthly_day", date=date_str, total=human_bytes(total)))
+            rows = sorted(day_rows.get(day, []), key=lambda x: x[1], reverse=True)
+            if len(rows) == 1:
+                acc_lines.append(f"({rows[0][0]} {human_bytes(rows[0][1])})")
+            elif len(rows) > 1:
+                top_label, top_value = rows[0]
+                rest = sum(v for _, v in rows[1:])
+                acc_lines.append(
+                    f"({top_label} {human_bytes(top_value)}، "
+                    f"{t(lang, 'monthly_others')} {human_bytes(rest)})"
+                )
+
+        acc_lines.append("")
+        acc_lines.append(t(lang, "monthly_total", total=human_bytes(acc_month_total)))
+        blocks.append("\n".join(acc_lines))
+
+    month = month_name(now, lang)
     lines = [
         f"{t(lang, 'monthly_title', month=month)} - {format_datetime(now, lang)}",
         SEPARATOR,
     ]
 
-    # newest day first, like the weekly layout
-    days_in_month = (month_end.date() - month_start.date()).days
-    for offset in range(days_in_month, -1, -1):
-        day_dt = month_start + timedelta(days=offset)
-        day = day_dt.strftime("%Y-%m-%d")
-        total = day_totals.get(day, 0)
-        date_str = format_date(day_dt, lang)
-        lines.append("")
-        lines.append(t(lang, "monthly_day", date=date_str, total=human_bytes(total)))
-        rows = sorted(day_rows.get(day, []), key=lambda x: x[1], reverse=True)
-        if len(rows) == 1:
-            lines.append(f"      ({rows[0][0]} {human_bytes(rows[0][1])})")
-        elif len(rows) > 1:
-            top_label, top_value = rows[0]
-            rest = sum(v for _, v in rows[1:])
-            lines.append(
-                f"      ({top_label} {human_bytes(top_value)}، "
-                f"{t(lang, 'monthly_others')} {human_bytes(rest)})"
-            )
+    lines.append(f"\n{SEPARATOR}\n".join(blocks))
 
-    lines += [
-        "",
-        t(lang, "monthly_total", total=human_bytes(month_total)),
-        SEPARATOR,
-    ]
+    if multi_account:
+        lines.append("")
+        lines.append(SEPARATOR)
+        lines.append(f"📊 <b>مجموع کل مصارف ماهانه ({len(account_data)} اکانت) : {human_bytes(grand_month_total)}</b>")
+
+    lines.append(SEPARATOR)
 
     # personalized summary
-    name = escape(
-        str(accounts[0].get("username") or user.username or "")
-    ) or "👤"
-    lines.append(t(lang, "monthly_hi", name=name))
-    summary = [t(lang, "monthly_sum_total", total=human_bytes(month_total), month=month)]
+    display_name = escape(str(account_data[0][0].get("username") or user.username or "")) or "👤"
+    lines.append(t(lang, "monthly_hi", name=display_name))
+    summary = [t(lang, "monthly_sum_total", total=human_bytes(grand_month_total), month=month)]
 
-    if prev_total > 0 and month_total > 0:
-        change = (month_total - prev_total) / prev_total * 100
+    if grand_prev_total > 0 and grand_month_total > 0:
+        change = (grand_month_total - grand_prev_total) / grand_prev_total * 100
         if change >= 5:
             summary.append(t(lang, "monthly_sum_more", percent=f"{change:.0f}"))
         elif change <= -5:
@@ -126,10 +152,10 @@ async def _monthly_text_for_user(
         else:
             summary.append(t(lang, "monthly_sum_same"))
 
-    if day_totals and node_totals:
-        busiest_day = max(day_totals, key=day_totals.get)
+    if all_day_totals and all_node_totals:
+        busiest_day = max(all_day_totals, key=all_day_totals.get)
         busiest_dt = datetime.strptime(busiest_day, "%Y-%m-%d")
-        top_label = max(node_totals, key=node_totals.get)
+        top_label = max(all_node_totals, key=all_node_totals.get)
         flag, _, node_name = top_label.partition(" ")
         summary.append(
             t(
@@ -155,15 +181,16 @@ async def _send_monthly_for_user(
     if not text:
         return
 
-    if prefs and prefs.clean_reports and prefs.last_report_message_id:
+    target_msg_id = getattr(prefs, "last_monthly_message_id", None)
+    if prefs and prefs.clean_reports and target_msg_id:
         try:
-            await bot.delete_message(user.telegram_id, prefs.last_report_message_id)
+            await bot.delete_message(user.telegram_id, target_msg_id)
         except Exception:
             pass
 
     try:
         sent_msg = await bot.send_message(user.telegram_id, text)
         if prefs and prefs.clean_reports and sent_msg:
-            prefs.last_report_message_id = sent_msg.message_id
+            prefs.last_monthly_message_id = sent_msg.message_id
     except TelegramAPIError as exc:
         logger.warning("monthly report not delivered to %s: %s", user.telegram_id, exc)

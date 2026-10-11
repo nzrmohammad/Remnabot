@@ -32,14 +32,8 @@ logger = logging.getLogger(__name__)
 
 
 def _alert_keyboard(lang: str, account_id: int | str | None = None):
-    """تمدید این اکانت (if known) + سرویس‌ها | کیف پول."""
+    """سرویس‌ها | کیف پول."""
     kb = InlineKeyboardBuilder()
-    if account_id is not None:
-        kb.button(
-            text=t(lang, "btn_renew_account"),
-            callback_data=f"svc:renacc:{account_id}",
-        )
-        kb.adjust(1)
     kb.button(text=t(lang, "btn_services"), callback_data="alert:goto:services")
     kb.button(text=t(lang, "btn_wallet"), callback_data="alert:goto:wallet")
     kb.adjust(2)

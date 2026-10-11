@@ -1070,13 +1070,28 @@ async def test_report_settings_auto_clean_reports(async_session: AsyncSession):
     bot.delete_message.assert_awaited_once_with(555444, 12345)
     assert prefs.last_report_message_id == 67890
 
-    # 2. Test weekly report cleanup
+    # 2. Test weekly report cleanup (tracks independently, does not delete nightly report)
     sent_msg2 = MagicMock(message_id=99999)
     bot.send_message = AsyncMock(return_value=sent_msg2)
     bot.delete_message.reset_mock()
     await _send_weekly_for_user(bot, user, remnawave, now, prefs)
+    bot.delete_message.assert_not_called()
+    assert prefs.last_weekly_message_id == 99999
+
+    # Second weekly report deletes the previous weekly report
+    sent_msg3 = MagicMock(message_id=11111)
+    bot.send_message = AsyncMock(return_value=sent_msg3)
+    await _send_weekly_for_user(bot, user, remnawave, now, prefs)
+    bot.delete_message.assert_awaited_once_with(555444, 99999)
+    assert prefs.last_weekly_message_id == 11111
+
+    # Nightly report cleanup deletes the previous nightly report
+    bot.delete_message.reset_mock()
+    sent_msg4 = MagicMock(message_id=22222)
+    bot.send_message = AsyncMock(return_value=sent_msg4)
+    await _send_nightly_for_user(bot, user, remnawave, now, prefs)
     bot.delete_message.assert_awaited_once_with(555444, 67890)
-    assert prefs.last_report_message_id == 99999
+    assert prefs.last_nightly_message_id == 22222
 
 
 @pytest.mark.anyio

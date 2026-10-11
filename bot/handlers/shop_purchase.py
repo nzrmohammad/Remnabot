@@ -311,7 +311,7 @@ async def _notify_admin(
     discount_amount: int = 0,
     full_name: str | None = None,
 ) -> None:
-    tg_username = f"@{user.username}" if user.username else "—"
+    tg_username = f"\u200e@{escape(user.username)}\u200e" if user.username else "—"
     effective_price = max(0, service.price - discount_amount)
     display_name = escape(full_name or user.username or str(user.telegram_id))
 
@@ -331,7 +331,7 @@ async def _notify_admin(
         f"📦 <b>\u200e{escape(service.name)}\u200e</b>\n"
         f"{prices_str}\n\n"
         f"👤 {display_name} — <code>{user.telegram_id}</code>\n"
-        f"🔗 {t('fa', 'svc_requested_username')} : {escape(tg_username)}\n"
+        f"🔗 {t('fa', 'svc_requested_username')} : {tg_username}\n"
         f"🔑 <code>{escape(str(result.panel_username or ''))}</code>\n\n"
         f"{t('fa', 'buy_remaining_balance', balance=fmt(result.new_balance), currency=t('fa', 'svc_currency'))}"
     )

@@ -116,15 +116,17 @@ async def _send_nightly_for_user(
         f"{SEPARATOR}\n" + f"\n{SEPARATOR}\n".join(blocks)
     )
 
-    if prefs and prefs.clean_reports and prefs.last_report_message_id:
+    target_msg_id = getattr(prefs, "last_nightly_message_id", None) or (prefs.last_report_message_id if prefs else None)
+    if prefs and prefs.clean_reports and target_msg_id:
         try:
-            await bot.delete_message(user.telegram_id, prefs.last_report_message_id)
+            await bot.delete_message(user.telegram_id, target_msg_id)
         except Exception:
             pass
 
     try:
         sent_msg = await bot.send_message(user.telegram_id, text)
         if prefs and prefs.clean_reports and sent_msg:
+            prefs.last_nightly_message_id = sent_msg.message_id
             prefs.last_report_message_id = sent_msg.message_id
     except TelegramAPIError as exc:
         logger.warning("nightly report not delivered to %s: %s", user.telegram_id, exc)

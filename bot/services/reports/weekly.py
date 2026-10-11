@@ -36,7 +36,7 @@ async def _weekly_text_for_user(
     prev_start, prev_end = now - timedelta(days=13), now - timedelta(days=7)
 
     # Gather series across all accounts to build node flag map and stats
-    all_account_series: list[tuple[dict, list[dict], list[dict]]] = []
+    account_data: list[tuple[dict, list[dict], list[dict]]] = []
     all_nodes: list[dict] = []
     for account in accounts:
         account_id = account.get("id")
@@ -54,23 +54,35 @@ async def _weekly_text_for_user(
             )
             or []
         )
-        all_account_series.append((account, series, prev_series))
+        account_data.append((account, series, prev_series))
         all_nodes.extend(series)
 
+    if not account_data:
+        return None
+
     flag_map = make_node_flag_map(all_nodes)
+    multi_account = len(account_data) > 1
 
-    day_totals: dict[str, int] = {}
-    day_rows: dict[str, list[tuple[str, int]]] = {}
-    node_totals: dict[str, int] = {}
-    prev_total = 0
+    blocks = []
+    grand_week_total = 0
+    grand_prev_total = 0
+    all_day_totals: dict[str, int] = {}
+    all_node_totals: dict[str, int] = {}
 
-    for account, series, prev_series in all_account_series:
-        prev_total += _week_total(prev_series)
+    for account, series, prev_series in account_data:
+        u_name = escape(str(account.get("username") or "—"))
+        acc_prev_total = _week_total(prev_series)
+        grand_prev_total += acc_prev_total
+
+        day_totals: dict[str, int] = {}
+        day_rows: dict[str, list[tuple[str, int]]] = {}
+        node_totals: dict[str, int] = {}
 
         for row in series:
             name = row.get("name") or row.get("nodeName") or "—"
             lbl = flag_map.get(name) or country_flag(row.get("countryCode"))
             node_totals[lbl] = node_totals.get(lbl, 0) + int(row.get("total") or 0)
+            all_node_totals[lbl] = all_node_totals.get(lbl, 0) + int(row.get("total") or 0)
             data = row.get("data") or []
             last_7 = data[-7:] if len(data) >= 7 else ([0] * (7 - len(data)) + data)
             for offset in range(7):
@@ -79,45 +91,57 @@ async def _weekly_text_for_user(
                 if value <= 0:
                     continue
                 day_totals[day] = day_totals.get(day, 0) + value
+                all_day_totals[day] = all_day_totals.get(day, 0) + value
                 day_rows.setdefault(day, []).append((lbl, value))
 
-    week_total = sum(day_totals.values())
+        acc_week_total = sum(day_totals.values())
+        grand_week_total += acc_week_total
+
+        acc_lines = []
+        if multi_account:
+            acc_lines.append(f"👤 {t(lang, 'stats_account')} : <code>{u_name}</code>")
+
+        for offset in range(6, -1, -1):
+            day_dt = week_start + timedelta(days=offset)
+            day = day_dt.strftime("%Y-%m-%d")
+            total = day_totals.get(day, 0)
+            d_name = _weekday_name(day_dt, lang)
+            date_str = format_date(day_dt, lang)
+            acc_lines.append("")
+            acc_lines.append(t(lang, "weekly_day", day=d_name, date=date_str, total=human_bytes(total)))
+            rows = sorted(day_rows.get(day, []), key=lambda x: x[1], reverse=True)
+            if rows:
+                parts = [f"{lbl} {human_bytes(val)}" for lbl, val in rows if val > 0]
+                if parts:
+                    acc_lines.append(" • ".join(parts))
+
+        acc_lines.append("")
+        acc_lines.append(t(lang, "weekly_total", total=human_bytes(acc_week_total)))
+        blocks.append("\n".join(acc_lines))
 
     lines = [
         f"{t(lang, 'weekly_title')} - {format_datetime(now, lang)}",
         SEPARATOR,
     ]
 
-    # newest day first, like the requested layout
-    for offset in range(6, -1, -1):
-        day_dt = week_start + timedelta(days=offset)
-        day = day_dt.strftime("%Y-%m-%d")
-        total = day_totals.get(day, 0)
-        d_name = _weekday_name(day_dt, lang)
-        date_str = format_date(day_dt, lang)
-        lines.append("")
-        lines.append(t(lang, "weekly_day", day=d_name, date=date_str, total=human_bytes(total)))
-        rows = sorted(day_rows.get(day, []), key=lambda x: x[1], reverse=True)
-        if rows:
-            parts = [f"{lbl} {human_bytes(val)}" for lbl, val in rows if val > 0]
-            if parts:
-                lines.append(f"   {' '.join(parts)}")
+    lines.append(f"\n{SEPARATOR}\n".join(blocks))
 
-    lines += [
-        "",
-        t(lang, "weekly_total", total=human_bytes(week_total)),
-        SEPARATOR,
-    ]
+    if multi_account:
+        lines.append("")
+        lines.append(SEPARATOR)
+        lines.append(f"📊 <b>مجموع کل مصارف ({len(account_data)} اکانت) : {human_bytes(grand_week_total)}</b>")
+
+    lines.append(SEPARATOR)
 
     # personalized summary
     name = escape(
-        str(accounts[0].get("username") or user.username or "")
+        str(account_data[0][0].get("username") or user.username or "")
     ) or "👤"
     lines.append(t(lang, "weekly_hi", name=name))
-    summary = [t(lang, "weekly_sum_total", total=human_bytes(week_total))]
+    summary = [t(lang, "weekly_sum_total", total=human_bytes(grand_week_total))]
 
-    if prev_total > 0 and week_total > 0:
-        change = (week_total - prev_total) / prev_total * 100
+    if grand_prev_total > 0 and grand_week_total > 0:
+        change = (grand_week_total - grand_prev_total) / grand_prev_total * 100
         if change >= 5:
             summary.append(t(lang, "weekly_sum_more", percent=f"{change:.0f}"))
         elif change <= -5:
@@ -125,10 +149,10 @@ async def _weekly_text_for_user(
         else:
             summary.append(t(lang, "weekly_sum_same"))
 
-    if day_totals and node_totals:
-        busiest_day = max(day_totals, key=day_totals.get)
+    if all_day_totals and all_node_totals:
+        busiest_day = max(all_day_totals, key=all_day_totals.get)
         busiest_dt = datetime.strptime(busiest_day, "%Y-%m-%d")
-        top_label = max(node_totals, key=node_totals.get)
+        top_label = max(all_node_totals, key=all_node_totals.get)
         summary.append(
             t(
                 lang, "weekly_sum_top",
@@ -152,15 +176,16 @@ async def _send_weekly_for_user(
     if not text:
         return
 
-    if prefs and prefs.clean_reports and prefs.last_report_message_id:
+    target_msg_id = getattr(prefs, "last_weekly_message_id", None)
+    if prefs and prefs.clean_reports and target_msg_id:
         try:
-            await bot.delete_message(user.telegram_id, prefs.last_report_message_id)
+            await bot.delete_message(user.telegram_id, target_msg_id)
         except Exception:
             pass
 
     try:
         sent_msg = await bot.send_message(user.telegram_id, text)
         if prefs and prefs.clean_reports and sent_msg:
-            prefs.last_report_message_id = sent_msg.message_id
+            prefs.last_weekly_message_id = sent_msg.message_id
     except TelegramAPIError as exc:
         logger.warning("weekly report not delivered to %s: %s", user.telegram_id, exc)

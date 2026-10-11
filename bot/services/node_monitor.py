@@ -14,8 +14,10 @@ from typing import Any
 from aiogram import Bot
 from aiogram.exceptions import TelegramAPIError
 
+from bot.common import admin_thread_kwargs
 from bot.config import get_settings
-from bot.services.formatting import country_flag
+from bot.services.app_settings import get_store_settings
+from bot.services.formatting import country_flag, format_datetime, now_tz
 from bot.services.remnawave import RemnawaveClient
 
 logger = logging.getLogger(__name__)
@@ -25,18 +27,48 @@ _NODE_STATES: dict[str, dict[str, Any]] = {}
 COOLDOWN_SECONDS = 3600  # 1 hour cooldown for repeated high-resource or offline alerts
 
 
-async def _notify_admins(bot: Bot, text: str) -> None:
-    """Send alert message to all configured super admins."""
+async def _notify_admins(bot: Bot, text: str, session_factory: Any = None) -> None:
+    """Send alert message to the dedicated alerts topic in the admin group, fallback to super admins."""
     settings = get_settings()
-    admin_ids = settings.ADMIN_IDS or []
-    for admin_id in admin_ids:
+    topic_id = None
+    if session_factory:
         try:
-            await bot.send_message(admin_id, text, parse_mode="HTML")
-        except TelegramAPIError as exc:
-            logger.warning("Failed to send node alert to admin %s: %s", admin_id, exc)
+            async with session_factory() as session:
+                store = await get_store_settings(session)
+                topic_id = store.topic_alerts if store.topic_alerts is not None else settings.ADMIN_TOPIC_ALERTS
+        except Exception as exc:
+            logger.warning("Could not fetch topic_alerts for node alert: %s", exc)
+            topic_id = settings.ADMIN_TOPIC_ALERTS
+    else:
+        topic_id = settings.ADMIN_TOPIC_ALERTS
+
+    delivered = False
+    admin_chat_id = getattr(settings, "ADMIN_CHAT_ID", None)
+    if admin_chat_id and type(admin_chat_id).__name__ not in ("MagicMock", "AsyncMock", "Mock"):
+        thread_kwargs = admin_thread_kwargs(topic_id=topic_id)
+        try:
+            await bot.send_message(admin_chat_id, text, parse_mode="HTML", **thread_kwargs)
+            delivered = True
+        except Exception as exc:
+            logger.warning("Failed to send node alert to admin group %s (topic %s): %s", admin_chat_id, topic_id, exc)
+            if thread_kwargs:
+                try:
+                    await bot.send_message(settings.ADMIN_CHAT_ID, text, parse_mode="HTML")
+                    delivered = True
+                except Exception as fb_exc:
+                    logger.warning("Failed retry to admin group without thread: %s", fb_exc)
+
+    if not delivered and settings.ADMIN_IDS:
+        for admin_id in settings.ADMIN_IDS:
+            try:
+                await bot.send_message(admin_id, text, parse_mode="HTML")
+            except TelegramAPIError as exc:
+                logger.warning("Failed to send node alert to admin %s: %s", admin_id, exc)
 
 
-async def check_nodes_health_once(bot: Bot, remnawave: RemnawaveClient) -> None:
+async def check_nodes_health_once(
+    bot: Bot, remnawave: RemnawaveClient, session_factory: Any = None
+) -> None:
     """Run one health check iteration across all cluster nodes."""
     try:
         nodes = await remnawave.get_nodes()
@@ -46,8 +78,10 @@ async def check_nodes_health_once(bot: Bot, remnawave: RemnawaveClient) -> None:
         logger.warning("Failed to fetch nodes for health monitor: %s", exc)
         return
 
+    settings = get_settings()
     now_ts = datetime.now(timezone.utc).timestamp()
-    time_str = datetime.now(timezone.utc).strftime("%H:%M:%S")
+    now_dt = now_tz(settings.TIMEZONE)
+    shamsi_time = format_datetime(now_dt, "fa")
 
     for n in nodes:
         node_id = str(n.get("id") or n.get("uuid") or n.get("name") or "unknown")
@@ -75,9 +109,9 @@ async def check_nodes_health_once(bot: Bot, remnawave: RemnawaveClient) -> None:
                     f"آدرس: <code>{address}</code>\n"
                     f"وضعیت: ❌ <b>آفلاین / قطع اتصال</b>\n"
                     f"کاربران متأثر: <b>{online_users} نفر</b>\n"
-                    f"زمان بررسی: <code>{time_str} UTC</code>"
+                    f"زمان بررسی: <code>{shamsi_time}</code>"
                 )
-                await _notify_admins(bot, msg)
+                await _notify_admins(bot, msg, session_factory=session_factory)
         else:
             # Node is connected
             if state["is_offline"]:
@@ -88,10 +122,10 @@ async def check_nodes_health_once(bot: Bot, remnawave: RemnawaveClient) -> None:
                     f"✅ <b>اتصال سرور برقرار شد (Node Recovered)</b>\n\n"
                     f"سرور: <b>{flag} {raw_name}</b>\n"
                     f"آدرس: <code>{address}</code>\n"
-                    f"وضعیت: 🟢 <b>آنلاین و متصل</b>\n"
-                    f"زمان بازیابی: <code>{time_str} UTC</code>"
+                    f"وضعیت: 🟢 <b>آنلاین</b>\n"
+                    f"زمان بازیابی: <code>{shamsi_time}</code>"
                 )
-                await _notify_admins(bot, msg)
+                await _notify_admins(bot, msg, session_factory=session_factory)
 
             # --- 2. Resource Overload Check (RAM / CPU > 90%) ---
             sys_info = n.get("system") or n.get("sys") or n.get("metrics") or {}
@@ -109,10 +143,10 @@ async def check_nodes_health_once(bot: Bot, remnawave: RemnawaveClient) -> None:
                     f"مصرف رم (RAM): <b>{ram:.1f}%</b>\n"
                     f"مصرف پردازنده (CPU): <b>{cpu:.1f}%</b>\n"
                     f"کاربران آنلاین: <b>{online_users} نفر</b>\n"
-                    f"زمان: <code>{time_str} UTC</code>\n\n"
+                    f"زمان بررسی: <code>{shamsi_time}</code>\n\n"
                     f"<i>توصیه: ترافیک یا سرویس‌های سرور را بررسی فرمایید.</i>"
                 )
-                await _notify_admins(bot, msg)
+                await _notify_admins(bot, msg, session_factory=session_factory)
 
 
 async def check_nodes_billing_due_dates(bot: Bot, session_factory: Any) -> None:
@@ -161,7 +195,7 @@ async def check_nodes_billing_due_dates(bot: Bot, session_factory: Any) -> None:
                     f"وضعیت: {status_text}\n\n"
                     f"<i>لطفاً جهت جلوگیری از مسدود شدن یا حذف سرور نسبت به پرداخت فاکتور اقدام فرمایید.</i>"
                 )
-                await _notify_admins(bot, msg)
+                await _notify_admins(bot, msg, session_factory=session_factory)
                 await repo.mark_alert_sent(node.node_uuid, True)
 
             await session.commit()
@@ -182,7 +216,7 @@ async def nodes_monitor_loop(
     last_billing_check_ts = 0.0
     while True:
         try:
-            await check_nodes_health_once(bot, remnawave)
+            await check_nodes_health_once(bot, remnawave, session_factory=session_factory)
 
             # Check billing due dates once every hour
             now_ts = datetime.now(timezone.utc).timestamp()

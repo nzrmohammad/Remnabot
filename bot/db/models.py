@@ -241,6 +241,9 @@ class ReportSettings(Base):
     monthly: Mapped[bool] = mapped_column(Boolean, default=True)
     clean_reports: Mapped[bool] = mapped_column(Boolean, default=True)
     last_report_message_id: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
+    last_nightly_message_id: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
+    last_weekly_message_id: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
+    last_monthly_message_id: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
     wheel_notify: Mapped[bool] = mapped_column(Boolean, default=True)
     wheel_notified: Mapped[bool] = mapped_column(Boolean, default=False)
     wheel_last_spin_at: Mapped[datetime | None] = mapped_column(

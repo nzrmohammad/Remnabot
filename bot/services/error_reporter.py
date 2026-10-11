@@ -47,6 +47,21 @@ async def report_error(
     is_exc = isinstance(exc, Exception)
     exc_type = type(exc).__name__ if is_exc else "Error"
     exc_msg = str(exc) or "—"
+
+    # Ignore client-side protocol/scanner noise
+    if exc_type in (
+        "BadHttpMessage",
+        "HttpProcessingError",
+        "PayloadEncodingError",
+        "LineTooLong",
+        "InvalidHeader",
+        "ClientPayloadError",
+        "ClientConnectionResetError",
+        "ConnectionResetError",
+        "BrokenPipeError",
+    ) or "Pause on PRI/Upgrade" in exc_msg:
+        return
+
     sig = f"{exc_type}:{exc_msg[:80]}:{context[:50]}"
     now_epoch = time.time()
     last_sent = _recent_errors.get(sig, 0.0)
@@ -187,6 +202,7 @@ class TelegramErrorLogHandler(logging.Handler):
             "bot.services.error_reporter",
             "aiogram",
             "aiohttp.access",
+            "aiohttp.server",
             "urllib3",
             "asyncio",
         )):
@@ -195,6 +211,22 @@ class TelegramErrorLogHandler(logging.Handler):
         # Ignore shutdown / cancellation signals
         if record.exc_info and record.exc_info[0] in (KeyboardInterrupt, SystemExit, asyncio.CancelledError):
             return
+
+        # Ignore client-side connection/parsing exceptions
+        if record.exc_info and record.exc_info[0]:
+            exc_name = record.exc_info[0].__name__
+            if exc_name in (
+                "BadHttpMessage",
+                "HttpProcessingError",
+                "PayloadEncodingError",
+                "LineTooLong",
+                "InvalidHeader",
+                "ClientPayloadError",
+                "ClientConnectionResetError",
+                "ConnectionResetError",
+                "BrokenPipeError",
+            ):
+                return
 
         try:
             loop = asyncio.get_running_loop()

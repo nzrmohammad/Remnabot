@@ -4100,12 +4100,7 @@
       this.updateStarsHint();
     },
 
-    updateStarsHint() {
-      const hint = document.getElementById('starsAutoCalcHint');
-      if (hint) {
-        hint.innerText = 'Telegram Stars';
-      }
-    },
+    updateStarsHint() {},
 
     // --- Access Mode Modal (حالت دسترسی ربات) ---
     openAccessModeModal() {

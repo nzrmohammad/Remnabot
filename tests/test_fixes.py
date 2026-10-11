@@ -1706,7 +1706,8 @@ async def test_receipt_and_admin_order_notification_fixes():
     assert "🏷 کد تخفیف (<code>NOROOZ</code>) : <b>\u200e-500,000</b> تومان" in admin_text
     assert "💵 پرداختی از کیف پول : <b>0</b> تومان" in admin_text
     assert "👤 Nzrmohammad — <code>265455450</code>" in admin_text
-    assert "🔗 یوزرنیم : @Nzrmohammad" in admin_text
+    assert "🔗 یوزرنیم :" in admin_text
+    assert "@Nzrmohammad" in admin_text
     assert "🔑 <code>Mohammad</code>" in admin_text
     assert "👛 موجودی باقی‌مانده : <b>0</b> تومان" in admin_text
 
