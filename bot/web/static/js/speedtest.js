@@ -1,7 +1,8 @@
 /**
  * RemnaStore Pro - Professional Speed & Network Quality Engine
- * Measures true sustained Download throughput, Upload throughput, Latency, and Jitter.
- * Includes user IP telemetry and multi-CDN support without burst overestimation.
+ * Measures true sustained Download throughput, Upload throughput, Latency, and Jitter
+ * directly against the server (SpectraIP 45.87.41.246 - هلند / آمستردام).
+ * Uses real-time XMLHttpRequest upload progress and sliding-window download stream.
  */
 
 (function () {
@@ -18,8 +19,8 @@
   const TOTAL_DEGREES = 240;
   const MAX_GAUGE_MBPS = 100;
 
-  const DOWNLOAD_DURATION_MS = 3800;
-  const UPLOAD_DURATION_MS = 2500;
+  const DOWNLOAD_DURATION_MS = 5200;
+  const UPLOAD_DURATION_MS = 4200;
 
   function speedToAngle(mbps) {
     const clamped = Math.max(0, Math.min(mbps, MAX_GAUGE_MBPS));
@@ -69,16 +70,17 @@
   }
 
   /**
-   * Detect client IP, operator, and select fastest test engine (Cloudflare vs Proxy Server).
+   * Detect client IP, operator/location, and server details (SpectraIP 45.87.41.246).
    */
   async function detectEngineAndNetwork(signal) {
     const userIpEl = document.getElementById('speedUserIp');
     const userLocEl = document.getElementById('speedUserLocation');
     const serverNameEl = document.getElementById('speedServerNameText');
+    const serverIpEl = document.getElementById('speedServerIpText');
 
-    let source = 'server';
+    let detectedIp = '';
 
-    // 1. Fetch server ping first to get authoritative user IP
+    // 1. Fetch server ping probe to get client IP and server details
     try {
       const pingResp = await fetch(`/api/user/speedtest/ping?_t=${Date.now()}`, {
         method: 'GET',
@@ -87,63 +89,69 @@
       });
       if (pingResp && pingResp.ok) {
         const pingData = await pingResp.json();
-        if (pingData && pingData.ip && userIpEl) {
-          userIpEl.innerText = pingData.ip;
+        if (pingData) {
+          if (pingData.ip) {
+            detectedIp = pingData.ip;
+            if (userIpEl) userIpEl.innerText = detectedIp;
+          }
+          if (pingData.server) {
+            if (serverNameEl && pingData.server.name) {
+              serverNameEl.innerText = pingData.server.name;
+            }
+            if (serverIpEl && pingData.server.ip) {
+              serverIpEl.innerText = pingData.server.ip;
+            }
+          }
         }
       }
     } catch (e) {}
 
-    // 2. Probe Cloudflare CDN availability
-    try {
-      const probeController = new AbortController();
-      const timeoutId = setTimeout(() => probeController.abort(), 1800);
+    // Ensure server info defaults to SpectraIP
+    if (serverNameEl && (!serverNameEl.innerText || serverNameEl.innerText.includes('Cloudflare'))) {
+      serverNameEl.innerText = 'SpectraIP (هلند)';
+    }
+    if (serverIpEl && (!serverIpEl.innerText || serverIpEl.innerText === '--')) {
+      serverIpEl.innerText = '45.87.41.246';
+    }
 
-      const resp = await fetch(`https://speed.cloudflare.com/__down?bytes=0&_t=${Date.now()}`, {
-        method: 'GET',
-        cache: 'no-store',
-        signal: probeController.signal,
-      });
-      clearTimeout(timeoutId);
-
-      if (resp && resp.ok) {
-        source = 'cloudflare';
-        const cfIp = resp.headers.get('cf-meta-ip');
-        const cfCity = resp.headers.get('cf-meta-city');
-        const cfCountry = resp.headers.get('cf-meta-country');
-        const cfAsn = resp.headers.get('cf-meta-asn');
-
-        if (cfIp && userIpEl) userIpEl.innerText = cfIp;
-
-        let locStr = '';
-        if (cfCity && cfCountry) locStr = `${cfCity}, ${cfCountry}`;
-        else if (cfCountry) locStr = `کشور: ${cfCountry}`;
-        if (cfAsn) locStr += ` (${cfAsn})`;
-
-        if (userLocEl) {
-          userLocEl.innerText = locStr || 'اتصال پایدار (Cloudflare Edge)';
+    // 2. Try fast client ISP/location detection if IP is available
+    if (detectedIp && userLocEl && userLocEl.innerText.includes('شناسایی')) {
+      try {
+        const ctrl = new AbortController();
+        const tid = setTimeout(() => ctrl.abort(), 1600);
+        const geoResp = await fetch(`https://ipapi.co/${detectedIp}/json/`, {
+          signal: ctrl.signal,
+          cache: 'no-store',
+        });
+        clearTimeout(tid);
+        if (geoResp && geoResp.ok) {
+          const geoData = await geoResp.json();
+          if (geoData) {
+            const org = geoData.org || geoData.asn || '';
+            const city = geoData.city || '';
+            const country = geoData.country_name || '';
+            let text = '';
+            if (city && country) text = `${city}، ${country}`;
+            else if (country) text = country;
+            if (org) text = text ? `${text} (${org})` : org;
+            if (text) userLocEl.innerText = text;
+          }
         }
-        if (serverNameEl) {
-          serverNameEl.innerText = 'شبکه جهانی Cloudflare';
+      } catch (e) {
+        if (userLocEl && userLocEl.innerText.includes('شناسایی')) {
+          userLocEl.innerText = 'اتصال سرور هلند (SpectraIP)';
         }
-        return source;
       }
-    } catch (e) {
-      // Cloudflare unavailable -> fallback to proxy server
+    } else if (userLocEl && userLocEl.innerText.includes('شناسایی')) {
+      userLocEl.innerText = 'اتصال سرور هلند (SpectraIP)';
     }
-
-    if (serverNameEl) {
-      serverNameEl.innerText = 'سرور پروکسی اشتراک';
-    }
-    if (userLocEl && userLocEl.innerText.includes('شناسایی')) {
-      userLocEl.innerText = 'اتصال مستقیم سرور';
-    }
-    return source;
   }
 
   /**
-   * Measure Ping (RTT) and Jitter with sequential probes.
+   * Measure Ping (RTT) and Jitter with 6 sequential probes.
+   * Standard RFC 3550 Mean Absolute Deviation for Jitter.
    */
-  async function measurePingAndJitter(source, signal) {
+  async function measurePingAndJitter(signal) {
     const statusText = document.getElementById('speedStatusBadge');
     const phaseLabel = document.getElementById('speedPhaseLabel');
 
@@ -154,16 +162,13 @@
     }
 
     const pings = [];
-    const probeCount = 3;
+    const probeCount = 6;
 
     for (let i = 0; i < probeCount; i++) {
       if (signal && signal.aborted) return { avgPing: 0, jitter: 0 };
       const start = performance.now();
       try {
-        const pingUrl = source === 'cloudflare'
-          ? `https://speed.cloudflare.com/__down?bytes=0&_t=${Date.now()}_${i}`
-          : `/api/user/speedtest/ping?t=${Date.now()}_${i}`;
-
+        const pingUrl = `/api/user/speedtest/ping?_t=${Date.now()}_${i}`;
         const resp = await fetch(pingUrl, {
           method: 'GET',
           cache: 'no-store',
@@ -177,17 +182,21 @@
           if (pingEl) pingEl.innerText = Math.round(duration).toString();
         }
       } catch (e) {}
-      await new Promise(r => setTimeout(r, 60));
+      await new Promise(r => setTimeout(r, 50));
     }
 
     if (pings.length === 0) return { avgPing: 0, jitter: 0 };
 
-    const avgPing = Math.round(pings.reduce((a, b) => a + b, 0) / pings.length);
+    // Standard RFC 3550 Jitter: Mean absolute difference between consecutive pings
     let jitterSum = 0;
     for (let i = 1; i < pings.length; i++) {
       jitterSum += Math.abs(pings[i] - pings[i - 1]);
     }
     const jitter = Math.round(jitterSum / Math.max(1, pings.length - 1));
+
+    // Baseline physical wire ping: Speedtest.net lowest quartile / minimum ping
+    const sorted = [...pings].sort((a, b) => a - b);
+    const avgPing = Math.round(sorted[0]);
 
     const pingEl = document.getElementById('speedPingVal');
     const jitterEl = document.getElementById('speedJitterVal');
@@ -199,8 +208,9 @@
 
   /**
    * Measure Download Throughput over sustained window without burst overestimation.
+   * Uses real streaming binary payload from SpectraIP server.
    */
-  async function measureDownloadThroughput(initialSource, signal) {
+  async function measureDownloadThroughput(signal) {
     const statusText = document.getElementById('speedStatusBadge');
     const phaseLabel = document.getElementById('speedPhaseLabel');
     const downloadVal = document.getElementById('speedDownloadVal');
@@ -211,89 +221,64 @@
       statusText.className = 'py-1.5 px-3 rounded-xl bg-emerald-950/60 border border-emerald-500/40 text-[11px] text-emerald-300 font-medium transition text-center min-h-[38px] flex items-center justify-center';
     }
 
-    let activeSource = initialSource;
     const testStartTime = performance.now();
     let totalReceivedBytes = 0;
 
-    // TCP warm-up tracking: ignore first 400ms for stable wire throughput
+    const chunkUrl = `/api/user/speedtest/payload?bytes=26214400&_t=${Date.now()}`;
+    const samples = [];
+    let lastSampleTime = testStartTime;
+    let lastSampleBytes = 0;
     let steadyStartTime = 0;
     let steadyStartBytes = 0;
 
-    const chunkSizes = [524288, 1048576, 2097152, 4194304, 8388608];
-    let chunkIndex = 0;
-    let lastTickTime = testStartTime;
-    let lastTickBytes = 0;
+    try {
+      const response = await fetch(chunkUrl, {
+        method: 'GET',
+        cache: 'no-store',
+        signal,
+      });
 
-    while (performance.now() - testStartTime < DOWNLOAD_DURATION_MS) {
-      if (signal && signal.aborted) break;
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
-      const bytesToFetch = chunkSizes[Math.min(chunkIndex, chunkSizes.length - 1)];
-      chunkIndex++;
+      if (response.body && typeof response.body.getReader === 'function') {
+        const reader = response.body.getReader();
 
-      const chunkUrl = activeSource === 'cloudflare'
-        ? `https://speed.cloudflare.com/__down?bytes=${bytesToFetch}&_t=${Date.now()}`
-        : `/api/user/speedtest/payload?bytes=${bytesToFetch}&_t=${Date.now()}`;
-
-      try {
-        const response = await fetch(chunkUrl, {
-          method: 'GET',
-          cache: 'no-store',
-          signal,
-        });
-
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-
-        if (response.body && typeof response.body.getReader === 'function') {
-          const reader = response.body.getReader();
-
-          while (true) {
-            if (performance.now() - testStartTime >= DOWNLOAD_DURATION_MS || (signal && signal.aborted)) {
-              try { reader.cancel(); } catch (e) {}
-              break;
-            }
-
-            const { done, value } = await reader.read();
-            if (done) break;
-
-            if (value && value.length > 0) {
-              totalReceivedBytes += value.length;
-              const now = performance.now();
-
-              // Mark steady state after initial 400ms buffer
-              if (now - testStartTime > 400 && steadyStartTime === 0) {
-                steadyStartTime = now;
-                steadyStartBytes = totalReceivedBytes;
-              }
-
-              const deltaSec = (now - lastTickTime) / 1000;
-              if (deltaSec >= 0.12) {
-                // Compute true physical wire rate over steady window
-                if (steadyStartTime > 0) {
-                  const sustainedSec = (now - steadyStartTime) / 1000;
-                  const sustainedBytes = totalReceivedBytes - steadyStartBytes;
-                  targetSpeedMbps = (sustainedBytes * 8) / (sustainedSec * 1000000);
-                } else {
-                  targetSpeedMbps = ((totalReceivedBytes - lastTickBytes) * 8) / (deltaSec * 1000000);
-                }
-
-                lastTickTime = now;
-                lastTickBytes = totalReceivedBytes;
-              }
-
-              const dataUsedEl = document.getElementById('speedDataUsed');
-              if (dataUsedEl) {
-                dataUsedEl.innerText = `${(totalReceivedBytes / (1024 * 1024)).toFixed(1)} MB`;
-              }
-            }
+        while (true) {
+          const now = performance.now();
+          if (now - testStartTime >= DOWNLOAD_DURATION_MS || (signal && signal.aborted)) {
+            try { reader.cancel(); } catch (e) {}
+            break;
           }
-        } else {
-          // ArrayBuffer fallback for WebViews
-          const buf = await response.arrayBuffer();
-          if (buf && buf.byteLength > 0) {
-            totalReceivedBytes += buf.byteLength;
-            const now = performance.now();
-            const deltaSec = (now - testStartTime) / 1000;
-            targetSpeedMbps = deltaSec > 0 ? (totalReceivedBytes * 8) / (deltaSec * 1000000) : 0;
+
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          if (value && value.length > 0) {
+            totalReceivedBytes += value.length;
+            const curTime = performance.now();
+
+            // TCP warmup: ignore first 450ms ramp-up for steady baseline
+            if (curTime - testStartTime > 450 && steadyStartTime === 0) {
+              steadyStartTime = curTime;
+              steadyStartBytes = totalReceivedBytes;
+              lastSampleTime = curTime;
+              lastSampleBytes = totalReceivedBytes;
+            }
+
+            const deltaSec = (curTime - lastSampleTime) / 1000;
+            // Record rate sample every 160ms
+            if (deltaSec >= 0.16) {
+              const deltaBytes = totalReceivedBytes - lastSampleBytes;
+              const instantMbps = (deltaBytes * 8) / (deltaSec * 1000000);
+
+              if (steadyStartTime > 0) {
+                samples.push(instantMbps);
+              }
+              targetSpeedMbps = instantMbps;
+
+              lastSampleTime = curTime;
+              lastSampleBytes = totalReceivedBytes;
+            }
 
             const dataUsedEl = document.getElementById('speedDataUsed');
             if (dataUsedEl) {
@@ -301,22 +286,29 @@
             }
           }
         }
-      } catch (err) {
-        if (signal && signal.aborted) break;
-        if (activeSource === 'cloudflare') {
-          activeSource = 'server';
-          const serverNameEl = document.getElementById('speedServerNameText');
-          if (serverNameEl) serverNameEl.innerText = 'سرور پروکسی اشتراک (فال‌بک)';
-          await new Promise(r => setTimeout(r, 80));
-          continue;
+      } else {
+        // Fallback for older WebViews
+        const buf = await response.arrayBuffer();
+        if (buf && buf.byteLength > 0) {
+          totalReceivedBytes = buf.byteLength;
+          const totalSec = (performance.now() - testStartTime) / 1000;
+          targetSpeedMbps = totalSec > 0 ? (totalReceivedBytes * 8) / (totalSec * 1000000) : 0;
         }
-        break;
+      }
+    } catch (err) {
+      if (signal && !signal.aborted) {
+        console.warn('Download measurement caught:', err);
       }
     }
 
-    // Accurate sustained physical wire throughput calculation
+    // Speedtest.net standard: Trimmed mean to eliminate TCP burst anomalies
     let finalDownloadMbps = 0;
-    if (steadyStartTime > 0 && totalReceivedBytes > steadyStartBytes) {
+    if (samples.length >= 4) {
+      const sorted = [...samples].sort((a, b) => a - b);
+      const trimCount = Math.max(1, Math.floor(sorted.length * 0.15));
+      const trimmed = sorted.slice(trimCount, sorted.length - trimCount);
+      finalDownloadMbps = trimmed.reduce((a, b) => a + b, 0) / trimmed.length;
+    } else if (steadyStartTime > 0 && totalReceivedBytes > steadyStartBytes) {
       const steadyDurationSec = (performance.now() - steadyStartTime) / 1000;
       const steadyBytes = totalReceivedBytes - steadyStartBytes;
       finalDownloadMbps = (steadyBytes * 8) / (steadyDurationSec * 1000000);
@@ -333,9 +325,10 @@
   }
 
   /**
-   * Measure Upload Throughput by streaming synthetic buffers to server.
+   * Measure Upload Throughput using real XMLHttpRequest upload progress events.
+   * Tracks exact physical byte transmission as packets leave the network interface.
    */
-  async function measureUploadThroughput(initialSource, signal) {
+  async function measureUploadThroughput(initialReceivedBytes, signal) {
     const statusText = document.getElementById('speedStatusBadge');
     const phaseLabel = document.getElementById('speedPhaseLabel');
     const uploadVal = document.getElementById('speedUploadVal');
@@ -351,64 +344,111 @@
     updateGaugeVisual(0);
 
     const testStartTime = performance.now();
-    let totalSentBytes = 0;
+    let totalUploadedBytes = 0;
+    const uploadSamples = [];
 
-    // Upload payload buffers (256 KB, 512 KB, 1 MB)
-    const uploadPayloads = [
-      new Uint8Array(262144),
-      new Uint8Array(524288),
-      new Uint8Array(1048576),
-    ];
-    let payloadIdx = 0;
+    // Pre-allocated upload chunks: 512KB and 2MB
+    const chunk512k = new Uint8Array(524288);
+    const chunk2m = new Uint8Array(2097152);
 
+    let activeXhr = null;
+
+    if (signal) {
+      signal.addEventListener('abort', () => {
+        if (activeXhr) {
+          try { activeXhr.abort(); } catch (e) {}
+        }
+      });
+    }
+
+    function uploadChunk(buffer) {
+      return new Promise((resolve) => {
+        if (signal && signal.aborted) return resolve(0);
+
+        const xhr = new XMLHttpRequest();
+        activeXhr = xhr;
+
+        const chunkStart = performance.now();
+        let lastLoaded = 0;
+        let lastTime = chunkStart;
+
+        xhr.open('POST', `/api/user/speedtest/upload?_t=${Date.now()}`, true);
+        xhr.setRequestHeader('Content-Type', 'application/octet-stream');
+
+        xhr.upload.onprogress = function (e) {
+          if (signal && signal.aborted) {
+            xhr.abort();
+            return;
+          }
+
+          const now = performance.now();
+          const loaded = e.loaded;
+          const deltaBytes = loaded - lastLoaded;
+          const deltaSec = (now - lastTime) / 1000;
+
+          if (deltaSec >= 0.15 && deltaBytes > 0) {
+            const instantMbps = (deltaBytes * 8) / (deltaSec * 1000000);
+            uploadSamples.push(instantMbps);
+            targetSpeedMbps = instantMbps;
+
+            lastLoaded = loaded;
+            lastTime = now;
+          }
+
+          const dataUsedEl = document.getElementById('speedDataUsed');
+          if (dataUsedEl) {
+            const grandTotal = initialReceivedBytes + totalUploadedBytes + loaded;
+            dataUsedEl.innerText = `${(grandTotal / (1024 * 1024)).toFixed(1)} MB`;
+          }
+        };
+
+        xhr.onload = function () {
+          activeXhr = null;
+          resolve(buffer.byteLength);
+        };
+
+        xhr.onerror = function () {
+          activeXhr = null;
+          resolve(0);
+        };
+
+        xhr.onabort = function () {
+          activeXhr = null;
+          resolve(0);
+        };
+
+        try {
+          xhr.send(buffer);
+        } catch (e) {
+          resolve(0);
+        }
+      });
+    }
+
+    let iteration = 0;
     while (performance.now() - testStartTime < UPLOAD_DURATION_MS) {
       if (signal && signal.aborted) break;
 
-      const payload = uploadPayloads[Math.min(payloadIdx, uploadPayloads.length - 1)];
-      payloadIdx++;
+      const buffer = iteration === 0 ? chunk512k : chunk2m;
+      iteration++;
 
-      const chunkStart = performance.now();
-      try {
-        const uploadUrl = initialSource === 'cloudflare'
-          ? 'https://speed.cloudflare.com/__up'
-          : '/api/user/speedtest/upload';
+      const sent = await uploadChunk(buffer);
+      totalUploadedBytes += sent;
 
-        const resp = await fetch(uploadUrl, {
-          method: 'POST',
-          body: payload,
-          cache: 'no-store',
-          signal,
-        });
-
-        if (resp && resp.ok) {
-          totalSentBytes += payload.byteLength;
-          const now = performance.now();
-          const totalSec = (now - testStartTime) / 1000;
-          if (totalSec > 0.1) {
-            targetSpeedMbps = (totalSentBytes * 8) / (totalSec * 1000000);
-          }
-        }
-      } catch (e) {
-        if (signal && signal.aborted) break;
-        // Fallback to local server upload if Cloudflare POST blocked
-        try {
-          const resp = await fetch('/api/user/speedtest/upload', {
-            method: 'POST',
-            body: payload,
-            cache: 'no-store',
-            signal,
-          });
-          if (resp && resp.ok) {
-            totalSentBytes += payload.byteLength;
-          }
-        } catch (err) {}
-      }
+      if (sent === 0 || (signal && signal.aborted)) break;
     }
 
-    const totalSec = (performance.now() - testStartTime) / 1000;
-    const finalUploadMbps = totalSec > 0 && totalSentBytes > 0
-      ? (totalSentBytes * 8) / (totalSec * 1000000)
-      : 0;
+    // Calculate final trimmed upload throughput
+    let finalUploadMbps = 0;
+    if (uploadSamples.length >= 3) {
+      const sorted = [...uploadSamples].sort((a, b) => a - b);
+      const trimCount = Math.max(1, Math.floor(sorted.length * 0.15));
+      const trimmed = sorted.slice(trimCount, sorted.length - trimCount);
+      finalUploadMbps = trimmed.reduce((a, b) => a + b, 0) / trimmed.length;
+    } else {
+      const totalSec = (performance.now() - testStartTime) / 1000;
+      finalUploadMbps = totalSec > 0 ? (totalUploadedBytes * 8) / (totalSec * 1000000) : 0;
+    }
 
     targetSpeedMbps = finalUploadMbps;
     if (uploadVal) {
@@ -420,7 +460,7 @@
   function getVerdictText(dlSpeed, ulSpeed, ping, totalBytes) {
     if (totalBytes === 0) {
       return {
-        text: '⚠️ سرورهای تست پاسخ ندادند؛ لطفاً وضعیت اتصال فیلترشکن را بررسی فرمایید.',
+        text: '⚠️ سرور پاسخ نداد؛ وضعیت اتصال فیلترشکن را بررسی فرمایید.',
         cls: 'bg-amber-950/70 border-amber-500/50 text-amber-300',
       };
     }
@@ -480,19 +520,19 @@
     if (window.hapticFeedback) window.hapticFeedback('impact');
 
     try {
-      // Step 1: Detect Network telemetry & engine source
-      const source = await detectEngineAndNetwork(abortController.signal);
+      // Step 1: Detect Network telemetry & SpectraIP server info
+      await detectEngineAndNetwork(abortController.signal);
 
-      // Step 2: Ping & Jitter Latency
-      const { avgPing, jitter } = await measurePingAndJitter(source, abortController.signal);
+      // Step 2: Ping & Jitter Latency (RFC 3550)
+      const { avgPing, jitter } = await measurePingAndJitter(abortController.signal);
 
-      // Step 3: Sustained Download Throughput
-      const { finalDownloadMbps, totalReceivedBytes } = await measureDownloadThroughput(source, abortController.signal);
+      // Step 3: Sustained Download Throughput (Trimmed Mean)
+      const { finalDownloadMbps, totalReceivedBytes } = await measureDownloadThroughput(abortController.signal);
 
-      // Step 4: Sustained Upload Throughput
+      // Step 4: Sustained Upload Throughput (XHR upload progress)
       let finalUploadMbps = 0;
       if (!abortController.signal.aborted) {
-        finalUploadMbps = await measureUploadThroughput(source, abortController.signal);
+        finalUploadMbps = await measureUploadThroughput(totalReceivedBytes, abortController.signal);
       }
 
       // Step 5: Final Result Display

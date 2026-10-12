@@ -1597,21 +1597,32 @@ html.theme-light #tutorialCopySubBtn {
 }
 
 /* Speed Test Component Light Theme Overrides */
+html.theme-light #speedTestModal {
+  background-color: rgba(15, 23, 42, 0.45) !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+}
+
 html.theme-light .speedtest-entry-btn {
-  background: linear-gradient(135deg, rgba(236, 253, 245, 0.95), rgba(240, 253, 250, 0.95)) !important;
-  border-color: rgba(52, 211, 153, 0.5) !important;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
+  background: linear-gradient(135deg, rgba(236, 253, 245, 0.98), rgba(240, 253, 250, 0.98)) !important;
+  border-color: rgba(52, 211, 153, 0.6) !important;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06) !important;
 }
 html.theme-light .speedtest-entry-btn .w-10 {
   background-color: #ecfdf5 !important;
   border-color: #a7f3d0 !important;
   color: #059669 !important;
 }
-html.theme-light .speedtest-title {
-  color: #065f46 !important;
+html.theme-light .speedtest-title,
+html.theme-light .speedtest-entry-btn:hover .speedtest-title {
+  color: #064e3b !important;
+  font-weight: 900 !important;
+  font-size: 13px !important;
 }
-html.theme-light .speedtest-sub {
-  color: #475569 !important;
+html.theme-light .speedtest-sub,
+html.theme-light .speedtest-entry-btn:hover .speedtest-sub {
+  color: #334155 !important;
+  font-weight: 600 !important;
 }
 html.theme-light .speedtest-entry-btn .bg-slate-900\/60 {
   background-color: #ffffff !important;
@@ -1634,9 +1645,10 @@ html.theme-light .speedtest-modal-card .w-8 {
 }
 html.theme-light .speedtest-modal-card h3 {
   color: #0f172a !important;
+  font-weight: 900 !important;
 }
 html.theme-light .speedtest-modal-card p {
-  color: #64748b !important;
+  color: #475569 !important;
 }
 
 html.theme-light #speedNetworkInfoBox {
@@ -1654,6 +1666,9 @@ html.theme-light #speedUserLocation {
 }
 html.theme-light #speedServerName {
   color: #0284c7 !important;
+}
+html.theme-light #speedServerIpText {
+  color: #64748b !important;
 }
 
 html.theme-light #speedTestModal .speed-gauge-track {

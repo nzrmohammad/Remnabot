@@ -1001,7 +1001,7 @@ _SPEEDTEST_CHUNK = os.urandom(1024 * 1024)
 
 
 async def get_user_speedtest_ping(request: web.Request) -> web.Response:
-    """Lightweight ping probe returning server timestamp and client IP."""
+    """Lightweight ping probe returning server timestamp, server info, and client IP."""
     client_ip = (
         request.headers.get("CF-Connecting-IP")
         or request.headers.get("X-Real-IP")
@@ -1010,7 +1010,17 @@ async def get_user_speedtest_ping(request: web.Request) -> web.Response:
         or ""
     )
     return web.json_response(
-        {"ok": True, "t": int(time.time() * 1000), "ip": client_ip},
+        {
+            "ok": True,
+            "t": int(time.time() * 1000),
+            "ip": client_ip,
+            "server": {
+                "name": "SpectraIP (هلند)",
+                "ip": "45.87.41.246",
+                "location": "آمستردام، هلند",
+                "isp": "SpectraIP B.V.",
+            },
+        },
         headers={
             "Cache-Control": "no-store, no-cache, no-transform, must-revalidate, max-age=0",
             "Access-Control-Allow-Origin": "*",
@@ -1021,12 +1031,12 @@ async def get_user_speedtest_ping(request: web.Request) -> web.Response:
 async def get_user_speedtest_payload(request: web.Request) -> web.Response:
     """Stream non-compressible random binary payload for measuring user download speed."""
     try:
-        req_bytes = int(request.query.get("bytes", 2 * 1024 * 1024))
+        req_bytes = int(request.query.get("bytes", 25 * 1024 * 1024))
     except (ValueError, TypeError):
-        req_bytes = 2 * 1024 * 1024
+        req_bytes = 25 * 1024 * 1024
 
-    # Bound size between 256 KB and 8 MB
-    target_bytes = max(256 * 1024, min(req_bytes, 8 * 1024 * 1024))
+    # Bound size between 256 KB and 32 MB
+    target_bytes = max(256 * 1024, min(req_bytes, 32 * 1024 * 1024))
 
     full_chunks = target_bytes // len(_SPEEDTEST_CHUNK)
     remainder = target_bytes % len(_SPEEDTEST_CHUNK)
