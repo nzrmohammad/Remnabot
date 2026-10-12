@@ -68,6 +68,10 @@ class Settings(BaseSettings):
     # --- Observability ---
     SENTRY_DSN: str = ""
 
+    # --- Speedtest Telemetry ---
+    SPEEDTEST_SERVER_NAME: str = "SpectraIP (هلند)"
+    SPEEDTEST_SERVER_IP: str = "45.87.41.246"
+
     @field_validator("ADMIN_IDS", mode="before")
     @classmethod
     def parse_admin_ids(cls, v: Any) -> list[int]:

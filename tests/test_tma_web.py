@@ -1723,13 +1723,22 @@ async def test_topup_image_upload_and_admin_viewing():
 @pytest.mark.anyio
 async def test_speedtest_endpoints():
     from aiohttp.test_utils import make_mocked_request
+    from bot.web.cache import FastCache
     from bot.web.routes_user import (
         get_user_speedtest_ping,
         get_user_speedtest_payload,
         post_user_speedtest_upload,
     )
 
-    req_ping = make_mocked_request("GET", "/api/user/speedtest/ping", headers={"X-Real-IP": "5.200.10.20"})
+    from aiohttp import web
+    app = web.Application()
+    app["bot_token"] = "123:abc"
+    app["admin_ids"] = [55555]
+    app["is_dev"] = True
+    app["cache"] = FastCache(redis_client=None)
+    app["settings"] = None
+
+    req_ping = make_mocked_request("GET", "/api/user/speedtest/ping?user_id=55555", headers={"X-Real-IP": "5.200.10.20"}, app=app)
     resp_ping = await get_user_speedtest_ping(req_ping)
     assert resp_ping.status == 200
     data_ping = json.loads(resp_ping.text)
@@ -1740,16 +1749,16 @@ async def test_speedtest_endpoints():
     assert data_ping["server"].get("ip") == "45.87.41.246"
     assert "no-store" in resp_ping.headers["Cache-Control"]
 
-    # Test payload endpoint returns requested byte length and uncompressed headers
-    req_payload = make_mocked_request("GET", "/api/user/speedtest/payload?bytes=524288")
+    # Test payload endpoint returns requested byte length and uncompressed headers via StreamResponse
+    req_payload = make_mocked_request("GET", "/api/user/speedtest/payload?user_id=55555&bytes=524288", app=app)
     resp_payload = await get_user_speedtest_payload(req_payload)
     assert resp_payload.status == 200
     assert resp_payload.content_type == "application/octet-stream"
-    assert len(resp_payload.body) == 524288
+    assert resp_payload.headers["Content-Length"] == "524288"
     assert "no-store" in resp_payload.headers["Cache-Control"]
 
     # Test upload endpoint accepts payload stream without disk I/O
-    req_upload = make_mocked_request("POST", "/api/user/speedtest/upload", payload=b"X" * 131072)
+    req_upload = make_mocked_request("POST", "/api/user/speedtest/upload?user_id=55555", payload=b"X" * 131072, app=app)
     resp_upload = await post_user_speedtest_upload(req_upload)
     assert resp_upload.status == 200
     data_upload = json.loads(resp_upload.text)

@@ -1002,6 +1002,21 @@ _SPEEDTEST_CHUNK = os.urandom(1024 * 1024)
 
 async def get_user_speedtest_ping(request: web.Request) -> web.Response:
     """Lightweight ping probe returning server timestamp, server info, and client IP."""
+    user_auth = get_authenticated_user(request)
+    if not user_auth:
+        return web.json_response({"ok": False, "error": "Unauthorized"}, status=401)
+
+    settings = request.app.get("settings") if hasattr(request.app, "get") else None
+    server_name = "SpectraIP (هلند)"
+    server_ip = "45.87.41.246"
+    if settings:
+        val_name = getattr(settings, "SPEEDTEST_SERVER_NAME", None)
+        if isinstance(val_name, str) and val_name:
+            server_name = val_name
+        val_ip = getattr(settings, "SPEEDTEST_SERVER_IP", None)
+        if isinstance(val_ip, str) and val_ip:
+            server_ip = val_ip
+
     client_ip = (
         request.headers.get("CF-Connecting-IP")
         or request.headers.get("X-Real-IP")
@@ -1015,21 +1030,64 @@ async def get_user_speedtest_ping(request: web.Request) -> web.Response:
             "t": int(time.time() * 1000),
             "ip": client_ip,
             "server": {
-                "name": "SpectraIP (هلند)",
-                "ip": "45.87.41.246",
+                "name": server_name,
+                "ip": server_ip,
                 "location": "آمستردام، هلند",
                 "isp": "SpectraIP B.V.",
             },
         },
         headers={
             "Cache-Control": "no-store, no-cache, no-transform, must-revalidate, max-age=0",
-            "Access-Control-Allow-Origin": "*",
         },
     )
 
 
-async def get_user_speedtest_payload(request: web.Request) -> web.Response:
-    """Stream non-compressible random binary payload for measuring user download speed."""
+async def get_user_speedtest_payload(request: web.Request) -> web.StreamResponse:
+    """Stream non-compressible random binary payload for measuring user download speed.
+
+    Uses aiohttp StreamResponse to stream pre-allocated chunks without allocating
+    25MB+ heap memory per request.
+    """
+    user_auth = get_authenticated_user(request)
+    if not user_auth:
+        return web.json_response({"ok": False, "error": "Unauthorized"}, status=401)
+
+    user_id = user_auth.get("id")
+    client_ip = (
+        request.headers.get("CF-Connecting-IP")
+        or request.headers.get("X-Real-IP")
+        or request.headers.get("X-Forwarded-For", "").split(",")[0].strip()
+        or request.remote
+        or ""
+    )
+
+    cache = request.app.get("cache") if hasattr(request.app, "get") else None
+    if cache and hasattr(cache, "get"):
+        try:
+            rl_key = f"tma:speedtest:limit:{user_id or client_ip}"
+            if asyncio.iscoroutinefunction(cache.get):
+                req_count = await cache.get(rl_key)
+            else:
+                res = cache.get(rl_key)
+                req_count = (await res) if asyncio.iscoroutine(res) else res
+
+            if isinstance(req_count, (int, float)) and req_count >= 10:
+                return web.json_response(
+                    {"ok": False, "error": "محدودیت تعداد درخواست تست سرعت. لطفاً ۳۰ ثانیه دیگر تلاش فرمایید."},
+                    status=429,
+                    headers={"Retry-After": "30"},
+                )
+
+            if hasattr(cache, "set"):
+                if asyncio.iscoroutinefunction(cache.set):
+                    await cache.set(rl_key, (req_count or 0) + 1, ttl_seconds=30)
+                else:
+                    set_res = cache.set(rl_key, (req_count or 0) + 1, ttl_seconds=30)
+                    if asyncio.iscoroutine(set_res):
+                        await set_res
+        except Exception:
+            pass
+
     try:
         req_bytes = int(request.query.get("bytes", 25 * 1024 * 1024))
     except (ValueError, TypeError):
@@ -1040,21 +1098,36 @@ async def get_user_speedtest_payload(request: web.Request) -> web.Response:
 
     full_chunks = target_bytes // len(_SPEEDTEST_CHUNK)
     remainder = target_bytes % len(_SPEEDTEST_CHUNK)
-    data = (_SPEEDTEST_CHUNK * full_chunks) + _SPEEDTEST_CHUNK[:remainder]
 
-    return web.Response(
-        body=data,
-        content_type="application/octet-stream",
+    resp = web.StreamResponse(
+        status=200,
+        reason="OK",
         headers={
+            "Content-Type": "application/octet-stream",
+            "Content-Length": str(target_bytes),
             "Cache-Control": "no-store, no-cache, no-transform, must-revalidate, max-age=0",
-            "Content-Length": str(len(data)),
-            "Access-Control-Allow-Origin": "*",
         },
     )
+    await resp.prepare(request)
+
+    try:
+        for _ in range(full_chunks):
+            await resp.write(_SPEEDTEST_CHUNK)
+        if remainder > 0:
+            await resp.write(_SPEEDTEST_CHUNK[:remainder])
+        await resp.write_eof()
+    except (ConnectionResetError, asyncio.CancelledError):
+        pass
+
+    return resp
 
 
 async def post_user_speedtest_upload(request: web.Request) -> web.Response:
     """Measure upload throughput by receiving chunks without disk I/O."""
+    user_auth = get_authenticated_user(request)
+    if not user_auth:
+        return web.json_response({"ok": False, "error": "Unauthorized"}, status=401)
+
     total_bytes = 0
     if hasattr(request.content, "read"):
         while True:
@@ -1062,7 +1135,7 @@ async def post_user_speedtest_upload(request: web.Request) -> web.Response:
             if not chunk:
                 break
             total_bytes += len(chunk)
-            if total_bytes > 16 * 1024 * 1024:
+            if total_bytes > 32 * 1024 * 1024:
                 break
     elif isinstance(request.content, (bytes, bytearray)):
         total_bytes = len(request.content)
@@ -1074,7 +1147,6 @@ async def post_user_speedtest_upload(request: web.Request) -> web.Response:
         {"ok": True, "received_bytes": total_bytes},
         headers={
             "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0",
-            "Access-Control-Allow-Origin": "*",
         },
     )
 
