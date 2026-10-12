@@ -7,7 +7,7 @@ import time
 
 from aiohttp import web
 
-from bot.web.auth import get_authenticated_user
+from bot.web.user_common import get_client_ip, require_user
 
 logger = logging.getLogger(__name__)
 
@@ -25,9 +25,9 @@ def _get_speedtest_chunk() -> bytes:
 
 async def get_user_speedtest_ping(request: web.Request) -> web.Response:
     """Lightweight ping probe returning server timestamp, server info, and client IP."""
-    user_auth = get_authenticated_user(request)
-    if not user_auth:
-        return web.json_response({"ok": False, "error": "Unauthorized"}, status=401)
+    user_auth, err = require_user(request)
+    if err:
+        return err
 
     settings = request.app.get("settings") if hasattr(request.app, "get") else None
     server_name = "سرور اختصاصی اشتراک"
@@ -44,13 +44,7 @@ async def get_user_speedtest_ping(request: web.Request) -> web.Response:
         host_header = request.headers.get("Host", "") or request.host or ""
         server_ip = host_header.split(":")[0] if host_header else "سرور اصلی"
 
-    client_ip = (
-        request.headers.get("CF-Connecting-IP")
-        or request.headers.get("X-Real-IP")
-        or request.headers.get("X-Forwarded-For", "").split(",")[0].strip()
-        or request.remote
-        or ""
-    )
+    client_ip = get_client_ip(request)
     return web.json_response(
         {
             "ok": True,
@@ -69,18 +63,12 @@ async def get_user_speedtest_ping(request: web.Request) -> web.Response:
 
 async def get_user_speedtest_payload(request: web.Request) -> web.StreamResponse:
     """Stream non-compressible random binary payload for measuring user download speed."""
-    user_auth = get_authenticated_user(request)
-    if not user_auth:
-        return web.json_response({"ok": False, "error": "Unauthorized"}, status=401)
+    user_auth, err = require_user(request)
+    if err:
+        return err
 
     user_id = user_auth.get("id")
-    client_ip = (
-        request.headers.get("CF-Connecting-IP")
-        or request.headers.get("X-Real-IP")
-        or request.headers.get("X-Forwarded-For", "").split(",")[0].strip()
-        or request.remote
-        or ""
-    )
+    client_ip = get_client_ip(request)
 
     cache = request.app.get("cache") if hasattr(request.app, "get") else None
     if cache and hasattr(cache, "get"):
@@ -147,18 +135,12 @@ async def get_user_speedtest_payload(request: web.Request) -> web.StreamResponse
 
 async def post_user_speedtest_upload(request: web.Request) -> web.Response:
     """Measure upload throughput by receiving chunks without disk I/O."""
-    user_auth = get_authenticated_user(request)
-    if not user_auth:
-        return web.json_response({"ok": False, "error": "Unauthorized"}, status=401)
+    user_auth, err = require_user(request)
+    if err:
+        return err
 
     user_id = user_auth.get("id")
-    client_ip = (
-        request.headers.get("CF-Connecting-IP")
-        or request.headers.get("X-Real-IP")
-        or request.headers.get("X-Forwarded-For", "").split(",")[0].strip()
-        or request.remote
-        or ""
-    )
+    client_ip = get_client_ip(request)
 
     cache = request.app.get("cache") if hasattr(request.app, "get") else None
     if cache and hasattr(cache, "get"):

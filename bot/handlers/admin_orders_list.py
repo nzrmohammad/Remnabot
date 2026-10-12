@@ -8,7 +8,7 @@ from aiogram.types import CallbackQuery, Message
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from bot.common import SEPARATOR, fmt, is_admin, parse_int, resolve_op
+from bot.common import SEPARATOR, fmt, is_admin, parse_int
 from bot.db.repositories.order_repo import OrderRepository
 from bot.db.repositories.user_repo import UserRepository
 from bot.locales.texts import t
@@ -33,11 +33,9 @@ async def _render_orders_list(
     page: int = 0,
     query: str | None = None,
 ) -> None:
-    order_repo_cls = resolve_op("OrderRepository", OrderRepository)
-    render_menu_fn = resolve_op("render_menu", render_menu)
 
     lang = user.language or "fa"
-    order_repo = order_repo_cls(session)
+    order_repo = OrderRepository(session)
     total_rev = await order_repo.total_revenue()
     total_cnt = await order_repo.count()
     counts = await order_repo.status_counts(query=query)
@@ -161,7 +159,7 @@ async def _render_orders_list(
     kb.button(text=t(lang, "btn_back"), callback_data="menu:admin")
     kb.adjust(1, 1)
 
-    await render_menu_fn(bot, user, user_repo, "\n".join(lines), kb.as_markup())
+    await render_menu(bot, user, user_repo, "\n".join(lines), kb.as_markup())
 
 
 @router.callback_query(F.data == "adm:noop")
@@ -187,8 +185,7 @@ async def orders_search_prompt(
     kb.button(text=t(lang, "btn_cancel"), callback_data="adm:orders:all:0")
     kb.adjust(1)
 
-    render_menu_fn = resolve_op("render_menu", render_menu)
-    await render_menu_fn(bot, user, user_repo, t(lang, "ord_search_prompt"), kb.as_markup())
+    await render_menu(bot, user, user_repo, t(lang, "ord_search_prompt"), kb.as_markup())
     await call.answer()
 
 
@@ -203,11 +200,10 @@ async def orders_clear_search(
     if not _is_admin(call.from_user.id):
         await call.answer(t("fa", "not_authorized"), show_alert=True)
         return
-    render_orders_fn = resolve_op("_render_orders_list", _render_orders_list)
     user = await user_repo.get_or_create(call.from_user.id, call.from_user.username)
     status = call.data.rsplit(":", 1)[1]
     await state.update_data(order_search_query=None)
-    await render_orders_fn(bot, user, user_repo, session, status=status, page=0, query=None)
+    await _render_orders_list(bot, user, user_repo, session, status=status, page=0, query=None)
     await call.answer()
 
 
@@ -222,7 +218,6 @@ async def orders_filtered_view(
     if not _is_admin(call.from_user.id):
         await call.answer(t("fa", "not_authorized"), show_alert=True)
         return
-    render_orders_fn = resolve_op("_render_orders_list", _render_orders_list)
     user = await user_repo.get_or_create(call.from_user.id, call.from_user.username)
 
     parts = call.data.split(":")
@@ -233,7 +228,7 @@ async def orders_filtered_view(
 
     data = await state.get_data()
     query = data.get("order_search_query")
-    await render_orders_fn(bot, user, user_repo, session, status=status, page=page, query=query)
+    await _render_orders_list(bot, user, user_repo, session, status=status, page=page, query=query)
     await call.answer()
 
 
@@ -247,16 +242,14 @@ async def orders_search_submit(
 ):
     if not _is_admin(message.from_user.id):
         return
-    del_msg_fn = resolve_op("delete_message_silently", delete_message_silently)
-    render_orders_fn = resolve_op("_render_orders_list", _render_orders_list)
 
     user = await user_repo.get_or_create(message.from_user.id, message.from_user.username)
     query = (message.text or "").strip()
-    await del_msg_fn(bot, message.chat.id, message.message_id)
+    await delete_message_silently(bot, message.chat.id, message.message_id)
 
     if not query:
         return
 
     await state.update_data(order_search_query=query)
     await state.set_state(None)
-    await render_orders_fn(bot, user, user_repo, session, status="all", page=0, query=query)
+    await _render_orders_list(bot, user, user_repo, session, status="all", page=0, query=query)

@@ -40,7 +40,7 @@ from bot.db.repositories.wallet_repo import WalletRepository
 from bot.handlers.admin_broadcast import _resolve_broadcast_recipients
 from bot.locales.texts import t
 from bot.services.app_settings import get_store_settings
-from bot.web.admin_common import _check_admin, format_service_name_icon_first
+from bot.web.admin_common import _check_admin, db_session, format_service_name_icon_first
 from bot.web.cache import FastCache
 
 logger = logging.getLogger(__name__)
@@ -52,13 +52,12 @@ async def get_admin_ticket_threads(request: web.Request) -> web.Response:
     if not admin:
         return web.json_response({"ok": False, "error": "Forbidden"}, status=403)
 
-    session_factory = request.app["session_factory"]
     cache: FastCache = request.app["cache"]
 
     threads: list[dict[str, Any]] = []
     seen_ids: set[int] = set()
 
-    async with session_factory() as session:
+    async with db_session(request) as session:
         # 1. Prioritize users with pending topups
         pending_res = await session.execute(
             select(Topup)
@@ -139,11 +138,10 @@ async def get_admin_ticket_messages(request: web.Request) -> web.Response:
     except (ValueError, TypeError):
         return web.json_response({"ok": False, "error": "شناسه کاربر نامعتبر است."}, status=400)
 
-    session_factory = request.app["session_factory"]
     cache: FastCache = request.app["cache"]
 
     try:
-        async with session_factory() as session:
+        async with db_session(request) as session:
             user_repo = UserRepository(session)
             wallet_repo = WalletRepository(session)
             user = await user_repo.get_by_telegram_id(target_id)

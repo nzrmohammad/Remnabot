@@ -6,7 +6,7 @@ from aiogram.types import CallbackQuery
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from bot.common import SEPARATOR, is_admin, resolve_op
+from bot.common import SEPARATOR, is_admin
 from bot.db.repositories.user_repo import UserRepository
 from bot.locales.texts import t
 from bot.services.app_settings import get_store_settings
@@ -19,11 +19,9 @@ router = Router(name="admin_settings_trial_referral")
 async def _render_trial_settings(
     bot: Bot, user, user_repo: UserRepository, session: AsyncSession,
 ) -> None:
-    store_fn = resolve_op("get_store_settings", get_store_settings)
-    render_menu_fn = resolve_op("render_menu", render_menu)
 
     lang = user.language or "fa"
-    store = await store_fn(session)
+    store = await get_store_settings(session)
     kb = InlineKeyboardBuilder()
 
     trial_badge = "✅" if store.trial_enabled else "❌"
@@ -55,17 +53,15 @@ async def _render_trial_settings(
         f"⏳ <b>Days :</b> {store.trial_duration_days} Days\n\n"
         f"Tap the status button to enable/disable, or tap traffic/days to edit."
     )
-    await render_menu_fn(bot, user, user_repo, text, kb.as_markup())
+    await render_menu(bot, user, user_repo, text, kb.as_markup())
 
 
 async def _render_referral_settings(
     bot: Bot, user, user_repo: UserRepository, session: AsyncSession,
 ) -> None:
-    store_fn = resolve_op("get_store_settings", get_store_settings)
-    render_menu_fn = resolve_op("render_menu", render_menu)
 
     lang = user.language or "fa"
-    store = await store_fn(session)
+    store = await get_store_settings(session)
     kb = InlineKeyboardBuilder()
 
     ref_badge = "✅" if store.referral_enabled else "❌"
@@ -93,7 +89,7 @@ async def _render_referral_settings(
         f"🎁 <b>Traffic :</b> {store.referral_reward_gb} GB\n\n"
         f"Tap the status button to enable/disable, or tap traffic to edit."
     )
-    await render_menu_fn(bot, user, user_repo, text, kb.as_markup())
+    await render_menu(bot, user, user_repo, text, kb.as_markup())
 
 
 @router.callback_query(F.data == "adm:settings:trial")
@@ -103,9 +99,8 @@ async def trial_settings_view(
     if not is_admin(call.from_user.id):
         await call.answer(t("fa", "not_authorized"), show_alert=True)
         return
-    render_trial_fn = resolve_op("_render_trial_settings", _render_trial_settings)
     user = await user_repo.get_or_create(call.from_user.id, call.from_user.username)
-    await render_trial_fn(bot, user, user_repo, session)
+    await _render_trial_settings(bot, user, user_repo, session)
     await call.answer()
 
 
@@ -116,9 +111,8 @@ async def referral_settings_view(
     if not is_admin(call.from_user.id):
         await call.answer(t("fa", "not_authorized"), show_alert=True)
         return
-    render_ref_fn = resolve_op("_render_referral_settings", _render_referral_settings)
     user = await user_repo.get_or_create(call.from_user.id, call.from_user.username)
-    await render_ref_fn(bot, user, user_repo, session)
+    await _render_referral_settings(bot, user, user_repo, session)
     await call.answer()
 
 
@@ -129,7 +123,6 @@ async def trial_ref_settings_view(
     if not is_admin(call.from_user.id):
         await call.answer(t("fa", "not_authorized"), show_alert=True)
         return
-    render_trial_fn = resolve_op("_render_trial_settings", _render_trial_settings)
     user = await user_repo.get_or_create(call.from_user.id, call.from_user.username)
-    await render_trial_fn(bot, user, user_repo, session)
+    await _render_trial_settings(bot, user, user_repo, session)
     await call.answer()

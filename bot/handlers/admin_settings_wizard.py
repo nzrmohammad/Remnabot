@@ -8,7 +8,7 @@ from aiogram.types import CallbackQuery, Message
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from bot.common import SEPARATOR, is_admin, resolve_op
+from bot.common import SEPARATOR, is_admin
 from bot.db.repositories.admin_log_repo import AdminLogRepository
 from bot.db.repositories.app_setting_repo import AppSettingRepository
 from bot.db.repositories.user_repo import UserRepository
@@ -52,29 +52,25 @@ async def settings_edit_start(
     user = await user_repo.get_or_create(call.from_user.id, call.from_user.username)
     lang = user.language
 
-    store_fn = resolve_op("get_store_settings", get_store_settings)
-    render_menu_fn = resolve_op("render_menu", render_menu)
-    render_remind_fn = resolve_op("_render_remind_days_picker", _render_remind_days_picker)
-    render_grace_fn = resolve_op("_render_grace_days_picker", _render_grace_days_picker)
 
     # Special handling for expiry remind days: show multi-select picker!
     if field == "expiry_remind_days":
         await state.clear()
-        await render_remind_fn(bot, user, user_repo, session)
+        await _render_remind_days_picker(bot, user, user_repo, session)
         await call.answer()
         return
 
     # Special handling for expiry grace days: show single-select picker!
     if field == "expiry_grace_days":
         await state.clear()
-        await render_grace_fn(bot, user, user_repo, session)
+        await _render_grace_days_picker(bot, user, user_repo, session)
         await call.answer()
         return
 
     # Special handling for default squad: show squad list buttons!
     if field == "default_squad_uuid":
         await state.clear()
-        store = await store_fn(session)
+        store = await get_store_settings(session)
         squads = await remnawave.get_internal_squads()
         lines = [
             "🧩 <b>انتخاب اسکواد پیش‌فرض فروشگاه</b>" if lang == "fa" else "🧩 <b>Select Default Store Squad</b>",
@@ -99,7 +95,7 @@ async def settings_edit_start(
             sizes.append(1)
         sizes += [1, 1]
         kb.adjust(*sizes)
-        await render_menu_fn(bot, user, user_repo, "\n".join(lines), kb.as_markup())
+        await render_menu(bot, user, user_repo, "\n".join(lines), kb.as_markup())
         await call.answer()
         return
 
@@ -113,7 +109,7 @@ async def settings_edit_start(
     )
     kb = InlineKeyboardBuilder()
     if field == "card_number":
-        store = await store_fn(session)
+        store = await get_store_settings(session)
         c_badge = "✅" if store.card_enabled else "❌"
         card_toggle_txt = f"💳 وضعیت درگاه کارت {c_badge}" if lang == "fa" else f"💳 Card Gateway {c_badge}"
         kb.button(text=card_toggle_txt, callback_data="adm:settings:toggle:card_enabled")
@@ -131,7 +127,7 @@ async def settings_edit_start(
     if extra:
         parts.append(f"\n{extra}")
 
-    await render_menu_fn(bot, user, user_repo, "\n".join(parts), kb.as_markup())
+    await render_menu(bot, user, user_repo, "\n".join(parts), kb.as_markup())
     await call.answer()
 
 
@@ -141,7 +137,7 @@ async def settings_value_save(
 ):
     import bot.handlers.admin_settings_store as _store_mod
     del_msg_fn = getattr(_store_mod, "delete_message_silently", delete_message_silently)
-    render_menu_fn = getattr(_store_mod, "render_menu", render_menu)
+    _render_menu = getattr(_store_mod, "render_menu", render_menu)
     render_settings_fn = getattr(_store_mod, "_render_settings", _render_settings)
     render_topics_fn = getattr(_store_mod, "_render_topics_settings", _render_topics_settings)
     render_crypto_fn = getattr(_store_mod, "_render_crypto_settings", _render_crypto_settings)
@@ -176,7 +172,7 @@ async def settings_value_save(
                 kb = InlineKeyboardBuilder()
                 kb.button(text=t(lang, "btn_cancel"), callback_data=cancel_target)
                 kb.adjust(1)
-                await render_menu_fn(bot, user, user_repo, t(lang, "settings_invalid_number"), kb.as_markup())
+                await _render_menu(bot, user, user_repo, t(lang, "settings_invalid_number"), kb.as_markup())
                 return
             value = str(parsed)
     elif field in ("trial_enabled", "referral_enabled"):
@@ -185,7 +181,7 @@ async def settings_value_save(
             kb = InlineKeyboardBuilder()
             kb.button(text=t(lang, "btn_cancel"), callback_data=cancel_target)
             kb.adjust(1)
-            await render_menu_fn(bot, user, user_repo, "❌ لطفاً فقط عدد 1 (فعال) یا 0 (غیرفعال) را وارد کنید:", kb.as_markup())
+            await _render_menu(bot, user, user_repo, "❌ لطفاً فقط عدد 1 (فعال) یا 0 (غیرفعال) را وارد کنید:", kb.as_markup())
             return
         value = str(parsed)
     elif is_numeric:
@@ -194,7 +190,7 @@ async def settings_value_save(
             kb = InlineKeyboardBuilder()
             kb.button(text=t(lang, "btn_cancel"), callback_data=cancel_target)
             kb.adjust(1)
-            await render_menu_fn(bot, user, user_repo, t(lang, "settings_invalid_number"), kb.as_markup())
+            await _render_menu(bot, user, user_repo, t(lang, "settings_invalid_number"), kb.as_markup())
             return
         value = str(parsed)
     elif field == "support_contact":
@@ -234,7 +230,7 @@ async def settings_value_save(
                     "or link (e.g. <code>t.me/SupportUsername</code>):\n\n"
                     "<i>(Send /skip or 0 to clear)</i>"
                 )
-                await render_menu_fn(bot, user, user_repo, err_msg, kb.as_markup())
+                await _render_menu(bot, user, user_repo, err_msg, kb.as_markup())
                 return
     elif raw in SKIP_WORDS:
         value = ""

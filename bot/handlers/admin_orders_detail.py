@@ -9,7 +9,7 @@ from aiogram.types import CallbackQuery
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from bot.common import SEPARATOR, fmt, is_admin, parse_int, resolve_op
+from bot.common import SEPARATOR, fmt, is_admin, parse_int
 from bot.db.repositories.admin_log_repo import AdminLogRepository
 from bot.db.repositories.order_repo import OrderRepository
 from bot.db.repositories.user_repo import UserRepository
@@ -89,13 +89,11 @@ async def _render_order_detail(
     status: str = "all",
     page: int = 0,
 ) -> None:
-    order_repo_cls = resolve_op("OrderRepository", OrderRepository)
-    render_menu_fn = resolve_op("render_menu", render_menu)
 
     lang = user.language or "fa"
-    order = await order_repo_cls(session).get(order_id)
+    order = await OrderRepository(session).get(order_id)
     if order is None:
-        await render_menu_fn(
+        await render_menu(
             bot,
             user,
             user_repo,
@@ -129,7 +127,7 @@ async def _render_order_detail(
         kb.adjust(1)
     kb.button(text=t(lang, "btn_back"), callback_data=f"adm:orders:{status}:{page}")
     kb.adjust(1)
-    await render_menu_fn(bot, user, user_repo, "\n".join(lines), kb.as_markup())
+    await render_menu(bot, user, user_repo, "\n".join(lines), kb.as_markup())
 
 
 @router.callback_query(F.data.startswith("adm:ord:"))
@@ -166,11 +164,8 @@ async def order_view_or_refund(
     if page is None:
         page = 0
 
-    order_repo_cls = resolve_op("OrderRepository", OrderRepository)
-    render_menu_fn = resolve_op("render_menu", render_menu)
-    render_detail_fn = resolve_op("_render_order_detail", _render_order_detail)
 
-    order_repo = order_repo_cls(session)
+    order_repo = OrderRepository(session)
     order = await order_repo.get(order_id)
     if order is None:
         await call.answer(t("fa", "acc_error"), show_alert=True)
@@ -209,7 +204,7 @@ async def order_view_or_refund(
             )
         except Exception:
             pass
-        await render_detail_fn(
+        await _render_order_detail(
             bot,
             user,
             user_repo,
@@ -238,7 +233,7 @@ async def order_view_or_refund(
             callback_data=f"adm:ord:{order.id}:{status}:{page}",
         )
         kb.adjust(2)
-        await render_menu_fn(
+        await render_menu(
             bot,
             user,
             user_repo,
@@ -256,5 +251,5 @@ async def order_view_or_refund(
 
     # plain detail view
     await state.clear()
-    await render_detail_fn(bot, user, user_repo, session, order_id, status=status, page=page)
+    await _render_order_detail(bot, user, user_repo, session, order_id, status=status, page=page)
     await call.answer()

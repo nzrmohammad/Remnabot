@@ -1,3 +1,4 @@
+from bot.web.user_common import db_session, require_user
 """Support chat message endpoints for Telegram Mini App."""
 from html import escape
 import logging
@@ -9,7 +10,6 @@ from aiohttp import web
 from bot.common import admin_thread_kwargs
 from bot.db.repositories.support_repo import SupportMessageRepository
 from bot.services.app_settings import get_store_settings
-from bot.web.auth import get_authenticated_user
 from bot.web.cache import FastCache
 
 logger = logging.getLogger(__name__)
@@ -17,9 +17,9 @@ logger = logging.getLogger(__name__)
 
 async def get_user_support_messages(request: web.Request) -> web.Response:
     """Fetch existing chat messages for authenticated user from support Redis thread."""
-    user_auth = get_authenticated_user(request)
-    if not user_auth:
-        return web.json_response({"ok": False, "error": "Unauthorized"}, status=401)
+    user_auth, err = require_user(request)
+    if err:
+        return err
 
     telegram_id = int(user_auth["id"])
     cache: FastCache = request.app["cache"]
@@ -30,9 +30,9 @@ async def get_user_support_messages(request: web.Request) -> web.Response:
 
 async def post_user_support_message(request: web.Request) -> web.Response:
     """Send user message from TMA chat modal directly to Telegram support group/admin."""
-    user_auth = get_authenticated_user(request)
-    if not user_auth:
-        return web.json_response({"ok": False, "error": "Unauthorized"}, status=401)
+    user_auth, err = require_user(request)
+    if err:
+        return err
 
     telegram_id = int(user_auth["id"])
     try:
@@ -82,8 +82,7 @@ async def post_user_support_message(request: web.Request) -> web.Response:
             f"{escape(text)}"
         )
         try:
-            session_factory = request.app["session_factory"]
-            async with session_factory() as session:
+            async with db_session(request) as session:
                 store = await get_store_settings(session)
                 thread_kwargs = admin_thread_kwargs(store, settings, kind="support")
             sent_msg = await bot.send_message(
@@ -92,7 +91,7 @@ async def post_user_support_message(request: web.Request) -> web.Response:
                 parse_mode="HTML",
                 **thread_kwargs,
             )
-            async with session_factory() as session:
+            async with db_session(request) as session:
                 repo = SupportMessageRepository(session)
                 await repo.map_message(sent_msg.message_id, telegram_id)
                 await session.commit()

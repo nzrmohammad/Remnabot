@@ -125,6 +125,6 @@ async def retention_loop(
     while True:
         try:
             await check_and_send_retention_alerts(bot, session_factory, remnawave)
-        except Exception:
-            logger.exception("Error in retention loop")
+        except Exception as exc:
+            logger.exception("Error in retention loop: %s", exc)
         await asyncio.sleep(CHECK_INTERVAL_SECONDS)

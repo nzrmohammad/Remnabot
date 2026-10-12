@@ -8,7 +8,7 @@ from aiogram.types import CallbackQuery
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from bot.common import SEPARATOR, is_admin, resolve_op
+from bot.common import SEPARATOR, is_admin
 from bot.config import get_settings
 from bot.db.repositories.user_repo import UserRepository
 from bot.locales.texts import t
@@ -46,11 +46,9 @@ _get_admin_group_title = get_admin_group_title
 async def _render_topics_settings(
     bot: Bot, user, user_repo: UserRepository, session: AsyncSession,
 ) -> None:
-    store_fn = resolve_op("get_store_settings", get_store_settings)
-    render_menu_fn = resolve_op("render_menu", render_menu)
 
     lang = user.language or "fa"
-    store = await store_fn(session)
+    store = await get_store_settings(session)
     kb = InlineKeyboardBuilder()
 
     t_topups = f"{store.topic_topups} (Topups)" if store.topic_topups is not None else "— (Topups)"
@@ -108,7 +106,7 @@ async def _render_topics_settings(
         f"⚠️ <b>Error Logs Topic :</b> {t_errors}\n\n"
         f"<i>(Send 0 or /skip to disable any topic)</i>"
     )
-    await render_menu_fn(bot, user, user_repo, text, kb.as_markup())
+    await render_menu(bot, user, user_repo, text, kb.as_markup())
 
 
 @router.callback_query(F.data == "adm:settings:topics")
@@ -118,9 +116,8 @@ async def topics_settings_view(
     if not is_admin(call.from_user.id):
         await call.answer(t("fa", "not_authorized"), show_alert=True)
         return
-    render_topics_fn = resolve_op("_render_topics_settings", _render_topics_settings)
     user = await user_repo.get_or_create(call.from_user.id, call.from_user.username)
-    await render_topics_fn(bot, user, user_repo, session)
+    await _render_topics_settings(bot, user, user_repo, session)
     await call.answer()
 
 

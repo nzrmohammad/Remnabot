@@ -1,3 +1,4 @@
+from bot.web.user_common import require_user
 """User API endpoints for Telegram Mini App.
 
 Modularized into domain-specific modules:

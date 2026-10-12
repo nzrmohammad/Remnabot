@@ -6,7 +6,7 @@ from aiogram.types import CallbackQuery
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from bot.common import SEPARATOR, is_admin, resolve_op
+from bot.common import SEPARATOR, is_admin
 from bot.db.repositories.admin_log_repo import AdminLogRepository
 from bot.db.repositories.user_repo import UserRepository
 from bot.locales.texts import t
@@ -58,7 +58,6 @@ async def panel_user_hwid_limit_set(
         return
 
     from bot.handlers.admin_user_detail import _render_panel_user_detail
-    render_detail_fn = resolve_op("_render_panel_user_detail", _render_panel_user_detail)
 
     parts = call.data.split(":")
     p_id = int(parts[3])
@@ -74,7 +73,7 @@ async def panel_user_hwid_limit_set(
     await AdminLogRepository(session).log(
         call.from_user.id, "hwid_limit", detail=f"id={p_id} limit={new_limit}"
     )
-    await render_detail_fn(bot, user, user_repo, remnawave, p_id, cat, page, toast=t(lang, "toast_hwid_updated"))
+    await _render_panel_user_detail(bot, user, user_repo, remnawave, p_id, cat, page, toast=t(lang, "toast_hwid_updated"))
     await call.answer()
 
 

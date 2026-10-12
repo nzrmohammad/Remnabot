@@ -11,7 +11,7 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 from sqlalchemy import distinct, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from bot.common import is_admin, resolve_op
+from bot.common import is_admin
 from bot.db.models import Order, Wallet
 from bot.db.repositories.admin_log_repo import AdminLogRepository
 from bot.db.repositories.user_repo import UserRepository
@@ -40,10 +40,9 @@ async def _resolve_broadcast_recipients(
     remnawave: RemnawaveClient,
     target: str,
 ) -> list[int]:
-    u_repo_cls = resolve_op("UserRepository", UserRepository)
 
     if target == "all":
-        users = await u_repo_cls(session).all_users()
+        users = await UserRepository(session).all_users()
         return [u.telegram_id for u in users]
 
     if target == "balance":
@@ -77,11 +76,11 @@ async def _resolve_broadcast_recipients(
         return list(active_tids)
 
     if target == "expired":
-        all_users = await u_repo_cls(session).all_users()
+        all_users = await UserRepository(session).all_users()
         all_tids = {u.telegram_id for u in all_users}
         return list(all_tids - active_tids)
 
-    users = await u_repo_cls(session).all_users()
+    users = await UserRepository(session).all_users()
     return [u.telegram_id for u in users]
 
 
@@ -234,7 +233,6 @@ async def broadcast_send(
     await render_menu(bot, user, user_repo, progress_text, kb_cancel.as_markup())
     await call.answer("🚀 ارسال همگانی آغاز شد.")
 
-    log_repo_cls = resolve_op("AdminLogRepository", AdminLogRepository)
     safe_text = escape(draft)
 
     for idx, tid in enumerate(recipient_ids, 1):
@@ -283,7 +281,7 @@ async def broadcast_send(
     final_fail = ACTIVE_BROADCASTS[bcast_id]["fail"]
     ACTIVE_BROADCASTS[bcast_id]["status"] = "finished" if final_state != "stopped" else "stopped"
 
-    await log_repo_cls(session).log(
+    await AdminLogRepository(session).log(
         call.from_user.id, "broadcast", detail=f"target={target} ok={final_ok} fail={final_fail} stopped={final_state == 'stopped'}"
     )
 

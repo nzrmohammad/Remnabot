@@ -141,3 +141,14 @@ def require_admin(handler):
         return await handler(request)
 
     return wrapper
+
+
+def get_client_ip(request: web.Request) -> str:
+    """Extract public client IP prioritizing Cloudflare, X-Real-IP, X-Forwarded-For, then remote."""
+    return (
+        request.headers.get("CF-Connecting-IP")
+        or request.headers.get("X-Real-IP")
+        or request.headers.get("X-Forwarded-For", "").split(",")[0].strip()
+        or request.remote
+        or "127.0.0.1"
+    )

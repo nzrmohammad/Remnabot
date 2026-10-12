@@ -12,6 +12,7 @@ from bot.keyboards.inline import (
     welcome_keyboard,
 )
 from bot.locales.texts import CHOOSE_LANGUAGE, INVITE_ONLY_NOTICE, MAINTENANCE_NOTICE, t
+from bot.services.app_settings import get_store_settings, is_maintenance
 from bot.services.menu import render_menu, reset_menu
 
 router = Router(name="start")
@@ -29,7 +30,6 @@ async def cmd_start(
     is_admin = message.from_user.id in get_settings().ADMIN_IDS
 
     if not is_admin:
-        from bot.services.app_settings import get_store_settings, is_maintenance
         if await is_maintenance(session):
             await message.answer(MAINTENANCE_NOTICE)
             return

@@ -73,8 +73,8 @@ async def send_rate_notification(bot: Bot, session_factory, hour_str: str = "") 
             try:
                 await bot.send_message(settings.ADMIN_CHAT_ID, ton_text, reply_markup=ton_kb, **thread_kwargs)
                 delivered = True
-            except Exception:
-                logger.exception("Failed to send TON rate alert to admin chat")
+            except Exception as exc:
+                logger.warning("Failed to send TON rate alert to admin chat: %s", exc)
 
         # 2. Send USDT alert
         if market_data.get("usdt"):
@@ -86,8 +86,8 @@ async def send_rate_notification(bot: Bot, session_factory, hour_str: str = "") 
             try:
                 await bot.send_message(settings.ADMIN_CHAT_ID, usdt_text, reply_markup=usdt_kb, **thread_kwargs)
                 delivered = True
-            except Exception:
-                logger.exception("Failed to send USDT rate alert to admin chat")
+            except Exception as exc:
+                logger.warning("Failed to send USDT rate alert to admin chat: %s", exc)
 
         return delivered
 
@@ -116,8 +116,8 @@ async def nobitex_rate_loop(bot: Bot, session_factory) -> None:
                 # Only send if crypto is enabled or configured
                 if store.crypto_enabled or store.ton_wallet_address or store.ton_rate_toman > 0:
                     await send_rate_notification(bot, session_factory, hour_str)
-        except Exception:
-            logger.exception("Error in Nobitex rate scheduled task")
+        except Exception as exc:
+            logger.warning("Error in Nobitex rate scheduled task: %s", exc)
 
         # Sleep briefly to avoid double-triggering in the same minute
         await asyncio.sleep(120)

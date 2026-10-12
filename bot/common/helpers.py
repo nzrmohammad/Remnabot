@@ -16,10 +16,6 @@ def parse_int(text: str) -> int | None:
         return None
 
 
-def resolve_op(name: str, fallback):
-    """Return operation directly without dynamic module sniffing."""
-    return fallback
-
 
 def get_used_bytes(u: dict) -> int:
     """Safely extract used traffic bytes from a panel user payload."""

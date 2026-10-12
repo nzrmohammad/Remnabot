@@ -6,10 +6,20 @@ window.lastUserData = null;
 window.currentAccountId = null;
 window.storeSettings = null;
 
+const _domCache = new Map();
+const $ = id => {
+  let elem = _domCache.get(id);
+  if (!elem || !elem.isConnected) {
+    elem = document.getElementById(id);
+    if (elem) _domCache.set(id, elem);
+  }
+  return elem;
+};
+
 // 1. Splash Screen Logic
 function runSplash() {
-  const splashScreen = document.getElementById('splashScreen');
-  const splashBar = document.getElementById('splashBar');
+  const splashScreen = $('splashScreen');
+  const splashBar = $('splashBar');
   if (!splashScreen || !splashBar) return;
 
   splashScreen.classList.remove('hidden');
@@ -29,7 +39,7 @@ if (document.readyState === 'complete' || document.readyState === 'interactive')
 } else {
   window.addEventListener('DOMContentLoaded', runSplash);
 }
-document.getElementById('reloadBtn')?.addEventListener('click', runSplash);
+$('reloadBtn')?.addEventListener('click', runSplash);
 
 // 2. Tab Navigation (5 Tabs)
 function setupTabNavigation() {
@@ -63,14 +73,14 @@ function setupTabNavigation() {
 
 // 3. Sub-tabs in Reports Hub
 function setupReportsSubtabs() {
-  const repSubNightly = document.getElementById('repSubNightly');
-  const repSubWeekly = document.getElementById('repSubWeekly');
-  const repSubMonthly = document.getElementById('repSubMonthly');
-  const repSubAnalytics = document.getElementById('repSubAnalytics');
-  const viewRepNightly = document.getElementById('viewRepNightly');
-  const viewRepWeekly = document.getElementById('viewRepWeekly');
-  const viewRepMonthly = document.getElementById('viewRepMonthly');
-  const viewRepAnalytics = document.getElementById('viewRepAnalytics');
+  const repSubNightly = $('repSubNightly');
+  const repSubWeekly = $('repSubWeekly');
+  const repSubMonthly = $('repSubMonthly');
+  const repSubAnalytics = $('repSubAnalytics');
+  const viewRepNightly = $('viewRepNightly');
+  const viewRepWeekly = $('viewRepWeekly');
+  const viewRepMonthly = $('viewRepMonthly');
+  const viewRepAnalytics = $('viewRepAnalytics');
 
   function setRepSub(activeBtn, activeView) {
     [repSubNightly, repSubWeekly, repSubMonthly, repSubAnalytics].forEach(b => {
@@ -94,10 +104,10 @@ function setupReportsSubtabs() {
 
 // 4. Copy Subscription Button & Box
 function setupSubscriptionActions() {
-  const copySubBtn = document.getElementById('copySubBtn');
+  const copySubBtn = $('copySubBtn');
 
   copySubBtn?.addEventListener('click', async () => {
-    const urlToCopy = window.lastUserData?.active_sub?.subscription_url || document.getElementById('subInput')?.value || document.getElementById('subDisplayBox')?.innerText?.trim();
+    const urlToCopy = window.lastUserData?.active_sub?.subscription_url || $('subInput')?.value || $('subDisplayBox')?.innerText?.trim();
     if (!urlToCopy || urlToCopy.includes('در حال') || urlToCopy.includes('یافت نشد')) {
       showToast('⚠️ لینک اشتراکی برای کپی یافت نشد.');
       return;
@@ -114,8 +124,8 @@ function setupSubscriptionActions() {
     }
   });
 
-  document.getElementById('subBoxWrapper')?.addEventListener('click', () => {
-    const url = (document.getElementById('subInput')?.value || '').trim();
+  $('subBoxWrapper')?.addEventListener('click', () => {
+    const url = ($('subInput')?.value || '').trim();
     if (url && !url.includes('در حال') && !url.includes('یافت نشد')) {
       copyToClipboard(url, '📋 لینک اشتراک با موفقیت در کلیپ‌بورد کپی شد.');
       hapticFeedback('success');
@@ -125,10 +135,10 @@ function setupSubscriptionActions() {
 
 // 5. Toggle QR Code (Dedicated Modern Modal)
 function setupQrToggle() {
-  const qrToggleBtn = document.getElementById('qrToggleBtn');
-  const closeQrModalBtn = document.getElementById('closeQrModalBtn');
-  const copySubFromQrModalBtn = document.getElementById('copySubFromQrModalBtn');
-  const qrModal = document.getElementById('qrModal');
+  const qrToggleBtn = $('qrToggleBtn');
+  const closeQrModalBtn = $('closeQrModalBtn');
+  const copySubFromQrModalBtn = $('copySubFromQrModalBtn');
+  const qrModal = $('qrModal');
 
   qrToggleBtn?.addEventListener('click', () => {
     window.currentModalQrUri = null;
@@ -143,7 +153,7 @@ function setupQrToggle() {
   });
 
   copySubFromQrModalBtn?.addEventListener('click', () => {
-    const url = (window.currentModalQrUri || document.getElementById('subInput')?.value || '').trim();
+    const url = (window.currentModalQrUri || $('subInput')?.value || '').trim();
     if (url && !url.includes('در حال') && !url.includes('یافت نشد')) {
       copyToClipboard(url, '📋 لینک اشتراک با موفقیت در کلیپ‌بورد کپی شد.');
     }
@@ -160,12 +170,12 @@ function setupQrToggle() {
 
 // 5.1 Subscription Configs Modal
 function setupConfigsModal() {
-  const openConfigsModalBtn = document.getElementById('openConfigsModalBtn');
-  const closeConfigsModalBtn = document.getElementById('closeConfigsModalBtn');
-  const configsModal = document.getElementById('configsModal');
-  const configsModalList = document.getElementById('configsModalList');
-  const configsModalCount = document.getElementById('configsModalCount');
-  const copyAllConfigsBtn = document.getElementById('copyAllConfigsBtn');
+  const openConfigsModalBtn = $('openConfigsModalBtn');
+  const closeConfigsModalBtn = $('closeConfigsModalBtn');
+  const configsModal = $('configsModal');
+  const configsModalList = $('configsModalList');
+  const configsModalCount = $('configsModalCount');
+  const copyAllConfigsBtn = $('copyAllConfigsBtn');
 
   let currentConfigsList = [];
 
@@ -225,7 +235,7 @@ function setupConfigsModal() {
             const uri = decodeURIComponent(btn.getAttribute('data-uri') || '');
             if (uri) {
               window.currentModalQrUri = uri;
-              const modalQrImg = document.getElementById('modalQrImage');
+              const modalQrImg = $('modalQrImage');
               if (modalQrImg) {
                 modalQrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=260x260&data=${encodeURIComponent(uri)}`;
               }
@@ -275,11 +285,11 @@ function setupConfigsModal() {
 
 // 6. Revoke Modal & Kill All Logic
 function setupRevokeAndKill() {
-  const openRevokeModalBtn = document.getElementById('openRevokeModalBtn');
-  const revokeSubBtnTop = document.getElementById('revokeSubBtnTop');
-  const cancelRevokeBtn = document.getElementById('cancelRevokeBtn');
-  const confirmRevokeBtn = document.getElementById('confirmRevokeBtn');
-  const subInput = document.getElementById('subInput');
+  const openRevokeModalBtn = $('openRevokeModalBtn');
+  const revokeSubBtnTop = $('revokeSubBtnTop');
+  const cancelRevokeBtn = $('cancelRevokeBtn');
+  const confirmRevokeBtn = $('confirmRevokeBtn');
+  const subInput = $('subInput');
 
   openRevokeModalBtn?.addEventListener('click', () => openModal('revokeModal'));
   revokeSubBtnTop?.addEventListener('click', () => openModal('revokeModal'));
@@ -307,7 +317,7 @@ function setupRevokeAndKill() {
     }
   });
 
-  document.getElementById('killAllBtn')?.addEventListener('click', async () => {
+  $('killAllBtn')?.addEventListener('click', async () => {
     if (!confirm('آیا از قطع اتصال تمام نشست‌ها و ابطال لینک قبلی اطمینان دارید؟')) return;
     try {
       const res = await window.api.revokeSub();
@@ -325,7 +335,7 @@ function setupRevokeAndKill() {
 
 // 7. 1-Click Client Importers & Tutorial Guide System
 const getSubUrl = () => {
-  const url = (window.lastUserData?.active_sub?.subscription_url || document.getElementById('subInput')?.value || '').trim();
+  const url = (window.lastUserData?.active_sub?.subscription_url || $('subInput')?.value || '').trim();
   if (!url || url.includes('در حال') || url.includes('یافت نشد')) {
     showToast('⚠️ اشتراک فعالی برای اتصال یافت نشد.');
     return null;
@@ -359,19 +369,19 @@ const copyAndLaunch = (makeUri, appName) => {
 };
 
 function setupClientImporters() {
-  document.getElementById('appImportIncy')?.addEventListener('click', () => {
+  $('appImportIncy')?.addEventListener('click', () => {
     copyAndLaunch(u => `incy://import/${u}`, 'Incy');
   });
-  document.getElementById('appImportHapp')?.addEventListener('click', () => {
+  $('appImportHapp')?.addEventListener('click', () => {
     copyAndLaunch(u => `happ://add/${u}`, 'Happ');
   });
-  document.getElementById('appImportV2ray')?.addEventListener('click', () => {
+  $('appImportV2ray')?.addEventListener('click', () => {
     copyAndLaunch(u => `v2rayng://install-sub?url=${encodeURIComponent(u)}`, 'v2rayNG');
   });
-  document.getElementById('appImportHiddify')?.addEventListener('click', () => {
+  $('appImportHiddify')?.addEventListener('click', () => {
     copyAndLaunch(u => `hiddify://install-sub?url=${encodeURIComponent(u)}`, 'Hiddify');
   });
-  document.getElementById('appImportStreisand')?.addEventListener('click', () => {
+  $('appImportStreisand')?.addEventListener('click', () => {
     copyAndLaunch(u => `streisand://import/${u}`, 'Streisand');
   });
 }
@@ -571,7 +581,7 @@ function getDownloadButtonInfo(url, defaultLabel, defaultIcon = '📥') {
 
 function renderTutorialApps(osKey) {
   currentTutorialOS = osKey || 'ios';
-  const listContainer = document.getElementById('tutorialAppsList');
+  const listContainer = $('tutorialAppsList');
   if (!listContainer) return;
 
   document.querySelectorAll('.tutorial-os-tab').forEach(tab => {
@@ -796,7 +806,7 @@ function renderTutorialApps(osKey) {
 }
 
 function openTutorialModal() {
-  const modal = document.getElementById('tutorialModal');
+  const modal = $('tutorialModal');
   if (!modal) return;
 
   renderTutorialApps(detectUserOS());
@@ -816,19 +826,19 @@ function setupTutorialModal() {
     });
   });
 
-  document.getElementById('closeTutorialModalBtn')?.addEventListener('click', () => {
+  $('closeTutorialModalBtn')?.addEventListener('click', () => {
     closeModal('tutorialModal');
     syncTelegramBackButton();
   });
 
-  document.getElementById('tutorialCopySubBtn')?.addEventListener('click', async () => {
+  $('tutorialCopySubBtn')?.addEventListener('click', async () => {
     const url = getSubUrl();
     if (!url) return;
     await copyToClipboard(url, '📋 لینک اشتراک با موفقیت در کلیپ‌بورد کپی شد.');
     hapticFeedback('success');
   });
 
-  const modal = document.getElementById('tutorialModal');
+  const modal = $('tutorialModal');
   modal?.addEventListener('click', (e) => {
     if (e.target === modal) {
       closeModal('tutorialModal');
@@ -836,14 +846,14 @@ function setupTutorialModal() {
     }
   });
 
-  document.getElementById('openTutorialModalBtn')?.addEventListener('click', openTutorialModal);
+  $('openTutorialModalBtn')?.addEventListener('click', openTutorialModal);
   window.openTutorialModal = openTutorialModal;
 }
 
 // 8. Dark / Light Mode Toggle
 function setupThemeToggle() {
-  const themeToggle = document.getElementById('themeToggle');
-  const themeIcon = document.getElementById('themeIcon');
+  const themeToggle = $('themeToggle');
+  const themeIcon = $('themeIcon');
 
   const getInitialUserTheme = () => {
     const saved = localStorage.getItem('remna_user_theme');
@@ -869,7 +879,7 @@ function setupThemeToggle() {
       try { if (window.Telegram?.WebApp?.setHeaderColor) window.Telegram.WebApp.setHeaderColor('#ffffff'); } catch(e) {}
     }
 
-    const speedModal = document.getElementById('speedTestModal');
+    const speedModal = $('speedTestModal');
     if (speedModal) {
       speedModal.style.backgroundColor = isDark ? 'rgba(0, 0, 0, 0.8)' : 'rgba(15, 23, 42, 0.45)';
     }
@@ -940,7 +950,7 @@ const countryFlags = {
 };
 
 async function loadNetworkNodes() {
-  const pingServersList = document.getElementById('pingServersList');
+  const pingServersList = $('pingServersList');
   if (!pingServersList) return;
   const t0 = performance.now();
   try {
@@ -998,7 +1008,7 @@ async function loadNetworkNodes() {
 }
 
 async function loadClientIpInfo() {
-  const ipEl = document.getElementById('detectedClientIp');
+  const ipEl = $('detectedClientIp');
   if (!ipEl) return;
   try {
     const res = await window.api.getIpInfo();
@@ -1011,9 +1021,9 @@ async function loadClientIpInfo() {
 }
 
 function setupNetworkTools() {
-  const runPingBtn = document.getElementById('runPingBtn');
-  const pingSpinner = document.getElementById('pingSpinner');
-  const pingBtnText = document.getElementById('pingBtnText');
+  const runPingBtn = $('runPingBtn');
+  const pingSpinner = $('pingSpinner');
+  const pingBtnText = $('pingBtnText');
 
   runPingBtn?.addEventListener('click', async () => {
     pingSpinner?.classList.remove('hidden');
@@ -1029,8 +1039,8 @@ function setupNetworkTools() {
     runPingBtn.disabled = false;
   });
 
-  const refreshHeader = document.getElementById('refreshNetworkToolsHeader');
-  const netStatusIcon = document.getElementById('netStatusIcon');
+  const refreshHeader = $('refreshNetworkToolsHeader');
+  const netStatusIcon = $('netStatusIcon');
   refreshHeader?.addEventListener('click', async () => {
     if (netStatusIcon) netStatusIcon.classList.add('animate-spin');
     await Promise.all([loadNetworkNodes(), loadClientIpInfo()]);
@@ -1040,12 +1050,12 @@ function setupNetworkTools() {
   });
 
   // Net sub-tabs
-  const netTabPing = document.getElementById('netTabPing');
-  const netTabSpeed = document.getElementById('netTabSpeed');
-  const netTabLeak = document.getElementById('netTabLeak');
-  const paneNetPing = document.getElementById('paneNetPing');
-  const paneNetSpeed = document.getElementById('paneNetSpeed');
-  const paneNetLeak = document.getElementById('paneNetLeak');
+  const netTabPing = $('netTabPing');
+  const netTabSpeed = $('netTabSpeed');
+  const netTabLeak = $('netTabLeak');
+  const paneNetPing = $('paneNetPing');
+  const paneNetSpeed = $('paneNetSpeed');
+  const paneNetLeak = $('paneNetLeak');
 
   function switchNetTool(activeBtn, activePane) {
     [netTabPing, netTabSpeed, netTabLeak].forEach(b => {
@@ -1062,13 +1072,13 @@ function setupNetworkTools() {
   netTabLeak?.addEventListener('click', () => switchNetTool(netTabLeak, paneNetLeak));
 
   // Speed test simulation
-  const runSpeedTestBtn = document.getElementById('runSpeedTestBtn');
-  const speedMeterArc = document.getElementById('speedMeterArc');
-  const speedRealtimeValue = document.getElementById('speedRealtimeValue');
-  const dlSpeedVal = document.getElementById('dlSpeedVal');
-  const ulSpeedVal = document.getElementById('ulSpeedVal');
-  const pingSpeedVal = document.getElementById('pingSpeedVal');
-  const speedTestBtnText = document.getElementById('speedTestBtnText');
+  const runSpeedTestBtn = $('runSpeedTestBtn');
+  const speedMeterArc = $('speedMeterArc');
+  const speedRealtimeValue = $('speedRealtimeValue');
+  const dlSpeedVal = $('dlSpeedVal');
+  const ulSpeedVal = $('ulSpeedVal');
+  const pingSpeedVal = $('pingSpeedVal');
+  const speedTestBtnText = $('speedTestBtnText');
 
   let isTestingSpeed = false;
   runSpeedTestBtn?.addEventListener('click', async () => {
@@ -1115,8 +1125,8 @@ function setupNetworkTools() {
   });
 
   // Leak scan
-  const runLeakScanBtn = document.getElementById('runLeakScanBtn');
-  const leakScanText = document.getElementById('leakScanText');
+  const runLeakScanBtn = $('runLeakScanBtn');
+  const leakScanText = $('leakScanText');
   runLeakScanBtn?.addEventListener('click', async () => {
     if (leakScanText) leakScanText.innerText = 'در حال بررسی نشت IP و WebRTC...';
     runLeakScanBtn.disabled = true;
@@ -1131,14 +1141,14 @@ function setupNetworkTools() {
 
 // 10. Support Chat Center
 function setupSupportChat() {
-  const openSupportBtn = document.getElementById('openSupportBtn');
-  const closeSupportChatBtn = document.getElementById('closeSupportChatBtn');
-  const chatInput = document.getElementById('chatInput');
-  const sendMessageBtn = document.getElementById('sendMessageBtn');
-  const dynamicChatContainer = document.getElementById('dynamicChatContainer');
-  const chatMessages = document.getElementById('chatMessages');
-  const chatLoadingState = document.getElementById('chatLoadingState');
-  const chatEmptyState = document.getElementById('chatEmptyState');
+  const openSupportBtn = $('openSupportBtn');
+  const closeSupportChatBtn = $('closeSupportChatBtn');
+  const chatInput = $('chatInput');
+  const sendMessageBtn = $('sendMessageBtn');
+  const dynamicChatContainer = $('dynamicChatContainer');
+  const chatMessages = $('chatMessages');
+  const chatLoadingState = $('chatLoadingState');
+  const chatEmptyState = $('chatEmptyState');
 
   let pollInterval = null;
   let lastMessageCount = 0;
@@ -1205,7 +1215,7 @@ function setupSupportChat() {
     loadChatMessages(false);
     if (pollInterval) clearInterval(pollInterval);
     pollInterval = setInterval(() => {
-      const modal = document.getElementById('supportChatModal');
+      const modal = $('supportChatModal');
       if (modal && !modal.classList.contains('hidden')) {
         loadChatMessages(true);
       } else {
@@ -1275,7 +1285,7 @@ function setupSupportChat() {
 const tg = window.Telegram?.WebApp;
 
 function updateTopPadding() {
-  const topBar = document.getElementById('topHeaderBar');
+  const topBar = $('topHeaderBar');
   if (!topBar) return;
   let padTop = 10;
   if (tg) {
@@ -1297,11 +1307,11 @@ function syncTelegramBackButton() {
     'qrModal', 'checkoutConfirmModal', 'configsModal', 'tutorialModal'
   ];
   const hasOpenModal = modalIds.some(id => {
-    const el = document.getElementById(id);
+    const el = $(id);
     return el && !el.classList.contains('hidden');
   });
 
-  const qr = document.getElementById('qrContainer');
+  const qr = $('qrContainer');
   const hasOpenQr = qr && !qr.classList.contains('hidden');
 
   const activeTabBtn = document.querySelector('.nav-btn.text-blue-400');
@@ -1335,7 +1345,7 @@ function setupTelegramSDK() {
     } catch (e) {}
 
     if (tg.initData) {
-      document.getElementById('closeBtn')?.classList.add('hidden');
+      $('closeBtn')?.classList.add('hidden');
     }
 
     if (tg.BackButton) {
@@ -1347,17 +1357,17 @@ function setupTelegramSDK() {
           'qrModal', 'checkoutConfirmModal', 'configsModal', 'tutorialModal'
         ];
         for (const id of modalIds) {
-          const el = document.getElementById(id);
+          const el = $(id);
           if (el && !el.classList.contains('hidden')) {
             el.classList.add('hidden');
             syncTelegramBackButton();
             return;
           }
         }
-        const qr = document.getElementById('qrContainer');
+        const qr = $('qrContainer');
         if (qr && !qr.classList.contains('hidden')) {
           qr.classList.add('hidden');
-          const qrToggle = document.getElementById('qrToggleBtn');
+          const qrToggle = $('qrToggleBtn');
           if (qrToggle) qrToggle.innerHTML = '<span class="text-sm">📷</span>';
           syncTelegramBackButton();
           return;
@@ -1374,7 +1384,7 @@ function setupTelegramSDK() {
         'purchaseSuccessModal', 'qrModal', 'checkoutConfirmModal', 'configsModal', 'tutorialModal'
       ];
       observedModalIds.forEach(id => {
-        const el = document.getElementById(id);
+        const el = $(id);
         if (el) {
           const obs = new MutationObserver(() => syncTelegramBackButton());
           obs.observe(el, { attributes: true, attributeFilter: ['class'] });
@@ -1383,7 +1393,7 @@ function setupTelegramSDK() {
       syncTelegramBackButton();
     }
 
-    document.getElementById('closeBtn')?.addEventListener('click', () => {
+    $('closeBtn')?.addEventListener('click', () => {
       if (tg) tg.close();
       else alert('این دکمه در تلگرام واقعی، پنجره مینی‌اپ را می‌بندد.');
     });
@@ -1394,10 +1404,10 @@ function setupTelegramSDK() {
 
 // 12. Multi-Account Switcher
 function setupAccountSwitcher() {
-  const switchAccountModal = document.getElementById('switchAccountModal');
-  const switchAccountBtn = document.getElementById('switchAccountBtn');
-  const closeSwitchAccountBtn = document.getElementById('closeSwitchAccountBtn');
-  const switchAccountList = document.getElementById('switchAccountList');
+  const switchAccountModal = $('switchAccountModal');
+  const switchAccountBtn = $('switchAccountBtn');
+  const closeSwitchAccountBtn = $('closeSwitchAccountBtn');
+  const switchAccountList = $('switchAccountList');
 
   switchAccountBtn?.addEventListener('click', () => {
     const accounts = window.lastUserData?.accounts || [];
@@ -1436,8 +1446,8 @@ function setupAccountSwitcher() {
 
 // 13. Profile Switches & Actions
 function setupProfileHandlers() {
-  document.getElementById('langFaBtn')?.addEventListener('click', () => changeAppLanguage('fa'));
-  document.getElementById('langEnBtn')?.addEventListener('click', () => changeAppLanguage('en'));
+  $('langFaBtn')?.addEventListener('click', () => changeAppLanguage('fa'));
+  $('langEnBtn')?.addEventListener('click', () => changeAppLanguage('en'));
 
   async function changeAppLanguage(lang) {
     try {
@@ -1453,36 +1463,36 @@ function setupProfileHandlers() {
     }
   }
 
-  document.getElementById('copyProfileIdBtn')?.addEventListener('click', () => {
-    const idVal = document.getElementById('profileTelegramId')?.innerText;
+  $('copyProfileIdBtn')?.addEventListener('click', () => {
+    const idVal = $('profileTelegramId')?.innerText;
     if (idVal && idVal !== '--') {
       copyToClipboard(idVal, '📋 شناسه عددی تلگرام در کلیپ‌بورد کپی شد.');
     }
   });
 
-  document.getElementById('copyProfileRefBtn')?.addEventListener('click', () => {
-    const refVal = document.getElementById('profileRefCode')?.innerText;
+  $('copyProfileRefBtn')?.addEventListener('click', () => {
+    const refVal = $('profileRefCode')?.innerText;
     if (refVal && refVal !== '--') {
       copyToClipboard(refVal, '📋 کد معرف در کلیپ‌بورد کپی شد.');
     }
   });
 
-  document.getElementById('gotoShopFromWallet')?.addEventListener('click', () => {
+  $('gotoShopFromWallet')?.addEventListener('click', () => {
     const shopNav = document.querySelector('.nav-btn[data-tab="tab-shop"]');
     shopNav?.click();
   });
 
   // Referral Link Copy & Share Actions
-  document.getElementById('copyReferralLinkBtn')?.addEventListener('click', async () => {
-    const link = document.getElementById('profileReferralLinkInput')?.value || '';
+  $('copyReferralLinkBtn')?.addEventListener('click', async () => {
+    const link = $('profileReferralLinkInput')?.value || '';
     if (link && !link.includes('در حال')) {
       await copyToClipboard(link, '📋 لینک اختصاصی دعوت با موفقیت کپی شد.');
       hapticFeedback('success');
     }
   });
 
-  document.getElementById('shareReferralLinkBtn')?.addEventListener('click', () => {
-    const link = document.getElementById('profileReferralLinkInput')?.value || '';
+  $('shareReferralLinkBtn')?.addEventListener('click', () => {
+    const link = $('profileReferralLinkInput')?.value || '';
     const botName = window.lastUserData?.bot_username ? `@${window.lastUserData.bot_username}` : '';
     const shareText = `🚀 اتصال پرسرعت و پایدار ${botName}\nثبت‌نام کنید و هدیه بگیرید!`.trim();
     const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent(shareText)}`;
@@ -1510,41 +1520,41 @@ function hydrateUserInterface(data) {
   }
 
   // Header Avatar & Name
-  const avatarEl = document.getElementById('headerUserAvatarInitial') || document.getElementById('headerUserAvatar');
+  const avatarEl = $('headerUserAvatarInitial') || $('headerUserAvatar');
   if (avatarEl && (user.first_name || user.username)) {
     avatarEl.innerText = (user.first_name || user.username || 'U')[0].toUpperCase();
   }
 
-  const usernameEl = document.getElementById('headerUsername');
+  const usernameEl = $('headerUsername');
   if (usernameEl) {
     usernameEl.innerText = sub?.username || user.username || user.first_name || 'کاربر';
   }
 
   const onlineCount = sub?.devices_count ?? (sub?.devices ? sub.devices.length : 0);
-  const onlineCountEl = document.getElementById('headerOnlineCount');
+  const onlineCountEl = $('headerOnlineCount');
   if (onlineCountEl) {
     onlineCountEl.innerText = `${onlineCount} دستگاه آنلاین`;
   }
 
   // Dashboard Traffic Gauge
-  const gaugeProgress = document.getElementById('dashboardGaugeProgress');
+  const gaugeProgress = $('dashboardGaugeProgress');
   if (sub) {
-    const remainEl = document.getElementById('dashboardRemainingTraffic');
+    const remainEl = $('dashboardRemainingTraffic');
     if (remainEl) remainEl.innerText = `${sub.traffic_remaining_gb ?? '--'} GB`;
 
-    const pctEl = document.getElementById('dashboardPercentRemaining');
+    const pctEl = $('dashboardPercentRemaining');
     if (pctEl) pctEl.innerText = `${toEnglishDigits(Math.round(sub.percent_remaining ?? 100))}%`;
 
-    const pillEl = document.getElementById('dashboardUsagePill');
+    const pillEl = $('dashboardUsagePill');
     if (pillEl) pillEl.innerText = `${sub.traffic_used_gb ?? 0} / ${sub.traffic_total_gb ?? 0} GB`;
 
-    const daysEl = document.getElementById('dashboardDaysLeft');
+    const daysEl = $('dashboardDaysLeft');
     if (daysEl) daysEl.innerText = `${sub.days_left ?? 0} روز`;
 
-    const expireEl = document.getElementById('dashboardExpireDate');
+    const expireEl = $('dashboardExpireDate');
     if (expireEl) expireEl.innerText = sub.expire_jalali ? `تا ${sub.expire_jalali}` : 'نامحدود';
 
-    const todayEl = document.getElementById('dashboardTodayUsed');
+    const todayEl = $('dashboardTodayUsed');
     if (todayEl) todayEl.innerText = `${sub.today_used_gb ?? '0.00'} GB`;
 
     if (gaugeProgress) {
@@ -1554,33 +1564,33 @@ function hydrateUserInterface(data) {
       gaugeProgress.style.strokeDashoffset = offset;
     }
 
-    const subInputEl = document.getElementById('subInput');
+    const subInputEl = $('subInput');
     if (subInputEl && sub.subscription_url) subInputEl.value = sub.subscription_url;
-    const subDisplayEl = document.getElementById('subDisplayBox');
+    const subDisplayEl = $('subDisplayBox');
     if (subDisplayEl && sub.subscription_url) subDisplayEl.innerText = sub.subscription_url;
-    const qrImg = document.getElementById('qrImage');
+    const qrImg = $('qrImage');
     if (qrImg && sub.subscription_url) {
       qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(sub.subscription_url)}`;
     }
-    const modalQrImg = document.getElementById('modalQrImage');
+    const modalQrImg = $('modalQrImage');
     if (modalQrImg && sub.subscription_url) {
       modalQrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=260x260&data=${encodeURIComponent(sub.subscription_url)}`;
     }
   } else {
-    const subInputEl = document.getElementById('subInput');
+    const subInputEl = $('subInput');
     if (subInputEl) subInputEl.value = 'اشتراک فعالی یافت نشد - لطفاً از تب فروشگاه اقدام فرمایید.';
-    const subDisplayEl = document.getElementById('subDisplayBox');
+    const subDisplayEl = $('subDisplayBox');
     if (subDisplayEl) subDisplayEl.innerText = 'اشتراک فعالی یافت نشد - لطفاً از تب فروشگاه اقدام فرمایید.';
   }
 
   // Story Card Data Binding
-  const storyName = document.getElementById('storyCardName');
-  const storyUser = document.getElementById('storyCardUsername');
-  const storyAvatarImg = document.getElementById('storyCardAvatarImg');
-  const storyAvatar = document.getElementById('storyCardAvatarInitial');
-  const storyTraffic = document.getElementById('storyCardTraffic');
-  const storyDays = document.getElementById('storyCardDays');
-  const storyQr = document.getElementById('storyCardQr');
+  const storyName = $('storyCardName');
+  const storyUser = $('storyCardUsername');
+  const storyAvatarImg = $('storyCardAvatarImg');
+  const storyAvatar = $('storyCardAvatarInitial');
+  const storyTraffic = $('storyCardTraffic');
+  const storyDays = $('storyCardDays');
+  const storyQr = $('storyCardQr');
   const displayName = sub?.username || user.first_name || user.username || 'کاربر گرامی';
   if (storyName) storyName.innerText = displayName;
   if (storyUser) {
@@ -1594,9 +1604,9 @@ function hydrateUserInterface(data) {
 
   // Story Reward GB from Bot Settings
   const rewardGb = data.referral_reward_gb ?? 5;
-  const rewardEl = document.getElementById('storyCardRewardGb');
+  const rewardEl = $('storyCardRewardGb');
   if (rewardEl) rewardEl.innerText = toEnglishDigits(rewardGb);
-  const bannerRewardEl = document.getElementById('storyRewardBannerGb');
+  const bannerRewardEl = $('storyRewardBannerGb');
   if (bannerRewardEl) bannerRewardEl.innerText = toEnglishDigits(rewardGb);
 
   // Avatar Loading via CORS-safe Server Avatar Endpoint
@@ -1631,7 +1641,7 @@ function hydrateUserInterface(data) {
   if (storyTraffic) storyTraffic.innerText = `${sub?.traffic_remaining_gb ?? '--'} GB`;
   if (storyDays) storyDays.innerText = `${toEnglishDigits(sub?.days_left ?? 0)} روز اعتبار`;
   const botUsername = data.bot_username || window.Telegram?.WebApp?.initDataUnsafe?.bot?.username || '';
-  const refLink = botUsername ? `https://t.me/${botUsername}?start=ref_${user.id || ''}` : `https://t.me/?start=ref_${user.id || ''}`;
+  const refLink = window.buildRefLink(botUsername, user.id);
   window.currentReferralLink = refLink;
   if (storyQr) {
     storyQr.crossOrigin = 'anonymous';
@@ -1639,8 +1649,8 @@ function hydrateUserInterface(data) {
   }
 
   // Today Country Breakdown
-  const countryList = document.getElementById('countryBreakdownList');
-  const countryTotalHeader = document.getElementById('countryTodayTotalHeader');
+  const countryList = $('countryBreakdownList');
+  const countryTotalHeader = $('countryTodayTotalHeader');
   if (countryTotalHeader) countryTotalHeader.innerText = `${sub?.today_used_gb ?? '0.00'} GB`;
   if (countryList) {
     const bDown = sub?.today_breakdown || [];
@@ -1677,19 +1687,19 @@ function hydrateUserInterface(data) {
 
   // Reports Hub (All Numbers in English ASCII format)
   if (data.yesterday_jalali) {
-    const repDateEl = document.getElementById('repNightlyDate');
+    const repDateEl = $('repNightlyDate');
     if (repDateEl) repDateEl.innerText = `${toEnglishDigits(data.yesterday_jalali)} - 23:59`;
   }
   if (sub) {
-    const repTotal = document.getElementById('repNightlyTotal');
+    const repTotal = $('repNightlyTotal');
     if (repTotal) repTotal.innerText = `${sub.traffic_total_gb ?? '--'} GB`;
-    const repUsed = document.getElementById('repNightlyUsed');
+    const repUsed = $('repNightlyUsed');
     if (repUsed) repUsed.innerText = `${sub.traffic_used_gb ?? '--'} GB`;
-    const repRemain = document.getElementById('repNightlyRemain');
+    const repRemain = $('repNightlyRemain');
     if (repRemain) repRemain.innerText = `${sub.traffic_remaining_gb ?? '--'} GB`;
-    const repYesterday = document.getElementById('repNightlyYesterday');
+    const repYesterday = $('repNightlyYesterday');
     if (repYesterday) repYesterday.innerText = `${sub.yesterday_used_gb ?? '0.00'} GB`;
-    const repExpire = document.getElementById('repNightlyExpire');
+    const repExpire = $('repNightlyExpire');
     if (repExpire) repExpire.innerText = `${toEnglishDigits(sub.days_left ?? 0)} روز (${toEnglishDigits(sub.expire_jalali || 'نامحدود')})`;
 
     // Reusable Server Breakdown for Nightly, Weekly, Monthly
@@ -1697,9 +1707,9 @@ function hydrateUserInterface(data) {
     renderNodeBreakdown('repWeeklyNodesContainer', sub.week_breakdown || [], 'مصرفی در 7 روز گذشته ثبت نشده است.');
     renderNodeBreakdown('repMonthlyNodesContainer', sub.week_breakdown || sub.today_breakdown || [], 'مصرفی در ماه جاری ثبت نشده است.');
 
-    const repWeeklyTotal = document.getElementById('repWeeklyTotal');
+    const repWeeklyTotal = $('repWeeklyTotal');
     if (repWeeklyTotal) repWeeklyTotal.innerHTML = `<span dir="ltr" class="font-mono inline-block">\u200E${sub.week_used_gb ?? '0.00'} GB\u200E</span>`;
-    const repWeeklyBusiest = document.getElementById('repWeeklyBusiest');
+    const repWeeklyBusiest = $('repWeeklyBusiest');
     if (repWeeklyBusiest) {
       repWeeklyBusiest.innerHTML = `${sub.busiest_day_name || '—'} <span dir="ltr" class="font-mono inline-block text-cyan-300 font-semibold">\u200E(${toEnglishDigits(sub.busiest_day_amount || '0 GB')})\u200E</span>`;
     }
@@ -1711,9 +1721,9 @@ function hydrateUserInterface(data) {
       console.warn('Could not render weekly chart:', e);
     }
 
-    const repMonthlyTitle = document.getElementById('repMonthlyTitle');
+    const repMonthlyTitle = $('repMonthlyTitle');
     if (repMonthlyTitle) repMonthlyTitle.innerText = `📅 گزارش جامع ماه ${sub.current_month_name || ''}`;
-    const repMonthlyTotal = document.getElementById('repMonthlyTotal');
+    const repMonthlyTotal = $('repMonthlyTotal');
     if (repMonthlyTotal) repMonthlyTotal.innerHTML = `<span dir="ltr" class="font-mono inline-block">\u200E${sub.month_used_gb ?? '0.00'} GB\u200E</span>`;
 
     try {
@@ -1785,9 +1795,9 @@ function renderActiveSubAnalytics(sub) {
   // Active Devices
   const devices = sub?.devices || [];
   const activeDevCount = sub?.devices_count ?? devices.length;
-  const repSessionsBadge = document.getElementById('reportsSessionsBadge');
+  const repSessionsBadge = $('reportsSessionsBadge');
   if (repSessionsBadge) repSessionsBadge.innerText = `${toEnglishDigits(activeDevCount)} دستگاه`;
-  const mCountText = document.getElementById('modalSessionsCount');
+  const mCountText = $('modalSessionsCount');
   if (mCountText) mCountText.innerText = `${toEnglishDigits(activeDevCount)} دستگاه`;
 
   function renderDeviceList(container) {
@@ -1852,23 +1862,23 @@ function renderActiveSubAnalytics(sub) {
     });
   }
 
-  renderDeviceList(document.getElementById('activeDevicesContainer'));
-  renderDeviceList(document.getElementById('modalSessionsList'));
+  renderDeviceList($('activeDevicesContainer'));
+  renderDeviceList($('modalSessionsList'));
 
-  document.getElementById('openDashboardSessionsBtn')?.addEventListener('click', () => openModal('activeSessionsModal'));
-  document.getElementById('headerOnlineBadge')?.addEventListener('click', () => openModal('activeSessionsModal'));
-  document.getElementById('closeSessionsModalBtn')?.addEventListener('click', () => closeModal('activeSessionsModal'));
-  document.getElementById('modalKillAllBtn')?.addEventListener('click', () => {
-    document.getElementById('killAllBtn')?.click();
+  $('openDashboardSessionsBtn')?.addEventListener('click', () => openModal('activeSessionsModal'));
+  $('headerOnlineBadge')?.addEventListener('click', () => openModal('activeSessionsModal'));
+  $('closeSessionsModalBtn')?.addEventListener('click', () => closeModal('activeSessionsModal'));
+  $('modalKillAllBtn')?.addEventListener('click', () => {
+    $('killAllBtn')?.click();
   });
 
   // Shop Plans
   renderShopPlans(data);
 
   // Wallet Balances
-  const walletEl = document.getElementById('shopWalletBalance');
-  const shopBalAmt = document.getElementById('shopWalletBalanceAmount');
-  const walletTabBal = document.getElementById('walletTabBalance');
+  const walletEl = $('shopWalletBalance');
+  const shopBalAmt = $('shopWalletBalanceAmount');
+  const walletTabBal = $('walletTabBalance');
   const rawBalNum = Number(user.wallet_balance || 0).toLocaleString('en-US');
   const formattedWallet = `${rawBalNum} تومان`;
   if (walletEl) walletEl.innerText = `موجودی: ${formattedWallet}`;
@@ -1876,17 +1886,17 @@ function renderActiveSubAnalytics(sub) {
   if (walletTabBal) walletTabBal.innerText = formattedWallet;
 
   // Profile Identity
-  const profName = document.getElementById('profileFullName');
-  const profUser = document.getElementById('profileUsername');
-  const profAvatar = document.getElementById('profileAvatarInitial');
-  const profStatusBadge = document.getElementById('profileStatusBadge');
-  const profAuthBadge = document.getElementById('profileAuthBadge');
-  const profId = document.getElementById('profileTelegramId');
-  const profRef = document.getElementById('profileRefCode');
-  const profPhone = document.getElementById('profilePhone');
-  const profJoin = document.getElementById('profileJoinDate');
-  const profBirth = document.getElementById('profileBirthDate');
-  const profSub = document.getElementById('profileSubStatus');
+  const profName = $('profileFullName');
+  const profUser = $('profileUsername');
+  const profAvatar = $('profileAvatarInitial');
+  const profStatusBadge = $('profileStatusBadge');
+  const profAuthBadge = $('profileAuthBadge');
+  const profId = $('profileTelegramId');
+  const profRef = $('profileRefCode');
+  const profPhone = $('profilePhone');
+  const profJoin = $('profileJoinDate');
+  const profBirth = $('profileBirthDate');
+  const profSub = $('profileSubStatus');
 
   const userDisplayName = sub?.username || user.first_name || user.username || 'کاربر گرامی';
   if (profName) profName.innerText = userDisplayName;
@@ -1930,11 +1940,11 @@ function renderActiveSubAnalytics(sub) {
   }
 
   // Referral & Invite Card
-  const refCard = document.getElementById('profileReferralCard');
-  const refLinkInp = document.getElementById('profileReferralLinkInput');
-  const refCountEl = document.getElementById('profileReferralsCount');
-  const refRewardTotalEl = document.getElementById('profileReferralRewardTotal');
-  const refRewardBadge = document.getElementById('profileReferralRewardBadge');
+  const refCard = $('profileReferralCard');
+  const refLinkInp = $('profileReferralLinkInput');
+  const refCountEl = $('profileReferralsCount');
+  const refRewardTotalEl = $('profileReferralRewardTotal');
+  const refRewardBadge = $('profileReferralRewardBadge');
 
   const refEnabled = data.referral_enabled !== false;
   if (refCard) {
@@ -1945,7 +1955,7 @@ function renderActiveSubAnalytics(sub) {
     }
   }
 
-  const referralLink = data.referral_link || (data.bot_username ? `https://t.me/${data.bot_username}?start=ref_${user.id}` : `https://t.me/?start=ref_${user.id}`);
+  const referralLink = data.referral_link || window.buildRefLink(data.bot_username, user.id);
   if (refLinkInp) refLinkInp.value = referralLink;
 
   const refCount = Number(user.referrals_count || 0);
@@ -1967,7 +1977,7 @@ function renderActiveSubAnalytics(sub) {
   ];
 
   togglesMap.forEach(({ id, key, defaultVal }) => {
-    const el = document.getElementById(id);
+    const el = $(id);
     if (!el) return;
     const val = (settings[key] !== undefined) ? Boolean(settings[key]) : defaultVal;
     el.checked = val;
@@ -1993,16 +2003,16 @@ function renderActiveSubAnalytics(sub) {
   // Configurable Alert Thresholds Selects & Dynamic Subtexts
   function updateAlertSubtexts(percent, days) {
     if (percent !== undefined && percent !== null) {
-      const traf = document.getElementById('settingTrafficSubtext');
+      const traf = $('settingTrafficSubtext');
       if (traf) traf.innerText = `هشدار قبل از پایان ترافیک (${toEnglishDigits(percent)}%)`;
     }
     if (days !== undefined && days !== null) {
-      const exp = document.getElementById('settingExpireSubtext');
+      const exp = $('settingExpireSubtext');
       if (exp) exp.innerText = `اطلاع‌رسانی ${toEnglishDigits(days)} روز مانده به انقضا`;
     }
   }
 
-  const trafficPercentSelect = document.getElementById('settingTrafficPercentSelect');
+  const trafficPercentSelect = $('settingTrafficPercentSelect');
   if (trafficPercentSelect) {
     if (settings.traffic_percent) trafficPercentSelect.value = String(settings.traffic_percent);
     trafficPercentSelect.onchange = async () => {
@@ -2022,7 +2032,7 @@ function renderActiveSubAnalytics(sub) {
     };
   }
 
-  const expireDaysSelect = document.getElementById('settingExpireDaysSelect');
+  const expireDaysSelect = $('settingExpireDaysSelect');
   if (expireDaysSelect) {
     if (settings.expire_days) expireDaysSelect.value = String(settings.expire_days);
     expireDaysSelect.onchange = async () => {
@@ -2046,8 +2056,8 @@ function renderActiveSubAnalytics(sub) {
 
   // Language buttons
   const currentLang = user.language || 'fa';
-  const langFaBtn = document.getElementById('langFaBtn');
-  const langEnBtn = document.getElementById('langEnBtn');
+  const langFaBtn = $('langFaBtn');
+  const langEnBtn = $('langEnBtn');
   if (currentLang === 'en') {
     langEnBtn?.classList.add('bg-blue-600', 'text-white', 'font-bold');
     langEnBtn?.classList.remove('text-slate-400');
@@ -2066,8 +2076,8 @@ function renderActiveSubAnalytics(sub) {
   const profParam = profPhotoUrl ? `&url=${encodeURIComponent(profPhotoUrl)}` : '';
   const avatarUrl = profUid ? `/api/user/avatar?id=${profUid}${profParam}` : profPhotoUrl;
   if (avatarUrl) {
-    const profImg = document.getElementById('profileAvatarImg');
-    const headImg = document.getElementById('headerUserAvatarImg');
+    const profImg = $('profileAvatarImg');
+    const headImg = $('headerUserAvatarImg');
     const testImg = new Image();
     testImg.src = avatarUrl;
     testImg.onload = () => {
@@ -2079,13 +2089,13 @@ function renderActiveSubAnalytics(sub) {
       if (headImg) {
         headImg.src = avatarUrl;
         headImg.classList.remove('hidden');
-        document.getElementById('headerUserAvatarInitial')?.classList.add('hidden');
+        $('headerUserAvatarInitial')?.classList.add('hidden');
       }
     };
   }
 
   // Account Switcher button visibility
-  const switchBtn = document.getElementById('switchAccountBtn');
+  const switchBtn = $('switchAccountBtn');
   const accounts = data.accounts || [];
   if (switchBtn) {
     if (accounts.length > 1) switchBtn.classList.remove('hidden');

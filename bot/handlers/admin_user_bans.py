@@ -6,7 +6,7 @@ from aiogram.types import CallbackQuery
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from bot.common import SEPARATOR, fmt, is_admin, resolve_op
+from bot.common import SEPARATOR, fmt, is_admin
 from bot.db.repositories.admin_log_repo import AdminLogRepository
 from bot.db.repositories.user_repo import UserRepository
 from bot.db.repositories.wallet_repo import WalletRepository
@@ -44,15 +44,12 @@ async def telegram_user_detail(
     user = await user_repo.get_or_create(call.from_user.id, call.from_user.username)
     lang = user.language
 
-    user_repo_cls = resolve_op("UserRepository", UserRepository)
-    wallet_repo_cls = resolve_op("WalletRepository", WalletRepository)
-    render_menu_fn = resolve_op("render_menu", render_menu)
 
-    target = await user_repo_cls(session).get_by_telegram_id(telegram_id)
+    target = await UserRepository(session).get_by_telegram_id(telegram_id)
     if target is None:
-        target = await user_repo_cls(session).get_or_create(telegram_id, username=None)
+        target = await UserRepository(session).get_or_create(telegram_id, username=None)
 
-    wallet = await wallet_repo_cls(session).get_wallet(telegram_id)
+    wallet = await WalletRepository(session).get_wallet(telegram_id)
     accounts = await remnawave.get_users_by_telegram_id(telegram_id) or []
 
     ban_badge = "⛔️ مسدود" if target.is_banned else "✅ فعال" if lang == "fa" else ("⛔️ Banned" if target.is_banned else "✅ Active")
@@ -87,7 +84,7 @@ async def telegram_user_detail(
     kb.button(text=t(lang, "btn_back"), callback_data="adm:ulist:all:0")
     kb.adjust(2, 1, 1)
 
-    await render_menu_fn(bot, user, user_repo, "\n".join(lines), kb.as_markup())
+    await render_menu(bot, user, user_repo, "\n".join(lines), kb.as_markup())
     await call.answer()
 
 
@@ -99,11 +96,10 @@ async def admin_ban_user(
     if not _is_admin(call.from_user.id):
         await call.answer(t("fa", "not_authorized"), show_alert=True)
         return
-    admin_log_repo_cls = resolve_op("AdminLogRepository", AdminLogRepository)
 
     telegram_id = int(call.data.rsplit(":", 1)[1])
     await user_repo.set_banned(telegram_id, True)
-    await admin_log_repo_cls(session).log(
+    await AdminLogRepository(session).log(
         call.from_user.id, "setting", detail=f"ban_user={telegram_id}"
     )
     await telegram_user_detail(call, bot, user_repo, session, remnawave, target_telegram_id=telegram_id)
@@ -118,11 +114,10 @@ async def admin_unban_user(
     if not _is_admin(call.from_user.id):
         await call.answer(t("fa", "not_authorized"), show_alert=True)
         return
-    admin_log_repo_cls = resolve_op("AdminLogRepository", AdminLogRepository)
 
     telegram_id = int(call.data.rsplit(":", 1)[1])
     await user_repo.set_banned(telegram_id, False)
-    await admin_log_repo_cls(session).log(
+    await AdminLogRepository(session).log(
         call.from_user.id, "setting", detail=f"unban_user={telegram_id}"
     )
     await telegram_user_detail(call, bot, user_repo, session, remnawave, target_telegram_id=telegram_id)
@@ -137,7 +132,6 @@ async def admin_banned_list(
     if not _is_admin(call.from_user.id):
         await call.answer(t("fa", "not_authorized"), show_alert=True)
         return
-    render_menu_fn = resolve_op("render_menu", render_menu)
 
     user = await user_repo.get_or_create(call.from_user.id, call.from_user.username)
     lang = user.language or "fa"
@@ -173,5 +167,5 @@ async def admin_banned_list(
     sizes = [2] * (len(banned_users) // 2) + ([1] if len(banned_users) % 2 else []) + [1]
     kb.adjust(*sizes)
 
-    await render_menu_fn(bot, user, user_repo, "\n".join(lines), kb.as_markup())
+    await render_menu(bot, user, user_repo, "\n".join(lines), kb.as_markup())
     await call.answer()

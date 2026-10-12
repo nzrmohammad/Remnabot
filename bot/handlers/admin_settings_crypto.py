@@ -7,7 +7,7 @@ from aiogram.types import CallbackQuery
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from bot.common import SEPARATOR, is_admin, resolve_op
+from bot.common import SEPARATOR, is_admin
 from bot.db.repositories.admin_log_repo import AdminLogRepository
 from bot.db.repositories.app_setting_repo import AppSettingRepository
 from bot.db.repositories.user_repo import UserRepository
@@ -24,11 +24,8 @@ _is_admin = is_admin
 async def _render_crypto_settings(
     bot: Bot, user, user_repo: UserRepository, session: AsyncSession,
 ) -> None:
-    store_fn = get_store_settings
-    render_menu_fn = menu.render_menu
-
     lang = user.language or "fa"
-    store = await store_fn(session)
+    store = await get_store_settings(session)
     kb = InlineKeyboardBuilder()
 
     status_badge = "✅" if store.crypto_enabled else "❌"
@@ -81,7 +78,7 @@ async def _render_crypto_settings(
         f"⭐️ Stars Rate : <b>{stars_rate_str}</b>",
     ]
 
-    await render_menu_fn(bot, user, user_repo, "\n".join(lines), kb.as_markup())
+    await menu.render_menu(bot, user, user_repo, "\n".join(lines), kb.as_markup())
 
 
 @router.callback_query(F.data == "adm:settings:crypto")
@@ -91,9 +88,8 @@ async def crypto_settings_view(
     if not is_admin(call.from_user.id):
         await call.answer(t("fa", "not_authorized"), show_alert=True)
         return
-    render_crypto_fn = resolve_op("_render_crypto_settings", _render_crypto_settings)
     user = await user_repo.get_or_create(call.from_user.id, call.from_user.username)
-    await render_crypto_fn(bot, user, user_repo, session)
+    await _render_crypto_settings(bot, user, user_repo, session)
     await call.answer()
 
 
@@ -104,19 +100,15 @@ async def toggle_crypto_enabled(
     if not is_admin(call.from_user.id):
         await call.answer(t("fa", "not_authorized"), show_alert=True)
         return
-    store_fn = resolve_op("get_store_settings", get_store_settings)
-    app_setting_repo_cls = resolve_op("AppSettingRepository", AppSettingRepository)
-    admin_log_repo_cls = resolve_op("AdminLogRepository", AdminLogRepository)
-    render_crypto_fn = resolve_op("_render_crypto_settings", _render_crypto_settings)
 
     user = await user_repo.get_or_create(call.from_user.id, call.from_user.username)
-    store = await store_fn(session)
+    store = await get_store_settings(session)
     new_val = not store.crypto_enabled
-    await app_setting_repo_cls(session).set("crypto_enabled", "1" if new_val else "0")
-    await admin_log_repo_cls(session).log(
+    await AppSettingRepository(session).set("crypto_enabled", "1" if new_val else "0")
+    await AdminLogRepository(session).log(
         call.from_user.id, "setting", detail=f"crypto_enabled={'1' if new_val else '0'}"
     )
-    await render_crypto_fn(bot, user, user_repo, session)
+    await _render_crypto_settings(bot, user, user_repo, session)
     await call.answer("✅ وضعیت پرداخت کریپتو تغییر یافت.")
 
 
@@ -127,11 +119,9 @@ async def crypto_ton_rate_now(
     if not is_admin(call.from_user.id):
         await call.answer(t("fa", "not_authorized"), show_alert=True)
         return
-    store_fn = resolve_op("get_store_settings", get_store_settings)
-    render_menu_fn = resolve_op("render_menu", render_menu)
 
     from bot.services.crypto.nobitex import fetch_all_exchange_prices, format_ton_rate_alert
-    store = await store_fn(session)
+    store = await get_store_settings(session)
     market_data = await fetch_all_exchange_prices(usdt_rate=store.usdt_rate_toman)
     best_ton, _ = market_data.get("best_ton", (None, ""))
     if best_ton is None and not market_data.get("ton"):
@@ -146,7 +136,7 @@ async def crypto_ton_rate_now(
         current_ton_rate=store.ton_rate_toman,
     )
     user = await user_repo.get_or_create(call.from_user.id, call.from_user.username)
-    await render_menu_fn(bot, user, user_repo, text, kb)
+    await render_menu(bot, user, user_repo, text, kb)
     await call.answer("✅ استعلام قیمت لحظه‌ای تون انجام شد.")
 
 
@@ -160,11 +150,9 @@ async def crypto_usdt_rate_now(
     if not is_admin(call.from_user.id):
         await call.answer(t("fa", "not_authorized"), show_alert=True)
         return
-    store_fn = resolve_op("get_store_settings", get_store_settings)
-    render_menu_fn = resolve_op("render_menu", render_menu)
 
     from bot.services.crypto.nobitex import fetch_all_exchange_prices, format_usdt_rate_alert
-    store = await store_fn(session)
+    store = await get_store_settings(session)
     market_data = await fetch_all_exchange_prices(usdt_rate=store.usdt_rate_toman)
     best_usdt, _ = market_data.get("best_usdt", (None, ""))
     if best_usdt is None and not market_data.get("usdt"):
@@ -179,7 +167,7 @@ async def crypto_usdt_rate_now(
         current_usdt_rate=store.usdt_rate_toman,
     )
     user = await user_repo.get_or_create(call.from_user.id, call.from_user.username)
-    await render_menu_fn(bot, user, user_repo, text, kb)
+    await render_menu(bot, user, user_repo, text, kb)
     await call.answer("✅ استعلام قیمت لحظه‌ای تتر انجام شد.")
 
 
@@ -190,8 +178,6 @@ async def apply_nobitex_rate(
     if not is_admin(call.from_user.id):
         await call.answer(t("fa", "not_authorized"), show_alert=True)
         return
-    app_setting_repo_cls = resolve_op("AppSettingRepository", AppSettingRepository)
-    admin_log_repo_cls = resolve_op("AdminLogRepository", AdminLogRepository)
 
     try:
         parts = call.data.split(":")
@@ -215,8 +201,8 @@ async def apply_nobitex_rate(
         setting_key = "usdt_rate_toman"
         kind_title = "نرخ مبنای تتر"
 
-    await app_setting_repo_cls(session).set(setting_key, str(price))
-    await admin_log_repo_cls(session).log(
+    await AppSettingRepository(session).set(setting_key, str(price))
+    await AdminLogRepository(session).log(
         call.from_user.id, "setting", detail=f"{setting_key}={price}"
     )
     await session.commit()

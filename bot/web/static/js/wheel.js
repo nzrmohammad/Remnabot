@@ -81,8 +81,11 @@ function setupLuckyWheel() {
   const wheelContainer = document.getElementById('wheelContainer');
   const wheelResultText = document.getElementById('wheelResultText');
 
-  openLuckyWheelBtn?.addEventListener('click', () => openModal('luckyWheelModal'));
-  closeLuckyWheelBtn?.addEventListener('click', () => closeModal('luckyWheelModal'));
+  const wheelModal = bindModal('luckyWheelModal', 'closeLuckyWheelBtn');
+  openLuckyWheelBtn?.addEventListener('click', () => {
+    window.api?.haptic?.('selection');
+    wheelModal.open();
+  });
 
   spinWheelBtn?.addEventListener('click', async () => {
     if (isSpinningWheel) return;
@@ -142,7 +145,7 @@ function setupLuckyWheel() {
 
     setTimeout(() => {
       isSpinningWheel = false;
-      hapticFeedback('success');
+      (window.api?.haptic || window.hapticFeedback || hapticFeedback)('success');
 
       const isAgain = chosenPrize.id === 'again';
       const isBlank = chosenPrize.id === 'blank';

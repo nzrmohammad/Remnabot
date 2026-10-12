@@ -396,7 +396,7 @@ async def auto_backup_loop(bot, session_factory) -> None:
                     )
                     topic_id = thread_kwargs.get("message_thread_id")
                     logger.info("Auto database backup delivered to %s (topic: %s)", admin_chat_id, topic_id)
-        except Exception:
-            logger.exception("Failed to execute scheduled database backup")
+        except Exception as exc:
+            logger.exception("Failed to execute scheduled database backup: %s", exc)
         # Sleep 120s to ensure we roll past 01:30
         await asyncio.sleep(120)

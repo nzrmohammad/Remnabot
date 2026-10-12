@@ -1,3 +1,4 @@
+from bot.web.user_common import db_session, require_user
 """Subscription configuration endpoints for Telegram Mini App."""
 import logging
 
@@ -6,7 +7,6 @@ from sqlalchemy import select
 
 from bot.db.models import Order
 from bot.services.configs import fetch_subscription_configs
-from bot.web.auth import get_authenticated_user
 from bot.web.cache import FastCache
 
 logger = logging.getLogger(__name__)
@@ -31,9 +31,9 @@ COUNTRY_MAP = [
 
 async def get_user_subscription_configs(request: web.Request) -> web.Response:
     """Fetch parsed individual configs from the user's active subscription."""
-    user_auth = get_authenticated_user(request)
-    if not user_auth:
-        return web.json_response({"ok": False, "error": "احراز هویت نامعتبر است."}, status=401)
+    user_auth, err = require_user(request)
+    if err:
+        return err
 
     telegram_id = user_auth.get("id")
     account_id_param = request.query.get("account_id")
@@ -44,13 +44,12 @@ async def get_user_subscription_configs(request: web.Request) -> web.Response:
     if cached is not None:
         return web.json_response({"ok": True, "configs": cached, "cached": True})
 
-    session_factory = request.app.get("session_factory")
     remnawave = request.app.get("remnawave")
     if not session_factory or not remnawave:
         return web.json_response({"ok": False, "error": "سرویس سرور در دسترس نیست."}, status=503)
 
     sub_url = ""
-    async with session_factory() as session:
+    async with db_session(request) as session:
         # 1. Fetch user accounts from Remnawave
         try:
             panel_users = await remnawave.get_users_by_telegram_id(telegram_id) or []

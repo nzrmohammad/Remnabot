@@ -1,3 +1,4 @@
+from bot.web.user_common import db_session, require_user
 """TMA User Wallet and Top-up API endpoints."""
 import hashlib
 import logging
@@ -11,7 +12,6 @@ from bot.db.repositories.crypto_repo import CryptoRepository
 from bot.db.repositories.wallet_repo import WalletRepository
 from bot.services.app_settings import get_store_settings
 from bot.services.crypto.ton import fetch_ton_transactions
-from bot.web.auth import get_authenticated_user
 from bot.web.cache import FastCache
 
 logger = logging.getLogger(__name__)
@@ -19,14 +19,13 @@ logger = logging.getLogger(__name__)
 
 async def get_user_topup_info(request: web.Request) -> web.Response:
     """Return payment methods configuration (card and crypto settings)."""
-    user_auth = get_authenticated_user(request)
-    if not user_auth:
-        return web.json_response({"ok": False, "error": "Unauthorized"}, status=401)
+    user_auth, err = require_user(request)
+    if err:
+        return err
 
-    session_factory = request.app["session_factory"]
     from bot.services.app_settings import get_store_settings
 
-    async with session_factory() as session:
+    async with db_session(request) as session:
         store = await get_store_settings(session)
         return web.json_response({
             "ok": True,
@@ -49,9 +48,9 @@ async def get_user_topup_info(request: web.Request) -> web.Response:
 
 async def post_user_topup_card(request: web.Request) -> web.Response:
     """Submit card-to-card topup receipt directly from WebApp and alert admins."""
-    user_auth = get_authenticated_user(request)
-    if not user_auth:
-        return web.json_response({"ok": False, "error": "Unauthorized"}, status=401)
+    user_auth, err = require_user(request)
+    if err:
+        return err
 
     if user_auth.get("is_preview"):
         return web.json_response({"ok": False, "message": "این عملیات در حالت پیش‌نمایش در دسترس نیست."}, status=400)
@@ -81,11 +80,10 @@ async def post_user_topup_card(request: web.Request) -> web.Response:
         )
 
     telegram_id = int(user_auth["id"])
-    session_factory = request.app["session_factory"]
     bot = request.app["bot"]
     settings = request.app["settings"]
 
-    async with session_factory() as session:
+    async with db_session(request) as session:
         store = await get_store_settings(session)
         if amount < store.topup_min_amount:
             return web.json_response(
@@ -191,9 +189,9 @@ async def post_user_topup_card(request: web.Request) -> web.Response:
 
 async def post_user_topup_crypto(request: web.Request) -> web.Response:
     """Create a TON crypto invoice for authenticated user."""
-    user_auth = get_authenticated_user(request)
-    if not user_auth:
-        return web.json_response({"ok": False, "error": "Unauthorized"}, status=401)
+    user_auth, err = require_user(request)
+    if err:
+        return err
 
     try:
         body = await request.json()
@@ -202,9 +200,7 @@ async def post_user_topup_crypto(request: web.Request) -> web.Response:
 
     amount = int(body.get("amount") or 0)
     telegram_id = int(user_auth["id"])
-    session_factory = request.app["session_factory"]
-
-    async with session_factory() as session:
+    async with db_session(request) as session:
         store = await get_store_settings(session)
         if not (store.crypto_enabled and store.ton_wallet_address and store.ton_rate_toman > 0):
             return web.json_response({"ok": False, "message": "پرداخت ارز دیجیتال در حال حاضر غیرفعال است."}, status=400)
@@ -248,9 +244,9 @@ async def post_user_topup_crypto(request: web.Request) -> web.Response:
 
 async def post_user_topup_crypto_check(request: web.Request) -> web.Response:
     """Verify on-chain payment for a TON invoice."""
-    user_auth = get_authenticated_user(request)
-    if not user_auth:
-        return web.json_response({"ok": False, "error": "Unauthorized"}, status=401)
+    user_auth, err = require_user(request)
+    if err:
+        return err
 
     try:
         body = await request.json()
@@ -261,11 +257,10 @@ async def post_user_topup_crypto_check(request: web.Request) -> web.Response:
     if not invoice_id:
         return web.json_response({"ok": False, "message": "شناسه فاکتور الزامی است."}, status=400)
 
-    session_factory = request.app["session_factory"]
     cache: FastCache = request.app["cache"]
     telegram_id = int(user_auth["id"])
 
-    async with session_factory() as session:
+    async with db_session(request) as session:
         crypto_repo = CryptoRepository(session)
         inv = await crypto_repo.get_by_id(int(invoice_id))
         if not inv or inv.telegram_id != telegram_id:
@@ -305,9 +300,9 @@ async def post_user_topup_crypto_check(request: web.Request) -> web.Response:
 
 async def post_user_topup_stars(request: web.Request) -> web.Response:
     """Create a Telegram Stars (XTR) invoice link for the Mini App."""
-    user_auth = get_authenticated_user(request)
-    if not user_auth:
-        return web.json_response({"ok": False, "error": "Unauthorized"}, status=401)
+    user_auth, err = require_user(request)
+    if err:
+        return err
 
     if user_auth.get("is_preview"):
         return web.json_response({"ok": False, "message": "این عملیات در حالت پیش‌نمایش در دسترس نیست."}, status=400)
@@ -320,8 +315,7 @@ async def post_user_topup_stars(request: web.Request) -> web.Response:
     amount = int(body.get("amount") or 0)
     telegram_id = int(user_auth.get("id"))
 
-    session_factory = request.app["session_factory"]
-    async with session_factory() as session:
+    async with db_session(request) as session:
         store = await get_store_settings(session)
         if not getattr(store, "stars_enabled", False):
             return web.json_response({"ok": False, "message": "پرداخت با استارز در حال حاضر غیرفعال است."}, status=400)
@@ -363,9 +357,9 @@ async def post_user_topup_stars(request: web.Request) -> web.Response:
 
 async def post_user_topup_cryptobot(request: web.Request) -> web.Response:
     """Create a CryptoBot invoice link."""
-    user_auth = get_authenticated_user(request)
-    if not user_auth:
-        return web.json_response({"ok": False, "error": "Unauthorized"}, status=401)
+    user_auth, err = require_user(request)
+    if err:
+        return err
 
     try:
         body = await request.json()
@@ -375,8 +369,7 @@ async def post_user_topup_cryptobot(request: web.Request) -> web.Response:
     amount = int(body.get("amount") or 0)
     telegram_id = int(user_auth.get("id"))
 
-    session_factory = request.app["session_factory"]
-    async with session_factory() as session:
+    async with db_session(request) as session:
         store = await get_store_settings(session)
         if not getattr(store, "cryptobot_enabled", False) or not getattr(store, "cryptobot_token", ""):
             return web.json_response({"ok": False, "message": "درگاه کریپتوبات فعال نیست."}, status=400)
@@ -410,25 +403,56 @@ async def post_user_topup_cryptobot(request: web.Request) -> web.Response:
 
 
 async def post_cryptobot_webhook(request: web.Request) -> web.Response:
-    """Handle CryptoPay webhook notifications."""
+    """Handle CryptoPay webhook notifications with signature check and idempotency."""
+    import hmac
+    import json
+    from datetime import datetime, timezone
+
     try:
-        body = await request.json()
+        raw_body = await request.read()
+        body = json.loads(raw_body)
     except Exception:
         return web.Response(status=400)
 
     if body.get("update_type") == "invoice_paid":
         payload = body.get("payload", {})
+        invoice_id = payload.get("invoice_id")
         custom_payload = str(payload.get("payload") or "")
         parts = custom_payload.split(":")
         if len(parts) >= 3 and parts[0] == "cryptobot":
-            user_tid = int(parts[1])
-            amount_toman = int(parts[2])
-            session_factory = request.app["session_factory"]
+            try:
+                user_tid = int(parts[1])
+                amount_toman = int(parts[2])
+            except (ValueError, TypeError):
+                return web.Response(status=400)
+
             bot = request.app["bot"]
-            async with session_factory() as session:
+            cache: FastCache = request.app.get("cache")
+            async with db_session(request) as session:
+                store = await get_store_settings(session)
+                token = getattr(store, "cryptobot_token", "")
+                sig = request.headers.get("crypto-pay-api-signature")
+                if token and sig:
+                    secret = hashlib.sha256(token.encode("utf-8")).digest()
+                    expected = hmac.new(secret, raw_body, hashlib.sha256).hexdigest()
+                    if not hmac.compare_digest(sig, expected):
+                        logger.warning("Invalid CryptoBot webhook signature")
+                        return web.Response(status=403)
+
                 wallet_repo = WalletRepository(session)
-                new_bal = await wallet_repo.adjust_balance(user_tid, amount_toman)
+                receipt_hash = f"cryptobot:{invoice_id}" if invoice_id else f"cryptobot:{user_tid}:{amount_toman}:{payload.get('paid_at', '')}"
+                if await wallet_repo.receipt_exists(receipt_hash):
+                    return web.json_response({"ok": True, "duplicate": True})
+
+                topup = await wallet_repo.create_topup(user_tid, amount_toman, receipt_hash)
+                topup.status = "approved"
+                topup.decided_at = datetime.now(timezone.utc)
+                new_bal = await wallet_repo.add_balance_atomic(user_tid, amount_toman)
                 await session.commit()
+
+                if cache:
+                    await cache.delete(f"tma:user:{user_tid}:dashboard")
+
                 try:
                     await bot.send_message(
                         chat_id=user_tid,

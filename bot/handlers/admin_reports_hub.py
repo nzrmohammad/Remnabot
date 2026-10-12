@@ -9,7 +9,7 @@ from aiogram.types import CallbackQuery
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from bot.common import SEPARATOR, fmt, is_admin, resolve_op
+from bot.common import SEPARATOR, fmt, is_admin
 from bot.db.repositories.user_repo import UserRepository
 from bot.locales.texts import t
 from bot.services.formatting import country_flag
@@ -29,7 +29,6 @@ async def _render_reports_hub(
     session: AsyncSession,
     remnawave: RemnawaveClient,
 ) -> None:
-    render_menu_fn = resolve_op("render_menu", render_menu)
 
     lang = user.language or "fa"
 
@@ -78,7 +77,7 @@ async def _render_reports_hub(
     kb.button(text=t(lang, "btn_back"), callback_data="menu:admin")
     kb.adjust(2, 1, 2, 1, 1)
 
-    await render_menu_fn(bot, user, user_repo, "\n".join(lines), kb.as_markup())
+    await render_menu(bot, user, user_repo, "\n".join(lines), kb.as_markup())
 
 
 @router.callback_query(F.data.startswith("adm:rep:trigger:"))
@@ -133,7 +132,6 @@ async def trigger_admin_report_handler(
 async def _render_hwid_inspector(
     bot: Bot, user, user_repo: UserRepository, remnawave: RemnawaveClient
 ) -> None:
-    render_menu_fn = resolve_op("render_menu", render_menu)
 
     lang = user.language or "fa"
     stats_data = await remnawave.get_hwid_stats() or {}
@@ -217,13 +215,12 @@ async def _render_hwid_inspector(
     kb.button(text="🔙 بازگشت به گزارشات", callback_data="adm:sales")
     kb.adjust(1, 1)
 
-    await render_menu_fn(bot, user, user_repo, "\n".join(lines), kb.as_markup())
+    await render_menu(bot, user, user_repo, "\n".join(lines), kb.as_markup())
 
 
 async def _render_srh_inspector(
     bot: Bot, user, user_repo: UserRepository, remnawave: RemnawaveClient
 ) -> None:
-    render_menu_fn = resolve_op("render_menu", render_menu)
 
     lang = user.language or "fa"
     srh_data = await remnawave.get_srh_stats() or {}
@@ -285,7 +282,7 @@ async def _render_srh_inspector(
     kb.button(text="🔙 بازگشت به گزارشات", callback_data="adm:sales")
     kb.adjust(1, 1)
 
-    await render_menu_fn(bot, user, user_repo, "\n".join(lines), kb.as_markup())
+    await render_menu(bot, user, user_repo, "\n".join(lines), kb.as_markup())
 
 
 async def _render_sessions_explorer(
@@ -295,7 +292,6 @@ async def _render_sessions_explorer(
     remnawave: RemnawaveClient,
     page: int = 0,
 ) -> None:
-    render_menu_fn = resolve_op("render_menu", render_menu)
 
     lang = user.language or "fa"
     data = await remnawave.get_live_sessions_explorer()
@@ -385,7 +381,7 @@ async def _render_sessions_explorer(
     kb.button(text="🔙 بازگشت به گزارشات", callback_data="adm:sales")
     kb.adjust(len(nav_row) if nav_row else 1, 1, 1, 1)
 
-    await render_menu_fn(bot, user, user_repo, "\n".join(lines), kb.as_markup())
+    await render_menu(bot, user, user_repo, "\n".join(lines), kb.as_markup())
 
 
 @router.callback_query(F.data == "adm:sales")
@@ -400,10 +396,9 @@ async def reports_hub_entry(
     if not _is_admin(call.from_user.id):
         await call.answer(t("fa", "not_authorized"), show_alert=True)
         return
-    render_hub_fn = resolve_op("_render_reports_hub", _render_reports_hub)
     user = await user_repo.get_or_create(call.from_user.id, call.from_user.username)
     await state.clear()
-    await render_hub_fn(bot, user, user_repo, session, remnawave)
+    await _render_reports_hub(bot, user, user_repo, session, remnawave)
     await call.answer()
 
 
@@ -417,9 +412,8 @@ async def report_hwid_inspector_handler(
     if not _is_admin(call.from_user.id):
         await call.answer(t("fa", "not_authorized"), show_alert=True)
         return
-    render_hwid_fn = resolve_op("_render_hwid_inspector", _render_hwid_inspector)
     user = await user_repo.get_or_create(call.from_user.id, call.from_user.username)
-    await render_hwid_fn(bot, user, user_repo, remnawave)
+    await _render_hwid_inspector(bot, user, user_repo, remnawave)
     await call.answer()
 
 
@@ -433,9 +427,8 @@ async def report_srh_inspector_handler(
     if not _is_admin(call.from_user.id):
         await call.answer(t("fa", "not_authorized"), show_alert=True)
         return
-    render_srh_fn = resolve_op("_render_srh_inspector", _render_srh_inspector)
     user = await user_repo.get_or_create(call.from_user.id, call.from_user.username)
-    await render_srh_fn(bot, user, user_repo, remnawave)
+    await _render_srh_inspector(bot, user, user_repo, remnawave)
     await call.answer()
 
 
@@ -453,7 +446,6 @@ async def report_sessions_explorer_handler(
     parts = call.data.split(":")
     if len(parts) >= 4 and parts[3].isdigit():
         page = int(parts[3])
-    render_sessions_fn = resolve_op("_render_sessions_explorer", _render_sessions_explorer)
     user = await user_repo.get_or_create(call.from_user.id, call.from_user.username)
-    await render_sessions_fn(bot, user, user_repo, remnawave, page=page)
+    await _render_sessions_explorer(bot, user, user_repo, remnawave, page=page)
     await call.answer()

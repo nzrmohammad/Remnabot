@@ -40,7 +40,8 @@ from bot.db.repositories.wallet_repo import WalletRepository
 from bot.handlers.admin_broadcast import _resolve_broadcast_recipients
 from bot.locales.texts import t
 from bot.services.app_settings import get_store_settings
-from bot.web.admin_common import _check_admin, format_service_name_icon_first
+from bot.common.links import ad_link
+from bot.web.admin_common import _check_admin, db_session, format_service_name_icon_first
 from bot.web.cache import FastCache
 
 logger = logging.getLogger(__name__)
@@ -65,7 +66,6 @@ async def post_admin_broadcast(request: web.Request) -> web.Response:
 
     target = str(body.get("target") or "all").strip().lower()
     bot = request.app["bot"]
-    session_factory = request.app["session_factory"]
     remnawave = request.app["remnawave"]
 
     target_labels = {
@@ -77,7 +77,7 @@ async def post_admin_broadcast(request: web.Request) -> web.Response:
     }
     label = target_labels.get(target, "کاربران انتخاب شده")
 
-    async with session_factory() as session:
+    async with db_session(request) as session:
         recipients = await _resolve_broadcast_recipients(session, remnawave, target)
 
     broadcast_id = f"bcast_{int(datetime.now(timezone.utc).timestamp())}_{len(recipients)}"
@@ -135,7 +135,6 @@ async def get_admin_campaigns(request: web.Request) -> web.Response:
     if not admin:
         return web.json_response({"ok": False, "error": "Forbidden"}, status=403)
 
-    session_factory = request.app["session_factory"]
     from bot.db.repositories.campaign_repo import CampaignRepository
     settings = request.app["settings"]
     bot = request.app.get("bot")
@@ -151,7 +150,7 @@ async def get_admin_campaigns(request: web.Request) -> web.Response:
             except Exception:
                 pass
 
-    async with session_factory() as session:
+    async with db_session(request) as session:
         repo = CampaignRepository(session)
         stats = await repo.get_campaigns_with_stats(bot_username)
         return web.json_response({"ok": True, "bot_username": bot_username, "campaigns": stats})
@@ -179,7 +178,6 @@ async def post_admin_campaign_create(request: web.Request) -> web.Response:
     if not re.match(r"^[a-zA-Z0-9_\-]+$", code):
         return web.json_response({"ok": False, "error": "شناسه کمپین فقط می‌تواند شامل حروف، اعداد، خط تیره و زیرخط باشد."}, status=400)
 
-    session_factory = request.app["session_factory"]
     from bot.db.repositories.campaign_repo import CampaignRepository
     settings = request.app["settings"]
     bot = request.app.get("bot")
@@ -195,14 +193,14 @@ async def post_admin_campaign_create(request: web.Request) -> web.Response:
             except Exception:
                 pass
 
-    async with session_factory() as session:
+    async with db_session(request) as session:
         repo = CampaignRepository(session)
         existing = await repo.get_by_code(code)
         if existing:
             return web.json_response({"ok": False, "error": "این شناسه کمپین قبلاً تعریف شده است."}, status=400)
 
         created = await repo.create(code=code, name=name, cost=cost)
-        deep_link = f"https://t.me/{bot_username}?start=ad_{created.code}" if bot_username else f"t.me/?start=ad_{created.code}"
+        deep_link = ad_link(bot_username, created.code)
         return web.json_response({
             "ok": True,
             "bot_username": bot_username,
@@ -231,10 +229,9 @@ async def post_admin_campaign_delete(request: web.Request) -> web.Response:
     if not cid:
         return web.json_response({"ok": False, "error": "شناسه کمپین الزامی است."}, status=400)
 
-    session_factory = request.app["session_factory"]
     from bot.db.repositories.campaign_repo import CampaignRepository
 
-    async with session_factory() as session:
+    async with db_session(request) as session:
         repo = CampaignRepository(session)
         ok = await repo.delete(int(cid))
         return web.json_response({"ok": ok})

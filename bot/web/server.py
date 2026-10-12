@@ -102,12 +102,8 @@ async def api_rate_limit_middleware(request: web.Request, handler):
     if request.app.get("is_dev", False) or request.method == "OPTIONS":
         return await handler(request)
 
-    client_ip = (
-        request.headers.get("X-Real-IP")
-        or request.headers.get("X-Forwarded-For", "").split(",")[0].strip()
-        or request.remote
-        or "127.0.0.1"
-    )
+    from bot.web.auth import get_client_ip
+    client_ip = get_client_ip(request)
 
     sensitive_paths = {
         "/api/user/validate_coupon",

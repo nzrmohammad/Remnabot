@@ -21,15 +21,55 @@
   font-family: 'Vazirmatn', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   -webkit-tap-highlight-color: transparent;
 }
+.font-mono, code, pre, kbd, samp {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace !important;
+}
+
+:root {
+  --page-bg: #080d1a;
+  --frame-bg: #0f172a;
+  --frame-border: rgba(51, 65, 85, 0.8);
+  --card-bg: rgba(30, 41, 59, 0.8);
+  --card-inner-bg: rgba(15, 23, 42, 0.5);
+  --card-border: rgba(51, 65, 85, 0.8);
+  --text-main: #f8fafc;
+  --text-muted: #94a3b8;
+}
+html.theme-light {
+  --page-bg: #f1f5f9;
+  --frame-bg: #f8fafc;
+  --frame-border: #cbd5e1;
+  --card-bg: #ffffff;
+  --card-inner-bg: #f8fafc;
+  --card-border: #e2e8f0;
+  --text-main: #0f172a;
+  --text-muted: #64748b;
+}
+
+.card {
+  background-color: var(--card-bg);
+  border: 1px solid var(--card-border);
+  color: var(--text-main);
+  border-radius: 1rem;
+}
+
 html, body {
   width: 100% !important;
   min-width: 100% !important;
+  height: 100%;
+  height: 100dvh;
   margin: 0 !important;
   padding: 0 !important;
+  overflow: hidden;
+  background-color: var(--page-bg);
+  color: var(--text-main);
 }
 #phoneFrame {
   margin-left: auto !important;
   margin-right: auto !important;
+  background-color: var(--frame-bg);
+  border-color: var(--frame-border);
+  color: var(--text-main);
 }
 .gauge-circle {
   transition: stroke-dashoffset 1s ease-in-out;
@@ -58,46 +98,12 @@ html, body {
 .switch-checkbox:checked + .switch-label .switch-ball {
   transform: translateX(-20px);
 }
-html, body {
-  height: 100%;
-  height: 100dvh;
-  margin: 0;
-  padding: 0;
-  overflow: hidden;
-}
-/* Soft, comfortable Eye-Friendly Light Theme */
-html.theme-light body {
-  background-color: #f1f5f9 !important;
-  color: #0f172a !important;
-}
-html.theme-light #phoneFrame {
-  background-color: #f8fafc !important;
-  border-color: #cbd5e1 !important;
-  color: #0f172a !important;
-}
-html.theme-light .bg-slate-800,
-html.theme-light .bg-slate-800\/90,
-html.theme-light .bg-slate-800\/85,
-html.theme-light .bg-slate-800\/80,
-html.theme-light .bg-slate-800\/70,
-html.theme-light .bg-slate-800\/60 {
-  background-color: #ffffff !important;
-  border-color: #e2e8f0 !important;
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05) !important;
-}
-html.theme-light .bg-slate-900,
-html.theme-light .bg-slate-900\/90,
-html.theme-light .bg-slate-900\/80,
-html.theme-light .bg-slate-900\/60,
-html.theme-light .bg-slate-900\/50 {
-  background-color: #f1f5f9 !important;
-  border-color: #e2e8f0 !important;
-}
+
 html.theme-light .bg-\[\#131d31\],
 html.theme-light .bg-\[\#131d31\]\/95,
 html.theme-light #navBottom {
-  background-color: rgba(255, 255, 255, 0.96) !important;
-  border-color: #e2e8f0 !important;
+  background-color: var(--card-bg) !important;
+  border-color: var(--card-border) !important;
 }
 html.theme-light .border-slate-700,
 html.theme-light .border-slate-700\/80,
@@ -105,13 +111,11 @@ html.theme-light .border-slate-700\/60,
 html.theme-light .border-slate-700\/50,
 html.theme-light .border-slate-700\/40,
 html.theme-light .border-slate-800\/80 {
-  border-color: #e2e8f0 !important;
+  border-color: var(--card-border) !important;
 }
-html.theme-light .text-white {
-  color: #0f172a !important;
-}
+html.theme-light .text-white,
 html.theme-light .text-slate-100 {
-  color: #0f172a !important;
+  color: var(--text-main) !important;
 }
 html.theme-light .text-slate-200 {
   color: #1e293b !important;
@@ -120,22 +124,19 @@ html.theme-light .text-slate-300 {
   color: #334155 !important;
 }
 html.theme-light .text-slate-400 {
-  color: #64748b !important;
+  color: var(--text-muted) !important;
 }
 html.theme-light .gauge-bg-circle {
-  stroke: #e2e8f0 !important;
+  stroke: var(--card-border) !important;
 }
-html.theme-light [class*="bg-slate-900"] {
-  background-color: #f1f5f9 !important;
-  border-color: #e2e8f0 !important;
-}
+html.theme-light [class*="bg-slate-900"],
 html.theme-light [class*="bg-slate-950"] {
-  background-color: #f8fafc !important;
-  border-color: #e2e8f0 !important;
+  background-color: var(--card-inner-bg) !important;
+  border-color: var(--card-border) !important;
 }
 html.theme-light [class*="bg-slate-800"] {
-  background-color: #ffffff !important;
-  border-color: #e2e8f0 !important;
+  background-color: var(--card-bg) !important;
+  border-color: var(--card-border) !important;
   box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05) !important;
 }
 html.theme-light #subDisplayBox {
@@ -176,18 +177,18 @@ html.theme-light .text-purple-400 {
 html.theme-light input,
 html.theme-light select,
 html.theme-light textarea {
-  background-color: #ffffff !important;
-  border-color: #cbd5e1 !important;
-  color: #0f172a !important;
+  background-color: var(--card-bg) !important;
+  border-color: var(--frame-border) !important;
+  color: var(--text-main) !important;
 }
 html.theme-light .bg-transparent {
   background-color: transparent !important;
 }
 html.theme-light .bg-\[\#1e293b\],
 html.theme-light .bg-\[\#0f172a\] {
-  background-color: #ffffff !important;
-  border-color: #e2e8f0 !important;
-  color: #0f172a !important;
+  background-color: var(--card-bg) !important;
+  border-color: var(--card-border) !important;
+  color: var(--text-main) !important;
 }
 html.theme-light .border-pink-500\/30,
 html.theme-light .border-pink-800\/50 {
@@ -210,76 +211,10 @@ html.theme-light .text-pink-600 {
 }
 
 /* Eye-Friendly harmonious light theme adaptations for dark background classes */
-html.theme-light [class*="bg-slate-950"],
-html.theme-light .bg-slate-950,
-html.theme-light .bg-slate-950\/80,
-html.theme-light .bg-slate-950\/60,
-html.theme-light .bg-slate-950\/40,
-html.theme-light .bg-slate-950\/30 {
-  background-color: #f1f5f9 !important;
-  border-color: #e2e8f0 !important;
-}
-
 html.theme-light [class*="bg-slate-750"],
 html.theme-light .bg-slate-750,
 html.theme-light .bg-slate-750\/70 {
   background-color: #f8fafc !important;
-}
-
-html.theme-light .bg-blue-950\/60,
-html.theme-light .bg-blue-950\/50,
-html.theme-light .bg-blue-950\/40 {
-  background-color: #eff6ff !important;
-  border-color: #bfdbfe !important;
-}
-
-html.theme-light .bg-amber-950\/60,
-html.theme-light .bg-amber-950\/50,
-html.theme-light .bg-amber-950\/40 {
-  background-color: #fffbeb !important;
-  border-color: #fde68a !important;
-}
-
-html.theme-light .bg-emerald-950\/70,
-html.theme-light .bg-emerald-950\/60,
-html.theme-light .bg-emerald-950\/50,
-html.theme-light .bg-emerald-950\/40 {
-  background-color: #ecfdf5 !important;
-  border-color: #a7f3d0 !important;
-}
-
-html.theme-light .bg-rose-950\/70,
-html.theme-light .bg-rose-950\/60,
-html.theme-light .bg-rose-950\/50,
-html.theme-light .bg-rose-950\/40 {
-  background-color: #fff1f2 !important;
-  border-color: #fecdd3 !important;
-}
-
-html.theme-light .bg-indigo-950\/70,
-html.theme-light .bg-indigo-950\/60,
-html.theme-light .bg-indigo-950\/50,
-html.theme-light .bg-indigo-950\/40 {
-  background-color: #eef2ff !important;
-  border-color: #c7d2fe !important;
-}
-
-html.theme-light .bg-purple-950\/60,
-html.theme-light .bg-purple-950\/40 {
-  background-color: #faf5ff !important;
-  border-color: #e9d5ff !important;
-}
-
-html.theme-light .bg-teal-950\/70,
-html.theme-light .bg-cyan-950\/60 {
-  background-color: #ecfeff !important;
-  border-color: #a5f3fc !important;
-}
-
-html.theme-light .border-slate-800,
-html.theme-light .border-slate-800\/60,
-html.theme-light .border-slate-800\/50 {
-  border-color: #e2e8f0 !important;
 }
 
 html.theme-light .border-emerald-800\/60,
@@ -308,26 +243,33 @@ html.theme-light #adminPendingBanner .text-slate-300 {
   color: #78350f !important;
 }
 
-html.theme-light #broadcastModal > div,
-html.theme-light #broadcastReportModal > div {
-  background-color: #ffffff !important;
-  border-color: #e2e8f0 !important;
-  color: #0f172a !important;
-}
 html.theme-light #broadcastModal textarea {
-  background-color: #f8fafc !important;
-  border-color: #cbd5e1 !important;
-  color: #0f172a !important;
+  background-color: var(--card-inner-bg) !important;
+  border-color: var(--frame-border) !important;
+  color: var(--text-main) !important;
 }
 html.theme-light .broadcast-audience-btn {
   border-color: #cbd5e1 !important;
   color: #475569 !important;
 }
 html.theme-light .broadcast-audience-btn:hover {
-  color: #0f172a !important;
+  color: var(--text-main) !important;
 }
 
-/* Light theme overrides for admin modals */
+/* Light theme modal containers (Admin & User TMA) */
+html.theme-light .topup-modal-card,
+html.theme-light .qr-modal-card,
+html.theme-light .checkout-modal-card,
+html.theme-light .configs-modal-card,
+html.theme-light #broadcastModal > div,
+html.theme-light #broadcastReportModal > div,
+html.theme-light #configsModal > div,
+html.theme-light #activeSessionsModal > div,
+html.theme-light #switchAccountModal > div,
+html.theme-light #revokeModal > div,
+html.theme-light #purchaseSuccessModal > div,
+html.theme-light #luckyWheelModal > div,
+html.theme-light #supportChatModal > div,
 html.theme-light #planModal > div,
 html.theme-light #couponModal > div,
 html.theme-light #modifyUserModal > div,
@@ -341,14 +283,14 @@ html.theme-light #operationReportModal > div,
 html.theme-light #couponUsagesModal > div,
 html.theme-light #accessModeModal > div,
 html.theme-light #createCampaignModal > div {
-  background-color: #ffffff !important;
-  border-color: #e2e8f0 !important;
-  color: #0f172a !important;
+  background-color: var(--card-bg) !important;
+  border-color: var(--card-border) !important;
+  color: var(--text-main) !important;
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1) !important;
 }
 
 html.theme-light #accessModeModal .text-white {
-  color: #0f172a !important;
+  color: var(--text-main) !important;
 }
 
 html.theme-light #accessModeModal .text-slate-300 {
@@ -454,34 +396,62 @@ html.theme-light #bulkUsersModal button[type="button"] {
   color: #334155 !important;
 }
 
-/* Server nodes cards & Light theme fixes */
-html.theme-light .node-card {
-  background-color: #ffffff !important;
+/* Unified Card Styles in Light Theme */
+html.theme-light .node-card,
+html.theme-light .topup-card,
+html.theme-light .plan-card,
+html.theme-light .coupon-card,
+html.theme-light .sub-box-card,
+html.theme-light .profile-hero-card,
+html.theme-light .wallet-hero-card,
+html.theme-light .shop-plan-card,
+html.theme-light .coupon-usage-card {
+  background-color: var(--card-bg) !important;
   background-image: none !important;
-  border-color: #e2e8f0 !important;
+  border-color: var(--card-border) !important;
   box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05) !important;
 }
+
+html.theme-light .node-card .text-slate-200,
+html.theme-light .node-card .text-white,
+html.theme-light .topup-card .text-white,
+html.theme-light .plan-card .text-white,
+html.theme-light .coupon-card .text-white,
+html.theme-light .coupon-card .text-slate-200,
+html.theme-light .shop-plan-card .text-white,
+html.theme-light .coupon-usage-card .text-white,
+html.theme-light .coupon-usage-card .text-slate-200 {
+  color: var(--text-main) !important;
+}
+
+/* Unified Inner Card Surfaces in Light Theme */
 html.theme-light .node-card .bg-slate-800\/40,
 html.theme-light .node-card .bg-slate-900\/40,
 html.theme-light .node-card [class*="bg-slate-800"],
-html.theme-light .node-card [class*="bg-slate-900"] {
-  background-color: #f8fafc !important;
-  border-color: #e2e8f0 !important;
+html.theme-light .node-card [class*="bg-slate-900"],
+html.theme-light .node-header:hover,
+html.theme-light .topup-card .bg-slate-950\/40,
+html.theme-light .topup-card .bg-slate-900\/50,
+html.theme-light .topup-card .bg-slate-800\/40,
+html.theme-light .plan-card .bg-slate-900\/60,
+html.theme-light .coupon-card .bg-slate-900\/60,
+html.theme-light .coupon-card .bg-slate-900,
+html.theme-light .shop-plan-card .bg-slate-900\/60 {
+  background-color: var(--card-inner-bg) !important;
+  border-color: var(--card-border) !important;
 }
+
+html.theme-light .node-card .border-t,
+html.theme-light .topup-card .border-slate-700\/60,
+html.theme-light .topup-card .border-slate-700\/50,
+html.theme-light .topup-card .border-slate-700\/80 {
+  border-color: var(--card-border) !important;
+}
+
 html.theme-light .node-card .bg-transparent,
 html.theme-light .node-card .node-body .bg-transparent {
   background-color: transparent !important;
   background-image: none !important;
-}
-html.theme-light .node-card .text-slate-200,
-html.theme-light .node-card .text-white {
-  color: #0f172a !important;
-}
-html.theme-light .node-header:hover {
-  background-color: #f8fafc !important;
-}
-html.theme-light .node-card .border-t {
-  border-color: #e2e8f0 !important;
 }
 
 /* Node billing currency convert hint & buttons in Light mode */
@@ -494,84 +464,47 @@ html.theme-light #nodeBillingEurConvertHint svg {
   color: #059669 !important;
 }
 
-/* Receipts / Topup cards in Light theme */
-html.theme-light .topup-card {
-  background-color: #ffffff !important;
-  background-image: none !important;
-  border-color: #e2e8f0 !important;
-  box-shadow: 0 2px 6px 0 rgba(0, 0, 0, 0.05) !important;
-}
-html.theme-light .topup-card .bg-slate-950\/40,
-html.theme-light .topup-card .bg-slate-900\/50,
-html.theme-light .topup-card .bg-slate-800\/40 {
-  background-color: #f8fafc !important;
-  border-color: #e2e8f0 !important;
-}
-html.theme-light .topup-card .text-white {
-  color: #0f172a !important;
-}
-html.theme-light .topup-card .border-slate-700\/60,
-html.theme-light .topup-card .border-slate-700\/50,
-html.theme-light .topup-card .border-slate-700\/80 {
-  border-color: #f1f5f9 !important;
-}
-
 /* Chat & Ticket Desk in Light theme */
 html.theme-light #tab-admin-tickets .bg-slate-800\/90 {
-  background-color: #ffffff !important;
-  border-color: #e2e8f0 !important;
+  background-color: var(--card-bg) !important;
+  border-color: var(--card-border) !important;
 }
 html.theme-light #tab-admin-tickets .text-slate-200 {
-  color: #0f172a !important;
+  color: var(--text-main) !important;
 }
 html.theme-light #activeChatWindow {
-  background-color: #f8fafc !important;
-  border-color: #e2e8f0 !important;
+  background-color: var(--card-inner-bg) !important;
+  border-color: var(--card-border) !important;
 }
 html.theme-light #activeChatWindow .bg-slate-900\/90,
 html.theme-light #activeChatWindow .bg-slate-900\/80,
 html.theme-light #activeChatWindow .bg-slate-900\/60,
-html.theme-light #activeChatWindow .bg-slate-900 {
-  background-color: #ffffff !important;
-  border-color: #e2e8f0 !important;
+html.theme-light #activeChatWindow .bg-slate-900,
+html.theme-light #activeChatWindow #ticketChatStream .bg-slate-900 {
+  background-color: var(--card-bg) !important;
+  border-color: var(--card-border) !important;
 }
 html.theme-light #activeChatWindow .text-white {
-  color: #0f172a !important;
+  color: var(--text-main) !important;
 }
 html.theme-light #activeChatWindow input#directTicketMsg {
-  background-color: #f8fafc !important;
-  border-color: #cbd5e1 !important;
-  color: #0f172a !important;
-}
-html.theme-light #activeChatWindow #ticketChatStream .bg-slate-900 {
-  background-color: #ffffff !important;
-  border-color: #e2e8f0 !important;
-  color: #0f172a !important;
+  background-color: var(--card-inner-bg) !important;
+  border-color: var(--frame-border) !important;
+  color: var(--text-main) !important;
 }
 html.theme-light #ticketThreadsList .ticket-thread-btn {
-  background-color: #ffffff !important;
-  border-color: #e2e8f0 !important;
+  background-color: var(--card-bg) !important;
+  border-color: var(--card-border) !important;
   color: #334155 !important;
 }
 html.theme-light .chat-template-chip {
-  background-color: #f1f5f9 !important;
+  background-color: var(--page-bg) !important;
   color: #334155 !important;
-  border-color: #e2e8f0 !important;
+  border-color: var(--card-border) !important;
 }
 html.theme-light .chat-template-chip:hover {
-  background-color: #e2e8f0 !important;
-  color: #0f172a !important;
-}
-
-/* Coupon Usages modal in Light theme */
-html.theme-light .coupon-usage-card {
-  background-color: #ffffff !important;
-  border-color: #e2e8f0 !important;
-  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03) !important;
-}
-html.theme-light .coupon-usage-card .text-white,
-html.theme-light .coupon-usage-card .text-slate-200 {
-  color: #0f172a !important;
+  background-color: var(--card-border) !important;
+  color: var(--text-main) !important;
 }
 html.theme-light #couponUsagesModal .bg-slate-900\/60,
 html.theme-light #couponUsagesModal .bg-slate-900\/50 {
@@ -631,38 +564,13 @@ html.theme-light #receiptPhotoModal .text-white {
 }
 
 /* Plan and Coupon cards in Light theme */
-html.theme-light .plan-card,
-html.theme-light .coupon-card {
-  background-color: #ffffff !important;
-  background-image: none !important;
-  border-color: #e2e8f0 !important;
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05) !important;
-}
-
-html.theme-light .plan-card .text-white,
-html.theme-light .coupon-card .text-white,
-html.theme-light .coupon-card .text-slate-200 {
-  color: #0f172a !important;
-}
-
 html.theme-light .coupon-card .text-slate-400 {
   color: #64748b !important;
 }
 
-html.theme-light .plan-card .bg-slate-900\/60,
-html.theme-light .coupon-card .bg-slate-900\/60,
-html.theme-light .coupon-card .bg-slate-900 {
-  background-color: #f8fafc !important;
-  border-color: #e2e8f0 !important;
-}
+
 
 /* User TMA Light Theme Component Overrides */
-html.theme-light .sub-box-card {
-  background-color: #ffffff !important;
-  border-color: #cbd5e1 !important;
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05) !important;
-}
-
 html.theme-light .sub-box-card:hover {
   border-color: #0284c7 !important;
 }
@@ -741,12 +649,6 @@ html.theme-light .story-entry-btn .text-slate-300 {
 }
 
 /* User Profile Identity Hero Card in Light Theme */
-html.theme-light .profile-hero-card {
-  background: #ffffff !important;
-  border-color: #e2e8f0 !important;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05) !important;
-}
-
 html.theme-light .profile-hero-card #profileFullName {
   color: #0f172a !important;
 }
@@ -757,12 +659,6 @@ html.theme-light .profile-hero-card #profileAvatarInitial {
 }
 
 /* Wallet Hero Card in Light Theme */
-html.theme-light .wallet-hero-card {
-  background: #ffffff !important;
-  border-color: #e2e8f0 !important;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05) !important;
-}
-
 html.theme-light .wallet-hero-card .text-slate-400 {
   color: #64748b !important;
 }
@@ -783,21 +679,7 @@ html.theme-light #gotoShopFromWallet:hover {
   background-color: #e2e8f0 !important;
 }
 
-/* Shop Plan Cards in Light Theme */
-html.theme-light .shop-plan-card {
-  background-color: #ffffff !important;
-  border-color: #e2e8f0 !important;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04) !important;
-}
 
-html.theme-light .shop-plan-card .text-white {
-  color: #0f172a !important;
-}
-
-html.theme-light .shop-plan-card .bg-slate-900\/60 {
-  background-color: #f8fafc !important;
-  border-color: #e2e8f0 !important;
-}
 
 html.theme-light .shop-plan-card .text-slate-300,
 html.theme-light .shop-plan-card .text-slate-200 {
@@ -817,52 +699,6 @@ html.theme-light #couponInput {
   background-color: #ffffff !important;
   border-color: #cbd5e1 !important;
   color: #0f172a !important;
-}
-
-/* Modals in Light Theme: Top-up, QR, Checkout, Sessions, Revoke, Configs */
-html.theme-light .topup-modal-card,
-html.theme-light .qr-modal-card,
-html.theme-light .checkout-modal-card,
-html.theme-light .configs-modal-card,
-html.theme-light #configsModal > div,
-html.theme-light #activeSessionsModal > div,
-html.theme-light #switchAccountModal > div,
-html.theme-light #revokeModal > div,
-html.theme-light #purchaseSuccessModal > div,
-html.theme-light #luckyWheelModal > div,
-html.theme-light #supportChatModal > div {
-  background-color: #ffffff !important;
-  border-color: #e2e8f0 !important;
-  color: #0f172a !important;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1) !important;
-}
-
-html.theme-light .topup-modal-card .text-white,
-html.theme-light .qr-modal-card .text-white,
-html.theme-light .checkout-modal-card .text-white,
-html.theme-light .configs-modal-card .text-white,
-html.theme-light #configsModal .text-white,
-html.theme-light #activeSessionsModal .text-white,
-html.theme-light #switchAccountModal .text-white,
-html.theme-light #revokeModal .text-white,
-html.theme-light #purchaseSuccessModal .text-white,
-html.theme-light #luckyWheelModal .text-white,
-html.theme-light #supportChatModal .text-white {
-  color: #0f172a !important;
-}
-
-html.theme-light .topup-modal-card .text-slate-200,
-html.theme-light .topup-modal-card .text-slate-300,
-html.theme-light .qr-modal-card .text-slate-300,
-html.theme-light .checkout-modal-card .text-slate-200,
-html.theme-light .checkout-modal-card .text-slate-300,
-html.theme-light .configs-modal-card .text-slate-300,
-html.theme-light #configsModal .text-slate-300,
-html.theme-light #activeSessionsModal .text-slate-200,
-html.theme-light #activeSessionsModal .text-slate-300,
-html.theme-light #revokeModal .text-slate-300,
-html.theme-light #purchaseSuccessModal .text-slate-300 {
-  color: #334155 !important;
 }
 
 .config-row-item,

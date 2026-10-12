@@ -121,8 +121,8 @@ async def run_devices_check(
                     await check_account_new_devices(
                         bot, session, remnawave, account, tg_id, lang
                     )
-                except Exception:
-                    logger.exception("device check error for user %s", tg_id)
+                except Exception as exc:
+                    logger.exception("device check error for user %s: %s", tg_id, exc)
 
         tasks = []
         if panel_users is not None:
@@ -153,8 +153,8 @@ async def run_devices_check(
                                     await check_account_new_devices(
                                         bot, session, remnawave, acc, u.telegram_id, u.language or "fa"
                                     )
-                        except Exception:
-                            logger.exception("device check error for user %s", u.telegram_id)
+                        except Exception as exc:
+                            logger.exception("device check error for user %s: %s", u.telegram_id, exc)
                 tasks.append(_fallback(user))
 
         if tasks:
@@ -172,6 +172,6 @@ async def devices_loop(
     while True:
         try:
             await run_devices_check(bot, session_factory, remnawave)
-        except Exception:  # noqa: BLE001
-            logger.exception("devices sweep failed")
+        except Exception as exc:  # noqa: BLE001
+            logger.exception("devices sweep failed: %s", exc)
         await asyncio.sleep(DEVICE_CHECK_INTERVAL_SECONDS)

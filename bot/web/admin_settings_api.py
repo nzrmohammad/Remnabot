@@ -1,0 +1,154 @@
+"""Admin Settings and Exchange Rates API handlers for Telegram Mini App."""
+import json
+import logging
+from aiohttp import web
+
+from bot.db.models import AdminLog
+from bot.db.repositories.app_setting_repo import AppSettingRepository
+from bot.services.app_settings import get_store_settings
+from bot.web.admin_common import _check_admin as _default_check_admin, db_session
+from bot.web.cache import FastCache
+
+logger = logging.getLogger(__name__)
+
+
+def _check_admin(request):
+    import bot.web.routes_admin as routes_admin
+    check_fn = getattr(routes_admin, "_check_admin", _default_check_admin)
+    return check_fn(request)
+
+
+async def get_admin_settings(request: web.Request) -> web.Response:
+    """Return runtime editable app settings."""
+    admin = _check_admin(request)
+    if not admin:
+        return web.json_response({"ok": False, "error": "Forbidden"}, status=403)
+
+    async with db_session(request) as session:
+        store_settings = await get_store_settings(session)
+        app_repo = AppSettingRepository(session)
+        maint_val = await app_repo.get("maintenance")
+        is_maintenance = maint_val == "1"
+
+        data = {
+            "maintenance": is_maintenance,
+            "card_enabled": store_settings.card_enabled,
+            "crypto_enabled": store_settings.crypto_enabled,
+            "card_number": store_settings.card_number,
+            "card_holder": store_settings.card_holder,
+            "topup_min_amount": store_settings.topup_min_amount,
+            "usdt_rate_toman": store_settings.usdt_rate_toman,
+            "eur_rate_toman": store_settings.eur_rate_toman,
+            "ton_rate_toman": store_settings.ton_rate_toman,
+            "ton_wallet_address": store_settings.ton_wallet_address,
+            "trial_enabled": store_settings.trial_enabled,
+            "trial_traffic_gb": store_settings.trial_traffic_gb,
+            "trial_duration_days": store_settings.trial_duration_days,
+            "referral_enabled": store_settings.referral_enabled,
+            "referral_reward_gb": store_settings.referral_reward_gb,
+            "support_contact": store_settings.support_contact,
+            "support_direct_enabled": store_settings.support_direct_enabled,
+            "topic_topups": store_settings.topic_topups,
+            "topic_orders": store_settings.topic_orders,
+            "topic_support": store_settings.topic_support,
+            "topic_alerts": store_settings.topic_alerts,
+            "topic_crypto": store_settings.topic_crypto,
+            "topic_errors": store_settings.topic_errors,
+            "access_mode": store_settings.access_mode,
+            "stars_enabled": store_settings.stars_enabled,
+            "stars_rate_toman": store_settings.stars_rate_toman,
+            "cryptobot_enabled": store_settings.cryptobot_enabled,
+            "cryptobot_token": store_settings.cryptobot_token,
+            "tutorial_channel_url": store_settings.tutorial_channel_url,
+            "routing_tutorial_url": store_settings.routing_tutorial_url,
+            "client_apps_json": store_settings.client_apps_json,
+        }
+        bot = request.app.get("bot")
+        settings_cfg = request.app.get("settings")
+        bot_username = getattr(settings_cfg, "BOT_USERNAME", "") or ""
+        if not bot_username and bot:
+            me_obj = getattr(bot, "_me", None)
+            if me_obj and getattr(me_obj, "username", None):
+                bot_username = me_obj.username
+            elif hasattr(bot, "get_me"):
+                try:
+                    bot_info = await bot.get_me()
+                    bot_username = bot_info.username or ""
+                except Exception:
+                    pass
+        data["bot_username"] = bot_username
+        return web.json_response({"ok": True, "settings": data})
+
+
+async def post_admin_settings(request: web.Request) -> web.Response:
+    """Update runtime editable app settings."""
+    admin = _check_admin(request)
+    if not admin:
+        return web.json_response({"ok": False, "error": "Forbidden"}, status=403)
+
+    try:
+        body = await request.json()
+    except Exception:
+        return web.json_response({"ok": False, "error": "Invalid JSON"}, status=400)
+
+    async with db_session(request) as session:
+        app_repo = AppSettingRepository(session)
+
+        # Boolean flags
+        bool_keys = (
+            "card_enabled", "crypto_enabled", "trial_enabled",
+            "referral_enabled", "support_direct_enabled", "maintenance",
+            "stars_enabled", "cryptobot_enabled",
+        )
+        for bk in bool_keys:
+            if bk in body:
+                val = "1" if bool(body[bk]) else "0"
+                await app_repo.set(bk, val)
+
+        # Numeric / string settings
+        raw_keys = (
+            "card_number", "card_holder", "topup_min_amount",
+            "usdt_rate_toman", "eur_rate_toman", "ton_rate_toman", "ton_wallet_address",
+            "stars_rate_toman", "cryptobot_token",
+            "trial_traffic_gb", "trial_duration_days",
+            "referral_reward_gb", "support_contact",
+            "topic_topups", "topic_orders", "topic_support", "topic_alerts", "topic_crypto", "topic_errors",
+            "access_mode",
+            "tutorial_channel_url", "routing_tutorial_url", "client_apps_json",
+        )
+        for rk in raw_keys:
+            if rk in body:
+                v = body[rk]
+                if v is None:
+                    continue
+                if isinstance(v, (dict, list)):
+                    v = json.dumps(v, ensure_ascii=False)
+                await app_repo.set(rk, str(v).strip())
+
+        # Invalidate cached settings
+        cache = request.app.get("cache")
+        if cache:
+            await cache.delete("store_settings")
+            await cache.delete("tma:admin:overview")
+
+        session.add(
+            AdminLog(
+                admin_id=admin["id"],
+                action="update_settings",
+                detail=f"بروزرسانی تنظیمات سیستم: {list(body.keys())}",
+            )
+        )
+        await session.commit()
+
+    return web.json_response({"ok": True, "message": "تنظیمات با موفقیت ذخیره شدند."})
+
+
+async def get_admin_crypto_rates(request: web.Request) -> web.Response:
+    """Return realtime crypto rates from external source or fallback."""
+    admin = _check_admin(request)
+    if not admin:
+        return web.json_response({"ok": False, "error": "Forbidden"}, status=403)
+
+    from bot.services.nobitex import get_crypto_rates_summary
+    rates = await get_crypto_rates_summary()
+    return web.json_response({"ok": True, "rates": rates})

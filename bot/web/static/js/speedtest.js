@@ -25,6 +25,16 @@
   const DOWNLOAD_DURATION_MS = 5500;
   const UPLOAD_DURATION_MS = 4500;
 
+  const domCache = new Map();
+  function getEl(id) {
+    let el = domCache.get(id);
+    if (!el || !el.isConnected) {
+      el = document.getElementById(id);
+      if (el) domCache.set(id, el);
+    }
+    return el;
+  }
+
   function speedToAngle(mbps) {
     const clamped = Math.max(0, Math.min(mbps, MAX_GAUGE_MBPS));
     let ratio = 0;
@@ -38,25 +48,29 @@
     return MIN_ANGLE + ratio * TOTAL_DEGREES;
   }
 
+  let needleEl = null;
+  let speedDisplayEl = null;
+  let gaugeProgressArcEl = null;
+
   function updateGaugeVisual(mbps) {
+    if (!needleEl || !needleEl.isConnected) needleEl = getEl('speedGaugeNeedle');
+    if (!speedDisplayEl || !speedDisplayEl.isConnected) speedDisplayEl = getEl('speedDisplayVal');
+    if (!gaugeProgressArcEl || !gaugeProgressArcEl.isConnected) gaugeProgressArcEl = getEl('speedGaugeProgressArc');
+
     const angle = speedToAngle(mbps);
-    const needle = document.getElementById('speedGaugeNeedle');
-    const speedDisplay = document.getElementById('speedDisplayVal');
-    const gaugeProgressArc = document.getElementById('speedGaugeProgressArc');
-
-    if (needle) {
-      needle.setAttribute('transform', `rotate(${angle}, 100, 100)`);
+    if (needleEl) {
+      needleEl.setAttribute('transform', `rotate(${angle}, 100, 100)`);
     }
 
-    if (speedDisplay) {
-      speedDisplay.innerText = mbps < 10 ? mbps.toFixed(1) : Math.round(mbps).toString();
+    if (speedDisplayEl) {
+      speedDisplayEl.innerText = mbps < 10 ? mbps.toFixed(1) : Math.round(mbps).toString();
     }
 
-    if (gaugeProgressArc) {
+    if (gaugeProgressArcEl) {
       const totalLen = 314.16;
       const angleFraction = (angle - MIN_ANGLE) / TOTAL_DEGREES;
       const offset = totalLen * (1 - Math.max(0, Math.min(1, angleFraction)));
-      gaugeProgressArc.style.strokeDashoffset = offset.toFixed(2);
+      gaugeProgressArcEl.style.strokeDashoffset = offset.toFixed(2);
     }
   }
 
@@ -73,11 +87,8 @@
   }
 
   function getAuthHeaders() {
-    const initData = (window.api && typeof window.api.getInitData === 'function')
-      ? window.api.getInitData()
-      : (window.Telegram?.WebApp?.initData || new URLSearchParams(window.location.search).get('initData') || '');
     return {
-      'X-Telegram-Init-Data': initData,
+      'X-Telegram-Init-Data': window.api ? window.api.getInitData() : '',
     };
   }
 
@@ -99,10 +110,10 @@
    * Eliminates external third-party bottlenecks (like ipapi.co rate-limits).
    */
   async function detectEngineAndNetwork(signal) {
-    const userIpEl = document.getElementById('speedUserIp');
-    const userLocEl = document.getElementById('speedUserLocation');
-    const serverNameEl = document.getElementById('speedServerNameText');
-    const serverIpEl = document.getElementById('speedServerIpText');
+    const userIpEl = getEl('speedUserIp');
+    const userLocEl = getEl('speedUserLocation');
+    const serverNameEl = getEl('speedServerNameText');
+    const serverIpEl = getEl('speedServerIpText');
 
     try {
       const resp = await fetch(`/api/user/speedtest/ping?_t=${Date.now()}`, {
@@ -136,8 +147,8 @@
    * Reports standard Median Ping and RFC 3550 Mean Absolute Deviation Jitter.
    */
   async function measurePingAndJitter(signal) {
-    const statusText = document.getElementById('speedStatusBadge');
-    const phaseLabel = document.getElementById('speedPhaseLabel');
+    const statusText = getEl('speedStatusBadge');
+    const phaseLabel = getEl('speedPhaseLabel');
 
     if (phaseLabel) phaseLabel.innerText = 'سنجش پینگ و تاخیر...';
     if (statusText) {
@@ -163,7 +174,7 @@
         if (resp && resp.ok) {
           const duration = performance.now() - start;
           pings.push(duration);
-          const pingEl = document.getElementById('speedPingVal');
+          const pingEl = getEl('speedPingVal');
           if (pingEl) pingEl.innerText = Math.round(duration).toString();
         }
       } catch (e) {}
@@ -183,8 +194,8 @@
     const sorted = [...pings].sort((a, b) => a - b);
     const medianPing = Math.round(sorted[Math.floor(sorted.length / 2)]);
 
-    const pingEl = document.getElementById('speedPingVal');
-    const jitterEl = document.getElementById('speedJitterVal');
+    const pingEl = getEl('speedPingVal');
+    const jitterEl = getEl('speedJitterVal');
     if (pingEl) pingEl.innerText = medianPing.toString();
     if (jitterEl) jitterEl.innerText = jitter.toString();
 
@@ -228,10 +239,10 @@
    * Phase 2: If fast (>20 Mbps), opens 2 parallel streams to saturate TCP; if slow, continues single stream.
    */
   async function measureDownloadThroughput(signal) {
-    const statusText = document.getElementById('speedStatusBadge');
-    const phaseLabel = document.getElementById('speedPhaseLabel');
-    const downloadVal = document.getElementById('speedDownloadVal');
-    const dataUsedEl = document.getElementById('speedDataUsed');
+    const statusText = getEl('speedStatusBadge');
+    const phaseLabel = getEl('speedPhaseLabel');
+    const downloadVal = getEl('speedDownloadVal');
+    const dataUsedEl = getEl('speedDataUsed');
 
     if (phaseLabel) phaseLabel.innerText = 'سرعت دانلود (Download)';
     if (statusText) {
@@ -330,9 +341,9 @@
    * with cryptographically random non-compressible buffers.
    */
   async function measureUploadThroughput(initialReceivedBytes, signal) {
-    const statusText = document.getElementById('speedStatusBadge');
-    const phaseLabel = document.getElementById('speedPhaseLabel');
-    const uploadVal = document.getElementById('speedUploadVal');
+    const statusText = getEl('speedStatusBadge');
+    const phaseLabel = getEl('speedPhaseLabel');
+    const uploadVal = getEl('speedUploadVal');
 
     if (phaseLabel) phaseLabel.innerText = 'سرعت آپلود (Upload)';
     if (statusText) {
@@ -406,7 +417,7 @@
             lastTime = now;
           }
 
-          const dataUsedEl = document.getElementById('speedDataUsed');
+          const dataUsedEl = getEl('speedDataUsed');
           if (dataUsedEl) {
             const grandTotal = initialReceivedBytes + totalUploadedBytes + loaded;
             dataUsedEl.innerText = `${(grandTotal / (1024 * 1024)).toFixed(1)} MB`;
@@ -502,12 +513,12 @@
   async function startSpeedTest() {
     if (isTesting) return;
 
-    const startBtn = document.getElementById('startSpeedTestBtn');
-    const statusText = document.getElementById('speedStatusBadge');
-    const startBtnText = document.getElementById('startSpeedTestBtnText');
-    const phaseLabel = document.getElementById('speedPhaseLabel');
-    const downloadVal = document.getElementById('speedDownloadVal');
-    const uploadVal = document.getElementById('speedUploadVal');
+    const startBtn = getEl('startSpeedTestBtn');
+    const statusText = getEl('speedStatusBadge');
+    const startBtnText = getEl('startSpeedTestBtnText');
+    const phaseLabel = getEl('speedPhaseLabel');
+    const downloadVal = getEl('speedDownloadVal');
+    const uploadVal = getEl('speedUploadVal');
 
     isTesting = true;
     abortController = new AbortController();
@@ -525,7 +536,7 @@
     updateGaugeVisual(0);
     animateGauge();
 
-    const dataUsedEl = document.getElementById('speedDataUsed');
+    const dataUsedEl = getEl('speedDataUsed');
     if (dataUsedEl) dataUsedEl.innerText = '0.0 MB';
 
     if (window.hapticFeedback) window.hapticFeedback('impact');
@@ -587,10 +598,10 @@
     isTesting = false;
     if (animationFrameId) cancelAnimationFrame(animationFrameId);
 
-    const startBtn = document.getElementById('startSpeedTestBtn');
-    const startBtnText = document.getElementById('startSpeedTestBtnText');
-    const statusText = document.getElementById('speedStatusBadge');
-    const phaseLabel = document.getElementById('speedPhaseLabel');
+    const startBtn = getEl('startSpeedTestBtn');
+    const startBtnText = getEl('startSpeedTestBtnText');
+    const statusText = getEl('speedStatusBadge');
+    const phaseLabel = getEl('speedPhaseLabel');
 
     if (startBtn) {
       startBtn.classList.remove('bg-rose-600', 'hover:bg-rose-500');
@@ -617,7 +628,7 @@
   }
 
   function openSpeedTestModal() {
-    const modal = document.getElementById('speedTestModal');
+    const modal = getEl('speedTestModal');
     if (modal) {
       const isLight = document.documentElement.classList.contains('theme-light');
       modal.style.backgroundColor = isLight ? 'rgba(15, 23, 42, 0.45)' : 'rgba(0, 0, 0, 0.8)';
@@ -626,7 +637,7 @@
     if (window.openModal) {
       window.openModal('speedTestModal');
     } else {
-      document.getElementById('speedTestModal')?.classList.remove('hidden');
+      getEl('speedTestModal')?.classList.remove('hidden');
     }
     if (window.syncTelegramBackButton) window.syncTelegramBackButton();
     if (window.hapticFeedback) window.hapticFeedback('selection');
@@ -639,7 +650,7 @@
     if (window.closeModal) {
       window.closeModal('speedTestModal');
     } else {
-      document.getElementById('speedTestModal')?.classList.add('hidden');
+      getEl('speedTestModal')?.classList.add('hidden');
     }
     if (window.syncTelegramBackButton) window.syncTelegramBackButton();
     if (window.hapticFeedback) window.hapticFeedback('selection');

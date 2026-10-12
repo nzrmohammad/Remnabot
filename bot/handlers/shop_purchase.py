@@ -8,7 +8,7 @@ from aiogram.types import CallbackQuery, CopyTextButton, InlineKeyboardMarkup
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from bot.common import SEPARATOR, admin_thread_kwargs, fmt, parse_int, resolve_op
+from bot.common import SEPARATOR, admin_thread_kwargs, fmt, parse_int
 from bot.config import get_settings
 from bot.db.repositories.coupon_repo import CouponRepository
 from bot.db.repositories.referral_repo import ReferralRepository
@@ -19,7 +19,12 @@ from bot.locales.texts import t
 from bot.services.app_settings import get_store_settings, is_maintenance
 from bot.services.formatting import format_datetime, now_tz
 from bot.services.menu import delete_message_silently, render_menu
-from bot.services.purchases import execute_purchase
+from bot.services.purchases import (
+    calc_price,
+    execute_purchase,
+    receipt_price_lines,
+    record_coupon_usage_if_any,
+)
 from bot.services.remnawave import RemnawaveClient
 from bot.services.service_display import service_block
 
@@ -41,12 +46,11 @@ async def _ensure_can_buy(
     in first — otherwise anyone could renew someone else's flow. Returns
     True when the purchase may proceed (renders the gate message itself).
     """
-    render_menu_fn = resolve_op("render_menu", render_menu)
     if user.is_verified:
         return True
     accounts = await remnawave.get_users_by_telegram_id(user.telegram_id)
     if accounts is None:
-        await render_menu_fn(
+        await render_menu(
             bot, user, user_repo, t(user.language, "stats_error"),
             InlineKeyboardBuilder()
             .button(text=t(user.language, "btn_back_to_menu"),
@@ -56,11 +60,18 @@ async def _ensure_can_buy(
     if not accounts:
         return True  # first purchase — allowed, creates the account
     from bot.keyboards.inline import welcome_keyboard
-    await render_menu_fn(
+    await render_menu(
         bot, user, user_repo, t(user.language, "not_verified"),
         welcome_keyboard(user.language),
     )
     return False
+
+
+async def _extract_coupon_from_state(state: FSMContext) -> tuple[str | None, int]:
+    data = await state.get_data()
+    code = data.get("coupon_code")
+    amt = int(data.get("discount_amount", 0) or 0) if code else 0
+    return code, amt
 
 
 async def _render_buy_confirm(
@@ -73,8 +84,7 @@ async def _render_buy_confirm(
     coupon_code: str | None = None,
     discount_amount: int = 0,
 ) -> None:
-    render_menu_fn = resolve_op("render_menu", render_menu)
-    effective_price = max(0, service.price - discount_amount)
+    effective_price, discount_amount = calc_price(service.price, discount_amount)
     kb = InlineKeyboardBuilder()
 
     if balance >= effective_price:
@@ -102,14 +112,9 @@ async def _render_buy_confirm(
         else ""
     )
 
-    price_lines = [f"💰 {t(lang, 'svc_field_price')} : <b>{fmt(service.price)}</b> {t(lang, 'svc_currency')}"]
-    if coupon_code and discount_amount > 0:
-        price_lines.append(
-            f"🏷 {t(lang, 'retention_code_label')} (<code>{coupon_code}</code>) : <b>\u200e-{fmt(discount_amount)}</b> {t(lang, 'svc_currency')}"
-        )
-        price_lines.append(
-            f"💵 {t(lang, 'receipt_amount')} : <b>{fmt(effective_price)}</b> {t(lang, 'svc_currency')}"
-        )
+    price_lines = receipt_price_lines(
+        lang, service.price, effective_price, discount_amount, coupon_code, t(lang, "svc_currency"), is_confirm_card=True
+    )
 
     if balance < effective_price:
         shortage = effective_price - balance
@@ -123,7 +128,7 @@ async def _render_buy_confirm(
     else:
         balance_note = ""
 
-    await render_menu_fn(
+    await render_menu(
         bot, user, user_repo,
         f"{t(lang, 'buy_confirm_title')}\n{SEPARATOR}\n"
         f"{service_block(service, lang)}\n\n"
@@ -180,7 +185,6 @@ async def _render_purchase_result(
     coupon_code: str | None = None,
     discount_amount: int = 0,
 ) -> None:
-    render_menu_fn = resolve_op("render_menu", render_menu)
     if result.kind == "success":
         await user_repo.set_verified(user)
         kb = InlineKeyboardBuilder()
@@ -244,21 +248,12 @@ async def _render_purchase_result(
             f"🌐 {t(lang, 'receipt_traffic')} : <b>{traf_text}</b>",
         ])
 
-        effective_price = max(0, service.price - discount_amount)
-        if coupon_code and discount_amount > 0:
-            receipt_lines.append(
-                f"💰 {t(lang, 'svc_field_price')} : <b>{fmt(service.price)} {t(lang, 'svc_currency')}</b>"
+        effective_price, discount_amount = calc_price(service.price, discount_amount)
+        receipt_lines.extend(
+            receipt_price_lines(
+                lang, service.price, effective_price, discount_amount, coupon_code, t(lang, "svc_currency")
             )
-            receipt_lines.append(
-                f"🏷 {t(lang, 'retention_code_label')} (<code>{coupon_code}</code>) : <b>\u200e-{fmt(discount_amount)} {t(lang, 'svc_currency')}</b>"
-            )
-            receipt_lines.append(
-                f"💵 {t(lang, 'receipt_amount')} : <b>{fmt(effective_price)} {t(lang, 'svc_currency')}</b>"
-            )
-        else:
-            receipt_lines.append(
-                f"💰 {t(lang, 'receipt_amount')} : <b>{fmt(service.price)} {t(lang, 'svc_currency')}</b>"
-            )
+        )
         receipt_lines.append(
             f"👛 {t(lang, 'receipt_balance')} : <b>{fmt(result.new_balance)} {t(lang, 'svc_currency')}</b>"
         )
@@ -269,7 +264,7 @@ async def _render_purchase_result(
             )
         receipt_lines.append(f"\n💡 {t(lang, 'receipt_footer_hint')}")
 
-        await render_menu_fn(
+        await render_menu(
             bot, user, user_repo,
             "\n".join(receipt_lines),
             kb.as_markup(),
@@ -279,7 +274,7 @@ async def _render_purchase_result(
         kb.button(text=t(lang, "btn_topup"), callback_data="wallet:topup")
         kb.button(text=t(lang, "btn_back"), callback_data="menu:services")
         kb.adjust(1)
-        await render_menu_fn(
+        await render_menu(
             bot, user, user_repo,
             t(
                 lang, "buy_insufficient",
@@ -293,12 +288,12 @@ async def _render_purchase_result(
         kb = InlineKeyboardBuilder()
         kb.button(text=t(lang, "btn_back"), callback_data="menu:services")
         kb.adjust(1)
-        await render_menu_fn(bot, user, user_repo, t(lang, "maintenance_user"), kb.as_markup())
+        await render_menu(bot, user, user_repo, t(lang, "maintenance_user"), kb.as_markup())
     else:  # failed
         kb = InlineKeyboardBuilder()
         kb.button(text=t(lang, "btn_back"), callback_data="menu:services")
         kb.adjust(1)
-        await render_menu_fn(bot, user, user_repo, t(lang, "buy_failed"), kb.as_markup())
+        await render_menu(bot, user, user_repo, t(lang, "buy_failed"), kb.as_markup())
 
 
 async def _notify_admin(
@@ -312,7 +307,7 @@ async def _notify_admin(
     full_name: str | None = None,
 ) -> None:
     tg_username = f"\u200e@{escape(user.username)}\u200e" if user.username else "—"
-    effective_price = max(0, service.price - discount_amount)
+    effective_price, discount_amount = calc_price(service.price, discount_amount)
     display_name = escape(full_name or user.username or str(user.telegram_id))
 
     price_lines = []
@@ -366,25 +361,19 @@ async def buy_new_account(
         await call.answer(t(lang, "maintenance_user"), show_alert=True)
         return
 
-    ensure_can_buy_fn = resolve_op("_ensure_can_buy", _ensure_can_buy)
-    if not await ensure_can_buy_fn(bot, user, user_repo, remnawave):
+    if not await _ensure_can_buy(bot, user, user_repo, remnawave):
         await call.answer()
         return
 
-    s_repo_cls = resolve_op("ServiceRepository", ServiceRepository)
-    service = await s_repo_cls(session).get(service_id)
+    service = await ServiceRepository(session).get(service_id)
     if service is None or not service.is_active:
         await call.answer(t(lang, "acc_error"), show_alert=True)
         return
 
-    state_data = await state.get_data()
-    coupon_code = state_data.get("coupon_code")
-    discount_amount = state_data.get("discount_amount", 0) if coupon_code else 0
+    coupon_code, discount_amount = await _extract_coupon_from_state(state)
 
-    w_repo_cls = resolve_op("WalletRepository", WalletRepository)
-    wallet = await w_repo_cls(session).get_wallet(user.telegram_id)
-    render_buy_confirm_fn = resolve_op("_render_buy_confirm", _render_buy_confirm)
-    await render_buy_confirm_fn(
+    wallet = await WalletRepository(session).get_wallet(user.telegram_id)
+    await _render_buy_confirm(
         bot, user, user_repo, session, service, wallet.balance,
         confirm_callback=f"svc:confirmn:{service.id}",
         lang=lang,
@@ -415,42 +404,31 @@ async def confirm_new_account(
         user = await user_repo.get_or_create(call.from_user.id, call.from_user.username)
         lang = user.language
 
-        ensure_can_buy_fn = resolve_op("_ensure_can_buy", _ensure_can_buy)
-        if not await ensure_can_buy_fn(bot, user, user_repo, remnawave):
+        if not await _ensure_can_buy(bot, user, user_repo, remnawave):
             await call.answer()
             return
 
-        s_repo_cls = resolve_op("ServiceRepository", ServiceRepository)
-        service = await s_repo_cls(session).get(service_id)
+        service = await ServiceRepository(session).get(service_id)
         if service is None or not service.is_active:
             await call.answer(t(lang, "acc_error"), show_alert=True)
             return
 
-        state_data = await state.get_data()
-        coupon_code = state_data.get("coupon_code")
-        discount_amount = state_data.get("discount_amount", 0) if coupon_code else 0
+        coupon_code, discount_amount = await _extract_coupon_from_state(state)
 
         result = await execute_purchase(
             remnawave, session, service, user.telegram_id,
             create_new=True, discount_amount=discount_amount,
         )
         if result.kind == "success":
-            if coupon_code and result.order_id:
-                c_repo = CouponRepository(session)
-                cpn = await c_repo.get_by_code(coupon_code)
-                if cpn:
-                    await c_repo.record_usage(cpn.id, user.telegram_id, result.order_id, discount_amount)
-            reward_ref_fn = resolve_op("_maybe_reward_referrer", _maybe_reward_referrer)
-            await reward_ref_fn(bot, session, remnawave, user)
+            await record_coupon_usage_if_any(session, coupon_code, user.telegram_id, result.order_id, discount_amount)
+            await _maybe_reward_referrer(bot, session, remnawave, user)
             await state.clear()
-            notify_admin_fn = resolve_op("_notify_admin", _notify_admin)
-            await notify_admin_fn(
+            await _notify_admin(
                 bot, user, service, result, session,
                 coupon_code=coupon_code, discount_amount=discount_amount,
                 full_name=call.from_user.full_name,
             )
-        render_purchase_result_fn = resolve_op("_render_purchase_result", _render_purchase_result)
-        await render_purchase_result_fn(
+        await _render_purchase_result(
             bot, user, user_repo, session, result, service, lang,
             coupon_code=coupon_code, discount_amount=discount_amount,
         )
@@ -470,8 +448,7 @@ async def service_view(
     user = await user_repo.get_or_create(call.from_user.id, call.from_user.username)
     lang = user.language
 
-    s_repo_cls = resolve_op("ServiceRepository", ServiceRepository)
-    service = await s_repo_cls(session).get(service_id)
+    service = await ServiceRepository(session).get(service_id)
     if service is None or not service.is_active:
         await call.answer(t(lang, "acc_error"), show_alert=True)
         return
@@ -481,8 +458,7 @@ async def service_view(
     kb.button(text=t(lang, "btn_back"), callback_data="menu:services")
     kb.adjust(1)
 
-    render_menu_fn = resolve_op("render_menu", render_menu)
-    await render_menu_fn(
+    await render_menu(
         bot, user, user_repo,
         f"{t(lang, 'svc_view_title', name=escape(service.name))}\n"
         f"{SEPARATOR}\n{service_block(service, lang)}\n\n"
@@ -510,23 +486,18 @@ async def service_buy(
         await call.answer(t(lang, "maintenance_user"), show_alert=True)
         return
 
-    ensure_can_buy_fn = resolve_op("_ensure_can_buy", _ensure_can_buy)
-    if not await ensure_can_buy_fn(bot, user, user_repo, remnawave):
+    if not await _ensure_can_buy(bot, user, user_repo, remnawave):
         await call.answer()
         return
 
-    s_repo_cls = resolve_op("ServiceRepository", ServiceRepository)
-    service = await s_repo_cls(session).get(service_id)
+    service = await ServiceRepository(session).get(service_id)
     if service is None or not service.is_active:
         await call.answer(t(lang, "acc_error"), show_alert=True)
         return
 
-    state_data = await state.get_data()
-    coupon_code = state_data.get("coupon_code")
-    discount_amount = state_data.get("discount_amount", 0) if coupon_code else 0
+    coupon_code, discount_amount = await _extract_coupon_from_state(state)
 
-    w_repo_cls = resolve_op("WalletRepository", WalletRepository)
-    wallet = await w_repo_cls(session).get_wallet(user.telegram_id)
+    wallet = await WalletRepository(session).get_wallet(user.telegram_id)
 
     # Check if the user already has panel accounts
     accounts = await remnawave.get_users_by_telegram_id(user.telegram_id)
@@ -542,7 +513,6 @@ async def service_buy(
             seen.add(aid)
             valid_accounts.append(a)
 
-    render_menu_fn = resolve_op("render_menu", render_menu)
     if valid_accounts:
         kb = InlineKeyboardBuilder()
         for a in valid_accounts:
@@ -564,13 +534,12 @@ async def service_buy(
             f"{service_block(service, lang)}\n\n"
             f"{t(lang, 'buy_choose_account_prompt')}"
         )
-        await render_menu_fn(bot, user, user_repo, text, kb.as_markup())
+        await render_menu(bot, user, user_repo, text, kb.as_markup())
         await call.answer()
         return
 
     # First-time purchase without any existing accounts
-    render_buy_confirm_fn = resolve_op("_render_buy_confirm", _render_buy_confirm)
-    await render_buy_confirm_fn(
+    await _render_buy_confirm(
         bot, user, user_repo, session, service, wallet.balance,
         confirm_callback=f"svc:confirmn:{service.id}", lang=lang,
         target_name=t(lang, "buy_target_new"),
@@ -600,20 +569,16 @@ async def service_confirm(
         user = await user_repo.get_or_create(call.from_user.id, call.from_user.username)
         lang = user.language
 
-        ensure_can_buy_fn = resolve_op("_ensure_can_buy", _ensure_can_buy)
-        if not await ensure_can_buy_fn(bot, user, user_repo, remnawave):
+        if not await _ensure_can_buy(bot, user, user_repo, remnawave):
             await call.answer()
             return
 
-        s_repo_cls = resolve_op("ServiceRepository", ServiceRepository)
-        service = await s_repo_cls(session).get(service_id)
+        service = await ServiceRepository(session).get(service_id)
         if service is None or not service.is_active:
             await call.answer(t(lang, "acc_error"), show_alert=True)
             return
 
-        state_data = await state.get_data()
-        coupon_code = state_data.get("coupon_code")
-        discount_amount = state_data.get("discount_amount", 0) if coupon_code else 0
+        coupon_code, discount_amount = await _extract_coupon_from_state(state)
 
         result = await execute_purchase(
             remnawave, session, service, user.telegram_id, discount_amount=discount_amount
@@ -630,31 +595,23 @@ async def service_confirm(
                 )
             kb.button(text=t(lang, "btn_back"), callback_data="menu:services")
             kb.adjust(1)
-            render_menu_fn = resolve_op("render_menu", render_menu)
-            await render_menu_fn(
+            await render_menu(
                 bot, user, user_repo, t(lang, "buy_choose_account"), kb.as_markup()
             )
             await call.answer()
             return
 
         if result.kind == "success":
-            if coupon_code and result.order_id:
-                c_repo = CouponRepository(session)
-                cpn = await c_repo.get_by_code(coupon_code)
-                if cpn:
-                    await c_repo.record_usage(cpn.id, user.telegram_id, result.order_id, discount_amount)
-            reward_ref_fn = resolve_op("_maybe_reward_referrer", _maybe_reward_referrer)
-            await reward_ref_fn(bot, session, remnawave, user)
+            await record_coupon_usage_if_any(session, coupon_code, user.telegram_id, result.order_id, discount_amount)
+            await _maybe_reward_referrer(bot, session, remnawave, user)
             await state.clear()
-            notify_admin_fn = resolve_op("_notify_admin", _notify_admin)
-            await notify_admin_fn(
+            await _notify_admin(
                 bot, user, service, result, session,
                 coupon_code=coupon_code, discount_amount=discount_amount,
                 full_name=call.from_user.full_name,
             )
 
-        render_purchase_result_fn = resolve_op("_render_purchase_result", _render_purchase_result)
-        await render_purchase_result_fn(
+        await _render_purchase_result(
             bot, user, user_repo, session, result, service, lang,
             coupon_code=coupon_code, discount_amount=discount_amount,
         )

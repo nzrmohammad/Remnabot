@@ -5,9 +5,46 @@
 
 window.chartInstances = window.chartInstances || {};
 
-function renderBarChart(containerId, totals, labels, isMonthly = false) {
+let chartLoadPromise = null;
+function ensureChart() {
+  if (typeof Chart !== 'undefined') {
+    return Promise.resolve(window.Chart);
+  }
+  if (!chartLoadPromise) {
+    chartLoadPromise = new Promise((resolve, reject) => {
+      const existingScript = document.querySelector('script[src*="chart.umd.min.js"]');
+      if (existingScript) {
+        if (typeof Chart !== 'undefined') return resolve(window.Chart);
+        existingScript.addEventListener('load', () => resolve(window.Chart));
+        existingScript.addEventListener('error', (e) => { chartLoadPromise = null; reject(e); });
+        return;
+      }
+      const s = document.createElement('script');
+      s.src = '/static/js/chart.umd.min.js';
+      s.async = true;
+      s.onload = () => resolve(window.Chart);
+      s.onerror = (e) => {
+        chartLoadPromise = null;
+        reject(e);
+      };
+      document.head.appendChild(s);
+    });
+  }
+  return chartLoadPromise;
+}
+
+async function renderBarChart(containerId, totals, labels, isMonthly = false) {
   let canvas = document.getElementById(containerId);
   if (!canvas) return;
+
+  if (typeof Chart === 'undefined') {
+    try {
+      await ensureChart();
+    } catch (e) {
+      return;
+    }
+  }
+  if (typeof Chart === 'undefined') return;
 
   // If container is a div instead of a canvas, find or create canvas inside it
   if (canvas.tagName.toLowerCase() !== 'canvas') {
@@ -17,11 +54,6 @@ function renderBarChart(containerId, totals, labels, isMonthly = false) {
       innerCanvas = canvas.querySelector('canvas');
     }
     canvas = innerCanvas;
-  }
-
-  // Fallback if Chart.js is not yet loaded
-  if (typeof Chart === 'undefined') {
-    return;
   }
 
   const isLight = document.documentElement.classList.contains('theme-light');
@@ -152,9 +184,18 @@ function renderNodeBreakdown(containerId, nodes, emptyText = 'مصرفی ثبت 
   `).join('');
 }
 
-function renderDonutChart(containerId, labels, data, isDevice = false) {
+async function renderDonutChart(containerId, labels, data, isDevice = false) {
   let canvas = document.getElementById(containerId);
   if (!canvas) return;
+
+  if (typeof Chart === 'undefined') {
+    try {
+      await ensureChart();
+    } catch (e) {
+      return;
+    }
+  }
+  if (typeof Chart === 'undefined') return;
 
   if (canvas.tagName.toLowerCase() !== 'canvas') {
     let innerCanvas = canvas.querySelector('canvas');
@@ -164,8 +205,6 @@ function renderDonutChart(containerId, labels, data, isDevice = false) {
     }
     canvas = innerCanvas;
   }
-
-  if (typeof Chart === 'undefined') return;
 
   const isLight = document.documentElement.classList.contains('theme-light') || !document.documentElement.classList.contains('dark');
   const textColor = isLight ? '#0f172a' : '#f8fafc';
@@ -279,9 +318,18 @@ function renderDonutChart(containerId, labels, data, isDevice = false) {
   });
 }
 
-function renderLineCurveChart(containerId, labels, data, peakHour = null) {
+async function renderLineCurveChart(containerId, labels, data, peakHour = null) {
   let canvas = document.getElementById(containerId);
   if (!canvas) return;
+
+  if (typeof Chart === 'undefined') {
+    try {
+      await ensureChart();
+    } catch (e) {
+      return;
+    }
+  }
+  if (typeof Chart === 'undefined') return;
 
   if (canvas.tagName.toLowerCase() !== 'canvas') {
     let innerCanvas = canvas.querySelector('canvas');
@@ -291,8 +339,6 @@ function renderLineCurveChart(containerId, labels, data, peakHour = null) {
     }
     canvas = innerCanvas;
   }
-
-  if (typeof Chart === 'undefined') return;
 
   const isLight = document.documentElement.classList.contains('theme-light');
   const textColor = isLight ? '#1e293b' : '#cbd5e1';
@@ -425,3 +471,4 @@ window.renderNodeBreakdown = renderNodeBreakdown;
 window.renderDonutChart = renderDonutChart;
 window.renderLineCurveChart = renderLineCurveChart;
 window.renderTrafficSplit = renderTrafficSplit;
+window.ensureChart = ensureChart;

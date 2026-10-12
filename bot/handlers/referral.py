@@ -7,6 +7,7 @@ from aiogram.types import CallbackQuery, CopyTextButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from bot.common.links import ref_link
 from bot.db.repositories.referral_repo import ReferralRepository
 from bot.db.repositories.user_repo import UserRepository
 from bot.locales.texts import t
@@ -38,7 +39,7 @@ async def referral_entry(
 
     bot_info = await bot.get_me()
     bot_username = bot_info.username or "bot"
-    invite_link = f"https://t.me/{bot_username}?start=ref_{user.telegram_id}"
+    invite_link = ref_link(bot_username, user.telegram_id)
     share_text = "🚀 اینترنت آزاد، امن و پرسرعت با اکانت تست رایگان!\nجهت دریافت وارد ربات شوید:"
     share_url = f"https://t.me/share/url?url={invite_link}&text={quote_plus(share_text)}"
 

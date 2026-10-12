@@ -150,8 +150,8 @@ async def run_alert_check(
             try:
                 user_accounts = panel_by_tid.get(user.telegram_id) if panel_users is not None else None
                 await _check_user(bot, user, alert_repo, remnawave, now, accounts=user_accounts)
-            except Exception:  # noqa: BLE001 — one bad user must not stop the sweep
-                logger.exception("alert check failed for user %s", user.telegram_id)
+            except Exception as exc:  # noqa: BLE001 — one bad user must not stop the sweep
+                logger.exception("alert check failed for user %s: %s", user.telegram_id, exc)
         await session.commit()
 
 
@@ -166,6 +166,6 @@ async def alerts_loop(
     while True:
         try:
             await run_alert_check(bot, session_factory, remnawave)
-        except Exception:  # noqa: BLE001
-            logger.exception("alert sweep failed")
+        except Exception as exc:  # noqa: BLE001
+            logger.exception("alert sweep failed: %s", exc)
         await asyncio.sleep(interval)

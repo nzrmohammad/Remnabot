@@ -1,9 +1,10 @@
+from bot.web.user_common import db_session, require_user
 """TMA User Nodes, IP telemetry, Settings, and Avatar endpoints."""
 import logging
 from aiohttp import web
 
 from bot.db.repositories.user_repo import UserRepository
-from bot.web.auth import get_authenticated_user
+from bot.web.auth import get_authenticated_user, get_client_ip
 from bot.web.cache import FastCache
 
 logger = logging.getLogger(__name__)
@@ -37,12 +38,7 @@ async def get_user_nodes(request: web.Request) -> web.Response:
 
 async def get_user_ip_info(request: web.Request) -> web.Response:
     """Return the client's public IP detected by Nginx/proxy."""
-    client_ip = (
-        request.headers.get("X-Real-IP")
-        or request.headers.get("X-Forwarded-For", "").split(",")[0].strip()
-        or request.remote
-        or "127.0.0.1"
-    )
+    client_ip = get_client_ip(request)
     return web.json_response({
         "ok": True,
         "ip": client_ip,
@@ -52,9 +48,9 @@ async def get_user_ip_info(request: web.Request) -> web.Response:
 
 async def post_user_settings(request: web.Request) -> web.Response:
     """Save user settings (language, etc.)."""
-    user_auth = get_authenticated_user(request)
-    if not user_auth:
-        return web.json_response({"ok": False, "error": "Unauthorized"}, status=401)
+    user_auth, err = require_user(request)
+    if err:
+        return err
 
     try:
         body = await request.json()
@@ -66,13 +62,12 @@ async def post_user_settings(request: web.Request) -> web.Response:
     key = body.get("key")
     value = body.get("value")
 
-    session_factory = request.app["session_factory"]
     cache: FastCache = request.app["cache"]
 
     from bot.db.repositories.report_repo import ReportRepository
     from bot.db.repositories.alert_repo import AlertRepository
 
-    async with session_factory() as session:
+    async with db_session(request) as session:
         user_repo = UserRepository(session)
         user = await user_repo.get_or_create(telegram_id, user_auth.get("username"))
         if language in ("fa", "en"):

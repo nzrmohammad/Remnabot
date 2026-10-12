@@ -103,7 +103,8 @@ class RemnawaveUsersMixin:
                 resp = await self._client.post(ep, json={})
                 if resp.status_code in (200, 201):
                     return resp.json().get("response") or resp.json()
-            except httpx.HTTPError:
+            except httpx.HTTPError as exc:
+                logger.debug("Remnawave revoke_user_subscription endpoint %s failed: %s", ep, exc)
                 continue
 
         logger.warning("Remnawave revoke_user_subscription failed across all endpoints for user %s", user_id)
@@ -120,8 +121,8 @@ class RemnawaveUsersMixin:
                         return data
                     if isinstance(data, dict):
                         return data.get("internalSquads") or data.get("squads") or []
-            except httpx.HTTPError:
-                pass
+            except httpx.HTTPError as exc:
+                logger.debug("Remnawave squad path %s failed: %s", path, exc)
         return []
 
     async def set_user_squads(self, user_id: int, squad_uuids: list[str]) -> dict[str, Any] | None:

@@ -6,7 +6,7 @@ from aiogram.types import CallbackQuery
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from bot.common import SEPARATOR, is_admin, resolve_op
+from bot.common import SEPARATOR, is_admin
 from bot.db.repositories.admin_log_repo import AdminLogRepository
 from bot.db.repositories.app_setting_repo import AppSettingRepository
 from bot.db.repositories.user_repo import UserRepository
@@ -35,11 +35,9 @@ def _parse_remind_days_set(raw: str | None) -> set[int]:
 async def _render_remind_days_picker(
     bot: Bot, user, user_repo: UserRepository, session: AsyncSession,
 ) -> None:
-    store_fn = resolve_op("get_store_settings", get_store_settings)
-    render_menu_fn = resolve_op("render_menu", render_menu)
 
     lang = user.language or "fa"
-    store = await store_fn(session)
+    store = await get_store_settings(session)
     active_days = _parse_remind_days_set(store.expiry_remind_days)
     kb = InlineKeyboardBuilder()
 
@@ -90,7 +88,7 @@ async def _render_remind_days_picker(
             f"Renewal reminder messages will be sent automatically to users on these days."
         )
 
-    await render_menu_fn(bot, user, user_repo, text, kb.as_markup())
+    await render_menu(bot, user, user_repo, text, kb.as_markup())
 
 
 async def remind_days_picker_entry(
@@ -99,9 +97,8 @@ async def remind_days_picker_entry(
     if not is_admin(call.from_user.id):
         await call.answer(t("fa", "not_authorized"), show_alert=True)
         return
-    render_remind_fn = resolve_op("_render_remind_days_picker", _render_remind_days_picker)
     user = await user_repo.get_or_create(call.from_user.id, call.from_user.username)
-    await render_remind_fn(bot, user, user_repo, session)
+    await _render_remind_days_picker(bot, user, user_repo, session)
     await call.answer()
 
 
@@ -111,14 +108,10 @@ async def remind_days_toggle(
     if not is_admin(call.from_user.id):
         await call.answer(t("fa", "not_authorized"), show_alert=True)
         return
-    store_fn = resolve_op("get_store_settings", get_store_settings)
-    app_setting_repo_cls = resolve_op("AppSettingRepository", AppSettingRepository)
-    admin_log_repo_cls = resolve_op("AdminLogRepository", AdminLogRepository)
-    render_remind_fn = resolve_op("_render_remind_days_picker", _render_remind_days_picker)
 
     action = call.data.rsplit(":", 1)[1]
     user = await user_repo.get_or_create(call.from_user.id, call.from_user.username)
-    store = await store_fn(session)
+    store = await get_store_settings(session)
     active_days = _parse_remind_days_set(store.expiry_remind_days)
 
     if action == "clear":
@@ -139,22 +132,20 @@ async def remind_days_toggle(
             ans_msg = f"✅ هشدار {day_num} روز افزوده شد" if user.language == "fa" else f"Added {day_num}d reminder"
         new_val = ",".join(str(d) for d in sorted(active_days, reverse=True))
 
-    await app_setting_repo_cls(session).set("expiry_remind_days", new_val)
-    await admin_log_repo_cls(session).log(
+    await AppSettingRepository(session).set("expiry_remind_days", new_val)
+    await AdminLogRepository(session).log(
         call.from_user.id, "setting", detail=f"expiry_remind_days={new_val}"
     )
-    await render_remind_fn(bot, user, user_repo, session)
+    await _render_remind_days_picker(bot, user, user_repo, session)
     await call.answer(ans_msg)
 
 
 async def _render_grace_days_picker(
     bot: Bot, user, user_repo: UserRepository, session: AsyncSession,
 ) -> None:
-    store_fn = resolve_op("get_store_settings", get_store_settings)
-    render_menu_fn = resolve_op("render_menu", render_menu)
 
     lang = user.language or "fa"
-    store = await store_fn(session)
+    store = await get_store_settings(session)
     current_grace = store.expiry_grace_days
     kb = InlineKeyboardBuilder()
 
@@ -198,7 +189,7 @@ async def _render_grace_days_picker(
             f"💡 Select how many days after expiry the service remains active before being suspended:"
         )
 
-    await render_menu_fn(bot, user, user_repo, text, kb.as_markup())
+    await render_menu(bot, user, user_repo, text, kb.as_markup())
 
 
 async def grace_days_picker_entry(
@@ -207,9 +198,8 @@ async def grace_days_picker_entry(
     if not is_admin(call.from_user.id):
         await call.answer(t("fa", "not_authorized"), show_alert=True)
         return
-    render_grace_fn = resolve_op("_render_grace_days_picker", _render_grace_days_picker)
     user = await user_repo.get_or_create(call.from_user.id, call.from_user.username)
-    await render_grace_fn(bot, user, user_repo, session)
+    await _render_grace_days_picker(bot, user, user_repo, session)
     await call.answer()
 
 
@@ -219,9 +209,6 @@ async def grace_days_set(
     if not is_admin(call.from_user.id):
         await call.answer(t("fa", "not_authorized"), show_alert=True)
         return
-    app_setting_repo_cls = resolve_op("AppSettingRepository", AppSettingRepository)
-    admin_log_repo_cls = resolve_op("AdminLogRepository", AdminLogRepository)
-    render_grace_fn = resolve_op("_render_grace_days_picker", _render_grace_days_picker)
 
     action = call.data.rsplit(":", 1)[1]
     try:
@@ -234,11 +221,11 @@ async def grace_days_set(
         return
 
     user = await user_repo.get_or_create(call.from_user.id, call.from_user.username)
-    await app_setting_repo_cls(session).set("expiry_grace_days", str(days_num))
-    await admin_log_repo_cls(session).log(
+    await AppSettingRepository(session).set("expiry_grace_days", str(days_num))
+    await AdminLogRepository(session).log(
         call.from_user.id, "setting", detail=f"expiry_grace_days={days_num}"
     )
-    await render_grace_fn(bot, user, user_repo, session)
+    await _render_grace_days_picker(bot, user, user_repo, session)
     ans_msg = f"✅ مهلت پس از انقضا: {days_num} روز" if user.language == "fa" else f"Grace period set to {days_num}d"
     await call.answer(ans_msg)
 
@@ -250,16 +237,13 @@ async def settings_set_squad(
     if not is_admin(call.from_user.id):
         await call.answer(t("fa", "not_authorized"), show_alert=True)
         return
-    app_setting_repo_cls = resolve_op("AppSettingRepository", AppSettingRepository)
-    admin_log_repo_cls = resolve_op("AdminLogRepository", AdminLogRepository)
-    render_settings_fn = resolve_op("_render_settings", _render_settings)
 
     choice = call.data.rsplit(":", 1)[1]
     val = "" if choice == "none" else choice
-    await app_setting_repo_cls(session).set("default_squad_uuid", val)
-    await admin_log_repo_cls(session).log(
+    await AppSettingRepository(session).set("default_squad_uuid", val)
+    await AdminLogRepository(session).log(
         call.from_user.id, "setting", detail=f"default_squad_uuid={val[:40]}"
     )
     user = await user_repo.get_or_create(call.from_user.id, call.from_user.username)
-    await render_settings_fn(bot, user, user_repo, session)
+    await _render_settings(bot, user, user_repo, session)
     await call.answer(t(user.language or "fa", "toast_squads_updated"))

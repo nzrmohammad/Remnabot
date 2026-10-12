@@ -12,7 +12,7 @@ from aiogram import Bot, F, Router
 from aiogram.types import CallbackQuery
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from bot.common import SEPARATOR, admin_thread_kwargs, fmt, parse_int, resolve_op
+from bot.common import SEPARATOR, admin_thread_kwargs, fmt, parse_int
 from bot.db.repositories.coupon_repo import CouponRepository
 from bot.db.repositories.referral_repo import ReferralRepository
 from bot.db.repositories.service_repo import ServiceRepository
@@ -74,8 +74,7 @@ async def services_entry(
     call: CallbackQuery, bot: Bot, user_repo: UserRepository, session: AsyncSession
 ):
     user = await user_repo.get_or_create(call.from_user.id, call.from_user.username)
-    render_services_fn = resolve_op("_render_services", render_services)
-    await render_services_fn(bot, user, user_repo, session)
+    await render_services(bot, user, user_repo, session)
     await call.answer()
 
 

@@ -29,6 +29,7 @@ from bot.config import get_settings
 from bot.db.models import ExpiryState
 from bot.db.repositories.user_repo import UserRepository
 from bot.locales.texts import t
+from bot.services.app_settings import get_store_settings
 from bot.services.formatting import format_date, now_tz, parse_iso
 from bot.services.remnawave import RemnawaveClient
 
@@ -91,7 +92,6 @@ async def run_expiry_check(
                     pass
 
     async with session_factory() as session:
-        from bot.services.app_settings import get_store_settings
         store = await get_store_settings(session)
         grace = max(0, store.expiry_grace_days)
         remind_days = _parse_remind_days(store.expiry_remind_days)
@@ -185,8 +185,8 @@ async def run_expiry_check(
                         # Only move forward (renewal pushes days_left up).
                         if state.last_days_left is None or days_left > state.last_days_left:
                             state.last_days_left = days_left
-            except Exception:  # noqa: BLE001 — one bad user must not stop the sweep
-                logger.exception("expiry check failed for user %s", user.telegram_id)
+            except Exception as exc:  # noqa: BLE001 — one bad user must not stop the sweep
+                logger.exception("expiry check failed for user %s: %s", user.telegram_id, exc)
         await session.commit()
 
 
@@ -201,6 +201,6 @@ async def expiry_loop(
     while True:
         try:
             await run_expiry_check(bot, session_factory, remnawave)
-        except Exception:  # noqa: BLE001
-            logger.exception("expiry sweep failed")
+        except Exception as exc:  # noqa: BLE001
+            logger.exception("expiry sweep failed: %s", exc)
         await asyncio.sleep(interval)

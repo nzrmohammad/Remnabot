@@ -1,3 +1,4 @@
+from bot.web.user_common import db_session, require_user
 """TMA User Shop, Purchase, Subscriptions, Devices, and Lucky Wheel endpoints."""
 import logging
 import random
@@ -7,7 +8,6 @@ from aiohttp import web
 from bot.db.models import Service
 from bot.db.repositories.coupon_repo import CouponRepository
 from bot.services.purchases import execute_purchase
-from bot.web.auth import get_authenticated_user
 from bot.web.cache import FastCache
 
 logger = logging.getLogger(__name__)
@@ -15,9 +15,9 @@ logger = logging.getLogger(__name__)
 
 async def post_user_spin(request: web.Request) -> web.Response:
     """Handle Lucky Wheel spin with anti-cheat and prize allocation."""
-    user_auth = get_authenticated_user(request)
-    if not user_auth:
-        return web.json_response({"ok": False, "error": "Unauthorized"}, status=401)
+    user_auth, err = require_user(request)
+    if err:
+        return err
 
     if user_auth.get("is_preview"):
         return web.json_response(
@@ -126,9 +126,7 @@ async def post_user_spin(request: web.Request) -> web.Response:
 
     if chosen["type"] == "coupon":
         try:
-            session_factory = request.app.get("session_factory")
-            if session_factory:
-                async with session_factory() as session:
+                async with db_session(request) as session:
                     coupon_repo = CouponRepository(session)
                     import secrets
                     from datetime import datetime, timezone, timedelta
@@ -160,9 +158,7 @@ async def post_user_spin(request: web.Request) -> web.Response:
         # Keep 24-hour cooldown
         await cache.set(wheel_ts_key, now_ts, ttl_seconds=86400)
         try:
-            session_factory = request.app.get("session_factory")
-            if session_factory:
-                async with session_factory() as session:
+                async with db_session(request) as session:
                     from bot.db.repositories.report_repo import ReportRepository
                     rep_repo = ReportRepository(session)
                     await rep_repo.record_wheel_spin(telegram_id)
@@ -208,9 +204,9 @@ async def post_user_spin(request: web.Request) -> web.Response:
 
 async def post_user_revoke_sub(request: web.Request) -> web.Response:
     """Revoke and generate a fresh subscription URL for user."""
-    user_auth = get_authenticated_user(request)
-    if not user_auth:
-        return web.json_response({"ok": False, "error": "Unauthorized"}, status=401)
+    user_auth, err = require_user(request)
+    if err:
+        return err
 
     if user_auth.get("is_preview"):
         return web.json_response(
@@ -242,9 +238,9 @@ async def post_user_revoke_sub(request: web.Request) -> web.Response:
 
 async def post_user_kill_device(request: web.Request) -> web.Response:
     """Disconnect a specific HWID session for the user."""
-    user_auth = get_authenticated_user(request)
-    if not user_auth:
-        return web.json_response({"ok": False, "error": "Unauthorized"}, status=401)
+    user_auth, err = require_user(request)
+    if err:
+        return err
 
     if user_auth.get("is_preview"):
         return web.json_response(
@@ -279,9 +275,9 @@ async def post_user_kill_device(request: web.Request) -> web.Response:
 
 async def post_user_validate_coupon(request: web.Request) -> web.Response:
     """Validate a discount coupon code for authenticated user."""
-    user_auth = get_authenticated_user(request)
-    if not user_auth:
-        return web.json_response({"ok": False, "error": "Unauthorized"}, status=401)
+    user_auth, err = require_user(request)
+    if err:
+        return err
 
     try:
         body = await request.json()
@@ -293,11 +289,9 @@ async def post_user_validate_coupon(request: web.Request) -> web.Response:
         return web.json_response({"ok": False, "message": "کد تخفیف الزامی است."}, status=400)
 
     telegram_id = int(user_auth["id"])
-    session_factory = request.app["session_factory"]
-
     from bot.db.repositories.coupon_repo import CouponRepository
 
-    async with session_factory() as session:
+    async with db_session(request) as session:
         coupon_repo = CouponRepository(session)
         is_valid, err_key, discount_amount = await coupon_repo.validate_coupon(
             code=code,
@@ -328,9 +322,9 @@ async def post_user_validate_coupon(request: web.Request) -> web.Response:
 
 async def post_user_purchase(request: web.Request) -> web.Response:
     """Execute purchase/renewal using user wallet balance directly from TMA."""
-    user_auth = get_authenticated_user(request)
-    if not user_auth:
-        return web.json_response({"ok": False, "error": "Unauthorized"}, status=401)
+    user_auth, err = require_user(request)
+    if err:
+        return err
 
     try:
         body = await request.json()
@@ -345,11 +339,10 @@ async def post_user_purchase(request: web.Request) -> web.Response:
         return web.json_response({"ok": False, "message": "شناسه بسته الزامی است."}, status=400)
 
     telegram_id = int(user_auth["id"])
-    session_factory = request.app["session_factory"]
     remnawave = request.app["remnawave"]
     cache: FastCache = request.app["cache"]
 
-    async with session_factory() as session:
+    async with db_session(request) as session:
         service = await session.get(Service, int(service_id))
         if not service or not service.is_active:
             return web.json_response({"ok": False, "message": "بسته مورد نظر یافت نشد یا غیرفعال است."}, status=404)

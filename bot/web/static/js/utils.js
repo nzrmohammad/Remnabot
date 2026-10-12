@@ -40,11 +40,18 @@ function hapticFeedback(type = 'success') {
     try {
       if (type === 'impact') {
         window.Telegram.WebApp.HapticFeedback.impactOccurred('medium');
+      } else if (type === 'light') {
+        window.Telegram.WebApp.HapticFeedback.impactOccurred('light');
+      } else if (type === 'selection') {
+        window.Telegram.WebApp.HapticFeedback.selectionChanged();
       } else {
         window.Telegram.WebApp.HapticFeedback.notificationOccurred(type);
       }
     } catch (e) {}
   }
+}
+if (typeof window !== 'undefined') {
+  window.hapticFeedback = hapticFeedback;
 }
 
 // Robust clipboard copying
@@ -189,10 +196,31 @@ function formatPlanTitle(name) {
   return `<span class="inline-flex items-center gap-1.5" dir="ltr"><span class="shrink-0 text-base">${emojiStr}</span><span class="font-bold">${escapeHtml(cleanText)}</span></span>`;
 }
 
+function buildRefLink(botUsername, userId) {
+  const uid = userId != null ? String(userId).trim() : '';
+  const cleanUser = botUsername ? String(botUsername).replace(/^@/, '').trim() : '';
+  return cleanUser ? `https://t.me/${cleanUser}?start=ref_${uid}` : `https://t.me/?start=ref_${uid}`;
+}
+
+function bindModal(modalId, closeBtnId) {
+  const modalEl = typeof modalId === 'string' ? document.getElementById(modalId) : modalId;
+  const closeBtnEl = typeof closeBtnId === 'string' ? document.getElementById(closeBtnId) : closeBtnId;
+  if (!modalEl) return { open: () => {}, close: () => {} };
+  const open = () => modalEl.classList.remove('hidden');
+  const close = () => modalEl.classList.add('hidden');
+  if (closeBtnEl) closeBtnEl.addEventListener('click', close);
+  modalEl.addEventListener('click', (e) => {
+    if (e.target === modalEl) close();
+  });
+  return { open, close };
+}
+
 if (typeof window !== 'undefined') {
   window.toEnglishDigits = toEnglishDigits;
   window.formatPrice = formatPrice;
   window.formatPlanTitle = formatPlanTitle;
+  window.buildRefLink = buildRefLink;
+  window.bindModal = bindModal;
 }
 
 

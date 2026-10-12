@@ -5,6 +5,7 @@ from typing import Any
 from aiohttp import web
 
 from bot.web.auth import get_authenticated_user
+from bot.web.db import db_session
 
 EMOJI_PATTERN = re.compile(
     r"[\U00010000-\U0010ffff]|[\u200d\u200c\u2600-\u27bf\u2300-\u23ff\u2b50-\u2b55\u203c-\u2049\u2122\u2139\u24c2\u3030\u303d\u3297\u3299]"

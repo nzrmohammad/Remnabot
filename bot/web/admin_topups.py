@@ -40,7 +40,7 @@ from bot.db.repositories.wallet_repo import WalletRepository
 from bot.handlers.admin_broadcast import _resolve_broadcast_recipients
 from bot.locales.texts import t
 from bot.services.app_settings import get_store_settings
-from bot.web.admin_common import _check_admin, format_service_name_icon_first
+from bot.web.admin_common import _check_admin, db_session, format_service_name_icon_first
 from bot.web.cache import FastCache
 
 logger = logging.getLogger(__name__)
@@ -52,9 +52,8 @@ async def get_admin_topups(request: web.Request) -> web.Response:
     if not admin:
         return web.json_response({"ok": False, "error": "Forbidden"}, status=403)
 
-    session_factory = request.app["session_factory"]
     try:
-        async with session_factory() as session:
+        async with db_session(request) as session:
             wallet_repo = WalletRepository(session)
             user_repo = UserRepository(session)
             pending = await wallet_repo.list_pending_topups()
@@ -112,10 +111,9 @@ async def post_admin_topup_action(request: web.Request) -> web.Response:
     if not topup_id:
         return web.json_response({"ok": False, "error": "شناسه فیش الزامی است."}, status=400)
 
-    session_factory = request.app["session_factory"]
     bot = request.app["bot"]
 
-    async with session_factory() as session:
+    async with db_session(request) as session:
         wallet_repo = WalletRepository(session)
         claimed = await wallet_repo.claim_topup(int(topup_id), approved)
         if not claimed:
@@ -154,7 +152,7 @@ async def post_admin_topup_action(request: web.Request) -> web.Response:
         from bot.locales.texts import t
 
         user_lang = "fa"
-        async with session_factory() as session:
+        async with db_session(request) as session:
             user_repo = UserRepository(session)
             u_obj = await user_repo.get_by_telegram_id(claimed.telegram_id)
             if u_obj and u_obj.language:
@@ -194,7 +192,7 @@ async def post_admin_topup_action(request: web.Request) -> web.Response:
     if admin_chat_id and bot:
         store = None
         try:
-            async with session_factory() as session:
+            async with db_session(request) as session:
                 store = await get_store_settings(session)
         except Exception:
             pass
@@ -266,7 +264,6 @@ async def get_admin_topup_photo(request: web.Request) -> web.Response:
     except (TypeError, ValueError):
         return web.json_response({"ok": False, "error": "شناسه فیش نامعتبر است."}, status=400)
 
-    session_factory = request.app["session_factory"]
     bot: Bot = request.app.get("bot")
 
     # 1. Fast local disk check (highest speed and reliability)
@@ -280,7 +277,7 @@ async def get_admin_topup_photo(request: web.Request) -> web.Response:
         )
 
     try:
-        async with session_factory() as session:
+        async with db_session(request) as session:
             wallet_repo = WalletRepository(session)
             topup = await wallet_repo.get_topup(topup_id)
             if not topup:

@@ -8,12 +8,16 @@ function setupStoryCard() {
   const downloadStoryBtn = document.getElementById('downloadStoryBtn');
   const shareTelegramStoryBtn = document.getElementById('shareTelegramStoryBtn');
 
-  openStoryCardBtn?.addEventListener('click', () => openModal('storyCardModal'));
-  closeStoryCardBtn?.addEventListener('click', () => closeModal('storyCardModal'));
+  const storyModal = bindModal('storyCardModal', 'closeStoryCardBtn');
+  openStoryCardBtn?.addEventListener('click', () => {
+    (window.api?.haptic || window.hapticFeedback || hapticFeedback)('selection');
+    storyModal.open();
+  });
 
   shareTelegramStoryBtn?.addEventListener('click', () => {
+    (window.api?.haptic || window.hapticFeedback || hapticFeedback)('light');
     const botUser = window.lastUserData?.bot_username || window.Telegram?.WebApp?.initDataUnsafe?.bot?.username || '';
-    const fallbackRef = botUser ? `https://t.me/${botUser}?start=ref_${window.lastUserData?.user?.id || ''}` : `https://t.me/?start=ref_${window.lastUserData?.user?.id || ''}`;
+    const fallbackRef = window.buildRefLink(botUser, window.lastUserData?.user?.id);
     const refLink = window.currentReferralLink || fallbackRef;
     copyToClipboard(refLink);
 

@@ -3,6 +3,7 @@ import logging
 from sqlalchemy import distinct, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from bot.common.links import ad_link
 from bot.db.models import Campaign, Order, User
 
 logger = logging.getLogger(__name__)
@@ -75,8 +76,7 @@ class CampaignRepository:
             profit = total_revenue - c.cost
             roi_pct = round((profit / c.cost) * 100, 1) if c.cost > 0 else 0
 
-            clean_username = bot_username.strip().lstrip("@") if bot_username else ""
-            deep_link = f"https://t.me/{clean_username}?start=ad_{c.code}" if clean_username else f"https://t.me/?start=ad_{c.code}"
+            deep_link = ad_link(bot_username, c.code)
 
             stats.append({
                 "id": c.id,

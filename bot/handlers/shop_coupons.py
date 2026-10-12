@@ -6,7 +6,6 @@ from aiogram.types import CallbackQuery, Message
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from bot.common import resolve_op
 from bot.db.repositories.coupon_repo import CouponRepository
 from bot.db.repositories.service_repo import ServiceRepository
 from bot.db.repositories.user_repo import UserRepository
@@ -31,7 +30,6 @@ async def apply_coupon_prompt(
     call: CallbackQuery, bot: Bot, user_repo: UserRepository,
     session: AsyncSession, state: FSMContext,
 ):
-    render_fn = resolve_op("render_menu", render_menu)
 
     parts = call.data.split(":")
     service_id = int(parts[2])
@@ -52,7 +50,7 @@ async def apply_coupon_prompt(
     kb.button(text=t(lang, "btn_cancel"), callback_data=back_cb)
     kb.adjust(1)
 
-    await render_fn(bot, user, user_repo, t(lang, "coupon_prompt"), kb.as_markup())
+    await render_menu(bot, user, user_repo, t(lang, "coupon_prompt"), kb.as_markup())
     await call.answer()
 
 
@@ -69,14 +67,11 @@ async def remove_coupon(
     await state.update_data(coupon_code=None, discount_amount=0)
 
     if flow_type == "a":
-        buy_for_account_fn = resolve_op("buy_for_account", buy_for_account)
-        await buy_for_account_fn(call, bot, user_repo, session, remnawave, state, service_id=service_id, panel_user_id=target_id)
+        await buy_for_account(call, bot, user_repo, session, remnawave, state, service_id=service_id, panel_user_id=target_id)
     elif flow_type == "n":
-        buy_new_account_fn = resolve_op("buy_new_account", buy_new_account)
-        await buy_new_account_fn(call, bot, user_repo, session, remnawave, state, service_id=service_id)
+        await buy_new_account(call, bot, user_repo, session, remnawave, state, service_id=service_id)
     else:
-        service_buy_fn = resolve_op("service_buy", service_buy)
-        await service_buy_fn(call, bot, user_repo, session, remnawave, state, service_id=service_id)
+        await service_buy(call, bot, user_repo, session, remnawave, state, service_id=service_id)
 
 
 @router.message(ServiceRequestStates.waiting_coupon)
@@ -84,8 +79,6 @@ async def process_coupon_code(
     message: Message, bot: Bot, user_repo: UserRepository,
     session: AsyncSession, remnawave: RemnawaveClient, state: FSMContext,
 ):
-    render_fn = resolve_op("render_menu", render_menu)
-    render_confirm_fn = resolve_op("_render_buy_confirm", _render_buy_confirm)
 
     user = await user_repo.get_or_create(message.from_user.id, message.from_user.username)
     lang = user.language or "fa"
@@ -101,8 +94,7 @@ async def process_coupon_code(
         await state.clear()
         return
 
-    s_repo_cls = resolve_op("ServiceRepository", ServiceRepository)
-    service = await s_repo_cls(session).get(service_id)
+    service = await ServiceRepository(session).get(service_id)
     if not service:
         await state.clear()
         return
@@ -121,7 +113,7 @@ async def process_coupon_code(
         kb.button(text=t(lang, "btn_cancel"), callback_data=back_cb)
         kb.adjust(1)
         err_msg = t(lang, err_key or "coupon_not_found")
-        await render_fn(
+        await render_menu(
             bot, user, user_repo,
             f"{err_msg}\n\n{t(lang, 'coupon_prompt')}",
             kb.as_markup(),
@@ -130,8 +122,7 @@ async def process_coupon_code(
 
     await state.update_data(coupon_code=code, discount_amount=discount_amount)
 
-    w_repo_cls = resolve_op("WalletRepository", WalletRepository)
-    wallet = await w_repo_cls(session).get_wallet(user.telegram_id)
+    wallet = await WalletRepository(session).get_wallet(user.telegram_id)
     target_name = None
     confirm_cb = f"svc:confirm:{service.id}"
     back_cb = "menu:services"
@@ -147,7 +138,7 @@ async def process_coupon_code(
         confirm_cb = f"svc:confirmn:{service.id}"
         back_cb = f"svc:buy:{service.id}"
 
-    await render_confirm_fn(
+    await _render_buy_confirm(
         bot, user, user_repo, session, service, wallet.balance,
         confirm_callback=confirm_cb,
         lang=lang,

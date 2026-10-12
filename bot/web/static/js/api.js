@@ -41,6 +41,20 @@ const api = {
     }
   },
 
+  async getBlob(url, options = {}) {
+    const headers = {
+      'X-Telegram-Init-Data': this.getInitData(),
+      ...(options.headers || {}),
+    };
+    const response = await fetch(url, { ...options, headers });
+    if (!response.ok) {
+      const err = new Error(`HTTP error ${response.status}`);
+      err.status = response.status;
+      throw err;
+    }
+    return response.blob();
+  },
+
   async get(url, queryParams = {}) {
     const searchParams = new URLSearchParams(queryParams);
     const locParams = new URLSearchParams(window.location.search);
@@ -316,6 +330,24 @@ const api = {
 
   async deleteAdminCampaign(id) {
     return this.post('/api/admin/campaign/delete', { id });
+  },
+
+  haptic(type = 'success') {
+    if (typeof window.hapticFeedback === 'function') {
+      window.hapticFeedback(type);
+    } else if (window.Telegram?.WebApp?.HapticFeedback) {
+      try {
+        if (type === 'impact') {
+          window.Telegram.WebApp.HapticFeedback.impactOccurred('medium');
+        } else if (type === 'light') {
+          window.Telegram.WebApp.HapticFeedback.impactOccurred('light');
+        } else if (type === 'selection') {
+          window.Telegram.WebApp.HapticFeedback.selectionChanged();
+        } else {
+          window.Telegram.WebApp.HapticFeedback.notificationOccurred(type);
+        }
+      } catch (e) {}
+    }
   },
 };
 

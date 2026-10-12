@@ -10,7 +10,7 @@ from aiogram.types import CallbackQuery, CopyTextButton, InlineKeyboardMarkup, M
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from bot.common import SEPARATOR, admin_thread_kwargs, parse_int, resolve_op
+from bot.common import SEPARATOR, admin_thread_kwargs, parse_int
 from bot.config import get_settings
 from bot.db.repositories.support_repo import SupportMessageRepository
 from bot.db.repositories.user_repo import UserRepository
@@ -95,7 +95,6 @@ async def service_new_request(
 ):
     """«درخواست سرویس جدید» / «اکانت تست رایگان». If trial is enabled, asks for username
     and provisions a 1-day / 1GB trial account, verifies user, and binds Telegram ID."""
-    render_fn = resolve_op("render_menu", render_menu)
 
     await state.clear()
     user = await user_repo.get_or_create(call.from_user.id, call.from_user.username)
@@ -108,7 +107,7 @@ async def service_new_request(
             kb.button(text=t(lang, "btn_services"), callback_data="menu:services")
             kb.button(text=t(lang, "btn_back"), callback_data="nav:welcome")
             kb.adjust(1)
-            await render_fn(bot, user, user_repo, t(lang, "trial_already_claimed"), kb.as_markup())
+            await render_menu(bot, user, user_repo, t(lang, "trial_already_claimed"), kb.as_markup())
             await call.answer()
             return
 
@@ -122,7 +121,7 @@ async def service_new_request(
             traffic=store.trial_traffic_gb,
             days=store.trial_duration_days,
         )
-        await render_fn(bot, user, user_repo, text, kb.as_markup())
+        await render_menu(bot, user, user_repo, text, kb.as_markup())
         await call.answer()
         return
 
@@ -131,7 +130,7 @@ async def service_new_request(
     kb = InlineKeyboardBuilder()
     kb.button(text=t(lang, "btn_cancel"), callback_data="nav:welcome")
     kb.adjust(1)
-    await render_fn(bot, user, user_repo, t(lang, "request_prompt"), kb.as_markup())
+    await render_menu(bot, user, user_repo, t(lang, "request_prompt"), kb.as_markup())
     await call.answer()
 
 
@@ -140,8 +139,6 @@ async def service_trial_username(
     message: Message, bot: Bot, user_repo: UserRepository,
     session: AsyncSession, remnawave: RemnawaveClient, state: FSMContext,
 ):
-    render_fn = resolve_op("render_menu", render_menu)
-    reward_ref_fn = resolve_op("_maybe_reward_referrer", _maybe_reward_referrer)
 
     user = await user_repo.get_or_create(message.from_user.id, message.from_user.username)
     lang = user.language or "fa"
@@ -153,7 +150,7 @@ async def service_trial_username(
         kb = InlineKeyboardBuilder()
         kb.button(text=t(lang, "btn_cancel"), callback_data="nav:welcome")
         kb.adjust(1)
-        await render_fn(bot, user, user_repo, t(lang, "trial_username_invalid"), kb.as_markup())
+        await render_menu(bot, user, user_repo, t(lang, "trial_username_invalid"), kb.as_markup())
         return
 
     store = await get_store_settings(session)
@@ -162,7 +159,7 @@ async def service_trial_username(
         kb = InlineKeyboardBuilder()
         kb.button(text=t(lang, "btn_back"), callback_data="nav:welcome")
         kb.adjust(1)
-        await render_fn(bot, user, user_repo, t(lang, "trial_already_claimed"), kb.as_markup())
+        await render_menu(bot, user, user_repo, t(lang, "trial_already_claimed"), kb.as_markup())
         return
 
     existing = await remnawave.get_user_by_username(raw_name)
@@ -170,7 +167,7 @@ async def service_trial_username(
         kb = InlineKeyboardBuilder()
         kb.button(text=t(lang, "btn_cancel"), callback_data="nav:welcome")
         kb.adjust(1)
-        await render_fn(bot, user, user_repo, t(lang, "trial_username_taken"), kb.as_markup())
+        await render_menu(bot, user, user_repo, t(lang, "trial_username_taken"), kb.as_markup())
         return
 
     now = datetime.now(timezone.utc)
@@ -192,7 +189,7 @@ async def service_trial_username(
         kb = InlineKeyboardBuilder()
         kb.button(text=t(lang, "btn_cancel"), callback_data="nav:welcome")
         kb.adjust(1)
-        await render_fn(bot, user, user_repo, t(lang, "acc_error"), kb.as_markup())
+        await render_menu(bot, user, user_repo, t(lang, "acc_error"), kb.as_markup())
         return
 
     await user_repo.set_verified(user)
@@ -200,7 +197,7 @@ async def service_trial_username(
     await state.clear()
 
     # Reward referrer if applicable
-    await reward_ref_fn(bot, session, remnawave, user)
+    await _maybe_reward_referrer(bot, session, remnawave, user)
 
     sub_url = created.get("subscriptionUrl")
     panel_user_id = created.get("id")
@@ -246,7 +243,7 @@ async def service_trial_username(
         receipt_lines.append(t(lang, "buy_success_link", url=escape(sub_url)))
     receipt_lines.append(f"\n💡 {t(lang, 'trial_welcome_hint')}")
 
-    await render_fn(bot, user, user_repo, "\n".join(receipt_lines), kb.as_markup())
+    await render_menu(bot, user, user_repo, "\n".join(receipt_lines), kb.as_markup())
 
     tg_username = f"@{user.username}" if user.username else "—"
     admin_text = (
@@ -268,7 +265,6 @@ async def service_new_forward(
     message: Message, bot: Bot, user_repo: UserRepository,
     session: AsyncSession, state: FSMContext,
 ):
-    render_fn = resolve_op("render_menu", render_menu)
 
     user = await user_repo.get_or_create(message.from_user.id, message.from_user.username)
     settings = get_settings()
@@ -344,7 +340,7 @@ async def service_new_forward(
     kb = InlineKeyboardBuilder()
     kb.button(text=t(lang, "btn_back_to_menu"), callback_data="nav:main_menu")
     kb.adjust(1)
-    await render_fn(
+    await render_menu(
         bot, user, user_repo,
         t(lang, "request_sent" if sent else "support_failed"),
         kb.as_markup(),

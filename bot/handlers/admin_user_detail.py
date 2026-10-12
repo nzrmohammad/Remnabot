@@ -16,7 +16,6 @@ from bot.common import (
     get_used_bytes,
     is_admin,
     parse_int,
-    resolve_op,
 )
 from bot.db.repositories.admin_log_repo import AdminLogRepository
 from bot.db.repositories.user_repo import UserRepository
@@ -41,7 +40,6 @@ async def _render_panel_user_detail(
     bot: Bot, user, user_repo: UserRepository, remnawave: RemnawaveClient,
     panel_user_id: int, category: str, page: int, toast: str | None = None,
 ) -> None:
-    render_menu_fn = resolve_op("render_menu", render_menu)
 
     lang = user.language or "fa"
     puser = await remnawave.get_panel_user_by_id(panel_user_id)
@@ -50,7 +48,7 @@ async def _render_panel_user_detail(
         back_cb = "adm:user:search" if category == "search" else f"adm:ulist:{category}:{page}"
         kb.button(text=t(lang, "btn_back"), callback_data=back_cb)
         kb.adjust(1)
-        await render_menu_fn(bot, user, user_repo, t(lang, "acc_error"), kb.as_markup())
+        await render_menu(bot, user, user_repo, t(lang, "acc_error"), kb.as_markup())
         return
 
     uname = str(puser.get("username", "—"))
@@ -209,7 +207,7 @@ async def _render_panel_user_detail(
     if toast:
         text = f"{toast}\n\n{text}"
 
-    await render_menu_fn(bot, user, user_repo, text, kb.as_markup())
+    await render_menu(bot, user, user_repo, text, kb.as_markup())
 
 
 @router.callback_query(F.data.startswith("adm:puser:"))
@@ -225,8 +223,6 @@ async def panel_user_callback_dispatch(
     user = await user_repo.get_or_create(call.from_user.id, call.from_user.username)
     lang = user.language
 
-    render_detail_fn = resolve_op("_render_panel_user_detail", _render_panel_user_detail)
-    render_menu_fn = resolve_op("render_menu", render_menu)
 
     sub_action = parts[2]
     if sub_action == "toggle":
@@ -241,7 +237,7 @@ async def panel_user_callback_dispatch(
             await AdminLogRepository(session).log(
                 call.from_user.id, "toggle_user_status", detail=f"id={p_id} status={new_status}"
             )
-            await render_detail_fn(bot, user, user_repo, remnawave, p_id, cat, page, toast=t(lang, "toast_status_toggled"))
+            await _render_panel_user_detail(bot, user, user_repo, remnawave, p_id, cat, page, toast=t(lang, "toast_status_toggled"))
         await call.answer()
         return
 
@@ -253,7 +249,7 @@ async def panel_user_callback_dispatch(
         await AdminLogRepository(session).log(
             call.from_user.id, "reset_user_traffic", detail=f"id={p_id}"
         )
-        await render_detail_fn(bot, user, user_repo, remnawave, p_id, cat, page, toast=t(lang, "toast_traffic_reset"))
+        await _render_panel_user_detail(bot, user, user_repo, remnawave, p_id, cat, page, toast=t(lang, "toast_traffic_reset"))
         await call.answer()
         return
 
@@ -265,7 +261,7 @@ async def panel_user_callback_dispatch(
         await AdminLogRepository(session).log(
             call.from_user.id, "revoke_user_sub", detail=f"id={p_id}"
         )
-        await render_detail_fn(bot, user, user_repo, remnawave, p_id, cat, page, toast=t(lang, "toast_sub_revoked"))
+        await _render_panel_user_detail(bot, user, user_repo, remnawave, p_id, cat, page, toast=t(lang, "toast_sub_revoked"))
         await call.answer()
         return
 
@@ -278,7 +274,7 @@ async def panel_user_callback_dispatch(
         kb = InlineKeyboardBuilder()
         kb.button(text=t(lang, "btn_cancel"), callback_data=f"adm:puser:{p_id}:{cat}:{page}")
         kb.adjust(1)
-        await render_menu_fn(bot, user, user_repo, t(lang, "puser_extend_prompt_days"), kb.as_markup())
+        await render_menu(bot, user, user_repo, t(lang, "puser_extend_prompt_days"), kb.as_markup())
         await call.answer()
         return
 
@@ -293,7 +289,7 @@ async def panel_user_callback_dispatch(
         kb.button(text=t(lang, "strat_month"), callback_data=f"adm:puser:setstrat:{p_id}:MONTH:{cat}:{page}")
         kb.button(text=t(lang, "btn_back"), callback_data=f"adm:puser:{p_id}:{cat}:{page}")
         kb.adjust(1)
-        await render_menu_fn(bot, user, user_repo, t(lang, "strat_title"), kb.as_markup())
+        await render_menu(bot, user, user_repo, t(lang, "strat_title"), kb.as_markup())
         await call.answer()
         return
 
@@ -306,7 +302,7 @@ async def panel_user_callback_dispatch(
         await AdminLogRepository(session).log(
             call.from_user.id, "traffic_strategy", detail=f"id={p_id} strat={strat}"
         )
-        await render_detail_fn(bot, user, user_repo, remnawave, p_id, cat, page, toast=t(lang, "toast_strat_updated"))
+        await _render_panel_user_detail(bot, user, user_repo, remnawave, p_id, cat, page, toast=t(lang, "toast_strat_updated"))
         await call.answer()
         return
 
@@ -319,7 +315,7 @@ async def panel_user_callback_dispatch(
         kb = InlineKeyboardBuilder()
         kb.button(text=t(lang, "btn_cancel"), callback_data=f"adm:puser:{p_id}:{cat}:{page}")
         kb.adjust(1)
-        await render_menu_fn(bot, user, user_repo, t(lang, "puser_tid_prompt"), kb.as_markup())
+        await render_menu(bot, user, user_repo, t(lang, "puser_tid_prompt"), kb.as_markup())
         await call.answer()
         return
 
@@ -332,7 +328,7 @@ async def panel_user_callback_dispatch(
         kb = InlineKeyboardBuilder()
         kb.button(text=t(lang, "btn_cancel"), callback_data=f"adm:puser:{p_id}:{cat}:{page}")
         kb.adjust(1)
-        await render_menu_fn(bot, user, user_repo, t(lang, "puser_desc_prompt"), kb.as_markup())
+        await render_menu(bot, user, user_repo, t(lang, "puser_desc_prompt"), kb.as_markup())
         await call.answer()
         return
 
@@ -346,7 +342,7 @@ async def panel_user_callback_dispatch(
         return
 
     await state.clear()
-    await render_detail_fn(bot, user, user_repo, remnawave, p_id, cat, page)
+    await _render_panel_user_detail(bot, user, user_repo, remnawave, p_id, cat, page)
     await call.answer()
 
 
@@ -354,7 +350,6 @@ async def panel_user_callback_dispatch(
 async def puser_extend_days_step(
     message: Message, bot: Bot, user_repo: UserRepository, state: FSMContext,
 ):
-    render_menu_fn = resolve_op("render_menu", render_menu)
 
     user = await user_repo.get_or_create(message.from_user.id, message.from_user.username)
     lang = user.language
@@ -370,7 +365,7 @@ async def puser_extend_days_step(
         kb = InlineKeyboardBuilder()
         kb.button(text=t(lang, "btn_cancel"), callback_data=f"adm:puser:{p_id}:{cat}:{page}")
         kb.adjust(1)
-        await render_menu_fn(bot, user, user_repo, t(lang, "user_create_invalid_duration"), kb.as_markup())
+        await render_menu(bot, user, user_repo, t(lang, "user_create_invalid_duration"), kb.as_markup())
         return
 
     await state.update_data(ext_days=parsed)
@@ -379,7 +374,7 @@ async def puser_extend_days_step(
     kb = InlineKeyboardBuilder()
     kb.button(text=t(lang, "btn_cancel"), callback_data=f"adm:puser:{p_id}:{cat}:{page}")
     kb.adjust(1)
-    await render_menu_fn(bot, user, user_repo, t(lang, "puser_extend_prompt_traffic"), kb.as_markup())
+    await render_menu(bot, user, user_repo, t(lang, "puser_extend_prompt_traffic"), kb.as_markup())
 
 
 @router.message(UserManagementStates.waiting_extend_traffic, F.text)
@@ -387,10 +382,7 @@ async def puser_extend_traffic_step(
     message: Message, bot: Bot, user_repo: UserRepository,
     session: AsyncSession, state: FSMContext, remnawave: RemnawaveClient,
 ):
-    render_menu_fn = resolve_op("render_menu", render_menu)
-    render_detail_fn = resolve_op("_render_panel_user_detail", _render_panel_user_detail)
     import bot.handlers.admin_users as _users
-    render_list_fn = resolve_op("_render_panel_users_list", _users._render_panel_users_list)
 
     user = await user_repo.get_or_create(message.from_user.id, message.from_user.username)
     lang = user.language
@@ -407,14 +399,14 @@ async def puser_extend_traffic_step(
         kb = InlineKeyboardBuilder()
         kb.button(text=t(lang, "btn_cancel"), callback_data=f"adm:puser:{p_id}:{cat}:{page}")
         kb.adjust(1)
-        await render_menu_fn(bot, user, user_repo, t(lang, "user_create_invalid_traffic"), kb.as_markup())
+        await render_menu(bot, user, user_repo, t(lang, "user_create_invalid_traffic"), kb.as_markup())
         return
 
     ext_gb = parsed
     puser = await remnawave.get_panel_user_by_id(p_id)
     if not puser:
         await state.clear()
-        await render_list_fn(bot, user, user_repo, remnawave, cat, page)
+        await _users._render_panel_users_list(bot, user, user_repo, remnawave, cat, page)
         return
 
     cur_exp_str = puser.get("expireAt")
@@ -442,7 +434,7 @@ async def puser_extend_traffic_step(
         message.from_user.id, "quick_extend", detail=f"id={p_id} +days={ext_days} +gb={ext_gb}",
     )
     await state.clear()
-    await render_detail_fn(bot, user, user_repo, remnawave, p_id, cat, page, toast=t(lang, "toast_user_extended"))
+    await _render_panel_user_detail(bot, user, user_repo, remnawave, p_id, cat, page, toast=t(lang, "toast_user_extended"))
 
 
 @router.message(UserManagementStates.waiting_edit_tid, F.text)
@@ -450,8 +442,6 @@ async def puser_edit_tid_step(
     message: Message, bot: Bot, user_repo: UserRepository,
     session: AsyncSession, state: FSMContext, remnawave: RemnawaveClient,
 ):
-    render_menu_fn = resolve_op("render_menu", render_menu)
-    render_detail_fn = resolve_op("_render_panel_user_detail", _render_panel_user_detail)
 
     user = await user_repo.get_or_create(message.from_user.id, message.from_user.username)
     lang = user.language
@@ -471,7 +461,7 @@ async def puser_edit_tid_step(
             kb = InlineKeyboardBuilder()
             kb.button(text=t(lang, "btn_cancel"), callback_data=f"adm:puser:{p_id}:{cat}:{page}")
             kb.adjust(1)
-            await render_menu_fn(bot, user, user_repo, t(lang, "user_add_invalid"), kb.as_markup())
+            await render_menu(bot, user, user_repo, t(lang, "user_add_invalid"), kb.as_markup())
             return
         new_tid = parsed
 
@@ -480,7 +470,7 @@ async def puser_edit_tid_step(
         message.from_user.id, "edit_telegram_id", detail=f"id={p_id} tid={new_tid}",
     )
     await state.clear()
-    await render_detail_fn(bot, user, user_repo, remnawave, p_id, cat, page, toast=t(lang, "toast_tid_updated"))
+    await _render_panel_user_detail(bot, user, user_repo, remnawave, p_id, cat, page, toast=t(lang, "toast_tid_updated"))
 
 
 @router.message(UserManagementStates.waiting_edit_desc, F.text)
@@ -488,7 +478,6 @@ async def puser_edit_desc_step(
     message: Message, bot: Bot, user_repo: UserRepository,
     session: AsyncSession, state: FSMContext, remnawave: RemnawaveClient,
 ):
-    render_detail_fn = resolve_op("_render_panel_user_detail", _render_panel_user_detail)
 
     user = await user_repo.get_or_create(message.from_user.id, message.from_user.username)
     lang = user.language
@@ -508,4 +497,4 @@ async def puser_edit_desc_step(
         message.from_user.id, "edit_description", detail=f"id={p_id} desc={new_desc[:30]}",
     )
     await state.clear()
-    await render_detail_fn(bot, user, user_repo, remnawave, p_id, cat, page, toast=t(lang, "toast_desc_updated"))
+    await _render_panel_user_detail(bot, user, user_repo, remnawave, p_id, cat, page, toast=t(lang, "toast_desc_updated"))

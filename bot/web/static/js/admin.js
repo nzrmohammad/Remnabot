@@ -6,6 +6,16 @@
 (function () {
   'use strict';
 
+  const _domCache = new Map();
+  const $ = id => {
+    let elem = _domCache.get(id);
+    if (!elem || !elem.isConnected) {
+      elem = document.getElementById(id);
+      if (elem) _domCache.set(id, elem);
+    }
+    return elem;
+  };
+
   // State Management
   const tg = window.Telegram?.WebApp;
   if (tg) {
@@ -32,8 +42,8 @@
 
   // --- 0. Splash Screen Handler ---
   function dismissSplash() {
-    const splash = document.getElementById('splashScreen');
-    const splashBar = document.getElementById('splashBar');
+    const splash = $('splashScreen');
+    const splashBar = $('splashBar');
     if (!splash || splash.classList.contains('hidden')) return;
 
     if (splashBar) splashBar.style.width = '100%';
@@ -149,35 +159,47 @@
 
       // Lazy load tab data
       if (targetId === 'tab-admin-nodes') {
-        syncAdminOverview(false);
-      } else if (targetId === 'tab-admin-users' && document.getElementById('adminUsersList')?.children.length <= 1) {
+        if ($('adminOverviewNodesList')?.children.length <= 1) {
+          syncAdminOverview(false);
+        }
+      } else if (targetId === 'tab-admin-users' && $('adminUsersList')?.children.length <= 1) {
         fetchAdminUsers(1);
       } else if (targetId === 'tab-admin-plans') {
-        fetchAdminPlans();
-        fetchAdminCoupons();
+        if ($('adminPlansList')?.children.length <= 1) {
+          fetchAdminPlans();
+          fetchAdminCoupons();
+        }
       } else if (targetId === 'tab-admin-coupons') {
-        fetchAdminCoupons();
+        if ($('adminCouponsList')?.children.length <= 1) {
+          fetchAdminCoupons();
+        }
       } else if (targetId === 'tab-admin-tickets') {
-        fetchAdminTopups();
-        fetchTicketThreads();
-        const contentCampaigns = document.getElementById('subtabContentCampaigns');
-        if (contentCampaigns && !contentCampaigns.classList.contains('hidden')) {
-          window.adminActions?.fetchAdminCampaigns?.();
+        if ($('ticketThreadsList')?.children.length === 0) {
+          fetchAdminTopups();
+          fetchTicketThreads();
+          const contentCampaigns = $('subtabContentCampaigns');
+          if (contentCampaigns && !contentCampaigns.classList.contains('hidden')) {
+            window.adminActions?.fetchAdminCampaigns?.();
+          }
         }
       } else if (targetId === 'tab-admin-campaigns') {
-        window.adminActions.fetchAdminCampaigns();
+        if ($('adminCampaignsList')?.children.length <= 1) {
+          window.adminActions?.fetchAdminCampaigns?.();
+        }
       } else if (targetId === 'tab-admin-settings') {
-        fetchAdminSettings();
+        if (!window._adminSettingsLoaded) {
+          fetchAdminSettings();
+        }
       }
     });
   });
 
   // Subtab switcher for Unified Plans & Discounts Tab
   window.switchServicesSubtab = function(subtab) {
-    const btnPlans = document.getElementById('subtabBtnPlans');
-    const btnCoupons = document.getElementById('subtabBtnCoupons');
-    const contentPlans = document.getElementById('subtabContentPlans');
-    const contentCoupons = document.getElementById('subtabContentCoupons');
+    const btnPlans = $('subtabBtnPlans');
+    const btnCoupons = $('subtabBtnCoupons');
+    const contentPlans = $('subtabContentPlans');
+    const contentCoupons = $('subtabContentCoupons');
 
     if (window.hapticFeedback) window.hapticFeedback('selection');
 
@@ -204,10 +226,10 @@
 
   // Subtab switcher for Unified Financial Tab (Topups vs Campaigns)
   window.switchFinanceSubtab = function(subtab) {
-    const btnTopups = document.getElementById('subtabBtnTopups');
-    const btnCampaigns = document.getElementById('subtabBtnCampaigns');
-    const contentTopups = document.getElementById('subtabContentTopups');
-    const contentCampaigns = document.getElementById('subtabContentCampaigns');
+    const btnTopups = $('subtabBtnTopups');
+    const btnCampaigns = $('subtabBtnCampaigns');
+    const contentTopups = $('subtabContentTopups');
+    const contentCampaigns = $('subtabContentCampaigns');
 
     if (window.hapticFeedback) window.hapticFeedback('selection');
 
@@ -235,8 +257,8 @@
   };
 
   // --- 3. Theme Toggle ---
-  const adminThemeToggle = document.getElementById('adminThemeToggle');
-  const adminThemeIcon = document.getElementById('adminThemeIcon');
+  const adminThemeToggle = $('adminThemeToggle');
+  const adminThemeIcon = $('adminThemeIcon');
   const getInitialAdminTheme = () => {
     const saved = localStorage.getItem('remna_admin_theme');
     if (saved) return saved === 'dark';
@@ -310,8 +332,8 @@
   };
 
   const applyThemeClasses = () => {
-    const appBody = document.getElementById('appBody');
-    const phoneFrame = document.getElementById('phoneFrame');
+    const appBody = $('appBody');
+    const phoneFrame = $('phoneFrame');
     if (isDark) {
       document.documentElement.classList.add('dark');
       document.documentElement.classList.remove('theme-light');
@@ -366,17 +388,17 @@
       const nodes = data.nodes || [];
 
       // KPI Cards
-      const totalU = document.getElementById('adminTotalUsers');
+      const totalU = $('adminTotalUsers');
       if (totalU) totalU.innerText = formatNumber(m.total_users || 0);
 
-      const activeU = document.getElementById('adminActiveUsers');
+      const activeU = $('adminActiveUsers');
       if (activeU) activeU.innerText = `${formatNumber(m.active_panel_users || 0)} اکانت فعال پنل`;
 
-      const rev = document.getElementById('adminTodayRevenue');
+      const rev = $('adminTodayRevenue');
       if (rev) rev.innerText = formatNumber(m.today_revenue_toman || 0);
 
       // Traffic: if >= 1000 GB, convert to TB for concise and single-line layout
-      const bw = document.getElementById('adminMonthTraffic');
+      const bw = $('adminMonthTraffic');
       if (bw) {
         const trafficGb = Number(m.month_traffic_gb || 0);
         if (trafficGb >= 1000) {
@@ -386,17 +408,17 @@
         }
       }
 
-      const onDev = document.getElementById('adminOnlineDevices');
+      const onDev = $('adminOnlineDevices');
       if (onDev) onDev.innerText = formatNumber(m.online_devices || 0);
 
       // Infra-Billing & Net Profit Analytics
-      const mRev = document.getElementById('adminMonthlyRevenue');
+      const mRev = $('adminMonthlyRevenue');
       if (mRev) mRev.innerText = formatNumber(m.monthly_revenue_toman || 0);
 
-      const iCost = document.getElementById('adminTotalInfraCost');
+      const iCost = $('adminTotalInfraCost');
       if (iCost) iCost.innerText = formatNumber(m.total_infra_cost_toman || 0);
 
-      const nProf = document.getElementById('adminNetProfit');
+      const nProf = $('adminNetProfit');
       if (nProf) {
         const netVal = Number(m.net_profit_toman || 0);
         const sign = netVal > 0 ? '+' : (netVal < 0 ? '-' : '');
@@ -406,7 +428,7 @@
           : 'text-rose-400 font-mono font-bold text-lg';
       }
 
-      const pMargin = document.getElementById('adminProfitMarginBadge');
+      const pMargin = $('adminProfitMarginBadge');
       if (pMargin) {
         const hasRevenue = Number(m.monthly_revenue_toman || 0) > 0;
         const marginVal = m.profit_margin_percent;
@@ -423,13 +445,13 @@
         }
       }
 
-      const costGb = document.getElementById('adminAvgCostPerGb');
+      const costGb = $('adminAvgCostPerGb');
       if (costGb) costGb.innerText = formatNumber(m.avg_cost_per_gb || 0);
 
       // Dynamic Pending Tasks Alert Banner (Hidden if no pending tasks)
-      const pendingBox = document.getElementById('adminPendingBanner');
-      const pendingSum = document.getElementById('adminPendingSummary');
-      const viewPendingBtn = document.getElementById('viewPendingBtn');
+      const pendingBox = $('adminPendingBanner');
+      const pendingSum = $('adminPendingSummary');
+      const viewPendingBtn = $('viewPendingBtn');
       const pTopups = m.pending_topups || 0;
       const offNodes = m.offline_nodes || 0;
 
@@ -447,11 +469,11 @@
 
       // Cluster Status Header Bar
       const onlineNodes = nodes.filter(n => (n.status || '').toUpperCase() === 'ONLINE').length;
-      const clusterText = document.getElementById('adminClusterStatusText');
+      const clusterText = $('adminClusterStatusText');
       if (clusterText) {
         clusterText.innerHTML = `وضعیت کلاستر: <b class="text-emerald-400">${formatNumber(onlineNodes)} از ${formatNumber(nodes.length)} نود آنلاین</b>`;
       }
-      const syncText = document.getElementById('adminLastSyncText');
+      const syncText = $('adminLastSyncText');
       if (syncText) syncText.innerText = 'Sync: آنلاین';
 
       // Render Dashboard Analytics Charts
@@ -462,6 +484,9 @@
       }
       if (data.charts) {
         const c = data.charts;
+        if (typeof Chart === 'undefined' && typeof window.ensureChart === 'function') {
+          try { await window.ensureChart(); } catch (e) {}
+        }
         if (typeof Chart !== 'undefined') {
           renderAdminSalesChart(c.sales_labels, c.sales_data);
           renderAdminMonthlySalesChart(c.sales_30d_labels, c.sales_30d_data, c.sales_30d_total);
@@ -474,23 +499,6 @@
           renderAdminPaymentChart(c.payment_distribution);
           renderAdminRetentionStatsChart(c.retention_stats);
           renderAdminHwidChart(c.hwid_distribution);
-        } else {
-          setTimeout(() => {
-            if (typeof Chart !== 'undefined' && lastOverviewData?.charts) {
-              const ch = lastOverviewData.charts;
-              renderAdminSalesChart(ch.sales_labels, ch.sales_data);
-              renderAdminMonthlySalesChart(ch.sales_30d_labels, ch.sales_30d_data, ch.sales_30d_total);
-              renderAdminTrafficChart(ch.traffic_labels, ch.traffic_data, ch.traffic_total_gb, ch.today_traffic_gb);
-              renderAdminLocationChart(ch.location_share);
-              renderAdminHourlyChart(ch.hourly_distribution);
-              renderAdminRetentionChart(ch.retention_trend);
-              renderAdminPlanSalesChart(ch.plan_distribution);
-              renderAdminPlatformChart(ch.platform_distribution);
-              renderAdminPaymentChart(ch.payment_distribution);
-              renderAdminRetentionStatsChart(ch.retention_stats);
-              renderAdminHwidChart(ch.hwid_distribution);
-            }
-          }, 350);
         }
       }
 
@@ -511,13 +519,13 @@
   }
   let salesChartInstance = null;
   function renderAdminSalesChart(labels, values) {
-    const canvas = document.getElementById('adminSalesChart');
+    const canvas = $('adminSalesChart');
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
     const totalSum = (values || []).reduce((a, b) => a + b, 0);
-    const totalEl = document.getElementById('salesChartTotal');
+    const totalEl = $('salesChartTotal');
     if (totalEl) totalEl.innerHTML = `<span class="font-mono font-bold">${formatNumber(totalSum)}</span> <span>تومان</span>`;
 
     if (salesChartInstance) {
@@ -574,13 +582,13 @@
 
   let monthlySalesChartInstance = null;
   function renderAdminMonthlySalesChart(labels, values, totalSum) {
-    const canvas = document.getElementById('adminMonthlySalesChart');
+    const canvas = $('adminMonthlySalesChart');
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
     const total = totalSum != null ? totalSum : (values || []).reduce((a, b) => a + b, 0);
-    const totalEl = document.getElementById('monthlySalesChartTotal');
+    const totalEl = $('monthlySalesChartTotal');
     if (totalEl) totalEl.innerHTML = `<span class="font-mono font-bold">${formatNumber(total)}</span> <span>تومان</span>`;
 
     if (monthlySalesChartInstance) {
@@ -650,13 +658,13 @@
 
   let trafficChartInstance = null;
   function renderAdminTrafficChart(labels, values, totalGb, todayGb) {
-    const canvas = document.getElementById('adminTrafficChart');
+    const canvas = $('adminTrafficChart');
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
     const currentToday = Number(todayGb || (values && values[values.length - 1]) || 0);
-    const totalEl = document.getElementById('trafficChartTotal');
+    const totalEl = $('trafficChartTotal');
     if (totalEl) {
       totalEl.innerHTML = `<span dir="ltr" class="inline-flex items-baseline gap-1"><span class="font-bold text-cyan-300 font-mono text-xs">${formatNumber(totalGb || currentToday || 0)}</span> <span class="text-[9px] text-cyan-300 font-sans">GB</span></span>`;
     }
@@ -762,7 +770,7 @@
 
   let locationChartInstance = null;
   function renderAdminLocationChart(locationShare) {
-    const canvas = document.getElementById('adminLocationChart');
+    const canvas = $('adminLocationChart');
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
@@ -825,14 +833,14 @@
 
   let hourlyChartInstance = null;
   function renderAdminHourlyChart(hourlyDist) {
-    const canvas = document.getElementById('adminHourlyChart');
+    const canvas = $('adminHourlyChart');
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
     const labels = hourlyDist?.labels || [];
     const values = hourlyDist?.data || [];
-    const peakBadge = document.getElementById('peakHourBadge');
+    const peakBadge = $('peakHourBadge');
     if (peakBadge && hourlyDist?.peak_hour) {
       peakBadge.innerText = `Peak: ${hourlyDist.peak_hour}`;
     }
@@ -902,7 +910,7 @@
 
   let retentionChartInstance = null;
   function renderAdminRetentionChart(retentionTrend) {
-    const canvas = document.getElementById('adminRetentionChart');
+    const canvas = $('adminRetentionChart');
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
@@ -986,7 +994,7 @@
 
   let planSalesChartInstance = null;
   function renderAdminPlanSalesChart(planDist) {
-    const canvas = document.getElementById('adminPlanSalesChart');
+    const canvas = $('adminPlanSalesChart');
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
@@ -1045,7 +1053,7 @@
   // OS & Platform Share Chart
   let platformChartInstance = null;
   function renderAdminPlatformChart(platformDist) {
-    const canvas = document.getElementById('adminPlatformChart');
+    const canvas = $('adminPlatformChart');
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
@@ -1106,7 +1114,7 @@
   // Payment Methods Breakdown Chart (Card-to-card vs Crypto)
   let paymentChartInstance = null;
   function renderAdminPaymentChart(paymentDist) {
-    const canvas = document.getElementById('adminPaymentChart');
+    const canvas = $('adminPaymentChart');
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
@@ -1165,7 +1173,7 @@
   // Retention & Churn Rate Chart
   let churnChartInstance = null;
   function renderAdminRetentionStatsChart(retentionStats) {
-    const canvas = document.getElementById('adminChurnChart');
+    const canvas = $('adminChurnChart');
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
@@ -1174,7 +1182,7 @@
     const values = retentionStats?.data || [0, 0, 0];
     const retRate = retentionStats?.retention_rate !== undefined ? retentionStats.retention_rate : 0;
 
-    const badge = document.getElementById('churnRateBadge');
+    const badge = $('churnRateBadge');
     if (badge) badge.innerText = `تمدید: ${retRate}%`;
 
     if (churnChartInstance) {
@@ -1225,7 +1233,7 @@
   // HWID Inspector Distribution & Account Sharing Risk Chart
   let hwidChartInstance = null;
   function renderAdminHwidChart(hwidDist) {
-    const canvas = document.getElementById('adminHwidChart');
+    const canvas = $('adminHwidChart');
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
@@ -1234,7 +1242,7 @@
     const values = hwidDist?.data || [0, 0, 0, 0];
     const riskCount = hwidDist?.high_risk_count || 0;
 
-    const badge = document.getElementById('hwidRiskBadge');
+    const badge = $('hwidRiskBadge');
     if (badge) {
       badge.innerText = riskCount > 0 ? `⚠️ ${riskCount} کاربر پرخطر` : 'توزیع HWID';
       if (riskCount > 0) {
@@ -1304,7 +1312,7 @@
 
   // Collapsible Accordion Node Card Renderer
   function renderOverviewNodes(nodes) {
-    const container = document.getElementById('adminOverviewNodesList');
+    const container = $('adminOverviewNodesList');
     if (!container) return;
     if (!nodes || nodes.length === 0) {
       container.innerHTML = '<div class="p-3 text-center text-slate-400">هیچ نودی یافت نشد</div>';
@@ -1333,7 +1341,7 @@
             <div class="flex items-center gap-2.5">
               <span class="text-xl flex-shrink-0">${flag}</span>
               <div>
-                <span class="font-bold text-white block text-xs">${n.name || 'Node'}</span>
+                <span class="font-bold text-white block text-xs">${escapeHtml(n.name || 'Node')}</span>
                 ${specs ? `<span class="text-[10px] text-slate-400 font-mono">${specs}</span>` : ''}
               </div>
             </div>
@@ -1348,7 +1356,7 @@
             <div class="grid grid-cols-2 gap-2 text-[11px]">
               <div class="bg-slate-900/80 p-2 rounded-xl">
                 <span class="text-slate-400 text-[10px] block mb-0.5">آدرس سرور:</span>
-                <span class="font-mono text-cyan-300 text-xs block truncate" dir="ltr">${n.address || '—'}</span>
+                <span class="font-mono text-cyan-300 text-xs block truncate" dir="ltr">${escapeHtml(n.address || '—')}</span>
               </div>
               <div class="bg-slate-900/80 p-2 rounded-xl">
                 <span class="text-slate-400 text-[10px] block mb-0.5">وضعیت اتصال:</span>
@@ -1372,8 +1380,8 @@
   }
 
   window.toggleNodeAccordion = (idx) => {
-    const body = document.getElementById(`nodeBody_${idx}`);
-    const chev = document.getElementById(`nodeChevron_${idx}`);
+    const body = $(`nodeBody_${idx}`);
+    const chev = $(`nodeChevron_${idx}`);
     if (body) {
       body.classList.toggle('hidden');
       if (chev) {
@@ -1384,7 +1392,7 @@
   };
 
   function renderFullNodes(nodes) {
-    const container = document.getElementById('adminNodesFullList');
+    const container = $('adminNodesFullList');
     if (!container) return;
     if (!nodes || nodes.length === 0) {
       container.innerHTML = '<div class="p-8 text-center text-slate-400 text-xs">هیچ سروری در کلاستر یافت نشد.</div>';
@@ -1418,7 +1426,7 @@
         } else if (n.days_until_due <= 3) {
           dueBadgeHtml = `<span class="bg-amber-500/15 text-amber-400 border border-amber-500/30 px-2 py-0.5 rounded-lg font-bold">⏳ ${n.days_until_due} روز تا تمدید (${shamsiDate})</span>`;
         } else {
-          dueBadgeHtml = `<span class="bg-slate-800 text-slate-300 border border-slate-700 px-2 py-0.5 rounded-lg font-mono">🗓️ ${shamsiDate} (${n.days_until_due} روز)</span>`;
+          dueBadgeHtml = `<span class="bg-slate-800 text-slate-300 border border-slate-700 px-2 py-0.5 rounded-lg font-mono">🗓️ ${escapeHtml(shamsiDate)} (${n.days_until_due} روز)</span>`;
         }
       }
 
@@ -1434,7 +1442,7 @@
             <!-- Right: Flag and Server Name -->
             <div class="flex items-center gap-2.5 min-w-0">
               <span class="text-2xl flex-shrink-0 filter drop-shadow">${flag}</span>
-              <h4 class="font-bold text-xs text-white truncate">${n.name || 'Server Node'}</h4>
+              <h4 class="font-bold text-xs text-white truncate">${escapeHtml(n.name || 'Server Node')}</h4>
             </div>
 
             <!-- Left: Online Status + Speeds + Renewal Alert + Chevron Arrow -->
@@ -1591,7 +1599,7 @@
   // --- 5. Users Management ---
   async function fetchAdminUsers(page = 1) {
     currentPage = page;
-    const listContainer = document.getElementById('adminUsersList');
+    const listContainer = $('adminUsersList');
     if (!listContainer) return;
     listContainer.innerHTML = '<div class="p-8 text-center text-xs text-slate-400">در حال دریافت کاربران...</div>';
 
@@ -1614,10 +1622,10 @@
       // Pagination Controls with Dynamic Visibility
       const total = res.total || 0;
       const totalPages = Math.max(1, Math.ceil(total / 15));
-      const paginationEl = document.getElementById('adminUsersPagination');
-      const pageInfo = document.getElementById('adminUsersPageInfo');
-      const prevBtn = document.getElementById('adminUsersPrevBtn');
-      const nextBtn = document.getElementById('adminUsersNextBtn');
+      const paginationEl = $('adminUsersPagination');
+      const pageInfo = $('adminUsersPageInfo');
+      const prevBtn = $('adminUsersPrevBtn');
+      const nextBtn = $('adminUsersNextBtn');
 
       if (paginationEl) {
         if (totalPages > 1) {
@@ -1638,7 +1646,7 @@
   }
 
   function renderUsersList(users) {
-    const listContainer = document.getElementById('adminUsersList');
+    const listContainer = $('adminUsersList');
     if (!listContainer) return;
     if (users.length === 0) {
       listContainer.innerHTML = '<div class="p-8 text-center text-xs text-slate-400">هیچ کاربری با این مشخصات یافت نشد.</div>';
@@ -1808,7 +1816,7 @@
               <!-- User Profile Avatar with Initials Fallback -->
               <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center font-bold text-white text-xs shadow overflow-hidden flex-shrink-0 relative">
                 <img src="${avatarSrc}" alt="Avatar" class="w-full h-full object-cover" onerror="this.classList.add('hidden'); if(this.nextElementSibling) this.nextElementSibling.classList.remove('hidden');" />
-                <span class="${u.avatar_url ? 'hidden' : ''} font-bold">${initial}</span>
+                <span class="${u.avatar_url ? 'hidden' : ''} font-bold">${escapeHtml(initial)}</span>
               </div>
 
               <!-- Name on top, Status Badge underneath -->
@@ -1837,7 +1845,7 @@
 
               <!-- Items 2 & 3: Username + Telegram ID together on ONE line on the left side -->
               <div class="flex items-center gap-1 text-[10px] text-slate-400 font-mono" dir="ltr">
-                ${u.username ? `<span onclick="window.adminActions.quickCopy('@${u.username}', 'نام کاربری')" class="cursor-pointer hover:text-cyan-300 text-slate-300 font-mono truncate max-w-[95px] inline-block" title="@${u.username}">@${u.username}</span>` : ''}
+                ${u.username ? `<span onclick="window.adminActions.quickCopy('@${escapeHtml(u.username)}', 'نام کاربری')" class="cursor-pointer hover:text-cyan-300 text-slate-300 font-mono truncate max-w-[95px] inline-block" title="@${escapeHtml(u.username)}">@${escapeHtml(u.username)}</span>` : ''}
                 ${u.username ? '<span class="text-slate-600">•</span>' : ''}
                 <span onclick="window.adminActions.quickCopy('${u.telegram_id}', 'شناسه عددی')" class="cursor-pointer hover:text-cyan-300 text-slate-400" title="شناسه تلگرام">${u.telegram_id}</span>
               </div>
@@ -1884,8 +1892,8 @@
 
   // Search input debounce
   let searchDebounce = null;
-  const userSearchInput = document.getElementById('userSearchInput');
-  const userSearchClear = document.getElementById('userSearchClear');
+  const userSearchInput = $('userSearchInput');
+  const userSearchClear = $('userSearchClear');
 
   userSearchInput?.addEventListener('input', (e) => {
     const val = e.target.value.trim();
@@ -1918,14 +1926,14 @@
   });
 
   // Icon-only Pagination Handlers
-  document.getElementById('adminUsersPrevBtn')?.addEventListener('click', () => {
+  $('adminUsersPrevBtn')?.addEventListener('click', () => {
     if (currentPage > 1) {
       fetchAdminUsers(currentPage - 1);
       if (window.hapticFeedback) window.hapticFeedback('impact');
     }
   });
 
-  document.getElementById('adminUsersNextBtn')?.addEventListener('click', () => {
+  $('adminUsersNextBtn')?.addEventListener('click', () => {
     fetchAdminUsers(currentPage + 1);
     if (window.hapticFeedback) window.hapticFeedback('impact');
   });
@@ -1933,12 +1941,12 @@
   // --- Confirmation & Report Modals ---
   function showConfirmModal({ title = 'تایید عملیات', message = 'آیا از انجام این عملیات اطمینان دارید؟', confirmText = 'تایید و اجرا', isDanger = true }) {
     return new Promise((resolve) => {
-      const modal = document.getElementById('confirmActionModal');
-      const titleEl = document.getElementById('confirmModalTitle');
-      const msgEl = document.getElementById('confirmModalMessage');
-      const confirmBtn = document.getElementById('confirmModalConfirmBtn');
-      const cancelBtn = document.getElementById('confirmModalCancelBtn');
-      const iconBox = document.getElementById('confirmModalIconBox');
+      const modal = $('confirmActionModal');
+      const titleEl = $('confirmModalTitle');
+      const msgEl = $('confirmModalMessage');
+      const confirmBtn = $('confirmModalConfirmBtn');
+      const cancelBtn = $('confirmModalCancelBtn');
+      const iconBox = $('confirmModalIconBox');
 
       if (!modal || !confirmBtn || !cancelBtn) {
         resolve(window.confirm(message));
@@ -1983,11 +1991,11 @@
   }
 
   function showOperationReportModal({ title, subtitle, iconType = 'success', items = [] }) {
-    const modal = document.getElementById('operationReportModal');
-    const titleEl = document.getElementById('opReportTitle');
-    const subEl = document.getElementById('opReportSubtitle');
-    const iconBox = document.getElementById('opReportIconBox');
-    const contentEl = document.getElementById('opReportContent');
+    const modal = $('operationReportModal');
+    const titleEl = $('opReportTitle');
+    const subEl = $('opReportSubtitle');
+    const iconBox = $('opReportIconBox');
+    const contentEl = $('opReportContent');
 
     if (!modal) return;
     if (titleEl) titleEl.innerText = title || 'گزارش عملیات';
@@ -2052,16 +2060,16 @@
     },
 
     closeOperationReportModal() {
-      document.getElementById('operationReportModal')?.classList.add('hidden');
+      $('operationReportModal')?.classList.add('hidden');
     },
 
     // Unified Modify User (Volume & Duration)
     openModifyUser(telegram_id, username = '', name = '') {
       currentModifyTarget = { telegram_id, username, name };
-      const modal = document.getElementById('modifyUserModal');
-      const dispEl = document.getElementById('modifyModalUserDisplay');
-      const trInput = document.getElementById('modifyModalTraffic');
-      const daysInput = document.getElementById('modifyModalDays');
+      const modal = $('modifyUserModal');
+      const dispEl = $('modifyModalUserDisplay');
+      const trInput = $('modifyModalTraffic');
+      const daysInput = $('modifyModalDays');
 
       if (modal) modal.classList.remove('hidden');
       const handle = username ? `@${username}` : (name || `کاربر ${telegram_id}`);
@@ -2073,7 +2081,7 @@
     },
 
     setModifyTraffic(gb) {
-      const trInput = document.getElementById('modifyModalTraffic');
+      const trInput = $('modifyModalTraffic');
       if (trInput) {
         const cur = parseFloat(trInput.value) || 0;
         trInput.value = (cur + gb);
@@ -2082,7 +2090,7 @@
     },
 
     setModifyDays(days) {
-      const daysInput = document.getElementById('modifyModalDays');
+      const daysInput = $('modifyModalDays');
       if (daysInput) {
         const cur = parseInt(daysInput.value, 10) || 0;
         daysInput.value = (cur + days);
@@ -2091,15 +2099,15 @@
     },
 
     closeModifyModal() {
-      const modal = document.getElementById('modifyUserModal');
+      const modal = $('modifyUserModal');
       if (modal) modal.classList.add('hidden');
       currentModifyTarget = null;
     },
 
     async applyUserModification() {
       if (!currentModifyTarget) return;
-      const trafficGb = parseFloat(document.getElementById('modifyModalTraffic')?.value || 0);
-      const days = parseInt(document.getElementById('modifyModalDays')?.value || 0, 10);
+      const trafficGb = parseFloat($('modifyModalTraffic')?.value || 0);
+      const days = parseInt($('modifyModalDays')?.value || 0, 10);
 
       const validTraffic = !isNaN(trafficGb) && trafficGb > 0 ? trafficGb : 0;
       const validDays = !isNaN(days) && days > 0 ? days : 0;
@@ -2109,7 +2117,7 @@
         return;
       }
 
-      const submitBtn = document.getElementById('modifyModalSubmitBtn');
+      const submitBtn = $('modifyModalSubmitBtn');
       if (submitBtn) {
         submitBtn.disabled = true;
         submitBtn.innerText = 'در حال ثبت...';
@@ -2141,23 +2149,23 @@
 
     openTrialModal(telegram_id, username = '', name = '') {
       currentTrialTarget = { telegram_id, username, name };
-      const nameEl = document.getElementById('trialModalUserName');
+      const nameEl = $('trialModalUserName');
       if (nameEl) nameEl.innerText = name || (username ? `@${username}` : `کاربر ${telegram_id}`);
-      const idEl = document.getElementById('trialModalUserId');
+      const idEl = $('trialModalUserId');
       if (idEl) idEl.innerText = `#${telegram_id}`;
-      document.getElementById('trialModal')?.classList.remove('hidden');
+      $('trialModal')?.classList.remove('hidden');
       if (window.hapticFeedback) window.hapticFeedback('impact');
     },
 
     closeTrialModal() {
-      document.getElementById('trialModal')?.classList.add('hidden');
+      $('trialModal')?.classList.add('hidden');
       currentTrialTarget = null;
     },
 
     async confirmResetTrial() {
       if (!currentTrialTarget) return;
       const { telegram_id, name } = currentTrialTarget;
-      const btn = document.getElementById('confirmTrialResetBtn');
+      const btn = $('confirmTrialResetBtn');
       if (btn) {
         btn.disabled = true;
         btn.innerText = 'در حال فعال‌سازی...';
@@ -2272,10 +2280,10 @@
     // --- Wallet Actions ---
     openWalletModal(telegram_id, name) {
       currentWalletTarget = { telegram_id, name };
-      const modal = document.getElementById('walletModal');
-      const title = document.getElementById('walletModalTitle');
-      const amtInput = document.getElementById('walletModalAmount');
-      const reasonInput = document.getElementById('walletModalReason');
+      const modal = $('walletModal');
+      const title = $('walletModalTitle');
+      const amtInput = $('walletModalAmount');
+      const reasonInput = $('walletModalReason');
       if (modal) modal.classList.remove('hidden');
       if (title) title.innerText = `💰 کیف پول: ${name}`;
       if (amtInput) amtInput.value = '50000';
@@ -2284,20 +2292,20 @@
     },
 
     closeWalletModal() {
-      document.getElementById('walletModal')?.classList.add('hidden');
+      $('walletModal')?.classList.add('hidden');
       currentWalletTarget = null;
     },
 
     async applyWalletModification() {
       if (!currentWalletTarget) return;
-      const rawAmount = parseInt(document.getElementById('walletModalAmount')?.value || '0', 10);
+      const rawAmount = parseInt($('walletModalAmount')?.value || '0', 10);
       if (isNaN(rawAmount) || rawAmount <= 0) {
         if (window.showToast) window.showToast('لطفاً مبلغ معتبری وارد کنید.');
         return;
       }
       const finalAmount = walletActionType === 'add' ? rawAmount : -rawAmount;
-      const reason = document.getElementById('walletModalReason')?.value?.trim() || 'شارژ توسط مدیریت';
-      const submitBtn = document.getElementById('walletModalSubmitBtn');
+      const reason = $('walletModalReason')?.value?.trim() || 'شارژ توسط مدیریت';
+      const submitBtn = $('walletModalSubmitBtn');
       if (submitBtn) { submitBtn.disabled = true; submitBtn.innerText = 'در حال ثبت...'; }
 
       try {
@@ -2342,9 +2350,9 @@
     // --- Subscription URL Inspector & Regenerator ---
     openSubModal(telegram_id, name, subUrl) {
       currentSubTarget = { telegram_id, name, subUrl };
-      const modal = document.getElementById('subModal');
-      const title = document.getElementById('subModalTitle');
-      const input = document.getElementById('subModalInput');
+      const modal = $('subModal');
+      const title = $('subModalTitle');
+      const input = $('subModalInput');
       if (modal) modal.classList.remove('hidden');
       if (title) title.innerText = `🔄 لینک اشتراک: ${name}`;
       if (input) {
@@ -2355,12 +2363,12 @@
     },
 
     closeSubModal() {
-      document.getElementById('subModal')?.classList.add('hidden');
+      $('subModal')?.classList.add('hidden');
       currentSubTarget = null;
     },
 
     async copySubLink() {
-      const input = document.getElementById('subModalInput');
+      const input = $('subModalInput');
       if (!input || !input.value) {
         if (window.showToast) window.showToast('لینکی برای کپی کردن وجود ندارد.');
         return;
@@ -2392,7 +2400,7 @@
       });
       if (!ok) return;
 
-      const regenBtn = document.getElementById('subModalRegenBtn');
+      const regenBtn = $('subModalRegenBtn');
       if (regenBtn) {
         regenBtn.disabled = true;
         regenBtn.innerText = 'در حال صدور لینک جدید...';
@@ -2401,7 +2409,7 @@
         const res = await window.api.revokeUserSub(telegram_id);
         if (res && res.ok && res.subscription_url) {
           currentSubTarget.subUrl = res.subscription_url;
-          const input = document.getElementById('subModalInput');
+          const input = $('subModalInput');
           if (input) input.value = res.subscription_url;
           if (window.showToast) window.showToast('✅ لینک جدید سابسکریپشن صادر و جایگزین شد.');
           if (window.hapticFeedback) window.hapticFeedback('success');
@@ -2451,8 +2459,8 @@
     async openHwidModal(telegram_id, name, initialTab = 'hwid') {
       currentHwidTarget = { telegram_id, name };
       this.currentUserSessionsTarget = { telegram_id, name };
-      const modal = document.getElementById('hwidModal');
-      const title = document.getElementById('hwidModalTitle');
+      const modal = $('hwidModal');
+      const title = $('hwidModalTitle');
       if (modal) modal.classList.remove('hidden');
       if (title) title.innerText = `📱 دستگاه‌ها و نشست‌ها: ${name}`;
       if (window.hapticFeedback) window.hapticFeedback('impact');
@@ -2461,12 +2469,12 @@
 
     async switchDeviceModalTab(tab = 'hwid') {
       this.currentDeviceTab = tab;
-      const hwidBtn = document.getElementById('deviceTabBtn_hwid');
-      const sessionsBtn = document.getElementById('deviceTabBtn_sessions');
-      const srhBtn = document.getElementById('deviceTabBtn_srh');
-      const hwidPane = document.getElementById('hwidTabPane');
-      const sessionsPane = document.getElementById('sessionsTabPane');
-      const srhPane = document.getElementById('srhTabPane');
+      const hwidBtn = $('deviceTabBtn_hwid');
+      const sessionsBtn = $('deviceTabBtn_sessions');
+      const srhBtn = $('deviceTabBtn_srh');
+      const hwidPane = $('hwidTabPane');
+      const sessionsPane = $('sessionsTabPane');
+      const srhPane = $('srhTabPane');
 
       const activeClass = 'py-1.5 rounded-xl font-bold bg-cyan-600 text-white shadow text-center flex items-center justify-center gap-1 transition';
       const inactiveClass = 'py-1.5 rounded-xl text-slate-400 hover:text-cyan-300 font-medium text-center flex items-center justify-center gap-1 transition';
@@ -2503,7 +2511,7 @@
     },
 
     async loadUserSrh(telegram_id) {
-      const list = document.getElementById('userSrhList');
+      const list = $('userSrhList');
       if (list) list.innerHTML = '<div class="p-6 text-center text-slate-400">در حال دریافت تاریخچه سابسکریپشن...</div>';
 
       try {
@@ -2556,7 +2564,7 @@
     },
 
     async loadHwidDevices(telegram_id) {
-      const list = document.getElementById('hwidDevicesList');
+      const list = $('hwidDevicesList');
       if (list) list.innerHTML = '<div class="p-6 text-center text-slate-400">در حال دریافت دستگاه‌ها...</div>';
 
       try {
@@ -2580,20 +2588,20 @@
             return `
               <div class="bg-transparent p-3 rounded-2xl border border-slate-700/60 dark:border-slate-700/60 flex items-center justify-between gap-2.5">
                 <div class="min-w-0 flex-1">
-                  <b class="text-white text-xs block truncate">${os} ${brand ? '(' + brand + ')' : ''}</b>
+                  <b class="text-white text-xs block truncate">${escapeHtml(os)} ${brand ? '(' + escapeHtml(brand) + ')' : ''}</b>
                   <div class="flex items-center gap-1.5 mt-0.5 text-[10px] text-slate-400">
                     <span>آی‌پی:</span>
-                    <button type="button" dir="ltr" class="font-mono text-cyan-400 dark:text-cyan-300 font-semibold select-all hover:underline cursor-pointer flex items-center gap-1" onclick="window.copyToClipboard('${ip}', 'آدرس IP کپی شد')" title="کپی آی‌پی">
-                      <span>${ip}</span>
+                    <button type="button" dir="ltr" class="font-mono text-cyan-400 dark:text-cyan-300 font-semibold select-all hover:underline cursor-pointer flex items-center gap-1" onclick="window.copyToClipboard('${escapeHtml(ip)}', 'آدرس IP کپی شد')" title="کپی آی‌پی">
+                      <span>${escapeHtml(ip)}</span>
                       <span class="text-[9px] opacity-70">📋</span>
                     </button>
                   </div>
                   <div class="flex items-center gap-1.5 mt-1">
                     <span class="text-[9px] text-slate-400">HWID:</span>
-                    <span dir="ltr" class="font-mono text-[9px] text-slate-300 bg-transparent px-2 py-0.5 rounded-lg border border-slate-700/60 truncate max-w-[170px]" title="${hwid}">${hwid}</span>
+                    <span dir="ltr" class="font-mono text-[9px] text-slate-300 bg-transparent px-2 py-0.5 rounded-lg border border-slate-700/60 truncate max-w-[170px]" title="${escapeHtml(hwid)}">${escapeHtml(hwid)}</span>
                   </div>
                 </div>
-                <button onclick="window.adminActions.deleteHwid(${telegram_id}, '${hwid}')" class="bg-transparent hover:bg-rose-500/10 text-rose-400 border border-rose-500/30 hover:border-rose-400 p-2.5 rounded-xl transition active:scale-95 flex items-center justify-center flex-shrink-0" title="قطع اتصال این دستگاه">
+                <button onclick="window.adminActions.deleteHwid(${telegram_id}, '${escapeHtml(hwid).replace(/'/g, "\\'")}')" class="bg-transparent hover:bg-rose-500/10 text-rose-400 border border-rose-500/30 hover:border-rose-400 p-2.5 rounded-xl transition active:scale-95 flex items-center justify-center flex-shrink-0" title="قطع اتصال این دستگاه">
                   <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                 </button>
               </div>
@@ -2606,7 +2614,7 @@
     },
 
     async loadUserSessions(telegram_id) {
-      const list = document.getElementById('userSessionsList');
+      const list = $('userSessionsList');
       if (list) {
         list.innerHTML = `
           <div class="p-8 text-center text-xs text-slate-400 flex flex-col items-center gap-2">
@@ -2631,7 +2639,7 @@
     },
 
     renderUserSessionsList(data) {
-      const list = document.getElementById('userSessionsList');
+      const list = $('userSessionsList');
       if (!list) return;
 
       const isOnline = !!data?.isOnline;
@@ -2655,8 +2663,8 @@
         const ipsHtml = ips.map(ip => `
           <div class="flex items-center justify-between bg-transparent px-2.5 py-1.5 rounded-xl border border-slate-700/60 text-xs">
             <span class="text-slate-400 text-[10px]">آی‌پی کلاینت:</span>
-            <button type="button" dir="ltr" class="font-mono text-cyan-400 dark:text-cyan-300 font-bold select-all hover:underline cursor-pointer flex items-center gap-1" onclick="window.copyToClipboard('${ip}', 'آدرس IP کپی شد')" title="کلیک جهت کپی آی‌پی">
-              <span>${ip}</span>
+            <button type="button" dir="ltr" class="font-mono text-cyan-400 dark:text-cyan-300 font-bold select-all hover:underline cursor-pointer flex items-center gap-1" onclick="window.copyToClipboard('${escapeHtml(ip)}', 'آدرس IP کپی شد')" title="کلیک جهت کپی آی‌پی">
+              <span>${escapeHtml(ip)}</span>
               <span class="text-[9px] opacity-70">📋</span>
             </button>
           </div>
@@ -2667,7 +2675,7 @@
             <div class="flex items-center justify-between">
               <span class="text-white font-bold text-xs flex items-center gap-1.5">
                 <span class="text-sm">${flag}</span>
-                <span>${nodeName}</span>
+                <span>${escapeHtml(nodeName)}</span>
               </span>
               <span class="text-[10px] bg-transparent text-cyan-400 border border-cyan-500/30 px-2 py-0.5 rounded-lg font-mono">
                 ${formatNumber(ips.length)} اتصال
@@ -2682,7 +2690,7 @@
     },
 
     closeHwidModal() {
-      document.getElementById('hwidModal')?.classList.add('hidden');
+      $('hwidModal')?.classList.add('hidden');
       currentHwidTarget = null;
       this.currentUserSessionsTarget = null;
     },
@@ -2758,7 +2766,7 @@
 
     // --- Plans Actions ---
     async fetchAdminPlans() {
-      const container = document.getElementById('adminPlansList');
+      const container = $('adminPlansList');
       if (!container) return;
       container.innerHTML = '<div class="p-8 text-center text-xs text-slate-400">در حال دریافت تعرفه‌ها...</div>';
       try {
@@ -2811,7 +2819,7 @@
 
                   <!-- 2. Plan Name + 3. Package Emoji (on the left of the name) + 4. Status Badge -->
                   <div class="flex items-center gap-1.5 min-w-0">
-                    <b class="text-white text-xs font-bold truncate">${cleanName}</b>
+                    <b class="text-white text-xs font-bold truncate">${escapeHtml(cleanName)}</b>
                     ${pkgIcon ? `<span class="text-sm select-none leading-none flex-shrink-0" title="آیکون بسته">${pkgIcon}</span>` : ''}
                     ${statusBadge}
                   </div>
@@ -2821,7 +2829,7 @@
                 <span class="text-sm font-black text-emerald-400 font-mono flex-shrink-0">${formatNumber(p.price || 0)} <span class="text-[10px] font-sans font-normal text-slate-400">تومان</span></span>
               </div>
 
-              ${p.description ? `<p class="text-[10px] text-slate-400 line-clamp-1 pr-9.5">${p.description}</p>` : ''}
+              ${p.description ? `<p class="text-[10px] text-slate-400 line-clamp-1 pr-9.5">${escapeHtml(p.description)}</p>` : ''}
 
               <div class="grid grid-cols-3 gap-1.5 text-center text-[10px] bg-slate-900/60 p-2 rounded-xl font-mono">
                 <div>
@@ -2846,7 +2854,7 @@
                 <button onclick="window.adminActions.togglePlan(${p.id}, ${p.is_active})" class="flex-1 bg-transparent hover:bg-slate-500/10 ${p.is_active ? 'text-amber-600 dark:text-amber-400 border border-amber-500/30 hover:border-amber-400/60' : 'text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 hover:border-emerald-400/60'} py-1.5 rounded-xl transition font-semibold text-center active:scale-95">
                   ${p.is_active ? 'غیرفعال‌سازی' : 'فعال‌سازی'}
                 </button>
-                <button onclick="window.adminActions.deletePlan(${p.id}, '${p.name}')" class="bg-transparent hover:bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/30 hover:border-rose-400/60 px-3 py-1.5 rounded-xl transition font-medium flex items-center justify-center active:scale-95" title="حذف سرویس">
+                <button onclick="window.adminActions.deletePlan(${p.id}, '${escapeHtml(p.name).replace(/'/g, "\\'")}')" class="bg-transparent hover:bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/30 hover:border-rose-400/60 px-3 py-1.5 rounded-xl transition font-medium flex items-center justify-center active:scale-95" title="حذف سرویس">
                   <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                 </button>
               </div>
@@ -2863,39 +2871,39 @@
       if (typeof planOrId === 'number') {
         plan = adminPlansData.find(p => p.id === planOrId) || null;
       }
-      const modal = document.getElementById('planModal');
+      const modal = $('planModal');
       if (modal) modal.classList.remove('hidden');
-      document.getElementById('planModalTitle').innerText = plan ? `ویرایش تعرفه: ${plan.name}` : 'ایجاد تعرفه جدید';
-      document.getElementById('planModalId').value = plan ? plan.id : '';
-      document.getElementById('planModalName').value = plan ? plan.name : '';
-      document.getElementById('planModalPrice').value = plan ? plan.price : '';
-      document.getElementById('planModalTraffic').value = plan ? plan.traffic_gb : '';
-      document.getElementById('planModalDuration').value = plan ? plan.duration_days : '';
-      document.getElementById('planModalHwid').value = plan ? (plan.hwid_limit || '') : '';
-      document.getElementById('planModalDesc').value = plan ? (plan.description || '') : '';
-      document.getElementById('planModalActive').checked = plan ? !!plan.is_active : true;
+      $('planModalTitle').innerText = plan ? `ویرایش تعرفه: ${plan.name}` : 'ایجاد تعرفه جدید';
+      $('planModalId').value = plan ? plan.id : '';
+      $('planModalName').value = plan ? plan.name : '';
+      $('planModalPrice').value = plan ? plan.price : '';
+      $('planModalTraffic').value = plan ? plan.traffic_gb : '';
+      $('planModalDuration').value = plan ? plan.duration_days : '';
+      $('planModalHwid').value = plan ? (plan.hwid_limit || '') : '';
+      $('planModalDesc').value = plan ? (plan.description || '') : '';
+      $('planModalActive').checked = plan ? !!plan.is_active : true;
     },
 
     closePlanModal() {
-      document.getElementById('planModal')?.classList.add('hidden');
+      $('planModal')?.classList.add('hidden');
     },
 
     async savePlan() {
-      const id = document.getElementById('planModalId')?.value;
-      const name = document.getElementById('planModalName')?.value?.trim();
-      const price = parseInt(document.getElementById('planModalPrice')?.value || '0', 10);
-      const traffic_gb = parseInt(document.getElementById('planModalTraffic')?.value || '0', 10);
-      const duration_days = parseInt(document.getElementById('planModalDuration')?.value || '0', 10);
-      const hwid_limit = parseInt(document.getElementById('planModalHwid')?.value || '0', 10) || null;
-      const description = document.getElementById('planModalDesc')?.value?.trim();
-      const is_active = document.getElementById('planModalActive')?.checked ?? true;
+      const id = $('planModalId')?.value;
+      const name = $('planModalName')?.value?.trim();
+      const price = parseInt($('planModalPrice')?.value || '0', 10);
+      const traffic_gb = parseInt($('planModalTraffic')?.value || '0', 10);
+      const duration_days = parseInt($('planModalDuration')?.value || '0', 10);
+      const hwid_limit = parseInt($('planModalHwid')?.value || '0', 10) || null;
+      const description = $('planModalDesc')?.value?.trim();
+      const is_active = $('planModalActive')?.checked ?? true;
 
       if (!name) {
         if (window.showToast) window.showToast('نام تعرفه الزامی است.');
         return;
       }
 
-      const saveBtn = document.getElementById('planModalSaveBtn');
+      const saveBtn = $('planModalSaveBtn');
       if (saveBtn) { saveBtn.disabled = true; saveBtn.innerText = 'در حال ذخیره...'; }
 
       try {
@@ -2939,7 +2947,7 @@
 
     // --- Coupons Actions ---
     async fetchAdminCoupons() {
-      const container = document.getElementById('adminCouponsList');
+      const container = $('adminCouponsList');
       if (!container) return;
       container.innerHTML = '<div class="p-8 text-center text-xs text-slate-400">در حال دریافت کدهای تخفیف...</div>';
       try {
@@ -2981,7 +2989,7 @@
               <div class="flex items-start justify-between">
                 <div>
                   <div class="flex items-center gap-2">
-                    <span class="font-mono font-bold text-pink-600 dark:text-pink-400 text-sm tracking-wider uppercase bg-pink-500/10 border border-pink-500/30 px-2.5 py-0.5 rounded-xl">${c.code}</span>
+                    <span class="font-mono font-bold text-pink-600 dark:text-pink-400 text-sm tracking-wider uppercase bg-pink-500/10 border border-pink-500/30 px-2.5 py-0.5 rounded-xl">${escapeHtml(c.code)}</span>
                     ${statusBadge}
                   </div>
                   <span class="text-[11px] text-emerald-600 dark:text-emerald-400 font-bold block mt-1.5">${discountText}</span>
@@ -2995,19 +3003,19 @@
                 </div>
                 <div>
                   <span class="text-slate-400 block text-[9px] font-sans">تاریخ انقضا:</span>
-                  <b class="text-slate-200">${expiryText}</b>
+                  <b class="text-slate-200">${escapeHtml(expiryText)}</b>
                 </div>
               </div>
 
               <div class="flex gap-2 pt-1 text-[11px]">
-                <button onclick="window.adminActions.openCouponUsages(${c.id}, '${c.code}')" class="flex-1 bg-transparent hover:bg-pink-500/10 text-pink-600 dark:text-pink-400 border border-pink-500/30 hover:border-pink-400/60 py-1.5 rounded-xl transition font-semibold text-center flex items-center justify-center gap-1.5 active:scale-95">
+                <button onclick="window.adminActions.openCouponUsages(${c.id}, '${escapeHtml(c.code).replace(/'/g, "\\'")}')" class="flex-1 bg-transparent hover:bg-pink-500/10 text-pink-600 dark:text-pink-400 border border-pink-500/30 hover:border-pink-400/60 py-1.5 rounded-xl transition font-semibold text-center flex items-center justify-center gap-1.5 active:scale-95">
                   <svg class="w-3.5 h-3.5 text-pink-600 dark:text-pink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
                   <span>استفاده‌کنندگان (${formatNumber(c.used_count || 0)})</span>
                 </button>
                 <button onclick="window.adminActions.toggleCoupon(${c.id}, ${c.is_active})" class="bg-transparent hover:bg-slate-500/10 ${c.is_active ? 'text-amber-600 dark:text-amber-400 border border-amber-500/30 hover:border-amber-400/60' : 'text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 hover:border-emerald-400/60'} py-1.5 px-3 rounded-xl transition font-semibold text-center active:scale-95">
                   ${c.is_active ? 'غیرفعال‌سازی' : 'فعال‌سازی'}
                 </button>
-                <button onclick="window.adminActions.deleteCoupon(${c.id}, '${c.code}')" class="bg-transparent hover:bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/30 hover:border-rose-400/60 px-3 py-1.5 rounded-xl transition font-medium flex items-center justify-center active:scale-95" title="حذف کد تخفیف">
+                <button onclick="window.adminActions.deleteCoupon(${c.id}, '${escapeHtml(c.code).replace(/'/g, "\\'")}')" class="bg-transparent hover:bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/30 hover:border-rose-400/60 px-3 py-1.5 rounded-xl transition font-medium flex items-center justify-center active:scale-95" title="حذف کد تخفیف">
                   <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                 </button>
               </div>
@@ -3020,31 +3028,31 @@
     },
 
     openCouponModal() {
-      document.getElementById('couponModal')?.classList.remove('hidden');
-      document.getElementById('couponModalCode').value = '';
-      document.getElementById('couponModalPercent').value = '20';
-      document.getElementById('couponModalAmount').value = '0';
-      document.getElementById('couponModalMaxUses').value = '0';
-      document.getElementById('couponModalDays').value = '30';
+      $('couponModal')?.classList.remove('hidden');
+      $('couponModalCode').value = '';
+      $('couponModalPercent').value = '20';
+      $('couponModalAmount').value = '0';
+      $('couponModalMaxUses').value = '0';
+      $('couponModalDays').value = '30';
     },
 
     closeCouponModal() {
-      document.getElementById('couponModal')?.classList.add('hidden');
+      $('couponModal')?.classList.add('hidden');
     },
 
     async saveCoupon() {
-      const code = document.getElementById('couponModalCode')?.value?.trim();
-      const discount_percent = parseInt(document.getElementById('couponModalPercent')?.value || '0', 10);
-      const discount_amount = parseInt(document.getElementById('couponModalAmount')?.value || '0', 10);
-      const max_uses = parseInt(document.getElementById('couponModalMaxUses')?.value || '0', 10);
-      const expires_days = parseInt(document.getElementById('couponModalDays')?.value || '0', 10);
+      const code = $('couponModalCode')?.value?.trim();
+      const discount_percent = parseInt($('couponModalPercent')?.value || '0', 10);
+      const discount_amount = parseInt($('couponModalAmount')?.value || '0', 10);
+      const max_uses = parseInt($('couponModalMaxUses')?.value || '0', 10);
+      const expires_days = parseInt($('couponModalDays')?.value || '0', 10);
 
       if (!code) {
         if (window.showToast) window.showToast('کد تخفیف الزامی است.');
         return;
       }
 
-      const saveBtn = document.getElementById('couponModalSaveBtn');
+      const saveBtn = $('couponModalSaveBtn');
       if (saveBtn) { saveBtn.disabled = true; saveBtn.innerText = 'در حال ساخت...'; }
 
       try {
@@ -3087,11 +3095,11 @@
     },
 
     async openCouponUsages(coupon_id, code) {
-      const modal = document.getElementById('couponUsagesModal');
-      const subtitle = document.getElementById('couponUsagesModalSubtitle');
-      const list = document.getElementById('couponUsagesList');
-      const countStat = document.getElementById('couponUsagesCountStat');
-      const totalDiscStat = document.getElementById('couponUsagesTotalDiscountStat');
+      const modal = $('couponUsagesModal');
+      const subtitle = $('couponUsagesModalSubtitle');
+      const list = $('couponUsagesList');
+      const countStat = $('couponUsagesCountStat');
+      const totalDiscStat = $('couponUsagesTotalDiscountStat');
 
       if (modal) modal.classList.remove('hidden');
       if (subtitle) subtitle.innerText = `کد تخفیف: ${code}`;
@@ -3159,7 +3167,7 @@
                     <span class="font-bold">${initial}</span>
                   </div>
                   <div class="min-w-0 space-y-0.5">
-                    <b class="text-slate-900 dark:text-white text-xs font-bold block truncate max-w-[130px] sm:max-w-[160px] cursor-pointer hover:text-pink-400" onclick="window.adminActions.quickCopy('${safeDisplayName}', 'نام کاربر')" title="${displayName}">${displayName}</b>
+                    <b class="text-slate-900 dark:text-white text-xs font-bold block truncate max-w-[130px] sm:max-w-[160px] cursor-pointer hover:text-pink-400" onclick="window.adminActions.quickCopy('${safeDisplayName}', 'نام کاربر')" title="${escapeHtml(displayName)}">${escapeHtml(displayName)}</b>
                     <div class="flex items-baseline gap-1 text-emerald-600 dark:text-emerald-400 font-bold" dir="rtl">
                       <span class="text-xs font-black font-mono leading-none">${formatNumber(u.discount_applied || 0)}</span>
                       <span class="text-[10px] text-emerald-600/90 dark:text-emerald-500/90 font-sans">تومان</span>
@@ -3170,8 +3178,8 @@
                 <!-- Left column: Username on line 1, Numeric ID on line 2 (سمت چپ‌ترین نقطه، بالا و بدون ID:) -->
                 <div class="flex flex-col items-start justify-center gap-0.5 font-mono text-[11px] text-slate-500 dark:text-slate-400 flex-shrink-0 text-left" dir="ltr">
                   ${hasUsername ? `
-                    <div class="text-[11px] text-pink-500 dark:text-pink-400 font-mono cursor-pointer hover:underline truncate max-w-[130px] leading-tight" onclick="window.adminActions.quickCopy('@${u.username}', 'نام کاربری')" title="@${u.username}">
-                      @${u.username}
+                    <div class="text-[11px] text-pink-500 dark:text-pink-400 font-mono cursor-pointer hover:underline truncate max-w-[130px] leading-tight" onclick="window.adminActions.quickCopy('@${escapeHtml(u.username)}', 'نام کاربری')" title="@${escapeHtml(u.username)}">
+                      @${escapeHtml(u.username)}
                     </div>
                   ` : ''}
                   <div class="cursor-pointer hover:text-cyan-500 dark:hover:text-cyan-300 text-slate-500 dark:text-slate-400 font-mono leading-tight" onclick="window.adminActions.quickCopy('${u.telegram_id}', 'شناسه عددی')" title="شناسه عددی">
@@ -3188,22 +3196,22 @@
     },
 
     closeCouponUsagesModal() {
-      document.getElementById('couponUsagesModal')?.classList.add('hidden');
+      $('couponUsagesModal')?.classList.add('hidden');
     },
 
     openUserChat(telegram_id, name, tag, topup_id) {
       activeChatTelegramId = telegram_id;
       activeChatUserName = name || String(telegram_id);
-      const inputId = document.getElementById('directTicketUserId');
+      const inputId = $('directTicketUserId');
       if (inputId) inputId.value = String(telegram_id);
 
-      const chatContainer = document.getElementById('adminChatContainer');
+      const chatContainer = $('adminChatContainer');
       if (chatContainer) chatContainer.classList.remove('hidden');
 
-      const badgeEl = document.getElementById('activeChatReceiptBadge');
+      const badgeEl = $('activeChatReceiptBadge');
       if (badgeEl) badgeEl.style.display = 'none';
 
-      const statusBadgeEl = document.getElementById('activeChatStatusBadge');
+      const statusBadgeEl = $('activeChatStatusBadge');
       if (statusBadgeEl) {
         if (topup_id) {
           statusBadgeEl.className = 'inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30';
@@ -3214,28 +3222,28 @@
         }
       }
 
-      const nameEl = document.getElementById('activeChatUserName');
+      const nameEl = $('activeChatUserName');
       if (nameEl) nameEl.textContent = name || `کاربر ${telegram_id}`;
 
-      const avatarEl = document.getElementById('activeChatUserAvatar');
+      const avatarEl = $('activeChatUserAvatar');
       if (avatarEl) {
         const initial = ((name || 'U').replace('@', '')[0] || 'U').toUpperCase();
         avatarEl.innerHTML = `<img src="/api/user/avatar?user_id=${telegram_id}" alt="Avatar" class="w-full h-full object-cover" onerror="this.classList.add('hidden'); if(this.nextElementSibling) this.nextElementSibling.classList.remove('hidden');" /><span class="font-bold">${initial}</span>`;
       }
 
-      const tagEl = document.getElementById('activeChatUserTag');
+      const tagEl = $('activeChatUserTag');
       if (tagEl) {
         const cleanTag = tag && tag.startsWith('@') ? tag : (name && name.startsWith('@') ? name : '');
         tagEl.textContent = cleanTag || '';
         tagEl.style.display = cleanTag ? 'block' : 'none';
       }
 
-      const idEl = document.getElementById('activeChatUserId');
+      const idEl = $('activeChatUserId');
       if (idEl) idEl.innerHTML = `<span onclick="window.adminActions.quickCopy('${telegram_id}', 'شناسه عددی')" class="cursor-pointer hover:text-cyan-300 transition">${telegram_id}</span>`;
 
       loadUserChatMessages(telegram_id);
 
-      const msgInput = document.getElementById('directTicketMsg');
+      const msgInput = $('directTicketMsg');
       if (msgInput) {
         msgInput.placeholder = `ارسال پیام به ${name}...`;
         msgInput.focus();
@@ -3249,14 +3257,14 @@
     },
 
     closeUserChat() {
-      const chatContainer = document.getElementById('adminChatContainer');
+      const chatContainer = $('adminChatContainer');
       if (chatContainer) chatContainer.classList.add('hidden');
       if (window.hapticFeedback) window.hapticFeedback('light');
     },
 
     toggleSettingsBox(targetId) {
       if (!targetId) return;
-      const targetBody = document.getElementById(targetId);
+      const targetBody = $(targetId);
       if (!targetBody) return;
       const isHidden = targetBody.classList.contains('hidden');
       const box = targetBody.closest('.settings-box, .node-card');
@@ -3276,12 +3284,12 @@
     },
 
     async openReceiptImageModal(photoUrl, topupId) {
-      const modal = document.getElementById('receiptPhotoModal');
-      const img = document.getElementById('receiptModalImage');
-      const spinner = document.getElementById('receiptModalSpinner');
-      const errBox = document.getElementById('receiptModalError');
-      const textBox = document.getElementById('receiptModalTextInfo');
-      const titleEl = document.getElementById('receiptModalTitle');
+      const modal = $('receiptPhotoModal');
+      const img = $('receiptModalImage');
+      const spinner = $('receiptModalSpinner');
+      const errBox = $('receiptModalError');
+      const textBox = $('receiptModalTextInfo');
+      const titleEl = $('receiptModalTitle');
 
       if (titleEl) titleEl.textContent = topupId ? `تصویر رسید فیش ${topupId}` : 'تصویر رسید واریزی';
       if (modal) modal.classList.remove('hidden');
@@ -3294,22 +3302,14 @@
       if (spinner) spinner.classList.remove('hidden');
 
       try {
-        const initData = window.Telegram?.WebApp?.initData || '';
-        const fetchUrl = (photoUrl && photoUrl.includes('?'))
-          ? `${photoUrl}&initData=${encodeURIComponent(initData)}`
-          : `/api/admin/topup/photo?id=${topupId || ''}&initData=${encodeURIComponent(initData)}`;
-
-        const response = await fetch(fetchUrl, {
-          headers: {
-            'X-Telegram-Init-Data': initData,
-          }
-        });
-
-        if (!response.ok) {
-          throw new Error(response.status === 404 ? 'تصویری برای این فیش یافت نشد یا ثبت نشده است.' : 'خطا در دریافت تصویر رسید از تلگرام');
+        const fetchUrl = photoUrl || `/api/admin/topup/photo?id=${encodeURIComponent(topupId || '')}`;
+        let blob;
+        try {
+          blob = await window.api.getBlob(fetchUrl);
+        } catch (fetchErr) {
+          throw new Error(fetchErr.status === 404 ? 'تصویری برای این فیش یافت نشد یا ثبت نشده است.' : 'خطا در دریافت تصویر رسید از تلگرام');
         }
 
-        const blob = await response.blob();
         if (!blob || blob.size === 0) {
           throw new Error('فایل تصویر دریافت نشد.');
         }
@@ -3341,13 +3341,13 @@
     },
 
     showReceiptInfoModal(topupId, receiptHash, amount) {
-      const modal = document.getElementById('receiptPhotoModal');
-      const img = document.getElementById('receiptModalImage');
-      const spinner = document.getElementById('receiptModalSpinner');
-      const errBox = document.getElementById('receiptModalError');
-      const textBox = document.getElementById('receiptModalTextInfo');
-      const textContent = document.getElementById('receiptModalTextContent');
-      const titleEl = document.getElementById('receiptModalTitle');
+      const modal = $('receiptPhotoModal');
+      const img = $('receiptModalImage');
+      const spinner = $('receiptModalSpinner');
+      const errBox = $('receiptModalError');
+      const textBox = $('receiptModalTextInfo');
+      const textContent = $('receiptModalTextContent');
+      const titleEl = $('receiptModalTitle');
 
       if (titleEl) titleEl.textContent = `مشخصات فیش واریزی ${topupId}`;
       if (modal) modal.classList.remove('hidden');
@@ -3369,23 +3369,23 @@
     },
 
     closeReceiptPhotoModal() {
-      const modal = document.getElementById('receiptPhotoModal');
+      const modal = $('receiptPhotoModal');
       if (modal) modal.classList.add('hidden');
     },
 
     openCryptoRatesModal() {
-      const modal = document.getElementById('cryptoRatesModal');
+      const modal = $('cryptoRatesModal');
       if (modal) modal.classList.remove('hidden');
       this.refreshLiveCryptoRates();
       if (window.hapticFeedback) window.hapticFeedback('impact');
     },
 
     closeCryptoRatesModal() {
-      document.getElementById('cryptoRatesModal')?.classList.add('hidden');
+      $('cryptoRatesModal')?.classList.add('hidden');
     },
 
     async refreshLiveCryptoRates() {
-      const container = document.getElementById('cryptoRatesContent');
+      const container = $('cryptoRatesContent');
       if (!container) return;
       container.innerHTML = '<div class="p-6 text-center text-xs text-slate-400">در حال استعلام جدیدترین نرخ‌ها از صرافی‌های معتبر...</div>';
       try {
@@ -3540,23 +3540,23 @@
       const lossless = Math.round(p * 0.013);
       const fragment = Math.round(p * 0.015);
 
-      const titleEl = document.getElementById('modalStarsBenchmarkTitle');
+      const titleEl = $('modalStarsBenchmarkTitle');
       if (titleEl) titleEl.textContent = `⭐️ نرخ پیشنهادی استارز تلگرام (بر اساس دلار ${formatNumber(p)} ت):`;
 
-      const losslessPriceEl = document.getElementById('modalStarsLosslessPrice');
+      const losslessPriceEl = $('modalStarsLosslessPrice');
       if (losslessPriceEl) losslessPriceEl.innerHTML = `${formatNumber(lossless)} <span class="text-[9px] text-slate-400 font-sans">تومان</span>`;
 
-      const fragmentPriceEl = document.getElementById('modalStarsFragmentPrice');
+      const fragmentPriceEl = $('modalStarsFragmentPrice');
       if (fragmentPriceEl) fragmentPriceEl.innerHTML = `${formatNumber(fragment)} <span class="text-[9px] text-slate-400 font-sans">تومان</span>`;
 
-      const losslessBtn = document.getElementById('modalStarsLosslessBtn');
+      const losslessBtn = $('modalStarsLosslessBtn');
       if (losslessBtn) {
         losslessBtn.onclick = () => window.adminActions.applySpecificRate('stars', lossless, losslessBtn);
         losslessBtn.textContent = 'اعمال';
         losslessBtn.classList.remove('bg-emerald-500/20', 'text-emerald-300', 'border-emerald-500');
       }
 
-      const fragmentBtn = document.getElementById('modalStarsFragmentBtn');
+      const fragmentBtn = $('modalStarsFragmentBtn');
       if (fragmentBtn) {
         fragmentBtn.onclick = () => window.adminActions.applySpecificRate('stars', fragment, fragmentBtn);
         fragmentBtn.textContent = 'اعمال';
@@ -3574,23 +3574,23 @@
 
       const payload = {};
       if (type === 'usdt') {
-        const inp = document.getElementById('settingUsdtRate');
+        const inp = $('settingUsdtRate');
         if (inp) inp.value = numVal;
         payload.usdt_rate_toman = numVal;
         window.currentUsdRate = numVal;
         this.updateStarsHint();
         this.updateModalStarsRates(numVal);
       } else if (type === 'eur') {
-        const inp = document.getElementById('settingEurRate');
+        const inp = $('settingEurRate');
         if (inp) inp.value = numVal;
         payload.eur_rate_toman = numVal;
         window.currentEurRate = numVal;
       } else if (type === 'ton') {
-        const inp = document.getElementById('settingTonRate');
+        const inp = $('settingTonRate');
         if (inp) inp.value = numVal;
         payload.ton_rate_toman = numVal;
       } else if (type === 'stars') {
-        const inp = document.getElementById('settingStarsRate');
+        const inp = $('settingStarsRate');
         if (inp) inp.value = numVal;
         payload.stars_rate_toman = numVal;
       }
@@ -3622,10 +3622,10 @@
     },
 
     async applyLiveCryptoRates() {
-      const usdtInp = document.getElementById('settingUsdtRate');
-      const eurInp = document.getElementById('settingEurRate');
-      const tonInp = document.getElementById('settingTonRate');
-      const starsInp = document.getElementById('settingStarsRate');
+      const usdtInp = $('settingUsdtRate');
+      const eurInp = $('settingEurRate');
+      const tonInp = $('settingTonRate');
+      const starsInp = $('settingStarsRate');
 
       const usdtVal = window.lastLiveCryptoRates?.usdt || parseInt(usdtInp?.value || '95000', 10);
       const tonVal = window.lastLiveCryptoRates?.ton || parseInt(tonInp?.value || '0', 10);
@@ -3668,25 +3668,25 @@
     currentBulkActionType: 'add_traffic',
 
     openBulkUsersModal() {
-      const modal = document.getElementById('bulkUsersModal');
+      const modal = $('bulkUsersModal');
       if (modal) modal.classList.remove('hidden');
       this.setBulkActionType('add_traffic');
-      const valInput = document.getElementById('bulkAmountInput');
+      const valInput = $('bulkAmountInput');
       if (valInput) valInput.value = '5';
       if (window.hapticFeedback) window.hapticFeedback('impact');
     },
 
     closeBulkUsersModal() {
-      const modal = document.getElementById('bulkUsersModal');
+      const modal = $('bulkUsersModal');
       if (modal) modal.classList.add('hidden');
     },
 
     setBulkActionType(type = 'add_traffic') {
       this.currentBulkActionType = type;
-      const trafficBtn = document.getElementById('bulkTypeBtn_traffic');
-      const daysBtn = document.getElementById('bulkTypeBtn_days');
-      const labelEl = document.getElementById('bulkAmountLabel');
-      const inputEl = document.getElementById('bulkAmountInput');
+      const trafficBtn = $('bulkTypeBtn_traffic');
+      const daysBtn = $('bulkTypeBtn_days');
+      const labelEl = $('bulkAmountLabel');
+      const inputEl = $('bulkAmountInput');
 
       const activeClass = 'py-1.5 rounded-xl font-bold bg-blue-600 text-white shadow text-center flex items-center justify-center gap-1.5 transition';
       const inactiveClass = 'py-1.5 rounded-xl text-slate-400 hover:text-white font-medium text-center flex items-center justify-center gap-1.5 transition';
@@ -3706,13 +3706,13 @@
     },
 
     async submitBulkUsersAction() {
-      const amount = parseInt(document.getElementById('bulkAmountInput')?.value, 10);
+      const amount = parseInt($('bulkAmountInput')?.value, 10);
       if (!amount || amount <= 0) {
         if (window.showToast) window.showToast('⚠️ لطفاً مقدار معتبری وارد کنید.');
         return;
       }
 
-      const audience = document.getElementById('bulkTargetSelect')?.value || 'all_active';
+      const audience = $('bulkTargetSelect')?.value || 'all_active';
       const typeText = this.currentBulkActionType === 'add_traffic' ? `${amount} گیگابایت حجم` : `${amount} روز اعتبار`;
       const audText = audience === 'all_active' ? 'تمام کاربران فعال' : 'تمام کاربران پنل';
 
@@ -3720,9 +3720,9 @@
         return;
       }
 
-      const btn = document.getElementById('bulkSubmitBtn');
-      const txt = document.getElementById('bulkSubmitText');
-      const spin = document.getElementById('bulkSubmitSpinner');
+      const btn = $('bulkSubmitBtn');
+      const txt = $('bulkSubmitText');
+      const spin = $('bulkSubmitSpinner');
 
       if (btn) btn.disabled = true;
       if (spin) spin.classList.remove('hidden');
@@ -3755,19 +3755,19 @@
 
     // --- Node Infra-Billing & Cost Actions ---
     openNodeBillingModal(nodeUuid, nodeName, provider = '', costToman = 0, costEur = 0, dueDate = '', notes = '', flag = '🖥️', currency = 'EUR') {
-      const modal = document.getElementById('nodeBillingModal');
+      const modal = $('nodeBillingModal');
       if (!modal) return;
-      document.getElementById('nodeBillingUuid').value = nodeUuid || '';
-      document.getElementById('nodeBillingName').value = nodeName || '';
-      document.getElementById('nodeBillingModalTitle').innerText = nodeName ? `هزینه و تمدید: ${nodeName}` : 'هزینه و تمدید سرور';
-      document.getElementById('nodeBillingModalFlag').innerText = flag || '🖥️';
-      document.getElementById('nodeBillingProvider').value = provider || '';
-      document.getElementById('nodeBillingCostToman').value = costToman || '';
-      document.getElementById('nodeBillingCostEur').value = costEur || '';
-      document.getElementById('nodeBillingDueDate').value = dueDate ? dueDate.slice(0, 10) : '';
-      document.getElementById('nodeBillingNotes').value = notes || '';
+      $('nodeBillingUuid').value = nodeUuid || '';
+      $('nodeBillingName').value = nodeName || '';
+      $('nodeBillingModalTitle').innerText = nodeName ? `هزینه و تمدید: ${nodeName}` : 'هزینه و تمدید سرور';
+      $('nodeBillingModalFlag').innerText = flag || '🖥️';
+      $('nodeBillingProvider').value = provider || '';
+      $('nodeBillingCostToman').value = costToman || '';
+      $('nodeBillingCostEur').value = costEur || '';
+      $('nodeBillingDueDate').value = dueDate ? dueDate.slice(0, 10) : '';
+      $('nodeBillingNotes').value = notes || '';
 
-      const jalaliPreview = document.getElementById('nodeBillingJalaliPreview');
+      const jalaliPreview = $('nodeBillingJalaliPreview');
       if (jalaliPreview) {
         jalaliPreview.innerText = dueDate ? (window.formatDateToJalali ? window.formatDateToJalali(dueDate) : dueDate.slice(0, 10)) : '';
       }
@@ -3781,12 +3781,12 @@
 
     setNodeBillingCurrency(curr = 'EUR', recalculate = true) {
       const isEur = String(curr).toUpperCase() === 'EUR';
-      const hiddenInput = document.getElementById('nodeBillingCurrency');
+      const hiddenInput = $('nodeBillingCurrency');
       if (hiddenInput) hiddenInput.value = isEur ? 'EUR' : 'USD';
 
-      const eurBtn = document.getElementById('nodeBillingCurrEur');
-      const usdBtn = document.getElementById('nodeBillingCurrUsd');
-      const symbolSpan = document.getElementById('nodeBillingCurrencySymbol');
+      const eurBtn = $('nodeBillingCurrEur');
+      const usdBtn = $('nodeBillingCurrUsd');
+      const symbolSpan = $('nodeBillingCurrencySymbol');
 
       if (eurBtn && usdBtn) {
         if (isEur) {
@@ -3807,8 +3807,8 @@
     },
 
     addDaysToNodeBillingDueDate(days = 30) {
-      const input = document.getElementById('nodeBillingDueDate');
-      const jalaliPreview = document.getElementById('nodeBillingJalaliPreview');
+      const input = $('nodeBillingDueDate');
+      const jalaliPreview = $('nodeBillingJalaliPreview');
       if (!input) return;
       const baseDate = new Date();
       baseDate.setDate(baseDate.getDate() + Number(days));
@@ -3825,8 +3825,8 @@
     },
 
     clearNodeBillingDueDate() {
-      const input = document.getElementById('nodeBillingDueDate');
-      const jalaliPreview = document.getElementById('nodeBillingJalaliPreview');
+      const input = $('nodeBillingDueDate');
+      const jalaliPreview = $('nodeBillingJalaliPreview');
       if (input) {
         input.value = '';
         input.dispatchEvent(new Event('input', { bubbles: true }));
@@ -3838,8 +3838,8 @@
     switchAdminAppsTab(osKey = 'ios') {
       const osList = ['ios', 'android', 'windows', 'macos', 'linux'];
       osList.forEach(os => {
-        const tabBtn = document.getElementById(`adminAppTab_${os}`);
-        const pane = document.getElementById(`adminAppsPane_${os}`);
+        const tabBtn = $(`adminAppTab_${os}`);
+        const pane = $(`adminAppsPane_${os}`);
         const isTarget = os === osKey;
         if (tabBtn) {
           if (isTarget) {
@@ -3860,11 +3860,11 @@
     },
 
     updateNodeBillingConversion(forceRecalcToman = false) {
-      const curr = (document.getElementById('nodeBillingCurrency')?.value || 'EUR').toUpperCase();
-      const valInput = document.getElementById('nodeBillingCostEur');
-      const tomanInput = document.getElementById('nodeBillingCostToman');
-      const hint = document.getElementById('nodeBillingEurConvertHint');
-      const text = document.getElementById('nodeBillingEurConvertText');
+      const curr = ($('nodeBillingCurrency')?.value || 'EUR').toUpperCase();
+      const valInput = $('nodeBillingCostEur');
+      const tomanInput = $('nodeBillingCostToman');
+      const hint = $('nodeBillingEurConvertHint');
+      const text = $('nodeBillingEurConvertText');
       if (!valInput || !hint || !text) return;
 
       const numVal = parseFloat(valInput.value || '0');
@@ -3884,26 +3884,26 @@
     },
 
     closeNodeBillingModal() {
-      const modal = document.getElementById('nodeBillingModal');
+      const modal = $('nodeBillingModal');
       if (modal) modal.classList.add('hidden');
     },
 
     async saveNodeBilling() {
-      const node_uuid = document.getElementById('nodeBillingUuid')?.value?.trim();
-      const node_name = document.getElementById('nodeBillingName')?.value?.trim();
-      const provider = document.getElementById('nodeBillingProvider')?.value?.trim();
-      const monthly_cost_toman = parseInt(document.getElementById('nodeBillingCostToman')?.value || '0', 10);
-      const monthly_cost_eur = parseFloat(document.getElementById('nodeBillingCostEur')?.value || '0');
-      const currency = (document.getElementById('nodeBillingCurrency')?.value || 'EUR').toUpperCase();
-      const due_date = document.getElementById('nodeBillingDueDate')?.value?.trim() || null;
-      const notes = document.getElementById('nodeBillingNotes')?.value?.trim();
+      const node_uuid = $('nodeBillingUuid')?.value?.trim();
+      const node_name = $('nodeBillingName')?.value?.trim();
+      const provider = $('nodeBillingProvider')?.value?.trim();
+      const monthly_cost_toman = parseInt($('nodeBillingCostToman')?.value || '0', 10);
+      const monthly_cost_eur = parseFloat($('nodeBillingCostEur')?.value || '0');
+      const currency = ($('nodeBillingCurrency')?.value || 'EUR').toUpperCase();
+      const due_date = $('nodeBillingDueDate')?.value?.trim() || null;
+      const notes = $('nodeBillingNotes')?.value?.trim();
 
       if (!node_uuid) {
         if (window.showToast) window.showToast('شناسه سرور یافت نشد.');
         return;
       }
 
-      const saveBtn = document.getElementById('saveNodeBillingBtn');
+      const saveBtn = $('saveNodeBillingBtn');
       if (saveBtn) {
         saveBtn.disabled = true;
         saveBtn.innerHTML = '<span>در حال ذخیره...</span>';
@@ -3942,11 +3942,11 @@
 
     // --- Ad Campaigns & Deep-link Tracking Actions ---
     openCreateCampaignModal() {
-      const modal = document.getElementById('createCampaignModal');
+      const modal = $('createCampaignModal');
       if (!modal) return;
-      const n = document.getElementById('campaignNameInput');
-      const c = document.getElementById('campaignCodeInput');
-      const co = document.getElementById('campaignCostInput');
+      const n = $('campaignNameInput');
+      const c = $('campaignCodeInput');
+      const co = $('campaignCostInput');
       if (n) n.value = '';
       if (c) c.value = '';
       if (co) co.value = '';
@@ -3955,22 +3955,22 @@
     },
 
     closeCreateCampaignModal() {
-      const modal = document.getElementById('createCampaignModal');
+      const modal = $('createCampaignModal');
       if (modal) modal.classList.add('hidden');
     },
 
     async submitCreateCampaign(e) {
       if (e) e.preventDefault();
-      const name = document.getElementById('campaignNameInput')?.value?.trim();
-      const code = document.getElementById('campaignCodeInput')?.value?.trim().toLowerCase();
-      const cost = parseInt(document.getElementById('campaignCostInput')?.value || '0', 10);
+      const name = $('campaignNameInput')?.value?.trim();
+      const code = $('campaignCodeInput')?.value?.trim().toLowerCase();
+      const cost = parseInt($('campaignCostInput')?.value || '0', 10);
 
       if (!name || !code) {
         if (window.showToast) window.showToast('⚠️ نام و شناسه کمپین الزامی است.');
         return;
       }
 
-      const submitBtn = document.getElementById('createCampaignSubmitBtn');
+      const submitBtn = $('createCampaignSubmitBtn');
       if (submitBtn) {
         submitBtn.disabled = true;
         submitBtn.innerText = 'در حال ساخت...';
@@ -4036,7 +4036,7 @@
     },
 
     async fetchAdminCampaigns() {
-      const container = document.getElementById('adminCampaignsList');
+      const container = $('adminCampaignsList');
       if (!container) return;
 
       container.innerHTML = `
@@ -4090,11 +4090,11 @@
                   </div>
                   <div class="min-w-0">
                     <b class="text-xs text-white block truncate">${escapeHtml(c.name)}</b>
-                    <span class="text-[10px] font-mono text-cyan-400 dir-ltr block mt-0.5">ad_${c.code}</span>
+                    <span class="text-[10px] font-mono text-cyan-400 dir-ltr block mt-0.5">ad_${escapeHtml(c.code)}</span>
                   </div>
                 </div>
                 <div class="flex items-center gap-1.5 flex-shrink-0">
-                  <button type="button" onclick="window.adminActions.copyCampaignLink('${c.deep_link}')" class="px-2.5 py-1 bg-transparent hover:bg-cyan-500/10 text-cyan-400 border border-cyan-500/40 rounded-xl text-[10px] font-bold transition flex items-center gap-1 active:scale-95 shadow-sm" title="کپی لینک اختصاصی">
+                  <button type="button" onclick="window.adminActions.copyCampaignLink('${escapeHtml(c.deep_link).replace(/'/g, "\\'")}')" class="px-2.5 py-1 bg-transparent hover:bg-cyan-500/10 text-cyan-400 border border-cyan-500/40 rounded-xl text-[10px] font-bold transition flex items-center gap-1 active:scale-95 shadow-sm" title="کپی لینک اختصاصی">
                     <span>کپی لینک</span>
                   </button>
                   <button type="button" onclick="window.adminActions.deleteCampaign(${c.id}, '${escapeHtml(c.name).replace(/'/g, "\\'")}')" class="w-7 h-7 bg-transparent hover:bg-rose-500/10 text-rose-400 border border-rose-500/40 rounded-xl flex items-center justify-center transition active:scale-95" title="حذف کمپین">
@@ -4137,11 +4137,11 @@
     },
 
     calcStarsRate(mode = 'lossless') {
-      const usdtInp = document.getElementById('settingUsdtRate');
+      const usdtInp = $('settingUsdtRate');
       const usdtVal = parseInt(usdtInp?.value || '0', 10) || window.currentUsdRate || 95000;
       const multiplier = mode === 'fragment' ? 0.015 : 0.013;
       const calculated = Math.round(usdtVal * multiplier);
-      const starsInp = document.getElementById('settingStarsRate');
+      const starsInp = $('settingStarsRate');
       if (starsInp) {
         starsInp.value = calculated;
         if (window.hapticFeedback) window.hapticFeedback('success');
@@ -4155,15 +4155,15 @@
 
     // --- Access Mode Modal (حالت دسترسی ربات) ---
     openAccessModeModal() {
-      const modal = document.getElementById('accessModeModal');
+      const modal = $('accessModeModal');
       if (modal) modal.classList.remove('hidden');
-      const curMode = document.getElementById('settingAccessMode')?.value || 'open';
+      const curMode = $('settingAccessMode')?.value || 'open';
       this.highlightAccessModeOption(curMode);
       if (window.hapticFeedback) window.hapticFeedback('impact');
     },
 
     closeAccessModeModal() {
-      document.getElementById('accessModeModal')?.classList.add('hidden');
+      $('accessModeModal')?.classList.add('hidden');
     },
 
     highlightAccessModeOption(mode) {
@@ -4175,7 +4175,7 @@
         if (radio) radio.classList.remove('border-emerald-400', 'border-cyan-400', 'border-rose-400');
       });
 
-      const activeEl = document.getElementById(`accessOpt-${mode}`);
+      const activeEl = $(`accessOpt-${mode}`);
       if (activeEl) {
         const color = mode === 'open' ? 'emerald' : (mode === 'invite_only' ? 'cyan' : 'rose');
         activeEl.classList.add(`border-${color}-500`, `bg-${color}-500/10`);
@@ -4187,14 +4187,14 @@
     },
 
     async selectAccessMode(mode) {
-      const inp = document.getElementById('settingAccessMode');
+      const inp = $('settingAccessMode');
       if (inp) inp.value = mode;
       this.renderAccessModeUI(mode);
       this.closeAccessModeModal();
       if (window.hapticFeedback) window.hapticFeedback('success');
 
       const isMaint = (mode === 'closed');
-      const maintSwitch = document.getElementById('settingMaintSwitch');
+      const maintSwitch = $('settingMaintSwitch');
       if (maintSwitch) maintSwitch.checked = isMaint;
 
       try {
@@ -4211,10 +4211,10 @@
     },
 
     renderAccessModeUI(mode) {
-      const badge = document.getElementById('accessModeBadge');
-      const sub = document.getElementById('accessModeSubtext');
-      const icon = document.getElementById('accessModeIconBox');
-      const inp = document.getElementById('settingAccessMode');
+      const badge = $('accessModeBadge');
+      const sub = $('accessModeSubtext');
+      const icon = $('accessModeIconBox');
+      const inp = $('settingAccessMode');
       if (inp) inp.value = mode;
 
       if (mode === 'invite_only') {
@@ -4254,16 +4254,16 @@
   const fetchAdminPlans = () => window.adminActions.fetchAdminPlans();
   const fetchAdminCoupons = () => window.adminActions.fetchAdminCoupons();
 
-  document.getElementById('openCreatePlanBtn')?.addEventListener('click', () => {
+  $('openCreatePlanBtn')?.addEventListener('click', () => {
     window.adminActions.openPlanModal();
   });
-  document.getElementById('openCreateCouponBtn')?.addEventListener('click', () => {
+  $('openCreateCouponBtn')?.addEventListener('click', () => {
     window.adminActions.openCouponModal();
   });
 
   let walletActionType = 'add';
-  const walletActionAddBtn = document.getElementById('walletActionAddBtn');
-  const walletActionDeductBtn = document.getElementById('walletActionDeductBtn');
+  const walletActionAddBtn = $('walletActionAddBtn');
+  const walletActionDeductBtn = $('walletActionDeductBtn');
 
   walletActionAddBtn?.addEventListener('click', () => {
     walletActionType = 'add';
@@ -4279,7 +4279,7 @@
 
   // --- 7. Pending Topups Fetcher ---
   async function fetchAdminTopups() {
-    const container = document.getElementById('adminPendingTopupsList');
+    const container = $('adminPendingTopupsList');
     if (!container) return;
     container.innerHTML = '<div class="p-4 text-center text-xs text-slate-400">در حال دریافت فیش‌ها...</div>';
 
@@ -4333,7 +4333,7 @@
               <div class="flex items-center gap-2.5 min-w-0">
                 <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center font-bold text-white text-xs shadow flex-shrink-0 overflow-hidden relative">
                   <img src="${avatarSrc}" alt="Avatar" class="w-full h-full object-cover" onerror="this.classList.add('hidden'); if(this.nextElementSibling) this.nextElementSibling.classList.remove('hidden');" />
-                  <span class="font-bold">${initial}</span>
+                  <span class="font-bold">${escapeHtml(initial)}</span>
                 </div>
                 <div class="min-w-0 space-y-0.5">
                   <b class="text-white text-xs font-bold block truncate max-w-[140px] cursor-pointer hover:text-cyan-300" onclick="window.adminActions.quickCopy('${safeDisplayName}', 'نام')" title="${escapeHtml(uLabel)}">${escapeHtml(uLabel)}</b>
@@ -4346,7 +4346,7 @@
 
               <!-- Left column: Username on line 1, Numeric ID on line 2 (بدون ID: و کاملاً چسبیده به چپ بدون فاصله) -->
               <div class="flex flex-col items-start justify-center gap-0.5 font-mono text-[11px] text-slate-400 flex-shrink-0 text-left" dir="ltr">
-                ${t.username ? `<span onclick="window.adminActions.quickCopy('@${t.username}', 'نام کاربری')" class="cursor-pointer hover:text-cyan-300 text-slate-300 font-mono truncate max-w-[130px] block leading-tight" title="@${t.username}">@${t.username}</span>` : ''}
+                ${t.username ? `<span onclick="window.adminActions.quickCopy('@${escapeHtml(t.username)}', 'نام کاربری')" class="cursor-pointer hover:text-cyan-300 text-slate-300 font-mono truncate max-w-[130px] block leading-tight" title="@${escapeHtml(t.username)}">@${escapeHtml(t.username)}</span>` : ''}
                 <span class="cursor-pointer hover:text-cyan-300 text-slate-400 font-mono block leading-tight" onclick="window.adminActions.quickCopy('${t.telegram_id}', 'شناسه عددی')" title="شناسه عددی">${t.telegram_id}</span>
               </div>
             </div>
@@ -4396,7 +4396,7 @@
   }
 
   async function loadUserChatMessages(telegram_id) {
-    const streamEl = document.getElementById('ticketChatStream');
+    const streamEl = $('ticketChatStream');
     if (!streamEl) return;
     streamEl.innerHTML = '<div class="p-6 text-center text-slate-400 text-[11px]">در حال بارگذاری پیام‌ها...</div>';
     try {
@@ -4409,22 +4409,22 @@
       const user = res.user || {};
 
       // Update header
-      const nameEl = document.getElementById('activeChatUserName');
+      const nameEl = $('activeChatUserName');
       if (nameEl) nameEl.innerText = user.full_name || `کاربر ${telegram_id}`;
-      const tagEl = document.getElementById('activeChatUserTag');
+      const tagEl = $('activeChatUserTag');
       if (tagEl) {
         tagEl.innerText = user.username ? `@${user.username}` : '';
         tagEl.style.display = user.username ? 'block' : 'none';
       }
-      const idEl = document.getElementById('activeChatUserId');
+      const idEl = $('activeChatUserId');
       if (idEl) idEl.innerHTML = `<span onclick="window.adminActions.quickCopy('${telegram_id}', 'شناسه عددی')" class="cursor-pointer hover:text-cyan-300 transition">${telegram_id}</span>`;
-      const avatarEl = document.getElementById('activeChatUserAvatar');
+      const avatarEl = $('activeChatUserAvatar');
       if (avatarEl) {
         const initial = ((user.full_name || user.username || String(telegram_id)).replace('@', '')[0] || 'U').toUpperCase();
         avatarEl.innerHTML = `<img src="/api/user/avatar?user_id=${telegram_id}" alt="Avatar" class="w-full h-full object-cover" onerror="this.classList.add('hidden'); if(this.nextElementSibling) this.nextElementSibling.classList.remove('hidden');" /><span class="font-bold">${initial}</span>`;
       }
 
-      const badgeEl = document.getElementById('activeChatStatusBadge');
+      const badgeEl = $('activeChatStatusBadge');
       if (badgeEl) {
         if (user.pending_topup_id) {
           badgeEl.className = 'text-[9px] bg-transparent text-amber-500 border border-amber-500/30 px-2 py-0.5 rounded-lg font-bold flex items-center gap-1';
@@ -4480,9 +4480,9 @@
   }
 
   // Direct Ticket Reply Form Handler
-  document.getElementById('sendDirectTicketReplyBtn')?.addEventListener('click', async () => {
-    const uid = document.getElementById('directTicketUserId')?.value?.trim() || activeChatTelegramId;
-    const txtEl = document.getElementById('directTicketMsg');
+  $('sendDirectTicketReplyBtn')?.addEventListener('click', async () => {
+    const uid = $('directTicketUserId')?.value?.trim() || activeChatTelegramId;
+    const txtEl = $('directTicketMsg');
     const txt = txtEl?.value?.trim();
     if (!uid) {
       if (window.showToast) window.showToast('لطفاً ابتدا یک کاربر را از لیست بالا انتخاب کنید.');
@@ -4492,7 +4492,7 @@
       if (window.showToast) window.showToast('لطفاً متن پیام را وارد کنید.');
       return;
     }
-    const sendBtn = document.getElementById('sendDirectTicketReplyBtn');
+    const sendBtn = $('sendDirectTicketReplyBtn');
     if (sendBtn) {
       sendBtn.disabled = true;
       sendBtn.innerText = 'در حال ارسال...';
@@ -4523,7 +4523,7 @@
   document.querySelectorAll('.chat-template-chip').forEach(chip => {
     chip.addEventListener('click', () => {
       const msg = chip.getAttribute('data-msg');
-      const input = document.getElementById('directTicketMsg');
+      const input = $('directTicketMsg');
       if (input && msg) {
         input.value = msg;
         input.focus();
@@ -4532,17 +4532,17 @@
     });
   });
 
-  document.getElementById('refreshChatThreadsBtn')?.addEventListener('click', () => {
+  $('refreshChatThreadsBtn')?.addEventListener('click', () => {
     fetchTicketThreads();
     if (activeChatTelegramId) loadUserChatMessages(activeChatTelegramId);
     if (window.showToast) window.showToast('🔄 گفتگوها به‌روزرسانی شد');
     if (window.hapticFeedback) window.hapticFeedback('impact');
   });
 
-  document.getElementById('directTicketMsg')?.addEventListener('keydown', (e) => {
+  $('directTicketMsg')?.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      document.getElementById('sendDirectTicketReplyBtn')?.click();
+      $('sendDirectTicketReplyBtn')?.click();
     }
   });
 
@@ -4576,6 +4576,7 @@
     try {
       const res = await window.api.getAdminSettings();
       if (!res || !res.ok || !res.settings) return;
+      window._adminSettingsLoaded = true;
       const s = res.settings;
 
       // Access Mode & Maintenance Sync
@@ -4583,56 +4584,56 @@
       const curMode = s.access_mode || (isMaint ? 'closed' : 'open');
       const finalMode = isMaint ? 'closed' : curMode;
 
-      const maintSwitch = document.getElementById('settingMaintSwitch');
+      const maintSwitch = $('settingMaintSwitch');
       if (maintSwitch) maintSwitch.checked = (finalMode === 'closed');
 
-      const accessMode = document.getElementById('settingAccessMode');
+      const accessMode = $('settingAccessMode');
       if (accessMode) accessMode.value = finalMode;
       window.adminActions.renderAccessModeUI(finalMode);
       if (s.bot_username) window.botUsername = s.bot_username;
 
       // Other Switches
-      const cardSwitch = document.getElementById('settingCardSwitch');
+      const cardSwitch = $('settingCardSwitch');
       if (cardSwitch) cardSwitch.checked = !!s.card_enabled;
 
-      const cryptoSwitch = document.getElementById('settingCryptoSwitch');
+      const cryptoSwitch = $('settingCryptoSwitch');
       if (cryptoSwitch) cryptoSwitch.checked = !!s.crypto_enabled;
 
-      const trialSwitch = document.getElementById('settingTrialSwitch');
+      const trialSwitch = $('settingTrialSwitch');
       if (trialSwitch) trialSwitch.checked = !!s.trial_enabled;
 
-      const refSwitch = document.getElementById('settingRefSwitch');
+      const refSwitch = $('settingRefSwitch');
       if (refSwitch) refSwitch.checked = !!s.referral_enabled;
 
-      const supDirectSwitch = document.getElementById('settingSupportDirectSwitch');
+      const supDirectSwitch = $('settingSupportDirectSwitch');
       if (supDirectSwitch) supDirectSwitch.checked = !!s.support_direct_enabled;
 
       // Telegram Stars Gateway
-      const starsSwitch = document.getElementById('settingStarsSwitch');
+      const starsSwitch = $('settingStarsSwitch');
       if (starsSwitch) starsSwitch.checked = !!s.stars_enabled;
 
-      const starsRate = document.getElementById('settingStarsRate');
+      const starsRate = $('settingStarsRate');
       if (starsRate) starsRate.value = s.stars_rate_toman ?? 1600;
 
       // CryptoBot Gateway
-      const cryptoBotSwitch = document.getElementById('settingCryptoBotSwitch');
+      const cryptoBotSwitch = $('settingCryptoBotSwitch');
       if (cryptoBotSwitch) cryptoBotSwitch.checked = !!s.cryptobot_enabled;
 
-      const cryptoBotToken = document.getElementById('settingCryptoBotToken');
+      const cryptoBotToken = $('settingCryptoBotToken');
       if (cryptoBotToken) cryptoBotToken.value = s.cryptobot_token || '';
 
       // Bank & Topup
-      const cardNum = document.getElementById('settingCardNumber');
+      const cardNum = $('settingCardNumber');
       if (cardNum) cardNum.value = s.card_number || '';
 
-      const cardHolder = document.getElementById('settingCardHolder');
+      const cardHolder = $('settingCardHolder');
       if (cardHolder) cardHolder.value = s.card_holder || '';
 
-      const minTopup = document.getElementById('settingMinTopup');
+      const minTopup = $('settingMinTopup');
       if (minTopup) minTopup.value = s.topup_min_amount ?? 20000;
 
       // Crypto & Rates
-      const usdtRate = document.getElementById('settingUsdtRate');
+      const usdtRate = $('settingUsdtRate');
       if (usdtRate) {
         usdtRate.value = s.usdt_rate_toman ?? 95000;
         if (!usdtRate._hasStarsListener) {
@@ -4643,34 +4644,34 @@
       if (s.usdt_rate_toman) window.currentUsdRate = s.usdt_rate_toman;
       window.adminActions.updateStarsHint();
 
-      const eurRate = document.getElementById('settingEurRate');
+      const eurRate = $('settingEurRate');
       if (eurRate) eurRate.value = s.eur_rate_toman ?? 105000;
       if (s.eur_rate_toman) window.currentEurRate = s.eur_rate_toman;
 
-      const tonRate = document.getElementById('settingTonRate');
+      const tonRate = $('settingTonRate');
       if (tonRate) tonRate.value = s.ton_rate_toman ?? 0;
 
-      const tonWallet = document.getElementById('settingTonWallet');
+      const tonWallet = $('settingTonWallet');
       if (tonWallet) tonWallet.value = s.ton_wallet_address || '';
 
       // Trial & Referral
-      const trialTraffic = document.getElementById('settingTrialTraffic');
+      const trialTraffic = $('settingTrialTraffic');
       if (trialTraffic) trialTraffic.value = s.trial_traffic_gb ?? 1;
 
-      const trialDays = document.getElementById('settingTrialDays');
+      const trialDays = $('settingTrialDays');
       if (trialDays) trialDays.value = s.trial_duration_days ?? 1;
 
-      const refReward = document.getElementById('settingRefReward');
+      const refReward = $('settingRefReward');
       if (refReward) refReward.value = s.referral_reward_gb ?? 5;
 
-      const supContact = document.getElementById('settingSupportContact');
+      const supContact = $('settingSupportContact');
       if (supContact) supContact.value = s.support_contact || '';
 
       // Tutorial Channel URL, Routing Tutorial URL & Client App Overrides
-      const tutChannelInp = document.getElementById('settingTutorialChannelUrl');
+      const tutChannelInp = $('settingTutorialChannelUrl');
       if (tutChannelInp) tutChannelInp.value = s.tutorial_channel_url || '';
 
-      const routingTutInp = document.getElementById('settingRoutingTutorialUrl');
+      const routingTutInp = $('settingRoutingTutorialUrl');
       if (routingTutInp) routingTutInp.value = s.routing_tutorial_url || '';
 
       const OS_APPS_MAP = {
@@ -4686,17 +4687,17 @@
           const appOverrides = typeof s.client_apps_json === 'string' ? JSON.parse(s.client_apps_json) : s.client_apps_json;
           if (appOverrides && typeof appOverrides === 'object') {
             for (const [os, appIds] of Object.entries(OS_APPS_MAP)) {
-              const recSelect = document.getElementById(`appRecommended_${os}`);
+              const recSelect = $(`appRecommended_${os}`);
               if (recSelect) {
                 recSelect.value = appOverrides.recommended?.[os] || (os === 'windows' ? appOverrides.recommended?.desktop : '') || '';
               }
               const osSource = appOverrides[os] || (os === 'windows' ? appOverrides.desktop : null);
               for (const appId of appIds) {
                 const item = osSource?.[appId] || (appOverrides[appId] ? { enabled: true, download_url: appOverrides[appId], tutorial_url: '' } : null);
-                const downloadEl = document.getElementById(`appDownload_${os}_${appId}`);
-                const downloadPortableEl = document.getElementById(`appDownloadPortable_${os}_${appId}`);
-                const downloadExtraEl = document.getElementById(`appDownloadExtra_${os}_${appId}`);
-                const tutorialEl = document.getElementById(`appTutorial_${os}_${appId}`);
+                const downloadEl = $(`appDownload_${os}_${appId}`);
+                const downloadPortableEl = $(`appDownloadPortable_${os}_${appId}`);
+                const downloadExtraEl = $(`appDownloadExtra_${os}_${appId}`);
+                const tutorialEl = $(`appTutorial_${os}_${appId}`);
                 if (downloadEl) downloadEl.value = item?.download_url || '';
                 if (downloadPortableEl) downloadPortableEl.value = item?.download_portable_url || '';
                 if (downloadExtraEl) downloadExtraEl.value = item?.download_extra_url || '';
@@ -4717,7 +4718,7 @@
         settingTopicErrors: s.topic_errors,
       };
       topicInputIds.forEach(id => {
-        const inp = document.getElementById(id);
+        const inp = $(id);
         if (inp) {
           formatTopicVal(inp, topicSettings[id]);
           if (!inp._hasTopicListeners) {
@@ -4749,10 +4750,10 @@
     }
   }
 
-  document.getElementById('settingMaintSwitch')?.addEventListener('change', async (e) => {
+  $('settingMaintSwitch')?.addEventListener('change', async (e) => {
     const isMaint = e.target.checked;
     const newMode = isMaint ? 'closed' : 'open';
-    const accInp = document.getElementById('settingAccessMode');
+    const accInp = $('settingAccessMode');
     if (accInp) accInp.value = newMode;
     window.adminActions.renderAccessModeUI(newMode);
     try {
@@ -4765,34 +4766,34 @@
       if (window.showToast) window.showToast('خطا در ذخیره وضعیت تعمیرات');
     }
   });
-  document.getElementById('settingCardSwitch')?.addEventListener('change', (e) => {
+  $('settingCardSwitch')?.addEventListener('change', (e) => {
     updateSettingToggle('card_enabled', e.target.checked);
   });
-  document.getElementById('settingCryptoSwitch')?.addEventListener('change', (e) => {
+  $('settingCryptoSwitch')?.addEventListener('change', (e) => {
     updateSettingToggle('crypto_enabled', e.target.checked);
   });
-  document.getElementById('settingTrialSwitch')?.addEventListener('change', (e) => {
+  $('settingTrialSwitch')?.addEventListener('change', (e) => {
     updateSettingToggle('trial_enabled', e.target.checked);
   });
-  document.getElementById('settingRefSwitch')?.addEventListener('change', (e) => {
+  $('settingRefSwitch')?.addEventListener('change', (e) => {
     updateSettingToggle('referral_enabled', e.target.checked);
   });
-  document.getElementById('settingSupportDirectSwitch')?.addEventListener('change', (e) => {
+  $('settingSupportDirectSwitch')?.addEventListener('change', (e) => {
     updateSettingToggle('support_direct_enabled', e.target.checked);
   });
-  document.getElementById('settingStarsSwitch')?.addEventListener('change', (e) => {
+  $('settingStarsSwitch')?.addEventListener('change', (e) => {
     updateSettingToggle('stars_enabled', e.target.checked);
   });
-  document.getElementById('settingCryptoBotSwitch')?.addEventListener('change', (e) => {
+  $('settingCryptoBotSwitch')?.addEventListener('change', (e) => {
     updateSettingToggle('cryptobot_enabled', e.target.checked);
   });
-  document.getElementById('settingAccessMode')?.addEventListener('change', (e) => {
+  $('settingAccessMode')?.addEventListener('change', (e) => {
     updateSettingToggle('access_mode', e.target.value);
   });
 
   async function handleSaveAllSettings() {
-    const isMaint = document.getElementById('settingMaintSwitch')?.checked ?? false;
-    let accessModeVal = document.getElementById('settingAccessMode')?.value || 'open';
+    const isMaint = $('settingMaintSwitch')?.checked ?? false;
+    let accessModeVal = $('settingAccessMode')?.value || 'open';
     if (isMaint) {
       accessModeVal = 'closed';
     } else if (accessModeVal === 'closed') {
@@ -4802,34 +4803,34 @@
     const payload = {
       maintenance: isMaint,
       access_mode: accessModeVal,
-      card_enabled: document.getElementById('settingCardSwitch')?.checked ?? true,
-      crypto_enabled: document.getElementById('settingCryptoSwitch')?.checked ?? false,
-      stars_enabled: document.getElementById('settingStarsSwitch')?.checked ?? false,
-      stars_rate_toman: parseInt(document.getElementById('settingStarsRate')?.value || '1600', 10),
-      cryptobot_enabled: document.getElementById('settingCryptoBotSwitch')?.checked ?? false,
-      cryptobot_token: document.getElementById('settingCryptoBotToken')?.value?.trim() || '',
-      trial_enabled: document.getElementById('settingTrialSwitch')?.checked ?? true,
-      referral_enabled: document.getElementById('settingRefSwitch')?.checked ?? true,
-      support_direct_enabled: document.getElementById('settingSupportDirectSwitch')?.checked ?? true,
-      card_number: document.getElementById('settingCardNumber')?.value?.trim() || '',
-      card_holder: document.getElementById('settingCardHolder')?.value?.trim() || '',
-      topup_min_amount: parseInt(document.getElementById('settingMinTopup')?.value || '20000', 10),
-      usdt_rate_toman: parseInt(document.getElementById('settingUsdtRate')?.value || '95000', 10),
-      eur_rate_toman: parseInt(document.getElementById('settingEurRate')?.value || '105000', 10),
-      ton_rate_toman: parseInt(document.getElementById('settingTonRate')?.value || '0', 10),
-      ton_wallet_address: document.getElementById('settingTonWallet')?.value?.trim() || '',
-      trial_traffic_gb: parseInt(document.getElementById('settingTrialTraffic')?.value || '1', 10),
-      trial_duration_days: parseInt(document.getElementById('settingTrialDays')?.value || '1', 10),
-      referral_reward_gb: parseInt(document.getElementById('settingRefReward')?.value || '5', 10),
-      support_contact: document.getElementById('settingSupportContact')?.value?.trim() || '',
-      topic_topups: parseTopicVal(document.getElementById('settingTopicTopups')?.value),
-      topic_orders: parseTopicVal(document.getElementById('settingTopicOrders')?.value),
-      topic_support: parseTopicVal(document.getElementById('settingTopicSupport')?.value),
-      topic_alerts: parseTopicVal(document.getElementById('settingTopicAlerts')?.value),
-      topic_crypto: parseTopicVal(document.getElementById('settingTopicCrypto')?.value),
-      topic_errors: parseTopicVal(document.getElementById('settingTopicErrors')?.value),
-      tutorial_channel_url: document.getElementById('settingTutorialChannelUrl')?.value?.trim() || '',
-      routing_tutorial_url: document.getElementById('settingRoutingTutorialUrl')?.value?.trim() || '',
+      card_enabled: $('settingCardSwitch')?.checked ?? true,
+      crypto_enabled: $('settingCryptoSwitch')?.checked ?? false,
+      stars_enabled: $('settingStarsSwitch')?.checked ?? false,
+      stars_rate_toman: parseInt($('settingStarsRate')?.value || '1600', 10),
+      cryptobot_enabled: $('settingCryptoBotSwitch')?.checked ?? false,
+      cryptobot_token: $('settingCryptoBotToken')?.value?.trim() || '',
+      trial_enabled: $('settingTrialSwitch')?.checked ?? true,
+      referral_enabled: $('settingRefSwitch')?.checked ?? true,
+      support_direct_enabled: $('settingSupportDirectSwitch')?.checked ?? true,
+      card_number: $('settingCardNumber')?.value?.trim() || '',
+      card_holder: $('settingCardHolder')?.value?.trim() || '',
+      topup_min_amount: parseInt($('settingMinTopup')?.value || '20000', 10),
+      usdt_rate_toman: parseInt($('settingUsdtRate')?.value || '95000', 10),
+      eur_rate_toman: parseInt($('settingEurRate')?.value || '105000', 10),
+      ton_rate_toman: parseInt($('settingTonRate')?.value || '0', 10),
+      ton_wallet_address: $('settingTonWallet')?.value?.trim() || '',
+      trial_traffic_gb: parseInt($('settingTrialTraffic')?.value || '1', 10),
+      trial_duration_days: parseInt($('settingTrialDays')?.value || '1', 10),
+      referral_reward_gb: parseInt($('settingRefReward')?.value || '5', 10),
+      support_contact: $('settingSupportContact')?.value?.trim() || '',
+      topic_topups: parseTopicVal($('settingTopicTopups')?.value),
+      topic_orders: parseTopicVal($('settingTopicOrders')?.value),
+      topic_support: parseTopicVal($('settingTopicSupport')?.value),
+      topic_alerts: parseTopicVal($('settingTopicAlerts')?.value),
+      topic_crypto: parseTopicVal($('settingTopicCrypto')?.value),
+      topic_errors: parseTopicVal($('settingTopicErrors')?.value),
+      tutorial_channel_url: $('settingTutorialChannelUrl')?.value?.trim() || '',
+      routing_tutorial_url: $('settingRoutingTutorialUrl')?.value?.trim() || '',
       client_apps_json: (() => {
         const OS_APPS_MAP = {
           ios: ['streisand', 'v2box', 'incy', 'happ'],
@@ -4840,21 +4841,21 @@
         };
         const clientAppsObj = {
           recommended: {
-            ios: document.getElementById('appRecommended_ios')?.value || '',
-            android: document.getElementById('appRecommended_android')?.value || '',
-            windows: document.getElementById('appRecommended_windows')?.value || '',
-            desktop: document.getElementById('appRecommended_windows')?.value || '',
-            macos: document.getElementById('appRecommended_macos')?.value || '',
-            linux: document.getElementById('appRecommended_linux')?.value || ''
+            ios: $('appRecommended_ios')?.value || '',
+            android: $('appRecommended_android')?.value || '',
+            windows: $('appRecommended_windows')?.value || '',
+            desktop: $('appRecommended_windows')?.value || '',
+            macos: $('appRecommended_macos')?.value || '',
+            linux: $('appRecommended_linux')?.value || ''
           }
         };
         for (const [os, appIds] of Object.entries(OS_APPS_MAP)) {
           clientAppsObj[os] = {};
           for (const appId of appIds) {
-            const downloadEl = document.getElementById(`appDownload_${os}_${appId}`);
-            const downloadPortableEl = document.getElementById(`appDownloadPortable_${os}_${appId}`);
-            const downloadExtraEl = document.getElementById(`appDownloadExtra_${os}_${appId}`);
-            const tutorialEl = document.getElementById(`appTutorial_${os}_${appId}`);
+            const downloadEl = $(`appDownload_${os}_${appId}`);
+            const downloadPortableEl = $(`appDownloadPortable_${os}_${appId}`);
+            const downloadExtraEl = $(`appDownloadExtra_${os}_${appId}`);
+            const tutorialEl = $(`appTutorial_${os}_${appId}`);
             const downloadUrl = downloadEl?.value?.trim() || '';
             const downloadPortableUrl = downloadPortableEl?.value?.trim() || '';
             const downloadExtraUrl = downloadExtraEl?.value?.trim() || '';
@@ -4872,14 +4873,14 @@
       })(),
     };
 
-    const saveBtns = [document.getElementById('saveAllSettingsBtn'), document.getElementById('saveAllSettingsTopBtn')];
+    const saveBtns = [$('saveAllSettingsBtn'), $('saveAllSettingsTopBtn')];
     saveBtns.forEach(b => { if (b) { b.disabled = true; b.innerText = 'در حال ذخیره...'; } });
 
     try {
       const res = await window.api.saveAdminSettings(payload);
       if (res && res.ok) {
         topicInputIds.forEach(id => {
-          const inp = document.getElementById(id);
+          const inp = $(id);
           if (inp) formatTopicVal(inp, inp.value);
         });
         if (window.showToast) window.showToast('✅ تمامی تنظیمات با موفقیت ذخیره شدند.');
@@ -4892,29 +4893,29 @@
       if (window.showToast) window.showToast('خطای شبکه در ذخیره تنظیمات');
     } finally {
       saveBtns.forEach(b => { if (b) { b.disabled = false; b.innerText = '💾 ذخیره همه'; } });
-      const mainBtn = document.getElementById('saveAllSettingsBtn');
+      const mainBtn = $('saveAllSettingsBtn');
       if (mainBtn) mainBtn.innerHTML = '<span>💾</span> ذخیره تمامی تغییرات تنظیمات';
     }
   }
 
-  document.getElementById('saveAllSettingsBtn')?.addEventListener('click', handleSaveAllSettings);
-  document.getElementById('saveAllSettingsTopBtn')?.addEventListener('click', handleSaveAllSettings);
+  $('saveAllSettingsBtn')?.addEventListener('click', handleSaveAllSettings);
+  $('saveAllSettingsTopBtn')?.addEventListener('click', handleSaveAllSettings);
 
   // Settings Accordion Boxes toggle handled by window.adminActions.toggleSettingsBox
 
   // Crypto rates modal trigger in settings
-  document.getElementById('openCryptoRatesModalBtn')?.addEventListener('click', () => {
+  $('openCryptoRatesModalBtn')?.addEventListener('click', () => {
     window.adminActions.openCryptoRatesModal();
   });
 
   // --- 9. Broadcast Modal & Live Report Modal ---
-  const broadcastModal = document.getElementById('broadcastModal');
-  const broadcastReportModal = document.getElementById('broadcastReportModal');
-  const openBroadcastModalBtn = document.getElementById('openBroadcastModalBtn');
-  const closeBroadcastBtn = document.getElementById('closeBroadcastBtn');
-  const sendBroadcastBtn = document.getElementById('sendBroadcastBtn');
-  const closeBroadcastReportBtn = document.getElementById('closeBroadcastReportBtn');
-  const dismissReportModalBtn = document.getElementById('dismissReportModalBtn');
+  const broadcastModal = $('broadcastModal');
+  const broadcastReportModal = $('broadcastReportModal');
+  const openBroadcastModalBtn = $('openBroadcastModalBtn');
+  const closeBroadcastBtn = $('closeBroadcastBtn');
+  const sendBroadcastBtn = $('sendBroadcastBtn');
+  const closeBroadcastReportBtn = $('closeBroadcastReportBtn');
+  const dismissReportModalBtn = $('dismissReportModalBtn');
 
   openBroadcastModalBtn?.addEventListener('click', () => {
     if (broadcastModal) broadcastModal.classList.remove('hidden');
@@ -4948,7 +4949,7 @@
         buyers: 'خریداران قبلی',
         balance: 'کاربران دارای موجودی کیف پول',
       };
-      const targetLabel = document.getElementById('broadcastTargetLabel');
+      const targetLabel = $('broadcastTargetLabel');
       if (targetLabel) targetLabel.innerText = labelMap[currentBroadcastTarget] || 'کاربران';
 
       if (window.hapticFeedback) window.hapticFeedback('impact');
@@ -4956,7 +4957,7 @@
   });
 
   sendBroadcastBtn?.addEventListener('click', async () => {
-    const txt = document.getElementById('broadcastTextArea')?.value?.trim();
+    const txt = $('broadcastTextArea')?.value?.trim();
     if (!txt) {
       if (window.showToast) window.showToast('لطفاً متن پیام را وارد کنید.');
       return;
@@ -4968,25 +4969,25 @@
       const res = await window.api.broadcastMessage(txt, currentBroadcastTarget);
       if (res && res.ok && res.broadcast_id) {
         if (broadcastModal) broadcastModal.classList.add('hidden');
-        const txtEl = document.getElementById('broadcastTextArea');
+        const txtEl = $('broadcastTextArea');
         if (txtEl) txtEl.value = '';
 
         // Open Live Progress Report Modal
         if (broadcastReportModal) {
           broadcastReportModal.classList.remove('hidden');
-          const targetEl = document.getElementById('reportTargetLabel');
+          const targetEl = $('reportTargetLabel');
           if (targetEl) targetEl.innerText = res.stats?.target_label || 'همه کاربران';
-          const totalEl = document.getElementById('reportTotalCount');
+          const totalEl = $('reportTotalCount');
           if (totalEl) totalEl.innerText = `${formatNumber(res.stats?.total || 0)} نفر`;
-          const sentEl = document.getElementById('reportSentCount');
+          const sentEl = $('reportSentCount');
           if (sentEl) sentEl.innerText = '0 پیام';
-          const failEl = document.getElementById('reportFailedCount');
+          const failEl = $('reportFailedCount');
           if (failEl) failEl.innerText = '0';
-          const statusEl = document.getElementById('reportStatusText');
+          const statusEl = $('reportStatusText');
           if (statusEl) statusEl.innerText = 'در حال ارسال پیام‌ها...';
-          const pBar = document.getElementById('reportProgressBar');
+          const pBar = $('reportProgressBar');
           if (pBar) pBar.style.width = '10%';
-          const pText = document.getElementById('reportPercentText');
+          const pText = $('reportPercentText');
           if (pText) pText.innerText = '0%';
 
           // Poll progress
@@ -5030,28 +5031,28 @@
   });
 
   // --- 10. Header & Action Trigger Buttons ---
-  document.getElementById('adminReloadBtn')?.addEventListener('click', () => {
+  $('adminReloadBtn')?.addEventListener('click', () => {
     syncAdminOverview(true);
     if (window.showToast) window.showToast('🔄 اطلاعات به‌روزرسانی شد.');
     if (window.hapticFeedback) window.hapticFeedback('impact');
   });
 
-  document.getElementById('quickRefreshMetricsBtn')?.addEventListener('click', () => {
+  $('quickRefreshMetricsBtn')?.addEventListener('click', () => {
     syncAdminOverview(true);
     if (window.showToast) window.showToast('🔄 داده‌ها سینک شدند.');
     if (window.hapticFeedback) window.hapticFeedback('impact');
   });
 
-  document.getElementById('syncAllNodesBtn')?.addEventListener('click', (e) => {
+  $('syncAllNodesBtn')?.addEventListener('click', (e) => {
     e.stopPropagation();
     syncAdminOverview(true);
     if (window.showToast) window.showToast('🔄 نودها همگام‌سازی شدند.');
     if (window.hapticFeedback) window.hapticFeedback('impact');
   });
 
-  const overviewNodesToggleHeader = document.getElementById('overviewNodesToggleHeader');
-  const overviewNodesCollapseBody = document.getElementById('overviewNodesCollapseBody');
-  const overviewNodesChevron = document.getElementById('overviewNodesChevron');
+  const overviewNodesToggleHeader = $('overviewNodesToggleHeader');
+  const overviewNodesCollapseBody = $('overviewNodesCollapseBody');
+  const overviewNodesChevron = $('overviewNodesChevron');
 
   overviewNodesToggleHeader?.addEventListener('click', (e) => {
     if (e.target.closest('#syncAllNodesBtn')) return;
@@ -5063,8 +5064,8 @@
     if (window.hapticFeedback) window.hapticFeedback('impact');
   });
 
-  document.getElementById('refreshNodesTabBtn')?.addEventListener('click', async () => {
-    const icon = document.getElementById('refreshNodesTabIcon');
+  $('refreshNodesTabBtn')?.addEventListener('click', async () => {
+    const icon = $('refreshNodesTabIcon');
     if (icon) icon.classList.add('animate-spin');
     try {
       await syncAdminOverview(true);
@@ -5078,12 +5079,12 @@
   });
 
   // Node Billing auto-convert EUR to Toman & Shamsi preview
-  const nodeCostEurInput = document.getElementById('nodeBillingCostEur');
-  const nodeCostTomanInput = document.getElementById('nodeBillingCostToman');
-  const nodeEurHint = document.getElementById('nodeBillingEurConvertHint');
-  const nodeEurHintText = document.getElementById('nodeBillingEurConvertText');
-  const nodeDueDateInput = document.getElementById('nodeBillingDueDate');
-  const nodeJalaliPreview = document.getElementById('nodeBillingJalaliPreview');
+  const nodeCostEurInput = $('nodeBillingCostEur');
+  const nodeCostTomanInput = $('nodeBillingCostToman');
+  const nodeEurHint = $('nodeBillingEurConvertHint');
+  const nodeEurHintText = $('nodeBillingEurConvertText');
+  const nodeDueDateInput = $('nodeBillingDueDate');
+  const nodeJalaliPreview = $('nodeBillingJalaliPreview');
 
   nodeCostEurInput?.addEventListener('input', () => {
     window.adminActions?.updateNodeBillingConversion();
@@ -5100,26 +5101,26 @@
     }
   });
 
-  document.getElementById('settingEurRate')?.addEventListener('input', (e) => {
+  $('settingEurRate')?.addEventListener('input', (e) => {
     const val = parseInt(e.target.value, 10);
     if (!isNaN(val) && val > 0) {
       window.currentEurRate = val;
     }
   });
 
-  document.getElementById('settingUsdtRate')?.addEventListener('input', (e) => {
+  $('settingUsdtRate')?.addEventListener('input', (e) => {
     const val = parseInt(e.target.value, 10);
     if (!isNaN(val) && val > 0) {
       window.currentUsdRate = val;
     }
   });
 
-  document.getElementById('refreshTopupsBtn')?.addEventListener('click', () => {
+  $('refreshTopupsBtn')?.addEventListener('click', () => {
     fetchAdminTopups();
     if (window.hapticFeedback) window.hapticFeedback('impact');
   });
 
-  document.getElementById('viewPendingBtn')?.addEventListener('click', () => {
+  $('viewPendingBtn')?.addEventListener('click', () => {
     const ticketsNav = document.querySelector('.admin-nav-btn[data-admin-tab="tab-admin-tickets"]');
     ticketsNav?.click();
     if (window.hapticFeedback) window.hapticFeedback('impact');

@@ -8,7 +8,7 @@ from aiogram.types import CallbackQuery, Message
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from bot.common import SEPARATOR, is_admin, parse_int, resolve_op
+from bot.common import SEPARATOR, is_admin, parse_int
 from bot.db.repositories.service_repo import ServiceRepository
 from bot.db.repositories.user_repo import UserRepository
 from bot.locales.texts import t
@@ -61,11 +61,9 @@ async def _render_admin_services(
     session: AsyncSession,
     toast: str | None = None,
 ) -> None:
-    service_repo_cls = resolve_op("ServiceRepository", ServiceRepository)
-    render_menu_fn = resolve_op("render_menu", render_menu)
 
     lang = user.language or "fa"
-    services = await service_repo_cls(session).list_all()
+    services = await ServiceRepository(session).list_all()
 
     lines = [f"{t(lang, 'admin_services_title')}\n{SEPARATOR}"]
     if not services:
@@ -110,7 +108,7 @@ async def _render_admin_services(
     text = "\n".join(lines)
     if toast:
         text = f"{toast}\n\n{text}"
-    await render_menu_fn(bot, user, user_repo, text, kb.as_markup())
+    await render_menu(bot, user, user_repo, text, kb.as_markup())
 
 
 async def _render_service_detail(
@@ -121,14 +119,11 @@ async def _render_service_detail(
     service_id: int,
     toast: str | None = None,
 ) -> None:
-    service_repo_cls = resolve_op("ServiceRepository", ServiceRepository)
-    render_menu_fn = resolve_op("render_menu", render_menu)
-    render_services_fn = resolve_op("_render_admin_services", _render_admin_services)
 
     lang = user.language or "fa"
-    service = await service_repo_cls(session).get(service_id)
+    service = await ServiceRepository(session).get(service_id)
     if service is None:
-        await render_services_fn(bot, user, user_repo, session, toast=t(lang, "acc_error"))
+        await _render_admin_services(bot, user, user_repo, session, toast=t(lang, "acc_error"))
         return
 
     lines = [
@@ -155,7 +150,7 @@ async def _render_service_detail(
     text = "\n".join(lines)
     if toast:
         text = f"{toast}\n\n{text}"
-    await render_menu_fn(bot, user, user_repo, text, kb.as_markup())
+    await render_menu(bot, user, user_repo, text, kb.as_markup())
 
 
 def _cancel_kb(lang: str, target: str = "adm:svc:cancel") -> InlineKeyboardBuilder:
@@ -173,9 +168,8 @@ async def admin_services(
         await call.answer(t("fa", "not_authorized"), show_alert=True)
         return
     await state.clear()
-    render_services_fn = resolve_op("_render_admin_services", _render_admin_services)
     user = await user_repo.get_or_create(call.from_user.id, call.from_user.username)
-    await render_services_fn(bot, user, user_repo, session)
+    await _render_admin_services(bot, user, user_repo, session)
     await call.answer()
 
 
@@ -193,9 +187,8 @@ async def service_view_detail(
     except (ValueError, TypeError):
         await call.answer(t("fa", "acc_error"), show_alert=True)
         return
-    render_detail_fn = resolve_op("_render_service_detail", _render_service_detail)
     user = await user_repo.get_or_create(call.from_user.id, call.from_user.username)
-    await render_detail_fn(bot, user, user_repo, session, service_id)
+    await _render_service_detail(bot, user, user_repo, session, service_id)
     await call.answer()
 
 
@@ -207,17 +200,15 @@ async def admin_cancel(
     if not _is_admin(call.from_user.id):
         await call.answer(t("fa", "not_authorized"), show_alert=True)
         return
-    render_detail_fn = resolve_op("_render_service_detail", _render_service_detail)
-    render_services_fn = resolve_op("_render_admin_services", _render_admin_services)
 
     data = await state.get_data()
     service_id = data.get("service_id")
     await state.clear()
     user = await user_repo.get_or_create(call.from_user.id, call.from_user.username)
     if service_id:
-        await render_detail_fn(bot, user, user_repo, session, int(service_id))
+        await _render_service_detail(bot, user, user_repo, session, int(service_id))
     else:
-        await render_services_fn(bot, user, user_repo, session)
+        await _render_admin_services(bot, user, user_repo, session)
     await call.answer()
 
 
@@ -228,14 +219,13 @@ async def add_service_start(
     if not _is_admin(call.from_user.id):
         await call.answer(t("fa", "not_authorized"), show_alert=True)
         return
-    render_menu_fn = resolve_op("render_menu", render_menu)
     user = await user_repo.get_or_create(call.from_user.id, call.from_user.username)
     lang = user.language
 
     await state.set_state(ServiceAdminStates.create_name)
     await state.update_data(mode="create")
     kb = _cancel_kb(lang)
-    await render_menu_fn(
+    await render_menu(
         bot, user, user_repo,
         t(lang, "svc_prompt_name"),
         kb.as_markup(),
@@ -247,22 +237,20 @@ async def add_service_start(
 async def create_name(
     message: Message, bot: Bot, user_repo: UserRepository, state: FSMContext
 ):
-    del_msg_fn = resolve_op("delete_message_silently", delete_message_silently)
-    render_menu_fn = resolve_op("render_menu", render_menu)
 
     user = await user_repo.get_or_create(message.from_user.id, message.from_user.username)
     lang = user.language
-    await del_msg_fn(bot, message.chat.id, message.message_id)
+    await delete_message_silently(bot, message.chat.id, message.message_id)
 
     name = message.text.strip()
     if not name:
-        await render_menu_fn(
+        await render_menu(
             bot, user, user_repo, t(lang, "svc_invalid_name"), _cancel_kb(lang).as_markup()
         )
         return
     await state.update_data(name=name)
     await state.set_state(ServiceAdminStates.create_price)
-    await render_menu_fn(
+    await render_menu(
         bot, user, user_repo, t(lang, "svc_prompt_price"), _cancel_kb(lang).as_markup()
     )
 
@@ -271,22 +259,20 @@ async def create_name(
 async def create_price(
     message: Message, bot: Bot, user_repo: UserRepository, state: FSMContext
 ):
-    del_msg_fn = resolve_op("delete_message_silently", delete_message_silently)
-    render_menu_fn = resolve_op("render_menu", render_menu)
 
     user = await user_repo.get_or_create(message.from_user.id, message.from_user.username)
     lang = user.language
-    await del_msg_fn(bot, message.chat.id, message.message_id)
+    await delete_message_silently(bot, message.chat.id, message.message_id)
 
     value = _parse_int(message.text)
     if value is None or value < 0:
-        await render_menu_fn(
+        await render_menu(
             bot, user, user_repo, t(lang, "svc_invalid_number"), _cancel_kb(lang).as_markup()
         )
         return
     await state.update_data(price=value)
     await state.set_state(ServiceAdminStates.create_duration)
-    await render_menu_fn(
+    await render_menu(
         bot, user, user_repo, t(lang, "svc_prompt_duration"), _cancel_kb(lang).as_markup()
     )
 
@@ -295,22 +281,20 @@ async def create_price(
 async def create_duration(
     message: Message, bot: Bot, user_repo: UserRepository, state: FSMContext
 ):
-    del_msg_fn = resolve_op("delete_message_silently", delete_message_silently)
-    render_menu_fn = resolve_op("render_menu", render_menu)
 
     user = await user_repo.get_or_create(message.from_user.id, message.from_user.username)
     lang = user.language
-    await del_msg_fn(bot, message.chat.id, message.message_id)
+    await delete_message_silently(bot, message.chat.id, message.message_id)
 
     value = _parse_int(message.text)
     if value is None or value < 0:
-        await render_menu_fn(
+        await render_menu(
             bot, user, user_repo, t(lang, "svc_invalid_number"), _cancel_kb(lang).as_markup()
         )
         return
     await state.update_data(duration=value)
     await state.set_state(ServiceAdminStates.create_traffic)
-    await render_menu_fn(
+    await render_menu(
         bot, user, user_repo, t(lang, "svc_prompt_traffic"), _cancel_kb(lang).as_markup()
     )
 
@@ -319,16 +303,14 @@ async def create_duration(
 async def create_traffic(
     message: Message, bot: Bot, user_repo: UserRepository, state: FSMContext
 ):
-    del_msg_fn = resolve_op("delete_message_silently", delete_message_silently)
-    render_menu_fn = resolve_op("render_menu", render_menu)
 
     user = await user_repo.get_or_create(message.from_user.id, message.from_user.username)
     lang = user.language
-    await del_msg_fn(bot, message.chat.id, message.message_id)
+    await delete_message_silently(bot, message.chat.id, message.message_id)
 
     value = _parse_int(message.text)
     if value is None or value < 0:
-        await render_menu_fn(
+        await render_menu(
             bot, user, user_repo, t(lang, "svc_invalid_number"), _cancel_kb(lang).as_markup()
         )
         return
@@ -341,7 +323,7 @@ async def create_traffic(
                "WEEK": "stgy_week", "MONTH": "stgy_month"}[stgy]
         kb.button(text=t(lang, key), callback_data=f"adm:stgy:{stgy}")
     kb.adjust(2, 2)
-    await render_menu_fn(bot, user, user_repo, t(lang, "svc_prompt_strategy"), kb.as_markup())
+    await render_menu(bot, user, user_repo, t(lang, "svc_prompt_strategy"), kb.as_markup())
 
 
 @router.callback_query(ServiceAdminStates.create_strategy, F.data.startswith("adm:stgy:"))
@@ -351,7 +333,6 @@ async def create_strategy_pick(
     if not _is_admin(call.from_user.id):
         await call.answer(t("fa", "not_authorized"), show_alert=True)
         return
-    render_menu_fn = resolve_op("render_menu", render_menu)
     user = await user_repo.get_or_create(call.from_user.id, call.from_user.username)
     lang = user.language
 
@@ -362,7 +343,7 @@ async def create_strategy_pick(
 
     await state.update_data(strategy=value)
     await state.set_state(ServiceAdminStates.create_hwid)
-    await render_menu_fn(
+    await render_menu(
         bot, user, user_repo, t(lang, "svc_prompt_hwid"), _cancel_kb(lang).as_markup()
     )
     await call.answer()
@@ -372,12 +353,10 @@ async def create_strategy_pick(
 async def create_hwid(
     message: Message, bot: Bot, user_repo: UserRepository, state: FSMContext
 ):
-    del_msg_fn = resolve_op("delete_message_silently", delete_message_silently)
-    render_menu_fn = resolve_op("render_menu", render_menu)
 
     user = await user_repo.get_or_create(message.from_user.id, message.from_user.username)
     lang = user.language
-    await del_msg_fn(bot, message.chat.id, message.message_id)
+    await delete_message_silently(bot, message.chat.id, message.message_id)
 
     raw = message.text.strip()
     if raw in ("/skip", "-", "—"):
@@ -385,13 +364,13 @@ async def create_hwid(
     else:
         value = _parse_int(raw)
         if value is None or value < 0:
-            await render_menu_fn(
+            await render_menu(
                 bot, user, user_repo, t(lang, "svc_invalid_number"), _cancel_kb(lang).as_markup()
             )
             return
         await state.update_data(hwid=value)
     await state.set_state(ServiceAdminStates.create_squad)
-    await render_menu_fn(
+    await render_menu(
         bot, user, user_repo, t(lang, "svc_prompt_squad"), _cancel_kb(lang).as_markup()
     )
 
@@ -400,18 +379,16 @@ async def create_hwid(
 async def create_squad(
     message: Message, bot: Bot, user_repo: UserRepository, state: FSMContext
 ):
-    del_msg_fn = resolve_op("delete_message_silently", delete_message_silently)
-    render_menu_fn = resolve_op("render_menu", render_menu)
 
     user = await user_repo.get_or_create(message.from_user.id, message.from_user.username)
     lang = user.language
-    await del_msg_fn(bot, message.chat.id, message.message_id)
+    await delete_message_silently(bot, message.chat.id, message.message_id)
 
     raw = message.text.strip()
     squad = None if raw in ("/skip", "-", "—") else raw
     await state.update_data(squad=squad)
     await state.set_state(ServiceAdminStates.create_description)
-    await render_menu_fn(
+    await render_menu(
         bot, user, user_repo, t(lang, "svc_prompt_description"), _cancel_kb(lang).as_markup()
     )
 
@@ -420,20 +397,17 @@ async def create_squad(
 async def create_description(
     message: Message, bot: Bot, user_repo: UserRepository, state: FSMContext
 ):
-    del_msg_fn = resolve_op("delete_message_silently", delete_message_silently)
-    service_repo_cls = resolve_op("ServiceRepository", ServiceRepository)
-    render_detail_fn = resolve_op("_render_service_detail", _render_service_detail)
 
     user = await user_repo.get_or_create(message.from_user.id, message.from_user.username)
     lang = user.language
-    await del_msg_fn(bot, message.chat.id, message.message_id)
+    await delete_message_silently(bot, message.chat.id, message.message_id)
 
     text = message.text.strip()
     description = None if text in ("", "/skip", "-", "—") else text
     await state.update_data(description=description)
 
     data = await state.get_data()
-    service = await service_repo_cls(user_repo.session).create(
+    service = await ServiceRepository(user_repo.session).create(
         name=str(data.get("name", "")),
         price=int(data.get("price", 0)),
         duration_days=int(data.get("duration", 0)),
@@ -444,7 +418,7 @@ async def create_description(
         squad_uuid=data.get("squad"),
     )
     await state.clear()
-    await render_detail_fn(
+    await _render_service_detail(
         bot, user, user_repo, user_repo.session, service.id,
         toast=t(lang, "svc_created", name=service.name),
     )
@@ -466,10 +440,8 @@ async def edit_service_pick(
     user = await user_repo.get_or_create(call.from_user.id, call.from_user.username)
     lang = user.language
 
-    service_repo_cls = resolve_op("ServiceRepository", ServiceRepository)
-    render_menu_fn = resolve_op("render_menu", render_menu)
 
-    service = await service_repo_cls(session).get(service_id)
+    service = await ServiceRepository(session).get(service_id)
     if service is None:
         await call.answer(t("fa", "acc_error"), show_alert=True)
         return
@@ -505,7 +477,7 @@ async def edit_service_pick(
     kb.button(text=t(lang, "btn_cancel"), callback_data=f"adm:svc:view:{service_id}")
     kb.adjust(2, 2, 2, 2, 1)
 
-    await render_menu_fn(
+    await render_menu(
         bot, user, user_repo,
         f"{t(lang, 'svc_edit_title')}\n\n{service_block(service, lang)}",
         kb.as_markup(),
@@ -531,7 +503,6 @@ async def edit_service_field(
         await call.answer(t("fa", "acc_error"), show_alert=True)
         return
 
-    render_menu_fn = resolve_op("render_menu", render_menu)
     user = await user_repo.get_or_create(call.from_user.id, call.from_user.username)
     lang = user.language
 
@@ -539,7 +510,7 @@ async def edit_service_field(
     await state.update_data(service_id=int(service_id), field=field)
 
     prompt_key = EDIT_FIELDS[field][0]
-    await render_menu_fn(
+    await render_menu(
         bot, user, user_repo,
         t(lang, prompt_key),
         _cancel_kb(lang, target=f"adm:svc:edit:{service_id}").as_markup(),
@@ -552,15 +523,10 @@ async def edit_value_save(
     message: Message, bot: Bot, user_repo: UserRepository,
     session: AsyncSession, state: FSMContext,
 ):
-    del_msg_fn = resolve_op("delete_message_silently", delete_message_silently)
-    render_menu_fn = resolve_op("render_menu", render_menu)
-    service_repo_cls = resolve_op("ServiceRepository", ServiceRepository)
-    render_services_fn = resolve_op("_render_admin_services", _render_admin_services)
-    render_detail_fn = resolve_op("_render_service_detail", _render_service_detail)
 
     user = await user_repo.get_or_create(message.from_user.id, message.from_user.username)
     lang = user.language
-    await del_msg_fn(bot, message.chat.id, message.message_id)
+    await delete_message_silently(bot, message.chat.id, message.message_id)
 
     data = await state.get_data()
     service_id = int(data.get("service_id", 0))
@@ -573,7 +539,7 @@ async def edit_value_save(
     if kind == "int":
         parsed = _parse_int(raw)
         if parsed is None or parsed < 0:
-            await render_menu_fn(
+            await render_menu(
                 bot, user, user_repo, t(lang, "svc_invalid_number"),
                 _cancel_kb(lang, target=f"adm:svc:edit:{service_id}").as_markup(),
             )
@@ -585,7 +551,7 @@ async def edit_value_save(
         else:
             parsed = _parse_int(raw)
             if parsed is None or parsed < 0:
-                await render_menu_fn(
+                await render_menu(
                     bot, user, user_repo, t(lang, "svc_invalid_number"),
                     _cancel_kb(lang, target=f"adm:svc:edit:{service_id}").as_markup(),
                 )
@@ -594,7 +560,7 @@ async def edit_value_save(
     elif kind == "strategy":
         value = raw.upper()
         if value not in STRATEGY_KEYS:
-            await render_menu_fn(
+            await render_menu(
                 bot, user, user_repo, t(lang, "svc_invalid_strategy"),
                 _cancel_kb(lang, target=f"adm:svc:edit:{service_id}").as_markup(),
             )
@@ -602,20 +568,20 @@ async def edit_value_save(
     else:  # "text" | "opt_text"
         value = None if raw in SKIP_WORDS else raw
         if field == "name" and not value:
-            await render_menu_fn(
+            await render_menu(
                 bot, user, user_repo, t(lang, "svc_invalid_name"),
                 _cancel_kb(lang, target=f"adm:svc:edit:{service_id}").as_markup(),
             )
             return
 
-    repo = service_repo_cls(session)
+    repo = ServiceRepository(session)
     service = await repo.update(service_id, **{FIELD_TO_COLUMN[field]: value})
     await state.clear()
 
     if service is None:
-        await render_services_fn(bot, user, user_repo, session)
+        await _render_admin_services(bot, user, user_repo, session)
         return
-    await render_detail_fn(
+    await _render_service_detail(
         bot, user, user_repo, session, service.id,
         toast=t(lang, "svc_updated", name=service.name),
     )
@@ -634,18 +600,16 @@ async def toggle_service(
     except (ValueError, TypeError):
         await call.answer(t("fa", "acc_error"), show_alert=True)
         return
-    service_repo_cls = resolve_op("ServiceRepository", ServiceRepository)
-    render_detail_fn = resolve_op("_render_service_detail", _render_service_detail)
 
     user = await user_repo.get_or_create(call.from_user.id, call.from_user.username)
-    repo = service_repo_cls(session)
+    repo = ServiceRepository(session)
     service = await repo.get(service_id)
     if service is None:
         await call.answer(t("fa", "acc_error"), show_alert=True)
         return
     new_state = not service.is_active
     await repo.set_active(service_id, new_state)
-    await render_detail_fn(bot, user, user_repo, session, service_id)
+    await _render_service_detail(bot, user, user_repo, session, service_id)
     toast_msg = "✅ سرویس فعال شد." if new_state else "⛔️ سرویس غیرفعال شد."
     await call.answer(toast_msg)
 
@@ -663,13 +627,11 @@ async def delete_service_confirm(
     except (ValueError, TypeError):
         await call.answer(t("fa", "acc_error"), show_alert=True)
         return
-    service_repo_cls = resolve_op("ServiceRepository", ServiceRepository)
-    render_menu_fn = resolve_op("render_menu", render_menu)
 
     user = await user_repo.get_or_create(call.from_user.id, call.from_user.username)
     lang = user.language
 
-    service = await service_repo_cls(session).get(service_id)
+    service = await ServiceRepository(session).get(service_id)
     if service is None:
         await call.answer(t("fa", "acc_error"), show_alert=True)
         return
@@ -682,7 +644,7 @@ async def delete_service_confirm(
     kb.button(text=t(lang, "btn_cancel"), callback_data=f"adm:svc:view:{service.id}")
     kb.adjust(2)
 
-    await render_menu_fn(
+    await render_menu(
         bot, user, user_repo,
         t(lang, "svc_delete_confirm", name=escape(service.name)),
         kb.as_markup(),
@@ -702,19 +664,17 @@ async def delete_service_do(
     except (ValueError, TypeError):
         await call.answer(t("fa", "acc_error"), show_alert=True)
         return
-    service_repo_cls = resolve_op("ServiceRepository", ServiceRepository)
-    render_services_fn = resolve_op("_render_admin_services", _render_admin_services)
 
     user = await user_repo.get_or_create(call.from_user.id, call.from_user.username)
     lang = user.language
 
-    repo = service_repo_cls(session)
+    repo = ServiceRepository(session)
     service = await repo.get(service_id)
     if service is None:
         await call.answer(t("fa", "acc_error"), show_alert=True)
         return
     await repo.delete(service_id)
-    await render_services_fn(
+    await _render_admin_services(
         bot, user, user_repo, session, toast=t(lang, "svc_deleted", name=service.name)
     )
     await call.answer()

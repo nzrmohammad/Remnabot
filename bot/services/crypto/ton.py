@@ -193,8 +193,8 @@ async def verify_and_process_payments(bot: Bot, session_factory) -> int:
                             f"👛 New Balance : <b>{new_balance:,}</b> Toman"
                         )
                     await bot.send_message(inv.telegram_id, user_msg, reply_markup=kb.as_markup())
-                except Exception:
-                    logger.exception("Failed to notify user %d of TON topup", inv.telegram_id)
+                except Exception as exc:
+                    logger.warning("Failed to notify user %d of TON topup: %s", inv.telegram_id, exc)
 
                 # Send admin notification
                 try:
@@ -217,8 +217,8 @@ async def verify_and_process_payments(bot: Bot, session_factory) -> int:
                         f"👛 موجودی جدید : <b>{new_balance:,}</b> تومان"
                     )
                     await bot.send_message(settings.ADMIN_CHAT_ID, admin_msg, **thread_kwargs)
-                except Exception:
-                    logger.exception("Failed to notify admin chat of TON topup")
+                except Exception as exc:
+                    logger.warning("Failed to notify admin chat of TON topup: %s", exc)
 
         await session.commit()
 
@@ -233,7 +233,7 @@ async def ton_watcher_loop(bot: Bot, session_factory) -> None:
     while True:
         try:
             await verify_and_process_payments(bot, session_factory)
-        except Exception:
-            logger.exception("Error in TON payment watcher")
+        except Exception as exc:
+            logger.warning("Error in TON payment watcher: %s", exc)
 
         await asyncio.sleep(25)

@@ -23,6 +23,15 @@ _is_admin = is_admin
 _parse_int = parse_int
 
 
+def format_discount(c, lang: str | None = None) -> str:
+    """Format coupon discount value as percentage or localized amount."""
+    if c.discount_percent:
+        return f"{c.discount_percent}%"
+    if lang:
+        return f"{fmt(c.discount_amount)} {t(lang, 'svc_currency')}"
+    return f"{fmt(c.discount_amount)}"
+
+
 @router.callback_query(F.data == "adm:coupons")
 async def admin_coupons_list(
     call: CallbackQuery, bot: Bot, user_repo: UserRepository,
@@ -46,14 +55,14 @@ async def admin_coupons_list(
     else:
         for c in coupons:
             status_icon = "🟢" if c.is_active else "🔴"
-            disc_str = f"{c.discount_percent}%" if c.discount_percent else f"{fmt(c.discount_amount)} {t(lang, 'svc_currency')}"
+            disc_str = format_discount(c, lang)
             uses_str = f"{c.used_count}/{c.max_uses}" if c.max_uses else f"{c.used_count}/∞"
             lines.append(f"{status_icon} <code>{c.code}</code> — {disc_str} ({uses_str})")
 
     kb = InlineKeyboardBuilder()
     for c in coupons:
         status_icon = "🟢" if c.is_active else "🔴"
-        disc_str = f"{c.discount_percent}%" if c.discount_percent else f"{fmt(c.discount_amount)}"
+        disc_str = format_discount(c)
         kb.button(text=f"{status_icon} {c.code} ({disc_str})", callback_data=f"adm:cpn:view:{c.id}")
     kb.adjust(2)
 
@@ -90,7 +99,7 @@ async def admin_coupon_detail(
         await call.answer(t("fa", "acc_error"), show_alert=True)
         return
 
-    disc_str = f"{c.discount_percent}%" if c.discount_percent else f"{fmt(c.discount_amount)} {t(lang, 'svc_currency')}"
+    disc_str = format_discount(c, lang)
     uses_str = f"{c.used_count} از {c.max_uses}" if c.max_uses else f"{c.used_count} (نامحدود)"
     status_str = "🟢 فعال" if c.is_active else "🔴 غیرفعال"
 
@@ -272,14 +281,14 @@ async def admin_coupon_add_max_uses(
     ]
     for c in coupons:
         status_icon = "🟢" if c.is_active else "🔴"
-        disc_str = f"{c.discount_percent}%" if c.discount_percent else f"{fmt(c.discount_amount)} {t(lang, 'svc_currency')}"
+        disc_str = format_discount(c, lang)
         uses_str = f"{c.used_count}/{c.max_uses}" if c.max_uses else f"{c.used_count}/∞"
         lines.append(f"{status_icon} <code>{c.code}</code> — {disc_str} ({uses_str})")
 
     kb = InlineKeyboardBuilder()
     for c in coupons:
         status_icon = "🟢" if c.is_active else "🔴"
-        disc_str = f"{c.discount_percent}%" if c.discount_percent else f"{fmt(c.discount_amount)}"
+        disc_str = format_discount(c)
         kb.button(text=f"{status_icon} {c.code} ({disc_str})", callback_data=f"adm:cpn:view:{c.id}")
     kb.button(text=t(lang, "btn_create_coupon"), callback_data="adm:cpn:add")
     kb.button(text=t(lang, "btn_back"), callback_data="menu:admin")

@@ -40,7 +40,7 @@ from bot.db.repositories.wallet_repo import WalletRepository
 from bot.handlers.admin_broadcast import _resolve_broadcast_recipients
 from bot.locales.texts import t
 from bot.services.app_settings import get_store_settings
-from bot.web.admin_common import _check_admin, format_service_name_icon_first
+from bot.web.admin_common import _check_admin, db_session, format_service_name_icon_first
 from bot.web.cache import FastCache
 
 logger = logging.getLogger(__name__)
@@ -57,8 +57,7 @@ async def get_admin_plans(request: web.Request) -> web.Response:
     if not admin:
         return web.json_response({"ok": False, "error": "Forbidden"}, status=403)
 
-    session_factory = request.app["session_factory"]
-    async with session_factory() as session:
+    async with db_session(request) as session:
         result = await session.execute(select(Service).order_by(Service.price.asc(), Service.id.asc()))
         services = result.scalars().all()
         plans = [
@@ -104,8 +103,7 @@ async def post_admin_plan_save(request: web.Request) -> web.Response:
     description = str(body.get("description") or "").strip() or None
     is_active = bool(body.get("is_active", True))
 
-    session_factory = request.app["session_factory"]
-    async with session_factory() as session:
+    async with db_session(request) as session:
         if plan_id:
             service = await session.get(Service, int(plan_id))
             if not service:
@@ -152,8 +150,7 @@ async def post_admin_plan_toggle(request: web.Request) -> web.Response:
     if not plan_id:
         return web.json_response({"ok": False, "error": "شناسه پلن الزامی است."}, status=400)
 
-    session_factory = request.app["session_factory"]
-    async with session_factory() as session:
+    async with db_session(request) as session:
         service = await session.get(Service, int(plan_id))
         if not service:
             return web.json_response({"ok": False, "error": "پلن یافت نشد."}, status=404)
@@ -179,8 +176,7 @@ async def post_admin_plan_delete(request: web.Request) -> web.Response:
     if not plan_id:
         return web.json_response({"ok": False, "error": "شناسه پلن الزامی است."}, status=400)
 
-    session_factory = request.app["session_factory"]
-    async with session_factory() as session:
+    async with db_session(request) as session:
         service = await session.get(Service, int(plan_id))
         if not service:
             return web.json_response({"ok": False, "error": "پلن یافت نشد."}, status=404)
@@ -198,8 +194,7 @@ async def get_admin_coupons(request: web.Request) -> web.Response:
     if not admin:
         return web.json_response({"ok": False, "error": "Forbidden"}, status=403)
 
-    session_factory = request.app["session_factory"]
-    async with session_factory() as session:
+    async with db_session(request) as session:
         result = await session.execute(select(Coupon).order_by(Coupon.id.desc()))
         coupons = result.scalars().all()
         data = []
@@ -254,8 +249,7 @@ async def post_admin_coupon_save(request: web.Request) -> web.Response:
     expires_at = datetime.now(timezone.utc) + timedelta(days=expires_days) if expires_days > 0 else None
     is_active = bool(body.get("is_active", True))
 
-    session_factory = request.app["session_factory"]
-    async with session_factory() as session:
+    async with db_session(request) as session:
         existing = await session.execute(select(Coupon).where(Coupon.code == code))
         if existing.scalar_one_or_none():
             return web.json_response({"ok": False, "error": "کد تخفیف با این نام از قبل وجود دارد."}, status=400)
@@ -290,8 +284,7 @@ async def post_admin_coupon_toggle(request: web.Request) -> web.Response:
     if not coupon_id:
         return web.json_response({"ok": False, "error": "شناسه کوپن الزامی است."}, status=400)
 
-    session_factory = request.app["session_factory"]
-    async with session_factory() as session:
+    async with db_session(request) as session:
         coupon = await session.get(Coupon, int(coupon_id))
         if not coupon:
             return web.json_response({"ok": False, "error": "کوپن یافت نشد."}, status=404)
@@ -317,8 +310,7 @@ async def post_admin_coupon_delete(request: web.Request) -> web.Response:
     if not coupon_id:
         return web.json_response({"ok": False, "error": "شناسه کوپن الزامی است."}, status=400)
 
-    session_factory = request.app["session_factory"]
-    async with session_factory() as session:
+    async with db_session(request) as session:
         coupon = await session.get(Coupon, int(coupon_id))
         if not coupon:
             return web.json_response({"ok": False, "error": "کوپن یافت نشد."}, status=404)
@@ -342,9 +334,8 @@ async def get_admin_coupon_usages(request: web.Request) -> web.Response:
     except (TypeError, ValueError):
         return web.json_response({"ok": False, "error": "شناسه کوپن نامعتبر است."}, status=400)
 
-    session_factory = request.app["session_factory"]
     try:
-        async with session_factory() as session:
+        async with db_session(request) as session:
             coupon_repo = CouponRepository(session)
             user_repo = UserRepository(session)
             coupon = await coupon_repo.get_by_id(coupon_id)

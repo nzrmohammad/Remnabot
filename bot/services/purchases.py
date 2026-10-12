@@ -204,8 +204,8 @@ async def execute_purchase(
                 traffic = _traffic_bytes(service.traffic_gb, 0, strategy)
                 try:
                     await remnawave.reset_user_traffic(int(account["id"]))
-                except Exception:
-                    logger.exception("Failed to reset traffic on renewal for expired user %s", account["id"])
+                except Exception as exc:
+                    logger.exception("Failed to reset traffic on renewal for expired user %s: %s", account["id"], exc)
         else:
             # Periodic strategies (DAY, WEEK, MONTH): reset days from today & reset traffic to 0
             base = now
@@ -213,8 +213,8 @@ async def execute_purchase(
             traffic = _traffic_bytes(service.traffic_gb, 0, strategy)
             try:
                 await remnawave.reset_user_traffic(int(account["id"]))
-            except Exception:
-                logger.exception("Failed to reset traffic on renewal for panel user %s", account["id"])
+            except Exception as exc:
+                logger.exception("Failed to reset traffic on renewal for panel user %s: %s", account["id"], exc)
 
         user = await remnawave.update_user_subscription(
             int(account["id"]),
@@ -265,3 +265,59 @@ async def execute_purchase(
         panel_username=panel_username,
         order_id=pending.id,
     )
+
+
+def calc_price(price: int, discount_amount: int = 0) -> tuple[int, int]:
+    """Return (effective_price, sanitized_discount) ensuring non-negative values."""
+    discount = max(0, int(discount_amount or 0))
+    effective = max(0, int(price or 0) - discount)
+    return effective, discount
+
+
+def receipt_price_lines(
+    lang: str,
+    original_price: int,
+    effective_price: int,
+    discount_amount: int = 0,
+    coupon_code: str | None = None,
+    currency_label: str = "تومان",
+    is_confirm_card: bool = False,
+) -> list[str]:
+    """Generate standardized, RTL-safe price, discount, and total receipt lines."""
+    from bot.common import fmt
+    from bot.locales.texts import t
+
+    lines: list[str] = []
+    if coupon_code and discount_amount > 0:
+        if is_confirm_card:
+            lines.append(f"💰 {t(lang, 'svc_field_price')} : <b>{fmt(original_price)}</b> {currency_label}")
+            lines.append(f"🏷 {t(lang, 'retention_code_label')} (<code>{coupon_code}</code>) : <b>\u200e-{fmt(discount_amount)}</b> {currency_label}")
+            lines.append(f"💵 {t(lang, 'receipt_amount')} : <b>{fmt(effective_price)}</b> {currency_label}")
+        else:
+            lines.append(f"💰 {t(lang, 'svc_field_price')} : <b>{fmt(original_price)} {currency_label}</b>")
+            lines.append(f"🏷 {t(lang, 'retention_code_label')} (<code>{coupon_code}</code>) : <b>\u200e-{fmt(discount_amount)} {currency_label}</b>")
+            lines.append(f"💵 {t(lang, 'receipt_amount')} : <b>{fmt(effective_price)} {currency_label}</b>")
+    else:
+        label = t(lang, "svc_field_price" if is_confirm_card else "receipt_amount")
+        if is_confirm_card:
+            lines.append(f"💰 {label} : <b>{fmt(original_price)}</b> {currency_label}")
+        else:
+            lines.append(f"💰 {label} : <b>{fmt(original_price)} {currency_label}</b>")
+    return lines
+
+
+async def record_coupon_usage_if_any(
+    session,
+    coupon_code: str | None,
+    telegram_id: int,
+    order_id: int | None,
+    discount_amount: int = 0,
+) -> None:
+    """Record coupon usage in database if a valid coupon and order exist."""
+    if coupon_code and order_id:
+        from bot.db.repositories.coupon_repo import CouponRepository
+        c_repo = CouponRepository(session)
+        cpn = await c_repo.get_by_code(coupon_code)
+        if cpn:
+            await c_repo.record_usage(cpn.id, telegram_id, order_id, discount_amount)
+

@@ -15,6 +15,7 @@ from sqlalchemy.ext.asyncio import async_sessionmaker
 from bot.common import admin_thread_kwargs
 from bot.config import get_settings
 from bot.db.repositories.order_repo import OrderRepository
+from bot.services.app_settings import get_store_settings
 
 logger = logging.getLogger(__name__)
 
@@ -38,7 +39,6 @@ async def run_reconcile(
 
     if closed:
         settings = get_settings()
-        from bot.services.app_settings import get_store_settings
         async with session_factory() as session:
             store = await get_store_settings(session)
         thread_kwargs = admin_thread_kwargs(store, settings, kind="alerts")
@@ -51,8 +51,8 @@ async def run_reconcile(
                 f"without charge.",
                 **thread_kwargs,
             )
-        except Exception:
-            logger.exception("reconcile: could not notify admin chat")
+        except Exception as exc:
+            logger.exception("reconcile: could not notify admin chat: %s", exc)
     return closed
 
 
@@ -65,6 +65,6 @@ async def reconcile_loop(
     while True:
         try:
             await run_reconcile(bot, session_factory)
-        except Exception:  # noqa: BLE001
-            logger.exception("reconcile sweep failed")
+        except Exception as exc:  # noqa: BLE001
+            logger.exception("reconcile sweep failed: %s", exc)
         await asyncio.sleep(INTERVAL_SECONDS)

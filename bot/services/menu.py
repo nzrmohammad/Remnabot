@@ -68,3 +68,16 @@ async def reset_menu(
         chat_id=user.telegram_id, text=text, reply_markup=reply_markup
     )
     await user_repo.set_menu_message_id(user, msg.message_id)
+
+
+async def show(
+    bot: Bot,
+    user: User,
+    user_repo: UserRepository,
+    lines: str | list[str] | tuple[str, ...],
+    kb: InlineKeyboardMarkup | None = None,
+) -> None:
+    """Convenience helper to render menu from a text string or list of lines joined by newline."""
+    text = "\n".join(lines) if isinstance(lines, (list, tuple)) else str(lines)
+    await render_menu(bot, user, user_repo, text, kb)
+

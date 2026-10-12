@@ -52,25 +52,25 @@ async def _sweep(
                     await _send_weekly_for_user(bot, user, remnawave, now, prefs)
                 elif kind == "monthly" and prefs.monthly:
                     await _send_monthly_for_user(bot, user, remnawave, now, prefs)
-            except Exception:  # noqa: BLE001 — one bad user must not stop the sweep
-                logger.exception("%s report failed for %s", kind, user.telegram_id)
+            except Exception as exc:  # noqa: BLE001 — one bad user must not stop the sweep
+                logger.exception("%s report failed for %s: %s", kind, user.telegram_id, exc)
 
         # Deliver dedicated executive report to admin
         if kind == "nightly":
             try:
                 await _send_admin_nightly_summary(bot, session, remnawave, now)
-            except Exception:
-                logger.exception("Admin nightly summary sweep failed")
+            except Exception as exc:
+                logger.exception("Admin nightly summary sweep failed: %s", exc)
         elif kind == "weekly":
             try:
                 await _send_admin_weekly_summary(bot, session, remnawave, now)
-            except Exception:
-                logger.exception("Admin weekly summary sweep failed")
+            except Exception as exc:
+                logger.exception("Admin weekly summary sweep failed: %s", exc)
         elif kind == "monthly":
             try:
                 await _send_admin_monthly_summary(bot, session, remnawave, now)
-            except Exception:
-                logger.exception("Admin monthly summary sweep failed")
+            except Exception as exc:
+                logger.exception("Admin monthly summary sweep failed: %s", exc)
 
         await session.commit()
 
@@ -106,8 +106,8 @@ async def nightly_report_loop(
         else:
             try:
                 await _sweep(bot, session_factory, remnawave, "nightly")
-            except Exception:  # noqa: BLE001
-                logger.exception("nightly sweep failed")
+            except Exception as exc:  # noqa: BLE001
+                logger.exception("nightly sweep failed: %s", exc)
         await asyncio.sleep(120)  # make sure we roll past 23:59
 
 
@@ -125,8 +125,8 @@ async def weekly_report_loop(
         else:
             try:
                 await _sweep(bot, session_factory, remnawave, "weekly")
-            except Exception:  # noqa: BLE001
-                logger.exception("weekly sweep failed")
+            except Exception as exc:  # noqa: BLE001
+                logger.exception("weekly sweep failed: %s", exc)
         await asyncio.sleep(120)  # make sure we roll past 23:59
 
 
@@ -158,8 +158,8 @@ async def monthly_report_loop(
         await asyncio.sleep(wait)
         try:
             await _sweep(bot, session_factory, remnawave, "monthly")
-        except Exception:  # noqa: BLE001
-            logger.exception("monthly sweep failed")
+        except Exception as exc:  # noqa: BLE001
+            logger.exception("monthly sweep failed: %s", exc)
         # Roll past 23:59 so the same month-end is not picked twice.
         await asyncio.sleep(120)
 
