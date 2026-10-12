@@ -62,6 +62,7 @@ async def _safe_send_message(bot: Bot, chat_id: int, text: str, **kwargs) -> boo
         await bot.send_message(chat_id, text, **kwargs)
         return True
     except Exception as exc:
+        logger.warning("Failed sending message to %s: %s", chat_id, exc)
         err_msg = str(exc).lower()
         if "entity" in err_msg or "parse" in err_msg or "html" in err_msg:
             try:

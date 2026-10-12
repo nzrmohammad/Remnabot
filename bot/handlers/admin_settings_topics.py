@@ -40,12 +40,14 @@ async def get_admin_group_title(bot: Bot) -> str | None:
         return _cached_admin_group_title
 
 
+_get_admin_group_title = get_admin_group_title
+
+
 async def _render_topics_settings(
     bot: Bot, user, user_repo: UserRepository, session: AsyncSession,
 ) -> None:
     store_fn = resolve_op("get_store_settings", get_store_settings)
     render_menu_fn = resolve_op("render_menu", render_menu)
-    group_title_fn = resolve_op("_get_admin_group_title", get_admin_group_title)
 
     lang = user.language or "fa"
     store = await store_fn(session)
@@ -83,7 +85,7 @@ async def _render_topics_settings(
     else:
         kb.adjust(2, 2, 2, 1)
 
-    grp_title = await group_title_fn(bot)
+    grp_title = await _get_admin_group_title(bot)
     topics_title = f"{t(lang, 'settings_topics_title')} ({escape(grp_title)})" if grp_title else t(lang, 'settings_topics_title')
 
     text = (

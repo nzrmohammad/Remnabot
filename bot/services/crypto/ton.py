@@ -35,8 +35,8 @@ def _extract_comment(in_msg: dict) -> str:
                 decoded = base64.b64decode(text).decode("utf-8", errors="ignore").strip()
                 if decoded:
                     return decoded
-            except Exception:
-                pass
+            except Exception as exc:
+                logger.warning("Failed to decode base64 ton comment text: %s", exc)
 
     return ""
 

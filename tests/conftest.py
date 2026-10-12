@@ -31,15 +31,18 @@ async def _get_shared_engine():
     return _shared_engine
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture
 async def shared_db_engine():
-    """Session-scoped async SQLite engine."""
+    """Function-scoped async SQLite engine reusing shared in-memory DB."""
     engine = await _get_shared_engine()
     yield engine
-    await engine.dispose()
 
 
 @pytest.fixture
 async def session_factory(shared_db_engine):
-    """Function-scoped session factory reusing the session-scoped engine."""
-    return async_sessionmaker(shared_db_engine, expire_on_commit=False)
+    """Function-scoped session factory reusing the session-scoped engine with clean isolation."""
+    factory = async_sessionmaker(shared_db_engine, expire_on_commit=False)
+    yield factory
+    async with shared_db_engine.begin() as conn:
+        for table in reversed(Base.metadata.sorted_tables):
+            await conn.execute(table.delete())

@@ -6,7 +6,7 @@
 """
 import pytest
 from unittest.mock import AsyncMock, patch
-from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
+from sqlalchemy.ext.asyncio import async_sessionmaker
 
 from bot.db.models import Base, User, Order, Campaign
 from bot.db.repositories.campaign_repo import CampaignRepository
@@ -20,21 +20,10 @@ def anyio_backend():
     return "asyncio"
 
 
-@pytest.fixture
-async def db_session_factory():
-    engine = create_async_engine("sqlite+aiosqlite:///:memory:", echo=False)
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-
-    session_factory = async_sessionmaker(engine, expire_on_commit=False)
-    yield session_factory
-    await engine.dispose()
-
-
 @pytest.mark.anyio
-async def test_campaign_repository_and_stats(db_session_factory):
+async def test_campaign_repository_and_stats(session_factory):
     """Test campaign creation, stats calculation (users, buyers, revenue, ROI), and deletion."""
-    async with db_session_factory() as session:
+    async with session_factory() as session:
         repo = CampaignRepository(session)
         user_repo = UserRepository(session)
 
@@ -81,9 +70,9 @@ async def test_campaign_repository_and_stats(db_session_factory):
 
 
 @pytest.mark.anyio
-async def test_access_mode_logic(db_session_factory):
+async def test_access_mode_logic(session_factory):
     """Test access_mode ('open', 'invite_only', 'closed') in is_maintenance."""
-    async with db_session_factory() as session:
+    async with session_factory() as session:
         app_repo = AppSettingRepository(session)
 
         # Default open

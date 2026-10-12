@@ -176,7 +176,6 @@ async def get_user_avatar(request: web.Request) -> web.Response:
 
     cors_headers = {
         "Cache-Control": "public, max-age=86400",
-        "Access-Control-Allow-Origin": "*",
     }
 
     cache = request.app.get("cache")

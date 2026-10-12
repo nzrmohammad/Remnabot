@@ -187,9 +187,11 @@ async def cors_and_security_middleware(request: web.Request, handler):
             trusted_origins.add(f"{parsed.scheme}://{parsed.netloc}")
 
     request_origin = request.headers.get("Origin", "")
-    if request_origin in trusted_origins or request.app.get("is_dev", False):
-        response.headers["Access-Control-Allow-Origin"] = request_origin or "*"
-    elif any(request_origin.endswith(domain) for domain in [".telegram.org", "telegram.org"]):
+    if request_origin and (
+        request_origin in trusted_origins
+        or request.app.get("is_dev", False)
+        or any(request_origin.endswith(domain) for domain in [".telegram.org", "telegram.org"])
+    ):
         response.headers["Access-Control-Allow-Origin"] = request_origin
 
     response.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
@@ -197,7 +199,9 @@ async def cors_and_security_middleware(request: web.Request, handler):
         "Content-Type, Authorization, X-Telegram-Init-Data, X-Dev-Mode"
     )
     # Telegram Mini Apps run inside iframe in web.telegram.org
-    response.headers["X-Frame-Options"] = "ALLOWALL"
+    response.headers["Content-Security-Policy"] = (
+        "frame-ancestors 'self' https://web.telegram.org https://*.telegram.org"
+    )
 
     # Long-term caching for static assets (/static/...)
     if request.path.startswith("/static/"):

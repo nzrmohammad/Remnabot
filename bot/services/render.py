@@ -1,6 +1,5 @@
 """Centralized menu rendering services for user dashboards, services, and wallet."""
 import logging
-import sys
 
 from aiogram import Bot
 from aiogram.utils.keyboard import InlineKeyboardBuilder
@@ -22,14 +21,9 @@ async def render_services(
     renew_account_id: str | None = None,
 ) -> None:
     """Render the active services catalog keyboard and balance status."""
-    sr = sys.modules.get("bot.handlers.service_request")
-    s_repo_cls = getattr(sr, "ServiceRepository", ServiceRepository) if sr else ServiceRepository
-    w_repo_cls = getattr(sr, "WalletRepository", WalletRepository) if sr else WalletRepository
-    render_fn = getattr(sr, "render_menu", render_menu) if sr else render_menu
-
     lang = user.language or "fa"
-    services = await s_repo_cls(session).list_active()
-    wallet = await w_repo_cls(session).get_wallet(user.telegram_id)
+    services = await ServiceRepository(session).list_active()
+    wallet = await WalletRepository(session).get_wallet(user.telegram_id)
     balance = wallet.balance
 
     lines = [t(lang, "services_title"), SEPARATOR]
@@ -61,16 +55,13 @@ async def render_services(
     kb.button(text=t(lang, "btn_back_to_menu"), callback_data="nav:main_menu")
     kb.adjust(1)
 
-    await render_fn(bot, user, user_repo, "\n".join(lines), kb.as_markup())
+    await render_menu(bot, user, user_repo, "\n".join(lines), kb.as_markup())
 
 
 async def render_wallet(
     bot: Bot, user, user_repo: UserRepository, wallet_repo: WalletRepository, lang: str,
 ) -> None:
     """Render user wallet balance and options."""
-    w_mod = sys.modules.get("bot.handlers.wallet")
-    render_fn = getattr(w_mod, "render_menu", render_menu) if w_mod else render_menu
-
     wallet = await wallet_repo.get_wallet(user.telegram_id)
     pending = await wallet_repo.pending_count(user.telegram_id)
 
@@ -94,7 +85,7 @@ async def render_wallet(
     kb.button(text=menu_label, callback_data="nav:main_menu")
     kb.adjust(2, 1)
 
-    await render_fn(bot, user, user_repo, "\n".join(lines), kb.as_markup())
+    await render_menu(bot, user, user_repo, "\n".join(lines), kb.as_markup())
 
 
 _render_services = render_services

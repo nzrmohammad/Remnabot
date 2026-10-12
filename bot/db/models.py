@@ -1,10 +1,12 @@
-"""Database models."""
+import enum
 from datetime import datetime
 
 from sqlalchemy import (
     BigInteger,
     Boolean,
+    CheckConstraint,
     DateTime,
+    Enum as SA_Enum,
     Float,
     ForeignKey,
     Integer,
@@ -16,6 +18,19 @@ from sqlalchemy import (
 from sqlalchemy.orm import Mapped, mapped_column
 
 from bot.db.base import Base
+
+
+class TopupStatus(str, enum.Enum):
+    PENDING = "pending"
+    APPROVED = "approved"
+    REJECTED = "rejected"
+
+
+class OrderStatus(str, enum.Enum):
+    PAID = "paid"
+    REFUNDED = "refunded"
+    PENDING = "pending"
+    FAILED = "failed"
 
 
 class User(Base):
@@ -91,6 +106,9 @@ class Service(Base):
     """
 
     __tablename__ = "services"
+    __table_args__ = (
+        CheckConstraint("price >= 0", name="ck_services_price_non_negative"),
+    )
 
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String(128))
@@ -136,9 +154,14 @@ class Topup(Base):
     __tablename__ = "topups"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    telegram_id: Mapped[int] = mapped_column(BigInteger, index=True)
+    telegram_id: Mapped[int] = mapped_column(
+        BigInteger, ForeignKey("users.telegram_id", ondelete="CASCADE"), index=True
+    )
     amount: Mapped[int] = mapped_column(BigInteger)          # Toman
-    status: Mapped[str] = mapped_column(String(10), default="pending")  # pending/approved/rejected
+    status: Mapped[str] = mapped_column(
+        SA_Enum(TopupStatus, native_enum=False, values_callable=lambda obj: [e.value for e in obj]),
+        default=TopupStatus.PENDING.value,
+    )  # pending/approved/rejected
     # Stable receipt fingerprint (photo/document file_unique_id or text hash)
     # used to reject the same receipt submitted twice.
     receipt_hash: Mapped[str | None] = mapped_column(String(128), nullable=True, index=True)
@@ -161,7 +184,9 @@ class Order(Base):
     __tablename__ = "orders"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    telegram_id: Mapped[int] = mapped_column(BigInteger, index=True)
+    telegram_id: Mapped[int] = mapped_column(
+        BigInteger, ForeignKey("users.telegram_id", ondelete="CASCADE"), index=True
+    )
     service_id: Mapped[int | None] = mapped_column(
         Integer, ForeignKey("services.id", ondelete="SET NULL"), nullable=True
     )
@@ -174,7 +199,10 @@ class Order(Base):
     subscription_url: Mapped[str | None] = mapped_column(Text, nullable=True)
     # paid = done, refunded = money returned, pending = panel call in-flight
     # (crash window), failed = panel error / deducted-race, never charged.
-    status: Mapped[str] = mapped_column(String(10), default="paid")
+    status: Mapped[str] = mapped_column(
+        SA_Enum(OrderStatus, native_enum=False, values_callable=lambda obj: [e.value for e in obj]),
+        default=OrderStatus.PAID.value,
+    )
     refunded_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
@@ -206,7 +234,9 @@ class SupportMessage(Base):
     __tablename__ = "support_messages"
 
     admin_message_id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
-    telegram_id: Mapped[int] = mapped_column(BigInteger, index=True)
+    telegram_id: Mapped[int] = mapped_column(
+        BigInteger, ForeignKey("users.telegram_id", ondelete="CASCADE"), index=True
+    )
 
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()

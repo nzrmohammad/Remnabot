@@ -90,7 +90,8 @@ async def report_error(
     elif is_exc and getattr(exc, "__traceback__", None):
         try:
             tb_str = "".join(traceback.format_exception(type(exc), exc, exc.__traceback__))
-        except Exception:
+        except Exception as exc:
+            logger.warning("Failed to format traceback: %s", exc)
             tb_str = ""
     else:
         tb_str = ""
@@ -142,8 +143,8 @@ async def report_error(
         for aid in settings.ADMIN_IDS:
             try:
                 await bot.send_message(aid, text)
-            except Exception:
-                pass
+            except Exception as exc:
+                logger.warning("Failed to send error fallback to admin %s: %s", aid, exc)
 
 
 async def report_error_event(
@@ -241,7 +242,8 @@ class TelegramErrorLogHandler(logging.Handler):
             exc_obj: Exception | str = record.exc_info[1]
             try:
                 tb_str = "".join(traceback.format_exception(*record.exc_info))
-            except Exception:
+            except Exception as exc:
+                logger.warning("Failed to format record exc_info: %s", exc)
                 tb_str = ""
         else:
             exc_obj = record.getMessage()
@@ -289,6 +291,7 @@ async def send_test_error_report(
         else:
             topic_id = settings.ADMIN_TOPIC_ERRORS
     except Exception as db_exc:
+        logger.warning("Failed to fetch topic_errors from store: %s", db_exc)
         topic_id = settings.ADMIN_TOPIC_ERRORS
 
     if not topic_id:
@@ -311,4 +314,5 @@ async def send_test_error_report(
         await bot.send_message(settings.ADMIN_CHAT_ID, text, **thread_kwargs)
         return True, f"پیام تست با موفقیت به تاپیک {topic_id} ارسال شد ✅", topic_id
     except Exception as exc:
+        logger.warning("Failed to send test error report: %s", exc)
         return False, f"خطا در ارسال پیام به تاپیک {topic_id}: {exc}", topic_id

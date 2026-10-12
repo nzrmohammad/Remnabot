@@ -666,16 +666,10 @@ async def test_admin_overview_metrics_flags_and_devices(session_factory):
 
 
 @pytest.mark.anyio
-async def test_admin_users_remaining_traffic_and_days():
+async def test_admin_users_remaining_traffic_and_days(session_factory):
     from aiohttp.test_utils import make_mocked_request
-    from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
     from bot.db.models import Base, User, Wallet
     from bot.web.routes_admin import get_admin_users
-
-    engine = create_async_engine("sqlite+aiosqlite:///:memory:")
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-    session_factory = async_sessionmaker(engine, expire_on_commit=False)
 
     async with session_factory() as session:
         session.add(User(telegram_id=11111, username="test_client"))
@@ -719,20 +713,12 @@ async def test_admin_users_remaining_traffic_and_days():
     assert panel["remaining_traffic_gb"] == 30.0  # 50 - 20 = 30 GB remaining
     assert panel["days_left"] is not None and panel["days_left"] > 0
 
-    await engine.dispose()
-
 
 @pytest.mark.anyio
-async def test_admin_broadcast_audience_targeting():
+async def test_admin_broadcast_audience_targeting(session_factory):
     from aiohttp.test_utils import make_mocked_request
-    from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
     from bot.db.models import Base, User
     from bot.web.routes_admin import post_admin_broadcast
-
-    engine = create_async_engine("sqlite+aiosqlite:///:memory:")
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-    session_factory = async_sessionmaker(engine, expire_on_commit=False)
 
     async with session_factory() as session:
         session.add(User(telegram_id=101, username="u1"))
@@ -762,21 +748,13 @@ async def test_admin_broadcast_audience_targeting():
     assert res_data["ok"] is True
     assert "همه کاربران" in res_data["message"]
 
-    await engine.dispose()
-
 
 @pytest.mark.anyio
-async def test_admin_reset_trial():
+async def test_admin_reset_trial(session_factory):
     from aiohttp.test_utils import make_mocked_request
     from sqlalchemy import select
-    from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
     from bot.db.models import Base, User
     from bot.web.routes_admin import post_admin_reset_trial
-
-    engine = create_async_engine("sqlite+aiosqlite:///:memory:")
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-    session_factory = async_sessionmaker(engine, expire_on_commit=False)
 
     async with session_factory() as session:
         user = User(telegram_id=202, username="test_trial", has_claimed_trial=True)
@@ -806,8 +784,6 @@ async def test_admin_reset_trial():
     async with session_factory() as session:
         u = await session.scalar(select(User).where(User.telegram_id == 202))
         assert u.has_claimed_trial is False
-
-    await engine.dispose()
 
 
 @pytest.mark.anyio
@@ -841,16 +817,10 @@ async def test_admin_broadcast_status():
 
 
 @pytest.mark.anyio
-async def test_admin_modify_user_traffic_and_days():
+async def test_admin_modify_user_traffic_and_days(session_factory):
     from aiohttp.test_utils import make_mocked_request
-    from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
     from bot.db.models import Base
     from bot.web.routes_admin import post_admin_modify_user
-
-    engine = create_async_engine("sqlite+aiosqlite:///:memory:")
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-    session_factory = async_sessionmaker(engine, expire_on_commit=False)
 
     mock_remnawave = AsyncMock()
     mock_remnawave.get_users_by_telegram_id.return_value = [{
@@ -895,20 +865,12 @@ async def test_admin_modify_user_traffic_and_days():
     assert res_days_json["ok"] is True
     assert "تمدید 30 روز" in res_days_json["message"]
 
-    await engine.dispose()
-
 
 @pytest.mark.anyio
-async def test_admin_settings_full():
+async def test_admin_settings_full(session_factory):
     from aiohttp.test_utils import make_mocked_request
-    from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
     from bot.db.models import Base
     from bot.web.routes_admin import get_admin_settings, post_admin_settings
-
-    engine = create_async_engine("sqlite+aiosqlite:///:memory:")
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-    session_factory = async_sessionmaker(engine, expire_on_commit=False)
 
     app = {
         "bot_token": "123:abc",
@@ -948,20 +910,12 @@ async def test_admin_settings_full():
     assert data["referral_reward_gb"] == 10
     assert data["support_contact"] == "@MySupportBot"
 
-    await engine.dispose()
-
 
 @pytest.mark.anyio
-async def test_admin_user_wallet_modify():
+async def test_admin_user_wallet_modify(session_factory):
     from aiohttp.test_utils import make_mocked_request
-    from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
     from bot.db.models import Base, Wallet
     from bot.web.routes_admin import post_admin_user_wallet
-
-    engine = create_async_engine("sqlite+aiosqlite:///:memory:")
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-    session_factory = async_sessionmaker(engine, expire_on_commit=False)
 
     async with session_factory() as session:
         session.add(Wallet(telegram_id=12345, balance=50000))
@@ -996,20 +950,12 @@ async def test_admin_user_wallet_modify():
     assert data_sub["ok"] is True
     assert data_sub["new_balance"] == 60000
 
-    await engine.dispose()
-
 
 @pytest.mark.anyio
-async def test_admin_user_revoke_sub():
+async def test_admin_user_revoke_sub(session_factory):
     from aiohttp.test_utils import make_mocked_request
-    from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
     from bot.db.models import Base
     from bot.web.routes_admin import post_admin_user_revoke_sub
-
-    engine = create_async_engine("sqlite+aiosqlite:///:memory:")
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-    session_factory = async_sessionmaker(engine, expire_on_commit=False)
 
     mock_remnawave = AsyncMock()
     mock_remnawave.get_users_by_telegram_id.return_value = [{"id": "user-uuid-1"}]
@@ -1036,20 +982,12 @@ async def test_admin_user_revoke_sub():
     assert data["subscription_url"] == "https://remna.test/sub/new-token-123"
     mock_remnawave.revoke_user_subscription.assert_called_with("user-uuid-1")
 
-    await engine.dispose()
-
 
 @pytest.mark.anyio
-async def test_admin_user_hwid_devices():
+async def test_admin_user_hwid_devices(session_factory):
     from aiohttp.test_utils import make_mocked_request
-    from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
     from bot.db.models import Base
     from bot.web.routes_admin import get_admin_user_hwid_devices, post_admin_user_delete_hwid
-
-    engine = create_async_engine("sqlite+aiosqlite:///:memory:")
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-    session_factory = async_sessionmaker(engine, expire_on_commit=False)
 
     mock_remnawave = AsyncMock()
     mock_remnawave.get_users_by_telegram_id.return_value = [{"id": "user-uuid-hwid"}]
@@ -1084,13 +1022,10 @@ async def test_admin_user_hwid_devices():
     assert data_del["ok"] is True
     mock_remnawave.delete_hwid_device.assert_called_with("user-uuid-hwid", "hwid-abc-1")
 
-    await engine.dispose()
-
 
 @pytest.mark.anyio
-async def test_admin_plans_crud():
+async def test_admin_plans_crud(session_factory):
     from aiohttp.test_utils import make_mocked_request
-    from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
     from bot.db.models import Base
     from bot.web.routes_admin import (
         get_admin_plans,
@@ -1098,11 +1033,6 @@ async def test_admin_plans_crud():
         post_admin_plan_toggle,
         post_admin_plan_delete,
     )
-
-    engine = create_async_engine("sqlite+aiosqlite:///:memory:")
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-    session_factory = async_sessionmaker(engine, expire_on_commit=False)
 
     app = {
         "bot_token": "123:abc",
@@ -1154,13 +1084,10 @@ async def test_admin_plans_crud():
     resp_empty = await get_admin_plans(req_list)
     assert len(json.loads(resp_empty.text)["plans"]) == 0
 
-    await engine.dispose()
-
 
 @pytest.mark.anyio
-async def test_admin_coupons_crud():
+async def test_admin_coupons_crud(session_factory):
     from aiohttp.test_utils import make_mocked_request
-    from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
     from bot.db.models import Base
     from bot.web.routes_admin import (
         get_admin_coupons,
@@ -1168,11 +1095,6 @@ async def test_admin_coupons_crud():
         post_admin_coupon_toggle,
         post_admin_coupon_delete,
     )
-
-    engine = create_async_engine("sqlite+aiosqlite:///:memory:")
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-    session_factory = async_sessionmaker(engine, expire_on_commit=False)
 
     app = {
         "bot_token": "123:abc",
@@ -1223,20 +1145,12 @@ async def test_admin_coupons_crud():
     resp_empty = await get_admin_coupons(req_list)
     assert len(json.loads(resp_empty.text)["coupons"]) == 0
 
-    await engine.dispose()
-
 
 @pytest.mark.anyio
-async def test_admin_users_filter_online_and_expiring():
+async def test_admin_users_filter_online_and_expiring(session_factory):
     from aiohttp.test_utils import make_mocked_request
-    from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
     from bot.db.models import Base, User
     from bot.web.routes_admin import get_admin_users
-
-    engine = create_async_engine("sqlite+aiosqlite:///:memory:")
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-    session_factory = async_sessionmaker(engine, expire_on_commit=False)
 
     async with session_factory() as session:
         session.add(User(telegram_id=99999, username="admin_user"))
@@ -1302,21 +1216,13 @@ async def test_admin_users_filter_online_and_expiring():
     assert len(users_exp) == 1
     assert users_exp[0]["telegram_id"] == 22222
 
-    await engine.dispose()
-
 
 @pytest.mark.anyio
-async def test_admin_topups_listing():
+async def test_admin_topups_listing(session_factory):
     from aiohttp.test_utils import make_mocked_request
-    from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
     from bot.db.models import Base, User
     from bot.db.repositories.wallet_repo import WalletRepository
     from bot.web.routes_admin import get_admin_topups
-
-    engine = create_async_engine("sqlite+aiosqlite:///:memory:")
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-    session_factory = async_sessionmaker(engine, expire_on_commit=False)
 
     async with session_factory() as session:
         session.add(User(telegram_id=55555, username="payer_user"))
@@ -1343,21 +1249,13 @@ async def test_admin_topups_listing():
     assert t["username"] == "payer_user"
     assert t["receipt_hash"] == "hash-receipt-123"
 
-    await engine.dispose()
-
 
 @pytest.mark.anyio
-async def test_admin_coupon_usages():
+async def test_admin_coupon_usages(session_factory):
     from aiohttp.test_utils import make_mocked_request
-    from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
     from bot.db.models import Base, User
     from bot.db.repositories.coupon_repo import CouponRepository
     from bot.web.routes_admin import get_admin_coupon_usages
-
-    engine = create_async_engine("sqlite+aiosqlite:///:memory:")
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-    session_factory = async_sessionmaker(engine, expire_on_commit=False)
 
     async with session_factory() as session:
         session.add(User(telegram_id=77777, username="lucky_user"))
@@ -1386,20 +1284,12 @@ async def test_admin_coupon_usages():
     assert u["username"] == "lucky_user"
     assert u["discount_applied"] == 25000
 
-    await engine.dispose()
-
 
 @pytest.mark.anyio
-async def test_admin_topup_action_syncs_with_supergroup():
+async def test_admin_topup_action_syncs_with_supergroup(session_factory):
     from aiohttp.test_utils import make_mocked_request
-    from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
     from bot.db.models import Base, Topup, Wallet
     from bot.web.routes_admin import post_admin_topup_action
-
-    engine = create_async_engine("sqlite+aiosqlite:///:memory:")
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-    session_factory = async_sessionmaker(engine, expire_on_commit=False)
 
     async with session_factory() as session:
         t = Topup(telegram_id=12345, amount=50000, status="pending", admin_message_id=888)
@@ -1453,22 +1343,14 @@ async def test_admin_topup_action_syncs_with_supergroup():
     assert f"تعیین وضعیت فیش {topup_id}" in admin_call.kwargs["text"]
     assert f"#{topup_id}" not in admin_call.kwargs["text"]
 
-    await engine.dispose()
-
 
 @pytest.mark.anyio
-async def test_post_user_purchase_commits_session_without_coupon():
+async def test_post_user_purchase_commits_session_without_coupon(session_factory):
     """Verify that purchase without a coupon permanently commits wallet deduction and order."""
     from aiohttp.test_utils import make_mocked_request
-    from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
     from sqlalchemy import select
     from bot.db.models import Base, Service, Wallet, Order
     from bot.web.user_shop import post_user_purchase
-
-    engine = create_async_engine("sqlite+aiosqlite:///:memory:")
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-    session_factory = async_sessionmaker(engine, expire_on_commit=False)
 
     async with session_factory() as session:
         svc = Service(name="Plan Test", traffic_gb=20, duration_days=30, price=50000, is_active=True)
@@ -1513,8 +1395,6 @@ async def test_post_user_purchase_commits_session_without_coupon():
         assert ord_row.status == "paid"
         assert ord_row.amount == 50000
 
-    await engine.dispose()
-
 
 @pytest.mark.anyio
 async def test_api_rate_limit_middleware_blocks_excessive_requests():
@@ -1554,15 +1434,9 @@ async def test_api_rate_limit_middleware_blocks_excessive_requests():
 
 
 @pytest.mark.anyio
-async def test_crypto_mark_paid_atomic():
-    from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
+async def test_crypto_mark_paid_atomic(session_factory):
     from bot.db.models import Base
     from bot.db.repositories.crypto_repo import CryptoRepository
-
-    engine = create_async_engine("sqlite+aiosqlite:///:memory:")
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-    session_factory = async_sessionmaker(engine, expire_on_commit=False)
 
     async with session_factory() as session:
         repo = CryptoRepository(session)
@@ -1591,8 +1465,6 @@ async def test_crypto_mark_paid_atomic():
         second = await repo.mark_paid(inv_id, "tx_hash_duplicate")
         assert second is None
 
-    await engine.dispose()
-
 
 @pytest.mark.anyio
 async def test_serve_open_client_bridge():
@@ -1619,20 +1491,14 @@ async def test_serve_open_client_bridge():
 
 
 @pytest.mark.anyio
-async def test_topup_image_upload_and_admin_viewing():
+async def test_topup_image_upload_and_admin_viewing(session_factory):
     import base64
     from unittest.mock import AsyncMock, MagicMock, patch
     from aiohttp.test_utils import make_mocked_request
-    from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
     from bot.db.models import Base
     from bot.web.user_topup import post_user_topup_card
     from bot.web.routes_admin import get_admin_topups, get_admin_topup_photo
     from pathlib import Path
-
-    engine = create_async_engine("sqlite+aiosqlite:///:memory:")
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-    session_factory = async_sessionmaker(engine, expire_on_commit=False)
 
     fake_img = b"\xff\xd8\xff\xe0\x00\x10JFIF" + b"\x00" * 50
     b64_img = "data:image/jpeg;base64," + base64.b64encode(fake_img).decode("ascii")
@@ -1691,8 +1557,6 @@ async def test_topup_image_upload_and_admin_viewing():
     receipt_file = Path("data/receipts") / f"receipt_{t['id']}.jpg"
     if receipt_file.exists():
         receipt_file.unlink()
-
-    await engine.dispose()
 
 
 @pytest.mark.anyio

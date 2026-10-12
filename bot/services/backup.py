@@ -106,19 +106,7 @@ async def create_database_backup(session: AsyncSession, out_dir: str | Path | No
     settings_res = await session.execute(select(AppSetting))
     settings = {s.key: s.value for s in settings_res.scalars().all()}
 
-    # 7. Admin Logs
-    logs_res = await session.execute(select(AdminLog).order_by(AdminLog.id.desc()).limit(500))
-    logs = [
-        {
-            "id": log_item.id,
-            "admin_id": log_item.admin_id,
-            "action": log_item.action,
-            "detail": log_item.detail,
-            "created_at": _serialize_val(log_item.created_at),
-        }
-        for log_item in logs_res.scalars().all()
-    ]
-
+    # Dump only essential tables (users, wallets, orders, services, coupons, settings)
     data = {
         "export_date": now.isoformat(),
         "users": users,
@@ -127,7 +115,6 @@ async def create_database_backup(session: AsyncSession, out_dir: str | Path | No
         "services": services,
         "coupons": coupons,
         "settings": settings,
-        "admin_logs": logs,
     }
 
     target_dir = Path(out_dir) if out_dir else Path.cwd() / "backups"
@@ -309,9 +296,67 @@ def _seconds_until_backup(hour: int = BACKUP_HOUR, minute: int = BACKUP_MINUTE) 
     return max(1.0, (target - now).total_seconds())
 
 
+def create_encrypted_backup_archive(json_path: Path, password: str | None = None) -> Path:
+    """Compress JSON dump into a password-protected zip file.
+
+    Uses 'zip -P' CLI if available, otherwise pyzipper (AES-256).
+    Removes raw unencrypted JSON after compression.
+    """
+    import shutil
+    import subprocess
+    import zipfile
+
+    zip_path = json_path.with_suffix(".zip")
+    pwd = (password or "").strip()
+
+    if pwd:
+        # 1. Try system zip CLI if present (e.g. Linux container)
+        if shutil.which("zip"):
+            try:
+                cmd = ["zip", "-j", "-P", pwd, str(zip_path), str(json_path)]
+                subprocess.run(cmd, capture_output=True, text=True, check=True)
+                if zip_path.is_file():
+                    try:
+                        json_path.unlink(missing_ok=True)
+                    except Exception as exc:
+                        logger.warning("Could not unlink json_path: %s", exc)
+                    return zip_path
+            except Exception as exc:
+                logger.warning("CLI zip command failed, falling back to pyzipper: %s", exc)
+
+        # 2. Use pyzipper (AES-256)
+        try:
+            import pyzipper
+            with pyzipper.AESZipFile(
+                zip_path,
+                "w",
+                compression=pyzipper.ZIP_DEFLATED,
+                encryption=pyzipper.WZ_AES,
+            ) as zf:
+                zf.setpassword(pwd.encode("utf-8"))
+                zf.write(json_path, arcname=json_path.name)
+            try:
+                json_path.unlink(missing_ok=True)
+            except Exception as exc:
+                logger.warning("Could not unlink json_path: %s", exc)
+            return zip_path
+        except Exception as exc:
+            logger.warning("pyzipper encryption failed, using standard zipfile: %s", exc)
+
+    # Fallback: standard zip archive
+    with zipfile.ZipFile(zip_path, "w", compression=zipfile.ZIP_DEFLATED) as zf:
+        zf.write(json_path, arcname=json_path.name)
+    try:
+        json_path.unlink(missing_ok=True)
+    except Exception as exc:
+        logger.warning("Could not unlink json_path: %s", exc)
+    return zip_path
+
+
 async def auto_backup_loop(bot, session_factory) -> None:
     """Daily automated backup loop sending database export to admin chat/topic at 01:30 AM."""
     import asyncio
+    import os
 
     from aiogram.types import FSInputFile
 
@@ -328,14 +373,19 @@ async def auto_backup_loop(bot, session_factory) -> None:
             admin_chat_id = settings.ADMIN_CHAT_ID
             if admin_chat_id:
                 async with session_factory() as session:
-                    backup_path = await create_database_backup(session)
+                    raw_backup_path = await create_database_backup(session)
+                    backup_pwd = getattr(settings, "BACKUP_PASSWORD", "") or os.environ.get("BACKUP_PASSWORD", "")
+                    backup_path = create_encrypted_backup_archive(raw_backup_path, backup_pwd)
+
                     store = await get_store_settings(session)
                     thread_kwargs = admin_thread_kwargs(store, settings, kind="alerts")
 
+                    has_pwd = bool(backup_pwd)
                     caption = (
                         "💾 <b>نسخه پشتیبان خودکار دیتابیس (ساعت ۰۱:۳۰ بامداد)</b>\n\n"
                         f"📅 تاریخ: <code>{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</code>\n"
-                        "🔐 فایل شامل رکوردهای کاربران، کیف پول، سفارشات، سرویس‌ها، کدهای تخفیف و تنظیمات می‌باشد."
+                        f"🔐 وضعیت رمزگذاری: <b>{'رمزدار (AES-256)' if has_pwd else 'فشرده‌سازی استاندارد'}</b>\n"
+                        "📦 فایل شامل نسخه پشتیبان جداول ضروری (کاربران، کیف پول، سفارشات، سرویس‌ها، کدهای تخفیف، تنظیمات) می‌باشد."
                     )
                     doc = FSInputFile(backup_path, filename=backup_path.name)
                     await bot.send_document(

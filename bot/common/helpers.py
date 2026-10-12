@@ -1,5 +1,4 @@
 """Common text parsing and sanitization utilities."""
-import sys
 
 _DIGIT_MAP = str.maketrans("۰۱۲۳۴۵۶۷۸۹٠١٢٣٤٥٦٧٨٩", "01234567890123456789")
 
@@ -18,21 +17,7 @@ def parse_int(text: str) -> int | None:
 
 
 def resolve_op(name: str, fallback):
-    """Resolve an operation or repository from handler modules if patched by tests."""
-    for mod_name in (
-        "bot.handlers.admin",
-        "bot.handlers.admin_ops",
-        "bot.handlers.admin_settings",
-        "bot.handlers.admin_users",
-        "bot.handlers.admin_orders",
-        "bot.handlers.service_request",
-        "bot.handlers.wallet",
-    ):
-        mod = sys.modules.get(mod_name)
-        if mod is not None and hasattr(mod, name):
-            val = getattr(mod, name)
-            if val is not fallback:
-                return val
+    """Return operation directly without dynamic module sniffing."""
     return fallback
 
 

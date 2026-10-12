@@ -476,7 +476,7 @@ async def test_resolve_broadcast_recipients():
     u2 = MagicMock(telegram_id=102)
     u3 = MagicMock(telegram_id=103)
 
-    with patch("bot.handlers.admin_ops.UserRepository") as mock_u_repo:
+    with patch("bot.handlers.admin_broadcast.UserRepository") as mock_u_repo:
         mock_u_repo.return_value.all_users = AsyncMock(return_value=[u1, u2, u3])
 
         # 1. target = "all"
@@ -719,10 +719,10 @@ async def test_admin_user_wallet_management_unlinked_user():
     call.from_user.username = "admin"
     call.answer = AsyncMock()
 
-    with patch("bot.handlers.admin_users._is_admin", return_value=True), \
-         patch("bot.handlers.admin_users.UserRepository") as mock_user_repo_cls, \
-         patch("bot.handlers.admin_users.WalletRepository") as mock_wallet_repo_cls, \
-         patch("bot.handlers.admin_users.render_menu", AsyncMock()) as mock_render:
+    with patch("bot.common.guards.is_admin", return_value=True), \
+         patch("bot.handlers.admin_user_bans.UserRepository") as mock_user_repo_cls, \
+         patch("bot.handlers.admin_user_bans.WalletRepository") as mock_wallet_repo_cls, \
+         patch("bot.handlers.admin_user_bans.render_menu", AsyncMock()) as mock_render:
 
         user_repo_instance = MagicMock()
         user_repo_instance.get_by_telegram_id = AsyncMock(return_value=None)
@@ -806,7 +806,7 @@ async def test_purchase_result_digital_receipt():
         traffic_gb=50,
     )
 
-    with patch("bot.handlers.service_request.render_menu", AsyncMock()) as mock_render:
+    with patch("bot.handlers.shop_purchase.render_menu", AsyncMock()) as mock_render:
         await _render_purchase_result(bot, user, user_repo, session, result, service, "fa")
 
         mock_render.assert_awaited_once()
@@ -854,8 +854,8 @@ async def test_admin_orders_list_filtered():
         MagicMock(id=2, service_name="Plan B", amount=100000, status="refunded"),
     ]
 
-    with patch("bot.handlers.admin_ops.OrderRepository") as mock_repo_cls, \
-         patch("bot.handlers.admin_ops.render_menu", AsyncMock()) as mock_render:
+    with patch("bot.handlers.admin_orders_list.OrderRepository") as mock_repo_cls, \
+         patch("bot.handlers.admin_orders_list.render_menu", AsyncMock()) as mock_render:
 
         repo = MagicMock()
         repo.total_revenue = AsyncMock(return_value=150000)
@@ -897,7 +897,7 @@ async def test_reports_hub_layout():
     remnawave.get_all_panel_users = AsyncMock(return_value=[{"id": 1, "status": "ACTIVE"}])
     remnawave.get_nodes = AsyncMock(return_value=[{"id": 1, "isConnected": True}])
 
-    with patch("bot.handlers.admin_ops.render_menu", AsyncMock()) as mock_render:
+    with patch("bot.handlers.admin_reports_hub.render_menu", AsyncMock()) as mock_render:
         await _render_reports_hub(bot, user, user_repo, session, remnawave)
         mock_render.assert_awaited_once()
         markup = mock_render.call_args[0][4]
@@ -942,7 +942,7 @@ async def test_hwid_inspector_rendering():
         ],
     })
 
-    with patch("bot.handlers.admin_ops.render_menu", AsyncMock()) as mock_render:
+    with patch("bot.handlers.admin_reports_hub.render_menu", AsyncMock()) as mock_render:
         await _render_hwid_inspector(bot, user, user_repo, remnawave)
         mock_render.assert_awaited_once()
         text = mock_render.call_args[0][3]
@@ -978,7 +978,7 @@ async def test_srh_inspector_rendering():
         ],
     })
 
-    with patch("bot.handlers.admin_ops.render_menu", AsyncMock()) as mock_render:
+    with patch("bot.handlers.admin_reports_hub.render_menu", AsyncMock()) as mock_render:
         await _render_srh_inspector(bot, user, user_repo, remnawave)
         mock_render.assert_awaited_once()
         text = mock_render.call_args[0][3]
@@ -1052,7 +1052,7 @@ async def test_live_sessions_explorer_render():
         "all_online_users": [],
     })
 
-    with patch("bot.handlers.admin_ops.render_menu", AsyncMock()) as mock_render:
+    with patch("bot.handlers.admin_reports_hub.render_menu", AsyncMock()) as mock_render:
         await _render_sessions_explorer(bot, user, user_repo, remnawave, page=0)
         mock_render.assert_awaited_once()
         text = mock_render.call_args[0][3]
@@ -1283,9 +1283,9 @@ async def test_store_settings_full_overview():
         topic_alerts=40,
     )
 
-    with patch("bot.handlers.admin_ops.get_store_settings", AsyncMock(return_value=store)), \
-         patch("bot.handlers.admin_ops.is_maintenance", AsyncMock(return_value=False)), \
-         patch("bot.handlers.admin_ops.render_menu", AsyncMock()) as mock_render:
+    with patch("bot.handlers.admin_settings_store.get_store_settings", AsyncMock(return_value=store)), \
+         patch("bot.handlers.admin_settings_store.is_maintenance", AsyncMock(return_value=False)), \
+         patch("bot.handlers.admin_settings_store.render_menu", AsyncMock()) as mock_render:
 
         await _render_settings(bot, user, user_repo, session)
         mock_render.assert_awaited_once()
@@ -1335,9 +1335,9 @@ async def test_store_settings_full_overview():
         topic_support=None,
         topic_alerts=None,
     )
-    with patch("bot.handlers.admin_ops.get_store_settings", AsyncMock(return_value=store_no_sup)), \
-         patch("bot.handlers.admin_ops.is_maintenance", AsyncMock(return_value=False)), \
-         patch("bot.handlers.admin_ops.render_menu", AsyncMock()) as mock_render:
+    with patch("bot.handlers.admin_settings_store.get_store_settings", AsyncMock(return_value=store_no_sup)), \
+         patch("bot.handlers.admin_settings_store.is_maintenance", AsyncMock(return_value=False)), \
+         patch("bot.handlers.admin_settings_store.render_menu", AsyncMock()) as mock_render:
 
         await _render_settings(bot, user, user_repo, session)
         mock_render.assert_awaited_once()
@@ -1353,9 +1353,9 @@ async def test_store_settings_full_overview():
         assert "هشدار : — (Alerts)" in text
 
     # Case 3: Topics keyboard does NOT contain 🆘
-    with patch("bot.handlers.admin_ops.get_store_settings", AsyncMock(return_value=store)), \
-         patch("bot.handlers.admin_ops._get_admin_group_title", AsyncMock(return_value="SupportSuperGroup")), \
-         patch("bot.handlers.admin_ops.render_menu", AsyncMock()) as mock_render:
+    with patch("bot.handlers.admin_settings_topics.get_store_settings", AsyncMock(return_value=store)), \
+         patch("bot.handlers.admin_settings_topics._get_admin_group_title", AsyncMock(return_value="SupportSuperGroup")), \
+         patch("bot.handlers.admin_settings_topics.render_menu", AsyncMock()) as mock_render:
 
         await _render_topics_settings(bot, user, user_repo, session)
         mock_render.assert_awaited_once()
@@ -1401,8 +1401,8 @@ async def test_trial_and_referral_submenus():
     )
 
     # 1. Trial settings submenu
-    with patch("bot.handlers.admin_ops.get_store_settings", AsyncMock(return_value=store)), \
-         patch("bot.handlers.admin_ops.render_menu", AsyncMock()) as mock_render:
+    with patch("bot.handlers.admin_settings_trial_referral.get_store_settings", AsyncMock(return_value=store)), \
+         patch("bot.handlers.admin_settings_trial_referral.render_menu", AsyncMock()) as mock_render:
 
         await _render_trial_settings(bot, user, user_repo, session)
         mock_render.assert_awaited_once()
@@ -1428,8 +1428,8 @@ async def test_trial_and_referral_submenus():
         assert "برای تغییر حجم یا زمان، دکمه مربوطه را انتخاب کنید" in text
 
     # 2. Referral settings submenu
-    with patch("bot.handlers.admin_ops.get_store_settings", AsyncMock(return_value=store)), \
-         patch("bot.handlers.admin_ops.render_menu", AsyncMock()) as mock_render:
+    with patch("bot.handlers.admin_settings_trial_referral.get_store_settings", AsyncMock(return_value=store)), \
+         patch("bot.handlers.admin_settings_trial_referral.render_menu", AsyncMock()) as mock_render:
 
         await _render_referral_settings(bot, user, user_repo, session)
         mock_render.assert_awaited_once()
@@ -1475,7 +1475,7 @@ async def test_inspectors_and_nodes_code_tags_cleanup():
     }
     remnawave.get_hwid_stats = AsyncMock(return_value={"stats": hwid_data})
     remnawave.get_hwid_devices = AsyncMock(return_value=[])
-    with patch("bot.handlers.admin_ops.render_menu", AsyncMock()) as mock_render:
+    with patch("bot.handlers.admin_reports_hub.render_menu", AsyncMock()) as mock_render:
         await _render_hwid_inspector(bot, user, user_repo, remnawave)
         mock_render.assert_awaited_once()
         text_hwid = mock_render.call_args[0][3]
@@ -1487,7 +1487,7 @@ async def test_inspectors_and_nodes_code_tags_cleanup():
         "hourlyRequestStats": [{"dateTime": "2026-09-27T12:00:00Z", "requestCount": 100}],
     }
     remnawave.get_srh_stats = AsyncMock(return_value=srh_data)
-    with patch("bot.handlers.admin_ops.render_menu", AsyncMock()) as mock_render:
+    with patch("bot.handlers.admin_reports_hub.render_menu", AsyncMock()) as mock_render:
         await _render_srh_inspector(bot, user, user_repo, remnawave)
         mock_render.assert_awaited_once()
         text_srh = mock_render.call_args[0][3]
@@ -1520,8 +1520,8 @@ async def test_support_contact_validation_and_toggle():
         expiry_grace_days=3, expiry_remind_days="3,1", default_squad_uuid=None,
         topic_topups=None, topic_orders=None, topic_support=None, topic_alerts=None,
     )
-    with patch("bot.handlers.admin_ops._is_admin", return_value=True), \
-         patch("bot.handlers.admin_ops.get_store_settings", AsyncMock(return_value=store_empty)):
+    with patch("bot.common.guards.is_admin", return_value=True), \
+         patch("bot.handlers.admin_settings_store.get_store_settings", AsyncMock(return_value=store_empty)):
 
         await setting_toggle_boolean(call, bot, user_repo, session)
         call.answer.assert_awaited_once()
@@ -1543,10 +1543,10 @@ async def test_support_contact_validation_and_toggle():
     mock_app_setting_repo = MagicMock()
     mock_app_setting_repo.set = AsyncMock()
 
-    with patch("bot.handlers.admin_ops.delete_message_silently", AsyncMock()), \
-         patch("bot.handlers.admin_ops.AppSettingRepository", return_value=mock_app_setting_repo), \
-         patch("bot.handlers.admin_ops.AdminLogRepository", return_value=MagicMock(log=AsyncMock())), \
-         patch("bot.handlers.admin_ops._render_settings", AsyncMock()):
+    with patch("bot.handlers.admin_settings_store.delete_message_silently", AsyncMock()), \
+         patch("bot.handlers.admin_settings_store.AppSettingRepository", return_value=mock_app_setting_repo), \
+         patch("bot.handlers.admin_settings_store.AdminLogRepository", return_value=MagicMock(log=AsyncMock())), \
+         patch("bot.handlers.admin_settings_store._render_settings", AsyncMock()):
 
         await settings_value_save(msg, bot, user_repo, session, state)
         mock_app_setting_repo.set.assert_awaited_with("support_contact", "@MohammadSupport")
@@ -1574,8 +1574,8 @@ async def test_service_detail_and_edit_layout():
     )
 
     # 1. Detail view: no double emojis on buttons and no 'فعال' in title
-    with patch("bot.handlers.admin.ServiceRepository") as mock_repo_cls, \
-         patch("bot.handlers.admin.render_menu", AsyncMock()) as mock_render:
+    with patch("bot.handlers.admin_services_mgmt.ServiceRepository") as mock_repo_cls, \
+         patch("bot.handlers.admin_services_mgmt.render_menu", AsyncMock()) as mock_render:
         mock_repo_cls.return_value.get = AsyncMock(return_value=service)
         await _render_service_detail(bot, user, user_repo, session, 1)
 
@@ -1608,9 +1608,9 @@ async def test_service_detail_and_edit_layout():
     state.set_state = AsyncMock()
     state.update_data = AsyncMock()
 
-    with patch("bot.handlers.admin._is_admin", return_value=True), \
-         patch("bot.handlers.admin.ServiceRepository") as mock_repo_cls, \
-         patch("bot.handlers.admin.render_menu", AsyncMock()) as mock_render:
+    with patch("bot.common.guards.is_admin", return_value=True), \
+         patch("bot.handlers.admin_services_mgmt.ServiceRepository") as mock_repo_cls, \
+         patch("bot.handlers.admin_services_mgmt.render_menu", AsyncMock()) as mock_render:
         mock_repo_cls.return_value.get = AsyncMock(return_value=service)
         await edit_service_pick(call, bot, user_repo, session, state)
 
@@ -1658,7 +1658,7 @@ async def test_receipt_and_admin_order_notification_fixes():
     )
 
     # 1. Receipt with 100% coupon
-    with patch("bot.handlers.service_request.render_menu", AsyncMock()) as mock_render:
+    with patch("bot.handlers.shop_purchase.render_menu", AsyncMock()) as mock_render:
         await _render_purchase_result(
             bot, user, user_repo, session, result, service, "fa",
             coupon_code="NOROOZ", discount_amount=500000,
@@ -1681,7 +1681,7 @@ async def test_receipt_and_admin_order_notification_fixes():
         assert "👛 موجودی جدید کیف پول : <b>0 تومان</b>" in text
 
     # 2. Buy confirm with discount
-    with patch("bot.handlers.service_request.render_menu", AsyncMock()) as mock_render:
+    with patch("bot.handlers.shop_purchase.render_menu", AsyncMock()) as mock_render:
         await _render_buy_confirm(
             bot, user, user_repo, session, service,
             balance=0, confirm_callback="svc:pay", lang="fa",
@@ -1778,9 +1778,9 @@ async def test_settings_buttons_icons_and_topics_errors():
     session = AsyncMock()
 
     # 1. Test _render_settings button icons
-    with patch("bot.handlers.admin_ops.get_store_settings", AsyncMock(return_value=store)), \
-         patch("bot.handlers.admin_ops.is_maintenance", AsyncMock(return_value=False)), \
-         patch("bot.handlers.admin_ops.render_menu", AsyncMock()) as mock_render:
+    with patch("bot.handlers.admin_settings_store.get_store_settings", AsyncMock(return_value=store)), \
+         patch("bot.handlers.admin_settings_store.is_maintenance", AsyncMock(return_value=False)), \
+         patch("bot.handlers.admin_settings_store.render_menu", AsyncMock()) as mock_render:
 
         await _render_settings(bot, user, user_repo, session)
         mock_render.assert_awaited_once()
@@ -1807,9 +1807,9 @@ async def test_settings_buttons_icons_and_topics_errors():
         assert "ارور (106) : Errors" in text
 
     # 2. Test _render_topics_settings
-    with patch("bot.handlers.admin_ops.get_store_settings", AsyncMock(return_value=store)), \
-         patch("bot.handlers.admin_ops._get_admin_group_title", AsyncMock(return_value="AdminGroup")), \
-         patch("bot.handlers.admin_ops.render_menu", AsyncMock()) as mock_render_topics:
+    with patch("bot.handlers.admin_settings_topics.get_store_settings", AsyncMock(return_value=store)), \
+         patch("bot.handlers.admin_settings_topics._get_admin_group_title", AsyncMock(return_value="AdminGroup")), \
+         patch("bot.handlers.admin_settings_topics.render_menu", AsyncMock()) as mock_render_topics:
 
         await _render_topics_settings(bot, user, user_repo, session)
         mock_render_topics.assert_awaited_once()
@@ -1836,7 +1836,7 @@ async def test_report_trigger_resiliency_and_delivery():
     session = AsyncMock()
     remnawave = MagicMock()
 
-    with patch("bot.handlers.admin_ops._is_admin", return_value=True), \
+    with patch("bot.common.guards.is_admin", return_value=True), \
          patch("bot.services.reports._send_admin_nightly_summary", AsyncMock()) as mock_nightly:
 
         await trigger_admin_report_handler(call, bot, session, remnawave)
@@ -1987,9 +1987,9 @@ async def test_recent_ui_and_reports_fixes():
 
     mock_wallet = MagicMock(balance=200_000)
 
-    with patch("bot.handlers.service_request.ServiceRepository") as mock_srepo, \
-         patch("bot.handlers.service_request.WalletRepository") as mock_wrepo, \
-         patch("bot.handlers.service_request.render_menu", AsyncMock()) as mock_render:
+    with patch("bot.services.render.ServiceRepository") as mock_srepo, \
+         patch("bot.services.render.WalletRepository") as mock_wrepo, \
+         patch("bot.services.render.render_menu", AsyncMock()) as mock_render:
 
         mock_srepo.return_value.list_active = AsyncMock(return_value=[mock_svc])
         mock_wrepo.return_value.get_wallet = AsyncMock(return_value=mock_wallet)

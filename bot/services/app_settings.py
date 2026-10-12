@@ -1,5 +1,5 @@
 """Store settings: runtime DB overrides with .env as the fallback."""
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -31,7 +31,7 @@ class StoreSettings:
     ton_wallet_address: str = ""
     ton_rate_toman: int = 0
     crypto_enabled: bool = False
-    usdt_rate_toman: int = 95000
+    usdt_rate_toman: int = field(default_factory=lambda: getattr(get_settings(), "USDT_RATE_TOMAN", 0))
     eur_rate_toman: int = 105000
     card_enabled: bool = True
     topic_errors: int | None = None

@@ -185,8 +185,8 @@ async def _send_monthly_for_user(
     if prefs and prefs.clean_reports and target_msg_id:
         try:
             await bot.delete_message(user.telegram_id, target_msg_id)
-        except Exception:
-            pass
+        except Exception as exc:
+            logger.warning("Failed to delete last monthly message %s: %s", target_msg_id, exc)
 
     try:
         sent_msg = await bot.send_message(user.telegram_id, text)

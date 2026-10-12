@@ -106,7 +106,8 @@ async def _send_admin_nightly_summary(
                     or []
                 )
                 return u, stats
-            except Exception:
+            except Exception as exc:
+                logger.warning("Failed to fetch user today stats for %s: %s", uid, exc)
                 return u, []
 
     user_stats_results = await asyncio.gather(
@@ -300,7 +301,8 @@ async def _send_admin_weekly_summary(
                     or []
                 )
                 return u, stats
-            except Exception:
+            except Exception as exc:
+                logger.warning("Failed to fetch user week stats for %s: %s", uid, exc)
                 return u, []
 
     results = await asyncio.gather(*[_fetch_user_week(u) for u in active_traffic_users])
@@ -466,7 +468,8 @@ async def _send_admin_monthly_summary(
                     or []
                 )
                 return u, stats
-            except Exception:
+            except Exception as exc:
+                logger.warning("Failed to fetch user month stats for %s: %s", uid, exc)
                 return u, []
 
     results = await asyncio.gather(*[_fetch_user_month(u) for u in active_traffic_users])

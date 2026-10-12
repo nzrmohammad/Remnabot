@@ -96,7 +96,7 @@ def get_authenticated_user(request: web.Request) -> dict[str, Any] | None:
             }
         elif request.headers.get("X-Dev-Mode") == "1" or not init_data:
             if not admin_ids:
-                return None
+                raise RuntimeError("ADMIN_IDS is empty")
             primary_admin = admin_ids[0]
             user = {
                 "id": primary_admin,

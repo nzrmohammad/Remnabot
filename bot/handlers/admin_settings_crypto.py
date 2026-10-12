@@ -13,7 +13,7 @@ from bot.db.repositories.app_setting_repo import AppSettingRepository
 from bot.db.repositories.user_repo import UserRepository
 from bot.locales.texts import t
 from bot.services.app_settings import get_store_settings
-from bot.services.menu import render_menu
+from bot.services import menu
 
 logger = logging.getLogger(__name__)
 router = Router(name="admin_settings_crypto")
@@ -24,8 +24,8 @@ _is_admin = is_admin
 async def _render_crypto_settings(
     bot: Bot, user, user_repo: UserRepository, session: AsyncSession,
 ) -> None:
-    store_fn = resolve_op("get_store_settings", get_store_settings)
-    render_menu_fn = resolve_op("render_menu", render_menu)
+    store_fn = get_store_settings
+    render_menu_fn = menu.render_menu
 
     lang = user.language or "fa"
     store = await store_fn(session)

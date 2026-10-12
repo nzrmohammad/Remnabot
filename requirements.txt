@@ -27,3 +27,7 @@ sentry-sdk==2.70.0
 # Automated testing suite
 pytest==9.1.1
 anyio==4.15.0
+
+# Resilience & Archiving
+pyzipper>=0.4.0
+tenacity>=8.0.0

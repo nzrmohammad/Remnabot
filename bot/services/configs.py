@@ -44,7 +44,8 @@ def parse_subscription_text(text: str) -> list[dict[str, str]]:
             clean += "=" * (-len(clean) % 4)
             decoded = base64.b64decode(clean).decode("utf-8", errors="replace")
             lines = [line.strip() for line in decoded.splitlines() if line.strip()]
-        except Exception:
+        except Exception as exc:
+            logger.warning("Base64 decoding failed for configs: %s", exc)
             lines = raw_lines
     else:
         lines = raw_lines
@@ -64,7 +65,8 @@ def parse_subscription_text(text: str) -> list[dict[str, str]]:
                     base64.b64decode(payload).decode("utf-8", errors="replace")
                 )
                 name = str(data.get("ps") or data.get("add") or f"VMess {idx}")
-            except Exception:
+            except Exception as exc:
+                logger.warning("VMess JSON parsing failed for config %d: %s", idx, exc)
                 name = f"VMess {idx}"
         else:
             if "#" in line:

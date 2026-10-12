@@ -49,6 +49,11 @@ def prev_jalali_month_range(now: datetime) -> tuple[datetime, datetime]:
     return start, end
 
 
+import logging
+
+logger = logging.getLogger(__name__)
+
+
 def month_name(now: datetime, lang: str) -> str:
     """Current month name: Jalali name for fa, Gregorian name for en."""
     if lang == "fa":
@@ -56,6 +61,6 @@ def month_name(now: datetime, lang: str) -> str:
             import jdatetime
 
             return jdatetime.datetime.fromgregorian(datetime=now).strftime("%B")
-        except Exception:
-            pass
+        except Exception as exc:
+            logger.warning("Failed to get Jalali month name: %s", exc)
     return now.strftime("%B")

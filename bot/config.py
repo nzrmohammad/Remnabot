@@ -10,7 +10,7 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
-        extra="ignore",
+        extra="forbid",
     )
 
     # --- Telegram ---
@@ -72,6 +72,9 @@ class Settings(BaseSettings):
     SPEEDTEST_SERVER_NAME: str = "سرور اختصاصی"
     SPEEDTEST_SERVER_IP: str = ""
 
+    # --- Backup & Security ---
+    BACKUP_PASSWORD: str = ""
+
     @field_validator("ADMIN_IDS", mode="before")
     @classmethod
     def parse_admin_ids(cls, v: Any) -> list[int]:
@@ -90,7 +93,10 @@ class Settings(BaseSettings):
                 except Exception:
                     v = v[1:-1]
             parts = [p.strip() for p in v.replace(" ", ",").split(",") if p.strip()]
-            return [int(p) for p in parts if p.isdigit() or (p.startswith("-") and p[1:].isdigit())]
+            try:
+                return [int(p) for p in parts]
+            except ValueError:
+                raise ValueError(f"bad ADMIN_IDS: {v}")
         return []
 
     @field_validator(

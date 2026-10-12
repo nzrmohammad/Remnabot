@@ -728,7 +728,7 @@ function renderTutorialApps(osKey) {
         <div class="flex items-center justify-between gap-2">
           <div class="flex items-center gap-2.5 min-w-0">
             <div class="w-10 h-10 rounded-xl bg-slate-800/90 border border-slate-700/70 p-1 flex items-center justify-center flex-shrink-0 shadow-inner overflow-hidden">
-              <img src="/static/img/apps/${app.id}.png" alt="${app.name}" class="w-full h-full object-contain rounded-lg" onerror="this.onerror=null; this.src=''; this.parentElement.innerHTML='<span class=\\'text-lg\\'>${app.icon}</span>';" />
+              <img src="/static/img/apps/${app.id}.webp" loading="lazy" alt="${app.name}" class="w-full h-full object-contain rounded-lg" onerror="this.onerror=null; this.src='/static/img/apps/${app.id}.png'; this.onerror=function(){this.parentElement.innerHTML='<span class=\\'text-lg\\'>${app.icon}</span>';};" />
             </div>
             <div class="min-w-0">
               <div class="flex items-center gap-1.5">
@@ -1483,8 +1483,9 @@ function setupProfileHandlers() {
 
   document.getElementById('shareReferralLinkBtn')?.addEventListener('click', () => {
     const link = document.getElementById('profileReferralLinkInput')?.value || '';
-    if (!link || link.includes('در حال')) return;
-    const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent('🚀 فیلترشکن پرسرعت و پایدار RemnaVPN\nثبت‌نام کنید و هدیه بگیرید!')}`;
+    const botName = window.lastUserData?.bot_username ? `@${window.lastUserData.bot_username}` : '';
+    const shareText = `🚀 اتصال پرسرعت و پایدار ${botName}\nثبت‌نام کنید و هدیه بگیرید!`.trim();
+    const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent(shareText)}`;
     try {
       if (window.Telegram?.WebApp?.openTelegramLink) {
         window.Telegram.WebApp.openTelegramLink(shareUrl);

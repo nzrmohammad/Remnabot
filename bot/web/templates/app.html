@@ -71,7 +71,7 @@
       <!-- Right Side (in RTL): Avatar + Active Account + Switch Btn -->
       <div class="flex items-center gap-2 min-w-0">
         <div id="headerUserAvatar" class="w-7 h-7 rounded-full bg-gradient-to-tr from-blue-500 to-indigo-500 flex items-center justify-center text-xs font-bold text-white shadow overflow-hidden flex-shrink-0">
-          <img id="headerUserAvatarImg" class="w-full h-full object-cover hidden" alt="Avatar" />
+          <img id="headerUserAvatarImg" class="w-full h-full object-cover hidden" alt="Avatar" loading="lazy" />
           <span id="headerUserAvatarInitial">U</span>
         </div>
         <button id="switchAccountBtn" class="flex items-center gap-1 min-w-0 bg-transparent border-0 p-0 text-right cursor-pointer hover:opacity-85 transition group active:scale-95" title="کلیک جهت تعویض اکانت">
@@ -263,7 +263,7 @@
 
             <!-- Dynamic QR Popup (Collapsible fallback) -->
             <div id="qrContainer" class="hidden flex flex-col items-center justify-center p-3.5 bg-slate-900/90 border border-slate-700/70 rounded-2xl text-slate-100 animate-fadeIn text-center">
-              <img id="qrImage" src="" alt="کیوآرکد اشتراک" class="w-36 h-36 rounded-xl bg-white p-1.5 shadow mb-2" />
+              <img id="qrImage" src="" alt="کیوآرکد اشتراک" class="w-36 h-36 rounded-xl bg-white p-1.5 shadow mb-2" loading="lazy" />
               <span class="text-[11px] text-slate-300 font-medium">اسکن مستقیم با دوربین گوشی یا نرم‌افزارهای VPN</span>
             </div>
 
@@ -606,7 +606,7 @@
         <div class="profile-hero-card bg-gradient-to-b from-slate-800 to-slate-900 rounded-3xl p-5 border border-slate-700/80 shadow-xl text-center relative overflow-hidden">
           <div class="relative w-20 h-20 mx-auto mb-3">
             <div class="w-full h-full rounded-full p-1 bg-gradient-to-tr from-cyan-400 via-blue-500 to-indigo-600 shadow-lg flex items-center justify-center overflow-hidden">
-              <img id="profileAvatarImg" class="w-full h-full rounded-full object-cover hidden" alt="Avatar" />
+              <img id="profileAvatarImg" class="w-full h-full rounded-full object-cover hidden" alt="Avatar" loading="lazy" />
               <div id="profileAvatarInitial" class="w-full h-full rounded-full bg-slate-900 flex items-center justify-center text-3xl font-extrabold text-white">
                 U
               </div>
@@ -921,7 +921,7 @@
           <p class="text-[11px] text-slate-300 mt-0.5">اسکن با دوربین گوشی یا نرم‌افزارهای VPN</p>
         </div>
         <div class="flex justify-center p-3 bg-white rounded-2xl shadow-inner mx-auto w-fit">
-          <img id="modalQrImage" src="" alt="کیوآرکد اشتراک" class="w-44 h-44 object-contain" />
+          <img id="modalQrImage" src="" alt="کیوآرکد اشتراک" class="w-44 h-44 object-contain" loading="lazy" />
         </div>
         <div class="space-y-2 pt-1">
           <button id="copySubFromQrModalBtn" class="w-full bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold py-2.5 rounded-xl transition shadow active:scale-95 flex items-center justify-center gap-2">
@@ -1081,7 +1081,7 @@
               </button>
               <div id="receiptImagePreviewContainer" class="hidden relative p-2 bg-slate-900/90 rounded-xl border border-emerald-500/40 flex items-center justify-between">
                 <div class="flex items-center gap-2 overflow-hidden">
-                  <img id="receiptImagePreview" class="h-10 w-10 object-cover rounded-lg border border-slate-700 shrink-0" src="" alt="رسید">
+                  <img id="receiptImagePreview" class="h-10 w-10 object-cover rounded-lg border border-slate-700 shrink-0" src="" alt="رسید" loading="lazy">
                   <span class="text-[10px] text-slate-200 truncate max-w-[170px]" id="receiptImageName">تصویر فیش انتخاب شد</span>
                 </div>
                 <button id="removeReceiptImageBtn" type="button" class="text-rose-400 hover:text-rose-300 text-xs px-2 py-1 bg-rose-950/40 rounded-lg border border-rose-800/40 transition active:scale-95" title="حذف تصویر">✕ حذف</button>
@@ -1410,7 +1410,7 @@
           <!-- User Info & Metrics -->
           <div class="py-3 z-10 space-y-2.5 relative">
             <div id="storyAvatarBorder" class="w-16 h-16 rounded-full p-[2px] bg-gradient-to-tr from-cyan-400 via-indigo-500 to-purple-500 mx-auto shadow-lg shadow-indigo-500/25 flex items-center justify-center transition-all duration-300 overflow-hidden">
-              <img id="storyCardAvatarImg" class="w-full h-full rounded-full object-cover hidden" alt="Avatar" crossorigin="anonymous" />
+              <img id="storyCardAvatarImg" class="w-full h-full rounded-full object-cover hidden" alt="Avatar" crossorigin="anonymous" loading="lazy" />
               <div id="storyCardAvatarInitial" class="w-full h-full rounded-full bg-slate-900 flex items-center justify-center text-xl font-black text-white">U</div>
             </div>
             <div>
@@ -1440,7 +1440,7 @@
           <!-- Bottom Viral Referral QR Card -->
           <div id="storyCardQrBox" class="bg-slate-900/85 border border-slate-700/70 rounded-2xl p-2.5 z-10 flex items-center gap-2.5 text-right relative">
             <!-- Dynamic Mini QR for Referral Link -->
-            <img id="storyCardQr" src="" class="w-12 h-12 rounded-xl bg-white p-1 shrink-0 shadow-sm" alt="QR" crossorigin="anonymous" />
+            <img id="storyCardQr" src="" class="w-12 h-12 rounded-xl bg-white p-1 shrink-0 shadow-sm" alt="QR" crossorigin="anonymous" loading="lazy" />
             <div class="text-[10px] space-y-0.5 leading-snug">
               <span class="font-extrabold text-white block">اتصال امن و اینترنت آزاد</span>
               <span id="storyCardRewardText" class="text-emerald-400 block text-[10px] font-bold">
@@ -1771,14 +1771,14 @@
   </div>
 
   <!-- Modular Frontend Architecture (DRY) -->
-  <script src="/static/js/utils.js?v=25.0" defer></script>
-  <script src="/static/js/api.js?v=25.0" defer></script>
-  <script src="/static/js/charts.js?v=25.0" defer></script>
-  <script src="/static/js/shop.js?v=25.0" defer></script>
-  <script src="/static/js/wallet.js?v=25.0" defer></script>
-  <script src="/static/js/wheel.js?v=25.0" defer></script>
-  <script src="/static/js/story.js?v=25.0" defer></script>
-  <script src="/static/js/speedtest.js?v=26.0" defer></script>
-  <script src="/static/js/app.js?v=25.0" defer></script>
+  <script src="/static/js/utils.js?v=2.1" defer></script>
+  <script src="/static/js/api.js?v=3.2" defer></script>
+  <script src="/static/js/charts.js?v=2.0" defer></script>
+  <script src="/static/js/shop.js?v=3.1" defer></script>
+  <script src="/static/js/wallet.js?v=2.8" defer></script>
+  <script src="/static/js/wheel.js?v=2.0" defer></script>
+  <script src="/static/js/story.js?v=2.5" defer></script>
+  <script src="/static/js/speedtest.js?v=4.2" defer></script>
+  <script src="/static/js/app.js?v=5.0" defer></script>
 </body>
 </html>

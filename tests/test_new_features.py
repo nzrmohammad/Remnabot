@@ -14,7 +14,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 from aiogram.types import CallbackQuery, Message
-from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from bot.db.models import (
     Base,
@@ -433,7 +433,7 @@ async def test_insufficient_balance_allows_service_view_and_coupon_flow(async_se
     bot = MagicMock()
 
     # 1. service_view allows viewing even with 0 balance
-    with patch("bot.handlers.service_request.render_menu", AsyncMock()) as mock_render:
+    with patch("bot.handlers.shop_purchase.render_menu", AsyncMock()) as mock_render:
         await service_view(call, bot, u_repo, async_session)
         mock_render.assert_awaited_once()
         text = mock_render.call_args[0][3]
@@ -443,7 +443,7 @@ async def test_insufficient_balance_allows_service_view_and_coupon_flow(async_se
         assert any("خرید" in b for b in btn_texts)
 
     # 2. _render_buy_confirm with 0 balance shows topup and apply_coupon
-    with patch("bot.handlers.service_request.render_menu", AsyncMock()) as mock_render:
+    with patch("bot.handlers.shop_purchase.render_menu", AsyncMock()) as mock_render:
         await _render_buy_confirm(
             bot, user, u_repo, async_session, svc, balance=0,
             confirm_callback=f"svc:confirmn:{svc.id}", lang="fa",
@@ -454,7 +454,7 @@ async def test_insufficient_balance_allows_service_view_and_coupon_flow(async_se
         assert any("کد تخفیف" in b for b in btn_texts)
 
     # 3. _render_buy_confirm with 100% coupon (discount_amount=100_000) enables confirm_pay even with 0 balance
-    with patch("bot.handlers.service_request.render_menu", AsyncMock()) as mock_render:
+    with patch("bot.handlers.shop_purchase.render_menu", AsyncMock()) as mock_render:
         await _render_buy_confirm(
             bot, user, u_repo, async_session, svc, balance=0,
             confirm_callback=f"svc:confirmn:{svc.id}", lang="fa",

@@ -4,7 +4,7 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 from aiohttp.test_utils import make_mocked_request
-from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
+from sqlalchemy.ext.asyncio import async_sessionmaker
 
 from bot.db.models import Base, HourlyTrafficSnapshot
 from bot.db.repositories.traffic_snapshot_repo import TrafficSnapshotRepository

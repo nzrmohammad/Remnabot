@@ -4,7 +4,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from aiogram.types import CallbackQuery, Message, User
-from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from bot.db.models import Base
 from bot.db.repositories.crypto_repo import CryptoRepository
@@ -294,7 +294,7 @@ async def test_admin_apply_rate_callback(async_session: AsyncSession):
     bot = MagicMock()
     user_repo = UserRepository(async_session)
 
-    with patch("bot.handlers.admin_ops._is_admin", return_value=True):
+    with patch("bot.common.guards.is_admin", return_value=True):
         await apply_nobitex_rate(cb, bot, user_repo, async_session)
 
     # Check that ton_rate_toman was saved in DB
@@ -317,7 +317,7 @@ async def test_crypto_settings_and_overview_ui(session_factory):
         bot.send_message = AsyncMock()
 
         # Render crypto settings
-        with patch("bot.handlers.admin_ops.render_menu") as mock_render:
+        with patch("bot.services.menu.render_menu") as mock_render:
             await _render_crypto_settings(bot, user, user_repo, session)
             call_args = mock_render.call_args
             text = call_args[0][3]
@@ -338,7 +338,7 @@ async def test_crypto_settings_and_overview_ui(session_factory):
             assert not any("تاپیک کریپتو" in b for b in all_buttons)
 
         # Render store settings overview
-        with patch("bot.handlers.admin_ops.render_menu") as mock_render_ov:
+        with patch("bot.services.menu.render_menu") as mock_render_ov:
             with patch("bot.handlers.admin_ops._get_admin_group_title", AsyncMock(return_value="Admin Group")):
                 await _render_settings(bot, user, user_repo, session)
                 ov_text = mock_render_ov.call_args[0][3]
@@ -433,7 +433,7 @@ async def test_remind_and_grace_days_pickers(session_factory):
         await session.commit()
 
         # 1. Render remind days picker
-        with patch("bot.handlers.admin_ops.render_menu") as mock_render:
+        with patch("bot.services.menu.render_menu") as mock_render:
             await _render_remind_days_picker(bot, admin, user_repo, session)
             mock_render.assert_awaited_once()
             text = mock_render.call_args[0][3]
@@ -452,8 +452,8 @@ async def test_remind_and_grace_days_pickers(session_factory):
         call_mock.data = "adm:remind:toggle:5"
         call_mock.answer = AsyncMock()
 
-        with patch("bot.handlers.admin_ops._is_admin", return_value=True), \
-             patch("bot.handlers.admin_ops.render_menu"):
+        with patch("bot.common.guards.is_admin", return_value=True), \
+             patch("bot.services.menu.render_menu"):
             await remind_days_toggle(call_mock, bot, user_repo, session)
             store = await get_store_settings(session)
             assert "5" in store.expiry_remind_days
@@ -461,7 +461,7 @@ async def test_remind_and_grace_days_pickers(session_factory):
             assert "1" in store.expiry_remind_days
 
         # 3. Render grace days picker
-        with patch("bot.handlers.admin_ops.render_menu") as mock_render_grace:
+        with patch("bot.services.menu.render_menu") as mock_render_grace:
             await _render_grace_days_picker(bot, admin, user_repo, session)
             mock_render_grace.assert_awaited_once()
             text_grace = mock_render_grace.call_args[0][3]
@@ -479,8 +479,8 @@ async def test_remind_and_grace_days_pickers(session_factory):
         call_grace.data = "adm:grace:set:0"
         call_grace.answer = AsyncMock()
 
-        with patch("bot.handlers.admin_ops._is_admin", return_value=True), \
-             patch("bot.handlers.admin_ops.render_menu"):
+        with patch("bot.common.guards.is_admin", return_value=True), \
+             patch("bot.services.menu.render_menu"):
             await grace_days_set(call_grace, bot, user_repo, session)
             store = await get_store_settings(session)
             assert store.expiry_grace_days == 0
@@ -496,8 +496,9 @@ async def test_card_enabled_toggle_and_wallet_guard(session_factory):
         user_repo = UserRepository(session)
         admin = await user_repo.get_or_create(telegram_id=12345, username="admin")
         bot = MagicMock()
-        bot.send_message = AsyncMock()
-        bot.edit_message_text = AsyncMock()
+        sent_mock = MagicMock(message_id=999)
+        bot.send_message = AsyncMock(return_value=sent_mock)
+        bot.edit_message_text = AsyncMock(return_value=sent_mock)
 
         # Set card number
         from bot.db.repositories.app_setting_repo import AppSettingRepository
@@ -513,8 +514,8 @@ async def test_card_enabled_toggle_and_wallet_guard(session_factory):
         call_toggle.data = "adm:settings:toggle:card_enabled"
         call_toggle.answer = AsyncMock()
 
-        with patch("bot.handlers.admin_ops._is_admin", return_value=True), \
-             patch("bot.handlers.admin_ops._render_settings", AsyncMock()):
+        with patch("bot.common.guards.is_admin", return_value=True), \
+             patch("bot.handlers.admin_settings_store._render_settings", AsyncMock()):
             await setting_toggle_boolean(call_toggle, bot, user_repo, session)
             store = await get_store_settings(session)
             assert store.card_enabled is False

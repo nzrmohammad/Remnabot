@@ -28,8 +28,8 @@ def _weekday_name(dt: datetime, lang: str) -> str:
 
             jd = jdatetime.datetime.fromgregorian(datetime=dt)
             return jdatetime.date.j_weekdays_fa[jd.weekday()]
-        except Exception:
-            pass
+        except Exception as exc:
+            logger.warning("Failed to determine Jalali weekday name: %s", exc)
     names = WEEKDAYS.get(lang, WEEKDAYS["en"])
     return names[dt.weekday()]
 

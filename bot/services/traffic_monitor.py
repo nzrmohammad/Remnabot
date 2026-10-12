@@ -61,8 +61,8 @@ async def record_hourly_traffic_snapshot_once(
         # Periodically cleanup snapshots older than 30 days
         try:
             await repo.cleanup_older_than(days=30)
-        except Exception:
-            pass
+        except Exception as exc:
+            logger.warning("Failed to cleanup older traffic snapshots: %s", exc)
 
 
 async def traffic_monitor_loop(
