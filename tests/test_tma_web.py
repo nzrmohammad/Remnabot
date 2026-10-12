@@ -1746,7 +1746,8 @@ async def test_speedtest_endpoints():
     assert "t" in data_ping
     assert data_ping.get("ip") == "5.200.10.20"
     assert data_ping.get("server") is not None
-    assert data_ping["server"].get("ip") == "45.87.41.246"
+    assert "name" in data_ping["server"]
+    assert "ip" in data_ping["server"]
     assert "no-store" in resp_ping.headers["Cache-Control"]
 
     # Test payload endpoint returns requested byte length and uncompressed headers via StreamResponse

@@ -869,6 +869,11 @@ function setupThemeToggle() {
       try { if (window.Telegram?.WebApp?.setHeaderColor) window.Telegram.WebApp.setHeaderColor('#ffffff'); } catch(e) {}
     }
 
+    const speedModal = document.getElementById('speedTestModal');
+    if (speedModal) {
+      speedModal.style.backgroundColor = isDark ? 'rgba(0, 0, 0, 0.8)' : 'rgba(15, 23, 42, 0.45)';
+    }
+
     if (typeof Chart !== 'undefined') {
       Chart.defaults.color = isDark ? '#cbd5e1' : '#0f172a';
     }

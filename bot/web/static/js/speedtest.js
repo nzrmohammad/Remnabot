@@ -123,14 +123,14 @@
       }
     } catch (e) {}
 
-    if (serverNameEl && (!serverNameEl.innerText || serverNameEl.innerText.includes('Cloudflare'))) {
-      serverNameEl.innerText = 'SpectraIP (هلند)';
+    if (serverNameEl && (!serverNameEl.innerText || serverNameEl.innerText.includes('Cloudflare') || serverNameEl.innerText.includes('SpectraIP'))) {
+      serverNameEl.innerText = 'سرور اختصاصی اشتراک';
     }
-    if (serverIpEl && (!serverIpEl.innerText || serverIpEl.innerText === '--')) {
-      serverIpEl.innerText = '45.87.41.246';
+    if (serverIpEl && serverIpEl.innerText.includes('45.87.41.246')) {
+      serverIpEl.innerText = '';
     }
-    if (userLocEl) {
-      userLocEl.innerText = 'اتصال سرور هلند (SpectraIP)';
+    if (userLocEl && userLocEl.innerText.includes('شناسایی')) {
+      userLocEl.innerText = 'شبکه متصل به سرور';
     }
   }
 
@@ -615,6 +615,12 @@
   }
 
   function openSpeedTestModal() {
+    const modal = document.getElementById('speedTestModal');
+    if (modal) {
+      const isLight = document.documentElement.classList.contains('theme-light');
+      modal.style.backgroundColor = isLight ? 'rgba(15, 23, 42, 0.45)' : 'rgba(0, 0, 0, 0.8)';
+    }
+
     if (window.openModal) {
       window.openModal('speedTestModal');
     } else {

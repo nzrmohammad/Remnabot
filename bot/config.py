@@ -69,8 +69,8 @@ class Settings(BaseSettings):
     SENTRY_DSN: str = ""
 
     # --- Speedtest Telemetry ---
-    SPEEDTEST_SERVER_NAME: str = "SpectraIP (هلند)"
-    SPEEDTEST_SERVER_IP: str = "45.87.41.246"
+    SPEEDTEST_SERVER_NAME: str = "سرور اختصاصی"
+    SPEEDTEST_SERVER_IP: str = ""
 
     @field_validator("ADMIN_IDS", mode="before")
     @classmethod

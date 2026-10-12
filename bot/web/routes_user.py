@@ -996,8 +996,16 @@ async def get_user_subscription_configs(request: web.Request) -> web.Response:
 # --------------------------------------------------------------------------
 # Client-Side SpeedTest Endpoints (Ping & Download Throughput)
 # --------------------------------------------------------------------------
-# 1 MB pre-allocated non-compressible random buffer
-_SPEEDTEST_CHUNK = os.urandom(1024 * 1024)
+# Lazy-allocated 1 MB non-compressible random buffer
+_SPEEDTEST_CHUNK: bytes | None = None
+
+
+def _get_speedtest_chunk() -> bytes:
+    """Return pre-allocated 1 MB random buffer, lazy-initialized on first use."""
+    global _SPEEDTEST_CHUNK
+    if _SPEEDTEST_CHUNK is None:
+        _SPEEDTEST_CHUNK = os.urandom(1024 * 1024)
+    return _SPEEDTEST_CHUNK
 
 
 async def get_user_speedtest_ping(request: web.Request) -> web.Response:
@@ -1007,8 +1015,8 @@ async def get_user_speedtest_ping(request: web.Request) -> web.Response:
         return web.json_response({"ok": False, "error": "Unauthorized"}, status=401)
 
     settings = request.app.get("settings") if hasattr(request.app, "get") else None
-    server_name = "SpectraIP (هلند)"
-    server_ip = "45.87.41.246"
+    server_name = "سرور اختصاصی اشتراک"
+    server_ip = ""
     if settings:
         val_name = getattr(settings, "SPEEDTEST_SERVER_NAME", None)
         if isinstance(val_name, str) and val_name:
@@ -1016,6 +1024,10 @@ async def get_user_speedtest_ping(request: web.Request) -> web.Response:
         val_ip = getattr(settings, "SPEEDTEST_SERVER_IP", None)
         if isinstance(val_ip, str) and val_ip:
             server_ip = val_ip
+
+    if not server_ip:
+        host_header = request.headers.get("Host", "") or request.host or ""
+        server_ip = host_header.split(":")[0] if host_header else "سرور اصلی"
 
     client_ip = (
         request.headers.get("CF-Connecting-IP")
@@ -1032,8 +1044,6 @@ async def get_user_speedtest_ping(request: web.Request) -> web.Response:
             "server": {
                 "name": server_name,
                 "ip": server_ip,
-                "location": "آمستردام، هلند",
-                "isp": "SpectraIP B.V.",
             },
         },
         headers={
@@ -1096,8 +1106,10 @@ async def get_user_speedtest_payload(request: web.Request) -> web.StreamResponse
     # Bound size between 256 KB and 32 MB
     target_bytes = max(256 * 1024, min(req_bytes, 32 * 1024 * 1024))
 
-    full_chunks = target_bytes // len(_SPEEDTEST_CHUNK)
-    remainder = target_bytes % len(_SPEEDTEST_CHUNK)
+    chunk = _get_speedtest_chunk()
+    chunk_len = len(chunk)
+    full_chunks = target_bytes // chunk_len
+    remainder = target_bytes % chunk_len
 
     resp = web.StreamResponse(
         status=200,
@@ -1112,9 +1124,9 @@ async def get_user_speedtest_payload(request: web.Request) -> web.StreamResponse
 
     try:
         for _ in range(full_chunks):
-            await resp.write(_SPEEDTEST_CHUNK)
+            await resp.write(chunk)
         if remainder > 0:
-            await resp.write(_SPEEDTEST_CHUNK[:remainder])
+            await resp.write(chunk[:remainder])
         await resp.write_eof()
     except (ConnectionResetError, asyncio.CancelledError):
         pass

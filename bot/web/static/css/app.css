@@ -1596,7 +1596,14 @@ html.theme-light #tutorialCopySubBtn {
   scrollbar-gutter: stable;
 }
 
-/* Speed Test Component Light Theme Overrides */
+/* Speed Test Component & Modal Backdrop */
+.speedtest-modal-backdrop {
+  background-color: rgba(0, 0, 0, 0.8) !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+}
+
+html.theme-light .speedtest-modal-backdrop,
 html.theme-light #speedTestModal {
   background-color: rgba(15, 23, 42, 0.45) !important;
   backdrop-filter: blur(8px) !important;

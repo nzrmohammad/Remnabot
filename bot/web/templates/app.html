@@ -27,7 +27,7 @@
       }
     } catch(e) {}
   </script>
-  <link rel="stylesheet" href="/static/css/app.css?v=19.3">
+  <link rel="stylesheet" href="/static/css/app.css?v=26.0">
 </head>
 <body id="appBody" class="bg-[#080d1a] text-slate-100 w-full min-w-full h-screen h-[100dvh] overflow-hidden flex justify-center items-center antialiased select-none transition-colors duration-300">
 
@@ -1639,7 +1639,7 @@
     <!-- ======================================================== -->
     <!-- 9. MODAL: SPEED & PING TEST (تست سرعت اینترنت)          -->
     <!-- ======================================================== -->
-    <div id="speedTestModal" onclick="if(event.target === this) window.closeSpeedTestModal()" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden animate-fadeIn overflow-y-auto">
+    <div id="speedTestModal" onclick="if(event.target === this) window.closeSpeedTestModal()" class="speedtest-modal-backdrop fixed inset-0 z-50 flex items-center justify-center p-4 hidden animate-fadeIn overflow-y-auto">
       <div class="speedtest-modal-card bg-[#1a233a] border border-emerald-500/40 rounded-3xl p-4 sm:p-5 w-full max-w-[380px] shadow-2xl relative my-auto text-xs max-h-[92vh] flex flex-col space-y-3">
         <!-- Close Button -->
         <button id="closeSpeedTestModalBtn" type="button" onclick="window.closeSpeedTestModal()" class="absolute top-3.5 left-3.5 text-slate-400 hover:text-white text-xs bg-slate-800 rounded-full w-7 h-7 flex items-center justify-center transition active:scale-95" title="بستن">✕</button>
@@ -1656,23 +1656,21 @@
         </div>
 
         <!-- Network / IP Info Box (مثل Speedtest.net) -->
-        <div id="speedNetworkInfoBox" class="speed-network-box bg-slate-900/85 p-2.5 rounded-2xl border border-slate-700/70 flex items-center justify-between text-[11px] transition">
-          <div class="flex items-center gap-2">
-            <span class="text-base">📍</span>
-            <div class="flex flex-col text-right">
+        <div id="speedNetworkInfoBox" class="speed-network-box bg-slate-900/85 p-2.5 rounded-2xl border border-slate-700/70 flex items-start justify-between text-[11px] gap-2 transition">
+          <div class="flex items-start gap-2 flex-1 min-w-0">
+            <span class="text-base flex-shrink-0 mt-0.5">📍</span>
+            <div class="flex flex-col text-right flex-1 min-w-0">
               <span class="text-[9px] text-slate-400 font-medium">آی‌پی و اپراتور شما</span>
-              <div class="flex items-center gap-1 font-mono text-slate-200 font-bold text-[11px]" dir="ltr">
-                <span id="speedUserIp">--.--.--.--</span>
-              </div>
-              <span id="speedUserLocation" class="text-[9px] text-emerald-400 font-medium truncate max-w-[140px]">در حال شناسایی اپراتور...</span>
+              <span id="speedUserIp" class="font-mono text-slate-200 font-bold text-[11px] mt-0.5" dir="ltr">--.--.--.--</span>
+              <span id="speedUserLocation" class="text-[9px] text-emerald-400 font-medium break-words leading-tight mt-0.5">در حال شناسایی اپراتور...</span>
             </div>
           </div>
-          <div class="flex flex-col text-left pl-1 border-r border-slate-800 pr-2.5">
+          <div class="flex flex-col text-left pl-1 border-r border-slate-800 pr-2.5 flex-shrink-0">
             <span class="text-[9px] text-slate-400 font-medium text-right">سرور تست</span>
-            <span id="speedServerName" class="text-[11px] font-bold text-cyan-300 flex items-center gap-1 mt-0.5" dir="rtl">
-              <span>🌐</span> <span id="speedServerNameText">SpectraIP (هلند)</span>
+            <span id="speedServerName" class="text-[11px] font-bold text-cyan-300 flex items-center gap-1 mt-0.5 justify-end" dir="rtl">
+              <span>🌐</span> <span id="speedServerNameText">سرور اختصاصی</span>
             </span>
-            <span id="speedServerIpText" class="text-[9px] text-slate-400 font-mono mt-0.5 text-right" dir="ltr">45.87.41.246</span>
+            <span id="speedServerIpText" class="text-[9px] text-slate-400 font-mono mt-0.5 text-left" dir="ltr"></span>
           </div>
         </div>
 
