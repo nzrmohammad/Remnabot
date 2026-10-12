@@ -1,18 +1,31 @@
 """User API endpoints for Telegram Mini App."""
+import asyncio
+import inspect
 import json
 import logging
 import os
 import random
+import re
 import time
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from html import escape
 from typing import Any
+from zoneinfo import ZoneInfo
 
+import jdatetime
 from aiohttp import web
-from sqlalchemy import func, select
+from sqlalchemy import func, or_, select
 
-from bot.db.models import Order, Topup, User, Wallet
+from bot.db.models import AdminLog, Coupon, CouponUsage, Order, Service, Topup, User, Wallet
 from bot.db.repositories.user_repo import UserRepository
+from bot.services.app_settings import get_store_settings
+from bot.services.formatting import (
+    country_flag,
+    human_bytes,
+    now_tz,
+    parse_iso,
+    start_of_today,
+)
 from bot.web.auth import get_authenticated_user
 from bot.web.cache import FastCache
 
@@ -22,7 +35,7 @@ logger = logging.getLogger(__name__)
 async def get_user_me(request: web.Request) -> web.Response:
     """Return dashboard data for the authenticated user.
 
-    Cached for 10 seconds for ultra-low latency.
+    Cached for 30 seconds for ultra-low latency.
     """
     user_auth = get_authenticated_user(request)
     if not user_auth:
@@ -40,6 +53,10 @@ async def get_user_me(request: web.Request) -> web.Response:
     session_factory = request.app["session_factory"]
     remnawave = request.app["remnawave"]
     settings = request.app["settings"]
+
+    # Concurrently fetch panel users while local database queries execute
+    panel_users_task = asyncio.create_task(remnawave.get_users_by_telegram_id(telegram_id))
+
     async with session_factory() as session:
         user_repo = UserRepository(session)
         first_name = user_auth.get("first_name", "")
@@ -57,7 +74,6 @@ async def get_user_me(request: web.Request) -> web.Response:
         wallet_balance = wallet.balance if wallet else 0
 
         # 2. Referrals count & store referral settings
-        from bot.services.app_settings import get_store_settings
         store_settings = await get_store_settings(session)
         ref_count_res = await session.execute(
             select(func.count(User.id)).where(User.referred_by_id == telegram_id)
@@ -66,7 +82,6 @@ async def get_user_me(request: web.Request) -> web.Response:
         referral_reward_gb = store_settings.referral_reward_gb if store_settings.referral_enabled else 5
 
         # 3. Real plans / services defined by admin
-        from bot.db.models import Service
         services_res = await session.execute(
             select(Service).where(Service.is_active.is_(True)).order_by(Service.price.asc())
         )
@@ -85,11 +100,6 @@ async def get_user_me(request: web.Request) -> web.Response:
         ]
 
         # 4. Real Jalali dates
-        import jdatetime
-        from datetime import timedelta
-        from zoneinfo import ZoneInfo
-        from bot.services.formatting import now_tz, parse_iso, start_of_today
-
         tz_name = getattr(settings, "TIMEZONE", "Asia/Tehran")
         now_dt = now_tz(tz_name)
         now_j = jdatetime.datetime.fromgregorian(datetime=now_dt)
@@ -101,7 +111,7 @@ async def get_user_me(request: web.Request) -> web.Response:
         # 5. Active Remnawave account stats
         panel_users = []
         try:
-            panel_users = await remnawave.get_users_by_telegram_id(telegram_id) or []
+            panel_users = (await panel_users_task) or []
         except Exception as exc:
             logger.warning("Failed to get panel users for telegram_id=%s: %s", telegram_id, exc)
 
@@ -135,8 +145,6 @@ async def get_user_me(request: web.Request) -> web.Response:
                 percent_remaining = 100.0
 
             # Calculate bandwidth stats and per-node breakdown aligned with bot reports
-            from bot.services.formatting import country_flag, human_bytes
-
             since = parse_iso(primary.get("lastTrafficResetAt")) or parse_iso(primary.get("createdAt"))
             stats_start_dt = now_dt - timedelta(days=90)
             if since is not None and since > stats_start_dt:
@@ -521,8 +529,6 @@ async def get_user_me(request: web.Request) -> web.Response:
 
             # Admin manual wallet adjustments (charges/deductions)
             try:
-                from bot.db.models import AdminLog
-                import re
                 admin_logs_res = await session.execute(
                     select(AdminLog).where(
                         AdminLog.action.in_(["wallet_charge", "wallet_deduct", "balance_add", "balance_sub"]),
@@ -594,7 +600,6 @@ async def get_user_me(request: web.Request) -> web.Response:
             })
 
         # 7. Lucky wheel status (24h cooldown timer & active sub requirement)
-        import time
         wheel_ts_key = f"tma:user:{telegram_id}:wheel_last_spin"
         last_spin = await cache.get(wheel_ts_key)
         now_epoch = time.time()
@@ -662,7 +667,6 @@ async def get_user_me(request: web.Request) -> web.Response:
 
         # Merge active unused WHEEL coupons from DB
         try:
-            from bot.db.models import Coupon, CouponUsage
             used_coupon_ids_res = await session.execute(
                 select(CouponUsage.coupon_id).where(CouponUsage.telegram_id == telegram_id)
             )
@@ -730,8 +734,8 @@ async def get_user_me(request: web.Request) -> web.Response:
             },
         }
 
-        # Cache for 10 seconds
-        await cache.set(cache_key, data, ttl_seconds=10)
+        # Cache for 30 seconds
+        await cache.set(cache_key, data, ttl_seconds=30)
         return web.json_response({"ok": True, "data": data, "cached": False})
 
 
@@ -1075,7 +1079,7 @@ async def get_user_speedtest_payload(request: web.Request) -> web.StreamResponse
     if cache and hasattr(cache, "get"):
         try:
             rl_key = f"tma:speedtest:limit:{user_id or client_ip}"
-            if asyncio.iscoroutinefunction(cache.get):
+            if inspect.iscoroutinefunction(cache.get):
                 req_count = await cache.get(rl_key)
             else:
                 res = cache.get(rl_key)
@@ -1089,7 +1093,7 @@ async def get_user_speedtest_payload(request: web.Request) -> web.StreamResponse
                 )
 
             if hasattr(cache, "set"):
-                if asyncio.iscoroutinefunction(cache.set):
+                if inspect.iscoroutinefunction(cache.set):
                     await cache.set(rl_key, (req_count or 0) + 1, ttl_seconds=30)
                 else:
                     set_res = cache.set(rl_key, (req_count or 0) + 1, ttl_seconds=30)

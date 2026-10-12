@@ -121,6 +121,29 @@ async def api_rate_limit_middleware(request: web.Request, handler):
     max_reqs = _API_MAX_SENSITIVE if is_sensitive else _API_MAX_GENERAL
 
     now = time.monotonic()
+    cache = request.app.get("cache")
+    redis = getattr(cache, "_redis", None) if cache else None
+
+    # Distributed Redis rate-limiting if Redis is active
+    if redis:
+        try:
+            rl_key = f"tma:rl:{client_ip}:{'sens' if is_sensitive else 'gen'}"
+            pipe = redis.pipeline()
+            pipe.incr(rl_key)
+            pipe.expire(rl_key, int(_API_WINDOW))
+            results = await pipe.execute()
+            if results and int(results[0]) > max_reqs:
+                logger.warning("Redis API rate limit exceeded for IP %s on %s", client_ip, request.path)
+                return web.json_response(
+                    {"ok": False, "error": "درخواست‌های بیش از حد مجاز. لطفاً کمی صبر کنید.", "code": "rate_limited"},
+                    status=429,
+                    headers={"Retry-After": "30"},
+                )
+            return await handler(request)
+        except Exception as exc:
+            logger.debug("Redis rate limit fallback to memory: %s", exc)
+
+    # In-memory rate limiting fallback
     bucket_key = f"{client_ip}:sens" if is_sensitive else f"{client_ip}:gen"
     bucket = _api_buckets[bucket_key]
 
@@ -178,11 +201,13 @@ async def cors_and_security_middleware(request: web.Request, handler):
     if request.path.startswith("/static/"):
         response.headers["Cache-Control"] = "public, max-age=604800, stale-while-revalidate=86400"
 
-    # Enable automatic gzip/deflate compression for responses > 512 bytes (exclude speedtest payloads)
-    if isinstance(response, web.Response) and response.body and len(response.body) > 512:
-        if not request.path.startswith("/api/user/speedtest"):
-            accept_enc = request.headers.get("Accept-Encoding", "")
-            if "gzip" in accept_enc or "deflate" in accept_enc:
+    # Enable automatic gzip/deflate compression for static files and API responses > 512 bytes (exclude speedtest payloads)
+    if not request.path.startswith("/api/user/speedtest"):
+        accept_enc = request.headers.get("Accept-Encoding", "")
+        if "gzip" in accept_enc or "deflate" in accept_enc:
+            if isinstance(response, web.FileResponse):
+                response.enable_compression()
+            elif isinstance(response, web.Response) and response.body and len(response.body) > 512:
                 response.enable_compression()
 
     return response

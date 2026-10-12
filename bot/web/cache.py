@@ -2,6 +2,7 @@
 
 Optimized for sub-millisecond response times in high-traffic Telegram Mini Apps.
 """
+from collections import OrderedDict
 import asyncio
 import json
 import logging
@@ -12,10 +13,11 @@ logger = logging.getLogger(__name__)
 
 
 class FastCache:
-    """In-memory L1 cache with Redis L2 synchronization."""
+    """In-memory L1 cache with Redis L2 synchronization and LRU eviction."""
 
-    def __init__(self, redis_client=None):
-        self._memory: dict[str, tuple[float, Any]] = {}
+    def __init__(self, redis_client=None, maxsize: int = 2000):
+        self._memory: OrderedDict[str, tuple[float, Any]] = OrderedDict()
+        self._maxsize = maxsize
         self._redis = redis_client
         self._lock = asyncio.Lock()
 
@@ -26,6 +28,7 @@ class FastCache:
         if key in self._memory:
             expire_at, value = self._memory[key]
             if expire_at > now:
+                self._memory.move_to_end(key)
                 return value
             else:
                 del self._memory[key]
@@ -36,8 +39,11 @@ class FastCache:
                 raw = await self._redis.get(key)
                 if raw:
                     data = json.loads(raw)
-                    # Backfill memory for next hits
+                    # Backfill memory for next hits with LRU eviction
                     self._memory[key] = (now + 5.0, data)
+                    self._memory.move_to_end(key)
+                    if len(self._memory) > self._maxsize:
+                        self._memory.popitem(last=False)
                     return data
             except Exception as exc:
                 logger.debug("Redis cache get error for %s: %s", key, exc)
@@ -45,9 +51,12 @@ class FastCache:
         return None
 
     async def set(self, key: str, value: Any, ttl_seconds: int = 15) -> None:
-        """Store item in both Memory and Redis with TTL."""
+        """Store item in both Memory and Redis with TTL and LRU bounds."""
         now = time.time()
         self._memory[key] = (now + ttl_seconds, value)
+        self._memory.move_to_end(key)
+        if len(self._memory) > self._maxsize:
+            self._memory.popitem(last=False)
 
         if self._redis:
             try:
@@ -57,18 +66,23 @@ class FastCache:
                 logger.debug("Redis cache set error for %s: %s", key, exc)
 
     async def delete(self, key: str) -> None:
-        """Invalidate key and all sub-keys from memory and Redis."""
+        """Invalidate key and all sub-keys from memory and Redis without blocking."""
         keys_to_pop = [k for k in list(self._memory.keys()) if k == key or k.startswith(f"{key}:")]
         for k in keys_to_pop:
             self._memory.pop(k, None)
         if self._redis:
             try:
                 await self._redis.delete(key)
-                matched = await self._redis.keys(f"{key}:*")
+                matched = []
+                if hasattr(self._redis, "scan_iter"):
+                    async for k in self._redis.scan_iter(match=f"{key}:*"):
+                        matched.append(k)
+                elif hasattr(self._redis, "keys"):
+                    matched = await self._redis.keys(f"{key}:*")
                 if matched:
                     await self._redis.delete(*matched)
-            except Exception:
-                pass
+            except Exception as exc:
+                logger.debug("Redis cache delete error for %s: %s", key, exc)
 
 
 def cached(ttl_seconds: int = 15, key_prefix: str = "tma:cache"):
@@ -90,6 +104,16 @@ def cached(ttl_seconds: int = 15, key_prefix: str = "tma:cache"):
                 return web.json_response(cached_data, headers={"X-Cache": "HIT"})
 
             response = await func(request, *args, **kwargs)
+            if response is not None and getattr(response, "status", None) == 200:
+                content_type = getattr(response, "content_type", "")
+                if content_type == "application/json" and hasattr(response, "body") and response.body:
+                    try:
+                        payload = json.loads(response.body)
+                        await cache.set(cache_key, payload, ttl_seconds=ttl_seconds)
+                        response.headers["X-Cache"] = "MISS"
+                    except Exception as exc:
+                        logger.debug("Failed to cache response in @cached: %s", exc)
+
             return response
 
         return wrapper

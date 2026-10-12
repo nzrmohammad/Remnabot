@@ -5,12 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>RemnaStore Pro</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <link rel="stylesheet" href="/static/css/tailwind.min.css?v=1.0">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" defer></script>
   <script>
-    tailwind.config = {
-      darkMode: 'class'
-    };
     try {
       var savedTheme = localStorage.getItem('remna_user_theme');
       var isDarkTheme = true;
@@ -1774,14 +1771,14 @@
   </div>
 
   <!-- Modular Frontend Architecture (DRY) -->
-  <script src="/static/js/utils.js?v=25.0"></script>
-  <script src="/static/js/api.js?v=25.0"></script>
-  <script src="/static/js/charts.js?v=25.0"></script>
-  <script src="/static/js/shop.js?v=25.0"></script>
-  <script src="/static/js/wallet.js?v=25.0"></script>
-  <script src="/static/js/wheel.js?v=25.0"></script>
-  <script src="/static/js/story.js?v=25.0"></script>
-  <script src="/static/js/speedtest.js?v=25.0"></script>
-  <script src="/static/js/app.js?v=25.0"></script>
+  <script src="/static/js/utils.js?v=25.0" defer></script>
+  <script src="/static/js/api.js?v=25.0" defer></script>
+  <script src="/static/js/charts.js?v=25.0" defer></script>
+  <script src="/static/js/shop.js?v=25.0" defer></script>
+  <script src="/static/js/wallet.js?v=25.0" defer></script>
+  <script src="/static/js/wheel.js?v=25.0" defer></script>
+  <script src="/static/js/story.js?v=25.0" defer></script>
+  <script src="/static/js/speedtest.js?v=26.0" defer></script>
+  <script src="/static/js/app.js?v=25.0" defer></script>
 </body>
 </html>
