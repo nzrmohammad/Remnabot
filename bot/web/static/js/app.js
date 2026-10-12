@@ -602,6 +602,7 @@ function renderTutorialApps(osKey) {
     const osOverrides = (overrides && overrides[currentTutorialOS]) || (currentTutorialOS === 'windows' ? overrides?.desktop : null);
     const appCfg = (osOverrides && osOverrides[app.id])
       || (overrides && typeof overrides[app.id] === 'string' ? { enabled: true, download_url: overrides[app.id], tutorial_url: '' } : null);
+
     const downloadUrl = (appCfg && appCfg.download_url) ? appCfg.download_url.trim() : '';
     const downloadPortableUrl = (appCfg && appCfg.download_portable_url) ? appCfg.download_portable_url.trim() : '';
     const downloadExtraUrl = (appCfg && appCfg.download_extra_url) ? appCfg.download_extra_url.trim() : '';

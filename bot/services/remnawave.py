@@ -259,21 +259,47 @@ class RemnawaveClient:
     # ------------------------------------------------------------------ #
     # HWID devices
     # ------------------------------------------------------------------ #
-    async def get_user_hwid_devices(self, user_id: int) -> list[dict[str, Any]]:
+    async def get_user_hwid_devices(
+        self, user_id: int | str, user_uuid: str | None = None
+    ) -> list[dict[str, Any]]:
         """Devices registered on this user.
 
-        Remnawave endpoint: GET /api/hwid/devices/{userId}
+        Remnawave endpoints:
+        - GET /api/hwid/devices/{userId or userUuid}
+        - Fallback: filtered list from /api/hwid/devices
         """
+        targets = []
+        if user_uuid:
+            targets.append(str(user_uuid))
+        if user_id and str(user_id) not in targets:
+            targets.append(str(user_id))
+
+        for target in targets:
+            for path in (f"/api/hwid/devices/{target}", f"/api/users/{target}/hwid/devices"):
+                try:
+                    resp = await self._client.get(path)
+                    if resp.status_code == 200:
+                        data = resp.json().get("response") or resp.json() or {}
+                        devices = data.get("devices") if isinstance(data, dict) else data
+                        if isinstance(devices, list):
+                            return devices
+                    elif resp.status_code == 404:
+                        return []
+                except httpx.HTTPError as exc:
+                    logger.debug("Remnawave hwid path %s error (user_id=%s): %s", path, user_id, exc)
+
+        # Fallback: scan panel devices if single endpoint is not supported on this panel version
         try:
-            resp = await self._client.get(f"/api/hwid/devices/{user_id}")
-            if resp.status_code == 404:
-                return []
-            resp.raise_for_status()
-            data = resp.json().get("response") or {}
-            devices = data.get("devices")
-            return devices if isinstance(devices, list) else []
-        except httpx.HTTPError as exc:
-            logger.error("Remnawave hwid list error (user_id=%s): %s", user_id, exc)
+            all_devices = await self.get_all_hwid_devices(size=500)
+            target_ids = {str(t).lower() for t in targets}
+            filtered = [
+                d for d in all_devices
+                if str(d.get("userId") or "").lower() in target_ids
+                or str(d.get("userUuid") or (d.get("user") or {}).get("uuid") or "").lower() in target_ids
+            ]
+            return filtered
+        except Exception as exc:
+            logger.warning("Remnawave hwid list warning (user_id=%s): %s", user_id, exc)
             return []
 
     async def delete_hwid_device(self, user_id: int, hwid: str) -> bool:

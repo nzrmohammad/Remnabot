@@ -2071,7 +2071,8 @@ async def get_admin_user_hwid_devices(request: web.Request) -> web.Response:
         return web.json_response({"ok": True, "devices": []})
 
     primary_id = panel_users[0].get("id")
-    devices = await remnawave.get_user_hwid_devices(primary_id)
+    primary_uuid = panel_users[0].get("uuid")
+    devices = await remnawave.get_user_hwid_devices(primary_id, user_uuid=primary_uuid)
     return web.json_response({"ok": True, "devices": devices or []})
 
 

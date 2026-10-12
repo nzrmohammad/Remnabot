@@ -215,7 +215,7 @@ async def _render_devices(
     remnawave: RemnawaveClient, account: dict, lang: str,
 ) -> None:
     account_id = account.get("id")
-    devices = await remnawave.get_user_hwid_devices(account_id)
+    devices = await remnawave.get_user_hwid_devices(account_id, user_uuid=account.get("uuid"))
     tz = get_settings().TIMEZONE
 
     lines = [t(lang, "devices_title"), SEPARATOR]
@@ -390,7 +390,7 @@ async def device_delete_confirm(
     if panel_id is None or index is None:
         await call.answer(t(lang, "acc_error"), show_alert=True)
         return
-    devices = await remnawave.get_user_hwid_devices(panel_id)
+    devices = await remnawave.get_user_hwid_devices(panel_id, user_uuid=account.get("uuid"))
     if index >= len(devices):
         # list changed meanwhile → just re-render it
         await _render_devices(bot, user, user_repo, remnawave, account, lang)
@@ -440,7 +440,7 @@ async def device_delete(
     if panel_id is None or index is None:
         await call.answer(t(lang, "acc_error"), show_alert=True)
         return
-    devices = await remnawave.get_user_hwid_devices(panel_id)
+    devices = await remnawave.get_user_hwid_devices(panel_id, user_uuid=account.get("uuid"))
     ok = False
     if index < len(devices):
         hwid = devices[index].get("hwid")

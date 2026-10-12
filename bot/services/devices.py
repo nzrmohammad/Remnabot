@@ -27,8 +27,10 @@ async def check_account_new_devices(
     lang: str = "fa",
 ) -> list[dict]:
     account_id = str(account.get("id"))
+    account_uuid = str(account.get("uuid") or "").strip() or None
     username = escape(str(account.get("username") or "—"))
-    devices = await remnawave.get_user_hwid_devices(int(account_id))
+    uid_arg = int(account_id) if account_id.isdigit() else account_id
+    devices = await remnawave.get_user_hwid_devices(uid_arg, user_uuid=account_uuid)
     if not devices:
         return []
 

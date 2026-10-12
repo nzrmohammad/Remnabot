@@ -310,7 +310,7 @@ async def get_user_me(request: web.Request) -> web.Response:
             # HWID devices
             devices = []
             try:
-                devices = await remnawave.get_user_hwid_devices(uid_arg) or []
+                devices = await remnawave.get_user_hwid_devices(uid_arg, user_uuid=primary.get("uuid")) or []
             except Exception as exc:
                 logger.warning("Failed to fetch HWID devices for %s: %s", panel_user_id, exc)
 
