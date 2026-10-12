@@ -130,7 +130,7 @@
         </div>
 
         <!-- Speed & Ping Test Entry Banner Card -->
-        <button id="openSpeedTestModalBtn" type="button" class="w-full speedtest-entry-btn bg-gradient-to-r from-emerald-500/15 via-teal-500/15 to-cyan-500/10 hover:from-emerald-500/25 p-3 rounded-2xl border border-emerald-500/40 text-right flex items-center justify-between transition shadow-sm group active:scale-[0.98]">
+        <button id="openSpeedTestModalBtn" type="button" onclick="window.openSpeedTestModal()" class="w-full speedtest-entry-btn bg-gradient-to-r from-emerald-500/15 via-teal-500/15 to-cyan-500/10 hover:from-emerald-500/25 p-3 rounded-2xl border border-emerald-500/40 text-right flex items-center justify-between transition shadow-sm group active:scale-[0.98]">
           <div class="flex items-center gap-3">
             <div class="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center text-lg flex-shrink-0 group-hover:scale-110 transition">
               ⚡️
@@ -1640,19 +1640,21 @@
     <!-- ======================================================== -->
     <!-- 9. MODAL: SPEED & PING TEST (تست زنده پینگ و سرعت اینترنت) -->
     <!-- ======================================================== -->
-    <div id="speedTestModal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden animate-fadeIn overflow-y-auto">
+    <div id="speedTestModal" onclick="if(event.target === this) window.closeSpeedTestModal()" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden animate-fadeIn overflow-y-auto">
       <div class="speedtest-modal-card bg-[#1a233a] border border-emerald-500/40 rounded-3xl p-4 sm:p-5 w-full max-w-[380px] shadow-2xl relative my-auto text-xs max-h-[90vh] flex flex-col space-y-3.5">
         <!-- Close Button -->
-        <button id="closeSpeedTestModalBtn" type="button" class="absolute top-3.5 left-3.5 text-slate-400 hover:text-white text-xs bg-slate-800 rounded-full w-7 h-7 flex items-center justify-center transition active:scale-95" title="بستن">✕</button>
+        <button id="closeSpeedTestModalBtn" type="button" onclick="window.closeSpeedTestModal()" class="absolute top-3.5 left-3.5 text-slate-400 hover:text-white text-xs bg-slate-800 rounded-full w-7 h-7 flex items-center justify-center transition active:scale-95" title="بستن">✕</button>
 
         <!-- Modal Header -->
         <div class="flex items-center gap-2.5 pb-2 border-b border-slate-700/60 pl-8 flex-shrink-0">
           <div class="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center text-sm flex-shrink-0">
             ⚡️
           </div>
-          <div>
+          <div class="flex-1">
             <h3 class="font-bold text-slate-100 text-sm">سنجش سرعت و پینگ اتصال</h3>
-            <p class="text-[10px] text-slate-400">تست واقعی کیفیت و پهنای باند از سمت دستگاه شما</p>
+            <div class="flex items-center gap-1.5 mt-0.5">
+              <span id="speedServerBadge" class="text-[9px] bg-cyan-950/70 border border-cyan-500/40 text-cyan-300 px-2 py-0.5 rounded-full font-medium">🌐 سرور تست: Cloudflare CDN (جهانی)</span>
+            </div>
           </div>
         </div>
 
@@ -1737,7 +1739,7 @@
 
         <!-- Action Button -->
         <div class="pt-1 flex-shrink-0">
-          <button id="startSpeedTestBtn" type="button" class="w-full bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 hover:from-emerald-400 hover:to-cyan-400 text-slate-950 font-black text-xs py-3 rounded-2xl transition active:scale-95 shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2">
+          <button id="startSpeedTestBtn" type="button" onclick="window.toggleSpeedTest()" class="w-full bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 hover:from-emerald-400 hover:to-cyan-400 text-slate-950 font-black text-xs py-3 rounded-2xl transition active:scale-95 shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2">
             <span>⚡️</span>
             <span id="startSpeedTestBtnText">شروع تست سرعت 🚀</span>
           </button>
@@ -1747,14 +1749,14 @@
   </div>
 
   <!-- Modular Frontend Architecture (DRY) -->
-  <script src="/static/js/utils.js?v=20.0"></script>
-  <script src="/static/js/api.js?v=20.0"></script>
-  <script src="/static/js/charts.js?v=20.0"></script>
-  <script src="/static/js/shop.js?v=20.0"></script>
-  <script src="/static/js/wallet.js?v=20.0"></script>
-  <script src="/static/js/wheel.js?v=20.0"></script>
-  <script src="/static/js/story.js?v=20.0"></script>
-  <script src="/static/js/speedtest.js?v=20.0"></script>
-  <script src="/static/js/app.js?v=20.0"></script>
+  <script src="/static/js/utils.js?v=21.0"></script>
+  <script src="/static/js/api.js?v=21.0"></script>
+  <script src="/static/js/charts.js?v=21.0"></script>
+  <script src="/static/js/shop.js?v=21.0"></script>
+  <script src="/static/js/wallet.js?v=21.0"></script>
+  <script src="/static/js/wheel.js?v=21.0"></script>
+  <script src="/static/js/story.js?v=21.0"></script>
+  <script src="/static/js/speedtest.js?v=21.0"></script>
+  <script src="/static/js/app.js?v=21.0"></script>
 </body>
 </html>

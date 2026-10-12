@@ -177,11 +177,12 @@ async def cors_and_security_middleware(request: web.Request, handler):
     if request.path.startswith("/static/"):
         response.headers["Cache-Control"] = "public, max-age=604800, stale-while-revalidate=86400"
 
-    # Enable automatic gzip/deflate compression for responses > 512 bytes
+    # Enable automatic gzip/deflate compression for responses > 512 bytes (exclude speedtest payloads)
     if isinstance(response, web.Response) and response.body and len(response.body) > 512:
-        accept_enc = request.headers.get("Accept-Encoding", "")
-        if "gzip" in accept_enc or "deflate" in accept_enc:
-            response.enable_compression()
+        if not request.path.startswith("/api/user/speedtest"):
+            accept_enc = request.headers.get("Accept-Encoding", "")
+            if "gzip" in accept_enc or "deflate" in accept_enc:
+                response.enable_compression()
 
     return response
 

@@ -1719,6 +1719,30 @@ async def test_topup_image_upload_and_admin_viewing():
     await engine.dispose()
 
 
+@pytest.mark.anyio
+async def test_speedtest_endpoints():
+    from aiohttp.test_utils import make_mocked_request
+    from bot.web.routes_user import get_user_speedtest_ping, get_user_speedtest_payload
+
+    req_ping = make_mocked_request("GET", "/api/user/speedtest/ping")
+    resp_ping = await get_user_speedtest_ping(req_ping)
+    assert resp_ping.status == 200
+    data_ping = json.loads(resp_ping.text)
+    assert data_ping["ok"] is True
+    assert "t" in data_ping
+    assert "no-store" in resp_ping.headers["Cache-Control"]
+
+    # Test payload endpoint returns requested byte length and uncompressed identity headers
+    req_payload = make_mocked_request("GET", "/api/user/speedtest/payload?bytes=524288")
+    resp_payload = await get_user_speedtest_payload(req_payload)
+    assert resp_payload.status == 200
+    assert resp_payload.content_type == "application/octet-stream"
+    assert len(resp_payload.body) == 524288
+    assert resp_payload.headers.get("Content-Encoding") == "identity"
+    assert "no-store" in resp_payload.headers["Cache-Control"]
+
+
+
 
 
 

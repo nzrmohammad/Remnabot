@@ -1,6 +1,7 @@
 """User API endpoints for Telegram Mini App."""
 import json
 import logging
+import os
 import random
 import time
 from datetime import datetime, timezone
@@ -995,26 +996,30 @@ async def get_user_subscription_configs(request: web.Request) -> web.Response:
 # --------------------------------------------------------------------------
 # Client-Side SpeedTest Endpoints (Ping & Download Throughput)
 # --------------------------------------------------------------------------
-_SPEEDTEST_CHUNK = b"0" * (1024 * 1024)  # 1 MB pre-allocated buffer
+# 1 MB pre-allocated non-compressible random buffer
+_SPEEDTEST_CHUNK = os.urandom(1024 * 1024)
 
 
 async def get_user_speedtest_ping(request: web.Request) -> web.Response:
     """Lightweight ping probe for RTT and jitter calculation."""
     return web.json_response(
         {"ok": True, "t": int(time.time() * 1000)},
-        headers={"Cache-Control": "no-store, no-cache, must-revalidate, max-age=0"},
+        headers={
+            "Cache-Control": "no-store, no-cache, no-transform, must-revalidate, max-age=0",
+            "Access-Control-Allow-Origin": "*",
+        },
     )
 
 
 async def get_user_speedtest_payload(request: web.Request) -> web.Response:
-    """Stream binary payload for measuring user download speed."""
+    """Stream non-compressible random binary payload for measuring user download speed."""
     try:
         req_bytes = int(request.query.get("bytes", 2 * 1024 * 1024))
     except (ValueError, TypeError):
         req_bytes = 2 * 1024 * 1024
 
-    # Bound size between 256 KB and 6 MB to protect network and bandwidth
-    target_bytes = max(256 * 1024, min(req_bytes, 6 * 1024 * 1024))
+    # Bound size between 256 KB and 8 MB
+    target_bytes = max(256 * 1024, min(req_bytes, 8 * 1024 * 1024))
 
     full_chunks = target_bytes // len(_SPEEDTEST_CHUNK)
     remainder = target_bytes % len(_SPEEDTEST_CHUNK)
@@ -1024,8 +1029,10 @@ async def get_user_speedtest_payload(request: web.Request) -> web.Response:
         body=data,
         content_type="application/octet-stream",
         headers={
-            "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0",
+            "Cache-Control": "no-store, no-cache, no-transform, must-revalidate, max-age=0",
+            "Content-Encoding": "identity",
             "Content-Length": str(len(data)),
+            "Access-Control-Allow-Origin": "*",
         },
     )
 
