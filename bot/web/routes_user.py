@@ -992,4 +992,43 @@ async def get_user_subscription_configs(request: web.Request) -> web.Response:
     return web.json_response({"ok": True, "configs": configs})
 
 
+# --------------------------------------------------------------------------
+# Client-Side SpeedTest Endpoints (Ping & Download Throughput)
+# --------------------------------------------------------------------------
+_SPEEDTEST_CHUNK = b"0" * (1024 * 1024)  # 1 MB pre-allocated buffer
+
+
+async def get_user_speedtest_ping(request: web.Request) -> web.Response:
+    """Lightweight ping probe for RTT and jitter calculation."""
+    return web.json_response(
+        {"ok": True, "t": int(time.time() * 1000)},
+        headers={"Cache-Control": "no-store, no-cache, must-revalidate, max-age=0"},
+    )
+
+
+async def get_user_speedtest_payload(request: web.Request) -> web.Response:
+    """Stream binary payload for measuring user download speed."""
+    try:
+        req_bytes = int(request.query.get("bytes", 2 * 1024 * 1024))
+    except (ValueError, TypeError):
+        req_bytes = 2 * 1024 * 1024
+
+    # Bound size between 256 KB and 6 MB to protect network and bandwidth
+    target_bytes = max(256 * 1024, min(req_bytes, 6 * 1024 * 1024))
+
+    full_chunks = target_bytes // len(_SPEEDTEST_CHUNK)
+    remainder = target_bytes % len(_SPEEDTEST_CHUNK)
+    data = (_SPEEDTEST_CHUNK * full_chunks) + _SPEEDTEST_CHUNK[:remainder]
+
+    return web.Response(
+        body=data,
+        content_type="application/octet-stream",
+        headers={
+            "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0",
+            "Content-Length": str(len(data)),
+        },
+    )
+
+
+
 

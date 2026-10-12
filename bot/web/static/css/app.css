@@ -1596,4 +1596,47 @@ html.theme-light #tutorialCopySubBtn {
   scrollbar-gutter: stable;
 }
 
+/* Speed Test Component Light Theme Overrides */
+html.theme-light .speedtest-entry-btn {
+  background: linear-gradient(to right, rgba(16, 185, 129, 0.12), rgba(20, 184, 166, 0.12), rgba(6, 182, 212, 0.08)) !important;
+  border-color: rgba(16, 185, 129, 0.35) !important;
+}
+html.theme-light .speedtest-title {
+  color: #047857 !important;
+}
+html.theme-light .speedtest-sub {
+  color: #475569 !important;
+}
+html.theme-light .speedtest-modal-card {
+  background-color: #ffffff !important;
+  border-color: #a7f3d0 !important;
+}
+html.theme-light .speedtest-modal-card h3 {
+  color: #0f172a !important;
+}
+html.theme-light .speedtest-modal-card p {
+  color: #64748b !important;
+}
+html.theme-light #speedTestModal .bg-slate-900\/80 {
+  background-color: #f8fafc !important;
+  border-color: #e2e8f0 !important;
+}
+html.theme-light #speedTestModal #speedDisplayVal {
+  color: #0f172a !important;
+}
+html.theme-light #speedStatusBadge {
+  background-color: #f8fafc !important;
+  border-color: #e2e8f0 !important;
+  color: #334155 !important;
+}
+html.theme-light #closeSpeedTestModalBtn {
+  background-color: #f1f5f9 !important;
+  color: #475569 !important;
+}
+html.theme-light #closeSpeedTestModalBtn:hover {
+  background-color: #e2e8f0 !important;
+  color: #0f172a !important;
+}
+
+
 

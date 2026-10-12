@@ -133,6 +133,8 @@ async def test_web_app_routes():
     assert "/admin" in registered_paths
     assert "/api/user/me" in registered_paths
     assert "/api/user/spin" in registered_paths
+    assert "/api/user/speedtest/ping" in registered_paths
+    assert "/api/user/speedtest/payload" in registered_paths
     assert "/api/admin/overview" in registered_paths
     assert "/api/admin/broadcast/status" in registered_paths
     assert "/api/admin/user/reset_trial" in registered_paths
