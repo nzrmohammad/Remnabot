@@ -1,7 +1,7 @@
 /**
- * RemnaStore Pro - Real Client-Side Speed & Ping Test Engine
+ * RemnaStore Pro - Bulletproof Client-Side Speed & Ping Test Engine
  * Measures true user latency, jitter, and real-time streaming download throughput.
- * Uses global Cloudflare Speed CDN (speed.cloudflare.com) with seamless bot-server fallback.
+ * Uses global Cloudflare Speed CDN with automatic seamless bot-server fallback.
  */
 
 (function () {
@@ -10,6 +10,7 @@
   let animationFrameId = null;
   let currentSpeedMbps = 0;
   let targetSpeedMbps = 0;
+  let lastToggleTime = 0;
 
   // Gauge geometry configuration (-210 deg to 30 deg = 240 deg sweep)
   const MIN_ANGLE = -210;
@@ -20,10 +21,6 @@
 
   function speedToAngle(mbps) {
     const clamped = Math.max(0, Math.min(mbps, MAX_GAUGE_MBPS));
-    // Non-linear visual distribution:
-    // 0 - 10 Mbps -> 35% of gauge
-    // 10 - 50 Mbps -> 40% of gauge
-    // 50 - 100 Mbps -> 25% of gauge
     let ratio = 0;
     if (clamped <= 10) {
       ratio = (clamped / 10) * 0.35;
@@ -71,13 +68,13 @@
 
   /**
    * Determine best speedtest engine source:
-   * Cloudflare Speed Test CDN (global edge) vs local bot server fallback.
+   * Cloudflare Speed CDN (global edge) vs local bot server fallback.
    */
   async function detectBestSource(signal) {
     const serverBadge = document.getElementById('speedServerBadge');
     try {
       const probeController = new AbortController();
-      const timeoutId = setTimeout(() => probeController.abort(), 2200);
+      const timeoutId = setTimeout(() => probeController.abort(), 1800);
 
       const resp = await fetch(`https://speed.cloudflare.com/__down?bytes=0&_t=${Date.now()}`, {
         method: 'GET',
@@ -86,7 +83,7 @@
       });
       clearTimeout(timeoutId);
 
-      if (resp.ok) {
+      if (resp && resp.ok) {
         if (serverBadge) {
           serverBadge.innerText = '🌐 سرور تست: Cloudflare CDN (جهانی)';
           serverBadge.className = 'text-[9px] bg-cyan-950/70 border border-cyan-500/40 text-cyan-300 px-2 py-0.5 rounded-full font-medium';
@@ -105,7 +102,7 @@
   }
 
   /**
-   * Measure Ping (RTT) and Jitter with 4 sequential probes.
+   * Measure Ping (RTT) and Jitter with sequential probes.
    */
   async function measurePingAndJitter(source, signal) {
     const statusText = document.getElementById('speedStatusBadge');
@@ -115,10 +112,10 @@
     }
 
     const pings = [];
-    const probeCount = 4;
+    const probeCount = 3;
 
     for (let i = 0; i < probeCount; i++) {
-      if (signal.aborted) throw new Error('Aborted');
+      if (signal && signal.aborted) return { avgPing: 0, jitter: 0 };
       const start = performance.now();
       try {
         const pingUrl = source === 'cloudflare'
@@ -131,16 +128,16 @@
           signal,
         });
 
-        if (resp.ok) {
+        if (resp && resp.ok) {
           const duration = performance.now() - start;
           pings.push(duration);
           const pingEl = document.getElementById('speedPingVal');
           if (pingEl) pingEl.innerText = Math.round(duration).toString();
         }
       } catch (e) {
-        if (e.name === 'AbortError') throw e;
+        // Ignore single ping failure
       }
-      await new Promise(r => setTimeout(r, 70));
+      await new Promise(r => setTimeout(r, 60));
     }
 
     if (pings.length === 0) return { avgPing: 0, jitter: 0 };
@@ -162,33 +159,34 @@
 
   /**
    * Continuous multi-chunk streaming download throughput measurement.
-   * Runs for TEST_DURATION_MS with real-time throughput sampling and needle movement.
+   * Resilient against WebView limitations and network interruptions.
    */
-  async function measureDownloadThroughput(source, signal) {
+  async function measureDownloadThroughput(initialSource, signal) {
     const statusText = document.getElementById('speedStatusBadge');
     if (statusText) {
       statusText.innerText = '⚡️ در حال دریافت داده و سنجش سرعت دانلود...';
       statusText.className = 'py-1.5 px-3 rounded-xl bg-blue-950/60 border border-blue-500/40 text-[11px] text-blue-300 font-medium transition text-center min-h-[38px] flex items-center justify-center';
     }
 
+    let activeSource = initialSource;
     const testStartTime = performance.now();
     let totalReceivedBytes = 0;
     const speedSamples = [];
 
-    // Progressive chunk sequence: 500KB -> 1MB -> 2MB -> 4MB -> 6MB -> 8MB
-    const chunkSizes = [524288, 1048576, 2097152, 4194304, 6291456, 8388608];
+    // Progressive chunk sequence: 512KB -> 1MB -> 2MB -> 4MB -> 8MB
+    const chunkSizes = [524288, 1048576, 2097152, 4194304, 8388608];
     let chunkIndex = 0;
 
     let lastSampleTime = testStartTime;
     let lastSampleBytes = 0;
 
     while (performance.now() - testStartTime < TEST_DURATION_MS) {
-      if (signal.aborted) throw new Error('Aborted');
+      if (signal && signal.aborted) break;
 
       const bytesToFetch = chunkSizes[Math.min(chunkIndex, chunkSizes.length - 1)];
       chunkIndex++;
 
-      const chunkUrl = source === 'cloudflare'
+      const chunkUrl = activeSource === 'cloudflare'
         ? `https://speed.cloudflare.com/__down?bytes=${bytesToFetch}&_t=${Date.now()}`
         : `/api/user/speedtest/payload?bytes=${bytesToFetch}&_t=${Date.now()}`;
 
@@ -199,40 +197,62 @@
           signal,
         });
 
-        if (!response.ok || !response.body) {
-          throw new Error('Chunk download failed');
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
         }
 
-        const reader = response.body.getReader();
+        // Support both ReadableStream streaming and ArrayBuffer fallback for all mobile WebViews
+        if (response.body && typeof response.body.getReader === 'function') {
+          const reader = response.body.getReader();
 
-        while (true) {
-          if (performance.now() - testStartTime >= TEST_DURATION_MS || signal.aborted) {
-            reader.cancel().catch(() => {});
-            break;
+          while (true) {
+            if (performance.now() - testStartTime >= TEST_DURATION_MS || (signal && signal.aborted)) {
+              try { reader.cancel(); } catch (e) {}
+              break;
+            }
+
+            const { done, value } = await reader.read();
+            if (done) break;
+
+            if (value && value.length > 0) {
+              totalReceivedBytes += value.length;
+              const now = performance.now();
+              const deltaSec = (now - lastSampleTime) / 1000;
+
+              if (deltaSec >= 0.1) {
+                const deltaBytes = totalReceivedBytes - lastSampleBytes;
+                const instantMbps = (deltaBytes * 8) / (deltaSec * 1000000);
+
+                if (now - testStartTime > 250) {
+                  speedSamples.push(instantMbps);
+                }
+                targetSpeedMbps = instantMbps;
+
+                lastSampleTime = now;
+                lastSampleBytes = totalReceivedBytes;
+              }
+
+              const dataUsedEl = document.getElementById('speedDataUsed');
+              if (dataUsedEl) {
+                dataUsedEl.innerText = `${(totalReceivedBytes / (1024 * 1024)).toFixed(1)} MB`;
+              }
+            }
           }
-
-          const { done, value } = await reader.read();
-          if (done) break;
-
-          if (value && value.length > 0) {
-            totalReceivedBytes += value.length;
+        } else {
+          // Fallback for WebViews without full ReadableStream support
+          const buf = await response.arrayBuffer();
+          if (buf && buf.byteLength > 0) {
+            totalReceivedBytes += buf.byteLength;
             const now = performance.now();
             const deltaSec = (now - lastSampleTime) / 1000;
-
-            if (deltaSec >= 0.12) {
+            if (deltaSec > 0.05) {
               const deltaBytes = totalReceivedBytes - lastSampleBytes;
               const instantMbps = (deltaBytes * 8) / (deltaSec * 1000000);
-
-              // Discard initial sub-100ms warm-up artifact if needed
-              if (now - testStartTime > 300) {
-                speedSamples.push(instantMbps);
-              }
+              speedSamples.push(instantMbps);
               targetSpeedMbps = instantMbps;
-
               lastSampleTime = now;
               lastSampleBytes = totalReceivedBytes;
             }
-
             const dataUsedEl = document.getElementById('speedDataUsed');
             if (dataUsedEl) {
               dataUsedEl.innerText = `${(totalReceivedBytes / (1024 * 1024)).toFixed(1)} MB`;
@@ -240,8 +260,19 @@
           }
         }
       } catch (err) {
-        if (err.name === 'AbortError') throw err;
-        // If Cloudflare chunk fails mid-way, continue or fall back
+        if (signal && signal.aborted) break;
+
+        // If Cloudflare fails mid-test, seamlessly switch to bot server without failing
+        if (activeSource === 'cloudflare') {
+          activeSource = 'server';
+          const serverBadge = document.getElementById('speedServerBadge');
+          if (serverBadge) {
+            serverBadge.innerText = '⚡️ سرور تست: سرور اختصاصی ربات (فال‌بک)';
+            serverBadge.className = 'text-[9px] bg-emerald-950/70 border border-emerald-500/40 text-emerald-300 px-2 py-0.5 rounded-full font-medium';
+          }
+          await new Promise(r => setTimeout(r, 100));
+          continue;
+        }
         break;
       }
     }
@@ -250,7 +281,6 @@
 
     let finalThroughputMbps = 0;
     if (speedSamples.length > 0) {
-      // Sort and take 80th percentile for stable sustained throughput
       const sorted = [...speedSamples].sort((a, b) => a - b);
       const p80Index = Math.floor(sorted.length * 0.75);
       finalThroughputMbps = sorted[p80Index];
@@ -259,10 +289,16 @@
     }
 
     targetSpeedMbps = finalThroughputMbps;
-    return finalThroughputMbps;
+    return { finalMbps: finalThroughputMbps, totalBytes: totalReceivedBytes };
   }
 
-  function getVerdictText(speed, ping) {
+  function getVerdictText(speed, ping, totalBytes) {
+    if (totalBytes === 0) {
+      return {
+        text: '⚠️ سرورهای تست پاسخ ندادند؛ وضعیت اینترنت یا فیلترشکن را بررسی فرمایید.',
+        cls: 'bg-amber-950/70 border-amber-500/50 text-amber-300',
+      };
+    }
     if (speed >= 30 && ping <= 90) {
       return {
         text: '🚀 کیفیت فوق‌العاده؛ عالی برای استریم 4K، بازی آنلاین و وب‌گردی پرسرعت',
@@ -321,10 +357,10 @@
       const { avgPing, jitter } = await measurePingAndJitter(source, abortController.signal);
 
       // Step 3: Sustained Download Throughput Streaming
-      const finalMbps = await measureDownloadThroughput(source, abortController.signal);
+      const { finalMbps, totalBytes } = await measureDownloadThroughput(source, abortController.signal);
 
       // Step 4: Quality Verdict
-      const verdict = getVerdictText(finalMbps, avgPing);
+      const verdict = getVerdictText(finalMbps, avgPing, totalBytes);
       if (statusText) {
         statusText.innerText = verdict.text;
         statusText.className = `py-2 px-3 rounded-xl border text-[11px] font-medium leading-relaxed transition text-center shadow-sm min-h-[38px] flex items-center justify-center ${verdict.cls}`;
@@ -332,11 +368,12 @@
 
       if (window.hapticFeedback) window.hapticFeedback('success');
     } catch (err) {
-      if (err.name !== 'AbortError' && err.message !== 'Aborted') {
-        console.warn('SpeedTest error:', err);
+      const isAborted = (err && (err.name === 'AbortError' || err.message === 'Aborted'));
+      if (!isAborted) {
+        console.warn('SpeedTest caught error:', err);
         if (statusText) {
-          statusText.innerText = '❌ خطا در سنجش سرعت؛ لطفاً مجدداً تلاش فرمایید.';
-          statusText.className = 'py-2 px-3 rounded-xl bg-rose-950/60 border border-rose-500/40 text-[11px] text-rose-300 font-medium text-center min-h-[38px] flex items-center justify-center';
+          statusText.innerText = '⚠️ اختلال موقت در ارتباط؛ لطفاً مجدداً دکمه شروع را لمس فرمایید.';
+          statusText.className = 'py-2 px-3 rounded-xl bg-amber-950/60 border border-amber-500/40 text-[11px] text-amber-300 font-medium text-center min-h-[38px] flex items-center justify-center';
         }
       }
     } finally {
@@ -354,7 +391,7 @@
 
   function stopSpeedTest() {
     if (abortController) {
-      abortController.abort();
+      try { abortController.abort(); } catch (e) {}
       abortController = null;
     }
     isTesting = false;
@@ -376,6 +413,10 @@
   }
 
   function toggleSpeedTest() {
+    const now = Date.now();
+    if (now - lastToggleTime < 450) return; // Debounce rapid double-clicks
+    lastToggleTime = now;
+
     if (isTesting) {
       stopSpeedTest();
     } else {
@@ -404,17 +445,10 @@
     if (window.hapticFeedback) window.hapticFeedback('selection');
   }
 
-  // Expose globally for inline onclick handlers and console debugging
+  // Expose globally for inline onclick handlers and Telegram WebApp lifecycle
   window.openSpeedTestModal = openSpeedTestModal;
   window.closeSpeedTestModal = closeSpeedTestModal;
   window.startSpeedTest = startSpeedTest;
   window.stopSpeedTest = stopSpeedTest;
   window.toggleSpeedTest = toggleSpeedTest;
-
-  // Defensive binding on DOM ready as well
-  document.addEventListener('DOMContentLoaded', () => {
-    document.getElementById('openSpeedTestModalBtn')?.addEventListener('click', openSpeedTestModal);
-    document.getElementById('closeSpeedTestModalBtn')?.addEventListener('click', closeSpeedTestModal);
-    document.getElementById('startSpeedTestBtn')?.addEventListener('click', toggleSpeedTest);
-  });
 })();

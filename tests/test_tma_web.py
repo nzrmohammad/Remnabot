@@ -1738,7 +1738,6 @@ async def test_speedtest_endpoints():
     assert resp_payload.status == 200
     assert resp_payload.content_type == "application/octet-stream"
     assert len(resp_payload.body) == 524288
-    assert resp_payload.headers.get("Content-Encoding") == "identity"
     assert "no-store" in resp_payload.headers["Cache-Control"]
 
 

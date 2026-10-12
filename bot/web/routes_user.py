@@ -1030,7 +1030,6 @@ async def get_user_speedtest_payload(request: web.Request) -> web.Response:
         content_type="application/octet-stream",
         headers={
             "Cache-Control": "no-store, no-cache, no-transform, must-revalidate, max-age=0",
-            "Content-Encoding": "identity",
             "Content-Length": str(len(data)),
             "Access-Control-Allow-Origin": "*",
         },
