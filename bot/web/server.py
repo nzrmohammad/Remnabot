@@ -90,6 +90,8 @@ _API_MAX_GENERAL = 120  # 120 requests/min per IP
 _API_MAX_SENSITIVE = 20 # 20 requests/min on sensitive financial/coupon endpoints
 _api_buckets: dict[str, deque[float]] = defaultdict(deque)
 
+DEFAULT_TRUSTED_ORIGINS = frozenset({"https://web.telegram.org", "https://telegram.org"})
+
 
 @web.middleware
 async def api_rate_limit_middleware(request: web.Request, handler):
@@ -177,7 +179,7 @@ async def cors_and_security_middleware(request: web.Request, handler):
         response = await handler(request)
 
     settings = request.app.get("settings")
-    trusted_origins = {"https://web.telegram.org", "https://telegram.org"}
+    trusted_origins = set(DEFAULT_TRUSTED_ORIGINS)
     if settings and getattr(settings, "WEB_APP_URL", ""):
         from urllib.parse import urlparse
         parsed = urlparse(settings.WEB_APP_URL)

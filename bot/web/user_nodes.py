@@ -8,6 +8,8 @@ from bot.web.cache import FastCache
 
 logger = logging.getLogger(__name__)
 
+ALLOWED_AVATAR_ORIGINS = ("https://t.me/", "https://cdn", "https://cdn.telegram.org/", "https://telesco.pe/")
+
 
 async def get_user_nodes(request: web.Request) -> web.Response:
     """Return active cluster nodes for the network ping/health checker."""
@@ -213,7 +215,7 @@ async def get_user_avatar(request: web.Request) -> web.Response:
 
     # Fallback: if user supplied photo_url parameter from Telegram initData
     fallback_url = request.query.get("url")
-    if fallback_url and (fallback_url.startswith("https://t.me/") or fallback_url.startswith("https://cdn")):
+    if fallback_url and any(fallback_url.startswith(origin) for origin in ALLOWED_AVATAR_ORIGINS):
         try:
             import aiohttp
             async with aiohttp.ClientSession() as client:

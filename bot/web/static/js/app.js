@@ -391,7 +391,7 @@ const CLIENT_APPS_DATA = {
       name: 'V2Box',
       desc: 'کلاینت باسابقه و پایدار اپ استور با قابلیت تست پینگ خودکار',
       icon: '📦',
-      scheme: (url) => `v2box://install-sub?url=${encodeURIComponent(url)}&name=RemnaVPN`
+      scheme: (url) => `v2box://install-sub?url=${encodeURIComponent(url)}&name=${encodeURIComponent(window.lastUserData?.bot_username || 'Subscription')}`
     },
     {
       id: 'incy',
@@ -495,7 +495,7 @@ const CLIENT_APPS_DATA = {
       name: 'V2Box',
       desc: 'نسخه مک اپلیکیشن باسابقه V2Box در اپ‌استور با تست پینگ',
       icon: '📦',
-      scheme: (url) => `v2box://install-sub?url=${encodeURIComponent(url)}&name=RemnaVPN`
+      scheme: (url) => `v2box://install-sub?url=${encodeURIComponent(url)}&name=${encodeURIComponent(window.lastUserData?.bot_username || 'Subscription')}`
     }
   ],
   linux: [
@@ -1002,12 +1002,12 @@ async function loadClientIpInfo() {
   if (!ipEl) return;
   try {
     const res = await window.api.getIpInfo();
-    if (res.ok && res.ip) {
+    if (res && res.ok && res.ip) {
       ipEl.innerText = `${res.ip} (ایمن 🛡️)`;
       return;
     }
   } catch (e) {}
-  ipEl.innerText = '185.220.101.5 (🇩🇪 Frankfurt)';
+  ipEl.innerText = 'شبکه متصل به سرور';
 }
 
 function setupNetworkTools() {
@@ -1629,8 +1629,8 @@ function hydrateUserInterface(data) {
 
   if (storyTraffic) storyTraffic.innerText = `${sub?.traffic_remaining_gb ?? '--'} GB`;
   if (storyDays) storyDays.innerText = `${toEnglishDigits(sub?.days_left ?? 0)} روز اعتبار`;
-  const botUsername = data.bot_username || window.Telegram?.WebApp?.initDataUnsafe?.bot?.username || 'RemnaWaveBot';
-  const refLink = `https://t.me/${botUsername}?start=ref_${user.id || ''}`;
+  const botUsername = data.bot_username || window.Telegram?.WebApp?.initDataUnsafe?.bot?.username || '';
+  const refLink = botUsername ? `https://t.me/${botUsername}?start=ref_${user.id || ''}` : `https://t.me/?start=ref_${user.id || ''}`;
   window.currentReferralLink = refLink;
   if (storyQr) {
     storyQr.crossOrigin = 'anonymous';

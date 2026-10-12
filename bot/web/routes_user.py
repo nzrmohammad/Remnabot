@@ -1144,20 +1144,58 @@ async def post_user_speedtest_upload(request: web.Request) -> web.Response:
     if not user_auth:
         return web.json_response({"ok": False, "error": "Unauthorized"}, status=401)
 
+    user_id = user_auth.get("id")
+    client_ip = (
+        request.headers.get("X-Real-IP")
+        or request.headers.get("X-Forwarded-For", "").split(",")[0].strip()
+        or request.remote
+        or "127.0.0.1"
+    )
+
+    cache = request.app.get("cache") if hasattr(request.app, "get") else None
+    if cache and hasattr(cache, "get"):
+        try:
+            rl_key = f"tma:speedtest:limit:upload:{user_id or client_ip}"
+            if inspect.iscoroutinefunction(cache.get):
+                req_count = await cache.get(rl_key)
+            else:
+                res = cache.get(rl_key)
+                req_count = (await res) if asyncio.iscoroutine(res) else res
+
+            if isinstance(req_count, (int, float)) and req_count >= 15:
+                return web.json_response(
+                    {"ok": False, "error": "محدودیت تعداد درخواست تست آپلود. لطفاً ۳۰ ثانیه دیگر تلاش فرمایید."},
+                    status=429,
+                    headers={"Retry-After": "30"},
+                )
+
+            if hasattr(cache, "set"):
+                if inspect.iscoroutinefunction(cache.set):
+                    await cache.set(rl_key, (req_count or 0) + 1, ttl_seconds=30)
+                else:
+                    set_res = cache.set(rl_key, (req_count or 0) + 1, ttl_seconds=30)
+                    if asyncio.iscoroutine(set_res):
+                        await set_res
+        except Exception:
+            pass
+
     total_bytes = 0
-    if hasattr(request.content, "read"):
-        while True:
-            chunk = await request.content.read(65536)
-            if not chunk:
-                break
-            total_bytes += len(chunk)
-            if total_bytes > 32 * 1024 * 1024:
-                break
-    elif isinstance(request.content, (bytes, bytearray)):
-        total_bytes = len(request.content)
-    else:
-        body = await request.read()
-        total_bytes = len(body)
+    try:
+        if hasattr(request.content, "read"):
+            while True:
+                chunk = await request.content.read(65536)
+                if not chunk:
+                    break
+                total_bytes += len(chunk)
+                if total_bytes > 32 * 1024 * 1024:
+                    break
+        elif isinstance(request.content, (bytes, bytearray)):
+            total_bytes = len(request.content)
+        else:
+            body = await request.read()
+            total_bytes = len(body)
+    except (asyncio.CancelledError, ConnectionResetError):
+        pass
 
     return web.json_response(
         {"ok": True, "received_bytes": total_bytes},

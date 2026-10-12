@@ -432,7 +432,7 @@ class RemnawaveClient:
             "/api/srh/requests",
         ):
             try:
-                resp = await self._client.get(path, params={"size": 100})
+                resp = await self._client.get(path, params={"size": 1000})
                 if resp.status_code == 200:
                     return resp.json().get("response") or resp.json()
             except Exception:
@@ -483,7 +483,7 @@ class RemnawaveClient:
         for path, params in (
             ("/api/subscription-request-history", {"userId": str(user_id), "size": size}),
             ("/api/subscription-request-history", {"userUuid": str(user_uuid or user_id), "size": size}),
-            ("/api/subscription-request-history", {"size": 100}),
+            ("/api/subscription-request-history", {"size": 1000}),
             ("/api/srh", {"userId": str(user_id), "size": size}),
         ):
             try:

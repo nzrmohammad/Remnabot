@@ -95,7 +95,9 @@ def get_authenticated_user(request: web.Request) -> dict[str, Any] | None:
                 "is_preview": False,
             }
         elif request.headers.get("X-Dev-Mode") == "1" or not init_data:
-            primary_admin = admin_ids[0] if admin_ids else 123456789
+            if not admin_ids:
+                return None
+            primary_admin = admin_ids[0]
             user = {
                 "id": primary_admin,
                 "first_name": "مدیر سیستم (توسعه)",

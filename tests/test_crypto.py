@@ -24,24 +24,9 @@ from bot.services.crypto.ton import (
 
 
 @pytest.fixture
-def anyio_backend():
-    return "asyncio"
-
-
-@pytest.fixture
-async def session_factory():
-    from sqlalchemy.pool import StaticPool
-    engine = create_async_engine(
-        "sqlite+aiosqlite:///:memory:",
-        connect_args={"check_same_thread": False},
-        poolclass=StaticPool,
-        echo=False,
-    )
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-    factory = async_sessionmaker(engine, expire_on_commit=False, class_=AsyncSession)
-    yield factory
-    await engine.dispose()
+async def async_session(session_factory):
+    async with session_factory() as session:
+        yield session
 
 
 @pytest.fixture

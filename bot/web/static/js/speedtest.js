@@ -95,7 +95,7 @@
   }
 
   /**
-   * Detect client IP and server details (SpectraIP هلند).
+   * Detect client IP and server details.
    * Eliminates external third-party bottlenecks (like ipapi.co rate-limits).
    */
   async function detectEngineAndNetwork(signal) {
@@ -123,11 +123,8 @@
       }
     } catch (e) {}
 
-    if (serverNameEl && (!serverNameEl.innerText || serverNameEl.innerText.includes('Cloudflare') || serverNameEl.innerText.includes('SpectraIP'))) {
+    if (serverNameEl && (!serverNameEl.innerText || serverNameEl.innerText.includes('Cloudflare'))) {
       serverNameEl.innerText = 'سرور اختصاصی اشتراک';
-    }
-    if (serverIpEl && serverIpEl.innerText.includes('45.87.41.246')) {
-      serverIpEl.innerText = '';
     }
     if (userLocEl && userLocEl.innerText.includes('شناسایی')) {
       userLocEl.innerText = 'شبکه متصل به سرور';
@@ -376,12 +373,18 @@
         let lastLoaded = 0;
         let lastTime = performance.now();
 
+        xhr.timeout = 8000;
         xhr.open('POST', `/api/user/speedtest/upload?_t=${Date.now()}`, true);
         xhr.setRequestHeader('Content-Type', 'application/octet-stream');
         const authHdr = getAuthHeaders();
         if (authHdr['X-Telegram-Init-Data']) {
           xhr.setRequestHeader('X-Telegram-Init-Data', authHdr['X-Telegram-Init-Data']);
         }
+
+        xhr.ontimeout = function () {
+          activeXhrs.delete(xhr);
+          resolve(0);
+        };
 
         xhr.upload.onprogress = function (e) {
           if (signal && signal.aborted) {
@@ -434,18 +437,15 @@
       });
     }
 
-    // 2-connection pipeline loop until UPLOAD_DURATION_MS expires
-    let iter = 0;
+    // Real parallel upload workers
     while (performance.now() - testStartTime < UPLOAD_DURATION_MS) {
       if (signal && signal.aborted) break;
 
-      const buf = iter === 0 ? randomBuffer1 : randomBuffer2;
-      iter++;
+      const workers = [runUploadWorker(randomBuffer2), runUploadWorker(randomBuffer2)];
+      const results = await Promise.all(workers);
+      totalUploadedBytes += (results[0] || 0) + (results[1] || 0);
 
-      const sent = await runUploadWorker(buf);
-      totalUploadedBytes += sent;
-
-      if (sent === 0 || (signal && signal.aborted)) break;
+      if ((results[0] === 0 && results[1] === 0) || (signal && signal.aborted)) break;
     }
 
     let finalUploadMbps = 0;
@@ -454,7 +454,9 @@
       const trimCount = Math.max(1, Math.floor(sorted.length * 0.15));
       const trimmed = sorted.slice(trimCount, sorted.length - trimCount);
       finalUploadMbps = trimmed.reduce((a, b) => a + b, 0) / trimmed.length;
-    } else {
+    }
+    // Fallback if onprogress didn't fire enough samples
+    if ((!finalUploadMbps || finalUploadMbps <= 0) && totalUploadedBytes > 0) {
       const totalSec = (performance.now() - testStartTime) / 1000;
       finalUploadMbps = totalSec > 0 ? (totalUploadedBytes * 8) / (totalSec * 1000000) : 0;
     }
@@ -529,7 +531,7 @@
     if (window.hapticFeedback) window.hapticFeedback('impact');
 
     try {
-      // Step 1: Detect Network telemetry & SpectraIP server info
+      // Step 1: Detect Network telemetry & server info
       await detectEngineAndNetwork(abortController.signal);
 
       // Step 2: Ping & Jitter Latency (RFC 3550 & Median Ping)

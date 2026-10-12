@@ -12,7 +12,9 @@ function setupStoryCard() {
   closeStoryCardBtn?.addEventListener('click', () => closeModal('storyCardModal'));
 
   shareTelegramStoryBtn?.addEventListener('click', () => {
-    const refLink = window.currentReferralLink || `https://t.me/RemnaWaveBot?start=ref_${window.lastUserData?.user?.id || ''}`;
+    const botUser = window.lastUserData?.bot_username || window.Telegram?.WebApp?.initDataUnsafe?.bot?.username || '';
+    const fallbackRef = botUser ? `https://t.me/${botUser}?start=ref_${window.lastUserData?.user?.id || ''}` : `https://t.me/?start=ref_${window.lastUserData?.user?.id || ''}`;
+    const refLink = window.currentReferralLink || fallbackRef;
     copyToClipboard(refLink);
 
     const rewardGb = (document.getElementById('storyCardRewardGb')?.innerText || '5').trim();

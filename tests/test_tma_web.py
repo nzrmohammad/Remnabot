@@ -414,17 +414,10 @@ async def test_user_topup_card_validation_and_duplicate_prevention():
 
 
 @pytest.mark.anyio
-async def test_user_settings_persistence():
+async def test_user_settings_persistence(session_factory):
     from aiohttp.test_utils import make_mocked_request
-    from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
-    from bot.db.models import Base
     from bot.web.user_nodes import post_user_settings
     from bot.web.routes_user import get_user_me
-
-    engine = create_async_engine("sqlite+aiosqlite:///:memory:")
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-    session_factory = async_sessionmaker(engine, expire_on_commit=False)
 
     app = {
         "bot_token": "123:abc",
@@ -453,8 +446,6 @@ async def test_user_settings_persistence():
     assert "settings" in me_data
     assert me_data["settings"]["nightly"] is False
     assert me_data["settings"]["weekly"] is True
-
-    await engine.dispose()
 
 
 @pytest.mark.anyio
@@ -554,16 +545,10 @@ async def test_lucky_wheel_prize_application_traffic_and_days():
 
 
 @pytest.mark.anyio
-async def test_user_purchase_multi_account_fallback_and_payload():
+async def test_user_purchase_multi_account_fallback_and_payload(session_factory):
     from aiohttp.test_utils import make_mocked_request
-    from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
-    from bot.db.models import Base, Service, Wallet
+    from bot.db.models import Service, Wallet
     from bot.web.user_shop import post_user_purchase
-
-    engine = create_async_engine("sqlite+aiosqlite:///:memory:")
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-    session_factory = async_sessionmaker(engine, expire_on_commit=False)
 
     async with session_factory() as session:
         # Create service and user wallet
@@ -613,20 +598,12 @@ async def test_user_purchase_multi_account_fallback_and_payload():
     assert res_data["new_balance"] == 150000
     assert res_data["subscription_url"] == "https://sub/primary"
 
-    await engine.dispose()
-
 
 @pytest.mark.anyio
-async def test_admin_overview_metrics_flags_and_devices():
+async def test_admin_overview_metrics_flags_and_devices(session_factory):
     from aiohttp.test_utils import make_mocked_request
-    from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
-    from bot.db.models import Base, User
+    from bot.db.models import User
     from bot.web.routes_admin import get_admin_overview
-
-    engine = create_async_engine("sqlite+aiosqlite:///:memory:")
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-    session_factory = async_sessionmaker(engine, expire_on_commit=False)
 
     async with session_factory() as session:
         session.add(User(telegram_id=99999, username="admin_user"))
@@ -686,8 +663,6 @@ async def test_admin_overview_metrics_flags_and_devices():
     assert nodes[0]["connected_users"] == 42
     assert nodes[1]["flag"] == "🇳🇱"
     assert nodes[1]["status"] == "OFFLINE"
-
-    await engine.dispose()
 
 
 @pytest.mark.anyio

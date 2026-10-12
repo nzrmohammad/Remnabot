@@ -14,12 +14,7 @@ from bot.web.routes_admin import get_admin_overview
 
 
 @pytest.mark.anyio
-async def test_traffic_snapshot_repository_lifecycle():
-    engine = create_async_engine("sqlite+aiosqlite:///:memory:")
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-    session_factory = async_sessionmaker(engine, expire_on_commit=False)
-
+async def test_traffic_snapshot_repository_lifecycle(session_factory):
     now = datetime.datetime(2026, 10, 8, 12, 0, 0, tzinfo=datetime.timezone.utc)
 
     async with session_factory() as session:
@@ -57,16 +52,9 @@ async def test_traffic_snapshot_repository_lifecycle():
         assert snapshots[0].id == s1.id
         assert snapshots[1].id == s2.id
 
-    await engine.dispose()
-
 
 @pytest.mark.anyio
-async def test_record_hourly_traffic_snapshot_once():
-    engine = create_async_engine("sqlite+aiosqlite:///:memory:")
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-    session_factory = async_sessionmaker(engine, expire_on_commit=False)
-
+async def test_record_hourly_traffic_snapshot_once(session_factory):
     mock_remnawave = AsyncMock()
     # Return 2 users with traffic
     mock_remnawave.get_all_panel_users.return_value = [
@@ -102,16 +90,9 @@ async def test_record_hourly_traffic_snapshot_once():
         assert latest.total_bytes == 60 * (1024**3)
         assert latest.delta_bytes == 10 * (1024**3)  # 60 - 50 = 10 GB
 
-    await engine.dispose()
-
 
 @pytest.mark.anyio
-async def test_admin_overview_uses_real_hourly_snapshots():
-    engine = create_async_engine("sqlite+aiosqlite:///:memory:")
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-    session_factory = async_sessionmaker(engine, expire_on_commit=False)
-
+async def test_admin_overview_uses_real_hourly_snapshots(session_factory):
     now_utc = datetime.datetime.now(datetime.timezone.utc)
     target_hour = now_utc.hour
 
@@ -151,5 +132,3 @@ async def test_admin_overview_uses_real_hourly_snapshots():
     # The target_hour bucket in the 24-hour chart must match at least 15.0 GB
     bin_idx = target_hour
     assert hourly["data"][bin_idx] >= 15.0
-
-    await engine.dispose()
