@@ -135,6 +135,7 @@ async def test_web_app_routes():
     assert "/api/user/spin" in registered_paths
     assert "/api/user/speedtest/ping" in registered_paths
     assert "/api/user/speedtest/payload" in registered_paths
+    assert "/api/user/speedtest/upload" in registered_paths
     assert "/api/admin/overview" in registered_paths
     assert "/api/admin/broadcast/status" in registered_paths
     assert "/api/admin/user/reset_trial" in registered_paths
@@ -1722,23 +1723,36 @@ async def test_topup_image_upload_and_admin_viewing():
 @pytest.mark.anyio
 async def test_speedtest_endpoints():
     from aiohttp.test_utils import make_mocked_request
-    from bot.web.routes_user import get_user_speedtest_ping, get_user_speedtest_payload
+    from bot.web.routes_user import (
+        get_user_speedtest_ping,
+        get_user_speedtest_payload,
+        post_user_speedtest_upload,
+    )
 
-    req_ping = make_mocked_request("GET", "/api/user/speedtest/ping")
+    req_ping = make_mocked_request("GET", "/api/user/speedtest/ping", headers={"X-Real-IP": "5.200.10.20"})
     resp_ping = await get_user_speedtest_ping(req_ping)
     assert resp_ping.status == 200
     data_ping = json.loads(resp_ping.text)
     assert data_ping["ok"] is True
     assert "t" in data_ping
+    assert data_ping.get("ip") == "5.200.10.20"
     assert "no-store" in resp_ping.headers["Cache-Control"]
 
-    # Test payload endpoint returns requested byte length and uncompressed identity headers
+    # Test payload endpoint returns requested byte length and uncompressed headers
     req_payload = make_mocked_request("GET", "/api/user/speedtest/payload?bytes=524288")
     resp_payload = await get_user_speedtest_payload(req_payload)
     assert resp_payload.status == 200
     assert resp_payload.content_type == "application/octet-stream"
     assert len(resp_payload.body) == 524288
     assert "no-store" in resp_payload.headers["Cache-Control"]
+
+    # Test upload endpoint accepts payload stream without disk I/O
+    req_upload = make_mocked_request("POST", "/api/user/speedtest/upload", payload=b"X" * 131072)
+    resp_upload = await post_user_speedtest_upload(req_upload)
+    assert resp_upload.status == 200
+    data_upload = json.loads(resp_upload.text)
+    assert data_upload["ok"] is True
+    assert data_upload["received_bytes"] == 131072
 
 
 

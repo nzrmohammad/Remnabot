@@ -129,18 +129,17 @@
           </button>
         </div>
 
-        <!-- Speed & Ping Test Entry Banner Card -->
+        <!-- Speed & Quality Test Entry Banner Card -->
         <button id="openSpeedTestModalBtn" type="button" onclick="window.openSpeedTestModal()" class="w-full speedtest-entry-btn bg-gradient-to-r from-emerald-500/15 via-teal-500/15 to-cyan-500/10 hover:from-emerald-500/25 p-3 rounded-2xl border border-emerald-500/40 text-right flex items-center justify-between transition shadow-sm group active:scale-[0.98]">
           <div class="flex items-center gap-3">
             <div class="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center text-lg flex-shrink-0 group-hover:scale-110 transition">
               ⚡️
             </div>
             <div class="flex flex-col">
-              <span class="text-xs font-black text-emerald-300 group-hover:text-emerald-200 flex items-center gap-1.5 speedtest-title">
-                <span>تست پینگ و سرعت اتصال</span>
-                <span class="text-[9px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 px-1.5 py-0.5 rounded-full font-bold">زنده</span>
+              <span class="text-xs font-black text-emerald-300 group-hover:text-emerald-200 speedtest-title">
+                تست سرعت اینترنت
               </span>
-              <span class="text-[10px] text-slate-300 mt-0.5 font-medium speedtest-sub">سنجش زنده کیفیت شبکه، پینگ و پهنای‌باند</span>
+              <span class="text-[10px] text-slate-300 mt-0.5 font-medium speedtest-sub">سنجش دقیق پهنای‌باند دانلود، آپلود و پینگ</span>
             </div>
           </div>
           <div class="flex items-center gap-1 text-emerald-400 font-bold text-xs bg-slate-900/60 px-2.5 py-1.5 rounded-xl border border-emerald-500/20 group-hover:border-emerald-500/50 transition">
@@ -1638,29 +1637,47 @@
     </div>
 
     <!-- ======================================================== -->
-    <!-- 9. MODAL: SPEED & PING TEST (تست زنده پینگ و سرعت اینترنت) -->
+    <!-- 9. MODAL: SPEED & PING TEST (تست سرعت اینترنت)          -->
     <!-- ======================================================== -->
     <div id="speedTestModal" onclick="if(event.target === this) window.closeSpeedTestModal()" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden animate-fadeIn overflow-y-auto">
-      <div class="speedtest-modal-card bg-[#1a233a] border border-emerald-500/40 rounded-3xl p-4 sm:p-5 w-full max-w-[380px] shadow-2xl relative my-auto text-xs max-h-[90vh] flex flex-col space-y-3.5">
+      <div class="speedtest-modal-card bg-[#1a233a] border border-emerald-500/40 rounded-3xl p-4 sm:p-5 w-full max-w-[380px] shadow-2xl relative my-auto text-xs max-h-[92vh] flex flex-col space-y-3">
         <!-- Close Button -->
         <button id="closeSpeedTestModalBtn" type="button" onclick="window.closeSpeedTestModal()" class="absolute top-3.5 left-3.5 text-slate-400 hover:text-white text-xs bg-slate-800 rounded-full w-7 h-7 flex items-center justify-center transition active:scale-95" title="بستن">✕</button>
 
         <!-- Modal Header -->
-        <div class="flex items-center gap-2.5 pb-2 border-b border-slate-700/60 pl-8 flex-shrink-0">
+        <div class="flex items-center gap-2.5 pb-1.5 border-b border-slate-700/60 pl-8 flex-shrink-0">
           <div class="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center text-sm flex-shrink-0">
             ⚡️
           </div>
           <div class="flex-1">
-            <h3 class="font-bold text-slate-100 text-sm">سنجش سرعت و پینگ اتصال</h3>
-            <div class="flex items-center gap-1.5 mt-0.5">
-              <span id="speedServerBadge" class="text-[9px] bg-cyan-950/70 border border-cyan-500/40 text-cyan-300 px-2 py-0.5 rounded-full font-medium">🌐 سرور تست: Cloudflare CDN (جهانی)</span>
+            <h3 class="font-bold text-slate-100 text-sm">سنجش سرعت اینترنت</h3>
+            <p class="text-[10px] text-slate-400 mt-0.5">سنجش دقیق پهنای‌باند دانلود، آپلود و پینگ واقعی شبکه</p>
+          </div>
+        </div>
+
+        <!-- Network / IP Info Box (مثل Speedtest.net) -->
+        <div id="speedNetworkInfoBox" class="speed-network-box bg-slate-900/85 p-2.5 rounded-2xl border border-slate-700/70 flex items-center justify-between text-[11px] transition">
+          <div class="flex items-center gap-2">
+            <span class="text-base">📍</span>
+            <div class="flex flex-col text-right">
+              <span class="text-[9px] text-slate-400 font-medium">آی‌پی و اپراتور شما</span>
+              <div class="flex items-center gap-1 font-mono text-slate-200 font-bold text-[11px]" dir="ltr">
+                <span id="speedUserIp">--.--.--.--</span>
+              </div>
+              <span id="speedUserLocation" class="text-[9px] text-emerald-400 font-medium truncate max-w-[140px]">در حال شناسایی اپراتور...</span>
             </div>
+          </div>
+          <div class="flex flex-col text-left pl-1 border-r border-slate-800 pr-2.5">
+            <span class="text-[9px] text-slate-400 font-medium text-right">سرور تست</span>
+            <span id="speedServerName" class="text-[11px] font-bold text-cyan-300 flex items-center gap-1 mt-0.5" dir="rtl">
+              <span>🌐</span> <span id="speedServerNameText">شبکه جهانی Cloudflare</span>
+            </span>
           </div>
         </div>
 
         <!-- Speedometer Gauge Area -->
-        <div class="flex flex-col items-center justify-center py-1 relative">
-          <svg class="w-52 h-44 overflow-visible" viewBox="0 0 200 160">
+        <div class="flex flex-col items-center justify-center py-0.5 relative">
+          <svg class="w-52 h-40 overflow-visible" viewBox="0 0 200 160">
             <defs>
               <linearGradient id="speedArcGrad" x1="0%" y1="0%" x2="100%" y2="0%">
                 <stop offset="0%" stop-color="#10b981" />
@@ -1679,66 +1696,75 @@
             </defs>
 
             <!-- Background Track Arc (240 deg, r=75, cx=100, cy=100, rotated 150 deg) -->
-            <circle cx="100" cy="100" r="75" fill="none" stroke="#334155" stroke-width="12" stroke-linecap="round" stroke-dasharray="314.16 471.24" transform="rotate(150 100 100)" opacity="0.4" />
+            <circle class="speed-gauge-track" cx="100" cy="100" r="75" fill="none" stroke="#334155" stroke-width="12" stroke-linecap="round" stroke-dasharray="314.16 471.24" transform="rotate(150 100 100)" opacity="0.4" />
 
             <!-- Progress Colored Arc -->
             <circle id="speedGaugeProgressArc" cx="100" cy="100" r="75" fill="none" stroke="url(#speedArcGrad)" stroke-width="12" stroke-linecap="round" stroke-dasharray="314.16 471.24" stroke-dashoffset="314.16" transform="rotate(150 100 100)" filter="url(#gaugeGlow)" style="transition: stroke-dashoffset 0.15s ease-out;" />
 
             <!-- Gauge Scale Labels -->
-            <text x="36" y="146" fill="#64748b" font-size="9" font-family="monospace" text-anchor="middle">0</text>
-            <text x="35" y="75" fill="#64748b" font-size="9" font-family="monospace" text-anchor="middle">10</text>
-            <text x="100" y="18" fill="#64748b" font-size="9" font-family="monospace" text-anchor="middle">50</text>
-            <text x="165" y="75" fill="#64748b" font-size="9" font-family="monospace" text-anchor="middle">80</text>
-            <text x="164" y="146" fill="#64748b" font-size="9" font-family="monospace" text-anchor="middle">100+</text>
+            <text class="speed-scale-lbl" x="36" y="146" fill="#64748b" font-size="9" font-family="monospace" text-anchor="middle">0</text>
+            <text class="speed-scale-lbl" x="35" y="75" fill="#64748b" font-size="9" font-family="monospace" text-anchor="middle">10</text>
+            <text class="speed-scale-lbl" x="100" y="18" fill="#64748b" font-size="9" font-family="monospace" text-anchor="middle">50</text>
+            <text class="speed-scale-lbl" x="165" y="75" fill="#64748b" font-size="9" font-family="monospace" text-anchor="middle">80</text>
+            <text class="speed-scale-lbl" x="164" y="146" fill="#64748b" font-size="9" font-family="monospace" text-anchor="middle">100+</text>
 
             <!-- Needle -->
             <g id="speedGaugeNeedle" transform="rotate(-210, 100, 100)" style="transition: transform 0.08s ease-out;">
               <polygon points="90,98 165,100 90,102" fill="url(#speedNeedleGrad)" />
-              <circle cx="100" cy="100" r="7" fill="#0f172a" stroke="#38bdf8" stroke-width="2.5" />
+              <circle class="speed-needle-pivot" cx="100" cy="100" r="7" fill="#0f172a" stroke="#38bdf8" stroke-width="2.5" />
             </g>
           </svg>
 
           <!-- Digital Readout Display -->
           <div class="flex flex-col items-center justify-center -mt-6">
+            <span id="speedPhaseLabel" class="text-[10px] text-cyan-400 font-bold mb-0.5">آماده شروع</span>
             <div class="flex items-baseline gap-1.5" dir="ltr">
               <span id="speedDisplayVal" class="text-4xl font-black text-white font-mono tracking-tight leading-none drop-shadow-md">0.0</span>
-              <span class="text-xs font-bold text-cyan-400">Mbps</span>
+              <span id="speedUnitVal" class="text-xs font-bold text-slate-400">Mbps</span>
             </div>
-            <span class="text-[10px] text-slate-400 mt-1 font-medium">سرعت لحظه‌ای دانلود</span>
+            <span id="speedDataUsedText" class="text-[9px] text-slate-400 mt-1 font-medium">مصرف داده: <span id="speedDataUsed" class="font-mono text-slate-300 font-bold">0.0 MB</span></span>
           </div>
         </div>
 
-        <!-- Metrics Chips (Ping, Jitter, Data Used) -->
-        <div class="grid grid-cols-3 gap-2">
-          <div class="bg-slate-900/80 p-2 rounded-2xl border border-slate-700/60 text-center flex flex-col items-center">
-            <span class="text-[10px] text-slate-400 font-medium">📶 پینگ</span>
+        <!-- 4 Metric Chips: Download, Upload, Ping, Jitter -->
+        <div class="grid grid-cols-4 gap-1.5">
+          <div class="speed-chip-card bg-slate-900/85 p-2 rounded-2xl border border-slate-700/60 text-center flex flex-col items-center">
+            <span class="text-[9px] text-slate-400 font-medium flex items-center gap-0.5"><span>📥</span> دانلود</span>
             <div class="flex items-baseline gap-0.5 mt-0.5" dir="ltr">
-              <span id="speedPingVal" class="text-sm font-bold text-emerald-400 font-mono">--</span>
-              <span class="text-[9px] text-slate-400">ms</span>
+              <span id="speedDownloadVal" class="text-xs font-bold text-emerald-400 font-mono">--</span>
+              <span class="text-[8px] text-slate-400 font-sans">Mb</span>
             </div>
           </div>
-          <div class="bg-slate-900/80 p-2 rounded-2xl border border-slate-700/60 text-center flex flex-col items-center">
-            <span class="text-[10px] text-slate-400 font-medium">〰️ نوسان (Jitter)</span>
+          <div class="speed-chip-card bg-slate-900/85 p-2 rounded-2xl border border-slate-700/60 text-center flex flex-col items-center">
+            <span class="text-[9px] text-slate-400 font-medium flex items-center gap-0.5"><span>📤</span> آپلود</span>
             <div class="flex items-baseline gap-0.5 mt-0.5" dir="ltr">
-              <span id="speedJitterVal" class="text-sm font-bold text-cyan-400 font-mono">--</span>
-              <span class="text-[9px] text-slate-400">ms</span>
+              <span id="speedUploadVal" class="text-xs font-bold text-cyan-400 font-mono">--</span>
+              <span class="text-[8px] text-slate-400 font-sans">Mb</span>
             </div>
           </div>
-          <div class="bg-slate-900/80 p-2 rounded-2xl border border-slate-700/60 text-center flex flex-col items-center">
-            <span class="text-[10px] text-slate-400 font-medium">📦 حجم مصرفی</span>
+          <div class="speed-chip-card bg-slate-900/85 p-2 rounded-2xl border border-slate-700/60 text-center flex flex-col items-center">
+            <span class="text-[9px] text-slate-400 font-medium flex items-center gap-0.5"><span>📶</span> پینگ</span>
             <div class="flex items-baseline gap-0.5 mt-0.5" dir="ltr">
-              <span id="speedDataUsed" class="text-sm font-bold text-indigo-400 font-mono">0.0 MB</span>
+              <span id="speedPingVal" class="text-xs font-bold text-teal-400 font-mono">--</span>
+              <span class="text-[8px] text-slate-400 font-sans">ms</span>
+            </div>
+          </div>
+          <div class="speed-chip-card bg-slate-900/85 p-2 rounded-2xl border border-slate-700/60 text-center flex flex-col items-center">
+            <span class="text-[9px] text-slate-400 font-medium flex items-center gap-0.5"><span>〰️</span> نوسان</span>
+            <div class="flex items-baseline gap-0.5 mt-0.5" dir="ltr">
+              <span id="speedJitterVal" class="text-xs font-bold text-indigo-400 font-mono">--</span>
+              <span class="text-[8px] text-slate-400 font-sans">ms</span>
             </div>
           </div>
         </div>
 
         <!-- Status & Verdict Badge -->
         <div id="speedStatusBadge" class="py-2 px-3 rounded-xl bg-slate-900/80 border border-slate-700/60 text-[11px] text-slate-300 font-medium text-center transition min-h-[38px] flex items-center justify-center">
-          آماده برای آغاز تست سرعت و پینگ
+          آماده برای تست سرعت دانلود، آپلود و پینگ
         </div>
 
         <!-- Action Button -->
-        <div class="pt-1 flex-shrink-0">
+        <div class="pt-0.5 flex-shrink-0">
           <button id="startSpeedTestBtn" type="button" onclick="window.toggleSpeedTest()" class="w-full bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 hover:from-emerald-400 hover:to-cyan-400 text-slate-950 font-black text-xs py-3 rounded-2xl transition active:scale-95 shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2">
             <span>⚡️</span>
             <span id="startSpeedTestBtnText">شروع تست سرعت 🚀</span>
@@ -1749,14 +1775,14 @@
   </div>
 
   <!-- Modular Frontend Architecture (DRY) -->
-  <script src="/static/js/utils.js?v=22.0"></script>
-  <script src="/static/js/api.js?v=22.0"></script>
-  <script src="/static/js/charts.js?v=22.0"></script>
-  <script src="/static/js/shop.js?v=22.0"></script>
-  <script src="/static/js/wallet.js?v=22.0"></script>
-  <script src="/static/js/wheel.js?v=22.0"></script>
-  <script src="/static/js/story.js?v=22.0"></script>
-  <script src="/static/js/speedtest.js?v=22.0"></script>
-  <script src="/static/js/app.js?v=22.0"></script>
+  <script src="/static/js/utils.js?v=23.0"></script>
+  <script src="/static/js/api.js?v=23.0"></script>
+  <script src="/static/js/charts.js?v=23.0"></script>
+  <script src="/static/js/shop.js?v=23.0"></script>
+  <script src="/static/js/wallet.js?v=23.0"></script>
+  <script src="/static/js/wheel.js?v=23.0"></script>
+  <script src="/static/js/story.js?v=23.0"></script>
+  <script src="/static/js/speedtest.js?v=23.0"></script>
+  <script src="/static/js/app.js?v=23.0"></script>
 </body>
 </html>

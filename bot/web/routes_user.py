@@ -1001,9 +1001,16 @@ _SPEEDTEST_CHUNK = os.urandom(1024 * 1024)
 
 
 async def get_user_speedtest_ping(request: web.Request) -> web.Response:
-    """Lightweight ping probe for RTT and jitter calculation."""
+    """Lightweight ping probe returning server timestamp and client IP."""
+    client_ip = (
+        request.headers.get("CF-Connecting-IP")
+        or request.headers.get("X-Real-IP")
+        or request.headers.get("X-Forwarded-For", "").split(",")[0].strip()
+        or request.remote
+        or ""
+    )
     return web.json_response(
-        {"ok": True, "t": int(time.time() * 1000)},
+        {"ok": True, "t": int(time.time() * 1000), "ip": client_ip},
         headers={
             "Cache-Control": "no-store, no-cache, no-transform, must-revalidate, max-age=0",
             "Access-Control-Allow-Origin": "*",
@@ -1034,6 +1041,33 @@ async def get_user_speedtest_payload(request: web.Request) -> web.Response:
             "Access-Control-Allow-Origin": "*",
         },
     )
+
+
+async def post_user_speedtest_upload(request: web.Request) -> web.Response:
+    """Measure upload throughput by receiving chunks without disk I/O."""
+    total_bytes = 0
+    if hasattr(request.content, "read"):
+        while True:
+            chunk = await request.content.read(65536)
+            if not chunk:
+                break
+            total_bytes += len(chunk)
+            if total_bytes > 16 * 1024 * 1024:
+                break
+    elif isinstance(request.content, (bytes, bytearray)):
+        total_bytes = len(request.content)
+    else:
+        body = await request.read()
+        total_bytes = len(body)
+
+    return web.json_response(
+        {"ok": True, "received_bytes": total_bytes},
+        headers={
+            "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0",
+            "Access-Control-Allow-Origin": "*",
+        },
+    )
+
 
 
 

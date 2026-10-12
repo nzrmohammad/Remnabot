@@ -76,6 +76,7 @@ from bot.web.routes_user import (
     get_user_subscription_configs,
     get_user_speedtest_ping,
     get_user_speedtest_payload,
+    post_user_speedtest_upload,
 )
 
 logger = logging.getLogger(__name__)
@@ -393,6 +394,7 @@ def create_web_app(
     app.router.add_get("/api/user/subscription/configs", get_user_subscription_configs)
     app.router.add_get("/api/user/speedtest/ping", get_user_speedtest_ping)
     app.router.add_get("/api/user/speedtest/payload", get_user_speedtest_payload)
+    app.router.add_post("/api/user/speedtest/upload", post_user_speedtest_upload)
 
     # Admin APIs
     app.router.add_get("/api/admin/overview", get_admin_overview)

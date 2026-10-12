@@ -1,7 +1,7 @@
 /**
- * RemnaStore Pro - Bulletproof Client-Side Speed & Ping Test Engine
- * Measures true user latency, jitter, and real-time streaming download throughput.
- * Uses global Cloudflare Speed CDN with automatic seamless bot-server fallback.
+ * RemnaStore Pro - Professional Speed & Network Quality Engine
+ * Measures true sustained Download throughput, Upload throughput, Latency, and Jitter.
+ * Includes user IP telemetry and multi-CDN support without burst overestimation.
  */
 
 (function () {
@@ -12,12 +12,14 @@
   let targetSpeedMbps = 0;
   let lastToggleTime = 0;
 
-  // Gauge geometry configuration (-210 deg to 30 deg = 240 deg sweep)
+  // Geometry: Gauge sweeps 240 degrees from -210 deg to 30 deg
   const MIN_ANGLE = -210;
   const MAX_ANGLE = 30;
   const TOTAL_DEGREES = 240;
   const MAX_GAUGE_MBPS = 100;
-  const TEST_DURATION_MS = 5500; // 5.5-second realistic measurement cycle
+
+  const DOWNLOAD_DURATION_MS = 3800;
+  const UPLOAD_DURATION_MS = 2500;
 
   function speedToAngle(mbps) {
     const clamped = Math.max(0, Math.min(mbps, MAX_GAUGE_MBPS));
@@ -55,7 +57,7 @@
   }
 
   function animateGauge() {
-    if (!isTesting && Math.abs(currentSpeedMbps - targetSpeedMbps) < 0.1) {
+    if (!isTesting && Math.abs(currentSpeedMbps - targetSpeedMbps) < 0.05) {
       currentSpeedMbps = targetSpeedMbps;
       updateGaugeVisual(currentSpeedMbps);
       return;
@@ -67,11 +69,31 @@
   }
 
   /**
-   * Determine best speedtest engine source:
-   * Cloudflare Speed CDN (global edge) vs local bot server fallback.
+   * Detect client IP, operator, and select fastest test engine (Cloudflare vs Proxy Server).
    */
-  async function detectBestSource(signal) {
-    const serverBadge = document.getElementById('speedServerBadge');
+  async function detectEngineAndNetwork(signal) {
+    const userIpEl = document.getElementById('speedUserIp');
+    const userLocEl = document.getElementById('speedUserLocation');
+    const serverNameEl = document.getElementById('speedServerNameText');
+
+    let source = 'server';
+
+    // 1. Fetch server ping first to get authoritative user IP
+    try {
+      const pingResp = await fetch(`/api/user/speedtest/ping?_t=${Date.now()}`, {
+        method: 'GET',
+        cache: 'no-store',
+        signal,
+      });
+      if (pingResp && pingResp.ok) {
+        const pingData = await pingResp.json();
+        if (pingData && pingData.ip && userIpEl) {
+          userIpEl.innerText = pingData.ip;
+        }
+      }
+    } catch (e) {}
+
+    // 2. Probe Cloudflare CDN availability
     try {
       const probeController = new AbortController();
       const timeoutId = setTimeout(() => probeController.abort(), 1800);
@@ -84,21 +106,38 @@
       clearTimeout(timeoutId);
 
       if (resp && resp.ok) {
-        if (serverBadge) {
-          serverBadge.innerText = '🌐 سرور تست: Cloudflare CDN (جهانی)';
-          serverBadge.className = 'text-[9px] bg-cyan-950/70 border border-cyan-500/40 text-cyan-300 px-2 py-0.5 rounded-full font-medium';
+        source = 'cloudflare';
+        const cfIp = resp.headers.get('cf-meta-ip');
+        const cfCity = resp.headers.get('cf-meta-city');
+        const cfCountry = resp.headers.get('cf-meta-country');
+        const cfAsn = resp.headers.get('cf-meta-asn');
+
+        if (cfIp && userIpEl) userIpEl.innerText = cfIp;
+
+        let locStr = '';
+        if (cfCity && cfCountry) locStr = `${cfCity}, ${cfCountry}`;
+        else if (cfCountry) locStr = `کشور: ${cfCountry}`;
+        if (cfAsn) locStr += ` (${cfAsn})`;
+
+        if (userLocEl) {
+          userLocEl.innerText = locStr || 'اتصال پایدار (Cloudflare Edge)';
         }
-        return 'cloudflare';
+        if (serverNameEl) {
+          serverNameEl.innerText = 'شبکه جهانی Cloudflare';
+        }
+        return source;
       }
     } catch (e) {
-      // Cloudflare unreachable or filtered -> fallback to bot server
+      // Cloudflare unavailable -> fallback to proxy server
     }
 
-    if (serverBadge) {
-      serverBadge.innerText = '⚡️ سرور تست: سرور اختصاصی ربات';
-      serverBadge.className = 'text-[9px] bg-emerald-950/70 border border-emerald-500/40 text-emerald-300 px-2 py-0.5 rounded-full font-medium';
+    if (serverNameEl) {
+      serverNameEl.innerText = 'سرور پروکسی اشتراک';
     }
-    return 'server';
+    if (userLocEl && userLocEl.innerText.includes('شناسایی')) {
+      userLocEl.innerText = 'اتصال مستقیم سرور';
+    }
+    return source;
   }
 
   /**
@@ -106,8 +145,11 @@
    */
   async function measurePingAndJitter(source, signal) {
     const statusText = document.getElementById('speedStatusBadge');
+    const phaseLabel = document.getElementById('speedPhaseLabel');
+
+    if (phaseLabel) phaseLabel.innerText = 'سنجش پینگ و تاخیر...';
     if (statusText) {
-      statusText.innerText = '📶 در حال سنجش پینگ و تاخیر شبکه...';
+      statusText.innerText = '📶 در حال اندازه‌گیری دقیق تاخیر زمانی (Ping)...';
       statusText.className = 'py-1.5 px-3 rounded-xl bg-cyan-950/60 border border-cyan-500/40 text-[11px] text-cyan-300 font-medium transition text-center min-h-[38px] flex items-center justify-center';
     }
 
@@ -134,9 +176,7 @@
           const pingEl = document.getElementById('speedPingVal');
           if (pingEl) pingEl.innerText = Math.round(duration).toString();
         }
-      } catch (e) {
-        // Ignore single ping failure
-      }
+      } catch (e) {}
       await new Promise(r => setTimeout(r, 60));
     }
 
@@ -158,29 +198,33 @@
   }
 
   /**
-   * Continuous multi-chunk streaming download throughput measurement.
-   * Resilient against WebView limitations and network interruptions.
+   * Measure Download Throughput over sustained window without burst overestimation.
    */
   async function measureDownloadThroughput(initialSource, signal) {
     const statusText = document.getElementById('speedStatusBadge');
+    const phaseLabel = document.getElementById('speedPhaseLabel');
+    const downloadVal = document.getElementById('speedDownloadVal');
+
+    if (phaseLabel) phaseLabel.innerText = 'سرعت دانلود (Download)';
     if (statusText) {
-      statusText.innerText = '⚡️ در حال دریافت داده و سنجش سرعت دانلود...';
-      statusText.className = 'py-1.5 px-3 rounded-xl bg-blue-950/60 border border-blue-500/40 text-[11px] text-blue-300 font-medium transition text-center min-h-[38px] flex items-center justify-center';
+      statusText.innerText = '📥 در حال دریافت داده و سنجش واقعی پهنای‌باند دانلود...';
+      statusText.className = 'py-1.5 px-3 rounded-xl bg-emerald-950/60 border border-emerald-500/40 text-[11px] text-emerald-300 font-medium transition text-center min-h-[38px] flex items-center justify-center';
     }
 
     let activeSource = initialSource;
     const testStartTime = performance.now();
     let totalReceivedBytes = 0;
-    const speedSamples = [];
 
-    // Progressive chunk sequence: 512KB -> 1MB -> 2MB -> 4MB -> 8MB
+    // TCP warm-up tracking: ignore first 400ms for stable wire throughput
+    let steadyStartTime = 0;
+    let steadyStartBytes = 0;
+
     const chunkSizes = [524288, 1048576, 2097152, 4194304, 8388608];
     let chunkIndex = 0;
+    let lastTickTime = testStartTime;
+    let lastTickBytes = 0;
 
-    let lastSampleTime = testStartTime;
-    let lastSampleBytes = 0;
-
-    while (performance.now() - testStartTime < TEST_DURATION_MS) {
+    while (performance.now() - testStartTime < DOWNLOAD_DURATION_MS) {
       if (signal && signal.aborted) break;
 
       const bytesToFetch = chunkSizes[Math.min(chunkIndex, chunkSizes.length - 1)];
@@ -197,16 +241,13 @@
           signal,
         });
 
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}`);
-        }
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
-        // Support both ReadableStream streaming and ArrayBuffer fallback for all mobile WebViews
         if (response.body && typeof response.body.getReader === 'function') {
           const reader = response.body.getReader();
 
           while (true) {
-            if (performance.now() - testStartTime >= TEST_DURATION_MS || (signal && signal.aborted)) {
+            if (performance.now() - testStartTime >= DOWNLOAD_DURATION_MS || (signal && signal.aborted)) {
               try { reader.cancel(); } catch (e) {}
               break;
             }
@@ -217,19 +258,26 @@
             if (value && value.length > 0) {
               totalReceivedBytes += value.length;
               const now = performance.now();
-              const deltaSec = (now - lastSampleTime) / 1000;
 
-              if (deltaSec >= 0.1) {
-                const deltaBytes = totalReceivedBytes - lastSampleBytes;
-                const instantMbps = (deltaBytes * 8) / (deltaSec * 1000000);
+              // Mark steady state after initial 400ms buffer
+              if (now - testStartTime > 400 && steadyStartTime === 0) {
+                steadyStartTime = now;
+                steadyStartBytes = totalReceivedBytes;
+              }
 
-                if (now - testStartTime > 250) {
-                  speedSamples.push(instantMbps);
+              const deltaSec = (now - lastTickTime) / 1000;
+              if (deltaSec >= 0.12) {
+                // Compute true physical wire rate over steady window
+                if (steadyStartTime > 0) {
+                  const sustainedSec = (now - steadyStartTime) / 1000;
+                  const sustainedBytes = totalReceivedBytes - steadyStartBytes;
+                  targetSpeedMbps = (sustainedBytes * 8) / (sustainedSec * 1000000);
+                } else {
+                  targetSpeedMbps = ((totalReceivedBytes - lastTickBytes) * 8) / (deltaSec * 1000000);
                 }
-                targetSpeedMbps = instantMbps;
 
-                lastSampleTime = now;
-                lastSampleBytes = totalReceivedBytes;
+                lastTickTime = now;
+                lastTickBytes = totalReceivedBytes;
               }
 
               const dataUsedEl = document.getElementById('speedDataUsed');
@@ -239,20 +287,14 @@
             }
           }
         } else {
-          // Fallback for WebViews without full ReadableStream support
+          // ArrayBuffer fallback for WebViews
           const buf = await response.arrayBuffer();
           if (buf && buf.byteLength > 0) {
             totalReceivedBytes += buf.byteLength;
             const now = performance.now();
-            const deltaSec = (now - lastSampleTime) / 1000;
-            if (deltaSec > 0.05) {
-              const deltaBytes = totalReceivedBytes - lastSampleBytes;
-              const instantMbps = (deltaBytes * 8) / (deltaSec * 1000000);
-              speedSamples.push(instantMbps);
-              targetSpeedMbps = instantMbps;
-              lastSampleTime = now;
-              lastSampleBytes = totalReceivedBytes;
-            }
+            const deltaSec = (now - testStartTime) / 1000;
+            targetSpeedMbps = deltaSec > 0 ? (totalReceivedBytes * 8) / (deltaSec * 1000000) : 0;
+
             const dataUsedEl = document.getElementById('speedDataUsed');
             if (dataUsedEl) {
               dataUsedEl.innerText = `${(totalReceivedBytes / (1024 * 1024)).toFixed(1)} MB`;
@@ -261,64 +303,147 @@
         }
       } catch (err) {
         if (signal && signal.aborted) break;
-
-        // If Cloudflare fails mid-test, seamlessly switch to bot server without failing
         if (activeSource === 'cloudflare') {
           activeSource = 'server';
-          const serverBadge = document.getElementById('speedServerBadge');
-          if (serverBadge) {
-            serverBadge.innerText = '⚡️ سرور تست: سرور اختصاصی ربات (فال‌بک)';
-            serverBadge.className = 'text-[9px] bg-emerald-950/70 border border-emerald-500/40 text-emerald-300 px-2 py-0.5 rounded-full font-medium';
-          }
-          await new Promise(r => setTimeout(r, 100));
+          const serverNameEl = document.getElementById('speedServerNameText');
+          if (serverNameEl) serverNameEl.innerText = 'سرور پروکسی اشتراک (فال‌بک)';
+          await new Promise(r => setTimeout(r, 80));
           continue;
         }
         break;
       }
     }
 
-    const totalDurationSec = (performance.now() - testStartTime) / 1000;
-
-    let finalThroughputMbps = 0;
-    if (speedSamples.length > 0) {
-      const sorted = [...speedSamples].sort((a, b) => a - b);
-      const p80Index = Math.floor(sorted.length * 0.75);
-      finalThroughputMbps = sorted[p80Index];
-    } else if (totalDurationSec > 0 && totalReceivedBytes > 0) {
-      finalThroughputMbps = (totalReceivedBytes * 8) / (totalDurationSec * 1000000);
+    // Accurate sustained physical wire throughput calculation
+    let finalDownloadMbps = 0;
+    if (steadyStartTime > 0 && totalReceivedBytes > steadyStartBytes) {
+      const steadyDurationSec = (performance.now() - steadyStartTime) / 1000;
+      const steadyBytes = totalReceivedBytes - steadyStartBytes;
+      finalDownloadMbps = (steadyBytes * 8) / (steadyDurationSec * 1000000);
+    } else {
+      const totalSec = (performance.now() - testStartTime) / 1000;
+      finalDownloadMbps = totalSec > 0 ? (totalReceivedBytes * 8) / (totalSec * 1000000) : 0;
     }
 
-    targetSpeedMbps = finalThroughputMbps;
-    return { finalMbps: finalThroughputMbps, totalBytes: totalReceivedBytes };
+    targetSpeedMbps = finalDownloadMbps;
+    if (downloadVal) {
+      downloadVal.innerText = finalDownloadMbps < 10 ? finalDownloadMbps.toFixed(1) : Math.round(finalDownloadMbps).toString();
+    }
+    return { finalDownloadMbps, totalReceivedBytes };
   }
 
-  function getVerdictText(speed, ping, totalBytes) {
+  /**
+   * Measure Upload Throughput by streaming synthetic buffers to server.
+   */
+  async function measureUploadThroughput(initialSource, signal) {
+    const statusText = document.getElementById('speedStatusBadge');
+    const phaseLabel = document.getElementById('speedPhaseLabel');
+    const uploadVal = document.getElementById('speedUploadVal');
+
+    if (phaseLabel) phaseLabel.innerText = 'سرعت آپلود (Upload)';
+    if (statusText) {
+      statusText.innerText = '📤 در حال ارسال داده و سنجش واقعی پهنای‌باند آپلود...';
+      statusText.className = 'py-1.5 px-3 rounded-xl bg-blue-950/60 border border-blue-500/40 text-[11px] text-blue-300 font-medium transition text-center min-h-[38px] flex items-center justify-center';
+    }
+
+    targetSpeedMbps = 0;
+    currentSpeedMbps = 0;
+    updateGaugeVisual(0);
+
+    const testStartTime = performance.now();
+    let totalSentBytes = 0;
+
+    // Upload payload buffers (256 KB, 512 KB, 1 MB)
+    const uploadPayloads = [
+      new Uint8Array(262144),
+      new Uint8Array(524288),
+      new Uint8Array(1048576),
+    ];
+    let payloadIdx = 0;
+
+    while (performance.now() - testStartTime < UPLOAD_DURATION_MS) {
+      if (signal && signal.aborted) break;
+
+      const payload = uploadPayloads[Math.min(payloadIdx, uploadPayloads.length - 1)];
+      payloadIdx++;
+
+      const chunkStart = performance.now();
+      try {
+        const uploadUrl = initialSource === 'cloudflare'
+          ? 'https://speed.cloudflare.com/__up'
+          : '/api/user/speedtest/upload';
+
+        const resp = await fetch(uploadUrl, {
+          method: 'POST',
+          body: payload,
+          cache: 'no-store',
+          signal,
+        });
+
+        if (resp && resp.ok) {
+          totalSentBytes += payload.byteLength;
+          const now = performance.now();
+          const totalSec = (now - testStartTime) / 1000;
+          if (totalSec > 0.1) {
+            targetSpeedMbps = (totalSentBytes * 8) / (totalSec * 1000000);
+          }
+        }
+      } catch (e) {
+        if (signal && signal.aborted) break;
+        // Fallback to local server upload if Cloudflare POST blocked
+        try {
+          const resp = await fetch('/api/user/speedtest/upload', {
+            method: 'POST',
+            body: payload,
+            cache: 'no-store',
+            signal,
+          });
+          if (resp && resp.ok) {
+            totalSentBytes += payload.byteLength;
+          }
+        } catch (err) {}
+      }
+    }
+
+    const totalSec = (performance.now() - testStartTime) / 1000;
+    const finalUploadMbps = totalSec > 0 && totalSentBytes > 0
+      ? (totalSentBytes * 8) / (totalSec * 1000000)
+      : 0;
+
+    targetSpeedMbps = finalUploadMbps;
+    if (uploadVal) {
+      uploadVal.innerText = finalUploadMbps < 10 ? finalUploadMbps.toFixed(1) : Math.round(finalUploadMbps).toString();
+    }
+    return finalUploadMbps;
+  }
+
+  function getVerdictText(dlSpeed, ulSpeed, ping, totalBytes) {
     if (totalBytes === 0) {
       return {
-        text: '⚠️ سرورهای تست پاسخ ندادند؛ وضعیت اینترنت یا فیلترشکن را بررسی فرمایید.',
+        text: '⚠️ سرورهای تست پاسخ ندادند؛ لطفاً وضعیت اتصال فیلترشکن را بررسی فرمایید.',
         cls: 'bg-amber-950/70 border-amber-500/50 text-amber-300',
       };
     }
-    if (speed >= 30 && ping <= 90) {
+    if (dlSpeed >= 25 && ping <= 90) {
       return {
         text: '🚀 کیفیت فوق‌العاده؛ عالی برای استریم 4K، بازی آنلاین و وب‌گردی پرسرعت',
         cls: 'bg-emerald-950/70 border-emerald-500/50 text-emerald-300',
       };
     }
-    if (speed >= 15) {
+    if (dlSpeed >= 12) {
       return {
         text: '⚡️ کیفیت بسیار خوب؛ عالی برای اینستاگرام، تلگرام، یوتیوب HD و تماس ویدیویی',
         cls: 'bg-cyan-950/70 border-cyan-500/50 text-cyan-300',
       };
     }
-    if (speed >= 5) {
+    if (dlSpeed >= 4) {
       return {
-        text: '🟡 کیفیت معمولی؛ مناسب برای چت، وب‌گردی و ارسال فایل با حجم استاندارد',
+        text: '🟡 کیفیت معمولی؛ مناسب برای چت، وب‌گردی و دانلود با سرعت استاندارد',
         cls: 'bg-amber-950/70 border-amber-500/50 text-amber-300',
       };
     }
     return {
-      text: '⚠️ سرعت پایین؛ اتصال ناپایدار یا اختلال شبکه/پروکسی',
+      text: '⚠️ سرعت محدود؛ مناسب برای ارسال پیام متنی یا نیازمند تغییر سرور/پروکسی',
       cls: 'bg-rose-950/70 border-rose-500/50 text-rose-300',
     };
   }
@@ -329,6 +454,9 @@
     const startBtn = document.getElementById('startSpeedTestBtn');
     const statusText = document.getElementById('speedStatusBadge');
     const startBtnText = document.getElementById('startSpeedTestBtnText');
+    const phaseLabel = document.getElementById('speedPhaseLabel');
+    const downloadVal = document.getElementById('speedDownloadVal');
+    const uploadVal = document.getElementById('speedUploadVal');
 
     isTesting = true;
     abortController = new AbortController();
@@ -338,6 +466,8 @@
       startBtn.classList.remove('bg-gradient-to-r', 'from-emerald-500');
     }
     if (startBtnText) startBtnText.innerText = 'توقف تست ⏹️';
+    if (downloadVal) downloadVal.innerText = '--';
+    if (uploadVal) uploadVal.innerText = '--';
 
     targetSpeedMbps = 0;
     currentSpeedMbps = 0;
@@ -350,17 +480,26 @@
     if (window.hapticFeedback) window.hapticFeedback('impact');
 
     try {
-      // Step 1: Detect engine source (Cloudflare CDN vs Bot Server)
-      const source = await detectBestSource(abortController.signal);
+      // Step 1: Detect Network telemetry & engine source
+      const source = await detectEngineAndNetwork(abortController.signal);
 
-      // Step 2: Ping & Jitter
+      // Step 2: Ping & Jitter Latency
       const { avgPing, jitter } = await measurePingAndJitter(source, abortController.signal);
 
-      // Step 3: Sustained Download Throughput Streaming
-      const { finalMbps, totalBytes } = await measureDownloadThroughput(source, abortController.signal);
+      // Step 3: Sustained Download Throughput
+      const { finalDownloadMbps, totalReceivedBytes } = await measureDownloadThroughput(source, abortController.signal);
 
-      // Step 4: Quality Verdict
-      const verdict = getVerdictText(finalMbps, avgPing, totalBytes);
+      // Step 4: Sustained Upload Throughput
+      let finalUploadMbps = 0;
+      if (!abortController.signal.aborted) {
+        finalUploadMbps = await measureUploadThroughput(source, abortController.signal);
+      }
+
+      // Step 5: Final Result Display
+      targetSpeedMbps = finalDownloadMbps;
+      if (phaseLabel) phaseLabel.innerText = 'نتیجه نهایی تست';
+
+      const verdict = getVerdictText(finalDownloadMbps, finalUploadMbps, avgPing, totalReceivedBytes);
       if (statusText) {
         statusText.innerText = verdict.text;
         statusText.className = `py-2 px-3 rounded-xl border text-[11px] font-medium leading-relaxed transition text-center shadow-sm min-h-[38px] flex items-center justify-center ${verdict.cls}`;
@@ -372,7 +511,7 @@
       if (!isAborted) {
         console.warn('SpeedTest caught error:', err);
         if (statusText) {
-          statusText.innerText = '⚠️ اختلال موقت در ارتباط؛ لطفاً مجدداً دکمه شروع را لمس فرمایید.';
+          statusText.innerText = '⚠️ اختلال در دریافت اطلاعات؛ لطفاً دکمه شروع را مجدداً لمس فرمایید.';
           statusText.className = 'py-2 px-3 rounded-xl bg-amber-950/60 border border-amber-500/40 text-[11px] text-amber-300 font-medium text-center min-h-[38px] flex items-center justify-center';
         }
       }
@@ -385,7 +524,7 @@
         startBtn.classList.remove('bg-rose-600', 'hover:bg-rose-500');
         startBtn.classList.add('bg-gradient-to-r', 'from-emerald-500');
       }
-      if (startBtnText) startBtnText.innerText = 'تست مجدد سرعت 🚀';
+      if (startBtnText) startBtnText.innerText = 'شروع مجدد تست 🚀';
     }
   }
 
@@ -400,12 +539,14 @@
     const startBtn = document.getElementById('startSpeedTestBtn');
     const startBtnText = document.getElementById('startSpeedTestBtnText');
     const statusText = document.getElementById('speedStatusBadge');
+    const phaseLabel = document.getElementById('speedPhaseLabel');
 
     if (startBtn) {
       startBtn.classList.remove('bg-rose-600', 'hover:bg-rose-500');
       startBtn.classList.add('bg-gradient-to-r', 'from-emerald-500');
     }
     if (startBtnText) startBtnText.innerText = 'شروع تست سرعت 🚀';
+    if (phaseLabel) phaseLabel.innerText = 'آماده شروع';
     if (statusText && statusText.innerText.includes('در حال')) {
       statusText.innerText = 'تست متوقف شد. آماده برای تست مجدد.';
       statusText.className = 'py-2 px-3 rounded-xl bg-slate-900/80 border border-slate-700/60 text-[11px] text-slate-300 font-medium text-center transition min-h-[38px] flex items-center justify-center';
@@ -432,6 +573,9 @@
     }
     if (window.syncTelegramBackButton) window.syncTelegramBackButton();
     if (window.hapticFeedback) window.hapticFeedback('selection');
+
+    // Auto-detect IP silently when modal opens
+    detectEngineAndNetwork(null).catch(() => {});
   }
 
   function closeSpeedTestModal() {
