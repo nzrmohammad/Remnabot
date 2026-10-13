@@ -42,6 +42,7 @@ class RemnawaveSystemMixin:
         rows: list[dict[str, Any]] = []
         for row in raw:
             value = row.get("total") or row.get("totalBytes") or 0
+            total = 0
             try:
                 total = int(float(value))
             except (TypeError, ValueError):

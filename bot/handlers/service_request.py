@@ -36,6 +36,7 @@ from bot.handlers.shop_purchase import (
     confirm_new_account,
     router as _shop_purchase_router,
     service_buy,
+    service_confirm,
     service_view,
 )
 from bot.handlers.shop_renew import (

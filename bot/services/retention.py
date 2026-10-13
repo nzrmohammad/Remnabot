@@ -49,6 +49,7 @@ async def check_retention_for_session(
         raw_tid = p_user.get("telegramId")
         if not raw_tid:
             continue
+        telegram_id = None
         try:
             telegram_id = int(str(raw_tid))
         except (ValueError, TypeError):

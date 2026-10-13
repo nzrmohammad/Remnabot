@@ -14,6 +14,7 @@ from bot.db.repositories.user_repo import UserRepository
 from bot.locales.texts import t
 from bot.services.app_settings import get_store_settings
 from bot.services import menu
+from bot.services.menu import render_menu
 
 logger = logging.getLogger(__name__)
 router = Router(name="admin_settings_crypto")

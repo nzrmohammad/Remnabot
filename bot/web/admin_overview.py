@@ -433,10 +433,12 @@ async def _calc_sales_and_traffic_charts(
                 pass
 
     cached_traffic = None if is_refresh else await cache.get("analytics:traffic:7day_series")
+    is_traffic_real = False
     if cached_traffic and isinstance(cached_traffic, dict) and "data" in cached_traffic:
         chart_traffic_data = list(cached_traffic["data"])
         today_cluster_gb = float(cached_traffic.get("today_traffic_gb") or chart_traffic_data[-1] or 0.0)
         traffic_total_gb = round(sum(chart_traffic_data), 2)
+        is_traffic_real = bool(cached_traffic.get("is_real", True))
     else:
         daily_bytes_sum = [0] * 7
         has_real_stats = False
@@ -490,6 +492,7 @@ async def _calc_sales_and_traffic_charts(
             chart_traffic_data = [round(b / (1024 ** 3), 2) for b in daily_bytes_sum]
             chart_traffic_data[6] = today_cluster_gb
             traffic_total_gb = round(sum(chart_traffic_data), 2)
+            is_traffic_real = True
         else:
             today_ds = now_utc.strftime("%Y-%m-%d")
             await cache.set(f"analytics:traffic:snapshot:{today_ds}", total_traffic_gb, ttl_seconds=86400 * 30)

@@ -9,7 +9,7 @@ from aiogram.exceptions import TelegramAPIError
 from bot.common import SEPARATOR
 from bot.db.models import ReportSettings, User
 from bot.locales.texts import t
-from bot.services.formatting import format_date, format_datetime, human_bytes
+from bot.services.formatting import country_flag, format_date, format_datetime, human_bytes
 from bot.services.remnawave import RemnawaveClient
 from bot.services.reports.common import (
     _node_label,

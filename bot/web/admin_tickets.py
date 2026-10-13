@@ -93,6 +93,7 @@ async def get_admin_ticket_threads(request: web.Request) -> web.Response:
         # 2. Add other active threads from cache
         active_ids = await cache.get("support:active_thread_ids") or []
         for tid in active_ids:
+            tid_int = None
             try:
                 tid_int = int(tid)
             except (ValueError, TypeError):
