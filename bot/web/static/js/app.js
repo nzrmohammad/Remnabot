@@ -57,38 +57,51 @@ function renderReportsCharts(sub) {
 }
 window.renderReportsCharts = renderReportsCharts;
 
-function setupTabNavigation() {
+function switchTab(targetId) {
+  if (!targetId) return;
   const navButtons = document.querySelectorAll('.nav-btn');
   const tabPanes = document.querySelectorAll('.tab-pane');
 
+  tabPanes.forEach(pane => {
+    if (pane.id === targetId) {
+      pane.classList.remove('hidden');
+    } else {
+      pane.classList.add('hidden');
+    }
+  });
+
+  if (targetId === 'tab-reports') {
+    setTimeout(() => renderReportsCharts(), 60);
+  }
+
+  navButtons.forEach(b => {
+    const isTarget = b.getAttribute('data-tab') === targetId;
+    if (isTarget) {
+      b.classList.remove('text-slate-400');
+      b.classList.add('text-blue-400');
+      b.querySelector('span:last-child')?.classList.replace('font-medium', 'font-bold');
+    } else {
+      b.classList.remove('text-blue-400');
+      b.classList.add('text-slate-400');
+      b.querySelector('span:last-child')?.classList.replace('font-bold', 'font-medium');
+    }
+  });
+  if (typeof syncTelegramBackButton === 'function') {
+    syncTelegramBackButton();
+  }
+}
+window.switchTab = switchTab;
+
+function setupTabNavigation() {
+  const navButtons = document.querySelectorAll('.nav-btn');
   navButtons.forEach(btn => {
-    btn.addEventListener('click', () => {
+    btn.onclick = () => {
       const targetId = btn.getAttribute('data-tab');
-
-      tabPanes.forEach(pane => {
-        if (pane.id === targetId) {
-          pane.classList.remove('hidden');
-        } else {
-          pane.classList.add('hidden');
-        }
-      });
-
-      if (targetId === 'tab-reports') {
-        setTimeout(() => renderReportsCharts(), 60);
-      }
-
-      navButtons.forEach(b => {
-        b.classList.remove('text-blue-400');
-        b.classList.add('text-slate-400');
-        b.querySelector('span:last-child')?.classList.replace('font-bold', 'font-medium');
-      });
-      btn.classList.remove('text-slate-400');
-      btn.classList.add('text-blue-400');
-      btn.querySelector('span:last-child')?.classList.replace('font-medium', 'font-bold');
-      syncTelegramBackButton();
-    });
+      if (targetId) switchTab(targetId);
+    };
   });
 }
+window.setupTabNavigation = setupTabNavigation;
 
 // 3. Sub-tabs in Reports Hub
 function setupReportsSubtabs() {
@@ -2409,7 +2422,7 @@ function renderActiveSubAnalytics(sub) {
 async function syncUserDataWithApi(accountId) {
   try {
     const res = await window.api.getMe(accountId);
-    if (res.ok && res.data) {
+    if (res && res.ok && res.data) {
       window.lastUserData = res.data;
       hydrateUserInterface(res.data);
       if (res.data.active_sub && typeof renderActiveSubAnalytics === 'function') {
@@ -2418,6 +2431,8 @@ async function syncUserDataWithApi(accountId) {
       try {
         localStorage.setItem('remna_user_cache', JSON.stringify(res.data));
       } catch(e) {}
+    } else if (res && !res.ok) {
+      console.warn('Live API response not ok:', res);
     }
   } catch (err) {
     console.debug('Live API sync fallback to cache', err);
@@ -2425,45 +2440,64 @@ async function syncUserDataWithApi(accountId) {
 }
 
 // 16. Initialize Application
-document.addEventListener('DOMContentLoaded', () => {
-  setupTabNavigation();
-  setupReportsSubtabs();
-  setupSubscriptionActions();
-  setupQrToggle();
-  setupConfigsModal();
-  setupRevokeAndKill();
-  setupClientImporters();
-  setupTutorialModal();
-  setupThemeToggle();
-  setupNetworkTools();
-  setupSupportChat();
-  setupTelegramSDK();
-  setupAccountSwitcher();
-  setupProfileHandlers();
-  setupCouponInput();
-  setupWalletListeners();
-  setupLuckyWheel();
-  setupStoryCard();
+function initApp() {
+  const safeRun = (name, fn) => {
+    try {
+      if (typeof fn === 'function') fn();
+    } catch (err) {
+      console.warn(`[initApp] Error in ${name}:`, err);
+    }
+  };
+
+  safeRun('setupTabNavigation', setupTabNavigation);
+  safeRun('setupReportsSubtabs', setupReportsSubtabs);
+  safeRun('setupSubscriptionActions', setupSubscriptionActions);
+  safeRun('setupQrToggle', setupQrToggle);
+  safeRun('setupConfigsModal', setupConfigsModal);
+  safeRun('setupRevokeAndKill', setupRevokeAndKill);
+  safeRun('setupClientImporters', setupClientImporters);
+  safeRun('setupTutorialModal', setupTutorialModal);
+  safeRun('setupThemeToggle', setupThemeToggle);
+  safeRun('setupNetworkTools', setupNetworkTools);
+  safeRun('setupSupportChat', setupSupportChat);
+  safeRun('setupTelegramSDK', setupTelegramSDK);
+  safeRun('setupAccountSwitcher', setupAccountSwitcher);
+  safeRun('setupProfileHandlers', setupProfileHandlers);
+  safeRun('setupCouponInput', setupCouponInput);
+  safeRun('setupWalletListeners', setupWalletListeners);
+  safeRun('setupLuckyWheel', setupLuckyWheel);
+  safeRun('setupStoryCard', setupStoryCard);
 
   // DRY accordions
-  setupAccordion('toggleCountryBreakdownBtn', 'countryBreakdownBody', 'countryChevron');
-  setupAccordion('toggleSessionsAccordionBtn', 'sessionsAccordionBody', 'sessionsChevron');
-  setupAccordion('toggleSubAccordionBtn', 'subAccordionBody', 'subChevron');
+  safeRun('setupAccordions', () => {
+    setupAccordion('toggleCountryBreakdownBtn', 'countryBreakdownBody', 'countryChevron');
+    setupAccordion('toggleSessionsAccordionBtn', 'sessionsAccordionBody', 'sessionsChevron');
+    setupAccordion('toggleSubAccordionBtn', 'subAccordionBody', 'subChevron');
+  });
 
-  loadNetworkNodes();
-  loadClientIpInfo();
+  safeRun('loadNetworkNodes', loadNetworkNodes);
+  safeRun('loadClientIpInfo', loadClientIpInfo);
 
-  try {
-    const cached = localStorage.getItem('remna_user_cache');
-    if (cached) {
-      const parsed = JSON.parse(cached);
-      window.lastUserData = parsed;
-      hydrateUserInterface(parsed);
-    }
-  } catch(e) {}
+  safeRun('hydrateFromCache', () => {
+    try {
+      const cached = localStorage.getItem('remna_user_cache');
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        window.lastUserData = parsed;
+        hydrateUserInterface(parsed);
+      }
+    } catch(e) {}
+  });
 
-  syncUserDataWithApi();
-});
+  safeRun('syncUserDataWithApi', syncUserDataWithApi);
+}
+window.initApp = initApp;
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initApp);
+} else {
+  initApp();
+}
 
 window.syncUserDataWithApi = syncUserDataWithApi;
 window.hydrateUserInterface = hydrateUserInterface;

@@ -25,7 +25,7 @@
   </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="/static/css/app.css?v=49.0">
+  <link rel="stylesheet" href="/static/css/app.css?v=50.0">
 </head>
 <body id="appBody" class="w-full min-w-full h-screen h-[100dvh] overflow-hidden flex justify-center items-center antialiased select-none transition-colors duration-300">
 
@@ -880,23 +880,23 @@
     <!-- 3. BOTTOM NAVIGATION BAR (5 Standard Tabs)               -->
     <!-- ======================================================== -->
     <div id="navBottom" class="absolute bottom-0 inset-x-0 bg-[#131d31]/95 backdrop-blur-md border-t border-slate-700/80 px-2 pt-2 pb-[calc(0.625rem+env(safe-area-inset-bottom,0px))] flex justify-around items-center z-30 transition-colors">
-      <button class="nav-btn flex flex-col items-center gap-0.5 text-blue-400 transition" data-tab="tab-dashboard">
+      <button class="nav-btn flex flex-col items-center gap-0.5 text-blue-400 transition cursor-pointer active:scale-95" data-tab="tab-dashboard" onclick="window.switchTab && window.switchTab('tab-dashboard')">
         <span class="text-lg">📊</span>
         <span class="text-[10px] font-bold">داشبورد</span>
       </button>
-      <button class="nav-btn flex flex-col items-center gap-0.5 text-slate-400 hover:text-slate-200 transition" data-tab="tab-reports">
+      <button class="nav-btn flex flex-col items-center gap-0.5 text-slate-400 hover:text-slate-200 transition cursor-pointer active:scale-95" data-tab="tab-reports" onclick="window.switchTab && window.switchTab('tab-reports')">
         <span class="text-lg">📑</span>
         <span class="text-[10px] font-medium">گزارش‌ها</span>
       </button>
-      <button class="nav-btn flex flex-col items-center gap-0.5 text-slate-400 hover:text-slate-200 transition" data-tab="tab-shop">
+      <button class="nav-btn flex flex-col items-center gap-0.5 text-slate-400 hover:text-slate-200 transition cursor-pointer active:scale-95" data-tab="tab-shop" onclick="window.switchTab && window.switchTab('tab-shop')">
         <span class="text-lg">🛒</span>
         <span class="text-[10px] font-medium">فروشگاه</span>
       </button>
-      <button class="nav-btn flex flex-col items-center gap-0.5 text-slate-400 hover:text-slate-200 transition" data-tab="tab-wallet">
+      <button class="nav-btn flex flex-col items-center gap-0.5 text-slate-400 hover:text-slate-200 transition cursor-pointer active:scale-95" data-tab="tab-wallet" onclick="window.switchTab && window.switchTab('tab-wallet')">
         <span class="text-lg">👛</span>
         <span class="text-[10px] font-medium">کیف پول</span>
       </button>
-      <button class="nav-btn flex flex-col items-center gap-0.5 text-slate-400 hover:text-slate-200 transition" data-tab="tab-profile">
+      <button class="nav-btn flex flex-col items-center gap-0.5 text-slate-400 hover:text-slate-200 transition cursor-pointer active:scale-95" data-tab="tab-profile" onclick="window.switchTab && window.switchTab('tab-profile')">
         <span class="text-lg">👤</span>
         <span class="text-[10px] font-medium">حساب من</span>
       </button>
@@ -1906,6 +1906,8 @@
             بستن
           </button>
         </div>
+      </div>
+    </div>
     <!-- 12. MODAL: JALALI BIRTHDAY PICKER (ثبت تاریخ زادروز) -->
     <div id="birthdayModal" onclick="if(event.target === this) window.closeBirthdayModal()" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md hidden animate-fadeIn">
       <div class="bg-[#1a233a] border border-pink-500/50 rounded-3xl p-5 w-full max-w-[340px] text-center shadow-2xl relative my-auto space-y-4">
@@ -1955,14 +1957,14 @@
 
   <!-- Modular Frontend Architecture (DRY) -->
   <script src="/static/js/chart.umd.min.js" defer></script>
-  <script src="/static/js/utils.js?v=49.0" defer></script>
-  <script src="/static/js/api.js?v=49.0" defer></script>
-  <script src="/static/js/charts.js?v=49.0" defer></script>
-  <script src="/static/js/shop.js?v=49.0" defer></script>
-  <script src="/static/js/wallet.js?v=49.0" defer></script>
-  <script src="/static/js/wheel.js?v=49.0" defer></script>
-  <script src="/static/js/story.js?v=49.0" defer></script>
-  <script src="/static/js/speedtest.js?v=49.0" defer></script>
-  <script src="/static/js/app.js?v=49.0" defer></script>
+  <script src="/static/js/utils.js?v=50.0" defer></script>
+  <script src="/static/js/api.js?v=50.0" defer></script>
+  <script src="/static/js/charts.js?v=50.0" defer></script>
+  <script src="/static/js/shop.js?v=50.0" defer></script>
+  <script src="/static/js/wallet.js?v=50.0" defer></script>
+  <script src="/static/js/wheel.js?v=50.0" defer></script>
+  <script src="/static/js/story.js?v=50.0" defer></script>
+  <script src="/static/js/speedtest.js?v=50.0" defer></script>
+  <script src="/static/js/app.js?v=50.0" defer></script>
 </body>
 </html>

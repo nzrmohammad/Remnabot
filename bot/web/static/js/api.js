@@ -9,7 +9,16 @@ const api = {
       return window.Telegram.WebApp.initData;
     }
     const params = new URLSearchParams(window.location.search);
-    return params.get('initData') || '';
+    const searchInit = params.get('initData');
+    if (searchInit) return searchInit;
+    if (window.location.hash) {
+      try {
+        const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ''));
+        const hashInit = hashParams.get('tgWebAppData');
+        if (hashInit) return hashInit;
+      } catch (e) {}
+    }
+    return '';
   },
 
   async request(url, options = {}) {
