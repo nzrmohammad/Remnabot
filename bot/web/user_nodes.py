@@ -9,7 +9,13 @@ from bot.web.cache import FastCache
 
 logger = logging.getLogger(__name__)
 
-ALLOWED_AVATAR_ORIGINS = ("https://t.me/", "https://cdn", "https://cdn.telegram.org/", "https://telesco.pe/")
+ALLOWED_AVATAR_ORIGINS = (
+    "https://t.me/",
+    "https://cdn",
+    "https://cdn.telegram.org/",
+    "https://telesco.pe/",
+    "https://api.telegram.org/",
+)
 
 
 async def get_user_nodes(request: web.Request) -> web.Response:

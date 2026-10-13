@@ -870,6 +870,21 @@ function markTutorialAppsSeen() {
 }
 
 function verifyPhoneInBot() {
+  if (typeof window.Telegram?.WebApp?.requestContact === 'function') {
+    try {
+      window.Telegram.WebApp.requestContact((granted) => {
+        if (granted) {
+          showToast('✅ شماره تماس شما با موفقیت ارسال شد. در حال به‌روزرسانی...');
+          hapticFeedback('success');
+          setTimeout(() => {
+            if (typeof syncUserDataWithApi === 'function') {
+              syncUserDataWithApi(window.currentAccountId);
+            }
+          }, 1500);
+        }
+      });
+    } catch (e) {}
+  }
   const botUsername = window.lastUserData?.bot_username || '';
   if (!botUsername) {
     showToast('نام کاربری ربات در دسترس نیست.');
@@ -962,15 +977,27 @@ async function saveBirthday() {
 
   try {
     const res = await window.api.setBirthday(formattedDate);
-    if (res.ok) {
+    const isOk = res.ok && (res.data ? res.data.ok !== false : true);
+    if (isOk) {
       showToast('🎉 تاریخ زادروز شما با موفقیت ثبت گردید.');
       hapticFeedback('success');
       closeBirthdayModal();
+
+      // Immediately reflect in UI without delay
+      const profBirth = $('profileBirthDate');
+      if (profBirth) profBirth.innerText = toPersianDigits(formattedDate);
+
+      if (window.lastUserData?.user) {
+        window.lastUserData.user.birth_date = formattedDate;
+        renderDashboardBirthdayCountdown(window.lastUserData.user);
+      }
+
       if (typeof syncUserDataWithApi === 'function') {
         syncUserDataWithApi(window.currentAccountId);
       }
     } else {
-      showToast(`⚠️ ${res.data?.error || 'خطا در ثبت تاریخ تولد'}`);
+      const errMsg = res.data?.error || res.data?.message || 'خطا در ثبت تاریخ تولد';
+      showToast(`⚠️ ${errMsg}`);
       hapticFeedback('error');
     }
   } catch (err) {
@@ -1729,6 +1756,7 @@ function hydrateUserInterface(data) {
   if (!data) return;
 
   const user = data.user || {};
+  const tgUser = window.Telegram?.WebApp?.initDataUnsafe?.user;
   const sub = data.active_sub;
   if (sub?.id && !window.currentAccountId) {
     window.currentAccountId = sub.id;
@@ -1825,7 +1853,6 @@ function hydrateUserInterface(data) {
   if (bannerRewardEl) bannerRewardEl.innerText = toEnglishDigits(rewardGb);
 
   // Avatar Loading via CORS-safe Server Avatar Endpoint
-  const tgUser = window.Telegram?.WebApp?.initDataUnsafe?.user;
   const uid = user.id || tgUser?.id;
   const tgPhotoUrl = tgUser?.photo_url || user.photo_url || '';
   const photoParam = tgPhotoUrl ? `&url=${encodeURIComponent(tgPhotoUrl)}` : '';
@@ -2300,23 +2327,44 @@ function renderActiveSubAnalytics(sub) {
   const profPhotoUrl = tgUser?.photo_url || user.photo_url || '';
   const profParam = profPhotoUrl ? `&url=${encodeURIComponent(profPhotoUrl)}` : '';
   const avatarUrl = profUid ? `/api/user/avatar?id=${profUid}${profParam}` : profPhotoUrl;
+
+  const profImg = $('profileAvatarImg');
+  const profAvatarInitial = $('profileAvatarInitial');
+  const headImg = $('headerUserAvatarImg');
+  const headAvatarInitial = $('headerUserAvatarInitial');
+
   if (avatarUrl) {
-    const profImg = $('profileAvatarImg');
-    const headImg = $('headerUserAvatarImg');
-    const testImg = new Image();
-    testImg.src = avatarUrl;
-    testImg.onload = () => {
-      if (profImg) {
-        profImg.src = avatarUrl;
+    if (profImg) {
+      profImg.onload = () => {
         profImg.classList.remove('hidden');
-        profAvatar?.classList.add('hidden');
-      }
-      if (headImg) {
-        headImg.src = avatarUrl;
+        if (profAvatarInitial) profAvatarInitial.classList.add('hidden');
+      };
+      profImg.onerror = () => {
+        if (profPhotoUrl && profImg.src !== profPhotoUrl) {
+          profImg.src = profPhotoUrl;
+        } else {
+          profImg.classList.add('hidden');
+          if (profAvatarInitial) profAvatarInitial.classList.remove('hidden');
+        }
+      };
+      profImg.src = avatarUrl;
+    }
+
+    if (headImg) {
+      headImg.onload = () => {
         headImg.classList.remove('hidden');
-        $('headerUserAvatarInitial')?.classList.add('hidden');
-      }
-    };
+        if (headAvatarInitial) headAvatarInitial.classList.add('hidden');
+      };
+      headImg.onerror = () => {
+        if (profPhotoUrl && headImg.src !== profPhotoUrl) {
+          headImg.src = profPhotoUrl;
+        } else {
+          headImg.classList.add('hidden');
+          if (headAvatarInitial) headAvatarInitial.classList.remove('hidden');
+        }
+      };
+      headImg.src = avatarUrl;
+    }
   }
 
   // Account Switcher button visibility

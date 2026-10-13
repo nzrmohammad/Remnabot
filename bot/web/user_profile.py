@@ -784,5 +784,7 @@ async def post_user_set_birthday(request: web.Request) -> web.Response:
         cache: FastCache = request.app.get("cache")
         if cache:
             await cache.delete(f"tma:user:{telegram_id}")
+            await cache.delete(f"tma:user:{telegram_id}:dashboard:default")
+            await cache.delete(f"tma:user:{telegram_id}:dashboard")
 
         return web.json_response({"ok": True, "birth_date": formatted_date})

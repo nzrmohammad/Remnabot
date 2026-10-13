@@ -396,13 +396,16 @@ async def verify_phone_prompt_cb(call: CallbackQuery, bot: Bot):
     phone_kb = ReplyKeyboardMarkup(
         keyboard=[[KeyboardButton(text="📱 اشتراک‌گذاری شماره تماس من", request_contact=True)]],
         resize_keyboard=True,
-        one_time_keyboard=True,
+        is_persistent=True,
+        one_time_keyboard=False,
     )
     await bot.send_message(
         chat_id=call.from_user.id,
         text=(
-            "📱 لطفاً با لمس دکمه زیر شماره همراه خود را تأیید کنید:\n"
-            "<i>(شماره شما صرفاً برای تأیید کارت بانکی ذخیره شده و کاملاً محرمانه است)</i>"
+            "🔒 <b>احراز هویت شماره همراه</b>\n\n"
+            "👇 <b>دکمه «📱 اشتراک‌گذاری شماره تماس من» در پایین صفحه (روی کیبورد تایپ پیام) نمایان شد:</b>\n"
+            "لطفاً روی آن ضربه بزنید تا شماره شما تأیید و درگاه کارت‌به‌کارت فعال گردد.\n\n"
+            "<i>(شماره شما صرفاً برای تأیید بانکی ذخیره شده و کاملاً محرمانه است)</i>"
         ),
         reply_markup=phone_kb,
         parse_mode="HTML",
