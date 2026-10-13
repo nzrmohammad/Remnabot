@@ -28,7 +28,7 @@ class RemnawaveSystemMixin:
             data = resp.json().get("response") or {}
             return data.get("series") or []
         except httpx.HTTPError as exc:
-            logger.error("Remnawave bandwidth-stats error (user_id=%s): %s", user_id, exc)
+            logger.warning("Remnawave bandwidth-stats error (user_id=%s): %s", user_id, exc)
             return None
 
     async def get_user_today_usage(

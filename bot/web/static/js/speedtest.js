@@ -126,19 +126,40 @@
         const data = await resp.json();
         if (data) {
           if (data.ip && userIpEl) userIpEl.innerText = data.ip;
-          if (data.server) {
-            if (serverNameEl && data.server.name) serverNameEl.innerText = data.server.name;
-            if (serverIpEl && data.server.ip) serverIpEl.innerText = data.server.ip;
+          if (data.isp && userLocEl) {
+            let ispStr = String(data.isp).trim();
+            if (ispStr.includes('Mobile Communication Company') || ispStr.includes('MCI')) {
+              ispStr = 'همراه اول (MCI)';
+            } else if (ispStr.includes('Irancell') || ispStr.includes('MTN')) {
+              ispStr = 'ایرانسل (Irancell)';
+            } else if (ispStr.includes('Telecommunication Company of Iran') || ispStr.includes('TCI')) {
+              ispStr = 'مخابرات (TCI)';
+            } else if (ispStr.includes('Shatel')) {
+              ispStr = 'شاتل (Shatel)';
+            } else if (ispStr.includes('Asiatech')) {
+              ispStr = 'آسیاتک (Asiatech)';
+            } else if (ispStr.includes('Rightel')) {
+              ispStr = 'رایتل (Rightel)';
+            } else if (ispStr.length > 22) {
+              ispStr = ispStr.slice(0, 20) + '...';
+            }
+            userLocEl.innerText = ispStr;
+            userLocEl.title = data.isp;
           }
+          if (serverNameEl) serverNameEl.innerText = data.server?.name || 'Cloudflare Anycast CDN (جهانی)';
+          if (serverIpEl) serverIpEl.innerText = data.server?.ip || 'Anycast Edge';
         }
       }
     } catch (e) {}
 
-    if (serverNameEl && (!serverNameEl.innerText || serverNameEl.innerText.includes('Cloudflare'))) {
-      serverNameEl.innerText = 'سرور اختصاصی اشتراک';
+    if (serverNameEl && (!serverNameEl.innerText || serverNameEl.innerText.includes('سرور اختصاصی'))) {
+      serverNameEl.innerText = 'Cloudflare Anycast CDN (جهانی)';
+    }
+    if (serverIpEl && (!serverIpEl.innerText || serverIpEl.innerText.length < 2)) {
+      serverIpEl.innerText = 'Anycast Edge';
     }
     if (userLocEl && userLocEl.innerText.includes('شناسایی')) {
-      userLocEl.innerText = 'شبکه متصل به سرور';
+      userLocEl.innerText = 'اپراتور شناسایی شد';
     }
   }
 
@@ -285,7 +306,7 @@
       }
 
       if (dataUsedEl) {
-        dataUsedEl.innerText = `${(totalReceivedBytes / (1024 * 1024)).toFixed(1)} MB`;
+        dataUsedEl.innerText = (totalReceivedBytes / (1024 * 1024)).toFixed(1);
       }
     }
 
@@ -420,7 +441,7 @@
           const dataUsedEl = getEl('speedDataUsed');
           if (dataUsedEl) {
             const grandTotal = initialReceivedBytes + totalUploadedBytes + loaded;
-            dataUsedEl.innerText = `${(grandTotal / (1024 * 1024)).toFixed(1)} MB`;
+            dataUsedEl.innerText = (grandTotal / (1024 * 1024)).toFixed(1);
           }
         };
 
@@ -537,7 +558,7 @@
     animateGauge();
 
     const dataUsedEl = getEl('speedDataUsed');
-    if (dataUsedEl) dataUsedEl.innerText = '0.0 MB';
+    if (dataUsedEl) dataUsedEl.innerText = '0.0';
 
     if (window.hapticFeedback) window.hapticFeedback('impact');
 

@@ -138,22 +138,47 @@ async function loadTopupInfo() {
       if (cardNumEl) cardNumEl.innerText = res.card_number || 'هنوز ثبت نشده';
       if (cardHolderEl) cardHolderEl.innerText = res.card_holder || 'مدیریت سرور';
 
-      if (res.stars_enabled === false) {
-        document.getElementById('topupMethodStarsBtn')?.classList.add('hidden');
-      } else {
-        document.getElementById('topupMethodStarsBtn')?.classList.remove('hidden');
-      }
+      const hasCard = res.card_enabled !== false;
+      const hasStars = res.stars_enabled !== false;
+      const hasCrypto = res.crypto_enabled !== false;
+      const anyMethodEnabled = hasCard || hasStars || hasCrypto;
 
-      if (res.card_enabled === false) {
-        document.getElementById('topupMethodCardBtn')?.classList.add('hidden');
-      } else {
-        document.getElementById('topupMethodCardBtn')?.classList.remove('hidden');
-      }
+      const tabsContainer = document.getElementById('topupMethodTabs');
+      const amountSection = document.getElementById('topupAmountSection');
+      const disabledState = document.getElementById('topupAllDisabledState');
+      const viewCard = document.getElementById('topupCardView');
+      const viewStars = document.getElementById('topupStarsView');
+      const viewCrypto = document.getElementById('topupCryptoView');
 
-      if (res.crypto_enabled === false) {
-        document.getElementById('topupMethodCryptoBtn')?.classList.add('hidden');
+      if (!anyMethodEnabled) {
+        tabsContainer?.classList.add('hidden');
+        amountSection?.classList.add('hidden');
+        viewCard?.classList.add('hidden');
+        viewStars?.classList.add('hidden');
+        viewCrypto?.classList.add('hidden');
+        disabledState?.classList.remove('hidden');
       } else {
-        document.getElementById('topupMethodCryptoBtn')?.classList.remove('hidden');
+        disabledState?.classList.add('hidden');
+        tabsContainer?.classList.remove('hidden');
+        amountSection?.classList.remove('hidden');
+
+        if (!hasStars) {
+          document.getElementById('topupMethodStarsBtn')?.classList.add('hidden');
+        } else {
+          document.getElementById('topupMethodStarsBtn')?.classList.remove('hidden');
+        }
+
+        if (!hasCard) {
+          document.getElementById('topupMethodCardBtn')?.classList.add('hidden');
+        } else {
+          document.getElementById('topupMethodCardBtn')?.classList.remove('hidden');
+        }
+
+        if (!hasCrypto) {
+          document.getElementById('topupMethodCryptoBtn')?.classList.add('hidden');
+        } else {
+          document.getElementById('topupMethodCryptoBtn')?.classList.remove('hidden');
+        }
       }
 
       const inputEl = document.getElementById('topupAmountInput');
@@ -354,17 +379,24 @@ function restoreActiveCryptoInvoice() {
   }
 }
 
-function openTopupModal(defaultAmt, forceCrypto = false) {
+async function openTopupModal(defaultAmt, forceCrypto = false) {
   const amt = defaultAmt && defaultAmt >= 50000 ? defaultAmt : 50000;
   const inputEl = document.getElementById('topupAmountInput');
   if (inputEl) inputEl.value = amt;
   updateTopupDisplays(amt);
-  loadTopupInfo();
+  await loadTopupInfo();
   const hasActiveCrypto = restoreActiveCryptoInvoice();
-  if (hasActiveCrypto || forceCrypto) {
+  const s = window.storeSettings || {};
+  if (s.card_enabled === false && s.stars_enabled === false && s.crypto_enabled === false) {
+    // all payment methods disabled
+  } else if ((hasActiveCrypto || forceCrypto) && s.crypto_enabled !== false) {
     switchToCryptoTab();
-  } else {
+  } else if (s.card_enabled !== false) {
     switchToCardTab();
+  } else if (s.stars_enabled !== false) {
+    switchTopupTab('stars');
+  } else if (s.crypto_enabled !== false) {
+    switchToCryptoTab();
   }
   openModal('topupModal');
 }

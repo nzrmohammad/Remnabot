@@ -38,8 +38,6 @@ class StoreSettings:
     access_mode: str = "open"  # open, invite_only, closed
     stars_enabled: bool = False
     stars_rate_toman: int = 1500
-    cryptobot_enabled: bool = False
-    cryptobot_token: str = ""
     tutorial_channel_url: str = ""
     routing_tutorial_url: str = ""
     client_apps_json: str = ""
@@ -98,8 +96,6 @@ async def get_store_settings(session: AsyncSession) -> StoreSettings:
         access_mode=str(values.get("access_mode") or "open").strip().lower(),
         stars_enabled=_bool(values.get("stars_enabled"), False),
         stars_rate_toman=_int(values.get("stars_rate_toman"), 1500),
-        cryptobot_enabled=_bool(values.get("cryptobot_enabled"), False),
-        cryptobot_token=str(values.get("cryptobot_token") or "").strip(),
         tutorial_channel_url=str(values.get("tutorial_channel_url") or "").strip(),
         routing_tutorial_url=str(values.get("routing_tutorial_url") or "").strip(),
         client_apps_json=str(values.get("client_apps_json") or "").strip(),

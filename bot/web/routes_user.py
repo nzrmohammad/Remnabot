@@ -5,7 +5,7 @@ Modularized into domain-specific modules:
 - user_profile.py: Dashboard telemetry, user details, active service & subscription.
 - user_shop.py: Spin wheel, revoke sub, kill device, validate coupon, purchase.
 - user_nodes.py: Active nodes list, IP lookup, user settings, user avatar.
-- user_topup.py: Card to card, crypto (TON/USDT), Telegram Stars, CryptoBot.
+- user_topup.py: Card to card, crypto (TON/USDT), Telegram Stars.
 - user_support.py: Redis chat threads and admin forwarding.
 - user_subscription.py: Dynamic per-protocol config parsers.
 - user_speedtest.py: Low-overhead network throughput benchmarks.
@@ -27,11 +27,9 @@ from bot.web.user_nodes import (
 )
 from bot.web.user_topup import (
     get_user_topup_info,
-    post_cryptobot_webhook,
     post_user_topup_card,
     post_user_topup_crypto,
     post_user_topup_crypto_check,
-    post_user_topup_cryptobot,
     post_user_topup_stars,
 )
 from bot.web.user_support import (
@@ -64,8 +62,6 @@ __all__ = [
     "post_user_topup_crypto",
     "post_user_topup_crypto_check",
     "post_user_topup_stars",
-    "post_user_topup_cryptobot",
-    "post_cryptobot_webhook",
     "get_user_support_messages",
     "post_user_support_message",
     "get_user_subscription_configs",

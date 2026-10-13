@@ -68,8 +68,6 @@ from bot.web.routes_user import (
     post_user_topup_crypto,
     post_user_topup_crypto_check,
     post_user_topup_stars,
-    post_user_topup_cryptobot,
-    post_cryptobot_webhook,
     post_user_validate_coupon,
     get_user_support_messages,
     post_user_support_message,
@@ -113,7 +111,6 @@ async def api_rate_limit_middleware(request: web.Request, handler):
         "/api/user/topup/crypto",
         "/api/user/topup/crypto/check",
         "/api/user/topup/stars",
-        "/api/user/topup/cryptobot",
     }
     is_sensitive = request.path in sensitive_paths and request.method == "POST"
     max_reqs = _API_MAX_SENSITIVE if is_sensitive else _API_MAX_GENERAL
@@ -202,6 +199,9 @@ async def cors_and_security_middleware(request: web.Request, handler):
     # Long-term caching for static assets (/static/...)
     if request.path.startswith("/static/"):
         response.headers["Cache-Control"] = "public, max-age=604800, stale-while-revalidate=86400"
+        if request.path.startswith("/static/fonts/"):
+            response.headers["Access-Control-Allow-Origin"] = "*"
+            response.headers["Content-Type"] = "font/woff2"
 
     # Enable automatic gzip/deflate compression for static files and API responses > 512 bytes (exclude speedtest payloads)
     if not request.path.startswith("/api/user/speedtest"):
@@ -406,8 +406,6 @@ def create_web_app(
     app.router.add_post("/api/user/topup/crypto", post_user_topup_crypto)
     app.router.add_post("/api/user/topup/crypto/check", post_user_topup_crypto_check)
     app.router.add_post("/api/user/topup/stars", post_user_topup_stars)
-    app.router.add_post("/api/user/topup/cryptobot", post_user_topup_cryptobot)
-    app.router.add_post("/api/webhook/cryptobot", post_cryptobot_webhook)
     app.router.add_post("/api/user/validate_coupon", post_user_validate_coupon)
     app.router.add_post("/api/user/purchase", post_user_purchase)
     app.router.add_post("/api/user/settings", post_user_settings)

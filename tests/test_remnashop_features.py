@@ -1,5 +1,5 @@
 """Tests for Remnashop-inspired features:
-1. Telegram Stars & CryptoBot payments
+1. Telegram Stars payments
 2. Ad Campaigns and deep-link tracking
 3. Access Modes (Invite-Only, Open, Closed)
 4. Smart Broadcast with cancellation & message revocation

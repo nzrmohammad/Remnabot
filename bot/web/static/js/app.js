@@ -737,15 +737,15 @@ function renderTutorialApps(osKey) {
       <div class="tutorial-app-card rounded-2xl p-2.5 border ${cardBorder} space-y-2 transition hover:border-slate-600">
         <div class="flex items-center justify-between gap-2">
           <div class="flex items-center gap-2.5 min-w-0">
-            <div class="w-10 h-10 rounded-xl bg-slate-800/90 border border-slate-700/70 p-1 flex items-center justify-center flex-shrink-0 shadow-inner overflow-hidden">
-              <img src="/static/img/apps/${app.id}.webp" loading="lazy" alt="${app.name}" class="w-full h-full object-contain rounded-lg" onerror="this.onerror=null; this.src='/static/img/apps/${app.id}.png'; this.onerror=function(){this.parentElement.innerHTML='<span class=\\'text-lg\\'>${app.icon}</span>';};" />
+            <div class="w-10 h-10 rounded-xl bg-slate-800/90 border border-slate-700/70 p-1 flex items-center justify-center flex-shrink-0 shadow-inner overflow-hidden relative">
+              <img src="/static/img/apps/${app.id}.png" loading="lazy" alt="${escapeHtml(app.name)}" class="w-full h-full object-contain rounded-lg" onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='flex';" />
+              <span class="text-xl items-center justify-center hidden" style="display:none;">${app.icon || '📱'}</span>
             </div>
             <div class="min-w-0">
               <div class="flex items-center gap-1.5">
-                <b class="text-xs text-white font-bold truncate">${app.name}</b>
+                <b class="text-xs text-white font-bold truncate">${escapeHtml(app.name)}</b>
                 ${app.isRecommended ? '<span class="px-2 py-0.5 rounded-md text-[9.5px] font-bold bg-amber-500/15 text-amber-300 border border-amber-500/30">⭐️ پیشنهادی</span>' : ''}
               </div>
-              <p class="text-[10px] text-slate-400 mt-0.5 leading-relaxed truncate">${app.desc}</p>
             </div>
           </div>
         </div>
@@ -1961,7 +1961,7 @@ function renderActiveSubAnalytics(sub) {
   const refCount = Number(user.referrals_count || 0);
   const refRewardGb = Number(data.referral_reward_gb || 1);
   if (refCountEl) refCountEl.innerText = `${toEnglishDigits(refCount)} نفر`;
-  if (refRewardTotalEl) refRewardTotalEl.innerText = `${toEnglishDigits(refCount * refRewardGb)} GB`;
+  if (refRewardTotalEl) refRewardTotalEl.innerText = `${toEnglishDigits(refCount * refRewardGb)}`;
   if (refRewardBadge) refRewardBadge.innerText = `🎁 ${toEnglishDigits(refRewardGb)} گیگابایت هدیه به ازای هر دعوت`;
 
   // Profile Settings Switches

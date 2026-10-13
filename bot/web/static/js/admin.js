@@ -4615,12 +4615,7 @@
       const starsRate = $('settingStarsRate');
       if (starsRate) starsRate.value = s.stars_rate_toman ?? 1600;
 
-      // CryptoBot Gateway
-      const cryptoBotSwitch = $('settingCryptoBotSwitch');
-      if (cryptoBotSwitch) cryptoBotSwitch.checked = !!s.cryptobot_enabled;
 
-      const cryptoBotToken = $('settingCryptoBotToken');
-      if (cryptoBotToken) cryptoBotToken.value = s.cryptobot_token || '';
 
       // Bank & Topup
       const cardNum = $('settingCardNumber');
@@ -4784,9 +4779,6 @@
   $('settingStarsSwitch')?.addEventListener('change', (e) => {
     updateSettingToggle('stars_enabled', e.target.checked);
   });
-  $('settingCryptoBotSwitch')?.addEventListener('change', (e) => {
-    updateSettingToggle('cryptobot_enabled', e.target.checked);
-  });
   $('settingAccessMode')?.addEventListener('change', (e) => {
     updateSettingToggle('access_mode', e.target.value);
   });
@@ -4807,8 +4799,6 @@
       crypto_enabled: $('settingCryptoSwitch')?.checked ?? false,
       stars_enabled: $('settingStarsSwitch')?.checked ?? false,
       stars_rate_toman: parseInt($('settingStarsRate')?.value || '1600', 10),
-      cryptobot_enabled: $('settingCryptoBotSwitch')?.checked ?? false,
-      cryptobot_token: $('settingCryptoBotToken')?.value?.trim() || '',
       trial_enabled: $('settingTrialSwitch')?.checked ?? true,
       referral_enabled: $('settingRefSwitch')?.checked ?? true,
       support_direct_enabled: $('settingSupportDirectSwitch')?.checked ?? true,

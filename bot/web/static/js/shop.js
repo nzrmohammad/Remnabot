@@ -84,34 +84,41 @@ function renderWonCoupons(data) {
   const list = document.getElementById('userCouponsList');
   if (!container || !list) return;
 
-  let coupons = data?.won_coupons || [];
+  const now = Date.now();
+  const isValidCoupon = (c) => {
+    if (!c || !c.code) return false;
+    if (c.is_expired) return false;
+    if (c.expires_at) {
+      const exp = new Date(c.expires_at).getTime();
+      if (!isNaN(exp) && exp < now) return false;
+    }
+    return true;
+  };
+
+  let coupons = (data?.won_coupons || []).filter(isValidCoupon);
   if (coupons.length === 0) {
     try {
       const local = JSON.parse(localStorage.getItem('user_won_coupons') || '[]');
-      if (Array.isArray(local)) coupons = local;
+      if (Array.isArray(local)) {
+        const validLocal = local.filter(isValidCoupon);
+        if (validLocal.length !== local.length) {
+          localStorage.setItem('user_won_coupons', JSON.stringify(validLocal));
+        }
+        coupons = validLocal;
+      }
     } catch(e) {}
+  }
+
+  if (!coupons || coupons.length === 0) {
+    container.classList.add('hidden');
+    list.innerHTML = '';
+    return;
   }
 
   container.classList.remove('hidden');
 
-  if (!coupons || coupons.length === 0) {
-    list.innerHTML = `
-      <div class="w-full p-2.5 rounded-xl bg-slate-900/50 border border-slate-700/50 flex items-center justify-between text-xs">
-        <div class="flex items-center gap-1.5 text-slate-400">
-          <span>🎟</span>
-          <span class="text-[11px]">هنوز کد تخفیفی برنده نشده‌اید</span>
-        </div>
-        <button type="button" onclick="openModal('luckyWheelModal')" class="text-[11px] text-amber-400 hover:text-amber-300 font-bold flex items-center gap-1 transition">
-          <span>🎡</span>
-          <span>گردونه شانس</span>
-        </button>
-      </div>
-    `;
-    return;
-  }
-
   list.innerHTML = coupons.map(c => `
-    <div class="won-coupon-card flex-1 min-w-[140px] flex items-center justify-between gap-2 p-2 rounded-xl bg-amber-500/10 border border-amber-500/30 transition shadow-sm">
+    <div class="won-coupon-card flex-1 min-w-[140px] flex items-center justify-between gap-2 p-2 rounded-xl bg-transparent border border-amber-500/40 transition shadow-sm">
       <div class="text-right">
         <div class="flex items-center gap-1">
           <span class="text-xs">🎟</span>
@@ -143,8 +150,23 @@ function renderShopPlans(data) {
     shopBalAmt.innerText = Number(data.user.wallet_balance || 0).toLocaleString('en-US');
   }
   const shopContainer = document.getElementById('shopPlansContainer');
+  const couponSection = document.getElementById('shopCouponSection');
   const plans = data?.plans || [];
-  if (!shopContainer || plans.length === 0) return;
+  if (!shopContainer) return;
+
+  if (plans.length === 0) {
+    shopContainer.innerHTML = `
+      <div class="py-8 px-4 rounded-2xl bg-slate-900/60 border border-slate-700/60 text-center space-y-2">
+        <span class="text-3xl block">📦</span>
+        <b class="text-xs text-slate-200 block">در حال حاضر بسته‌ای برای خرید موجود نیست</b>
+        <p class="text-[11px] text-slate-400">لطفاً بعداً مراجعه فرمایید یا با پشتیبانی در ارتباط باشید.</p>
+      </div>
+    `;
+    if (couponSection) couponSection.classList.add('hidden');
+    return;
+  }
+
+  if (couponSection) couponSection.classList.remove('hidden');
 
   shopContainer.innerHTML = plans.map(p => {
     const planNameLower = (p.name || '').toLowerCase();

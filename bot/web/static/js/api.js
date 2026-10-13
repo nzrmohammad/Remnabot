@@ -136,9 +136,6 @@ const api = {
     return this.post('/api/user/topup/stars', { amount });
   },
 
-  async createCryptoBotInvoice(amount, asset = 'USDT') {
-    return this.post('/api/user/topup/cryptobot', { amount, asset });
-  },
 
   async saveSetting(key, value) {
     return this.post('/api/user/settings', { key, value });

@@ -57,8 +57,6 @@ async def get_admin_settings(request: web.Request) -> web.Response:
             "access_mode": store_settings.access_mode,
             "stars_enabled": store_settings.stars_enabled,
             "stars_rate_toman": store_settings.stars_rate_toman,
-            "cryptobot_enabled": store_settings.cryptobot_enabled,
-            "cryptobot_token": store_settings.cryptobot_token,
             "tutorial_channel_url": store_settings.tutorial_channel_url,
             "routing_tutorial_url": store_settings.routing_tutorial_url,
             "client_apps_json": store_settings.client_apps_json,
@@ -98,7 +96,7 @@ async def post_admin_settings(request: web.Request) -> web.Response:
         bool_keys = (
             "card_enabled", "crypto_enabled", "trial_enabled",
             "referral_enabled", "support_direct_enabled", "maintenance",
-            "stars_enabled", "cryptobot_enabled",
+            "stars_enabled",
         )
         for bk in bool_keys:
             if bk in body:
@@ -109,7 +107,7 @@ async def post_admin_settings(request: web.Request) -> web.Response:
         raw_keys = (
             "card_number", "card_holder", "topup_min_amount",
             "usdt_rate_toman", "eur_rate_toman", "ton_rate_toman", "ton_wallet_address",
-            "stars_rate_toman", "cryptobot_token",
+            "stars_rate_toman",
             "trial_traffic_gb", "trial_duration_days",
             "referral_reward_gb", "support_contact",
             "topic_topups", "topic_orders", "topic_support", "topic_alerts", "topic_crypto", "topic_errors",

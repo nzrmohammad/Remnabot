@@ -6,6 +6,9 @@
   <title>Remnabot Admin WebApp - Pro Management Suite</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <link rel="stylesheet" href="/static/css/tailwind.min.css?v=1.0">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@100..900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/static/css/app.css?v=18.7">
 </head>
 <body id="appBody" class="h-screen h-[100dvh] overflow-hidden flex justify-center antialiased select-none transition-colors duration-300">
@@ -697,19 +700,6 @@
               </label>
             </div>
 
-            <!-- CryptoBot Payment -->
-            <div class="flex items-center justify-between py-1 border-t border-slate-700/50 pt-2">
-              <div>
-                <span class="text-slate-200 font-medium block">درگاه @CryptoBot</span>
-                <span class="text-[10px] text-slate-400">پرداخت با ربات رسمی کریپتو تلگرام</span>
-              </div>
-              <label class="relative inline-flex items-center cursor-pointer">
-                <input type="checkbox" class="sr-only switch-checkbox" id="settingCryptoBotSwitch">
-                <div class="switch-label w-11 h-6 bg-slate-700 rounded-full transition-colors duration-200 flex items-center px-0.5">
-                  <div class="switch-ball w-5 h-5 bg-white rounded-full shadow-md transition-transform duration-200"></div>
-                </div>
-              </label>
-            </div>
 
             <!-- Trial Subscription -->
             <div class="flex items-center justify-between py-1 border-t border-slate-700/50 pt-2">
@@ -831,15 +821,6 @@
               <input type="text" id="settingTonWallet" dir="ltr" placeholder="UQ... یا EQ..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-slate-300 outline-none focus:border-blue-500 transition text-[11px]" />
             </div>
 
-            <!-- CryptoBot API Token (Full Row with Sanction Note) -->
-            <div class="pt-2 border-t border-slate-700/50 space-y-1.5">
-              <div class="flex items-center justify-between">
-                <label class="text-[11px] text-slate-300 font-medium block">توکن @CryptoBot</label>
-                <span class="text-[9px] text-rose-400 font-bold bg-rose-500/10 border border-rose-500/30 px-1.5 py-0.5 rounded-full">تحریم ایران</span>
-              </div>
-              <input type="password" id="settingCryptoBotToken" dir="ltr" placeholder="12345:AA..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-cyan-300 outline-none focus:border-cyan-500 transition" />
-              <span class="text-[10px] text-slate-400 block leading-tight">⚠️ این سرویس سرورها و IPهای ایران را تحریم کرده است؛ جهت کارکرد صحیح، هاست ربات یا وب‌هوک باید در خارج از ایران باشد.</span>
-            </div>
           </div>
         </div>
 
@@ -2403,6 +2384,7 @@
   </div>
 
   <!-- Shared & Modular Scripts -->
+  <script src="/static/js/chart.umd.min.js" defer></script>
   <script src="/static/js/utils.js?v=20.0" defer></script>
   <script src="/static/js/api.js?v=20.0" defer></script>
   <script src="/static/js/charts.js?v=20.0" defer></script>
