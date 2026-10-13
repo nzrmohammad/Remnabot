@@ -562,30 +562,34 @@ async def _fetch_user_perks_and_settings(
 
     won_coupons_raw = await cache.get(f"wheel:user_coupons:{telegram_id}") or []
     now_dt_utc = datetime.now(timezone.utc)
-    active_won_coupons = [c for c in won_coupons_raw if c.get("expires_at", "") > now_dt_utc.isoformat()]
+    # Strictly filter only coupons with a valid future expiration date
+    active_won_coupons = [
+        c for c in won_coupons_raw
+        if c.get("expires_at") and c.get("expires_at", "") > now_dt_utc.isoformat()
+    ]
 
     try:
-        used_ids_res = await session.execute(select(CouponUsage.coupon_id).where(CouponUsage.telegram_id == telegram_id))
-        used_ids = set(used_ids_res.scalars().all())
-        active_db_res = await session.execute(
-            select(Coupon).where(
-                Coupon.code.like("WHEEL%"),
-                Coupon.is_active.is_(True),
-                Coupon.used_count < Coupon.max_uses,
-                or_(Coupon.expires_at.is_(None), Coupon.expires_at > now_dt_utc),
-            ).order_by(Coupon.id.desc()).limit(10)
-        )
-        existing_codes = {c.get("code") for c in active_won_coupons}
-        for dbc in active_db_res.scalars().all():
-            if dbc.id not in used_ids and dbc.code not in existing_codes:
-                active_won_coupons.append({
-                    "code": dbc.code,
-                    "discount_percent": dbc.discount_percent or 10,
-                    "expires_at": dbc.expires_at.isoformat() if dbc.expires_at else "",
-                })
-                existing_codes.add(dbc.code)
+        if active_won_coupons:
+            used_ids_res = await session.execute(select(CouponUsage.coupon_id).where(CouponUsage.telegram_id == telegram_id))
+            used_ids = set(used_ids_res.scalars().all())
+            active_codes = [c.get("code") for c in active_won_coupons if c.get("code")]
+            if active_codes:
+                valid_db_res = await session.execute(
+                    select(Coupon).where(
+                        Coupon.code.in_(active_codes),
+                        Coupon.is_active.is_(True),
+                        Coupon.used_count < Coupon.max_uses,
+                        or_(Coupon.expires_at.is_(None), Coupon.expires_at > now_dt_utc),
+                    )
+                )
+                valid_map = {dbc.code: dbc for dbc in valid_db_res.scalars().all()}
+                # Keep only coupons that exist, are active, not expired, and not yet used by user
+                active_won_coupons = [
+                    c for c in active_won_coupons
+                    if c.get("code") in valid_map and valid_map[c.get("code")].id not in used_ids
+                ]
     except Exception as exc:
-        logger.warning("Failed to fetch DB wheel coupons for %s: %s", telegram_id, exc)
+        logger.debug("Failed to verify user coupons in DB for %s: %s", telegram_id, exc)
 
     settings_combined = {**rep_settings_data, **alert_settings_data}
     return settings_combined, active_won_coupons, wheel_status

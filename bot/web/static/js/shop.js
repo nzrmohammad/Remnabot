@@ -88,10 +88,9 @@ function renderWonCoupons(data) {
   const isValidCoupon = (c) => {
     if (!c || !c.code) return false;
     if (c.is_expired) return false;
-    if (c.expires_at) {
-      const exp = new Date(c.expires_at).getTime();
-      if (!isNaN(exp) && exp < now) return false;
-    }
+    if (!c.expires_at) return false;
+    const exp = new Date(c.expires_at).getTime();
+    if (isNaN(exp) || exp <= now) return false;
     return true;
   };
 
@@ -101,9 +100,7 @@ function renderWonCoupons(data) {
       const local = JSON.parse(localStorage.getItem('user_won_coupons') || '[]');
       if (Array.isArray(local)) {
         const validLocal = local.filter(isValidCoupon);
-        if (validLocal.length !== local.length) {
-          localStorage.setItem('user_won_coupons', JSON.stringify(validLocal));
-        }
+        localStorage.setItem('user_won_coupons', JSON.stringify(validLocal));
         coupons = validLocal;
       }
     } catch(e) {}
@@ -118,7 +115,7 @@ function renderWonCoupons(data) {
   container.classList.remove('hidden');
 
   list.innerHTML = coupons.map(c => `
-    <div class="won-coupon-card flex-1 min-w-[140px] flex items-center justify-between gap-2 p-2 rounded-xl bg-transparent border border-amber-500/40 transition shadow-sm">
+    <div class="won-coupon-card flex-1 min-w-[140px] flex items-center justify-between gap-2 p-2 rounded-xl bg-transparent border border-amber-500/40 transition shadow-none">
       <div class="text-right">
         <div class="flex items-center gap-1">
           <span class="text-xs">🎟</span>

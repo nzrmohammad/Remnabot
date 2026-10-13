@@ -22,13 +22,13 @@ class RemnawaveSystemMixin:
                 f"/api/bandwidth-stats/users/{user_id}",
                 params={"start": start_date, "end": end_date},
             )
-            if resp.status_code == 404:
+            if resp.status_code in (400, 404, 422):
                 return None
             resp.raise_for_status()
             data = resp.json().get("response") or {}
             return data.get("series") or []
         except httpx.HTTPError as exc:
-            logger.warning("Remnawave bandwidth-stats error (user_id=%s): %s", user_id, exc)
+            logger.debug("Remnawave bandwidth-stats error (user_id=%s): %s", user_id, exc)
             return None
 
     async def get_user_today_usage(

@@ -387,8 +387,14 @@ async function openTopupModal(defaultAmt, forceCrypto = false) {
   await loadTopupInfo();
   const hasActiveCrypto = restoreActiveCryptoInvoice();
   const s = window.storeSettings || {};
-  if (s.card_enabled === false && s.stars_enabled === false && s.crypto_enabled === false) {
-    // all payment methods disabled
+  const anyEnabled = s.card_enabled !== false || s.stars_enabled !== false || s.crypto_enabled !== false;
+  if (!anyEnabled || (s.card_enabled === false && s.stars_enabled === false && s.crypto_enabled === false)) {
+    document.getElementById('topupMethodTabs')?.classList.add('hidden');
+    document.getElementById('topupAmountSection')?.classList.add('hidden');
+    document.getElementById('topupCardView')?.classList.add('hidden');
+    document.getElementById('topupStarsView')?.classList.add('hidden');
+    document.getElementById('topupCryptoView')?.classList.add('hidden');
+    document.getElementById('topupAllDisabledState')?.classList.remove('hidden');
   } else if ((hasActiveCrypto || forceCrypto) && s.crypto_enabled !== false) {
     switchToCryptoTab();
   } else if (s.card_enabled !== false) {

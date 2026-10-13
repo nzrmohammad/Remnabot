@@ -25,8 +25,7 @@
   </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@100..900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/static/css/app.css?v=26.0">
+  <link rel="stylesheet" href="/static/css/app.css?v=45.0">
 </head>
 <body id="appBody" class="w-full min-w-full h-screen h-[100dvh] overflow-hidden flex justify-center items-center antialiased select-none transition-colors duration-300">
 
@@ -241,9 +240,7 @@
             <div class="flex items-center justify-between pt-1">
               <span class="text-[11px] text-slate-400 font-medium">ابزارها و اقدامات:</span>
               <div class="flex items-center gap-1.5">
-                <button id="copySubBtn" class="sub-action-btn text-slate-300 hover:text-cyan-300 flex items-center justify-center bg-transparent w-8 h-8 rounded-xl border border-slate-600/60 transition active:scale-95 shadow-sm" title="کپی لینک اشتراک">
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
-                </button>
+                <button id="copySubBtn" class="hidden" title="کپی لینک اشتراک"></button>
                 <button id="qrToggleBtn" class="sub-action-btn text-slate-300 hover:text-cyan-300 flex items-center justify-center bg-transparent hover:bg-slate-800/40 w-8 h-8 rounded-xl border border-slate-600/60 transition active:scale-95 shadow-sm" title="کیوآرکد">
                   <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/></svg>
                 </button>
@@ -514,19 +511,19 @@
           </div>
         </div>
 
-        <!-- Coupon Box -->
-        <div id="shopCouponSection" class="space-y-2">
+        <!-- Coupon Box (Hidden until plans are rendered) -->
+        <div id="shopCouponSection" class="space-y-2 hidden">
           <div class="bg-slate-800/60 rounded-xl p-2.5 border border-slate-700/60 flex items-center gap-2">
             <input type="text" placeholder="کد تخفیف (مثال: OFF20)" class="bg-slate-900 text-xs px-3 py-2 rounded-lg border border-slate-700 flex-1 outline-none text-slate-200 uppercase font-mono" id="couponInput" />
             <button id="applyCouponBtn" type="button" class="bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold px-4 py-2 rounded-lg transition active:scale-95 shadow shrink-0">اعمال</button>
           </div>
 
           <!-- Won Lucky Wheel Coupons (User Active Discounts) -->
-          <div id="userCouponsContainer" class="space-y-1.5 hidden">
+          <div id="userCouponsContainer" class="space-y-1.5 hidden bg-transparent">
             <span class="text-[11px] font-bold text-slate-300 flex items-center gap-1">
               <span>🎟</span> کدهای تخفیف شانس شما :
             </span>
-            <div id="userCouponsList" class="flex flex-wrap gap-1.5"></div>
+            <div id="userCouponsList" class="flex flex-wrap gap-1.5 bg-transparent"></div>
           </div>
         </div>
       </div>
@@ -677,9 +674,9 @@
             </div>
             <div class="ref-stat-box bg-slate-900/60 rounded-xl p-2.5 border border-slate-700/50">
               <span class="text-[10px] text-slate-400 block mb-0.5">پاداش ترافیک دریافتی</span>
-              <div class="flex items-baseline justify-center gap-1 text-sm font-black font-mono text-emerald-400" dir="ltr">
+              <div class="flex items-center justify-center gap-1 text-sm font-black font-mono text-emerald-400" dir="ltr">
                 <span id="profileReferralRewardTotal">0</span>
-                <span class="text-xs font-bold font-mono">GB</span>
+                <span class="text-xs font-bold font-mono leading-none">GB</span>
               </div>
             </div>
           </div>
@@ -1154,16 +1151,18 @@
               </div>
             </div>
 
-            <div class="space-y-1.5 pt-1">
+            <div class="space-y-2 pt-1">
               <a id="cryptoTonkeeperLink" href="#" class="w-full bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-white font-bold py-2.5 rounded-xl transition shadow active:scale-[0.98] flex items-center justify-center gap-1.5 text-xs text-center block">
                 <span>🚀</span> پرداخت با Tonkeeper / ولت
               </a>
-              <button id="cryptoCheckStatusBtn" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold py-2 rounded-xl transition border border-slate-700 flex items-center justify-center gap-1.5 text-xs">
-                <span>🔄</span> بررسی وضعیت پرداخت
-              </button>
-              <button id="cryptoCancelInvoiceBtn" type="button" onclick="window.cancelCryptoInvoice && window.cancelCryptoInvoice()" class="w-full bg-slate-800/80 hover:bg-slate-750 text-slate-300 hover:text-rose-300 font-semibold py-2 rounded-xl transition border border-slate-700/80 flex items-center justify-center gap-1.5 text-xs active:scale-[0.98]">
-                <span>✕</span> انصراف و ساخت فاکتور جدید
-              </button>
+              <div class="grid grid-cols-2 gap-2">
+                <button id="cryptoCheckStatusBtn" type="button" class="bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold py-2 px-2 rounded-xl transition border border-slate-700 flex items-center justify-center gap-1 text-xs shadow-sm active:scale-95">
+                  <span>🔄</span> بررسی پرداخت
+                </button>
+                <button id="cryptoCancelInvoiceBtn" type="button" onclick="window.cancelCryptoInvoice && window.cancelCryptoInvoice()" class="bg-slate-800 hover:bg-rose-950/40 text-slate-200 hover:text-rose-300 font-semibold py-2 px-2 rounded-xl transition border border-slate-700 hover:border-rose-700 flex items-center justify-center gap-1 text-xs shadow-sm active:scale-95">
+                  <span>✕</span> انصراف و جدید
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -1602,21 +1601,21 @@
           </div>
         </div>
 
-        <!-- OS Selection Tabs (iOS, Android, Windows, Mac, Linux) -->
-        <div class="grid grid-cols-5 gap-1 bg-slate-900/80 p-1 rounded-2xl border border-slate-700/70 flex-shrink-0">
-          <button type="button" class="tutorial-os-tab py-1.5 px-0.5 rounded-xl font-bold text-[10px] sm:text-[11px] whitespace-nowrap transition flex items-center justify-center gap-1 bg-cyan-600 text-white shadow" data-os="ios">
+        <!-- OS Selection Tabs (4 Visible: iOS, Android, Windows, Mac - Scroll for Linux) -->
+        <div class="flex overflow-x-auto no-scrollbar gap-1 bg-slate-900/80 p-1 rounded-2xl border border-slate-700/70 flex-shrink-0 scroll-smooth" dir="rtl">
+          <button type="button" class="tutorial-os-tab w-1/4 min-w-[24.5%] flex-shrink-0 py-1.5 px-1 rounded-xl font-bold text-[10px] sm:text-[11px] whitespace-nowrap transition flex items-center justify-center gap-1 bg-cyan-600 text-white shadow" data-os="ios">
             <span>🍏</span> iOS
           </button>
-          <button type="button" class="tutorial-os-tab py-1.5 px-0.5 rounded-xl font-medium text-[10px] sm:text-[11px] whitespace-nowrap text-slate-400 hover:text-slate-200 transition flex items-center justify-center gap-1" data-os="android">
+          <button type="button" class="tutorial-os-tab w-1/4 min-w-[24.5%] flex-shrink-0 py-1.5 px-1 rounded-xl font-medium text-[10px] sm:text-[11px] whitespace-nowrap text-slate-400 hover:text-slate-200 transition flex items-center justify-center gap-1" data-os="android">
             <span>🤖</span> اندروید
           </button>
-          <button type="button" class="tutorial-os-tab py-1.5 px-0.5 rounded-xl font-medium text-[10px] sm:text-[11px] whitespace-nowrap text-slate-400 hover:text-slate-200 transition flex items-center justify-center gap-1" data-os="windows">
+          <button type="button" class="tutorial-os-tab w-1/4 min-w-[24.5%] flex-shrink-0 py-1.5 px-1 rounded-xl font-medium text-[10px] sm:text-[11px] whitespace-nowrap text-slate-400 hover:text-slate-200 transition flex items-center justify-center gap-1" data-os="windows">
             <span>🪟</span> ویندوز
           </button>
-          <button type="button" class="tutorial-os-tab py-1.5 px-0.5 rounded-xl font-medium text-[10px] sm:text-[11px] whitespace-nowrap text-slate-400 hover:text-slate-200 transition flex items-center justify-center gap-1" data-os="macos">
+          <button type="button" class="tutorial-os-tab w-1/4 min-w-[24.5%] flex-shrink-0 py-1.5 px-1 rounded-xl font-medium text-[10px] sm:text-[11px] whitespace-nowrap text-slate-400 hover:text-slate-200 transition flex items-center justify-center gap-1" data-os="macos">
             <span>🍎</span> مک
           </button>
-          <button type="button" class="tutorial-os-tab py-1.5 px-0.5 rounded-xl font-medium text-[10px] sm:text-[11px] whitespace-nowrap text-slate-400 hover:text-slate-200 transition flex items-center justify-center gap-1" data-os="linux">
+          <button type="button" class="tutorial-os-tab w-1/4 min-w-[24.5%] flex-shrink-0 py-1.5 px-1 rounded-xl font-medium text-[10px] sm:text-[11px] whitespace-nowrap text-slate-400 hover:text-slate-200 transition flex items-center justify-center gap-1" data-os="linux">
             <span>🐧</span> لینوکس
           </button>
         </div>
@@ -1723,9 +1722,9 @@
             </div>
             <span id="speedDataUsedText" class="text-[9px] text-slate-400 mt-1 font-medium inline-flex items-center justify-center gap-1">
               <span>مصرف داده:</span>
-              <span class="inline-flex items-baseline gap-1 font-mono text-slate-300 font-bold" dir="ltr">
-                <span id="speedDataUsed">0.0</span>
-                <span class="text-[9px] font-sans text-slate-400 font-normal">مگابایت</span>
+              <span class="inline-flex flex-row-reverse items-baseline gap-1 font-bold text-slate-300" dir="ltr">
+                <span class="text-[9px] text-slate-400 font-normal">مگابایت</span>
+                <span id="speedDataUsed" class="font-mono">0.0</span>
               </span>
             </span>
           </div>
@@ -1737,14 +1736,14 @@
             <span class="text-[9px] text-slate-400 font-medium flex items-center gap-0.5"><span>📥</span> دانلود</span>
             <div class="flex items-baseline gap-0.5 mt-0.5" dir="ltr">
               <span id="speedDownloadVal" class="text-xs font-bold text-emerald-400 font-mono">--</span>
-              <span class="text-[8px] text-slate-400 font-sans">Mb</span>
+              <span class="text-[8px] text-slate-400 font-sans">Mbps</span>
             </div>
           </div>
           <div class="speed-chip-card bg-slate-900/85 p-2 rounded-2xl border border-slate-700/60 text-center flex flex-col items-center">
             <span class="text-[9px] text-slate-400 font-medium flex items-center gap-0.5"><span>📤</span> آپلود</span>
             <div class="flex items-baseline gap-0.5 mt-0.5" dir="ltr">
               <span id="speedUploadVal" class="text-xs font-bold text-cyan-400 font-mono">--</span>
-              <span class="text-[8px] text-slate-400 font-sans">Mb</span>
+              <span class="text-[8px] text-slate-400 font-sans">Mbps</span>
             </div>
           </div>
           <div class="speed-chip-card bg-slate-900/85 p-2 rounded-2xl border border-slate-700/60 text-center flex flex-col items-center">
@@ -1781,14 +1780,14 @@
 
   <!-- Modular Frontend Architecture (DRY) -->
   <script src="/static/js/chart.umd.min.js" defer></script>
-  <script src="/static/js/utils.js?v=2.1" defer></script>
-  <script src="/static/js/api.js?v=3.2" defer></script>
-  <script src="/static/js/charts.js?v=2.0" defer></script>
-  <script src="/static/js/shop.js?v=3.1" defer></script>
-  <script src="/static/js/wallet.js?v=2.8" defer></script>
-  <script src="/static/js/wheel.js?v=2.0" defer></script>
-  <script src="/static/js/story.js?v=2.5" defer></script>
-  <script src="/static/js/speedtest.js?v=4.2" defer></script>
-  <script src="/static/js/app.js?v=5.0" defer></script>
+  <script src="/static/js/utils.js?v=45.0" defer></script>
+  <script src="/static/js/api.js?v=45.0" defer></script>
+  <script src="/static/js/charts.js?v=45.0" defer></script>
+  <script src="/static/js/shop.js?v=45.0" defer></script>
+  <script src="/static/js/wallet.js?v=45.0" defer></script>
+  <script src="/static/js/wheel.js?v=45.0" defer></script>
+  <script src="/static/js/story.js?v=45.0" defer></script>
+  <script src="/static/js/speedtest.js?v=45.0" defer></script>
+  <script src="/static/js/app.js?v=45.0" defer></script>
 </body>
 </html>

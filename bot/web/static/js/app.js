@@ -42,6 +42,19 @@ if (document.readyState === 'complete' || document.readyState === 'interactive')
 $('reloadBtn')?.addEventListener('click', runSplash);
 
 // 2. Tab Navigation (5 Tabs)
+function renderReportsCharts(sub) {
+  const currentSub = sub || window.lastUserData?.active_sub;
+  if (!currentSub) return;
+  if (typeof renderBarChart === 'function') {
+    renderBarChart('repWeeklyChartCanvas', currentSub.week_daily_totals_gb || [0, 0, 0, 0, 0, 0, 0], currentSub.week_day_labels || ['ش', 'ی', 'د', 'س', 'چ', 'پ', 'ج'], false);
+    renderBarChart('repMonthlyChartCanvas', currentSub.month_weeks_totals_gb || [0, 0, 0, currentSub.week_used_gb || 0], ['هفته ۱', 'هفته ۲', 'هفته ۳', 'هفته ۴'], true);
+  }
+  if (typeof renderActiveSubAnalytics === 'function') {
+    renderActiveSubAnalytics(currentSub);
+  }
+}
+window.renderReportsCharts = renderReportsCharts;
+
 function setupTabNavigation() {
   const navButtons = document.querySelectorAll('.nav-btn');
   const tabPanes = document.querySelectorAll('.tab-pane');
@@ -57,6 +70,10 @@ function setupTabNavigation() {
           pane.classList.add('hidden');
         }
       });
+
+      if (targetId === 'tab-reports') {
+        setTimeout(() => renderReportsCharts(), 60);
+      }
 
       navButtons.forEach(b => {
         b.classList.remove('text-blue-400');
@@ -91,8 +108,8 @@ function setupReportsSubtabs() {
     [viewRepNightly, viewRepWeekly, viewRepMonthly, viewRepAnalytics].forEach(v => v?.classList.add('hidden'));
     activeView?.classList.remove('hidden');
 
-    if (activeView === viewRepAnalytics && window.lastUserData?.active_sub) {
-      renderActiveSubAnalytics(window.lastUserData.active_sub);
+    if (activeView === viewRepWeekly || activeView === viewRepMonthly || activeView === viewRepAnalytics) {
+      setTimeout(() => renderReportsCharts(), 60);
     }
   }
 
@@ -587,9 +604,11 @@ function renderTutorialApps(osKey) {
   document.querySelectorAll('.tutorial-os-tab').forEach(tab => {
     const isTarget = tab.getAttribute('data-os') === currentTutorialOS;
     if (isTarget) {
-      tab.className = 'tutorial-os-tab flex-1 py-1.5 px-2 rounded-xl font-bold text-[11px] whitespace-nowrap transition flex items-center justify-center gap-1 bg-cyan-600 text-white shadow';
+      tab.classList.add('bg-cyan-600', 'text-white', 'shadow', 'font-bold');
+      tab.classList.remove('text-slate-400', 'font-medium');
     } else {
-      tab.className = 'tutorial-os-tab flex-1 py-1.5 px-2 rounded-xl font-medium text-[11px] whitespace-nowrap text-slate-400 hover:text-slate-200 transition flex items-center justify-center gap-1';
+      tab.classList.remove('bg-cyan-600', 'text-white', 'shadow', 'font-bold');
+      tab.classList.add('text-slate-400', 'font-medium');
     }
   });
 
@@ -738,7 +757,7 @@ function renderTutorialApps(osKey) {
         <div class="flex items-center justify-between gap-2">
           <div class="flex items-center gap-2.5 min-w-0">
             <div class="w-10 h-10 rounded-xl bg-slate-800/90 border border-slate-700/70 p-1 flex items-center justify-center flex-shrink-0 shadow-inner overflow-hidden relative">
-              <img src="/static/img/apps/${app.id}.png" loading="lazy" alt="${escapeHtml(app.name)}" class="w-full h-full object-contain rounded-lg" onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='flex';" />
+              <img src="/static/img/apps/${app.id}.png" alt="${escapeHtml(app.name)}" class="w-full h-full object-contain rounded-lg" onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='flex';" />
               <span class="text-xl items-center justify-center hidden" style="display:none;">${app.icon || '📱'}</span>
             </div>
             <div class="min-w-0">

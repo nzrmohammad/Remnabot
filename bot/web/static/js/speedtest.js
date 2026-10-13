@@ -109,12 +109,80 @@
    * Detect client IP and server details.
    * Eliminates external third-party bottlenecks (like ipapi.co rate-limits).
    */
+  function formatIspName(rawIsp, asn = '') {
+    const str = String(rawIsp || '').toLowerCase();
+    const asnStr = String(asn || '');
+    if (str.includes('mobile communication') || str.includes('mci') || asnStr === '197207' || str.includes('همراه اول')) {
+      return 'همراه اول (MCI)';
+    }
+    if (str.includes('irancell') || str.includes('mtn') || asnStr === '44342' || str.includes('ایرانسل')) {
+      return 'ایرانسل (Irancell)';
+    }
+    if (str.includes('telecommunication company of iran') || str.includes('tci') || str.includes('mokhaberat') || asnStr === '58224' || asnStr === '12880' || str.includes('مخابرات')) {
+      return 'مخابرات (TCI)';
+    }
+    if (str.includes('shatel') || asnStr === '31549' || str.includes('شاتل')) {
+      return 'شاتل (Shatel)';
+    }
+    if (str.includes('asiatech') || asnStr === '43754' || str.includes('آسیاتک')) {
+      return 'آسیاتک (Asiatech)';
+    }
+    if (str.includes('rightel') || asnStr === '57218' || str.includes('رایتل')) {
+      return 'رایتل (Rightel)';
+    }
+    if (str.includes('pars online') || asnStr === '16322' || str.includes('پارس آنلاین')) {
+      return 'پارس‌آنلاین (ParsOnline)';
+    }
+    if (str.includes('hiweb') || asnStr === '25184' || str.includes('های‌وب')) {
+      return 'های‌وب (HiWeb)';
+    }
+    if (str.includes('mobin') || asnStr === '20564' || str.includes('مبین‌نت')) {
+      return 'مبین‌نت (Mobinnet)';
+    }
+    if (str.includes('zitel') || asnStr === '58156' || str.includes('زیتل')) {
+      return 'زیتل (ZiTel)';
+    }
+    if (str.includes('cloudflare')) {
+      return 'Cloudflare Warp';
+    }
+    if (rawIsp) {
+      return rawIsp.length > 20 ? rawIsp.slice(0, 18) + '...' : rawIsp;
+    }
+    return 'اپراتور شناسایی شد';
+  }
+
   async function detectEngineAndNetwork(signal) {
     const userIpEl = getEl('speedUserIp');
     const userLocEl = getEl('speedUserLocation');
     const serverNameEl = getEl('speedServerNameText');
     const serverIpEl = getEl('speedServerIpText');
 
+    if (serverNameEl) serverNameEl.innerText = 'Cloudflare Anycast CDN (جهانی)';
+    if (serverIpEl) serverIpEl.innerText = 'Anycast Edge';
+
+    // 1. Client-side ISP & IP detection via https://ipwho.is/ (CORS enabled HTTPS)
+    try {
+      const resp = await fetch('https://ipwho.is/', {
+        method: 'GET',
+        cache: 'no-store',
+        signal,
+      });
+      if (resp && resp.ok) {
+        const data = await resp.json();
+        if (data && data.success) {
+          if (data.ip && userIpEl) userIpEl.innerText = data.ip;
+          if (userLocEl) {
+            const rawIsp = data.connection?.isp || data.connection?.org || data.isp || '';
+            const asn = String(data.connection?.asn || '');
+            userLocEl.innerText = formatIspName(rawIsp, asn);
+            userLocEl.title = rawIsp;
+          }
+          return;
+        }
+      }
+    } catch (e) {}
+
+    // 2. Fallback to server ping endpoint
     try {
       const resp = await fetch(`/api/user/speedtest/ping?_t=${Date.now()}`, {
         method: 'GET',
@@ -127,40 +195,12 @@
         if (data) {
           if (data.ip && userIpEl) userIpEl.innerText = data.ip;
           if (data.isp && userLocEl) {
-            let ispStr = String(data.isp).trim();
-            if (ispStr.includes('Mobile Communication Company') || ispStr.includes('MCI')) {
-              ispStr = 'همراه اول (MCI)';
-            } else if (ispStr.includes('Irancell') || ispStr.includes('MTN')) {
-              ispStr = 'ایرانسل (Irancell)';
-            } else if (ispStr.includes('Telecommunication Company of Iran') || ispStr.includes('TCI')) {
-              ispStr = 'مخابرات (TCI)';
-            } else if (ispStr.includes('Shatel')) {
-              ispStr = 'شاتل (Shatel)';
-            } else if (ispStr.includes('Asiatech')) {
-              ispStr = 'آسیاتک (Asiatech)';
-            } else if (ispStr.includes('Rightel')) {
-              ispStr = 'رایتل (Rightel)';
-            } else if (ispStr.length > 22) {
-              ispStr = ispStr.slice(0, 20) + '...';
-            }
-            userLocEl.innerText = ispStr;
+            userLocEl.innerText = formatIspName(data.isp);
             userLocEl.title = data.isp;
           }
-          if (serverNameEl) serverNameEl.innerText = data.server?.name || 'Cloudflare Anycast CDN (جهانی)';
-          if (serverIpEl) serverIpEl.innerText = data.server?.ip || 'Anycast Edge';
         }
       }
     } catch (e) {}
-
-    if (serverNameEl && (!serverNameEl.innerText || serverNameEl.innerText.includes('سرور اختصاصی'))) {
-      serverNameEl.innerText = 'Cloudflare Anycast CDN (جهانی)';
-    }
-    if (serverIpEl && (!serverIpEl.innerText || serverIpEl.innerText.length < 2)) {
-      serverIpEl.innerText = 'Anycast Edge';
-    }
-    if (userLocEl && userLocEl.innerText.includes('شناسایی')) {
-      userLocEl.innerText = 'اپراتور شناسایی شد';
-    }
   }
 
   /**
@@ -184,13 +224,18 @@
       if (signal && signal.aborted) return { medianPing: 0, jitter: 0 };
       const start = performance.now();
       try {
-        const pingUrl = `/api/user/speedtest/ping?_t=${Date.now()}_${i}`;
-        const resp = await fetch(pingUrl, {
-          method: 'GET',
-          cache: 'no-store',
-          headers: getAuthHeaders(),
-          signal,
-        });
+        const pingUrl = `https://speed.cloudflare.com/__down?bytes=0&_t=${Date.now()}_${i}`;
+        let resp = null;
+        try {
+          resp = await fetch(pingUrl, { method: 'GET', cache: 'no-store', signal });
+        } catch (err) {
+          resp = await fetch(`/api/user/speedtest/ping?_t=${Date.now()}_${i}`, {
+            method: 'GET',
+            cache: 'no-store',
+            headers: getAuthHeaders(),
+            signal,
+          });
+        }
 
         if (resp && resp.ok) {
           const duration = performance.now() - start;
@@ -228,10 +273,11 @@
    */
   async function streamDownload(url, onBytes, signal, timeLimitMs, startTime) {
     try {
+      const headers = url.startsWith('/') ? getAuthHeaders() : {};
       const resp = await fetch(url, {
         method: 'GET',
         cache: 'no-store',
-        headers: getAuthHeaders(),
+        headers,
         signal,
       });
 
@@ -310,9 +356,20 @@
       }
     }
 
+    async function downloadStreamWithFallback(bytes, nonce, onChunk, signal, limitMs, startTime) {
+      const cfUrl = `https://speed.cloudflare.com/__down?bytes=${bytes}&_t=${Date.now()}_${nonce}`;
+      let gotData = false;
+      try {
+        await streamDownload(cfUrl, (b) => { gotData = true; onChunk(b); }, signal, limitMs, startTime);
+      } catch (e) {}
+      if (!gotData && (!signal || !signal.aborted)) {
+        const localUrl = `/api/user/speedtest/payload?bytes=${bytes}&_t=${Date.now()}_${nonce}`;
+        await streamDownload(localUrl, onChunk, signal, limitMs, startTime);
+      }
+    }
+
     // Step 1: 2MB initial ramp-up stream
-    const probeUrl = `/api/user/speedtest/payload?bytes=2097152&_t=${Date.now()}`;
-    await streamDownload(probeUrl, onChunk, signal, 1800, testStartTime);
+    await downloadStreamWithFallback(2097152, 'probe', onChunk, signal, 1800, testStartTime);
 
     // Step 2: Adaptive multi-connection phase based on initial line speed
     const probeElapsedSec = (performance.now() - testStartTime) / 1000;
@@ -322,16 +379,13 @@
 
     if (probeSpeedMbps > 20) {
       // High-speed link: 2 parallel streams to saturate link without single-TCP window throttling
-      const streamUrl1 = `/api/user/speedtest/payload?bytes=14680064&_t=${Date.now()}_s1`;
-      const streamUrl2 = `/api/user/speedtest/payload?bytes=14680064&_t=${Date.now()}_s2`;
       await Promise.all([
-        streamDownload(streamUrl1, onChunk, signal, DOWNLOAD_DURATION_MS, testStartTime),
-        streamDownload(streamUrl2, onChunk, signal, DOWNLOAD_DURATION_MS, testStartTime),
+        downloadStreamWithFallback(14680064, 's1', onChunk, signal, DOWNLOAD_DURATION_MS, testStartTime),
+        downloadStreamWithFallback(14680064, 's2', onChunk, signal, DOWNLOAD_DURATION_MS, testStartTime),
       ]);
     } else {
       // Standard / ADSL link: 1 stream with 8MB bounded payload
-      const streamUrl = `/api/user/speedtest/payload?bytes=8388608&_t=${Date.now()}_std`;
-      await streamDownload(streamUrl, onChunk, signal, DOWNLOAD_DURATION_MS, testStartTime);
+      await downloadStreamWithFallback(8388608, 'std', onChunk, signal, DOWNLOAD_DURATION_MS, testStartTime);
     }
 
     // Trimmed-mean calculation: Discards top 15% bursts and bottom 15% drops
@@ -406,12 +460,10 @@
         let lastTime = performance.now();
 
         xhr.timeout = 8000;
-        xhr.open('POST', `/api/user/speedtest/upload?_t=${Date.now()}`, true);
+        // Standard Cloudflare Anycast Speedtest upload endpoint (CORS enabled)
+        const cfUploadUrl = `https://speed.cloudflare.com/__up?_t=${Date.now()}`;
+        xhr.open('POST', cfUploadUrl, true);
         xhr.setRequestHeader('Content-Type', 'application/octet-stream');
-        const authHdr = getAuthHeaders();
-        if (authHdr['X-Telegram-Init-Data']) {
-          xhr.setRequestHeader('X-Telegram-Init-Data', authHdr['X-Telegram-Init-Data']);
-        }
 
         xhr.ontimeout = function () {
           activeXhrs.delete(xhr);

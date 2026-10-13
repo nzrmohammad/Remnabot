@@ -196,9 +196,12 @@ async def cors_and_security_middleware(request: web.Request, handler):
         "frame-ancestors 'self' https://web.telegram.org https://*.telegram.org"
     )
 
-    # Long-term caching for static assets (/static/...)
+    # Caching strategy for static assets (/static/...)
     if request.path.startswith("/static/"):
-        response.headers["Cache-Control"] = "public, max-age=604800, stale-while-revalidate=86400"
+        if request.path.startswith("/static/js/") or request.path.startswith("/static/css/"):
+            response.headers["Cache-Control"] = "public, max-age=300, stale-while-revalidate=60"
+        else:
+            response.headers["Cache-Control"] = "public, max-age=604800, stale-while-revalidate=86400"
         if request.path.startswith("/static/fonts/"):
             response.headers["Access-Control-Allow-Origin"] = "*"
             response.headers["Content-Type"] = "font/woff2"
