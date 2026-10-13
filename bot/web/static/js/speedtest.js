@@ -372,11 +372,19 @@
     const uploadSamples = [];
     let smoothedUploadMbps = 0;
 
-    const randomBuffer = createRandomBuffer(524288); // 512KB
+    const randomBuffer = createRandomBuffer(131072); // 128KB for agile non-blocking throughput
     const activeXhrs = new Set();
+
+    const uploadHardTimeout = setTimeout(() => {
+      activeXhrs.forEach(xhr => {
+        try { xhr.abort(); } catch (e) {}
+      });
+      activeXhrs.clear();
+    }, UPLOAD_DURATION_MS + 200);
 
     if (signal) {
       signal.addEventListener('abort', () => {
+        clearTimeout(uploadHardTimeout);
         activeXhrs.forEach(xhr => {
           try { xhr.abort(); } catch (e) {}
         });
@@ -393,6 +401,7 @@
 
         const endpoint = `/api/user/speedtest/upload?_t=${Date.now()}`;
         xhr.open('POST', endpoint, true);
+        xhr.timeout = 2500; // 2.5s timeout per chunk to avoid hanging
 
         const authHeaders = getAuthHeaders();
         for (const [k, v] of Object.entries(authHeaders)) {
@@ -407,7 +416,7 @@
           if (e.loaded > lastLoaded) {
             const now = performance.now();
             const deltaSec = (now - lastTime) / 1000;
-            if (deltaSec >= 0.35) {
+            if (deltaSec >= 0.20) {
               const deltaBytes = e.loaded - lastLoaded;
               const instantMbps = (deltaBytes * 8) / (deltaSec * 1000000);
               uploadSamples.push(instantMbps);
@@ -431,6 +440,11 @@
           resolve(0);
         };
 
+        xhr.ontimeout = function () {
+          activeXhrs.delete(xhr);
+          resolve(0);
+        };
+
         xhr.onabort = function () {
           activeXhrs.delete(xhr);
           resolve(0);
@@ -445,7 +459,7 @@
       });
     }
 
-    // Parallel upload loop
+    // Parallel upload loop with strict duration limit
     while (performance.now() - testStartTime < UPLOAD_DURATION_MS) {
       if (signal && signal.aborted) break;
 
@@ -454,7 +468,9 @@
       totalUploadedBytes += (results[0] || 0) + (results[1] || 0);
 
       if ((results[0] === 0 && results[1] === 0) || (signal && signal.aborted)) break;
+      if (performance.now() - testStartTime >= UPLOAD_DURATION_MS) break;
     }
+    clearTimeout(uploadHardTimeout);
 
     let finalUploadMbps = 0;
     if (uploadSamples.length >= 3) {

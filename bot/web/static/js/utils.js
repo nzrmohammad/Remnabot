@@ -175,6 +175,13 @@ function toEnglishDigits(str) {
   return res;
 }
 
+// Convert ASCII English digits to Persian digits
+function toPersianDigits(str) {
+  if (str === null || str === undefined) return '';
+  const fa = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
+  return String(str).replace(/[0-9]/g, w => fa[Number(w)]);
+}
+
 function formatPrice(amt) {
   if (amt == null || isNaN(amt)) return '0';
   return Number(amt).toLocaleString('en-US');
@@ -217,6 +224,7 @@ function bindModal(modalId, closeBtnId) {
 
 if (typeof window !== 'undefined') {
   window.toEnglishDigits = toEnglishDigits;
+  window.toPersianDigits = toPersianDigits;
   window.formatPrice = formatPrice;
   window.formatPlanTitle = formatPlanTitle;
   window.buildRefLink = buildRefLink;

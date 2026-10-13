@@ -505,28 +505,23 @@ async def _calc_sales_and_traffic_charts(
                 else:
                     break
 
-            if len(snapshot_deltas) == 7 and sum(snapshot_deltas) > 0:
-                chart_traffic_data = snapshot_deltas
-                if today_cluster_gb > 0:
-                    chart_traffic_data[6] = today_cluster_gb
-                traffic_total_gb = round(sum(chart_traffic_data), 2)
-            elif today_cluster_gb > 0:
-                weights = [0.12, 0.14, 0.13, 0.15, 0.16, 0.14, 0.16]
-                base_gb = max(total_traffic_gb, today_cluster_gb * 4)
-                chart_traffic_data = [round(base_gb * w, 2) for w in weights]
+            chart_traffic_data = [0.0] * 7
+            for idx, val in enumerate(snapshot_deltas):
+                if idx < 7:
+                    chart_traffic_data[idx] = val
+            if today_cluster_gb > 0:
                 chart_traffic_data[6] = today_cluster_gb
-                traffic_total_gb = round(sum(chart_traffic_data), 2)
-            elif total_traffic_gb > 0:
-                weights = [0.12, 0.14, 0.13, 0.15, 0.16, 0.14, 0.16]
-                chart_traffic_data = [round(total_traffic_gb * w, 2) for w in weights]
-                traffic_total_gb = total_traffic_gb
-            else:
-                chart_traffic_data = [0.0] * 7
-                traffic_total_gb = 0.0
+            traffic_total_gb = round(sum(chart_traffic_data), 2)
+            is_traffic_real = len(snapshot_deltas) >= 7
 
         await cache.set(
             "analytics:traffic:7day_series",
-            {"data": chart_traffic_data, "total_gb": traffic_total_gb, "today_traffic_gb": today_cluster_gb},
+            {
+                "data": chart_traffic_data,
+                "total_gb": traffic_total_gb,
+                "today_traffic_gb": today_cluster_gb,
+                "is_real": is_traffic_real,
+            },
             ttl_seconds=300,
         )
 
@@ -540,6 +535,7 @@ async def _calc_sales_and_traffic_charts(
         "traffic_data": chart_traffic_data,
         "traffic_total_gb": traffic_total_gb,
         "today_traffic_gb": today_cluster_gb,
+        "is_traffic_real": is_traffic_real,
     }
 
 
@@ -569,53 +565,38 @@ async def _calc_strategic_charts(
         loc_data.append(round(v["traffic_gb"], 2) if total_loc_gb > 0 else v["nodes_count"])
 
     location_share = {
-        "labels": loc_labels or ["🌐"],
-        "data": loc_data or [1],
+        "labels": loc_labels or [],
+        "data": loc_data or [],
         "unit": "GB" if total_loc_gb > 0 else "سرور",
+        "has_data": bool(loc_labels and loc_data and any(v > 0 for v in loc_data)),
     }
 
-    # 2. Hourly peak usage curve
-    twenty_four_h_ago = now_utc - timedelta(hours=24)
-    baseline_weights = [
-        0.025, 0.015, 0.010, 0.008, 0.006, 0.010, 0.018, 0.028,
-        0.038, 0.048, 0.055, 0.052, 0.048, 0.045, 0.050, 0.058,
-        0.068, 0.078, 0.088, 0.092, 0.082, 0.068, 0.050, 0.032,
-    ]
-    hourly_counts = [0] * 24
-    for u_act, in (await session.execute(select(User.last_active_at).where(User.last_active_at >= twenty_four_h_ago))).all():
-        if u_act:
-            hourly_counts[u_act.hour] += 2
-    for o_dt, in (await session.execute(select(Order.created_at).where(Order.created_at >= twenty_four_h_ago))).all():
-        if o_dt:
-            hourly_counts[o_dt.hour] += 3
-    for d_dt, in (await session.execute(select(KnownDevice.created_at).where(KnownDevice.created_at >= twenty_four_h_ago))).all():
-        if d_dt:
-            hourly_counts[d_dt.hour] += 1
-
-    total_real_events = sum(hourly_counts)
-    base_h_gb = today_cluster_gb if today_cluster_gb > 0 else (total_traffic_gb / 30.0 if total_traffic_gb > 0 else 50.0)
-    combined_weights = [
-        ((hourly_counts[h] / total_real_events) * 0.70 + baseline_weights[h] * 0.30) if total_real_events > 0 else baseline_weights[h]
-        for h in range(24)
-    ]
-
+    # 2. Hourly peak usage curve (Pure Telemetry from Snapshots)
     snapshot_repo = TrafficSnapshotRepository(session)
     snapshots_24h = await snapshot_repo.get_last_24_hours(now_utc)
     snapshots_by_hour = {s.timestamp.hour: s.delta_bytes for s in snapshots_24h}
 
-    c_sum = sum(combined_weights) or 1.0
-    hourly_data = [
-        round(snapshots_by_hour[h] / (1024 ** 3), 2) if (h in snapshots_by_hour and snapshots_by_hour[h] > 0) else round((combined_weights[h] / c_sum) * base_h_gb, 2)
-        for h in range(24)
-    ]
-    peak_idx = max(range(24), key=lambda i: hourly_data[i])
+    if snapshots_by_hour:
+        hourly_data = [
+            round(snapshots_by_hour.get(h, 0) / (1024 ** 3), 2)
+            for h in range(24)
+        ]
+        peak_idx = max(range(24), key=lambda i: hourly_data[i])
+        peak_hour_str = f"{peak_idx:02d}:00"
+        is_real_telemetry = True
+    else:
+        # Cold start: No hourly snapshots recorded yet
+        hourly_data = [0.0] * 24
+        peak_hour_str = None
+        is_real_telemetry = False
 
     hourly_distribution = {
         "labels": [f"{h:02d}:00" for h in range(24)],
         "data": hourly_data,
-        "peak_hour": f"{peak_idx:02d}:00",
+        "peak_hour": peak_hour_str,
         "unit": "GB",
-        "is_real_telemetry": bool(snapshots_by_hour),
+        "is_real_telemetry": is_real_telemetry,
+        "telemetry_count": len(snapshots_by_hour),
     }
 
     # 3. New vs Retention Users
@@ -657,7 +638,7 @@ async def _calc_strategic_charts(
         plan_revenue = [int(r[2]) for r in plan_rows]
     else:
         srv_names = (await session.execute(select(Service.name).where(Service.is_active.is_(True)).limit(5))).scalars().all()
-        plan_labels = [format_service_name_icon_first(str(n)) for n in srv_names] if srv_names else ["پلن ۱ ماهه 💎", "پلن ۳ ماهه 🚀", "پلن نامحدود ⚡"]
+        plan_labels = [format_service_name_icon_first(str(n)) for n in srv_names] if srv_names else []
         plan_sales = [0] * len(plan_labels)
         plan_revenue = [0] * len(plan_labels)
 
@@ -718,6 +699,7 @@ async def _calc_strategic_charts(
             "labels": plan_labels,
             "sales_count": plan_sales,
             "revenue": plan_revenue,
+            "has_data": bool(plan_labels and any(s > 0 for s in plan_sales)),
         },
         "platform_distribution": {
             "labels": ["اندروید (Android)", "آیفون (iOS)", "ویندوز (Windows)", "مک و لینوکس", "سایر"],

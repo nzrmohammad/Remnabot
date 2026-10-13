@@ -182,10 +182,12 @@ async function loadTopupInfo() {
       }
 
       const cardPhoneWarning = document.getElementById('cardPhoneVerificationWarning');
+      const cardDetailsBox = document.getElementById('topupCardDetailsBox');
       const submitCardBtn = document.getElementById('submitCardTopupBtn');
       const cardUploadBtn = document.getElementById('uploadCardReceiptImageBtn');
       if (res.card_require_phone_verification && !res.is_phone_verified) {
         if (cardPhoneWarning) cardPhoneWarning.classList.remove('hidden');
+        if (cardDetailsBox) cardDetailsBox.classList.add('hidden');
         if (submitCardBtn) {
           submitCardBtn.disabled = true;
           submitCardBtn.classList.add('opacity-40', 'cursor-not-allowed');
@@ -197,6 +199,7 @@ async function loadTopupInfo() {
         }
       } else {
         if (cardPhoneWarning) cardPhoneWarning.classList.add('hidden');
+        if (cardDetailsBox) cardDetailsBox.classList.remove('hidden');
         if (submitCardBtn) {
           submitCardBtn.disabled = false;
           submitCardBtn.classList.remove('opacity-40', 'cursor-not-allowed');

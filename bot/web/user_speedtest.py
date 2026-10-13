@@ -175,7 +175,7 @@ async def post_user_speedtest_upload(request: web.Request) -> web.Response:
                 res = cache.get(rl_key)
                 req_count = (await res) if asyncio.iscoroutine(res) else res
 
-            if isinstance(req_count, (int, float)) and req_count >= 10:
+            if isinstance(req_count, (int, float)) and req_count >= 30:
                 return web.json_response(
                     {"ok": False, "error": "محدودیت تعداد درخواست تست آپلود. لطفاً ۳۰ ثانیه دیگر تلاش فرمایید."},
                     status=429,

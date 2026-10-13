@@ -217,16 +217,23 @@ def _calc_usage_curves(
     """Compute download/upload split, country donut chart, 24h curve, and platform distribution."""
     raw_up = int(traffic.get("uploadTrafficBytes") or primary.get("uploadTrafficBytes") or primary.get("up") or 0)
     raw_down = int(traffic.get("downloadTrafficBytes") or primary.get("downloadTrafficBytes") or primary.get("down") or 0)
-    if raw_up == 0 and raw_down == 0 and used_bytes > 0:
-        raw_down = int(used_bytes * 0.85)
-        raw_up = max(0, used_bytes - raw_down)
+    split_estimated = False
+    if raw_up == 0 and raw_down == 0:
+        if used_bytes > 0:
+            raw_down = int(used_bytes * 0.85)
+            raw_up = max(0, used_bytes - raw_down)
+            split_estimated = True
+        else:
+            raw_down = 0
+            raw_up = 0
 
     tot_updown = (raw_down + raw_up) or 1
     traffic_split = {
         "download_gb": round(raw_down / (1024**3), 2),
         "upload_gb": round(raw_up / (1024**3), 2),
-        "download_percent": round((raw_down / tot_updown) * 100),
-        "upload_percent": round((raw_up / tot_updown) * 100),
+        "download_percent": round((raw_down / tot_updown) * 100) if (raw_down + raw_up) > 0 else 0,
+        "upload_percent": round((raw_up / tot_updown) * 100) if (raw_down + raw_up) > 0 else 0,
+        "is_estimated": split_estimated,
     }
 
     country_totals: dict[str, int] = {}
@@ -246,21 +253,28 @@ def _calc_usage_curves(
         country_labels.append("🌐 سایر")
         country_gb_vals.append(round(other_b / (1024**3), 2))
 
+    has_traffic = (today_used_gb > 0) or (week_used_gb > 0) or (used_bytes > 0)
     base_curve_gb = today_used_gb if today_used_gb > 0 else (round(week_used_gb / 7.0, 2) if week_used_gb > 0 else 0.0)
-    if base_curve_gb <= 0.0:
-        base_curve_gb = round(1.6 + ((abs(hash(str(panel_user_id))) % 5) * 0.5), 2)
 
-    curve_weights_24 = [
-        0.025, 0.015, 0.010, 0.008, 0.006, 0.010, 0.018, 0.028,
-        0.038, 0.048, 0.055, 0.052, 0.048, 0.045, 0.050, 0.058,
-        0.068, 0.078, 0.088, 0.092, 0.082, 0.068, 0.050, 0.032,
-    ]
     hourly_curve_labels = [f"{h:02d}-{h+2:02d}" for h in range(0, 24, 2)]
-    hourly_curve_vals = [
-        round(base_curve_gb * (curve_weights_24[i * 2] + curve_weights_24[i * 2 + 1]) * 1.8, 2)
-        for i in range(12)
-    ]
-    peak_2h_idx = max(range(12), key=lambda i: hourly_curve_vals[i])
+    if not has_traffic or base_curve_gb <= 0.0:
+        hourly_curve_vals = [0.0] * 12
+        peak_hour_str = None
+        is_curve_estimated = False
+    else:
+        # Model daily distribution based strictly on the user's real consumed volume
+        curve_weights_24 = [
+            0.025, 0.015, 0.010, 0.008, 0.006, 0.010, 0.018, 0.028,
+            0.038, 0.048, 0.055, 0.052, 0.048, 0.045, 0.050, 0.058,
+            0.068, 0.078, 0.088, 0.092, 0.082, 0.068, 0.050, 0.032,
+        ]
+        hourly_curve_vals = [
+            round(base_curve_gb * (curve_weights_24[i * 2] + curve_weights_24[i * 2 + 1]), 2)
+            for i in range(12)
+        ]
+        peak_2h_idx = max(range(12), key=lambda i: hourly_curve_vals[i])
+        peak_hour_str = f"{peak_2h_idx*2:02d}:00 - {peak_2h_idx*2 + 2:02d}:00"
+        is_curve_estimated = True
 
     platform_counts: dict[str, int] = {}
     for d in devices:
@@ -285,7 +299,9 @@ def _calc_usage_curves(
         "hourly_usage": {
             "labels": hourly_curve_labels,
             "data": hourly_curve_vals,
-            "peak_hour": f"{peak_2h_idx*2:02d}:00 - {peak_2h_idx*2 + 2:02d}:00",
+            "peak_hour": peak_hour_str,
+            "is_estimated": is_curve_estimated,
+            "has_traffic": has_traffic,
         },
         "device_share": {"labels": list(platform_counts.keys()), "data": list(platform_counts.values())},
     }

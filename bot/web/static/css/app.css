@@ -95,10 +95,24 @@ html, body {
 }
 /* Toggle Switch styles */
 .switch-checkbox:checked + .switch-label {
-  background-color: #2563eb;
+  background-color: #2563eb !important;
+}
+[dir="ltr"] .switch-checkbox:checked + .switch-label .switch-ball,
+label[dir="ltr"] .switch-checkbox:checked + .switch-label .switch-ball {
+  transform: translateX(20px) !important;
+}
+[dir="rtl"] .switch-checkbox:checked + .switch-label .switch-ball,
+label[dir="rtl"] .switch-checkbox:checked + .switch-label .switch-ball {
+  transform: translateX(-20px) !important;
 }
 .switch-checkbox:checked + .switch-label .switch-ball {
-  transform: translateX(-20px);
+  transform: translateX(20px);
+}
+html.theme-light .switch-label {
+  background-color: #cbd5e1 !important;
+}
+html.theme-light .switch-checkbox:checked + .switch-label {
+  background-color: #2563eb !important;
 }
 
 html.theme-light .bg-\[\#131d31\],
@@ -270,7 +284,6 @@ html.theme-light #activeSessionsModal > div,
 html.theme-light #switchAccountModal > div,
 html.theme-light #revokeModal > div,
 html.theme-light #purchaseSuccessModal > div,
-html.theme-light #luckyWheelModal > div,
 html.theme-light #supportChatModal > div,
 html.theme-light #planModal > div,
 html.theme-light #couponModal > div,
@@ -1203,15 +1216,37 @@ html.theme-light #settingExpireDaysSelect {
   color: #0f172a !important;
 }
 
-/* Zero-background overrides for seamless UI styling */
-#switchAccountBtn,
+/* Header Action Buttons (Support & Theme Toggle) */
 #openSupportBtn,
-#themeToggle,
+#themeToggle {
+  background-color: rgba(30, 41, 59, 0.7) !important;
+  border: 1px solid rgba(148, 163, 184, 0.25) !important;
+  border-radius: 0.75rem !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2) !important;
+  transition: all 0.2s ease !important;
+}
+#openSupportBtn:hover,
+#themeToggle:hover {
+  border-color: rgba(148, 163, 184, 0.45) !important;
+  background-color: rgba(51, 65, 85, 0.8) !important;
+}
+html.theme-light #openSupportBtn,
+html.theme-light #themeToggle {
+  background-color: #f1f5f9 !important;
+  border: 1px solid #cbd5e1 !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05) !important;
+}
+html.theme-light #openSupportBtn:hover,
+html.theme-light #themeToggle:hover {
+  background-color: #e2e8f0 !important;
+  border-color: #94a3b8 !important;
+}
+
+/* Zero-background overrides for seamless text/stub buttons */
+#switchAccountBtn,
 #closeBtn,
 #reloadBtn,
 html.theme-light #switchAccountBtn,
-html.theme-light #openSupportBtn,
-html.theme-light #themeToggle,
 html.theme-light #closeBtn,
 html.theme-light #reloadBtn {
   background: transparent !important;

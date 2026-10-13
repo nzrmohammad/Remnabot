@@ -16,6 +16,8 @@ const $ = id => {
   return elem;
 };
 
+const toPersianDigits = (s) => (typeof window.toPersianDigits === 'function' ? window.toPersianDigits(s) : (typeof toEnglishDigits === 'function' ? String(s ?? '') : String(s ?? '')));
+
 // 1. Splash Screen Logic
 function runSplash() {
   const splashScreen = $('splashScreen');
@@ -1997,17 +1999,24 @@ function renderActiveSubAnalytics(sub) {
   // 2. 24h Peak Usage Area Curve
   if (typeof renderLineCurveChart === 'function') {
     try {
-      renderLineCurveChart(
-        'repPeakHoursChartCanvas',
-        sub.hourly_usage?.labels || [
-          '00:00','02:00','04:00','06:00','08:00','10:00',
-          '12:00','14:00','16:00','18:00','20:00','22:00'
-        ],
-        sub.hourly_usage?.data || [
-          0.1, 0.05, 0.02, 0.05, 0.2, 0.4, 0.6, 0.5, 0.7, 1.2, 1.5, 0.8
-        ],
-        sub.hourly_usage?.peak_hour || '21:00'
-      );
+      const hourlyLabels = sub.hourly_usage?.labels || [
+        '00-02','02-04','04-06','06-08','08-10','10-12',
+        '12-14','14-16','16-18','18-20','20-22','22-24'
+      ];
+      const hourlyData = sub.hourly_usage?.data || new Array(12).fill(0);
+      const peakHour = sub.hourly_usage?.peak_hour || null;
+      renderLineCurveChart('repPeakHoursChartCanvas', hourlyLabels, hourlyData, peakHour);
+
+      const peakBadge = $('repPeakHourBadge');
+      if (peakBadge) {
+        if (!sub.hourly_usage?.has_traffic) {
+          peakBadge.innerText = 'بدون مصرف';
+        } else if (sub.hourly_usage?.is_estimated) {
+          peakBadge.innerText = peakHour ? `Peak: ${peakHour} (تخمینی)` : 'الگوی تخمینی';
+        } else if (peakHour) {
+          peakBadge.innerText = `Peak: ${peakHour}`;
+        }
+      }
     } catch (e) {
       console.warn('Error rendering peak hours chart', e);
     }
@@ -2016,8 +2025,8 @@ function renderActiveSubAnalytics(sub) {
   // 3. Country / Cluster Donut Chart
   if (typeof renderDonutChart === 'function') {
     try {
-      const countryLabels = sub.country_share?.labels?.length ? sub.country_share.labels : ['🇳🇱 هلند', '🇩🇪 آلمان', '🇹🇷 ترکیه'];
-      const countryData = sub.country_share?.data?.length ? sub.country_share.data : [15.2, 6.4, 2.8];
+      const countryLabels = sub.country_share?.labels?.length ? sub.country_share.labels : [];
+      const countryData = sub.country_share?.data?.length ? sub.country_share.data : [];
       renderDonutChart('repCountryChartCanvas', countryLabels, countryData, false);
     } catch (e) {
       console.warn('Error rendering country donut chart', e);
@@ -2025,8 +2034,8 @@ function renderActiveSubAnalytics(sub) {
 
     // 4. Device Platform Donut Chart
     try {
-      const devLabels = sub.device_share?.labels?.length ? sub.device_share.labels : ['🤖 Android', '🍏 iOS'];
-      const devData = sub.device_share?.data?.length ? sub.device_share.data : [1, 1];
+      const devLabels = sub.device_share?.labels?.length ? sub.device_share.labels : [];
+      const devData = sub.device_share?.data?.length ? sub.device_share.data : [];
       renderDonutChart('repDeviceChartCanvas', devLabels, devData, true);
     } catch (e) {
       console.warn('Error rendering device donut chart', e);

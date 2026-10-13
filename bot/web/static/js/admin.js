@@ -775,17 +775,25 @@
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    const rawLabels = locationShare?.labels || ['🌐'];
-    const labels = rawLabels.map(l => {
-      const clean = (l || '').replace(/[A-Za-z0-9_-]+/g, '').trim();
-      return clean || '🌐';
-    });
-    const values = locationShare?.data || [1];
+    const hasData = Boolean(locationShare?.has_data && locationShare?.data?.length && locationShare.data.some(v => v > 0));
+    const labels = hasData
+      ? (locationShare.labels || []).map(l => (l || '').replace(/[A-Za-z0-9_-]+/g, '').trim() || l || '🌐')
+      : ['بدون مصرف'];
+    const values = hasData ? locationShare.data : [1];
     const unit = locationShare?.unit || 'GB';
+    const bgColors = hasData ? [
+      'rgba(139, 92, 246, 0.85)',
+      'rgba(6, 182, 212, 0.85)',
+      'rgba(16, 185, 129, 0.85)',
+      'rgba(245, 158, 11, 0.85)',
+      'rgba(244, 63, 94, 0.85)',
+      'rgba(99, 102, 241, 0.85)',
+    ] : ['rgba(100, 116, 139, 0.4)'];
 
     if (locationChartInstance) {
       locationChartInstance.data.labels = labels;
       locationChartInstance.data.datasets[0].data = values;
+      locationChartInstance.data.datasets[0].backgroundColor = bgColors;
       locationChartInstance.update();
       return;
     }
@@ -796,14 +804,7 @@
         labels: labels,
         datasets: [{
           data: values,
-          backgroundColor: [
-            'rgba(139, 92, 246, 0.85)',
-            'rgba(6, 182, 212, 0.85)',
-            'rgba(16, 185, 129, 0.85)',
-            'rgba(245, 158, 11, 0.85)',
-            'rgba(244, 63, 94, 0.85)',
-            'rgba(99, 102, 241, 0.85)',
-          ],
+          backgroundColor: bgColors,
           borderWidth: 0,
           borderColor: 'transparent',
         }]
@@ -823,7 +824,7 @@
             rtl: true,
             textDirection: 'rtl',
             callbacks: {
-              label: (ctx) => `${ctx.label}: ${formatNumber(ctx.raw)} ${unit}`
+              label: (ctx) => hasData ? `${ctx.label}: ${formatNumber(ctx.raw)} ${unit}` : 'داده‌ای برای سرورها ثبت نشده است'
             }
           }
         }
@@ -841,8 +842,14 @@
     const labels = hourlyDist?.labels || [];
     const values = hourlyDist?.data || [];
     const peakBadge = $('peakHourBadge');
-    if (peakBadge && hourlyDist?.peak_hour) {
-      peakBadge.innerText = `Peak: ${hourlyDist.peak_hour}`;
+    if (peakBadge) {
+      if (hourlyDist?.is_real_telemetry && hourlyDist?.peak_hour) {
+        peakBadge.innerText = `Peak: ${hourlyDist.peak_hour}`;
+      } else if (hourlyDist?.is_real_telemetry) {
+        peakBadge.innerText = `تله‌متری زنده`;
+      } else {
+        peakBadge.innerText = `در حال ثبت اسنپ‌شات`;
+      }
     }
 
     if (hourlyChartInstance) {
@@ -999,13 +1006,23 @@
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    const rawLabels = planDist?.labels || ['پلن استاندارد'];
-    const labels = rawLabels.map(formatPlanLabelWithIconFirst);
-    const values = planDist?.sales_count || [1];
+    const hasSales = Boolean(planDist?.has_data ?? (planDist?.sales_count && planDist.sales_count.some(c => c > 0)));
+    const labels = hasSales
+      ? (planDist.labels || []).map(formatPlanLabelWithIconFirst)
+      : ['بدون سفارش ثبت‌شده'];
+    const values = hasSales ? planDist.sales_count : [1];
+    const bgColors = hasSales ? [
+      'rgba(236, 72, 153, 0.85)',
+      'rgba(168, 85, 247, 0.85)',
+      'rgba(99, 102, 241, 0.85)',
+      'rgba(6, 182, 212, 0.85)',
+      'rgba(16, 185, 129, 0.85)',
+    ] : ['rgba(100, 116, 139, 0.4)'];
 
     if (planSalesChartInstance) {
       planSalesChartInstance.data.labels = labels;
       planSalesChartInstance.data.datasets[0].data = values;
+      planSalesChartInstance.data.datasets[0].backgroundColor = bgColors;
       planSalesChartInstance.update();
       return;
     }
@@ -1016,13 +1033,7 @@
         labels: labels,
         datasets: [{
           data: values,
-          backgroundColor: [
-            'rgba(236, 72, 153, 0.85)',
-            'rgba(168, 85, 247, 0.85)',
-            'rgba(99, 102, 241, 0.85)',
-            'rgba(6, 182, 212, 0.85)',
-            'rgba(16, 185, 129, 0.85)',
-          ],
+          backgroundColor: bgColors,
           borderWidth: 0,
           borderColor: 'transparent',
         }]
@@ -1042,7 +1053,7 @@
             rtl: true,
             textDirection: 'rtl',
             callbacks: {
-              label: (ctx) => `${ctx.label}: ${formatNumber(ctx.raw)} سفارش`
+              label: (ctx) => hasSales ? `${ctx.label}: ${formatNumber(ctx.raw)} سفارش` : 'سفارشی برای پلن‌ها ثبت نشده است'
             }
           }
         }
