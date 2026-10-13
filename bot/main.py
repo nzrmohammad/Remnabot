@@ -35,6 +35,8 @@ from bot.services.reports import (
 from bot.services.node_monitor import nodes_monitor_loop
 from bot.services.traffic_monitor import traffic_monitor_loop
 from bot.services.retention import retention_loop
+from bot.services.birthday import birthday_sweep_loop
+from bot.web.cache import FastCache
 
 logging.basicConfig(
     level=logging.INFO,
@@ -348,6 +350,9 @@ async def main() -> None:
         except Exception as exc:
             logger.warning("Failed to dispatch error report: %s", exc)
 
+    redis_client = getattr(dp.storage, "redis", None)
+    fast_cache = FastCache(redis_client=redis_client)
+
     background_tasks = [
         asyncio.create_task(
             alerts_loop(bot, session_factory, remnawave), name="alerts-loop"
@@ -390,7 +395,11 @@ async def main() -> None:
             traffic_monitor_loop(remnawave, session_factory), name="traffic-monitor-loop"
         ),
         asyncio.create_task(
-            wheel_reminder_loop(bot, session_factory), name="wheel-reminder-loop"
+            wheel_reminder_loop(bot, session_factory, remnawave), name="wheel-reminder-loop"
+        ),
+        asyncio.create_task(
+            birthday_sweep_loop(bot, session_factory, remnawave, cache=fast_cache),
+            name="birthday-sweep-loop",
         ),
     ]
 
@@ -398,8 +407,6 @@ async def main() -> None:
     if settings.WEB_ENABLED:
         try:
             from bot.web.server import create_web_app, start_web_server
-
-            redis_client = getattr(dp.storage, "redis", None)
             web_app = create_web_app(
                 bot=bot,
                 session_factory=session_factory,

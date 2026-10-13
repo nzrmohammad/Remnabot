@@ -141,6 +141,10 @@ const api = {
     return this.post('/api/user/settings', { key, value });
   },
 
+  async setBirthday(birth_date) {
+    return this.post('/api/user/set_birthday', { birth_date });
+  },
+
   async changeLanguage(language) {
     return this.post('/api/user/settings', { language });
   },

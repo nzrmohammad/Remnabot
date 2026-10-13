@@ -4668,6 +4668,19 @@
       const minTopup = $('settingMinTopup');
       if (minTopup) minTopup.value = s.topup_min_amount ?? 20000;
 
+      const cardPhoneSwitch = $('settingCardRequirePhoneSwitch');
+      if (cardPhoneSwitch) cardPhoneSwitch.checked = s.card_require_phone_verification ?? true;
+
+      // Birthday Rewards
+      const bdaySwitch = $('settingBirthdayRewardSwitch');
+      if (bdaySwitch) bdaySwitch.checked = s.birthday_reward_enabled ?? true;
+
+      const bdayTraffic = $('settingBirthdayRewardTraffic');
+      if (bdayTraffic) bdayTraffic.value = s.birthday_reward_traffic_gb ?? 2;
+
+      const bdayDiscount = $('settingBirthdayRewardDiscount');
+      if (bdayDiscount) bdayDiscount.value = s.birthday_reward_discount_percent ?? 20;
+
       // Crypto & Rates
       const usdtRate = $('settingUsdtRate');
       if (usdtRate) {
@@ -4820,6 +4833,12 @@
   $('settingStarsSwitch')?.addEventListener('change', (e) => {
     updateSettingToggle('stars_enabled', e.target.checked);
   });
+  $('settingCardRequirePhoneSwitch')?.addEventListener('change', (e) => {
+    updateSettingToggle('card_require_phone_verification', e.target.checked);
+  });
+  $('settingBirthdayRewardSwitch')?.addEventListener('change', (e) => {
+    updateSettingToggle('birthday_reward_enabled', e.target.checked);
+  });
   $('settingAccessMode')?.addEventListener('change', (e) => {
     updateSettingToggle('access_mode', e.target.value);
   });
@@ -4837,6 +4856,10 @@
       maintenance: isMaint,
       access_mode: accessModeVal,
       card_enabled: $('settingCardSwitch')?.checked ?? true,
+      card_require_phone_verification: $('settingCardRequirePhoneSwitch')?.checked ?? true,
+      birthday_reward_enabled: $('settingBirthdayRewardSwitch')?.checked ?? true,
+      birthday_reward_traffic_gb: parseInt($('settingBirthdayRewardTraffic')?.value || '2', 10),
+      birthday_reward_discount_percent: parseInt($('settingBirthdayRewardDiscount')?.value || '20', 10),
       crypto_enabled: $('settingCryptoSwitch')?.checked ?? false,
       stars_enabled: $('settingStarsSwitch')?.checked ?? false,
       stars_rate_toman: parseInt($('settingStarsRate')?.value || '1600', 10),

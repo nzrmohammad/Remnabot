@@ -181,6 +181,33 @@ async function loadTopupInfo() {
         }
       }
 
+      const cardPhoneWarning = document.getElementById('cardPhoneVerificationWarning');
+      const submitCardBtn = document.getElementById('submitCardTopupBtn');
+      const cardUploadBtn = document.getElementById('uploadCardReceiptImageBtn');
+      if (res.card_require_phone_verification && !res.is_phone_verified) {
+        if (cardPhoneWarning) cardPhoneWarning.classList.remove('hidden');
+        if (submitCardBtn) {
+          submitCardBtn.disabled = true;
+          submitCardBtn.classList.add('opacity-40', 'cursor-not-allowed');
+          submitCardBtn.innerText = '🔒 نیاز به تأیید شماره تماس';
+        }
+        if (cardUploadBtn) {
+          cardUploadBtn.disabled = true;
+          cardUploadBtn.classList.add('opacity-40', 'cursor-not-allowed');
+        }
+      } else {
+        if (cardPhoneWarning) cardPhoneWarning.classList.add('hidden');
+        if (submitCardBtn) {
+          submitCardBtn.disabled = false;
+          submitCardBtn.classList.remove('opacity-40', 'cursor-not-allowed');
+          submitCardBtn.innerText = '📤 ثبت و ارسال رسید پرداخت';
+        }
+        if (cardUploadBtn) {
+          cardUploadBtn.disabled = false;
+          cardUploadBtn.classList.remove('opacity-40', 'cursor-not-allowed');
+        }
+      }
+
       const inputEl = document.getElementById('topupAmountInput');
       updateTopupDisplays(parseInt(inputEl?.value || '50000'));
     }

@@ -682,6 +682,28 @@ async def get_user_me(request: web.Request) -> web.Response:
             except Exception:
                 pass
 
+        days_until_birthday = None
+        is_birthday_today = False
+        birth_date_val = getattr(db_user, "birth_date", None)
+        if isinstance(birth_date_val, str) and birth_date_val.strip():
+            try:
+                clean_bdate = birth_date_val.strip().replace("-", "/")
+                b_parts = [int(p) for p in clean_bdate.split("/") if p.isdigit()]
+                if len(b_parts) == 3:
+                    _by, b_month, b_day = b_parts
+                    today_j = jdatetime.date.today()
+                    this_year_bday = jdatetime.date(today_j.year, b_month, b_day)
+                    if this_year_bday == today_j:
+                        days_until_birthday = 0
+                        is_birthday_today = True
+                    elif this_year_bday > today_j:
+                        days_until_birthday = (this_year_bday - today_j).days
+                    else:
+                        next_year_bday = jdatetime.date(today_j.year + 1, b_month, b_day)
+                        days_until_birthday = (next_year_bday - today_j).days
+            except Exception as bday_err:
+                logger.debug("Failed to calculate days_until_birthday: %s", bday_err)
+
         bot = request.app.get("bot")
         bot_username = getattr(getattr(bot, "_me", None), "username", "") if bot else ""
         ref_link = build_ref_link(bot_username, telegram_id)
@@ -701,7 +723,10 @@ async def get_user_me(request: web.Request) -> web.Response:
                 "wallet_balance": wallet_balance,
                 "referrals_count": referrals_count,
                 "phone_number": db_user.phone_number if isinstance(getattr(db_user, "phone_number", None), str) else "",
+                "is_phone_verified": bool(db_user.phone_number and db_user.phone_number.strip()),
                 "birth_date": db_user.birth_date if isinstance(getattr(db_user, "birth_date", None), str) else "",
+                "days_until_birthday": days_until_birthday,
+                "is_birthday_today": is_birthday_today,
                 "created_at": db_user.created_at.isoformat() if db_user.created_at else None,
                 "created_at_jalali": user_reg_jalali,
                 "language": db_user.language if isinstance(getattr(db_user, "language", None), str) else "fa",
@@ -721,3 +746,43 @@ async def get_user_me(request: web.Request) -> web.Response:
 
         await cache.set(cache_key, data, ttl_seconds=30)
         return web.json_response({"ok": True, "data": data, "cached": False})
+
+
+async def post_user_set_birthday(request: web.Request) -> web.Response:
+    """Set or update user's Jalali birth date (format: YYYY/MM/DD)."""
+    user_auth, err = require_user(request)
+    if err:
+        return err
+
+    try:
+        body = await request.json()
+    except Exception:
+        body = {}
+
+    birth_date = str(body.get("birth_date") or "").strip()
+    clean_bdate = birth_date.replace("-", "/")
+    parts = clean_bdate.split("/")
+    if len(parts) != 3 or not all(p.isdigit() for p in parts):
+        return web.json_response({"ok": False, "error": "فرمت تاریخ نامعتبر است (مثال: ۱۳۷۵/۰۷/۲۲)."}, status=400)
+
+    year, month, day = int(parts[0]), int(parts[1]), int(parts[2])
+    if year < 1300 or year > 1410 or month < 1 or month > 12 or day < 1 or day > 31:
+        return web.json_response({"ok": False, "error": "تاریخ وارد شده خارج از بازه مجاز است."}, status=400)
+
+    formatted_date = f"{year:04d}/{month:02d}/{day:02d}"
+    telegram_id = int(user_auth["id"])
+
+    async with db_session(request) as session:
+        user_repo = UserRepository(session)
+        user = await user_repo.get_by_telegram_id(telegram_id)
+        if not user:
+            return web.json_response({"ok": False, "error": "کاربر یافت نشد."}, status=404)
+
+        user.birth_date = formatted_date
+        await session.commit()
+
+        cache: FastCache = request.app.get("cache")
+        if cache:
+            await cache.delete(f"tma:user:{telegram_id}")
+
+        return web.json_response({"ok": True, "birth_date": formatted_date})

@@ -68,6 +68,21 @@ async def cmd_start(
             ad_code = param.removeprefix("ad_").strip().lower()
             if ad_code and getattr(user, "campaign_code", None) is None:
                 await user_repo.set_campaign(user, ad_code)
+        elif param == "verify_phone":
+            from aiogram.types import KeyboardButton, ReplyKeyboardMarkup
+            phone_kb = ReplyKeyboardMarkup(
+                keyboard=[[KeyboardButton(text="📱 اشتراک‌گذاری شماره تماس من", request_contact=True)]],
+                resize_keyboard=True,
+                one_time_keyboard=True,
+            )
+            await message.answer(
+                "🔒 <b>احراز هویت شماره همراه</b>\n\n"
+                "جهت فعال‌سازی درگاه پرداخت کارت‌به‌کارت و جلوگیری از تخلفات بانکی (فیشینگ)، لطفاً با لمس دکمه زیر شماره همراه خود را تأیید نمایید:\n\n"
+                "<i>(شماره شما صرفاً برای تأیید بانکی ذخیره شده و کاملاً محرمانه نزد ما محفوظ می‌ماند)</i>",
+                reply_markup=phone_kb,
+                parse_mode="HTML",
+            )
+            return
 
     # fresh menu message at the bottom of the chat
     if not user.language:
@@ -133,3 +148,41 @@ async def back_to_welcome(
     else:
         await render_menu(bot, user, user_repo, t(lang, "welcome"), welcome_keyboard(lang))
     await call.answer()
+
+
+@router.message(F.contact)
+async def handle_user_contact(
+    message: Message, bot: Bot, user_repo: UserRepository, session
+):
+    from aiogram.types import ReplyKeyboardRemove
+    if not message.contact:
+        return
+
+    # Anti-fraud verification: ensure contact belongs to this telegram user
+    if message.contact.user_id != message.from_user.id:
+        await message.answer(
+            "⚠️ <b>خطای احراز هویت:</b> شماره تماس ارسالی باید متعلق به همین حساب تلگرام باشد و امکان ارسال شماره شخص دیگر وجود ندارد.",
+            reply_markup=ReplyKeyboardRemove(),
+            parse_mode="HTML",
+        )
+        return
+
+    phone = message.contact.phone_number or ""
+    phone = phone.strip()
+    if phone and not phone.startswith("+"):
+        phone = "+" + phone
+
+    user = await user_repo.get_or_create(
+        telegram_id=message.from_user.id,
+        username=message.from_user.username,
+        full_name=message.from_user.full_name,
+    )
+    user.phone_number = phone
+    await session.commit()
+
+    await message.answer(
+        f"✅ <b>شماره تماس شما با موفقیت تأیید و ثبت شد:</b>\n<code>{phone}</code>\n\n"
+        "اکنون درگاه پرداخت کارت‌به‌کارت برای حساب شما فعال گردید. می‌توانید فرآیند پرداخت را در مینی‌اپ ادامه دهید.",
+        reply_markup=ReplyKeyboardRemove(),
+        parse_mode="HTML",
+    )

@@ -165,10 +165,10 @@ async def monthly_report_loop(
 
 
 async def wheel_reminder_loop(
-    bot: Bot, session_factory: async_sessionmaker
+    bot: Bot, session_factory: async_sessionmaker, remnawave: RemnawaveClient | None = None
 ) -> None:
     """Check every 60 seconds if any user's 24h wheel cooldown has elapsed,
-    and send a Telegram reminder if enabled."""
+    and send a Telegram reminder if enabled and user has an active subscription."""
     from aiogram.types import WebAppInfo
     from aiogram.utils.keyboard import InlineKeyboardBuilder
 
@@ -190,6 +190,18 @@ async def wheel_reminder_loop(
 
                     for prefs in due_prefs:
                         try:
+                            if remnawave:
+                                try:
+                                    panel_users = await remnawave.get_users_by_telegram_id(prefs.telegram_id) or []
+                                    has_active_sub = any(
+                                        (u.get("status") or "").upper() == "ACTIVE" for u in panel_users
+                                    )
+                                    if not has_active_sub:
+                                        prefs.wheel_notified = True
+                                        continue
+                                except Exception as sub_err:
+                                    logger.debug("Failed checking active sub for wheel reminder: %s", sub_err)
+
                             user = await user_repo.get_by_telegram_id(prefs.telegram_id)
                             lang = (user.language if user else None) or "fa"
                             text = t(lang, "wheel_ready_notify")

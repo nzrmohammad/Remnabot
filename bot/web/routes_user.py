@@ -11,7 +11,7 @@ Modularized into domain-specific modules:
 - user_speedtest.py: Low-overhead network throughput benchmarks.
 """
 from bot.db.repositories.user_repo import UserRepository
-from bot.web.user_profile import get_user_me
+from bot.web.user_profile import get_user_me, post_user_set_birthday
 from bot.web.user_shop import (
     post_user_kill_device,
     post_user_purchase,
@@ -48,6 +48,7 @@ from bot.web.user_speedtest import (
 
 __all__ = [
     "get_user_me",
+    "post_user_set_birthday",
     "post_user_spin",
     "post_user_revoke_sub",
     "post_user_kill_device",

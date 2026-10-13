@@ -110,6 +110,24 @@ function updateWheelUIState(canSpin, hasActiveSub, nextSeconds) {
   const spinBtn = document.getElementById('spinWheelBtn');
   const timerBox = document.getElementById('wheelTimerContainer');
   const warningBox = document.getElementById('wheelSubWarning');
+  const wheelSubEl = document.querySelector('.lucky-wheel-sub');
+
+  if (wheelSubEl) {
+    if (!hasActiveSub) {
+      wheelSubEl.textContent = '🔒 قفل (ویژه اشتراک‌های فعال)';
+      wheelSubEl.classList.remove('text-slate-300', 'text-emerald-400');
+      wheelSubEl.classList.add('text-amber-400/80');
+    } else if (nextSeconds > 0) {
+      wheelSubEl.textContent = '⏳ شانس بعدی تا ۲۴ ساعت';
+      wheelSubEl.classList.remove('text-amber-400/80', 'text-emerald-400');
+      wheelSubEl.classList.add('text-slate-300');
+    } else {
+      wheelSubEl.textContent = '🎁 ۱ شانس روزانه فعال';
+      wheelSubEl.classList.remove('text-amber-400/80', 'text-slate-300');
+      wheelSubEl.classList.add('text-emerald-400');
+    }
+  }
+
   if (!spinBtn) return;
 
   if (!hasActiveSub) {

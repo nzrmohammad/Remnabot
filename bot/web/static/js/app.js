@@ -409,6 +409,7 @@ const CLIENT_APPS_DATA = {
     {
       id: 'streisand',
       name: 'Streisand',
+      version: '1.9.2',
       desc: 'سریع‌ترین کلاینت iOS با قابلیت اتصال آسان و پشتیبانی کامل',
       icon: '🛡️',
       scheme: (url) => `streisand://import/${encodeURIComponent(url)}`
@@ -416,6 +417,7 @@ const CLIENT_APPS_DATA = {
     {
       id: 'v2box',
       name: 'V2Box',
+      version: '2.4.1',
       desc: 'کلاینت باسابقه و پایدار اپ استور با قابلیت تست پینگ خودکار',
       icon: '📦',
       scheme: (url) => `v2box://install-sub?url=${encodeURIComponent(url)}&name=${encodeURIComponent(window.lastUserData?.bot_username || 'Subscription')}`
@@ -423,6 +425,7 @@ const CLIENT_APPS_DATA = {
     {
       id: 'incy',
       name: 'Incy',
+      version: '1.0.8',
       desc: 'ظاهر زیبا و کاربری فوق‌العاده راحت با اتصال فوری یک‌کلیکه',
       icon: '⚡',
       scheme: (url) => `incy://import/${url}`
@@ -430,6 +433,7 @@ const CLIENT_APPS_DATA = {
     {
       id: 'happ',
       name: 'Happ',
+      version: '3.1.2',
       desc: 'پشتیبانی از پروتکل‌های نوین با سرعت و پایداری فوق‌العاده',
       icon: '🚀',
       scheme: (url) => `happ://add/${url}`
@@ -439,6 +443,7 @@ const CLIENT_APPS_DATA = {
     {
       id: 'v2rayng',
       name: 'v2rayNG',
+      version: '1.9.15',
       desc: 'استانداردترین و سازگارترین نرم‌افزار برای تمامی گوشی‌های اندروید',
       icon: '🤖',
       scheme: (url) => `v2rayng://install-sub?url=${encodeURIComponent(url)}`
@@ -446,6 +451,7 @@ const CLIENT_APPS_DATA = {
     {
       id: 'happ',
       name: 'Happ',
+      version: '3.1.2',
       desc: 'کلاینت جدید و بسیار قدرتمند با طراحی مدرن و سرعت بالا',
       icon: '🚀',
       scheme: (url) => `happ://add/${url}`
@@ -453,6 +459,7 @@ const CLIENT_APPS_DATA = {
     {
       id: 'hiddify',
       name: 'Hiddify',
+      version: '2.5.7',
       desc: 'اتصال هوشمند به کم‌پینگ‌ترین سرور و تفکیک خودکار ترافیک',
       icon: '✨',
       scheme: (url) => `hiddify://install-sub?url=${encodeURIComponent(url)}`
@@ -460,6 +467,7 @@ const CLIENT_APPS_DATA = {
     {
       id: 'incy',
       name: 'Incy',
+      version: '1.0.8',
       desc: 'محیط خلوت و مینیمال با اتصال یک‌کلیکه و مصرف کم باتری',
       icon: '⚡',
       scheme: (url) => `incy://import/${url}`
@@ -469,6 +477,7 @@ const CLIENT_APPS_DATA = {
     {
       id: 'v2rayn',
       name: 'v2rayN',
+      version: '7.1.4',
       desc: 'قدرتمندترین کلاینت ویندوز با پشتیبانی کامل از انواع پروتکل‌ها',
       icon: '🪟',
       scheme: null
@@ -476,6 +485,7 @@ const CLIENT_APPS_DATA = {
     {
       id: 'hiddify',
       name: 'Hiddify',
+      version: '2.5.7',
       desc: 'نرم‌افزار مدرن ویندوز با قابلیت فعال‌سازی سرویس TUN و تست پینگ',
       icon: '✨',
       scheme: (url) => `hiddify://install-sub?url=${encodeURIComponent(url)}`
@@ -483,6 +493,7 @@ const CLIENT_APPS_DATA = {
     {
       id: 'happ',
       name: 'Happ',
+      version: '3.1.2',
       desc: 'نسخه ویندوز اپلیکیشن Happ با محیط سبک، مدرن و سرعت بالا',
       icon: '🚀',
       scheme: (url) => `happ://add/${url}`
@@ -490,6 +501,7 @@ const CLIENT_APPS_DATA = {
     {
       id: 'incy',
       name: 'Incy',
+      version: '1.0.8',
       desc: 'کلاینت سبک برای اتصال فوری و بدون دردسر در کامپیوتر و لپ‌تاپ',
       icon: '⚡',
       scheme: null
@@ -499,6 +511,7 @@ const CLIENT_APPS_DATA = {
     {
       id: 'hiddify',
       name: 'Hiddify',
+      version: '2.5.7',
       desc: 'نسخه مک کلاینت Hiddify با پشتیبانی از پردازنده‌های Apple Silicon و اینتل',
       icon: '✨',
       scheme: (url) => `hiddify://install-sub?url=${encodeURIComponent(url)}`
@@ -506,6 +519,7 @@ const CLIENT_APPS_DATA = {
     {
       id: 'happ',
       name: 'Happ',
+      version: '3.1.2',
       desc: 'کلاینت پرسرعت و سبک ویژه macOS با رابط مینیمال و اتصال فوری',
       icon: '🚀',
       scheme: (url) => `happ://add/${url}`
@@ -513,6 +527,7 @@ const CLIENT_APPS_DATA = {
     {
       id: 'incy',
       name: 'Incy',
+      version: '1.0.8',
       desc: 'نرم‌افزار زیبا و ساده سازگار با تمامی نسخه‌های مک',
       icon: '⚡',
       scheme: (url) => `incy://import/${url}`
@@ -520,6 +535,7 @@ const CLIENT_APPS_DATA = {
     {
       id: 'v2box',
       name: 'V2Box',
+      version: '2.4.1',
       desc: 'نسخه مک اپلیکیشن باسابقه V2Box در اپ‌استور با تست پینگ',
       icon: '📦',
       scheme: (url) => `v2box://install-sub?url=${encodeURIComponent(url)}&name=${encodeURIComponent(window.lastUserData?.bot_username || 'Subscription')}`
@@ -529,6 +545,7 @@ const CLIENT_APPS_DATA = {
     {
       id: 'hiddify',
       name: 'Hiddify',
+      version: '2.5.7',
       desc: 'کلاینت مدرن لینوکس در قالب بسته‌های AppImage و deb با هسته پیشرفته',
       icon: '✨',
       scheme: (url) => `hiddify://install-sub?url=${encodeURIComponent(url)}`
@@ -536,6 +553,7 @@ const CLIENT_APPS_DATA = {
     {
       id: 'nekoray',
       name: 'NekoRay',
+      version: '4.0.1',
       desc: 'کلاینت محبوب و قدرتمند لینوکس با پشتیبانی کامل از sing-box و Xray',
       icon: '🐱',
       scheme: null
@@ -543,6 +561,7 @@ const CLIENT_APPS_DATA = {
     {
       id: 'v2raya',
       name: 'v2rayA',
+      version: '2.2.5',
       desc: 'کلاینت تحت وب با سرویس سیستمی و هدایت شفاف ترافیک در لینوکس',
       icon: '🐧',
       scheme: null
@@ -550,6 +569,7 @@ const CLIENT_APPS_DATA = {
     {
       id: 'incy',
       name: 'Incy',
+      version: '1.0.8',
       desc: 'کلاینت سبک و مدرن برای توزیع‌های مختلف لینوکس',
       icon: '⚡',
       scheme: (url) => `incy://import/${url}`
@@ -734,7 +754,10 @@ function renderTutorialApps(osKey) {
             </div>
             <div class="min-w-0">
               <b class="text-xs text-white font-bold truncate block">${escapeHtml(app.name)}</b>
-              <span class="text-[9.5px] text-slate-400 font-sans block mt-0.5">${currentTutorialOS.toUpperCase()}</span>
+              <div class="flex items-center gap-1.5 mt-0.5">
+                <span class="text-[9.5px] text-slate-400 font-sans">${currentTutorialOS.toUpperCase()}</span>
+                ${app.version ? `<span class="text-[9px] text-cyan-400 font-mono bg-cyan-950/60 border border-cyan-800/40 px-1.5 py-0.2 rounded-md">نسخه ${toPersianDigits(app.version)}</span>` : ''}
+              </div>
             </div>
           </div>
           <!-- Left side: Recommended badge + Tutorial button -->
@@ -799,11 +822,209 @@ function renderTutorialApps(osKey) {
   });
 }
 
+function getAllAppVersionsMap() {
+  const map = {};
+  for (const [os, apps] of Object.entries(CLIENT_APPS_DATA)) {
+    if (os === 'desktop') continue;
+    for (const app of apps) {
+      if (app.id && app.version) {
+        map[`${os}_${app.id}`] = app.version;
+      }
+    }
+  }
+  return map;
+}
+
+function checkTutorialAppUpdates() {
+  const badge = $('tutorialBadge');
+  if (!badge) return;
+  const currentMap = getAllAppVersionsMap();
+  let seenMap = {};
+  try {
+    const raw = localStorage.getItem('seen_app_versions');
+    if (raw) seenMap = JSON.parse(raw);
+  } catch (e) {}
+
+  let newCount = 0;
+  for (const [key, ver] of Object.entries(currentMap)) {
+    if (!seenMap[key] || seenMap[key] !== ver) {
+      newCount += 1;
+    }
+  }
+
+  if (newCount > 0) {
+    badge.innerText = `${toPersianDigits(newCount)} جدید`;
+    badge.classList.remove('hidden');
+  } else {
+    badge.classList.add('hidden');
+  }
+}
+
+function markTutorialAppsSeen() {
+  const currentMap = getAllAppVersionsMap();
+  try {
+    localStorage.setItem('seen_app_versions', JSON.stringify(currentMap));
+  } catch (e) {}
+  const badge = $('tutorialBadge');
+  if (badge) badge.classList.add('hidden');
+}
+
+function verifyPhoneInBot() {
+  const botUsername = window.lastUserData?.bot_username || '';
+  if (!botUsername) {
+    showToast('نام کاربری ربات در دسترس نیست.');
+    return;
+  }
+  const verifyLink = `https://t.me/${botUsername}?start=verify_phone`;
+  try {
+    if (window.Telegram?.WebApp?.openTelegramLink) {
+      window.Telegram.WebApp.openTelegramLink(verifyLink);
+    } else {
+      window.open(verifyLink, '_blank');
+    }
+  } catch (e) {
+    window.open(verifyLink, '_blank');
+  }
+}
+window.verifyPhoneInBot = verifyPhoneInBot;
+
+const JALALI_MONTHS = ['فروردین', 'اردیبهشت', 'خرداد', 'تیر', 'مرداد', 'شهریور', 'مهر', 'آبان', 'آذر', 'دی', 'بهمن', 'اسفند'];
+
+function initBirthdaySelects() {
+  const daySel = $('birthdayDaySelect');
+  const monthSel = $('birthdayMonthSelect');
+  const yearSel = $('birthdayYearSelect');
+
+  if (daySel && daySel.options.length === 0) {
+    for (let d = 1; d <= 31; d++) {
+      const opt = document.createElement('option');
+      opt.value = d;
+      opt.textContent = `${toPersianDigits(d)}`;
+      daySel.appendChild(opt);
+    }
+  }
+
+  if (monthSel && monthSel.options.length === 0) {
+    JALALI_MONTHS.forEach((mName, idx) => {
+      const opt = document.createElement('option');
+      opt.value = idx + 1;
+      opt.textContent = `${toPersianDigits(idx + 1)}. ${mName}`;
+      monthSel.appendChild(opt);
+    });
+  }
+
+  if (yearSel && yearSel.options.length === 0) {
+    for (let y = 1395; y >= 1330; y--) {
+      const opt = document.createElement('option');
+      opt.value = y;
+      opt.textContent = `${toPersianDigits(y)}`;
+      yearSel.appendChild(opt);
+    }
+  }
+}
+
+function openBirthdayModal() {
+  initBirthdaySelects();
+  const existingDate = window.lastUserData?.user?.birth_date || '';
+  if (existingDate) {
+    try {
+      const parts = existingDate.replace(/-/g, '/').split('/').map(Number);
+      if (parts.length === 3) {
+        if ($('birthdayYearSelect')) $('birthdayYearSelect').value = parts[0];
+        if ($('birthdayMonthSelect')) $('birthdayMonthSelect').value = parts[1];
+        if ($('birthdayDaySelect')) $('birthdayDaySelect').value = parts[2];
+      }
+    } catch (e) {}
+  } else {
+    if ($('birthdayYearSelect')) $('birthdayYearSelect').value = 1375;
+    if ($('birthdayMonthSelect')) $('birthdayMonthSelect').value = 1;
+    if ($('birthdayDaySelect')) $('birthdayDaySelect').value = 1;
+  }
+  openModal('birthdayModal');
+  hapticFeedback('selection');
+}
+
+function closeBirthdayModal() {
+  closeModal('birthdayModal');
+}
+
+async function saveBirthday() {
+  const day = parseInt($('birthdayDaySelect')?.value || '1', 10);
+  const month = parseInt($('birthdayMonthSelect')?.value || '1', 10);
+  const year = parseInt($('birthdayYearSelect')?.value || '1375', 10);
+
+  const formattedDate = `${year}/${String(month).padStart(2, '0')}/${String(day).padStart(2, '0')}`;
+  const saveBtn = $('saveBirthdayBtn');
+  if (saveBtn) {
+    saveBtn.disabled = true;
+    saveBtn.innerText = 'در حال ذخیره...';
+  }
+
+  try {
+    const res = await window.api.setBirthday(formattedDate);
+    if (res.ok) {
+      showToast('🎉 تاریخ زادروز شما با موفقیت ثبت گردید.');
+      hapticFeedback('success');
+      closeBirthdayModal();
+      if (typeof syncUserDataWithApi === 'function') {
+        syncUserDataWithApi(window.currentAccountId);
+      }
+    } else {
+      showToast(`⚠️ ${res.data?.error || 'خطا در ثبت تاریخ تولد'}`);
+      hapticFeedback('error');
+    }
+  } catch (err) {
+    showToast('خطای شبکه در ذخیره تاریخ زادروز');
+  } finally {
+    if (saveBtn) {
+      saveBtn.disabled = false;
+      saveBtn.innerText = 'ثبت تاریخ تولد 🎉';
+    }
+  }
+}
+
+window.openBirthdayModal = openBirthdayModal;
+window.closeBirthdayModal = closeBirthdayModal;
+window.saveBirthday = saveBirthday;
+
+function renderDashboardBirthdayCountdown(user) {
+  const card = $('dashboardBirthdayCard');
+  if (!card) return;
+
+  const birthDate = user?.birth_date;
+  if (!birthDate || !birthDate.trim()) {
+    card.classList.add('hidden');
+    return;
+  }
+
+  const daysLeft = user?.days_until_birthday;
+  const isToday = user?.is_birthday_today;
+  const titleEl = $('birthdayCardTitle');
+  const subEl = $('birthdayCardSubtitle');
+  const badgeEl = $('birthdayCardBadge');
+  const numEl = $('birthdayDaysLeftNum');
+
+  card.classList.remove('hidden');
+
+  if (isToday || daysLeft === 0) {
+    if (titleEl) titleEl.innerText = '🎉 امروز روز زادروز شماست!';
+    if (subEl) subEl.innerText = 'تولدت مبارک! هدیه ویژه شما فعال گردید 🎁';
+    if (badgeEl) badgeEl.innerHTML = '<span>🎂</span> <span>مبارک باد!</span>';
+  } else if (daysLeft !== null && daysLeft !== undefined) {
+    if (titleEl) titleEl.innerText = 'شمارش معکوس زادروز شما';
+    if (subEl) subEl.innerText = `تنها ${toPersianDigits(daysLeft)} روز تا روز تولدتان باقی مانده است 🎂`;
+    if (numEl) numEl.innerText = toPersianDigits(daysLeft);
+  } else {
+    card.classList.add('hidden');
+  }
+}
+
 function openTutorialModal() {
   const modal = $('tutorialModal');
   if (!modal) return;
 
   renderTutorialApps(detectUserOS());
+  markTutorialAppsSeen();
   openModal('tutorialModal');
   syncTelegramBackButton();
   hapticFeedback('selection');
@@ -1898,9 +2119,19 @@ function renderActiveSubAnalytics(sub) {
   if (profAvatar) profAvatar.innerText = userDisplayName.charAt(0).toUpperCase();
   if (profId) profId.innerText = user.id ? String(user.id) : '--';
   if (profRef) profRef.innerText = user.id ? String(user.id) : '--';
-  if (profPhone) profPhone.innerText = user.phone_number ? toEnglishDigits(user.phone_number) : 'وارد نشده';
-  if (profJoin) profJoin.innerText = toEnglishDigits(user.created_at_jalali || '1403/07/01');
-  if (profBirth) profBirth.innerText = user.birth_date ? toEnglishDigits(user.birth_date) : 'ثبت‌نشده';
+  if (profPhone) {
+    profPhone.innerText = user.phone_number ? toEnglishDigits(user.phone_number) : 'وارد نشده';
+    const verifyBtn = $('verifyPhoneInBotBtn');
+    if (verifyBtn) {
+      if (user.phone_number) {
+        verifyBtn.classList.add('hidden');
+      } else {
+        verifyBtn.classList.remove('hidden');
+      }
+    }
+  }
+  if (profJoin) profJoin.innerText = toPersianDigits(user.created_at_jalali || '1403/07/01');
+  if (profBirth) profBirth.innerText = user.birth_date ? toPersianDigits(user.birth_date) : 'ثبت‌نشده';
 
   const hasActiveSub = Boolean(data.has_active_sub && (sub?.status === 'ACTIVE' || !sub?.status));
   if (profStatusBadge) {
@@ -2107,6 +2338,14 @@ function renderActiveSubAnalytics(sub) {
       data.wheel_status.next_spin_seconds || 0
     );
   }
+
+  // Dashboard Birthday Countdown
+  if (data.user) {
+    renderDashboardBirthdayCountdown(data.user);
+  }
+
+  // Tutorial app updates badge
+  checkTutorialAppUpdates();
 }
 
 // 15. Stale-While-Revalidate API Sync

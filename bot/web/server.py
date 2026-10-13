@@ -62,6 +62,7 @@ from bot.web.routes_user import (
     post_user_kill_device,
     post_user_purchase,
     post_user_revoke_sub,
+    post_user_set_birthday,
     post_user_settings,
     post_user_spin,
     post_user_topup_card,
@@ -412,6 +413,7 @@ def create_web_app(
     app.router.add_post("/api/user/validate_coupon", post_user_validate_coupon)
     app.router.add_post("/api/user/purchase", post_user_purchase)
     app.router.add_post("/api/user/settings", post_user_settings)
+    app.router.add_post("/api/user/set_birthday", post_user_set_birthday)
     app.router.add_post("/api/user/spin", post_user_spin)
     app.router.add_post("/api/user/revoke_sub", post_user_revoke_sub)
     app.router.add_post("/api/user/kill_device", post_user_kill_device)

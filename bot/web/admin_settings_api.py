@@ -60,6 +60,10 @@ async def get_admin_settings(request: web.Request) -> web.Response:
             "tutorial_channel_url": store_settings.tutorial_channel_url,
             "routing_tutorial_url": store_settings.routing_tutorial_url,
             "client_apps_json": store_settings.client_apps_json,
+            "card_require_phone_verification": store_settings.card_require_phone_verification,
+            "birthday_reward_enabled": store_settings.birthday_reward_enabled,
+            "birthday_reward_traffic_gb": store_settings.birthday_reward_traffic_gb,
+            "birthday_reward_discount_percent": store_settings.birthday_reward_discount_percent,
         }
         bot = request.app.get("bot")
         settings_cfg = request.app.get("settings")
@@ -96,7 +100,7 @@ async def post_admin_settings(request: web.Request) -> web.Response:
         bool_keys = (
             "card_enabled", "crypto_enabled", "trial_enabled",
             "referral_enabled", "support_direct_enabled", "maintenance",
-            "stars_enabled",
+            "stars_enabled", "card_require_phone_verification", "birthday_reward_enabled",
         )
         for bk in bool_keys:
             if bk in body:
@@ -113,6 +117,7 @@ async def post_admin_settings(request: web.Request) -> web.Response:
             "topic_topups", "topic_orders", "topic_support", "topic_alerts", "topic_crypto", "topic_errors",
             "access_mode",
             "tutorial_channel_url", "routing_tutorial_url", "client_apps_json",
+            "birthday_reward_traffic_gb", "birthday_reward_discount_percent",
         )
         for rk in raw_keys:
             if rk in body:

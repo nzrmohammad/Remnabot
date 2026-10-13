@@ -118,8 +118,9 @@
 
           <button id="openTutorialModalBtn" type="button" onclick="window.openTutorialModal()" class="tutorial-entry-btn bg-gradient-to-r from-cyan-500/20 via-blue-500/20 to-indigo-600/10 hover:from-cyan-500/30 p-2.5 rounded-2xl border border-cyan-500/40 text-right flex items-center justify-between transition shadow-sm group active:scale-95">
             <div class="flex flex-col">
-              <span class="text-[11px] font-black text-cyan-300 group-hover:text-cyan-200 flex items-center gap-1 tutorial-title">
+              <span class="text-[11px] font-black text-cyan-300 group-hover:text-cyan-200 flex items-center gap-1.5 tutorial-title">
                 <span>📱</span> راهنمای اتصال
+                <span id="tutorialBadge" class="hidden px-1.5 py-0.2 rounded-full text-[9px] font-extrabold bg-rose-500 text-white shadow-sm">جدید</span>
               </span>
               <span class="text-[9px] text-slate-300 mt-0.5 font-medium tutorial-sub">دانلود برنامه‌ها و آموزش</span>
             </div>
@@ -145,6 +146,24 @@
             <span class="text-sm">←</span>
           </div>
         </button>
+
+        <!-- Birthday Countdown Card (Hidden if birthday not set) -->
+        <div id="dashboardBirthdayCard" class="hidden bg-gradient-to-r from-pink-500/15 via-rose-500/15 to-purple-500/10 rounded-2xl p-3 border border-pink-500/30 shadow-sm flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-pink-500/20 text-pink-300 border border-pink-500/30 flex items-center justify-center text-xl flex-shrink-0">
+              🎂
+            </div>
+            <div>
+              <span id="birthdayCardTitle" class="text-xs font-black text-pink-300 block">شمارش معکوس زادروز شما</span>
+              <span id="birthdayCardSubtitle" class="text-[10px] text-slate-300 mt-0.5 font-medium block">-- روز تا روز تولدتان باقی مانده است</span>
+            </div>
+          </div>
+          <div id="birthdayCardBadge" class="px-2.5 py-1 rounded-xl bg-pink-500/20 border border-pink-500/40 text-pink-300 text-[10px] font-mono font-bold flex items-center gap-1">
+            <span>🎁</span>
+            <span id="birthdayDaysLeftNum">--</span>
+            <span>روز</span>
+          </div>
+        </div>
 
         <!-- Circular Bandwidth Gauge Card -->
         <div class="bg-slate-800/85 rounded-3xl p-5 border border-slate-700/80 shadow-xl relative overflow-hidden">
@@ -639,7 +658,10 @@
 
           <div class="flex justify-between items-center py-1">
             <span class="text-slate-400 flex items-center gap-1.5"><span>📞</span> شماره تماس</span>
-            <span id="profilePhone" class="text-slate-400 font-medium font-mono" dir="ltr">وارد نشده</span>
+            <div id="profilePhoneContainer" class="flex items-center gap-1.5">
+              <span id="profilePhone" class="text-slate-400 font-medium font-mono" dir="ltr">وارد نشده</span>
+              <button id="verifyPhoneInBotBtn" type="button" onclick="window.verifyPhoneInBot()" class="hidden px-2 py-0.5 rounded-lg bg-blue-600/20 text-blue-400 border border-blue-500/30 text-[10px] font-bold hover:bg-blue-600/30 transition active:scale-95">تأیید در ربات</button>
+            </div>
           </div>
 
           <div class="flex justify-between items-center py-1">
@@ -649,7 +671,10 @@
 
           <div class="flex justify-between items-center py-1">
             <span class="text-slate-400 flex items-center gap-1.5"><span>🎂</span> تاریخ تولد</span>
-            <span id="profileBirthDate" class="text-slate-200 font-medium font-mono" dir="ltr">ثبت‌نشده</span>
+            <div class="flex items-center gap-1.5">
+              <span id="profileBirthDate" class="text-slate-200 font-medium font-mono" dir="ltr">ثبت‌نشده</span>
+              <button id="openBirthdayModalBtn" type="button" onclick="window.openBirthdayModal()" class="px-2 py-0.5 rounded-lg bg-pink-500/20 text-pink-300 border border-pink-500/30 text-[10px] font-bold hover:bg-pink-500/30 transition active:scale-95">ثبت / ویرایش</button>
+            </div>
           </div>
 
           <div class="flex justify-between items-center py-1.5 border-t border-slate-700/60">
@@ -1049,6 +1074,19 @@
 
         <!-- 1. Card-to-Card Section -->
         <div id="topupCardView" class="space-y-3">
+          <div id="cardPhoneVerificationWarning" class="hidden bg-amber-500/10 border border-amber-500/30 rounded-2xl p-3 text-center space-y-2">
+            <div class="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-300 border border-amber-500/30 mx-auto flex items-center justify-center text-lg">
+              🔒
+            </div>
+            <b class="text-xs text-amber-300 block">احراز هویت شماره تماس الزامی است</b>
+            <p class="text-[10.5px] text-slate-300 leading-relaxed">
+              جهت استفاده از درگاه پرداخت کارت‌به‌کارت و جلوگیری از سوءاستفاده‌های بانکی (فیشینگ)، تأیید شماره همراه در ربات تلگرام الزامی می‌باشد.
+            </p>
+            <button type="button" onclick="window.verifyPhoneInBot()" class="w-full bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-slate-950 font-bold text-xs py-2 rounded-xl transition shadow active:scale-95 flex items-center justify-center gap-1.5">
+              <span>📱</span> تأیید شماره همراه در ربات
+            </button>
+          </div>
+
           <div class="bg-slate-900/80 rounded-2xl p-3 border border-slate-700/80 space-y-2">
             <div class="flex justify-between items-center text-[11px]">
               <span class="text-slate-400">شماره کارت مقصد:</span>
@@ -1864,6 +1902,49 @@
           </button>
           <button type="button" onclick="window.closeSpeedResultsModal()" class="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs py-2 rounded-xl transition border border-slate-700/70 active:scale-95">
             بستن
+          </button>
+        </div>
+    <!-- 12. MODAL: JALALI BIRTHDAY PICKER (ثبت تاریخ زادروز) -->
+    <div id="birthdayModal" onclick="if(event.target === this) window.closeBirthdayModal()" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md hidden animate-fadeIn">
+      <div class="bg-[#1a233a] border border-pink-500/50 rounded-3xl p-5 w-full max-w-[340px] text-center shadow-2xl relative my-auto space-y-4">
+        <button type="button" onclick="window.closeBirthdayModal()" class="absolute top-3 left-3 text-slate-400 hover:text-white text-xs bg-slate-800 rounded-full w-7 h-7 flex items-center justify-center transition active:scale-95" title="بستن">✕</button>
+
+        <div class="w-14 h-14 rounded-2xl mx-auto flex items-center justify-center text-3xl shadow-lg border border-pink-500/30 bg-pink-500/10 mt-1">
+          🎂
+        </div>
+
+        <div>
+          <h3 class="text-sm font-extrabold text-white">ثبت تاریخ زادروز شما</h3>
+          <p class="text-[10.5px] text-slate-300 mt-1 leading-relaxed">
+            با وارد کردن تاریخ تولد، در روز زادروزتان هدیه ویژه ترافیک و کوپن تخفیف VIP دریافت خواهید کرد.
+          </p>
+        </div>
+
+        <!-- 3 Select dropdowns: Day, Month, Year -->
+        <div class="grid grid-cols-3 gap-2 text-right">
+          <div>
+            <label class="text-[10px] text-slate-400 block mb-1">روز</label>
+            <select id="birthdayDaySelect" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-xs text-pink-300 outline-none focus:border-pink-500 transition text-center font-mono">
+            </select>
+          </div>
+          <div>
+            <label class="text-[10px] text-slate-400 block mb-1">ماه</label>
+            <select id="birthdayMonthSelect" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-xs text-pink-300 outline-none focus:border-pink-500 transition text-center font-medium">
+            </select>
+          </div>
+          <div>
+            <label class="text-[10px] text-slate-400 block mb-1">سال</label>
+            <select id="birthdayYearSelect" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-xs text-pink-300 outline-none focus:border-pink-500 transition text-center font-mono">
+            </select>
+          </div>
+        </div>
+
+        <div class="space-y-2 pt-1">
+          <button id="saveBirthdayBtn" type="button" onclick="window.saveBirthday()" class="w-full bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-400 hover:to-rose-400 text-white font-bold text-xs py-2.5 rounded-xl transition active:scale-95 shadow">
+            ثبت تاریخ تولد 🎉
+          </button>
+          <button type="button" onclick="window.closeBirthdayModal()" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs py-2 rounded-xl transition border border-slate-700/70 active:scale-95">
+            انصراف
           </button>
         </div>
       </div>

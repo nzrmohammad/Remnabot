@@ -196,6 +196,25 @@ async def _render_topup_amount_prompt(
 ) -> None:
     lang = user.language or "fa"
     store = await get_store_settings(session)
+
+    if method == "card" and store.card_require_phone_verification and not getattr(user, "phone_number", None):
+        kb = InlineKeyboardBuilder()
+        kb.button(text="📱 احراز هویت و ارسال شماره تماس", callback_data="user:verify_phone_prompt")
+        kb.button(text=t(lang, "btn_back"), callback_data="menu:wallet")
+        kb.adjust(1)
+        notice_text = (
+            "🔒 <b>احراز هویت شماره همراه الزامی است</b>\n\n"
+            "جهت استفاده از درگاه پرداخت کارت‌به‌کارت و جلوگیری از سوءاستفاده‌های بانکی (فیشینگ)، تأیید شماره تماس در ربات الزامی است.\n\n"
+            "لطفاً بر روی دکمه زیر کلیک کرده و شماره همراه خود را ارسال فرمایید."
+            if lang == "fa"
+            else
+            "🔒 <b>Phone Verification Required</b>\n\n"
+            "To use Card-to-Card payment, you must verify your phone number first.\n"
+            "Please tap the button below to share your contact."
+        )
+        await render_menu(bot, user, user_repo, notice_text, kb.as_markup())
+        return
+
     await state.set_state(TopupStates.waiting_amount)
     await state.update_data(topup_method=method)
 
@@ -369,6 +388,26 @@ async def topup_amount(
         ),
         kb.as_markup(),
     )
+
+
+@router.callback_query(F.data == "user:verify_phone_prompt")
+async def verify_phone_prompt_cb(call: CallbackQuery, bot: Bot):
+    from aiogram.types import KeyboardButton, ReplyKeyboardMarkup
+    phone_kb = ReplyKeyboardMarkup(
+        keyboard=[[KeyboardButton(text="📱 اشتراک‌گذاری شماره تماس من", request_contact=True)]],
+        resize_keyboard=True,
+        one_time_keyboard=True,
+    )
+    await bot.send_message(
+        chat_id=call.from_user.id,
+        text=(
+            "📱 لطفاً با لمس دکمه زیر شماره همراه خود را تأیید کنید:\n"
+            "<i>(شماره شما صرفاً برای تأیید کارت بانکی ذخیره شده و کاملاً محرمانه است)</i>"
+        ),
+        reply_markup=phone_kb,
+        parse_mode="HTML",
+    )
+    await call.answer()
 
 
 __all__ = [

@@ -41,6 +41,10 @@ class StoreSettings:
     tutorial_channel_url: str = ""
     routing_tutorial_url: str = ""
     client_apps_json: str = ""
+    card_require_phone_verification: bool = True
+    birthday_reward_enabled: bool = True
+    birthday_reward_traffic_gb: int = 2
+    birthday_reward_discount_percent: int = 20
 
 
 async def get_store_settings(session: AsyncSession) -> StoreSettings:
@@ -99,6 +103,10 @@ async def get_store_settings(session: AsyncSession) -> StoreSettings:
         tutorial_channel_url=str(values.get("tutorial_channel_url") or "").strip(),
         routing_tutorial_url=str(values.get("routing_tutorial_url") or "").strip(),
         client_apps_json=str(values.get("client_apps_json") or "").strip(),
+        card_require_phone_verification=_bool(values.get("card_require_phone_verification"), True),
+        birthday_reward_enabled=_bool(values.get("birthday_reward_enabled"), True),
+        birthday_reward_traffic_gb=_int(values.get("birthday_reward_traffic_gb"), 2),
+        birthday_reward_discount_percent=_int(values.get("birthday_reward_discount_percent"), 20),
     )
 
 

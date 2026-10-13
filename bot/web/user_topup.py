@@ -24,15 +24,33 @@ async def get_user_topup_info(request: web.Request) -> web.Response:
         return err
 
     from bot.services.app_settings import get_store_settings
+    from bot.db.repositories.user_repo import UserRepository
 
     async with db_session(request) as session:
         store = await get_store_settings(session)
+        is_phone_verified = False
+        if hasattr(session, "execute"):
+            try:
+                user_repo = UserRepository(session)
+                db_user = await user_repo.get_by_telegram_id(user_auth["id"])
+                is_phone_verified = bool(db_user and getattr(db_user, "phone_number", None) and db_user.phone_number.strip())
+            except Exception:
+                is_phone_verified = False
+        require_phone = getattr(store, "card_require_phone_verification", False) is True
+        card_locked_reason = (
+            "phone_verification_required"
+            if require_phone and not is_phone_verified
+            else None
+        )
         return web.json_response({
             "ok": True,
             "min_amount": store.topup_min_amount,
             "card_enabled": bool(store.card_enabled and store.card_number and store.card_number.strip()),
             "card_number": store.card_number or "",
             "card_holder": store.card_holder or "",
+            "card_require_phone_verification": require_phone,
+            "is_phone_verified": is_phone_verified,
+            "card_locked_reason": card_locked_reason,
             "crypto_enabled": bool(store.crypto_enabled and store.ton_wallet_address and store.ton_rate_toman > 0),
             "ton_wallet_address": store.ton_wallet_address or "",
             "ton_rate_toman": store.ton_rate_toman or 0,
@@ -84,6 +102,26 @@ async def post_user_topup_card(request: web.Request) -> web.Response:
 
     async with db_session(request) as session:
         store = await get_store_settings(session)
+        require_phone = getattr(store, "card_require_phone_verification", False) is True
+        if require_phone:
+            db_user = None
+            if hasattr(session, "execute"):
+                try:
+                    from bot.db.repositories.user_repo import UserRepository
+                    user_repo = UserRepository(session)
+                    db_user = await user_repo.get_by_telegram_id(telegram_id)
+                except Exception:
+                    db_user = None
+            if not db_user or not getattr(db_user, "phone_number", None) or not db_user.phone_number.strip():
+                return web.json_response(
+                    {
+                        "ok": False,
+                        "error": "phone_required",
+                        "message": "جهت پرداخت کارت‌به‌کارت و جلوگیری از سوءاستفاده‌های بانکی، لطفاً ابتدا شماره تماس خود را در ربات تلگرام تأیید نمایید.",
+                    },
+                    status=403,
+                )
+
         if amount < store.topup_min_amount:
             return web.json_response(
                 {"ok": False, "message": f"حداقل مبلغ شارژ {store.topup_min_amount:,} تومان است."},

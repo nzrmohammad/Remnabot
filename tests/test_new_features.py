@@ -1116,3 +1116,123 @@ async def test_wheel_repo_reminder_helpers(async_session: AsyncSession):
     assert any(p.telegram_id == 888777 for p in due)
 
 
+@pytest.mark.anyio
+async def test_post_user_set_birthday_and_countdown(session_factory):
+    import json
+    from aiohttp.test_utils import make_mocked_request
+    from bot.db.models import User
+    from bot.web.user_profile import post_user_set_birthday
+    from bot.web.routes_user import get_user_me
+    from bot.web.cache import FastCache
+
+    async with session_factory() as session:
+        session.add(User(telegram_id=98765, username="bday_user"))
+        await session.commit()
+
+    app = {
+        "bot_token": "123:abc",
+        "admin_ids": [99999],
+        "is_dev": True,
+        "session_factory": session_factory,
+        "cache": FastCache(redis_client=None),
+        "remnawave": AsyncMock(get_users_by_telegram_id=AsyncMock(return_value=[])),
+        "settings": MagicMock(TIMEZONE="Asia/Tehran"),
+    }
+
+    # 1. Invalid date format
+    req_bad = make_mocked_request("POST", "/api/user/set_birthday?user_id=98765", app=app)
+    req_bad.json = AsyncMock(return_value={"birth_date": "invalid-format"})
+    resp_bad = await post_user_set_birthday(req_bad)
+    assert resp_bad.status == 400
+
+    # 2. Valid date format (Jalali 1375/06/15)
+    req_ok = make_mocked_request("POST", "/api/user/set_birthday?user_id=98765", app=app)
+    req_ok.json = AsyncMock(return_value={"birth_date": "1375/06/15"})
+    resp_ok = await post_user_set_birthday(req_ok)
+    assert resp_ok.status == 200
+    res_json = json.loads(resp_ok.text)
+    assert res_json["ok"] is True
+    assert res_json["birth_date"] == "1375/06/15"
+
+    # 3. Fetch user profile and verify birthday & countdown
+    req_me = make_mocked_request("GET", "/api/user/me?user_id=98765", app=app)
+    resp_me = await get_user_me(req_me)
+    assert resp_me.status == 200
+    me_data = json.loads(resp_me.text)["data"]
+    assert me_data["user"]["birth_date"] == "1375/06/15"
+    assert "days_until_birthday" in me_data["user"]
+    assert isinstance(me_data["user"]["days_until_birthday"], int)
+
+
+@pytest.mark.anyio
+async def test_card_topup_phone_verification_gating(session_factory):
+    import base64
+    import json
+    from unittest.mock import patch
+    from aiohttp.test_utils import make_mocked_request
+    from bot.db.models import User
+    from bot.web.user_topup import post_user_topup_card, get_user_topup_info
+
+    async with session_factory() as session:
+        # User 1: No phone
+        session.add(User(telegram_id=112233, username="no_phone_user"))
+        # User 2: Verified phone
+        session.add(User(telegram_id=445566, username="verified_user", phone_number="+989123456789"))
+        await session.commit()
+
+    store = MagicMock(
+        card_enabled=True,
+        card_number="6037991823456789",
+        card_holder="Test Holder",
+        topup_min_amount=10000,
+        card_require_phone_verification=True,
+        crypto_enabled=False,
+        ton_wallet_address="",
+        ton_rate_toman=0,
+    )
+
+    fake_img = b"\xff\xd8\xff\xe0\x00\x10JFIF" + b"\x00" * 50
+    b64_img = "data:image/jpeg;base64," + base64.b64encode(fake_img).decode("ascii")
+
+    mock_bot = AsyncMock()
+    app = {
+        "bot_token": "123:abc",
+        "admin_ids": [99999],
+        "is_dev": True,
+        "session_factory": session_factory,
+        "bot": mock_bot,
+        "settings": MagicMock(ADMIN_CHAT_ID=12345, ADMIN_TOPIC_TOPUPS=None),
+    }
+
+    with patch("bot.web.user_topup.get_store_settings", AsyncMock(return_value=store)):
+        # Check topup info for unverified user
+        req_info_unverified = make_mocked_request("GET", "/api/user/topup_info?user_id=112233", app=app)
+        resp_info_unverified = await get_user_topup_info(req_info_unverified)
+        data_info_unverified = json.loads(resp_info_unverified.text)
+        assert data_info_unverified["card_require_phone_verification"] is True
+        assert data_info_unverified["is_phone_verified"] is False
+        assert data_info_unverified["card_locked_reason"] == "phone_verification_required"
+
+        # Check topup info for verified user
+        req_info_verified = make_mocked_request("GET", "/api/user/topup_info?user_id=445566", app=app)
+        resp_info_verified = await get_user_topup_info(req_info_verified)
+        data_info_verified = json.loads(resp_info_verified.text)
+        assert data_info_verified["is_phone_verified"] is True
+        assert data_info_verified["card_locked_reason"] is None
+
+        # Attempt card topup without verified phone -> 403 phone_required
+        req_card_unverified = make_mocked_request("POST", "/api/user/topup/card?user_id=112233", app=app)
+        req_card_unverified.json = AsyncMock(return_value={"amount": 50000, "receipt_image": b64_img})
+        resp_card_unverified = await post_user_topup_card(req_card_unverified)
+        assert resp_card_unverified.status == 403
+        data_card_unverified = json.loads(resp_card_unverified.text)
+        assert data_card_unverified["error"] == "phone_required"
+
+        # Attempt card topup with verified phone -> 200 OK
+        req_card_verified = make_mocked_request("POST", "/api/user/topup/card?user_id=445566", app=app)
+        req_card_verified.json = AsyncMock(return_value={"amount": 50000, "receipt_image": b64_img})
+        resp_card_verified = await post_user_topup_card(req_card_verified)
+        assert resp_card_verified.status == 200
+
+
+
