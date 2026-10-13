@@ -18,19 +18,47 @@ logger = logging.getLogger(__name__)
 
 def _parse_client_app(ua: str) -> dict[str, str]:
     """Identify VPN client name, icon, and OS tag from user-agent string."""
-    ua_lower = (ua or "").lower()
+    ua_str = (ua or "").strip()
+    ua_lower = ua_str.lower()
+
+    # Determine underlying OS first
+    os_name = "دستگاه"
+    os_icon = "📱"
+    if "windows" in ua_lower or "win64" in ua_lower or "win32" in ua_lower or "wow64" in ua_lower:
+        os_name = "ویندوز"
+        os_icon = "🪟"
+    elif "android" in ua_lower:
+        os_name = "اندروید"
+        os_icon = "🤖"
+    elif "iphone" in ua_lower or "ipad" in ua_lower or "ios" in ua_lower or "cfnetwork" in ua_lower:
+        os_name = "iOS"
+        os_icon = "🍏"
+    elif "macintosh" in ua_lower or "mac os" in ua_lower or "darwin" in ua_lower:
+        os_name = "macOS"
+        os_icon = "🍎"
+    elif "linux" in ua_lower:
+        os_name = "لینوکس"
+        os_icon = "🐧"
+
+    # Specific client applications
+    if "incy" in ua_lower:
+        return {"name": f"Incy ({os_name})", "icon": os_icon, "tag": os_name}
+    if "v2rayng" in ua_lower:
+        return {"name": "v2rayNG", "icon": "🤖", "tag": "اندروید"}
     if "v2rayn" in ua_lower:
-        return {"name": "v2rayN", "icon": "🚀", "tag": "Windows"}
+        return {"name": "v2rayN", "icon": "🪟", "tag": "ویندوز"}
     if "streisand" in ua_lower:
         return {"name": "Streisand", "icon": "🛡️", "tag": "iOS"}
     if "sing-box" in ua_lower or "singbox" in ua_lower:
-        return {"name": "Sing-box", "icon": "📦", "tag": "Multi"}
+        return {"name": "Sing-box", "icon": "📦", "tag": os_name if os_name != "دستگاه" else "Multi"}
     if "happ" in ua_lower:
-        return {"name": "Happ Proxy", "icon": "⚡", "tag": "iOS / Android"}
-    if "nekoray" in ua_lower or "nekobox" in ua_lower:
-        return {"name": "NekoBox", "icon": "🐱", "tag": "Android / PC"}
-    if "clash" in ua_lower or "meta" in ua_lower:
-        return {"name": "Clash Meta", "icon": "🐱", "tag": "Multi"}
+        return {"name": "Happ Proxy", "icon": "⚡", "tag": os_name if os_name != "دستگاه" else "iOS / Android"}
+    if "nekoray" in ua_lower:
+        return {"name": "NekoRay", "icon": "🐱", "tag": os_name if os_name != "دستگاه" else "ویندوز"}
+    if "nekobox" in ua_lower:
+        return {"name": "NekoBox", "icon": "🐱", "tag": os_name if os_name != "دستگاه" else "اندروید"}
+    if "clash" in ua_lower or "meta" in ua_lower or "mihomo" in ua_lower:
+        return {"name": "Clash Meta", "icon": "🐱", "tag": os_name if os_name != "دستگاه" else "Multi"}
     if "shadowrocket" in ua_lower:
         return {"name": "Shadowrocket", "icon": "🚀", "tag": "iOS"}
     if "v2box" in ua_lower:
@@ -38,12 +66,19 @@ def _parse_client_app(ua: str) -> dict[str, str]:
     if "foxray" in ua_lower:
         return {"name": "FoXray", "icon": "🦊", "tag": "iOS"}
     if "karing" in ua_lower:
-        return {"name": "Karing", "icon": "🚗", "tag": "Multi"}
+        return {"name": "Karing", "icon": "🚗", "tag": os_name if os_name != "دستگاه" else "Multi"}
     if "hiddify" in ua_lower:
-        return {"name": "Hiddify", "icon": "✨", "tag": "Multi"}
+        return {"name": "Hiddify", "icon": "✨", "tag": os_name if os_name != "دستگاه" else "Multi"}
     if "curl" in ua_lower or "wget" in ua_lower or "python" in ua_lower:
         return {"name": "Script / Bot", "icon": "🤖", "tag": "Bot"}
-    return {"name": ua[:25] if ua else "کلاینت ناشناس", "icon": "🌐", "tag": "Client"}
+
+    # Fallback: if OS was recognized, present it gracefully instead of generic "Client"
+    if os_name != "دستگاه":
+        clean_ua = ua_str.split("/")[0] if "/" in ua_str else ua_str[:20]
+        display_name = f"{clean_ua} ({os_name})" if clean_ua and len(clean_ua) <= 15 else os_name
+        return {"name": display_name, "icon": os_icon, "tag": os_name}
+
+    return {"name": ua_str[:25] if ua_str else "دستگاه متصل", "icon": "🌐", "tag": "دستگاه"}
 
 
 def _parse_srh_timestamp(created_at_raw: Any, now_utc: datetime) -> tuple[str, str, str]:

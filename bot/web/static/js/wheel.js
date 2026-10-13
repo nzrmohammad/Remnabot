@@ -10,21 +10,81 @@ let wheelCountdownInterval = null;
 
 const prizeMap = {
   '1gb': 0,
-  '1day': 1,
+  'blank_1': 1,
   'discount10': 2,
   '500mb': 3,
+  'blank_2': 4,
   'blank': 4,
   'again': 5
 };
 
 const localPrizes = [
   { id: '1gb', name: '1 GB ترافیک هدیه', icon: '🎁', isAgain: false, isZero: false },
-  { id: '1day', name: '1 روز اشتراک VIP رایگان', icon: '💎', isAgain: false, isZero: false },
+  { id: 'blank_1', name: 'پوچ (شانس بعدی فردا)', icon: '❌', isAgain: false, isZero: true },
   { id: 'discount10', name: '۱۰٪ کد تخفیف ویژه (کد: OFF10)', icon: '🎟', isAgain: false, isZero: false },
   { id: '500mb', name: '500 MB ترافیک هدیه', icon: '⚡️', isAgain: false, isZero: false },
-  { id: 'blank', name: 'پوچ (شانس بعدی فردا)', icon: '❌', isAgain: false, isZero: true },
+  { id: 'blank_2', name: 'پوچ (شانس بعدی فردا)', icon: '❌', isAgain: false, isZero: true },
   { id: 'again', name: 'دوباره (شانس مجدد!)', icon: '🔄', isAgain: true, isZero: false }
 ];
+
+function showWheelResultModal({ icon = '🎉', title = 'تبریک!', message = '', couponCode = null, isError = false }) {
+  const modal = document.getElementById('wheelResultModal');
+  const iconEl = document.getElementById('wheelResultModalIcon');
+  const iconBox = document.getElementById('wheelResultModalIconBox');
+  const titleEl = document.getElementById('wheelResultModalTitle');
+  const bodyEl = document.getElementById('wheelResultModalBody');
+  const couponBox = document.getElementById('wheelResultModalCouponBox');
+  const couponCodeEl = document.getElementById('wheelResultModalCouponCode');
+
+  if (!modal) {
+    if (window.showToast) window.showToast(message);
+    return;
+  }
+
+  if (iconEl) iconEl.innerText = icon;
+  if (titleEl) titleEl.innerText = title;
+  if (bodyEl) bodyEl.innerHTML = message;
+
+  if (iconBox) {
+    if (isError) {
+      iconBox.className = 'w-16 h-16 rounded-2xl mx-auto flex items-center justify-center text-3xl shadow-lg border border-rose-500/30 bg-rose-500/10 mt-1';
+    } else if (couponCode) {
+      iconBox.className = 'w-16 h-16 rounded-2xl mx-auto flex items-center justify-center text-3xl shadow-lg border border-amber-500/40 bg-amber-500/15 mt-1';
+    } else {
+      iconBox.className = 'w-16 h-16 rounded-2xl mx-auto flex items-center justify-center text-3xl shadow-lg border border-emerald-500/30 bg-emerald-500/10 mt-1';
+    }
+  }
+
+  if (couponBox && couponCodeEl) {
+    if (couponCode) {
+      couponCodeEl.innerText = couponCode;
+      couponBox.classList.remove('hidden');
+      const copyBtn = document.getElementById('copyWheelCouponBtn');
+      if (copyBtn) {
+        copyBtn.onclick = () => {
+          if (typeof copyToClipboard === 'function') {
+            copyToClipboard(couponCode, 'کد تخفیف کپی شد');
+          } else if (window.copyToClipboard) {
+            window.copyToClipboard(couponCode, 'کد تخفیف کپی شد');
+          }
+        };
+      }
+    } else {
+      couponBox.classList.add('hidden');
+    }
+  }
+
+  modal.classList.remove('hidden');
+  const hapticFn = window.api?.haptic || window.hapticFeedback || (typeof hapticFeedback === 'function' ? hapticFeedback : null);
+  if (hapticFn) hapticFn(isError ? 'error' : 'success');
+}
+
+function closeWheelResultModal() {
+  const modal = document.getElementById('wheelResultModal');
+  if (modal) modal.classList.add('hidden');
+}
+window.closeWheelResultModal = closeWheelResultModal;
+window.showWheelResultModal = showWheelResultModal;
 
 function startWheelCountdown(sec) {
   wheelCooldownSeconds = sec;
@@ -92,18 +152,27 @@ function setupLuckyWheel() {
     if (window.lastUserData?.wheel_status) {
       const ws = window.lastUserData.wheel_status;
       if (!ws.has_active_sub) {
-        alert('⚠️ برای استفاده از گردونه شانس، داشتن یک اشتراک فعال در پنل الزامی است.');
+        showWheelResultModal({
+          icon: '🔒',
+          title: 'نیاز به اشتراک فعال',
+          message: 'برای استفاده از گردونه شانس، داشتن حداقل یک اشتراک فعال در پنل الزامی است.',
+          isError: true,
+        });
         return;
       }
       if (ws.next_spin_seconds > 0) {
-        alert(`⏳ گردونه هر ۲۴ ساعت یک‌بار قابل استفاده است.\nزمان باقیمانده تا شانس بعدی: ${formatCountdown(ws.next_spin_seconds)}`);
+        showWheelResultModal({
+          icon: '⏳',
+          title: 'مهلت ۲۴ ساعته',
+          message: `گردونه شانس هر ۲۴ ساعت یک‌بار فعال می‌شود.<br/><span class="text-amber-400 font-mono font-bold text-sm block mt-2" dir="ltr">${formatCountdown(ws.next_spin_seconds)}</span><span class="text-[10px] text-slate-400 block mt-0.5">زمان باقیمانده تا شانس بعدی شما</span>`,
+          isError: true,
+        });
         return;
       }
     }
 
     isSpinningWheel = true;
-    spinWheelBtn.disabled = true;
-    spinWheelBtn.innerText = '...';
+    spinBtnState(spinWheelBtn, true, '...');
 
     let chosenPrize = null;
     let targetIndex = 0;
@@ -114,13 +183,17 @@ function setupLuckyWheel() {
         chosenPrize = res.prize;
         targetIndex = prizeMap[chosenPrize.id] ?? 0;
       } else if (!res.ok && res.error) {
-        alert(res.error);
+        showWheelResultModal({
+          icon: '⚠️',
+          title: 'خطا در گردونه',
+          message: res.error,
+          isError: true,
+        });
         isSpinningWheel = false;
         if (res.next_spin_seconds) {
           updateWheelUIState(false, true, res.next_spin_seconds);
         } else {
-          spinWheelBtn.disabled = false;
-          spinWheelBtn.innerText = 'بچرخون!';
+          spinBtnState(spinWheelBtn, false, 'بچرخون!');
         }
         return;
       }
@@ -145,23 +218,32 @@ function setupLuckyWheel() {
 
     setTimeout(() => {
       isSpinningWheel = false;
-      (window.api?.haptic || window.hapticFeedback || hapticFeedback)('success');
+      const hapticFn = window.api?.haptic || window.hapticFeedback || (typeof hapticFeedback === 'function' ? hapticFeedback : null);
+      if (hapticFn) hapticFn('success');
 
       const isAgain = chosenPrize.id === 'again';
-      const isBlank = chosenPrize.id === 'blank';
+      const isBlank = chosenPrize.id === 'blank' || chosenPrize.id === 'blank_1' || chosenPrize.id === 'blank_2' || chosenPrize.type === 'blank';
 
       if (isAgain) {
-        spinWheelBtn.disabled = false;
-        spinWheelBtn.innerText = 'بچرخون!';
-        if (wheelResultText) wheelResultText.innerHTML = '🔄 <b>شانس مجدد!</b> گردونه دوباره برای شما فعال شد، همین الان بچرخون!';
-        alert('🔄 شانس مجدد برنده شدید! می‌توانید یک‌بار دیگر بچرخانید.');
+        spinBtnState(spinWheelBtn, false, 'بچرخون!');
+        if (wheelResultText) wheelResultText.innerHTML = '🔄 <b>شانس مجدد!</b> گردونه دوباره برای شما شارژ شد، همین الان بچرخون!';
+        showWheelResultModal({
+          icon: '🔄',
+          title: 'شانس مجدد برنده شدید!',
+          message: 'گردونه مجدداً برای شما شارژ شد! همین حالا دکمه وسط را لمس کنید و یک‌بار دیگر شانس خود را امتحان فرمایید.',
+        });
       } else {
         updateWheelUIState(false, true, 86400);
         if (isBlank) {
           if (wheelResultText) wheelResultText.innerHTML = '❌ <b>متاسفانه پوچ شد!</b> شانس بعدی شما ۲۴ ساعت دیگر فعال می‌شود.';
-          alert('❌ این چرخش پوچ شد! شانس بعدی شما ۲۴ ساعت دیگر فعال خواهد شد.');
+          showWheelResultModal({
+            icon: '❌',
+            title: 'متاسفانه این بار پوچ شد!',
+            message: 'در این چرخش جایزه‌ای به شما تعلق نگرفت.<br/><span class="text-slate-400 block mt-1">شانس بعدی شما دقیقاً <b>۲۴ ساعت دیگر</b> فعال خواهد شد. فردا حتماً دوباره سر بزنید!</span>',
+            isError: true,
+          });
         } else if (chosenPrize.code || chosenPrize.type === 'coupon') {
-          const couponCode = chosenPrize.code || 'ارسال‌شده در تلگرام';
+          const couponCode = chosenPrize.code || 'OFF10';
           if (chosenPrize.code) {
             try {
               const localCoupons = JSON.parse(localStorage.getItem('user_won_coupons') || '[]');
@@ -176,15 +258,32 @@ function setupLuckyWheel() {
           if (wheelResultText) {
             wheelResultText.innerHTML = `🎉 <b>تبریک!</b> شما برنده <b class="text-amber-400 font-bold">${chosenPrize.name || chosenPrize.text}</b> شدید!<br/><span class="font-mono text-cyan-400 font-bold block mt-1 select-all" dir="ltr">کد: ${couponCode}</span><span class="text-[10px] text-slate-400 block mt-0.5">⏱ مهلت استفاده: ۲۴ ساعت آینده در تب فروشگاه</span>`;
           }
-          alert(`🎉 تبریک! شما برنده ${chosenPrize.name || chosenPrize.text} شدید!\nکد تخفیف: ${couponCode}\nمهلت استفاده: تا ۲۴ ساعت آینده در تب فروشگاه`);
+          showWheelResultModal({
+            icon: '🎟',
+            title: 'تبریک! برنده کد تخفیف شدید',
+            message: 'کد تخفیف اختصاصی ۱۰٪ برای شما فعال شد. می‌توانید در خرید بعدی از تب فروشگاه آن را اعمال کنید.',
+            couponCode: couponCode,
+          });
         } else {
-          if (wheelResultText) wheelResultText.innerHTML = `🎉 <b>تبریک فوق‌العاده!</b> شما برنده <b class="text-emerald-400 font-bold">${chosenPrize.name || chosenPrize.text}</b> شدید!`;
-          alert(`🎉 تبریک! شما برنده ${chosenPrize.name || chosenPrize.text} شدید! جایزه با موفقیت ثبت شد.`);
+          const unit = (chosenPrize.id === '500mb' || chosenPrize.value === 0.5) ? 'MB' : 'GB';
+          const valNum = chosenPrize.value === 0.5 ? '500' : '1';
+          if (wheelResultText) wheelResultText.innerHTML = `🎉 <b>تبریک فوق‌العاده!</b> شما برنده <b class="text-emerald-400 font-bold" dir="ltr"><span class="font-mono">${valNum}</span> ${unit}</b> ترافیک رایگان شدید!`;
+          showWheelResultModal({
+            icon: '🎁',
+            title: 'تبریک فوق‌العاده!',
+            message: `شما برنده ترافیک رایگان شدید:<br/><div class="my-2 py-1.5 px-3 bg-slate-900/80 rounded-xl border border-emerald-500/30 inline-flex items-baseline gap-1" dir="ltr"><b class="text-lg font-black font-mono text-emerald-400">${valNum}</b><span class="text-xs font-bold text-slate-300 font-sans">${unit}</span></div><br/><span class="text-slate-400 text-[11px]">این هدیه به صورت خودکار به اشتراک فعال شما اضافه شد.</span>`,
+          });
         }
         if (typeof syncUserDataWithApi === 'function') syncUserDataWithApi(window.currentAccountId);
       }
     }, 3650);
   });
+}
+
+function spinBtnState(btn, disabled, text) {
+  if (!btn) return;
+  btn.disabled = disabled;
+  btn.innerText = text;
 }
 
 window.updateWheelUIState = updateWheelUIState;

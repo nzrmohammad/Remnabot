@@ -45,6 +45,7 @@ async def get_user_subscription_configs(request: web.Request) -> web.Response:
         return web.json_response({"ok": True, "configs": cached, "cached": True})
 
     remnawave = request.app.get("remnawave")
+    session_factory = request.app.get("session_factory")
     if not session_factory or not remnawave:
         return web.json_response({"ok": False, "error": "سرویس سرور در دسترس نیست."}, status=503)
 

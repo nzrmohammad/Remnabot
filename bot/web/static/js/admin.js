@@ -2549,10 +2549,10 @@
                     <span class="text-[9px] opacity-70">📋</span>
                   </button>
                 </div>
-                <div class="flex items-center gap-1 text-[9.5px] text-slate-400 font-mono flex-shrink-0" dir="ltr" title="${escapeHtml(r.date_str || '')}">
+                <div class="flex items-center gap-1.5 text-[10px] text-slate-300 font-mono flex-shrink-0" dir="ltr">
                   <span>⏱</span>
-                  <span>${toEnglishDigits(r.relative_time && r.relative_time !== '—' ? r.relative_time : (r.date_str && r.date_str !== '—' ? r.date_str : 'ثبت‌شده'))}</span>
-                  ${r.time_str && r.time_str !== '—' && r.relative_time !== r.time_str ? `<span class="text-slate-500 font-sans">(${toEnglishDigits(r.time_str)})</span>` : ''}
+                  <span class="font-bold text-slate-200" title="${escapeHtml(r.relative_time || '')}">${toEnglishDigits(r.date_str && r.date_str !== '—' ? r.date_str : (r.relative_time || 'ثبت‌شده'))}</span>
+                  ${r.relative_time && r.relative_time !== '—' && r.relative_time !== r.date_str ? `<span class="text-[9px] text-slate-400 font-sans">(${r.relative_time})</span>` : ''}
                 </div>
               </div>
             </div>
@@ -2582,13 +2582,53 @@
         if (list) {
           list.innerHTML = devices.map(d => {
             const hwid = d.hwid || d.id || '';
-            const os = d.os || d.platform || 'دستگاه متصل';
+            let rawOs = String(d.os || d.platform || d.clientApp || d.userAgent || '').trim();
+            const osLower = rawOs.toLowerCase();
+            let osDisplay = rawOs || 'دستگاه متصل';
+            let osIcon = '📱';
+
+            if (osLower.includes('windows') || osLower.includes('win32') || osLower.includes('win64')) {
+              osDisplay = 'ویندوز';
+              osIcon = '🪟';
+            } else if (osLower.includes('android')) {
+              osDisplay = 'اندروید';
+              osIcon = '🤖';
+            } else if (osLower.includes('ios') || osLower.includes('iphone') || osLower.includes('ipad')) {
+              osDisplay = 'iOS (آیفون)';
+              osIcon = '🍏';
+            } else if (osLower.includes('mac') || osLower.includes('darwin') || osLower.includes('osx')) {
+              osDisplay = 'macOS (مک)';
+              osIcon = '🍎';
+            } else if (osLower.includes('linux')) {
+              osDisplay = 'لینوکس';
+              osIcon = '🐧';
+            } else if (!rawOs || osLower === 'client') {
+              osDisplay = 'دستگاه متصل';
+            }
+
             const brand = d.brand || d.model || '';
             const ip = d.requestIp || d.ip || d.lastIp || d.clientIp || '—';
+
+            const createdRaw = d.createdAt || d.created_at || d.updatedAt || d.lastSeen || d.lastActivity || d.timestamp;
+            let timeHtml = '';
+            if (createdRaw) {
+              try {
+                const dateObj = new Date(createdRaw);
+                if (!isNaN(dateObj.getTime())) {
+                  const dateStr = dateObj.toLocaleDateString('fa-IR');
+                  const timeStr = dateObj.toLocaleTimeString('fa-IR', { hour: '2-digit', minute: '2-digit' });
+                  timeHtml = `<div class="flex items-center gap-1 mt-1 text-[9.5px] text-slate-400 font-mono" dir="ltr"><span>⏱</span><span>${toEnglishDigits(timeStr)} - ${toEnglishDigits(dateStr)}</span></div>`;
+                }
+              } catch(e) {}
+            }
+
             return `
               <div class="bg-transparent p-3 rounded-2xl border border-slate-700/60 dark:border-slate-700/60 flex items-center justify-between gap-2.5">
                 <div class="min-w-0 flex-1">
-                  <b class="text-white text-xs block truncate">${escapeHtml(os)} ${brand ? '(' + escapeHtml(brand) + ')' : ''}</b>
+                  <div class="flex items-center gap-1.5">
+                    <span class="text-sm flex-shrink-0">${osIcon}</span>
+                    <b class="text-white text-xs block truncate">${escapeHtml(osDisplay)} ${brand ? '(' + escapeHtml(brand) + ')' : ''}</b>
+                  </div>
                   <div class="flex items-center gap-1.5 mt-0.5 text-[10px] text-slate-400">
                     <span>آی‌پی:</span>
                     <button type="button" dir="ltr" class="font-mono text-cyan-400 dark:text-cyan-300 font-semibold select-all hover:underline cursor-pointer flex items-center gap-1" onclick="window.copyToClipboard('${escapeHtml(ip)}', 'آدرس IP کپی شد')" title="کپی آی‌پی">
@@ -2600,6 +2640,7 @@
                     <span class="text-[9px] text-slate-400">HWID:</span>
                     <span dir="ltr" class="font-mono text-[9px] text-slate-300 bg-transparent px-2 py-0.5 rounded-lg border border-slate-700/60 truncate max-w-[170px]" title="${escapeHtml(hwid)}">${escapeHtml(hwid)}</span>
                   </div>
+                  ${timeHtml}
                 </div>
                 <button onclick="window.adminActions.deleteHwid(${telegram_id}, '${escapeHtml(hwid).replace(/'/g, "\\'")}')" class="bg-transparent hover:bg-rose-500/10 text-rose-400 border border-rose-500/30 hover:border-rose-400 p-2.5 rounded-xl transition active:scale-95 flex items-center justify-center flex-shrink-0" title="قطع اتصال این دستگاه">
                   <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>

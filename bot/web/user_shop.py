@@ -67,19 +67,19 @@ async def post_user_spin(request: web.Request) -> web.Response:
         except (ValueError, TypeError):
             pass
 
-    # 6 configured prizes:
-    # 1. 1 GB
-    # 2. 1 روز VIP
-    # 3. 10% تخفیف
-    # 4. 500 MB
-    # 5. پوچ
-    # 6. دوباره
+    # 6 configured prizes (Slices 1 and 4 are blank):
+    # 0. 1 GB
+    # 1. پوچ
+    # 2. 10% تخفیف
+    # 3. 500 MB
+    # 4. پوچ
+    # 5. دوباره
     prizes = [
         {"id": "1gb", "name": "1 GB ترافیک هدیه", "icon": "🎁", "type": "traffic", "value": 1},
-        {"id": "1day", "name": "1 روز اشتراک VIP رایگان", "icon": "💎", "type": "days", "value": 1},
+        {"id": "blank_1", "name": "پوچ (شانس بعدی فردا)", "icon": "❌", "type": "blank", "value": 0},
         {"id": "discount10", "name": "۱۰٪ کد تخفیف ویژه (کد: OFF10)", "icon": "🎟", "type": "coupon", "code": "OFF10"},
         {"id": "500mb", "name": "500 MB ترافیک هدیه", "icon": "⚡️", "type": "traffic", "value": 0.5},
-        {"id": "blank", "name": "پوچ (شانس بعدی فردا)", "icon": "❌", "type": "blank", "value": 0},
+        {"id": "blank_2", "name": "پوچ (شانس بعدی فردا)", "icon": "❌", "type": "blank", "value": 0},
         {"id": "again", "name": "دوباره (شانس مجدد!)", "icon": "🔄", "type": "again", "value": 0},
     ]
 

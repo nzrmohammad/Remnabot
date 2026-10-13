@@ -1,11 +1,10 @@
 /**
  * RemnaStore Pro - Professional Speed & Network Quality Engine
- * Production-grade measurement matching Speedtest.net standards:
- * - Zero-allocation server streaming
- * - Non-compressible cryptographically random upload buffers (prevents fake proxy/tunnel compression)
- * - Telegram initData authentication + rate limiting
+ * Production-grade measurement matching global standards:
  * - RFC 3550 standard Jitter + true Median Latency
- * - Adaptive multi-connection download & upload throughput
+ * - Sliding window + Exponential Moving Average (EMA) smoothed throughput (prevents false packet-batch bursts)
+ * - Non-compressible cryptographically random upload buffers
+ * - Final result summary modal
  */
 
 (function () {
@@ -106,61 +105,12 @@
   }
 
   /**
-   * Detect client IP and server details.
-   * Eliminates external third-party bottlenecks (like ipapi.co rate-limits).
+   * Detect client public IP.
    */
-  function formatIspName(rawIsp, asn = '') {
-    const str = String(rawIsp || '').toLowerCase();
-    const asnStr = String(asn || '');
-    if (str.includes('mobile communication') || str.includes('mci') || asnStr === '197207' || str.includes('همراه اول')) {
-      return 'همراه اول (MCI)';
-    }
-    if (str.includes('irancell') || str.includes('mtn') || asnStr === '44342' || str.includes('ایرانسل')) {
-      return 'ایرانسل (Irancell)';
-    }
-    if (str.includes('telecommunication company of iran') || str.includes('tci') || str.includes('mokhaberat') || asnStr === '58224' || asnStr === '12880' || str.includes('مخابرات')) {
-      return 'مخابرات (TCI)';
-    }
-    if (str.includes('shatel') || asnStr === '31549' || str.includes('شاتل')) {
-      return 'شاتل (Shatel)';
-    }
-    if (str.includes('asiatech') || asnStr === '43754' || str.includes('آسیاتک')) {
-      return 'آسیاتک (Asiatech)';
-    }
-    if (str.includes('rightel') || asnStr === '57218' || str.includes('رایتل')) {
-      return 'رایتل (Rightel)';
-    }
-    if (str.includes('pars online') || asnStr === '16322' || str.includes('پارس آنلاین')) {
-      return 'پارس‌آنلاین (ParsOnline)';
-    }
-    if (str.includes('hiweb') || asnStr === '25184' || str.includes('های‌وب')) {
-      return 'های‌وب (HiWeb)';
-    }
-    if (str.includes('mobin') || asnStr === '20564' || str.includes('مبین‌نت')) {
-      return 'مبین‌نت (Mobinnet)';
-    }
-    if (str.includes('zitel') || asnStr === '58156' || str.includes('زیتل')) {
-      return 'زیتل (ZiTel)';
-    }
-    if (str.includes('cloudflare')) {
-      return 'Cloudflare Warp';
-    }
-    if (rawIsp) {
-      return rawIsp.length > 20 ? rawIsp.slice(0, 18) + '...' : rawIsp;
-    }
-    return 'اپراتور شناسایی شد';
-  }
-
   async function detectEngineAndNetwork(signal) {
     const userIpEl = getEl('speedUserIp');
-    const userLocEl = getEl('speedUserLocation');
-    const serverNameEl = getEl('speedServerNameText');
-    const serverIpEl = getEl('speedServerIpText');
 
-    if (serverNameEl) serverNameEl.innerText = 'Cloudflare Anycast CDN (جهانی)';
-    if (serverIpEl) serverIpEl.innerText = 'Anycast Edge';
-
-    // 1. Client-side ISP & IP detection via https://ipwho.is/ (CORS enabled HTTPS)
+    // 1. Client-side IP detection via ipwho.is (CORS enabled)
     try {
       const resp = await fetch('https://ipwho.is/', {
         method: 'GET',
@@ -169,14 +119,8 @@
       });
       if (resp && resp.ok) {
         const data = await resp.json();
-        if (data && data.success) {
-          if (data.ip && userIpEl) userIpEl.innerText = data.ip;
-          if (userLocEl) {
-            const rawIsp = data.connection?.isp || data.connection?.org || data.isp || '';
-            const asn = String(data.connection?.asn || '');
-            userLocEl.innerText = formatIspName(rawIsp, asn);
-            userLocEl.title = rawIsp;
-          }
+        if (data && data.success && data.ip && userIpEl) {
+          userIpEl.innerText = data.ip;
           return;
         }
       }
@@ -192,19 +136,15 @@
       });
       if (resp && resp.ok) {
         const data = await resp.json();
-        if (data) {
-          if (data.ip && userIpEl) userIpEl.innerText = data.ip;
-          if (data.isp && userLocEl) {
-            userLocEl.innerText = formatIspName(data.isp);
-            userLocEl.title = data.isp;
-          }
+        if (data && data.ip && userIpEl) {
+          userIpEl.innerText = data.ip;
         }
       }
     } catch (e) {}
   }
 
   /**
-   * Measure Latency and Jitter with 8 sequential probes.
+   * Measure Latency and Jitter with sequential probes.
    * Reports standard Median Ping and RFC 3550 Mean Absolute Deviation Jitter.
    */
   async function measurePingAndJitter(signal) {
@@ -218,7 +158,7 @@
     }
 
     const pings = [];
-    const probeCount = 8;
+    const probeCount = 7;
 
     for (let i = 0; i < probeCount; i++) {
       if (signal && signal.aborted) return { medianPing: 0, jitter: 0 };
@@ -244,7 +184,7 @@
           if (pingEl) pingEl.innerText = Math.round(duration).toString();
         }
       } catch (e) {}
-      await new Promise(r => setTimeout(r, 45));
+      await new Promise(r => setTimeout(r, 40));
     }
 
     if (pings.length === 0) return { medianPing: 0, jitter: 0 };
@@ -301,9 +241,8 @@
   }
 
   /**
-   * Measure Download Throughput with adaptive sizing and multi-connection saturation.
-   * Phase 1: 2MB ramp-up probe.
-   * Phase 2: If fast (>20 Mbps), opens 2 parallel streams to saturate TCP; if slow, continues single stream.
+   * Measure Download Throughput with sliding window & EMA smoothing.
+   * Prevents false packet clump spikes while remaining accurate.
    */
   async function measureDownloadThroughput(signal) {
     const statusText = getEl('speedStatusBadge');
@@ -324,28 +263,34 @@
     let lastSampleBytes = 0;
     let steadyStartTime = 0;
     let steadyStartBytes = 0;
+    let smoothedSpeedMbps = 0;
 
     function onChunk(bytes) {
       totalReceivedBytes += bytes;
       const curTime = performance.now();
 
-      // TCP slow-start warmup: ignore first 450ms for steady-state samples
-      if (curTime - testStartTime > 450 && steadyStartTime === 0) {
+      // Warmup: wait 500ms for TCP handshake & slow-start before steady state
+      if (curTime - testStartTime > 500 && steadyStartTime === 0) {
         steadyStartTime = curTime;
         steadyStartBytes = totalReceivedBytes;
         lastSampleTime = curTime;
         lastSampleBytes = totalReceivedBytes;
       }
 
+      // Smooth window: sample every 400ms to eliminate TCP ACK clump jitter
       const deltaSec = (curTime - lastSampleTime) / 1000;
-      if (deltaSec >= 0.16) {
+      if (deltaSec >= 0.40) {
         const deltaBytes = totalReceivedBytes - lastSampleBytes;
         const instantMbps = (deltaBytes * 8) / (deltaSec * 1000000);
 
         if (steadyStartTime > 0) {
           samples.push(instantMbps);
+          // Exponential moving average: 70% previous + 30% instant
+          smoothedSpeedMbps = smoothedSpeedMbps <= 0 ? instantMbps : (smoothedSpeedMbps * 0.70 + instantMbps * 0.30);
+          targetSpeedMbps = smoothedSpeedMbps;
+        } else {
+          targetSpeedMbps = instantMbps;
         }
-        targetSpeedMbps = instantMbps;
 
         lastSampleTime = curTime;
         lastSampleBytes = totalReceivedBytes;
@@ -368,40 +313,33 @@
       }
     }
 
-    // Step 1: 2MB initial ramp-up stream
-    await downloadStreamWithFallback(2097152, 'probe', onChunk, signal, 1800, testStartTime);
+    // Step 1: Ramp-up probe (1.5MB)
+    await downloadStreamWithFallback(1572864, 'probe', onChunk, signal, 1500, testStartTime);
 
-    // Step 2: Adaptive multi-connection phase based on initial line speed
-    const probeElapsedSec = (performance.now() - testStartTime) / 1000;
-    const probeSpeedMbps = probeElapsedSec > 0 ? (totalReceivedBytes * 8) / (probeElapsedSec * 1000000) : 0;
-
+    // Step 2: Main measurement payload (10MB)
     const remainingTimeMs = Math.max(1000, DOWNLOAD_DURATION_MS - (performance.now() - testStartTime));
+    await downloadStreamWithFallback(10485760, 'main', onChunk, signal, remainingTimeMs, testStartTime);
 
-    if (probeSpeedMbps > 20) {
-      // High-speed link: 2 parallel streams to saturate link without single-TCP window throttling
-      await Promise.all([
-        downloadStreamWithFallback(14680064, 's1', onChunk, signal, DOWNLOAD_DURATION_MS, testStartTime),
-        downloadStreamWithFallback(14680064, 's2', onChunk, signal, DOWNLOAD_DURATION_MS, testStartTime),
-      ]);
-    } else {
-      // Standard / ADSL link: 1 stream with 8MB bounded payload
-      await downloadStreamWithFallback(8388608, 'std', onChunk, signal, DOWNLOAD_DURATION_MS, testStartTime);
-    }
-
-    // Trimmed-mean calculation: Discards top 15% bursts and bottom 15% drops
+    // Precise steady-state bandwidth: total steady bytes / steady duration
     let finalDownloadMbps = 0;
-    if (samples.length >= 4) {
-      const sorted = [...samples].sort((a, b) => a - b);
-      const trimCount = Math.max(1, Math.floor(sorted.length * 0.15));
-      const trimmed = sorted.slice(trimCount, sorted.length - trimCount);
-      finalDownloadMbps = trimmed.reduce((a, b) => a + b, 0) / trimmed.length;
-    } else if (steadyStartTime > 0 && totalReceivedBytes > steadyStartBytes) {
+    if (steadyStartTime > 0 && totalReceivedBytes > steadyStartBytes) {
       const steadyDurationSec = (performance.now() - steadyStartTime) / 1000;
       const steadyBytes = totalReceivedBytes - steadyStartBytes;
-      finalDownloadMbps = (steadyBytes * 8) / (steadyDurationSec * 1000000);
-    } else {
-      const totalSec = (performance.now() - testStartTime) / 1000;
-      finalDownloadMbps = totalSec > 0 ? (totalReceivedBytes * 8) / (totalSec * 1000000) : 0;
+      if (steadyDurationSec >= 0.5) {
+        finalDownloadMbps = (steadyBytes * 8) / (steadyDurationSec * 1000000);
+      }
+    }
+
+    // Fallback if steady window wasn't captured
+    if (!finalDownloadMbps || finalDownloadMbps <= 0) {
+      if (samples.length >= 3) {
+        const sorted = [...samples].sort((a, b) => a - b);
+        const trimmed = sorted.slice(1, sorted.length - 1);
+        finalDownloadMbps = trimmed.reduce((a, b) => a + b, 0) / trimmed.length;
+      } else {
+        const totalSec = (performance.now() - testStartTime) / 1000;
+        finalDownloadMbps = totalSec > 0 ? (totalReceivedBytes * 8) / (totalSec * 1000000) : 0;
+      }
     }
 
     targetSpeedMbps = finalDownloadMbps;
@@ -412,8 +350,7 @@
   }
 
   /**
-   * Measure Upload Throughput using parallel XMLHttpRequest connections
-   * with cryptographically random non-compressible buffers.
+   * Measure Upload Throughput using parallel non-compressible buffers.
    */
   async function measureUploadThroughput(initialReceivedBytes, signal) {
     const statusText = getEl('speedStatusBadge');
@@ -433,11 +370,9 @@
     const testStartTime = performance.now();
     let totalUploadedBytes = 0;
     const uploadSamples = [];
+    let smoothedUploadMbps = 0;
 
-    // Pre-allocated cryptographically random buffers (uncompressible)
-    const randomBuffer1 = createRandomBuffer(524288); // 512KB
-    const randomBuffer2 = createRandomBuffer(1048576); // 1MB
-
+    const randomBuffer = createRandomBuffer(524288); // 512KB
     const activeXhrs = new Set();
 
     if (signal) {
@@ -456,44 +391,33 @@
         const xhr = new XMLHttpRequest();
         activeXhrs.add(xhr);
 
+        const endpoint = `/api/user/speedtest/upload?_t=${Date.now()}`;
+        xhr.open('POST', endpoint, true);
+
+        const authHeaders = getAuthHeaders();
+        for (const [k, v] of Object.entries(authHeaders)) {
+          xhr.setRequestHeader(k, v);
+        }
+        xhr.setRequestHeader('Content-Type', 'application/octet-stream');
+
         let lastLoaded = 0;
         let lastTime = performance.now();
 
-        xhr.timeout = 8000;
-        // Standard Cloudflare Anycast Speedtest upload endpoint (CORS enabled)
-        const cfUploadUrl = `https://speed.cloudflare.com/__up?_t=${Date.now()}`;
-        xhr.open('POST', cfUploadUrl, true);
-        xhr.setRequestHeader('Content-Type', 'application/octet-stream');
-
-        xhr.ontimeout = function () {
-          activeXhrs.delete(xhr);
-          resolve(0);
-        };
-
         xhr.upload.onprogress = function (e) {
-          if (signal && signal.aborted) {
-            xhr.abort();
-            return;
-          }
+          if (e.loaded > lastLoaded) {
+            const now = performance.now();
+            const deltaSec = (now - lastTime) / 1000;
+            if (deltaSec >= 0.35) {
+              const deltaBytes = e.loaded - lastLoaded;
+              const instantMbps = (deltaBytes * 8) / (deltaSec * 1000000);
+              uploadSamples.push(instantMbps);
 
-          const now = performance.now();
-          const loaded = e.loaded;
-          const deltaBytes = loaded - lastLoaded;
-          const deltaSec = (now - lastTime) / 1000;
+              smoothedUploadMbps = smoothedUploadMbps <= 0 ? instantMbps : (smoothedUploadMbps * 0.70 + instantMbps * 0.30);
+              targetSpeedMbps = smoothedUploadMbps;
 
-          if (deltaSec >= 0.15 && deltaBytes > 0) {
-            const instantMbps = (deltaBytes * 8) / (deltaSec * 1000000);
-            uploadSamples.push(instantMbps);
-            targetSpeedMbps = instantMbps;
-
-            lastLoaded = loaded;
-            lastTime = now;
-          }
-
-          const dataUsedEl = getEl('speedDataUsed');
-          if (dataUsedEl) {
-            const grandTotal = initialReceivedBytes + totalUploadedBytes + loaded;
-            dataUsedEl.innerText = (grandTotal / (1024 * 1024)).toFixed(1);
+              lastLoaded = e.loaded;
+              lastTime = now;
+            }
           }
         };
 
@@ -521,11 +445,11 @@
       });
     }
 
-    // Real parallel upload workers
+    // Parallel upload loop
     while (performance.now() - testStartTime < UPLOAD_DURATION_MS) {
       if (signal && signal.aborted) break;
 
-      const workers = [runUploadWorker(randomBuffer2), runUploadWorker(randomBuffer2)];
+      const workers = [runUploadWorker(randomBuffer), runUploadWorker(randomBuffer)];
       const results = await Promise.all(workers);
       totalUploadedBytes += (results[0] || 0) + (results[1] || 0);
 
@@ -539,7 +463,6 @@
       const trimmed = sorted.slice(trimCount, sorted.length - trimCount);
       finalUploadMbps = trimmed.reduce((a, b) => a + b, 0) / trimmed.length;
     }
-    // Fallback if onprogress didn't fire enough samples
     if ((!finalUploadMbps || finalUploadMbps <= 0) && totalUploadedBytes > 0) {
       const totalSec = (performance.now() - testStartTime) / 1000;
       finalUploadMbps = totalSec > 0 ? (totalUploadedBytes * 8) / (totalSec * 1000000) : 0;
@@ -557,30 +480,62 @@
       return {
         text: '⚠️ سرور پاسخ نداد؛ وضعیت اتصال فیلترشکن را بررسی فرمایید.',
         cls: 'bg-amber-950/70 border-amber-500/50 text-amber-300',
+        rating: 'قطع ارتباط ❌',
       };
     }
     if (dlSpeed >= 25 && ping <= 90) {
       return {
         text: '🚀 کیفیت فوق‌العاده؛ عالی برای استریم 4K، بازی آنلاین و وب‌گردی پرسرعت',
         cls: 'bg-emerald-950/70 border-emerald-500/50 text-emerald-300',
+        rating: 'فوق‌العاده 🚀',
       };
     }
     if (dlSpeed >= 12) {
       return {
         text: '⚡️ کیفیت بسیار خوب؛ عالی برای اینستاگرام، تلگرام، یوتیوب HD و تماس ویدیویی',
         cls: 'bg-cyan-950/70 border-cyan-500/50 text-cyan-300',
+        rating: 'بسیار خوب ⚡️',
       };
     }
     if (dlSpeed >= 4) {
       return {
         text: '🟡 کیفیت معمولی؛ مناسب برای چت، وب‌گردی و دانلود با سرعت استاندارد',
         cls: 'bg-amber-950/70 border-amber-500/50 text-amber-300',
+        rating: 'معمولی 📶',
       };
     }
     return {
       text: '⚠️ سرعت محدود؛ مناسب برای ارسال پیام متنی یا نیازمند تغییر سرور/پروکسی',
       cls: 'bg-rose-950/70 border-rose-500/50 text-rose-300',
+      rating: 'ضعیف ⚠️',
     };
+  }
+
+  function openSpeedResultsModal({ download, upload, ping, jitter, dataUsed, rating }) {
+    const modal = getEl('speedResultsModal');
+    if (!modal) return;
+
+    const dlEl = getEl('finalDownloadVal');
+    const ulEl = getEl('finalUploadVal');
+    const pingEl = getEl('finalPingVal');
+    const jitterEl = getEl('finalJitterVal');
+    const dataEl = getEl('finalDataUsedVal');
+    const badgeEl = getEl('speedResultRatingBadge');
+
+    if (dlEl) dlEl.innerText = download < 10 ? download.toFixed(1) : Math.round(download).toString();
+    if (ulEl) ulEl.innerText = upload < 10 ? upload.toFixed(1) : Math.round(upload).toString();
+    if (pingEl) pingEl.innerText = ping ? Math.round(ping).toString() : '--';
+    if (jitterEl) jitterEl.innerText = jitter ? Math.round(jitter).toString() : '--';
+    if (dataEl) dataEl.innerText = dataUsed || '0.0';
+    if (badgeEl && rating) badgeEl.innerText = rating;
+
+    modal.classList.remove('hidden');
+    if (window.hapticFeedback) window.hapticFeedback('success');
+  }
+
+  function closeSpeedResultsModal() {
+    const modal = getEl('speedResultsModal');
+    if (modal) modal.classList.add('hidden');
   }
 
   async function startSpeedTest() {
@@ -615,16 +570,16 @@
     if (window.hapticFeedback) window.hapticFeedback('impact');
 
     try {
-      // Step 1: Detect Network telemetry & server info
+      // Step 1: Detect Network IP
       await detectEngineAndNetwork(abortController.signal);
 
       // Step 2: Ping & Jitter Latency (RFC 3550 & Median Ping)
       const { medianPing, jitter } = await measurePingAndJitter(abortController.signal);
 
-      // Step 3: Sustained Download Throughput (Adaptive Multi-connection)
+      // Step 3: Sustained Download Throughput (Sliding Window & EMA Smoothed)
       const { finalDownloadMbps, totalReceivedBytes } = await measureDownloadThroughput(abortController.signal);
 
-      // Step 4: Sustained Upload Throughput (Non-compressible XHR progress)
+      // Step 4: Sustained Upload Throughput (Non-compressible buffers)
       let finalUploadMbps = 0;
       if (!abortController.signal.aborted) {
         finalUploadMbps = await measureUploadThroughput(totalReceivedBytes, abortController.signal);
@@ -641,6 +596,20 @@
       }
 
       if (window.hapticFeedback) window.hapticFeedback('success');
+
+      // Step 6: Open summary results modal if test finished without abort
+      if (!abortController.signal.aborted) {
+        setTimeout(() => {
+          openSpeedResultsModal({
+            download: finalDownloadMbps,
+            upload: finalUploadMbps,
+            ping: medianPing,
+            jitter: jitter,
+            dataUsed: (totalReceivedBytes / (1024 * 1024)).toFixed(1),
+            rating: verdict.rating,
+          });
+        }, 350);
+      }
     } catch (err) {
       const isAborted = (err && (err.name === 'AbortError' || err.message === 'Aborted'));
       if (!isAborted) {
@@ -731,6 +700,8 @@
 
   window.openSpeedTestModal = openSpeedTestModal;
   window.closeSpeedTestModal = closeSpeedTestModal;
+  window.openSpeedResultsModal = openSpeedResultsModal;
+  window.closeSpeedResultsModal = closeSpeedResultsModal;
   window.startSpeedTest = startSpeedTest;
   window.stopSpeedTest = stopSpeedTest;
   window.toggleSpeedTest = toggleSpeedTest;

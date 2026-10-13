@@ -11,7 +11,7 @@ from typing import Any
 
 from aiogram import Bot
 from aiohttp import web
-from sqlalchemy import desc, func, select
+from sqlalchemy import desc, func, or_, select
 
 from bot.common import admin_thread_kwargs
 from bot.common.helpers import get_limit_bytes, get_used_bytes
@@ -195,7 +195,12 @@ async def get_admin_coupons(request: web.Request) -> web.Response:
         return web.json_response({"ok": False, "error": "Forbidden"}, status=403)
 
     async with db_session(request) as session:
-        result = await session.execute(select(Coupon).order_by(Coupon.id.desc()))
+        now_utc = datetime.now(timezone.utc)
+        result = await session.execute(
+            select(Coupon)
+            .where(or_(Coupon.expires_at.is_(None), Coupon.expires_at > now_utc))
+            .order_by(Coupon.id.desc())
+        )
         coupons = result.scalars().all()
         data = []
         for c in coupons:

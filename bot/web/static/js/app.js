@@ -661,20 +661,28 @@ function renderTutorialApps(osKey) {
 
   listContainer.innerHTML = activeApps.map(app => {
     const dlButtons = [];
-    if (app.downloadUrl) {
+    const addedUrls = new Set();
+
+    if (app.downloadUrl && !addedUrls.has(app.downloadUrl)) {
       const d = getDownloadButtonInfo(app.downloadUrl, 'دانلود اصلی', '📥');
       dlButtons.push({ url: app.downloadUrl, label: d.label, icon: d.icon });
+      addedUrls.add(app.downloadUrl);
     }
-    if (app.downloadPortableUrl) {
+    if (app.downloadPortableUrl && !addedUrls.has(app.downloadPortableUrl)) {
       dlButtons.push({ url: app.downloadPortableUrl, label: 'نسخه پرتابل (Portable)', icon: '💼' });
+      addedUrls.add(app.downloadPortableUrl);
     }
-    if (app.downloadExtraUrl) {
-      const d = getDownloadButtonInfo(app.downloadExtraUrl, 'گیت‌هاب / کمکی', '🐙');
+    if (app.downloadExtraUrl && !addedUrls.has(app.downloadExtraUrl)) {
+      let d = getDownloadButtonInfo(app.downloadExtraUrl, 'لینک کمکی', '🔗');
+      if (dlButtons.length > 0 && dlButtons[0].label === d.label) {
+        d = { label: 'لینک کمکی (گیت‌هاب)', icon: '🐙' };
+      }
       dlButtons.push({ url: app.downloadExtraUrl, label: d.label, icon: d.icon });
+      addedUrls.add(app.downloadExtraUrl);
     }
 
     const tutorialBtnHtml = app.tutorialUrl ? `
-      <button type="button" class="btn-tutorial-app bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/40 text-[10.5px] font-bold py-1.5 px-2 rounded-xl transition flex items-center justify-center gap-1 active:scale-95 shadow-sm" data-url="${escapeHtml(app.tutorialUrl)}">
+      <button type="button" class="btn-tutorial-app bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/40 text-[10px] font-bold py-1 px-2 rounded-xl transition flex items-center justify-center gap-1 active:scale-95 shadow-sm" data-url="${escapeHtml(app.tutorialUrl)}">
         <span>📖</span> آموزش
       </button>
     ` : '';
@@ -683,67 +691,30 @@ function renderTutorialApps(osKey) {
 
     if (dlButtons.length === 1) {
       const d = dlButtons[0];
-      actionButtonsHtml = app.tutorialUrl ? `
-        <div class="grid grid-cols-2 gap-1.5 pt-1 border-t border-slate-800/60">
+      actionButtonsHtml = `
+        <div class="grid grid-cols-2 gap-1.5 pt-1.5 border-t border-slate-800/60">
           <button type="button" class="btn-download-app bg-slate-800 hover:bg-slate-750 text-slate-200 text-[10.5px] font-bold py-1.5 px-2 rounded-xl transition border border-slate-700/80 flex items-center justify-center gap-1 active:scale-95 shadow-sm truncate" data-url="${escapeHtml(d.url)}">
             <span>${d.icon}</span> <span class="truncate">${d.label}</span>
           </button>
-          ${tutorialBtnHtml}
-          <button type="button" class="btn-autoconnect-app col-span-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-[10.5px] font-bold py-1.5 px-2 rounded-xl transition flex items-center justify-center gap-1 active:scale-95 shadow-sm" data-id="${app.id}" data-name="${escapeHtml(app.name)}">
-            <span>⚡️</span> اتصال خودکار
-          </button>
-        </div>
-      ` : `
-        <div class="flex items-center gap-1.5 pt-1 border-t border-slate-800/60">
-          <button type="button" class="btn-download-app flex-1 bg-slate-800 hover:bg-slate-750 text-slate-200 text-[10.5px] font-bold py-1.5 px-2 rounded-xl transition border border-slate-700/80 flex items-center justify-center gap-1 active:scale-95 shadow-sm truncate" data-url="${escapeHtml(d.url)}">
-            <span>${d.icon}</span> <span class="truncate">${d.label}</span>
-          </button>
-          <button type="button" class="btn-autoconnect-app flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-[10.5px] font-bold py-1.5 px-2 rounded-xl transition flex items-center justify-center gap-1 active:scale-95 shadow-sm" data-id="${app.id}" data-name="${escapeHtml(app.name)}">
+          <button type="button" class="btn-autoconnect-app bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-[10.5px] font-bold py-1.5 px-2 rounded-xl transition flex items-center justify-center gap-1 active:scale-95 shadow-sm" data-id="${app.id}" data-name="${escapeHtml(app.name)}">
             <span>⚡️</span> اتصال خودکار
           </button>
         </div>
       `;
-    } else if (dlButtons.length === 2) {
-      const d1 = dlButtons[0];
-      const d2 = dlButtons[1];
+    } else if (dlButtons.length >= 2) {
       actionButtonsHtml = `
-        <div class="space-y-1.5 pt-1 border-t border-slate-800/60">
+        <div class="space-y-1.5 pt-1.5 border-t border-slate-800/60">
           <div class="grid grid-cols-2 gap-1.5">
-            <button type="button" class="btn-download-app bg-slate-800 hover:bg-slate-750 text-slate-200 text-[10.5px] font-bold py-1.5 px-2 rounded-xl transition border border-slate-700/80 flex items-center justify-center gap-1.5 active:scale-95 shadow-sm truncate" data-url="${escapeHtml(d1.url)}">
-              <span>${d1.icon}</span> <span class="truncate">${d1.label}</span>
-            </button>
-            <button type="button" class="btn-download-app bg-slate-800 hover:bg-slate-750 text-slate-200 text-[10.5px] font-bold py-1.5 px-2 rounded-xl transition border border-slate-700/80 flex items-center justify-center gap-1.5 active:scale-95 shadow-sm truncate" data-url="${escapeHtml(d2.url)}">
-              <span>${d2.icon}</span> <span class="truncate">${d2.label}</span>
-            </button>
-          </div>
-          <div class="${app.tutorialUrl ? 'grid grid-cols-3 gap-1.5' : 'block'}">
-            <button type="button" class="btn-autoconnect-app ${app.tutorialUrl ? 'col-span-2' : 'w-full'} bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-[10.5px] font-bold py-1.5 px-2 rounded-xl transition flex items-center justify-center gap-1 active:scale-95 shadow-sm" data-id="${app.id}" data-name="${escapeHtml(app.name)}">
-              <span>⚡️</span> اتصال خودکار
-            </button>
-            ${tutorialBtnHtml}
-          </div>
-        </div>
-      `;
-    } else if (dlButtons.length >= 3) {
-      actionButtonsHtml = `
-        <div class="space-y-1.5 pt-1 border-t border-slate-800/60">
-          <div class="grid grid-cols-2 gap-1.5">
-            <button type="button" class="btn-download-app bg-slate-800 hover:bg-slate-750 text-slate-200 text-[10.5px] font-bold py-1.5 px-2 rounded-xl transition border border-slate-700/80 flex items-center justify-center gap-1.5 active:scale-95 shadow-sm truncate" data-url="${escapeHtml(dlButtons[0].url)}">
+            <button type="button" class="btn-download-app bg-slate-800 hover:bg-slate-750 text-slate-200 text-[10.5px] font-bold py-1.5 px-2 rounded-xl transition border border-slate-700/80 flex items-center justify-center gap-1 active:scale-95 shadow-sm truncate" data-url="${escapeHtml(dlButtons[0].url)}">
               <span>${dlButtons[0].icon}</span> <span class="truncate">${dlButtons[0].label}</span>
             </button>
-            <button type="button" class="btn-download-app bg-slate-800 hover:bg-slate-750 text-slate-200 text-[10.5px] font-bold py-1.5 px-2 rounded-xl transition border border-slate-700/80 flex items-center justify-center gap-1.5 active:scale-95 shadow-sm truncate" data-url="${escapeHtml(dlButtons[1].url)}">
+            <button type="button" class="btn-download-app bg-slate-800 hover:bg-slate-750 text-slate-200 text-[10.5px] font-bold py-1.5 px-2 rounded-xl transition border border-slate-700/80 flex items-center justify-center gap-1 active:scale-95 shadow-sm truncate" data-url="${escapeHtml(dlButtons[1].url)}">
               <span>${dlButtons[1].icon}</span> <span class="truncate">${dlButtons[1].label}</span>
             </button>
           </div>
-          <div class="grid ${app.tutorialUrl ? 'grid-cols-2' : 'grid-cols-1'} gap-1.5">
-            <button type="button" class="btn-download-app bg-slate-800 hover:bg-slate-750 text-slate-200 text-[10.5px] font-bold py-1.5 px-2 rounded-xl transition border border-slate-700/80 flex items-center justify-center gap-1.5 active:scale-95 shadow-sm truncate" data-url="${escapeHtml(dlButtons[2].url)}">
-              <span>${dlButtons[2].icon}</span> <span class="truncate">${dlButtons[2].label}</span>
-            </button>
-            ${tutorialBtnHtml}
-          </div>
           <div>
             <button type="button" class="btn-autoconnect-app w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-[10.5px] font-bold py-1.5 px-2 rounded-xl transition flex items-center justify-center gap-1 active:scale-95 shadow-sm" data-id="${app.id}" data-name="${escapeHtml(app.name)}">
-              <span>⚡️</span> اتصال خودکار
+              <span>⚡️</span> اتصال خودکار به سرویس
             </button>
           </div>
         </div>
@@ -755,17 +726,21 @@ function renderTutorialApps(osKey) {
     return `
       <div class="tutorial-app-card rounded-2xl p-2.5 border ${cardBorder} space-y-2 transition hover:border-slate-600">
         <div class="flex items-center justify-between gap-2">
+          <!-- Right side: App Icon + Name -->
           <div class="flex items-center gap-2.5 min-w-0">
             <div class="w-10 h-10 rounded-xl bg-slate-800/90 border border-slate-700/70 p-1 flex items-center justify-center flex-shrink-0 shadow-inner overflow-hidden relative">
               <img src="/static/img/apps/${app.id}.png" alt="${escapeHtml(app.name)}" class="w-full h-full object-contain rounded-lg" onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='flex';" />
               <span class="text-xl items-center justify-center hidden" style="display:none;">${app.icon || '📱'}</span>
             </div>
             <div class="min-w-0">
-              <div class="flex items-center gap-1.5">
-                <b class="text-xs text-white font-bold truncate">${escapeHtml(app.name)}</b>
-                ${app.isRecommended ? '<span class="px-2 py-0.5 rounded-md text-[9.5px] font-bold bg-amber-500/15 text-amber-300 border border-amber-500/30">⭐️ پیشنهادی</span>' : ''}
-              </div>
+              <b class="text-xs text-white font-bold truncate block">${escapeHtml(app.name)}</b>
+              <span class="text-[9.5px] text-slate-400 font-sans block mt-0.5">${currentTutorialOS.toUpperCase()}</span>
             </div>
+          </div>
+          <!-- Left side: Recommended badge + Tutorial button -->
+          <div class="flex items-center gap-1.5 flex-shrink-0">
+            ${app.isRecommended ? '<span class="px-2 py-0.5 rounded-full text-[9px] font-bold bg-amber-500/15 text-amber-300 border border-amber-500/30">⭐️ پیشنهادی</span>' : ''}
+            ${tutorialBtnHtml}
           </div>
         </div>
         ${actionButtonsHtml}
