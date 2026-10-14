@@ -15,8 +15,7 @@ const $ = id => {
   }
   return elem;
 };
-
-const toPersianDigits = (s) => (typeof window.toPersianDigits === 'function' ? window.toPersianDigits(s) : (typeof toEnglishDigits === 'function' ? String(s ?? '') : String(s ?? '')));
+// toPersianDigits is provided globally by utils.js
 
 // 1. Splash Screen Logic
 function runSplash() {
