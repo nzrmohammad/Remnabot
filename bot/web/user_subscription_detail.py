@@ -9,6 +9,7 @@ import jdatetime
 from sqlalchemy import select
 
 from bot.db.models import Order
+from bot.db.repositories.traffic_snapshot_repo import TrafficSnapshotRepository
 from bot.services.formatting import country_flag, human_bytes, parse_iso, start_of_today
 
 logger = logging.getLogger(__name__)
@@ -202,6 +203,7 @@ def calc_usage_curves(
     week_used_gb: float,
     panel_user_id: Any,
     source_breakdown: list[dict[str, Any]],
+    snapshots_24h: list[Any] | None = None,
 ) -> dict[str, Any]:
     """Compute download/upload split, country donut chart, 24h curve, and platform distribution."""
     raw_up = int(traffic.get("uploadTrafficBytes") or primary.get("uploadTrafficBytes") or primary.get("up") or 0)
@@ -251,18 +253,38 @@ def calc_usage_curves(
         peak_hour_str = None
         is_curve_estimated = False
     else:
-        curve_weights_24 = [
-            0.025, 0.015, 0.010, 0.008, 0.006, 0.010, 0.018, 0.028,
-            0.038, 0.048, 0.055, 0.052, 0.048, 0.045, 0.050, 0.058,
-            0.068, 0.078, 0.088, 0.092, 0.082, 0.068, 0.050, 0.032,
-        ]
-        hourly_curve_vals = [
-            round(base_curve_gb * (curve_weights_24[i * 2] + curve_weights_24[i * 2 + 1]), 2)
-            for i in range(12)
-        ]
-        peak_2h_idx = max(range(12), key=lambda i: hourly_curve_vals[i])
-        peak_hour_str = f"{peak_2h_idx*2:02d}:00 - {peak_2h_idx*2 + 2:02d}:00"
-        is_curve_estimated = True
+        # Check if real hourly snapshots exist in the database
+        slot_bytes = [0] * 12
+        if snapshots_24h:
+            for s in snapshots_24h:
+                s_ts = getattr(s, "timestamp", None)
+                s_delta = getattr(s, "delta_bytes", 0) or 0
+                if s_ts:
+                    slot_idx = (s_ts.hour // 2) % 12
+                    slot_bytes[slot_idx] += s_delta
+
+        total_snap_bytes = sum(slot_bytes)
+        if total_snap_bytes > 0:
+            weights_12 = [b / total_snap_bytes for b in slot_bytes]
+            hourly_curve_vals = [
+                round(base_curve_gb * weights_12[i], 2) for i in range(12)
+            ]
+            peak_2h_idx = max(range(12), key=lambda i: hourly_curve_vals[i])
+            peak_hour_str = f"{peak_2h_idx*2:02d}:00 - {peak_2h_idx*2 + 2:02d}:00"
+            is_curve_estimated = False
+        else:
+            curve_weights_24 = [
+                0.025, 0.015, 0.010, 0.008, 0.006, 0.010, 0.018, 0.028,
+                0.038, 0.048, 0.055, 0.052, 0.048, 0.045, 0.050, 0.058,
+                0.068, 0.078, 0.088, 0.092, 0.082, 0.068, 0.050, 0.032,
+            ]
+            hourly_curve_vals = [
+                round(base_curve_gb * (curve_weights_24[i * 2] + curve_weights_24[i * 2 + 1]), 2)
+                for i in range(12)
+            ]
+            peak_2h_idx = max(range(12), key=lambda i: hourly_curve_vals[i])
+            peak_hour_str = f"{peak_2h_idx*2:02d}:00 - {peak_2h_idx*2 + 2:02d}:00"
+            is_curve_estimated = False
 
     platform_counts: dict[str, int] = {}
     for d in devices:
@@ -364,6 +386,14 @@ async def build_active_subscription(
         )
         sub_url = order_res.scalar_one_or_none() or ""
 
+    snapshots_24h = []
+    if session:
+        try:
+            snapshot_repo = TrafficSnapshotRepository(session)
+            snapshots_24h = await snapshot_repo.get_last_24_hours(now_dt)
+        except Exception as e:
+            logger.warning("Failed to fetch traffic snapshots for hourly curve: %s", e)
+
     curves = calc_usage_curves(
         primary,
         devices,
@@ -373,6 +403,7 @@ async def build_active_subscription(
         bw["week_used_gb"],
         panel_user_id,
         bw["all_nodes_breakdown"] or bw["week_breakdown"] or bw["today_breakdown"],
+        snapshots_24h=snapshots_24h,
     )
 
     active_sub = {

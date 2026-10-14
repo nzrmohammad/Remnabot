@@ -1814,10 +1814,10 @@ function renderActiveSubAnalytics(sub) {
       if (peakBadge) {
         if (!sub.hourly_usage?.has_traffic) {
           peakBadge.innerText = 'بدون مصرف';
-        } else if (sub.hourly_usage?.is_estimated) {
-          peakBadge.innerText = peakHour ? `Peak: ${peakHour} (تخمینی)` : 'الگوی تخمینی';
         } else if (peakHour) {
-          peakBadge.innerText = `Peak: ${peakHour}`;
+          peakBadge.innerText = `Peak: ${toEnglishDigits(peakHour)}`;
+        } else {
+          peakBadge.innerText = '---';
         }
       }
     } catch (e) {
