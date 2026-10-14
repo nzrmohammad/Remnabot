@@ -170,6 +170,7 @@ async def confirm_for_account(
         result = await execute_purchase(
             remnawave, session, service, user.telegram_id,
             chosen_account=chosen, discount_amount=discount_amount,
+            bot=bot,
         )
         if result.kind == "success":
             await record_coupon_usage_if_any(session, coupon_code, user.telegram_id, result.order_id, discount_amount)
@@ -233,6 +234,7 @@ async def service_choose_account(
         result = await execute_purchase(
             remnawave, session, service, user.telegram_id,
             chosen_account=chosen, discount_amount=discount_amount,
+            bot=bot,
         )
         if result.kind == "success":
             await record_coupon_usage_if_any(session, coupon_code, user.telegram_id, result.order_id, discount_amount)

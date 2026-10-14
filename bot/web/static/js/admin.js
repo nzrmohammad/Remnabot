@@ -15,6 +15,7 @@
     }
     return elem;
   };
+  const el = new Proxy({}, { get: (_, id) => $(id) });
 
   // State Management
   const tg = window.Telegram?.WebApp;
@@ -1668,7 +1669,6 @@
       // Prioritize real full_name; fallback to 'کاربر ID' if missing or starts with @
       const rawName = u.full_name || '';
       const displayName = (rawName && !rawName.startsWith('@')) ? rawName : `کاربر ${u.telegram_id}`;
-      const safeDisplayName = (displayName || '').replace(/'/g, "\\'");
       const initial = (displayName || String(u.telegram_id))[0].toUpperCase();
       const p = u.panel_account;
 
@@ -1834,7 +1834,7 @@
               <div class="min-w-0 flex-1">
                 <!-- 1. Profile Name (اسم پروفایل کاربر) -->
                 <div class="flex items-center gap-1.5 min-w-0">
-                  <div onclick="window.adminActions.quickCopy('${safeDisplayName}', 'نام کاربر')" class="text-xs font-bold text-white truncate max-w-[130px] sm:max-w-[170px] cursor-pointer hover:text-cyan-300 active:scale-95 transition" title="${escapeHtml(displayName)}">
+                  <div data-copy="${escapeHtml(displayName)}" onclick="window.adminActions.quickCopy(this.dataset.copy, 'نام کاربر')" class="text-xs font-bold text-white truncate max-w-[130px] sm:max-w-[170px] cursor-pointer hover:text-cyan-300 active:scale-95 transition" title="${escapeHtml(displayName)}">
                     ${(displayName || '').startsWith('@') ? `<span class="truncate inline-block font-mono" dir="ltr" style="unicode-bidi: isolate;">${escapeHtml(displayName)}</span>` : `<span class="truncate">${escapeHtml(displayName)}</span>`}
                   </div>
                   ${u.is_online ? '<span class="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)] animate-pulse flex-shrink-0" title="متصل به سرور"></span>' : ''}
@@ -1869,25 +1869,25 @@
           <!-- Quick Action Buttons: 3x2 Symmetrical Grid -->
           <div class="space-y-1.5 pt-1">
             <div class="grid grid-cols-3 gap-1.5 text-center text-[10px]">
-              <button class="bg-transparent hover:bg-blue-500/10 text-blue-500 dark:text-blue-400 border border-blue-500/30 hover:border-blue-400/60 py-1.5 rounded-xl transition active:scale-95 font-medium flex items-center justify-center gap-1" onclick="window.adminActions.openModifyUser(${u.telegram_id}, '${(u.username || '').replace(/'/g, "\\'")}', '${safeDisplayName}')" title="افزایش حجم یا تمدید زمان">
+              <button class="bg-transparent hover:bg-blue-500/10 text-blue-500 dark:text-blue-400 border border-blue-500/30 hover:border-blue-400/60 py-1.5 rounded-xl transition active:scale-95 font-medium flex items-center justify-center gap-1" data-action="modify" data-tgid="${u.telegram_id}" data-username="${escapeHtml(u.username || '')}" data-name="${escapeHtml(displayName)}" onclick="window.adminActions.openModifyUser(this.dataset.tgid, this.dataset.username, this.dataset.name)" title="افزایش حجم یا تمدید زمان">
                 <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
                 <span>حجم و تمدید</span>
               </button>
-              <button class="bg-transparent hover:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 hover:border-emerald-400/60 py-1.5 rounded-xl transition active:scale-95 font-medium flex items-center justify-center gap-1" onclick="window.adminActions.openWalletModal(${u.telegram_id}, '${safeDisplayName}')" title="شارژ یا کسر موجودی">
+              <button class="bg-transparent hover:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 hover:border-emerald-400/60 py-1.5 rounded-xl transition active:scale-95 font-medium flex items-center justify-center gap-1" data-action="wallet" data-tgid="${u.telegram_id}" data-name="${escapeHtml(displayName)}" onclick="window.adminActions.openWalletModal(this.dataset.tgid, this.dataset.name)" title="شارژ یا کسر موجودی">
                 <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
                 <span>موجودی</span>
               </button>
-              <button class="bg-transparent hover:bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/30 hover:border-purple-400/60 py-1.5 rounded-xl transition active:scale-95 font-medium flex items-center justify-center gap-1" onclick="window.adminActions.openTrialModal(${u.telegram_id}, '${(u.username || '').replace(/'/g, "\\'")}', '${safeDisplayName}')" title="فعال‌سازی مجدد تست">
+              <button class="bg-transparent hover:bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/30 hover:border-purple-400/60 py-1.5 rounded-xl transition active:scale-95 font-medium flex items-center justify-center gap-1" data-action="trial" data-tgid="${u.telegram_id}" data-username="${escapeHtml(u.username || '')}" data-name="${escapeHtml(displayName)}" onclick="window.adminActions.openTrialModal(this.dataset.tgid, this.dataset.username, this.dataset.name)" title="فعال‌سازی مجدد تست">
                 <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 01-2-2V7a2 2 0 012-2h14a2 2 0 012 2v3a2 2 0 01-2 2M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"/></svg>
                 <span>اکانت تست</span>
               </button>
             </div>
             <div class="grid grid-cols-3 gap-1.5 text-center text-[10px]">
-              <button class="bg-transparent hover:bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border border-cyan-500/30 hover:border-cyan-400/60 py-1.5 rounded-xl transition active:scale-95 font-medium flex items-center justify-center gap-1" onclick="window.adminActions.openSubModal(${u.telegram_id}, '${safeDisplayName}', '${p?.subscription_url || ''}')" title="لینک سابسکریپشن">
+              <button class="bg-transparent hover:bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border border-cyan-500/30 hover:border-cyan-400/60 py-1.5 rounded-xl transition active:scale-95 font-medium flex items-center justify-center gap-1" data-action="sub" data-tgid="${u.telegram_id}" data-name="${escapeHtml(displayName)}" data-suburl="${escapeHtml(p?.subscription_url || '')}" onclick="window.adminActions.openSubModal(this.dataset.tgid, this.dataset.name, this.dataset.suburl)" title="لینک سابسکریپشن">
                 <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
                 <span>لینک ساب</span>
               </button>
-              <button class="bg-transparent hover:bg-teal-500/10 text-teal-600 dark:text-teal-400 border border-teal-500/30 hover:border-teal-400/60 py-1.5 rounded-xl transition active:scale-95 font-medium flex items-center justify-center gap-1" onclick="window.adminActions.openHwidModal(${u.telegram_id}, '${safeDisplayName}')" title="دستگاه‌های فعال و نشست‌ها">
+              <button class="bg-transparent hover:bg-teal-500/10 text-teal-600 dark:text-teal-400 border border-teal-500/30 hover:border-teal-400/60 py-1.5 rounded-xl transition active:scale-95 font-medium flex items-center justify-center gap-1" data-action="hwid" data-tgid="${u.telegram_id}" data-name="${escapeHtml(displayName)}" onclick="window.adminActions.openHwidModal(this.dataset.tgid, this.dataset.name)" title="دستگاه‌های فعال و نشست‌ها">
                 <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
                 <span>دستگاه‌ها</span>
               </button>
@@ -3192,7 +3192,6 @@
         list.innerHTML = usages.map(u => {
           const hasUsername = Boolean(u.username);
           const displayName = u.full_name || (hasUsername ? `@${u.username}` : `کاربر ${u.telegram_id}`);
-          const safeDisplayName = displayName.replace(/'/g, "\\'");
           const initial = (displayName.replace('@', '')[0] || 'U').toUpperCase();
           const avatarSrc = u.avatar_url || `/api/user/avatar?user_id=${u.telegram_id}`;
           const dateStr = u.created_at ? new Date(u.created_at).toLocaleDateString('fa-IR', { numberingSystem: 'latn', hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' }) : '—';
@@ -3219,7 +3218,7 @@
                     <span class="font-bold">${initial}</span>
                   </div>
                   <div class="min-w-0 space-y-0.5">
-                    <b class="text-slate-900 dark:text-white text-xs font-bold block truncate max-w-[130px] sm:max-w-[160px] cursor-pointer hover:text-pink-400" onclick="window.adminActions.quickCopy('${safeDisplayName}', 'نام کاربر')" title="${escapeHtml(displayName)}">${escapeHtml(displayName)}</b>
+                    <b class="text-slate-900 dark:text-white text-xs font-bold block truncate max-w-[130px] sm:max-w-[160px] cursor-pointer hover:text-pink-400" data-copy="${escapeHtml(displayName)}" onclick="window.adminActions.quickCopy(this.dataset.copy, 'نام کاربر')" title="${escapeHtml(displayName)}">${escapeHtml(displayName)}</b>
                     <div class="flex items-baseline gap-1 text-emerald-600 dark:text-emerald-400 font-bold" dir="rtl">
                       <span class="text-xs font-black font-mono leading-none">${formatNumber(u.discount_applied || 0)}</span>
                       <span class="text-[10px] text-emerald-600/90 dark:text-emerald-500/90 font-sans">تومان</span>
@@ -4357,14 +4356,12 @@
 
       container.innerHTML = topups.map(t => {
         const uLabel = t.full_name || (t.username ? '@' + t.username : `کاربر ${t.telegram_id}`);
-        const safeDisplayName = (uLabel || '').replace(/'/g, "\\'");
         const initial = (uLabel[0] || 'U').toUpperCase();
         const dateStr = t.created_at ? new Date(t.created_at).toLocaleDateString('fa-IR', { numberingSystem: 'latn', hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' }) : '—';
         const avatarSrc = t.avatar_url || `/api/user/avatar?user_id=${t.telegram_id}`;
         const hasPhoto = Boolean(t.has_photo || t.receipt_photo_id || (t.receipt_hash && (t.receipt_hash.startsWith('img:') || t.receipt_hash.startsWith('photo:'))));
         const photoUrl = hasPhoto ? `/api/admin/topup/photo?id=${t.id}` : null;
         const usernameTag = t.username ? `@${t.username}` : '';
-        const userTagArg = (usernameTag || ('#' + t.telegram_id)).replace(/'/g, "\\'");
 
         return `
           <div class="topup-card bg-slate-800/90 rounded-2xl p-3.5 border border-slate-700/80 space-y-3 shadow-md relative overflow-hidden transition hover:border-slate-600">
@@ -4388,7 +4385,7 @@
                   <span class="font-bold">${escapeHtml(initial)}</span>
                 </div>
                 <div class="min-w-0 space-y-0.5">
-                  <b class="text-white text-xs font-bold block truncate max-w-[140px] cursor-pointer hover:text-cyan-300" onclick="window.adminActions.quickCopy('${safeDisplayName}', 'نام')" title="${escapeHtml(uLabel)}">${escapeHtml(uLabel)}</b>
+                  <b class="text-white text-xs font-bold block truncate max-w-[140px] cursor-pointer hover:text-cyan-300" data-copy="${escapeHtml(uLabel)}" onclick="window.adminActions.quickCopy(this.dataset.copy, 'نام')" title="${escapeHtml(uLabel)}">${escapeHtml(uLabel)}</b>
                   <div class="flex items-baseline gap-1 text-emerald-400 font-bold" dir="rtl">
                     <span class="text-sm font-black font-mono leading-none">${formatNumber(t.amount || 0)}</span>
                     <span class="text-[10px] text-emerald-500/90 font-sans">تومان</span>
@@ -4405,7 +4402,7 @@
 
             <!-- Action Buttons: Chat on right, Photo icon & Action buttons on left (همه بدون پس‌زمینه) -->
             <div class="flex items-center justify-between gap-2 pt-1 border-t border-slate-700/50">
-              <button onclick="window.adminActions.openUserChat(${t.telegram_id}, '${safeDisplayName}', '${userTagArg}', ${t.id})" class="bg-transparent hover:bg-slate-750/30 text-slate-300 hover:text-white px-3 py-1.5 rounded-xl text-xs font-medium transition flex items-center gap-1.5 active:scale-95 border border-slate-700/60" title="گفتگوی مستقیم با کاربر">
+              <button data-action="chat" data-tgid="${t.telegram_id}" data-name="${escapeHtml(uLabel)}" data-tag="${escapeHtml(usernameTag || ('#' + t.telegram_id))}" data-topupid="${t.id}" onclick="window.adminActions.openUserChat(this.dataset.tgid, this.dataset.name, this.dataset.tag, this.dataset.topupid)" class="bg-transparent hover:bg-slate-750/30 text-slate-300 hover:text-white px-3 py-1.5 rounded-xl text-xs font-medium transition flex items-center gap-1.5 active:scale-95 border border-slate-700/60" title="گفتگوی مستقیم با کاربر">
                 <svg class="w-3.5 h-3.5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
                 <span>چت با کاربر</span>
               </button>
@@ -4416,7 +4413,7 @@
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                   </button>
                 ` : `
-                  <button type="button" onclick="window.adminActions.showReceiptInfoModal(${t.id}, '${(t.receipt_hash || '').replace(/'/g, "\\'")}', '${formatNumber(t.amount || 0)}')" class="w-8 h-8 rounded-xl bg-transparent hover:bg-cyan-500/10 text-cyan-400 border border-cyan-500/40 flex items-center justify-center transition active:scale-95 shadow-sm" title="مشاهده مشخصات رسید / کد پیگیری">
+                  <button type="button" data-action="receipt-info" data-topupid="${t.id}" data-hash="${escapeHtml(t.receipt_hash || '')}" data-amount="${formatNumber(t.amount || 0)}" onclick="window.adminActions.showReceiptInfoModal(this.dataset.topupid, this.dataset.hash, this.dataset.amount)" class="w-8 h-8 rounded-xl bg-transparent hover:bg-cyan-500/10 text-cyan-400 border border-cyan-500/40 flex items-center justify-center transition active:scale-95 shadow-sm" title="مشاهده مشخصات رسید / کد پیگیری">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                   </button>
                 `}

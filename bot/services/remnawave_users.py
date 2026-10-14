@@ -54,11 +54,24 @@ class RemnawaveUsersMixin:
                 resp = await self._client.get("/api/users", params={"size": size})
             resp.raise_for_status()
             data = resp.json().get("response") or {}
+            self._consecutive_panel_errors = 0
             if isinstance(data, list):
                 return data
             return data.get("users") or []
-        except httpx.HTTPError as exc:
-            logger.error("Remnawave get_all_panel_users error: %s", exc)
+        except Exception as exc:
+            self._consecutive_panel_errors = getattr(self, "_consecutive_panel_errors", 0) + 1
+            if self._consecutive_panel_errors >= 3:
+                logger.error(
+                    "CRITICAL: Remnawave panel is DOWN! get_all_panel_users failed %d times consecutively: %s",
+                    self._consecutive_panel_errors,
+                    exc,
+                )
+            else:
+                logger.warning(
+                    "Remnawave get_all_panel_users transient error (attempt %d/3): %s",
+                    self._consecutive_panel_errors,
+                    exc,
+                )
             return None
 
     async def get_panel_user_by_id(self, user_id: int) -> dict[str, Any] | None:

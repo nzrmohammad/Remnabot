@@ -163,6 +163,16 @@ function setupSubscriptionActions() {
       hapticFeedback('success');
     }
   });
+
+  $('noSubGoToShopBtn')?.addEventListener('click', () => {
+    const shopNav = document.querySelector('.nav-btn[data-tab="tab-shop"]');
+    if (shopNav) {
+      shopNav.click();
+    } else if (typeof switchTab === 'function') {
+      switchTab('tab-shop');
+    }
+    hapticFeedback('impact');
+  });
 }
 
 // 5. Toggle QR Code (Dedicated Modern Modal)
@@ -884,22 +894,32 @@ function markTutorialAppsSeen() {
   if (badge) badge.classList.add('hidden');
 }
 
-function verifyPhoneInBot() {
-  if (typeof window.Telegram?.WebApp?.requestContact === 'function') {
+function verifyPhoneNative() {
+  hapticFeedback('impact');
+  const tg = window.Telegram?.WebApp;
+
+  if (typeof tg?.requestContact === 'function') {
     try {
-      window.Telegram.WebApp.requestContact((granted) => {
+      tg.requestContact((granted) => {
         if (granted) {
-          showToast('✅ شماره تماس شما با موفقیت ارسال شد. در حال به‌روزرسانی...');
+          showToast('✅ شماره تماس با موفقیت ثبت شد. در حال به‌روزرسانی...');
           hapticFeedback('success');
           setTimeout(() => {
             if (typeof syncUserDataWithApi === 'function') {
               syncUserDataWithApi(window.currentAccountId);
             }
-          }, 1500);
+          }, 1200);
+        } else {
+          showToast('اشتراک‌گذاری شماره تماس لغو گردید.');
         }
       });
-    } catch (e) {}
+      return;
+    } catch (e) {
+      console.warn('requestContact failed, falling back:', e);
+    }
   }
+
+  // Graceful fallback for desktop browser dev/preview or clients without requestContact support
   const botUsername = window.lastUserData?.bot_username || '';
   if (!botUsername) {
     showToast('نام کاربری ربات در دسترس نیست.');
@@ -907,8 +927,8 @@ function verifyPhoneInBot() {
   }
   const verifyLink = `https://t.me/${botUsername}?start=verify_phone`;
   try {
-    if (window.Telegram?.WebApp?.openTelegramLink) {
-      window.Telegram.WebApp.openTelegramLink(verifyLink);
+    if (tg?.openTelegramLink) {
+      tg.openTelegramLink(verifyLink);
     } else {
       window.open(verifyLink, '_blank');
     }
@@ -916,7 +936,8 @@ function verifyPhoneInBot() {
     window.open(verifyLink, '_blank');
   }
 }
-window.verifyPhoneInBot = verifyPhoneInBot;
+window.verifyPhoneNative = verifyPhoneNative;
+window.verifyPhoneInBot = verifyPhoneNative;
 
 const JALALI_MONTHS = ['فروردین', 'اردیبهشت', 'خرداد', 'تیر', 'مرداد', 'شهریور', 'مهر', 'آبان', 'آذر', 'دی', 'بهمن', 'اسفند'];
 
@@ -1881,15 +1902,24 @@ function hydrateUserInterface(data) {
     if (profAvatar) profAvatar.innerText = userDisplayName.charAt(0).toUpperCase();
     if (profId) profId.innerText = user.id ? String(user.id) : '--';
     if (profRef) profRef.innerText = user.id ? String(user.id) : '--';
-    if (profPhone) {
-      profPhone.innerText = user.phone_number ? toEnglishDigits(user.phone_number) : 'وارد نشده';
-      const verifyBtn = $('verifyPhoneInBotBtn');
-      if (verifyBtn) {
-        if (user.phone_number) {
-          verifyBtn.classList.add('hidden');
-        } else {
-          verifyBtn.classList.remove('hidden');
-        }
+    const hasPhone = Boolean(user.phone_number);
+    const phoneRewardCard = $('profilePhoneRewardCard');
+    const warningCard = $('cardPhoneVerificationWarning');
+    const verifyBtn = $('verifyPhoneInBotBtn');
+
+    if (hasPhone) {
+      if (phoneRewardCard) phoneRewardCard.classList.add('hidden');
+      if (warningCard) warningCard.classList.add('hidden');
+      if (verifyBtn) verifyBtn.classList.add('hidden');
+      if (profPhone) {
+        profPhone.innerHTML = `<span class="text-white font-mono font-bold" dir="ltr">${toEnglishDigits(user.phone_number)}</span> <span class="text-[10px] text-emerald-400 bg-emerald-500/15 border border-emerald-500/30 px-1.5 py-0.5 rounded-md font-bold">تأییدشده ✅</span>`;
+      }
+    } else {
+      if (phoneRewardCard) phoneRewardCard.classList.remove('hidden');
+      if (warningCard) warningCard.classList.remove('hidden');
+      if (verifyBtn) verifyBtn.classList.remove('hidden');
+      if (profPhone) {
+        profPhone.innerText = 'وارد نشده';
       }
     }
     if (profJoin) profJoin.innerText = toPersianDigits(user.created_at_jalali || '1403/07/01');
@@ -1907,12 +1937,12 @@ function hydrateUserInterface(data) {
     }
 
     if (profAuthBadge) {
-      if (user.phone_number) {
-        profAuthBadge.innerHTML = '<span class="inline-flex items-center gap-1"><span>✅</span><span>احراز هویت شده</span></span>';
-        profAuthBadge.className = 'px-2.5 py-0.5 rounded-full text-[10px] font-bold border badge-auth transition inline-flex items-center gap-1';
+      if (hasPhone) {
+        profAuthBadge.innerHTML = '<span class="inline-flex items-center gap-1"><span>🛡️</span><span>حساب تأییدشده</span></span>';
+        profAuthBadge.className = 'px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 inline-flex items-center gap-1 transition';
       } else {
-        profAuthBadge.innerHTML = '<span class="inline-flex items-center gap-1"><span>⚠️</span><span>عدم احراز هویت</span></span>';
-        profAuthBadge.className = 'px-2.5 py-0.5 rounded-full text-[10px] font-bold border badge-unauth transition inline-flex items-center gap-1';
+        profAuthBadge.innerHTML = '<span class="inline-flex items-center gap-1"><span>⚠️</span><span>نیازمند احراز شماره</span></span>';
+        profAuthBadge.className = 'px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30 inline-flex items-center gap-1 transition';
       }
     }
 
@@ -2139,8 +2169,19 @@ function hydrateUserInterface(data) {
 
   // --- PHASE 5: Active Subscription Gauge & Connection Link (Panel Data) ---
   safeStep('subscriptionAndGauge', () => {
-    const gaugeProgress = $('dashboardGaugeProgress');
-    if (sub) {
+    const hasActiveSub = Boolean(data.has_active_sub && sub && (sub.status === 'ACTIVE' || !sub.status));
+    const subGaugeCard = $('dashboardSubGaugeCard');
+    const noSubCard = $('dashboardNoSubCard');
+    const countryCard = $('dashboardCountryBreakdownCard');
+    const subAccordionCard = $('dashboardSubAccordionCard');
+    const gaugeProgress = $('dashboardGaugeProgress') || $('gaugeProgress');
+
+    if (hasActiveSub) {
+      if (subGaugeCard) subGaugeCard.classList.remove('hidden');
+      if (countryCard) countryCard.classList.remove('hidden');
+      if (subAccordionCard) subAccordionCard.classList.remove('hidden');
+      if (noSubCard) noSubCard.classList.add('hidden');
+
       const remainEl = $('dashboardRemainingTraffic');
       if (remainEl) remainEl.innerText = `${sub.traffic_remaining_gb ?? '--'} GB`;
 
@@ -2179,6 +2220,12 @@ function hydrateUserInterface(data) {
         modalQrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=260x260&data=${encodeURIComponent(sub.subscription_url)}`;
       }
     } else {
+      // User has no active subscription -> Show Empty State!
+      if (subGaugeCard) subGaugeCard.classList.add('hidden');
+      if (countryCard) countryCard.classList.add('hidden');
+      if (subAccordionCard) subAccordionCard.classList.add('hidden');
+      if (noSubCard) noSubCard.classList.remove('hidden');
+
       const subInputEl = $('subInput');
       if (subInputEl) subInputEl.value = 'اشتراک فعالی یافت نشد - لطفاً از تب فروشگاه اقدام فرمایید.';
       const subDisplayEl = $('subDisplayBox');
@@ -2610,6 +2657,39 @@ function initApp() {
       console.warn(`[initApp] Error in ${name}:`, err);
     }
   };
+
+  safeRun('initImmediateUserIdentity', () => {
+    const tgUser = window.Telegram?.WebApp?.initDataUnsafe?.user;
+    if (tgUser) {
+      const name = tgUser.first_name || tgUser.username || '';
+      if (name) {
+        const usernameEl = $('headerUsername');
+        if (usernameEl && (usernameEl.innerText === 'کاربر' || !usernameEl.innerText)) {
+          usernameEl.innerText = name;
+        }
+        const avatarEl = $('headerUserAvatarInitial');
+        if (avatarEl && (avatarEl.innerText === 'U' || !avatarEl.innerText)) {
+          avatarEl.innerText = name[0].toUpperCase();
+        }
+        const profName = $('profileFullName');
+        if (profName && profName.innerText === 'کاربر گرامی') {
+          profName.innerText = tgUser.first_name ? `${tgUser.first_name} ${tgUser.last_name || ''}`.trim() : name;
+        }
+        const profUser = $('profileUsername');
+        if (profUser && tgUser.username && profUser.innerText === '@user') {
+          profUser.innerText = `@${tgUser.username}`;
+        }
+        const profAvatar = $('profileAvatarInitial');
+        if (profAvatar && (profAvatar.innerText === 'U' || !profAvatar.innerText)) {
+          profAvatar.innerText = name[0].toUpperCase();
+        }
+        const profId = $('profileTelegramId');
+        if (profId && profId.innerText === '--') {
+          profId.innerText = String(tgUser.id);
+        }
+      }
+    }
+  });
 
   safeRun('setupTabNavigation', setupTabNavigation);
   safeRun('setupReportsSubtabs', setupReportsSubtabs);

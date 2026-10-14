@@ -11,72 +11,8 @@ from pathlib import Path
 
 from aiohttp import web
 
+from bot.web import routes_admin, routes_user
 from bot.web.cache import FastCache
-from bot.web.routes_admin import (
-    get_admin_broadcast_status,
-    get_admin_campaigns,
-    get_admin_coupon_usages,
-    get_admin_coupons,
-    get_admin_crypto_rates,
-    get_admin_infra_billing,
-    get_admin_overview,
-    get_admin_plans,
-    get_admin_settings,
-    get_admin_ticket_messages,
-    get_admin_ticket_threads,
-    get_admin_topup_photo,
-    get_admin_topups,
-    get_admin_sessions_explorer,
-    get_admin_user_hwid_devices,
-    get_admin_user_sessions,
-    get_admin_user_srh,
-    get_admin_users,
-    post_admin_users_bulk_action,
-    post_admin_broadcast,
-    post_admin_campaign_create,
-    post_admin_campaign_delete,
-    post_admin_coupon_delete,
-    post_admin_coupon_save,
-    post_admin_coupon_toggle,
-    post_admin_kill_sessions,
-    post_admin_modify_user,
-    post_admin_node_cost,
-    post_admin_plan_delete,
-    post_admin_plan_save,
-    post_admin_plan_toggle,
-    post_admin_reply_ticket,
-    post_admin_reset_trial,
-    post_admin_settings,
-    post_admin_toggle_ban,
-    post_admin_topup_action,
-    post_admin_user_delete_hwid,
-    post_admin_user_revoke_sub,
-    post_admin_user_wallet,
-)
-from bot.web.routes_user import (
-    get_user_avatar,
-    get_user_ip_info,
-    get_user_me,
-    get_user_nodes,
-    get_user_topup_info,
-    post_user_kill_device,
-    post_user_purchase,
-    post_user_revoke_sub,
-    post_user_set_birthday,
-    post_user_settings,
-    post_user_spin,
-    post_user_topup_card,
-    post_user_topup_crypto,
-    post_user_topup_crypto_check,
-    post_user_topup_stars,
-    post_user_validate_coupon,
-    get_user_support_messages,
-    post_user_support_message,
-    get_user_subscription_configs,
-    get_user_speedtest_ping,
-    get_user_speedtest_payload,
-    post_user_speedtest_upload,
-)
 
 logger = logging.getLogger(__name__)
 
@@ -355,17 +291,40 @@ async def serve_open_client(request: web.Request) -> web.Response:
 
 @web.middleware
 async def global_error_middleware(request: web.Request, handler):
-    """Catch unhandled exceptions in TMA web routes and log them with context."""
+    """Catch unhandled exceptions in TMA web routes and report them to the admin topic."""
     try:
         return await handler(request)
     except web.HTTPException:
         raise
     except Exception as exc:
         logger.exception("Unhandled TMA web error on %s %s: %s", request.method, request.path, exc)
+        if request.path.startswith("/api/"):
+            try:
+                from bot.services.error_reporter import report_error
+                bot = request.app.get("bot")
+                session_factory = request.app.get("session_factory")
+                if bot and session_factory:
+                    user_id = None
+                    if "user_auth" in request and isinstance(request["user_auth"], dict):
+                        user_id = request["user_auth"].get("id")
+                    elif "user_id" in request:
+                        user_id = request["user_id"]
+                    await report_error(
+                        bot,
+                        session_factory,
+                        exc,
+                        context=f"WEB {request.method} {request.path}",
+                        user_id=user_id,
+                    )
+            except Exception as rep_err:
+                logger.warning("Failed to dispatch web error to topic: %s", rep_err)
         return web.json_response(
             {"ok": False, "error": "خطای داخلی سرور رخ داد.", "code": "internal_error"},
             status=500,
         )
+
+
+topic_error_middleware = global_error_middleware
 
 
 def create_web_app(
@@ -403,71 +362,71 @@ def create_web_app(
         app.router.add_static("/static", str(STATIC_DIR), append_version=True)
 
     # User APIs
-    app.router.add_get("/api/user/me", get_user_me)
-    app.router.add_get("/api/user/avatar", get_user_avatar)
-    app.router.add_get("/api/user/topup_info", get_user_topup_info)
-    app.router.add_post("/api/user/topup/card", post_user_topup_card)
-    app.router.add_post("/api/user/topup/crypto", post_user_topup_crypto)
-    app.router.add_post("/api/user/topup/crypto/check", post_user_topup_crypto_check)
-    app.router.add_post("/api/user/topup/stars", post_user_topup_stars)
-    app.router.add_post("/api/user/validate_coupon", post_user_validate_coupon)
-    app.router.add_post("/api/user/purchase", post_user_purchase)
-    app.router.add_post("/api/user/settings", post_user_settings)
-    app.router.add_post("/api/user/set_birthday", post_user_set_birthday)
-    app.router.add_post("/api/user/spin", post_user_spin)
-    app.router.add_post("/api/user/revoke_sub", post_user_revoke_sub)
-    app.router.add_post("/api/user/kill_device", post_user_kill_device)
-    app.router.add_get("/api/user/nodes", get_user_nodes)
-    app.router.add_get("/api/user/ip_info", get_user_ip_info)
-    app.router.add_get("/api/user/support/messages", get_user_support_messages)
-    app.router.add_post("/api/user/support/messages", post_user_support_message)
-    app.router.add_get("/api/user/subscription/configs", get_user_subscription_configs)
-    app.router.add_get("/api/user/speedtest/ping", get_user_speedtest_ping)
-    app.router.add_get("/api/user/speedtest/payload", get_user_speedtest_payload)
-    app.router.add_post("/api/user/speedtest/upload", post_user_speedtest_upload)
+    app.router.add_get("/api/user/me", routes_user.get_user_me)
+    app.router.add_get("/api/user/avatar", routes_user.get_user_avatar)
+    app.router.add_get("/api/user/topup_info", routes_user.get_user_topup_info)
+    app.router.add_post("/api/user/topup/card", routes_user.post_user_topup_card)
+    app.router.add_post("/api/user/topup/crypto", routes_user.post_user_topup_crypto)
+    app.router.add_post("/api/user/topup/crypto/check", routes_user.post_user_topup_crypto_check)
+    app.router.add_post("/api/user/topup/stars", routes_user.post_user_topup_stars)
+    app.router.add_post("/api/user/validate_coupon", routes_user.post_user_validate_coupon)
+    app.router.add_post("/api/user/purchase", routes_user.post_user_purchase)
+    app.router.add_post("/api/user/settings", routes_user.post_user_settings)
+    app.router.add_post("/api/user/set_birthday", routes_user.post_user_set_birthday)
+    app.router.add_post("/api/user/spin", routes_user.post_user_spin)
+    app.router.add_post("/api/user/revoke_sub", routes_user.post_user_revoke_sub)
+    app.router.add_post("/api/user/kill_device", routes_user.post_user_kill_device)
+    app.router.add_get("/api/user/nodes", routes_user.get_user_nodes)
+    app.router.add_get("/api/user/ip_info", routes_user.get_user_ip_info)
+    app.router.add_get("/api/user/support/messages", routes_user.get_user_support_messages)
+    app.router.add_post("/api/user/support/messages", routes_user.post_user_support_message)
+    app.router.add_get("/api/user/subscription/configs", routes_user.get_user_subscription_configs)
+    app.router.add_get("/api/user/speedtest/ping", routes_user.get_user_speedtest_ping)
+    app.router.add_get("/api/user/speedtest/payload", routes_user.get_user_speedtest_payload)
+    app.router.add_post("/api/user/speedtest/upload", routes_user.post_user_speedtest_upload)
 
     # Admin APIs
-    app.router.add_get("/api/admin/overview", get_admin_overview)
-    app.router.add_get("/api/admin/users", get_admin_users)
-    app.router.add_post("/api/admin/user/modify", post_admin_modify_user)
-    app.router.add_post("/api/admin/user/wallet", post_admin_user_wallet)
-    app.router.add_post("/api/admin/user/revoke_sub", post_admin_user_revoke_sub)
-    app.router.add_get("/api/admin/user/hwid_devices", get_admin_user_hwid_devices)
-    app.router.add_get("/api/admin/user/sessions", get_admin_user_sessions)
-    app.router.add_get("/api/admin/user/srh", get_admin_user_srh)
-    app.router.add_get("/api/admin/sessions-explorer", get_admin_sessions_explorer)
-    app.router.add_post("/api/admin/users/bulk-action", post_admin_users_bulk_action)
-    app.router.add_post("/api/admin/user/delete_hwid", post_admin_user_delete_hwid)
-    app.router.add_post("/api/admin/user/kill_sessions", post_admin_kill_sessions)
-    app.router.add_post("/api/admin/user/toggle_ban", post_admin_toggle_ban)
-    app.router.add_post("/api/admin/ticket/reply", post_admin_reply_ticket)
-    app.router.add_get("/api/admin/tickets/threads", get_admin_ticket_threads)
-    app.router.add_get("/api/admin/tickets/messages", get_admin_ticket_messages)
-    app.router.add_post("/api/admin/broadcast", post_admin_broadcast)
-    app.router.add_get("/api/admin/broadcast/status", get_admin_broadcast_status)
-    app.router.add_post("/api/admin/user/reset_trial", post_admin_reset_trial)
-    app.router.add_get("/api/admin/plans", get_admin_plans)
-    app.router.add_post("/api/admin/plan/save", post_admin_plan_save)
-    app.router.add_post("/api/admin/plan/toggle", post_admin_plan_toggle)
-    app.router.add_post("/api/admin/plan/delete", post_admin_plan_delete)
-    app.router.add_get("/api/admin/coupons", get_admin_coupons)
-    app.router.add_get("/api/admin/coupons/{id}/usages", get_admin_coupon_usages)
-    app.router.add_post("/api/admin/coupon/save", post_admin_coupon_save)
-    app.router.add_post("/api/admin/coupon/toggle", post_admin_coupon_toggle)
-    app.router.add_post("/api/admin/coupon/delete", post_admin_coupon_delete)
-    app.router.add_get("/api/admin/topups", get_admin_topups)
-    app.router.add_get("/api/admin/topup/photo", get_admin_topup_photo)
-    app.router.add_post("/api/admin/topup/action", post_admin_topup_action)
-    app.router.add_get("/api/admin/crypto/rates", get_admin_crypto_rates)
-    app.router.add_get("/api/admin/settings", get_admin_settings)
-    app.router.add_post("/api/admin/settings", post_admin_settings)
-    app.router.add_get("/api/admin/campaigns", get_admin_campaigns)
-    app.router.add_post("/api/admin/campaigns", post_admin_campaign_create)
-    app.router.add_post("/api/admin/campaign/create", post_admin_campaign_create)
-    app.router.add_post("/api/admin/campaigns/delete", post_admin_campaign_delete)
-    app.router.add_post("/api/admin/campaign/delete", post_admin_campaign_delete)
-    app.router.add_get("/api/admin/infra/billing", get_admin_infra_billing)
-    app.router.add_post("/api/admin/infra/node-cost", post_admin_node_cost)
+    app.router.add_get("/api/admin/overview", routes_admin.get_admin_overview)
+    app.router.add_get("/api/admin/users", routes_admin.get_admin_users)
+    app.router.add_post("/api/admin/user/modify", routes_admin.post_admin_modify_user)
+    app.router.add_post("/api/admin/user/wallet", routes_admin.post_admin_user_wallet)
+    app.router.add_post("/api/admin/user/revoke_sub", routes_admin.post_admin_user_revoke_sub)
+    app.router.add_get("/api/admin/user/hwid_devices", routes_admin.get_admin_user_hwid_devices)
+    app.router.add_get("/api/admin/user/sessions", routes_admin.get_admin_user_sessions)
+    app.router.add_get("/api/admin/user/srh", routes_admin.get_admin_user_srh)
+    app.router.add_get("/api/admin/sessions-explorer", routes_admin.get_admin_sessions_explorer)
+    app.router.add_post("/api/admin/users/bulk-action", routes_admin.post_admin_users_bulk_action)
+    app.router.add_post("/api/admin/user/delete_hwid", routes_admin.post_admin_user_delete_hwid)
+    app.router.add_post("/api/admin/user/kill_sessions", routes_admin.post_admin_kill_sessions)
+    app.router.add_post("/api/admin/user/toggle_ban", routes_admin.post_admin_toggle_ban)
+    app.router.add_post("/api/admin/ticket/reply", routes_admin.post_admin_reply_ticket)
+    app.router.add_get("/api/admin/tickets/threads", routes_admin.get_admin_ticket_threads)
+    app.router.add_get("/api/admin/tickets/messages", routes_admin.get_admin_ticket_messages)
+    app.router.add_post("/api/admin/broadcast", routes_admin.post_admin_broadcast)
+    app.router.add_get("/api/admin/broadcast/status", routes_admin.get_admin_broadcast_status)
+    app.router.add_post("/api/admin/user/reset_trial", routes_admin.post_admin_reset_trial)
+    app.router.add_get("/api/admin/plans", routes_admin.get_admin_plans)
+    app.router.add_post("/api/admin/plan/save", routes_admin.post_admin_plan_save)
+    app.router.add_post("/api/admin/plan/toggle", routes_admin.post_admin_plan_toggle)
+    app.router.add_post("/api/admin/plan/delete", routes_admin.post_admin_plan_delete)
+    app.router.add_get("/api/admin/coupons", routes_admin.get_admin_coupons)
+    app.router.add_get("/api/admin/coupons/{id}/usages", routes_admin.get_admin_coupon_usages)
+    app.router.add_post("/api/admin/coupon/save", routes_admin.post_admin_coupon_save)
+    app.router.add_post("/api/admin/coupon/toggle", routes_admin.post_admin_coupon_toggle)
+    app.router.add_post("/api/admin/coupon/delete", routes_admin.post_admin_coupon_delete)
+    app.router.add_get("/api/admin/topups", routes_admin.get_admin_topups)
+    app.router.add_get("/api/admin/topup/photo", routes_admin.get_admin_topup_photo)
+    app.router.add_post("/api/admin/topup/action", routes_admin.post_admin_topup_action)
+    app.router.add_get("/api/admin/crypto/rates", routes_admin.get_admin_crypto_rates)
+    app.router.add_get("/api/admin/settings", routes_admin.get_admin_settings)
+    app.router.add_post("/api/admin/settings", routes_admin.post_admin_settings)
+    app.router.add_get("/api/admin/campaigns", routes_admin.get_admin_campaigns)
+    app.router.add_post("/api/admin/campaigns", routes_admin.post_admin_campaign_create)
+    app.router.add_post("/api/admin/campaign/create", routes_admin.post_admin_campaign_create)
+    app.router.add_post("/api/admin/campaigns/delete", routes_admin.post_admin_campaign_delete)
+    app.router.add_post("/api/admin/campaign/delete", routes_admin.post_admin_campaign_delete)
+    app.router.add_get("/api/admin/infra/billing", routes_admin.get_admin_infra_billing)
+    app.router.add_post("/api/admin/infra/node-cost", routes_admin.post_admin_node_cost)
 
     return app
 

@@ -31,12 +31,13 @@ def _clean_cache() -> None:
 
 async def report_error(
     bot: Bot,
-    session_factory: async_sessionmaker,
-    exc: Exception | str,
+    session_factory: async_sessionmaker | Any | None = None,
+    exc: Exception | str = "",
     context: str = "",
     user_id: int | None = None,
     username: str | None = None,
     traceback_str: str | None = None,
+    session: Any = None,
 ) -> None:
     """Dispatches a formatted error alert to the dedicated admin error topic."""
     settings = get_settings()
@@ -73,9 +74,19 @@ async def report_error(
 
     topic_id = None
     try:
-        async with session_factory() as session:
+        if session is not None:
             store = await get_store_settings(session)
             topic_id = store.topic_errors if store.topic_errors is not None else settings.ADMIN_TOPIC_ERRORS
+        elif session_factory is not None:
+            if hasattr(session_factory, "execute") and not callable(session_factory):
+                store = await get_store_settings(session_factory)
+                topic_id = store.topic_errors if store.topic_errors is not None else settings.ADMIN_TOPIC_ERRORS
+            else:
+                async with session_factory() as sess:
+                    store = await get_store_settings(sess)
+                    topic_id = store.topic_errors if store.topic_errors is not None else settings.ADMIN_TOPIC_ERRORS
+        else:
+            topic_id = settings.ADMIN_TOPIC_ERRORS
     except Exception as db_exc:
         logger.warning("Could not fetch topic_errors from DB: %s", db_exc)
         topic_id = settings.ADMIN_TOPIC_ERRORS

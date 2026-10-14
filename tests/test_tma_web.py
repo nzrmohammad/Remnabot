@@ -416,8 +416,9 @@ async def test_user_topup_card_validation_and_duplicate_prevention():
 @pytest.mark.anyio
 async def test_user_settings_persistence(session_factory):
     from aiohttp.test_utils import make_mocked_request
-    from bot.web.user_nodes import post_user_settings
+
     from bot.web.routes_user import get_user_me
+    from bot.web.user_nodes import post_user_settings
 
     app = {
         "bot_token": "123:abc",
@@ -451,6 +452,7 @@ async def test_user_settings_persistence(session_factory):
 @pytest.mark.anyio
 async def test_lucky_wheel_active_sub_and_24h_timer():
     from aiohttp.test_utils import make_mocked_request
+
     from bot.web.user_shop import post_user_spin
 
     mock_remnawave = AsyncMock()
@@ -495,7 +497,9 @@ async def test_lucky_wheel_active_sub_and_24h_timer():
 @pytest.mark.anyio
 async def test_lucky_wheel_prize_application_traffic_and_days():
     from unittest.mock import patch
+
     from aiohttp.test_utils import make_mocked_request
+
     from bot.web.user_shop import post_user_spin
 
     mock_remnawave = AsyncMock()
@@ -547,6 +551,7 @@ async def test_lucky_wheel_prize_application_traffic_and_days():
 @pytest.mark.anyio
 async def test_user_purchase_multi_account_fallback_and_payload(session_factory):
     from aiohttp.test_utils import make_mocked_request
+
     from bot.db.models import Service, Wallet
     from bot.web.user_shop import post_user_purchase
 
@@ -602,6 +607,7 @@ async def test_user_purchase_multi_account_fallback_and_payload(session_factory)
 @pytest.mark.anyio
 async def test_admin_overview_metrics_flags_and_devices(session_factory):
     from aiohttp.test_utils import make_mocked_request
+
     from bot.db.models import User
     from bot.web.routes_admin import get_admin_overview
 
@@ -668,7 +674,8 @@ async def test_admin_overview_metrics_flags_and_devices(session_factory):
 @pytest.mark.anyio
 async def test_admin_users_remaining_traffic_and_days(session_factory):
     from aiohttp.test_utils import make_mocked_request
-    from bot.db.models import Base, User, Wallet
+
+    from bot.db.models import User, Wallet
     from bot.web.routes_admin import get_admin_users
 
     async with session_factory() as session:
@@ -717,7 +724,8 @@ async def test_admin_users_remaining_traffic_and_days(session_factory):
 @pytest.mark.anyio
 async def test_admin_broadcast_audience_targeting(session_factory):
     from aiohttp.test_utils import make_mocked_request
-    from bot.db.models import Base, User
+
+    from bot.db.models import User
     from bot.web.routes_admin import post_admin_broadcast
 
     async with session_factory() as session:
@@ -753,7 +761,8 @@ async def test_admin_broadcast_audience_targeting(session_factory):
 async def test_admin_reset_trial(session_factory):
     from aiohttp.test_utils import make_mocked_request
     from sqlalchemy import select
-    from bot.db.models import Base, User
+
+    from bot.db.models import User
     from bot.web.routes_admin import post_admin_reset_trial
 
     async with session_factory() as session:
@@ -789,6 +798,7 @@ async def test_admin_reset_trial(session_factory):
 @pytest.mark.anyio
 async def test_admin_broadcast_status():
     from aiohttp.test_utils import make_mocked_request
+
     from bot.web.routes_admin import _BROADCAST_STATUSES, get_admin_broadcast_status
 
     _BROADCAST_STATUSES["test-task-123"] = {
@@ -819,7 +829,7 @@ async def test_admin_broadcast_status():
 @pytest.mark.anyio
 async def test_admin_modify_user_traffic_and_days(session_factory):
     from aiohttp.test_utils import make_mocked_request
-    from bot.db.models import Base
+
     from bot.web.routes_admin import post_admin_modify_user
 
     mock_remnawave = AsyncMock()
@@ -869,7 +879,7 @@ async def test_admin_modify_user_traffic_and_days(session_factory):
 @pytest.mark.anyio
 async def test_admin_settings_full(session_factory):
     from aiohttp.test_utils import make_mocked_request
-    from bot.db.models import Base
+
     from bot.web.routes_admin import get_admin_settings, post_admin_settings
 
     app = {
@@ -914,7 +924,8 @@ async def test_admin_settings_full(session_factory):
 @pytest.mark.anyio
 async def test_admin_user_wallet_modify(session_factory):
     from aiohttp.test_utils import make_mocked_request
-    from bot.db.models import Base, Wallet
+
+    from bot.db.models import Wallet
     from bot.web.routes_admin import post_admin_user_wallet
 
     async with session_factory() as session:
@@ -954,7 +965,7 @@ async def test_admin_user_wallet_modify(session_factory):
 @pytest.mark.anyio
 async def test_admin_user_revoke_sub(session_factory):
     from aiohttp.test_utils import make_mocked_request
-    from bot.db.models import Base
+
     from bot.web.routes_admin import post_admin_user_revoke_sub
 
     mock_remnawave = AsyncMock()
@@ -986,7 +997,7 @@ async def test_admin_user_revoke_sub(session_factory):
 @pytest.mark.anyio
 async def test_admin_user_hwid_devices(session_factory):
     from aiohttp.test_utils import make_mocked_request
-    from bot.db.models import Base
+
     from bot.web.routes_admin import get_admin_user_hwid_devices, post_admin_user_delete_hwid
 
     mock_remnawave = AsyncMock()
@@ -1026,12 +1037,12 @@ async def test_admin_user_hwid_devices(session_factory):
 @pytest.mark.anyio
 async def test_admin_plans_crud(session_factory):
     from aiohttp.test_utils import make_mocked_request
-    from bot.db.models import Base
+
     from bot.web.routes_admin import (
         get_admin_plans,
+        post_admin_plan_delete,
         post_admin_plan_save,
         post_admin_plan_toggle,
-        post_admin_plan_delete,
     )
 
     app = {
@@ -1088,12 +1099,12 @@ async def test_admin_plans_crud(session_factory):
 @pytest.mark.anyio
 async def test_admin_coupons_crud(session_factory):
     from aiohttp.test_utils import make_mocked_request
-    from bot.db.models import Base
+
     from bot.web.routes_admin import (
         get_admin_coupons,
+        post_admin_coupon_delete,
         post_admin_coupon_save,
         post_admin_coupon_toggle,
-        post_admin_coupon_delete,
     )
 
     app = {
@@ -1149,7 +1160,8 @@ async def test_admin_coupons_crud(session_factory):
 @pytest.mark.anyio
 async def test_admin_users_filter_online_and_expiring(session_factory):
     from aiohttp.test_utils import make_mocked_request
-    from bot.db.models import Base, User
+
+    from bot.db.models import User
     from bot.web.routes_admin import get_admin_users
 
     async with session_factory() as session:
@@ -1220,7 +1232,8 @@ async def test_admin_users_filter_online_and_expiring(session_factory):
 @pytest.mark.anyio
 async def test_admin_topups_listing(session_factory):
     from aiohttp.test_utils import make_mocked_request
-    from bot.db.models import Base, User
+
+    from bot.db.models import User
     from bot.db.repositories.wallet_repo import WalletRepository
     from bot.web.routes_admin import get_admin_topups
 
@@ -1253,7 +1266,8 @@ async def test_admin_topups_listing(session_factory):
 @pytest.mark.anyio
 async def test_admin_coupon_usages(session_factory):
     from aiohttp.test_utils import make_mocked_request
-    from bot.db.models import Base, User
+
+    from bot.db.models import User
     from bot.db.repositories.coupon_repo import CouponRepository
     from bot.web.routes_admin import get_admin_coupon_usages
 
@@ -1288,7 +1302,8 @@ async def test_admin_coupon_usages(session_factory):
 @pytest.mark.anyio
 async def test_admin_topup_action_syncs_with_supergroup(session_factory):
     from aiohttp.test_utils import make_mocked_request
-    from bot.db.models import Base, Topup, Wallet
+
+    from bot.db.models import Topup, Wallet
     from bot.web.routes_admin import post_admin_topup_action
 
     async with session_factory() as session:
@@ -1349,7 +1364,8 @@ async def test_post_user_purchase_commits_session_without_coupon(session_factory
     """Verify that purchase without a coupon permanently commits wallet deduction and order."""
     from aiohttp.test_utils import make_mocked_request
     from sqlalchemy import select
-    from bot.db.models import Base, Service, Wallet, Order
+
+    from bot.db.models import Order, Service, Wallet
     from bot.web.user_shop import post_user_purchase
 
     async with session_factory() as session:
@@ -1400,7 +1416,8 @@ async def test_post_user_purchase_commits_session_without_coupon(session_factory
 async def test_api_rate_limit_middleware_blocks_excessive_requests():
     from aiohttp import web
     from aiohttp.test_utils import make_mocked_request
-    from bot.web.server import api_rate_limit_middleware, _api_buckets
+
+    from bot.web.server import _api_buckets, api_rate_limit_middleware
 
     _api_buckets.clear()
 
@@ -1411,7 +1428,7 @@ async def test_api_rate_limit_middleware_blocks_excessive_requests():
     app["is_dev"] = False
 
     # Simulate 21 sensitive requests from same IP (limit is 20)
-    for i in range(20):
+    for _ in range(20):
         req = make_mocked_request(
             "POST", "/api/user/validate_coupon",
             headers={"X-Real-IP": "198.51.100.1"},
@@ -1435,7 +1452,6 @@ async def test_api_rate_limit_middleware_blocks_excessive_requests():
 
 @pytest.mark.anyio
 async def test_crypto_mark_paid_atomic(session_factory):
-    from bot.db.models import Base
     from bot.db.repositories.crypto_repo import CryptoRepository
 
     async with session_factory() as session:
@@ -1469,6 +1485,7 @@ async def test_crypto_mark_paid_atomic(session_factory):
 @pytest.mark.anyio
 async def test_serve_open_client_bridge():
     from aiohttp.test_utils import make_mocked_request
+
     from bot.web.server import serve_open_client
 
     # 1. Valid scheme
@@ -1493,12 +1510,13 @@ async def test_serve_open_client_bridge():
 @pytest.mark.anyio
 async def test_topup_image_upload_and_admin_viewing(session_factory):
     import base64
-    from unittest.mock import AsyncMock, MagicMock, patch
-    from aiohttp.test_utils import make_mocked_request
-    from bot.db.models import Base
-    from bot.web.user_topup import post_user_topup_card
-    from bot.web.routes_admin import get_admin_topups, get_admin_topup_photo
     from pathlib import Path
+    from unittest.mock import AsyncMock, MagicMock, patch
+
+    from aiohttp.test_utils import make_mocked_request
+
+    from bot.web.routes_admin import get_admin_topup_photo, get_admin_topups
+    from bot.web.user_topup import post_user_topup_card
 
     fake_img = b"\xff\xd8\xff\xe0\x00\x10JFIF" + b"\x00" * 50
     b64_img = "data:image/jpeg;base64," + base64.b64encode(fake_img).decode("ascii")
@@ -1561,15 +1579,15 @@ async def test_topup_image_upload_and_admin_viewing(session_factory):
 
 @pytest.mark.anyio
 async def test_speedtest_endpoints():
+    from aiohttp import web
     from aiohttp.test_utils import make_mocked_request
+
     from bot.web.cache import FastCache
     from bot.web.routes_user import (
-        get_user_speedtest_ping,
         get_user_speedtest_payload,
+        get_user_speedtest_ping,
         post_user_speedtest_upload,
     )
-
-    from aiohttp import web
     app = web.Application()
     app["bot_token"] = "123:abc"
     app["admin_ids"] = [55555]
@@ -1608,10 +1626,11 @@ async def test_speedtest_endpoints():
 
 @pytest.mark.anyio
 async def test_get_user_me_panel_timeout_and_partial_response(session_factory):
-    import asyncio
+
     from aiohttp.test_utils import make_mocked_request
-    from bot.web.routes_user import get_user_me
+
     from bot.db.models import User, Wallet
+    from bot.web.routes_user import get_user_me
 
     telegram_id = 998877
     async with session_factory() as session:
@@ -1622,7 +1641,7 @@ async def test_get_user_me_panel_timeout_and_partial_response(session_factory):
         await session.commit()
 
     async def slow_get_users(*args, **kwargs):
-        raise asyncio.TimeoutError()
+        raise TimeoutError()
 
     mock_remnawave = AsyncMock()
     mock_remnawave.get_users_by_telegram_id.side_effect = slow_get_users
@@ -1648,5 +1667,77 @@ async def test_get_user_me_panel_timeout_and_partial_response(session_factory):
     assert data["user"]["wallet_balance"] == 75000
     assert data["user"]["username"] == f"dev_{telegram_id}"
     assert data["active_sub"] is None
+
+
+@pytest.mark.anyio
+async def test_global_error_middleware_reports_error(monkeypatch):
+    from aiohttp import web
+    from aiohttp.test_utils import make_mocked_request
+
+    from bot.web.server import global_error_middleware
+
+    reported = []
+
+    async def mock_report_error(bot, session_factory=None, exc="", context="", user_id=None, **kwargs):
+        reported.append({"exc": str(exc), "context": context, "user_id": user_id})
+
+    monkeypatch.setattr("bot.services.error_reporter.report_error", mock_report_error)
+
+    async def broken_handler(request):
+        raise ValueError("Critical DB crash")
+
+    app = web.Application()
+    app["bot"] = AsyncMock()
+    app["session_factory"] = AsyncMock()
+
+    req = make_mocked_request("POST", "/api/user/purchase", app=app)
+    req["user_auth"] = {"id": 998877}
+
+    res = await global_error_middleware(req, broken_handler)
+    assert res.status == 500
+    res_data = json.loads(res.text)
+    assert res_data["ok"] is False
+    assert len(reported) == 1
+    assert "Critical DB crash" in reported[0]["exc"]
+    assert reported[0]["user_id"] == 998877
+
+
+@pytest.mark.anyio
+async def test_remnawave_consecutive_errors(monkeypatch):
+    from bot.services.remnawave_users import RemnawaveUsersMixin
+
+    class DummyClient(RemnawaveUsersMixin):
+        def __init__(self):
+            super().__init__()
+            self._client = AsyncMock()
+            self._client.get.side_effect = RuntimeError("Panel 502 Bad Gateway")
+            self._session = None
+
+    client = DummyClient()
+    logged_errors = []
+    logged_warnings = []
+
+    from bot.services import remnawave_users
+    monkeypatch.setattr(remnawave_users.logger, "error", lambda msg, *args: logged_errors.append(msg % args if args else msg))
+    monkeypatch.setattr(remnawave_users.logger, "warning", lambda msg, *args: logged_warnings.append(msg % args if args else msg))
+
+    # Fail 1: warning only
+    res1 = await client.get_all_panel_users()
+    assert res1 is None
+    assert len(logged_warnings) == 1
+    assert len(logged_errors) == 0
+
+    # Fail 2: warning only
+    res2 = await client.get_all_panel_users()
+    assert res2 is None
+    assert len(logged_warnings) == 2
+    assert len(logged_errors) == 0
+
+    # Fail 3: escalated to error!
+    res3 = await client.get_all_panel_users()
+    assert res3 is None
+    assert len(logged_errors) == 1
+    assert "CRITICAL: Remnawave panel is DOWN" in logged_errors[0]
+
 
 

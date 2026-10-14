@@ -318,8 +318,24 @@ async def post_user_topup_crypto_check(request: web.Request) -> web.Response:
                 paid_inv = await crypto_repo.mark_paid(inv.id, tx.get("tx_hash", ""))
                 if paid_inv:
                     wallet_repo = WalletRepository(session)
-                    new_bal = await wallet_repo.add_balance_atomic(telegram_id, inv.amount_toman)
-                    await session.commit()
+                    try:
+                        new_bal = await wallet_repo.add_balance_atomic(telegram_id, inv.amount_toman)
+                        await session.commit()
+                    except Exception as exc:
+                        logger.error("Failed to credit wallet for TON invoice %s: %s", inv.id, exc, exc_info=True)
+                        from bot.services.error_reporter import report_error
+                        bot = request.app.get("bot")
+                        await report_error(
+                            bot,
+                            session=session,
+                            exc=exc,
+                            context=f"Failed to credit wallet for TON invoice #{inv.id} amount={inv.amount_toman}",
+                            user_id=telegram_id,
+                        )
+                        return web.json_response({
+                            "ok": False,
+                            "message": "خطا در شارژ کیف پول. لطفاً به پشتیبانی اطلاع دهید.",
+                        }, status=500)
                     await cache.delete(f"tma:user:{telegram_id}:dashboard")
                     return web.json_response({
                         "ok": True,

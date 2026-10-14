@@ -363,6 +363,9 @@ async def post_user_purchase(request: web.Request) -> web.Response:
         if not chosen_acc and panel_users:
             chosen_acc = panel_users[0]
 
+        bot = request.app.get("bot")
+        session_factory = request.app.get("session_factory")
+
         result = await execute_purchase(
             remnawave=remnawave,
             session=session,
@@ -370,6 +373,8 @@ async def post_user_purchase(request: web.Request) -> web.Response:
             telegram_id=telegram_id,
             chosen_account=chosen_acc,
             discount_amount=discount_amount,
+            bot=bot,
+            session_factory=session_factory,
         )
 
         effective_price = max(0, service.price - discount_amount)
@@ -395,6 +400,18 @@ async def post_user_purchase(request: web.Request) -> web.Response:
                 }, status=400)
 
             logger.error("Purchase failed for user %s, service %s, result_kind: %s", telegram_id, service_id, result.kind)
+            if bot and session_factory:
+                try:
+                    from bot.services.error_reporter import report_error
+                    await report_error(
+                        bot,
+                        session_factory,
+                        f"purchase_failed:{result.kind}",
+                        context=f"Purchase u={telegram_id} svc={service.id} price={effective_price}",
+                        user_id=telegram_id,
+                    )
+                except Exception:
+                    pass
             return web.json_response({"ok": False, "message": "خطا در ارتباط با سرور پنل جهت فعال‌سازی سرویس."}, status=500)
 
         if coupon_obj and result.order_id:

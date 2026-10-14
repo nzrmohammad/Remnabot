@@ -17,14 +17,30 @@ class AppSettingRepository:
         return setting.value if setting else None
 
     async def set(self, key: str, value: str) -> None:
-        result = await self.session.execute(
-            select(AppSetting).where(AppSetting.key == key)
-        )
-        setting = result.scalar_one_or_none()
-        if setting is None:
-            self.session.add(AppSetting(key=key, value=value))
+        dialect_name = self.session.bind.dialect.name if self.session.bind else ""
+        if dialect_name == "postgresql":
+            from sqlalchemy.dialects.postgresql import insert as pg_insert
+            stmt = pg_insert(AppSetting).values(key=key, value=value).on_conflict_do_update(
+                index_elements=["key"],
+                set_={"value": value},
+            )
+            await self.session.execute(stmt)
+        elif dialect_name == "sqlite":
+            from sqlalchemy.dialects.sqlite import insert as sqlite_insert
+            stmt = sqlite_insert(AppSetting).values(key=key, value=value).on_conflict_do_update(
+                index_elements=["key"],
+                set_={"value": value},
+            )
+            await self.session.execute(stmt)
         else:
-            setting.value = value
+            result = await self.session.execute(
+                select(AppSetting).where(AppSetting.key == key)
+            )
+            setting = result.scalar_one_or_none()
+            if setting is None:
+                self.session.add(AppSetting(key=key, value=value))
+            else:
+                setting.value = value
         await self.session.flush()
 
     async def all(self) -> dict[str, str]:

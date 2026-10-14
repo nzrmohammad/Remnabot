@@ -95,31 +95,31 @@ html, body {
 }
 /* Toggle Switch styles */
 .switch-checkbox:checked + .switch-label {
-  background-color: #2563eb !important;
+  background-color: #2563eb;
 }
 [dir="ltr"] .switch-checkbox:checked + .switch-label .switch-ball,
 label[dir="ltr"] .switch-checkbox:checked + .switch-label .switch-ball {
-  transform: translateX(20px) !important;
+  transform: translateX(20px);
 }
 [dir="rtl"] .switch-checkbox:checked + .switch-label .switch-ball,
 label[dir="rtl"] .switch-checkbox:checked + .switch-label .switch-ball {
-  transform: translateX(-20px) !important;
+  transform: translateX(-20px);
 }
 .switch-checkbox:checked + .switch-label .switch-ball {
   transform: translateX(20px);
 }
 html.theme-light .switch-label {
-  background-color: #cbd5e1 !important;
+  background-color: #cbd5e1;
 }
 html.theme-light .switch-checkbox:checked + .switch-label {
-  background-color: #2563eb !important;
+  background-color: #2563eb;
 }
 
 html.theme-light .bg-\[\#131d31\],
 html.theme-light .bg-\[\#131d31\]\/95,
 html.theme-light #navBottom {
-  background-color: var(--card-bg) !important;
-  border-color: var(--card-border) !important;
+  background-color: var(--card-bg);
+  border-color: var(--card-border);
 }
 html.theme-light .border-slate-700,
 html.theme-light .border-slate-700\/80,
@@ -127,149 +127,149 @@ html.theme-light .border-slate-700\/60,
 html.theme-light .border-slate-700\/50,
 html.theme-light .border-slate-700\/40,
 html.theme-light .border-slate-800\/80 {
-  border-color: var(--card-border) !important;
+  border-color: var(--card-border);
 }
 html.theme-light .text-white,
 html.theme-light .text-slate-100 {
-  color: var(--text-main) !important;
+  color: var(--text-main);
 }
 html.theme-light .text-slate-200 {
-  color: #1e293b !important;
+  color: #1e293b;
 }
 html.theme-light .text-slate-300 {
-  color: #334155 !important;
+  color: #334155;
 }
 html.theme-light .text-slate-400 {
-  color: var(--text-muted) !important;
+  color: var(--text-muted);
 }
 html.theme-light .gauge-bg-circle {
-  stroke: var(--card-border) !important;
+  stroke: var(--card-border);
 }
 html.theme-light [class*="bg-slate-900"],
 html.theme-light [class*="bg-slate-950"] {
-  background-color: var(--card-inner-bg) !important;
-  border-color: var(--card-border) !important;
+  background-color: var(--card-inner-bg);
+  border-color: var(--card-border);
 }
 html.theme-light [class*="bg-slate-800"] {
-  background-color: var(--card-bg) !important;
-  border-color: var(--card-border) !important;
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05) !important;
+  background-color: var(--card-bg);
+  border-color: var(--card-border);
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
 }
 html.theme-light #subDisplayBox {
-  color: #0284c7 !important;
+  color: #0284c7;
 }
 html.theme-light code {
-  background-color: #e2e8f0 !important;
-  color: #0f172a !important;
+  background-color: #e2e8f0;
+  color: #0f172a;
 }
 html.theme-light .text-cyan-300,
 html.theme-light .text-cyan-400 {
-  color: #0284c7 !important;
+  color: #0284c7;
 }
 html.theme-light .text-blue-300,
 html.theme-light .text-blue-400 {
-  color: #2563eb !important;
+  color: #2563eb;
 }
 html.theme-light .text-indigo-300,
 html.theme-light .text-indigo-400 {
-  color: #4f46e5 !important;
+  color: #4f46e5;
 }
 html.theme-light .text-emerald-400 {
-  color: #059669 !important;
+  color: #059669;
 }
 html.theme-light .text-amber-400 {
-  color: #d97706 !important;
+  color: #d97706;
 }
 html.theme-light .text-rose-200,
 html.theme-light .text-rose-200\/80,
 html.theme-light .text-rose-300,
 html.theme-light .text-rose-400 {
-  color: #be123c !important;
+  color: #be123c;
 }
 html.theme-light .text-purple-300,
 html.theme-light .text-purple-400 {
-  color: #7c3aed !important;
+  color: #7c3aed;
 }
 html.theme-light input,
 html.theme-light select,
 html.theme-light textarea {
-  background-color: var(--card-bg) !important;
-  border-color: var(--frame-border) !important;
-  color: var(--text-main) !important;
+  background-color: var(--card-bg);
+  border-color: var(--frame-border);
+  color: var(--text-main);
 }
 html.theme-light .bg-transparent {
   background-color: transparent !important;
 }
 html.theme-light .bg-\[\#1e293b\],
 html.theme-light .bg-\[\#0f172a\] {
-  background-color: var(--card-bg) !important;
-  border-color: var(--card-border) !important;
-  color: var(--text-main) !important;
+  background-color: var(--card-bg);
+  border-color: var(--card-border);
+  color: var(--text-main);
 }
 html.theme-light .border-pink-500\/30,
 html.theme-light .border-pink-800\/50 {
-  border-color: #fbcfe8 !important;
+  border-color: #fbcfe8;
 }
 html.theme-light .text-emerald-600 {
-  color: #059669 !important;
+  color: #059669;
 }
 html.theme-light .text-blue-600 {
-  color: #2563eb !important;
+  color: #2563eb;
 }
 html.theme-light .text-amber-600 {
-  color: #d97706 !important;
+  color: #d97706;
 }
 html.theme-light .text-rose-600 {
-  color: #e11d48 !important;
+  color: #e11d48;
 }
 html.theme-light .text-pink-600 {
-  color: #db2777 !important;
+  color: #db2777;
 }
 
 /* Eye-Friendly harmonious light theme adaptations for dark background classes */
 html.theme-light [class*="bg-slate-750"],
 html.theme-light .bg-slate-750,
 html.theme-light .bg-slate-750\/70 {
-  background-color: #f8fafc !important;
+  background-color: #f8fafc;
 }
 
 html.theme-light .border-emerald-800\/60,
 html.theme-light .border-emerald-700\/50 {
-  border-color: #a7f3d0 !important;
+  border-color: #a7f3d0;
 }
 
 html.theme-light .border-indigo-700\/50,
 html.theme-light .border-blue-800\/50 {
-  border-color: #c7d2fe !important;
+  border-color: #c7d2fe;
 }
 
 /* Light theme overrides for admin pending banner & modals */
 html.theme-light #adminPendingBanner {
-  background-color: #fffbeb !important;
-  border-color: #fde68a !important;
+  background-color: #fffbeb;
+  border-color: #fde68a;
 }
 html.theme-light #adminPendingBanner span.font-bold,
 html.theme-light #adminPendingBanner .text-amber-800,
 html.theme-light #adminPendingBanner .text-amber-300 {
-  color: #b45309 !important;
+  color: #b45309;
 }
 html.theme-light #adminPendingBanner #adminPendingSummary,
 html.theme-light #adminPendingBanner .text-amber-900,
 html.theme-light #adminPendingBanner .text-slate-300 {
-  color: #78350f !important;
+  color: #78350f;
 }
 
 html.theme-light #broadcastModal textarea {
-  background-color: var(--card-inner-bg) !important;
-  border-color: var(--frame-border) !important;
-  color: var(--text-main) !important;
+  background-color: var(--card-inner-bg);
+  border-color: var(--frame-border);
+  color: var(--text-main);
 }
 html.theme-light .broadcast-audience-btn {
-  border-color: #cbd5e1 !important;
-  color: #475569 !important;
+  border-color: #cbd5e1;
+  color: #475569;
 }
 html.theme-light .broadcast-audience-btn:hover {
-  color: var(--text-main) !important;
+  color: var(--text-main);
 }
 
 /* Light theme modal containers (Admin & User TMA) */
@@ -298,31 +298,31 @@ html.theme-light #operationReportModal > div,
 html.theme-light #couponUsagesModal > div,
 html.theme-light #accessModeModal > div,
 html.theme-light #createCampaignModal > div {
-  background-color: var(--card-bg) !important;
-  border-color: var(--card-border) !important;
-  color: var(--text-main) !important;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1) !important;
+  background-color: var(--card-bg);
+  border-color: var(--card-border);
+  color: var(--text-main);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
 }
 
 html.theme-light #accessModeModal .text-white {
-  color: var(--text-main) !important;
+  color: var(--text-main);
 }
 
 html.theme-light #accessModeModal .text-slate-300 {
-  color: #475569 !important;
+  color: #475569;
 }
 
 html.theme-light #accessModeModal .access-mode-opt {
-  background-color: #f8fafc !important;
-  border-color: #e2e8f0 !important;
+  background-color: #f8fafc;
+  border-color: #e2e8f0;
 }
 
 html.theme-light #accessModeModal .access-mode-opt:hover {
-  background-color: #f1f5f9 !important;
+  background-color: #f1f5f9;
 }
 
 html.theme-light #accessModeModal .radio-check {
-  border-color: #cbd5e1 !important;
+  border-color: #cbd5e1;
 }
 
 html.theme-light #planModal input,
@@ -332,9 +332,9 @@ html.theme-light #walletModal input,
 html.theme-light #subModal input,
 html.theme-light #bulkUsersModal input,
 html.theme-light #bulkUsersModal select {
-  background-color: #f8fafc !important;
-  border-color: #cbd5e1 !important;
-  color: #0f172a !important;
+  background-color: #f8fafc;
+  border-color: #cbd5e1;
+  color: #0f172a;
 }
 
 html.theme-light #planModal label,
@@ -345,70 +345,70 @@ html.theme-light #subModal label,
 html.theme-light #hwidModal label,
 html.theme-light #bulkUsersModal label,
 html.theme-light #trialModal label {
-  color: #475569 !important;
+  color: #475569;
 }
 
 html.theme-light #confirmActionModal p#confirmModalMessage,
 html.theme-light #trialModal .bg-slate-900\/70,
 html.theme-light #modifyUserModal .bg-slate-900\/60,
 html.theme-light #operationReportModal .bg-slate-900\/60 {
-  background-color: #f8fafc !important;
-  border-color: #e2e8f0 !important;
-  color: #334155 !important;
+  background-color: #f8fafc;
+  border-color: #e2e8f0;
+  color: #334155;
 }
 
 html.theme-light #operationReportModal .bg-emerald-950\/40 {
-  background-color: #ecfdf5 !important;
-  border-color: #a7f3d0 !important;
+  background-color: #ecfdf5;
+  border-color: #a7f3d0;
 }
 html.theme-light #operationReportModal .bg-emerald-950\/40 b {
-  color: #059669 !important;
+  color: #059669;
 }
 
 html.theme-light #trialModal .bg-purple-950\/40 {
-  background-color: #faf5ff !important;
-  border-color: #e9d5ff !important;
-  color: #6b21a8 !important;
+  background-color: #faf5ff;
+  border-color: #e9d5ff;
+  color: #6b21a8;
 }
 html.theme-light #trialModal .bg-purple-950\/40 p {
-  color: #581c87 !important;
+  color: #581c87;
 }
 
 html.theme-light #hwidModal .border-slate-700\/60,
 html.theme-light #hwidModal .border-slate-700\/80,
 html.theme-light #bulkUsersModal .border-slate-700\/60,
 html.theme-light #bulkUsersModal .border-slate-700\/80 {
-  border-color: #e2e8f0 !important;
+  border-color: #e2e8f0;
 }
 
 html.theme-light #hwidModal .text-white,
 html.theme-light #bulkUsersModal .text-white {
-  color: #0f172a !important;
+  color: #0f172a;
 }
 
 html.theme-light #hwidModal .bg-slate-900\/70,
 html.theme-light #hwidModal .bg-slate-900\/60,
 html.theme-light #hwidModal .bg-slate-900\/80,
 html.theme-light #bulkUsersModal .bg-slate-900\/70 {
-  background-color: #f1f5f9 !important;
-  border-color: #e2e8f0 !important;
+  background-color: #f1f5f9;
+  border-color: #e2e8f0;
 }
 
 html.theme-light #hwidModal .srh-card,
 html.theme-light #hwidModal .bg-slate-800\/80 {
-  background-color: #ffffff !important;
-  border-color: #e2e8f0 !important;
+  background-color: #ffffff;
+  border-color: #e2e8f0;
 }
 
 html.theme-light #hwidModal .text-slate-300,
 html.theme-light #hwidModal .text-slate-200 {
-  color: #334155 !important;
+  color: #334155;
 }
 
 html.theme-light #bulkUsersModal button[type="button"] {
-  background-color: #f8fafc !important;
-  border-color: #cbd5e1 !important;
-  color: #334155 !important;
+  background-color: #f8fafc;
+  border-color: #cbd5e1;
+  color: #334155;
 }
 
 /* Unified Card Styles in Light Theme */
@@ -421,10 +421,10 @@ html.theme-light .profile-hero-card,
 html.theme-light .wallet-hero-card,
 html.theme-light .shop-plan-card,
 html.theme-light .coupon-usage-card {
-  background-color: var(--card-bg) !important;
-  background-image: none !important;
-  border-color: var(--card-border) !important;
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05) !important;
+  background-color: var(--card-bg);
+  background-image: none;
+  border-color: var(--card-border);
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
 }
 
 html.theme-light .node-card .text-slate-200,
@@ -436,7 +436,7 @@ html.theme-light .coupon-card .text-slate-200,
 html.theme-light .shop-plan-card .text-white,
 html.theme-light .coupon-usage-card .text-white,
 html.theme-light .coupon-usage-card .text-slate-200 {
-  color: var(--text-main) !important;
+  color: var(--text-main);
 }
 
 /* Unified Inner Card Surfaces in Light Theme */
@@ -452,86 +452,86 @@ html.theme-light .plan-card .bg-slate-900\/60,
 html.theme-light .coupon-card .bg-slate-900\/60,
 html.theme-light .coupon-card .bg-slate-900,
 html.theme-light .shop-plan-card .bg-slate-900\/60 {
-  background-color: var(--card-inner-bg) !important;
-  border-color: var(--card-border) !important;
+  background-color: var(--card-inner-bg);
+  border-color: var(--card-border);
 }
 
 html.theme-light .node-card .border-t,
 html.theme-light .topup-card .border-slate-700\/60,
 html.theme-light .topup-card .border-slate-700\/50,
 html.theme-light .topup-card .border-slate-700\/80 {
-  border-color: var(--card-border) !important;
+  border-color: var(--card-border);
 }
 
 html.theme-light .node-card .bg-transparent,
 html.theme-light .node-card .node-body .bg-transparent {
   background-color: transparent !important;
-  background-image: none !important;
+  background-image: none;
 }
 
 /* Node billing currency convert hint & buttons in Light mode */
 html.theme-light #nodeBillingEurConvertHint {
-  background-color: #ecfdf5 !important;
-  border-color: #a7f3d0 !important;
-  color: #047857 !important;
+  background-color: #ecfdf5;
+  border-color: #a7f3d0;
+  color: #047857;
 }
 html.theme-light #nodeBillingEurConvertHint svg {
-  color: #059669 !important;
+  color: #059669;
 }
 
 /* Chat & Ticket Desk in Light theme */
 html.theme-light #tab-admin-tickets .bg-slate-800\/90 {
-  background-color: var(--card-bg) !important;
-  border-color: var(--card-border) !important;
+  background-color: var(--card-bg);
+  border-color: var(--card-border);
 }
 html.theme-light #tab-admin-tickets .text-slate-200 {
-  color: var(--text-main) !important;
+  color: var(--text-main);
 }
 html.theme-light #activeChatWindow {
-  background-color: var(--card-inner-bg) !important;
-  border-color: var(--card-border) !important;
+  background-color: var(--card-inner-bg);
+  border-color: var(--card-border);
 }
 html.theme-light #activeChatWindow .bg-slate-900\/90,
 html.theme-light #activeChatWindow .bg-slate-900\/80,
 html.theme-light #activeChatWindow .bg-slate-900\/60,
 html.theme-light #activeChatWindow .bg-slate-900,
 html.theme-light #activeChatWindow #ticketChatStream .bg-slate-900 {
-  background-color: var(--card-bg) !important;
-  border-color: var(--card-border) !important;
+  background-color: var(--card-bg);
+  border-color: var(--card-border);
 }
 html.theme-light #activeChatWindow .text-white {
-  color: var(--text-main) !important;
+  color: var(--text-main);
 }
 html.theme-light #activeChatWindow input#directTicketMsg {
-  background-color: var(--card-inner-bg) !important;
-  border-color: var(--frame-border) !important;
-  color: var(--text-main) !important;
+  background-color: var(--card-inner-bg);
+  border-color: var(--frame-border);
+  color: var(--text-main);
 }
 html.theme-light #ticketThreadsList .ticket-thread-btn {
-  background-color: var(--card-bg) !important;
-  border-color: var(--card-border) !important;
-  color: #334155 !important;
+  background-color: var(--card-bg);
+  border-color: var(--card-border);
+  color: #334155;
 }
 html.theme-light .chat-template-chip {
-  background-color: var(--page-bg) !important;
-  color: #334155 !important;
-  border-color: var(--card-border) !important;
+  background-color: var(--page-bg);
+  color: #334155;
+  border-color: var(--card-border);
 }
 html.theme-light .chat-template-chip:hover {
-  background-color: var(--card-border) !important;
-  color: var(--text-main) !important;
+  background-color: var(--card-border);
+  color: var(--text-main);
 }
 html.theme-light #couponUsagesModal .bg-slate-900\/60,
 html.theme-light #couponUsagesModal .bg-slate-900\/50 {
-  background-color: #f8fafc !important;
-  border-color: #e2e8f0 !important;
+  background-color: #f8fafc;
+  border-color: #e2e8f0;
 }
 
 /* Settings tab input styling in light mode */
 html.theme-light #tab-admin-settings input {
-  background-color: #f8fafc !important;
-  border-color: #cbd5e1 !important;
-  color: #0f172a !important;
+  background-color: #f8fafc;
+  border-color: #cbd5e1;
+  color: #0f172a;
 }
 
 /* Settings accordion boxes */
@@ -540,180 +540,180 @@ html.theme-light #tab-admin-settings input {
 }
 
 html.theme-light .settings-box {
-  background-color: #ffffff !important;
-  border-color: #e2e8f0 !important;
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05) !important;
+  background-color: #ffffff;
+  border-color: #e2e8f0;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
 }
 
 html.theme-light .settings-box-header:hover {
-  background-color: #f8fafc !important;
+  background-color: #f8fafc;
 }
 
 html.theme-light .settings-box-header .text-white {
-  color: #0f172a !important;
+  color: #0f172a;
 }
 
 html.theme-light .settings-box-chevron {
-  color: #64748b !important;
+  color: #64748b;
 }
 
 html.theme-light .settings-box-body {
-  border-top-color: #f1f5f9 !important;
+  border-top-color: #f1f5f9;
 }
 
 html.theme-light .settings-box-body .text-slate-200 {
-  color: #334155 !important;
+  color: #334155;
 }
 
 /* Modals in Light theme (Crypto Rates & Receipt Photo) */
 html.theme-light #cryptoRatesModal .bg-slate-900\/60,
 html.theme-light #cryptoRatesModal .bg-slate-900\/50,
 html.theme-light #receiptPhotoModal .bg-slate-900\/70 {
-  background-color: #f8fafc !important;
-  border-color: #e2e8f0 !important;
+  background-color: #f8fafc;
+  border-color: #e2e8f0;
 }
 
 html.theme-light #cryptoRatesModal .text-white,
 html.theme-light #receiptPhotoModal .text-white {
-  color: #0f172a !important;
+  color: #0f172a;
 }
 
 /* Plan and Coupon cards in Light theme */
 html.theme-light .coupon-card .text-slate-400 {
-  color: #64748b !important;
+  color: #64748b;
 }
 
 
 
 /* User TMA Light Theme Component Overrides */
 html.theme-light .sub-box-card:hover {
-  border-color: #0284c7 !important;
+  border-color: #0284c7;
 }
 
 html.theme-light .sub-action-btn {
-  background-color: #f1f5f9 !important;
-  border-color: #cbd5e1 !important;
-  color: #334155 !important;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05) !important;
+  background-color: #f1f5f9;
+  border-color: #cbd5e1;
+  color: #334155;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
 html.theme-light .sub-action-btn:hover {
-  background-color: #e2e8f0 !important;
-  color: #0f172a !important;
+  background-color: #e2e8f0;
+  color: #0f172a;
 }
 
 /* Harmonized Client Importer Buttons in Light Theme */
 html.theme-light .client-import-btn {
-  background-color: #ffffff !important;
-  border-color: #e2e8f0 !important;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03) !important;
+  background-color: #ffffff;
+  border-color: #e2e8f0;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
 }
 
 html.theme-light .client-import-btn:hover {
-  background-color: #f8fafc !important;
-  border-color: #cbd5e1 !important;
+  background-color: #f8fafc;
+  border-color: #cbd5e1;
 }
 
 /* Header Support Icon Button */
 html.theme-light .header-support-btn {
-  background-color: #ecfdf5 !important;
-  border-color: #a7f3d0 !important;
-  color: #059669 !important;
-  box-shadow: 0 1px 2px rgba(16, 185, 129, 0.08) !important;
+  background-color: #ecfdf5;
+  border-color: #a7f3d0;
+  color: #059669;
+  box-shadow: 0 1px 2px rgba(16, 185, 129, 0.08);
 }
 
 html.theme-light .header-support-btn:hover {
-  background-color: #d1fae5 !important;
+  background-color: #d1fae5;
 }
 
 /* Lucky Wheel & Story Quick Cards in Light Theme */
 html.theme-light .lucky-wheel-entry-btn {
-  background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%) !important;
-  border-color: #fde68a !important;
-  box-shadow: 0 1px 3px rgba(245, 158, 11, 0.1) !important;
+  background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+  border-color: #fde68a;
+  box-shadow: 0 1px 3px rgba(245, 158, 11, 0.1);
 }
 
 html.theme-light .lucky-wheel-entry-btn .lucky-wheel-title,
 html.theme-light .lucky-wheel-entry-btn .text-amber-300 {
-  color: #b45309 !important;
-  font-weight: 800 !important;
+  color: #b45309;
+  font-weight: 800;
 }
 
 html.theme-light .lucky-wheel-entry-btn .lucky-wheel-sub,
 html.theme-light .lucky-wheel-entry-btn .text-slate-300 {
-  color: #92400e !important;
-  font-weight: 600 !important;
+  color: #92400e;
+  font-weight: 600;
 }
 
 html.theme-light .story-entry-btn {
-  background: linear-gradient(135deg, #faf5ff 0%, #f3e8ff 100%) !important;
-  border-color: #e9d5ff !important;
-  box-shadow: 0 1px 3px rgba(168, 85, 247, 0.1) !important;
+  background: linear-gradient(135deg, #faf5ff 0%, #f3e8ff 100%);
+  border-color: #e9d5ff;
+  box-shadow: 0 1px 3px rgba(168, 85, 247, 0.1);
 }
 
 html.theme-light .story-entry-btn .story-title,
 html.theme-light .story-entry-btn .text-purple-300 {
-  color: #7e22ce !important;
-  font-weight: 800 !important;
+  color: #7e22ce;
+  font-weight: 800;
 }
 
 html.theme-light .story-entry-btn .story-sub,
 html.theme-light .story-entry-btn .text-slate-300 {
-  color: #6b21a8 !important;
-  font-weight: 600 !important;
+  color: #6b21a8;
+  font-weight: 600;
 }
 
 /* User Profile Identity Hero Card in Light Theme */
 html.theme-light .profile-hero-card #profileFullName {
-  color: #0f172a !important;
+  color: #0f172a;
 }
 
 html.theme-light .profile-hero-card #profileAvatarInitial {
-  background-color: #f1f5f9 !important;
-  color: #2563eb !important;
+  background-color: #f1f5f9;
+  color: #2563eb;
 }
 
 /* Wallet Hero Card in Light Theme */
 html.theme-light .wallet-hero-card .text-slate-400 {
-  color: #64748b !important;
+  color: #64748b;
 }
 
 html.theme-light #walletTabBalance {
-  background: linear-gradient(135deg, #059669, #0284c7) !important;
-  -webkit-background-clip: text !important;
+  background: linear-gradient(135deg, #059669, #0284c7);
+  -webkit-background-clip: text;
   -webkit-text-fill-color: transparent !important;
 }
 
 html.theme-light #gotoShopFromWallet {
-  background-color: #f1f5f9 !important;
-  border-color: #cbd5e1 !important;
-  color: #1e293b !important;
+  background-color: #f1f5f9;
+  border-color: #cbd5e1;
+  color: #1e293b;
 }
 
 html.theme-light #gotoShopFromWallet:hover {
-  background-color: #e2e8f0 !important;
+  background-color: #e2e8f0;
 }
 
 
 
 html.theme-light .shop-plan-card .text-slate-300,
 html.theme-light .shop-plan-card .text-slate-200 {
-  color: #334155 !important;
+  color: #334155;
 }
 
 html.theme-light #applyCouponBtn {
-  background-color: #2563eb !important;
-  color: #ffffff !important;
+  background-color: #2563eb;
+  color: #ffffff;
 }
 
 html.theme-light #applyCouponBtn:hover {
-  background-color: #1d4ed8 !important;
+  background-color: #1d4ed8;
 }
 
 html.theme-light #couponInput {
-  background-color: #ffffff !important;
-  border-color: #cbd5e1 !important;
-  color: #0f172a !important;
+  background-color: #ffffff;
+  border-color: #cbd5e1;
+  color: #0f172a;
 }
 
 .config-row-item,
@@ -723,22 +723,22 @@ html.theme-light .config-row-item {
 }
 
 html.theme-light .config-row-item {
-  border-color: #cbd5e1 !important;
+  border-color: #cbd5e1;
 }
 
 html.theme-light .config-row-item .config-name-label {
-  color: #0f172a !important;
+  color: #0f172a;
 }
 
 html.theme-light .copy-single-cfg-btn,
 html.theme-light .qr-single-cfg-btn {
-  color: #475569 !important;
+  color: #475569;
   background-color: transparent !important;
 }
 
 html.theme-light .copy-single-cfg-btn:hover,
 html.theme-light .qr-single-cfg-btn:hover {
-  color: #0284c7 !important;
+  color: #0284c7;
 }
 
 html.theme-light .kill-device-btn {
@@ -752,31 +752,31 @@ html.theme-light .checkout-modal-card .bg-slate-900\/80,
 html.theme-light .checkout-modal-card .bg-slate-900\/60,
 html.theme-light #purchaseSuccessModal .bg-slate-900\/80,
 html.theme-light #purchaseSuccessModal .bg-slate-900\/90 {
-  background-color: #f8fafc !important;
-  border-color: #e2e8f0 !important;
+  background-color: #f8fafc;
+  border-color: #e2e8f0;
 }
 
 html.theme-light .topup-preset-btn {
-  background-color: #ffffff !important;
-  border-color: #cbd5e1 !important;
-  color: #1e293b !important;
+  background-color: #ffffff;
+  border-color: #cbd5e1;
+  color: #1e293b;
 }
 
 html.theme-light .topup-preset-btn:hover {
-  background-color: #f1f5f9 !important;
-  border-color: #94a3b8 !important;
+  background-color: #f1f5f9;
+  border-color: #94a3b8;
 }
 
 html.theme-light #topupModal input,
 html.theme-light #topupModal textarea {
-  background-color: #f8fafc !important;
-  border-color: #cbd5e1 !important;
-  color: #0f172a !important;
+  background-color: #f8fafc;
+  border-color: #cbd5e1;
+  color: #0f172a;
 }
 
 html.theme-light #topupModal #topupCardNumber {
-  background-color: #f1f5f9 !important;
-  color: #0f172a !important;
+  background-color: #f1f5f9;
+  color: #0f172a;
 }
 
 html.theme-light #closeTopupModalBtn,
@@ -791,9 +791,9 @@ html.theme-light #psvcTopCloseBtn,
 html.theme-light #closeLuckyWheelBtn,
 html.theme-light #closeStoryCardBtn,
 html.theme-light #closeSupportChatBtn {
-  background-color: #f1f5f9 !important;
-  border-color: #e2e8f0 !important;
-  color: #64748b !important;
+  background-color: #f1f5f9;
+  border-color: #e2e8f0;
+  color: #64748b;
 }
 
 html.theme-light #closeTopupModalBtn:hover,
@@ -808,69 +808,69 @@ html.theme-light #psvcTopCloseBtn:hover,
 html.theme-light #closeLuckyWheelBtn:hover,
 html.theme-light #closeStoryCardBtn:hover,
 html.theme-light #closeSupportChatBtn:hover {
-  background-color: #e2e8f0 !important;
-  color: #0f172a !important;
+  background-color: #e2e8f0;
+  color: #0f172a;
 }
 
 /* ======================================================== */
 /* Light Theme: Universal Pastel Badges (*-950 overrides)   */
 /* ======================================================== */
 html.theme-light [class*="bg-cyan-950"] {
-  background-color: #ecfeff !important;
-  border-color: #a5f3fc !important;
-  color: #0891b2 !important;
+  background-color: #ecfeff;
+  border-color: #a5f3fc;
+  color: #0891b2;
 }
 
 html.theme-light [class*="bg-indigo-950"] {
-  background-color: #eef2ff !important;
-  border-color: #c7d2fe !important;
-  color: #4f46e5 !important;
+  background-color: #eef2ff;
+  border-color: #c7d2fe;
+  color: #4f46e5;
 }
 
 html.theme-light [class*="bg-emerald-950"] {
-  background-color: #ecfdf5 !important;
-  border-color: #a7f3d0 !important;
-  color: #059669 !important;
+  background-color: #ecfdf5;
+  border-color: #a7f3d0;
+  color: #059669;
 }
 
 html.theme-light [class*="bg-rose-950"] {
-  background-color: #fff1f2 !important;
-  border-color: #fecdd3 !important;
-  color: #e11d48 !important;
+  background-color: #fff1f2;
+  border-color: #fecdd3;
+  color: #e11d48;
 }
 
 html.theme-light [class*="bg-amber-950"] {
-  background-color: #fffbeb !important;
-  border-color: #fde68a !important;
-  color: #b45309 !important;
+  background-color: #fffbeb;
+  border-color: #fde68a;
+  color: #b45309;
 }
 
 html.theme-light [class*="bg-blue-950"] {
-  background-color: #eff6ff !important;
-  border-color: #bfdbfe !important;
-  color: #2563eb !important;
+  background-color: #eff6ff;
+  border-color: #bfdbfe;
+  color: #2563eb;
 }
 
 /* Light Theme: Breakdown Accordion & List Items */
 html.theme-light #countryBreakdownBody,
 html.theme-light #subAccordionBody,
 html.theme-light #countryBreakdownList > div {
-  background-color: #f8fafc !important;
-  border-color: #e2e8f0 !important;
+  background-color: #f8fafc;
+  border-color: #e2e8f0;
 }
 
 html.theme-light #countryBreakdownList .text-cyan-300 {
-  color: #0284c7 !important;
+  color: #0284c7;
 }
 
 html.theme-light #countryBreakdownList .text-slate-200 {
-  color: #1e293b !important;
+  color: #1e293b;
 }
 
 html.theme-light #toggleCountryBreakdownBtn:hover,
 html.theme-light #toggleSubAccordionBtn:hover,
 html.theme-light #toggleSessionsAccordionBtn:hover {
-  background-color: #f8fafc !important;
+  background-color: #f8fafc;
 }
 
 /* Subscription Action Buttons (Copy, QR, Revoke) Transparent */
@@ -889,97 +889,97 @@ html.theme-light .sub-action-btn,
 html.theme-light #copySubBtn,
 html.theme-light #qrToggleBtn,
 html.theme-light #revokeSubBtnTop {
-  color: #64748b !important;
-  border-color: #cbd5e1 !important;
+  color: #64748b;
+  border-color: #cbd5e1;
 }
 html.theme-light .sub-action-btn:hover,
 html.theme-light #copySubBtn:hover,
 html.theme-light #qrToggleBtn:hover,
 html.theme-light #revokeSubBtnTop:hover {
-  color: #0284c7 !important;
-  border-color: #94a3b8 !important;
+  color: #0284c7;
+  border-color: #94a3b8;
 }
 
 /* Light Theme: Crypto Topup Memo/Comment High-Contrast Box & Wallet Controls */
 #cryptoComment {
   background: transparent !important;
   background-color: transparent !important;
-  border: none !important;
-  box-shadow: none !important;
-  padding: 0 !important;
+  border: none;
+  box-shadow: none;
+  padding: 0;
 }
 
 html.theme-light #cryptoInvoiceDetails .bg-amber-500\/10,
 html.theme-light .bg-amber-500\/10 {
-  background-color: #fefce8 !important;
-  border-color: #fef08a !important;
+  background-color: #fefce8;
+  border-color: #fef08a;
 }
 
 html.theme-light #cryptoInvoiceDetails .text-amber-300,
 html.theme-light #cryptoInvoiceDetails #cryptoComment,
 html.theme-light .text-amber-300 {
-  color: #b45309 !important;
+  color: #b45309;
 }
 
 html.theme-light #cryptoInvoiceDetails p.text-amber-200\/80,
 html.theme-light .text-amber-200\/80 {
-  color: #92400e !important;
+  color: #92400e;
 }
 
 html.theme-light #cryptoInvoiceDetails #copyTonAddressBtn {
-  background-color: #f8fafc !important;
-  border-color: #cbd5e1 !important;
-  color: #0369a1 !important;
+  background-color: #f8fafc;
+  border-color: #cbd5e1;
+  color: #0369a1;
 }
 
 html.theme-light #cryptoInvoiceDetails #copyTonAddressBtn:hover {
-  background-color: #f1f5f9 !important;
+  background-color: #f1f5f9;
 }
 
 html.theme-light #cryptoInvoiceDetails #cryptoPayAddress {
-  color: #0369a1 !important;
+  color: #0369a1;
 }
 
 html.theme-light #cryptoInvoiceDetails #cryptoAmountTon {
-  color: #0284c7 !important;
+  color: #0284c7;
 }
 
 html.theme-light #cryptoTonkeeperLink {
-  background: linear-gradient(135deg, #0284c7, #2563eb) !important;
-  color: #ffffff !important;
-  box-shadow: 0 4px 14px rgba(2, 132, 199, 0.25) !important;
+  background: linear-gradient(135deg, #0284c7, #2563eb);
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgba(2, 132, 199, 0.25);
 }
 
 html.theme-light #cryptoCheckStatusBtn {
-  background-color: #f1f5f9 !important;
-  border-color: #cbd5e1 !important;
-  color: #1e293b !important;
+  background-color: #f1f5f9;
+  border-color: #cbd5e1;
+  color: #1e293b;
 }
 
 html.theme-light #shopWalletBalance {
   background: transparent !important;
-  border: none !important;
-  color: #64748b !important;
+  border: none;
+  color: #64748b;
 }
 
 html.theme-light #reportsSessionsBadge {
   background: transparent !important;
-  border: none !important;
-  color: #059669 !important;
+  border: none;
+  color: #059669;
 }
 
 html.theme-light #topupCardView p.bg-slate-800\/50,
 html.theme-light #topupCardView .bg-slate-800\/50 {
-  background-color: #f8fafc !important;
-  border-color: #e2e8f0 !important;
-  color: #475569 !important;
+  background-color: #f8fafc;
+  border-color: #e2e8f0;
+  color: #475569;
 }
 
 html.theme-light #killAllBtn,
 html.theme-light #modalKillAllBtn {
-  background-color: #fff1f2 !important;
-  border-color: #fecdd3 !important;
-  color: #e11d48 !important;
+  background-color: #fff1f2;
+  border-color: #fecdd3;
+  color: #e11d48;
 }
 
 /* Profile Tab: ID and Referral Code transparent background */
@@ -987,20 +987,20 @@ html.theme-light #modalKillAllBtn {
 #profileRefCode {
   background: transparent !important;
   background-color: transparent !important;
-  border: none !important;
-  box-shadow: none !important;
-  padding: 0 !important;
+  border: none;
+  box-shadow: none;
+  padding: 0;
 }
 html.theme-light #profileTelegramId {
-  color: #0f172a !important;
+  color: #0f172a;
 }
 html.theme-light #profileRefCode {
-  color: #d97706 !important;
+  color: #d97706;
 }
 html.theme-light #profilePhone,
 html.theme-light #profileBirthDate,
 html.theme-light #profileJoinDate {
-  color: #334155 !important;
+  color: #334155;
 }
 
 /* Profile Badges: Dynamic Active and Auth States */
@@ -1026,175 +1026,175 @@ html.theme-light #profileJoinDate {
 }
 
 html.theme-light #profileStatusBadge.badge-active {
-  background-color: #ecfdf5 !important;
-  border-color: #a7f3d0 !important;
-  color: #059669 !important;
+  background-color: #ecfdf5;
+  border-color: #a7f3d0;
+  color: #059669;
 }
 html.theme-light #profileStatusBadge.badge-inactive {
-  background-color: #f1f5f9 !important;
-  border-color: #e2e8f0 !important;
-  color: #64748b !important;
+  background-color: #f1f5f9;
+  border-color: #e2e8f0;
+  color: #64748b;
 }
 html.theme-light #profileAuthBadge.badge-auth {
-  background-color: #eff6ff !important;
-  border-color: #bfdbfe !important;
-  color: #2563eb !important;
+  background-color: #eff6ff;
+  border-color: #bfdbfe;
+  color: #2563eb;
 }
 html.theme-light #profileAuthBadge.badge-unauth {
-  background-color: #fffbeb !important;
-  border-color: #fde68a !important;
-  color: #b45309 !important;
+  background-color: #fffbeb;
+  border-color: #fde68a;
+  color: #b45309;
 }
 
 /* Light Theme: Revoke Subscription Card in Profile Tab */
 html.theme-light .bg-rose-950\/30 {
-  background-color: #fff1f2 !important;
-  border-color: #fecdd3 !important;
+  background-color: #fff1f2;
+  border-color: #fecdd3;
 }
 html.theme-light .bg-rose-950\/30 h4.text-rose-300,
 html.theme-light .bg-rose-950\/30 .text-rose-300 {
-  color: #9f1239 !important;
+  color: #9f1239;
 }
 html.theme-light .bg-rose-950\/30 p.text-slate-400,
 html.theme-light .bg-rose-950\/30 .text-slate-400 {
-  color: #64748b !important;
+  color: #64748b;
 }
 
 /* Light Theme: Checkout Shortage Warning Box */
 html.theme-light #checkoutShortageBox,
 html.theme-light .bg-rose-500\/10 {
-  background-color: #fff1f2 !important;
-  border-color: #fecdd3 !important;
+  background-color: #fff1f2;
+  border-color: #fecdd3;
 }
 html.theme-light #checkoutShortageBox,
 html.theme-light #checkoutShortageBox span,
 html.theme-light #checkoutShortageBox #checkoutShortageAmount {
-  color: #be123c !important;
+  color: #be123c;
 }
 html.theme-light #checkoutShortageBox p,
 html.theme-light #checkoutShortageBox .text-rose-200\/80 {
-  color: #9f1239 !important;
-  opacity: 1 !important;
+  color: #9f1239;
+  opacity: 1;
 }
 
 /* Support Chat Modal - Light Mode */
 html.theme-light #supportChatModal .bg-\[\#151f32\] {
-  background-color: #ffffff !important;
-  border-color: #e2e8f0 !important;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12) !important;
+  background-color: #ffffff;
+  border-color: #e2e8f0;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12);
 }
 html.theme-light #supportChatModal .bg-\[\#1a263e\] {
-  background-color: #f8fafc !important;
-  border-color: #e2e8f0 !important;
+  background-color: #f8fafc;
+  border-color: #e2e8f0;
 }
 html.theme-light #supportChatModal #chatMessages {
-  background-color: #f8fafc !important;
+  background-color: #f8fafc;
 }
 html.theme-light #supportChatModal .chat-admin-bubble {
-  background-color: #ffffff !important;
-  border-color: #e2e8f0 !important;
-  color: #1e293b !important;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
+  background-color: #ffffff;
+  border-color: #e2e8f0;
+  color: #1e293b;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 html.theme-light #supportChatModal .chat-admin-bubble span {
-  color: #64748b !important;
+  color: #64748b;
 }
 html.theme-light #supportChatModal .chat-user-bubble {
-  background-color: rgba(37, 99, 235, 0.08) !important;
-  border-color: rgba(37, 99, 235, 0.25) !important;
-  color: #1d4ed8 !important;
-  box-shadow: 0 1px 3px rgba(37, 99, 235, 0.05) !important;
+  background-color: rgba(37, 99, 235, 0.08);
+  border-color: rgba(37, 99, 235, 0.25);
+  color: #1d4ed8;
+  box-shadow: 0 1px 3px rgba(37, 99, 235, 0.05);
 }
 html.theme-light #supportChatModal .chat-user-bubble span {
-  color: #64748b !important;
+  color: #64748b;
 }
 html.theme-light #supportChatModal .quick-chip {
-  background-color: #ffffff !important;
-  border-color: #cbd5e1 !important;
-  color: #334155 !important;
+  background-color: #ffffff;
+  border-color: #cbd5e1;
+  color: #334155;
 }
 html.theme-light #supportChatModal #chatInput {
-  background-color: #ffffff !important;
-  border-color: #cbd5e1 !important;
-  color: #0f172a !important;
+  background-color: #ffffff;
+  border-color: #cbd5e1;
+  color: #0f172a;
 }
 
 /* Story Card Modal - Light Mode High Contrast */
 html.theme-light #closeStoryCardBtn {
-  background-color: #e2e8f0 !important;
-  color: #0f172a !important;
-  border-color: #cbd5e1 !important;
+  background-color: #e2e8f0;
+  color: #0f172a;
+  border-color: #cbd5e1;
 }
 html.theme-light #exportableStoryCard {
-  background: #ffffff !important;
-  border-color: #cbd5e1 !important;
-  box-shadow: 0 16px 45px rgba(0, 0, 0, 0.08) !important;
+  background: #ffffff;
+  border-color: #cbd5e1;
+  box-shadow: 0 16px 45px rgba(0, 0, 0, 0.08);
 }
 html.theme-light #storyBrandTitle {
-  background: none !important;
-  -webkit-background-clip: unset !important;
-  -webkit-text-fill-color: #0284c7 !important;
-  color: #0284c7 !important;
+  background: none;
+  -webkit-background-clip: unset;
+  -webkit-text-fill-color: #0284c7;
+  color: #0284c7;
 }
 html.theme-light #storyBrandBadge {
-  background-color: #fef3c7 !important;
-  border-color: #fde68a !important;
-  color: #b45309 !important;
+  background-color: #fef3c7;
+  border-color: #fde68a;
+  color: #b45309;
 }
 html.theme-light #storyCardName {
-  color: #0f172a !important;
+  color: #0f172a;
 }
 html.theme-light #storyCardUsername {
-  color: #2563eb !important;
+  color: #2563eb;
 }
 html.theme-light #storyCardAvatarInitial {
-  background-color: #e2e8f0 !important;
-  color: #0f172a !important;
+  background-color: #e2e8f0;
+  color: #0f172a;
 }
 html.theme-light #storyMetricsStandard {
-  background-color: #f8fafc !important;
-  border-color: #e2e8f0 !important;
+  background-color: #f8fafc;
+  border-color: #e2e8f0;
 }
 html.theme-light #storyMetricsStandard span.text-slate-400 {
-  color: #475569 !important;
-  font-weight: 600 !important;
+  color: #475569;
+  font-weight: 600;
 }
 html.theme-light #storyCardTraffic {
-  background: none !important;
-  -webkit-background-clip: unset !important;
-  -webkit-text-fill-color: #059669 !important;
-  color: #059669 !important;
+  background: none;
+  -webkit-background-clip: unset;
+  -webkit-text-fill-color: #059669;
+  color: #059669;
 }
 html.theme-light #storyCardDays {
-  color: #1e293b !important;
-  font-weight: 700 !important;
+  color: #1e293b;
+  font-weight: 700;
 }
 html.theme-light #storyMetricsStandard .border-t {
-  border-color: #e2e8f0 !important;
+  border-color: #e2e8f0;
 }
 html.theme-light #storyCardQrBox,
 html.theme-light #storyCardModal .bg-slate-900\/80,
 html.theme-light #storyCardModal .bg-slate-900\/85 {
-  background-color: #f8fafc !important;
-  border-color: #e2e8f0 !important;
+  background-color: #f8fafc;
+  border-color: #e2e8f0;
 }
 html.theme-light #storyCardQrBox span.text-white,
 html.theme-light #storyCardModal .bg-slate-900\/80 span.text-white {
-  color: #0f172a !important;
-  font-weight: 800 !important;
+  color: #0f172a;
+  font-weight: 800;
 }
 html.theme-light #storyCardRewardText {
-  color: #059669 !important;
-  font-weight: 800 !important;
+  color: #059669;
+  font-weight: 800;
 }
 html.theme-light #storyGamificationBanner {
-  background-color: #fffbeb !important;
-  border-color: #fde68a !important;
-  color: #78350f !important;
+  background-color: #fffbeb;
+  border-color: #fde68a;
+  color: #78350f;
 }
 html.theme-light #storyGamificationBanner span,
 html.theme-light #storyGamificationBanner b {
-  color: #92400e !important;
+  color: #92400e;
 }
 
 /* Alert Threshold Dropdowns */
@@ -1211,35 +1211,35 @@ html.theme-light #storyGamificationBanner b {
 }
 html.theme-light #settingTrafficPercentSelect,
 html.theme-light #settingExpireDaysSelect {
-  background-color: #ffffff !important;
-  border-color: #cbd5e1 !important;
-  color: #0f172a !important;
+  background-color: #ffffff;
+  border-color: #cbd5e1;
+  color: #0f172a;
 }
 
 /* Header Action Buttons (Support & Theme Toggle) */
 #openSupportBtn,
 #themeToggle {
-  background-color: rgba(30, 41, 59, 0.7) !important;
-  border: 1px solid rgba(148, 163, 184, 0.25) !important;
-  border-radius: 0.75rem !important;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2) !important;
-  transition: all 0.2s ease !important;
+  background-color: rgba(30, 41, 59, 0.7);
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  border-radius: 0.75rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  transition: all 0.2s ease;
 }
 #openSupportBtn:hover,
 #themeToggle:hover {
-  border-color: rgba(148, 163, 184, 0.45) !important;
-  background-color: rgba(51, 65, 85, 0.8) !important;
+  border-color: rgba(148, 163, 184, 0.45);
+  background-color: rgba(51, 65, 85, 0.8);
 }
 html.theme-light #openSupportBtn,
 html.theme-light #themeToggle {
-  background-color: #f1f5f9 !important;
-  border: 1px solid #cbd5e1 !important;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05) !important;
+  background-color: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 html.theme-light #openSupportBtn:hover,
 html.theme-light #themeToggle:hover {
-  background-color: #e2e8f0 !important;
-  border-color: #94a3b8 !important;
+  background-color: #e2e8f0;
+  border-color: #94a3b8;
 }
 
 /* Zero-background overrides for seamless text/stub buttons */
@@ -1251,8 +1251,8 @@ html.theme-light #closeBtn,
 html.theme-light #reloadBtn {
   background: transparent !important;
   background-color: transparent !important;
-  border: none !important;
-  box-shadow: none !important;
+  border: none;
+  box-shadow: none;
 }
 
 #walletTransactionsList > div,
@@ -1262,10 +1262,10 @@ html.theme-light #walletTransactionsList > div {
 }
 
 html.theme-light #walletTransactionsList .text-slate-200 {
-  color: #0f172a !important;
+  color: #0f172a;
 }
 html.theme-light #walletTransactionsList .text-slate-400 {
-  color: #64748b !important;
+  color: #64748b;
 }
 
 #repNightlyNodesContainer > div,
@@ -1311,62 +1311,62 @@ html.theme-light #settingAccessMode {
 }
 
 html.theme-light #settingAccessMode {
-  background-color: #ffffff !important;
-  border-color: #cbd5e1 !important;
-  color: #0f172a !important;
+  background-color: #ffffff;
+  border-color: #cbd5e1;
+  color: #0f172a;
 }
 
 html.theme-light #settingAccessMode option {
-  background-color: #ffffff !important;
-  color: #0f172a !important;
+  background-color: #ffffff;
+  color: #0f172a;
 }
 
 /* Campaign tracking cards and deep-links in light theme */
 html.theme-light #adminCampaignsList > div {
-  background-color: #ffffff !important;
-  border-color: #cbd5e1 !important;
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05) !important;
+  background-color: #ffffff;
+  border-color: #cbd5e1;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
 }
 
 html.theme-light #adminCampaignsList .grid > div {
-  background-color: #f8fafc !important;
-  border-color: #e2e8f0 !important;
+  background-color: #f8fafc;
+  border-color: #e2e8f0;
 }
 
 /* Telegram Stars and Topup tabs in light theme */
 html.theme-light #topupStarsView > div {
   background-color: transparent !important;
-  border-color: rgba(245, 158, 11, 0.4) !important;
+  border-color: rgba(245, 158, 11, 0.4);
 }
 
 html.theme-light #starsRequiredCount {
-  color: #b45309 !important;
+  color: #b45309;
 }
 
 html.theme-light #starsRateDisplay {
-  color: #334155 !important;
+  color: #334155;
 }
 
 /* Server Cost Due Date picker styling (arrow on left for Persian/RTL UX, date on right) */
 #nodeBillingDueDate {
-  direction: ltr !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: space-between !important;
+  direction: ltr;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 #nodeBillingDueDate::-webkit-datetime-edit {
-  order: 1 !important;
-  margin-left: auto !important;
-  margin-right: 0 !important;
-  padding: 0 !important;
-  text-align: right !important;
+  order: 1;
+  margin-left: auto;
+  margin-right: 0;
+  padding: 0;
+  text-align: right;
 }
 #nodeBillingDueDate::-webkit-calendar-picker-indicator {
-  order: -1 !important;
+  order: -1;
   cursor: pointer;
   filter: invert(0.8);
-  margin-right: auto !important;
-  margin-left: 0 !important;
+  margin-right: auto;
+  margin-left: 0;
 }
 
 /* ======================================================== */
@@ -1374,93 +1374,93 @@ html.theme-light #starsRateDisplay {
 /* ======================================================== */
 html.theme-light #profileReferralCard,
 html.theme-light .profile-ref-card {
-  background: #ffffff !important;
-  background-image: none !important;
-  border-color: #e2e8f0 !important;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05) !important;
+  background: #ffffff;
+  background-image: none;
+  border-color: #e2e8f0;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
 }
 html.theme-light #profileReferralCard span.text-indigo-200 {
-  color: #1e293b !important;
+  color: #1e293b;
 }
 html.theme-light #profileReferralCard .border-indigo-500\/20 {
-  border-color: #e2e8f0 !important;
+  border-color: #e2e8f0;
 }
 html.theme-light #profileReferralCard .ref-stat-box {
-  background: #f8fafc !important;
-  background-image: none !important;
-  border-color: #e2e8f0 !important;
+  background: #f8fafc;
+  background-image: none;
+  border-color: #e2e8f0;
 }
 html.theme-light #profileReferralCard .ref-stat-box .text-slate-400 {
-  color: #64748b !important;
+  color: #64748b;
 }
 html.theme-light #profileReferralCard .ref-input-box {
-  background: #f8fafc !important;
-  background-image: none !important;
-  border-color: #cbd5e1 !important;
+  background: #f8fafc;
+  background-image: none;
+  border-color: #cbd5e1;
 }
 html.theme-light #profileReferralLinkInput {
-  color: #0f172a !important;
+  color: #0f172a;
 }
 html.theme-light #profileReferralCard .text-slate-300 {
-  color: #334155 !important;
+  color: #334155;
 }
 html.theme-light #copyReferralLinkBtn {
   background: transparent !important;
   background-color: transparent !important;
-  background-image: none !important;
-  box-shadow: none !important;
-  color: #4f46e5 !important;
+  background-image: none;
+  box-shadow: none;
+  color: #4f46e5;
 }
 
 /* ======================================================== */
 /* Connection Guide (Tutorial Modal) Theme Light Styling   */
 /* ======================================================== */
 html.theme-light .tutorial-modal-card {
-  background-color: #ffffff !important;
-  border-color: #e2e8f0 !important;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04) !important;
+  background-color: #ffffff;
+  border-color: #e2e8f0;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
 }
 html.theme-light .tutorial-modal-card h4.text-white {
-  color: #0f172a !important;
+  color: #0f172a;
 }
 html.theme-light .tutorial-os-tab:not(.bg-cyan-600) {
-  color: #64748b !important;
+  color: #64748b;
 }
 html.theme-light .tutorial-os-tab:not(.bg-cyan-600):hover {
-  color: #0f172a !important;
+  color: #0f172a;
 }
 html.theme-light .tutorial-app-card {
-  background-color: #f8fafc !important;
-  border-color: #e2e8f0 !important;
+  background-color: #f8fafc;
+  border-color: #e2e8f0;
 }
 html.theme-light .tutorial-app-card b.text-white {
-  color: #0f172a !important;
+  color: #0f172a;
 }
 html.theme-light .tutorial-app-card p.text-slate-400 {
-  color: #475569 !important;
+  color: #475569;
 }
 html.theme-light .tutorial-app-card .bg-slate-800,
 html.theme-light .tutorial-app-card .bg-slate-800\/90 {
-  background-color: #ffffff !important;
-  border-color: #e2e8f0 !important;
-  color: #1e293b !important;
+  background-color: #ffffff;
+  border-color: #e2e8f0;
+  color: #1e293b;
 }
 html.theme-light .tutorial-app-card .btn-download-app {
-  background-color: #ffffff !important;
-  border-color: #cbd5e1 !important;
-  color: #1e293b !important;
+  background-color: #ffffff;
+  border-color: #cbd5e1;
+  color: #1e293b;
 }
 html.theme-light .tutorial-app-card .btn-download-app:hover {
-  background-color: #f1f5f9 !important;
+  background-color: #f1f5f9;
 }
 html.theme-light #tutorialModal .bg-slate-900\/80 {
-  background-color: #f1f5f9 !important;
-  border-color: #e2e8f0 !important;
+  background-color: #f1f5f9;
+  border-color: #e2e8f0;
 }
 html.theme-light #tutorialCopySubBtn {
-  background-color: #ffffff !important;
-  border-color: #cbd5e1 !important;
-  color: #0891b2 !important;
+  background-color: #ffffff;
+  border-color: #cbd5e1;
+  color: #0891b2;
 }
 
 #tutorialAppsList {
@@ -1471,172 +1471,172 @@ html.theme-light #tutorialCopySubBtn {
 
 /* Speed Test Component & Modal Backdrop */
 .speedtest-modal-backdrop {
-  background-color: rgba(0, 0, 0, 0.8) !important;
-  backdrop-filter: blur(8px) !important;
-  -webkit-backdrop-filter: blur(8px) !important;
+  background-color: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 }
 
 html.theme-light .speedtest-modal-backdrop,
 html.theme-light #speedTestModal {
-  background-color: rgba(15, 23, 42, 0.45) !important;
-  backdrop-filter: blur(8px) !important;
-  -webkit-backdrop-filter: blur(8px) !important;
+  background-color: rgba(15, 23, 42, 0.45);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 }
 
 html.theme-light .speedtest-entry-btn {
-  background: linear-gradient(135deg, rgba(236, 253, 245, 0.98), rgba(240, 253, 250, 0.98)) !important;
-  border-color: rgba(52, 211, 153, 0.6) !important;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06) !important;
+  background: linear-gradient(135deg, rgba(236, 253, 245, 0.98), rgba(240, 253, 250, 0.98));
+  border-color: rgba(52, 211, 153, 0.6);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
 }
 html.theme-light .speedtest-entry-btn .w-10 {
-  background-color: #ecfdf5 !important;
-  border-color: #a7f3d0 !important;
-  color: #059669 !important;
+  background-color: #ecfdf5;
+  border-color: #a7f3d0;
+  color: #059669;
 }
 html.theme-light .speedtest-title,
 html.theme-light .speedtest-entry-btn:hover .speedtest-title {
-  color: #064e3b !important;
-  font-weight: 900 !important;
-  font-size: 13px !important;
+  color: #064e3b;
+  font-weight: 900;
+  font-size: 13px;
 }
 html.theme-light .speedtest-sub,
 html.theme-light .speedtest-entry-btn:hover .speedtest-sub {
-  color: #334155 !important;
-  font-weight: 600 !important;
+  color: #334155;
+  font-weight: 600;
 }
 html.theme-light .speedtest-entry-btn .bg-slate-900\/60 {
-  background-color: #ffffff !important;
-  border-color: #cbd5e1 !important;
-  color: #047857 !important;
+  background-color: #ffffff;
+  border-color: #cbd5e1;
+  color: #047857;
 }
 
 html.theme-light .speedtest-modal-card {
-  background-color: #ffffff !important;
-  border-color: #cbd5e1 !important;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15) !important;
+  background-color: #ffffff;
+  border-color: #cbd5e1;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
 }
 html.theme-light .speedtest-modal-card .border-slate-700\/60 {
-  border-color: #e2e8f0 !important;
+  border-color: #e2e8f0;
 }
 html.theme-light .speedtest-modal-card .w-8 {
-  background-color: #ecfdf5 !important;
-  border-color: #a7f3d0 !important;
-  color: #059669 !important;
+  background-color: #ecfdf5;
+  border-color: #a7f3d0;
+  color: #059669;
 }
 html.theme-light .speedtest-modal-card h3 {
-  color: #0f172a !important;
-  font-weight: 900 !important;
+  color: #0f172a;
+  font-weight: 900;
 }
 html.theme-light .speedtest-modal-card p {
-  color: #475569 !important;
+  color: #475569;
 }
 
 html.theme-light #speedNetworkInfoBox {
-  background-color: #f8fafc !important;
-  border-color: #e2e8f0 !important;
+  background-color: #f8fafc;
+  border-color: #e2e8f0;
 }
 html.theme-light #speedNetworkInfoBox .border-r {
-  border-color: #e2e8f0 !important;
+  border-color: #e2e8f0;
 }
 html.theme-light #speedUserIp {
-  color: #0f172a !important;
+  color: #0f172a;
 }
 html.theme-light #speedUserLocation {
-  color: #059669 !important;
+  color: #059669;
 }
 html.theme-light #speedServerName {
-  color: #0284c7 !important;
+  color: #0284c7;
 }
 html.theme-light #speedServerIpText {
-  color: #64748b !important;
+  color: #64748b;
 }
 
 html.theme-light #speedTestModal .speed-gauge-track {
-  stroke: #e2e8f0 !important;
-  opacity: 1 !important;
+  stroke: #e2e8f0;
+  opacity: 1;
 }
 html.theme-light #speedTestModal .speed-scale-lbl {
-  fill: #64748b !important;
+  fill: #64748b;
 }
 html.theme-light #speedTestModal .speed-needle-pivot {
-  fill: #ffffff !important;
-  stroke: #0284c7 !important;
+  fill: #ffffff;
+  stroke: #0284c7;
 }
 html.theme-light #speedPhaseLabel {
-  color: #0284c7 !important;
+  color: #0284c7;
 }
 html.theme-light #speedTestModal #speedDisplayVal {
-  color: #0f172a !important;
+  color: #0f172a;
 }
 html.theme-light #speedUnitVal {
-  color: #64748b !important;
+  color: #64748b;
 }
 html.theme-light #speedDataUsedText {
-  color: #64748b !important;
+  color: #64748b;
 }
 html.theme-light #speedDataUsed {
-  color: #0f172a !important;
+  color: #0f172a;
 }
 
 html.theme-light .speed-chip-card {
-  background-color: #f8fafc !important;
-  border-color: #e2e8f0 !important;
+  background-color: #f8fafc;
+  border-color: #e2e8f0;
 }
 html.theme-light .speed-chip-card span.text-slate-400 {
-  color: #475569 !important;
+  color: #475569;
 }
 html.theme-light #speedDownloadVal {
-  color: #059669 !important;
+  color: #059669;
 }
 html.theme-light #speedUploadVal {
-  color: #0284c7 !important;
+  color: #0284c7;
 }
 html.theme-light #speedPingVal {
-  color: #0d9488 !important;
+  color: #0d9488;
 }
 html.theme-light #speedJitterVal {
-  color: #6366f1 !important;
+  color: #6366f1;
 }
 
 html.theme-light #speedStatusBadge {
-  background-color: #f8fafc !important;
-  border-color: #e2e8f0 !important;
-  color: #1e293b !important;
+  background-color: #f8fafc;
+  border-color: #e2e8f0;
+  color: #1e293b;
 }
 html.theme-light #speedStatusBadge.bg-emerald-950\/70 {
-  background-color: #ecfdf5 !important;
-  border-color: #a7f3d0 !important;
-  color: #065f46 !important;
+  background-color: #ecfdf5;
+  border-color: #a7f3d0;
+  color: #065f46;
 }
 html.theme-light #speedStatusBadge.bg-cyan-950\/70 {
-  background-color: #f0fdfa !important;
-  border-color: #99f6e4 !important;
-  color: #115e59 !important;
+  background-color: #f0fdfa;
+  border-color: #99f6e4;
+  color: #115e59;
 }
 html.theme-light #speedStatusBadge.bg-amber-950\/70 {
-  background-color: #fffbeb !important;
-  border-color: #fde68a !important;
-  color: #92400e !important;
+  background-color: #fffbeb;
+  border-color: #fde68a;
+  color: #92400e;
 }
 html.theme-light #speedStatusBadge.bg-rose-950\/70 {
-  background-color: #fff1f2 !important;
-  border-color: #fecdd3 !important;
-  color: #9f1239 !important;
+  background-color: #fff1f2;
+  border-color: #fecdd3;
+  color: #9f1239;
 }
 
 html.theme-light #closeSpeedTestModalBtn {
-  background-color: #f1f5f9 !important;
-  border-color: #e2e8f0 !important;
-  color: #475569 !important;
+  background-color: #f1f5f9;
+  border-color: #e2e8f0;
+  color: #475569;
 }
 html.theme-light #closeSpeedTestModalBtn:hover {
-  background-color: #e2e8f0 !important;
-  color: #0f172a !important;
+  background-color: #e2e8f0;
+  color: #0f172a;
 }
 html.theme-light #startSpeedTestBtn {
-  color: #ffffff !important;
-  background: linear-gradient(135deg, #059669, #0d9488, #0284c7) !important;
-  box-shadow: 0 4px 14px rgba(13, 148, 136, 0.25) !important;
+  color: #ffffff;
+  background: linear-gradient(135deg, #059669, #0d9488, #0284c7);
+  box-shadow: 0 4px 14px rgba(13, 148, 136, 0.25);
 }
 
 

@@ -38,23 +38,60 @@ async def stars_successful_payment_handler(
     # Format: stars_topup:{telegram_id}:{amount_toman}:{stars_count}
     parts = payload.split(":")
     if len(parts) < 4 or parts[0] != "stars_topup":
-        logger.warning("Unrecognized successful_payment payload: %s", payload)
+        logger.error("Unrecognized successful_payment payload: %s", payload)
+        try:
+            from bot.services.error_reporter import report_error
+            await report_error(
+                bot,
+                session=session,
+                exc=f"Unrecognized Stars payment payload: {payload}",
+                context=f"Stars payment amount={sp.total_amount} XTR",
+                user_id=message.from_user.id if message.from_user else None,
+            )
+        except Exception:
+            pass
         return
 
     try:
         user_tid = int(parts[1])
         amount_toman = int(parts[2])
         stars_count = int(parts[3])
-    except (ValueError, TypeError):
+    except (ValueError, TypeError) as exc:
         logger.exception("Invalid payload numbers in %s", payload)
+        try:
+            from bot.services.error_reporter import report_error
+            await report_error(
+                bot,
+                session=session,
+                exc=exc,
+                context=f"Invalid payload numbers in Stars topup: {payload}",
+                user_id=message.from_user.id if message.from_user else None,
+            )
+        except Exception:
+            pass
         return
 
     wallet_repo = WalletRepository(session)
     user_repo = UserRepository(session)
 
     # Atomically credit wallet
-    new_balance = await wallet_repo.adjust_balance(user_tid, amount_toman)
-    await session.commit()
+    try:
+        new_balance = await wallet_repo.adjust_balance(user_tid, amount_toman)
+        await session.commit()
+    except Exception as exc:
+        logger.error("Failed to credit wallet for Stars topup: user=%s, amount=%s: %s", user_tid, amount_toman, exc)
+        try:
+            from bot.services.error_reporter import report_error
+            await report_error(
+                bot,
+                session=session,
+                exc=exc,
+                context=f"Failed to credit wallet after Stars payment: {amount_toman} Toman",
+                user_id=user_tid,
+            )
+        except Exception:
+            pass
+        raise
 
     user = await user_repo.get_by_telegram_id(user_tid)
     first_name = user.full_name or f"@{user.username}" if user else f"کاربر {user_tid}"

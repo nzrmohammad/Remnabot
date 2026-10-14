@@ -108,6 +108,8 @@ async def execute_purchase(
     chosen_account: dict | None = None,
     create_new: bool = False,
     discount_amount: int = 0,
+    bot: Any = None,
+    session_factory: Any = None,
 ) -> PurchaseResult:
     """Buy a service. `chosen_account` = panel account to renew, if pre-picked.
     If `create_new` is True, a new panel account is always created regardless of existing accounts.
@@ -118,6 +120,25 @@ async def execute_purchase(
         return PurchaseResult(ok=False, kind="maintenance")
 
     effective_price = max(0, service.price - discount_amount)
+
+    async def _report_purchase_err(reason: str, detail: str = "") -> None:
+        logger.error("Purchase error for user %s, service %s (%s): %s", telegram_id, service.id, reason, detail)
+        if bot:
+            try:
+                from bot.services.error_reporter import report_error
+                ctx = f"Purchase u={telegram_id} svc={service.id} price={effective_price}"
+                if detail:
+                    ctx += f" [{detail}]"
+                await report_error(
+                    bot,
+                    session_factory=session_factory,
+                    session=session,
+                    exc=f"purchase_failed:{reason}",
+                    context=ctx,
+                    user_id=telegram_id,
+                )
+            except Exception as rep_exc:
+                logger.warning("Failed to report purchase error to topic: %s", rep_exc)
 
     # Atomic guard: lock wallet row with FOR UPDATE so concurrent requests
     # for the same user cannot race to purchase simultaneously with stale balance.
@@ -134,6 +155,7 @@ async def execute_purchase(
     if not create_new and account is None:
         accounts = await remnawave.get_users_by_telegram_id(telegram_id)
         if accounts is None:
+            await _report_purchase_err("panel_unreachable", "get_users_by_telegram_id returned None")
             return PurchaseResult(ok=False, kind="failed")
         if len(accounts) == 1:
             account = accounts[0]
@@ -182,6 +204,7 @@ async def execute_purchase(
                 break
         if user is None:
             await order_repo.mark_failed(pending)
+            await _report_purchase_err("create_user_failed_4x", "Panel create_user failed 4 times")
             return PurchaseResult(ok=False, kind="failed")
         panel_user_id = user.get("id")
         panel_username = user.get("username")
@@ -225,6 +248,7 @@ async def execute_purchase(
         )
         if user is None:
             await order_repo.mark_failed(pending)
+            await _report_purchase_err("renew_failed", f"Panel update_user_subscription failed for acc={account.get('id')}")
             return PurchaseResult(ok=False, kind="failed")
         panel_user_id = int(account["id"])
         panel_username = user.get("username") or account.get("username")
@@ -246,10 +270,8 @@ async def execute_purchase(
         # Balance dropped mid-purchase (double-tap race). The panel was
         # already extended -> keep the order visible for manual review
         # instead of silently giving a free service.
-        logger.error(
-            "race: balance went below price during purchase (user=%s)", telegram_id
-        )
         await order_repo.mark_failed(pending)
+        await _report_purchase_err("balance_race", "race: balance went below price during purchase")
         return PurchaseResult(ok=False, kind="failed")
     await session.flush()
 

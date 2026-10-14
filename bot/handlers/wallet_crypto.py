@@ -115,8 +115,21 @@ async def ton_invoice_check(
             paid_inv = await crypto_repo.mark_paid(inv.id, tx["tx_hash"])
             if paid_inv:
                 wallet_repo = WalletRepository(session)
-                new_bal = await wallet_repo.add_balance_atomic(inv.telegram_id, inv.amount_toman)
-                await session.commit()
+                try:
+                    new_bal = await wallet_repo.add_balance_atomic(inv.telegram_id, inv.amount_toman)
+                    await session.commit()
+                except Exception as exc:
+                    logger.error("Failed to credit wallet for TON invoice %s: %s", inv.id, exc, exc_info=True)
+                    from bot.services.error_reporter import report_error
+                    await report_error(
+                        bot,
+                        session=session,
+                        exc=exc,
+                        context=f"Failed to credit wallet for TON invoice #{inv.id} amount={inv.amount_toman}",
+                        user_id=inv.telegram_id,
+                    )
+                    await call.answer("⚠️ خطا در افزایش موجودی. لطفاً به پشتیبانی پیام دهید.", show_alert=True)
+                    return
                 matched = True
                 user = await user_repo.get_or_create(call.from_user.id, call.from_user.username)
                 lang = user.language or "fa"

@@ -38,7 +38,22 @@ async def decide_topup(
     kb = InlineKeyboardBuilder()
 
     if approved:
-        new_balance = await wallet_repo.add_balance_atomic(topup.telegram_id, topup.amount)
+        try:
+            new_balance = await wallet_repo.add_balance_atomic(topup.telegram_id, topup.amount)
+        except Exception as exc:
+            logger.error("Failed to add balance for topup #%s (user=%s, amount=%s): %s", topup_id, topup.telegram_id, topup.amount, exc)
+            try:
+                from bot.services.error_reporter import report_error
+                await report_error(
+                    bot,
+                    session=session,
+                    exc=exc,
+                    context=f"Topup approval balance credit failed #{topup_id} amount={topup.amount}",
+                    user_id=topup.telegram_id,
+                )
+            except Exception:
+                pass
+            raise
         user_text = t(
             user_lang, "topup_approved_user",
             amount=fmt(topup.amount), balance=fmt(new_balance),

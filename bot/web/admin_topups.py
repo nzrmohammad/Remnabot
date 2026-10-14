@@ -120,7 +120,22 @@ async def post_admin_topup_action(request: web.Request) -> web.Response:
             return web.json_response({"ok": False, "error": "این فیش قبلاً تعیین وضعیت شده است."}, status=400)
 
         if approved:
-            await wallet_repo.add_balance(claimed.telegram_id, claimed.amount)
+            try:
+                await wallet_repo.add_balance(claimed.telegram_id, claimed.amount)
+            except Exception as exc:
+                logger.error("Failed to add balance for topup #%s (user=%s, amount=%s): %s", claimed.id, claimed.telegram_id, claimed.amount, exc)
+                try:
+                    from bot.services.error_reporter import report_error
+                    await report_error(
+                        bot,
+                        session=session,
+                        exc=exc,
+                        context=f"Admin topup approval failed #{claimed.id} amount={claimed.amount}",
+                        user_id=claimed.telegram_id,
+                    )
+                except Exception:
+                    pass
+                raise
             session.add(
                 AdminLog(
                     admin_id=admin["id"],

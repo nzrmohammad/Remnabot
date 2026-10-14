@@ -165,8 +165,61 @@
           </div>
         </div>
 
+        <!-- Empty State Card (When no active subscription exists) -->
+        <div id="dashboardNoSubCard" class="hidden bg-gradient-to-b from-slate-800/95 via-slate-800/80 to-indigo-950/40 rounded-3xl p-6 border border-slate-700/80 shadow-2xl text-center relative overflow-hidden space-y-4">
+          <!-- Ambient Glow Accents -->
+          <div class="absolute -top-12 -right-12 w-32 h-32 bg-indigo-500/10 rounded-full blur-2xl pointer-events-none"></div>
+          <div class="absolute -bottom-10 -left-10 w-32 h-32 bg-cyan-500/10 rounded-full blur-2xl pointer-events-none"></div>
+
+          <!-- Top Status Pill -->
+          <div class="flex justify-center">
+            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-slate-900/80 text-slate-300 border border-slate-700/80">
+              <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+              <span>بدون اشتراک فعال</span>
+            </span>
+          </div>
+
+          <!-- Modern Rocket / 3D Illustration -->
+          <div class="w-20 h-20 mx-auto rounded-3xl bg-gradient-to-tr from-indigo-500/20 via-cyan-500/15 to-purple-500/20 border border-indigo-500/30 flex items-center justify-center text-4xl shadow-inner group">
+            <span class="group-hover:scale-110 transition-transform duration-300">🚀</span>
+          </div>
+
+          <!-- Headline & Description -->
+          <div class="space-y-1.5">
+            <h3 class="text-base font-black text-white">اشتراک فعالی برای شما ثبت نشده است</h3>
+            <p class="text-xs text-slate-300 leading-relaxed max-w-xs mx-auto">
+              برای اتصال به اینترنت آزاد و پرسرعت با سرورهای پایدار و ضد فیلتر، پلن مورد نظر خود را انتخاب و در کمتر از چند ثانیه فعال کنید.
+            </p>
+          </div>
+
+          <!-- Value Proposition Chips -->
+          <div class="grid grid-cols-3 gap-2 py-1 text-center">
+            <div class="bg-slate-900/60 rounded-xl p-2 border border-slate-700/50">
+              <span class="text-sm block mb-0.5">⚡️</span>
+              <span class="text-[10px] text-slate-300 font-bold block">پایدار و پرسرعت</span>
+            </div>
+            <div class="bg-slate-900/60 rounded-xl p-2 border border-slate-700/50">
+              <span class="text-sm block mb-0.5">🛡️</span>
+              <span class="text-[10px] text-slate-300 font-bold block">ضد فیلتر و امن</span>
+            </div>
+            <div class="bg-slate-900/60 rounded-xl p-2 border border-slate-700/50">
+              <span class="text-sm block mb-0.5">🔄</span>
+              <span class="text-[10px] text-slate-300 font-bold block">پشتیبانی همیشگی</span>
+            </div>
+          </div>
+
+          <!-- Primary CTA Button -->
+          <div class="pt-1">
+            <button id="noSubGoToShopBtn" type="button" class="w-full py-3.5 px-4 rounded-2xl bg-gradient-to-r from-blue-600 via-indigo-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 text-white font-black text-xs shadow-lg shadow-indigo-500/25 transition active:scale-[0.98] flex items-center justify-center gap-2">
+              <span>🛒</span>
+              <span>مشاهده و خرید اشتراک</span>
+              <span class="text-xs">←</span>
+            </button>
+          </div>
+        </div>
+
         <!-- Circular Bandwidth Gauge Card -->
-        <div class="bg-slate-800/85 rounded-3xl p-5 border border-slate-700/80 shadow-xl relative overflow-hidden">
+        <div id="dashboardSubGaugeCard" class="bg-slate-800/85 rounded-3xl p-5 border border-slate-700/80 shadow-xl relative overflow-hidden">
           <div class="flex justify-between items-center mb-2">
             <span class="text-xs text-slate-400 font-semibold flex items-center gap-1">
               <span>⚡️</span> ترافیک کل سرویس
@@ -218,7 +271,7 @@
         </div>
 
         <!-- Today's Per-Country Breakdown Card (Accordion Collapsible) -->
-        <div class="bg-slate-800/85 rounded-2xl border border-slate-700/80 shadow-md overflow-hidden transition-all duration-300">
+        <div id="dashboardCountryBreakdownCard" class="bg-slate-800/85 rounded-2xl border border-slate-700/80 shadow-md overflow-hidden transition-all duration-300">
           <!-- Accordion Header Button -->
           <button id="toggleCountryBreakdownBtn" class="w-full p-4 flex justify-between items-center text-right hover:bg-slate-700/40 transition active:scale-[0.99]">
             <div class="flex items-center gap-2">
@@ -241,7 +294,7 @@
         </div>
 
         <!-- Subscription Accordion Card (کادر بازشونده لینک اشتراک) -->
-        <div class="bg-slate-800/85 rounded-2xl border border-slate-700/80 shadow-md overflow-hidden transition-all duration-300">
+        <div id="dashboardSubAccordionCard" class="bg-slate-800/85 rounded-2xl border border-slate-700/80 shadow-md overflow-hidden transition-all duration-300">
           <!-- Accordion Header Button -->
           <button id="toggleSubAccordionBtn" class="w-full p-4 flex justify-between items-center text-right hover:bg-slate-700/40 transition active:scale-[0.99]">
             <div class="flex items-center gap-2">
@@ -636,6 +689,30 @@
           </div>
         </div>
 
+        <!-- Phone Verification Reward & Trust Card (Visible if phone not verified) -->
+        <div id="profilePhoneRewardCard" class="hidden bg-gradient-to-br from-amber-500/15 via-slate-800/90 to-yellow-500/10 rounded-2xl p-4 border border-amber-500/35 shadow-lg text-right relative overflow-hidden transition-all duration-300">
+          <div class="flex items-start gap-3">
+            <div class="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-300 border border-amber-500/30 flex items-center justify-center text-xl flex-shrink-0 mt-0.5 shadow-sm">
+              🎁
+            </div>
+            <div class="flex-1 space-y-1.5">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-black text-amber-300">ارتقای امنیت حساب و جوایز ویژه</span>
+                <span class="text-[9.5px] font-bold text-amber-400 bg-amber-500/20 px-2 py-0.5 rounded-full border border-amber-500/30">۱ کلیک فوری</span>
+              </div>
+              <p class="text-[11px] text-slate-300 leading-relaxed">
+                با تأیید شماره تماس، حساب شما نشان رسمی اعتماد دریافت کرده و دسترسی به پرداخت کارت‌به‌کارت و جوایز دوره‌ای فعال می‌شود.
+              </p>
+              <div class="pt-1.5">
+                <button type="button" onclick="window.verifyPhoneNative()" class="w-full sm:w-auto px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-slate-950 font-black text-xs shadow-md transition active:scale-95 flex items-center justify-center gap-1.5">
+                  <span>📱</span>
+                  <span>تأیید فوری شماره تماس (درون‌برنامه‌ای)</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <!-- Account Data Details Card -->
         <div class="bg-slate-800/80 rounded-2xl p-4 border border-slate-700/80 space-y-3 shadow-md text-xs">
           <span class="font-bold text-slate-200 block border-b border-slate-700/60 pb-2">📋 مشخصات حساب کاربری:</span>
@@ -660,7 +737,10 @@
             <span class="text-slate-400 flex items-center gap-1.5"><span>📞</span> شماره تماس</span>
             <div id="profilePhoneContainer" class="flex items-center gap-1.5">
               <span id="profilePhone" class="text-slate-400 font-medium font-mono" dir="ltr">وارد نشده</span>
-              <button id="verifyPhoneInBotBtn" type="button" onclick="window.verifyPhoneInBot()" class="hidden px-2 py-0.5 rounded-lg bg-blue-600/20 text-blue-400 border border-blue-500/30 text-[10px] font-bold hover:bg-blue-600/30 transition active:scale-95">تأیید در ربات</button>
+              <button id="verifyPhoneInBotBtn" type="button" onclick="window.verifyPhoneNative()" class="hidden px-2.5 py-1 rounded-xl bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[10px] font-bold hover:bg-amber-500/30 transition active:scale-95 flex items-center gap-1">
+                <span>⚡️</span>
+                <span>تأیید ۱-کلیکه</span>
+              </button>
             </div>
           </div>
 
@@ -1080,10 +1160,10 @@
             </div>
             <b class="text-xs text-amber-300 block">احراز هویت شماره تماس الزامی است</b>
             <p class="text-[10.5px] text-slate-300 leading-relaxed">
-              جهت استفاده از درگاه پرداخت کارت‌به‌کارت و جلوگیری از سوءاستفاده‌های بانکی (فیشینگ)، تأیید شماره همراه در ربات تلگرام الزامی می‌باشد.
+              جهت استفاده از درگاه پرداخت کارت‌به‌کارت و جلوگیری از سوءاستفاده‌های بانکی (فیشینگ)، تأیید شماره همراه با یک کلیک الزامی می‌باشد.
             </p>
-            <button type="button" onclick="window.verifyPhoneInBot()" class="w-full bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-slate-950 font-bold text-xs py-2 rounded-xl transition shadow active:scale-95 flex items-center justify-center gap-1.5">
-              <span>📱</span> تأیید شماره همراه در ربات
+            <button type="button" onclick="window.verifyPhoneNative()" class="w-full bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-slate-950 font-bold text-xs py-2.5 rounded-xl transition shadow active:scale-95 flex items-center justify-center gap-1.5">
+              <span>📱</span> تأیید ۱-کلیکه شماره همراه
             </button>
           </div>
 
