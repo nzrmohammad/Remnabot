@@ -200,11 +200,26 @@ html.theme-light textarea {
 html.theme-light .bg-transparent {
   background-color: transparent !important;
 }
+html.theme-light .bg-\[\#1a233a\],
 html.theme-light .bg-\[\#1e293b\],
-html.theme-light .bg-\[\#0f172a\] {
-  background-color: var(--card-bg);
-  border-color: var(--card-border);
-  color: var(--text-main);
+html.theme-light .bg-\[\#0f172a\],
+html.theme-light .bg-\[\#151f32\],
+html.theme-light .bg-\[\#1a263e\] {
+  background-color: var(--card-bg) !important;
+  border-color: var(--card-border) !important;
+  color: var(--text-main) !important;
+}
+html.theme-light .text-sky-300 {
+  color: #0284c7 !important;
+}
+html.theme-light .text-amber-300 {
+  color: #b45309 !important;
+}
+html.theme-light .text-emerald-300 {
+  color: #047857 !important;
+}
+html.theme-light .text-teal-400 {
+  color: #0d9488 !important;
 }
 html.theme-light .border-pink-500\/30,
 html.theme-light .border-pink-800\/50 {
@@ -277,6 +292,14 @@ html.theme-light .topup-modal-card,
 html.theme-light .qr-modal-card,
 html.theme-light .checkout-modal-card,
 html.theme-light .configs-modal-card,
+html.theme-light .tutorial-modal-card,
+html.theme-light .speedtest-modal-card,
+html.theme-light #luckyWheelModal > div,
+html.theme-light #speedResultsModal > div,
+html.theme-light #speedTestModal > div,
+html.theme-light #tutorialModal > div,
+html.theme-light #birthdayModal > div,
+html.theme-light #freeTrialModal > div,
 html.theme-light #broadcastModal > div,
 html.theme-light #broadcastReportModal > div,
 html.theme-light #configsModal > div,
@@ -298,10 +321,27 @@ html.theme-light #operationReportModal > div,
 html.theme-light #couponUsagesModal > div,
 html.theme-light #accessModeModal > div,
 html.theme-light #createCampaignModal > div {
-  background-color: var(--card-bg);
-  border-color: var(--card-border);
-  color: var(--text-main);
+  background-color: var(--card-bg) !important;
+  border-color: var(--card-border) !important;
+  color: var(--text-main) !important;
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+}
+
+html.theme-light .fixed .bg-slate-800,
+html.theme-light .fixed button.bg-slate-800 {
+  background-color: #f1f5f9 !important;
+  color: #334155 !important;
+  border: 1px solid #cbd5e1 !important;
+}
+
+html.theme-light .fixed .bg-slate-800:hover,
+html.theme-light .fixed button.bg-slate-800:hover {
+  background-color: #e2e8f0 !important;
+  color: #0f172a !important;
+}
+
+html.theme-light .fixed.inset-0[class*="bg-black"] {
+  background-color: rgba(15, 23, 42, 0.45) !important;
 }
 
 html.theme-light #accessModeModal .text-white {

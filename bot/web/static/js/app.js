@@ -765,14 +765,14 @@ function renderTutorialApps(osKey) {
       `;
     }
 
-    const cardBorder = app.isRecommended ? 'border-amber-500/50 bg-slate-900/90 shadow-sm' : 'border-slate-700/60 bg-slate-900/60';
+    const cardBorder = app.isRecommended ? 'border-amber-500/50 bg-transparent shadow-sm' : 'border-slate-700/60 bg-transparent';
 
     return `
       <div class="tutorial-app-card rounded-2xl p-2.5 border ${cardBorder} space-y-2 transition hover:border-slate-600">
         <div class="flex items-center justify-between gap-2">
           <!-- Right side: App Icon + Name -->
           <div class="flex items-center gap-2.5 min-w-0">
-            <div class="w-10 h-10 rounded-xl bg-slate-800/90 border border-slate-700/70 p-1 flex items-center justify-center flex-shrink-0 shadow-inner overflow-hidden relative">
+            <div class="w-10 h-10 rounded-xl bg-transparent border border-slate-700/70 p-1 flex items-center justify-center flex-shrink-0 shadow-inner overflow-hidden relative">
               <img src="/static/img/apps/${app.id}.png" alt="${escapeHtml(app.name)}" class="w-full h-full object-contain rounded-lg" onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='flex';" />
               <span class="text-xl items-center justify-center hidden" style="display:none;">${app.icon || '📱'}</span>
             </div>
@@ -780,7 +780,7 @@ function renderTutorialApps(osKey) {
               <b class="text-xs text-white font-bold truncate block">${escapeHtml(app.name)}</b>
               <div class="flex items-center gap-1.5 mt-0.5">
                 <span class="text-[9.5px] text-slate-400 font-sans">${currentTutorialOS.toUpperCase()}</span>
-                ${app.version ? `<span class="text-[9px] text-cyan-400 font-mono bg-cyan-950/60 border border-cyan-800/40 px-1.5 py-0.2 rounded-md">نسخه ${toPersianDigits(app.version)}</span>` : ''}
+                ${app.version ? `<span class="text-[9px] text-cyan-400 font-mono bg-transparent border border-cyan-800/40 px-1.5 py-0.2 rounded-md">v${toEnglishDigits(app.version)}</span>` : ''}
               </div>
             </div>
           </div>
@@ -877,7 +877,7 @@ function checkTutorialAppUpdates() {
   }
 
   if (newCount > 0) {
-    badge.innerText = `${toPersianDigits(newCount)} جدید`;
+    badge.innerText = `${toEnglishDigits(newCount)} جدید`;
     badge.classList.remove('hidden');
   } else {
     badge.classList.add('hidden');
@@ -1957,9 +1957,10 @@ function hydrateUserInterface(data) {
 
     // Avatar Photos Loading
     const profUid = user.id || tgUser?.id;
-    const profPhotoUrl = tgUser?.photo_url || user.photo_url || '';
-    const profParam = profPhotoUrl ? `&url=${encodeURIComponent(profPhotoUrl)}` : '';
-    const avatarUrl = profUid ? `/api/user/avatar?id=${profUid}${profParam}` : profPhotoUrl;
+    const directPhoto = tgUser?.photo_url || user.photo_url || '';
+    const profParam = directPhoto ? `&url=${encodeURIComponent(directPhoto)}` : '';
+    const proxyUrl = profUid ? `/api/user/avatar?id=${profUid}${profParam}` : '';
+    const avatarUrl = directPhoto || proxyUrl;
 
     const profImg = $('profileAvatarImg');
     const profAvatarInitial = $('profileAvatarInitial');
@@ -1973,8 +1974,9 @@ function hydrateUserInterface(data) {
           if (profAvatarInitial) profAvatarInitial.classList.add('hidden');
         };
         profImg.onerror = () => {
-          if (profPhotoUrl && profImg.src !== profPhotoUrl) {
-            profImg.src = profPhotoUrl;
+          if (proxyUrl && profImg.src !== proxyUrl && !profImg.dataset.retried) {
+            profImg.dataset.retried = '1';
+            profImg.src = proxyUrl;
           } else {
             profImg.classList.add('hidden');
             if (profAvatarInitial) profAvatarInitial.classList.remove('hidden');
@@ -1989,8 +1991,9 @@ function hydrateUserInterface(data) {
           if (headAvatarInitial) headAvatarInitial.classList.add('hidden');
         };
         headImg.onerror = () => {
-          if (profPhotoUrl && headImg.src !== profPhotoUrl) {
-            headImg.src = profPhotoUrl;
+          if (proxyUrl && headImg.src !== proxyUrl && !headImg.dataset.retried) {
+            headImg.dataset.retried = '1';
+            headImg.src = proxyUrl;
           } else {
             headImg.classList.add('hidden');
             if (headAvatarInitial) headAvatarInitial.classList.remove('hidden');
@@ -2685,6 +2688,25 @@ function initApp() {
         const profId = $('profileTelegramId');
         if (profId && profId.innerText === '--') {
           profId.innerText = String(tgUser.id);
+        }
+
+        if (tgUser.photo_url) {
+          const headImg = $('headerUserAvatarImg');
+          if (headImg) {
+            headImg.onload = () => {
+              headImg.classList.remove('hidden');
+              $('headerUserAvatarInitial')?.classList.add('hidden');
+            };
+            headImg.src = tgUser.photo_url;
+          }
+          const profImg = $('profileAvatarImg');
+          if (profImg) {
+            profImg.onload = () => {
+              profImg.classList.remove('hidden');
+              $('profileAvatarInitial')?.classList.add('hidden');
+            };
+            profImg.src = tgUser.photo_url;
+          }
         }
       }
     }

@@ -15,6 +15,8 @@ ALLOWED_AVATAR_ORIGINS = (
     "https://cdn.telegram.org/",
     "https://telesco.pe/",
     "https://api.telegram.org/",
+    "https://cdn-telegram.org/",
+    "https://telegram.org/",
 )
 
 
@@ -194,8 +196,8 @@ async def get_user_avatar(request: web.Request) -> web.Response:
     if bot:
         try:
             photos = await bot.get_user_profile_photos(telegram_id, limit=1)
-            if photos.total_count > 0 and photos.photos:
-                file_id = photos.photos[0][0].file_id
+            if photos.total_count > 0 and photos.photos and photos.photos[0]:
+                file_id = photos.photos[0][-1].file_id
                 tg_file = await bot.get_file(file_id)
                 if tg_file and tg_file.file_path:
                     import io

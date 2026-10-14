@@ -393,6 +393,7 @@ async def get_user_me(request: web.Request) -> web.Response:
                 "created_at": db_user.created_at.isoformat() if db_user.created_at else None,
                 "created_at_jalali": user_reg_jalali,
                 "language": db_user.language if isinstance(getattr(db_user, "language", None), str) else "fa",
+                "photo_url": user_auth.get("photo_url", ""),
                 "is_admin": user_auth.get("is_admin", False),
             },
             "settings": user_settings,
