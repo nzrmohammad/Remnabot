@@ -52,9 +52,14 @@ async def _calc_bandwidth_stats(
 
     series = []
     try:
-        series = await remnawave.get_user_bandwidth_stats(uid_arg, start_str, today_str) or []
-    except Exception as exc:
-        logger.warning("Failed to fetch bandwidth stats for %s: %s", panel_user_id, exc)
+        series = (
+            await asyncio.wait_for(
+                remnawave.get_user_bandwidth_stats(uid_arg, start_str, today_str),
+                timeout=5.0,
+            )
+        ) or []
+    except (asyncio.TimeoutError, Exception) as exc:
+        logger.warning("Failed or timed out fetching bandwidth stats for %s: %s", panel_user_id, exc)
 
     today_bytes = 0
     today_breakdown = []
@@ -151,7 +156,10 @@ async def _calc_bandwidth_stats(
         month_weeks_totals_gb = [0.0, 0.0, 0.0, round(today_bytes / (1024**3), 2)]
         try:
             start_today_dt = start_of_today(tz_name)
-            today_tuple = await remnawave.get_user_today_usage(uid_arg, start_today_dt.isoformat(), now_dt.isoformat())
+            today_tuple = await asyncio.wait_for(
+                remnawave.get_user_today_usage(uid_arg, start_today_dt.isoformat(), now_dt.isoformat()),
+                timeout=4.0,
+            )
             if today_tuple and isinstance(today_tuple, tuple):
                 today_bytes = today_tuple[0]
                 for n in today_tuple[1]:
@@ -166,8 +174,8 @@ async def _calc_bandwidth_stats(
                             "total_gb": round(b_val / (1024**3), 2),
                             "percent": round((b_val / today_bytes) * 100) if today_bytes > 0 else 0,
                         })
-        except Exception as exc:
-            logger.warning("Fallback today usage failed for %s: %s", panel_user_id, exc)
+        except (asyncio.TimeoutError, Exception) as exc:
+            logger.warning("Fallback today usage failed or timed out for %s: %s", panel_user_id, exc)
 
     week_breakdown = sorted(week_nodes_dict.values(), key=lambda x: x["total_bytes"], reverse=True)
     busiest_day_name = "—"
@@ -345,9 +353,14 @@ async def _build_active_subscription(
 
     devices = []
     try:
-        devices = await remnawave.get_user_hwid_devices(bw["uid_arg"], user_uuid=primary.get("uuid")) or []
-    except Exception as exc:
-        logger.warning("Failed to fetch HWID devices for %s: %s", panel_user_id, exc)
+        devices = (
+            await asyncio.wait_for(
+                remnawave.get_user_hwid_devices(bw["uid_arg"], user_uuid=primary.get("uuid")),
+                timeout=4.0,
+            )
+        ) or []
+    except (asyncio.TimeoutError, Exception) as exc:
+        logger.warning("Failed or timed out fetching HWID devices for %s: %s", panel_user_id, exc)
 
     days_left = 0
     expire_jalali_str = ""
@@ -675,10 +688,20 @@ async def get_user_me(request: web.Request) -> web.Response:
         yesterday_jalali_str = f"{yesterday_j.year}/{yesterday_j.month:02d}/{yesterday_j.day:02d}"
 
         panel_users = []
+        is_partial = False
+        panel_error = None
         try:
-            panel_users = (await panel_users_task) or []
+            panel_users = (await asyncio.wait_for(panel_users_task, timeout=8.0)) or []
+        except asyncio.TimeoutError:
+            logger.warning("Remnawave panel timeout (8.0s) for telegram_id=%s", telegram_id)
+            panel_users = []
+            is_partial = True
+            panel_error = "panel_timeout"
         except Exception as exc:
             logger.warning("Failed to get panel users for telegram_id=%s: %s", telegram_id, exc)
+            panel_users = []
+            is_partial = True
+            panel_error = "panel_error"
 
         active_sub, has_active_sub, accounts_list = await _build_active_subscription(
             remnawave, panel_users, req_account_id, telegram_id, user_auth, session, tz_name, now_dt
@@ -725,6 +748,8 @@ async def get_user_me(request: web.Request) -> web.Response:
         ref_link = build_ref_link(bot_username, telegram_id)
 
         data = {
+            "partial": is_partial,
+            "panel_error": panel_error,
             "bot_username": bot_username,
             "referral_reward_gb": referral_reward_gb,
             "referral_enabled": store_settings.referral_enabled,
@@ -760,7 +785,10 @@ async def get_user_me(request: web.Request) -> web.Response:
             "wheel_status": wheel_status,
         }
 
-        await cache.set(cache_key, data, ttl_seconds=30)
+        if not is_partial:
+            await cache.set(cache_key, data, ttl_seconds=30)
+        else:
+            await cache.set(cache_key, data, ttl_seconds=5)
         return web.json_response({"ok": True, "data": data, "cached": False})
 
 

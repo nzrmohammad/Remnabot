@@ -1606,7 +1606,47 @@ async def test_speedtest_endpoints():
     assert data_upload["received_bytes"] == 131072
 
 
+@pytest.mark.anyio
+async def test_get_user_me_panel_timeout_and_partial_response(session_factory):
+    import asyncio
+    from aiohttp.test_utils import make_mocked_request
+    from bot.web.routes_user import get_user_me
+    from bot.db.models import User, Wallet
 
+    telegram_id = 998877
+    async with session_factory() as session:
+        user = User(telegram_id=telegram_id, username="timeout_user")
+        wallet = Wallet(telegram_id=telegram_id, balance=75000)
+        session.add(user)
+        session.add(wallet)
+        await session.commit()
 
+    async def slow_get_users(*args, **kwargs):
+        raise asyncio.TimeoutError()
+
+    mock_remnawave = AsyncMock()
+    mock_remnawave.get_users_by_telegram_id.side_effect = slow_get_users
+
+    app = {
+        "bot_token": "123:abc",
+        "admin_ids": [55555],
+        "is_dev": True,
+        "session_factory": session_factory,
+        "cache": FastCache(redis_client=None),
+        "remnawave": mock_remnawave,
+        "settings": MagicMock(TIMEZONE="Asia/Tehran"),
+    }
+
+    req = make_mocked_request("GET", f"/api/user/me?user_id={telegram_id}", app=app)
+    resp = await get_user_me(req)
+    assert resp.status == 200
+    res_json = json.loads(resp.text)
+    assert res_json["ok"] is True
+    data = res_json["data"]
+    assert data["partial"] is True
+    assert data["panel_error"] == "panel_timeout"
+    assert data["user"]["wallet_balance"] == 75000
+    assert data["user"]["username"] == f"dev_{telegram_id}"
+    assert data["active_sub"] is None
 
 

@@ -1766,237 +1766,7 @@ function setupProfileHandlers() {
   });
 }
 
-// 14. UI Hydration Logic
-function hydrateUserInterface(data) {
-  if (!data) return;
-
-  const user = data.user || {};
-  const tgUser = window.Telegram?.WebApp?.initDataUnsafe?.user;
-  const sub = data.active_sub;
-  if (sub?.id && !window.currentAccountId) {
-    window.currentAccountId = sub.id;
-  }
-
-  // Header Avatar & Name
-  const avatarEl = $('headerUserAvatarInitial') || $('headerUserAvatar');
-  if (avatarEl && (user.first_name || user.username)) {
-    avatarEl.innerText = (user.first_name || user.username || 'U')[0].toUpperCase();
-  }
-
-  const usernameEl = $('headerUsername');
-  if (usernameEl) {
-    usernameEl.innerText = sub?.username || user.username || user.first_name || 'کاربر';
-  }
-
-  const onlineCount = sub?.devices_count ?? (sub?.devices ? sub.devices.length : 0);
-  const onlineCountEl = $('headerOnlineCount');
-  if (onlineCountEl) {
-    onlineCountEl.innerText = `${onlineCount} دستگاه آنلاین`;
-  }
-
-  // Dashboard Traffic Gauge
-  const gaugeProgress = $('dashboardGaugeProgress');
-  if (sub) {
-    const remainEl = $('dashboardRemainingTraffic');
-    if (remainEl) remainEl.innerText = `${sub.traffic_remaining_gb ?? '--'} GB`;
-
-    const pctEl = $('dashboardPercentRemaining');
-    if (pctEl) pctEl.innerText = `${toEnglishDigits(Math.round(sub.percent_remaining ?? 100))}%`;
-
-    const pillEl = $('dashboardUsagePill');
-    if (pillEl) pillEl.innerText = `${sub.traffic_used_gb ?? 0} / ${sub.traffic_total_gb ?? 0} GB`;
-
-    const daysEl = $('dashboardDaysLeft');
-    if (daysEl) daysEl.innerText = `${sub.days_left ?? 0} روز`;
-
-    const expireEl = $('dashboardExpireDate');
-    if (expireEl) expireEl.innerText = sub.expire_jalali ? `تا ${sub.expire_jalali}` : 'نامحدود';
-
-    const todayEl = $('dashboardTodayUsed');
-    if (todayEl) todayEl.innerText = `${sub.today_used_gb ?? '0.00'} GB`;
-
-    if (gaugeProgress) {
-      const circumference = 314.15;
-      const pct = Math.max(0, Math.min(100, sub.percent_remaining ?? 100));
-      const offset = circumference - (circumference * (pct / 100));
-      gaugeProgress.style.strokeDashoffset = offset;
-    }
-
-    const subInputEl = $('subInput');
-    if (subInputEl && sub.subscription_url) subInputEl.value = sub.subscription_url;
-    const subDisplayEl = $('subDisplayBox');
-    if (subDisplayEl && sub.subscription_url) subDisplayEl.innerText = sub.subscription_url;
-    const qrImg = $('qrImage');
-    if (qrImg && sub.subscription_url) {
-      qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(sub.subscription_url)}`;
-    }
-    const modalQrImg = $('modalQrImage');
-    if (modalQrImg && sub.subscription_url) {
-      modalQrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=260x260&data=${encodeURIComponent(sub.subscription_url)}`;
-    }
-  } else {
-    const subInputEl = $('subInput');
-    if (subInputEl) subInputEl.value = 'اشتراک فعالی یافت نشد - لطفاً از تب فروشگاه اقدام فرمایید.';
-    const subDisplayEl = $('subDisplayBox');
-    if (subDisplayEl) subDisplayEl.innerText = 'اشتراک فعالی یافت نشد - لطفاً از تب فروشگاه اقدام فرمایید.';
-  }
-
-  // Story Card Data Binding
-  const storyName = $('storyCardName');
-  const storyUser = $('storyCardUsername');
-  const storyAvatarImg = $('storyCardAvatarImg');
-  const storyAvatar = $('storyCardAvatarInitial');
-  const storyTraffic = $('storyCardTraffic');
-  const storyDays = $('storyCardDays');
-  const storyQr = $('storyCardQr');
-  const displayName = sub?.username || user.first_name || user.username || 'کاربر گرامی';
-  if (storyName) storyName.innerText = displayName;
-  if (storyUser) {
-    if (user.username) {
-      storyUser.innerText = `@${user.username.replace(/^@/, '')}`;
-    } else {
-      storyUser.innerText = `ID: ${user.id || ''}`;
-    }
-    storyUser.dir = 'ltr';
-  }
-
-  // Story Reward GB from Bot Settings
-  const rewardGb = data.referral_reward_gb ?? 5;
-  const rewardEl = $('storyCardRewardGb');
-  if (rewardEl) rewardEl.innerText = toEnglishDigits(rewardGb);
-  const bannerRewardEl = $('storyRewardBannerGb');
-  if (bannerRewardEl) bannerRewardEl.innerText = toEnglishDigits(rewardGb);
-
-  // Avatar Loading via CORS-safe Server Avatar Endpoint
-  const uid = user.id || tgUser?.id;
-  const tgPhotoUrl = tgUser?.photo_url || user.photo_url || '';
-  const photoParam = tgPhotoUrl ? `&url=${encodeURIComponent(tgPhotoUrl)}` : '';
-  const resolvedAvatarUrl = uid ? `/api/user/avatar?id=${uid}${photoParam}` : tgPhotoUrl;
-
-  if (resolvedAvatarUrl && storyAvatarImg) {
-    storyAvatarImg.crossOrigin = 'anonymous';
-    storyAvatarImg.src = resolvedAvatarUrl;
-    storyAvatarImg.onload = () => {
-      storyAvatarImg.classList.remove('hidden');
-      if (storyAvatar) storyAvatar.classList.add('hidden');
-    };
-    storyAvatarImg.onerror = () => {
-      storyAvatarImg.classList.add('hidden');
-      if (storyAvatar) {
-        storyAvatar.classList.remove('hidden');
-        storyAvatar.innerText = displayName.charAt(0).toUpperCase();
-      }
-    };
-  } else {
-    if (storyAvatarImg) storyAvatarImg.classList.add('hidden');
-    if (storyAvatar) {
-      storyAvatar.classList.remove('hidden');
-      storyAvatar.innerText = displayName.charAt(0).toUpperCase();
-    }
-  }
-
-  if (storyTraffic) storyTraffic.innerText = `${sub?.traffic_remaining_gb ?? '--'} GB`;
-  if (storyDays) storyDays.innerText = `${toEnglishDigits(sub?.days_left ?? 0)} روز اعتبار`;
-  const botUsername = data.bot_username || window.Telegram?.WebApp?.initDataUnsafe?.bot?.username || '';
-  const refLink = window.buildRefLink(botUsername, user.id);
-  window.currentReferralLink = refLink;
-  if (storyQr) {
-    storyQr.crossOrigin = 'anonymous';
-    storyQr.src = `https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(refLink)}`;
-  }
-
-  // Today Country Breakdown
-  const countryList = $('countryBreakdownList');
-  const countryTotalHeader = $('countryTodayTotalHeader');
-  if (countryTotalHeader) countryTotalHeader.innerText = `${sub?.today_used_gb ?? '0.00'} GB`;
-  if (countryList) {
-    const bDown = sub?.today_breakdown || [];
-    if (bDown.length === 0) {
-      countryList.innerHTML = `
-        <div class="p-3 rounded-xl bg-slate-900/60 border border-slate-700/50 text-center text-xs text-slate-400">
-          <span>ℹ️ امروز هنوز ترافیکی روی سرورها ثبت نشده است.</span>
-        </div>
-      `;
-    } else {
-      const showBar = bDown.length > 1;
-      countryList.innerHTML = bDown.map(item => {
-        const pct = item.percent || 0;
-        const barHtml = (showBar && pct > 0)
-          ? `<div class="w-full bg-slate-800/80 h-1.5 rounded-full overflow-hidden" dir="ltr">
-              <div class="bg-gradient-to-r from-blue-500 to-cyan-400 h-full rounded-full transition-all duration-500" style="width: ${pct}%;"></div>
-            </div>`
-          : '';
-        return `
-        <div class="p-2.5 rounded-xl bg-slate-900/70 border border-slate-700/50 space-y-1.5">
-          <div class="flex justify-between items-center text-xs">
-            <span class="text-cyan-300 font-black text-xs font-mono" dir="ltr">${toEnglishDigits(item.total_formatted)}</span>
-            <span class="flex items-center gap-2 font-bold text-slate-200">
-              <span>${item.name}</span>
-              <span class="text-base">${item.flag || '🌐'}</span>
-            </span>
-          </div>
-          ${barHtml}
-        </div>
-        `;
-      }).join('');
-    }
-  }
-
-  // Reports Hub (All Numbers in English ASCII format)
-  if (data.yesterday_jalali) {
-    const repDateEl = $('repNightlyDate');
-    if (repDateEl) repDateEl.innerText = `${toEnglishDigits(data.yesterday_jalali)} - 23:59`;
-  }
-  if (sub) {
-    const repTotal = $('repNightlyTotal');
-    if (repTotal) repTotal.innerText = `${sub.traffic_total_gb ?? '--'} GB`;
-    const repUsed = $('repNightlyUsed');
-    if (repUsed) repUsed.innerText = `${sub.traffic_used_gb ?? '--'} GB`;
-    const repRemain = $('repNightlyRemain');
-    if (repRemain) repRemain.innerText = `${sub.traffic_remaining_gb ?? '--'} GB`;
-    const repYesterday = $('repNightlyYesterday');
-    if (repYesterday) repYesterday.innerText = `${sub.yesterday_used_gb ?? '0.00'} GB`;
-    const repExpire = $('repNightlyExpire');
-    if (repExpire) repExpire.innerText = `${toEnglishDigits(sub.days_left ?? 0)} روز (${toEnglishDigits(sub.expire_jalali || 'نامحدود')})`;
-
-    // Reusable Server Breakdown for Nightly, Weekly, Monthly
-    renderNodeBreakdown('repNightlyNodesContainer', sub.yesterday_breakdown || sub.today_breakdown || [], 'دیشب مصرفی روی سرورها ثبت نشده است.');
-    renderNodeBreakdown('repWeeklyNodesContainer', sub.week_breakdown || [], 'مصرفی در 7 روز گذشته ثبت نشده است.');
-    renderNodeBreakdown('repMonthlyNodesContainer', sub.week_breakdown || sub.today_breakdown || [], 'مصرفی در ماه جاری ثبت نشده است.');
-
-    const repWeeklyTotal = $('repWeeklyTotal');
-    if (repWeeklyTotal) repWeeklyTotal.innerHTML = `<span dir="ltr" class="font-mono inline-block">\u200E${sub.week_used_gb ?? '0.00'} GB\u200E</span>`;
-    const repWeeklyBusiest = $('repWeeklyBusiest');
-    if (repWeeklyBusiest) {
-      repWeeklyBusiest.innerHTML = `${sub.busiest_day_name || '—'} <span dir="ltr" class="font-mono inline-block text-cyan-300 font-semibold">\u200E(${toEnglishDigits(sub.busiest_day_amount || '0 GB')})\u200E</span>`;
-    }
-
-    // Weekly & Monthly Charts using DRY Chart.js renderBarChart
-    try {
-      renderBarChart('repWeeklyChartCanvas', sub.week_daily_totals_gb || [0, 0, 0, 0, 0, 0, 0], sub.week_day_labels || ['ش', 'ی', 'د', 'س', 'چ', 'پ', 'ج'], false);
-    } catch (e) {
-      console.warn('Could not render weekly chart:', e);
-    }
-
-    const repMonthlyTitle = $('repMonthlyTitle');
-    if (repMonthlyTitle) repMonthlyTitle.innerText = `📅 گزارش جامع ماه ${sub.current_month_name || ''}`;
-    const repMonthlyTotal = $('repMonthlyTotal');
-    if (repMonthlyTotal) repMonthlyTotal.innerHTML = `<span dir="ltr" class="font-mono inline-block">\u200E${sub.month_used_gb ?? '0.00'} GB\u200E</span>`;
-
-    try {
-      renderBarChart('repMonthlyChartCanvas', sub.month_weeks_totals_gb || [0, 0, 0, sub.week_used_gb || 0], ['هفته ۱', 'هفته ۲', 'هفته ۳', 'هفته ۴'], true);
-    } catch (e) {
-      console.warn('Could not render monthly chart:', e);
-    }
-
-    // Advanced Analytics (4 Visualizers)
-    try {
-      renderActiveSubAnalytics(sub);
-    } catch (e) {
-      console.warn('Could not render active sub analytics:', e);
-    }
-  }
-
+// 14. Active Subscription Analytics Visualizers
 function renderActiveSubAnalytics(sub) {
   if (!sub) return;
 
@@ -2056,390 +1826,782 @@ function renderActiveSubAnalytics(sub) {
   }
 }
 
-  // Active Devices
-  const devices = sub?.devices || [];
-  const activeDevCount = sub?.devices_count ?? devices.length;
-  const repSessionsBadge = $('reportsSessionsBadge');
-  if (repSessionsBadge) repSessionsBadge.innerText = `${toEnglishDigits(activeDevCount)} دستگاه`;
-  const mCountText = $('modalSessionsCount');
-  if (mCountText) mCountText.innerText = `${toEnglishDigits(activeDevCount)} دستگاه`;
+// 15. Phased, Resilient UI Hydration Logic
+function hydrateUserInterface(data) {
+  if (!data || typeof data !== 'object') return;
 
-  function renderDeviceList(container) {
-    if (!container) return;
-    if (devices.length === 0) {
-      container.innerHTML = `
-        <div class="p-4 rounded-xl bg-transparent border border-slate-700/50 text-center text-xs text-slate-400">
-          <span>📱 در حال حاضر هیچ دستگاه فعالی روی اشتراک شما ثبت نشده است.</span>
-        </div>
-      `;
-      return;
+  const safeStep = (stepName, fn) => {
+    try {
+      fn();
+    } catch (err) {
+      console.warn(`[hydrateUserInterface] Error in ${stepName}:`, err);
+    }
+  };
+
+  const user = data.user || {};
+  const tgUser = window.Telegram?.WebApp?.initDataUnsafe?.user;
+  const sub = data.active_sub;
+  if (sub?.id && !window.currentAccountId) {
+    window.currentAccountId = sub.id;
+  }
+
+  // --- PHASE 1: Core User Identity & Top Header (DB Data) ---
+  safeStep('identityAndHeader', () => {
+    const avatarEl = $('headerUserAvatarInitial') || $('headerUserAvatar');
+    if (avatarEl && (user.first_name || user.username)) {
+      avatarEl.innerText = (user.first_name || user.username || 'U')[0].toUpperCase();
     }
 
-    container.innerHTML = devices.map(d => {
-      const platform = (d.platform || '').toLowerCase();
-      let icon = '📱';
-      if (platform.includes('android')) icon = '🤖';
-      else if (platform.includes('ios') || platform.includes('iphone') || platform.includes('apple')) icon = '🍏';
-      else if (platform.includes('windows')) icon = '💻';
-      else if (platform.includes('mac')) icon = '🍏';
-      else if (platform.includes('linux')) icon = '🐧';
+    const usernameEl = $('headerUsername');
+    if (usernameEl) {
+      usernameEl.innerText = sub?.username || user.username || user.first_name || 'کاربر';
+    }
 
-      const model = d.deviceModel || d.platform || 'دستگاه';
-      const ip = d.requestIp || '—';
-      const hwid = d.hwid || '';
+    const onlineCount = sub?.devices_count ?? (sub?.devices ? sub.devices.length : 0);
+    const onlineCountEl = $('headerOnlineCount');
+    if (onlineCountEl) {
+      onlineCountEl.innerText = `${toEnglishDigits(onlineCount)} دستگاه آنلاین`;
+    }
 
-      return `
-        <div class="bg-transparent rounded-xl p-3 border border-slate-700/60 flex items-center justify-between">
-          <div class="flex items-center gap-2.5">
-            <span class="text-2xl">${icon}</span>
-            <div>
-              <div class="flex items-center gap-2">
-                <span class="text-xs font-bold text-slate-200">${model}</span>
-                <span class="w-2 h-2 rounded-full bg-emerald-400 inline-block shadow-sm shadow-emerald-400/50" title="فعال"></span>
-              </div>
-              <div class="text-[11px] font-mono text-cyan-400 mt-0.5">IP: ${ip}</div>
-            </div>
-          </div>
-          <button class="kill-device-btn text-rose-400 hover:text-rose-300 w-8 h-8 rounded-xl bg-transparent hover:bg-rose-950/30 border-0 text-xs transition active:scale-95 flex items-center justify-center" title="قطع این دستگاه" data-hwid="${hwid}">
-            <svg class="w-4 h-4 text-rose-400 hover:text-rose-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-          </button>
-        </div>
-      `;
-    }).join('');
+    const profName = $('profileFullName');
+    const profUser = $('profileUsername');
+    const profAvatar = $('profileAvatarInitial');
+    const profStatusBadge = $('profileStatusBadge');
+    const profAuthBadge = $('profileAuthBadge');
+    const profId = $('profileTelegramId');
+    const profRef = $('profileRefCode');
+    const profPhone = $('profilePhone');
+    const profJoin = $('profileJoinDate');
+    const profBirth = $('profileBirthDate');
+    const profSub = $('profileSubStatus');
 
-    container.querySelectorAll('.kill-device-btn').forEach(btn => {
-      btn.addEventListener('click', async () => {
-        const hwid = btn.getAttribute('data-hwid');
-        if (!hwid || !confirm('آیا از قطع اتصال این دستگاه اطمینان دارید؟')) return;
-        try {
-          const res = await window.api.killDevice(hwid);
-          if (res.ok) {
-            showToast('✅ دستگاه با موفقیت قطع شد.');
-            syncUserDataWithApi();
+    const userDisplayName = sub?.username || user.first_name || user.username || 'کاربر گرامی';
+    if (profName) profName.innerText = userDisplayName;
+    if (profUser) profUser.innerText = user.username ? `@${user.username}` : `شناسه: ${user.id || ''}`;
+    if (profAvatar) profAvatar.innerText = userDisplayName.charAt(0).toUpperCase();
+    if (profId) profId.innerText = user.id ? String(user.id) : '--';
+    if (profRef) profRef.innerText = user.id ? String(user.id) : '--';
+    if (profPhone) {
+      profPhone.innerText = user.phone_number ? toEnglishDigits(user.phone_number) : 'وارد نشده';
+      const verifyBtn = $('verifyPhoneInBotBtn');
+      if (verifyBtn) {
+        if (user.phone_number) {
+          verifyBtn.classList.add('hidden');
+        } else {
+          verifyBtn.classList.remove('hidden');
+        }
+      }
+    }
+    if (profJoin) profJoin.innerText = toPersianDigits(user.created_at_jalali || '1403/07/01');
+    if (profBirth) profBirth.innerText = user.birth_date ? toPersianDigits(user.birth_date) : 'ثبت‌نشده';
+
+    const hasActiveSub = Boolean(data.has_active_sub && (sub?.status === 'ACTIVE' || !sub?.status));
+    if (profStatusBadge) {
+      if (hasActiveSub) {
+        profStatusBadge.innerHTML = '<span class="inline-flex items-center gap-1"><span>🟢</span><span>کاربر فعال</span></span>';
+        profStatusBadge.className = 'px-2.5 py-0.5 rounded-full text-[10px] font-bold border badge-active transition inline-flex items-center gap-1';
+      } else {
+        profStatusBadge.innerHTML = '<span class="inline-flex items-center gap-1"><span>⚪️</span><span>بدون سرویس فعال</span></span>';
+        profStatusBadge.className = 'px-2.5 py-0.5 rounded-full text-[10px] font-bold border badge-inactive transition inline-flex items-center gap-1';
+      }
+    }
+
+    if (profAuthBadge) {
+      if (user.phone_number) {
+        profAuthBadge.innerHTML = '<span class="inline-flex items-center gap-1"><span>✅</span><span>احراز هویت شده</span></span>';
+        profAuthBadge.className = 'px-2.5 py-0.5 rounded-full text-[10px] font-bold border badge-auth transition inline-flex items-center gap-1';
+      } else {
+        profAuthBadge.innerHTML = '<span class="inline-flex items-center gap-1"><span>⚠️</span><span>عدم احراز هویت</span></span>';
+        profAuthBadge.className = 'px-2.5 py-0.5 rounded-full text-[10px] font-bold border badge-unauth transition inline-flex items-center gap-1';
+      }
+    }
+
+    if (profSub) {
+      if (hasActiveSub) {
+        profSub.innerText = 'فعال';
+        profSub.className = 'font-semibold text-emerald-400';
+      } else {
+        profSub.innerText = 'غیرفعال';
+        profSub.className = 'font-semibold text-rose-400';
+      }
+    }
+
+    // Avatar Photos Loading
+    const profUid = user.id || tgUser?.id;
+    const profPhotoUrl = tgUser?.photo_url || user.photo_url || '';
+    const profParam = profPhotoUrl ? `&url=${encodeURIComponent(profPhotoUrl)}` : '';
+    const avatarUrl = profUid ? `/api/user/avatar?id=${profUid}${profParam}` : profPhotoUrl;
+
+    const profImg = $('profileAvatarImg');
+    const profAvatarInitial = $('profileAvatarInitial');
+    const headImg = $('headerUserAvatarImg');
+    const headAvatarInitial = $('headerUserAvatarInitial');
+
+    if (avatarUrl) {
+      if (profImg) {
+        profImg.onload = () => {
+          profImg.classList.remove('hidden');
+          if (profAvatarInitial) profAvatarInitial.classList.add('hidden');
+        };
+        profImg.onerror = () => {
+          if (profPhotoUrl && profImg.src !== profPhotoUrl) {
+            profImg.src = profPhotoUrl;
           } else {
-            showToast(`❌ ${res.error || 'خطا در قطع دستگاه'}`);
+            profImg.classList.add('hidden');
+            if (profAvatarInitial) profAvatarInitial.classList.remove('hidden');
+          }
+        };
+        profImg.src = avatarUrl;
+      }
+
+      if (headImg) {
+        headImg.onload = () => {
+          headImg.classList.remove('hidden');
+          if (headAvatarInitial) headAvatarInitial.classList.add('hidden');
+        };
+        headImg.onerror = () => {
+          if (profPhotoUrl && headImg.src !== profPhotoUrl) {
+            headImg.src = profPhotoUrl;
+          } else {
+            headImg.classList.add('hidden');
+            if (headAvatarInitial) headAvatarInitial.classList.remove('hidden');
+          }
+        };
+        headImg.src = avatarUrl;
+      }
+    }
+
+    // Account Switcher Button Visibility
+    const switchBtn = $('switchAccountBtn');
+    const accounts = data.accounts || [];
+    if (switchBtn) {
+      if (accounts.length > 1) switchBtn.classList.remove('hidden');
+      else switchBtn.classList.add('hidden');
+    }
+  });
+
+  // --- PHASE 2: Wallet Balance & Shop Plans (DB Data) ---
+  safeStep('walletAndShop', () => {
+    const walletEl = $('shopWalletBalance');
+    const shopBalAmt = $('shopWalletBalanceAmount');
+    const walletTabBal = $('walletTabBalance');
+    const rawBalNum = Number(user.wallet_balance || 0).toLocaleString('en-US');
+    const formattedWallet = `${rawBalNum} تومان`;
+    if (walletEl) walletEl.innerText = `موجودی: ${formattedWallet}`;
+    if (shopBalAmt) shopBalAmt.innerText = rawBalNum;
+    if (walletTabBal) walletTabBal.innerText = formattedWallet;
+
+    if (typeof renderShopPlans === 'function') {
+      renderShopPlans(data);
+    }
+  });
+
+  // --- PHASE 3: Profile Settings & Language Preferences ---
+  safeStep('settingsAndToggles', () => {
+    // Referral Card
+    const refCard = $('profileReferralCard');
+    const refLinkInp = $('profileReferralLinkInput');
+    const refCountEl = $('profileReferralsCount');
+    const refRewardTotalEl = $('profileReferralRewardTotal');
+    const refRewardBadge = $('profileReferralRewardBadge');
+
+    const refEnabled = data.referral_enabled !== false;
+    if (refCard) {
+      if (!refEnabled) {
+        refCard.classList.add('hidden');
+      } else {
+        refCard.classList.remove('hidden');
+      }
+    }
+
+    const referralLink = data.referral_link || (typeof window.buildRefLink === 'function' ? window.buildRefLink(data.bot_username, user.id) : '');
+    if (refLinkInp) refLinkInp.value = referralLink;
+
+    const refCount = Number(user.referrals_count || 0);
+    const refRewardGb = Number(data.referral_reward_gb || 1);
+    if (refCountEl) refCountEl.innerText = `${toEnglishDigits(refCount)} نفر`;
+    if (refRewardTotalEl) refRewardTotalEl.innerText = `${toEnglishDigits(refCount * refRewardGb)}`;
+    if (refRewardBadge) refRewardBadge.innerText = `🎁 ${toEnglishDigits(refRewardGb)} گیگابایت هدیه به ازای هر دعوت`;
+
+    // Notification Toggles
+    const settings = data.settings || {};
+    const togglesMap = [
+      { id: 'settingToggleNightly', key: 'nightly', defaultVal: true },
+      { id: 'settingToggleWeekly', key: 'weekly', defaultVal: true },
+      { id: 'settingToggleMonthly', key: 'monthly', defaultVal: true },
+      { id: 'settingToggleCleanReports', key: 'clean_reports', defaultVal: true },
+      { id: 'settingToggleWheelNotify', key: 'wheel_notify', defaultVal: true },
+      { id: 'settingToggleLowTraffic', key: 'low_traffic', defaultVal: true },
+      { id: 'settingToggleExpireWarning', key: 'expire_warning', defaultVal: true },
+    ];
+
+    togglesMap.forEach(({ id, key, defaultVal }) => {
+      const el = $(id);
+      if (!el) return;
+      const val = (settings[key] !== undefined) ? Boolean(settings[key]) : defaultVal;
+      el.checked = val;
+
+      el.onchange = async () => {
+        const newVal = el.checked;
+        try {
+          const res = await window.api.saveSetting(key, newVal);
+          if (res && res.ok) {
+            showToast('✅ تنظیمات با موفقیت ذخیره شد.');
+            hapticFeedback('success');
+          } else {
+            el.checked = !newVal;
+            showToast('❌ خطا در ذخیره تنظیمات');
+          }
+        } catch (e) {
+          el.checked = !newVal;
+          showToast('خطا در برقراری ارتباط با سرور.');
+        }
+      };
+    });
+
+    // Alert Subtexts & Selects
+    function updateAlertSubtexts(percent, days) {
+      if (percent !== undefined && percent !== null) {
+        const traf = $('settingTrafficSubtext');
+        if (traf) traf.innerText = `هشدار قبل از پایان ترافیک (${toEnglishDigits(percent)}%)`;
+      }
+      if (days !== undefined && days !== null) {
+        const exp = $('settingExpireSubtext');
+        if (exp) exp.innerText = `اطلاع‌رسانی ${toEnglishDigits(days)} روز مانده به انقضا`;
+      }
+    }
+
+    const trafficPercentSelect = $('settingTrafficPercentSelect');
+    if (trafficPercentSelect) {
+      if (settings.traffic_percent) trafficPercentSelect.value = String(settings.traffic_percent);
+      trafficPercentSelect.onchange = async () => {
+        const val = parseInt(trafficPercentSelect.value, 10);
+        updateAlertSubtexts(val, undefined);
+        try {
+          const res = await window.api.saveSetting('traffic_percent', val);
+          if (res && res.ok) {
+            showToast(`✅ درصد هشدار مصرف روی ${val}٪ تنظیم شد.`);
+            hapticFeedback('success');
+          } else {
+            showToast('❌ خطا در ذخیره تنظیمات');
           }
         } catch (e) {
           showToast('خطا در برقراری ارتباط با سرور.');
         }
+      };
+    }
+
+    const expireDaysSelect = $('settingExpireDaysSelect');
+    if (expireDaysSelect) {
+      if (settings.expire_days) expireDaysSelect.value = String(settings.expire_days);
+      expireDaysSelect.onchange = async () => {
+        const val = parseInt(expireDaysSelect.value, 10);
+        updateAlertSubtexts(undefined, val);
+        try {
+          const res = await window.api.saveSetting('expire_days', val);
+          if (res && res.ok) {
+            showToast(`✅ مهلت هشدار انقضا روی ${val} روز تنظیم شد.`);
+            hapticFeedback('success');
+          } else {
+            showToast('❌ خطا در ذخیره تنظیمات');
+          }
+        } catch (e) {
+          showToast('خطا در برقراری ارتباط با سرور.');
+        }
+      };
+    }
+
+    updateAlertSubtexts(settings.traffic_percent || 80, settings.expire_days || 3);
+
+    // Language Buttons
+    const currentLang = user.language || 'fa';
+    const langFaBtn = $('langFaBtn');
+    const langEnBtn = $('langEnBtn');
+    if (currentLang === 'en') {
+      langEnBtn?.classList.add('bg-blue-600', 'text-white', 'font-bold');
+      langEnBtn?.classList.remove('text-slate-400');
+      langFaBtn?.classList.remove('bg-blue-600', 'text-white', 'font-bold');
+      langFaBtn?.classList.add('text-slate-400');
+    } else {
+      langFaBtn?.classList.add('bg-blue-600', 'text-white', 'font-bold');
+      langFaBtn?.classList.remove('text-slate-400');
+      langEnBtn?.classList.remove('bg-blue-600', 'text-white', 'font-bold');
+      langEnBtn?.classList.add('text-slate-400');
+    }
+  });
+
+  // --- PHASE 4: Wallet Transactions History (DB Data) ---
+  safeStep('transactions', () => {
+    if (typeof renderWalletTransactions === 'function') {
+      renderWalletTransactions(data.transactions || []);
+    }
+  });
+
+  // --- PHASE 5: Active Subscription Gauge & Connection Link (Panel Data) ---
+  safeStep('subscriptionAndGauge', () => {
+    const gaugeProgress = $('dashboardGaugeProgress');
+    if (sub) {
+      const remainEl = $('dashboardRemainingTraffic');
+      if (remainEl) remainEl.innerText = `${sub.traffic_remaining_gb ?? '--'} GB`;
+
+      const pctEl = $('dashboardPercentRemaining');
+      if (pctEl) pctEl.innerText = `${toEnglishDigits(Math.round(sub.percent_remaining ?? 100))}%`;
+
+      const pillEl = $('dashboardUsagePill');
+      if (pillEl) pillEl.innerText = `${sub.traffic_used_gb ?? 0} / ${sub.traffic_total_gb ?? 0} GB`;
+
+      const daysEl = $('dashboardDaysLeft');
+      if (daysEl) daysEl.innerText = `${sub.days_left ?? 0} روز`;
+
+      const expireEl = $('dashboardExpireDate');
+      if (expireEl) expireEl.innerText = sub.expire_jalali ? `تا ${sub.expire_jalali}` : 'نامحدود';
+
+      const todayEl = $('dashboardTodayUsed');
+      if (todayEl) todayEl.innerText = `${sub.today_used_gb ?? '0.00'} GB`;
+
+      if (gaugeProgress) {
+        const circumference = 314.15;
+        const pct = Math.max(0, Math.min(100, sub.percent_remaining ?? 100));
+        const offset = circumference - (circumference * (pct / 100));
+        gaugeProgress.style.strokeDashoffset = offset;
+      }
+
+      const subInputEl = $('subInput');
+      if (subInputEl && sub.subscription_url) subInputEl.value = sub.subscription_url;
+      const subDisplayEl = $('subDisplayBox');
+      if (subDisplayEl && sub.subscription_url) subDisplayEl.innerText = sub.subscription_url;
+      const qrImg = $('qrImage');
+      if (qrImg && sub.subscription_url) {
+        qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(sub.subscription_url)}`;
+      }
+      const modalQrImg = $('modalQrImage');
+      if (modalQrImg && sub.subscription_url) {
+        modalQrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=260x260&data=${encodeURIComponent(sub.subscription_url)}`;
+      }
+    } else {
+      const subInputEl = $('subInput');
+      if (subInputEl) subInputEl.value = 'اشتراک فعالی یافت نشد - لطفاً از تب فروشگاه اقدام فرمایید.';
+      const subDisplayEl = $('subDisplayBox');
+      if (subDisplayEl) subDisplayEl.innerText = 'اشتراک فعالی یافت نشد - لطفاً از تب فروشگاه اقدام فرمایید.';
+      const remainEl = $('dashboardRemainingTraffic');
+      if (remainEl) remainEl.innerText = '-- GB';
+      const pctEl = $('dashboardPercentRemaining');
+      if (pctEl) pctEl.innerText = '0%';
+      const pillEl = $('dashboardUsagePill');
+      if (pillEl) pillEl.innerText = '0 / 0 GB';
+      const daysEl = $('dashboardDaysLeft');
+      if (daysEl) daysEl.innerText = '0 روز';
+      const expireEl = $('dashboardExpireDate');
+      if (expireEl) expireEl.innerText = 'غیرفعال';
+      const todayEl = $('dashboardTodayUsed');
+      if (todayEl) todayEl.innerText = '0.00 GB';
+      if (gaugeProgress) gaugeProgress.style.strokeDashoffset = 314.15;
+    }
+  });
+
+  // --- PHASE 6: Active Devices & Sessions (Panel Data) ---
+  safeStep('devicesAndSessions', () => {
+    const devices = sub?.devices || [];
+    const activeDevCount = sub?.devices_count ?? devices.length;
+    const repSessionsBadge = $('reportsSessionsBadge');
+    if (repSessionsBadge) repSessionsBadge.innerText = `${toEnglishDigits(activeDevCount)} دستگاه`;
+    const mCountText = $('modalSessionsCount');
+    if (mCountText) mCountText.innerText = `${toEnglishDigits(activeDevCount)} دستگاه`;
+
+    function renderDeviceList(container) {
+      if (!container) return;
+      if (devices.length === 0) {
+        container.innerHTML = `
+          <div class="p-4 rounded-xl bg-transparent border border-slate-700/50 text-center text-xs text-slate-400">
+            <span>📱 در حال حاضر هیچ دستگاه فعالی روی اشتراک شما ثبت نشده است.</span>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = devices.map(d => {
+        const platform = (d.platform || '').toLowerCase();
+        let icon = '📱';
+        if (platform.includes('android')) icon = '🤖';
+        else if (platform.includes('ios') || platform.includes('iphone') || platform.includes('apple')) icon = '🍏';
+        else if (platform.includes('windows')) icon = '💻';
+        else if (platform.includes('mac')) icon = '🍏';
+        else if (platform.includes('linux')) icon = '🐧';
+
+        const model = d.deviceModel || d.platform || 'دستگاه';
+        const ip = d.requestIp || '—';
+        const hwid = d.hwid || '';
+
+        return `
+          <div class="bg-transparent rounded-xl p-3 border border-slate-700/60 flex items-center justify-between">
+            <div class="flex items-center gap-2.5">
+              <span class="text-2xl">${icon}</span>
+              <div>
+                <div class="flex items-center gap-2">
+                  <span class="text-xs font-bold text-slate-200">${model}</span>
+                  <span class="w-2 h-2 rounded-full bg-emerald-400 inline-block shadow-sm shadow-emerald-400/50" title="فعال"></span>
+                </div>
+                <div class="text-[11px] font-mono text-cyan-400 mt-0.5">IP: ${ip}</div>
+              </div>
+            </div>
+            <button class="kill-device-btn text-rose-400 hover:text-rose-300 w-8 h-8 rounded-xl bg-transparent hover:bg-rose-950/30 border-0 text-xs transition active:scale-95 flex items-center justify-center cursor-pointer" title="قطع این دستگاه" data-hwid="${hwid}">
+              <svg class="w-4 h-4 text-rose-400 hover:text-rose-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+          </div>
+        `;
+      }).join('');
+
+      container.querySelectorAll('.kill-device-btn').forEach(btn => {
+        btn.onclick = async () => {
+          const hwid = btn.getAttribute('data-hwid');
+          if (!hwid || !confirm('آیا از قطع اتصال این دستگاه اطمینان دارید؟')) return;
+          try {
+            const res = await window.api.killDevice(hwid);
+            if (res && res.ok) {
+              showToast('✅ دستگاه با موفقیت قطع شد.');
+              syncUserDataWithApi();
+            } else {
+              showToast(`❌ ${res?.error || 'خطا در قطع دستگاه'}`);
+            }
+          } catch (e) {
+            showToast('خطا در برقراری ارتباط با سرور.');
+          }
+        };
       });
-    });
-  }
+    }
 
-  renderDeviceList($('activeDevicesContainer'));
-  renderDeviceList($('modalSessionsList'));
+    renderDeviceList($('activeDevicesContainer'));
+    renderDeviceList($('modalSessionsList'));
 
-  $('openDashboardSessionsBtn')?.addEventListener('click', () => openModal('activeSessionsModal'));
-  $('headerOnlineBadge')?.addEventListener('click', () => openModal('activeSessionsModal'));
-  $('closeSessionsModalBtn')?.addEventListener('click', () => closeModal('activeSessionsModal'));
-  $('modalKillAllBtn')?.addEventListener('click', () => {
-    $('killAllBtn')?.click();
+    const openSessionsBtn = $('openDashboardSessionsBtn');
+    if (openSessionsBtn) openSessionsBtn.onclick = () => openModal('activeSessionsModal');
+    const onlineBadgeBtn = $('headerOnlineBadge');
+    if (onlineBadgeBtn) onlineBadgeBtn.onclick = () => openModal('activeSessionsModal');
+    const closeSessionsBtn = $('closeSessionsModalBtn');
+    if (closeSessionsBtn) closeSessionsBtn.onclick = () => closeModal('activeSessionsModal');
+    const modalKillAllBtn = $('modalKillAllBtn');
+    if (modalKillAllBtn) {
+      modalKillAllBtn.onclick = () => {
+        $('killAllBtn')?.click();
+      };
+    }
   });
 
-  // Shop Plans
-  renderShopPlans(data);
-
-  // Wallet Balances
-  const walletEl = $('shopWalletBalance');
-  const shopBalAmt = $('shopWalletBalanceAmount');
-  const walletTabBal = $('walletTabBalance');
-  const rawBalNum = Number(user.wallet_balance || 0).toLocaleString('en-US');
-  const formattedWallet = `${rawBalNum} تومان`;
-  if (walletEl) walletEl.innerText = `موجودی: ${formattedWallet}`;
-  if (shopBalAmt) shopBalAmt.innerText = rawBalNum;
-  if (walletTabBal) walletTabBal.innerText = formattedWallet;
-
-  // Profile Identity
-  const profName = $('profileFullName');
-  const profUser = $('profileUsername');
-  const profAvatar = $('profileAvatarInitial');
-  const profStatusBadge = $('profileStatusBadge');
-  const profAuthBadge = $('profileAuthBadge');
-  const profId = $('profileTelegramId');
-  const profRef = $('profileRefCode');
-  const profPhone = $('profilePhone');
-  const profJoin = $('profileJoinDate');
-  const profBirth = $('profileBirthDate');
-  const profSub = $('profileSubStatus');
-
-  const userDisplayName = sub?.username || user.first_name || user.username || 'کاربر گرامی';
-  if (profName) profName.innerText = userDisplayName;
-  if (profUser) profUser.innerText = user.username ? `@${user.username}` : `شناسه: ${user.id || ''}`;
-  if (profAvatar) profAvatar.innerText = userDisplayName.charAt(0).toUpperCase();
-  if (profId) profId.innerText = user.id ? String(user.id) : '--';
-  if (profRef) profRef.innerText = user.id ? String(user.id) : '--';
-  if (profPhone) {
-    profPhone.innerText = user.phone_number ? toEnglishDigits(user.phone_number) : 'وارد نشده';
-    const verifyBtn = $('verifyPhoneInBotBtn');
-    if (verifyBtn) {
-      if (user.phone_number) {
-        verifyBtn.classList.add('hidden');
+  // --- PHASE 7: Story Card & Referral Rewards ---
+  safeStep('storyAndReferrals', () => {
+    const storyName = $('storyCardName');
+    const storyUser = $('storyCardUsername');
+    const storyAvatarImg = $('storyCardAvatarImg');
+    const storyAvatar = $('storyCardAvatarInitial');
+    const storyTraffic = $('storyCardTraffic');
+    const storyDays = $('storyCardDays');
+    const storyQr = $('storyCardQr');
+    const displayName = sub?.username || user.first_name || user.username || 'کاربر گرامی';
+    if (storyName) storyName.innerText = displayName;
+    if (storyUser) {
+      if (user.username) {
+        storyUser.innerText = `@${user.username.replace(/^@/, '')}`;
       } else {
-        verifyBtn.classList.remove('hidden');
+        storyUser.innerText = `ID: ${user.id || ''}`;
       }
+      storyUser.dir = 'ltr';
     }
-  }
-  if (profJoin) profJoin.innerText = toPersianDigits(user.created_at_jalali || '1403/07/01');
-  if (profBirth) profBirth.innerText = user.birth_date ? toPersianDigits(user.birth_date) : 'ثبت‌نشده';
 
-  const hasActiveSub = Boolean(data.has_active_sub && (sub?.status === 'ACTIVE' || !sub?.status));
-  if (profStatusBadge) {
-    if (hasActiveSub) {
-      profStatusBadge.innerHTML = '<span class="inline-flex items-center gap-1"><span>🟢</span><span>کاربر فعال</span></span>';
-      profStatusBadge.className = 'px-2.5 py-0.5 rounded-full text-[10px] font-bold border badge-active transition inline-flex items-center gap-1';
-    } else {
-      profStatusBadge.innerHTML = '<span class="inline-flex items-center gap-1"><span>⚪️</span><span>بدون سرویس فعال</span></span>';
-      profStatusBadge.className = 'px-2.5 py-0.5 rounded-full text-[10px] font-bold border badge-inactive transition inline-flex items-center gap-1';
-    }
-  }
+    const rewardGb = data.referral_reward_gb ?? 5;
+    const rewardEl = $('storyCardRewardGb');
+    if (rewardEl) rewardEl.innerText = toEnglishDigits(rewardGb);
+    const bannerRewardEl = $('storyRewardBannerGb');
+    if (bannerRewardEl) bannerRewardEl.innerText = toEnglishDigits(rewardGb);
 
-  if (profAuthBadge) {
-    if (user.phone_number) {
-      profAuthBadge.innerHTML = '<span class="inline-flex items-center gap-1"><span>✅</span><span>احراز هویت شده</span></span>';
-      profAuthBadge.className = 'px-2.5 py-0.5 rounded-full text-[10px] font-bold border badge-auth transition inline-flex items-center gap-1';
-    } else {
-      profAuthBadge.innerHTML = '<span class="inline-flex items-center gap-1"><span>⚠️</span><span>عدم احراز هویت</span></span>';
-      profAuthBadge.className = 'px-2.5 py-0.5 rounded-full text-[10px] font-bold border badge-unauth transition inline-flex items-center gap-1';
-    }
-  }
+    const uid = user.id || tgUser?.id;
+    const tgPhotoUrl = tgUser?.photo_url || user.photo_url || '';
+    const photoParam = tgPhotoUrl ? `&url=${encodeURIComponent(tgPhotoUrl)}` : '';
+    const resolvedAvatarUrl = uid ? `/api/user/avatar?id=${uid}${photoParam}` : tgPhotoUrl;
 
-  if (profSub) {
-    if (hasActiveSub) {
-      profSub.innerText = 'فعال';
-      profSub.className = 'font-semibold text-emerald-400';
-    } else {
-      profSub.innerText = 'غیرفعال';
-      profSub.className = 'font-semibold text-rose-400';
-    }
-  }
-
-  // Referral & Invite Card
-  const refCard = $('profileReferralCard');
-  const refLinkInp = $('profileReferralLinkInput');
-  const refCountEl = $('profileReferralsCount');
-  const refRewardTotalEl = $('profileReferralRewardTotal');
-  const refRewardBadge = $('profileReferralRewardBadge');
-
-  const refEnabled = data.referral_enabled !== false;
-  if (refCard) {
-    if (!refEnabled) {
-      refCard.classList.add('hidden');
-    } else {
-      refCard.classList.remove('hidden');
-    }
-  }
-
-  const referralLink = data.referral_link || window.buildRefLink(data.bot_username, user.id);
-  if (refLinkInp) refLinkInp.value = referralLink;
-
-  const refCount = Number(user.referrals_count || 0);
-  const refRewardGb = Number(data.referral_reward_gb || 1);
-  if (refCountEl) refCountEl.innerText = `${toEnglishDigits(refCount)} نفر`;
-  if (refRewardTotalEl) refRewardTotalEl.innerText = `${toEnglishDigits(refCount * refRewardGb)}`;
-  if (refRewardBadge) refRewardBadge.innerText = `🎁 ${toEnglishDigits(refRewardGb)} گیگابایت هدیه به ازای هر دعوت`;
-
-  // Profile Settings Switches
-  const settings = data.settings || {};
-  const togglesMap = [
-    { id: 'settingToggleNightly', key: 'nightly', defaultVal: true },
-    { id: 'settingToggleWeekly', key: 'weekly', defaultVal: true },
-    { id: 'settingToggleMonthly', key: 'monthly', defaultVal: true },
-    { id: 'settingToggleCleanReports', key: 'clean_reports', defaultVal: true },
-    { id: 'settingToggleWheelNotify', key: 'wheel_notify', defaultVal: true },
-    { id: 'settingToggleLowTraffic', key: 'low_traffic', defaultVal: true },
-    { id: 'settingToggleExpireWarning', key: 'expire_warning', defaultVal: true },
-  ];
-
-  togglesMap.forEach(({ id, key, defaultVal }) => {
-    const el = $(id);
-    if (!el) return;
-    const val = (settings[key] !== undefined) ? Boolean(settings[key]) : defaultVal;
-    el.checked = val;
-
-    el.onchange = async () => {
-      const newVal = el.checked;
-      try {
-        const res = await window.api.saveSetting(key, newVal);
-        if (res.ok) {
-          showToast('✅ تنظیمات با موفقیت ذخیره شد.');
-          hapticFeedback('success');
-        } else {
-          el.checked = !newVal;
-          showToast('❌ خطا در ذخیره تنظیمات');
+    if (resolvedAvatarUrl && storyAvatarImg) {
+      storyAvatarImg.crossOrigin = 'anonymous';
+      storyAvatarImg.src = resolvedAvatarUrl;
+      storyAvatarImg.onload = () => {
+        storyAvatarImg.classList.remove('hidden');
+        if (storyAvatar) storyAvatar.classList.add('hidden');
+      };
+      storyAvatarImg.onerror = () => {
+        storyAvatarImg.classList.add('hidden');
+        if (storyAvatar) {
+          storyAvatar.classList.remove('hidden');
+          storyAvatar.innerText = displayName.charAt(0).toUpperCase();
         }
-      } catch (e) {
-        el.checked = !newVal;
-        showToast('خطا در برقراری ارتباط با سرور.');
+      };
+    } else {
+      if (storyAvatarImg) storyAvatarImg.classList.add('hidden');
+      if (storyAvatar) {
+        storyAvatar.classList.remove('hidden');
+        storyAvatar.innerText = displayName.charAt(0).toUpperCase();
       }
-    };
+    }
+
+    if (storyTraffic) storyTraffic.innerText = `${sub?.traffic_remaining_gb ?? '--'} GB`;
+    if (storyDays) storyDays.innerText = `${toEnglishDigits(sub?.days_left ?? 0)} روز اعتبار`;
+    const botUsername = data.bot_username || window.Telegram?.WebApp?.initDataUnsafe?.bot?.username || '';
+    const refLink = typeof window.buildRefLink === 'function' ? window.buildRefLink(botUsername, user.id) : '';
+    window.currentReferralLink = refLink;
+    if (storyQr && refLink) {
+      storyQr.crossOrigin = 'anonymous';
+      storyQr.src = `https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(refLink)}`;
+    }
   });
 
-  // Configurable Alert Thresholds Selects & Dynamic Subtexts
-  function updateAlertSubtexts(percent, days) {
-    if (percent !== undefined && percent !== null) {
-      const traf = $('settingTrafficSubtext');
-      if (traf) traf.innerText = `هشدار قبل از پایان ترافیک (${toEnglishDigits(percent)}%)`;
-    }
-    if (days !== undefined && days !== null) {
-      const exp = $('settingExpireSubtext');
-      if (exp) exp.innerText = `اطلاع‌رسانی ${toEnglishDigits(days)} روز مانده به انقضا`;
-    }
-  }
-
-  const trafficPercentSelect = $('settingTrafficPercentSelect');
-  if (trafficPercentSelect) {
-    if (settings.traffic_percent) trafficPercentSelect.value = String(settings.traffic_percent);
-    trafficPercentSelect.onchange = async () => {
-      const val = parseInt(trafficPercentSelect.value, 10);
-      updateAlertSubtexts(val, undefined);
-      try {
-        const res = await window.api.saveSetting('traffic_percent', val);
-        if (res.ok) {
-          showToast(`✅ درصد هشدار مصرف روی ${val}٪ تنظیم شد.`);
-          hapticFeedback('success');
-        } else {
-          showToast('❌ خطا در ذخیره تنظیمات');
-        }
-      } catch (e) {
-        showToast('خطا در برقراری ارتباط با سرور.');
+  // --- PHASE 8: Reports Hub & Usage Breakdowns (Panel Data) ---
+  safeStep('reportsAndAnalytics', () => {
+    // Today Country Breakdown
+    const countryList = $('countryBreakdownList');
+    const countryTotalHeader = $('countryTodayTotalHeader');
+    if (countryTotalHeader) countryTotalHeader.innerText = `${sub?.today_used_gb ?? '0.00'} GB`;
+    if (countryList) {
+      const bDown = sub?.today_breakdown || [];
+      if (bDown.length === 0) {
+        countryList.innerHTML = `
+          <div class="p-3 rounded-xl bg-slate-900/60 border border-slate-700/50 text-center text-xs text-slate-400">
+            <span>ℹ️ امروز هنوز ترافیکی روی سرورها ثبت نشده است.</span>
+          </div>
+        `;
+      } else {
+        const showBar = bDown.length > 1;
+        countryList.innerHTML = bDown.map(item => {
+          const pct = item.percent || 0;
+          const barHtml = (showBar && pct > 0)
+            ? `<div class="w-full bg-slate-800/80 h-1.5 rounded-full overflow-hidden" dir="ltr">
+                <div class="bg-gradient-to-r from-blue-500 to-cyan-400 h-full rounded-full transition-all duration-500" style="width: ${pct}%;"></div>
+              </div>`
+            : '';
+          return `
+          <div class="p-2.5 rounded-xl bg-slate-900/70 border border-slate-700/50 space-y-1.5">
+            <div class="flex justify-between items-center text-xs">
+              <span class="text-cyan-300 font-black text-xs font-mono" dir="ltr">${toEnglishDigits(item.total_formatted)}</span>
+              <span class="flex items-center gap-2 font-bold text-slate-200">
+                <span>${item.name}</span>
+                <span class="text-base">${item.flag || '🌐'}</span>
+              </span>
+            </div>
+            ${barHtml}
+          </div>
+          `;
+        }).join('');
       }
-    };
-  }
+    }
 
-  const expireDaysSelect = $('settingExpireDaysSelect');
-  if (expireDaysSelect) {
-    if (settings.expire_days) expireDaysSelect.value = String(settings.expire_days);
-    expireDaysSelect.onchange = async () => {
-      const val = parseInt(expireDaysSelect.value, 10);
-      updateAlertSubtexts(undefined, val);
-      try {
-        const res = await window.api.saveSetting('expire_days', val);
-        if (res.ok) {
-          showToast(`✅ مهلت هشدار انقضا روی ${val} روز تنظیم شد.`);
-          hapticFeedback('success');
-        } else {
-          showToast('❌ خطا در ذخیره تنظیمات');
-        }
-      } catch (e) {
-        showToast('خطا در برقراری ارتباط با سرور.');
+    // Reports Hub
+    if (data.yesterday_jalali) {
+      const repDateEl = $('repNightlyDate');
+      if (repDateEl) repDateEl.innerText = `${toEnglishDigits(data.yesterday_jalali)} - 23:59`;
+    }
+
+    if (sub) {
+      const repTotal = $('repNightlyTotal');
+      if (repTotal) repTotal.innerText = `${sub.traffic_total_gb ?? '--'} GB`;
+      const repUsed = $('repNightlyUsed');
+      if (repUsed) repUsed.innerText = `${sub.traffic_used_gb ?? '--'} GB`;
+      const repRemain = $('repNightlyRemain');
+      if (repRemain) repRemain.innerText = `${sub.traffic_remaining_gb ?? '--'} GB`;
+      const repYesterday = $('repNightlyYesterday');
+      if (repYesterday) repYesterday.innerText = `${sub.yesterday_used_gb ?? '0.00'} GB`;
+      const repExpire = $('repNightlyExpire');
+      if (repExpire) repExpire.innerText = `${toEnglishDigits(sub.days_left ?? 0)} روز (${toEnglishDigits(sub.expire_jalali || 'نامحدود')})`;
+
+      if (typeof renderNodeBreakdown === 'function') {
+        renderNodeBreakdown('repNightlyNodesContainer', sub.yesterday_breakdown || sub.today_breakdown || [], 'دیشب مصرفی روی سرورها ثبت نشده است.');
+        renderNodeBreakdown('repWeeklyNodesContainer', sub.week_breakdown || [], 'مصرفی در 7 روز گذشته ثبت نشده است.');
+        renderNodeBreakdown('repMonthlyNodesContainer', sub.week_breakdown || sub.today_breakdown || [], 'مصرفی در ماه جاری ثبت نشده است.');
       }
-    };
-  }
 
-  updateAlertSubtexts(settings.traffic_percent || 80, settings.expire_days || 3);
+      const repWeeklyTotal = $('repWeeklyTotal');
+      if (repWeeklyTotal) repWeeklyTotal.innerHTML = `<span dir="ltr" class="font-mono inline-block">\u200E${sub.week_used_gb ?? '0.00'} GB\u200E</span>`;
+      const repWeeklyBusiest = $('repWeeklyBusiest');
+      if (repWeeklyBusiest) {
+        repWeeklyBusiest.innerHTML = `${sub.busiest_day_name || '—'} <span dir="ltr" class="font-mono inline-block text-cyan-300 font-semibold">\u200E(${toEnglishDigits(sub.busiest_day_amount || '0 GB')})\u200E</span>`;
+      }
 
-  // Language buttons
-  const currentLang = user.language || 'fa';
-  const langFaBtn = $('langFaBtn');
-  const langEnBtn = $('langEnBtn');
-  if (currentLang === 'en') {
-    langEnBtn?.classList.add('bg-blue-600', 'text-white', 'font-bold');
-    langEnBtn?.classList.remove('text-slate-400');
-    langFaBtn?.classList.remove('bg-blue-600', 'text-white', 'font-bold');
-    langFaBtn?.classList.add('text-slate-400');
-  } else {
-    langFaBtn?.classList.add('bg-blue-600', 'text-white', 'font-bold');
-    langFaBtn?.classList.remove('text-slate-400');
-    langEnBtn?.classList.remove('bg-blue-600', 'text-white', 'font-bold');
-    langEnBtn?.classList.add('text-slate-400');
-  }
-
-  // Avatar photos
-  const profUid = user.id || tgUser?.id;
-  const profPhotoUrl = tgUser?.photo_url || user.photo_url || '';
-  const profParam = profPhotoUrl ? `&url=${encodeURIComponent(profPhotoUrl)}` : '';
-  const avatarUrl = profUid ? `/api/user/avatar?id=${profUid}${profParam}` : profPhotoUrl;
-
-  const profImg = $('profileAvatarImg');
-  const profAvatarInitial = $('profileAvatarInitial');
-  const headImg = $('headerUserAvatarImg');
-  const headAvatarInitial = $('headerUserAvatarInitial');
-
-  if (avatarUrl) {
-    if (profImg) {
-      profImg.onload = () => {
-        profImg.classList.remove('hidden');
-        if (profAvatarInitial) profAvatarInitial.classList.add('hidden');
-      };
-      profImg.onerror = () => {
-        if (profPhotoUrl && profImg.src !== profPhotoUrl) {
-          profImg.src = profPhotoUrl;
-        } else {
-          profImg.classList.add('hidden');
-          if (profAvatarInitial) profAvatarInitial.classList.remove('hidden');
+      if (typeof renderBarChart === 'function') {
+        try {
+          renderBarChart('repWeeklyChartCanvas', sub.week_daily_totals_gb || [0, 0, 0, 0, 0, 0, 0], sub.week_day_labels || ['ش', 'ی', 'د', 'س', 'چ', 'پ', 'ج'], false);
+        } catch (e) {
+          console.warn('Could not render weekly chart:', e);
         }
-      };
-      profImg.src = avatarUrl;
+      }
+
+      const repMonthlyTitle = $('repMonthlyTitle');
+      if (repMonthlyTitle) repMonthlyTitle.innerText = `📅 گزارش جامع ماه ${sub.current_month_name || ''}`;
+      const repMonthlyTotal = $('repMonthlyTotal');
+      if (repMonthlyTotal) repMonthlyTotal.innerHTML = `<span dir="ltr" class="font-mono inline-block">\u200E${sub.month_used_gb ?? '0.00'} GB\u200E</span>`;
+
+      if (typeof renderBarChart === 'function') {
+        try {
+          renderBarChart('repMonthlyChartCanvas', sub.month_weeks_totals_gb || [0, 0, 0, sub.week_used_gb || 0], ['هفته ۱', 'هفته ۲', 'هفته ۳', 'هفته ۴'], true);
+        } catch (e) {
+          console.warn('Could not render monthly chart:', e);
+        }
+      }
+
+      // Advanced Analytics
+      try {
+        renderActiveSubAnalytics(sub);
+      } catch (e) {
+        console.warn('Could not render active sub analytics:', e);
+      }
+    }
+  });
+
+  // --- PHASE 9: Gamification & Extras (Wheel & Birthday) ---
+  safeStep('perksAndGamification', () => {
+    // Wheel Status
+    if (data.wheel_status && typeof updateWheelUIState === 'function') {
+      updateWheelUIState(
+        data.wheel_status.can_spin,
+        data.wheel_status.has_active_sub,
+        data.wheel_status.next_spin_seconds || 0
+      );
     }
 
-    if (headImg) {
-      headImg.onload = () => {
-        headImg.classList.remove('hidden');
-        if (headAvatarInitial) headAvatarInitial.classList.add('hidden');
-      };
-      headImg.onerror = () => {
-        if (profPhotoUrl && headImg.src !== profPhotoUrl) {
-          headImg.src = profPhotoUrl;
-        } else {
-          headImg.classList.add('hidden');
-          if (headAvatarInitial) headAvatarInitial.classList.remove('hidden');
-        }
-      };
-      headImg.src = avatarUrl;
+    // Dashboard Birthday Countdown
+    if (data.user && typeof renderDashboardBirthdayCountdown === 'function') {
+      renderDashboardBirthdayCountdown(data.user);
     }
-  }
 
-  // Account Switcher button visibility
-  const switchBtn = $('switchAccountBtn');
-  const accounts = data.accounts || [];
-  if (switchBtn) {
-    if (accounts.length > 1) switchBtn.classList.remove('hidden');
-    else switchBtn.classList.add('hidden');
-  }
-
-  // Wallet Transactions List
-  renderWalletTransactions(data.transactions);
-
-  // Wheel Status
-  if (data.wheel_status) {
-    updateWheelUIState(
-      data.wheel_status.can_spin,
-      data.wheel_status.has_active_sub,
-      data.wheel_status.next_spin_seconds || 0
-    );
-  }
-
-  // Dashboard Birthday Countdown
-  if (data.user) {
-    renderDashboardBirthdayCountdown(data.user);
-  }
-
-  // Tutorial app updates badge
-  checkTutorialAppUpdates();
+    // Tutorial App Updates Badge
+    if (typeof checkTutorialAppUpdates === 'function') {
+      checkTutorialAppUpdates();
+    }
+  });
 }
 
-// 15. Stale-While-Revalidate API Sync
+// 16. Versioned Cache Storage & Retrieval
+const USER_CACHE_VERSION = 3;
+const USER_CACHE_KEY = 'remna_user_cache';
+
+function saveUserCache(data) {
+  if (!data || typeof data !== 'object') return;
+  try {
+    const payload = {
+      v: USER_CACHE_VERSION,
+      ts: Date.now(),
+      data: data,
+    };
+    localStorage.setItem(USER_CACHE_KEY, JSON.stringify(payload));
+  } catch (err) {
+    console.warn('[Cache] Failed to save user cache:', err);
+  }
+}
+
+function loadUserCache() {
+  try {
+    const raw = localStorage.getItem(USER_CACHE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (parsed && typeof parsed === 'object') {
+      if (parsed.v === USER_CACHE_VERSION && parsed.data && parsed.data.user) {
+        // Cache is valid and matches schema version!
+        const age = Date.now() - (parsed.ts || 0);
+        if (age < 7 * 24 * 3600 * 1000) {
+          return parsed.data;
+        }
+      }
+    }
+    // Mismatched version, legacy cache, or corrupted -> discard safely
+    localStorage.removeItem(USER_CACHE_KEY);
+    return null;
+  } catch (err) {
+    console.warn('[Cache] Purging corrupted cache:', err);
+    try { localStorage.removeItem(USER_CACHE_KEY); } catch (e) {}
+    return null;
+  }
+}
+
+// 17. Stale-While-Revalidate API Sync
 async function syncUserDataWithApi(accountId) {
   try {
     const res = await window.api.getMe(accountId);
     if (res && res.ok && res.data) {
-      window.lastUserData = res.data;
-      hydrateUserInterface(res.data);
-      if (res.data.active_sub && typeof renderActiveSubAnalytics === 'function') {
-        renderActiveSubAnalytics(res.data.active_sub);
+      if (typeof hideBanner === 'function') {
+        hideBanner('authErrorBanner');
+        hideBanner('apiErrorBanner');
       }
+      window.lastUserData = res.data;
       try {
-        localStorage.setItem('remna_user_cache', JSON.stringify(res.data));
-      } catch(e) {}
+        hydrateUserInterface(res.data);
+      } catch (hydrateErr) {
+        console.error('[syncUserDataWithApi] Error hydrating UI:', hydrateErr);
+      }
+
+      if (res.data.active_sub && typeof renderActiveSubAnalytics === 'function') {
+        try {
+          renderActiveSubAnalytics(res.data.active_sub);
+        } catch (analyticsErr) {
+          console.warn('[syncUserDataWithApi] Error rendering analytics:', analyticsErr);
+        }
+      }
+
+      saveUserCache(res.data);
+
+      if (res.data.partial) {
+        if (typeof showBanner === 'function') {
+          showBanner('⚠️ ارتباط با سرور اشتراک موقتاً با تأخیر همراه است. اطلاعات کیف‌پول و پلن‌ها در دسترس است.', 'warning', {
+            id: 'partialBanner',
+            dismissible: true,
+          });
+        }
+      } else {
+        if (typeof hideBanner === 'function') {
+          hideBanner('partialBanner');
+        }
+      }
     } else if (res && !res.ok) {
       console.warn('Live API response not ok:', res);
+      const statusCode = res._status || res.status;
+      if (statusCode === 401 || res.error === 'Unauthorized') {
+        if (typeof showBanner === 'function') {
+          showBanner('نشست کاربری شما منقضی شده است. لطفاً مینی‌اپ را ببندید و مجدداً باز فرمایید.', 'error', {
+            id: 'authErrorBanner',
+            actionText: 'بستن برنامه',
+            onAction: () => {
+              if (window.Telegram?.WebApp?.close) {
+                window.Telegram.WebApp.close();
+              } else {
+                window.location.reload();
+              }
+            },
+          });
+        }
+      } else if (statusCode === 408 || res.is_timeout) {
+        if (typeof showBanner === 'function') {
+          showBanner('مهلت ارتباط با سرور به پایان رسید. در حال استفاده از آخرین اطلاعات ذخیره‌شده.', 'warning', {
+            id: 'apiErrorBanner',
+            actionText: 'تلاش مجدد',
+            onAction: () => syncUserDataWithApi(accountId),
+          });
+        }
+      } else {
+        if (typeof showBanner === 'function') {
+          showBanner(res.error || 'خطا در برقراری ارتباط با سرور. لطفاً مجدداً تلاش کنید.', 'warning', {
+            id: 'apiErrorBanner',
+            actionText: 'تلاش مجدد',
+            onAction: () => syncUserDataWithApi(accountId),
+          });
+        }
+      }
     }
   } catch (err) {
     console.debug('Live API sync fallback to cache', err);
+    if (typeof showBanner === 'function') {
+      showBanner('خطای شبکه در ارتباط با سرور. لطفاً مجدداً تلاش کنید.', 'warning', {
+        id: 'apiErrorBanner',
+        actionText: 'تلاش مجدد',
+        onAction: () => syncUserDataWithApi(accountId),
+      });
+    }
   }
 }
 
-// 16. Initialize Application
+// 18. Initialize Application
 function initApp() {
   const safeRun = (name, fn) => {
     try {
@@ -2480,13 +2642,14 @@ function initApp() {
 
   safeRun('hydrateFromCache', () => {
     try {
-      const cached = localStorage.getItem('remna_user_cache');
-      if (cached) {
-        const parsed = JSON.parse(cached);
-        window.lastUserData = parsed;
-        hydrateUserInterface(parsed);
+      const cachedData = loadUserCache();
+      if (cachedData) {
+        window.lastUserData = cachedData;
+        hydrateUserInterface(cachedData);
       }
-    } catch(e) {}
+    } catch(e) {
+      console.warn('[initApp] hydrateFromCache error:', e);
+    }
   });
 
   safeRun('syncUserDataWithApi', syncUserDataWithApi);
@@ -2501,3 +2664,6 @@ if (document.readyState === 'loading') {
 
 window.syncUserDataWithApi = syncUserDataWithApi;
 window.hydrateUserInterface = hydrateUserInterface;
+window.renderActiveSubAnalytics = renderActiveSubAnalytics;
+window.saveUserCache = saveUserCache;
+window.loadUserCache = loadUserCache;

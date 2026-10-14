@@ -32,21 +32,58 @@ const api = {
       options.body = JSON.stringify(options.body);
     }
 
+    let timeoutId = null;
+    let signal = options.signal;
+    const timeoutMs = options.timeout || 15000;
+
+    if (!signal && typeof AbortController !== 'undefined') {
+      const controller = new AbortController();
+      timeoutId = setTimeout(() => {
+        try {
+          controller.abort(new Error('Request timeout'));
+        } catch (e) {
+          controller.abort();
+        }
+      }, timeoutMs);
+      signal = controller.signal;
+    }
+
     try {
       const response = await fetch(url, {
         ...options,
         headers,
+        signal,
       });
 
+      let data = null;
       try {
-        const data = await response.json();
-        return { ok: response.ok, status: response.status, data };
+        data = await response.json();
       } catch (e) {
-        return { ok: response.ok, status: response.status, data: null };
+        data = null;
       }
+
+      if (data && typeof data === 'object') {
+        data._status = response.status;
+        data._httpOk = response.ok;
+      }
+      return { ok: response.ok, status: response.status, data };
     } catch (netErr) {
-      console.warn('API network error for ' + url + ':', netErr);
-      return { ok: false, status: 0, data: { ok: false, error: 'خطای شبکه در ارتباط با سرور' } };
+      const isTimeout = netErr?.name === 'AbortError' || String(netErr).toLowerCase().includes('timeout');
+      console.warn(`API ${isTimeout ? 'timeout' : 'network error'} for ${url}:`, netErr);
+      const errMsg = isTimeout ? 'مهلت زمانی ارتباط با سرور به پایان رسید (Timeout)' : 'خطای شبکه در ارتباط با سرور';
+      const fallbackData = {
+        ok: false,
+        status: isTimeout ? 408 : 0,
+        _status: isTimeout ? 408 : 0,
+        _httpOk: false,
+        error: errMsg,
+        is_timeout: isTimeout,
+      };
+      return { ok: false, status: fallbackData.status, data: fallbackData };
+    } finally {
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
     }
   },
 
@@ -64,7 +101,7 @@ const api = {
     return response.blob();
   },
 
-  async get(url, queryParams = {}) {
+  async get(url, queryParams = {}, options = {}) {
     const searchParams = new URLSearchParams(queryParams);
     const locParams = new URLSearchParams(window.location.search);
     for (const key of ['dev_id', 'user_id', 'initData']) {
@@ -74,11 +111,14 @@ const api = {
     }
     const qs = searchParams.toString();
     const fullUrl = qs ? `${url}?${qs}` : url;
-    const res = await this.request(fullUrl, { method: 'GET' });
-    return res.data || {};
+    const res = await this.request(fullUrl, { method: 'GET', ...options });
+    const data = res.data || {};
+    data._status = res.status;
+    data._httpOk = res.ok;
+    return data;
   },
 
-  async post(url, body = {}) {
+  async post(url, body = {}, options = {}) {
     let fullUrl = url;
     const locParams = new URLSearchParams(window.location.search);
     const forwardParams = new URLSearchParams();
@@ -91,18 +131,24 @@ const api = {
     if (qs && !fullUrl.includes('?')) {
       fullUrl = `${fullUrl}?${qs}`;
     }
-    const res = await this.request(fullUrl, { method: 'POST', body });
-    return res.data || {};
+    const res = await this.request(fullUrl, { method: 'POST', body, ...options });
+    const data = res.data || {};
+    data._status = res.status;
+    data._httpOk = res.ok;
+    return data;
   },
 
   // Specific Domain Endpoints
-  async getMe(accountId = null) {
+  async getMe(accountId = null, options = {}) {
     let url = '/api/user/me' + (window.location.search || '');
     if (accountId) {
       url += (url.includes('?') ? '&' : '?') + `account_id=${accountId}`;
     }
-    const res = await this.request(url, { method: 'GET' });
-    return res.data || {};
+    const res = await this.request(url, { method: 'GET', ...options });
+    const data = res.data || {};
+    data._status = res.status;
+    data._httpOk = res.ok;
+    return data;
   },
 
   async revokeSub() {

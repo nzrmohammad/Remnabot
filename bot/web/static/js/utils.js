@@ -34,6 +34,90 @@ function showToast(msg) {
   }, 3000);
 }
 
+// Global Banner Notification Utility (for session expiry, timeouts, system notices)
+function showBanner(msg, type = 'warning', options = {}) {
+  const bannerId = options.id || 'appGlobalBanner';
+  let banner = document.getElementById(bannerId);
+  const container = document.getElementById('contentArea') || document.body;
+
+  const bgBorderMap = {
+    error: 'bg-rose-950/80 border-rose-500/50 text-rose-200',
+    warning: 'bg-amber-950/80 border-amber-500/50 text-amber-200',
+    info: 'bg-blue-950/80 border-blue-500/50 text-blue-200',
+    success: 'bg-emerald-950/80 border-emerald-500/50 text-emerald-200',
+  };
+  const iconMap = {
+    error: '🚫',
+    warning: '⚠️',
+    info: 'ℹ️',
+    success: '✅',
+  };
+
+  const styleClasses = bgBorderMap[type] || bgBorderMap.warning;
+  const icon = options.icon || iconMap[type] || '⚠️';
+
+  if (!banner) {
+    banner = document.createElement('div');
+    banner.id = bannerId;
+    if (container.firstChild) {
+      container.insertBefore(banner, container.firstChild);
+    } else {
+      container.appendChild(banner);
+    }
+  }
+
+  banner.className = `w-full rounded-2xl p-3 border backdrop-blur-md shadow-lg transition-all duration-300 text-xs flex items-center justify-between gap-2.5 mb-3.5 ${styleClasses}`;
+
+  let actionBtnHtml = '';
+  if (options.actionText) {
+    actionBtnHtml = `<button type="button" class="banner-action-btn flex-shrink-0 px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 active:scale-95 text-white font-bold text-[11px] border border-white/20 transition cursor-pointer">${escapeHtml(options.actionText)}</button>`;
+  }
+
+  let closeBtnHtml = '';
+  if (options.dismissible !== false && !options.actionText) {
+    closeBtnHtml = `<button type="button" class="banner-close-btn flex-shrink-0 text-slate-400 hover:text-white p-1 text-sm bg-transparent border-0 cursor-pointer" title="بستن">✕</button>`;
+  }
+
+  banner.innerHTML = `
+    <div class="flex items-center gap-2 min-w-0">
+      <span class="text-base flex-shrink-0">${icon}</span>
+      <span class="font-medium leading-relaxed break-words">${escapeHtml(msg)}</span>
+    </div>
+    <div class="flex items-center gap-1.5 flex-shrink-0">
+      ${actionBtnHtml}
+      ${closeBtnHtml}
+    </div>
+  `;
+
+  if (options.actionText && typeof options.onAction === 'function') {
+    const actBtn = banner.querySelector('.banner-action-btn');
+    if (actBtn) {
+      actBtn.onclick = (e) => {
+        e.preventDefault();
+        options.onAction();
+      };
+    }
+  }
+
+  const clsBtn = banner.querySelector('.banner-close-btn');
+  if (clsBtn) {
+    clsBtn.onclick = () => hideBanner(bannerId);
+  }
+}
+
+function hideBanner(bannerId = 'appGlobalBanner') {
+  const banner = document.getElementById(bannerId);
+  if (banner) {
+    banner.remove();
+  }
+}
+
+if (typeof window !== 'undefined') {
+  window.showToast = showToast;
+  window.showBanner = showBanner;
+  window.hideBanner = hideBanner;
+}
+
 // Telegram Haptic Feedback
 function hapticFeedback(type = 'success') {
   if (window.Telegram?.WebApp?.HapticFeedback) {
