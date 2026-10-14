@@ -87,6 +87,12 @@ async def cmd_start(
             )
             return
 
+    # Auto-dismiss any residual reply keyboard (e.g. phone share button)
+    from aiogram.types import ReplyKeyboardRemove
+    cleaner = await message.answer("🔄", reply_markup=ReplyKeyboardRemove())
+    with contextlib.suppress(Exception):
+        await cleaner.delete()
+
     # fresh menu message at the bottom of the chat
     if not user.language:
         await reset_menu(bot, user, user_repo, CHOOSE_LANGUAGE, language_keyboard())
