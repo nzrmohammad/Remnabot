@@ -396,6 +396,19 @@ async def auto_backup_loop(bot, session_factory) -> None:
                     )
                     topic_id = thread_kwargs.get("message_thread_id")
                     logger.info("Auto database backup delivered to %s (topic: %s)", admin_chat_id, topic_id)
+
+                    # Automated 7-day local backup retention cleanup
+                    try:
+                        backups_dir = Path("backups")
+                        if backups_dir.exists():
+                            now_ts = datetime.now().timestamp()
+                            retention_secs = 7 * 86400
+                            for old_f in backups_dir.glob("remnabot_backup_*"):
+                                if old_f.is_file() and (now_ts - old_f.stat().st_mtime) > retention_secs:
+                                    old_f.unlink(missing_ok=True)
+                                    logger.info("Purged expired local backup file: %s", old_f.name)
+                    except Exception as clean_err:
+                        logger.warning("Error cleaning expired backups: %s", clean_err)
         except Exception as exc:
             logger.exception("Failed to execute scheduled database backup: %s", exc)
         # Sleep 120s to ensure we roll past 01:30

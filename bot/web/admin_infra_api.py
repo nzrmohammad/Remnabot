@@ -8,7 +8,13 @@ from bot.db.models import AdminLog, Order
 from bot.db.repositories.node_cost_repo import NodeCostRepository
 from bot.web.admin_common import _check_admin as _default_check_admin, db_session
 from bot.web.cache import FastCache
-from bot.services.ssl_checker import check_domain_ssl, check_domains_ssl, get_system_ssl_domains
+from bot.services.ssl_checker import (
+    check_domain_ssl,
+    check_domains_ssl,
+    get_system_ssl_domains,
+    add_custom_ssl_domain,
+    delete_custom_ssl_domain,
+)
 
 try:
     import jdatetime
@@ -227,13 +233,23 @@ async def get_admin_ssl_health(request: web.Request) -> web.Response:
         return web.json_response({"ok": False, "error": "Forbidden"}, status=403)
 
     remnawave = request.app.get("remnawave")
-    domain_items = await get_system_ssl_domains(remnawave)
+    domain_items = []
+    if "session_factory" in request.app or "session" in request:
+        try:
+            async with db_session(request) as session:
+                domain_items = await get_system_ssl_domains(remnawave, session)
+        except Exception:
+            domain_items = await get_system_ssl_domains(remnawave)
+    else:
+        domain_items = await get_system_ssl_domains(remnawave)
     domains = [item["domain"] for item in domain_items]
     labels_map = {item["domain"]: item["label"] for item in domain_items}
+    custom_map = {item["domain"]: item.get("is_custom", False) for item in domain_items}
 
     results = await check_domains_ssl(domains)
     for res in results:
         res["label"] = labels_map.get(res["domain"], "دامنه سرور")
+        res["is_custom"] = custom_map.get(res["domain"], False)
 
     return web.json_response({"ok": True, "data": results})
 
@@ -255,5 +271,52 @@ async def post_admin_ssl_check(request: web.Request) -> web.Response:
 
     res = await check_domain_ssl(domain)
     res["label"] = "بررسی دستی"
+    res["is_custom"] = False
     return web.json_response({"ok": True, "data": res})
+
+
+async def post_admin_add_ssl_domain(request: web.Request) -> web.Response:
+    """Add a custom domain to monitor SSL health."""
+    admin = _check_admin(request)
+    if not admin:
+        return web.json_response({"ok": False, "error": "Forbidden"}, status=403)
+
+    try:
+        body = await request.json()
+    except Exception:
+        body = {}
+
+    domain = str(body.get("domain") or "").strip()
+    if not domain:
+        return web.json_response({"ok": False, "error": "آدرس دامنه الزامی است."}, status=400)
+
+    async with db_session(request) as session:
+        await add_custom_ssl_domain(session, domain)
+
+    res = await check_domain_ssl(domain)
+    res["label"] = "دامنه سفارشی ادمین"
+    res["is_custom"] = True
+    return web.json_response({"ok": True, "data": res, "message": "دامنه با موفقیت ثبت شد."})
+
+
+async def post_admin_delete_ssl_domain(request: web.Request) -> web.Response:
+    """Remove a custom domain from SSL monitor."""
+    admin = _check_admin(request)
+    if not admin:
+        return web.json_response({"ok": False, "error": "Forbidden"}, status=403)
+
+    try:
+        body = await request.json()
+    except Exception:
+        body = {}
+
+    domain = str(body.get("domain") or "").strip()
+    if not domain:
+        return web.json_response({"ok": False, "error": "آدرس دامنه الزامی است."}, status=400)
+
+    async with db_session(request) as session:
+        await delete_custom_ssl_domain(session, domain)
+
+    return web.json_response({"ok": True, "message": "دامنه با موفقیت حذف گردید."})
+
 

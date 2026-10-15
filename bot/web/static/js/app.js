@@ -1104,8 +1104,9 @@ function loadAvatarWithFallback(imgEl, initialEl, directPhoto, userId) {
   if (!imgEl) return;
   imgEl.referrerPolicy = 'no-referrer';
   const profParam = directPhoto ? `&url=${encodeURIComponent(directPhoto)}` : '';
-  const proxyUrl = userId ? `/api/user/avatar?id=${userId}${profParam}` : '';
-  const targetUrl = directPhoto || proxyUrl;
+  // Prioritize server-side proxy endpoint so Telegram CDN URLs are fetched through the VPS rather than blocked locally
+  const proxyUrl = userId ? `/api/user/avatar?user_id=${userId}${profParam}` : '';
+  const targetUrl = proxyUrl || directPhoto;
 
   if (!targetUrl) {
     imgEl.classList.add('hidden');
@@ -1119,9 +1120,9 @@ function loadAvatarWithFallback(imgEl, initialEl, directPhoto, userId) {
   };
 
   imgEl.onerror = () => {
-    if (proxyUrl && !imgEl.dataset.proxyRetried && !imgEl.src.includes('/api/user/avatar')) {
-      imgEl.dataset.proxyRetried = '1';
-      imgEl.src = proxyUrl;
+    if (directPhoto && imgEl.src.includes('/api/user/avatar') && !imgEl.dataset.directRetried) {
+      imgEl.dataset.directRetried = '1';
+      imgEl.src = directPhoto;
     } else {
       imgEl.classList.add('hidden');
       if (initialEl) initialEl.classList.remove('hidden');

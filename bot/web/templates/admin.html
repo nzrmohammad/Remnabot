@@ -472,50 +472,67 @@
       <!-- TAB 3: CLUSTER & NODES (مدیریت سرورها)                 -->
       <!-- ===================================================== -->
       <div id="tab-admin-nodes" class="admin-tab-pane space-y-3.5 pb-8 hidden">
-        <div class="bg-slate-800/80 p-3.5 rounded-2xl border border-slate-700/80 shadow flex items-center justify-between">
-          <div>
-            <h3 class="text-xs font-bold text-slate-200 flex items-center gap-1.5">
-              <svg class="w-4 h-4 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01"/></svg>
-              <span>وضعیت سرورها</span>
-            </h3>
-            <span class="text-[10px] text-slate-400 mt-0.5 block">پایش لحظه‌ای مصرف منابع، سرعت و پهنای باند</span>
-          </div>
+        <!-- Subtab Switcher: Servers vs SSL Certificates -->
+        <div class="flex items-center p-1 bg-slate-800/90 dark:bg-slate-800/90 rounded-2xl border border-slate-700/70 shadow-sm">
+          <button id="subtabBtnNodesServers" type="button" onclick="window.switchNodesSubtab('servers')" class="flex-1 py-2 px-3 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 bg-blue-600 text-white shadow">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01"/></svg>
+            <span>سرورها و منابع</span>
+          </button>
+          <button id="subtabBtnNodesSsl" type="button" onclick="window.switchNodesSubtab('ssl')" class="flex-1 py-2 px-3 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 text-slate-400 hover:text-slate-200">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+            <span>گواهی‌های SSL و دامنه‌ها</span>
+          </button>
+        </div>
+
+        <!-- Subtab 1: Servers Content -->
+        <div id="subtabContentNodesServers" class="space-y-3.5">
+          <div class="bg-slate-800/80 p-3.5 rounded-2xl border border-slate-700/80 shadow flex items-center justify-between">
+            <div>
+              <h3 class="text-xs font-bold text-slate-200 flex items-center gap-1.5">
+                <svg class="w-4 h-4 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01"/></svg>
+                <span>وضعیت سرورها</span>
+              </h3>
+              <span class="text-[10px] text-slate-400 mt-0.5 block">پایش لحظه‌ای مصرف منابع، سرعت و پهنای باند</span>
+            </div>
             <button id="refreshNodesTabBtn" class="p-2 bg-transparent hover:bg-cyan-500/10 text-cyan-400 hover:text-cyan-300 rounded-xl border border-cyan-500/30 hover:border-cyan-400/60 transition flex items-center justify-center active:scale-95" title="تازه‌سازی فوری سرورها">
               <svg id="refreshNodesTabIcon" class="w-4 h-4 text-cyan-400 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
             </button>
+          </div>
+          <div id="adminNodesFullList" class="space-y-3">
+            <div class="p-8 text-center text-xs text-slate-400">در حال دریافت وضعیت نودها...</div>
+          </div>
         </div>
 
-        <!-- SSL Health & Certificate Monitor Card -->
-        <div class="bg-slate-800/80 p-3.5 rounded-2xl border border-slate-700/80 shadow space-y-3">
-          <div class="flex items-center justify-between">
-            <div>
-              <h3 class="text-xs font-bold text-slate-200 flex items-center gap-1.5">
-                <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
-                <span>پایش و سلامت SSL دامنه‌ها</span>
-              </h3>
-              <span class="text-[10px] text-slate-400 mt-0.5 block">بررسی خودکار و زنده اعتبار گواهی امنیتی دامنه‌ها و نودها</span>
+        <!-- Subtab 2: SSL Certificates Content -->
+        <div id="subtabContentNodesSsl" class="space-y-3.5 hidden">
+          <!-- SSL Health & Certificate Monitor Card -->
+          <div class="bg-slate-800/80 p-3.5 rounded-2xl border border-slate-700/80 shadow space-y-3">
+            <div class="flex items-center justify-between">
+              <div>
+                <h3 class="text-xs font-bold text-slate-200 flex items-center gap-1.5">
+                  <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                  <span>مدیریت و پایش گواهی‌های SSL</span>
+                </h3>
+                <span class="text-[10px] text-slate-400 mt-0.5 block">پایش زنده تاریخ انقضا و سلامت گواهی امنیتی دامنه‌ها و نودها</span>
+              </div>
+              <button id="refreshSslHealthBtn" class="p-1.5 bg-transparent hover:bg-emerald-500/10 text-emerald-400 hover:text-emerald-300 rounded-xl border border-emerald-500/30 hover:border-emerald-400/60 transition flex items-center justify-center active:scale-95" title="بررسی مجدد SSL">
+                <svg id="refreshSslHealthIcon" class="w-3.5 h-3.5 text-emerald-400 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+              </button>
             </div>
-            <button id="refreshSslHealthBtn" class="p-1.5 bg-transparent hover:bg-emerald-500/10 text-emerald-400 hover:text-emerald-300 rounded-xl border border-emerald-500/30 hover:border-emerald-400/60 transition flex items-center justify-center active:scale-95" title="بررسی مجدد SSL">
-              <svg id="refreshSslHealthIcon" class="w-3.5 h-3.5 text-emerald-400 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-            </button>
-          </div>
 
-          <!-- Quick Test Domain Input -->
-          <div class="flex items-center gap-2">
-            <input id="customSslDomainInput" type="text" dir="ltr" placeholder="test.domain.com" class="flex-1 bg-slate-900/80 border border-slate-700/80 text-white rounded-xl px-3 py-1.5 text-xs focus:outline-none focus:border-emerald-500 placeholder-slate-500 font-mono" />
-            <button id="checkCustomSslBtn" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white text-xs font-bold rounded-xl transition flex items-center gap-1 shadow flex-shrink-0">
-              <span>تست دامنه</span>
-            </button>
-          </div>
+            <!-- Add New Custom Domain Input -->
+            <div class="flex items-center gap-2">
+              <input id="customSslDomainInput" type="text" dir="ltr" placeholder="sub.example.com" class="flex-1 bg-slate-900/80 border border-slate-700/80 text-white rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-emerald-500 placeholder-slate-500 font-mono" />
+              <button id="addCustomSslBtn" class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white text-xs font-bold rounded-xl transition flex items-center gap-1 shadow flex-shrink-0">
+                <span>+ افزودن دامنه</span>
+              </button>
+            </div>
 
-          <!-- SSL Status Items Container -->
-          <div id="adminSslHealthList" class="space-y-2">
-            <div class="p-4 text-center text-xs text-slate-400">در حال ارزیابی گواهی‌های SSL...</div>
+            <!-- SSL Status Items Container -->
+            <div id="adminSslHealthList" class="space-y-2">
+              <div class="p-4 text-center text-xs text-slate-400">در حال ارزیابی گواهی‌های SSL...</div>
+            </div>
           </div>
-        </div>
-
-        <div id="adminNodesFullList" class="space-y-3">
-          <div class="p-8 text-center text-xs text-slate-400">در حال دریافت وضعیت نودها...</div>
         </div>
       </div>
 
@@ -915,6 +932,26 @@
               <div>
                 <label class="text-[11px] text-slate-400 block mb-1">آیدی پشتیبان تلگرام</label>
                 <input type="text" id="settingSupportContact" dir="ltr" placeholder="@Support_Admin" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-200 outline-none focus:border-indigo-500 transition" />
+              </div>
+            </div>
+
+            <!-- Join Gate Settings Card (Inside Trial Section) -->
+            <div class="bg-slate-900/60 rounded-xl p-3 border border-slate-700/60 space-y-2 mt-2">
+              <div class="flex items-center justify-between">
+                <div>
+                  <span class="text-slate-200 font-medium block text-xs">عضویت اجباری کانال (Join Gate)</span>
+                  <span class="text-[10px] text-slate-400">اجبار عضویت در کانال تلگرام جهت دریافت تست رایگان و گردونه شانس</span>
+                </div>
+                <label class="relative inline-flex items-center cursor-pointer">
+                  <input type="checkbox" class="sr-only switch-checkbox" id="settingJoinGateSwitch">
+                  <div class="switch-label w-11 h-6 bg-slate-700 rounded-full transition-colors duration-200 flex items-center px-0.5">
+                    <div class="switch-ball w-5 h-5 bg-white rounded-full shadow-md transition-transform duration-200"></div>
+                  </div>
+                </label>
+              </div>
+              <div class="pt-1 border-t border-slate-800">
+                <label class="text-[10px] text-slate-400 block mb-1">آیدی یا لینک کانال تلگرام (مثال: @MyChannel)</label>
+                <input type="text" id="settingJoinGateChannel" dir="ltr" placeholder="@MyChannel" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-1.5 text-xs font-mono text-cyan-300 outline-none focus:border-cyan-500 transition" />
               </div>
             </div>
           </div>
@@ -1552,26 +1589,6 @@
                 <label class="text-[11px] text-slate-400 block mb-1">درصد کد تخفیف هدیه (٪)</label>
                 <input type="number" id="settingBirthdayRewardDiscount" dir="ltr" placeholder="20" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-purple-300 outline-none focus:border-purple-500 transition" />
               </div>
-            </div>
-          </div>
-
-          <!-- Join Gate Settings Card -->
-          <div class="bg-slate-800/80 rounded-2xl p-4 border border-slate-700/80 space-y-3">
-            <div class="flex items-center justify-between">
-              <div>
-                <span class="text-slate-200 font-medium block">عضویت اجباری کانال (Join Gate)</span>
-                <span class="text-[10px] text-slate-400">اجبار عضویت در کانال تلگرام جهت دریافت تست رایگان و گردونه شانس</span>
-              </div>
-              <label class="relative inline-flex items-center cursor-pointer">
-                <input type="checkbox" class="sr-only switch-checkbox" id="settingJoinGateSwitch">
-                <div class="switch-label w-11 h-6 bg-slate-700 rounded-full transition-colors duration-200 flex items-center px-0.5">
-                  <div class="switch-ball w-5 h-5 bg-white rounded-full shadow-md transition-transform duration-200"></div>
-                </div>
-              </label>
-            </div>
-            <div class="pt-1 border-t border-slate-700/50">
-              <label class="text-[11px] text-slate-400 block mb-1">آیدی یا لینک کانال تلگرام (مثال: @MyChannel)</label>
-              <input type="text" id="settingJoinGateChannel" dir="ltr" placeholder="@MyChannel" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-cyan-300 outline-none focus:border-cyan-500 transition" />
             </div>
           </div>
         </div>

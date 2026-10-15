@@ -278,7 +278,15 @@ function startCryptoCountdownTimer(seconds = 1800) {
     clearInterval(cryptoCountdownTimerInterval);
     cryptoCountdownTimerInterval = null;
   }
-  let remaining = seconds;
+  let targetEnd = Date.now() + (seconds * 1000);
+  try {
+    const raw = localStorage.getItem('remna_active_crypto_invoice');
+    if (raw) {
+      const data = JSON.parse(raw);
+      if (data && data.expires_at) targetEnd = data.expires_at;
+    }
+  } catch (e) {}
+
   const timerEl = document.getElementById('cryptoCountdownTimer');
   if (timerEl) {
     timerEl.classList.remove('text-rose-400', 'bg-rose-500/10', 'border-rose-500/20');
@@ -286,17 +294,24 @@ function startCryptoCountdownTimer(seconds = 1800) {
   }
 
   const updateDisplay = () => {
+    const now = Date.now();
+    const remaining = Math.max(0, Math.floor((targetEnd - now) / 1000));
+    const timer = document.getElementById('cryptoCountdownTimer');
+    const pendingTimer = document.getElementById('activeCryptoPendingTimer');
+
     if (remaining <= 0) {
-      if (timerEl) {
-        timerEl.innerText = '00:00 (منقضی شد)';
-        timerEl.classList.remove('text-amber-400', 'bg-amber-500/10', 'border-amber-500/20');
-        timerEl.classList.add('text-rose-400', 'bg-rose-500/10', 'border-rose-500/20');
+      if (timer) {
+        timer.innerText = '00:00 (منقضی شد)';
+        timer.classList.remove('text-amber-400', 'bg-amber-500/10', 'border-amber-500/20');
+        timer.classList.add('text-rose-400', 'bg-rose-500/10', 'border-rose-500/20');
       }
-      const pendingTimer = document.getElementById('activeCryptoPendingTimer');
       if (pendingTimer) {
         pendingTimer.innerText = '00:00 (منقضی شد)';
       }
-      if (cryptoCountdownTimerInterval) clearInterval(cryptoCountdownTimerInterval);
+      if (cryptoCountdownTimerInterval) {
+        clearInterval(cryptoCountdownTimerInterval);
+        cryptoCountdownTimerInterval = null;
+      }
       try { localStorage.removeItem('remna_active_crypto_invoice'); } catch (e) {}
       updatePendingCardUI(null);
       return;
@@ -304,16 +319,12 @@ function startCryptoCountdownTimer(seconds = 1800) {
     const mins = Math.floor(remaining / 60);
     const secs = remaining % 60;
     const timeStr = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
-    if (timerEl) timerEl.innerText = timeStr;
-    const pendingTimer = document.getElementById('activeCryptoPendingTimer');
+    if (timer) timer.innerText = timeStr;
     if (pendingTimer) pendingTimer.innerText = timeStr;
   };
 
   updateDisplay();
-  cryptoCountdownTimerInterval = setInterval(() => {
-    remaining -= 1;
-    updateDisplay();
-  }, 1000);
+  cryptoCountdownTimerInterval = setInterval(updateDisplay, 1000);
 }
 
 function stopCryptoCountdownTimer() {
@@ -467,7 +478,6 @@ function setupWalletListeners() {
   });
 
   document.getElementById('closeTopupModalBtn')?.addEventListener('click', () => {
-    stopCryptoCountdownTimer();
     closeModal('topupModal');
   });
 

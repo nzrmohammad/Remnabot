@@ -1134,13 +1134,20 @@
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    const labels = paymentDist?.labels || ['کارت به کارت (ریالی)', 'ارز دیجیتال (کریپتو / TON)'];
-    const values = paymentDist?.counts || [0, 0];
-    const volumes = paymentDist?.volumes || [0, 0];
+    const labels = paymentDist?.labels || ['کارت به کارت (ریالی)', 'ارز دیجیتال (کریپتو / TON)', 'تلگرام استارز (XTR)'];
+    const values = paymentDist?.counts || [0, 0, 0];
+    const volumes = paymentDist?.volumes || [0, 0, 0];
+
+    const chartColors = [
+      'rgba(6, 182, 212, 0.85)',
+      'rgba(168, 85, 247, 0.85)',
+      'rgba(250, 204, 21, 0.85)',
+    ];
 
     if (paymentChartInstance) {
       paymentChartInstance.data.labels = labels;
       paymentChartInstance.data.datasets[0].data = values;
+      paymentChartInstance.data.datasets[0].backgroundColor = chartColors.slice(0, labels.length);
       paymentChartInstance.update();
       return;
     }
@@ -1151,10 +1158,7 @@
         labels: labels,
         datasets: [{
           data: values,
-          backgroundColor: [
-            'rgba(6, 182, 212, 0.85)',
-            'rgba(168, 85, 247, 0.85)',
-          ],
+          backgroundColor: chartColors.slice(0, labels.length),
           borderWidth: 0,
           borderColor: 'transparent',
         }]
@@ -1412,7 +1416,7 @@
     const container = $('adminSslHealthList');
     if (!container) return;
     try {
-      const res = await window.api.admin.getSslHealth();
+      const res = await window.api.getSslHealth();
       if (res && res.ok && Array.isArray(res.data)) {
         cachedSslHealthItems = res.data;
         renderSslHealth(cachedSslHealthItems);
@@ -1455,6 +1459,12 @@
         daysHtml = `<span class="text-[10px] text-rose-400/80">${escapeHtml(item.error || 'ارتباط با پورت SSL برقرار نشد')}</span>`;
       }
 
+      const deleteBtnHtml = item.is_custom
+        ? `<button onclick="window.adminActions.deleteSslDomain('${escapeHtml(item.domain)}')" class="text-rose-400 hover:text-rose-300 p-1 rounded-lg hover:bg-rose-500/10 transition active:scale-95 flex-shrink-0" title="حذف دامنه سفارشی">
+             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+           </button>`
+        : '';
+
       return `
         <div class="p-2.5 rounded-xl bg-slate-900/60 border border-slate-700/50 flex flex-col gap-1.5 transition hover:border-slate-600/60">
           <div class="flex items-center justify-between gap-2">
@@ -1463,7 +1473,10 @@
               <span class="font-mono text-xs font-semibold text-slate-200 truncate" dir="ltr">${escapeHtml(item.domain)}</span>
               ${item.label ? `<span class="text-[10px] text-slate-400 truncate">(${escapeHtml(item.label)})</span>` : ''}
             </div>
-            <div class="flex-shrink-0">${badgeHtml}</div>
+            <div class="flex items-center gap-1.5 flex-shrink-0">
+              ${badgeHtml}
+              ${deleteBtnHtml}
+            </div>
           </div>
           <div class="flex items-center justify-between text-[10px] text-slate-400 pt-1 border-t border-slate-800/80">
             ${daysHtml}
@@ -1950,12 +1963,12 @@
                 <span onclick="window.adminActions.quickCopy('${u.telegram_id}', 'شناسه عددی')" class="cursor-pointer hover:text-cyan-300 text-slate-400" title="شناسه تلگرام">${u.telegram_id}</span>
               </div>
 
-              <!-- Phone and Birthday on left side, no background, icon on left -->
+              <!-- Phone and Birthday on left side, no background, no icons -->
               ${(u.phone_number || u.birth_date) ? `
                 <div class="flex items-center gap-1.5 text-[9.5px] font-mono text-slate-400" dir="ltr">
-                  ${u.phone_number ? `<span onclick="window.adminActions.quickCopy('${escapeHtml(u.phone_number)}', 'شماره تماس')" class="cursor-pointer hover:text-emerald-400 text-slate-300 inline-flex items-center gap-0.5 bg-transparent p-0 border-0 shadow-none" title="شماره تماس (کلیک جهت کپی)"><span class="text-[9px]">📱</span><span>${escapeHtml(u.phone_number)}</span></span>` : ''}
+                  ${u.phone_number ? `<span onclick="window.adminActions.quickCopy('${escapeHtml(u.phone_number)}', 'شماره تماس')" class="cursor-pointer hover:text-emerald-400 text-slate-300 inline-flex items-center bg-transparent p-0 border-0 shadow-none" title="شماره تماس (کلیک جهت کپی)">${escapeHtml(u.phone_number)}</span>` : ''}
                   ${(u.phone_number && u.birth_date) ? '<span class="text-slate-600">•</span>' : ''}
-                  ${u.birth_date ? `<span class="text-pink-300 inline-flex items-center gap-0.5 bg-transparent p-0 border-0 shadow-none" title="تاریخ تولد"><span class="text-[9px]">🎂</span><span>${escapeHtml(u.birth_date)}</span></span>` : ''}
+                  ${u.birth_date ? `<span class="text-pink-300 inline-flex items-center bg-transparent p-0 border-0 shadow-none" title="تاریخ تولد">${escapeHtml(u.birth_date)}</span>` : ''}
                 </div>
               ` : ''}
             </div>
@@ -2211,6 +2224,25 @@
       const modal = $('modifyUserModal');
       if (modal) modal.classList.add('hidden');
       currentModifyTarget = null;
+    },
+
+    async deleteSslDomain(domain) {
+      if (!domain) return;
+      if (!confirm(`آیا از حذف دامنه «${domain}» از پایش SSL اطمینان دارید؟`)) return;
+      try {
+        const res = await window.api.deleteCustomSslDomain(domain);
+        if (res && res.ok) {
+          cachedSslHealthItems = cachedSslHealthItems.filter(x => x.domain.toLowerCase() !== domain.toLowerCase());
+          renderSslHealth(cachedSslHealthItems);
+          if (window.showToast) window.showToast('دامنه با موفقیت حذف شد');
+          if (window.hapticFeedback) window.hapticFeedback('success');
+        } else {
+          if (window.showToast) window.showToast(res?.error || 'خطا در حذف دامنه');
+        }
+      } catch (err) {
+        console.error('Delete SSL domain error:', err);
+        if (window.showToast) window.showToast('خطا در برقراری ارتباط');
+      }
     },
 
     async applyUserModification() {
@@ -3123,16 +3155,29 @@
         }
 
         container.innerHTML = adminCouponsData.map(c => {
+          const usedCount = c.used_count || 0;
           const statusBadge = c.is_active
             ? '<span class="text-[10px] bg-transparent text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded-lg font-bold">فعال</span>'
-            : '<span class="text-[10px] bg-transparent text-slate-500 dark:text-slate-400 border border-slate-400/30 px-2 py-0.5 rounded-lg font-medium">غیرفعال</span>';
+            : (usedCount > 0
+                ? '<span class="text-[10px] bg-transparent text-slate-500 dark:text-slate-400 border border-slate-400/30 px-2 py-0.5 rounded-lg font-medium">غیرفعال (مصرف‌شده)</span>'
+                : '<span class="text-[10px] bg-transparent text-amber-500 dark:text-amber-400 border border-amber-500/30 px-2 py-0.5 rounded-lg font-medium">غیرفعال (استفاده‌نشده)</span>');
 
           const discountText = c.discount_percent > 0
             ? `<span dir="ltr">${toEnglishDigits(c.discount_percent)}%</span> تخفیف`
             : `${formatNumber(c.discount_amount || 0)} تومان`;
 
-          const maxText = c.max_uses > 0 ? `${toEnglishDigits(c.used_count || 0)} / ${toEnglishDigits(c.max_uses)}` : `${toEnglishDigits(c.used_count || 0)} (نامحدود)`;
+          const maxText = c.max_uses > 0 ? `${toEnglishDigits(usedCount)} / ${toEnglishDigits(c.max_uses)}` : `${toEnglishDigits(usedCount)} (نامحدود)`;
           const expiryText = c.expires_at_jalali || (c.expires_at ? (window.formatDateToJalali ? window.formatDateToJalali(c.expires_at) : c.expires_at) : 'نامحدود (دائمی)');
+
+          const usagesBtnHtml = usedCount > 0
+            ? `<button onclick="window.adminActions.openCouponUsages(${c.id}, '${escapeHtml(c.code).replace(/'/g, "\\'")}')" class="flex-1 bg-transparent hover:bg-pink-500/10 text-pink-600 dark:text-pink-400 border border-pink-500/30 hover:border-pink-400/60 py-1.5 rounded-xl transition font-semibold text-center flex items-center justify-center gap-1.5 active:scale-95">
+                <svg class="w-3.5 h-3.5 text-pink-600 dark:text-pink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+                <span>استفاده‌کنندگان (${formatNumber(usedCount)})</span>
+              </button>`
+            : `<div class="flex-1 bg-transparent text-slate-400 dark:text-slate-500 border border-slate-700/40 py-1.5 rounded-xl font-medium text-center flex items-center justify-center gap-1.5 opacity-60 cursor-not-allowed select-none">
+                <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+                <span>فاقد استفاده</span>
+              </div>`;
 
           return `
             <div class="coupon-card bg-slate-800/80 rounded-2xl p-4 border border-slate-700/80 space-y-3 shadow transition">
@@ -3158,10 +3203,7 @@
               </div>
 
               <div class="flex gap-2 pt-1 text-[11px]">
-                <button onclick="window.adminActions.openCouponUsages(${c.id}, '${escapeHtml(c.code).replace(/'/g, "\\'")}')" class="flex-1 bg-transparent hover:bg-pink-500/10 text-pink-600 dark:text-pink-400 border border-pink-500/30 hover:border-pink-400/60 py-1.5 rounded-xl transition font-semibold text-center flex items-center justify-center gap-1.5 active:scale-95">
-                  <svg class="w-3.5 h-3.5 text-pink-600 dark:text-pink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
-                  <span>استفاده‌کنندگان (${formatNumber(c.used_count || 0)})</span>
-                </button>
+                ${usagesBtnHtml}
                 <button onclick="window.adminActions.toggleCoupon(${c.id}, ${c.is_active})" class="bg-transparent hover:bg-slate-500/10 ${c.is_active ? 'text-amber-600 dark:text-amber-400 border border-amber-500/30 hover:border-amber-400/60' : 'text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 hover:border-emerald-400/60'} py-1.5 px-3 rounded-xl transition font-semibold text-center active:scale-95">
                   ${c.is_active ? 'غیرفعال‌سازی' : 'فعال‌سازی'}
                 </button>
@@ -5333,19 +5375,47 @@
     }
   });
 
-  $('checkCustomSslBtn')?.addEventListener('click', async () => {
+  // Nodes Tab Subtabs Switcher
+  window.switchNodesSubtab = function(subtab) {
+    const btnServers = $('subtabBtnNodesServers');
+    const btnSsl = $('subtabBtnNodesSsl');
+    const contentServers = $('subtabContentNodesServers');
+    const contentSsl = $('subtabContentNodesSsl');
+
+    if (subtab === 'ssl') {
+      btnServers?.classList.remove('bg-indigo-600', 'text-white', 'shadow');
+      btnServers?.classList.add('text-slate-400');
+      btnSsl?.classList.add('bg-indigo-600', 'text-white', 'shadow');
+      btnSsl?.classList.remove('text-slate-400');
+      contentServers?.classList.add('hidden');
+      contentSsl?.classList.remove('hidden');
+      fetchAdminSslHealth();
+    } else {
+      btnSsl?.classList.remove('bg-indigo-600', 'text-white', 'shadow');
+      btnSsl?.classList.add('text-slate-400');
+      btnServers?.classList.add('bg-indigo-600', 'text-white', 'shadow');
+      btnServers?.classList.remove('text-slate-400');
+      contentSsl?.classList.add('hidden');
+      contentServers?.classList.remove('hidden');
+    }
+    if (window.hapticFeedback) window.hapticFeedback('selection');
+  };
+
+  const handleAddSslDomain = async () => {
     const input = $('customSslDomainInput');
     const domain = (input?.value || '').trim();
     if (!domain) {
       if (window.showToast) window.showToast('لطفاً آدرس دامنه را وارد کنید');
       return;
     }
-    const btn = $('checkCustomSslBtn');
-    const prevText = btn.innerHTML;
-    btn.disabled = true;
-    btn.innerHTML = '<span>درحال بررسی...</span>';
+    const btn = $('addCustomSslBtn') || $('checkCustomSslBtn');
+    const prevText = btn ? btn.innerHTML : '';
+    if (btn) {
+      btn.disabled = true;
+      btn.innerHTML = '<span>درحال بررسی...</span>';
+    }
     try {
-      const res = await window.api.admin.checkDomainSsl(domain);
+      const res = await window.api.addCustomSslDomain(domain);
       if (res && res.ok && res.data) {
         const idx = cachedSslHealthItems.findIndex(x => x.domain.toLowerCase() === res.data.domain.toLowerCase());
         if (idx >= 0) {
@@ -5354,23 +5424,29 @@
           cachedSslHealthItems.unshift(res.data);
         }
         renderSslHealth(cachedSslHealthItems);
+        if (input) input.value = '';
         if (res.data.valid) {
-          if (window.showToast) window.showToast(`✅ گواهی معتبر است (${res.data.days_left} روز باقی‌مانده)`);
+          if (window.showToast) window.showToast(`✅ دامنه ${domain} افزوده شد (${res.data.days_left} روز باقی‌مانده)`);
         } else {
-          if (window.showToast) window.showToast(`⚠️ ${res.data.error || 'گواهی نامعتبر است'}`);
+          if (window.showToast) window.showToast(`⚠️ دامنه ذخیره شد اما: ${res.data.error || 'گواهی نامعتبر است'}`);
         }
         if (window.hapticFeedback) window.hapticFeedback('success');
       } else {
-        if (window.showToast) window.showToast(res?.error || 'خطا در ارزیابی SSL');
+        if (window.showToast) window.showToast(res?.error || 'خطا در ثبت و ارزیابی دامنه');
       }
     } catch (err) {
-      console.error('SSL check error:', err);
+      console.error('SSL add error:', err);
       if (window.showToast) window.showToast('خطا در ارتباط با سرور');
     } finally {
-      btn.disabled = false;
-      btn.innerHTML = prevText;
+      if (btn) {
+        btn.disabled = false;
+        btn.innerHTML = prevText;
+      }
     }
-  });
+  };
+
+  $('addCustomSslBtn')?.addEventListener('click', handleAddSslDomain);
+  $('checkCustomSslBtn')?.addEventListener('click', handleAddSslDomain);
 
   // Node Billing auto-convert EUR to Toman & Shamsi preview
   const nodeCostEurInput = $('nodeBillingCostEur');
@@ -5448,6 +5524,7 @@
   window.deleteCampaign = (id, name) => window.adminActions.deleteCampaign(id, name);
   window.copyCampaignLink = (url) => window.adminActions.copyCampaignLink(url);
   window.fetchAdminCampaigns = () => window.adminActions.fetchAdminCampaigns();
+  window.deleteSslDomain = (domain) => window.adminActions.deleteSslDomain(domain);
 
   // Explicit event listeners for Admin App Tabs and Due Date buttons
   document.querySelectorAll('.admin-app-os-tab').forEach(btn => {

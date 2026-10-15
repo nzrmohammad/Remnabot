@@ -138,13 +138,67 @@ async def check_domains_ssl(domains: list[str], timeout: float = 4.0) -> list[di
     return await asyncio.gather(*tasks)
 
 
-async def get_system_ssl_domains(remnawave: Any) -> list[dict[str, str]]:
-    """Extract candidate SSL domains from Remnawave nodes and system settings."""
+async def get_custom_ssl_domains(session: Any) -> list[str]:
+    """Retrieve custom user-added SSL domains from app settings."""
+    if not session:
+        return []
+    try:
+        from bot.db.repositories.app_setting_repo import AppSettingRepository
+        repo = AppSettingRepository(session)
+        val = await repo.get("custom_ssl_domains")
+        if val:
+            import json
+            parsed = json.loads(val)
+            if isinstance(parsed, list):
+                return [str(d).strip().lower() for d in parsed if d]
+    except Exception as exc:
+        logger.debug("Failed loading custom SSL domains: %s", exc)
+    return []
+
+
+async def add_custom_ssl_domain(session: Any, domain: str) -> list[str]:
+    """Add a custom domain to app settings."""
+    clean = domain.strip().lower()
+    if "://" in clean:
+        parsed = urllib.parse.urlparse(clean)
+        clean = parsed.hostname or clean
+    if ":" in clean:
+        clean = clean.split(":")[0]
+    clean = clean.strip()
+    if not clean:
+        return await get_custom_ssl_domains(session)
+
+    from bot.db.repositories.app_setting_repo import AppSettingRepository
+    repo = AppSettingRepository(session)
+    domains = await get_custom_ssl_domains(session)
+    if clean not in domains:
+        domains.append(clean)
+        import json
+        await repo.set("custom_ssl_domains", json.dumps(domains))
+        await session.commit()
+    return domains
+
+
+async def delete_custom_ssl_domain(session: Any, domain: str) -> list[str]:
+    """Delete a custom domain from app settings."""
+    clean = domain.strip().lower()
+    from bot.db.repositories.app_setting_repo import AppSettingRepository
+    repo = AppSettingRepository(session)
+    domains = await get_custom_ssl_domains(session)
+    domains = [d for d in domains if d.lower() != clean]
+    import json
+    await repo.set("custom_ssl_domains", json.dumps(domains))
+    await session.commit()
+    return domains
+
+
+async def get_system_ssl_domains(remnawave: Any, session: Any = None) -> list[dict[str, Any]]:
+    """Extract candidate SSL domains from Remnawave nodes, system settings, and custom DB domains."""
     cfg = get_settings()
-    items: list[dict[str, str]] = []
+    items: list[dict[str, Any]] = []
     seen = set()
 
-    def _add(host_or_url: str, label: str):
+    def _add(host_or_url: str, label: str, is_custom: bool = False):
         if not host_or_url:
             return
         clean = host_or_url.strip()
@@ -156,7 +210,7 @@ async def get_system_ssl_domains(remnawave: Any) -> list[dict[str, str]]:
         clean = clean.strip().lower()
         if clean and clean not in seen:
             seen.add(clean)
-            items.append({"domain": clean, "label": label})
+            items.append({"domain": clean, "label": label, "is_custom": is_custom})
 
     if cfg.WEB_APP_URL:
         _add(cfg.WEB_APP_URL, "سامانه مینی‌اپ (TMA)")
@@ -174,4 +228,10 @@ async def get_system_ssl_domains(remnawave: Any) -> list[dict[str, str]]:
         except Exception as exc:
             logger.warning("Could not fetch nodes for SSL domains: %s", exc)
 
+    if session:
+        custom_domains = await get_custom_ssl_domains(session)
+        for cd in custom_domains:
+            _add(cd, "دامنه سفارشی ادمین", is_custom=True)
+
     return items
+

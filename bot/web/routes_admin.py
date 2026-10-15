@@ -69,6 +69,8 @@ from bot.web.admin_infra_api import (
     post_admin_node_cost,
     get_admin_ssl_health,
     post_admin_ssl_check,
+    post_admin_add_ssl_domain,
+    post_admin_delete_ssl_domain,
 )
 
 __all__ = [
@@ -115,4 +117,6 @@ __all__ = [
     "post_admin_node_cost",
     "get_admin_ssl_health",
     "post_admin_ssl_check",
+    "post_admin_add_ssl_domain",
+    "post_admin_delete_ssl_domain",
 ]

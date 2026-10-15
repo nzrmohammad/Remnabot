@@ -433,6 +433,8 @@ def create_web_app(
     app.router.add_post("/api/admin/infra/node-cost", routes_admin.post_admin_node_cost)
     app.router.add_get("/api/admin/infra/ssl-health", routes_admin.get_admin_ssl_health)
     app.router.add_post("/api/admin/infra/ssl-check", routes_admin.post_admin_ssl_check)
+    app.router.add_post("/api/admin/infra/ssl-domains/add", routes_admin.post_admin_add_ssl_domain)
+    app.router.add_post("/api/admin/infra/ssl-domains/delete", routes_admin.post_admin_delete_ssl_domain)
 
     return app
 

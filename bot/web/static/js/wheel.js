@@ -298,7 +298,7 @@ function setupLuckyWheel() {
           showWheelResultModal({
             icon: '🎁',
             title: 'تبریک فوق‌العاده!',
-            message: `شما برنده ترافیک رایگان شدید:<br/><div class="my-2 py-1.5 px-3 bg-slate-900/80 rounded-xl border border-emerald-500/30 inline-flex items-baseline gap-1" dir="ltr"><b class="text-lg font-black font-mono text-emerald-400">${valNum}</b><span class="text-xs font-bold text-slate-300 font-sans">${unit}</span></div><br/><span class="text-slate-400 text-[11px]">این هدیه به صورت خودکار به اشتراک فعال شما اضافه شد.</span>`,
+            message: `شما برنده ترافیک رایگان شدید:<br/><div class="my-2 inline-flex items-baseline gap-1" dir="ltr"><b class="text-2xl font-black font-mono text-emerald-500 dark:text-emerald-400">${valNum}</b><span class="text-sm font-bold text-slate-600 dark:text-slate-300 font-sans">${unit}</span></div><br/><span class="text-slate-400 text-[11px]">این هدیه به صورت خودکار به اشتراک فعال شما اضافه شد.</span>`,
           });
         }
         if (typeof syncUserDataWithApi === 'function') syncUserDataWithApi(window.currentAccountId);

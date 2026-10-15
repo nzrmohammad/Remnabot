@@ -82,6 +82,20 @@ async def auto_renew_sweep_loop(
                         service_repo = ServiceRepository(session)
                         service = await service_repo.get(last_order.service_id)
                         if not service or not service.is_active:
+                            discontinued_dedup = f"auto_renew_discontinued:{user.telegram_id}"
+                            if cache and not await cache.get(discontinued_dedup):
+                                if cache:
+                                    await cache.set(discontinued_dedup, "1", ttl=86400)
+                                if bot:
+                                    try:
+                                        await bot.send_message(
+                                            user.telegram_id,
+                                            "⚠️ <b>اطلاعیه تمدید خودکار اشتراک</b>\n\n"
+                                            "اعتبار سرویس شما رو به اتمام است، اما بسته قبلی شما در حال حاضر در فروشگاه فعال نمی‌باشد.\n\n"
+                                            "موجودی کیف پول شما دست‌نخورده باقی مانده است. جهت تمدید سرویس، لطفاً وارد مینی‌اپ شده و یک پلن جدید انتخاب فرمایید.",
+                                        )
+                                    except Exception:
+                                        pass
                             continue
 
                         wallet_repo = WalletRepository(session)

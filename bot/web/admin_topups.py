@@ -1,5 +1,6 @@
 """Admin Topups, Payment Approvals, and Card Receipt Verification API endpoints."""
 import asyncio
+import inspect
 import json
 import logging
 import math
@@ -321,12 +322,16 @@ async def get_admin_topup_photo(request: web.Request) -> web.Response:
                 return web.Response(text="فایل تصویر در سرور تلگرام یافت نشد", status=404)
 
             file_bio = await bot.download_file(file_info.file_path)
+            if inspect.iscoroutine(file_bio):
+                file_bio = await file_bio
             if isinstance(file_bio, bytes):
                 content = file_bio
             elif hasattr(file_bio, "getvalue"):
                 content = file_bio.getvalue()
             elif hasattr(file_bio, "read"):
                 content = file_bio.read()
+                if inspect.iscoroutine(content):
+                    content = await content
             else:
                 content = bytes(file_bio)
 

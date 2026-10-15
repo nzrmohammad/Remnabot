@@ -396,6 +396,14 @@ const api = {
     return this.post('/api/admin/infra/ssl-check', { domain });
   },
 
+  async addCustomSslDomain(domain) {
+    return this.post('/api/admin/infra/ssl-domains/add', { domain });
+  },
+
+  async deleteCustomSslDomain(domain) {
+    return this.post('/api/admin/infra/ssl-domains/delete', { domain });
+  },
+
   async getAdminCampaigns() {
     return this.get('/api/admin/campaigns');
   },
@@ -428,3 +436,5 @@ const api = {
 };
 
 window.api = api;
+window.api.admin = api;
+

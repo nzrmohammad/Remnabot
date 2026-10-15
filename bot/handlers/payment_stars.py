@@ -4,7 +4,10 @@ from aiogram import Bot, F, Router
 from aiogram.types import Message, PreCheckoutQuery
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from datetime import datetime, timezone
+
 from bot.common import admin_thread_kwargs
+from bot.db.models import Topup, TopupStatus
 from bot.db.repositories.wallet_repo import WalletRepository
 from bot.db.repositories.user_repo import UserRepository
 from bot.services.app_settings import get_store_settings
@@ -74,9 +77,17 @@ async def stars_successful_payment_handler(
     wallet_repo = WalletRepository(session)
     user_repo = UserRepository(session)
 
-    # Atomically credit wallet
+    # Atomically credit wallet and record topup
     try:
         new_balance = await wallet_repo.adjust_balance(user_tid, amount_toman)
+        topup = Topup(
+            telegram_id=user_tid,
+            amount=amount_toman,
+            status=TopupStatus.APPROVED.value,
+            receipt_hash=f"stars:{sp.telegram_payment_charge_id}",
+            decided_at=datetime.now(timezone.utc),
+        )
+        session.add(topup)
         await session.commit()
     except Exception as exc:
         logger.error("Failed to credit wallet for Stars topup: user=%s, amount=%s: %s", user_tid, amount_toman, exc)

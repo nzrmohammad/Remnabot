@@ -5,7 +5,7 @@ from collections import defaultdict
 from datetime import datetime, timedelta
 from typing import Any
 
-from sqlalchemy import func, select
+from sqlalchemy import func, or_, select
 
 from bot.common.helpers import get_used_bytes
 from bot.db.models import CryptoInvoice, KnownDevice, Order, Service, Topup
@@ -359,8 +359,13 @@ async def _calc_platform_and_hwid(session, remnawave) -> tuple[dict[str, Any], d
 
 async def _calc_retention_and_payments(session, now_utc: datetime) -> tuple[dict[str, Any], dict[str, Any]]:
     """Compute overall retention/churn rate and payment methods split."""
-    t_count, t_sum = (await session.execute(
-        select(func.count(Topup.id), func.coalesce(func.sum(Topup.amount), 0)).where(Topup.status == "approved")
+    card_count, card_sum = (await session.execute(
+        select(func.count(Topup.id), func.coalesce(func.sum(Topup.amount), 0))
+        .where(Topup.status == "approved", or_(Topup.receipt_hash.is_(None), ~Topup.receipt_hash.startswith("stars:")))
+    )).first() or (0, 0)
+    stars_count, stars_sum = (await session.execute(
+        select(func.count(Topup.id), func.coalesce(func.sum(Topup.amount), 0))
+        .where(Topup.status == "approved", Topup.receipt_hash.startswith("stars:"))
     )).first() or (0, 0)
     c_count, c_sum = (await session.execute(
         select(func.count(CryptoInvoice.id), func.coalesce(func.sum(CryptoInvoice.amount_toman), 0)).where(CryptoInvoice.status == "paid")
@@ -380,9 +385,9 @@ async def _calc_retention_and_payments(session, now_utc: datetime) -> tuple[dict
     active_single = max(0, single_order_customers - churned_count)
 
     payment_dist = {
-        "labels": ["کارت به کارت (ریالی)", "ارز دیجیتال (کریپتو / TON)"],
-        "counts": [int(t_count or 0), int(c_count or 0)],
-        "volumes": [int(t_sum or 0), int(c_sum or 0)],
+        "labels": ["کارت به کارت (ریالی)", "ارز دیجیتال (کریپتو / TON)", "تلگرام استارز (XTR)"],
+        "counts": [int(card_count or 0), int(c_count or 0), int(stars_count or 0)],
+        "volumes": [int(card_sum or 0), int(c_sum or 0), int(stars_sum or 0)],
     }
     retention_stats = {
         "total_customers": total_customers,
