@@ -7,6 +7,7 @@ from aiohttp import web
 
 from bot.db.models import Service
 from bot.db.repositories.coupon_repo import CouponRepository
+from bot.services.app_settings import get_store_settings
 from bot.services.purchases import execute_purchase
 from bot.web.cache import FastCache
 

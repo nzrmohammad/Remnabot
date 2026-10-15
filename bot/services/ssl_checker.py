@@ -193,12 +193,11 @@ async def delete_custom_ssl_domain(session: Any, domain: str) -> list[str]:
 
 
 async def get_system_ssl_domains(remnawave: Any, session: Any = None) -> list[dict[str, Any]]:
-    """Extract candidate SSL domains from Remnawave nodes, system settings, and custom DB domains."""
-    cfg = get_settings()
+    """Extract candidate SSL domains from custom DB domains. Fallback to remnawave nodes if no session."""
     items: list[dict[str, Any]] = []
     seen = set()
 
-    def _add(host_or_url: str, label: str, is_custom: bool = False):
+    def _add(host_or_url: str, label: str, is_custom: bool = True):
         if not host_or_url:
             return
         clean = host_or_url.strip()
@@ -212,10 +211,11 @@ async def get_system_ssl_domains(remnawave: Any, session: Any = None) -> list[di
             seen.add(clean)
             items.append({"domain": clean, "label": label, "is_custom": is_custom})
 
-    if cfg.WEB_APP_URL:
-        _add(cfg.WEB_APP_URL, "سامانه مینی‌اپ (TMA)")
-    if cfg.REMNAWAVE_BASE_URL:
-        _add(cfg.REMNAWAVE_BASE_URL, "کنترل پنل Remnawave")
+    if session:
+        custom_domains = await get_custom_ssl_domains(session)
+        for cd in custom_domains:
+            _add(cd, "دامنه اختصاصی", is_custom=True)
+        return items
 
     if remnawave:
         try:
@@ -224,14 +224,9 @@ async def get_system_ssl_domains(remnawave: Any, session: Any = None) -> list[di
                 addr = str(n.get("address") or "").strip()
                 name = str(n.get("name") or "نود سرور").strip()
                 if addr:
-                    _add(addr, f"نود: {name}")
+                    _add(addr, f"نود: {name}", is_custom=False)
         except Exception as exc:
             logger.warning("Could not fetch nodes for SSL domains: %s", exc)
-
-    if session:
-        custom_domains = await get_custom_ssl_domains(session)
-        for cd in custom_domains:
-            _add(cd, "دامنه سفارشی ادمین", is_custom=True)
 
     return items
 

@@ -93,20 +93,23 @@ html, body {
 .pulse-glow {
   animation: pulseGlow 2.5s infinite;
 }
-/* Toggle Switch styles */
+/* Toggle Switch styles: OFF on Left, ON on Right */
+.switch-label {
+  direction: ltr !important;
+  justify-content: flex-start !important;
+}
+.switch-ball {
+  transform: translateX(0) !important;
+}
 .switch-checkbox:checked + .switch-label {
   background-color: #2563eb;
 }
-[dir="ltr"] .switch-checkbox:checked + .switch-label .switch-ball,
-label[dir="ltr"] .switch-checkbox:checked + .switch-label .switch-ball {
-  transform: translateX(20px);
-}
+.switch-checkbox:checked + .switch-label .switch-ball,
 [dir="rtl"] .switch-checkbox:checked + .switch-label .switch-ball,
-label[dir="rtl"] .switch-checkbox:checked + .switch-label .switch-ball {
-  transform: translateX(-20px);
-}
-.switch-checkbox:checked + .switch-label .switch-ball {
-  transform: translateX(20px);
+[dir="ltr"] .switch-checkbox:checked + .switch-label .switch-ball,
+label[dir="rtl"] .switch-checkbox:checked + .switch-label .switch-ball,
+label[dir="ltr"] .switch-checkbox:checked + .switch-label .switch-ball {
+  transform: translateX(20px) !important;
 }
 html.theme-light .switch-label {
   background-color: #cbd5e1;

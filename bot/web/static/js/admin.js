@@ -1433,7 +1433,7 @@
     const container = $('adminSslHealthList');
     if (!container) return;
     if (!items || items.length === 0) {
-      container.innerHTML = '<div class="p-3 text-center text-xs text-slate-400">هیچ دامنه‌ای برای ارزیابی یافت نشد.</div>';
+      container.innerHTML = '<div class="p-4 text-center text-xs text-slate-400">هیچ دامنه‌ای برای پایش ثبت نشده است. از کادر بالا دامنه جدید اضافه کنید.</div>';
       return;
     }
 
@@ -1441,21 +1441,21 @@
       let badgeHtml = '';
       let daysHtml = '';
       if (item.is_ip) {
-        badgeHtml = '<span class="px-2 py-0.5 text-[10px] rounded-lg bg-slate-700/50 text-slate-400 border border-slate-600/40 font-mono">IP سرور</span>';
+        badgeHtml = '<span class="text-[10px] text-slate-400 font-mono">IP سرور</span>';
         daysHtml = '<span class="text-[10px] text-slate-500">آدرس IP مستقیم (بدون گواهی SSL دامنه)</span>';
       } else if (item.valid) {
         if (item.status === 'ok') {
-          badgeHtml = `<span class="px-2 py-0.5 text-[10px] font-bold rounded-lg bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">معتبر (${item.days_left} روز)</span>`;
+          badgeHtml = `<span class="text-[11px] font-bold text-emerald-400">معتبر (${item.days_left} روز)</span>`;
         } else if (item.status === 'warning') {
-          badgeHtml = `<span class="px-2 py-0.5 text-[10px] font-bold rounded-lg bg-amber-500/15 text-amber-400 border border-amber-500/30">هشدار (${item.days_left} روز)</span>`;
+          badgeHtml = `<span class="text-[11px] font-bold text-amber-400">هشدار (${item.days_left} روز)</span>`;
         } else if (item.status === 'critical') {
-          badgeHtml = `<span class="px-2 py-0.5 text-[10px] font-bold rounded-lg bg-rose-500/20 text-rose-400 border border-rose-500/40 animate-pulse">فوری (${item.days_left} روز)</span>`;
+          badgeHtml = `<span class="text-[11px] font-bold text-rose-400 animate-pulse">فوری (${item.days_left} روز)</span>`;
         } else {
-          badgeHtml = `<span class="px-2 py-0.5 text-[10px] font-bold rounded-lg bg-rose-500/20 text-rose-400 border border-rose-500/40">منقضی شده</span>`;
+          badgeHtml = `<span class="text-[11px] font-bold text-rose-400">منقضی شده</span>`;
         }
         daysHtml = `<span class="text-[10px] text-slate-400">انقضا: <span class="font-mono text-slate-300">${item.expires_at || '—'}</span> | مرجع: <span class="text-slate-300">${escapeHtml(item.issuer || 'نامشخص')}</span></span>`;
       } else {
-        badgeHtml = `<span class="px-2 py-0.5 text-[10px] font-bold rounded-lg bg-rose-500/15 text-rose-400 border border-rose-500/30">خطا / قطع</span>`;
+        badgeHtml = `<span class="text-[11px] font-bold text-rose-400">خطا / قطع</span>`;
         daysHtml = `<span class="text-[10px] text-rose-400/80">${escapeHtml(item.error || 'ارتباط با پورت SSL برقرار نشد')}</span>`;
       }
 
@@ -1466,21 +1466,20 @@
         : '';
 
       return `
-        <div class="p-2.5 rounded-xl bg-slate-900/60 border border-slate-700/50 flex flex-col gap-1.5 transition hover:border-slate-600/60">
+        <div class="p-3 rounded-2xl bg-slate-900/60 border border-slate-700/60 flex flex-col gap-1.5 transition hover:border-slate-600/70 shadow-sm">
           <div class="flex items-center justify-between gap-2">
             <div class="flex items-center gap-2 min-w-0">
               <span class="w-2 h-2 rounded-full ${item.valid ? (item.status === 'ok' ? 'bg-emerald-400' : 'bg-amber-400') : (item.is_ip ? 'bg-slate-500' : 'bg-rose-500')} flex-shrink-0"></span>
               <span class="font-mono text-xs font-semibold text-slate-200 truncate" dir="ltr">${escapeHtml(item.domain)}</span>
               ${item.label ? `<span class="text-[10px] text-slate-400 truncate">(${escapeHtml(item.label)})</span>` : ''}
             </div>
-            <div class="flex items-center gap-1.5 flex-shrink-0">
+            <div class="flex items-center gap-2 flex-shrink-0">
               ${badgeHtml}
               ${deleteBtnHtml}
             </div>
           </div>
           <div class="flex items-center justify-between text-[10px] text-slate-400 pt-1 border-t border-slate-800/80">
             ${daysHtml}
-            <span class="font-mono text-[9px] text-slate-500">Port: ${item.port || 443}</span>
           </div>
         </div>
       `;
@@ -3336,15 +3335,45 @@
       } catch (e) {}
     },
 
-    async deleteCoupon(id, code) {
-      if (!confirm(`آیا از حذف کد تخفیف «${code}» اطمینان دارید؟`)) return;
+    openDeleteCouponModal(id, code) {
+      this._pendingDeleteCouponId = id;
+      const el = $('deleteCouponModalCode');
+      if (el) el.innerText = code || '';
+      const modal = $('deleteCouponModal');
+      if (modal) modal.classList.remove('hidden');
+      if (window.hapticFeedback) window.hapticFeedback('selection');
+    },
+
+    closeDeleteCouponModal() {
+      const modal = $('deleteCouponModal');
+      if (modal) modal.classList.add('hidden');
+      this._pendingDeleteCouponId = null;
+    },
+
+    async executeDeleteCoupon() {
+      const id = this._pendingDeleteCouponId;
+      if (!id) return;
+      const btn = $('confirmDeleteCouponBtn');
+      if (btn) btn.disabled = true;
       try {
         const res = await window.api.deleteAdminCoupon(id);
         if (res && res.ok) {
           if (window.showToast) window.showToast('✅ کد تخفیف با موفقیت حذف شد.');
+          this.closeDeleteCouponModal();
           this.fetchAdminCoupons();
+          if (window.hapticFeedback) window.hapticFeedback('success');
+        } else {
+          if (window.showToast) window.showToast(res?.error || 'خطا در حذف کد تخفیف');
         }
-      } catch (e) {}
+      } catch (e) {
+        if (window.showToast) window.showToast('خطا در برقراری ارتباط با سرور');
+      } finally {
+        if (btn) btn.disabled = false;
+      }
+    },
+
+    deleteCoupon(id, code) {
+      this.openDeleteCouponModal(id, code);
     },
 
     async openCouponUsages(coupon_id, code) {

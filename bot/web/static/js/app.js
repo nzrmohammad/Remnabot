@@ -1068,6 +1068,143 @@ window.openBirthdayModal = openBirthdayModal;
 window.closeBirthdayModal = closeBirthdayModal;
 window.saveBirthday = saveBirthday;
 
+const PERSIAN_MONTH_TRAITS = {
+  1: {
+    name: 'فروردین',
+    symbol: 'قوچ ♈️',
+    description: 'پرانرژی، پیشرو، شجاع و بااراده آهنین. متولدین فروردین ماجراجو، باانگیزه و رهبرانی پرشور و مثبت‌اندیش هستند.'
+  },
+  2: {
+    name: 'اردیبهشت',
+    symbol: 'گاو ♉️',
+    description: 'صبور، وفادار، پرمحبت، آرام و قابل اعتماد. متولدین اردیبهشت اهل عمل، زیبایی‌دوست و تکیه‌گاهی امن و استوارند.'
+  },
+  3: {
+    name: 'خرداد',
+    symbol: 'دوقلو ♊️',
+    description: 'باهوش، خلاق، کنجکاو، اجتماعی و خوش‌بیان. متولدین خرداد سازگار با تغییرات، شوخ‌طبع و سرشار از ایده‌های تازه و نوآورانه‌اند.'
+  },
+  4: {
+    name: 'تیر',
+    symbol: 'خرچنگ ♋️',
+    description: 'مهربان، فداکار، بااحساس و دارای حس ششم قوی. متولدین تیر خانواده‌دوست، حامی، دل‌رحم و صاحب قلبی بسیار زلال و باوفا هستند.'
+  },
+  5: {
+    name: 'مرداد',
+    symbol: 'شیر ♌️',
+    description: 'شجاع، سخاوتمند، جذاب، باوقار و پرتو‌افشان. متولدین مرداد پرصلابت، وفادار، الهام‌بخش و مدیرانی کاردان و حامی اطرافیانند.'
+  },
+  6: {
+    name: 'شهریور',
+    symbol: 'خوشه ♍️',
+    description: 'دقیق، منظم، متفکر، تحلیل‌گر و یاری‌رسان. متولدین شهریور با تدبیر و هوش سرشار خویش همواره راه‌حل‌های بی‌نقص می‌آفرینند.'
+  },
+  7: {
+    name: 'مهر',
+    symbol: 'ترازو ♎️',
+    description: 'باانصاف، صلح‌طلب، جذاب، خوش‌سلیقه و اهل دوستی. متولدین مهر مظهر تعادل، عدالت، مهربانی و درک عمیق دیگران هستند.'
+  },
+  8: {
+    name: 'آبان',
+    symbol: 'عقرب ♏️',
+    description: 'وفادار، رازدار، بااراده، پرشور و پرجاذبه. متولدین آبان مصمم، تیزبین و دارای قدرتی درونی برای فائق آمدن بر هر چالشی هستند.'
+  },
+  9: {
+    name: 'آذر',
+    symbol: 'کماندار ♐️',
+    description: 'آزادی‌خواه، خوش‌بین، پرانرژی، صادق و ماجراجو. متولدین آذر گشاده‌رو، روشن‌بین، اهل سفر و یادگیری و سرشار از امیدند.'
+  },
+  10: {
+    name: 'دی',
+    symbol: 'بز ♑️',
+    description: 'هدفمند، صبور، مستقل، باانضباط و خستگی‌ناپذیر. متولدین دی با پشتکار بی‌نظیر، پختگی و دوراندیشی قله‌های موفقیت را فتح می‌کنند.'
+  },
+  11: {
+    name: 'بهمن',
+    symbol: 'دلو ♒️',
+    description: 'نوآور، آینده‌نگر، مستقل، پیشرو و انسان‌دوست. متولدین بهمن مبتکر، خلاق، بدون تعصب و پرچمدار تغییرات مثبت و بنیادین هستند.'
+  },
+  12: {
+    name: 'اسفند',
+    symbol: 'ماهی ♓️',
+    description: 'خلاق، خیال‌پرداز، مهربان، دل‌نازک و سرشار از شهود معنوی. متولدین اسفند زلال، باگذشت، عاطفی و الهام‌بخش اطرافیان خود هستند.'
+  }
+};
+
+let bdayCountdownInterval = null;
+
+function openBirthdayCountdownModal() {
+  const user = window.lastUserData?.user;
+  if (!user || !user.birth_date) {
+    openBirthdayModal();
+    return;
+  }
+
+  const parts = user.birth_date.replace(/-/g, '/').split('/').map(Number);
+  const monthNum = parts.length >= 2 ? parts[1] : 1;
+  const trait = PERSIAN_MONTH_TRAITS[monthNum] || PERSIAN_MONTH_TRAITS[1];
+
+  const monthEl = $('bdayTraitMonthName');
+  if (monthEl) monthEl.innerText = `${trait.name} (${trait.symbol})`;
+  const descEl = $('bdayTraitDescription');
+  if (descEl) descEl.innerText = trait.description;
+
+  const daysLeft = Number(user.days_until_birthday ?? 0);
+  const isToday = Boolean(user.is_birthday_today || daysLeft === 0);
+
+  const titleEl = $('bdayModalUserTitle');
+  if (isToday) {
+    if (titleEl) titleEl.innerText = '🎉 امروز روز زادروز شماست! مبارک باد 🎂';
+  } else {
+    if (titleEl) titleEl.innerText = `تنها ${toPersianDigits(daysLeft)} روز تا روز زادروز شما باقی است`;
+  }
+
+  const now = new Date();
+  const midnightToday = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 0).getTime();
+  const msUntilMidnight = Math.max(0, midnightToday - now.getTime());
+  const extraDays = Math.max(0, daysLeft - 1);
+  const totalRemainingMs = isToday ? 0 : (extraDays * 86400000) + msUntilMidnight;
+  const targetEpoch = Date.now() + totalRemainingMs;
+
+  function updateTicker() {
+    if (isToday) {
+      if ($('bdayCountdownDays')) $('bdayCountdownDays').innerText = toPersianDigits(0);
+      if ($('bdayCountdownHours')) $('bdayCountdownHours').innerText = toPersianDigits('00');
+      if ($('bdayCountdownMinutes')) $('bdayCountdownMinutes').innerText = toPersianDigits('00');
+      if ($('bdayCountdownSeconds')) $('bdayCountdownSeconds').innerText = toPersianDigits('00');
+      return;
+    }
+    const diff = Math.max(0, targetEpoch - Date.now());
+    const d = Math.floor(diff / (1000 * 60 * 60 * 24));
+    const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    const s = Math.floor((diff % (1000 * 60)) / 1000);
+
+    if ($('bdayCountdownDays')) $('bdayCountdownDays').innerText = toPersianDigits(d);
+    if ($('bdayCountdownHours')) $('bdayCountdownHours').innerText = toPersianDigits(String(h).padStart(2, '0'));
+    if ($('bdayCountdownMinutes')) $('bdayCountdownMinutes').innerText = toPersianDigits(String(m).padStart(2, '0'));
+    if ($('bdayCountdownSeconds')) $('bdayCountdownSeconds').innerText = toPersianDigits(String(s).padStart(2, '0'));
+  }
+
+  updateTicker();
+  if (bdayCountdownInterval) clearInterval(bdayCountdownInterval);
+  bdayCountdownInterval = setInterval(updateTicker, 1000);
+
+  openModal('birthdayCountdownModal');
+  hapticFeedback('selection');
+}
+
+function closeBirthdayCountdownModal() {
+  if (bdayCountdownInterval) {
+    clearInterval(bdayCountdownInterval);
+    bdayCountdownInterval = null;
+  }
+  closeModal('birthdayCountdownModal');
+}
+
+window.openBirthdayCountdownModal = openBirthdayCountdownModal;
+window.closeBirthdayCountdownModal = closeBirthdayCountdownModal;
+
 function renderDashboardBirthdayCountdown(user) {
   const card = $('dashboardBirthdayCard');
   if (!card) return;
