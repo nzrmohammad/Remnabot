@@ -792,34 +792,6 @@
             <svg class="settings-box-chevron w-4 h-4 text-slate-400 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
           </div>
           <div id="settingsBoxCrypto" class="settings-box-body p-4 pt-1 border-t border-slate-700/60 space-y-3 text-xs hidden">
-            <!-- Crypto Payment Switch -->
-            <div class="flex items-center justify-between py-2 border-b border-slate-700/50 mb-1">
-              <div>
-                <span class="text-slate-200 font-semibold block text-xs">درگاه کریپتو (USDT / TON)</span>
-                <span class="text-[10px] text-slate-400">پرداخت خودکار و تایید آنی بلاکچین</span>
-              </div>
-              <label class="relative inline-flex items-center cursor-pointer">
-                <input type="checkbox" class="sr-only switch-checkbox" id="settingCryptoSwitch">
-                <div class="switch-label w-11 h-6 bg-slate-700 rounded-full transition-colors duration-200 flex items-center px-0.5">
-                  <div class="switch-ball w-5 h-5 bg-white rounded-full shadow-md transition-transform duration-200"></div>
-                </div>
-              </label>
-            </div>
-
-            <!-- Telegram Stars Payment Switch -->
-            <div class="flex items-center justify-between py-2 border-b border-slate-700/50 mb-2">
-              <div>
-                <span class="text-slate-200 font-semibold block text-xs">درگاه استارز تلگرام (Stars)</span>
-                <span class="text-[10px] text-slate-400">پرداخت رسمی درون‌برنامه‌ای تلگرام</span>
-              </div>
-              <label class="relative inline-flex items-center cursor-pointer">
-                <input type="checkbox" class="sr-only switch-checkbox" id="settingStarsSwitch">
-                <div class="switch-label w-11 h-6 bg-slate-700 rounded-full transition-colors duration-200 flex items-center px-0.5">
-                  <div class="switch-ball w-5 h-5 bg-white rounded-full shadow-md transition-transform duration-200"></div>
-                </div>
-              </label>
-            </div>
-
             <!-- 4 Currency Rates: 2 per row -->
             <div class="grid grid-cols-2 gap-2.5">
               <div>
@@ -844,6 +816,34 @@
             <div>
               <label class="text-[11px] text-slate-400 block mb-1">آدرس کیف پول TON</label>
               <input type="text" id="settingTonWallet" dir="ltr" placeholder="UQ... یا EQ..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-slate-300 outline-none focus:border-blue-500 transition text-[11px]" />
+            </div>
+
+            <!-- Crypto Payment Switch -->
+            <div class="flex items-center justify-between py-2 border-t border-b border-slate-700/50">
+              <div>
+                <span class="text-slate-200 font-semibold block text-xs">درگاه کریپتو (USDT / TON)</span>
+                <span class="text-[10px] text-slate-400">پرداخت خودکار و تایید آنی بلاکچین</span>
+              </div>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" class="sr-only switch-checkbox" id="settingCryptoSwitch">
+                <div class="switch-label w-11 h-6 bg-slate-700 rounded-full transition-colors duration-200 flex items-center px-0.5">
+                  <div class="switch-ball w-5 h-5 bg-white rounded-full shadow-md transition-transform duration-200"></div>
+                </div>
+              </label>
+            </div>
+
+            <!-- Telegram Stars Payment Switch -->
+            <div class="flex items-center justify-between py-2 border-b border-slate-700/50">
+              <div>
+                <span class="text-slate-200 font-semibold block text-xs">درگاه استارز تلگرام (Stars)</span>
+                <span class="text-[10px] text-slate-400">پرداخت رسمی درون‌برنامه‌ای تلگرام</span>
+              </div>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" class="sr-only switch-checkbox" id="settingStarsSwitch">
+                <div class="switch-label w-11 h-6 bg-slate-700 rounded-full transition-colors duration-200 flex items-center px-0.5">
+                  <div class="switch-ball w-5 h-5 bg-white rounded-full shadow-md transition-transform duration-200"></div>
+                </div>
+              </label>
             </div>
 
             <!-- Live Rates Online Modal Trigger Button -->
@@ -1032,22 +1032,22 @@
               </div>
             </div>
 
-            <!-- OS Segmented Tabs -->
-            <div class="flex bg-slate-900/90 p-1 rounded-xl border border-slate-700/80 gap-1 overflow-x-auto no-scrollbar">
-              <button type="button" onclick="switchAdminAppsTab('ios')" id="adminAppTab_ios" class="admin-app-os-tab flex-1 py-1.5 px-2 rounded-lg font-bold text-[11px] whitespace-nowrap transition flex items-center justify-center gap-1 bg-cyan-600 text-white shadow">
-                <span>🍏</span> iOS
+            <!-- OS Segmented Tabs: Unified 5-Column Grid -->
+            <div class="grid grid-cols-5 bg-slate-900/80 p-1 rounded-2xl border border-slate-700/70 gap-1" dir="rtl">
+              <button type="button" onclick="switchAdminAppsTab('ios')" id="adminAppTab_ios" class="admin-app-os-tab w-full py-1.5 px-0.5 rounded-xl font-bold text-[10px] sm:text-[11px] whitespace-nowrap transition flex items-center justify-center gap-0.5 sm:gap-1 bg-cyan-600 text-white shadow">
+                <span>🍏</span><span>iOS</span>
               </button>
-              <button type="button" onclick="switchAdminAppsTab('android')" id="adminAppTab_android" class="admin-app-os-tab flex-1 py-1.5 px-2 rounded-lg font-medium text-[11px] whitespace-nowrap text-slate-400 hover:text-slate-200 transition flex items-center justify-center gap-1">
-                <span>🤖</span> اندروید
+              <button type="button" onclick="switchAdminAppsTab('android')" id="adminAppTab_android" class="admin-app-os-tab w-full py-1.5 px-0.5 rounded-xl font-medium text-[10px] sm:text-[11px] whitespace-nowrap text-slate-400 hover:text-slate-200 transition flex items-center justify-center gap-0.5 sm:gap-1">
+                <span>🤖</span><span>اندروید</span>
               </button>
-              <button type="button" onclick="switchAdminAppsTab('windows')" id="adminAppTab_windows" class="admin-app-os-tab flex-1 py-1.5 px-2 rounded-lg font-medium text-[11px] whitespace-nowrap text-slate-400 hover:text-slate-200 transition flex items-center justify-center gap-1">
-                <span>🪟</span> ویندوز
+              <button type="button" onclick="switchAdminAppsTab('windows')" id="adminAppTab_windows" class="admin-app-os-tab w-full py-1.5 px-0.5 rounded-xl font-medium text-[10px] sm:text-[11px] whitespace-nowrap text-slate-400 hover:text-slate-200 transition flex items-center justify-center gap-0.5 sm:gap-1">
+                <span>🪟</span><span>ویندوز</span>
               </button>
-              <button type="button" onclick="switchAdminAppsTab('macos')" id="adminAppTab_macos" class="admin-app-os-tab flex-1 py-1.5 px-2 rounded-lg font-medium text-[11px] whitespace-nowrap text-slate-400 hover:text-slate-200 transition flex items-center justify-center gap-1">
-                <span>🍎</span> مک
+              <button type="button" onclick="switchAdminAppsTab('macos')" id="adminAppTab_macos" class="admin-app-os-tab w-full py-1.5 px-0.5 rounded-xl font-medium text-[10px] sm:text-[11px] whitespace-nowrap text-slate-400 hover:text-slate-200 transition flex items-center justify-center gap-0.5 sm:gap-1">
+                <span>🍎</span><span>مک</span>
               </button>
-              <button type="button" onclick="switchAdminAppsTab('linux')" id="adminAppTab_linux" class="admin-app-os-tab flex-1 py-1.5 px-2 rounded-lg font-medium text-[11px] whitespace-nowrap text-slate-400 hover:text-slate-200 transition flex items-center justify-center gap-1">
-                <span>🐧</span> لینوکس
+              <button type="button" onclick="switchAdminAppsTab('linux')" id="adminAppTab_linux" class="admin-app-os-tab w-full py-1.5 px-0.5 rounded-xl font-medium text-[10px] sm:text-[11px] whitespace-nowrap text-slate-400 hover:text-slate-200 transition flex items-center justify-center gap-0.5 sm:gap-1">
+                <span>🐧</span><span>لینوکس</span>
               </button>
             </div>
 
@@ -2119,7 +2119,7 @@
           </div>
         </div>
         <div class="flex gap-2 pt-2">
-          <button id="couponModalSaveBtn" onclick="window.adminActions.saveCoupon()" class="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-bold text-xs py-2 rounded-xl transition shadow active:scale-95">
+          <button id="couponModalSaveBtn" onclick="window.adminActions.saveCoupon()" class="flex-1 bg-transparent hover:bg-pink-500/15 border border-pink-500/50 text-pink-400 hover:text-pink-300 font-bold text-xs py-2 rounded-xl transition active:scale-95">
             ایجاد کد تخفیف
           </button>
           <button onclick="window.adminActions.closeCouponModal()" class="flex-1 bg-transparent hover:bg-slate-800/60 border border-slate-700/80 text-slate-300 hover:text-white text-xs py-2 rounded-xl transition">انصراف</button>
@@ -2209,7 +2209,7 @@
           </div>
         </div>
         <div class="flex gap-2 pt-2">
-          <button id="batchVoucherGenerateBtn" onclick="window.adminActions.generateBatchVouchers()" class="flex-1 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-bold text-xs py-2 rounded-xl transition shadow active:scale-95">
+          <button id="batchVoucherGenerateBtn" onclick="window.adminActions.generateBatchVouchers()" class="flex-1 bg-transparent hover:bg-cyan-500/15 border border-cyan-500/50 text-cyan-400 hover:text-cyan-300 font-bold text-xs py-2 rounded-xl transition active:scale-95">
             تولید و ثبت
           </button>
           <button onclick="window.adminActions.closeBatchVoucherModal()" class="flex-1 bg-transparent hover:bg-slate-800/60 border border-slate-700/80 text-slate-300 hover:text-white text-xs py-2 rounded-xl transition">بستن</button>
@@ -2742,9 +2742,9 @@
 
   <!-- Shared & Modular Scripts -->
   <script src="/static/js/chart.umd.min.js" defer></script>
-  <script src="/static/js/utils.js?v=48.0" defer></script>
-  <script src="/static/js/api.js?v=48.0" defer></script>
-  <script src="/static/js/charts.js?v=48.0" defer></script>
-  <script src="/static/js/admin.js?v=48.0" defer></script>
+  <script src="/static/js/utils.js?v=49.0" defer></script>
+  <script src="/static/js/api.js?v=49.0" defer></script>
+  <script src="/static/js/charts.js?v=49.0" defer></script>
+  <script src="/static/js/admin.js?v=49.0" defer></script>
 </body>
 </html>

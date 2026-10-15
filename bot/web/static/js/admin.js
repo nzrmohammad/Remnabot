@@ -3308,7 +3308,7 @@
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z"/></svg>
               </div>
               <p class="text-xs">هیچ کد تخفیفی ایجاد نشده است.</p>
-              <button onclick="window.adminActions.openCouponModal()" class="bg-gradient-to-r from-purple-600 to-pink-600 text-white text-xs font-bold px-4 py-2 rounded-xl transition shadow active:scale-95">
+              <button onclick="window.adminActions.openCouponModal()" class="bg-transparent hover:bg-pink-500/15 border border-pink-500/50 text-pink-400 hover:text-pink-300 text-xs font-bold px-4 py-2 rounded-xl transition active:scale-95">
                 + ایجاد اولین کد تخفیف
               </button>
             </div>
@@ -4290,9 +4290,9 @@
         const isTarget = os === osKey;
         if (tabBtn) {
           if (isTarget) {
-            tabBtn.className = 'admin-app-os-tab flex-1 py-1.5 px-2 rounded-lg font-bold text-[11px] whitespace-nowrap transition flex items-center justify-center gap-1 bg-cyan-600 text-white shadow';
+            tabBtn.className = 'admin-app-os-tab w-full py-1.5 px-0.5 rounded-xl font-bold text-[10px] sm:text-[11px] whitespace-nowrap transition flex items-center justify-center gap-0.5 sm:gap-1 bg-cyan-600 text-white shadow';
           } else {
-            tabBtn.className = 'admin-app-os-tab flex-1 py-1.5 px-2 rounded-lg font-medium text-[11px] whitespace-nowrap text-slate-400 hover:text-slate-200 transition flex items-center justify-center gap-1';
+            tabBtn.className = 'admin-app-os-tab w-full py-1.5 px-0.5 rounded-xl font-medium text-[10px] sm:text-[11px] whitespace-nowrap text-slate-400 hover:text-slate-200 transition flex items-center justify-center gap-0.5 sm:gap-1';
           }
         }
         if (pane) {
