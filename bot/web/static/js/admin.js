@@ -1439,12 +1439,10 @@
 
     container.innerHTML = items.map(item => {
       let badgeHtml = '';
-      let daysHtml = '';
       const expiryDateFa = item.expires_at_jalali || (item.expires_at && typeof formatDateToJalali === 'function' ? formatDateToJalali(item.expires_at) : (item.expires_at || '—'));
 
       if (item.is_ip) {
         badgeHtml = '<span class="text-[10px] text-slate-400 font-mono">IP سرور</span>';
-        daysHtml = '<span class="text-[10px] text-slate-500">آدرس IP مستقیم (بدون گواهی SSL دامنه)</span>';
       } else if (item.valid) {
         if (item.status === 'ok') {
           badgeHtml = `<span class="text-[11px] font-bold text-emerald-400">معتبر (${item.days_left} روز)</span>`;
@@ -1455,32 +1453,58 @@
         } else {
           badgeHtml = `<span class="text-[11px] font-bold text-rose-400">منقضی شده</span>`;
         }
-        daysHtml = `<span class="text-[10px] text-slate-400">انقضا: <span class="font-mono text-slate-300" dir="ltr">${expiryDateFa}</span> | مرجع: <span class="text-slate-300">${escapeHtml(item.issuer || 'نامشخص')}</span></span>`;
       } else {
         badgeHtml = `<span class="text-[11px] font-bold text-rose-400">خطا / قطع</span>`;
-        daysHtml = `<span class="text-[10px] text-rose-400/80">${escapeHtml(item.error || 'ارتباط با پورت SSL برقرار نشد')}</span>`;
       }
 
       const deleteBtnHtml = item.is_custom
-        ? `<button onclick="window.adminActions.deleteSslDomain('${escapeHtml(item.domain)}')" class="text-rose-400 hover:text-rose-300 p-1 rounded-lg hover:bg-rose-500/10 transition active:scale-95 flex-shrink-0" title="حذف دامنه">
+        ? `<button onclick="window.adminActions.deleteSslDomain('${escapeHtml(item.domain)}')" class="p-1.5 rounded-xl bg-slate-800/80 hover:bg-rose-500/15 text-rose-400 hover:text-rose-300 border border-slate-700/70 hover:border-rose-500/30 transition active:scale-95 flex-shrink-0 flex items-center justify-center" title="حذف دامنه">
              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
            </button>`
         : '';
 
-      return `
-        <div class="p-3 rounded-2xl bg-slate-900/60 border border-slate-700/60 flex flex-col gap-2 transition hover:border-slate-600/70 shadow-sm">
-          <!-- Row 1: Full domain address without truncation + Delete button -->
-          <div class="flex items-center justify-between gap-2">
-            <div class="flex items-center gap-2 min-w-0 flex-1">
-              <span class="w-2 h-2 rounded-full ${item.valid ? (item.status === 'ok' ? 'bg-emerald-400' : 'bg-amber-400') : (item.is_ip ? 'bg-slate-500' : 'bg-rose-500')} flex-shrink-0"></span>
-              <span class="font-mono text-xs font-semibold text-slate-100 break-all select-all leading-relaxed" dir="ltr">${escapeHtml(item.domain)}</span>
+      let detailsHtml = '';
+      if (item.is_ip) {
+        detailsHtml = `
+          <div class="text-[10px] text-slate-500">
+            <span>آدرس IP مستقیم (بدون گواهی SSL دامنه)</span>
+          </div>`;
+      } else if (item.valid) {
+        detailsHtml = `
+          <div class="space-y-1 text-slate-300 text-[10.5px]">
+            <div class="flex items-center gap-1.5">
+              <span class="text-slate-400">مرجع :</span>
+              <span class="font-medium text-slate-200">${escapeHtml(item.issuer || 'نامشخص')}</span>
             </div>
-            ${deleteBtnHtml}
+            <div class="flex items-center gap-1.5">
+              <span class="text-slate-400">تاریخ انقضا :</span>
+              <span class="font-mono text-slate-200" dir="ltr">${expiryDateFa}</span>
+            </div>
+          </div>`;
+      } else {
+        detailsHtml = `
+          <div class="text-[10.5px] text-rose-400/90 leading-relaxed">
+            ${escapeHtml(item.error || 'ارتباط با پورت SSL برقرار نشد')}
+          </div>`;
+      }
+
+      return `
+        <div class="p-3.5 rounded-2xl bg-slate-900/60 border border-slate-700/60 flex flex-col gap-2.5 transition hover:border-slate-600/70 shadow-sm">
+          <!-- Row 1: Right = Status / Days Left, Left = Domain Name -->
+          <div class="flex items-center justify-between gap-3">
+            <div class="flex items-center gap-2 flex-shrink-0">
+              <span class="w-2 h-2 rounded-full ${item.valid ? (item.status === 'ok' ? 'bg-emerald-400' : 'bg-amber-400') : (item.is_ip ? 'bg-slate-500' : 'bg-rose-500')} flex-shrink-0"></span>
+              ${badgeHtml}
+            </div>
+            <div class="text-left min-w-0" dir="ltr">
+              <span class="font-mono text-xs font-semibold text-slate-100 select-all break-all leading-normal" title="${escapeHtml(item.domain)}">${escapeHtml(item.domain)}</span>
+            </div>
           </div>
-          <!-- Row 2: Status badge + Shamsi expiry date & issuer -->
-          <div class="flex items-center justify-between gap-2 text-[10px] text-slate-400 pt-1.5 border-t border-slate-800/80">
-            <div class="flex items-center gap-1.5">${badgeHtml}</div>
-            <div class="text-left">${daysHtml}</div>
+
+          <!-- Row 2: Right = Issuer & Jalali Expiration (زیر هم), Left = Delete Button -->
+          <div class="flex items-end justify-between pt-2 border-t border-slate-800/80 gap-2">
+            ${detailsHtml}
+            ${deleteBtnHtml}
           </div>
         </div>
       `;
@@ -3184,7 +3208,10 @@
               <div class="flex items-start justify-between">
                 <div>
                   <div class="flex items-center gap-2">
-                    <span class="font-mono font-bold text-pink-600 dark:text-pink-400 text-sm tracking-wider uppercase bg-pink-500/10 border border-pink-500/30 px-2.5 py-0.5 rounded-xl">${escapeHtml(c.code)}</span>
+                    <button type="button" onclick="window.adminActions.quickCopy('${escapeHtml(c.code).replace(/'/g, "\\'")}', 'کد تخفیف')" class="flex items-center gap-1.5 cursor-pointer bg-pink-500/10 hover:bg-pink-500/20 text-pink-400 hover:text-pink-300 border border-pink-500/30 hover:border-pink-500/50 px-2.5 py-1 rounded-xl transition active:scale-95 group shadow-sm" title="کلیک جهت کپی کد تخفیف">
+                      <span class="font-mono font-bold text-sm tracking-wider uppercase">${escapeHtml(c.code)}</span>
+                      <svg class="w-3.5 h-3.5 text-pink-400/70 group-hover:text-pink-300 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                    </button>
                     ${statusBadge}
                   </div>
                   <span class="text-[11px] text-emerald-600 dark:text-emerald-400 font-bold block mt-1.5">${discountText}</span>

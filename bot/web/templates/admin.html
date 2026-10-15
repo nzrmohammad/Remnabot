@@ -367,13 +367,13 @@
       <div id="tab-admin-users" class="admin-tab-pane space-y-3 hidden">
         <!-- Search and Filter -->
         <div class="space-y-2">
-          <div class="flex items-center gap-2">
-            <div class="bg-slate-800/90 rounded-2xl p-2.5 border border-slate-700 flex items-center gap-2 flex-1 min-w-0">
-              <svg class="w-4 h-4 text-slate-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-              <input type="text" id="userSearchInput" placeholder="جستجو بر اساس نام کاربری یا شناسه عددی..." class="bg-transparent text-xs text-slate-200 outline-none flex-1 font-sans" />
-              <button id="userSearchClear" class="text-slate-400 hover:text-white text-xs px-1.5 hidden">✕</button>
+          <div class="flex items-center gap-1.5">
+            <div class="bg-slate-800/90 rounded-2xl px-2.5 py-2 border border-slate-700 flex items-center gap-1.5 flex-1 min-w-0">
+              <svg class="w-3.5 h-3.5 text-slate-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+              <input type="text" id="userSearchInput" placeholder="جستجو نام کاربری یا شناسه..." class="bg-transparent text-[11px] placeholder:text-[10.5px] text-slate-200 outline-none flex-1 font-sans min-w-0" />
+              <button id="userSearchClear" class="text-slate-400 hover:text-white text-xs px-1 hidden">✕</button>
             </div>
-            <button onclick="window.adminActions.openBulkUsersModal()" class="px-3 py-2.5 bg-transparent hover:bg-slate-800 text-indigo-400 hover:text-indigo-300 border border-indigo-500/30 hover:border-indigo-400/70 font-bold text-xs rounded-2xl flex items-center gap-1.5 transition active:scale-95 flex-shrink-0" title="عملیات گروهی روی کاربران">
+            <button onclick="window.adminActions.openBulkUsersModal()" class="px-2.5 py-2 bg-transparent hover:bg-slate-800 text-indigo-400 hover:text-indigo-300 border border-indigo-500/30 hover:border-indigo-400/70 font-bold text-[11px] rounded-2xl flex items-center gap-1 transition active:scale-95 flex-shrink-0" title="عملیات گروهی روی کاربران">
               <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
               <span>عملیات گروهی</span>
             </button>
@@ -665,8 +665,8 @@
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
               </div>
               <div>
-                <b class="text-xs text-white block">سوئیچ‌ها و قابلیت‌های اصلی ربات</b>
-                <span class="text-[10px] text-slate-400 block mt-0.5">تعمیرات، درگاه‌ها، اشتراک تست، رفرال و تیکت</span>
+                <b class="text-xs text-white block">تنظیمات عمومی و کنترل دسترسی</b>
+                <span class="text-[10px] text-slate-400 block mt-0.5">حالت تعمیر ربات و سطح دسترسی کاربران</span>
               </div>
             </div>
             <svg class="settings-box-chevron w-4 h-4 text-slate-400 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
@@ -708,91 +708,6 @@
               </div>
               <input type="hidden" id="settingAccessMode" value="open" />
             </div>
-
-            <!-- Card Payment -->
-            <div class="flex items-center justify-between py-1 border-t border-slate-700/50 pt-2">
-              <div>
-                <span class="text-slate-200 font-medium block">درگاه کارت به کارت</span>
-                <span class="text-[10px] text-slate-400">واریز و دریافت فیش دستی</span>
-              </div>
-              <label class="relative inline-flex items-center cursor-pointer">
-                <input type="checkbox" class="sr-only switch-checkbox" id="settingCardSwitch">
-                <div class="switch-label w-11 h-6 bg-slate-700 rounded-full transition-colors duration-200 flex items-center px-0.5">
-                  <div class="switch-ball w-5 h-5 bg-white rounded-full shadow-md transition-transform duration-200"></div>
-                </div>
-              </label>
-            </div>
-
-            <!-- Crypto Payment -->
-            <div class="flex items-center justify-between py-1 border-t border-slate-700/50 pt-2">
-              <div>
-                <span class="text-slate-200 font-medium block">درگاه کریپتو (USDT / TON)</span>
-                <span class="text-[10px] text-slate-400">پرداخت خودکار و تایید بلاکچین</span>
-              </div>
-              <label class="relative inline-flex items-center cursor-pointer">
-                <input type="checkbox" class="sr-only switch-checkbox" id="settingCryptoSwitch">
-                <div class="switch-label w-11 h-6 bg-slate-700 rounded-full transition-colors duration-200 flex items-center px-0.5">
-                  <div class="switch-ball w-5 h-5 bg-white rounded-full shadow-md transition-transform duration-200"></div>
-                </div>
-              </label>
-            </div>
-
-            <!-- Telegram Stars Payment -->
-            <div class="flex items-center justify-between py-1 border-t border-slate-700/50 pt-2">
-              <div>
-                <span class="text-slate-200 font-medium block">درگاه استارز تلگرام (Stars)</span>
-                <span class="text-[10px] text-slate-400">پرداخت رسمی درون‌برنامه‌ای تلگرام</span>
-              </div>
-              <label class="relative inline-flex items-center cursor-pointer">
-                <input type="checkbox" class="sr-only switch-checkbox" id="settingStarsSwitch">
-                <div class="switch-label w-11 h-6 bg-slate-700 rounded-full transition-colors duration-200 flex items-center px-0.5">
-                  <div class="switch-ball w-5 h-5 bg-white rounded-full shadow-md transition-transform duration-200"></div>
-                </div>
-              </label>
-            </div>
-
-
-            <!-- Trial Subscription -->
-            <div class="flex items-center justify-between py-1 border-t border-slate-700/50 pt-2">
-              <div>
-                <span class="text-slate-200 font-medium block">اشتراک تست رایگان</span>
-                <span class="text-[10px] text-slate-400">امکان دریافت سرویس آزمایشی</span>
-              </div>
-              <label class="relative inline-flex items-center cursor-pointer">
-                <input type="checkbox" class="sr-only switch-checkbox" id="settingTrialSwitch">
-                <div class="switch-label w-11 h-6 bg-slate-700 rounded-full transition-colors duration-200 flex items-center px-0.5">
-                  <div class="switch-ball w-5 h-5 bg-white rounded-full shadow-md transition-transform duration-200"></div>
-                </div>
-              </label>
-            </div>
-
-            <!-- Referral System -->
-            <div class="flex items-center justify-between py-1 border-t border-slate-700/50 pt-2">
-              <div>
-                <span class="text-slate-200 font-medium block">سیستم زیرمجموعه‌گیری</span>
-                <span class="text-[10px] text-slate-400">پاداش ترافیک هدیه برای دعوت</span>
-              </div>
-              <label class="relative inline-flex items-center cursor-pointer">
-                <input type="checkbox" class="sr-only switch-checkbox" id="settingRefSwitch">
-                <div class="switch-label w-11 h-6 bg-slate-700 rounded-full transition-colors duration-200 flex items-center px-0.5">
-                  <div class="switch-ball w-5 h-5 bg-white rounded-full shadow-md transition-transform duration-200"></div>
-                </div>
-              </label>
-            </div>
-
-            <!-- Direct Support in Bot -->
-            <div class="flex items-center justify-between py-1 border-t border-slate-700/50 pt-2">
-              <div>
-                <span class="text-slate-200 font-medium block">چت پشتیبانی درون ربات</span>
-                <span class="text-[10px] text-slate-400">ارسال مستقیم تیکت به تاپیک ادمین</span>
-              </div>
-              <label class="relative inline-flex items-center cursor-pointer">
-                <input type="checkbox" class="sr-only switch-checkbox" id="settingSupportDirectSwitch">
-                <div class="switch-label w-11 h-6 bg-slate-700 rounded-full transition-colors duration-200 flex items-center px-0.5">
-                  <div class="switch-ball w-5 h-5 bg-white rounded-full shadow-md transition-transform duration-200"></div>
-                </div>
-              </label>
-            </div>
           </div>
         </div>
 
@@ -811,6 +726,19 @@
             <svg class="settings-box-chevron w-4 h-4 text-slate-400 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
           </div>
           <div id="settingsBoxCard" class="settings-box-body p-4 pt-1 border-t border-slate-700/60 space-y-3 text-xs hidden">
+            <!-- Card Payment Switch -->
+            <div class="flex items-center justify-between py-2 border-b border-slate-700/50 mb-1">
+              <div>
+                <span class="text-slate-200 font-semibold block text-xs">درگاه کارت به کارت</span>
+                <span class="text-[10px] text-slate-400">واریز و دریافت فیش دستی توسط کاربران</span>
+              </div>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" class="sr-only switch-checkbox" id="settingCardSwitch">
+                <div class="switch-label w-11 h-6 bg-slate-700 rounded-full transition-colors duration-200 flex items-center px-0.5">
+                  <div class="switch-ball w-5 h-5 bg-white rounded-full shadow-md transition-transform duration-200"></div>
+                </div>
+              </label>
+            </div>
             <div>
               <label class="text-[11px] text-slate-400 block mb-1">نام صاحب حساب</label>
               <input type="text" id="settingCardHolder" placeholder="نام صاحب کارت..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-200 outline-none focus:border-blue-500 transition" />
@@ -864,6 +792,34 @@
             <svg class="settings-box-chevron w-4 h-4 text-slate-400 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
           </div>
           <div id="settingsBoxCrypto" class="settings-box-body p-4 pt-1 border-t border-slate-700/60 space-y-3 text-xs hidden">
+            <!-- Crypto Payment Switch -->
+            <div class="flex items-center justify-between py-2 border-b border-slate-700/50 mb-1">
+              <div>
+                <span class="text-slate-200 font-semibold block text-xs">درگاه کریپتو (USDT / TON)</span>
+                <span class="text-[10px] text-slate-400">پرداخت خودکار و تایید آنی بلاکچین</span>
+              </div>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" class="sr-only switch-checkbox" id="settingCryptoSwitch">
+                <div class="switch-label w-11 h-6 bg-slate-700 rounded-full transition-colors duration-200 flex items-center px-0.5">
+                  <div class="switch-ball w-5 h-5 bg-white rounded-full shadow-md transition-transform duration-200"></div>
+                </div>
+              </label>
+            </div>
+
+            <!-- Telegram Stars Payment Switch -->
+            <div class="flex items-center justify-between py-2 border-b border-slate-700/50 mb-2">
+              <div>
+                <span class="text-slate-200 font-semibold block text-xs">درگاه استارز تلگرام (Stars)</span>
+                <span class="text-[10px] text-slate-400">پرداخت رسمی درون‌برنامه‌ای تلگرام</span>
+              </div>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" class="sr-only switch-checkbox" id="settingStarsSwitch">
+                <div class="switch-label w-11 h-6 bg-slate-700 rounded-full transition-colors duration-200 flex items-center px-0.5">
+                  <div class="switch-ball w-5 h-5 bg-white rounded-full shadow-md transition-transform duration-200"></div>
+                </div>
+              </label>
+            </div>
+
             <!-- Live Rates Online Modal Trigger Button -->
             <button id="openCryptoRatesModalBtn" type="button" class="w-full bg-transparent hover:bg-cyan-500/10 border border-cyan-500/40 text-cyan-400 hover:text-cyan-300 font-bold py-2 px-3 rounded-xl transition flex items-center justify-center gap-2 active:scale-95 text-xs">
               <svg class="w-3.5 h-3.5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
@@ -914,6 +870,20 @@
             <svg class="settings-box-chevron w-4 h-4 text-slate-400 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
           </div>
           <div id="settingsBoxTrial" class="settings-box-body p-4 pt-1 border-t border-slate-700/60 space-y-3 text-xs hidden">
+            <!-- Trial Subscription Switch -->
+            <div class="flex items-center justify-between py-2 border-b border-slate-700/50 mb-1">
+              <div>
+                <span class="text-slate-200 font-semibold block text-xs">اشتراک تست رایگان</span>
+                <span class="text-[10px] text-slate-400">امکان دریافت سرویس آزمایشی توسط کاربران</span>
+              </div>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" class="sr-only switch-checkbox" id="settingTrialSwitch">
+                <div class="switch-label w-11 h-6 bg-slate-700 rounded-full transition-colors duration-200 flex items-center px-0.5">
+                  <div class="switch-ball w-5 h-5 bg-white rounded-full shadow-md transition-transform duration-200"></div>
+                </div>
+              </label>
+            </div>
+
             <div class="grid grid-cols-2 gap-2">
               <div>
                 <label class="text-[11px] text-slate-400 block mb-1">حجم تست (GB)</label>
@@ -924,15 +894,43 @@
                 <input type="number" id="settingTrialDays" dir="ltr" placeholder="1" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-blue-300 outline-none focus:border-blue-500 transition" />
               </div>
             </div>
-            <div class="grid grid-cols-2 gap-2">
+
+            <!-- Referral System Switch -->
+            <div class="flex items-center justify-between py-2 border-t border-slate-700/50 pt-2">
               <div>
-                <label class="text-[11px] text-slate-400 block mb-1">پاداش دعوت (GB)</label>
-                <input type="number" id="settingRefReward" dir="ltr" placeholder="5" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-purple-300 outline-none focus:border-purple-500 transition" />
+                <span class="text-slate-200 font-semibold block text-xs">سیستم زیرمجموعه‌گیری</span>
+                <span class="text-[10px] text-slate-400">پاداش ترافیک هدیه برای دعوت از دوستان</span>
               </div>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" class="sr-only switch-checkbox" id="settingRefSwitch">
+                <div class="switch-label w-11 h-6 bg-slate-700 rounded-full transition-colors duration-200 flex items-center px-0.5">
+                  <div class="switch-ball w-5 h-5 bg-white rounded-full shadow-md transition-transform duration-200"></div>
+                </div>
+              </label>
+            </div>
+
+            <div>
+              <label class="text-[11px] text-slate-400 block mb-1">پاداش دعوت (GB)</label>
+              <input type="number" id="settingRefReward" dir="ltr" placeholder="5" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-purple-300 outline-none focus:border-purple-500 transition" />
+            </div>
+
+            <!-- Direct Support in Bot Switch -->
+            <div class="flex items-center justify-between py-2 border-t border-slate-700/50 pt-2">
               <div>
-                <label class="text-[11px] text-slate-400 block mb-1">آیدی پشتیبان تلگرام</label>
-                <input type="text" id="settingSupportContact" dir="ltr" placeholder="@Support_Admin" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-200 outline-none focus:border-indigo-500 transition" />
+                <span class="text-slate-200 font-semibold block text-xs">چت پشتیبانی درون ربات</span>
+                <span class="text-[10px] text-slate-400">ارسال مستقیم پیام تیکت به تاپیک پشتیبانی ادمین</span>
               </div>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" class="sr-only switch-checkbox" id="settingSupportDirectSwitch">
+                <div class="switch-label w-11 h-6 bg-slate-700 rounded-full transition-colors duration-200 flex items-center px-0.5">
+                  <div class="switch-ball w-5 h-5 bg-white rounded-full shadow-md transition-transform duration-200"></div>
+                </div>
+              </label>
+            </div>
+
+            <div>
+              <label class="text-[11px] text-slate-400 block mb-1">آیدی پشتیبان تلگرام</label>
+              <input type="text" id="settingSupportContact" dir="ltr" placeholder="@Support_Admin" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-200 outline-none focus:border-indigo-500 transition" />
             </div>
 
             <!-- Join Gate Settings Card (Inside Trial Section) -->
