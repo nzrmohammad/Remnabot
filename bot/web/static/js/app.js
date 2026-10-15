@@ -1242,7 +1242,7 @@ function loadAvatarWithFallback(imgEl, initialEl, directPhoto, userId) {
   imgEl.referrerPolicy = 'no-referrer';
   const profParam = directPhoto ? `&url=${encodeURIComponent(directPhoto)}` : '';
   // Prioritize server-side proxy endpoint so Telegram CDN URLs are fetched through the VPS rather than blocked locally
-  const proxyUrl = userId ? `/api/user/avatar?user_id=${userId}${profParam}` : '';
+  const proxyUrl = userId ? `/api/user/avatar?user_id=${userId}${profParam}` : (directPhoto ? `/api/user/avatar?url=${encodeURIComponent(directPhoto)}` : '');
   const targetUrl = proxyUrl || directPhoto;
 
   if (!targetUrl) {
@@ -1250,6 +1250,11 @@ function loadAvatarWithFallback(imgEl, initialEl, directPhoto, userId) {
     if (initialEl) initialEl.classList.remove('hidden');
     return;
   }
+
+  if (imgEl.dataset.avatarSrc === targetUrl) {
+    return;
+  }
+  imgEl.dataset.avatarSrc = targetUrl;
 
   imgEl.onload = () => {
     imgEl.classList.remove('hidden');
@@ -1266,9 +1271,7 @@ function loadAvatarWithFallback(imgEl, initialEl, directPhoto, userId) {
     }
   };
 
-  if (!imgEl.src || imgEl.src !== targetUrl) {
-    imgEl.src = targetUrl;
-  }
+  imgEl.src = targetUrl;
 }
 
 let expiryCountdownInterval = null;
@@ -2258,7 +2261,7 @@ function hydrateUserInterface(data) {
     }
 
     // Avatar Photos Loading (DRY with Fallback & no-referrer)
-    const profUid = user.id || tgUser?.id;
+    const profUid = tgUser?.id || user.id;
     const directPhoto = tgUser?.photo_url || user.photo_url || '';
     const profImg = $('profileAvatarImg');
     const profAvatarInitial = $('profileAvatarInitial');
@@ -2983,15 +2986,16 @@ function initApp() {
         if (profAvatar && (profAvatar.innerText === 'U' || !profAvatar.innerText)) {
           profAvatar.innerText = name[0].toUpperCase();
         }
-        const profId = $('profileTelegramId');
-        if (profId && profId.innerText === '--') {
-          profId.innerText = String(tgUser.id);
-        }
-
-        const directPhoto = tgUser?.photo_url || '';
-        loadAvatarWithFallback($('headerUserAvatarImg'), $('headerUserAvatarInitial'), directPhoto, tgUser.id);
-        loadAvatarWithFallback($('profileAvatarImg'), $('profileAvatarInitial'), directPhoto, tgUser.id);
       }
+
+      const profId = $('profileTelegramId');
+      if (profId && (profId.innerText === '--' || !profId.innerText) && tgUser.id) {
+        profId.innerText = String(tgUser.id);
+      }
+
+      const directPhoto = tgUser?.photo_url || '';
+      loadAvatarWithFallback($('headerUserAvatarImg'), $('headerUserAvatarInitial'), directPhoto, tgUser.id);
+      loadAvatarWithFallback($('profileAvatarImg'), $('profileAvatarInitial'), directPhoto, tgUser.id);
     }
   });
 

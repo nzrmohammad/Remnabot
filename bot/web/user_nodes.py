@@ -174,7 +174,8 @@ async def get_user_avatar(request: web.Request) -> web.Response:
         if user_auth:
             telegram_id = int(user_auth["id"])
 
-    if not telegram_id:
+    fallback_url = request.query.get("url")
+    if not telegram_id and not fallback_url:
         return web.Response(status=404)
 
     cors_headers = {
@@ -182,7 +183,7 @@ async def get_user_avatar(request: web.Request) -> web.Response:
     }
 
     cache = request.app.get("cache")
-    cache_key = f"tma:avatar:{telegram_id}"
+    cache_key = f"tma:avatar:{telegram_id}" if telegram_id else f"tma:avatar:url:{hash(fallback_url)}"
     if cache:
         cached_bytes = await cache.get(cache_key)
         if cached_bytes and isinstance(cached_bytes, (bytes, bytearray)):
@@ -193,7 +194,7 @@ async def get_user_avatar(request: web.Request) -> web.Response:
             )
 
     bot = request.app.get("bot")
-    if bot:
+    if bot and telegram_id:
         try:
             photos = await bot.get_user_profile_photos(telegram_id, limit=1)
             if photos.total_count > 0 and photos.photos and photos.photos[0]:
@@ -216,13 +217,11 @@ async def get_user_avatar(request: web.Request) -> web.Response:
             logger.debug("Failed to fetch avatar for %s via bot: %s", telegram_id, exc)
 
     # Fallback: if user supplied photo_url parameter from Telegram initData
-    fallback_url = request.query.get("url")
-    if fallback_url and any(origin in fallback_url for origin in ("telesco.pe", "t.me", "telegram.org", "api.telegram.org")):
+    if fallback_url and any(origin in fallback_url for origin in ("telesco.pe", "t.me", "telegram.org", "api.telegram.org", "cdn")):
         try:
             import aiohttp
             custom_headers = {
                 "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-                "Referer": "https://t.me/",
             }
             async with aiohttp.ClientSession(headers=custom_headers) as client:
                 async with client.get(fallback_url, timeout=aiohttp.ClientTimeout(total=8)) as resp:
@@ -237,6 +236,6 @@ async def get_user_avatar(request: web.Request) -> web.Response:
                                 headers=cors_headers,
                             )
         except Exception as exc:
-            logger.debug("Failed to proxy fallback avatar for %s: %s", telegram_id, exc)
+            logger.debug("Failed to proxy fallback avatar for %s: %s", telegram_id or 'unknown', exc)
 
     return web.Response(status=404)
