@@ -112,6 +112,17 @@ def _serialize_user_item(
         p_name = p.get("name") if (p and p.get("name") and p.get("name") != u.username and not str(p.get("name")).startswith("@")) else None
         profile_name = p_desc or p_name
 
+    user_reg_jalali = ""
+    if getattr(u, "created_at", None) and jdatetime:
+        try:
+            reg_dt = u.created_at
+            j_reg = jdatetime.datetime.fromgregorian(
+                datetime=reg_dt if reg_dt.tzinfo else reg_dt.replace(tzinfo=timezone.utc)
+            )
+            user_reg_jalali = f"{j_reg.year}/{j_reg.month:02d}/{j_reg.day:02d}"
+        except Exception:
+            pass
+
     return {
         "telegram_id": u.telegram_id,
         "username": u.username,
@@ -124,6 +135,8 @@ def _serialize_user_item(
         "avatar_url": f"/api/user/avatar?user_id={u.telegram_id}",
         "phone_number": u.phone_number if getattr(u, "phone_number", None) else "",
         "birth_date": u.birth_date if getattr(u, "birth_date", None) else "",
+        "created_at": u.created_at.isoformat() if getattr(u, "created_at", None) else None,
+        "created_at_jalali": user_reg_jalali,
         "panel_account": {
             "exists": panel_exists,
             "status": p.get("status", "NONE"),

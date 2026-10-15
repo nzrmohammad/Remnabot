@@ -1782,6 +1782,7 @@
   }
 
   function renderUsersList(users) {
+    window.currentAdminUsersList = users;
     const listContainer = $('adminUsersList');
     if (!listContainer) return;
     if (users.length === 0) {
@@ -1946,10 +1947,10 @@
       return `
         <div class="bg-slate-800/80 rounded-2xl p-3.5 border border-slate-700/80 space-y-2.5 shadow transition">
           <div class="flex items-center justify-between gap-3">
-            <!-- Right: Avatar + Profile Name + Status Badge underneath -->
-            <div class="flex items-center gap-2.5 min-w-0">
+            <!-- Right: Avatar + Profile Name + Status Badge underneath (Clickable to open Profile Modal) -->
+            <div class="flex items-center gap-2.5 min-w-0 cursor-pointer group select-none" onclick="window.adminActions.openUserProfileModal(${u.telegram_id})" title="مشاهده شناسنامه و پروفایل کاربر">
               <!-- User Profile Avatar with Initials Fallback -->
-              <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center font-bold text-white text-xs shadow overflow-hidden flex-shrink-0 relative">
+              <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center font-bold text-white text-xs shadow overflow-hidden flex-shrink-0 relative group-hover:ring-2 group-hover:ring-cyan-400/50 transition">
                 <img src="${avatarSrc}" alt="Avatar" class="w-full h-full object-cover" onerror="this.classList.add('hidden'); if(this.nextElementSibling) this.nextElementSibling.classList.remove('hidden');" />
                 <span class="${u.avatar_url ? 'hidden' : ''} font-bold">${escapeHtml(initial)}</span>
               </div>
@@ -1958,7 +1959,7 @@
               <div class="min-w-0 flex-1">
                 <!-- 1. Profile Name (اسم پروفایل کاربر) -->
                 <div class="flex items-center gap-1.5 min-w-0">
-                  <div data-copy="${escapeHtml(displayName)}" onclick="window.adminActions.quickCopy(this.dataset.copy, 'نام کاربر')" class="text-xs font-bold text-white truncate max-w-[130px] sm:max-w-[170px] cursor-pointer hover:text-cyan-300 active:scale-95 transition" title="${escapeHtml(displayName)}">
+                  <div class="text-xs font-bold text-white truncate max-w-[140px] sm:max-w-[190px] group-hover:text-cyan-300 transition">
                     ${(displayName || '').startsWith('@') ? `<span class="truncate inline-block font-mono" dir="ltr" style="unicode-bidi: isolate;">${escapeHtml(displayName)}</span>` : `<span class="truncate">${escapeHtml(displayName)}</span>`}
                   </div>
                   ${u.is_online ? '<span class="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)] animate-pulse flex-shrink-0" title="متصل به سرور"></span>' : ''}
@@ -1972,27 +1973,16 @@
               </div>
             </div>
 
-            <!-- Left: Top = Wallet Balance, Username + ID, Phone & Birthday -->
-            <div class="text-left flex flex-col items-end gap-1 flex-shrink-0">
+            <!-- Left: Top = Wallet Balance, Bottom = Compact Profile Button -->
+            <div class="text-left flex flex-col items-end gap-1.5 flex-shrink-0">
               <span class="text-[11px] font-mono font-bold text-emerald-400">
                 ${formatNumber(u.wallet_balance || 0)} ت
               </span>
 
-              <!-- Items 2 & 3: Username + Telegram ID together on ONE line on the left side -->
-              <div class="flex items-center gap-1 text-[10px] text-slate-400 font-mono" dir="ltr">
-                ${u.username ? `<span onclick="window.adminActions.quickCopy('@${escapeHtml(u.username)}', 'نام کاربری')" class="cursor-pointer hover:text-cyan-300 text-slate-300 font-mono truncate max-w-[95px] inline-block" title="@${escapeHtml(u.username)}">@${escapeHtml(u.username)}</span>` : ''}
-                ${u.username ? '<span class="text-slate-600">•</span>' : ''}
-                <span onclick="window.adminActions.quickCopy('${u.telegram_id}', 'شناسه عددی')" class="cursor-pointer hover:text-cyan-300 text-slate-400" title="شناسه تلگرام">${u.telegram_id}</span>
-              </div>
-
-              <!-- Phone and Birthday on left side, no background, no icons -->
-              ${(u.phone_number || u.birth_date) ? `
-                <div class="flex items-center gap-1.5 text-[9.5px] font-mono text-slate-400" dir="ltr">
-                  ${u.phone_number ? `<span onclick="window.adminActions.quickCopy('${escapeHtml(u.phone_number)}', 'شماره تماس')" class="cursor-pointer hover:text-emerald-400 text-slate-300 inline-flex items-center bg-transparent p-0 border-0 shadow-none" title="شماره تماس (کلیک جهت کپی)">${escapeHtml(u.phone_number)}</span>` : ''}
-                  ${(u.phone_number && u.birth_date) ? '<span class="text-slate-600">•</span>' : ''}
-                  ${u.birth_date ? `<span class="text-pink-300 inline-flex items-center bg-transparent p-0 border-0 shadow-none" title="تاریخ تولد">${escapeHtml(u.birth_date)}</span>` : ''}
-                </div>
-              ` : ''}
+              <button type="button" onclick="window.adminActions.openUserProfileModal(${u.telegram_id})" class="px-2.5 py-1 rounded-xl bg-slate-700/60 hover:bg-slate-700 border border-slate-600/70 text-slate-300 hover:text-white text-[10px] font-medium transition active:scale-95 flex items-center gap-1 shadow-sm" title="مشخصات و شناسنامه کاربر">
+                <svg class="w-3 h-3 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                <span>مشخصات</span>
+              </button>
             </div>
           </div>
 
@@ -2438,6 +2428,156 @@
       } catch (err) {
         if (window.showToast) window.showToast('خطا در برقراری ارتباط');
       }
+    },
+
+    // --- User Profile Modal ---
+    openUserProfileModal(telegram_id) {
+      const user = (window.currentAdminUsersList || []).find(x => String(x.telegram_id) === String(telegram_id));
+      if (!user) {
+        if (window.showToast) window.showToast('اطلاعات کاربر یافت نشد.');
+        return;
+      }
+
+      const rawName = user.full_name || '';
+      const displayName = (rawName && !rawName.startsWith('@')) ? rawName : (user.username ? ('@' + user.username) : `کاربر ${user.telegram_id}`);
+      const initial = (displayName || String(user.telegram_id))[0].toUpperCase();
+
+      // Avatar & Initial
+      const avatarImg = $('userProfModalAvatar');
+      const initialSpan = $('userProfModalInitial');
+      if (avatarImg && initialSpan) {
+        if (user.avatar_url) {
+          avatarImg.src = user.avatar_url;
+          avatarImg.classList.remove('hidden');
+          initialSpan.classList.add('hidden');
+          avatarImg.onerror = () => {
+            avatarImg.classList.add('hidden');
+            initialSpan.classList.remove('hidden');
+          };
+        } else {
+          avatarImg.classList.add('hidden');
+          initialSpan.classList.remove('hidden');
+        }
+        initialSpan.innerText = initial;
+      }
+
+      // Name & Online Dot
+      const nameElem = $('userProfModalFullName');
+      if (nameElem) nameElem.innerText = displayName;
+
+      const onlineDot = $('userProfModalOnlineDot');
+      if (onlineDot) {
+        if (user.is_online) onlineDot.classList.remove('hidden');
+        else onlineDot.classList.add('hidden');
+      }
+
+      // Status Badge
+      const p = user.panel_account;
+      let statusBadge = '<span class="px-2 py-0.5 rounded-lg text-[10px] bg-slate-800 border border-slate-700 text-slate-400 font-medium">بدون اکانت</span>';
+      if (user.is_banned) {
+        statusBadge = '<span class="px-2 py-0.5 rounded-lg text-[10px] bg-rose-500/10 text-rose-400 font-bold border border-rose-500/30">مسدود</span>';
+      } else if (user.is_expired || (p && p.exists && (p.status || '').toUpperCase() === 'EXPIRED')) {
+        statusBadge = '<span class="px-2 py-0.5 rounded-lg text-[10px] bg-rose-500/10 text-rose-400 font-bold border border-rose-500/30">منقضی</span>';
+      } else if (p && p.exists) {
+        const st = (p.status || '').toUpperCase();
+        if (st === 'ACTIVE') {
+          statusBadge = '<span class="px-2 py-0.5 rounded-lg text-[10px] bg-emerald-500/10 text-emerald-400 font-bold border border-emerald-500/30">فعال</span>';
+        } else if (st === 'DISABLED') {
+          statusBadge = '<span class="px-2 py-0.5 rounded-lg text-[10px] bg-amber-500/10 text-amber-400 font-bold border border-amber-500/30">غیرفعال</span>';
+        } else if (st === 'LIMITED') {
+          statusBadge = '<span class="px-2 py-0.5 rounded-lg text-[10px] bg-purple-500/10 text-purple-400 font-bold border border-purple-500/30">محدود شده</span>';
+        } else {
+          statusBadge = `<span class="px-2 py-0.5 rounded-lg text-[10px] bg-slate-800 border border-slate-700 text-slate-300 font-medium">${escapeHtml(st)}</span>`;
+        }
+      }
+      const statusBadgeElem = $('userProfModalStatusBadge');
+      if (statusBadgeElem) statusBadgeElem.innerHTML = statusBadge;
+
+      const expBadgeElem = $('userProfModalExpiringBadge');
+      if (expBadgeElem) {
+        expBadgeElem.innerHTML = user.is_expiring ? '<span class="px-2 py-0.5 rounded-lg text-[10px] bg-amber-500/10 text-amber-300 font-bold border border-amber-500/30">رو به اتمام</span>' : '';
+      }
+
+      // Username
+      const uNameElem = $('userProfModalUsername');
+      const tgLinkBtn = $('userProfModalTgLinkBtn');
+      const copyUNameBtn = $('userProfModalCopyUsernameBtn');
+      if (user.username) {
+        if (uNameElem) uNameElem.innerText = '@' + user.username;
+        if (tgLinkBtn) {
+          tgLinkBtn.classList.remove('hidden');
+          tgLinkBtn.onclick = () => window.open(`https://t.me/${user.username}`, '_blank');
+        }
+        if (copyUNameBtn) {
+          copyUNameBtn.classList.remove('hidden');
+          copyUNameBtn.onclick = () => window.adminActions.quickCopy('@' + user.username, 'نام کاربری');
+        }
+      } else {
+        if (uNameElem) uNameElem.innerText = 'ندارد';
+        if (tgLinkBtn) tgLinkBtn.classList.add('hidden');
+        if (copyUNameBtn) copyUNameBtn.classList.add('hidden');
+      }
+
+      // Telegram ID
+      const idElem = $('userProfModalId');
+      if (idElem) idElem.innerText = String(user.telegram_id);
+      const tgIdLinkBtn = $('userProfModalTgIdLinkBtn');
+      if (tgIdLinkBtn) tgIdLinkBtn.onclick = () => window.open(`tg://user?id=${user.telegram_id}`, '_blank');
+      const copyIdBtn = $('userProfModalCopyIdBtn');
+      if (copyIdBtn) copyIdBtn.onclick = () => window.adminActions.quickCopy(String(user.telegram_id), 'شناسه عددی');
+
+      // Phone
+      const phoneElem = $('userProfModalPhone');
+      const callBtn = $('userProfModalCallBtn');
+      const copyPhoneBtn = $('userProfModalCopyPhoneBtn');
+      if (user.phone_number) {
+        if (phoneElem) phoneElem.innerText = user.phone_number;
+        if (callBtn) {
+          callBtn.href = `tel:${user.phone_number}`;
+          callBtn.classList.remove('hidden');
+        }
+        if (copyPhoneBtn) {
+          copyPhoneBtn.classList.remove('hidden');
+          copyPhoneBtn.onclick = () => window.adminActions.quickCopy(user.phone_number, 'شماره تماس');
+        }
+      } else {
+        if (phoneElem) phoneElem.innerText = 'ثبت نشده';
+        if (callBtn) callBtn.classList.add('hidden');
+        if (copyPhoneBtn) copyPhoneBtn.classList.add('hidden');
+      }
+
+      // Birthday
+      const bdayElem = $('userProfModalBirthday');
+      if (bdayElem) bdayElem.innerText = user.birth_date ? user.birth_date : 'ثبت نشده';
+
+      // Wallet
+      const walletElem = $('userProfModalWallet');
+      if (walletElem) walletElem.innerText = `${formatNumber(user.wallet_balance || 0)} تومان`;
+
+      // Created At
+      const createdElem = $('userProfModalCreatedAt');
+      if (createdElem) createdElem.innerText = user.created_at_jalali ? user.created_at_jalali : (user.created_at ? user.created_at.slice(0, 10) : 'نامشخص');
+
+      // Quick Chat Button
+      const chatBtn = $('userProfModalQuickChatBtn');
+      if (chatBtn) {
+        if (user.username) {
+          chatBtn.onclick = () => window.open(`https://t.me/${user.username}`, '_blank');
+        } else {
+          chatBtn.onclick = () => window.open(`tg://user?id=${user.telegram_id}`, '_blank');
+        }
+      }
+
+      // Open Modal
+      const modal = $('userProfileModal');
+      if (modal) modal.classList.remove('hidden');
+      if (window.hapticFeedback) window.hapticFeedback('light');
+    },
+
+    closeUserProfileModal() {
+      const modal = $('userProfileModal');
+      if (modal) modal.classList.add('hidden');
+      if (window.hapticFeedback) window.hapticFeedback('selection');
     },
 
     // --- Wallet Actions ---
@@ -5586,6 +5726,8 @@
   window.copyCampaignLink = (url) => window.adminActions.copyCampaignLink(url);
   window.fetchAdminCampaigns = () => window.adminActions.fetchAdminCampaigns();
   window.deleteSslDomain = (domain) => window.adminActions.deleteSslDomain(domain);
+  window.openUserProfileModal = (id) => window.adminActions.openUserProfileModal(id);
+  window.closeUserProfileModal = () => window.adminActions.closeUserProfileModal();
 
   // Explicit event listeners for Admin App Tabs and Due Date buttons
   document.querySelectorAll('.admin-app-os-tab').forEach(btn => {
