@@ -23,6 +23,8 @@ class Settings(BaseSettings):
     ADMIN_TOPIC_ORDERS: int | None = None   # Topic ID for purchase logs
     ADMIN_TOPIC_SUPPORT: int | None = None  # Topic ID for support messages
     ADMIN_TOPIC_ALERTS: int | None = None   # Topic ID for system/reconcile alerts
+    ADMIN_TOPIC_REPORTS: int | None = None  # Topic ID for executive daily/nightly/weekly reports
+    ADMIN_TOPIC_NODES: int | None = None    # Topic ID for server connect/disconnect and health alerts
     ADMIN_TOPIC_CRYPTO: int | None = None   # Topic ID for crypto rates and payments
     ADMIN_TOPIC_ERRORS: int | None = None   # Topic ID for system error logs and exceptions
 
@@ -104,6 +106,8 @@ class Settings(BaseSettings):
         "ADMIN_TOPIC_ORDERS",
         "ADMIN_TOPIC_SUPPORT",
         "ADMIN_TOPIC_ALERTS",
+        "ADMIN_TOPIC_REPORTS",
+        "ADMIN_TOPIC_NODES",
         "ADMIN_TOPIC_CRYPTO",
         "ADMIN_TOPIC_ERRORS",
         mode="before",

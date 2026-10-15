@@ -55,12 +55,16 @@ async def _render_topics_settings(
     t_orders = f"{store.topic_orders} (Orders)" if store.topic_orders is not None else "— (Orders)"
     t_support = f"{store.topic_support} (Support)" if store.topic_support is not None else "— (Support)"
     t_alerts = f"{store.topic_alerts} (Alerts)" if store.topic_alerts is not None else "— (Alerts)"
+    t_reports = f"{store.topic_reports} (Reports)" if store.topic_reports is not None else "— (Reports)"
+    t_nodes = f"{store.topic_nodes} (Nodes)" if store.topic_nodes is not None else "— (Nodes)"
     t_crypto = f"{store.topic_crypto} (Crypto)" if store.topic_crypto is not None else "— (Crypto)"
     t_errors = f"{store.topic_errors} (Errors)" if store.topic_errors is not None else "— (Errors)"
 
     if lang == "fa":
         kb.button(text="🛒 تاپیک سفارشات", callback_data="adm:set:topic_orders")
         kb.button(text="💳 تاپیک شارژها", callback_data="adm:set:topic_topups")
+        kb.button(text="🖥️ تاپیک سرورها", callback_data="adm:set:topic_nodes")
+        kb.button(text="📊 تاپیک گزارش‌ها", callback_data="adm:set:topic_reports")
         kb.button(text="🚨 تاپیک هشدار و بکاپ", callback_data="adm:set:topic_alerts")
         kb.button(text="🎧 تاپیک پشتیبانی", callback_data="adm:set:topic_support")
         kb.button(text="⚠️ تاپیک لاگ‌های ارور", callback_data="adm:set:topic_errors")
@@ -70,6 +74,8 @@ async def _render_topics_settings(
     else:
         kb.button(text="💳 Top-ups Topic", callback_data="adm:set:topic_topups")
         kb.button(text="🛒 Orders Topic", callback_data="adm:set:topic_orders")
+        kb.button(text="🖥️ Servers & Health", callback_data="adm:set:topic_nodes")
+        kb.button(text="📊 Reports Topic", callback_data="adm:set:topic_reports")
         kb.button(text="🎧 Support Topic", callback_data="adm:set:topic_support")
         kb.button(text="🚨 Alerts & Backup", callback_data="adm:set:topic_alerts")
         kb.button(text="💎 Crypto & Rates Topic", callback_data="adm:set:topic_crypto")
@@ -79,9 +85,9 @@ async def _render_topics_settings(
 
     kb.button(text=t(lang, "btn_back"), callback_data="adm:settings")
     if store.topic_errors is not None:
-        kb.adjust(2, 2, 2, 1, 1)
+        kb.adjust(2, 2, 2, 2, 1, 1)
     else:
-        kb.adjust(2, 2, 2, 1)
+        kb.adjust(2, 2, 2, 2, 1)
 
     grp_title = await _get_admin_group_title(bot)
     topics_title = f"{t(lang, 'settings_topics_title')} ({escape(grp_title)})" if grp_title else t(lang, 'settings_topics_title')
@@ -91,6 +97,8 @@ async def _render_topics_settings(
         f"💳 <b>تاپیک تایید شارژها :</b> {t_topups}\n"
         f"🛒 <b>تاپیک ثبت سفارشات :</b> {t_orders}\n"
         f"🎧 <b>تاپیک پیام‌های پشتیبانی :</b> {t_support}\n"
+        f"🖥️ <b>تاپیک وضعیت و قطعی سرورها :</b> {t_nodes}\n"
+        f"📊 <b>تاپیک گزارش‌های مدیریتی :</b> {t_reports}\n"
         f"🚨 <b>تاپیک هشدارهای سیستم و بکاپ :</b> {t_alerts}\n"
         f"💎 <b>تاپیک کریپتو و نرخ ارز :</b> {t_crypto}\n"
         f"⚠️ <b>تاپیک لاگ‌های ارور :</b> {t_errors}\n\n"
@@ -101,6 +109,8 @@ async def _render_topics_settings(
         f"💳 <b>Top-ups Topic :</b> {t_topups}\n"
         f"🛒 <b>Orders Topic :</b> {t_orders}\n"
         f"🎧 <b>Support Topic :</b> {t_support}\n"
+        f"🖥️ <b>Node Health & Status :</b> {t_nodes}\n"
+        f"📊 <b>Executive Reports :</b> {t_reports}\n"
         f"🚨 <b>System Alerts & Backup :</b> {t_alerts}\n"
         f"💎 <b>Crypto & Rates Topic :</b> {t_crypto}\n"
         f"⚠️ <b>Error Logs Topic :</b> {t_errors}\n\n"

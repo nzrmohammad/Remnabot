@@ -35,12 +35,16 @@ async def _notify_admins(bot: Bot, text: str, session_factory: Any = None) -> No
         try:
             async with session_factory() as session:
                 store = await get_store_settings(session)
-                topic_id = store.topic_alerts if store.topic_alerts is not None else settings.ADMIN_TOPIC_ALERTS
+                topic_id = getattr(store, "topic_nodes", None)
+                if topic_id is None:
+                    topic_id = store.topic_alerts if store.topic_alerts is not None else getattr(settings, "ADMIN_TOPIC_NODES", None)
+                if topic_id is None:
+                    topic_id = settings.ADMIN_TOPIC_ALERTS
         except Exception as exc:
-            logger.warning("Could not fetch topic_alerts for node alert: %s", exc)
-            topic_id = settings.ADMIN_TOPIC_ALERTS
+            logger.warning("Could not fetch topic for node alert: %s", exc)
+            topic_id = getattr(settings, "ADMIN_TOPIC_NODES", None) or settings.ADMIN_TOPIC_ALERTS
     else:
-        topic_id = settings.ADMIN_TOPIC_ALERTS
+        topic_id = getattr(settings, "ADMIN_TOPIC_NODES", None) or settings.ADMIN_TOPIC_ALERTS
 
     delivered = False
     admin_chat_id = getattr(settings, "ADMIN_CHAT_ID", None)

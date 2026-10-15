@@ -21,6 +21,8 @@ class StoreSettings:
     topic_support: int | None
     topic_alerts: int | None
     support_contact: str
+    topic_reports: int | None = None
+    topic_nodes: int | None = None
     trial_enabled: bool = True
     trial_traffic_gb: int = 1
     trial_duration_days: int = 1
@@ -85,6 +87,8 @@ async def get_store_settings(session: AsyncSession) -> StoreSettings:
         topic_orders=_opt_int(values.get("topic_orders"), env.ADMIN_TOPIC_ORDERS),
         topic_support=_opt_int(values.get("topic_support"), env.ADMIN_TOPIC_SUPPORT),
         topic_alerts=_opt_int(values.get("topic_alerts"), env.ADMIN_TOPIC_ALERTS),
+        topic_reports=_opt_int(values.get("topic_reports"), getattr(env, "ADMIN_TOPIC_REPORTS", None)),
+        topic_nodes=_opt_int(values.get("topic_nodes"), getattr(env, "ADMIN_TOPIC_NODES", None)),
         support_contact=values.get("support_contact", ""),
         trial_enabled=_bool(values.get("trial_enabled"), True),
         trial_traffic_gb=_int(values.get("trial_traffic_gb"), 1),

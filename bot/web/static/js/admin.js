@@ -1580,7 +1580,7 @@
                   <span class="text-indigo-400 font-bold">↑${formatSpeed(ulSpeed)}</span>
                 </div>
               ` : ''}
-              <span class="text-[10px] font-bold font-mono ${statusBorder} bg-transparent px-2.5 py-1 rounded-xl border flex items-center gap-1.5">
+              <span class="text-[10px] font-bold font-sans ${statusBorder} bg-transparent px-2.5 py-1 rounded-xl border flex items-center gap-1.5">
                 <span class="w-1.5 h-1.5 rounded-full ${isOnline ? 'bg-emerald-400' : 'bg-rose-400'}"></span>
                 ${statusBadge}
               </span>
@@ -1711,11 +1711,9 @@
                   </b>
                 </div>
                 <div>
-                  <span class="text-slate-400 block mb-0.5">سود/زیان خالص (ROI):</span>
-                  <b class="${n.is_profitable ? 'text-emerald-400' : 'text-rose-400'} font-bold block">
-                    <span dir="ltr" class="font-mono">${(n.net_profit_toman || 0) >= 0 ? '+' : ''}${formatNumber(n.net_profit_toman || 0)}</span>
-                    <span class="text-[9px] font-sans">ت</span>
-                    ${n.roi_percent !== null && n.roi_percent !== undefined ? `<span class="text-[9px] font-mono mr-1">(${n.roi_percent >= 0 ? '+' : ''}${n.roi_percent}%)</span>` : ''}
+                  <span class="text-slate-400 block mb-0.5">سود/زیان خالص:</span>
+                  <b class="${n.is_profitable ? 'text-emerald-400' : 'text-rose-400'} font-bold block font-mono text-[10.5px]" dir="ltr">
+                    ${(n.net_profit_toman || 0) > 0 ? '+' : ''}${formatNumber(n.net_profit_toman || 0)}${n.roi_percent !== null && n.roi_percent !== undefined ? ` (${n.roi_percent > 0 ? '+' : ''}${n.roi_percent}%)` : ''}
                   </b>
                 </div>
               </div>
@@ -4875,6 +4873,8 @@
     'settingTopicOrders',
     'settingTopicSupport',
     'settingTopicAlerts',
+    'settingTopicNodes',
+    'settingTopicReports',
     'settingTopicCrypto',
     'settingTopicErrors'
   ];
@@ -5039,6 +5039,8 @@
         settingTopicOrders: s.topic_orders,
         settingTopicSupport: s.topic_support,
         settingTopicAlerts: s.topic_alerts,
+        settingTopicNodes: s.topic_nodes,
+        settingTopicReports: s.topic_reports,
         settingTopicCrypto: s.topic_crypto,
         settingTopicErrors: s.topic_errors,
       };
@@ -5166,6 +5168,8 @@
       topic_orders: parseTopicVal($('settingTopicOrders')?.value),
       topic_support: parseTopicVal($('settingTopicSupport')?.value),
       topic_alerts: parseTopicVal($('settingTopicAlerts')?.value),
+      topic_nodes: parseTopicVal($('settingTopicNodes')?.value),
+      topic_reports: parseTopicVal($('settingTopicReports')?.value),
       topic_crypto: parseTopicVal($('settingTopicCrypto')?.value),
       topic_errors: parseTopicVal($('settingTopicErrors')?.value),
       tutorial_channel_url: $('settingTutorialChannelUrl')?.value?.trim() || '',

@@ -565,6 +565,8 @@ EN_TEXTS: dict[str, str] = {
         "settings_topic_orders": "Orders Forum Topic ID",
         "settings_topic_support": "Support Forum Topic ID",
         "settings_topic_alerts": "System Alerts Forum Topic ID",
+        "settings_topic_reports": "Executive Reports Forum Topic ID",
+        "settings_topic_nodes": "Node Status & Health Forum Topic ID",
         "settings_topic_crypto": "Crypto & Rates Forum Topic ID",
         "settings_topic_errors": "Error Logs Forum Topic ID",
         "settings_ton_wallet": "TON Wallet Address",

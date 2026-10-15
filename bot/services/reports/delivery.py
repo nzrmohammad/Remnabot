@@ -86,7 +86,9 @@ async def _deliver_admin_report(
 ) -> None:
     settings = get_settings()
     store = await get_store_settings(session)
-    thread_kwargs = admin_thread_kwargs(store, settings, kind="alerts")
+    thread_kwargs = admin_thread_kwargs(store, settings, kind="reports")
+    if not thread_kwargs:
+        thread_kwargs = admin_thread_kwargs(store, settings, kind="alerts")
     topic_id = thread_kwargs.get("message_thread_id")
 
     from bot.db.repositories.app_setting_repo import AppSettingRepository
