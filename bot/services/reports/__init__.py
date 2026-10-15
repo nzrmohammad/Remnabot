@@ -2,6 +2,7 @@
 from bot.common import SEPARATOR, fmt
 from bot.services.app_settings import get_store_settings
 from bot.services.reports.admin_summaries import (
+    _send_admin_daily_summary,
     _send_admin_monthly_summary,
     _send_admin_nightly_summary,
     _send_admin_weekly_summary,
@@ -86,6 +87,7 @@ __all__ = [
     "_send_weekly_for_user",
     "_monthly_text_for_user",
     "_send_monthly_for_user",
+    "_send_admin_daily_summary",
     "_send_admin_nightly_summary",
     "_send_admin_weekly_summary",
     "_send_admin_monthly_summary",

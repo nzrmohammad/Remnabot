@@ -17,6 +17,7 @@ from bot.services.crypto.crypto_notifier import (
     send_rate_notification,
 )
 from bot.services.crypto.crypto_rates import (
+    format_full_crypto_market_alert,
     format_multi_rate_alert,
     format_rate_alert,
     format_ton_rate_alert,
@@ -32,6 +33,7 @@ __all__ = [
     "format_multi_rate_alert",
     "format_ton_rate_alert",
     "format_usdt_rate_alert",
+    "format_full_crypto_market_alert",
     "_seconds_until_next_target",
     "send_rate_notification",
     "nobitex_rate_loop",

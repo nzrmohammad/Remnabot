@@ -455,10 +455,10 @@
             </h3>
             <div class="flex items-center gap-2">
               <button id="openBatchVoucherBtn" onclick="window.adminActions.openBatchVoucherModal()" class="bg-transparent hover:bg-cyan-600/10 text-cyan-400 hover:text-cyan-300 border border-cyan-500/40 text-[11px] font-bold px-3 py-1.5 rounded-xl transition active:scale-95 flex items-center gap-1">
-                <span>⚡️</span> تولید کارت شارژ (سری)
+                <span>⚡️</span> تولید کارت شارژ
               </button>
               <button id="openCreateCouponBtn" class="bg-transparent hover:bg-pink-600/10 text-pink-400 hover:text-pink-300 border border-pink-500/40 text-[11px] font-bold px-3 py-1.5 rounded-xl transition active:scale-95 flex items-center gap-1">
-                <span>+</span> کد تخفیف جدید
+                <span>+</span> کد تخفیف
               </button>
             </div>
           </div>
@@ -629,7 +629,7 @@
               <span class="text-[10px] text-slate-400 block mt-0.5">ردیابی قیمت تبدیل و درآمد هر منبع تبلیغات</span>
             </div>
             <button type="button" onclick="window.adminActions.openCreateCampaignModal()" class="px-3 py-1.5 bg-transparent hover:bg-blue-600/10 text-blue-400 hover:text-blue-300 border border-blue-500/40 rounded-xl text-xs font-bold transition flex items-center gap-1 active:scale-95">
-              <span>➕ ساخت لینک جدید</span>
+              <span>➕ ساخت لینک</span>
             </button>
           </div>
 
@@ -820,12 +820,6 @@
               </label>
             </div>
 
-            <!-- Live Rates Online Modal Trigger Button -->
-            <button id="openCryptoRatesModalBtn" type="button" class="w-full bg-transparent hover:bg-cyan-500/10 border border-cyan-500/40 text-cyan-400 hover:text-cyan-300 font-bold py-2 px-3 rounded-xl transition flex items-center justify-center gap-2 active:scale-95 text-xs">
-              <svg class="w-3.5 h-3.5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-              <span>استعلام آنلاین</span>
-            </button>
-
             <!-- 4 Currency Rates: 2 per row -->
             <div class="grid grid-cols-2 gap-2.5">
               <div>
@@ -851,6 +845,12 @@
               <label class="text-[11px] text-slate-400 block mb-1">آدرس کیف پول TON</label>
               <input type="text" id="settingTonWallet" dir="ltr" placeholder="UQ... یا EQ..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-slate-300 outline-none focus:border-blue-500 transition text-[11px]" />
             </div>
+
+            <!-- Live Rates Online Modal Trigger Button -->
+            <button id="openCryptoRatesModalBtn" type="button" class="w-full bg-transparent hover:bg-cyan-500/10 border border-cyan-500/40 text-cyan-400 hover:text-cyan-300 font-bold py-2 px-3 rounded-xl transition flex items-center justify-center gap-2 active:scale-95 text-xs">
+              <svg class="w-3.5 h-3.5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+              <span>استعلام آنلاین</span>
+            </button>
 
           </div>
         </div>

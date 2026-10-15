@@ -1,6 +1,7 @@
 """Crypto price notification scheduler and admin topic broadcaster."""
 import asyncio
 from datetime import datetime, timedelta
+import json
 import logging
 from zoneinfo import ZoneInfo
 
@@ -8,9 +9,14 @@ from aiogram import Bot
 
 from bot.common import admin_thread_kwargs
 from bot.config import get_settings
+from bot.db.repositories.app_setting_repo import AppSettingRepository
 from bot.services.app_settings import get_store_settings
 from bot.services.crypto.crypto_fetcher import fetch_all_exchange_prices
-from bot.services.crypto.crypto_rates import format_ton_rate_alert, format_usdt_rate_alert
+from bot.services.crypto.crypto_rates import (
+    format_full_crypto_market_alert,
+    format_ton_rate_alert,
+    format_usdt_rate_alert,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -42,7 +48,7 @@ def _seconds_until_next_target(
 
 
 async def send_rate_notification(bot: Bot, session_factory, hour_str: str = "") -> bool:
-    """Fetch market prices and send separate TON and USDT rate alerts to crypto topic."""
+    """Fetch market prices, delete previous rate message, and send comprehensive rate alert to crypto topic."""
     settings = get_settings()
     async with session_factory() as session:
         store = await get_store_settings(session)
@@ -62,32 +68,61 @@ async def send_rate_notification(bot: Bot, session_factory, hour_str: str = "") 
         )
         thread_kwargs = admin_thread_kwargs(topic_id=topic_id)
 
-        delivered = False
-        # 1. Send TON alert
-        if market_data.get("ton") or best_ton is not None:
-            ton_text, ton_kb = format_ton_rate_alert(
-                market_data=market_data,
-                current_ton_rate=store.ton_rate_toman,
-                hour_str=hour_str,
-            )
-            try:
-                await bot.send_message(settings.ADMIN_CHAT_ID, ton_text, reply_markup=ton_kb, **thread_kwargs)
-                delivered = True
-            except Exception as exc:
-                logger.warning("Failed to send TON rate alert to admin chat: %s", exc)
+        app_repo = AppSettingRepository(session)
 
-        # 2. Send USDT alert
-        if market_data.get("usdt"):
-            usdt_text, usdt_kb = format_usdt_rate_alert(
-                market_data=market_data,
-                current_usdt_rate=store.usdt_rate_toman,
-                hour_str=hour_str,
-            )
+        # 1. Delete previous price alert message(s) to avoid clutter in the topic
+        prev_raw = await app_repo.get("last_admin_crypto_rate_msg_ids")
+        if prev_raw:
             try:
-                await bot.send_message(settings.ADMIN_CHAT_ID, usdt_text, reply_markup=usdt_kb, **thread_kwargs)
+                prev_ids = json.loads(prev_raw)
+                for mid in prev_ids:
+                    try:
+                        await bot.delete_message(chat_id=settings.ADMIN_CHAT_ID, message_id=mid)
+                    except Exception:
+                        pass
+            except Exception as clean_err:
+                logger.debug("Failed cleaning previous crypto rate alert: %s", clean_err)
+
+        # 2. Format comprehensive rate alert covering TON, USDT, Stars, and EUR
+        alert_text, alert_kb = format_full_crypto_market_alert(
+            market_data=market_data,
+            store=store,
+            hour_str=hour_str,
+        )
+
+        delivered = False
+        if settings.ADMIN_CHAT_ID:
+            try:
+                sent_msg = await bot.send_message(
+                    settings.ADMIN_CHAT_ID,
+                    alert_text,
+                    reply_markup=alert_kb,
+                    **thread_kwargs,
+                )
                 delivered = True
+                await app_repo.set(
+                    "last_admin_crypto_rate_msg_ids",
+                    json.dumps([sent_msg.message_id]),
+                )
+                await session.commit()
             except Exception as exc:
-                logger.warning("Failed to send USDT rate alert to admin chat: %s", exc)
+                logger.warning("Failed to send comprehensive crypto rate alert to admin chat: %s", exc)
+                # Fallback without thread_kwargs if topic delivery fails
+                if thread_kwargs:
+                    try:
+                        sent_msg = await bot.send_message(
+                            settings.ADMIN_CHAT_ID,
+                            alert_text,
+                            reply_markup=alert_kb,
+                        )
+                        delivered = True
+                        await app_repo.set(
+                            "last_admin_crypto_rate_msg_ids",
+                            json.dumps([sent_msg.message_id]),
+                        )
+                        await session.commit()
+                    except Exception as fallback_exc:
+                        logger.warning("Failed fallback send to admin chat: %s", fallback_exc)
 
         return delivered
 

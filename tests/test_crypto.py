@@ -676,3 +676,92 @@ async def test_fetch_all_exchange_prices_mock():
         assert res["best_ton"][0] == 413000
 
 
+def test_format_full_crypto_market_alert():
+    """Verify comprehensive market alert formatting covers TON, USDT, Stars, EUR, and action buttons."""
+    from bot.services.crypto.crypto_rates import format_full_crypto_market_alert
+
+    mock_store = MagicMock(
+        ton_rate_toman=380000,
+        usdt_rate_toman=95000,
+        stars_rate_toman=1500,
+        eur_rate_toman=105000,
+    )
+    market_data = {
+        "ton": {"نوبیتکس": 390000, "بیت‌پین": 389000},
+        "usdt": {"نوبیتکس": 96000, "والکس": 96200},
+        "binance_usd": 2.45,
+        "best_ton": (390000, "نوبیتکس"),
+        "best_usdt": (96200, "والکس"),
+    }
+
+    text, kb = format_full_crypto_market_alert(market_data=market_data, store=mock_store, hour_str="14:00")
+    assert "14:00" in text
+    assert "نوبیتکس" in text
+    assert "390,000" in text
+    assert "96,200" in text
+    assert "$2.45" in text
+    assert "105,000" in text  # EUR
+    assert "استارز" in text
+
+    # Buttons check
+    callbacks = [btn.callback_data for row in kb.inline_keyboard for btn in row]
+    assert "adm:rate:apply:ton:390000" in callbacks
+    assert "adm:rate:apply:usdt:96200" in callbacks
+    assert any("adm:rate:apply:stars:" in cb for cb in callbacks)
+    assert "adm:set:ton_rate_toman" in callbacks
+    assert "adm:set:usdt_rate_toman" in callbacks
+    assert "adm:settings:crypto" in callbacks
+
+
+@pytest.mark.anyio
+async def test_send_rate_notification_deletes_previous_message(session_factory):
+    """Verify send_rate_notification deletes previous rate message before sending a new one."""
+    import json
+    from bot.db.repositories.app_setting_repo import AppSettingRepository
+    from bot.services.crypto.crypto_notifier import send_rate_notification
+
+    # Pre-populate previous message ID
+    async with session_factory() as session:
+        repo = AppSettingRepository(session)
+        await repo.set("last_admin_crypto_rate_msg_ids", json.dumps([12345]))
+        await repo.set("crypto_enabled", "1")
+        await session.commit()
+
+    bot = AsyncMock()
+    mock_sent_msg = MagicMock(message_id=99999)
+    bot.send_message = AsyncMock(return_value=mock_sent_msg)
+    bot.delete_message = AsyncMock()
+
+    with patch("bot.services.crypto.crypto_notifier.get_settings") as mock_settings, \
+         patch("bot.services.crypto.crypto_notifier.fetch_all_exchange_prices") as mock_fetch:
+
+        mock_settings.return_value = MagicMock(
+            ADMIN_CHAT_ID=-100123456789,
+            ADMIN_TOPIC_CRYPTO=555,
+            ADMIN_TOPIC_ALERTS=None,
+            ADMIN_TOPIC_TOPUPS=None,
+            ADMIN_IDS=[111],
+        )
+        mock_fetch.return_value = {
+            "ton": {"نوبیتکس": 390000},
+            "usdt": {"نوبیتکس": 95000},
+            "best_ton": (390000, "نوبیتکس"),
+            "best_usdt": (95000, "نوبیتکس"),
+        }
+
+        delivered = await send_rate_notification(bot, session_factory, hour_str="10:00")
+        assert delivered is True
+
+        # Must have attempted deleting old message 12345
+        bot.delete_message.assert_called_with(chat_id=-100123456789, message_id=12345)
+        # Must have sent new message
+        assert bot.send_message.called
+
+        # Must have saved new message ID 99999
+        async with session_factory() as session:
+            repo = AppSettingRepository(session)
+            val = await repo.get("last_admin_crypto_rate_msg_ids")
+            assert json.loads(val) == [99999]
+
+
+

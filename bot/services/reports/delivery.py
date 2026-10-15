@@ -57,10 +57,13 @@ def _chunk_text(text: str, max_chars: int = 3800) -> list[str]:
     return chunks
 
 
-async def _safe_send_message(bot: Bot, chat_id: int, text: str, **kwargs) -> bool:
+import json
+from typing import Any
+
+
+async def _safe_send_message(bot: Bot, chat_id: int, text: str, **kwargs) -> Any:
     try:
-        await bot.send_message(chat_id, text, **kwargs)
-        return True
+        return await bot.send_message(chat_id, text, **kwargs)
     except Exception as exc:
         logger.warning("Failed sending message to %s: %s", chat_id, exc)
         err_msg = str(exc).lower()
@@ -68,27 +71,54 @@ async def _safe_send_message(bot: Bot, chat_id: int, text: str, **kwargs) -> boo
             try:
                 plain_text = re.sub(r"<[^>]+>", "", text)
                 clean_kwargs = {k: v for k, v in kwargs.items() if k != "parse_mode"}
-                await bot.send_message(chat_id, plain_text, parse_mode=None, **clean_kwargs)
-                return True
+                return await bot.send_message(chat_id, plain_text, parse_mode=None, **clean_kwargs)
             except Exception as retry_exc:
                 logger.warning("Failed plain-text retry to %s: %s", chat_id, retry_exc)
         raise exc
 
 
 async def _deliver_admin_report(
-    bot: Bot, session: AsyncSession, text: str, target_user_id: int | None = None
+    bot: Bot,
+    session: AsyncSession,
+    text: str,
+    target_user_id: int | None = None,
+    kind: str = "general",
 ) -> None:
     settings = get_settings()
     store = await get_store_settings(session)
     thread_kwargs = admin_thread_kwargs(store, settings, kind="alerts")
     topic_id = thread_kwargs.get("message_thread_id")
 
+    from bot.db.repositories.app_setting_repo import AppSettingRepository
+
+    app_repo = AppSettingRepository(session)
+
+    # 1. Clean previous admin reports for this specific kind to avoid chat clutter
+    clean_key = f"last_admin_report_msg_ids_{kind}"
+    if target_user_id:
+        clean_key = f"last_admin_report_msg_ids_{kind}_{target_user_id}"
+
+    try:
+        prev_raw = await app_repo.get(clean_key)
+        if prev_raw:
+            prev_records = json.loads(prev_raw)
+            for c_id, m_id in prev_records:
+                try:
+                    await bot.delete_message(chat_id=c_id, message_id=m_id)
+                except Exception:
+                    pass
+    except Exception as clean_err:
+        logger.debug("Failed cleaning previous admin report messages: %s", clean_err)
+
+    new_sent_records: list[list[int]] = []
     chunks = _chunk_text(text)
     for chunk in chunks:
         delivered_to_group = False
         if settings.ADMIN_CHAT_ID:
             try:
-                await _safe_send_message(bot, settings.ADMIN_CHAT_ID, chunk, **thread_kwargs)
+                msg = await _safe_send_message(bot, settings.ADMIN_CHAT_ID, chunk, **thread_kwargs)
+                if msg:
+                    new_sent_records.append([settings.ADMIN_CHAT_ID, msg.message_id])
                 delivered_to_group = True
             except Exception as exc:
                 logger.warning(
@@ -99,7 +129,9 @@ async def _deliver_admin_report(
                 )
                 if thread_kwargs:
                     try:
-                        await _safe_send_message(bot, settings.ADMIN_CHAT_ID, chunk)
+                        msg = await _safe_send_message(bot, settings.ADMIN_CHAT_ID, chunk)
+                        if msg:
+                            new_sent_records.append([settings.ADMIN_CHAT_ID, msg.message_id])
                         delivered_to_group = True
                     except Exception as fallback_exc:
                         logger.warning(
@@ -110,7 +142,9 @@ async def _deliver_admin_report(
 
         if target_user_id:
             try:
-                await _safe_send_message(bot, target_user_id, chunk)
+                msg = await _safe_send_message(bot, target_user_id, chunk)
+                if msg:
+                    new_sent_records.append([target_user_id, msg.message_id])
             except Exception as direct_exc:
                 logger.warning("Admin report direct delivery to admin %s failed: %s", target_user_id, direct_exc)
 
@@ -119,6 +153,16 @@ async def _deliver_admin_report(
                 if aid == target_user_id:
                     continue
                 try:
-                    await _safe_send_message(bot, aid, chunk)
+                    msg = await _safe_send_message(bot, aid, chunk)
+                    if msg:
+                        new_sent_records.append([aid, msg.message_id])
                 except Exception as admin_exc:
                     logger.warning("Admin report fallback to admin %s failed: %s", aid, admin_exc)
+
+    if new_sent_records:
+        try:
+            await app_repo.set(clean_key, json.dumps(new_sent_records))
+            await session.commit()
+        except Exception as save_err:
+            logger.debug("Failed saving admin report message ids: %s", save_err)
+

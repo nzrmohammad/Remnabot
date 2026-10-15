@@ -2003,3 +2003,44 @@ async def test_recent_ui_and_reports_fixes():
         # First: name, Second: traffic, Third: price
         assert "بسته حرفه‌ای — 50 GB — 150,000 تومان" in svc_btn_text
         assert svc_btn_text.startswith("✅ بسته حرفه‌ای")
+
+
+@pytest.mark.anyio
+async def test_admin_report_auto_clean_previous_messages(session_factory):
+    """Verify _deliver_admin_report cleans up previous report messages by kind before sending new ones."""
+    import json
+    from bot.db.repositories.app_setting_repo import AppSettingRepository
+    from bot.services.reports.delivery import _deliver_admin_report
+
+    async with session_factory() as session:
+        repo = AppSettingRepository(session)
+        # Seed an old nightly report message ID [chat_id, msg_id]
+        await repo.set("last_admin_report_msg_ids_nightly", json.dumps([[-100999, 44444]]))
+        await session.commit()
+
+    bot = AsyncMock()
+    mock_sent = MagicMock(message_id=88888)
+    bot.send_message = AsyncMock(return_value=mock_sent)
+    bot.delete_message = AsyncMock()
+
+    with patch("bot.services.reports.delivery.get_settings") as mock_settings:
+        mock_settings.return_value = MagicMock(
+            ADMIN_CHAT_ID=-100999,
+            ADMIN_TOPIC_ALERTS=123,
+            ADMIN_IDS=[111],
+        )
+
+        async with session_factory() as session:
+            await _deliver_admin_report(bot, session, "گزارش شبانه تست", kind="nightly")
+
+        # Verify old message 44444 was deleted
+        bot.delete_message.assert_called_with(chat_id=-100999, message_id=44444)
+        # Verify new message was sent
+        assert bot.send_message.called
+
+        # Verify new message ID was saved
+        async with session_factory() as session:
+            repo = AppSettingRepository(session)
+            saved = await repo.get("last_admin_report_msg_ids_nightly")
+            assert json.loads(saved) == [[-100999, 88888]]
+

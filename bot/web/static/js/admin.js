@@ -1490,13 +1490,13 @@
 
       return `
         <div class="p-3.5 rounded-2xl bg-slate-900/60 border border-slate-700/60 flex flex-col gap-2.5 transition hover:border-slate-600/70 shadow-sm">
-          <!-- Row 1: Right = Status / Days Left, Left = Domain Name -->
+          <!-- Row 1: Right = Status / Days Left, Left = Domain Name (with status dot on its left) -->
           <div class="flex items-center justify-between gap-3">
-            <div class="flex items-center gap-2 flex-shrink-0">
-              <span class="w-2 h-2 rounded-full ${item.valid ? (item.status === 'ok' ? 'bg-emerald-400' : 'bg-amber-400') : (item.is_ip ? 'bg-slate-500' : 'bg-rose-500')} flex-shrink-0"></span>
+            <div class="flex items-center flex-shrink-0">
               ${badgeHtml}
             </div>
-            <div class="text-left min-w-0" dir="ltr">
+            <div class="text-left min-w-0 flex items-center gap-2" dir="ltr">
+              <span class="w-2 h-2 rounded-full ${item.valid ? (item.status === 'ok' ? 'bg-emerald-400' : 'bg-amber-400') : (item.is_ip ? 'bg-slate-500' : 'bg-rose-500')} flex-shrink-0"></span>
               <span class="font-mono text-xs font-semibold text-slate-100 select-all break-all leading-normal" title="${escapeHtml(item.domain)}">${escapeHtml(item.domain)}</span>
             </div>
           </div>
@@ -3208,7 +3208,7 @@
               <div class="flex items-start justify-between">
                 <div>
                   <div class="flex items-center gap-2">
-                    <button type="button" onclick="window.adminActions.quickCopy('${escapeHtml(c.code).replace(/'/g, "\\'")}', 'کد تخفیف')" class="flex items-center gap-1.5 cursor-pointer bg-pink-500/10 hover:bg-pink-500/20 text-pink-400 hover:text-pink-300 border border-pink-500/30 hover:border-pink-500/50 px-2.5 py-1 rounded-xl transition active:scale-95 group shadow-sm" title="کلیک جهت کپی کد تخفیف">
+                    <button type="button" onclick="window.adminActions.quickCopy('${escapeHtml(c.code).replace(/'/g, "\\'")}', 'کد تخفیف')" class="flex items-center gap-1.5 cursor-pointer bg-transparent hover:text-pink-300 text-pink-400 border-0 p-0 transition active:scale-95 group" title="کلیک جهت کپی کد تخفیف">
                       <span class="font-mono font-bold text-sm tracking-wider uppercase">${escapeHtml(c.code)}</span>
                       <svg class="w-3.5 h-3.5 text-pink-400/70 group-hover:text-pink-300 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
                     </button>

@@ -81,14 +81,14 @@ function renderWalletTransactions(transactions) {
   } else {
     pagEl.classList.remove('hidden');
     pagEl.innerHTML = `
-      <button type="button" id="walletNextPageBtn" class="p-1.5 rounded-lg border border-slate-700/80 hover:border-slate-500 bg-transparent text-slate-300 hover:text-white transition active:scale-95 flex items-center justify-center ${currentWalletPage === totalPages ? 'opacity-30 cursor-not-allowed pointer-events-none' : ''}" title="صفحه بعد">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+      <button type="button" id="walletPrevPageBtn" class="p-1.5 rounded-lg border border-slate-700/80 hover:border-slate-500 bg-transparent text-slate-300 hover:text-white transition active:scale-95 flex items-center justify-center ${currentWalletPage === 1 ? 'opacity-30 cursor-not-allowed pointer-events-none' : ''}" title="صفحه قبل">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
       </button>
       <span class="text-[11px] text-slate-400 font-mono">
         صفحه <b class="text-slate-200">${currentWalletPage}</b> از <b class="text-slate-200">${totalPages}</b>
       </span>
-      <button type="button" id="walletPrevPageBtn" class="p-1.5 rounded-lg border border-slate-700/80 hover:border-slate-500 bg-transparent text-slate-300 hover:text-white transition active:scale-95 flex items-center justify-center ${currentWalletPage === 1 ? 'opacity-30 cursor-not-allowed pointer-events-none' : ''}" title="صفحه قبل">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+      <button type="button" id="walletNextPageBtn" class="p-1.5 rounded-lg border border-slate-700/80 hover:border-slate-500 bg-transparent text-slate-300 hover:text-white transition active:scale-95 flex items-center justify-center ${currentWalletPage === totalPages ? 'opacity-30 cursor-not-allowed pointer-events-none' : ''}" title="صفحه بعد">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
       </button>
     `;
 

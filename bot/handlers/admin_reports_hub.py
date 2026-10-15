@@ -61,21 +61,23 @@ async def _render_reports_hub(
         kb.button(text="🔍 HWID Inspector", callback_data="adm:rep:hwid")
         # Row 2: Sessions Explorer (Full width)
         kb.button(text="⚡ Sessions Explorer", callback_data="adm:rep:sessions:0")
-        # Row 3: Manual Report Triggers
-        kb.button(text="📅 ارسال گزارش هفتگی", callback_data="adm:rep:trigger:weekly")
+        # Row 3: Daily & Nightly Reports (Left = شبانه, Right = روزانه)
         kb.button(text="🌙 ارسال گزارش شبانه", callback_data="adm:rep:trigger:nightly")
-        # Row 4: Monthly Report
-        kb.button(text="🗓️ ارسال گزارش ماهانه به تاپیک", callback_data="adm:rep:trigger:monthly")
+        kb.button(text="☀️ ارسال گزارش روزانه", callback_data="adm:rep:trigger:daily")
+        # Row 4: Weekly & Monthly Reports (Left = ماهانه, Right = هفتگی)
+        kb.button(text="🗓️ گزارش ماهانه", callback_data="adm:rep:trigger:monthly")
+        kb.button(text="📅 ارسال گزارش هفتگی", callback_data="adm:rep:trigger:weekly")
     else:
         kb.button(text="🔍 HWID Inspector", callback_data="adm:rep:hwid")
         kb.button(text="🌐 SRH Inspector", callback_data="adm:rep:srh")
         kb.button(text="⚡ Sessions Explorer", callback_data="adm:rep:sessions:0")
+        kb.button(text="☀️ Send Daily Report", callback_data="adm:rep:trigger:daily")
         kb.button(text="🌙 Send Nightly Report", callback_data="adm:rep:trigger:nightly")
         kb.button(text="📅 Send Weekly Report", callback_data="adm:rep:trigger:weekly")
-        kb.button(text="🗓️ Send Monthly Report to Topic", callback_data="adm:rep:trigger:monthly")
+        kb.button(text="🗓️ Send Monthly Report", callback_data="adm:rep:trigger:monthly")
 
     kb.button(text=t(lang, "btn_back"), callback_data="menu:admin")
-    kb.adjust(2, 1, 2, 1, 1)
+    kb.adjust(2, 1, 2, 2, 1)
 
     await render_menu(bot, user, user_repo, "\n".join(lines), kb.as_markup())
 
@@ -91,6 +93,7 @@ async def trigger_admin_report_handler(
     from bot.config import get_settings
     from bot.services.formatting import now_tz
     from bot.services.reports import (
+        _send_admin_daily_summary,
         _send_admin_monthly_summary,
         _send_admin_nightly_summary,
         _send_admin_weekly_summary,
@@ -99,7 +102,10 @@ async def trigger_admin_report_handler(
 
     await call.answer("⏳ در حال پردازش و ارسال گزارش...")
     try:
-        if kind == "nightly":
+        if kind == "daily":
+            report_name = "گزارش روزانه"
+            await _send_admin_daily_summary(bot, session, remnawave, now, target_user_id=call.from_user.id)
+        elif kind == "nightly":
             report_name = "گزارش شبانه"
             await _send_admin_nightly_summary(bot, session, remnawave, now, target_user_id=call.from_user.id)
         elif kind == "weekly":

@@ -35,6 +35,7 @@ async def _send_admin_nightly_summary(
     remnawave: RemnawaveClient,
     now: datetime,
     target_user_id: int | None = None,
+    is_daily: bool = False,
 ) -> None:
     today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
     today_start_utc = today_start.astimezone(timezone.utc)
@@ -192,8 +193,13 @@ async def _send_admin_nightly_summary(
 
     # Build report text
     date_str = format_date(now, "fa")
+    report_title = (
+        f"👑 <b>گزارش جامع روزانه (لحظه‌ای) — {date_str} — {now.strftime('%H:%M')}</b>"
+        if is_daily
+        else f"👑 <b>گزارش جامع شبانه — {date_str} — 23:59</b>"
+    )
     lines = [
-        f"👑 <b>گزارش جامع - {date_str} - 23:59</b>",
+        report_title,
         SEPARATOR,
         "⚙️ <b>خلاصه وضعیت کل پنل</b>",
         f"👤 تعداد کل اکانت‌ها : {total_panel_users}",
@@ -241,7 +247,21 @@ async def _send_admin_nightly_summary(
     lines.append(f"منقضی شده : {expired_count}")
 
     text = "\n".join(lines)
-    await _deliver_admin_report(bot, session, text, target_user_id=target_user_id)
+    report_kind = "daily" if is_daily else "nightly"
+    await _deliver_admin_report(bot, session, text, target_user_id=target_user_id, kind=report_kind)
+
+
+async def _send_admin_daily_summary(
+    bot: Bot,
+    session: AsyncSession,
+    remnawave: RemnawaveClient,
+    now: datetime,
+    target_user_id: int | None = None,
+) -> None:
+    """Deliver a live snapshot daily report to admin."""
+    await _send_admin_nightly_summary(
+        bot, session, remnawave, now, target_user_id=target_user_id, is_daily=True
+    )
 
 
 async def _send_admin_weekly_summary(
@@ -407,7 +427,7 @@ async def _send_admin_weekly_summary(
             lines.append(f"{prefix} {day_name}: —")
 
     text = "\n".join(lines)
-    await _deliver_admin_report(bot, session, text, target_user_id=target_user_id)
+    await _deliver_admin_report(bot, session, text, target_user_id=target_user_id, kind="weekly")
 
 
 async def _send_admin_monthly_summary(
@@ -542,4 +562,4 @@ async def _send_admin_monthly_summary(
         lines.append("  (هیچ مصرفی در این ماه ثبت نشده است)")
 
     text = "\n".join(lines)
-    await _deliver_admin_report(bot, session, text, target_user_id=target_user_id)
+    await _deliver_admin_report(bot, session, text, target_user_id=target_user_id, kind="monthly")
