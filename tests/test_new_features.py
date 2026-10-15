@@ -377,11 +377,12 @@ async def test_renewal_traffic_rollover_vs_reset(async_session: AsyncSession):
     )
     remnawave.reset_user_traffic = AsyncMock(return_value=True)
 
+    future_expire = (datetime.now(timezone.utc) + timedelta(days=10)).isoformat()
     chosen_acc = {
         "id": 12,
         "username": "acc12",
         "trafficLimitBytes": 20 * (1024**3),  # already 20GB limit
-        "expireAt": "2026-10-15T00:00:00Z",
+        "expireAt": future_expire,
     }
 
     # Test NO_RESET renewal: stacks traffic (20GB + 50GB = 70GB)

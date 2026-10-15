@@ -25,7 +25,7 @@
   </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="/static/css/app.css?v=53.0">
+  <link rel="stylesheet" href="/static/css/app.css?v=54.0">
 </head>
 <body id="appBody" class="w-full min-w-full h-screen h-[100dvh] overflow-hidden flex justify-center items-center antialiased select-none transition-colors duration-300">
 
@@ -713,53 +713,65 @@
           </div>
         </div>
 
-        <!-- Account Data Details Card -->
-        <div class="bg-slate-800/80 rounded-2xl p-4 border border-slate-700/80 space-y-3 shadow-md text-xs">
-          <span class="font-bold text-slate-200 block border-b border-slate-700/60 pb-2">📋 مشخصات حساب کاربری:</span>
-          
-          <div class="flex justify-between items-center py-1">
-            <span class="text-slate-400 flex items-center gap-1.5"><span>🆔</span> شناسه عددی تلگرام</span>
-            <div class="flex items-center gap-1.5" dir="rtl">
-              <button id="copyProfileIdBtn" class="text-slate-400 hover:text-blue-400 text-xs px-1" title="کپی شناسه">📋</button>
-              <code id="profileTelegramId" class="font-mono text-white dark:text-white font-bold bg-transparent border-0 p-0" dir="ltr">--</code>
+        <!-- 1. Box: مشخصات حساب کاربری -->
+        <div class="settings-box bg-slate-800/90 rounded-2xl border border-slate-700/80 shadow overflow-hidden transition-all">
+          <div class="settings-box-header p-3.5 flex items-center justify-between cursor-pointer select-none hover:bg-slate-750/40 transition" onclick="window.toggleSettingsBox('userBoxIdentity')">
+            <div class="flex items-center gap-2.5">
+              <div class="w-8 h-8 rounded-xl bg-blue-500/15 text-blue-400 border border-blue-500/30 flex items-center justify-center flex-shrink-0">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+              </div>
+              <div>
+                <b class="text-xs text-white block">مشخصات حساب کاربری</b>
+                <span class="text-[10px] text-slate-400 block mt-0.5">شناسه تلگرام، شماره تماس و اطلاعات هویتی</span>
+              </div>
             </div>
+            <svg class="settings-box-chevron w-4 h-4 text-slate-400 transition-transform duration-200 rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
           </div>
-
-          <div class="flex justify-between items-center py-1">
-            <span class="text-slate-400 flex items-center gap-1.5"><span>🤝</span> کد معرف شما</span>
-            <div class="flex items-center gap-1.5" dir="rtl">
-              <button id="copyProfileRefBtn" class="text-slate-400 hover:text-amber-400 text-xs px-1" title="کپی کد معرف">📋</button>
-              <code id="profileRefCode" class="font-mono text-amber-400 dark:text-amber-400 font-bold bg-transparent border-0 p-0" dir="ltr">--</code>
+          <div id="userBoxIdentity" class="settings-box-body p-4 pt-2 border-t border-slate-700/60 space-y-2.5 text-xs">
+            <div class="flex justify-between items-center py-1">
+              <span class="text-slate-400 flex items-center gap-1.5"><span>🆔</span> شناسه عددی تلگرام</span>
+              <div class="flex items-center gap-1.5" dir="rtl">
+                <button id="copyProfileIdBtn" class="text-slate-400 hover:text-blue-400 text-xs px-1" title="کپی شناسه">📋</button>
+                <code id="profileTelegramId" class="font-mono text-white dark:text-white font-bold bg-transparent border-0 p-0" dir="ltr">--</code>
+              </div>
             </div>
-          </div>
 
-          <div class="flex justify-between items-center py-1">
-            <span class="text-slate-400 flex items-center gap-1.5"><span>📞</span> شماره تماس</span>
-            <div id="profilePhoneContainer" class="flex items-center gap-1.5">
-              <span id="profilePhone" class="text-slate-400 font-medium font-mono" dir="ltr">وارد نشده</span>
-              <button id="verifyPhoneInBotBtn" type="button" onclick="window.verifyPhoneNative()" class="hidden px-2.5 py-1 rounded-xl bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[10px] font-bold hover:bg-amber-500/30 transition active:scale-95 flex items-center gap-1">
-                <span>⚡️</span>
-                <span>تأیید ۱-کلیکه</span>
-              </button>
+            <div class="flex justify-between items-center py-1 border-t border-slate-700/50 pt-1.5">
+              <span class="text-slate-400 flex items-center gap-1.5"><span>🤝</span> کد معرف شما</span>
+              <div class="flex items-center gap-1.5" dir="rtl">
+                <button id="copyProfileRefBtn" class="text-slate-400 hover:text-amber-400 text-xs px-1" title="کپی کد معرف">📋</button>
+                <code id="profileRefCode" class="font-mono text-amber-400 dark:text-amber-400 font-bold bg-transparent border-0 p-0" dir="ltr">--</code>
+              </div>
             </div>
-          </div>
 
-          <div class="flex justify-between items-center py-1">
-            <span class="text-slate-400 flex items-center gap-1.5"><span>📅</span> تاریخ عضویت</span>
-            <span id="profileJoinDate" class="text-slate-200 font-medium font-mono" dir="ltr">--</span>
-          </div>
-
-          <div class="flex justify-between items-center py-1">
-            <span class="text-slate-400 flex items-center gap-1.5"><span>🎂</span> تاریخ تولد</span>
-            <div class="flex items-center gap-1.5">
-              <span id="profileBirthDate" class="text-slate-200 font-medium font-mono" dir="ltr">ثبت‌نشده</span>
-              <button id="openBirthdayModalBtn" type="button" onclick="window.openBirthdayModal()" class="px-2 py-0.5 rounded-lg bg-pink-500/20 text-pink-300 border border-pink-500/30 text-[10px] font-bold hover:bg-pink-500/30 transition active:scale-95">ثبت / ویرایش</button>
+            <div class="flex justify-between items-center py-1 border-t border-slate-700/50 pt-1.5">
+              <span class="text-slate-400 flex items-center gap-1.5"><span>📞</span> شماره همراه</span>
+              <div id="profilePhoneContainer" class="flex items-center gap-1.5">
+                <span id="profilePhone" class="text-slate-400 font-medium font-mono" dir="ltr">وارد نشده</span>
+                <button id="verifyPhoneInBotBtn" type="button" onclick="window.verifyPhoneNative()" class="hidden px-2.5 py-1 rounded-xl bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[10px] font-bold hover:bg-amber-500/30 transition active:scale-95 flex items-center gap-1">
+                  <span>⚡️</span>
+                  <span>تأیید ۱-کلیکه</span>
+                </button>
+              </div>
             </div>
-          </div>
 
-          <div class="flex justify-between items-center py-1.5 border-t border-slate-700/60">
-            <span class="text-slate-400 flex items-center gap-1.5"><span>⚡️</span> وضعیت سرویس</span>
-            <span id="profileSubStatus" class="font-semibold text-emerald-400">فعال</span>
+            <div class="flex justify-between items-center py-1 border-t border-slate-700/50 pt-1.5">
+              <span class="text-slate-400 flex items-center gap-1.5"><span>📅</span> تاریخ عضویت</span>
+              <span id="profileJoinDate" class="text-slate-200 font-medium font-mono" dir="ltr">--</span>
+            </div>
+
+            <div class="flex justify-between items-center py-1 border-t border-slate-700/50 pt-1.5">
+              <span class="text-slate-400 flex items-center gap-1.5"><span>🎂</span> تاریخ تولد</span>
+              <div class="flex items-center gap-1.5">
+                <span id="profileBirthDate" class="text-slate-200 font-medium font-mono" dir="ltr">ثبت‌نشده</span>
+                <button id="openBirthdayModalBtn" type="button" onclick="window.openBirthdayModal()" class="px-2 py-0.5 rounded-lg bg-pink-500/20 text-pink-300 border border-pink-500/30 text-[10px] font-bold hover:bg-pink-500/30 transition active:scale-95">ثبت / ویرایش</button>
+              </div>
+            </div>
+
+            <div class="flex justify-between items-center py-1.5 border-t border-slate-700/60 pt-2">
+              <span class="text-slate-400 flex items-center gap-1.5"><span>⚡️</span> وضعیت سرویس</span>
+              <span id="profileSubStatus" class="font-semibold text-emerald-400">فعال</span>
+            </div>
           </div>
         </div>
 
@@ -803,154 +815,217 @@
           </button>
         </div>
 
-        <!-- Merged Settings: Telegram Notification Switches -->
-        <div class="bg-slate-800/90 rounded-2xl p-4 border border-slate-700/80 space-y-3 text-xs">
-          <span class="font-bold text-slate-200 block border-b border-slate-700/60 pb-2 flex items-center gap-1.5">
-            <span>🔔</span> هشدارهای تلگرام و تنظیمات
-          </span>
+        <!-- Settings Section Header -->
+        <div class="flex items-center justify-between px-1 pt-1">
+          <h4 class="font-extrabold text-xs text-white flex items-center gap-1.5">
+            <span>⚙️</span>
+            <span>تنظیمات و هشدارهای تلگرام</span>
+          </h4>
+          <span class="text-[10px] text-slate-400 font-medium">سفارشی‌سازی اعلان‌ها</span>
+        </div>
 
-          <!-- Toggle: Nightly Report -->
-          <div class="flex items-center justify-between py-1">
-            <div>
-              <span class="text-slate-200 font-medium block">🌙 گزارش شبانه (ساعت 23:59)</span>
-              <span class="text-[10px] text-slate-400">ارسال خلاصه مصرف دیشب در تلگرام</span>
-            </div>
-            <label dir="ltr" class="relative inline-flex items-center cursor-pointer">
-              <input type="checkbox" id="settingToggleNightly" class="sr-only switch-checkbox">
-              <div class="switch-label w-11 h-6 bg-slate-700 rounded-full transition-colors duration-200 flex items-center px-0.5">
-                <div class="switch-ball w-5 h-5 bg-white rounded-full shadow-md transition-transform duration-200"></div>
+        <!-- 2. Box: هشدارهای تلگرام و گزارش‌های دوره‌ای -->
+        <div class="settings-box bg-slate-800/90 rounded-2xl border border-slate-700/80 shadow overflow-hidden transition-all">
+          <div class="settings-box-header p-3.5 flex items-center justify-between cursor-pointer select-none hover:bg-slate-750/40 transition" onclick="window.toggleSettingsBox('userBoxReports')">
+            <div class="flex items-center gap-2.5">
+              <div class="w-8 h-8 rounded-xl bg-purple-500/15 text-purple-400 border border-purple-500/30 flex items-center justify-center flex-shrink-0">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
               </div>
-            </label>
-          </div>
-
-          <!-- Toggle: Weekly Report -->
-          <div class="flex items-center justify-between py-1 border-t border-slate-700/50 pt-2">
-            <div>
-              <span class="text-slate-200 font-medium block">📊 گزارش هفتگی (جمعه‌شب‌ها)</span>
-              <span class="text-[10px] text-slate-400">ارسال آمار مصرف 7 روز گذشته</span>
-            </div>
-            <label dir="ltr" class="relative inline-flex items-center cursor-pointer">
-              <input type="checkbox" id="settingToggleWeekly" class="sr-only switch-checkbox">
-              <div class="switch-label w-11 h-6 bg-slate-700 rounded-full transition-colors duration-200 flex items-center px-0.5">
-                <div class="switch-ball w-5 h-5 bg-white rounded-full shadow-md transition-transform duration-200"></div>
+              <div>
+                <b class="text-xs text-white block">هشدارهای تلگرام و گزارش‌های دوره‌ای</b>
+                <span class="text-[10px] text-slate-400 block mt-0.5">خلاصه مصرف شبانه، هفتگی، ماهانه و پاکسازی</span>
               </div>
-            </label>
-          </div>
-
-          <!-- Toggle: Monthly Report -->
-          <div class="flex items-center justify-between py-1 border-t border-slate-700/50 pt-2">
-            <div>
-              <span class="text-slate-200 font-medium block">🗓 گزارش ماهانه (پایان ماه)</span>
-              <span class="text-[10px] text-slate-400">ارسال گزارش جامع مصرف ماه شمسی</span>
             </div>
-            <label dir="ltr" class="relative inline-flex items-center cursor-pointer">
-              <input type="checkbox" id="settingToggleMonthly" class="sr-only switch-checkbox">
-              <div class="switch-label w-11 h-6 bg-slate-700 rounded-full transition-colors duration-200 flex items-center px-0.5">
-                <div class="switch-ball w-5 h-5 bg-white rounded-full shadow-md transition-transform duration-200"></div>
+            <svg class="settings-box-chevron w-4 h-4 text-slate-400 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+          </div>
+          <div id="userBoxReports" class="settings-box-body p-4 pt-1 border-t border-slate-700/60 space-y-2.5 text-xs hidden">
+            <!-- Toggle: Nightly Report -->
+            <div class="flex items-center justify-between py-1">
+              <div>
+                <span class="text-slate-200 font-medium block">🌙 گزارش شبانه (ساعت 23:59)</span>
+                <span class="text-[10px] text-slate-400">ارسال خلاصه مصرف دیشب در تلگرام</span>
               </div>
-            </label>
-          </div>
-
-          <!-- Toggle: Auto Clean Old Reports -->
-          <div class="flex items-center justify-between py-1 border-t border-slate-700/50 pt-2">
-            <div>
-              <span class="text-slate-200 font-medium block">🧹 پاکسازی خودکار گزارش‌ها</span>
-              <span class="text-[10px] text-slate-400">حذف گزارش قبلی در تلگرام قبل از ارسال جدید</span>
-            </div>
-            <label dir="ltr" class="relative inline-flex items-center cursor-pointer">
-              <input type="checkbox" id="settingToggleCleanReports" class="sr-only switch-checkbox">
-              <div class="switch-label w-11 h-6 bg-slate-700 rounded-full transition-colors duration-200 flex items-center px-0.5">
-                <div class="switch-ball w-5 h-5 bg-white rounded-full shadow-md transition-transform duration-200"></div>
-              </div>
-            </label>
-          </div>
-
-          <!-- Toggle: Lucky Wheel Reminder -->
-          <div class="flex items-center justify-between py-1 border-t border-slate-700/50 pt-2">
-            <div>
-              <span class="text-slate-200 font-medium block">🎡 یادآور گردونه شانس</span>
-              <span class="text-[10px] text-slate-400">پیام یادآوری تلگرام به محض اتمام 24 ساعت</span>
-            </div>
-            <label dir="ltr" class="relative inline-flex items-center cursor-pointer">
-              <input type="checkbox" id="settingToggleWheelNotify" class="sr-only switch-checkbox">
-              <div class="switch-label w-11 h-6 bg-slate-700 rounded-full transition-colors duration-200 flex items-center px-0.5">
-                <div class="switch-ball w-5 h-5 bg-white rounded-full shadow-md transition-transform duration-200"></div>
-              </div>
-            </label>
-          </div>
-
-          <!-- Toggle: Low Traffic Warning -->
-          <div class="flex items-center justify-between py-1 border-t border-slate-700/50 pt-2">
-            <div>
-              <span class="text-slate-200 font-medium block">⚠️ هشدار کمبود حجم</span>
-              <span id="settingTrafficSubtext" class="text-[10px] text-slate-400">هشدار قبل از پایان ترافیک (80%)</span>
-            </div>
-            <div class="flex items-center gap-2">
-              <select id="settingTrafficPercentSelect" class="bg-slate-900 border border-slate-700 text-cyan-400 text-[11px] rounded-lg px-2 py-0.5 outline-none font-mono">
-                <option value="70">70%</option>
-                <option value="75">75%</option>
-                <option value="80" selected>80%</option>
-                <option value="85">85%</option>
-                <option value="90">90%</option>
-                <option value="95">95%</option>
-              </select>
               <label dir="ltr" class="relative inline-flex items-center cursor-pointer">
-                <input type="checkbox" id="settingToggleLowTraffic" class="sr-only switch-checkbox">
+                <input type="checkbox" id="settingToggleNightly" class="sr-only switch-checkbox">
                 <div class="switch-label w-11 h-6 bg-slate-700 rounded-full transition-colors duration-200 flex items-center px-0.5">
                   <div class="switch-ball w-5 h-5 bg-white rounded-full shadow-md transition-transform duration-200"></div>
                 </div>
               </label>
             </div>
-          </div>
 
-          <!-- Toggle: Expiry Warning -->
-          <div class="flex items-center justify-between py-1 border-t border-slate-700/50 pt-2">
-            <div>
-              <span class="text-slate-200 font-medium block">⏰ هشدار پایان اعتبار سرویس</span>
-              <span id="settingExpireSubtext" class="text-[10px] text-slate-400">اطلاع‌رسانی 3 روز مانده به انقضا</span>
-            </div>
-            <div class="flex items-center gap-2">
-              <select id="settingExpireDaysSelect" class="bg-slate-900 border border-slate-700 text-amber-400 text-[11px] rounded-lg px-2 py-0.5 outline-none font-mono">
-                <option value="1">1 روز</option>
-                <option value="2">2 روز</option>
-                <option value="3" selected>3 روز</option>
-                <option value="5">5 روز</option>
-                <option value="7">7 روز</option>
-              </select>
+            <!-- Toggle: Weekly Report -->
+            <div class="flex items-center justify-between py-1 border-t border-slate-700/50 pt-2">
+              <div>
+                <span class="text-slate-200 font-medium block">📊 گزارش هفتگی (جمعه‌شب‌ها)</span>
+                <span class="text-[10px] text-slate-400">ارسال آمار مصرف 7 روز گذشته</span>
+              </div>
               <label dir="ltr" class="relative inline-flex items-center cursor-pointer">
-                <input type="checkbox" id="settingToggleExpireWarning" class="sr-only switch-checkbox">
+                <input type="checkbox" id="settingToggleWeekly" class="sr-only switch-checkbox">
                 <div class="switch-label w-11 h-6 bg-slate-700 rounded-full transition-colors duration-200 flex items-center px-0.5">
                   <div class="switch-ball w-5 h-5 bg-white rounded-full shadow-md transition-transform duration-200"></div>
                 </div>
               </label>
             </div>
-          </div>
 
-          <!-- Language Selector (تغییر زبان) -->
-          <div class="flex items-center justify-between py-1 border-t border-slate-700/50 pt-2">
-            <div>
-              <span class="text-slate-200 font-medium block">🌐 زبان برنامه (Language)</span>
-              <span class="text-[10px] text-slate-400">زبان پیش‌فرض ربات و داشبورد</span>
+            <!-- Toggle: Monthly Report -->
+            <div class="flex items-center justify-between py-1 border-t border-slate-700/50 pt-2">
+              <div>
+                <span class="text-slate-200 font-medium block">🗓 گزارش ماهانه (پایان ماه)</span>
+                <span class="text-[10px] text-slate-400">ارسال گزارش جامع مصرف ماه شمسی</span>
+              </div>
+              <label dir="ltr" class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" id="settingToggleMonthly" class="sr-only switch-checkbox">
+                <div class="switch-label w-11 h-6 bg-slate-700 rounded-full transition-colors duration-200 flex items-center px-0.5">
+                  <div class="switch-ball w-5 h-5 bg-white rounded-full shadow-md transition-transform duration-200"></div>
+                </div>
+              </label>
             </div>
-            <div class="flex items-center gap-1 bg-slate-900 p-0.5 rounded-lg border border-slate-700">
-              <button id="langFaBtn" class="px-2.5 py-1 text-xs rounded-md font-bold transition bg-blue-600 text-white">فارسی</button>
-              <button id="langEnBtn" class="px-2.5 py-1 text-xs rounded-md font-medium transition text-slate-400 hover:text-slate-200">English</button>
+
+            <!-- Toggle: Auto Clean Old Reports -->
+            <div class="flex items-center justify-between py-1 border-t border-slate-700/50 pt-2">
+              <div>
+                <span class="text-slate-200 font-medium block">🧹 پاکسازی خودکار گزارش‌ها</span>
+                <span class="text-[10px] text-slate-400">حذف گزارش قبلی در تلگرام قبل از ارسال جدید</span>
+              </div>
+              <label dir="ltr" class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" id="settingToggleCleanReports" class="sr-only switch-checkbox">
+                <div class="switch-label w-11 h-6 bg-slate-700 rounded-full transition-colors duration-200 flex items-center px-0.5">
+                  <div class="switch-ball w-5 h-5 bg-white rounded-full shadow-md transition-transform duration-200"></div>
+                </div>
+              </label>
             </div>
           </div>
         </div>
 
-        <!-- Merged Settings: Subscription Revoke Card -->
-        <div class="bg-rose-950/30 rounded-2xl p-4 border border-rose-800/40 space-y-2.5">
-          <div class="flex items-center gap-2">
-            <span class="text-xl text-rose-400">🛡️</span>
-            <div>
-              <h4 class="text-xs font-bold text-rose-300">ابطال و تغییر لینک اشتراک</h4>
-              <p class="text-[10px] text-slate-400 mt-0.5">در صورت کندی یا افشای لینک در کلاینت‌های متفرقه</p>
+        <!-- 3. Box: هشدارهای ترافیک و اعتبار سرویس -->
+        <div class="settings-box bg-slate-800/90 rounded-2xl border border-slate-700/80 shadow overflow-hidden transition-all">
+          <div class="settings-box-header p-3.5 flex items-center justify-between cursor-pointer select-none hover:bg-slate-750/40 transition" onclick="window.toggleSettingsBox('userBoxWarnings')">
+            <div class="flex items-center gap-2.5">
+              <div class="w-8 h-8 rounded-xl bg-amber-500/15 text-amber-400 border border-amber-500/30 flex items-center justify-center flex-shrink-0">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+              </div>
+              <div>
+                <b class="text-xs text-white block">هشدارهای ترافیک و اعتبار سرویس</b>
+                <span class="text-[10px] text-slate-400 block mt-0.5">اعلان پایان حجم و روزهای باقیمانده اشتراک</span>
+              </div>
+            </div>
+            <svg class="settings-box-chevron w-4 h-4 text-slate-400 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+          </div>
+          <div id="userBoxWarnings" class="settings-box-body p-4 pt-1 border-t border-slate-700/60 space-y-2.5 text-xs hidden">
+            <!-- Toggle: Low Traffic Warning -->
+            <div class="flex items-center justify-between py-1">
+              <div>
+                <span class="text-slate-200 font-medium block">⚠️ هشدار کمبود حجم</span>
+                <span id="settingTrafficSubtext" class="text-[10px] text-slate-400">هشدار قبل از پایان ترافیک (80%)</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <select id="settingTrafficPercentSelect" class="bg-slate-900 border border-slate-700 text-cyan-400 text-[11px] rounded-lg px-2 py-0.5 outline-none font-mono">
+                  <option value="70">70%</option>
+                  <option value="75">75%</option>
+                  <option value="80" selected>80%</option>
+                  <option value="85">85%</option>
+                  <option value="90">90%</option>
+                  <option value="95">95%</option>
+                </select>
+                <label dir="ltr" class="relative inline-flex items-center cursor-pointer">
+                  <input type="checkbox" id="settingToggleLowTraffic" class="sr-only switch-checkbox">
+                  <div class="switch-label w-11 h-6 bg-slate-700 rounded-full transition-colors duration-200 flex items-center px-0.5">
+                    <div class="switch-ball w-5 h-5 bg-white rounded-full shadow-md transition-transform duration-200"></div>
+                  </div>
+                </label>
+              </div>
+            </div>
+
+            <!-- Toggle: Expiry Warning -->
+            <div class="flex items-center justify-between py-1 border-t border-slate-700/50 pt-2">
+              <div>
+                <span class="text-slate-200 font-medium block">⏰ هشدار پایان اعتبار سرویس</span>
+                <span id="settingExpireSubtext" class="text-[10px] text-slate-400">اطلاع‌رسانی 3 روز مانده به انقضا</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <select id="settingExpireDaysSelect" class="bg-slate-900 border border-slate-700 text-amber-400 text-[11px] rounded-lg px-2 py-0.5 outline-none font-mono">
+                  <option value="1">1 روز</option>
+                  <option value="2">2 روز</option>
+                  <option value="3" selected>3 روز</option>
+                  <option value="5">5 روز</option>
+                  <option value="7">7 روز</option>
+                </select>
+                <label dir="ltr" class="relative inline-flex items-center cursor-pointer">
+                  <input type="checkbox" id="settingToggleExpireWarning" class="sr-only switch-checkbox">
+                  <div class="switch-label w-11 h-6 bg-slate-700 rounded-full transition-colors duration-200 flex items-center px-0.5">
+                    <div class="switch-ball w-5 h-5 bg-white rounded-full shadow-md transition-transform duration-200"></div>
+                  </div>
+                </label>
+              </div>
             </div>
           </div>
-          <button id="openRevokeModalBtn" class="w-full bg-rose-600 hover:bg-rose-500 text-white font-semibold text-xs py-2 rounded-xl transition flex items-center justify-center gap-1.5 shadow active:scale-[0.98]">
-            <span>🔄</span> تغییر لینک اشتراک فعلی
-          </button>
+        </div>
+
+        <!-- 4. Box: یادآور گردونه شانس و زبان -->
+        <div class="settings-box bg-slate-800/90 rounded-2xl border border-slate-700/80 shadow overflow-hidden transition-all">
+          <div class="settings-box-header p-3.5 flex items-center justify-between cursor-pointer select-none hover:bg-slate-750/40 transition" onclick="window.toggleSettingsBox('userBoxPreferences')">
+            <div class="flex items-center gap-2.5">
+              <div class="w-8 h-8 rounded-xl bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 flex items-center justify-center flex-shrink-0">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              </div>
+              <div>
+                <b class="text-xs text-white block">یادآور گردونه شانس و زبان</b>
+                <span class="text-[10px] text-slate-400 block mt-0.5">یادآوری هدیه روزانه و زبان مینی‌اپلیکیشن</span>
+              </div>
+            </div>
+            <svg class="settings-box-chevron w-4 h-4 text-slate-400 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+          </div>
+          <div id="userBoxPreferences" class="settings-box-body p-4 pt-1 border-t border-slate-700/60 space-y-2.5 text-xs hidden">
+            <!-- Toggle: Lucky Wheel Reminder -->
+            <div class="flex items-center justify-between py-1">
+              <div>
+                <span class="text-slate-200 font-medium block">🎡 یادآور گردونه شانس</span>
+                <span class="text-[10px] text-slate-400">پیام یادآوری تلگرام به محض اتمام 24 ساعت</span>
+              </div>
+              <label dir="ltr" class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" id="settingToggleWheelNotify" class="sr-only switch-checkbox">
+                <div class="switch-label w-11 h-6 bg-slate-700 rounded-full transition-colors duration-200 flex items-center px-0.5">
+                  <div class="switch-ball w-5 h-5 bg-white rounded-full shadow-md transition-transform duration-200"></div>
+                </div>
+              </label>
+            </div>
+
+            <!-- Language Selector (تغییر زبان) -->
+            <div class="flex items-center justify-between py-1 border-t border-slate-700/50 pt-2">
+              <div>
+                <span class="text-slate-200 font-medium block">🌐 زبان برنامه (Language)</span>
+                <span class="text-[10px] text-slate-400">زبان پیش‌فرض ربات و داشبورد</span>
+              </div>
+              <div class="flex items-center gap-1 bg-slate-900 p-0.5 rounded-lg border border-slate-700">
+                <button id="langFaBtn" class="px-2.5 py-1 text-xs rounded-md font-bold transition bg-blue-600 text-white">فارسی</button>
+                <button id="langEnBtn" class="px-2.5 py-1 text-xs rounded-md font-medium transition text-slate-400 hover:text-slate-200">English</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 5. Box: امنیت و تغییر لینک اشتراک -->
+        <div class="settings-box bg-slate-800/90 rounded-2xl border border-slate-700/80 shadow overflow-hidden transition-all">
+          <div class="settings-box-header p-3.5 flex items-center justify-between cursor-pointer select-none hover:bg-slate-750/40 transition" onclick="window.toggleSettingsBox('userBoxSecurity')">
+            <div class="flex items-center gap-2.5">
+              <div class="w-8 h-8 rounded-xl bg-rose-500/15 text-rose-400 border border-rose-500/30 flex items-center justify-center flex-shrink-0">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+              </div>
+              <div>
+                <b class="text-xs text-white block">امنیت و تغییر لینک اشتراک</b>
+                <span class="text-[10px] text-slate-400 block mt-0.5">ابطال و ساخت مجدد لینک در صورت کندی یا افشا</span>
+              </div>
+            </div>
+            <svg class="settings-box-chevron w-4 h-4 text-slate-400 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+          </div>
+          <div id="userBoxSecurity" class="settings-box-body p-4 pt-2 border-t border-slate-700/60 space-y-3 text-xs hidden">
+            <p class="text-[11px] text-slate-400 leading-relaxed">
+              اگر لینک اشتراک شما افشا شده است یا کلاینت‌ها پاسخ نمی‌دهند، می‌توانید لینک فعلی را باطل کرده و لینک اختصاصی جدید دریافت کنید.
+            </p>
+            <button id="openRevokeModalBtn" class="w-full bg-rose-600 hover:bg-rose-500 text-white font-semibold text-xs py-2 rounded-xl transition flex items-center justify-center gap-1.5 shadow active:scale-[0.98]">
+              <span>🔄</span> تغییر لینک اشتراک فعلی
+            </button>
+          </div>
         </div>
       </div>
 
@@ -2037,14 +2112,14 @@
 
   <!-- Modular Frontend Architecture (DRY) -->
   <script src="/static/js/chart.umd.min.js" defer></script>
-  <script src="/static/js/utils.js?v=53.0" defer></script>
-  <script src="/static/js/api.js?v=53.0" defer></script>
-  <script src="/static/js/charts.js?v=53.0" defer></script>
-  <script src="/static/js/shop.js?v=53.0" defer></script>
-  <script src="/static/js/wallet.js?v=53.0" defer></script>
-  <script src="/static/js/wheel.js?v=53.0" defer></script>
-  <script src="/static/js/story.js?v=53.0" defer></script>
-  <script src="/static/js/speedtest.js?v=53.0" defer></script>
-  <script src="/static/js/app.js?v=53.0" defer></script>
+  <script src="/static/js/utils.js?v=54.0" defer></script>
+  <script src="/static/js/api.js?v=54.0" defer></script>
+  <script src="/static/js/charts.js?v=54.0" defer></script>
+  <script src="/static/js/shop.js?v=54.0" defer></script>
+  <script src="/static/js/wallet.js?v=54.0" defer></script>
+  <script src="/static/js/wheel.js?v=54.0" defer></script>
+  <script src="/static/js/story.js?v=54.0" defer></script>
+  <script src="/static/js/speedtest.js?v=54.0" defer></script>
+  <script src="/static/js/app.js?v=54.0" defer></script>
 </body>
 </html>

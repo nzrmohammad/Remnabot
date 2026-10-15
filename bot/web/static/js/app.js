@@ -42,6 +42,25 @@ if (document.readyState === 'complete' || document.readyState === 'interactive')
 }
 $('reloadBtn')?.addEventListener('click', runSplash);
 
+// Accordion Toggle for Settings Boxes
+function toggleSettingsBox(targetId) {
+  if (!targetId) return;
+  const targetBody = $(targetId);
+  if (!targetBody) return;
+  const isHidden = targetBody.classList.contains('hidden');
+  const box = targetBody.closest('.settings-box');
+  const chevron = box ? box.querySelector('.settings-box-chevron') : null;
+  if (isHidden) {
+    targetBody.classList.remove('hidden');
+    chevron?.classList.add('rotate-180');
+  } else {
+    targetBody.classList.add('hidden');
+    chevron?.classList.remove('rotate-180');
+  }
+  if (typeof hapticFeedback === 'function') hapticFeedback('selection');
+}
+window.toggleSettingsBox = toggleSettingsBox;
+
 // 2. Tab Navigation (5 Tabs)
 function renderReportsCharts(sub) {
   const currentSub = sub || window.lastUserData?.active_sub;
