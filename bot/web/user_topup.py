@@ -408,3 +408,73 @@ async def post_user_topup_stars(request: web.Request) -> web.Response:
             return web.json_response({"ok": False, "message": "خطا در تولید فاکتور استارز تلگرام."}, status=500)
 
 
+async def post_user_redeem_voucher(request: web.Request) -> web.Response:
+    """Redeem a credit/gift card code to user's wallet balance."""
+    user_auth, err = require_user(request)
+    if err:
+        return err
+
+    try:
+        body = await request.json()
+    except Exception:
+        return web.json_response({"ok": False, "message": "فرمت داده نامعتبر است."}, status=400)
+
+    code = str(body.get("code") or "").strip()
+    if not code:
+        return web.json_response({"ok": False, "message": "لطفاً کد شارژ را وارد نمایید."}, status=400)
+
+    telegram_id = int(user_auth["id"])
+    from bot.db.repositories.coupon_repo import CouponRepository
+    from bot.db.repositories.wallet_repo import WalletRepository
+
+    async with db_session(request) as session:
+        coupon_repo = CouponRepository(session)
+        wallet_repo = WalletRepository(session)
+        ok, amount, msg = await coupon_repo.redeem_credit_voucher(code, telegram_id)
+        if not ok:
+            return web.json_response({"ok": False, "message": msg}, status=400)
+
+        await session.commit()
+        new_balance = await wallet_repo.get_balance(telegram_id)
+        cache: FastCache = request.app.get("cache")
+        if cache:
+            await cache.delete(f"tma:user:{telegram_id}:profile")
+
+        return web.json_response({
+            "ok": True,
+            "amount": amount,
+            "new_balance": new_balance,
+            "message": msg,
+        })
+
+
+async def post_user_auto_renew(request: web.Request) -> web.Response:
+    """Toggle auto-renew for the user's active subscription."""
+    user_auth, err = require_user(request)
+    if err:
+        return err
+
+    try:
+        body = await request.json()
+    except Exception:
+        return web.json_response({"ok": False, "message": "فرمت داده نامعتبر است."}, status=400)
+
+    auto_renew_val = bool(body.get("auto_renew", False))
+    telegram_id = int(user_auth["id"])
+    from bot.db.repositories.user_repo import UserRepository
+
+    async with db_session(request) as session:
+        user_repo = UserRepository(session)
+        res = await user_repo.set_auto_renew(telegram_id, auto_renew_val)
+        await session.commit()
+        cache: FastCache = request.app.get("cache")
+        if cache:
+            await cache.delete(f"tma:user:{telegram_id}:profile")
+
+        return web.json_response({
+            "ok": True,
+            "auto_renew": res,
+            "message": "تمدید خودکار فعال شد." if res else "تمدید خودکار غیرفعال شد.",
+        })
+
+

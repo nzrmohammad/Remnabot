@@ -174,8 +174,9 @@ def _extract_node_costs(
     cost_entry: Any,
     now_utc: datetime,
     traffic_used_gb: float,
+    avg_revenue_per_gb: float = 0.0,
 ) -> dict[str, Any]:
-    """Format node financial cost and due date info."""
+    """Format node financial cost, estimated revenue, ROI, and due date info."""
     due_date_str = None
     due_date_jalali = None
     days_until_due = None
@@ -197,6 +198,10 @@ def _extract_node_costs(
     notes = cost_entry.notes if cost_entry else None
     cost_per_gb = round(cost_toman / traffic_used_gb, 0) if (cost_toman > 0 and traffic_used_gb > 0) else 0.0
 
+    est_revenue_toman = int(round(traffic_used_gb * avg_revenue_per_gb)) if avg_revenue_per_gb > 0 else 0
+    net_profit_toman = est_revenue_toman - cost_toman
+    roi_percent = round((net_profit_toman / cost_toman) * 100, 1) if cost_toman > 0 else (100.0 if est_revenue_toman > 0 else 0.0)
+
     return {
         "monthly_cost_toman": cost_toman,
         "monthly_cost_eur": cost_eur,
@@ -207,6 +212,10 @@ def _extract_node_costs(
         "cost_per_gb": cost_per_gb,
         "provider": provider,
         "notes": notes,
+        "est_revenue_toman": est_revenue_toman,
+        "net_profit_toman": net_profit_toman,
+        "roi_percent": roi_percent,
+        "is_profitable": net_profit_toman >= 0,
     }
 
 
@@ -216,6 +225,7 @@ def extract_node_item(
     costs_by_uuid: dict,
     costs_by_id: dict,
     now_utc: datetime,
+    avg_revenue_per_gb: float = 0.0,
 ) -> dict[str, Any]:
     """Parse telemetry, hardware metrics, country flag, and financials for one node."""
     raw_name = str(n.get("name") or f"Node {i}").strip()
@@ -243,7 +253,7 @@ def extract_node_item(
     n_uuid = str(n.get("uuid") or n.get("id") or "")
     n_id_str = str(n.get("id") or "")
     cost_entry = costs_by_uuid.get(n_uuid) or costs_by_id.get(n_id_str)
-    cost_data = _extract_node_costs(cost_entry, now_utc, traffic_used_gb)
+    cost_data = _extract_node_costs(cost_entry, now_utc, traffic_used_gb, avg_revenue_per_gb)
 
     return {
         "id": n.get("id"),
@@ -269,10 +279,11 @@ def calc_nodes_overview(
     costs_by_id: dict,
     hwid_stats: dict,
     now_utc: datetime,
+    avg_revenue_per_gb: float = 0.0,
 ) -> tuple[list[dict], int, int]:
     """Return nodes overview list, total online devices, and offline nodes count."""
     nodes_overview = [
-        extract_node_item(n, i, costs_by_uuid, costs_by_id, now_utc)
+        extract_node_item(n, i, costs_by_uuid, costs_by_id, now_utc, avg_revenue_per_gb)
         for i, n in enumerate(nodes, start=1)
     ]
     sum_node_online = sum(n["connected_users"] for n in nodes_overview)

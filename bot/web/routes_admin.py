@@ -44,6 +44,7 @@ from bot.web.admin_plans import (
     post_admin_coupon_toggle,
     post_admin_coupon_delete,
     get_admin_coupon_usages,
+    post_admin_batch_vouchers,
 )
 from bot.web.admin_topups import (
     get_admin_topups,
@@ -66,6 +67,8 @@ from bot.web.admin_settings_api import (
 from bot.web.admin_infra_api import (
     get_admin_infra_billing,
     post_admin_node_cost,
+    get_admin_ssl_health,
+    post_admin_ssl_check,
 )
 
 __all__ = [
@@ -95,6 +98,7 @@ __all__ = [
     "post_admin_coupon_toggle",
     "post_admin_coupon_delete",
     "get_admin_coupon_usages",
+    "post_admin_batch_vouchers",
     "get_admin_topups",
     "post_admin_topup_action",
     "get_admin_topup_photo",
@@ -109,4 +113,6 @@ __all__ = [
     "get_admin_crypto_rates",
     "get_admin_infra_billing",
     "post_admin_node_cost",
+    "get_admin_ssl_health",
+    "post_admin_ssl_check",
 ]

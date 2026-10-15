@@ -163,6 +163,14 @@ const api = {
     return this.post('/api/user/validate_coupon', { code });
   },
 
+  async redeemVoucher(code) {
+    return this.post('/api/user/wallet/redeem-voucher', { code });
+  },
+
+  async setAutoRenew(auto_renew) {
+    return this.post('/api/user/auto-renew', { auto_renew });
+  },
+
   async purchase(service_id, coupon_code = null, account_id = null) {
     return this.post('/api/user/purchase', {
       service_id,
@@ -348,6 +356,10 @@ const api = {
     return this.post('/api/admin/coupon/delete', { id });
   },
 
+  async batchGenerateVouchers(data) {
+    return this.post('/api/admin/coupons/batch-generate', data);
+  },
+
   async getAdminCryptoRates() {
     return this.get('/api/admin/crypto/rates');
   },
@@ -374,6 +386,14 @@ const api = {
 
   async saveNodeCost(data) {
     return this.post('/api/admin/infra/node-cost', data);
+  },
+
+  async getSslHealth() {
+    return this.get('/api/admin/infra/ssl-health');
+  },
+
+  async checkDomainSsl(domain) {
+    return this.post('/api/admin/infra/ssl-check', { domain });
   },
 
   async getAdminCampaigns() {

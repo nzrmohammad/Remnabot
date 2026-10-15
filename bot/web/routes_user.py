@@ -27,6 +27,8 @@ from bot.web.user_nodes import (
 )
 from bot.web.user_topup import (
     get_user_topup_info,
+    post_user_auto_renew,
+    post_user_redeem_voucher,
     post_user_topup_card,
     post_user_topup_crypto,
     post_user_topup_crypto_check,
@@ -70,4 +72,6 @@ __all__ = [
     "get_user_speedtest_ping",
     "get_user_speedtest_payload",
     "post_user_speedtest_upload",
+    "post_user_redeem_voucher",
+    "post_user_auto_renew",
 ]

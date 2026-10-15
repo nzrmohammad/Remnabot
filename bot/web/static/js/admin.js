@@ -163,6 +163,9 @@
         if ($('adminOverviewNodesList')?.children.length <= 1) {
           syncAdminOverview(false);
         }
+        if ($('adminSslHealthList')?.children.length <= 1) {
+          fetchAdminSslHealth();
+        }
       } else if (targetId === 'tab-admin-users' && $('adminUsersList')?.children.length <= 1) {
         fetchAdminUsers(1);
       } else if (targetId === 'tab-admin-plans') {
@@ -1403,6 +1406,74 @@
     if (window.hapticFeedback) window.hapticFeedback('impact');
   };
 
+  let cachedSslHealthItems = [];
+
+  async function fetchAdminSslHealth() {
+    const container = $('adminSslHealthList');
+    if (!container) return;
+    try {
+      const res = await window.api.admin.getSslHealth();
+      if (res && res.ok && Array.isArray(res.data)) {
+        cachedSslHealthItems = res.data;
+        renderSslHealth(cachedSslHealthItems);
+      } else {
+        container.innerHTML = '<div class="p-3 text-center text-xs text-rose-400">خطا در دریافت وضعیت گواهی‌های SSL</div>';
+      }
+    } catch (err) {
+      console.error('SSL Health fetch error:', err);
+      container.innerHTML = '<div class="p-3 text-center text-xs text-rose-400">عدم برقراری ارتباط با سرور</div>';
+    }
+  }
+
+  function renderSslHealth(items) {
+    const container = $('adminSslHealthList');
+    if (!container) return;
+    if (!items || items.length === 0) {
+      container.innerHTML = '<div class="p-3 text-center text-xs text-slate-400">هیچ دامنه‌ای برای ارزیابی یافت نشد.</div>';
+      return;
+    }
+
+    container.innerHTML = items.map(item => {
+      let badgeHtml = '';
+      let daysHtml = '';
+      if (item.is_ip) {
+        badgeHtml = '<span class="px-2 py-0.5 text-[10px] rounded-lg bg-slate-700/50 text-slate-400 border border-slate-600/40 font-mono">IP سرور</span>';
+        daysHtml = '<span class="text-[10px] text-slate-500">آدرس IP مستقیم (بدون گواهی SSL دامنه)</span>';
+      } else if (item.valid) {
+        if (item.status === 'ok') {
+          badgeHtml = `<span class="px-2 py-0.5 text-[10px] font-bold rounded-lg bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">معتبر (${item.days_left} روز)</span>`;
+        } else if (item.status === 'warning') {
+          badgeHtml = `<span class="px-2 py-0.5 text-[10px] font-bold rounded-lg bg-amber-500/15 text-amber-400 border border-amber-500/30">هشدار (${item.days_left} روز)</span>`;
+        } else if (item.status === 'critical') {
+          badgeHtml = `<span class="px-2 py-0.5 text-[10px] font-bold rounded-lg bg-rose-500/20 text-rose-400 border border-rose-500/40 animate-pulse">فوری (${item.days_left} روز)</span>`;
+        } else {
+          badgeHtml = `<span class="px-2 py-0.5 text-[10px] font-bold rounded-lg bg-rose-500/20 text-rose-400 border border-rose-500/40">منقضی شده</span>`;
+        }
+        daysHtml = `<span class="text-[10px] text-slate-400">انقضا: <span class="font-mono text-slate-300">${item.expires_at || '—'}</span> | مرجع: <span class="text-slate-300">${escapeHtml(item.issuer || 'نامشخص')}</span></span>`;
+      } else {
+        badgeHtml = `<span class="px-2 py-0.5 text-[10px] font-bold rounded-lg bg-rose-500/15 text-rose-400 border border-rose-500/30">خطا / قطع</span>`;
+        daysHtml = `<span class="text-[10px] text-rose-400/80">${escapeHtml(item.error || 'ارتباط با پورت SSL برقرار نشد')}</span>`;
+      }
+
+      return `
+        <div class="p-2.5 rounded-xl bg-slate-900/60 border border-slate-700/50 flex flex-col gap-1.5 transition hover:border-slate-600/60">
+          <div class="flex items-center justify-between gap-2">
+            <div class="flex items-center gap-2 min-w-0">
+              <span class="w-2 h-2 rounded-full ${item.valid ? (item.status === 'ok' ? 'bg-emerald-400' : 'bg-amber-400') : (item.is_ip ? 'bg-slate-500' : 'bg-rose-500')} flex-shrink-0"></span>
+              <span class="font-mono text-xs font-semibold text-slate-200 truncate" dir="ltr">${escapeHtml(item.domain)}</span>
+              ${item.label ? `<span class="text-[10px] text-slate-400 truncate">(${escapeHtml(item.label)})</span>` : ''}
+            </div>
+            <div class="flex-shrink-0">${badgeHtml}</div>
+          </div>
+          <div class="flex items-center justify-between text-[10px] text-slate-400 pt-1 border-t border-slate-800/80">
+            ${daysHtml}
+            <span class="font-mono text-[9px] text-slate-500">Port: ${item.port || 443}</span>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
   function renderFullNodes(nodes) {
     const container = $('adminNodesFullList');
     if (!container) return;
@@ -1590,6 +1661,24 @@
                       <span class="font-mono">${formatNumber(n.cost_per_gb)}</span>
                       <span class="text-[9px] text-slate-400 font-sans">تومان</span>
                     ` : '—'}
+                  </b>
+                </div>
+              </div>
+
+              <!-- Node Profit / Loss & Estimated Revenue Strip -->
+              <div class="grid grid-cols-2 gap-2 pt-1 border-t border-slate-800 text-[10px]">
+                <div>
+                  <span class="text-slate-400 block mb-0.5">درآمد تخمینی نود:</span>
+                  <b class="text-emerald-400 font-mono block">
+                    ${n.est_revenue_toman ? `${formatNumber(n.est_revenue_toman)} <span class="text-[9px] text-slate-400 font-sans">تومان</span>` : '۰ تومان'}
+                  </b>
+                </div>
+                <div>
+                  <span class="text-slate-400 block mb-0.5">سود/زیان خالص (ROI):</span>
+                  <b class="${n.is_profitable ? 'text-emerald-400' : 'text-rose-400'} font-bold block">
+                    <span dir="ltr" class="font-mono">${(n.net_profit_toman || 0) >= 0 ? '+' : ''}${formatNumber(n.net_profit_toman || 0)}</span>
+                    <span class="text-[9px] font-sans">ت</span>
+                    ${n.roi_percent !== null && n.roi_percent !== undefined ? `<span class="text-[9px] font-mono mr-1">(${n.roi_percent >= 0 ? '+' : ''}${n.roi_percent}%)</span>` : ''}
                   </b>
                 </div>
               </div>
@@ -1844,13 +1933,11 @@
                 <div class="flex flex-wrap items-center gap-1.5 mt-1">
                   <div>${statusBadge}</div>
                   ${expiringBadgeHtml}
-                  ${u.phone_number ? `<span onclick="window.adminActions.quickCopy('${escapeHtml(u.phone_number)}', 'شماره تماس')" class="cursor-pointer hover:text-emerald-400 text-slate-300 font-mono text-[9.5px] inline-flex items-center gap-0.5 bg-slate-900/60 px-1.5 py-0.5 rounded border border-slate-700/60" title="شماره تماس (کلیک جهت کپی)"><span class="text-[9px]">📱</span><span dir="ltr">${escapeHtml(u.phone_number)}</span></span>` : ''}
-                  ${u.birth_date ? `<span class="text-pink-300 font-mono text-[9.5px] inline-flex items-center gap-0.5 bg-slate-900/60 px-1.5 py-0.5 rounded border border-slate-700/60" title="تاریخ تولد"><span class="text-[9px]">🎂</span><span dir="ltr">${escapeHtml(u.birth_date)}</span></span>` : ''}
                 </div>
               </div>
             </div>
 
-            <!-- Left: Top = Wallet Balance, Bottom = @Username + ID on ONE line -->
+            <!-- Left: Top = Wallet Balance, Username + ID, Phone & Birthday -->
             <div class="text-left flex flex-col items-end gap-1 flex-shrink-0">
               <span class="text-[11px] font-mono font-bold text-emerald-400">
                 ${formatNumber(u.wallet_balance || 0)} ت
@@ -1862,6 +1949,15 @@
                 ${u.username ? '<span class="text-slate-600">•</span>' : ''}
                 <span onclick="window.adminActions.quickCopy('${u.telegram_id}', 'شناسه عددی')" class="cursor-pointer hover:text-cyan-300 text-slate-400" title="شناسه تلگرام">${u.telegram_id}</span>
               </div>
+
+              <!-- Phone and Birthday on left side, no background, icon on left -->
+              ${(u.phone_number || u.birth_date) ? `
+                <div class="flex items-center gap-1.5 text-[9.5px] font-mono text-slate-400" dir="ltr">
+                  ${u.phone_number ? `<span onclick="window.adminActions.quickCopy('${escapeHtml(u.phone_number)}', 'شماره تماس')" class="cursor-pointer hover:text-emerald-400 text-slate-300 inline-flex items-center gap-0.5 bg-transparent p-0 border-0 shadow-none" title="شماره تماس (کلیک جهت کپی)"><span class="text-[9px]">📱</span><span>${escapeHtml(u.phone_number)}</span></span>` : ''}
+                  ${(u.phone_number && u.birth_date) ? '<span class="text-slate-600">•</span>' : ''}
+                  ${u.birth_date ? `<span class="text-pink-300 inline-flex items-center gap-0.5 bg-transparent p-0 border-0 shadow-none" title="تاریخ تولد"><span class="text-[9px]">🎂</span><span>${escapeHtml(u.birth_date)}</span></span>` : ''}
+                </div>
+              ` : ''}
             </div>
           </div>
 
@@ -3092,6 +3188,67 @@
 
     closeCouponModal() {
       $('couponModal')?.classList.add('hidden');
+    },
+
+    openBatchVoucherModal() {
+      $('batchVoucherResultsBox')?.classList.add('hidden');
+      $('batchVoucherModal')?.classList.remove('hidden');
+    },
+
+    closeBatchVoucherModal() {
+      $('batchVoucherModal')?.classList.add('hidden');
+    },
+
+    async generateBatchVouchers() {
+      const amount = parseInt($('batchVoucherAmount')?.value || '0', 10);
+      const count = parseInt($('batchVoucherCount')?.value || '10', 10);
+      const prefix = $('batchVoucherPrefix')?.value?.trim() || 'GIFT-';
+      const max_uses = parseInt($('batchVoucherMaxUses')?.value || '1', 10);
+      const expire_days = parseInt($('batchVoucherExpireDays')?.value || '30', 10);
+
+      if (amount <= 0) {
+        if (window.showToast) window.showToast('مبلغ هر کارت شارژ باید بیشتر از صفر باشد.');
+        return;
+      }
+
+      const btn = $('batchVoucherGenerateBtn');
+      if (btn) { btn.disabled = true; btn.innerText = 'در حال تولید...'; }
+
+      try {
+        const res = await window.api.batchGenerateVouchers({
+          amount,
+          count,
+          prefix,
+          max_uses,
+          expire_days,
+        });
+        if (res && res.ok) {
+          if (window.showToast) window.showToast(`✅ ${res.message}`);
+          if (window.hapticFeedback) window.hapticFeedback('success');
+          const resultsBox = $('batchVoucherResultsBox');
+          const codeArea = $('batchVoucherGeneratedCodes');
+          if (resultsBox && codeArea) {
+            codeArea.value = (res.codes || []).join('\n');
+            resultsBox.classList.remove('hidden');
+          }
+          this.fetchAdminCoupons();
+        } else {
+          if (window.showToast) window.showToast(`⚠️ ${res?.error || 'خطا در تولید کارت شارژ'}`);
+        }
+      } catch (e) {
+        if (window.showToast) window.showToast('خطای شبکه در تولید کارت‌های شارژ');
+      } finally {
+        if (btn) { btn.disabled = false; btn.innerText = 'تولید و ثبت'; }
+      }
+    },
+
+    copyBatchCodes() {
+      const codeArea = $('batchVoucherGeneratedCodes');
+      if (codeArea && codeArea.value) {
+        navigator.clipboard.writeText(codeArea.value).then(() => {
+          if (window.showToast) window.showToast('📋 تمام کدها در کلیپ‌بورد کپی شدند.');
+        });
+      }
     },
 
     async saveCoupon() {
@@ -4694,6 +4851,13 @@
       const bdayDiscount = $('settingBirthdayRewardDiscount');
       if (bdayDiscount) bdayDiscount.value = s.birthday_reward_discount_percent ?? 20;
 
+      // Join Gate
+      const jgSwitch = $('settingJoinGateSwitch');
+      if (jgSwitch) jgSwitch.checked = s.join_gate_enabled ?? false;
+
+      const jgChannel = $('settingJoinGateChannel');
+      if (jgChannel) jgChannel.value = s.join_gate_channel || '';
+
       // Crypto & Rates
       const usdtRate = $('settingUsdtRate');
       if (usdtRate) {
@@ -4855,6 +5019,9 @@
   $('settingBirthdayRewardSwitch')?.addEventListener('change', (e) => {
     updateSettingToggle('birthday_reward_enabled', e.target.checked);
   });
+  $('settingJoinGateSwitch')?.addEventListener('change', (e) => {
+    updateSettingToggle('join_gate_enabled', e.target.checked);
+  });
   $('settingAccessMode')?.addEventListener('change', (e) => {
     updateSettingToggle('access_mode', e.target.value);
   });
@@ -4877,6 +5044,8 @@
       birthday_reward_enabled: $('settingBirthdayRewardSwitch')?.checked ?? true,
       birthday_reward_traffic_gb: parseInt($('settingBirthdayRewardTraffic')?.value || '2', 10),
       birthday_reward_discount_percent: parseInt($('settingBirthdayRewardDiscount')?.value || '20', 10),
+      join_gate_enabled: $('settingJoinGateSwitch')?.checked ?? false,
+      join_gate_channel: $('settingJoinGateChannel')?.value?.trim() || '',
       crypto_enabled: $('settingCryptoSwitch')?.checked ?? false,
       stars_enabled: $('settingStarsSwitch')?.checked ?? false,
       stars_rate_toman: parseInt($('settingStarsRate')?.value || '1600', 10),
@@ -5140,12 +5309,66 @@
     if (icon) icon.classList.add('animate-spin');
     try {
       await syncAdminOverview(true);
-      if (window.showToast) window.showToast('🔄 وضعیت سرورها و سرعت شبکه به‌روزرسانی شد');
+      await fetchAdminSslHealth();
+      if (window.showToast) window.showToast('🔄 وضعیت سرورها و گواهی‌های SSL به‌روزرسانی شد');
       if (window.hapticFeedback) window.hapticFeedback('success');
     } finally {
       setTimeout(() => {
         if (icon) icon.classList.remove('animate-spin');
       }, 500);
+    }
+  });
+
+  $('refreshSslHealthBtn')?.addEventListener('click', async () => {
+    const icon = $('refreshSslHealthIcon');
+    if (icon) icon.classList.add('animate-spin');
+    try {
+      await fetchAdminSslHealth();
+      if (window.showToast) window.showToast('🔒 وضعیت گواهی‌های SSL به‌روزرسانی شد');
+      if (window.hapticFeedback) window.hapticFeedback('success');
+    } finally {
+      setTimeout(() => {
+        if (icon) icon.classList.remove('animate-spin');
+      }, 500);
+    }
+  });
+
+  $('checkCustomSslBtn')?.addEventListener('click', async () => {
+    const input = $('customSslDomainInput');
+    const domain = (input?.value || '').trim();
+    if (!domain) {
+      if (window.showToast) window.showToast('لطفاً آدرس دامنه را وارد کنید');
+      return;
+    }
+    const btn = $('checkCustomSslBtn');
+    const prevText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<span>درحال بررسی...</span>';
+    try {
+      const res = await window.api.admin.checkDomainSsl(domain);
+      if (res && res.ok && res.data) {
+        const idx = cachedSslHealthItems.findIndex(x => x.domain.toLowerCase() === res.data.domain.toLowerCase());
+        if (idx >= 0) {
+          cachedSslHealthItems[idx] = res.data;
+        } else {
+          cachedSslHealthItems.unshift(res.data);
+        }
+        renderSslHealth(cachedSslHealthItems);
+        if (res.data.valid) {
+          if (window.showToast) window.showToast(`✅ گواهی معتبر است (${res.data.days_left} روز باقی‌مانده)`);
+        } else {
+          if (window.showToast) window.showToast(`⚠️ ${res.data.error || 'گواهی نامعتبر است'}`);
+        }
+        if (window.hapticFeedback) window.hapticFeedback('success');
+      } else {
+        if (window.showToast) window.showToast(res?.error || 'خطا در ارزیابی SSL');
+      }
+    } catch (err) {
+      console.error('SSL check error:', err);
+      if (window.showToast) window.showToast('خطا در ارتباط با سرور');
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = prevText;
     }
   });
 

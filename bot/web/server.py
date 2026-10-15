@@ -370,6 +370,9 @@ def create_web_app(
     app.router.add_post("/api/user/topup/crypto/check", routes_user.post_user_topup_crypto_check)
     app.router.add_post("/api/user/topup/stars", routes_user.post_user_topup_stars)
     app.router.add_post("/api/user/validate_coupon", routes_user.post_user_validate_coupon)
+    app.router.add_post("/api/user/wallet/redeem", routes_user.post_user_redeem_voucher)
+    app.router.add_post("/api/user/wallet/redeem-voucher", routes_user.post_user_redeem_voucher)
+    app.router.add_post("/api/user/auto-renew", routes_user.post_user_auto_renew)
     app.router.add_post("/api/user/purchase", routes_user.post_user_purchase)
     app.router.add_post("/api/user/settings", routes_user.post_user_settings)
     app.router.add_post("/api/user/set_birthday", routes_user.post_user_set_birthday)
@@ -414,6 +417,7 @@ def create_web_app(
     app.router.add_post("/api/admin/coupon/save", routes_admin.post_admin_coupon_save)
     app.router.add_post("/api/admin/coupon/toggle", routes_admin.post_admin_coupon_toggle)
     app.router.add_post("/api/admin/coupon/delete", routes_admin.post_admin_coupon_delete)
+    app.router.add_post("/api/admin/coupons/batch-generate", routes_admin.post_admin_batch_vouchers)
     app.router.add_get("/api/admin/topups", routes_admin.get_admin_topups)
     app.router.add_get("/api/admin/topup/photo", routes_admin.get_admin_topup_photo)
     app.router.add_post("/api/admin/topup/action", routes_admin.post_admin_topup_action)
@@ -427,6 +431,8 @@ def create_web_app(
     app.router.add_post("/api/admin/campaign/delete", routes_admin.post_admin_campaign_delete)
     app.router.add_get("/api/admin/infra/billing", routes_admin.get_admin_infra_billing)
     app.router.add_post("/api/admin/infra/node-cost", routes_admin.post_admin_node_cost)
+    app.router.add_get("/api/admin/infra/ssl-health", routes_admin.get_admin_ssl_health)
+    app.router.add_post("/api/admin/infra/ssl-check", routes_admin.post_admin_ssl_check)
 
     return app
 

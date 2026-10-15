@@ -376,3 +376,56 @@ async def get_admin_coupon_usages(request: web.Request) -> web.Response:
     except Exception as exc:
         logger.exception("Error in get_admin_coupon_usages: %s", exc)
         return web.json_response({"ok": False, "error": "خطا در دریافت لیست استفاده‌کنندگان"}, status=500)
+
+
+async def post_admin_batch_vouchers(request: web.Request) -> web.Response:
+    """Batch generate credit / gift voucher codes."""
+    admin = _check_admin(request)
+    if not admin:
+        return web.json_response({"ok": False, "error": "Forbidden"}, status=403)
+
+    try:
+        body = await request.json()
+    except Exception:
+        return web.json_response({"ok": False, "error": "Invalid JSON"}, status=400)
+
+    amount = int(body.get("amount") or 0)
+    count = int(body.get("count") or 1)
+    prefix = str(body.get("prefix") or "GIFT-").strip().upper()
+    max_uses = int(body.get("max_uses") or 1)
+    expire_days = int(body.get("expire_days") or 0)
+
+    if amount <= 0:
+        return web.json_response({"ok": False, "error": "مبلغ اعتبار کارت شارژ باید بیشتر از صفر باشد."}, status=400)
+    if count <= 0 or count > 500:
+        return web.json_response({"ok": False, "error": "تعداد کدهای درخواستی باید بین ۱ تا ۵۰۰ باشد."}, status=400)
+
+    expires_at = None
+    if expire_days > 0:
+        expires_at = datetime.now(timezone.utc) + timedelta(days=expire_days)
+
+    async with db_session(request) as session:
+        coupon_repo = CouponRepository(session)
+        codes = await coupon_repo.batch_generate_vouchers(
+            count=count,
+            amount=amount,
+            prefix=prefix,
+            max_uses=max_uses,
+            expires_at=expires_at,
+        )
+        session.add(
+            AdminLog(
+                admin_id=admin["id"],
+                action="batch_vouchers",
+                detail=f"تولید {len(codes)} کارت شارژ به مبلغ هر کدام {amount:,} تومان با پیشوند {prefix}",
+            )
+        )
+        await session.commit()
+
+        return web.json_response({
+            "ok": True,
+            "count": len(codes),
+            "amount": amount,
+            "codes": codes,
+            "message": f"{len(codes)} کارت شارژ با موفقیت تولید شد.",
+        })

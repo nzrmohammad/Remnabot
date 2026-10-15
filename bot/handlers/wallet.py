@@ -160,23 +160,76 @@ async def topup_start(
         await call.answer(t(lang, "topup_no_card"), show_alert=True)
         return
 
+    kb = InlineKeyboardBuilder()
     if has_card and has_crypto:
-        kb = InlineKeyboardBuilder()
         if lang == "fa":
             kb.button(text=t(lang, "btn_topup_ton"), callback_data="wallet:method:ton")
             kb.button(text=t(lang, "btn_topup_card"), callback_data="wallet:method:card")
         else:
             kb.button(text=t(lang, "btn_topup_card"), callback_data="wallet:method:card")
             kb.button(text=t(lang, "btn_topup_ton"), callback_data="wallet:method:ton")
-        kb.button(text=t(lang, "btn_cancel"), callback_data="menu:wallet")
-        kb.adjust(2, 1)
-        await render_menu(bot, user, user_repo, t(lang, "topup_select_method"), kb.as_markup())
-        await call.answer()
+    elif has_card:
+        kb.button(text=t(lang, "btn_topup_card"), callback_data="wallet:method:card")
+    elif has_crypto:
+        kb.button(text=t(lang, "btn_topup_ton"), callback_data="wallet:method:ton")
+
+    kb.button(text="🎟 کارت شارژ / گیفت‌کارت", callback_data="wallet:voucher")
+    kb.button(text=t(lang, "btn_cancel"), callback_data="menu:wallet")
+    if has_card and has_crypto:
+        kb.adjust(2, 1, 1)
+    else:
+        kb.adjust(1)
+
+    await render_menu(bot, user, user_repo, t(lang, "topup_select_method"), kb.as_markup())
+    await call.answer()
+    return
+
+
+@router.callback_query(F.data == "wallet:voucher")
+async def voucher_prompt(
+    call: CallbackQuery, bot: Bot, user_repo: UserRepository,
+    state: FSMContext,
+):
+    user = await user_repo.get_or_create(call.from_user.id, call.from_user.username)
+    await state.set_state(TopupStates.waiting_voucher)
+    kb = InlineKeyboardBuilder()
+    kb.button(text=t(user.language, "btn_cancel"), callback_data="menu:wallet")
+    kb.adjust(1)
+    msg = (
+        "🎟 <b>فعال‌سازی کارت شارژ / گیفت‌کارت</b>\n\n"
+        "لطفاً کد شارژ دریافتی را ارسال نمایید:"
+    )
+    await render_menu(bot, user, user_repo, msg, kb.as_markup())
+    await call.answer()
+
+
+@router.message(TopupStates.waiting_voucher)
+async def voucher_redeem_message(
+    message: Message, bot: Bot, user_repo: UserRepository,
+    session: AsyncSession, state: FSMContext,
+):
+    await delete_message_silently(message)
+    user = await user_repo.get_or_create(message.from_user.id, message.from_user.username)
+    lang = user.language
+    code = (message.text or "").strip()
+    if not code:
         return
 
-    method = "ton" if has_crypto else "card"
-    await _render_topup_amount_prompt(bot, user, user_repo, session, state, method)
-    await call.answer()
+    from bot.db.repositories.coupon_repo import CouponRepository
+    coupon_repo = CouponRepository(session)
+    ok, amount, msg = await coupon_repo.redeem_credit_voucher(code, user.telegram_id)
+    if not ok:
+        kb = InlineKeyboardBuilder()
+        kb.button(text=t(lang, "btn_cancel"), callback_data="menu:wallet")
+        kb.adjust(1)
+        err_text = f"⚠️ <b>خطا در فعال‌سازی:</b>\n{msg}\n\nلطفاً مجدداً کد صحیح را ارسال فرمایید:"
+        await render_menu(bot, user, user_repo, err_text, kb.as_markup())
+        return
+
+    await session.commit()
+    await state.clear()
+    wallet_repo = WalletRepository(session)
+    await _render_wallet(bot, user, user_repo, wallet_repo, lang)
 
 
 @router.callback_query(F.data.startswith("wallet:method:"))

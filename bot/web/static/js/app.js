@@ -2083,15 +2083,9 @@ function hydrateUserInterface(data) {
 
     const bdayBtn = $('openBirthdayModalBtn');
     if (bdayBtn) {
-      if (user.birth_date) {
-        bdayBtn.className = 'text-pink-400 hover:text-pink-300 text-xs transition active:scale-95 bg-transparent border-0 p-0 shadow-none';
-        bdayBtn.innerHTML = '<span>✏️</span>';
-        bdayBtn.title = 'ویرایش تاریخ تولد';
-      } else {
-        bdayBtn.className = 'px-2 py-0.5 rounded-lg bg-pink-500/20 text-pink-300 border border-pink-500/30 text-[10px] font-bold hover:bg-pink-500/30 transition active:scale-95';
-        bdayBtn.innerText = 'ثبت';
-        bdayBtn.title = 'ثبت تاریخ تولد';
-      }
+      bdayBtn.className = 'text-pink-400 hover:text-pink-300 text-xs transition active:scale-95 bg-transparent border-0 p-0 shadow-none';
+      bdayBtn.innerHTML = '<span>✏️</span>';
+      bdayBtn.title = user.birth_date ? 'ویرایش تاریخ تولد' : 'ثبت تاریخ تولد';
     }
 
     const hasActiveSub = Boolean(data.has_active_sub && (sub?.status === 'ACTIVE' || !sub?.status));
@@ -2223,6 +2217,39 @@ function hydrateUserInterface(data) {
         }
       };
     });
+
+    // Auto-Renew Toggle Wiring
+    const autoRenewToggle = $('settingToggleAutoRenew');
+    const modalAutoRenewToggle = $('modalExpiryAutoRenewSwitch');
+    const autoRenewVal = Boolean(user.auto_renew);
+    if (autoRenewToggle) autoRenewToggle.checked = autoRenewVal;
+    if (modalAutoRenewToggle) modalAutoRenewToggle.checked = autoRenewVal;
+
+    const handleAutoRenewChange = async (newVal, sourceEl) => {
+      try {
+        const res = await window.api.setAutoRenew(newVal);
+        if (res && res.ok) {
+          showToast(res.message || (newVal ? 'تمدید خودکار فعال شد.' : 'تمدید خودکار غیرفعال شد.'), 'success');
+          hapticFeedback('success');
+          if (autoRenewToggle) autoRenewToggle.checked = newVal;
+          if (modalAutoRenewToggle) modalAutoRenewToggle.checked = newVal;
+          user.auto_renew = newVal;
+        } else {
+          sourceEl.checked = !newVal;
+          showToast('❌ خطا در تغییر وضعیت تمدید خودکار', 'error');
+        }
+      } catch (e) {
+        sourceEl.checked = !newVal;
+        showToast('خطا در برقراری ارتباط با سرور.', 'error');
+      }
+    };
+
+    if (autoRenewToggle) {
+      autoRenewToggle.onchange = () => handleAutoRenewChange(autoRenewToggle.checked, autoRenewToggle);
+    }
+    if (modalAutoRenewToggle) {
+      modalAutoRenewToggle.onchange = () => handleAutoRenewChange(modalAutoRenewToggle.checked, modalAutoRenewToggle);
+    }
 
     // Alert Subtexts & Selects
     function updateAlertSubtexts(percent, days) {

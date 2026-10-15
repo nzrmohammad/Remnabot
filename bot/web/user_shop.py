@@ -45,6 +45,26 @@ async def post_user_spin(request: web.Request) -> web.Response:
             status=400,
         )
 
+    if request.app.get("session_factory") or "session" in request:
+        async with db_session(request) as session:
+            store = await get_store_settings(session)
+            if getattr(store, "join_gate_enabled", False) and getattr(store, "join_gate_channel", ""):
+                bot = request.app.get("bot")
+                from bot.common.helpers import check_channel_membership
+                is_member = await check_channel_membership(bot, store.join_gate_channel, telegram_id)
+                if not is_member:
+                    channel_str = store.join_gate_channel.strip()
+                    channel_link = channel_str if channel_str.startswith("http") else f"https://t.me/{channel_str.lstrip('@')}"
+                    return web.json_response(
+                        {
+                            "ok": False,
+                            "error": "برای چرخاندن گردونه شانس، ابتدا باید در کانال ما عضو شوید.",
+                            "code": "channel_required",
+                            "channel_url": channel_link,
+                        },
+                        status=403,
+                    )
+
     import time
     last_spin = await cache.get(wheel_ts_key)
     now_ts = time.time()

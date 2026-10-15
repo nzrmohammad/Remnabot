@@ -73,6 +73,9 @@ class User(Base):
     # Ad Campaign code (if joined via ad_xxx deep link)
     campaign_code: Mapped[str | None] = mapped_column(String(32), nullable=True, index=True)
 
+    # Auto-renew active subscription when expiring using wallet balance
+    auto_renew: Mapped[bool] = mapped_column(Boolean, default=False)
+
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
     )

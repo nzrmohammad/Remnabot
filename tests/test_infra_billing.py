@@ -235,3 +235,60 @@ async def test_admin_infra_billing_api_handlers(session_factory):
         assert data["nodes"][0]["cost_per_gb"] == 10000.0
         assert data["nodes"][0]["currency"] == "USD"
 
+
+@pytest.mark.anyio
+async def test_ssl_checker_service_and_endpoints():
+    from bot.services.ssl_checker import check_domain_ssl, is_ip_address
+    from bot.web.admin_infra_api import get_admin_ssl_health, post_admin_ssl_check
+    from aiohttp.test_utils import make_mocked_request
+    import json
+
+    assert is_ip_address("1.1.1.1") is True
+    assert is_ip_address("2001:db8::1") is True
+    assert is_ip_address("example.com") is False
+
+    # IP address check should skip
+    res_ip = await check_domain_ssl("1.2.3.4")
+    assert res_ip["is_ip"] is True
+    assert res_ip["status"] == "skipped_ip"
+
+    # Mock SSL inspect
+    mock_ssl_res = {
+        "domain": "test.vpn.com",
+        "port": 443,
+        "valid": True,
+        "is_ip": False,
+        "days_left": 45,
+        "expires_at": "2026-11-30",
+        "issuer": "Let's Encrypt",
+        "status": "ok",
+        "error": None,
+    }
+
+    with patch("bot.services.ssl_checker._check_domain_ssl_sync", return_value=mock_ssl_res):
+        res = await check_domain_ssl("test.vpn.com")
+        assert res["valid"] is True
+        assert res["days_left"] == 45
+        assert res["status"] == "ok"
+
+    app_mock = {
+        "remnawave": AsyncMock(get_nodes=AsyncMock(return_value=[{"address": "node1.example.com", "name": "Node DE"}])),
+    }
+    with patch("bot.web.routes_admin._check_admin", return_value={"id": 1, "is_admin": True}), \
+         patch("bot.services.ssl_checker._check_domain_ssl_sync", return_value=mock_ssl_res):
+        req_health = make_mocked_request("GET", "/api/admin/infra/ssl-health", app=app_mock)
+        resp_health = await get_admin_ssl_health(req_health)
+        assert resp_health.status == 200
+        health_data = json.loads(resp_health.text)
+        assert health_data["ok"] is True
+        assert len(health_data["data"]) >= 1
+
+        req_check = make_mocked_request("POST", "/api/admin/infra/ssl-check", app=app_mock)
+        req_check.json = AsyncMock(return_value={"domain": "node1.example.com"})
+        resp_check = await post_admin_ssl_check(req_check)
+        assert resp_check.status == 200
+        check_data = json.loads(resp_check.text)
+        assert check_data["ok"] is True
+        assert check_data["data"]["domain"] == "test.vpn.com"
+
+

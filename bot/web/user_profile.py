@@ -395,6 +395,7 @@ async def get_user_me(request: web.Request) -> web.Response:
                 "language": db_user.language if isinstance(getattr(db_user, "language", None), str) else "fa",
                 "photo_url": user_auth.get("photo_url", ""),
                 "is_admin": user_auth.get("is_admin", False),
+                "auto_renew": bool(getattr(db_user, "auto_renew", False)),
             },
             "settings": user_settings,
             "accounts": accounts_list,

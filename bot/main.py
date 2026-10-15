@@ -36,6 +36,7 @@ from bot.services.node_monitor import nodes_monitor_loop
 from bot.services.traffic_monitor import traffic_monitor_loop
 from bot.services.retention import retention_loop
 from bot.services.birthday import birthday_sweep_loop
+from bot.services.auto_renew import auto_renew_sweep_loop
 from bot.web.cache import FastCache
 
 logging.basicConfig(
@@ -123,6 +124,11 @@ async def _migrate_schema(engine: AsyncEngine) -> None:
                     text("ALTER TABLE users ADD COLUMN campaign_code VARCHAR(32)")
                 )
                 logger.info("added users.campaign_code")
+            if "auto_renew" not in cols:
+                await conn.execute(
+                    text("ALTER TABLE users ADD COLUMN auto_renew BOOLEAN DEFAULT FALSE")
+                )
+                logger.info("added users.auto_renew")
 
         # --- services: strategy / hwid / squad (new columns) ----------- #
         cols = await _table_columns(conn, "services")
@@ -400,6 +406,10 @@ async def main() -> None:
         asyncio.create_task(
             birthday_sweep_loop(bot, session_factory, remnawave, cache=fast_cache),
             name="birthday-sweep-loop",
+        ),
+        asyncio.create_task(
+            auto_renew_sweep_loop(bot, session_factory, remnawave, cache=fast_cache),
+            name="auto-renew-sweep-loop",
         ),
     ]
 

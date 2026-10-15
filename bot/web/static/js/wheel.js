@@ -201,12 +201,21 @@ function setupLuckyWheel() {
         chosenPrize = res.prize;
         targetIndex = prizeMap[chosenPrize.id] ?? 0;
       } else if (!res.ok && res.error) {
-        showWheelResultModal({
-          icon: '⚠️',
-          title: 'خطا در گردونه',
-          message: res.error,
-          isError: true,
-        });
+        if (res.code === 'channel_required' && res.channel_url) {
+          showWheelResultModal({
+            icon: '📢',
+            title: 'عضویت در کانال الزامی است',
+            message: `${res.error}<div class="mt-3"><a href="${res.channel_url}" target="_blank" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs shadow transition active:scale-95"><span>📢</span><span>عضویت در کانال رسمی</span></a></div>`,
+            isError: true,
+          });
+        } else {
+          showWheelResultModal({
+            icon: '⚠️',
+            title: 'خطا در گردونه',
+            message: res.error,
+            isError: true,
+          });
+        }
         isSpinningWheel = false;
         if (res.next_spin_seconds) {
           updateWheelUIState(false, true, res.next_spin_seconds);

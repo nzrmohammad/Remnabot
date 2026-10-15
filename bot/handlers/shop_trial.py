@@ -102,6 +102,26 @@ async def service_new_request(
 
     store = await get_store_settings(session)
     if store.trial_enabled:
+        if getattr(store, "join_gate_enabled", False) and getattr(store, "join_gate_channel", ""):
+            from bot.common.helpers import check_channel_membership
+            is_member = await check_channel_membership(bot, store.join_gate_channel, user.telegram_id)
+            if not is_member:
+                channel_str = store.join_gate_channel.strip()
+                channel_link = channel_str if channel_str.startswith("http") else f"https://t.me/{channel_str.lstrip('@')}"
+                kb = InlineKeyboardBuilder()
+                kb.button(text="📢 عضویت در کانال", url=channel_link)
+                kb.button(text=t(lang, "btn_back"), callback_data="nav:welcome")
+                kb.adjust(1)
+                await render_menu(
+                    bot,
+                    user,
+                    user_repo,
+                    "⚠️ <b>عضویت در کانال الزامی است</b>\n\nجهت دریافت اکانت تست رایگان، لطفاً ابتدا در کانال رسمی ما عضو شوید و سپس مجدداً اقدام نمایید.",
+                    kb.as_markup(),
+                )
+                await call.answer()
+                return
+
         if user.has_claimed_trial:
             kb = InlineKeyboardBuilder()
             kb.button(text=t(lang, "btn_services"), callback_data="menu:services")

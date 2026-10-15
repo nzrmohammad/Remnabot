@@ -65,6 +65,8 @@ async def get_admin_settings(request: web.Request) -> web.Response:
             "birthday_reward_enabled": store_settings.birthday_reward_enabled,
             "birthday_reward_traffic_gb": store_settings.birthday_reward_traffic_gb,
             "birthday_reward_discount_percent": store_settings.birthday_reward_discount_percent,
+            "join_gate_enabled": store_settings.join_gate_enabled,
+            "join_gate_channel": store_settings.join_gate_channel,
         }
         bot = request.app.get("bot")
         settings_cfg = request.app.get("settings")
@@ -102,6 +104,7 @@ async def post_admin_settings(request: web.Request) -> web.Response:
             "card_enabled", "crypto_enabled", "trial_enabled",
             "referral_enabled", "support_direct_enabled", "maintenance",
             "stars_enabled", "card_require_phone_verification", "card_phone_iran_only", "birthday_reward_enabled",
+            "join_gate_enabled",
         )
         for bk in bool_keys:
             if bk in body:
@@ -119,6 +122,7 @@ async def post_admin_settings(request: web.Request) -> web.Response:
             "access_mode",
             "tutorial_channel_url", "routing_tutorial_url", "client_apps_json",
             "birthday_reward_traffic_gb", "birthday_reward_discount_percent",
+            "join_gate_channel",
         )
         for rk in raw_keys:
             if rk in body:

@@ -136,3 +136,77 @@ class CouponRepository:
             discount = min(discount, price)
 
         return True, None, discount
+
+    async def redeem_credit_voucher(
+        self, code: str, telegram_id: int
+    ) -> tuple[bool, int, str]:
+        """Redeem a credit/gift coupon to the user's wallet atomically."""
+        clean_code = code.strip().upper()
+        stmt = (
+            select(Coupon)
+            .where(Coupon.code == clean_code)
+            .with_for_update()
+        )
+        res = await self.session.execute(stmt)
+        coupon = res.scalar_one_or_none()
+        if not coupon:
+            return False, 0, "کد شارژ وارد شده نامعتبر است."
+        if not coupon.is_active:
+            return False, 0, "این کد شارژ غیرفعال شده است."
+        now_utc = datetime.now(timezone.utc)
+        if coupon.expires_at and coupon.expires_at <= now_utc:
+            return False, 0, "مهلت استفاده از این کد شارژ به پایان رسیده است."
+        if coupon.max_uses > 0 and coupon.used_count >= coupon.max_uses:
+            return False, 0, "سقف مجاز استفاده از این کد شارژ تکمیل شده است."
+        if await self.has_user_used(coupon.id, telegram_id):
+            return False, 0, "شما قبلاً از این کد شارژ استفاده کرده‌اید."
+
+        credit_amount = coupon.discount_amount
+        if credit_amount <= 0:
+            return False, 0, "این کد تخفیف خرید است و اعتباری نمی‌باشد."
+
+        coupon.used_count += 1
+        if coupon.max_uses > 0 and coupon.used_count >= coupon.max_uses:
+            coupon.is_active = False
+
+        usage = CouponUsage(
+            coupon_id=coupon.id,
+            telegram_id=telegram_id,
+            order_id=None,
+            discount_applied=credit_amount,
+        )
+        self.session.add(usage)
+
+        from bot.db.repositories.wallet_repo import WalletRepository
+        wallet_repo = WalletRepository(self.session)
+        await wallet_repo.add_balance(telegram_id, credit_amount)
+        await self.session.flush()
+
+        return True, credit_amount, f"کیف پول شما با موفقیت به مبلغ {credit_amount:,} تومان شارژ گردید."
+
+    async def batch_generate_vouchers(
+        self,
+        count: int,
+        amount: int,
+        prefix: str = "GIFT-",
+        max_uses: int = 1,
+        expires_at: datetime | None = None,
+    ) -> list[str]:
+        """Generate a series of unique credit/gift coupons."""
+        import secrets
+        generated_codes = []
+        clean_prefix = (prefix.strip().upper() or "GIFT-")
+        for _ in range(max(1, min(count, 500))):
+            code = f"{clean_prefix}{secrets.token_hex(4).upper()}"
+            coupon = Coupon(
+                code=code,
+                discount_percent=0,
+                discount_amount=amount,
+                max_uses=max_uses,
+                expires_at=expires_at,
+                is_active=True,
+            )
+            self.session.add(coupon)
+            generated_codes.append(code)
+        await self.session.flush()
+        return generated_codes

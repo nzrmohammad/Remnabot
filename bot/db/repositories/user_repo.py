@@ -127,3 +127,11 @@ class UserRepository:
             select(User).where(User.is_banned.is_(True)).order_by(User.id.desc())
         )
         return list(result.scalars().all())
+
+    async def set_auto_renew(self, user: User | int, auto_renew: bool = True) -> bool:
+        if isinstance(user, int):
+            user = await self.get_by_telegram_id(user)
+        if user:
+            user.auto_renew = auto_renew
+            return user.auto_renew
+        return False

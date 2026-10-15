@@ -8,6 +8,7 @@ from bot.db.models import AdminLog, Order
 from bot.db.repositories.node_cost_repo import NodeCostRepository
 from bot.web.admin_common import _check_admin as _default_check_admin, db_session
 from bot.web.cache import FastCache
+from bot.services.ssl_checker import check_domain_ssl, check_domains_ssl, get_system_ssl_domains
 
 try:
     import jdatetime
@@ -217,3 +218,42 @@ async def post_admin_node_cost(request: web.Request) -> web.Response:
             "provider": item.provider,
         }
     })
+
+
+async def get_admin_ssl_health(request: web.Request) -> web.Response:
+    """Check SSL certificate expiration and health for all system domains and nodes."""
+    admin = _check_admin(request)
+    if not admin:
+        return web.json_response({"ok": False, "error": "Forbidden"}, status=403)
+
+    remnawave = request.app.get("remnawave")
+    domain_items = await get_system_ssl_domains(remnawave)
+    domains = [item["domain"] for item in domain_items]
+    labels_map = {item["domain"]: item["label"] for item in domain_items}
+
+    results = await check_domains_ssl(domains)
+    for res in results:
+        res["label"] = labels_map.get(res["domain"], "دامنه سرور")
+
+    return web.json_response({"ok": True, "data": results})
+
+
+async def post_admin_ssl_check(request: web.Request) -> web.Response:
+    """Check SSL certificate for an arbitrary custom domain."""
+    admin = _check_admin(request)
+    if not admin:
+        return web.json_response({"ok": False, "error": "Forbidden"}, status=403)
+
+    try:
+        body = await request.json()
+    except Exception:
+        body = {}
+
+    domain = str(body.get("domain") or "").strip()
+    if not domain:
+        return web.json_response({"ok": False, "error": "آدرس دامنه الزامی است."}, status=400)
+
+    res = await check_domain_ssl(domain)
+    res["label"] = "بررسی دستی"
+    return web.json_response({"ok": True, "data": res})
+

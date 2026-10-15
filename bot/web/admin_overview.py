@@ -54,9 +54,13 @@ async def _fetch_and_build_overview(
         session, remnawave, now_utc
     )
 
+    month_traffic = kpis.get("month_traffic_gb") or 0.0
+    monthly_rev = kpis.get("monthly_revenue_toman") or 0
+    avg_revenue_per_gb = round(monthly_rev / month_traffic, 1) if month_traffic > 0 else 0.0
+
     hwid_stats = await remnawave.get_hwid_stats() or {}
     nodes_overview, online_devices, offline_nodes = calc_nodes_overview(
-        nodes, costs_by_uuid, costs_by_id, hwid_stats, now_utc
+        nodes, costs_by_uuid, costs_by_id, hwid_stats, now_utc, avg_revenue_per_gb=avg_revenue_per_gb
     )
     kpis["online_devices"] = online_devices
     kpis["offline_nodes"] = offline_nodes

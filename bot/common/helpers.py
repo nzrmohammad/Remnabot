@@ -52,3 +52,22 @@ def get_online_at(u: dict):
         return datetime.fromisoformat(str(online_str).replace("Z", "+00:00"))
     except Exception:
         return None
+
+
+async def check_channel_membership(bot, channel: str, user_id: int) -> bool:
+    """Check if user is a member of the specified channel.
+
+    Returns True if member or if check cannot be performed (failsafe).
+    """
+    if not bot or not channel:
+        return True
+    clean_channel = channel.strip()
+    if clean_channel.startswith("https://t.me/"):
+        clean_channel = "@" + clean_channel.removeprefix("https://t.me/").strip("/")
+    try:
+        member = await bot.get_chat_member(chat_id=clean_channel, user_id=user_id)
+        status = getattr(member, "status", None)
+        return status in ("creator", "administrator", "member", "restricted")
+    except Exception:
+        # If bot is not in channel or channel is unreachable, allow user through
+        return True

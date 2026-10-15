@@ -212,9 +212,18 @@ async def execute_purchase(
         subscription_url = user.get("subscriptionUrl")
     else:
         # Renew the existing account (+ reactivate if expiry job disabled it).
-        if strategy == "NO_RESET":
+        is_extra_traffic = (service.duration_days == 0 and service.traffic_gb > 0)
+        current_expire_str = account.get("expireAt")
+        current_expire = _parse_expire(current_expire_str)
+
+        if is_extra_traffic and current_expire is not None and current_expire > now:
+            # Extra Traffic Package (+GB): preserve expiration date, stack traffic limit
+            expire_iso = current_expire_str
+            traffic = _traffic_bytes(
+                service.traffic_gb, int(account.get("trafficLimitBytes") or 0), "NO_RESET"
+            )
+        elif strategy == "NO_RESET":
             base = now
-            current_expire = _parse_expire(account.get("expireAt"))
             if current_expire is not None and current_expire > now:
                 # Still active -> extend from existing expiration date, stack traffic
                 base = current_expire

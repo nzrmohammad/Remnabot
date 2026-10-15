@@ -181,16 +181,24 @@ function renderShopPlans(data) {
     const formattedOriginal = Number(p.price || 0).toLocaleString('en-US');
     const devLimitText = (p.hwid_limit && p.hwid_limit > 0) ? `${p.hwid_limit} کاربر` : 'بدون محدودیت کاربر';
 
+    const isExtraTraffic = (Number(p.duration_days) === 0 && Number(p.traffic_gb) > 0);
+    const durationText = isExtraTraffic
+      ? '<span class="flex items-center gap-1">📅 <b class="text-emerald-400 font-bold">بدون تغییر انقضا (+حجم)</b></span>'
+      : (Number(p.duration_days) > 0
+          ? `<span class="flex items-center gap-1">📅 <b class="text-slate-200">${p.duration_days} روز</b></span>`
+          : '<span class="flex items-center gap-1">📅 <b class="text-slate-200">نامحدود روز</b></span>');
+    const trafficText = Number(p.traffic_gb) > 0 ? `${p.traffic_gb} GB` : 'نامحدود';
+
     return `
-      <div class="shop-plan-card bg-slate-800/90 rounded-2xl p-4 border ${isPopular ? 'border-amber-500/60 shadow-lg shadow-amber-500/10' : 'border-slate-700/80'} relative overflow-hidden group">
-        ${isPopular ? '<div class="absolute top-0 left-0 bg-gradient-to-r from-amber-500 to-yellow-500 text-slate-950 text-[10px] font-black px-3 py-0.5 rounded-br-xl shadow flex items-center gap-1">🔥 پرفروش‌ترین</div>' : ''}
-        <div class="flex justify-between items-start ${isPopular ? 'mt-1' : ''}">
+      <div class="shop-plan-card bg-slate-800/90 rounded-2xl p-4 border ${isExtraTraffic ? 'border-cyan-500/50 shadow-lg shadow-cyan-500/10' : (isPopular ? 'border-amber-500/60 shadow-lg shadow-amber-500/10' : 'border-slate-700/80')} relative overflow-hidden group">
+        ${isExtraTraffic ? '<div class="absolute top-0 left-0 bg-gradient-to-r from-cyan-500 to-blue-500 text-slate-950 text-[10px] font-black px-3 py-0.5 rounded-br-xl shadow flex items-center gap-1">⚡️ بسته افزایش حجم</div>' : (isPopular ? '<div class="absolute top-0 left-0 bg-gradient-to-r from-amber-500 to-yellow-500 text-slate-950 text-[10px] font-black px-3 py-0.5 rounded-br-xl shadow flex items-center gap-1">🔥 پرفروش‌ترین</div>' : '')}
+        <div class="flex justify-between items-start ${(isPopular || isExtraTraffic) ? 'mt-1' : ''}">
           <div>
             <div class="flex items-center gap-2">
               <h4 class="font-bold text-sm text-white">${formatPlanTitle(p.name)}</h4>
               ${discountVal > 0 ? '<span class="text-[10px] text-emerald-400 font-bold bg-transparent border-0 px-0 py-0">🏷 تخفیف ویژه</span>' : ''}
             </div>
-            <p class="text-xs text-slate-400 mt-1">${p.description || 'ترافیک پایدار و بدون محدودیت روی تمام سرورها'}</p>
+            <p class="text-xs text-slate-400 mt-1">${p.description || (isExtraTraffic ? 'افزایش حجم سریع بدون تغییر در تاریخ انقضای سرویس فعلی' : 'ترافیک پایدار و بدون محدودیت روی تمام سرورها')}</p>
           </div>
           <div class="text-left font-mono">
             ${discountVal > 0 ? `<span class="line-through text-slate-400 text-xs block -mb-0.5">${formattedOriginal}</span>` : ''}
@@ -199,12 +207,12 @@ function renderShopPlans(data) {
           </div>
         </div>
         <div class="flex items-center justify-between my-2.5 text-[10px] text-slate-300 bg-slate-900/60 px-3 py-2 rounded-xl whitespace-nowrap overflow-hidden">
-          <span class="flex items-center gap-1">📊 <b dir="ltr" class="font-mono text-cyan-300">${p.traffic_gb} GB</b></span>
-          <span class="flex items-center gap-1">📅 <b class="text-slate-200">${p.duration_days} روز</b></span>
+          <span class="flex items-center gap-1">📊 <b dir="ltr" class="font-mono text-cyan-300">${trafficText}</b></span>
+          ${durationText}
           <span class="flex items-center gap-1">📱 <b class="text-slate-200">${devLimitText}</b></span>
         </div>
-        <button class="buy-plan-btn w-full ${isPopular ? 'bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-black' : 'bg-blue-600 hover:bg-blue-500 text-white font-semibold'} text-xs py-2.5 rounded-xl transition shadow active:scale-[0.98]" data-id="${p.id}" data-price="${finalPrice}" data-name="${p.name}" data-traffic="${p.traffic_gb}" data-days="${p.duration_days}">
-          🛒 خرید / تمدید آنی (${formattedFinal} تومان)
+        <button class="buy-plan-btn w-full ${isExtraTraffic ? 'bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-bold' : (isPopular ? 'bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-black' : 'bg-blue-600 hover:bg-blue-500 text-white font-semibold')} text-xs py-2.5 rounded-xl transition shadow active:scale-[0.98]" data-id="${p.id}" data-price="${finalPrice}" data-name="${p.name}" data-traffic="${p.traffic_gb}" data-days="${p.duration_days}">
+          🛒 ${isExtraTraffic ? 'خرید بسته ترافیک' : 'خرید / تمدید آنی'} (${formattedFinal} تومان)
         </button>
       </div>
     `;

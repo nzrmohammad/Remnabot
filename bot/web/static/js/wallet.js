@@ -747,6 +747,37 @@ function setupWalletListeners() {
     }
   });
 
+  const redeemBtn = document.getElementById('redeemVoucherBtn');
+  const voucherInput = document.getElementById('voucherCodeInput');
+  if (redeemBtn && voucherInput) {
+    redeemBtn.addEventListener('click', async () => {
+      const code = voucherInput.value.trim();
+      if (!code) {
+        showToast('لطفاً کد شارژ را وارد نمایید.', 'warning');
+        return;
+      }
+      redeemBtn.disabled = true;
+      redeemBtn.innerText = 'در حال بررسی...';
+      try {
+        const res = await window.api.redeemVoucher(code);
+        if (res.ok) {
+          showToast(res.message || 'کیف پول با موفقیت شارژ گردید!', 'success');
+          voucherInput.value = '';
+          const haptic = window.api?.haptic || window.hapticFeedback;
+          if (haptic) haptic('success');
+          if (typeof syncUserDataWithApi === 'function') syncUserDataWithApi(window.currentAccountId);
+        } else {
+          showToast(res.message || 'کد شارژ نامعتبر است.', 'error');
+        }
+      } catch (err) {
+        showToast('خطا در برقراری ارتباط با سرور.', 'error');
+      } finally {
+        redeemBtn.disabled = false;
+        redeemBtn.innerText = 'اعمال';
+      }
+    });
+  }
+
   restoreActiveCryptoInvoice();
 }
 
