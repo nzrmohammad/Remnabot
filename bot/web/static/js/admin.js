@@ -1841,9 +1841,11 @@
                 </div>
 
                 <!-- Status Badge (فعال / بدون اکانت) Under the name -->
-                <div class="flex items-center gap-1.5 mt-1">
+                <div class="flex flex-wrap items-center gap-1.5 mt-1">
                   <div>${statusBadge}</div>
                   ${expiringBadgeHtml}
+                  ${u.phone_number ? `<span onclick="window.adminActions.quickCopy('${escapeHtml(u.phone_number)}', 'شماره تماس')" class="cursor-pointer hover:text-emerald-400 text-slate-300 font-mono text-[9.5px] inline-flex items-center gap-0.5 bg-slate-900/60 px-1.5 py-0.5 rounded border border-slate-700/60" title="شماره تماس (کلیک جهت کپی)"><span class="text-[9px]">📱</span><span dir="ltr">${escapeHtml(u.phone_number)}</span></span>` : ''}
+                  ${u.birth_date ? `<span class="text-pink-300 font-mono text-[9.5px] inline-flex items-center gap-0.5 bg-slate-900/60 px-1.5 py-0.5 rounded border border-slate-700/60" title="تاریخ تولد"><span class="text-[9px]">🎂</span><span dir="ltr">${escapeHtml(u.birth_date)}</span></span>` : ''}
                 </div>
               </div>
             </div>
@@ -4679,6 +4681,9 @@
       const cardPhoneSwitch = $('settingCardRequirePhoneSwitch');
       if (cardPhoneSwitch) cardPhoneSwitch.checked = s.card_require_phone_verification ?? true;
 
+      const cardIranSwitch = $('settingCardPhoneIranSwitch');
+      if (cardIranSwitch) cardIranSwitch.checked = s.card_phone_iran_only ?? true;
+
       // Birthday Rewards
       const bdaySwitch = $('settingBirthdayRewardSwitch');
       if (bdaySwitch) bdaySwitch.checked = s.birthday_reward_enabled ?? true;
@@ -4844,6 +4849,9 @@
   $('settingCardRequirePhoneSwitch')?.addEventListener('change', (e) => {
     updateSettingToggle('card_require_phone_verification', e.target.checked);
   });
+  $('settingCardPhoneIranSwitch')?.addEventListener('change', (e) => {
+    updateSettingToggle('card_phone_iran_only', e.target.checked);
+  });
   $('settingBirthdayRewardSwitch')?.addEventListener('change', (e) => {
     updateSettingToggle('birthday_reward_enabled', e.target.checked);
   });
@@ -4865,6 +4873,7 @@
       access_mode: accessModeVal,
       card_enabled: $('settingCardSwitch')?.checked ?? true,
       card_require_phone_verification: $('settingCardRequirePhoneSwitch')?.checked ?? true,
+      card_phone_iran_only: $('settingCardPhoneIranSwitch')?.checked ?? true,
       birthday_reward_enabled: $('settingBirthdayRewardSwitch')?.checked ?? true,
       birthday_reward_traffic_gb: parseInt($('settingBirthdayRewardTraffic')?.value || '2', 10),
       birthday_reward_discount_percent: parseInt($('settingBirthdayRewardDiscount')?.value || '20', 10),

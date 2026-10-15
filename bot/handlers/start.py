@@ -181,6 +181,19 @@ async def handle_user_contact(
     if phone and not phone.startswith("+"):
         phone = "+" + phone
 
+    from bot.services.app_settings import get_store_settings
+    store_settings = await get_store_settings(session)
+    if store_settings.card_phone_iran_only:
+        clean_p = phone.lstrip("+")
+        if not (clean_p.startswith("98") or clean_p.startswith("09")):
+            await message.answer(
+                "⚠️ <b>خطای احراز هویت:</b>\n"
+                "بر اساس قوانین بانکی و امنیتی، احراز هویت شماره تماس و پرداخت کارت‌به‌کارت تنها برای شماره‌های رسمی کشور ایران (<code>+98</code>) مجاز می‌باشد.",
+                reply_markup=ReplyKeyboardRemove(),
+                parse_mode="HTML",
+            )
+            return
+
     user = await user_repo.get_or_create(
         telegram_id=message.from_user.id,
         username=message.from_user.username,

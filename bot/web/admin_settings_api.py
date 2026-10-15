@@ -61,6 +61,7 @@ async def get_admin_settings(request: web.Request) -> web.Response:
             "routing_tutorial_url": store_settings.routing_tutorial_url,
             "client_apps_json": store_settings.client_apps_json,
             "card_require_phone_verification": store_settings.card_require_phone_verification,
+            "card_phone_iran_only": store_settings.card_phone_iran_only,
             "birthday_reward_enabled": store_settings.birthday_reward_enabled,
             "birthday_reward_traffic_gb": store_settings.birthday_reward_traffic_gb,
             "birthday_reward_discount_percent": store_settings.birthday_reward_discount_percent,
@@ -100,7 +101,7 @@ async def post_admin_settings(request: web.Request) -> web.Response:
         bool_keys = (
             "card_enabled", "crypto_enabled", "trial_enabled",
             "referral_enabled", "support_direct_enabled", "maintenance",
-            "stars_enabled", "card_require_phone_verification", "birthday_reward_enabled",
+            "stars_enabled", "card_require_phone_verification", "card_phone_iran_only", "birthday_reward_enabled",
         )
         for bk in bool_keys:
             if bk in body:

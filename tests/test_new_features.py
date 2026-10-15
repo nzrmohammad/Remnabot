@@ -1236,4 +1236,57 @@ async def test_card_topup_phone_verification_gating(session_factory):
         assert resp_card_verified.status == 200
 
 
+@pytest.mark.anyio
+async def test_card_phone_iran_only_validation(async_session: AsyncSession):
+    """Test contact handler rejecting non-Iran phone numbers when card_phone_iran_only is enabled."""
+    from unittest.mock import AsyncMock, MagicMock
+    from bot.handlers.start import handle_user_contact
+    from bot.db.repositories.user_repo import UserRepository
+    from bot.db.repositories.app_setting_repo import AppSettingRepository
+
+    app_repo = AppSettingRepository(async_session)
+    await app_repo.set("card_phone_iran_only", "1")
+    await async_session.commit()
+
+    user_repo = UserRepository(async_session)
+
+    # 1. Non-Iran number (+1 555 1234567) -> Rejected
+    msg_us = MagicMock()
+    msg_us.from_user.id = 99887711
+    msg_us.from_user.username = "us_user"
+    msg_us.from_user.full_name = "US User"
+    msg_us.contact = MagicMock()
+    msg_us.contact.user_id = 99887711
+    msg_us.contact.phone_number = "+15551234567"
+    msg_us.answer = AsyncMock()
+
+    await handle_user_contact(msg_us, bot=MagicMock(), user_repo=user_repo, session=async_session)
+    assert msg_us.answer.called
+    answer_text = msg_us.answer.call_args[0][0]
+    assert "تنها برای شماره‌های رسمی کشور ایران" in answer_text
+
+    u_us = await user_repo.get_by_telegram_id(99887711)
+    assert u_us is None or not u_us.phone_number
+
+    # 2. Iran number (+98 912 3456789) -> Accepted
+    msg_ir = MagicMock()
+    msg_ir.from_user.id = 99887722
+    msg_ir.from_user.username = "ir_user"
+    msg_ir.from_user.full_name = "IR User"
+    msg_ir.contact = MagicMock()
+    msg_ir.contact.user_id = 99887722
+    msg_ir.contact.phone_number = "+989123456789"
+    msg_ir.answer = AsyncMock()
+
+    await handle_user_contact(msg_ir, bot=MagicMock(), user_repo=user_repo, session=async_session)
+    assert msg_ir.answer.called
+    answer_ir_text = msg_ir.answer.call_args[0][0]
+    assert "شماره تماس شما با موفقیت تأیید و ثبت شد" in answer_ir_text
+
+    u_ir = await user_repo.get_by_telegram_id(99887722)
+    assert u_ir is not None
+    assert u_ir.phone_number == "+989123456789"
+
+
+
 

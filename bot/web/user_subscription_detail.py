@@ -272,19 +272,12 @@ def calc_usage_curves(
             peak_2h_idx = max(range(12), key=lambda i: hourly_curve_vals[i])
             peak_hour_str = f"{peak_2h_idx*2:02d}:00 - {peak_2h_idx*2 + 2:02d}:00"
             is_curve_estimated = False
+            has_real_data = True
         else:
-            curve_weights_24 = [
-                0.025, 0.015, 0.010, 0.008, 0.006, 0.010, 0.018, 0.028,
-                0.038, 0.048, 0.055, 0.052, 0.048, 0.045, 0.050, 0.058,
-                0.068, 0.078, 0.088, 0.092, 0.082, 0.068, 0.050, 0.032,
-            ]
-            hourly_curve_vals = [
-                round(base_curve_gb * (curve_weights_24[i * 2] + curve_weights_24[i * 2 + 1]), 2)
-                for i in range(12)
-            ]
-            peak_2h_idx = max(range(12), key=lambda i: hourly_curve_vals[i])
-            peak_hour_str = f"{peak_2h_idx*2:02d}:00 - {peak_2h_idx*2 + 2:02d}:00"
+            hourly_curve_vals = [0.0] * 12
+            peak_hour_str = None
             is_curve_estimated = False
+            has_real_data = False
 
     platform_counts: dict[str, int] = {}
     for d in devices:
@@ -311,6 +304,7 @@ def calc_usage_curves(
             "data": hourly_curve_vals,
             "peak_hour": peak_hour_str,
             "is_estimated": is_curve_estimated,
+            "has_real_data": has_real_data,
             "has_traffic": has_traffic,
         },
         "device_share": {"labels": list(platform_counts.keys()), "data": list(platform_counts.values())},

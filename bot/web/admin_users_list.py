@@ -122,6 +122,8 @@ def _serialize_user_item(
         "is_expiring": is_expiring,
         "is_expired": is_expired,
         "avatar_url": f"/api/user/avatar?user_id={u.telegram_id}",
+        "phone_number": u.phone_number if getattr(u, "phone_number", None) else "",
+        "birth_date": u.birth_date if getattr(u, "birth_date", None) else "",
         "panel_account": {
             "exists": panel_exists,
             "status": p.get("status", "NONE"),

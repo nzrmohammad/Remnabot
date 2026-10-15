@@ -977,7 +977,7 @@ function initBirthdaySelects() {
     JALALI_MONTHS.forEach((mName, idx) => {
       const opt = document.createElement('option');
       opt.value = idx + 1;
-      opt.textContent = `${toPersianDigits(idx + 1)}. ${mName}`;
+      opt.textContent = mName;
       monthSel.appendChild(opt);
     });
   }
@@ -1099,6 +1099,139 @@ function renderDashboardBirthdayCountdown(user) {
     card.classList.add('hidden');
   }
 }
+
+function loadAvatarWithFallback(imgEl, initialEl, directPhoto, userId) {
+  if (!imgEl) return;
+  imgEl.referrerPolicy = 'no-referrer';
+  const profParam = directPhoto ? `&url=${encodeURIComponent(directPhoto)}` : '';
+  const proxyUrl = userId ? `/api/user/avatar?id=${userId}${profParam}` : '';
+  const targetUrl = directPhoto || proxyUrl;
+
+  if (!targetUrl) {
+    imgEl.classList.add('hidden');
+    if (initialEl) initialEl.classList.remove('hidden');
+    return;
+  }
+
+  imgEl.onload = () => {
+    imgEl.classList.remove('hidden');
+    if (initialEl) initialEl.classList.add('hidden');
+  };
+
+  imgEl.onerror = () => {
+    if (proxyUrl && !imgEl.dataset.proxyRetried && !imgEl.src.includes('/api/user/avatar')) {
+      imgEl.dataset.proxyRetried = '1';
+      imgEl.src = proxyUrl;
+    } else {
+      imgEl.classList.add('hidden');
+      if (initialEl) initialEl.classList.remove('hidden');
+    }
+  };
+
+  if (!imgEl.src || imgEl.src !== targetUrl) {
+    imgEl.src = targetUrl;
+  }
+}
+
+let expiryCountdownInterval = null;
+
+function openExpiryCountdownModal() {
+  const sub = window.lastUserData?.active_sub;
+  const daysLeft = sub?.days_left ?? 0;
+  const expireAt = sub?.expire_at;
+  const expireJalali = sub?.expire_jalali;
+  const trafficRemainingGb = sub?.traffic_remaining_gb ?? 0;
+
+  const modalAccountName = $('modalExpiryAccountName');
+  if (modalAccountName) {
+    modalAccountName.innerText = sub?.username ? `سرویس @${sub.username}` : 'اشتراک فعال شما';
+  }
+
+  const exactDateEl = $('modalExpiryExactDate');
+  if (exactDateEl) {
+    exactDateEl.innerText = expireJalali ? `تا ${expireJalali}` : 'نامحدود / بدون انقضا';
+  }
+
+  const allowanceEl = $('modalExpiryDailyAllowance');
+  if (allowanceEl) {
+    if (daysLeft > 0 && trafficRemainingGb > 0) {
+      const dailyGb = (trafficRemainingGb / daysLeft).toFixed(2);
+      allowanceEl.innerText = `${dailyGb} GB / روز`;
+    } else {
+      allowanceEl.innerText = 'نامحدود';
+    }
+  }
+
+  const paceStatusEl = $('modalExpiryPaceStatus');
+  if (paceStatusEl) {
+    if (daysLeft <= 3 && daysLeft > 0) {
+      paceStatusEl.className = 'font-semibold text-[10px] text-amber-400 bg-amber-500/15 border border-amber-500/30 px-2 py-0.5 rounded-full';
+      paceStatusEl.innerText = '⚠️ مهلت رو به پایان است';
+    } else if (daysLeft === 0) {
+      paceStatusEl.className = 'font-semibold text-[10px] text-rose-400 bg-rose-500/15 border border-rose-500/30 px-2 py-0.5 rounded-full';
+      paceStatusEl.innerText = '🔴 اشتراک منقضی شده';
+    } else {
+      paceStatusEl.className = 'font-semibold text-[10px] text-emerald-400 bg-emerald-500/15 border border-emerald-500/30 px-2 py-0.5 rounded-full';
+      paceStatusEl.innerText = '🟢 نرمال و بهینه';
+    }
+  }
+
+  function tickCountdown() {
+    let targetTime = null;
+    if (expireAt) {
+      targetTime = new Date(expireAt).getTime();
+    } else if (daysLeft > 0) {
+      targetTime = Date.now() + daysLeft * 86400 * 1000;
+    }
+
+    if (!targetTime || isNaN(targetTime)) {
+      if ($('countdownDays')) $('countdownDays').innerText = '∞';
+      if ($('countdownHours')) $('countdownHours').innerText = '∞';
+      if ($('countdownMinutes')) $('countdownMinutes').innerText = '∞';
+      if ($('countdownSeconds')) $('countdownSeconds').innerText = '∞';
+      return;
+    }
+
+    const diff = targetTime - Date.now();
+    if (diff <= 0) {
+      if ($('countdownDays')) $('countdownDays').innerText = '00';
+      if ($('countdownHours')) $('countdownHours').innerText = '00';
+      if ($('countdownMinutes')) $('countdownMinutes').innerText = '00';
+      if ($('countdownSeconds')) $('countdownSeconds').innerText = '00';
+      if (expiryCountdownInterval) clearInterval(expiryCountdownInterval);
+      return;
+    }
+
+    const d = Math.floor(diff / (1000 * 60 * 60 * 24));
+    const h = Math.floor((diff / (1000 * 60 * 60)) % 24);
+    const m = Math.floor((diff / (1000 * 60)) % 60);
+    const s = Math.floor((diff / 1000) % 60);
+
+    const pad = n => String(n).padStart(2, '0');
+    if ($('countdownDays')) $('countdownDays').innerText = pad(d);
+    if ($('countdownHours')) $('countdownHours').innerText = pad(h);
+    if ($('countdownMinutes')) $('countdownMinutes').innerText = pad(m);
+    if ($('countdownSeconds')) $('countdownSeconds').innerText = pad(s);
+  }
+
+  tickCountdown();
+  if (expiryCountdownInterval) clearInterval(expiryCountdownInterval);
+  expiryCountdownInterval = setInterval(tickCountdown, 1000);
+
+  openModal('expiryCountdownModal');
+  hapticFeedback('selection');
+}
+
+function closeExpiryCountdownModal() {
+  if (expiryCountdownInterval) {
+    clearInterval(expiryCountdownInterval);
+    expiryCountdownInterval = null;
+  }
+  closeModal('expiryCountdownModal');
+}
+
+window.openExpiryCountdownModal = openExpiryCountdownModal;
+window.closeExpiryCountdownModal = closeExpiryCountdownModal;
 
 function openTutorialModal() {
   const modal = $('tutorialModal');
@@ -1821,22 +1954,27 @@ function renderActiveSubAnalytics(sub) {
   // 2. 24h Peak Usage Area Curve
   if (typeof renderLineCurveChart === 'function') {
     try {
-      const hourlyLabels = sub.hourly_usage?.labels || [
-        '00-02','02-04','04-06','06-08','08-10','10-12',
-        '12-14','14-16','16-18','18-20','20-22','22-24'
-      ];
-      const hourlyData = sub.hourly_usage?.data || new Array(12).fill(0);
-      const peakHour = sub.hourly_usage?.peak_hour || null;
-      renderLineCurveChart('repPeakHoursChartCanvas', hourlyLabels, hourlyData, peakHour);
-
+      const canvasEl = $('repPeakHoursChartCanvas');
+      const emptyStateEl = $('repPeakHoursEmptyState');
       const peakBadge = $('repPeakHourBadge');
-      if (peakBadge) {
-        if (!sub.hourly_usage?.has_traffic) {
-          peakBadge.innerText = 'بدون مصرف';
-        } else if (peakHour) {
-          peakBadge.innerText = `Peak: ${toEnglishDigits(peakHour)}`;
-        } else {
-          peakBadge.innerText = '---';
+      const hourlyData = sub.hourly_usage?.data || [];
+      const hasRealTraffic = Boolean(sub.hourly_usage?.has_real_data && hourlyData.some(v => Number(v) > 0));
+
+      if (!hasRealTraffic) {
+        if (canvasEl) canvasEl.classList.add('hidden');
+        if (emptyStateEl) emptyStateEl.classList.remove('hidden');
+        if (peakBadge) peakBadge.innerText = 'بدون داده';
+      } else {
+        if (canvasEl) canvasEl.classList.remove('hidden');
+        if (emptyStateEl) emptyStateEl.classList.add('hidden');
+        const hourlyLabels = sub.hourly_usage?.labels || [
+          '00-02','02-04','04-06','06-08','08-10','10-12',
+          '12-14','14-16','16-18','18-20','20-22','22-24'
+        ];
+        const peakHour = sub.hourly_usage?.peak_hour || null;
+        renderLineCurveChart('repPeakHoursChartCanvas', hourlyLabels, hourlyData, peakHour);
+        if (peakBadge) {
+          peakBadge.innerText = peakHour ? `Peak: ${toEnglishDigits(peakHour)}` : '---';
         }
       }
     } catch (e) {
@@ -1930,7 +2068,7 @@ function hydrateUserInterface(data) {
       if (warningCard) warningCard.classList.add('hidden');
       if (verifyBtn) verifyBtn.classList.add('hidden');
       if (profPhone) {
-        profPhone.innerHTML = `<span class="text-white font-mono font-bold" dir="ltr">${toEnglishDigits(user.phone_number)}</span> <span class="text-[10px] text-emerald-400 bg-emerald-500/15 border border-emerald-500/30 px-1.5 py-0.5 rounded-md font-bold">تأییدشده ✅</span>`;
+        profPhone.innerHTML = `<span class="text-white font-mono font-bold" dir="ltr">${toEnglishDigits(user.phone_number)}</span> <span class="text-emerald-400 text-xs inline-flex items-center" title="تأیید شده">✅</span>`;
       }
     } else {
       if (phoneRewardCard) phoneRewardCard.classList.remove('hidden');
@@ -1940,8 +2078,21 @@ function hydrateUserInterface(data) {
         profPhone.innerText = 'وارد نشده';
       }
     }
-    if (profJoin) profJoin.innerText = toPersianDigits(user.created_at_jalali || '1403/07/01');
-    if (profBirth) profBirth.innerText = user.birth_date ? toPersianDigits(user.birth_date) : 'ثبت‌نشده';
+    if (profJoin) profJoin.innerText = toEnglishDigits(user.created_at_jalali || '1403/07/01');
+    if (profBirth) profBirth.innerText = user.birth_date ? toEnglishDigits(user.birth_date) : 'ثبت‌نشده';
+
+    const bdayBtn = $('openBirthdayModalBtn');
+    if (bdayBtn) {
+      if (user.birth_date) {
+        bdayBtn.className = 'text-pink-400 hover:text-pink-300 text-xs transition active:scale-95 bg-transparent border-0 p-0 shadow-none';
+        bdayBtn.innerHTML = '<span>✏️</span>';
+        bdayBtn.title = 'ویرایش تاریخ تولد';
+      } else {
+        bdayBtn.className = 'px-2 py-0.5 rounded-lg bg-pink-500/20 text-pink-300 border border-pink-500/30 text-[10px] font-bold hover:bg-pink-500/30 transition active:scale-95';
+        bdayBtn.innerText = 'ثبت';
+        bdayBtn.title = 'ثبت تاریخ تولد';
+      }
+    }
 
     const hasActiveSub = Boolean(data.has_active_sub && (sub?.status === 'ACTIVE' || !sub?.status));
     if (profStatusBadge) {
@@ -1974,53 +2125,16 @@ function hydrateUserInterface(data) {
       }
     }
 
-    // Avatar Photos Loading
+    // Avatar Photos Loading (DRY with Fallback & no-referrer)
     const profUid = user.id || tgUser?.id;
     const directPhoto = tgUser?.photo_url || user.photo_url || '';
-    const profParam = directPhoto ? `&url=${encodeURIComponent(directPhoto)}` : '';
-    const proxyUrl = profUid ? `/api/user/avatar?id=${profUid}${profParam}` : '';
-    const avatarUrl = directPhoto || proxyUrl;
-
     const profImg = $('profileAvatarImg');
     const profAvatarInitial = $('profileAvatarInitial');
     const headImg = $('headerUserAvatarImg');
     const headAvatarInitial = $('headerUserAvatarInitial');
 
-    if (avatarUrl) {
-      if (profImg) {
-        profImg.onload = () => {
-          profImg.classList.remove('hidden');
-          if (profAvatarInitial) profAvatarInitial.classList.add('hidden');
-        };
-        profImg.onerror = () => {
-          if (proxyUrl && profImg.src !== proxyUrl && !profImg.dataset.retried) {
-            profImg.dataset.retried = '1';
-            profImg.src = proxyUrl;
-          } else {
-            profImg.classList.add('hidden');
-            if (profAvatarInitial) profAvatarInitial.classList.remove('hidden');
-          }
-        };
-        profImg.src = avatarUrl;
-      }
-
-      if (headImg) {
-        headImg.onload = () => {
-          headImg.classList.remove('hidden');
-          if (headAvatarInitial) headAvatarInitial.classList.add('hidden');
-        };
-        headImg.onerror = () => {
-          if (proxyUrl && headImg.src !== proxyUrl && !headImg.dataset.retried) {
-            headImg.dataset.retried = '1';
-            headImg.src = proxyUrl;
-          } else {
-            headImg.classList.add('hidden');
-            if (headAvatarInitial) headAvatarInitial.classList.remove('hidden');
-          }
-        };
-        headImg.src = avatarUrl;
-      }
-    }
+    loadAvatarWithFallback(profImg, profAvatarInitial, directPhoto, profUid);
+    loadAvatarWithFallback(headImg, headAvatarInitial, directPhoto, profUid);
 
     // Account Switcher Button Visibility
     const switchBtn = $('switchAccountBtn');
@@ -2709,24 +2823,9 @@ function initApp() {
           profId.innerText = String(tgUser.id);
         }
 
-        if (tgUser.photo_url) {
-          const headImg = $('headerUserAvatarImg');
-          if (headImg) {
-            headImg.onload = () => {
-              headImg.classList.remove('hidden');
-              $('headerUserAvatarInitial')?.classList.add('hidden');
-            };
-            headImg.src = tgUser.photo_url;
-          }
-          const profImg = $('profileAvatarImg');
-          if (profImg) {
-            profImg.onload = () => {
-              profImg.classList.remove('hidden');
-              $('profileAvatarInitial')?.classList.add('hidden');
-            };
-            profImg.src = tgUser.photo_url;
-          }
-        }
+        const directPhoto = tgUser?.photo_url || '';
+        loadAvatarWithFallback($('headerUserAvatarImg'), $('headerUserAvatarInitial'), directPhoto, tgUser.id);
+        loadAvatarWithFallback($('profileAvatarImg'), $('profileAvatarInitial'), directPhoto, tgUser.id);
       }
     }
   });

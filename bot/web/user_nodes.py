@@ -217,11 +217,15 @@ async def get_user_avatar(request: web.Request) -> web.Response:
 
     # Fallback: if user supplied photo_url parameter from Telegram initData
     fallback_url = request.query.get("url")
-    if fallback_url and any(fallback_url.startswith(origin) for origin in ALLOWED_AVATAR_ORIGINS):
+    if fallback_url and any(origin in fallback_url for origin in ("telesco.pe", "t.me", "telegram.org", "api.telegram.org")):
         try:
             import aiohttp
-            async with aiohttp.ClientSession() as client:
-                async with client.get(fallback_url, timeout=aiohttp.ClientTimeout(total=5)) as resp:
+            custom_headers = {
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+                "Referer": "https://t.me/",
+            }
+            async with aiohttp.ClientSession(headers=custom_headers) as client:
+                async with client.get(fallback_url, timeout=aiohttp.ClientTimeout(total=8)) as resp:
                     if resp.status == 200:
                         img_bytes = await resp.read()
                         if img_bytes:
