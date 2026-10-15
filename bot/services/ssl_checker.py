@@ -87,6 +87,13 @@ def _check_domain_ssl_sync(domain: str, port: int = 443, timeout: float = 4.0) -
                 else:
                     status = "ok"
 
+                expires_at_jalali = None
+                try:
+                    import jdatetime
+                    expires_at_jalali = jdatetime.datetime.fromgregorian(datetime=expire_date).strftime("%Y/%m/%d")
+                except Exception:
+                    pass
+
                 return {
                     "domain": clean_host,
                     "port": port,
@@ -94,6 +101,7 @@ def _check_domain_ssl_sync(domain: str, port: int = 443, timeout: float = 4.0) -
                     "is_ip": False,
                     "days_left": max(0, days_left),
                     "expires_at": expire_date.strftime("%Y-%m-%d"),
+                    "expires_at_jalali": expires_at_jalali,
                     "issuer": issuer,
                     "status": status,
                     "error": None,
@@ -106,6 +114,7 @@ def _check_domain_ssl_sync(domain: str, port: int = 443, timeout: float = 4.0) -
             "is_ip": False,
             "days_left": 0,
             "expires_at": None,
+            "expires_at_jalali": None,
             "issuer": None,
             "status": "invalid",
             "error": f"گواهی نامعتبر یا منقضی شده: {exc.verify_message}",
@@ -118,6 +127,7 @@ def _check_domain_ssl_sync(domain: str, port: int = 443, timeout: float = 4.0) -
             "is_ip": False,
             "days_left": None,
             "expires_at": None,
+            "expires_at_jalali": None,
             "issuer": None,
             "status": "unreachable",
             "error": f"عدم برقراری ارتباط با پورت {port}",
