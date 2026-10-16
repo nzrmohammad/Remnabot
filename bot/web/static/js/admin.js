@@ -1457,8 +1457,14 @@
         badgeHtml = `<span class="text-[11px] font-bold text-rose-400">خطا / قطع</span>`;
       }
 
+      const editBtnHtml = item.is_custom
+        ? `<button onclick="window.adminActions.editSslDomain('${escapeHtml(item.domain)}')" class="p-1.5 rounded-xl bg-transparent hover:bg-cyan-500/15 text-cyan-400 hover:text-cyan-300 border border-slate-700/70 hover:border-cyan-500/40 transition active:scale-95 flex-shrink-0 flex items-center justify-center" title="ویرایش دامنه">
+             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+           </button>`
+        : '';
+
       const deleteBtnHtml = item.is_custom
-        ? `<button onclick="window.adminActions.deleteSslDomain('${escapeHtml(item.domain)}')" class="p-1.5 rounded-xl bg-slate-800/80 hover:bg-rose-500/15 text-rose-400 hover:text-rose-300 border border-slate-700/70 hover:border-rose-500/30 transition active:scale-95 flex-shrink-0 flex items-center justify-center" title="حذف دامنه">
+        ? `<button onclick="window.adminActions.deleteSslDomain('${escapeHtml(item.domain)}')" class="p-1.5 rounded-xl bg-transparent hover:bg-rose-500/15 text-rose-400 hover:text-rose-300 border border-slate-700/70 hover:border-rose-500/30 transition active:scale-95 flex-shrink-0 flex items-center justify-center" title="حذف دامنه">
              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
            </button>`
         : '';
@@ -1501,10 +1507,13 @@
             </div>
           </div>
 
-          <!-- Row 2: Right = Issuer & Jalali Expiration (زیر هم), Left = Delete Button -->
+          <!-- Row 2: Right = Issuer & Jalali Expiration (زیر هم), Left = Actions (Edit, Delete) -->
           <div class="flex items-end justify-between pt-2 border-t border-slate-800/80 gap-2">
             ${detailsHtml}
-            ${deleteBtnHtml}
+            <div class="flex items-center gap-1.5 flex-shrink-0">
+              ${editBtnHtml}
+              ${deleteBtnHtml}
+            </div>
           </div>
         </div>
       `;
@@ -1540,13 +1549,13 @@
       let dueBadgeHtml = '<span class="text-slate-500 font-medium">ثبت‌نشده</span>';
       if (n.days_until_due !== null && n.days_until_due !== undefined) {
         if (n.days_until_due < 0) {
-          dueBadgeHtml = `<span class="bg-rose-500/15 text-rose-400 border border-rose-500/30 px-2 py-0.5 rounded-lg font-bold">⚠️ منقضی (${Math.abs(n.days_until_due)} روز پیش - ${shamsiDate})</span>`;
+          dueBadgeHtml = `<span class="bg-transparent text-rose-400 border border-rose-500/30 px-2 py-0.5 rounded-lg font-bold">⚠️ منقضی (${Math.abs(n.days_until_due)} روز پیش - ${shamsiDate})</span>`;
         } else if (n.days_until_due === 0) {
-          dueBadgeHtml = `<span class="bg-rose-500/20 text-rose-400 border border-rose-500/40 px-2 py-0.5 rounded-lg font-bold animate-pulse">⚠️ سررسید امروز! (${shamsiDate})</span>`;
+          dueBadgeHtml = `<span class="bg-transparent text-rose-400 border border-rose-500/40 px-2 py-0.5 rounded-lg font-bold animate-pulse">⚠️ سررسید امروز! (${shamsiDate})</span>`;
         } else if (n.days_until_due <= 3) {
-          dueBadgeHtml = `<span class="bg-amber-500/15 text-amber-400 border border-amber-500/30 px-2 py-0.5 rounded-lg font-bold">⏳ ${n.days_until_due} روز تا تمدید (${shamsiDate})</span>`;
+          dueBadgeHtml = `<span class="bg-transparent text-amber-400 border border-amber-500/30 px-2 py-0.5 rounded-lg font-bold">⏳ ${n.days_until_due} روز تا تمدید (${shamsiDate})</span>`;
         } else {
-          dueBadgeHtml = `<span class="bg-slate-800 text-slate-300 border border-slate-700 px-2 py-0.5 rounded-lg font-mono">🗓️ ${escapeHtml(shamsiDate)} (${n.days_until_due} روز)</span>`;
+          dueBadgeHtml = `<span class="bg-transparent text-slate-300 border border-slate-700/80 px-2 py-0.5 rounded-lg font-mono">🗓️ ${escapeHtml(shamsiDate)} (${n.days_until_due} روز)</span>`;
         }
       }
 
@@ -1568,7 +1577,7 @@
             <!-- Left: Online Status + Speeds + Renewal Alert + Chevron Arrow -->
             <div class="flex items-center gap-2 flex-shrink-0">
               ${(n.days_until_due !== null && n.days_until_due <= 3) ? `
-                <span class="text-[9px] font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30 px-2 py-0.5 rounded-xl flex items-center gap-1">
+                <span class="text-[9px] font-bold bg-transparent text-amber-400 border border-amber-500/30 px-2 py-0.5 rounded-xl flex items-center gap-1">
                   <span>⏳</span>
                   <span>${n.days_until_due <= 0 ? 'سررسید!' : n.days_until_due + ' روز'}</span>
                 </span>
@@ -1712,8 +1721,8 @@
                 </div>
                 <div>
                   <span class="text-slate-400 block mb-0.5">سود/زیان خالص:</span>
-                  <b class="${n.is_profitable ? 'text-emerald-400' : 'text-rose-400'} font-bold block font-mono text-[10.5px]" dir="ltr">
-                    ${(n.net_profit_toman || 0) > 0 ? '+' : ''}${formatNumber(n.net_profit_toman || 0)}${n.roi_percent !== null && n.roi_percent !== undefined ? ` (${n.roi_percent > 0 ? '+' : ''}${n.roi_percent}%)` : ''}
+                  <b class="${n.is_profitable ? 'text-emerald-400' : 'text-rose-400'} font-bold block text-[10.5px]">
+                    <span class="inline-flex items-center gap-1 font-mono" dir="ltr"><span>${(n.net_profit_toman || 0) > 0 ? '+' : ''}${formatNumber(n.net_profit_toman || 0)}</span> <span class="font-sans text-[9px] text-slate-300">تومان</span> ${n.roi_percent !== null && n.roi_percent !== undefined ? `<span dir="ltr">(${n.roi_percent > 0 ? '+' : ''}${n.roi_percent}%)</span>` : ''}</span>
                   </b>
                 </div>
               </div>
@@ -1979,7 +1988,7 @@
                 ${formatNumber(u.wallet_balance || 0)} ت
               </span>
 
-              <button type="button" onclick="window.adminActions.openUserProfileModal(${u.telegram_id})" class="px-2.5 py-1 rounded-xl bg-slate-700/60 hover:bg-slate-700 border border-slate-600/70 text-slate-300 hover:text-white text-[10px] font-medium transition active:scale-95 flex items-center gap-1 shadow-sm" title="مشخصات و شناسنامه کاربر">
+              <button type="button" onclick="window.adminActions.openUserProfileModal(${u.telegram_id})" class="px-2.5 py-1 rounded-xl bg-transparent hover:bg-slate-700/20 border border-slate-600/70 text-slate-300 hover:text-white text-[10px] font-medium transition active:scale-95 flex items-center gap-1 shadow-sm" title="مشخصات و شناسنامه کاربر">
                 <svg class="w-3 h-3 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
                 <span>مشخصات</span>
               </button>
@@ -2186,10 +2195,13 @@
           document.execCommand('copy');
           document.body.removeChild(tempInput);
         }
-        if (window.showToast) window.showToast(`📋 ${label} کپی شد: ${text}`);
+        const safeText = escapeHtml(String(text));
+        const safeLabel = escapeHtml(String(label));
+        if (window.showToast) window.showToast(`📋 ${safeLabel} کپی شد: <span dir="ltr" class="font-mono inline-block font-bold text-cyan-300">${safeText}</span>`);
         if (window.hapticFeedback) window.hapticFeedback('success');
       } catch (e) {
-        if (window.showToast) window.showToast(`📋 کپی شد: ${text}`);
+        const safeText = escapeHtml(String(text));
+        if (window.showToast) window.showToast(`📋 کپی شد: <span dir="ltr" class="font-mono inline-block font-bold text-cyan-300">${safeText}</span>`);
       }
     },
 
@@ -2253,6 +2265,33 @@
         }
       } catch (err) {
         console.error('Delete SSL domain error:', err);
+        if (window.showToast) window.showToast('خطا در برقراری ارتباط');
+      }
+    },
+
+    async editSslDomain(domain) {
+      if (!domain) return;
+      const newDomain = prompt(`ویرایش آدرس دامنه SSL:\nدامنه فعلی: ${domain}`, domain);
+      if (!newDomain || !newDomain.trim() || newDomain.trim().toLowerCase() === domain.toLowerCase()) return;
+      const cleanNew = newDomain.trim().toLowerCase();
+      try {
+        if (window.hapticFeedback) window.hapticFeedback('impact');
+        const delRes = await window.api.deleteCustomSslDomain(domain);
+        if (delRes && delRes.ok) {
+          const addRes = await window.api.addCustomSslDomain(cleanNew);
+          if (addRes && addRes.ok) {
+            if (window.showToast) window.showToast('دامنه با موفقیت ویرایش شد');
+            if (window.hapticFeedback) window.hapticFeedback('success');
+            if (typeof fetchAdminSslHealth === 'function') fetchAdminSslHealth();
+          } else {
+            if (window.showToast) window.showToast(addRes?.error || 'خطا در ثبت دامنه جدید');
+            if (typeof fetchAdminSslHealth === 'function') fetchAdminSslHealth();
+          }
+        } else {
+          if (window.showToast) window.showToast(delRes?.error || 'خطا در ویرایش دامنه');
+        }
+      } catch (err) {
+        console.error('Edit SSL domain error:', err);
         if (window.showToast) window.showToast('خطا در برقراری ارتباط');
       }
     },
@@ -3112,7 +3151,9 @@
     async fetchAdminPlans() {
       const container = $('adminPlansList');
       if (!container) return;
-      container.innerHTML = '<div class="p-8 text-center text-xs text-slate-400">در حال دریافت تعرفه‌ها...</div>';
+      if (!adminPlansData || adminPlansData.length === 0) {
+        container.innerHTML = '<div class="p-8 text-center text-xs text-slate-400">در حال دریافت تعرفه‌ها...</div>';
+      }
       try {
         const res = await window.api.getAdminPlans();
         if (!res || !res.ok) {
@@ -3293,7 +3334,9 @@
     async fetchAdminCoupons() {
       const container = $('adminCouponsList');
       if (!container) return;
-      container.innerHTML = '<div class="p-8 text-center text-xs text-slate-400">در حال دریافت کدهای تخفیف...</div>';
+      if (!adminCouponsData || adminCouponsData.length === 0) {
+        container.innerHTML = '<div class="p-8 text-center text-xs text-slate-400">در حال دریافت کدهای تخفیف...</div>';
+      }
       try {
         const res = await window.api.getAdminCoupons();
         if (!res || !res.ok) {
@@ -4565,7 +4608,7 @@
                   <b class="text-xs font-mono text-emerald-400">${formatNumber(c.total_revenue)}</b>
                 </div>
                 <div class="p-2 rounded-xl bg-slate-900/40 border border-slate-700/40">
-                  <span class="text-[9px] text-slate-400 block mb-0.5">بازگشت (ROI)</span>
+                  <span class="text-[9px] text-slate-400 block mb-0.5">بازگشت سرمایه</span>
                   <b class="text-xs font-mono ${roiColor} inline-block" dir="ltr">${roiText || '—'}</b>
                 </div>
               </div>
@@ -4728,7 +4771,9 @@
   async function fetchAdminTopups() {
     const container = $('adminPendingTopupsList');
     if (!container) return;
-    container.innerHTML = '<div class="p-4 text-center text-xs text-slate-400">در حال دریافت فیش‌ها...</div>';
+    if (!container.children || container.children.length === 0) {
+      container.innerHTML = '<div class="p-4 text-center text-xs text-slate-400">در حال دریافت فیش‌ها...</div>';
+    }
 
     try {
       const res = await window.api.getAdminTopups();
@@ -5692,6 +5737,9 @@
   });
 
   $('viewPendingBtn')?.addEventListener('click', () => {
+    if (typeof window.switchFinanceSubtab === 'function') {
+      window.switchFinanceSubtab('topups');
+    }
     const ticketsNav = document.querySelector('.admin-nav-btn[data-admin-tab="tab-admin-tickets"]');
     ticketsNav?.click();
     if (window.hapticFeedback) window.hapticFeedback('impact');
@@ -5726,6 +5774,7 @@
   window.copyCampaignLink = (url) => window.adminActions.copyCampaignLink(url);
   window.fetchAdminCampaigns = () => window.adminActions.fetchAdminCampaigns();
   window.deleteSslDomain = (domain) => window.adminActions.deleteSslDomain(domain);
+  window.editSslDomain = (domain) => window.adminActions.editSslDomain(domain);
   window.openUserProfileModal = (id) => window.adminActions.openUserProfileModal(id);
   window.closeUserProfileModal = () => window.adminActions.closeUserProfileModal();
 
@@ -5742,4 +5791,11 @@
   // Initial Sync
   fetchAdminSettings();
   syncAdminOverview();
+
+  // Background Pre-fetching for instant tab transitions (Plans, Coupons, Topups)
+  setTimeout(() => {
+    fetchAdminPlans();
+    fetchAdminCoupons();
+    fetchAdminTopups();
+  }, 250);
 })();

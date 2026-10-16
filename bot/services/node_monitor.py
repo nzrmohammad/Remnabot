@@ -207,6 +207,65 @@ async def check_nodes_billing_due_dates(bot: Bot, session_factory: Any) -> None:
         logger.warning("Error checking node billing due dates: %s", exc)
 
 
+# Track alerted SSL domains: {domain: last_alert_timestamp}
+_SSL_ALERTED: dict[str, float] = {}
+
+
+async def check_ssl_certificates_due_dates(
+    bot: Bot, session_factory: Any = None, remnawave: Any = None
+) -> None:
+    """Check SSL certificate expirations for custom and system domains and alert admins if expiring <= 7 days."""
+    if not session_factory:
+        return
+    try:
+        from bot.services.ssl_checker import get_system_ssl_domains, check_domains_ssl
+        async with session_factory() as session:
+            domain_items = await get_system_ssl_domains(remnawave, session)
+        if not domain_items:
+            return
+
+        domains = [item["domain"] for item in domain_items]
+        results = await check_domains_ssl(domains)
+        now_ts = datetime.now(timezone.utc).timestamp()
+
+        for res in results:
+            if not res or not res.get("valid"):
+                continue
+            days_left = res.get("days_left")
+            domain = res.get("domain") or ""
+            if days_left is None or not domain:
+                continue
+
+            # Only alert if expiring within 7 days or expired
+            if days_left <= 7:
+                last_alert = _SSL_ALERTED.get(domain, 0.0)
+                # Alert once every 24 hours per domain
+                if now_ts - last_alert < 86400:
+                    continue
+
+                issuer = res.get("issuer") or "نامشخص"
+                shamsi_exp = res.get("not_after_shamsi") or res.get("not_after") or "—"
+                if days_left < 0:
+                    status_text = f"🚨 <b>گواهی امنیتی منقضی شده است! ({abs(days_left)} روز گذشته)</b>"
+                elif days_left == 0:
+                    status_text = "⚠️ <b>گواهی امنیتی امروز منقضی می‌شود!</b>"
+                else:
+                    status_text = f"⏳ <b>فقط {days_left} روز تا انقضای گواهی SSL باقی مانده</b>"
+
+                msg = (
+                    f"🔒 <b>هشدار موعد انقضای گواهی SSL</b>\n\n"
+                    f"دامنه: <code>{domain}</code>\n"
+                    f"صادرکننده: <b>{issuer}</b>\n"
+                    f"تاریخ انقضا: <code>{shamsi_exp}</code>\n"
+                    f"وضعیت: {status_text}\n\n"
+                    f"<i>لطفاً نسبت به تمدید گواهی SSL دامنه اقدام فرمایید تا دسترسی کاربران دچار اختلال نشود.</i>"
+                )
+                await _notify_admins(bot, msg, session_factory=session_factory)
+                _SSL_ALERTED[domain] = now_ts
+    except Exception as exc:
+        logger.warning("Error checking SSL certificates due dates: %s", exc)
+
+
 async def nodes_monitor_loop(
     bot: Bot,
     remnawave: RemnawaveClient,
@@ -222,11 +281,12 @@ async def nodes_monitor_loop(
         try:
             await check_nodes_health_once(bot, remnawave, session_factory=session_factory)
 
-            # Check billing due dates once every hour
+            # Check billing and SSL due dates once every hour
             now_ts = datetime.now(timezone.utc).timestamp()
             if session_factory and (now_ts - last_billing_check_ts >= 3600):
                 last_billing_check_ts = now_ts
                 await check_nodes_billing_due_dates(bot, session_factory)
+                await check_ssl_certificates_due_dates(bot, session_factory, remnawave)
         except asyncio.CancelledError:
             logger.info("Nodes monitor loop canceled.")
             break

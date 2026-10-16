@@ -23,9 +23,14 @@ function showToast(msg) {
     toast = document.createElement('div');
     toast.id = 'appToast';
     toast.className = 'fixed top-12 left-1/2 transform -translate-x-1/2 z-50 bg-slate-900/95 text-white border border-slate-700/80 px-4 py-2.5 rounded-2xl shadow-2xl text-xs font-semibold text-center transition-all duration-300 opacity-0 pointer-events-none max-w-[90%]';
+    toast.dir = 'rtl';
     document.body.appendChild(toast);
   }
-  toast.innerText = msg;
+  if (/<[a-z][\s\S]*>/i.test(msg)) {
+    toast.innerHTML = msg;
+  } else {
+    toast.innerText = msg;
+  }
   toast.classList.remove('opacity-0', '-translate-y-2');
   toast.classList.add('opacity-100', 'translate-y-0');
   setTimeout(() => {
