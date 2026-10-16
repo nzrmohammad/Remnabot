@@ -404,6 +404,11 @@ const api = {
     return this.post('/api/admin/infra/ssl-domains/delete', { domain });
   },
 
+  async getGithubReleases(appId = '') {
+    const query = appId ? `?app_id=${encodeURIComponent(appId)}` : '';
+    return this.get(`/api/admin/infra/github-releases${query}`);
+  },
+
   async getAdminCampaigns() {
     return this.get('/api/admin/campaigns');
   },

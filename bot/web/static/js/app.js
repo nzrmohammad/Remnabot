@@ -450,6 +450,20 @@ function setupClientImporters() {
 const CLIENT_APPS_DATA = {
   ios: [
     {
+      id: 'shadowrocket',
+      name: 'Shadowrocket',
+      version: '2.2.62',
+      desc: 'محبوب‌ترین و حرفه‌ای‌ترین کلاینت iOS با اتصال آسان و پایداری بالا',
+      icon: '🚀',
+      scheme: (url) => {
+        try {
+          return `sub://${btoa(unescape(encodeURIComponent(url)))}`;
+        } catch(e) {
+          return `shadowrocket://add/${encodeURIComponent(url)}`;
+        }
+      }
+    },
+    {
       id: 'streisand',
       name: 'Streisand',
       version: '1.9.2',
@@ -700,8 +714,9 @@ function renderTutorialApps(osKey) {
     const downloadExtraUrl = (appCfg && appCfg.download_extra_url) ? appCfg.download_extra_url.trim() : '';
     const isEnabled = appCfg ? (appCfg.enabled !== false && Boolean(downloadUrl || downloadPortableUrl || downloadExtraUrl)) : false;
     const tutorialUrl = (appCfg && appCfg.tutorial_url) ? appCfg.tutorial_url.trim() : '';
+    const version = (appCfg && appCfg.version) ? appCfg.version.trim() : app.version;
     const isRecommended = Boolean(recommendedAppId && recommendedAppId.toLowerCase() === app.id.toLowerCase());
-    return { ...app, isEnabled, downloadUrl, downloadPortableUrl, downloadExtraUrl, tutorialUrl, isRecommended };
+    return { ...app, isEnabled, downloadUrl, downloadPortableUrl, downloadExtraUrl, tutorialUrl, version, isRecommended };
   }).filter(app => app.isEnabled && (app.downloadUrl || app.downloadPortableUrl || app.downloadExtraUrl));
 
   // Recommended app comes first in the list
@@ -867,11 +882,22 @@ function renderTutorialApps(osKey) {
 
 function getAllAppVersionsMap() {
   const map = {};
+  let overrides = {};
+  if (window.lastUserData?.client_apps_override) {
+    try {
+      overrides = typeof window.lastUserData.client_apps_override === 'string'
+        ? JSON.parse(window.lastUserData.client_apps_override)
+        : window.lastUserData.client_apps_override;
+    } catch (e) {}
+  }
   for (const [os, apps] of Object.entries(CLIENT_APPS_DATA)) {
     if (os === 'desktop') continue;
+    const osOverrides = overrides[os] || (os === 'windows' ? overrides.desktop : null);
     for (const app of apps) {
-      if (app.id && app.version) {
-        map[`${os}_${app.id}`] = app.version;
+      const appCfg = osOverrides?.[app.id];
+      const ver = (appCfg && appCfg.version) ? appCfg.version.trim() : app.version;
+      if (app.id && ver) {
+        map[`${os}_${app.id}`] = ver;
       }
     }
   }

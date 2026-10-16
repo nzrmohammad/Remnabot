@@ -320,3 +320,43 @@ async def post_admin_delete_ssl_domain(request: web.Request) -> web.Response:
     return web.json_response({"ok": True, "message": "دامنه با موفقیت حذف گردید."})
 
 
+GITHUB_REPOS: dict[str, str] = {
+    "v2rayng": "2dust/v2rayNG",
+    "v2rayn": "2dust/v2rayN",
+    "hiddify": "hiddify/hiddify-app",
+    "happ": "happ-proxy/happ",
+    "nekoray": "MatsuriDayo/nekoray",
+    "v2raya": "v2rayA/v2rayA",
+    "singbox": "SagerNet/sing-box",
+}
+
+
+async def get_admin_github_releases(request: web.Request) -> web.Response:
+    """Fetch latest release versions from GitHub for supported open-source clients."""
+    admin = _check_admin(request)
+    if not admin:
+        return web.json_response({"ok": False, "error": "Forbidden"}, status=403)
+
+    target_app = request.query.get("app_id", "").strip().lower()
+    items_to_check = {target_app: GITHUB_REPOS[target_app]} if target_app in GITHUB_REPOS else GITHUB_REPOS
+
+    versions: dict[str, str] = {}
+    import aiohttp
+    async with aiohttp.ClientSession(headers={"User-Agent": "Remnabot-App-Monitor/1.0"}) as session:
+        for app_id, repo in items_to_check.items():
+            url = f"https://api.github.com/repos/{repo}/releases/latest"
+            try:
+                async with session.get(url, timeout=aiohttp.ClientTimeout(total=5)) as resp:
+                    if resp.status == 200:
+                        data = await resp.json()
+                        tag = str(data.get("tag_name") or "").strip()
+                        clean_ver = tag.lstrip("vV")
+                        if clean_ver:
+                            versions[app_id] = clean_ver
+            except Exception as exc:
+                logger.warning("Failed to fetch GitHub release for %s (%s): %s", app_id, repo, exc)
+
+    return web.json_response({"ok": True, "versions": versions})
+
+
+

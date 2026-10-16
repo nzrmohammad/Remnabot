@@ -5185,7 +5185,7 @@
       if (routingTutInp) routingTutInp.value = s.routing_tutorial_url || '';
 
       const OS_APPS_MAP = {
-        ios: ['streisand', 'v2box', 'incy', 'happ'],
+        ios: ['shadowrocket', 'streisand', 'v2box', 'incy', 'happ'],
         android: ['v2rayng', 'happ', 'hiddify', 'incy'],
         windows: ['v2rayn', 'hiddify', 'happ', 'incy'],
         macos: ['hiddify', 'happ', 'incy', 'v2box'],
@@ -5208,10 +5208,12 @@
                 const downloadPortableEl = $(`appDownloadPortable_${os}_${appId}`);
                 const downloadExtraEl = $(`appDownloadExtra_${os}_${appId}`);
                 const tutorialEl = $(`appTutorial_${os}_${appId}`);
+                const versionEl = $(`appVersion_${os}_${appId}`);
                 if (downloadEl) downloadEl.value = item?.download_url || '';
                 if (downloadPortableEl) downloadPortableEl.value = item?.download_portable_url || '';
                 if (downloadExtraEl) downloadExtraEl.value = item?.download_extra_url || '';
                 if (tutorialEl) tutorialEl.value = item?.tutorial_url || '';
+                if (versionEl) versionEl.value = item?.version || '';
               }
             }
           }
@@ -5361,7 +5363,7 @@
       routing_tutorial_url: $('settingRoutingTutorialUrl')?.value?.trim() || '',
       client_apps_json: (() => {
         const OS_APPS_MAP = {
-          ios: ['streisand', 'v2box', 'incy', 'happ'],
+          ios: ['shadowrocket', 'streisand', 'v2box', 'incy', 'happ'],
           android: ['v2rayng', 'happ', 'hiddify', 'incy'],
           windows: ['v2rayn', 'hiddify', 'happ', 'incy'],
           macos: ['hiddify', 'happ', 'incy', 'v2box'],
@@ -5384,6 +5386,7 @@
             const downloadPortableEl = $(`appDownloadPortable_${os}_${appId}`);
             const downloadExtraEl = $(`appDownloadExtra_${os}_${appId}`);
             const tutorialEl = $(`appTutorial_${os}_${appId}`);
+            const versionEl = $(`appVersion_${os}_${appId}`);
             const downloadUrl = downloadEl?.value?.trim() || '';
             const downloadPortableUrl = downloadPortableEl?.value?.trim() || '';
             const downloadExtraUrl = downloadExtraEl?.value?.trim() || '';
@@ -5392,7 +5395,8 @@
               download_url: downloadUrl,
               download_portable_url: downloadPortableUrl,
               download_extra_url: downloadExtraUrl,
-              tutorial_url: tutorialEl?.value?.trim() || ''
+              tutorial_url: tutorialEl?.value?.trim() || '',
+              version: versionEl?.value?.trim() || ''
             };
           }
         }
@@ -5777,6 +5781,76 @@
   window.editSslDomain = (domain) => window.adminActions.editSslDomain(domain);
   window.openUserProfileModal = (id) => window.adminActions.openUserProfileModal(id);
   window.closeUserProfileModal = () => window.adminActions.closeUserProfileModal();
+
+  async function fetchGithubAppVersion(appId, os) {
+    if (!appId) return;
+    try {
+      if (window.hapticFeedback) window.hapticFeedback('selection');
+      const res = await window.api.getGithubReleases(appId);
+      if (res && res.ok && res.versions && res.versions[appId]) {
+        const ver = res.versions[appId];
+        const versionEl = $(`appVersion_${os}_${appId}`);
+        if (versionEl) {
+          versionEl.value = ver;
+          versionEl.focus();
+        }
+        if (window.showToast) window.showToast(`✅ نسخه ${ver} از GitHub دریافت شد.`);
+        if (window.hapticFeedback) window.hapticFeedback('success');
+      } else {
+        if (window.showToast) window.showToast('⚠️ نسخه‌ای در گیت‌هاب برای این برنامه یافت نشد.');
+      }
+    } catch (e) {
+      if (window.showToast) window.showToast('❌ خطا در ارتباط با گیت‌هاب.');
+    }
+  }
+
+  async function syncAllGithubVersions() {
+    const btn = $('syncAllGithubVersionsBtn');
+    const origHtml = btn ? btn.innerHTML : '';
+    if (btn) {
+      btn.disabled = true;
+      btn.innerHTML = '<span>⏳</span><span>در حال دریافت نسخه‌ها از GitHub...</span>';
+    }
+    try {
+      if (window.hapticFeedback) window.hapticFeedback('impact');
+      const res = await window.api.getGithubReleases();
+      if (res && res.ok && res.versions) {
+        let count = 0;
+        const OS_APPS_MAP = {
+          ios: ['shadowrocket', 'streisand', 'v2box', 'incy', 'happ'],
+          android: ['v2rayng', 'happ', 'hiddify', 'incy'],
+          windows: ['v2rayn', 'hiddify', 'happ', 'incy'],
+          macos: ['hiddify', 'happ', 'incy', 'v2box'],
+          linux: ['hiddify', 'incy', 'nekoray', 'v2raya']
+        };
+        for (const [os, appIds] of Object.entries(OS_APPS_MAP)) {
+          for (const appId of appIds) {
+            if (res.versions[appId]) {
+              const versionEl = $(`appVersion_${os}_${appId}`);
+              if (versionEl) {
+                versionEl.value = res.versions[appId];
+                count++;
+              }
+            }
+          }
+        }
+        if (window.showToast) window.showToast(`✅ تعداد ${count} نسخه از GitHub بروزرسانی شدند. برای اعمال «ذخیره تغییرات» را بزنید.`);
+        if (window.hapticFeedback) window.hapticFeedback('success');
+      } else {
+        if (window.showToast) window.showToast('⚠️ خطا در دریافت نسخه‌ها از گیت‌هاب.');
+      }
+    } catch (e) {
+      if (window.showToast) window.showToast('❌ خطا در ارتباط با گیت‌هاب.');
+    } finally {
+      if (btn) {
+        btn.disabled = false;
+        btn.innerHTML = origHtml;
+      }
+    }
+  }
+
+  window.fetchGithubAppVersion = fetchGithubAppVersion;
+  window.syncAllGithubVersions = syncAllGithubVersions;
 
   // Explicit event listeners for Admin App Tabs and Due Date buttons
   document.querySelectorAll('.admin-app-os-tab').forEach(btn => {

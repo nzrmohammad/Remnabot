@@ -292,3 +292,56 @@ async def test_ssl_checker_service_and_endpoints():
         assert check_data["data"]["domain"] == "test.vpn.com"
 
 
+@pytest.mark.anyio
+async def test_get_admin_github_releases():
+    from bot.web.admin_infra_api import get_admin_github_releases
+    from aiohttp.test_utils import make_mocked_request
+    import json
+
+    # 1. Forbidden when not admin
+    req_unauth = make_mocked_request("GET", "/api/admin/infra/github-releases")
+    with patch("bot.web.admin_infra_api._check_admin", return_value=None):
+        resp_unauth = await get_admin_github_releases(req_unauth)
+        assert resp_unauth.status == 403
+
+    # 2. Success with mocked release fetch
+    class MockResp:
+        def __init__(self, data):
+            self.status = 200
+            self._data = data
+
+        async def json(self):
+            return self._data
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, exc_type, exc_val, exc_tb):
+            pass
+
+    class MockSession:
+        def __init__(self, *args, **kwargs):
+            pass
+
+        def get(self, url, **kwargs):
+            if "2dust/v2rayNG" in url:
+                return MockResp({"tag_name": "v1.9.15"})
+            return MockResp({"tag_name": "v2.5.7"})
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, exc_type, exc_val, exc_tb):
+            pass
+
+    req_ok = make_mocked_request("GET", "/api/admin/infra/github-releases?app_id=v2rayng")
+    with patch("bot.web.admin_infra_api._check_admin", return_value={"id": 1, "is_admin": True}), \
+         patch("aiohttp.ClientSession", MockSession):
+        resp = await get_admin_github_releases(req_ok)
+        assert resp.status == 200
+        data = json.loads(resp.text)
+        assert data["ok"] is True
+        assert data["versions"]["v2rayng"] == "1.9.15"
+
+
+
