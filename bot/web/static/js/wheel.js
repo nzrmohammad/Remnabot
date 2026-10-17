@@ -292,8 +292,10 @@ function setupLuckyWheel() {
             couponCode: couponCode,
           });
         } else {
-          const unit = (chosenPrize.id === '500mb' || chosenPrize.value === 0.5) ? 'MB' : 'GB';
-          const valNum = chosenPrize.value === 0.5 ? '500' : '1';
+          const rawPrize = chosenPrize.id === '500mb' ? '500 MB' : (chosenPrize.value || 1);
+          const parsed = fmtTrafficValue(rawPrize) || { num: 1, unit: 'GB' };
+          const valNum = toEnglishDigits(parsed.num);
+          const unit = parsed.unit;
           if (wheelResultText) wheelResultText.innerHTML = `🎉 <b>تبریک فوق‌العاده!</b> شما برنده <b class="text-emerald-400 font-bold" dir="ltr"><span class="font-mono">${valNum}</span> ${unit}</b> ترافیک رایگان شدید!`;
           showWheelResultModal({
             icon: '🎁',

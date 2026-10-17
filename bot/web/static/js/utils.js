@@ -277,15 +277,22 @@ function formatPrice(amt) {
 }
 
 // Plan Title Formatter (places icon on the visual left of the plan name)
-function formatPlanTitle(name) {
-  if (!name) return '';
+function formatPlanTitle(name, options = {}) {
+  if (!name) return options.plainText ? '💎 پلن' : '';
   const emojiRegex = /[\p{Extended_Pictographic}\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu;
-  const emojis = name.match(emojiRegex);
-  if (!emojis || emojis.length === 0) {
+  const str = String(name).trim();
+  const emojis = str.match(emojiRegex);
+  const cleanText = str.replace(emojiRegex, '').trim();
+  const emojiStr = (emojis && emojis.length > 0) ? emojis.join('') : (options.defaultIcon || '');
+
+  if (options.plainText) {
+    const icon = emojiStr || '💎';
+    return cleanText ? `${icon} ${cleanText}` : icon;
+  }
+
+  if (!emojiStr) {
     return `<span class="inline-block font-bold">${escapeHtml(name)}</span>`;
   }
-  const emojiStr = emojis.join('');
-  const cleanText = name.replace(emojiRegex, '').trim();
   if (!cleanText) {
     return `<span class="inline-block text-base">${emojiStr}</span>`;
   }
@@ -417,6 +424,7 @@ if (typeof module !== 'undefined' && module.exports) {
     toEnglishDigits,
     toPersianDigits,
     formatPrice,
+    formatPlanTitle,
     fmtTrafficValue,
     fmtTraffic,
   };

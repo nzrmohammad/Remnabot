@@ -2550,17 +2550,17 @@ function hydrateUserInterface(data) {
       const subDisplayEl = $('subDisplayBox');
       if (subDisplayEl) subDisplayEl.innerText = 'اشتراک فعالی یافت نشد - لطفاً از تب فروشگاه اقدام فرمایید.';
       const remainEl = $('dashboardRemainingTraffic');
-      if (remainEl) remainEl.innerText = '-- GB';
+      if (remainEl) remainEl.innerText = fmtTraffic(null, { html: false });
       const pctEl = $('dashboardPercentRemaining');
       if (pctEl) pctEl.innerText = '0%';
       const pillEl = $('dashboardUsagePill');
-      if (pillEl) pillEl.innerText = '0 / 0 GB';
+      if (pillEl) pillEl.innerText = `${fmtTraffic(0, { html: false })} / ${fmtTraffic(0, { html: false })}`;
       const daysEl = $('dashboardDaysLeft');
       if (daysEl) daysEl.innerText = '0 روز';
       const expireEl = $('dashboardExpireDate');
       if (expireEl) expireEl.innerText = 'غیرفعال';
       const todayEl = $('dashboardTodayUsed');
-      if (todayEl) todayEl.innerText = '0.00 GB';
+      if (todayEl) todayEl.innerText = fmtTraffic(0, { html: false });
       if (gaugeProgress) gaugeProgress.style.strokeDashoffset = 314.15;
     }
   });

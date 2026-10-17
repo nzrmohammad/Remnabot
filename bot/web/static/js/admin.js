@@ -990,26 +990,9 @@
     });
   }
 
-  function formatPlanLabelWithIconFirst(label) {
-    if (!label) return '\u200E💎 پلن';
-    const str = String(label).trim();
-    const emojiRegex = /(\p{Extended_Pictographic}|\p{Emoji_Presentation})/gu;
-    const matches = str.match(emojiRegex);
-    const cleanText = str.replace(emojiRegex, '').trim();
-    const icons = (matches && matches.length > 0) ? matches.join('') : '💎';
-    return cleanText ? `\u200E${icons} ${cleanText}` : icons;
-  }
-
-  let planSalesChartInstance = null;
-  function renderAdminPlanSalesChart(planDist) {
-    const canvas = $('adminPlanSalesChart');
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
     const hasSales = Boolean(planDist?.has_data ?? (planDist?.sales_count && planDist.sales_count.some(c => c > 0)));
     const labels = hasSales
-      ? (planDist.labels || []).map(formatPlanLabelWithIconFirst)
+      ? (planDist.labels || []).map(l => formatPlanTitle(l, { plainText: true }))
       : ['بدون سفارش ثبت‌شده'];
     const values = hasSales ? planDist.sales_count : [1];
     const bgColors = hasSales ? [

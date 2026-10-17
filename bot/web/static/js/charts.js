@@ -117,7 +117,7 @@ async function renderBarChart(containerId, totals, labels, isMonthly = false) {
           displayColors: false,
           backgroundColor: isLight ? '#1e293b' : '#0f172a',
           titleColor: '#ffffff',
-          bodyColor: '#38bdf8',
+          bodyColor: isLight ? '#0369a1' : '#22d3ee',
           titleFont: { family: 'Vazirmatn', size: 11, weight: 'bold' },
           bodyFont: { family: 'monospace', size: 12, weight: 'bold' },
           padding: 8,
@@ -213,9 +213,10 @@ async function renderDonutChart(containerId, labels, data, isDevice = false) {
     Chart.defaults.color = isLight ? '#0f172a' : '#cbd5e1';
   }
 
-  const defaultColors = isDevice
-    ? ['#10b981', '#06b6d4', '#6366f1', '#ec4899', '#f59e0b', '#64748b']
-    : ['#06b6d4', '#3b82f6', '#8b5cf6', '#10b981', '#f59e0b', '#ec4899'];
+  // 6 equidistant colors on the color wheel (cyan -> blue -> violet -> rose -> amber -> emerald)
+  const defaultColors = [
+    '#06b6d4', '#3b82f6', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981'
+  ];
 
   const cleanData = (data || []).map(v => {
     const num = parseFloat(toEnglishDigits(v));
@@ -299,7 +300,7 @@ async function renderDonutChart(containerId, labels, data, isDevice = false) {
           displayColors: true,
           backgroundColor: isLight ? '#1e293b' : '#0f172a',
           titleColor: '#ffffff',
-          bodyColor: '#38bdf8',
+          bodyColor: isLight ? '#0369a1' : '#22d3ee',
           titleFont: { family: 'Vazirmatn', size: 10, weight: 'bold' },
           bodyFont: { family: 'monospace', size: 11, weight: 'bold' },
           padding: 8,

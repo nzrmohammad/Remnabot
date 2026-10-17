@@ -21,7 +21,9 @@ function setupStoryCard() {
     const refLink = window.currentReferralLink || fallbackRef;
     copyToClipboard(refLink);
 
-    const rewardGb = (document.getElementById('storyCardRewardGb')?.innerText || '5').trim();
+    const rewardVal = window.lastUserData?.user?.referral_reward_gb
+      ?? (document.getElementById('storyCardRewardGb')?.innerText || '5');
+    const rewardGb = String(rewardVal).trim();
     let sharedViaStory = false;
     const qrEl = document.getElementById('storyCardQr');
     const mediaUrl = qrEl?.src || '';
@@ -167,12 +169,17 @@ function setupStoryCard() {
     ctx.font = '15px Vazirmatn, sans-serif';
     ctx.fillText('ترافیک باقی‌مانده اشتراک:', 300, 345);
 
-    const sTraf = (document.getElementById('storyCardTraffic')?.innerText || '-- GB').trim();
+    const sub = window.lastUserData?.active_sub;
+    const sTraf = sub?.traffic_remaining_gb != null
+      ? fmtTraffic(sub.traffic_remaining_gb, { html: false })
+      : ((document.getElementById('storyCardTraffic')?.innerText || '-- GB').trim());
     ctx.fillStyle = '#34d399';
     ctx.font = 'bold 42px monospace';
     ctx.fillText(sTraf, 300, 400);
 
-    const sDays = (document.getElementById('storyCardDays')?.innerText || '--').trim();
+    const sDays = sub?.days_left != null
+      ? `${toEnglishDigits(sub.days_left)} روز`
+      : ((document.getElementById('storyCardDays')?.innerText || '--').trim());
     ctx.fillStyle = '#cbd5e1';
     ctx.font = '15px Vazirmatn, sans-serif';
     ctx.fillText(`${sDays}  •  🟢 پایداری 100%`, 300, 442);
@@ -187,7 +194,9 @@ function setupStoryCard() {
     ctx.font = 'bold 22px Vazirmatn, sans-serif';
     ctx.fillText('اینترنت بدون قطعی و فوق‌سریع', 300, 535);
 
-    const rewardGb = (document.getElementById('storyCardRewardGb')?.innerText || '5').trim();
+    const rewardVal = window.lastUserData?.user?.referral_reward_gb
+      ?? (document.getElementById('storyCardRewardGb')?.innerText || '5');
+    const rewardGb = String(rewardVal).trim();
     ctx.fillStyle = '#34d399';
     ctx.font = 'bold 17px Vazirmatn, sans-serif';
     ctx.fillText(`🎁 با این کارت ${toEnglishDigits(rewardGb)} گیگابایت هدیه رایگان بگیرید`, 300, 568);

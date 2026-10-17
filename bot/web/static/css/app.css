@@ -40,7 +40,7 @@ html, body, button, input, optgroup, select, textarea, div, span, p, h1, h2, h3,
 
   /* Semantic Accent Tokens (Brand / Cyan-Sky) */
   --c-accent: #22d3ee;                 /* cyan-400 */
-  --c-accent-hover: #38bdf8;           /* sky-400 */
+  --c-accent-hover: #67e8f9;           /* cyan-300 (same family hover) */
   --c-accent-soft: rgba(34, 211, 238, 0.12);
   --c-accent-border: rgba(34, 211, 238, 0.30);
 
@@ -81,33 +81,33 @@ html.theme-light {
   --text-main: #0f172a;
   --text-muted: #64748b;
 
-  /* Semantic Accent Tokens (High Contrast for Light BG - WCAG AA >= 4.5:1) */
-  --c-accent: #0284c7;                 /* sky-600 */
-  --c-accent-hover: #0369a1;           /* sky-700 */
-  --c-accent-soft: rgba(2, 132, 199, 0.08);
-  --c-accent-border: rgba(2, 132, 199, 0.22);
+  /* Semantic Accent Tokens (High Contrast for Light BG - WCAG AA >= 4.5:1, sky-700: 5.93:1) */
+  --c-accent: #0369a1;                 /* sky-700 */
+  --c-accent-hover: #075985;           /* sky-800 */
+  --c-accent-soft: rgba(3, 105, 161, 0.08);
+  --c-accent-border: rgba(3, 105, 161, 0.22);
 
-  /* Semantic Success Tokens */
-  --c-success: #059669;                /* emerald-600 */
-  --c-success-soft: rgba(5, 150, 105, 0.08);
-  --c-success-border: rgba(5, 150, 105, 0.22);
+  /* Semantic Success Tokens (emerald-700: 5.48:1) */
+  --c-success: #047857;                /* emerald-700 */
+  --c-success-soft: rgba(4, 120, 87, 0.08);
+  --c-success-border: rgba(4, 120, 87, 0.22);
 
-  /* Semantic Warning Tokens */
+  /* Semantic Warning Tokens (amber-700: 5.02:1) */
   --c-warn: #b45309;                   /* amber-700 */
   --c-warn-soft: rgba(180, 83, 9, 0.08);
   --c-warn-border: rgba(180, 83, 9, 0.22);
 
-  /* Semantic Danger Tokens */
-  --c-danger: #e11d48;                 /* rose-600 */
-  --c-danger-soft: rgba(225, 29, 72, 0.08);
-  --c-danger-border: rgba(225, 29, 72, 0.22);
+  /* Semantic Danger Tokens (rose-700: 6.29:1) */
+  --c-danger: #be123c;                 /* rose-700 */
+  --c-danger-soft: rgba(190, 18, 60, 0.08);
+  --c-danger-border: rgba(190, 18, 60, 0.22);
 
-  /* Semantic Info Tokens */
+  /* Semantic Info Tokens (blue-600: 5.17:1) */
   --c-info: #2563eb;                   /* blue-600 */
   --c-info-soft: rgba(37, 99, 235, 0.08);
   --c-info-border: rgba(37, 99, 235, 0.22);
 
-  /* Semantic Purple Tokens */
+  /* Semantic Purple Tokens (purple-600: 5.70:1) */
   --c-purple: #7c3aed;                 /* purple-600 */
   --c-purple-soft: rgba(124, 58, 237, 0.08);
   --c-purple-border: rgba(124, 58, 237, 0.22);

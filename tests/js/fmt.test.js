@@ -3,7 +3,7 @@
  * Run with: node tests/js/fmt.test.js
  */
 const assert = require('assert');
-const { fmtTraffic, fmtTrafficValue } = require('../../bot/web/static/js/utils.js');
+const { fmtTraffic, fmtTrafficValue, formatPlanTitle } = require('../../bot/web/static/js/utils.js');
 
 let passCount = 0;
 function test(name, fn) {
@@ -68,6 +68,13 @@ test('Persian digits conversion', () => {
 test('Persian unit translation', () => {
   assert.strictEqual(fmtTraffic(25, { persianDigits: true, persianUnit: true, html: false }), '۲۵ گیگابایت');
   assert.strictEqual(fmtTraffic(1024, { persianUnit: true, html: false }), '1 ترابایت');
+});
+
+test('formatPlanTitle plainText mode for canvas and charts', () => {
+  assert.strictEqual(formatPlanTitle('💎 پلن ویژه', { plainText: true }), '💎 پلن ویژه');
+  assert.strictEqual(formatPlanTitle('🚀 توربو ۲ ماهه', { plainText: true }), '🚀 توربو ۲ ماهه');
+  assert.strictEqual(formatPlanTitle('پلن بدون آیکون', { plainText: true }), '💎 پلن بدون آیکون');
+  assert.strictEqual(formatPlanTitle('', { plainText: true }), '💎 پلن');
 });
 
 console.log(`\nAll ${passCount} tests passed successfully!`);
