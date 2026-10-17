@@ -5138,6 +5138,7 @@
     'settingTopicOrders',
     'settingTopicSupport',
     'settingTopicAlerts',
+    'settingTopicBackups',
     'settingTopicNodes',
     'settingTopicReports',
     'settingTopicCrypto',
@@ -5187,7 +5188,9 @@
       const starsRate = $('settingStarsRate');
       if (starsRate) starsRate.value = s.stars_rate_toman ?? 1600;
 
-
+      // Auto Clean Previous Reports
+      const autoCleanSwitch = $('settingAutoCleanReportsSwitch');
+      if (autoCleanSwitch) autoCleanSwitch.checked = (s.auto_clean_reports !== false);
 
       // Bank & Topup
       const cardNum = $('settingCardNumber');
@@ -5306,6 +5309,7 @@
         settingTopicOrders: s.topic_orders,
         settingTopicSupport: s.topic_support,
         settingTopicAlerts: s.topic_alerts,
+        settingTopicBackups: s.topic_backups,
         settingTopicNodes: s.topic_nodes,
         settingTopicReports: s.topic_reports,
         settingTopicCrypto: s.topic_crypto,
@@ -5393,6 +5397,9 @@
   $('settingAccessMode')?.addEventListener('change', (e) => {
     updateSettingToggle('access_mode', e.target.value);
   });
+  $('settingAutoCleanReportsSwitch')?.addEventListener('change', (e) => {
+    updateSettingToggle('auto_clean_reports', e.target.checked);
+  });
 
   async function handleSaveAllSettings() {
     const isMaint = $('settingMaintSwitch')?.checked ?? false;
@@ -5409,6 +5416,7 @@
       card_enabled: $('settingCardSwitch')?.checked ?? true,
       card_require_phone_verification: $('settingCardRequirePhoneSwitch')?.checked ?? true,
       card_phone_iran_only: $('settingCardPhoneIranSwitch')?.checked ?? true,
+      auto_clean_reports: $('settingAutoCleanReportsSwitch')?.checked ?? true,
       birthday_reward_enabled: $('settingBirthdayRewardSwitch')?.checked ?? true,
       birthday_reward_traffic_gb: parseInt($('settingBirthdayRewardTraffic')?.value || '2', 10),
       birthday_reward_discount_percent: parseInt($('settingBirthdayRewardDiscount')?.value || '20', 10),
@@ -5435,6 +5443,7 @@
       topic_orders: parseTopicVal($('settingTopicOrders')?.value),
       topic_support: parseTopicVal($('settingTopicSupport')?.value),
       topic_alerts: parseTopicVal($('settingTopicAlerts')?.value),
+      topic_backups: parseTopicVal($('settingTopicBackups')?.value),
       topic_nodes: parseTopicVal($('settingTopicNodes')?.value),
       topic_reports: parseTopicVal($('settingTopicReports')?.value),
       topic_crypto: parseTopicVal($('settingTopicCrypto')?.value),

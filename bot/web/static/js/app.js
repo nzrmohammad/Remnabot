@@ -820,8 +820,8 @@ function renderTutorialApps(osKey) {
             </div>
             <div class="min-w-0 flex-1">
               <div class="flex items-center gap-1.5 min-w-0">
-                <b class="text-xs text-white font-bold truncate">${escapeHtml(app.name)}</b>
                 ${app.version ? `<span class="text-[10px] text-slate-400 font-mono font-medium flex-shrink-0">v${toEnglishDigits(app.version)}</span>` : ''}
+                <b class="text-xs text-white font-bold truncate">${escapeHtml(app.name)}</b>
               </div>
               <div class="flex items-center gap-1.5 mt-0.5">
                 <span class="text-[9.5px] text-slate-500 font-sans">${currentTutorialOS.toUpperCase()}</span>
@@ -916,27 +916,7 @@ function getAllAppVersionsMap() {
 
 function checkTutorialAppUpdates() {
   const badge = $('tutorialBadge');
-  if (!badge) return;
-  const currentMap = getAllAppVersionsMap();
-  let seenMap = {};
-  try {
-    const raw = localStorage.getItem('seen_app_versions');
-    if (raw) seenMap = JSON.parse(raw);
-  } catch (e) {}
-
-  let newCount = 0;
-  for (const [key, ver] of Object.entries(currentMap)) {
-    if (!seenMap[key] || seenMap[key] !== ver) {
-      newCount += 1;
-    }
-  }
-
-  if (newCount > 0) {
-    badge.innerText = `${toEnglishDigits(newCount)} جدید`;
-    badge.classList.remove('hidden');
-  } else {
-    badge.classList.add('hidden');
-  }
+  if (badge) badge.classList.add('hidden');
 }
 
 function markTutorialAppsSeen() {

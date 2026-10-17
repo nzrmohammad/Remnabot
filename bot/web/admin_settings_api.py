@@ -52,10 +52,12 @@ async def get_admin_settings(request: web.Request) -> web.Response:
             "topic_orders": store_settings.topic_orders,
             "topic_support": store_settings.topic_support,
             "topic_alerts": store_settings.topic_alerts,
+            "topic_backups": store_settings.topic_backups,
             "topic_reports": store_settings.topic_reports,
             "topic_nodes": store_settings.topic_nodes,
             "topic_crypto": store_settings.topic_crypto,
             "topic_errors": store_settings.topic_errors,
+            "auto_clean_reports": store_settings.auto_clean_reports,
             "access_mode": store_settings.access_mode,
             "stars_enabled": store_settings.stars_enabled,
             "stars_rate_toman": store_settings.stars_rate_toman,
@@ -106,7 +108,7 @@ async def post_admin_settings(request: web.Request) -> web.Response:
             "card_enabled", "crypto_enabled", "trial_enabled",
             "referral_enabled", "support_direct_enabled", "maintenance",
             "stars_enabled", "card_require_phone_verification", "card_phone_iran_only", "birthday_reward_enabled",
-            "join_gate_enabled",
+            "join_gate_enabled", "auto_clean_reports",
         )
         for bk in bool_keys:
             if bk in body:
@@ -120,7 +122,7 @@ async def post_admin_settings(request: web.Request) -> web.Response:
             "stars_rate_toman",
             "trial_traffic_gb", "trial_duration_days",
             "referral_reward_gb", "support_contact",
-            "topic_topups", "topic_orders", "topic_support", "topic_alerts", "topic_reports", "topic_nodes", "topic_crypto", "topic_errors",
+            "topic_topups", "topic_orders", "topic_support", "topic_alerts", "topic_backups", "topic_reports", "topic_nodes", "topic_crypto", "topic_errors",
             "access_mode",
             "tutorial_channel_url", "routing_tutorial_url", "client_apps_json",
             "birthday_reward_traffic_gb", "birthday_reward_discount_percent",

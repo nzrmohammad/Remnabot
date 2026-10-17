@@ -55,6 +55,7 @@ async def _render_topics_settings(
     t_orders = f"{store.topic_orders} (Orders)" if store.topic_orders is not None else "— (Orders)"
     t_support = f"{store.topic_support} (Support)" if store.topic_support is not None else "— (Support)"
     t_alerts = f"{store.topic_alerts} (Alerts)" if store.topic_alerts is not None else "— (Alerts)"
+    t_backups = f"{store.topic_backups} (Backups)" if store.topic_backups is not None else "— (Backups)"
     t_reports = f"{store.topic_reports} (Reports)" if store.topic_reports is not None else "— (Reports)"
     t_nodes = f"{store.topic_nodes} (Nodes)" if store.topic_nodes is not None else "— (Nodes)"
     t_crypto = f"{store.topic_crypto} (Crypto)" if store.topic_crypto is not None else "— (Crypto)"
@@ -65,7 +66,8 @@ async def _render_topics_settings(
         kb.button(text="💳 تاپیک شارژها", callback_data="adm:set:topic_topups")
         kb.button(text="🖥️ تاپیک سرورها", callback_data="adm:set:topic_nodes")
         kb.button(text="📊 تاپیک گزارش‌ها", callback_data="adm:set:topic_reports")
-        kb.button(text="🚨 تاپیک هشدار و بکاپ", callback_data="adm:set:topic_alerts")
+        kb.button(text="🚨 تاپیک هشدارها", callback_data="adm:set:topic_alerts")
+        kb.button(text="💾 تاپیک فایل‌های بکاپ", callback_data="adm:set:topic_backups")
         kb.button(text="🎧 تاپیک پشتیبانی", callback_data="adm:set:topic_support")
         kb.button(text="⚠️ تاپیک لاگ‌های ارور", callback_data="adm:set:topic_errors")
         kb.button(text="💎 تاپیک کریپتو و نرخ", callback_data="adm:set:topic_crypto")
@@ -76,8 +78,9 @@ async def _render_topics_settings(
         kb.button(text="🛒 Orders Topic", callback_data="adm:set:topic_orders")
         kb.button(text="🖥️ Servers & Health", callback_data="adm:set:topic_nodes")
         kb.button(text="📊 Reports Topic", callback_data="adm:set:topic_reports")
+        kb.button(text="🚨 System Alerts", callback_data="adm:set:topic_alerts")
+        kb.button(text="💾 Database Backups", callback_data="adm:set:topic_backups")
         kb.button(text="🎧 Support Topic", callback_data="adm:set:topic_support")
-        kb.button(text="🚨 Alerts & Backup", callback_data="adm:set:topic_alerts")
         kb.button(text="💎 Crypto & Rates Topic", callback_data="adm:set:topic_crypto")
         kb.button(text="⚠️ Error Logs Topic", callback_data="adm:set:topic_errors")
         if store.topic_errors is not None:
@@ -85,9 +88,9 @@ async def _render_topics_settings(
 
     kb.button(text=t(lang, "btn_back"), callback_data="adm:settings")
     if store.topic_errors is not None:
-        kb.adjust(2, 2, 2, 2, 1, 1)
+        kb.adjust(2, 2, 2, 2, 2, 1)
     else:
-        kb.adjust(2, 2, 2, 2, 1)
+        kb.adjust(2, 2, 2, 2, 1, 1)
 
     grp_title = await _get_admin_group_title(bot)
     topics_title = f"{t(lang, 'settings_topics_title')} ({escape(grp_title)})" if grp_title else t(lang, 'settings_topics_title')
@@ -99,7 +102,8 @@ async def _render_topics_settings(
         f"🎧 <b>تاپیک پیام‌های پشتیبانی :</b> {t_support}\n"
         f"🖥️ <b>تاپیک وضعیت و قطعی سرورها :</b> {t_nodes}\n"
         f"📊 <b>تاپیک گزارش‌های مدیریتی :</b> {t_reports}\n"
-        f"🚨 <b>تاپیک هشدارهای سیستم و بکاپ :</b> {t_alerts}\n"
+        f"🚨 <b>تاپیک هشدارهای سیستم :</b> {t_alerts}\n"
+        f"💾 <b>تاپیک فایل‌های بکاپ :</b> {t_backups}\n"
         f"💎 <b>تاپیک کریپتو و نرخ ارز :</b> {t_crypto}\n"
         f"⚠️ <b>تاپیک لاگ‌های ارور :</b> {t_errors}\n\n"
         f"💡 جهت اتصال هر بخش به تاپیک، روی دکمه مربوطه کلیک کنید و شناسه عددی (Topic ID) آن را ارسال نمایید.\n"
@@ -111,7 +115,8 @@ async def _render_topics_settings(
         f"🎧 <b>Support Topic :</b> {t_support}\n"
         f"🖥️ <b>Node Health & Status :</b> {t_nodes}\n"
         f"📊 <b>Executive Reports :</b> {t_reports}\n"
-        f"🚨 <b>System Alerts & Backup :</b> {t_alerts}\n"
+        f"🚨 <b>System Alerts :</b> {t_alerts}\n"
+        f"💾 <b>Database Backups :</b> {t_backups}\n"
         f"💎 <b>Crypto & Rates Topic :</b> {t_crypto}\n"
         f"⚠️ <b>Error Logs Topic :</b> {t_errors}\n\n"
         f"<i>(Send 0 or /skip to disable any topic)</i>"

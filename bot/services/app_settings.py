@@ -50,6 +50,8 @@ class StoreSettings:
     birthday_reward_discount_percent: int = 20
     join_gate_enabled: bool = False
     join_gate_channel: str = ""
+    topic_backups: int | None = None
+    auto_clean_reports: bool = True
 
 
 async def get_store_settings(session: AsyncSession) -> StoreSettings:
@@ -117,6 +119,8 @@ async def get_store_settings(session: AsyncSession) -> StoreSettings:
         birthday_reward_discount_percent=_int(values.get("birthday_reward_discount_percent"), 20),
         join_gate_enabled=_bool(values.get("join_gate_enabled"), False),
         join_gate_channel=str(values.get("join_gate_channel") or "").strip(),
+        topic_backups=_opt_int(values.get("topic_backups"), getattr(env, "ADMIN_TOPIC_BACKUPS", None)),
+        auto_clean_reports=_bool(values.get("auto_clean_reports"), True),
     )
 
 

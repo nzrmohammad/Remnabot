@@ -378,7 +378,26 @@ async def auto_backup_loop(bot, session_factory) -> None:
                     backup_path = create_encrypted_backup_archive(raw_backup_path, backup_pwd)
 
                     store = await get_store_settings(session)
-                    thread_kwargs = admin_thread_kwargs(store, settings, kind="alerts")
+                    thread_kwargs = admin_thread_kwargs(store, settings, kind="backups")
+                    if not thread_kwargs:
+                        # Fallback to alerts if backups topic not explicitly set
+                        thread_kwargs = admin_thread_kwargs(store, settings, kind="alerts")
+
+                    from bot.db.repositories.app_setting_repo import AppSettingRepository
+                    app_repo = AppSettingRepository(session)
+
+                    # Delete previous backup message to always keep only the latest backup in chat
+                    prev_backup_record = await app_repo.get("last_admin_backup_msg_record")
+                    if prev_backup_record:
+                        try:
+                            prev_data = json.loads(prev_backup_record)
+                            prev_cid = prev_data.get("chat_id")
+                            prev_mid = prev_data.get("message_id")
+                            if prev_cid and prev_mid:
+                                await bot.delete_message(chat_id=prev_cid, message_id=prev_mid)
+                                logger.info("Deleted previous backup message %s in chat %s", prev_mid, prev_cid)
+                        except Exception as del_err:
+                            logger.debug("Could not delete previous backup message: %s", del_err)
 
                     has_pwd = bool(backup_pwd)
                     caption = (
@@ -388,12 +407,19 @@ async def auto_backup_loop(bot, session_factory) -> None:
                         "📦 فایل شامل نسخه پشتیبان جداول ضروری (کاربران، کیف پول، سفارشات، سرویس‌ها، کدهای تخفیف، تنظیمات) می‌باشد."
                     )
                     doc = FSInputFile(backup_path, filename=backup_path.name)
-                    await bot.send_document(
+                    sent_msg = await bot.send_document(
                         chat_id=admin_chat_id,
                         document=doc,
                         caption=caption,
                         **thread_kwargs,
                     )
+                    if sent_msg and getattr(sent_msg, "message_id", None):
+                        await app_repo.set(
+                            "last_admin_backup_msg_record",
+                            json.dumps({"chat_id": admin_chat_id, "message_id": sent_msg.message_id}),
+                        )
+                        await session.commit()
+
                     topic_id = thread_kwargs.get("message_thread_id")
                     logger.info("Auto database backup delivered to %s (topic: %s)", admin_chat_id, topic_id)
 

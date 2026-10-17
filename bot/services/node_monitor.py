@@ -37,14 +37,16 @@ async def _notify_admins(bot: Bot, text: str, session_factory: Any = None) -> No
                 store = await get_store_settings(session)
                 topic_id = getattr(store, "topic_nodes", None)
                 if topic_id is None:
-                    topic_id = store.topic_alerts if store.topic_alerts is not None else getattr(settings, "ADMIN_TOPIC_NODES", None)
+                    topic_id = getattr(settings, "ADMIN_TOPIC_NODES", None)
                 if topic_id is None:
-                    topic_id = settings.ADMIN_TOPIC_ALERTS
+                    topic_id = getattr(store, "topic_alerts", None)
+                if topic_id is None:
+                    topic_id = getattr(settings, "ADMIN_TOPIC_ALERTS", None)
         except Exception as exc:
             logger.warning("Could not fetch topic for node alert: %s", exc)
-            topic_id = getattr(settings, "ADMIN_TOPIC_NODES", None) or settings.ADMIN_TOPIC_ALERTS
+            topic_id = getattr(settings, "ADMIN_TOPIC_NODES", None) or getattr(settings, "ADMIN_TOPIC_ALERTS", None)
     else:
-        topic_id = getattr(settings, "ADMIN_TOPIC_NODES", None) or settings.ADMIN_TOPIC_ALERTS
+        topic_id = getattr(settings, "ADMIN_TOPIC_NODES", None) or getattr(settings, "ADMIN_TOPIC_ALERTS", None)
 
     delivered = False
     admin_chat_id = getattr(settings, "ADMIN_CHAT_ID", None)
@@ -55,12 +57,7 @@ async def _notify_admins(bot: Bot, text: str, session_factory: Any = None) -> No
             delivered = True
         except Exception as exc:
             logger.warning("Failed to send node alert to admin group %s (topic %s): %s", admin_chat_id, topic_id, exc)
-            if thread_kwargs:
-                try:
-                    await bot.send_message(settings.ADMIN_CHAT_ID, text, parse_mode="HTML")
-                    delivered = True
-                except Exception as fb_exc:
-                    logger.warning("Failed retry to admin group without thread: %s", fb_exc)
+            # Note: Never fallback to admin_chat_id without thread, as it dumps into General topic in forum supergroups!
 
     if not delivered and settings.ADMIN_IDS:
         for admin_id in settings.ADMIN_IDS:

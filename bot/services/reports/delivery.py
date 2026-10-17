@@ -95,22 +95,23 @@ async def _deliver_admin_report(
 
     app_repo = AppSettingRepository(session)
 
-    # 1. Clean previous admin reports for this specific kind to avoid chat clutter
-    clean_key = f"last_admin_report_msg_ids_{kind}"
-    if target_user_id:
-        clean_key = f"last_admin_report_msg_ids_{kind}_{target_user_id}"
+    # 1. Clean previous admin reports if auto_clean_reports is enabled
+    if getattr(store, "auto_clean_reports", True):
+        clean_key = f"last_admin_report_msg_ids_{kind}"
+        if target_user_id:
+            clean_key = f"last_admin_report_msg_ids_{kind}_{target_user_id}"
 
-    try:
-        prev_raw = await app_repo.get(clean_key)
-        if prev_raw:
-            prev_records = json.loads(prev_raw)
-            for c_id, m_id in prev_records:
-                try:
-                    await bot.delete_message(chat_id=c_id, message_id=m_id)
-                except Exception:
-                    pass
-    except Exception as clean_err:
-        logger.debug("Failed cleaning previous admin report messages: %s", clean_err)
+        try:
+            prev_raw = await app_repo.get(clean_key)
+            if prev_raw:
+                prev_records = json.loads(prev_raw)
+                for c_id, m_id in prev_records:
+                    try:
+                        await bot.delete_message(chat_id=c_id, message_id=m_id)
+                    except Exception:
+                        pass
+        except Exception as clean_err:
+            logger.debug("Failed cleaning previous admin report messages: %s", clean_err)
 
     new_sent_records: list[list[int]] = []
     chunks = _chunk_text(text)

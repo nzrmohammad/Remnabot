@@ -27,6 +27,7 @@ class Settings(BaseSettings):
     ADMIN_TOPIC_NODES: int | None = None    # Topic ID for server connect/disconnect and health alerts
     ADMIN_TOPIC_CRYPTO: int | None = None   # Topic ID for crypto rates and payments
     ADMIN_TOPIC_ERRORS: int | None = None   # Topic ID for system error logs and exceptions
+    ADMIN_TOPIC_BACKUPS: int | None = None  # Topic ID for database backup archives
 
     # --- Crypto (TON on-chain top-up) ---
     TON_WALLET_ADDRESS: str = ""
@@ -110,6 +111,7 @@ class Settings(BaseSettings):
         "ADMIN_TOPIC_NODES",
         "ADMIN_TOPIC_CRYPTO",
         "ADMIN_TOPIC_ERRORS",
+        "ADMIN_TOPIC_BACKUPS",
         mode="before",
     )
     @classmethod

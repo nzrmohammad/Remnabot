@@ -27,7 +27,6 @@
 - [⚙️ Configuration Guide (`.env`)](#-configuration-guide-env)
 - [⏰ Background Schedulers & Lifecycle Engine](#-background-schedulers--lifecycle-engine)
 - [🛠 Store & Operations Management](#-store--operations-management)
-- [🗺 Project Roadmap](#-project-roadmap)
 - [🧪 Testing & Quality Assurance](#-testing--quality-assurance)
 - [👨‍💻 Community & License](#-community--license)
 
@@ -178,7 +177,7 @@ Remnabot solves this completely with a **Zero-Conflict Guarantee**:
 
 ## 🚀 Quick Start
 
-### Method 1: Docker Compose (Recommended)
+### Deployment via Docker Compose
 
 #### 1. Clone the repository
 ```bash
@@ -208,30 +207,6 @@ docker compose ps
 
 # Follow live output logs
 docker compose logs -f bot
-```
-
----
-
-### Method 2: Bare-Metal Deployment
-
-For environments running directly on the host system without Docker:
-
-```bash
-# 1. Install system dependencies
-sudo apt update && sudo apt install -y python3-full python3-venv git postgresql redis-server
-
-# 2. Provision local database
-sudo -u postgres psql -c "CREATE DATABASE remnabot;"
-sudo -u postgres psql -c "CREATE USER remnabot WITH ENCRYPTED PASSWORD 'YourSecurePassword';"
-sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE remnabot TO remnabot;"
-
-# 3. Create virtual environment & install requirements
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-
-# 4. Launch the application
-python -m bot.main
 ```
 
 ---
@@ -394,7 +369,6 @@ docker ps --filter "name=remnawave-bot"
 
 Upgrading to the latest release does not require reinstalling or changing your configuration:
 
-### Method 1: Docker Compose (Recommended)
 ```bash
 # 1. Navigate to the bot directory
 cd remnawave-bot
@@ -409,15 +383,6 @@ docker compose up -d --build
 docker compose logs -f bot
 ```
 
-### Method 2: Bare-Metal Deployment
-```bash
-cd remnawave-bot
-git pull origin main
-source .venv/bin/activate
-pip install -r requirements.txt
-sudo systemctl restart remnabot
-```
-
 > [!TIP]
 > **Zero Manual Migrations**: Thanks to Remnabot's autonomous **Self-Healing Schema Engine**, newly introduced database columns, indexes, and tables are provisioned on the fly upon container boot. No manual Alembic or SQL migration commands are required.
 
@@ -429,11 +394,7 @@ To migrate the bot and all operational data to a new server or restore from a ba
 
 ### Step 1: Export Database Dump on Old Server
 ```bash
-# Docker Compose:
 docker compose exec -t db pg_dump -U remnabot remnabot > remnabot_backup.sql
-
-# Bare-Metal:
-pg_dump -U remnabot -d remnabot -F c -b -v -f remnabot_backup.dump
 ```
 
 ### Step 2: Transfer Backup & Credentials to New Server
@@ -478,8 +439,12 @@ All primary credentials are configuration-driven via `.env`. In-bot operational 
 | `ADMIN_TOPIC_TOPUPS` | No | *(empty)* | Optional topic ID for card-to-card deposit review queues. |
 | `ADMIN_TOPIC_ORDERS` | No | *(empty)* | Optional topic ID for new service purchases and renewal logs. |
 | `ADMIN_TOPIC_SUPPORT` | No | *(empty)* | Optional topic ID for user support inquiries and forward messages. |
-| `ADMIN_TOPIC_ALERTS` | No | *(empty)* | Optional topic ID for system alerts, reconcile warnings, and database backups. |
+| `ADMIN_TOPIC_ALERTS` | No | *(empty)* | Optional topic ID for system alerts and reconcile warnings. |
+| `ADMIN_TOPIC_BACKUPS` | No | *(empty)* | Optional dedicated topic ID for automated database backup files. |
+| `ADMIN_TOPIC_REPORTS` | No | *(empty)* | Optional topic ID for daily/weekly executive fiscal and bandwidth reports. |
+| `ADMIN_TOPIC_NODES` | No | *(empty)* | Optional topic ID for server node status, health, and offline alerts. |
 | `ADMIN_TOPIC_CRYPTO` | No | *(empty)* | Optional topic ID for automated crypto pricing alerts and TON payment logs. |
+| `ADMIN_TOPIC_ERRORS` | No | *(empty)* | Optional topic ID for system traceback logs and error reports. |
 | `CRYPTO_ENABLED` | No | `false` | Enable or disable direct crypto (TON) top-up option for users (`true` / `false`). |
 | `TON_WALLET_ADDRESS` | No | *(empty)* | Public TON wallet address (UQ... or EQ...) for receiving on-chain payments. |
 | `TON_RATE_TOMAN` | No | `0` | Manual fallback TON exchange rate in Toman (editable in-bot anytime). |
@@ -533,20 +498,13 @@ Administrators can configure live store variables on the fly without editing `.e
 - **Supergroup Forum Topic Routing**: Route automated alerts and operational logs into dedicated Telegram forum topics:
   - 💳 **Top-ups Topic**: Deposit receipts and wallet verification queues.
   - 🛒 **Orders Topic**: New plan orders and subscription renewals.
+  - 🖥️ **Nodes Topic**: Server status, resource usage, and offline alerts.
+  - 📊 **Reports Topic**: Daily and weekly executive fiscal reports (supports auto-cleaning previous reports).
+  - 🚨 **Alerts Topic**: System alerts and reconcile warnings.
+  - 💾 **Backups Topic**: Dedicated topic for daily automated database backups (auto-cleans previous files).
   - 💎 **Crypto Topic**: Live TON market rate notifications and crypto payment logs.
   - 🆘 **Support Topic**: Customer tickets and inquiry messages.
-  - 🚨 **Alerts Topic**: Node health alerts and automated daily database dumps.
-
----
-
-## 🗺 Project Roadmap
-
-- [ ] **📱 Telegram Mini App (TMA / WebApp)**: A sleek WebApp client featuring visual bandwidth gauges, interactive QR code displays, and in-app checkout.
-- [ ] **⚡ Remnawave v3 Event Webhooks**: Immediate real-time callback processing for instant traffic exhaustion and plan event synchronization.
-- [x] **💎 Direct On-Chain Crypto Gateway**: Native TON payments with Tonkeeper / Telegram Wallet 1-tap deep links, multi-source price fetching, and automated topic alerts.
-- [ ] **🌐 Automated Multi-Chain Crypto Gateways**: Automated on-chain transaction monitoring for USDT (TRC-20) and TRX.
-- [ ] **📲 Protocol Deep Links**: One-click configuration import for `v2rayNG`, `Sing-box`, `Streisand`, and `Happ`.
-- [ ] **📈 Advanced Financial Analytics**: CSV and Excel export for ledger records, customer rosters, and tax reporting.
+  - ⚠️ **Error Logs Topic**: Real-time stack traces and system error alerts.
 
 ---
 
