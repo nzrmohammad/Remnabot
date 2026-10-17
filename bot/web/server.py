@@ -188,7 +188,7 @@ async def serve_open_client(request: web.Request) -> web.Response:
     name = request.query.get("name", "نرم‌افزار").strip()
     sub_url = request.query.get("url", "").strip()
 
-    safe_schemes = ("v2rayng://", "hiddify://", "happ://", "incy://", "streisand://", "v2box://", "sing-box://")
+    safe_schemes = ("v2rayng://", "hiddify://", "happ://", "incy://", "streisand://", "v2box://", "sing-box://", "onexray://")
     if not any(scheme.lower().startswith(s) for s in safe_schemes):
         return web.Response(text="طرح‌واره نامعتبر است.", status=400)
 

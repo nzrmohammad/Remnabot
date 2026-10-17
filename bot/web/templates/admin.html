@@ -522,10 +522,11 @@
 
             <!-- Add New Custom Domain Input -->
             <div class="flex items-center gap-2">
-              <button id="addCustomSslBtn" class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white text-xs font-bold rounded-xl transition flex items-center gap-1 shadow flex-shrink-0">
-                <span>+ ثبت دامنه</span>
+              <button id="addCustomSslBtn" type="button" class="whitespace-nowrap px-3.5 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 active:scale-95 text-white text-[11px] sm:text-xs font-bold rounded-xl transition flex items-center justify-center gap-1.5 shadow flex-shrink-0">
+                <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+                <span>ثبت دامنه</span>
               </button>
-              <input id="customSslDomainInput" type="text" dir="ltr" placeholder="sub.example.com" class="flex-1 bg-slate-900/80 border border-slate-700/80 text-white rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-emerald-500 placeholder-slate-500 font-mono text-left" />
+              <input id="customSslDomainInput" type="text" dir="ltr" placeholder="sub.example.com" class="flex-1 min-w-0 bg-slate-900/80 border border-slate-700/80 text-white rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-emerald-500 placeholder-slate-500 font-mono text-left" />
             </div>
 
             <!-- SSL Status Items Container -->
@@ -1057,7 +1058,7 @@
               </button>
             </div>
 
-            <!-- PANE: iOS Apps (Shadowrocket, Streisand, V2Box, Incy, Happ) -->
+            <!-- PANE: iOS Apps (Shadowrocket, Streisand, V2Box, Incy, Happ, OneXray) -->
             <div id="adminAppsPane_ios" class="admin-apps-pane space-y-2.5">
               <!-- Recommended App Selector: iOS -->
               <div class="flex items-center justify-between p-2.5 bg-slate-900/60 rounded-2xl border border-slate-700/60">
@@ -1072,6 +1073,7 @@
                   <option value="v2box">V2Box</option>
                   <option value="incy">Incy</option>
                   <option value="happ">Happ</option>
+                  <option value="onexray">OneXray</option>
                 </select>
               </div>
 
@@ -1084,122 +1086,149 @@
                   </div>
                   <span class="text-[9.5px] text-slate-500 font-mono">iOS / iPadOS</span>
                 </div>
-                <div>
-                  <label class="text-[10px] text-slate-400 block mb-1">نسخه نرم‌افزار (Version):</label>
-                  <input type="text" id="appVersion_ios_shadowrocket" dir="ltr" placeholder="پیش‌فرض: 2.2.62" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-amber-300 outline-none focus:border-cyan-500 transition" />
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <div>
+                    <label class="text-[10px] text-slate-400 block mb-1">نسخه نرم‌افزار (Version):</label>
+                    <input type="text" id="appVersion_ios_shadowrocket" dir="ltr" placeholder="پیش‌فرض: 2.2.62" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-amber-300 outline-none focus:border-cyan-500 transition" />
+                  </div>
+                  <div>
+                    <label class="text-[10px] text-slate-400 block mb-1">لینک آموزش (اختیاری):</label>
+                    <input type="text" id="appTutorial_ios_shadowrocket" dir="ltr" placeholder="مثلاً: https://t.me/..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-emerald-300 outline-none focus:border-emerald-500 transition" />
+                  </div>
                 </div>
                 <div>
                   <label class="text-[10px] text-slate-400 block mb-1">لینک دانلود نرم‌افزار (اپ‌استور):</label>
                   <input type="text" id="appDownload_ios_shadowrocket" dir="ltr" placeholder="پیش‌فرض خالی (عدم نمایش)" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-cyan-300 outline-none focus:border-cyan-500 transition" />
                 </div>
-                <div>
-                  <label class="text-[10px] text-slate-400 block mb-1">لینک دانلود کمکی (اختیاری):</label>
-                  <input type="text" id="appDownloadExtra_ios_shadowrocket" dir="ltr" placeholder="لینک دوم یا مستقیم" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-purple-300 outline-none focus:border-purple-500 transition" />
-                </div>
-                <div>
-                  <label class="text-[10px] text-slate-400 block mb-1">لینک پست آموزش Shadowrocket (اختیاری):</label>
-                  <input type="text" id="appTutorial_ios_shadowrocket" dir="ltr" placeholder="مثلاً: https://t.me/..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-emerald-300 outline-none focus:border-emerald-500 transition" />
-                </div>
               </div>
 
               <!-- Streisand -->
               <div class="p-3 rounded-2xl border border-slate-700/50 space-y-2 bg-transparent">
-                <div class="flex items-center gap-2">
-                  <img src="/static/img/apps/streisand.webp" class="w-5 h-5 rounded-md object-contain" alt="Streisand" onerror="this.style.display='none'" loading="lazy" />
-                  <b class="text-white text-xs">Streisand</b>
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-2">
+                    <img src="/static/img/apps/streisand.webp" class="w-5 h-5 rounded-md object-contain" alt="Streisand" onerror="this.style.display='none'" loading="lazy" />
+                    <b class="text-white text-xs">Streisand</b>
+                  </div>
+                  <span class="text-[9.5px] text-slate-500 font-mono">iOS / iPadOS</span>
                 </div>
-                <div>
-                  <label class="text-[10px] text-slate-400 block mb-1">نسخه نرم‌افزار (Version):</label>
-                  <input type="text" id="appVersion_ios_streisand" dir="ltr" placeholder="پیش‌فرض: 1.9.2" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-amber-300 outline-none focus:border-cyan-500 transition" />
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <div>
+                    <label class="text-[10px] text-slate-400 block mb-1">نسخه نرم‌افزار (Version):</label>
+                    <input type="text" id="appVersion_ios_streisand" dir="ltr" placeholder="پیش‌فرض: 1.9.2" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-amber-300 outline-none focus:border-cyan-500 transition" />
+                  </div>
+                  <div>
+                    <label class="text-[10px] text-slate-400 block mb-1">لینک آموزش (اختیاری):</label>
+                    <input type="text" id="appTutorial_ios_streisand" dir="ltr" placeholder="مثلاً: https://t.me/..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-emerald-300 outline-none focus:border-emerald-500 transition" />
+                  </div>
                 </div>
                 <div>
                   <label class="text-[10px] text-slate-400 block mb-1">لینک دانلود نرم‌افزار (اپ‌استور):</label>
                   <input type="text" id="appDownload_ios_streisand" dir="ltr" placeholder="پیش‌فرض خالی (عدم نمایش)" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-cyan-300 outline-none focus:border-cyan-500 transition" />
                 </div>
-                <div>
-                  <label class="text-[10px] text-slate-400 block mb-1">لینک دانلود کمکی / تست‌فلایت (اختیاری):</label>
-                  <input type="text" id="appDownloadExtra_ios_streisand" dir="ltr" placeholder="لینک دوم یا مستقیم" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-purple-300 outline-none focus:border-purple-500 transition" />
-                </div>
-                <div>
-                  <label class="text-[10px] text-slate-400 block mb-1">لینک پست آموزش Streisand (اختیاری):</label>
-                  <input type="text" id="appTutorial_ios_streisand" dir="ltr" placeholder="مثلاً: https://t.me/..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-emerald-300 outline-none focus:border-emerald-500 transition" />
-                </div>
               </div>
 
               <!-- V2Box -->
               <div class="p-3 rounded-2xl border border-slate-700/50 space-y-2 bg-transparent">
-                <div class="flex items-center gap-2">
-                  <img src="/static/img/apps/v2box.webp" class="w-5 h-5 rounded-md object-contain" alt="V2Box" onerror="this.style.display='none'" loading="lazy" />
-                  <b class="text-white text-xs">V2Box</b>
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-2">
+                    <img src="/static/img/apps/v2box.webp" class="w-5 h-5 rounded-md object-contain" alt="V2Box" onerror="this.style.display='none'" loading="lazy" />
+                    <b class="text-white text-xs">V2Box</b>
+                  </div>
+                  <span class="text-[9.5px] text-slate-500 font-mono">iOS / iPadOS</span>
                 </div>
-                <div>
-                  <label class="text-[10px] text-slate-400 block mb-1">نسخه نرم‌افزار (Version):</label>
-                  <input type="text" id="appVersion_ios_v2box" dir="ltr" placeholder="پیش‌فرض: 2.4.1" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-amber-300 outline-none focus:border-cyan-500 transition" />
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <div>
+                    <label class="text-[10px] text-slate-400 block mb-1">نسخه نرم‌افزار (Version):</label>
+                    <input type="text" id="appVersion_ios_v2box" dir="ltr" placeholder="پیش‌فرض: 2.4.1" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-amber-300 outline-none focus:border-cyan-500 transition" />
+                  </div>
+                  <div>
+                    <label class="text-[10px] text-slate-400 block mb-1">لینک آموزش (اختیاری):</label>
+                    <input type="text" id="appTutorial_ios_v2box" dir="ltr" placeholder="مثلاً: https://t.me/..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-emerald-300 outline-none focus:border-emerald-500 transition" />
+                  </div>
                 </div>
                 <div>
                   <label class="text-[10px] text-slate-400 block mb-1">لینک دانلود نرم‌افزار (اپ‌استور):</label>
                   <input type="text" id="appDownload_ios_v2box" dir="ltr" placeholder="پیش‌فرض خالی (عدم نمایش)" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-cyan-300 outline-none focus:border-cyan-500 transition" />
                 </div>
-                <div>
-                  <label class="text-[10px] text-slate-400 block mb-1">لینک دانلود کمکی (اختیاری):</label>
-                  <input type="text" id="appDownloadExtra_ios_v2box" dir="ltr" placeholder="لینک دوم یا مستقیم" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-purple-300 outline-none focus:border-purple-500 transition" />
-                </div>
-                <div>
-                  <label class="text-[10px] text-slate-400 block mb-1">لینک پست آموزش V2Box (اختیاری):</label>
-                  <input type="text" id="appTutorial_ios_v2box" dir="ltr" placeholder="مثلاً: https://t.me/..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-emerald-300 outline-none focus:border-emerald-500 transition" />
-                </div>
               </div>
 
               <!-- Incy -->
               <div class="p-3 rounded-2xl border border-slate-700/50 space-y-2 bg-transparent">
-                <div class="flex items-center gap-2">
-                  <img src="/static/img/apps/incy.webp" class="w-5 h-5 rounded-md object-contain" alt="Incy" onerror="this.style.display='none'" loading="lazy" />
-                  <b class="text-white text-xs">Incy</b>
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-2">
+                    <img src="/static/img/apps/incy.webp" class="w-5 h-5 rounded-md object-contain" alt="Incy" onerror="this.style.display='none'" loading="lazy" />
+                    <b class="text-white text-xs">Incy</b>
+                  </div>
+                  <span class="text-[9.5px] text-slate-500 font-mono">iOS / iPadOS</span>
                 </div>
-                <div>
-                  <label class="text-[10px] text-slate-400 block mb-1">نسخه نرم‌افزار (Version):</label>
-                  <input type="text" id="appVersion_ios_incy" dir="ltr" placeholder="پیش‌فرض: 1.0.8" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-amber-300 outline-none focus:border-cyan-500 transition" />
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <div>
+                    <label class="text-[10px] text-slate-400 block mb-1">نسخه نرم‌افزار (Version):</label>
+                    <input type="text" id="appVersion_ios_incy" dir="ltr" placeholder="پیش‌فرض: 1.0.8" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-amber-300 outline-none focus:border-cyan-500 transition" />
+                  </div>
+                  <div>
+                    <label class="text-[10px] text-slate-400 block mb-1">لینک آموزش (اختیاری):</label>
+                    <input type="text" id="appTutorial_ios_incy" dir="ltr" placeholder="مثلاً: https://t.me/..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-emerald-300 outline-none focus:border-emerald-500 transition" />
+                  </div>
                 </div>
                 <div>
                   <label class="text-[10px] text-slate-400 block mb-1">لینک دانلود نرم‌افزار (اپ‌استور):</label>
                   <input type="text" id="appDownload_ios_incy" dir="ltr" placeholder="پیش‌فرض خالی (عدم نمایش)" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-cyan-300 outline-none focus:border-cyan-500 transition" />
                 </div>
-                <div>
-                  <label class="text-[10px] text-slate-400 block mb-1">لینک دانلود کمکی (اختیاری):</label>
-                  <input type="text" id="appDownloadExtra_ios_incy" dir="ltr" placeholder="لینک دوم یا مستقیم" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-purple-300 outline-none focus:border-purple-500 transition" />
-                </div>
-                <div>
-                  <label class="text-[10px] text-slate-400 block mb-1">لینک پست آموزش Incy (اختیاری):</label>
-                  <input type="text" id="appTutorial_ios_incy" dir="ltr" placeholder="مثلاً: https://t.me/..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-emerald-300 outline-none focus:border-emerald-500 transition" />
-                </div>
               </div>
 
               <!-- Happ -->
               <div class="p-3 rounded-2xl border border-slate-700/50 space-y-2 bg-transparent">
-                <div class="flex items-center gap-2">
-                  <img src="/static/img/apps/happ.webp" class="w-5 h-5 rounded-md object-contain" alt="Happ" onerror="this.style.display='none'" loading="lazy" />
-                  <b class="text-white text-xs">Happ</b>
-                </div>
-                <div>
-                  <div class="flex items-center justify-between mb-1">
-                    <label class="text-[10px] text-slate-400">نسخه نرم‌افزار (Version):</label>
-                    <button type="button" onclick="window.fetchGithubAppVersion('happ', 'ios')" class="text-[9.5px] text-cyan-400 hover:text-cyan-300 flex items-center gap-1 active:scale-95" title="استعلام آخرین نسخه از گیت‌هاب">
-                      <span>🐙</span><span>گیت‌هاب</span>
-                    </button>
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-2">
+                    <img src="/static/img/apps/happ.webp" class="w-5 h-5 rounded-md object-contain" alt="Happ" onerror="this.style.display='none'" loading="lazy" />
+                    <b class="text-white text-xs">Happ</b>
                   </div>
-                  <input type="text" id="appVersion_ios_happ" dir="ltr" placeholder="پیش‌فرض: 3.1.2" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-amber-300 outline-none focus:border-cyan-500 transition" />
+                  <span class="text-[9.5px] text-slate-500 font-mono">iOS / iPadOS</span>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <div>
+                    <div class="flex items-center justify-between mb-1">
+                      <label class="text-[10px] text-slate-400">نسخه نرم‌افزار (Version):</label>
+                      <button type="button" onclick="window.fetchGithubAppVersion('happ', 'ios')" class="text-[9.5px] text-cyan-400 hover:text-cyan-300 flex items-center gap-1 active:scale-95" title="استعلام آخرین نسخه از گیت‌هاب">
+                        <span>🐙</span><span>گیت‌هاب</span>
+                      </button>
+                    </div>
+                    <input type="text" id="appVersion_ios_happ" dir="ltr" placeholder="پیش‌فرض: 3.1.2" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-amber-300 outline-none focus:border-cyan-500 transition" />
+                  </div>
+                  <div>
+                    <label class="text-[10px] text-slate-400 block mb-1">لینک آموزش (اختیاری):</label>
+                    <input type="text" id="appTutorial_ios_happ" dir="ltr" placeholder="مثلاً: https://t.me/..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-emerald-300 outline-none focus:border-emerald-500 transition" />
+                  </div>
                 </div>
                 <div>
                   <label class="text-[10px] text-slate-400 block mb-1">لینک دانلود نرم‌افزار (اپ‌استور):</label>
                   <input type="text" id="appDownload_ios_happ" dir="ltr" placeholder="پیش‌فرض خالی (عدم نمایش)" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-cyan-300 outline-none focus:border-cyan-500 transition" />
                 </div>
-                <div>
-                  <label class="text-[10px] text-slate-400 block mb-1">لینک دانلود کمکی (اختیاری):</label>
-                  <input type="text" id="appDownloadExtra_ios_happ" dir="ltr" placeholder="لینک دوم یا مستقیم" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-purple-300 outline-none focus:border-purple-500 transition" />
+              </div>
+
+              <!-- OneXray -->
+              <div class="p-3 rounded-2xl border border-slate-700/50 space-y-2 bg-transparent">
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-2">
+                    <span class="text-base">⚡️</span>
+                    <b class="text-white text-xs">OneXray</b>
+                  </div>
+                  <span class="text-[9.5px] text-slate-500 font-mono">iOS / iPadOS</span>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <div>
+                    <label class="text-[10px] text-slate-400 block mb-1">نسخه نرم‌افزار (Version):</label>
+                    <input type="text" id="appVersion_ios_onexray" dir="ltr" placeholder="پیش‌فرض: 1.4.2" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-amber-300 outline-none focus:border-cyan-500 transition" />
+                  </div>
+                  <div>
+                    <label class="text-[10px] text-slate-400 block mb-1">لینک آموزش (اختیاری):</label>
+                    <input type="text" id="appTutorial_ios_onexray" dir="ltr" placeholder="مثلاً: https://t.me/..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-emerald-300 outline-none focus:border-emerald-500 transition" />
+                  </div>
                 </div>
                 <div>
-                  <label class="text-[10px] text-slate-400 block mb-1">لینک پست آموزش Happ (اختیاری):</label>
-                  <input type="text" id="appTutorial_ios_happ" dir="ltr" placeholder="مثلاً: https://t.me/..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-emerald-300 outline-none focus:border-emerald-500 transition" />
+                  <label class="text-[10px] text-slate-400 block mb-1">لینک دانلود نرم‌افزار (اپ‌استور):</label>
+                  <input type="text" id="appDownload_ios_onexray" dir="ltr" placeholder="https://apps.apple.com/us/app/onexray/id6745748773" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-cyan-300 outline-none focus:border-cyan-500 transition" />
                 </div>
               </div>
             </div>
@@ -1497,107 +1526,111 @@
 
               <!-- Hiddify (macOS) -->
               <div class="p-3 rounded-2xl border border-slate-700/50 space-y-2 bg-transparent">
-                <div class="flex items-center gap-2">
-                  <img src="/static/img/apps/hiddify.webp" class="w-5 h-5 rounded-md object-contain" alt="Hiddify" onerror="this.style.display='none'" loading="lazy" />
-                  <b class="text-white text-xs">Hiddify</b>
-                </div>
-                <div>
-                  <div class="flex items-center justify-between mb-1">
-                    <label class="text-[10px] text-slate-400">نسخه نرم‌افزار (Version):</label>
-                    <button type="button" onclick="window.fetchGithubAppVersion('hiddify', 'macos')" class="text-[9.5px] text-cyan-400 hover:text-cyan-300 flex items-center gap-1 active:scale-95" title="استعلام آخرین نسخه از گیت‌هاب">
-                      <span>🐙</span><span>گیت‌هاب</span>
-                    </button>
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-2">
+                    <img src="/static/img/apps/hiddify.webp" class="w-5 h-5 rounded-md object-contain" alt="Hiddify" onerror="this.style.display='none'" loading="lazy" />
+                    <b class="text-white text-xs">Hiddify</b>
                   </div>
-                  <input type="text" id="appVersion_macos_hiddify" dir="ltr" placeholder="پیش‌فرض: 2.5.7" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-amber-300 outline-none focus:border-cyan-500 transition" />
+                  <span class="text-[9.5px] text-slate-500 font-mono">macOS</span>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <div>
+                    <div class="flex items-center justify-between mb-1">
+                      <label class="text-[10px] text-slate-400">نسخه نرم‌افزار (Version):</label>
+                      <button type="button" onclick="window.fetchGithubAppVersion('hiddify', 'macos')" class="text-[9.5px] text-cyan-400 hover:text-cyan-300 flex items-center gap-1 active:scale-95" title="استعلام آخرین نسخه از گیت‌هاب">
+                        <span>🐙</span><span>گیت‌هاب</span>
+                      </button>
+                    </div>
+                    <input type="text" id="appVersion_macos_hiddify" dir="ltr" placeholder="پیش‌فرض: 2.5.7" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-amber-300 outline-none focus:border-cyan-500 transition" />
+                  </div>
+                  <div>
+                    <label class="text-[10px] text-slate-400 block mb-1">لینک آموزش (اختیاری):</label>
+                    <input type="text" id="appTutorial_macos_hiddify" dir="ltr" placeholder="مثلاً: https://t.me/..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-emerald-300 outline-none focus:border-emerald-500 transition" />
+                  </div>
                 </div>
                 <div>
-                  <label class="text-[10px] text-slate-400 block mb-1">لینک دانلود نرم‌افزار:</label>
+                  <label class="text-[10px] text-slate-400 block mb-1">لینک دانلود نرم‌افزار (مک):</label>
                   <input type="text" id="appDownload_macos_hiddify" dir="ltr" placeholder="پیش‌فرض خالی (عدم نمایش)" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-cyan-300 outline-none focus:border-cyan-500 transition" />
-                </div>
-                <div>
-                  <label class="text-[10px] text-slate-400 block mb-1">لینک کمکی / گیت‌هاب (اختیاری):</label>
-                  <input type="text" id="appDownloadExtra_macos_hiddify" dir="ltr" placeholder="لینک دوم یا مستقیم" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-purple-300 outline-none focus:border-purple-500 transition" />
-                </div>
-                <div>
-                  <label class="text-[10px] text-slate-400 block mb-1">لینک پست آموزش Hiddify (اختیاری):</label>
-                  <input type="text" id="appTutorial_macos_hiddify" dir="ltr" placeholder="مثلاً: https://t.me/..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-emerald-300 outline-none focus:border-emerald-500 transition" />
                 </div>
               </div>
 
               <!-- Happ (macOS) -->
               <div class="p-3 rounded-2xl border border-slate-700/50 space-y-2 bg-transparent">
-                <div class="flex items-center gap-2">
-                  <img src="/static/img/apps/happ.webp" class="w-5 h-5 rounded-md object-contain" alt="Happ" onerror="this.style.display='none'" loading="lazy" />
-                  <b class="text-white text-xs">Happ</b>
-                </div>
-                <div>
-                  <div class="flex items-center justify-between mb-1">
-                    <label class="text-[10px] text-slate-400">نسخه نرم‌افزار (Version):</label>
-                    <button type="button" onclick="window.fetchGithubAppVersion('happ', 'macos')" class="text-[9.5px] text-cyan-400 hover:text-cyan-300 flex items-center gap-1 active:scale-95" title="استعلام آخرین نسخه از گیت‌هاب">
-                      <span>🐙</span><span>گیت‌هاب</span>
-                    </button>
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-2">
+                    <img src="/static/img/apps/happ.webp" class="w-5 h-5 rounded-md object-contain" alt="Happ" onerror="this.style.display='none'" loading="lazy" />
+                    <b class="text-white text-xs">Happ</b>
                   </div>
-                  <input type="text" id="appVersion_macos_happ" dir="ltr" placeholder="پیش‌فرض: 3.1.2" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-amber-300 outline-none focus:border-cyan-500 transition" />
+                  <span class="text-[9.5px] text-slate-500 font-mono">macOS</span>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <div>
+                    <div class="flex items-center justify-between mb-1">
+                      <label class="text-[10px] text-slate-400">نسخه نرم‌افزار (Version):</label>
+                      <button type="button" onclick="window.fetchGithubAppVersion('happ', 'macos')" class="text-[9.5px] text-cyan-400 hover:text-cyan-300 flex items-center gap-1 active:scale-95" title="استعلام آخرین نسخه از گیت‌هاب">
+                        <span>🐙</span><span>گیت‌هاب</span>
+                      </button>
+                    </div>
+                    <input type="text" id="appVersion_macos_happ" dir="ltr" placeholder="پیش‌فرض: 3.1.2" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-amber-300 outline-none focus:border-cyan-500 transition" />
+                  </div>
+                  <div>
+                    <label class="text-[10px] text-slate-400 block mb-1">لینک آموزش (اختیاری):</label>
+                    <input type="text" id="appTutorial_macos_happ" dir="ltr" placeholder="مثلاً: https://t.me/..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-emerald-300 outline-none focus:border-emerald-500 transition" />
+                  </div>
                 </div>
                 <div>
-                  <label class="text-[10px] text-slate-400 block mb-1">لینک دانلود نرم‌افزار:</label>
+                  <label class="text-[10px] text-slate-400 block mb-1">لینک دانلود نرم‌افزار (اپ‌استور مک):</label>
                   <input type="text" id="appDownload_macos_happ" dir="ltr" placeholder="پیش‌فرض خالی (عدم نمایش)" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-cyan-300 outline-none focus:border-cyan-500 transition" />
-                </div>
-                <div>
-                  <label class="text-[10px] text-slate-400 block mb-1">لینک کمکی (اختیاری):</label>
-                  <input type="text" id="appDownloadExtra_macos_happ" dir="ltr" placeholder="لینک دوم یا مستقیم" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-purple-300 outline-none focus:border-purple-500 transition" />
-                </div>
-                <div>
-                  <label class="text-[10px] text-slate-400 block mb-1">لینک پست آموزش Happ (اختیاری):</label>
-                  <input type="text" id="appTutorial_macos_happ" dir="ltr" placeholder="مثلاً: https://t.me/..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-emerald-300 outline-none focus:border-emerald-500 transition" />
                 </div>
               </div>
 
               <!-- Incy (macOS) -->
               <div class="p-3 rounded-2xl border border-slate-700/50 space-y-2 bg-transparent">
-                <div class="flex items-center gap-2">
-                  <img src="/static/img/apps/incy.webp" class="w-5 h-5 rounded-md object-contain" alt="Incy" onerror="this.style.display='none'" loading="lazy" />
-                  <b class="text-white text-xs">Incy</b>
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-2">
+                    <img src="/static/img/apps/incy.webp" class="w-5 h-5 rounded-md object-contain" alt="Incy" onerror="this.style.display='none'" loading="lazy" />
+                    <b class="text-white text-xs">Incy</b>
+                  </div>
+                  <span class="text-[9.5px] text-slate-500 font-mono">macOS</span>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <div>
+                    <label class="text-[10px] text-slate-400 block mb-1">نسخه نرم‌افزار (Version):</label>
+                    <input type="text" id="appVersion_macos_incy" dir="ltr" placeholder="پیش‌فرض: 1.0.8" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-amber-300 outline-none focus:border-cyan-500 transition" />
+                  </div>
+                  <div>
+                    <label class="text-[10px] text-slate-400 block mb-1">لینک آموزش (اختیاری):</label>
+                    <input type="text" id="appTutorial_macos_incy" dir="ltr" placeholder="مثلاً: https://t.me/..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-emerald-300 outline-none focus:border-emerald-500 transition" />
+                  </div>
                 </div>
                 <div>
-                  <label class="text-[10px] text-slate-400 block mb-1">نسخه نرم‌افزار (Version):</label>
-                  <input type="text" id="appVersion_macos_incy" dir="ltr" placeholder="پیش‌فرض: 1.0.8" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-amber-300 outline-none focus:border-cyan-500 transition" />
-                </div>
-                <div>
-                  <label class="text-[10px] text-slate-400 block mb-1">لینک دانلود نرم‌افزار:</label>
+                  <label class="text-[10px] text-slate-400 block mb-1">لینک دانلود نرم‌افزار (اپ‌استور مک):</label>
                   <input type="text" id="appDownload_macos_incy" dir="ltr" placeholder="پیش‌فرض خالی (عدم نمایش)" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-cyan-300 outline-none focus:border-cyan-500 transition" />
-                </div>
-                <div>
-                  <label class="text-[10px] text-slate-400 block mb-1">لینک کمکی (اختیاری):</label>
-                  <input type="text" id="appDownloadExtra_macos_incy" dir="ltr" placeholder="لینک دوم یا مستقیم" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-purple-300 outline-none focus:border-purple-500 transition" />
-                </div>
-                <div>
-                  <label class="text-[10px] text-slate-400 block mb-1">لینک پست آموزش Incy (اختیاری):</label>
-                  <input type="text" id="appTutorial_macos_incy" dir="ltr" placeholder="مثلاً: https://t.me/..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-emerald-300 outline-none focus:border-emerald-500 transition" />
                 </div>
               </div>
 
               <!-- V2Box (macOS) -->
               <div class="p-3 rounded-2xl border border-slate-700/50 space-y-2 bg-transparent">
-                <div class="flex items-center gap-2">
-                  <img src="/static/img/apps/v2box.webp" class="w-5 h-5 rounded-md object-contain" alt="V2Box" onerror="this.style.display='none'" loading="lazy" />
-                  <b class="text-white text-xs">V2Box</b>
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-2">
+                    <img src="/static/img/apps/v2box.webp" class="w-5 h-5 rounded-md object-contain" alt="V2Box" onerror="this.style.display='none'" loading="lazy" />
+                    <b class="text-white text-xs">V2Box</b>
+                  </div>
+                  <span class="text-[9.5px] text-slate-500 font-mono">macOS</span>
                 </div>
-                <div>
-                  <label class="text-[10px] text-slate-400 block mb-1">نسخه نرم‌افزار (Version):</label>
-                  <input type="text" id="appVersion_macos_v2box" dir="ltr" placeholder="پیش‌فرض: 2.4.1" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-amber-300 outline-none focus:border-cyan-500 transition" />
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <div>
+                    <label class="text-[10px] text-slate-400 block mb-1">نسخه نرم‌افزار (Version):</label>
+                    <input type="text" id="appVersion_macos_v2box" dir="ltr" placeholder="پیش‌فرض: 2.4.1" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-amber-300 outline-none focus:border-cyan-500 transition" />
+                  </div>
+                  <div>
+                    <label class="text-[10px] text-slate-400 block mb-1">لینک آموزش (اختیاری):</label>
+                    <input type="text" id="appTutorial_macos_v2box" dir="ltr" placeholder="مثلاً: https://t.me/..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-emerald-300 outline-none focus:border-emerald-500 transition" />
+                  </div>
                 </div>
                 <div>
                   <label class="text-[10px] text-slate-400 block mb-1">لینک دانلود نرم‌افزار (اپ‌استور مک):</label>
                   <input type="text" id="appDownload_macos_v2box" dir="ltr" placeholder="پیش‌فرض خالی (عدم نمایش)" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-cyan-300 outline-none focus:border-cyan-500 transition" />
-                </div>
-                <div>
-                  <label class="text-[10px] text-slate-400 block mb-1">لینک کمکی (اختیاری):</label>
-                  <input type="text" id="appDownloadExtra_macos_v2box" dir="ltr" placeholder="لینک دوم یا مستقیم" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-purple-300 outline-none focus:border-purple-500 transition" />
-                </div>
-                <div>
-                  <label class="text-[10px] text-slate-400 block mb-1">لینک پست آموزش V2Box (اختیاری):</label>
-                  <input type="text" id="appTutorial_macos_v2box" dir="ltr" placeholder="مثلاً: https://t.me/..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-emerald-300 outline-none focus:border-emerald-500 transition" />
                 </div>
               </div>
             </div>
@@ -2297,6 +2330,84 @@
             ایجاد کد تخفیف
           </button>
           <button onclick="window.adminActions.closeCouponModal()" class="flex-1 bg-transparent hover:bg-slate-800/60 border border-slate-700/80 text-slate-300 hover:text-white text-xs py-2 rounded-xl transition">انصراف</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL: Edit SSL Domain (ویرایش دامنه سفارشی) -->
+    <div id="editSslDomainModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden flex items-center justify-center p-4 animate-fadeIn">
+      <div class="bg-slate-900 border border-slate-700/80 rounded-3xl p-5 max-w-sm w-full space-y-4 shadow-2xl relative">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+          <div class="flex items-center gap-2">
+            <div class="w-8 h-8 rounded-xl bg-cyan-500/15 text-cyan-400 flex items-center justify-center border border-cyan-500/30">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+            </div>
+            <h4 class="text-xs font-bold text-white">ویرایش دامنه سفارشی SSL</h4>
+          </div>
+          <button type="button" onclick="window.adminActions.closeEditSslDomainModal()" class="text-slate-400 hover:text-white p-1 rounded-lg">✕</button>
+        </div>
+
+        <div class="space-y-3 text-xs">
+          <div>
+            <label class="text-[10px] text-slate-400 block mb-1">دامنه فعلی:</label>
+            <div class="p-2.5 rounded-xl bg-slate-950/60 border border-slate-800">
+              <span id="editSslDomainCurrent" class="font-mono text-xs font-bold text-slate-300 block text-left" dir="ltr">--</span>
+            </div>
+          </div>
+          <div>
+            <label class="text-[10px] text-slate-400 block mb-1">آدرس جدید دامنه:</label>
+            <input type="text" id="editSslDomainNewInput" dir="ltr" placeholder="sub.example.com" class="w-full bg-slate-950/80 border border-slate-700/80 text-white rounded-xl px-3 py-2 text-xs font-mono text-left focus:outline-none focus:border-cyan-500 transition" />
+          </div>
+          <p class="text-[10px] text-slate-400 leading-relaxed">
+            گواهی امنیتی SSL و تاریخ انقضای دامنه جدید بلافاصله پس از ثبت پایش خواهد شد.
+          </p>
+        </div>
+
+        <div class="flex gap-2 pt-2 border-t border-slate-800">
+          <button type="button" id="confirmEditSslDomainBtn" onclick="window.adminActions.executeEditSslDomain()" class="flex-1 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-bold text-xs py-2.5 rounded-xl transition shadow active:scale-95 flex items-center justify-center gap-1.5">
+            <span>ذخیره تغییرات</span>
+          </button>
+          <button type="button" onclick="window.adminActions.closeEditSslDomainModal()" class="flex-1 bg-transparent hover:bg-slate-800 border border-slate-700/80 text-slate-300 hover:text-white text-xs py-2.5 rounded-xl transition">
+            انصراف
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL: Delete SSL Domain Confirmation (حذف دامنه سفارشی) -->
+    <div id="deleteSslDomainModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden flex items-center justify-center p-4 animate-fadeIn">
+      <div class="bg-slate-900 border border-slate-700/80 rounded-3xl p-5 max-w-sm w-full space-y-4 shadow-2xl relative">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+          <div class="flex items-center gap-2">
+            <div class="w-8 h-8 rounded-xl bg-rose-500/15 text-rose-400 flex items-center justify-center border border-rose-500/30">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+            </div>
+            <h4 class="text-xs font-bold text-white">تأیید حذف دامنه</h4>
+          </div>
+          <button type="button" onclick="window.adminActions.closeDeleteSslDomainModal()" class="text-slate-400 hover:text-white p-1 rounded-lg">✕</button>
+        </div>
+
+        <div class="space-y-2 text-xs">
+          <p class="text-slate-300 leading-relaxed">
+            آیا از حذف دامنه زیر از سیستم پایش گواهی‌های SSL اطمینان دارید؟
+          </p>
+          <div class="p-3 rounded-2xl bg-slate-950/60 border border-slate-800 text-center">
+            <span id="deleteSslDomainTarget" class="font-mono text-sm font-bold text-rose-400 block break-all" dir="ltr">--</span>
+          </div>
+          <p class="text-[11px] text-rose-400/90 flex items-center gap-1.5 pt-1">
+            <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+            <span>این دامنه دیگر در بررسی‌های روزانه و هشدارهای انقضای گواهی قرار نخواهد گرفت.</span>
+          </p>
+        </div>
+
+        <div class="flex gap-2 pt-2 border-t border-slate-800">
+          <button type="button" id="confirmDeleteSslDomainBtn" onclick="window.adminActions.executeDeleteSslDomain()" class="flex-1 bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-500 hover:to-red-500 text-white font-bold text-xs py-2.5 rounded-xl transition shadow active:scale-95 flex items-center justify-center gap-1.5">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+            <span>حذف دامنه</span>
+          </button>
+          <button type="button" onclick="window.adminActions.closeDeleteSslDomainModal()" class="flex-1 bg-transparent hover:bg-slate-800 border border-slate-700/80 text-slate-300 hover:text-white text-xs py-2.5 rounded-xl transition">
+            انصراف
+          </button>
         </div>
       </div>
     </div>

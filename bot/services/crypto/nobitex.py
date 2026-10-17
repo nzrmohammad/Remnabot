@@ -24,6 +24,26 @@ from bot.services.crypto.crypto_rates import (
     format_usdt_rate_alert,
 )
 
+
+async def get_crypto_rates_summary() -> dict:
+    """Fetch live crypto rates summary formatted for web & admin dashboards."""
+    data = await fetch_all_exchange_prices()
+    best_ton_price, best_ton_source = data.get("best_ton", (None, ""))
+    best_usdt_price, best_usdt_source = data.get("best_usdt", (None, ""))
+    best_eur_price, best_eur_source = data.get("best_eur", (None, ""))
+    return {
+        "ok": True,
+        "ton_prices": data.get("ton", {}),
+        "usdt_prices": data.get("usdt", {}),
+        "eur_prices": data.get("eur", {}),
+        "binance_usd": data.get("binance_usd"),
+        "binance_eur_usd": data.get("binance_eur_usd"),
+        "best_ton": {"price": best_ton_price, "source": best_ton_source},
+        "best_usdt": {"price": best_usdt_price, "source": best_usdt_source},
+        "best_eur": {"price": best_eur_price, "source": best_eur_source},
+    }
+
+
 __all__ = [
     "RATE_CHECK_HOURS",
     "fetch_all_exchange_prices",
@@ -37,4 +57,5 @@ __all__ = [
     "_seconds_until_next_target",
     "send_rate_notification",
     "nobitex_rate_loop",
+    "get_crypto_rates_summary",
 ]

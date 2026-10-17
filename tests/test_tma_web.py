@@ -1740,4 +1740,68 @@ async def test_remnawave_consecutive_errors(monkeypatch):
     assert "CRITICAL: Remnawave panel is DOWN" in logged_errors[0]
 
 
+@pytest.mark.anyio
+async def test_admin_crypto_rates_endpoint(monkeypatch):
+    from bot.web.admin_settings_api import get_admin_crypto_rates
+    from aiohttp.test_utils import make_mocked_request
+    import json
+
+    # Mock _check_admin to allow access
+    monkeypatch.setattr("bot.web.admin_settings_api._check_admin", lambda req: {"id": 1, "username": "admin"})
+
+    # Mock fetch_all_exchange_prices
+    async def mock_fetch():
+        return {
+            "ton": {"نوبیتکس": 350000},
+            "usdt": {"نوبیتکس": 105000},
+            "eur": {"نوبیتکس": 115000},
+            "binance_usd": 3.45,
+            "binance_eur_usd": 1.09,
+            "best_ton": (350000, "نوبیتکس"),
+            "best_usdt": (105000, "نوبیتکس"),
+            "best_eur": (115000, "نوبیتکس"),
+        }
+
+    monkeypatch.setattr("bot.services.crypto.nobitex.fetch_all_exchange_prices", mock_fetch)
+
+    req = make_mocked_request("GET", "/api/admin/crypto/rates")
+    res = await get_admin_crypto_rates(req)
+    assert res.status == 200
+    data = json.loads(res.text)
+    assert data["ok"] is True
+    assert data["best_ton"]["price"] == 350000
+    assert data["best_usdt"]["price"] == 105000
+    assert "ton_prices" in data
+
+
+@pytest.mark.anyio
+async def test_coupon_repo_expired_filter(session_factory):
+    from bot.db.repositories.coupon_repo import CouponRepository
+    from datetime import datetime, timezone, timedelta
+
+    async with session_factory() as session:
+        repo = CouponRepository(session)
+        now = datetime.now(timezone.utc)
+
+        # Active valid coupon
+        c_valid = await repo.create(code="VALID10", expires_at=now + timedelta(days=5))
+        # Expired coupon
+        c_expired = await repo.create(code="EXPIRED10", expires_at=now - timedelta(days=2))
+        # Permanent coupon
+        c_permanent = await repo.create(code="PERM10", expires_at=None)
+        await session.commit()
+
+        # list_all with include_expired=False (default)
+        active_coupons = await repo.list_all(include_expired=False)
+        active_codes = [c.code for c in active_coupons]
+        assert "VALID10" in active_codes
+        assert "PERM10" in active_codes
+        assert "EXPIRED10" not in active_codes
+
+        # list_all with include_expired=True
+        all_coupons = await repo.list_all(include_expired=True)
+        all_codes = [c.code for c in all_coupons]
+        assert "EXPIRED10" in all_codes
+
+
 

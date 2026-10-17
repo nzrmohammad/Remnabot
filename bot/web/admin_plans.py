@@ -204,6 +204,10 @@ async def get_admin_coupons(request: web.Request) -> web.Response:
         coupons = result.scalars().all()
         data = []
         for c in coupons:
+            if c.expires_at:
+                exp = c.expires_at if c.expires_at.tzinfo else c.expires_at.replace(tzinfo=timezone.utc)
+                if exp <= now_utc:
+                    continue
             jalali_exp = None
             if c.expires_at and jdatetime:
                 try:

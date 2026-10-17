@@ -36,6 +36,8 @@
   let currentHwidTarget = null;
   let currentSubTarget = null;
   let currentTrialTarget = null;
+  let currentEditSslDomainTarget = null;
+  let currentDeleteSslDomainTarget = null;
   let adminPlansData = [];
   let adminCouponsData = [];
   let currentBroadcastTarget = 'all';
@@ -1458,13 +1460,13 @@
       }
 
       const editBtnHtml = item.is_custom
-        ? `<button onclick="window.adminActions.editSslDomain('${escapeHtml(item.domain)}')" class="p-1.5 rounded-xl bg-transparent hover:bg-cyan-500/15 text-cyan-400 hover:text-cyan-300 border border-slate-700/70 hover:border-cyan-500/40 transition active:scale-95 flex-shrink-0 flex items-center justify-center" title="ویرایش دامنه">
+        ? `<button onclick="window.adminActions.openEditSslDomainModal('${escapeHtml(item.domain)}')" class="p-1.5 rounded-xl bg-transparent hover:bg-cyan-500/15 text-cyan-400 hover:text-cyan-300 border border-slate-700/70 hover:border-cyan-500/40 transition active:scale-95 flex-shrink-0 flex items-center justify-center" title="ویرایش دامنه">
              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
            </button>`
         : '';
 
       const deleteBtnHtml = item.is_custom
-        ? `<button onclick="window.adminActions.deleteSslDomain('${escapeHtml(item.domain)}')" class="p-1.5 rounded-xl bg-transparent hover:bg-rose-500/15 text-rose-400 hover:text-rose-300 border border-slate-700/70 hover:border-rose-500/30 transition active:scale-95 flex-shrink-0 flex items-center justify-center" title="حذف دامنه">
+        ? `<button onclick="window.adminActions.openDeleteSslDomainModal('${escapeHtml(item.domain)}')" class="p-1.5 rounded-xl bg-transparent hover:bg-rose-500/15 text-rose-400 hover:text-rose-300 border border-slate-700/70 hover:border-rose-500/30 transition active:scale-95 flex-shrink-0 flex items-center justify-center" title="حذف دامنه">
              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
            </button>`
         : '';
@@ -1982,16 +1984,11 @@
               </div>
             </div>
 
-            <!-- Left: Top = Wallet Balance, Bottom = Compact Profile Button -->
-            <div class="text-left flex flex-col items-end gap-1.5 flex-shrink-0">
-              <span class="text-[11px] font-mono font-bold text-emerald-400">
-                ${formatNumber(u.wallet_balance || 0)} ت
+            <!-- Left: Wallet Balance -->
+            <div class="text-left flex items-center flex-shrink-0">
+              <span class="text-[11px] font-mono font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1 rounded-xl" title="موجودی کیف پول کاربر">
+                ${formatNumber(u.wallet_balance || 0)} <span class="text-[9px] font-sans text-emerald-400/80">تومان</span>
               </span>
-
-              <button type="button" onclick="window.adminActions.openUserProfileModal(${u.telegram_id})" class="px-2.5 py-1 rounded-xl bg-transparent hover:bg-slate-700/20 border border-slate-600/70 text-slate-300 hover:text-white text-[10px] font-medium transition active:scale-95 flex items-center gap-1 shadow-sm" title="مشخصات و شناسنامه کاربر">
-                <svg class="w-3 h-3 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
-                <span>مشخصات</span>
-              </button>
             </div>
           </div>
 
@@ -2250,36 +2247,52 @@
       currentModifyTarget = null;
     },
 
-    async deleteSslDomain(domain) {
+    openEditSslDomainModal(domain) {
       if (!domain) return;
-      if (!confirm(`آیا از حذف دامنه «${domain}» از پایش SSL اطمینان دارید؟`)) return;
-      try {
-        const res = await window.api.deleteCustomSslDomain(domain);
-        if (res && res.ok) {
-          cachedSslHealthItems = cachedSslHealthItems.filter(x => x.domain.toLowerCase() !== domain.toLowerCase());
-          renderSslHealth(cachedSslHealthItems);
-          if (window.showToast) window.showToast('دامنه با موفقیت حذف شد');
-          if (window.hapticFeedback) window.hapticFeedback('success');
-        } else {
-          if (window.showToast) window.showToast(res?.error || 'خطا در حذف دامنه');
-        }
-      } catch (err) {
-        console.error('Delete SSL domain error:', err);
-        if (window.showToast) window.showToast('خطا در برقراری ارتباط');
+      currentEditSslDomainTarget = domain;
+      const curEl = $('editSslDomainCurrent');
+      const inpEl = $('editSslDomainNewInput');
+      if (curEl) curEl.innerText = domain;
+      if (inpEl) {
+        inpEl.value = domain;
+        setTimeout(() => inpEl.focus(), 100);
       }
+      const modal = $('editSslDomainModal');
+      if (modal) modal.classList.remove('hidden');
+      if (window.hapticFeedback) window.hapticFeedback('selection');
     },
 
-    async editSslDomain(domain) {
-      if (!domain) return;
-      const newDomain = prompt(`ویرایش آدرس دامنه SSL:\nدامنه فعلی: ${domain}`, domain);
-      if (!newDomain || !newDomain.trim() || newDomain.trim().toLowerCase() === domain.toLowerCase()) return;
-      const cleanNew = newDomain.trim().toLowerCase();
+    closeEditSslDomainModal() {
+      const modal = $('editSslDomainModal');
+      if (modal) modal.classList.add('hidden');
+      currentEditSslDomainTarget = null;
+    },
+
+    async executeEditSslDomain() {
+      if (!currentEditSslDomainTarget) return;
+      const inpEl = $('editSslDomainNewInput');
+      const newDomain = inpEl?.value?.trim()?.toLowerCase();
+      if (!newDomain) {
+        if (window.showToast) window.showToast('لطفاً آدرس جدید دامنه را وارد کنید.');
+        return;
+      }
+      if (newDomain === currentEditSslDomainTarget.toLowerCase()) {
+        this.closeEditSslDomainModal();
+        return;
+      }
+
+      const btn = $('confirmEditSslDomainBtn');
+      if (btn) {
+        btn.disabled = true;
+        btn.innerText = 'در حال ذخیره...';
+      }
       try {
         if (window.hapticFeedback) window.hapticFeedback('impact');
-        const delRes = await window.api.deleteCustomSslDomain(domain);
+        const delRes = await window.api.deleteCustomSslDomain(currentEditSslDomainTarget);
         if (delRes && delRes.ok) {
-          const addRes = await window.api.addCustomSslDomain(cleanNew);
+          const addRes = await window.api.addCustomSslDomain(newDomain);
           if (addRes && addRes.ok) {
+            this.closeEditSslDomainModal();
             if (window.showToast) window.showToast('دامنه با موفقیت ویرایش شد');
             if (window.hapticFeedback) window.hapticFeedback('success');
             if (typeof fetchAdminSslHealth === 'function') fetchAdminSslHealth();
@@ -2293,7 +2306,67 @@
       } catch (err) {
         console.error('Edit SSL domain error:', err);
         if (window.showToast) window.showToast('خطا در برقراری ارتباط');
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerText = 'ذخیره تغییرات';
+        }
       }
+    },
+
+    editSslDomain(domain) {
+      this.openEditSslDomainModal(domain);
+    },
+
+    openDeleteSslDomainModal(domain) {
+      if (!domain) return;
+      currentDeleteSslDomainTarget = domain;
+      const targetEl = $('deleteSslDomainTarget');
+      if (targetEl) targetEl.innerText = domain;
+      const modal = $('deleteSslDomainModal');
+      if (modal) modal.classList.remove('hidden');
+      if (window.hapticFeedback) window.hapticFeedback('warning');
+    },
+
+    closeDeleteSslDomainModal() {
+      const modal = $('deleteSslDomainModal');
+      if (modal) modal.classList.add('hidden');
+      currentDeleteSslDomainTarget = null;
+    },
+
+    async executeDeleteSslDomain() {
+      if (!currentDeleteSslDomainTarget) return;
+      const domain = currentDeleteSslDomainTarget;
+      const btn = $('confirmDeleteSslDomainBtn');
+      if (btn) {
+        btn.disabled = true;
+        btn.innerText = 'در حال حذف...';
+      }
+      try {
+        if (window.hapticFeedback) window.hapticFeedback('impact');
+        const res = await window.api.deleteCustomSslDomain(domain);
+        if (res && res.ok) {
+          this.closeDeleteSslDomainModal();
+          cachedSslHealthItems = cachedSslHealthItems.filter(x => x.domain.toLowerCase() !== domain.toLowerCase());
+          renderSslHealth(cachedSslHealthItems);
+          if (window.showToast) window.showToast('دامنه با موفقیت حذف شد');
+          if (window.hapticFeedback) window.hapticFeedback('success');
+        } else {
+          if (window.showToast) window.showToast(res?.error || 'خطا در حذف دامنه');
+        }
+      } catch (err) {
+        console.error('Delete SSL domain error:', err);
+        if (window.showToast) window.showToast('خطا در برقراری ارتباط');
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg><span>حذف دامنه</span>`;
+        }
+      }
+    },
+
+    deleteSslDomain(domain) {
+      this.openDeleteSslDomainModal(domain);
     },
 
     async applyUserModification() {
@@ -3343,7 +3416,14 @@
           container.innerHTML = `<div class="p-6 text-center text-rose-400 text-xs">${res?.error || 'خطا در دریافت کدهای تخفیف'}</div>`;
           return;
         }
-        adminCouponsData = res.coupons || [];
+        adminCouponsData = (res.coupons || []).filter(c => {
+          if (!c.expires_at) return true;
+          try {
+            return new Date(c.expires_at).getTime() > Date.now();
+          } catch(e) {
+            return true;
+          }
+        });
         if (adminCouponsData.length === 0) {
           container.innerHTML = `
             <div class="bg-slate-900/50 border border-slate-800 rounded-2xl p-6 text-center text-slate-400 space-y-3">
@@ -4595,20 +4675,20 @@
 
               <!-- Stats Grid -->
               <div class="grid grid-cols-4 gap-2 pt-1 border-t border-slate-700/50 text-center">
-                <div class="p-2 rounded-xl bg-slate-900/40 border border-slate-700/40">
-                  <span class="text-[9px] text-slate-400 block mb-0.5">ورودی جدید</span>
+                <div class="p-1.5 sm:p-2 rounded-xl bg-slate-900/40 border border-slate-700/40">
+                  <span class="text-[9px] text-slate-400 block mb-0.5 whitespace-nowrap">ورودی جدید</span>
                   <b class="text-xs font-mono text-white">${formatNumber(c.users_count)}</b>
                 </div>
-                <div class="p-2 rounded-xl bg-slate-900/40 border border-slate-700/40">
-                  <span class="text-[9px] text-slate-400 block mb-0.5">خریداران</span>
+                <div class="p-1.5 sm:p-2 rounded-xl bg-slate-900/40 border border-slate-700/40">
+                  <span class="text-[9px] text-slate-400 block mb-0.5 whitespace-nowrap">خریداران</span>
                   <b class="text-xs font-mono text-cyan-300">${formatNumber(c.buyers_count)}</b>
                 </div>
-                <div class="p-2 rounded-xl bg-slate-900/40 border border-slate-700/40">
-                  <span class="text-[9px] text-slate-400 block mb-0.5">درآمد فروش</span>
+                <div class="p-1.5 sm:p-2 rounded-xl bg-slate-900/40 border border-slate-700/40">
+                  <span class="text-[9px] text-slate-400 block mb-0.5 whitespace-nowrap">درآمد فروش</span>
                   <b class="text-xs font-mono text-emerald-400">${formatNumber(c.total_revenue)}</b>
                 </div>
-                <div class="p-2 rounded-xl bg-slate-900/40 border border-slate-700/40">
-                  <span class="text-[9px] text-slate-400 block mb-0.5">بازگشت سرمایه</span>
+                <div class="p-1.5 sm:p-2 rounded-xl bg-slate-900/40 border border-slate-700/40">
+                  <span class="text-[8.5px] sm:text-[9px] text-slate-400 block mb-0.5 whitespace-nowrap">بازگشت سرمایه</span>
                   <b class="text-xs font-mono ${roiColor} inline-block" dir="ltr">${roiText || '—'}</b>
                 </div>
               </div>
@@ -5185,7 +5265,7 @@
       if (routingTutInp) routingTutInp.value = s.routing_tutorial_url || '';
 
       const OS_APPS_MAP = {
-        ios: ['shadowrocket', 'streisand', 'v2box', 'incy', 'happ'],
+        ios: ['shadowrocket', 'streisand', 'v2box', 'incy', 'happ', 'onexray'],
         android: ['v2rayng', 'happ', 'hiddify', 'incy'],
         windows: ['v2rayn', 'hiddify', 'happ', 'incy'],
         macos: ['hiddify', 'happ', 'incy', 'v2box'],
@@ -5363,7 +5443,7 @@
       routing_tutorial_url: $('settingRoutingTutorialUrl')?.value?.trim() || '',
       client_apps_json: (() => {
         const OS_APPS_MAP = {
-          ios: ['shadowrocket', 'streisand', 'v2box', 'incy', 'happ'],
+          ios: ['shadowrocket', 'streisand', 'v2box', 'incy', 'happ', 'onexray'],
           android: ['v2rayng', 'happ', 'hiddify', 'incy'],
           windows: ['v2rayn', 'hiddify', 'happ', 'incy'],
           macos: ['hiddify', 'happ', 'incy', 'v2box'],
@@ -5817,7 +5897,7 @@
       if (res && res.ok && res.versions) {
         let count = 0;
         const OS_APPS_MAP = {
-          ios: ['shadowrocket', 'streisand', 'v2box', 'incy', 'happ'],
+          ios: ['shadowrocket', 'streisand', 'v2box', 'incy', 'happ', 'onexray'],
           android: ['v2rayng', 'happ', 'hiddify', 'incy'],
           windows: ['v2rayn', 'hiddify', 'happ', 'incy'],
           macos: ['hiddify', 'happ', 'incy', 'v2box'],

@@ -494,6 +494,14 @@ const CLIENT_APPS_DATA = {
       desc: 'پشتیبانی از پروتکل‌های نوین با سرعت و پایداری فوق‌العاده',
       icon: '🚀',
       scheme: (url) => `happ://add/${url}`
+    },
+    {
+      id: 'onexray',
+      name: 'OneXray',
+      version: '1.4.2',
+      desc: 'کلاینت پیشرفته هسته Xray در اپل استور با سرعت و پایداری بالا',
+      icon: '⚡',
+      scheme: (url) => `onexray://install-sub?url=${encodeURIComponent(url)}`
     }
   ],
   android: [
@@ -810,11 +818,13 @@ function renderTutorialApps(osKey) {
               <img src="/static/img/apps/${app.id}.png" alt="${escapeHtml(app.name)}" class="w-full h-full object-contain rounded-lg" onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='flex';" />
               <span class="text-xl items-center justify-center hidden" style="display:none;">${app.icon || '📱'}</span>
             </div>
-            <div class="min-w-0">
-              <b class="text-xs text-white font-bold truncate block">${escapeHtml(app.name)}</b>
+            <div class="min-w-0 flex-1">
+              <div class="flex items-center gap-1.5 min-w-0">
+                <b class="text-xs text-white font-bold truncate">${escapeHtml(app.name)}</b>
+                ${app.version ? `<span class="text-[10px] text-slate-400 font-mono font-medium flex-shrink-0">v${toEnglishDigits(app.version)}</span>` : ''}
+              </div>
               <div class="flex items-center gap-1.5 mt-0.5">
-                <span class="text-[9.5px] text-slate-400 font-sans">${currentTutorialOS.toUpperCase()}</span>
-                ${app.version ? `<span class="text-[9px] text-cyan-400 font-mono bg-transparent border border-cyan-800/40 px-1.5 py-0.2 rounded-md">v${toEnglishDigits(app.version)}</span>` : ''}
+                <span class="text-[9.5px] text-slate-500 font-sans">${currentTutorialOS.toUpperCase()}</span>
               </div>
             </div>
           </div>

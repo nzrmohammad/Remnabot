@@ -44,11 +44,22 @@ class CouponRepository:
         )
         return result.scalar_one_or_none()
 
-    async def list_all(self) -> list[Coupon]:
+    async def list_all(self, include_expired: bool = False) -> list[Coupon]:
         result = await self.session.execute(
             select(Coupon).order_by(Coupon.id.desc())
         )
-        return list(result.scalars().all())
+        coupons = list(result.scalars().all())
+        if not include_expired:
+            now_utc = datetime.now(timezone.utc)
+            valid = []
+            for c in coupons:
+                if c.expires_at:
+                    exp = c.expires_at if c.expires_at.tzinfo else c.expires_at.replace(tzinfo=timezone.utc)
+                    if exp <= now_utc:
+                        continue
+                valid.append(c)
+            return valid
+        return coupons
 
     async def toggle_active(self, coupon: int | Coupon) -> bool:
         if isinstance(coupon, int):

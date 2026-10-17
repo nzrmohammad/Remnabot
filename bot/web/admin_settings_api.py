@@ -159,6 +159,6 @@ async def get_admin_crypto_rates(request: web.Request) -> web.Response:
     if not admin:
         return web.json_response({"ok": False, "error": "Forbidden"}, status=403)
 
-    from bot.services.nobitex import get_crypto_rates_summary
+    from bot.services.crypto.nobitex import get_crypto_rates_summary
     rates = await get_crypto_rates_summary()
-    return web.json_response({"ok": True, "rates": rates})
+    return web.json_response({**rates, "rates": rates})

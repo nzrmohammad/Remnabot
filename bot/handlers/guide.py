@@ -30,6 +30,7 @@ PLATFORMS: dict[str, tuple[str, list[tuple[str, str]]]] = {
             ("Happ", "https://play.google.com/store/apps/details?id=com.happproxy"),
             ("v2rayNG", "https://github.com/2dust/v2rayNG/releases/latest"),
             ("Hiddify", "https://github.com/hiddify/hiddify-next/releases/latest"),
+            ("OneXray", "https://github.com/YuanDevTeam/OneXray/releases/latest"),
         ],
     ),
     "ios": (
@@ -39,6 +40,7 @@ PLATFORMS: dict[str, tuple[str, list[tuple[str, str]]]] = {
             ("Happ", "https://apps.apple.com/us/app/happ-proxy-utility/id6504287215"),
             ("Streisand", "https://apps.apple.com/us/app/streisand/id6450534064"),
             ("V2Box", "https://apps.apple.com/us/app/v2box-v2ray-client/id6446814690"),
+            ("OneXray", "https://apps.apple.com/us/app/onexray/id6745748773"),
         ],
     ),
     "windows": (
@@ -48,6 +50,7 @@ PLATFORMS: dict[str, tuple[str, list[tuple[str, str]]]] = {
             ("Happ", "https://github.com/Happ-proxy/happ-desktop/releases/latest"),
             ("v2rayN", "https://github.com/2dust/v2rayN/releases/latest"),
             ("Hiddify", "https://github.com/hiddify/hiddify-next/releases/latest"),
+            ("OneXray", "https://github.com/YuanDevTeam/OneXray/releases/latest"),
         ],
     ),
     "macos": (
@@ -57,6 +60,7 @@ PLATFORMS: dict[str, tuple[str, list[tuple[str, str]]]] = {
             ("Happ", "https://apps.apple.com/us/app/happ-proxy-utility/id6504287215"),
             ("Hiddify", "https://github.com/hiddify/hiddify-next/releases/latest"),
             ("V2Box", "https://apps.apple.com/us/app/v2box-v2ray-client/id6446814690"),
+            ("OneXray", "https://apps.apple.com/us/app/onexray/id6745748773"),
         ],
     ),
     "linux": (
@@ -64,6 +68,7 @@ PLATFORMS: dict[str, tuple[str, list[tuple[str, str]]]] = {
         [
             ("Hiddify", "https://github.com/hiddify/hiddify-next/releases/latest"),
             ("v2rayN", "https://github.com/2dust/v2rayN/releases/latest"),
+            ("OneXray", "https://apps.apple.com/us/app/onexray/id6745748773"),
         ],
     ),
 }
