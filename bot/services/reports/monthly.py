@@ -99,7 +99,7 @@ async def _monthly_text_for_user(
 
         acc_lines = []
         if multi_account:
-            acc_lines.append(f"👤 {t(lang, 'stats_account')} : <code>{u_name}</code>")
+            acc_lines.append(f"{t(lang, 'stats_account')} : <code>{u_name}</code>")
 
         for offset in range(days_in_month, -1, -1):
             day_dt = month_start + timedelta(days=offset)
@@ -134,7 +134,7 @@ async def _monthly_text_for_user(
     if multi_account:
         lines.append("")
         lines.append(SEPARATOR)
-        lines.append(f"📊 <b>مجموع کل مصارف ماهانه ({len(account_data)} اکانت) : {human_bytes(grand_month_total)}</b>")
+        lines.append(f"📊 <b>مجموع کل مصارف ماهانه ({len(account_data)} اکانت) : \u200e{human_bytes(grand_month_total)}</b>")
 
     lines.append(SEPARATOR)
 

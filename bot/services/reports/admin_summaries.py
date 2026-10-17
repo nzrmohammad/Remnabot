@@ -385,22 +385,26 @@ async def _send_admin_weekly_summary(
         d_str = format_date(day_dt, "fa")
         d_val = day_totals.get(d_idx, 0)
         lines.append("")
-        lines.append(f"📅 {d_name} {d_str} : <b>{human_bytes(d_val)}</b>")
+        lines.append(f"📅 {d_name} {d_str}")
         sorted_nodes = sorted(day_nodes[d_idx].items(), key=lambda x: x[1], reverse=True)
         parts = [f"{lbl} {human_bytes(val)}" for lbl, val in sorted_nodes if val > 0]
         if parts:
-            lines.append(f"   {' '.join(parts)}")
+            lines.append(f"\u200e{human_bytes(d_val)} : {' '.join(parts)}")
+        else:
+            lines.append(f"\u200e{human_bytes(d_val)}")
 
     lines.append("")
     lines.append(SEPARATOR)
-    lines.append(f"⚡️ <b>مجموع مصرف کل این هفته : {human_bytes(week_total)}</b>")
+    lines.append("⚡️ <b>مجموع مصرف کل این هفته</b>")
     weekly_parts = [
         f"{lbl} {human_bytes(val)}"
         for lbl, val in sorted(weekly_nodes.items(), key=lambda x: x[1], reverse=True)
         if val > 0
     ]
     if weekly_parts:
-        lines.append(f"   {' '.join(weekly_parts)}")
+        lines.append(f"\u200e{human_bytes(week_total)} : {' '.join(weekly_parts)}")
+    else:
+        lines.append(f"\u200e{human_bytes(week_total)}")
 
     lines.append(SEPARATOR)
     lines.append("🏆 <b>گزارش هفتگی پرمصرفترین کاربران</b>")

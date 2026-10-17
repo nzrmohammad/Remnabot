@@ -212,11 +212,22 @@ async def wheel_reminder_loop(
                             else:
                                 kb.button(text="🏠 منوی اصلی", callback_data="nav:main_menu")
 
-                            await bot.send_message(
+                            if getattr(prefs, "clean_reports", True) and prefs.last_wheel_message_id:
+                                try:
+                                    await bot.delete_message(
+                                        chat_id=prefs.telegram_id,
+                                        message_id=prefs.last_wheel_message_id,
+                                    )
+                                except Exception:
+                                    pass
+
+                            sent_msg = await bot.send_message(
                                 prefs.telegram_id,
                                 text,
                                 reply_markup=kb.as_markup(),
                             )
+                            if sent_msg:
+                                prefs.last_wheel_message_id = sent_msg.message_id
                             prefs.wheel_notified = True
                         except Exception as exc:
                             logger.warning(

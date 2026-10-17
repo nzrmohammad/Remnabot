@@ -311,6 +311,95 @@ function bindModal(modalId, closeBtnId) {
   return { open, close };
 }
 
+/**
+ * Single Source of Truth (SSOT) Traffic Parser & Formatter with BiDi Isolation.
+ */
+function fmtTrafficValue(val, isBytes = false) {
+  if (val === null || val === undefined || val === '') return null;
+  let num = 0;
+  let unit = 'GB';
+
+  if (typeof val === 'string') {
+    const trimmed = val.trim();
+    if (trimmed.startsWith('--') || trimmed === '—' || trimmed === '-') return null;
+    const match = trimmed.match(/^([\d.,]+)\s*([A-Za-z]+)?$/);
+    if (match) {
+      num = parseFloat(match[1].replace(/,/g, '')) || 0;
+      unit = (match[2] || 'GB').toUpperCase();
+    } else {
+      num = parseFloat(trimmed.replace(/,/g, '')) || 0;
+    }
+  } else {
+    num = Number(val);
+    if (isNaN(num)) return null;
+
+    if (isBytes) {
+      const TB_BYTES = 1099511627776; // 1024^4
+      const GB_BYTES = 1073741824;    // 1024^3
+      const MB_BYTES = 1048576;       // 1024^2
+
+      if (num >= TB_BYTES) {
+        num = num / TB_BYTES;
+        unit = 'TB';
+      } else if (num >= GB_BYTES) {
+        num = num / GB_BYTES;
+        unit = 'GB';
+      } else if (num >= MB_BYTES || num > 0) {
+        num = num / MB_BYTES;
+        unit = 'MB';
+      } else {
+        num = 0;
+        unit = 'GB';
+      }
+    } else {
+      // Value in Gigabytes
+      if (num >= 1024) {
+        num = num / 1024;
+        unit = 'TB';
+      } else if (num > 0 && num < 0.1) {
+        num = num * 1024;
+        unit = 'MB';
+      } else {
+        unit = 'GB';
+      }
+    }
+  }
+  return { num, unit };
+}
+
+function fmtTraffic(val, options = {}) {
+  const {
+    isBytes = false,
+    persianDigits = false,
+    persianUnit = false,
+    html = true,
+    placeholder = '-- GB',
+    precision = 2
+  } = options;
+
+  const parsed = fmtTrafficValue(val, isBytes);
+  if (!parsed) {
+    return html ? `<span class="num-bidi">${escapeHtml(placeholder)}</span>` : placeholder;
+  }
+
+  let numStr = parsed.num.toFixed(precision);
+  if (numStr.includes('.')) {
+    numStr = numStr.replace(/\.?0+$/, '');
+  }
+
+  let displayUnit = parsed.unit;
+  if (persianUnit) {
+    if (displayUnit === 'TB') displayUnit = 'ترابایت';
+    else if (displayUnit === 'GB') displayUnit = 'گیگابایت';
+    else if (displayUnit === 'MB') displayUnit = 'مگابایت';
+    else if (displayUnit === 'KB') displayUnit = 'کیلوبایت';
+  }
+
+  const finalDigits = persianDigits && typeof toPersianDigits === 'function' ? toPersianDigits(numStr) : numStr;
+  const formatted = `${finalDigits} ${displayUnit}`;
+  return html ? `<span class="num-bidi">${escapeHtml(formatted)}</span>` : formatted;
+}
+
 if (typeof window !== 'undefined') {
   window.toEnglishDigits = toEnglishDigits;
   window.toPersianDigits = toPersianDigits;
@@ -318,6 +407,19 @@ if (typeof window !== 'undefined') {
   window.formatPlanTitle = formatPlanTitle;
   window.buildRefLink = buildRefLink;
   window.bindModal = bindModal;
+  window.fmtTrafficValue = fmtTrafficValue;
+  window.fmtTraffic = fmtTraffic;
+}
+
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = {
+    escapeHtml,
+    toEnglishDigits,
+    toPersianDigits,
+    formatPrice,
+    fmtTrafficValue,
+    fmtTraffic,
+  };
 }
 
 

@@ -32,7 +32,7 @@ async def _nightly_account_block(
     lines = [f"{t(lang, 'stats_account')} : <code>{username}</code>"]
 
     if limit > 0:
-        lines.append(f"{t(lang, 'stats_total')} : <b>{human_bytes(limit)}</b>")
+        lines.append(f"{t(lang, 'stats_total')} : <b>\u200e{human_bytes(limit)}</b>")
     else:
         lines.append(f"{t(lang, 'stats_total')} : {t(lang, 'stats_unlimited')}")
 
@@ -56,12 +56,12 @@ async def _nightly_account_block(
         )
     rows = _series_rows(series)
 
-    lines.append(f"{t(lang, 'stats_used')} : <b>{human_bytes(used)}</b>")
+    lines.append(f"{t(lang, 'stats_used')} : <b>\u200e{human_bytes(used)}</b>")
     lines += _breakdown_lines(rows)
 
     if limit > 0:
         lines.append(
-            f"{t(lang, 'stats_remaining')} : <b>{human_bytes(max(0, limit - used))}</b>"
+            f"{t(lang, 'stats_remaining')} : <b>\u200e{human_bytes(max(0, limit - used))}</b>"
         )
 
     # today's usage per node: the query range ends today, so today is the
@@ -72,7 +72,7 @@ async def _nightly_account_block(
         data = row.get("data") or []
         value = int(data[-1]) if data else 0
         if value > 0:
-            today_lines.append(f"{_node_label(row)} : {human_bytes(value)}")
+            today_lines.append(f"{_node_label(row)} : \u200e{human_bytes(value)}")
             today_total += value
     if today_lines:
         lines.append(t(lang, "report_today_breakdown"))
@@ -91,7 +91,7 @@ async def _nightly_account_block(
             when = t(lang, "stats_expired_ago", days=abs(delta_days))
         lines.append(f"{t(lang, 'stats_expire')} : <b>{when}</b> ({date_str})")
 
-    lines.append(f"{t(lang, 'stats_today')} : <b>{human_bytes(today_total)}</b>")
+    lines.append(f"{t(lang, 'stats_today')} : <b>\u200e{human_bytes(today_total)}</b>")
     return "\n".join(lines)
 
 

@@ -187,7 +187,7 @@ function renderShopPlans(data) {
       : (Number(p.duration_days) > 0
           ? `<span class="flex items-center gap-1">📅 <b class="text-slate-200">${p.duration_days} روز</b></span>`
           : '<span class="flex items-center gap-1">📅 <b class="text-slate-200">نامحدود روز</b></span>');
-    const trafficText = Number(p.traffic_gb) > 0 ? `${p.traffic_gb} GB` : 'نامحدود';
+    const trafficText = Number(p.traffic_gb) > 0 ? fmtTraffic(p.traffic_gb, { html: false }) : 'نامحدود';
 
     return `
       <div class="shop-plan-card bg-slate-800/90 rounded-2xl p-4 border ${isExtraTraffic ? 'border-cyan-500/50 shadow-lg shadow-cyan-500/10' : (isPopular ? 'border-amber-500/60 shadow-lg shadow-amber-500/10' : 'border-slate-700/80')} relative overflow-hidden group">
@@ -207,7 +207,7 @@ function renderShopPlans(data) {
           </div>
         </div>
         <div class="flex items-center justify-between my-2.5 text-[10px] text-slate-300 bg-slate-900/60 px-3 py-2 rounded-xl whitespace-nowrap overflow-hidden">
-          <span class="flex items-center gap-1">📊 <b dir="ltr" class="font-mono text-cyan-300">${trafficText}</b></span>
+          <span class="flex items-center gap-1">📊 <b dir="ltr" class="font-mono text-cyan-300 num-bidi">${trafficText}</b></span>
           ${durationText}
           <span class="flex items-center gap-1">📱 <b class="text-slate-200">${devLimitText}</b></span>
         </div>
@@ -244,7 +244,7 @@ function openCheckoutConfirmModal(plan) {
   const confirmBtn = document.getElementById('confirmPurchaseBtn');
 
   if (nameEl) nameEl.innerHTML = formatPlanTitle(plan.name);
-  if (trafEl) trafEl.innerText = `${plan.traffic} GB`;
+  if (trafEl) trafEl.innerText = fmtTraffic(plan.traffic, { html: false });
   if (daysEl) daysEl.innerText = `${plan.days} روز`;
   if (priceEl) priceEl.innerText = `${Number(planPrice).toLocaleString('en-US')} تومان`;
   if (balEl) balEl.innerText = `${Number(userBalance).toLocaleString('en-US')} تومان`;
@@ -362,7 +362,7 @@ function showPurchaseModal(res, fallbackPlanName, fallbackPlanPrice) {
     if (sIconEl) sIconEl.innerText = '📦';
   }
 
-  if (sTrafEl) sTrafEl.innerText = `${res.traffic_gb ?? ''} GB`;
+  if (sTrafEl) sTrafEl.innerText = fmtTraffic(res.traffic_gb, { html: false });
   if (sDaysEl) sDaysEl.innerText = `${res.duration_days ?? ''} روز`;
   if (sUserEl) sUserEl.innerText = res.panel_username || (window.lastUserData?.active_sub?.username || 'کاربر');
   if (sPriceEl) sPriceEl.innerText = `${Number(res.effective_price ?? fallbackPlanPrice).toLocaleString('en-US')} تومان`;

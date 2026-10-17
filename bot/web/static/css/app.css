@@ -28,6 +28,7 @@ html, body, button, input, optgroup, select, textarea, div, span, p, h1, h2, h3,
 }
 
 :root {
+  /* Surface Tokens (Dark Default) */
   --page-bg: #080d1a;
   --frame-bg: #0f172a;
   --frame-border: rgba(51, 65, 85, 0.8);
@@ -36,8 +37,41 @@ html, body, button, input, optgroup, select, textarea, div, span, p, h1, h2, h3,
   --card-border: rgba(51, 65, 85, 0.8);
   --text-main: #f8fafc;
   --text-muted: #94a3b8;
+
+  /* Semantic Accent Tokens (Brand / Cyan-Sky) */
+  --c-accent: #22d3ee;                 /* cyan-400 */
+  --c-accent-hover: #38bdf8;           /* sky-400 */
+  --c-accent-soft: rgba(34, 211, 238, 0.12);
+  --c-accent-border: rgba(34, 211, 238, 0.30);
+
+  /* Semantic Success Tokens (Emerald / Green) */
+  --c-success: #34d399;                /* emerald-400 */
+  --c-success-soft: rgba(52, 211, 153, 0.12);
+  --c-success-border: rgba(52, 211, 153, 0.30);
+
+  /* Semantic Warning Tokens (Amber / Orange) */
+  --c-warn: #fbbf24;                   /* amber-400 */
+  --c-warn-soft: rgba(251, 191, 36, 0.12);
+  --c-warn-border: rgba(251, 191, 36, 0.30);
+
+  /* Semantic Danger Tokens (Rose / Red) */
+  --c-danger: #fb7185;                 /* rose-400 */
+  --c-danger-soft: rgba(251, 113, 133, 0.12);
+  --c-danger-border: rgba(251, 113, 133, 0.30);
+
+  /* Semantic Info Tokens (Blue) */
+  --c-info: #60a5fa;                   /* blue-400 */
+  --c-info-soft: rgba(96, 165, 250, 0.12);
+  --c-info-border: rgba(96, 165, 250, 0.30);
+
+  /* Semantic Purple Tokens (Telegram / Crypto / Special) */
+  --c-purple: #c084fc;                 /* purple-400 */
+  --c-purple-soft: rgba(192, 132, 252, 0.12);
+  --c-purple-border: rgba(192, 132, 252, 0.30);
 }
+
 html.theme-light {
+  /* Surface Tokens (Light Mode) */
   --page-bg: #f1f5f9;
   --frame-bg: #f8fafc;
   --frame-border: #cbd5e1;
@@ -46,6 +80,87 @@ html.theme-light {
   --card-border: #e2e8f0;
   --text-main: #0f172a;
   --text-muted: #64748b;
+
+  /* Semantic Accent Tokens (High Contrast for Light BG - WCAG AA >= 4.5:1) */
+  --c-accent: #0284c7;                 /* sky-600 */
+  --c-accent-hover: #0369a1;           /* sky-700 */
+  --c-accent-soft: rgba(2, 132, 199, 0.08);
+  --c-accent-border: rgba(2, 132, 199, 0.22);
+
+  /* Semantic Success Tokens */
+  --c-success: #059669;                /* emerald-600 */
+  --c-success-soft: rgba(5, 150, 105, 0.08);
+  --c-success-border: rgba(5, 150, 105, 0.22);
+
+  /* Semantic Warning Tokens */
+  --c-warn: #b45309;                   /* amber-700 */
+  --c-warn-soft: rgba(180, 83, 9, 0.08);
+  --c-warn-border: rgba(180, 83, 9, 0.22);
+
+  /* Semantic Danger Tokens */
+  --c-danger: #e11d48;                 /* rose-600 */
+  --c-danger-soft: rgba(225, 29, 72, 0.08);
+  --c-danger-border: rgba(225, 29, 72, 0.22);
+
+  /* Semantic Info Tokens */
+  --c-info: #2563eb;                   /* blue-600 */
+  --c-info-soft: rgba(37, 99, 235, 0.08);
+  --c-info-border: rgba(37, 99, 235, 0.22);
+
+  /* Semantic Purple Tokens */
+  --c-purple: #7c3aed;                 /* purple-600 */
+  --c-purple-soft: rgba(124, 58, 237, 0.08);
+  --c-purple-border: rgba(124, 58, 237, 0.22);
+}
+
+/* Typography Semantic Color Utilities */
+.t-main       { color: var(--text-main) !important; }
+.t-muted      { color: var(--text-muted) !important; }
+.t-accent     { color: var(--c-accent) !important; }
+.t-success    { color: var(--c-success) !important; }
+.t-warn       { color: var(--c-warn) !important; }
+.t-danger     { color: var(--c-danger) !important; }
+.t-info       { color: var(--c-info) !important; }
+.t-purple     { color: var(--c-purple) !important; }
+
+/* Surface / Badge Semantic Soft Colors (replaces bg-*-950/50 + text-*) */
+.s-accent-soft {
+  background-color: var(--c-accent-soft) !important;
+  color: var(--c-accent) !important;
+  border-color: var(--c-accent-border) !important;
+}
+.s-success-soft {
+  background-color: var(--c-success-soft) !important;
+  color: var(--c-success) !important;
+  border-color: var(--c-success-border) !important;
+}
+.s-warn-soft {
+  background-color: var(--c-warn-soft) !important;
+  color: var(--c-warn) !important;
+  border-color: var(--c-warn-border) !important;
+}
+.s-danger-soft {
+  background-color: var(--c-danger-soft) !important;
+  color: var(--c-danger) !important;
+  border-color: var(--c-danger-border) !important;
+}
+.s-info-soft {
+  background-color: var(--c-info-soft) !important;
+  color: var(--c-info) !important;
+  border-color: var(--c-info-border) !important;
+}
+.s-purple-soft {
+  background-color: var(--c-purple-soft) !important;
+  color: var(--c-purple) !important;
+  border-color: var(--c-purple-border) !important;
+}
+
+/* Bulletproof BiDi Number & Unit Isolation */
+.num-bidi {
+  display: inline-block;
+  direction: ltr !important;
+  unicode-bidi: isolate !important;
+  text-align: left;
 }
 
 .card {

@@ -99,7 +99,7 @@ async def _weekly_text_for_user(
 
         acc_lines = []
         if multi_account:
-            acc_lines.append(f"👤 {t(lang, 'stats_account')} : <code>{u_name}</code>")
+            acc_lines.append(f"{t(lang, 'stats_account')} : <code>{u_name}</code>")
 
         for offset in range(6, -1, -1):
             day_dt = week_start + timedelta(days=offset)
@@ -108,12 +108,13 @@ async def _weekly_text_for_user(
             d_name = _weekday_name(day_dt, lang)
             date_str = format_date(day_dt, lang)
             acc_lines.append("")
-            acc_lines.append(t(lang, "weekly_day", day=d_name, date=date_str, total=human_bytes(total)))
+            acc_lines.append(t(lang, "weekly_day", day=d_name, date=date_str))
             rows = sorted(day_rows.get(day, []), key=lambda x: x[1], reverse=True)
-            if rows:
-                parts = [f"{lbl} {human_bytes(val)}" for lbl, val in rows if val > 0]
-                if parts:
-                    acc_lines.append(" • ".join(parts))
+            parts = [f"{lbl} {human_bytes(val)}" for lbl, val in rows if val > 0]
+            if parts:
+                acc_lines.append(f"\u200e{human_bytes(total)} : {' • '.join(parts)}")
+            else:
+                acc_lines.append(f"\u200e{human_bytes(total)}")
 
         acc_lines.append("")
         acc_lines.append(t(lang, "weekly_total", total=human_bytes(acc_week_total)))
@@ -129,7 +130,7 @@ async def _weekly_text_for_user(
     if multi_account:
         lines.append("")
         lines.append(SEPARATOR)
-        lines.append(f"📊 <b>مجموع کل مصارف ({len(account_data)} اکانت) : {human_bytes(grand_week_total)}</b>")
+        lines.append(f"📊 <b>مجموع کل مصارف ({len(account_data)} اکانت) : \u200e{human_bytes(grand_week_total)}</b>")
 
     lines.append(SEPARATOR)
 

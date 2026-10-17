@@ -128,8 +128,8 @@ async function renderBarChart(containerId, totals, labels, isMonthly = false) {
               return isMonthly ? `هفته ${lbl}` : `روز ${lbl}`;
             },
             label: function(context) {
-              const val = context.raw != null ? Number(context.raw).toFixed(2) : '0.00';
-              return `\u200E${val} GB\u200E`;
+              const val = context.raw != null ? context.raw : 0;
+              return fmtTraffic(val, { html: false });
             }
           }
         }
@@ -154,7 +154,7 @@ async function renderBarChart(containerId, totals, labels, isMonthly = false) {
             color: textColor,
             font: { family: 'monospace', size: 9, weight: isLight ? '600' : '500' },
             callback: function(val) {
-              return `\u200E${val} GB\u200E`;
+              return fmtTraffic(val, { html: false });
             }
           }
         }
@@ -179,7 +179,7 @@ function renderNodeBreakdown(containerId, nodes, emptyText = 'مصرفی ثبت 
   container.innerHTML = nodes.map(n => `
     <div dir="ltr" class="bg-transparent p-2 rounded-lg flex items-center justify-between border border-slate-700/40">
       <span class="text-base">${n.flag || '🌐'}</span>
-      <span class="font-bold text-slate-100 font-mono inline-block" dir="ltr">\u200E${toEnglishDigits(n.total_formatted || '0 GB')}\u200E</span>
+      <span class="font-bold text-slate-100 font-mono num-bidi" dir="ltr">${fmtTraffic(n.total_formatted || '0 GB', { html: false })}</span>
     </div>
   `).join('');
 }
@@ -308,8 +308,10 @@ async function renderDonutChart(containerId, labels, data, isDevice = false) {
             label: function(ctx) {
               if (!hasData) return ' بدون مصرف ثبت‌شده';
               const val = ctx.raw;
-              const unit = isDevice ? ' دستگاه' : ' GB';
-              return ` \u200E${val}${unit}\u200E`;
+              if (isDevice) {
+                return ` ${toEnglishDigits(val)} دستگاه`;
+              }
+              return ` ${fmtTraffic(val, { html: false })}`;
             }
           }
         }
@@ -403,7 +405,7 @@ async function renderLineCurveChart(containerId, labels, data, peakHour = null) 
           cornerRadius: 8,
           callbacks: {
             title: (items) => `بازه ${items[0]?.label || ''}`,
-            label: (ctx) => ` \u200E${ctx.raw} GB\u200E`
+            label: (ctx) => ` ${fmtTraffic(ctx.raw, { html: false })}`
           }
         }
       },
@@ -425,7 +427,7 @@ async function renderLineCurveChart(containerId, labels, data, peakHour = null) 
           ticks: {
             color: textColor,
             font: { family: 'monospace', size: 9, weight: isLight ? '600' : '500' },
-            callback: (v) => `\u200E${v} G\u200E`
+            callback: (v) => fmtTraffic(v, { html: false })
           }
         }
       }
@@ -446,12 +448,12 @@ function renderTrafficSplit(splitData) {
   const upPct = splitData.upload_percent ?? 15;
 
   const downGbEl = document.getElementById('repSplitDownGb');
-  if (downGbEl) downGbEl.innerText = `\u200E${toEnglishDigits(downGb)} GB\u200E`;
+  if (downGbEl) downGbEl.innerText = fmtTraffic(downGb, { html: false });
   const downPctEl = document.getElementById('repSplitDownPct');
   if (downPctEl) downPctEl.innerText = `${toEnglishDigits(downPct)}%`;
 
   const upGbEl = document.getElementById('repSplitUpGb');
-  if (upGbEl) upGbEl.innerText = `\u200E${toEnglishDigits(upGb)} GB\u200E`;
+  if (upGbEl) upGbEl.innerText = fmtTraffic(upGb, { html: false });
   const upPctEl = document.getElementById('repSplitUpPct');
   if (upPctEl) upPctEl.innerText = `${toEnglishDigits(upPct)}%`;
 

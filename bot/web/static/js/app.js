@@ -1313,7 +1313,7 @@ function openExpiryCountdownModal() {
   if (allowanceEl) {
     if (daysLeft > 0 && trafficRemainingGb > 0) {
       const dailyGb = (trafficRemainingGb / daysLeft).toFixed(2);
-      allowanceEl.innerText = `${dailyGb} GB / روز`;
+      allowanceEl.innerHTML = `${fmtTraffic(dailyGb, { html: true })} / روز`;
     } else {
       allowanceEl.innerText = 'نامحدود';
     }
@@ -2004,8 +2004,8 @@ function setupAccountSwitcher() {
           <div class="font-bold text-white text-xs flex items-center gap-1.5">
             <span>👤</span> ${acc.username}
           </div>
-          <span class="text-[10px] text-slate-400 mt-0.5 block font-mono" dir="ltr">
-            ${acc.used_gb} GB / ${acc.total_gb > 0 ? acc.total_gb + ' GB' : 'نامحدود'}
+          <span class="text-[10px] text-slate-400 mt-0.5 block font-mono num-bidi" dir="ltr">
+            ${fmtTraffic(acc.used_gb, { html: false })} / ${acc.total_gb > 0 ? fmtTraffic(acc.total_gb, { html: false }) : 'نامحدود'}
           </span>
         </div>
         ${acc.is_active ? '<span class="text-xs text-blue-400 font-bold bg-transparent px-2 py-0.5 rounded-full border border-blue-500/40">فعال ✓</span>' : '<span class="text-xs text-slate-400 bg-transparent border border-slate-700/60 px-2 py-0.5 rounded-full">انتخاب</span>'}
@@ -2502,13 +2502,13 @@ function hydrateUserInterface(data) {
       if (noSubCard) noSubCard.classList.add('hidden');
 
       const remainEl = $('dashboardRemainingTraffic');
-      if (remainEl) remainEl.innerText = `${sub.traffic_remaining_gb ?? '--'} GB`;
+      if (remainEl) remainEl.innerText = fmtTraffic(sub.traffic_remaining_gb, { html: false });
 
       const pctEl = $('dashboardPercentRemaining');
       if (pctEl) pctEl.innerText = `${toEnglishDigits(Math.round(sub.percent_remaining ?? 100))}%`;
 
       const pillEl = $('dashboardUsagePill');
-      if (pillEl) pillEl.innerText = `${sub.traffic_used_gb ?? 0} / ${sub.traffic_total_gb ?? 0} GB`;
+      if (pillEl) pillEl.innerText = `${fmtTraffic(sub.traffic_used_gb ?? 0, { html: false })} / ${fmtTraffic(sub.traffic_total_gb ?? 0, { html: false })}`;
 
       const daysEl = $('dashboardDaysLeft');
       if (daysEl) daysEl.innerText = `${sub.days_left ?? 0} روز`;
@@ -2517,7 +2517,7 @@ function hydrateUserInterface(data) {
       if (expireEl) expireEl.innerText = sub.expire_jalali ? `تا ${sub.expire_jalali}` : 'نامحدود';
 
       const todayEl = $('dashboardTodayUsed');
-      if (todayEl) todayEl.innerText = `${sub.today_used_gb ?? '0.00'} GB`;
+      if (todayEl) todayEl.innerText = fmtTraffic(sub.today_used_gb ?? '0.00', { html: false });
 
       if (gaugeProgress) {
         const circumference = 314.15;
@@ -2706,7 +2706,7 @@ function hydrateUserInterface(data) {
       }
     }
 
-    if (storyTraffic) storyTraffic.innerText = `${sub?.traffic_remaining_gb ?? '--'} GB`;
+    if (storyTraffic) storyTraffic.innerText = fmtTraffic(sub?.traffic_remaining_gb, { html: false });
     if (storyDays) storyDays.innerText = `${toEnglishDigits(sub?.days_left ?? 0)} روز اعتبار`;
     const botUsername = data.bot_username || window.Telegram?.WebApp?.initDataUnsafe?.bot?.username || '';
     const refLink = typeof window.buildRefLink === 'function' ? window.buildRefLink(botUsername, user.id) : '';
@@ -2722,7 +2722,7 @@ function hydrateUserInterface(data) {
     // Today Country Breakdown
     const countryList = $('countryBreakdownList');
     const countryTotalHeader = $('countryTodayTotalHeader');
-    if (countryTotalHeader) countryTotalHeader.innerText = `${sub?.today_used_gb ?? '0.00'} GB`;
+    if (countryTotalHeader) countryTotalHeader.innerText = fmtTraffic(sub?.today_used_gb ?? '0.00', { html: false });
     if (countryList) {
       const bDown = sub?.today_breakdown || [];
       if (bDown.length === 0) {
@@ -2743,7 +2743,7 @@ function hydrateUserInterface(data) {
           return `
           <div class="p-2.5 rounded-xl bg-slate-900/70 border border-slate-700/50 space-y-1.5">
             <div class="flex justify-between items-center text-xs">
-              <span class="text-cyan-300 font-black text-xs font-mono" dir="ltr">${toEnglishDigits(item.total_formatted)}</span>
+              <span class="text-cyan-300 font-black text-xs font-mono num-bidi" dir="ltr">${fmtTraffic(item.total_formatted, { html: false })}</span>
               <span class="flex items-center gap-2 font-bold text-slate-200">
                 <span>${item.name}</span>
                 <span class="text-base">${item.flag || '🌐'}</span>
@@ -2764,13 +2764,13 @@ function hydrateUserInterface(data) {
 
     if (sub) {
       const repTotal = $('repNightlyTotal');
-      if (repTotal) repTotal.innerText = `${sub.traffic_total_gb ?? '--'} GB`;
+      if (repTotal) repTotal.innerText = fmtTraffic(sub.traffic_total_gb, { html: false });
       const repUsed = $('repNightlyUsed');
-      if (repUsed) repUsed.innerText = `${sub.traffic_used_gb ?? '--'} GB`;
+      if (repUsed) repUsed.innerText = fmtTraffic(sub.traffic_used_gb, { html: false });
       const repRemain = $('repNightlyRemain');
-      if (repRemain) repRemain.innerText = `${sub.traffic_remaining_gb ?? '--'} GB`;
+      if (repRemain) repRemain.innerText = fmtTraffic(sub.traffic_remaining_gb, { html: false });
       const repYesterday = $('repNightlyYesterday');
-      if (repYesterday) repYesterday.innerText = `${sub.yesterday_used_gb ?? '0.00'} GB`;
+      if (repYesterday) repYesterday.innerText = fmtTraffic(sub.yesterday_used_gb ?? '0.00', { html: false });
       const repExpire = $('repNightlyExpire');
       if (repExpire) repExpire.innerText = `${toEnglishDigits(sub.days_left ?? 0)} روز (${toEnglishDigits(sub.expire_jalali || 'نامحدود')})`;
 
@@ -2781,10 +2781,10 @@ function hydrateUserInterface(data) {
       }
 
       const repWeeklyTotal = $('repWeeklyTotal');
-      if (repWeeklyTotal) repWeeklyTotal.innerHTML = `<span dir="ltr" class="font-mono inline-block">\u200E${sub.week_used_gb ?? '0.00'} GB\u200E</span>`;
+      if (repWeeklyTotal) repWeeklyTotal.innerHTML = fmtTraffic(sub.week_used_gb ?? '0.00', { html: true });
       const repWeeklyBusiest = $('repWeeklyBusiest');
       if (repWeeklyBusiest) {
-        repWeeklyBusiest.innerHTML = `${sub.busiest_day_name || '—'} <span dir="ltr" class="font-mono inline-block text-cyan-300 font-semibold">\u200E(${toEnglishDigits(sub.busiest_day_amount || '0 GB')})\u200E</span>`;
+        repWeeklyBusiest.innerHTML = `${sub.busiest_day_name || '—'} <span class="font-mono text-cyan-300 font-semibold num-bidi">(${fmtTraffic(sub.busiest_day_amount || '0 GB', { html: false })})</span>`;
       }
 
       if (typeof renderBarChart === 'function') {
@@ -2798,7 +2798,7 @@ function hydrateUserInterface(data) {
       const repMonthlyTitle = $('repMonthlyTitle');
       if (repMonthlyTitle) repMonthlyTitle.innerText = `📅 گزارش جامع ماه ${sub.current_month_name || ''}`;
       const repMonthlyTotal = $('repMonthlyTotal');
-      if (repMonthlyTotal) repMonthlyTotal.innerHTML = `<span dir="ltr" class="font-mono inline-block">\u200E${sub.month_used_gb ?? '0.00'} GB\u200E</span>`;
+      if (repMonthlyTotal) repMonthlyTotal.innerHTML = fmtTraffic(sub.month_used_gb ?? '0.00', { html: true });
 
       if (typeof renderBarChart === 'function') {
         try {

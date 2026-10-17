@@ -78,5 +78,5 @@ def _breakdown_lines(rows: list[dict], value_key: int | None = None) -> list[str
             value = int(data[value_key]) if value_key < len(data) else 0
         if value <= 0:
             continue
-        lines.append(f"{_node_label(row)} : {human_bytes(value)}")
+        lines.append(f"{_node_label(row)} : \u200e{human_bytes(value)}")
     return lines

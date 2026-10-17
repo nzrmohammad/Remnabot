@@ -225,7 +225,7 @@
               <span>⚡️</span> ترافیک کل سرویس
             </span>
             <span class="text-xs font-bold text-emerald-400 bg-emerald-950/70 px-2.5 py-0.5 rounded-full border border-emerald-800/60 flex items-center gap-1">
-              <span id="dashboardRemainingTraffic" class="font-mono" dir="ltr">-- GB</span>
+              <span id="dashboardRemainingTraffic" class="font-mono num-bidi" dir="ltr">-- GB</span>
               <span>مانده</span>
             </span>
           </div>
@@ -247,7 +247,7 @@
               <span id="dashboardPercentRemaining" class="text-3xl font-black text-white tracking-tight leading-none font-mono" dir="ltr">--%</span>
               <span class="text-[10px] text-slate-400 font-medium mt-1">باقی‌مانده</span>
               <div class="mt-1.5 text-[10px] text-indigo-200 bg-slate-900/90 border border-indigo-500/40 px-2.5 py-0.5 rounded-full font-semibold shadow-sm flex items-center justify-center">
-                <span id="dashboardUsagePill" class="font-mono font-bold text-cyan-300" dir="ltr">-- / -- GB</span>
+                <span id="dashboardUsagePill" class="font-mono font-bold text-cyan-300 num-bidi" dir="ltr">-- / -- GB</span>
               </div>
             </div>
           </div>
@@ -265,7 +265,7 @@
               <div class="text-[11px] text-slate-400 flex items-center justify-center gap-1 font-medium">
                 <span>⚡️</span> مصرف امروز
               </div>
-              <div id="dashboardTodayUsed" class="text-sm font-extrabold text-cyan-400 mt-0.5 font-mono" dir="ltr">0.00 GB</div>
+              <div id="dashboardTodayUsed" class="text-sm font-extrabold text-cyan-400 mt-0.5 font-mono num-bidi" dir="ltr">0.00 GB</div>
             </div>
           </div>
         </div>
@@ -280,7 +280,7 @@
                 <span>🌍</span> ریز مصرف
               </span>
             </div>
-            <span class="text-[10px] font-mono text-cyan-400 bg-transparent px-1 py-0.5 font-medium">مجموع: <span id="countryTodayTotalHeader" dir="ltr">0.00 GB</span></span>
+            <span class="text-[10px] font-mono text-cyan-400 bg-transparent px-1 py-0.5 font-medium">مجموع: <span id="countryTodayTotalHeader" class="num-bidi" dir="ltr">0.00 GB</span></span>
           </button>
 
           <!-- Collapsible Content (Hidden by default, opens on click) -->
@@ -428,10 +428,10 @@
           </div>
 
           <div class="space-y-1.5 text-xs text-slate-300">
-            <div class="flex justify-between"><span>📊 حجم کل بسته :</span><b id="repNightlyTotal" class="font-mono text-white" dir="ltr">-- GB</b></div>
-            <div class="flex justify-between"><span>🔥 حجم مصرف‌شده :</span><b id="repNightlyUsed" class="font-mono text-amber-400" dir="ltr">-- GB</b></div>
-            <div class="flex justify-between"><span>📥 حجم باقیمانده :</span><b id="repNightlyRemain" class="font-mono text-emerald-400" dir="ltr">-- GB</b></div>
-            <div class="flex justify-between"><span>⚡️ مجموع مصرف دیشب :</span><b id="repNightlyYesterday" class="font-mono text-cyan-400 text-sm" dir="ltr">0.00 GB</b></div>
+            <div class="flex justify-between"><span>📊 حجم کل بسته :</span><b id="repNightlyTotal" class="font-mono text-white num-bidi" dir="ltr">-- GB</b></div>
+            <div class="flex justify-between"><span>🔥 حجم مصرف‌شده :</span><b id="repNightlyUsed" class="font-mono text-amber-400 num-bidi" dir="ltr">-- GB</b></div>
+            <div class="flex justify-between"><span>📥 حجم باقیمانده :</span><b id="repNightlyRemain" class="font-mono text-emerald-400 num-bidi" dir="ltr">-- GB</b></div>
+            <div class="flex justify-between"><span>⚡️ مجموع مصرف دیشب :</span><b id="repNightlyYesterday" class="font-mono text-cyan-400 text-sm num-bidi" dir="ltr">0.00 GB</b></div>
             <div class="flex justify-between"><span>📅 انقضا :</span><span id="repNightlyExpire" class="font-semibold text-slate-200">--</span></div>
           </div>
 
@@ -451,7 +451,7 @@
             <span class="text-[11px] font-mono text-slate-400">7 روز اخیر</span>
           </div>
           <div class="space-y-1.5 text-xs text-slate-300">
-            <div class="flex justify-between"><span>⚡️ کل مصرف این هفته :</span><b id="repWeeklyTotal" class="font-mono text-blue-400 text-sm" dir="ltr">-- GB</b></div>
+            <div class="flex justify-between"><span>⚡️ کل مصرف این هفته :</span><b id="repWeeklyTotal" class="font-mono text-blue-400 text-sm num-bidi" dir="ltr">-- GB</b></div>
             <div class="flex justify-between"><span>🏆 پرمصرف‌ترین روز شما :</span><span id="repWeeklyBusiest" class="font-bold text-white">—</span></div>
           </div>
           <div class="pt-2 border-t border-slate-700/60">
@@ -477,7 +477,7 @@
             <span class="text-[11px] font-mono text-slate-400">ماه جاری</span>
           </div>
           <div class="space-y-1.5 text-xs text-slate-300">
-            <div class="flex justify-between"><span>⚡️ کل مصرف ماهانه اکانت :</span><b id="repMonthlyTotal" class="font-mono text-purple-400 text-sm" dir="ltr">-- GB</b></div>
+            <div class="flex justify-between"><span>⚡️ کل مصرف ماهانه اکانت :</span><b id="repMonthlyTotal" class="font-mono text-purple-400 text-sm num-bidi" dir="ltr">-- GB</b></div>
           </div>
 
           <!-- Monthly 4-Week Chart (نمودار مصرف 4 هفته اخیر) -->
@@ -510,8 +510,8 @@
             
             <div class="space-y-1.5">
               <div class="flex justify-between text-[11px] font-mono" dir="ltr">
-                <span class="text-emerald-400 font-bold flex items-center gap-1">📥 DL: <span id="repSplitDownGb">-- GB</span> (<span id="repSplitDownPct">--%</span>)</span>
-                <span class="text-sky-400 font-bold flex items-center gap-1">📤 UL: <span id="repSplitUpGb">-- GB</span> (<span id="repSplitUpPct">--%</span>)</span>
+                <span class="text-emerald-400 font-bold flex items-center gap-1">📥 DL: <span id="repSplitDownGb" class="num-bidi">-- GB</span> (<span id="repSplitDownPct">--%</span>)</span>
+                <span class="text-sky-400 font-bold flex items-center gap-1">📤 UL: <span id="repSplitUpGb" class="num-bidi">-- GB</span> (<span id="repSplitUpPct">--%</span>)</span>
               </div>
               <div class="w-full h-2 rounded-full bg-slate-950/80 p-[1px] border border-slate-700/50 flex overflow-hidden relative" dir="ltr">
                 <div id="repSplitDownBar" class="h-full bg-gradient-to-r from-emerald-500 to-teal-400 rounded-l-full transition-all duration-700" style="width: 85%;"></div>
@@ -823,7 +823,7 @@
               </div>
               <div class="ref-stat-box bg-slate-900/60 rounded-xl p-2.5 border border-slate-700/50">
                 <span class="text-[10px] text-slate-400 block mb-0.5">پاداش ترافیک دریافتی</span>
-                <div class="flex items-center justify-center gap-1 text-sm font-black font-mono text-emerald-400" dir="ltr">
+                <div class="flex items-center justify-center gap-1 text-sm font-black font-mono text-emerald-400 num-bidi" dir="ltr">
                   <span id="profileReferralRewardTotal">0</span>
                   <span class="text-xs font-bold font-mono leading-none">GB</span>
                 </div>
@@ -1457,7 +1457,7 @@
           </div>
           <div class="flex justify-between items-center">
             <span class="text-slate-400">حجم ترافیک:</span>
-            <b id="checkoutPlanTraffic" class="text-cyan-400 font-mono" dir="ltr">-- GB</b>
+            <b id="checkoutPlanTraffic" class="text-cyan-400 font-mono num-bidi" dir="ltr">-- GB</b>
           </div>
           <div class="flex justify-between items-center">
             <span class="text-slate-400">مدت اعتبار:</span>
@@ -1668,7 +1668,7 @@
             <!-- Modern Metric Card -->
             <div id="storyMetricsStandard" class="bg-slate-900/80 border border-slate-700/70 rounded-2xl p-3 my-1 shadow-inner relative overflow-hidden">
               <span class="text-[10px] text-slate-400 font-medium block">ترافیک باقی‌مانده اشتراک:</span>
-              <div id="storyCardTraffic" class="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-300 font-mono mt-0.5 tracking-tight" dir="ltr">
+              <div id="storyCardTraffic" class="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-300 font-mono mt-0.5 tracking-tight num-bidi" dir="ltr">
                 -- GB
               </div>
               <div class="flex items-center justify-center gap-2.5 text-[10px] text-slate-300 mt-1.5 pt-1.5 border-t border-slate-800/80">
@@ -1737,7 +1737,7 @@
               <span id="psvcIcon" class="text-base">📦</span>
             </div>
           </div>
-          <div class="flex justify-between items-center"><span class="text-slate-400">حجم ترافیک:</span><b id="psvcTraffic" class="text-cyan-400 font-mono" dir="ltr">-- GB</b></div>
+          <div class="flex justify-between items-center"><span class="text-slate-400">حجم ترافیک:</span><b id="psvcTraffic" class="text-cyan-400 font-mono num-bidi" dir="ltr">-- GB</b></div>
           <div class="flex justify-between items-center"><span class="text-slate-400">مدت اعتبار:</span><b id="psvcDays" class="text-slate-200">-- روز</b></div>
           <div class="flex justify-between items-center"><span class="text-slate-400">نام کاربری:</span><code id="psvcUser" class="text-indigo-300 font-mono" dir="ltr">--</code></div>
           <div class="flex justify-between items-center border-t border-slate-800 pt-1.5"><span class="text-slate-400">مبلغ کسر شده:</span><b id="psvcPrice" class="text-emerald-400 font-mono">-- تومان</b></div>
@@ -2196,7 +2196,7 @@
             <span class="text-slate-400 text-[11px] flex items-center gap-1">
               <span>💡</span> میانگین مجاز مصرف روزانه:
             </span>
-            <span id="modalExpiryDailyAllowance" class="font-mono font-bold text-emerald-400" dir="ltr">-- GB / روز</span>
+            <span id="modalExpiryDailyAllowance" class="font-mono font-bold text-emerald-400 num-bidi" dir="ltr">-- GB / روز</span>
           </div>
           <div class="flex items-center justify-between border-t border-slate-800/80 pt-1.5">
             <span class="text-slate-400 text-[11px] flex items-center gap-1">

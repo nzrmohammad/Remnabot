@@ -231,6 +231,11 @@ async def _migrate_schema(engine: AsyncEngine) -> None:
                     text("ALTER TABLE report_settings ADD COLUMN last_monthly_message_id BIGINT")
                 )
                 logger.info("added report_settings.last_monthly_message_id")
+            if "last_wheel_message_id" not in cols:
+                await conn.execute(
+                    text("ALTER TABLE report_settings ADD COLUMN last_wheel_message_id BIGINT")
+                )
+                logger.info("added report_settings.last_wheel_message_id")
 
         # --- topups.receipt_hash (duplicate-receipt fingerprint) --------- #
         cols = await _table_columns(conn, "topups")

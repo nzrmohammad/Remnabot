@@ -240,7 +240,7 @@ EN_TEXTS: dict[str, str] = {
         # --- reports ---
         "nightly_title": "🌙 <b>Nightly report</b>",
         "weekly_title": "📊 <b>Weekly report</b>",
-        "weekly_day": "📅 {day} {date} : <b>{total}</b>",
+        "weekly_day": "📅 {day} {date}",
         "weekly_others": "others",
         "weekly_total": "📊 Total this week : <b>{total}</b>",
         "weekly_hi": "Hi {name} 👋",

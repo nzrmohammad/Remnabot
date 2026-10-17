@@ -403,15 +403,10 @@
       const rev = $('adminTodayRevenue');
       if (rev) rev.innerText = formatNumber(m.today_revenue_toman || 0);
 
-      // Traffic: if >= 1000 GB, convert to TB for concise and single-line layout
+      // Traffic: format via SSOT fmtTraffic (handles TB auto-conversion & BiDi isolation)
       const bw = $('adminMonthTraffic');
       if (bw) {
-        const trafficGb = Number(m.month_traffic_gb || 0);
-        if (trafficGb >= 1000) {
-          bw.innerText = `${(trafficGb / 1024).toFixed(2)} TB`;
-        } else {
-          bw.innerText = `${trafficGb} GB`;
-        }
+        bw.innerHTML = fmtTraffic(m.month_traffic_gb, { html: true });
       }
 
       const onDev = $('adminOnlineDevices');
@@ -672,7 +667,7 @@
     const currentToday = Number(todayGb || (values && values[values.length - 1]) || 0);
     const totalEl = $('trafficChartTotal');
     if (totalEl) {
-      totalEl.innerHTML = `<span dir="ltr" class="inline-flex items-baseline gap-1"><span class="font-bold text-cyan-300 font-mono text-xs">${formatNumber(totalGb || currentToday || 0)}</span> <span class="text-[9px] text-cyan-300 font-sans">GB</span></span>`;
+      totalEl.innerHTML = `<span class="text-cyan-300 font-mono text-xs">${fmtTraffic(totalGb || currentToday || 0, { html: true })}</span>`;
     }
 
     if (trafficChartInstance) {
@@ -714,7 +709,7 @@
             rtl: true,
             textDirection: 'rtl',
             callbacks: {
-              label: (ctx) => `مصرف: \u200E${formatNumber(ctx.raw)} GB`
+              label: (ctx) => `مصرف: ${fmtTraffic(ctx.raw, { html: false })}`
             }
           }
         },
@@ -729,7 +724,7 @@
             ticks: {
               color: isDark ? '#cbd5e1' : '#0f172a',
               font: { family: 'Vazirmatn', size: 9 },
-              callback: (val) => `\u200E${val} GB`
+              callback: (val) => fmtTraffic(val, { html: false })
             }
           }
         }
@@ -894,7 +889,7 @@
           legend: { display: false },
           tooltip: {
             callbacks: {
-              label: (ctx) => `ساعت ${ctx.label}: ${formatNumber(ctx.raw)} GB`
+              label: (ctx) => `ساعت ${ctx.label}: ${fmtTraffic(ctx.raw, { html: false })}`
             }
           }
         },
@@ -1391,7 +1386,7 @@
               </div>
               <div class="bg-slate-900/80 p-2 rounded-xl">
                 <span class="text-slate-400 text-[10px] block mb-0.5">ترافیک مصرفی نود:</span>
-                <b class="text-cyan-400 font-mono text-xs" dir="ltr">${n.traffic_used_gb ? n.traffic_used_gb + ' GB' : '—'}</b>
+                <b class="text-cyan-400 font-mono text-xs num-bidi" dir="ltr">${n.traffic_used_gb ? fmtTraffic(n.traffic_used_gb, { html: false }) : '—'}</b>
               </div>
             </div>
           </div>
@@ -1669,7 +1664,7 @@
               </div>
               <div class="bg-transparent p-2 rounded-xl border border-slate-700/60">
                 <span class="text-slate-400 block mb-0.5">ترافیک مصرفی نود</span>
-                <b class="text-blue-600 dark:text-cyan-400 font-mono text-xs" dir="ltr">${n.traffic_used_gb ? n.traffic_used_gb + ' GB' : '0 GB'}</b>
+                <b class="text-blue-600 dark:text-cyan-400 font-mono text-xs num-bidi" dir="ltr">${fmtTraffic(n.traffic_used_gb || 0, { html: false })}</b>
               </div>
             </div>
 
@@ -1896,9 +1891,9 @@
           }
         }
 
-        const remDisplay = isUnlimited ? 'نامحدود' : `${formatNumber(remGb)} GB`;
-        const totalDisplay = isUnlimited ? 'نامحدود' : `${formatNumber(limitGb)} GB`;
-        const usedDisplay = `${formatNumber(usedGb)} GB`;
+        const remDisplay = isUnlimited ? 'نامحدود' : fmtTraffic(remGb, { html: false });
+        const totalDisplay = isUnlimited ? 'نامحدود' : fmtTraffic(limitGb, { html: false });
+        const usedDisplay = fmtTraffic(usedGb, { html: false });
 
         serviceLineHtml = `
           <div class="bg-transparent rounded-xl p-2.5 border border-slate-700/60 space-y-2">
@@ -1907,9 +1902,9 @@
               <div class="flex items-center justify-between text-[10px]">
                 <div class="flex items-center gap-1 font-mono text-slate-300">
                   <span class="text-slate-400 text-[10px] font-sans">مصرف:</span>
-                  <span dir="ltr" class="font-bold text-white dark:text-slate-100">${usedDisplay}</span>
+                  <span dir="ltr" class="font-bold text-white dark:text-slate-100 num-bidi">${usedDisplay}</span>
                   <span class="text-slate-400 font-sans">از</span>
-                  <span dir="ltr" class="text-slate-400 font-mono">${totalDisplay}</span>
+                  <span dir="ltr" class="text-slate-400 font-mono num-bidi">${totalDisplay}</span>
                 </div>
                 <span class="px-1.5 py-0.5 rounded-md text-[9px] font-mono font-bold border ${badgeColor}">
                   ${statusLabel}
@@ -3255,7 +3250,7 @@
             : '<span class="text-[10px] bg-transparent text-slate-500 dark:text-slate-400 border border-slate-400/30 px-2 py-0.5 rounded-lg font-medium">غیرفعال</span>';
 
           const trafficHtml = p.traffic_gb > 0
-            ? `<span class="inline-flex items-center justify-center gap-1 font-mono font-bold" dir="rtl"><span class="text-cyan-400 text-[10px]">GB</span><span class="text-cyan-300 text-xs">${p.traffic_gb}</span></span>`
+            ? fmtTraffic(p.traffic_gb, { html: true })
             : '<span class="text-cyan-300 font-bold">نامحدود</span>';
           const durationText = p.duration_days > 0 ? `${p.duration_days} روز` : 'نامحدود';
           const hwidText = p.hwid_limit > 0 ? `${p.hwid_limit} کاربر` : 'پیش‌فرض';
