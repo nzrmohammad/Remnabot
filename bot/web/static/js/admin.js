@@ -275,15 +275,28 @@
   };
   let isDark = getInitialAdminTheme();
 
-  const getThemeColors = () => ({
-    grid: isDark ? 'rgba(51, 65, 85, 0.3)' : 'rgba(148, 163, 184, 0.45)',
-    tick: isDark ? '#cbd5e1' : '#0f172a',
-    legendText: isDark ? '#f8fafc' : '#0f172a',
-    pointBorder: isDark ? '#0f172a' : '#ffffff',
-  });
+  const getThemeColors = () => {
+    if (typeof getChartThemeTokens === 'function') {
+      const tokens = getChartThemeTokens(!isDark);
+      return {
+        ...tokens,
+        legendText: tokens.legend,
+      };
+    }
+    return {
+      success: isDark ? '#34d399' : '#047857',
+      accent: isDark ? '#22d3ee' : '#0891b2',
+      warn: isDark ? '#fbbf24' : '#b45309',
+      grid: isDark ? 'rgba(51, 65, 85, 0.3)' : 'rgba(203, 213, 225, 0.7)',
+      tick: isDark ? '#cbd5e1' : '#475569',
+      legendText: isDark ? '#f8fafc' : '#0f172a',
+      pointBorder: isDark ? '#0f172a' : '#ffffff',
+    };
+  };
 
   const updateChartsTheme = () => {
-    const { grid, tick, legendText, pointBorder } = getThemeColors();
+    const colors = getThemeColors();
+    const { grid, tick, legendText, pointBorder, success, accent, warn } = colors;
 
     const updateScaleChart = (chart) => {
       if (!chart) return;
@@ -311,18 +324,24 @@
     updateScaleChart(salesChartInstance);
     if (monthlySalesChartInstance) {
       if (monthlySalesChartInstance.data?.datasets?.[0]) {
+        monthlySalesChartInstance.data.datasets[0].borderColor = success;
+        monthlySalesChartInstance.data.datasets[0].pointBackgroundColor = success;
         monthlySalesChartInstance.data.datasets[0].pointBorderColor = pointBorder;
       }
       updateScaleChart(monthlySalesChartInstance);
     }
     if (trafficChartInstance) {
       if (trafficChartInstance.data?.datasets?.[0]) {
+        trafficChartInstance.data.datasets[0].borderColor = accent;
+        trafficChartInstance.data.datasets[0].pointBackgroundColor = accent;
         trafficChartInstance.data.datasets[0].pointBorderColor = pointBorder;
       }
       updateScaleChart(trafficChartInstance);
     }
     if (hourlyChartInstance) {
       if (hourlyChartInstance.data?.datasets?.[0]) {
+        hourlyChartInstance.data.datasets[0].borderColor = warn;
+        hourlyChartInstance.data.datasets[0].pointBackgroundColor = warn;
         hourlyChartInstance.data.datasets[0].pointBorderColor = pointBorder;
       }
       updateScaleChart(hourlyChartInstance);

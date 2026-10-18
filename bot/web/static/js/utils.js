@@ -22,6 +22,8 @@ function showToast(msg) {
   if (!toast) {
     toast = document.createElement('div');
     toast.id = 'appToast';
+    toast.setAttribute('role', 'status');
+    toast.setAttribute('aria-live', 'assertive');
     toast.className = 'fixed top-12 left-1/2 transform -translate-x-1/2 z-50 bg-slate-900/95 text-white border border-slate-700/80 px-4 py-2.5 rounded-2xl shadow-2xl text-xs font-semibold text-center transition-all duration-300 opacity-0 pointer-events-none max-w-[90%]';
     toast.dir = 'rtl';
     document.body.appendChild(toast);
@@ -318,8 +320,27 @@ function bindModal(modalId, closeBtnId) {
   const modalEl = typeof modalId === 'string' ? document.getElementById(modalId) : modalId;
   const closeBtnEl = typeof closeBtnId === 'string' ? document.getElementById(closeBtnId) : closeBtnId;
   if (!modalEl) return { open: () => {}, close: () => {} };
-  const open = () => modalEl.classList.remove('hidden');
-  const close = () => modalEl.classList.add('hidden');
+
+  const onKeyDown = (e) => {
+    if (e.key === 'Escape' || e.key === 'Esc') {
+      close();
+    }
+  };
+
+  const open = () => {
+    modalEl.classList.remove('hidden');
+    document.addEventListener('keydown', onKeyDown);
+    const focusable = modalEl.querySelector('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+    if (focusable) {
+      setTimeout(() => focusable.focus(), 50);
+    }
+  };
+
+  const close = () => {
+    modalEl.classList.add('hidden');
+    document.removeEventListener('keydown', onKeyDown);
+  };
+
   if (closeBtnEl) closeBtnEl.addEventListener('click', close);
   modalEl.addEventListener('click', (e) => {
     if (e.target === modalEl) close();
@@ -431,6 +452,49 @@ function getDonutPalette(isLight = false) {
     : ['#22d3ee', '#a78bfa', '#fb7185', '#fbbf24', '#34d399', '#818cf8'];
 }
 
+function getChartThemeTokens(isLight = false) {
+  if (typeof window !== 'undefined' && typeof document !== 'undefined') {
+    try {
+      const s = getComputedStyle(document.documentElement);
+      const success = s.getPropertyValue('--c-success')?.trim();
+      const accent = s.getPropertyValue('--c-accent')?.trim();
+      const warn = s.getPropertyValue('--c-warn')?.trim();
+      const textMain = s.getPropertyValue('--text-main')?.trim();
+      const textMuted = s.getPropertyValue('--text-muted')?.trim();
+      if (success && accent && warn) {
+        return {
+          success,
+          accent,
+          warn,
+          grid: isLight ? 'rgba(203, 213, 225, 0.7)' : 'rgba(51, 65, 85, 0.3)',
+          tick: isLight ? (textMuted || '#475569') : (textMuted || '#cbd5e1'),
+          legend: isLight ? (textMain || '#0f172a') : (textMain || '#f8fafc'),
+          pointBorder: isLight ? '#ffffff' : '#0f172a',
+        };
+      }
+    } catch (e) {}
+  }
+  return isLight
+    ? {
+        success: '#047857',
+        accent: '#0891b2',
+        warn: '#b45309',
+        grid: 'rgba(203, 213, 225, 0.7)',
+        tick: '#475569',
+        legend: '#0f172a',
+        pointBorder: '#ffffff',
+      }
+    : {
+        success: '#34d399',
+        accent: '#22d3ee',
+        warn: '#fbbf24',
+        grid: 'rgba(51, 65, 85, 0.3)',
+        tick: '#cbd5e1',
+        legend: '#f8fafc',
+        pointBorder: '#0f172a',
+      };
+}
+
 if (typeof window !== 'undefined') {
   window.toEnglishDigits = toEnglishDigits;
   window.toPersianDigits = toPersianDigits;
@@ -441,6 +505,7 @@ if (typeof window !== 'undefined') {
   window.fmtTrafficValue = fmtTrafficValue;
   window.fmtTraffic = fmtTraffic;
   window.getDonutPalette = getDonutPalette;
+  window.getChartThemeTokens = getChartThemeTokens;
 }
 
 if (typeof module !== 'undefined' && module.exports) {
@@ -453,6 +518,7 @@ if (typeof module !== 'undefined' && module.exports) {
     fmtTrafficValue,
     fmtTraffic,
     getDonutPalette,
+    getChartThemeTokens,
   };
 }
 
