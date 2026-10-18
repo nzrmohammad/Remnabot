@@ -779,10 +779,10 @@ function renderTutorialApps(osKey) {
       const d = dlButtons[0];
       actionButtonsHtml = `
         <div class="grid grid-cols-2 gap-1.5 pt-1.5 border-t border-slate-800/60">
-          <button type="button" class="btn-download-app bg-slate-800 hover:bg-slate-750 text-slate-200 text-[10.5px] font-bold py-1.5 px-2 rounded-xl transition border border-slate-700/80 flex items-center justify-center gap-1 active:scale-95 shadow-sm truncate" data-url="${escapeHtml(d.url)}">
+          <button type="button" class="btn-download-app bg-slate-800 hover:bg-slate-750 text-slate-200 text-xs font-bold py-1.5 px-2 rounded-xl transition border border-slate-700/80 flex items-center justify-center gap-1 active:scale-95 shadow-sm truncate" data-url="${escapeHtml(d.url)}">
             <span>${d.icon}</span> <span class="truncate">${d.label}</span>
           </button>
-          <button type="button" class="btn-autoconnect-app bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-[10.5px] font-bold py-1.5 px-2 rounded-xl transition flex items-center justify-center gap-1 active:scale-95 shadow-sm" data-id="${app.id}" data-name="${escapeHtml(app.name)}">
+          <button type="button" class="btn-autoconnect-app bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-xs font-bold py-1.5 px-2 rounded-xl transition flex items-center justify-center gap-1 active:scale-95 shadow-sm" data-id="${app.id}" data-name="${escapeHtml(app.name)}">
             <span>⚡️</span> اتصال خودکار
           </button>
         </div>
@@ -791,15 +791,15 @@ function renderTutorialApps(osKey) {
       actionButtonsHtml = `
         <div class="space-y-1.5 pt-1.5 border-t border-slate-800/60">
           <div class="grid grid-cols-2 gap-1.5">
-            <button type="button" class="btn-download-app bg-slate-800 hover:bg-slate-750 text-slate-200 text-[10.5px] font-bold py-1.5 px-2 rounded-xl transition border border-slate-700/80 flex items-center justify-center gap-1 active:scale-95 shadow-sm truncate" data-url="${escapeHtml(dlButtons[0].url)}">
+            <button type="button" class="btn-download-app bg-slate-800 hover:bg-slate-750 text-slate-200 text-xs font-bold py-1.5 px-2 rounded-xl transition border border-slate-700/80 flex items-center justify-center gap-1 active:scale-95 shadow-sm truncate" data-url="${escapeHtml(dlButtons[0].url)}">
               <span>${dlButtons[0].icon}</span> <span class="truncate">${dlButtons[0].label}</span>
             </button>
-            <button type="button" class="btn-download-app bg-slate-800 hover:bg-slate-750 text-slate-200 text-[10.5px] font-bold py-1.5 px-2 rounded-xl transition border border-slate-700/80 flex items-center justify-center gap-1 active:scale-95 shadow-sm truncate" data-url="${escapeHtml(dlButtons[1].url)}">
+            <button type="button" class="btn-download-app bg-slate-800 hover:bg-slate-750 text-slate-200 text-xs font-bold py-1.5 px-2 rounded-xl transition border border-slate-700/80 flex items-center justify-center gap-1 active:scale-95 shadow-sm truncate" data-url="${escapeHtml(dlButtons[1].url)}">
               <span>${dlButtons[1].icon}</span> <span class="truncate">${dlButtons[1].label}</span>
             </button>
           </div>
           <div>
-            <button type="button" class="btn-autoconnect-app w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-[10.5px] font-bold py-1.5 px-2 rounded-xl transition flex items-center justify-center gap-1 active:scale-95 shadow-sm" data-id="${app.id}" data-name="${escapeHtml(app.name)}">
+            <button type="button" class="btn-autoconnect-app w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-xs font-bold py-1.5 px-2 rounded-xl transition flex items-center justify-center gap-1 active:scale-95 shadow-sm" data-id="${app.id}" data-name="${escapeHtml(app.name)}">
               <span>⚡️</span> اتصال خودکار به سرویس
             </button>
           </div>
@@ -824,13 +824,13 @@ function renderTutorialApps(osKey) {
                 <b class="text-xs text-white font-bold truncate">${escapeHtml(app.name)}</b>
               </div>
               <div class="flex items-center gap-1.5 mt-0.5">
-                <span class="text-[9.5px] text-slate-500 font-sans">${currentTutorialOS.toUpperCase()}</span>
+                <span class="text-[10px] text-slate-500 font-sans">${currentTutorialOS.toUpperCase()}</span>
               </div>
             </div>
           </div>
           <!-- Left side: Recommended badge + Tutorial button -->
           <div class="flex items-center gap-1.5 flex-shrink-0">
-            ${app.isRecommended ? '<span class="px-2 py-0.5 rounded-full text-[9px] font-bold bg-amber-500/15 text-amber-300 border border-amber-500/30">⭐️ پیشنهادی</span>' : ''}
+            ${app.isRecommended ? '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/15 text-amber-300 border border-amber-500/30">⭐️ پیشنهادی</span>' : ''}
             ${tutorialBtnHtml}
           </div>
         </div>
@@ -1564,7 +1564,7 @@ async function loadNetworkNodes() {
             </div>
             <div class="text-left font-mono">
               <span class="ping-val text-xs font-bold ${color}" dir="ltr">${ms} ms</span>
-              <span class="block text-[9px] font-sans ${color}">${isOnline ? quality : '🔴 آفلاین'}</span>
+              <span class="block text-[10px] font-sans ${color}">${isOnline ? quality : '🔴 آفلاین'}</span>
             </div>
           </div>
         `;
@@ -1587,7 +1587,7 @@ async function loadNetworkNodes() {
       </div>
       <div class="text-left font-mono">
         <span class="ping-val text-xs font-bold text-emerald-400" dir="ltr">${ms} ms</span>
-        <span class="block text-[9px] text-emerald-400 font-sans">🟢 عالی</span>
+        <span class="block text-[10px] text-emerald-400 font-sans">🟢 عالی</span>
       </div>
     </div>
   `;
@@ -1750,7 +1750,7 @@ function setupSupportChat() {
       bubble.innerHTML = `
         <div class="chat-user-bubble border border-blue-500/40 bg-blue-500/10 rounded-2xl rounded-tr-none p-2.5 text-blue-100 leading-relaxed shadow-sm text-right">
           ${safeText}
-          <span class="text-[9px] text-blue-300 block text-left mt-1 font-mono" dir="ltr">${timeStr}</span>
+          <span class="text-[10px] text-blue-300 block text-left mt-1 font-mono" dir="ltr">${timeStr}</span>
         </div>
       `;
     } else {
@@ -1759,7 +1759,7 @@ function setupSupportChat() {
         <div class="w-6 h-6 rounded-full bg-emerald-600 flex items-center justify-center text-[10px] shrink-0 text-white mt-0.5">🎧</div>
         <div class="chat-admin-bubble border border-slate-700/60 bg-slate-800/25 rounded-2xl rounded-tl-none p-2.5 text-slate-200 leading-relaxed shadow-sm text-right">
           ${safeText}
-          <span class="text-[9px] text-slate-400 block text-left mt-1 font-mono" dir="ltr">${timeStr}</span>
+          <span class="text-[10px] text-slate-400 block text-left mt-1 font-mono" dir="ltr">${timeStr}</span>
         </div>
       `;
     }

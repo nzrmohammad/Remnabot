@@ -435,14 +435,14 @@
         const marginVal = m.profit_margin_percent;
         if (!hasRevenue || marginVal === null || marginVal === undefined) {
           pMargin.innerText = 'مارجین: —';
-          pMargin.className = 'text-[9px] font-mono font-bold bg-transparent text-slate-400 border border-slate-600/40 px-1.5 py-0.5 rounded-md';
+          pMargin.className = 'text-[10px] font-mono font-bold bg-transparent text-slate-400 border border-slate-600/40 px-1.5 py-0.5 rounded-md';
         } else {
           const sign = marginVal > 0 ? '+' : (marginVal < 0 ? '-' : '');
           const absVal = Math.abs(marginVal);
           pMargin.innerHTML = `<span class="inline-flex items-center gap-0.5" dir="rtl"><span>مارجین:</span><span class="inline-flex items-center font-mono" dir="ltr"><span>${sign}</span><span>${absVal}</span><span>%</span></span></span>`;
           pMargin.className = marginVal >= 0
-            ? 'text-[9px] font-mono font-bold bg-transparent text-emerald-400 border border-emerald-500/30 px-1.5 py-0.5 rounded-md'
-            : 'text-[9px] font-mono font-bold bg-transparent text-rose-400 border border-rose-500/30 px-1.5 py-0.5 rounded-md';
+            ? 'text-[10px] font-mono font-bold bg-transparent text-emerald-400 border border-emerald-500/30 px-1.5 py-0.5 rounded-md'
+            : 'text-[10px] font-mono font-bold bg-transparent text-rose-400 border border-rose-500/30 px-1.5 py-0.5 rounded-md';
         }
       }
 
@@ -990,6 +990,13 @@
     });
   }
 
+  let planSalesChartInstance = null;
+  function renderAdminPlanSalesChart(planDist) {
+    const canvas = $('adminPlanSalesChart');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
     const hasSales = Boolean(planDist?.has_data ?? (planDist?.sales_count && planDist.sales_count.some(c => c > 0)));
     const labels = hasSales
       ? (planDist.labels || []).map(l => formatPlanTitle(l, { plainText: true }))
@@ -1457,7 +1464,7 @@
           </div>`;
       } else if (item.valid) {
         detailsHtml = `
-          <div class="space-y-1 text-slate-300 text-[10.5px]">
+          <div class="space-y-1 text-slate-300 text-xs">
             <div class="flex items-center gap-1.5">
               <span class="text-slate-400">مرجع :</span>
               <span class="font-medium text-slate-200">${escapeHtml(item.issuer || 'نامشخص')}</span>
@@ -1469,7 +1476,7 @@
           </div>`;
       } else {
         detailsHtml = `
-          <div class="text-[10.5px] text-rose-400/90 leading-relaxed">
+          <div class="text-xs text-rose-400/90 leading-relaxed">
             ${escapeHtml(item.error || 'ارتباط با پورت SSL برقرار نشد')}
           </div>`;
       }
@@ -1557,13 +1564,13 @@
             <!-- Left: Online Status + Speeds + Renewal Alert + Chevron Arrow -->
             <div class="flex items-center gap-2 flex-shrink-0">
               ${(n.days_until_due !== null && n.days_until_due <= 3) ? `
-                <span class="text-[9px] font-bold bg-transparent text-amber-400 border border-amber-500/30 px-2 py-0.5 rounded-xl flex items-center gap-1">
+                <span class="text-[10px] font-bold bg-transparent text-amber-400 border border-amber-500/30 px-2 py-0.5 rounded-xl flex items-center gap-1">
                   <span>⏳</span>
                   <span>${n.days_until_due <= 0 ? 'سررسید!' : n.days_until_due + ' روز'}</span>
                 </span>
               ` : ''}
               ${isOnline && (dlSpeed > 0 || ulSpeed > 0) ? `
-                <div class="hidden sm:flex items-center gap-1.5 text-[9px] font-mono text-slate-300 bg-slate-900/60 px-2 py-0.5 rounded-xl border border-slate-700/60" dir="ltr">
+                <div class="hidden sm:flex items-center gap-1.5 text-[10px] font-mono text-slate-300 bg-slate-900/60 px-2 py-0.5 rounded-xl border border-slate-700/60" dir="ltr">
                   <span class="text-emerald-400 font-bold">↓${formatSpeed(dlSpeed)}</span>
                   <span class="text-slate-600">|</span>
                   <span class="text-indigo-400 font-bold">↑${formatSpeed(ulSpeed)}</span>
@@ -1598,7 +1605,7 @@
                     <svg class="w-3 h-3 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"/></svg>
                     <span>سرعت دانلود (DL):</span>
                   </span>
-                  <span class="text-[8px] text-slate-500 font-mono">RX</span>
+                  <span class="text-[10px] text-slate-500 font-mono">RX</span>
                 </div>
                 <b class="text-emerald-400 font-mono text-xs block text-left" dir="ltr">↓ ${formatSpeed(dlSpeed)}</b>
               </div>
@@ -1608,7 +1615,7 @@
                     <svg class="w-3 h-3 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"/></svg>
                     <span>سرعت آپلود (UL):</span>
                   </span>
-                  <span class="text-[8px] text-slate-500 font-mono">TX</span>
+                  <span class="text-[10px] text-slate-500 font-mono">TX</span>
                 </div>
                 <b class="text-indigo-400 font-mono text-xs block text-left" dir="ltr">↑ ${formatSpeed(ulSpeed)}</b>
               </div>
@@ -1661,7 +1668,7 @@
                 <div class="flex items-center gap-1 font-bold">
                   ${n.monthly_cost_toman ? `
                     <span class="font-mono text-emerald-400">${formatNumber(n.monthly_cost_toman)}</span>
-                    <span class="text-[9px] text-slate-400 font-sans">تومان</span>
+                    <span class="text-[10px] text-slate-400 font-sans">تومان</span>
                     ${n.monthly_cost_eur ? `<span class="text-indigo-300 font-mono text-[10px] mr-1">(${n.currency === 'USD' ? '$' : '€'}${n.monthly_cost_eur})</span>` : ''}
                   ` : '<span class="text-slate-500 font-medium">ثبت‌نشده</span>'}
                 </div>
@@ -1685,7 +1692,7 @@
                   <b class="text-indigo-300 font-bold block">
                     ${n.cost_per_gb ? `
                       <span class="font-mono">${formatNumber(n.cost_per_gb)}</span>
-                      <span class="text-[9px] text-slate-400 font-sans">تومان</span>
+                      <span class="text-[10px] text-slate-400 font-sans">تومان</span>
                     ` : '—'}
                   </b>
                 </div>
@@ -1696,13 +1703,13 @@
                 <div>
                   <span class="text-slate-400 block mb-0.5">درآمد تخمینی نود:</span>
                   <b class="text-emerald-400 font-mono block">
-                    ${n.est_revenue_toman ? `${formatNumber(n.est_revenue_toman)} <span class="text-[9px] text-slate-400 font-sans">تومان</span>` : '۰ تومان'}
+                    ${n.est_revenue_toman ? `${formatNumber(n.est_revenue_toman)} <span class="text-[10px] text-slate-400 font-sans">تومان</span>` : '۰ تومان'}
                   </b>
                 </div>
                 <div>
                   <span class="text-slate-400 block mb-0.5">سود/زیان خالص:</span>
-                  <b class="${n.is_profitable ? 'text-emerald-400' : 'text-rose-400'} font-bold block text-[10.5px]">
-                    <span class="inline-flex items-center gap-1 font-mono" dir="ltr"><span>${(n.net_profit_toman || 0) > 0 ? '+' : ''}${formatNumber(n.net_profit_toman || 0)}</span> <span class="font-sans text-[9px] text-slate-300">تومان</span> ${n.roi_percent !== null && n.roi_percent !== undefined ? `<span dir="ltr">(${n.roi_percent > 0 ? '+' : ''}${n.roi_percent}%)</span>` : ''}</span>
+                  <b class="${n.is_profitable ? 'text-emerald-400' : 'text-rose-400'} font-bold block text-xs">
+                    <span class="inline-flex items-center gap-1 font-mono" dir="ltr"><span>${(n.net_profit_toman || 0) > 0 ? '+' : ''}${formatNumber(n.net_profit_toman || 0)}</span> <span class="font-sans text-[10px] text-slate-300">تومان</span> ${n.roi_percent !== null && n.roi_percent !== undefined ? `<span dir="ltr">(${n.roi_percent > 0 ? '+' : ''}${n.roi_percent}%)</span>` : ''}</span>
                   </b>
                 </div>
               </div>
@@ -1786,21 +1793,21 @@
       const initial = (displayName || String(u.telegram_id))[0].toUpperCase();
       const p = u.panel_account;
 
-      let statusBadge = '<span class="px-1.5 py-0.5 rounded-lg text-[9px] bg-transparent border border-slate-400/30 text-slate-500 dark:text-slate-400 font-medium">بدون اکانت</span>';
+      let statusBadge = '<span class="px-1.5 py-0.5 rounded-lg text-[10px] bg-transparent border border-slate-400/30 text-slate-500 dark:text-slate-400 font-medium">بدون اکانت</span>';
       if (u.is_banned) {
-        statusBadge = '<span class="px-1.5 py-0.5 rounded-lg text-[9px] bg-transparent text-rose-600 dark:text-rose-400 font-bold border border-rose-500/30">مسدود</span>';
+        statusBadge = '<span class="px-1.5 py-0.5 rounded-lg text-[10px] bg-transparent text-rose-600 dark:text-rose-400 font-bold border border-rose-500/30">مسدود</span>';
       } else if (u.is_expired || (p && p.exists && (p.status || '').toUpperCase() === 'EXPIRED')) {
-        statusBadge = '<span class="px-1.5 py-0.5 rounded-lg text-[9px] bg-transparent text-rose-600 dark:text-rose-400 font-bold border border-rose-500/30">منقضی</span>';
+        statusBadge = '<span class="px-1.5 py-0.5 rounded-lg text-[10px] bg-transparent text-rose-600 dark:text-rose-400 font-bold border border-rose-500/30">منقضی</span>';
       } else if (p && p.exists) {
         const st = (p.status || '').toUpperCase();
-        if (st === 'ACTIVE') statusBadge = '<span class="px-1.5 py-0.5 rounded-lg text-[9px] bg-transparent text-emerald-600 dark:text-emerald-400 font-bold border border-emerald-500/30">فعال</span>';
-        else if (st === 'DISABLED') statusBadge = '<span class="px-1.5 py-0.5 rounded-lg text-[9px] bg-transparent text-amber-600 dark:text-amber-400 font-bold border border-amber-500/30">غیرفعال</span>';
-        else statusBadge = `<span class="px-1.5 py-0.5 rounded-lg text-[9px] bg-transparent text-blue-600 dark:text-blue-400 font-bold border border-blue-500/30">${st}</span>`;
+        if (st === 'ACTIVE') statusBadge = '<span class="px-1.5 py-0.5 rounded-lg text-[10px] bg-transparent text-emerald-600 dark:text-emerald-400 font-bold border border-emerald-500/30">فعال</span>';
+        else if (st === 'DISABLED') statusBadge = '<span class="px-1.5 py-0.5 rounded-lg text-[10px] bg-transparent text-amber-600 dark:text-amber-400 font-bold border border-amber-500/30">غیرفعال</span>';
+        else statusBadge = `<span class="px-1.5 py-0.5 rounded-lg text-[10px] bg-transparent text-blue-600 dark:text-blue-400 font-bold border border-blue-500/30">${st}</span>`;
       }
 
       const isExpiring = u.is_expiring || (p && p.exists && !u.is_expired && ((p.days_left !== null && p.days_left > 0 && p.days_left <= 3) || (p.remaining_traffic_gb >= 0 && p.remaining_traffic_gb <= 2.0 && p.limit_traffic_gb > 0)));
       const expiringBadgeHtml = isExpiring
-        ? '<span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-lg bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[9px] font-bold animate-pulse flex-shrink-0 whitespace-nowrap" title="هشدار: حجم یا زمان رو به اتمام است"><svg class="w-2.5 h-2.5 text-amber-300" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z"/></svg> رو به اتمام</span>'
+        ? '<span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-lg bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[10px] font-bold animate-pulse flex-shrink-0 whitespace-nowrap" title="هشدار: حجم یا زمان رو به اتمام است"><svg class="w-2.5 h-2.5 text-amber-300" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z"/></svg> رو به اتمام</span>'
         : '';
 
       let serviceLineHtml = `
@@ -1889,7 +1896,7 @@
                   <span class="text-slate-400 font-sans">از</span>
                   <span dir="ltr" class="text-slate-400 font-mono num-bidi">${totalDisplay}</span>
                 </div>
-                <span class="px-1.5 py-0.5 rounded-md text-[9px] font-mono font-bold border ${badgeColor}">
+                <span class="px-1.5 py-0.5 rounded-md text-[10px] font-mono font-bold border ${badgeColor}">
                   ${statusLabel}
                 </span>
               </div>
@@ -1907,7 +1914,7 @@
                   ⚡
                 </div>
                 <div class="min-w-0 flex-1 leading-tight">
-                  <span class="text-slate-400 text-[9px] block">حجم باقی‌مانده</span>
+                  <span class="text-slate-400 text-[10px] block">حجم باقی‌مانده</span>
                   <span dir="ltr" class="font-mono font-bold text-cyan-600 dark:text-cyan-300 truncate block text-[11px]">
                     ${remDisplay}
                   </span>
@@ -1920,7 +1927,7 @@
                   ⏳
                 </div>
                 <div class="min-w-0 flex-1 leading-tight">
-                  <span class="text-slate-400 text-[9px] block truncate" title="${timeSub}">${timeSub}</span>
+                  <span class="text-slate-400 text-[10px] block truncate" title="${timeSub}">${timeSub}</span>
                   <span class="font-bold ${timeColor} truncate block text-[10px]">
                     ${timeText}
                   </span>
@@ -1965,7 +1972,7 @@
             <!-- Left: Wallet Balance -->
             <div class="text-left flex items-center flex-shrink-0">
               <span class="text-[11px] font-mono font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1 rounded-xl" title="موجودی کیف پول کاربر">
-                ${formatNumber(u.wallet_balance || 0)} <span class="text-[9px] font-sans text-emerald-400/80">تومان</span>
+                ${formatNumber(u.wallet_balance || 0)} <span class="text-[10px] font-sans text-emerald-400/80">تومان</span>
               </span>
             </div>
           </div>
@@ -2928,7 +2935,7 @@
                   <span class="text-base flex-shrink-0">${r.client_icon || '📱'}</span>
                   <b class="text-white text-xs truncate" title="${escapeHtml(r.user_agent || r.client_name || '')}">${escapeHtml(r.client_name || 'کلاینت')}</b>
                 </div>
-                <span class="inline-flex items-center gap-1 text-[9px] font-bold ${r.is_success ? 'text-emerald-400 border-emerald-500/30' : 'text-rose-400 border-rose-500/30'} bg-transparent px-2 py-0.5 rounded-lg border flex-shrink-0">
+                <span class="inline-flex items-center gap-1 text-[10px] font-bold ${r.is_success ? 'text-emerald-400 border-emerald-500/30' : 'text-rose-400 border-rose-500/30'} bg-transparent px-2 py-0.5 rounded-lg border flex-shrink-0">
                   ${r.is_success ? 'موفق' : (r.status_code ? 'خطا ' + r.status_code : 'خطا')}
                 </span>
               </div>
@@ -2936,16 +2943,16 @@
               <!-- Line 2: Tag badge, IP with tap-to-copy, and update time -->
               <div class="flex items-center justify-between text-[10px] pt-1 border-t border-slate-800/60 text-slate-400 gap-2">
                 <div class="flex items-center gap-1.5 flex-wrap min-w-0">
-                  <span class="text-[9px] px-1.5 py-0.5 rounded-md bg-transparent border border-slate-700/80 text-slate-300 font-mono flex-shrink-0">${escapeHtml(r.client_tag || 'App')}</span>
+                  <span class="text-[10px] px-1.5 py-0.5 rounded-md bg-transparent border border-slate-700/80 text-slate-300 font-mono flex-shrink-0">${escapeHtml(r.client_tag || 'App')}</span>
                   <button type="button" dir="ltr" class="font-mono text-cyan-400 dark:text-cyan-300 font-semibold select-all hover:underline cursor-pointer flex items-center gap-1" onclick="window.copyToClipboard('${r.ip}', 'آدرس IP کپی شد')" title="کلیک جهت کپی آی‌پی">
                     <span>🌐 ${r.ip}</span>
-                    <span class="text-[9px] opacity-70">📋</span>
+                    <span class="text-[10px] opacity-70">📋</span>
                   </button>
                 </div>
                 <div class="flex items-center gap-1.5 text-[10px] text-slate-300 font-mono flex-shrink-0" dir="ltr">
                   <span>⏱</span>
                   <span class="font-bold text-slate-200" title="${escapeHtml(r.relative_time || '')}">${toEnglishDigits(r.date_str && r.date_str !== '—' ? r.date_str : (r.relative_time || 'ثبت‌شده'))}</span>
-                  ${r.relative_time && r.relative_time !== '—' && r.relative_time !== r.date_str ? `<span class="text-[9px] text-slate-400 font-sans">(${r.relative_time})</span>` : ''}
+                  ${r.relative_time && r.relative_time !== '—' && r.relative_time !== r.date_str ? `<span class="text-[10px] text-slate-400 font-sans">(${r.relative_time})</span>` : ''}
                 </div>
               </div>
             </div>
@@ -3010,7 +3017,7 @@
                 if (!isNaN(dateObj.getTime())) {
                   const dateStr = dateObj.toLocaleDateString('fa-IR');
                   const timeStr = dateObj.toLocaleTimeString('fa-IR', { hour: '2-digit', minute: '2-digit' });
-                  timeHtml = `<div class="flex items-center gap-1 mt-1 text-[9.5px] text-slate-400 font-mono" dir="ltr"><span>⏱</span><span>${toEnglishDigits(timeStr)} - ${toEnglishDigits(dateStr)}</span></div>`;
+                  timeHtml = `<div class="flex items-center gap-1 mt-1 text-[10px] text-slate-400 font-mono" dir="ltr"><span>⏱</span><span>${toEnglishDigits(timeStr)} - ${toEnglishDigits(dateStr)}</span></div>`;
                 }
               } catch(e) {}
             }
@@ -3026,12 +3033,12 @@
                     <span>آی‌پی:</span>
                     <button type="button" dir="ltr" class="font-mono text-cyan-400 dark:text-cyan-300 font-semibold select-all hover:underline cursor-pointer flex items-center gap-1" onclick="window.copyToClipboard('${escapeHtml(ip)}', 'آدرس IP کپی شد')" title="کپی آی‌پی">
                       <span>${escapeHtml(ip)}</span>
-                      <span class="text-[9px] opacity-70">📋</span>
+                      <span class="text-[10px] opacity-70">📋</span>
                     </button>
                   </div>
                   <div class="flex items-center gap-1.5 mt-1">
-                    <span class="text-[9px] text-slate-400">HWID:</span>
-                    <span dir="ltr" class="font-mono text-[9px] text-slate-300 bg-transparent px-2 py-0.5 rounded-lg border border-slate-700/60 truncate max-w-[170px]" title="${escapeHtml(hwid)}">${escapeHtml(hwid)}</span>
+                    <span class="text-[10px] text-slate-400">HWID:</span>
+                    <span dir="ltr" class="font-mono text-[10px] text-slate-300 bg-transparent px-2 py-0.5 rounded-lg border border-slate-700/60 truncate max-w-[170px]" title="${escapeHtml(hwid)}">${escapeHtml(hwid)}</span>
                   </div>
                   ${timeHtml}
                 </div>
@@ -3099,7 +3106,7 @@
             <span class="text-slate-400 text-[10px]">آی‌پی کلاینت:</span>
             <button type="button" dir="ltr" class="font-mono text-cyan-400 dark:text-cyan-300 font-bold select-all hover:underline cursor-pointer flex items-center gap-1" onclick="window.copyToClipboard('${escapeHtml(ip)}', 'آدرس IP کپی شد')" title="کلیک جهت کپی آی‌پی">
               <span>${escapeHtml(ip)}</span>
-              <span class="text-[9px] opacity-70">📋</span>
+              <span class="text-[10px] opacity-70">📋</span>
             </button>
           </div>
         `).join('');
@@ -3269,15 +3276,15 @@
 
               <div class="grid grid-cols-3 gap-1.5 text-center text-[10px] bg-slate-900/60 p-2 rounded-xl font-mono">
                 <div>
-                  <span class="text-slate-400 block text-[9px] font-sans">حجم ترافیک</span>
+                  <span class="text-slate-400 block text-[10px] font-sans">حجم ترافیک</span>
                   ${trafficHtml}
                 </div>
                 <div>
-                  <span class="text-slate-400 block text-[9px] font-sans">مدت زمان</span>
+                  <span class="text-slate-400 block text-[10px] font-sans">مدت زمان</span>
                   <b class="text-amber-300">${durationText}</b>
                 </div>
                 <div>
-                  <span class="text-slate-400 block text-[9px] font-sans">محدودیت HWID</span>
+                  <span class="text-slate-400 block text-[10px] font-sans">محدودیت HWID</span>
                   <b class="text-purple-300">${hwidText}</b>
                 </div>
               </div>
@@ -3459,11 +3466,11 @@
 
               <div class="grid grid-cols-2 gap-2 text-[10px] bg-transparent p-2 rounded-xl border border-slate-700/60 font-mono">
                 <div>
-                  <span class="text-slate-400 block text-[9px] font-sans">دفعات استفاده:</span>
+                  <span class="text-slate-400 block text-[10px] font-sans">دفعات استفاده:</span>
                   <b class="text-slate-200">${maxText}</b>
                 </div>
                 <div>
-                  <span class="text-slate-400 block text-[9px] font-sans">تاریخ انقضا:</span>
+                  <span class="text-slate-400 block text-[10px] font-sans">تاریخ انقضا:</span>
                   <b class="text-slate-200">${escapeHtml(expiryText)}</b>
                 </div>
               </div>
@@ -3962,7 +3969,7 @@
             <div class="flex items-center justify-between py-1.5 px-2.5 rounded-xl bg-slate-800/60 border border-slate-700/50 hover:border-slate-600 transition">
               <span class="text-slate-300 font-medium text-[11px]">${src}</span>
               <div class="flex items-center gap-2">
-                <span class="font-mono font-bold text-slate-100 text-[11px]">${formatNumber(p)} <span class="text-[9px] text-slate-400 font-sans">تومان</span></span>
+                <span class="font-mono font-bold text-slate-100 text-[11px]">${formatNumber(p)} <span class="text-[10px] text-slate-400 font-sans">تومان</span></span>
                 <button onclick="window.adminActions.applySpecificRate('usdt', ${p}, this)" class="bg-transparent hover:bg-emerald-500/10 text-emerald-400 hover:text-emerald-300 border border-emerald-500/40 text-[10px] font-bold px-2 py-0.5 rounded-lg transition active:scale-95">
                   اعمال
                 </button>
@@ -3977,7 +3984,7 @@
             <div class="flex items-center justify-between py-1.5 px-2.5 rounded-xl bg-slate-800/60 border border-slate-700/50 hover:border-slate-600 transition">
               <span class="text-slate-300 font-medium text-[11px]">${src}</span>
               <div class="flex items-center gap-2">
-                <span class="font-mono font-bold text-slate-100 text-[11px]">${formatNumber(p)} <span class="text-[9px] text-slate-400 font-sans">تومان</span></span>
+                <span class="font-mono font-bold text-slate-100 text-[11px]">${formatNumber(p)} <span class="text-[10px] text-slate-400 font-sans">تومان</span></span>
                 <button onclick="window.adminActions.applySpecificRate('eur', ${p}, this)" class="bg-transparent hover:bg-indigo-500/10 text-indigo-400 hover:text-indigo-300 border border-indigo-500/40 text-[10px] font-bold px-2 py-0.5 rounded-lg transition active:scale-95">
                   اعمال
                 </button>
@@ -3992,7 +3999,7 @@
             <div class="flex items-center justify-between py-1.5 px-2.5 rounded-xl bg-slate-800/60 border border-slate-700/50 hover:border-slate-600 transition">
               <span class="text-slate-300 font-medium text-[11px]">${src}</span>
               <div class="flex items-center gap-2">
-                <span class="font-mono font-bold text-slate-100 text-[11px]">${formatNumber(p)} <span class="text-[9px] text-slate-400 font-sans">تومان</span></span>
+                <span class="font-mono font-bold text-slate-100 text-[11px]">${formatNumber(p)} <span class="text-[10px] text-slate-400 font-sans">تومان</span></span>
                 <button onclick="window.adminActions.applySpecificRate('ton', ${p}, this)" class="bg-transparent hover:bg-cyan-500/10 text-cyan-400 hover:text-cyan-300 border border-cyan-500/40 text-[10px] font-bold px-2 py-0.5 rounded-lg transition active:scale-95">
                   اعمال
                 </button>
@@ -4051,7 +4058,7 @@
               <div class="flex items-center justify-between py-1.5 px-2.5 rounded-xl bg-slate-800/60 border border-slate-700/50 hover:border-slate-600 transition">
                 <div>
                   <span class="text-slate-200 font-bold text-[11px] block">🛡️ فرمول بدون ضرر</span>
-                  <span class="text-[9px] text-slate-400">نقد کردن با کسر کارمزد تلگرام</span>
+                  <span class="text-[10px] text-slate-400">نقد کردن با کسر کارمزد تلگرام</span>
                 </div>
                 <div class="flex items-center gap-2">
                   <span id="modalStarsLosslessPrice" class="font-mono font-bold text-amber-300 text-[11px]"></span>
@@ -4063,7 +4070,7 @@
               <div class="flex items-center justify-between py-1.5 px-2.5 rounded-xl bg-slate-800/60 border border-slate-700/50 hover:border-slate-600 transition">
                 <div>
                   <span class="text-slate-200 font-bold text-[11px] block">🏷️ نرخ خرید فرگمنت</span>
-                  <span class="text-[9px] text-slate-400">بر اساس قیمت خرید استارز در فرگمنت</span>
+                  <span class="text-[10px] text-slate-400">بر اساس قیمت خرید استارز در فرگمنت</span>
                 </div>
                 <div class="flex items-center gap-2">
                   <span id="modalStarsFragmentPrice" class="font-mono font-bold text-blue-300 text-[11px]"></span>
@@ -4092,10 +4099,10 @@
       if (titleEl) titleEl.textContent = `⭐️ نرخ پیشنهادی استارز تلگرام (بر اساس دلار ${formatNumber(p)} ت):`;
 
       const losslessPriceEl = $('modalStarsLosslessPrice');
-      if (losslessPriceEl) losslessPriceEl.innerHTML = `${formatNumber(lossless)} <span class="text-[9px] text-slate-400 font-sans">تومان</span>`;
+      if (losslessPriceEl) losslessPriceEl.innerHTML = `${formatNumber(lossless)} <span class="text-[10px] text-slate-400 font-sans">تومان</span>`;
 
       const fragmentPriceEl = $('modalStarsFragmentPrice');
-      if (fragmentPriceEl) fragmentPriceEl.innerHTML = `${formatNumber(fragment)} <span class="text-[9px] text-slate-400 font-sans">تومان</span>`;
+      if (fragmentPriceEl) fragmentPriceEl.innerHTML = `${formatNumber(fragment)} <span class="text-[10px] text-slate-400 font-sans">تومان</span>`;
 
       const losslessBtn = $('modalStarsLosslessBtn');
       if (losslessBtn) {
@@ -4654,19 +4661,19 @@
               <!-- Stats Grid -->
               <div class="grid grid-cols-4 gap-2 pt-1 border-t border-slate-700/50 text-center">
                 <div class="p-1.5 sm:p-2 rounded-xl bg-slate-900/40 border border-slate-700/40">
-                  <span class="text-[9px] text-slate-400 block mb-0.5 whitespace-nowrap">ورودی جدید</span>
+                  <span class="text-[10px] text-slate-400 block mb-0.5 whitespace-nowrap">ورودی جدید</span>
                   <b class="text-xs font-mono text-white">${formatNumber(c.users_count)}</b>
                 </div>
                 <div class="p-1.5 sm:p-2 rounded-xl bg-slate-900/40 border border-slate-700/40">
-                  <span class="text-[9px] text-slate-400 block mb-0.5 whitespace-nowrap">خریداران</span>
+                  <span class="text-[10px] text-slate-400 block mb-0.5 whitespace-nowrap">خریداران</span>
                   <b class="text-xs font-mono text-cyan-300">${formatNumber(c.buyers_count)}</b>
                 </div>
                 <div class="p-1.5 sm:p-2 rounded-xl bg-slate-900/40 border border-slate-700/40">
-                  <span class="text-[9px] text-slate-400 block mb-0.5 whitespace-nowrap">درآمد فروش</span>
+                  <span class="text-[10px] text-slate-400 block mb-0.5 whitespace-nowrap">درآمد فروش</span>
                   <b class="text-xs font-mono text-emerald-400">${formatNumber(c.total_revenue)}</b>
                 </div>
                 <div class="p-1.5 sm:p-2 rounded-xl bg-slate-900/40 border border-slate-700/40">
-                  <span class="text-[8.5px] sm:text-[9px] text-slate-400 block mb-0.5 whitespace-nowrap">بازگشت سرمایه</span>
+                  <span class="text-[10px] text-slate-400 block mb-0.5 whitespace-nowrap">بازگشت سرمایه</span>
                   <b class="text-xs font-mono ${roiColor} inline-block" dir="ltr">${roiText || '—'}</b>
                 </div>
               </div>
@@ -4674,7 +4681,7 @@
               <!-- Deep Link preview row -->
               <div class="flex items-center justify-between text-[10px] text-slate-400 pt-1 border-t border-slate-700/30">
                 <span class="truncate dir-ltr font-mono text-slate-400" dir="ltr">${c.deep_link}</span>
-                <span class="flex-shrink-0 text-[9px] text-slate-400 mr-2">${costText}</span>
+                <span class="flex-shrink-0 text-[10px] text-slate-400 mr-2">${costText}</span>
               </div>
             </div>
           `;
@@ -4975,10 +4982,10 @@
       const badgeEl = $('activeChatStatusBadge');
       if (badgeEl) {
         if (user.pending_topup_id) {
-          badgeEl.className = 'text-[9px] bg-transparent text-amber-500 border border-amber-500/30 px-2 py-0.5 rounded-lg font-bold flex items-center gap-1';
+          badgeEl.className = 'text-[10px] bg-transparent text-amber-500 border border-amber-500/30 px-2 py-0.5 rounded-lg font-bold flex items-center gap-1';
           badgeEl.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>فیش ${user.pending_topup_id}`;
         } else {
-          badgeEl.className = 'text-[9px] bg-transparent text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded-lg font-bold';
+          badgeEl.className = 'text-[10px] bg-transparent text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded-lg font-bold';
           badgeEl.innerText = `${formatNumber(user.wallet_balance || 0)} ت`;
         }
       }
@@ -5010,7 +5017,7 @@
         return `
           <div class="flex ${isAdmin ? 'justify-start' : 'justify-end'}">
             <div class="max-w-[85%] rounded-2xl p-2.5 space-y-1 shadow-sm ${isAdmin ? 'bg-blue-600/15 dark:bg-blue-600/25 border border-blue-400/40 dark:border-blue-500/30 text-blue-950 dark:text-blue-100 rounded-tr-sm' : 'bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700/60 text-slate-900 dark:text-slate-200 rounded-tl-sm shadow-sm'}">
-              <div class="flex items-center justify-between gap-3 text-[9px] ${isAdmin ? 'text-blue-700 dark:text-blue-300 font-bold' : 'text-slate-600 dark:text-slate-400 font-bold'}">
+              <div class="flex items-center justify-between gap-3 text-[10px] ${isAdmin ? 'text-blue-700 dark:text-blue-300 font-bold' : 'text-slate-600 dark:text-slate-400 font-bold'}">
                 <span>${isAdmin ? '🛡️ پشتیبانی' : '👤 کاربر'}</span>
                 <span class="font-mono ${isAdmin ? 'text-blue-600 dark:text-blue-400' : 'text-slate-500 dark:text-slate-400'}" dir="ltr">${timeDisplay}</span>
               </div>

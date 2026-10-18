@@ -23,6 +23,15 @@ html, body, button, input, optgroup, select, textarea, div, span, p, h1, h2, h3,
   -webkit-tap-highlight-color: transparent;
 }
 
+/* Touch-friendly interactive targets (Apple HIG 44px recommended hit area) */
+.touch-target {
+  min-width: 40px;
+  min-height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .font-mono, code, pre, kbd, samp, [dir="ltr"].font-mono {
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace !important;
 }

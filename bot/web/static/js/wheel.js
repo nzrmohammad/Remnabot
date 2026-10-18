@@ -132,7 +132,7 @@ function updateWheelUIState(canSpin, hasActiveSub, nextSeconds) {
 
   if (!hasActiveSub) {
     spinBtn.disabled = true;
-    spinBtn.innerHTML = '<span class="text-[9px] font-bold">🔒 نیاز به اشتراک</span>';
+    spinBtn.innerHTML = '<span class="text-[10px] font-bold">🔒 نیاز به اشتراک</span>';
     if (warningBox) warningBox.classList.remove('hidden');
     if (timerBox) timerBox.classList.add('hidden');
     return;
@@ -141,7 +141,7 @@ function updateWheelUIState(canSpin, hasActiveSub, nextSeconds) {
 
   if (nextSeconds > 0) {
     spinBtn.disabled = true;
-    spinBtn.innerHTML = '<span class="text-[9px] font-bold">🔒 ۲۴ ساعت</span>';
+    spinBtn.innerHTML = '<span class="text-[10px] font-bold">🔒 ۲۴ ساعت</span>';
     startWheelCountdown(nextSeconds);
   } else {
     if (wheelCountdownInterval) clearInterval(wheelCountdownInterval);
