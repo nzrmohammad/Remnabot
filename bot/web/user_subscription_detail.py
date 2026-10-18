@@ -360,6 +360,7 @@ async def build_active_subscription(
 
     days_left = 0
     expire_jalali_str = ""
+    expire_iso_str = None
     expire_at_raw = primary.get("expireAt")
     expire_timestamp = primary.get("expire")
     try:
@@ -370,6 +371,9 @@ async def build_active_subscription(
             days_left = max(0, (expire_dt - datetime.now(timezone.utc)).days)
             exp_j = jdatetime.datetime.fromgregorian(datetime=expire_dt.astimezone(ZoneInfo(tz_name)))
             expire_jalali_str = f"{exp_j.year}/{exp_j.month:02d}/{exp_j.day:02d}"
+            expire_iso_str = expire_dt.isoformat()
+            if not expire_timestamp:
+                expire_timestamp = int(expire_dt.timestamp())
     except Exception as exc:
         logger.warning("Failed to calculate expiration for %s: %s", panel_user_id, exc)
 
@@ -410,6 +414,7 @@ async def build_active_subscription(
         "percent_remaining": percent_remaining,
         "days_left": days_left,
         "expire_timestamp": expire_timestamp,
+        "expire_at": expire_iso_str,
         "expire_jalali": expire_jalali_str,
         "devices_count": len(devices),
         "devices": devices,

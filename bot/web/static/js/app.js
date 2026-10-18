@@ -1300,25 +1300,28 @@ let expiryCountdownInterval = null;
 function openExpiryCountdownModal() {
   const sub = window.lastUserData?.active_sub;
   const daysLeft = sub?.days_left ?? 0;
+  const expireTimestamp = sub?.expire_timestamp;
   const expireAt = sub?.expire_at;
   const expireJalali = sub?.expire_jalali;
   const trafficRemainingGb = sub?.traffic_remaining_gb ?? 0;
 
   const modalAccountName = $('modalExpiryAccountName');
   if (modalAccountName) {
-    modalAccountName.innerText = sub?.username ? `سرویس @${sub.username}` : 'اشتراک فعال شما';
+    modalAccountName.innerHTML = sub?.username
+      ? `سرویس <bdi dir="ltr" class="font-mono font-bold select-all">@${escapeHtml(sub.username)}</bdi>`
+      : 'اشتراک فعال شما';
   }
 
   const exactDateEl = $('modalExpiryExactDate');
   if (exactDateEl) {
-    exactDateEl.innerText = expireJalali ? `تا ${expireJalali}` : 'نامحدود / بدون انقضا';
+    exactDateEl.innerText = expireJalali ? `پایان اعتبار: ${expireJalali}` : 'نامحدود / بدون انقضا';
   }
 
   const allowanceEl = $('modalExpiryDailyAllowance');
   if (allowanceEl) {
     if (daysLeft > 0 && trafficRemainingGb > 0) {
       const dailyGb = (trafficRemainingGb / daysLeft).toFixed(2);
-      allowanceEl.innerHTML = `${fmtTraffic(dailyGb, { html: true })} / روز`;
+      allowanceEl.innerHTML = `${fmtTraffic(dailyGb, { html: true })} روزانه`;
     } else {
       allowanceEl.innerText = 'نامحدود';
     }
@@ -1327,20 +1330,22 @@ function openExpiryCountdownModal() {
   const paceStatusEl = $('modalExpiryPaceStatus');
   if (paceStatusEl) {
     if (daysLeft <= 3 && daysLeft > 0) {
-      paceStatusEl.className = 'font-semibold text-[10px] text-amber-400 bg-amber-500/15 border border-amber-500/30 px-2 py-0.5 rounded-full';
+      paceStatusEl.className = 'font-semibold text-[11px] text-amber-400 bg-amber-500/15 border border-amber-500/30 px-2 py-0.5 rounded-full';
       paceStatusEl.innerText = '⚠️ مهلت رو به پایان است';
     } else if (daysLeft === 0) {
-      paceStatusEl.className = 'font-semibold text-[10px] text-rose-400 bg-rose-500/15 border border-rose-500/30 px-2 py-0.5 rounded-full';
+      paceStatusEl.className = 'font-semibold text-[11px] text-rose-400 bg-rose-500/15 border border-rose-500/30 px-2 py-0.5 rounded-full';
       paceStatusEl.innerText = '🔴 اشتراک منقضی شده';
     } else {
-      paceStatusEl.className = 'font-semibold text-[10px] text-emerald-400 bg-emerald-500/15 border border-emerald-500/30 px-2 py-0.5 rounded-full';
+      paceStatusEl.className = 'font-semibold text-[11px] text-emerald-400 bg-emerald-500/15 border border-emerald-500/30 px-2 py-0.5 rounded-full';
       paceStatusEl.innerText = '🟢 نرمال و بهینه';
     }
   }
 
   function tickCountdown() {
     let targetTime = null;
-    if (expireAt) {
+    if (expireTimestamp && !isNaN(expireTimestamp)) {
+      targetTime = expireTimestamp * 1000;
+    } else if (expireAt) {
       targetTime = new Date(expireAt).getTime();
     } else if (daysLeft > 0) {
       targetTime = Date.now() + daysLeft * 86400 * 1000;
