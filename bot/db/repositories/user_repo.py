@@ -1,7 +1,7 @@
 """Repository layer: all DB queries for the User model live here."""
 from datetime import datetime, timedelta, timezone
 
-from sqlalchemy import func, or_, select
+from sqlalchemy import func, or_, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from bot.db.models import User
