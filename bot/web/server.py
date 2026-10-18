@@ -5,6 +5,7 @@ Integrates seamlessly into the same asyncio event loop as aiogram.
 import html
 import json
 import logging
+import re
 import time
 from collections import defaultdict, deque
 from pathlib import Path
@@ -155,25 +156,90 @@ async def cors_and_security_middleware(request: web.Request, handler):
     return response
 
 
+_STATIC_VERSION_CACHE: tuple[str, float] = ("", 0.0)
+_VERSIONED_HTML_CACHE: dict[str, tuple[str, float]] = {}
+
+
+def get_static_asset_version() -> str:
+    """Calculate asset version token from latest mtime of CSS/JS files (cached for 5s)."""
+    global _STATIC_VERSION_CACHE
+    now = time.time()
+    cached_ver, last_checked = _STATIC_VERSION_CACHE
+    if cached_ver and (now - last_checked < 5.0):
+        return cached_ver
+
+    try:
+        if STATIC_DIR.exists():
+            latest_mtime = max(
+                f.stat().st_mtime
+                for f in STATIC_DIR.rglob("*")
+                if f.is_file() and f.suffix in {".css", ".js"}
+            )
+            version = hex(int(latest_mtime))[2:]
+        else:
+            version = "60.0"
+    except Exception:
+        version = "60.0"
+
+    _STATIC_VERSION_CACHE = (version, now)
+    return version
+
+
+def get_versioned_html(html_path: Path, is_dev: bool = False) -> str:
+    """Read HTML template and ensure static CSS/JS have current cache-busting token."""
+    version = get_static_asset_version()
+    cache_key = str(html_path)
+
+    if not is_dev and cache_key in _VERSIONED_HTML_CACHE:
+        cached_content, mtime = _VERSIONED_HTML_CACHE[cache_key]
+        try:
+            if html_path.stat().st_mtime <= mtime:
+                return cached_content
+        except OSError:
+            pass
+
+    content = html_path.read_text(encoding="utf-8")
+    versioned_content = re.sub(
+        r'(/static/(?:css|js)/[^"\'\s>]+)\?v=[a-zA-Z0-9_.-]+',
+        rf"\g<1>?v={version}",
+        content,
+    )
+    try:
+        cur_mtime = html_path.stat().st_mtime
+    except OSError:
+        cur_mtime = time.time()
+
+    _VERSIONED_HTML_CACHE[cache_key] = (versioned_content, cur_mtime)
+    return versioned_content
+
+
 async def serve_app_html(request: web.Request) -> web.Response:
-    """Serve the user Mini App HTML."""
+    """Serve the user Mini App HTML with dynamic cache-busting asset versions."""
     html_path = TEMPLATES_DIR / "app.html"
     if not html_path.exists():
         return web.Response(text="User WebApp template not found", status=404)
-    return web.FileResponse(
-        html_path,
-        headers={"Cache-Control": "no-cache, must-revalidate", "Content-Type": "text/html; charset=utf-8"},
+    is_dev = bool(request.app.get("is_dev", False))
+    content = get_versioned_html(html_path, is_dev=is_dev)
+    return web.Response(
+        text=content,
+        content_type="text/html",
+        charset="utf-8",
+        headers={"Cache-Control": "no-cache, must-revalidate"},
     )
 
 
 async def serve_admin_html(request: web.Request) -> web.Response:
-    """Serve the admin Mini App HTML."""
+    """Serve the admin Mini App HTML with dynamic cache-busting asset versions."""
     html_path = TEMPLATES_DIR / "admin.html"
     if not html_path.exists():
         return web.Response(text="Admin WebApp template not found", status=404)
-    return web.FileResponse(
-        html_path,
-        headers={"Cache-Control": "no-cache, must-revalidate", "Content-Type": "text/html; charset=utf-8"},
+    is_dev = bool(request.app.get("is_dev", False))
+    content = get_versioned_html(html_path, is_dev=is_dev)
+    return web.Response(
+        text=content,
+        content_type="text/html",
+        charset="utf-8",
+        headers={"Cache-Control": "no-cache, must-revalidate"},
     )
 
 

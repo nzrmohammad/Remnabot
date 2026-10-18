@@ -25,11 +25,23 @@ html, body, button, input, optgroup, select, textarea, div, span, p, h1, h2, h3,
 
 /* Touch-friendly interactive targets (Apple HIG 44px recommended hit area) */
 .touch-target {
-  min-width: 40px;
-  min-height: 40px;
+  min-width: 44px;
+  min-height: 44px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+}
+
+/* Prevent sticky hover effects on mobile touch devices (TMA Native Feel) */
+@media (hover: none) and (pointer: coarse) {
+  button:hover,
+  a:hover,
+  .btn:hover,
+  .buy-plan-btn:hover,
+  .action-btn:hover {
+    filter: none !important;
+    transform: none !important;
+  }
 }
 
 .font-mono, code, pre, kbd, samp, [dir="ltr"].font-mono {
@@ -177,6 +189,27 @@ html.theme-light {
   border: 1px solid var(--card-border);
   color: var(--text-main);
   border-radius: 1rem;
+}
+
+.stat-box {
+  background-color: var(--card-inner-bg);
+  border: 1px solid var(--card-border);
+  color: var(--text-main);
+  border-radius: 0.875rem;
+  padding: 0.75rem;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.25rem 0.625rem;
+  border-radius: 0.75rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  border: 1px solid var(--card-border);
+  background-color: var(--card-inner-bg);
+  color: var(--text-main);
 }
 
 html, body {

@@ -1804,4 +1804,31 @@ async def test_coupon_repo_expired_filter(session_factory):
         assert "EXPIRED10" in all_codes
 
 
+@pytest.mark.anyio
+async def test_serve_versioned_html_assets():
+    """Verify that user and admin HTML endpoints serve dynamic asset cache-busting tokens."""
+    from aiohttp import web
+    from aiohttp.test_utils import make_mocked_request
+    from bot.web.server import serve_app_html, serve_admin_html, get_static_asset_version
+
+    v = get_static_asset_version()
+    assert v and len(v) >= 4
+
+    app = web.Application()
+    app["is_dev"] = True
+
+    req_app = make_mocked_request("GET", "/app", app=app)
+    res_app = await serve_app_html(req_app)
+    assert res_app.status == 200
+    assert f"?v={v}" in res_app.text
+    assert res_app.content_type == "text/html"
+
+    req_admin = make_mocked_request("GET", "/admin", app=app)
+    res_admin = await serve_admin_html(req_admin)
+    assert res_admin.status == 200
+    assert f"?v={v}" in res_admin.text
+    assert res_admin.content_type == "text/html"
+
+
+
 
