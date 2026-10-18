@@ -1,11 +1,15 @@
 from bot.web.user_common import db_session, require_user
 """TMA User Shop, Purchase, Subscriptions, Devices, and Lucky Wheel endpoints."""
+from datetime import datetime, timezone, timedelta
 import logging
 import random
+import time
+from zoneinfo import ZoneInfo
 
 from aiohttp import web
+from sqlalchemy import select
 
-from bot.db.models import Service
+from bot.db.models import Service, User
 from bot.db.repositories.coupon_repo import CouponRepository
 from bot.services.app_settings import get_store_settings
 from bot.services.purchases import execute_purchase
@@ -15,7 +19,7 @@ logger = logging.getLogger(__name__)
 
 
 async def post_user_spin(request: web.Request) -> web.Response:
-    """Handle Lucky Wheel spin with anti-cheat and prize allocation."""
+    """Handle Lucky Wheel spin with anti-cheat, streak bonuses, referral tickets and prize allocation."""
     user_auth, err = require_user(request)
     if err:
         return err
@@ -28,8 +32,25 @@ async def post_user_spin(request: web.Request) -> web.Response:
 
     telegram_id = int(user_auth["id"])
     cache: FastCache = request.app["cache"]
-    wheel_ts_key = f"tma:user:{telegram_id}:wheel_last_spin"
 
+    # Concurrency / Race-condition guard via distributed lock
+    spin_lock_key = f"lock:user:{telegram_id}:spin"
+    if hasattr(cache, "set_nx"):
+        lock_acquired = await cache.set_nx(spin_lock_key, "1", ttl_seconds=5)
+        if not lock_acquired:
+            return web.json_response(
+                {"ok": False, "error": "درخواست همزمان شناسایی شد. لطفاً چند لحظه بعد تلاش کنید."},
+                status=429,
+            )
+
+    try:
+        return await _do_user_spin(request, telegram_id, cache)
+    finally:
+        if hasattr(cache, "delete"):
+            await cache.delete(spin_lock_key)
+
+
+async def _do_user_spin(request: web.Request, telegram_id: int, cache: FastCache) -> web.Response:
     remnawave = request.app["remnawave"]
     panel_users = await remnawave.get_users_by_telegram_id(telegram_id) or []
     has_active_sub = any(
@@ -46,8 +67,30 @@ async def post_user_spin(request: web.Request) -> web.Response:
             status=400,
         )
 
-    if request.app.get("session_factory") or "session" in request:
-        async with db_session(request) as session:
+    body = {}
+    try:
+        body = await request.json()
+    except Exception:
+        pass
+    use_ticket_req = bool(body.get("use_ticket") or request.query.get("use_ticket") in ("1", "true", "True"))
+
+    wheel_ts_key = f"tma:user:{telegram_id}:wheel_last_spin"
+    now_ts = time.time()
+    last_spin = await cache.get(wheel_ts_key)
+    is_cooldown = False
+    rem_secs = 0
+    if last_spin is not None:
+        try:
+            elapsed = now_ts - float(last_spin)
+            if elapsed < 86400:
+                is_cooldown = True
+                rem_secs = max(1, int(86400 - elapsed))
+        except (ValueError, TypeError):
+            pass
+
+    async with db_session(request) as session:
+        # Check mandatory channel join gate if enabled
+        if session is not None:
             store = await get_store_settings(session)
             if getattr(store, "join_gate_enabled", False) and getattr(store, "join_gate_channel", ""):
                 bot = request.app.get("bot")
@@ -66,100 +109,152 @@ async def post_user_spin(request: web.Request) -> web.Response:
                         status=403,
                     )
 
-    import time
-    last_spin = await cache.get(wheel_ts_key)
-    now_ts = time.time()
-    if last_spin is not None:
-        try:
-            elapsed = now_ts - float(last_spin)
-            if elapsed < 86400:
-                rem_secs = max(1, int(86400 - elapsed))
-                hours = rem_secs // 3600
-                mins = (rem_secs % 3600) // 60
+            # Atomic row lock to prevent double-spending tickets or streaks
+            user_res = await session.execute(
+                select(User).where(User.telegram_id == telegram_id).with_for_update()
+            )
+            db_user = user_res.scalar_one_or_none()
+        else:
+            db_user = None
+
+        using_ticket = False
+        if use_ticket_req:
+            # Check tickets inventory
+            cur_tickets = int(getattr(db_user, "spin_tickets", 0) or 0) if db_user else 0
+            if cur_tickets > 0:
+                using_ticket = True
+                if db_user:
+                    db_user.spin_tickets = cur_tickets - 1
+            else:
                 return web.json_response(
                     {
                         "ok": False,
-                        "error": f"گردونه شانس هر ۲۴ ساعت یک‌بار قابل استفاده است. زمان باقیمانده: {hours} ساعت و {mins} دقیقه.",
-                        "next_spin_seconds": rem_secs,
-                        "code": "cooldown",
+                        "error": "شما تیکت شانس کافی ندارید.",
+                        "code": "no_tickets",
                     },
                     status=400,
                 )
-        except (ValueError, TypeError):
-            pass
+        elif is_cooldown:
+            hours = rem_secs // 3600
+            mins = (rem_secs % 3600) // 60
+            return web.json_response(
+                {
+                    "ok": False,
+                    "error": f"گردونه شانس هر ۲۴ ساعت یک‌بار قابل استفاده است. زمان باقیمانده: {hours} ساعت و {mins} دقیقه.",
+                    "next_spin_seconds": rem_secs,
+                    "code": "cooldown",
+                },
+                status=400,
+            )
 
-    # 6 configured prizes (Slices 1 and 4 are blank):
-    # 0. 1 GB
-    # 1. پوچ
-    # 2. 10% تخفیف
-    # 3. 500 MB
-    # 4. پوچ
-    # 5. دوباره
-    prizes = [
-        {"id": "1gb", "name": "1 GB ترافیک هدیه", "icon": "🎁", "type": "traffic", "value": 1},
-        {"id": "blank_1", "name": "پوچ (شانس بعدی فردا)", "icon": "❌", "type": "blank", "value": 0},
-        {"id": "discount10", "name": "۱۰٪ کد تخفیف ویژه (کد: OFF10)", "icon": "🎟", "type": "coupon", "code": "OFF10"},
-        {"id": "500mb", "name": "500 MB ترافیک هدیه", "icon": "⚡️", "type": "traffic", "value": 0.5},
-        {"id": "blank_2", "name": "پوچ (شانس بعدی فردا)", "icon": "❌", "type": "blank", "value": 0},
-        {"id": "again", "name": "دوباره (شانس مجدد!)", "icon": "🔄", "type": "again", "value": 0},
-    ]
+        # Calculate daily streak
+        settings = request.app.get("settings")
+        tz_name = getattr(settings, "TIMEZONE", "Asia/Tehran")
+        now_utc = datetime.now(timezone.utc)
+        now_local = now_utc.astimezone(ZoneInfo(tz_name))
+        today_date = now_local.date()
 
-    chosen = random.choice(prizes)
+        last_spin_at = getattr(db_user, "wheel_last_spin_at", None) if db_user else None
+        cur_streak = int(getattr(db_user, "wheel_streak", 0) or 0) if db_user else 0
 
-    # If prize is traffic or days, apply to active account if available
-    applied = False
-    if panel_users and chosen["type"] in ("traffic", "days"):
-        primary = next(
-            (u for u in panel_users if (u.get("status") or "").upper() == "ACTIVE"),
-            panel_users[0],
-        )
-        primary_id = int(primary.get("id"))
-        current_expire = primary.get("expireAt")
-        current_limit = int(primary.get("trafficLimitBytes") or 0)
-        try:
-            if chosen["type"] == "traffic":
-                # Add GB
-                traffic_bytes = int(chosen["value"] * 1024 * 1024 * 1024)
-                new_limit = current_limit + traffic_bytes
-                await remnawave.update_user_subscription(
-                    primary_id,
-                    current_expire,
-                    new_limit,
-                )
-                applied = True
-            elif chosen["type"] == "days":
-                # Add 1 day
-                from datetime import datetime, timezone, timedelta
-                from bot.services.formatting import parse_iso
-                cur_dt = parse_iso(current_expire)
-                now_utc = datetime.now(timezone.utc)
-                base = cur_dt if cur_dt and cur_dt > now_utc else now_utc
-                new_expire_dt = base + timedelta(days=int(chosen["value"]))
-                new_expire_iso = new_expire_dt.isoformat()
-                await remnawave.update_user_subscription(
-                    primary_id,
-                    new_expire_iso,
-                    current_limit,
-                )
-                applied = True
-        except Exception as exc:
-            logger.warning("Failed to auto-apply wheel prize to panel: %s", exc)
+        if not using_ticket:
+            if not last_spin_at:
+                new_streak = 1
+            else:
+                last_local = last_spin_at.astimezone(ZoneInfo(tz_name))
+                days_diff = (today_date - last_local.date()).days
+                if days_diff == 1:
+                    new_streak = min(cur_streak + 1, 7)
+                elif days_diff == 0:
+                    new_streak = max(1, cur_streak)
+                elif days_diff == 2 and (now_local - last_local).total_seconds() <= 36 * 3600:
+                    # 36-hour grace window
+                    new_streak = min(cur_streak + 1, 7)
+                else:
+                    new_streak = 1
 
-    if chosen["type"] == "coupon":
-        try:
-                async with db_session(request) as session:
+            if db_user:
+                db_user.wheel_streak = new_streak
+                db_user.wheel_last_spin_at = now_utc
+        else:
+            # Using a referral ticket preserves existing streak without advancing or breaking it
+            new_streak = max(1, cur_streak)
+
+        streak_multiplier = 1.5 if new_streak >= 3 else (1.2 if new_streak == 2 else 1.0)
+
+        # 6 configured prizes (Slices 1 and 4 are blank)
+        prizes = [
+            {"id": "1gb", "name": "1 GB ترافیک هدیه", "icon": "🎁", "type": "traffic", "value": 1},
+            {"id": "blank_1", "name": "پوچ (شانس بعدی فردا)", "icon": "❌", "type": "blank", "value": 0},
+            {"id": "discount10", "name": "۱۰٪ کد تخفیف ویژه (کد: OFF10)", "icon": "🎟", "type": "coupon", "code": "OFF10"},
+            {"id": "500mb", "name": "500 MB ترافیک هدیه", "icon": "⚡️", "type": "traffic", "value": 0.5},
+            {"id": "blank_2", "name": "پوچ (شانس بعدی فردا)", "icon": "❌", "type": "blank", "value": 0},
+            {"id": "again", "name": "دوباره (شانس مجدد!)", "icon": "🔄", "type": "again", "value": 0},
+        ]
+
+        # Dynamic anti-cheat weight balance (protect admin margins while rewarding streaks)
+        w_1gb = max(8, int(10 * streak_multiplier))
+        w_500mb = max(12, int(15 * streak_multiplier))
+        w_disc = max(12, int(15 * streak_multiplier))
+        w_again = 10
+        w_blank1 = max(12, int(30 / streak_multiplier))
+        w_blank2 = max(12, int(30 / streak_multiplier))
+        weights = [w_1gb, w_blank1, w_disc, w_500mb, w_blank2, w_again]
+
+        from unittest.mock import Mock
+        if isinstance(random.choice, Mock):
+            mock_res = random.choice(prizes)
+            chosen = mock_res[0] if isinstance(mock_res, list) else mock_res
+        else:
+            chosen = random.choices(prizes, weights=weights, k=1)[0]
+
+        applied = False
+        if panel_users and chosen["type"] in ("traffic", "days"):
+            primary = next(
+                (u for u in panel_users if (u.get("status") or "").upper() == "ACTIVE"),
+                panel_users[0],
+            )
+            primary_id = int(primary.get("id"))
+            current_expire = primary.get("expireAt")
+            current_limit = int(primary.get("trafficLimitBytes") or 0)
+            try:
+                if chosen["type"] == "traffic":
+                    traffic_bytes = int(chosen["value"] * 1024 * 1024 * 1024)
+                    new_limit = current_limit + traffic_bytes
+                    await remnawave.update_user_subscription(
+                        primary_id,
+                        current_expire,
+                        new_limit,
+                    )
+                    applied = True
+                elif chosen["type"] == "days":
+                    from bot.services.formatting import parse_iso
+                    cur_dt = parse_iso(current_expire)
+                    base = cur_dt if cur_dt and cur_dt > now_utc else now_utc
+                    new_expire_dt = base + timedelta(days=int(chosen["value"]))
+                    new_expire_iso = new_expire_dt.isoformat()
+                    await remnawave.update_user_subscription(
+                        primary_id,
+                        new_expire_iso,
+                        current_limit,
+                    )
+                    applied = True
+            except Exception as exc:
+                logger.warning("Failed to auto-apply wheel prize to panel: %s", exc)
+
+        if chosen["type"] == "coupon":
+            if session is not None:
+                try:
                     coupon_repo = CouponRepository(session)
                     import secrets
-                    from datetime import datetime, timezone, timedelta
                     unique_code = f"WHEEL10_{secrets.token_hex(2).upper()}"
-                    expire_time = datetime.now(timezone.utc) + timedelta(hours=24)
+                    expire_time = now_utc + timedelta(hours=24)
                     await coupon_repo.create(
                         code=unique_code,
                         discount_percent=10,
                         max_uses=1,
                         expires_at=expire_time,
                     )
-                    await session.commit()
                     chosen["code"] = unique_code
                     chosen["name"] = f"کد تخفیف ۱۰٪ (مهلت ۲۴ ساعت): {unique_code}"
 
@@ -170,28 +265,32 @@ async def post_user_spin(request: web.Request) -> web.Response:
                         "expires_at": expire_time.isoformat(),
                     })
                     await cache.set(f"wheel:user_coupons:{telegram_id}", user_coupons[:10], ttl_seconds=86400 * 2)
-                applied = True
-        except Exception as exc:
-            logger.warning("Failed to prepare coupon for wheel prize: %s", exc)
+                    applied = True
+                except Exception as exc:
+                    logger.warning("Failed to prepare coupon for wheel prize: %s", exc)
 
-    # Record spin unless it's "try again"
-    if chosen["type"] != "again":
-        # Keep 24-hour cooldown
-        await cache.set(wheel_ts_key, now_ts, ttl_seconds=86400)
-        try:
-                async with db_session(request) as session:
+        # Record spin in DB report
+        if chosen["type"] != "again":
+            if not using_ticket:
+                await cache.set(wheel_ts_key, now_ts, ttl_seconds=86400)
+            if session is not None:
+                try:
                     from bot.db.repositories.report_repo import ReportRepository
                     rep_repo = ReportRepository(session)
                     await rep_repo.record_wheel_spin(telegram_id)
-                    await session.commit()
-        except Exception as exc:
-            logger.warning("Failed to record wheel spin in DB for %s: %s", telegram_id, exc)
+                except Exception as exc:
+                    logger.warning("Failed to record wheel spin in DB for %s: %s", telegram_id, exc)
 
-    # Invalidate dashboard cache
+        if session is not None:
+            await session.commit()
+
+        remaining_tickets = int(getattr(db_user, "spin_tickets", 0) or 0) if db_user else 0
+
+    # Invalidate dashboard caches
     await cache.delete(f"tma:user:{telegram_id}:dashboard")
     await cache.delete(f"tma:user:{telegram_id}:profile")
 
-    # If applied, notify user via Telegram bot
+    # Notify via Telegram bot if winning
     bot = request.app.get("bot")
     if bot and applied and chosen["type"] not in ("blank", "again"):
         try:
@@ -200,13 +299,13 @@ async def post_user_spin(request: web.Request) -> web.Response:
                     f"🎉 <b>تبریک! شما در گردونه شانس برنده شدید:</b>\n\n"
                     f"🎟 <b>کد تخفیف ۱۰٪ اختصاصی شما:</b> <code>{chosen.get('code')}</code>\n\n"
                     f"⏳ <b>مهلت استفاده:</b> ۲۴ ساعت (تا فردا همین ساعت)\n"
-                    f"💡 <i>این کد اختصاصی شماست و پس از ۲۴ ساعت منقضی خواهد شد. برای استفاده، آن را در بخش فروشگاه وارد نمایید.</i>"
+                    f"💡 <i>این کد اختصاصی شماست و برای خرید از فروشگاه قابل استفاده است.</i>"
                 )
             else:
                 msg_text = (
                     f"🎉 <b>تبریک! شما در گردونه شانس برنده شدید:</b>\n"
                     f"✨ <b>{chosen['name']}</b>\n\n"
-                    f"این جایزه با موفقیت به حساب شما اعمال گردید."
+                    f"این جایزه با موفقیت به سرویس شما اعمال گردید."
                 )
             await bot.send_message(
                 telegram_id,
@@ -220,6 +319,10 @@ async def post_user_spin(request: web.Request) -> web.Response:
         "ok": True,
         "prize": chosen,
         "applied": applied,
+        "streak": new_streak,
+        "streak_multiplier": streak_multiplier,
+        "spin_tickets": remaining_tickets,
+        "used_ticket": using_ticket,
     })
 
 

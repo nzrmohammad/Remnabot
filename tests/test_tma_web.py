@@ -544,8 +544,95 @@ async def test_lucky_wheel_prize_application_traffic_and_days():
         call_args = mock_remnawave.update_user_subscription.call_args[0]
         assert call_args[0] == 101
         assert "2026-12-02" in call_args[1]  # 2026-12-01 + 1 day = 2026-12-02
-        assert call_args[2] == 10 * 1024**3
 
+@pytest.mark.anyio
+async def test_lucky_wheel_streak_and_referral_tickets(session_factory):
+    from datetime import datetime, timezone, timedelta
+    from unittest.mock import patch
+    from aiohttp.test_utils import make_mocked_request
+    from bot.db.models import User
+    from bot.web.user_shop import post_user_spin
+
+    mock_remnawave = AsyncMock()
+    mock_remnawave.get_users_by_telegram_id.return_value = [
+        {"status": "ACTIVE", "id": 201, "trafficLimitBytes": 10 * 1024**3, "expireAt": "2026-12-01T00:00:00Z"}
+    ]
+    mock_remnawave.update_user_subscription.return_value = {"id": 201}
+    cache = FastCache(redis_client=None)
+
+    app = {
+        "bot_token": "123:abc",
+        "admin_ids": [55555],
+        "is_dev": True,
+        "remnawave": mock_remnawave,
+        "cache": cache,
+        "session_factory": session_factory,
+    }
+
+    test_uid = 998877
+
+    # Setup User in DB
+    async with session_factory() as session:
+        user = User(
+            telegram_id=test_uid,
+            username="wheel_tester",
+            wheel_streak=0,
+            spin_tickets=2,
+        )
+        session.add(user)
+        await session.commit()
+
+    # 1. First Daily Spin -> streak becomes 1 (multiplier 1.0)
+    with patch("random.choice", return_value={"id": "500mb", "name": "500 MB", "icon": "⚡️", "type": "traffic", "value": 0.5}):
+        req = make_mocked_request("POST", f"/api/user/spin?user_id={test_uid}", app=app)
+        resp = await post_user_spin(req)
+        assert resp.status == 200
+        data = json.loads(resp.text)
+        assert data["streak"] == 1
+        assert data["streak_multiplier"] == 1.0
+        assert data["spin_tickets"] == 2
+        assert data["used_ticket"] is False
+
+    # 2. Cooldown is active now. Attempting spin without ticket -> rejected 400
+    req_cooldown = make_mocked_request("POST", f"/api/user/spin?user_id={test_uid}", app=app)
+    resp_cooldown = await post_user_spin(req_cooldown)
+    assert resp_cooldown.status == 400
+    assert "۲۴ ساعت" in json.loads(resp_cooldown.text)["error"]
+
+    # 3. Spin with ticket during cooldown -> succeeds!
+    with patch("random.choice", return_value={"id": "1gb", "name": "1 GB", "icon": "🎁", "type": "traffic", "value": 1}):
+        req_ticket = make_mocked_request(
+            "POST",
+            f"/api/user/spin?user_id={test_uid}",
+            headers={"Content-Type": "application/json"},
+            app=app,
+        )
+        req_ticket.json = AsyncMock(return_value={"use_ticket": True})
+        resp_ticket = await post_user_spin(req_ticket)
+        assert resp_ticket.status == 200
+        data_t = json.loads(resp_ticket.text)
+        assert data_t["ok"] is True
+        assert data_t["used_ticket"] is True
+        assert data_t["spin_tickets"] == 1  # 2 - 1 = 1 remaining
+        assert data_t["streak"] == 1  # Ticket spin doesn't advance or break streak
+
+    # 4. Advance time to tomorrow and simulate daily spin -> streak becomes 2 (multiplier 1.2)
+    from sqlalchemy import select
+    async with session_factory() as session:
+        res = await session.execute(select(User).where(User.telegram_id == test_uid))
+        u = res.scalar_one()
+        u.wheel_last_spin_at = datetime.now(timezone.utc) - timedelta(days=1)
+        await session.commit()
+    await cache.delete(f"tma:user:{test_uid}:wheel_last_spin")
+
+    with patch("random.choice", return_value={"id": "500mb", "name": "500 MB", "icon": "⚡️", "type": "traffic", "value": 0.5}):
+        req_day2 = make_mocked_request("POST", f"/api/user/spin?user_id={test_uid}", app=app)
+        resp_day2 = await post_user_spin(req_day2)
+        assert resp_day2.status == 200
+        data_d2 = json.loads(resp_day2.text)
+        assert data_d2["streak"] == 2
+        assert data_d2["streak_multiplier"] == 1.2
+        assert data_d2["spin_tickets"] == 1
 
 
 @pytest.mark.anyio

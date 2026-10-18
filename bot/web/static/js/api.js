@@ -212,8 +212,8 @@ const api = {
     return this.post('/api/user/settings', { language });
   },
 
-  async spinWheel() {
-    return this.post('/api/user/spin');
+  async spinWheel(payload = {}) {
+    return this.post('/api/user/spin', payload);
   },
 
   async getNodes() {

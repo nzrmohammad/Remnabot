@@ -137,7 +137,7 @@ async def _fetch_transaction_history(session: Any, telegram_id: int, tz_name: st
 
 
 async def _fetch_user_perks_and_settings(
-    session: Any, cache: FastCache, telegram_id: int, has_active_sub: bool
+    session: Any, cache: FastCache, telegram_id: int, has_active_sub: bool, db_user: Any = None
 ) -> tuple[dict[str, Any], list[dict[str, Any]], dict[str, Any]]:
     """Fetch user alert/report preferences, active won coupons, and lucky wheel status."""
     last_spin = await cache.get(f"tma:user:{telegram_id}:wheel_last_spin")
@@ -150,10 +150,17 @@ async def _fetch_user_perks_and_settings(
         except (ValueError, TypeError):
             pass
 
+    wheel_streak = int(getattr(db_user, "wheel_streak", 0) or 0) if db_user else 0
+    spin_tickets = int(getattr(db_user, "spin_tickets", 0) or 0) if db_user else 0
+    streak_multiplier = 1.5 if wheel_streak >= 3 else (1.2 if wheel_streak == 2 else 1.0)
+
     wheel_status = {
-        "can_spin": bool(has_active_sub and cooldown_left <= 0),
+        "can_spin": bool(has_active_sub and (cooldown_left <= 0 or spin_tickets > 0)),
         "has_active_sub": has_active_sub,
         "next_spin_seconds": cooldown_left,
+        "streak": wheel_streak,
+        "streak_multiplier": streak_multiplier,
+        "spin_tickets": spin_tickets,
     }
 
     rep_settings_data = {"nightly": True, "weekly": True, "monthly": True, "clean_reports": True, "wheel_notify": True}
@@ -330,7 +337,7 @@ async def get_user_me(request: web.Request) -> web.Response:
         )
         transactions = await _fetch_transaction_history(session, telegram_id, tz_name)
         user_settings, active_won_coupons, wheel_status = await _fetch_user_perks_and_settings(
-            session, cache, telegram_id, has_active_sub
+            session, cache, telegram_id, has_active_sub, db_user
         )
 
         user_reg_jalali = ""

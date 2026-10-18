@@ -129,6 +129,21 @@ async def _migrate_schema(engine: AsyncEngine) -> None:
                     text("ALTER TABLE users ADD COLUMN auto_renew BOOLEAN DEFAULT FALSE")
                 )
                 logger.info("added users.auto_renew")
+            if "wheel_streak" not in cols:
+                await conn.execute(
+                    text("ALTER TABLE users ADD COLUMN wheel_streak INTEGER DEFAULT 0")
+                )
+                logger.info("added users.wheel_streak")
+            if "wheel_last_spin_at" not in cols:
+                await conn.execute(
+                    text("ALTER TABLE users ADD COLUMN wheel_last_spin_at TIMESTAMPTZ")
+                )
+                logger.info("added users.wheel_last_spin_at")
+            if "spin_tickets" not in cols:
+                await conn.execute(
+                    text("ALTER TABLE users ADD COLUMN spin_tickets INTEGER DEFAULT 0")
+                )
+                logger.info("added users.spin_tickets")
 
         # --- services: strategy / hwid / squad (new columns) ----------- #
         cols = await _table_columns(conn, "services")

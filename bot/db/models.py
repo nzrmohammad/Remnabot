@@ -76,6 +76,13 @@ class User(Base):
     # Auto-renew active subscription when expiring using wallet balance
     auto_renew: Mapped[bool] = mapped_column(Boolean, default=False)
 
+    # Lucky wheel growth features
+    wheel_streak: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+    wheel_last_spin_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    spin_tickets: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
     )

@@ -2842,7 +2842,10 @@ function hydrateUserInterface(data) {
       updateWheelUIState(
         data.wheel_status.can_spin,
         data.wheel_status.has_active_sub,
-        data.wheel_status.next_spin_seconds || 0
+        data.wheel_status.next_spin_seconds || 0,
+        data.wheel_status.streak || 0,
+        data.wheel_status.streak_multiplier || 1.0,
+        data.wheel_status.spin_tickets || 0
       );
     }
 

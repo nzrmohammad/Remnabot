@@ -158,11 +158,18 @@ async def _maybe_reward_referrer(
     await referral_repo.record_reward(user.referred_by_id, user.telegram_id, reward_gb)
 
     inviter_user = await UserRepository(session).get_by_telegram_id(user.referred_by_id)
+    if inviter_user:
+        inviter_user.spin_tickets = (getattr(inviter_user, "spin_tickets", 0) or 0) + 1
     inv_lang = (inviter_user.language if inviter_user else None) or "fa"
     try:
+        ticket_note = (
+            "\n\n🎫 <b>+۱ شانس چرخش گردونه (تیکت اسپین)</b> نیز به حساب شما اضافه شد!"
+            if inv_lang == "fa"
+            else "\n\n🎫 <b>+1 Lucky Wheel spin ticket</b> has also been credited to your account!"
+        )
         await bot.send_message(
             user.referred_by_id,
-            t(inv_lang, "referral_reward_notify", reward_gb=reward_gb),
+            t(inv_lang, "referral_reward_notify", reward_gb=reward_gb) + ticket_note,
         )
     except Exception:
         logger.exception("Failed to notify inviter %s of referral reward", user.referred_by_id)

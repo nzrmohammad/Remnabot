@@ -65,6 +65,25 @@ class FastCache:
             except Exception as exc:
                 logger.debug("Redis cache set error for %s: %s", key, exc)
 
+    async def set_nx(self, key: str, value: Any, ttl_seconds: int = 15) -> bool:
+        """Store item if not exists (atomic distributed lock)."""
+        now = time.time()
+        if self._redis:
+            try:
+                raw = json.dumps(value, ensure_ascii=False)
+                res = await self._redis.set(key, raw, ex=ttl_seconds, nx=True)
+                return bool(res)
+            except Exception as exc:
+                logger.debug("Redis cache set_nx error for %s: %s", key, exc)
+
+        async with self._lock:
+            if key in self._memory:
+                expire_at, _ = self._memory[key]
+                if expire_at > now:
+                    return False
+            self._memory[key] = (now + ttl_seconds, value)
+            return True
+
     async def delete(self, key: str) -> None:
         """Invalidate key and all sub-keys from memory and Redis without blocking."""
         keys_to_pop = [k for k in list(self._memory.keys()) if k == key or k.startswith(f"{key}:")]

@@ -12,6 +12,9 @@ async def db_session(request: web.Request) -> AsyncIterator[AsyncSession]:
     if "session" in request:
         yield request["session"]
         return
-    session_factory = request.app["session_factory"]
+    session_factory = request.app.get("session_factory")
+    if session_factory is None:
+        yield None
+        return
     async with session_factory() as session:
         yield session
