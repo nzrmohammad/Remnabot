@@ -81,13 +81,21 @@ class WalletRepository:
             return None
         return await self.get_topup(topup_id)
 
-    async def subtract_balance(self, telegram_id: int, amount: int) -> Wallet | None:
-        """Deduct `amount` if the balance covers it; otherwise return None."""
-        wallet = await self.get_wallet(telegram_id)
-        if wallet.balance < amount:
+    async def subtract_balance(self, telegram_id: int, amount: int) -> int | None:
+        """Deduct `amount` atomically if balance covers it; otherwise return None."""
+        row = await self.session.execute(
+            text(
+                "UPDATE wallets SET balance = balance - :a "
+                "WHERE telegram_id = :t AND balance >= :a "
+                "RETURNING balance"
+            ),
+            {"t": telegram_id, "a": amount},
+        )
+        val = row.scalar_one_or_none()
+        if val is None:
             return None
-        wallet.balance -= amount
-        return wallet
+        await self.session.flush()
+        return int(val)
 
     async def set_balance(self, telegram_id: int, amount: int) -> Wallet:
         wallet = await self.get_wallet(telegram_id)

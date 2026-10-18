@@ -15,7 +15,7 @@ EMOJI_PATTERN = re.compile(
 def _check_admin(request: web.Request) -> dict[str, Any] | None:
     """Validate admin authorization for TMA requests."""
     user = get_authenticated_user(request)
-    if not user or not user.get("is_admin"):
+    if not user or not user.get("is_admin") or user.get("is_preview"):
         return None
     return user
 

@@ -1,7 +1,7 @@
 """Repository for discount / promo coupons."""
 from datetime import datetime, timezone
 
-from sqlalchemy import func, select
+from sqlalchemy import func, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from bot.db.models import Coupon, CouponUsage
@@ -101,8 +101,10 @@ class CouponRepository:
             coupon_obj = coupon
         else:
             coupon_obj = await self.get_by_id(coupon)
+
         if coupon_obj:
             coupon_obj.used_count += 1
+
         usage = CouponUsage(
             coupon_id=coupon_obj.id if coupon_obj else (coupon if isinstance(coupon, int) else None),
             telegram_id=telegram_id,
@@ -190,7 +192,7 @@ class CouponRepository:
 
         from bot.db.repositories.wallet_repo import WalletRepository
         wallet_repo = WalletRepository(self.session)
-        await wallet_repo.add_balance(telegram_id, credit_amount)
+        await wallet_repo.add_balance_atomic(telegram_id, credit_amount)
         await self.session.flush()
 
         return True, credit_amount, f"کیف پول شما با موفقیت به مبلغ {credit_amount:,} تومان شارژ گردید."

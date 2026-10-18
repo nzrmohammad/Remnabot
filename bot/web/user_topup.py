@@ -82,13 +82,31 @@ async def post_user_topup_card(request: web.Request) -> web.Response:
     receipt_image = body.get("receipt_image")
 
     img_bytes = None
-    if receipt_image and isinstance(receipt_image, str) and "base64," in receipt_image:
-        try:
-            import base64
-            b64_data = receipt_image.split("base64,")[1]
-            img_bytes = base64.b64decode(b64_data)
-        except Exception as b64_err:
-            logger.warning("Failed to decode receipt image: %s", b64_err)
+    MAX_IMAGE_BYTES = 10 * 1024 * 1024
+    if receipt_image and isinstance(receipt_image, str):
+        if len(receipt_image) > 15 * 1024 * 1024:
+            return web.json_response(
+                {"ok": False, "message": "حجم تصویر فیش واریزی نباید بیشتر از ۱۰ مگابایت باشد."},
+                status=400,
+            )
+        if "base64," in receipt_image:
+            header = receipt_image.split("base64,")[0].lower()
+            if header and not header.startswith("data:image/"):
+                return web.json_response(
+                    {"ok": False, "message": "فرمت فایل نامعتبر است. لطفاً یک تصویر (JPG/PNG/WEBP) ارسال کنید."},
+                    status=400,
+                )
+            try:
+                import base64
+                b64_data = receipt_image.split("base64,")[1]
+                img_bytes = base64.b64decode(b64_data)
+                if len(img_bytes) > MAX_IMAGE_BYTES:
+                    return web.json_response(
+                        {"ok": False, "message": "حجم تصویر فیش واریزی نباید بیشتر از ۱۰ مگابایت باشد."},
+                        status=400,
+                    )
+            except Exception as b64_err:
+                logger.warning("Failed to decode receipt image: %s", b64_err)
 
     if not img_bytes:
         return web.json_response(

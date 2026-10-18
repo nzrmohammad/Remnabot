@@ -208,7 +208,7 @@ async def voucher_redeem_message(
     message: Message, bot: Bot, user_repo: UserRepository,
     session: AsyncSession, state: FSMContext,
 ):
-    await delete_message_silently(message)
+    await delete_message_silently(bot, message.chat.id, message.message_id)
     user = await user_repo.get_or_create(message.from_user.id, message.from_user.username)
     lang = user.language
     code = (message.text or "").strip()

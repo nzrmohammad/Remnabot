@@ -3,6 +3,7 @@ import asyncio
 import logging
 import os
 import tempfile
+import time
 
 from aiogram import Bot, Dispatcher
 from aiogram.client.default import DefaultBotProperties
@@ -64,12 +65,16 @@ def _build_storage(settings):
 HEARTBEAT_FILE = os.path.join(tempfile.gettempdir(), "bot_heartbeat")
 
 
+def _write_heartbeat(path: str) -> None:
+    with open(path, "w") as f:
+        f.write(str(int(time.time())))
+
+
 async def heartbeat_loop() -> None:
     """Touch a file every 60s so the Docker HEALTHCHECK can see liveness."""
     while True:
         try:
-            with open(HEARTBEAT_FILE, "w") as f:
-                f.write(str(int(asyncio.get_event_loop().time())))
+            await asyncio.to_thread(_write_heartbeat, HEARTBEAT_FILE)
         except OSError:
             logger.exception("heartbeat write failed")
         await asyncio.sleep(60)

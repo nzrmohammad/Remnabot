@@ -434,7 +434,13 @@ function fmtTraffic(val, options = {}) {
 
   const finalDigits = persianDigits && typeof toPersianDigits === 'function' ? toPersianDigits(numStr) : numStr;
   const formatted = `${finalDigits} ${displayUnit}`;
-  return html ? `<span class="num-bidi">${escapeHtml(formatted)}</span>` : formatted;
+  if (html) {
+    return `<span class="num-bidi">${escapeHtml(formatted)}</span>`;
+  }
+  if (options.isolate) {
+    return `\u2066${formatted}\u2069`;
+  }
+  return formatted;
 }
 
 function getDonutPalette(isLight = false) {
@@ -516,6 +522,18 @@ function getChartThemeTokens(isLight = false) {
       };
 }
 
+function fmtMoney(amount, currency = 'تومان') {
+  if (amount == null || isNaN(amount)) return `0 ${currency}`;
+  return `${formatPrice(amount)} ${currency}`;
+}
+
+function fmtCompact(val) {
+  const num = typeof val === 'number' ? val : parseFloat(val) || 0;
+  if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
+  if (num >= 1000) return `${(num / 1000).toFixed(0)}K`;
+  return String(num);
+}
+
 if (typeof window !== 'undefined') {
   window.toEnglishDigits = toEnglishDigits;
   window.toPersianDigits = toPersianDigits;
@@ -525,6 +543,8 @@ if (typeof window !== 'undefined') {
   window.bindModal = bindModal;
   window.fmtTrafficValue = fmtTrafficValue;
   window.fmtTraffic = fmtTraffic;
+  window.fmtMoney = fmtMoney;
+  window.fmtCompact = fmtCompact;
   window.getDonutPalette = getDonutPalette;
   window.getChartThemeTokens = getChartThemeTokens;
 }
@@ -538,6 +558,8 @@ if (typeof module !== 'undefined' && module.exports) {
     formatPlanTitle,
     fmtTrafficValue,
     fmtTraffic,
+    fmtMoney,
+    fmtCompact,
     getDonutPalette,
     getChartThemeTokens,
   };

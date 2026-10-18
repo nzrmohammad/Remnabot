@@ -84,6 +84,10 @@ async def ton_invoice_check(
         await call.answer("❌ فاکتور یافت نشد.", show_alert=True)
         return
 
+    if inv.telegram_id != call.from_user.id:
+        await call.answer("❌ این فاکتور متعلق به حساب شما نیست.", show_alert=True)
+        return
+
     if inv.status == "paid":
         wallet_repo = WalletRepository(session)
         w = await wallet_repo.get_wallet(inv.telegram_id)
@@ -166,6 +170,11 @@ async def ton_invoice_cancel(
         return
 
     crypto_repo = CryptoRepository(session)
+    inv = await crypto_repo.get_by_id(inv_id)
+    if not inv or inv.telegram_id != call.from_user.id:
+        await call.answer("❌ فاکتور یافت نشد یا متعلق به شما نیست.", show_alert=True)
+        return
+
     await crypto_repo.mark_cancelled(inv_id)
     await session.commit()
 

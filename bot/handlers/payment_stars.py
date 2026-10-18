@@ -2,6 +2,7 @@
 import logging
 from aiogram import Bot, F, Router
 from aiogram.types import Message, PreCheckoutQuery
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from datetime import datetime, timezone
@@ -74,17 +75,26 @@ async def stars_successful_payment_handler(
             pass
         return
 
+    # Idempotency guard: prevent duplicate crediting if Telegram retries webhook
+    receipt_hash = f"stars:{sp.telegram_payment_charge_id}"
+    dup_res = await session.execute(
+        select(Topup).where(Topup.receipt_hash == receipt_hash)
+    )
+    if dup_res.scalar_one_or_none():
+        logger.warning("Duplicate Stars payment received for charge_id %s, ignoring.", sp.telegram_payment_charge_id)
+        return
+
     wallet_repo = WalletRepository(session)
     user_repo = UserRepository(session)
 
     # Atomically credit wallet and record topup
     try:
-        new_balance = await wallet_repo.adjust_balance(user_tid, amount_toman)
+        new_balance = await wallet_repo.add_balance_atomic(user_tid, amount_toman)
         topup = Topup(
             telegram_id=user_tid,
             amount=amount_toman,
             status=TopupStatus.APPROVED.value,
-            receipt_hash=f"stars:{sp.telegram_payment_charge_id}",
+            receipt_hash=receipt_hash,
             decided_at=datetime.now(timezone.utc),
         )
         session.add(topup)
@@ -105,7 +115,11 @@ async def stars_successful_payment_handler(
         raise
 
     user = await user_repo.get_by_telegram_id(user_tid)
-    first_name = user.full_name or f"@{user.username}" if user else f"کاربر {user_tid}"
+    first_name = (
+        user.full_name
+        or (f"@{user.username}" if user.username else None)
+        or f"کاربر {user_tid}"
+    ) if user else f"کاربر {user_tid}"
 
     # Notify user
     receipt_text = (

@@ -3,7 +3,7 @@
  * Run with: node tests/js/fmt.test.js
  */
 const assert = require('assert');
-const { fmtTraffic, fmtTrafficValue, formatPlanTitle } = require('../../bot/web/static/js/utils.js');
+const { fmtTraffic, fmtTrafficValue, formatPlanTitle, fmtMoney, fmtCompact } = require('../../bot/web/static/js/utils.js');
 
 let passCount = 0;
 function test(name, fn) {
@@ -75,6 +75,25 @@ test('formatPlanTitle plainText mode for canvas and charts', () => {
   assert.strictEqual(formatPlanTitle('🚀 توربو ۲ ماهه', { plainText: true }), '🚀 توربو ۲ ماهه');
   assert.strictEqual(formatPlanTitle('پلن بدون آیکون', { plainText: true }), '💎 پلن بدون آیکون');
   assert.strictEqual(formatPlanTitle('', { plainText: true }), '💎 پلن');
+});
+
+test('Unicode LRI/PDI isolation mode for canvas and tooltips', () => {
+  assert.strictEqual(fmtTraffic(25, { html: false, isolate: true }), '\u206625 GB\u2069');
+});
+
+test('fmtMoney formats amounts with currency', () => {
+  assert.strictEqual(fmtMoney(50000), '50,000 تومان');
+  assert.strictEqual(fmtMoney(1250000), '1,250,000 تومان');
+  assert.strictEqual(fmtMoney(0), '0 تومان');
+  assert.strictEqual(fmtMoney(null), '0 تومان');
+});
+
+test('fmtCompact formats large numbers concisely', () => {
+  assert.strictEqual(fmtCompact(500), '500');
+  assert.strictEqual(fmtCompact(1000), '1K');
+  assert.strictEqual(fmtCompact(15000), '15K');
+  assert.strictEqual(fmtCompact(1000000), '1.0M');
+  assert.strictEqual(fmtCompact(2500000), '2.5M');
 });
 
 console.log(`\nAll ${passCount} tests passed successfully!`);

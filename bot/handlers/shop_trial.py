@@ -174,7 +174,17 @@ async def service_trial_username(
         return
 
     store = await get_store_settings(session)
-    if not store.trial_enabled or user.has_claimed_trial:
+    if not store.trial_enabled:
+        await state.clear()
+        kb = InlineKeyboardBuilder()
+        kb.button(text=t(lang, "btn_back"), callback_data="nav:welcome")
+        kb.adjust(1)
+        await render_menu(bot, user, user_repo, t(lang, "trial_already_claimed"), kb.as_markup())
+        return
+
+    # Atomic claim reservation: blocks concurrent requests from obtaining multiple trials
+    claimed_now = await user_repo.claim_trial_atomic(user.telegram_id)
+    if not claimed_now:
         await state.clear()
         kb = InlineKeyboardBuilder()
         kb.button(text=t(lang, "btn_back"), callback_data="nav:welcome")
@@ -184,6 +194,7 @@ async def service_trial_username(
 
     existing = await remnawave.get_user_by_username(raw_name)
     if existing is not None:
+        await user_repo.set_claimed_trial(user.telegram_id, False)
         kb = InlineKeyboardBuilder()
         kb.button(text=t(lang, "btn_cancel"), callback_data="nav:welcome")
         kb.adjust(1)
@@ -206,6 +217,7 @@ async def service_trial_username(
     )
 
     if created is None:
+        await user_repo.set_claimed_trial(user.telegram_id, False)
         kb = InlineKeyboardBuilder()
         kb.button(text=t(lang, "btn_cancel"), callback_data="nav:welcome")
         kb.adjust(1)
@@ -213,7 +225,6 @@ async def service_trial_username(
         return
 
     await user_repo.set_verified(user)
-    await user_repo.set_claimed_trial(user.telegram_id)
     await state.clear()
 
     # Reward referrer if applicable

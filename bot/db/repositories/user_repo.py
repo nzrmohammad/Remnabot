@@ -116,6 +116,20 @@ class UserRepository:
         if user:
             user.has_claimed_trial = claimed
 
+    async def claim_trial_atomic(self, telegram_id: int) -> bool:
+        """Atomically mark trial as claimed. Returns True if claimed, False if already claimed."""
+        row = await self.session.execute(
+            text(
+                "UPDATE users SET has_claimed_trial = true "
+                "WHERE telegram_id = :t AND has_claimed_trial = false "
+                "RETURNING id"
+            ),
+            {"t": telegram_id},
+        )
+        val = row.scalar_one_or_none()
+        await self.session.flush()
+        return val is not None
+
     async def set_banned(self, user: User | int, banned: bool = True) -> None:
         if isinstance(user, int):
             user = await self.get_by_telegram_id(user)

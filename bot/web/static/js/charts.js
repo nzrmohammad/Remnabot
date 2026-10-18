@@ -50,10 +50,13 @@ async function renderBarChart(containerId, totals, labels, isMonthly = false) {
   if (canvas.tagName.toLowerCase() !== 'canvas') {
     let innerCanvas = canvas.querySelector('canvas');
     if (!innerCanvas) {
-      canvas.innerHTML = '<canvas class="w-full h-full"></canvas>';
+      canvas.innerHTML = '<canvas dir="ltr" class="w-full h-full"></canvas>';
       innerCanvas = canvas.querySelector('canvas');
     }
     canvas = innerCanvas;
+  }
+  if (canvas && !canvas.getAttribute('dir')) {
+    canvas.setAttribute('dir', 'ltr');
   }
 
   const isLight = document.documentElement.classList.contains('theme-light');
@@ -122,7 +125,7 @@ async function renderBarChart(containerId, totals, labels, isMonthly = false) {
             },
             label: function(context) {
               const val = context.raw != null ? context.raw : 0;
-              return `مصرف: ${fmtTraffic(val, { html: false })}`;
+              return `مصرف: ${fmtTraffic(val, { html: false, isolate: true })}`;
             }
           }
         }
@@ -147,7 +150,7 @@ async function renderBarChart(containerId, totals, labels, isMonthly = false) {
             color: textColor,
             font: { family: 'monospace', size: 9, weight: isLight ? '600' : '500' },
             callback: function(val) {
-              return fmtTraffic(val, { html: false });
+              return fmtTraffic(val, { html: false, isolate: true });
             }
           }
         }
@@ -193,10 +196,13 @@ async function renderDonutChart(containerId, labels, data, isDevice = false) {
   if (canvas.tagName.toLowerCase() !== 'canvas') {
     let innerCanvas = canvas.querySelector('canvas');
     if (!innerCanvas) {
-      canvas.innerHTML = '<canvas class="w-full h-full"></canvas>';
+      canvas.innerHTML = '<canvas dir="ltr" class="w-full h-full"></canvas>';
       innerCanvas = canvas.querySelector('canvas');
     }
     canvas = innerCanvas;
+  }
+  if (canvas && !canvas.getAttribute('dir')) {
+    canvas.setAttribute('dir', 'ltr');
   }
 
   const isLight = document.documentElement.classList.contains('theme-light') || !document.documentElement.classList.contains('dark');
@@ -299,7 +305,7 @@ async function renderDonutChart(containerId, labels, data, isDevice = false) {
               if (isDevice) {
                 return `${ctx.label}: ${toEnglishDigits(val)} دستگاه`;
               }
-              return `${ctx.label}: ${fmtTraffic(val, { html: false })}`;
+              return `${ctx.label}: ${fmtTraffic(val, { html: false, isolate: true })}`;
             }
           }
         }
@@ -324,10 +330,13 @@ async function renderLineCurveChart(containerId, labels, data, peakHour = null) 
   if (canvas.tagName.toLowerCase() !== 'canvas') {
     let innerCanvas = canvas.querySelector('canvas');
     if (!innerCanvas) {
-      canvas.innerHTML = '<canvas class="w-full h-full"></canvas>';
+      canvas.innerHTML = '<canvas dir="ltr" class="w-full h-full"></canvas>';
       innerCanvas = canvas.querySelector('canvas');
     }
     canvas = innerCanvas;
+  }
+  if (canvas && !canvas.getAttribute('dir')) {
+    canvas.setAttribute('dir', 'ltr');
   }
 
   const isLight = document.documentElement.classList.contains('theme-light');
@@ -394,7 +403,7 @@ async function renderLineCurveChart(containerId, labels, data, peakHour = null) 
           cornerRadius: 8,
           callbacks: {
             title: (items) => `بازه ${items[0]?.label || ''}`,
-            label: (ctx) => `مصرف: ${fmtTraffic(ctx.raw, { html: false })}`
+            label: (ctx) => `مصرف: ${fmtTraffic(ctx.raw, { html: false, isolate: true })}`
           }
         }
       },
@@ -416,7 +425,7 @@ async function renderLineCurveChart(containerId, labels, data, peakHour = null) 
           ticks: {
             color: textColor,
             font: { family: 'monospace', size: 9, weight: isLight ? '600' : '500' },
-            callback: (v) => fmtTraffic(v, { html: false })
+            callback: (v) => fmtTraffic(v, { html: false, isolate: true })
           }
         }
       }

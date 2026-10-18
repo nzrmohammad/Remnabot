@@ -189,14 +189,17 @@ async def topup_receipt(
     if not delivered:
         try:
             await wallet_repo.cancel_pending(topup.id)
-        except Exception:
-            pass
+            await session.commit()
+        except Exception as exc:
+            logger.error("Failed to cancel orphan pending topup %s: %s", topup.id, exc)
         back = InlineKeyboardBuilder()
         back.button(text=t(lang, "btn_back_to_menu"), callback_data="nav:main_menu")
         await render_menu(
             bot, user, user_repo, t(lang, "support_failed"), back.as_markup()
         )
         return
+
+    await session.commit()
 
     back = InlineKeyboardBuilder()
     back.button(text=t(lang, "btn_back_to_menu"), callback_data="nav:main_menu")

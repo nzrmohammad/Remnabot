@@ -119,6 +119,7 @@ async def auto_renew_sweep_loop(
                                 session_factory=session_factory,
                             )
                             if pur_res.ok:
+                                await session.commit()
                                 if cache:
                                     await cache.set(dedup_key, "1", ttl=86400)
                                 if bot:
@@ -133,6 +134,8 @@ async def auto_renew_sweep_loop(
                                         )
                                     except Exception:
                                         pass
+                            else:
+                                await session.rollback()
                         else:
                             # Insufficient balance notice
                             if cache:

@@ -577,7 +577,7 @@
             rtl: true,
             textDirection: 'rtl',
             callbacks: {
-              label: (ctx) => `${formatNumber(ctx.raw)} تومان`
+              label: (ctx) => typeof fmtMoney === 'function' ? fmtMoney(ctx.raw) : `${formatNumber(ctx.raw)} تومان`
             }
           }
         },
@@ -592,7 +592,7 @@
             ticks: {
               color: isDark ? '#cbd5e1' : '#0f172a',
               font: { family: 'Vazirmatn', size: 9 },
-              callback: (val) => val >= 1000000 ? `${(val/1000000).toFixed(1)}M` : (val >= 1000 ? `${(val/1000).toFixed(0)}K` : val)
+              callback: (val) => typeof fmtCompact === 'function' ? fmtCompact(val) : (val >= 1000000 ? `${(val/1000000).toFixed(1)}M` : (val >= 1000 ? `${(val/1000).toFixed(0)}K` : val))
             }
           }
         }
@@ -650,7 +650,7 @@
             rtl: true,
             textDirection: 'rtl',
             callbacks: {
-              label: (ctx) => `${formatNumber(ctx.raw)} تومان`
+              label: (ctx) => typeof fmtMoney === 'function' ? fmtMoney(ctx.raw) : `${formatNumber(ctx.raw)} تومان`
             }
           }
         },
@@ -669,7 +669,7 @@
             ticks: {
               color: tc.tick,
               font: { family: 'Vazirmatn', size: 9 },
-              callback: (val) => val >= 1000000 ? `${(val/1000000).toFixed(1)}M` : (val >= 1000 ? `${(val/1000).toFixed(0)}K` : val)
+              callback: (val) => typeof fmtCompact === 'function' ? fmtCompact(val) : (val >= 1000000 ? `${(val/1000000).toFixed(1)}M` : (val >= 1000 ? `${(val/1000).toFixed(0)}K` : val))
             }
           }
         }
@@ -730,7 +730,7 @@
             rtl: true,
             textDirection: 'rtl',
             callbacks: {
-              label: (ctx) => `مصرف: ${fmtTraffic(ctx.raw, { html: false })}`
+              label: (ctx) => `مصرف: ${fmtTraffic(ctx.raw, { html: false, isolate: true })}`
             }
           }
         },
@@ -745,7 +745,7 @@
             ticks: {
               color: tc.tick,
               font: { family: 'Vazirmatn', size: 9 },
-              callback: (val) => fmtTraffic(val, { html: false })
+              callback: (val) => fmtTraffic(val, { html: false, isolate: true })
             }
           }
         }
@@ -839,7 +839,7 @@
             rtl: true,
             textDirection: 'rtl',
             callbacks: {
-              label: (ctx) => hasData ? `${ctx.label}: ${typeof fmtTraffic === 'function' ? fmtTraffic(ctx.raw, { html: false }) : `${formatNumber(ctx.raw)} ${unit}`}` : 'داده‌ای برای سرورها ثبت نشده است'
+              label: (ctx) => hasData ? `${ctx.label}: ${typeof fmtTraffic === 'function' ? fmtTraffic(ctx.raw, { html: false, isolate: true }) : `${formatNumber(ctx.raw)} ${unit}`}` : 'داده‌ای برای سرورها ثبت نشده است'
             }
           }
         }
@@ -906,7 +906,7 @@
             rtl: true,
             textDirection: 'rtl',
             callbacks: {
-              label: (ctx) => `ساعت ${ctx.label}: ${fmtTraffic(ctx.raw, { html: false })}`
+              label: (ctx) => `ساعت ${ctx.label}: ${fmtTraffic(ctx.raw, { html: false, isolate: true })}`
             }
           }
         },
@@ -925,7 +925,7 @@
             ticks: {
               color: tc.tick,
               font: { family: 'Vazirmatn', size: 10 },
-              callback: (val) => fmtTraffic(val, { html: false })
+              callback: (val) => fmtTraffic(val, { html: false, isolate: true })
             }
           }
         }
