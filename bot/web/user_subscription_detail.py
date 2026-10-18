@@ -404,6 +404,46 @@ async def build_active_subscription(
         snapshots_24h=snapshots_24h,
     )
 
+    # Calculate Burn-rate & Projected Expiry
+    recent_3days_bytes = bw["week_daily_totals"][-3:] if bw.get("week_daily_totals") else []
+    recent_3days_gb = [round(b / (1024**3), 2) for b in recent_3days_bytes]
+    avg_3days_gb = round(sum(recent_3days_gb) / len(recent_3days_gb), 2) if recent_3days_gb else 0.0
+    if avg_3days_gb <= 0.0 and bw.get("today_used_gb", 0) > 0:
+        avg_3days_gb = round(float(bw["today_used_gb"]), 2)
+
+    projected_days = None
+    burn_status = "normal"
+    burn_text = ""
+
+    if limit_bytes == 0:
+        burn_status = "unlimited"
+        burn_text = "حجم بسته شما نامحدود است."
+    elif traffic_remaining_gb <= 0:
+        burn_status = "exhausted"
+        burn_text = "حجم بسته شما به پایان رسیده است."
+    elif avg_3days_gb > 0:
+        projected_days = round(traffic_remaining_gb / avg_3days_gb, 1)
+        if days_left > 0 and projected_days < days_left:
+            burn_status = "fast"
+            burn_text = f"با الگوی مصرف فعلی، حجم شما تا حدود {int(projected_days) if projected_days.is_integer() else projected_days} روز دیگر به پایان می‌رسد (پیش از موعد انقضا)."
+        elif days_left > 0 and projected_days >= days_left:
+            burn_status = "safe"
+            burn_text = f"با الگوی مصرف فعلی، حجم شما تا {days_left} روز آینده (تا انقضای اشتراک) کاملاً پاسخگو است."
+        else:
+            burn_status = "normal"
+            burn_text = f"با الگوی مصرف فعلی، حجم شما تا حدود {int(projected_days) if projected_days.is_integer() else projected_days} روز دیگر به پایان می‌رسد."
+    else:
+        burn_status = "idle"
+        burn_text = "مصرف قابل توجهی در ۳ روز اخیر ثبت نشده است."
+
+    burn_rate = {
+        "avg_daily_gb": avg_3days_gb,
+        "projected_days": projected_days,
+        "status": burn_status,
+        "text": burn_text,
+        "days_left_plan": days_left,
+    }
+
     active_sub = {
         "account_id": panel_user_id,
         "username": primary.get("username", user_auth.get("username")),
@@ -434,6 +474,7 @@ async def build_active_subscription(
         "month_weeks_totals_gb": bw["month_weeks_totals_gb"],
         "week_day_labels": bw["week_day_labels"],
         "traffic_split": curves["traffic_split"],
+        "burn_rate": burn_rate,
         "country_share": curves["country_share"],
         "hourly_usage": curves["hourly_usage"],
         "device_share": curves["device_share"],

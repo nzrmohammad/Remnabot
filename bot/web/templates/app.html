@@ -503,19 +503,47 @@
           <div class="bg-slate-800/90 rounded-2xl p-4 border border-slate-700/80 space-y-2.5 shadow-md">
             <div class="flex justify-between items-center border-b border-slate-700/60 pb-2">
               <span class="text-xs font-bold text-white flex items-center gap-1.5">
-                <span>⚡️</span> توازن ترافیک (دانلود / آپلود)
+                <span>⚡️</span> توازن ترافیک (دانلود در برابر آپلود)
               </span>
               <span id="repUpDownRatioBadge" class="text-[10px] font-mono font-bold text-cyan-400 bg-transparent p-0" dir="ltr">RX / TX</span>
             </div>
             
-            <div class="space-y-1.5">
+            <div class="space-y-2">
               <div class="flex justify-between text-[11px] font-mono" dir="ltr">
-                <span class="text-emerald-400 font-bold flex items-center gap-1">📥 DL: <span id="repSplitDownGb" class="num-bidi">-- GB</span> (<span id="repSplitDownPct">--%</span>)</span>
-                <span class="text-sky-400 font-bold flex items-center gap-1">📤 UL: <span id="repSplitUpGb" class="num-bidi">-- GB</span> (<span id="repSplitUpPct">--%</span>)</span>
+                <span class="text-cyan-400 font-bold flex items-center gap-1">📥 دریافت (DL): <span id="repSplitDownGb" class="num-bidi">-- GB</span> (<span id="repSplitDownPct">--%</span>)</span>
+                <span class="text-purple-400 font-bold flex items-center gap-1">📤 ارسال (UL): <span id="repSplitUpGb" class="num-bidi">-- GB</span> (<span id="repSplitUpPct">--%</span>)</span>
               </div>
-              <div class="w-full h-2 rounded-full bg-slate-950/80 p-[1px] border border-slate-700/50 flex overflow-hidden relative" dir="ltr">
-                <div id="repSplitDownBar" class="h-full bg-gradient-to-r from-emerald-500 to-teal-400 rounded-l-full transition-all duration-700" style="width: 85%;"></div>
-                <div id="repSplitUpBar" class="h-full bg-gradient-to-r from-sky-400 to-indigo-500 rounded-r-full transition-all duration-700" style="width: 15%;"></div>
+              <div class="w-full h-2.5 rounded-full bg-slate-950/80 p-[1px] border border-slate-700/50 flex overflow-hidden relative" dir="ltr">
+                <div id="repSplitDownBar" class="h-full bg-gradient-to-r from-cyan-500 to-teal-400 rounded-l-full transition-all duration-700" style="width: 85%;"></div>
+                <div id="repSplitUpBar" class="h-full bg-gradient-to-r from-purple-500 to-indigo-500 rounded-r-full transition-all duration-700" style="width: 15%;"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Chart 2: Burn-Rate & Projected Expiry (پیش‌بینی هوشمند اتمام حجم) -->
+          <div class="bg-slate-800/90 rounded-2xl p-4 border border-slate-700/80 space-y-2.5 shadow-md">
+            <div class="flex justify-between items-center border-b border-slate-700/60 pb-2">
+              <span class="text-xs font-bold text-white flex items-center gap-1.5">
+                <span>⏳</span> پیش‌بینی هوشمند اتمام حجم
+              </span>
+              <span id="repBurnSpeedBadge" class="text-[10px] font-mono font-bold text-amber-400 bg-transparent p-0" dir="ltr">-- GB/روز</span>
+            </div>
+
+            <div class="space-y-2">
+              <div class="grid grid-cols-2 gap-2 text-xs">
+                <div class="bg-slate-900/60 border border-slate-700/50 rounded-xl p-2.5 space-y-1">
+                  <span class="text-[10px] text-slate-400 block">میانگین مصرف ۳ روز اخیر:</span>
+                  <b id="repBurnAvgDaily" class="font-mono text-cyan-400 text-xs num-bidi" dir="ltr">-- GB / روز</b>
+                </div>
+                <div class="bg-slate-900/60 border border-slate-700/50 rounded-xl p-2.5 space-y-1">
+                  <span class="text-[10px] text-slate-400 block">تخمین دوام حجم باقی‌مانده:</span>
+                  <b id="repBurnProjectedDays" class="font-mono text-emerald-400 text-xs num-bidi" dir="ltr">-- روز</b>
+                </div>
+              </div>
+
+              <div id="repBurnAnalysisBox" class="p-2.5 rounded-xl bg-slate-900/40 border border-slate-700/40 text-xs text-slate-300 flex items-start gap-2">
+                <span id="repBurnStatusIcon" class="text-base shrink-0">🎯</span>
+                <span id="repBurnAnalysisText" class="text-[11px] leading-relaxed text-slate-300">در حال تحلیل الگوی مصرف...</span>
               </div>
             </div>
           </div>

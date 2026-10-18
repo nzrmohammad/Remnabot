@@ -122,7 +122,7 @@ async def post_admin_topup_action(request: web.Request) -> web.Response:
 
         if approved:
             try:
-                await wallet_repo.add_balance(claimed.telegram_id, claimed.amount)
+                await wallet_repo.add_balance_atomic(claimed.telegram_id, claimed.amount)
             except Exception as exc:
                 logger.error("Failed to add balance for topup #%s (user=%s, amount=%s): %s", claimed.id, claimed.telegram_id, claimed.amount, exc)
                 try:

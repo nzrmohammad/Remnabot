@@ -446,12 +446,12 @@ function renderTrafficSplit(splitData) {
   const upPct = splitData.upload_percent ?? 15;
 
   const downGbEl = document.getElementById('repSplitDownGb');
-  if (downGbEl) downGbEl.innerText = fmtTraffic(downGb, { html: false });
+  if (downGbEl) downGbEl.innerText = fmtTraffic(downGb, { html: false, isolate: true });
   const downPctEl = document.getElementById('repSplitDownPct');
   if (downPctEl) downPctEl.innerText = `${toEnglishDigits(downPct)}%`;
 
   const upGbEl = document.getElementById('repSplitUpGb');
-  if (upGbEl) upGbEl.innerText = fmtTraffic(upGb, { html: false });
+  if (upGbEl) upGbEl.innerText = fmtTraffic(upGb, { html: false, isolate: true });
   const upPctEl = document.getElementById('repSplitUpPct');
   if (upPctEl) upPctEl.innerText = `${toEnglishDigits(upPct)}%`;
 
@@ -462,7 +462,75 @@ function renderTrafficSplit(splitData) {
 
   const ratioBadge = document.getElementById('repUpDownRatioBadge');
   if (ratioBadge) {
-    ratioBadge.innerText = `RX ${downPct}% / TX ${upPct}%`;
+    ratioBadge.innerText = `RX ${toEnglishDigits(downPct)}% / TX ${toEnglishDigits(upPct)}%`;
+  }
+}
+
+function renderBurnRate(burnRate, sub) {
+  if (!burnRate) return;
+  const speedBadge = document.getElementById('repBurnSpeedBadge');
+  const avgDailyEl = document.getElementById('repBurnAvgDaily');
+  const projectedDaysEl = document.getElementById('repBurnProjectedDays');
+  const analysisTextEl = document.getElementById('repBurnAnalysisText');
+  const statusIconEl = document.getElementById('repBurnStatusIcon');
+  const analysisBox = document.getElementById('repBurnAnalysisBox');
+
+  const avgGb = burnRate.avg_daily_gb || 0;
+  if (speedBadge) {
+    speedBadge.innerText = avgGb > 0 ? `${fmtTraffic(avgGb, { html: false, isolate: true })}/روز` : 'کم‌مصرف';
+  }
+
+  if (avgDailyEl) {
+    avgDailyEl.innerHTML = `${fmtTraffic(avgGb, { html: true })} / روز`;
+  }
+
+  const projDays = burnRate.projected_days;
+  if (projectedDaysEl) {
+    if (projDays != null && projDays > 0) {
+      projectedDaysEl.innerText = `حدود ${toEnglishDigits(projDays)} روز`;
+      if (burnRate.status === 'fast') {
+        projectedDaysEl.className = 'font-mono text-amber-400 text-xs num-bidi';
+      } else {
+        projectedDaysEl.className = 'font-mono text-emerald-400 text-xs num-bidi';
+      }
+    } else if (burnRate.status === 'unlimited') {
+      projectedDaysEl.innerText = 'نامحدود ♾️';
+      projectedDaysEl.className = 'font-mono text-cyan-400 text-xs';
+    } else if (burnRate.status === 'exhausted') {
+      projectedDaysEl.innerText = 'پایان‌یافته';
+      projectedDaysEl.className = 'font-mono text-rose-400 text-xs';
+    } else {
+      projectedDaysEl.innerText = '—';
+      projectedDaysEl.className = 'font-mono text-slate-400 text-xs';
+    }
+  }
+
+  if (analysisTextEl && burnRate.text) {
+    analysisTextEl.innerText = burnRate.text;
+  }
+
+  if (statusIconEl) {
+    if (burnRate.status === 'fast') {
+      statusIconEl.innerText = '⚠️';
+      if (analysisBox) {
+        analysisBox.className = 'p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-xs text-amber-200 flex items-start gap-2';
+      }
+    } else if (burnRate.status === 'safe') {
+      statusIconEl.innerText = '✅';
+      if (analysisBox) {
+        analysisBox.className = 'p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-xs text-emerald-200 flex items-start gap-2';
+      }
+    } else if (burnRate.status === 'unlimited') {
+      statusIconEl.innerText = '♾️';
+      if (analysisBox) {
+        analysisBox.className = 'p-2.5 rounded-xl bg-cyan-500/10 border border-cyan-500/30 text-xs text-cyan-200 flex items-start gap-2';
+      }
+    } else {
+      statusIconEl.innerText = '🎯';
+      if (analysisBox) {
+        analysisBox.className = 'p-2.5 rounded-xl bg-slate-900/40 border border-slate-700/40 text-xs text-slate-300 flex items-start gap-2';
+      }
+    }
   }
 }
 
@@ -471,4 +539,5 @@ window.renderNodeBreakdown = renderNodeBreakdown;
 window.renderDonutChart = renderDonutChart;
 window.renderLineCurveChart = renderLineCurveChart;
 window.renderTrafficSplit = renderTrafficSplit;
+window.renderBurnRate = renderBurnRate;
 window.ensureChart = ensureChart;

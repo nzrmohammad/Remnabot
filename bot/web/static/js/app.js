@@ -2130,6 +2130,15 @@ function renderActiveSubAnalytics(sub) {
     }
   }
 
+  // 1.5 Burn Rate & Projected Expiry
+  if (typeof renderBurnRate === 'function') {
+    try {
+      renderBurnRate(sub.burn_rate, sub);
+    } catch (e) {
+      console.warn('Error rendering burn rate', e);
+    }
+  }
+
   // 2. 24h Peak Usage Area Curve
   if (typeof renderLineCurveChart === 'function') {
     try {

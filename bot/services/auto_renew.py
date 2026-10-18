@@ -155,6 +155,7 @@ async def auto_renew_sweep_loop(
                                 except Exception:
                                     pass
                     except Exception as u_exc:
+                        await session.rollback()
                         logger.warning("Error checking auto_renew for user %s: %s", user.telegram_id, u_exc)
 
             await asyncio.sleep(21600)  # Check every 6 hours

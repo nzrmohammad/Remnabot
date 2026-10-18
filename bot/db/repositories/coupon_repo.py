@@ -103,6 +103,8 @@ class CouponRepository:
             coupon_obj = await self.get_by_id(coupon)
 
         if coupon_obj:
+            if coupon_obj.max_uses and coupon_obj.max_uses > 0 and coupon_obj.used_count >= coupon_obj.max_uses:
+                raise ValueError("Coupon max uses reached")
             coupon_obj.used_count += 1
 
         usage = CouponUsage(
