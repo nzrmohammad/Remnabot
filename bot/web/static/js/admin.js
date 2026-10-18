@@ -610,14 +610,14 @@
         datasets: [{
           label: 'فروش ۳۰ روزه (تومان)',
           data: values || [],
-          borderColor: '#10b981',
+          borderColor: isDark ? '#34d399' : '#059669',
           borderWidth: 2,
           backgroundColor: gradient,
           fill: true,
           tension: 0.35,
           pointRadius: (ctx) => ((labels || []).length > 15 ? 1 : 2),
           pointHoverRadius: 5,
-          pointBackgroundColor: '#34d399',
+          pointBackgroundColor: isDark ? '#34d399' : '#059669',
           pointBorderColor: isDark ? '#0f172a' : '#ffffff',
         }]
       },
@@ -688,12 +688,12 @@
         datasets: [{
           label: 'مصرف ترافیک (GB)',
           data: values,
-          borderColor: '#06b6d4',
+          borderColor: isDark ? '#22d3ee' : '#0891b2',
           borderWidth: 2.5,
           backgroundColor: gradient,
           fill: true,
           tension: 0.35,
-          pointBackgroundColor: '#22d3ee',
+          pointBackgroundColor: isDark ? '#22d3ee' : '#0891b2',
           pointBorderColor: isDark ? '#0f172a' : '#ffffff',
           pointBorderWidth: 1.5,
           pointRadius: 3.5,
@@ -783,12 +783,12 @@
     const values = hasData ? locationShare.data : [1];
     const unit = locationShare?.unit || 'GB';
     const bgColors = hasData ? [
-      'rgba(139, 92, 246, 0.85)',
-      'rgba(6, 182, 212, 0.85)',
-      'rgba(16, 185, 129, 0.85)',
-      'rgba(245, 158, 11, 0.85)',
-      'rgba(244, 63, 94, 0.85)',
-      'rgba(99, 102, 241, 0.85)',
+      '#22d3ee', // light cyan
+      '#1d4ed8', // dark royal blue
+      '#a78bfa', // light purple
+      '#be123c', // dark deep rose
+      '#f59e0b', // warm amber
+      '#047857', // dark forest emerald
     ] : ['rgba(100, 116, 139, 0.4)'];
 
     if (locationChartInstance) {
@@ -845,7 +845,7 @@
     const peakBadge = $('peakHourBadge');
     if (peakBadge) {
       if (hourlyDist?.is_real_telemetry && hourlyDist?.peak_hour) {
-        peakBadge.innerText = `Peak: ${hourlyDist.peak_hour}`;
+        peakBadge.innerText = `اوج: ${hourlyDist.peak_hour}`;
       } else if (hourlyDist?.is_real_telemetry) {
         peakBadge.innerText = `تله‌متری زنده`;
       } else {
@@ -871,14 +871,14 @@
         datasets: [{
           label: 'مصرف ساعتی (GB)',
           data: values,
-          borderColor: '#f59e0b',
+          borderColor: isDark ? '#fbbf24' : '#d97706',
           borderWidth: 2,
           backgroundColor: gradient,
           fill: true,
           tension: 0.38,
           pointRadius: 1.5,
           pointHoverRadius: 4.5,
-          pointBackgroundColor: '#fbbf24',
+          pointBackgroundColor: isDark ? '#fbbf24' : '#d97706',
           pointBorderColor: isDark ? '#0f172a' : '#ffffff',
         }]
       },
@@ -888,6 +888,8 @@
         plugins: {
           legend: { display: false },
           tooltip: {
+            rtl: true,
+            textDirection: 'rtl',
             callbacks: {
               label: (ctx) => `ساعت ${ctx.label}: ${fmtTraffic(ctx.raw, { html: false })}`
             }
@@ -898,7 +900,7 @@
             grid: { display: false },
             ticks: {
               color: isDark ? '#cbd5e1' : '#0f172a',
-              font: { family: 'Vazirmatn', size: 8 },
+              font: { family: 'Vazirmatn', size: 10 },
               maxTicksLimit: 12,
             }
           },
@@ -907,8 +909,8 @@
             grid: { color: isDark ? 'rgba(51, 65, 85, 0.3)' : 'rgba(203, 213, 225, 0.7)' },
             ticks: {
               color: isDark ? '#cbd5e1' : '#0f172a',
-              font: { family: 'Vazirmatn', size: 9 },
-              callback: (val) => `${val}G`
+              font: { family: 'Vazirmatn', size: 10 },
+              callback: (val) => fmtTraffic(val, { html: false })
             }
           }
         }
@@ -1003,11 +1005,11 @@
       : ['بدون سفارش ثبت‌شده'];
     const values = hasSales ? planDist.sales_count : [1];
     const bgColors = hasSales ? [
-      'rgba(236, 72, 153, 0.85)',
-      'rgba(168, 85, 247, 0.85)',
-      'rgba(99, 102, 241, 0.85)',
-      'rgba(6, 182, 212, 0.85)',
-      'rgba(16, 185, 129, 0.85)',
+      '#22d3ee', // light cyan
+      '#1d4ed8', // dark royal blue
+      '#a78bfa', // light purple
+      '#be123c', // dark deep rose
+      '#047857', // dark forest emerald
     ] : ['rgba(100, 116, 139, 0.4)'];
 
     if (planSalesChartInstance) {

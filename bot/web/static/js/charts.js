@@ -59,17 +59,9 @@ async function renderBarChart(containerId, totals, labels, isMonthly = false) {
   const isLight = document.documentElement.classList.contains('theme-light');
   const textColor = isLight ? '#1e293b' : '#94a3b8';
   const gridColor = isLight ? 'rgba(0, 0, 0, 0.06)' : 'rgba(255, 255, 255, 0.06)';
-  if (typeof Chart !== 'undefined') {
-    Chart.defaults.color = isLight ? '#1e293b' : '#cbd5e1';
-  }
-  
-  // Color palette
-  const mainColor = isMonthly 
-    ? (isLight ? 'rgba(147, 51, 234, 0.8)' : 'rgba(168, 85, 247, 0.85)')
-    : (isLight ? 'rgba(37, 99, 235, 0.8)' : 'rgba(56, 189, 248, 0.85)');
-  const borderColor = isMonthly
-    ? (isLight ? '#7e22ce' : '#c084fc')
-    : (isLight ? '#1d4ed8' : '#38bdf8');
+  // Color palette - consistent brand cyan/sky family for all traffic consumption
+  const mainColor = isLight ? 'rgba(2, 132, 199, 0.8)' : 'rgba(34, 211, 238, 0.85)';
+  const borderColor = isLight ? '#0369a1' : '#22d3ee';
 
   // Clean English data & labels
   const cleanData = (totals || []).map(v => {
@@ -112,8 +104,8 @@ async function renderBarChart(containerId, totals, labels, isMonthly = false) {
       plugins: {
         legend: { display: false },
         tooltip: {
-          rtl: false,
-          textDirection: 'ltr',
+          rtl: true,
+          textDirection: 'rtl',
           displayColors: false,
           backgroundColor: isLight ? '#1e293b' : '#0f172a',
           titleColor: '#ffffff',
@@ -129,7 +121,7 @@ async function renderBarChart(containerId, totals, labels, isMonthly = false) {
             },
             label: function(context) {
               const val = context.raw != null ? context.raw : 0;
-              return fmtTraffic(val, { html: false });
+              return `مصرف: ${fmtTraffic(val, { html: false })}`;
             }
           }
         }
@@ -209,14 +201,10 @@ async function renderDonutChart(containerId, labels, data, isDevice = false) {
   const isLight = document.documentElement.classList.contains('theme-light') || !document.documentElement.classList.contains('dark');
   const textColor = isLight ? '#0f172a' : '#f8fafc';
 
-  if (typeof Chart !== 'undefined') {
-    Chart.defaults.color = isLight ? '#0f172a' : '#cbd5e1';
-  }
-
-  // 6 equidistant colors on the color wheel (cyan -> blue -> violet -> rose -> amber -> emerald)
-  const defaultColors = [
-    '#06b6d4', '#3b82f6', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981'
-  ];
+  // Alternating luminance palette (light, dark, light, dark...) for instant slice differentiation
+  const defaultColors = isLight
+    ? ['#0284c7', '#1e3a8a', '#7c3aed', '#9f1239', '#d97706', '#065f46']
+    : ['#22d3ee', '#1d4ed8', '#a78bfa', '#be123c', '#f59e0b', '#047857'];
 
   const cleanData = (data || []).map(v => {
     const num = parseFloat(toEnglishDigits(v));
@@ -260,8 +248,8 @@ async function renderDonutChart(containerId, labels, data, isDevice = false) {
           position: 'bottom',
           rtl: true,
           labels: {
-            boxWidth: 8,
-            boxHeight: 8,
+            boxWidth: 9,
+            boxHeight: 9,
             usePointStyle: true,
             pointStyle: 'circle',
             color: () => {
@@ -295,8 +283,8 @@ async function renderDonutChart(containerId, labels, data, isDevice = false) {
           }
         },
         tooltip: {
-          rtl: false,
-          textDirection: 'ltr',
+          rtl: true,
+          textDirection: 'rtl',
           displayColors: true,
           backgroundColor: isLight ? '#1e293b' : '#0f172a',
           titleColor: '#ffffff',
@@ -307,12 +295,12 @@ async function renderDonutChart(containerId, labels, data, isDevice = false) {
           cornerRadius: 8,
           callbacks: {
             label: function(ctx) {
-              if (!hasData) return ' بدون مصرف ثبت‌شده';
+              if (!hasData) return 'بدون مصرف ثبت‌شده';
               const val = ctx.raw;
               if (isDevice) {
-                return ` ${toEnglishDigits(val)} دستگاه`;
+                return `${ctx.label}: ${toEnglishDigits(val)} دستگاه`;
               }
-              return ` ${fmtTraffic(val, { html: false })}`;
+              return `${ctx.label}: ${fmtTraffic(val, { html: false })}`;
             }
           }
         }
@@ -377,14 +365,14 @@ async function renderLineCurveChart(containerId, labels, data, peakHour = null) 
       datasets: [{
         label: 'مصرف ساعتی',
         data: cleanData,
-        borderColor: '#f59e0b',
+        borderColor: isLight ? '#d97706' : '#f59e0b',
         borderWidth: 2,
         backgroundColor: gradient,
         fill: true,
         tension: 0.38,
         pointRadius: 1.5,
         pointHoverRadius: 5,
-        pointBackgroundColor: '#fbbf24',
+        pointBackgroundColor: isLight ? '#d97706' : '#fbbf24',
         pointBorderColor: isLight ? '#ffffff' : '#0f172a',
       }]
     },
@@ -394,8 +382,8 @@ async function renderLineCurveChart(containerId, labels, data, peakHour = null) 
       plugins: {
         legend: { display: false },
         tooltip: {
-          rtl: false,
-          textDirection: 'ltr',
+          rtl: true,
+          textDirection: 'rtl',
           displayColors: false,
           backgroundColor: isLight ? '#1e293b' : '#0f172a',
           titleColor: '#ffffff',
@@ -406,7 +394,7 @@ async function renderLineCurveChart(containerId, labels, data, peakHour = null) 
           cornerRadius: 8,
           callbacks: {
             title: (items) => `بازه ${items[0]?.label || ''}`,
-            label: (ctx) => ` ${fmtTraffic(ctx.raw, { html: false })}`
+            label: (ctx) => `مصرف: ${fmtTraffic(ctx.raw, { html: false })}`
           }
         }
       },
@@ -437,7 +425,7 @@ async function renderLineCurveChart(containerId, labels, data, peakHour = null) 
 
   const peakBadge = document.getElementById('repPeakHourBadge');
   if (peakBadge && peakHour) {
-    peakBadge.innerText = `Peak: ${peakHour}`;
+    peakBadge.innerText = `اوج: ${peakHour}`;
   }
 }
 
