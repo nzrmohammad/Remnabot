@@ -135,22 +135,14 @@ function updateWheelUIState(canSpin, hasActiveSub, nextSeconds, streak, multipli
     streakTextEl.textContent = `استریک: ${fNum(currentWheelStreak)} روز${multStr}`;
   }
   if (streakBadgeEl) {
-    if (currentWheelStreak >= 3) {
-      streakBadgeEl.className = 'inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40 shadow-sm transition';
-    } else {
-      streakBadgeEl.className = 'inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-orange-500/15 text-orange-300 border border-orange-500/30 transition';
-    }
+    streakBadgeEl.className = currentWheelStreak >= 3 ? 'badge-streak streak-boost' : 'badge-streak';
   }
 
   if (ticketsTextEl) {
     ticketsTextEl.textContent = `${fNum(currentWheelTickets)} تیکت`;
   }
   if (ticketsBadgeEl) {
-    if (currentWheelTickets > 0) {
-      ticketsBadgeEl.className = 'inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-purple-500/25 text-purple-200 border border-purple-400/50 shadow-sm transition';
-    } else {
-      ticketsBadgeEl.className = 'inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-purple-500/10 text-purple-300/70 border border-purple-500/20 transition';
-    }
+    ticketsBadgeEl.className = currentWheelTickets > 0 ? 'badge-ticket has-tickets' : 'badge-ticket';
   }
 
   const hasTicket = currentWheelTickets > 0;

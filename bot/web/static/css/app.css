@@ -1931,5 +1931,91 @@ html.theme-light #startSpeedTestBtn {
   box-shadow: 0 4px 14px rgba(13, 148, 136, 0.25);
 }
 
+/* Lucky Wheel Badges: Streak & Tickets */
+.badge-streak {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.125rem 0.625rem;
+  border-radius: 9999px;
+  font-size: 10px;
+  font-weight: 700;
+  transition: all 0.2s ease;
+  background-color: rgba(249, 115, 22, 0.15);
+  color: #fdba74;
+  border: 1px solid rgba(249, 115, 22, 0.3);
+}
+
+.badge-streak.streak-boost {
+  background-color: rgba(245, 158, 11, 0.2);
+  color: #fcd34d;
+  border-color: rgba(245, 158, 11, 0.4);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.badge-ticket {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.125rem 0.625rem;
+  border-radius: 9999px;
+  font-size: 10px;
+  font-weight: 700;
+  transition: all 0.2s ease;
+  background-color: rgba(168, 85, 247, 0.1);
+  color: rgba(216, 180, 254, 0.8);
+  border: 1px solid rgba(168, 85, 247, 0.2);
+}
+
+.badge-ticket.has-tickets {
+  background-color: rgba(168, 85, 247, 0.25);
+  color: #e9d5ff;
+  border-color: rgba(192, 132, 252, 0.5);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+/* Light Theme Overrides for Badges & Accents */
+html.theme-light .badge-streak {
+  background-color: #fff7ed;
+  color: #c2410c;
+  border-color: #fed7aa;
+}
+
+html.theme-light .badge-streak.streak-boost {
+  background-color: #fef3c7;
+  color: #b45309;
+  border-color: #fde68a;
+}
+
+html.theme-light .badge-ticket {
+  background-color: #faf5ff;
+  color: #7e22ce;
+  border-color: #f3e8ff;
+}
+
+html.theme-light .badge-ticket.has-tickets {
+  background-color: #f3e8ff;
+  color: #6b21a8;
+  border-color: #d8b4fe;
+}
+
+html.theme-light .text-orange-300 {
+  color: #c2410c;
+}
+html.theme-light .text-orange-400 {
+  color: #ea580c;
+}
+html.theme-light .bg-orange-500\/15 {
+  background-color: #fff7ed;
+  border-color: #fed7aa;
+}
+html.theme-light .text-amber-300 {
+  color: #b45309;
+}
+html.theme-light .text-purple-300 {
+  color: #7e22ce;
+}
+
+
 
 

@@ -1488,13 +1488,17 @@ function setupThemeToggle() {
       speedModal.style.backgroundColor = isDark ? 'rgba(0, 0, 0, 0.8)' : 'rgba(15, 23, 42, 0.45)';
     }
 
+    const curIsLight = !isDark;
+    const chartTokens = typeof getChartThemeTokens === 'function' ? getChartThemeTokens(curIsLight) : null;
+    const curTextColor = chartTokens ? chartTokens.legend : (curIsLight ? '#0f172a' : '#f8fafc');
+    const curTickColor = chartTokens ? chartTokens.tick : (curIsLight ? '#0f172a' : '#cbd5e1');
+    const curGridColor = chartTokens ? chartTokens.grid : (curIsLight ? 'rgba(148, 163, 184, 0.45)' : 'rgba(51, 65, 85, 0.3)');
+
     if (typeof Chart !== 'undefined') {
-      Chart.defaults.color = isDark ? '#cbd5e1' : '#0f172a';
+      Chart.defaults.color = curTickColor;
     }
 
     if (window.chartInstances) {
-      const curIsLight = !isDark;
-      const curTextColor = curIsLight ? '#0f172a' : '#f8fafc';
       Object.values(window.chartInstances).forEach(chart => {
         if (!chart) return;
         if (chart.options?.plugins?.legend?.labels) {
@@ -1507,10 +1511,10 @@ function setupThemeToggle() {
           });
         }
         if (chart.options?.scales) {
-          if (chart.options.scales.x?.ticks) chart.options.scales.x.ticks.color = curIsLight ? '#0f172a' : '#cbd5e1';
-          if (chart.options.scales.y?.ticks) chart.options.scales.y.ticks.color = curIsLight ? '#0f172a' : '#cbd5e1';
-          if (chart.options.scales.y?.grid) chart.options.scales.y.grid.color = curIsLight ? 'rgba(148, 163, 184, 0.45)' : 'rgba(51, 65, 85, 0.3)';
-          if (chart.options.scales.x?.grid) chart.options.scales.x.grid.color = curIsLight ? 'rgba(148, 163, 184, 0.45)' : 'rgba(51, 65, 85, 0.3)';
+          if (chart.options.scales.x?.ticks) chart.options.scales.x.ticks.color = curTickColor;
+          if (chart.options.scales.y?.ticks) chart.options.scales.y.ticks.color = curTickColor;
+          if (chart.options.scales.y?.grid) chart.options.scales.y.grid.color = curGridColor;
+          if (chart.options.scales.x?.grid) chart.options.scales.x.grid.color = curGridColor;
         }
         try { chart.update(); } catch(e) {}
       });

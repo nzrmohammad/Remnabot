@@ -622,6 +622,7 @@
     gradient.addColorStop(0, 'rgba(16, 185, 129, 0.40)');
     gradient.addColorStop(1, 'rgba(16, 185, 129, 0.0)');
 
+    const tc = getThemeColors();
     monthlySalesChartInstance = new Chart(ctx, {
       type: 'line',
       data: {
@@ -629,15 +630,15 @@
         datasets: [{
           label: 'فروش ۳۰ روزه (تومان)',
           data: values || [],
-          borderColor: isDark ? '#34d399' : '#059669',
+          borderColor: tc.success,
           borderWidth: 2,
           backgroundColor: gradient,
           fill: true,
           tension: 0.35,
           pointRadius: (ctx) => ((labels || []).length > 15 ? 1 : 2),
           pointHoverRadius: 5,
-          pointBackgroundColor: isDark ? '#34d399' : '#059669',
-          pointBorderColor: isDark ? '#0f172a' : '#ffffff',
+          pointBackgroundColor: tc.success,
+          pointBorderColor: tc.pointBorder,
         }]
       },
       options: {
@@ -655,18 +656,18 @@
         },
         scales: {
           x: {
-            grid: { display: true, color: isDark ? 'rgba(51, 65, 85, 0.25)' : 'rgba(148, 163, 184, 0.45)' },
+            grid: { display: true, color: tc.grid },
             ticks: {
-              color: isDark ? '#cbd5e1' : '#0f172a',
+              color: tc.tick,
               font: { family: 'Vazirmatn', size: 9 },
               maxTicksLimit: 10,
             }
           },
           y: {
             beginAtZero: true,
-            grid: { color: isDark ? 'rgba(51, 65, 85, 0.3)' : 'rgba(148, 163, 184, 0.45)' },
+            grid: { color: tc.grid },
             ticks: {
-              color: isDark ? '#cbd5e1' : '#0f172a',
+              color: tc.tick,
               font: { family: 'Vazirmatn', size: 9 },
               callback: (val) => val >= 1000000 ? `${(val/1000000).toFixed(1)}M` : (val >= 1000 ? `${(val/1000).toFixed(0)}K` : val)
             }
@@ -700,6 +701,7 @@
     gradient.addColorStop(0, 'rgba(6, 182, 212, 0.45)');
     gradient.addColorStop(1, 'rgba(6, 182, 212, 0.0)');
 
+    const tc = getThemeColors();
     trafficChartInstance = new Chart(ctx, {
       type: 'line',
       data: {
@@ -707,13 +709,13 @@
         datasets: [{
           label: 'مصرف ترافیک (GB)',
           data: values,
-          borderColor: isDark ? '#22d3ee' : '#0891b2',
+          borderColor: tc.accent,
           borderWidth: 2.5,
           backgroundColor: gradient,
           fill: true,
           tension: 0.35,
-          pointBackgroundColor: isDark ? '#22d3ee' : '#0891b2',
-          pointBorderColor: isDark ? '#0f172a' : '#ffffff',
+          pointBackgroundColor: tc.accent,
+          pointBorderColor: tc.pointBorder,
           pointBorderWidth: 1.5,
           pointRadius: 3.5,
           pointHoverRadius: 5.5,
@@ -735,13 +737,13 @@
         scales: {
           x: {
             grid: { display: false },
-            ticks: { color: isDark ? '#cbd5e1' : '#0f172a', font: { family: 'Vazirmatn', size: 9 } }
+            ticks: { color: tc.tick, font: { family: 'Vazirmatn', size: 9 } }
           },
           y: {
             beginAtZero: true,
-            grid: { color: isDark ? 'rgba(51, 65, 85, 0.3)' : 'rgba(203, 213, 225, 0.7)' },
+            grid: { color: tc.grid },
             ticks: {
-              color: isDark ? '#cbd5e1' : '#0f172a',
+              color: tc.tick,
               font: { family: 'Vazirmatn', size: 9 },
               callback: (val) => fmtTraffic(val, { html: false })
             }
@@ -876,6 +878,7 @@
     gradient.addColorStop(0, 'rgba(245, 158, 11, 0.40)');
     gradient.addColorStop(1, 'rgba(245, 158, 11, 0.0)');
 
+    const tc = getThemeColors();
     hourlyChartInstance = new Chart(ctx, {
       type: 'line',
       data: {
@@ -883,15 +886,15 @@
         datasets: [{
           label: 'مصرف ساعتی (GB)',
           data: values,
-          borderColor: isDark ? '#fbbf24' : '#d97706',
+          borderColor: tc.warn,
           borderWidth: 2,
           backgroundColor: gradient,
           fill: true,
           tension: 0.38,
           pointRadius: 1.5,
           pointHoverRadius: 4.5,
-          pointBackgroundColor: isDark ? '#fbbf24' : '#d97706',
-          pointBorderColor: isDark ? '#0f172a' : '#ffffff',
+          pointBackgroundColor: tc.warn,
+          pointBorderColor: tc.pointBorder,
         }]
       },
       options: {
@@ -911,16 +914,16 @@
           x: {
             grid: { display: false },
             ticks: {
-              color: isDark ? '#cbd5e1' : '#0f172a',
+              color: tc.tick,
               font: { family: 'Vazirmatn', size: 10 },
               maxTicksLimit: 12,
             }
           },
           y: {
             beginAtZero: true,
-            grid: { color: isDark ? 'rgba(51, 65, 85, 0.3)' : 'rgba(203, 213, 225, 0.7)' },
+            grid: { color: tc.grid },
             ticks: {
-              color: isDark ? '#cbd5e1' : '#0f172a',
+              color: tc.tick,
               font: { family: 'Vazirmatn', size: 10 },
               callback: (val) => fmtTraffic(val, { html: false })
             }

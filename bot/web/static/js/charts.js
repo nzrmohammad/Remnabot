@@ -57,11 +57,12 @@ async function renderBarChart(containerId, totals, labels, isMonthly = false) {
   }
 
   const isLight = document.documentElement.classList.contains('theme-light');
-  const textColor = isLight ? '#1e293b' : '#94a3b8';
-  const gridColor = isLight ? 'rgba(0, 0, 0, 0.06)' : 'rgba(255, 255, 255, 0.06)';
+  const tokens = typeof getChartThemeTokens === 'function' ? getChartThemeTokens(isLight) : null;
+  const textColor = tokens ? tokens.tick : (isLight ? '#1e293b' : '#94a3b8');
+  const gridColor = tokens ? tokens.grid : (isLight ? 'rgba(0, 0, 0, 0.06)' : 'rgba(255, 255, 255, 0.06)');
   // Color palette - consistent brand cyan/sky family for all traffic consumption
+  const borderColor = tokens ? tokens.accent : (isLight ? '#0369a1' : '#22d3ee');
   const mainColor = isLight ? 'rgba(2, 132, 199, 0.8)' : 'rgba(34, 211, 238, 0.85)';
-  const borderColor = isLight ? '#0369a1' : '#22d3ee';
 
   // Clean English data & labels
   const cleanData = (totals || []).map(v => {
@@ -107,9 +108,9 @@ async function renderBarChart(containerId, totals, labels, isMonthly = false) {
           rtl: true,
           textDirection: 'rtl',
           displayColors: false,
-          backgroundColor: isLight ? '#1e293b' : '#0f172a',
-          titleColor: '#ffffff',
-          bodyColor: isLight ? '#0369a1' : '#22d3ee',
+          backgroundColor: tokens?.tooltipBg || (isLight ? '#1e293b' : '#0f172a'),
+          titleColor: tokens?.tooltipTitle || '#ffffff',
+          bodyColor: tokens?.tooltipBody || (isLight ? '#0369a1' : '#22d3ee'),
           titleFont: { family: 'Vazirmatn', size: 11, weight: 'bold' },
           bodyFont: { family: 'monospace', size: 12, weight: 'bold' },
           padding: 8,
@@ -199,7 +200,8 @@ async function renderDonutChart(containerId, labels, data, isDevice = false) {
   }
 
   const isLight = document.documentElement.classList.contains('theme-light') || !document.documentElement.classList.contains('dark');
-  const textColor = isLight ? '#0f172a' : '#f8fafc';
+  const tokens = typeof getChartThemeTokens === 'function' ? getChartThemeTokens(isLight) : null;
+  const textColor = tokens ? tokens.legend : (isLight ? '#0f172a' : '#f8fafc');
 
   const defaultColors = getDonutPalette(isLight);
 
@@ -230,7 +232,7 @@ async function renderDonutChart(containerId, labels, data, isDevice = false) {
       datasets: [{
         data: chartValues,
         backgroundColor: chartColors,
-        borderColor: isLight ? '#ffffff' : '#0f172a',
+        borderColor: tokens ? tokens.pointBorder : (isLight ? '#ffffff' : '#0f172a'),
         borderWidth: 2,
         hoverOffset: 4,
       }]
@@ -251,7 +253,7 @@ async function renderDonutChart(containerId, labels, data, isDevice = false) {
             pointStyle: 'circle',
             color: () => {
               const curIsLight = document.documentElement.classList.contains('theme-light') || !document.documentElement.classList.contains('dark');
-              return curIsLight ? '#0f172a' : '#f8fafc';
+              return typeof getChartThemeTokens === 'function' ? getChartThemeTokens(curIsLight).legend : (curIsLight ? '#0f172a' : '#f8fafc');
             },
             font: { family: 'Vazirmatn', size: 10.5, weight: '600' },
             padding: 8,
@@ -260,7 +262,7 @@ async function renderDonutChart(containerId, labels, data, isDevice = false) {
               if (!data.labels?.length || !data.datasets?.length) return [];
               const dataset = data.datasets[0];
               const curIsLight = document.documentElement.classList.contains('theme-light') || !document.documentElement.classList.contains('dark');
-              const curTextColor = curIsLight ? '#0f172a' : '#f8fafc';
+              const curTextColor = typeof getChartThemeTokens === 'function' ? getChartThemeTokens(curIsLight).legend : (curIsLight ? '#0f172a' : '#f8fafc');
               return data.labels.map((label, i) => {
                 const fill = Array.isArray(dataset.backgroundColor) ? dataset.backgroundColor[i] : dataset.backgroundColor;
                 return {
@@ -283,9 +285,9 @@ async function renderDonutChart(containerId, labels, data, isDevice = false) {
           rtl: true,
           textDirection: 'rtl',
           displayColors: true,
-          backgroundColor: isLight ? '#1e293b' : '#0f172a',
-          titleColor: '#ffffff',
-          bodyColor: isLight ? '#0369a1' : '#22d3ee',
+          backgroundColor: tokens?.tooltipBg || (isLight ? '#1e293b' : '#0f172a'),
+          titleColor: tokens?.tooltipTitle || '#ffffff',
+          bodyColor: tokens?.tooltipBody || (isLight ? '#0369a1' : '#22d3ee'),
           titleFont: { family: 'Vazirmatn', size: 10, weight: 'bold' },
           bodyFont: { family: 'monospace', size: 11, weight: 'bold' },
           padding: 8,
@@ -329,11 +331,12 @@ async function renderLineCurveChart(containerId, labels, data, peakHour = null) 
   }
 
   const isLight = document.documentElement.classList.contains('theme-light');
-  const textColor = isLight ? '#1e293b' : '#cbd5e1';
-  const gridColor = isLight ? 'rgba(0, 0, 0, 0.06)' : 'rgba(255, 255, 255, 0.06)';
+  const tokens = typeof getChartThemeTokens === 'function' ? getChartThemeTokens(isLight) : null;
+  const textColor = tokens ? tokens.tick : (isLight ? '#1e293b' : '#cbd5e1');
+  const gridColor = tokens ? tokens.grid : (isLight ? 'rgba(0, 0, 0, 0.06)' : 'rgba(255, 255, 255, 0.06)');
 
   if (typeof Chart !== 'undefined') {
-    Chart.defaults.color = isLight ? '#1e293b' : '#cbd5e1';
+    Chart.defaults.color = textColor;
   }
 
   const cleanData = (data || []).map(v => {
@@ -362,15 +365,15 @@ async function renderLineCurveChart(containerId, labels, data, peakHour = null) 
       datasets: [{
         label: 'مصرف ساعتی',
         data: cleanData,
-        borderColor: isLight ? '#d97706' : '#f59e0b',
+        borderColor: tokens ? tokens.warn : (isLight ? '#d97706' : '#f59e0b'),
         borderWidth: 2,
         backgroundColor: gradient,
         fill: true,
         tension: 0.38,
         pointRadius: 1.5,
         pointHoverRadius: 5,
-        pointBackgroundColor: isLight ? '#d97706' : '#fbbf24',
-        pointBorderColor: isLight ? '#ffffff' : '#0f172a',
+        pointBackgroundColor: tokens ? tokens.warn : (isLight ? '#d97706' : '#fbbf24'),
+        pointBorderColor: tokens ? tokens.pointBorder : (isLight ? '#ffffff' : '#0f172a'),
       }]
     },
     options: {
@@ -382,9 +385,9 @@ async function renderLineCurveChart(containerId, labels, data, peakHour = null) 
           rtl: true,
           textDirection: 'rtl',
           displayColors: false,
-          backgroundColor: isLight ? '#1e293b' : '#0f172a',
-          titleColor: '#ffffff',
-          bodyColor: '#fbbf24',
+          backgroundColor: tokens?.tooltipBg || (isLight ? '#1e293b' : '#0f172a'),
+          titleColor: tokens?.tooltipTitle || '#ffffff',
+          bodyColor: tokens?.warn || '#fbbf24',
           titleFont: { family: 'Vazirmatn', size: 10, weight: 'bold' },
           bodyFont: { family: 'monospace', size: 11, weight: 'bold' },
           padding: 8,

@@ -453,6 +453,15 @@ function getDonutPalette(isLight = false) {
 }
 
 function getChartThemeTokens(isLight = false) {
+  const tooltip = {
+    bg: isLight ? '#1e293b' : '#0f172a',
+    title: '#ffffff',
+    body: isLight ? '#0369a1' : '#22d3ee',
+  };
+  const tooltipBg = tooltip.bg;
+  const tooltipTitle = tooltip.title;
+  const tooltipBody = tooltip.body;
+
   if (typeof window !== 'undefined' && typeof document !== 'undefined') {
     try {
       const s = getComputedStyle(document.documentElement);
@@ -470,6 +479,10 @@ function getChartThemeTokens(isLight = false) {
           tick: isLight ? (textMuted || '#475569') : (textMuted || '#cbd5e1'),
           legend: isLight ? (textMain || '#0f172a') : (textMain || '#f8fafc'),
           pointBorder: isLight ? '#ffffff' : '#0f172a',
+          tooltip,
+          tooltipBg,
+          tooltipTitle,
+          tooltipBody,
         };
       }
     } catch (e) {}
@@ -483,6 +496,10 @@ function getChartThemeTokens(isLight = false) {
         tick: '#475569',
         legend: '#0f172a',
         pointBorder: '#ffffff',
+        tooltip,
+        tooltipBg,
+        tooltipTitle,
+        tooltipBody,
       }
     : {
         success: '#34d399',
@@ -492,6 +509,10 @@ function getChartThemeTokens(isLight = false) {
         tick: '#cbd5e1',
         legend: '#f8fafc',
         pointBorder: '#0f172a',
+        tooltip,
+        tooltipBg,
+        tooltipTitle,
+        tooltipBody,
       };
 }
 

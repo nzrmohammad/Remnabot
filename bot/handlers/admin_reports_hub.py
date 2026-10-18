@@ -10,6 +10,7 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from bot.common import SEPARATOR, fmt, is_admin
+from bot.config import get_settings
 from bot.db.repositories.user_repo import UserRepository
 from bot.locales.texts import t
 from bot.services.formatting import country_flag
@@ -380,12 +381,19 @@ async def _render_sessions_explorer(
             kb.adjust(len(nav_row))
 
     kb.button(text="🔄 بروزرسانی", callback_data=f"adm:rep:sessions:{page}")
-    kb.button(
-        text="🌐 Sessions Explorer در پنل",
-        url="https://dashboard.cloudvibe.ir/dashboard/tools/sessions-explorer",
-    )
+    base_panel_url = str(
+        getattr(getattr(remnawave, "_client", None), "base_url", "")
+        or getattr(get_settings(), "REMNAWAVE_BASE_URL", "")
+    ).rstrip("/")
+    if base_panel_url:
+        kb.button(
+            text="🌐 Sessions Explorer در پنل",
+            url=f"{base_panel_url}/dashboard/tools/sessions-explorer",
+        )
     kb.button(text="🔙 بازگشت به گزارشات", callback_data="adm:sales")
-    kb.adjust(len(nav_row) if nav_row else 1, 1, 1, 1)
+    button_count = 3 if base_panel_url else 2
+    adjust_args = ([len(nav_row)] if nav_row else []) + [1] * button_count
+    kb.adjust(*adjust_args)
 
     await render_menu(bot, user, user_repo, "\n".join(lines), kb.as_markup())
 

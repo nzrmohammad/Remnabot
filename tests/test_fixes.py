@@ -1126,6 +1126,50 @@ async def test_guide_platform_incy_and_no_main_menu():
 
 
 @pytest.mark.anyio
+async def test_guide_platform_dynamic_client_apps_override():
+    """Verify guide_platform uses client_apps_json from StoreSettings when available."""
+    import json
+    from bot.handlers.guide import guide_platform
+
+    bot = MagicMock()
+    user = MagicMock(language="fa", telegram_id=123)
+    user_repo = MagicMock()
+    user_repo.get_or_create = AsyncMock(return_value=user)
+    remnawave = MagicMock()
+    remnawave.get_users_by_telegram_id = AsyncMock(return_value=[])
+
+    call = MagicMock()
+    call.data = "guide:android"
+    call.from_user.id = 123
+    call.from_user.username = "test"
+    call.answer = AsyncMock()
+
+    mock_session = AsyncMock()
+    mock_store_settings = MagicMock()
+    mock_store_settings.client_apps_json = json.dumps({
+        "recommended": {"android": "happ"},
+        "android": {
+            "v2rayng": {"enabled": True, "download_url": "https://example.com/v2rayng", "version": "2.0.0"},
+            "happ": {"enabled": True, "download_url": "https://example.com/happ", "version": "1.5"},
+            "disabled_app": {"enabled": False, "download_url": "https://example.com/disabled"},
+        }
+    })
+
+    with patch("bot.handlers.guide.get_store_settings", AsyncMock(return_value=mock_store_settings)), \
+         patch("bot.handlers.guide.render_menu", AsyncMock()) as mock_render:
+        await guide_platform(call, bot, user_repo, remnawave, session=mock_session)
+        mock_render.assert_awaited_once()
+        markup = mock_render.call_args[0][4]
+        url_btns = [(btn.text, btn.url) for row in markup.inline_keyboard for btn in row if btn.url]
+
+        assert len(url_btns) == 2
+        assert "Happ (1.5)" in url_btns[0][0]
+        assert url_btns[0][1] == "https://example.com/happ"
+        assert "v2rayNG (2.0.0)" in url_btns[1][0]
+        assert url_btns[1][1] == "https://example.com/v2rayng"
+
+
+@pytest.mark.anyio
 async def test_profile_date_format():
     """Verify profile shows only Jalali date without remaining days."""
     from bot.handlers.profile import _render_profile
