@@ -201,10 +201,7 @@ async function renderDonutChart(containerId, labels, data, isDevice = false) {
   const isLight = document.documentElement.classList.contains('theme-light') || !document.documentElement.classList.contains('dark');
   const textColor = isLight ? '#0f172a' : '#f8fafc';
 
-  // Alternating luminance palette (light, dark, light, dark...) for instant slice differentiation
-  const defaultColors = isLight
-    ? ['#0284c7', '#1e3a8a', '#7c3aed', '#9f1239', '#d97706', '#065f46']
-    : ['#22d3ee', '#1d4ed8', '#a78bfa', '#be123c', '#f59e0b', '#047857'];
+  const defaultColors = getDonutPalette(isLight);
 
   const cleanData = (data || []).map(v => {
     const num = parseFloat(toEnglishDigits(v));

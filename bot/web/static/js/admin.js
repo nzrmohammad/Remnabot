@@ -782,14 +782,7 @@
       : ['بدون مصرف'];
     const values = hasData ? locationShare.data : [1];
     const unit = locationShare?.unit || 'GB';
-    const bgColors = hasData ? [
-      '#22d3ee', // light cyan
-      '#1d4ed8', // dark royal blue
-      '#a78bfa', // light purple
-      '#be123c', // dark deep rose
-      '#f59e0b', // warm amber
-      '#047857', // dark forest emerald
-    ] : ['rgba(100, 116, 139, 0.4)'];
+    const bgColors = hasData ? getDonutPalette(!isDark) : ['rgba(100, 116, 139, 0.4)'];
 
     if (locationChartInstance) {
       locationChartInstance.data.labels = labels;
@@ -1004,13 +997,7 @@
       ? (planDist.labels || []).map(l => formatPlanTitle(l, { plainText: true }))
       : ['بدون سفارش ثبت‌شده'];
     const values = hasSales ? planDist.sales_count : [1];
-    const bgColors = hasSales ? [
-      '#22d3ee', // light cyan
-      '#1d4ed8', // dark royal blue
-      '#a78bfa', // light purple
-      '#be123c', // dark deep rose
-      '#047857', // dark forest emerald
-    ] : ['rgba(100, 116, 139, 0.4)'];
+    const bgColors = hasSales ? getDonutPalette(!isDark) : ['rgba(100, 116, 139, 0.4)'];
 
     if (planSalesChartInstance) {
       planSalesChartInstance.data.labels = labels;

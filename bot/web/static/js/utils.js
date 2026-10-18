@@ -416,6 +416,21 @@ function fmtTraffic(val, options = {}) {
   return html ? `<span class="num-bidi">${escapeHtml(formatted)}</span>` : formatted;
 }
 
+function getDonutPalette(isLight = false) {
+  if (typeof window !== 'undefined' && typeof document !== 'undefined') {
+    try {
+      const s = getComputedStyle(document.documentElement);
+      const c1 = s.getPropertyValue('--chart-1')?.trim();
+      if (c1) {
+        return [1, 2, 3, 4, 5, 6].map(i => s.getPropertyValue(`--chart-${i}`).trim());
+      }
+    } catch (e) {}
+  }
+  return isLight
+    ? ['#0891b2', '#7c3aed', '#e11d48', '#b45309', '#047857', '#4f46e5']
+    : ['#22d3ee', '#a78bfa', '#fb7185', '#fbbf24', '#34d399', '#818cf8'];
+}
+
 if (typeof window !== 'undefined') {
   window.toEnglishDigits = toEnglishDigits;
   window.toPersianDigits = toPersianDigits;
@@ -425,6 +440,7 @@ if (typeof window !== 'undefined') {
   window.bindModal = bindModal;
   window.fmtTrafficValue = fmtTrafficValue;
   window.fmtTraffic = fmtTraffic;
+  window.getDonutPalette = getDonutPalette;
 }
 
 if (typeof module !== 'undefined' && module.exports) {
@@ -436,6 +452,7 @@ if (typeof module !== 'undefined' && module.exports) {
     formatPlanTitle,
     fmtTrafficValue,
     fmtTraffic,
+    getDonutPalette,
   };
 }
 
