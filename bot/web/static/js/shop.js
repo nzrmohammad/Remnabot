@@ -121,9 +121,9 @@ function renderWonCoupons(data) {
           <span class="text-xs">🎟</span>
           <span class="font-bold font-mono text-white text-xs">${escapeHtml(c.code)}</span>
         </div>
-        <span class="text-[10px] text-emerald-400 font-sans block mt-0.5"><span dir="ltr" class="font-mono font-bold inline-block">${toEnglishDigits(c.discount_percent || 10)}%</span> تخفیف</span>
+        <span class="text-[11px] text-emerald-400 font-sans block mt-0.5"><span dir="ltr" class="font-mono font-bold inline-block">${toEnglishDigits(c.discount_percent || 10)}%</span> تخفیف</span>
       </div>
-      <button type="button" class="won-coupon-apply-btn bg-transparent hover:bg-amber-500/15 text-amber-400 border border-amber-500/40 font-bold px-2.5 py-1 rounded-lg text-[10px] transition active:scale-95 shrink-0" data-code="${escapeHtml(c.code)}">
+      <button type="button" class="won-coupon-apply-btn bg-transparent hover:bg-amber-500/15 text-amber-400 border border-amber-500/40 font-bold px-2.5 py-1 rounded-lg text-[11px] transition active:scale-95 shrink-0" data-code="${escapeHtml(c.code)}">
         ⚡️ اعمال
       </button>
     </div>

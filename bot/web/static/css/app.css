@@ -98,9 +98,9 @@ html.theme-light {
   --frame-border: #cbd5e1;
   --card-bg: #ffffff;
   --card-inner-bg: #f8fafc;
-  --card-border: #e2e8f0;
+  --card-border: #cbd5e1;
   --text-main: #0f172a;
-  --text-muted: #64748b;
+  --text-muted: #475569;
 
   /* Semantic Accent Tokens (High Contrast for Light BG - WCAG AA >= 4.5:1, sky-700: 5.93:1) */
   --c-accent: #0369a1;                 /* sky-700 */
@@ -250,29 +250,50 @@ html, body {
 .pulse-glow {
   animation: pulseGlow 2.5s infinite;
 }
-/* Toggle Switch styles: OFF on Left, ON on Right */
+/* iOS 17 Modern Spring Toggle Switch */
+label .switch-label,
 .switch-label {
-  direction: ltr !important;
-  justify-content: flex-start !important;
+  direction: ltr;
+  justify-content: flex-start;
+  width: 44px;
+  height: 26px;
+  border-radius: 9999px;
+  background-color: rgba(255, 255, 255, 0.16);
+  transition: background-color 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  padding: 2px;
+  box-sizing: border-box;
+  flex-shrink: 0;
 }
+label .switch-label .switch-ball,
 .switch-ball {
-  transform: translateX(0) !important;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background-color: #ffffff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.22), 0 0 1px rgba(0, 0, 0, 0.15);
+  transition: transform 0.28s cubic-bezier(0.34, 1.56, 0.64, 1), width 0.18s ease;
+  transform: translateX(0);
+  flex-shrink: 0;
 }
 .switch-checkbox:checked + .switch-label {
-  background-color: #2563eb;
+  background-color: var(--c-accent);
 }
 .switch-checkbox:checked + .switch-label .switch-ball,
 [dir="rtl"] .switch-checkbox:checked + .switch-label .switch-ball,
 [dir="ltr"] .switch-checkbox:checked + .switch-label .switch-ball,
 label[dir="rtl"] .switch-checkbox:checked + .switch-label .switch-ball,
 label[dir="ltr"] .switch-checkbox:checked + .switch-label .switch-ball {
-  transform: translateX(20px) !important;
+  transform: translateX(18px);
 }
+label:active .switch-label .switch-ball {
+  width: 25px;
+}
+html.theme-light label .switch-label,
 html.theme-light .switch-label {
   background-color: #cbd5e1;
 }
 html.theme-light .switch-checkbox:checked + .switch-label {
-  background-color: #2563eb;
+  background-color: var(--c-accent);
 }
 
 html.theme-light .bg-\[\#131d31\],
@@ -374,7 +395,22 @@ html.theme-light .text-emerald-400 {
   color: var(--c-success);
 }
 html.theme-light .text-amber-400 {
-  color: #d97706;
+  color: var(--c-warn);
+}
+html.theme-light .border-amber-500\/40 {
+  border-color: rgba(180, 83, 9, 0.4);
+}
+html.theme-light .won-coupon-card {
+  background-color: var(--card-inner-bg);
+  border-color: rgba(180, 83, 9, 0.35);
+}
+html.theme-light .won-coupon-apply-btn {
+  background-color: var(--c-warn-soft);
+  border-color: rgba(180, 83, 9, 0.4);
+  color: var(--c-warn);
+}
+html.theme-light .won-coupon-apply-btn:hover {
+  background-color: rgba(180, 83, 9, 0.16);
 }
 html.theme-light .text-rose-200,
 html.theme-light .text-rose-200\/80,
@@ -390,7 +426,7 @@ html.theme-light input,
 html.theme-light select,
 html.theme-light textarea {
   background-color: var(--card-bg);
-  border-color: var(--frame-border);
+  border-color: #94a3b8;
   color: var(--text-main);
 }
 html.theme-light .bg-transparent {

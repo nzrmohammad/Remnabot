@@ -1592,7 +1592,7 @@
           <div id="${boxId}" class="node-body p-3.5 pt-2 border-t border-slate-700/60 space-y-3 hidden">
             <!-- Server Host Address Strip -->
             <div class="bg-transparent px-3 py-2 rounded-xl border border-slate-700/60 flex items-center justify-between text-xs">
-              <span class="text-[10px] text-slate-400 flex items-center gap-1.5">
+              <span class="text-[11px] text-slate-400 flex items-center gap-1.5">
                 <svg class="w-3.5 h-3.5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/></svg>
                 <span>آدرس سرور:</span>
               </span>
@@ -3093,7 +3093,7 @@
           <div class="p-8 text-center text-xs text-slate-400 flex flex-col items-center gap-2">
             <span class="w-10 h-10 rounded-2xl bg-slate-800/80 flex items-center justify-center text-slate-500 text-lg">💤</span>
             <b class="text-white text-xs">هیچ نشست یا اتصال فعالی یافت نشد</b>
-            <span class="text-[10px] text-slate-400">کاربر در حال حاضر به هیچ سروری متصل نیست.</span>
+            <span class="text-[11px] text-slate-400">کاربر در حال حاضر به هیچ سروری متصل نیست.</span>
           </div>
         `;
         return;
@@ -3274,7 +3274,7 @@
                 <span class="text-sm font-black text-emerald-400 font-mono flex-shrink-0">${formatNumber(p.price || 0)} <span class="text-[10px] font-sans font-normal text-slate-400">تومان</span></span>
               </div>
 
-              ${p.description ? `<p class="text-[10px] text-slate-400 line-clamp-1 pr-9.5">${escapeHtml(p.description)}</p>` : ''}
+              ${p.description ? `<p class="text-[11px] text-slate-400 line-clamp-1 pr-9.5">${escapeHtml(p.description)}</p>` : ''}
 
               <div class="grid grid-cols-3 gap-1.5 text-center text-[10px] bg-slate-900/60 p-2 rounded-xl font-mono">
                 <div>
@@ -4060,7 +4060,7 @@
               <div class="flex items-center justify-between py-1.5 px-2.5 rounded-xl bg-slate-800/60 border border-slate-700/50 hover:border-slate-600 transition">
                 <div>
                   <span class="text-slate-200 font-bold text-[11px] block">🛡️ فرمول بدون ضرر</span>
-                  <span class="text-[10px] text-slate-400">نقد کردن با کسر کارمزد تلگرام</span>
+                  <span class="text-[11px] text-slate-400">نقد کردن با کسر کارمزد تلگرام</span>
                 </div>
                 <div class="flex items-center gap-2">
                   <span id="modalStarsLosslessPrice" class="font-mono font-bold text-amber-300 text-[11px]"></span>
@@ -4072,7 +4072,7 @@
               <div class="flex items-center justify-between py-1.5 px-2.5 rounded-xl bg-slate-800/60 border border-slate-700/50 hover:border-slate-600 transition">
                 <div>
                   <span class="text-slate-200 font-bold text-[11px] block">🏷️ نرخ خرید فرگمنت</span>
-                  <span class="text-[10px] text-slate-400">بر اساس قیمت خرید استارز در فرگمنت</span>
+                  <span class="text-[11px] text-slate-400">بر اساس قیمت خرید استارز در فرگمنت</span>
                 </div>
                 <div class="flex items-center gap-2">
                   <span id="modalStarsFragmentPrice" class="font-mono font-bold text-blue-300 text-[11px]"></span>
@@ -4663,27 +4663,27 @@
               <!-- Stats Grid -->
               <div class="grid grid-cols-4 gap-2 pt-1 border-t border-slate-700/50 text-center">
                 <div class="p-1.5 sm:p-2 rounded-xl bg-slate-900/40 border border-slate-700/40">
-                  <span class="text-[10px] text-slate-400 block mb-0.5 whitespace-nowrap">ورودی جدید</span>
+                  <span class="text-[11px] text-slate-400 block mb-0.5 whitespace-nowrap">ورودی جدید</span>
                   <b class="text-xs font-mono text-white">${formatNumber(c.users_count)}</b>
                 </div>
                 <div class="p-1.5 sm:p-2 rounded-xl bg-slate-900/40 border border-slate-700/40">
-                  <span class="text-[10px] text-slate-400 block mb-0.5 whitespace-nowrap">خریداران</span>
+                  <span class="text-[11px] text-slate-400 block mb-0.5 whitespace-nowrap">خریداران</span>
                   <b class="text-xs font-mono text-cyan-300">${formatNumber(c.buyers_count)}</b>
                 </div>
                 <div class="p-1.5 sm:p-2 rounded-xl bg-slate-900/40 border border-slate-700/40">
-                  <span class="text-[10px] text-slate-400 block mb-0.5 whitespace-nowrap">درآمد فروش</span>
+                  <span class="text-[11px] text-slate-400 block mb-0.5 whitespace-nowrap">درآمد فروش</span>
                   <b class="text-xs font-mono text-emerald-400">${formatNumber(c.total_revenue)}</b>
                 </div>
                 <div class="p-1.5 sm:p-2 rounded-xl bg-slate-900/40 border border-slate-700/40">
-                  <span class="text-[10px] text-slate-400 block mb-0.5 whitespace-nowrap">بازگشت سرمایه</span>
+                  <span class="text-[11px] text-slate-400 block mb-0.5 whitespace-nowrap">بازگشت سرمایه</span>
                   <b class="text-xs font-mono ${roiColor} inline-block" dir="ltr">${roiText || '—'}</b>
                 </div>
               </div>
 
               <!-- Deep Link preview row -->
-              <div class="flex items-center justify-between text-[10px] text-slate-400 pt-1 border-t border-slate-700/30">
+              <div class="flex items-center justify-between text-[11px] text-slate-400 pt-1 border-t border-slate-700/30">
                 <span class="truncate dir-ltr font-mono text-slate-400" dir="ltr">${c.deep_link}</span>
-                <span class="flex-shrink-0 text-[10px] text-slate-400 mr-2">${costText}</span>
+                <span class="flex-shrink-0 text-[11px] text-slate-400 mr-2">${costText}</span>
               </div>
             </div>
           `;

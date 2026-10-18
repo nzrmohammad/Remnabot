@@ -934,8 +934,10 @@ function verifyPhoneNative() {
 
   if (typeof tg?.requestContact === 'function') {
     try {
+      console.info('[PhoneAuth] Native requestContact supported, invoking Telegram client...');
       tg.requestContact((granted) => {
         if (granted) {
+          console.info('[PhoneAuth] Contact permission granted by user.');
           showToast('✅ شماره تماس با موفقیت ثبت شد. در حال به‌روزرسانی...');
           hapticFeedback('success');
           setTimeout(() => {
@@ -944,13 +946,16 @@ function verifyPhoneNative() {
             }
           }, 1200);
         } else {
+          console.warn('[PhoneAuth] User declined or cancelled contact sharing.');
           showToast('اشتراک‌گذاری شماره تماس لغو گردید.');
         }
       });
       return;
     } catch (e) {
-      console.warn('requestContact failed, falling back:', e);
+      console.warn('[PhoneAuth] requestContact threw error, falling back to bot deep link:', e);
     }
+  } else {
+    console.warn('[PhoneAuth] Native requestContact unavailable on this platform/version, falling back to bot deep link.');
   }
 
   // Graceful fallback for desktop browser dev/preview or clients without requestContact support
@@ -1582,7 +1587,7 @@ async function loadNetworkNodes() {
         <span class="text-base">⚡️</span>
         <div>
           <span class="font-bold text-slate-200 block">سرور مرکزی Remnawave</span>
-          <span class="text-[10px] text-slate-400">اتصال مستقیم کلاستر VIP</span>
+          <span class="text-[11px] text-slate-400">اتصال مستقیم کلاستر VIP</span>
         </div>
       </div>
       <div class="text-left font-mono">

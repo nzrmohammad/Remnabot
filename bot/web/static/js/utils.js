@@ -143,6 +143,15 @@ if (typeof window !== 'undefined') {
   window.hapticFeedback = hapticFeedback;
 }
 
+// Global delegated haptic feedback on switch toggles
+if (typeof document !== 'undefined') {
+  document.addEventListener('change', (e) => {
+    if (e.target && e.target.classList && e.target.classList.contains('switch-checkbox')) {
+      hapticFeedback('light');
+    }
+  });
+}
+
 // Robust clipboard copying
 function fallbackCopy(text) {
   const el = document.createElement('textarea');

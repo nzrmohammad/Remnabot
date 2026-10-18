@@ -182,7 +182,7 @@ function setupLuckyWheel() {
         showWheelResultModal({
           icon: '⏳',
           title: 'مهلت ۲۴ ساعته',
-          message: `گردونه شانس هر ۲۴ ساعت یک‌بار فعال می‌شود.<br/><span class="text-amber-400 font-mono font-bold text-sm block mt-2" dir="ltr">${formatCountdown(ws.next_spin_seconds)}</span><span class="text-[10px] text-slate-400 block mt-0.5">زمان باقیمانده تا شانس بعدی شما</span>`,
+          message: `گردونه شانس هر ۲۴ ساعت یک‌بار فعال می‌شود.<br/><span class="text-amber-400 font-mono font-bold text-sm block mt-2" dir="ltr">${formatCountdown(ws.next_spin_seconds)}</span><span class="text-[11px] text-slate-400 block mt-0.5">زمان باقیمانده تا شانس بعدی شما</span>`,
           isError: true,
         });
         return;
@@ -283,7 +283,7 @@ function setupLuckyWheel() {
             } catch(e) {}
           }
           if (wheelResultText) {
-            wheelResultText.innerHTML = `🎉 <b>تبریک!</b> شما برنده <b class="text-amber-400 font-bold">${chosenPrize.name || chosenPrize.text}</b> شدید!<br/><span class="font-mono text-cyan-400 font-bold block mt-1 select-all" dir="ltr">کد: ${couponCode}</span><span class="text-[10px] text-slate-400 block mt-0.5">⏱ مهلت استفاده: ۲۴ ساعت آینده در تب فروشگاه</span>`;
+            wheelResultText.innerHTML = `🎉 <b>تبریک!</b> شما برنده <b class="text-amber-400 font-bold">${chosenPrize.name || chosenPrize.text}</b> شدید!<br/><span class="font-mono text-cyan-400 font-bold block mt-1 select-all" dir="ltr">کد: ${couponCode}</span><span class="text-[11px] text-slate-400 block mt-0.5">⏱ مهلت استفاده: ۲۴ ساعت آینده در تب فروشگاه</span>`;
           }
           showWheelResultModal({
             icon: '🎟',
