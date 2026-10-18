@@ -825,7 +825,7 @@
             rtl: true,
             textDirection: 'rtl',
             callbacks: {
-              label: (ctx) => hasData ? `${ctx.label}: ${formatNumber(ctx.raw)} ${unit}` : 'داده‌ای برای سرورها ثبت نشده است'
+              label: (ctx) => hasData ? `${ctx.label}: ${typeof fmtTraffic === 'function' ? fmtTraffic(ctx.raw, { html: false }) : `${formatNumber(ctx.raw)} ${unit}`}` : 'داده‌ای برای سرورها ثبت نشده است'
             }
           }
         }

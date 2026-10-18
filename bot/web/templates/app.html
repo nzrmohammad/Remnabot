@@ -2,7 +2,7 @@
 <html lang="fa" dir="rtl" class="dark">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="referrer" content="no-referrer">
   <title>RemnaStore Pro</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
@@ -1262,7 +1262,7 @@
             <button type="button" class="topup-preset-btn py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200" data-amt="200000">200,000 تومان</button>
             <button type="button" class="topup-preset-btn py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200" data-amt="500000">500,000 تومان</button>
           </div>
-          <input type="number" id="topupAmountInput" placeholder="مبلغ دلخواه به تومان (حداقل 50,000)" class="w-full bg-slate-900 px-3 py-2 rounded-xl border border-slate-700 text-slate-100 font-mono outline-none text-xs mt-1" />
+          <input type="number" inputmode="numeric" pattern="[0-9]*" id="topupAmountInput" placeholder="مبلغ دلخواه به تومان (حداقل 50,000)" class="w-full bg-slate-900 px-3 py-2 rounded-xl border border-slate-700 text-slate-100 font-mono outline-none text-xs mt-1" />
         </div>
 
         <!-- All Methods Disabled State -->

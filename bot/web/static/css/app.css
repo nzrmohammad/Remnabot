@@ -260,6 +260,42 @@ html.theme-light .text-white,
 html.theme-light .text-slate-100 {
   color: var(--text-main);
 }
+/* Preserve white text on buttons and colored backgrounds in light theme (WCAG AA) */
+html.theme-light button.text-white,
+html.theme-light .btn.text-white,
+html.theme-light .buy-plan-btn,
+html.theme-light #confirmPurchaseBtn,
+html.theme-light #submitCardTopupBtn,
+html.theme-light #generateTonInvoiceBtn,
+html.theme-light #topupMethodCardBtn,
+html.theme-light [class*="bg-blue-"] .text-white,
+html.theme-light [class*="bg-blue-"].text-white,
+html.theme-light [class*="bg-emerald-"] .text-white,
+html.theme-light [class*="bg-emerald-"].text-white,
+html.theme-light [class*="bg-rose-"] .text-white,
+html.theme-light [class*="bg-rose-"].text-white,
+html.theme-light [class*="bg-red-"] .text-white,
+html.theme-light [class*="bg-red-"].text-white,
+html.theme-light [class*="bg-purple-"] .text-white,
+html.theme-light [class*="bg-purple-"].text-white,
+html.theme-light [class*="bg-indigo-"] .text-white,
+html.theme-light [class*="bg-indigo-"].text-white,
+html.theme-light [class*="bg-sky-"] .text-white,
+html.theme-light [class*="bg-sky-"].text-white,
+html.theme-light [class*="bg-cyan-"] .text-white,
+html.theme-light [class*="bg-cyan-"].text-white,
+html.theme-light [class*="bg-teal-"] .text-white,
+html.theme-light [class*="bg-teal-"].text-white,
+html.theme-light [class*="bg-violet-"] .text-white,
+html.theme-light [class*="bg-violet-"].text-white {
+  color: #ffffff !important;
+}
+html.theme-light [class*="bg-blue-"] .text-slate-100,
+html.theme-light [class*="bg-indigo-"] .text-slate-100,
+html.theme-light [class*="bg-purple-"] .text-slate-100,
+html.theme-light [class*="bg-emerald-"] .text-slate-100 {
+  color: #f1f5f9 !important;
+}
 html.theme-light .text-slate-200 {
   color: #1e293b;
 }
@@ -846,7 +882,7 @@ html.theme-light .wallet-hero-card .text-slate-400 {
 }
 
 html.theme-light #walletTabBalance {
-  background: linear-gradient(135deg, #059669, #0284c7);
+  background: linear-gradient(135deg, #059669, #0d9488);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent !important;
 }
@@ -1802,7 +1838,7 @@ html.theme-light #closeSpeedTestModalBtn:hover {
 }
 html.theme-light #startSpeedTestBtn {
   color: #ffffff;
-  background: linear-gradient(135deg, #059669, #0d9488, #0284c7);
+  background: linear-gradient(135deg, #0d9488, #0284c7);
   box-shadow: 0 4px 14px rgba(13, 148, 136, 0.25);
 }
 
