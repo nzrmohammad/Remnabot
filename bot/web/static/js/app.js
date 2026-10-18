@@ -1272,7 +1272,7 @@ function loadAvatarWithFallback(imgEl, initialEl, directPhoto, userId) {
     return;
   }
 
-  if (imgEl.dataset.avatarSrc === targetUrl) {
+  if (imgEl.dataset.avatarSrc === targetUrl && !imgEl.classList.contains('hidden')) {
     return;
   }
   imgEl.dataset.avatarSrc = targetUrl;
@@ -1292,7 +1292,15 @@ function loadAvatarWithFallback(imgEl, initialEl, directPhoto, userId) {
     }
   };
 
+  // Ensure element is visible in layout tree so mobile WebView does not defer the download
+  imgEl.classList.remove('hidden');
+  if (initialEl) initialEl.classList.add('hidden');
+
   imgEl.src = targetUrl;
+  if (imgEl.complete && imgEl.naturalWidth > 0) {
+    imgEl.classList.remove('hidden');
+    if (initialEl) initialEl.classList.add('hidden');
+  }
 }
 
 let expiryCountdownInterval = null;
