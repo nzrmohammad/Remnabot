@@ -523,6 +523,12 @@ async def post_user_purchase(request: web.Request) -> web.Response:
                     "error": "needs_account",
                     "message": "لطفاً حساب کاربری مورد نظر جهت تمدید را انتخاب نمایید.",
                 }, status=400)
+            elif result.kind == "needs_active_sub":
+                return web.json_response({
+                    "ok": False,
+                    "error": "needs_active_sub",
+                    "message": "برای خرید بسته افزایش حجم یا افزایش زمان، داشتن یک اشتراک فعال الزامی است.",
+                }, status=400)
 
             logger.error("Purchase failed for user %s, service %s, result_kind: %s", telegram_id, service_id, result.kind)
             if bot and session_factory:

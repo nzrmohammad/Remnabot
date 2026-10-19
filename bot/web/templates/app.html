@@ -611,16 +611,16 @@
           </div>
         </div>
 
-        <!-- Smart Shop Sub-tabs (همه سرویس‌ها / افزایش حجم / تمدید زمان) -->
+        <!-- Smart Shop Sub-tabs (سرویس کامل / افزایش حجم / افزایش زمان) -->
         <div class="flex items-center p-1 bg-slate-900/80 rounded-2xl border border-slate-700/60 text-xs gap-1">
-          <button type="button" onclick="window.switchShopCategory('all')" id="shopCategoryBtn-all" class="flex-1 py-1.5 px-2 rounded-xl font-bold transition flex items-center justify-center gap-1 bg-blue-600 text-white shadow">
-            <span>💎</span> همه
+          <button type="button" onclick="window.switchShopCategory('full')" id="shopCategoryBtn-full" class="flex-1 py-1.5 px-2 rounded-xl font-bold transition flex items-center justify-center gap-1 bg-blue-600 text-white shadow">
+            <span>💎</span> سرویس کامل
           </button>
           <button type="button" onclick="window.switchShopCategory('traffic')" id="shopCategoryBtn-traffic" class="flex-1 py-1.5 px-2 rounded-xl font-medium transition flex items-center justify-center gap-1 text-slate-400 hover:text-white">
             <span>⚡️</span> افزایش حجم
           </button>
           <button type="button" onclick="window.switchShopCategory('time')" id="shopCategoryBtn-time" class="flex-1 py-1.5 px-2 rounded-xl font-medium transition flex items-center justify-center gap-1 text-slate-400 hover:text-white">
-            <span>⏳</span> تمدید روز
+            <span>⏳</span> افزایش زمان
           </button>
         </div>
 
@@ -1541,6 +1541,34 @@
             💳 شارژ کیف پول
           </button>
           <button id="cancelCheckoutBtn" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium text-xs py-2 rounded-xl transition" onclick="closeModal('checkoutConfirmModal')">
+            انصراف
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======================================================== -->
+    <!-- 4.4 MODAL: SHOP GUIDANCE (راهنمایی و هدایت هوشمند خرید)    -->
+    <!-- ======================================================== -->
+    <div id="shopGuidanceModal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden animate-fadeIn overflow-y-auto">
+      <div class="guidance-modal-card bg-[#1a233a] border border-cyan-500/40 rounded-3xl p-5 w-full space-y-4 shadow-2xl relative max-w-[340px] my-auto text-xs text-right">
+        <button id="closeGuidanceModalBtn" class="absolute top-3 left-3 text-slate-400 hover:text-white text-xs bg-slate-800 rounded-full w-9 h-9 min-w-[36px] min-h-[36px] flex items-center justify-center transition active:scale-95 shadow-sm" onclick="closeModal('shopGuidanceModal')" title="انصراف" aria-label="بستن پنجره راهنما">✕</button>
+        <div class="border-b border-slate-700/60 pb-2">
+          <span id="shopGuidanceBadge" class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/40">
+            ⚡️ پیشنهاد هوشمند
+          </span>
+          <h3 id="shopGuidanceTitle" class="text-sm font-bold text-white mt-1">راهنمای انتخاب بسته</h3>
+        </div>
+
+        <div id="shopGuidanceBody" class="p-3 rounded-2xl bg-slate-900/80 border border-slate-700/60 text-slate-300 leading-relaxed space-y-2">
+          <p id="shopGuidanceText">متن راهنمای هوشمند در این بخش نمایش داده می‌شود.</p>
+        </div>
+
+        <div class="space-y-2 pt-1">
+          <button id="shopGuidanceActionBtn" type="button" class="w-full bg-gradient-to-r from-blue-600 via-indigo-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 text-white font-bold py-2.5 rounded-xl transition shadow active:scale-[0.98] flex items-center justify-center gap-1.5">
+            تایید و هدایت
+          </button>
+          <button id="shopGuidanceSecondaryBtn" type="button" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium text-xs py-2 rounded-xl transition" onclick="closeModal('shopGuidanceModal')">
             انصراف
           </button>
         </div>

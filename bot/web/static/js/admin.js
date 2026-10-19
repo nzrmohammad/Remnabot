@@ -3245,6 +3245,15 @@
           const pkgIcon = emojiMatch ? emojiMatch[0] : '';
           const cleanName = pkgIcon ? rawName.replace(emojiRegex, '').trim() : rawName;
 
+          const isExtraTraffic = (Number(p.duration_days) === 0 && Number(p.traffic_gb) > 0) || (p.badge || '').toLowerCase() === 'traffic';
+          const isExtraTime = (Number(p.traffic_gb) === 0 && Number(p.duration_days) > 0) || (p.badge || '').toLowerCase() === 'time';
+          let typeBadge = '<span class="text-[10px] bg-blue-500/15 text-blue-400 border border-blue-500/30 px-2 py-0.5 rounded-lg font-bold">💎 دوره کامل</span>';
+          if (isExtraTraffic) {
+            typeBadge = '<span class="text-[10px] bg-cyan-500/15 text-cyan-400 border border-cyan-500/30 px-2 py-0.5 rounded-lg font-bold">⚡️ افزایش حجم</span>';
+          } else if (isExtraTime) {
+            typeBadge = '<span class="text-[10px] bg-amber-500/15 text-amber-400 border border-amber-500/30 px-2 py-0.5 rounded-lg font-bold">⏳ افزایش زمان</span>';
+          }
+
           return `
             <div class="plan-card bg-slate-800/80 rounded-2xl p-4 border border-slate-700/80 space-y-3 shadow transition">
               <div class="flex items-center justify-between gap-3">
@@ -3254,10 +3263,11 @@
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
                   </span>
 
-                  <!-- 2. Plan Name + 3. Package Emoji (on the left of the name) + 4. Status Badge -->
-                  <div class="flex items-center gap-1.5 min-w-0">
+                  <!-- 2. Plan Name + 3. Package Emoji (on the left of the name) + 4. Type & Status Badges -->
+                  <div class="flex items-center gap-1.5 min-w-0 flex-wrap">
                     <b class="text-white text-xs font-bold truncate">${escapeHtml(cleanName)}</b>
                     ${pkgIcon ? `<span class="text-sm select-none leading-none flex-shrink-0" title="آیکون بسته">${pkgIcon}</span>` : ''}
+                    ${typeBadge}
                     ${statusBadge}
                   </div>
                 </div>
@@ -3303,6 +3313,75 @@
       }
     },
 
+    setPlanType(type = 'full') {
+      window._currentAdminPlanType = type;
+      const fullBtn = $('planTypeBtn-full');
+      const trafBtn = $('planTypeBtn-traffic');
+      const timeBtn = $('planTypeBtn-time');
+      const notice = $('planTypeNotice');
+      const trafInp = $('planModalTraffic');
+      const durInp = $('planModalDuration');
+      const badgeSel = $('planModalBadge');
+
+      const activeClass = 'py-1.5 px-1 rounded-lg font-bold bg-blue-600 text-white transition flex items-center justify-center gap-1 shadow';
+      const inactiveClass = 'py-1.5 px-1 rounded-lg font-medium text-slate-400 hover:text-white transition flex items-center justify-center gap-1';
+
+      if (fullBtn) fullBtn.className = (type === 'full') ? activeClass : inactiveClass;
+      if (trafBtn) trafBtn.className = (type === 'traffic') ? activeClass : inactiveClass;
+      if (timeBtn) timeBtn.className = (type === 'time') ? activeClass : inactiveClass;
+
+      if (type === 'traffic') {
+        if (durInp) {
+          durInp.value = '0';
+          durInp.disabled = true;
+          durInp.classList.add('opacity-50', 'bg-slate-950');
+        }
+        if (trafInp) {
+          trafInp.disabled = false;
+          trafInp.classList.remove('opacity-50', 'bg-slate-950');
+          if (trafInp.value === '0') trafInp.value = '';
+        }
+        if (badgeSel && !badgeSel.value) badgeSel.value = 'traffic';
+        if (notice) {
+          notice.className = 'text-[10.5px] text-cyan-300 mt-1.5 p-1.5 rounded-lg bg-cyan-950/40 border border-cyan-500/40 leading-relaxed';
+          notice.innerHTML = '⚡️ <b>بسته افزایش حجم:</b> تاریخ انقضای سرویس فعلی کاربر تغییر نمی‌کند و صرفاً به سقف ترافیک اکانت اضافه می‌شود.';
+          notice.classList.remove('hidden');
+        }
+      } else if (type === 'time') {
+        if (trafInp) {
+          trafInp.value = '0';
+          trafInp.disabled = true;
+          trafInp.classList.add('opacity-50', 'bg-slate-950');
+        }
+        if (durInp) {
+          durInp.disabled = false;
+          durInp.classList.remove('opacity-50', 'bg-slate-950');
+          if (durInp.value === '0') durInp.value = '';
+        }
+        if (badgeSel && !badgeSel.value) badgeSel.value = 'time';
+        if (notice) {
+          notice.className = 'text-[10.5px] text-amber-300 mt-1.5 p-1.5 rounded-lg bg-amber-950/40 border border-amber-500/40 leading-relaxed';
+          notice.innerHTML = '⏳ <b>بسته افزایش زمان:</b> ترافیک اکانت بدون تغییر مانده و صرفاً مدت زمان اعتبار سرویس افزایش می‌یابد.';
+          notice.classList.remove('hidden');
+        }
+      } else {
+        if (durInp) {
+          durInp.disabled = false;
+          durInp.classList.remove('opacity-50', 'bg-slate-950');
+        }
+        if (trafInp) {
+          trafInp.disabled = false;
+          trafInp.classList.remove('opacity-50', 'bg-slate-950');
+        }
+        if (badgeSel && (badgeSel.value === 'traffic' || badgeSel.value === 'time')) badgeSel.value = '';
+        if (notice) {
+          notice.className = 'text-[10.5px] text-blue-300 mt-1.5 p-1.5 rounded-lg bg-blue-950/40 border border-blue-500/40 leading-relaxed';
+          notice.innerHTML = '💎 <b>سرویس دوره کامل:</b> بسته دارای حجم مشخص و مدت زمان معین است.';
+          notice.classList.remove('hidden');
+        }
+      }
+    },
+
     openPlanModal(planOrId = null) {
       let plan = planOrId;
       if (typeof planOrId === 'number') {
@@ -3320,6 +3399,16 @@
       $('planModalDesc').value = plan ? (plan.description || '') : '';
       if ($('planModalBadge')) $('planModalBadge').value = plan ? (plan.badge || '') : '';
       $('planModalActive').checked = plan ? !!plan.is_active : true;
+
+      if (plan) {
+        const isTraffic = (Number(plan.duration_days) === 0 && Number(plan.traffic_gb) > 0) || (plan.badge === 'traffic');
+        const isTime = (Number(plan.traffic_gb) === 0 && Number(plan.duration_days) > 0) || (plan.badge === 'time');
+        if (isTraffic) this.setPlanType('traffic');
+        else if (isTime) this.setPlanType('time');
+        else this.setPlanType('full');
+      } else {
+        this.setPlanType('full');
+      }
     },
 
     closePlanModal() {
@@ -3330,11 +3419,16 @@
       const id = $('planModalId')?.value;
       const name = $('planModalName')?.value?.trim();
       const price = parseInt($('planModalPrice')?.value || '0', 10);
-      const traffic_gb = parseInt($('planModalTraffic')?.value || '0', 10);
-      const duration_days = parseInt($('planModalDuration')?.value || '0', 10);
+      let traffic_gb = parseInt($('planModalTraffic')?.value || '0', 10);
+      let duration_days = parseInt($('planModalDuration')?.value || '0', 10);
+      if (window._currentAdminPlanType === 'traffic') {
+        duration_days = 0;
+      } else if (window._currentAdminPlanType === 'time') {
+        traffic_gb = 0;
+      }
       const hwid_limit = parseInt($('planModalHwid')?.value || '0', 10) || null;
       const description = $('planModalDesc')?.value?.trim();
-      const badge = $('planModalBadge')?.value || '';
+      const badge = $('planModalBadge')?.value || (window._currentAdminPlanType === 'traffic' ? 'traffic' : (window._currentAdminPlanType === 'time' ? 'time' : ''));
       const is_active = $('planModalActive')?.checked ?? true;
 
       if (!name) {

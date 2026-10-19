@@ -166,6 +166,12 @@ async def execute_purchase(
             )
         # len == 0 -> create a new account
 
+    is_extra_traffic = (service.duration_days == 0 and service.traffic_gb > 0) or (getattr(service, "badge", None) == "traffic")
+    is_extra_time = (service.traffic_gb == 0 and service.duration_days > 0) or (getattr(service, "badge", None) == "time")
+
+    if account is None and (is_extra_traffic or is_extra_time):
+        return PurchaseResult(ok=False, kind="needs_active_sub")
+
     now = datetime.now(timezone.utc)
     strategy = service.traffic_strategy or "NO_RESET"
     order_repo = OrderRepository(session)
@@ -212,7 +218,6 @@ async def execute_purchase(
         subscription_url = user.get("subscriptionUrl")
     else:
         # Renew the existing account (+ reactivate if expiry job disabled it).
-        is_extra_traffic = (service.duration_days == 0 and service.traffic_gb > 0)
         current_expire_str = account.get("expireAt")
         current_expire = _parse_expire(current_expire_str)
 
@@ -222,6 +227,11 @@ async def execute_purchase(
             traffic = _traffic_bytes(
                 service.traffic_gb, int(account.get("trafficLimitBytes") or 0), "NO_RESET"
             )
+        elif is_extra_time:
+            # Extra Time Package (+Days): preserve existing traffic limit, extend expiration
+            base = current_expire if (current_expire is not None and current_expire > now) else now
+            expire_iso = _iso(_expire_from(service.duration_days, base))
+            traffic = int(account.get("trafficLimitBytes") or 0)
         elif strategy == "NO_RESET":
             base = now
             if current_expire is not None and current_expire > now:

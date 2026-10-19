@@ -221,14 +221,22 @@ async def _render_purchase_result(
         dt_str = format_datetime(now_tz(tz), lang)
 
         dur_text = (
-            t(lang, "svc_days", days=service.duration_days)
-            if service.duration_days and service.duration_days > 0
-            else t(lang, "unlimited")
+            ("هم‌گام با انقضای فعلی (بدون تغییر)" if lang == "fa" else "Preserved current expiry")
+            if service.duration_days == 0 and service.traffic_gb > 0
+            else (
+                t(lang, "svc_days", days=service.duration_days)
+                if service.duration_days and service.duration_days > 0
+                else t(lang, "unlimited")
+            )
         )
         traf_text = (
-            t(lang, "svc_gb", gb=service.traffic_gb)
-            if service.traffic_gb and service.traffic_gb > 0
-            else t(lang, "unlimited")
+            ("بدون تغییر حجم فعلی" if lang == "fa" else "Preserved current traffic")
+            if service.traffic_gb == 0 and service.duration_days > 0
+            else (
+                t(lang, "svc_gb", gb=service.traffic_gb)
+                if service.traffic_gb and service.traffic_gb > 0
+                else t(lang, "unlimited")
+            )
         )
 
         receipt_lines = [
@@ -288,6 +296,18 @@ async def _render_purchase_result(
         kb.button(text=t(lang, "btn_back"), callback_data="menu:services")
         kb.adjust(1)
         await render_menu(bot, user, user_repo, t(lang, "maintenance_user"), kb.as_markup())
+    elif result.kind == "needs_active_sub":
+        kb = InlineKeyboardBuilder()
+        kb.button(text=t(lang, "btn_back"), callback_data="menu:services")
+        kb.adjust(1)
+        msg = (
+            "⚠️ <b>اشتراک فعالی یافت نشد!</b>\n\n"
+            "بسته‌های افزایش حجم و افزایش زمان صرفاً به سرویس‌های فعال اضافه می‌شوند.\n"
+            "جهت استفاده، لطفاً ابتدا یک سرویس کامل خریداری فرمایید."
+            if lang == "fa"
+            else "⚠️ <b>No active subscription found!</b>\n\nAdd-on packages can only be applied to active services."
+        )
+        await render_menu(bot, user, user_repo, msg, kb.as_markup())
     else:  # failed
         kb = InlineKeyboardBuilder()
         kb.button(text=t(lang, "btn_back"), callback_data="menu:services")

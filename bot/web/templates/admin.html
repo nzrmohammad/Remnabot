@@ -2202,6 +2202,21 @@
         <input type="hidden" id="planModalId" value="" />
         <div class="space-y-2 text-xs">
           <div>
+            <label class="text-[11px] text-slate-300 block mb-1 font-semibold">نوع بسته:</label>
+            <div class="grid grid-cols-3 gap-1.5 p-1 bg-slate-900/90 rounded-xl border border-slate-700/80 text-[11px]">
+              <button type="button" id="planTypeBtn-full" onclick="window.adminActions.setPlanType('full')" class="py-1.5 px-1 rounded-lg font-bold bg-blue-600 text-white transition flex items-center justify-center gap-1 shadow">
+                <span>💎</span> دوره کامل
+              </button>
+              <button type="button" id="planTypeBtn-traffic" onclick="window.adminActions.setPlanType('traffic')" class="py-1.5 px-1 rounded-lg font-medium text-slate-400 hover:text-white transition flex items-center justify-center gap-1">
+                <span>⚡️</span> افزایش حجم
+              </button>
+              <button type="button" id="planTypeBtn-time" onclick="window.adminActions.setPlanType('time')" class="py-1.5 px-1 rounded-lg font-medium text-slate-400 hover:text-white transition flex items-center justify-center gap-1">
+                <span>⏳</span> افزایش زمان
+              </button>
+            </div>
+            <div id="planTypeNotice" class="text-[10.5px] text-slate-400 mt-1.5 p-1.5 rounded-lg bg-slate-900/40 border border-slate-700/40 hidden leading-relaxed"></div>
+          </div>
+          <div>
             <label class="text-[11px] text-slate-300 block mb-1">نام سرویس:</label>
             <input type="text" id="planModalName" placeholder="مثلاً: سرویس طلایی 50 گیگ 30 روزه" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-blue-500" />
           </div>
@@ -2211,13 +2226,13 @@
               <input type="number" inputmode="numeric" pattern="[0-9]*" id="planModalPrice" placeholder="95000" min="0" step="1000" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-emerald-300 outline-none" />
             </div>
             <div>
-              <label class="text-[11px] text-slate-300 block mb-1">حجم ترافیک (GB):</label>
+              <label id="planModalTrafficLabel" class="text-[11px] text-slate-300 block mb-1">حجم ترافیک (GB):</label>
               <input type="number" inputmode="numeric" pattern="[0-9]*" id="planModalTraffic" placeholder="50" min="0" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-cyan-300 outline-none" />
             </div>
           </div>
           <div class="grid grid-cols-2 gap-2">
             <div>
-              <label class="text-[11px] text-slate-300 block mb-1">مدت زمان (روز):</label>
+              <label id="planModalDurationLabel" class="text-[11px] text-slate-300 block mb-1">مدت زمان (روز):</label>
               <input type="number" inputmode="numeric" pattern="[0-9]*" id="planModalDuration" placeholder="30" min="0" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-amber-300 outline-none" />
             </div>
             <div>
@@ -2238,6 +2253,7 @@
               <option value="economic">💰 اقتصادی‌ترین</option>
               <option value="vip">👑 پیشنهاد ویژه</option>
               <option value="traffic">⚡️ بسته افزایش حجم</option>
+              <option value="time">⏳ تمدید مدت اعتبار (افزایش زمان)</option>
             </select>
           </div>
           <div class="flex items-center justify-between pt-1">
