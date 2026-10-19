@@ -1,6 +1,9 @@
 """UI rendering, receipts, and admin notification helpers for shop purchase flows."""
+from __future__ import annotations
+
 import logging
 from html import escape
+from typing import Any
 
 from aiogram import Bot
 from aiogram.fsm.context import FSMContext

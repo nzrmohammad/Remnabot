@@ -1,7 +1,10 @@
 """Wallet section: balance, methods picker, and transactions history."""
+from __future__ import annotations
+
 import logging
 from datetime import datetime, timezone
 from html import escape
+from typing import Any
 
 from aiogram import Bot, F, Router
 from aiogram.fsm.context import FSMContext
