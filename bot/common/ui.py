@@ -4,9 +4,24 @@ from typing import Any
 SEPARATOR: str = "─" * 18
 
 
+from aiogram.utils.keyboard import InlineKeyboardBuilder
+from bot.locales.texts import t
+
+
 def fmt(amount: int | float) -> str:
     """Format a number with thousands separator commas."""
     return f"{amount:,}"
+
+
+def back_admin_builder(lang: str = "fa") -> InlineKeyboardBuilder:
+    """Standard back button returning to the admin menu."""
+    kb = InlineKeyboardBuilder()
+    kb.button(text=t(lang, "btn_back"), callback_data="menu:admin")
+    kb.adjust(1)
+    return kb
+
+
+_back_admin = back_admin_builder
 
 
 def admin_thread_kwargs(

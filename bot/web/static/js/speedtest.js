@@ -128,14 +128,12 @@
 
     // 2. Fallback to server ping endpoint
     try {
-      const resp = await fetch(`/api/user/speedtest/ping?_t=${Date.now()}`, {
-        method: 'GET',
-        cache: 'no-store',
-        headers: getAuthHeaders(),
-        signal,
-      });
-      if (resp && resp.ok) {
-        const data = await resp.json();
+      if (window.api && typeof window.api.request === 'function') {
+        const data = await window.api.request(`/api/user/speedtest/ping?_t=${Date.now()}`, {
+          method: 'GET',
+          cache: 'no-store',
+          signal,
+        });
         if (data && data.ip && userIpEl) {
           userIpEl.innerText = data.ip;
         }

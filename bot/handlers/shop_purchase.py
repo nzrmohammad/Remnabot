@@ -14,29 +14,17 @@ from bot.db.repositories.user_repo import UserRepository
 from bot.db.repositories.wallet_repo import WalletRepository
 from bot.handlers.shop_purchase_views import (
     ensure_can_buy as _ensure_can_buy,
-)
-from bot.handlers.shop_purchase_views import (
     extract_coupon_from_state as _extract_coupon_from_state,
-)
-from bot.handlers.shop_purchase_views import (
+    finalize_purchase,
     maybe_reward_referrer as _maybe_reward_referrer,
-)
-from bot.handlers.shop_purchase_views import (
     notify_admin as _notify_admin,
-)
-from bot.handlers.shop_purchase_views import (
     render_buy_confirm as _render_buy_confirm,
-)
-from bot.handlers.shop_purchase_views import (
     render_purchase_result as _render_purchase_result,
 )
 from bot.locales.texts import t
 from bot.services.app_settings import is_maintenance
 from bot.services.menu import render_menu
-from bot.services.purchases import (
-    execute_purchase,
-    record_coupon_usage_if_any,
-)
+from bot.services.purchases import execute_purchase
 from bot.services.remnawave import RemnawaveClient
 from bot.services.service_display import service_block
 
@@ -126,18 +114,19 @@ async def confirm_new_account(
             create_new=True, discount_amount=discount_amount,
             bot=bot,
         )
-        if result.kind == "success":
-            await record_coupon_usage_if_any(session, coupon_code, user.telegram_id, result.order_id, discount_amount)
-            await _maybe_reward_referrer(bot, session, remnawave, user)
-            await state.clear()
-            await _notify_admin(
-                bot, user, service, result, session,
-                coupon_code=coupon_code, discount_amount=discount_amount,
-                full_name=call.from_user.full_name,
-            )
-        await _render_purchase_result(
-            bot, user, user_repo, session, result, service, lang,
-            coupon_code=coupon_code, discount_amount=discount_amount,
+        await finalize_purchase(
+            bot=bot,
+            session=session,
+            remnawave=remnawave,
+            user=user,
+            user_repo=user_repo,
+            service=service,
+            result=result,
+            state=state,
+            coupon_code=coupon_code,
+            discount_amount=discount_amount,
+            full_name=call.from_user.full_name,
+            lang=lang,
         )
         await call.answer()
     finally:
@@ -309,19 +298,19 @@ async def service_confirm(
             await call.answer()
             return
 
-        if result.kind == "success":
-            await record_coupon_usage_if_any(session, coupon_code, user.telegram_id, result.order_id, discount_amount)
-            await _maybe_reward_referrer(bot, session, remnawave, user)
-            await state.clear()
-            await _notify_admin(
-                bot, user, service, result, session,
-                coupon_code=coupon_code, discount_amount=discount_amount,
-                full_name=call.from_user.full_name,
-            )
-
-        await _render_purchase_result(
-            bot, user, user_repo, session, result, service, lang,
-            coupon_code=coupon_code, discount_amount=discount_amount,
+        await finalize_purchase(
+            bot=bot,
+            session=session,
+            remnawave=remnawave,
+            user=user,
+            user_repo=user_repo,
+            service=service,
+            result=result,
+            state=state,
+            coupon_code=coupon_code,
+            discount_amount=discount_amount,
+            full_name=call.from_user.full_name,
+            lang=lang,
         )
         await call.answer()
     finally:

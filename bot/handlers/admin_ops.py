@@ -35,7 +35,7 @@ from bot.services.formatting import (
     human_bytes,
 )
 from bot.services.menu import delete_message_silently, render_menu
-from bot.common import SEPARATOR, fmt, is_admin, parse_int
+from bot.common import SEPARATOR, _back_admin, fmt, is_admin, parse_int
 from bot.services.remnawave import RemnawaveClient
 from bot.services.topups import decide_topup
 from bot.states.admin import (
@@ -77,11 +77,6 @@ GB = 1024 ** 3
 _safe_int = parse_int
 
 
-def _back_admin(lang: str) -> InlineKeyboardBuilder:
-    kb = InlineKeyboardBuilder()
-    kb.button(text=t(lang, "btn_back"), callback_data="menu:admin")
-    kb.adjust(1)
-    return kb
 
 
 # --------------------------------------------------------------------- #

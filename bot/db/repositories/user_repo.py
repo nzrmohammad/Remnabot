@@ -94,10 +94,6 @@ class UserRepository:
         )
         return {w.telegram_id: w.balance for w in result.scalars().all()}
 
-    @staticmethod
-    def online_condition():
-        return User.last_active_at >= datetime.now(timezone.utc) - ONLINE_WINDOW
-
     async def set_referrer(self, user: User | int, referrer_id: int) -> None:
         if isinstance(user, int):
             user = await self.get_by_telegram_id(user)

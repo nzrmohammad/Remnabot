@@ -25,11 +25,6 @@ class WalletRepository:
             await self.session.flush()
         return wallet
 
-    async def add_balance(self, telegram_id: int, amount: int) -> Wallet:
-        wallet = await self.get_wallet(telegram_id)
-        wallet.balance += amount
-        return wallet
-
     async def add_balance_atomic(self, telegram_id: int, amount: int) -> int:
         """Atomic credit that never loses concurrent updates.
 
@@ -81,33 +76,6 @@ class WalletRepository:
             return None
         return await self.get_topup(topup_id)
 
-    async def subtract_balance(self, telegram_id: int, amount: int) -> int | None:
-        """Deduct `amount` atomically if balance covers it; otherwise return None."""
-        row = await self.session.execute(
-            text(
-                "UPDATE wallets SET balance = balance - :a "
-                "WHERE telegram_id = :t AND balance >= :a "
-                "RETURNING balance"
-            ),
-            {"t": telegram_id, "a": amount},
-        )
-        val = row.scalar_one_or_none()
-        if val is None:
-            return None
-        await self.session.flush()
-        return int(val)
-
-    async def set_balance(self, telegram_id: int, amount: int) -> Wallet:
-        wallet = await self.get_wallet(telegram_id)
-        wallet.balance = max(0, amount)
-        return wallet
-
-    async def list_wallets(self) -> list[Wallet]:
-        result = await self.session.execute(
-            select(Wallet).order_by(Wallet.telegram_id)
-        )
-        return list(result.scalars().all())
-
     # ------------------------------------------------------------------ #
     # Top-ups
     # ------------------------------------------------------------------ #
@@ -140,10 +108,6 @@ class WalletRepository:
             select(Topup).where(Topup.id == topup_id)
         )
         return result.scalar_one_or_none()
-
-    async def decide_topup(self, topup: Topup, approved: bool) -> None:
-        topup.status = "approved" if approved else "rejected"
-        topup.decided_at = datetime.now(timezone.utc)
 
     async def pending_count(self, telegram_id: int) -> int:
         result = await self.session.execute(

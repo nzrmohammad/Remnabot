@@ -9,7 +9,7 @@ from aiogram.types import CallbackQuery
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from bot.common import SEPARATOR, fmt, is_admin, parse_int
+from bot.common import SEPARATOR, _back_admin, fmt, is_admin, parse_int
 from bot.db.repositories.admin_log_repo import AdminLogRepository
 from bot.db.repositories.order_repo import OrderRepository
 from bot.db.repositories.user_repo import UserRepository
@@ -33,13 +33,6 @@ PLATFORM_EMOJI = {
     "macos": "💻",
     "linux": "🐧",
 }
-
-
-def _back_admin(lang: str) -> InlineKeyboardBuilder:
-    kb = InlineKeyboardBuilder()
-    kb.button(text=t(lang, "btn_back"), callback_data="menu:admin")
-    kb.adjust(1)
-    return kb
 
 
 async def _revert_panel_subscription(remnawave: RemnawaveClient, order) -> None:

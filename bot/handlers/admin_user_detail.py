@@ -210,6 +210,17 @@ async def _render_panel_user_detail(
     await render_menu(bot, user, user_repo, text, kb.as_markup())
 
 
+def _parse_puser_ctx(parts: list[str], offset: int = 3) -> tuple[int, str, int] | None:
+    try:
+        return int(parts[offset]), parts[offset + 1], int(parts[offset + 2])
+    except (IndexError, ValueError):
+        return None
+
+
+def _get_ctx_from_state(data: dict, prefix: str = "edit") -> tuple[int, str, int]:
+    return int(data.get(f"{prefix}_p_id", 0)), data.get(f"{prefix}_cat", "all"), int(data.get(f"{prefix}_page", 0))
+
+
 @router.callback_query(F.data.startswith("adm:puser:"))
 async def panel_user_callback_dispatch(
     call: CallbackQuery, bot: Bot, user_repo: UserRepository,
@@ -223,112 +234,101 @@ async def panel_user_callback_dispatch(
     user = await user_repo.get_or_create(call.from_user.id, call.from_user.username)
     lang = user.language
 
-
     sub_action = parts[2]
-    if sub_action == "toggle":
-        p_id = int(parts[3])
-        cat = parts[4]
-        page = int(parts[5])
-        puser = await remnawave.get_panel_user_by_id(p_id)
-        if puser:
-            cur_status = str(puser.get("status", "")).upper()
-            new_status = "DISABLED" if cur_status == "ACTIVE" else "ACTIVE"
-            await remnawave.set_user_status(p_id, new_status)
+    if sub_action in ("toggle", "reset", "revoke", "ext", "strat", "edittid", "desc"):
+        ctx = _parse_puser_ctx(parts, 3)
+        if not ctx:
+            await call.answer(t("fa", "acc_error"), show_alert=True)
+            return
+        p_id, cat, page = ctx
+
+        if sub_action == "toggle":
+            puser = await remnawave.get_panel_user_by_id(p_id)
+            if puser:
+                cur_status = str(puser.get("status", "")).upper()
+                new_status = "DISABLED" if cur_status == "ACTIVE" else "ACTIVE"
+                await remnawave.set_user_status(p_id, new_status)
+                await AdminLogRepository(session).log(
+                    call.from_user.id, "toggle_user_status", detail=f"id={p_id} status={new_status}"
+                )
+                await _render_panel_user_detail(bot, user, user_repo, remnawave, p_id, cat, page, toast=t(lang, "toast_status_toggled"))
+            await call.answer()
+            return
+
+        if sub_action == "reset":
+            await remnawave.reset_user_traffic(p_id)
             await AdminLogRepository(session).log(
-                call.from_user.id, "toggle_user_status", detail=f"id={p_id} status={new_status}"
+                call.from_user.id, "reset_user_traffic", detail=f"id={p_id}"
             )
-            await _render_panel_user_detail(bot, user, user_repo, remnawave, p_id, cat, page, toast=t(lang, "toast_status_toggled"))
-        await call.answer()
-        return
+            await _render_panel_user_detail(bot, user, user_repo, remnawave, p_id, cat, page, toast=t(lang, "toast_traffic_reset"))
+            await call.answer()
+            return
 
-    if sub_action == "reset":
-        p_id = int(parts[3])
-        cat = parts[4]
-        page = int(parts[5])
-        await remnawave.reset_user_traffic(p_id)
-        await AdminLogRepository(session).log(
-            call.from_user.id, "reset_user_traffic", detail=f"id={p_id}"
-        )
-        await _render_panel_user_detail(bot, user, user_repo, remnawave, p_id, cat, page, toast=t(lang, "toast_traffic_reset"))
-        await call.answer()
-        return
+        if sub_action == "revoke":
+            await remnawave.revoke_user_sub(p_id)
+            await AdminLogRepository(session).log(
+                call.from_user.id, "revoke_user_sub", detail=f"id={p_id}"
+            )
+            await _render_panel_user_detail(bot, user, user_repo, remnawave, p_id, cat, page, toast=t(lang, "toast_sub_revoked"))
+            await call.answer()
+            return
 
-    if sub_action == "revoke":
-        p_id = int(parts[3])
-        cat = parts[4]
-        page = int(parts[5])
-        await remnawave.revoke_user_sub(p_id)
-        await AdminLogRepository(session).log(
-            call.from_user.id, "revoke_user_sub", detail=f"id={p_id}"
-        )
-        await _render_panel_user_detail(bot, user, user_repo, remnawave, p_id, cat, page, toast=t(lang, "toast_sub_revoked"))
-        await call.answer()
-        return
+        if sub_action == "ext":
+            await state.set_state(UserManagementStates.waiting_extend_days)
+            await state.update_data(ext_p_id=p_id, ext_cat=cat, ext_page=page)
+            kb = InlineKeyboardBuilder()
+            kb.button(text=t(lang, "btn_cancel"), callback_data=f"adm:puser:{p_id}:{cat}:{page}")
+            kb.adjust(1)
+            await render_menu(bot, user, user_repo, t(lang, "puser_extend_prompt_days"), kb.as_markup())
+            await call.answer()
+            return
 
-    if sub_action == "ext":
-        p_id = int(parts[3])
-        cat = parts[4]
-        page = int(parts[5])
-        await state.set_state(UserManagementStates.waiting_extend_days)
-        await state.update_data(ext_p_id=p_id, ext_cat=cat, ext_page=page)
-        kb = InlineKeyboardBuilder()
-        kb.button(text=t(lang, "btn_cancel"), callback_data=f"adm:puser:{p_id}:{cat}:{page}")
-        kb.adjust(1)
-        await render_menu(bot, user, user_repo, t(lang, "puser_extend_prompt_days"), kb.as_markup())
-        await call.answer()
-        return
+        if sub_action == "strat":
+            kb = InlineKeyboardBuilder()
+            kb.button(text=t(lang, "strat_no_reset"), callback_data=f"adm:puser:setstrat:{p_id}:NO_RESET:{cat}:{page}")
+            kb.button(text=t(lang, "strat_day"), callback_data=f"adm:puser:setstrat:{p_id}:DAY:{cat}:{page}")
+            kb.button(text=t(lang, "strat_week"), callback_data=f"adm:puser:setstrat:{p_id}:WEEK:{cat}:{page}")
+            kb.button(text=t(lang, "strat_month"), callback_data=f"adm:puser:setstrat:{p_id}:MONTH:{cat}:{page}")
+            kb.button(text=t(lang, "btn_back"), callback_data=f"adm:puser:{p_id}:{cat}:{page}")
+            kb.adjust(1)
+            await render_menu(bot, user, user_repo, t(lang, "strat_title"), kb.as_markup())
+            await call.answer()
+            return
 
-    if sub_action == "strat":
-        p_id = int(parts[3])
-        cat = parts[4]
-        page = int(parts[5])
-        kb = InlineKeyboardBuilder()
-        kb.button(text=t(lang, "strat_no_reset"), callback_data=f"adm:puser:setstrat:{p_id}:NO_RESET:{cat}:{page}")
-        kb.button(text=t(lang, "strat_day"), callback_data=f"adm:puser:setstrat:{p_id}:DAY:{cat}:{page}")
-        kb.button(text=t(lang, "strat_week"), callback_data=f"adm:puser:setstrat:{p_id}:WEEK:{cat}:{page}")
-        kb.button(text=t(lang, "strat_month"), callback_data=f"adm:puser:setstrat:{p_id}:MONTH:{cat}:{page}")
-        kb.button(text=t(lang, "btn_back"), callback_data=f"adm:puser:{p_id}:{cat}:{page}")
-        kb.adjust(1)
-        await render_menu(bot, user, user_repo, t(lang, "strat_title"), kb.as_markup())
-        await call.answer()
-        return
+        if sub_action == "edittid":
+            await state.set_state(UserManagementStates.waiting_edit_tid)
+            await state.update_data(edit_p_id=p_id, edit_cat=cat, edit_page=page)
+            kb = InlineKeyboardBuilder()
+            kb.button(text=t(lang, "btn_cancel"), callback_data=f"adm:puser:{p_id}:{cat}:{page}")
+            kb.adjust(1)
+            await render_menu(bot, user, user_repo, t(lang, "puser_tid_prompt"), kb.as_markup())
+            await call.answer()
+            return
+
+        if sub_action == "desc":
+            await state.set_state(UserManagementStates.waiting_edit_desc)
+            await state.update_data(edit_p_id=p_id, edit_cat=cat, edit_page=page)
+            kb = InlineKeyboardBuilder()
+            kb.button(text=t(lang, "btn_cancel"), callback_data=f"adm:puser:{p_id}:{cat}:{page}")
+            kb.adjust(1)
+            await render_menu(bot, user, user_repo, t(lang, "puser_desc_prompt"), kb.as_markup())
+            await call.answer()
+            return
 
     if sub_action == "setstrat":
-        p_id = int(parts[3])
-        strat = parts[4]
-        cat = parts[5]
-        page = int(parts[6])
+        try:
+            p_id = int(parts[3])
+            strat = parts[4]
+            cat = parts[5]
+            page = int(parts[6])
+        except (IndexError, ValueError):
+            await call.answer(t("fa", "acc_error"), show_alert=True)
+            return
         await remnawave.update_user_fields(p_id, trafficLimitStrategy=strat)
         await AdminLogRepository(session).log(
             call.from_user.id, "traffic_strategy", detail=f"id={p_id} strat={strat}"
         )
         await _render_panel_user_detail(bot, user, user_repo, remnawave, p_id, cat, page, toast=t(lang, "toast_strat_updated"))
-        await call.answer()
-        return
-
-    if sub_action == "edittid":
-        p_id = int(parts[3])
-        cat = parts[4]
-        page = int(parts[5])
-        await state.set_state(UserManagementStates.waiting_edit_tid)
-        await state.update_data(edit_p_id=p_id, edit_cat=cat, edit_page=page)
-        kb = InlineKeyboardBuilder()
-        kb.button(text=t(lang, "btn_cancel"), callback_data=f"adm:puser:{p_id}:{cat}:{page}")
-        kb.adjust(1)
-        await render_menu(bot, user, user_repo, t(lang, "puser_tid_prompt"), kb.as_markup())
-        await call.answer()
-        return
-
-    if sub_action == "desc":
-        p_id = int(parts[3])
-        cat = parts[4]
-        page = int(parts[5])
-        await state.set_state(UserManagementStates.waiting_edit_desc)
-        await state.update_data(edit_p_id=p_id, edit_cat=cat, edit_page=page)
-        kb = InlineKeyboardBuilder()
-        kb.button(text=t(lang, "btn_cancel"), callback_data=f"adm:puser:{p_id}:{cat}:{page}")
-        kb.adjust(1)
-        await render_menu(bot, user, user_repo, t(lang, "puser_desc_prompt"), kb.as_markup())
         await call.answer()
         return
 
@@ -356,9 +356,7 @@ async def puser_extend_days_step(
     await delete_message_silently(bot, message.chat.id, message.message_id)
 
     data = await state.get_data()
-    p_id = int(data.get("ext_p_id", 0))
-    cat = data.get("ext_cat", "all")
-    page = int(data.get("ext_page", 0))
+    p_id, cat, page = _get_ctx_from_state(data, "ext")
 
     parsed = _parse_int(message.text)
     if parsed is None or parsed < 0:
@@ -389,9 +387,7 @@ async def puser_extend_traffic_step(
     await delete_message_silently(bot, message.chat.id, message.message_id)
 
     data = await state.get_data()
-    p_id = int(data.get("ext_p_id", 0))
-    cat = data.get("ext_cat", "all")
-    page = int(data.get("ext_page", 0))
+    p_id, cat, page = _get_ctx_from_state(data, "ext")
     ext_days = int(data.get("ext_days", 0))
 
     parsed = _parse_int(message.text)
@@ -448,9 +444,7 @@ async def puser_edit_tid_step(
     await delete_message_silently(bot, message.chat.id, message.message_id)
 
     data = await state.get_data()
-    p_id = int(data.get("edit_p_id", 0))
-    cat = data.get("edit_cat", "all")
-    page = int(data.get("edit_page", 0))
+    p_id, cat, page = _get_ctx_from_state(data, "edit")
 
     raw = message.text.strip()
     new_tid: int | None = 0
@@ -484,9 +478,7 @@ async def puser_edit_desc_step(
     await delete_message_silently(bot, message.chat.id, message.message_id)
 
     data = await state.get_data()
-    p_id = int(data.get("edit_p_id", 0))
-    cat = data.get("edit_cat", "all")
-    page = int(data.get("edit_page", 0))
+    p_id, cat, page = _get_ctx_from_state(data, "edit")
 
     raw = message.text.strip()
     SKIP_WORDS = ("/skip", "-", "—")

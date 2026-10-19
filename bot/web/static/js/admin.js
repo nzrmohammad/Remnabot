@@ -2180,26 +2180,13 @@
   window.adminActions = {
     async quickCopy(text, label = 'مقدار') {
       if (!text) return;
-      try {
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-          await navigator.clipboard.writeText(String(text));
-        } else {
-          const tempInput = document.createElement('textarea');
-          tempInput.value = String(text);
-          tempInput.style.position = 'fixed';
-          tempInput.style.opacity = '0';
-          document.body.appendChild(tempInput);
-          tempInput.select();
-          document.execCommand('copy');
-          document.body.removeChild(tempInput);
-        }
-        const safeText = escapeHtml(String(text));
-        const safeLabel = escapeHtml(String(label));
-        if (window.showToast) window.showToast(`📋 ${safeLabel} کپی شد: <span dir="ltr" class="font-mono inline-block font-bold text-cyan-300">${safeText}</span>`);
-        if (window.hapticFeedback) window.hapticFeedback('success');
-      } catch (e) {
-        const safeText = escapeHtml(String(text));
-        if (window.showToast) window.showToast(`📋 کپی شد: <span dir="ltr" class="font-mono inline-block font-bold text-cyan-300">${safeText}</span>`);
+      const safeText = escapeHtml(String(text));
+      const safeLabel = escapeHtml(String(label));
+      const toastHtml = `📋 ${safeLabel} کپی شد: <span dir="ltr" class="font-mono inline-block font-bold text-cyan-300">${safeText}</span>`;
+      if (typeof copyToClipboard === 'function') {
+        await copyToClipboard(String(text), toastHtml);
+      } else if (window.copyToClipboard) {
+        await window.copyToClipboard(String(text), toastHtml);
       }
     },
 
@@ -2789,19 +2776,10 @@
         if (window.showToast) window.showToast('لینکی برای کپی کردن وجود ندارد.');
         return;
       }
-      try {
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-          await navigator.clipboard.writeText(input.value);
-        } else {
-          input.select();
-          document.execCommand('copy');
-        }
-        if (window.showToast) window.showToast('✅ لینک اشتراک با موفقیت کپی شد.');
-        if (window.hapticFeedback) window.hapticFeedback('success');
-      } catch (err) {
-        input.select();
-        document.execCommand('copy');
-        if (window.showToast) window.showToast('✅ لینک کپی شد.');
+      if (typeof copyToClipboard === 'function') {
+        await copyToClipboard(input.value, '✅ لینک اشتراک با موفقیت کپی شد.');
+      } else if (window.copyToClipboard) {
+        await window.copyToClipboard(input.value, '✅ لینک اشتراک با موفقیت کپی شد.');
       }
     },
 
@@ -3576,9 +3554,11 @@
     copyBatchCodes() {
       const codeArea = $('batchVoucherGeneratedCodes');
       if (codeArea && codeArea.value) {
-        navigator.clipboard.writeText(codeArea.value).then(() => {
-          if (window.showToast) window.showToast('📋 تمام کدها در کلیپ‌بورد کپی شدند.');
-        });
+        if (typeof copyToClipboard === 'function') {
+          copyToClipboard(codeArea.value, '📋 تمام کدها در کلیپ‌بورد کپی شدند.');
+        } else if (window.copyToClipboard) {
+          window.copyToClipboard(codeArea.value, '📋 تمام کدها در کلیپ‌بورد کپی شدند.');
+        }
       }
     },
 
@@ -4584,7 +4564,7 @@
       }
     },
 
-    copyCampaignLink(deepLink) {
+    async copyCampaignLink(deepLink) {
       if (!deepLink) return;
       let finalLink = deepLink;
       const botUser = window.botUsername || window.Telegram?.WebApp?.initDataUnsafe?.bot?.username || '';
@@ -4594,14 +4574,9 @@
       if (!finalLink.startsWith('https://') && !finalLink.startsWith('http://')) {
         finalLink = 'https://' + finalLink;
       }
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(finalLink).then(() => {
-          if (window.showToast) window.showToast('📋 لینک تبلیغاتی کپی شد: ' + finalLink);
-          if (window.hapticFeedback) window.hapticFeedback('light');
-        }).catch(() => {
-          prompt('لینک تبلیغاتی:', finalLink);
-        });
-      } else {
+      const copyFn = typeof copyToClipboard === 'function' ? copyToClipboard : window.copyToClipboard;
+      const ok = copyFn ? await copyFn(finalLink, '📋 لینک تبلیغاتی کپی شد: ' + finalLink) : false;
+      if (!ok) {
         prompt('لینک تبلیغاتی:', finalLink);
       }
     },

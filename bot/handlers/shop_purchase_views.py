@@ -345,3 +345,47 @@ render_buy_confirm = _render_buy_confirm
 maybe_reward_referrer = _maybe_reward_referrer
 render_purchase_result = _render_purchase_result
 notify_admin = _notify_admin
+
+
+async def finalize_purchase(
+    bot: Bot,
+    session: AsyncSession,
+    remnawave: RemnawaveClient,
+    user: Any,
+    user_repo: UserRepository,
+    service: Any,
+    result: Any,
+    state: FSMContext,
+    coupon_code: str | None = None,
+    discount_amount: int = 0,
+    full_name: str | None = None,
+    lang: str = "fa",
+) -> None:
+    """Unified pipeline executed after successful purchase/renewal (SSOT)."""
+    if result.kind == "success":
+        await record_coupon_usage_if_any(
+            session, coupon_code, user.telegram_id, result.order_id, discount_amount
+        )
+        await _maybe_reward_referrer(bot, session, remnawave, user)
+        await state.clear()
+        await _notify_admin(
+            bot,
+            user,
+            service,
+            result,
+            session,
+            coupon_code=coupon_code,
+            discount_amount=discount_amount,
+            full_name=full_name,
+        )
+    await _render_purchase_result(
+        bot,
+        user,
+        user_repo,
+        session,
+        result,
+        service,
+        lang,
+        coupon_code=coupon_code,
+        discount_amount=discount_amount,
+    )

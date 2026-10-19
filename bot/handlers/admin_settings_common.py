@@ -1,4 +1,3 @@
-"""Common constants, descriptions and helper functions for Admin Settings."""
 import logging
 
 from bot.common import is_admin, parse_int

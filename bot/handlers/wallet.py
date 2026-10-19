@@ -307,6 +307,33 @@ async def _render_topup_amount_prompt(
     await render_menu(bot, user, user_repo, prompt_text, kb.as_markup())
 
 
+async def _create_and_render_ton_invoice(
+    bot: Bot,
+    user: Any,
+    user_repo: UserRepository,
+    session: AsyncSession,
+    state: FSMContext,
+    store: Any,
+    amount: int,
+) -> None:
+    from bot.db.repositories.crypto_repo import CryptoRepository
+
+    crypto_repo = CryptoRepository(session)
+    ton_amount = round(amount / store.ton_rate_toman, 4)
+    nanotons = int(round(ton_amount * 1_000_000_000))
+    invoice = await crypto_repo.create_invoice(
+        telegram_id=user.telegram_id,
+        amount_toman=amount,
+        amount_ton=f"{ton_amount:.4f}",
+        nanotons=nanotons,
+        pay_address=store.ton_wallet_address,
+        expires_minutes=30,
+    )
+    await session.commit()
+    await state.clear()
+    await _render_ton_invoice(bot, user, user_repo, session, invoice)
+
+
 @router.callback_query(F.data.startswith("wallet:amt:"))
 async def topup_preset_amount(
     call: CallbackQuery, bot: Bot, user_repo: UserRepository, session: AsyncSession,
@@ -337,21 +364,7 @@ async def topup_preset_amount(
             await call.answer("❌ پرداخت کریپتو موقتاً غیرفعال است.", show_alert=True)
             return
 
-        from bot.db.repositories.crypto_repo import CryptoRepository
-        crypto_repo = CryptoRepository(session)
-        ton_amount = round(amount / store.ton_rate_toman, 4)
-        nanotons = int(round(ton_amount * 1_000_000_000))
-        invoice = await crypto_repo.create_invoice(
-            telegram_id=user.telegram_id,
-            amount_toman=amount,
-            amount_ton=f"{ton_amount:.4f}",
-            nanotons=nanotons,
-            pay_address=store.ton_wallet_address,
-            expires_minutes=30,
-        )
-        await session.commit()
-        await state.clear()
-        await _render_ton_invoice(bot, user, user_repo, session, invoice)
+        await _create_and_render_ton_invoice(bot, user, user_repo, session, state, store, amount)
         await call.answer()
         return
 
@@ -406,21 +419,7 @@ async def topup_amount(
             await render_menu(bot, user, user_repo, "❌ پرداخت کریپتو موقتاً غیرفعال است.", kb.as_markup())
             return
 
-        from bot.db.repositories.crypto_repo import CryptoRepository
-        crypto_repo = CryptoRepository(session)
-        ton_amount = round(amount / store.ton_rate_toman, 4)
-        nanotons = int(round(ton_amount * 1_000_000_000))
-        invoice = await crypto_repo.create_invoice(
-            telegram_id=user.telegram_id,
-            amount_toman=amount,
-            amount_ton=f"{ton_amount:.4f}",
-            nanotons=nanotons,
-            pay_address=store.ton_wallet_address,
-            expires_minutes=30,
-        )
-        await session.commit()
-        await state.clear()
-        await _render_ton_invoice(bot, user, user_repo, session, invoice)
+        await _create_and_render_ton_invoice(bot, user, user_repo, session, state, store, amount)
         return
 
     if not (store.card_enabled and store.card_number and store.card_number.strip()):

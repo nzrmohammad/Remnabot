@@ -976,7 +976,6 @@ function verifyPhoneNative() {
   }
 }
 window.verifyPhoneNative = verifyPhoneNative;
-window.verifyPhoneInBot = verifyPhoneNative;
 
 const JALALI_MONTHS = ['فروردین', 'اردیبهشت', 'خرداد', 'تیر', 'مرداد', 'شهریور', 'مهر', 'آبان', 'آذر', 'دی', 'بهمن', 'اسفند'];
 

@@ -73,12 +73,6 @@ class OrderRepository:
         )
         return result.scalar_one_or_none()
 
-    async def list_recent(self, limit: int = 10) -> list[Order]:
-        result = await self.session.execute(
-            select(Order).order_by(Order.id.desc()).limit(limit)
-        )
-        return list(result.scalars().all())
-
     async def list_for_user(self, telegram_id: int, limit: int = 10) -> list[Order]:
         result = await self.session.execute(
             select(Order)
@@ -105,10 +99,6 @@ class OrderRepository:
         result = await self.session.execute(stmt)
         return int(result.scalar_one())
 
-    async def mark_refunded(self, order: Order) -> None:
-        order.status = "refunded"
-        order.refunded_at = datetime.now(timezone.utc)
-
     async def claim_refund(self, order_id: int) -> Order | None:
         """Atomically move an order from paid -> refunded.
 
@@ -129,6 +119,27 @@ class OrderRepository:
             return None
         return await self.get(order_id)
 
+def _apply_order_query_filter(stmt: Any, query: str | None) -> Any:
+    """Apply unified search filter by ID or username/plan name (SSOT)."""
+    if not query:
+        return stmt
+    q = query.strip()
+    if q.isdigit():
+        return stmt.where(
+            or_(
+                Order.id == int(q),
+                Order.telegram_id == int(q),
+                Order.panel_user_id == int(q),
+            )
+        )
+    return stmt.where(
+        or_(
+            Order.panel_username.ilike(f"%{q}%"),
+            Order.service_name.ilike(f"%{q}%"),
+        )
+    )
+
+
     async def list_filtered(
         self,
         status: str = "all",
@@ -140,76 +151,15 @@ class OrderRepository:
         stmt = select(Order)
         if status and status != "all":
             stmt = stmt.where(Order.status == status)
-        if query:
-            q = query.strip()
-            if q.isdigit():
-                stmt = stmt.where(
-                    or_(
-                        Order.id == int(q),
-                        Order.telegram_id == int(q),
-                        Order.panel_user_id == int(q),
-                    )
-                )
-            else:
-                stmt = stmt.where(
-                    or_(
-                        Order.panel_username.ilike(f"%{q}%"),
-                        Order.service_name.ilike(f"%{q}%"),
-                    )
-                )
+        stmt = _apply_order_query_filter(stmt, query)
         stmt = stmt.order_by(Order.id.desc()).offset(offset).limit(limit)
         result = await self.session.execute(stmt)
         return list(result.scalars().all())
 
-    async def count_filtered(
-        self,
-        status: str = "all",
-        query: str | None = None,
-    ) -> int:
-        """Count orders matching status filter and optional search query."""
-        stmt = select(func.count(Order.id))
-        if status and status != "all":
-            stmt = stmt.where(Order.status == status)
-        if query:
-            q = query.strip()
-            if q.isdigit():
-                stmt = stmt.where(
-                    or_(
-                        Order.id == int(q),
-                        Order.telegram_id == int(q),
-                        Order.panel_user_id == int(q),
-                    )
-                )
-            else:
-                stmt = stmt.where(
-                    or_(
-                        Order.panel_username.ilike(f"%{q}%"),
-                        Order.service_name.ilike(f"%{q}%"),
-                    )
-                )
-        result = await self.session.execute(stmt)
-        return int(result.scalar_one())
-
     async def status_counts(self, query: str | None = None) -> dict[str, int]:
         """Return counts by status ('paid', 'pending', 'failed', 'refunded') and 'all'."""
         stmt = select(Order.status, func.count(Order.id))
-        if query:
-            q = query.strip()
-            if q.isdigit():
-                stmt = stmt.where(
-                    or_(
-                        Order.id == int(q),
-                        Order.telegram_id == int(q),
-                        Order.panel_user_id == int(q),
-                    )
-                )
-            else:
-                stmt = stmt.where(
-                    or_(
-                        Order.panel_username.ilike(f"%{q}%"),
-                        Order.service_name.ilike(f"%{q}%"),
-                    )
-                )
+        stmt = _apply_order_query_filter(stmt, query)
         stmt = stmt.group_by(Order.status)
         result = await self.session.execute(stmt)
         counts = {str(row[0]): int(row[1]) for row in result.all()}

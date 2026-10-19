@@ -14,16 +14,14 @@ from bot.db.repositories.user_repo import UserRepository
 from bot.db.repositories.wallet_repo import WalletRepository
 from bot.locales.texts import t
 from bot.services.app_settings import is_maintenance
-from bot.services.purchases import execute_purchase, record_coupon_usage_if_any
+from bot.services.purchases import execute_purchase
 from bot.services.remnawave import RemnawaveClient
 from bot.services.render import render_services
 from bot.handlers.shop_purchase import (
     _PURCHASE_LOCKS,
     _ensure_can_buy,
-    _maybe_reward_referrer,
-    _notify_admin,
     _render_buy_confirm,
-    _render_purchase_result,
+    finalize_purchase,
 )
 
 logger = logging.getLogger(__name__)
@@ -172,18 +170,19 @@ async def confirm_for_account(
             chosen_account=chosen, discount_amount=discount_amount,
             bot=bot,
         )
-        if result.kind == "success":
-            await record_coupon_usage_if_any(session, coupon_code, user.telegram_id, result.order_id, discount_amount)
-            await _maybe_reward_referrer(bot, session, remnawave, user)
-            await state.clear()
-            await _notify_admin(
-                bot, user, service, result, session,
-                coupon_code=coupon_code, discount_amount=discount_amount,
-                full_name=call.from_user.full_name,
-            )
-        await _render_purchase_result(
-            bot, user, user_repo, session, result, service, lang,
-            coupon_code=coupon_code, discount_amount=discount_amount,
+        await finalize_purchase(
+            bot=bot,
+            session=session,
+            remnawave=remnawave,
+            user=user,
+            user_repo=user_repo,
+            service=service,
+            result=result,
+            state=state,
+            coupon_code=coupon_code,
+            discount_amount=discount_amount,
+            full_name=call.from_user.full_name,
+            lang=lang,
         )
         await call.answer()
     finally:
@@ -236,18 +235,19 @@ async def service_choose_account(
             chosen_account=chosen, discount_amount=discount_amount,
             bot=bot,
         )
-        if result.kind == "success":
-            await record_coupon_usage_if_any(session, coupon_code, user.telegram_id, result.order_id, discount_amount)
-            await _maybe_reward_referrer(bot, session, remnawave, user)
-            await state.clear()
-            await _notify_admin(
-                bot, user, service, result, session,
-                coupon_code=coupon_code, discount_amount=discount_amount,
-                full_name=call.from_user.full_name,
-            )
-        await _render_purchase_result(
-            bot, user, user_repo, session, result, service, lang,
-            coupon_code=coupon_code, discount_amount=discount_amount,
+        await finalize_purchase(
+            bot=bot,
+            session=session,
+            remnawave=remnawave,
+            user=user,
+            user_repo=user_repo,
+            service=service,
+            result=result,
+            state=state,
+            coupon_code=coupon_code,
+            discount_amount=discount_amount,
+            full_name=call.from_user.full_name,
+            lang=lang,
         )
         await call.answer()
     finally:

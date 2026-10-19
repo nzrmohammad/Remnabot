@@ -11,7 +11,7 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 from sqlalchemy import distinct, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from bot.common import is_admin
+from bot.common import _back_admin, is_admin
 from bot.db.models import Order, Wallet
 from bot.db.repositories.admin_log_repo import AdminLogRepository
 from bot.db.repositories.user_repo import UserRepository
@@ -26,13 +26,6 @@ router = Router(name="admin_broadcast")
 _is_admin = is_admin
 
 BROADCAST_CONFIRM_KEY = "bcast:draft"
-
-
-def _back_admin(lang: str) -> InlineKeyboardBuilder:
-    kb = InlineKeyboardBuilder()
-    kb.button(text=t(lang, "btn_back"), callback_data="menu:admin")
-    kb.adjust(1)
-    return kb
 
 
 async def _resolve_broadcast_recipients(

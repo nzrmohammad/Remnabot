@@ -204,20 +204,6 @@ class RemnawaveSystemMixin:
                 return None
         return None
 
-    async def get_system_digest(self) -> dict[str, Any] | None:
-        """Fetch host and panel system metrics/digest."""
-        for path in ("/api/system/stats/digest", "/api/system/info", "/api/system/stats", "/api/system"):
-            try:
-                resp = await self._client.get(path)
-                if resp.status_code == 200:
-                    data = resp.json().get("response") or resp.json()
-                    if isinstance(data, dict):
-                        return data
-            except Exception as exc:
-                logger.warning("Failed to fetch system digest from %s: %s", path, exc)
-                return None
-        return None
-
     async def get_system_recap(self) -> dict[str, Any] | None:
         """Fetch system recap/overview from Remnawave."""
         for path in (
@@ -234,18 +220,5 @@ class RemnawaveSystemMixin:
                         return data
             except Exception as exc:
                 logger.warning("Failed to fetch system recap from %s: %s", path, exc)
-                return None
-        return None
-
-    async def get_system_nodes_metrics(self) -> dict[str, Any] | list[Any] | None:
-        """Fetch system-level node telemetry & metrics from Remnawave."""
-        for path in ("/api/system/nodes/metrics", "/api/system/nodes", "/api/system/metrics"):
-            try:
-                resp = await self._client.get(path, timeout=5.0)
-                if resp.status_code == 200:
-                    data = resp.json().get("response") or resp.json()
-                    return data
-            except Exception as exc:
-                logger.warning("Failed to fetch system nodes metrics from %s: %s", path, exc)
                 return None
         return None
