@@ -10,7 +10,7 @@ from sqlalchemy import func, or_, select
 from bot.common.helpers import get_used_bytes
 from bot.db.models import CryptoInvoice, KnownDevice, Order, Service, Topup
 from bot.db.repositories.traffic_snapshot_repo import TrafficSnapshotRepository
-from bot.services.formatting import country_name
+from bot.services.formatting import country_name, ltr_frag
 from bot.web.admin_common import format_service_name_icon_first
 from bot.web.cache import FastCache
 
@@ -224,7 +224,7 @@ def _calc_location_share(nodes_overview: list[dict]) -> dict[str, Any]:
     return {
         "labels": loc_labels or [],
         "data": loc_data or [],
-        "unit": "GB" if total_loc_gb > 0 else "سرور",
+        "unit": ltr_frag("GB") if total_loc_gb > 0 else "سرور",
         "has_data": bool(loc_labels and loc_data and any(v > 0 for v in loc_data)),
     }
 

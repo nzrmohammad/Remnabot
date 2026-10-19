@@ -13,6 +13,12 @@ def human_bytes(n: int | float | None) -> str:
     """Format bytes → '25.50 GB', BiDi-isolated (LRI…PDI) so the Latin unit
     never jumps to the left inside RTL Persian sentences (Telegram & web)."""
     s = _human_bytes_plain(n)
+    return ltr_frag(s)
+
+
+def ltr_frag(s: str) -> str:
+    """Wrap a Latin fragment ('25 GB', '(GB)', 'TX 45%') with LRI…PDI so it
+    keeps its visual order inside RTL Persian sentences (Telegram & web)."""
     return f"\u2066{s}\u2069"
 
 

@@ -943,7 +943,7 @@ async def test_admin_modify_user_traffic_and_days(session_factory):
     assert resp_traffic.status == 200
     res_json = json.loads(resp_traffic.text)
     assert res_json["ok"] is True
-    assert "افزایش 10 GB ترافیک" in res_json["message"]
+    assert "افزایش \u206610 GB\u2069 ترافیک" in res_json["message"]
 
     # Verify update_user_subscription was called with the increased limit: 20GB + 10GB = 30GB
     mock_remnawave.update_user_subscription.assert_called_with(

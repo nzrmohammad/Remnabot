@@ -580,7 +580,7 @@ FA_TEXTS: dict[str, str] = {
         "user_filter_disabled": "⛔️ غیرفعال",
         "user_create_prompt_username": "👤 <b>نام کاربری (Username) اکانت جدید پنل را وارد کنید:</b>\n(فقط حروف انگلیسی و اعداد - بدون فاصله)",
         "user_create_invalid_username": "❌ نام کاربری نامعتبر است یا از قبل وجود دارد. لطفاً یک نام انگلیسی بدون فاصله وارد کنید:",
-        "user_create_prompt_traffic": "📊 <b>میزان حجم مجاز را به گیگابایت (GB) وارد کنید:</b>\n(برای حجم نامحدود عدد 0 را وارد کنید)",
+        "user_create_prompt_traffic": "📊 <b>میزان حجم مجاز را به گیگابایت \u2066(GB)\u2069 وارد کنید:</b>\n(برای حجم نامحدود عدد 0 را وارد کنید)",
         "user_create_invalid_traffic": "❌ لطفاً یک عدد معتبر (به گیگابایت) وارد کنید:",
         "user_create_prompt_duration": "📅 <b>مدت اعتبار اکانت را به روز وارد کنید:</b>\n(مثلاً 30 برای یک ماه، یا 0 برای نامحدود)",
         "user_create_invalid_duration": "❌ لطفاً تعداد روز را به صورت عدد وارد کنید:",
@@ -624,7 +624,7 @@ FA_TEXTS: dict[str, str] = {
         # --- items 1 to 5: panel user management ---
         "btn_quick_extend": "➕ تمدید / افزایش حجم",
         "puser_extend_prompt_days": "📅 <b>تعداد روزهای تمدید را وارد کنید:</b>\n(برای عدم تغییر تاریخ انقضا عدد 0 را بفرستید)",
-        "puser_extend_prompt_traffic": "📊 <b>میزان حجم افزوده‌شده را به گیگابایت (GB) وارد کنید:</b>\n(برای عدم تغییر حجم مجاز عدد 0 را بفرستید)",
+        "puser_extend_prompt_traffic": "📊 <b>میزان حجم افزوده‌شده را به گیگابایت \u2066(GB)\u2069 وارد کنید:</b>\n(برای عدم تغییر حجم مجاز عدد 0 را بفرستید)",
         "toast_user_extended": "✅ سرویس کاربر با موفقیت تمدید شد.",
         "btn_traffic_strategy": "🔁 دوره ریست: {strategy}",
         "strat_title": "🔁 <b>انتخاب دوره ریست ترافیک</b>",
@@ -755,8 +755,8 @@ FA_TEXTS: dict[str, str] = {
         "btn_settings_trial": "🎁 تنظیمات تست",
         "btn_settings_referral": "🤝 تنظیمات دعوت",
         "settings_trial_enabled": "تست (1/0)",
-        "settings_trial_traffic": "حجم (GB)",
+        "settings_trial_traffic": "حجم \u2066(GB)\u2069",
         "settings_trial_duration": "زمان (روز)",
         "settings_referral_enabled": "سیستم دعوت (1/0)",
-        "settings_referral_reward": "حجم (GB)",
+        "settings_referral_reward": "حجم \u2066(GB)\u2069",
 }

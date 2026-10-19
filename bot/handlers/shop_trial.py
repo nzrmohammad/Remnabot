@@ -16,7 +16,7 @@ from bot.db.repositories.support_repo import SupportMessageRepository
 from bot.db.repositories.user_repo import UserRepository
 from bot.locales.texts import t
 from bot.services.app_settings import get_store_settings
-from bot.services.formatting import format_datetime, now_tz
+from bot.services.formatting import format_datetime, ltr_frag, now_tz
 from bot.services.menu import delete_message_silently, render_menu
 from bot.services.remnawave import RemnawaveClient
 from bot.states.service_request import ServiceRequestStates
@@ -281,7 +281,7 @@ async def service_trial_username(
         f"🎁 <b>سرویس تست ایجاد شد</b>\n\n"
         f"👤 کاربر: {escape(user.username or '')} (<code>{user.telegram_id}</code>)\n"
         f"🔑 اکانت پنل: <code>{escape(raw_name)}</code>\n"
-        f"🌐 حجم: {store.trial_traffic_gb} GB | ⏳ مدت: {dur_days} روز\n"
+        f"🌐 حجم: {ltr_frag(f'{store.trial_traffic_gb} GB')} | ⏳ مدت: {dur_days} روز\n"
         f"🔗 شناسه تلگرام: {escape(tg_username)}"
     )
     thread_kwargs = admin_thread_kwargs(store, get_settings(), kind="orders")

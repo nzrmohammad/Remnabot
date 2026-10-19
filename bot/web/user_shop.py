@@ -12,6 +12,7 @@ from sqlalchemy import select
 from bot.db.models import Service, User
 from bot.db.repositories.coupon_repo import CouponRepository
 from bot.services.app_settings import get_store_settings
+from bot.services.formatting import ltr_frag
 from bot.services.purchases import execute_purchase
 from bot.web.cache import FastCache
 
@@ -184,10 +185,10 @@ async def _do_user_spin(request: web.Request, telegram_id: int, cache: FastCache
 
         # 6 configured prizes (Slices 1 and 4 are blank)
         prizes = [
-            {"id": "1gb", "name": "1 GB ترافیک هدیه", "icon": "🎁", "type": "traffic", "value": 1},
+            {"id": "1gb", "name": f"{ltr_frag('1 GB')} ترافیک هدیه", "icon": "🎁", "type": "traffic", "value": 1},
             {"id": "blank_1", "name": "پوچ (شانس بعدی فردا)", "icon": "❌", "type": "blank", "value": 0},
             {"id": "discount10", "name": "۱۰٪ کد تخفیف ویژه (کد: OFF10)", "icon": "🎟", "type": "coupon", "code": "OFF10"},
-            {"id": "500mb", "name": "500 MB ترافیک هدیه", "icon": "⚡️", "type": "traffic", "value": 0.5},
+            {"id": "500mb", "name": f"{ltr_frag('500 MB')} ترافیک هدیه", "icon": "⚡️", "type": "traffic", "value": 0.5},
             {"id": "blank_2", "name": "پوچ (شانس بعدی فردا)", "icon": "❌", "type": "blank", "value": 0},
             {"id": "again", "name": "دوباره (شانس مجدد!)", "icon": "🔄", "type": "again", "value": 0},
         ]

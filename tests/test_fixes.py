@@ -1345,8 +1345,8 @@ async def test_store_settings_full_overview():
         assert "📞 پشتیبانی مستقیم : ✅" in text
         assert "فعال" not in text.split("📞 پشتیبانی مستقیم")[1].split("\n")[0]
         # Trial & referral: multi-line layout with volume and duration
-        assert "🎁 سرویس تست : ✅\n   حجم : \u200e1 GB\n   زمان : 1 روز" in text
-        assert "🤝 سیستم دعوت : ✅\n   حجم : \u200e2 GB" in text
+        assert "🎁 سرویس تست : ✅\n   حجم : \u20661 GB\u2069\n   زمان : 1 روز" in text
+        assert "🤝 سیستم دعوت : ✅\n   حجم : \u20662 GB\u2069" in text
         # Grace period without (روز)
         assert "⏳ مهلت پس از انقضا : 3 روز" in text
         assert "مهلت پس از انقضا (روز)" not in text
@@ -1461,12 +1461,12 @@ async def test_trial_and_referral_submenus():
         assert "🎁 <b>وضعیت تست :</b> ✅" in text
         assert "فعال" not in text.split("🎁 <b>وضعیت تست :</b>")[1].split("\n")[0]
         # Volume and Duration without 'تست' and without code tags
-        assert "📊 <b>حجم :</b> 5 GB" in text
+        assert "📊 <b>حجم :</b> \u20665 GB\u2069" in text
         assert "<code>5 GB</code>" not in text
         assert "⏳ <b>زمان :</b> 3 روز" in text
         assert "<code>3 روز</code>" not in text
         # Button texts
-        assert any("📊 حجم: 5 GB" in b for b in btn_texts)
+        assert any("📊 حجم: \u20665 GB\u2069" in b for b in btn_texts)
         assert any("⏳ زمان: 3 روز" in b for b in btn_texts)
         assert any("وضعیت ✅" in b for b in btn_texts)
         assert "برای تغییر حجم یا زمان، دکمه مربوطه را انتخاب کنید" in text
@@ -1488,10 +1488,10 @@ async def test_trial_and_referral_submenus():
         assert "🤝 <b>وضعیت سیستم دعوت :</b> ✅" in text_ref
         assert "فعال" not in text_ref.split("🤝 <b>وضعیت سیستم دعوت :</b>")[1].split("\n")[0]
         # Volume without 'پاداش دعوت' and without code tags
-        assert "🎁 <b>حجم :</b> 10 GB" in text_ref
+        assert "🎁 <b>حجم :</b> \u206610 GB\u2069" in text_ref
         assert "<code>10 GB</code>" not in text_ref
         # Button texts
-        assert any("📊 حجم: 10 GB" in b for b in btn_ref_texts)
+        assert any("📊 حجم: \u206610 GB\u2069" in b for b in btn_ref_texts)
         assert any("وضعیت ✅" in b for b in btn_ref_texts)
         # Helper text matches button name (دکمه حجم)
         assert "دکمه حجم را انتخاب کنید" in text_ref

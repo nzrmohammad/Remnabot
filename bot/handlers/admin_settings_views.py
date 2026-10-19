@@ -24,6 +24,7 @@ from bot.services.app_settings import (
     is_maintenance,
     set_maintenance,
 )
+from bot.services.formatting import ltr_frag
 
 logger = logging.getLogger(__name__)
 
@@ -121,13 +122,13 @@ async def _render_settings(
         support_block = f"📞 {t(lang, 'settings_support_contact')} : —"
 
     trial_desc = (
-        f"✅\n   حجم : \u200e{store.trial_traffic_gb} GB\n   زمان : {store.trial_duration_days} روز"
+        f"✅\n   حجم : {ltr_frag(f'{store.trial_traffic_gb} GB')}\n   زمان : {store.trial_duration_days} روز"
         if store.trial_enabled
         else "❌"
     )
 
     ref_desc = (
-        f"✅\n   حجم : \u200e{store.referral_reward_gb} GB"
+        f"✅\n   حجم : {ltr_frag(f'{store.referral_reward_gb} GB')}"
         if store.referral_enabled
         else "❌"
     )

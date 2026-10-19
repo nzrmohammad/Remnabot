@@ -76,7 +76,7 @@ SETTING_DESCRIPTIONS = {
         "trial_traffic_gb": "حجم ترافیک اختصاص داده شده به اکانت تست رایگان به گیگابایت.",
         "trial_duration_days": "مدت زمان اعتبار اکانت تست رایگان به روز.",
         "referral_enabled": "فعال (1) یا غیرفعال (0) بودن سیستم دعوت از دوستان و دریافت ترافیک رایگان.",
-        "referral_reward_gb": "حجم ترافیک هدیه (GB) که با هر دعوت موفق به کاربر معرف اهدا می‌شود.",
+        "referral_reward_gb": "حجم ترافیک هدیه \u2066(GB)\u2069 که با هر دعوت موفق به کاربر معرف اهدا می‌شود.",
     },
     "en": {
         "card_number": "Bank card number for wallet top-ups.",

@@ -7,6 +7,7 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from bot.common import SEPARATOR, is_admin
+from bot.services.formatting import ltr_frag
 from bot.db.repositories.user_repo import UserRepository
 from bot.locales.texts import t
 from bot.services.app_settings import get_store_settings
@@ -29,7 +30,7 @@ async def _render_trial_settings(
 
     if lang == "fa":
         kb.button(text=f"⏳ زمان: {store.trial_duration_days} روز", callback_data="adm:set:trial_duration_days")
-        kb.button(text=f"📊 حجم: {store.trial_traffic_gb} GB", callback_data="adm:set:trial_traffic_gb")
+        kb.button(text=f"📊 حجم: {ltr_frag(f'{store.trial_traffic_gb} GB')}", callback_data="adm:set:trial_traffic_gb")
         kb.button(text=t(lang, "btn_back"), callback_data="adm:settings")
         kb.button(text=trial_btn_text, callback_data="adm:settings:toggle:trial_enabled")
     else:
@@ -43,7 +44,7 @@ async def _render_trial_settings(
     text = (
         f"🎁 <b>تنظیمات اکانت تست</b>\n{SEPARATOR}\n"
         f"🎁 <b>وضعیت تست :</b> {trial_badge}\n"
-        f"📊 <b>حجم :</b> {store.trial_traffic_gb} GB\n"
+        f"📊 <b>حجم :</b> {ltr_frag(f'{store.trial_traffic_gb} GB')}\n"
         f"⏳ <b>زمان :</b> {store.trial_duration_days} روز\n\n"
         f"💡 جهت فعال یا غیرفعال‌سازی، روی دکمه وضعیت کلیک کنید. برای تغییر حجم یا زمان، دکمه مربوطه را انتخاب کنید."
     ) if lang == "fa" else (
@@ -68,7 +69,7 @@ async def _render_referral_settings(
     ref_btn_text = f"وضعیت {'✅' if store.referral_enabled else '❌'}"
 
     if lang == "fa":
-        kb.button(text=f"📊 حجم: {store.referral_reward_gb} GB", callback_data="adm:set:referral_reward_gb")
+        kb.button(text=f"📊 حجم: {ltr_frag(f'{store.referral_reward_gb} GB')}", callback_data="adm:set:referral_reward_gb")
         kb.button(text=t(lang, "btn_back"), callback_data="adm:settings")
         kb.button(text=ref_btn_text, callback_data="adm:settings:toggle:referral_enabled")
     else:
@@ -81,7 +82,7 @@ async def _render_referral_settings(
     text = (
         f"🤝 <b>تنظیمات سیستم دعوت</b>\n{SEPARATOR}\n"
         f"🤝 <b>وضعیت سیستم دعوت :</b> {ref_badge}\n"
-        f"🎁 <b>حجم :</b> {store.referral_reward_gb} GB\n\n"
+        f"🎁 <b>حجم :</b> {ltr_frag(f'{store.referral_reward_gb} GB')}\n\n"
         f"💡 جهت فعال یا غیرفعال‌سازی، روی دکمه وضعیت کلیک کنید. برای تغییر مقدار هدیه، دکمه حجم را انتخاب کنید."
     ) if lang == "fa" else (
         f"🤝 <b>Invite System Settings</b>\n{SEPARATOR}\n"

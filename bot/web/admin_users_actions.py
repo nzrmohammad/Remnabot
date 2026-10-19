@@ -5,6 +5,7 @@ from datetime import datetime, timedelta, timezone
 from aiohttp import web
 
 from bot.common.helpers import get_limit_bytes
+from bot.services.formatting import ltr_frag
 from bot.db.models import AdminLog
 from bot.db.repositories.user_repo import UserRepository
 from bot.db.repositories.wallet_repo import WalletRepository
@@ -90,7 +91,7 @@ async def post_admin_modify_user(request: web.Request) -> web.Response:
 
     parts = []
     if traffic_gb > 0:
-        parts.append(f"افزایش {traffic_gb:g} GB ترافیک")
+        parts.append(f"افزایش {ltr_frag(f'{traffic_gb:g} GB')} ترافیک")
     if days > 0:
         parts.append(f"تمدید {days} روز اشتراک")
     log_detail = f"{' و '.join(parts)} کاربر {target_id}"

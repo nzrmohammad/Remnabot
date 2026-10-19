@@ -15,6 +15,7 @@ from bot.db.repositories.admin_log_repo import AdminLogRepository
 from bot.db.repositories.user_repo import UserRepository
 from bot.locales.texts import t
 from bot.services.app_settings import get_store_settings
+from bot.services.formatting import ltr_frag
 from bot.services.menu import delete_message_silently, render_menu
 from bot.services.remnawave import RemnawaveClient
 from bot.states.admin import UserManagementStates
@@ -231,7 +232,7 @@ async def _do_create_user(
             user.telegram_id, "create_panel_user",
             detail=f"username={username} traffic={traffic_gb}GB days={duration_days} squads={len(squads)}",
         )
-        traffic_label = f"{traffic_gb} GB" if traffic_gb > 0 else ("نامحدود" if lang == "fa" else "Unlimited")
+        traffic_label = ltr_frag(f"{traffic_gb} GB") if traffic_gb > 0 else ("نامحدود" if lang == "fa" else "Unlimited")
         duration_label = f"{duration_days} روز" if duration_days > 0 else ("نامحدود" if lang == "fa" else "Unlimited")
 
         text = t(
