@@ -1475,11 +1475,13 @@ function setupThemeToggle() {
       document.documentElement.classList.add('dark');
       if (themeIcon) themeIcon.innerText = '🌙';
       try { if (window.Telegram?.WebApp?.setHeaderColor) window.Telegram.WebApp.setHeaderColor('#131d31'); } catch(e) {}
+      try { if (window.Telegram?.WebApp?.setBackgroundColor) window.Telegram.WebApp.setBackgroundColor('#080d1a'); } catch(e) {}
     } else {
       document.documentElement.classList.remove('dark');
       document.documentElement.classList.add('theme-light');
       if (themeIcon) themeIcon.innerText = '☀️';
       try { if (window.Telegram?.WebApp?.setHeaderColor) window.Telegram.WebApp.setHeaderColor('#ffffff'); } catch(e) {}
+      try { if (window.Telegram?.WebApp?.setBackgroundColor) window.Telegram.WebApp.setBackgroundColor('#f8fafc'); } catch(e) {}
     }
 
     const speedModal = $('speedTestModal');

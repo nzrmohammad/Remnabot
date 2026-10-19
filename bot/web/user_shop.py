@@ -249,7 +249,7 @@ async def _do_user_spin(request: web.Request, telegram_id: int, cache: FastCache
                     coupon_repo = CouponRepository(session)
                     import secrets
                     unique_code = f"WHEEL10_{secrets.token_hex(2).upper()}"
-                    expire_time = now_utc + timedelta(hours=24)
+                    expire_time = now_utc + timedelta(days=7)
                     await coupon_repo.create(
                         code=unique_code,
                         discount_percent=10,
@@ -257,7 +257,7 @@ async def _do_user_spin(request: web.Request, telegram_id: int, cache: FastCache
                         expires_at=expire_time,
                     )
                     chosen["code"] = unique_code
-                    chosen["name"] = f"کد تخفیف ۱۰٪ (مهلت ۲۴ ساعت): {unique_code}"
+                    chosen["name"] = f"کد تخفیف ۱۰٪ (مهلت ۷ روز): {unique_code}"
 
                     user_coupons = await cache.get(f"wheel:user_coupons:{telegram_id}") or []
                     user_coupons.insert(0, {
@@ -265,7 +265,7 @@ async def _do_user_spin(request: web.Request, telegram_id: int, cache: FastCache
                         "discount_percent": 10,
                         "expires_at": expire_time.isoformat(),
                     })
-                    await cache.set(f"wheel:user_coupons:{telegram_id}", user_coupons[:10], ttl_seconds=86400 * 2)
+                    await cache.set(f"wheel:user_coupons:{telegram_id}", user_coupons[:10], ttl_seconds=86400 * 8)
                     applied = True
                 except Exception as exc:
                     logger.warning("Failed to prepare coupon for wheel prize: %s", exc)

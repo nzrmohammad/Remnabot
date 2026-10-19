@@ -3318,6 +3318,7 @@
       $('planModalDuration').value = plan ? plan.duration_days : '';
       $('planModalHwid').value = plan ? (plan.hwid_limit || '') : '';
       $('planModalDesc').value = plan ? (plan.description || '') : '';
+      if ($('planModalBadge')) $('planModalBadge').value = plan ? (plan.badge || '') : '';
       $('planModalActive').checked = plan ? !!plan.is_active : true;
     },
 
@@ -3333,6 +3334,7 @@
       const duration_days = parseInt($('planModalDuration')?.value || '0', 10);
       const hwid_limit = parseInt($('planModalHwid')?.value || '0', 10) || null;
       const description = $('planModalDesc')?.value?.trim();
+      const badge = $('planModalBadge')?.value || '';
       const is_active = $('planModalActive')?.checked ?? true;
 
       if (!name) {
@@ -3344,7 +3346,7 @@
       if (saveBtn) { saveBtn.disabled = true; saveBtn.innerText = 'در حال ذخیره...'; }
 
       try {
-        const payload = { id: id ? parseInt(id, 10) : undefined, name, price, traffic_gb, duration_days, hwid_limit, description, is_active };
+        const payload = { id: id ? parseInt(id, 10) : undefined, name, price, traffic_gb, duration_days, hwid_limit, description, badge, is_active };
         const res = await window.api.saveAdminPlan(payload);
         if (res && res.ok) {
           if (window.showToast) window.showToast(`✅ ${res.message}`);

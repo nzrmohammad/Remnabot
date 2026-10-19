@@ -169,6 +169,11 @@ async def _migrate_schema(engine: AsyncEngine) -> None:
                     text("ALTER TABLE services ADD COLUMN squad_uuid VARCHAR(64)")
                 )
                 logger.info("added services.squad_uuid")
+            if "badge" not in cols:
+                await conn.execute(
+                    text("ALTER TABLE services ADD COLUMN badge VARCHAR(32)")
+                )
+                logger.info("added services.badge")
 
         # --- orders: status / refunded_at (new columns) ---------------- #
         cols = await _table_columns(conn, "orders")

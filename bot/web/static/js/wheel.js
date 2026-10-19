@@ -89,27 +89,51 @@ window.showWheelResultModal = showWheelResultModal;
 let currentWheelStreak = 0;
 let currentWheelMultiplier = 1.0;
 let currentWheelTickets = 0;
+let wheelTargetEndTime = 0;
 
-function startWheelCountdown(sec) {
-  wheelCooldownSeconds = sec;
-  const timerBox = document.getElementById('wheelTimerContainer');
-  const timerText = document.getElementById('wheelCountdownText');
-  if (timerBox) timerBox.classList.remove('hidden');
-  if (timerText) timerText.innerText = formatCountdown(wheelCooldownSeconds);
-
-  if (wheelCountdownInterval) clearInterval(wheelCountdownInterval);
-  wheelCountdownInterval = setInterval(() => {
-    wheelCooldownSeconds -= 1;
-    if (wheelCooldownSeconds <= 0) {
-      clearInterval(wheelCountdownInterval);
+function checkAndUpdateWheelCooldown() {
+  if (wheelTargetEndTime > 0) {
+    const remaining = Math.max(0, Math.round((wheelTargetEndTime - Date.now()) / 1000));
+    wheelCooldownSeconds = remaining;
+    if (remaining <= 0) {
+      wheelTargetEndTime = 0;
+      wheelCooldownSeconds = 0;
+      if (wheelCountdownInterval) clearInterval(wheelCountdownInterval);
+      const timerBox = document.getElementById('wheelTimerContainer');
       if (timerBox) timerBox.classList.add('hidden');
       if (window.lastUserData?.wheel_status) {
         window.lastUserData.wheel_status.next_spin_seconds = 0;
         window.lastUserData.wheel_status.can_spin = true;
       }
       updateWheelUIState(true, true, 0, currentWheelStreak, currentWheelMultiplier, currentWheelTickets);
-    } else {
-      if (timerText) timerText.innerText = formatCountdown(wheelCooldownSeconds);
+      return 0;
+    }
+    return remaining;
+  }
+  return wheelCooldownSeconds;
+}
+
+function startWheelCountdown(sec) {
+  const s = Math.max(0, Math.round(sec));
+  wheelCooldownSeconds = s;
+  wheelTargetEndTime = s > 0 ? (Date.now() + s * 1000) : 0;
+  const timerBox = document.getElementById('wheelTimerContainer');
+  const timerText = document.getElementById('wheelCountdownText');
+
+  if (s <= 0) {
+    if (wheelCountdownInterval) clearInterval(wheelCountdownInterval);
+    if (timerBox) timerBox.classList.add('hidden');
+    return;
+  }
+
+  if (timerBox) timerBox.classList.remove('hidden');
+  if (timerText) timerText.innerText = formatCountdown(wheelCooldownSeconds);
+
+  if (wheelCountdownInterval) clearInterval(wheelCountdownInterval);
+  wheelCountdownInterval = setInterval(() => {
+    const rem = checkAndUpdateWheelCooldown();
+    if (rem > 0 && timerText) {
+      timerText.innerText = formatCountdown(rem);
     }
   }, 1000);
 }
@@ -207,18 +231,27 @@ function setupLuckyWheel() {
   const wheelModal = bindModal('luckyWheelModal', 'closeLuckyWheelBtn');
   openLuckyWheelBtn?.addEventListener('click', () => {
     window.api?.haptic?.('selection');
+    checkAndUpdateWheelCooldown();
     if (window.lastUserData?.wheel_status) {
       const ws = window.lastUserData.wheel_status;
+      const effectiveCooldown = wheelCooldownSeconds;
       updateWheelUIState(
-        ws.can_spin,
+        effectiveCooldown <= 0 || (currentWheelTickets > 0),
         ws.has_active_sub,
-        wheelCooldownSeconds > 0 ? wheelCooldownSeconds : (ws.next_spin_seconds || 0),
+        effectiveCooldown,
         ws.streak || 0,
         ws.streak_multiplier || 1.0,
         ws.spin_tickets || 0
       );
     }
     wheelModal.open();
+  });
+
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) checkAndUpdateWheelCooldown();
+  });
+  window.addEventListener('focus', () => {
+    checkAndUpdateWheelCooldown();
   });
 
   spinWheelBtn?.addEventListener('click', async () => {
@@ -234,10 +267,10 @@ function setupLuckyWheel() {
       return;
     }
 
-    const isCooldownNow = (wheelCooldownSeconds > 0) || (ws?.next_spin_seconds > 0);
+    const remainingSec = checkAndUpdateWheelCooldown();
+    const isCooldownNow = remainingSec > 0;
     const hasTickets = currentWheelTickets > 0;
     if (isCooldownNow && !hasTickets) {
-      const remainingSec = wheelCooldownSeconds > 0 ? wheelCooldownSeconds : (ws?.next_spin_seconds || 86400);
       showWheelResultModal({
         icon: '⏳',
         title: 'مهلت ۲۴ ساعته',
@@ -367,13 +400,13 @@ function setupLuckyWheel() {
               localCoupons.unshift({
                 code: chosenPrize.code,
                 discount_percent: chosenPrize.percent || 10,
-                expires_at: new Date(Date.now() + 86400000).toISOString(),
+                expires_at: new Date(Date.now() + 7 * 86400000).toISOString(),
               });
               localStorage.setItem('user_won_coupons', JSON.stringify(localCoupons.slice(0, 10)));
             } catch(e) {}
           }
           if (wheelResultText) {
-            wheelResultText.innerHTML = `🎉 <b>تبریک!</b> شما برنده <b class="text-amber-400 font-bold">${chosenPrize.name || chosenPrize.text}</b> شدید!<br/><span class="font-mono text-cyan-400 font-bold block mt-1 select-all" dir="ltr">کد: ${couponCode}</span><span class="text-[11px] text-slate-400 block mt-0.5">⏱ مهلت استفاده: ۲۴ ساعت آینده در تب فروشگاه</span>`;
+            wheelResultText.innerHTML = `🎉 <b>تبریک!</b> شما برنده <b class="text-amber-400 font-bold">${chosenPrize.name || chosenPrize.text}</b> شدید!<br/><span class="font-mono text-cyan-400 font-bold block mt-1 select-all" dir="ltr">کد: ${couponCode}</span><span class="text-[11px] text-slate-400 block mt-0.5">⏱ مهلت استفاده: ۷ روز در تب فروشگاه</span>`;
           }
           showWheelResultModal({
             icon: '🎟',

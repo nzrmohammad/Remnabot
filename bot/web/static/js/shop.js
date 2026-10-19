@@ -167,32 +167,33 @@ function renderShopPlans(data) {
 
   shopContainer.innerHTML = plans.map(p => {
     const planText = `${p.name || ''} ${p.description || ''}`.toLowerCase();
-    const isExtraTraffic = (Number(p.duration_days) === 0 && Number(p.traffic_gb) > 0);
+    const planBadgeKey = (p.badge || '').toLowerCase().trim();
+    const isExtraTraffic = (Number(p.duration_days) === 0 && Number(p.traffic_gb) > 0) || planBadgeKey === 'traffic';
 
     let planBadge = '';
     let badgeBorderClass = 'border-slate-700/80';
-    let btnClass = 'bg-blue-600 hover:bg-blue-500 text-white font-semibold';
+    let btnClass = 'bg-blue-600 hover:bg-blue-500 text-white font-bold';
 
     if (isExtraTraffic) {
       planBadge = '<div class="absolute top-0 left-0 bg-gradient-to-r from-cyan-500 to-blue-500 text-slate-950 text-[10px] font-black px-3 py-0.5 rounded-br-xl shadow flex items-center gap-1">⚡️ بسته افزایش حجم</div>';
       badgeBorderClass = 'border-cyan-500/50 shadow-lg shadow-cyan-500/10';
-      btnClass = 'bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-bold';
-    } else if (planText.includes('پرفروش') || planText.includes('gold') || planText.includes('گلد') || planText.includes('bestseller')) {
+      btnClass = 'bg-cyan-600 hover:bg-cyan-500 text-white font-bold';
+    } else if (planBadgeKey === 'bestseller' || planText.includes('پرفروش') || planText.includes('gold') || planText.includes('گلد') || planText.includes('bestseller')) {
       planBadge = '<div class="absolute top-0 left-0 bg-gradient-to-r from-amber-500 to-yellow-500 text-slate-950 text-[10px] font-black px-3 py-0.5 rounded-br-xl shadow flex items-center gap-1">🔥 پرفروش‌ترین</div>';
       badgeBorderClass = 'border-amber-500/60 shadow-lg shadow-amber-500/10';
-      btnClass = 'bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-black';
-    } else if (planText.includes('محبوب') || planText.includes('popular')) {
+      btnClass = 'bg-blue-600 hover:bg-blue-500 text-white font-bold';
+    } else if (planBadgeKey === 'popular' || planText.includes('محبوب') || planText.includes('popular')) {
       planBadge = '<div class="absolute top-0 left-0 bg-gradient-to-r from-indigo-500 to-purple-500 text-white text-[10px] font-black px-3 py-0.5 rounded-br-xl shadow flex items-center gap-1">⭐ محبوب‌ترین</div>';
       badgeBorderClass = 'border-indigo-500/60 shadow-lg shadow-indigo-500/10';
-      btnClass = 'bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold';
-    } else if (planText.includes('اقتصادی') || planText.includes('economic') || planText.includes('به‌صرفه') || planText.includes('بصرفه') || planText.includes('ارزان')) {
+      btnClass = 'bg-blue-600 hover:bg-blue-500 text-white font-bold';
+    } else if (planBadgeKey === 'economic' || planText.includes('اقتصادی') || planText.includes('economic') || planText.includes('به‌صرفه') || planText.includes('بصرفه') || planText.includes('ارزان')) {
       planBadge = '<div class="absolute top-0 left-0 bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 text-[10px] font-black px-3 py-0.5 rounded-br-xl shadow flex items-center gap-1">💰 اقتصادی‌ترین</div>';
       badgeBorderClass = 'border-emerald-500/60 shadow-lg shadow-emerald-500/10';
-      btnClass = 'bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold';
-    } else if (planText.includes('ویژه') || planText.includes('vip') || planText.includes('special')) {
+      btnClass = 'bg-blue-600 hover:bg-blue-500 text-white font-bold';
+    } else if (planBadgeKey === 'vip' || planText.includes('ویژه') || planText.includes('vip') || planText.includes('special')) {
       planBadge = '<div class="absolute top-0 left-0 bg-gradient-to-r from-rose-500 to-pink-500 text-white text-[10px] font-black px-3 py-0.5 rounded-br-xl shadow flex items-center gap-1">👑 پیشنهاد ویژه</div>';
       badgeBorderClass = 'border-rose-500/60 shadow-lg shadow-rose-500/10';
-      btnClass = 'bg-gradient-to-r from-rose-600 to-pink-600 hover:from-rose-500 hover:to-pink-500 text-white font-bold';
+      btnClass = 'bg-blue-600 hover:bg-blue-500 text-white font-bold';
     }
 
     let discountVal = 0;

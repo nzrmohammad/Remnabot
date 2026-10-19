@@ -134,6 +134,8 @@ class Service(Base):
     hwid_limit: Mapped[int | None] = mapped_column(Integer, nullable=True)
     # Internal squad UUID; None -> use the store-wide default.
     squad_uuid: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    # Optional marketing badge (bestseller/popular/economic/vip/traffic/None)
+    badge: Mapped[str | None] = mapped_column(String(32), nullable=True)
 
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()

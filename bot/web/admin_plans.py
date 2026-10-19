@@ -70,6 +70,7 @@ async def get_admin_plans(request: web.Request) -> web.Response:
                 "description": s.description or "",
                 "is_active": s.is_active,
                 "hwid_limit": s.hwid_limit or 0,
+                "badge": s.badge or "",
             }
             for s in services
         ]
@@ -101,6 +102,7 @@ async def post_admin_plan_save(request: web.Request) -> web.Response:
         return web.json_response({"ok": False, "error": "مقادیر عددی نامعتبر هستند."}, status=400)
 
     description = str(body.get("description") or "").strip() or None
+    badge = str(body.get("badge") or "").strip() or None
     is_active = bool(body.get("is_active", True))
 
     async with db_session(request) as session:
@@ -113,6 +115,7 @@ async def post_admin_plan_save(request: web.Request) -> web.Response:
             service.traffic_gb = traffic_gb
             service.duration_days = duration_days
             service.description = description
+            service.badge = badge
             service.is_active = is_active
             service.hwid_limit = hwid_limit
             msg = "پلن با موفقیت ویرایش شد."
@@ -123,6 +126,7 @@ async def post_admin_plan_save(request: web.Request) -> web.Response:
                 traffic_gb=traffic_gb,
                 duration_days=duration_days,
                 description=description,
+                badge=badge,
                 is_active=is_active,
                 hwid_limit=hwid_limit,
             )

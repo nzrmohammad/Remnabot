@@ -233,8 +233,8 @@
           <!-- Circular SVG Gauge -->
           <div class="flex flex-col items-center justify-center my-1 relative">
             <svg class="w-48 h-48" viewBox="0 0 120 120">
-              <circle cx="60" cy="60" r="50" class="gauge-bg-circle" stroke="#1e293b" stroke-width="10" fill="transparent" />
-              <circle id="gaugeProgress" class="gauge-circle" cx="60" cy="60" r="50" stroke="url(#gradientMain)" stroke-width="10" stroke-dasharray="314.15" stroke-dashoffset="62.8" stroke-linecap="round" fill="transparent" />
+              <circle cx="60" cy="60" r="50" class="gauge-bg-circle" stroke="#1e293b" stroke-width="8" fill="transparent" />
+              <circle id="gaugeProgress" class="gauge-circle" cx="60" cy="60" r="50" stroke="url(#gradientMain)" stroke-width="8" stroke-dasharray="314.15" stroke-dashoffset="62.8" stroke-linecap="round" fill="transparent" />
               <defs>
                 <linearGradient id="gradientMain" x1="0%" y1="0%" x2="100%" y2="100%">
                   <stop offset="0%" stop-color="#38bdf8" />
@@ -243,10 +243,10 @@
                 </linearGradient>
               </defs>
             </svg>
-            <div class="absolute inset-0 flex flex-col items-center justify-center text-center p-2">
-              <span id="dashboardPercentRemaining" class="text-3xl font-black text-white tracking-tight leading-none font-mono" dir="ltr">--%</span>
-              <span class="text-[11px] text-slate-400 font-medium mt-1">باقی‌مانده</span>
-              <div class="mt-1.5 text-[10px] text-indigo-200 bg-slate-900/90 border border-indigo-500/40 px-2.5 py-0.5 rounded-full font-semibold shadow-sm flex items-center justify-center">
+            <div class="absolute inset-0 flex flex-col items-center justify-center text-center p-2 -translate-y-1">
+              <span id="dashboardPercentRemaining" class="text-2xl font-black text-white tracking-tight leading-none font-mono" dir="ltr">--%</span>
+              <span class="text-[10px] text-slate-400 font-medium mt-0.5">باقی‌مانده</span>
+              <div class="mt-1 text-[9.5px] text-indigo-200 bg-slate-900/90 border border-indigo-500/40 px-2 py-0.5 rounded-full font-semibold shadow-sm flex items-center justify-center">
                 <span id="dashboardUsagePill" class="font-mono font-bold text-cyan-300 num-bidi" dir="ltr">-- / -- GB</span>
               </div>
             </div>
@@ -622,7 +622,7 @@
         <div id="shopCouponSection" class="space-y-2 hidden">
           <div class="bg-slate-800/60 rounded-xl p-2.5 border border-slate-700/60 flex items-center gap-2">
             <input type="text" placeholder="کد تخفیف (مثال: OFF20)" class="bg-slate-900 text-xs px-3 py-2 rounded-lg border border-slate-700 flex-1 outline-none text-slate-200 uppercase font-mono" id="couponInput" />
-            <button id="applyCouponBtn" type="button" class="bg-transparent hover:bg-blue-600/15 text-blue-400 hover:text-blue-300 border border-blue-500/40 text-xs font-semibold px-4 py-2 rounded-lg transition active:scale-95 shrink-0">اعمال</button>
+            <button id="applyCouponBtn" type="button" class="bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold px-4 py-2 rounded-lg transition active:scale-95 shadow shrink-0">اعمال</button>
           </div>
 
           <!-- Won Lucky Wheel Coupons (User Active Discounts) -->

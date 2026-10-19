@@ -140,15 +140,23 @@ async def _fetch_user_perks_and_settings(
     session: Any, cache: FastCache, telegram_id: int, has_active_sub: bool, db_user: Any = None
 ) -> tuple[dict[str, Any], list[dict[str, Any]], dict[str, Any]]:
     """Fetch user alert/report preferences, active won coupons, and lucky wheel status."""
-    last_spin = await cache.get(f"tma:user:{telegram_id}:wheel_last_spin")
+    last_spin_dt = getattr(db_user, "wheel_last_spin_at", None) if db_user else None
     cooldown_left = 0
-    if last_spin is not None:
-        try:
-            elapsed = time.time() - float(last_spin)
-            if elapsed < 86400:
-                cooldown_left = max(1, int(86400 - elapsed))
-        except (ValueError, TypeError):
-            pass
+    if isinstance(last_spin_dt, datetime):
+        if last_spin_dt.tzinfo is None:
+            last_spin_dt = last_spin_dt.replace(tzinfo=timezone.utc)
+        elapsed = (datetime.now(timezone.utc) - last_spin_dt).total_seconds()
+        if elapsed < 86400:
+            cooldown_left = max(1, int(86400 - elapsed))
+    else:
+        last_spin = await cache.get(f"tma:user:{telegram_id}:wheel_last_spin")
+        if last_spin is not None:
+            try:
+                elapsed = time.time() - float(last_spin)
+                if elapsed < 86400:
+                    cooldown_left = max(1, int(86400 - elapsed))
+            except (ValueError, TypeError):
+                pass
 
     wheel_streak = int(getattr(db_user, "wheel_streak", 0) or 0) if db_user else 0
     spin_tickets = int(getattr(db_user, "spin_tickets", 0) or 0) if db_user else 0
@@ -274,6 +282,7 @@ async def get_user_me(request: web.Request) -> web.Response:
                 "traffic_gb": s.traffic_gb,
                 "description": s.description,
                 "hwid_limit": s.hwid_limit,
+                "badge": s.badge or "",
             }
             for s in services_res.scalars().all()
         ]
