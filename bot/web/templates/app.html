@@ -611,6 +611,22 @@
           </div>
         </div>
 
+        <!-- Smart Shop Sub-tabs (همه سرویس‌ها / افزایش حجم / تمدید زمان) -->
+        <div class="flex items-center p-1 bg-slate-900/80 rounded-2xl border border-slate-700/60 text-xs gap-1">
+          <button type="button" onclick="window.switchShopCategory('all')" id="shopCategoryBtn-all" class="flex-1 py-1.5 px-2 rounded-xl font-bold transition flex items-center justify-center gap-1 bg-blue-600 text-white shadow">
+            <span>💎</span> همه
+          </button>
+          <button type="button" onclick="window.switchShopCategory('traffic')" id="shopCategoryBtn-traffic" class="flex-1 py-1.5 px-2 rounded-xl font-medium transition flex items-center justify-center gap-1 text-slate-400 hover:text-white">
+            <span>⚡️</span> افزایش حجم
+          </button>
+          <button type="button" onclick="window.switchShopCategory('time')" id="shopCategoryBtn-time" class="flex-1 py-1.5 px-2 rounded-xl font-medium transition flex items-center justify-center gap-1 text-slate-400 hover:text-white">
+            <span>⏳</span> تمدید روز
+          </button>
+        </div>
+
+        <!-- Smart Recommendation Notice (Auto-suggest based on remaining days & volume) -->
+        <div id="shopSmartNotice" class="hidden p-2.5 rounded-2xl text-[11px] leading-relaxed transition flex items-center gap-2 shadow-sm"></div>
+
         <!-- Dynamic Plans Container (Loaded from Admin DB) -->
         <div id="shopPlansContainer" class="space-y-3">
           <div class="p-4 rounded-xl bg-slate-800/80 border border-slate-700/60 text-center text-xs text-slate-400">
@@ -1612,11 +1628,11 @@
                 </text>
               </g>
 
-              <!-- Slice 4: ❌ پوچ (240 deg) -->
+              <!-- Slice 4: 👑 2 GB (240 deg) -->
               <g transform="rotate(240, 100, 100)">
-                <path d="M 100 100 L 52.5 17.73 A 95 95 0 0 1 147.5 17.73 Z" fill="#475569" stroke="#fbbf24" stroke-width="1.5" />
+                <path d="M 100 100 L 52.5 17.73 A 95 95 0 0 1 147.5 17.73 Z" fill="#7c3aed" stroke="#fbbf24" stroke-width="1.5" />
                 <text x="100" y="44" text-anchor="middle" dominant-baseline="central" fill="#ffffff" font-size="9.5" font-weight="900" direction="ltr" style="direction: ltr; unicode-bidi: isolate;" filter="url(#sliceShadow)">
-                  <tspan fill="#f87171" font-size="11">❌ </tspan><tspan font-size="9">پوچ</tspan>
+                  <tspan fill="#fef08a" font-size="11">👑 </tspan><tspan font-family="monospace" font-size="10">2 </tspan><tspan font-size="8.5">GB</tspan>
                 </text>
               </g>
 

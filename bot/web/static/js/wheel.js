@@ -13,8 +13,9 @@ const prizeMap = {
   'blank_1': 1,
   'discount10': 2,
   '500mb': 3,
+  '2gb': 4,
   'blank_2': 4,
-  'blank': 4,
+  'blank': 1,
   'again': 5
 };
 
@@ -23,7 +24,7 @@ const localPrizes = [
   { id: 'blank_1', name: 'پوچ (شانس بعدی فردا)', icon: '❌', isAgain: false, isZero: true },
   { id: 'discount10', name: '۱۰٪ کد تخفیف ویژه (کد: OFF10)', icon: '🎟', isAgain: false, isZero: false },
   { id: '500mb', name: '500 MB ترافیک هدیه', icon: '⚡️', isAgain: false, isZero: false },
-  { id: 'blank_2', name: 'پوچ (شانس بعدی فردا)', icon: '❌', isAgain: false, isZero: true },
+  { id: '2gb', name: '2 GB ترافیک هدیه (سوپر شانس)', icon: '👑', isAgain: false, isZero: false },
   { id: 'again', name: 'دوباره (شانس مجدد!)', icon: '🔄', isAgain: true, isZero: false }
 ];
 

@@ -1,5 +1,7 @@
-"""Repository for completed (auto-activated) purchases / orders."""
+from __future__ import annotations
+
 from datetime import datetime, timedelta, timezone
+from typing import Any
 
 from sqlalchemy import func, or_, select, text
 from sqlalchemy.ext.asyncio import AsyncSession

@@ -183,13 +183,13 @@ async def _do_user_spin(request: web.Request, telegram_id: int, cache: FastCache
 
         streak_multiplier = 1.5 if new_streak >= 3 else (1.2 if new_streak == 2 else 1.0)
 
-        # 6 configured prizes (Slices 1 and 4 are blank)
+        # 6 configured prizes (Slice 1 is blank, Slice 4 is 2GB ultra-rare jackpot)
         prizes = [
             {"id": "1gb", "name": f"{ltr_frag('1 GB')} ترافیک هدیه", "icon": "🎁", "type": "traffic", "value": 1},
             {"id": "blank_1", "name": "پوچ (شانس بعدی فردا)", "icon": "❌", "type": "blank", "value": 0},
             {"id": "discount10", "name": "۱۰٪ کد تخفیف ویژه (کد: OFF10)", "icon": "🎟", "type": "coupon", "code": "OFF10"},
             {"id": "500mb", "name": f"{ltr_frag('500 MB')} ترافیک هدیه", "icon": "⚡️", "type": "traffic", "value": 0.5},
-            {"id": "blank_2", "name": "پوچ (شانس بعدی فردا)", "icon": "❌", "type": "blank", "value": 0},
+            {"id": "2gb", "name": f"{ltr_frag('2 GB')} ترافیک هدیه (سوپر شانس)", "icon": "👑", "type": "traffic", "value": 2},
             {"id": "again", "name": "دوباره (شانس مجدد!)", "icon": "🔄", "type": "again", "value": 0},
         ]
 
@@ -198,9 +198,9 @@ async def _do_user_spin(request: web.Request, telegram_id: int, cache: FastCache
         w_500mb = max(12, int(15 * streak_multiplier))
         w_disc = max(12, int(15 * streak_multiplier))
         w_again = 10
-        w_blank1 = max(12, int(30 / streak_multiplier))
-        w_blank2 = max(12, int(30 / streak_multiplier))
-        weights = [w_1gb, w_blank1, w_disc, w_500mb, w_blank2, w_again]
+        w_blank1 = max(25, int(45 / streak_multiplier))
+        w_2gb = max(1, int(1.2 * streak_multiplier))  # Ultra-rare jackpot (~1-1.5% probability)
+        weights = [w_1gb, w_blank1, w_disc, w_500mb, w_2gb, w_again]
 
         from unittest.mock import Mock
         if isinstance(random.choice, Mock):
