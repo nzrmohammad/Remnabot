@@ -932,9 +932,13 @@ async def test_nightly_reports_formatting(async_session: AsyncSession):
     admin_text = bot.send_message.call_args[0][1]
 
     # Verify order: TopUser (2.00 GB) > Mohadeseh3 (380.00 MB) > Sahba (168.00 MB)
-    pos_top = admin_text.find("👤 TopUser : 2.00 GB")
-    pos_moh = admin_text.find("👤 Mohadeseh3 : 380.00 MB")
-    pos_sah = admin_text.find("👤 Sahba : 168.00 MB")
+    # Units arrive BiDi-isolated (LRI…PDI) from human_bytes() so they never
+    # flip to the left in RTL paragraphs — assert that too.
+    ISO = "\u2066"
+    ISO_END = "\u2069"
+    pos_top = admin_text.find(f"👤 TopUser : {ISO}2.00 GB{ISO_END}")
+    pos_moh = admin_text.find(f"👤 Mohadeseh3 : {ISO}380.00 MB{ISO_END}")
+    pos_sah = admin_text.find(f"👤 Sahba : {ISO}168.00 MB{ISO_END}")
 
     assert pos_top != -1
     assert pos_moh != -1
@@ -942,10 +946,13 @@ async def test_nightly_reports_formatting(async_session: AsyncSession):
     assert pos_top < pos_moh < pos_sah
 
     # Verify layout: username on top, breakdown on next line without leading space
-    assert "👤 Mohadeseh3 : 380.00 MB\n🇳🇱 380.00 MB" in admin_text
-    assert "👤 Sahba : 168.00 MB\n🇳🇱 168.00 MB" in admin_text
+    assert f"👤 Mohadeseh3 : {ISO}380.00 MB{ISO_END}\n🇳🇱 {ISO}380.00 MB{ISO_END}" in admin_text
+    assert f"👤 Sahba : {ISO}168.00 MB{ISO_END}\n🇳🇱 {ISO}168.00 MB{ISO_END}" in admin_text
     # Verify blank line between users
-    assert "👤 Mohadeseh3 : 380.00 MB\n🇳🇱 380.00 MB\n\n👤 Sahba : 168.00 MB" in admin_text
+    assert (
+        f"👤 Mohadeseh3 : {ISO}380.00 MB{ISO_END}\n🇳🇱 {ISO}380.00 MB{ISO_END}"
+        f"\n\n👤 Sahba : {ISO}168.00 MB{ISO_END}"
+    ) in admin_text
 
 
 @pytest.mark.anyio

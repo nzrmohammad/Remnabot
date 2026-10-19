@@ -588,6 +588,7 @@
           },
           y: {
             beginAtZero: true,
+            suggestedMax: (values && values.some(v => v > 0)) ? undefined : 100000,
             grid: { color: isDark ? 'rgba(51, 65, 85, 0.3)' : 'rgba(203, 213, 225, 0.7)' },
             ticks: {
               color: isDark ? '#cbd5e1' : '#0f172a',
@@ -665,6 +666,7 @@
           },
           y: {
             beginAtZero: true,
+            suggestedMax: (values && values.some(v => v > 0)) ? undefined : 100000,
             grid: { color: tc.grid },
             ticks: {
               color: tc.tick,
@@ -741,6 +743,7 @@
           },
           y: {
             beginAtZero: true,
+            suggestedMax: (values && values.some(v => v > 0)) ? undefined : 10,
             grid: { color: tc.grid },
             ticks: {
               color: tc.tick,
@@ -799,7 +802,7 @@
 
     const hasData = Boolean(locationShare?.has_data && locationShare?.data?.length && locationShare.data.some(v => v > 0));
     const labels = hasData
-      ? (locationShare.labels || []).map(l => (l || '').replace(/[A-Za-z0-9_-]+/g, '').trim() || l || '🌐')
+      ? (locationShare.labels || []).map(l => (l || '').trim() || '🌐')
       : ['بدون مصرف'];
     const values = hasData ? locationShare.data : [1];
     const unit = locationShare?.unit || 'GB';
@@ -859,7 +862,7 @@
     const peakBadge = $('peakHourBadge');
     if (peakBadge) {
       if (hourlyDist?.is_real_telemetry && hourlyDist?.peak_hour) {
-        peakBadge.innerText = `اوج: ${hourlyDist.peak_hour}`;
+        peakBadge.innerText = `Peak: ${hourlyDist.peak_hour}`;
       } else if (hourlyDist?.is_real_telemetry) {
         peakBadge.innerText = `تله‌متری زنده`;
       } else {
@@ -921,6 +924,7 @@
           },
           y: {
             beginAtZero: true,
+            suggestedMax: (values && values.some(v => v > 0)) ? undefined : 1,
             grid: { color: tc.grid },
             ticks: {
               color: tc.tick,
@@ -995,6 +999,7 @@
           y: {
             stacked: true,
             beginAtZero: true,
+            suggestedMax: (newSales.some(v => v > 0) || renewalSales.some(v => v > 0)) ? undefined : 5,
             grid: { color: isDark ? 'rgba(51, 65, 85, 0.3)' : 'rgba(203, 213, 225, 0.7)' },
             ticks: {
               color: isDark ? '#cbd5e1' : '#0f172a',

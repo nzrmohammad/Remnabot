@@ -1,7 +1,7 @@
 """Repository for discount / promo coupons."""
 from datetime import datetime, timezone
 
-from sqlalchemy import func, select, text
+from sqlalchemy import func, or_, select, text, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from bot.db.models import Coupon, CouponUsage
@@ -103,9 +103,22 @@ class CouponRepository:
             coupon_obj = await self.get_by_id(coupon)
 
         if coupon_obj:
-            if coupon_obj.max_uses and coupon_obj.max_uses > 0 and coupon_obj.used_count >= coupon_obj.max_uses:
-                raise ValueError("Coupon max uses reached")
-            coupon_obj.used_count += 1
+            # Atomic conditional increment: never exceeds max_uses, never raises.
+            # synchronize_session="fetch" keeps the identity-map Coupon in sync so
+            # later validate_coupon() reads within the same session see the truth.
+            await self.session.execute(
+                update(Coupon)
+                .where(
+                    Coupon.id == coupon_obj.id,
+                    or_(
+                        Coupon.max_uses.is_(None),
+                        Coupon.max_uses == 0,
+                        Coupon.used_count < Coupon.max_uses,
+                    ),
+                )
+                .values(used_count=Coupon.used_count + 1)
+                .execution_options(synchronize_session="fetch"),
+            )
 
         usage = CouponUsage(
             coupon_id=coupon_obj.id if coupon_obj else (coupon if isinstance(coupon, int) else None),

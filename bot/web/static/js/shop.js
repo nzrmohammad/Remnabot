@@ -166,8 +166,35 @@ function renderShopPlans(data) {
   if (couponSection) couponSection.classList.remove('hidden');
 
   shopContainer.innerHTML = plans.map(p => {
-    const planNameLower = (p.name || '').toLowerCase();
-    const isPopular = planNameLower.includes('gold') || (p.name || '').includes('گلد');
+    const planText = `${p.name || ''} ${p.description || ''}`.toLowerCase();
+    const isExtraTraffic = (Number(p.duration_days) === 0 && Number(p.traffic_gb) > 0);
+
+    let planBadge = '';
+    let badgeBorderClass = 'border-slate-700/80';
+    let btnClass = 'bg-blue-600 hover:bg-blue-500 text-white font-semibold';
+
+    if (isExtraTraffic) {
+      planBadge = '<div class="absolute top-0 left-0 bg-gradient-to-r from-cyan-500 to-blue-500 text-slate-950 text-[10px] font-black px-3 py-0.5 rounded-br-xl shadow flex items-center gap-1">⚡️ بسته افزایش حجم</div>';
+      badgeBorderClass = 'border-cyan-500/50 shadow-lg shadow-cyan-500/10';
+      btnClass = 'bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-bold';
+    } else if (planText.includes('پرفروش') || planText.includes('gold') || planText.includes('گلد') || planText.includes('bestseller')) {
+      planBadge = '<div class="absolute top-0 left-0 bg-gradient-to-r from-amber-500 to-yellow-500 text-slate-950 text-[10px] font-black px-3 py-0.5 rounded-br-xl shadow flex items-center gap-1">🔥 پرفروش‌ترین</div>';
+      badgeBorderClass = 'border-amber-500/60 shadow-lg shadow-amber-500/10';
+      btnClass = 'bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-black';
+    } else if (planText.includes('محبوب') || planText.includes('popular')) {
+      planBadge = '<div class="absolute top-0 left-0 bg-gradient-to-r from-indigo-500 to-purple-500 text-white text-[10px] font-black px-3 py-0.5 rounded-br-xl shadow flex items-center gap-1">⭐ محبوب‌ترین</div>';
+      badgeBorderClass = 'border-indigo-500/60 shadow-lg shadow-indigo-500/10';
+      btnClass = 'bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold';
+    } else if (planText.includes('اقتصادی') || planText.includes('economic') || planText.includes('به‌صرفه') || planText.includes('بصرفه') || planText.includes('ارزان')) {
+      planBadge = '<div class="absolute top-0 left-0 bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 text-[10px] font-black px-3 py-0.5 rounded-br-xl shadow flex items-center gap-1">💰 اقتصادی‌ترین</div>';
+      badgeBorderClass = 'border-emerald-500/60 shadow-lg shadow-emerald-500/10';
+      btnClass = 'bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold';
+    } else if (planText.includes('ویژه') || planText.includes('vip') || planText.includes('special')) {
+      planBadge = '<div class="absolute top-0 left-0 bg-gradient-to-r from-rose-500 to-pink-500 text-white text-[10px] font-black px-3 py-0.5 rounded-br-xl shadow flex items-center gap-1">👑 پیشنهاد ویژه</div>';
+      badgeBorderClass = 'border-rose-500/60 shadow-lg shadow-rose-500/10';
+      btnClass = 'bg-gradient-to-r from-rose-600 to-pink-600 hover:from-rose-500 hover:to-pink-500 text-white font-bold';
+    }
+
     let discountVal = 0;
     if (window.activeCoupon) {
       if (window.activeCoupon.discount_percent > 0) {
@@ -181,7 +208,6 @@ function renderShopPlans(data) {
     const formattedOriginal = Number(p.price || 0).toLocaleString('en-US');
     const devLimitText = (p.hwid_limit && p.hwid_limit > 0) ? `${p.hwid_limit} کاربر` : 'بدون محدودیت کاربر';
 
-    const isExtraTraffic = (Number(p.duration_days) === 0 && Number(p.traffic_gb) > 0);
     const durationText = isExtraTraffic
       ? '<span class="flex items-center gap-1">📅 <b class="text-emerald-400 font-bold">بدون تغییر انقضا (+حجم)</b></span>'
       : (Number(p.duration_days) > 0
@@ -190,9 +216,9 @@ function renderShopPlans(data) {
     const trafficText = Number(p.traffic_gb) > 0 ? fmtTraffic(p.traffic_gb, { html: false }) : 'نامحدود';
 
     return `
-      <div class="shop-plan-card bg-slate-800/90 rounded-2xl p-4 border ${isExtraTraffic ? 'border-cyan-500/50 shadow-lg shadow-cyan-500/10' : (isPopular ? 'border-amber-500/60 shadow-lg shadow-amber-500/10' : 'border-slate-700/80')} relative overflow-hidden group">
-        ${isExtraTraffic ? '<div class="absolute top-0 left-0 bg-gradient-to-r from-cyan-500 to-blue-500 text-slate-950 text-[10px] font-black px-3 py-0.5 rounded-br-xl shadow flex items-center gap-1">⚡️ بسته افزایش حجم</div>' : (isPopular ? '<div class="absolute top-0 left-0 bg-gradient-to-r from-amber-500 to-yellow-500 text-slate-950 text-[10px] font-black px-3 py-0.5 rounded-br-xl shadow flex items-center gap-1">🔥 پرفروش‌ترین</div>' : '')}
-        <div class="flex justify-between items-start ${(isPopular || isExtraTraffic) ? 'mt-1' : ''}">
+      <div class="shop-plan-card bg-slate-800/90 rounded-2xl p-4 border ${badgeBorderClass} relative overflow-hidden group">
+        ${planBadge}
+        <div class="flex justify-between items-start ${planBadge ? 'mt-1' : ''}">
           <div>
             <div class="flex items-center gap-2">
               <h4 class="font-bold text-sm text-white">${formatPlanTitle(p.name)}</h4>
@@ -211,7 +237,7 @@ function renderShopPlans(data) {
           ${durationText}
           <span class="flex items-center gap-1">📱 <b class="text-slate-200">${devLimitText}</b></span>
         </div>
-        <button class="buy-plan-btn w-full ${isExtraTraffic ? 'bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-bold' : (isPopular ? 'bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-black' : 'bg-blue-600 hover:bg-blue-500 text-white font-semibold')} text-xs py-2.5 rounded-xl transition shadow active:scale-[0.98]" data-id="${p.id}" data-price="${finalPrice}" data-name="${p.name}" data-traffic="${p.traffic_gb}" data-days="${p.duration_days}">
+        <button class="buy-plan-btn w-full ${btnClass} text-xs py-2.5 rounded-xl transition shadow active:scale-[0.98]" data-id="${p.id}" data-price="${finalPrice}" data-name="${p.name}" data-traffic="${p.traffic_gb}" data-days="${p.duration_days}">
           🛒 ${isExtraTraffic ? 'خرید بسته ترافیک' : 'خرید / تمدید آنی'} (${formattedFinal} تومان)
         </button>
       </div>

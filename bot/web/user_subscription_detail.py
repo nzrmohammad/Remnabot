@@ -10,7 +10,7 @@ from sqlalchemy import select
 
 from bot.db.models import Order
 from bot.db.repositories.traffic_snapshot_repo import TrafficSnapshotRepository
-from bot.services.formatting import country_flag, human_bytes, parse_iso, start_of_today
+from bot.services.formatting import country_flag, country_name, human_bytes, parse_iso, start_of_today
 
 logger = logging.getLogger(__name__)
 
@@ -117,8 +117,11 @@ async def calc_bandwidth_stats(
             n_name = r.get("name") or r.get("nodeName") or "Server"
             c_code = (r.get("countryCode") or "EU").upper()
             if node_week > 0:
+                c_fa = country_name(c_code) or n_name
                 week_nodes_dict[n_name] = {
                     "name": n_name,
+                    "country_code": c_code,
+                    "country_name": c_fa,
                     "flag": country_flag(c_code),
                     "total_formatted": human_bytes(node_week),
                     "total_bytes": node_week,
@@ -148,9 +151,12 @@ async def calc_bandwidth_stats(
                     b_val = int(n.get("total") or 0)
                     if b_val > 0:
                         c_code = (n.get("countryCode") or "EU").upper()
+                        n_name = n.get("name") or "Server"
+                        c_fa = country_name(c_code) or n_name
                         today_breakdown.append({
-                            "name": n.get("name") or "Server",
+                            "name": n_name,
                             "country_code": c_code,
+                            "country_name": c_fa,
                             "flag": country_flag(c_code),
                             "total_formatted": human_bytes(b_val),
                             "total_gb": round(b_val / (1024**3), 2),
@@ -229,8 +235,8 @@ def calc_usage_curves(
 
     country_totals: dict[str, int] = {}
     for n in source_breakdown:
-        c_name = n.get("name") or "Server"
         flag = n.get("flag") or "🌐"
+        c_name = n.get("country_name") or country_name(n.get("country_code") or n.get("name")) or n.get("name") or "Server"
         b_val = int(n.get("total_bytes") or 0)
         if b_val > 0:
             label = f"{flag} {c_name}"

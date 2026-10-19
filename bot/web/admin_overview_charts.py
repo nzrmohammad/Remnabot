@@ -10,6 +10,7 @@ from sqlalchemy import func, or_, select
 from bot.common.helpers import get_used_bytes
 from bot.db.models import CryptoInvoice, KnownDevice, Order, Service, Topup
 from bot.db.repositories.traffic_snapshot_repo import TrafficSnapshotRepository
+from bot.services.formatting import country_name
 from bot.web.admin_common import format_service_name_icon_first
 from bot.web.cache import FastCache
 
@@ -206,7 +207,9 @@ def _calc_location_share(nodes_overview: list[dict]) -> dict[str, Any]:
     """Aggregate traffic usage and server count by node location/flag."""
     country_agg: dict[str, dict[str, Any]] = {}
     for n in nodes_overview:
-        lbl = n.get("flag") or "🌐"
+        flag = n.get("flag") or "🌐"
+        c_name = n.get("country_name") or country_name(n.get("country_code")) or ""
+        lbl = f"{flag} {c_name}".strip() if c_name else flag
         if lbl not in country_agg:
             country_agg[lbl] = {"traffic_gb": 0.0, "nodes_count": 0}
         country_agg[lbl]["traffic_gb"] += float(n.get("traffic_used_gb") or 0.0)

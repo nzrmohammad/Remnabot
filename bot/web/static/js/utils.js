@@ -357,7 +357,8 @@ function fmtTrafficValue(val, isBytes = false) {
   let unit = 'GB';
 
   if (typeof val === 'string') {
-    const trimmed = val.trim();
+    // Strip BiDi isolation/control marks server formatters may embed (LRI/PDI/LRM/RLM etc.)
+    const trimmed = val.trim().replace(/[\u200E\u200F\u202A-\u202E\u2066-\u2069]/g, '');
     if (trimmed.startsWith('--') || trimmed === '—' || trimmed === '-') return null;
     const match = trimmed.match(/^([\d.,]+)\s*([A-Za-z]+)?$/);
     if (match) {

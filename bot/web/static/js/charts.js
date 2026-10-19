@@ -142,6 +142,7 @@ async function renderBarChart(containerId, totals, labels, isMonthly = false) {
         y: {
           position: 'left',
           beginAtZero: true,
+          suggestedMax: cleanData.some(v => v > 0) ? undefined : 1,
           grid: {
             color: gridColor,
           },
@@ -420,6 +421,7 @@ async function renderLineCurveChart(containerId, labels, data, peakHour = null) 
         y: {
           position: 'left',
           beginAtZero: true,
+          suggestedMax: cleanData.some(v => v > 0) ? undefined : 1,
           grid: { color: gridColor },
           border: { display: false },
           ticks: {
@@ -434,7 +436,7 @@ async function renderLineCurveChart(containerId, labels, data, peakHour = null) 
 
   const peakBadge = document.getElementById('repPeakHourBadge');
   if (peakBadge && peakHour) {
-    peakBadge.innerText = `اوج: ${peakHour}`;
+    peakBadge.innerText = `Peak: ${peakHour}`;
   }
 }
 

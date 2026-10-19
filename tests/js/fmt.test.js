@@ -96,4 +96,9 @@ test('fmtCompact formats large numbers concisely', () => {
   assert.strictEqual(fmtCompact(2500000), '2.5M');
 });
 
+test('fmtTrafficValue strips server-side BiDi isolation from preformatted strings', () => {
+  assert.deepStrictEqual(fmtTrafficValue('\u2066500.00 MB\u2069'), { num: 500, unit: 'MB' });
+  assert.deepStrictEqual(fmtTrafficValue('\u20661.50 TB\u2069'), { num: 1.5, unit: 'TB' });
+});
+
 console.log(`\nAll ${passCount} tests passed successfully!`);

@@ -10,6 +10,13 @@ TB = 1024 ** 4
 
 
 def human_bytes(n: int | float | None) -> str:
+    """Format bytes → '25.50 GB', BiDi-isolated (LRI…PDI) so the Latin unit
+    never jumps to the left inside RTL Persian sentences (Telegram & web)."""
+    s = _human_bytes_plain(n)
+    return f"\u2066{s}\u2069"
+
+
+def _human_bytes_plain(n: int | float | None) -> str:
     if not n or n <= 0:
         return "0 MB"
     if n >= TB:
@@ -25,6 +32,75 @@ def country_flag(code: str | None) -> str:
         return "🌐"
     code = code.upper()
     return chr(0x1F1E6 + ord(code[0]) - 65) + chr(0x1F1E6 + ord(code[1]) - 65)
+
+
+COUNTRY_NAMES_FA: dict[str, str] = {
+    "NL": "هلند",
+    "DE": "آلمان",
+    "FR": "فرانسه",
+    "US": "آمریکا",
+    "GB": "انگلیس",
+    "TR": "ترکیه",
+    "FI": "فنلاند",
+    "SE": "سوئد",
+    "CA": "کانادا",
+    "IR": "ایران",
+    "RU": "روسیه",
+    "PL": "لهستان",
+    "IT": "ایتالیا",
+    "ES": "اسپانیا",
+    "CH": "سوئیس",
+    "AE": "امارات",
+    "SG": "سنگاپور",
+    "AT": "اتریش",
+    "AU": "استرالیا",
+    "BR": "برزیل",
+    "NO": "نروژ",
+    "DK": "دانمارک",
+    "BE": "بلژیک",
+    "JP": "ژاپن",
+    "KR": "کره جنوبی",
+    "UA": "اوکراین",
+    "RO": "رومانی",
+    "BG": "بلغارستان",
+    "CZ": "جمهوری چک",
+    "HU": "مجارستان",
+    "IE": "ایرلند",
+    "PT": "پرتغال",
+    "GR": "یونان",
+    "IN": "هند",
+    "HK": "هنگ کنگ",
+    "MY": "مالزی",
+    "KZ": "قزاقستان",
+    "EU": "اروپا",
+}
+
+
+def country_name(code_or_name: str | None, default: str = "") -> str:
+    """ISO country code or name → Persian country name ('DE' → 'آلمان')."""
+    if not code_or_name:
+        return default
+    c = str(code_or_name).strip()
+    c_up = c.upper()
+    if c_up in COUNTRY_NAMES_FA:
+        return COUNTRY_NAMES_FA[c_up]
+    c_low = c.lower()
+    for kw, iso in (
+        ("netherland", "NL"), ("holland", "NL"), ("germany", "DE"),
+        ("deutschland", "DE"), ("france", "FR"), ("united states", "US"),
+        ("usa", "US"), ("united kingdom", "GB"), ("england", "GB"),
+        ("britain", "GB"), ("turkey", "TR"), ("turkiye", "TR"),
+        ("finland", "FI"), ("sweden", "SE"), ("canada", "CA"),
+        ("iran", "IR"), ("russia", "RU"), ("poland", "PL"),
+        ("italy", "IT"), ("spain", "ES"), ("switzerland", "CH"),
+        ("emirates", "AE"), ("uae", "AE"), ("dubai", "AE"),
+        ("singapore", "SG"), ("austria", "AT"), ("australia", "AU"),
+        ("brazil", "BR"), ("norway", "NO"), ("denmark", "DK"),
+        ("belgium", "BE"), ("japan", "JP"),
+    ):
+        if kw in c_low:
+            return COUNTRY_NAMES_FA.get(iso, default)
+    return default
 
 
 def progress_bar(percent: float, width: int = 10) -> str:

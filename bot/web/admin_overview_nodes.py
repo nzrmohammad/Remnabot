@@ -8,7 +8,7 @@ from bot.common.helpers import get_used_bytes
 from bot.db.models import Order, Topup, User
 from bot.db.repositories.node_cost_repo import NodeCostRepository
 from bot.handlers.admin_nodes import COUNTRY_FLAGS_MAP
-from bot.services.formatting import country_flag
+from bot.services.formatting import country_flag, country_name
 
 try:
     import jdatetime
@@ -230,8 +230,9 @@ def extract_node_item(
     """Parse telemetry, hardware metrics, country flag, and financials for one node."""
     raw_name = str(n.get("name") or f"Node {i}").strip()
     country_code = str(n.get("countryCode") or n.get("country_code") or "").strip().upper()
-    country_name = str(n.get("country") or "").strip().lower()
-    flag = _extract_node_flag(raw_name, country_code, country_name)
+    c_raw = str(n.get("country") or "").strip().lower()
+    flag = _extract_node_flag(raw_name, country_code, c_raw)
+    c_fa_name = country_name(country_code) or country_name(raw_name) or country_name(c_raw)
 
     is_connected = n.get("isConnected")
     if is_connected is None:
@@ -260,6 +261,7 @@ def extract_node_item(
         "uuid": n_uuid,
         "name": raw_name,
         "country_code": country_code or "NL",
+        "country_name": c_fa_name or "هلند",
         "flag": flag,
         "status": "ONLINE" if is_connected else "OFFLINE",
         "connected_users": online_users,
