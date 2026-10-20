@@ -726,21 +726,22 @@ html.theme-light .plan-card .text-white,
 html.theme-light .coupon-card .text-white,
 html.theme-light .coupon-card .text-slate-200,
 html.theme-light .shop-plan-card .text-white,
+html.theme-light .shop-plan-card h4,
 html.theme-light .coupon-usage-card .text-white,
+html.theme-light .coupon-usage-card .text-slate-200 {
+  color: var(--text-main);
+}
+
 /* Badges inside shop cards must preserve high contrast text */
 .shop-plan-badge,
 .shop-plan-card .shop-plan-badge,
 html.theme-light .shop-plan-card .shop-plan-badge,
 html.theme-light .shop-plan-card [class*="rounded-br-xl"] {
-  color: #ffffff !important;
+  color: #ffffff;
 }
 html.theme-light .shop-plan-card .shop-plan-badge.text-slate-950,
 html.theme-light .shop-plan-card [class*="rounded-br-xl"].text-slate-950 {
-  color: #020617 !important;
-}
-
-html.theme-light .coupon-usage-card .text-slate-200 {
-  color: var(--text-main);
+  color: #020617;
 }
 
 /* Unified Inner Card Surfaces in Light Theme */
@@ -2040,3 +2041,31 @@ html.theme-light .text-purple-300 {
 
 
 
+
+/* TMA Bottom Navigation Clearance & Scroll Safety */
+#adminContentArea {
+  padding-bottom: calc(7.5rem + env(safe-area-inset-bottom, 0px));
+}
+#contentArea {
+  padding-bottom: calc(6.5rem + env(safe-area-inset-bottom, 0px));
+}
+
+/* Connection Guide Auto-Connect Button Theme */
+.btn-autoconnect-app {
+  background-color: rgba(6, 182, 212, 0.16);
+  border: 1px solid rgba(6, 182, 212, 0.38);
+  color: #22d3ee;
+}
+.btn-autoconnect-app:hover {
+  background-color: rgba(6, 182, 212, 0.26);
+  border-color: rgba(6, 182, 212, 0.55);
+}
+html.theme-light .btn-autoconnect-app {
+  background-color: rgba(6, 182, 212, 0.12);
+  border-color: rgba(6, 182, 212, 0.35);
+  color: #0891b2;
+}
+html.theme-light .btn-autoconnect-app:hover {
+  background-color: rgba(6, 182, 212, 0.20);
+  border-color: rgba(6, 182, 212, 0.50);
+}

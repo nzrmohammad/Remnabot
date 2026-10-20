@@ -329,6 +329,21 @@ async def _migrate_schema(engine: AsyncEngine) -> None:
             )
             logger.info("added node_costs.currency")
 
+        # --- campaigns table (idempotent creation for legacy databases) --------- #
+        cols = await _table_columns(conn, "campaigns")
+        if not cols:
+            await conn.execute(text("""
+                CREATE TABLE IF NOT EXISTS campaigns (
+                    id SERIAL PRIMARY KEY,
+                    code VARCHAR(32) NOT NULL,
+                    name VARCHAR(64) NOT NULL,
+                    cost BIGINT NOT NULL DEFAULT 0,
+                    created_at TIMESTAMPTZ DEFAULT NOW()
+                )
+            """))
+            await conn.execute(text("CREATE UNIQUE INDEX IF NOT EXISTS ix_campaigns_code ON campaigns (code)"))
+            logger.info("ensured campaigns table")
+
 
 async def main() -> None:
     settings = get_settings()

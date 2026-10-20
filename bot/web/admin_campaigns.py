@@ -150,10 +150,27 @@ async def get_admin_campaigns(request: web.Request) -> web.Response:
             except Exception:
                 pass
 
-    async with db_session(request) as session:
-        repo = CampaignRepository(session)
-        stats = await repo.get_campaigns_with_stats(bot_username)
-        return web.json_response({"ok": True, "bot_username": bot_username, "campaigns": stats})
+    try:
+        async with db_session(request) as session:
+            repo = CampaignRepository(session)
+            stats = await repo.get_campaigns_with_stats(bot_username)
+            return web.json_response({"ok": True, "bot_username": bot_username, "campaigns": stats})
+    except Exception as e:
+        logger.exception("Failed to get campaigns: %s", e)
+        # Fallback: ensure tables exist and retry safely
+        try:
+            engine = request.app.get("engine")
+            if engine:
+                from bot.db.models import Base
+                async with engine.begin() as conn:
+                    await conn.run_sync(Base.metadata.create_all)
+            async with db_session(request) as session:
+                repo = CampaignRepository(session)
+                stats = await repo.get_campaigns_with_stats(bot_username)
+                return web.json_response({"ok": True, "bot_username": bot_username, "campaigns": stats})
+        except Exception as retry_err:
+            logger.exception("Retry failed to get campaigns: %s", retry_err)
+            return web.json_response({"ok": True, "bot_username": bot_username, "campaigns": []})
 
 
 async def post_admin_campaign_create(request: web.Request) -> web.Response:

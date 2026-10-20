@@ -23,8 +23,15 @@
     try {
       tg.ready();
       tg.expand();
+      if (tg.disableVerticalSwipes) tg.disableVerticalSwipes();
+      if (tg.requestFullscreen) tg.requestFullscreen();
       if (tg.setHeaderColor) tg.setHeaderColor('#0f172a');
       if (tg.setBackgroundColor) tg.setBackgroundColor('#080d1a');
+      if (tg.onEvent) {
+        tg.onEvent('viewportChanged', () => {
+          if (!tg.isExpanded) tg.expand();
+        });
+      }
     } catch (e) {}
   }
 
@@ -548,6 +555,12 @@
     const totalEl = $('salesChartTotal');
     if (totalEl) totalEl.innerHTML = `<span class="font-mono font-bold">${formatNumber(totalSum)}</span> <span>تومان</span>`;
 
+    const emptyOverlay = $('adminSalesEmptyOverlay');
+    if (emptyOverlay) {
+      if (totalSum === 0) emptyOverlay.classList.remove('hidden');
+      else emptyOverlay.classList.add('hidden');
+    }
+
     if (salesChartInstance) {
       salesChartInstance.data.labels = labels;
       salesChartInstance.data.datasets[0].data = values;
@@ -611,6 +624,12 @@
     const total = totalSum != null ? totalSum : (values || []).reduce((a, b) => a + b, 0);
     const totalEl = $('monthlySalesChartTotal');
     if (totalEl) totalEl.innerHTML = `<span class="font-mono font-bold">${formatNumber(total)}</span> <span>تومان</span>`;
+
+    const emptyMonthlyOverlay = $('adminMonthlySalesEmptyOverlay');
+    if (emptyMonthlyOverlay) {
+      if (total === 0) emptyMonthlyOverlay.classList.remove('hidden');
+      else emptyMonthlyOverlay.classList.add('hidden');
+    }
 
     if (monthlySalesChartInstance) {
       monthlySalesChartInstance.data.labels = labels || [];
@@ -3230,8 +3249,8 @@
 
         container.innerHTML = adminPlansData.map(p => {
           const statusBadge = p.is_active
-            ? '<span class="text-[10px] bg-transparent text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded-lg font-bold">فعال</span>'
-            : '<span class="text-[10px] bg-transparent text-slate-500 dark:text-slate-400 border border-slate-400/30 px-2 py-0.5 rounded-lg font-medium">غیرفعال</span>';
+            ? '<span class="text-[10px] bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded-lg font-bold">فعال</span>'
+            : '<span class="text-[10px] bg-slate-500/10 text-slate-500 dark:text-slate-400 border border-slate-400/30 px-2 py-0.5 rounded-lg font-medium">غیرفعال</span>';
 
           const trafficHtml = p.traffic_gb > 0
             ? fmtTraffic(p.traffic_gb, { html: true })
@@ -3247,39 +3266,52 @@
 
           const isExtraTraffic = (Number(p.duration_days) === 0 && Number(p.traffic_gb) > 0) || (p.badge || '').toLowerCase() === 'traffic';
           const isExtraTime = (Number(p.traffic_gb) === 0 && Number(p.duration_days) > 0) || (p.badge || '').toLowerCase() === 'time';
-          let typeBadge = '<span class="text-[10px] bg-blue-500/15 text-blue-400 border border-blue-500/30 px-2 py-0.5 rounded-lg font-bold">💎 دوره کامل</span>';
+          let typeBadge = '<span class="text-[10px] bg-blue-500/15 text-blue-600 dark:text-blue-400 border border-blue-500/30 px-2 py-0.5 rounded-lg font-bold">💎 دوره کامل</span>';
           if (isExtraTraffic) {
-            typeBadge = '<span class="text-[10px] bg-cyan-500/15 text-cyan-400 border border-cyan-500/30 px-2 py-0.5 rounded-lg font-bold">⚡️ افزایش حجم</span>';
+            typeBadge = '<span class="text-[10px] bg-cyan-500/15 text-cyan-600 dark:text-cyan-400 border border-cyan-500/30 px-2 py-0.5 rounded-lg font-bold">⚡️ بسته حجمی</span>';
           } else if (isExtraTime) {
-            typeBadge = '<span class="text-[10px] bg-amber-500/15 text-amber-400 border border-amber-500/30 px-2 py-0.5 rounded-lg font-bold">⏳ بسته افزایش زمان</span>';
+            typeBadge = '<span class="text-[10px] bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30 px-2 py-0.5 rounded-lg font-bold">⏳ بسته زمانی</span>';
+          }
+
+          let tagBadge = '';
+          const bKey = (p.badge || '').toLowerCase();
+          if (bKey === 'bestseller') {
+            tagBadge = '<span class="text-[10px] bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30 px-1.5 py-0.5 rounded-lg font-bold">🔥 پرفروش‌ترین</span>';
+          } else if (bKey === 'popular') {
+            tagBadge = '<span class="text-[10px] bg-purple-500/15 text-purple-600 dark:text-purple-400 border border-purple-500/30 px-1.5 py-0.5 rounded-lg font-bold">⭐️ پرطرفدار</span>';
+          } else if (bKey === 'economic') {
+            tagBadge = '<span class="text-[10px] bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 px-1.5 py-0.5 rounded-lg font-bold">💰 اقتصادی</span>';
+          } else if (bKey === 'vip') {
+            tagBadge = '<span class="text-[10px] bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/30 px-1.5 py-0.5 rounded-lg font-bold">👑 پیشنهاد ویژه</span>';
           }
 
           return `
             <div class="plan-card bg-slate-800/80 rounded-2xl p-4 border border-slate-700/80 space-y-3 shadow transition">
-              <div class="flex items-start justify-between gap-3">
-                <!-- Right Side: Box Icon + Plan Name (Higher, vertically centered together) -->
-                <div class="flex items-center gap-2 min-w-0">
-                  <span class="w-7 h-7 rounded-xl bg-transparent text-blue-400 border border-blue-500/30 flex items-center justify-center flex-shrink-0" title="بسته">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
-                  </span>
-                  <b class="text-white text-xs font-bold truncate">${escapeHtml(cleanName)}</b>
-                  ${pkgIcon ? `<span class="text-sm select-none leading-none flex-shrink-0" title="آیکون بسته">${pkgIcon}</span>` : ''}
+              <div class="space-y-1.5">
+                <!-- Top Row: Name on Right, Price Number on Left -->
+                <div class="flex items-center justify-between gap-2">
+                  <div class="flex items-center gap-2 min-w-0">
+                    <span class="w-7 h-7 rounded-xl bg-transparent text-blue-400 border border-blue-500/30 flex items-center justify-center flex-shrink-0" title="بسته">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+                    </span>
+                    <b class="text-slate-900 dark:text-white text-xs font-bold truncate">${escapeHtml(cleanName)}</b>
+                    ${pkgIcon ? `<span class="text-sm select-none leading-none flex-shrink-0" title="آیکون بسته">${pkgIcon}</span>` : ''}
+                  </div>
+                  <span class="text-sm font-black text-emerald-500 dark:text-emerald-400 font-mono leading-none flex-shrink-0">${formatNumber(p.price || 0)}</span>
                 </div>
 
-                <!-- Left Side: Price on top, Badges (فعال + دوره کامل) underneath on the left -->
-                <div class="flex flex-col items-end gap-1.5 flex-shrink-0 text-left">
-                  <div class="flex flex-col items-end">
-                    <span class="text-sm font-black text-emerald-400 font-mono leading-none">${formatNumber(p.price || 0)}</span>
-                    <span class="text-[10px] font-sans font-medium text-slate-400 mt-0.5">تومان</span>
-                  </div>
-                  <div class="flex items-center gap-1.5 flex-wrap justify-end">
+                <!-- Bottom Row: Badges on Right, تومان on Left (همراستا در یک خط) -->
+                <div class="flex items-center justify-between gap-2 pt-0.5">
+                  <div class="flex items-center gap-1.5 flex-wrap min-w-0">
                     ${statusBadge}
                     ${typeBadge}
+                    ${tagBadge}
                   </div>
+                  <span class="text-[10px] font-sans font-medium text-slate-400 flex-shrink-0">تومان</span>
                 </div>
               </div>
 
-              ${p.description ? `<p class="text-[11px] text-slate-400 line-clamp-1 pr-9.5">${escapeHtml(p.description)}</p>` : ''}
+              ${p.description ? `<p class="text-[11px] text-slate-400 line-clamp-1 pr-9">${escapeHtml(p.description)}</p>` : ''}
 
               <div class="grid grid-cols-3 gap-1.5 text-center text-[10px] bg-slate-900/60 p-2 rounded-xl font-mono">
                 <div>
@@ -3296,18 +3328,18 @@
                 </div>
               </div>
 
-              <div class="flex gap-2 pt-1 text-[11px]">
-                <button onclick="window.adminActions.openPlanModal(${p.id})" class="flex-1 bg-transparent hover:bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/30 hover:border-blue-400/60 py-1.5 rounded-xl transition text-center flex items-center justify-center gap-1.5 font-bold active:scale-95">
-                  <svg class="w-3.5 h-3.5 text-blue-500 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-                  <span>ویرایش</span>
+              <!-- 3 Icon-Only Action Buttons: Edit, Toggle Active, Delete -->
+              <div class="flex gap-2 pt-1">
+                <button onclick="window.adminActions.openPlanModal(${p.id})" class="flex-1 bg-transparent hover:bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/30 hover:border-blue-400/60 py-2 rounded-xl transition flex items-center justify-center active:scale-95" title="ویرایش بسته" aria-label="ویرایش بسته">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                 </button>
-                <button onclick="window.adminActions.togglePlan(${p.id}, ${p.is_active})" class="flex-1 bg-transparent hover:bg-slate-500/10 ${p.is_active ? 'text-amber-600 dark:text-amber-400 border border-amber-500/30 hover:border-amber-400/60' : 'text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 hover:border-emerald-400/60'} py-1.5 rounded-xl transition font-semibold text-center flex items-center justify-center gap-1.5 active:scale-95">
+                <button onclick="window.adminActions.togglePlan(${p.id}, ${p.is_active})" class="flex-1 bg-transparent hover:bg-slate-500/10 ${p.is_active ? 'text-amber-600 dark:text-amber-400 border border-amber-500/30 hover:border-amber-400/60' : 'text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 hover:border-emerald-400/60'} py-2 rounded-xl transition flex items-center justify-center active:scale-95" title="${p.is_active ? 'غیرفعال‌سازی بسته' : 'فعال‌سازی بسته'}" aria-label="${p.is_active ? 'غیرفعال‌سازی بسته' : 'فعال‌سازی بسته'}">
                   ${p.is_active
-                    ? '<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg><span>غیرفعال‌سازی</span>'
-                    : '<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg><span>فعال‌سازی</span>'}
+                    ? '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>'
+                    : '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>'}
                 </button>
-                <button onclick="window.adminActions.deletePlan(${p.id}, '${escapeHtml(p.name).replace(/'/g, "\\'")}')" class="bg-transparent hover:bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/30 hover:border-rose-400/60 px-3 py-1.5 rounded-xl transition font-medium flex items-center justify-center active:scale-95" title="حذف سرویس">
-                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                <button onclick="window.adminActions.deletePlan(${p.id}, '${escapeHtml(p.name).replace(/'/g, "\\'")}')" class="flex-1 bg-transparent hover:bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/30 hover:border-rose-400/60 py-2 rounded-xl transition flex items-center justify-center active:scale-95" title="حذف بسته" aria-label="حذف بسته">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                 </button>
               </div>
             </div>

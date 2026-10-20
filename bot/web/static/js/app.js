@@ -782,7 +782,7 @@ function renderTutorialApps(osKey) {
           <button type="button" class="btn-download-app bg-slate-800 hover:bg-slate-750 text-slate-200 text-xs font-bold py-1.5 px-2 rounded-xl transition border border-slate-700/80 flex items-center justify-center gap-1 active:scale-95 shadow-sm truncate" data-url="${escapeHtml(d.url)}">
             <span>${d.icon}</span> <span class="truncate">${d.label}</span>
           </button>
-          <button type="button" class="btn-autoconnect-app bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-xs font-bold py-1.5 px-2 rounded-xl transition flex items-center justify-center gap-1 active:scale-95 shadow-sm" data-id="${app.id}" data-name="${escapeHtml(app.name)}">
+          <button type="button" class="btn-autoconnect-app text-xs font-bold py-1.5 px-2 rounded-xl transition flex items-center justify-center gap-1 active:scale-95 shadow-sm" data-id="${app.id}" data-name="${escapeHtml(app.name)}">
             <span>⚡️</span> اتصال خودکار
           </button>
         </div>
@@ -799,7 +799,7 @@ function renderTutorialApps(osKey) {
             </button>
           </div>
           <div>
-            <button type="button" class="btn-autoconnect-app w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-xs font-bold py-1.5 px-2 rounded-xl transition flex items-center justify-center gap-1 active:scale-95 shadow-sm" data-id="${app.id}" data-name="${escapeHtml(app.name)}">
+            <button type="button" class="btn-autoconnect-app w-full text-xs font-bold py-1.5 px-2 rounded-xl transition flex items-center justify-center gap-1 active:scale-95 shadow-sm" data-id="${app.id}" data-name="${escapeHtml(app.name)}">
               <span>⚡️</span> اتصال خودکار به سرویس
             </button>
           </div>

@@ -271,7 +271,7 @@ function renderFilteredShopPlans() {
       badgeBorderClass = 'border-rose-500/70 shadow-lg shadow-rose-500/15';
       btnClass = 'bg-blue-600 hover:bg-blue-500 text-white font-bold';
     } else if (planBadgeKey === 'bestseller' || (!planBadgeKey && (planText.includes('پرفروش') || planText.includes('bestseller')))) {
-      planBadge = '<div class="shop-plan-badge absolute top-0 left-0 bg-gradient-to-r from-amber-500 to-yellow-500 text-slate-950 text-[10px] font-black px-3 py-0.5 rounded-br-xl border-b border-r border-amber-400/40 shadow-md flex items-center gap-1">🔥 پرفروش‌ترین</div>';
+      planBadge = '<div class="shop-plan-badge absolute top-0 left-0 bg-gradient-to-r from-amber-600 via-amber-500 to-orange-500 !text-white text-[10px] font-black px-3 py-0.5 rounded-br-xl border-b border-r border-amber-400/50 shadow-md flex items-center gap-1">🔥 پرفروش‌ترین</div>';
       badgeBorderClass = 'border-amber-500/70 shadow-lg shadow-amber-500/15';
       btnClass = 'bg-blue-600 hover:bg-blue-500 text-white font-bold';
     } else if (planBadgeKey === 'popular' || (!planBadgeKey && (planText.includes('محبوب') || planText.includes('popular')))) {
@@ -318,7 +318,7 @@ function renderFilteredShopPlans() {
         <div class="flex justify-between items-start ${planBadge ? 'mt-1' : ''}">
           <div>
             <div class="flex items-center gap-2">
-              <h4 class="font-bold text-sm text-white">${formatPlanTitle(p.name)}</h4>
+              <h4 class="font-bold text-sm text-slate-900 dark:text-white">${formatPlanTitle(p.name)}</h4>
               ${discountVal > 0 ? '<span class="text-[10px] text-emerald-400 font-bold bg-transparent border-0 px-0 py-0">🏷 تخفیف ویژه</span>' : ''}
             </div>
             <p class="text-xs text-slate-400 mt-1">${p.description || (isExtraTraffic ? 'افزایش حجم بدون تغییر در تاریخ انقضای سرویس فعلی' : (isTimeOnly ? 'افزایش مدت زمان اعتبار بدون تغییر در میزان ترافیک' : 'ترافیک پایدار و بدون محدودیت روی تمام سرورها'))}</p>
