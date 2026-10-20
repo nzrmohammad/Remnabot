@@ -56,7 +56,7 @@
 
 
     <!-- Main Scrollable Content -->
-    <div id="adminContentArea" class="flex-1 overflow-y-auto custom-scroll p-4 space-y-4 pb-[calc(4.25rem+env(safe-area-inset-bottom,0px))]">
+    <div id="adminContentArea" class="flex-1 overflow-y-auto custom-scroll p-4 space-y-4 pb-[calc(8.5rem+env(safe-area-inset-bottom,0px))]">
 
       <!-- ===================================================== -->
       <!-- TAB 1: OVERVIEW & ANALYTICS (داشبورد کل)               -->
@@ -646,7 +646,7 @@
       <!-- ===================================================== -->
       <!-- TAB 5: BOT & SYSTEM SETTINGS (تنظیمات ربات)              -->
       <!-- ===================================================== -->
-      <div id="tab-admin-settings" class="admin-tab-pane space-y-3 pb-8 hidden">
+      <div id="tab-admin-settings" class="admin-tab-pane space-y-3 pb-2 hidden">
         <div class="flex items-center justify-between">
           <h3 class="text-sm font-bold text-slate-200 flex items-center gap-1.5">
             <svg class="w-4 h-4 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
@@ -2956,6 +2956,63 @@
             </button>
           </div>
         </form>
+      </div>
+    </div>
+
+    <!-- MODAL: Campaign Details & Analytics (جزئیات و تحلیل مالی کمپین) -->
+    <div id="campaignDetailModal" class="absolute inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+      <div class="modal-card bg-[#1e293b] border border-slate-700 rounded-3xl p-5 w-full max-w-[390px] space-y-4 shadow-2xl relative">
+        <div class="flex justify-between items-center border-b border-slate-700/60 pb-2.5">
+          <h4 class="text-xs font-bold text-white flex items-center gap-1.5">
+            <svg class="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+            <span id="campaignDetailTitle">جزئیات کمپین</span>
+          </h4>
+          <button type="button" onclick="window.adminActions.closeCampaignDetailModal()" class="w-9 h-9 min-w-[36px] min-h-[36px] rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800/80 dark:hover:bg-slate-750 border border-slate-200 dark:border-slate-700/80 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white flex items-center justify-center text-xs transition active:scale-95 shadow-sm" aria-label="بستن">✕</button>
+        </div>
+
+        <!-- Deep Link Box -->
+        <div class="bg-slate-900/70 p-2.5 rounded-2xl border border-slate-700/60 space-y-1.5">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] text-slate-400 font-bold">لینک اختصاصی تلگرام:</span>
+            <button id="campaignDetailCopyBtn" type="button" class="text-cyan-400 hover:text-cyan-300 text-[11px] font-bold flex items-center gap-1 transition">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+              <span>کپی لینک</span>
+            </button>
+          </div>
+          <div id="campaignDetailLink" class="text-[11px] font-mono text-cyan-300 bg-slate-950/80 p-2 rounded-xl border border-slate-800 break-all dir-ltr select-all"></div>
+        </div>
+
+        <!-- 6 Metrics Grid -->
+        <div class="grid grid-cols-2 gap-2 text-center text-xs">
+          <div class="p-2.5 rounded-2xl bg-slate-900/50 border border-slate-700/50">
+            <span class="text-[11px] text-slate-400 block mb-1">هزینه تبلیغات</span>
+            <b id="campaignDetailCost" class="text-amber-300 font-mono text-sm block">۰ تومان</b>
+          </div>
+          <div class="p-2.5 rounded-2xl bg-slate-900/50 border border-slate-700/50">
+            <span class="text-[11px] text-slate-400 block mb-1">درآمد کل فروش</span>
+            <b id="campaignDetailRevenue" class="text-emerald-400 font-mono text-sm block">۰ تومان</b>
+          </div>
+          <div class="p-2.5 rounded-2xl bg-slate-900/50 border border-slate-700/50">
+            <span class="text-[11px] text-slate-400 block mb-1">سود / زیان خالص</span>
+            <b id="campaignDetailProfit" class="font-mono text-sm block">۰ تومان</b>
+          </div>
+          <div class="p-2.5 rounded-2xl bg-slate-900/50 border border-slate-700/50">
+            <span class="text-[11px] text-slate-400 block mb-1">بازگشت سرمایه (ROI)</span>
+            <b id="campaignDetailRoi" class="font-mono text-sm block" dir="ltr">—</b>
+          </div>
+          <div class="p-2.5 rounded-2xl bg-slate-900/50 border border-slate-700/50">
+            <span class="text-[11px] text-slate-400 block mb-1">کل کاربران ورودی</span>
+            <b id="campaignDetailUsers" class="text-white font-mono text-sm block">۰ نفر</b>
+          </div>
+          <div class="p-2.5 rounded-2xl bg-slate-900/50 border border-slate-700/50">
+            <span class="text-[11px] text-slate-400 block mb-1">خریداران (نرخ تبدیل)</span>
+            <b id="campaignDetailBuyers" class="text-cyan-300 font-mono text-sm block">۰ نفر (۰٪)</b>
+          </div>
+        </div>
+
+        <button type="button" onclick="window.adminActions.closeCampaignDetailModal()" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white font-bold text-xs py-2.5 rounded-xl border border-slate-700/80 transition active:scale-95">
+          بستن پنجره
+        </button>
       </div>
     </div>
 

@@ -3257,29 +3257,25 @@
           return `
             <div class="plan-card bg-slate-800/80 rounded-2xl p-4 border border-slate-700/80 space-y-3 shadow transition">
               <div class="flex items-start justify-between gap-3">
-                <div class="flex items-start gap-2.5 min-w-0">
-                  <!-- 1. General Box Icon on the FAR RIGHT of the item -->
-                  <span class="w-7 h-7 rounded-xl bg-transparent text-blue-400 border border-blue-500/30 flex items-center justify-center flex-shrink-0 mt-0.5" title="بسته">
+                <!-- Right Side: Box Icon + Plan Name (Higher, vertically centered together) -->
+                <div class="flex items-center gap-2 min-w-0">
+                  <span class="w-7 h-7 rounded-xl bg-transparent text-blue-400 border border-blue-500/30 flex items-center justify-center flex-shrink-0" title="بسته">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
                   </span>
-
-                  <!-- Right Side Details: Row 1 (Name + Emoji), Row 2 (Status Badge then Type Badge) -->
-                  <div class="flex flex-col gap-1.5 min-w-0">
-                    <div class="flex items-center gap-1.5 min-w-0">
-                      <b class="text-white text-xs font-bold truncate">${escapeHtml(cleanName)}</b>
-                      ${pkgIcon ? `<span class="text-sm select-none leading-none flex-shrink-0" title="آیکون بسته">${pkgIcon}</span>` : ''}
-                    </div>
-                    <div class="flex items-center gap-1.5 flex-wrap">
-                      ${statusBadge}
-                      ${typeBadge}
-                    </div>
-                  </div>
+                  <b class="text-white text-xs font-bold truncate">${escapeHtml(cleanName)}</b>
+                  ${pkgIcon ? `<span class="text-sm select-none leading-none flex-shrink-0" title="آیکون بسته">${pkgIcon}</span>` : ''}
                 </div>
 
-                <!-- Price on the left: Number on top, تومان directly underneath -->
-                <div class="flex flex-col items-end flex-shrink-0 text-left">
-                  <span class="text-sm font-black text-emerald-400 font-mono leading-none">${formatNumber(p.price || 0)}</span>
-                  <span class="text-[10px] font-sans font-medium text-slate-400 mt-1">تومان</span>
+                <!-- Left Side: Price on top, Badges (فعال + دوره کامل) underneath on the left -->
+                <div class="flex flex-col items-end gap-1.5 flex-shrink-0 text-left">
+                  <div class="flex flex-col items-end">
+                    <span class="text-sm font-black text-emerald-400 font-mono leading-none">${formatNumber(p.price || 0)}</span>
+                    <span class="text-[10px] font-sans font-medium text-slate-400 mt-0.5">تومان</span>
+                  </div>
+                  <div class="flex items-center gap-1.5 flex-wrap justify-end">
+                    ${statusBadge}
+                    ${typeBadge}
+                  </div>
                 </div>
               </div>
 
@@ -3305,8 +3301,10 @@
                   <svg class="w-3.5 h-3.5 text-blue-500 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                   <span>ویرایش</span>
                 </button>
-                <button onclick="window.adminActions.togglePlan(${p.id}, ${p.is_active})" class="flex-1 bg-transparent hover:bg-slate-500/10 ${p.is_active ? 'text-amber-600 dark:text-amber-400 border border-amber-500/30 hover:border-amber-400/60' : 'text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 hover:border-emerald-400/60'} py-1.5 rounded-xl transition font-semibold text-center active:scale-95">
-                  ${p.is_active ? 'غیرفعال‌سازی' : 'فعال‌سازی'}
+                <button onclick="window.adminActions.togglePlan(${p.id}, ${p.is_active})" class="flex-1 bg-transparent hover:bg-slate-500/10 ${p.is_active ? 'text-amber-600 dark:text-amber-400 border border-amber-500/30 hover:border-amber-400/60' : 'text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 hover:border-emerald-400/60'} py-1.5 rounded-xl transition font-semibold text-center flex items-center justify-center gap-1.5 active:scale-95">
+                  ${p.is_active
+                    ? '<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg><span>غیرفعال‌سازی</span>'
+                    : '<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg><span>فعال‌سازی</span>'}
                 </button>
                 <button onclick="window.adminActions.deletePlan(${p.id}, '${escapeHtml(p.name).replace(/'/g, "\\'")}')" class="bg-transparent hover:bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/30 hover:border-rose-400/60 px-3 py-1.5 rounded-xl transition font-medium flex items-center justify-center active:scale-95" title="حذف سرویس">
                   <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
@@ -3348,7 +3346,7 @@
           trafInp.classList.remove('opacity-50', 'bg-slate-950');
           if (trafInp.value === '0') trafInp.value = '';
         }
-        if (badgeSel && !badgeSel.value) badgeSel.value = 'traffic';
+        if (badgeSel && (!badgeSel.value || badgeSel.value === 'time')) badgeSel.value = 'traffic';
         if (notice) {
           notice.className = 'text-[10.5px] text-cyan-300 mt-1.5 p-1.5 rounded-lg bg-cyan-950/40 border border-cyan-500/40 leading-relaxed';
           notice.innerHTML = '⚡️ <b>بسته افزایش حجم:</b> تاریخ انقضای سرویس فعلی کاربر تغییر نمی‌کند و صرفاً به سقف ترافیک اکانت اضافه می‌شود.';
@@ -3365,7 +3363,7 @@
           durInp.classList.remove('opacity-50', 'bg-slate-950');
           if (durInp.value === '0') durInp.value = '';
         }
-        if (badgeSel && !badgeSel.value) badgeSel.value = 'time';
+        if (badgeSel && (!badgeSel.value || badgeSel.value === 'traffic')) badgeSel.value = 'time';
         if (notice) {
           notice.className = 'text-[10.5px] text-amber-300 mt-1.5 p-1.5 rounded-lg bg-amber-950/40 border border-amber-500/40 leading-relaxed';
           notice.innerHTML = '⏳ <b>بسته افزایش زمان:</b> ترافیک اکانت بدون تغییر مانده و صرفاً مدت زمان اعتبار سرویس افزایش می‌یابد.';
@@ -4594,6 +4592,58 @@
       }
     },
 
+    // --- Campaign Detail & Financial Analysis Modal ---
+    openCampaignDetailModal(id) {
+      const campaigns = window._adminCampaignsData || [];
+      const c = campaigns.find(item => item.id === id);
+      if (!c) return;
+
+      const modal = $('campaignDetailModal');
+      const titleEl = $('campaignDetailTitle');
+      const linkEl = $('campaignDetailLink');
+      const copyBtn = $('campaignDetailCopyBtn');
+      const costEl = $('campaignDetailCost');
+      const revEl = $('campaignDetailRevenue');
+      const profEl = $('campaignDetailProfit');
+      const roiEl = $('campaignDetailRoi');
+      const usersEl = $('campaignDetailUsers');
+      const buyersEl = $('campaignDetailBuyers');
+
+      if (titleEl) titleEl.innerText = `تحلیل کمپین: ${c.name}`;
+      const link = c._resolvedLink || c.deep_link || '';
+      if (linkEl) linkEl.innerText = link;
+
+      if (copyBtn) {
+        copyBtn.onclick = () => window.adminActions.copyCampaignLink(link);
+      }
+
+      const cost = Number(c.cost || 0);
+      const rev = Number(c.total_revenue || 0);
+      const profit = rev - cost;
+      const convRate = c.users_count > 0 ? ((c.buyers_count / c.users_count) * 100).toFixed(1) : '0';
+
+      if (costEl) costEl.innerText = cost > 0 ? `${formatNumber(cost)} تومان` : '۰ تومان (بدون هزینه)';
+      if (revEl) revEl.innerText = `${formatNumber(rev)} تومان`;
+      if (profEl) {
+        profEl.innerText = `${formatNumber(profit)} تومان`;
+        profEl.className = profit > 0 ? 'text-emerald-400 font-mono text-sm block' : (profit < 0 ? 'text-rose-400 font-mono text-sm block' : 'text-slate-300 font-mono text-sm block');
+      }
+      if (roiEl) {
+        const roiText = c.roi !== null && c.roi !== undefined ? `${c.roi > 0 ? '+' : ''}${c.roi}%` : '—';
+        roiEl.innerText = roiText;
+        roiEl.className = c.roi !== null && c.roi > 0 ? 'text-emerald-400 font-mono text-sm block' : (c.roi !== null && c.roi < 0 ? 'text-rose-400 font-mono text-sm block' : 'text-slate-400 font-mono text-sm block');
+      }
+      if (usersEl) usersEl.innerText = `${formatNumber(c.users_count)} نفر`;
+      if (buyersEl) buyersEl.innerText = `${formatNumber(c.buyers_count)} نفر (${convRate}٪)`;
+
+      if (modal) modal.classList.remove('hidden');
+    },
+
+    closeCampaignDetailModal() {
+      const modal = $('campaignDetailModal');
+      if (modal) modal.classList.add('hidden');
+    },
+
     // --- Ad Campaigns & Deep-link Tracking Actions ---
     openCreateCampaignModal() {
       const modal = $('createCampaignModal');
@@ -4717,6 +4767,7 @@
           return;
         }
 
+        window._adminCampaignsData = campaigns;
         container.innerHTML = campaigns.map(c => {
           let link = c.deep_link || '';
           if (botUser && link.includes('t.me/?start=')) {
@@ -4725,57 +4776,60 @@
           if (!link.startsWith('https://') && !link.startsWith('http://')) {
             link = 'https://' + link;
           }
+          c._resolvedLink = link;
           const roiText = c.roi !== null && c.roi !== undefined ? `${c.roi > 0 ? '+' : ''}${c.roi}%` : null;
           const roiColor = c.roi !== null && c.roi > 0 ? 'text-emerald-400' : (c.roi !== null && c.roi < 0 ? 'text-rose-400' : 'text-slate-400');
-          const costText = c.cost ? `${formatNumber(c.cost)} تومان` : 'بدون هزینه (۰ تومان)';
 
           return `
             <div class="bg-slate-800/80 p-3.5 rounded-2xl border border-slate-700/80 space-y-3 transition hover:border-slate-600">
-              <!-- Top Row: Name & Actions -->
+              <!-- Top Row: Name & Action Icons -->
               <div class="flex items-center justify-between gap-2">
                 <div class="flex items-center gap-2 min-w-0">
                   <div class="w-8 h-8 rounded-xl bg-amber-500/15 border border-amber-500/30 text-amber-400 flex items-center justify-center flex-shrink-0">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"/></svg>
                   </div>
                   <div class="min-w-0">
-                    <b class="text-xs text-white block truncate">${escapeHtml(c.name)}</b>
+                    <div class="flex items-center gap-1.5">
+                      <b class="text-xs text-white truncate">${escapeHtml(c.name)}</b>
+                      ${roiText ? `<span class="px-1.5 py-0.5 rounded text-[9px] font-mono ${roiColor} bg-slate-900/80 border border-slate-700/60" dir="ltr">${roiText}</span>` : ''}
+                    </div>
                     <span class="text-[10px] font-mono text-cyan-400 dir-ltr block mt-0.5">ad_${escapeHtml(c.code)}</span>
                   </div>
                 </div>
                 <div class="flex items-center gap-1.5 flex-shrink-0">
-                  <button type="button" onclick="window.adminActions.copyCampaignLink('${escapeHtml(c.deep_link).replace(/'/g, "\\'")}')" class="px-2.5 py-1 bg-transparent hover:bg-cyan-500/10 text-cyan-400 border border-cyan-500/40 rounded-xl text-[10px] font-bold transition flex items-center gap-1 active:scale-95 shadow-sm" title="کپی لینک اختصاصی">
-                    <span>کپی لینک</span>
+                  <!-- Copy Link Icon Button -->
+                  <button type="button" onclick="window.adminActions.copyCampaignLink('${escapeHtml(link).replace(/'/g, "\\'")}')" class="w-8 h-8 min-w-[32px] min-h-[32px] bg-transparent hover:bg-cyan-500/10 text-cyan-400 border border-cyan-500/40 rounded-xl flex items-center justify-center transition active:scale-95 shadow-sm" title="کپی لینک اختصاصی" aria-label="کپی لینک اختصاصی">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
                   </button>
-                  <button type="button" onclick="window.adminActions.deleteCampaign(${c.id}, '${escapeHtml(c.name).replace(/'/g, "\\'")}')" class="w-7 h-7 bg-transparent hover:bg-rose-500/10 text-rose-400 border border-rose-500/40 rounded-xl flex items-center justify-center transition active:scale-95" title="حذف کمپین">
+                  <!-- Details / Modal Icon Button -->
+                  <button type="button" onclick="window.adminActions.openCampaignDetailModal(${c.id})" class="w-8 h-8 min-w-[32px] min-h-[32px] bg-transparent hover:bg-blue-500/10 text-blue-400 border border-blue-500/40 rounded-xl flex items-center justify-center transition active:scale-95 shadow-sm" title="جزئیات و تحلیل مالی" aria-label="جزئیات و تحلیل مالی">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                  </button>
+                  <!-- Delete Campaign Button -->
+                  <button type="button" onclick="window.adminActions.deleteCampaign(${c.id}, '${escapeHtml(c.name).replace(/'/g, "\\'")}')" class="w-8 h-8 min-w-[32px] min-h-[32px] bg-transparent hover:bg-rose-500/10 text-rose-400 border border-rose-500/40 rounded-xl flex items-center justify-center transition active:scale-95 shadow-sm" title="حذف کمپین" aria-label="حذف کمپین">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                   </button>
                 </div>
               </div>
 
-              <!-- Stats Grid -->
-              <div class="grid grid-cols-4 gap-2 pt-1 border-t border-slate-700/50 text-center">
+              <!-- Stats Grid: 4 symmetric boxes including Cost -->
+              <div class="grid grid-cols-4 gap-1.5 sm:gap-2 pt-1 border-t border-slate-700/50 text-center">
                 <div class="p-1.5 sm:p-2 rounded-xl bg-slate-900/40 border border-slate-700/40">
-                  <span class="text-[11px] text-slate-400 block mb-0.5 whitespace-nowrap">ورودی جدید</span>
+                  <span class="text-[10px] text-slate-400 block mb-0.5 whitespace-nowrap">ورودی</span>
                   <b class="text-xs font-mono text-white">${formatNumber(c.users_count)}</b>
                 </div>
                 <div class="p-1.5 sm:p-2 rounded-xl bg-slate-900/40 border border-slate-700/40">
-                  <span class="text-[11px] text-slate-400 block mb-0.5 whitespace-nowrap">خریداران</span>
+                  <span class="text-[10px] text-slate-400 block mb-0.5 whitespace-nowrap">خریداران</span>
                   <b class="text-xs font-mono text-cyan-300">${formatNumber(c.buyers_count)}</b>
                 </div>
                 <div class="p-1.5 sm:p-2 rounded-xl bg-slate-900/40 border border-slate-700/40">
-                  <span class="text-[11px] text-slate-400 block mb-0.5 whitespace-nowrap">درآمد فروش</span>
+                  <span class="text-[10px] text-slate-400 block mb-0.5 whitespace-nowrap">درآمد فروش</span>
                   <b class="text-xs font-mono text-emerald-400">${formatNumber(c.total_revenue)}</b>
                 </div>
                 <div class="p-1.5 sm:p-2 rounded-xl bg-slate-900/40 border border-slate-700/40">
-                  <span class="text-[11px] text-slate-400 block mb-0.5 whitespace-nowrap">بازگشت سرمایه</span>
-                  <b class="text-xs font-mono ${roiColor} inline-block" dir="ltr">${roiText || '—'}</b>
+                  <span class="text-[10px] text-slate-400 block mb-0.5 whitespace-nowrap">هزینه تبلیغ</span>
+                  <b class="text-xs font-mono text-amber-300">${c.cost ? formatNumber(c.cost) : '۰'}</b>
                 </div>
-              </div>
-
-              <!-- Deep Link preview row -->
-              <div class="flex items-center justify-between text-[11px] text-slate-400 pt-1 border-t border-slate-700/30">
-                <span class="truncate dir-ltr font-mono text-slate-400" dir="ltr">${c.deep_link}</span>
-                <span class="flex-shrink-0 text-[11px] text-slate-400 mr-2">${costText}</span>
               </div>
             </div>
           `;
@@ -5940,6 +5994,8 @@
   window.clearNodeBillingDueDate = () => window.adminActions.clearNodeBillingDueDate();
   window.switchAdminAppsTab = (os) => window.adminActions.switchAdminAppsTab(os);
   window.openCreateCampaignModal = () => window.adminActions.openCreateCampaignModal();
+  window.openCampaignDetailModal = (id) => window.adminActions.openCampaignDetailModal(id);
+  window.closeCampaignDetailModal = () => window.adminActions.closeCampaignDetailModal();
   window.closeCreateCampaignModal = () => window.adminActions.closeCreateCampaignModal();
   window.submitCreateCampaign = (e) => window.adminActions.submitCreateCampaign(e);
   window.deleteCampaign = (id, name) => window.adminActions.deleteCampaign(id, name);

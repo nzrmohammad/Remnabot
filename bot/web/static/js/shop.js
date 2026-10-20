@@ -180,7 +180,7 @@ function renderShopPlans(data) {
   if (noticeEl) {
     if (!hasActiveSub) {
       noticeEl.className = 'p-2.5 rounded-2xl text-[11px] leading-relaxed mb-1 transition flex items-center gap-2 bg-blue-950/40 border border-blue-500/30 text-blue-200';
-      noticeEl.innerHTML = '<span>💎</span><span>جهت شروع اتصال، یکی از <b>سرویس‌های کامل</b> زیر را انتخاب فرمایید.</span>';
+      noticeEl.innerHTML = '<span>💎</span><span>جهت شروع، یکی از <b>سرویس‌های کامل</b> زیر را انتخاب فرمایید.</span>';
       noticeEl.classList.remove('hidden');
       if (!window._shopCategoryManuallyChanged) currentShopCategory = 'full';
     } else if (daysLeft > 3 && pctRemaining <= 25) {
@@ -251,8 +251,8 @@ function renderFilteredShopPlans() {
   shopContainer.innerHTML = plans.map(p => {
     const planText = `${p.name || ''} ${p.description || ''}`.toLowerCase();
     const planBadgeKey = (p.badge || '').toLowerCase().trim();
-    const isExtraTraffic = (Number(p.duration_days) === 0 && Number(p.traffic_gb) > 0) || planBadgeKey === 'traffic';
-    const isTimeOnly = (Number(p.traffic_gb) === 0 && Number(p.duration_days) > 0) || planBadgeKey === 'time';
+    const isTimeOnly = (Number(p.traffic_gb) === 0 && Number(p.duration_days) > 0) || (planBadgeKey === 'time' && Number(p.traffic_gb) === 0);
+    const isExtraTraffic = ((Number(p.duration_days) === 0 && Number(p.traffic_gb) > 0) || planBadgeKey === 'traffic') && !isTimeOnly;
 
     let planBadge = '';
     let badgeBorderClass = 'border-slate-700/80';
@@ -266,21 +266,21 @@ function renderFilteredShopPlans() {
       planBadge = '<div class="shop-plan-badge absolute top-0 left-0 bg-gradient-to-r from-amber-500 to-orange-500 text-slate-950 text-[10px] font-black px-3 py-0.5 rounded-br-xl shadow flex items-center gap-1">⏳ بسته افزایش زمان</div>';
       badgeBorderClass = 'border-amber-500/50 shadow-lg shadow-amber-500/10';
       btnClass = 'bg-blue-600 hover:bg-blue-500 text-white font-bold';
-    } else if (planBadgeKey === 'bestseller' || planText.includes('پرفروش') || planText.includes('gold') || planText.includes('گلد') || planText.includes('bestseller')) {
-      planBadge = '<div class="shop-plan-badge absolute top-0 left-0 bg-gradient-to-r from-amber-500 to-yellow-500 text-slate-950 text-[10px] font-black px-3 py-0.5 rounded-br-xl shadow flex items-center gap-1">🔥 پرفروش‌ترین</div>';
-      badgeBorderClass = 'border-amber-500/60 shadow-lg shadow-amber-500/10';
+    } else if (planBadgeKey === 'vip' || (!planBadgeKey && (planText.includes('پیشنهاد ویژه') || planText.includes('vip')))) {
+      planBadge = '<div class="shop-plan-badge absolute top-0 left-0 bg-gradient-to-r from-rose-600 via-pink-600 to-purple-600 !text-white text-[10px] font-black px-3 py-0.5 rounded-br-xl border-b border-r border-rose-400/40 shadow-md flex items-center gap-1">👑 پیشنهاد ویژه</div>';
+      badgeBorderClass = 'border-rose-500/70 shadow-lg shadow-rose-500/15';
       btnClass = 'bg-blue-600 hover:bg-blue-500 text-white font-bold';
-    } else if (planBadgeKey === 'popular' || planText.includes('محبوب') || planText.includes('popular')) {
+    } else if (planBadgeKey === 'bestseller' || (!planBadgeKey && (planText.includes('پرفروش') || planText.includes('bestseller')))) {
+      planBadge = '<div class="shop-plan-badge absolute top-0 left-0 bg-gradient-to-r from-amber-500 to-yellow-500 text-slate-950 text-[10px] font-black px-3 py-0.5 rounded-br-xl border-b border-r border-amber-400/40 shadow-md flex items-center gap-1">🔥 پرفروش‌ترین</div>';
+      badgeBorderClass = 'border-amber-500/70 shadow-lg shadow-amber-500/15';
+      btnClass = 'bg-blue-600 hover:bg-blue-500 text-white font-bold';
+    } else if (planBadgeKey === 'popular' || (!planBadgeKey && (planText.includes('محبوب') || planText.includes('popular')))) {
       planBadge = '<div class="shop-plan-badge absolute top-0 left-0 bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 !text-white text-[10px] font-black px-3 py-0.5 rounded-br-xl border-b border-r border-indigo-400/40 shadow-md flex items-center gap-1">⭐ محبوب‌ترین</div>';
       badgeBorderClass = 'border-purple-500/70 shadow-lg shadow-purple-500/15';
       btnClass = 'bg-blue-600 hover:bg-blue-500 text-white font-bold';
-    } else if (planBadgeKey === 'economic' || planText.includes('اقتصادی') || planText.includes('economic') || planText.includes('به‌صرفه') || planText.includes('بصرفه') || planText.includes('ارزان')) {
-      planBadge = '<div class="shop-plan-badge absolute top-0 left-0 bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 text-[10px] font-black px-3 py-0.5 rounded-br-xl shadow flex items-center gap-1">💰 اقتصادی‌ترین</div>';
-      badgeBorderClass = 'border-emerald-500/60 shadow-lg shadow-emerald-500/10';
-      btnClass = 'bg-blue-600 hover:bg-blue-500 text-white font-bold';
-    } else if (planBadgeKey === 'vip' || planText.includes('ویژه') || planText.includes('vip') || planText.includes('special')) {
-      planBadge = '<div class="shop-plan-badge absolute top-0 left-0 bg-gradient-to-r from-rose-500 to-pink-500 text-white text-[10px] font-black px-3 py-0.5 rounded-br-xl shadow flex items-center gap-1">👑 پیشنهاد ویژه</div>';
-      badgeBorderClass = 'border-rose-500/60 shadow-lg shadow-rose-500/10';
+    } else if (planBadgeKey === 'economic' || (!planBadgeKey && (planText.includes('اقتصادی') || planText.includes('economic') || planText.includes('به‌صرفه') || planText.includes('بصرفه') || planText.includes('ارزان')))) {
+      planBadge = '<div class="shop-plan-badge absolute top-0 left-0 bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 text-[10px] font-black px-3 py-0.5 rounded-br-xl border-b border-r border-emerald-400/40 shadow-md flex items-center gap-1">💰 اقتصادی‌ترین</div>';
+      badgeBorderClass = 'border-emerald-500/70 shadow-lg shadow-emerald-500/15';
       btnClass = 'bg-blue-600 hover:bg-blue-500 text-white font-bold';
     }
 
