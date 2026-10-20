@@ -354,6 +354,18 @@ function openCheckoutConfirmModal(plan) {
   const modal = document.getElementById('checkoutConfirmModal');
   if (!modal) return;
 
+  const nameEl = document.getElementById('checkoutPlanName');
+  const trafEl = document.getElementById('checkoutPlanTraffic');
+  const daysEl = document.getElementById('checkoutPlanDays');
+  const priceEl = document.getElementById('checkoutPlanPrice');
+  const balEl = document.getElementById('checkoutWalletBalance');
+  const remRow = document.getElementById('checkoutRemainRow');
+  const remBalEl = document.getElementById('checkoutRemainingBalance');
+  const shortageBox = document.getElementById('checkoutShortageBox');
+  const shortageAmtEl = document.getElementById('checkoutShortageAmount');
+  const topupBtn = document.getElementById('checkoutTopupBtn');
+  const confirmBtn = document.getElementById('confirmPurchaseBtn');
+
   const isExtraTraffic = (Number(plan.days) === 0 && Number(plan.traffic) > 0) || (plan.badge || '').toLowerCase() === 'traffic';
   const isTimeOnly = (Number(plan.traffic) === 0 && Number(plan.days) > 0) || (plan.badge || '').toLowerCase() === 'time';
 
@@ -367,7 +379,8 @@ function openCheckoutConfirmModal(plan) {
   }
   if (daysEl) {
     if (isExtraTraffic) {
-      const daysLeft = Number(window.lastUserData?.active_subscription?.days_left ?? 0);
+      const activeSub = window.lastUserData?.active_sub || window.lastUserData?.active_subscription;
+      const daysLeft = Number(activeSub?.days_left ?? 0);
       if (daysLeft > 0) {
         daysEl.innerText = `هم‌گام با سرویس فعلی (${daysLeft} روز مانده)`;
       } else {
@@ -509,7 +522,7 @@ function setupBuyButtons() {
       const isTimeOnly = (planTraffic === 0 && planDays > 0) || planBadge === 'time';
       const isFullPlan = !isExtraTraffic && !isTimeOnly;
 
-      const sub = window.lastUserData?.active_subscription;
+      const sub = window.lastUserData?.active_sub || window.lastUserData?.active_subscription;
       const hasActiveSub = Boolean(window.lastUserData?.has_active_sub && sub && (sub.status === 'ACTIVE' || !sub.status));
       const daysLeft = Number(sub?.days_left ?? 0);
       const pctRemaining = Number(sub?.percent_remaining ?? 100);

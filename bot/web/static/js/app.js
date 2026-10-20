@@ -979,35 +979,68 @@ window.verifyPhoneNative = verifyPhoneNative;
 
 const JALALI_MONTHS = ['فروردین', 'اردیبهشت', 'خرداد', 'تیر', 'مرداد', 'شهریور', 'مهر', 'آبان', 'آذر', 'دی', 'بهمن', 'اسفند'];
 
-function initBirthdaySelects() {
-  const daySel = $('birthdayDaySelect');
-  const monthSel = $('birthdayMonthSelect');
-  const yearSel = $('birthdayYearSelect');
+function toggleBdayDropdown(type) {
+  const dropdowns = ['day', 'month', 'year'];
+  dropdowns.forEach(d => {
+    const el = $(`bday${d.charAt(0).toUpperCase() + d.slice(1)}Dropdown`);
+    if (!el) return;
+    if (d === type) {
+      el.classList.toggle('hidden');
+    } else {
+      el.classList.add('hidden');
+    }
+  });
+  hapticFeedback('selection');
+}
+window.toggleBdayDropdown = toggleBdayDropdown;
 
-  if (daySel && daySel.options.length === 0) {
+function selectBdayItem(type, val, displayText) {
+  const hiddenInp = $(`birthday${type.charAt(0).toUpperCase() + type.slice(1)}Select`);
+  if (hiddenInp) hiddenInp.value = String(val);
+  const disp = $(`bday${type.charAt(0).toUpperCase() + type.slice(1)}Display`);
+  if (disp) disp.innerText = displayText || toPersianDigits(val);
+  const dropdown = $(`bday${type.charAt(0).toUpperCase() + type.slice(1)}Dropdown`);
+  if (dropdown) dropdown.classList.add('hidden');
+  hapticFeedback('selection');
+}
+window.selectBdayItem = selectBdayItem;
+
+function initBirthdaySelects() {
+  const dayDropdown = $('bdayDayDropdown');
+  const monthDropdown = $('bdayMonthDropdown');
+  const yearDropdown = $('bdayYearDropdown');
+
+  if (dayDropdown && dayDropdown.children.length === 0) {
     for (let d = 1; d <= 31; d++) {
-      const opt = document.createElement('option');
-      opt.value = d;
-      opt.textContent = `${toPersianDigits(d)}`;
-      daySel.appendChild(opt);
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'w-full py-1.5 px-2 text-center text-xs text-slate-300 hover:text-pink-300 hover:bg-slate-800 rounded-lg transition font-mono';
+      btn.textContent = `${toPersianDigits(d)}`;
+      btn.onclick = () => selectBdayItem('day', d, toPersianDigits(d));
+      dayDropdown.appendChild(btn);
     }
   }
 
-  if (monthSel && monthSel.options.length === 0) {
+  if (monthDropdown && monthDropdown.children.length === 0) {
     JALALI_MONTHS.forEach((mName, idx) => {
-      const opt = document.createElement('option');
-      opt.value = idx + 1;
-      opt.textContent = mName;
-      monthSel.appendChild(opt);
+      const mVal = idx + 1;
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'w-full py-1.5 px-2 text-center text-xs text-slate-300 hover:text-pink-300 hover:bg-slate-800 rounded-lg transition font-medium';
+      btn.textContent = mName;
+      btn.onclick = () => selectBdayItem('month', mVal, mName);
+      monthDropdown.appendChild(btn);
     });
   }
 
-  if (yearSel && yearSel.options.length === 0) {
+  if (yearDropdown && yearDropdown.children.length === 0) {
     for (let y = 1395; y >= 1330; y--) {
-      const opt = document.createElement('option');
-      opt.value = y;
-      opt.textContent = `${toPersianDigits(y)}`;
-      yearSel.appendChild(opt);
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'w-full py-1.5 px-2 text-center text-xs text-slate-300 hover:text-pink-300 hover:bg-slate-800 rounded-lg transition font-mono';
+      btn.textContent = `${toPersianDigits(y)}`;
+      btn.onclick = () => selectBdayItem('year', y, toPersianDigits(y));
+      yearDropdown.appendChild(btn);
     }
   }
 }
@@ -1019,23 +1052,81 @@ function openBirthdayModal() {
     try {
       const parts = existingDate.replace(/-/g, '/').split('/').map(Number);
       if (parts.length === 3) {
-        if ($('birthdayYearSelect')) $('birthdayYearSelect').value = parts[0];
-        if ($('birthdayMonthSelect')) $('birthdayMonthSelect').value = parts[1];
-        if ($('birthdayDaySelect')) $('birthdayDaySelect').value = parts[2];
+        selectBdayItem('year', parts[0], toPersianDigits(parts[0]));
+        selectBdayItem('month', parts[1], JALALI_MONTHS[parts[1] - 1] || parts[1]);
+        selectBdayItem('day', parts[2], toPersianDigits(parts[2]));
       }
     } catch (e) {}
   } else {
-    if ($('birthdayYearSelect')) $('birthdayYearSelect').value = 1375;
-    if ($('birthdayMonthSelect')) $('birthdayMonthSelect').value = 1;
-    if ($('birthdayDaySelect')) $('birthdayDaySelect').value = 1;
+    selectBdayItem('year', 1375, toPersianDigits(1375));
+    selectBdayItem('month', 1, 'فروردین');
+    selectBdayItem('day', 1, toPersianDigits(1));
   }
   openModal('birthdayModal');
   hapticFeedback('selection');
 }
 
 function closeBirthdayModal() {
+  $('bdayDayDropdown')?.classList.add('hidden');
+  $('bdayMonthDropdown')?.classList.add('hidden');
+  $('bdayYearDropdown')?.classList.add('hidden');
   closeModal('birthdayModal');
 }
+
+function toggleAlertPicker(type) {
+  const menu = type === 'traffic' ? $('trafficPercentPickerMenu') : $('expireDaysPickerMenu');
+  if (menu) menu.classList.toggle('hidden');
+  const otherMenu = type === 'traffic' ? $('expireDaysPickerMenu') : $('trafficPercentPickerMenu');
+  if (otherMenu) otherMenu.classList.add('hidden');
+  hapticFeedback('selection');
+}
+window.toggleAlertPicker = toggleAlertPicker;
+
+async function selectAlertSetting(type, val) {
+  const menu = type === 'traffic' ? $('trafficPercentPickerMenu') : $('expireDaysPickerMenu');
+  if (menu) menu.classList.add('hidden');
+
+  if (type === 'traffic') {
+    const hiddenInp = $('settingTrafficPercentSelect');
+    if (hiddenInp) hiddenInp.value = String(val);
+    const disp = $('trafficPercentDisplay');
+    if (disp) disp.innerText = `${val}%`;
+    const trafSub = $('settingTrafficSubtext');
+    if (trafSub) trafSub.innerText = `هشدار قبل از پایان ترافیک (${toEnglishDigits(val)}%)`;
+
+    try {
+      const res = await window.api.saveSetting('traffic_percent', val);
+      if (res && res.ok) {
+        showToast(`✅ درصد هشدار مصرف روی ${val}٪ تنظیم شد.`);
+        hapticFeedback('success');
+      } else {
+        showToast('❌ خطا در ذخیره تنظیمات');
+      }
+    } catch (e) {
+      showToast('خطا در برقراری ارتباط با سرور.');
+    }
+  } else if (type === 'expire') {
+    const hiddenInp = $('settingExpireDaysSelect');
+    if (hiddenInp) hiddenInp.value = String(val);
+    const disp = $('expireDaysDisplay');
+    if (disp) disp.innerText = `${val} روز`;
+    const expSub = $('settingExpireSubtext');
+    if (expSub) expSub.innerText = `اطلاع‌رسانی ${toEnglishDigits(val)} روز مانده به انقضا`;
+
+    try {
+      const res = await window.api.saveSetting('expire_days', val);
+      if (res && res.ok) {
+        showToast(`✅ مهلت هشدار انقضا روی ${val} روز تنظیم شد.`);
+        hapticFeedback('success');
+      } else {
+        showToast('❌ خطا در ذخیره تنظیمات');
+      }
+    } catch (e) {
+      showToast('خطا در برقراری ارتباط با سرور.');
+    }
+  }
+}
+window.selectAlertSetting = selectAlertSetting;
 
 async function saveBirthday() {
   const day = parseInt($('birthdayDaySelect')?.value || '1', 10);
@@ -2118,9 +2209,34 @@ function setupProfileHandlers() {
   });
 }
 
+function resetActiveSubAnalytics() {
+  const canvasEl = $('repPeakHoursChartCanvas');
+  const emptyStateEl = $('repPeakHoursEmptyState');
+  const peakBadge = $('repPeakHourBadge');
+  if (canvasEl) canvasEl.classList.add('hidden');
+  if (emptyStateEl) emptyStateEl.classList.remove('hidden');
+  if (peakBadge) peakBadge.innerText = 'بدون داده';
+
+  const repSessionsBadge = $('reportsSessionsBadge');
+  if (repSessionsBadge) repSessionsBadge.innerText = '۰ دستگاه';
+
+  const devContainer = $('activeDevicesContainer');
+  if (devContainer) {
+    devContainer.innerHTML = `
+      <div class="p-4 rounded-xl bg-transparent border border-slate-700/50 text-center text-xs text-slate-400">
+        <span>📱 در حال حاضر هیچ اشتراک یا دستگاه فعالی روی حساب شما وجود ندارد.</span>
+      </div>
+    `;
+  }
+}
+window.resetActiveSubAnalytics = resetActiveSubAnalytics;
+
 // 14. Active Subscription Analytics Visualizers
 function renderActiveSubAnalytics(sub) {
-  if (!sub) return;
+  if (!sub) {
+    resetActiveSubAnalytics();
+    return;
+  }
 
   // 1. Traffic Split (Download vs Upload)
   if (typeof renderTrafficSplit === 'function') {
@@ -2445,10 +2561,18 @@ function hydrateUserInterface(data) {
       if (percent !== undefined && percent !== null) {
         const traf = $('settingTrafficSubtext');
         if (traf) traf.innerText = `هشدار قبل از پایان ترافیک (${toEnglishDigits(percent)}%)`;
+        const disp = $('trafficPercentDisplay');
+        if (disp) disp.innerText = `${percent}%`;
+        const hiddenInp = $('settingTrafficPercentSelect');
+        if (hiddenInp) hiddenInp.value = String(percent);
       }
       if (days !== undefined && days !== null) {
         const exp = $('settingExpireSubtext');
         if (exp) exp.innerText = `اطلاع‌رسانی ${toEnglishDigits(days)} روز مانده به انقضا`;
+        const disp = $('expireDaysDisplay');
+        if (disp) disp.innerText = `${days} روز`;
+        const hiddenInp = $('settingExpireDaysSelect');
+        if (hiddenInp) hiddenInp.value = String(days);
       }
     }
 
@@ -2576,6 +2700,15 @@ function hydrateUserInterface(data) {
       if (countryCard) countryCard.classList.add('hidden');
       if (subAccordionCard) subAccordionCard.classList.add('hidden');
       if (noSubCard) noSubCard.classList.remove('hidden');
+
+      const noSubNameEl = $('noSubUserName');
+      if (noSubNameEl) {
+        noSubNameEl.innerText = user.first_name || user.username || tgUser?.first_name || 'کاربر';
+      }
+
+      if (typeof resetActiveSubAnalytics === 'function') {
+        resetActiveSubAnalytics();
+      }
 
       const subInputEl = $('subInput');
       if (subInputEl) subInputEl.value = 'اشتراک فعالی یافت نشد - لطفاً از تب فروشگاه اقدام فرمایید.';
@@ -2875,19 +3008,35 @@ function hydrateUserInterface(data) {
   });
 }
 
-// 16. Versioned Cache Storage & Retrieval
-const USER_CACHE_VERSION = 3;
-const USER_CACHE_KEY = 'remna_user_cache';
+// 16. Versioned Cache Storage & Retrieval with Multi-Account Isolation
+const USER_CACHE_VERSION = 4;
+
+function getCurrentTelegramUserId() {
+  const tgUser = window.Telegram?.WebApp?.initDataUnsafe?.user;
+  if (tgUser?.id) return String(tgUser.id);
+  const urlParams = new URLSearchParams(window.location.search);
+  const devId = urlParams.get('dev_id') || urlParams.get('user_id');
+  if (devId) return String(devId);
+  return null;
+}
+
+function getScopedCacheKey(userId) {
+  const uid = userId || getCurrentTelegramUserId();
+  return uid ? `remna_user_cache_${uid}` : 'remna_user_cache';
+}
 
 function saveUserCache(data) {
   if (!data || typeof data !== 'object') return;
   try {
+    const uid = data.user?.id || getCurrentTelegramUserId();
+    const cacheKey = getScopedCacheKey(uid);
     const payload = {
       v: USER_CACHE_VERSION,
       ts: Date.now(),
+      uid: uid ? String(uid) : null,
       data: data,
     };
-    localStorage.setItem(USER_CACHE_KEY, JSON.stringify(payload));
+    localStorage.setItem(cacheKey, JSON.stringify(payload));
   } catch (err) {
     console.warn('[Cache] Failed to save user cache:', err);
   }
@@ -2895,24 +3044,32 @@ function saveUserCache(data) {
 
 function loadUserCache() {
   try {
-    const raw = localStorage.getItem(USER_CACHE_KEY);
+    // Purge old un-isolated global cache
+    try { localStorage.removeItem('remna_user_cache'); } catch (e) {}
+
+    const currentUid = getCurrentTelegramUserId();
+    const cacheKey = getScopedCacheKey(currentUid);
+    const raw = localStorage.getItem(cacheKey);
     if (!raw) return null;
     const parsed = JSON.parse(raw);
     if (parsed && typeof parsed === 'object') {
       if (parsed.v === USER_CACHE_VERSION && parsed.data && parsed.data.user) {
-        // Cache is valid and matches schema version!
+        // Multi-account guard: cache must belong to current user
+        if (currentUid && parsed.data.user.id && String(parsed.data.user.id) !== currentUid) {
+          localStorage.removeItem(cacheKey);
+          return null;
+        }
         const age = Date.now() - (parsed.ts || 0);
         if (age < 7 * 24 * 3600 * 1000) {
           return parsed.data;
         }
       }
     }
-    // Mismatched version, legacy cache, or corrupted -> discard safely
-    localStorage.removeItem(USER_CACHE_KEY);
+    localStorage.removeItem(cacheKey);
     return null;
   } catch (err) {
     console.warn('[Cache] Purging corrupted cache:', err);
-    try { localStorage.removeItem(USER_CACHE_KEY); } catch (e) {}
+    try { localStorage.removeItem(getScopedCacheKey()); } catch (e) {}
     return null;
   }
 }
@@ -2938,6 +3095,10 @@ async function syncUserDataWithApi(accountId) {
           renderActiveSubAnalytics(res.data.active_sub);
         } catch (analyticsErr) {
           console.warn('[syncUserDataWithApi] Error rendering analytics:', analyticsErr);
+        }
+      } else {
+        if (typeof resetActiveSubAnalytics === 'function') {
+          resetActiveSubAnalytics();
         }
       }
 

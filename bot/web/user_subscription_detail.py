@@ -331,7 +331,12 @@ async def build_active_subscription(
     if not panel_users:
         return None, False, []
 
-    primary = next((u for u in panel_users if str(u.get("id")) == str(req_account_id)), panel_users[0]) if req_account_id else panel_users[0]
+    if req_account_id:
+        primary = next((u for u in panel_users if str(u.get("id")) == str(req_account_id)), None)
+    else:
+        primary = next((u for u in panel_users if (u.get("status") or "").upper() == "ACTIVE"), None)
+    if not primary:
+        primary = panel_users[0]
     panel_user_id = primary.get("id")
     has_active_sub = primary.get("status", "").upper() == "ACTIVE"
 

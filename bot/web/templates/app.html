@@ -186,9 +186,9 @@
 
           <!-- Headline & Description -->
           <div class="space-y-1.5">
-            <h3 class="text-base font-black text-white">اشتراک فعالی برای شما ثبت نشده است</h3>
+            <h3 class="text-base font-black text-white">سلام <span id="noSubUserName" class="text-blue-400">کاربر</span> عزیز! 👋</h3>
             <p class="text-xs text-slate-300 leading-relaxed max-w-xs mx-auto">
-              برای اتصال به اینترنت آزاد و پرسرعت با سرورهای پایدار و ضد فیلتر، پلن مورد نظر خود را انتخاب و در کمتر از چند ثانیه فعال کنید.
+              اشتراک فعالی برای شما ثبت نشده است. برای اتصال به اینترنت آزاد و پرسرعت با سرورهای پایدار، پلن مورد نظر خود را در چند ثانیه فعال کنید.
             </p>
           </div>
 
@@ -209,11 +209,11 @@
           </div>
 
           <!-- Primary CTA Button -->
-          <div class="pt-1">
-            <button id="noSubGoToShopBtn" type="button" class="w-full py-3.5 px-4 rounded-2xl bg-gradient-to-r from-blue-600 via-indigo-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 text-white font-black text-xs shadow-lg shadow-indigo-500/25 transition active:scale-[0.98] flex items-center justify-center gap-2">
-              <span>🛒</span>
+          <div class="pt-2">
+            <button id="noSubGoToShopBtn" type="button" class="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-blue-600 via-indigo-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 text-white font-black text-sm shadow-xl shadow-indigo-500/30 hover:shadow-indigo-500/50 transition active:scale-[0.98] flex items-center justify-center gap-2.5">
+              <span class="text-base">🛒</span>
               <span>مشاهده و خرید اشتراک</span>
-              <span class="text-xs">←</span>
+              <span class="text-sm font-bold">←</span>
             </button>
           </div>
         </div>
@@ -762,7 +762,7 @@
             <div class="flex-1 space-y-1.5">
               <div class="flex items-center justify-between">
                 <span class="text-xs font-black text-amber-300">ارتقای امنیت حساب و جوایز ویژه</span>
-                <span class="text-[10px] font-bold text-amber-400 bg-amber-500/20 px-2 py-0.5 rounded-full border border-amber-500/30">۱ کلیک فوری</span>
+                <span class="text-[10px] font-bold text-amber-400 bg-amber-500/20 px-2 py-0.5 rounded-full border border-amber-500/30">سریع</span>
               </div>
               <p class="text-[11px] text-slate-300 leading-relaxed">
                 با تأیید شماره تماس، حساب شما نشان رسمی اعتماد دریافت کرده و دسترسی به پرداخت کارت‌به‌کارت و جوایز دوره‌ای فعال می‌شود.
@@ -770,7 +770,7 @@
               <div class="pt-1.5">
                 <button type="button" onclick="window.verifyPhoneNative()" class="w-full sm:w-auto px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-slate-950 font-black text-xs shadow-md transition active:scale-95 flex items-center justify-center gap-1.5">
                   <span>📱</span>
-                  <span>تأیید فوری شماره تماس (درون‌برنامه‌ای)</span>
+                  <span>تأیید فوری شماره تماس</span>
                 </button>
               </div>
             </div>
@@ -814,7 +814,7 @@
                 <span id="profilePhone" class="text-slate-400 font-medium font-mono" dir="ltr">وارد نشده</span>
                 <button id="verifyPhoneInBotBtn" type="button" onclick="window.verifyPhoneNative()" class="hidden px-2.5 py-1 rounded-xl bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[10px] font-bold hover:bg-amber-500/30 transition active:scale-95 flex items-center gap-1">
                   <span>⚡️</span>
-                  <span>تأیید ۱-کلیکه</span>
+                  <span>تأیید</span>
                 </button>
               </div>
             </div>
@@ -993,15 +993,20 @@
                 <span class="text-slate-200 font-medium block">⚠️ هشدار کمبود حجم</span>
                 <span id="settingTrafficSubtext" class="text-[11px] text-slate-400">هشدار قبل از پایان ترافیک (80%)</span>
               </div>
-              <div class="flex items-center gap-2">
-                <select id="settingTrafficPercentSelect" class="bg-slate-900 border border-slate-700 text-cyan-400 text-[11px] rounded-lg px-2 py-0.5 outline-none font-mono">
-                  <option value="70">70%</option>
-                  <option value="75">75%</option>
-                  <option value="80" selected>80%</option>
-                  <option value="85">85%</option>
-                  <option value="90">90%</option>
-                  <option value="95">95%</option>
-                </select>
+              <div class="flex items-center gap-2 relative">
+                <input type="hidden" id="settingTrafficPercentSelect" value="80">
+                <button id="trafficPercentTriggerBtn" type="button" onclick="window.toggleAlertPicker('traffic')" class="bg-slate-900 border border-slate-700 hover:border-cyan-500/50 text-cyan-400 text-[11px] rounded-lg px-2.5 py-1 outline-none font-mono font-bold flex items-center gap-1 transition active:scale-95 shadow-sm">
+                  <span id="trafficPercentDisplay">80%</span>
+                  <span class="text-[9px] text-slate-400">▾</span>
+                </button>
+                <div id="trafficPercentPickerMenu" class="hidden absolute top-full mt-1.5 left-0 z-30 bg-[#151c2e] border border-cyan-500/40 rounded-xl shadow-2xl p-1 min-w-[75px] space-y-0.5 text-center">
+                  <button type="button" onclick="window.selectAlertSetting('traffic', 70)" class="w-full py-1 px-2 text-[11px] font-mono text-slate-300 hover:text-cyan-300 hover:bg-slate-800 rounded-lg transition">70%</button>
+                  <button type="button" onclick="window.selectAlertSetting('traffic', 75)" class="w-full py-1 px-2 text-[11px] font-mono text-slate-300 hover:text-cyan-300 hover:bg-slate-800 rounded-lg transition">75%</button>
+                  <button type="button" onclick="window.selectAlertSetting('traffic', 80)" class="w-full py-1 px-2 text-[11px] font-mono text-slate-300 hover:text-cyan-300 hover:bg-slate-800 rounded-lg transition font-bold text-cyan-400 bg-cyan-500/15">80%</button>
+                  <button type="button" onclick="window.selectAlertSetting('traffic', 85)" class="w-full py-1 px-2 text-[11px] font-mono text-slate-300 hover:text-cyan-300 hover:bg-slate-800 rounded-lg transition">85%</button>
+                  <button type="button" onclick="window.selectAlertSetting('traffic', 90)" class="w-full py-1 px-2 text-[11px] font-mono text-slate-300 hover:text-cyan-300 hover:bg-slate-800 rounded-lg transition">90%</button>
+                  <button type="button" onclick="window.selectAlertSetting('traffic', 95)" class="w-full py-1 px-2 text-[11px] font-mono text-slate-300 hover:text-cyan-300 hover:bg-slate-800 rounded-lg transition">95%</button>
+                </div>
                 <label dir="ltr" class="relative inline-flex items-center cursor-pointer">
                   <input type="checkbox" id="settingToggleLowTraffic" class="sr-only switch-checkbox">
                   <div class="switch-label w-11 h-6 bg-slate-700 rounded-full transition-colors duration-200 flex items-center px-0.5">
@@ -1017,14 +1022,19 @@
                 <span class="text-slate-200 font-medium block">⏰ هشدار پایان اعتبار سرویس</span>
                 <span id="settingExpireSubtext" class="text-[11px] text-slate-400">اطلاع‌رسانی 3 روز مانده به انقضا</span>
               </div>
-              <div class="flex items-center gap-2">
-                <select id="settingExpireDaysSelect" class="bg-slate-900 border border-slate-700 text-amber-400 text-[11px] rounded-lg px-2 py-0.5 outline-none font-mono">
-                  <option value="1">1 روز</option>
-                  <option value="2">2 روز</option>
-                  <option value="3" selected>3 روز</option>
-                  <option value="5">5 روز</option>
-                  <option value="7">7 روز</option>
-                </select>
+              <div class="flex items-center gap-2 relative">
+                <input type="hidden" id="settingExpireDaysSelect" value="3">
+                <button id="expireDaysTriggerBtn" type="button" onclick="window.toggleAlertPicker('expire')" class="bg-slate-900 border border-slate-700 hover:border-amber-500/50 text-amber-400 text-[11px] rounded-lg px-2.5 py-1 outline-none font-mono font-bold flex items-center gap-1 transition active:scale-95 shadow-sm">
+                  <span id="expireDaysDisplay">3 روز</span>
+                  <span class="text-[9px] text-slate-400">▾</span>
+                </button>
+                <div id="expireDaysPickerMenu" class="hidden absolute top-full mt-1.5 left-0 z-30 bg-[#151c2e] border border-amber-500/40 rounded-xl shadow-2xl p-1 min-w-[75px] space-y-0.5 text-center">
+                  <button type="button" onclick="window.selectAlertSetting('expire', 1)" class="w-full py-1 px-2 text-[11px] font-mono text-slate-300 hover:text-amber-300 hover:bg-slate-800 rounded-lg transition">1 روز</button>
+                  <button type="button" onclick="window.selectAlertSetting('expire', 2)" class="w-full py-1 px-2 text-[11px] font-mono text-slate-300 hover:text-amber-300 hover:bg-slate-800 rounded-lg transition">2 روز</button>
+                  <button type="button" onclick="window.selectAlertSetting('expire', 3)" class="w-full py-1 px-2 text-[11px] font-mono text-slate-300 hover:text-amber-300 hover:bg-slate-800 rounded-lg transition font-bold text-amber-400 bg-amber-500/15">3 روز</button>
+                  <button type="button" onclick="window.selectAlertSetting('expire', 5)" class="w-full py-1 px-2 text-[11px] font-mono text-slate-300 hover:text-amber-300 hover:bg-slate-800 rounded-lg transition">5 روز</button>
+                  <button type="button" onclick="window.selectAlertSetting('expire', 7)" class="w-full py-1 px-2 text-[11px] font-mono text-slate-300 hover:text-amber-300 hover:bg-slate-800 rounded-lg transition">7 روز</button>
+                </div>
                 <label dir="ltr" class="relative inline-flex items-center cursor-pointer">
                   <input type="checkbox" id="settingToggleExpireWarning" class="sr-only switch-checkbox">
                   <div class="switch-label w-11 h-6 bg-slate-700 rounded-full transition-colors duration-200 flex items-center px-0.5">
@@ -1327,7 +1337,7 @@
               جهت استفاده از درگاه پرداخت کارت‌به‌کارت و جلوگیری از سوءاستفاده‌های بانکی (فیشینگ)، تأیید شماره همراه با یک کلیک الزامی می‌باشد.
             </p>
             <button type="button" onclick="window.verifyPhoneNative()" class="w-full bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-slate-950 font-bold text-xs py-2.5 rounded-xl transition shadow active:scale-95 flex items-center justify-center gap-1.5">
-              <span>📱</span> تأیید ۱-کلیکه شماره همراه
+              <span>📱</span> تأیید شماره همراه
             </button>
           </div>
 
@@ -2206,22 +2216,44 @@
           </p>
         </div>
 
-        <!-- 3 Select dropdowns: Day, Month, Year -->
-        <div class="grid grid-cols-3 gap-2 text-right">
-          <div>
+        <!-- Custom 3-Column Themed Dropdowns (روز، ماه، سال) -->
+        <div class="grid grid-cols-3 gap-2 text-right relative">
+          <!-- Hidden inputs kept for saveBirthday compatibility -->
+          <input type="hidden" id="birthdayDaySelect" value="1">
+          <input type="hidden" id="birthdayMonthSelect" value="1">
+          <input type="hidden" id="birthdayYearSelect" value="1375">
+
+          <!-- Day Column -->
+          <div class="relative">
             <label class="text-[11px] text-slate-400 block mb-1">روز</label>
-            <select id="birthdayDaySelect" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-xs text-pink-300 outline-none focus:border-pink-500 transition text-center font-mono">
-            </select>
+            <button id="bdayDayTrigger" type="button" onclick="window.toggleBdayDropdown('day')" class="w-full bg-slate-900/90 border border-slate-700 hover:border-pink-500/60 rounded-xl px-2 py-2 text-xs text-pink-300 flex items-center justify-between font-mono transition active:scale-95 shadow-sm">
+              <span id="bdayDayDisplay">۱</span>
+              <span class="text-[10px] text-slate-400">▾</span>
+            </button>
+            <div id="bdayDayDropdown" class="hidden absolute top-full mt-1.5 left-0 right-0 z-30 max-h-44 overflow-y-auto custom-scroll bg-[#151c2e] border border-pink-500/40 rounded-xl shadow-2xl p-1 space-y-0.5">
+            </div>
           </div>
-          <div>
+
+          <!-- Month Column -->
+          <div class="relative">
             <label class="text-[11px] text-slate-400 block mb-1">ماه</label>
-            <select id="birthdayMonthSelect" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-xs text-pink-300 outline-none focus:border-pink-500 transition text-center font-medium">
-            </select>
+            <button id="bdayMonthTrigger" type="button" onclick="window.toggleBdayDropdown('month')" class="w-full bg-slate-900/90 border border-slate-700 hover:border-pink-500/60 rounded-xl px-2 py-2 text-xs text-pink-300 flex items-center justify-between font-medium transition active:scale-95 shadow-sm">
+              <span id="bdayMonthDisplay">فروردین</span>
+              <span class="text-[10px] text-slate-400">▾</span>
+            </button>
+            <div id="bdayMonthDropdown" class="hidden absolute top-full mt-1.5 left-0 right-0 z-30 max-h-44 overflow-y-auto custom-scroll bg-[#151c2e] border border-pink-500/40 rounded-xl shadow-2xl p-1 space-y-0.5">
+            </div>
           </div>
-          <div>
+
+          <!-- Year Column -->
+          <div class="relative">
             <label class="text-[11px] text-slate-400 block mb-1">سال</label>
-            <select id="birthdayYearSelect" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-xs text-pink-300 outline-none focus:border-pink-500 transition text-center font-mono">
-            </select>
+            <button id="bdayYearTrigger" type="button" onclick="window.toggleBdayDropdown('year')" class="w-full bg-slate-900/90 border border-slate-700 hover:border-pink-500/60 rounded-xl px-2 py-2 text-xs text-pink-300 flex items-center justify-between font-mono transition active:scale-95 shadow-sm">
+              <span id="bdayYearDisplay">۱۳۷۵</span>
+              <span class="text-[10px] text-slate-400">▾</span>
+            </button>
+            <div id="bdayYearDropdown" class="hidden absolute top-full mt-1.5 left-0 right-0 z-30 max-h-44 overflow-y-auto custom-scroll bg-[#151c2e] border border-pink-500/40 rounded-xl shadow-2xl p-1 space-y-0.5">
+            </div>
           </div>
         </div>
 
