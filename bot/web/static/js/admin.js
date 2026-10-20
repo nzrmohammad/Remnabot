@@ -3251,29 +3251,36 @@
           if (isExtraTraffic) {
             typeBadge = '<span class="text-[10px] bg-cyan-500/15 text-cyan-400 border border-cyan-500/30 px-2 py-0.5 rounded-lg font-bold">⚡️ افزایش حجم</span>';
           } else if (isExtraTime) {
-            typeBadge = '<span class="text-[10px] bg-amber-500/15 text-amber-400 border border-amber-500/30 px-2 py-0.5 rounded-lg font-bold">⏳ افزایش زمان</span>';
+            typeBadge = '<span class="text-[10px] bg-amber-500/15 text-amber-400 border border-amber-500/30 px-2 py-0.5 rounded-lg font-bold">⏳ بسته افزایش زمان</span>';
           }
 
           return `
             <div class="plan-card bg-slate-800/80 rounded-2xl p-4 border border-slate-700/80 space-y-3 shadow transition">
-              <div class="flex items-center justify-between gap-3">
-                <div class="flex items-center gap-2.5 min-w-0">
+              <div class="flex items-start justify-between gap-3">
+                <div class="flex items-start gap-2.5 min-w-0">
                   <!-- 1. General Box Icon on the FAR RIGHT of the item -->
-                  <span class="w-7 h-7 rounded-xl bg-transparent text-blue-400 border border-blue-500/30 flex items-center justify-center flex-shrink-0" title="بسته">
+                  <span class="w-7 h-7 rounded-xl bg-transparent text-blue-400 border border-blue-500/30 flex items-center justify-center flex-shrink-0 mt-0.5" title="بسته">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
                   </span>
 
-                  <!-- 2. Plan Name + 3. Package Emoji (on the left of the name) + 4. Type & Status Badges -->
-                  <div class="flex items-center gap-1.5 min-w-0 flex-wrap">
-                    <b class="text-white text-xs font-bold truncate">${escapeHtml(cleanName)}</b>
-                    ${pkgIcon ? `<span class="text-sm select-none leading-none flex-shrink-0" title="آیکون بسته">${pkgIcon}</span>` : ''}
-                    ${typeBadge}
-                    ${statusBadge}
+                  <!-- Right Side Details: Row 1 (Name + Emoji), Row 2 (Status Badge then Type Badge) -->
+                  <div class="flex flex-col gap-1.5 min-w-0">
+                    <div class="flex items-center gap-1.5 min-w-0">
+                      <b class="text-white text-xs font-bold truncate">${escapeHtml(cleanName)}</b>
+                      ${pkgIcon ? `<span class="text-sm select-none leading-none flex-shrink-0" title="آیکون بسته">${pkgIcon}</span>` : ''}
+                    </div>
+                    <div class="flex items-center gap-1.5 flex-wrap">
+                      ${statusBadge}
+                      ${typeBadge}
+                    </div>
                   </div>
                 </div>
 
-                <!-- Price on the left -->
-                <span class="text-sm font-black text-emerald-400 font-mono flex-shrink-0">${formatNumber(p.price || 0)} <span class="text-[10px] font-sans font-normal text-slate-400">تومان</span></span>
+                <!-- Price on the left: Number on top, تومان directly underneath -->
+                <div class="flex flex-col items-end flex-shrink-0 text-left">
+                  <span class="text-sm font-black text-emerald-400 font-mono leading-none">${formatNumber(p.price || 0)}</span>
+                  <span class="text-[10px] font-sans font-medium text-slate-400 mt-1">تومان</span>
+                </div>
               </div>
 
               ${p.description ? `<p class="text-[11px] text-slate-400 line-clamp-1 pr-9.5">${escapeHtml(p.description)}</p>` : ''}

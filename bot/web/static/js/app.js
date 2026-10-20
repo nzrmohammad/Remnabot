@@ -2439,8 +2439,19 @@ function hydrateUserInterface(data) {
     const switchBtn = $('switchAccountBtn');
     const accounts = data.accounts || [];
     if (switchBtn) {
-      if (accounts.length > 1) switchBtn.classList.remove('hidden');
-      else switchBtn.classList.add('hidden');
+      if (accounts.length > 1) {
+        switchBtn.classList.remove('hidden');
+        if (usernameEl) {
+          usernameEl.classList.add('cursor-pointer', 'hover:text-blue-200');
+          usernameEl.onclick = () => switchBtn.click();
+        }
+      } else {
+        switchBtn.classList.add('hidden');
+        if (usernameEl) {
+          usernameEl.classList.remove('cursor-pointer', 'hover:text-blue-200');
+          usernameEl.onclick = null;
+        }
+      }
     }
   });
 

@@ -727,6 +727,18 @@ html.theme-light .coupon-card .text-white,
 html.theme-light .coupon-card .text-slate-200,
 html.theme-light .shop-plan-card .text-white,
 html.theme-light .coupon-usage-card .text-white,
+/* Badges inside shop cards must preserve high contrast text */
+.shop-plan-badge,
+.shop-plan-card .shop-plan-badge,
+html.theme-light .shop-plan-card .shop-plan-badge,
+html.theme-light .shop-plan-card [class*="rounded-br-xl"] {
+  color: #ffffff !important;
+}
+html.theme-light .shop-plan-card .shop-plan-badge.text-slate-950,
+html.theme-light .shop-plan-card [class*="rounded-br-xl"].text-slate-950 {
+  color: #020617 !important;
+}
+
 html.theme-light .coupon-usage-card .text-slate-200 {
   color: var(--text-main);
 }

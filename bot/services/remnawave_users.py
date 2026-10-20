@@ -189,36 +189,58 @@ class RemnawaveUsersMixin:
     async def update_user_subscription(
         self,
         user_id: int,
+        expire_at: str | datetime | None = None,
+        traffic_limit_bytes: int | None = None,
+        status: str = "ACTIVE",
+        traffic_limit_strategy: str | None = None,
         add_days: int = 0,
         add_traffic_gb: int = 0,
-        status: str = "ACTIVE",
+        **kwargs: Any,
     ) -> dict[str, Any] | None:
-        """Extend user's subscription (add days and/or traffic) and ensure status is active."""
-        current = await self.get_panel_user_by_id(user_id)
-        if not current:
-            logger.error("Cannot update user %s: not found in panel", user_id)
-            return None
+        """Update or extend a user's subscription in the Remnawave panel.
 
-        now = datetime.now(timezone.utc)
+        Supports explicit targets (expire_at ISO string/datetime, traffic_limit_bytes,
+        traffic_limit_strategy, status) as well as relative increments (add_days, add_traffic_gb).
+        """
         payload: dict[str, Any] = {"id": user_id}
         if status:
             payload["status"] = status
+        if traffic_limit_strategy:
+            payload["trafficLimitStrategy"] = traffic_limit_strategy
 
-        if add_days > 0:
-            current_expire = current.get("expireAt")
-            if current_expire:
-                base_date = datetime.fromisoformat(current_expire.replace("Z", "+00:00"))
-                if base_date < now:
+        # Explicit expire date
+        if expire_at is not None:
+            if isinstance(expire_at, datetime):
+                payload["expireAt"] = expire_at.isoformat()
+            elif isinstance(expire_at, str) and expire_at.strip():
+                payload["expireAt"] = expire_at.strip()
+
+        # Explicit traffic limit in bytes
+        if traffic_limit_bytes is not None:
+            payload["trafficLimitBytes"] = int(traffic_limit_bytes)
+
+        # Handle incremental days / gb if provided
+        if add_days > 0 or add_traffic_gb > 0:
+            current = await self.get_panel_user_by_id(user_id)
+            if not current:
+                logger.error("Cannot update user %s: not found in panel", user_id)
+                return None
+            now = datetime.now(timezone.utc)
+            if add_days > 0 and "expireAt" not in payload:
+                current_expire = current.get("expireAt")
+                if current_expire:
+                    base_date = datetime.fromisoformat(str(current_expire).replace("Z", "+00:00"))
+                    if base_date < now:
+                        base_date = now
+                else:
                     base_date = now
-            else:
-                base_date = now
-            new_expire = base_date + timedelta(days=add_days)
-            payload["expireAt"] = new_expire.isoformat()
+                new_expire = base_date + timedelta(days=add_days)
+                payload["expireAt"] = new_expire.isoformat()
 
-        if add_traffic_gb > 0:
-            current_limit = current.get("trafficLimitBytes", 0) or 0
-            new_limit = current_limit + (add_traffic_gb * (1024**3))
-            payload["trafficLimitBytes"] = new_limit
+            if add_traffic_gb > 0 and "trafficLimitBytes" not in payload:
+                current_limit = int(current.get("trafficLimitBytes", 0) or 0)
+                new_limit = current_limit + (add_traffic_gb * (1024**3))
+                payload["trafficLimitBytes"] = new_limit
 
         try:
             resp = await self._client.patch("/api/users", json=payload)

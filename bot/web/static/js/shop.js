@@ -259,27 +259,27 @@ function renderFilteredShopPlans() {
     let btnClass = 'bg-blue-600 hover:bg-blue-500 text-white font-bold';
 
     if (isExtraTraffic) {
-      planBadge = '<div class="absolute top-0 left-0 bg-gradient-to-r from-cyan-500 to-blue-500 text-slate-950 text-[10px] font-black px-3 py-0.5 rounded-br-xl shadow flex items-center gap-1">⚡️ بسته افزایش حجم</div>';
+      planBadge = '<div class="shop-plan-badge absolute top-0 left-0 bg-gradient-to-r from-cyan-500 to-blue-500 text-slate-950 text-[10px] font-black px-3 py-0.5 rounded-br-xl shadow flex items-center gap-1">⚡️ بسته افزایش حجم</div>';
       badgeBorderClass = 'border-cyan-500/50 shadow-lg shadow-cyan-500/10';
       btnClass = 'bg-cyan-600 hover:bg-cyan-500 text-white font-bold';
     } else if (isTimeOnly) {
-      planBadge = '<div class="absolute top-0 left-0 bg-gradient-to-r from-amber-500 to-orange-500 text-slate-950 text-[10px] font-black px-3 py-0.5 rounded-br-xl shadow flex items-center gap-1">⏳ تمدید مدت اعتبار</div>';
+      planBadge = '<div class="shop-plan-badge absolute top-0 left-0 bg-gradient-to-r from-amber-500 to-orange-500 text-slate-950 text-[10px] font-black px-3 py-0.5 rounded-br-xl shadow flex items-center gap-1">⏳ بسته افزایش زمان</div>';
       badgeBorderClass = 'border-amber-500/50 shadow-lg shadow-amber-500/10';
       btnClass = 'bg-blue-600 hover:bg-blue-500 text-white font-bold';
     } else if (planBadgeKey === 'bestseller' || planText.includes('پرفروش') || planText.includes('gold') || planText.includes('گلد') || planText.includes('bestseller')) {
-      planBadge = '<div class="absolute top-0 left-0 bg-gradient-to-r from-amber-500 to-yellow-500 text-slate-950 text-[10px] font-black px-3 py-0.5 rounded-br-xl shadow flex items-center gap-1">🔥 پرفروش‌ترین</div>';
+      planBadge = '<div class="shop-plan-badge absolute top-0 left-0 bg-gradient-to-r from-amber-500 to-yellow-500 text-slate-950 text-[10px] font-black px-3 py-0.5 rounded-br-xl shadow flex items-center gap-1">🔥 پرفروش‌ترین</div>';
       badgeBorderClass = 'border-amber-500/60 shadow-lg shadow-amber-500/10';
       btnClass = 'bg-blue-600 hover:bg-blue-500 text-white font-bold';
     } else if (planBadgeKey === 'popular' || planText.includes('محبوب') || planText.includes('popular')) {
-      planBadge = '<div class="absolute top-0 left-0 bg-gradient-to-r from-indigo-500 to-purple-500 text-white text-[10px] font-black px-3 py-0.5 rounded-br-xl shadow flex items-center gap-1">⭐ محبوب‌ترین</div>';
-      badgeBorderClass = 'border-indigo-500/60 shadow-lg shadow-indigo-500/10';
+      planBadge = '<div class="shop-plan-badge absolute top-0 left-0 bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 !text-white text-[10px] font-black px-3 py-0.5 rounded-br-xl border-b border-r border-indigo-400/40 shadow-md flex items-center gap-1">⭐ محبوب‌ترین</div>';
+      badgeBorderClass = 'border-purple-500/70 shadow-lg shadow-purple-500/15';
       btnClass = 'bg-blue-600 hover:bg-blue-500 text-white font-bold';
     } else if (planBadgeKey === 'economic' || planText.includes('اقتصادی') || planText.includes('economic') || planText.includes('به‌صرفه') || planText.includes('بصرفه') || planText.includes('ارزان')) {
-      planBadge = '<div class="absolute top-0 left-0 bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 text-[10px] font-black px-3 py-0.5 rounded-br-xl shadow flex items-center gap-1">💰 اقتصادی‌ترین</div>';
+      planBadge = '<div class="shop-plan-badge absolute top-0 left-0 bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 text-[10px] font-black px-3 py-0.5 rounded-br-xl shadow flex items-center gap-1">💰 اقتصادی‌ترین</div>';
       badgeBorderClass = 'border-emerald-500/60 shadow-lg shadow-emerald-500/10';
       btnClass = 'bg-blue-600 hover:bg-blue-500 text-white font-bold';
     } else if (planBadgeKey === 'vip' || planText.includes('ویژه') || planText.includes('vip') || planText.includes('special')) {
-      planBadge = '<div class="absolute top-0 left-0 bg-gradient-to-r from-rose-500 to-pink-500 text-white text-[10px] font-black px-3 py-0.5 rounded-br-xl shadow flex items-center gap-1">👑 پیشنهاد ویژه</div>';
+      planBadge = '<div class="shop-plan-badge absolute top-0 left-0 bg-gradient-to-r from-rose-500 to-pink-500 text-white text-[10px] font-black px-3 py-0.5 rounded-br-xl shadow flex items-center gap-1">👑 پیشنهاد ویژه</div>';
       badgeBorderClass = 'border-rose-500/60 shadow-lg shadow-rose-500/10';
       btnClass = 'bg-blue-600 hover:bg-blue-500 text-white font-bold';
     }
@@ -540,19 +540,31 @@ function setupBuyButtons() {
         return;
       }
 
-      // Rule 2: User has active subscription with plenty of days (> 3 days), but traffic is low (<= 25%),
-      // and they clicked on a Full Plan
-      if (hasActiveSub && daysLeft > 3 && pctRemaining <= 25 && isFullPlan) {
-        openShopGuidanceModal({
-          title: 'پیشنهاد هوشمند خرید حجم',
-          badgeText: '⚡️ صرفه‌جویی در هزینه',
-          badgeClass: 'px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/40',
-          message: `شما هنوز <b>${daysLeft} روز</b> از اشتراک فعلی‌تان اعتبار دارید! با خرید «بسته افزایش حجم»، نیازی به پرداخت هزینه سرویس کامل نیست و روزهای باقیمانده شما حفظ می‌شود.`,
-          actionText: '⚡️ رفتن به بسته‌های افزایش حجم',
-          onAction: () => switchShopCategory('traffic'),
-          secondaryText: 'ادامه خرید همین سرویس',
-          onSecondary: () => openCheckoutConfirmModal(planObj),
-        });
+      // Rule 2: User has active subscription with plenty of days (> 3 days), and clicked on a Full Plan
+      if (hasActiveSub && daysLeft > 3 && isFullPlan) {
+        if (pctRemaining <= 25) {
+          openShopGuidanceModal({
+            title: 'پیشنهاد هوشمند خرید حجم',
+            badgeText: '⚡️ صرفه‌جویی در هزینه',
+            badgeClass: 'px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/40',
+            message: `شما هنوز <b>${daysLeft} روز</b> از اشتراک فعلی‌تان اعتبار دارید! با خرید «بسته افزایش حجم»، نیازی به پرداخت هزینه سرویس کامل نیست و روزهای باقیمانده شما حفظ می‌شود.`,
+            actionText: '⚡️ رفتن به بسته‌های افزایش حجم',
+            onAction: () => switchShopCategory('traffic'),
+            secondaryText: 'انصراف',
+            onSecondary: () => closeModal('shopGuidanceModal'),
+          });
+        } else {
+          openShopGuidanceModal({
+            title: 'اشتراک شما فعال است',
+            badgeText: 'ℹ️ سرویس فعال دارید',
+            badgeClass: 'px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-500/20 text-blue-300 border border-blue-500/40',
+            message: `شما در حال حاضر دارای اشتراک فعال با <b>${daysLeft} روز</b> اعتبار باقیمانده هستید. خرید سرویس کامل جدید صرفاً در ۳ روز پایانی اعتبار امکان‌پذیر است. در صورت نیاز به حجم یا زمان بیشتر، لطفاً از بسته‌های افزایش حجم یا افزایش زمان استفاده فرمایید.`,
+            actionText: '⚡️ بسته‌های افزایش حجم',
+            onAction: () => switchShopCategory('traffic'),
+            secondaryText: '⏳ بسته‌های افزایش زمان',
+            onSecondary: () => switchShopCategory('time'),
+          });
+        }
         return;
       }
 
