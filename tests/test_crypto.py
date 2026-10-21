@@ -515,7 +515,7 @@ async def test_card_enabled_toggle_and_wallet_guard(session_factory):
         call_toggle.answer = AsyncMock()
 
         with patch("bot.common.guards.is_admin", return_value=True), \
-             patch("bot.handlers.admin_settings_store._render_settings", AsyncMock()):
+             patch("bot.handlers.admin_settings_views._render_settings", AsyncMock()):
             await setting_toggle_boolean(call_toggle, bot, user_repo, session)
             store = await get_store_settings(session)
             assert store.card_enabled is False

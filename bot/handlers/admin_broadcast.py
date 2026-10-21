@@ -1,18 +1,15 @@
 """Admin broadcast messaging with audience targeting."""
 import asyncio
 import logging
-from datetime import datetime, timezone
 from html import escape
 
 from aiogram import Bot, F, Router
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
 from aiogram.utils.keyboard import InlineKeyboardBuilder
-from sqlalchemy import distinct, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from bot.common import _back_admin, is_admin
-from bot.db.models import Order, Wallet
 from bot.db.repositories.admin_log_repo import AdminLogRepository
 from bot.db.repositories.user_repo import UserRepository
 from bot.locales.texts import t
@@ -25,19 +22,7 @@ router = Router(name="admin_broadcast")
 
 _is_admin = is_admin
 
-async def _resolve_broadcast_recipients(session, remnawave, target: str):
-    import bot.handlers.admin_broadcast as bcast_mod
-    import bot.services.broadcast as bcast_srv
-
-    u_repo_cls = getattr(bcast_mod, "UserRepository", None)
-    orig_repo = bcast_srv.UserRepository
-    if u_repo_cls is not None and u_repo_cls is not orig_repo:
-        bcast_srv.UserRepository = u_repo_cls
-        try:
-            return await bcast_srv.resolve_broadcast_recipients(session, remnawave, target)
-        finally:
-            bcast_srv.UserRepository = orig_repo
-    return await bcast_srv.resolve_broadcast_recipients(session, remnawave, target)
+from bot.services.broadcast import resolve_broadcast_recipients as _resolve_broadcast_recipients
 
 BROADCAST_CONFIRM_KEY = "bcast:draft"
 

@@ -1,9 +1,11 @@
 from bot.web.user_common import db_session, require_user
+
 """TMA User Shop, Purchase, Subscriptions, Devices, and Lucky Wheel endpoints."""
-from datetime import datetime, timezone, timedelta
 import logging
 import random
+import re
 import time
+from datetime import datetime, timedelta, timezone
 from zoneinfo import ZoneInfo
 
 from aiohttp import web
@@ -412,6 +414,8 @@ async def post_user_validate_coupon(request: web.Request) -> web.Response:
     code = (body.get("code") or "").strip()
     if not code:
         return web.json_response({"ok": False, "message": "کد تخفیف الزامی است."}, status=400)
+    if not re.match(r"^[A-Za-z0-9_-]{3,32}$", code):
+        return web.json_response({"ok": False, "message": "فرمت کد تخفیف نامعتبر است."}, status=400)
 
     telegram_id = int(user_auth["id"])
     from bot.db.repositories.coupon_repo import CouponRepository
@@ -459,6 +463,8 @@ async def post_user_purchase(request: web.Request) -> web.Response:
     service_id = body.get("service_id")
     coupon_code = (body.get("coupon_code") or "").strip().upper() or None
     account_id = body.get("account_id")
+    if coupon_code and not re.match(r"^[A-Za-z0-9_-]{3,32}$", coupon_code):
+        return web.json_response({"ok": False, "message": "فرمت کد تخفیف نامعتبر است."}, status=400)
 
     if not service_id:
         return web.json_response({"ok": False, "message": "شناسه بسته الزامی است."}, status=400)
@@ -554,8 +560,9 @@ async def post_user_purchase(request: web.Request) -> web.Response:
         bot = request.app.get("bot")
         if bot:
             try:
-                from bot.services.purchases import maybe_reward_referrer as _maybe_reward_referrer, notify_admin as _notify_admin
                 from bot.db.repositories.user_repo import UserRepository
+                from bot.services.purchases import maybe_reward_referrer as _maybe_reward_referrer
+                from bot.services.purchases import notify_admin as _notify_admin
                 db_user = await UserRepository(session).get_by_telegram_id(telegram_id)
                 if db_user:
                     await _maybe_reward_referrer(bot, session, remnawave, db_user)

@@ -326,6 +326,8 @@ def receipt_price_lines(
     is_confirm_card: bool = False,
 ) -> list[str]:
     """Generate standardized, RTL-safe price, discount, and total receipt lines."""
+    from html import escape
+
     from bot.common import fmt
     from bot.locales.texts import t
 
@@ -333,11 +335,11 @@ def receipt_price_lines(
     if coupon_code and discount_amount > 0:
         if is_confirm_card:
             lines.append(f"💰 {t(lang, 'svc_field_price')} : <b>{fmt(original_price)}</b> {currency_label}")
-            lines.append(f"🏷 {t(lang, 'retention_code_label')} (<code>{coupon_code}</code>) : <b>\u200e-{fmt(discount_amount)}</b> {currency_label}")
+            lines.append(f"🏷 {t(lang, 'retention_code_label')} (<code>{escape(coupon_code)}</code>) : <b>\u200e-{fmt(discount_amount)}</b> {currency_label}")
             lines.append(f"💵 {t(lang, 'receipt_amount')} : <b>{fmt(effective_price)}</b> {currency_label}")
         else:
             lines.append(f"💰 {t(lang, 'svc_field_price')} : <b>{fmt(original_price)} {currency_label}</b>")
-            lines.append(f"🏷 {t(lang, 'retention_code_label')} (<code>{coupon_code}</code>) : <b>\u200e-{fmt(discount_amount)} {currency_label}</b>")
+            lines.append(f"🏷 {t(lang, 'retention_code_label')} (<code>{escape(coupon_code)}</code>) : <b>\u200e-{fmt(discount_amount)} {currency_label}</b>")
             lines.append(f"💵 {t(lang, 'receipt_amount')} : <b>{fmt(effective_price)} {currency_label}</b>")
     else:
         label = t(lang, "svc_field_price" if is_confirm_card else "receipt_amount")
@@ -379,6 +381,8 @@ async def maybe_reward_referrer(
         return
 
     reward_gb = store.referral_reward_gb
+    reward = await referral_repo.record_reward(user.referred_by_id, user.telegram_id, reward_gb)
+
     inviter_accs = await remnawave.get_users_by_telegram_id(user.referred_by_id)
     if inviter_accs:
         inv_acc = inviter_accs[0]
@@ -391,8 +395,7 @@ async def maybe_reward_referrer(
                 )
             except Exception:
                 logger.exception("Failed to add referral traffic to panel user %s", inv_acc.get("id"))
-
-    await referral_repo.record_reward(user.referred_by_id, user.telegram_id, reward_gb)
+                reward.applied = False
 
     from bot.db.repositories.user_repo import UserRepository
     inviter_user = await UserRepository(session).get_by_telegram_id(user.referred_by_id)
@@ -426,6 +429,7 @@ async def notify_admin(
 ) -> None:
     """Notify admin chat/topic about a successful service purchase or renewal."""
     from html import escape
+
     from bot.common import admin_thread_kwargs, fmt
     from bot.config import get_settings
     from bot.locales.texts import t
@@ -437,7 +441,7 @@ async def notify_admin(
     price_lines = []
     if coupon_code and discount_amount > 0:
         price_lines.append(f"💰 {t('fa', 'svc_field_price')} : <b>{fmt(service.price)}</b> {t('fa', 'svc_currency')}")
-        price_lines.append(f"🏷 {t('fa', 'retention_code_label')} (<code>{coupon_code}</code>) : <b>\u200e-{fmt(discount_amount)}</b> {t('fa', 'svc_currency')}")
+        price_lines.append(f"🏷 {t('fa', 'retention_code_label')} (<code>{escape(coupon_code)}</code>) : <b>\u200e-{fmt(discount_amount)}</b> {t('fa', 'svc_currency')}")
         price_lines.append(f"💵 پرداختی از کیف پول : <b>{fmt(effective_price)}</b> {t('fa', 'svc_currency')}")
     else:
         price_lines.append(f"💰 مبلغ کل : <b>{fmt(service.price)}</b> {t('fa', 'svc_currency')}")

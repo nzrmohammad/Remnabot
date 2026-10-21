@@ -476,7 +476,7 @@ async def test_resolve_broadcast_recipients():
     u2 = MagicMock(telegram_id=102)
     u3 = MagicMock(telegram_id=103)
 
-    with patch("bot.handlers.admin_broadcast.UserRepository") as mock_u_repo:
+    with patch("bot.services.broadcast.UserRepository") as mock_u_repo:
         mock_u_repo.return_value.all_users = AsyncMock(return_value=[u1, u2, u3])
 
         # 1. target = "all"
@@ -806,7 +806,7 @@ async def test_purchase_result_digital_receipt():
         traffic_gb=50,
     )
 
-    with patch("bot.handlers.shop_purchase.render_menu", AsyncMock()) as mock_render:
+    with patch("bot.handlers.shop_purchase_views.render_menu", AsyncMock()) as mock_render:
         await _render_purchase_result(bot, user, user_repo, session, result, service, "fa")
 
         mock_render.assert_awaited_once()
@@ -1327,9 +1327,9 @@ async def test_store_settings_full_overview():
         topic_alerts=40,
     )
 
-    with patch("bot.handlers.admin_settings_store.get_store_settings", AsyncMock(return_value=store)), \
-         patch("bot.handlers.admin_settings_store.is_maintenance", AsyncMock(return_value=False)), \
-         patch("bot.handlers.admin_settings_store.render_menu", AsyncMock()) as mock_render:
+    with patch("bot.handlers.admin_settings_views.get_store_settings", AsyncMock(return_value=store)), \
+         patch("bot.handlers.admin_settings_views.is_maintenance", AsyncMock(return_value=False)), \
+         patch("bot.handlers.admin_settings_views.render_menu", AsyncMock()) as mock_render:
 
         await _render_settings(bot, user, user_repo, session)
         mock_render.assert_awaited_once()
@@ -1379,9 +1379,9 @@ async def test_store_settings_full_overview():
         topic_support=None,
         topic_alerts=None,
     )
-    with patch("bot.handlers.admin_settings_store.get_store_settings", AsyncMock(return_value=store_no_sup)), \
-         patch("bot.handlers.admin_settings_store.is_maintenance", AsyncMock(return_value=False)), \
-         patch("bot.handlers.admin_settings_store.render_menu", AsyncMock()) as mock_render:
+    with patch("bot.handlers.admin_settings_views.get_store_settings", AsyncMock(return_value=store_no_sup)), \
+         patch("bot.handlers.admin_settings_views.is_maintenance", AsyncMock(return_value=False)), \
+         patch("bot.handlers.admin_settings_views.render_menu", AsyncMock()) as mock_render:
 
         await _render_settings(bot, user, user_repo, session)
         mock_render.assert_awaited_once()
@@ -1565,7 +1565,7 @@ async def test_support_contact_validation_and_toggle():
         topic_topups=None, topic_orders=None, topic_support=None, topic_alerts=None,
     )
     with patch("bot.common.guards.is_admin", return_value=True), \
-         patch("bot.handlers.admin_settings_store.get_store_settings", AsyncMock(return_value=store_empty)):
+         patch("bot.handlers.admin_settings_views.get_store_settings", AsyncMock(return_value=store_empty)):
 
         await setting_toggle_boolean(call, bot, user_repo, session)
         call.answer.assert_awaited_once()
@@ -1587,10 +1587,10 @@ async def test_support_contact_validation_and_toggle():
     mock_app_setting_repo = MagicMock()
     mock_app_setting_repo.set = AsyncMock()
 
-    with patch("bot.handlers.admin_settings_store.delete_message_silently", AsyncMock()), \
-         patch("bot.handlers.admin_settings_store.AppSettingRepository", return_value=mock_app_setting_repo), \
-         patch("bot.handlers.admin_settings_store.AdminLogRepository", return_value=MagicMock(log=AsyncMock())), \
-         patch("bot.handlers.admin_settings_store._render_settings", AsyncMock()):
+    with patch("bot.handlers.admin_settings_wizard.delete_message_silently", AsyncMock()), \
+         patch("bot.handlers.admin_settings_wizard.AppSettingRepository", return_value=mock_app_setting_repo), \
+         patch("bot.handlers.admin_settings_wizard.AdminLogRepository", return_value=MagicMock(log=AsyncMock())), \
+         patch("bot.handlers.admin_settings_wizard._render_settings", AsyncMock()):
 
         await settings_value_save(msg, bot, user_repo, session, state)
         mock_app_setting_repo.set.assert_awaited_with("support_contact", "@MohammadSupport")
@@ -1702,7 +1702,7 @@ async def test_receipt_and_admin_order_notification_fixes():
     )
 
     # 1. Receipt with 100% coupon
-    with patch("bot.handlers.shop_purchase.render_menu", AsyncMock()) as mock_render:
+    with patch("bot.handlers.shop_purchase_views.render_menu", AsyncMock()) as mock_render:
         await _render_purchase_result(
             bot, user, user_repo, session, result, service, "fa",
             coupon_code="NOROOZ", discount_amount=500000,
@@ -1725,7 +1725,7 @@ async def test_receipt_and_admin_order_notification_fixes():
         assert "👛 موجودی جدید کیف پول : <b>0 تومان</b>" in text
 
     # 2. Buy confirm with discount
-    with patch("bot.handlers.shop_purchase.render_menu", AsyncMock()) as mock_render:
+    with patch("bot.handlers.shop_purchase_views.render_menu", AsyncMock()) as mock_render:
         await _render_buy_confirm(
             bot, user, user_repo, session, service,
             balance=0, confirm_callback="svc:pay", lang="fa",
@@ -1822,9 +1822,9 @@ async def test_settings_buttons_icons_and_topics_errors():
     session = AsyncMock()
 
     # 1. Test _render_settings button icons
-    with patch("bot.handlers.admin_settings_store.get_store_settings", AsyncMock(return_value=store)), \
-         patch("bot.handlers.admin_settings_store.is_maintenance", AsyncMock(return_value=False)), \
-         patch("bot.handlers.admin_settings_store.render_menu", AsyncMock()) as mock_render:
+    with patch("bot.handlers.admin_settings_views.get_store_settings", AsyncMock(return_value=store)), \
+         patch("bot.handlers.admin_settings_views.is_maintenance", AsyncMock(return_value=False)), \
+         patch("bot.handlers.admin_settings_views.render_menu", AsyncMock()) as mock_render:
 
         await _render_settings(bot, user, user_repo, session)
         mock_render.assert_awaited_once()
@@ -2088,3 +2088,89 @@ async def test_admin_report_auto_clean_previous_messages(session_factory):
             saved = await repo.get("last_admin_report_msg_ids_nightly")
             assert json.loads(saved) == [[-100999, 88888]]
 
+
+
+@pytest.mark.anyio
+async def test_coupon_html_escaping_and_regex_validation():
+    """Verify coupon code is escaped in HTML receipts/admin logs and validated by regex."""
+    import re
+    from html import escape
+    from bot.services.purchases import receipt_price_lines, notify_admin
+
+    # 1. receipt_price_lines escapes special characters
+    dangerous_code = "<DISCOUNT&2026>"
+    lines = receipt_price_lines(
+        lang="fa",
+        original_price=100000,
+        effective_price=80000,
+        discount_amount=20000,
+        coupon_code=dangerous_code,
+    )
+    combined = "\n".join(lines)
+    assert "&lt;DISCOUNT&amp;2026&gt;" in combined
+    assert "<DISCOUNT" not in combined
+
+    # 2. notify_admin escapes special characters in admin notification
+    bot = MagicMock()
+    bot.send_message = AsyncMock()
+    user = MagicMock(telegram_id=123, username="test_user", language="fa")
+    service = MagicMock(price=100000, name="Pro Plan")
+    result = MagicMock(panel_username="user123", new_balance=50000)
+
+    with patch("bot.config.get_settings") as mock_settings:
+        mock_settings.return_value = MagicMock(ADMIN_CHAT_ID=-1001, ADMIN_TOPIC_ORDERS=1)
+        await notify_admin(bot, user, service, result, discount_amount=20000, coupon_code=dangerous_code)
+        sent_text = bot.send_message.call_args[0][1]
+        assert "&lt;DISCOUNT&amp;2026&gt;" in sent_text
+        assert "<DISCOUNT" not in sent_text
+
+    # 3. Regex validation rejects non-alphanumeric/malicious patterns
+    pattern = re.compile(r"^[A-Za-z0-9_-]{3,32}$")
+    assert pattern.match("VALID-COUPON_10")
+    assert not pattern.match("<DISCOUNT>")
+    assert not pattern.match("DROP TABLE;")
+    assert not pattern.match("A" * 33)
+    assert not pattern.match("AB")
+
+
+@pytest.mark.anyio
+async def test_referral_reward_idempotency_and_failure_resilience():
+    """Verify referral reward is saved before external API and handles failure cleanly."""
+    from bot.services.purchases import maybe_reward_referrer
+    from bot.services.app_settings import StoreSettings
+
+    bot = MagicMock()
+    bot.send_message = AsyncMock()
+    session = AsyncMock()
+    remnawave = MagicMock()
+
+    user = MagicMock(telegram_id=200, referred_by_id=100)
+    store = MagicMock(referral_enabled=True, referral_reward_gb=5)
+
+    with patch("bot.services.purchases.get_store_settings", AsyncMock(return_value=store)), \
+         patch("bot.db.repositories.referral_repo.ReferralRepository") as mock_ref_repo_cls, \
+         patch("bot.db.repositories.user_repo.UserRepository") as mock_user_repo_cls:
+
+        mock_ref_repo = MagicMock()
+        mock_ref_repo.has_rewarded = AsyncMock(side_effect=[False, True])
+        mock_reward = MagicMock(applied=True)
+        mock_ref_repo.record_reward = AsyncMock(return_value=mock_reward)
+        mock_ref_repo_cls.return_value = mock_ref_repo
+
+        mock_user_repo = MagicMock()
+        inviter_user = MagicMock(spin_tickets=0, language="fa")
+        mock_user_repo.get_by_telegram_id = AsyncMock(return_value=inviter_user)
+        mock_user_repo_cls.return_value = mock_user_repo
+
+        # Remnawave throws network exception
+        remnawave.get_users_by_telegram_id = AsyncMock(return_value=[{"id": 1, "trafficLimitBytes": 1024}])
+        remnawave.update_user_subscription = AsyncMock(side_effect=RuntimeError("Network Timeout"))
+
+        # First run: Remnawave fails, applied marked False, but record exists
+        await maybe_reward_referrer(bot, session, remnawave, user)
+        mock_ref_repo.record_reward.assert_awaited_once_with(100, 200, 5)
+        assert mock_reward.applied is False
+
+        # Second run: has_rewarded returns True, exits immediately without doing anything
+        await maybe_reward_referrer(bot, session, remnawave, user)
+        assert mock_ref_repo.record_reward.await_count == 1

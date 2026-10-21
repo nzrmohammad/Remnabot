@@ -11,23 +11,22 @@ from aiogram.types import CopyTextButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from bot.common import SEPARATOR, admin_thread_kwargs, fmt
+from bot.common import SEPARATOR, fmt
 from bot.config import get_settings
-from bot.db.repositories.referral_repo import ReferralRepository
 from bot.db.repositories.user_repo import UserRepository
 from bot.locales.texts import t
-from bot.services.app_settings import get_store_settings
 from bot.services.formatting import format_datetime, now_tz
-from bot.services.purchases import calc_price, maybe_reward_referrer as _maybe_reward_referrer, notify_admin as _notify_admin, receipt_price_lines, record_coupon_usage_if_any
+from bot.services.purchases import calc_price, receipt_price_lines, record_coupon_usage_if_any
+from bot.services.purchases import maybe_reward_referrer as _maybe_reward_referrer
+from bot.services.purchases import notify_admin as _notify_admin
 from bot.services.remnawave import RemnawaveClient
 from bot.services.service_display import service_block
 
 logger = logging.getLogger(__name__)
 
 
-async def render_menu(*args, **kwargs):
-    import bot.handlers.shop_purchase as sp_module
-    return await sp_module.render_menu(*args, **kwargs)
+from bot.services.menu import render_menu
+
 
 async def _ensure_can_buy(
     bot: Bot, user, user_repo: UserRepository, remnawave: RemnawaveClient

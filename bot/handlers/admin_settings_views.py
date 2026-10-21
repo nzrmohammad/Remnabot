@@ -1,6 +1,6 @@
 """Admin store settings dashboard and toggle view handlers."""
-from html import escape
 import logging
+from html import escape
 
 from aiogram import Bot
 from aiogram.fsm.context import FSMContext
@@ -32,14 +32,9 @@ logger = logging.getLogger(__name__)
 async def _render_settings(
     bot: Bot, user, user_repo: UserRepository, session: AsyncSession,
 ) -> None:
-    import bot.handlers.admin_settings_store as _store_mod
-    store_fn = getattr(_store_mod, "get_store_settings", get_store_settings)
-    maint_fn = getattr(_store_mod, "is_maintenance", is_maintenance)
-    render_menu_fn = getattr(_store_mod, "render_menu", render_menu)
-
     lang = user.language or "fa"
-    store = await store_fn(session)
-    maint_on = await maint_fn(session)
+    store = await get_store_settings(session)
+    maint_on = await is_maintenance(session)
     kb = InlineKeyboardBuilder()
 
     has_contact = bool(
@@ -234,7 +229,7 @@ async def _render_settings(
             "",
             f"🚧 {t(lang, 'settings_maintenance')} : {maint_badge}",
         ]
-    await render_menu_fn(bot, user, user_repo, "\n".join(lines), kb.as_markup())
+    await render_menu(bot, user, user_repo, "\n".join(lines), kb.as_markup())
 
 
 async def store_settings_view(
@@ -263,12 +258,9 @@ async def setting_toggle_boolean(
     if state:
         await state.clear()
 
-    import bot.handlers.admin_settings_store as _store_mod
-    store_fn = getattr(_store_mod, "get_store_settings", get_store_settings)
-
     user = await user_repo.get_or_create(call.from_user.id, call.from_user.username)
     lang = user.language or "fa"
-    store = await store_fn(session)
+    store = await get_store_settings(session)
 
     if field == "support_direct_enabled":
         has_contact = bool(

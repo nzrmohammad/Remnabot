@@ -444,7 +444,7 @@ async def test_insufficient_balance_allows_service_view_and_coupon_flow(async_se
         assert any("خرید" in b for b in btn_texts)
 
     # 2. _render_buy_confirm with 0 balance shows topup and apply_coupon
-    with patch("bot.handlers.shop_purchase.render_menu", AsyncMock()) as mock_render:
+    with patch("bot.handlers.shop_purchase_views.render_menu", AsyncMock()) as mock_render:
         await _render_buy_confirm(
             bot, user, u_repo, async_session, svc, balance=0,
             confirm_callback=f"svc:confirmn:{svc.id}", lang="fa",
@@ -455,7 +455,7 @@ async def test_insufficient_balance_allows_service_view_and_coupon_flow(async_se
         assert any("کد تخفیف" in b for b in btn_texts)
 
     # 3. _render_buy_confirm with 100% coupon (discount_amount=100_000) enables confirm_pay even with 0 balance
-    with patch("bot.handlers.shop_purchase.render_menu", AsyncMock()) as mock_render:
+    with patch("bot.handlers.shop_purchase_views.render_menu", AsyncMock()) as mock_render:
         await _render_buy_confirm(
             bot, user, u_repo, async_session, svc, balance=0,
             confirm_callback=f"svc:confirmn:{svc.id}", lang="fa",

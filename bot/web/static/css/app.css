@@ -2230,3 +2230,26 @@ html.theme-light #trafficPercentDisplay {
 html.theme-light #expireDaysDisplay {
   color: #d97706;
 }
+
+/* ========================================================================== */
+/* P1 & P3: Native Mobile UX, Overscroll containment, iOS Zoom Prevention     */
+/* ========================================================================== */
+html, body, #phoneFrame, main, .modal-card, .overflow-y-auto {
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+button, a, .tab-btn, .nav-item, [role="button"] {
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Prevent iOS Safari 16px auto-zoom on input focus */
+@media screen and (max-width: 768px) {
+  html body input:not([type="checkbox"]):not([type="radio"]),
+  html body select,
+  html body textarea {
+    font-size: 16px;
+  }
+}

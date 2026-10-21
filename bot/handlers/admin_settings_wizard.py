@@ -135,20 +135,9 @@ async def settings_value_save(
     message: Message, bot: Bot, user_repo: UserRepository,
     session: AsyncSession, state: FSMContext,
 ):
-    import bot.handlers.admin_settings_store as _store_mod
-    del_msg_fn = getattr(_store_mod, "delete_message_silently", delete_message_silently)
-    _render_menu = getattr(_store_mod, "render_menu", render_menu)
-    render_settings_fn = getattr(_store_mod, "_render_settings", _render_settings)
-    render_topics_fn = getattr(_store_mod, "_render_topics_settings", _render_topics_settings)
-    render_crypto_fn = getattr(_store_mod, "_render_crypto_settings", _render_crypto_settings)
-    render_trial_fn = getattr(_store_mod, "_render_trial_settings", _render_trial_settings)
-    render_ref_fn = getattr(_store_mod, "_render_referral_settings", _render_referral_settings)
-    app_setting_repo_cls = getattr(_store_mod, "AppSettingRepository", AppSettingRepository)
-    admin_log_repo_cls = getattr(_store_mod, "AdminLogRepository", AdminLogRepository)
-
     user = await user_repo.get_or_create(message.from_user.id, message.from_user.username)
     lang = user.language
-    await del_msg_fn(bot, message.chat.id, message.message_id)
+    await delete_message_silently(bot, message.chat.id, message.message_id)
 
     data = await state.get_data()
     field = data.get("settings_field", "card_number")
@@ -172,7 +161,7 @@ async def settings_value_save(
                 kb = InlineKeyboardBuilder()
                 kb.button(text=t(lang, "btn_cancel"), callback_data=cancel_target)
                 kb.adjust(1)
-                await _render_menu(bot, user, user_repo, t(lang, "settings_invalid_number"), kb.as_markup())
+                await render_menu(bot, user, user_repo, t(lang, "settings_invalid_number"), kb.as_markup())
                 return
             value = str(parsed)
     elif field in ("trial_enabled", "referral_enabled"):
@@ -181,7 +170,7 @@ async def settings_value_save(
             kb = InlineKeyboardBuilder()
             kb.button(text=t(lang, "btn_cancel"), callback_data=cancel_target)
             kb.adjust(1)
-            await _render_menu(bot, user, user_repo, "❌ لطفاً فقط عدد 1 (فعال) یا 0 (غیرفعال) را وارد کنید:", kb.as_markup())
+            await render_menu(bot, user, user_repo, "❌ لطفاً فقط عدد 1 (فعال) یا 0 (غیرفعال) را وارد کنید:", kb.as_markup())
             return
         value = str(parsed)
     elif is_numeric:
@@ -190,13 +179,13 @@ async def settings_value_save(
             kb = InlineKeyboardBuilder()
             kb.button(text=t(lang, "btn_cancel"), callback_data=cancel_target)
             kb.adjust(1)
-            await _render_menu(bot, user, user_repo, t(lang, "settings_invalid_number"), kb.as_markup())
+            await render_menu(bot, user, user_repo, t(lang, "settings_invalid_number"), kb.as_markup())
             return
         value = str(parsed)
     elif field == "support_contact":
         if raw in SKIP_WORDS or raw == "0":
             value = ""
-            await app_setting_repo_cls(session).set("support_direct_enabled", "0")
+            await AppSettingRepository(session).set("support_direct_enabled", "0")
         else:
             clean_contact = raw.strip()
             t_me_match = re.match(
@@ -230,23 +219,23 @@ async def settings_value_save(
                     "or link (e.g. <code>t.me/SupportUsername</code>):\n\n"
                     "<i>(Send /skip or 0 to clear)</i>"
                 )
-                await _render_menu(bot, user, user_repo, err_msg, kb.as_markup())
+                await render_menu(bot, user, user_repo, err_msg, kb.as_markup())
                 return
     elif raw in SKIP_WORDS:
         value = ""
 
-    await app_setting_repo_cls(session).set(field, value)
-    await admin_log_repo_cls(session).log(
+    await AppSettingRepository(session).set(field, value)
+    await AdminLogRepository(session).log(
         message.from_user.id, "setting", detail=f"{field}={value[:40]}"
     )
     await state.clear()
     if field.startswith("topic_"):
-        await render_topics_fn(bot, user, user_repo, session)
+        await _render_topics_settings(bot, user, user_repo, session)
     elif "ton_" in field or field in ("crypto_enabled", "usdt_rate_toman"):
-        await render_crypto_fn(bot, user, user_repo, session)
+        await _render_crypto_settings(bot, user, user_repo, session)
     elif "trial" in field:
-        await render_trial_fn(bot, user, user_repo, session)
+        await _render_trial_settings(bot, user, user_repo, session)
     elif "referral" in field:
-        await render_ref_fn(bot, user, user_repo, session)
+        await _render_referral_settings(bot, user, user_repo, session)
     else:
-        await render_settings_fn(bot, user, user_repo, session)
+        await _render_settings(bot, user, user_repo, session)

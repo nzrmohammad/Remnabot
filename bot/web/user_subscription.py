@@ -1,12 +1,16 @@
 """Subscription configuration endpoints for Telegram Mini App."""
 import logging
 import urllib.parse
+
 from aiohttp import web
 from sqlalchemy import select
+
 from bot.db.models import Order
 from bot.services.configs import fetch_subscription_configs
 from bot.web.cache import FastCache
 from bot.web.user_common import db_session, require_user
+
+logger = logging.getLogger(__name__)
 
 COUNTRY_MAP = [
     ("🇩🇪", "آلمان", ["de", "germany", "frankfurt", "berlin"]),
