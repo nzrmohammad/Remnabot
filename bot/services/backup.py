@@ -8,6 +8,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from bot.common import admin_thread_kwargs
+from bot.services.formatting import now_tz
 from bot.db.models import AdminLog, AppSetting, Coupon, Order, Service, User, Wallet
 
 logger = logging.getLogger(__name__)
@@ -405,9 +406,10 @@ async def auto_backup_loop(bot, session_factory) -> None:
                             logger.debug("Could not delete previous backup message: %s", del_err)
 
                     has_pwd = bool(backup_pwd)
+                    backup_time_str = now_tz(getattr(settings, "TIMEZONE", "Asia/Tehran")).strftime('%Y-%m-%d %H:%M:%S')
                     caption = (
                         "💾 <b>نسخه پشتیبان خودکار دیتابیس (ساعت ۰۱:۳۰ بامداد)</b>\n\n"
-                        f"📅 تاریخ: <code>{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</code>\n"
+                        f"📅 تاریخ: <code>{backup_time_str}</code>\n"
                         f"🔐 وضعیت رمزگذاری: <b>{'رمزدار (AES-256)' if has_pwd else 'فشرده‌سازی استاندارد'}</b>\n"
                         "📦 فایل شامل نسخه پشتیبان جداول ضروری (کاربران، کیف پول، سفارشات، سرویس‌ها، کدهای تخفیف، تنظیمات) می‌باشد."
                     )
@@ -432,7 +434,7 @@ async def auto_backup_loop(bot, session_factory) -> None:
                     try:
                         backups_dir = Path("backups")
                         if backups_dir.exists():
-                            now_ts = datetime.now().timestamp()
+                            now_ts = datetime.now(timezone.utc).timestamp()
                             retention_secs = 7 * 86400
                             for old_f in backups_dir.glob("remnabot_backup_*"):
                                 if old_f.is_file() and (now_ts - old_f.stat().st_mtime) > retention_secs:

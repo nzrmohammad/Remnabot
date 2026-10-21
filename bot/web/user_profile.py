@@ -343,6 +343,11 @@ async def get_user_me(request: web.Request) -> web.Response:
                     )
             except Exception as rep_err:
                 logger.debug("Failed reporting panel error: %s", rep_err)
+        finally:
+            if not panel_users_task.done():
+                panel_users_task.cancel()
+            else:
+                _ = panel_users_task.exception() if not panel_users_task.cancelled() else None
 
         active_sub, has_active_sub, accounts_list = await _build_active_subscription(
             remnawave, panel_users, req_account_id, telegram_id, user_auth, session, tz_name, now_dt

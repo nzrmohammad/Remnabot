@@ -482,11 +482,23 @@ async def post_user_purchase(request: web.Request) -> web.Response:
         coupon_repo = CouponRepository(session)
         discount_amount = 0
         coupon_obj = None
+        coupon_usage = None
         if coupon_code:
             is_valid, _, disc = await coupon_repo.validate_coupon(coupon_code, telegram_id, price=service.price)
-            if is_valid:
-                discount_amount = disc
-                coupon_obj = await coupon_repo.get_by_code(coupon_code)
+            if not is_valid:
+                return web.json_response({
+                    "ok": False,
+                    "message": "کد تخفیف وارد شده معتبر نیست یا منقضی شده است."
+                }, status=400)
+            discount_amount = disc
+            coupon_obj = await coupon_repo.get_by_code(coupon_code)
+            if coupon_obj:
+                coupon_usage = await coupon_repo.record_usage(coupon_obj.id, telegram_id, order_id=None, discount_applied=discount_amount)
+                if not coupon_usage:
+                    return web.json_response({
+                        "ok": False,
+                        "message": "کد تخفیف به حداکثر سقف استفاده رسیده است یا قبلاً استفاده شده است."
+                    }, status=400)
 
         chosen_acc = None
         panel_users = await remnawave.get_users_by_telegram_id(telegram_id) or []
@@ -511,6 +523,7 @@ async def post_user_purchase(request: web.Request) -> web.Response:
 
         effective_price = max(0, service.price - discount_amount)
         if not result.ok:
+            await session.rollback()
             if result.kind == "insufficient":
                 return web.json_response({
                     "ok": False,
@@ -552,12 +565,9 @@ async def post_user_purchase(request: web.Request) -> web.Response:
                     pass
             return web.json_response({"ok": False, "message": "خطا در ارتباط با سرور پنل جهت فعال‌سازی سرویس."}, status=500)
 
-        if coupon_obj and result.order_id:
-            try:
-                async with session.begin_nested():
-                    await coupon_repo.record_usage(coupon_obj.id, telegram_id, result.order_id, discount_amount)
-            except Exception as exc:
-                logger.warning("Failed to record coupon usage in TMA purchase: %s", exc)
+        if coupon_usage and result.order_id:
+            coupon_usage.order_id = result.order_id
+            await session.flush()
 
         bot = request.app.get("bot")
         if bot:

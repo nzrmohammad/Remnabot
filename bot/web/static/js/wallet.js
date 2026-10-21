@@ -319,8 +319,7 @@ function startCryptoCountdownTimer(seconds = 2700) {
       }
       try {
         localStorage.removeItem(getActiveCryptoStorageKey());
-        localStorage.removeItem(getActiveCryptoStorageKey());
-    try { localStorage.removeItem('remna_active_crypto_invoice'); } catch (e) {}
+        try { localStorage.removeItem('remna_active_crypto_invoice'); } catch (e) {}
       } catch (e) {}
       updatePendingCardUI(null);
       return;
@@ -376,7 +375,7 @@ function clearActiveCryptoInvoice() {
 
   const timerEl = document.getElementById('cryptoCountdownTimer');
   if (timerEl) {
-    timerEl.innerText = '30:00';
+    timerEl.innerText = '45:00';
     timerEl.classList.remove('text-rose-400', 'bg-rose-500/10', 'border-rose-500/20');
     timerEl.classList.add('text-amber-400', 'bg-amber-500/10', 'border-amber-500/20');
   }
@@ -716,7 +715,8 @@ function setupWalletListeners() {
       const res = await window.api.createCryptoInvoice(amt);
       if (res.ok && res.invoice) {
         currentTopupInvoice = res.invoice;
-        saveActiveCryptoInvoice(res.invoice, 1800);
+        const durationSec = (res.invoice.expires_minutes ? res.invoice.expires_minutes * 60 : 2700);
+        saveActiveCryptoInvoice(res.invoice, durationSec);
         document.getElementById('cryptoInvoiceInitial')?.classList.add('hidden');
         document.getElementById('cryptoInvoiceDetails')?.classList.remove('hidden');
         document.getElementById('cryptoAmountTon').innerText = `${res.invoice.amount_ton} TON`;
@@ -725,7 +725,7 @@ function setupWalletListeners() {
         const targetLink = res.invoice.universal_link || res.invoice.deep_link || '#';
         const tonBtn = document.getElementById('cryptoTonkeeperLink');
         if (tonBtn) tonBtn.href = targetLink;
-        startCryptoCountdownTimer(1800);
+        startCryptoCountdownTimer(durationSec);
       } else {
         showToast(`❌ ${res.message || 'خطا در ایجاد فاکتور کریپتو'}`);
       }

@@ -38,8 +38,10 @@ async def api_rate_limit_middleware(request: web.Request, handler):
     if request.app.get("is_dev", False) or request.method == "OPTIONS":
         return await handler(request)
 
-    from bot.web.auth import get_client_ip
+    from bot.web.auth import get_authenticated_user, get_client_ip
     client_ip = get_client_ip(request)
+    auth_user = get_authenticated_user(request)
+    subject_id = f"user:{auth_user['id']}" if auth_user and auth_user.get("id") else f"ip:{client_ip}"
 
     sensitive_paths = {
         "/api/user/validate_coupon",
@@ -63,7 +65,7 @@ async def api_rate_limit_middleware(request: web.Request, handler):
     # Distributed Redis rate-limiting if Redis is active
     if redis:
         try:
-            rl_key = f"tma:rl:{client_ip}:{'sens' if is_sensitive else 'gen'}"
+            rl_key = f"tma:rl:{subject_id}:{'sens' if is_sensitive else 'gen'}"
             pipe = redis.pipeline()
             pipe.incr(rl_key)
             pipe.expire(rl_key, int(_API_WINDOW))
@@ -77,7 +79,7 @@ async def api_rate_limit_middleware(request: web.Request, handler):
 
     # In-memory rate limiting fallback if Redis is not used or failed
     if not redis_checked:
-        bucket_key = f"{client_ip}:sens" if is_sensitive else f"{client_ip}:gen"
+        bucket_key = f"{subject_id}:sens" if is_sensitive else f"{subject_id}:gen"
         bucket = _api_buckets[bucket_key]
 
         while bucket and now - bucket[0] > _API_WINDOW:

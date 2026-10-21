@@ -207,6 +207,8 @@ class TelegramErrorLogHandler(logging.Handler):
         super().__init__(level=logging.ERROR)
         self.bot = bot
         self.session_factory = session_factory
+        self._recent_errors: dict[str, float] = {}
+        self._active_tasks: set[asyncio.Task] = set()
 
     def emit(self, record: logging.LogRecord) -> None:
         # Prevent recursion and loop storms
@@ -248,6 +250,21 @@ class TelegramErrorLogHandler(logging.Handler):
         if not loop.is_running():
             return
 
+        # Throttle repetitive errors to prevent log storms
+        now = time.monotonic()
+        if len(self._recent_errors) > 100:
+            self._recent_errors = {k: ts for k, ts in self._recent_errors.items() if now - ts < 60.0}
+
+        dedup_key = f"{record.name}:{record.lineno}:{str(record.getMessage())[:80]}"
+        last_seen = self._recent_errors.get(dedup_key)
+        if last_seen and now - last_seen < 30.0:
+            return
+        self._recent_errors[dedup_key] = now
+
+        # Limit concurrent alert tasks to at most 5
+        if len(self._active_tasks) >= 5:
+            return
+
         tb_str = ""
         if record.exc_info and record.exc_info[1]:
             exc_obj: Exception | str = record.exc_info[1]
@@ -260,7 +277,7 @@ class TelegramErrorLogHandler(logging.Handler):
             exc_obj = record.getMessage()
 
         context = f"Logger: {record.name} ({record.filename}:{record.lineno})"
-        loop.create_task(
+        task = loop.create_task(
             report_error(
                 bot=self.bot,
                 session_factory=self.session_factory,
@@ -269,6 +286,8 @@ class TelegramErrorLogHandler(logging.Handler):
                 traceback_str=tb_str,
             )
         )
+        self._active_tasks.add(task)
+        task.add_done_callback(self._active_tasks.discard)
 
 
 def setup_telegram_error_logging(bot: Bot, session_factory: async_sessionmaker) -> TelegramErrorLogHandler:

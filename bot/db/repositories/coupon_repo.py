@@ -3,6 +3,7 @@ import logging
 from datetime import datetime, timezone
 
 from sqlalchemy import func, or_, select, text, update
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from bot.db.models import Coupon, CouponUsage
@@ -133,8 +134,16 @@ class CouponRepository:
             order_id=order_id,
             discount_applied=discount_applied,
         )
-        self.session.add(usage)
-        await self.session.flush()
+        try:
+            self.session.add(usage)
+            await self.session.flush()
+        except IntegrityError:
+            logger.warning(
+                "Coupon %s duplicate usage prevented for user %s",
+                coupon_obj.code if coupon_obj else coupon,
+                telegram_id,
+            )
+            return None
         return usage
 
     async def get_usages(self, coupon_id: int) -> list[CouponUsage]:

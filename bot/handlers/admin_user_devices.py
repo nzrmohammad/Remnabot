@@ -6,7 +6,7 @@ from aiogram.types import CallbackQuery
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from bot.common import SEPARATOR, is_admin
+from bot.common import SEPARATOR, is_admin, safe_split_cb
 from bot.db.repositories.admin_log_repo import AdminLogRepository
 from bot.db.repositories.user_repo import UserRepository
 from bot.locales.texts import t
@@ -27,7 +27,10 @@ async def panel_user_hwid_limit_picker(
         await call.answer(t("fa", "not_authorized"), show_alert=True)
         return
 
-    parts = call.data.split(":")
+    parts = safe_split_cb(call.data, 6)
+    if not parts:
+        await call.answer("دستور منقضی یا نامعتبر است.", show_alert=True)
+        return
     p_id = int(parts[3])
     cat = parts[4]
     page = int(parts[5])
@@ -59,7 +62,10 @@ async def panel_user_hwid_limit_set(
 
     from bot.handlers.admin_user_detail import _render_panel_user_detail
 
-    parts = call.data.split(":")
+    parts = safe_split_cb(call.data, 7)
+    if not parts:
+        await call.answer("دستور منقضی یا نامعتبر است.", show_alert=True)
+        return
     p_id = int(parts[3])
     val = int(parts[4])
     cat = parts[5]
@@ -86,7 +92,10 @@ async def panel_user_devices_list(
         await call.answer(t("fa", "not_authorized"), show_alert=True)
         return
 
-    parts = call.data.split(":")
+    parts = safe_split_cb(call.data, 6)
+    if not parts:
+        await call.answer("دستور منقضی یا نامعتبر است.", show_alert=True)
+        return
     p_id = int(parts[3])
     cat = parts[4]
     page = int(parts[5])
@@ -123,7 +132,10 @@ async def panel_user_device_delete(
         await call.answer(t("fa", "not_authorized"), show_alert=True)
         return
 
-    parts = call.data.split(":")
+    parts = safe_split_cb(call.data, 7)
+    if not parts:
+        await call.answer("دستور منقضی یا نامعتبر است.", show_alert=True)
+        return
     p_id = int(parts[3])
     hwid = parts[4]
     cat = parts[5]

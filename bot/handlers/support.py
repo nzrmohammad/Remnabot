@@ -112,12 +112,14 @@ async def support_forward(
                 import json
                 import time
                 from datetime import datetime
+                from bot.services.formatting import now_tz
+                msg_time = now_tz("Asia/Tehran")
                 user_msg = {
                     "id": str(message.message_id),
                     "sender": "user",
                     "text": message.text or message.caption or "[تصویر / فایل]",
-                    "created_at": datetime.now().strftime("%H:%M"),
-                    "timestamp": int(time.time()),
+                    "created_at": msg_time.strftime("%H:%M"),
+                    "timestamp": int(msg_time.timestamp()),
                 }
                 chat_key = f"support:chat:{user.telegram_id}"
                 raw = await redis.get(chat_key)
@@ -207,12 +209,14 @@ async def admin_support_reply(
                 import json
                 import time
                 from datetime import datetime
+                from bot.services.formatting import now_tz
+                msg_time = now_tz("Asia/Tehran")
                 admin_msg = {
                     "id": str(message.message_id),
                     "sender": "admin",
                     "text": message.text,
-                    "created_at": datetime.now().strftime("%H:%M"),
-                    "timestamp": int(time.time()),
+                    "created_at": msg_time.strftime("%H:%M"),
+                    "timestamp": int(msg_time.timestamp()),
                 }
                 chat_key = f"support:chat:{telegram_id}"
                 raw = await redis.get(chat_key)

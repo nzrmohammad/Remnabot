@@ -54,7 +54,7 @@ async def get_user_subscription_configs(request: web.Request) -> web.Response:
 
     sub_url = ""
     settings = request.app.get("settings")
-    base_remna = getattr(settings, "REMNAWAVE_URL", "") if settings else ""
+    base_remna = (getattr(settings, "REMNAWAVE_BASE_URL", "") or getattr(settings, "REMNAWAVE_URL", "")).strip() if settings else ""
 
     async with db_session(request) as session:
         # 1. Fetch user accounts from Remnawave
@@ -63,10 +63,12 @@ async def get_user_subscription_configs(request: web.Request) -> web.Response:
             target = None
             if account_id_param:
                 for pu in panel_users:
+                    pu_short = pu.get("shortUuid") or pu.get("shortId")
+                    pu_vless = pu.get("vlessUuid") or pu.get("uuid")
                     if (
                         str(pu.get("id")) == str(account_id_param)
-                        or str(pu.get("uuid")) == str(account_id_param)
-                        or str(pu.get("shortId")) == str(account_id_param)
+                        or (pu_short and str(pu_short) == str(account_id_param))
+                        or (pu_vless and str(pu_vless) == str(account_id_param))
                     ):
                         target = pu
                         break
@@ -75,8 +77,9 @@ async def get_user_subscription_configs(request: web.Request) -> web.Response:
 
             if target:
                 sub_url = target.get("subscriptionUrl") or target.get("subscription_url") or ""
-                if not sub_url and target.get("uuid") and base_remna:
-                    sub_url = f"{base_remna.rstrip('/')}/api/sub/{target['uuid']}"
+                target_sub_id = target.get("shortUuid") or target.get("vlessUuid") or target.get("uuid") or target.get("shortId")
+                if not sub_url and target_sub_id and base_remna:
+                    sub_url = f"{base_remna.rstrip('/')}/api/sub/{target_sub_id}"
                 elif sub_url and sub_url.startswith("/") and base_remna:
                     sub_url = urllib.parse.urljoin(base_remna, sub_url)
         except Exception as exc:

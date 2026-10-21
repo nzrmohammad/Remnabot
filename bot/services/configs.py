@@ -211,7 +211,7 @@ async def _fetch_subscription_configs_impl(url: str, timeout: float = 2.5) -> li
     from bot.config import get_settings
     settings = get_settings()
     proxy = settings.IRAN_PROXY.strip() if getattr(settings, "IRAN_PROXY", "") else None
-    base_remna = getattr(settings, "REMNAWAVE_URL", "").strip() if settings else ""
+    base_remna = (getattr(settings, "REMNAWAVE_BASE_URL", "") or getattr(settings, "REMNAWAVE_URL", "")).strip() if settings else ""
 
     candidate_urls: list[str] = [url]
 
@@ -242,21 +242,18 @@ async def _fetch_subscription_configs_impl(url: str, timeout: float = 2.5) -> li
         parsed_base = urllib.parse.urlparse(base_remna)
         if parsed_orig.netloc.lower() != parsed_base.netloc.lower():
             orig_path = parsed_orig.path or ""
-            api_path = orig_path if orig_path.startswith("/api/sub/") else ("/api" + orig_path if orig_path.startswith("/sub/") else orig_path)
-            sub_path = orig_path.replace("/api/sub/", "/sub/") if orig_path.startswith("/api/sub/") else orig_path
+            if orig_path.startswith("/api/sub/"):
+                api_path = orig_path
+            elif orig_path.startswith("/sub/"):
+                api_path = "/api" + orig_path
+            else:
+                clean_seg = orig_path.lstrip("/")
+                api_path = f"/api/sub/{clean_seg}"
 
             candidate_urls.append(urllib.parse.urlunparse((
                 parsed_base.scheme,
                 parsed_base.netloc,
                 api_path,
-                "",
-                parsed_orig.query,
-                "",
-            )))
-            candidate_urls.append(urllib.parse.urlunparse((
-                parsed_base.scheme,
-                parsed_base.netloc,
-                sub_path,
                 "",
                 parsed_orig.query,
                 "",
@@ -285,25 +282,38 @@ async def _fetch_subscription_configs_impl(url: str, timeout: float = 2.5) -> li
 
         for p in attempts:
             try:
-                async with httpx.AsyncClient(verify=False, follow_redirects=True, timeout=timeout, proxy=p) as client:
-                    resp = await client.get(target_url, headers={"User-Agent": primary_ua, "Accept": "*/*"})
-                    if resp.status_code == 200 and resp.text.strip():
-                        text_body = resp.text.strip()
-                        if not text_body.lower().startswith(("<!doctype", "<html")):
-                            configs = parse_subscription_text(text_body)
-                            if configs:
-                                logger.info("Successfully fetched %d configs from %s", len(configs), target_url)
-                                return configs
-                    elif resp.status_code in (403, 406):
-                        for alt_ua in fallback_uas:
-                            alt_resp = await client.get(target_url, headers={"User-Agent": alt_ua, "Accept": "*/*"})
-                            if alt_resp.status_code == 200 and alt_resp.text.strip():
-                                text_body = alt_resp.text.strip()
-                                if not text_body.lower().startswith(("<!doctype", "<html")):
-                                    configs = parse_subscription_text(text_body)
-                                    if configs:
-                                        return configs
+                resp = None
+                try:
+                    async with httpx.AsyncClient(verify=True, follow_redirects=True, timeout=timeout, proxy=p) as client:
+                        resp = await client.get(target_url, headers={"User-Agent": primary_ua, "Accept": "*/*"})
+                except Exception as cert_err:
+                    logger.debug("SSL verify=True failed for %s (%s), retrying with verify=False", target_url, cert_err)
+                    async with httpx.AsyncClient(verify=False, follow_redirects=True, timeout=timeout, proxy=p) as client:
+                        resp = await client.get(target_url, headers={"User-Agent": primary_ua, "Accept": "*/*"})
+
+                if resp is not None and resp.status_code == 200 and resp.text.strip():
+                    text_body = resp.text.strip()
+                    if not text_body.lower().startswith(("<!doctype", "<html")):
+                        configs = parse_subscription_text(text_body)
+                        if configs:
+                            logger.info("Successfully fetched %d configs from %s", len(configs), target_url)
+                            return configs
+                elif resp is not None and resp.status_code in (403, 406):
+                    for alt_ua in fallback_uas:
+                        alt_resp = None
+                        try:
+                            async with httpx.AsyncClient(verify=True, follow_redirects=True, timeout=timeout, proxy=p) as client:
+                                alt_resp = await client.get(target_url, headers={"User-Agent": alt_ua, "Accept": "*/*"})
+                        except Exception:
+                            async with httpx.AsyncClient(verify=False, follow_redirects=True, timeout=timeout, proxy=p) as client:
+                                alt_resp = await client.get(target_url, headers={"User-Agent": alt_ua, "Accept": "*/*"})
+                        if alt_resp and alt_resp.status_code == 200 and alt_resp.text.strip():
+                            text_body = alt_resp.text.strip()
+                            if not text_body.lower().startswith(("<!doctype", "<html")):
+                                configs = parse_subscription_text(text_body)
+                                if configs:
+                                    return configs
             except Exception as exc:
-                logger.debug("Subscription attempt failed for %s (proxy=%s): %s", target_url, p, exc)
+                logger.warning("Subscription attempt failed for %s (proxy=%s): %s", target_url, p, exc)
 
     return []

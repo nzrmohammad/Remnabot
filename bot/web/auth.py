@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 def validate_telegram_init_data(
     init_data_raw: str,
     bot_token: str,
-    max_age_seconds: int = 86400,
+    max_age_seconds: int = 14400,
 ) -> dict[str, Any] | None:
     """Validate raw initData string received from Telegram WebApp.
 

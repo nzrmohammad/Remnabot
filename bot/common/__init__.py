@@ -3,6 +3,11 @@ def is_admin(user_id: int) -> bool:
     return guards.is_admin(user_id)
 
 
+def safe_split_cb(data: str | None, min_parts: int, separator: str = ":") -> list[str] | None:
+    from bot.common import guards
+    return guards.safe_split_cb(data, min_parts, separator)
+
+
 from bot.common.helpers import get_limit_bytes, get_online_at, get_used_bytes, parse_int
 from bot.common.links import ad_link, ref_link
 from bot.common.ui import (
@@ -15,6 +20,7 @@ from bot.common.ui import (
 
 __all__ = [
     "is_admin",
+    "safe_split_cb",
     "SEPARATOR",
     "parse_int",
     "fmt",

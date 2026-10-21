@@ -47,6 +47,7 @@ from bot.web.cache import FastCache
 logger = logging.getLogger(__name__)
 
 _BROADCAST_STATUSES: dict[str, dict[str, Any]] = {}
+_BACKGROUND_TASKS: set[asyncio.Task] = set()
 
 
 async def post_admin_broadcast(request: web.Request) -> web.Response:
@@ -80,6 +81,12 @@ async def post_admin_broadcast(request: web.Request) -> web.Response:
     async with db_session(request) as session:
         recipients = await _resolve_broadcast_recipients(session, remnawave, target)
 
+    # Prevent unbounded memory growth by retaining at most 50 recent broadcast records
+    if len(_BROADCAST_STATUSES) > 50:
+        oldest_keys = list(_BROADCAST_STATUSES.keys())[:-40]
+        for ok in oldest_keys:
+            _BROADCAST_STATUSES.pop(ok, None)
+
     broadcast_id = f"bcast_{int(datetime.now(timezone.utc).timestamp())}_{len(recipients)}"
     _BROADCAST_STATUSES[broadcast_id] = {
         "id": broadcast_id,
@@ -99,15 +106,18 @@ async def post_admin_broadcast(request: web.Request) -> web.Response:
                 await bot.send_message(chat_id=tid, text=text, parse_mode="HTML")
                 st["sent"] += 1
                 await asyncio.sleep(0.04)  # ~25 messages/sec rate limit
-            except Exception:
+            except Exception as exc:
                 st["failed"] += 1
+                logger.debug("Broadcast send error for user %s: %s", tid, exc)
         st["is_completed"] = True
         logger.info(
             "Admin broadcast completed: id=%s target=%s sent=%d failed=%d",
             broadcast_id, target, st["sent"], st["failed"]
         )
 
-    asyncio.create_task(_broadcast_worker())
+    task = asyncio.create_task(_broadcast_worker())
+    _BACKGROUND_TASKS.add(task)
+    task.add_done_callback(_BACKGROUND_TASKS.discard)
     return web.json_response({
         "ok": True,
         "broadcast_id": broadcast_id,
