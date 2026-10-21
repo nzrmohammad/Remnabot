@@ -948,6 +948,11 @@
           tooltip: {
             rtl: true,
             textDirection: 'rtl',
+            backgroundColor: isDark ? '#0f172a' : '#ffffff',
+            titleColor: isDark ? '#ffffff' : '#0f172a',
+            bodyColor: isDark ? tc.warn : '#b45309',
+            borderColor: isDark ? '#334155' : '#e2e8f0',
+            borderWidth: 1,
             callbacks: {
               label: (ctx) => `ساعت ${ctx.label}: ${fmtTraffic(ctx.raw, { html: false, isolate: true })}`
             }

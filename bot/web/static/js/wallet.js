@@ -423,27 +423,55 @@ async function openTopupModal(defaultAmt, forceCrypto = false) {
   const inputEl = document.getElementById('topupAmountInput');
   if (inputEl) inputEl.value = amt;
   updateTopupDisplays(amt);
+
+  // Apply cached storeSettings immediately if available
+  const s = window.storeSettings;
+  if (s) {
+    const hasActiveCrypto = restoreActiveCryptoInvoice();
+    const anyEnabled = s.card_enabled !== false || s.stars_enabled !== false || s.crypto_enabled !== false;
+    if (!anyEnabled || (s.card_enabled === false && s.stars_enabled === false && s.crypto_enabled === false)) {
+      document.getElementById('topupMethodTabs')?.classList.add('hidden');
+      document.getElementById('topupAmountSection')?.classList.add('hidden');
+      document.getElementById('topupCardView')?.classList.add('hidden');
+      document.getElementById('topupStarsView')?.classList.add('hidden');
+      document.getElementById('topupCryptoView')?.classList.add('hidden');
+      document.getElementById('topupAllDisabledState')?.classList.remove('hidden');
+    } else if ((hasActiveCrypto || forceCrypto) && s.crypto_enabled !== false) {
+      switchToCryptoTab();
+    } else if (s.card_enabled !== false) {
+      switchToCardTab();
+    } else if (s.stars_enabled !== false) {
+      switchTopupTab('stars');
+    } else if (s.crypto_enabled !== false) {
+      switchToCryptoTab();
+    }
+  }
+
+  // Open modal immediately with 0ms delay
+  openModal('topupModal');
+
+  // Load/refresh settings in background (SWR pattern)
   await loadTopupInfo();
-  const hasActiveCrypto = restoreActiveCryptoInvoice();
-  const s = window.storeSettings || {};
-  const anyEnabled = s.card_enabled !== false || s.stars_enabled !== false || s.crypto_enabled !== false;
-  if (!anyEnabled || (s.card_enabled === false && s.stars_enabled === false && s.crypto_enabled === false)) {
+
+  const sFresh = window.storeSettings || {};
+  const hasActiveCryptoFresh = restoreActiveCryptoInvoice();
+  const anyEnabledFresh = sFresh.card_enabled !== false || sFresh.stars_enabled !== false || sFresh.crypto_enabled !== false;
+  if (!anyEnabledFresh || (sFresh.card_enabled === false && sFresh.stars_enabled === false && sFresh.crypto_enabled === false)) {
     document.getElementById('topupMethodTabs')?.classList.add('hidden');
     document.getElementById('topupAmountSection')?.classList.add('hidden');
     document.getElementById('topupCardView')?.classList.add('hidden');
     document.getElementById('topupStarsView')?.classList.add('hidden');
     document.getElementById('topupCryptoView')?.classList.add('hidden');
     document.getElementById('topupAllDisabledState')?.classList.remove('hidden');
-  } else if ((hasActiveCrypto || forceCrypto) && s.crypto_enabled !== false) {
+  } else if ((hasActiveCryptoFresh || forceCrypto) && sFresh.crypto_enabled !== false) {
     switchToCryptoTab();
-  } else if (s.card_enabled !== false) {
+  } else if (sFresh.card_enabled !== false) {
     switchToCardTab();
-  } else if (s.stars_enabled !== false) {
+  } else if (sFresh.stars_enabled !== false) {
     switchTopupTab('stars');
-  } else if (s.crypto_enabled !== false) {
+  } else if (sFresh.crypto_enabled !== false) {
     switchToCryptoTab();
   }
-  openModal('topupModal');
 }
 
 function setupWalletListeners() {
@@ -789,6 +817,8 @@ function setupWalletListeners() {
   }
 
   restoreActiveCryptoInvoice();
+  // Pre-fetch topup settings in background for instant modal responsiveness
+  loadTopupInfo().catch(() => {});
 }
 
 window.renderWalletTransactions = renderWalletTransactions;

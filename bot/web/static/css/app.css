@@ -450,10 +450,9 @@ html.theme-light .won-coupon-apply-btn:hover {
   background-color: #fde68a;
 }
 html.theme-light #shopCouponSection {
-  background-color: var(--card-inner-bg);
-  border: 1px solid var(--frame-border);
-  border-radius: 0.75rem;
-  padding: 0.625rem;
+  background: transparent;
+  border: none;
+  padding: 0;
 }
 .won-coupon-apply-btn:hover {
   background-color: rgba(245, 158, 11, 0.12);
@@ -968,7 +967,7 @@ html.theme-light .lucky-wheel-entry-btn .text-amber-300 {
 html.theme-light .lucky-wheel-entry-btn .lucky-wheel-sub,
 html.theme-light .lucky-wheel-entry-btn .text-slate-300 {
   color: #92400e;
-  font-weight: 600;
+  font-weight: 500;
 }
 
 html.theme-light .story-entry-btn {
@@ -986,7 +985,7 @@ html.theme-light .story-entry-btn .text-purple-300 {
 html.theme-light .story-entry-btn .story-sub,
 html.theme-light .story-entry-btn .text-slate-300 {
   color: #6b21a8;
-  font-weight: 600;
+  font-weight: 500;
 }
 
 /* User Profile Identity Hero Card in Light Theme */
@@ -1832,12 +1831,12 @@ html.theme-light .speedtest-title,
 html.theme-light .speedtest-entry-btn:hover .speedtest-title {
   color: #064e3b;
   font-weight: 900;
-  font-size: 13px;
+  font-size: 0.75rem;
 }
 html.theme-light .speedtest-sub,
 html.theme-light .speedtest-entry-btn:hover .speedtest-sub {
   color: #334155;
-  font-weight: 600;
+  font-weight: 500;
 }
 html.theme-light .speedtest-entry-btn .bg-slate-900\/60 {
   background-color: var(--card-bg);

@@ -23,6 +23,14 @@ async def get_user_topup_info(request: web.Request) -> web.Response:
     if err:
         return err
 
+    user_id = user_auth["id"]
+    cache = request.app.get("cache")
+    cache_key = f"tma:user:{user_id}:topup_info"
+    if cache and hasattr(cache, "get"):
+        cached_data = await cache.get(cache_key)
+        if cached_data is not None:
+            return web.json_response(cached_data)
+
     from bot.services.app_settings import get_store_settings
     from bot.db.repositories.user_repo import UserRepository
 
@@ -42,7 +50,7 @@ async def get_user_topup_info(request: web.Request) -> web.Response:
             if require_phone and not is_phone_verified
             else None
         )
-        return web.json_response({
+        payload = {
             "ok": True,
             "min_amount": store.topup_min_amount,
             "card_enabled": bool(store.card_enabled and store.card_number and store.card_number.strip()),
@@ -60,7 +68,10 @@ async def get_user_topup_info(request: web.Request) -> web.Response:
                 if isinstance(getattr(store, "stars_rate_toman", None), (int, float)) and getattr(store, "stars_rate_toman", 0) > 0
                 else max(100, round((getattr(store, "usdt_rate_toman", 95000) if isinstance(getattr(store, "usdt_rate_toman", None), (int, float)) and getattr(store, "usdt_rate_toman", 0) > 0 else 95000) * 0.013))
             ),
-        })
+        }
+        if cache and hasattr(cache, "set"):
+            await cache.set(cache_key, payload, ttl_seconds=60)
+        return web.json_response(payload)
 
 
 async def post_user_topup_card(request: web.Request) -> web.Response:

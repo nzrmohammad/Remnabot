@@ -110,7 +110,29 @@
   async function detectEngineAndNetwork(signal) {
     const userIpEl = getEl('speedUserIp');
 
-    // 1. Client-side IP detection via ipwho.is (CORS enabled)
+    // 1. Primary: Server ping probe (instant, reliable, works inside Iran without VPN)
+    try {
+      let pingData = null;
+      if (window.api && typeof window.api.get === 'function') {
+        pingData = await window.api.get(`/api/user/speedtest/ping?_t=${Date.now()}`);
+      } else if (window.api && typeof window.api.request === 'function') {
+        const res = await window.api.request(`/api/user/speedtest/ping?_t=${Date.now()}`, {
+          method: 'GET',
+          cache: 'no-store',
+          signal,
+        });
+        pingData = res?.data || res;
+      }
+      const detectedIp = pingData?.ip || pingData?.data?.ip;
+      const detectedIsp = pingData?.isp || pingData?.data?.isp;
+      if (detectedIp && userIpEl) {
+        userIpEl.innerText = detectedIp;
+        if (detectedIsp) userIpEl.title = detectedIsp;
+        return;
+      }
+    } catch (e) {}
+
+    // 2. Fallback: Client-side IP detection via ipwho.is
     try {
       const resp = await fetch('https://ipwho.is/', {
         method: 'GET',
@@ -122,20 +144,6 @@
         if (data && data.success && data.ip && userIpEl) {
           userIpEl.innerText = data.ip;
           return;
-        }
-      }
-    } catch (e) {}
-
-    // 2. Fallback to server ping endpoint
-    try {
-      if (window.api && typeof window.api.request === 'function') {
-        const data = await window.api.request(`/api/user/speedtest/ping?_t=${Date.now()}`, {
-          method: 'GET',
-          cache: 'no-store',
-          signal,
-        });
-        if (data && data.ip && userIpEl) {
-          userIpEl.innerText = data.ip;
         }
       }
     } catch (e) {}

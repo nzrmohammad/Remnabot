@@ -233,11 +233,11 @@ const api = {
   },
 
   async getSubscriptionConfigs(accountId = null) {
-    let url = '/api/user/subscription/configs';
+    const params = {};
     if (accountId) {
-      url += `?account_id=${accountId}`;
+      params.account_id = accountId;
     }
-    return this.get(url);
+    return this.get('/api/user/subscription/configs', params);
   },
 
   // Admin Suite Endpoints

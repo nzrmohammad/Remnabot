@@ -1,15 +1,12 @@
-from bot.web.user_common import db_session, require_user
 """Subscription configuration endpoints for Telegram Mini App."""
 import logging
-
+import urllib.parse
 from aiohttp import web
 from sqlalchemy import select
-
 from bot.db.models import Order
 from bot.services.configs import fetch_subscription_configs
 from bot.web.cache import FastCache
-
-logger = logging.getLogger(__name__)
+from bot.web.user_common import db_session, require_user
 
 COUNTRY_MAP = [
     ("🇩🇪", "آلمان", ["de", "germany", "frankfurt", "berlin"]),
@@ -65,6 +62,11 @@ async def get_user_subscription_configs(request: web.Request) -> web.Response:
 
             if target:
                 sub_url = target.get("subscriptionUrl") or target.get("subscription_url") or ""
+                if sub_url and sub_url.startswith("/"):
+                    settings = request.app.get("settings")
+                    base_remna = getattr(settings, "REMNAWAVE_URL", "") if settings else ""
+                    if base_remna:
+                        sub_url = urllib.parse.urljoin(base_remna, sub_url)
         except Exception as exc:
             logger.warning("Error fetching panel users for configs %s: %s", telegram_id, exc)
 

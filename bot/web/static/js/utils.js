@@ -468,9 +468,10 @@ function getDonutPalette(isLight = false) {
 
 function getChartThemeTokens(isLight = false) {
   const tooltip = {
-    bg: isLight ? '#1e293b' : '#0f172a',
-    title: '#ffffff',
+    bg: isLight ? '#ffffff' : '#0f172a',
+    title: isLight ? '#0f172a' : '#ffffff',
     body: isLight ? '#0369a1' : '#22d3ee',
+    border: isLight ? '#e2e8f0' : '#334155',
   };
   const tooltipBg = tooltip.bg;
   const tooltipTitle = tooltip.title;

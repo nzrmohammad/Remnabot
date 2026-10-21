@@ -85,21 +85,37 @@ def parse_subscription_text(text: str) -> list[dict[str, str]]:
 
 
 async def fetch_subscription_configs(url: str, timeout: float = 10.0) -> list[dict[str, str]]:
-    """Download subscription content and return parsed configs."""
+    """Download subscription content and return parsed configs with proxy & multi-UA resilience."""
     if not url or not url.startswith(("http://", "https://")):
         return []
 
-    headers = {
-        "User-Agent": "v2rayNG/1.8.5",
-        "Accept": "*/*",
-    }
-    try:
-        async with httpx.AsyncClient(verify=False, follow_redirects=True, timeout=timeout) as client:
-            resp = await client.get(url, headers=headers)
-            if resp.status_code != 200:
-                logger.warning("Subscription fetch failed: HTTP %s for %s", resp.status_code, url)
-                return []
-            return parse_subscription_text(resp.text)
-    except Exception as exc:
-        logger.warning("Subscription fetch exception for %s: %s", url, exc)
-        return []
+    from bot.config import get_settings
+    settings = get_settings()
+    proxy = settings.IRAN_PROXY.strip() if getattr(settings, "IRAN_PROXY", "") else None
+
+    user_agents = [
+        "v2rayNG/1.8.5",
+        "ClashMeta",
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36",
+    ]
+
+    for ua in user_agents:
+        headers = {
+            "User-Agent": ua,
+            "Accept": "*/*",
+        }
+        attempts = [None]
+        if proxy:
+            attempts.append(proxy)
+        for p in attempts:
+            try:
+                async with httpx.AsyncClient(verify=False, follow_redirects=True, timeout=timeout, proxy=p) as client:
+                    resp = await client.get(url, headers=headers)
+                    if resp.status_code == 200 and resp.text.strip():
+                        configs = parse_subscription_text(resp.text)
+                        if configs:
+                            return configs
+            except Exception as exc:
+                logger.debug("Subscription fetch attempt failed (ua=%s, proxy=%s): %s", ua, p, exc)
+
+    return []

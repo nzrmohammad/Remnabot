@@ -34,7 +34,7 @@ async def _lookup_isp(client_ip: str) -> str:
 
     try:
         async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=1.2)) as session:
-            async with session.get(f"http://ip-api.com/json/{client_ip}?fields=status,isp,org") as resp:
+            async with session.get(f"https://ip-api.com/json/{client_ip}?fields=status,isp,org") as resp:
                 if resp.status == 200:
                     data = await resp.json()
                     if data.get("status") == "success":
