@@ -201,8 +201,9 @@ async def fetch_all_exchange_prices(usdt_rate: int | None = None) -> dict:
         or usdt_rate
         or getattr(settings, "USDT_RATE_TOMAN", 0)
     )
+    effective_usdt = int(effective_usdt or 0)
 
-    if best_ton_price is None and binance_ton_usd:
+    if best_ton_price is None and binance_ton_usd and effective_usdt > 0:
         best_ton_price = int(round(binance_ton_usd * effective_usdt))
         best_ton_source = f"بایننس (${binance_ton_usd:.2f})"
 
@@ -223,7 +224,7 @@ async def fetch_all_exchange_prices(usdt_rate: int | None = None) -> dict:
             if u_price > 0:
                 eur_prices[exch_name] = int(round(u_price * eur_rate_mult))
 
-    if binance_eur_usd and "بایننس" not in eur_prices:
+    if binance_eur_usd and "بایننس" not in eur_prices and effective_usdt > 0:
         eur_prices["بایننس"] = int(round(binance_eur_usd * effective_usdt))
 
     best_eur_price: int | None = None

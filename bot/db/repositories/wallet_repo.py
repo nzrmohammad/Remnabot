@@ -25,6 +25,10 @@ class WalletRepository:
             await self.session.flush()
         return wallet
 
+    async def get_balance(self, telegram_id: int) -> int:
+        wallet = await self.get_wallet(telegram_id)
+        return wallet.balance if wallet else 0
+
     async def add_balance_atomic(self, telegram_id: int, amount: int) -> int:
         """Atomic credit that never loses concurrent updates.
 

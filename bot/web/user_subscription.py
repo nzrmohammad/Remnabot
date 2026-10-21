@@ -99,7 +99,7 @@ async def get_user_subscription_configs(request: web.Request) -> web.Response:
         name_lower = name.lower()
 
         # Check existing emoji in name
-        for f, c_name, keywords in COUNTRY_MAP:
+        for f, c_name, _keywords in COUNTRY_MAP:
             if f in name:
                 flag = f
                 country_name = c_name

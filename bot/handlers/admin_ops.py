@@ -285,7 +285,6 @@ router.include_router(_admin_topups_router)
 # Broadcast - delegated to bot.handlers.admin_broadcast
 # --------------------------------------------------------------------- #
 from bot.handlers.admin_broadcast import (
-    BROADCAST_CONFIRM_KEY,
     _resolve_broadcast_recipients,
     broadcast_audience_select,
     broadcast_target_picked,

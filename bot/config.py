@@ -98,8 +98,8 @@ class Settings(BaseSettings):
             parts = [p.strip() for p in v.replace(" ", ",").split(",") if p.strip()]
             try:
                 return [int(p) for p in parts]
-            except ValueError:
-                raise ValueError(f"bad ADMIN_IDS: {v}")
+            except ValueError as err:
+                raise ValueError(f"bad ADMIN_IDS: {v}") from err
         return []
 
     @field_validator(

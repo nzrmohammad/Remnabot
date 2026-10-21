@@ -18,8 +18,8 @@ logger = logging.getLogger(__name__)
 async def get_user_support_messages(request: web.Request) -> web.Response:
     """Fetch existing chat messages for authenticated user from support Redis thread."""
     user_auth, err = require_user(request)
-    if err:
-        return err
+    if err or not user_auth:
+        return err or web.json_response({"ok": False, "error": "Unauthorized"}, status=401)
 
     telegram_id = int(user_auth["id"])
     cache: FastCache = request.app["cache"]
@@ -31,8 +31,8 @@ async def get_user_support_messages(request: web.Request) -> web.Response:
 async def post_user_support_message(request: web.Request) -> web.Response:
     """Send user message from TMA chat modal directly to Telegram support group/admin."""
     user_auth, err = require_user(request)
-    if err:
-        return err
+    if err or not user_auth:
+        return err or web.json_response({"ok": False, "error": "Unauthorized"}, status=401)
 
     telegram_id = int(user_auth["id"])
     try:

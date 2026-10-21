@@ -2000,12 +2000,7 @@ function updateTopPadding() {
 
 function syncTelegramBackButton() {
   if (!tg?.BackButton) return;
-  const modalIds = [
-    'revokeModal', 'switchAccountModal', 'activeSessionsModal',
-    'topupModal', 'luckyWheelModal', 'storyModal', 'storyCardModal',
-    'supportChatModal', 'purchaseSuccessModal',
-    'qrModal', 'checkoutConfirmModal', 'configsModal', 'tutorialModal'
-  ];
+  const modalIds = APP_MODAL_IDS;
   const hasOpenModal = modalIds.some(id => {
     const el = $(id);
     return el && !el.classList.contains('hidden');
@@ -2050,12 +2045,7 @@ function setupTelegramSDK() {
 
     if (tg.BackButton) {
       tg.BackButton.onClick(() => {
-        const modalIds = [
-          'revokeModal', 'switchAccountModal', 'activeSessionsModal',
-          'topupModal', 'luckyWheelModal', 'storyModal', 'storyCardModal',
-          'supportChatModal', 'purchaseSuccessModal',
-          'qrModal', 'checkoutConfirmModal', 'configsModal', 'tutorialModal'
-        ];
+        const modalIds = APP_MODAL_IDS;
         for (const id of modalIds) {
           const el = $(id);
           if (el && !el.classList.contains('hidden')) {

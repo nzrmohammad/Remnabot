@@ -18,7 +18,7 @@ from bot.db.repositories.user_repo import UserRepository
 from bot.locales.texts import t
 from bot.services.app_settings import get_store_settings
 from bot.services.formatting import format_datetime, now_tz
-from bot.services.purchases import calc_price, receipt_price_lines
+from bot.services.purchases import calc_price, receipt_price_lines, record_coupon_usage_if_any
 from bot.services.remnawave import RemnawaveClient
 from bot.services.service_display import service_block
 

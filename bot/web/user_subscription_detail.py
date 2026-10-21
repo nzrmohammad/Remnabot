@@ -254,6 +254,7 @@ def calc_usage_curves(
     base_curve_gb = today_used_gb if today_used_gb > 0 else (round(week_used_gb / 7.0, 2) if week_used_gb > 0 else 0.0)
 
     hourly_curve_labels = [f"{h:02d}-{h+2:02d}" for h in range(0, 24, 2)]
+    has_real_data = False
     if not has_traffic or base_curve_gb <= 0.0:
         hourly_curve_vals = [0.0] * 12
         peak_hour_str = None

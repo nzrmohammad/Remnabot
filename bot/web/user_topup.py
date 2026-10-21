@@ -453,7 +453,8 @@ async def post_user_redeem_voucher(request: web.Request) -> web.Response:
             return web.json_response({"ok": False, "message": msg}, status=400)
 
         await session.commit()
-        new_balance = await wallet_repo.get_balance(telegram_id)
+        wallet = await wallet_repo.get_wallet(telegram_id)
+        new_balance = wallet.balance if wallet else 0
         cache: FastCache = request.app.get("cache")
         if cache:
             await cache.delete(f"tma:user:{telegram_id}:profile")

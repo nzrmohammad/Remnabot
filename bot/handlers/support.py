@@ -109,7 +109,8 @@ async def support_forward(
         try:
             redis = getattr(state.storage, "redis", None)
             if redis:
-                import json, time
+                import json
+                import time
                 from datetime import datetime
                 user_msg = {
                     "id": str(message.message_id),
@@ -203,7 +204,8 @@ async def admin_support_reply(
         try:
             redis = getattr(state.storage, "redis", None)
             if redis and message.text:
-                import json, time
+                import json
+                import time
                 from datetime import datetime
                 admin_msg = {
                     "id": str(message.message_id),

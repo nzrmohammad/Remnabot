@@ -206,15 +206,22 @@ function formatCountdown(sec) {
   return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
 }
 
-// Modal open/close helpers
+// Modal open/close helpers with background scroll lock
 function openModal(id) {
   const el = document.getElementById(id);
-  if (el) el.classList.remove('hidden');
+  if (el) {
+    el.classList.remove('hidden');
+    document.body.classList.add('modal-open');
+  }
 }
 
 function closeModal(id) {
   const el = document.getElementById(id);
   if (el) el.classList.add('hidden');
+  const anyOpen = document.querySelector('[id$="Modal"]:not(.hidden)');
+  if (!anyOpen) {
+    document.body.classList.remove('modal-open');
+  }
 }
 
 // DRY Accordion setup helper

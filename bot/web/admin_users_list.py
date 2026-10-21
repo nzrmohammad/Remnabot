@@ -193,7 +193,7 @@ async def get_admin_users(request: web.Request) -> web.Response:
     panel_fetch_results = await asyncio.gather(*[_fetch_single_panel(u.telegram_id) for u in users])
     now_utc = datetime.now(timezone.utc)
     user_items = []
-    for u, p_users in zip(users, panel_fetch_results):
+    for u, p_users in zip(users, panel_fetch_results, strict=True):
         item = _serialize_user_item(u, p_users if isinstance(p_users, list) else [], balances, online_ids, now_utc, status_filter)
         if item is not None:
             user_items.append(item)

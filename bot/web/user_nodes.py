@@ -57,8 +57,8 @@ async def get_user_ip_info(request: web.Request) -> web.Response:
 async def post_user_settings(request: web.Request) -> web.Response:
     """Save user settings (language, etc.)."""
     user_auth, err = require_user(request)
-    if err:
-        return err
+    if err or not user_auth:
+        return err or web.json_response({"ok": False, "error": "Unauthorized"}, status=401)
 
     try:
         body = await request.json()

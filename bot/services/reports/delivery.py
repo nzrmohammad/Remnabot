@@ -96,10 +96,11 @@ async def _deliver_admin_report(
     app_repo = AppSettingRepository(session)
 
     # 1. Clean previous admin reports if auto_clean_reports is enabled
+    clean_key = f"last_admin_report_msg_ids_{kind}"
+    if target_user_id:
+        clean_key = f"last_admin_report_msg_ids_{kind}_{target_user_id}"
+
     if getattr(store, "auto_clean_reports", True):
-        clean_key = f"last_admin_report_msg_ids_{kind}"
-        if target_user_id:
-            clean_key = f"last_admin_report_msg_ids_{kind}_{target_user_id}"
 
         try:
             prev_raw = await app_repo.get(clean_key)

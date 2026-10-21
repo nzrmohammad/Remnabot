@@ -375,7 +375,7 @@ async def auto_backup_loop(bot, session_factory) -> None:
                 async with session_factory() as session:
                     raw_backup_path = await create_database_backup(session)
                     backup_pwd = getattr(settings, "BACKUP_PASSWORD", "") or os.environ.get("BACKUP_PASSWORD", "")
-                    backup_path = create_encrypted_backup_archive(raw_backup_path, backup_pwd)
+                    backup_path = await asyncio.to_thread(create_encrypted_backup_archive, raw_backup_path, backup_pwd)
 
                     store = await get_store_settings(session)
                     thread_kwargs = admin_thread_kwargs(store, settings, kind="backups")

@@ -1780,7 +1780,7 @@
 
       const res = await window.api.getAdminUsers(params);
       if (!res || !res.ok) {
-        listContainer.innerHTML = `<div class="p-6 text-center text-rose-400 text-xs">${res?.error || 'خطا در بارگذاری کاربران'}</div>`;
+        listContainer.innerHTML = `<div class="p-6 text-center text-rose-400 text-xs">${escapeHtml(res?.error || 'خطا در بارگذاری کاربران')}</div>`;
         return;
       }
 
@@ -2930,7 +2930,7 @@
       try {
         const res = await window.api.getUserSrh({ telegram_id });
         if (!res || !res.ok) {
-          if (list) list.innerHTML = `<div class="p-4 text-center text-rose-400">${res?.error || 'خطا در دریافت تاریخچه'}</div>`;
+          if (list) list.innerHTML = `<div class="p-4 text-center text-rose-400">${escapeHtml(res?.error || 'خطا در دریافت تاریخچه')}</div>`;
           return;
         }
         const records = res.data || [];
@@ -2983,7 +2983,7 @@
       try {
         const res = await window.api.getUserHwidDevices(telegram_id);
         if (!res || !res.ok) {
-          if (list) list.innerHTML = `<div class="p-4 text-center text-rose-400">${res?.error || 'خطا در دریافت لیست'}</div>`;
+          if (list) list.innerHTML = `<div class="p-4 text-center text-rose-400">${escapeHtml(res?.error || 'خطا در دریافت لیست')}</div>`;
           return;
         }
         const devices = res.devices || [];
@@ -3081,7 +3081,7 @@
       try {
         const res = await window.api.getUserLiveSessions(telegram_id);
         if (!res || !res.ok) {
-          if (list) list.innerHTML = `<div class="p-4 text-center text-rose-400 text-xs">${res?.error || 'خطا در دریافت اطلاعات اتصالات'}</div>`;
+          if (list) list.innerHTML = `<div class="p-4 text-center text-rose-400 text-xs">${escapeHtml(res?.error || 'خطا در دریافت اطلاعات اتصالات')}</div>`;
           return;
         }
 
@@ -3228,7 +3228,7 @@
       try {
         const res = await window.api.getAdminPlans();
         if (!res || !res.ok) {
-          container.innerHTML = `<div class="p-6 text-center text-rose-400 text-xs">${res?.error || 'خطا در دریافت تعرفه‌ها'}</div>`;
+          container.innerHTML = `<div class="p-6 text-center text-rose-400 text-xs">${escapeHtml(res?.error || 'خطا در دریافت تعرفه‌ها')}</div>`;
           return;
         }
         adminPlansData = res.plans || [];
@@ -3525,7 +3525,7 @@
       try {
         const res = await window.api.getAdminCoupons();
         if (!res || !res.ok) {
-          container.innerHTML = `<div class="p-6 text-center text-rose-400 text-xs">${res?.error || 'خطا در دریافت کدهای تخفیف'}</div>`;
+          container.innerHTML = `<div class="p-6 text-center text-rose-400 text-xs">${escapeHtml(res?.error || 'خطا در دریافت کدهای تخفیف')}</div>`;
           return;
         }
         adminCouponsData = (res.coupons || []).filter(c => {
@@ -3796,7 +3796,7 @@
       try {
         const res = await window.api.getAdminCouponUsages(coupon_id);
         if (!res || !res.ok) {
-          if (list) list.innerHTML = `<div class="p-6 text-center text-xs text-rose-400">${res?.error || 'خطا در دریافت لیست'}</div>`;
+          if (list) list.innerHTML = `<div class="p-6 text-center text-xs text-rose-400">${escapeHtml(res?.error || 'خطا در دریافت لیست')}</div>`;
           return;
         }
 
@@ -4075,7 +4075,7 @@
       try {
         const res = await window.api.getAdminCryptoRates();
         if (!res || !res.ok) {
-          container.innerHTML = `<div class="p-6 text-center text-xs text-rose-400">${res?.error || 'خطا در دریافت نرخ‌ها'}</div>`;
+          container.innerHTML = `<div class="p-6 text-center text-xs text-rose-400">${escapeHtml(res?.error || 'خطا در دریافت نرخ‌ها')}</div>`;
           return;
         }
 
@@ -5023,7 +5023,7 @@
     try {
       const res = await window.api.getAdminTopups();
       if (!res || !res.ok) {
-        container.innerHTML = `<div class="p-6 text-center text-rose-400 text-xs">${res?.error || 'خطا در دریافت فیش‌ها'}</div>`;
+        container.innerHTML = `<div class="p-6 text-center text-rose-400 text-xs">${escapeHtml(res?.error || 'خطا در دریافت فیش‌ها')}</div>`;
         return;
       }
       const topups = res.topups || [];
@@ -5137,7 +5137,7 @@
     try {
       const res = await window.api.getAdminTicketMessages(telegram_id);
       if (!res || !res.ok) {
-        streamEl.innerHTML = `<div class="p-4 text-center text-rose-400 text-[11px]">${res?.error || 'خطا در دریافت پیام‌ها'}</div>`;
+        streamEl.innerHTML = `<div class="p-4 text-center text-rose-400 text-[11px]">${escapeHtml(res?.error || 'خطا در دریافت پیام‌ها')}</div>`;
         return;
       }
       const messages = res.messages || [];
