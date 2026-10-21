@@ -2,7 +2,7 @@
 import asyncio
 import base64
 import logging
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 from typing import Any
 
@@ -41,7 +41,7 @@ def _extract_comment(in_msg: dict) -> str:
     return ""
 
 
-async def fetch_ton_transactions(address: str, limit: int = 25) -> list[dict]:
+async def fetch_ton_transactions(address: str, limit: int = 100) -> list[dict]:
     """Fetch recent incoming transactions for a TON address from TonCenter public API."""
     if not address or not address.strip():
         return []
@@ -102,6 +102,9 @@ async def verify_and_process_payments(bot: Any, session_factory: Any) -> int:
                 exp = exp.replace(tzinfo=timezone.utc)
             if exp and exp < now:
                 await crypto_repo.mark_expired(inv.id)
+                inv_created = inv.created_at if (inv.created_at and inv.created_at.tzinfo) else (inv.created_at.replace(tzinfo=timezone.utc) if inv.created_at else now)
+                if (now - inv_created) < timedelta(hours=24):
+                    active_invoices.append(inv)
             else:
                 active_invoices.append(inv)
 
@@ -155,7 +158,7 @@ async def verify_and_process_payments(bot: Any, session_factory: Any) -> int:
                         )
                         continue
 
-                paid_inv = await crypto_repo.mark_paid(inv.id, tx_hash)
+                paid_inv = await crypto_repo.mark_paid(inv.id, tx_hash, allow_expired=True)
                 if not paid_inv:
                     continue
 

@@ -178,7 +178,7 @@ class Topup(Base):
     )  # pending/approved/rejected
     # Stable receipt fingerprint (photo/document file_unique_id or text hash)
     # used to reject the same receipt submitted twice.
-    receipt_hash: Mapped[str | None] = mapped_column(String(128), nullable=True, index=True)
+    receipt_hash: Mapped[str | None] = mapped_column(String(128), nullable=True, unique=True, index=True)
     # Telegram photo file_id for direct viewing by admins in TMA
     receipt_photo_id: Mapped[str | None] = mapped_column(String(256), nullable=True)
 

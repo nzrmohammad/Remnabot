@@ -2,6 +2,7 @@ from bot.web.user_common import db_session, require_user
 """TMA User Wallet and Top-up API endpoints."""
 import hashlib
 import logging
+from datetime import datetime, timedelta, timezone
 from html import escape
 
 # InlineKeyboardBuilder imported lazily when sending admin alerts
@@ -287,7 +288,7 @@ async def post_user_topup_crypto(request: web.Request) -> web.Response:
             amount_ton=f"{ton_amount:.4f}",
             nanotons=nanotons,
             pay_address=store.ton_wallet_address,
-            expires_minutes=30,
+            expires_minutes=45,
         )
         await session.commit()
 
@@ -300,11 +301,13 @@ async def post_user_topup_crypto(request: web.Request) -> web.Response:
                 "id": invoice.id,
                 "amount_toman": invoice.amount_toman,
                 "amount_ton": invoice.amount_ton,
+                "nanotons": invoice.nanotons,
+                "ton_rate_toman": store.ton_rate_toman,
                 "pay_address": invoice.pay_address,
                 "comment": invoice.comment,
                 "deep_link": deep_link,
                 "universal_link": universal_link,
-                "expires_minutes": 30,
+                "expires_minutes": 45,
             }
         })
 
@@ -338,14 +341,18 @@ async def post_user_topup_crypto_check(request: web.Request) -> web.Response:
             w = await wallet_repo.get_wallet(telegram_id)
             return web.json_response({"ok": True, "paid": True, "balance": w.balance})
 
-        if inv.status in ("expired", "cancelled"):
+        now = datetime.now(timezone.utc)
+        inv_created = inv.created_at if (inv.created_at and inv.created_at.tzinfo) else (inv.created_at.replace(tzinfo=timezone.utc) if inv.created_at else now)
+        is_recently_expired = (inv.status == "expired" and (now - inv_created) < timedelta(hours=24))
+
+        if inv.status in ("expired", "cancelled") and not is_recently_expired:
             return web.json_response({"ok": False, "message": "فاکتور منقضی یا لغو شده است."}, status=400)
 
         store = await get_store_settings(session)
         txs = await fetch_ton_transactions(store.ton_wallet_address)
         for tx in txs:
             if tx.get("comment") == inv.comment and tx.get("nanotons", 0) >= inv.nanotons:
-                paid_inv = await crypto_repo.mark_paid(inv.id, tx.get("tx_hash", ""))
+                paid_inv = await crypto_repo.mark_paid(inv.id, tx.get("tx_hash", ""), allow_expired=True)
                 if paid_inv:
                     wallet_repo = WalletRepository(session)
                     try:
@@ -406,6 +413,10 @@ async def post_user_topup_stars(request: web.Request) -> web.Response:
         min_amt = store.topup_min_amount or 10000
         if amount < min_amt:
             return web.json_response({"ok": False, "message": f"حداقل مبلغ شارژ {min_amt:,} تومان است."}, status=400)
+
+        max_amt = getattr(store, "topup_max_amount", 50_000_000) or 50_000_000
+        if amount > max_amt:
+            return web.json_response({"ok": False, "message": f"حداکثر مبلغ شارژ {max_amt:,} تومان است."}, status=400)
 
         rate = getattr(store, "stars_rate_toman", 0)
         if not isinstance(rate, (int, float)) or rate <= 0:

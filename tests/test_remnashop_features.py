@@ -132,7 +132,16 @@ async def test_payment_stars_precheckout():
 
     pre_checkout = AsyncMock()
     pre_checkout.id = "pq_123"
+    pre_checkout.invoice_payload = "stars_topup:12345:50000:50"
+    pre_checkout.from_user.id = 12345
+    pre_checkout.total_amount = 50
     bot = AsyncMock()
 
     await stars_pre_checkout_handler(pre_checkout, bot)
     bot.answer_pre_checkout_query.assert_called_once_with("pq_123", ok=True)
+
+    # Test rejection of mismatched user or invalid payload
+    bot.reset_mock()
+    pre_checkout.from_user.id = 99999
+    await stars_pre_checkout_handler(pre_checkout, bot)
+    assert bot.answer_pre_checkout_query.call_args[1]["ok"] is False

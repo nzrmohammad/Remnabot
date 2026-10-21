@@ -273,14 +273,19 @@ function updatePendingCardUI(invoice, remainingSec) {
   }
 }
 
-function startCryptoCountdownTimer(seconds = 1800) {
+function getActiveCryptoStorageKey() {
+  const tgId = window.lastUserData?.user?.telegram_id || window.Telegram?.WebApp?.initDataUnsafe?.user?.id || 'default';
+  return `remna_active_crypto_invoice_${tgId}`;
+}
+
+function startCryptoCountdownTimer(seconds = 2700) {
   if (cryptoCountdownTimerInterval) {
     clearInterval(cryptoCountdownTimerInterval);
     cryptoCountdownTimerInterval = null;
   }
   let targetEnd = Date.now() + (seconds * 1000);
   try {
-    const raw = localStorage.getItem('remna_active_crypto_invoice');
+    const raw = localStorage.getItem(getActiveCryptoStorageKey()) || localStorage.getItem('remna_active_crypto_invoice');
     if (raw) {
       const data = JSON.parse(raw);
       if (data && data.expires_at) targetEnd = data.expires_at;
@@ -312,7 +317,11 @@ function startCryptoCountdownTimer(seconds = 1800) {
         clearInterval(cryptoCountdownTimerInterval);
         cryptoCountdownTimerInterval = null;
       }
-      try { localStorage.removeItem('remna_active_crypto_invoice'); } catch (e) {}
+      try {
+        localStorage.removeItem(getActiveCryptoStorageKey());
+        localStorage.removeItem(getActiveCryptoStorageKey());
+    try { localStorage.removeItem('remna_active_crypto_invoice'); } catch (e) {}
+      } catch (e) {}
       updatePendingCardUI(null);
       return;
     }
@@ -334,10 +343,10 @@ function stopCryptoCountdownTimer() {
   }
 }
 
-function saveActiveCryptoInvoice(inv, durationSec = 1800) {
+function saveActiveCryptoInvoice(inv, durationSec = 2700) {
   try {
     const expiresAt = Date.now() + (durationSec * 1000);
-    localStorage.setItem('remna_active_crypto_invoice', JSON.stringify({
+    localStorage.setItem(getActiveCryptoStorageKey(), JSON.stringify({
       invoice: inv,
       expires_at: expiresAt
     }));
@@ -346,7 +355,8 @@ function saveActiveCryptoInvoice(inv, durationSec = 1800) {
 
 function clearActiveCryptoInvoice() {
   try {
-    localStorage.removeItem('remna_active_crypto_invoice');
+    localStorage.removeItem(getActiveCryptoStorageKey());
+    try { localStorage.removeItem('remna_active_crypto_invoice'); } catch (e) {}
   } catch (e) {}
   currentTopupInvoice = null;
   stopCryptoCountdownTimer();
@@ -386,7 +396,7 @@ window.cancelCryptoInvoice = function() {
 
 function restoreActiveCryptoInvoice() {
   try {
-    const raw = localStorage.getItem('remna_active_crypto_invoice');
+    const raw = localStorage.getItem(getActiveCryptoStorageKey()) || localStorage.getItem('remna_active_crypto_invoice');
     if (!raw) {
       updatePendingCardUI(null);
       return false;
@@ -666,7 +676,11 @@ function setupWalletListeners() {
             if (status === 'paid') {
               showToast('🎉 پرداخت استارز با موفقیت تایید شد و کیف پول شارژ گردید!');
               closeModal('topupModal');
-              if (typeof syncUserDataWithApi === 'function') syncUserDataWithApi(window.currentAccountId);
+              const sync = () => {
+                if (typeof syncUserDataWithApi === 'function') syncUserDataWithApi(window.currentAccountId);
+              };
+              sync();
+              setTimeout(sync, 1500);
             } else if (status === 'cancelled') {
               showToast('پرداخت استارز لغو شد.');
             } else if (status === 'failed') {

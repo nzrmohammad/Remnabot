@@ -480,21 +480,21 @@ html.theme-light .bg-\[\#1e293b\],
 html.theme-light .bg-\[\#0f172a\],
 html.theme-light .bg-\[\#151f32\],
 html.theme-light .bg-\[\#1a263e\] {
-  background-color: var(--card-bg) !important;
-  border-color: var(--card-border) !important;
-  color: var(--text-main) !important;
+  background-color: var(--card-bg);
+  border-color: var(--card-border);
+  color: var(--text-main);
 }
 html.theme-light .text-sky-300 {
-  color: var(--c-accent) !important;
+  color: var(--c-accent);
 }
 html.theme-light .text-amber-300 {
-  color: var(--c-warn) !important;
+  color: var(--c-warn);
 }
 html.theme-light .text-emerald-300 {
-  color: var(--c-success) !important;
+  color: var(--c-success);
 }
 html.theme-light .text-teal-400 {
-  color: #0d9488 !important;
+  color: #0d9488;
 }
 html.theme-light .border-pink-500\/30,
 html.theme-light .border-pink-800\/50 {
@@ -800,7 +800,7 @@ html.theme-light .topup-card .border-slate-700\/80 {
 
 html.theme-light .node-card .bg-transparent,
 html.theme-light .node-card .node-body .bg-transparent {
-  background-color: transparent !important;
+  background-color: transparent;
   background-image: none;
 }
 
@@ -1076,7 +1076,7 @@ html.theme-light .config-row-item .config-name-label {
 html.theme-light .copy-single-cfg-btn,
 html.theme-light .qr-single-cfg-btn {
   color: #475569;
-  background-color: transparent !important;
+  background-color: transparent;
 }
 
 html.theme-light .copy-single-cfg-btn:hover,
@@ -1085,7 +1085,7 @@ html.theme-light .qr-single-cfg-btn:hover {
 }
 
 html.theme-light .kill-device-btn {
-  background-color: transparent !important;
+  background-color: transparent;
 }
 
 html.theme-light .topup-modal-card .bg-slate-900,
@@ -1298,13 +1298,13 @@ html.theme-light #cryptoCheckStatusBtn {
 }
 
 html.theme-light #shopWalletBalance {
-  background: transparent !important;
+  background: transparent;
   border: none;
   color: var(--text-muted);
 }
 
 html.theme-light #reportsSessionsBadge {
-  background: transparent !important;
+  background: transparent;
   border: none;
   color: var(--c-success);
 }
@@ -1670,7 +1670,7 @@ html.theme-light #adminCampaignsList .grid > div {
 
 /* Telegram Stars and Topup tabs in light theme */
 html.theme-light #topupStarsView > div {
-  background-color: transparent !important;
+  background-color: transparent;
   border-color: rgba(245, 158, 11, 0.4);
 }
 

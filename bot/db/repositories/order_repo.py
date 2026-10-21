@@ -9,6 +9,27 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from bot.db.models import Order
 
 
+def _apply_order_query_filter(stmt: Any, query: str | None) -> Any:
+    """Apply unified search filter by ID or username/plan name (SSOT)."""
+    if not query:
+        return stmt
+    q = query.strip()
+    if q.isdigit():
+        return stmt.where(
+            or_(
+                Order.id == int(q),
+                Order.telegram_id == int(q),
+                Order.panel_user_id == int(q),
+            )
+        )
+    return stmt.where(
+        or_(
+            Order.panel_username.ilike(f"%{q}%"),
+            Order.service_name.ilike(f"%{q}%"),
+        )
+    )
+
+
 class OrderRepository:
     def __init__(self, session: AsyncSession):
         self.session = session
@@ -120,27 +141,6 @@ class OrderRepository:
         if claimed is None:
             return None
         return await self.get(order_id)
-
-def _apply_order_query_filter(stmt: Any, query: str | None) -> Any:
-    """Apply unified search filter by ID or username/plan name (SSOT)."""
-    if not query:
-        return stmt
-    q = query.strip()
-    if q.isdigit():
-        return stmt.where(
-            or_(
-                Order.id == int(q),
-                Order.telegram_id == int(q),
-                Order.panel_user_id == int(q),
-            )
-        )
-    return stmt.where(
-        or_(
-            Order.panel_username.ilike(f"%{q}%"),
-            Order.service_name.ilike(f"%{q}%"),
-        )
-    )
-
 
     async def list_filtered(
         self,

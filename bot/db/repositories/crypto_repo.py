@@ -1,5 +1,5 @@
 """Repository for on-chain cryptocurrency (TON) invoices."""
-import random
+import secrets
 from datetime import datetime, timedelta, timezone
 
 from sqlalchemy import and_, select, text
@@ -52,25 +52,25 @@ class CryptoRepository:
         return result.scalar_one_or_none()
 
     async def generate_unique_comment(self) -> str:
-        """Generate a globally unique 5-7 digit numeric memo comment for TON transfer."""
+        """Generate a cryptographically secure, globally unique numeric memo comment for TON transfer."""
         for _ in range(100):
-            cand = str(random.randint(10000, 99999))
+            cand = str(10000 + secrets.randbelow(90000))
             existing = await self.get_by_comment(cand)
             if existing is None:
                 return cand
         # fallback 6 digits
         for _ in range(100):
-            cand = str(random.randint(100000, 999999))
+            cand = str(100000 + secrets.randbelow(900000))
             existing = await self.get_by_comment(cand)
             if existing is None:
                 return cand
         # fallback 7 digits
         for _ in range(100):
-            cand = str(random.randint(1000000, 9999999))
+            cand = str(1000000 + secrets.randbelow(9000000))
             existing = await self.get_by_comment(cand)
             if existing is None:
                 return cand
-        return str(random.randint(10000000, 99999999))
+        return str(10000000 + secrets.randbelow(90000000))
 
     async def create_invoice(
         self,
@@ -79,7 +79,7 @@ class CryptoRepository:
         amount_ton: str,
         nanotons: int,
         pay_address: str,
-        expires_minutes: int = 30,
+        expires_minutes: int = 45,
     ) -> CryptoInvoice:
         comment = await self.generate_unique_comment()
         expires_at = datetime.now(timezone.utc) + timedelta(minutes=expires_minutes)
@@ -98,15 +98,18 @@ class CryptoRepository:
         await self.session.flush()
         return invoice
 
-    async def mark_paid(self, invoice_id: int, tx_hash: str) -> CryptoInvoice | None:
-        """Atomically transition invoice from pending -> paid.
+    async def mark_paid(
+        self, invoice_id: int, tx_hash: str, allow_expired: bool = False
+    ) -> CryptoInvoice | None:
+        """Atomically transition invoice from pending (or recently expired) -> paid.
         Prevents race-condition double-crediting if concurrent checks occur.
         """
         now = datetime.now(timezone.utc)
+        status_clause = "status IN ('pending', 'expired')" if allow_expired else "status = 'pending'"
         row = await self.session.execute(
             text(
-                "UPDATE crypto_invoices SET status = 'paid', tx_hash = :tx, paid_at = :now "
-                "WHERE id = :i AND status = 'pending' RETURNING id"
+                f"UPDATE crypto_invoices SET status = 'paid', tx_hash = :tx, paid_at = :now "
+                f"WHERE id = :i AND {status_clause} RETURNING id"
             ),
             {"tx": tx_hash, "now": now, "i": invoice_id},
         )

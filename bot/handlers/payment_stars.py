@@ -21,7 +21,41 @@ router = Router(name="payment_stars")
 
 @router.pre_checkout_query()
 async def stars_pre_checkout_handler(pre_checkout_query: PreCheckoutQuery, bot: Bot):
-    """Confirm Telegram Stars pre-checkout inquiry."""
+    """Validate and confirm Telegram Stars pre-checkout inquiry."""
+    payload = str(pre_checkout_query.invoice_payload or "")
+    if not payload.startswith("stars_topup:"):
+        await bot.answer_pre_checkout_query(
+            pre_checkout_query.id, ok=False, error_message="شناسه فاکتور نامعتبر است."
+        )
+        return
+
+    parts = payload.split(":")
+    if len(parts) < 4:
+        await bot.answer_pre_checkout_query(
+            pre_checkout_query.id, ok=False, error_message="اطلاعات فاکتور مخدوش است."
+        )
+        return
+
+    try:
+        user_tid = int(parts[1])
+        stars_count = int(parts[3])
+    except (ValueError, TypeError):
+        await bot.answer_pre_checkout_query(
+            pre_checkout_query.id, ok=False, error_message="مقادیر فاکتور نامعتبر است."
+        )
+        return
+
+    if pre_checkout_query.from_user.id != user_tid:
+        await bot.answer_pre_checkout_query(
+            pre_checkout_query.id, ok=False, error_message="این فاکتور متعلق به حساب کاربری شما نیست."
+        )
+        return
+
+    if pre_checkout_query.total_amount < stars_count:
+        await bot.answer_pre_checkout_query(
+            pre_checkout_query.id, ok=False, error_message="مبلغ پرداختی کمتر از مبلغ فاکتور است."
+        )
+        return
     try:
         await bot.answer_pre_checkout_query(pre_checkout_query.id, ok=True)
     except Exception as exc:
@@ -89,12 +123,17 @@ async def stars_successful_payment_handler(
     wallet_repo = WalletRepository(session)
     user_repo = UserRepository(session)
 
+    store = await get_store_settings(session)
+    stars_rate = getattr(store, "stars_rate_toman", 0) or 0
+    credit_toman = (sp.total_amount * stars_rate) if (stars_rate > 0 and sp.total_amount) else amount_toman
+
+
     # Atomically credit wallet and record topup
     try:
-        new_balance = await wallet_repo.add_balance_atomic(user_tid, amount_toman)
+        new_balance = await wallet_repo.add_balance_atomic(user_tid, credit_toman)
         topup = Topup(
             telegram_id=user_tid,
-            amount=amount_toman,
+            amount=credit_toman,
             status=TopupStatus.APPROVED.value,
             receipt_hash=receipt_hash,
             decided_at=datetime.now(timezone.utc),
@@ -103,7 +142,6 @@ async def stars_successful_payment_handler(
         await session.commit()
     except IntegrityError:
         await session.rollback()
-        await wallet_repo.adjust_balance_atomic(user_tid, -amount_toman)
         logger.warning("Duplicate Stars payment race condition caught for %s, rolled back credit.", receipt_hash)
         return
     except Exception as exc:

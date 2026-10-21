@@ -5,6 +5,7 @@ Supports Remnawave and standard v2ray subscription links:
 - Recognizes protocols: vless, vmess, trojan, ss, shadowsocks, hysteria2, hy2, tuic, wireguard, wg.
 - Extracts user-friendly display names from URL fragments (#) or vmess JSON (ps).
 """
+import asyncio
 import base64
 import json
 import logging

@@ -5,6 +5,8 @@ Decomposed into submodules:
 - crypto_rates.py: admin message and inline keyboard formatting.
 - crypto_notifier.py: cron-like scheduled notifications in Tehran timezone.
 """
+import logging
+
 from bot.services.crypto.crypto_fetcher import (
     fetch_all_exchange_prices,
     fetch_nobitex_ton_price,
@@ -24,6 +26,8 @@ from bot.services.crypto.crypto_rates import (
     format_usdt_rate_alert,
 )
 
+
+logger = logging.getLogger(__name__)
 
 _rates_cache: dict = {}
 _rates_cache_time: float = 0.0

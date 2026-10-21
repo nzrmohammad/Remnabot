@@ -1,10 +1,14 @@
 """Repository for discount / promo coupons."""
+import logging
 from datetime import datetime, timezone
 
 from sqlalchemy import func, or_, select, text, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from bot.db.models import Coupon, CouponUsage
+
+
+logger = logging.getLogger(__name__)
 
 
 class CouponRepository:

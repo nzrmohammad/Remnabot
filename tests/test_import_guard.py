@@ -47,3 +47,20 @@ def test_all_bot_modules_importable_and_typed():
         + "\n".join(errors)
     )
     assert imported >= 40, f"Expected at least 40 modules to be imported, found {imported}"
+
+
+def test_zero_undefined_names_in_bot():
+    """Run ruff F821 (undefined names) guard across bot/ to prevent runtime NameError regressions."""
+    import subprocess
+    import sys
+
+    res = subprocess.run(
+        [sys.executable, "-m", "ruff", "check", "--select", "F821", "bot/"],
+        capture_output=True,
+        text=True,
+    )
+    if res.returncode != 0:
+        # If ruff isn't installed in the environment, fallback gracefully, but if it is, enforce 0 errors.
+        if "No module named ruff" in res.stderr:
+            return
+        assert res.returncode == 0, f"Ruff F821 undefined name errors detected in bot/:\n{res.stdout}\n{res.stderr}"
