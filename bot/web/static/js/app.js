@@ -1989,10 +1989,11 @@ function updateTopPadding() {
   if (!topBar) return;
   let padTop = 10;
   if (tg) {
-    if (tg.contentSafeAreaInset?.top > 0) {
-      padTop = tg.contentSafeAreaInset.top + 4;
-    } else if (tg.safeAreaInset?.top > 0) {
-      padTop = tg.safeAreaInset.top + 4;
+    const safeTop = tg.contentSafeAreaInset?.top || tg.safeAreaInset?.top || 0;
+    if (safeTop > 0) {
+      padTop = safeTop + 4;
+      document.documentElement.style.setProperty('--tg-content-safe-area-inset-top', safeTop + 'px');
+      document.documentElement.style.setProperty('--tg-safe-area-inset-top', safeTop + 'px');
     }
   }
   topBar.style.paddingTop = padTop + 'px';

@@ -36,6 +36,7 @@ async def get_crypto_rates_summary() -> dict:
         "ton_prices": data.get("ton", {}),
         "usdt_prices": data.get("usdt", {}),
         "eur_prices": data.get("eur", {}),
+        "closed_status": data.get("closed_status", {}),
         "binance_usd": data.get("binance_usd"),
         "binance_eur_usd": data.get("binance_eur_usd"),
         "best_ton": {"price": best_ton_price, "source": best_ton_source},

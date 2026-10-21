@@ -69,7 +69,7 @@
     <!-- ======================================================== -->
     <!-- 1. TELEGRAM WEBAPP TOP HEADER (UNIFIED & RESPONSIVE)      -->
     <!-- ======================================================== -->
-    <div id="topHeaderBar" class="bg-[#131d31]/95 backdrop-blur-md border-b border-slate-700/60 px-4 pt-[calc(0.625rem+env(safe-area-inset-top,0px))] pb-2.5 flex items-center justify-between z-20 transition-all duration-200">
+    <div id="topHeaderBar" class="bg-[#131d31]/95 backdrop-blur-md border-b border-slate-700/60 px-4 pt-[max(1.125rem,calc(var(--tg-content-safe-area-inset-top,var(--tg-safe-area-inset-top,env(safe-area-inset-top,0px)))+8px))] pb-2.5 flex items-center justify-between z-20 transition-all duration-200">
       <!-- Right Side (in RTL): Avatar + Active Account + Switch Btn -->
       <div class="flex items-center gap-2 min-w-0">
         <div id="headerUserAvatar" class="w-7 h-7 rounded-full bg-gradient-to-tr from-blue-500 to-indigo-500 flex items-center justify-center text-xs font-bold text-white shadow overflow-hidden flex-shrink-0">
@@ -513,8 +513,8 @@
             
             <div class="space-y-2">
               <div class="flex justify-between text-[11px] font-mono" dir="ltr">
-                <span class="text-cyan-400 font-bold flex items-center gap-1">📥 دریافت (DL): <span id="repSplitDownGb" class="num-bidi">-- GB</span> (<span id="repSplitDownPct">--%</span>)</span>
-                <span class="text-purple-400 font-bold flex items-center gap-1">📤 ارسال (UL): <span id="repSplitUpGb" class="num-bidi">-- GB</span> (<span id="repSplitUpPct">--%</span>)</span>
+                <span class="text-cyan-400 font-bold flex items-center gap-1">📥 DL: <span id="repSplitDownGb" class="num-bidi">-- GB</span> (<span id="repSplitDownPct">--%</span>)</span>
+                <span class="text-purple-400 font-bold flex items-center gap-1">📤 UL: <span id="repSplitUpGb" class="num-bidi">-- GB</span> (<span id="repSplitUpPct">--%</span>)</span>
               </div>
               <div class="w-full h-2.5 rounded-full bg-slate-950/80 p-[1px] border border-slate-700/50 flex overflow-hidden relative" dir="ltr">
                 <div id="repSplitDownBar" class="h-full bg-gradient-to-r from-cyan-500 to-teal-400 rounded-l-full transition-all duration-700" style="width: 85%;"></div>
@@ -529,17 +529,17 @@
               <span class="text-xs font-bold text-white flex items-center gap-1.5">
                 <span>⏳</span> پیش‌بینی هوشمند اتمام حجم
               </span>
-              <span id="repBurnSpeedBadge" class="text-[10px] font-mono font-bold text-amber-400 bg-transparent p-0" dir="ltr">-- GB/روز</span>
+              <span id="repBurnSpeedBadge" class="text-[10px] font-mono font-bold text-amber-400 bg-transparent p-0" dir="ltr">-- GB</span>
             </div>
 
             <div class="space-y-2">
               <div class="grid grid-cols-2 gap-2 text-xs">
                 <div class="bg-slate-900/60 border border-slate-700/50 rounded-xl p-2.5 space-y-1">
                   <span class="text-[10px] text-slate-400 block">میانگین مصرف ۳ روز اخیر:</span>
-                  <b id="repBurnAvgDaily" class="font-mono text-cyan-400 text-xs num-bidi" dir="ltr">-- GB / روز</b>
+                  <b id="repBurnAvgDaily" class="font-mono text-cyan-400 text-xs num-bidi" dir="ltr">-- GB</b>
                 </div>
                 <div class="bg-slate-900/60 border border-slate-700/50 rounded-xl p-2.5 space-y-1">
-                  <span class="text-[10px] text-slate-400 block">تخمین دوام حجم باقی‌مانده:</span>
+                  <span class="text-[10px] text-slate-400 block">تخمین حجم باقی‌مانده:</span>
                   <b id="repBurnProjectedDays" class="font-mono text-emerald-400 text-xs num-bidi" dir="ltr">-- روز</b>
                 </div>
               </div>
@@ -2205,17 +2205,17 @@
     </div>
     <!-- 12. MODAL: JALALI BIRTHDAY PICKER (ثبت تاریخ زادروز) -->
     <div id="birthdayModal" onclick="if(event.target === this) window.closeBirthdayModal()" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md hidden animate-fadeIn">
-      <div class="modal-card bg-[#1a233a] border border-pink-500/50 rounded-3xl p-5 w-full max-w-[340px] text-center shadow-2xl relative my-auto space-y-4">
-        <button type="button" onclick="window.closeBirthdayModal()" class="absolute top-3 left-3 text-slate-400 hover:text-white text-xs bg-slate-800 rounded-full w-9 h-9 min-w-[36px] min-h-[36px] flex items-center justify-center transition active:scale-95 shadow-sm" title="بستن" aria-label="بستن پنجره زادروز">✕</button>
+      <div class="modal-card bg-[#0f172a]/95 dark:bg-[#131d31] border border-indigo-500/30 rounded-[28px] p-5 w-full max-w-[340px] text-center shadow-2xl relative my-auto space-y-4">
+        <button type="button" onclick="window.closeBirthdayModal()" class="w-9 h-9 min-w-[36px] min-h-[36px] rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800/80 dark:hover:bg-slate-750 border border-slate-200 dark:border-slate-700/80 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white flex items-center justify-center text-xs transition active:scale-95 shadow-sm absolute top-3.5 left-3.5" title="بستن" aria-label="بستن پنجره زادروز">✕</button>
 
-        <div class="w-14 h-14 rounded-2xl mx-auto flex items-center justify-center text-3xl shadow-lg border border-pink-500/30 bg-pink-500/10 mt-1">
+        <div class="w-12 h-12 rounded-2xl mx-auto flex items-center justify-center text-2xl shadow-lg border border-indigo-500/30 bg-gradient-to-tr from-indigo-500/20 to-purple-500/10 text-indigo-400 mt-1">
           🎂
         </div>
 
         <div>
-          <h3 class="text-sm font-extrabold text-white">ثبت تاریخ زادروز شما</h3>
-          <p class="text-xs text-slate-300 mt-1 leading-relaxed">
-            با وارد کردن تاریخ تولد، در روز زادروزتان هدیه ویژه ترافیک و کوپن تخفیف VIP دریافت خواهید کرد.
+          <h3 class="text-sm font-extrabold text-white">ثبت تاریخ زادروز</h3>
+          <p class="text-xs text-slate-400 mt-1 leading-relaxed">
+            با ثبت تاریخ تولد، در روز زادروزتان هدیه ترافیک و تخفیف ویژه به حسابتان تعلق می‌گیرد.
           </p>
         </div>
 
@@ -2229,42 +2229,42 @@
           <!-- Day Column -->
           <div class="relative">
             <label class="text-[11px] text-slate-400 block mb-1">روز</label>
-            <button id="bdayDayTrigger" type="button" onclick="window.toggleBdayDropdown('day')" class="w-full bg-slate-900/90 border border-slate-700 hover:border-pink-500/60 rounded-xl px-2 py-2 text-xs text-pink-300 flex items-center justify-between font-mono transition active:scale-95 shadow-sm">
+            <button id="bdayDayTrigger" type="button" onclick="window.toggleBdayDropdown('day')" class="w-full bg-slate-900/90 border border-slate-700/80 hover:border-indigo-500/60 rounded-xl px-2 py-2 text-xs text-indigo-200 flex items-center justify-between font-mono transition active:scale-95 shadow-sm">
               <span id="bdayDayDisplay">۱</span>
               <span class="text-[10px] text-slate-400">▾</span>
             </button>
-            <div id="bdayDayDropdown" class="hidden absolute top-full mt-1.5 left-0 right-0 z-30 max-h-44 overflow-y-auto custom-scroll bg-[#151c2e] border border-pink-500/40 rounded-xl shadow-2xl p-1 space-y-0.5">
+            <div id="bdayDayDropdown" class="hidden absolute top-full mt-1.5 left-0 right-0 z-30 max-h-44 overflow-y-auto custom-scroll bg-[#151c2e] border border-indigo-500/40 rounded-xl shadow-2xl p-1 space-y-0.5">
             </div>
           </div>
 
           <!-- Month Column -->
           <div class="relative">
             <label class="text-[11px] text-slate-400 block mb-1">ماه</label>
-            <button id="bdayMonthTrigger" type="button" onclick="window.toggleBdayDropdown('month')" class="w-full bg-slate-900/90 border border-slate-700 hover:border-pink-500/60 rounded-xl px-2 py-2 text-xs text-pink-300 flex items-center justify-between font-medium transition active:scale-95 shadow-sm">
+            <button id="bdayMonthTrigger" type="button" onclick="window.toggleBdayDropdown('month')" class="w-full bg-slate-900/90 border border-slate-700/80 hover:border-indigo-500/60 rounded-xl px-2 py-2 text-xs text-indigo-200 flex items-center justify-between font-medium transition active:scale-95 shadow-sm">
               <span id="bdayMonthDisplay">فروردین</span>
               <span class="text-[10px] text-slate-400">▾</span>
             </button>
-            <div id="bdayMonthDropdown" class="hidden absolute top-full mt-1.5 left-0 right-0 z-30 max-h-44 overflow-y-auto custom-scroll bg-[#151c2e] border border-pink-500/40 rounded-xl shadow-2xl p-1 space-y-0.5">
+            <div id="bdayMonthDropdown" class="hidden absolute top-full mt-1.5 left-0 right-0 z-30 max-h-44 overflow-y-auto custom-scroll bg-[#151c2e] border border-indigo-500/40 rounded-xl shadow-2xl p-1 space-y-0.5">
             </div>
           </div>
 
           <!-- Year Column -->
           <div class="relative">
             <label class="text-[11px] text-slate-400 block mb-1">سال</label>
-            <button id="bdayYearTrigger" type="button" onclick="window.toggleBdayDropdown('year')" class="w-full bg-slate-900/90 border border-slate-700 hover:border-pink-500/60 rounded-xl px-2 py-2 text-xs text-pink-300 flex items-center justify-between font-mono transition active:scale-95 shadow-sm">
+            <button id="bdayYearTrigger" type="button" onclick="window.toggleBdayDropdown('year')" class="w-full bg-slate-900/90 border border-slate-700/80 hover:border-indigo-500/60 rounded-xl px-2 py-2 text-xs text-indigo-200 flex items-center justify-between font-mono transition active:scale-95 shadow-sm">
               <span id="bdayYearDisplay">۱۳۷۵</span>
               <span class="text-[10px] text-slate-400">▾</span>
             </button>
-            <div id="bdayYearDropdown" class="hidden absolute top-full mt-1.5 left-0 right-0 z-30 max-h-44 overflow-y-auto custom-scroll bg-[#151c2e] border border-pink-500/40 rounded-xl shadow-2xl p-1 space-y-0.5">
+            <div id="bdayYearDropdown" class="hidden absolute top-full mt-1.5 left-0 right-0 z-30 max-h-44 overflow-y-auto custom-scroll bg-[#151c2e] border border-indigo-500/40 rounded-xl shadow-2xl p-1 space-y-0.5">
             </div>
           </div>
         </div>
 
         <div class="space-y-2 pt-1">
-          <button id="saveBirthdayBtn" type="button" onclick="window.saveBirthday()" class="w-full bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-400 hover:to-rose-400 text-white font-bold text-xs py-2.5 rounded-xl transition active:scale-95 shadow">
+          <button id="saveBirthdayBtn" type="button" onclick="window.saveBirthday()" class="w-full bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-bold text-xs py-2.5 rounded-xl transition active:scale-95 shadow-lg shadow-indigo-500/20">
             ثبت تاریخ تولد 🎉
           </button>
-          <button type="button" onclick="window.closeBirthdayModal()" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs py-2 rounded-xl transition border border-slate-700/70 active:scale-95">
+          <button type="button" onclick="window.closeBirthdayModal()" class="w-full bg-slate-800/80 hover:bg-slate-750 text-slate-300 font-bold text-xs py-2 rounded-xl transition border border-slate-700/70 active:scale-95">
             انصراف
           </button>
         </div>

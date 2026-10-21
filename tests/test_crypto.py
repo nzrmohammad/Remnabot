@@ -765,3 +765,50 @@ async def test_send_rate_notification_deletes_previous_message(session_factory):
 
 
 
+
+
+def test_crypto_closed_market_handling():
+    """Verify that when an exchange closes a market, alert displays friendly warning and does not offer apply button."""
+    from bot.services.crypto.nobitex import (
+        format_full_crypto_market_alert,
+        format_multi_rate_alert,
+        format_ton_rate_alert,
+        format_usdt_rate_alert,
+    )
+
+    market_data = {
+        "ton": {"بیت‌پین": 395000, "والکس": 396000},
+        "usdt": {"بیت‌پین": 96000, "والکس": 96200},
+        "closed_status": {
+            "نوبیتکس_ton": "موقتاً غیرفعال (محدودیت نظارتی)",
+            "نوبیتکس_usdt": "موقتاً غیرفعال (محدودیت نظارتی)",
+        },
+        "best_ton": (396000, "والکس"),
+        "best_usdt": (96200, "والکس"),
+    }
+
+    # 1. Multi rate alert
+    text_multi, kb_multi = format_multi_rate_alert(market_data, current_ton_rate=390000, current_usdt_rate=95000)
+    assert "موقتاً غیرفعال (محدودیت نظارتی)" in text_multi
+    multi_buttons = [b for row in kb_multi.inline_keyboard for b in row]
+    multi_cbs = [b.callback_data for b in multi_buttons]
+    assert not any("نوبیتکس" in b.text for b in multi_buttons)
+    assert "adm:rate:apply:ton:395000" in multi_cbs or "adm:rate:apply:ton:396000" in multi_cbs
+
+    # 2. TON alert
+    text_ton, _ = format_ton_rate_alert(market_data, current_ton_rate=390000)
+    assert "موقتاً غیرفعال (محدودیت نظارتی)" in text_ton
+
+    # 3. USDT alert
+    text_usdt, _ = format_usdt_rate_alert(market_data, current_usdt_rate=95000)
+    assert "موقتاً غیرفعال (محدودیت نظارتی)" in text_usdt
+
+    # 4. Full market alert
+    mock_store = MagicMock(
+        ton_rate_toman=390000,
+        usdt_rate_toman=95000,
+        stars_rate_toman=1200,
+        eur_rate_toman=102000,
+    )
+    text_full, _ = format_full_crypto_market_alert(market_data, mock_store)
+    assert "موقتاً غیرفعال (محدودیت نظارتی)" in text_full

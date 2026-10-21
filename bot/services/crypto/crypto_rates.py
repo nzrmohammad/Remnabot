@@ -96,9 +96,15 @@ def format_multi_rate_alert(
         "📊 <b>قیمت لحظه‌ای تون (TON):</b>",
     ]
 
+    closed = market_data.get("closed_status", {})
     for name in ("نوبیتکس", "بیت‌پین", "والکس"):
         p = ton_prices.get(name)
-        val_str = f"<b>{p:,}</b> تومان" if p else "<i>عدم دسترسی</i>"
+        if p:
+            val_str = f"<b>{p:,}</b> تومان"
+        elif closed.get(f"{name}_ton"):
+            val_str = f"<i>⚠️ {closed[f'{name}_ton']}</i>"
+        else:
+            val_str = "<i>عدم دسترسی</i>"
         lines.append(f"   🔹 {name} : {val_str}")
 
     if binance_usd:
@@ -108,7 +114,12 @@ def format_multi_rate_alert(
     lines.append("💵 <b>قیمت لحظه‌ای تتر (USDT / دلار):</b>")
     for name in ("نوبیتکس", "بیت‌پین", "والکس"):
         p = usdt_prices.get(name)
-        val_str = f"<b>{p:,}</b> تومان" if p else "<i>عدم دسترسی</i>"
+        if p:
+            val_str = f"<b>{p:,}</b> تومان"
+        elif closed.get(f"{name}_usdt"):
+            val_str = f"<i>⚠️ {closed[f'{name}_usdt']}</i>"
+        else:
+            val_str = "<i>عدم دسترسی</i>"
         lines.append(f"   🔹 {name} : {val_str}")
 
     lines.append("")
@@ -191,9 +202,15 @@ def format_ton_rate_alert(
         "📊 <b>قیمت لحظه‌ای تون در صرافی‌ها:</b>",
     ]
 
+    closed = market_data.get("closed_status", {})
     for name in ("نوبیتکس", "بیت‌پین", "والکس"):
         p = ton_prices.get(name)
-        val_str = f"<b>{p:,}</b> تومان" if p else "<i>عدم دسترسی</i>"
+        if p:
+            val_str = f"<b>{p:,}</b> تومان"
+        elif closed.get(f"{name}_ton"):
+            val_str = f"<i>⚠️ {closed[f'{name}_ton']}</i>"
+        else:
+            val_str = "<i>عدم دسترسی</i>"
         lines.append(f"   🔹 {name} : {val_str}")
 
     if binance_usd:
@@ -261,9 +278,15 @@ def format_usdt_rate_alert(
         "📊 <b>قیمت لحظه‌ای تتر در صرافی‌ها:</b>",
     ]
 
+    closed = market_data.get("closed_status", {})
     for name in ("نوبیتکس", "بیت‌پین", "والکس"):
         p = usdt_prices.get(name)
-        val_str = f"<b>{p:,}</b> تومان" if p else "<i>عدم دسترسی</i>"
+        if p:
+            val_str = f"<b>{p:,}</b> تومان"
+        elif closed.get(f"{name}_usdt"):
+            val_str = f"<i>⚠️ {closed[f'{name}_usdt']}</i>"
+        else:
+            val_str = "<i>عدم دسترسی</i>"
         lines.append(f"   🔹 {name} : {val_str}")
 
     lines.append("")
@@ -347,6 +370,7 @@ def format_full_crypto_market_alert(
 
     time_header = f" — ساعت {hour_str}" if hour_str else ""
 
+    closed = market_data.get("closed_status", {})
     lines = [
         f"📊 <b>گزارش جامع نرخ لحظه‌ای ارزها{time_header}</b>",
         "──────────────────",
@@ -354,7 +378,12 @@ def format_full_crypto_market_alert(
     ]
     for name in ("نوبیتکس", "بیت‌پین", "والکس"):
         p = ton_prices.get(name)
-        val = f"<b>{p:,}</b> تومان" if p else "<i>عدم دسترسی</i>"
+        if p:
+            val = f"<b>{p:,}</b> تومان"
+        elif closed.get(f"{name}_ton"):
+            val = f"<i>⚠️ {closed[f'{name}_ton']}</i>"
+        else:
+            val = "<i>عدم دسترسی</i>"
         lines.append(f"   ▫️ {name}: {val}")
     if binance_usd:
         lines.append(f"   🌐 بایننس جهانی: <b>${binance_usd:.2f}</b>")
@@ -364,7 +393,12 @@ def format_full_crypto_market_alert(
     lines.append("💵 <b>قیمت تتر (USDT / دلار):</b>")
     for name in ("نوبیتکس", "بیت‌پین", "والکس"):
         p = usdt_prices.get(name)
-        val = f"<b>{p:,}</b> تومان" if p else "<i>عدم دسترسی</i>"
+        if p:
+            val = f"<b>{p:,}</b> تومان"
+        elif closed.get(f"{name}_usdt"):
+            val = f"<i>⚠️ {closed[f'{name}_usdt']}</i>"
+        else:
+            val = "<i>عدم دسترسی</i>"
         lines.append(f"   ▫️ {name}: {val}")
     lines.append(f"   ⚙️ فعلی در بات: <b>{current_usdt_rate:,} ت</b> ({diff_usdt_str})")
 

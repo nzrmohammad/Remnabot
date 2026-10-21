@@ -17,8 +17,24 @@
   };
   const el = new Proxy({}, { get: (_, id) => $(id) });
 
-  // State Management
+  // State Management & Safe Area Handling
   const tg = window.Telegram?.WebApp;
+
+  function updateAdminTopPadding() {
+    const topBar = $('adminTopBar');
+    if (!topBar) return;
+    let padTop = 18;
+    if (tg) {
+      const safeTop = tg.contentSafeAreaInset?.top || tg.safeAreaInset?.top || 0;
+      if (safeTop > 0) {
+        padTop = safeTop + 8;
+        document.documentElement.style.setProperty('--tg-content-safe-area-inset-top', safeTop + 'px');
+        document.documentElement.style.setProperty('--tg-safe-area-inset-top', safeTop + 'px');
+      }
+    }
+    topBar.style.paddingTop = padTop + 'px';
+  }
+
   if (tg) {
     try {
       tg.ready();
@@ -30,9 +46,14 @@
       if (tg.onEvent) {
         tg.onEvent('viewportChanged', () => {
           if (!tg.isExpanded) tg.expand();
+          updateAdminTopPadding();
         });
+        tg.onEvent('contentSafeAreaChanged', updateAdminTopPadding);
+        tg.onEvent('safeAreaChanged', updateAdminTopPadding);
       }
     } catch (e) {}
+    updateAdminTopPadding();
+    window.addEventListener('load', updateAdminTopPadding);
   }
 
   let currentPage = 1;
@@ -966,11 +987,19 @@
     const labels = retentionTrend?.labels || [];
     const newSales = retentionTrend?.new_sales || [];
     const renewalSales = retentionTrend?.renewal_sales || [];
+    const totalRetentionUsers = [...(newSales || []), ...(renewalSales || [])].reduce((a, b) => a + b, 0);
+
+    const emptyOverlay = $('adminRetentionEmptyOverlay');
+    if (emptyOverlay) {
+      if (totalRetentionUsers === 0) emptyOverlay.classList.remove('hidden');
+      else emptyOverlay.classList.add('hidden');
+    }
 
     if (retentionChartInstance) {
       retentionChartInstance.data.labels = labels;
       retentionChartInstance.data.datasets[0].data = newSales;
       retentionChartInstance.data.datasets[1].data = renewalSales;
+      retentionChartInstance.options.scales.y.suggestedMax = (totalRetentionUsers > 0) ? undefined : 5;
       retentionChartInstance.update();
       return;
     }
@@ -1018,6 +1047,7 @@
           y: {
             stacked: true,
             beginAtZero: true,
+            suggestedMax: (totalRetentionUsers > 0) ? undefined : 5,
             suggestedMax: (newSales.some(v => v > 0) || renewalSales.some(v => v > 0)) ? undefined : 5,
             grid: { color: isDark ? 'rgba(51, 65, 85, 0.3)' : 'rgba(203, 213, 225, 0.7)' },
             ticks: {
@@ -3264,8 +3294,9 @@
           const pkgIcon = emojiMatch ? emojiMatch[0] : '';
           const cleanName = pkgIcon ? rawName.replace(emojiRegex, '').trim() : rawName;
 
-          const isExtraTraffic = (Number(p.duration_days) === 0 && Number(p.traffic_gb) > 0) || (p.badge || '').toLowerCase() === 'traffic';
-          const isExtraTime = (Number(p.traffic_gb) === 0 && Number(p.duration_days) > 0) || (p.badge || '').toLowerCase() === 'time';
+          const bKey = (p.badge || '').toLowerCase();
+          const isExtraTraffic = (bKey === 'traffic' || (Number(p.duration_days) === 0 && Number(p.traffic_gb) > 0)) && bKey !== 'time';
+          const isExtraTime = !isExtraTraffic && (bKey === 'time' || (Number(p.traffic_gb) === 0 && Number(p.duration_days) > 0 && bKey !== 'traffic'));
           let typeBadge = '<span class="text-[10px] bg-blue-500/15 text-blue-600 dark:text-blue-400 border border-blue-500/30 px-2 py-0.5 rounded-lg font-bold">💎 دوره کامل</span>';
           if (isExtraTraffic) {
             typeBadge = '<span class="text-[10px] bg-cyan-500/15 text-cyan-600 dark:text-cyan-400 border border-cyan-500/30 px-2 py-0.5 rounded-lg font-bold">⚡️ بسته حجمی</span>';
@@ -3274,45 +3305,37 @@
           }
 
           let tagBadge = '';
-          const bKey = (p.badge || '').toLowerCase();
           if (bKey === 'bestseller') {
-            tagBadge = '<span class="text-[10px] bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30 px-1.5 py-0.5 rounded-lg font-bold">🔥 پرفروش‌ترین</span>';
+            tagBadge = '<span class="badge-bestseller text-[10px] bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30 px-1.5 py-0.5 rounded-lg font-bold">🔥 پرفروش‌ترین</span>';
           } else if (bKey === 'popular') {
             tagBadge = '<span class="text-[10px] bg-purple-500/15 text-purple-600 dark:text-purple-400 border border-purple-500/30 px-1.5 py-0.5 rounded-lg font-bold">⭐️ پرطرفدار</span>';
           } else if (bKey === 'economic') {
             tagBadge = '<span class="text-[10px] bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 px-1.5 py-0.5 rounded-lg font-bold">💰 اقتصادی</span>';
           } else if (bKey === 'vip') {
-            tagBadge = '<span class="text-[10px] bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/30 px-1.5 py-0.5 rounded-lg font-bold">👑 پیشنهاد ویژه</span>';
+            tagBadge = '<span class="badge-vip text-[10px] bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/30 px-1.5 py-0.5 rounded-lg font-bold">👑 پیشنهاد ویژه</span>';
           }
 
-          return `
-            <div class="plan-card bg-slate-800/80 rounded-2xl p-4 border border-slate-700/80 space-y-3 shadow transition">
-              <div class="space-y-1.5">
-                <!-- Top Row: Name on Right, Price Number on Left -->
-                <div class="flex items-center justify-between gap-2">
-                  <div class="flex items-center gap-2 min-w-0">
-                    <span class="w-7 h-7 rounded-xl bg-transparent text-blue-400 border border-blue-500/30 flex items-center justify-center flex-shrink-0" title="بسته">
-                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
-                    </span>
-                    <b class="text-slate-900 dark:text-white text-xs font-bold truncate">${escapeHtml(cleanName)}</b>
-                    ${pkgIcon ? `<span class="text-sm select-none leading-none flex-shrink-0" title="آیکون بسته">${pkgIcon}</span>` : ''}
-                  </div>
-                  <span class="text-sm font-black text-emerald-500 dark:text-emerald-400 font-mono leading-none flex-shrink-0">${formatNumber(p.price || 0)}</span>
-                </div>
-
-                <!-- Bottom Row: Badges on Right, تومان on Left (همراستا در یک خط) -->
-                <div class="flex items-center justify-between gap-2 pt-0.5">
-                  <div class="flex items-center gap-1.5 flex-wrap min-w-0">
-                    ${statusBadge}
-                    ${typeBadge}
-                    ${tagBadge}
-                  </div>
-                  <span class="text-[10px] font-sans font-medium text-slate-400 flex-shrink-0">تومان</span>
+          let specsHtml = '';
+          if (isExtraTraffic) {
+            specsHtml = `
+              <div class="grid grid-cols-1 text-center text-[10px] bg-slate-900/60 p-2 rounded-xl font-mono">
+                <div>
+                  <span class="text-slate-400 block text-[10px] font-sans">حجم اضافه</span>
+                  ${trafficHtml}
                 </div>
               </div>
-
-              ${p.description ? `<p class="text-[11px] text-slate-400 line-clamp-1 pr-9">${escapeHtml(p.description)}</p>` : ''}
-
+            `;
+          } else if (isExtraTime) {
+            specsHtml = `
+              <div class="grid grid-cols-1 text-center text-[10px] bg-slate-900/60 p-2 rounded-xl font-mono">
+                <div>
+                  <span class="text-slate-400 block text-[10px] font-sans">مدت زمان اضافه</span>
+                  <b class="text-amber-300">${durationText}</b>
+                </div>
+              </div>
+            `;
+          } else {
+            specsHtml = `
               <div class="grid grid-cols-3 gap-1.5 text-center text-[10px] bg-slate-900/60 p-2 rounded-xl font-mono">
                 <div>
                   <span class="text-slate-400 block text-[10px] font-sans">حجم ترافیک</span>
@@ -3327,6 +3350,41 @@
                   <b class="text-purple-300">${hwidText}</b>
                 </div>
               </div>
+            `;
+          }
+
+          const descHtml = (!isExtraTraffic && !isExtraTime && p.description)
+            ? `<p class="text-[11px] text-slate-400 line-clamp-1 pr-9">${escapeHtml(p.description)}</p>`
+            : '';
+
+          return `
+            <div class="plan-card bg-slate-800/80 rounded-2xl p-4 border border-slate-700/80 space-y-3 shadow transition">
+              <div class="space-y-1.5">
+                <!-- Top Row: Name + statusBadge on Right, Price and تومان on Left (همراستا و چسبیده) -->
+                <div class="flex items-center justify-between gap-2">
+                  <div class="flex items-center gap-1.5 min-w-0">
+                    <span class="w-7 h-7 rounded-xl bg-transparent text-blue-400 border border-blue-500/30 flex items-center justify-center flex-shrink-0" title="بسته">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+                    </span>
+                    <b class="text-slate-900 dark:text-white text-xs font-bold truncate">${escapeHtml(cleanName)}</b>
+                    ${pkgIcon ? `<span class="text-sm select-none leading-none flex-shrink-0" title="آیکون بسته">${pkgIcon}</span>` : ''}
+                    <div class="flex-shrink-0">${statusBadge}</div>
+                  </div>
+                  <div class="flex items-baseline gap-1 flex-shrink-0" dir="ltr">
+                    <span class="text-sm font-black text-emerald-500 dark:text-emerald-400 font-mono leading-none">${formatNumber(p.price || 0)}</span>
+                    <span class="text-[10px] font-sans font-medium text-slate-400">تومان</span>
+                  </div>
+                </div>
+
+                <!-- Bottom Row: Badges on Right -->
+                <div class="flex items-center gap-1.5 flex-wrap pt-0.5">
+                  ${typeBadge}
+                  ${tagBadge}
+                </div>
+              </div>
+
+              ${descHtml}
+              ${specsHtml}
 
               <!-- 3 Icon-Only Action Buttons: Edit, Toggle Active, Delete -->
               <div class="flex gap-2 pt-1">
@@ -3367,12 +3425,20 @@
       if (trafBtn) trafBtn.className = (type === 'traffic') ? activeClass : inactiveClass;
       if (timeBtn) timeBtn.className = (type === 'time') ? activeClass : inactiveClass;
 
+      const hwidBox = $('planModalHwidContainer');
+      const descBox = $('planModalDescContainer');
+      const durBox = $('planModalDurationContainer');
+      const trafBox = $('planModalTrafficContainer');
+
       if (type === 'traffic') {
         if (durInp) {
           durInp.value = '0';
           durInp.disabled = true;
-          durInp.classList.add('opacity-50', 'bg-slate-950');
         }
+        if (durBox) durBox.classList.add('hidden');
+        if (hwidBox) hwidBox.classList.add('hidden');
+        if (descBox) descBox.classList.add('hidden');
+        if (trafBox) trafBox.classList.remove('hidden');
         if (trafInp) {
           trafInp.disabled = false;
           trafInp.classList.remove('opacity-50', 'bg-slate-950');
@@ -3388,8 +3454,11 @@
         if (trafInp) {
           trafInp.value = '0';
           trafInp.disabled = true;
-          trafInp.classList.add('opacity-50', 'bg-slate-950');
         }
+        if (trafBox) trafBox.classList.add('hidden');
+        if (hwidBox) hwidBox.classList.add('hidden');
+        if (descBox) descBox.classList.add('hidden');
+        if (durBox) durBox.classList.remove('hidden');
         if (durInp) {
           durInp.disabled = false;
           durInp.classList.remove('opacity-50', 'bg-slate-950');
@@ -3402,6 +3471,10 @@
           notice.classList.remove('hidden');
         }
       } else {
+        if (durBox) durBox.classList.remove('hidden');
+        if (trafBox) trafBox.classList.remove('hidden');
+        if (hwidBox) hwidBox.classList.remove('hidden');
+        if (descBox) descBox.classList.remove('hidden');
         if (durInp) {
           durInp.disabled = false;
           durInp.classList.remove('opacity-50', 'bg-slate-950');
@@ -3566,24 +3639,43 @@
           const maxText = c.max_uses > 0 ? `${toEnglishDigits(usedCount)} / ${toEnglishDigits(c.max_uses)}` : `${toEnglishDigits(usedCount)} (نامحدود)`;
           const expiryText = c.expires_at_jalali || (c.expires_at ? (window.formatDateToJalali ? window.formatDateToJalali(c.expires_at) : c.expires_at) : 'نامحدود (دائمی)');
 
+          let remainingDaysHtml = '<b class="text-slate-400 font-sans">نامحدود</b>';
+          if (c.expires_at) {
+            const diffMs = new Date(c.expires_at).getTime() - Date.now();
+            const daysLeft = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+            if (daysLeft > 0) {
+              remainingDaysHtml = `<b class="text-amber-400 font-bold">${toEnglishDigits(daysLeft)} روز</b>`;
+            } else {
+              remainingDaysHtml = '<b class="text-rose-400 font-bold">منقضی</b>';
+            }
+          }
+
           const usagesBtnHtml = usedCount > 0
-            ? `<button onclick="window.adminActions.openCouponUsages(${c.id}, '${escapeHtml(c.code).replace(/'/g, "\\'")}')" class="flex-1 bg-transparent hover:bg-pink-500/10 text-pink-600 dark:text-pink-400 border border-pink-500/30 hover:border-pink-400/60 py-1.5 rounded-xl transition font-semibold text-center flex items-center justify-center gap-1.5 active:scale-95">
-                <svg class="w-3.5 h-3.5 text-pink-600 dark:text-pink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
-                <span>استفاده‌کنندگان (${formatNumber(usedCount)})</span>
+            ? `<button onclick="window.adminActions.openCouponUsages(${c.id}, '${escapeHtml(c.code).replace(/'/g, "\\'")}')" class="flex-1 bg-transparent hover:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/30 hover:border-indigo-400/60 py-2 rounded-xl transition flex items-center justify-center active:scale-95 shadow-sm" title="استفاده‌کنندگان (${formatNumber(usedCount)})" aria-label="استفاده‌کنندگان (${formatNumber(usedCount)})">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
               </button>`
-            : `<div class="flex-1 bg-transparent text-slate-400 dark:text-slate-500 border border-slate-700/40 py-1.5 rounded-xl font-medium text-center flex items-center justify-center gap-1.5 opacity-60 cursor-not-allowed select-none">
-                <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
-                <span>فاقد استفاده</span>
+            : `<div class="flex-1 bg-transparent text-slate-500 border border-slate-700/40 py-2 rounded-xl flex items-center justify-center opacity-40 cursor-not-allowed select-none" title="فاقد استفاده">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
               </div>`;
+
+          const toggleBtnHtml = `<button onclick="window.adminActions.toggleCoupon(${c.id}, ${c.is_active})" class="flex-1 bg-transparent hover:bg-slate-500/10 ${c.is_active ? 'text-amber-600 dark:text-amber-400 border border-amber-500/30 hover:border-amber-400/60' : 'text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 hover:border-emerald-400/60'} py-2 rounded-xl transition flex items-center justify-center active:scale-95 shadow-sm" title="${c.is_active ? 'غیرفعال‌سازی کد تخفیف' : 'فعال‌سازی کد تخفیف'}" aria-label="${c.is_active ? 'غیرفعال‌سازی کد تخفیف' : 'فعال‌سازی کد تخفیف'}">
+            ${c.is_active
+              ? '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>'
+              : '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>'}
+          </button>`;
+
+          const deleteBtnHtml = `<button onclick="window.adminActions.deleteCoupon(${c.id}, '${escapeHtml(c.code).replace(/'/g, "\\'")}')" class="flex-1 bg-transparent hover:bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/30 hover:border-rose-400/60 py-2 rounded-xl transition flex items-center justify-center active:scale-95 shadow-sm" title="حذف کد تخفیف" aria-label="حذف کد تخفیف">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+          </button>`;
 
           return `
             <div class="coupon-card bg-slate-800/80 rounded-2xl p-4 border border-slate-700/80 space-y-3 shadow transition">
               <div class="flex items-start justify-between">
                 <div>
                   <div class="flex items-center gap-2">
-                    <button type="button" onclick="window.adminActions.quickCopy('${escapeHtml(c.code).replace(/'/g, "\\'")}', 'کد تخفیف')" class="flex items-center gap-1.5 cursor-pointer bg-transparent hover:text-pink-300 text-pink-400 border-0 p-0 transition active:scale-95 group" title="کلیک جهت کپی کد تخفیف">
+                    <button type="button" onclick="window.adminActions.quickCopy('${escapeHtml(c.code).replace(/'/g, "\\'")}', 'کد تخفیف')" class="flex items-center gap-1.5 cursor-pointer bg-transparent hover:text-indigo-300 text-indigo-400 border-0 p-0 transition active:scale-95 group" title="کلیک جهت کپی کد تخفیف">
                       <span class="font-mono font-bold text-sm tracking-wider uppercase">${escapeHtml(c.code)}</span>
-                      <svg class="w-3.5 h-3.5 text-pink-400/70 group-hover:text-pink-300 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                      <svg class="w-3.5 h-3.5 text-indigo-400/70 group-hover:text-indigo-300 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
                     </button>
                     ${statusBadge}
                   </div>
@@ -3591,25 +3683,25 @@
                 </div>
               </div>
 
-              <div class="grid grid-cols-2 gap-2 text-[10px] bg-transparent p-2 rounded-xl border border-slate-700/60 font-mono">
+              <div class="grid grid-cols-3 gap-1.5 text-center text-[10px] bg-slate-900/60 p-2 rounded-xl font-mono">
                 <div>
                   <span class="text-slate-400 block text-[10px] font-sans">دفعات استفاده:</span>
                   <b class="text-slate-200">${maxText}</b>
                 </div>
                 <div>
                   <span class="text-slate-400 block text-[10px] font-sans">تاریخ انقضا:</span>
-                  <b class="text-slate-200">${escapeHtml(expiryText)}</b>
+                  <b class="text-slate-200 truncate block">${escapeHtml(expiryText)}</b>
+                </div>
+                <div>
+                  <span class="text-slate-400 block text-[10px] font-sans">مهلت باقی‌مانده:</span>
+                  ${remainingDaysHtml}
                 </div>
               </div>
 
               <div class="flex gap-2 pt-1 text-[11px]">
                 ${usagesBtnHtml}
-                <button onclick="window.adminActions.toggleCoupon(${c.id}, ${c.is_active})" class="bg-transparent hover:bg-slate-500/10 ${c.is_active ? 'text-amber-600 dark:text-amber-400 border border-amber-500/30 hover:border-amber-400/60' : 'text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 hover:border-emerald-400/60'} py-1.5 px-3 rounded-xl transition font-semibold text-center active:scale-95">
-                  ${c.is_active ? 'غیرفعال‌سازی' : 'فعال‌سازی'}
-                </button>
-                <button onclick="window.adminActions.deleteCoupon(${c.id}, '${escapeHtml(c.code).replace(/'/g, "\\'")}')" class="bg-transparent hover:bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/30 hover:border-rose-400/60 px-3 py-1.5 rounded-xl transition font-medium flex items-center justify-center active:scale-95" title="حذف کد تخفیف">
-                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                </button>
+                ${toggleBtnHtml}
+                ${deleteBtnHtml}
               </div>
             </div>
           `;
@@ -4654,19 +4746,24 @@
       const profit = rev - cost;
       const convRate = c.users_count > 0 ? ((c.buyers_count / c.users_count) * 100).toFixed(1) : '0';
 
-      if (costEl) costEl.innerText = cost > 0 ? `${formatNumber(cost)} تومان` : '۰ تومان (بدون هزینه)';
+      if (costEl) costEl.innerText = cost > 0 ? `${formatNumber(cost)} تومان` : '0 تومان (بدون هزینه)';
       if (revEl) revEl.innerText = `${formatNumber(rev)} تومان`;
       if (profEl) {
-        profEl.innerText = `${formatNumber(profit)} تومان`;
+        const sign = profit > 0 ? '+' : (profit < 0 ? '-' : '');
+        const absFmt = formatNumber(Math.abs(profit));
+        profEl.innerHTML = `<span dir="ltr">${sign}${absFmt}</span> <span class="text-[11px] font-sans">تومان</span>`;
         profEl.className = profit > 0 ? 'text-emerald-400 font-mono text-sm block' : (profit < 0 ? 'text-rose-400 font-mono text-sm block' : 'text-slate-300 font-mono text-sm block');
       }
       if (roiEl) {
-        const roiText = c.roi !== null && c.roi !== undefined ? `${c.roi > 0 ? '+' : ''}${c.roi}%` : '—';
+        const roiText = c.roi !== null && c.roi !== undefined ? `${c.roi > 0 ? '+' : ''}${toEnglishDigits(c.roi)}%` : '—';
         roiEl.innerText = roiText;
         roiEl.className = c.roi !== null && c.roi > 0 ? 'text-emerald-400 font-mono text-sm block' : (c.roi !== null && c.roi < 0 ? 'text-rose-400 font-mono text-sm block' : 'text-slate-400 font-mono text-sm block');
       }
-      if (usersEl) usersEl.innerText = `${formatNumber(c.users_count)} نفر`;
-      if (buyersEl) buyersEl.innerText = `${formatNumber(c.buyers_count)} نفر (${convRate}٪)`;
+      if (usersEl) usersEl.innerHTML = `${formatNumber(c.users_count)} <span class="font-sans text-[11px]">نفر</span>`;
+      if (buyersEl) {
+        const enRate = toEnglishDigits(convRate);
+        buyersEl.innerHTML = `${formatNumber(c.buyers_count)} <span class="font-sans text-[11px]">نفر</span> <span dir="ltr" class="font-mono text-xs">(${enRate}%)</span>`;
+      }
 
       if (modal) modal.classList.remove('hidden');
     },

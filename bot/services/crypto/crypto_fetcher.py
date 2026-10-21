@@ -27,41 +27,60 @@ async def fetch_all_exchange_prices(usdt_rate: int | None = None) -> dict:
     ton_prices: dict[str, int] = {}
     usdt_prices: dict[str, int] = {}
     eur_prices: dict[str, int] = {}
+    closed_status: dict[str, str] = {}
     binance_ton_usd: float | None = None
     binance_eur_usd: float | None = None
 
     async with aiohttp.ClientSession(timeout=timeout) as session:
         # 1. Nobitex
         async def _fetch_nobitex():
-            for symbol in ("GRAMIRT", "TONIRT"):
-                try:
-                    async with session.get(f"https://apiv2.nobitex.ir/v2/orderbook/{symbol}", headers=headers, proxy=proxy) as resp:
-                        if resp.status == 200:
-                            data = await resp.json()
-                            p = data.get("lastTradePrice")
-                            if p:
-                                ton_prices["نوبیتکس"] = int(float(p) // 10)
-                                break
-                except Exception as exc:
-                    logger.warning("Nobitex orderbook fetch failed for %s: %s", symbol, exc)
-
+            # First fetch stats to verify market active/closed status
             try:
                 async with session.get("https://apiv2.nobitex.ir/market/stats", headers=headers, proxy=proxy) as resp:
                     if resp.status == 200:
                         data = await resp.json()
                         st = data.get("stats", {})
-                        if "نوبیتکس" not in ton_prices:
-                            ton_info = st.get("gram-rls") or st.get("ton-rls")
-                            if ton_info and ton_info.get("latest"):
+
+                        # TON stats
+                        ton_info = st.get("gram-rls") or st.get("ton-rls")
+                        if ton_info:
+                            if ton_info.get("isClosed") or ton_info.get("status") == "closed":
+                                closed_status["نوبیتکس_ton"] = "موقتاً غیرفعال (محدودیت نظارتی)"
+                            elif ton_info.get("latest"):
                                 ton_prices["نوبیتکس"] = int(float(ton_info["latest"]) // 10)
+
+                        # USDT stats
                         usdt_info = st.get("usdt-rls")
-                        if usdt_info and usdt_info.get("latest"):
-                            usdt_prices["نوبیتکس"] = int(float(usdt_info["latest"]) // 10)
+                        if usdt_info:
+                            if usdt_info.get("isClosed") or usdt_info.get("status") == "closed":
+                                closed_status["نوبیتکس_usdt"] = "موقتاً غیرفعال (محدودیت نظارتی)"
+                            elif usdt_info.get("latest"):
+                                usdt_prices["نوبیتکس"] = int(float(usdt_info["latest"]) // 10)
+
+                        # EUR stats
                         eur_info = st.get("eur-rls") or st.get("eur-irt")
-                        if eur_info and eur_info.get("latest"):
-                            eur_prices["نوبیتکس"] = int(float(eur_info["latest"]) // 10)
+                        if eur_info:
+                            if eur_info.get("isClosed") or eur_info.get("status") == "closed":
+                                closed_status["نوبیتکس_eur"] = "موقتاً غیرفعال (محدودیت نظارتی)"
+                            elif eur_info.get("latest"):
+                                eur_prices["نوبیتکس"] = int(float(eur_info["latest"]) // 10)
             except Exception as e:
                 logger.debug("Nobitex stats failed: %s", e)
+
+            # Orderbook as secondary for TON only if market is active and not already obtained
+            if not closed_status.get("نوبیتکس_ton") and "نوبیتکس" not in ton_prices:
+                for symbol in ("GRAMIRT", "TONIRT"):
+                    try:
+                        async with session.get(f"https://apiv2.nobitex.ir/v2/orderbook/{symbol}", headers=headers, proxy=proxy) as resp:
+                            if resp.status == 200:
+                                data = await resp.json()
+                                if not data.get("isClosed") and data.get("status") != "closed":
+                                    p = data.get("lastTradePrice")
+                                    if p:
+                                        ton_prices["نوبیتکس"] = int(float(p) // 10)
+                                        break
+                    except Exception as exc:
+                        logger.warning("Nobitex orderbook fetch failed for %s: %s", symbol, exc)
 
         # 2. Bitpin
         async def _fetch_bitpin():
@@ -239,6 +258,7 @@ async def fetch_all_exchange_prices(usdt_rate: int | None = None) -> dict:
         "ton": ton_prices,
         "usdt": usdt_prices,
         "eur": eur_prices,
+        "closed_status": closed_status,
         "binance_usd": binance_ton_usd,
         "binance_eur_usd": binance_eur_usd,
         "best_ton": (best_ton_price, best_ton_source),

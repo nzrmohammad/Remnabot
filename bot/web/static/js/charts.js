@@ -479,11 +479,11 @@ function renderBurnRate(burnRate, sub) {
 
   const avgGb = burnRate.avg_daily_gb || 0;
   if (speedBadge) {
-    speedBadge.innerText = avgGb > 0 ? `${fmtTraffic(avgGb, { html: false, isolate: true })}/روز` : 'کم‌مصرف';
+    speedBadge.innerText = avgGb > 0 ? fmtTraffic(avgGb, { html: false, isolate: true }) : 'کم‌مصرف';
   }
 
   if (avgDailyEl) {
-    avgDailyEl.innerHTML = `${fmtTraffic(avgGb, { html: true })} / روز`;
+    avgDailyEl.innerHTML = fmtTraffic(avgGb, { html: true });
   }
 
   const projDays = burnRate.projected_days;

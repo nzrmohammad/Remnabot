@@ -735,10 +735,31 @@ html.theme-light .coupon-usage-card .text-slate-200 {
 /* Badges inside shop cards must preserve high contrast text */
 .shop-plan-badge,
 .shop-plan-card .shop-plan-badge,
+.badge-bestseller,
+.badge-vip,
 html.theme-light .shop-plan-card .shop-plan-badge,
 html.theme-light .shop-plan-card [class*="rounded-br-xl"] {
-  color: #ffffff;
+  color: #ffffff !important;
 }
+
+html.theme-light .shop-plan-badge.badge-bestseller,
+html.theme-light .badge-bestseller {
+  background: linear-gradient(135deg, #d97706, #ea580c);
+  color: #ffffff !important;
+  border-color: #b45309;
+  font-weight: 800;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+}
+
+html.theme-light .shop-plan-badge.badge-vip,
+html.theme-light .badge-vip {
+  background: linear-gradient(135deg, #7c3aed, #4f46e5);
+  color: #ffffff !important;
+  border-color: #6d28d9;
+  font-weight: 800;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+}
+
 html.theme-light .shop-plan-card .shop-plan-badge.text-slate-950,
 html.theme-light .shop-plan-card [class*="rounded-br-xl"].text-slate-950 {
   color: #020617;

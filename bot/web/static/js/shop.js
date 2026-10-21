@@ -225,8 +225,9 @@ function renderFilteredShopPlans() {
   if (couponSection) couponSection.classList.remove('hidden');
 
   const plans = allPlans.filter(p => {
-    const isTraffic = (Number(p.duration_days) === 0 && Number(p.traffic_gb) > 0) || (p.badge || '').toLowerCase() === 'traffic';
-    const isTime = (Number(p.traffic_gb) === 0 && Number(p.duration_days) > 0) || (p.badge || '').toLowerCase() === 'time';
+    const b = (p.badge || '').toLowerCase();
+    const isTraffic = (b === 'traffic' || (Number(p.duration_days) === 0 && Number(p.traffic_gb) > 0)) && b !== 'time';
+    const isTime = !isTraffic && (b === 'time' || (Number(p.traffic_gb) === 0 && Number(p.duration_days) > 0 && b !== 'traffic'));
     if (currentShopCategory === 'traffic') return isTraffic;
     if (currentShopCategory === 'time') return isTime;
     return !isTraffic && !isTime; // 'full'
@@ -267,11 +268,11 @@ function renderFilteredShopPlans() {
       badgeBorderClass = 'border-amber-500/50 shadow-lg shadow-amber-500/10';
       btnClass = 'bg-blue-600 hover:bg-blue-500 text-white font-bold';
     } else if (planBadgeKey === 'vip' || (!planBadgeKey && (planText.includes('پیشنهاد ویژه') || planText.includes('vip')))) {
-      planBadge = '<div class="shop-plan-badge absolute top-0 left-0 bg-gradient-to-r from-rose-600 via-pink-600 to-purple-600 !text-white text-[10px] font-black px-3 py-0.5 rounded-br-xl border-b border-r border-rose-400/40 shadow-md flex items-center gap-1">👑 پیشنهاد ویژه</div>';
+      planBadge = '<div class="shop-plan-badge badge-vip absolute top-0 left-0 bg-gradient-to-r from-rose-600 via-pink-600 to-purple-600 !text-white text-[10px] font-black px-3 py-0.5 rounded-br-xl border-b border-r border-rose-400/40 shadow-md flex items-center gap-1">👑 پیشنهاد ویژه</div>';
       badgeBorderClass = 'border-rose-500/70 shadow-lg shadow-rose-500/15';
       btnClass = 'bg-blue-600 hover:bg-blue-500 text-white font-bold';
     } else if (planBadgeKey === 'bestseller' || (!planBadgeKey && (planText.includes('پرفروش') || planText.includes('bestseller')))) {
-      planBadge = '<div class="shop-plan-badge absolute top-0 left-0 bg-gradient-to-r from-amber-600 via-amber-500 to-orange-500 !text-white text-[10px] font-black px-3 py-0.5 rounded-br-xl border-b border-r border-amber-400/50 shadow-md flex items-center gap-1">🔥 پرفروش‌ترین</div>';
+      planBadge = '<div class="shop-plan-badge badge-bestseller absolute top-0 left-0 bg-gradient-to-r from-amber-600 via-amber-500 to-orange-500 !text-white text-[10px] font-black px-3 py-0.5 rounded-br-xl border-b border-r border-amber-400/50 shadow-md flex items-center gap-1">🔥 پرفروش‌ترین</div>';
       badgeBorderClass = 'border-amber-500/70 shadow-lg shadow-amber-500/15';
       btnClass = 'bg-blue-600 hover:bg-blue-500 text-white font-bold';
     } else if (planBadgeKey === 'popular' || (!planBadgeKey && (planText.includes('محبوب') || planText.includes('popular')))) {
