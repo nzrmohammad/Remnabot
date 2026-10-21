@@ -979,68 +979,104 @@ window.verifyPhoneNative = verifyPhoneNative;
 
 const JALALI_MONTHS = ['فروردین', 'اردیبهشت', 'خرداد', 'تیر', 'مرداد', 'شهریور', 'مهر', 'آبان', 'آذر', 'دی', 'بهمن', 'اسفند'];
 
-function toggleBdayDropdown(type) {
-  const dropdowns = ['day', 'month', 'year'];
-  dropdowns.forEach(d => {
-    const el = $(`bday${d.charAt(0).toUpperCase() + d.slice(1)}Dropdown`);
-    if (!el) return;
-    if (d === type) {
-      el.classList.toggle('hidden');
+let currentBdayTab = 'day';
+
+function switchBdayPickerTab(tab) {
+  currentBdayTab = tab;
+  ['day', 'month', 'year'].forEach(t => {
+    const pane = $(`bdayPane${t.charAt(0).toUpperCase() + t.slice(1)}`);
+    const tabBtn = $(`bdayTab${t.charAt(0).toUpperCase() + t.slice(1)}`);
+    if (t === tab) {
+      if (pane) pane.classList.remove('hidden');
+      if (tabBtn) {
+        tabBtn.className = 'flex-1 py-1.5 rounded-xl font-bold text-xs bg-indigo-600 text-white shadow transition flex items-center justify-center gap-1';
+      }
     } else {
-      el.classList.add('hidden');
+      if (pane) pane.classList.add('hidden');
+      if (tabBtn) {
+        tabBtn.className = 'flex-1 py-1.5 rounded-xl font-medium text-xs text-slate-400 hover:text-white transition flex items-center justify-center gap-1';
+      }
     }
   });
   hapticFeedback('selection');
 }
-window.toggleBdayDropdown = toggleBdayDropdown;
+window.switchBdayPickerTab = switchBdayPickerTab;
 
-function selectBdayItem(type, val, displayText) {
+function selectBdayItem(type, val, displayText, autoAdvance = false) {
   const hiddenInp = $(`birthday${type.charAt(0).toUpperCase() + type.slice(1)}Select`);
   if (hiddenInp) hiddenInp.value = String(val);
+  
   const disp = $(`bday${type.charAt(0).toUpperCase() + type.slice(1)}Display`);
-  if (disp) disp.innerText = displayText || toPersianDigits(val);
-  const dropdown = $(`bday${type.charAt(0).toUpperCase() + type.slice(1)}Dropdown`);
-  if (dropdown) dropdown.classList.add('hidden');
+  const pillVal = $(`bday${type.charAt(0).toUpperCase() + type.slice(1)}PillVal`);
+  const showText = displayText || toPersianDigits(val);
+  if (disp) disp.innerText = showText;
+  if (pillVal) pillVal.innerText = showText;
+
+  const container = $(`bday${type.charAt(0).toUpperCase() + type.slice(1)}sGrid`);
+  if (container) {
+    container.querySelectorAll('.bday-grid-btn').forEach(btn => {
+      const bVal = btn.getAttribute('data-val');
+      if (String(bVal) === String(val)) {
+        btn.classList.add('active-bday-item', 'bg-indigo-600', 'text-white', 'font-bold', 'border-indigo-400');
+        btn.classList.remove('text-slate-300', 'bg-slate-800/80', 'border-slate-700/60');
+      } else {
+        btn.classList.remove('active-bday-item', 'bg-indigo-600', 'text-white', 'font-bold', 'border-indigo-400');
+        btn.classList.add('text-slate-300', 'bg-slate-800/80', 'border-slate-700/60');
+      }
+    });
+  }
+
   hapticFeedback('selection');
+
+  if (autoAdvance) {
+    if (type === 'year') {
+      switchBdayPickerTab('month');
+    } else if (type === 'month') {
+      switchBdayPickerTab('day');
+    }
+  }
 }
 window.selectBdayItem = selectBdayItem;
 
 function initBirthdaySelects() {
-  const dayDropdown = $('bdayDayDropdown');
-  const monthDropdown = $('bdayMonthDropdown');
-  const yearDropdown = $('bdayYearDropdown');
+  const dayGrid = $('bdayDaysGrid');
+  const monthGrid = $('bdayMonthsGrid');
+  const yearGrid = $('bdayYearsGrid');
 
-  if (dayDropdown && dayDropdown.children.length === 0) {
+  if (dayGrid && dayGrid.children.length === 0) {
     for (let d = 1; d <= 31; d++) {
       const btn = document.createElement('button');
       btn.type = 'button';
-      btn.className = 'w-full py-1.5 px-2 text-center text-xs text-slate-300 hover:text-pink-300 hover:bg-slate-800 rounded-lg transition font-mono';
+      btn.setAttribute('data-val', d);
+      btn.className = 'bday-grid-btn py-1.5 px-0.5 text-center text-xs text-slate-300 bg-slate-800/80 hover:bg-slate-700 border border-slate-700/60 rounded-xl transition font-mono active:scale-95';
       btn.textContent = `${toPersianDigits(d)}`;
-      btn.onclick = () => selectBdayItem('day', d, toPersianDigits(d));
-      dayDropdown.appendChild(btn);
+      btn.onclick = () => selectBdayItem('day', d, toPersianDigits(d), false);
+      dayGrid.appendChild(btn);
     }
   }
 
-  if (monthDropdown && monthDropdown.children.length === 0) {
+  if (monthGrid && monthGrid.children.length === 0) {
     JALALI_MONTHS.forEach((mName, idx) => {
       const mVal = idx + 1;
       const btn = document.createElement('button');
       btn.type = 'button';
-      btn.className = 'w-full py-1.5 px-2 text-center text-xs text-slate-300 hover:text-pink-300 hover:bg-slate-800 rounded-lg transition font-medium';
+      btn.setAttribute('data-val', mVal);
+      btn.className = 'bday-grid-btn py-2 px-1 text-center text-xs text-slate-300 bg-slate-800/80 hover:bg-slate-700 border border-slate-700/60 rounded-xl transition font-medium active:scale-95';
       btn.textContent = mName;
-      btn.onclick = () => selectBdayItem('month', mVal, mName);
-      monthDropdown.appendChild(btn);
+      btn.onclick = () => selectBdayItem('month', mVal, mName, true);
+      monthGrid.appendChild(btn);
     });
   }
 
-  if (yearDropdown && yearDropdown.children.length === 0) {
-    for (let y = 1395; y >= 1330; y--) {
+  if (yearGrid && yearGrid.children.length === 0) {
+    for (let y = 1395; y >= 1335; y--) {
       const btn = document.createElement('button');
       btn.type = 'button';
-      btn.className = 'w-full py-1.5 px-2 text-center text-xs text-slate-300 hover:text-pink-300 hover:bg-slate-800 rounded-lg transition font-mono';
+      btn.setAttribute('data-val', y);
+      btn.className = 'bday-grid-btn py-1.5 px-1 text-center text-xs text-slate-300 bg-slate-800/80 hover:bg-slate-700 border border-slate-700/60 rounded-xl transition font-mono active:scale-95';
       btn.textContent = `${toPersianDigits(y)}`;
-      btn.onclick = () => selectBdayItem('year', y, toPersianDigits(y));
-      yearDropdown.appendChild(btn);
+      btn.onclick = () => selectBdayItem('year', y, toPersianDigits(y), true);
+      yearGrid.appendChild(btn);
     }
   }
 }
@@ -1052,39 +1088,102 @@ function openBirthdayModal() {
     try {
       const parts = existingDate.replace(/-/g, '/').split('/').map(Number);
       if (parts.length === 3) {
-        selectBdayItem('year', parts[0], toPersianDigits(parts[0]));
-        selectBdayItem('month', parts[1], JALALI_MONTHS[parts[1] - 1] || parts[1]);
-        selectBdayItem('day', parts[2], toPersianDigits(parts[2]));
+        selectBdayItem('year', parts[0], toPersianDigits(parts[0]), false);
+        selectBdayItem('month', parts[1], JALALI_MONTHS[parts[1] - 1] || parts[1], false);
+        selectBdayItem('day', parts[2], toPersianDigits(parts[2]), false);
       }
     } catch (e) {}
   } else {
-    selectBdayItem('year', 1375, toPersianDigits(1375));
-    selectBdayItem('month', 1, 'فروردین');
-    selectBdayItem('day', 1, toPersianDigits(1));
+    selectBdayItem('year', 1375, toPersianDigits(1375), false);
+    selectBdayItem('month', 1, 'فروردین', false);
+    selectBdayItem('day', 1, toPersianDigits(1), false);
   }
+  switchBdayPickerTab('day');
   openModal('birthdayModal');
   hapticFeedback('selection');
 }
 
 function closeBirthdayModal() {
-  $('bdayDayDropdown')?.classList.add('hidden');
-  $('bdayMonthDropdown')?.classList.add('hidden');
-  $('bdayYearDropdown')?.classList.add('hidden');
   closeModal('birthdayModal');
 }
+window.openBirthdayModal = openBirthdayModal;
+window.closeBirthdayModal = closeBirthdayModal;
 
-function toggleAlertPicker(type) {
-  const menu = type === 'traffic' ? $('trafficPercentPickerMenu') : $('expireDaysPickerMenu');
-  if (menu) menu.classList.toggle('hidden');
-  const otherMenu = type === 'traffic' ? $('expireDaysPickerMenu') : $('trafficPercentPickerMenu');
-  if (otherMenu) otherMenu.classList.add('hidden');
+function openAlertPickerModal(type) {
+  const modal = $('alertThresholdModal');
+  const titleEl = $('alertThresholdModalTitle');
+  const subEl = $('alertThresholdModalSubtitle');
+  const iconBox = $('alertThresholdIconBox');
+  const listEl = $('alertThresholdOptionsList');
+  if (!modal || !listEl) return;
+
+  if (type === 'traffic') {
+    if (titleEl) titleEl.innerText = 'تنظیم درصد هشدار مصرف ترافیک';
+    if (subEl) subEl.innerText = 'هنگامی که مصرف بسته به این درصد برسد، ربات پیام هشدار ارسال می‌کند.';
+    if (iconBox) {
+      iconBox.className = 'w-10 h-10 rounded-2xl bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 flex items-center justify-center text-lg flex-shrink-0';
+      iconBox.innerHTML = '⚠️';
+    }
+    const currentVal = parseInt($('settingTrafficPercentSelect')?.value || '80', 10);
+    const options = [
+      { val: 70, label: '70% — هشدار زودهنگام', desc: 'ارسال هشدار هنگام مصرف ۷۰٪ حجم بسته' },
+      { val: 75, label: '75% — سه‌چهارم حجم', desc: 'ارسال هشدار هنگام مصرف سه‌چهارم ترافیک' },
+      { val: 80, label: '80% — حد استاندارد (پیشنهادی ⭐)', desc: 'بهترین تعادل برای خرید یا تمدید به‌موقع' },
+      { val: 85, label: '85% — مصرف بالا', desc: 'ارسال هشدار در آستانه اتمام حجم' },
+      { val: 90, label: '90% — نزدیک به پایان کامل', desc: 'هشدار فوری هنگام باقی‌ماندن ۱۰٪ حجم' },
+      { val: 95, label: '95% — هشدار اضطراری', desc: 'آخرین فرصت پیش از قطع دسترسی اینترنت' },
+    ];
+    listEl.innerHTML = options.map(opt => `
+      <div onclick="window.selectAlertSetting('traffic', ${opt.val})" class="alert-picker-option cursor-pointer p-3 rounded-2xl border transition flex items-center justify-between ${opt.val === currentVal ? 'active-alert-opt bg-cyan-500/15 border-cyan-500/50 text-cyan-300' : 'bg-slate-900/60 border-slate-700/60 hover:border-slate-500 text-slate-300'}">
+        <div>
+          <b class="text-xs block">${opt.label}</b>
+          <span class="text-[10px] text-slate-400 block mt-0.5">${opt.desc}</span>
+        </div>
+        <div class="w-5 h-5 rounded-full border ${opt.val === currentVal ? 'border-cyan-400 bg-cyan-500 flex items-center justify-center text-slate-950 font-bold text-xs' : 'border-slate-600'}">
+          ${opt.val === currentVal ? '✓' : ''}
+        </div>
+      </div>
+    `).join('');
+  } else if (type === 'expire') {
+    if (titleEl) titleEl.innerText = 'تنظیم زمان هشدار پایان اعتبار سرویس';
+    if (subEl) subEl.innerText = 'چند روز مانده به پایان مدت اشتراک پیام یادآوری تمدید ارسال شود؟';
+    if (iconBox) {
+      iconBox.className = 'w-10 h-10 rounded-2xl bg-amber-500/20 text-amber-400 border border-amber-500/30 flex items-center justify-center text-lg flex-shrink-0';
+      iconBox.innerHTML = '⏰';
+    }
+    const currentVal = parseInt($('settingExpireDaysSelect')?.value || '3', 10);
+    const options = [
+      { val: 1, label: '1 روز قبل از پایان', desc: 'ارسال پیام یادآوری در روز پایانی اعتبار' },
+      { val: 2, label: '2 روز قبل از پایان', desc: 'ارسال پیام دو روز مانده به انقضای اشتراک' },
+      { val: 3, label: '3 روز قبل از پایان (پیشنهادی ⭐)', desc: 'زمان استاندارد جهت جلوگیری از قطعی اتصال' },
+      { val: 5, label: '5 روز قبل از پایان', desc: 'اطلاع‌رسانی زودهنگام ۵ روز مانده به انقضا' },
+      { val: 7, label: '7 روز قبل از پایان', desc: 'اطلاع‌رسانی یک هفته قبل از اتمام زمان سرویس' },
+    ];
+    listEl.innerHTML = options.map(opt => `
+      <div onclick="window.selectAlertSetting('expire', ${opt.val})" class="alert-picker-option cursor-pointer p-3 rounded-2xl border transition flex items-center justify-between ${opt.val === currentVal ? 'active-alert-opt bg-amber-500/15 border-amber-500/50 text-amber-300' : 'bg-slate-900/60 border-slate-700/60 hover:border-slate-500 text-slate-300'}">
+        <div>
+          <b class="text-xs block">${opt.label}</b>
+          <span class="text-[10px] text-slate-400 block mt-0.5">${opt.desc}</span>
+        </div>
+        <div class="w-5 h-5 rounded-full border ${opt.val === currentVal ? 'border-amber-400 bg-amber-500 flex items-center justify-center text-slate-950 font-bold text-xs' : 'border-slate-600'}">
+          ${opt.val === currentVal ? '✓' : ''}
+        </div>
+      </div>
+    `).join('');
+  }
+
+  openModal('alertThresholdModal');
   hapticFeedback('selection');
 }
-window.toggleAlertPicker = toggleAlertPicker;
+window.openAlertPickerModal = openAlertPickerModal;
+
+function closeAlertThresholdModal() {
+  closeModal('alertThresholdModal');
+}
+window.closeAlertThresholdModal = closeAlertThresholdModal;
 
 async function selectAlertSetting(type, val) {
-  const menu = type === 'traffic' ? $('trafficPercentPickerMenu') : $('expireDaysPickerMenu');
-  if (menu) menu.classList.add('hidden');
+  closeAlertThresholdModal();
 
   if (type === 'traffic') {
     const hiddenInp = $('settingTrafficPercentSelect');
@@ -1267,7 +1366,7 @@ function openBirthdayCountdownModal() {
   if (isToday) {
     if (titleEl) titleEl.innerText = '🎉 امروز روز زادروز شماست! مبارک باد 🎂';
   } else {
-    if (titleEl) titleEl.innerText = `تنها ${toPersianDigits(daysLeft)} روز تا روز زادروز شما باقی است`;
+    if (titleEl) titleEl.innerText = `تنها ${toEnglishDigits(daysLeft)} روز تا روز زادروز شما باقی است`;
   }
 
   const now = new Date();
@@ -1279,10 +1378,10 @@ function openBirthdayCountdownModal() {
 
   function updateTicker() {
     if (isToday) {
-      if ($('bdayCountdownDays')) $('bdayCountdownDays').innerText = toPersianDigits(0);
-      if ($('bdayCountdownHours')) $('bdayCountdownHours').innerText = toPersianDigits('00');
-      if ($('bdayCountdownMinutes')) $('bdayCountdownMinutes').innerText = toPersianDigits('00');
-      if ($('bdayCountdownSeconds')) $('bdayCountdownSeconds').innerText = toPersianDigits('00');
+      if ($('bdayCountdownDays')) $('bdayCountdownDays').innerText = '0';
+      if ($('bdayCountdownHours')) $('bdayCountdownHours').innerText = '00';
+      if ($('bdayCountdownMinutes')) $('bdayCountdownMinutes').innerText = '00';
+      if ($('bdayCountdownSeconds')) $('bdayCountdownSeconds').innerText = '00';
       return;
     }
     const diff = Math.max(0, targetEpoch - Date.now());
@@ -1291,10 +1390,10 @@ function openBirthdayCountdownModal() {
     const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
     const s = Math.floor((diff % (1000 * 60)) / 1000);
 
-    if ($('bdayCountdownDays')) $('bdayCountdownDays').innerText = toPersianDigits(d);
-    if ($('bdayCountdownHours')) $('bdayCountdownHours').innerText = toPersianDigits(String(h).padStart(2, '0'));
-    if ($('bdayCountdownMinutes')) $('bdayCountdownMinutes').innerText = toPersianDigits(String(m).padStart(2, '0'));
-    if ($('bdayCountdownSeconds')) $('bdayCountdownSeconds').innerText = toPersianDigits(String(s).padStart(2, '0'));
+    if ($('bdayCountdownDays')) $('bdayCountdownDays').innerText = String(d);
+    if ($('bdayCountdownHours')) $('bdayCountdownHours').innerText = String(h).padStart(2, '0');
+    if ($('bdayCountdownMinutes')) $('bdayCountdownMinutes').innerText = String(m).padStart(2, '0');
+    if ($('bdayCountdownSeconds')) $('bdayCountdownSeconds').innerText = String(s).padStart(2, '0');
   }
 
   updateTicker();
@@ -1341,8 +1440,8 @@ function renderDashboardBirthdayCountdown(user) {
     if (badgeEl) badgeEl.innerHTML = '<span>🎂</span> <span>مبارک باد!</span>';
   } else if (daysLeft !== null && daysLeft !== undefined) {
     if (titleEl) titleEl.innerText = 'شمارش معکوس زادروز شما';
-    if (subEl) subEl.innerText = `تنها ${toPersianDigits(daysLeft)} روز تا روز تولدتان باقی مانده است 🎂`;
-    if (numEl) numEl.innerText = toPersianDigits(daysLeft);
+    if (subEl) subEl.innerText = `تنها ${toEnglishDigits(daysLeft)} روز تا روز تولدتان باقی مانده است 🎂`;
+    if (numEl) numEl.innerText = toEnglishDigits(daysLeft);
   } else {
     card.classList.add('hidden');
   }
@@ -2256,12 +2355,15 @@ function renderActiveSubAnalytics(sub) {
       const hourlyData = sub.hourly_usage?.data || [];
       const hasRealTraffic = Boolean(sub.hourly_usage?.has_real_data && hourlyData.some(v => Number(v) > 0));
 
+      const barContainer = $('repPeakHoursBarContainer');
       if (!hasRealTraffic) {
         if (canvasEl) canvasEl.classList.add('hidden');
+        if (barContainer) barContainer.classList.add('hidden');
         if (emptyStateEl) emptyStateEl.classList.remove('hidden');
         if (peakBadge) peakBadge.innerText = 'بدون داده';
       } else {
         if (canvasEl) canvasEl.classList.remove('hidden');
+        if (barContainer) barContainer.classList.remove('hidden');
         if (emptyStateEl) emptyStateEl.classList.add('hidden');
         const hourlyLabels = sub.hourly_usage?.labels || [
           '00-02','02-04','04-06','06-08','08-10','10-12',
@@ -2269,6 +2371,9 @@ function renderActiveSubAnalytics(sub) {
         ];
         const peakHour = sub.hourly_usage?.peak_hour || null;
         renderLineCurveChart('repPeakHoursChartCanvas', hourlyLabels, hourlyData, peakHour);
+        if (typeof renderBarChart === 'function') {
+          renderBarChart('repPeakHoursBarCanvas', hourlyLabels, hourlyData, false);
+        }
         if (peakBadge) {
           peakBadge.innerText = peakHour ? `Peak: ${toEnglishDigits(peakHour)}` : '---';
         }

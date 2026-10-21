@@ -40,7 +40,7 @@
       tg.ready();
       tg.expand();
       if (tg.disableVerticalSwipes) tg.disableVerticalSwipes();
-      if (tg.requestFullscreen) tg.requestFullscreen();
+      // tg.requestFullscreen removed to prevent header falling under Telegram client menu
       if (tg.setHeaderColor) tg.setHeaderColor('#0f172a');
       if (tg.setBackgroundColor) tg.setBackgroundColor('#080d1a');
       if (tg.onEvent) {

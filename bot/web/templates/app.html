@@ -555,7 +555,7 @@
           <div class="bg-slate-800/90 rounded-2xl p-4 border border-slate-700/80 space-y-2.5 shadow-md">
             <div class="flex justify-between items-center border-b border-slate-700/60 pb-2">
               <span class="text-xs font-bold text-white flex items-center gap-1.5">
-                <span>📈</span> منحنی ساعات اوج مصرف (۲۴ ساعت گذشته)
+                <span>📈</span> منحنی ساعات اوج مصرف
               </span>
               <span id="repPeakHourBadge" class="text-[10px] font-mono font-bold text-amber-400 bg-transparent p-0" dir="ltr">---</span>
             </div>
@@ -565,6 +565,19 @@
                 <span class="text-xl">📊</span>
                 <span class="text-[11px] font-medium text-slate-300">داده‌ای برای ساعات اوج مصرف ثبت نشده است</span>
                 <span class="text-[10px] text-slate-500">پس از مصرف ترافیک در طول شبانه‌روز، منحنی اوج مصرف رسم می‌شود.</span>
+              </div>
+            </div>
+
+            <!-- Bar Chart: Hourly Interval Consumption -->
+            <div id="repPeakHoursBarContainer" class="pt-2 border-t border-slate-700/50 space-y-1">
+              <div class="flex justify-between items-center px-1">
+                <span class="text-[11px] font-semibold text-slate-300 flex items-center gap-1">
+                  <span>📊</span> توزیع مصرف بازه‌ها (هر ۲ ساعت)
+                </span>
+                <span class="text-[10px] text-slate-400 font-mono">حجم مصرف (GB)</span>
+              </div>
+              <div class="h-28 w-full p-1 bg-transparent rounded-xl relative flex items-center justify-center">
+                <canvas id="repPeakHoursBarCanvas" dir="ltr" class="w-full h-full"></canvas>
               </div>
             </div>
           </div>
@@ -998,18 +1011,10 @@
               </div>
               <div class="flex items-center gap-2 relative">
                 <input type="hidden" id="settingTrafficPercentSelect" value="80">
-                <button id="trafficPercentTriggerBtn" type="button" onclick="window.toggleAlertPicker('traffic')" class="bg-slate-900 border border-slate-700 hover:border-cyan-500/50 text-cyan-400 text-[11px] rounded-lg px-2.5 py-1 outline-none font-mono font-bold flex items-center gap-1 transition active:scale-95 shadow-sm">
+                <button id="trafficPercentTriggerBtn" type="button" onclick="window.openAlertPickerModal('traffic')" class="bg-slate-900 border border-slate-700 hover:border-cyan-500/50 text-cyan-400 text-[11px] rounded-lg px-2.5 py-1 outline-none font-mono font-bold flex items-center gap-1 transition active:scale-95 shadow-sm">
                   <span id="trafficPercentDisplay">80%</span>
-                  <span class="text-[9px] text-slate-400">▾</span>
+                  <span class="text-[9px] text-slate-400">⚙️</span>
                 </button>
-                <div id="trafficPercentPickerMenu" class="hidden absolute top-full mt-1.5 left-0 z-30 bg-[#151c2e] border border-cyan-500/40 rounded-xl shadow-2xl p-1 min-w-[75px] space-y-0.5 text-center">
-                  <button type="button" onclick="window.selectAlertSetting('traffic', 70)" class="w-full py-1 px-2 text-[11px] font-mono text-slate-300 hover:text-cyan-300 hover:bg-slate-800 rounded-lg transition">70%</button>
-                  <button type="button" onclick="window.selectAlertSetting('traffic', 75)" class="w-full py-1 px-2 text-[11px] font-mono text-slate-300 hover:text-cyan-300 hover:bg-slate-800 rounded-lg transition">75%</button>
-                  <button type="button" onclick="window.selectAlertSetting('traffic', 80)" class="w-full py-1 px-2 text-[11px] font-mono text-slate-300 hover:text-cyan-300 hover:bg-slate-800 rounded-lg transition font-bold text-cyan-400 bg-cyan-500/15">80%</button>
-                  <button type="button" onclick="window.selectAlertSetting('traffic', 85)" class="w-full py-1 px-2 text-[11px] font-mono text-slate-300 hover:text-cyan-300 hover:bg-slate-800 rounded-lg transition">85%</button>
-                  <button type="button" onclick="window.selectAlertSetting('traffic', 90)" class="w-full py-1 px-2 text-[11px] font-mono text-slate-300 hover:text-cyan-300 hover:bg-slate-800 rounded-lg transition">90%</button>
-                  <button type="button" onclick="window.selectAlertSetting('traffic', 95)" class="w-full py-1 px-2 text-[11px] font-mono text-slate-300 hover:text-cyan-300 hover:bg-slate-800 rounded-lg transition">95%</button>
-                </div>
                 <label dir="ltr" class="relative inline-flex items-center cursor-pointer">
                   <input type="checkbox" id="settingToggleLowTraffic" class="sr-only switch-checkbox">
                   <div class="switch-label w-11 h-6 bg-slate-700 rounded-full transition-colors duration-200 flex items-center px-0.5">
@@ -1027,17 +1032,10 @@
               </div>
               <div class="flex items-center gap-2 relative">
                 <input type="hidden" id="settingExpireDaysSelect" value="3">
-                <button id="expireDaysTriggerBtn" type="button" onclick="window.toggleAlertPicker('expire')" class="bg-slate-900 border border-slate-700 hover:border-amber-500/50 text-amber-400 text-[11px] rounded-lg px-2.5 py-1 outline-none font-mono font-bold flex items-center gap-1 transition active:scale-95 shadow-sm">
+                <button id="expireDaysTriggerBtn" type="button" onclick="window.openAlertPickerModal('expire')" class="bg-slate-900 border border-slate-700 hover:border-amber-500/50 text-amber-400 text-[11px] rounded-lg px-2.5 py-1 outline-none font-mono font-bold flex items-center gap-1 transition active:scale-95 shadow-sm">
                   <span id="expireDaysDisplay">3 روز</span>
-                  <span class="text-[9px] text-slate-400">▾</span>
+                  <span class="text-[9px] text-slate-400">⚙️</span>
                 </button>
-                <div id="expireDaysPickerMenu" class="hidden absolute top-full mt-1.5 left-0 z-30 bg-[#151c2e] border border-amber-500/40 rounded-xl shadow-2xl p-1 min-w-[75px] space-y-0.5 text-center">
-                  <button type="button" onclick="window.selectAlertSetting('expire', 1)" class="w-full py-1 px-2 text-[11px] font-mono text-slate-300 hover:text-amber-300 hover:bg-slate-800 rounded-lg transition">1 روز</button>
-                  <button type="button" onclick="window.selectAlertSetting('expire', 2)" class="w-full py-1 px-2 text-[11px] font-mono text-slate-300 hover:text-amber-300 hover:bg-slate-800 rounded-lg transition">2 روز</button>
-                  <button type="button" onclick="window.selectAlertSetting('expire', 3)" class="w-full py-1 px-2 text-[11px] font-mono text-slate-300 hover:text-amber-300 hover:bg-slate-800 rounded-lg transition font-bold text-amber-400 bg-amber-500/15">3 روز</button>
-                  <button type="button" onclick="window.selectAlertSetting('expire', 5)" class="w-full py-1 px-2 text-[11px] font-mono text-slate-300 hover:text-amber-300 hover:bg-slate-800 rounded-lg transition">5 روز</button>
-                  <button type="button" onclick="window.selectAlertSetting('expire', 7)" class="w-full py-1 px-2 text-[11px] font-mono text-slate-300 hover:text-amber-300 hover:bg-slate-800 rounded-lg transition">7 روز</button>
-                </div>
                 <label dir="ltr" class="relative inline-flex items-center cursor-pointer">
                   <input type="checkbox" id="settingToggleExpireWarning" class="sr-only switch-checkbox">
                   <div class="switch-label w-11 h-6 bg-slate-700 rounded-full transition-colors duration-200 flex items-center px-0.5">
@@ -2204,68 +2202,102 @@
       </div>
     </div>
     <!-- 12. MODAL: JALALI BIRTHDAY PICKER (ثبت تاریخ زادروز) -->
-    <div id="birthdayModal" onclick="if(event.target === this) window.closeBirthdayModal()" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md hidden animate-fadeIn">
-      <div class="modal-card bg-[#0f172a]/95 dark:bg-[#131d31] border border-indigo-500/30 rounded-[28px] p-5 w-full max-w-[340px] text-center shadow-2xl relative my-auto space-y-4">
-        <button type="button" onclick="window.closeBirthdayModal()" class="w-9 h-9 min-w-[36px] min-h-[36px] rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800/80 dark:hover:bg-slate-750 border border-slate-200 dark:border-slate-700/80 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white flex items-center justify-center text-xs transition active:scale-95 shadow-sm absolute top-3.5 left-3.5" title="بستن" aria-label="بستن پنجره زادروز">✕</button>
+    <div id="birthdayModal" onclick="if(event.target === this) window.closeBirthdayModal()" class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-md hidden animate-fadeIn overflow-y-auto">
+      <div class="modal-card bg-[#0f172a] dark:bg-[#131d31] border border-indigo-500/40 rounded-3xl p-5 w-full max-w-[360px] text-center shadow-2xl relative my-auto space-y-3.5">
+        
+        <div class="w-10 h-1 bg-slate-700/60 rounded-full mx-auto -mt-1 mb-1"></div>
+        <button type="button" onclick="window.closeBirthdayModal()" class="w-8 h-8 rounded-full bg-slate-800/80 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center text-xs transition active:scale-95 absolute top-3.5 left-3.5 shadow" title="بستن" aria-label="بستن پنجره زادروز">✕</button>
 
-        <div class="w-12 h-12 rounded-2xl mx-auto flex items-center justify-center text-2xl shadow-lg border border-indigo-500/30 bg-gradient-to-tr from-indigo-500/20 to-purple-500/10 text-indigo-400 mt-1">
-          🎂
-        </div>
-
-        <div>
-          <h3 class="text-sm font-extrabold text-white">ثبت تاریخ زادروز</h3>
-          <p class="text-xs text-slate-400 mt-1 leading-relaxed">
+        <!-- Header -->
+        <div class="flex flex-col items-center">
+          <div class="w-12 h-12 rounded-2xl flex items-center justify-center text-3xl shadow-lg border border-pink-500/30 bg-gradient-to-tr from-pink-500/20 via-purple-500/15 to-indigo-500/20 text-pink-400 mb-1.5">
+            🎂
+          </div>
+          <h3 class="text-sm font-extrabold text-slate-100">ثبت تاریخ زادروز</h3>
+          <p class="text-[11px] text-slate-400 mt-0.5 leading-relaxed max-w-[280px]">
             با ثبت تاریخ تولد، در روز زادروزتان هدیه ترافیک و تخفیف ویژه به حسابتان تعلق می‌گیرد.
           </p>
         </div>
 
-        <!-- Custom 3-Column Themed Dropdowns (روز، ماه، سال) -->
-        <div class="grid grid-cols-3 gap-2 text-right relative">
-          <!-- Hidden inputs kept for saveBirthday compatibility -->
-          <input type="hidden" id="birthdayDaySelect" value="1">
-          <input type="hidden" id="birthdayMonthSelect" value="1">
-          <input type="hidden" id="birthdayYearSelect" value="1375">
-
-          <!-- Day Column -->
-          <div class="relative">
-            <label class="text-[11px] text-slate-400 block mb-1">روز</label>
-            <button id="bdayDayTrigger" type="button" onclick="window.toggleBdayDropdown('day')" class="w-full bg-slate-900/90 border border-slate-700/80 hover:border-indigo-500/60 rounded-xl px-2 py-2 text-xs text-indigo-200 flex items-center justify-between font-mono transition active:scale-95 shadow-sm">
-              <span id="bdayDayDisplay">۱</span>
-              <span class="text-[10px] text-slate-400">▾</span>
-            </button>
-            <div id="bdayDayDropdown" class="hidden absolute top-full mt-1.5 left-0 right-0 z-30 max-h-44 overflow-y-auto custom-scroll bg-[#151c2e] border border-indigo-500/40 rounded-xl shadow-2xl p-1 space-y-0.5">
-            </div>
-          </div>
-
-          <!-- Month Column -->
-          <div class="relative">
-            <label class="text-[11px] text-slate-400 block mb-1">ماه</label>
-            <button id="bdayMonthTrigger" type="button" onclick="window.toggleBdayDropdown('month')" class="w-full bg-slate-900/90 border border-slate-700/80 hover:border-indigo-500/60 rounded-xl px-2 py-2 text-xs text-indigo-200 flex items-center justify-between font-medium transition active:scale-95 shadow-sm">
-              <span id="bdayMonthDisplay">فروردین</span>
-              <span class="text-[10px] text-slate-400">▾</span>
-            </button>
-            <div id="bdayMonthDropdown" class="hidden absolute top-full mt-1.5 left-0 right-0 z-30 max-h-44 overflow-y-auto custom-scroll bg-[#151c2e] border border-indigo-500/40 rounded-xl shadow-2xl p-1 space-y-0.5">
-            </div>
-          </div>
-
-          <!-- Year Column -->
-          <div class="relative">
-            <label class="text-[11px] text-slate-400 block mb-1">سال</label>
-            <button id="bdayYearTrigger" type="button" onclick="window.toggleBdayDropdown('year')" class="w-full bg-slate-900/90 border border-slate-700/80 hover:border-indigo-500/60 rounded-xl px-2 py-2 text-xs text-indigo-200 flex items-center justify-between font-mono transition active:scale-95 shadow-sm">
-              <span id="bdayYearDisplay">۱۳۷۵</span>
-              <span class="text-[10px] text-slate-400">▾</span>
-            </button>
-            <div id="bdayYearDropdown" class="hidden absolute top-full mt-1.5 left-0 right-0 z-30 max-h-44 overflow-y-auto custom-scroll bg-[#151c2e] border border-indigo-500/40 rounded-xl shadow-2xl p-1 space-y-0.5">
-            </div>
+        <!-- Selected Date Display Card -->
+        <div class="bday-preview-box bg-slate-900/80 rounded-2xl p-2.5 border border-indigo-500/30 flex items-center justify-between px-3 text-xs">
+          <span class="text-slate-400 font-medium">تاریخ انتخابی شما:</span>
+          <div class="flex items-center gap-1 font-bold text-indigo-300 font-mono" dir="rtl">
+            <span id="bdayDayDisplay">۱</span>
+            <span id="bdayMonthDisplay">فروردین</span>
+            <span id="bdayYearDisplay">۱۳۷۵</span>
           </div>
         </div>
 
+        <!-- Hidden inputs for backend compatibility -->
+        <input type="hidden" id="birthdayDaySelect" value="1">
+        <input type="hidden" id="birthdayMonthSelect" value="1">
+        <input type="hidden" id="birthdayYearSelect" value="1375">
+
+        <!-- 3 Segmented Tabs: [روز] [ماه] [سال] -->
+        <div class="bday-tabs-bar bg-slate-900/90 p-1 rounded-2xl border border-slate-700/80 flex items-center gap-1" dir="rtl">
+          <button type="button" id="bdayTabDay" onclick="window.switchBdayPickerTab('day')" class="flex-1 py-1.5 rounded-xl font-bold text-xs bg-indigo-600 text-white shadow transition flex items-center justify-center gap-1">
+            <span>📅 روز:</span> <span id="bdayDayPillVal">۱</span>
+          </button>
+          <button type="button" id="bdayTabMonth" onclick="window.switchBdayPickerTab('month')" class="flex-1 py-1.5 rounded-xl font-medium text-xs text-slate-400 hover:text-white transition flex items-center justify-center gap-1">
+            <span>🌙 ماه:</span> <span id="bdayMonthPillVal">فروردین</span>
+          </button>
+          <button type="button" id="bdayTabYear" onclick="window.switchBdayPickerTab('year')" class="flex-1 py-1.5 rounded-xl font-medium text-xs text-slate-400 hover:text-white transition flex items-center justify-center gap-1">
+            <span>📆 سال:</span> <span id="bdayYearPillVal">۱۳۷۵</span>
+          </button>
+        </div>
+
+        <!-- Pane 1: Days Grid (7 columns, 1..31) -->
+        <div id="bdayPaneDay" class="bday-pane bg-slate-900/60 rounded-2xl p-2 border border-slate-700/60 max-h-48 overflow-y-auto custom-scroll">
+          <div class="grid grid-cols-7 gap-1.5" id="bdayDaysGrid"></div>
+        </div>
+
+        <!-- Pane 2: Months Grid (3 columns, 12 months) -->
+        <div id="bdayPaneMonth" class="bday-pane hidden bg-slate-900/60 rounded-2xl p-2 border border-slate-700/60 max-h-48 overflow-y-auto custom-scroll">
+          <div class="grid grid-cols-3 gap-1.5" id="bdayMonthsGrid"></div>
+        </div>
+
+        <!-- Pane 3: Years Grid (4 columns, quick selectable years) -->
+        <div id="bdayPaneYear" class="bday-pane hidden bg-slate-900/60 rounded-2xl p-2 border border-slate-700/60 max-h-48 overflow-y-auto custom-scroll">
+          <div class="grid grid-cols-4 gap-1.5" id="bdayYearsGrid"></div>
+        </div>
+
+        <!-- Actions -->
         <div class="space-y-2 pt-1">
-          <button id="saveBirthdayBtn" type="button" onclick="window.saveBirthday()" class="w-full bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-bold text-xs py-2.5 rounded-xl transition active:scale-95 shadow-lg shadow-indigo-500/20">
-            ثبت تاریخ تولد 🎉
+          <button id="saveBirthdayBtn" type="button" onclick="window.saveBirthday()" class="w-full bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-bold text-xs py-2.5 rounded-xl transition active:scale-95 shadow-lg shadow-indigo-500/20 flex items-center justify-center gap-1.5">
+            <span>ثبت تاریخ تولد 🎉</span>
           </button>
           <button type="button" onclick="window.closeBirthdayModal()" class="w-full bg-slate-800/80 hover:bg-slate-750 text-slate-300 font-bold text-xs py-2 rounded-xl transition border border-slate-700/70 active:scale-95">
             انصراف
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 12.1 MODAL: ALERT THRESHOLD PICKER (تنظیم آستانه هشدار ترافیک و انقضا) -->
+    <div id="alertThresholdModal" onclick="if(event.target === this) window.closeAlertThresholdModal()" class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-md hidden animate-fadeIn overflow-y-auto">
+      <div class="modal-card bg-[#0f172a] dark:bg-[#131d31] border border-cyan-500/40 rounded-3xl p-5 w-full max-w-[350px] shadow-2xl relative my-auto space-y-3.5 text-right">
+        
+        <div class="w-10 h-1 bg-slate-700/60 rounded-full mx-auto -mt-1 mb-1"></div>
+        <button type="button" onclick="window.closeAlertThresholdModal()" class="w-8 h-8 rounded-full bg-slate-800/80 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center text-xs transition active:scale-95 absolute top-3.5 left-3.5 shadow" title="بستن" aria-label="بستن پنجره">✕</button>
+
+        <div class="flex items-center gap-2.5 pb-2 border-b border-slate-700/60">
+          <div id="alertThresholdIconBox" class="w-10 h-10 rounded-2xl bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 flex items-center justify-center text-lg flex-shrink-0">
+            ⚠️
+          </div>
+          <div>
+            <h3 id="alertThresholdModalTitle" class="text-xs font-bold text-white">تنظیم آستانه هشدار</h3>
+            <span id="alertThresholdModalSubtitle" class="text-[10px] text-slate-400 block mt-0.5">درصد یا زمان ارسال نوتیفیکیشن هشدار</span>
+          </div>
+        </div>
+
+        <div id="alertThresholdOptionsList" class="space-y-1.5 max-h-60 overflow-y-auto custom-scroll">
+          <!-- Dynamically populated options -->
+        </div>
+
+        <div class="pt-1">
+          <button type="button" onclick="window.closeAlertThresholdModal()" class="w-full bg-slate-800/80 hover:bg-slate-700 text-slate-300 font-bold text-xs py-2 rounded-xl transition border border-slate-700/70 active:scale-95">
+            بستن
           </button>
         </div>
       </div>

@@ -731,29 +731,39 @@ html.theme-light .coupon-usage-card .text-slate-200 {
   color: var(--text-main);
 }
 
-/* Badges inside shop cards must preserve high contrast text */
+/* Badges inside shop cards: Luminous & high-contrast in both themes */
 .shop-plan-badge,
-.shop-plan-card .shop-plan-badge,
-.badge-bestseller,
-.badge-vip,
-html.theme-light .shop-plan-card .shop-plan-badge,
-html.theme-light .shop-plan-card [class*="rounded-br-xl"] {
-  color: #ffffff !important;
+.shop-plan-card .shop-plan-badge {
+  color: #ffffff;
 }
 
-html.theme-light .shop-plan-badge.badge-bestseller,
-html.theme-light .badge-bestseller {
+.shop-plan-card .shop-plan-badge.badge-vip {
+  background: linear-gradient(135deg, #f43f5e 0%, #c026d3 100%);
+  color: #ffffff;
+  border-bottom: 1.5px solid rgba(254, 205, 211, 0.7);
+  border-right: 1.5px solid rgba(254, 205, 211, 0.7);
+  box-shadow: 0 4px 14px rgba(244, 63, 94, 0.4);
+}
+
+.shop-plan-card .shop-plan-badge.badge-bestseller {
+  background: linear-gradient(135deg, #fbbf24 0%, #f97316 100%);
+  color: #0f172a;
+  border-bottom: 1.5px solid rgba(254, 240, 138, 0.9);
+  border-right: 1.5px solid rgba(254, 240, 138, 0.9);
+  box-shadow: 0 4px 14px rgba(245, 158, 11, 0.45);
+}
+
+html.theme-light .shop-plan-card .shop-plan-badge.badge-bestseller {
   background: linear-gradient(135deg, #d97706, #ea580c);
-  color: #ffffff !important;
+  color: #ffffff;
   border-color: #b45309;
   font-weight: 800;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
 }
 
-html.theme-light .shop-plan-badge.badge-vip,
-html.theme-light .badge-vip {
+html.theme-light .shop-plan-card .shop-plan-badge.badge-vip {
   background: linear-gradient(135deg, #7c3aed, #4f46e5);
-  color: #ffffff !important;
+  color: #ffffff;
   border-color: #6d28d9;
   font-weight: 800;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
@@ -2121,4 +2131,102 @@ body.modal-open {
     transition-duration: 0.01ms;
     scroll-behavior: auto;
   }
+}
+
+/* ======================================================== */
+/* High Contrast Light Theme: Birthday & Alert Modals       */
+/* ======================================================== */
+html.theme-light #birthdayModal .modal-card,
+html.theme-light #alertThresholdModal .modal-card {
+  background-color: #ffffff;
+  border-color: #cbd5e1;
+  color: #0f172a;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+}
+
+html.theme-light #birthdayModal h3,
+html.theme-light #alertThresholdModal h3 {
+  color: #0f172a;
+}
+
+html.theme-light #birthdayModal p,
+html.theme-light #alertThresholdModal p {
+  color: #475569;
+}
+
+html.theme-light .bday-preview-box {
+  background-color: #f8fafc;
+  border-color: #cbd5e1;
+}
+
+html.theme-light .bday-preview-box span.text-slate-400 {
+  color: #475569;
+}
+
+html.theme-light #bdayDayDisplay,
+html.theme-light #bdayMonthDisplay,
+html.theme-light #bdayYearDisplay {
+  color: #4338ca;
+}
+
+html.theme-light .bday-tabs-bar {
+  background-color: #f1f5f9;
+  border-color: #cbd5e1;
+}
+
+html.theme-light .bday-tabs-bar button:not(.bg-indigo-600) {
+  color: #475569;
+}
+
+html.theme-light .bday-pane {
+  background-color: #f8fafc;
+  border-color: #e2e8f0;
+}
+
+html.theme-light .bday-grid-btn:not(.active-bday-item) {
+  background-color: #ffffff;
+  border-color: #cbd5e1;
+  color: #1e293b;
+}
+
+html.theme-light .bday-grid-btn:not(.active-bday-item):hover {
+  background-color: #f1f5f9;
+  color: #4338ca;
+}
+
+html.theme-light .bday-grid-btn.active-bday-item {
+  background-color: #4f46e5;
+  color: #ffffff;
+  border-color: #4338ca;
+}
+
+html.theme-light .alert-picker-option:not(.active-alert-opt) {
+  background-color: #f8fafc;
+  border-color: #cbd5e1;
+  color: #1e293b;
+}
+
+html.theme-light .alert-picker-option:not(.active-alert-opt):hover {
+  background-color: #f1f5f9;
+  border-color: #94a3b8;
+}
+
+html.theme-light .alert-picker-option.active-alert-opt {
+  background-color: #f0fdfa;
+  border-color: #0891b2;
+  color: #0e7490;
+}
+
+html.theme-light #trafficPercentTriggerBtn,
+html.theme-light #expireDaysTriggerBtn {
+  background-color: var(--card-bg);
+  border-color: var(--card-border);
+}
+
+html.theme-light #trafficPercentDisplay {
+  color: #0284c7;
+}
+
+html.theme-light #expireDaysDisplay {
+  color: #d97706;
 }

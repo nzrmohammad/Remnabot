@@ -1,3 +1,67 @@
+
+const COUNTRY_FLAG_COLORS = {
+  'آلمان': '#eab308', // Germany Gold
+  'germany': '#eab308',
+  'de': '#eab308',
+  'هلند': '#f97316', // Netherlands Dutch Orange
+  'netherlands': '#f97316',
+  'nl': '#f97316',
+  'فنلاند': '#0284c7', // Finland Nordic Blue
+  'finland': '#0284c7',
+  'fi': '#0284c7',
+  'فرانسه': '#2563eb', // France Blue
+  'france': '#2563eb',
+  'fr': '#2563eb',
+  'ترکیه': '#dc2626', // Turkey Crimson Red
+  'turkey': '#dc2626',
+  'tr': '#dc2626',
+  'انگلیس': '#1e3a8a', // UK Navy
+  'بریتانیا': '#1e3a8a',
+  'uk': '#1e3a8a',
+  'gb': '#1e3a8a',
+  'آمریکا': '#b91c1c', // US Crimson
+  'usa': '#b91c1c',
+  'us': '#b91c1c',
+  'کانادا': '#e11d48', // Canada Red
+  'canada': '#e11d48',
+  'ca': '#e11d48',
+  'سوئد': '#0ea5e9', // Sweden Blue
+  'sweden': '#0ea5e9',
+  'se': '#0ea5e9',
+  'سوئیس': '#ef4444', // Switzerland Red
+  'switzerland': '#ef4444',
+  'ch': '#ef4444',
+  'لهستان': '#f43f5e', // Poland Red
+  'poland': '#f43f5e',
+  'pl': '#f43f5e',
+  'ایتالیا': '#16a34a', // Italy Green
+  'italy': '#16a34a',
+  'it': '#16a34a',
+  'اسپانیا': '#d97706', // Spain Gold/Red
+  'spain': '#d97706',
+  'es': '#d97706',
+  'امارات': '#059669', // UAE Green
+  'uae': '#059669',
+  'ae': '#059669',
+  'سنگاپور': '#e11d48', // Singapore Red
+  'singapore': '#e11d48',
+  'sg': '#e11d48',
+  'روسیه': '#3b82f6', // Russia Blue
+  'russia': '#3b82f6',
+  'ru': '#3b82f6',
+};
+
+function getCountryFlagColor(label, fallbackColor) {
+  if (!label) return fallbackColor;
+  const lower = String(label).toLowerCase();
+  for (const [key, color] of Object.entries(COUNTRY_FLAG_COLORS)) {
+    if (lower.includes(key)) {
+      return color;
+    }
+  }
+  return fallbackColor;
+}
+
 /**
  * RemnaStore Pro - Charts & Reporting Visualizers
  * DRY reusable chart and breakdown generators using Chart.js.
@@ -221,9 +285,13 @@ async function renderDonutChart(containerId, labels, data, isDevice = false) {
   const cleanLabels = (labels || []).map(l => toEnglishDigits(l));
 
   const hasData = cleanData.some(v => v > 0);
-  const chartLabels = hasData ? cleanLabels : ['بدون مصرف'];
+  const chartLabels = hasData ? cleanLabels : [isDevice ? 'بدون دستگاه' : 'بدون مصرف'];
   const chartValues = hasData ? cleanData : [1];
-  const chartColors = hasData ? defaultColors.slice(0, chartLabels.length) : ['#334155'];
+  const chartColors = hasData
+    ? cleanLabels.map((lbl, idx) => {
+        return isDevice ? defaultColors[idx % defaultColors.length] : getCountryFlagColor(lbl, defaultColors[idx % defaultColors.length]);
+      })
+    : ['#334155'];
 
   const chartKey = canvas.id || containerId;
   if (window.chartInstances[chartKey]) {
@@ -305,7 +373,7 @@ async function renderDonutChart(containerId, labels, data, isDevice = false) {
           cornerRadius: 8,
           callbacks: {
             label: function(ctx) {
-              if (!hasData) return 'بدون مصرف ثبت‌شده';
+              if (!hasData) return isDevice ? 'بدون دستگاه ثبت‌شده' : 'بدون مصرف ثبت‌شده';
               const val = ctx.raw;
               if (isDevice) {
                 return `${ctx.label}: ${toEnglishDigits(val)} دستگاه`;
