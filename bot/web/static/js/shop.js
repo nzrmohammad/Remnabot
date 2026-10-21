@@ -257,28 +257,28 @@ function renderFilteredShopPlans() {
 
     let planBadge = '';
     let badgeBorderClass = 'border-slate-700/80';
-    let btnClass = 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold shadow-md shadow-blue-600/20';
+    let btnClass = 'btn-plan-default';
 
     if (isExtraTraffic) {
       planBadge = '<div class="shop-plan-badge absolute top-0 left-0 bg-gradient-to-r from-cyan-500 to-blue-500 text-slate-950 text-[10px] font-black px-3 py-0.5 rounded-br-xl shadow flex items-center gap-1">⚡️ بسته افزایش حجم</div>';
       badgeBorderClass = 'border-cyan-500/50 shadow-lg shadow-cyan-500/10';
-      btnClass = 'bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-bold shadow-md shadow-cyan-600/20';
+      btnClass = 'btn-plan-traffic';
     } else if (isTimeOnly) {
       planBadge = '<div class="shop-plan-badge absolute top-0 left-0 bg-gradient-to-r from-amber-500 to-orange-500 text-slate-950 text-[10px] font-black px-3 py-0.5 rounded-br-xl shadow flex items-center gap-1">⏳ بسته افزایش زمان</div>';
       badgeBorderClass = 'border-amber-500/50 shadow-lg shadow-amber-500/10';
-      btnClass = 'bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white font-bold shadow-md shadow-amber-600/20';
+      btnClass = 'btn-plan-time';
     } else if (planBadgeKey === 'vip' || (!planBadgeKey && (planText.includes('پیشنهاد ویژه') || planText.includes('vip')))) {
       planBadge = '<div class="shop-plan-badge badge-vip absolute top-0 left-0 bg-gradient-to-r from-rose-500 via-pink-500 to-purple-500 text-white text-[10px] font-black px-3 py-0.5 rounded-br-xl border-b border-r border-rose-300/70 shadow-lg shadow-rose-500/30 flex items-center gap-1">👑 پیشنهاد ویژه</div>';
       badgeBorderClass = 'border-rose-500/70 shadow-lg shadow-rose-500/20';
-      btnClass = 'bg-gradient-to-r from-rose-600 via-pink-600 to-purple-600 hover:from-rose-500 hover:to-purple-500 text-white font-bold shadow-md shadow-rose-600/25';
+      btnClass = 'btn-plan-vip';
     } else if (planBadgeKey === 'bestseller' || (!planBadgeKey && (planText.includes('پرفروش') || planText.includes('bestseller')))) {
       planBadge = '<div class="shop-plan-badge badge-bestseller absolute top-0 left-0 bg-gradient-to-r from-amber-400 via-orange-400 to-amber-500 text-slate-950 text-[10px] font-black px-3 py-0.5 rounded-br-xl border-b border-r border-amber-300/80 shadow-lg shadow-amber-500/30 flex items-center gap-1">🔥 پرفروش‌ترین</div>';
       badgeBorderClass = 'border-amber-400/80 shadow-lg shadow-amber-500/25';
-      btnClass = 'bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white font-bold shadow-md shadow-orange-600/25';
+      btnClass = 'btn-plan-bestseller';
     } else if (planBadgeKey === 'popular' || (!planBadgeKey && (planText.includes('محبوب') || planText.includes('popular')))) {
       planBadge = '<div class="shop-plan-badge absolute top-0 left-0 bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 !text-white text-[10px] font-black px-3 py-0.5 rounded-br-xl border-b border-r border-indigo-400/40 shadow-md flex items-center gap-1">⭐ محبوب‌ترین</div>';
       badgeBorderClass = 'border-purple-500/70 shadow-lg shadow-purple-500/15';
-      btnClass = 'bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white font-bold shadow-md shadow-indigo-600/20';
+      btnClass = 'btn-plan-popular';
     } else if (planBadgeKey === 'economic' || (!planBadgeKey && (planText.includes('اقتصادی') || planText.includes('economic') || planText.includes('به‌صرفه') || planText.includes('بصرفه') || planText.includes('ارزان')))) {
       planBadge = '<div class="shop-plan-badge absolute top-0 left-0 bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 text-[10px] font-black px-3 py-0.5 rounded-br-xl border-b border-r border-emerald-400/40 shadow-md flex items-center gap-1">💰 اقتصادی‌ترین</div>';
       badgeBorderClass = 'border-emerald-500/70 shadow-lg shadow-emerald-500/15';

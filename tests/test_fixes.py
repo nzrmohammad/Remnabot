@@ -2174,3 +2174,181 @@ async def test_referral_reward_idempotency_and_failure_resilience():
         # Second run: has_rewarded returns True, exits immediately without doing anything
         await maybe_reward_referrer(bot, session, remnawave, user)
         assert mock_ref_repo.record_reward.await_count == 1
+
+
+@pytest.mark.anyio
+async def test_remnawave_create_user_keyword_compatibility():
+    from bot.services.remnawave import RemnawaveClient
+    client = RemnawaveClient("http://fake-remnawave", "fake-token")
+    client._client = AsyncMock()
+    mock_resp = MagicMock()
+    mock_resp.status_code = 200
+    mock_resp.raise_for_status = MagicMock()
+    mock_resp.json.return_value = {"response": {"id": 123, "username": "test_user"}}
+    client._client.post = AsyncMock(return_value=mock_resp)
+
+    res = await client.create_user(
+        username="test_user",
+        expire_at_iso="2027-01-01T00:00:00Z",
+        traffic_limit_bytes=10737418240,
+        telegram_id=987654,
+        traffic_limit_strategy="NO_RESET",
+        hwid_device_limit=3,
+        internal_squads=["uuid-1", "uuid-2"],
+    )
+    assert res is not None
+    assert res["id"] == 123
+    call_json = client._client.post.call_args[1]["json"]
+    assert call_json["username"] == "test_user"
+    assert call_json["expireAt"] == "2027-01-01T00:00:00Z"
+    assert call_json["trafficLimitBytes"] == 10737418240
+    assert call_json["telegramId"] == 987654
+    assert call_json["trafficLimitStrategy"] == "NO_RESET"
+    assert call_json["hwidDeviceLimit"] == 3
+    assert call_json["activeInternalSquads"] == ["uuid-1", "uuid-2"]
+
+
+@pytest.mark.anyio
+async def test_remnawave_get_user_by_username():
+    from bot.services.remnawave import RemnawaveClient
+    client = RemnawaveClient("http://fake-remnawave", "fake-token")
+    client._client = AsyncMock()
+    mock_resp = MagicMock()
+    mock_resp.status_code = 200
+    mock_resp.raise_for_status = MagicMock()
+    mock_resp.json.return_value = {"response": {"id": 456, "username": "user456"}}
+    client._client.get = AsyncMock(return_value=mock_resp)
+
+    user = await client.get_user_by_username("user456")
+    assert user is not None
+    assert user["id"] == 456
+    client._client.get.assert_awaited_once_with("/api/users/by-username/user456")
+
+
+@pytest.mark.anyio
+async def test_remnawave_update_user_subscription_expire_at_iso():
+    from bot.services.remnawave import RemnawaveClient
+    client = RemnawaveClient("http://fake-remnawave", "fake-token")
+    client._client = AsyncMock()
+    mock_resp = MagicMock()
+    mock_resp.status_code = 200
+    mock_resp.raise_for_status = MagicMock()
+    mock_resp.json.return_value = {"response": {"id": 789}}
+    client._client.patch = AsyncMock(return_value=mock_resp)
+
+    await client.update_user_subscription(
+        user_id=789,
+        expire_at_iso="2026-12-31T23:59:59Z",
+        traffic_limit_bytes=5000000000,
+    )
+    call_json = client._client.patch.call_args[1]["json"]
+    assert call_json["id"] == 789
+    assert call_json["expireAt"] == "2026-12-31T23:59:59Z"
+    assert call_json["trafficLimitBytes"] == 5000000000
+
+
+@pytest.mark.anyio
+async def test_rate_limit_middleware_no_duplicate_execution_on_error():
+    from aiohttp import web
+    from aiohttp.test_utils import make_mocked_request
+    from bot.web.server import api_rate_limit_middleware
+
+    app = {"cache": None}
+    req = make_mocked_request("POST", "/api/user/purchase", app=app)
+    call_count = 0
+
+    async def faulty_handler(request):
+        nonlocal call_count
+        call_count += 1
+        raise ValueError("Handler error")
+
+    with pytest.raises(ValueError, match="Handler error"):
+        await api_rate_limit_middleware(req, faulty_handler)
+
+    assert call_count == 1, "Handler must be called exactly once, never retried on unhandled exceptions"
+
+
+@pytest.mark.anyio
+async def test_coupon_bound_to_service():
+    from aiogram.fsm.context import FSMContext
+    from aiogram.fsm.storage.memory import MemoryStorage
+    from bot.handlers.shop_purchase_views import _extract_coupon_from_state
+
+    storage = MemoryStorage()
+    from aiogram.fsm.storage.base import StorageKey
+    key = StorageKey(bot_id=1, chat_id=1, user_id=1)
+    state = FSMContext(storage=storage, key=key)
+
+    await state.set_data({
+        "coupon_code": "OFF50",
+        "discount_amount": 250000,
+        "coupon_service_id": 10,
+    })
+
+    # Query with matching service id
+    code, amt = await _extract_coupon_from_state(state, current_service_id=10)
+    assert code == "OFF50"
+    assert amt == 250000
+
+    # Query with different service id -> MUST be rejected (0 discount)
+    code2, amt2 = await _extract_coupon_from_state(state, current_service_id=20)
+    assert code2 is None
+    assert amt2 == 0
+
+
+def test_remnawave_client_signature_contract():
+    """Contract Guard: Ensure RemnawaveClient method signatures never lose vital parameters."""
+    import inspect
+    from bot.services.remnawave import RemnawaveClient
+
+    # 1. create_user contract
+    create_sig = inspect.signature(RemnawaveClient.create_user)
+    expected_create_params = [
+        "username", "expire_days", "traffic_gb", "telegram_id",
+        "expire_at_iso", "traffic_limit_bytes", "traffic_limit_strategy",
+        "hwid_device_limit", "internal_squads",
+    ]
+    for param in expected_create_params:
+        assert param in create_sig.parameters, f"RemnawaveClient.create_user missing required parameter: {param}"
+    assert any(p.kind == inspect.Parameter.VAR_KEYWORD for p in create_sig.parameters.values()), "create_user must accept **kwargs"
+
+    # 2. update_user_subscription contract
+    update_sig = inspect.signature(RemnawaveClient.update_user_subscription)
+    expected_update_params = [
+        "user_id", "expire_at", "traffic_limit_bytes", "status",
+        "traffic_limit_strategy", "add_days", "add_traffic_gb", "expire_at_iso",
+    ]
+    for param in expected_update_params:
+        assert param in update_sig.parameters, f"RemnawaveClient.update_user_subscription missing required parameter: {param}"
+    assert any(p.kind == inspect.Parameter.VAR_KEYWORD for p in update_sig.parameters.values()), "update_user_subscription must accept **kwargs"
+
+    # 3. get_user_by_username contract
+    assert hasattr(RemnawaveClient, "get_user_by_username"), "RemnawaveClient must have get_user_by_username"
+    get_sig = inspect.signature(RemnawaveClient.get_user_by_username)
+    assert "username" in get_sig.parameters, "get_user_by_username must take username"
+
+
+@pytest.mark.anyio
+async def test_get_users_by_telegram_id_fallback_and_404():
+    from bot.services.remnawave import RemnawaveClient
+    client = RemnawaveClient("http://fake-remnawave", "fake-token")
+    client._client = AsyncMock()
+
+    # Case 1: /api/users/stream returns 404 -> fallback to /api/users returns users
+    mock_resp_404 = MagicMock()
+    mock_resp_404.status_code = 404
+
+    mock_resp_200 = MagicMock()
+    mock_resp_200.status_code = 200
+    mock_resp_200.raise_for_status = MagicMock()
+    mock_resp_200.json.return_value = {"response": {"users": [{"id": "user-1", "username": "u1"}]}}
+
+    client._client.get = AsyncMock(side_effect=[mock_resp_404, mock_resp_200])
+    users = await client.get_users_by_telegram_id(292997086)
+    assert users == [{"id": "user-1", "username": "u1"}]
+    assert client._client.get.await_count == 2
+
+    # Case 2: Both return 404 -> cleanly returns [] without error
+    client._client.get = AsyncMock(side_effect=[mock_resp_404, mock_resp_404])
+    users_empty = await client.get_users_by_telegram_id(292997086)
+    assert users_empty == []

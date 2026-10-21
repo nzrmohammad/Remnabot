@@ -28,12 +28,27 @@ class RemnawaveUsersMixin:
                 params={"telegramId": str(telegram_id), "size": 1000},
             )
             if resp.status_code == 404:
+                resp = await self._client.get(
+                    "/api/users",
+                    params={"telegramId": str(telegram_id), "size": 1000},
+                )
+            if resp.status_code == 404:
                 return []
             resp.raise_for_status()
             data = resp.json().get("response") or {}
+            if isinstance(data, list):
+                return data
             return data.get("users") or []
+        except httpx.HTTPStatusError as exc:
+            if exc.response.status_code == 404:
+                return []
+            logger.warning("Remnawave API status error (telegram_id=%s, code=%s): %s", telegram_id, exc.response.status_code, exc)
+            return None
         except httpx.HTTPError as exc:
-            logger.error("Remnawave API error (telegram_id=%s): %s", telegram_id, exc)
+            logger.warning("Remnawave API transient error (telegram_id=%s): %s", telegram_id, exc)
+            return None
+        except Exception as exc:
+            logger.warning("Remnawave unexpected error (telegram_id=%s): %s", telegram_id, exc)
             return None
 
     async def telegram_id_exists(self, telegram_id: int) -> bool | None:
@@ -44,20 +59,46 @@ class RemnawaveUsersMixin:
         return bool(users)
 
     async def get_all_panel_users(self, size: int = 1000) -> list[dict[str, Any]] | None:
-        """Return all panel users.
-
-        Remnawave endpoint: GET /api/users/stream?size={size} (or fallback GET /api/users).
-        """
+        """Return all panel users with transparent pagination support."""
+        all_users: list[dict[str, Any]] = []
         try:
             resp = await self._client.get("/api/users/stream", params={"size": size})
-            if resp.status_code == 404:
-                resp = await self._client.get("/api/users", params={"size": size})
-            resp.raise_for_status()
-            data = resp.json().get("response") or {}
+            if resp.status_code == 200:
+                data = resp.json().get("response") or {}
+                users = data if isinstance(data, list) else (data.get("users") or [])
+                all_users.extend(users)
+                if len(users) < size:
+                    self._consecutive_panel_errors = 0
+                    return all_users
+
+                page = 2
+                while True:
+                    p_resp = await self._client.get("/api/users", params={"page": page, "size": size})
+                    if p_resp.status_code != 200:
+                        break
+                    p_data = p_resp.json().get("response") or {}
+                    p_users = p_data if isinstance(p_data, list) else (p_data.get("users") or [])
+                    if not p_users:
+                        break
+                    all_users.extend(p_users)
+                    if len(p_users) < size:
+                        break
+                    page += 1
+                self._consecutive_panel_errors = 0
+                return all_users
+
+            page = 1
+            while True:
+                resp = await self._client.get("/api/users", params={"page": page, "size": size})
+                resp.raise_for_status()
+                data = resp.json().get("response") or {}
+                users = data if isinstance(data, list) else (data.get("users") or [])
+                all_users.extend(users)
+                if len(users) < size:
+                    break
+                page += 1
             self._consecutive_panel_errors = 0
-            if isinstance(data, list):
-                return data
-            return data.get("users") or []
+            return all_users
         except Exception as exc:
             self._consecutive_panel_errors = getattr(self, "_consecutive_panel_errors", 0) + 1
             if self._consecutive_panel_errors >= 3:
@@ -72,7 +113,7 @@ class RemnawaveUsersMixin:
                     self._consecutive_panel_errors,
                     exc,
                 )
-            return None
+            return all_users if all_users else None
 
     async def get_panel_user_by_id(self, user_id: int) -> dict[str, Any] | None:
         """Return user details from the panel by user_id."""
@@ -152,31 +193,85 @@ class RemnawaveUsersMixin:
             logger.error("Remnawave set_user_squads error (user_id=%s): %s", user_id, exc)
             return None
 
+    async def get_user_by_username(self, username: str) -> dict[str, Any] | None:
+        """Look up a panel user by exact username.
+
+        Returns user dict or None if not found or on error.
+        """
+        try:
+            resp = await self._client.get(f"/api/users/by-username/{username}")
+            if resp.status_code == 200:
+                data = resp.json().get("response") or resp.json()
+                if isinstance(data, dict):
+                    return data
+            elif resp.status_code == 404:
+                # Try fallback query filter
+                stream_resp = await self._client.get("/api/users", params={"username": username})
+                if stream_resp.status_code == 200:
+                    data = stream_resp.json().get("response") or stream_resp.json()
+                    users = data if isinstance(data, list) else (data.get("users") or [])
+                    for u in users:
+                        if str(u.get("username", "")).lower() == username.lower():
+                            return u
+            return None
+        except httpx.HTTPError as exc:
+            logger.error("Remnawave get_user_by_username error (username=%s): %s", username, exc)
+            return None
+
     async def create_user(
         self,
         username: str,
-        expire_days: int,
-        traffic_gb: int,
+        expire_days: int | None = None,
+        traffic_gb: int | None = None,
         telegram_id: int | None = None,
         squad_uuids: list[str] | None = None,
+        expire_at_iso: str | None = None,
+        traffic_limit_bytes: int | None = None,
+        traffic_limit_strategy: str | None = None,
+        hwid_device_limit: int | None = None,
+        internal_squads: list[str] | None = None,
+        **kwargs: Any,
     ) -> dict[str, Any] | None:
         """Create a new user in the panel.
 
+        Supports both high-level arguments (expire_days, traffic_gb, squad_uuids)
+        and exact panel arguments (expire_at_iso, traffic_limit_bytes, internal_squads).
         Returns user dict (including `subscriptionUrl`) or None on failure.
         """
         now = datetime.now(timezone.utc)
-        expire_at = now + timedelta(days=expire_days)
-        traffic_bytes = traffic_gb * (1024**3)
+
+        # Calculate expireAt
+        if expire_at_iso:
+            final_expire = expire_at_iso
+        elif expire_days is not None:
+            final_expire = (now + timedelta(days=expire_days)).isoformat()
+        else:
+            final_expire = (now + timedelta(days=36500)).isoformat()
+
+        # Calculate trafficLimitBytes
+        if traffic_limit_bytes is not None:
+            final_traffic = int(traffic_limit_bytes)
+        elif traffic_gb is not None:
+            final_traffic = int(traffic_gb * (1024**3))
+        else:
+            final_traffic = 0
+
+        # Squads
+        final_squads = internal_squads or squad_uuids or kwargs.get("activeInternalSquads")
 
         payload: dict[str, Any] = {
             "username": username,
-            "expireAt": expire_at.isoformat(),
-            "trafficLimitBytes": traffic_bytes,
+            "expireAt": final_expire,
+            "trafficLimitBytes": final_traffic,
         }
         if telegram_id:
             payload["telegramId"] = telegram_id
-        if squad_uuids:
-            payload["activeInternalSquads"] = squad_uuids
+        if final_squads:
+            payload["activeInternalSquads"] = final_squads
+        if traffic_limit_strategy:
+            payload["trafficLimitStrategy"] = traffic_limit_strategy
+        if hwid_device_limit is not None:
+            payload["hwidDeviceLimit"] = hwid_device_limit
 
         try:
             resp = await self._client.post("/api/users", json=payload)
@@ -195,11 +290,12 @@ class RemnawaveUsersMixin:
         traffic_limit_strategy: str | None = None,
         add_days: int = 0,
         add_traffic_gb: int = 0,
+        expire_at_iso: str | None = None,
         **kwargs: Any,
     ) -> dict[str, Any] | None:
         """Update or extend a user's subscription in the Remnawave panel.
 
-        Supports explicit targets (expire_at ISO string/datetime, traffic_limit_bytes,
+        Supports explicit targets (expire_at / expire_at_iso string/datetime, traffic_limit_bytes,
         traffic_limit_strategy, status) as well as relative increments (add_days, add_traffic_gb).
         """
         payload: dict[str, Any] = {"id": user_id}
@@ -208,12 +304,13 @@ class RemnawaveUsersMixin:
         if traffic_limit_strategy:
             payload["trafficLimitStrategy"] = traffic_limit_strategy
 
-        # Explicit expire date
-        if expire_at is not None:
-            if isinstance(expire_at, datetime):
-                payload["expireAt"] = expire_at.isoformat()
-            elif isinstance(expire_at, str) and expire_at.strip():
-                payload["expireAt"] = expire_at.strip()
+        # Explicit expire date (supports expire_at and expire_at_iso)
+        target_expire = expire_at if expire_at is not None else (expire_at_iso or kwargs.get("expire_at_iso"))
+        if target_expire is not None:
+            if isinstance(target_expire, datetime):
+                payload["expireAt"] = target_expire.isoformat()
+            elif isinstance(target_expire, str) and target_expire.strip():
+                payload["expireAt"] = target_expire.strip()
 
         # Explicit traffic limit in bytes
         if traffic_limit_bytes is not None:

@@ -329,6 +329,31 @@ async def _migrate_schema(engine: AsyncEngine) -> None:
             )
             logger.info("added node_costs.currency")
 
+        # --- admin_logs: target_user_id column --------------------------------- #
+        cols = await _table_columns(conn, "admin_logs")
+        if cols and "target_user_id" not in cols:
+            await conn.execute(
+                text("ALTER TABLE admin_logs ADD COLUMN target_user_id BIGINT")
+            )
+            logger.info("added admin_logs.target_user_id")
+
+        # --- Scale composite indexes ------------------------------------------- #
+        scale_indexes = [
+            ("ix_orders_status_created_at", "orders", "(status, created_at)"),
+            ("ix_topups_status", "topups", "(status)"),
+            ("ix_crypto_invoices_status", "crypto_invoices", "(status)"),
+            ("ix_users_auto_renew", "users", "(auto_renew)"),
+            ("ix_admin_logs_target_user_id", "admin_logs", "(target_user_id)"),
+            ("ix_admin_logs_action_created", "admin_logs", "(action, created_at)"),
+        ]
+        for idx_name, tbl, cols_spec in scale_indexes:
+            try:
+                await conn.execute(
+                    text(f"CREATE INDEX IF NOT EXISTS {idx_name} ON {tbl} {cols_spec}")
+                )
+            except Exception as e:
+                logger.debug("Scale index %s note: %s", idx_name, e)
+
         # --- campaigns table (idempotent creation for legacy databases) --------- #
         cols = await _table_columns(conn, "campaigns")
         if not cols:

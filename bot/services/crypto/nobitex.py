@@ -25,24 +25,44 @@ from bot.services.crypto.crypto_rates import (
 )
 
 
-async def get_crypto_rates_summary() -> dict:
-    """Fetch live crypto rates summary formatted for web & admin dashboards."""
-    data = await fetch_all_exchange_prices()
-    best_ton_price, best_ton_source = data.get("best_ton", (None, ""))
-    best_usdt_price, best_usdt_source = data.get("best_usdt", (None, ""))
-    best_eur_price, best_eur_source = data.get("best_eur", (None, ""))
-    return {
-        "ok": True,
-        "ton_prices": data.get("ton", {}),
-        "usdt_prices": data.get("usdt", {}),
-        "eur_prices": data.get("eur", {}),
-        "closed_status": data.get("closed_status", {}),
-        "binance_usd": data.get("binance_usd"),
-        "binance_eur_usd": data.get("binance_eur_usd"),
-        "best_ton": {"price": best_ton_price, "source": best_ton_source},
-        "best_usdt": {"price": best_usdt_price, "source": best_usdt_source},
-        "best_eur": {"price": best_eur_price, "source": best_eur_source},
-    }
+_rates_cache: dict = {}
+_rates_cache_time: float = 0.0
+
+
+async def get_crypto_rates_summary(force_refresh: bool = False) -> dict:
+    """Fetch live crypto rates summary formatted for web & admin dashboards with SWR caching."""
+    import time
+    global _rates_cache, _rates_cache_time
+    now = time.time()
+    if not force_refresh and _rates_cache and (now - _rates_cache_time < 60):
+        return _rates_cache
+
+    try:
+        data = await fetch_all_exchange_prices()
+        best_ton_price, best_ton_source = data.get("best_ton", (None, ""))
+        best_usdt_price, best_usdt_source = data.get("best_usdt", (None, ""))
+        best_eur_price, best_eur_source = data.get("best_eur", (None, ""))
+        summary = {
+            "ok": True,
+            "ton_prices": data.get("ton", {}),
+            "usdt_prices": data.get("usdt", {}),
+            "eur_prices": data.get("eur", {}),
+            "closed_status": data.get("closed_status", {}),
+            "binance_usd": data.get("binance_usd"),
+            "binance_eur_usd": data.get("binance_eur_usd"),
+            "best_ton": {"price": best_ton_price, "source": best_ton_source},
+            "best_usdt": {"price": best_usdt_price, "source": best_usdt_source},
+            "best_eur": {"price": best_eur_price, "source": best_eur_source},
+        }
+        if best_ton_price or best_usdt_price or best_eur_price:
+            _rates_cache = summary
+            _rates_cache_time = now
+        return summary
+    except Exception as exc:
+        logger.warning("Error fetching live crypto rates: %s", exc)
+        if _rates_cache:
+            return _rates_cache
+        return {"ok": False, "error": "خطا در برقراری ارتباط با صرافی‌ها یا تایم‌اوت شبکه"}
 
 
 __all__ = [

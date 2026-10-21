@@ -2372,7 +2372,7 @@ function renderActiveSubAnalytics(sub) {
         const peakHour = sub.hourly_usage?.peak_hour || null;
         renderLineCurveChart('repPeakHoursChartCanvas', hourlyLabels, hourlyData, peakHour);
         if (typeof renderBarChart === 'function') {
-          renderBarChart('repPeakHoursBarCanvas', hourlyLabels, hourlyData, false);
+          renderBarChart('repPeakHoursBarCanvas', hourlyData, hourlyLabels, false);
         }
         if (peakBadge) {
           peakBadge.innerText = peakHour ? `Peak: ${toEnglishDigits(peakHour)}` : '---';

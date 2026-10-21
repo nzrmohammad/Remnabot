@@ -58,10 +58,15 @@ async def _ensure_can_buy(
     return False
 
 
-async def _extract_coupon_from_state(state: FSMContext) -> tuple[str | None, int]:
+async def _extract_coupon_from_state(state: FSMContext, current_service_id: int | None = None) -> tuple[str | None, int]:
     data = await state.get_data()
     code = data.get("coupon_code")
-    amt = int(data.get("discount_amount", 0) or 0) if code else 0
+    if not code:
+        return None, 0
+    saved_svc_id = data.get("coupon_service_id")
+    if current_service_id is not None and saved_svc_id is not None and int(saved_svc_id) != int(current_service_id):
+        return None, 0
+    amt = int(data.get("discount_amount", 0) or 0)
     return code, amt
 
 

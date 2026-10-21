@@ -95,7 +95,10 @@ async def _fetch_transaction_history(session: Any, telegram_id: int, tz_name: st
         admin_logs_res = await session.execute(
             select(AdminLog).where(
                 AdminLog.action.in_(["wallet_charge", "wallet_deduct", "balance_add", "balance_sub"]),
-                AdminLog.detail.like(f"%{telegram_id}%"),
+                or_(
+                    AdminLog.target_user_id == telegram_id,
+                    AdminLog.detail.like(f"%{telegram_id}%"),
+                ),
             ).order_by(AdminLog.id.desc()).limit(15)
         )
         for al in admin_logs_res.scalars().all():

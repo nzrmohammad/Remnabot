@@ -470,6 +470,8 @@ async def post_user_redeem_voucher(request: web.Request) -> web.Response:
         cache: FastCache = request.app.get("cache")
         if cache:
             await cache.delete(f"tma:user:{telegram_id}:profile")
+            await cache.delete(f"tma:user:{telegram_id}:dashboard")
+            await cache.delete(f"tma:user:{telegram_id}:dashboard:default")
 
         return web.json_response({
             "ok": True,
@@ -501,6 +503,8 @@ async def post_user_auto_renew(request: web.Request) -> web.Response:
         cache: FastCache = request.app.get("cache")
         if cache:
             await cache.delete(f"tma:user:{telegram_id}:profile")
+            await cache.delete(f"tma:user:{telegram_id}:dashboard")
+            await cache.delete(f"tma:user:{telegram_id}:dashboard:default")
 
         return web.json_response({
             "ok": True,

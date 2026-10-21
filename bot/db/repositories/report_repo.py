@@ -1,8 +1,8 @@
 """Repository for the per-user nightly/weekly/monthly report switches."""
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from bot.db.models import ReportSettings
+from bot.db.models import ReportSettings, User
 
 
 class ReportRepository:
@@ -55,13 +55,16 @@ class ReportRepository:
     async def get_users_due_for_wheel_reminder(self) -> list[ReportSettings]:
         from datetime import datetime, timedelta, timezone
         cutoff = datetime.now(timezone.utc) - timedelta(hours=24)
-        result = await self.session.execute(
-            select(ReportSettings).where(
+        stmt = (
+            select(ReportSettings)
+            .join(User, User.telegram_id == ReportSettings.telegram_id, isouter=True)
+            .where(
                 ReportSettings.wheel_notify.is_(True),
                 ReportSettings.wheel_notified.is_(False),
-                ReportSettings.wheel_last_spin_at.is_not(None),
-                ReportSettings.wheel_last_spin_at <= cutoff,
+                func.coalesce(User.wheel_last_spin_at, ReportSettings.wheel_last_spin_at).is_not(None),
+                func.coalesce(User.wheel_last_spin_at, ReportSettings.wheel_last_spin_at) <= cutoff,
             )
         )
+        result = await self.session.execute(stmt)
         return list(result.scalars().all())
 

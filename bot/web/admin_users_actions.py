@@ -102,6 +102,8 @@ async def post_admin_modify_user(request: web.Request) -> web.Response:
 
     cache: FastCache = request.app["cache"]
     await cache.delete(f"tma:user:{target_id}:dashboard")
+    await cache.delete(f"tma:user:{target_id}:dashboard:default")
+    await cache.delete(f"tma:user:{target_id}:profile")
     await cache.delete("tma:admin:overview")
 
     return web.json_response({"ok": True, "message": log_detail})
@@ -167,6 +169,8 @@ async def post_admin_toggle_ban(request: web.Request) -> web.Response:
 
     cache: FastCache = request.app["cache"]
     await cache.delete(f"tma:user:{target_id}:dashboard")
+    await cache.delete(f"tma:user:{target_id}:dashboard:default")
+    await cache.delete(f"tma:user:{target_id}:profile")
 
     return web.json_response({"ok": True, "banned": ban_state})
 
@@ -194,6 +198,8 @@ async def post_admin_reset_trial(request: web.Request) -> web.Response:
 
     cache: FastCache = request.app["cache"]
     await cache.delete(f"tma:user:{target_id}:dashboard")
+    await cache.delete(f"tma:user:{target_id}:dashboard:default")
+    await cache.delete(f"tma:user:{target_id}:profile")
     return web.json_response({"ok": True, "message": "قابلیت دریافت اشتراک تست برای این کاربر با موفقیت فعال شد."})
 
 
@@ -222,16 +228,17 @@ async def post_admin_user_wallet(request: web.Request) -> web.Response:
         wallet_repo = WalletRepository(session)
         wallet = await wallet_repo.get_wallet(int(target_id))
         old_balance = int(wallet.balance if wallet else 0)
-        new_balance = max(0, old_balance + amount)
-        wallet.balance = new_balance
+        new_balance = await wallet_repo.adjust_balance_atomic(int(target_id), amount)
 
         action_name = "wallet_charge" if amount > 0 else "wallet_deduct"
         detail_msg = f"{'افزایش' if amount > 0 else 'کسر'} {abs(amount):,} تومان موجودی کاربر {target_id} ({reason})"
-        session.add(AdminLog(admin_id=admin["id"], action=action_name, detail=detail_msg))
+        session.add(AdminLog(admin_id=admin["id"], action=action_name, detail=detail_msg, target_user_id=int(target_id)))
         await session.commit()
 
     cache: FastCache = request.app["cache"]
     await cache.delete(f"tma:user:{target_id}:dashboard")
+    await cache.delete(f"tma:user:{target_id}:dashboard:default")
+    await cache.delete(f"tma:user:{target_id}:profile")
     await cache.delete("tma:admin:overview")
 
     bot = request.app.get("bot")
@@ -288,6 +295,8 @@ async def post_admin_user_revoke_sub(request: web.Request) -> web.Response:
 
     cache: FastCache = request.app["cache"]
     await cache.delete(f"tma:user:{target_id}:dashboard")
+    await cache.delete(f"tma:user:{target_id}:dashboard:default")
+    await cache.delete(f"tma:user:{target_id}:profile")
 
     new_sub = revoked.get("subscriptionUrl") or revoked.get("subscription_url") or ""
     return web.json_response({

@@ -199,6 +199,7 @@ async def post_admin_topup_action(request: web.Request) -> web.Response:
                 )
                 if u_obj and isinstance(getattr(sent_msg, "message_id", None), int):
                     await user_repo.set_menu_message_id(u_obj, sent_msg.message_id)
+                    await session.commit()
     except Exception as exc:
         logger.warning("Could not send topup decision notice to %s: %s", claimed.telegram_id, exc)
 

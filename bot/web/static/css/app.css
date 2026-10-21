@@ -151,14 +151,14 @@ html.theme-light {
 }
 
 /* Typography Semantic Color Utilities */
-.t-main       { color: var(--text-main) !important; }
-.t-muted      { color: var(--text-muted) !important; }
-.t-accent     { color: var(--c-accent) !important; }
-.t-success    { color: var(--c-success) !important; }
-.t-warn       { color: var(--c-warn) !important; }
-.t-danger     { color: var(--c-danger) !important; }
-.t-info       { color: var(--c-info) !important; }
-.t-purple     { color: var(--c-purple) !important; }
+.t-main       { color: var(--text-main); }
+.t-muted      { color: var(--text-muted); }
+.t-accent     { color: var(--c-accent); }
+.t-success    { color: var(--c-success); }
+.t-warn       { color: var(--c-warn); }
+.t-danger     { color: var(--c-danger); }
+.t-info       { color: var(--c-info); }
+.t-purple     { color: var(--c-purple); }
 
 /* Surface / Badge Semantic Soft Colors (replaces bg-*-950/50 + text-*) */
 .s-accent-soft {
@@ -192,9 +192,8 @@ html.theme-light {
   border-color: var(--c-purple-border) !important;
 }
 
-/* Minimum legible caption size */
-.text-\[10px\] {
-  font-size: 11px !important;
+.caption {
+  font-size: 11px;
 }
 
 /* Bulletproof BiDi Number & Unit Isolation */
@@ -342,7 +341,6 @@ html.theme-light .buy-plan-btn,
 html.theme-light #confirmPurchaseBtn,
 html.theme-light #submitCardTopupBtn,
 html.theme-light #generateTonInvoiceBtn,
-html.theme-light #topupMethodCardBtn,
 html.theme-light [class*="bg-blue-"] .text-white,
 html.theme-light [class*="bg-blue-"].text-white,
 html.theme-light [class*="bg-emerald-"] .text-white,
@@ -475,7 +473,7 @@ html.theme-light textarea {
   color: var(--text-main);
 }
 html.theme-light .bg-transparent {
-  background-color: transparent !important;
+  background-color: transparent;
 }
 html.theme-light .bg-\[\#1a233a\],
 html.theme-light .bg-\[\#1e293b\],
@@ -1062,8 +1060,7 @@ html.theme-light #couponInput {
 
 .config-row-item,
 html.theme-light .config-row-item {
-  background: transparent !important;
-  background-color: transparent !important;
+  background-color: transparent;
 }
 
 html.theme-light .config-row-item {
@@ -1226,8 +1223,7 @@ html.theme-light .sub-action-btn,
 html.theme-light #copySubBtn,
 html.theme-light #qrToggleBtn,
 html.theme-light #revokeSubBtnTop {
-  background: transparent !important;
-  background-color: transparent !important;
+  background-color: transparent;
 }
 html.theme-light .sub-action-btn,
 html.theme-light #copySubBtn,
@@ -1246,8 +1242,7 @@ html.theme-light #revokeSubBtnTop:hover {
 
 /* Light Theme: Crypto Topup Memo/Comment High-Contrast Box & Wallet Controls */
 #cryptoComment {
-  background: transparent !important;
-  background-color: transparent !important;
+  background-color: transparent;
   border: none;
   box-shadow: none;
   padding: 0;
@@ -1329,8 +1324,7 @@ html.theme-light #modalKillAllBtn {
 /* Profile Tab: ID and Referral Code transparent background */
 #profileTelegramId,
 #profileRefCode {
-  background: transparent !important;
-  background-color: transparent !important;
+  background-color: transparent;
   border: none;
   box-shadow: none;
   padding: 0;
@@ -1593,16 +1587,14 @@ html.theme-light #themeToggle:hover {
 html.theme-light #switchAccountBtn,
 html.theme-light #closeBtn,
 html.theme-light #reloadBtn {
-  background: transparent !important;
-  background-color: transparent !important;
+  background-color: transparent;
   border: none;
   box-shadow: none;
 }
 
 #walletTransactionsList > div,
 html.theme-light #walletTransactionsList > div {
-  background: transparent !important;
-  background-color: transparent !important;
+  background-color: transparent;
 }
 
 html.theme-light #walletTransactionsList .text-slate-200 {
@@ -1618,14 +1610,12 @@ html.theme-light #walletTransactionsList .text-slate-400 {
 html.theme-light #repNightlyNodesContainer > div,
 html.theme-light #repWeeklyNodesContainer > div,
 html.theme-light #repMonthlyNodesContainer > div {
-  background: transparent !important;
-  background-color: transparent !important;
+  background-color: transparent;
 }
 
 #switchAccountList button,
 html.theme-light #switchAccountList button {
-  background: transparent !important;
-  background-color: transparent !important;
+  background-color: transparent;
 }
 
 #repSubTabs,
@@ -1638,8 +1628,7 @@ html.theme-light .srh-card,
 html.theme-light #userSessionsList > div,
 html.theme-light #hwidDevicesList > div,
 html.theme-light #hwidKillAllSessionsBtn {
-  background: transparent !important;
-  background-color: transparent !important;
+  background-color: transparent;
 }
 
 /* Access Mode selector & settings styling */
@@ -1749,8 +1738,7 @@ html.theme-light #profileReferralCard .text-slate-300 {
   color: #334155;
 }
 html.theme-light #copyReferralLinkBtn {
-  background: transparent !important;
-  background-color: transparent !important;
+  background-color: transparent;
   background-image: none;
   box-shadow: none;
   color: #4f46e5;
@@ -2252,4 +2240,77 @@ button, a, .tab-btn, .nav-item, [role="button"] {
   html body textarea {
     font-size: 16px;
   }
+}
+
+/* Standardized Plan Action Buttons (Dark & Light) */
+.btn-plan-vip {
+  background: linear-gradient(135deg, #e11d48, #c026d3);
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgba(225, 29, 72, 0.35);
+}
+.btn-plan-vip:hover {
+  background: linear-gradient(135deg, #f43f5e, #d946ef);
+}
+
+.btn-plan-bestseller {
+  background: linear-gradient(135deg, #ea580c, #f59e0b);
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgba(234, 88, 12, 0.35);
+}
+.btn-plan-bestseller:hover {
+  background: linear-gradient(135deg, #f97316, #fbbf24);
+}
+
+.btn-plan-traffic {
+  background: linear-gradient(135deg, #0891b2, #2563eb);
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgba(8, 145, 178, 0.35);
+}
+
+.btn-plan-time {
+  background: linear-gradient(135deg, #d97706, #ea580c);
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgba(217, 119, 6, 0.35);
+}
+
+.btn-plan-popular {
+  background: linear-gradient(135deg, #7c3aed, #2563eb);
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgba(124, 58, 237, 0.35);
+}
+
+.btn-plan-economic {
+  background: linear-gradient(135deg, #059669, #0d9488);
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgba(5, 150, 105, 0.35);
+}
+
+.btn-plan-default {
+  background: linear-gradient(135deg, #2563eb, #4f46e5);
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.3);
+}
+
+/* Light Theme: Topup Method Tabs & Card Details */
+html.theme-light #topupMethodTabs {
+  background-color: var(--page-bg);
+  border-color: var(--card-border);
+}
+html.theme-light #topupMethodTabs button {
+  color: var(--text-muted);
+}
+html.theme-light #topupMethodTabs button.bg-blue-600 {
+  background-color: #2563eb;
+  color: #ffffff;
+}
+html.theme-light #topupCardDetailsBox > div {
+  background-color: var(--card-inner-bg);
+  border-color: var(--card-border);
+}
+html.theme-light #topupCardDetailsBox span {
+  color: var(--text-muted);
+}
+html.theme-light #topupCardDetailsBox #topupCardNumber,
+html.theme-light #topupCardDetailsBox #topupCardHolder {
+  color: var(--text-main);
 }

@@ -57,6 +57,9 @@ async def api_rate_limit_middleware(request: web.Request, handler):
     cache = request.app.get("cache")
     redis = getattr(cache, "_redis", None) if cache else None
 
+    rate_limited = False
+    redis_checked = False
+
     # Distributed Redis rate-limiting if Redis is active
     if redis:
         try:
@@ -66,37 +69,37 @@ async def api_rate_limit_middleware(request: web.Request, handler):
             pipe.expire(rl_key, int(_API_WINDOW))
             results = await pipe.execute()
             if results and int(results[0]) > max_reqs:
-                logger.warning("Redis API rate limit exceeded for IP %s on %s", client_ip, request.path)
-                return web.json_response(
-                    {"ok": False, "error": "درخواست‌های بیش از حد مجاز. لطفاً کمی صبر کنید.", "code": "rate_limited"},
-                    status=429,
-                    headers={"Retry-After": "30"},
-                )
-            return await handler(request)
+                rate_limited = True
+            redis_checked = True
         except Exception as exc:
             logger.debug("Redis rate limit fallback to memory: %s", exc)
+            redis_checked = False
 
-    # In-memory rate limiting fallback
-    bucket_key = f"{client_ip}:sens" if is_sensitive else f"{client_ip}:gen"
-    bucket = _api_buckets[bucket_key]
+    # In-memory rate limiting fallback if Redis is not used or failed
+    if not redis_checked:
+        bucket_key = f"{client_ip}:sens" if is_sensitive else f"{client_ip}:gen"
+        bucket = _api_buckets[bucket_key]
 
-    while bucket and now - bucket[0] > _API_WINDOW:
-        bucket.popleft()
+        while bucket and now - bucket[0] > _API_WINDOW:
+            bucket.popleft()
 
-    if len(bucket) >= max_reqs:
+        if len(bucket) >= max_reqs:
+            rate_limited = True
+
+        bucket.append(now)
+
+        if len(_api_buckets) > 5000:
+            stale = [k for k, b in _api_buckets.items() if not b or now - b[-1] > _API_WINDOW]
+            for k in stale:
+                del _api_buckets[k]
+
+    if rate_limited:
         logger.warning("API rate limit exceeded for IP %s on %s", client_ip, request.path)
         return web.json_response(
             {"ok": False, "error": "درخواست‌های بیش از حد مجاز. لطفاً کمی صبر کنید.", "code": "rate_limited"},
             status=429,
             headers={"Retry-After": "30"},
         )
-
-    bucket.append(now)
-
-    if len(_api_buckets) > 5000:
-        stale = [k for k, b in _api_buckets.items() if not b or now - b[-1] > _API_WINDOW]
-        for k in stale:
-            del _api_buckets[k]
 
     return await handler(request)
 
@@ -118,11 +121,21 @@ async def cors_and_security_middleware(request: web.Request, handler):
             trusted_origins.add(f"{parsed.scheme}://{parsed.netloc}")
 
     request_origin = request.headers.get("Origin", "")
-    if request_origin and (
-        request_origin in trusted_origins
-        or request.app.get("is_dev", False)
-        or any(request_origin.endswith(domain) for domain in [".telegram.org", "telegram.org"])
-    ):
+    origin_valid = False
+    if request_origin:
+        if request_origin in trusted_origins or request.app.get("is_dev", False):
+            origin_valid = True
+        else:
+            try:
+                from urllib.parse import urlparse
+                parsed_origin = urlparse(request_origin)
+                host = (parsed_origin.hostname or "").lower()
+                if host == "telegram.org" or host.endswith(".telegram.org"):
+                    origin_valid = True
+            except Exception:
+                origin_valid = False
+
+    if origin_valid:
         response.headers["Access-Control-Allow-Origin"] = request_origin
 
     response.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
@@ -339,8 +352,8 @@ async def serve_open_client(request: web.Request) -> web.Response:
     </p>
   </div>
   <script>
-    const scheme = {json.dumps(scheme)};
-    const subUrl = {json.dumps(sub_url)};
+    const scheme = {json.dumps(scheme).replace("<", "\\u003c").replace(">", "\\u003e")};
+    const subUrl = {json.dumps(sub_url).replace("<", "\\u003c").replace(">", "\\u003e")};
     try {{
       window.location.href = scheme;
     }} catch(e) {{}}

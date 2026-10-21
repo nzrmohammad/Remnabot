@@ -1,3 +1,5 @@
+from html import escape
+from sqlalchemy.exc import IntegrityError
 """Telegram Stars (XTR) native payment handling."""
 import logging
 from aiogram import Bot, F, Router
@@ -99,6 +101,11 @@ async def stars_successful_payment_handler(
         )
         session.add(topup)
         await session.commit()
+    except IntegrityError:
+        await session.rollback()
+        await wallet_repo.adjust_balance_atomic(user_tid, -amount_toman)
+        logger.warning("Duplicate Stars payment race condition caught for %s, rolled back credit.", receipt_hash)
+        return
     except Exception as exc:
         logger.error("Failed to credit wallet for Stars topup: user=%s, amount=%s: %s", user_tid, amount_toman, exc)
         try:
@@ -140,7 +147,7 @@ async def stars_successful_payment_handler(
     if topic_id:
         admin_text = (
             f"⭐️ <b>شارژ موفق از طریق Telegram Stars</b>\n\n"
-            f"👤 کاربر: <b>{first_name}</b> (<code>{user_tid}</code>)\n"
+            f"👤 کاربر: <b>{escape(first_name)}</b> (<code>{user_tid}</code>)\n"
             f"💵 مبلغ: <b>{amount_toman:,} تومان</b>\n"
             f"⭐️ تعداد ستاره: <b>{stars_count:,} Stars</b>\n"
             f"🧾 شناسه تلگرام: <code>{sp.telegram_payment_charge_id}</code>"

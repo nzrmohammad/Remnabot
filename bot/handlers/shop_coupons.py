@@ -120,7 +120,7 @@ async def process_coupon_code(
         )
         return
 
-    await state.update_data(coupon_code=code, discount_amount=discount_amount)
+    await state.update_data(coupon_code=code, discount_amount=discount_amount, coupon_service_id=service.id)
 
     wallet = await WalletRepository(session).get_wallet(user.telegram_id)
     target_name = None

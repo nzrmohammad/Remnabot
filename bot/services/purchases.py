@@ -120,6 +120,7 @@ async def execute_purchase(
     if await is_maintenance(session):
         return PurchaseResult(ok=False, kind="maintenance")
 
+    discount_amount = max(0, min(int(discount_amount or 0), int(service.price)))
     effective_price = max(0, service.price - discount_amount)
 
     async def _report_purchase_err(reason: str, detail: str = "") -> None:

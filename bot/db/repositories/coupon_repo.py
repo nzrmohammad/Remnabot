@@ -106,7 +106,7 @@ class CouponRepository:
             # Atomic conditional increment: never exceeds max_uses, never raises.
             # synchronize_session="fetch" keeps the identity-map Coupon in sync so
             # later validate_coupon() reads within the same session see the truth.
-            await self.session.execute(
+            res = await self.session.execute(
                 update(Coupon)
                 .where(
                     Coupon.id == coupon_obj.id,
@@ -119,6 +119,9 @@ class CouponRepository:
                 .values(used_count=Coupon.used_count + 1)
                 .execution_options(synchronize_session="fetch"),
             )
+            if res.rowcount == 0:
+                logger.warning("Coupon %s reached max_uses concurrently, usage not recorded", coupon_obj.code)
+                return None
 
         usage = CouponUsage(
             coupon_id=coupon_obj.id if coupon_obj else (coupon if isinstance(coupon, int) else None),

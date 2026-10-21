@@ -341,9 +341,14 @@ def create_encrypted_backup_archive(json_path: Path, password: str | None = None
                 logger.warning("Could not unlink json_path: %s", exc)
             return zip_path
         except Exception as exc:
-            logger.warning("pyzipper encryption failed, using standard zipfile: %s", exc)
+            logger.critical("pyzipper encryption failed: %s. Aborting backup to prevent unencrypted plaintext leak.", exc)
+            try:
+                json_path.unlink(missing_ok=True)
+            except Exception:
+                pass
+            return None
 
-    # Fallback: standard zip archive
+    # Standard zip archive (only when encryption was not requested)
     with zipfile.ZipFile(zip_path, "w", compression=zipfile.ZIP_DEFLATED) as zf:
         zf.write(json_path, arcname=json_path.name)
     try:

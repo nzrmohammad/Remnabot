@@ -222,13 +222,14 @@ async def _do_user_spin(request: web.Request, telegram_id: int, cache: FastCache
             current_limit = int(primary.get("trafficLimitBytes") or 0)
             try:
                 if chosen["type"] == "traffic":
-                    traffic_bytes = int(chosen["value"] * 1024 * 1024 * 1024)
-                    new_limit = current_limit + traffic_bytes
-                    await remnawave.update_user_subscription(
-                        primary_id,
-                        current_expire,
-                        new_limit,
-                    )
+                    if current_limit > 0:
+                        traffic_bytes = int(chosen["value"] * 1024 * 1024 * 1024)
+                        new_limit = current_limit + traffic_bytes
+                        await remnawave.update_user_subscription(
+                            primary_id,
+                            current_expire,
+                            new_limit,
+                        )
                     applied = True
                 elif chosen["type"] == "days":
                     from bot.services.formatting import parse_iso
@@ -553,7 +554,8 @@ async def post_user_purchase(request: web.Request) -> web.Response:
 
         if coupon_obj and result.order_id:
             try:
-                await coupon_repo.record_usage(coupon_obj.id, telegram_id, result.order_id, discount_amount)
+                async with session.begin_nested():
+                    await coupon_repo.record_usage(coupon_obj.id, telegram_id, result.order_id, discount_amount)
             except Exception as exc:
                 logger.warning("Failed to record coupon usage in TMA purchase: %s", exc)
 

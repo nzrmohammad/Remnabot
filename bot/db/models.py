@@ -9,6 +9,7 @@ from sqlalchemy import (
     Enum as SA_Enum,
     Float,
     ForeignKey,
+    Index,
     Integer,
     String,
     Text,
@@ -74,7 +75,7 @@ class User(Base):
     campaign_code: Mapped[str | None] = mapped_column(String(32), nullable=True, index=True)
 
     # Auto-renew active subscription when expiring using wallet balance
-    auto_renew: Mapped[bool] = mapped_column(Boolean, default=False)
+    auto_renew: Mapped[bool] = mapped_column(Boolean, default=False, index=True)
 
     # Lucky wheel growth features
     wheel_streak: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
@@ -173,6 +174,7 @@ class Topup(Base):
     status: Mapped[str] = mapped_column(
         SA_Enum(TopupStatus, native_enum=False, values_callable=lambda obj: [e.value for e in obj]),
         default=TopupStatus.PENDING.value,
+        index=True,
     )  # pending/approved/rejected
     # Stable receipt fingerprint (photo/document file_unique_id or text hash)
     # used to reject the same receipt submitted twice.
@@ -194,7 +196,9 @@ class Order(Base):
     """A completed auto-activated purchase (service bought with wallet balance)."""
 
     __tablename__ = "orders"
-
+    __table_args__ = (
+        Index("ix_orders_status_created_at", "status", "created_at"),
+    )
     id: Mapped[int] = mapped_column(primary_key=True)
     telegram_id: Mapped[int] = mapped_column(
         BigInteger, ForeignKey("users.telegram_id", ondelete="CASCADE"), index=True
@@ -228,11 +232,15 @@ class AdminLog(Base):
     """Audit trail of admin actions (balance changes, refunds, ...)."""
 
     __tablename__ = "admin_logs"
+    __table_args__ = (
+        Index("ix_admin_logs_action_created", "action", "created_at"),
+    )
 
     id: Mapped[int] = mapped_column(primary_key=True)
     admin_id: Mapped[int] = mapped_column(BigInteger, index=True)
     action: Mapped[str] = mapped_column(String(32))
     detail: Mapped[str | None] = mapped_column(Text, nullable=True)
+    target_user_id: Mapped[int | None] = mapped_column(BigInteger, nullable=True, index=True)
 
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
@@ -435,7 +443,7 @@ class CryptoInvoice(Base):
     nanotons: Mapped[int] = mapped_column(BigInteger)
     comment: Mapped[str] = mapped_column(String(32), unique=True, index=True)
     pay_address: Mapped[str] = mapped_column(String(128))
-    status: Mapped[str] = mapped_column(String(16), default="pending")  # pending / paid / expired / cancelled
+    status: Mapped[str] = mapped_column(String(16), default="pending", index=True)  # pending / paid / expired / cancelled
     tx_hash: Mapped[str | None] = mapped_column(String(128), nullable=True, index=True)
 
     expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)

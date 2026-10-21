@@ -160,19 +160,25 @@ async def post_user_settings(request: web.Request) -> web.Response:
 
 
 async def get_user_avatar(request: web.Request) -> web.Response:
-    """Fetch user Telegram avatar and stream image bytes with caching and CORS."""
+    """Fetch user Telegram avatar and stream image bytes with caching, strict authentication and SSRF protection."""
+    user_auth = get_authenticated_user(request)
+    if not user_auth and not request.app.get("is_dev", False):
+        return web.Response(status=401)
+
+    req_user_id = int(user_auth["id"]) if user_auth else 0
+    settings = request.app.get("settings")
+    admin_ids = getattr(settings, "ADMIN_IDS", []) if settings else []
+    is_admin = req_user_id in admin_ids
+
     target_id_param = request.query.get("user_id") or request.query.get("id")
-    telegram_id = None
+    telegram_id = req_user_id
     if target_id_param:
         try:
-            telegram_id = int(target_id_param)
+            tid = int(target_id_param)
+            if tid == req_user_id or is_admin:
+                telegram_id = tid
         except ValueError:
             pass
-
-    if not telegram_id:
-        user_auth = get_authenticated_user(request)
-        if user_auth:
-            telegram_id = int(user_auth["id"])
 
     fallback_url = request.query.get("url")
     if not telegram_id and not fallback_url:
@@ -194,7 +200,6 @@ async def get_user_avatar(request: web.Request) -> web.Response:
             )
 
     bot = request.app.get("bot")
-    settings = request.app.get("settings")
     proxy = (getattr(settings, "IRAN_PROXY", "") or "").strip() or None
 
     if bot and telegram_id:
@@ -221,25 +226,35 @@ async def get_user_avatar(request: web.Request) -> web.Response:
         except Exception as exc:
             logger.warning("Failed to fetch avatar for %s via bot: %s", telegram_id, exc)
 
-    # Fallback: if user supplied photo_url parameter from Telegram initData
-    if fallback_url and any(origin in fallback_url for origin in ("telesco.pe", "t.me", "telegram.org", "api.telegram.org", "cdn")):
+    # Fallback: strictly validated Telegram avatar URL
+    if fallback_url:
+        from urllib.parse import urlparse
         try:
-            import aiohttp
-            custom_headers = {
-                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-            }
-            async with aiohttp.ClientSession(headers=custom_headers) as client:
-                async with client.get(fallback_url, timeout=aiohttp.ClientTimeout(total=8), proxy=proxy) as resp:
-                    if resp.status == 200:
-                        img_bytes = await resp.read()
-                        if img_bytes:
-                            if cache:
-                                await cache.set(cache_key, img_bytes, ttl_seconds=86400 * 7)
-                            return web.Response(
-                                body=img_bytes,
-                                content_type=resp.headers.get("Content-Type", "image/jpeg"),
-                                headers=cors_headers,
-                            )
+            parsed_url = urlparse(fallback_url)
+            scheme = (parsed_url.scheme or "").lower()
+            host = (parsed_url.hostname or "").lower()
+            allowed_hosts = ("telegram.org", "t.me", "telesco.pe")
+            allowed_suffixes = (".telegram.org", ".telesco.pe", ".t.me")
+            is_valid_origin = scheme in ("http", "https") and (
+                host in allowed_hosts or any(host.endswith(s) for s in allowed_suffixes)
+            )
+            if is_valid_origin:
+                import aiohttp
+                custom_headers = {
+                    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+                }
+                async with aiohttp.ClientSession(headers=custom_headers) as client:
+                    async with client.get(fallback_url, timeout=aiohttp.ClientTimeout(total=5, connect=2.0), proxy=proxy) as resp:
+                        if resp.status == 200:
+                            img_bytes = await resp.read()
+                            if img_bytes:
+                                if cache:
+                                    await cache.set(cache_key, img_bytes, ttl_seconds=86400 * 7)
+                                return web.Response(
+                                    body=img_bytes,
+                                    content_type=resp.headers.get("Content-Type", "image/jpeg"),
+                                    headers=cors_headers,
+                                )
         except Exception as exc:
             logger.warning("Failed to proxy fallback avatar for %s: %s", telegram_id or 'unknown', exc)
 

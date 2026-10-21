@@ -72,8 +72,9 @@ async def birthday_sweep_loop(
                             primary_id = int(active_sub.get("id"))
                             current_expire = active_sub.get("expireAt")
                             current_limit = int(active_sub.get("trafficLimitBytes") or 0)
-                            new_limit = current_limit + int(traffic_gb * 1024 * 1024 * 1024)
-                            await remnawave.update_user_subscription(primary_id, current_expire, new_limit)
+                            if current_limit > 0:
+                                new_limit = current_limit + int(traffic_gb * 1024 * 1024 * 1024)
+                                await remnawave.update_user_subscription(primary_id, current_expire, new_limit)
                             traffic_added = True
                         except Exception as e:
                             logger.warning("Failed adding birthday traffic for %s: %s", user.telegram_id, e)

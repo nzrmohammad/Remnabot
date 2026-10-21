@@ -64,7 +64,7 @@ async def buy_new_account(
         await call.answer(t(lang, "acc_error"), show_alert=True)
         return
 
-    coupon_code, discount_amount = await _extract_coupon_from_state(state)
+    coupon_code, discount_amount = await _extract_coupon_from_state(state, service.id)
 
     wallet = await WalletRepository(session).get_wallet(user.telegram_id)
     await _render_buy_confirm(
@@ -107,7 +107,7 @@ async def confirm_new_account(
             await call.answer(t(lang, "acc_error"), show_alert=True)
             return
 
-        coupon_code, discount_amount = await _extract_coupon_from_state(state)
+        coupon_code, discount_amount = await _extract_coupon_from_state(state, service.id)
 
         result = await execute_purchase(
             remnawave, session, service, user.telegram_id,
@@ -191,7 +191,7 @@ async def service_buy(
         await call.answer(t(lang, "acc_error"), show_alert=True)
         return
 
-    coupon_code, discount_amount = await _extract_coupon_from_state(state)
+    coupon_code, discount_amount = await _extract_coupon_from_state(state, service.id)
 
     wallet = await WalletRepository(session).get_wallet(user.telegram_id)
 
@@ -274,7 +274,7 @@ async def service_confirm(
             await call.answer(t(lang, "acc_error"), show_alert=True)
             return
 
-        coupon_code, discount_amount = await _extract_coupon_from_state(state)
+        coupon_code, discount_amount = await _extract_coupon_from_state(state, service.id)
 
         result = await execute_purchase(
             remnawave, session, service, user.telegram_id, discount_amount=discount_amount,

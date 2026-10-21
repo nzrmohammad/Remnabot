@@ -51,7 +51,7 @@ class WalletRepository:
             text(
                 "INSERT INTO wallets (telegram_id, balance) VALUES (:t, :b) "
                 "ON CONFLICT (telegram_id) DO UPDATE SET "
-                "balance = GREATEST(0, wallets.balance + :a) "
+                "balance = CASE WHEN wallets.balance + :a < 0 THEN 0 ELSE wallets.balance + :a END "
                 "RETURNING balance"
             ),
             {"t": telegram_id, "a": amount, "b": max(0, amount)},

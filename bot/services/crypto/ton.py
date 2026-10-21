@@ -114,6 +114,7 @@ async def verify_and_process_payments(bot: Any, session_factory: Any) -> int:
         if not wallet_address:
             await session.commit()
             return 0
+        await session.commit()
 
     # Fetch on-chain incoming transactions
     transactions = await fetch_ton_transactions(wallet_address)

@@ -22,7 +22,7 @@ async def fetch_all_exchange_prices(usdt_rate: int | None = None) -> dict:
         "Accept-Language": "fa,en-US;q=0.9,en;q=0.8",
         "Referer": "https://nobitex.ir/",
     }
-    timeout = aiohttp.ClientTimeout(total=8)
+    timeout = aiohttp.ClientTimeout(total=5, connect=2.0)
 
     ton_prices: dict[str, int] = {}
     usdt_prices: dict[str, int] = {}

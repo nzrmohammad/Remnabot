@@ -118,9 +118,11 @@ async def run_devices_check(
         async def _check_account(account, tg_id, lang):
             async with sem:
                 try:
-                    await check_account_new_devices(
-                        bot, session, remnawave, account, tg_id, lang
-                    )
+                    async with session_factory() as item_session:
+                        await check_account_new_devices(
+                            bot, item_session, remnawave, account, tg_id, lang
+                        )
+                        await item_session.commit()
                 except Exception as exc:
                     logger.exception("device check error for user %s: %s", tg_id, exc)
 
@@ -149,10 +151,12 @@ async def run_devices_check(
                         try:
                             accounts = await remnawave.get_users_by_telegram_id(u.telegram_id)
                             if accounts:
-                                for acc in accounts:
-                                    await check_account_new_devices(
-                                        bot, session, remnawave, acc, u.telegram_id, u.language or "fa"
-                                    )
+                                async with session_factory() as item_session:
+                                    for acc in accounts:
+                                        await check_account_new_devices(
+                                            bot, item_session, remnawave, acc, u.telegram_id, u.language or "fa"
+                                        )
+                                    await item_session.commit()
                         except Exception as exc:
                             logger.exception("device check error for user %s: %s", u.telegram_id, exc)
                 tasks.append(_fallback(user))
