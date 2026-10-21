@@ -567,15 +567,47 @@
             </div>
 
             <!-- Bar Chart: Hourly Interval Consumption -->
-            <div id="repPeakHoursBarContainer" class="pt-2 border-t border-slate-700/50 space-y-1">
+            <div id="repPeakHoursBarContainer" class="pt-2 border-t border-slate-700/50 space-y-2">
               <div class="flex justify-between items-center px-1">
                 <span class="text-[11px] font-semibold text-slate-300 flex items-center gap-1">
                   <span>📊</span> توزیع مصرف بازه‌ها
                 </span>
                 <span class="text-[10px] text-slate-400 font-mono">حجم مصرف (GB)</span>
               </div>
-              <div class="h-28 w-full p-1 bg-transparent rounded-xl relative flex items-center justify-center">
+              <div class="h-32 w-full p-1 bg-transparent rounded-xl relative flex items-center justify-center">
                 <canvas id="repPeakHoursBarCanvas" dir="ltr" class="w-full h-full"></canvas>
+              </div>
+
+              <!-- 4 Diurnal Intervals Breakdown Summary -->
+              <div id="repHourlyPeriodsSummary" class="grid grid-cols-2 sm:grid-cols-4 gap-1.5 pt-1 font-mono text-[11px]">
+                <div class="bg-slate-900/60 p-2 rounded-xl border border-slate-700/50 flex flex-col justify-between">
+                  <div class="flex items-center justify-between text-slate-400 text-[10px] font-sans">
+                    <span>🌙 بامداد (۰۰-۰۶)</span>
+                    <span id="periodDawnPercent" class="text-cyan-400 font-bold font-mono">0%</span>
+                  </div>
+                  <b id="periodDawnVal" class="text-white text-xs mt-1 block num-bidi" dir="ltr">0.00 GB</b>
+                </div>
+                <div class="bg-slate-900/60 p-2 rounded-xl border border-slate-700/50 flex flex-col justify-between">
+                  <div class="flex items-center justify-between text-slate-400 text-[10px] font-sans">
+                    <span>🌅 صبح (۰۶-۱۲)</span>
+                    <span id="periodMorningPercent" class="text-emerald-400 font-bold font-mono">0%</span>
+                  </div>
+                  <b id="periodMorningVal" class="text-white text-xs mt-1 block num-bidi" dir="ltr">0.00 GB</b>
+                </div>
+                <div class="bg-slate-900/60 p-2 rounded-xl border border-slate-700/50 flex flex-col justify-between">
+                  <div class="flex items-center justify-between text-slate-400 text-[10px] font-sans">
+                    <span>☀️ عصر (۱۲-۱۸)</span>
+                    <span id="periodAfternoonPercent" class="text-amber-400 font-bold font-mono">0%</span>
+                  </div>
+                  <b id="periodAfternoonVal" class="text-white text-xs mt-1 block num-bidi" dir="ltr">0.00 GB</b>
+                </div>
+                <div class="bg-slate-900/60 p-2 rounded-xl border border-slate-700/50 flex flex-col justify-between">
+                  <div class="flex items-center justify-between text-slate-400 text-[10px] font-sans">
+                    <span>🌆 شب (۱۸-۲۴)</span>
+                    <span id="periodNightPercent" class="text-purple-400 font-bold font-mono">0%</span>
+                  </div>
+                  <b id="periodNightVal" class="text-white text-xs mt-1 block num-bidi" dir="ltr">0.00 GB</b>
+                </div>
               </div>
             </div>
           </div>
@@ -1228,6 +1260,9 @@
 
         <div class="pt-2 border-t border-slate-700/60 flex items-center justify-between">
           <span id="configsModalCount" class="text-[11px] text-slate-400 font-mono">0 کانفیگ</span>
+          <button id="copyAllConfigsBtn" type="button" class="bg-cyan-600/20 hover:bg-cyan-600/30 text-cyan-400 hover:text-cyan-300 border border-cyan-500/40 text-[11px] font-bold py-1.5 px-3 rounded-xl transition flex items-center gap-1 active:scale-95 shadow-sm" title="کپی همه کانفیگ‌ها">
+            <span>📋 کپی همه کانفیگ‌ها</span>
+          </button>
         </div>
       </div>
     </div>
@@ -2245,9 +2280,9 @@
           </button>
         </div>
 
-        <!-- Pane 1: Days Grid (7 columns, 1..31) -->
-        <div id="bdayPaneDay" class="bday-pane bg-slate-900/60 rounded-2xl p-2 border border-slate-700/60 max-h-48 overflow-y-auto custom-scroll">
-          <div class="grid grid-cols-7 gap-1.5" id="bdayDaysGrid"></div>
+        <!-- Pane 1: Days Grid (3 columns, 1..31) -->
+        <div id="bdayPaneDay" class="bday-pane bg-slate-900/60 rounded-2xl p-2.5 border border-slate-700/60 max-h-56 overflow-y-auto custom-scroll touch-pan-y overscroll-contain">
+          <div class="grid grid-cols-3 gap-2" id="bdayDaysGrid"></div>
         </div>
 
         <!-- Pane 2: Months Grid (3 columns, 12 months) -->
@@ -2274,12 +2309,12 @@
 
     <!-- 12.1 MODAL: ALERT THRESHOLD PICKER (تنظیم آستانه هشدار ترافیک و انقضا) -->
     <div id="alertThresholdModal" onclick="if(event.target === this) window.closeAlertThresholdModal()" class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-md hidden animate-fadeIn overflow-y-auto">
-      <div class="modal-card bg-[#0f172a] dark:bg-[#131d31] border border-cyan-500/40 rounded-3xl p-5 w-full max-w-[350px] shadow-2xl relative my-auto space-y-3.5 text-right">
+      <div class="modal-card bg-[#0f172a] dark:bg-[#131d31] border border-cyan-500/40 rounded-3xl p-5 w-full max-w-[380px] max-h-[88vh] flex flex-col shadow-2xl relative my-auto space-y-3.5 text-right">
         
         <div class="w-10 h-1 bg-slate-700/60 rounded-full mx-auto -mt-1 mb-1"></div>
         <button type="button" onclick="window.closeAlertThresholdModal()" class="w-8 h-8 rounded-full bg-slate-800/80 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center text-xs transition active:scale-95 absolute top-3.5 left-3.5 shadow" title="بستن" aria-label="بستن پنجره">✕</button>
 
-        <div class="flex items-center gap-2.5 pb-2 border-b border-slate-700/60 pl-10">
+        <div class="flex items-center gap-2.5 pb-2 border-b border-slate-700/60 pl-10 shrink-0">
           <div id="alertThresholdIconBox" class="w-10 h-10 rounded-2xl bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 flex items-center justify-center text-lg flex-shrink-0">
             ⚠️
           </div>
@@ -2289,7 +2324,7 @@
           </div>
         </div>
 
-        <div id="alertThresholdOptionsList" class="space-y-1.5 max-h-60 overflow-y-auto custom-scroll px-1.5 py-0.5">
+        <div id="alertThresholdOptionsList" class="space-y-1.5 flex-1 max-h-[64vh] overflow-y-auto custom-scroll px-1.5 py-0.5">
           <!-- Dynamically populated options -->
         </div>
 

@@ -249,7 +249,8 @@ function setupConfigsModal() {
     `;
 
     try {
-      const res = await window.api.getSubscriptionConfigs(window.currentAccountId);
+      const targetAccId = window.currentAccountId || window.lastUserData?.active_sub?.account_id || window.lastUserData?.active_sub?.id;
+      const res = await window.api.getSubscriptionConfigs(targetAccId);
       if (res.ok && res.configs && res.configs.length > 0) {
         currentConfigsList = res.configs;
         if (configsModalCount) configsModalCount.innerText = `${currentConfigsList.length} کانفیگ`;
@@ -339,6 +340,18 @@ function setupConfigsModal() {
     if (e.target === configsModal) {
       closeModal('configsModal');
       syncTelegramBackButton();
+    }
+  });
+
+  copyAllConfigsBtn?.addEventListener('click', () => {
+    if (!currentConfigsList || currentConfigsList.length === 0) {
+      showToast('⚠️ کانفیگی برای کپی یافت نشد.');
+      return;
+    }
+    const allUris = currentConfigsList.map(c => c.uri).filter(Boolean).join('\n');
+    if (allUris) {
+      copyToClipboard(allUris, `📋 مجموع ${currentConfigsList.length} کانفیگ با موفقیت در کلیپ‌بورد کپی شد.`);
+      hapticFeedback('success');
     }
   });
 }
@@ -1048,8 +1061,8 @@ function initBirthdaySelects() {
       const btn = document.createElement('button');
       btn.type = 'button';
       btn.setAttribute('data-val', d);
-      btn.className = 'bday-grid-btn py-1.5 px-0.5 text-center text-xs text-slate-300 bg-slate-800/80 hover:bg-slate-700 border border-slate-700/60 rounded-xl transition font-mono active:scale-95';
-      btn.textContent = `${toPersianDigits(d)}`;
+      btn.className = 'bday-grid-btn py-2.5 px-2 text-center text-xs font-bold text-slate-300 bg-slate-800/80 hover:bg-slate-700 border border-slate-700/60 rounded-xl transition font-mono active:scale-95 flex items-center justify-center gap-1.5';
+      btn.innerHTML = `<span class="text-[11px] text-slate-400 font-normal">روز</span> <span>${toPersianDigits(d)}</span>`;
       btn.onclick = () => selectBdayItem('day', d, toPersianDigits(d), false);
       dayGrid.appendChild(btn);
     }
@@ -1134,7 +1147,7 @@ function openAlertPickerModal(type) {
       { val: 95, label: '95% — هشدار اضطراری', desc: 'آخرین فرصت پیش از قطع دسترسی اینترنت' },
     ];
     listEl.innerHTML = options.map(opt => `
-      <div onclick="window.selectAlertSetting('traffic', ${opt.val})" class="alert-picker-option cursor-pointer p-3 rounded-2xl border transition flex items-center justify-between ${opt.val === currentVal ? 'active-alert-opt bg-cyan-500/15 border-cyan-500/50 text-cyan-300' : 'bg-slate-900/60 border-slate-700/60 hover:border-slate-500 text-slate-300'}">
+      <div onclick="window.selectAlertSetting('traffic', ${opt.val})" class="alert-picker-option cursor-pointer p-2.5 rounded-2xl border transition flex items-center justify-between ${opt.val === currentVal ? 'active-alert-opt bg-cyan-500/15 border-cyan-500/50 text-cyan-300' : 'bg-slate-900/60 border-slate-700/60 hover:border-slate-500 text-slate-300'}">
         <div>
           <b class="text-xs block">${opt.label}</b>
           <span class="text-[10px] text-slate-400 block mt-0.5">${opt.desc}</span>
@@ -1160,7 +1173,7 @@ function openAlertPickerModal(type) {
       { val: 7, label: '7 روز قبل از پایان', desc: 'اطلاع‌رسانی یک هفته قبل از اتمام زمان سرویس' },
     ];
     listEl.innerHTML = options.map(opt => `
-      <div onclick="window.selectAlertSetting('expire', ${opt.val})" class="alert-picker-option cursor-pointer p-3 rounded-2xl border transition flex items-center justify-between ${opt.val === currentVal ? 'active-alert-opt bg-amber-500/15 border-amber-500/50 text-amber-300' : 'bg-slate-900/60 border-slate-700/60 hover:border-slate-500 text-slate-300'}">
+      <div onclick="window.selectAlertSetting('expire', ${opt.val})" class="alert-picker-option cursor-pointer p-2.5 rounded-2xl border transition flex items-center justify-between ${opt.val === currentVal ? 'active-alert-opt bg-amber-500/15 border-amber-500/50 text-amber-300' : 'bg-slate-900/60 border-slate-700/60 hover:border-slate-500 text-slate-300'}">
         <div>
           <b class="text-xs block">${opt.label}</b>
           <span class="text-[10px] text-slate-400 block mt-0.5">${opt.desc}</span>
@@ -2374,6 +2387,29 @@ function renderActiveSubAnalytics(sub) {
         if (typeof renderBarChart === 'function') {
           renderBarChart('repPeakHoursBarCanvas', hourlyData, hourlyLabels, false);
         }
+        // Update 4 Diurnal Periods Summary
+        try {
+          let dawnSum = 0, morningSum = 0, afternoonSum = 0, nightSum = 0;
+          hourlyLabels.forEach((lbl, idx) => {
+            const val = parseFloat(hourlyData[idx]) || 0;
+            const startHour = parseInt(String(lbl).split('-')[0] || String(idx * 2), 10);
+            if (startHour >= 0 && startHour < 6) dawnSum += val;
+            else if (startHour >= 6 && startHour < 12) morningSum += val;
+            else if (startHour >= 12 && startHour < 18) afternoonSum += val;
+            else nightSum += val;
+          });
+          const totalPeriods = (dawnSum + morningSum + afternoonSum + nightSum) || 1;
+          const pDawn = $('periodDawnVal'); if (pDawn) pDawn.innerHTML = fmtTraffic(dawnSum, { isBytes: false });
+          const pDawnPct = $('periodDawnPercent'); if (pDawnPct) pDawnPct.innerText = `${Math.round((dawnSum / totalPeriods) * 100)}%`;
+          const pMorn = $('periodMorningVal'); if (pMorn) pMorn.innerHTML = fmtTraffic(morningSum, { isBytes: false });
+          const pMornPct = $('periodMorningPercent'); if (pMornPct) pMornPct.innerText = `${Math.round((morningSum / totalPeriods) * 100)}%`;
+          const pAft = $('periodAfternoonVal'); if (pAft) pAft.innerHTML = fmtTraffic(afternoonSum, { isBytes: false });
+          const pAftPct = $('periodAfternoonPercent'); if (pAftPct) pAftPct.innerText = `${Math.round((afternoonSum / totalPeriods) * 100)}%`;
+          const pNgt = $('periodNightVal'); if (pNgt) pNgt.innerHTML = fmtTraffic(nightSum, { isBytes: false });
+          const pNgtPct = $('periodNightPercent'); if (pNgtPct) pNgtPct.innerText = `${Math.round((nightSum / totalPeriods) * 100)}%`;
+        } catch (perr) {
+          console.debug('Error computing diurnal periods:', perr);
+        }
         if (peakBadge) {
           peakBadge.innerText = peakHour ? `Peak: ${toEnglishDigits(peakHour)}` : '---';
         }
@@ -2419,8 +2455,8 @@ function hydrateUserInterface(data) {
   const user = data.user || {};
   const tgUser = window.Telegram?.WebApp?.initDataUnsafe?.user;
   const sub = data.active_sub;
-  if (sub?.id && !window.currentAccountId) {
-    window.currentAccountId = sub.id;
+  if ((sub?.account_id || sub?.id) && !window.currentAccountId) {
+    window.currentAccountId = sub.account_id || sub.id;
   }
 
   // --- PHASE 1: Core User Identity & Top Header (DB Data) ---

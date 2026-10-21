@@ -1,8 +1,8 @@
 """Service for fetching and parsing single configs from subscription URLs.
 
 Supports Remnawave and standard v2ray subscription links:
-- Decodes base64-encoded subscription strings or parses plaintext config lines.
-- Recognizes protocols: vless, vmess, trojan, ss, hysteria2, hy2, tuic, wireguard.
+- Decodes base64-encoded subscription strings, sing-box JSON, or plaintext config lines.
+- Recognizes protocols: vless, vmess, trojan, ss, shadowsocks, hysteria2, hy2, tuic, wireguard, wg.
 - Extracts user-friendly display names from URL fragments (#) or vmess JSON (ps).
 """
 import base64
@@ -20,19 +20,58 @@ SUPPORTED_PROTOCOLS = (
     "vmess://",
     "trojan://",
     "ss://",
+    "shadowsocks://",
+    "hysteria://",
     "hysteria2://",
     "hy2://",
     "tuic://",
     "wireguard://",
+    "wg://",
+    "socks5://",
+    "socks://",
 )
 
 
 def parse_subscription_text(text: str) -> list[dict[str, str]]:
-    """Parse raw subscription content (base64 or plaintext) into configs list."""
+    """Parse raw subscription content (base64, JSON, or plaintext) into configs list."""
     if not text:
         return []
 
-    raw_lines = [line.strip() for line in text.splitlines() if line.strip()]
+    text = text.strip().lstrip("\ufeff")
+    if not text:
+        return []
+
+    # 1. Attempt JSON parsing (e.g. sing-box or raw JSON array/dict)
+    if text.startswith(("{", "[")):
+        try:
+            parsed_json = json.loads(text)
+            if isinstance(parsed_json, list):
+                json_lines = []
+                for item in parsed_json:
+                    if isinstance(item, str) and "://" in item:
+                        json_lines.append(item.strip())
+                    elif isinstance(item, dict) and item.get("uri"):
+                        json_lines.append(str(item["uri"]).strip())
+                if json_lines:
+                    text = "\n".join(json_lines)
+            elif isinstance(parsed_json, dict):
+                outbounds = parsed_json.get("outbounds") or []
+                extracted_cfgs: list[dict[str, str]] = []
+                for idx, ob in enumerate(outbounds, start=1):
+                    ob_type = str(ob.get("type", "")).lower()
+                    if ob_type in ("vless", "vmess", "trojan", "shadowsocks", "hysteria2", "tuic", "wireguard"):
+                        tag = ob.get("tag") or ob.get("server") or f"{ob_type.upper()} {idx}"
+                        extracted_cfgs.append({
+                            "name": tag,
+                            "protocol": ob_type,
+                            "uri": f"{ob_type}://{ob.get('server', '')}:{ob.get('server_port', '')}#{urllib.parse.quote(tag)}",
+                        })
+                if extracted_cfgs:
+                    return extracted_cfgs
+        except Exception as exc:
+            logger.debug("Subscription JSON parse attempt skipped: %s", exc)
+
+    raw_lines = [line.strip().lstrip("\ufeff") for line in text.splitlines() if line.strip()]
     lines: list[str] = []
 
     # Check if raw text already has protocol schemes
@@ -40,9 +79,9 @@ def parse_subscription_text(text: str) -> list[dict[str, str]]:
 
     if not is_plain:
         try:
-            clean = text.strip().replace("\r", "").replace("\n", "")
+            clean = "".join(text.split()).replace("-", "+").replace("_", "/")
             clean += "=" * (-len(clean) % 4)
-            decoded = base64.b64decode(clean).decode("utf-8", errors="replace")
+            decoded = base64.b64decode(clean).decode("utf-8", errors="replace").lstrip("\ufeff")
             lines = [line.strip() for line in decoded.splitlines() if line.strip()]
         except Exception as exc:
             logger.warning("Base64 decoding failed for configs: %s", exc)
@@ -59,7 +98,7 @@ def parse_subscription_text(text: str) -> list[dict[str, str]]:
         name = ""
         if proto == "vmess":
             try:
-                payload = line[8:].strip()
+                payload = line[8:].strip().replace("-", "+").replace("_", "/")
                 payload += "=" * (-len(payload) % 4)
                 data: dict[str, Any] = json.loads(
                     base64.b64decode(payload).decode("utf-8", errors="replace")
@@ -84,7 +123,7 @@ def parse_subscription_text(text: str) -> list[dict[str, str]]:
     return configs
 
 
-async def fetch_subscription_configs(url: str, timeout: float = 10.0) -> list[dict[str, str]]:
+async def fetch_subscription_configs(url: str, timeout: float = 4.0) -> list[dict[str, str]]:
     """Download subscription content and return parsed configs with proxy & multi-UA resilience."""
     if not url or not url.startswith(("http://", "https://")):
         return []
@@ -92,30 +131,54 @@ async def fetch_subscription_configs(url: str, timeout: float = 10.0) -> list[di
     from bot.config import get_settings
     settings = get_settings()
     proxy = settings.IRAN_PROXY.strip() if getattr(settings, "IRAN_PROXY", "") else None
+    base_remna = getattr(settings, "REMNAWAVE_URL", "").strip() if settings else ""
+
+    # Candidate URLs (Original URL + rewritten panel URL if available)
+    candidate_urls = [url]
+    if base_remna:
+        parsed_orig = urllib.parse.urlparse(url)
+        parsed_base = urllib.parse.urlparse(base_remna)
+        if parsed_orig.netloc != parsed_base.netloc:
+            rewritten = urllib.parse.urlunparse((
+                parsed_base.scheme,
+                parsed_base.netloc,
+                parsed_orig.path,
+                parsed_orig.params,
+                parsed_orig.query,
+                parsed_orig.fragment,
+            ))
+            candidate_urls.append(rewritten)
 
     user_agents = [
         "v2rayNG/1.8.5",
+        "v2rayNG",
         "ClashMeta",
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36",
     ]
 
-    for ua in user_agents:
-        headers = {
-            "User-Agent": ua,
-            "Accept": "*/*",
-        }
+    for target_url in candidate_urls:
+        parsed = urllib.parse.urlparse(target_url)
+        is_internal = parsed.hostname in ("127.0.0.1", "localhost", "remnawave") or (
+            parsed.hostname and (parsed.hostname.startswith("172.") or parsed.hostname.startswith("192.168.") or parsed.hostname.startswith("10."))
+        )
+
         attempts = [None]
-        if proxy:
-            attempts.append(proxy)
-        for p in attempts:
-            try:
-                async with httpx.AsyncClient(verify=False, follow_redirects=True, timeout=timeout, proxy=p) as client:
-                    resp = await client.get(url, headers=headers)
-                    if resp.status_code == 200 and resp.text.strip():
-                        configs = parse_subscription_text(resp.text)
-                        if configs:
-                            return configs
-            except Exception as exc:
-                logger.debug("Subscription fetch attempt failed (ua=%s, proxy=%s): %s", ua, p, exc)
+        if proxy and not is_internal:
+            attempts = [proxy, None]
+
+        for ua in user_agents:
+            headers = {
+                "User-Agent": ua,
+                "Accept": "*/*",
+            }
+            for p in attempts:
+                try:
+                    async with httpx.AsyncClient(verify=False, follow_redirects=True, timeout=timeout, proxy=p) as client:
+                        resp = await client.get(target_url, headers=headers)
+                        if resp.status_code == 200 and resp.text.strip():
+                            configs = parse_subscription_text(resp.text)
+                            if configs:
+                                return configs
+                except Exception as exc:
+                    logger.debug("Subscription fetch attempt failed (url=%s, ua=%s, proxy=%s): %s", target_url, ua, p, exc)
 
     return []

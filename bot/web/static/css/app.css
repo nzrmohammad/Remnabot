@@ -760,11 +760,13 @@ html.theme-light .shop-plan-card .shop-plan-badge.badge-bestseller {
 }
 
 html.theme-light .shop-plan-card .shop-plan-badge.badge-vip {
-  background: linear-gradient(135deg, #7c3aed, #4f46e5);
+  background: linear-gradient(135deg, #e11d48, #c026d3);
   color: #ffffff;
-  border-color: #6d28d9;
+  border-bottom: 1.5px solid rgba(254, 205, 211, 0.8);
+  border-right: 1.5px solid rgba(254, 205, 211, 0.8);
   font-weight: 800;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 4px 14px rgba(225, 29, 72, 0.35);
 }
 
 html.theme-light .shop-plan-card .shop-plan-badge.text-slate-950,

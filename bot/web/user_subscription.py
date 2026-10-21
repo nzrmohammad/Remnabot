@@ -38,6 +38,8 @@ async def get_user_subscription_configs(request: web.Request) -> web.Response:
 
     telegram_id = user_auth.get("id")
     account_id_param = request.query.get("account_id")
+    if account_id_param and str(account_id_param).strip().lower() in ("null", "undefined", "none", ""):
+        account_id_param = None
 
     cache: FastCache = request.app["cache"]
     cache_key = f"tma:user:{telegram_id}:configs:{account_id_param or 'def'}"
@@ -51,6 +53,9 @@ async def get_user_subscription_configs(request: web.Request) -> web.Response:
         return web.json_response({"ok": False, "error": "سرویس سرور در دسترس نیست."}, status=503)
 
     sub_url = ""
+    settings = request.app.get("settings")
+    base_remna = getattr(settings, "REMNAWAVE_URL", "") if settings else ""
+
     async with db_session(request) as session:
         # 1. Fetch user accounts from Remnawave
         try:
@@ -58,7 +63,11 @@ async def get_user_subscription_configs(request: web.Request) -> web.Response:
             target = None
             if account_id_param:
                 for pu in panel_users:
-                    if str(pu.get("id")) == str(account_id_param):
+                    if (
+                        str(pu.get("id")) == str(account_id_param)
+                        or str(pu.get("uuid")) == str(account_id_param)
+                        or str(pu.get("shortId")) == str(account_id_param)
+                    ):
                         target = pu
                         break
             if not target and panel_users:
@@ -66,11 +75,10 @@ async def get_user_subscription_configs(request: web.Request) -> web.Response:
 
             if target:
                 sub_url = target.get("subscriptionUrl") or target.get("subscription_url") or ""
-                if sub_url and sub_url.startswith("/"):
-                    settings = request.app.get("settings")
-                    base_remna = getattr(settings, "REMNAWAVE_URL", "") if settings else ""
-                    if base_remna:
-                        sub_url = urllib.parse.urljoin(base_remna, sub_url)
+                if not sub_url and target.get("uuid") and base_remna:
+                    sub_url = f"{base_remna.rstrip('/')}/api/sub/{target['uuid']}"
+                elif sub_url and sub_url.startswith("/") and base_remna:
+                    sub_url = urllib.parse.urljoin(base_remna, sub_url)
         except Exception as exc:
             logger.warning("Error fetching panel users for configs %s: %s", telegram_id, exc)
 

@@ -473,6 +473,7 @@ async def build_active_subscription(
     }
 
     active_sub = {
+        "id": panel_user_id,
         "account_id": panel_user_id,
         "username": primary.get("username", user_auth.get("username")),
         "status": primary.get("status", "ACTIVE"),

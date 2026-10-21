@@ -2352,3 +2352,68 @@ async def test_get_users_by_telegram_id_fallback_and_404():
     client._client.get = AsyncMock(side_effect=[mock_resp_404, mock_resp_404])
     users_empty = await client.get_users_by_telegram_id(292997086)
     assert users_empty == []
+
+
+def test_parse_subscription_text_enhanced():
+    import json
+    from bot.services.configs import parse_subscription_text
+
+    # 1. Sing-box JSON with outbounds
+    sing_box_json = json.dumps({
+        "outbounds": [
+            {"type": "vless", "tag": "🇩🇪 Frankfurt", "server": "1.2.3.4", "server_port": 443},
+            {"type": "shadowsocks", "tag": "🇳🇱 Amsterdam", "server": "5.6.7.8", "server_port": 8388},
+            {"type": "selector", "tag": "proxy"}  # Non-proxy type should be ignored
+        ]
+    })
+    singbox_res = parse_subscription_text(sing_box_json)
+    assert len(singbox_res) == 2
+    assert singbox_res[0]["name"] == "🇩🇪 Frankfurt"
+    assert singbox_res[0]["protocol"] == "vless"
+    assert singbox_res[1]["name"] == "🇳🇱 Amsterdam"
+    assert singbox_res[1]["protocol"] == "shadowsocks"
+
+    # 2. Shadowsocks & Wireguard plaintext
+    raw_lines = "shadowsocks://chacha20:pass@1.1.1.1:8388#SS-Node\nwg://10.0.0.1:51820#WG-Node"
+    cfgs = parse_subscription_text(raw_lines)
+    assert len(cfgs) == 2
+    assert cfgs[0]["protocol"] == "shadowsocks"
+    assert cfgs[1]["protocol"] == "wg"
+
+    # 3. URL-safe base64 with BOM
+    import base64
+    raw_b64 = "\ufeff" + base64.urlsafe_b64encode(raw_lines.encode()).decode()
+    cfgs_b64 = parse_subscription_text(raw_b64)
+    assert len(cfgs_b64) == 2
+    assert cfgs_b64[0]["name"] == "SS-Node"
+
+
+def test_ui_improvements_verification():
+    from pathlib import Path
+    html_text = Path("bot/web/templates/app.html").read_text(encoding="utf-8")
+    css_text = Path("bot/web/static/css/app.css").read_text(encoding="utf-8")
+    js_text = Path("bot/web/static/js/app.js").read_text(encoding="utf-8")
+
+    # 1. Birthday picker is 3-column with smooth scroll
+    assert 'grid grid-cols-3 gap-2" id="bdayDaysGrid"' in html_text
+    assert "max-h-56" in html_text
+
+    # 2. Alert threshold modal has increased height
+    assert "max-h-[88vh]" in html_text
+    assert "max-h-[64vh]" in html_text
+
+    # 3. Diurnal periods breakdown in peak hours container
+    assert "repHourlyPeriodsSummary" in html_text
+    assert "periodDawnVal" in html_text
+    assert "periodMorningVal" in html_text
+    assert "periodAfternoonVal" in html_text
+    assert "periodNightVal" in html_text
+
+    # 4. Configs modal has copyAllConfigsBtn
+    assert "copyAllConfigsBtn" in html_text
+    assert "copyAllConfigsBtn?.addEventListener" in js_text
+
+    # 5. VIP badge in light theme retains regal rose/fuchsia gradient
+    assert "html.theme-light .shop-plan-card .shop-plan-badge.badge-vip" in css_text
+    assert "#e11d48" in css_text or "#f43f5e" in css_text
+    assert "#7c3aed, #4f46e5" not in css_text
