@@ -363,3 +363,110 @@ async def record_coupon_usage_if_any(
         if cpn:
             await c_repo.record_usage(cpn.id, telegram_id, order_id, discount_amount)
 
+
+async def maybe_reward_referrer(
+    bot: Any, session: Any, remnawave: RemnawaveClient, user: Any,
+) -> None:
+    """Reward user's inviter with extra traffic and spin tickets upon first purchase/trial."""
+    if not getattr(user, "referred_by_id", None):
+        return
+    store = await get_store_settings(session)
+    if not store.referral_enabled or store.referral_reward_gb <= 0:
+        return
+    from bot.db.repositories.referral_repo import ReferralRepository
+    referral_repo = ReferralRepository(session)
+    if await referral_repo.has_rewarded(user.telegram_id):
+        return
+
+    reward_gb = store.referral_reward_gb
+    inviter_accs = await remnawave.get_users_by_telegram_id(user.referred_by_id)
+    if inviter_accs:
+        inv_acc = inviter_accs[0]
+        cur_limit = int(inv_acc.get("trafficLimitBytes") or 0)
+        if cur_limit > 0:
+            new_limit = cur_limit + reward_gb * (1024 ** 3)
+            try:
+                await remnawave.update_user_subscription(
+                    int(inv_acc["id"]), inv_acc.get("expireAt"), new_limit
+                )
+            except Exception:
+                logger.exception("Failed to add referral traffic to panel user %s", inv_acc.get("id"))
+
+    await referral_repo.record_reward(user.referred_by_id, user.telegram_id, reward_gb)
+
+    from bot.db.repositories.user_repo import UserRepository
+    inviter_user = await UserRepository(session).get_by_telegram_id(user.referred_by_id)
+    if inviter_user:
+        inviter_user.spin_tickets = (getattr(inviter_user, "spin_tickets", 0) or 0) + 1
+    inv_lang = (inviter_user.language if inviter_user else None) or "fa"
+    try:
+        from bot.locales.texts import t
+        ticket_note = (
+            "\n\n🎫 <b>+۱ شانس چرخش گردونه (تیکت اسپین)</b> نیز به حساب شما اضافه شد!"
+            if inv_lang == "fa"
+            else "\n\n🎫 <b>+1 Lucky Wheel spin ticket</b> has also been credited to your account!"
+        )
+        await bot.send_message(
+            user.referred_by_id,
+            t(inv_lang, "referral_reward_notify", reward_gb=reward_gb) + ticket_note,
+        )
+    except Exception:
+        logger.exception("Failed to notify inviter %s of referral reward", user.referred_by_id)
+
+
+async def notify_admin(
+    bot: Any,
+    user: Any,
+    service: Any,
+    result: Any,
+    session: Any = None,
+    coupon_code: str | None = None,
+    discount_amount: int = 0,
+    full_name: str | None = None,
+) -> None:
+    """Notify admin chat/topic about a successful service purchase or renewal."""
+    from html import escape
+    from bot.common import admin_thread_kwargs, fmt
+    from bot.config import get_settings
+    from bot.locales.texts import t
+
+    tg_username = f"\u200e@{escape(user.username)}\u200e" if getattr(user, "username", None) else "—"
+    effective_price, discount_amount = calc_price(service.price, discount_amount)
+    display_name = escape(full_name or getattr(user, "username", None) or str(getattr(user, "telegram_id", "")))
+
+    price_lines = []
+    if coupon_code and discount_amount > 0:
+        price_lines.append(f"💰 {t('fa', 'svc_field_price')} : <b>{fmt(service.price)}</b> {t('fa', 'svc_currency')}")
+        price_lines.append(f"🏷 {t('fa', 'retention_code_label')} (<code>{coupon_code}</code>) : <b>\u200e-{fmt(discount_amount)}</b> {t('fa', 'svc_currency')}")
+        price_lines.append(f"💵 پرداختی از کیف پول : <b>{fmt(effective_price)}</b> {t('fa', 'svc_currency')}")
+    else:
+        price_lines.append(f"💰 مبلغ کل : <b>{fmt(service.price)}</b> {t('fa', 'svc_currency')}")
+        price_lines.append(f"💵 پرداختی از کیف پول : <b>{fmt(service.price)}</b> {t('fa', 'svc_currency')}")
+
+    prices_str = "\n".join(price_lines)
+
+    text = (
+        f"🛒 <b>{t('fa', 'buy_admin_log')}</b>\n\n"
+        f"📦 <b>\u200e{escape(service.name)}\u200e</b>\n"
+        f"{prices_str}\n\n"
+        f"👤 {display_name} — <code>{getattr(user, 'telegram_id', '')}</code>\n"
+        f"🔗 {t('fa', 'svc_requested_username')} : {tg_username}\n"
+        f"🔑 <code>{escape(str(getattr(result, 'panel_username', '') or ''))}</code>\n\n"
+        f"{t('fa', 'buy_remaining_balance', balance=fmt(getattr(result, 'new_balance', 0)), currency=t('fa', 'svc_currency'))}"
+    )
+    settings = get_settings()
+    topic_id = settings.ADMIN_TOPIC_ORDERS
+    if session is not None:
+        store = await get_store_settings(session)
+        if getattr(store, "topic_orders", None) is not None:
+            topic_id = store.topic_orders
+    thread_kwargs = admin_thread_kwargs(topic_id=topic_id)
+    try:
+        await bot.send_message(settings.ADMIN_CHAT_ID, text, **thread_kwargs)
+    except Exception:
+        logger.exception("failed to deliver purchase log to admin chat")
+
+
+_maybe_reward_referrer = maybe_reward_referrer
+_notify_admin = notify_admin
+

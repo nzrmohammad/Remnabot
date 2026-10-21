@@ -10,7 +10,7 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 from bot.common import SEPARATOR, is_admin
 from bot.db.repositories.user_repo import UserRepository
 from bot.locales.texts import t
-from bot.services.formatting import country_flag
+from bot.services.formatting import COUNTRY_FLAGS_MAP, country_flag
 from bot.services.menu import render_menu
 from bot.services.remnawave import RemnawaveClient
 
@@ -21,42 +21,6 @@ _is_admin = is_admin
 # --------------------------------------------------------------------- #
 # Node / Server Status Monitor
 # --------------------------------------------------------------------- #
-COUNTRY_FLAGS_MAP: dict[str, tuple[str, str]] = {
-    "netherlands": ("🇳🇱", "NL"),
-    "netherland": ("🇳🇱", "NL"),
-    "holland": ("🇳🇱", "NL"),
-    "germany": ("🇩🇪", "DE"),
-    "deutschland": ("🇩🇪", "DE"),
-    "france": ("🇫🇷", "FR"),
-    "united states": ("🇺🇸", "US"),
-    "usa": ("🇺🇸", "US"),
-    "united kingdom": ("🇬🇧", "GB"),
-    "uk": ("🇬🇧", "GB"),
-    "great britain": ("🇬🇧", "GB"),
-    "england": ("🇬🇧", "GB"),
-    "turkey": ("🇹🇷", "TR"),
-    "turkiye": ("🇹🇷", "TR"),
-    "finland": ("🇫🇮", "FI"),
-    "sweden": ("🇸🇪", "SE"),
-    "canada": ("🇨🇦", "CA"),
-    "iran": ("🇮🇷", "IR"),
-    "russia": ("🇷🇺", "RU"),
-    "poland": ("🇵🇱", "PL"),
-    "italy": ("🇮🇹", "IT"),
-    "spain": ("🇪🇸", "ES"),
-    "switzerland": ("🇨🇭", "CH"),
-    "united arab emirates": ("🇦🇪", "AE"),
-    "uae": ("🇦🇪", "AE"),
-    "dubai": ("🇦🇪", "AE"),
-    "singapore": ("🇸🇬", "SG"),
-    "austria": ("🇦🇹", "AT"),
-    "australia": ("🇦🇺", "AU"),
-    "brazil": ("🇧🇷", "BR"),
-    "norway": ("🇳🇴", "NO"),
-    "denmark": ("🇩🇰", "DK"),
-    "belgium": ("🇧🇪", "BE"),
-    "japan": ("🇯🇵", "JP"),
-}
 
 
 def _extract_versions(n: dict) -> tuple[str | None, str | None]:

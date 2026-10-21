@@ -9,7 +9,7 @@ from html import escape
 from pathlib import Path
 from typing import Any
 
-from aiogram import Bot
+# Bot instance resolved dynamically from request.app["bot"]
 from aiohttp import web
 from sqlalchemy import desc, func, or_, select
 
@@ -37,7 +37,7 @@ from bot.db.repositories.service_repo import ServiceRepository
 from bot.db.repositories.support_repo import SupportMessageRepository
 from bot.db.repositories.user_repo import UserRepository
 from bot.db.repositories.wallet_repo import WalletRepository
-from bot.handlers.admin_broadcast import _resolve_broadcast_recipients
+from bot.services.broadcast import resolve_broadcast_recipients as _resolve_broadcast_recipients
 from bot.locales.texts import t
 from bot.services.app_settings import get_store_settings
 from bot.web.admin_common import _check_admin, db_session, format_service_name_icon_first

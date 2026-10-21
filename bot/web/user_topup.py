@@ -4,7 +4,7 @@ import hashlib
 import logging
 from html import escape
 
-from aiogram.utils.keyboard import InlineKeyboardBuilder
+# InlineKeyboardBuilder imported lazily when sending admin alerts
 from aiohttp import web
 
 from bot.common import admin_thread_kwargs
@@ -186,6 +186,7 @@ async def post_user_topup_card(request: web.Request) -> web.Response:
         # Send alert with inline buttons to admin chat
         admin_chat_id = settings.ADMIN_CHAT_ID
         if admin_chat_id and bot:
+            from aiogram.utils.keyboard import InlineKeyboardBuilder
             kb = InlineKeyboardBuilder()
             kb.button(text="✅ تایید", callback_data=f"topup:ok:{topup.id}")
             kb.button(text="❌ رد", callback_data=f"topup:no:{topup.id}")

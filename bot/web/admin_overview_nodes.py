@@ -7,8 +7,7 @@ from sqlalchemy import func, select
 from bot.common.helpers import get_used_bytes
 from bot.db.models import Order, Topup, User
 from bot.db.repositories.node_cost_repo import NodeCostRepository
-from bot.handlers.admin_nodes import COUNTRY_FLAGS_MAP
-from bot.services.formatting import country_flag, country_name
+from bot.services.formatting import COUNTRY_FLAGS_MAP, country_flag, country_name
 
 try:
     import jdatetime

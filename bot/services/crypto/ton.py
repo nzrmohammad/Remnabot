@@ -4,9 +4,9 @@ import base64
 import logging
 from datetime import datetime, timezone
 
+from typing import Any
+
 import aiohttp
-from aiogram import Bot
-from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from bot.common import admin_thread_kwargs
 from bot.config import get_settings
@@ -85,7 +85,7 @@ async def fetch_ton_transactions(address: str, limit: int = 25) -> list[dict]:
     return []
 
 
-async def verify_and_process_payments(bot: Bot, session_factory) -> int:
+async def verify_and_process_payments(bot: Any, session_factory: Any) -> int:
     """Check pending invoices against TON blockchain and process payments."""
     async with session_factory() as session:
         crypto_repo = CryptoRepository(session)
@@ -166,6 +166,7 @@ async def verify_and_process_payments(bot: Bot, session_factory) -> int:
                 try:
                     user = await user_repo.get_by_telegram_id(inv.telegram_id)
                     lang = user.language if user else "fa"
+                    from aiogram.utils.keyboard import InlineKeyboardBuilder
                     kb = InlineKeyboardBuilder()
                     buy_text = "🛍 خرید سرویس" if lang == "fa" else "🛍 Buy Service"
                     kb.button(text=buy_text, callback_data="menu:services")
@@ -225,7 +226,7 @@ async def verify_and_process_payments(bot: Bot, session_factory) -> int:
     return processed_count
 
 
-async def ton_watcher_loop(bot: Bot, session_factory) -> None:
+async def ton_watcher_loop(bot: Any, session_factory: Any) -> None:
     """Background polling loop watching for incoming TON payments."""
     logger.info("Starting TON blockchain watcher loop")
     await asyncio.sleep(15)  # startup grace period

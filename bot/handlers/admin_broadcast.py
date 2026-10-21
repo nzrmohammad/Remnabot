@@ -25,56 +25,21 @@ router = Router(name="admin_broadcast")
 
 _is_admin = is_admin
 
+async def _resolve_broadcast_recipients(session, remnawave, target: str):
+    import bot.handlers.admin_broadcast as bcast_mod
+    import bot.services.broadcast as bcast_srv
+
+    u_repo_cls = getattr(bcast_mod, "UserRepository", None)
+    orig_repo = bcast_srv.UserRepository
+    if u_repo_cls is not None and u_repo_cls is not orig_repo:
+        bcast_srv.UserRepository = u_repo_cls
+        try:
+            return await bcast_srv.resolve_broadcast_recipients(session, remnawave, target)
+        finally:
+            bcast_srv.UserRepository = orig_repo
+    return await bcast_srv.resolve_broadcast_recipients(session, remnawave, target)
+
 BROADCAST_CONFIRM_KEY = "bcast:draft"
-
-
-async def _resolve_broadcast_recipients(
-    session: AsyncSession,
-    remnawave: RemnawaveClient,
-    target: str,
-) -> list[int]:
-
-    if target == "all":
-        users = await UserRepository(session).all_users()
-        return [u.telegram_id for u in users]
-
-    if target == "balance":
-        stmt = select(Wallet.telegram_id).where(Wallet.balance > 0)
-        res = await session.execute(stmt)
-        return [row[0] for row in res.fetchall()]
-
-    if target == "buyers":
-        stmt = select(distinct(Order.telegram_id)).where(Order.status == "paid")
-        res = await session.execute(stmt)
-        return [row[0] for row in res.fetchall()]
-
-    # Targets requiring Remnawave
-    panel_users = await remnawave.get_all_panel_users() or []
-    now = datetime.now(timezone.utc)
-    active_tids: set[int] = set()
-    for pu in panel_users:
-        if str(pu.get("status", "")).upper() == "ACTIVE":
-            exp_str = pu.get("expireAt")
-            if exp_str:
-                try:
-                    exp = datetime.fromisoformat(str(exp_str).replace("Z", "+00:00"))
-                    if exp > now:
-                        tid = pu.get("telegramId")
-                        if tid and int(tid) > 0:
-                            active_tids.add(int(tid))
-                except Exception:
-                    pass
-
-    if target == "active":
-        return list(active_tids)
-
-    if target == "expired":
-        all_users = await UserRepository(session).all_users()
-        all_tids = {u.telegram_id for u in all_users}
-        return list(all_tids - active_tids)
-
-    users = await UserRepository(session).all_users()
-    return [u.telegram_id for u in users]
 
 
 @router.callback_query(F.data == "adm:broadcast")

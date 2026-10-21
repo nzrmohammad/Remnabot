@@ -1665,7 +1665,10 @@ async def test_topup_image_upload_and_admin_viewing(session_factory):
 
 
 @pytest.mark.anyio
-async def test_speedtest_endpoints():
+async def test_speedtest_endpoints(monkeypatch):
+    from unittest.mock import AsyncMock
+
+    monkeypatch.setattr("bot.web.user_speedtest._lookup_isp", AsyncMock(return_value="Mock ISP Telecommunication"))
     from aiohttp import web
     from aiohttp.test_utils import make_mocked_request
 

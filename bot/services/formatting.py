@@ -40,6 +40,44 @@ def country_flag(code: str | None) -> str:
     return chr(0x1F1E6 + ord(code[0]) - 65) + chr(0x1F1E6 + ord(code[1]) - 65)
 
 
+COUNTRY_FLAGS_MAP: dict[str, tuple[str, str]] = {
+    "netherlands": ("🇳🇱", "NL"),
+    "netherland": ("🇳🇱", "NL"),
+    "holland": ("🇳🇱", "NL"),
+    "germany": ("🇩🇪", "DE"),
+    "deutschland": ("🇩🇪", "DE"),
+    "france": ("🇫🇷", "FR"),
+    "united states": ("🇺🇸", "US"),
+    "usa": ("🇺🇸", "US"),
+    "united kingdom": ("🇬🇧", "GB"),
+    "uk": ("🇬🇧", "GB"),
+    "great britain": ("🇬🇧", "GB"),
+    "england": ("🇬🇧", "GB"),
+    "turkey": ("🇹🇷", "TR"),
+    "turkiye": ("🇹🇷", "TR"),
+    "finland": ("🇫🇮", "FI"),
+    "sweden": ("🇸🇪", "SE"),
+    "canada": ("🇨🇦", "CA"),
+    "iran": ("🇮🇷", "IR"),
+    "russia": ("🇷🇺", "RU"),
+    "poland": ("🇵🇱", "PL"),
+    "italy": ("🇮🇹", "IT"),
+    "spain": ("🇪🇸", "ES"),
+    "switzerland": ("🇨🇭", "CH"),
+    "united arab emirates": ("🇦🇪", "AE"),
+    "uae": ("🇦🇪", "AE"),
+    "dubai": ("🇦🇪", "AE"),
+    "singapore": ("🇸🇬", "SG"),
+    "austria": ("🇦🇹", "AT"),
+    "australia": ("🇦🇺", "AU"),
+    "brazil": ("🇧🇷", "BR"),
+    "norway": ("🇳🇴", "NO"),
+    "denmark": ("🇩🇰", "DK"),
+    "belgium": ("🇧🇪", "BE"),
+    "japan": ("🇯🇵", "JP"),
+}
+
+
 COUNTRY_NAMES_FA: dict[str, str] = {
     "NL": "هلند",
     "DE": "آلمان",

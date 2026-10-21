@@ -4,7 +4,6 @@ from typing import Any
 SEPARATOR: str = "─" * 18
 
 
-from aiogram.utils.keyboard import InlineKeyboardBuilder
 from bot.locales.texts import t
 
 
@@ -13,8 +12,10 @@ def fmt(amount: int | float) -> str:
     return f"{amount:,}"
 
 
-def back_admin_builder(lang: str = "fa") -> InlineKeyboardBuilder:
+def back_admin_builder(lang: str = "fa") -> Any:
     """Standard back button returning to the admin menu."""
+    from aiogram.utils.keyboard import InlineKeyboardBuilder
+
     kb = InlineKeyboardBuilder()
     kb.button(text=t(lang, "btn_back"), callback_data="menu:admin")
     kb.adjust(1)

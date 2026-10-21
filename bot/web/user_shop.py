@@ -554,7 +554,7 @@ async def post_user_purchase(request: web.Request) -> web.Response:
         bot = request.app.get("bot")
         if bot:
             try:
-                from bot.handlers.shop_purchase import _maybe_reward_referrer, _notify_admin
+                from bot.services.purchases import maybe_reward_referrer as _maybe_reward_referrer, notify_admin as _notify_admin
                 from bot.db.repositories.user_repo import UserRepository
                 db_user = await UserRepository(session).get_by_telegram_id(telegram_id)
                 if db_user:
