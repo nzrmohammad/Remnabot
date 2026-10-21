@@ -142,10 +142,9 @@ async def execute_purchase(
             except Exception as rep_exc:
                 logger.warning("Failed to report purchase error to topic: %s", rep_exc)
 
-    # Atomic guard: lock wallet row with FOR UPDATE so concurrent requests
-    # for the same user cannot race to purchase simultaneously with stale balance.
+    # Check wallet balance before beginning panel operations
     wallet_res = await session.execute(
-        select(Wallet.balance).where(Wallet.telegram_id == telegram_id).with_for_update()
+        select(Wallet.balance).where(Wallet.telegram_id == telegram_id)
     )
     val = wallet_res.scalar_one_or_none()
     current_balance = int(getattr(val, "balance", val) or 0)
@@ -177,8 +176,8 @@ async def execute_purchase(
     strategy = service.traffic_strategy or "NO_RESET"
     order_repo = OrderRepository(session)
 
-    # 1) Reserve a pending order BEFORE touching the panel. If the process
-    #    dies mid-purchase, the reconcile job will find this row.
+    # 1) Commit a pending order BEFORE touching the panel. If the process
+    #    dies mid-purchase, the reconcile job will find this committed row.
     pending = await order_repo.create(
         telegram_id=telegram_id,
         service_id=service.id,
@@ -191,6 +190,7 @@ async def execute_purchase(
         subscription_url=None,
         status="pending",
     )
+    await session.commit()
 
     if account is None:
         # Create a brand-new panel user (retry on global username collision).
@@ -212,6 +212,7 @@ async def execute_purchase(
                 break
         if user is None:
             await order_repo.mark_failed(pending)
+            await session.commit()
             await _report_purchase_err("create_user_failed_4x", "Panel create_user failed 4 times")
             return PurchaseResult(ok=False, kind="failed")
         panel_user_id = user.get("id")
@@ -269,6 +270,7 @@ async def execute_purchase(
         )
         if user is None:
             await order_repo.mark_failed(pending)
+            await session.commit()
             await _report_purchase_err("renew_failed", f"Panel update_user_subscription failed for acc={account.get('id')}")
             return PurchaseResult(ok=False, kind="failed")
         panel_user_id = int(account["id"])
@@ -288,16 +290,21 @@ async def execute_purchase(
     )
     new_balance = result.scalar_one_or_none()
     if new_balance is None:
-        # Balance dropped mid-purchase (double-tap race). The panel was
-        # already extended -> keep the order visible for manual review
-        # instead of silently giving a free service.
+        # Balance dropped mid-purchase (double-tap race).
+        # Compensate: if a new user was created, delete it so no free service is given.
+        if account is None and panel_user_id:
+            try:
+                await remnawave.delete_user(int(panel_user_id))
+            except Exception as exc:
+                logger.exception("Failed to delete user %s during compensation: %s", panel_user_id, exc)
         await order_repo.mark_failed(pending)
+        await session.commit()
         await _report_purchase_err("balance_race", "race: balance went below price during purchase")
         return PurchaseResult(ok=False, kind="failed")
-    await session.flush()
 
     # 3) Finalize the pending order as paid.
     await order_repo.mark_paid(pending, panel_user_id, panel_username, subscription_url)
+    await session.commit()
 
     return PurchaseResult(
         ok=True,
@@ -402,6 +409,7 @@ async def maybe_reward_referrer(
     inviter_user = await UserRepository(session).get_by_telegram_id(user.referred_by_id)
     if inviter_user:
         inviter_user.spin_tickets = (getattr(inviter_user, "spin_tickets", 0) or 0) + 1
+    await session.commit()
     inv_lang = (inviter_user.language if inviter_user else None) or "fa"
     try:
         from bot.locales.texts import t

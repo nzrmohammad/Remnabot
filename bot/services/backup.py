@@ -9,7 +9,21 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from bot.common import admin_thread_kwargs
 from bot.services.formatting import now_tz
-from bot.db.models import AdminLog, AppSetting, Coupon, Order, Service, User, Wallet
+from bot.db.models import (
+    AdminLog,
+    AppSetting,
+    Coupon,
+    CouponUsage,
+    CryptoInvoice,
+    Order,
+    ReferralReward,
+    Service,
+    SupportMessage,
+    Topup,
+    TopupStatus,
+    User,
+    Wallet,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -107,7 +121,82 @@ async def create_database_backup(session: AsyncSession, out_dir: str | Path | No
     settings_res = await session.execute(select(AppSetting))
     settings = {s.key: s.value for s in settings_res.scalars().all()}
 
-    # Dump only essential tables (users, wallets, orders, services, coupons, settings)
+    # 7. Topups
+    topups_res = await session.execute(select(Topup))
+    topups = [
+        {
+            "id": tp.id,
+            "telegram_id": tp.telegram_id,
+            "amount": tp.amount,
+            "status": tp.status.value if hasattr(tp.status, "value") else str(tp.status),
+            "receipt_hash": tp.receipt_hash,
+            "receipt_photo_id": tp.receipt_photo_id,
+            "created_at": _serialize_val(tp.created_at),
+            "decided_at": _serialize_val(tp.decided_at),
+            "admin_message_id": tp.admin_message_id,
+        }
+        for tp in topups_res.scalars().all()
+    ]
+
+    # 8. Crypto Invoices
+    crypto_res = await session.execute(select(CryptoInvoice))
+    crypto_invoices = [
+        {
+            "id": ci.id,
+            "telegram_id": ci.telegram_id,
+            "amount_toman": ci.amount_toman,
+            "amount_ton": ci.amount_ton,
+            "nanotons": ci.nanotons,
+            "comment": ci.comment,
+            "pay_address": ci.pay_address,
+            "status": ci.status,
+            "tx_hash": ci.tx_hash,
+            "expires_at": _serialize_val(ci.expires_at),
+            "created_at": _serialize_val(ci.created_at),
+            "paid_at": _serialize_val(ci.paid_at),
+        }
+        for ci in crypto_res.scalars().all()
+    ]
+
+    # 9. Coupon Usages
+    coupon_usages_res = await session.execute(select(CouponUsage))
+    coupon_usages = [
+        {
+            "id": cu.id,
+            "coupon_id": cu.coupon_id,
+            "telegram_id": cu.telegram_id,
+            "order_id": cu.order_id,
+            "discount_applied": cu.discount_applied,
+            "created_at": _serialize_val(cu.created_at),
+        }
+        for cu in coupon_usages_res.scalars().all()
+    ]
+
+    # 10. Referral Rewards
+    referral_res = await session.execute(select(ReferralReward))
+    referral_rewards = [
+        {
+            "id": rr.id,
+            "inviter_id": rr.inviter_id,
+            "referee_id": rr.referee_id,
+            "reward_gb": rr.reward_gb,
+            "applied": rr.applied,
+            "created_at": _serialize_val(rr.created_at),
+        }
+        for rr in referral_res.scalars().all()
+    ]
+
+    # 11. Support Messages
+    support_res = await session.execute(select(SupportMessage))
+    support_messages = [
+        {
+            "admin_message_id": sm.admin_message_id,
+            "telegram_id": sm.telegram_id,
+            "created_at": _serialize_val(sm.created_at),
+        }
+        for sm in support_res.scalars().all()
+    ]
+
     data = {
         "export_date": now.isoformat(),
         "users": users,
@@ -116,6 +205,11 @@ async def create_database_backup(session: AsyncSession, out_dir: str | Path | No
         "services": services,
         "coupons": coupons,
         "settings": settings,
+        "topups": topups,
+        "crypto_invoices": crypto_invoices,
+        "coupon_usages": coupon_usages,
+        "referral_rewards": referral_rewards,
+        "support_messages": support_messages,
     }
 
     target_dir = Path(out_dir) if out_dir else Path.cwd() / "backups"
@@ -145,7 +239,20 @@ async def restore_database_backup(session: AsyncSession, file_path: str | Path) 
         "orders": 0,
         "coupons": 0,
         "settings": 0,
+        "topups": 0,
+        "crypto_invoices": 0,
+        "coupon_usages": 0,
+        "referral_rewards": 0,
+        "support_messages": 0,
     }
+
+    def _parse_dt(val):
+        if not val or not isinstance(val, str):
+            return None
+        try:
+            return datetime.fromisoformat(val)
+        except Exception:
+            return None
 
     # 1. Users
     for u_data in data.get("users", []):
@@ -274,6 +381,99 @@ async def restore_database_backup(session: AsyncSession, file_path: str | Path) 
         else:
             session.add(AppSetting(key=key, value=str(val)))
         stats["settings"] += 1
+
+    # 7. Topups
+    for tp_data in data.get("topups", []):
+        tp_id = tp_data.get("id")
+        existing_tp = await session.get(Topup, tp_id) if tp_id else None
+        if not existing_tp:
+            status_str = tp_data.get("status", "pending")
+            status_val = TopupStatus(status_str) if status_str in TopupStatus._value2member_map_ else TopupStatus.PENDING
+            session.add(
+                Topup(
+                    id=tp_id,
+                    telegram_id=tp_data.get("telegram_id"),
+                    amount=tp_data.get("amount", 0),
+                    status=status_val,
+                    receipt_hash=tp_data.get("receipt_hash"),
+                    receipt_photo_id=tp_data.get("receipt_photo_id"),
+                    created_at=_parse_dt(tp_data.get("created_at")),
+                    decided_at=_parse_dt(tp_data.get("decided_at")),
+                    admin_message_id=tp_data.get("admin_message_id"),
+                )
+            )
+            stats["topups"] += 1
+
+    # 8. Crypto Invoices
+    for ci_data in data.get("crypto_invoices", []):
+        ci_id = ci_data.get("id")
+        existing_ci = await session.get(CryptoInvoice, ci_id) if ci_id else None
+        if not existing_ci:
+            session.add(
+                CryptoInvoice(
+                    id=ci_id,
+                    telegram_id=ci_data.get("telegram_id"),
+                    amount_toman=ci_data.get("amount_toman", 0),
+                    amount_ton=ci_data.get("amount_ton", 0.0),
+                    nanotons=ci_data.get("nanotons", 0),
+                    comment=ci_data.get("comment", ""),
+                    pay_address=ci_data.get("pay_address", ""),
+                    status=ci_data.get("status", "pending"),
+                    tx_hash=ci_data.get("tx_hash"),
+                    expires_at=_parse_dt(ci_data.get("expires_at")),
+                    created_at=_parse_dt(ci_data.get("created_at")),
+                    paid_at=_parse_dt(ci_data.get("paid_at")),
+                )
+            )
+            stats["crypto_invoices"] += 1
+
+    # 9. Coupon Usages
+    for cu_data in data.get("coupon_usages", []):
+        cu_id = cu_data.get("id")
+        existing_cu = await session.get(CouponUsage, cu_id) if cu_id else None
+        if not existing_cu:
+            session.add(
+                CouponUsage(
+                    id=cu_id,
+                    coupon_id=cu_data.get("coupon_id"),
+                    telegram_id=cu_data.get("telegram_id"),
+                    order_id=cu_data.get("order_id"),
+                    discount_applied=cu_data.get("discount_applied", 0),
+                    created_at=_parse_dt(cu_data.get("created_at")),
+                )
+            )
+            stats["coupon_usages"] += 1
+
+    # 10. Referral Rewards
+    for rr_data in data.get("referral_rewards", []):
+        rr_id = rr_data.get("id")
+        existing_rr = await session.get(ReferralReward, rr_id) if rr_id else None
+        if not existing_rr:
+            session.add(
+                ReferralReward(
+                    id=rr_id,
+                    inviter_id=rr_data.get("inviter_id"),
+                    referee_id=rr_data.get("referee_id"),
+                    reward_gb=rr_data.get("reward_gb", 0),
+                    applied=rr_data.get("applied", False),
+                    created_at=_parse_dt(rr_data.get("created_at")),
+                )
+            )
+            stats["referral_rewards"] += 1
+
+    # 11. Support Messages
+    for sm_data in data.get("support_messages", []):
+        sm_id = sm_data.get("admin_message_id")
+        existing_sm = await session.get(SupportMessage, sm_id) if sm_id else None
+        if not existing_sm:
+            session.add(
+                SupportMessage(
+                    admin_message_id=sm_id,
+                    telegram_id=sm_data.get("telegram_id"),
+                    created_at=_parse_dt(sm_data.get("created_at")),
+                )
+            )
+            stats["support_messages"] += 1
 
     await session.commit()
     logger.info("Database backup restored from %s: %s", path, stats)

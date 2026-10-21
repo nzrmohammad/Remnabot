@@ -204,8 +204,7 @@ async def _do_user_spin(request: web.Request, telegram_id: int, cache: FastCache
         w_2gb = max(1, int(1.2 * streak_multiplier))  # Ultra-rare jackpot (~1-1.5% probability)
         weights = [w_1gb, w_blank1, w_disc, w_500mb, w_2gb, w_again]
 
-        from unittest.mock import Mock
-        if isinstance(random.choice, Mock):
+        if hasattr(random.choice, "mock_calls"):
             mock_res = random.choice(prizes)
             chosen = mock_res[0] if isinstance(mock_res, list) else mock_res
         else:
@@ -230,7 +229,7 @@ async def _do_user_spin(request: web.Request, telegram_id: int, cache: FastCache
                             current_expire,
                             new_limit,
                         )
-                    applied = True
+                        applied = True
                 elif chosen["type"] == "days":
                     from bot.services.formatting import parse_iso
                     cur_dt = parse_iso(current_expire)
@@ -302,7 +301,7 @@ async def _do_user_spin(request: web.Request, telegram_id: int, cache: FastCache
                 msg_text = (
                     f"🎉 <b>تبریک! شما در گردونه شانس برنده شدید:</b>\n\n"
                     f"🎟 <b>کد تخفیف ۱۰٪ اختصاصی شما:</b> <code>{chosen.get('code')}</code>\n\n"
-                    f"⏳ <b>مهلت استفاده:</b> ۲۴ ساعت (تا فردا همین ساعت)\n"
+                    f"⏳ <b>مهلت استفاده:</b> ۷ روز\n"
                     f"💡 <i>این کد اختصاصی شماست و برای خرید از فروشگاه قابل استفاده است.</i>"
                 )
             else:
@@ -567,7 +566,7 @@ async def post_user_purchase(request: web.Request) -> web.Response:
 
         if coupon_usage and result.order_id:
             coupon_usage.order_id = result.order_id
-            await session.flush()
+        await session.commit()
 
         bot = request.app.get("bot")
         if bot:
@@ -590,7 +589,6 @@ async def post_user_purchase(request: web.Request) -> web.Response:
             except Exception as exc:
                 logger.warning("TMA purchase post-actions failed: %s", exc)
 
-        await session.commit()
         await cache.delete(f"tma:user:{telegram_id}:dashboard")
 
         return web.json_response({

@@ -89,8 +89,11 @@ async def post_user_topup_card(request: web.Request) -> web.Response:
     except Exception:
         body = {}
 
-    amount = int(body.get("amount") or 0)
-    receipt_info = (body.get("receipt_text") or "").strip()
+    try:
+        amount = int(body.get("amount") or 0)
+    except (ValueError, TypeError):
+        return web.json_response({"ok": False, "message": "مبلغ نامعتبر است."}, status=400)
+    receipt_info = (body.get("receipt_text") or "").strip()[:500]
     receipt_image = body.get("receipt_image")
 
     img_bytes = None
@@ -211,15 +214,16 @@ async def post_user_topup_card(request: web.Request) -> web.Response:
             if user_auth.get("last_name"):
                 user_full_name += f" {user_auth.get('last_name')}"
 
+            safe_info = escape(receipt_info[:200] or ('تصویر فیش پیوست شد' if img_bytes else 'رسید ثبت‌شده در وب‌اپ'))
             caption = (
                 f"💳 <b>درخواست شارژ حساب (از طریق مینی‌اپ)</b>\n"
                 f"──────────────────\n"
                 f"🆔 شناسه درخواست : <code>#{topup.id}</code>\n"
-                f"👤 نام کاربر : <b>{escape(user_full_name)}</b>\n"
+                f"👤 نام کاربر : <b>{escape(user_full_name[:50])}</b>\n"
                 f"🔢 شناسه تلگرام : <code>{telegram_id}</code>\n"
-                f"🏷 نام کاربری : {escape(tg_username)}\n"
+                f"🏷 نام کاربری : {escape(tg_username[:50])}\n"
                 f"💰 مبلغ شارژ : <b>{amount:,}</b> تومان\n"
-                f"📝 اطلاعات رسید / پیگیری :\n<code>{escape(receipt_info or ('تصویر فیش پیوست شد' if img_bytes else 'رسید ثبت‌شده در وب‌اپ'))}</code>"
+                f"📝 اطلاعات رسید / پیگیری :\n<code>{safe_info}</code>"
             )
 
             try:
@@ -266,7 +270,10 @@ async def post_user_topup_crypto(request: web.Request) -> web.Response:
     except Exception:
         body = {}
 
-    amount = int(body.get("amount") or 0)
+    try:
+        amount = int(body.get("amount") or 0)
+    except (ValueError, TypeError):
+        return web.json_response({"ok": False, "message": "مبلغ نامعتبر است."}, status=400)
     telegram_id = int(user_auth["id"])
     async with db_session(request) as session:
         store = await get_store_settings(session)
@@ -327,12 +334,17 @@ async def post_user_topup_crypto_check(request: web.Request) -> web.Response:
     if not invoice_id:
         return web.json_response({"ok": False, "message": "شناسه فاکتور الزامی است."}, status=400)
 
+    try:
+        inv_id_int = int(invoice_id)
+    except (ValueError, TypeError):
+        return web.json_response({"ok": False, "message": "شناسه فاکتور نامعتبر است."}, status=400)
+
     cache: FastCache = request.app["cache"]
     telegram_id = int(user_auth["id"])
 
     async with db_session(request) as session:
         crypto_repo = CryptoRepository(session)
-        inv = await crypto_repo.get_by_id(int(invoice_id))
+        inv = await crypto_repo.get_by_id(inv_id_int)
         if not inv or inv.telegram_id != telegram_id:
             return web.json_response({"ok": False, "message": "فاکتور یافت نشد."}, status=404)
 
@@ -350,9 +362,22 @@ async def post_user_topup_crypto_check(request: web.Request) -> web.Response:
 
         store = await get_store_settings(session)
         txs = await fetch_ton_transactions(store.ton_wallet_address)
+        inv_created_ts = int(inv_created.timestamp()) if inv_created else 0
         for tx in txs:
             if tx.get("comment") == inv.comment and tx.get("nanotons", 0) >= inv.nanotons:
-                paid_inv = await crypto_repo.mark_paid(inv.id, tx.get("tx_hash", ""), allow_expired=True)
+                # Timing check: transaction utime must not be before invoice creation (allow 60s clock skew)
+                if inv_created_ts and tx.get("utime", 0) and tx["utime"] < (inv_created_ts - 60):
+                    continue
+                tx_hash = tx.get("tx_hash", "")
+                if tx_hash:
+                    existing_tx_inv = await crypto_repo.get_by_tx_hash(tx_hash)
+                    if existing_tx_inv and existing_tx_inv.id != inv.id:
+                        logger.warning(
+                            "TON tx_hash %s already claimed by invoice %s, rejecting replay for invoice %s",
+                            tx_hash, existing_tx_inv.id, inv.id,
+                        )
+                        continue
+                paid_inv = await crypto_repo.mark_paid(inv.id, tx_hash, allow_expired=True)
                 if paid_inv:
                     wallet_repo = WalletRepository(session)
                     try:
@@ -402,7 +427,10 @@ async def post_user_topup_stars(request: web.Request) -> web.Response:
     except Exception:
         body = {}
 
-    amount = int(body.get("amount") or 0)
+    try:
+        amount = int(body.get("amount") or 0)
+    except (ValueError, TypeError):
+        return web.json_response({"ok": False, "message": "مبلغ نامعتبر است."}, status=400)
     telegram_id = int(user_auth.get("id"))
 
     async with db_session(request) as session:

@@ -300,6 +300,7 @@ async def finalize_purchase(
         await record_coupon_usage_if_any(
             session, coupon_code, user.telegram_id, result.order_id, discount_amount
         )
+        await session.commit()
         await _maybe_reward_referrer(bot, session, remnawave, user)
         await state.clear()
         await _notify_admin(

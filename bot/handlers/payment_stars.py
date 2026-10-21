@@ -51,6 +51,12 @@ async def stars_pre_checkout_handler(pre_checkout_query: PreCheckoutQuery, bot: 
         )
         return
 
+    if pre_checkout_query.currency != "XTR":
+        await bot.answer_pre_checkout_query(
+            pre_checkout_query.id, ok=False, error_message="نوع ارز پرداخت نامعتبر است."
+        )
+        return
+
     if pre_checkout_query.total_amount < stars_count:
         await bot.answer_pre_checkout_query(
             pre_checkout_query.id, ok=False, error_message="مبلغ پرداختی کمتر از مبلغ فاکتور است."
@@ -120,12 +126,18 @@ async def stars_successful_payment_handler(
         logger.warning("Duplicate Stars payment received for charge_id %s, ignoring.", sp.telegram_payment_charge_id)
         return
 
+    if sp.currency != "XTR" or sp.total_amount < stars_count:
+        logger.error(
+            "Stars payment currency or amount mismatch: currency=%s total=%s expected=%s",
+            sp.currency, sp.total_amount, stars_count
+        )
+        return
+
     wallet_repo = WalletRepository(session)
     user_repo = UserRepository(session)
 
-    store = await get_store_settings(session)
-    stars_rate = getattr(store, "stars_rate_toman", 0) or 0
-    credit_toman = (sp.total_amount * stars_rate) if (stars_rate > 0 and sp.total_amount) else amount_toman
+    # Credit the exact requested amount from payload to eliminate rounding errors and rate fluctuations
+    credit_toman = amount_toman
 
 
     # Atomically credit wallet and record topup
@@ -192,9 +204,9 @@ async def stars_successful_payment_handler(
         )
         try:
             from bot.config import get_settings
-            admin_chat_id = get_settings().ADMIN_SUPERGROUP_ID
+            admin_chat_id = get_settings().ADMIN_CHAT_ID
             if admin_chat_id:
-                kwargs = admin_thread_kwargs(topic_id)
+                kwargs = admin_thread_kwargs(topic_id=topic_id)
                 await bot.send_message(chat_id=admin_chat_id, text=admin_text, **kwargs)
         except Exception as exc:
             logger.warning("Failed to notify admin of stars payment: %s", exc)

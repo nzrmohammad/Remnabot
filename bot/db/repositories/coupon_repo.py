@@ -135,8 +135,9 @@ class CouponRepository:
             discount_applied=discount_applied,
         )
         try:
-            self.session.add(usage)
-            await self.session.flush()
+            async with self.session.begin_nested():
+                self.session.add(usage)
+                await self.session.flush()
         except IntegrityError:
             logger.warning(
                 "Coupon %s duplicate usage prevented for user %s",

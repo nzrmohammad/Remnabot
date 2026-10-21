@@ -268,12 +268,6 @@ async def _migrate_schema(engine: AsyncEngine) -> None:
             await conn.execute(
                 text("ALTER TABLE topups ADD COLUMN receipt_hash VARCHAR(128)")
             )
-            await conn.execute(
-                text(
-                    "CREATE INDEX IF NOT EXISTS ix_topups_receipt_hash "
-                    "ON topups (receipt_hash)"
-                )
-            )
             logger.info("added topups.receipt_hash")
         if cols and "receipt_photo_id" not in cols:
             await conn.execute(
@@ -285,6 +279,17 @@ async def _migrate_schema(engine: AsyncEngine) -> None:
                 text("ALTER TABLE topups ADD COLUMN admin_message_id BIGINT")
             )
             logger.info("added topups.admin_message_id")
+
+        if cols and ("receipt_hash" in cols or "receipt_hash" not in cols):
+            try:
+                await conn.execute(
+                    text(
+                        "CREATE UNIQUE INDEX IF NOT EXISTS uq_topups_receipt_hash "
+                        "ON topups (receipt_hash) WHERE receipt_hash IS NOT NULL"
+                    )
+                )
+            except Exception as exc:
+                logger.debug("Unique index on topups.receipt_hash check: %s", exc)
 
         # --- users: is_banned, has_claimed_trial, referred_by_id (new columns) --- #
         cols = await _table_columns(conn, "users")

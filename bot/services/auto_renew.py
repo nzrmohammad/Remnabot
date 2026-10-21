@@ -85,7 +85,7 @@ async def auto_renew_sweep_loop(
                             discontinued_dedup = f"auto_renew_discontinued:{user.telegram_id}"
                             if cache and not await cache.get(discontinued_dedup):
                                 if cache:
-                                    await cache.set(discontinued_dedup, "1", ttl=86400)
+                                    await cache.set(discontinued_dedup, "1", ttl_seconds=86400)
                                 if bot:
                                     try:
                                         await bot.send_message(
@@ -121,7 +121,7 @@ async def auto_renew_sweep_loop(
                             if pur_res.ok:
                                 await session.commit()
                                 if cache:
-                                    await cache.set(dedup_key, "1", ttl=86400)
+                                    await cache.set(dedup_key, "1", ttl_seconds=86400)
                                 if bot:
                                     try:
                                         await bot.send_message(
@@ -139,7 +139,7 @@ async def auto_renew_sweep_loop(
                         else:
                             # Insufficient balance notice
                             if cache:
-                                await cache.set(dedup_key, "1", ttl=43200)
+                                await cache.set(dedup_key, "1", ttl_seconds=43200)
                             if bot:
                                 try:
                                     shortage = service.price - balance

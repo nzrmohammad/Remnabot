@@ -3,6 +3,14 @@
 Provides pre-initialized in-memory SQLite database and connection pooling
 to eliminate redundant table creation overhead across the test suite.
 """
+import sys
+from pathlib import Path
+
+# Ensure project root is in sys.path
+root_dir = Path(__file__).resolve().parent.parent
+if str(root_dir) not in sys.path:
+    sys.path.insert(0, str(root_dir))
+
 import pytest
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 

@@ -22,6 +22,9 @@ ALLOWED_AVATAR_ORIGINS = (
 
 async def get_user_nodes(request: web.Request) -> web.Response:
     """Return active cluster nodes for the network ping/health checker."""
+    user_auth, err = require_user(request)
+    if err or not user_auth:
+        return err
     remnawave = request.app["remnawave"]
     cache: FastCache = request.app["cache"]
     cache_key = "tma:public:nodes"

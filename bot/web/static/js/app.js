@@ -1796,8 +1796,8 @@ async function loadNetworkNodes() {
             <div class="flex items-center gap-2">
               <span class="text-base">${flag}</span>
               <div>
-                <span class="font-bold text-slate-200 block">${n.name || 'نود سرور'}</span>
-                <span class="text-[10px] text-slate-400">${n.address || 'اتصال مستقیم'}</span>
+                <span class="font-bold text-slate-200 block">${escapeHtml(n.name || 'نود سرور')}</span>
+                <span class="text-[10px] text-slate-400">${escapeHtml(n.address || 'اتصال مستقیم')}</span>
               </div>
             </div>
             <div class="text-left font-mono">
@@ -2231,7 +2231,7 @@ function setupAccountSwitcher() {
       <button class="select-acc-item w-full p-2.5 rounded-xl border ${acc.is_active ? 'border-blue-500 bg-transparent' : 'border-slate-700/60 bg-transparent hover:border-slate-500'} text-right flex items-center justify-between transition" data-id="${acc.id}">
         <div>
           <div class="font-bold text-white text-xs flex items-center gap-1.5">
-            <span>👤</span> ${acc.username}
+            <span>👤</span> ${escapeHtml(acc.username || '')}
           </div>
           <span class="text-[10px] text-slate-400 mt-0.5 block font-mono num-bidi" dir="ltr">
             ${fmtTraffic(acc.used_gb, { html: false })} / ${acc.total_gb > 0 ? fmtTraffic(acc.total_gb, { html: false }) : 'نامحدود'}
@@ -2924,13 +2924,13 @@ function hydrateUserInterface(data) {
               <span class="text-2xl">${icon}</span>
               <div>
                 <div class="flex items-center gap-2">
-                  <span class="text-xs font-bold text-slate-200">${model}</span>
+                  <span class="text-xs font-bold text-slate-200">${escapeHtml(model)}</span>
                   <span class="w-2 h-2 rounded-full bg-emerald-400 inline-block shadow-sm shadow-emerald-400/50" title="فعال"></span>
                 </div>
-                <div class="text-[11px] font-mono text-cyan-400 mt-0.5">IP: ${ip}</div>
+                <div class="text-[11px] font-mono text-cyan-400 mt-0.5">IP: ${escapeHtml(ip)}</div>
               </div>
             </div>
-            <button class="kill-device-btn text-rose-400 hover:text-rose-300 w-8 h-8 rounded-xl bg-transparent hover:bg-rose-950/30 border-0 text-xs transition active:scale-95 flex items-center justify-center cursor-pointer" title="قطع این دستگاه" data-hwid="${hwid}">
+            <button class="kill-device-btn text-rose-400 hover:text-rose-300 w-8 h-8 rounded-xl bg-transparent hover:bg-rose-950/30 border-0 text-xs transition active:scale-95 flex items-center justify-center cursor-pointer" title="قطع این دستگاه" data-hwid="${escapeHtml(hwid)}">
               <svg class="w-4 h-4 text-rose-400 hover:text-rose-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
             </button>
           </div>

@@ -135,6 +135,7 @@ async def test_payment_stars_precheckout():
     pre_checkout.invoice_payload = "stars_topup:12345:50000:50"
     pre_checkout.from_user.id = 12345
     pre_checkout.total_amount = 50
+    pre_checkout.currency = "XTR"
     bot = AsyncMock()
 
     await stars_pre_checkout_handler(pre_checkout, bot)

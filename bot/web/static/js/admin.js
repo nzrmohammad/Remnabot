@@ -2993,8 +2993,8 @@
               <div class="flex items-center justify-between text-[10px] pt-1 border-t border-slate-800/60 text-slate-400 gap-2">
                 <div class="flex items-center gap-1.5 flex-wrap min-w-0">
                   <span class="text-[10px] px-1.5 py-0.5 rounded-md bg-transparent border border-slate-700/80 text-slate-300 font-mono flex-shrink-0">${escapeHtml(r.client_tag || 'App')}</span>
-                  <button type="button" dir="ltr" class="font-mono text-cyan-400 dark:text-cyan-300 font-semibold select-all hover:underline cursor-pointer flex items-center gap-1" onclick="window.copyToClipboard('${r.ip}', 'آدرس IP کپی شد')" title="کلیک جهت کپی آی‌پی">
-                    <span>🌐 ${r.ip}</span>
+                  <button type="button" dir="ltr" class="font-mono text-cyan-400 dark:text-cyan-300 font-semibold select-all hover:underline cursor-pointer flex items-center gap-1 btn-copy-ip-r" data-ip="${escapeHtml(r.ip || '')}" title="کلیک جهت کپی آی‌پی">
+                    <span>🌐 ${escapeHtml(r.ip || '')}</span>
                     <span class="text-[10px] opacity-70">📋</span>
                   </button>
                 </div>
@@ -3006,6 +3006,13 @@
               </div>
             </div>
           `).join('');
+
+          list.querySelectorAll('.btn-copy-ip-r').forEach(btn => {
+            btn.onclick = () => {
+              const ip = btn.getAttribute('data-ip');
+              if (ip) window.copyToClipboard(ip, 'آدرس IP کپی شد');
+            };
+          });
         }
       } catch (e) {
         if (list) list.innerHTML = '<div class="p-4 text-center text-rose-400">خطای ارتباط با سرور</div>';
@@ -3080,7 +3087,7 @@
                   </div>
                   <div class="flex items-center gap-1.5 mt-0.5 text-[10px] text-slate-400">
                     <span>آی‌پی:</span>
-                    <button type="button" dir="ltr" class="font-mono text-cyan-400 dark:text-cyan-300 font-semibold select-all hover:underline cursor-pointer flex items-center gap-1" onclick="window.copyToClipboard('${escapeHtml(ip)}', 'آدرس IP کپی شد')" title="کپی آی‌پی">
+                    <button type="button" dir="ltr" class="font-mono text-cyan-400 dark:text-cyan-300 font-semibold select-all hover:underline cursor-pointer flex items-center gap-1 btn-copy-hwid-ip" data-ip="${escapeHtml(ip)}" title="کپی آی‌پی">
                       <span>${escapeHtml(ip)}</span>
                       <span class="text-[10px] opacity-70">📋</span>
                     </button>
@@ -3091,12 +3098,26 @@
                   </div>
                   ${timeHtml}
                 </div>
-                <button onclick="window.adminActions.deleteHwid(${telegram_id}, '${escapeHtml(hwid).replace(/'/g, "\\'")}')" class="bg-transparent hover:bg-rose-500/10 text-rose-400 border border-rose-500/30 hover:border-rose-400 p-2.5 rounded-xl transition active:scale-95 flex items-center justify-center flex-shrink-0" title="قطع اتصال این دستگاه">
+                <button type="button" class="btn-del-hwid bg-transparent hover:bg-rose-500/10 text-rose-400 border border-rose-500/30 hover:border-rose-400 p-2.5 rounded-xl transition active:scale-95 flex items-center justify-center flex-shrink-0" data-tid="${telegram_id}" data-hwid="${escapeHtml(hwid)}" title="قطع اتصال این دستگاه">
                   <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                 </button>
               </div>
             `;
           }).join('');
+
+          list.querySelectorAll('.btn-del-hwid').forEach(btn => {
+            btn.onclick = () => {
+              const tid = btn.getAttribute('data-tid');
+              const hw = btn.getAttribute('data-hwid');
+              if (tid && hw) window.adminActions.deleteHwid(tid, hw);
+            };
+          });
+          list.querySelectorAll('.btn-copy-hwid-ip').forEach(btn => {
+            btn.onclick = () => {
+              const ip = btn.getAttribute('data-ip');
+              if (ip) window.copyToClipboard(ip, 'آدرس IP کپی شد');
+            };
+          });
         }
       } catch (e) {
         if (list) list.innerHTML = '<div class="p-4 text-center text-rose-400">خطای شبکه در دریافت اطلاعات دستگاه‌ها</div>';
