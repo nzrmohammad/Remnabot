@@ -134,8 +134,8 @@ def parse_subscription_text(text: str) -> list[dict[str, str]]:
 
     if not is_plain:
         try:
-            clean = "".join(text.split()).replace("-", "+").replace("_", "/")
-            clean = urllib.parse.unquote(clean).strip().strip('"').strip("'")
+            clean = urllib.parse.unquote(text).strip().strip('"').strip("'")
+            clean = "".join(clean.split()).replace("-", "+").replace("_", "/")
             clean += "=" * (-len(clean) % 4)
             decoded = base64.b64decode(clean).decode("utf-8", errors="replace").lstrip("\ufeff").strip()
 
@@ -191,49 +191,30 @@ def parse_subscription_text(text: str) -> list[dict[str, str]]:
     return configs
 
 
-async def fetch_subscription_configs(url: str, timeout: float = 3.5) -> list[dict[str, str]]:
-    """Download subscription content and return parsed configs with internal rewrite & multi-UA resilience."""
+async def fetch_subscription_configs(url: str, timeout: float = 2.5) -> list[dict[str, str]]:
+    """Download subscription content and return parsed configs with robust candidate fallback."""
     if not url or not url.startswith(("http://", "https://")):
         return []
 
+    try:
+        return await asyncio.wait_for(_fetch_subscription_configs_impl(url, timeout), timeout=5.5)
+    except TimeoutError:
+        logger.warning("Subscription fetch reached overall timeout for %s", url)
+        return []
+    except Exception as exc:
+        logger.warning("Unexpected error during subscription fetch for %s: %s", url, exc)
+        return []
+
+
+async def _fetch_subscription_configs_impl(url: str, timeout: float = 2.5) -> list[dict[str, str]]:
     from bot.config import get_settings
     settings = get_settings()
     proxy = settings.IRAN_PROXY.strip() if getattr(settings, "IRAN_PROXY", "") else None
     base_remna = getattr(settings, "REMNAWAVE_URL", "").strip() if settings else ""
 
-    candidate_urls: list[str] = []
+    candidate_urls: list[str] = [url]
 
-    # If base_remna is configured, build internal panel URLs FIRST (avoids Cloudflare / GFW loopbacks)
-    if base_remna:
-        parsed_orig = urllib.parse.urlparse(url)
-        parsed_base = urllib.parse.urlparse(base_remna)
-
-        orig_path = parsed_orig.path or ""
-        # Check /api/sub vs /sub variants
-        api_path = orig_path if orig_path.startswith("/api/sub/") else ("/api" + orig_path if orig_path.startswith("/sub/") else orig_path)
-        sub_path = orig_path.replace("/api/sub/", "/sub/") if orig_path.startswith("/api/sub/") else orig_path
-
-        rewritten_api = urllib.parse.urlunparse((
-            parsed_base.scheme,
-            parsed_base.netloc,
-            api_path,
-            "",
-            parsed_orig.query,
-            "",
-        ))
-        rewritten_sub = urllib.parse.urlunparse((
-            parsed_base.scheme,
-            parsed_base.netloc,
-            sub_path,
-            "",
-            parsed_orig.query,
-            "",
-        ))
-
-        candidate_urls.extend([rewritten_api, rewritten_sub])
-
-    # Also add the original URL and its /api/ variant
-    candidate_urls.append(url)
+    # Add /api/ variant of original URL
     parsed_u = urllib.parse.urlparse(url)
     if parsed_u.path.startswith("/sub/"):
         candidate_urls.append(urllib.parse.urlunparse((
@@ -244,6 +225,41 @@ async def fetch_subscription_configs(url: str, timeout: float = 3.5) -> list[dic
             parsed_u.query,
             "",
         )))
+    elif parsed_u.path.startswith("/api/sub/"):
+        candidate_urls.append(urllib.parse.urlunparse((
+            parsed_u.scheme,
+            parsed_u.netloc,
+            parsed_u.path.replace("/api/sub/", "/sub/"),
+            "",
+            parsed_u.query,
+            "",
+        )))
+
+    # If base_remna is configured and host differs, add internal panel rewrite as fallback
+    if base_remna:
+        parsed_orig = urllib.parse.urlparse(url)
+        parsed_base = urllib.parse.urlparse(base_remna)
+        if parsed_orig.netloc.lower() != parsed_base.netloc.lower():
+            orig_path = parsed_orig.path or ""
+            api_path = orig_path if orig_path.startswith("/api/sub/") else ("/api" + orig_path if orig_path.startswith("/sub/") else orig_path)
+            sub_path = orig_path.replace("/api/sub/", "/sub/") if orig_path.startswith("/api/sub/") else orig_path
+
+            candidate_urls.append(urllib.parse.urlunparse((
+                parsed_base.scheme,
+                parsed_base.netloc,
+                api_path,
+                "",
+                parsed_orig.query,
+                "",
+            )))
+            candidate_urls.append(urllib.parse.urlunparse((
+                parsed_base.scheme,
+                parsed_base.netloc,
+                sub_path,
+                "",
+                parsed_orig.query,
+                "",
+            )))
 
     # Deduplicate while preserving order
     seen_urls: set[str] = set()
@@ -253,11 +269,8 @@ async def fetch_subscription_configs(url: str, timeout: float = 3.5) -> list[dic
             seen_urls.add(c_url)
             deduped_candidates.append(c_url)
 
-    user_agents = [
-        "v2rayNG/1.8.5",
-        "Shadowrocket/1982",
-        "v2ray",
-    ]
+    primary_ua = "v2rayNG/1.8.5"
+    fallback_uas = ["Shadowrocket/1982", "v2ray"]
 
     for target_url in deduped_candidates:
         parsed = urllib.parse.urlparse(target_url)
@@ -267,27 +280,29 @@ async def fetch_subscription_configs(url: str, timeout: float = 3.5) -> list[dic
 
         attempts = [None]
         if proxy and not is_internal:
-            attempts = [proxy, None]
+            attempts = [None, proxy]
 
-        for ua in user_agents:
-            headers = {
-                "User-Agent": ua,
-                "Accept": "text/plain, application/octet-stream, */*",
-            }
-            for p in attempts:
-                try:
-                    async with httpx.AsyncClient(verify=False, follow_redirects=True, timeout=timeout, proxy=p) as client:
-                        resp = await client.get(target_url, headers=headers)
-                        if resp.status_code == 200 and resp.text.strip():
-                            # Skip if response is HTML web application
-                            text_body = resp.text.strip()
-                            if text_body.lower().startswith(("<!doctype", "<html")):
-                                continue
+        for p in attempts:
+            try:
+                async with httpx.AsyncClient(verify=False, follow_redirects=True, timeout=timeout, proxy=p) as client:
+                    resp = await client.get(target_url, headers={"User-Agent": primary_ua, "Accept": "*/*"})
+                    if resp.status_code == 200 and resp.text.strip():
+                        text_body = resp.text.strip()
+                        if not text_body.lower().startswith(("<!doctype", "<html")):
                             configs = parse_subscription_text(text_body)
                             if configs:
                                 logger.info("Successfully fetched %d configs from %s", len(configs), target_url)
                                 return configs
-                except Exception as exc:
-                    logger.debug("Subscription fetch attempt failed (url=%s, ua=%s, proxy=%s): %s", target_url, ua, p, exc)
+                    elif resp.status_code in (403, 406):
+                        for alt_ua in fallback_uas:
+                            alt_resp = await client.get(target_url, headers={"User-Agent": alt_ua, "Accept": "*/*"})
+                            if alt_resp.status_code == 200 and alt_resp.text.strip():
+                                text_body = alt_resp.text.strip()
+                                if not text_body.lower().startswith(("<!doctype", "<html")):
+                                    configs = parse_subscription_text(text_body)
+                                    if configs:
+                                        return configs
+            except Exception as exc:
+                logger.debug("Subscription attempt failed for %s (proxy=%s): %s", target_url, p, exc)
 
     return []

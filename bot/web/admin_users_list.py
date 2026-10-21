@@ -19,55 +19,73 @@ except ImportError:
 
 logger = logging.getLogger(__name__)
 
+_ONLINE_CACHE: tuple[set[int], set[str], float] = (set(), set(), 0.0)
 
-async def _extract_online_telegram_ids(remnawave: Any) -> set[int]:
-    """Collect telegram IDs of active/connected users."""
+
+async def _extract_online_data(remnawave: Any) -> tuple[set[int], set[str]]:
+    """Collect telegram IDs and panel user IDs/UUIDs of active/connected users with 10s cache."""
+    global _ONLINE_CACHE
+    import time
+    now = time.time()
+    cached_tids, cached_uids, cache_time = _ONLINE_CACHE
+    if (cached_tids or cached_uids) and (now - cache_time < 10.0):
+        return cached_tids, cached_uids
+
     online_ids: set[int] = set()
+    active_uids: set[str] = set()
     try:
-        sessions = await remnawave.get_active_sessions() or []
-        active_uids: set[Any] = set()
-
-        for s in sessions:
-            user_obj = s.get("user") if isinstance(s.get("user"), dict) else {}
-            tid = (
-                s.get("telegramId")
-                or s.get("telegram_id")
-                or user_obj.get("telegramId")
-                or user_obj.get("telegram_id")
-            )
-            if not tid and str(user_obj.get("username", "")).startswith("tg_"):
-                try:
-                    tid = int(user_obj["username"].replace("tg_", ""))
-                except ValueError:
-                    pass
-            if tid:
-                try:
-                    online_ids.add(int(tid))
-                except (ValueError, TypeError):
-                    pass
-
-            uid = (
-                s.get("userId")
-                or s.get("user_id")
-                or user_obj.get("id")
-                or user_obj.get("uuid")
-                or s.get("userUuid")
-            )
-            if uid:
-                active_uids.add(str(uid).lower())
-
-        # If available, check live sessions explorer
-        if not online_ids and hasattr(remnawave, "get_live_sessions_explorer"):
+        # 1. Live sessions explorer (real-time active connections across all nodes)
+        if hasattr(remnawave, "get_live_sessions_explorer"):
             try:
                 live_exp = await remnawave.get_live_sessions_explorer()
-                if isinstance(live_exp, dict) and isinstance(live_exp.get("top_active_users"), list):
-                    for tu in live_exp["top_active_users"]:
-                        if tu.get("userId"):
-                            active_uids.add(str(tu["userId"]).lower())
-            except Exception:
-                pass
+                if isinstance(live_exp, dict):
+                    user_list = (live_exp.get("all_online_users") or []) + (live_exp.get("top_active_users") or []) + (live_exp.get("multi_ip_users") or [])
+                    for tu in user_list:
+                        if isinstance(tu, dict):
+                            uid = tu.get("userId") or tu.get("userUuid") or tu.get("id")
+                            if uid:
+                                active_uids.add(str(uid).lower())
+                            uname = tu.get("username")
+                            if uname:
+                                active_uids.add(str(uname).lower())
+            except Exception as e:
+                logger.debug("Live sessions explorer check error: %s", e)
 
-        # Check HWID devices
+        # 2. Check active sessions endpoints if any
+        try:
+            sessions = await remnawave.get_active_sessions() or []
+            for s in sessions:
+                user_obj = s.get("user") if isinstance(s.get("user"), dict) else {}
+                tid = (
+                    s.get("telegramId")
+                    or s.get("telegram_id")
+                    or user_obj.get("telegramId")
+                    or user_obj.get("telegram_id")
+                )
+                if not tid and str(user_obj.get("username", "")).startswith("tg_"):
+                    try:
+                        tid = int(user_obj["username"].replace("tg_", ""))
+                    except ValueError:
+                        pass
+                if tid:
+                    try:
+                        online_ids.add(int(tid))
+                    except (ValueError, TypeError):
+                        pass
+
+                uid = (
+                    s.get("userId")
+                    or s.get("user_id")
+                    or user_obj.get("id")
+                    or user_obj.get("uuid")
+                    or s.get("userUuid")
+                )
+                if uid:
+                    active_uids.add(str(uid).lower())
+        except Exception:
+            pass
+
+        # 3. Check HWID devices
         if hasattr(remnawave, "get_all_hwid_devices"):
             try:
                 hwid_devs = await remnawave.get_all_hwid_devices(size=300)
@@ -80,12 +98,13 @@ async def _extract_online_telegram_ids(remnawave: Any) -> set[int]:
             except Exception:
                 pass
 
-        # Map active_uids to telegram IDs from all panel users
+        # 4. Map active_uids to telegram IDs from all panel users
         p_users = await remnawave.get_all_panel_users() or []
         for pu in p_users:
             p_uid = str(pu.get("id") or "").lower()
             p_uuid = str(pu.get("uuid") or "").lower()
             p_short = str(pu.get("shortId") or "").lower()
+            p_uname = str(pu.get("username") or "").lower()
             is_p_online = bool(
                 pu.get("isOnline")
                 or pu.get("online")
@@ -93,8 +112,17 @@ async def _extract_online_telegram_ids(remnawave: Any) -> set[int]:
                 or int(pu.get("activeSessionsCount") or 0) > 0
                 or int(pu.get("connectedCount") or 0) > 0
             )
-            if p_uid in active_uids or p_uuid in active_uids or p_short in active_uids or is_p_online:
+            if p_uid in active_uids or p_uuid in active_uids or p_short in active_uids or p_uname in active_uids or is_p_online:
+                if p_uid:
+                    active_uids.add(p_uid)
+                if p_uuid:
+                    active_uids.add(p_uuid)
                 raw_tid = pu.get("telegramId") or pu.get("telegram_id")
+                if not raw_tid and p_uname.startswith("tg_"):
+                    try:
+                        raw_tid = int(p_uname.replace("tg_", ""))
+                    except ValueError:
+                        pass
                 if raw_tid:
                     try:
                         online_ids.add(int(raw_tid))
@@ -102,7 +130,15 @@ async def _extract_online_telegram_ids(remnawave: Any) -> set[int]:
                         pass
     except Exception as exc:
         logger.debug("Failed fetching online sessions for admin: %s", exc)
-    return online_ids
+
+    _ONLINE_CACHE = (online_ids, active_uids, now)
+    return online_ids, active_uids
+
+
+async def _extract_online_telegram_ids(remnawave: Any) -> set[int]:
+    """Collect telegram IDs of active/connected users."""
+    tids, _ = await _extract_online_data(remnawave)
+    return tids
 
 
 def _serialize_user_item(
@@ -112,6 +148,7 @@ def _serialize_user_item(
     online_ids: set[int],
     now_utc: datetime,
     status_filter: str,
+    active_uids: set[str] | None = None,
 ) -> dict[str, Any] | None:
     """Format single user record and apply status filtering."""
     p = panel_users[0] if panel_users else {}
@@ -142,15 +179,28 @@ def _serialize_user_item(
             pass
 
     is_online = (u.telegram_id in online_ids) if online_ids else False
-    if not is_online and panel_exists:
-        if (
-            p.get("isOnline")
-            or p.get("online")
-            or p.get("connected")
-            or int(p.get("activeSessionsCount") or 0) > 0
-            or int(p.get("connectedCount") or 0) > 0
-        ):
-            is_online = True
+    if not is_online and panel_users:
+        target_uids = active_uids or set()
+        for acc in panel_users:
+            acc_keys = {
+                str(acc.get("id") or "").lower(),
+                str(acc.get("uuid") or "").lower(),
+                str(acc.get("shortId") or "").lower(),
+                str(acc.get("username") or "").lower(),
+            }
+            acc_keys.discard("")
+            if acc_keys & target_uids:
+                is_online = True
+                break
+            if (
+                acc.get("isOnline")
+                or acc.get("online")
+                or acc.get("connected")
+                or int(acc.get("activeSessionsCount") or 0) > 0
+                or int(acc.get("connectedCount") or 0) > 0
+            ):
+                is_online = True
+                break
     is_expiring = False
     is_expired = False
     if panel_exists:
@@ -227,7 +277,7 @@ async def get_admin_users(request: web.Request) -> web.Response:
 
     async with db_session(request) as session:
         user_repo = UserRepository(session)
-        online_ids = await _extract_online_telegram_ids(remnawave)
+        online_ids, active_uids = await _extract_online_data(remnawave)
 
         condition = None
         if status_filter == "banned":
@@ -255,7 +305,7 @@ async def get_admin_users(request: web.Request) -> web.Response:
     now_utc = datetime.now(timezone.utc)
     user_items = []
     for u, p_users in zip(users, panel_fetch_results, strict=True):
-        item = _serialize_user_item(u, p_users if isinstance(p_users, list) else [], balances, online_ids, now_utc, status_filter)
+        item = _serialize_user_item(u, p_users if isinstance(p_users, list) else [], balances, online_ids, now_utc, status_filter, active_uids)
         if item is not None:
             user_items.append(item)
 

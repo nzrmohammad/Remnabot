@@ -60,19 +60,30 @@ class RemnawaveSystemMixin:
         return sum(r["total"] for r in rows), rows
 
     async def get_nodes(self) -> list[dict[str, Any]] | None:
-        """Return all nodes from the panel."""
-        try:
-            resp = await self._client.get("/api/nodes")
-            if resp.status_code == 404:
-                return []
-            resp.raise_for_status()
-            data = resp.json().get("response") or {}
-            if isinstance(data, list):
-                return data
-            return data.get("nodes") or []
-        except httpx.HTTPError as exc:
-            logger.error("Remnawave get_nodes error: %s", exc)
-            return None
+        """Return all nodes from the panel with retry on transient 5xx."""
+        for attempt in range(2):
+            try:
+                resp = await self._client.get("/api/nodes")
+                if resp.status_code == 404:
+                    return []
+                resp.raise_for_status()
+                data = resp.json().get("response") or {}
+                if isinstance(data, list):
+                    return data
+                return data.get("nodes") or []
+            except httpx.HTTPStatusError as exc:
+                if exc.response.status_code in (500, 502, 503, 504) and attempt == 0:
+                    await asyncio.sleep(0.5)
+                    continue
+                logger.warning("Remnawave get_nodes upstream error (status=%s): %s", exc.response.status_code, exc)
+                return None
+            except httpx.HTTPError as exc:
+                if attempt == 0:
+                    await asyncio.sleep(0.5)
+                    continue
+                logger.warning("Remnawave get_nodes error: %s", exc)
+                return None
+        return None
 
     async def get_live_sessions_explorer(self) -> dict[str, Any]:
         """Scan real-time active connections across all online nodes to match Sessions Explorer in Remnawave v3."""
@@ -164,6 +175,7 @@ class RemnawaveSystemMixin:
             "total_nodes": len(online_nodes),
             "multi_ip_users": multi_ip_users,
             "all_online_users": all_sorted,
+            "top_active_users": all_sorted,
         }
 
     async def get_user_live_sessions(self, user_id: int | str) -> dict[str, Any]:
