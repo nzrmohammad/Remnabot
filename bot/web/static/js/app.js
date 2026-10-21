@@ -250,17 +250,22 @@ function setupConfigsModal() {
 
     try {
       const targetAccId = window.currentAccountId || window.lastUserData?.active_sub?.account_id || window.lastUserData?.active_sub?.id;
-      const res = await window.api.getSubscriptionConfigs(targetAccId);
+      const subUrl = window.lastUserData?.active_sub?.subscription_url || $('subInput')?.value || '';
+      const res = await window.api.getSubscriptionConfigs(targetAccId, subUrl);
       if (res.ok && res.configs && res.configs.length > 0) {
         currentConfigsList = res.configs;
         if (configsModalCount) configsModalCount.innerText = `${currentConfigsList.length} کانفیگ`;
 
         configsModalList.innerHTML = currentConfigsList.map(c => {
           const safeName = escapeHtml(c.name || 'کانفیگ سرور');
+          const protoBadge = escapeHtml((c.protocol || 'vpn').toUpperCase());
+          const flag = c.flag || '🌐';
 
           return `
             <div class="config-row-item bg-transparent rounded-2xl p-2.5 border border-slate-700/60 flex items-center justify-between gap-2 transition hover:border-slate-600">
-              <div class="flex items-center gap-2 overflow-hidden flex-1">
+              <div class="flex items-center gap-2 overflow-hidden flex-1 min-w-0">
+                <span class="text-base select-none flex-shrink-0" title="${escapeHtml(c.country_name || 'سرور')}">${flag}</span>
+                <span class="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-cyan-500/15 text-cyan-400 border border-cyan-500/30 uppercase flex-shrink-0">${protoBadge}</span>
                 <span class="text-xs font-bold text-slate-200 truncate config-name-label" title="${safeName}">${safeName}</span>
               </div>
               <div class="flex items-center gap-1 shrink-0">

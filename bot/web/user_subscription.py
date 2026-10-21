@@ -93,6 +93,11 @@ async def get_user_subscription_configs(request: web.Request) -> web.Response:
             sub_url = order_res.scalar_one_or_none() or ""
 
     if not sub_url:
+        query_sub_url = request.query.get("sub_url")
+        if query_sub_url and str(query_sub_url).startswith(("http://", "https://")):
+            sub_url = query_sub_url.strip()
+
+    if not sub_url:
         return web.json_response({
             "ok": True,
             "configs": [],

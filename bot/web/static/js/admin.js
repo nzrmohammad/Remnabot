@@ -2013,37 +2013,38 @@
       return `
         <div class="bg-slate-800/80 rounded-2xl p-3.5 border border-slate-700/80 space-y-2.5 shadow transition">
           <div class="flex items-center justify-between gap-3">
-            <!-- Right: Avatar + Profile Name + Status Badge underneath (Clickable to open Profile Modal) -->
+            <!-- Right: Avatar + Profile Name + Status Badge (Clickable to open Profile Modal) -->
             <div class="flex items-center gap-2.5 min-w-0 cursor-pointer group select-none" onclick="window.adminActions.openUserProfileModal(${u.telegram_id})" title="مشاهده شناسنامه و پروفایل کاربر">
-              <!-- User Profile Avatar with Initials Fallback -->
-              <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center font-bold text-white text-xs shadow overflow-hidden flex-shrink-0 relative group-hover:ring-2 group-hover:ring-cyan-400/50 transition">
-                <img src="${avatarSrc}" alt="Avatar" class="w-full h-full object-cover" onerror="this.classList.add('hidden'); if(this.nextElementSibling) this.nextElementSibling.classList.remove('hidden');" />
-                <span class="${u.avatar_url ? 'hidden' : ''} font-bold">${escapeHtml(initial)}</span>
+              <!-- User Profile Avatar with Online/Offline indicator badge at bottom-left -->
+              <div class="relative flex-shrink-0">
+                <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center font-bold text-white text-xs shadow overflow-hidden group-hover:ring-2 group-hover:ring-cyan-400/50 transition">
+                  <img src="${avatarSrc}" alt="Avatar" class="w-full h-full object-cover" onerror="this.classList.add('hidden'); if(this.nextElementSibling) this.nextElementSibling.classList.remove('hidden');" />
+                  <span class="${u.avatar_url ? 'hidden' : ''} font-bold">${escapeHtml(initial)}</span>
+                </div>
+                <!-- Online / Offline Badge at Bottom-Left of the Avatar -->
+                <span class="absolute bottom-0 left-0 w-3 h-3 rounded-full border-2 border-slate-900 ${u.is_online ? 'bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.9)] animate-pulse' : 'bg-slate-500'}" title="${u.is_online ? 'آنلاین (متصل به سرور)' : 'آفلاین'}"></span>
               </div>
 
-              <!-- Name on top, Status Badge underneath -->
+              <!-- Name and Status Badge side-by-side on the same line -->
               <div class="min-w-0 flex-1">
-                <!-- 1. Profile Name (اسم پروفایل کاربر) -->
-                <div class="flex items-center gap-1.5 min-w-0">
-                  <div class="text-xs font-bold text-white truncate max-w-[140px] sm:max-w-[190px] group-hover:text-cyan-300 transition">
+                <div class="flex items-center gap-1.5 min-w-0 flex-wrap">
+                  <span class="text-xs font-bold text-white truncate max-w-[120px] sm:max-w-[160px] group-hover:text-cyan-300 transition">
                     ${(displayName || '').startsWith('@') ? `<span class="truncate inline-block font-mono" dir="ltr" style="unicode-bidi: isolate;">${escapeHtml(displayName)}</span>` : `<span class="truncate">${escapeHtml(displayName)}</span>`}
-                  </div>
-                  ${u.is_online ? '<span class="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)] animate-pulse flex-shrink-0" title="متصل به سرور"></span>' : ''}
-                </div>
-
-                <!-- Status Badge (فعال / بدون اکانت) Under the name -->
-                <div class="flex flex-wrap items-center gap-1.5 mt-1">
-                  <div>${statusBadge}</div>
+                  </span>
+                  <div class="flex-shrink-0">${statusBadge}</div>
                   ${expiringBadgeHtml}
                 </div>
               </div>
             </div>
 
-            <!-- Left: Wallet Balance -->
-            <div class="text-left flex items-center flex-shrink-0">
-              <span class="text-[11px] font-mono font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1 rounded-xl" title="موجودی کیف پول کاربر">
-                ${formatNumber(u.wallet_balance || 0)} <span class="text-[10px] font-sans text-emerald-400/80">تومان</span>
-              </span>
+            <!-- Left: Wallet Balance (Number on top, small تومان underneath) -->
+            <div class="text-left flex-shrink-0">
+              <div class="flex flex-col items-center justify-center bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-0.5 rounded-xl text-center leading-tight min-w-[54px]" title="موجودی کیف پول کاربر">
+                <span class="text-xs font-mono font-bold text-emerald-400 num-bidi" dir="ltr">
+                  ${formatNumber(u.wallet_balance || 0)}
+                </span>
+                <span class="text-[9px] font-sans text-emerald-400/80 -mt-0.5">تومان</span>
+              </div>
             </div>
           </div>
 
@@ -3375,9 +3376,9 @@
                     ${pkgIcon ? `<span class="text-sm select-none leading-none flex-shrink-0" title="آیکون بسته">${pkgIcon}</span>` : ''}
                     <div class="flex-shrink-0">${statusBadge}</div>
                   </div>
-                  <div class="flex items-baseline gap-1 flex-shrink-0" dir="ltr">
-                    <span class="text-sm font-black text-emerald-500 dark:text-emerald-400 font-mono leading-none">${formatNumber(p.price || 0)}</span>
-                    <span class="text-[10px] font-sans font-medium text-slate-400">تومان</span>
+                  <div class="flex flex-col items-center justify-center flex-shrink-0 text-center leading-tight min-w-[45px]">
+                    <span class="text-sm font-black text-emerald-500 dark:text-emerald-400 font-mono num-bidi" dir="ltr">${formatNumber(p.price || 0)}</span>
+                    <span class="text-[9px] font-sans font-medium text-slate-400 -mt-0.5">تومان</span>
                   </div>
                 </div>
 
@@ -3637,9 +3638,9 @@
                 ? '<span class="text-[10px] bg-transparent text-slate-500 dark:text-slate-400 border border-slate-400/30 px-2 py-0.5 rounded-lg font-medium">غیرفعال (مصرف‌شده)</span>'
                 : '<span class="text-[10px] bg-transparent text-amber-500 dark:text-amber-400 border border-amber-500/30 px-2 py-0.5 rounded-lg font-medium">غیرفعال (استفاده‌نشده)</span>');
 
-          const discountText = c.discount_percent > 0
-            ? `<span dir="ltr">${toEnglishDigits(c.discount_percent)}%</span> تخفیف`
-            : `${formatNumber(c.discount_amount || 0)} تومان`;
+          const discountHtml = c.discount_percent > 0
+            ? `<div class="flex items-baseline gap-1 mt-1 leading-tight"><span class="text-xs font-bold text-emerald-500 dark:text-emerald-400 font-mono num-bidi" dir="ltr">${toEnglishDigits(c.discount_percent)}%</span><span class="text-[9px] font-sans text-slate-400">تخفیف</span></div>`
+            : `<div class="flex items-baseline gap-1 mt-1 leading-tight"><span class="text-xs font-bold text-emerald-500 dark:text-emerald-400 font-mono num-bidi" dir="ltr">${formatNumber(c.discount_amount || 0)}</span><span class="text-[9px] font-sans text-slate-400">تومان</span></div>`;
 
           const maxText = c.max_uses > 0 ? `${toEnglishDigits(usedCount)} / ${toEnglishDigits(c.max_uses)}` : `${toEnglishDigits(usedCount)} (نامحدود)`;
           const expiryText = c.expires_at_jalali || (c.expires_at ? (window.formatDateToJalali ? window.formatDateToJalali(c.expires_at) : c.expires_at) : 'نامحدود (دائمی)');
@@ -3684,7 +3685,7 @@
                     </button>
                     ${statusBadge}
                   </div>
-                  <span class="text-[11px] text-emerald-600 dark:text-emerald-400 font-bold block mt-1.5">${discountText}</span>
+                  <span class="text-[11px] text-emerald-600 dark:text-emerald-400 font-bold block mt-1.5">${discountHtml}</span>
                 </div>
               </div>
 

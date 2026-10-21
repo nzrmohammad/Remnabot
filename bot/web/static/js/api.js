@@ -232,10 +232,13 @@ const api = {
     return this.post('/api/user/support/messages', { text });
   },
 
-  async getSubscriptionConfigs(accountId = null) {
+  async getSubscriptionConfigs(accountId = null, subUrl = null) {
     const params = {};
     if (accountId) {
       params.account_id = accountId;
+    }
+    if (subUrl) {
+      params.sub_url = subUrl;
     }
     return this.get('/api/user/subscription/configs', params);
   },
