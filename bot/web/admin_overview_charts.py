@@ -230,15 +230,39 @@ def _calc_location_share(nodes_overview: list[dict]) -> dict[str, Any]:
 
 
 async def _calc_hourly_distribution(session, now_utc: datetime) -> dict[str, Any]:
-    """Calculate 24h peak hourly traffic curve from snapshots."""
+    """Calculate 24h peak hourly traffic curve from snapshots in rolling chronological order (Option 3)."""
+    from datetime import timezone
+    from zoneinfo import ZoneInfo
+    from bot.config import get_settings
+
+    settings = get_settings()
+    tz_str = getattr(settings, "TIMEZONE", "Asia/Tehran")
+    try:
+        tz = ZoneInfo(tz_str)
+    except Exception:
+        tz = ZoneInfo("Asia/Tehran")
+
+    local_now = now_utc.astimezone(tz) if now_utc.tzinfo else now_utc.replace(tzinfo=timezone.utc).astimezone(tz)
+    curr_h = local_now.hour
+
+    # 24 hours in rolling chronological order from 23 hours ago to current hour (now)
+    ordered_hours = [(curr_h - 23 + i) % 24 for i in range(24)]
+    labels = [f"{h:02d}:00" for h in ordered_hours]
+
     snapshot_repo = TrafficSnapshotRepository(session)
     snapshots_24h = await snapshot_repo.get_last_24_hours(now_utc)
-    snapshots_by_hour = {s.timestamp.hour: s.delta_bytes for s in snapshots_24h}
+
+    snapshots_by_hour = {}
+    for s in snapshots_24h:
+        s_ts = s.timestamp
+        s_local = s_ts.replace(tzinfo=timezone.utc).astimezone(tz) if s_ts.tzinfo is None else s_ts.astimezone(tz)
+        snapshots_by_hour[s_local.hour] = s.delta_bytes
 
     if snapshots_by_hour:
-        hourly_data = [round(snapshots_by_hour.get(h, 0) / (1024 ** 3), 2) for h in range(24)]
-        peak_idx = max(range(24), key=lambda i: hourly_data[i])
-        peak_hour_str = f"{peak_idx:02d}:00"
+        hourly_data = [round(snapshots_by_hour.get(h, 0) / (1024 ** 3), 2) for h in ordered_hours]
+        peak_pos = max(range(24), key=lambda i: hourly_data[i])
+        peak_h = ordered_hours[peak_pos]
+        peak_hour_str = f"{peak_h:02d}:00"
         is_real_telemetry = True
     else:
         hourly_data = [0.0] * 24
@@ -246,11 +270,12 @@ async def _calc_hourly_distribution(session, now_utc: datetime) -> dict[str, Any
         is_real_telemetry = False
 
     return {
-        "labels": [f"{h:02d}:00" for h in range(24)],
+        "labels": labels,
         "data": hourly_data,
         "peak_hour": peak_hour_str,
         "unit": "GB",
         "is_real_telemetry": is_real_telemetry,
+        "has_real_telemetry": is_real_telemetry,
         "telemetry_count": len(snapshots_by_hour),
     }
 

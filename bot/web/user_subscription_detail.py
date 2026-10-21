@@ -210,7 +210,14 @@ def calc_usage_curves(
     panel_user_id: Any,
     source_breakdown: list[dict[str, Any]],
     snapshots_24h: list[Any] | None = None,
+    now_dt: datetime | None = None,
+    tz_name: str = "Asia/Tehran",
 ) -> dict[str, Any]:
+    if now_dt is None:
+        try:
+            now_dt = datetime.now(ZoneInfo(tz_name))
+        except Exception:
+            now_dt = datetime.now(timezone.utc)
     """Compute download/upload split, country donut chart, 24h curve, and platform distribution."""
     raw_up = int(traffic.get("uploadTrafficBytes") or primary.get("uploadTrafficBytes") or primary.get("up") or 0)
     raw_down = int(traffic.get("downloadTrafficBytes") or primary.get("downloadTrafficBytes") or primary.get("down") or 0)
@@ -253,7 +260,11 @@ def calc_usage_curves(
     has_traffic = (today_used_gb > 0) or (week_used_gb > 0) or (used_bytes > 0)
     base_curve_gb = today_used_gb if today_used_gb > 0 else (round(week_used_gb / 7.0, 2) if week_used_gb > 0 else 0.0)
 
-    hourly_curve_labels = [f"{h:02d}-{h+2:02d}" for h in range(0, 24, 2)]
+    # 12 2-hour slots in rolling chronological order ending at current 2-hour slot (Option 3)
+    curr_slot = (now_dt.hour // 2) % 12
+    rolling_indices = [(curr_slot + 1 + k) % 12 for k in range(12)]
+    hourly_curve_labels = [f"{idx*2:02d}-{idx*2 + 2:02d}" for idx in rolling_indices]
+
     has_real_data = False
     if not has_traffic or base_curve_gb <= 0.0:
         hourly_curve_vals = [0.0] * 12
@@ -263,21 +274,24 @@ def calc_usage_curves(
         # Check if real hourly snapshots exist in the database
         slot_bytes = [0] * 12
         if snapshots_24h:
+            tz = ZoneInfo(tz_name) if tz_name else timezone.utc
             for s in snapshots_24h:
                 s_ts = getattr(s, "timestamp", None)
                 s_delta = getattr(s, "delta_bytes", 0) or 0
                 if s_ts:
-                    slot_idx = (s_ts.hour // 2) % 12
+                    local_s_ts = s_ts.replace(tzinfo=timezone.utc).astimezone(tz) if s_ts.tzinfo is None else s_ts.astimezone(tz)
+                    slot_idx = (local_s_ts.hour // 2) % 12
                     slot_bytes[slot_idx] += s_delta
 
         total_snap_bytes = sum(slot_bytes)
         if total_snap_bytes > 0:
             weights_12 = [b / total_snap_bytes for b in slot_bytes]
             hourly_curve_vals = [
-                round(base_curve_gb * weights_12[i], 2) for i in range(12)
+                round(base_curve_gb * weights_12[idx], 2) for idx in rolling_indices
             ]
-            peak_2h_idx = max(range(12), key=lambda i: hourly_curve_vals[i])
-            peak_hour_str = f"{peak_2h_idx*2:02d}:00 - {peak_2h_idx*2 + 2:02d}:00"
+            peak_pos = max(range(12), key=lambda i: hourly_curve_vals[i])
+            peak_slot = rolling_indices[peak_pos]
+            peak_hour_str = f"{peak_slot*2:02d}:00 - {peak_slot*2 + 2:02d}:00"
             is_curve_estimated = False
             has_real_data = True
         else:
@@ -414,6 +428,8 @@ async def build_active_subscription(
         panel_user_id,
         bw["all_nodes_breakdown"] or bw["week_breakdown"] or bw["today_breakdown"],
         snapshots_24h=snapshots_24h,
+        now_dt=now_dt,
+        tz_name=tz_name,
     )
 
     # Calculate Burn-rate & Projected Expiry
