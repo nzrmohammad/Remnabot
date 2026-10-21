@@ -37,5 +37,11 @@ jobs:
           done
 
       - name: Run Test Suite
+        env:
+          BOT_TOKEN: "123456789:ABCdefGHIjklMNOpqrsTUVwxyz"
+          ADMIN_CHAT_ID: "-1001234567890"
+          DATABASE_URL: "sqlite+aiosqlite:///:memory:"
+          REMNAWAVE_BASE_URL: "https://mock-panel.local"
+          REMNAWAVE_TOKEN: "mock_token"
         run: |
           python -m pytest -v

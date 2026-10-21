@@ -850,7 +850,6 @@ function renderTutorialApps(osKey) {
                 ${app.version ? `<span class="text-[10px] text-slate-400 font-mono font-medium flex-shrink-0">v${toEnglishDigits(app.version)}</span>` : ''}
                 <b class="text-xs text-white font-bold truncate">${escapeHtml(app.name)}</b>
               </div>
-              ${app.desc ? `<p class="text-[10px] text-slate-400 mt-0.5 line-clamp-1 truncate" title="${escapeHtml(app.desc)}">${escapeHtml(app.desc)}</p>` : ''}
             </div>
           </div>
           <!-- Left side: Recommended badge + Tutorial button -->

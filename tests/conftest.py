@@ -3,6 +3,7 @@
 Provides pre-initialized in-memory SQLite database and connection pooling
 to eliminate redundant table creation overhead across the test suite.
 """
+import os
 import sys
 from pathlib import Path
 
@@ -10,6 +11,13 @@ from pathlib import Path
 root_dir = Path(__file__).resolve().parent.parent
 if str(root_dir) not in sys.path:
     sys.path.insert(0, str(root_dir))
+
+# Mock default required settings for CI/testing environments without .env
+os.environ.setdefault("BOT_TOKEN", "123456789:ABCdefGHIjklMNOpqrsTUVwxyz")
+os.environ.setdefault("ADMIN_CHAT_ID", "-1001234567890")
+os.environ.setdefault("DATABASE_URL", "sqlite+aiosqlite:///:memory:")
+os.environ.setdefault("REMNAWAVE_BASE_URL", "https://mock-panel.local")
+os.environ.setdefault("REMNAWAVE_TOKEN", "mock_token")
 
 import pytest
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
