@@ -119,25 +119,50 @@ async def execute_purchase(
     chosen_account: dict | None = None,
     create_new: bool = False,
     discount_amount: int = 0,
+    coupon_code: str | None = None,
     bot: Any = None,
     session_factory: Any = None,
+    cache: Any = None,
 ) -> PurchaseResult:
-    """Buy a service with per-user anti-concurrency lock."""
+    """Buy a service with per-user anti-concurrency lock (distributed + in-process)."""
+    dist_lock = False
+    if cache:
+        try:
+            dist_lock = await cache.set(f"lock:purchase:{telegram_id}", "1", ttl_seconds=30, nx=True)
+            if not dist_lock:
+                return PurchaseResult(ok=False, kind="conflict")
+        except Exception:
+            dist_lock = False
+
     lock = _get_purchase_lock(telegram_id)
     if lock.locked():
+        if dist_lock and cache:
+            try:
+                await cache.delete(f"lock:purchase:{telegram_id}")
+            except Exception:
+                pass
         return PurchaseResult(ok=False, kind="conflict")
-    async with lock:
-        return await _execute_purchase_impl(
-            remnawave=remnawave,
-            session=session,
-            service=service,
-            telegram_id=telegram_id,
-            chosen_account=chosen_account,
-            create_new=create_new,
-            discount_amount=discount_amount,
-            bot=bot,
-            session_factory=session_factory,
-        )
+
+    try:
+        async with lock:
+            return await _execute_purchase_impl(
+                remnawave=remnawave,
+                session=session,
+                service=service,
+                telegram_id=telegram_id,
+                chosen_account=chosen_account,
+                create_new=create_new,
+                discount_amount=discount_amount,
+                coupon_code=coupon_code,
+                bot=bot,
+                session_factory=session_factory,
+            )
+    finally:
+        if dist_lock and cache:
+            try:
+                await cache.delete(f"lock:purchase:{telegram_id}")
+            except Exception:
+                pass
 
 
 async def _execute_purchase_impl(
@@ -148,6 +173,7 @@ async def _execute_purchase_impl(
     chosen_account: dict | None = None,
     create_new: bool = False,
     discount_amount: int = 0,
+    coupon_code: str | None = None,
     bot: Any = None,
     session_factory: Any = None,
 ) -> PurchaseResult:
@@ -213,6 +239,11 @@ async def _execute_purchase_impl(
     strategy = service.traffic_strategy or "NO_RESET"
     order_repo = OrderRepository(session)
 
+    # Generate username upfront for new users to eliminate crash window in reconcile
+    username = None
+    if account is None:
+        username = await _pick_username(remnawave, telegram_id)
+
     # 1) Commit a pending order BEFORE touching the panel. If the process
     #    dies mid-purchase, the reconcile job will find this committed row.
     pending = await order_repo.create(
@@ -223,11 +254,31 @@ async def _execute_purchase_impl(
         duration_days=service.duration_days,
         traffic_gb=service.traffic_gb,
         panel_user_id=int(account["id"]) if account is not None else None,
-        panel_username=account.get("username") if account else None,
+        panel_username=account.get("username") if account else username,
         subscription_url=None,
         status="pending",
+        is_renewal=(account is not None),
     )
     await session.commit()
+
+    # Atomic coupon reservation
+    from bot.db.repositories.coupon_repo import CouponRepository
+    coupon_repo = CouponRepository(session)
+    coupon_obj = None
+    claimed_usage = None
+    if coupon_code and discount_amount > 0:
+        coupon_obj = await coupon_repo.get_by_code(coupon_code)
+        if coupon_obj:
+            claimed_usage = await coupon_repo.record_usage(
+                coupon_obj.id,
+                telegram_id,
+                order_id=pending.id,
+                discount_applied=discount_amount,
+            )
+            if claimed_usage is None:
+                await order_repo.mark_failed(pending)
+                await session.commit()
+                return PurchaseResult(ok=False, kind="coupon_exhausted")
 
     if account is None:
         # Create a brand-new panel user (retry on global username collision).
@@ -248,6 +299,11 @@ async def _execute_purchase_impl(
             if user is not None:
                 break
         if user is None:
+            if claimed_usage and coupon_obj:
+                try:
+                    await coupon_repo.release_usage(coupon_obj.id, telegram_id, claimed_usage.id)
+                except Exception as c_err:
+                    logger.warning("Failed to release coupon usage: %s", c_err)
             await order_repo.mark_failed(pending)
             await session.commit()
             await _report_purchase_err("create_user_failed_4x", "Panel create_user failed 4 times")
@@ -262,6 +318,7 @@ async def _execute_purchase_impl(
             await session.commit()
     else:
         # Renew the existing account (+ reactivate if expiry job disabled it).
+        should_reset_traffic = False
         current_expire_str = account.get("expireAt")
         current_expire = _parse_expire(current_expire_str)
 
@@ -286,22 +343,16 @@ async def _execute_purchase_impl(
                     service.traffic_gb, int(account.get("trafficLimitBytes") or 0), strategy
                 )
             else:
-                # Already expired -> start fresh from today, reset used traffic
+                # Already expired -> start fresh from today, defer reset used traffic to Step 3
                 expire_iso = _iso(_expire_from(service.duration_days, base))
                 traffic = _traffic_bytes(service.traffic_gb, 0, strategy)
-                try:
-                    await remnawave.reset_user_traffic(int(account["id"]))
-                except Exception as exc:
-                    logger.exception("Failed to reset traffic on renewal for expired user %s: %s", account["id"], exc)
+                should_reset_traffic = True
         else:
-            # Periodic strategies (DAY, WEEK, MONTH): reset days from today & reset traffic to 0
+            # Periodic strategies (DAY, WEEK, MONTH): reset days from today, defer reset used traffic to Step 3
             base = now
             expire_iso = _iso(_expire_from(service.duration_days, base))
             traffic = _traffic_bytes(service.traffic_gb, 0, strategy)
-            try:
-                await remnawave.reset_user_traffic(int(account["id"]))
-            except Exception as exc:
-                logger.exception("Failed to reset traffic on renewal for panel user %s: %s", account["id"], exc)
+            should_reset_traffic = True
 
         user = await remnawave.update_user_subscription(
             int(account["id"]),
@@ -311,6 +362,11 @@ async def _execute_purchase_impl(
             status="ACTIVE",
         )
         if user is None:
+            if claimed_usage and coupon_obj:
+                try:
+                    await coupon_repo.release_usage(coupon_obj.id, telegram_id, claimed_usage.id)
+                except Exception as c_err:
+                    logger.warning("Failed to release coupon usage: %s", c_err)
             await order_repo.mark_failed(pending)
             await session.commit()
             await _report_purchase_err("renew_failed", f"Panel update_user_subscription failed for acc={account.get('id')}")
@@ -333,6 +389,12 @@ async def _execute_purchase_impl(
     new_balance = result.scalar_one_or_none()
     if new_balance is None:
         # Balance dropped mid-purchase (double-tap race).
+        if claimed_usage and coupon_obj:
+            try:
+                await coupon_repo.release_usage(coupon_obj.id, telegram_id, claimed_usage.id)
+            except Exception as c_err:
+                logger.warning("Failed to release coupon usage during compensation: %s", c_err)
+
         # Compensate: if a new user was created, delete it so no free service is given.
         if account is None and panel_user_id:
             try:
@@ -356,6 +418,12 @@ async def _execute_purchase_impl(
         return PurchaseResult(ok=False, kind="failed")
 
     # 3) Finalize the pending order as paid.
+    if account is not None and should_reset_traffic and panel_user_id:
+        try:
+            await remnawave.reset_user_traffic(int(panel_user_id))
+        except Exception as exc:
+            logger.exception("Failed to reset traffic after successful renewal for %s: %s", panel_user_id, exc)
+
     await order_repo.mark_paid(pending, panel_user_id, panel_username, subscription_url)
     await session.commit()
 
@@ -418,8 +486,16 @@ async def record_coupon_usage_if_any(
     order_id: int | None,
     discount_amount: int = 0,
 ) -> None:
-    """Record coupon usage in database if a valid coupon and order exist."""
+    """Record coupon usage in database if not already recorded."""
     if coupon_code and order_id:
+        from sqlalchemy import select
+
+        from bot.db.models import CouponUsage
+        existing = await session.execute(
+            select(CouponUsage).where(CouponUsage.order_id == order_id)
+        )
+        if existing.scalar_one_or_none():
+            return
         from bot.db.repositories.coupon_repo import CouponRepository
         c_repo = CouponRepository(session)
         cpn = await c_repo.get_by_code(coupon_code)

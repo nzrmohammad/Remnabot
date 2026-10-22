@@ -14,11 +14,23 @@ from bot.db.repositories.user_repo import UserRepository
 from bot.db.repositories.wallet_repo import WalletRepository
 from bot.handlers.shop_purchase_views import (
     ensure_can_buy as _ensure_can_buy,
+)
+from bot.handlers.shop_purchase_views import (
     extract_coupon_from_state as _extract_coupon_from_state,
+)
+from bot.handlers.shop_purchase_views import (
     finalize_purchase,
+)
+from bot.handlers.shop_purchase_views import (
     maybe_reward_referrer as _maybe_reward_referrer,
+)
+from bot.handlers.shop_purchase_views import (
     notify_admin as _notify_admin,
+)
+from bot.handlers.shop_purchase_views import (
     render_buy_confirm as _render_buy_confirm,
+)
+from bot.handlers.shop_purchase_views import (
     render_purchase_result as _render_purchase_result,
 )
 from bot.locales.texts import t
@@ -112,6 +124,7 @@ async def confirm_new_account(
         result = await execute_purchase(
             remnawave, session, service, user.telegram_id,
             create_new=True, discount_amount=discount_amount,
+            coupon_code=coupon_code,
             bot=bot,
         )
         await finalize_purchase(
@@ -278,6 +291,7 @@ async def service_confirm(
 
         result = await execute_purchase(
             remnawave, session, service, user.telegram_id, discount_amount=discount_amount,
+            coupon_code=coupon_code,
             bot=bot,
         )
 
@@ -315,3 +329,20 @@ async def service_confirm(
         await call.answer()
     finally:
         _PURCHASE_LOCKS.discard(call.from_user.id)
+
+__all__ = [
+    "_PURCHASE_LOCKS",
+    "_ensure_can_buy",
+    "_extract_coupon_from_state",
+    "_maybe_reward_referrer",
+    "_notify_admin",
+    "_render_buy_confirm",
+    "_render_purchase_result",
+    "buy_new_account",
+    "confirm_new_account",
+    "finalize_purchase",
+    "router",
+    "service_buy",
+    "service_confirm",
+    "service_view",
+]

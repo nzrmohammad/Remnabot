@@ -8,21 +8,20 @@ from aiogram.types import CallbackQuery
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from bot.common import parse_int
-from bot.db.repositories.coupon_repo import CouponRepository
 from bot.db.repositories.service_repo import ServiceRepository
 from bot.db.repositories.user_repo import UserRepository
 from bot.db.repositories.wallet_repo import WalletRepository
-from bot.locales.texts import t
-from bot.services.app_settings import is_maintenance
-from bot.services.purchases import execute_purchase
-from bot.services.remnawave import RemnawaveClient
-from bot.services.render import render_services
 from bot.handlers.shop_purchase import (
     _PURCHASE_LOCKS,
     _ensure_can_buy,
     _render_buy_confirm,
     finalize_purchase,
 )
+from bot.locales.texts import t
+from bot.services.app_settings import is_maintenance
+from bot.services.purchases import execute_purchase
+from bot.services.remnawave import RemnawaveClient
+from bot.services.render import render_services
 
 logger = logging.getLogger(__name__)
 router = Router(name="shop_renew")
@@ -168,6 +167,7 @@ async def confirm_for_account(
         result = await execute_purchase(
             remnawave, session, service, user.telegram_id,
             chosen_account=chosen, discount_amount=discount_amount,
+            coupon_code=coupon_code,
             bot=bot,
         )
         await finalize_purchase(
@@ -233,6 +233,7 @@ async def service_choose_account(
         result = await execute_purchase(
             remnawave, session, service, user.telegram_id,
             chosen_account=chosen, discount_amount=discount_amount,
+            coupon_code=coupon_code,
             bot=bot,
         )
         await finalize_purchase(

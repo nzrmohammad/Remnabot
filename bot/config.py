@@ -14,9 +14,9 @@ class Settings(BaseSettings):
     )
 
     # --- Telegram ---
-    BOT_TOKEN: str = ""
+    BOT_TOKEN: str
     ADMIN_IDS: list[int] = []          # e.g. [111,222] or "111, 222"
-    ADMIN_CHAT_ID: int = 0             # supergroup/channel that receives alerts
+    ADMIN_CHAT_ID: int                 # supergroup/channel that receives alerts
 
     # --- Admin Forum Topics (Optional, for Supergroups with topics enabled) ---
     ADMIN_TOPIC_TOPUPS: int | None = None   # Topic ID for receipts and top-ups
@@ -38,11 +38,11 @@ class Settings(BaseSettings):
     IRAN_PROXY: str = ""
 
     # --- Database ---
-    DATABASE_URL: str = "sqlite+aiosqlite:///:memory:"
+    DATABASE_URL: str                  # postgresql+asyncpg://user:pass@host:5432/dbname
 
     # --- Remnawave panel ---
-    REMNAWAVE_BASE_URL: str = ""       # e.g. https://panel.example.com
-    REMNAWAVE_TOKEN: str = ""          # API token created in the panel
+    REMNAWAVE_BASE_URL: str            # e.g. https://panel.example.com
+    REMNAWAVE_TOKEN: str               # API token created in the panel
 
     # --- Misc ---
     TIMEZONE: str = "Asia/Tehran"      # used for "today's usage" and report dates

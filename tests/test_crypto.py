@@ -4,9 +4,8 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from aiogram.types import CallbackQuery, Message, User
-from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from bot.db.models import Base
 from bot.db.repositories.crypto_repo import CryptoRepository
 from bot.db.repositories.user_repo import UserRepository
 from bot.db.repositories.wallet_repo import WalletRepository
@@ -21,12 +20,6 @@ from bot.services.crypto.ton import (
     _extract_comment,
     verify_and_process_payments,
 )
-
-
-@pytest.fixture
-async def async_session(session_factory):
-    async with session_factory() as session:
-        yield session
 
 
 @pytest.fixture
@@ -410,13 +403,13 @@ async def test_global_binance_fallback():
 
 @pytest.mark.anyio
 async def test_remind_and_grace_days_pickers(session_factory):
-    from bot.handlers.admin_ops import (
-        _render_remind_days_picker,
-        _render_grace_days_picker,
-        remind_days_toggle,
-        grace_days_set,
-    )
     from bot.db.repositories.app_setting_repo import AppSettingRepository
+    from bot.handlers.admin_ops import (
+        _render_grace_days_picker,
+        _render_remind_days_picker,
+        grace_days_set,
+        remind_days_toggle,
+    )
     from bot.services.app_settings import get_store_settings
 
     async with session_factory() as session:
@@ -489,8 +482,8 @@ async def test_remind_and_grace_days_pickers(session_factory):
 @pytest.mark.anyio
 async def test_card_enabled_toggle_and_wallet_guard(session_factory):
     from bot.handlers.admin_ops import setting_toggle_boolean
-    from bot.services.app_settings import get_store_settings
     from bot.handlers.wallet import topup_start
+    from bot.services.app_settings import get_store_settings
 
     async with session_factory() as session:
         user_repo = UserRepository(session)
@@ -615,7 +608,7 @@ async def test_ton_watcher_rejects_tx_replay_and_stale_utime(session_factory):
             "nanotons": 100000000,
             "comment": inv2.comment,
             "tx_hash": "tx_hash_2",
-            "utime": int(inv2.created_at.timestamp()) - 1000,  # 1000s in the past
+            "utime": int((inv2.created_at if inv2.created_at.tzinfo else inv2.created_at.replace(tzinfo=timezone.utc)).timestamp()) - 1000,  # 1000s in the past
         }
     ]
 
@@ -629,7 +622,7 @@ async def test_ton_watcher_rejects_tx_replay_and_stale_utime(session_factory):
             "nanotons": 100000000,
             "comment": inv2.comment,
             "tx_hash": "tx_hash_2",
-            "utime": int(inv2.created_at.timestamp()) + 10,
+            "utime": int((inv2.created_at if inv2.created_at.tzinfo else inv2.created_at.replace(tzinfo=timezone.utc)).timestamp()) + 10,
         }
     ]
 
@@ -717,6 +710,7 @@ def test_format_full_crypto_market_alert():
 async def test_send_rate_notification_deletes_previous_message(session_factory):
     """Verify send_rate_notification deletes previous rate message before sending a new one."""
     import json
+
     from bot.db.repositories.app_setting_repo import AppSettingRepository
     from bot.services.crypto.crypto_notifier import send_rate_notification
 

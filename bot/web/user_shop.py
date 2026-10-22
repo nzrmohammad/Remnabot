@@ -505,8 +505,10 @@ async def post_user_purchase(request: web.Request) -> web.Response:
             telegram_id=telegram_id,
             chosen_account=chosen_acc,
             discount_amount=discount_amount,
+            coupon_code=coupon_code,
             bot=bot,
             session_factory=session_factory,
+            cache=cache,
         )
 
         effective_price = max(0, service.price - discount_amount)
@@ -520,6 +522,18 @@ async def post_user_purchase(request: web.Request) -> web.Response:
                     "current": result.new_balance,
                     "message": "موجودی کیف پول شما کافی نیست.",
                 }, status=400)
+            elif result.kind == "coupon_exhausted":
+                return web.json_response({
+                    "ok": False,
+                    "error": "coupon_exhausted",
+                    "message": "کد تخفیف به حداکثر سقف مجاز استفاده رسیده است یا قبلاً استفاده شده است.",
+                }, status=400)
+            elif result.kind == "conflict":
+                return web.json_response({
+                    "ok": False,
+                    "error": "conflict",
+                    "message": "یک عملیات خرید برای این حساب در حال انجام است. لطفاً چند لحظه صبر کنید.",
+                }, status=409)
             elif result.kind == "maintenance":
                 return web.json_response({
                     "ok": False,
@@ -553,10 +567,6 @@ async def post_user_purchase(request: web.Request) -> web.Response:
                     pass
             return web.json_response({"ok": False, "message": "خطا در ارتباط با سرور پنل جهت فعال‌سازی سرویس."}, status=500)
 
-        if coupon_obj and result.order_id:
-            await coupon_repo.record_usage(
-                coupon_obj.id, telegram_id, order_id=result.order_id, discount_applied=discount_amount
-            )
         await session.commit()
 
         bot = request.app.get("bot")

@@ -1,21 +1,22 @@
 """Regression tests for audit findings and critical fixes.
 
 Covers:
-1. TMA Coupon rollback/safety on purchase failure.
-2. TON verification replay attack & clock skew protection.
-3. Purchase concurrency locking (double-tap protection).
-4. Purchase failure compensation (panel renewal state rollback).
-5. Reconcile auto-disabling uncharged panel accounts after crash.
-6. Database receipt_hash deduplication and unique index safety.
+1. Reconcile safety: NEVER disables existing renewal accounts, but disables new uncharged accounts.
+2. Reconcile crash window closure: disables new account by looking up panel_username if panel_user_id is None.
+3. Concurrent coupon overuse prevention: atomic reservation prevents overuse beyond max_uses.
+4. TMA Coupon rollback/safety on purchase failure.
+5. Purchase failure compensation (panel renewal state rollback & no premature traffic wipe).
+6. TON verification replay attack, atomic tx_hash index, and clock skew protection.
+7. Purchase concurrency locking (double-tap protection).
+8. Database receipt_hash deduplication and unique index safety.
 """
-import asyncio
 from datetime import datetime, timedelta, timezone
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from sqlalchemy import text
 
-from bot.db.models import Coupon, CryptoInvoice, Order, Service, Topup, User, Wallet
+from bot.db.models import Coupon, CryptoInvoice, Order, Service, User, Wallet
 from bot.db.repositories.crypto_repo import CryptoRepository
 from bot.db.repositories.order_repo import OrderRepository
 from bot.services.crypto.ton import verify_and_credit_ton_invoice
@@ -49,7 +50,7 @@ async def test_purchase_concurrency_lock_rejects_concurrent_requests():
 
 @pytest.mark.anyio
 async def test_renewal_balance_race_triggers_compensation():
-    """Verify that if balance deduction fails after renewal, compensation reverts panel changes."""
+    """Verify that if balance deduction fails after renewal, compensation reverts panel changes and traffic is NOT prematurely reset."""
     remnawave = MagicMock()
     tid = 11223344
 
@@ -62,6 +63,7 @@ async def test_renewal_balance_race_triggers_compensation():
     }
     remnawave.get_users_by_telegram_id = AsyncMock(return_value=[existing_account])
     remnawave.update_user_subscription = AsyncMock(return_value={"id": 55, "username": "user_55"})
+    remnawave.reset_user_traffic = AsyncMock()
 
     service = MagicMock()
     service.id = 2
@@ -87,7 +89,7 @@ async def test_renewal_balance_race_triggers_compensation():
 
         mock_repo_inst = MagicMock()
         mock_order_repo.return_value = mock_repo_inst
-        mock_repo_inst.create = AsyncMock(return_value=MagicMock())
+        mock_repo_inst.create = AsyncMock(return_value=MagicMock(id=1))
         mock_repo_inst.mark_failed = AsyncMock()
 
         res = await execute_purchase(remnawave, session, service, tid)
@@ -104,24 +106,38 @@ async def test_renewal_balance_race_triggers_compensation():
         assert revert_call[0][2] == 10 * 1024**3
         mock_repo_inst.mark_failed.assert_awaited_once()
 
+        # Traffic must NEVER have been reset because deduction failed
+        remnawave.reset_user_traffic.assert_not_called()
+
 
 @pytest.mark.anyio
-async def test_reconcile_disables_stale_pending_panel_accounts(session_factory):
-    """Verify that run_reconcile marks stale orders failed and disables panel accounts via remnawave."""
+async def test_reconcile_only_disables_new_accounts_not_renewals(session_factory):
+    """Verify that run_reconcile disables new uncharged accounts, but NEVER touches existing renewal accounts."""
     tid = 55667788
     async with session_factory() as session:
         user = User(telegram_id=tid, username="stale_user", full_name="Stale")
         session.add(user)
-        # Create a stale order older than 20 minutes
-        stale_order = Order(
+        # Order 1: Brand new account that crashed mid-purchase
+        new_stale_order = Order(
             telegram_id=tid,
-            service_name="Stale Plan",
+            service_name="New Plan",
             amount=50000,
             status="pending",
             panel_user_id=999,
+            is_renewal=False,
             created_at=datetime.now(timezone.utc) - timedelta(minutes=25),
         )
-        session.add(stale_order)
+        # Order 2: Existing paying customer renewal that crashed mid-purchase
+        renewal_stale_order = Order(
+            telegram_id=tid,
+            service_name="Renewal Plan",
+            amount=50000,
+            status="pending",
+            panel_user_id=888,
+            is_renewal=True,
+            created_at=datetime.now(timezone.utc) - timedelta(minutes=25),
+        )
+        session.add_all([new_stale_order, renewal_stale_order])
         await session.commit()
 
     remnawave = MagicMock()
@@ -130,15 +146,91 @@ async def test_reconcile_disables_stale_pending_panel_accounts(session_factory):
     bot.send_message = AsyncMock()
 
     closed = await run_reconcile(bot, session_factory, remnawave=remnawave)
-    assert closed == 1
+    assert closed == 2
 
-    remnawave.set_user_status.assert_awaited_once_with(999, "DISABLED")
+    # CRITICAL: set_user_status must be called ONLY once for 999 (new account), NOT for 888 (renewal)!
+    remnawave.set_user_status.assert_called_once_with(999, "DISABLED")
 
     async with session_factory() as session:
         repo = OrderRepository(session)
         orders = await repo.list_for_user(tid)
-        assert len(orders) == 1
-        assert orders[0].status == "failed"
+        assert len(orders) == 2
+        assert all(o.status == "failed" for o in orders)
+
+
+@pytest.mark.anyio
+async def test_reconcile_looks_up_username_when_panel_user_id_is_none(session_factory):
+    """Verify that if process crashed before panel_user_id commit, reconcile looks up panel_username to disable."""
+    tid = 66778899
+    username = f"u{tid}_abcd"
+    async with session_factory() as session:
+        user = User(telegram_id=tid, username="crash_user", full_name="Crash")
+        session.add(user)
+        stale_order = Order(
+            telegram_id=tid,
+            service_name="Crash Plan",
+            amount=50000,
+            status="pending",
+            panel_user_id=None,  # Not saved yet before crash
+            panel_username=username,  # Saved upfront
+            is_renewal=False,
+            created_at=datetime.now(timezone.utc) - timedelta(minutes=25),
+        )
+        session.add(stale_order)
+        await session.commit()
+
+    remnawave = MagicMock()
+    remnawave.get_user_by_username = AsyncMock(return_value={"id": 777, "username": username})
+    remnawave.set_user_status = AsyncMock(return_value={"id": 777, "status": "DISABLED"})
+    bot = MagicMock()
+    bot.send_message = AsyncMock()
+
+    closed = await run_reconcile(bot, session_factory, remnawave=remnawave)
+    assert closed == 1
+
+    remnawave.get_user_by_username.assert_awaited_once_with(username)
+    remnawave.set_user_status.assert_awaited_once_with(777, "DISABLED")
+
+
+@pytest.mark.anyio
+async def test_concurrent_coupon_reservation_prevents_overuse(session_factory):
+    """Verify that when two users attempt to use a single-use coupon concurrently, only one gets the discount."""
+    async with session_factory() as session:
+        u1 = User(telegram_id=111, username="u1", full_name="U1")
+        u2 = User(telegram_id=222, username="u2", full_name="U2")
+        w1 = Wallet(telegram_id=111, balance=50000)
+        w2 = Wallet(telegram_id=222, balance=50000)
+        svc = Service(id=10, name="Limited Svc", price=40000, duration_days=30, traffic_gb=10, is_active=True)
+        # Coupon strictly limited to 1 total use
+        cpn = Coupon(code="SINGLE_USE", discount_amount=10000, max_uses=1, is_active=True, used_count=0)
+        session.add_all([u1, u2, w1, w2, svc, cpn])
+        await session.commit()
+
+    remnawave = MagicMock()
+    remnawave.create_user = AsyncMock(return_value={"id": 1, "username": "u1", "subscriptionUrl": "http://sub"})
+    remnawave.get_users_by_telegram_id = AsyncMock(return_value=[])
+
+    with patch("bot.services.app_settings.is_maintenance", AsyncMock(return_value=False)), \
+         patch("bot.services.purchases.get_store_settings", AsyncMock(return_value=MagicMock(default_squad_uuid=None))):
+
+        # User 1 claims the coupon
+        async with session_factory() as s1:
+            res1 = await execute_purchase(
+                remnawave, s1, svc, 111,
+                discount_amount=10000,
+                coupon_code="SINGLE_USE",
+            )
+            assert res1.ok is True
+
+        # User 2 tries to claim the same coupon concurrently
+        async with session_factory() as s2:
+            res2 = await execute_purchase(
+                remnawave, s2, svc, 222,
+                discount_amount=10000,
+                coupon_code="SINGLE_USE",
+            )
+            assert res2.ok is False
+            assert res2.kind == "coupon_exhausted"
 
 
 @pytest.mark.anyio
@@ -264,8 +356,9 @@ async def test_topups_receipt_hash_deduplication_migration():
 @pytest.mark.anyio
 async def test_coupon_not_consumed_on_purchase_failure(session_factory):
     """Verify that in TMA shop, if purchase execution fails, coupon usage is NOT recorded."""
-    from bot.web.user_shop import post_user_purchase
     from aiohttp.test_utils import make_mocked_request
+
+    from bot.web.user_shop import post_user_purchase
 
     tid = 776655
     async with session_factory() as session:

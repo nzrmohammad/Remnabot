@@ -1,4 +1,5 @@
 from bot.web.user_common import db_session, require_user
+
 """TMA User Wallet and Top-up API endpoints."""
 import hashlib
 import logging
@@ -32,8 +33,8 @@ async def get_user_topup_info(request: web.Request) -> web.Response:
         if cached_data is not None:
             return web.json_response(cached_data)
 
-    from bot.services.app_settings import get_store_settings
     from bot.db.repositories.user_repo import UserRepository
+    from bot.services.app_settings import get_store_settings
 
     async with db_session(request) as session:
         store = await get_store_settings(session)
@@ -188,8 +189,8 @@ async def post_user_topup_card(request: web.Request) -> web.Response:
         topup = await wallet_repo.create_topup(telegram_id, amount, receipt_hash)
 
         if img_bytes:
-            from pathlib import Path
             import asyncio
+            from pathlib import Path
             receipt_dir = Path("data/receipts")
             receipt_dir.mkdir(parents=True, exist_ok=True)
             local_file = receipt_dir / f"receipt_{topup.id}.jpg"
@@ -363,7 +364,7 @@ async def post_user_topup_crypto_check(request: web.Request) -> web.Response:
         store = await get_store_settings(session)
         txs = await fetch_ton_transactions(store.ton_wallet_address)
         from bot.services.crypto.ton import verify_and_credit_ton_invoice
-        matched, new_bal, _ = await verify_and_credit_ton_invoice(session, inv, txs, allow_expired=True)
+        matched, new_bal, _ = await verify_and_credit_ton_invoice(session, inv, txs, allow_expired=True, bot=request.app.get("bot"))
         if matched:
             await session.commit()
             await cache.delete(f"tma:user:{telegram_id}:dashboard")

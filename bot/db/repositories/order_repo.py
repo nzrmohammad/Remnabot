@@ -46,6 +46,7 @@ class OrderRepository:
         panel_username: str | None,
         subscription_url: str | None,
         status: str = "paid",
+        is_renewal: bool = False,
     ) -> Order:
         order = Order(
             telegram_id=telegram_id,
@@ -58,6 +59,7 @@ class OrderRepository:
             panel_username=panel_username,
             subscription_url=subscription_url,
             status=status,
+            is_renewal=is_renewal,
         )
         self.session.add(order)
         await self.session.flush()

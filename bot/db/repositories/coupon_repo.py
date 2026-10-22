@@ -2,12 +2,11 @@
 import logging
 from datetime import datetime, timezone
 
-from sqlalchemy import func, or_, select, text, update
+from sqlalchemy import delete, func, or_, select, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from bot.db.models import Coupon, CouponUsage
-
 
 logger = logging.getLogger(__name__)
 
@@ -146,6 +145,30 @@ class CouponRepository:
             )
             return None
         return usage
+
+    async def release_usage(
+        self,
+        coupon_id: int,
+        telegram_id: int,
+        usage_id: int | None = None,
+    ) -> None:
+        """Release a previously recorded coupon usage on purchase failure."""
+        await self.session.execute(
+            update(Coupon)
+            .where(Coupon.id == coupon_id, Coupon.used_count > 0)
+            .values(used_count=Coupon.used_count - 1)
+        )
+        if usage_id:
+            await self.session.execute(
+                delete(CouponUsage).where(CouponUsage.id == usage_id)
+            )
+        else:
+            await self.session.execute(
+                delete(CouponUsage).where(
+                    CouponUsage.coupon_id == coupon_id,
+                    CouponUsage.telegram_id == telegram_id,
+                )
+            )
 
     async def get_usages(self, coupon_id: int) -> list[CouponUsage]:
         """List all usages of a coupon ordered by most recent."""

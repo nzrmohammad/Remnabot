@@ -74,6 +74,24 @@ async def support_forward(
     lang = user.language
     settings = get_settings()
 
+    # Rate limiting: max 5 support messages per minute to prevent flood
+    redis = getattr(state.storage, "redis", None)
+    if redis:
+        try:
+            rate_key = f"support:rate:{message.from_user.id}"
+            cnt = await redis.incr(rate_key)
+            if cnt == 1:
+                await redis.expire(rate_key, 60)
+            elif cnt > 5:
+                await message.reply(
+                    "⚠️ شما پیام‌های زیادی ارسال کرده‌اید. لطفاً ۱ دقیقه صبر کنید."
+                    if lang == "fa"
+                    else "⚠️ You have sent too many messages. Please wait 1 minute."
+                )
+                return
+        except Exception:
+            pass
+
     sent_to_admin = False
     store = await get_store_settings(user_repo.session)
     thread_kwargs = admin_thread_kwargs(store, settings, kind="support")
@@ -110,8 +128,7 @@ async def support_forward(
             redis = getattr(state.storage, "redis", None)
             if redis:
                 import json
-                import time
-                from datetime import datetime
+
                 from bot.services.formatting import now_tz
                 msg_time = now_tz("Asia/Tehran")
                 user_msg = {
@@ -207,8 +224,7 @@ async def admin_support_reply(
             redis = getattr(state.storage, "redis", None)
             if redis and message.text:
                 import json
-                import time
-                from datetime import datetime
+
                 from bot.services.formatting import now_tz
                 msg_time = now_tz("Asia/Tehran")
                 admin_msg = {

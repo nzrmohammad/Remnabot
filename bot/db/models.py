@@ -6,7 +6,6 @@ from sqlalchemy import (
     Boolean,
     CheckConstraint,
     DateTime,
-    Enum as SA_Enum,
     Float,
     ForeignKey,
     Index,
@@ -16,18 +15,21 @@ from sqlalchemy import (
     UniqueConstraint,
     func,
 )
+from sqlalchemy import (
+    Enum as SA_Enum,
+)
 from sqlalchemy.orm import Mapped, mapped_column
 
 from bot.db.base import Base
 
 
-class TopupStatus(str, enum.Enum):
+class TopupStatus(enum.StrEnum):
     PENDING = "pending"
     APPROVED = "approved"
     REJECTED = "rejected"
 
 
-class OrderStatus(str, enum.Enum):
+class OrderStatus(enum.StrEnum):
     PAID = "paid"
     REFUNDED = "refunded"
     PENDING = "pending"
@@ -66,7 +68,7 @@ class User(Base):
     )
 
     # Phone number (if verified/entered by user)
-    phone_number: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    phone_number: Mapped[str | None] = mapped_column(String(32), nullable=True, unique=True, index=True)
 
     # Birth date (YYYY/MM/DD or user-specified date string)
     birth_date: Mapped[str | None] = mapped_column(String(32), nullable=True)
@@ -222,6 +224,7 @@ class Order(Base):
     refunded_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
+    is_renewal: Mapped[bool] = mapped_column(Boolean, default=False, server_default='0')
 
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
@@ -444,7 +447,7 @@ class CryptoInvoice(Base):
     comment: Mapped[str] = mapped_column(String(32), unique=True, index=True)
     pay_address: Mapped[str] = mapped_column(String(128))
     status: Mapped[str] = mapped_column(String(16), default="pending", index=True)  # pending / paid / expired / cancelled
-    tx_hash: Mapped[str | None] = mapped_column(String(128), nullable=True, index=True)
+    tx_hash: Mapped[str | None] = mapped_column(String(128), nullable=True, unique=True, index=True)
 
     expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
     created_at: Mapped[datetime] = mapped_column(

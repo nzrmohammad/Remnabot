@@ -1,6 +1,8 @@
 from bot.web.user_common import db_session, require_user
+
 """TMA User Nodes, IP telemetry, Settings, and Avatar endpoints."""
 import logging
+
 from aiohttp import web
 
 from bot.db.repositories.user_repo import UserRepository
@@ -75,8 +77,8 @@ async def post_user_settings(request: web.Request) -> web.Response:
 
     cache: FastCache = request.app["cache"]
 
-    from bot.db.repositories.report_repo import ReportRepository
     from bot.db.repositories.alert_repo import AlertRepository
+    from bot.db.repositories.report_repo import ReportRepository
 
     async with db_session(request) as session:
         user_repo = UserRepository(session)
@@ -195,6 +197,8 @@ async def get_user_avatar(request: web.Request) -> web.Response:
     cache_key = f"tma:avatar:{telegram_id}" if telegram_id else f"tma:avatar:url:{hash(fallback_url)}"
     if cache:
         cached_bytes = await cache.get(cache_key)
+        if cached_bytes == b"EMPTY":
+            return web.Response(status=404, headers={"Cache-Control": "public, max-age=86400"})
         if cached_bytes and isinstance(cached_bytes, (bytes, bytearray)):
             return web.Response(
                 body=cached_bytes,
@@ -226,6 +230,9 @@ async def get_user_avatar(request: web.Request) -> web.Response:
                         )
             else:
                 logger.info("User %s has no public Telegram avatar photos (total_count=0)", telegram_id)
+                if cache:
+                    await cache.set(cache_key, b"EMPTY", ttl_seconds=86400)
+                return web.Response(status=404, headers={"Cache-Control": "public, max-age=86400"})
         except Exception as exc:
             logger.warning("Failed to fetch avatar for %s via bot: %s", telegram_id, exc)
 

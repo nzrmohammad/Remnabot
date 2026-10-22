@@ -20,11 +20,14 @@ from bot.middlewares.ban_check import BanCheckMiddleware
 from bot.middlewares.db import DbSessionMiddleware
 from bot.middlewares.rate_limit import RateLimitMiddleware
 from bot.services.alerts import alerts_loop
+from bot.services.auto_renew import auto_renew_sweep_loop
 from bot.services.backup import auto_backup_loop
+from bot.services.birthday import birthday_sweep_loop
 from bot.services.crypto.nobitex import nobitex_rate_loop
 from bot.services.crypto.ton import ton_watcher_loop
 from bot.services.devices import devices_loop
 from bot.services.expiry import expiry_loop
+from bot.services.node_monitor import nodes_monitor_loop
 from bot.services.reconcile import reconcile_loop
 from bot.services.remnawave import RemnawaveClient
 from bot.services.reports import (
@@ -33,11 +36,8 @@ from bot.services.reports import (
     weekly_report_loop,
     wheel_reminder_loop,
 )
-from bot.services.node_monitor import nodes_monitor_loop
-from bot.services.traffic_monitor import traffic_monitor_loop
 from bot.services.retention import retention_loop
-from bot.services.birthday import birthday_sweep_loop
-from bot.services.auto_renew import auto_renew_sweep_loop
+from bot.services.traffic_monitor import traffic_monitor_loop
 from bot.web.cache import FastCache
 
 logging.basicConfig(
@@ -330,14 +330,34 @@ async def _migrate_schema(engine: AsyncEngine) -> None:
                     text("ALTER TABLE users ADD COLUMN full_name VARCHAR(128)")
                 )
                 logger.info("added users.full_name")
+            if "phone_number" in cols:
+                try:
+                    async with conn.begin_nested():
+                        await conn.execute(
+                            text("CREATE UNIQUE INDEX IF NOT EXISTS uq_users_phone_number ON users (phone_number) WHERE phone_number IS NOT NULL")
+                        )
+                except Exception as exc:
+                    logger.debug("Unique index on users.phone_number check: %s", exc)
+
+        # --- orders: is_renewal column ----------------------------------------- #
+        cols = await _table_columns(conn, "orders")
+        if cols and "is_renewal" not in cols:
+            await conn.execute(
+                text("ALTER TABLE orders ADD COLUMN is_renewal BOOLEAN DEFAULT FALSE")
+            )
+            logger.info("added orders.is_renewal")
 
         # --- crypto_invoices: tx_hash index ------------------------------------ #
         cols = await _table_columns(conn, "crypto_invoices")
         if cols and "tx_hash" in cols:
-            await conn.execute(
-                text("CREATE INDEX IF NOT EXISTS ix_crypto_invoices_tx_hash ON crypto_invoices (tx_hash)")
-            )
-            logger.info("ensured ix_crypto_invoices_tx_hash index")
+            try:
+                async with conn.begin_nested():
+                    await conn.execute(
+                        text("CREATE UNIQUE INDEX IF NOT EXISTS uq_crypto_invoices_tx_hash ON crypto_invoices (tx_hash) WHERE tx_hash IS NOT NULL")
+                    )
+                logger.info("ensured uq_crypto_invoices_tx_hash unique index")
+            except Exception as exc:
+                logger.debug("Unique index on crypto_invoices.tx_hash check: %s", exc)
 
         # --- node_costs: currency column --------------------------------------- #
         cols = await _table_columns(conn, "node_costs")

@@ -266,6 +266,28 @@ async def _render_purchase_result(
             else "⚠️ <b>No active subscription found!</b>\n\nAdd-on packages can only be applied to active services."
         )
         await render_menu(bot, user, user_repo, msg, kb.as_markup())
+    elif result.kind == "coupon_exhausted":
+        kb = InlineKeyboardBuilder()
+        kb.button(text=t(lang, "btn_back"), callback_data="menu:services")
+        kb.adjust(1)
+        msg = (
+            "⚠️ <b>کد تخفیف منقضی یا تکمیل شد!</b>\n\n"
+            "کد تخفیف مورد نظر به حداکثر سقف مجاز استفاده رسیده است یا قبلاً توسط شما استفاده شده است."
+            if lang == "fa"
+            else "⚠️ <b>Coupon exhausted!</b>\n\nThis coupon has reached its maximum usage limit or was already used."
+        )
+        await render_menu(bot, user, user_repo, msg, kb.as_markup())
+    elif result.kind == "conflict":
+        kb = InlineKeyboardBuilder()
+        kb.button(text=t(lang, "btn_back"), callback_data="menu:services")
+        kb.adjust(1)
+        msg = (
+            "⚠️ <b>درخواست همزمان!</b>\n\n"
+            "یک عملیات خرید برای این حساب در حال انجام است. لطفاً چند لحظه صبر کنید."
+            if lang == "fa"
+            else "⚠️ <b>Concurrent request!</b>\n\nA purchase request is already being processed for this account."
+        )
+        await render_menu(bot, user, user_repo, msg, kb.as_markup())
     else:  # failed
         kb = InlineKeyboardBuilder()
         kb.button(text=t(lang, "btn_back"), callback_data="menu:services")

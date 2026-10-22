@@ -114,7 +114,7 @@ async def ton_invoice_check(
     store = await get_store_settings(session)
     txs = await fetch_ton_transactions(store.ton_wallet_address)
     from bot.services.crypto.ton import verify_and_credit_ton_invoice
-    matched, new_bal, _ = await verify_and_credit_ton_invoice(session, inv, txs, allow_expired=False)
+    matched, new_bal, _ = await verify_and_credit_ton_invoice(session, inv, txs, allow_expired=False, bot=bot)
     if matched:
         await session.commit()
         user = await user_repo.get_or_create(call.from_user.id, call.from_user.username)

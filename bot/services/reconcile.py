@@ -37,20 +37,31 @@ async def run_reconcile(
         for order in stale:
             await repo.mark_failed(order)
             closed += 1
-            if remnawave and order.panel_user_id:
-                try:
-                    await remnawave.set_user_status(int(order.panel_user_id), "DISABLED")
-                    logger.warning(
-                        "Reconcile disabled uncharged panel user %s for order %s",
-                        order.panel_user_id,
-                        order.id,
-                    )
-                except Exception as p_err:
-                    logger.error(
-                        "Reconcile could not disable panel user %s: %s",
-                        order.panel_user_id,
-                        p_err,
-                    )
+            # CRITICAL: Only disable newly created uncharged accounts, NEVER existing renewals!
+            if remnawave and not getattr(order, "is_renewal", False):
+                user_id_to_disable = order.panel_user_id
+                if not user_id_to_disable and order.panel_username:
+                    try:
+                        p_user = await remnawave.get_user_by_username(order.panel_username)
+                        if p_user and p_user.get("id"):
+                            user_id_to_disable = int(p_user["id"])
+                    except Exception as u_err:
+                        logger.error("Reconcile could not lookup user by username %s: %s", order.panel_username, u_err)
+
+                if user_id_to_disable:
+                    try:
+                        await remnawave.set_user_status(int(user_id_to_disable), "DISABLED")
+                        logger.warning(
+                            "Reconcile disabled uncharged new panel user %s for order %s",
+                            user_id_to_disable,
+                            order.id,
+                        )
+                    except Exception as p_err:
+                        logger.error(
+                            "Reconcile could not disable panel user %s: %s",
+                            user_id_to_disable,
+                            p_err,
+                        )
         await session.commit()
 
     if closed:

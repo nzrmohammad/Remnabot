@@ -14,6 +14,15 @@ class Base(DeclarativeBase):
 
 
 def create_engine_and_sessionmaker():
-    engine = create_async_engine(get_settings().DATABASE_URL, echo=False, pool_pre_ping=True)
+    db_url = get_settings().DATABASE_URL
+    kwargs = {"echo": False, "pool_pre_ping": True}
+    if "sqlite" not in db_url:
+        kwargs.update({
+            "pool_size": 20,
+            "max_overflow": 10,
+            "pool_timeout": 30,
+            "pool_recycle": 1800,
+        })
+    engine = create_async_engine(db_url, **kwargs)
     session_factory = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
     return engine, session_factory

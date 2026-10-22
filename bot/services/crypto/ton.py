@@ -3,7 +3,6 @@ import asyncio
 import base64
 import logging
 from datetime import datetime, timedelta, timezone
-
 from typing import Any
 
 import aiohttp
@@ -90,6 +89,7 @@ async def verify_and_credit_ton_invoice(
     inv: Any,
     txs: list[dict],
     allow_expired: bool = True,
+    bot: Any = None,
 ) -> tuple[bool, int, str]:
     """Verify on-chain transactions for an invoice, check timing & prevent replay (SSOT).
 
@@ -128,7 +128,23 @@ async def verify_and_credit_ton_invoice(
         if not paid_inv:
             continue
 
-        new_bal = await wallet_repo.add_balance_atomic(inv.telegram_id, inv.amount_toman)
+        try:
+            new_bal = await wallet_repo.add_balance_atomic(inv.telegram_id, inv.amount_toman)
+        except Exception as exc:
+            logger.error("Failed to credit wallet for TON invoice %s: %s", inv.id, exc, exc_info=True)
+            if bot:
+                try:
+                    from bot.services.error_reporter import report_error
+                    await report_error(
+                        bot,
+                        session=session,
+                        exc=exc,
+                        context=f"Failed to credit wallet for TON invoice #{inv.id} amount={inv.amount_toman}",
+                        user_id=inv.telegram_id,
+                    )
+                except Exception:
+                    pass
+            raise
         return True, new_bal, tx_hash
 
     return False, 0, ""
@@ -178,41 +194,18 @@ async def verify_and_process_payments(bot: Any, session_factory: Any) -> int:
 
     async with session_factory() as session:
         crypto_repo = CryptoRepository(session)
-        wallet_repo = WalletRepository(session)
         user_repo = UserRepository(session)
         store = await get_store_settings(session)
 
         for inv in active_invoices:
-            # Look for matching transaction
-            matching_tx = None
-            inv_created_ts = int(inv.created_at.timestamp()) if inv.created_at else 0
-            for tx in transactions:
-                if tx["comment"] != inv.comment or tx["nanotons"] < inv.nanotons:
-                    continue
-                # Timing check: transaction utime must not be before invoice creation (allow 60s clock skew)
-                if inv_created_ts and tx.get("utime", 0) and tx["utime"] < (inv_created_ts - 60):
-                    continue
-                matching_tx = tx
-                break
-
-            if matching_tx:
-                tx_hash = matching_tx.get("tx_hash") or ""
-                # Prevent transaction replay: verify tx_hash has not been used by another invoice
-                if tx_hash:
-                    existing_tx_inv = await crypto_repo.get_by_tx_hash(tx_hash)
-                    if existing_tx_inv and existing_tx_inv.id != inv.id:
-                        logger.warning(
-                            "TON tx_hash %s already claimed by invoice %s, rejecting replay for invoice %s",
-                            tx_hash, existing_tx_inv.id, inv.id,
-                        )
-                        continue
-
-                paid_inv = await crypto_repo.mark_paid(inv.id, tx_hash, allow_expired=True)
-                if not paid_inv:
-                    continue
-
-                # Credit user wallet
-                new_balance = await wallet_repo.add_balance_atomic(inv.telegram_id, inv.amount_toman)
+            matched, new_balance, tx_hash = await verify_and_credit_ton_invoice(
+                session=session,
+                inv=inv,
+                txs=transactions,
+                allow_expired=True,
+                bot=bot,
+            )
+            if matched:
                 processed_count += 1
 
                 # Send user notification
