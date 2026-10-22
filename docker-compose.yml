@@ -22,6 +22,8 @@ services:
     command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-remnabot_redis_secret}
     volumes:
       - redisdata:/data
+    networks:
+      - default
 
   bot:
     build: .
@@ -39,6 +41,9 @@ services:
       - "${WEB_BIND_IP:-127.0.0.1}:${WEB_PORT:-8080}:8080"
     extra_hosts:
       - "host.docker.internal:host-gateway"
+    networks:
+      - default
+      - remnawave-network
     depends_on:
       db:
         condition: service_healthy
@@ -50,3 +55,9 @@ volumes:
   redisdata:
   botbackups:
   botdata:
+
+networks:
+  default:
+  remnawave-network:
+    name: ${REMNAWAVE_DOCKER_NETWORK:-remnawave-network}
+    external: true

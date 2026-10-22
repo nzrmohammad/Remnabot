@@ -334,10 +334,13 @@ Add the upstream and server block to your Nginx configuration (e.g. `/etc/nginx/
 ```nginx
 # --- Remnabot Web Upstream ---
 upstream remnabot {
-    # When Nginx runs inside Docker (e.g. remnawave-nginx container):
-    server host.docker.internal:8080;
+    # 1. Recommended (Zero-Exposure): Direct internal Docker network connection
+    server remnawave-bot:8080;
     
-    # Alternatively, if Nginx is installed directly on the Host OS:
+    # 2. Alternative (via host gateway; requires WEB_BIND_IP=0.0.0.0 in .env):
+    # server host.docker.internal:8080;
+    
+    # 3. If Nginx is installed directly on Host OS (outside Docker):
     # server 127.0.0.1:8080;
 
     keepalive 32;
@@ -377,12 +380,12 @@ server {
 }
 ```
 
-> [!WARNING]
-> **Diagnosing & Resolving 502 Bad Gateway:**
-> - **Issue**: You test `curl -I http://127.0.0.1:8080` on the server and get `HTTP 200 OK`, but visiting `https://app.cloudvibe.ir` returns **502 Bad Gateway**.
-> - **Cause**: If Nginx is running in a Docker container (e.g. `remnawave-nginx`) and proxies to `host.docker.internal:8080`, requests enter the host through the Docker bridge interface (`172.17.0.1`). If the bot is only bound to `127.0.0.1` (loopback), the Linux kernel drops the connection.
-> - **Solution**: Ensure `WEB_BIND_IP=0.0.0.0` is set in `remnawave-bot/.env`, then run `docker compose up -d bot`.
-> - **Docker Network Best Practice**: Alternatively, attach `remnawave-bot` and `remnawave-nginx` to the same Docker network (e.g. `remnawave_default`) and set upstream to `server remnawave-bot:8080;`. This avoids exposing port 8080 on the host entirely.
+> [!TIP]
+> **Zero-Exposure Direct Container Networking (Recommended):**
+> Remnabot's `docker-compose.yml` automatically connects the bot to `remnawave-network`.
+> In your Nginx upstream, setting `server remnawave-bot:8080;` routes traffic entirely over Docker's internal virtual bridge with zero port exposure on the public host, completely preventing 502 Bad Gateway!
+> 
+> *If you instead use `host.docker.internal:8080`, ensure `WEB_BIND_IP=0.0.0.0` is set in `remnawave-bot/.env`.*
 
 ---
 
