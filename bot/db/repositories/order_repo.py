@@ -47,6 +47,7 @@ class OrderRepository:
         subscription_url: str | None,
         status: str = "paid",
         is_renewal: bool = False,
+        snapshot_data: str | None = None,
     ) -> Order:
         order = Order(
             telegram_id=telegram_id,
@@ -60,6 +61,7 @@ class OrderRepository:
             subscription_url=subscription_url,
             status=status,
             is_renewal=is_renewal,
+            snapshot_data=snapshot_data,
         )
         self.session.add(order)
         await self.session.flush()

@@ -339,13 +339,18 @@ async def _migrate_schema(engine: AsyncEngine) -> None:
                 except Exception as exc:
                     logger.debug("Unique index on users.phone_number check: %s", exc)
 
-        # --- orders: is_renewal column ----------------------------------------- #
+        # --- orders: is_renewal and snapshot_data columns ----------------------- #
         cols = await _table_columns(conn, "orders")
         if cols and "is_renewal" not in cols:
             await conn.execute(
                 text("ALTER TABLE orders ADD COLUMN is_renewal BOOLEAN DEFAULT FALSE")
             )
             logger.info("added orders.is_renewal")
+        if cols and "snapshot_data" not in cols:
+            await conn.execute(
+                text("ALTER TABLE orders ADD COLUMN snapshot_data TEXT")
+            )
+            logger.info("added orders.snapshot_data")
 
         # --- crypto_invoices: tx_hash index ------------------------------------ #
         cols = await _table_columns(conn, "crypto_invoices")

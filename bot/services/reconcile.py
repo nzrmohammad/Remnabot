@@ -37,31 +37,58 @@ async def run_reconcile(
         for order in stale:
             await repo.mark_failed(order)
             closed += 1
-            # CRITICAL: Only disable newly created uncharged accounts, NEVER existing renewals!
-            if remnawave and not getattr(order, "is_renewal", False):
-                user_id_to_disable = order.panel_user_id
-                if not user_id_to_disable and order.panel_username:
-                    try:
-                        p_user = await remnawave.get_user_by_username(order.panel_username)
-                        if p_user and p_user.get("id"):
-                            user_id_to_disable = int(p_user["id"])
-                    except Exception as u_err:
-                        logger.error("Reconcile could not lookup user by username %s: %s", order.panel_username, u_err)
+            if remnawave:
+                if getattr(order, "is_renewal", False):
+                    # Renewal compensation: revert panel account back to pre-purchase snapshot
+                    if order.panel_user_id and getattr(order, "snapshot_data", None):
+                        try:
+                            import json
+                            snap = json.loads(order.snapshot_data)
+                            orig_expire = snap.get("expireAt")
+                            orig_traffic = snap.get("trafficLimitBytes")
+                            orig_status = snap.get("status") or "ACTIVE"
+                            await remnawave.update_user_subscription(
+                                int(order.panel_user_id),
+                                orig_expire,
+                                int(orig_traffic) if orig_traffic is not None else 0,
+                                status=orig_status,
+                            )
+                            logger.warning(
+                                "Reconcile reverted uncharged renewal order %s for panel user %s to original state",
+                                order.id,
+                                order.panel_user_id,
+                            )
+                        except Exception as r_err:
+                            logger.error(
+                                "Reconcile failed to revert renewal for user %s: %s",
+                                order.panel_user_id,
+                                r_err,
+                            )
+                else:
+                    # New account: disable uncharged panel user
+                    user_id_to_disable = order.panel_user_id
+                    if not user_id_to_disable and order.panel_username:
+                        try:
+                            p_user = await remnawave.get_user_by_username(order.panel_username)
+                            if p_user and p_user.get("id"):
+                                user_id_to_disable = int(p_user["id"])
+                        except Exception as u_err:
+                            logger.error("Reconcile could not lookup user by username %s: %s", order.panel_username, u_err)
 
-                if user_id_to_disable:
-                    try:
-                        await remnawave.set_user_status(int(user_id_to_disable), "DISABLED")
-                        logger.warning(
-                            "Reconcile disabled uncharged new panel user %s for order %s",
-                            user_id_to_disable,
-                            order.id,
-                        )
-                    except Exception as p_err:
-                        logger.error(
-                            "Reconcile could not disable panel user %s: %s",
-                            user_id_to_disable,
-                            p_err,
-                        )
+                    if user_id_to_disable:
+                        try:
+                            await remnawave.set_user_status(int(user_id_to_disable), "DISABLED")
+                            logger.warning(
+                                "Reconcile disabled uncharged new panel user %s for order %s",
+                                user_id_to_disable,
+                                order.id,
+                            )
+                        except Exception as p_err:
+                            logger.error(
+                                "Reconcile could not disable panel user %s: %s",
+                                user_id_to_disable,
+                                p_err,
+                            )
         await session.commit()
 
     if closed:

@@ -492,8 +492,29 @@ async def post_user_purchase(request: web.Request) -> web.Response:
         panel_users = await remnawave.get_users_by_telegram_id(telegram_id) or []
         if account_id:
             chosen_acc = next((u for u in panel_users if str(u.get("id")) == str(account_id)), None)
-        if not chosen_acc and panel_users:
-            chosen_acc = panel_users[0]
+            if not chosen_acc:
+                return web.json_response({
+                    "ok": False,
+                    "message": "شناسه اکانت انتخاب‌شده نامعتبر است یا متعلق به شما نیست.",
+                }, status=400)
+        else:
+            if len(panel_users) == 1:
+                chosen_acc = panel_users[0]
+            elif len(panel_users) > 1:
+                return web.json_response({
+                    "ok": False,
+                    "error": "needs_account",
+                    "message": "شما چند اکانت فعال دارید. لطفاً ابتدا اکانت مورد نظر خود را جهت خرید یا تمدید انتخاب فرمایید.",
+                    "accounts": [
+                        {
+                            "id": u.get("id"),
+                            "username": u.get("username"),
+                            "status": u.get("status"),
+                            "expireAt": u.get("expireAt"),
+                        }
+                        for u in panel_users
+                    ],
+                }, status=400)
 
         bot = request.app.get("bot")
         session_factory = request.app.get("session_factory")

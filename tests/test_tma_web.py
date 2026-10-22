@@ -676,9 +676,16 @@ async def test_user_purchase_multi_account_fallback_and_payload(session_factory)
         "remnawave": mock_remnawave,
     }
 
-    # Purchase without account_id should gracefully renew primary account (101) instead of failing
+    # 1. Purchase without account_id when user has multiple accounts must return 400 needs_account
+    req_no_acc = make_mocked_request("POST", "/api/user/purchase?user_id=22222", app=app)
+    req_no_acc.json = AsyncMock(return_value={"service_id": svc_id})
+    resp_no_acc = await post_user_purchase(req_no_acc)
+    assert resp_no_acc.status == 400
+    assert json.loads(resp_no_acc.text)["error"] == "needs_account"
+
+    # 2. Purchase WITH explicit account_id=101 succeeds and renews account 101
     req = make_mocked_request("POST", "/api/user/purchase?user_id=22222", app=app)
-    req.json = AsyncMock(return_value={"service_id": svc_id})
+    req.json = AsyncMock(return_value={"service_id": svc_id, "account_id": 101})
 
     resp = await post_user_purchase(req)
     assert resp.status == 200

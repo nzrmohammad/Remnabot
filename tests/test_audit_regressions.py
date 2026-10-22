@@ -1,3 +1,5 @@
+from aiohttp import web
+
 """Regression tests for audit findings and critical fixes.
 
 Covers:
@@ -399,3 +401,355 @@ async def test_coupon_not_consumed_on_purchase_failure(session_factory):
         c_repo = CouponRepository(session)
         is_valid, _, _ = await c_repo.validate_coupon("FAIL_SAVE", tid, price=40000)
         assert is_valid is True
+
+
+@pytest.mark.anyio
+async def test_tma_ban_middleware_blocks_banned_users(session_factory):
+    """Verify that api_ban_check_middleware returns 403 for banned users and exempts admins."""
+    from aiohttp.test_utils import make_mocked_request
+
+    from bot.web.server import api_ban_check_middleware
+
+    banned_tid = 998877
+    admin_tid = 111111
+
+    async with session_factory() as session:
+        session.add(User(telegram_id=banned_tid, is_banned=True, username="banned_guy"))
+        session.add(User(telegram_id=admin_tid, is_banned=True, username="admin_guy"))
+        await session.commit()
+
+    handler = AsyncMock(return_value=web.json_response({"ok": True}))
+
+    # 1. Banned user is blocked with 403
+    app = {
+        "session_factory": session_factory,
+        "admin_ids": [admin_tid],
+        "cache": MagicMock(get=AsyncMock(return_value=None), set=AsyncMock()),
+    }
+    req = make_mocked_request("GET", "/api/user/me", app=app)
+    req["user"] = {"id": banned_tid, "username": "banned_guy"}
+
+    resp = await api_ban_check_middleware(req, handler)
+    assert resp.status == 403
+    import json
+    data = json.loads(resp.body)
+    assert data["ok"] is False
+    assert data["error"] == "banned"
+
+    # 2. Admin is exempt even if is_banned flag was set
+    req_admin = make_mocked_request("GET", "/api/user/me", app=app)
+    req_admin["user"] = {"id": admin_tid, "username": "admin_guy"}
+    resp_admin = await api_ban_check_middleware(req_admin, handler)
+    assert resp_admin.status == 200
+
+
+@pytest.mark.anyio
+async def test_distributed_purchase_lock_uses_set_nx_and_release(session_factory):
+    """Verify execute_purchase uses cache.set_nx and release_lock properly."""
+    from bot.services.purchases import execute_purchase
+
+    tid = 554433
+    cache_mock = MagicMock()
+    cache_mock.set_nx = AsyncMock(return_value=True)
+    cache_mock.release_lock = AsyncMock(return_value=True)
+
+    remnawave = MagicMock()
+    remnawave.get_users_by_telegram_id = AsyncMock(return_value=[])
+    remnawave.create_user = AsyncMock(return_value={"id": 12, "username": "u12", "subscriptionUrl": "http://sub"})
+
+    async with session_factory() as session:
+        session.add(User(telegram_id=tid))
+        session.add(Wallet(telegram_id=tid, balance=100000))
+        srv = Service(id=81, name="Lock Srv", price=10000, duration_days=30, traffic_gb=10)
+        session.add(srv)
+        await session.commit()
+
+        res = await execute_purchase(
+            remnawave=remnawave,
+            session=session,
+            service=srv,
+            telegram_id=tid,
+            cache=cache_mock,
+        )
+        assert res.ok is True
+        assert cache_mock.set_nx.called
+        assert cache_mock.release_lock.called
+
+
+@pytest.mark.anyio
+async def test_reconcile_reverts_renewal_to_snapshot(session_factory):
+    """Verify reconcile reverts uncharged renewal accounts back to their pre-purchase snapshot."""
+    import json
+
+    from bot.services.reconcile import run_reconcile
+
+    tid = 665544
+    acc_id = 99
+    orig_expire = "2026-11-01T12:00:00Z"
+    orig_traffic = 20 * 1024**3
+    orig_status = "ACTIVE"
+
+    snapshot_json = json.dumps({
+        "expireAt": orig_expire,
+        "trafficLimitBytes": orig_traffic,
+        "status": orig_status,
+    })
+
+    async with session_factory() as session:
+        session.add(User(telegram_id=tid))
+        old_time = datetime.now(timezone.utc) - timedelta(minutes=25)
+        # Create stuck pending renewal order
+        order = Order(
+            telegram_id=tid,
+            service_name="Renewal Plan",
+            amount=50000,
+            duration_days=30,
+            traffic_gb=20,
+            panel_user_id=acc_id,
+            status="pending",
+            is_renewal=True,
+            snapshot_data=snapshot_json,
+            created_at=old_time,
+        )
+        session.add(order)
+        await session.commit()
+
+    remnawave = MagicMock()
+    remnawave.update_user_subscription = AsyncMock(return_value={"id": acc_id})
+    remnawave.set_user_status = AsyncMock()
+
+    mock_bot = MagicMock()
+    mock_bot.send_message = AsyncMock()
+
+    closed = await run_reconcile(mock_bot, session_factory, remnawave=remnawave)
+    assert closed == 1
+
+    # Verify update_user_subscription was called with the snapshot data to revert renewal
+    remnawave.update_user_subscription.assert_called_once_with(
+        acc_id,
+        orig_expire,
+        orig_traffic,
+        status=orig_status,
+    )
+    # set_user_status("DISABLED") must NOT be called for renewals
+    remnawave.set_user_status.assert_not_called()
+
+
+@pytest.mark.anyio
+async def test_auto_renew_skips_addons(session_factory):
+    """Verify auto_renew only picks base plan orders (duration_days > 0), skipping add-on orders."""
+    from bot.services.auto_renew import process_auto_renewals
+
+    tid = 771122
+    acc_id = 101
+
+    async with session_factory() as session:
+        session.add(User(telegram_id=tid, auto_renew=True))
+        session.add(Wallet(telegram_id=tid, balance=500000))
+        # Base plan (duration_days=30)
+        base_srv = Service(id=301, name="Base Monthly", price=50000, duration_days=30, traffic_gb=50)
+        session.add(base_srv)
+        # Addon (duration_days=0)
+        addon_srv = Service(id=302, name="Extra 10GB", price=15000, duration_days=0, traffic_gb=10)
+        session.add(addon_srv)
+        await session.flush()
+
+        # Order 1: Base plan
+        session.add(Order(telegram_id=tid, service_id=base_srv.id, service_name=base_srv.name, amount=50000, duration_days=30, traffic_gb=50, status="paid"))
+        # Order 2: Add-on purchased later
+        session.add(Order(telegram_id=tid, service_id=addon_srv.id, service_name=addon_srv.name, amount=15000, duration_days=0, traffic_gb=10, status="paid"))
+        await session.commit()
+
+    remnawave = MagicMock()
+    # Expiring account
+    remnawave.get_users_by_telegram_id = AsyncMock(return_value=[{
+        "id": acc_id,
+        "username": "u_exp",
+        "expireAt": (datetime.now(timezone.utc) + timedelta(hours=5)).isoformat(),
+        "trafficLimitBytes": 50 * 1024**3,
+        "usedTrafficBytes": 10 * 1024**3,
+        "status": "ACTIVE",
+    }])
+
+    executed_services = []
+
+    async def mock_exec_purchase(*args, **kwargs):
+        executed_services.append(kwargs.get("service"))
+        return PurchaseResult(ok=True, kind="success", new_balance=450000)
+
+    cache = MagicMock(get=AsyncMock(return_value=None), set=AsyncMock())
+    bot = MagicMock(send_message=AsyncMock())
+
+    with patch("bot.services.auto_renew.execute_purchase", mock_exec_purchase):
+        await process_auto_renewals(bot, session_factory, remnawave, cache=cache)
+
+    assert len(executed_services) == 1
+    # Must have renewed the BASE plan (301), NOT the addon (302)!
+    assert executed_services[0].id == 301
+    assert executed_services[0].duration_days == 30
+
+
+@pytest.mark.anyio
+async def test_tma_purchase_requires_account_when_multiple(session_factory):
+    """Verify post_user_purchase returns needs_account when user has multiple panel accounts and no account_id."""
+    import json
+
+    from aiohttp.test_utils import make_mocked_request
+
+    from bot.web.user_shop import post_user_purchase
+
+    tid = 882211
+    async with session_factory() as session:
+        session.add(User(telegram_id=tid))
+        session.add(Wallet(telegram_id=tid, balance=100000))
+        srv = Service(id=401, name="Test Srv", price=20000, duration_days=30, traffic_gb=20)
+        session.add(srv)
+        await session.commit()
+
+    panel_users = [
+        {"id": 10, "username": "acc1", "status": "ACTIVE", "expireAt": "2026-11-01T00:00:00Z"},
+        {"id": 20, "username": "acc2", "status": "ACTIVE", "expireAt": "2026-11-05T00:00:00Z"},
+    ]
+
+    remnawave = MagicMock()
+    remnawave.get_users_by_telegram_id = AsyncMock(return_value=panel_users)
+
+    app = {
+        "session_factory": session_factory,
+        "remnawave": remnawave,
+        "bot": MagicMock(),
+        "settings": MagicMock(),
+        "cache": MagicMock(get=AsyncMock(return_value=None), set=AsyncMock()),
+    }
+
+    req = make_mocked_request("POST", "/api/user/purchase", app=app)
+    req.json = AsyncMock(return_value={"service_id": 401})  # NO account_id provided
+    req["user"] = {"id": tid, "username": "multi_user"}
+
+    resp = await post_user_purchase(req)
+    assert resp.status == 400
+    data = json.loads(resp.body)
+    assert data["ok"] is False
+    assert data["error"] == "needs_account"
+    assert len(data["accounts"]) == 2
+
+
+@pytest.mark.anyio
+async def test_tma_topup_card_disabled_and_max_amount_guards(session_factory):
+    """Verify card topup checks store.card_enabled and topup_max_amount."""
+    import json
+
+    from aiohttp.test_utils import make_mocked_request
+
+    from bot.db.repositories.app_setting_repo import AppSettingRepository
+    from bot.web.user_topup import post_user_topup_card
+
+    tid = 334455
+    async with session_factory() as session:
+        session.add(User(telegram_id=tid, phone_number="+989121111111"))
+        app_repo = AppSettingRepository(session)
+        # Disable card payments
+        await app_repo.set("card_enabled", "0")
+        await app_repo.set("card_number", "6037991122334455")
+        await app_repo.set("topup_min_amount", "10000")
+        await app_repo.set("topup_max_amount", "500000")
+        await session.commit()
+
+    app = {
+        "session_factory": session_factory,
+        "bot": MagicMock(),
+        "settings": MagicMock(ADMIN_CHAT_ID=123),
+    }
+
+    # 1. Reject when card_enabled is 0
+    req = make_mocked_request("POST", "/api/user/topup/card", app=app)
+    req.json = AsyncMock(return_value={
+        "amount": 20000,
+        "receipt_image": "data:image/jpeg;base64," + "a" * 100,
+    })
+    req["user"] = {"id": tid, "username": "card_user"}
+
+    resp = await post_user_topup_card(req)
+    assert resp.status == 400
+    data = json.loads(resp.body)
+    assert data["ok"] is False
+    assert data["error"] == "card_disabled"
+
+    # 2. Reject when exceeding topup_max_amount
+    async with session_factory() as session:
+        app_repo = AppSettingRepository(session)
+        await app_repo.set("card_enabled", "1")
+        await session.commit()
+
+    req_max = make_mocked_request("POST", "/api/user/topup/card", app=app)
+    req_max.json = AsyncMock(return_value={
+        "amount": 600000,  # exceeds 500,000 max
+        "receipt_image": "data:image/jpeg;base64," + "a" * 100,
+    })
+    req_max["user"] = {"id": tid, "username": "card_user"}
+
+    resp_max = await post_user_topup_card(req_max)
+    assert resp_max.status == 400
+    data_max = json.loads(resp_max.body)
+    assert data_max["ok"] is False
+    assert "حداکثر مبلغ شارژ" in data_max["message"]
+
+
+@pytest.mark.anyio
+async def test_backup_restore_full_roundtrip_user_and_order_enums(session_factory):
+    """Verify backup and restore preserves phone_number, is_renewal, and maps invalid OrderStatus gracefully."""
+    import tempfile
+    from pathlib import Path
+
+    from bot.services.backup import create_database_backup, restore_database_backup
+
+    tid = 998811
+    async with session_factory() as session:
+        session.add(User(
+            telegram_id=tid,
+            username="backup_tester",
+            phone_number="+989120000000",
+            auto_renew=True,
+            wheel_streak=5,
+                    ))
+        session.add(Order(
+            id=5050,
+            telegram_id=tid,
+            service_name="Permanent Plan",
+            amount=80000,
+            duration_days=60,
+            traffic_gb=100,
+            status="paid",
+            is_renewal=True,
+        ))
+        await session.commit()
+
+    # 1. Export backup into tempdir
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        async with session_factory() as session:
+            backup_file = await create_database_backup(session, out_dir=Path(tmp_dir))
+
+        assert backup_file.is_file()
+
+        # 2. Clear database to test full restoration
+        async with session_factory() as session:
+            await session.execute(text("DELETE FROM orders"))
+            await session.execute(text("DELETE FROM users"))
+            await session.commit()
+
+        # 3. Restore backup
+        async with session_factory() as session:
+            stats = await restore_database_backup(session, backup_file)
+            await session.commit()
+            assert stats["users"] >= 1
+            assert stats["orders"] >= 1
+
+        # 4. Verify restored user and order fields
+        async with session_factory() as session:
+            restored_u = await session.get(User, 1) or (await session.execute(text(f"SELECT * FROM users WHERE telegram_id = {tid}"))).fetchone()
+            assert restored_u is not None
+
+            orders = (await session.execute(text(f"SELECT * FROM orders WHERE telegram_id = {tid}"))).fetchall()
+            assert len(orders) >= 1
+            # Verify status is valid OrderStatus ('paid', never 'COMPLETED')
+            assert orders[0].status == "paid"

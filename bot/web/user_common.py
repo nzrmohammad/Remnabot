@@ -13,12 +13,21 @@ def _check_user(request: web.Request) -> dict[str, Any] | None:
 
 
 def require_user(request: web.Request) -> tuple[dict[str, Any] | None, web.Response | None]:
-    """Helper returning (user, None) or (None, 401 response)."""
+    """Helper returning (user, None) or (None, 401/403 response)."""
     user = _check_user(request)
     if not user:
         return None, web.json_response(
             {"ok": False, "error": "Unauthorized"},
             status=401,
+        )
+    if user.get("is_banned"):
+        return None, web.json_response(
+            {
+                "ok": False,
+                "error": "banned",
+                "message": "حساب کاربری شما مسدود شده است.",
+            },
+            status=403,
         )
     return user, None
 

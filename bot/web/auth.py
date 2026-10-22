@@ -75,11 +75,10 @@ def get_authenticated_user(request: web.Request) -> dict[str, Any] | None:
     admin_ids = request.app.get("admin_ids", [])
     is_dev = request.app.get("is_dev", False)
 
-    init_data = (
-        request.headers.get("X-Telegram-Init-Data")
-        or request.query.get("initData")
-        or ""
-    )
+    init_data = request.headers.get("X-Telegram-Init-Data") or ""
+    # In dev mode ONLY, permit query param for convenient browser debugging
+    if not init_data and is_dev:
+        init_data = request.query.get("initData") or ""
 
     user = validate_telegram_init_data(init_data, bot_token) if init_data else None
 

@@ -126,19 +126,27 @@ async def execute_purchase(
 ) -> PurchaseResult:
     """Buy a service with per-user anti-concurrency lock (distributed + in-process)."""
     dist_lock = False
-    if cache:
+    lock_token = None
+    lock_key = f"lock:purchase:{telegram_id}"
+    if cache and hasattr(cache, "set_nx"):
         try:
-            dist_lock = await cache.set(f"lock:purchase:{telegram_id}", "1", ttl_seconds=30, nx=True)
+            import uuid
+            lock_token = uuid.uuid4().hex
+            dist_lock = await cache.set_nx(lock_key, lock_token, ttl_seconds=60)
             if not dist_lock:
                 return PurchaseResult(ok=False, kind="conflict")
-        except Exception:
+        except Exception as exc:
+            logger.warning("Distributed purchase lock set_nx error: %s", exc)
             dist_lock = False
 
     lock = _get_purchase_lock(telegram_id)
     if lock.locked():
-        if dist_lock and cache:
+        if dist_lock and cache and lock_token:
             try:
-                await cache.delete(f"lock:purchase:{telegram_id}")
+                if hasattr(cache, "release_lock"):
+                    await cache.release_lock(lock_key, lock_token)
+                else:
+                    await cache.delete(lock_key)
             except Exception:
                 pass
         return PurchaseResult(ok=False, kind="conflict")
@@ -158,9 +166,12 @@ async def execute_purchase(
                 session_factory=session_factory,
             )
     finally:
-        if dist_lock and cache:
+        if dist_lock and cache and lock_token:
             try:
-                await cache.delete(f"lock:purchase:{telegram_id}")
+                if hasattr(cache, "release_lock"):
+                    await cache.release_lock(lock_key, lock_token)
+                else:
+                    await cache.delete(lock_key)
             except Exception:
                 pass
 
@@ -246,6 +257,15 @@ async def _execute_purchase_impl(
 
     # 1) Commit a pending order BEFORE touching the panel. If the process
     #    dies mid-purchase, the reconcile job will find this committed row.
+    snapshot_json = None
+    if account is not None:
+        import json
+        snapshot_json = json.dumps({
+            "expireAt": account.get("expireAt"),
+            "trafficLimitBytes": account.get("trafficLimitBytes"),
+            "status": account.get("status") or "ACTIVE",
+        }, ensure_ascii=False)
+
     pending = await order_repo.create(
         telegram_id=telegram_id,
         service_id=service.id,
@@ -258,6 +278,7 @@ async def _execute_purchase_impl(
         subscription_url=None,
         status="pending",
         is_renewal=(account is not None),
+        snapshot_data=snapshot_json,
     )
     await session.commit()
 

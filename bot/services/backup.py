@@ -9,7 +9,6 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from bot.common import admin_thread_kwargs
-from bot.services.formatting import now_tz
 from bot.db.models import (
     AdminLog,
     AlertSettings,
@@ -34,6 +33,7 @@ from bot.db.models import (
     User,
     Wallet,
 )
+from bot.services.formatting import now_tz
 
 logger = logging.getLogger(__name__)
 
@@ -61,7 +61,12 @@ async def create_database_backup(session: AsyncSession, out_dir: str | Path | No
             "is_banned": u.is_banned,
             "has_claimed_trial": u.has_claimed_trial,
             "referred_by_id": u.referred_by_id,
-            "last_active_at": _serialize_val(u.last_active_at),
+            "phone_number": u.phone_number,
+            "birth_date": _serialize_val(u.birth_date),
+            "auto_renew": u.auto_renew,
+            "wheel_last_spin_at": _serialize_val(u.wheel_last_spin_at),
+            "wheel_streak": u.wheel_streak,
+                        "last_active_at": _serialize_val(u.last_active_at),
             "created_at": _serialize_val(u.created_at),
         }
         for u in users_res.scalars().all()
@@ -88,7 +93,10 @@ async def create_database_backup(session: AsyncSession, out_dir: str | Path | No
             "panel_user_id": o.panel_user_id,
             "panel_username": o.panel_username,
             "subscription_url": o.subscription_url,
-            "status": o.status,
+            "status": o.status if isinstance(o.status, str) else getattr(o.status, "value", str(o.status)),
+            "is_renewal": getattr(o, "is_renewal", False),
+            "refunded_at": _serialize_val(o.refunded_at),
+            "snapshot_data": getattr(o, "snapshot_data", None),
             "created_at": _serialize_val(o.created_at),
         }
         for o in orders_res.scalars().all()
@@ -449,6 +457,9 @@ async def restore_database_backup(session: AsyncSession, file_path: str | Path) 
             existing_u.is_verified = u_data.get("is_verified", existing_u.is_verified)
             existing_u.is_banned = u_data.get("is_banned", existing_u.is_banned)
             existing_u.has_claimed_trial = u_data.get("has_claimed_trial", existing_u.has_claimed_trial)
+            existing_u.phone_number = u_data.get("phone_number", existing_u.phone_number)
+            existing_u.auto_renew = u_data.get("auto_renew", existing_u.auto_renew)
+            existing_u.wheel_streak = u_data.get("wheel_streak", existing_u.wheel_streak)
         else:
             session.add(
                 User(
@@ -459,6 +470,9 @@ async def restore_database_backup(session: AsyncSession, file_path: str | Path) 
                     is_banned=u_data.get("is_banned", False),
                     has_claimed_trial=u_data.get("has_claimed_trial", False),
                     referred_by_id=u_data.get("referred_by_id"),
+                    phone_number=u_data.get("phone_number"),
+                    auto_renew=u_data.get("auto_renew", False),
+                    wheel_streak=u_data.get("wheel_streak", 0),
                 )
             )
         stats["users"] += 1
@@ -511,6 +525,14 @@ async def restore_database_backup(session: AsyncSession, file_path: str | Path) 
         o_id = o_data.get("id")
         existing_o = await session.get(Order, o_id) if o_id else None
         if not existing_o:
+            raw_status = str(o_data.get("status", "paid")).lower()
+            if raw_status in ("completed", "paid"):
+                valid_status = "paid"
+            elif raw_status in ("refunded", "failed", "pending"):
+                valid_status = raw_status
+            else:
+                valid_status = "paid"
+
             session.add(
                 Order(
                     id=o_id,
@@ -523,7 +545,9 @@ async def restore_database_backup(session: AsyncSession, file_path: str | Path) 
                     panel_user_id=o_data.get("panel_user_id"),
                     panel_username=o_data.get("panel_username"),
                     subscription_url=o_data.get("subscription_url"),
-                    status=o_data.get("status", "COMPLETED"),
+                    status=valid_status,
+                    is_renewal=bool(o_data.get("is_renewal", False)),
+                    snapshot_data=o_data.get("snapshot_data"),
                 )
             )
             stats["orders"] += 1
@@ -947,7 +971,7 @@ async def auto_backup_loop(bot, session_factory) -> None:
             if admin_chat_id:
                 async with session_factory() as session:
                     raw_backup_path = await create_database_backup(session)
-                    backup_pwd = getattr(settings, "BACKUP_PASSWORD", "") or os.environ.get("BACKUP_PASSWORD", "")
+                    backup_pwd = getattr(settings, "BACKUP_PASSWORD", "") or os.environ.get("BACKUP_PASSWORD", "") or (settings.BOT_TOKEN[:16] if getattr(settings, "BOT_TOKEN", "") else "remnabot_secure_backup")
                     backup_path = await asyncio.to_thread(create_encrypted_backup_archive, raw_backup_path, backup_pwd)
 
                     store = await get_store_settings(session)

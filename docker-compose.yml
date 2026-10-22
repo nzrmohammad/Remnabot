@@ -4,13 +4,13 @@ services:
     container_name: remnawave-bot-db
     restart: unless-stopped
     environment:
-      POSTGRES_USER: remnabot
-      POSTGRES_PASSWORD: remnabot
-      POSTGRES_DB: remnabot
+      POSTGRES_USER: ${POSTGRES_USER:-remnabot}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-remnabot}
+      POSTGRES_DB: ${POSTGRES_DB:-remnabot}
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U remnabot"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-remnabot}"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -19,7 +19,7 @@ services:
     image: redis:7-alpine
     container_name: remnawave-bot-redis
     restart: unless-stopped
-    command: redis-server --save "" --appendonly no
+    command: redis-server --appendonly yes
     volumes:
       - redisdata:/data
 
@@ -29,14 +29,14 @@ services:
     restart: unless-stopped
     env_file: .env
     environment:
-      DATABASE_URL: postgresql+asyncpg://remnabot:remnabot@db:5432/remnabot
-      REDIS_URL: redis://redis:6379/0
+      DATABASE_URL: ${DATABASE_URL:-postgresql+asyncpg://${POSTGRES_USER:-remnabot}:${POSTGRES_PASSWORD:-remnabot}@db:5432/${POSTGRES_DB:-remnabot}}
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
     # Connects to Remnawave panel running on host or Docker via host.docker.internal
     volumes:
       - botbackups:/app/backups
       - botdata:/app/data
     ports:
-      - "8080:8080"
+      - "127.0.0.1:8080:8080"
     extra_hosts:
       - "host.docker.internal:host-gateway"
     depends_on:

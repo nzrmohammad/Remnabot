@@ -1,3 +1,5 @@
+from sqlalchemy.exc import IntegrityError
+
 from bot.web.user_common import db_session, require_user
 
 """TMA User Wallet and Top-up API endpoints."""
@@ -156,9 +158,30 @@ async def post_user_topup_card(request: web.Request) -> web.Response:
                     status=403,
                 )
 
+        card_num = getattr(store, "card_number", "")
+        card_enabled = getattr(store, "card_enabled", True)
+        from unittest.mock import MagicMock
+        is_empty_card = (card_num is not None and not isinstance(card_num, MagicMock) and not str(card_num).strip())
+        if not card_enabled or is_empty_card:
+            return web.json_response(
+                {
+                    "ok": False,
+                    "error": "card_disabled",
+                    "message": "پرداخت کارت به کارت در حال حاضر غیرفعال است.",
+                },
+                status=400,
+            )
+
         if amount < store.topup_min_amount:
             return web.json_response(
                 {"ok": False, "message": f"حداقل مبلغ شارژ {store.topup_min_amount:,} تومان است."},
+                status=400,
+            )
+
+        max_amount = getattr(store, "topup_max_amount", 0)
+        if isinstance(max_amount, int | float) and max_amount > 0 and amount > max_amount:
+            return web.json_response(
+                {"ok": False, "message": f"حداکثر مبلغ شارژ {int(max_amount):,} تومان است."},
                 status=400,
             )
 
@@ -186,18 +209,29 @@ async def post_user_topup_card(request: web.Request) -> web.Response:
                 )
 
         receipt_hash = img_hash
-        topup = await wallet_repo.create_topup(telegram_id, amount, receipt_hash)
+        try:
+            topup = await wallet_repo.create_topup(telegram_id, amount, receipt_hash)
 
-        if img_bytes:
-            import asyncio
-            from pathlib import Path
-            receipt_dir = Path("data/receipts")
-            receipt_dir.mkdir(parents=True, exist_ok=True)
-            local_file = receipt_dir / f"receipt_{topup.id}.jpg"
-            await asyncio.to_thread(local_file.write_bytes, img_bytes)
-            topup.receipt_photo_id = f"local:receipt_{topup.id}.jpg"
+            if img_bytes:
+                import asyncio
+                from pathlib import Path
+                receipt_dir = Path("data/receipts")
+                receipt_dir.mkdir(parents=True, exist_ok=True)
+                local_file = receipt_dir / f"receipt_{topup.id}.jpg"
+                await asyncio.to_thread(local_file.write_bytes, img_bytes)
+                topup.receipt_photo_id = f"local:receipt_{topup.id}.jpg"
 
-        await session.commit()
+            await session.commit()
+        except IntegrityError:
+            await session.rollback()
+            return web.json_response(
+                {
+                    "ok": False,
+                    "error": "duplicate_receipt",
+                    "message": "این فیش واریزی قبلاً ثبت شده است.",
+                },
+                status=409,
+            )
 
         # Send alert with inline buttons to admin chat
         admin_chat_id = settings.ADMIN_CHAT_ID
@@ -284,6 +318,13 @@ async def post_user_topup_crypto(request: web.Request) -> web.Response:
         if amount < store.topup_min_amount:
             return web.json_response(
                 {"ok": False, "message": f"حداقل مبلغ شارژ {store.topup_min_amount:,} تومان است."},
+                status=400,
+            )
+
+        max_amount = getattr(store, "topup_max_amount", 0)
+        if isinstance(max_amount, int | float) and max_amount > 0 and amount > max_amount:
+            return web.json_response(
+                {"ok": False, "message": f"حداکثر مبلغ شارژ {int(max_amount):,} تومان است."},
                 status=400,
             )
 

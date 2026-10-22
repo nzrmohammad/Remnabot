@@ -41,7 +41,6 @@ async def get_user_nodes(request: web.Request) -> web.Response:
         cleaned_nodes.append({
             "name": node.get("name", "Server"),
             "country_code": node.get("country_code", "EU"),
-            "address": node.get("address", ""),
             "status": node.get("status", "ONLINE"),
         })
 
@@ -51,6 +50,9 @@ async def get_user_nodes(request: web.Request) -> web.Response:
 
 async def get_user_ip_info(request: web.Request) -> web.Response:
     """Return the client's public IP detected by Nginx/proxy."""
+    user, err = require_user(request)
+    if err:
+        return err
     client_ip = get_client_ip(request)
     return web.json_response({
         "ok": True,

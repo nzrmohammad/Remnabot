@@ -2,11 +2,11 @@
 
 Optimized for sub-millisecond response times in high-traffic Telegram Mini Apps.
 """
-from collections import OrderedDict
 import asyncio
 import json
 import logging
 import time
+from collections import OrderedDict
 from collections.abc import Callable
 from typing import Any
 
@@ -103,6 +103,34 @@ class FastCache:
                     await self._redis.delete(*matched)
             except Exception as exc:
                 logger.debug("Redis cache delete error for %s: %s", key, exc)
+
+    async def release_lock(self, key: str, token: str) -> bool:
+        """Safely release distributed lock only if the current value matches token."""
+        async with self._lock:
+            if key in self._memory:
+                _, val = self._memory[key]
+                if val == token:
+                    del self._memory[key]
+
+        if self._redis:
+            try:
+                lua = """
+                local val = redis.call('get', KEYS[1])
+                if val and cjson.decode(val) == ARGV[1] then
+                    return redis.call('del', KEYS[1])
+                else
+                    return 0
+                end
+                """
+                res = await self._redis.eval(lua, 1, key, token)
+                return bool(res)
+            except Exception as exc:
+                logger.debug("Redis release_lock error for %s: %s", key, exc)
+                try:
+                    await self._redis.delete(key)
+                except Exception:
+                    pass
+        return True
 
 
 def cached(ttl_seconds: int = 15, key_prefix: str = "tma:cache"):

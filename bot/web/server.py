@@ -29,6 +29,67 @@ _api_buckets: dict[str, deque[float]] = defaultdict(deque)
 DEFAULT_TRUSTED_ORIGINS = frozenset({"https://web.telegram.org", "https://telegram.org"})
 
 
+
+@web.middleware
+async def api_ban_check_middleware(request: web.Request, handler):
+    """Enforce ban check on all /api/user/* endpoints in Telegram Mini App."""
+    if not request.path.startswith("/api/user/"):
+        return await handler(request)
+
+    from bot.web.auth import get_authenticated_user
+    auth_user = request.get("user") or get_authenticated_user(request)
+    if not auth_user or not auth_user.get("id"):
+        return await handler(request)
+
+    user_id = int(auth_user["id"])
+    admin_ids = request.app.get("admin_ids", [])
+    if user_id in admin_ids:
+        return await handler(request)
+
+    cache = request.app.get("cache")
+    ban_cache_key = f"tma:ban:{user_id}"
+    is_banned = None
+
+    if cache and hasattr(cache, "get"):
+        try:
+            cached_val = await cache.get(ban_cache_key)
+            if cached_val is not None:
+                is_banned = bool(cached_val)
+        except Exception:
+            is_banned = None
+
+    if is_banned is None:
+        session_factory = request.app.get("session_factory")
+        if session_factory:
+            try:
+                from bot.db.repositories.user_repo import UserRepository
+                async with session_factory() as session:
+                    db_user = await UserRepository(session).get_by_telegram_id(user_id)
+                    is_banned = bool(db_user and getattr(db_user, "is_banned", False))
+            except Exception as exc:
+                logger.debug("Ban check DB lookup error: %s", exc)
+                is_banned = False
+
+        if cache and hasattr(cache, "set") and is_banned is not None:
+            try:
+                await cache.set(ban_cache_key, 1 if is_banned else 0, ttl_seconds=30)
+            except Exception:
+                pass
+
+    if is_banned:
+        logger.warning("Blocked TMA request to %s from banned user %s", request.path, user_id)
+        return web.json_response(
+            {
+                "ok": False,
+                "error": "banned",
+                "message": "حساب کاربری شما مسدود شده است و امکان استفاده از خدمات را ندارید.",
+            },
+            status=403,
+        )
+
+    return await handler(request)
+
+
 @web.middleware
 async def api_rate_limit_middleware(request: web.Request, handler):
     # Only rate-limit public /api/user/ endpoints; administrative endpoints are completely exempt
@@ -417,7 +478,7 @@ def create_web_app(
     is_dev: bool = False,
 ) -> web.Application:
     app = web.Application(
-        middlewares=[cors_and_security_middleware, global_error_middleware, api_rate_limit_middleware],
+        middlewares=[cors_and_security_middleware, global_error_middleware, api_rate_limit_middleware, api_ban_check_middleware],
         client_max_size=16 * 1024 * 1024,
     )
 
