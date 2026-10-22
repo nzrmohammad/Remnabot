@@ -10,8 +10,15 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
-        extra="forbid",
+        extra="ignore",
     )
+
+    # --- Docker / Environment Fallbacks ---
+    POSTGRES_USER: str = "remnabot"
+    POSTGRES_PASSWORD: str = "remnabot"
+    POSTGRES_DB: str = "remnabot"
+    REDIS_PASSWORD: str = ""
+    WEB_BIND_IP: str = "0.0.0.0"
 
     # --- Telegram ---
     BOT_TOKEN: str
@@ -120,6 +127,42 @@ class Settings(BaseSettings):
         if v is None or v == "":
             return None
         return int(v)
+
+    @field_validator("DATABASE_URL", mode="before")
+    @classmethod
+    def normalize_database_url(cls, v: Any) -> Any:
+        if not isinstance(v, str):
+            return v
+        import os
+        import socket
+        if os.path.exists("/.dockerenv"):
+            for lh in ("@localhost:", "@127.0.0.1:"):
+                if lh in v:
+                    try:
+                        socket.gethostbyname("db")
+                        v = v.replace(lh, "@db:")
+                        break
+                    except socket.gaierror:
+                        pass
+        return v
+
+    @field_validator("REDIS_URL", mode="before")
+    @classmethod
+    def normalize_redis_url(cls, v: Any) -> Any:
+        if not isinstance(v, str) or not v:
+            return v
+        import os
+        import socket
+        if os.path.exists("/.dockerenv"):
+            for lh in ("@localhost:", "@127.0.0.1:", "://localhost:", "://127.0.0.1:"):
+                if lh in v:
+                    try:
+                        socket.gethostbyname("redis")
+                        v = v.replace(lh, lh.replace("localhost", "redis").replace("127.0.0.1", "redis"))
+                        break
+                    except socket.gaierror:
+                        pass
+        return v
 
     @field_validator("REMNAWAVE_BASE_URL")
     @classmethod

@@ -36,7 +36,7 @@ services:
       - botbackups:/app/backups
       - botdata:/app/data
     ports:
-      - "${WEB_BIND_IP:-0.0.0.0}:${WEB_PORT:-8080}:8080"
+      - "${WEB_BIND_IP:-127.0.0.1}:${WEB_PORT:-8080}:8080"
     extra_hosts:
       - "host.docker.internal:host-gateway"
     depends_on:

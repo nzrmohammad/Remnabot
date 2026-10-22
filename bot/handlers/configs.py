@@ -12,14 +12,13 @@ from aiogram import Bot, F, Router
 from aiogram.types import CallbackQuery, CopyTextButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
+from bot.common import SEPARATOR, parse_int
 from bot.db.repositories.user_repo import UserRepository
 from bot.keyboards.inline import welcome_keyboard
 from bot.locales.texts import t
 from bot.services.configs import fetch_subscription_configs
 from bot.services.menu import render_menu
 from bot.services.remnawave import RemnawaveClient
-
-from bot.common import SEPARATOR, parse_int
 
 logger = logging.getLogger(__name__)
 router = Router(name="configs")
@@ -223,21 +222,6 @@ async def single_config_detail(
     )
 
     await render_menu(bot, user, user_repo, text, kb.as_markup())
-    await call.answer()
-
-
-@router.callback_query(F.data.startswith("cfg:get:"))
-async def single_config_get_legacy(
-    call: CallbackQuery, bot: Bot, user_repo: UserRepository, remnawave: RemnawaveClient
-):
-    """Legacy redirect from old get callbacks."""
-    parts = call.data.split(":")
-    if len(parts) == 4:
-        account_id, idx_s = parts[2], parts[3]
-        idx = _safe_int(idx_s)
-        if idx is not None:
-            await single_config_detail(call, bot, user_repo, remnawave, account_id=account_id, idx=idx)
-            return
     await call.answer()
 
 
