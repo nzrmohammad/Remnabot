@@ -20,8 +20,14 @@
 - [🏛 Project Architecture](#-project-architecture)
 - [⚡ Zero-Conflict Deployment Model](#-zero-conflict-deployment-model)
 - [📦 Prerequisites & Compatibility](#-prerequisites--compatibility)
-- [🚀 Quick Start](#-quick-start)
-- [📱 Telegram Mini App (TMA) & Web Deployment](#-telegram-mini-app-tma--web-deployment)
+- [🚀 Production Deployment & Installation Guide](#-production-deployment--installation-guide)
+  - [Stage 1: Telegram Supergroup & Forum Topics Setup](#stage-1-telegram-supergroup--forum-topics-setup)
+  - [Stage 2: Telegram Bot & Administrator Credentials](#stage-2-telegram-bot--administrator-credentials)
+  - [Stage 3: Remnawave v3 Panel Connection](#stage-3-remnawave-v3-panel-connection)
+  - [Stage 4: Clone Repository & Configure Environment (`.env`)](#stage-4-clone-repository--configure-environment-env)
+  - [Stage 5: Telegram Mini App (TMA) & Nginx Reverse Proxy](#stage-5-telegram-mini-app-tma--nginx-reverse-proxy)
+  - [Stage 6: Orchestration Launch & Verification](#stage-6-orchestration-launch--verification)
+  - [Stage 7: Telegram Menu Button Registration](#stage-7-telegram-menu-button-registration)
 - [🔄 Updating Guide](#-updating-guide)
 - [💾 Migration & Server Relocation](#-migration--server-relocation)
 - [⚙️ Configuration Guide (`.env`)](#-configuration-guide-env)
@@ -93,7 +99,7 @@ remnawave-bot/
 │   ├── states/                     # Finite State Machine (FSM) conversation groups
 │   ├── config.py                   # Strongly-typed Pydantic v2 application settings
 │   └── main.py                     # Bot entrypoint, router binding, & scheduler launcher
-├── tests/                          # Comprehensive test suite (58 passing tests)
+├── tests/                          # Comprehensive test suite (210 passing tests)
 ├── docker-compose.yml              # Production multi-container orchestration (Bot, DB, Redis)
 ├── Dockerfile                      # Optimized Python 3.12-slim multi-stage image
 ├── requirements.txt                # Pinned production dependencies
@@ -175,43 +181,120 @@ Remnabot solves this completely with a **Zero-Conflict Guarantee**:
 
 ---
 
-## 🚀 Quick Start
+## 🚀 Production Deployment & Installation Guide
 
-### Deployment via Docker Compose
+A complete, battle-tested installation workflow for deploying Remnabot alongside Remnawave v3 on a fresh Linux server.
 
-#### 1. Clone the repository
-```bash
-git clone https://github.com/nzrmohammad/Remnabot.git remnawave-bot
-cd remnawave-bot
-```
-
-#### 2. Configure environment credentials
-```bash
-cp .env.example .env
-nano .env
-```
-*(Configure your `BOT_TOKEN`, `ADMIN_IDS`, `ADMIN_CHAT_ID`, and Remnawave v3 connection settings).*
-
-#### 3. Launch the complete stack
-```bash
-docker compose up -d --build
-```
-
-> [!NOTE]
-> **Zero Manual Migrations Required**: The bot includes an autonomous native schema initialization engine. On first startup, all PostgreSQL tables, constraints, foreign keys, and indexes are provisioned automatically without needing Alembic or external CLI migration scripts.
-
-#### 4. Verify deployment
-```bash
-# Check container status
-docker compose ps
-
-# Follow live output logs
-docker compose logs -f bot
+```text
+ ┌────────────────────────────────────────────────────────────────────────────────────────┐
+ │                                   DEPLOYMENT PIPELINE                                  │
+ │                                                                                        │
+ │  [Stage 1] Telegram Supergroup ──► [Stage 2] Bot & Admin IDs ──► [Stage 3] Remnawave  │
+ │  (Forum Topics & Permissions)      (@BotFather & @userinfobot)   (v3 Panel REST API)  │
+ │                                                                                        │
+ │  [Stage 4] Clone & Configure   ──► [Stage 5] Reverse Proxy   ──► [Stage 6] Launch Bot │
+ │  (.env credentials)                (Nginx SSL & 502 Fix)         (Docker Compose Up)  │
+ └────────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## 📱 Telegram Mini App (TMA) & Web Deployment
+### Stage 1: Telegram Supergroup & Forum Topics Setup
+
+To keep financial transactions, error traces, automated backups, and user support cleanly separated, Remnabot organizes operations into a **Telegram Supergroup with Forum Topics enabled**.
+
+#### 1. Create Supergroup & Enable Topics:
+1. In Telegram, create a new Group (Recommended name: **`🏢 Remnabot Operations Hub`** or **`مدیریت و مانیتورینگ رمنابات`**).
+2. Open **Group Settings (Edit Group) ➔ Permissions ➔ Topics** and turn **ON** (enables Forum mode).
+3. Add your bot into the Supergroup and promote it to **Administrator** with these rights:
+   - ✅ Manage Topics
+   - ✅ Delete Messages
+   - ✅ Pin Messages
+   - ✅ Send Messages
+
+#### 2. Recommended Topics Architecture:
+Create the following 9 topics inside your supergroup. Use the recommended names and icons for instant operational clarity:
+
+| # | Topic Name (نام تاپیک پیشنهادی) | Icon | Environment Variable | In-Bot Setting | Automated Responsibility |
+| :-: | :--- | :-: | :--- | :--- | :--- |
+| **1** | **💳 شارژها و فیش‌های بانکی** (`Top-ups`) | 💳 | `ADMIN_TOPIC_TOPUPS` | `adm:set:topic_topups` | Card deposit slips, SHA-256 duplicate guards, 1-tap Approve/Reject buttons, and TON on-chain logs. |
+| **2** | **🛒 سفارشات و تمدید سرویس** (`Orders`) | 🛒 | `ADMIN_TOPIC_ORDERS` | `adm:set:topic_orders` | Real-time purchase alerts, renewals, plan upgrades, and free trial issuances. |
+| **3** | **🎧 پشتیبانی و تیکت‌ها** (`Support`) | 🎧 | `ADMIN_TOPIC_SUPPORT` | `adm:set:topic_support` | Live 2-way support desk. Admins reply directly inside this topic to forward answers to users. |
+| **4** | **🖥️ سرورها و مانیتورینگ** (`Nodes`) | 🖥️ | `ADMIN_TOPIC_NODES` | `adm:set:topic_nodes` | Remnawave node status, offline/online triggers, CPU/RAM telemetry, and core versions. |
+| **5** | **📊 گزارشات مالی و مصرفی** (`Reports`) | 📊 | `ADMIN_TOPIC_REPORTS` | `adm:set:topic_reports` | Daily (23:59), weekly, and monthly fiscal summaries, node traffic breakdown by country flags, and top users. |
+| **6** | **🚨 هشدارها و سیستم** (`Alerts`) | 🚨 | `ADMIN_TOPIC_ALERTS` | `adm:set:topic_alerts` | Bandwidth consumption warnings (80%, 90%, 100%), pre-expiry countdowns, and grace-period enforcements. |
+| **7** | **💾 بکاپ خودکار دیتابیس** (`Backups`) | 💾 | `ADMIN_TOPIC_BACKUPS` | `adm:set:topic_backups` | Encrypted daily PostgreSQL snapshot dispatch (03:00 AM) with auto-pruning of older dumps. |
+| **8** | **💎 کریپتو و نرخ ارز** (`Crypto`) | 💎 | `ADMIN_TOPIC_CRYPTO` | `adm:set:topic_crypto` | 4x daily market rate updates (TON/USDT) with interactive 1-click price sync buttons. |
+| **9** | **⚠️ لاگ خطاهای سیستم** (`Error Logs`) | ⚠️ | `ADMIN_TOPIC_ERRORS` | `adm:set:topic_errors` | Real-time traceback dumps and runtime alerts for rapid diagnostics. |
+
+#### 3. Extracting `ADMIN_CHAT_ID` and Topic IDs:
+- **`ADMIN_CHAT_ID`**: Add `@RawDataBot` or `@userinfobot` to the group, or copy the link of any message in the group (`https://t.me/c/2456789012/123`). Prefix the ID with `-100` (e.g., `-1002456789012`).
+- **Topic IDs (`ADMIN_TOPIC_*`)**:
+  - In Telegram Desktop or Mobile, right-click (or tap & hold) on the topic and choose **"Copy Link to Topic"**.
+  - Example link: `https://t.me/c/2456789012/35` ➔ Topic ID is `35`.
+  - *Tip: You can either define these in `.env`, or configure them on the fly inside Telegram via `👑 Admin Panel ➔ ⚙️ Store Settings ➔ 📁 Topic Settings`.*
+
+---
+
+### Stage 2: Telegram Bot & Administrator Credentials
+
+1. Open Telegram and message [@BotFather](https://t.me/BotFather):
+   - Send `/newbot`, choose a title and username ending in `bot`.
+   - Copy your **API Token** (e.g. `789123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11`).
+2. Get your numeric Admin Telegram ID:
+   - Message [@userinfobot](https://t.me/userinfobot) to get your numeric ID (e.g. `123456789`).
+   - If you have multiple admins, separate IDs with commas: `123456789, 987654321`.
+
+---
+
+### Stage 3: Remnawave v3 Panel Connection
+
+1. Log in to your Remnawave v3 Panel as an Administrator.
+2. Go to **Admin ➔ API Tokens** and generate a new token with full management rights.
+3. Determine your connection URL:
+   - **Same Server (Recommended)**: `http://host.docker.internal:3000` (zero latency and zero round-trips over the internet).
+   - **Remote Server**: Your public HTTPS panel domain (e.g. `https://panel.yourdomain.com`).
+
+---
+
+### Stage 4: Clone Repository & Configure Environment (`.env`)
+
+```bash
+# 1. Clone the repository
+git clone https://github.com/nzrmohammad/Remnabot.git remnawave-bot
+cd remnawave-bot
+
+# 2. Create your environment configuration file
+cp .env.example .env
+nano .env
+```
+
+Set your core production variables:
+```env
+# --- 1. Telegram Credentials ---
+BOT_TOKEN=123456789:ABCDefghIJKlmnoPQRstuvWXyz
+ADMIN_IDS=123456789
+ADMIN_CHAT_ID=-1001234567890
+
+# --- 2. Remnawave v3 Connection ---
+REMNAWAVE_BASE_URL=http://host.docker.internal:3000
+REMNAWAVE_TOKEN=your_remnawave_api_token_here
+
+# --- 3. Database Credentials ---
+DATABASE_URL=postgresql+asyncpg://remnabot:remnabot@db:5432/remnabot
+
+# --- 4. Mini App & Web Configuration ---
+WEB_ENABLED=true
+WEB_PORT=8080
+WEB_APP_URL=https://app.cloudvibe.ir
+
+# Required if Nginx connects via host.docker.internal:8080
+WEB_BIND_IP=0.0.0.0
+```
+
+---
+
+### Stage 5: Telegram Mini App (TMA) & Nginx Reverse Proxy
 
 Remnabot features a built-in, asynchronous, high-performance web service delivering **two dedicated Telegram Mini Apps**:
 1. **👤 Client Portal WebApp (`/app`)**: Visual bandwidth circular gauge, collapsible per-country daily traffic accordion, interactive Lucky Wheel (6-tier prizes with automatic Remnawave quota allocation), story card generator, 1-tap app importers (`Incy`, `Happ`, `v2rayNG`, `Hiddify`, `Streisand`), live node ping latency tester, and IP/DNS leak detector.
@@ -231,55 +314,45 @@ Remnabot features a built-in, asynchronous, high-performance web service deliver
                                                                         └───────────────────────┘               └───────────────────────┘
 ```
 
-### ⚡ Performance & Security Principles
-- **Sub-50ms Instant Hydration (Stale-While-Revalidate)**: The client hydrates immediately from browser `localStorage` on click, eliminating loading flickers while refreshing live data in the background.
-- **HMAC-SHA256 Cryptographic Authentication**: Validates Telegram's cryptographic `initData` signature directly against your `BOT_TOKEN`. Zero passwords, zero session cookies, and 100% spoof-proof.
-- **Two-Tier Multi-Cache (L1 Memory + L2 Redis)**: Remnawave v3 API queries are cached with short TTLs (10–15s). Even with hundreds of concurrent users opening the TMA, panel load remains virtually zero.
-
----
-
-### Step-by-Step Production Deployment
-
-#### Step 1: Automatic SSL Issuance via Cloudflare DNS (Zero-File Secret)
-Obtain a valid Let's Encrypt certificate for your subdomain (e.g. `app.yourdomain.com`) using your Cloudflare API Token without saving persistent secret files to disk:
-
-```bash
-# Using acme.sh (Issues cert and copies directly to Nginx volume folder)
-CF_Token="YOUR_CLOUDFLARE_API_TOKEN" ~/.acme.sh/acme.sh --issue --dns dns_cf -d app.yourdomain.com && \
-~/.acme.sh/acme.sh --install-cert -d app.yourdomain.com --ecc \
-  --fullchain-file /opt/remnawave/nginx/app.yourdomain.com_fullchain.pem \
-  --key-file /opt/remnawave/nginx/app.yourdomain.com_privkey.key \
-  --reloadcmd "docker exec remnawave-nginx nginx -s reload 2>/dev/null || systemctl reload nginx 2>/dev/null || true"
-```
-
----
-
-#### Step 2: Configure Nginx Reverse Proxy
-
-1. **Add Upstream**: In your `nginx.conf` upstreams section, define the bot web server:
-   ```nginx
-   upstream remnabot {
-       server host.docker.internal:8080;
-       keepalive 32;
-   }
-   ```
-
-2. **Add Server Block**: Create the dedicated HTTPS server block for your TMA subdomain.
-
-> [!IMPORTANT]
-> **Telegram Iframe Compatibility**: Telegram Web and Desktop load Mini Apps inside an iframe. Do **NOT** use `add_header X-Frame-Options "SAMEORIGIN"` on this server block; instead, use the `Content-Security-Policy: frame-ancestors` header shown below:
+#### 1. WebSocket Upgrade Mapping (`nginx.conf`):
+Ensure your Nginx configuration contains the `$connection_upgrade` map inside the top-level `http {}` block:
 
 ```nginx
-# --- Telegram Mini App (Remnabot TMA) ---
+http {
+    # WebSocket connection upgrade mapping
+    map $http_upgrade $connection_upgrade {
+        default upgrade;
+        '' close;
+    }
+    ...
+}
+```
+
+#### 2. Nginx Upstream & Server Block:
+Add the upstream and server block to your Nginx configuration (e.g. `/etc/nginx/conf.d/remnabot.conf` or inside your Remnawave Nginx volume):
+
+```nginx
+# --- Remnabot Web Upstream ---
+upstream remnabot {
+    # When Nginx runs inside Docker (e.g. remnawave-nginx container):
+    server host.docker.internal:8080;
+    
+    # Alternatively, if Nginx is installed directly on the Host OS:
+    # server 127.0.0.1:8080;
+
+    keepalive 32;
+}
+
+# --- Telegram Mini App (Remnabot Telegram Mini App) ---
 server {
-    server_name app.yourdomain.com;
+    server_name app.cloudvibe.ir;
     listen 443 ssl;
     listen [::]:443 ssl;
     http2 on;
 
-    ssl_certificate "/etc/nginx/ssl/app.yourdomain.com_fullchain.pem";
-    ssl_certificate_key "/etc/nginx/ssl/app.yourdomain.com_privkey.key";
-    ssl_trusted_certificate "/etc/nginx/ssl/app.yourdomain.com_fullchain.pem";
+    ssl_certificate "/etc/nginx/ssl/app.cloudvibe.ir_fullchain.pem";
+    ssl_certificate_key "/etc/nginx/ssl/app.cloudvibe.ir_privkey.key";
+    ssl_trusted_certificate "/etc/nginx/ssl/app.cloudvibe.ir_fullchain.pem";
 
     # Essential: Grants permission for Telegram WebApp iframe rendering
     add_header Content-Security-Policy "frame-ancestors 'self' https://web.telegram.org https://*.telegram.org telegram:;" always;
@@ -304,64 +377,57 @@ server {
 }
 ```
 
-3. **Mount Certificates in Nginx Docker**: In your Nginx `docker-compose.yml`, mount the certificate files:
-   ```yaml
-   services:
-     remnawave-nginx:
-       volumes:
-         - ./app.yourdomain.com_fullchain.pem:/etc/nginx/ssl/app.yourdomain.com_fullchain.pem:ro
-         - ./app.yourdomain.com_privkey.key:/etc/nginx/ssl/app.yourdomain.com_privkey.key:ro
-   ```
-
-4. **Verify & Reload Nginx**:
-   ```bash
-   docker compose up -d
-   docker exec remnawave-nginx nginx -t
-   ```
+> [!WARNING]
+> **Diagnosing & Resolving 502 Bad Gateway:**
+> - **Issue**: You test `curl -I http://127.0.0.1:8080` on the server and get `HTTP 200 OK`, but visiting `https://app.cloudvibe.ir` returns **502 Bad Gateway**.
+> - **Cause**: If Nginx is running in a Docker container (e.g. `remnawave-nginx`) and proxies to `host.docker.internal:8080`, requests enter the host through the Docker bridge interface (`172.17.0.1`). If the bot is only bound to `127.0.0.1` (loopback), the Linux kernel drops the connection.
+> - **Solution**: Ensure `WEB_BIND_IP=0.0.0.0` is set in `remnawave-bot/.env`, then run `docker compose up -d bot`.
+> - **Docker Network Best Practice**: Alternatively, attach `remnawave-bot` and `remnawave-nginx` to the same Docker network (e.g. `remnawave_default`) and set upstream to `server remnawave-bot:8080;`. This avoids exposing port 8080 on the host entirely.
 
 ---
 
-#### Step 3: Configure Bot Environment (`.env`)
+### Stage 6: Orchestration Launch & Verification
 
-Add or update the TMA parameters in your `remnawave-bot/.env` file:
-
-```env
-# --- Web & Telegram Mini App (TMA) ---
-WEB_ENABLED=true
-WEB_HOST=0.0.0.0
-WEB_PORT=8080
-WEB_APP_URL=https://app.yourdomain.com
-```
-
----
-
-#### Step 4: Rebuild & Start Bot Stack
+Launch the stack using Docker Compose:
 
 ```bash
-docker compose up -d --build bot
+# 1. Build and start containers in the background
+docker compose up -d --build
+
+# 2. Check container health status
+docker compose ps
+# Both 'remnawave-bot', 'remnawave-bot-db', and 'remnawave-bot-redis' should show 'Up' / 'healthy'.
+
+# 3. Follow live startup logs
+docker compose logs -f bot
 ```
 
-Verify that port `8080` is bound:
+> [!NOTE]
+> **Autonomous Self-Healing Schema**: On first boot, the bot automatically provisions all PostgreSQL tables, foreign keys, and indexes. Zero manual migration commands or SQL scripts are necessary.
+
+#### Verify Healthcheck Endpoint:
+Run on your server:
 ```bash
-docker ps --filter "name=remnawave-bot"
-# You should see: 0.0.0.0:8080->8080/tcp
+curl -I https://app.cloudvibe.ir/health
+```
+You should receive `HTTP/1.1 200 OK` with JSON payload:
+```json
+{"status": "ok", "service": "remnabot-tma"}
 ```
 
 ---
 
-#### Step 5: Verify & Configure Telegram Menu Button
+### Stage 7: Telegram Menu Button Registration
 
-1. **Browser Test**: Open `https://app.yourdomain.com/health` in your browser. You should receive:
-   ```json
-   {"status": "ok", "service": "remnabot-tma"}
-   ```
-2. **Inline Buttons**: Send `/start` to your bot. The **`📱 داشبورد کاربری من (مینی‌اپ)`** button will appear automatically at the top of the main menu (and **`👑 پنل وب کلاستر`** for admins).
-3. **Permanent Menu Button (Optional)**:
-   - Message `@BotFather` on Telegram.
+Once deployed, make the Mini App directly accessible to every user with one tap:
+
+1. **Inline Dashboard Buttons**: Send `/start` to your bot in Telegram. The **`📱 داشبورد کاربری من (مینی‌اپ)`** button appears automatically for users, and **`👑 پنل وب کلاستر`** appears for admins.
+2. **Permanent Bot Menu Button**:
+   - Message [@BotFather](https://t.me/BotFather).
    - Send `/setmenubutton` and select your bot.
-   - Enter your WebApp URL: `https://app.yourdomain.com/app`
+   - Enter your Mini App URL: `https://app.cloudvibe.ir/app`
    - Set the button title (e.g. `داشبورد 📱` or `App 🚀`).
-   - The Mini App is now directly accessible from the permanent button beside the chat input!
+   - The Mini App is now pinned permanently beside the user's chat input field.
 
 ---
 
@@ -509,7 +575,7 @@ Administrators can configure live store variables on the fly without editing `.e
 
 ## 🧪 Testing & Quality Assurance
 
-Remnabot maintains a strict test-driven development workflow with **84 passing unit & integration tests** covering database models, repositories, business logic services, and FSM handlers:
+Remnabot maintains a strict test-driven development workflow with **210 passing unit & integration tests** covering database models, repositories, business logic services, and FSM handlers:
 
 ```bash
 # Execute test suite
