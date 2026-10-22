@@ -67,23 +67,22 @@ def format_multi_rate_alert(
     binance_usd = market_data.get("binance_usd")
 
     best_ton_p, best_ton_src = market_data.get("best_ton", (None, ""))
-    ref_ton_price = best_ton_p or current_ton_rate
 
-    diff_ton = ref_ton_price - current_ton_rate
-    if current_ton_rate > 0:
+    if best_ton_p is not None and current_ton_rate > 0:
+        diff_ton = best_ton_p - current_ton_rate
         percent = (diff_ton / current_ton_rate) * 100.0
+        if diff_ton > 0:
+            diff_str = f"{diff_ton:,}+ تومان"
+            percent_str = f"(%{percent:.1f}+)"
+        elif diff_ton < 0:
+            diff_str = f"{abs(diff_ton):,}- تومان"
+            percent_str = f"(%{abs(percent):.1f}-)"
+        else:
+            diff_str = "0 تومان"
+            percent_str = "(0%)"
     else:
-        percent = 0.0
-
-    if diff_ton > 0:
-        diff_str = f"{diff_ton:,}+ تومان"
-        percent_str = f"(%{percent:.1f}+)"
-    elif diff_ton < 0:
-        diff_str = f"{abs(diff_ton):,}- تومان"
-        percent_str = f"(%{abs(percent):.1f}-)"
-    else:
-        diff_str = "0 تومان"
-        percent_str = "(0%)"
+        diff_str = "—"
+        percent_str = ""
 
     curr_ton_str = f"{current_ton_rate:,} تومان" if current_ton_rate > 0 else "— (تنظیم‌نشده)"
     curr_usdt_str = f"{current_usdt_rate:,} تومان" if current_usdt_rate > 0 else "—"
@@ -125,8 +124,10 @@ def format_multi_rate_alert(
     lines.append("")
     lines.append("⚙️ <b>وضعیت فعلی در فروشگاه:</b>")
     lines.append(f"   💎 نرخ فعلی تون : <b>{curr_ton_str}</b>")
-    if current_ton_rate > 0 and ref_ton_price:
+    if current_ton_rate > 0 and best_ton_p is not None:
         lines.append(f"   📈 اختلاف تون : <b>{diff_str}</b> <b>{percent_str}</b>")
+    elif best_ton_p is None:
+        lines.append("   ⚠️ <i>نرخ جدیدی از صرافی‌ها دریافت نشد</i>")
     lines.append(f"   💵 نرخ مبنای تتر : <b>{curr_usdt_str}</b>")
     lines.append("")
     lines.append("💡 برای به‌روزرسانی نرخ در فروشگاه، دکمه مورد نظر را لمس فرمایید:")
@@ -175,23 +176,22 @@ def format_ton_rate_alert(
     binance_usd = market_data.get("binance_usd")
 
     best_ton_p, best_ton_src = market_data.get("best_ton", (None, ""))
-    ref_ton_price = best_ton_p or current_ton_rate
 
-    diff_ton = ref_ton_price - current_ton_rate
-    if current_ton_rate > 0:
+    if best_ton_p is not None and current_ton_rate > 0:
+        diff_ton = best_ton_p - current_ton_rate
         percent = (diff_ton / current_ton_rate) * 100.0
+        if diff_ton > 0:
+            diff_str = f"{diff_ton:,}+ تومان"
+            percent_str = f"(%{percent:.1f}+)"
+        elif diff_ton < 0:
+            diff_str = f"{abs(diff_ton):,}- تومان"
+            percent_str = f"(%{abs(percent):.1f}-)"
+        else:
+            diff_str = "0 تومان"
+            percent_str = "(0%)"
     else:
-        percent = 0.0
-
-    if diff_ton > 0:
-        diff_str = f"{diff_ton:,}+ تومان"
-        percent_str = f"(%{percent:.1f}+)"
-    elif diff_ton < 0:
-        diff_str = f"{abs(diff_ton):,}- تومان"
-        percent_str = f"(%{abs(percent):.1f}-)"
-    else:
-        diff_str = "0 تومان"
-        percent_str = "(0%)"
+        diff_str = "—"
+        percent_str = ""
 
     curr_ton_str = f"{current_ton_rate:,} تومان" if current_ton_rate > 0 else "— (تنظیم‌نشده)"
     time_header = f" — ساعت {hour_str}" if hour_str else ""
@@ -219,8 +219,10 @@ def format_ton_rate_alert(
     lines.append("")
     lines.append("⚙️ <b>وضعیت فعلی در فروشگاه:</b>")
     lines.append(f"   💎 نرخ فعلی تون : <b>{curr_ton_str}</b>")
-    if current_ton_rate > 0 and ref_ton_price:
+    if current_ton_rate > 0 and best_ton_p is not None:
         lines.append(f"   📈 اختلاف تون : <b>{diff_str}</b> <b>{percent_str}</b>")
+    elif best_ton_p is None:
+        lines.append("   ⚠️ <i>نرخ جدیدی از صرافی‌ها دریافت نشد</i>")
     lines.append("")
     lines.append("💡 برای به‌روزرسانی نرخ در فروشگاه، دکمه مورد نظر را لمس فرمایید:")
 
@@ -342,30 +344,33 @@ def format_full_crypto_market_alert(
     current_eur_rate = store.eur_rate_toman
 
     best_ton_p, best_ton_src = market_data.get("best_ton", (None, ""))
-    ref_ton = best_ton_p or current_ton_rate
+    if best_ton_p is not None and current_ton_rate > 0:
+        diff_ton = best_ton_p - current_ton_rate
+        pct_ton = (diff_ton / current_ton_rate * 100.0)
+        if diff_ton > 0:
+            diff_ton_str = f"{diff_ton:,}+ ت (%{pct_ton:.1f}+)"
+        elif diff_ton < 0:
+            diff_ton_str = f"{abs(diff_ton):,}- ت (%{abs(pct_ton):.1f}-)"
+        else:
+            diff_ton_str = "بدون تغییر"
+    else:
+        diff_ton_str = "بدون تغییر" if best_ton_p is not None else "دریافت نشد"
 
     best_usdt_p, best_usdt_src = market_data.get("best_usdt", (None, ""))
+    if best_usdt_p is not None and current_usdt_rate > 0:
+        diff_usdt = best_usdt_p - current_usdt_rate
+        pct_usdt = (diff_usdt / current_usdt_rate * 100.0)
+        if diff_usdt > 0:
+            diff_usdt_str = f"{diff_usdt:,}+ ت (%{pct_usdt:.1f}+)"
+        elif diff_usdt < 0:
+            diff_usdt_str = f"{abs(diff_usdt):,}- ت (%{abs(pct_usdt):.1f}-)"
+        else:
+            diff_usdt_str = "بدون تغییر"
+    else:
+        diff_usdt_str = "بدون تغییر" if best_usdt_p is not None else "دریافت نشد"
+
     ref_usdt = best_usdt_p or current_usdt_rate
-
-    diff_ton = ref_ton - current_ton_rate if current_ton_rate > 0 and ref_ton else 0
-    pct_ton = (diff_ton / current_ton_rate * 100.0) if current_ton_rate > 0 else 0.0
-    if diff_ton > 0:
-        diff_ton_str = f"{diff_ton:,}+ ت (%{pct_ton:.1f}+)"
-    elif diff_ton < 0:
-        diff_ton_str = f"{abs(diff_ton):,}- ت (%{abs(pct_ton):.1f}-)"
-    else:
-        diff_ton_str = "بدون تغییر"
-
-    diff_usdt = ref_usdt - current_usdt_rate if current_usdt_rate > 0 and ref_usdt else 0
-    pct_usdt = (diff_usdt / current_usdt_rate * 100.0) if current_usdt_rate > 0 else 0.0
-    if diff_usdt > 0:
-        diff_usdt_str = f"{diff_usdt:,}+ ت (%{pct_usdt:.1f}+)"
-    elif diff_usdt < 0:
-        diff_usdt_str = f"{abs(diff_usdt):,}- ت (%{abs(pct_usdt):.1f}-)"
-    else:
-        diff_usdt_str = "بدون تغییر"
-
-    lossless_stars = max(100, round(ref_usdt * 0.013))
+    lossless_stars = max(100, round(ref_usdt * 0.013)) if ref_usdt else 0
     fragment_stars = round(ref_usdt * 0.015)
 
     time_header = f" — ساعت {hour_str}" if hour_str else ""

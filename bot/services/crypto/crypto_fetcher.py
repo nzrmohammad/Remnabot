@@ -169,18 +169,36 @@ async def fetch_all_exchange_prices(usdt_rate: int | None = None) -> dict:
             except Exception as e:
                 logger.debug("Ramzinex TON failed: %s", e)
 
-        # 6. Binance (global)
+        # 6. Binance (global) & TonAPI
         async def _fetch_binance():
             nonlocal binance_ton_usd, binance_eur_usd
-            try:
-                async with session.get("https://api.binance.com/api/v3/ticker/price?symbol=TONUSDT", headers=headers) as resp:
-                    if resp.status == 200:
-                        data = await resp.json()
-                        p = float(data.get("price", "0"))
-                        if p > 0:
-                            binance_ton_usd = p
-            except Exception as e:
-                logger.debug("Binance TON failed: %s", e)
+            # On Binance, Toncoin spot trading was migrated from TONUSDT (which is frozen at 1.60 with status BREAK)
+            # to GRAMUSDT. We check GRAMUSDT first, then fallback to TonAPI if needed.
+            for sym in ("GRAMUSDT", "TONUSDT"):
+                try:
+                    async with session.get(f"https://api.binance.com/api/v3/ticker/price?symbol={sym}", headers=headers) as resp:
+                        if resp.status == 200:
+                            data = await resp.json()
+                            p = float(data.get("price", "0"))
+                            if sym == "TONUSDT" and abs(p - 1.60) < 0.001:
+                                continue
+                            if p > 0:
+                                binance_ton_usd = p
+                                break
+                except Exception as e:
+                    logger.debug("Binance %s failed: %s", sym, e)
+
+            # Fallback to TonAPI if Binance did not return a valid price
+            if not binance_ton_usd:
+                try:
+                    async with session.get("https://tonapi.io/v2/rates?tokens=ton&currencies=usd", headers=headers) as resp:
+                        if resp.status == 200:
+                            data = await resp.json()
+                            p = float((data.get("rates", {}).get("TON", {}).get("prices", {})).get("USD", 0))
+                            if p > 0:
+                                binance_ton_usd = round(p, 4)
+                except Exception as e:
+                    logger.debug("TonAPI rates failed: %s", e)
 
             try:
                 async with session.get("https://api.binance.com/api/v3/ticker/price?symbol=EURUSDT", headers=headers) as resp:
@@ -218,7 +236,6 @@ async def fetch_all_exchange_prices(usdt_rate: int | None = None) -> dict:
         or usdt_prices.get("بیت‌پین")
         or usdt_prices.get("والکس")
         or usdt_rate
-        or getattr(settings, "USDT_RATE_TOMAN", 0)
     )
     effective_usdt = int(effective_usdt or 0)
 
@@ -235,16 +252,17 @@ async def fetch_all_exchange_prices(usdt_rate: int | None = None) -> dict:
             best_usdt_source = src
             break
 
-    # Calculate EUR in Toman for all domestic exchanges based on Binance EUR/USDT benchmark
-    eur_rate_mult = binance_eur_usd if (binance_eur_usd and binance_eur_usd > 0) else 1.085
-    for exch_name in ("نوبیتکس", "تترلند", "رمزینکس", "بیت‌پین", "والکس"):
-        if exch_name not in eur_prices and exch_name in usdt_prices:
-            u_price = usdt_prices[exch_name]
-            if u_price > 0:
-                eur_prices[exch_name] = int(round(u_price * eur_rate_mult))
+    # Calculate EUR in Toman for all domestic exchanges based on Binance EUR/USDT benchmark (no hardcoded fallback)
+    eur_rate_mult = binance_eur_usd if (binance_eur_usd and binance_eur_usd > 0) else None
+    if eur_rate_mult:
+        for exch_name in ("نوبیتکس", "تترلند", "رمزینکس", "بیت‌پین", "والکس"):
+            if exch_name not in eur_prices and exch_name in usdt_prices:
+                u_price = usdt_prices[exch_name]
+                if u_price > 0:
+                    eur_prices[exch_name] = int(round(u_price * eur_rate_mult))
 
-    if binance_eur_usd and "بایننس" not in eur_prices and effective_usdt > 0:
-        eur_prices["بایننس"] = int(round(binance_eur_usd * effective_usdt))
+        if "بایننس" not in eur_prices and effective_usdt > 0:
+            eur_prices["بایننس"] = int(round(eur_rate_mult * effective_usdt))
 
     best_eur_price: int | None = None
     best_eur_source = ""

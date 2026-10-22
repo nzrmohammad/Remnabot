@@ -33,8 +33,8 @@ class Settings(BaseSettings):
     TON_WALLET_ADDRESS: str = ""
     TON_RATE_TOMAN: int = 0
     CRYPTO_ENABLED: bool = False
-    USDT_RATE_TOMAN: int = 95000
-    EUR_RATE_TOMAN: int = 105000
+    USDT_RATE_TOMAN: int = 0
+    EUR_RATE_TOMAN: int = 0
     IRAN_PROXY: str = ""
 
     # --- Database ---
