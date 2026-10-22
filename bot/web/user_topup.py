@@ -160,8 +160,7 @@ async def post_user_topup_card(request: web.Request) -> web.Response:
 
         card_num = getattr(store, "card_number", "")
         card_enabled = getattr(store, "card_enabled", True)
-        from unittest.mock import MagicMock
-        is_empty_card = (card_num is not None and not isinstance(card_num, MagicMock) and not str(card_num).strip())
+        is_empty_card = not (str(card_num).strip() if card_num else "")
         if not card_enabled or is_empty_card:
             return web.json_response(
                 {
@@ -199,7 +198,8 @@ async def post_user_topup_card(request: web.Request) -> web.Response:
                 status=400,
             )
 
-        if receipt_info:
+        text_hash = None
+        if receipt_info and receipt_info.strip():
             normalized = " ".join(receipt_info.split())
             text_hash = "text:" + hashlib.sha256(normalized.encode("utf-8")).hexdigest()[:48]
             if await wallet_repo.receipt_exists(text_hash):
@@ -208,7 +208,7 @@ async def post_user_topup_card(request: web.Request) -> web.Response:
                     status=400,
                 )
 
-        receipt_hash = img_hash
+        receipt_hash = f"{img_hash}|{text_hash}" if text_hash else img_hash
         try:
             topup = await wallet_repo.create_topup(telegram_id, amount, receipt_hash)
 

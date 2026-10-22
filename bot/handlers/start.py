@@ -1,9 +1,11 @@
 """ /start command + language selection + welcome screen navigation."""
 import contextlib
+
 from aiogram import Bot, F, Router
 from aiogram.filters import CommandStart
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message, ReplyKeyboardRemove
+from sqlalchemy.exc import IntegrityError
 
 from bot.config import get_settings
 from bot.db.repositories.user_repo import UserRepository
@@ -200,7 +202,16 @@ async def handle_user_contact(
         full_name=message.from_user.full_name,
     )
     user.phone_number = phone
-    await session.commit()
+    try:
+        await session.commit()
+    except IntegrityError:
+        await session.rollback()
+        await message.answer(
+            "⚠️ <b>خطای احراز هویت:</b> این شماره تماس قبلاً در سیستم ثبت شده است و امکان استفاده مجدد از آن روی حساب دیگر وجود ندارد.",
+            reply_markup=ReplyKeyboardRemove(),
+            parse_mode="HTML",
+        )
+        return
 
     await message.answer(
         f"✅ <b>شماره تماس شما با موفقیت تأیید و ثبت شد:</b>\n<code>{phone}</code>\n\n"

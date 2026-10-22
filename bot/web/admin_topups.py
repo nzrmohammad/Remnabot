@@ -1,47 +1,23 @@
 """Admin Topups, Payment Approvals, and Card Receipt Verification API endpoints."""
 import asyncio
 import inspect
-import json
 import logging
-import math
-import time
-from datetime import datetime, timedelta, timezone
 from html import escape
 from pathlib import Path
-from typing import Any
 
 # Bot instance resolved dynamically from request.app["bot"]
 from aiohttp import web
-from sqlalchemy import desc, func, select
+from sqlalchemy import select
 
 from bot.common import admin_thread_kwargs
-from bot.common.helpers import get_limit_bytes, get_used_bytes
 from bot.db.models import (
     AdminLog,
-    AppSetting,
-    Coupon,
-    CryptoInvoice,
-    KnownDevice,
-    NodeCost,
-    Order,
-    Service,
-    SupportMessage,
-    Topup,
     User,
-    Wallet,
 )
-from bot.db.repositories.admin_log_repo import AdminLogRepository
-from bot.db.repositories.app_setting_repo import AppSettingRepository
-from bot.db.repositories.coupon_repo import CouponRepository
-from bot.db.repositories.node_cost_repo import NodeCostRepository
-from bot.db.repositories.service_repo import ServiceRepository
-from bot.db.repositories.support_repo import SupportMessageRepository
 from bot.db.repositories.user_repo import UserRepository
 from bot.db.repositories.wallet_repo import WalletRepository
-from bot.services.broadcast import resolve_broadcast_recipients as _resolve_broadcast_recipients
-from bot.locales.texts import t
 from bot.services.app_settings import get_store_settings
-from bot.web.admin_common import _check_admin, db_session, format_service_name_icon_first
+from bot.web.admin_common import _check_admin, db_session
 from bot.web.cache import FastCache
 
 logger = logging.getLogger(__name__)
@@ -59,11 +35,18 @@ async def get_admin_topups(request: web.Request) -> web.Response:
             user_repo = UserRepository(session)
             pending = await wallet_repo.list_pending_topups()
 
+            # Batch fetch all related users to eliminate N+1 queries
+            tids = list({t.telegram_id for t in pending})
+            user_map = {}
+            if tids:
+                u_stmt = select(User).where(User.telegram_id.in_(tids))
+                u_res = await session.execute(u_stmt)
+                user_map = {u.telegram_id: u for u in u_res.scalars().all()}
+
             items = []
             receipts_dir = Path("data/receipts")
             for t in pending:
-                u = await user_repo.get_by_telegram_id(t.telegram_id)
-                receipt_ref = getattr(t, "receipt_photo_id", None) or getattr(t, "receipt_hash", None)
+                u = user_map.get(t.telegram_id) or await user_repo.get_by_telegram_id(t.telegram_id)
                 u_full_name = getattr(u, "full_name", None)
                 if not u_full_name:
                     u_full_name = f"@{u.username}" if (u and u.username) else f"کاربر {t.telegram_id}"
@@ -165,6 +148,7 @@ async def post_admin_topup_action(request: web.Request) -> web.Response:
     # Send telegram notification to user with navigation keyboard
     try:
         from aiogram.utils.keyboard import InlineKeyboardBuilder
+
         from bot.locales.texts import t
 
         user_lang = "fa"

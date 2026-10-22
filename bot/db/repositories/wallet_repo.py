@@ -102,8 +102,17 @@ class WalletRepository:
 
     async def receipt_exists(self, receipt_hash: str) -> bool:
         """True if this receipt fingerprint was already submitted (any status)."""
+        if not receipt_hash:
+            return False
+        from sqlalchemy import or_
         result = await self.session.execute(
-            select(Topup).where(Topup.receipt_hash == receipt_hash).limit(1)
+            select(Topup).where(
+                or_(
+                    Topup.receipt_hash == receipt_hash,
+                    Topup.receipt_hash.like(f"{receipt_hash}|%"),
+                    Topup.receipt_hash.like(f"%|{receipt_hash}"),
+                )
+            ).limit(1)
         )
         return result.scalar_one_or_none() is not None
 

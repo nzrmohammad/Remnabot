@@ -20,7 +20,13 @@ def require_user(request: web.Request) -> tuple[dict[str, Any] | None, web.Respo
             {"ok": False, "error": "Unauthorized"},
             status=401,
         )
-    if user.get("is_banned"):
+
+    # Check ban status from request or user auth dictionary
+    is_banned = request.get("is_banned")
+    if is_banned is None:
+        is_banned = user.get("is_banned")
+
+    if is_banned:
         return None, web.json_response(
             {
                 "ok": False,

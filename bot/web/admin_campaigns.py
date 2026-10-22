@@ -1,48 +1,15 @@
 """Admin Broadcasts, Marketing Campaigns, and Announcements API endpoints."""
 import asyncio
-import json
 import logging
-import math
-import time
-from datetime import datetime, timedelta, timezone
-from html import escape
-from pathlib import Path
+from datetime import datetime, timezone
 from typing import Any
 
 # Bot instance resolved dynamically from request.app["bot"]
 from aiohttp import web
-from sqlalchemy import desc, func, select
 
-from bot.common import admin_thread_kwargs
-from bot.common.helpers import get_limit_bytes, get_used_bytes
-from bot.db.models import (
-    AdminLog,
-    AppSetting,
-    Coupon,
-    CryptoInvoice,
-    KnownDevice,
-    NodeCost,
-    Order,
-    Service,
-    SupportMessage,
-    Topup,
-    User,
-    Wallet,
-)
-from bot.db.repositories.admin_log_repo import AdminLogRepository
-from bot.db.repositories.app_setting_repo import AppSettingRepository
-from bot.db.repositories.coupon_repo import CouponRepository
-from bot.db.repositories.node_cost_repo import NodeCostRepository
-from bot.db.repositories.service_repo import ServiceRepository
-from bot.db.repositories.support_repo import SupportMessageRepository
-from bot.db.repositories.user_repo import UserRepository
-from bot.db.repositories.wallet_repo import WalletRepository
-from bot.services.broadcast import resolve_broadcast_recipients as _resolve_broadcast_recipients
-from bot.locales.texts import t
-from bot.services.app_settings import get_store_settings
 from bot.common.links import ad_link
-from bot.web.admin_common import _check_admin, db_session, format_service_name_icon_first
-from bot.web.cache import FastCache
+from bot.services.broadcast import resolve_broadcast_recipients as _resolve_broadcast_recipients
+from bot.web.admin_common import _check_admin, db_session
 
 logger = logging.getLogger(__name__)
 
@@ -99,8 +66,16 @@ async def post_admin_broadcast(request: web.Request) -> web.Response:
         "start_time": datetime.now(timezone.utc).isoformat(),
     }
 
-    async def _broadcast_worker():
+    cache = request.app.get("cache")
+    if cache and hasattr(cache, "set"):
+        try:
+            await cache.set(f"bcast:{broadcast_id}", _BROADCAST_STATUSES[broadcast_id], ttl_seconds=86400)
+        except Exception:
+            pass
+
+    async def _broadcast_worker_with_cache():
         st = _BROADCAST_STATUSES[broadcast_id]
+        counter = 0
         for tid in recipients:
             try:
                 await bot.send_message(chat_id=tid, text=text, parse_mode="HTML")
@@ -109,13 +84,24 @@ async def post_admin_broadcast(request: web.Request) -> web.Response:
             except Exception as exc:
                 st["failed"] += 1
                 logger.debug("Broadcast send error for user %s: %s", tid, exc)
+            counter += 1
+            if counter % 25 == 0 and cache and hasattr(cache, "set"):
+                try:
+                    await cache.set(f"bcast:{broadcast_id}", st, ttl_seconds=86400)
+                except Exception:
+                    pass
         st["is_completed"] = True
+        if cache and hasattr(cache, "set"):
+            try:
+                await cache.set(f"bcast:{broadcast_id}", st, ttl_seconds=86400)
+            except Exception:
+                pass
         logger.info(
             "Admin broadcast completed: id=%s target=%s sent=%d failed=%d",
             broadcast_id, target, st["sent"], st["failed"]
         )
 
-    task = asyncio.create_task(_broadcast_worker())
+    task = asyncio.create_task(_broadcast_worker_with_cache())
     _BACKGROUND_TASKS.add(task)
     task.add_done_callback(_BACKGROUND_TASKS.discard)
     return web.json_response({
@@ -133,10 +119,22 @@ async def get_admin_broadcast_status(request: web.Request) -> web.Response:
         return web.json_response({"ok": False, "error": "Forbidden"}, status=403)
 
     b_id = request.query.get("id")
-    if not b_id or b_id not in _BROADCAST_STATUSES:
+    if not b_id:
         return web.json_response({"ok": False, "error": "عملیات یافت نشد"}, status=404)
 
-    return web.json_response({"ok": True, "stats": _BROADCAST_STATUSES[b_id]})
+    stats = _BROADCAST_STATUSES.get(b_id)
+    if not stats:
+        cache = request.app.get("cache")
+        if cache and hasattr(cache, "get"):
+            try:
+                stats = await cache.get(f"bcast:{b_id}")
+            except Exception:
+                stats = None
+
+    if not stats:
+        return web.json_response({"ok": False, "error": "عملیات یافت نشد"}, status=404)
+
+    return web.json_response({"ok": True, "stats": stats})
 
 
 async def get_admin_campaigns(request: web.Request) -> web.Response:

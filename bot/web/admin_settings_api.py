@@ -1,13 +1,14 @@
 """Admin Settings and Exchange Rates API handlers for Telegram Mini App."""
 import json
 import logging
+
 from aiohttp import web
 
 from bot.db.models import AdminLog
 from bot.db.repositories.app_setting_repo import AppSettingRepository
 from bot.services.app_settings import get_store_settings
-from bot.web.admin_common import _check_admin as _default_check_admin, db_session
-from bot.web.cache import FastCache
+from bot.web.admin_common import _check_admin as _default_check_admin
+from bot.web.admin_common import db_session
 
 logger = logging.getLogger(__name__)
 
@@ -37,6 +38,7 @@ async def get_admin_settings(request: web.Request) -> web.Response:
             "card_number": store_settings.card_number,
             "card_holder": store_settings.card_holder,
             "topup_min_amount": store_settings.topup_min_amount,
+            "topup_max_amount": store_settings.topup_max_amount,
             "usdt_rate_toman": store_settings.usdt_rate_toman,
             "eur_rate_toman": store_settings.eur_rate_toman,
             "ton_rate_toman": store_settings.ton_rate_toman,
@@ -117,7 +119,7 @@ async def post_admin_settings(request: web.Request) -> web.Response:
 
         # Numeric / string settings
         raw_keys = (
-            "card_number", "card_holder", "topup_min_amount",
+            "card_number", "card_holder", "topup_min_amount", "topup_max_amount",
             "usdt_rate_toman", "eur_rate_toman", "ton_rate_toman", "ton_wallet_address",
             "stars_rate_toman",
             "trial_traffic_gb", "trial_duration_days",

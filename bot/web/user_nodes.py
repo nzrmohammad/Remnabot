@@ -256,7 +256,7 @@ async def get_user_avatar(request: web.Request) -> web.Response:
                     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
                 }
                 async with aiohttp.ClientSession(headers=custom_headers) as client:
-                    async with client.get(fallback_url, timeout=aiohttp.ClientTimeout(total=5, connect=2.0), proxy=proxy) as resp:
+                    async with client.get(fallback_url, timeout=aiohttp.ClientTimeout(total=5, connect=2.0), proxy=proxy, allow_redirects=False) as resp:
                         if resp.status == 200:
                             img_bytes = await resp.read()
                             if img_bytes:

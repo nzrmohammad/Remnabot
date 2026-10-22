@@ -351,7 +351,12 @@ async def test_user_topup_card_validation_and_duplicate_prevention():
             return 0
 
         async def receipt_exists(self, receipt_hash):
-            return receipt_hash in existing_hashes
+            return any(
+                h == receipt_hash
+                or h.startswith(f"{receipt_hash}|")
+                or h.endswith(f"|{receipt_hash}")
+                for h in existing_hashes
+            )
 
         async def create_topup(self, telegram_id, amount, receipt_hash):
             existing_hashes.add(receipt_hash)

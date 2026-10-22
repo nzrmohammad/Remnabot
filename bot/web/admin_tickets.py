@@ -1,46 +1,20 @@
 """Admin Support Tickets & Live Chat API endpoints."""
-import asyncio
-import json
 import logging
-import math
 import time
-from datetime import datetime, timedelta, timezone
-from html import escape
-from pathlib import Path
+from datetime import datetime
 from typing import Any
 
 # Bot instance resolved dynamically from request.app["bot"]
 from aiohttp import web
-from sqlalchemy import desc, func, select
+from sqlalchemy import select
 
-from bot.common import admin_thread_kwargs
-from bot.common.helpers import get_limit_bytes, get_used_bytes
 from bot.db.models import (
-    AdminLog,
-    AppSetting,
-    Coupon,
-    CryptoInvoice,
-    KnownDevice,
-    NodeCost,
-    Order,
-    Service,
-    SupportMessage,
     Topup,
     User,
-    Wallet,
 )
-from bot.db.repositories.admin_log_repo import AdminLogRepository
-from bot.db.repositories.app_setting_repo import AppSettingRepository
-from bot.db.repositories.coupon_repo import CouponRepository
-from bot.db.repositories.node_cost_repo import NodeCostRepository
-from bot.db.repositories.service_repo import ServiceRepository
-from bot.db.repositories.support_repo import SupportMessageRepository
 from bot.db.repositories.user_repo import UserRepository
 from bot.db.repositories.wallet_repo import WalletRepository
-from bot.services.broadcast import resolve_broadcast_recipients as _resolve_broadcast_recipients
-from bot.locales.texts import t
-from bot.services.app_settings import get_store_settings
-from bot.web.admin_common import _check_admin, db_session, format_service_name_icon_first
+from bot.web.admin_common import _check_admin, db_session
 from bot.web.cache import FastCache
 
 logger = logging.getLogger(__name__)
@@ -67,11 +41,27 @@ async def get_admin_ticket_threads(request: web.Request) -> web.Response:
         pending_topups = pending_res.scalars().all()
         user_repo = UserRepository(session)
 
+        # Batch load users to eliminate N+1 queries
+        active_ids = await cache.get("support:active_thread_ids") or []
+        parsed_active_ids = []
+        for tid in active_ids:
+            try:
+                parsed_active_ids.append(int(tid))
+            except (ValueError, TypeError):
+                pass
+
+        all_target_tids = list({t.telegram_id for t in pending_topups} | set(parsed_active_ids))
+        user_map = {}
+        if all_target_tids:
+            u_stmt = select(User).where(User.telegram_id.in_(all_target_tids))
+            u_res = await session.execute(u_stmt)
+            user_map = {u.telegram_id: u for u in u_res.scalars().all()}
+
         for t in pending_topups:
             if t.telegram_id in seen_ids:
                 continue
             seen_ids.add(t.telegram_id)
-            user = await user_repo.get_by_telegram_id(t.telegram_id)
+            user = user_map.get(t.telegram_id) or await user_repo.get_by_telegram_id(t.telegram_id)
             u_name = (getattr(user, "full_name", None) or (f"@{user.username}" if user and user.username else f"کاربر {t.telegram_id}")).strip()
 
             chat_msgs = await cache.get(f"support:chat:{t.telegram_id}") or []
@@ -92,16 +82,11 @@ async def get_admin_ticket_threads(request: web.Request) -> web.Response:
 
         # 2. Add other active threads from cache
         active_ids = await cache.get("support:active_thread_ids") or []
-        for tid in active_ids:
-            tid_int = None
-            try:
-                tid_int = int(tid)
-            except (ValueError, TypeError):
-                continue
+        for tid_int in parsed_active_ids:
             if tid_int in seen_ids:
                 continue
             seen_ids.add(tid_int)
-            user = await user_repo.get_by_telegram_id(tid_int)
+            user = user_map.get(tid_int) or await user_repo.get_by_telegram_id(tid_int)
             u_name = (getattr(user, "full_name", None) or (f"@{user.username}" if user and user.username else f"کاربر {tid_int}")).strip()
             chat_msgs = await cache.get(f"support:chat:{tid_int}") or []
             if not chat_msgs:

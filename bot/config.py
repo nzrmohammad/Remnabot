@@ -52,6 +52,7 @@ class Settings(BaseSettings):
     CARD_NUMBER: str = ""              # e.g. 6037-9917-1234-5678 (empty → top-up disabled)
     CARD_HOLDER: str = ""              # card owner's name shown to the user
     TOPUP_MIN_AMOUNT: int = 10000      # Toman
+    TOPUP_MAX_AMOUNT: int = 50_000_000 # Toman
 
     # --- Expiry lifecycle ---
     EXPIRY_GRACE_DAYS: int = 3         # days after expire before auto-disable

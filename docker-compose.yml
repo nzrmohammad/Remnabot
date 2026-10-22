@@ -19,7 +19,7 @@ services:
     image: redis:7-alpine
     container_name: remnawave-bot-redis
     restart: unless-stopped
-    command: redis-server --appendonly yes
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-remnabot_redis_secret}
     volumes:
       - redisdata:/data
 
@@ -30,13 +30,13 @@ services:
     env_file: .env
     environment:
       DATABASE_URL: ${DATABASE_URL:-postgresql+asyncpg://${POSTGRES_USER:-remnabot}:${POSTGRES_PASSWORD:-remnabot}@db:5432/${POSTGRES_DB:-remnabot}}
-      REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
+      REDIS_URL: ${REDIS_URL:-redis://:${REDIS_PASSWORD:-remnabot_redis_secret}@redis:6379/0}
     # Connects to Remnawave panel running on host or Docker via host.docker.internal
     volumes:
       - botbackups:/app/backups
       - botdata:/app/data
     ports:
-      - "127.0.0.1:8080:8080"
+      - "${WEB_BIND_IP:-0.0.0.0}:${WEB_PORT:-8080}:8080"
     extra_hosts:
       - "host.docker.internal:host-gateway"
     depends_on:

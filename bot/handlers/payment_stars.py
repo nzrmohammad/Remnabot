@@ -1,18 +1,20 @@
 from html import escape
+
 from sqlalchemy.exc import IntegrityError
+
 """Telegram Stars (XTR) native payment handling."""
 import logging
+from datetime import datetime, timezone
+
 from aiogram import Bot, F, Router
 from aiogram.types import Message, PreCheckoutQuery
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from datetime import datetime, timezone
-
 from bot.common import admin_thread_kwargs
 from bot.db.models import Topup, TopupStatus
-from bot.db.repositories.wallet_repo import WalletRepository
 from bot.db.repositories.user_repo import UserRepository
+from bot.db.repositories.wallet_repo import WalletRepository
 from bot.services.app_settings import get_store_settings
 
 logger = logging.getLogger(__name__)
@@ -124,6 +126,14 @@ async def stars_successful_payment_handler(
     )
     if dup_res.scalar_one_or_none():
         logger.warning("Duplicate Stars payment received for charge_id %s, ignoring.", sp.telegram_payment_charge_id)
+        return
+
+    if message.from_user and message.from_user.id != user_tid:
+        logger.error(
+            "Stars payment from_user %s does not match payload user %s",
+            message.from_user.id,
+            user_tid,
+        )
         return
 
     if sp.currency != "XTR" or sp.total_amount < stars_count:

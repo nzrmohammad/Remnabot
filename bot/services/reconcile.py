@@ -7,14 +7,17 @@ possibly-free service never goes unnoticed — the admin can check the panel
 and revoke/charge manually.
 """
 import asyncio
+import json
 import logging
 from typing import Any
 
 from aiogram import Bot
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import async_sessionmaker
 
 from bot.common import admin_thread_kwargs
 from bot.config import get_settings
+from bot.db.models import Order
 from bot.db.repositories.order_repo import OrderRepository
 from bot.services.app_settings import get_store_settings
 
@@ -35,30 +38,75 @@ async def run_reconcile(
         repo = OrderRepository(session)
         stale = await repo.list_pending(older_than_minutes=STALE_MINUTES)
         for order in stale:
-            await repo.mark_failed(order)
-            closed += 1
+            panel_handled = True
             if remnawave:
                 if getattr(order, "is_renewal", False):
                     # Renewal compensation: revert panel account back to pre-purchase snapshot
                     if order.panel_user_id and getattr(order, "snapshot_data", None):
                         try:
-                            import json
-                            snap = json.loads(order.snapshot_data)
-                            orig_expire = snap.get("expireAt")
-                            orig_traffic = snap.get("trafficLimitBytes")
-                            orig_status = snap.get("status") or "ACTIVE"
-                            await remnawave.update_user_subscription(
-                                int(order.panel_user_id),
-                                orig_expire,
-                                int(orig_traffic) if orig_traffic is not None else 0,
-                                status=orig_status,
+                            # 1. Check if newer paid order exists for this panel user
+                            newer_paid_stmt = (
+                                select(Order)
+                                .where(
+                                    Order.panel_user_id == order.panel_user_id,
+                                    Order.status == "paid",
+                                    Order.id > order.id,
+                                )
+                                .limit(1)
                             )
-                            logger.warning(
-                                "Reconcile reverted uncharged renewal order %s for panel user %s to original state",
-                                order.id,
-                                order.panel_user_id,
-                            )
+                            newer_paid = (await session.execute(newer_paid_stmt)).scalar_one_or_none()
+                            if newer_paid:
+                                logger.info(
+                                    "Reconcile: newer paid order %s exists for panel_user_id %s; skipping rollback for stale order %s",
+                                    newer_paid.id,
+                                    order.panel_user_id,
+                                    order.id,
+                                )
+                            else:
+                                snap = json.loads(order.snapshot_data)
+                                orig_expire = snap.get("expireAt")
+                                orig_traffic = snap.get("trafficLimitBytes")
+                                orig_status = snap.get("status") or "ACTIVE"
+
+                                curr_panel_user = None
+                                if hasattr(remnawave, "get_panel_user_by_id"):
+                                    curr_panel_user = await remnawave.get_panel_user_by_id(int(order.panel_user_id))
+
+                                if curr_panel_user:
+                                    curr_exp = curr_panel_user.get("expireAt")
+                                    curr_traf = curr_panel_user.get("trafficLimitBytes")
+                                    if curr_exp == orig_expire and curr_traf == orig_traffic:
+                                        logger.info(
+                                            "Reconcile: panel user %s state matches snapshot; no revert needed for order %s",
+                                            order.panel_user_id,
+                                            order.id,
+                                        )
+                                    else:
+                                        await remnawave.update_user_subscription(
+                                            int(order.panel_user_id),
+                                            orig_expire,
+                                            int(orig_traffic) if orig_traffic is not None else 0,
+                                            status=orig_status,
+                                        )
+                                        logger.warning(
+                                            "Reconcile reverted uncharged renewal order %s for panel user %s to original state",
+                                            order.id,
+                                            order.panel_user_id,
+                                        )
+                                else:
+                                    await remnawave.update_user_subscription(
+                                        int(order.panel_user_id),
+                                        orig_expire,
+                                        int(orig_traffic) if orig_traffic is not None else 0,
+                                        status=orig_status,
+                                    )
+                                    logger.warning(
+                                        "Reconcile reverted uncharged renewal order %s for panel user %s to original state",
+                                        order.id,
+                                        order.panel_user_id,
+                                    )
                         except Exception as r_err:
+                            panel_handled = False
                             logger.error(
                                 "Reconcile failed to revert renewal for user %s: %s",
                                 order.panel_user_id,
@@ -84,11 +132,17 @@ async def run_reconcile(
                                 order.id,
                             )
                         except Exception as p_err:
+                            panel_handled = False
                             logger.error(
                                 "Reconcile could not disable panel user %s: %s",
                                 user_id_to_disable,
                                 p_err,
                             )
+
+            if panel_handled:
+                await repo.mark_failed(order)
+                closed += 1
+
         await session.commit()
 
     if closed:

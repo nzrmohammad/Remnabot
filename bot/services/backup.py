@@ -458,8 +458,10 @@ async def restore_database_backup(session: AsyncSession, file_path: str | Path) 
             existing_u.is_banned = u_data.get("is_banned", existing_u.is_banned)
             existing_u.has_claimed_trial = u_data.get("has_claimed_trial", existing_u.has_claimed_trial)
             existing_u.phone_number = u_data.get("phone_number", existing_u.phone_number)
+            existing_u.birth_date = u_data.get("birth_date", existing_u.birth_date)
             existing_u.auto_renew = u_data.get("auto_renew", existing_u.auto_renew)
             existing_u.wheel_streak = u_data.get("wheel_streak", existing_u.wheel_streak)
+            existing_u.wheel_last_spin_at = _parse_dt(u_data.get("wheel_last_spin_at")) or existing_u.wheel_last_spin_at
         else:
             session.add(
                 User(
@@ -471,8 +473,11 @@ async def restore_database_backup(session: AsyncSession, file_path: str | Path) 
                     has_claimed_trial=u_data.get("has_claimed_trial", False),
                     referred_by_id=u_data.get("referred_by_id"),
                     phone_number=u_data.get("phone_number"),
+                    birth_date=u_data.get("birth_date"),
                     auto_renew=u_data.get("auto_renew", False),
                     wheel_streak=u_data.get("wheel_streak", 0),
+                    wheel_last_spin_at=_parse_dt(u_data.get("wheel_last_spin_at")),
+                    created_at=_parse_dt(u_data.get("created_at")),
                 )
             )
         stats["users"] += 1
@@ -548,6 +553,8 @@ async def restore_database_backup(session: AsyncSession, file_path: str | Path) 
                     status=valid_status,
                     is_renewal=bool(o_data.get("is_renewal", False)),
                     snapshot_data=o_data.get("snapshot_data"),
+                    refunded_at=_parse_dt(o_data.get("refunded_at")),
+                    created_at=_parse_dt(o_data.get("created_at")),
                 )
             )
             stats["orders"] += 1

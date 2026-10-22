@@ -515,6 +515,9 @@ async def test_reconcile_reverts_renewal_to_snapshot(session_factory):
         await session.commit()
 
     remnawave = MagicMock()
+    remnawave.get_panel_user_by_id = AsyncMock(
+        return_value={"expireAt": "2026-12-01T12:00:00Z", "trafficLimitBytes": 0}
+    )
     remnawave.update_user_subscription = AsyncMock(return_value={"id": acc_id})
     remnawave.set_user_status = AsyncMock()
 
@@ -699,19 +702,24 @@ async def test_tma_topup_card_disabled_and_max_amount_guards(session_factory):
 async def test_backup_restore_full_roundtrip_user_and_order_enums(session_factory):
     """Verify backup and restore preserves phone_number, is_renewal, and maps invalid OrderStatus gracefully."""
     import tempfile
+    from datetime import datetime, timezone
     from pathlib import Path
 
-    from bot.services.backup import create_database_backup, restore_database_backup
+    from sqlalchemy import select
 
+    from bot.services.backup import create_database_backup, restore_database_backup
     tid = 998811
+    now_dt = datetime.now(timezone.utc)
     async with session_factory() as session:
         session.add(User(
             telegram_id=tid,
             username="backup_tester",
             phone_number="+989120000000",
+            birth_date="1995-04-20",
+            wheel_last_spin_at=now_dt,
             auto_renew=True,
             wheel_streak=5,
-                    ))
+        ))
         session.add(Order(
             id=5050,
             telegram_id=tid,
@@ -721,6 +729,7 @@ async def test_backup_restore_full_roundtrip_user_and_order_enums(session_factor
             traffic_gb=100,
             status="paid",
             is_renewal=True,
+            refunded_at=now_dt,
         ))
         await session.commit()
 
@@ -746,10 +755,211 @@ async def test_backup_restore_full_roundtrip_user_and_order_enums(session_factor
 
         # 4. Verify restored user and order fields
         async with session_factory() as session:
-            restored_u = await session.get(User, 1) or (await session.execute(text(f"SELECT * FROM users WHERE telegram_id = {tid}"))).fetchone()
-            assert restored_u is not None
+            stmt_u = select(User).where(User.telegram_id == tid)
+            restored_u = (await session.execute(stmt_u)).scalar_one()
+            assert restored_u.phone_number == "+989120000000"
+            assert restored_u.birth_date == "1995-04-20"
+            assert restored_u.wheel_last_spin_at is not None
+            assert restored_u.auto_renew is True
+            assert restored_u.wheel_streak == 5
 
-            orders = (await session.execute(text(f"SELECT * FROM orders WHERE telegram_id = {tid}"))).fetchall()
-            assert len(orders) >= 1
-            # Verify status is valid OrderStatus ('paid', never 'COMPLETED')
-            assert orders[0].status == "paid"
+            stmt_o = select(Order).where(Order.telegram_id == tid)
+            restored_o = (await session.execute(stmt_o)).scalar_one()
+            assert restored_o.status == "paid"
+            assert restored_o.is_renewal is True
+            assert restored_o.refunded_at is not None
+            assert restored_o.created_at is not None
+
+
+
+@pytest.mark.anyio
+async def test_reconcile_skips_revert_when_newer_paid_order_exists(session_factory):
+    """Verify reconcile does not overwrite panel state when a newer paid order exists."""
+    import json
+
+    from bot.services.reconcile import run_reconcile
+
+    tid = 665545
+    panel_uid = 778899
+
+    async with session_factory() as session:
+        # 1. Stale pending order with snapshot
+        snap = json.dumps({"expireAt": "2026-05-01T00:00:00Z", "trafficLimitBytes": 10000000000, "status": "ACTIVE"})
+        old_order = Order(
+            id=7100,
+            telegram_id=tid,
+            service_name="Old Stale Plan",
+            amount=50000,
+            duration_days=30,
+            traffic_gb=10,
+            panel_user_id=panel_uid,
+            status="pending",
+            is_renewal=True,
+            snapshot_data=snap,
+            created_at=datetime.now(timezone.utc) - timedelta(minutes=25),
+        )
+        # 2. Newer paid order that updated the account
+        newer_order = Order(
+            id=7101,
+            telegram_id=tid,
+            service_name="Newer Paid Plan",
+            amount=80000,
+            duration_days=60,
+            traffic_gb=50,
+            panel_user_id=panel_uid,
+            status="paid",
+            is_renewal=True,
+            created_at=datetime.now(timezone.utc) - timedelta(minutes=5),
+        )
+        session.add_all([old_order, newer_order])
+        await session.commit()
+
+    bot = AsyncMock()
+    remnawave = AsyncMock()
+
+    closed = await run_reconcile(bot, session_factory, remnawave=remnawave)
+
+    # Reconcile marks the stale pending order failed
+    assert closed == 1
+    # But because newer_order exists, it NEVER calls update_user_subscription!
+    remnawave.update_user_subscription.assert_not_called()
+
+
+@pytest.mark.anyio
+async def test_reconcile_retries_when_panel_revert_fails(session_factory):
+    """Verify reconcile leaves order pending to retry if panel revert throws an exception."""
+    import json
+
+    from bot.services.reconcile import run_reconcile
+
+    tid = 665546
+    panel_uid = 778898
+
+    async with session_factory() as session:
+        snap = json.dumps({"expireAt": "2026-05-01T00:00:00Z", "trafficLimitBytes": 10000000000, "status": "ACTIVE"})
+        order = Order(
+            id=7200,
+            telegram_id=tid,
+            service_name="Stale Plan",
+            amount=50000,
+            duration_days=30,
+            traffic_gb=10,
+            panel_user_id=panel_uid,
+            status="pending",
+            is_renewal=True,
+            snapshot_data=snap,
+            created_at=datetime.now(timezone.utc) - timedelta(minutes=25),
+        )
+        session.add(order)
+        await session.commit()
+
+    bot = AsyncMock()
+    remnawave = AsyncMock()
+    # Panel revert fails (e.g. network timeout or 500)
+    remnawave.update_user_subscription.side_effect = Exception("Panel Connection Refused")
+    remnawave.get_panel_user_by_id.return_value = {"expireAt": "2026-06-01T00:00:00Z", "trafficLimitBytes": 20000000000}
+
+    closed = await run_reconcile(bot, session_factory, remnawave=remnawave)
+
+    # Because revert failed, closed count is 0 and order remains pending for next retry
+    assert closed == 0
+    async with session_factory() as session:
+        from sqlalchemy import select
+        stmt = select(Order).where(Order.id == 7200)
+        curr = (await session.execute(stmt)).scalar_one()
+        assert curr.status == "pending"
+
+
+@pytest.mark.anyio
+async def test_redis_release_lock_safe_on_error():
+    """Verify release_lock does not delete key when Lua eval throws."""
+    from bot.web.cache import FastCache
+
+    mock_redis = AsyncMock()
+    mock_redis.eval.side_effect = Exception("Redis connection reset")
+
+    cache = FastCache(redis_client=mock_redis)
+    res = await cache.release_lock("test_lock", "token_123")
+
+    assert res is False
+    # delete must NOT be called on Redis to avoid releasing other workers locks
+    mock_redis.delete.assert_not_called()
+
+
+@pytest.mark.anyio
+async def test_auto_renew_targets_expiring_account_multi_account(session_factory):
+    """Verify auto_renew identifies the expiring account among multiple accounts and targets it."""
+    from bot.services.auto_renew import process_auto_renewals
+
+    tid = 998833
+    async with session_factory() as session:
+        session.add(User(telegram_id=tid, auto_renew=True, is_banned=False))
+        session.add(Service(id=10, name="Base Plan 30D", price=50000, duration_days=30, traffic_gb=50, is_active=True))
+        session.add(Wallet(telegram_id=tid, balance=100000))
+        # Last paid order for account 2
+        session.add(Order(
+            id=8001,
+            telegram_id=tid,
+            service_id=10,
+            service_name="Base Plan 30D",
+            amount=50000,
+            duration_days=30,
+            traffic_gb=50,
+            panel_user_id=222,
+            status="paid",
+        ))
+        await session.commit()
+
+    bot = AsyncMock()
+    remnawave = AsyncMock()
+    # User has 2 accounts: Acc 1 expires in 25 days, Acc 2 expires in 0.2 days (expiring soon)
+    now_dt = datetime.now(timezone.utc)
+    remnawave.get_users_by_telegram_id.return_value = [
+        {
+            "id": 111,
+            "status": "ACTIVE",
+            "expireAt": (now_dt + timedelta(days=25)).isoformat(),
+            "usedTrafficBytes": 1000,
+            "trafficLimitBytes": 50000000000,
+        },
+        {
+            "id": 222,
+            "status": "ACTIVE",
+            "expireAt": (now_dt + timedelta(hours=4)).isoformat(),
+            "usedTrafficBytes": 49000000000,
+            "trafficLimitBytes": 50000000000,
+        },
+    ]
+
+    with patch("bot.services.auto_renew.execute_purchase") as mock_purchase:
+        mock_purchase.return_value = MagicMock(ok=True, new_balance=50000)
+        renewed = await process_auto_renewals(bot, session_factory, remnawave)
+
+        assert renewed == 1
+        assert mock_purchase.call_count == 1
+        # Acc 222 must be chosen, NOT 111!
+        chosen_acc = mock_purchase.call_args.kwargs["chosen_account"]
+        assert chosen_acc["id"] == 222
+
+
+@pytest.mark.anyio
+async def test_stars_payment_from_user_mismatch_rejected(session_factory):
+    """Verify on_successful_payment ignores payment if message.from_user != payload user."""
+    from bot.handlers.payment_stars import stars_successful_payment_handler as on_successful_payment
+
+    msg = AsyncMock()
+    msg.successful_payment.invoice_payload = "stars_topup:12345:50000:30"
+    msg.successful_payment.currency = "XTR"
+    msg.successful_payment.total_amount = 30
+    msg.successful_payment.telegram_payment_charge_id = "test_charge_stars_1"
+    # from_user is 99999, but payload user is 12345
+    msg.from_user.id = 99999
+
+    from sqlalchemy import select
+    async with session_factory() as session:
+        await on_successful_payment(msg, session=session, bot=AsyncMock())
+        # Topup should NOT be created
+        from bot.db.models import Topup
+        stmt = select(Topup).where(Topup.receipt_hash == "stars:test_charge_stars_1")
+        topup = (await session.execute(stmt)).scalar_one_or_none()
+        assert topup is None

@@ -76,6 +76,10 @@ async def api_ban_check_middleware(request: web.Request, handler):
             except Exception:
                 pass
 
+    auth_user["is_banned"] = bool(is_banned)
+    request["user"] = auth_user
+    request["is_banned"] = bool(is_banned)
+
     if is_banned:
         logger.warning("Blocked TMA request to %s from banned user %s", request.path, user_id)
         return web.json_response(
@@ -92,11 +96,12 @@ async def api_ban_check_middleware(request: web.Request, handler):
 
 @web.middleware
 async def api_rate_limit_middleware(request: web.Request, handler):
-    # Only rate-limit public /api/user/ endpoints; administrative endpoints are completely exempt
-    if not request.path.startswith("/api/user/"):
+    if request.app.get("is_dev", False) or request.method == "OPTIONS":
         return await handler(request)
 
-    if request.app.get("is_dev", False) or request.method == "OPTIONS":
+    is_admin_path = request.path.startswith("/api/admin/")
+    is_user_path = request.path.startswith("/api/user/")
+    if not (is_admin_path or is_user_path):
         return await handler(request)
 
     from bot.web.auth import get_authenticated_user, get_client_ip
@@ -104,17 +109,27 @@ async def api_rate_limit_middleware(request: web.Request, handler):
     auth_user = get_authenticated_user(request)
     subject_id = f"user:{auth_user['id']}" if auth_user and auth_user.get("id") else f"ip:{client_ip}"
 
-    sensitive_paths = {
-        "/api/user/validate_coupon",
-        "/api/user/purchase",
-        "/api/user/spin",
-        "/api/user/topup/card",
-        "/api/user/topup/crypto",
-        "/api/user/topup/crypto/check",
-        "/api/user/topup/stars",
-    }
-    is_sensitive = request.path in sensitive_paths and request.method == "POST"
-    max_reqs = _API_MAX_SENSITIVE if is_sensitive else _API_MAX_GENERAL
+    if is_admin_path:
+        admin_sensitive_paths = {
+            "/api/admin/broadcast",
+            "/api/admin/backup/create",
+            "/api/admin/backup/restore",
+            "/api/admin/users/bulk_action",
+        }
+        is_sensitive = request.path in admin_sensitive_paths and request.method == "POST"
+        max_reqs = 30 if is_sensitive else 150
+    else:
+        sensitive_paths = {
+            "/api/user/validate_coupon",
+            "/api/user/purchase",
+            "/api/user/spin",
+            "/api/user/topup/card",
+            "/api/user/topup/crypto",
+            "/api/user/topup/crypto/check",
+            "/api/user/topup/stars",
+        }
+        is_sensitive = request.path in sensitive_paths and request.method == "POST"
+        max_reqs = _API_MAX_SENSITIVE if is_sensitive else _API_MAX_GENERAL
 
     now = time.monotonic()
     cache = request.app.get("cache")

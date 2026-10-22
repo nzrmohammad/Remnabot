@@ -142,12 +142,30 @@ def require_admin(handler):
     return wrapper
 
 
+import ipaddress
+
+
+def _is_trusted_proxy(ip_str: str | None) -> bool:
+    if not ip_str:
+        return False
+    try:
+        ip = ipaddress.ip_address(ip_str)
+        return ip.is_loopback or ip.is_private
+    except ValueError:
+        return False
+
+
 def get_client_ip(request: web.Request) -> str:
-    """Extract public client IP prioritizing Cloudflare, X-Real-IP, X-Forwarded-For, then remote."""
-    return (
-        request.headers.get("CF-Connecting-IP")
-        or request.headers.get("X-Real-IP")
-        or request.headers.get("X-Forwarded-For", "").split(",")[0].strip()
-        or request.remote
-        or "127.0.0.1"
-    )
+    """Extract public client IP prioritizing Cloudflare, X-Real-IP, X-Forwarded-For when behind a trusted proxy."""
+    remote = request.remote or "127.0.0.1"
+    if _is_trusted_proxy(remote):
+        for header in ("CF-Connecting-IP", "X-Real-IP"):
+            val = request.headers.get(header)
+            if val and val.strip():
+                return val.strip()
+        xff = request.headers.get("X-Forwarded-For")
+        if xff:
+            first_ip = xff.split(",")[0].strip()
+            if first_ip:
+                return first_ip
+    return remote

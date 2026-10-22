@@ -125,11 +125,8 @@ class FastCache:
                 res = await self._redis.eval(lua, 1, key, token)
                 return bool(res)
             except Exception as exc:
-                logger.debug("Redis release_lock error for %s: %s", key, exc)
-                try:
-                    await self._redis.delete(key)
-                except Exception:
-                    pass
+                logger.warning("Redis release_lock error for %s: %s; letting TTL expire naturally", key, exc)
+                return False
         return True
 
 

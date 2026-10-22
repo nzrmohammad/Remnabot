@@ -28,11 +28,7 @@ function showToast(msg) {
     toast.dir = 'rtl';
     document.body.appendChild(toast);
   }
-  if (/<[a-z][\s\S]*>/i.test(msg)) {
-    toast.innerHTML = msg;
-  } else {
-    toast.innerText = msg;
-  }
+  toast.textContent = String(msg || '');
   toast.classList.remove('opacity-0', '-translate-y-2');
   toast.classList.add('opacity-100', 'translate-y-0');
   setTimeout(() => {
