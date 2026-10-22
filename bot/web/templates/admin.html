@@ -974,7 +974,7 @@
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
               </div>
               <div>
-                <b class="text-xs text-white block">شناسه تاپیک‌های تلگرام (Forum Topics)</b>
+                <b class="text-xs text-white block">شناسه تاپیک‌های تلگرام</b>
                 <span class="text-[11px] text-slate-400 block mt-0.5">تفکیک فیش، سفارشات، تیکت، هشدار و خطا</span>
               </div>
             </div>
@@ -2230,7 +2230,7 @@
             <label class="text-[11px] text-slate-300 block mb-1">نام سرویس:</label>
             <input type="text" id="planModalName" placeholder="مثلاً: سرویس طلایی 50 گیگ 30 روزه" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-blue-500" />
           </div>
-          <div class="grid grid-cols-2 gap-2">
+          <div class="grid grid-cols-2 gap-2" id="planModalPriceMetricRow">
             <div>
               <label class="text-[11px] text-slate-300 block mb-1">قیمت (تومان):</label>
               <input type="number" inputmode="numeric" pattern="[0-9]*" id="planModalPrice" placeholder="95000" min="0" step="1000" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-emerald-300 outline-none" />
@@ -2382,7 +2382,7 @@
           <p class="text-slate-300 leading-relaxed">
             آیا از حذف دامنه زیر از سیستم پایش گواهی‌های SSL اطمینان دارید؟
           </p>
-          <div class="p-3 rounded-2xl bg-slate-950/60 border border-slate-800 text-center">
+          <div class="p-3.5 rounded-2xl bg-slate-950/80 border-2 border-rose-500/40 text-center shadow-inner">
             <span id="deleteSslDomainTarget" class="font-mono text-sm font-bold text-rose-400 block break-all" dir="ltr">--</span>
           </div>
           <p class="text-[11px] text-rose-400/90 flex items-center gap-1.5 pt-1">
@@ -3019,9 +3019,7 @@
           </div>
         </div>
 
-        <button type="button" onclick="window.adminActions.closeCampaignDetailModal()" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white font-bold text-xs py-2.5 rounded-xl border border-slate-700/80 transition active:scale-95">
-          بستن پنجره
-        </button>
+
       </div>
     </div>
 

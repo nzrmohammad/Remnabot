@@ -3465,8 +3465,11 @@
       const descBox = $('planModalDescContainer');
       const durBox = $('planModalDurationContainer');
       const trafBox = $('planModalTrafficContainer');
+      const priceMetricRow = $('planModalPriceMetricRow');
+      const durationHwidRow = $('planModalDurationHwidRow');
 
       if (type === 'traffic') {
+        if (durationHwidRow && durBox && hwidBox) durationHwidRow.insertBefore(durBox, hwidBox);
         if (durInp) {
           durInp.value = '0';
           durInp.disabled = true;
@@ -3474,6 +3477,7 @@
         if (durBox) durBox.classList.add('hidden');
         if (hwidBox) hwidBox.classList.add('hidden');
         if (descBox) descBox.classList.add('hidden');
+        if (durationHwidRow) durationHwidRow.classList.add('hidden');
         if (trafBox) trafBox.classList.remove('hidden');
         if (trafInp) {
           trafInp.disabled = false;
@@ -3487,6 +3491,7 @@
           notice.classList.remove('hidden');
         }
       } else if (type === 'time') {
+        if (priceMetricRow && durBox) priceMetricRow.appendChild(durBox);
         if (trafInp) {
           trafInp.value = '0';
           trafInp.disabled = true;
@@ -3494,6 +3499,7 @@
         if (trafBox) trafBox.classList.add('hidden');
         if (hwidBox) hwidBox.classList.add('hidden');
         if (descBox) descBox.classList.add('hidden');
+        if (durationHwidRow) durationHwidRow.classList.add('hidden');
         if (durBox) durBox.classList.remove('hidden');
         if (durInp) {
           durInp.disabled = false;
@@ -3507,10 +3513,12 @@
           notice.classList.remove('hidden');
         }
       } else {
+        if (durationHwidRow && durBox && hwidBox) durationHwidRow.insertBefore(durBox, hwidBox);
         if (durBox) durBox.classList.remove('hidden');
         if (trafBox) trafBox.classList.remove('hidden');
         if (hwidBox) hwidBox.classList.remove('hidden');
         if (descBox) descBox.classList.remove('hidden');
+        if (durationHwidRow) durationHwidRow.classList.remove('hidden');
         if (durInp) {
           durInp.disabled = false;
           durInp.classList.remove('opacity-50', 'bg-slate-950');

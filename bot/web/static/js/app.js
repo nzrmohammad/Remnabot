@@ -1504,7 +1504,7 @@ function renderDashboardBirthdayCountdown(user) {
     if (badgeEl) badgeEl.innerHTML = '<span>🎂</span> <span>مبارک باد!</span>';
   } else if (daysLeft !== null && daysLeft !== undefined) {
     if (titleEl) titleEl.innerText = 'شمارش معکوس زادروز شما';
-    if (subEl) subEl.innerText = `تنها ${toEnglishDigits(daysLeft)} روز تا روز تولدتان باقی مانده است 🎂`;
+    if (subEl) subEl.innerText = `تنها ${toEnglishDigits(daysLeft)} روز تا روز تولدتان باقی مانده است`;
     if (numEl) numEl.innerText = toEnglishDigits(daysLeft);
   } else {
     card.classList.add('hidden');

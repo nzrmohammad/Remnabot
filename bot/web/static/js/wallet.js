@@ -550,6 +550,24 @@ function setupWalletListeners() {
   document.getElementById('copyTopupCardBtn')?.addEventListener('click', handleCopyCard);
   document.getElementById('topupCardNumber')?.addEventListener('click', handleCopyCard);
 
+  const handleCopyCardAmount = () => {
+    const amtEl = document.getElementById('topupCardAmountDisplay');
+    const amtText = amtEl?.innerText?.trim();
+    if (amtText && !amtText.includes('--')) {
+      const cleanDigits = amtText.replace(/[^\d]/g, '');
+      copyToClipboard(cleanDigits || amtText, '📋 مبلغ در کلیپ‌بورد کپی شد.');
+      hapticFeedback('success');
+      const btn = document.getElementById('copyTopupCardAmountBtn');
+      if (btn) {
+        btn.innerText = '✅';
+        setTimeout(() => { btn.innerText = '📋'; }, 1500);
+      }
+    }
+  };
+
+  document.getElementById('copyTopupCardAmountBtn')?.addEventListener('click', handleCopyCardAmount);
+  document.getElementById('topupCardAmountDisplay')?.addEventListener('click', handleCopyCardAmount);
+
   let selectedReceiptImageBase64 = null;
   const imageInput = document.getElementById('topupCardImageInput');
   const uploadImgBtn = document.getElementById('uploadCardReceiptImageBtn');

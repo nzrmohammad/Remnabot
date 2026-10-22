@@ -1380,7 +1380,7 @@
               <div class="flex justify-between items-center text-[11px]">
                 <span class="text-slate-400">شماره کارت مقصد:</span>
                 <div class="flex items-center gap-1.5" dir="rtl">
-                  <button id="copyTopupCardBtn" class="text-blue-400 hover:text-blue-300 min-w-[36px] min-h-[36px] inline-flex items-center justify-center p-1.5 rounded-lg hover:bg-slate-800/40 text-xs transition active:scale-95" title="کپی شماره کارت" aria-label="کپی شماره کارت">📋</button>
+                  <button id="copyTopupCardBtn" class="text-blue-400 hover:text-blue-300 min-w-[32px] min-h-[32px] inline-flex items-center justify-center p-1 rounded-lg bg-transparent border-0 shadow-none hover:bg-transparent text-xs transition active:scale-95" title="کپی شماره کارت" aria-label="کپی شماره کارت">📋</button>
                   <code id="topupCardNumber" class="text-white font-mono font-bold tracking-wider" dir="ltr">---- ---- ---- ----</code>
                 </div>
               </div>
@@ -1390,7 +1390,10 @@
               </div>
               <div class="flex justify-between items-center text-[11px] border-t border-slate-800 pt-1.5">
                 <span class="text-slate-400">مبلغ واریزی:</span>
-                <b id="topupCardAmountDisplay" class="text-emerald-400 font-mono">-- تومان</b>
+                <div class="flex items-center gap-1" dir="rtl">
+                  <button id="copyTopupCardAmountBtn" type="button" class="text-emerald-400 hover:text-emerald-300 min-w-[32px] min-h-[32px] inline-flex items-center justify-center p-1 rounded-lg bg-transparent border-0 shadow-none hover:bg-transparent text-xs transition active:scale-95 cursor-pointer" title="کپی مبلغ واریزی" aria-label="کپی مبلغ واریزی">📋</button>
+                  <b id="topupCardAmountDisplay" class="text-emerald-400 font-mono">-- تومان</b>
+                </div>
               </div>
             </div>
 
@@ -1455,7 +1458,7 @@
               <div class="flex justify-between items-center text-[11px]">
                 <span class="text-slate-400">مقدار قابل پرداخت:</span>
                 <div class="flex items-center gap-1">
-                  <button id="copyTonAmountBtn" class="text-sky-400 hover:text-sky-300 min-w-[36px] min-h-[36px] inline-flex items-center justify-center p-1.5 rounded-lg hover:bg-slate-800/40 transition active:scale-95" title="کپی مقدار" aria-label="کپی مقدار TON">📋</button>
+                  <button id="copyTonAmountBtn" class="text-sky-400 hover:text-sky-300 min-w-[32px] min-h-[32px] inline-flex items-center justify-center p-1 rounded-lg bg-transparent border-0 shadow-none hover:bg-transparent transition active:scale-95" title="کپی مقدار" aria-label="کپی مقدار TON">📋</button>
                   <b id="cryptoAmountTon" class="text-sky-400 font-mono font-bold" dir="ltr">-- TON</b>
                 </div>
               </div>
@@ -1474,7 +1477,7 @@
                   <span class="text-amber-300 font-bold">شناسه انتقال (Memo/Comment):</span>
                   <div class="flex items-center gap-1">
                     <code id="cryptoComment" class="text-amber-300 font-mono font-bold bg-transparent border-0 p-0" dir="ltr">--</code>
-                    <button id="copyTonCommentBtn" class="text-amber-300 hover:text-amber-200 min-w-[36px] min-h-[36px] inline-flex items-center justify-center p-1.5 rounded-lg hover:bg-slate-800/40 transition active:scale-95" title="کپی کامنت" aria-label="کپی شناسه انتقال (Memo)">📋</button>
+                    <button id="copyTonCommentBtn" class="text-amber-300 hover:text-amber-200 min-w-[32px] min-h-[32px] inline-flex items-center justify-center p-1 rounded-lg bg-transparent border-0 shadow-none hover:bg-transparent transition active:scale-95" title="کپی کامنت" aria-label="کپی شناسه انتقال (Memo)">📋</button>
                   </div>
                 </div>
                 <p class="text-[10px] text-amber-200/80 leading-tight">⚠️ حتماً این شناسه (Memo) را در پیام انتقال ولت وارد کنید تا شارژ به‌صورت آنی ثبت شود.</p>

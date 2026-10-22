@@ -743,20 +743,26 @@ html.theme-light .coupon-usage-card .text-slate-200 {
   box-shadow: 0 4px 14px rgba(244, 63, 94, 0.4);
 }
 
-.shop-plan-card .shop-plan-badge.badge-bestseller {
-  background: linear-gradient(135deg, #fbbf24 0%, #f97316 100%);
-  color: #0f172a;
+.shop-plan-card .shop-plan-badge {
+  color: #ffffff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
+}
+
+.shop-plan-card .shop-plan-badge.badge-bestseller,
+html.theme-light .shop-plan-card .shop-plan-badge.badge-bestseller {
+  background: linear-gradient(135deg, #d97706 0%, #ea580c 100%);
+  color: #ffffff;
   border-bottom: 1.5px solid rgba(254, 240, 138, 0.9);
   border-right: 1.5px solid rgba(254, 240, 138, 0.9);
   box-shadow: 0 4px 14px rgba(245, 158, 11, 0.45);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
 }
 
-html.theme-light .shop-plan-card .shop-plan-badge.badge-bestseller {
-  background: linear-gradient(135deg, #d97706, #ea580c);
+.shop-plan-card .shop-plan-badge.badge-economic,
+html.theme-light .shop-plan-card .shop-plan-badge.badge-economic {
+  background: linear-gradient(135deg, #059669 0%, #0d9488 100%);
   color: #ffffff;
-  border-color: #b45309;
-  font-weight: 800;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
 }
 
 html.theme-light .shop-plan-card .shop-plan-badge.badge-vip {
@@ -769,9 +775,19 @@ html.theme-light .shop-plan-card .shop-plan-badge.badge-vip {
   box-shadow: 0 4px 14px rgba(225, 29, 72, 0.35);
 }
 
-html.theme-light .shop-plan-card .shop-plan-badge.text-slate-950,
-html.theme-light .shop-plan-card [class*="rounded-br-xl"].text-slate-950 {
-  color: #020617;
+/* Transparent copy icon buttons without background */
+#copyTonCommentBtn,
+#copyTonAmountBtn,
+#copyTopupCardBtn,
+#copyTopupCardAmountBtn,
+html.theme-light #copyTonCommentBtn,
+html.theme-light #copyTonAmountBtn,
+html.theme-light #copyTopupCardBtn,
+html.theme-light #copyTopupCardAmountBtn {
+  background: transparent;
+  background-color: transparent;
+  border: none;
+  box-shadow: none;
 }
 
 /* Unified Inner Card Surfaces in Light Theme */
