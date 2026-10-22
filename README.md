@@ -32,7 +32,6 @@
 - [💾 Migration & Server Relocation](#-migration--server-relocation)
 - [⚙️ Configuration Guide (`.env`)](#-configuration-guide-env)
 - [⏰ Background Schedulers & Lifecycle Engine](#-background-schedulers--lifecycle-engine)
-- [🛠 Store & Operations Management](#-store--operations-management)
 - [🧪 Testing & Quality Assurance](#-testing--quality-assurance)
 - [👨‍💻 Community & License](#-community--license)
 
@@ -106,60 +105,44 @@ remnawave-bot/
 └── .env.example                    # Environment variable template
 ```
 
-### Architectural Data Flow
+### Unified System Architecture & Zero-Conflict Deployment Topology
+
+When hosting the bot on the same virtual server as **Remnawave v3**, Remnabot eliminates port collisions, database contention, and resource starvation using an isolated virtual network topology:
 
 ```text
- ┌─────────────────┐       ┌────────────────────────┐       ┌───────────────────────┐
- │  Telegram API   │◄─────►│    remnawave-bot       │◄─────►│   Remnawave v3 Panel  │
- │ (Long-Polling)  │       │ (AsyncIO / aiogram 3)  │       │   (REST API v3+)      │
- └─────────────────┘       └───────────┬────────────┘       └───────────────────────┘
-                                       │
-                  ┌────────────────────┴────────────────────┐
-                  ▼                                         ▼
-      ┌───────────────────────┐                 ┌───────────────────────┐
-      │  remnawave-bot-db     │                 │  remnawave-bot-redis  │
-      │  (PostgreSQL 16)      │                 │  (Redis 7 Alpine)     │
-      └───────────────────────┘                 └───────────────────────┘
-```
-
----
-
-## ⚡ Zero-Conflict Deployment Model
-
-When hosting the bot on the same virtual server as **Remnawave v3**, the primary engineering concern is preventing **port collisions, database contention, and memory exhaustion**.
-
-Remnabot solves this completely with a **Zero-Conflict Guarantee**:
-
-```text
- ┌────────────────────────────────────────────────────────────────────────┐
- │                              HOST SERVER                               │
- │                                                                        │
- │  ┌─────────────────────────┐             ┌──────────────────────────┐  │
- │  │ Remnawave v3 Panel      │             │ Web Reverse Proxy        │  │
- │  │ (Docker Container)      │             │ (Caddy / Nginx / Traefik)│  │
- │  │ Port 3000 (Internal)    │             │ Ports 80 & 443 (Host)    │  │
- │  └────────────▲────────────┘             └──────────────────────────┘  │
- │               │ REST API Communication                                 │
- │  ┌────────────┴─────────────────────────────────────────────────────┐  │
- │  │ Private Docker Bridge Network (`remnawave-bot-net`)              │  │
- │  │                                                                  │  │
- │  │  ┌──────────────────────┐             ┌───────────────────────┐  │  │
- │  │  │ remnawave-bot        │             │ remnawave-bot-db      │  │  │
- │  │  │ (Long-Polling Engine)│────────────►│ PostgreSQL 16         │  │  │
- │  │  │ [NO EXPOSED PORTS!]  │             │ (Internal Port 5432)  │  │  │
- │  │  └───────────▲──────────┘             └───────────────────────┘  │  │
- │  │              │                        ┌───────────────────────┐  │  │
- │  │              └───────────────────────►│ remnawave-bot-redis   │  │  │
- │  │                                       │ Redis 7 (Alpine)      │  │  │
- │  │                                       │ (Internal Port 6379)  │  │  │
- │  │                                       └───────────────────────┘  │  │
- │  └──────────────┼───────────────────────────────────────────────────┘  │
- └─────────────────┼──────────────────────────────────────────────────────┘
-                   │ Outbound HTTPS Long-Polling (Portless)
-                   ▼
-         ┌───────────────────┐
-         │ Telegram Bot API  │
-         └───────────────────┘
+ ┌────────────────────────────────────────────────────────────────────────────────────────┐
+ │                                      HOST SERVER                                       │
+ │                                                                                        │
+ │   ┌───────────────────────────┐                     ┌──────────────────────────────┐   │
+ │   │    Remnawave v3 Panel     │                     │      Web Reverse Proxy       │   │
+ │   │   (Cluster REST API v3)   │                     │   (Nginx / Caddy / Traefik)  │   │
+ │   │    Port 3000 (Internal)   │                     │     Ports 80 & 443 (Host)    │   │
+ │   └─────────────▲─────────────┘                     └──────────────▲───────────────┘   │
+ │                 │ REST API                                         │ Reverse Proxy     │
+ │                 │ (Internal/Loopback)                              │ (app.yourdomain)  │
+ │   ┌─────────────┴──────────────────────────────────────────────────┴───────────────┐   │
+ │   │             Isolated Docker Virtual Network (`remnawave-network`)              │   │
+ │   │                                                                                │   │
+ │   │   ┌────────────────────────────────────────────────────────────────────────┐   │   │
+ │   │   │                     remnawave-bot (Main Service)                       │   │   │
+ │   │   │   • AsyncIO / aiogram 3.31+ Long-Polling Engine (Portless)             │   │   │
+ │   │   │   • Embedded Aiohttp Web Server (Port 8080 - Mini App & REST APIs)     │   │   │
+ │   │   │   • Autonomous Background Schedulers & Telemetry Workers               │   │   │
+ │   │   └──────────────────────┬──────────────────────────┬──────────────────────┘   │   │
+ │   │                          │                          │                          │   │
+ │   │                          ▼                          ▼                          │   │
+ │   │              ┌───────────────────────┐  ┌───────────────────────┐              │   │
+ │   │              │   remnawave-bot-db    │  │  remnawave-bot-redis  │              │   │
+ │   │              │    (PostgreSQL 16)    │  │   (Redis 7 Alpine)    │              │   │
+ │   │              │ Internal Port 5432    │  │ Internal Port 6379    │              │   │
+ │   │              └───────────────────────┘  └───────────────────────┘              │   │
+ │   └──────────────────────────┬─────────────────────────────────────────────────────┘   │
+ └──────────────────────────────┼─────────────────────────────────────────────────────────┘
+                                │ Outbound HTTPS Long-Polling (No open ingress bot ports)
+                                ▼
+                    ┌───────────────────────┐
+                    │   Telegram Bot API    │
+                    └───────────────────────┘
 ```
 
 ### Key Co-existence Safeguards:
@@ -204,7 +187,7 @@ A complete, battle-tested installation workflow for deploying Remnabot alongside
 To keep financial transactions, error traces, automated backups, and user support cleanly separated, Remnabot organizes operations into a **Telegram Supergroup with Forum Topics enabled**.
 
 #### 1. Create Supergroup & Enable Topics:
-1. In Telegram, create a new Group (Recommended name: **`🏢 Remnabot Operations Hub`** or **`مدیریت و مانیتورینگ رمنابات`**).
+1. In Telegram, create a new Group (Recommended name: **`🏢 Remnabot Operations Hub`**).
 2. Open **Group Settings (Edit Group) ➔ Permissions ➔ Topics** and turn **ON** (enables Forum mode).
 3. Add your bot into the Supergroup and promote it to **Administrator** with these rights:
    - ✅ Manage Topics
@@ -215,17 +198,17 @@ To keep financial transactions, error traces, automated backups, and user suppor
 #### 2. Recommended Topics Architecture:
 Create the following 9 topics inside your supergroup. Use the recommended names and icons for instant operational clarity:
 
-| # | Topic Name (نام تاپیک پیشنهادی) | Icon | Environment Variable | In-Bot Setting | Automated Responsibility |
+| # | Topic Name | Icon | Environment Variable | In-Bot Setting | Automated Responsibility |
 | :-: | :--- | :-: | :--- | :--- | :--- |
-| **1** | **💳 شارژها و فیش‌های بانکی** (`Top-ups`) | 💳 | `ADMIN_TOPIC_TOPUPS` | `adm:set:topic_topups` | Card deposit slips, SHA-256 duplicate guards, 1-tap Approve/Reject buttons, and TON on-chain logs. |
-| **2** | **🛒 سفارشات و تمدید سرویس** (`Orders`) | 🛒 | `ADMIN_TOPIC_ORDERS` | `adm:set:topic_orders` | Real-time purchase alerts, renewals, plan upgrades, and free trial issuances. |
-| **3** | **🎧 پشتیبانی و تیکت‌ها** (`Support`) | 🎧 | `ADMIN_TOPIC_SUPPORT` | `adm:set:topic_support` | Live 2-way support desk. Admins reply directly inside this topic to forward answers to users. |
-| **4** | **🖥️ سرورها و مانیتورینگ** (`Nodes`) | 🖥️ | `ADMIN_TOPIC_NODES` | `adm:set:topic_nodes` | Remnawave node status, offline/online triggers, CPU/RAM telemetry, and core versions. |
-| **5** | **📊 گزارشات مالی و مصرفی** (`Reports`) | 📊 | `ADMIN_TOPIC_REPORTS` | `adm:set:topic_reports` | Daily (23:59), weekly, and monthly fiscal summaries, node traffic breakdown by country flags, and top users. |
-| **6** | **🚨 هشدارها و سیستم** (`Alerts`) | 🚨 | `ADMIN_TOPIC_ALERTS` | `adm:set:topic_alerts` | Bandwidth consumption warnings (80%, 90%, 100%), pre-expiry countdowns, and grace-period enforcements. |
-| **7** | **💾 بکاپ خودکار دیتابیس** (`Backups`) | 💾 | `ADMIN_TOPIC_BACKUPS` | `adm:set:topic_backups` | Encrypted daily PostgreSQL snapshot dispatch (03:00 AM) with auto-pruning of older dumps. |
-| **8** | **💎 کریپتو و نرخ ارز** (`Crypto`) | 💎 | `ADMIN_TOPIC_CRYPTO` | `adm:set:topic_crypto` | 4x daily market rate updates (TON/USDT) with interactive 1-click price sync buttons. |
-| **9** | **⚠️ لاگ خطاهای سیستم** (`Error Logs`) | ⚠️ | `ADMIN_TOPIC_ERRORS` | `adm:set:topic_errors` | Real-time traceback dumps and runtime alerts for rapid diagnostics. |
+| **1** | **💳 Top-ups & Banking Receipts** (`Top-ups`) | 💳 | `ADMIN_TOPIC_TOPUPS` | `adm:set:topic_topups` | Card deposit slips, SHA-256 duplicate guards, 1-tap Approve/Reject buttons, and TON on-chain logs. |
+| **2** | **🛒 Orders & Renewals** (`Orders`) | 🛒 | `ADMIN_TOPIC_ORDERS` | `adm:set:topic_orders` | Real-time purchase alerts, renewals, plan upgrades, and free trial issuances. |
+| **3** | **🎧 Support & User Inquiries** (`Support`) | 🎧 | `ADMIN_TOPIC_SUPPORT` | `adm:set:topic_support` | Live 2-way support desk. Admins reply directly inside this topic to forward answers to users. |
+| **4** | **🖥️ Server Nodes & Health** (`Nodes`) | 🖥️ | `ADMIN_TOPIC_NODES` | `adm:set:topic_nodes` | Remnawave node status, offline/online triggers, CPU/RAM telemetry, and core versions. |
+| **5** | **📊 Fiscal & Bandwidth Reports** (`Reports`) | 📊 | `ADMIN_TOPIC_REPORTS` | `adm:set:topic_reports` | Daily (23:59), weekly, and monthly fiscal summaries, node traffic breakdown by country flags, and top users. |
+| **6** | **🚨 System & Expiry Alerts** (`Alerts`) | 🚨 | `ADMIN_TOPIC_ALERTS` | `adm:set:topic_alerts` | Bandwidth consumption warnings (80%, 90%, 100%), pre-expiry countdowns, and grace-period enforcements. |
+| **7** | **💾 Automated Database Backups** (`Backups`) | 💾 | `ADMIN_TOPIC_BACKUPS` | `adm:set:topic_backups` | Encrypted daily PostgreSQL snapshot dispatch (03:00 AM) with auto-pruning of older dumps. |
+| **8** | **💎 Crypto & Live Market Rates** (`Crypto`) | 💎 | `ADMIN_TOPIC_CRYPTO` | `adm:set:topic_crypto` | 4x daily market rate updates (TON/USDT) with interactive 1-click price sync buttons. |
+| **9** | **⚠️ System Error Logs** (`Error Logs`) | ⚠️ | `ADMIN_TOPIC_ERRORS` | `adm:set:topic_errors` | Real-time traceback dumps and runtime alerts for rapid diagnostics. |
 
 #### 3. Extracting `ADMIN_CHAT_ID` and Topic IDs:
 - **`ADMIN_CHAT_ID`**: Add `@RawDataBot` or `@userinfobot` to the group, or copy the link of any message in the group (`https://t.me/c/2456789012/123`). Prefix the ID with `-100` (e.g., `-1002456789012`).
@@ -286,7 +269,7 @@ DATABASE_URL=postgresql+asyncpg://remnabot:remnabot@db:5432/remnabot
 # --- 4. Mini App & Web Configuration ---
 WEB_ENABLED=true
 WEB_PORT=8080
-WEB_APP_URL=https://app.cloudvibe.ir
+WEB_APP_URL=https://app.yourdomain.com
 
 # Required if Nginx connects via host.docker.internal:8080
 WEB_BIND_IP=0.0.0.0
@@ -348,14 +331,14 @@ upstream remnabot {
 
 # --- Telegram Mini App (Remnabot Telegram Mini App) ---
 server {
-    server_name app.cloudvibe.ir;
+    server_name app.yourdomain.com;
     listen 443 ssl;
     listen [::]:443 ssl;
     http2 on;
 
-    ssl_certificate "/etc/nginx/ssl/app.cloudvibe.ir_fullchain.pem";
-    ssl_certificate_key "/etc/nginx/ssl/app.cloudvibe.ir_privkey.key";
-    ssl_trusted_certificate "/etc/nginx/ssl/app.cloudvibe.ir_fullchain.pem";
+    ssl_certificate "/etc/nginx/ssl/app.yourdomain.com_fullchain.pem";
+    ssl_certificate_key "/etc/nginx/ssl/app.yourdomain.com_privkey.key";
+    ssl_trusted_certificate "/etc/nginx/ssl/app.yourdomain.com_fullchain.pem";
 
     # Essential: Grants permission for Telegram WebApp iframe rendering
     add_header Content-Security-Policy "frame-ancestors 'self' https://web.telegram.org https://*.telegram.org telegram:;" always;
@@ -394,7 +377,10 @@ server {
 Launch the stack using Docker Compose:
 
 ```bash
-# 1. Build and start containers in the background
+# 1. Ensure external Remnawave docker network exists (if connecting to an existing cluster)
+docker network create remnawave-network 2>/dev/null || true
+
+# 2. Build and start containers in the background
 docker compose up -d --build
 
 # 2. Check container health status
@@ -411,7 +397,7 @@ docker compose logs -f bot
 #### Verify Healthcheck Endpoint:
 Run on your server:
 ```bash
-curl -I https://app.cloudvibe.ir/health
+curl -I https://app.yourdomain.com/health
 ```
 You should receive `HTTP/1.1 200 OK` with JSON payload:
 ```json
@@ -424,12 +410,12 @@ You should receive `HTTP/1.1 200 OK` with JSON payload:
 
 Once deployed, make the Mini App directly accessible to every user with one tap:
 
-1. **Inline Dashboard Buttons**: Send `/start` to your bot in Telegram. The **`📱 داشبورد کاربری من (مینی‌اپ)`** button appears automatically for users, and **`👑 پنل وب کلاستر`** appears for admins.
+1. **Inline Dashboard Buttons**: Send `/start` to your bot in Telegram. The **`📱 Client Portal (Mini App)`** button appears automatically for users, and **`👑 Cluster Web Panel`** appears for admins.
 2. **Permanent Bot Menu Button**:
    - Message [@BotFather](https://t.me/BotFather).
    - Send `/setmenubutton` and select your bot.
-   - Enter your Mini App URL: `https://app.cloudvibe.ir/app`
-   - Set the button title (e.g. `داشبورد 📱` or `App 🚀`).
+   - Enter your Mini App URL: `https://app.yourdomain.com/app`
+   - Set the button title (e.g. `Dashboard 📱` or `App 🚀`).
    - The Mini App is now pinned permanently beside the user's chat input field.
 
 ---
@@ -544,35 +530,6 @@ Remnabot executes asynchronous automation routines using an internal non-blockin
 | `weekly_report_loop` | **Fri @ 23:59** | Calculates top 20 weekly consumers and daily champions from Saturday to Friday. |
 | `monthly_report_loop`| **Last Day @ 23:59**| Produces comprehensive monthly fiscal and bandwidth rollups for the Jalali month. |
 | `heartbeat_loop` | **60 sec** | Touches `/tmp/bot_heartbeat` to satisfy Docker container healthcheck probes. |
-
----
-
-## 🛠 Store & Operations Management
-
-Administrators can configure live store variables on the fly without editing `.env` or rebooting containers:
-
-### Dynamic Settings Matrix (`Admin Panel ➔ ⚙️ Store Settings`)
-- **Card-to-Card Configuration**: Update bank card numbers, cardholder names, and minimum deposit thresholds.
-- **💎 Direct Crypto (TON) Gateway**:
-  - Toggle crypto payment status (`⚡️ Gateway Status : ✅ / ❌`).
-  - Configure public TON wallet address (`UQ...` / `EQ...`).
-  - Configure manual fallback TON exchange rate (`Conversion Rate`).
-  - Set benchmark Tether price (`💵 Baseline USDT Rate`) for resilient global calculation (`Binance TON/USD × USDT Rate`) with zero geo-blocking from foreign servers.
-  - Optional Iranian forward proxy support (`IRAN_PROXY`) for domestic exchanges.
-  - Real-time instant price query (`🔄 Live Rate Query`) directly inside Telegram.
-  - 1-click update buttons dispatched 4x daily to the dedicated Crypto forum topic.
-- **Free Trial Management**: Toggle 1-day free trial issuance (`✅` / `❌`), configure allowed quotas, and set trial duration.
-- **Affiliate & Referral Settings**: Enable or disable referral programs, set traffic reward percentages, and adjust qualification criteria.
-- **Supergroup Forum Topic Routing**: Route automated alerts and operational logs into dedicated Telegram forum topics:
-  - 💳 **Top-ups Topic**: Deposit receipts and wallet verification queues.
-  - 🛒 **Orders Topic**: New plan orders and subscription renewals.
-  - 🖥️ **Nodes Topic**: Server status, resource usage, and offline alerts.
-  - 📊 **Reports Topic**: Daily and weekly executive fiscal reports (supports auto-cleaning previous reports).
-  - 🚨 **Alerts Topic**: System alerts and reconcile warnings.
-  - 💾 **Backups Topic**: Dedicated topic for daily automated database backups (auto-cleans previous files).
-  - 💎 **Crypto Topic**: Live TON market rate notifications and crypto payment logs.
-  - 🆘 **Support Topic**: Customer tickets and inquiry messages.
-  - ⚠️ **Error Logs Topic**: Real-time stack traces and system error alerts.
 
 ---
 

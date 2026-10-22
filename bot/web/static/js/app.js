@@ -64,7 +64,12 @@ window.toggleSettingsBox = toggleSettingsBox;
 // 2. Tab Navigation (5 Tabs)
 function renderReportsCharts(sub) {
   const currentSub = sub || window.lastUserData?.active_sub;
-  if (!currentSub) return;
+  if (!currentSub) {
+    if (typeof resetActiveSubAnalytics === 'function') {
+      resetActiveSubAnalytics();
+    }
+    return;
+  }
   if (typeof renderBarChart === 'function') {
     renderBarChart('repWeeklyChartCanvas', currentSub.week_daily_totals_gb || [0, 0, 0, 0, 0, 0, 0], currentSub.week_day_labels || ['ش', 'ی', 'د', 'س', 'چ', 'پ', 'ج'], false);
     renderBarChart('repMonthlyChartCanvas', currentSub.month_weeks_totals_gb || [0, 0, 0, currentSub.week_used_gb || 0], ['هفته ۱', 'هفته ۲', 'هفته ۳', 'هفته ۴'], true);
@@ -241,6 +246,16 @@ function setupConfigsModal() {
 
   const loadAndRenderConfigs = async () => {
     if (!configsModalList) return;
+    if (!window.lastUserData?.active_sub) {
+      configsModalList.innerHTML = `
+        <div class="text-center py-6 text-slate-400 text-xs">
+          <span class="text-base">📱</span>
+          <div class="mt-1 leading-relaxed">اشتراک فعالی برای نمایش کانفیگ‌ها وجود ندارد.</div>
+        </div>
+      `;
+      if (configsModalCount) configsModalCount.innerText = '0 کانفیگ';
+      return;
+    }
     configsModalList.innerHTML = `
       <div class="text-center py-6 text-slate-400 text-xs">
         <span class="inline-block animate-spin mb-2 text-base">🔄</span>
@@ -1067,7 +1082,9 @@ function selectBdayItem(type, val, displayText, autoAdvance = false) {
 window.selectBdayItem = selectBdayItem;
 
 function isJalaliLeapYear(jy) {
-  return ((((((jy - (jy > 0 ? 474 : 473)) % 2820) + 474) + 38) * 682) % 2816) < 682;
+  // Standard 33-year Jalali cycle (Ahmad Birashk / jalaali-js standard)
+  const rem = ((jy % 33) + 33) % 33;
+  return rem === 1 || rem === 5 || rem === 9 || rem === 13 || rem === 17 || rem === 22 || rem === 26 || rem === 30;
 }
 
 function getJalaliMonthDays(year, month) {
@@ -2383,6 +2400,31 @@ function resetActiveSubAnalytics() {
       </div>
     `;
   }
+
+  // Clear report breakdown containers from 'در حال دریافت داده‌ها...'
+  ['repNightlyNodesContainer', 'repWeeklyNodesContainer', 'repMonthlyNodesContainer'].forEach(id => {
+    const el = $(id);
+    if (el) {
+      el.innerHTML = '<div class="col-span-2 text-center py-3 text-slate-400 text-xs">اشتراک فعالی برای نمایش آمار وجود ندارد.</div>';
+    }
+  });
+
+  const repNightlyTotal = $('repNightlyTotal');
+  if (repNightlyTotal) repNightlyTotal.innerText = '۰ GB';
+  const repNightlyUsed = $('repNightlyUsed');
+  if (repNightlyUsed) repNightlyUsed.innerText = '۰ GB';
+  const repNightlyRemain = $('repNightlyRemain');
+  if (repNightlyRemain) repNightlyRemain.innerText = '۰ GB';
+  const repNightlyYesterday = $('repNightlyYesterday');
+  if (repNightlyYesterday) repNightlyYesterday.innerText = '۰ GB';
+  const repNightlyExpire = $('repNightlyExpire');
+  if (repNightlyExpire) repNightlyExpire.innerText = 'غیرفعال';
+  const repWeeklyTotal = $('repWeeklyTotal');
+  if (repWeeklyTotal) repWeeklyTotal.innerText = '۰ GB';
+  const repWeeklyBusiest = $('repWeeklyBusiest');
+  if (repWeeklyBusiest) repWeeklyBusiest.innerText = '—';
+  const repMonthlyTotal = $('repMonthlyTotal');
+  if (repMonthlyTotal) repMonthlyTotal.innerText = '۰ GB';
 }
 window.resetActiveSubAnalytics = resetActiveSubAnalytics;
 
@@ -2495,6 +2537,17 @@ function renderActiveSubAnalytics(sub) {
 // 15. Phased, Resilient UI Hydration Logic
 function hydrateUserInterface(data) {
   if (!data || typeof data !== 'object') return;
+
+  // --- Maintenance Check (Consistent with Bot Maintenance Mode) ---
+  const maintScreen = $('systemMaintenanceScreen');
+  if (data.is_maintenance && !data.user?.is_admin) {
+    if (maintScreen) maintScreen.classList.remove('hidden');
+    const splash = $('splashScreen');
+    if (splash) splash.classList.add('hidden');
+    return;
+  } else {
+    if (maintScreen) maintScreen.classList.add('hidden');
+  }
 
   const safeStep = (stepName, fn) => {
     try {

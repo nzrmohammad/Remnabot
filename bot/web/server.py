@@ -291,7 +291,7 @@ def get_versioned_html(html_path: Path, is_dev: bool = False) -> str:
 
     content = html_path.read_text(encoding="utf-8")
     versioned_content = re.sub(
-        r'(/static/(?:css|js)/[^"\'\s>]+)\?v=[a-zA-Z0-9_.-]+',
+        r'(/static/(?:css|js)/[^"\'\s>?#]+)(?:\?v=[a-zA-Z0-9_.-]+)?',
         rf"\g<1>?v={version}",
         content,
     )

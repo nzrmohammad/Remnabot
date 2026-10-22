@@ -806,3 +806,151 @@ def test_crypto_closed_market_handling():
     )
     text_full, _ = format_full_crypto_market_alert(market_data, mock_store)
     assert "موقتاً غیرفعال (محدودیت نظارتی)" in text_full
+
+
+
+def test_resolve_stars_rate_behavior():
+    """Verify resolve_stars_rate priority: explicit > USDT-based auto > 0."""
+    from bot.services.crypto.crypto_rates import resolve_stars_rate
+
+    # 1. Explicit stars rate takes priority
+    assert resolve_stars_rate(1400, 95000) == 1400
+    assert resolve_stars_rate(1500, 0) == 1500
+
+    # 2. When stars is 0/None, calculate from USDT
+    assert resolve_stars_rate(0, 95000) == round(95000 * 0.013)
+    assert resolve_stars_rate(None, 95000) == round(95000 * 0.013)
+    assert resolve_stars_rate(0, 5000) == 100  # max(100, ...) floor
+
+    # 3. When both are 0/None, return 0 (unconfigured)
+    assert resolve_stars_rate(0, 0) == 0
+    assert resolve_stars_rate(None, None) == 0
+    assert resolve_stars_rate(0, None) == 0
+
+
+def test_format_full_crypto_market_alert_unset_rate_behavior():
+    """Verify alert displays '(تنظیم‌نشده)' instead of 'بدون تغییر' when store rate is 0."""
+    from bot.services.crypto.crypto_rates import format_full_crypto_market_alert
+
+    market_data = {
+        "ton": {"نوبیتکس": 400000},
+        "usdt": {"نوبیتکس": 95000},
+        "best_ton": (400000, "نوبیتکس"),
+        "best_usdt": (95000, "نوبیتکس"),
+        "global_ton_usd": 1.35,
+        "global_ton_source": "TonAPI",
+    }
+    mock_store = MagicMock(
+        ton_rate_toman=0,
+        usdt_rate_toman=0,
+        stars_rate_toman=0,
+        eur_rate_toman=0,
+    )
+    text, _ = format_full_crypto_market_alert(market_data, mock_store)
+    # Must NOT say 'بدون تغییر' for unset rates
+    assert "بدون تغییر" not in text
+    assert "(تنظیم‌نشده)" in text
+    # Must display the real global source name
+    assert "🌐 TonAPI جهانی: <b>$1.35</b>" in text
+
+
+def test_format_full_crypto_market_alert_global_source_coingecko():
+    """Verify global source name dynamically labels CoinGecko or Binance."""
+    from bot.services.crypto.crypto_rates import format_full_crypto_market_alert
+
+    market_data = {
+        "ton": {},
+        "usdt": {},
+        "best_ton": (None, ""),
+        "best_usdt": (None, ""),
+        "global_ton_usd": 1.34,
+        "global_ton_source": "CoinGecko",
+    }
+    mock_store = MagicMock(
+        ton_rate_toman=390000,
+        usdt_rate_toman=95000,
+        stars_rate_toman=1200,
+        eur_rate_toman=100000,
+    )
+    text, _ = format_full_crypto_market_alert(market_data, mock_store)
+    assert "🌐 CoinGecko جهانی: <b>$1.34</b>" in text
+
+
+@pytest.mark.anyio
+async def test_fetch_all_exchange_prices_global_fallback_sources():
+    """Behavioral test for fetch_all_exchange_prices fallback from Binance -> TonAPI -> CoinGecko."""
+    from bot.services.crypto.crypto_fetcher import fetch_all_exchange_prices
+
+    # Case A: Binance returns GRAMUSDT
+    class FakeResp:
+        def __init__(self, status, json_data):
+            self.status = status
+            self._json = json_data
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, *args):
+            pass
+
+        async def json(self):
+            return self._json
+
+    class FakeSession:
+        def __init__(self, binance_ok=True, tonapi_ok=False, coingecko_ok=False):
+            self.binance_ok = binance_ok
+            self.tonapi_ok = tonapi_ok
+            self.coingecko_ok = coingecko_ok
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, *args):
+            pass
+
+        def get(self, url, **kwargs):
+            if "symbol=GRAMUSDT" in url:
+                if self.binance_ok:
+                    return FakeResp(200, {"price": "1.3500"})
+                return FakeResp(500, {})
+            elif "tonapi.io" in url:
+                if self.tonapi_ok:
+                    return FakeResp(200, {"rates": {"TON": {"prices": {"USD": 1.3400}}}})
+                return FakeResp(500, {})
+            elif "coingecko.com" in url:
+                if self.coingecko_ok:
+                    return FakeResp(200, {"the-open-network": {"usd": 1.3300}})
+                return FakeResp(500, {})
+            elif "symbol=EURUSDT" in url:
+                return FakeResp(200, {"price": "1.0800"})
+            return FakeResp(500, {})
+
+    # 1. Binance works
+    with patch("aiohttp.ClientSession", return_value=FakeSession(binance_ok=True)):
+        data = await fetch_all_exchange_prices(usdt_rate=95000)
+        assert data["global_ton_usd"] == 1.35
+        assert data["global_ton_source"] == "بایننس"
+
+    # 2. Binance fails, TonAPI succeeds
+    with patch("aiohttp.ClientSession", return_value=FakeSession(binance_ok=False, tonapi_ok=True)):
+        data = await fetch_all_exchange_prices(usdt_rate=95000)
+        assert data["global_ton_usd"] == 1.34
+        assert data["global_ton_source"] == "TonAPI"
+        # Ton fallback calculation with USDT rate
+        p, src = data["best_ton"]
+        assert p == int(round(1.34 * 95000))
+        assert "TonAPI" in src
+
+    # 3. Binance and TonAPI fail, CoinGecko succeeds
+    with patch("aiohttp.ClientSession", return_value=FakeSession(binance_ok=False, tonapi_ok=False, coingecko_ok=True)):
+        data = await fetch_all_exchange_prices(usdt_rate=95000)
+        assert data["global_ton_usd"] == 1.33
+        assert data["global_ton_source"] == "CoinGecko"
+        p, src = data["best_ton"]
+        assert "CoinGecko" in src
+
+    # 4. All fail
+    with patch("aiohttp.ClientSession", return_value=FakeSession(binance_ok=False, tonapi_ok=False, coingecko_ok=False)):
+        data = await fetch_all_exchange_prices(usdt_rate=95000)
+        assert data["global_ton_usd"] is None
+        assert data["global_ton_source"] == ""

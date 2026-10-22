@@ -30,6 +30,8 @@ async def fetch_all_exchange_prices(usdt_rate: int | None = None) -> dict:
     closed_status: dict[str, str] = {}
     binance_ton_usd: float | None = None
     binance_eur_usd: float | None = None
+    global_ton_usd: float | None = None
+    global_ton_source: str = ""
 
     async with aiohttp.ClientSession(timeout=timeout) as session:
         # 1. Nobitex
@@ -171,7 +173,7 @@ async def fetch_all_exchange_prices(usdt_rate: int | None = None) -> dict:
 
         # 6. Binance (global) & TonAPI
         async def _fetch_binance():
-            nonlocal binance_ton_usd, binance_eur_usd
+            nonlocal binance_ton_usd, binance_eur_usd, global_ton_usd, global_ton_source
             # 1. Binance spot: Toncoin spot trades under active symbol GRAMUSDT
             try:
                 async with session.get("https://api.binance.com/api/v3/ticker/price?symbol=GRAMUSDT", headers=headers) as resp:
@@ -180,11 +182,13 @@ async def fetch_all_exchange_prices(usdt_rate: int | None = None) -> dict:
                         p = float(data.get("price", "0"))
                         if p > 0:
                             binance_ton_usd = p
+                            global_ton_usd = p
+                            global_ton_source = "بایننس"
             except Exception as e:
                 logger.debug("Binance GRAMUSDT failed: %s", e)
 
             # 2. TonAPI official fallback if Binance did not return a valid price
-            if not binance_ton_usd:
+            if not global_ton_usd:
                 try:
                     async with session.get("https://tonapi.io/v2/rates?tokens=ton&currencies=usd", headers=headers) as resp:
                         if resp.status == 200:
@@ -192,11 +196,13 @@ async def fetch_all_exchange_prices(usdt_rate: int | None = None) -> dict:
                             p = float((data.get("rates", {}).get("TON", {}).get("prices", {})).get("USD", 0))
                             if p > 0:
                                 binance_ton_usd = round(p, 4)
+                                global_ton_usd = round(p, 4)
+                                global_ton_source = "TonAPI"
                 except Exception as e:
                     logger.debug("TonAPI rates failed: %s", e)
 
             # 3. CoinGecko fallback
-            if not binance_ton_usd:
+            if not global_ton_usd:
                 try:
                     async with session.get("https://api.coingecko.com/api/v3/simple/price?ids=the-open-network&vs_currencies=usd", headers=headers) as resp:
                         if resp.status == 200:
@@ -204,6 +210,8 @@ async def fetch_all_exchange_prices(usdt_rate: int | None = None) -> dict:
                             p = float(data.get("the-open-network", {}).get("usd", 0))
                             if p > 0:
                                 binance_ton_usd = round(p, 4)
+                                global_ton_usd = round(p, 4)
+                                global_ton_source = "CoinGecko"
                 except Exception as e:
                     logger.debug("CoinGecko rates failed: %s", e)
 
@@ -246,9 +254,10 @@ async def fetch_all_exchange_prices(usdt_rate: int | None = None) -> dict:
     )
     effective_usdt = int(effective_usdt or 0)
 
-    if best_ton_price is None and binance_ton_usd and effective_usdt > 0:
-        best_ton_price = int(round(binance_ton_usd * effective_usdt))
-        best_ton_source = f"بایننس (${binance_ton_usd:.2f})"
+    if best_ton_price is None and global_ton_usd and effective_usdt > 0:
+        best_ton_price = int(round(global_ton_usd * effective_usdt))
+        src_label = global_ton_source or "جهانی"
+        best_ton_source = f"{src_label} (${global_ton_usd:.2f})"
 
     # Priority for single best USDT: Nobitex > Tetherland > Ramzinex > Bitpin > Wallex
     best_usdt_price: int | None = None
@@ -284,7 +293,9 @@ async def fetch_all_exchange_prices(usdt_rate: int | None = None) -> dict:
         "usdt": usdt_prices,
         "eur": eur_prices,
         "closed_status": closed_status,
-        "binance_usd": binance_ton_usd,
+        "binance_usd": global_ton_usd,
+        "global_ton_usd": global_ton_usd,
+        "global_ton_source": global_ton_source,
         "binance_eur_usd": binance_eur_usd,
         "best_ton": (best_ton_price, best_ton_source),
         "best_usdt": (best_usdt_price, best_usdt_source),

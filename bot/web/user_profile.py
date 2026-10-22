@@ -25,7 +25,7 @@ from bot.db.models import AdminLog, Coupon, CouponUsage, Order, Service, Topup, 
 from bot.db.repositories.alert_repo import AlertRepository
 from bot.db.repositories.report_repo import ReportRepository
 from bot.db.repositories.user_repo import UserRepository
-from bot.services.app_settings import get_store_settings
+from bot.services.app_settings import get_store_settings, is_maintenance
 from bot.services.formatting import now_tz
 from bot.web.cache import FastCache
 from bot.web.user_common import db_session, require_user
@@ -269,6 +269,7 @@ async def get_user_me(request: web.Request) -> web.Response:
         wallet_balance = wallet.balance if wallet else 0
 
         store_settings = await get_store_settings(session)
+        maint_on = await is_maintenance(session)
         ref_count_res = await session.execute(select(func.count(User.id)).where(User.referred_by_id == telegram_id))
         referrals_count = int(ref_count_res.scalar_one() or 0)
         referral_reward_gb = store_settings.referral_reward_gb if store_settings.referral_enabled else 5
@@ -423,6 +424,7 @@ async def get_user_me(request: web.Request) -> web.Response:
             },
             "settings": user_settings,
             "accounts": accounts_list,
+            "is_maintenance": maint_on,
             "active_sub": active_sub,
             "has_active_sub": has_active_sub,
             "today_jalali": today_jalali_str,

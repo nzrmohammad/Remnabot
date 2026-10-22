@@ -1,8 +1,8 @@
 """Crypto price notification scheduler and admin topic broadcaster."""
 import asyncio
-from datetime import datetime, timedelta
 import json
 import logging
+from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 
 from aiogram import Bot
@@ -14,8 +14,6 @@ from bot.services.app_settings import get_store_settings
 from bot.services.crypto.crypto_fetcher import fetch_all_exchange_prices
 from bot.services.crypto.crypto_rates import (
     format_full_crypto_market_alert,
-    format_ton_rate_alert,
-    format_usdt_rate_alert,
 )
 
 logger = logging.getLogger(__name__)

@@ -78,7 +78,8 @@ def format_multi_rate_alert(
     """Format comprehensive rate notification showing Nobitex, Bitpin, Wallex, and USDT rates."""
     ton_prices = market_data.get("ton", {})
     usdt_prices = market_data.get("usdt", {})
-    binance_usd = market_data.get("binance_usd")
+    global_usd = market_data.get("global_ton_usd") or market_data.get("binance_usd")
+    global_source = market_data.get("global_ton_source") or "بایننس" 
 
     best_ton_p, best_ton_src = market_data.get("best_ton", (None, ""))
 
@@ -120,8 +121,8 @@ def format_multi_rate_alert(
             val_str = "<i>عدم دسترسی</i>"
         lines.append(f"   🔹 {name} : {val_str}")
 
-    if binance_usd:
-        lines.append(f"   🌐 بایننس جهانی : <b>${binance_usd:.2f}</b>")
+    if global_usd:
+        lines.append(f"   🌐 {global_source} جهانی : <b>${global_usd:.2f}</b>")
 
     lines.append("")
     lines.append("💵 <b>قیمت لحظه‌ای تتر (USDT / دلار):</b>")
@@ -187,7 +188,8 @@ def format_ton_rate_alert(
 ) -> tuple[str, InlineKeyboardMarkup]:
     """Format TON price notification showing Nobitex, Bitpin, Wallex, and Binance."""
     ton_prices = market_data.get("ton", {})
-    binance_usd = market_data.get("binance_usd")
+    global_usd = market_data.get("global_ton_usd") or market_data.get("binance_usd")
+    global_source = market_data.get("global_ton_source") or "بایننس" 
 
     best_ton_p, best_ton_src = market_data.get("best_ton", (None, ""))
 
@@ -227,8 +229,8 @@ def format_ton_rate_alert(
             val_str = "<i>عدم دسترسی</i>"
         lines.append(f"   🔹 {name} : {val_str}")
 
-    if binance_usd:
-        lines.append(f"   🌐 بایننس جهانی : <b>${binance_usd:.2f}</b>")
+    if global_usd:
+        lines.append(f"   🌐 {global_source} جهانی : <b>${global_usd:.2f}</b>")
 
     lines.append("")
     lines.append("⚙️ <b>وضعیت فعلی در فروشگاه:</b>")
@@ -350,7 +352,8 @@ def format_full_crypto_market_alert(
     """Format comprehensive market notification with TON, USDT, Stars, EUR and quick action buttons."""
     ton_prices = market_data.get("ton", {})
     usdt_prices = market_data.get("usdt", {})
-    binance_usd = market_data.get("binance_usd")
+    global_usd = market_data.get("global_ton_usd") or market_data.get("binance_usd")
+    global_source = market_data.get("global_ton_source") or "بایننس" 
 
     current_ton_rate = store.ton_rate_toman
     current_usdt_rate = store.usdt_rate_toman
@@ -367,8 +370,10 @@ def format_full_crypto_market_alert(
             diff_ton_str = f"{abs(diff_ton):,}- ت (%{abs(pct_ton):.1f}-)"
         else:
             diff_ton_str = "بدون تغییر"
+    elif current_ton_rate <= 0:
+        diff_ton_str = "تنظیم‌نشده"
     else:
-        diff_ton_str = "بدون تغییر" if best_ton_p is not None else "دریافت نشد"
+        diff_ton_str = "دریافت نشد"
 
     best_usdt_p, best_usdt_src = market_data.get("best_usdt", (None, ""))
     if best_usdt_p is not None and current_usdt_rate > 0:
@@ -380,8 +385,10 @@ def format_full_crypto_market_alert(
             diff_usdt_str = f"{abs(diff_usdt):,}- ت (%{abs(pct_usdt):.1f}-)"
         else:
             diff_usdt_str = "بدون تغییر"
+    elif current_usdt_rate <= 0:
+        diff_usdt_str = "تنظیم‌نشده"
     else:
-        diff_usdt_str = "بدون تغییر" if best_usdt_p is not None else "دریافت نشد"
+        diff_usdt_str = "دریافت نشد"
 
     ref_usdt = best_usdt_p or current_usdt_rate
     lossless_stars = max(100, round(ref_usdt * 0.013)) if ref_usdt else 0
@@ -404,8 +411,8 @@ def format_full_crypto_market_alert(
         else:
             val = "<i>عدم دسترسی</i>"
         lines.append(f"   ▫️ {name}: {val}")
-    if binance_usd:
-        lines.append(f"   🌐 بایننس جهانی: <b>${binance_usd:.2f}</b>")
+    if global_usd:
+        lines.append(f"   🌐 {global_source} جهانی: <b>${global_usd:.2f}</b>")
     curr_ton_str = f"{current_ton_rate:,} ت" if current_ton_rate > 0 else "— (تنظیم‌نشده)"
     lines.append(f"   ⚙️ فعلی در بات: <b>{curr_ton_str}</b> ({diff_ton_str})")
 

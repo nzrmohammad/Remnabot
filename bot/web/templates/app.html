@@ -52,6 +52,30 @@
       <span class="text-[11px] font-mono text-slate-500 mt-2">در حال بارگذاری اطلاعات حساب و نشست‌ها...</span>
     </div>
 
+    <!-- ======================================================== -->
+    <!-- 0.1 SYSTEM MAINTENANCE OVERLAY                          -->
+    <!-- ======================================================== -->
+    <div id="systemMaintenanceScreen" class="absolute inset-0 bg-[#0f172a] z-[60] flex flex-col items-center justify-center p-6 text-center hidden animate-fadeIn">
+      <div class="relative mb-5">
+        <div class="w-20 h-20 rounded-3xl bg-gradient-to-tr from-amber-500 via-orange-500 to-rose-500 flex items-center justify-center shadow-2xl shadow-orange-500/30">
+          <span class="text-4xl animate-bounce">🚧</span>
+        </div>
+      </div>
+      <h2 class="text-lg font-black text-white tracking-wide">سامانه در حال ارتقا و به‌روزرسانی</h2>
+      <p class="text-xs text-slate-300 mt-2 max-w-xs leading-relaxed">
+        به منظور ارتقای کیفیت و زیرساخت سرورها، سیستم موقتاً در دست تعمیر است. از شکیبایی شما سپاسگزاریم.
+      </p>
+      <div class="mt-6 flex flex-col gap-2 w-full max-w-[260px]">
+        <button type="button" onclick="window.location.reload()" class="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs shadow-md transition active:scale-95">
+          🔄 تلاش مجدد
+        </button>
+        <button type="button" onclick="if(window.Telegram?.WebApp?.close){window.Telegram.WebApp.close()}else{window.close()}" class="w-full py-2 px-4 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-300 text-xs font-semibold border border-slate-700 transition active:scale-95">
+          بستن برنامه
+        </button>
+      </div>
+    </div>
+
+
     <script>
       // Fail-safe auto-dismiss splash screen after max 950ms
       setTimeout(function() {
