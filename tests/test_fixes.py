@@ -2394,9 +2394,9 @@ def test_ui_improvements_verification():
     css_text = Path("bot/web/static/css/app.css").read_text(encoding="utf-8")
     js_text = Path("bot/web/static/js/app.js").read_text(encoding="utf-8")
 
-    # 1. Birthday picker is 3-column with smooth scroll
-    assert 'grid grid-cols-3 gap-2" id="bdayDaysGrid"' in html_text
-    assert "max-h-56" in html_text
+    # 1. Birthday picker is 7-column calendar grid without scroll
+    assert 'grid grid-cols-7 gap-1.5" id="bdayDaysGrid"' in html_text
+    assert "overflow-hidden" in html_text
 
     # 2. Alert threshold modal has increased height
     assert "max-h-[88vh]" in html_text

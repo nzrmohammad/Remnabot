@@ -1059,8 +1059,47 @@ function selectBdayItem(type, val, displayText, autoAdvance = false) {
       switchBdayPickerTab('day');
     }
   }
+
+  if (type === 'year' || type === 'month') {
+    updateBdayDaysGrid();
+  }
 }
 window.selectBdayItem = selectBdayItem;
+
+function isJalaliLeapYear(jy) {
+  return ((((((jy - (jy > 0 ? 474 : 473)) % 2820) + 474) + 38) * 682) % 2816) < 682;
+}
+
+function getJalaliMonthDays(year, month) {
+  const m = parseInt(month, 10);
+  const y = parseInt(year, 10);
+  if (m >= 1 && m <= 6) return 31;
+  if (m >= 7 && m <= 11) return 30;
+  if (m === 12) return isJalaliLeapYear(y) ? 30 : 29;
+  return 31;
+}
+
+function updateBdayDaysGrid() {
+  const dayGrid = $('bdayDaysGrid');
+  if (!dayGrid) return;
+  const m = parseInt($('birthdayMonthSelect')?.value || '1', 10);
+  const y = parseInt($('birthdayYearSelect')?.value || '1375', 10);
+  const maxDays = getJalaliMonthDays(y, m);
+
+  const currentDay = parseInt($('birthdayDaySelect')?.value || '1', 10);
+  if (currentDay > maxDays) {
+    selectBdayItem('day', maxDays, toPersianDigits(maxDays), false);
+  }
+
+  dayGrid.querySelectorAll('.bday-grid-btn').forEach(btn => {
+    const d = parseInt(btn.getAttribute('data-val'), 10);
+    if (d > maxDays) {
+      btn.classList.add('hidden');
+    } else {
+      btn.classList.remove('hidden');
+    }
+  });
+}
 
 function initBirthdaySelects() {
   const dayGrid = $('bdayDaysGrid');
@@ -1072,8 +1111,8 @@ function initBirthdaySelects() {
       const btn = document.createElement('button');
       btn.type = 'button';
       btn.setAttribute('data-val', d);
-      btn.className = 'bday-grid-btn py-2.5 px-2 text-center text-xs font-bold text-slate-300 bg-slate-800/80 hover:bg-slate-700 border border-slate-700/60 rounded-xl transition font-mono active:scale-95 flex items-center justify-center gap-1.5';
-      btn.innerHTML = `<span class="text-[11px] text-slate-400 font-normal">روز</span> <span>${toPersianDigits(d)}</span>`;
+      btn.className = 'bday-grid-btn aspect-square min-w-[34px] min-h-[34px] sm:min-w-[38px] sm:min-h-[38px] p-0 text-center text-xs sm:text-sm font-bold text-slate-300 bg-slate-800/80 hover:bg-slate-700 border border-slate-700/60 rounded-xl transition font-mono active:scale-95 flex items-center justify-center';
+      btn.textContent = toPersianDigits(d);
       btn.onclick = () => selectBdayItem('day', d, toPersianDigits(d), false);
       dayGrid.appendChild(btn);
     }
@@ -1122,6 +1161,7 @@ function openBirthdayModal() {
     selectBdayItem('month', 1, 'فروردین', false);
     selectBdayItem('day', 1, toPersianDigits(1), false);
   }
+  updateBdayDaysGrid();
   switchBdayPickerTab('day');
   openModal('birthdayModal');
   hapticFeedback('selection');
@@ -1528,21 +1568,22 @@ function openExpiryCountdownModal() {
 
   const modalAccountName = $('modalExpiryAccountName');
   if (modalAccountName) {
-    modalAccountName.innerHTML = sub?.username
-      ? `سرویس <bdi dir="ltr" class="font-mono font-bold select-all">@${escapeHtml(sub.username)}</bdi>`
+    const cleanUsername = sub?.username ? String(sub.username).replace(/^@+/, '') : '';
+    modalAccountName.innerHTML = cleanUsername
+      ? `سرویس <bdi dir="ltr" class="font-mono font-bold select-all">${escapeHtml(cleanUsername)}</bdi>`
       : 'اشتراک فعال شما';
   }
 
   const exactDateEl = $('modalExpiryExactDate');
   if (exactDateEl) {
-    exactDateEl.innerText = expireJalali ? `پایان اعتبار: ${expireJalali}` : 'نامحدود / بدون انقضا';
+    exactDateEl.innerText = expireJalali ? expireJalali : 'نامحدود / بدون انقضا';
   }
 
   const allowanceEl = $('modalExpiryDailyAllowance');
   if (allowanceEl) {
     if (daysLeft > 0 && trafficRemainingGb > 0) {
       const dailyGb = (trafficRemainingGb / daysLeft).toFixed(2);
-      allowanceEl.innerHTML = `${fmtTraffic(dailyGb, { html: true })} روزانه`;
+      allowanceEl.innerHTML = fmtTraffic(dailyGb, { html: true });
     } else {
       allowanceEl.innerText = 'نامحدود';
     }
