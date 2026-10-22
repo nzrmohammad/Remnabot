@@ -1,4 +1,5 @@
 """Database backup export service."""
+import asyncio
 import json
 import logging
 from datetime import datetime, timezone
@@ -11,12 +12,21 @@ from bot.common import admin_thread_kwargs
 from bot.services.formatting import now_tz
 from bot.db.models import (
     AdminLog,
+    AlertSettings,
+    AlertState,
     AppSetting,
+    Campaign,
     Coupon,
     CouponUsage,
     CryptoInvoice,
+    ExpiryState,
+    HourlyTrafficSnapshot,
+    KnownDevice,
+    NodeCost,
     Order,
     ReferralReward,
+    ReportSettings,
+    RetentionState,
     Service,
     SupportMessage,
     Topup,
@@ -197,6 +207,152 @@ async def create_database_backup(session: AsyncSession, out_dir: str | Path | No
         for sm in support_res.scalars().all()
     ]
 
+    # 12. AlertSettings
+    alert_settings_res = await session.execute(select(AlertSettings))
+    alert_settings = [
+        {
+            "telegram_id": a.telegram_id,
+            "traffic_percent": a.traffic_percent,
+            "expire_days": a.expire_days,
+            "updated_at": _serialize_val(a.updated_at),
+        }
+        for a in alert_settings_res.scalars().all()
+    ]
+
+    # 13. ReportSettings
+    report_settings_res = await session.execute(select(ReportSettings))
+    report_settings = [
+        {
+            "telegram_id": r.telegram_id,
+            "nightly": r.nightly,
+            "weekly": r.weekly,
+            "monthly": r.monthly,
+            "clean_reports": r.clean_reports,
+            "last_report_message_id": r.last_report_message_id,
+            "last_nightly_message_id": r.last_nightly_message_id,
+            "last_weekly_message_id": r.last_weekly_message_id,
+            "last_monthly_message_id": r.last_monthly_message_id,
+            "wheel_notify": r.wheel_notify,
+            "wheel_notified": r.wheel_notified,
+            "wheel_last_spin_at": _serialize_val(r.wheel_last_spin_at),
+            "last_wheel_message_id": r.last_wheel_message_id,
+            "updated_at": _serialize_val(r.updated_at),
+        }
+        for r in report_settings_res.scalars().all()
+    ]
+
+    # 14. AdminLog
+    admin_logs_res = await session.execute(select(AdminLog))
+    admin_logs = [
+        {
+            "id": al.id,
+            "admin_id": al.admin_id,
+            "action": al.action,
+            "detail": al.detail,
+            "target_user_id": al.target_user_id,
+            "created_at": _serialize_val(al.created_at),
+        }
+        for al in admin_logs_res.scalars().all()
+    ]
+
+    # 15. AlertState
+    alert_state_res = await session.execute(select(AlertState))
+    alert_states = [
+        {
+            "account_id": ast.account_id,
+            "telegram_id": ast.telegram_id,
+            "traffic_alerted": ast.traffic_alerted,
+            "expire_alerted": ast.expire_alerted,
+            "updated_at": _serialize_val(ast.updated_at),
+        }
+        for ast in alert_state_res.scalars().all()
+    ]
+
+    # 16. ExpiryState
+    expiry_state_res = await session.execute(select(ExpiryState))
+    expiry_states = [
+        {
+            "account_id": es.account_id,
+            "telegram_id": es.telegram_id,
+            "last_days_left": es.last_days_left,
+            "disabled_notified": es.disabled_notified,
+            "updated_at": _serialize_val(es.updated_at),
+        }
+        for es in expiry_state_res.scalars().all()
+    ]
+
+    # 17. KnownDevice
+    known_devices_res = await session.execute(select(KnownDevice))
+    known_devices = [
+        {
+            "id": kd.id,
+            "telegram_id": kd.telegram_id,
+            "account_id": kd.account_id,
+            "hwid": kd.hwid,
+            "platform": kd.platform,
+            "device_model": kd.device_model,
+            "created_at": _serialize_val(kd.created_at),
+        }
+        for kd in known_devices_res.scalars().all()
+    ]
+
+    # 18. RetentionState
+    retention_res = await session.execute(select(RetentionState))
+    retention_states = [
+        {
+            "telegram_id": ret.telegram_id,
+            "notified_at": _serialize_val(ret.notified_at),
+        }
+        for ret in retention_res.scalars().all()
+    ]
+
+    # 19. NodeCost
+    node_costs_res = await session.execute(select(NodeCost))
+    node_costs = [
+        {
+            "id": nc.id,
+            "node_uuid": nc.node_uuid,
+            "node_id": nc.node_id,
+            "node_name": nc.node_name,
+            "provider": nc.provider,
+            "monthly_cost_toman": nc.monthly_cost_toman,
+            "monthly_cost_eur": nc.monthly_cost_eur,
+            "currency": nc.currency,
+            "due_date": nc.due_date,
+            "notes": nc.notes,
+            "alert_notified": nc.alert_notified,
+            "created_at": _serialize_val(nc.created_at),
+            "updated_at": _serialize_val(nc.updated_at),
+        }
+        for nc in node_costs_res.scalars().all()
+    ]
+
+    # 20. HourlyTrafficSnapshot
+    traffic_snapshots_res = await session.execute(select(HourlyTrafficSnapshot))
+    traffic_snapshots = [
+        {
+            "id": hts.id,
+            "timestamp": _serialize_val(hts.timestamp),
+            "total_bytes": hts.total_bytes,
+            "delta_bytes": hts.delta_bytes,
+            "created_at": _serialize_val(hts.created_at),
+        }
+        for hts in traffic_snapshots_res.scalars().all()
+    ]
+
+    # 21. Campaign
+    campaigns_res = await session.execute(select(Campaign))
+    campaigns = [
+        {
+            "id": cmp.id,
+            "code": cmp.code,
+            "name": cmp.name,
+            "cost": cmp.cost,
+            "created_at": _serialize_val(cmp.created_at),
+        }
+        for cmp in campaigns_res.scalars().all()
+    ]
+
     data = {
         "export_date": now.isoformat(),
         "users": users,
@@ -210,14 +366,27 @@ async def create_database_backup(session: AsyncSession, out_dir: str | Path | No
         "coupon_usages": coupon_usages,
         "referral_rewards": referral_rewards,
         "support_messages": support_messages,
+        "alert_settings": alert_settings,
+        "report_settings": report_settings,
+        "admin_logs": admin_logs,
+        "alert_states": alert_states,
+        "expiry_states": expiry_states,
+        "known_devices": known_devices,
+        "retention_states": retention_states,
+        "node_costs": node_costs,
+        "traffic_snapshots": traffic_snapshots,
+        "campaigns": campaigns,
     }
 
     target_dir = Path(out_dir) if out_dir else Path.cwd() / "backups"
     target_dir.mkdir(parents=True, exist_ok=True)
     file_path = target_dir / f"remnabot_backup_{timestamp}.json"
 
-    with open(file_path, "w", encoding="utf-8") as f:
-        json.dump(data, f, ensure_ascii=False, indent=2)
+    def _write_file():
+        with open(file_path, "w", encoding="utf-8") as f:
+            json.dump(data, f, ensure_ascii=False, indent=2)
+
+    await asyncio.to_thread(_write_file)
 
     logger.info("Database backup created at %s", file_path)
     return file_path
@@ -229,8 +398,11 @@ async def restore_database_backup(session: AsyncSession, file_path: str | Path) 
     if not path.is_file():
         raise FileNotFoundError(f"Backup file not found: {path}")
 
-    with open(path, encoding="utf-8") as f:
-        data = json.load(f)
+    def _read_file():
+        with open(path, encoding="utf-8") as f:
+            return json.load(f)
+
+    data = await asyncio.to_thread(_read_file)
 
     stats = {
         "users": 0,
@@ -244,6 +416,16 @@ async def restore_database_backup(session: AsyncSession, file_path: str | Path) 
         "coupon_usages": 0,
         "referral_rewards": 0,
         "support_messages": 0,
+        "alert_settings": 0,
+        "report_settings": 0,
+        "admin_logs": 0,
+        "alert_states": 0,
+        "expiry_states": 0,
+        "known_devices": 0,
+        "retention_states": 0,
+        "node_costs": 0,
+        "traffic_snapshots": 0,
+        "campaigns": 0,
     }
 
     def _parse_dt(val):
@@ -474,6 +656,191 @@ async def restore_database_backup(session: AsyncSession, file_path: str | Path) 
                 )
             )
             stats["support_messages"] += 1
+
+    # 12. AlertSettings
+    for a_data in data.get("alert_settings", []):
+        tid = a_data.get("telegram_id")
+        existing_a = await session.get(AlertSettings, tid) if tid else None
+        if existing_a:
+            existing_a.traffic_percent = a_data.get("traffic_percent", existing_a.traffic_percent)
+            existing_a.expire_days = a_data.get("expire_days", existing_a.expire_days)
+        else:
+            session.add(
+                AlertSettings(
+                    telegram_id=tid,
+                    traffic_percent=a_data.get("traffic_percent", 80),
+                    expire_days=a_data.get("expire_days", 3),
+                    updated_at=_parse_dt(a_data.get("updated_at")),
+                )
+            )
+        stats["alert_settings"] += 1
+
+    # 13. ReportSettings
+    for r_data in data.get("report_settings", []):
+        tid = r_data.get("telegram_id")
+        existing_r = await session.get(ReportSettings, tid) if tid else None
+        if not existing_r:
+            session.add(
+                ReportSettings(
+                    telegram_id=tid,
+                    nightly=r_data.get("nightly", True),
+                    weekly=r_data.get("weekly", True),
+                    monthly=r_data.get("monthly", True),
+                    clean_reports=r_data.get("clean_reports", False),
+                    last_report_message_id=r_data.get("last_report_message_id"),
+                    last_nightly_message_id=r_data.get("last_nightly_message_id"),
+                    last_weekly_message_id=r_data.get("last_weekly_message_id"),
+                    last_monthly_message_id=r_data.get("last_monthly_message_id"),
+                    wheel_notify=r_data.get("wheel_notify", True),
+                    wheel_notified=r_data.get("wheel_notified", False),
+                    wheel_last_spin_at=_parse_dt(r_data.get("wheel_last_spin_at")),
+                    last_wheel_message_id=r_data.get("last_wheel_message_id"),
+                    updated_at=_parse_dt(r_data.get("updated_at")),
+                )
+            )
+            stats["report_settings"] += 1
+
+    # 14. AdminLog
+    for al_data in data.get("admin_logs", []):
+        al_id = al_data.get("id")
+        existing_al = await session.get(AdminLog, al_id) if al_id else None
+        if not existing_al:
+            session.add(
+                AdminLog(
+                    id=al_id,
+                    admin_id=al_data.get("admin_id"),
+                    action=al_data.get("action", ""),
+                    detail=al_data.get("detail"),
+                    target_user_id=al_data.get("target_user_id"),
+                    created_at=_parse_dt(al_data.get("created_at")),
+                )
+            )
+            stats["admin_logs"] += 1
+
+    # 15. AlertState
+    for ast_data in data.get("alert_states", []):
+        acc_id = ast_data.get("account_id")
+        existing_ast = await session.get(AlertState, acc_id) if acc_id else None
+        if existing_ast:
+            existing_ast.traffic_alerted = ast_data.get("traffic_alerted", existing_ast.traffic_alerted)
+            existing_ast.expire_alerted = ast_data.get("expire_alerted", existing_ast.expire_alerted)
+        else:
+            session.add(
+                AlertState(
+                    account_id=acc_id,
+                    telegram_id=ast_data.get("telegram_id"),
+                    traffic_alerted=ast_data.get("traffic_alerted", False),
+                    expire_alerted=ast_data.get("expire_alerted", False),
+                    updated_at=_parse_dt(ast_data.get("updated_at")),
+                )
+            )
+        stats["alert_states"] += 1
+
+    # 16. ExpiryState
+    for es_data in data.get("expiry_states", []):
+        acc_id = es_data.get("account_id")
+        existing_es = await session.get(ExpiryState, acc_id) if acc_id else None
+        if existing_es:
+            existing_es.last_days_left = es_data.get("last_days_left", existing_es.last_days_left)
+            existing_es.disabled_notified = es_data.get("disabled_notified", existing_es.disabled_notified)
+        else:
+            session.add(
+                ExpiryState(
+                    account_id=acc_id,
+                    telegram_id=es_data.get("telegram_id"),
+                    last_days_left=es_data.get("last_days_left"),
+                    disabled_notified=es_data.get("disabled_notified", False),
+                    updated_at=_parse_dt(es_data.get("updated_at")),
+                )
+            )
+        stats["expiry_states"] += 1
+
+    # 17. KnownDevice
+    for kd_data in data.get("known_devices", []):
+        kd_id = kd_data.get("id")
+        existing_kd = await session.get(KnownDevice, kd_id) if kd_id else None
+        if not existing_kd:
+            session.add(
+                KnownDevice(
+                    id=kd_id,
+                    telegram_id=kd_data.get("telegram_id"),
+                    account_id=kd_data.get("account_id"),
+                    hwid=kd_data.get("hwid", ""),
+                    platform=kd_data.get("platform"),
+                    device_model=kd_data.get("device_model"),
+                    created_at=_parse_dt(kd_data.get("created_at")),
+                )
+            )
+            stats["known_devices"] += 1
+
+    # 18. RetentionState
+    for ret_data in data.get("retention_states", []):
+        tid = ret_data.get("telegram_id")
+        existing_ret = await session.get(RetentionState, tid) if tid else None
+        if not existing_ret:
+            session.add(
+                RetentionState(
+                    telegram_id=tid,
+                    notified_at=_parse_dt(ret_data.get("notified_at")),
+                )
+            )
+            stats["retention_states"] += 1
+
+    # 19. NodeCost
+    for nc_data in data.get("node_costs", []):
+        nc_id = nc_data.get("id")
+        existing_nc = await session.get(NodeCost, nc_id) if nc_id else None
+        if not existing_nc:
+            session.add(
+                NodeCost(
+                    id=nc_id,
+                    node_uuid=nc_data.get("node_uuid"),
+                    node_id=nc_data.get("node_id"),
+                    node_name=nc_data.get("node_name"),
+                    provider=nc_data.get("provider"),
+                    monthly_cost_toman=nc_data.get("monthly_cost_toman", 0),
+                    monthly_cost_eur=nc_data.get("monthly_cost_eur", 0.0),
+                    currency=nc_data.get("currency", "EUR"),
+                    due_date=nc_data.get("due_date"),
+                    notes=nc_data.get("notes"),
+                    alert_notified=nc_data.get("alert_notified", False),
+                    created_at=_parse_dt(nc_data.get("created_at")),
+                    updated_at=_parse_dt(nc_data.get("updated_at")),
+                )
+            )
+            stats["node_costs"] += 1
+
+    # 20. HourlyTrafficSnapshot
+    for hts_data in data.get("traffic_snapshots", []):
+        hts_id = hts_data.get("id")
+        existing_hts = await session.get(HourlyTrafficSnapshot, hts_id) if hts_id else None
+        if not existing_hts:
+            session.add(
+                HourlyTrafficSnapshot(
+                    id=hts_id,
+                    timestamp=_parse_dt(hts_data.get("timestamp")),
+                    total_bytes=hts_data.get("total_bytes", 0),
+                    delta_bytes=hts_data.get("delta_bytes", 0),
+                    created_at=_parse_dt(hts_data.get("created_at")),
+                )
+            )
+            stats["traffic_snapshots"] += 1
+
+    # 21. Campaign
+    for cmp_data in data.get("campaigns", []):
+        cmp_id = cmp_data.get("id")
+        existing_cmp = await session.get(Campaign, cmp_id) if cmp_id else None
+        if not existing_cmp:
+            session.add(
+                Campaign(
+                    id=cmp_id,
+                    code=cmp_data.get("code", ""),
+                    name=cmp_data.get("name", ""),
+                    cost=cmp_data.get("cost", 0),
+                    created_at=_parse_dt(cmp_data.get("created_at")),
+                )
+            )
+            stats["campaigns"] += 1
 
     await session.commit()
     logger.info("Database backup restored from %s: %s", path, stats)

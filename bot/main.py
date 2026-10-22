@@ -280,14 +280,27 @@ async def _migrate_schema(engine: AsyncEngine) -> None:
             )
             logger.info("added topups.admin_message_id")
 
-        if cols and ("receipt_hash" in cols or "receipt_hash" not in cols):
+        if cols:
             try:
-                await conn.execute(
-                    text(
-                        "CREATE UNIQUE INDEX IF NOT EXISTS uq_topups_receipt_hash "
-                        "ON topups (receipt_hash) WHERE receipt_hash IS NOT NULL"
+                async with conn.begin_nested():
+                    # Deduplicate existing non-null receipt_hashes before index creation
+                    await conn.execute(
+                        text(
+                            "UPDATE topups "
+                            "SET receipt_hash = receipt_hash || '_dup_' || CAST(id AS VARCHAR) "
+                            "WHERE id NOT IN ("
+                            "    SELECT min_id FROM ("
+                            "        SELECT MIN(id) AS min_id FROM topups WHERE receipt_hash IS NOT NULL GROUP BY receipt_hash"
+                            "    ) t"
+                            ") AND receipt_hash IS NOT NULL"
+                        )
                     )
-                )
+                    await conn.execute(
+                        text(
+                            "CREATE UNIQUE INDEX IF NOT EXISTS uq_topups_receipt_hash "
+                            "ON topups (receipt_hash) WHERE receipt_hash IS NOT NULL"
+                        )
+                    )
             except Exception as exc:
                 logger.debug("Unique index on topups.receipt_hash check: %s", exc)
 
@@ -445,7 +458,7 @@ async def main() -> None:
             expiry_loop(bot, session_factory, remnawave), name="expiry-loop"
         ),
         asyncio.create_task(
-            reconcile_loop(bot, session_factory), name="reconcile-loop"
+            reconcile_loop(bot, session_factory, remnawave), name="reconcile-loop"
         ),
         asyncio.create_task(heartbeat_loop(), name="heartbeat"),
         asyncio.create_task(

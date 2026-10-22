@@ -15,6 +15,7 @@ Crash safety: a `pending` order row is written BEFORE the panel call.
 Renewals always send `status="ACTIVE"` so accounts the expiry job
 auto-disabled are reactivated on payment.
 """
+import asyncio
 import logging
 import secrets
 from dataclasses import dataclass
@@ -101,6 +102,15 @@ async def _pick_username(remnawave: RemnawaveClient, telegram_id: int) -> str:
     return f"u{telegram_id}_{secrets.token_hex(2)}"
 
 
+_user_purchase_locks: dict[int, asyncio.Lock] = {}
+
+
+def _get_purchase_lock(telegram_id: int) -> asyncio.Lock:
+    if telegram_id not in _user_purchase_locks:
+        _user_purchase_locks[telegram_id] = asyncio.Lock()
+    return _user_purchase_locks[telegram_id]
+
+
 async def execute_purchase(
     remnawave: RemnawaveClient,
     session,
@@ -112,9 +122,36 @@ async def execute_purchase(
     bot: Any = None,
     session_factory: Any = None,
 ) -> PurchaseResult:
-    """Buy a service. `chosen_account` = panel account to renew, if pre-picked.
-    If `create_new` is True, a new panel account is always created regardless of existing accounts.
-    """
+    """Buy a service with per-user anti-concurrency lock."""
+    lock = _get_purchase_lock(telegram_id)
+    if lock.locked():
+        return PurchaseResult(ok=False, kind="conflict")
+    async with lock:
+        return await _execute_purchase_impl(
+            remnawave=remnawave,
+            session=session,
+            service=service,
+            telegram_id=telegram_id,
+            chosen_account=chosen_account,
+            create_new=create_new,
+            discount_amount=discount_amount,
+            bot=bot,
+            session_factory=session_factory,
+        )
+
+
+async def _execute_purchase_impl(
+    remnawave: RemnawaveClient,
+    session,
+    service,
+    telegram_id: int,
+    chosen_account: dict | None = None,
+    create_new: bool = False,
+    discount_amount: int = 0,
+    bot: Any = None,
+    session_factory: Any = None,
+) -> PurchaseResult:
+    """Buy a service implementation."""
     from bot.services.app_settings import is_maintenance
 
     if await is_maintenance(session):
@@ -218,6 +255,11 @@ async def execute_purchase(
         panel_user_id = user.get("id")
         panel_username = user.get("username")
         subscription_url = user.get("subscriptionUrl")
+        if panel_user_id is not None:
+            pending.panel_user_id = int(panel_user_id)
+            pending.panel_username = panel_username
+            pending.subscription_url = subscription_url
+            await session.commit()
     else:
         # Renew the existing account (+ reactivate if expiry job disabled it).
         current_expire_str = account.get("expireAt")
@@ -297,6 +339,17 @@ async def execute_purchase(
                 await remnawave.delete_user(int(panel_user_id))
             except Exception as exc:
                 logger.exception("Failed to delete user %s during compensation: %s", panel_user_id, exc)
+        elif account is not None and panel_user_id:
+            # Revert renewal back to pre-purchase state to prevent free service
+            try:
+                await remnawave.update_user_subscription(
+                    int(account["id"]),
+                    account.get("expireAt"),
+                    int(account.get("trafficLimitBytes") or 0),
+                    status=account.get("status") or "ACTIVE",
+                )
+            except Exception as exc:
+                logger.exception("Failed to revert renewal for user %s during compensation: %s", panel_user_id, exc)
         await order_repo.mark_failed(pending)
         await session.commit()
         await _report_purchase_err("balance_race", "race: balance went below price during purchase")

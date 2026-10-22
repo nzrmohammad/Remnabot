@@ -362,49 +362,17 @@ async def post_user_topup_crypto_check(request: web.Request) -> web.Response:
 
         store = await get_store_settings(session)
         txs = await fetch_ton_transactions(store.ton_wallet_address)
-        inv_created_ts = int(inv_created.timestamp()) if inv_created else 0
-        for tx in txs:
-            if tx.get("comment") == inv.comment and tx.get("nanotons", 0) >= inv.nanotons:
-                # Timing check: transaction utime must not be before invoice creation (allow 60s clock skew)
-                if inv_created_ts and tx.get("utime", 0) and tx["utime"] < (inv_created_ts - 60):
-                    continue
-                tx_hash = tx.get("tx_hash", "")
-                if tx_hash:
-                    existing_tx_inv = await crypto_repo.get_by_tx_hash(tx_hash)
-                    if existing_tx_inv and existing_tx_inv.id != inv.id:
-                        logger.warning(
-                            "TON tx_hash %s already claimed by invoice %s, rejecting replay for invoice %s",
-                            tx_hash, existing_tx_inv.id, inv.id,
-                        )
-                        continue
-                paid_inv = await crypto_repo.mark_paid(inv.id, tx_hash, allow_expired=True)
-                if paid_inv:
-                    wallet_repo = WalletRepository(session)
-                    try:
-                        new_bal = await wallet_repo.add_balance_atomic(telegram_id, inv.amount_toman)
-                        await session.commit()
-                    except Exception as exc:
-                        logger.error("Failed to credit wallet for TON invoice %s: %s", inv.id, exc, exc_info=True)
-                        from bot.services.error_reporter import report_error
-                        bot = request.app.get("bot")
-                        await report_error(
-                            bot,
-                            session=session,
-                            exc=exc,
-                            context=f"Failed to credit wallet for TON invoice #{inv.id} amount={inv.amount_toman}",
-                            user_id=telegram_id,
-                        )
-                        return web.json_response({
-                            "ok": False,
-                            "message": "خطا در شارژ کیف پول. لطفاً به پشتیبانی اطلاع دهید.",
-                        }, status=500)
-                    await cache.delete(f"tma:user:{telegram_id}:dashboard")
-                    return web.json_response({
-                        "ok": True,
-                        "paid": True,
-                        "new_balance": new_bal,
-                        "message": "پرداخت با موفقیت تایید شد و کیف پول شارژ گردید!",
-                    })
+        from bot.services.crypto.ton import verify_and_credit_ton_invoice
+        matched, new_bal, _ = await verify_and_credit_ton_invoice(session, inv, txs, allow_expired=True)
+        if matched:
+            await session.commit()
+            await cache.delete(f"tma:user:{telegram_id}:dashboard")
+            return web.json_response({
+                "ok": True,
+                "paid": True,
+                "new_balance": new_bal,
+                "message": "پرداخت با موفقیت تایید شد و کیف پول شارژ گردید!",
+            })
 
         return web.json_response({
             "ok": True,

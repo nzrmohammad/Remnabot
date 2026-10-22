@@ -8,6 +8,7 @@ and revoke/charge manually.
 """
 import asyncio
 import logging
+from typing import Any
 
 from aiogram import Bot
 from sqlalchemy.ext.asyncio import async_sessionmaker
@@ -26,6 +27,7 @@ STALE_MINUTES = 15
 async def run_reconcile(
     bot: Bot,
     session_factory: async_sessionmaker,
+    remnawave: Any = None,
 ) -> int:
     """Mark stale pending orders failed + notify admin. Returns count."""
     closed = 0
@@ -35,6 +37,20 @@ async def run_reconcile(
         for order in stale:
             await repo.mark_failed(order)
             closed += 1
+            if remnawave and order.panel_user_id:
+                try:
+                    await remnawave.set_user_status(int(order.panel_user_id), "DISABLED")
+                    logger.warning(
+                        "Reconcile disabled uncharged panel user %s for order %s",
+                        order.panel_user_id,
+                        order.id,
+                    )
+                except Exception as p_err:
+                    logger.error(
+                        "Reconcile could not disable panel user %s: %s",
+                        order.panel_user_id,
+                        p_err,
+                    )
         await session.commit()
 
     if closed:
@@ -59,12 +75,13 @@ async def run_reconcile(
 async def reconcile_loop(
     bot: Bot,
     session_factory: async_sessionmaker,
+    remnawave: Any = None,
 ) -> None:
     await asyncio.sleep(60)  # let startup finish first
     logger.info("reconcile loop started (every %s s)", INTERVAL_SECONDS)
     while True:
         try:
-            await run_reconcile(bot, session_factory)
+            await run_reconcile(bot, session_factory, remnawave=remnawave)
         except Exception as exc:  # noqa: BLE001
             logger.exception("reconcile sweep failed: %s", exc)
         await asyncio.sleep(INTERVAL_SECONDS)

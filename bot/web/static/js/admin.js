@@ -1515,13 +1515,13 @@
       }
 
       const editBtnHtml = item.is_custom
-        ? `<button onclick="window.adminActions.openEditSslDomainModal('${escapeHtml(item.domain)}')" class="p-1.5 rounded-xl bg-transparent hover:bg-cyan-500/15 text-cyan-400 hover:text-cyan-300 border border-slate-700/70 hover:border-cyan-500/40 transition active:scale-95 flex-shrink-0 flex items-center justify-center" title="ویرایش دامنه">
+        ? `<button type="button" data-domain="${escapeHtml(item.domain)}" class="btn-edit-ssl-domain p-1.5 rounded-xl bg-transparent hover:bg-cyan-500/15 text-cyan-400 hover:text-cyan-300 border border-slate-700/70 hover:border-cyan-500/40 transition active:scale-95 flex-shrink-0 flex items-center justify-center" title="ویرایش دامنه">
              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
            </button>`
         : '';
 
       const deleteBtnHtml = item.is_custom
-        ? `<button onclick="window.adminActions.openDeleteSslDomainModal('${escapeHtml(item.domain)}')" class="p-1.5 rounded-xl bg-transparent hover:bg-rose-500/15 text-rose-400 hover:text-rose-300 border border-slate-700/70 hover:border-rose-500/30 transition active:scale-95 flex-shrink-0 flex items-center justify-center" title="حذف دامنه">
+        ? `<button type="button" data-domain="${escapeHtml(item.domain)}" class="btn-del-ssl-domain p-1.5 rounded-xl bg-transparent hover:bg-rose-500/15 text-rose-400 hover:text-rose-300 border border-slate-700/70 hover:border-rose-500/30 transition active:scale-95 flex-shrink-0 flex items-center justify-center" title="حذف دامنه">
              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
            </button>`
         : '';
@@ -1786,7 +1786,16 @@
 
               <!-- Button to configure node billing -->
               <div class="pt-1">
-                <button type="button" onclick="event.stopPropagation(); window.adminActions.openNodeBillingModal('${(n.uuid || n.id || '').replace(/'/g, "\\'")}', '${(n.name || '').replace(/'/g, "\\'")}', '${(n.provider || '').replace(/'/g, "\\'")}', ${Number(n.monthly_cost_toman || 0)}, ${Number(n.monthly_cost_eur || 0)}, '${n.due_date || ''}', '${(n.notes || '').replace(/'/g, "\\'")}', '${flag}', '${n.currency || 'EUR'}')" class="w-full bg-transparent hover:bg-cyan-500/10 text-cyan-500 dark:text-cyan-400 py-1.5 rounded-xl border border-cyan-500/30 transition flex items-center justify-center gap-1.5 font-bold active:scale-95 shadow-sm">
+                <button type="button" class="btn-node-billing w-full bg-transparent hover:bg-cyan-500/10 text-cyan-500 dark:text-cyan-400 py-1.5 rounded-xl border border-cyan-500/30 transition flex items-center justify-center gap-1.5 font-bold active:scale-95 shadow-sm"
+                  data-uuid="${escapeHtml(n.uuid || n.id || '')}"
+                  data-name="${escapeHtml(n.name || '')}"
+                  data-provider="${escapeHtml(n.provider || '')}"
+                  data-cost-toman="${Number(n.monthly_cost_toman || 0)}"
+                  data-cost-eur="${Number(n.monthly_cost_eur || 0)}"
+                  data-due="${escapeHtml(n.due_date || '')}"
+                  data-notes="${escapeHtml(n.notes || '')}"
+                  data-flag="${escapeHtml(flag || '')}"
+                  data-currency="${escapeHtml(n.currency || 'EUR')}">
                   <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                   <span>مدیریت هزینه و تمدید سرور</span>
                 </button>
@@ -3174,7 +3183,7 @@
         const ipsHtml = ips.map(ip => `
           <div class="flex items-center justify-between bg-transparent px-2.5 py-1.5 rounded-xl border border-slate-700/60 text-xs">
             <span class="text-slate-400 text-[10px]">آی‌پی کلاینت:</span>
-            <button type="button" dir="ltr" class="font-mono text-cyan-400 dark:text-cyan-300 font-bold select-all hover:underline cursor-pointer flex items-center gap-1" onclick="window.copyToClipboard('${escapeHtml(ip)}', 'آدرس IP کپی شد')" title="کلیک جهت کپی آی‌پی">
+            <button type="button" dir="ltr" class="btn-copy-ip-direct font-mono text-cyan-400 dark:text-cyan-300 font-bold select-all hover:underline cursor-pointer flex items-center gap-1" data-ip="${escapeHtml(ip)}" title="کلیک جهت کپی آی‌پی">
               <span>${escapeHtml(ip)}</span>
               <span class="text-[10px] opacity-70">📋</span>
             </button>
@@ -3423,7 +3432,7 @@
                     ? '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>'
                     : '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>'}
                 </button>
-                <button onclick="window.adminActions.deletePlan(${p.id}, '${escapeHtml(p.name).replace(/'/g, "\\'")}')" class="flex-1 bg-transparent hover:bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/30 hover:border-rose-400/60 py-2 rounded-xl transition flex items-center justify-center active:scale-95" title="حذف بسته" aria-label="حذف بسته">
+                <button type="button" data-id="${p.id}" data-name="${escapeHtml(p.name)}" class="btn-delete-plan flex-1 bg-transparent hover:bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/30 hover:border-rose-400/60 py-2 rounded-xl transition flex items-center justify-center active:scale-95" title="حذف بسته" aria-label="حذف بسته">
                   <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                 </button>
               </div>
@@ -3678,7 +3687,7 @@
           }
 
           const usagesBtnHtml = usedCount > 0
-            ? `<button onclick="window.adminActions.openCouponUsages(${c.id}, '${escapeHtml(c.code).replace(/'/g, "\\'")}')" class="flex-1 bg-transparent hover:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/30 hover:border-indigo-400/60 py-2 rounded-xl transition flex items-center justify-center active:scale-95 shadow-sm" title="استفاده‌کنندگان (${formatNumber(usedCount)})" aria-label="استفاده‌کنندگان (${formatNumber(usedCount)})">
+            ? `<button type="button" data-id="${c.id}" data-code="${escapeHtml(c.code)}" class="btn-coupon-usages flex-1 bg-transparent hover:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/30 hover:border-indigo-400/60 py-2 rounded-xl transition flex items-center justify-center active:scale-95 shadow-sm" title="استفاده‌کنندگان (${formatNumber(usedCount)})" aria-label="استفاده‌کنندگان (${formatNumber(usedCount)})">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
               </button>`
             : `<div class="flex-1 bg-transparent text-slate-500 border border-slate-700/40 py-2 rounded-xl flex items-center justify-center opacity-40 cursor-not-allowed select-none" title="فاقد استفاده">
@@ -3691,7 +3700,7 @@
               : '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>'}
           </button>`;
 
-          const deleteBtnHtml = `<button onclick="window.adminActions.deleteCoupon(${c.id}, '${escapeHtml(c.code).replace(/'/g, "\\'")}')" class="flex-1 bg-transparent hover:bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/30 hover:border-rose-400/60 py-2 rounded-xl transition flex items-center justify-center active:scale-95 shadow-sm" title="حذف کد تخفیف" aria-label="حذف کد تخفیف">
+          const deleteBtnHtml = `<button type="button" data-id="${c.id}" data-code="${escapeHtml(c.code)}" class="btn-delete-coupon flex-1 bg-transparent hover:bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/30 hover:border-rose-400/60 py-2 rounded-xl transition flex items-center justify-center active:scale-95 shadow-sm" title="حذف کد تخفیف" aria-label="حذف کد تخفیف">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
           </button>`;
 
@@ -3700,7 +3709,7 @@
               <div class="flex items-start justify-between">
                 <div>
                   <div class="flex items-center gap-2">
-                    <button type="button" onclick="window.adminActions.quickCopy('${escapeHtml(c.code).replace(/'/g, "\\'")}', 'کد تخفیف')" class="flex items-center gap-1.5 cursor-pointer bg-transparent hover:text-indigo-300 text-indigo-400 border-0 p-0 transition active:scale-95 group" title="کلیک جهت کپی کد تخفیف">
+                    <button type="button" data-code="${escapeHtml(c.code)}" class="btn-quick-copy-coupon flex items-center gap-1.5 cursor-pointer bg-transparent hover:text-indigo-300 text-indigo-400 border-0 p-0 transition active:scale-95 group" title="کلیک جهت کپی کد تخفیف">
                       <span class="font-mono font-bold text-sm tracking-wider uppercase">${escapeHtml(c.code)}</span>
                       <svg class="w-3.5 h-3.5 text-indigo-400/70 group-hover:text-indigo-300 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
                     </button>
@@ -4954,7 +4963,7 @@
                 </div>
                 <div class="flex items-center gap-1.5 flex-shrink-0">
                   <!-- Copy Link Icon Button -->
-                  <button type="button" onclick="window.adminActions.copyCampaignLink('${escapeHtml(link).replace(/'/g, "\\'")}')" class="w-8 h-8 min-w-[32px] min-h-[32px] bg-transparent hover:bg-cyan-500/10 text-cyan-400 border border-cyan-500/40 rounded-xl flex items-center justify-center transition active:scale-95 shadow-sm" title="کپی لینک اختصاصی" aria-label="کپی لینک اختصاصی">
+                  <button type="button" data-link="${escapeHtml(link)}" class="btn-copy-campaign-link w-8 h-8 min-w-[32px] min-h-[32px] bg-transparent hover:bg-cyan-500/10 text-cyan-400 border border-cyan-500/40 rounded-xl flex items-center justify-center transition active:scale-95 shadow-sm" title="کپی لینک اختصاصی" aria-label="کپی لینک اختصاصی">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
                   </button>
                   <!-- Details / Modal Icon Button -->
@@ -4962,7 +4971,7 @@
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
                   </button>
                   <!-- Delete Campaign Button -->
-                  <button type="button" onclick="window.adminActions.deleteCampaign(${c.id}, '${escapeHtml(c.name).replace(/'/g, "\\'")}')" class="w-8 h-8 min-w-[32px] min-h-[32px] bg-transparent hover:bg-rose-500/10 text-rose-400 border border-rose-500/40 rounded-xl flex items-center justify-center transition active:scale-95 shadow-sm" title="حذف کمپین" aria-label="حذف کمپین">
+                  <button type="button" data-id="${c.id}" data-name="${escapeHtml(c.name)}" class="btn-delete-campaign w-8 h-8 min-w-[32px] min-h-[32px] bg-transparent hover:bg-rose-500/10 text-rose-400 border border-rose-500/40 rounded-xl flex items-center justify-center transition active:scale-95 shadow-sm" title="حذف کمپین" aria-label="حذف کمپین">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                   </button>
                 </div>
@@ -6240,6 +6249,65 @@
       const os = id.replace('adminAppTab_', '');
       if (os) window.switchAdminAppsTab(os);
     });
+  });
+
+  // Safe global delegation for administrative action buttons (prevents inline handler XSS)
+  document.addEventListener('click', (e) => {
+    const editSslBtn = e.target.closest('.btn-edit-ssl-domain');
+    if (editSslBtn) {
+      window.adminActions.openEditSslDomainModal(editSslBtn.dataset.domain);
+      return;
+    }
+    const delSslBtn = e.target.closest('.btn-del-ssl-domain');
+    if (delSslBtn) {
+      window.adminActions.openDeleteSslDomainModal(delSslBtn.dataset.domain);
+      return;
+    }
+    const nodeBillingBtn = e.target.closest('.btn-node-billing');
+    if (nodeBillingBtn) {
+      e.stopPropagation();
+      const d = nodeBillingBtn.dataset;
+      window.adminActions.openNodeBillingModal(
+        d.uuid, d.name, d.provider, Number(d.costToman || 0), Number(d.costEur || 0),
+        d.due, d.notes, d.flag, d.currency
+      );
+      return;
+    }
+    const copyIpBtn = e.target.closest('.btn-copy-ip-direct');
+    if (copyIpBtn) {
+      window.copyToClipboard(copyIpBtn.dataset.ip, 'آدرس IP کپی شد');
+      return;
+    }
+    const delPlanBtn = e.target.closest('.btn-delete-plan');
+    if (delPlanBtn) {
+      window.adminActions.deletePlan(Number(delPlanBtn.dataset.id), delPlanBtn.dataset.name);
+      return;
+    }
+    const couponUsagesBtn = e.target.closest('.btn-coupon-usages');
+    if (couponUsagesBtn) {
+      window.adminActions.openCouponUsages(Number(couponUsagesBtn.dataset.id), couponUsagesBtn.dataset.code);
+      return;
+    }
+    const delCouponBtn = e.target.closest('.btn-delete-coupon');
+    if (delCouponBtn) {
+      window.adminActions.deleteCoupon(Number(delCouponBtn.dataset.id), delCouponBtn.dataset.code);
+      return;
+    }
+    const copyCouponBtn = e.target.closest('.btn-quick-copy-coupon');
+    if (copyCouponBtn) {
+      window.adminActions.quickCopy(copyCouponBtn.dataset.code, 'کد تخفیف');
+      return;
+    }
+    const copyCampBtn = e.target.closest('.btn-copy-campaign-link');
+    if (copyCampBtn) {
+      window.adminActions.copyCampaignLink(copyCampBtn.dataset.link);
+      return;
+    }
+    const delCampBtn = e.target.closest('.btn-delete-campaign');
+    if (delCampBtn) {
+      window.adminActions.deleteCampaign(Number(delCampBtn.dataset.id), delCampBtn.dataset.name);
+      return;
+    }
   });
 
   // Initial Sync

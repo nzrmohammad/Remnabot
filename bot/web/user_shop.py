@@ -203,12 +203,7 @@ async def _do_user_spin(request: web.Request, telegram_id: int, cache: FastCache
         w_blank1 = max(25, int(45 / streak_multiplier))
         w_2gb = max(1, int(1.2 * streak_multiplier))  # Ultra-rare jackpot (~1-1.5% probability)
         weights = [w_1gb, w_blank1, w_disc, w_500mb, w_2gb, w_again]
-
-        if hasattr(random.choice, "mock_calls"):
-            mock_res = random.choice(prizes)
-            chosen = mock_res[0] if isinstance(mock_res, list) else mock_res
-        else:
-            chosen = random.choices(prizes, weights=weights, k=1)[0]
+        chosen = random.choices(prizes, weights=weights, k=1)[0]
 
         applied = False
         if panel_users and chosen["type"] in ("traffic", "days"):
@@ -224,24 +219,26 @@ async def _do_user_spin(request: web.Request, telegram_id: int, cache: FastCache
                     if current_limit > 0:
                         traffic_bytes = int(chosen["value"] * 1024 * 1024 * 1024)
                         new_limit = current_limit + traffic_bytes
-                        await remnawave.update_user_subscription(
+                        up_res = await remnawave.update_user_subscription(
                             primary_id,
                             current_expire,
                             new_limit,
                         )
-                        applied = True
+                        if up_res is not None:
+                            applied = True
                 elif chosen["type"] == "days":
                     from bot.services.formatting import parse_iso
                     cur_dt = parse_iso(current_expire)
                     base = cur_dt if cur_dt and cur_dt > now_utc else now_utc
                     new_expire_dt = base + timedelta(days=int(chosen["value"]))
                     new_expire_iso = new_expire_dt.isoformat()
-                    await remnawave.update_user_subscription(
+                    up_res = await remnawave.update_user_subscription(
                         primary_id,
                         new_expire_iso,
                         current_limit,
                     )
-                    applied = True
+                    if up_res is not None:
+                        applied = True
             except Exception as exc:
                 logger.warning("Failed to auto-apply wheel prize to panel: %s", exc)
 
@@ -481,7 +478,6 @@ async def post_user_purchase(request: web.Request) -> web.Response:
         coupon_repo = CouponRepository(session)
         discount_amount = 0
         coupon_obj = None
-        coupon_usage = None
         if coupon_code:
             is_valid, _, disc = await coupon_repo.validate_coupon(coupon_code, telegram_id, price=service.price)
             if not is_valid:
@@ -491,13 +487,6 @@ async def post_user_purchase(request: web.Request) -> web.Response:
                 }, status=400)
             discount_amount = disc
             coupon_obj = await coupon_repo.get_by_code(coupon_code)
-            if coupon_obj:
-                coupon_usage = await coupon_repo.record_usage(coupon_obj.id, telegram_id, order_id=None, discount_applied=discount_amount)
-                if not coupon_usage:
-                    return web.json_response({
-                        "ok": False,
-                        "message": "کد تخفیف به حداکثر سقف استفاده رسیده است یا قبلاً استفاده شده است."
-                    }, status=400)
 
         chosen_acc = None
         panel_users = await remnawave.get_users_by_telegram_id(telegram_id) or []
@@ -564,8 +553,10 @@ async def post_user_purchase(request: web.Request) -> web.Response:
                     pass
             return web.json_response({"ok": False, "message": "خطا در ارتباط با سرور پنل جهت فعال‌سازی سرویس."}, status=500)
 
-        if coupon_usage and result.order_id:
-            coupon_usage.order_id = result.order_id
+        if coupon_obj and result.order_id:
+            await coupon_repo.record_usage(
+                coupon_obj.id, telegram_id, order_id=result.order_id, discount_applied=discount_amount
+            )
         await session.commit()
 
         bot = request.app.get("bot")

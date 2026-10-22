@@ -110,47 +110,29 @@ async def ton_invoice_check(
         await call.answer("⚠️ این فاکتور منقضی یا لغو شده است.", show_alert=True)
         return
 
-    # Check on-chain immediately
+    # Check on-chain immediately using unified verification (SSOT)
     store = await get_store_settings(session)
     txs = await fetch_ton_transactions(store.ton_wallet_address)
-    matched = False
-    for tx in txs:
-        if tx["comment"] == inv.comment and tx["nanotons"] >= inv.nanotons:
-            paid_inv = await crypto_repo.mark_paid(inv.id, tx["tx_hash"])
-            if paid_inv:
-                wallet_repo = WalletRepository(session)
-                try:
-                    new_bal = await wallet_repo.add_balance_atomic(inv.telegram_id, inv.amount_toman)
-                    await session.commit()
-                except Exception as exc:
-                    logger.error("Failed to credit wallet for TON invoice %s: %s", inv.id, exc, exc_info=True)
-                    from bot.services.error_reporter import report_error
-                    await report_error(
-                        bot,
-                        session=session,
-                        exc=exc,
-                        context=f"Failed to credit wallet for TON invoice #{inv.id} amount={inv.amount_toman}",
-                        user_id=inv.telegram_id,
-                    )
-                    await call.answer("⚠️ خطا در افزایش موجودی. لطفاً به پشتیبانی پیام دهید.", show_alert=True)
-                    return
-                matched = True
-                user = await user_repo.get_or_create(call.from_user.id, call.from_user.username)
-                lang = user.language or "fa"
-                kb = InlineKeyboardBuilder()
-                kb.button(text="🛍 خرید سرویس" if lang == "fa" else "🛍 Buy Service", callback_data="menu:services")
-                kb.button(text="🏠 منوی اصلی" if lang == "fa" else "🏠 Main Menu", callback_data="nav:main_menu")
-                kb.adjust(1)
-                msg = (
-                    f"🎉 <b>کیف پول شما با موفقیت شارژ شد!</b>\n"
-                    f"{SEPARATOR}\n"
-                    f"💎 دریافتی : <code>{inv.amount_ton} TON</code>\n"
-                    f"💰 مبلغ شارژ : <b>{inv.amount_toman:,}</b> تومان\n"
-                    f"👛 موجودی جدید : <b>{new_bal:,}</b> تومان"
-                )
-                await render_menu(bot, user, user_repo, msg, kb.as_markup())
-                await call.answer("✅ پرداخت تایید و کیف پول شارژ شد!", show_alert=True)
-                return
+    from bot.services.crypto.ton import verify_and_credit_ton_invoice
+    matched, new_bal, _ = await verify_and_credit_ton_invoice(session, inv, txs, allow_expired=False)
+    if matched:
+        await session.commit()
+        user = await user_repo.get_or_create(call.from_user.id, call.from_user.username)
+        lang = user.language or "fa"
+        kb = InlineKeyboardBuilder()
+        kb.button(text="🛍 خرید سرویس" if lang == "fa" else "🛍 Buy Service", callback_data="menu:services")
+        kb.button(text="🏠 منوی اصلی" if lang == "fa" else "🏠 Main Menu", callback_data="nav:main_menu")
+        kb.adjust(1)
+        msg = (
+            f"🎉 <b>کیف پول شما با موفقیت شارژ شد!</b>\n"
+            f"{SEPARATOR}\n"
+            f"💎 دریافتی : <code>{inv.amount_ton} TON</code>\n"
+            f"💰 مبلغ شارژ : <b>{inv.amount_toman:,}</b> تومان\n"
+            f"👛 موجودی جدید : <b>{new_bal:,}</b> تومان"
+        )
+        await render_menu(bot, user, user_repo, msg, kb.as_markup())
+        await call.answer("✅ پرداخت تایید و کیف پول شارژ شد!", show_alert=True)
+        return
 
     if not matched:
         await call.answer(

@@ -518,7 +518,7 @@ async def test_lucky_wheel_prize_application_traffic_and_days():
     }
 
     # Force prize to traffic (1 GB)
-    with patch("random.choice", return_value={"id": "1gb", "name": "1 GB", "icon": "🎁", "type": "traffic", "value": 1}):
+    with patch("random.choices", return_value=[{"id": "1gb", "name": "1 GB", "icon": "🎁", "type": "traffic", "value": 1}]):
         req = make_mocked_request("POST", "/api/user/spin?user_id=111222", app=app)
         resp = await post_user_spin(req)
         assert resp.status == 200
@@ -533,7 +533,7 @@ async def test_lucky_wheel_prize_application_traffic_and_days():
     # Force prize to days (1 day)
     mock_remnawave.update_user_subscription.reset_mock()
     await cache.delete("tma:user:111222:wheel_last_spin")
-    with patch("random.choice", return_value={"id": "1day", "name": "1 day", "icon": "💎", "type": "days", "value": 1}):
+    with patch("random.choices", return_value=[{"id": "1day", "name": "1 day", "icon": "💎", "type": "days", "value": 1}]):
         req = make_mocked_request("POST", "/api/user/spin?user_id=111222", app=app)
         resp = await post_user_spin(req)
         assert resp.status == 200
@@ -583,7 +583,7 @@ async def test_lucky_wheel_streak_and_referral_tickets(session_factory):
         await session.commit()
 
     # 1. First Daily Spin -> streak becomes 1 (multiplier 1.0)
-    with patch("random.choice", return_value={"id": "500mb", "name": "500 MB", "icon": "⚡️", "type": "traffic", "value": 0.5}):
+    with patch("random.choices", return_value=[{"id": "500mb", "name": "500 MB", "icon": "⚡️", "type": "traffic", "value": 0.5}]):
         req = make_mocked_request("POST", f"/api/user/spin?user_id={test_uid}", app=app)
         resp = await post_user_spin(req)
         assert resp.status == 200
@@ -600,7 +600,7 @@ async def test_lucky_wheel_streak_and_referral_tickets(session_factory):
     assert "۲۴ ساعت" in json.loads(resp_cooldown.text)["error"]
 
     # 3. Spin with ticket during cooldown -> succeeds!
-    with patch("random.choice", return_value={"id": "1gb", "name": "1 GB", "icon": "🎁", "type": "traffic", "value": 1}):
+    with patch("random.choices", return_value=[{"id": "1gb", "name": "1 GB", "icon": "🎁", "type": "traffic", "value": 1}]):
         req_ticket = make_mocked_request(
             "POST",
             f"/api/user/spin?user_id={test_uid}",
@@ -625,7 +625,7 @@ async def test_lucky_wheel_streak_and_referral_tickets(session_factory):
         await session.commit()
     await cache.delete(f"tma:user:{test_uid}:wheel_last_spin")
 
-    with patch("random.choice", return_value={"id": "500mb", "name": "500 MB", "icon": "⚡️", "type": "traffic", "value": 0.5}):
+    with patch("random.choices", return_value=[{"id": "500mb", "name": "500 MB", "icon": "⚡️", "type": "traffic", "value": 0.5}]):
         req_day2 = make_mocked_request("POST", f"/api/user/spin?user_id={test_uid}", app=app)
         resp_day2 = await post_user_spin(req_day2)
         assert resp_day2.status == 200

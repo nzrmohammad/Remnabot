@@ -3064,8 +3064,8 @@ function hydrateUserInterface(data) {
             <div class="flex justify-between items-center text-xs">
               <span class="text-cyan-300 font-black text-xs font-mono num-bidi" dir="ltr">${fmtTraffic(item.total_formatted, { html: false })}</span>
               <span class="flex items-center gap-2 font-bold text-slate-200">
-                <span>${item.name}</span>
-                <span class="text-base">${item.flag || '🌐'}</span>
+                <span>${escapeHtml(item.name || '')}</span>
+                <span class="text-base">${escapeHtml(item.flag || '🌐')}</span>
               </span>
             </div>
             ${barHtml}

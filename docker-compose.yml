@@ -32,6 +32,9 @@ services:
       DATABASE_URL: postgresql+asyncpg://remnabot:remnabot@db:5432/remnabot
       REDIS_URL: redis://redis:6379/0
     # Connects to Remnawave panel running on host or Docker via host.docker.internal
+    volumes:
+      - botbackups:/app/backups
+      - botdata:/app/data
     ports:
       - "8080:8080"
     extra_hosts:
@@ -45,3 +48,5 @@ services:
 volumes:
   pgdata:
   redisdata:
+  botbackups:
+  botdata:

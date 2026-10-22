@@ -85,6 +85,55 @@ async def fetch_ton_transactions(address: str, limit: int = 100) -> list[dict]:
     return []
 
 
+async def verify_and_credit_ton_invoice(
+    session: Any,
+    inv: Any,
+    txs: list[dict],
+    allow_expired: bool = True,
+) -> tuple[bool, int, str]:
+    """Verify on-chain transactions for an invoice, check timing & prevent replay (SSOT).
+
+    Returns:
+        (is_paid, new_balance, tx_hash)
+    """
+    if inv.status == "paid":
+        w = await WalletRepository(session).get_wallet(inv.telegram_id)
+        return True, (w.balance if w else 0), getattr(inv, "tx_hash", "") or ""
+
+    now = datetime.now(timezone.utc)
+    inv_created = inv.created_at if (inv.created_at and inv.created_at.tzinfo) else (inv.created_at.replace(tzinfo=timezone.utc) if inv.created_at else now)
+    inv_created_ts = int(inv_created.timestamp()) if inv_created else 0
+
+    crypto_repo = CryptoRepository(session)
+    wallet_repo = WalletRepository(session)
+
+    for tx in txs:
+        if tx.get("comment") != inv.comment or tx.get("nanotons", 0) < inv.nanotons:
+            continue
+        # Timing check: transaction utime must not be before invoice creation (allow 60s clock skew)
+        if inv_created_ts and tx.get("utime", 0) and tx["utime"] < (inv_created_ts - 60):
+            continue
+        tx_hash = tx.get("tx_hash", "")
+        # Prevent replay: verify tx_hash not claimed by another invoice
+        if tx_hash:
+            existing = await crypto_repo.get_by_tx_hash(tx_hash)
+            if existing and existing.id != inv.id:
+                logger.warning(
+                    "TON tx_hash %s already claimed by invoice %s, rejecting replay for invoice %s",
+                    tx_hash, existing.id, inv.id,
+                )
+                continue
+
+        paid_inv = await crypto_repo.mark_paid(inv.id, tx_hash, allow_expired=allow_expired)
+        if not paid_inv:
+            continue
+
+        new_bal = await wallet_repo.add_balance_atomic(inv.telegram_id, inv.amount_toman)
+        return True, new_bal, tx_hash
+
+    return False, 0, ""
+
+
 async def verify_and_process_payments(bot: Any, session_factory: Any) -> int:
     """Check pending invoices against TON blockchain and process payments."""
     async with session_factory() as session:
