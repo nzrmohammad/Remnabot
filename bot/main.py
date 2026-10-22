@@ -81,17 +81,6 @@ async def heartbeat_loop() -> None:
 
 async def main() -> None:
     settings = get_settings()
-
-    # Optional Sentry (no-op when SENTRY_DSN is empty).
-    if settings.SENTRY_DSN:
-        try:
-            import sentry_sdk
-
-            sentry_sdk.init(dsn=settings.SENTRY_DSN, traces_sample_rate=0.1)
-            logger.info("Sentry enabled.")
-        except Exception:
-            logger.exception("Sentry init failed")
-
     engine, session_factory = create_engine_and_sessionmaker()
 
     # Automatic database initialization: create all tables on boot.

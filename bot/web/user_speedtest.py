@@ -53,16 +53,8 @@ async def get_user_speedtest_ping(request: web.Request) -> web.Response:
     if err:
         return err
 
-    settings = request.app.get("settings") if hasattr(request.app, "get") else None
-    server_name = "Cloudflare Anycast CDN (جهانی)"
+    server_name = "سرور اختصاصی"
     server_ip = "Anycast Edge"
-    if settings:
-        val_name = getattr(settings, "SPEEDTEST_SERVER_NAME", None)
-        if isinstance(val_name, str) and val_name:
-            server_name = val_name
-        val_ip = getattr(settings, "SPEEDTEST_SERVER_IP", None)
-        if isinstance(val_ip, str) and val_ip:
-            server_ip = val_ip
 
     client_ip = get_client_ip(request)
     isp = await _lookup_isp(client_ip)
