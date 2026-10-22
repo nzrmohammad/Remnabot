@@ -15,6 +15,7 @@ from bot.common import admin_thread_kwargs
 from bot.db.repositories.crypto_repo import CryptoRepository
 from bot.db.repositories.wallet_repo import WalletRepository
 from bot.services.app_settings import get_store_settings
+from bot.services.crypto.nobitex import resolve_stars_rate
 from bot.services.crypto.ton import fetch_ton_transactions
 from bot.web.cache import FastCache
 
@@ -66,12 +67,8 @@ async def get_user_topup_info(request: web.Request) -> web.Response:
             "crypto_enabled": bool(store.crypto_enabled and store.ton_wallet_address and store.ton_rate_toman > 0),
             "ton_wallet_address": store.ton_wallet_address or "",
             "ton_rate_toman": store.ton_rate_toman or 0,
-            "stars_enabled": bool(getattr(store, "stars_enabled", False) is True),
-            "stars_rate_toman": (
-                getattr(store, "stars_rate_toman", 0)
-                if isinstance(getattr(store, "stars_rate_toman", None), (int, float)) and getattr(store, "stars_rate_toman", 0) > 0
-                else max(100, round((getattr(store, "usdt_rate_toman", 95000) if isinstance(getattr(store, "usdt_rate_toman", None), (int, float)) and getattr(store, "usdt_rate_toman", 0) > 0 else 95000) * 0.013))
-            ),
+            "stars_enabled": bool(getattr(store, "stars_enabled", False) is True and resolve_stars_rate(getattr(store, "stars_rate_toman", 0), getattr(store, "usdt_rate_toman", 0)) > 0),
+            "stars_rate_toman": resolve_stars_rate(getattr(store, "stars_rate_toman", 0), getattr(store, "usdt_rate_toman", 0)),
         }
         if cache and hasattr(cache, "set"):
             await cache.set(cache_key, payload, ttl_seconds=60)
@@ -456,12 +453,15 @@ async def post_user_topup_stars(request: web.Request) -> web.Response:
         if amount > max_amt:
             return web.json_response({"ok": False, "message": f"حداکثر مبلغ شارژ {max_amt:,} تومان است."}, status=400)
 
-        rate = getattr(store, "stars_rate_toman", 0)
-        if not isinstance(rate, (int, float)) or rate <= 0:
-            usdt_rate = getattr(store, "usdt_rate_toman", 95000)
-            if not isinstance(usdt_rate, (int, float)) or usdt_rate <= 0:
-                usdt_rate = 95000
-            rate = max(100, round(usdt_rate * 0.013))
+        rate = resolve_stars_rate(
+            getattr(store, "stars_rate_toman", 0),
+            getattr(store, "usdt_rate_toman", 0),
+        )
+        if rate <= 0:
+            return web.json_response(
+                {"ok": False, "message": "نرخ تبدیل تلگرام استارز هنوز توسط مدیریت تنظیم نشده است."},
+                status=400,
+            )
 
         stars_count = max(1, round(amount / rate))
 

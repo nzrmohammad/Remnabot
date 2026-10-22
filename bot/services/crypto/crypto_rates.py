@@ -3,6 +3,20 @@ from aiogram.types import InlineKeyboardMarkup
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 
+def resolve_stars_rate(stars_rate_toman: int | float | None, usdt_rate_toman: int | float | None) -> int:
+    """Resolve effective Stars rate in Toman.
+
+    If explicit stars_rate_toman > 0 is configured, return it.
+    Else if usdt_rate_toman > 0 is available, calculate baseline (round(usdt * 0.013)).
+    Otherwise return 0 (unconfigured).
+    """
+    if isinstance(stars_rate_toman, (int, float)) and stars_rate_toman > 0:
+        return int(stars_rate_toman)
+    if isinstance(usdt_rate_toman, (int, float)) and usdt_rate_toman > 0:
+        return max(100, round(usdt_rate_toman * 0.013))
+    return 0
+
+
 def format_rate_alert(
     nobitex_price: int, current_rate: int, hour_str: str = "", source_name: str = "نوبیتکس"
 ) -> tuple[str, InlineKeyboardMarkup]:
@@ -392,7 +406,8 @@ def format_full_crypto_market_alert(
         lines.append(f"   ▫️ {name}: {val}")
     if binance_usd:
         lines.append(f"   🌐 بایننس جهانی: <b>${binance_usd:.2f}</b>")
-    lines.append(f"   ⚙️ فعلی در بات: <b>{current_ton_rate:,} ت</b> ({diff_ton_str})")
+    curr_ton_str = f"{current_ton_rate:,} ت" if current_ton_rate > 0 else "— (تنظیم‌نشده)"
+    lines.append(f"   ⚙️ فعلی در بات: <b>{curr_ton_str}</b> ({diff_ton_str})")
 
     lines.append("")
     lines.append("💵 <b>قیمت تتر (USDT / دلار):</b>")
@@ -405,17 +420,22 @@ def format_full_crypto_market_alert(
         else:
             val = "<i>عدم دسترسی</i>"
         lines.append(f"   ▫️ {name}: {val}")
-    lines.append(f"   ⚙️ فعلی در بات: <b>{current_usdt_rate:,} ت</b> ({diff_usdt_str})")
+    curr_usdt_str = f"{current_usdt_rate:,} ت" if current_usdt_rate > 0 else "— (تنظیم‌نشده)"
+    lines.append(f"   ⚙️ فعلی در بات: <b>{curr_usdt_str}</b> ({diff_usdt_str})")
 
     lines.append("")
     lines.append("⭐️ <b>نرخ پیشنهادی استارز تلگرام:</b>")
-    lines.append(f"   ▫️ بدون ضرر (۰.۰۱۳$): <b>{lossless_stars:,} تومان</b>")
-    lines.append(f"   ▫️ خرید فرگمنت (۰.۰۱۵$): <b>{fragment_stars:,} تومان</b>")
-    lines.append(f"   ⚙️ فعلی در بات: <b>{current_stars_rate:,} ت</b>")
+    if lossless_stars > 0:
+        lines.append(f"   ▫️ بدون ضرر (۰.۰۱۳$): <b>{lossless_stars:,} تومان</b>")
+        lines.append(f"   ▫️ خرید فرگمنت (۰.۰۱۵$): <b>{fragment_stars:,} تومان</b>")
+    else:
+        lines.append("   ▫️ بدون ضرر / فرگمنت: <i>— (وابسته به نرخ تتر)</i>")
+    curr_stars_str = f"{current_stars_rate:,} ت" if current_stars_rate > 0 else "— (تنظیم‌نشده)"
+    lines.append(f"   ⚙️ فعلی در بات: <b>{curr_stars_str}</b>")
 
-    if current_eur_rate > 0:
-        lines.append("")
-        lines.append(f"💶 <b>نرخ مبنای یورو در بات:</b> <b>{current_eur_rate:,} تومان</b>")
+    lines.append("")
+    curr_eur_str = f"{current_eur_rate:,} تومان" if current_eur_rate > 0 else "— (تنظیم‌نشده)"
+    lines.append(f"💶 <b>نرخ مبنای یورو در بات:</b> <b>{curr_eur_str}</b>")
 
     lines.append("")
     lines.append("💡 جهت به‌روزرسانی سریع نرخ در فروشگاه، دکمه مورد نظر را لمس کنید:")

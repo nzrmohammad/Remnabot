@@ -172,23 +172,18 @@ async def fetch_all_exchange_prices(usdt_rate: int | None = None) -> dict:
         # 6. Binance (global) & TonAPI
         async def _fetch_binance():
             nonlocal binance_ton_usd, binance_eur_usd
-            # On Binance, Toncoin spot trading was migrated from TONUSDT (which is frozen at 1.60 with status BREAK)
-            # to GRAMUSDT. We check GRAMUSDT first, then fallback to TonAPI if needed.
-            for sym in ("GRAMUSDT", "TONUSDT"):
-                try:
-                    async with session.get(f"https://api.binance.com/api/v3/ticker/price?symbol={sym}", headers=headers) as resp:
-                        if resp.status == 200:
-                            data = await resp.json()
-                            p = float(data.get("price", "0"))
-                            if sym == "TONUSDT" and abs(p - 1.60) < 0.001:
-                                continue
-                            if p > 0:
-                                binance_ton_usd = p
-                                break
-                except Exception as e:
-                    logger.debug("Binance %s failed: %s", sym, e)
+            # 1. Binance spot: Toncoin spot trades under active symbol GRAMUSDT
+            try:
+                async with session.get("https://api.binance.com/api/v3/ticker/price?symbol=GRAMUSDT", headers=headers) as resp:
+                    if resp.status == 200:
+                        data = await resp.json()
+                        p = float(data.get("price", "0"))
+                        if p > 0:
+                            binance_ton_usd = p
+            except Exception as e:
+                logger.debug("Binance GRAMUSDT failed: %s", e)
 
-            # Fallback to TonAPI if Binance did not return a valid price
+            # 2. TonAPI official fallback if Binance did not return a valid price
             if not binance_ton_usd:
                 try:
                     async with session.get("https://tonapi.io/v2/rates?tokens=ton&currencies=usd", headers=headers) as resp:
@@ -199,6 +194,18 @@ async def fetch_all_exchange_prices(usdt_rate: int | None = None) -> dict:
                                 binance_ton_usd = round(p, 4)
                 except Exception as e:
                     logger.debug("TonAPI rates failed: %s", e)
+
+            # 3. CoinGecko fallback
+            if not binance_ton_usd:
+                try:
+                    async with session.get("https://api.coingecko.com/api/v3/simple/price?ids=the-open-network&vs_currencies=usd", headers=headers) as resp:
+                        if resp.status == 200:
+                            data = await resp.json()
+                            p = float(data.get("the-open-network", {}).get("usd", 0))
+                            if p > 0:
+                                binance_ton_usd = round(p, 4)
+                except Exception as e:
+                    logger.debug("CoinGecko rates failed: %s", e)
 
             try:
                 async with session.get("https://api.binance.com/api/v3/ticker/price?symbol=EURUSDT", headers=headers) as resp:

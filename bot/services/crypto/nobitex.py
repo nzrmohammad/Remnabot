@@ -24,8 +24,8 @@ from bot.services.crypto.crypto_rates import (
     format_rate_alert,
     format_ton_rate_alert,
     format_usdt_rate_alert,
+    resolve_stars_rate,
 )
-
 
 logger = logging.getLogger(__name__)
 
@@ -83,4 +83,5 @@ __all__ = [
     "send_rate_notification",
     "nobitex_rate_loop",
     "get_crypto_rates_summary",
+    "resolve_stars_rate",
 ]

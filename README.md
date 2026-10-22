@@ -448,14 +448,13 @@ All primary credentials are configuration-driven via `.env`. In-bot operational 
 | `CRYPTO_ENABLED` | No | `false` | Enable or disable direct crypto (TON) top-up option for users (`true` / `false`). |
 | `TON_WALLET_ADDRESS` | No | *(empty)* | Public TON wallet address (UQ... or EQ...) for receiving on-chain payments. |
 | `TON_RATE_TOMAN` | No | `0` | Manual fallback TON exchange rate in Toman (editable in-bot anytime). |
-| `USDT_RATE_TOMAN` | No | `95000` | Benchmark Tether (USDT) price in Toman used for global Binance/TonAPI price calculation. |
+| `USDT_RATE_TOMAN` | No | `0` | Benchmark Tether (USDT) price in Toman used for global Binance/TonAPI price calculation. |
 | `IRAN_PROXY` | No | *(empty)* | Optional HTTP/SOCKS5 proxy for domestic Iranian exchanges when hosted on a foreign VPS. |
 | `CARD_NUMBER` | No | *(empty)* | Bank card number for manual card-to-card deposits (empty disables card deposits). |
 | `CARD_HOLDER` | No | *(empty)* | Cardholder full name displayed to users during card-to-card deposits. |
 | `TOPUP_MIN_AMOUNT` | No | `10000` | Minimum wallet deposit threshold in Toman. |
 | `TIMEZONE` | No | `Asia/Tehran` | Timezone identifier for Jalali conversions and scheduled fiscal reporting. |
 | `REDIS_URL` | No | *(empty)* | Optional Redis connection string for distributed FSM storage. Defaults to memory storage when empty. |
-| `SENTRY_DSN` | No | *(empty)* | Optional Sentry DSN endpoint for real-time error reporting and application telemetry. |
 
 ---
 

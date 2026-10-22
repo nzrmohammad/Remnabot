@@ -12,8 +12,8 @@ from bot.db.repositories.admin_log_repo import AdminLogRepository
 from bot.db.repositories.app_setting_repo import AppSettingRepository
 from bot.db.repositories.user_repo import UserRepository
 from bot.locales.texts import t
-from bot.services.app_settings import get_store_settings
 from bot.services import menu
+from bot.services.app_settings import get_store_settings
 from bot.services.menu import render_menu
 
 logger = logging.getLogger(__name__)
@@ -33,8 +33,18 @@ async def _render_crypto_settings(
     rate_str = f"{store.ton_rate_toman:,} تومان" if store.ton_rate_toman > 0 else "— (تنظیم‌نشده)"
     wallet_str = store.ton_wallet_address or "— (تنظیم‌نشده)"
 
-    lossless_stars = max(100, round(store.usdt_rate_toman * 0.013))
-    stars_rate_str = f"{store.stars_rate_toman:,} تومان" if store.stars_rate_toman > 0 else f"{lossless_stars:,} تومان (محاسبه خودکار)"
+    from bot.services.crypto.nobitex import resolve_stars_rate
+
+    effective_stars = resolve_stars_rate(store.stars_rate_toman, store.usdt_rate_toman)
+    if store.stars_rate_toman > 0:
+        stars_rate_str = f"{store.stars_rate_toman:,} تومان"
+    elif effective_stars > 0:
+        stars_rate_str = f"{effective_stars:,} تومان (محاسبه خودکار)"
+    else:
+        stars_rate_str = "— (تنظیم‌نشده)"
+
+    lossless_stars = max(100, round(store.usdt_rate_toman * 0.013)) if store.usdt_rate_toman > 0 else 0
+    lossless_str = f"{lossless_stars:,} ت" if lossless_stars > 0 else "—"
 
     if lang == "fa":
         kb.button(
@@ -67,15 +77,15 @@ async def _render_crypto_settings(
         f"⚡️ وضعیت درگاه : <b>{status_badge}</b>",
         f"📬 آدرس والت مقصد : <code>{escape(wallet_str)}</code>",
         f"💰 نرخ تبدیل (۱ تون) : <b>{rate_str}</b>",
-        f"💵 نرخ مبنای تتر : <b>{store.usdt_rate_toman:,} تومان</b>",
-        f"⭐️ نرخ هر استارز : <b>{stars_rate_str}</b> (فرمول بدون ضرر: <b>{lossless_stars:,} ت</b>)\n",
+        f"💵 نرخ مبنای تتر : <b>{f'{store.usdt_rate_toman:,} تومان' if store.usdt_rate_toman > 0 else '— (تنظیم‌نشده)'}</b>",
+        f"⭐️ نرخ هر استارز : <b>{stars_rate_str}</b> (فرمول بدون ضرر: <b>{lossless_str}</b>)\n",
         "💡 ربات روزانه ۴ بار (ساعت‌های ۱۰:۰۰، ۱۴:۰۰، ۱۸:۰۰ و ۲۲:۰۰) قیمت لحظه‌ای را در تاپیک کریپتو ارسال می‌کند تا با یک کلیک بتوانید نرخ فروشگاه را آپدیت فرمایید.",
     ] if lang == "fa" else [
         "💎 <b>Crypto & Currency Settings</b>\n" + SEPARATOR,
         f"⚡️ Status : <b>{status_badge}</b>",
         f"📬 Wallet : <code>{escape(wallet_str)}</code>",
         f"💰 Rate : <b>{rate_str}</b>",
-        f"💵 USDT Rate : <b>{store.usdt_rate_toman:,} Toman</b>",
+        f"💵 USDT Rate : <b>{f'{store.usdt_rate_toman:,} Toman' if store.usdt_rate_toman > 0 else '— (not set)'}</b>",
         f"⭐️ Stars Rate : <b>{stars_rate_str}</b>",
     ]
 
