@@ -304,3 +304,89 @@ async def post_admin_user_revoke_sub(request: web.Request) -> web.Response:
         "subscription_url": new_sub,
         "message": "لینک سابسکریپشن کاربر با موفقیت باطل و مجدداً ایجاد شد.",
     })
+
+
+async def post_admin_create_user(request: web.Request) -> web.Response:
+    """Create a new panel user directly linked to a customer's Telegram ID."""
+    admin = _check_admin(request)
+    if not admin:
+        return web.json_response({"ok": False, "error": "Forbidden"}, status=403)
+
+    try:
+        body = await request.json()
+    except Exception:
+        return web.json_response({"ok": False, "error": "فرمت داده نامعتبر است."}, status=400)
+
+    telegram_id_raw = body.get("telegram_id")
+    if not telegram_id_raw:
+        return web.json_response({"ok": False, "error": "شناسه عددی تلگرام (Telegram ID) الزامی است."}, status=400)
+
+    try:
+        telegram_id = int(telegram_id_raw)
+        if telegram_id <= 0:
+            raise ValueError
+    except (ValueError, TypeError):
+        return web.json_response({"ok": False, "error": "شناسه عددی تلگرام نامعتبر است."}, status=400)
+
+    username = (body.get("username") or "").strip()
+    if not username:
+        username = f"user_{telegram_id}"
+
+    try:
+        traffic_gb = max(0, int(float(body.get("traffic_gb") or 0)))
+    except (ValueError, TypeError):
+        traffic_gb = 0
+
+    try:
+        duration_days = max(1, int(body.get("duration_days") or 30))
+    except (ValueError, TypeError):
+        duration_days = 30
+
+    hwid_limit = None
+    if body.get("hwid_limit") is not None and str(body.get("hwid_limit")).strip() != "":
+        try:
+            hwid_limit = max(1, int(body.get("hwid_limit")))
+        except (ValueError, TypeError):
+            hwid_limit = None
+
+    remnawave = request.app.get("remnawave")
+    if not remnawave:
+        return web.json_response({"ok": False, "error": "ارتباط با پنل رمناویو برقرار نشد."}, status=503)
+
+    created_user = await remnawave.create_user(
+        username=username,
+        expire_days=duration_days,
+        traffic_gb=traffic_gb,
+        telegram_id=telegram_id,
+        hwid_device_limit=hwid_limit,
+    )
+
+    if not created_user:
+        return web.json_response(
+            {"ok": False, "error": "خطا در ایجاد کاربر در پنل رمناویو (احتمالاً نام کاربری تکراری است)."},
+            status=500,
+        )
+
+    async with db_session(request) as session:
+        user_repo = UserRepository(session)
+        db_user = await user_repo.get_or_create(telegram_id, username=username)
+        db_user.is_verified = True
+
+        log_detail = f"ایجاد کاربر {username} (شناسه: {telegram_id}) با حجم {traffic_gb} گیگابایت و مدت {duration_days} روز"
+        if hwid_limit:
+            log_detail += f" (محدودیت دستگاه: {hwid_limit})"
+        session.add(AdminLog(admin_id=admin["id"], action="create_user", target_user_id=telegram_id, detail=log_detail))
+        await session.commit()
+
+    cache: FastCache | None = request.app.get("cache")
+    if cache:
+        await cache.delete(f"tma:user:{telegram_id}:dashboard")
+        await cache.delete(f"tma:user:{telegram_id}:dashboard:default")
+        await cache.delete(f"tma:user:{telegram_id}:profile")
+        await cache.delete("tma:admin:users:*")
+
+    return web.json_response({
+        "ok": True,
+        "message": f"کاربر {username} با موفقیت در پنل رمناویو ایجاد شد.",
+        "user": created_user,
+    })

@@ -16,16 +16,27 @@ class ServiceRepository:
         return list(result.scalars().all())
 
     async def list_active(self) -> list[Service]:
-        result = await self.session.execute(
-            select(Service).where(
-                Service.is_active.is_(True),
-                or_(
-                    Service.max_purchases.is_(None),
-                    Service.purchases_count < Service.max_purchases,
-                ),
-            ).order_by(Service.id)
-        )
-        return list(result.scalars().all())
+        try:
+            result = await self.session.execute(
+                select(Service).where(
+                    Service.is_active.is_(True),
+                    or_(
+                        Service.max_purchases.is_(None),
+                        Service.purchases_count < Service.max_purchases,
+                    ),
+                ).order_by(Service.id)
+            )
+            return list(result.scalars().all())
+        except Exception:
+            await self.session.rollback()
+            try:
+                result = await self.session.execute(
+                    select(Service).where(Service.is_active.is_(True)).order_by(Service.id)
+                )
+                return list(result.scalars().all())
+            except Exception:
+                await self.session.rollback()
+                return []
 
     async def get(self, service_id: int) -> Service | None:
         result = await self.session.execute(

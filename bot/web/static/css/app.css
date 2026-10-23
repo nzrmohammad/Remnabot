@@ -941,17 +941,7 @@ html.theme-light .sub-box-card:hover {
   border-color: var(--c-accent);
 }
 
-html.theme-light .sub-action-btn {
-  background-color: var(--page-bg);
-  border-color: var(--frame-border);
-  color: #334155;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-}
 
-html.theme-light .sub-action-btn:hover {
-  background-color: #e2e8f0;
-  color: var(--text-main);
-}
 
 /* Harmonized Client Importer Buttons in Light Theme */
 html.theme-light .client-import-btn {
@@ -1236,17 +1226,14 @@ html.theme-light #toggleSessionsAccordionBtn:hover {
 .sub-action-btn,
 #copySubBtn,
 #qrToggleBtn,
-#revokeSubBtnTop,
-html.theme-light .sub-action-btn,
-html.theme-light #copySubBtn,
-html.theme-light #qrToggleBtn,
-html.theme-light #revokeSubBtnTop {
+#revokeSubBtnTop {
   background-color: transparent;
 }
 html.theme-light .sub-action-btn,
 html.theme-light #copySubBtn,
 html.theme-light #qrToggleBtn,
 html.theme-light #revokeSubBtnTop {
+  background-color: transparent;
   color: var(--text-muted);
   border-color: var(--frame-border);
 }
@@ -1476,11 +1463,6 @@ html.theme-light #supportChatModal #chatInput {
 }
 
 /* Story Card Modal - Light Mode High Contrast */
-html.theme-light #closeStoryCardBtn {
-  background-color: #e2e8f0;
-  color: var(--text-main);
-  border-color: var(--frame-border);
-}
 html.theme-light #exportableStoryCard {
   background: var(--card-bg);
   border-color: var(--frame-border);
@@ -2067,12 +2049,7 @@ html.theme-light .bg-orange-500\/15 {
   background-color: #fff7ed;
   border-color: #fed7aa;
 }
-html.theme-light .text-amber-300 {
-  color: #b45309;
-}
-html.theme-light .text-purple-300 {
-  color: #7e22ce;
-}
+
 
 
 

@@ -548,6 +548,8 @@ def create_web_app(
     # Admin APIs
     app.router.add_get("/api/admin/overview", routes_admin.get_admin_overview)
     app.router.add_get("/api/admin/users", routes_admin.get_admin_users)
+    app.router.add_post("/api/admin/users/create", routes_admin.post_admin_create_user)
+    app.router.add_post("/api/admin/user/create", routes_admin.post_admin_create_user)
     app.router.add_post("/api/admin/user/modify", routes_admin.post_admin_modify_user)
     app.router.add_post("/api/admin/user/wallet", routes_admin.post_admin_user_wallet)
     app.router.add_post("/api/admin/user/revoke_sub", routes_admin.post_admin_user_revoke_sub)

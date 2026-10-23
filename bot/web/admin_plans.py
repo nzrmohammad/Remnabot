@@ -58,8 +58,13 @@ async def get_admin_plans(request: web.Request) -> web.Response:
         return web.json_response({"ok": False, "error": "Forbidden"}, status=403)
 
     async with db_session(request) as session:
-        result = await session.execute(select(Service).order_by(Service.price.asc(), Service.id.asc()))
-        services = result.scalars().all()
+        try:
+            result = await session.execute(select(Service).order_by(Service.price.asc(), Service.id.asc()))
+            services = result.scalars().all()
+        except Exception as exc:
+            await session.rollback()
+            logger.warning("Error loading plans in get_admin_plans: %s", exc)
+            services = []
         plans = [
             {
                 "id": s.id,

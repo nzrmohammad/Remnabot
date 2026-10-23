@@ -12,7 +12,7 @@ from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram.types import ErrorEvent
 
 from bot.config import get_settings
-from bot.db.base import Base, create_engine_and_sessionmaker
+from bot.db.base import Base, create_engine_and_sessionmaker, init_db
 from bot.handlers import get_main_router
 from bot.middlewares.ban_check import BanCheckMiddleware
 from bot.middlewares.db import DbSessionMiddleware
@@ -83,9 +83,8 @@ async def main() -> None:
     settings = get_settings()
     engine, session_factory = create_engine_and_sessionmaker()
 
-    # Automatic database initialization: create all tables on boot.
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
+    # Automatic database initialization: create all tables on boot and apply migrations.
+    await init_db(engine)
 
     remnawave = RemnawaveClient(
         base_url=settings.REMNAWAVE_BASE_URL,

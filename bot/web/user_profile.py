@@ -274,15 +274,29 @@ async def get_user_me(request: web.Request) -> web.Response:
         referrals_count = int(ref_count_res.scalar_one() or 0)
         referral_reward_gb = store_settings.referral_reward_gb if store_settings.referral_enabled else 5
 
-        services_res = await session.execute(
-            select(Service).where(
-                Service.is_active.is_(True),
-                or_(
-                    Service.max_purchases.is_(None),
-                    Service.purchases_count < Service.max_purchases,
-                ),
-            ).order_by(Service.price.asc())
-        )
+        try:
+            services_res = await session.execute(
+                select(Service).where(
+                    Service.is_active.is_(True),
+                    or_(
+                        Service.max_purchases.is_(None),
+                        Service.purchases_count < Service.max_purchases,
+                    ),
+                ).order_by(Service.price.asc())
+            )
+            raw_services = list(services_res.scalars().all())
+        except Exception as exc:
+            await session.rollback()
+            logger.warning("Failed to query active services with purchase limits in profile: %s", exc)
+            try:
+                services_res = await session.execute(
+                    select(Service).where(Service.is_active.is_(True)).order_by(Service.price.asc())
+                )
+                raw_services = list(services_res.scalars().all())
+            except Exception:
+                await session.rollback()
+                raw_services = []
+
         plans_data = [
             {
                 "id": s.id,
@@ -294,7 +308,7 @@ async def get_user_me(request: web.Request) -> web.Response:
                 "hwid_limit": s.hwid_limit,
                 "badge": s.badge or "",
             }
-            for s in services_res.scalars().all()
+            for s in raw_services
         ]
 
         tz_name = getattr(settings, "TIMEZONE", "Asia/Tehran")

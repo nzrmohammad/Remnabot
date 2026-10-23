@@ -385,6 +385,10 @@
               <input type="text" id="userSearchInput" placeholder="جستجو نام کاربری یا شناسه..." class="bg-transparent text-[11px] placeholder:text-[11px] text-slate-200 outline-none flex-1 font-sans min-w-0" />
               <button id="userSearchClear" class="text-slate-400 hover:text-white text-xs w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center hidden active:scale-95 transition" aria-label="پاک کردن جستجو">✕</button>
             </div>
+            <button onclick="window.adminActions.openCreateUserModal()" class="px-2.5 py-2 bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 hover:text-blue-300 border border-blue-500/40 font-bold text-[11px] rounded-2xl flex items-center gap-1 transition active:scale-95 flex-shrink-0" title="ایجاد کاربر جدید در پنل" aria-label="ایجاد کاربر جدید">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
+              <span>کاربر جدید</span>
+            </button>
             <button onclick="window.adminActions.openBulkUsersModal()" class="px-2.5 py-2 bg-transparent hover:bg-slate-800 text-indigo-400 hover:text-indigo-300 border border-indigo-500/30 hover:border-indigo-400/70 font-bold text-[11px] rounded-2xl flex items-center gap-1 transition active:scale-95 flex-shrink-0" title="عملیات گروهی روی کاربران" aria-label="عملیات گروهی روی کاربران">
               <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
               <span>عملیات گروهی</span>
@@ -3091,6 +3095,78 @@
         </div>
         <div id="recommendedAppPickerList" class="space-y-1.5 flex-1 overflow-y-auto custom-scroll text-xs">
           <!-- Dynamically populated options -->
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL: Create User (ایجاد کاربر جدید متصل به شناسه تلگرام) -->
+    <div id="createUserModal" class="absolute inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-4 hidden">
+      <div class="modal-card bg-[#1e293b] border border-slate-700 rounded-3xl p-5 w-full max-w-[360px] space-y-4 shadow-2xl relative">
+        <div class="flex justify-between items-center border-b border-slate-700/60 pb-2.5">
+          <h4 class="text-xs font-bold text-white flex items-center gap-1.5">
+            <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
+            <span>ایجاد کاربر جدید در پنل</span>
+          </h4>
+          <button type="button" onclick="window.adminActions.closeCreateUserModal()" class="w-9 h-9 min-w-[36px] min-h-[36px] rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800/80 dark:hover:bg-slate-750 border border-slate-200 dark:border-slate-700/80 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white flex items-center justify-center text-xs transition active:scale-95 shadow-sm" aria-label="بستن">✕</button>
+        </div>
+
+        <div class="space-y-3 text-xs">
+          <!-- Telegram ID (required) -->
+          <div class="space-y-1">
+            <div class="flex justify-between items-center">
+              <label class="text-[11px] text-slate-300 font-medium">شناسه عددی تلگرام (Telegram ID):</label>
+              <span class="text-[10px] text-rose-400 font-bold">* الزامی</span>
+            </div>
+            <input type="number" inputmode="numeric" id="createUserTelegramId" placeholder="مثلاً 123456789" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-cyan-300 outline-none focus:border-cyan-500" />
+          </div>
+
+          <!-- Username (optional) -->
+          <div class="space-y-1">
+            <div class="flex justify-between items-center">
+              <label class="text-[11px] text-slate-300 font-medium">نام کاربری در پنل (Username):</label>
+              <span class="text-[10px] text-slate-400 font-sans">اختیاری (پیش‌فرض: خودکار)</span>
+            </div>
+            <input type="text" id="createUserUsername" placeholder="مثلاً user_123456" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-sans text-white outline-none focus:border-cyan-500" dir="ltr" />
+          </div>
+
+          <!-- Plan selector template -->
+          <div class="space-y-1">
+            <label class="text-[11px] text-slate-300 font-medium">انتخاب بسته آماده یا سفارشی:</label>
+            <select id="createUserPlanSelect" onchange="window.adminActions.onPlanSelectChange()" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-2 text-xs text-slate-200 outline-none focus:border-blue-500">
+              <option value="custom">⚙️ تنظیمات سفارشی (دستی)</option>
+            </select>
+          </div>
+
+          <!-- Traffic (GB) & Duration (Days) in grid -->
+          <div class="grid grid-cols-2 gap-2">
+            <div class="space-y-1">
+              <label class="text-[11px] text-slate-300 font-medium">حجم (GB):</label>
+              <input type="number" inputmode="numeric" id="createUserTraffic" placeholder="50" min="0" value="50" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-cyan-300 outline-none focus:border-cyan-500" />
+              <span class="text-[9.5px] text-slate-400 block">0 = نامحدود</span>
+            </div>
+            <div class="space-y-1">
+              <label class="text-[11px] text-slate-300 font-medium">مدت زمان (روز):</label>
+              <input type="number" inputmode="numeric" id="createUserDuration" placeholder="30" min="1" value="30" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-amber-300 outline-none focus:border-amber-500" />
+              <span class="text-[9.5px] text-slate-400 block">مثلاً 30 روز</span>
+            </div>
+          </div>
+
+          <!-- HWID Limit -->
+          <div class="space-y-1">
+            <div class="flex justify-between items-center">
+              <label class="text-[11px] text-slate-300 font-medium">محدودیت دستگاه (HWID):</label>
+              <span class="text-[10px] text-slate-400">خالی = پیش‌فرض پنل</span>
+            </div>
+            <input type="number" inputmode="numeric" id="createUserHwid" placeholder="پیش‌فرض" min="1" max="10" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-purple-300 outline-none focus:border-purple-500" />
+          </div>
+        </div>
+
+        <div class="flex gap-2 pt-1">
+          <button type="button" id="createUserSubmitBtn" onclick="window.adminActions.submitCreateUser()" class="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs py-2.5 rounded-xl transition shadow active:scale-95 flex items-center justify-center gap-1.5">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+            <span>ایجاد کاربر</span>
+          </button>
+          <button type="button" onclick="window.adminActions.closeCreateUserModal()" class="flex-1 bg-transparent hover:bg-slate-800/60 border border-slate-700/80 text-slate-300 hover:text-white text-xs py-2.5 rounded-xl transition">انصراف</button>
         </div>
       </div>
     </div>

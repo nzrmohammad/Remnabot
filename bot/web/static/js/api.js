@@ -252,6 +252,10 @@ const api = {
     return this.get('/api/admin/users', params);
   },
 
+  async createAdminUser(payload) {
+    return this.post('/api/admin/users/create', payload);
+  },
+
   async modifyUser(telegram_id, actionOrPayload, amount) {
     if (typeof actionOrPayload === 'object' && actionOrPayload !== null) {
       return this.post('/api/admin/user/modify', { telegram_id, ...actionOrPayload });

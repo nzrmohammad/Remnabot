@@ -4517,6 +4517,119 @@
       }
     },
 
+    // --- Create User Modal ---
+    async openCreateUserModal() {
+      const modal = $('createUserModal');
+      if (modal) modal.classList.remove('hidden');
+      if (window.hapticFeedback) window.hapticFeedback('impact');
+
+      // Populate plan templates dropdown
+      const planSelect = $('createUserPlanSelect');
+      if (planSelect) {
+        planSelect.innerHTML = '<option value="custom">⚙️ تنظیمات سفارشی (دستی)</option>';
+        let plans = window.adminData && window.adminData.plans ? window.adminData.plans : [];
+        if (!plans.length && window.api && window.api.getAdminPlans) {
+          try {
+            const res = await window.api.getAdminPlans();
+            if (res && res.ok && Array.isArray(res.plans)) {
+              plans = res.plans;
+              if (window.adminData) window.adminData.plans = plans;
+            }
+          } catch (e) {
+            console.error('Failed to load plans for create user modal', e);
+          }
+        }
+        plans.filter(p => p.is_active !== false).forEach(p => {
+          const opt = document.createElement('option');
+          opt.value = p.id;
+          const trafficLabel = typeof fmtTraffic === 'function' ? fmtTraffic(p.traffic_gb, { html: false }) : `${p.traffic_gb} گیگابایت`;
+          opt.textContent = `${p.name} (${trafficLabel} - ${p.duration_days} روز)`;
+          opt.dataset.traffic = p.traffic_gb || 0;
+          opt.dataset.days = p.duration_days || 30;
+          opt.dataset.hwid = p.hwid_limit || '';
+          planSelect.appendChild(opt);
+        });
+      }
+    },
+
+    closeCreateUserModal() {
+      const modal = $('createUserModal');
+      if (modal) modal.classList.add('hidden');
+    },
+
+    onPlanSelectChange() {
+      const select = $('createUserPlanSelect');
+      if (!select) return;
+      const selectedOption = select.options[select.selectedIndex];
+      if (selectedOption && selectedOption.value !== 'custom') {
+        const trafficInput = $('createUserTraffic');
+        const durationInput = $('createUserDuration');
+        const hwidInput = $('createUserHwid');
+        if (trafficInput) trafficInput.value = selectedOption.dataset.traffic || '0';
+        if (durationInput) durationInput.value = selectedOption.dataset.days || '30';
+        if (hwidInput) hwidInput.value = selectedOption.dataset.hwid || '';
+      }
+    },
+
+    async submitCreateUser() {
+      const telegramIdInput = $('createUserTelegramId');
+      const usernameInput = $('createUserUsername');
+      const trafficInput = $('createUserTraffic');
+      const durationInput = $('createUserDuration');
+      const hwidInput = $('createUserHwid');
+      const submitBtn = $('createUserSubmitBtn');
+
+      const telegram_id = (telegramIdInput ? telegramIdInput.value : '').trim();
+      if (!telegram_id) {
+        if (window.showToast) window.showToast('شناسه عددی تلگرام الزامی است.', 'error');
+        if (telegramIdInput) telegramIdInput.focus();
+        return;
+      }
+
+      const username = (usernameInput ? usernameInput.value : '').trim();
+      const traffic_gb = trafficInput ? parseFloat(trafficInput.value) || 0 : 0;
+      const duration_days = durationInput ? parseInt(durationInput.value, 10) || 30 : 30;
+      const hwid_limit = hwidInput && hwidInput.value.trim() ? parseInt(hwidInput.value.trim(), 10) : null;
+
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.classList.add('opacity-50', 'pointer-events-none');
+      }
+
+      try {
+        const res = await window.api.createAdminUser({
+          telegram_id: parseInt(telegram_id, 10),
+          username: username || undefined,
+          traffic_gb,
+          duration_days,
+          hwid_limit,
+        });
+
+        if (res && res.ok) {
+          if (window.showToast) window.showToast(res.message || 'کاربر با موفقیت ایجاد شد.', 'success');
+          this.closeCreateUserModal();
+          // Reset form
+          if (telegramIdInput) telegramIdInput.value = '';
+          if (usernameInput) usernameInput.value = '';
+          if (trafficInput) trafficInput.value = '50';
+          if (durationInput) durationInput.value = '30';
+          if (hwidInput) hwidInput.value = '';
+          // Reload users list
+          if (this.loadUsers) this.loadUsers(1);
+        } else {
+          if (window.showToast) window.showToast((res && res.error) || 'خطا در ایجاد کاربر', 'error');
+        }
+      } catch (err) {
+        console.error('submitCreateUser error:', err);
+        if (window.showToast) window.showToast('خطای ارتباط با سرور', 'error');
+      } finally {
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.classList.remove('opacity-50', 'pointer-events-none');
+        }
+      }
+    },
+
     // --- Users Bulk Actions Modal ---
     currentBulkActionType: 'add_traffic',
 
@@ -6348,6 +6461,10 @@
   window.confirmRegenerateSub = () => window.adminActions.confirmRegenerateSub();
   window.killSessionsFromModal = () => window.adminActions.killSessionsFromModal();
   window.quickCopy = (text, label) => window.adminActions.quickCopy(text, label);
+  window.openCreateUserModal = () => window.adminActions.openCreateUserModal();
+  window.closeCreateUserModal = () => window.adminActions.closeCreateUserModal();
+  window.submitCreateUser = () => window.adminActions.submitCreateUser();
+  window.onPlanSelectChange = () => window.adminActions.onPlanSelectChange();
   window.openBulkUsersModal = () => window.adminActions.openBulkUsersModal();
   window.closeBulkUsersModal = () => window.adminActions.closeBulkUsersModal();
   window.openNodeBillingModal = (...args) => window.adminActions.openNodeBillingModal(...args);
