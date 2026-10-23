@@ -3285,6 +3285,26 @@
     },
 
     // --- Plans Actions ---
+    currentPlanFilter: 'all',
+    filterPlans(cat = 'all') {
+      this.currentPlanFilter = cat;
+      const bar = $('adminPlanFilterBar');
+      if (bar) {
+        bar.querySelectorAll('.admin-plan-filter-btn').forEach(btn => {
+          const match = btn.dataset.planFilter === cat;
+          btn.className = match
+            ? 'admin-plan-filter-btn flex-1 py-1 px-2.5 rounded-lg font-bold bg-blue-600 text-white shadow transition whitespace-nowrap text-center'
+            : 'admin-plan-filter-btn flex-1 py-1 px-2.5 rounded-lg font-medium text-slate-400 hover:text-white transition whitespace-nowrap text-center';
+        });
+      }
+      const cards = document.querySelectorAll('.admin-plan-card');
+      cards.forEach(card => {
+        const type = card.dataset.planType;
+        const show = (cat === 'all' || type === cat);
+        card.style.display = show ? '' : 'none';
+      });
+    },
+
     async fetchAdminPlans() {
       const container = $('adminPlansList');
       if (!container) return;
@@ -3393,8 +3413,9 @@
             ? `<p class="text-[11px] text-slate-400 line-clamp-1 pr-9">${escapeHtml(p.description)}</p>`
             : '';
 
+          const planCategory = isExtraTraffic ? 'traffic' : (isExtraTime ? 'time' : 'full');
           return `
-            <div class="plan-card bg-slate-800/80 rounded-2xl p-4 border border-slate-700/80 space-y-3 shadow transition">
+            <div data-plan-type="${planCategory}" class="plan-card admin-plan-card bg-slate-800/80 rounded-2xl p-4 border border-slate-700/80 space-y-3 shadow transition">
               <div class="space-y-1.5">
                 <!-- Top Row: Name + statusBadge on Right, Price and تومان on Left (همراستا و چسبیده) -->
                 <div class="flex items-center justify-between gap-2">
@@ -3439,6 +3460,9 @@
             </div>
           `;
         }).join('');
+        if (typeof this.filterPlans === 'function') {
+          this.filterPlans(this.currentPlanFilter || 'all');
+        }
       } catch (e) {
         container.innerHTML = '<div class="p-6 text-center text-rose-400 text-xs">خطای شبکه در دریافت تعرفه‌ها</div>';
       }

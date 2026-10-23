@@ -389,14 +389,22 @@ async def get_user_me(request: web.Request) -> web.Response:
                 if len(b_parts) == 3:
                     _by, b_month, b_day = b_parts
                     today_j = jdatetime.date.today()
-                    this_year_bday = jdatetime.date(today_j.year, b_month, b_day)
+                    def _safe_jdate(y, m, d):
+                        try:
+                            return jdatetime.date(y, m, d)
+                        except ValueError:
+                            if m == 12 and d > 29:
+                                return jdatetime.date(y, m, 29)
+                            raise
+
+                    this_year_bday = _safe_jdate(today_j.year, b_month, b_day)
                     if this_year_bday == today_j:
                         days_until_birthday = 0
                         is_birthday_today = True
                     elif this_year_bday > today_j:
                         days_until_birthday = (this_year_bday - today_j).days
                     else:
-                        next_year_bday = jdatetime.date(today_j.year + 1, b_month, b_day)
+                        next_year_bday = _safe_jdate(today_j.year + 1, b_month, b_day)
                         days_until_birthday = (next_year_bday - today_j).days
             except Exception as bday_err:
                 logger.debug("Failed to calculate days_until_birthday: %s", bday_err)

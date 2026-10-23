@@ -131,9 +131,11 @@
               <span id="adminNetProfit" dir="ltr" class="text-lg font-black font-mono">--</span>
               <span class="text-[11px] text-slate-400 font-sans">تومان</span>
             </div>
-            <div class="flex items-center justify-between mt-1 pt-0.5">
-              <span id="adminProfitMarginBadge" class="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded-md bg-transparent text-emerald-400 border border-emerald-500/30">مارجین: —</span>
-              <span class="text-[11px] text-slate-400">کسر سرورها</span>
+            <div class="mt-1 pt-0.5 text-[11px] text-slate-400">
+              <span class="text-[11px] text-slate-400 block leading-tight">پس از کسر سرورها</span>
+              <div class="flex items-center gap-1 mt-0.5 leading-tight">
+                <span id="adminProfitMarginBadge" class="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded-md bg-transparent text-emerald-400 border border-emerald-500/30 whitespace-nowrap">مارجین: —</span>
+              </div>
             </div>
           </div>
 
@@ -449,6 +451,21 @@
             </h3>
             <button id="openCreatePlanBtn" class="bg-transparent hover:bg-blue-600/10 text-blue-400 hover:text-blue-300 border border-blue-500/40 text-[11px] font-bold px-3 py-1.5 rounded-xl transition active:scale-95 flex items-center gap-1">
               <span>+</span> سرویس جدید
+            </button>
+          </div>
+          <!-- Plans Category Filter Bar -->
+          <div class="flex items-center gap-1.5 p-1 bg-slate-900/80 rounded-xl border border-slate-800 text-[11px] overflow-x-auto custom-scroll" id="adminPlanFilterBar">
+            <button type="button" onclick="window.adminActions.filterPlans('all')" data-plan-filter="all" class="admin-plan-filter-btn flex-1 py-1 px-2.5 rounded-lg font-bold bg-blue-600 text-white shadow transition whitespace-nowrap text-center">
+              همه
+            </button>
+            <button type="button" onclick="window.adminActions.filterPlans('full')" data-plan-filter="full" class="admin-plan-filter-btn flex-1 py-1 px-2.5 rounded-lg font-medium text-slate-400 hover:text-white transition whitespace-nowrap text-center">
+              💎 دوره کامل
+            </button>
+            <button type="button" onclick="window.adminActions.filterPlans('time')" data-plan-filter="time" class="admin-plan-filter-btn flex-1 py-1 px-2.5 rounded-lg font-medium text-slate-400 hover:text-white transition whitespace-nowrap text-center">
+              ⏳ افزایش زمان
+            </button>
+            <button type="button" onclick="window.adminActions.filterPlans('traffic')" data-plan-filter="traffic" class="admin-plan-filter-btn flex-1 py-1 px-2.5 rounded-lg font-medium text-slate-400 hover:text-white transition whitespace-nowrap text-center">
+              ⚡️ افزایش حجم
             </button>
           </div>
           <div id="adminPlansList" class="space-y-2.5">

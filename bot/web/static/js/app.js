@@ -1053,8 +1053,13 @@ function switchBdayPickerTab(tab) {
       const yPane = $('bdayPaneYear');
       const curYear = $('birthdayYearSelect')?.value || '1375';
       const activeYearBtn = yPane?.querySelector('.active-bday-item') || yPane?.querySelector(`[data-val="${curYear}"]`);
-      if (activeYearBtn) {
-        activeYearBtn.scrollIntoView({ block: 'center', behavior: 'smooth' });
+      if (yPane && activeYearBtn) {
+        if (typeof yPane.scrollTo === 'function') {
+          const topPos = activeYearBtn.offsetTop - yPane.offsetTop - (yPane.clientHeight / 2) + (activeYearBtn.clientHeight / 2);
+          yPane.scrollTo({ top: Math.max(0, topPos), behavior: 'smooth' });
+        } else if (activeYearBtn.scrollIntoView) {
+          activeYearBtn.scrollIntoView({ block: 'center', behavior: 'smooth' });
+        }
       }
     }, 40);
   }
@@ -1068,7 +1073,7 @@ function selectBdayItem(type, val, displayText, autoAdvance = false) {
   
   const disp = $(`bday${type.charAt(0).toUpperCase() + type.slice(1)}Display`);
   const pillVal = $(`bday${type.charAt(0).toUpperCase() + type.slice(1)}PillVal`);
-  const showText = displayText || toPersianDigits(val);
+  const showText = displayText || String(val);
   if (disp) disp.innerText = showText;
   if (pillVal) pillVal.innerText = showText;
 
@@ -1126,7 +1131,7 @@ function updateBdayDaysGrid() {
 
   const currentDay = parseInt($('birthdayDaySelect')?.value || '1', 10);
   if (currentDay > maxDays) {
-    selectBdayItem('day', maxDays, toPersianDigits(maxDays), false);
+    selectBdayItem('day', maxDays, String(maxDays), false);
   }
 
   dayGrid.querySelectorAll('.bday-grid-btn').forEach(btn => {
@@ -1150,8 +1155,8 @@ function initBirthdaySelects() {
       btn.type = 'button';
       btn.setAttribute('data-val', d);
       btn.className = 'bday-grid-btn py-1.5 px-1 h-8 min-h-[32px] text-center text-xs font-bold text-slate-300 bg-slate-800/80 hover:bg-slate-700 border border-slate-700/60 rounded-xl transition font-mono active:scale-95 flex items-center justify-center';
-      btn.textContent = toPersianDigits(d);
-      btn.onclick = () => selectBdayItem('day', d, toPersianDigits(d), false);
+      btn.textContent = String(d);
+      btn.onclick = () => selectBdayItem('day', d, String(d), false);
       dayGrid.appendChild(btn);
     }
   }
@@ -1164,7 +1169,7 @@ function initBirthdaySelects() {
       btn.setAttribute('data-val', mVal);
       btn.className = 'bday-grid-btn py-2 px-1 text-center text-xs text-slate-300 bg-slate-800/80 hover:bg-slate-700 border border-slate-700/60 rounded-xl transition font-medium active:scale-95';
       btn.textContent = mName;
-      btn.onclick = () => selectBdayItem('month', mVal, mName, true);
+      btn.onclick = () => selectBdayItem('month', mVal, mName, false);
       monthGrid.appendChild(btn);
     });
   }
@@ -1174,9 +1179,9 @@ function initBirthdaySelects() {
       const btn = document.createElement('button');
       btn.type = 'button';
       btn.setAttribute('data-val', y);
-      btn.className = 'bday-grid-btn py-1.5 px-1 text-center text-xs text-slate-300 bg-slate-800/80 hover:bg-slate-700 border border-slate-700/60 rounded-xl transition font-mono active:scale-95';
-      btn.textContent = `${toPersianDigits(y)}`;
-      btn.onclick = () => selectBdayItem('year', y, toPersianDigits(y), true);
+      btn.className = 'bday-grid-btn py-1.5 px-0.5 text-center text-xs text-slate-300 bg-slate-800/80 hover:bg-slate-700 border border-slate-700/60 rounded-xl transition font-mono active:scale-95';
+      btn.textContent = String(y);
+      btn.onclick = () => selectBdayItem('year', y, String(y), false);
       yearGrid.appendChild(btn);
     }
   }
@@ -1189,15 +1194,15 @@ function openBirthdayModal() {
     try {
       const parts = existingDate.replace(/-/g, '/').split('/').map(Number);
       if (parts.length === 3) {
-        selectBdayItem('year', parts[0], toPersianDigits(parts[0]), false);
+        selectBdayItem('year', parts[0], String(parts[0]), false);
         selectBdayItem('month', parts[1], JALALI_MONTHS[parts[1] - 1] || parts[1], false);
-        selectBdayItem('day', parts[2], toPersianDigits(parts[2]), false);
+        selectBdayItem('day', parts[2], String(parts[2]), false);
       }
     } catch (e) {}
   } else {
-    selectBdayItem('year', 1375, toPersianDigits(1375), false);
+    selectBdayItem('year', 1375, '1375', false);
     selectBdayItem('month', 1, 'فروردین', false);
-    selectBdayItem('day', 1, toPersianDigits(1), false);
+    selectBdayItem('day', 1, '1', false);
   }
   updateBdayDaysGrid();
   switchBdayPickerTab('day');
@@ -1522,18 +1527,22 @@ function renderDashboardBirthdayCountdown(user) {
   if (!card) return;
 
   const birthDate = user?.birth_date;
-  if (!birthDate || !birthDate.trim()) {
-    card.classList.add('hidden');
-    return;
-  }
-
   const daysLeft = user?.days_until_birthday;
   const isToday = user?.is_birthday_today;
   const titleEl = $('birthdayCardTitle');
   const subEl = $('birthdayCardSubtitle');
   const badgeEl = $('birthdayCardBadge');
-  const numEl = $('birthdayDaysLeftNum');
 
+  if (!birthDate || !birthDate.trim()) {
+    card.classList.remove('hidden');
+    card.onclick = () => window.openBirthdayModal();
+    if (titleEl) titleEl.innerText = '🎂 ثبت تاریخ زادروز و دریافت هدیه';
+    if (subEl) subEl.innerText = 'با ثبت روز تولدتان، بسته ترافیک پرسرعت هدیه بگیرید';
+    if (badgeEl) badgeEl.innerHTML = '<span class="text-xs">ثبت کنید ✨</span>';
+    return;
+  }
+
+  card.onclick = () => (typeof window.openBirthdayCountdownModal === 'function' ? window.openBirthdayCountdownModal() : window.openBirthdayModal());
   card.classList.remove('hidden');
 
   if (isToday || daysLeft === 0) {
@@ -1543,9 +1552,13 @@ function renderDashboardBirthdayCountdown(user) {
   } else if (daysLeft !== null && daysLeft !== undefined) {
     if (titleEl) titleEl.innerText = 'شمارش معکوس زادروز شما';
     if (subEl) subEl.innerText = `تنها ${toEnglishDigits(daysLeft)} روز تا روز تولدتان باقی مانده است`;
-    if (numEl) numEl.innerText = toEnglishDigits(daysLeft);
+    if (badgeEl) badgeEl.innerHTML = `<span>⏳</span> <span id="birthdayDaysLeftNum">${toEnglishDigits(daysLeft)}</span> <span>روز</span>`;
   } else {
-    card.classList.add('hidden');
+    card.classList.remove('hidden');
+    card.onclick = () => window.openBirthdayModal();
+    if (titleEl) titleEl.innerText = 'تاریخ زادروز شما ثبت شده است';
+    if (subEl) subEl.innerText = `تاریخ: ${birthDate}`;
+    if (badgeEl) badgeEl.innerHTML = '<span class="text-xs">ویرایش ✏️</span>';
   }
 }
 

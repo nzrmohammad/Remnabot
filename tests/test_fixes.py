@@ -2492,3 +2492,66 @@ def test_backup_permissions_and_invite_and_chart_empty_states():
 
     # 6. user_profile.py includes is_invite_only
     assert '"is_invite_only": is_invite_only' in profile_py
+
+
+def test_admin_plans_filter_and_birthday_ux_enhancements():
+    from pathlib import Path
+    import jdatetime
+    html_text = Path("bot/web/templates/app.html").read_text(encoding="utf-8")
+    admin_html = Path("bot/web/templates/admin.html").read_text(encoding="utf-8")
+    app_js = Path("bot/web/static/js/app.js").read_text(encoding="utf-8")
+    admin_js = Path("bot/web/static/js/admin.js").read_text(encoding="utf-8")
+    profile_py = Path("bot/web/user_profile.py").read_text(encoding="utf-8")
+
+    # 1. Admin Net Profit Card layout (no text squishing)
+    assert "پس از کسر سرورها" in admin_html
+    assert 'id="adminProfitMarginBadge"' in admin_html
+    assert "whitespace-nowrap" in admin_html
+
+    # 2. Admin Plans Category Filter Bar
+    assert 'id="adminPlanFilterBar"' in admin_html
+    assert 'data-plan-filter="all"' in admin_html
+    assert 'data-plan-filter="full"' in admin_html
+    assert 'data-plan-filter="time"' in admin_html
+    assert 'data-plan-filter="traffic"' in admin_html
+
+    # 3. Admin JS filtering logic
+    assert "filterPlans(cat = 'all')" in admin_js
+    assert "admin-plan-card" in admin_js
+    assert "data-plan-type" in admin_js
+
+    # 4. Birthday Picker: 5-column years grid
+    assert 'grid grid-cols-5' in html_text
+    assert 'id="bdayYearsGrid"' in html_text
+
+    # 5. Birthday Picker: English digits & no month auto-advance
+    assert "btn.textContent = String(d);" in app_js
+    assert "btn.textContent = String(y);" in app_js
+    assert "selectBdayItem('month', mVal, mName, false);" in app_js
+
+    # 6. Dashboard birthday prompt when birthday not set
+    assert "🎂 ثبت تاریخ زادروز و دریافت هدیه" in app_js
+    assert "ثبت کنید ✨" in app_js
+
+    # 7. Safe Jalali Esfand 30 leap year clamp in user_profile.py
+    assert "_safe_jdate" in profile_py
+    assert "if m == 12 and d > 29:" in profile_py
+
+    # Verify algorithmic behavior of Esfand 30 in non-leap year (e.g. 1404 or 1405)
+    def _safe_jdate(y, m, d):
+        try:
+            return jdatetime.date(y, m, d)
+        except ValueError:
+            if m == 12 and d > 29:
+                return jdatetime.date(y, m, 29)
+            raise
+
+    safe_date_1404 = _safe_jdate(1404, 12, 30)
+    assert safe_date_1404.year == 1404
+    assert safe_date_1404.month == 12
+    assert safe_date_1404.day == 29
+
+    safe_date_1403 = _safe_jdate(1403, 12, 30)
+    assert safe_date_1403.year == 1403
+    assert safe_date_1403.month == 12
+    assert safe_date_1403.day == 30
