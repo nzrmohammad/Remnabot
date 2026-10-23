@@ -264,9 +264,9 @@ function renderFilteredShopPlans() {
       badgeBorderClass = 'border-cyan-500/50 shadow-lg shadow-cyan-500/10';
       btnClass = 'btn-plan-traffic';
     } else if (isTimeOnly) {
-      planBadge = '<div class="shop-plan-badge badge-time absolute top-0 left-0 bg-gradient-to-r from-amber-600 to-orange-600 text-white text-[10px] font-black px-3 py-0.5 rounded-br-xl shadow flex items-center gap-1">⏳ بسته افزایش زمان</div>';
-      badgeBorderClass = 'border-amber-500/50 shadow-lg shadow-amber-500/10';
-      btnClass = 'btn-plan-time';
+      planBadge = '<div class="shop-plan-badge badge-traffic absolute top-0 left-0 bg-gradient-to-r from-cyan-600 to-blue-600 text-white text-[10px] font-black px-3 py-0.5 rounded-br-xl shadow flex items-center gap-1">⏳ بسته افزایش زمان</div>';
+      badgeBorderClass = 'border-cyan-500/50 shadow-lg shadow-cyan-500/10';
+      btnClass = 'btn-plan-traffic';
     } else if (planBadgeKey === 'vip' || (!planBadgeKey && (planText.includes('پیشنهاد ویژه') || planText.includes('vip')))) {
       planBadge = '<div class="shop-plan-badge badge-vip absolute top-0 left-0 bg-gradient-to-r from-rose-500 via-pink-500 to-purple-500 text-white text-[10px] font-black px-3 py-0.5 rounded-br-xl border-b border-r border-rose-300/70 shadow-lg shadow-rose-500/30 flex items-center gap-1">👑 پیشنهاد ویژه</div>';
       badgeBorderClass = 'border-rose-500/70 shadow-lg shadow-rose-500/20';
@@ -301,12 +301,12 @@ function renderFilteredShopPlans() {
     const durationText = isExtraTraffic
       ? '<span class="flex items-center gap-1">📅 <b class="text-emerald-400 font-bold">بدون تغییر زمان انقضا</b></span>'
       : (isTimeOnly
-          ? `<span class="flex items-center gap-1">📅 <b class="text-amber-400 font-bold">${p.duration_days} روز اضافه</b></span>`
+          ? `<span class="flex items-center gap-1">📅 <b class="t-accent font-bold">${p.duration_days} روز اضافه</b></span>`
           : (Number(p.duration_days) > 0
               ? `<span class="flex items-center gap-1">📅 <b class="t-main">${p.duration_days} روز</b></span>`
               : '<span class="flex items-center gap-1">📅 <b class="t-main">نامحدود روز</b></span>'));
     const trafficText = isTimeOnly
-      ? '<span class="text-amber-400 font-bold">بدون تغییر حجم</span>'
+      ? '<span class="t-accent font-bold">بدون تغییر حجم</span>'
       : (Number(p.traffic_gb) > 0 ? fmtTraffic(p.traffic_gb, { html: false }) : 'نامحدود');
 
     let buttonLabel = 'خرید / تمدید آنی';

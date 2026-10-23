@@ -281,17 +281,17 @@ function setupConfigsModal() {
           const flag = c.flag || '🌐';
 
           return `
-            <div class="config-row-item bg-transparent rounded-2xl p-2.5 border border-slate-700/60 flex items-center justify-between gap-2 transition hover:border-slate-600">
+            <div class="config-row-item card-inset p-2.5 flex items-center justify-between gap-2 transition hover:border-slate-600">
               <div class="flex items-center gap-2 overflow-hidden flex-1 min-w-0">
                 <span class="text-base select-none flex-shrink-0" title="${escapeHtml(c.country_name || 'سرور')}">${flag}</span>
                 <span class="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-cyan-500/15 text-cyan-400 border border-cyan-500/30 uppercase flex-shrink-0">${protoBadge}</span>
-                <span class="text-xs font-bold text-slate-200 truncate config-name-label" title="${safeName}">${safeName}</span>
+                <span class="text-xs font-bold t-main truncate config-name-label" title="${safeName}">${safeName}</span>
               </div>
               <div class="flex items-center gap-1 shrink-0">
-                <button type="button" class="copy-single-cfg-btn text-slate-300 hover:text-cyan-400 bg-transparent border-0 p-1.5 rounded-lg transition active:scale-95 text-sm" data-uri="${encodeURIComponent(c.uri)}" title="کپی کانفیگ">
+                <button type="button" class="copy-single-cfg-btn btn-icon t-muted hover:text-cyan-400 text-sm" data-uri="${encodeURIComponent(c.uri)}" title="کپی کانفیگ">
                   📋
                 </button>
-                <button type="button" class="qr-single-cfg-btn text-slate-300 hover:text-cyan-400 bg-transparent border-0 p-1.5 rounded-lg transition active:scale-95 text-sm" data-uri="${encodeURIComponent(c.uri)}" data-name="${encodeURIComponent(c.name)}" title="نمایش کیوآرکد">
+                <button type="button" class="qr-single-cfg-btn btn-icon t-muted hover:text-cyan-400 text-sm" data-uri="${encodeURIComponent(c.uri)}" data-name="${encodeURIComponent(c.name)}" title="نمایش کیوآرکد">
                   📷
                 </button>
               </div>
@@ -334,7 +334,7 @@ function setupConfigsModal() {
         if (configsModalCount) configsModalCount.innerText = '0 کانفیگ';
         const msg = res.message || res.error || 'کانفیگی در لینک اشتراک یافت نشد یا اشتراک منقضی شده است.';
         configsModalList.innerHTML = `
-          <div class="text-center py-6 text-slate-400 text-xs">
+          <div class="text-center py-6 t-muted text-xs">
             <span class="text-base">⚠️</span>
             <div class="mt-1 leading-relaxed">${escapeHtml(msg)}</div>
             <button type="button" id="retryConfigsBtn" class="mt-3 px-3 py-1.5 rounded-xl bg-cyan-600/25 hover:bg-cyan-600/40 text-cyan-300 border border-cyan-500/40 text-[11px] font-bold transition active:scale-95">
@@ -736,10 +736,10 @@ function renderTutorialApps(osKey) {
     const isTarget = tab.getAttribute('data-os') === currentTutorialOS;
     if (isTarget) {
       tab.classList.add('bg-cyan-600', 'text-white', 'shadow', 'font-bold');
-      tab.classList.remove('text-slate-400', 'font-medium');
+      tab.classList.remove('t-muted', 'text-slate-400', 'font-medium');
     } else {
       tab.classList.remove('bg-cyan-600', 'text-white', 'shadow', 'font-bold');
-      tab.classList.add('text-slate-400', 'font-medium');
+      tab.classList.add('t-muted', 'font-medium');
     }
   });
 
@@ -779,11 +779,11 @@ function renderTutorialApps(osKey) {
   if (activeApps.length === 0) {
     listContainer.innerHTML = `
       <div class="py-8 px-4 text-center space-y-2.5">
-        <div class="w-12 h-12 rounded-2xl bg-slate-800/80 border border-slate-700/80 mx-auto flex items-center justify-center text-2xl">
+        <div class="w-12 h-12 rounded-2xl card-inset mx-auto flex items-center justify-center text-2xl">
           📱
         </div>
-        <b class="text-xs text-slate-200 block">برنامه‌ای برای نمایش یافت نشد</b>
-        <p class="text-[11px] text-slate-400 max-w-[260px] mx-auto leading-relaxed">
+        <b class="text-xs t-main block">برنامه‌ای برای نمایش یافت نشد</b>
+        <p class="text-[11px] t-muted max-w-[260px] mx-auto leading-relaxed">
           هنوز لینک دانلودی برای برنامه‌های این سیستم‌عامل ثبت نشده است. لطفاً از طریق پشتیبانی پیگیری فرمایید.
         </p>
       </div>
@@ -825,7 +825,7 @@ function renderTutorialApps(osKey) {
       const d = dlButtons[0];
       actionButtonsHtml = `
         <div class="grid grid-cols-2 gap-1.5 pt-0.5">
-          <button type="button" class="btn-download-app bg-slate-800 hover:bg-slate-750 text-slate-200 text-xs font-bold py-1.5 px-2 rounded-xl transition border border-slate-700/80 flex items-center justify-center gap-1 active:scale-95 shadow-sm truncate" data-url="${escapeHtml(d.url)}">
+          <button type="button" class="btn-download-app btn-secondary text-xs font-bold py-1.5 px-2 rounded-xl transition flex items-center justify-center gap-1 active:scale-95 shadow-sm truncate" data-url="${escapeHtml(d.url)}">
             <span>${d.icon}</span> <span class="truncate">${d.label}</span>
           </button>
           <button type="button" class="btn-autoconnect-app text-xs font-bold py-1.5 px-2 rounded-xl transition flex items-center justify-center gap-1 active:scale-95 shadow-sm" data-id="${app.id}" data-name="${escapeHtml(app.name)}">
@@ -837,10 +837,10 @@ function renderTutorialApps(osKey) {
       actionButtonsHtml = `
         <div class="space-y-1.5 pt-0.5">
           <div class="grid grid-cols-2 gap-1.5">
-            <button type="button" class="btn-download-app bg-slate-800 hover:bg-slate-750 text-slate-200 text-xs font-bold py-1.5 px-2 rounded-xl transition border border-slate-700/80 flex items-center justify-center gap-1 active:scale-95 shadow-sm truncate" data-url="${escapeHtml(dlButtons[0].url)}">
+            <button type="button" class="btn-download-app btn-secondary text-xs font-bold py-1.5 px-2 rounded-xl transition flex items-center justify-center gap-1 active:scale-95 shadow-sm truncate" data-url="${escapeHtml(dlButtons[0].url)}">
               <span>${dlButtons[0].icon}</span> <span class="truncate">${dlButtons[0].label}</span>
             </button>
-            <button type="button" class="btn-download-app bg-slate-800 hover:bg-slate-750 text-slate-200 text-xs font-bold py-1.5 px-2 rounded-xl transition border border-slate-700/80 flex items-center justify-center gap-1 active:scale-95 shadow-sm truncate" data-url="${escapeHtml(dlButtons[1].url)}">
+            <button type="button" class="btn-download-app btn-secondary text-xs font-bold py-1.5 px-2 rounded-xl transition flex items-center justify-center gap-1 active:scale-95 shadow-sm truncate" data-url="${escapeHtml(dlButtons[1].url)}">
               <span>${dlButtons[1].icon}</span> <span class="truncate">${dlButtons[1].label}</span>
             </button>
           </div>
@@ -853,21 +853,21 @@ function renderTutorialApps(osKey) {
       `;
     }
 
-    const cardBorder = app.isRecommended ? 'border-amber-500/50 bg-transparent shadow-sm' : 'border-slate-700/60 bg-transparent';
+    const cardBorder = app.isRecommended ? 'border-amber-500/50 card-inset shadow-sm' : 'card-inset';
 
     return `
-      <div class="tutorial-app-card rounded-2xl p-2.5 border ${cardBorder} space-y-1.5 transition hover:border-slate-600">
+      <div class="tutorial-app-card rounded-2xl p-2.5 ${cardBorder} space-y-1.5 transition">
         <div class="flex items-center justify-between gap-2">
           <!-- Right side: App Icon + Name -->
           <div class="flex items-center gap-2.5 min-w-0">
-            <div class="w-10 h-10 rounded-xl bg-transparent border border-slate-700/70 p-1 flex items-center justify-center flex-shrink-0 shadow-inner overflow-hidden relative">
+            <div class="w-10 h-10 rounded-xl card-inset p-1 flex items-center justify-center flex-shrink-0 shadow-inner overflow-hidden relative">
               <img src="/static/img/apps/${app.id}.png" alt="${escapeHtml(app.name)}" class="w-full h-full object-contain rounded-lg" onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='flex';" />
               <span class="text-xl items-center justify-center hidden" style="display:none;">${app.icon || '📱'}</span>
             </div>
             <div class="min-w-0 flex-1">
               <div class="flex items-center gap-1.5 min-w-0">
-                ${app.version ? `<span class="text-[10px] text-slate-400 font-mono font-medium flex-shrink-0">v${toEnglishDigits(app.version)}</span>` : ''}
-                <b class="text-xs text-white font-bold truncate">${escapeHtml(app.name)}</b>
+                ${app.version ? `<span class="text-[10px] t-muted font-mono font-medium flex-shrink-0">v${toEnglishDigits(app.version)}</span>` : ''}
+                <b class="text-xs t-main font-bold truncate">${escapeHtml(app.name)}</b>
               </div>
             </div>
           </div>
@@ -3272,7 +3272,7 @@ function hydrateUserInterface(data) {
       const bDown = sub?.today_breakdown || [];
       if (bDown.length === 0) {
         countryList.innerHTML = `
-          <div class="p-3 rounded-xl bg-slate-900/60 border border-slate-700/50 text-center text-xs text-slate-400">
+          <div class="p-3 card-inset text-center text-xs t-muted">
             <span>ℹ️ امروز هنوز ترافیکی روی سرورها ثبت نشده است.</span>
           </div>
         `;
@@ -3281,15 +3281,15 @@ function hydrateUserInterface(data) {
         countryList.innerHTML = bDown.map(item => {
           const pct = item.percent || 0;
           const barHtml = (showBar && pct > 0)
-            ? `<div class="w-full bg-slate-800/80 h-1.5 rounded-full overflow-hidden" dir="ltr">
+            ? `<div class="w-full card-inset h-1.5 rounded-full overflow-hidden" dir="ltr">
                 <div class="bg-gradient-to-r from-blue-500 to-cyan-400 h-full rounded-full transition-all duration-500" style="width: ${pct}%;"></div>
               </div>`
             : '';
           return `
-          <div class="p-2.5 rounded-xl bg-slate-900/70 border border-slate-700/50 space-y-1.5">
+          <div class="p-2.5 card-inset space-y-1.5">
             <div class="flex justify-between items-center text-xs">
-              <span class="text-cyan-300 font-black text-xs font-mono num-bidi" dir="ltr">${fmtTraffic(item.total_formatted, { html: false })}</span>
-              <span class="flex items-center gap-2 font-bold text-slate-200">
+              <span class="t-accent font-black text-xs font-mono num-bidi" dir="ltr">${fmtTraffic(item.total_formatted, { html: false })}</span>
+              <span class="flex items-center gap-2 font-bold t-main">
                 <span>${escapeHtml(item.name || '')}</span>
                 <span class="text-base">${escapeHtml(item.flag || '🌐')}</span>
               </span>

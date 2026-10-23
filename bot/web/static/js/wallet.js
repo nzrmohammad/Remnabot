@@ -301,8 +301,8 @@ function startCryptoCountdownTimer(seconds = 2700) {
 
   const timerEl = document.getElementById('cryptoCountdownTimer');
   if (timerEl) {
-    timerEl.classList.remove('text-rose-400', 'bg-rose-500/10', 'border-rose-500/20');
-    timerEl.classList.add('text-amber-400', 'bg-amber-500/10', 'border-amber-500/20');
+    timerEl.classList.remove('t-danger', 'text-rose-400', 'bg-rose-500/10', 'border-rose-500/20', 'bg-amber-500/10', 'border-amber-500/20');
+    timerEl.classList.add('t-warn');
   }
 
   const updateDisplay = () => {
@@ -314,8 +314,8 @@ function startCryptoCountdownTimer(seconds = 2700) {
     if (remaining <= 0) {
       if (timer) {
         timer.innerText = '00:00 (منقضی شد)';
-        timer.classList.remove('text-amber-400', 'bg-amber-500/10', 'border-amber-500/20');
-        timer.classList.add('text-rose-400', 'bg-rose-500/10', 'border-rose-500/20');
+        timer.classList.remove('t-warn', 'text-amber-400', 'bg-amber-500/10', 'border-amber-500/20');
+        timer.classList.add('t-danger');
       }
       if (pendingTimer) {
         pendingTimer.innerText = '00:00 (منقضی شد)';
@@ -383,8 +383,8 @@ function clearActiveCryptoInvoice() {
   const timerEl = document.getElementById('cryptoCountdownTimer');
   if (timerEl) {
     timerEl.innerText = '45:00';
-    timerEl.classList.remove('text-rose-400', 'bg-rose-500/10', 'border-rose-500/20');
-    timerEl.classList.add('text-amber-400', 'bg-amber-500/10', 'border-amber-500/20');
+    timerEl.classList.remove('t-danger', 'text-rose-400', 'bg-rose-500/10', 'border-rose-500/20', 'bg-amber-500/10', 'border-amber-500/20');
+    timerEl.classList.add('t-warn');
   }
 
   const amtEl = document.getElementById('cryptoAmountTon');
