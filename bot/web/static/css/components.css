@@ -264,3 +264,93 @@
 .settings-box-body {
   border-top: 1px solid var(--card-border);
 }
+
+/* --- 10. Form Controls: iOS 17 Toggle Switch --- */
+label .switch-label,
+.switch-label {
+  direction: ltr;
+  justify-content: flex-start;
+  width: 44px;
+  height: 26px;
+  border-radius: 9999px;
+  background-color: rgba(255, 255, 255, 0.16);
+  transition: background-color 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  padding: 2px;
+  box-sizing: border-box;
+  flex-shrink: 0;
+}
+
+html.theme-light label .switch-label,
+html.theme-light .switch-label {
+  background-color: #cbd5e1;
+}
+
+label .switch-label .switch-ball,
+.switch-ball {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background-color: #ffffff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.22), 0 0 1px rgba(0, 0, 0, 0.15);
+  transition: transform 0.28s cubic-bezier(0.34, 1.56, 0.64, 1), width 0.18s ease;
+  transform: translateX(0);
+  flex-shrink: 0;
+}
+
+.switch-checkbox:checked + .switch-label {
+  background-color: var(--c-accent);
+}
+
+.switch-checkbox:checked + .switch-label .switch-ball,
+[dir="rtl"] .switch-checkbox:checked + .switch-label .switch-ball,
+[dir="ltr"] .switch-checkbox:checked + .switch-label .switch-ball,
+label[dir="rtl"] .switch-checkbox:checked + .switch-label .switch-ball,
+label[dir="ltr"] .switch-checkbox:checked + .switch-label .switch-ball {
+  transform: translateX(18px);
+}
+
+label:active .switch-label .switch-ball {
+  width: 25px;
+}
+
+/* --- 11. Additional Semantic Components & Motion --- */
+.caption {
+  font-size: 11px;
+}
+
+.stat-box {
+  background-color: var(--card-inner-bg);
+  border: 1px solid var(--card-border);
+  color: var(--text-main);
+  border-radius: 0.875rem;
+  padding: 0.75rem;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.25rem 0.625rem;
+  border-radius: 0.75rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  border: 1px solid var(--card-border);
+  background-color: var(--card-inner-bg);
+  color: var(--text-main);
+}
+
+.gauge-circle {
+  transition: stroke-dashoffset 1s ease-in-out;
+  transform: rotate(-90deg);
+  transform-origin: 50% 50%;
+}
+
+@keyframes pulseGlow {
+  0%, 100% { opacity: 0.6; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.05); }
+}
+
+.pulse-glow {
+  animation: pulseGlow 2.5s infinite;
+}
+
