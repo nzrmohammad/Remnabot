@@ -16,10 +16,11 @@ MAINTENANCE_NOTICE = (
 
 # Shown to brand-new users when invite-only mode is active and they lack an invite code.
 INVITE_ONLY_NOTICE = (
-    "🔒 <b>Registration is by invitation only.</b>\n"
-    "Please join using an invite link from an existing member.\n\n"
-    "🔒 <b>ورود به ربات نیازمند دعوت است.</b>\n"
-    "ثبت‌نام در حال حاضر تنها از طریق لینک دعوت یا معرفی اعضا امکان‌پذیر است."
+    "🔒 <b>سامانه خصوصی — عضویت فقط با دعوت‌نامه</b>\n"
+    "──────────────────\n"
+    "کاربر گرامی، در حال حاضر ثبت‌نام و عضویت در این سامانه <b>تنها از طریق لینک اختصاصی دعوت اعضا</b> امکان‌پذیر است.\n\n"
+    "🔹 چنانچه لینک دعوت دارید، لطفاً مجدداً با لمس همان لینک وارد ربات شوید.\n"
+    "🔹 در غیر این صورت، جهت کسب اطلاعات بیشتر و دریافت دسترسی می‌توانید با پشتیبانی در ارتباط باشید."
 )
 
 TEXTS: dict[str, dict[str, str]] = {

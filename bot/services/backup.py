@@ -387,7 +387,18 @@ async def create_database_backup(session: AsyncSession, out_dir: str | Path | No
     }
 
     target_dir = Path(out_dir) if out_dir else Path.cwd() / "backups"
-    target_dir.mkdir(parents=True, exist_ok=True)
+    try:
+        target_dir.mkdir(parents=True, exist_ok=True)
+        # Test writability
+        test_file = target_dir / ".write_test"
+        test_file.touch()
+        test_file.unlink(missing_ok=True)
+    except (PermissionError, OSError) as e:
+        import tempfile
+        logger.warning("Directory %s is not writable (%s), falling back to temp dir", target_dir, e)
+        target_dir = Path(tempfile.gettempdir()) / "backups"
+        target_dir.mkdir(parents=True, exist_ok=True)
+
     file_path = target_dir / f"remnabot_backup_{timestamp}.json"
 
     def _write_file():

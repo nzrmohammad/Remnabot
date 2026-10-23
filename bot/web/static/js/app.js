@@ -64,12 +64,23 @@ window.toggleSettingsBox = toggleSettingsBox;
 // 2. Tab Navigation (5 Tabs)
 function renderReportsCharts(sub) {
   const currentSub = sub || window.lastUserData?.active_sub;
-  if (!currentSub) {
+  const hasActiveSub = Boolean(window.lastUserData?.has_active_sub && currentSub);
+  if (!hasActiveSub) {
     if (typeof resetActiveSubAnalytics === 'function') {
       resetActiveSubAnalytics();
     }
     return;
   }
+  const weeklyCanvas = $('repWeeklyChartCanvas');
+  const weeklyEmpty = $('repWeeklyEmptyState');
+  if (weeklyCanvas) weeklyCanvas.classList.remove('hidden');
+  if (weeklyEmpty) weeklyEmpty.classList.add('hidden');
+
+  const monthlyCanvas = $('repMonthlyChartCanvas');
+  const monthlyEmpty = $('repMonthlyEmptyState');
+  if (monthlyCanvas) monthlyCanvas.classList.remove('hidden');
+  if (monthlyEmpty) monthlyEmpty.classList.add('hidden');
+
   if (typeof renderBarChart === 'function') {
     renderBarChart('repWeeklyChartCanvas', currentSub.week_daily_totals_gb || [0, 0, 0, 0, 0, 0, 0], currentSub.week_day_labels || ['ش', 'ی', 'د', 'س', 'چ', 'پ', 'ج'], false);
     renderBarChart('repMonthlyChartCanvas', currentSub.month_weeks_totals_gb || [0, 0, 0, currentSub.week_used_gb || 0], ['هفته ۱', 'هفته ۲', 'هفته ۳', 'هفته ۴'], true);
@@ -2392,10 +2403,31 @@ function setupProfileHandlers() {
 }
 
 function resetActiveSubAnalytics() {
+  // 1. Destroy all charts to prevent ghost/dummy rendering
+  ['repWeeklyChartCanvas', 'repMonthlyChartCanvas', 'repPeakHoursChartCanvas', 'repPeakHoursBarCanvas'].forEach(id => {
+    if (window.chartInstances && window.chartInstances[id]) {
+      try { window.chartInstances[id].destroy(); } catch(e) {}
+      delete window.chartInstances[id];
+    }
+  });
+
+  // 2. Hide canvases and display clean empty states on weekly & monthly cards
+  const weeklyCanvas = $('repWeeklyChartCanvas');
+  const weeklyEmpty = $('repWeeklyEmptyState');
+  if (weeklyCanvas) weeklyCanvas.classList.add('hidden');
+  if (weeklyEmpty) weeklyEmpty.classList.remove('hidden');
+
+  const monthlyCanvas = $('repMonthlyChartCanvas');
+  const monthlyEmpty = $('repMonthlyEmptyState');
+  if (monthlyCanvas) monthlyCanvas.classList.add('hidden');
+  if (monthlyEmpty) monthlyEmpty.classList.remove('hidden');
+
   const canvasEl = $('repPeakHoursChartCanvas');
   const emptyStateEl = $('repPeakHoursEmptyState');
   const peakBadge = $('repPeakHourBadge');
+  const barContainer = $('repPeakHoursBarContainer');
   if (canvasEl) canvasEl.classList.add('hidden');
+  if (barContainer) barContainer.classList.add('hidden');
   if (emptyStateEl) emptyStateEl.classList.remove('hidden');
   if (peakBadge) peakBadge.innerText = 'بدون داده';
 
@@ -2435,6 +2467,47 @@ function resetActiveSubAnalytics() {
   if (repWeeklyBusiest) repWeeklyBusiest.innerText = '—';
   const repMonthlyTotal = $('repMonthlyTotal');
   if (repMonthlyTotal) repMonthlyTotal.innerText = '۰ GB';
+
+  // 3. Reset Traffic Split & Burn Rate & Diurnal breakdown
+  const downGbEl = document.getElementById('repSplitDownGb');
+  if (downGbEl) downGbEl.innerText = '۰ GB';
+  const upGbEl = document.getElementById('repSplitUpGb');
+  if (upGbEl) upGbEl.innerText = '۰ GB';
+  const downPctEl = document.getElementById('repSplitDownPct');
+  if (downPctEl) downPctEl.innerText = '۰%';
+  const upPctEl = document.getElementById('repSplitUpPct');
+  if (upPctEl) upPctEl.innerText = '۰%';
+  const downBar = document.getElementById('repSplitDownBar');
+  if (downBar) downBar.style.width = '0%';
+  const upBar = document.getElementById('repSplitUpBar');
+  if (upBar) upBar.style.width = '0%';
+  const ratioBadge = document.getElementById('repUpDownRatioBadge');
+  if (ratioBadge) ratioBadge.innerText = 'بدون داده';
+
+  const speedBadge = document.getElementById('repBurnSpeedBadge');
+  if (speedBadge) speedBadge.innerText = 'غیرفعال';
+  const avgDailyEl = document.getElementById('repBurnAvgDaily');
+  if (avgDailyEl) avgDailyEl.innerText = '۰ GB';
+  const projectedDaysEl = document.getElementById('repBurnProjectedDays');
+  if (projectedDaysEl) {
+    projectedDaysEl.innerText = '—';
+    projectedDaysEl.className = 'font-mono text-slate-400 text-xs';
+  }
+  const analysisTextEl = document.getElementById('repBurnAnalysisText');
+  if (analysisTextEl) analysisTextEl.innerText = 'اشتراک فعالی برای تحلیل الگوی مصرف ثبت نشده است.';
+  const statusIconEl = document.getElementById('repBurnStatusIcon');
+  if (statusIconEl) statusIconEl.innerText = 'ℹ️';
+  const analysisBox = document.getElementById('repBurnAnalysisBox');
+  if (analysisBox) analysisBox.className = 'p-2.5 rounded-xl bg-slate-900/60 border border-slate-700/60 text-xs text-slate-400 flex items-start gap-2';
+
+  const pDawn = $('periodDawnVal'); if (pDawn) pDawn.innerText = '۰ GB';
+  const pDawnPct = $('periodDawnPercent'); if (pDawnPct) pDawnPct.innerText = '۰%';
+  const pMorn = $('periodMorningVal'); if (pMorn) pMorn.innerText = '۰ GB';
+  const pMornPct = $('periodMorningPercent'); if (pMornPct) pMornPct.innerText = '۰%';
+  const pAft = $('periodAfternoonVal'); if (pAft) pAft.innerText = '۰ GB';
+  const pAftPct = $('periodAfternoonPercent'); if (pAftPct) pAftPct.innerText = '۰%';
+  const pNgt = $('periodNightVal'); if (pNgt) pNgt.innerText = '۰ GB';
+  const pNgtPct = $('periodNightPercent'); if (pNgtPct) pNgtPct.innerText = '۰%';
 }
 window.resetActiveSubAnalytics = resetActiveSubAnalytics;
 
@@ -2548,15 +2621,33 @@ function renderActiveSubAnalytics(sub) {
 function hydrateUserInterface(data) {
   if (!data || typeof data !== 'object') return;
 
-  // --- Maintenance Check (Consistent with Bot Maintenance Mode) ---
+  // --- Maintenance & Invite-Only Gateways ---
   const maintScreen = $('systemMaintenanceScreen');
   if (data.is_maintenance && !data.user?.is_admin) {
     if (maintScreen) maintScreen.classList.remove('hidden');
-    const splash = $('splashScreen');
-    if (splash) splash.classList.add('hidden');
+    const splash = $('splashScreen'); if (splash) splash.classList.add('hidden');
+    $('topHeaderBar')?.classList.add('hidden');
+    $('bottomNavigationBar')?.classList.add('hidden');
+    document.querySelector('nav')?.classList.add('hidden');
+    $('mainContent')?.classList.add('hidden');
+    document.querySelector('main')?.classList.add('hidden');
     return;
   } else {
     if (maintScreen) maintScreen.classList.add('hidden');
+  }
+
+  const inviteScreen = $('systemInviteOnlyScreen');
+  if (data.is_invite_only && !data.user?.is_admin) {
+    if (inviteScreen) inviteScreen.classList.remove('hidden');
+    const splash = $('splashScreen'); if (splash) splash.classList.add('hidden');
+    $('topHeaderBar')?.classList.add('hidden');
+    $('bottomNavigationBar')?.classList.add('hidden');
+    document.querySelector('nav')?.classList.add('hidden');
+    $('mainContent')?.classList.add('hidden');
+    document.querySelector('main')?.classList.add('hidden');
+    return;
+  } else {
+    if (inviteScreen) inviteScreen.classList.add('hidden');
   }
 
   const safeStep = (stepName, fn) => {
@@ -3185,7 +3276,17 @@ function hydrateUserInterface(data) {
       if (repDateEl) repDateEl.innerText = `${toEnglishDigits(data.yesterday_jalali)} - 23:59`;
     }
 
-    if (sub) {
+    if (sub && data.has_active_sub) {
+      const weeklyCanvas = $('repWeeklyChartCanvas');
+      const weeklyEmpty = $('repWeeklyEmptyState');
+      if (weeklyCanvas) weeklyCanvas.classList.remove('hidden');
+      if (weeklyEmpty) weeklyEmpty.classList.add('hidden');
+
+      const monthlyCanvas = $('repMonthlyChartCanvas');
+      const monthlyEmpty = $('repMonthlyEmptyState');
+      if (monthlyCanvas) monthlyCanvas.classList.remove('hidden');
+      if (monthlyEmpty) monthlyEmpty.classList.add('hidden');
+
       const repTotal = $('repNightlyTotal');
       if (repTotal) repTotal.innerText = fmtTraffic(sub.traffic_total_gb, { html: false });
       const repUsed = $('repNightlyUsed');
@@ -3236,6 +3337,10 @@ function hydrateUserInterface(data) {
         renderActiveSubAnalytics(sub);
       } catch (e) {
         console.warn('Could not render active sub analytics:', e);
+      }
+    } else {
+      if (typeof resetActiveSubAnalytics === 'function') {
+        resetActiveSubAnalytics();
       }
     }
   });

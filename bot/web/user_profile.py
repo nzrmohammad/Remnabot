@@ -353,6 +353,17 @@ async def get_user_me(request: web.Request) -> web.Response:
         active_sub, has_active_sub, accounts_list = await _build_active_subscription(
             remnawave, panel_users, req_account_id, telegram_id, user_auth, session, tz_name, now_dt
         )
+        is_invite_only = False
+        is_adm = bool(user_auth.get("is_admin", False))
+        if not is_adm:
+            try:
+                store_sett = await get_store_settings(session)
+                if getattr(store_sett, "access_mode", "open") == "invite_only":
+                    is_invited = bool(getattr(db_user, "referred_by_id", None) or has_active_sub)
+                    if not is_invited:
+                        is_invite_only = True
+            except Exception as e:
+                logger.debug("Failed checking invite-only status: %s", e)
         transactions = await _fetch_transaction_history(session, telegram_id, tz_name)
         user_settings, active_won_coupons, wheel_status = await _fetch_user_perks_and_settings(
             session, cache, telegram_id, has_active_sub, db_user
@@ -425,6 +436,7 @@ async def get_user_me(request: web.Request) -> web.Response:
             "settings": user_settings,
             "accounts": accounts_list,
             "is_maintenance": maint_on,
+            "is_invite_only": is_invite_only,
             "active_sub": active_sub,
             "has_active_sub": has_active_sub,
             "today_jalali": today_jalali_str,

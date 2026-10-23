@@ -55,7 +55,7 @@
     <!-- ======================================================== -->
     <!-- 0.1 SYSTEM MAINTENANCE OVERLAY                          -->
     <!-- ======================================================== -->
-    <div id="systemMaintenanceScreen" class="absolute inset-0 bg-[#0f172a] z-[60] flex flex-col items-center justify-center p-6 text-center hidden animate-fadeIn">
+    <div id="systemMaintenanceScreen" class="hidden">
       <div class="relative mb-5">
         <div class="w-20 h-20 rounded-3xl bg-gradient-to-tr from-amber-500 via-orange-500 to-rose-500 flex items-center justify-center shadow-2xl shadow-orange-500/30">
           <span class="text-4xl animate-bounce">🚧</span>
@@ -68,6 +68,29 @@
       <div class="mt-6 flex flex-col gap-2 w-full max-w-[260px]">
         <button type="button" onclick="window.location.reload()" class="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs shadow-md transition active:scale-95">
           🔄 تلاش مجدد
+        </button>
+        <button type="button" onclick="if(window.Telegram?.WebApp?.close){window.Telegram.WebApp.close()}else{window.close()}" class="w-full py-2 px-4 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-300 text-xs font-semibold border border-slate-700 transition active:scale-95">
+          بستن برنامه
+        </button>
+      </div>
+    </div>
+
+    <!-- ======================================================== -->
+    <!-- 0.2 SYSTEM INVITE-ONLY OVERLAY                           -->
+    <!-- ======================================================== -->
+    <div id="systemInviteOnlyScreen" class="hidden">
+      <div class="relative mb-5">
+        <div class="w-20 h-20 rounded-3xl bg-gradient-to-tr from-cyan-500 via-blue-500 to-indigo-600 flex items-center justify-center shadow-2xl shadow-cyan-500/30">
+          <span class="text-4xl animate-pulse">🎟️</span>
+        </div>
+      </div>
+      <h2 class="text-lg font-black text-white tracking-wide">عضویت فقط با دعوت‌نامه</h2>
+      <p class="text-xs text-slate-300 mt-2 max-w-xs leading-relaxed">
+        ورود به سامانه در حال حاضر تنها برای اعضای دارای لینک دعوت امکان‌پذیر است. لطفاً از طریق لینک ارسالی دوستان خود وارد شوید یا با پشتیبانی تماس بگیرید.
+      </p>
+      <div class="mt-6 flex flex-col gap-2 w-full max-w-[260px]">
+        <button type="button" onclick="if(window.openSupportModal){window.openSupportModal()}else{window.location.reload()}" class="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-bold text-xs shadow-md transition active:scale-95 flex items-center justify-center gap-1.5">
+          <span>🎧 ارتباط با پشتیبانی</span>
         </button>
         <button type="button" onclick="if(window.Telegram?.WebApp?.close){window.Telegram.WebApp.close()}else{window.close()}" class="w-full py-2 px-4 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-300 text-xs font-semibold border border-slate-700 transition active:scale-95">
           بستن برنامه
@@ -481,8 +504,11 @@
           </div>
           <div class="pt-2 border-t border-slate-700/60">
             <span class="text-[11px] text-slate-400 font-medium block mb-2">نمودار مصرف روزانه (7 روز اخیر):</span>
-            <div class="h-36 w-full p-2 bg-transparent rounded-xl relative">
+            <div class="h-36 w-full p-2 bg-transparent rounded-xl relative flex items-center justify-center">
               <canvas id="repWeeklyChartCanvas" dir="ltr" class="w-full h-full"></canvas>
+              <div id="repWeeklyEmptyState" class="hidden text-center py-6 text-xs text-slate-400">
+                <span>ℹ️ اشتراک فعالی برای نمایش نمودار ۷ روز گذشته وجود ندارد.</span>
+              </div>
             </div>
           </div>
 
@@ -508,8 +534,11 @@
           <!-- Monthly 4-Week Chart (نمودار مصرف 4 هفته اخیر) -->
           <div class="pt-2 border-t border-slate-700/60">
             <span class="text-[11px] text-slate-400 font-medium block mb-2">نمودار مصرف 4 هفته اخیر (ماهانه):</span>
-            <div class="h-36 w-full p-1 bg-transparent rounded-xl relative">
+            <div class="h-36 w-full p-1 bg-transparent rounded-xl relative flex items-center justify-center">
               <canvas id="repMonthlyChartCanvas" dir="ltr" class="w-full h-full"></canvas>
+              <div id="repMonthlyEmptyState" class="hidden text-center py-6 text-xs text-slate-400">
+                <span>ℹ️ اشتراک فعالی برای نمایش نمودار ۴ هفته اخیر وجود ندارد.</span>
+              </div>
             </div>
           </div>
 

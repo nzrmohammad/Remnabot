@@ -283,20 +283,6 @@ Remnabot features a built-in, asynchronous, high-performance web service deliver
 1. **👤 Client Portal WebApp (`/app`)**: Visual bandwidth circular gauge, collapsible per-country daily traffic accordion, interactive Lucky Wheel (6-tier prizes with automatic Remnawave quota allocation), story card generator, 1-tap app importers (`Incy`, `Happ`, `v2rayNG`, `Hiddify`, `Streisand`), live node ping latency tester, and IP/DNS leak detector.
 2. **👑 Cluster Admin Suite (`/admin`)**: Real-time KPIs (total users, active subscriptions, today's revenue, cluster-wide bandwidth, online sessions), cluster node telemetry (CPU/RAM/Xray restart), instant user modifier (`+GB`, `+Days`, Kill HWID sessions, Ban toggle), support ticket desk, and instant broadcast messaging.
 
-```text
- ┌──────────────────────────┐       HTTPS       ┌────────────────────────┐       HTTP       ┌────────────────────────┐
- │   Telegram Mobile / Web  │──────────────────►│  Nginx Reverse Proxy   │─────────────────►│   remnawave-bot        │
- │  (Loads Mini App iframe) │                   │  Port 443 (SSL + CSP)  │  Port 8080       │   (aiohttp + aiogram)  │
- └──────────────────────────┘                   └────────────────────────┘                  └───────────┬────────────┘
-                                                                                                        │
-                                                                                    ┌───────────────────┴───────────────────┐
-                                                                                    ▼                                       ▼
-                                                                        ┌───────────────────────┐               ┌───────────────────────┐
-                                                                        │  FastCache (Memory)   │◄─────────────►│  remnawave-bot-redis  │
-                                                                        │  (Sub-ms L1 Cache)    │               │  (L2 Shared Cache)    │
-                                                                        └───────────────────────┘               └───────────────────────┘
-```
-
 #### 1. WebSocket Upgrade Mapping (`nginx.conf`):
 Ensure your Nginx configuration contains the `$connection_upgrade` map inside the top-level `http {}` block:
 

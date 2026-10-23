@@ -7,7 +7,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY bot/ ./bot/
 
-RUN useradd -m -u 10001 botuser && chown -R botuser:botuser /app
+RUN mkdir -p /app/backups /app/data &&     useradd -m -u 10001 botuser &&     chown -R botuser:botuser /app
 USER botuser
 
 # Liveness: bot/services heartbeat touches /tmp/bot_heartbeat every 60s.

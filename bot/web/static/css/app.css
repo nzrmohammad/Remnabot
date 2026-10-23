@@ -2349,3 +2349,26 @@ html.theme-light .wheel-streak-note {
   background-color: rgba(245, 158, 11, 0.12);
   border-color: rgba(217, 119, 6, 0.3);
 }
+
+/* Full-Screen System Screens (Maintenance & Invite-Only) */
+#systemMaintenanceScreen,
+#systemInviteOnlyScreen {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  background-color: #0b1120;
+  min-height: 100vh;
+  min-height: 100dvh;
+  width: 100vw;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  text-align: center;
+  overflow: hidden;
+}
+#systemMaintenanceScreen.hidden,
+#systemInviteOnlyScreen.hidden {
+  display: none;
+}

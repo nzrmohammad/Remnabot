@@ -2454,3 +2454,41 @@ def test_latest_ui_refinements():
     assert "getAdminCryptoRates(force" in api_js
     assert "force_refresh=force" in admin_api
     assert "refreshLiveCryptoRates(force = true)" in admin_js
+
+
+def test_backup_permissions_and_invite_and_chart_empty_states():
+    from pathlib import Path
+    html_text = Path("bot/web/templates/app.html").read_text(encoding="utf-8")
+    css_text = Path("bot/web/static/css/app.css").read_text(encoding="utf-8")
+    js_text = Path("bot/web/static/js/app.js").read_text(encoding="utf-8")
+    charts_js = Path("bot/web/static/js/charts.js").read_text(encoding="utf-8")
+    backup_py = Path("bot/services/backup.py").read_text(encoding="utf-8")
+    profile_py = Path("bot/web/user_profile.py").read_text(encoding="utf-8")
+    dockerfile = Path("Dockerfile").read_text(encoding="utf-8")
+
+    # 1. Dockerfile creates /app/backups and /app/data with botuser ownership
+    assert "mkdir -p /app/backups /app/data" in dockerfile
+    assert "botuser:botuser" in dockerfile
+
+    # 2. backup.py has writability check and fallback
+    assert 'target_dir = Path(tempfile.gettempdir()) / "backups"' in backup_py
+
+    # 3. HTML & CSS have fullscreen maintenance & invite-only overlays
+    assert 'id="systemMaintenanceScreen"' in html_text
+    assert 'id="systemInviteOnlyScreen"' in html_text
+    assert "#systemMaintenanceScreen" in css_text
+    assert "#systemInviteOnlyScreen" in css_text
+    assert "position: fixed;" in css_text
+
+    # 4. Weekly and monthly charts have clean empty state wrappers
+    assert 'id="repWeeklyEmptyState"' in html_text
+    assert 'id="repMonthlyEmptyState"' in html_text
+    assert "repWeeklyEmptyState" in js_text
+    assert "repMonthlyEmptyState" in js_text
+
+    # 5. Charts.js does not force fake 85/15 split
+    assert "splitData.download_percent || 0" in charts_js
+    assert "splitData.upload_percent || 0" in charts_js
+
+    # 6. user_profile.py includes is_invite_only
+    assert '"is_invite_only": is_invite_only' in profile_py

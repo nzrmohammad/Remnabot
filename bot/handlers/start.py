@@ -47,7 +47,14 @@ async def cmd_start(
                 if param.startswith("ref_") or param.startswith("ad_") or param.startswith("inv_"):
                     has_invite = True
             if not has_invite:
-                await message.answer(INVITE_ONLY_NOTICE)
+                from aiogram.utils.keyboard import InlineKeyboardBuilder
+                from bot.config import get_settings
+                kb = InlineKeyboardBuilder()
+                st = get_settings()
+                support_url = getattr(st, "SUPPORT_LINK", "") or getattr(store_settings, "support_link", "")
+                if support_url:
+                    kb.button(text="🎧 ارتباط با پشتیبانی", url=support_url)
+                await message.answer(INVITE_ONLY_NOTICE, reply_markup=kb.as_markup() if support_url else None)
                 return
 
     user = await user_repo.get_or_create(

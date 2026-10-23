@@ -522,8 +522,8 @@ function renderTrafficSplit(splitData) {
   if (!splitData) return;
   const downGb = splitData.download_gb ?? 0;
   const upGb = splitData.upload_gb ?? 0;
-  const downPct = splitData.download_percent ?? 85;
-  const upPct = splitData.upload_percent ?? 15;
+  const downPct = splitData.download_percent || 0;
+  const upPct = splitData.upload_percent || 0;
 
   const downGbEl = document.getElementById('repSplitDownGb');
   if (downGbEl) downGbEl.innerText = fmtTraffic(downGb, { html: false, isolate: true });
