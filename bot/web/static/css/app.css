@@ -49,6 +49,7 @@ html, body, button, input, optgroup, select, textarea, div, span, p, h1, h2, h3,
 }
 
 :root {
+  color-scheme: dark;
   /* Surface Tokens (Dark Default) */
   --page-bg: #080d1a;
   --frame-bg: #0f172a;
@@ -100,6 +101,7 @@ html, body, button, input, optgroup, select, textarea, div, span, p, h1, h2, h3,
 }
 
 html.theme-light {
+  color-scheme: light;
   /* Surface Tokens (Light Mode) */
   --page-bg: #f1f5f9;
   --frame-bg: #f8fafc;

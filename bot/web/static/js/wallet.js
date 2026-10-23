@@ -45,7 +45,13 @@ function renderWalletTransactions(transactions) {
   const startIdx = (currentWalletPage - 1) * TX_PER_PAGE;
   const pageItems = txList.slice(startIdx, startIdx + TX_PER_PAGE);
 
-  txContainer.innerHTML = pageItems.map(tx => `
+  txContainer.innerHTML = pageItems.map(tx => {
+    const statusColor = (tx.status_color === 'amber' || tx.status_color === 'yellow')
+      ? 'text-amber-400'
+      : ((tx.status_color === 'rose' || tx.status_color === 'red')
+        ? 'text-rose-400'
+        : (tx.status_color === 'slate' ? 'text-slate-400' : 'text-emerald-400'));
+    return `
     <div class="bg-transparent rounded-xl p-3 border border-slate-700/60 flex items-center justify-between text-xs">
       <div class="flex items-center gap-2.5">
         <span class="text-xl">${tx.type === 'topup' ? '💳' : (tx.type === 'admin_adjust' ? '⚡️' : '🛒')}</span>
@@ -60,12 +66,13 @@ function renderWalletTransactions(transactions) {
           <span class="font-mono text-sm leading-none font-bold">${tx.is_positive ? '+' : '-'}</span>
           <span class="font-sans text-[10px] text-slate-400 font-normal">تومان</span>
         </div>
-        <span class="text-[10px] text-${tx.status_color || 'emerald'}-400 font-sans block">
+        <span class="text-[10px] ${statusColor} font-sans block">
           ${escapeHtml(tx.status || 'موفق')}
         </span>
       </div>
     </div>
-  `).join('');
+  `;
+  }).join('');
 
   // Pagination Controls
   let pagEl = document.getElementById('walletTxPagination');

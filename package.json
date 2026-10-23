@@ -1,0 +1,16 @@
+{
+  "name": "remnabot-tma",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Telegram Mini App and Admin Dashboard for Remnabot",
+  "scripts": {
+    "build:css": "tailwindcss -i ./bot/web/static/css/tailwind-input.css -o ./bot/web/static/css/tailwind.min.css --minify",
+    "watch:css": "tailwindcss -i ./bot/web/static/css/tailwind-input.css -o ./bot/web/static/css/tailwind.min.css --watch",
+    "test:js": "node tests/js/fmt.test.js"
+  },
+  "devDependencies": {
+    "autoprefixer": "^10.4.20",
+    "postcss": "^8.4.49",
+    "tailwindcss": "^3.4.17"
+  }
+}

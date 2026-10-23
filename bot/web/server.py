@@ -252,7 +252,7 @@ _VERSIONED_HTML_CACHE: dict[str, tuple[str, float]] = {}
 
 
 def get_static_asset_version() -> str:
-    """Calculate asset version token from latest mtime of CSS/JS files (cached for 5s)."""
+    """Calculate asset version token from hash of CSS/JS files (cached for 5s)."""
     global _STATIC_VERSION_CACHE
     now = time.time()
     cached_ver, last_checked = _STATIC_VERSION_CACHE
@@ -261,16 +261,20 @@ def get_static_asset_version() -> str:
 
     try:
         if STATIC_DIR.exists():
-            latest_mtime = max(
-                f.stat().st_mtime
-                for f in STATIC_DIR.rglob("*")
-                if f.is_file() and f.suffix in {".css", ".js"}
+            import hashlib
+            hasher = hashlib.sha256()
+            key_files = sorted(
+                f for f in STATIC_DIR.rglob("*")
+                if f.is_file() and f.suffix in {".css", ".js"} and not f.name.startswith(".")
             )
-            version = hex(int(latest_mtime))[2:]
+            for kf in key_files:
+                hasher.update(str(kf.stat().st_mtime).encode())
+                hasher.update(str(kf.stat().st_size).encode())
+            version = hasher.hexdigest()[:10]
         else:
-            version = "60.0"
+            version = "hashv100"
     except Exception:
-        version = "60.0"
+        version = "hashv100"
 
     _STATIC_VERSION_CACHE = (version, now)
     return version

@@ -5410,12 +5410,17 @@
 
       const activeEl = $(`accessOpt-${mode}`);
       if (activeEl) {
-        const color = mode === 'open' ? 'emerald' : (mode === 'invite_only' ? 'cyan' : 'rose');
-        activeEl.classList.add(`border-${color}-500`, `bg-${color}-500/10`);
+        const modeClasses = {
+          open: { border: 'border-emerald-500', bg: 'bg-emerald-500/10', radio: 'border-emerald-400' },
+          invite_only: { border: 'border-cyan-500', bg: 'bg-cyan-500/10', radio: 'border-cyan-400' },
+          closed: { border: 'border-rose-500', bg: 'bg-rose-500/10', radio: 'border-rose-400' },
+        };
+        const cls = modeClasses[mode] || modeClasses.closed;
+        activeEl.classList.add(cls.border, cls.bg);
         const dot = activeEl.querySelector('.radio-dot');
         if (dot) dot.classList.remove('hidden');
         const radio = activeEl.querySelector('.radio-check');
-        if (radio) radio.classList.add(`border-${color}-400`);
+        if (radio) radio.classList.add(cls.radio);
       }
     },
 
