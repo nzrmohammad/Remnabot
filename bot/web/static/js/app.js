@@ -2650,33 +2650,42 @@ function hydrateUserInterface(data) {
     else inviteSupportBox.classList.add('hidden');
   }
 
-  // --- Maintenance & Invite-Only Gateways ---
+  // --- Maintenance & Invite-Only Gateways (Unified Experience) ---
+  const isBlocked = (data.is_maintenance || data.is_invite_only) && !data.user?.is_admin;
   const maintScreen = $('systemMaintenanceScreen');
+  const inviteScreen = $('systemInviteOnlyScreen');
+
   if (data.is_maintenance && !data.user?.is_admin) {
     if (maintScreen) maintScreen.classList.remove('hidden');
-    const splash = $('splashScreen'); if (splash) splash.classList.add('hidden');
-    $('topHeaderBar')?.classList.add('hidden');
-    $('bottomNavigationBar')?.classList.add('hidden');
-    document.querySelector('nav')?.classList.add('hidden');
-    $('mainContent')?.classList.add('hidden');
-    document.querySelector('main')?.classList.add('hidden');
-    return;
+    if (inviteScreen) inviteScreen.classList.add('hidden');
+  } else if (data.is_invite_only && !data.user?.is_admin) {
+    if (inviteScreen) inviteScreen.classList.remove('hidden');
+    if (maintScreen) maintScreen.classList.add('hidden');
   } else {
     if (maintScreen) maintScreen.classList.add('hidden');
+    if (inviteScreen) inviteScreen.classList.add('hidden');
   }
 
-  const inviteScreen = $('systemInviteOnlyScreen');
-  if (data.is_invite_only && !data.user?.is_admin) {
-    if (inviteScreen) inviteScreen.classList.remove('hidden');
+  if (isBlocked) {
     const splash = $('splashScreen'); if (splash) splash.classList.add('hidden');
-    $('topHeaderBar')?.classList.add('hidden');
+    $('topHeaderBar')?.classList.remove('hidden');
     $('bottomNavigationBar')?.classList.add('hidden');
     document.querySelector('nav')?.classList.add('hidden');
-    $('mainContent')?.classList.add('hidden');
-    document.querySelector('main')?.classList.add('hidden');
+    document.querySelectorAll('.tab-pane').forEach(el => el.classList.add('hidden'));
+
+    // Populate user identity in header so avatar and username are shown cleanly
+    const user = data.user || {};
+    const tgUser = window.Telegram?.WebApp?.initDataUnsafe?.user;
+    const sub = data.active_sub;
+    const avatarEl = $('headerUserAvatarInitial') || $('headerUserAvatar');
+    if (avatarEl) {
+      avatarEl.innerText = (user.first_name || user.username || tgUser?.first_name || tgUser?.username || 'U')[0].toUpperCase();
+    }
+    const usernameEl = $('headerUsername');
+    if (usernameEl) {
+      usernameEl.innerText = sub?.username || user.username || user.first_name || tgUser?.username || tgUser?.first_name || 'کاربر';
+    }
     return;
-  } else {
-    if (inviteScreen) inviteScreen.classList.add('hidden');
   }
 
   const safeStep = (stepName, fn) => {

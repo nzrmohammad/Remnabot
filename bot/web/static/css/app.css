@@ -2327,25 +2327,49 @@ html.theme-light .wheel-streak-note {
   border-color: rgba(217, 119, 6, 0.3);
 }
 
-/* Full-Screen System Screens (Maintenance & Invite-Only) */
+/* Unified System Screens (Maintenance & Invite-Only) */
 #systemMaintenanceScreen,
 #systemInviteOnlyScreen {
-  position: fixed;
-  inset: 0;
-  z-index: 99999;
-  background-color: #0b1120;
-  min-height: 100vh;
-  min-height: 100dvh;
-  width: 100vw;
+  min-height: calc(75vh - var(--tg-safe-area-inset-top, 0px));
+  width: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 1.5rem;
+  padding: 1.5rem 0.5rem;
   text-align: center;
-  overflow: hidden;
+  position: relative;
 }
 #systemMaintenanceScreen.hidden,
 #systemInviteOnlyScreen.hidden {
   display: none;
+}
+
+/* Light Mode Overrides for Unified System Screens */
+html.theme-light .system-status-card {
+  background-color: var(--card-bg);
+  border-color: var(--card-border);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
+}
+html.theme-light .system-status-card h2 {
+  color: var(--text-main);
+}
+html.theme-light .system-status-card p {
+  color: var(--text-muted);
+}
+html.theme-light .system-status-card .status-pill-maint {
+  color: var(--c-warn);
+  background-color: rgba(245, 158, 11, 0.1);
+  border-color: rgba(245, 158, 11, 0.25);
+}
+html.theme-light .system-status-card .status-pill-invite {
+  color: var(--c-accent);
+  background-color: rgba(14, 165, 233, 0.1);
+  border-color: rgba(14, 165, 233, 0.25);
+}
+
+/* Toast Container Floating Fixed Position */
+#toastContainer {
+  position: fixed;
+  z-index: 10000;
 }
