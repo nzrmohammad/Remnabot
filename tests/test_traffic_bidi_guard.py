@@ -13,6 +13,12 @@ FRONTEND_JS_DIR = Path("bot/web/static/js")
 CHECKED_FILES = [
     "app.js",
     "admin.js",
+    "admin_charts.js",
+    "admin_nodes.js",
+    "admin_plans.js",
+    "admin_finance.js",
+    "admin_users.js",
+    "admin_settings.js",
     "charts.js",
     "shop.js",
     "story.js",
