@@ -3,6 +3,32 @@
    Contains: Speedtest canvas, Shop Badges, Birthday Grid, System Screens
    ========================================================================== */
 
+/* --- Transitional Safety Umbrella (Prevents white-on-white & dark blobs during markup migration) --- */
+html.theme-light .card :not(.btn):not(.badge):not(.shop-plan-badge).text-white,
+html.theme-light .card-inset :not(.btn):not(.badge):not(.shop-plan-badge).text-white,
+html.theme-light .modal-card :not(.btn):not(.badge):not(.shop-plan-badge).text-white {
+  color: var(--text-main);
+}
+
+html.theme-light .card :not(.btn):not(.badge).text-slate-200,
+html.theme-light .card :not(.btn):not(.badge).text-slate-300,
+html.theme-light .card-inset :not(.btn):not(.badge).text-slate-200,
+html.theme-light .card-inset :not(.btn):not(.badge).text-slate-300,
+html.theme-light .modal-card :not(.btn):not(.badge).text-slate-200,
+html.theme-light .modal-card :not(.btn):not(.badge).text-slate-300 {
+  color: var(--text-muted);
+}
+
+html.theme-light .bg-\[\#131d31\],
+html.theme-light .bg-\[\#131d31\]\/95 {
+  background-color: var(--card-bg);
+  border-color: var(--card-border);
+}
+
+html.theme-light .settings-box {
+  background-color: var(--card-bg);
+  border-color: var(--card-border);
+}
 
 /* Badges inside shop cards: Luminous & high-contrast in both themes */
 .shop-plan-badge,

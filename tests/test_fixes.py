@@ -2391,7 +2391,7 @@ def test_parse_subscription_text_enhanced():
 def test_ui_improvements_verification():
     from pathlib import Path
     html_text = Path("bot/web/templates/app.html").read_text(encoding="utf-8")
-    css_text = Path("bot/web/static/css/app.css").read_text(encoding="utf-8")
+    css_text = Path("bot/web/static/css/app.css").read_text(encoding="utf-8") + Path("bot/web/static/css/components.css").read_text(encoding="utf-8")
     js_text = Path("bot/web/static/js/app.js").read_text(encoding="utf-8")
 
     # 1. Birthday picker is 4-column compact grid with smooth scrollable panes

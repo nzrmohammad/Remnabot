@@ -8,8 +8,8 @@
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <link rel="stylesheet" href="/static/css/tokens.css">
   <link rel="stylesheet" href="/static/css/base.css">
-  <link rel="stylesheet" href="/static/css/components.css">
   <link rel="stylesheet" href="/static/css/tailwind.min.css">
+  <link rel="stylesheet" href="/static/css/components.css">
   <script>
     try {
       var savedTheme = localStorage.getItem('remna_user_theme');
@@ -73,7 +73,7 @@
     <!-- ======================================================== -->
     <!-- 1. TELEGRAM WEBAPP TOP HEADER (UNIFIED & RESPONSIVE)      -->
     <!-- ======================================================== -->
-    <div id="topHeaderBar" class="bg-[#131d31]/95 backdrop-blur-md border-b border-slate-700/60 px-4 pt-[max(1.125rem,calc(var(--tg-content-safe-area-inset-top,var(--tg-safe-area-inset-top,env(safe-area-inset-top,0px)))+8px))] pb-2.5 flex items-center justify-between z-20 transition-all duration-200">
+    <div id="topHeaderBar" class="top-nav-bar px-4 pt-[max(1.125rem,calc(var(--tg-content-safe-area-inset-top,var(--tg-safe-area-inset-top,env(safe-area-inset-top,0px)))+8px))] pb-2.5 flex items-center justify-between z-20 transition-all duration-200">
       <!-- Right Side (in RTL): Avatar + Active Account + Switch Btn -->
       <div class="flex items-center gap-2 min-w-0">
         <div id="headerUserAvatar" class="w-7 h-7 rounded-full bg-gradient-to-tr from-blue-500 to-indigo-500 flex items-center justify-center text-xs font-bold text-white shadow overflow-hidden flex-shrink-0">
@@ -504,18 +504,18 @@
         <!-- 1. Nightly Report Card (مشابه هفتگی و ماهانه) -->
         <div id="viewRepNightly" class="card p-4 space-y-3 shadow-md">
           <div class="flex justify-between items-center border-b border-slate-700/60 pb-2">
-            <span class="text-xs font-bold text-white flex items-center gap-1.5">
+            <span class="text-xs font-bold t-main flex items-center gap-1.5">
               <span>🌙</span> گزارش شبانه
             </span>
             <span id="repNightlyDate" class="text-[11px] font-mono text-slate-400">--/--/-- - 23:59</span>
           </div>
 
-          <div class="space-y-1.5 text-xs text-slate-300">
-            <div class="flex justify-between"><span>📊 حجم کل بسته :</span><b id="repNightlyTotal" class="font-mono text-white num-bidi" dir="ltr">-- GB</b></div>
+          <div class="space-y-1.5 text-xs t-muted">
+            <div class="flex justify-between"><span>📊 حجم کل بسته :</span><b id="repNightlyTotal" class="font-mono t-main num-bidi" dir="ltr">-- GB</b></div>
             <div class="flex justify-between"><span>🔥 حجم مصرف‌شده :</span><b id="repNightlyUsed" class="font-mono text-amber-400 num-bidi" dir="ltr">-- GB</b></div>
             <div class="flex justify-between"><span>📥 حجم باقیمانده :</span><b id="repNightlyRemain" class="font-mono text-emerald-400 num-bidi" dir="ltr">-- GB</b></div>
             <div class="flex justify-between"><span>⚡️ مجموع مصرف دیشب :</span><b id="repNightlyYesterday" class="font-mono text-cyan-400 text-sm num-bidi" dir="ltr">0.00 GB</b></div>
-            <div class="flex justify-between"><span>📅 انقضا :</span><span id="repNightlyExpire" class="font-semibold text-slate-200">--</span></div>
+            <div class="flex justify-between"><span>📅 انقضا :</span><span id="repNightlyExpire" class="font-semibold t-main">--</span></div>
           </div>
 
           <!-- Nightly Per-Server Breakdown (تفکیک مصرف سرورها) -->
@@ -530,12 +530,12 @@
         <!-- 2. Weekly Report Card -->
         <div id="viewRepWeekly" class="card p-4 space-y-3 shadow-md hidden">
           <div class="flex justify-between items-center border-b border-slate-700/60 pb-2">
-            <span class="text-xs font-bold text-white flex items-center gap-1">📊 گزارش جامع 7 روز گذشته</span>
+            <span class="text-xs font-bold t-main flex items-center gap-1">📊 گزارش جامع 7 روز گذشته</span>
             <span class="text-[11px] font-mono text-slate-400">7 روز اخیر</span>
           </div>
-          <div class="space-y-1.5 text-xs text-slate-300">
+          <div class="space-y-1.5 text-xs t-muted">
             <div class="flex justify-between"><span>⚡️ کل مصرف این هفته :</span><b id="repWeeklyTotal" class="font-mono text-blue-400 text-sm num-bidi" dir="ltr">-- GB</b></div>
-            <div class="flex justify-between"><span>🏆 پرمصرف‌ترین روز شما :</span><span id="repWeeklyBusiest" class="font-bold text-white">—</span></div>
+            <div class="flex justify-between"><span>🏆 پرمصرف‌ترین روز شما :</span><span id="repWeeklyBusiest" class="font-bold t-main">—</span></div>
           </div>
           <div class="pt-2 border-t border-slate-700/60">
             <span class="text-[11px] text-slate-400 font-medium block mb-2">نمودار مصرف روزانه (7 روز اخیر):</span>
@@ -557,12 +557,12 @@
         </div>
 
         <!-- 3. Monthly Report Card -->
-        <div id="viewRepMonthly" class="bg-slate-800/90 rounded-2xl p-4 border border-slate-700/80 space-y-3 shadow-md hidden">
+        <div id="viewRepMonthly" class="card p-4 space-y-3 shadow-md hidden">
           <div class="flex justify-between items-center border-b border-slate-700/60 pb-2">
-            <span id="repMonthlyTitle" class="text-xs font-bold text-white flex items-center gap-1">📅 گزارش جامع ماهانه</span>
+            <span id="repMonthlyTitle" class="text-xs font-bold t-main flex items-center gap-1">📅 گزارش جامع ماهانه</span>
             <span class="text-[11px] font-mono text-slate-400">ماه جاری</span>
           </div>
-          <div class="space-y-1.5 text-xs text-slate-300">
+          <div class="space-y-1.5 text-xs t-muted">
             <div class="flex justify-between"><span>⚡️ کل مصرف ماهانه اکانت :</span><b id="repMonthlyTotal" class="font-mono text-purple-400 text-sm num-bidi" dir="ltr">-- GB</b></div>
           </div>
 

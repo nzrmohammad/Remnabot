@@ -226,23 +226,18 @@
 
     if (window.hapticFeedback) window.hapticFeedback('selection');
 
-    if (subtab === 'plans') {
-      btnPlans?.classList.add('bg-blue-600', 'text-white', 'shadow');
-      btnPlans?.classList.remove('text-slate-400', 'hover:text-slate-200');
-      btnCoupons?.classList.remove('bg-purple-600', 'bg-blue-600', 'text-white', 'shadow');
-      btnCoupons?.classList.add('text-slate-400', 'hover:text-slate-200');
+    const isPlans = subtab === 'plans';
+    btnPlans?.classList.toggle('is-active', isPlans);
+    btnPlans?.setAttribute('aria-selected', isPlans ? 'true' : 'false');
+    btnCoupons?.classList.toggle('is-active', !isPlans);
+    btnCoupons?.setAttribute('aria-selected', !isPlans ? 'true' : 'false');
 
-      contentPlans?.classList.remove('hidden');
-      contentCoupons?.classList.add('hidden');
+    contentPlans?.classList.toggle('hidden', !isPlans);
+    contentCoupons?.classList.toggle('hidden', isPlans);
+
+    if (isPlans) {
       if (typeof fetchAdminPlans === 'function') fetchAdminPlans();
     } else {
-      btnCoupons?.classList.add('bg-purple-600', 'text-white', 'shadow');
-      btnCoupons?.classList.remove('text-slate-400', 'hover:text-slate-200');
-      btnPlans?.classList.remove('bg-blue-600', 'text-white', 'shadow');
-      btnPlans?.classList.add('text-slate-400', 'hover:text-slate-200');
-
-      contentCoupons?.classList.remove('hidden');
-      contentPlans?.classList.add('hidden');
       if (typeof fetchAdminCoupons === 'function') fetchAdminCoupons();
     }
   };
@@ -256,23 +251,18 @@
 
     if (window.hapticFeedback) window.hapticFeedback('selection');
 
-    if (subtab === 'topups') {
-      btnTopups?.classList.add('bg-blue-600', 'text-white', 'shadow');
-      btnTopups?.classList.remove('text-slate-400', 'hover:text-slate-200');
-      btnCampaigns?.classList.remove('bg-blue-600', 'text-white', 'shadow');
-      btnCampaigns?.classList.add('text-slate-400', 'hover:text-slate-200');
+    const isTopups = subtab === 'topups';
+    btnTopups?.classList.toggle('is-active', isTopups);
+    btnTopups?.setAttribute('aria-selected', isTopups ? 'true' : 'false');
+    btnCampaigns?.classList.toggle('is-active', !isTopups);
+    btnCampaigns?.setAttribute('aria-selected', !isTopups ? 'true' : 'false');
 
-      contentTopups?.classList.remove('hidden');
-      contentCampaigns?.classList.add('hidden');
+    contentTopups?.classList.toggle('hidden', !isTopups);
+    contentCampaigns?.classList.toggle('hidden', isTopups);
+
+    if (isTopups) {
       if (typeof fetchAdminTopups === 'function') fetchAdminTopups();
     } else {
-      btnCampaigns?.classList.add('bg-blue-600', 'text-white', 'shadow');
-      btnCampaigns?.classList.remove('text-slate-400', 'hover:text-slate-200');
-      btnTopups?.classList.remove('bg-blue-600', 'text-white', 'shadow');
-      btnTopups?.classList.add('text-slate-400', 'hover:text-slate-200');
-
-      contentCampaigns?.classList.remove('hidden');
-      contentTopups?.classList.add('hidden');
       if (window.adminActions && typeof window.adminActions.fetchAdminCampaigns === 'function') {
         window.adminActions.fetchAdminCampaigns();
       }
@@ -6528,23 +6518,20 @@
     const contentServers = $('subtabContentNodesServers');
     const contentSsl = $('subtabContentNodesSsl');
 
-    if (subtab === 'ssl') {
-      btnServers?.classList.remove('bg-blue-600', 'bg-indigo-600', 'text-white', 'shadow');
-      btnServers?.classList.add('text-slate-400', 'hover:text-slate-200');
-      btnSsl?.classList.add('bg-blue-600', 'text-white', 'shadow');
-      btnSsl?.classList.remove('text-slate-400', 'hover:text-slate-200');
-      contentServers?.classList.add('hidden');
-      contentSsl?.classList.remove('hidden');
-      fetchAdminSslHealth();
-    } else {
-      btnSsl?.classList.remove('bg-blue-600', 'bg-indigo-600', 'text-white', 'shadow');
-      btnSsl?.classList.add('text-slate-400', 'hover:text-slate-200');
-      btnServers?.classList.add('bg-blue-600', 'text-white', 'shadow');
-      btnServers?.classList.remove('text-slate-400', 'hover:text-slate-200');
-      contentSsl?.classList.add('hidden');
-      contentServers?.classList.remove('hidden');
-    }
     if (window.hapticFeedback) window.hapticFeedback('selection');
+
+    const isSsl = subtab === 'ssl';
+    btnServers?.classList.toggle('is-active', !isSsl);
+    btnServers?.setAttribute('aria-selected', !isSsl ? 'true' : 'false');
+    btnSsl?.classList.toggle('is-active', isSsl);
+    btnSsl?.setAttribute('aria-selected', isSsl ? 'true' : 'false');
+
+    contentServers?.classList.toggle('hidden', isSsl);
+    contentSsl?.classList.toggle('hidden', !isSsl);
+
+    if (isSsl) {
+      fetchAdminSslHealth();
+    }
   };
 
   const handleAddSslDomain = async () => {

@@ -90,3 +90,50 @@ def test_design_system_core_tokens_and_fonts():
 
     base_content = BASE_CSS_PATH.read_text(encoding="utf-8")
     assert "unicode-range" in base_content, "Missing unicode-range splitting in base.css font-face!"
+
+
+def test_css_loading_cascade_order():
+    """Ensure stylesheet cascade order in HTML templates is strictly:
+    tokens -> base -> tailwind -> components -> app
+    This prevents Tailwind utilities from accidentally overriding tokenized components."""
+    for html_path in [APP_HTML_PATH, ADMIN_HTML_PATH]:
+        content = html_path.read_text(encoding="utf-8")
+        tokens_idx = content.find("tokens.css")
+        base_idx = content.find("base.css")
+        tailwind_idx = content.find("tailwind.min.css")
+        components_idx = content.find("components.css")
+        app_idx = content.find("app.css")
+
+        assert tokens_idx != -1 and base_idx != -1 and tailwind_idx != -1 and components_idx != -1 and app_idx != -1, (
+            f"Missing stylesheet link in {html_path.name}"
+        )
+        assert tokens_idx < base_idx < tailwind_idx < components_idx < app_idx, (
+            f"Incorrect CSS cascade order in {html_path.name}! "
+            "Must be tokens.css -> base.css -> tailwind.min.css -> components.css -> app.css"
+        )
+
+
+def _relative_luminance(hex_color: str) -> float:
+    """Calculate relative luminance per W3C WCAG 2.1 specification."""
+    hex_color = hex_color.lstrip("#")
+    r, g, b = (int(hex_color[i:i+2], 16) / 255.0 for i in (0, 2, 4))
+    def _gamma(c):
+        return c / 12.92 if c <= 0.03928 else ((c + 0.055) / 1.055) ** 2.4
+    return 0.2126 * _gamma(r) + 0.7152 * _gamma(g) + 0.0722 * _gamma(b)
+
+
+def test_light_mode_accent_wcag_aa_contrast():
+    """Ensure light-theme --c-accent satisfies WCAG AA contrast ratio (>= 4.5:1 against #ffffff)."""
+    tokens_content = TOKENS_CSS_PATH.read_text(encoding="utf-8")
+    m = re.search(r"html\.theme-light\s*\{[^}]*--c-accent:\s*(#[a-fA-F0-9]{6})", tokens_content)
+    assert m, "Could not find html.theme-light --c-accent hex in tokens.css!"
+    accent_hex = m.group(1)
+
+    lum_white = 1.0  # #ffffff relative luminance
+    lum_accent = _relative_luminance(accent_hex)
+    contrast = (lum_white + 0.05) / (lum_accent + 0.05)
+
+    assert contrast >= 4.5, (
+        f"Light theme --c-accent ({accent_hex}) contrast ratio against white is {contrast:.2f}:1, "
+        "failing WCAG AA minimum of 4.5:1!"
+    )

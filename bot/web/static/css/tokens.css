@@ -102,11 +102,11 @@ html.theme-light {
   --text-inverse: #f8fafc;
 
   /* Interactive Accent */
-  --c-accent: #0284c7;                 /* sky-600 */
-  --c-accent-hover: #0369a1;           /* sky-700 */
-  --c-accent-soft: rgba(2, 132, 199, 0.08);
-  --c-accent-border: rgba(2, 132, 199, 0.25);
-  --c-accent-solid: #0284c7;
+  --c-accent: #0369a1;                 /* sky-700 (5.93:1 on #ffffff - WCAG AA compliant) */
+  --c-accent-hover: #075985;           /* sky-800 */
+  --c-accent-soft: rgba(3, 105, 161, 0.08);
+  --c-accent-border: rgba(3, 105, 161, 0.25);
+  --c-accent-solid: #0369a1;
 
   /* Semantic Status Tokens (Light Mode Contrast) */
   --c-success: #047857;                /* emerald-700 */
