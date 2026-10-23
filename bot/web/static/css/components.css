@@ -33,15 +33,17 @@
 
 /* Surface Contracts: Immersive Dark Game/Media Canvas */
 .surface-dark,
-.on-dark {
-  background-color: #0f172a;
-  color: #ffffff;
-}
-
+.on-dark,
 html.theme-light .surface-dark,
 html.theme-light .on-dark {
   background-color: #0f172a;
   color: #ffffff;
+  --text-main: #f8fafc;
+  --text-muted: #94a3b8;
+  --text-subtle: #64748b;
+  --card-bg: #1e293b;
+  --card-inner-bg: #0f172a;
+  --card-border: rgba(51, 65, 85, 0.8);
 }
 
 html.theme-light .surface-dark *,
