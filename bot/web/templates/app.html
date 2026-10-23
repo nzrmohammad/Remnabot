@@ -249,7 +249,7 @@
         </div>
 
         <!-- Empty State Card (When no active subscription exists) -->
-        <div id="dashboardNoSubCard" class="hidden bg-gradient-to-b from-slate-800/95 via-slate-800/80 to-indigo-950/40 rounded-2xl p-4 border border-slate-700/80 shadow-2xl text-center relative overflow-hidden space-y-2.5">
+        <div id="dashboardNoSubCard" class="hidden card p-4 shadow-2xl text-center relative overflow-hidden space-y-2.5">
           <!-- Ambient Glow Accents -->
           <div class="absolute -top-12 -right-12 w-32 h-32 bg-indigo-500/10 rounded-full blur-2xl pointer-events-none"></div>
           <div class="absolute -bottom-10 -left-10 w-32 h-32 bg-cyan-500/10 rounded-full blur-2xl pointer-events-none"></div>
@@ -302,7 +302,7 @@
         </div>
 
         <!-- Circular Bandwidth Gauge Card -->
-        <div id="dashboardSubGaugeCard" class="bg-slate-800/85 rounded-3xl p-5 border border-slate-700/80 shadow-xl relative overflow-hidden">
+        <div id="dashboardSubGaugeCard" class="card p-5 shadow-xl relative overflow-hidden">
           <div class="flex justify-between items-center mb-2">
             <span class="text-xs text-slate-400 font-semibold flex items-center gap-1">
               <span>⚡️</span> ترافیک کل سرویس
@@ -354,7 +354,7 @@
         </div>
 
         <!-- Today's Per-Country Breakdown Card (Accordion Collapsible) -->
-        <div id="dashboardCountryBreakdownCard" class="bg-slate-800/85 rounded-2xl border border-slate-700/80 shadow-md overflow-hidden transition-all duration-300">
+        <div id="dashboardCountryBreakdownCard" class="card shadow-md overflow-hidden transition-all duration-300">
           <!-- Accordion Header Button -->
           <button id="toggleCountryBreakdownBtn" class="w-full p-4 flex justify-between items-center text-right hover:bg-slate-700/40 transition active:scale-[0.99]">
             <div class="flex items-center gap-2">
@@ -377,7 +377,7 @@
         </div>
 
         <!-- Subscription Accordion Card (کادر بازشونده لینک اشتراک) -->
-        <div id="dashboardSubAccordionCard" class="bg-slate-800/85 rounded-2xl border border-slate-700/80 shadow-md overflow-hidden transition-all duration-300">
+        <div id="dashboardSubAccordionCard" class="card shadow-md overflow-hidden transition-all duration-300">
           <!-- Accordion Header Button -->
           <button id="toggleSubAccordionBtn" class="w-full p-4 flex justify-between items-center text-right hover:bg-slate-700/40 transition active:scale-[0.99]">
             <div class="flex items-center gap-2">
@@ -462,7 +462,7 @@
       <div id="tab-reports" class="tab-pane space-y-4 hidden">
         
         <!-- ACTIVE DEVICES ACCORDION (کادری که باز می‌شود) -->
-        <div class="bg-slate-800/85 rounded-2xl border border-slate-700/80 shadow-md overflow-hidden transition-all duration-300">
+        <div class="card shadow-md overflow-hidden transition-all duration-300">
           <button id="toggleSessionsAccordionBtn" class="w-full p-4 flex justify-between items-center text-right hover:bg-slate-700/40 transition active:scale-[0.99]">
             <div class="flex items-center gap-2">
               <span id="sessionsChevron" class="text-xs text-slate-400 transition-transform duration-300 transform">◀</span>
@@ -502,7 +502,7 @@
         </div>
 
         <!-- 1. Nightly Report Card (مشابه هفتگی و ماهانه) -->
-        <div id="viewRepNightly" class="bg-slate-800/90 rounded-2xl p-4 border border-slate-700/80 space-y-3 shadow-md">
+        <div id="viewRepNightly" class="card p-4 space-y-3 shadow-md">
           <div class="flex justify-between items-center border-b border-slate-700/60 pb-2">
             <span class="text-xs font-bold text-white flex items-center gap-1.5">
               <span>🌙</span> گزارش شبانه
@@ -528,7 +528,7 @@
         </div>
 
         <!-- 2. Weekly Report Card -->
-        <div id="viewRepWeekly" class="bg-slate-800/90 rounded-2xl p-4 border border-slate-700/80 space-y-3 shadow-md hidden">
+        <div id="viewRepWeekly" class="card p-4 space-y-3 shadow-md hidden">
           <div class="flex justify-between items-center border-b border-slate-700/60 pb-2">
             <span class="text-xs font-bold text-white flex items-center gap-1">📊 گزارش جامع 7 روز گذشته</span>
             <span class="text-[11px] font-mono text-slate-400">7 روز اخیر</span>
@@ -772,7 +772,7 @@
         <div id="shopCouponSection" class="space-y-2 hidden">
           <div class="bg-slate-800/60 rounded-xl p-2.5 border border-slate-700/60 flex items-center gap-2">
             <input type="text" placeholder="کد تخفیف (مثال: OFF20)" class="bg-slate-900 text-xs px-3 py-2 rounded-lg border border-slate-700 flex-1 outline-none text-slate-200 uppercase font-mono" id="couponInput" />
-            <button id="applyCouponBtn" type="button" class="bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold px-4 py-2 rounded-lg transition active:scale-95 shadow shrink-0">اعمال</button>
+            <button id="applyCouponBtn" type="button" class="btn btn-primary text-xs font-semibold px-4 py-2 rounded-lg shadow shrink-0">اعمال</button>
           </div>
 
           <!-- Won Lucky Wheel Coupons (User Active Discounts) -->
@@ -790,7 +790,7 @@
       <!-- ===================================================== -->
       <div id="tab-wallet" class="tab-pane space-y-4 hidden">
         <!-- Balance Card -->
-        <div class="wallet-hero-card bg-gradient-to-br from-slate-800 via-indigo-950/60 to-slate-900 rounded-3xl p-5 border border-indigo-500/40 shadow-xl relative overflow-hidden text-center space-y-3">
+        <div class="wallet-hero-card card p-5 shadow-xl relative overflow-hidden text-center space-y-3">
           <div class="flex justify-between items-center text-xs text-slate-400">
             <span class="flex items-center gap-1.5 font-medium">
               <span>👛</span> موجودی کیف پول شما
@@ -808,14 +808,14 @@
             <button id="chargeWalletBtn" class="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs py-2.5 rounded-xl transition shadow active:scale-95 flex items-center justify-center gap-1.5">
               <span>💳</span> شارژ کیف پول
             </button>
-            <button id="gotoShopFromWallet" class="bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-xs py-2.5 rounded-xl transition border border-slate-700 active:scale-95 flex items-center justify-center gap-1.5">
+            <button id="gotoShopFromWallet" class="btn btn-secondary text-xs py-2.5 flex items-center justify-center gap-1.5">
               <span>🛒</span> خرید اشتراک
             </button>
           </div>
         </div>
 
         <!-- Gift Card / Recharge Code Box -->
-        <div class="bg-slate-800/60 rounded-2xl p-3.5 border border-slate-700/60 space-y-2.5">
+        <div class="card p-3.5 space-y-2.5">
           <div class="flex items-center justify-between text-xs">
             <span class="font-bold text-slate-200 flex items-center gap-1.5">
               <span>🎟️</span> فعال‌سازی کارت شارژ / گیفت‌کارت
@@ -868,7 +868,7 @@
       <div id="tab-profile" class="tab-pane space-y-4 hidden">
         
         <!-- User Avatar & Identity Card -->
-        <div class="profile-hero-card bg-gradient-to-b from-slate-800 to-slate-900 rounded-3xl p-5 border border-slate-700/80 shadow-xl text-center relative overflow-hidden">
+        <div class="profile-hero-card card p-5 shadow-xl text-center relative overflow-hidden">
           <div class="relative w-20 h-20 mx-auto mb-3">
             <div class="w-full h-full rounded-full p-1 bg-gradient-to-tr from-cyan-400 via-blue-500 to-indigo-600 shadow-lg flex items-center justify-center overflow-hidden">
               <img id="profileAvatarImg" class="w-full h-full rounded-full object-cover hidden" alt="Avatar" referrerpolicy="no-referrer" />
@@ -1252,26 +1252,26 @@
     <!-- ======================================================== -->
     <!-- 3. BOTTOM NAVIGATION BAR (5 Standard Tabs)               -->
     <!-- ======================================================== -->
-    <div id="navBottom" class="absolute bottom-0 inset-x-0 bg-[#131d31]/95 backdrop-blur-md border-t border-slate-700/80 px-2 pt-1 pb-[calc(0.625rem+env(safe-area-inset-bottom,0px))] flex justify-around items-center z-30 transition-colors">
-      <button class="nav-btn flex flex-col items-center justify-center min-h-[44px] min-w-[48px] py-1 gap-0.5 text-blue-400 transition cursor-pointer active:scale-95" data-tab="tab-dashboard" onclick="window.switchTab && window.switchTab('tab-dashboard')" aria-label="تب داشبورد">
+    <div id="navBottom" class="absolute bottom-0 inset-x-0 backdrop-blur-md px-2 pt-1 pb-[calc(0.625rem+env(safe-area-inset-bottom,0px))] flex justify-around items-center z-30 transition-colors">
+      <button class="nav-btn is-active flex flex-col items-center justify-center min-h-[44px] min-w-[48px] py-1 gap-0.5 transition cursor-pointer active:scale-95" data-tab="tab-dashboard" onclick="window.switchTab && window.switchTab('tab-dashboard')" aria-label="تب داشبورد" aria-selected="true">
         <span class="text-lg">📊</span>
-        <span class="text-[10px] font-bold">داشبورد</span>
+        <span class="text-[10px]">داشبورد</span>
       </button>
-      <button class="nav-btn flex flex-col items-center justify-center min-h-[44px] min-w-[48px] py-1 gap-0.5 text-slate-400 hover:text-slate-200 transition cursor-pointer active:scale-95" data-tab="tab-reports" onclick="window.switchTab && window.switchTab('tab-reports')" aria-label="تب گزارش‌ها">
+      <button class="nav-btn flex flex-col items-center justify-center min-h-[44px] min-w-[48px] py-1 gap-0.5 transition cursor-pointer active:scale-95" data-tab="tab-reports" onclick="window.switchTab && window.switchTab('tab-reports')" aria-label="تب گزارش‌ها" aria-selected="false">
         <span class="text-lg">📑</span>
-        <span class="text-[10px] font-medium">گزارش‌ها</span>
+        <span class="text-[10px]">گزارش‌ها</span>
       </button>
-      <button class="nav-btn flex flex-col items-center justify-center min-h-[44px] min-w-[48px] py-1 gap-0.5 text-slate-400 hover:text-slate-200 transition cursor-pointer active:scale-95" data-tab="tab-shop" onclick="window.switchTab && window.switchTab('tab-shop')" aria-label="تب فروشگاه">
+      <button class="nav-btn flex flex-col items-center justify-center min-h-[44px] min-w-[48px] py-1 gap-0.5 transition cursor-pointer active:scale-95" data-tab="tab-shop" onclick="window.switchTab && window.switchTab('tab-shop')" aria-label="تب فروشگاه" aria-selected="false">
         <span class="text-lg">🛒</span>
-        <span class="text-[10px] font-medium">فروشگاه</span>
+        <span class="text-[10px]">فروشگاه</span>
       </button>
-      <button class="nav-btn flex flex-col items-center justify-center min-h-[44px] min-w-[48px] py-1 gap-0.5 text-slate-400 hover:text-slate-200 transition cursor-pointer active:scale-95" data-tab="tab-wallet" onclick="window.switchTab && window.switchTab('tab-wallet')" aria-label="تب کیف پول">
+      <button class="nav-btn flex flex-col items-center justify-center min-h-[44px] min-w-[48px] py-1 gap-0.5 transition cursor-pointer active:scale-95" data-tab="tab-wallet" onclick="window.switchTab && window.switchTab('tab-wallet')" aria-label="تب کیف پول" aria-selected="false">
         <span class="text-lg">👛</span>
-        <span class="text-[10px] font-medium">کیف پول</span>
+        <span class="text-[10px]">کیف پول</span>
       </button>
-      <button class="nav-btn flex flex-col items-center justify-center min-h-[44px] min-w-[48px] py-1 gap-0.5 text-slate-400 hover:text-slate-200 transition cursor-pointer active:scale-95" data-tab="tab-profile" onclick="window.switchTab && window.switchTab('tab-profile')" aria-label="تب حساب من">
+      <button class="nav-btn flex flex-col items-center justify-center min-h-[44px] min-w-[48px] py-1 gap-0.5 transition cursor-pointer active:scale-95" data-tab="tab-profile" onclick="window.switchTab && window.switchTab('tab-profile')" aria-label="تب حساب من" aria-selected="false">
         <span class="text-lg">👤</span>
-        <span class="text-[10px] font-medium">حساب من</span>
+        <span class="text-[10px]">حساب من</span>
       </button>
     </div>
 

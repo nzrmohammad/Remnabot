@@ -314,7 +314,7 @@ function renderFilteredShopPlans() {
     else if (isTimeOnly) buttonLabel = 'تمدید مدت زمان';
 
     return `
-      <div class="shop-plan-card bg-slate-800/90 rounded-2xl p-4 border ${badgeBorderClass} relative overflow-hidden group">
+      <div class="shop-plan-card card p-4 border ${badgeBorderClass} relative overflow-hidden group">
         ${planBadge}
         <div class="flex justify-between items-start ${planBadge ? 'mt-1' : ''}">
           <div>
@@ -330,7 +330,7 @@ function renderFilteredShopPlans() {
             <span class="text-[10px] text-slate-400 block -mt-1 font-sans">تومان</span>
           </div>
         </div>
-        <div class="flex items-center justify-between my-2.5 text-[10px] text-slate-300 bg-slate-900/60 px-3 py-2 rounded-xl whitespace-nowrap overflow-hidden">
+        <div class="flex items-center justify-between my-2.5 text-[10px] card-inset px-3 py-2 whitespace-nowrap overflow-hidden">
           <span class="flex items-center gap-1">📊 <b dir="ltr" class="font-mono text-slate-200 num-bidi">${trafficText}</b></span>
           ${durationText}
           <span class="flex items-center gap-1">📱 <b class="text-slate-200">${devLimitText}</b></span>

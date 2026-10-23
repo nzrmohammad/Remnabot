@@ -110,15 +110,8 @@ function switchTab(targetId) {
 
   navButtons.forEach(b => {
     const isTarget = b.getAttribute('data-tab') === targetId;
-    if (isTarget) {
-      b.classList.remove('text-slate-400');
-      b.classList.add('text-blue-400');
-      b.querySelector('span:last-child')?.classList.replace('font-medium', 'font-bold');
-    } else {
-      b.classList.remove('text-blue-400');
-      b.classList.add('text-slate-400');
-      b.querySelector('span:last-child')?.classList.replace('font-bold', 'font-medium');
-    }
+    b.classList.toggle('is-active', isTarget);
+    b.setAttribute('aria-selected', isTarget ? 'true' : 'false');
   });
   if (typeof syncTelegramBackButton === 'function') {
     syncTelegramBackButton();

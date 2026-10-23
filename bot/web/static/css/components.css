@@ -184,3 +184,76 @@
   display: inline-block;
   white-space: nowrap;
 }
+
+/* --- 7. Bottom Navigation Bar --- */
+#navBottom {
+  background-color: var(--frame-bg);
+  border-top: 1px solid var(--frame-border);
+}
+
+.nav-btn {
+  color: var(--text-muted);
+  transition: all 0.15s ease;
+}
+
+.nav-btn:hover {
+  color: var(--text-main);
+}
+
+.nav-btn.is-active,
+.nav-btn[aria-selected="true"] {
+  color: var(--c-accent);
+}
+
+.nav-btn.is-active span:last-child,
+.nav-btn[aria-selected="true"] span:last-child {
+  font-weight: 700;
+}
+
+/* --- 8. Quick Actions & Importers --- */
+.client-import-btn {
+  background-color: var(--card-inner-bg);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-md);
+  transition: all 0.15s ease;
+}
+
+.client-import-btn:hover {
+  background-color: var(--card-bg);
+  border-color: var(--c-accent-border);
+}
+
+.sub-action-btn {
+  background-color: var(--card-inner-bg);
+  border: 1px solid var(--card-border);
+  color: var(--text-muted);
+  border-radius: var(--radius-md);
+  transition: all 0.15s ease;
+}
+
+.sub-action-btn:hover {
+  background-color: var(--card-bg);
+  color: var(--c-accent);
+  border-color: var(--c-accent-border);
+}
+
+/* --- 9. Accordion Settings Boxes --- */
+.settings-box {
+  background-color: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  transition: all 0.2s ease-in-out;
+}
+
+.settings-box-header {
+  transition: background-color 0.15s ease;
+}
+
+.settings-box-header:hover {
+  background-color: var(--card-inner-bg);
+}
+
+.settings-box-body {
+  border-top: 1px solid var(--card-border);
+}

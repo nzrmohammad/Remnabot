@@ -1065,15 +1065,7 @@ html.theme-light #walletTabBalance {
   -webkit-text-fill-color: transparent !important;
 }
 
-html.theme-light #gotoShopFromWallet {
-  background-color: var(--page-bg);
-  border-color: var(--frame-border);
-  color: #1e293b;
-}
-
-html.theme-light #gotoShopFromWallet:hover {
-  background-color: #e2e8f0;
-}
+/* #gotoShopFromWallet handled by .btn .btn-secondary */
 
 
 
@@ -1082,15 +1074,7 @@ html.theme-light .shop-plan-card .text-slate-200 {
   color: #334155;
 }
 
-html.theme-light #applyCouponBtn {
-  background-color: #2563eb;
-  color: #ffffff;
-  border-color: #2563eb;
-}
-
-html.theme-light #applyCouponBtn:hover {
-  background-color: #1d4ed8;
-}
+/* #applyCouponBtn handled by .btn .btn-primary */
 
 html.theme-light .buy-plan-btn {
   background-color: #2563eb;
