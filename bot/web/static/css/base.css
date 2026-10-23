@@ -88,3 +88,46 @@ html, body {
     transform: none;
   }
 }
+
+/* Mobile-Native & Touch Containment */
+html, body, #phoneFrame, main, .modal-card, .overflow-y-auto {
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+button, a, .tab-btn, .nav-item, [role="button"] {
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Prevent iOS Safari 16px auto-zoom on input focus */
+@media screen and (max-width: 768px) {
+  html body input:not([type="checkbox"]):not([type="radio"]),
+  html body select,
+  html body textarea {
+    font-size: 16px;
+  }
+}
+
+/* Background scroll lock when modals are open */
+body.modal-open {
+  overflow: hidden;
+}
+
+/* Accessibility: keyboard focus-visible indicator */
+:focus-visible {
+  outline: 2px solid var(--c-accent);
+  outline-offset: 2px;
+}
+
+/* Accessibility: respect reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms;
+    animation-iteration-count: 1;
+    transition-duration: 0.01ms;
+    scroll-behavior: auto;
+  }
+}
+

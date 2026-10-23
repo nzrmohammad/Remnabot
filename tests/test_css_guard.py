@@ -9,8 +9,8 @@ COMPONENTS_CSS_PATH = Path("bot/web/static/css/components.css")
 APP_HTML_PATH = Path("bot/web/templates/app.html")
 ADMIN_HTML_PATH = Path("bot/web/templates/admin.html")
 
-# Max allowable !important count in app.css (tightened from 45 -> 25 -> 15)
-MAX_IMPORTANT_ALLOWANCE = 15
+# Max allowable !important count in app.css (tightened from 45 -> 25 -> 15 -> 5; current is 0)
+MAX_IMPORTANT_ALLOWANCE = 5
 
 # Modal ID inner-div selectors that are banned in app.css (should use .modal-card instead)
 MODAL_ID_DESCENDANT = re.compile(r"html\.theme-light\s+#[a-zA-Z0-9_-]*Modal\s*>\s*div")
