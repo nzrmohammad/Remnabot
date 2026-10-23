@@ -24,6 +24,45 @@
   border-radius: var(--radius-xl);
   box-shadow: 0 20px 45px -10px rgba(0, 0, 0, 0.45);
 }
+.modal-overlay,
+.modal-backdrop {
+  background-color: var(--surface-overlay);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+/* Surface Contracts: Immersive Dark Game/Media Canvas */
+.surface-dark,
+.on-dark {
+  background-color: #0f172a;
+  color: #ffffff;
+}
+
+html.theme-light .surface-dark,
+html.theme-light .on-dark {
+  background-color: #0f172a;
+  color: #ffffff;
+}
+
+html.theme-light .surface-dark *,
+html.theme-light .on-dark * {
+  color: inherit;
+}
+
+html.theme-light .surface-dark .text-white,
+html.theme-light .on-dark .text-white {
+  color: #ffffff;
+}
+
+html.theme-light .surface-dark .text-slate-300,
+html.theme-light .on-dark .text-slate-300 {
+  color: #cbd5e1;
+}
+
+html.theme-light .surface-dark .text-slate-400,
+html.theme-light .on-dark .text-slate-400 {
+  color: #94a3b8;
+}
 
 /* --- 2. Buttons --- */
 .btn {
@@ -507,5 +546,19 @@ html.theme-light .shop-plan-card .shop-plan-badge.badge-special {
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
 }
 
+/* --- 17. Wallet Hero Card --- */
+.wallet-hero-card {
+  border: 1px solid var(--card-border);
+}
 
+html.theme-light .wallet-hero-card {
+  background: linear-gradient(135deg, rgba(236, 253, 245, 0.7) 0%, rgba(240, 253, 250, 0.7) 50%, #ffffff 100%);
+  border-color: rgba(16, 185, 129, 0.3);
+}
 
+html.theme-light .wallet-hero-card #walletTabBalance {
+  background: none;
+  -webkit-background-clip: unset;
+  background-clip: unset;
+  color: var(--c-success);
+}

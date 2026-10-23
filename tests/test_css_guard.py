@@ -159,6 +159,43 @@ def test_settings_box_text_theme_support():
     assert "html.theme-light .settings-box" in app_css, "Missing settings-box umbrella rule in app.css"
 
 
+def test_modal_backdrops_use_tokenized_overlay():
+    """Ensure modal backdrops in HTML templates use .modal-backdrop instead of hardcoded bg-black/80."""
+    for html_path in [APP_HTML_PATH, ADMIN_HTML_PATH]:
+        content = html_path.read_text(encoding="utf-8")
+        assert "bg-black/80" not in content, f"Found hardcoded bg-black/80 in {html_path.name}; use .modal-backdrop instead."
+        assert "bg-black/85" not in content, f"Found hardcoded bg-black/85 in {html_path.name}; use .modal-backdrop instead."
+
+
+def test_surface_dark_and_lucky_wheel_contract():
+    """Ensure Lucky Wheel modal adheres to the .surface-dark & .on-dark immersive game canvas contract."""
+    content = APP_HTML_PATH.read_text(encoding="utf-8")
+    assert 'id="luckyWheelModal"' in content
+    assert 'surface-dark on-dark' in content, "Missing surface-dark on-dark contract in app.html"
+    components_css = COMPONENTS_CSS_PATH.read_text(encoding="utf-8")
+    assert ".surface-dark," in components_css, "Missing .surface-dark in components.css"
+    assert ".on-dark" in components_css, "Missing .on-dark in components.css"
+
+
+def test_report_card_values_semantic_tokens():
+    """Ensure report card values in app.html use high-contrast semantic tokens instead of raw low-contrast classes."""
+    content = APP_HTML_PATH.read_text(encoding="utf-8")
+    for bad_class in ['id="repNightlyUsed" class="font-mono text-amber-400', 'id="repNightlyRemain" class="font-mono text-emerald-400']:
+        assert bad_class not in content, f"Found raw low-contrast class in report cards: {bad_class}"
+    for expected_token in ['id="repNightlyUsed" class="font-mono t-warn', 'id="repNightlyRemain" class="font-mono t-success', 'id="repNightlyYesterday" class="font-mono t-accent']:
+        assert expected_token in content, f"Missing semantic token in report cards: {expected_token}"
+
+
+def test_settings_box_no_raw_background_duality():
+    """Ensure settings-box elements in templates rely purely on .settings-box without raw bg-slate-800 overrides."""
+    for html_path in [APP_HTML_PATH, ADMIN_HTML_PATH]:
+        content = html_path.read_text(encoding="utf-8")
+        assert 'settings-box bg-slate-800' not in content, (
+            f"Found dual system 'settings-box bg-slate-800' in {html_path.name}; "
+            "remove raw bg-slate-800 and rely purely on .settings-box component."
+        )
+
+
 def test_design_system_core_tokens_and_fonts():
     """Ensure tokens.css and font unicode ranges are properly configured."""
     assert TOKENS_CSS_PATH.exists()

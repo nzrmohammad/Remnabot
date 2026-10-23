@@ -4,26 +4,26 @@
    ========================================================================== */
 
 /* --- Transitional Safety Umbrella (Prevents white-on-white & dark blobs during markup migration) --- */
-html.theme-light .card :not(button):not([class*="btn"]):not([class*="badge"]):not([class*="bg-"]):not([class*="gradient"]).text-white,
-html.theme-light .card-inset :not(button):not([class*="btn"]):not([class*="badge"]):not([class*="bg-"]):not([class*="gradient"]).text-white,
-html.theme-light .modal-card :not(button):not([class*="btn"]):not([class*="badge"]):not([class*="bg-"]):not([class*="gradient"]).text-white,
-html.theme-light .settings-box :not(button):not([class*="btn"]):not([class*="badge"]):not([class*="bg-"]):not([class*="gradient"]).text-white {
+html.theme-light .card:not(.surface-dark):not(.on-dark) :not(button):not([class*="btn"]):not([class*="badge"]):not(.surface-dark):not(.on-dark).text-white,
+html.theme-light .card-inset:not(.surface-dark):not(.on-dark) :not(button):not([class*="btn"]):not([class*="badge"]):not(.surface-dark):not(.on-dark).text-white,
+html.theme-light .modal-card:not(.surface-dark):not(.on-dark) :not(button):not([class*="btn"]):not([class*="badge"]):not(.surface-dark):not(.on-dark).text-white,
+html.theme-light .settings-box:not(.surface-dark):not(.on-dark) :not(button):not([class*="btn"]):not([class*="badge"]).text-white {
   color: var(--text-main);
 }
 
-html.theme-light .card :not(button):not([class*="btn"]):not([class*="badge"]):not([class*="bg-"]).text-slate-200,
-html.theme-light .card :not(button):not([class*="btn"]):not([class*="badge"]):not([class*="bg-"]).text-slate-300,
-html.theme-light .card-inset :not(button):not([class*="btn"]):not([class*="badge"]):not([class*="bg-"]).text-slate-200,
-html.theme-light .card-inset :not(button):not([class*="btn"]):not([class*="badge"]):not([class*="bg-"]).text-slate-300,
-html.theme-light .modal-card :not(button):not([class*="btn"]):not([class*="badge"]):not([class*="bg-"]).text-slate-200,
-html.theme-light .modal-card :not(button):not([class*="btn"]):not([class*="badge"]):not([class*="bg-"]).text-slate-300,
-html.theme-light .settings-box :not(button):not([class*="btn"]):not([class*="badge"]):not([class*="bg-"]).text-slate-200,
-html.theme-light .settings-box :not(button):not([class*="btn"]):not([class*="badge"]):not([class*="bg-"]).text-slate-300 {
+html.theme-light .card:not(.surface-dark):not(.on-dark) :not(button):not([class*="btn"]):not([class*="badge"]):not(.surface-dark):not(.on-dark).text-slate-200,
+html.theme-light .card:not(.surface-dark):not(.on-dark) :not(button):not([class*="btn"]):not([class*="badge"]):not(.surface-dark):not(.on-dark).text-slate-300,
+html.theme-light .card-inset:not(.surface-dark):not(.on-dark) :not(button):not([class*="btn"]):not([class*="badge"]):not(.surface-dark):not(.on-dark).text-slate-200,
+html.theme-light .card-inset:not(.surface-dark):not(.on-dark) :not(button):not([class*="btn"]):not([class*="badge"]):not(.surface-dark):not(.on-dark).text-slate-300,
+html.theme-light .modal-card:not(.surface-dark):not(.on-dark) :not(button):not([class*="btn"]):not([class*="badge"]):not(.surface-dark):not(.on-dark).text-slate-200,
+html.theme-light .modal-card:not(.surface-dark):not(.on-dark) :not(button):not([class*="btn"]):not([class*="badge"]):not(.surface-dark):not(.on-dark).text-slate-300,
+html.theme-light .settings-box:not(.surface-dark):not(.on-dark) :not(button):not([class*="btn"]):not([class*="badge"]).text-slate-200,
+html.theme-light .settings-box:not(.surface-dark):not(.on-dark) :not(button):not([class*="btn"]):not([class*="badge"]).text-slate-300 {
   color: var(--text-muted);
 }
 
 /* Light theme secondary text contrast (maps unmapped slate-400 to WCAG AA compliant Slate-600 #475569) */
-html.theme-light .text-slate-400:not(button):not([class*="btn"]):not([class*="badge"]):not([class*="bg-"]) {
+html.theme-light .text-slate-400:not(button):not([class*="btn"]):not([class*="badge"]):not(.surface-dark):not(.on-dark) {
   color: var(--text-muted);
 }
 

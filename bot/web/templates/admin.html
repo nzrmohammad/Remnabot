@@ -710,7 +710,7 @@
         </div>
 
         <!-- 1. Live System Switches Box -->
-        <div class="settings-box bg-slate-800/90 rounded-2xl border border-slate-700/80 shadow overflow-hidden transition-all">
+        <div class="settings-box shadow transition-all">
           <div class="settings-box-header p-3.5 flex items-center justify-between cursor-pointer select-none hover:bg-slate-750/40 transition" onclick="window.adminActions.toggleSettingsBox('settingsBoxSwitches')" data-target="settingsBoxSwitches">
             <div class="flex items-center gap-2.5">
               <div class="w-8 h-8 rounded-xl bg-blue-500/15 text-blue-400 border border-blue-500/30 flex items-center justify-center flex-shrink-0">
@@ -764,7 +764,7 @@
         </div>
 
         <!-- 2. Bank Card & Topup Settings Box -->
-        <div class="settings-box bg-slate-800/90 rounded-2xl border border-slate-700/80 shadow overflow-hidden transition-all">
+        <div class="settings-box shadow transition-all">
           <div class="settings-box-header p-3.5 flex items-center justify-between cursor-pointer select-none hover:bg-slate-750/40 transition" onclick="window.adminActions.toggleSettingsBox('settingsBoxCard')" data-target="settingsBoxCard">
             <div class="flex items-center gap-2.5">
               <div class="w-8 h-8 rounded-xl bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 flex items-center justify-center flex-shrink-0">
@@ -830,7 +830,7 @@
           </div>
         </div>
         <!-- 3. Crypto & Rates Settings Box -->
-        <div class="settings-box bg-slate-800/90 rounded-2xl border border-slate-700/80 shadow overflow-hidden transition-all">
+        <div class="settings-box shadow transition-all">
           <div class="settings-box-header p-3.5 flex items-center justify-between cursor-pointer select-none hover:bg-slate-750/40 transition" onclick="window.adminActions.toggleSettingsBox('settingsBoxCrypto')" data-target="settingsBoxCrypto">
             <div class="flex items-center gap-2.5">
               <div class="w-8 h-8 rounded-xl bg-cyan-500/15 text-cyan-400 border border-cyan-500/30 flex items-center justify-center flex-shrink-0">
@@ -908,7 +908,7 @@
         </div>
 
         <!-- 4. Trial & Referral Config Box -->
-        <div class="settings-box bg-slate-800/90 rounded-2xl border border-slate-700/80 shadow overflow-hidden transition-all">
+        <div class="settings-box shadow transition-all">
           <div class="settings-box-header p-3.5 flex items-center justify-between cursor-pointer select-none hover:bg-slate-750/40 transition" onclick="window.adminActions.toggleSettingsBox('settingsBoxTrial')" data-target="settingsBoxTrial">
             <div class="flex items-center gap-2.5">
               <div class="w-8 h-8 rounded-xl bg-purple-500/15 text-purple-400 border border-purple-500/30 flex items-center justify-center flex-shrink-0">
@@ -1008,7 +1008,7 @@
         </div>
 
         <!-- 5. Forum Topics Configuration Box -->
-        <div class="settings-box bg-slate-800/90 rounded-2xl border border-slate-700/80 shadow overflow-hidden transition-all">
+        <div class="settings-box shadow transition-all">
           <div class="settings-box-header p-3.5 flex items-center justify-between cursor-pointer select-none hover:bg-slate-750/40 transition" onclick="window.adminActions.toggleSettingsBox('settingsBoxTopics')" data-target="settingsBoxTopics">
             <div class="flex items-center gap-2.5">
               <div class="w-8 h-8 rounded-xl bg-amber-500/15 text-amber-400 border border-amber-500/30 flex items-center justify-center flex-shrink-0">
@@ -1080,7 +1080,7 @@
         </div>
 
         <!-- 6. Tutorial & Client Apps Configuration Box (راهنمای اتصال و دانلود برنامه‌ها) -->
-        <div class="settings-box bg-slate-800/90 rounded-2xl border border-slate-700/80 shadow overflow-hidden transition-all">
+        <div class="settings-box shadow transition-all">
           <div class="settings-box-header p-3.5 flex items-center justify-between cursor-pointer select-none hover:bg-slate-750/40 transition" onclick="window.adminActions.toggleSettingsBox('settingsBoxApps')" data-target="settingsBoxApps">
             <div class="flex items-center gap-2.5">
               <div class="w-8 h-8 rounded-xl bg-cyan-500/15 text-cyan-400 border border-cyan-500/30 flex items-center justify-center flex-shrink-0">
@@ -1759,7 +1759,7 @@
         </div>
 
         <!-- 7. Birthday Rewards Box -->
-        <div class="settings-box bg-slate-800/90 rounded-2xl border border-slate-700/80 shadow overflow-hidden transition-all">
+        <div class="settings-box shadow transition-all">
           <div class="settings-box-header p-3.5 flex items-center justify-between cursor-pointer select-none hover:bg-slate-750/40 transition" onclick="window.adminActions.toggleSettingsBox('settingsBoxBirthday')" data-target="settingsBoxBirthday">
             <div class="flex items-center gap-2.5">
               <div class="w-8 h-8 rounded-xl bg-pink-500/15 text-pink-400 border border-pink-500/30 flex items-center justify-center flex-shrink-0">
@@ -1836,7 +1836,7 @@
     </div>
 
     <!-- MODAL: User Profile & Identity Inspector (شناسنامه و مشخصات کامل کاربر) -->
-    <div id="userProfileModal" class="absolute inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-4 hidden">
+    <div id="userProfileModal" class="absolute inset-0 modal-backdrop z-50 flex items-center justify-center p-3 sm:p-4 hidden">
       <div class="modal-card border border-slate-700/80 rounded-3xl p-4 sm:p-5 w-full max-w-[370px] max-h-[90vh] flex flex-col space-y-3.5 shadow-2xl relative overflow-y-auto custom-scroll">
         <!-- Header -->
         <div class="flex justify-between items-center border-b border-slate-700/60 pb-2.5 flex-shrink-0">
@@ -1962,7 +1962,7 @@
     </div>
 
     <!-- MODAL 1: Quick Modify User (افزایش حجم و تمدید اشتراک) -->
-    <div id="modifyUserModal" class="absolute inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div id="modifyUserModal" class="absolute inset-0 modal-backdrop z-50 flex items-center justify-center p-4 hidden">
       <div class="modal-card border border-slate-700 rounded-3xl p-5 w-full max-w-[360px] space-y-4 shadow-2xl relative">
         <div class="flex justify-between items-center border-b border-slate-700/60 pb-2.5">
           <h4 id="modifyModalTitle" class="text-xs font-bold text-white flex items-center gap-1.5">
@@ -2021,7 +2021,7 @@
     </div>
 
     <!-- MODAL: Charge / Deduct User Wallet -->
-    <div id="walletModal" class="absolute inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div id="walletModal" class="absolute inset-0 modal-backdrop z-50 flex items-center justify-center p-4 hidden">
       <div class="modal-card border border-slate-700 rounded-3xl p-5 w-full max-w-[340px] space-y-4 shadow-2xl relative">
         <div class="flex justify-between items-center border-b border-slate-700/60 pb-2">
           <h4 id="walletModalTitle" class="text-xs font-bold text-white flex items-center gap-1.5">
@@ -2060,7 +2060,7 @@
     </div>
 
     <!-- MODAL: Connected HWID Devices & Live Sessions Inspector -->
-    <div id="hwidModal" class="absolute inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-4 hidden">
+    <div id="hwidModal" class="absolute inset-0 modal-backdrop z-50 flex items-center justify-center p-3 sm:p-4 hidden">
       <div class="modal-card border border-slate-700/80 rounded-3xl p-4 sm:p-5 w-full max-w-[390px] max-h-[85vh] flex flex-col space-y-3 shadow-2xl relative">
         <!-- Header -->
         <div class="flex justify-between items-center border-b border-slate-700/60 pb-2.5 flex-shrink-0">
@@ -2129,7 +2129,7 @@
     </div>
 
     <!-- MODAL: Bulk Users Action (عملیات گروهی: تمدید روز یا افزایش حجم) -->
-    <div id="bulkUsersModal" class="absolute inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-4 hidden">
+    <div id="bulkUsersModal" class="absolute inset-0 modal-backdrop z-50 flex items-center justify-center p-3 sm:p-4 hidden">
       <div class="modal-card border border-slate-700/80 rounded-3xl p-4 sm:p-5 w-full max-w-[370px] flex flex-col space-y-4 shadow-2xl relative">
         <div class="flex justify-between items-center border-b border-slate-700/60 pb-2.5">
           <div class="flex items-center gap-2">
@@ -2198,7 +2198,7 @@
     </div>
 
     <!-- MODAL: Subscription Link Inspector & Regenerator -->
-    <div id="subModal" class="absolute inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+    <div id="subModal" class="absolute inset-0 modal-backdrop z-50 flex items-center justify-center p-4 hidden">
       <div class="modal-card border border-slate-700 rounded-3xl p-5 w-full max-w-[360px] space-y-4 shadow-2xl relative">
         <div class="flex justify-between items-center border-b border-slate-700/60 pb-2">
           <h4 id="subModalTitle" class="text-xs font-bold text-white flex items-center gap-1.5">
@@ -2237,7 +2237,7 @@
     </div>
 
     <!-- MODAL: Create / Edit Plan -->
-    <div id="planModal" class="absolute inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+    <div id="planModal" class="absolute inset-0 modal-backdrop z-50 flex items-center justify-center p-4 hidden">
       <div class="modal-card border border-slate-700 rounded-3xl p-5 w-full max-w-[360px] space-y-3 shadow-2xl relative max-h-[90vh] overflow-y-auto custom-scroll">
         <div class="flex justify-between items-center border-b border-slate-700/60 pb-2">
           <h4 id="planModalTitle" class="text-xs font-bold text-white flex items-center gap-1.5">
@@ -2322,7 +2322,7 @@
     </div>
 
     <!-- MODAL: Create Discount Coupon -->
-    <div id="couponModal" class="absolute inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+    <div id="couponModal" class="absolute inset-0 modal-backdrop z-50 flex items-center justify-center p-4 hidden">
       <div class="modal-card border border-slate-700 rounded-3xl p-5 w-full max-w-[340px] space-y-3 shadow-2xl relative">
         <div class="flex justify-between items-center border-b border-slate-700/60 pb-2">
           <h4 class="text-xs font-bold text-white flex items-center gap-1.5">
@@ -2535,7 +2535,7 @@
     </div>
 
     <!-- MODAL 2: Broadcast Message (ارسال پیام همگانی با فیلتر هوشمند) -->
-    <div id="broadcastModal" class="absolute inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div id="broadcastModal" class="absolute inset-0 modal-backdrop z-50 flex items-center justify-center p-4 hidden">
       <div class="modal-card border border-slate-700 rounded-3xl p-5 w-full max-w-[380px] space-y-3.5 shadow-2xl relative">
         <div class="flex justify-between items-center border-b border-slate-700/60 pb-2">
           <h4 class="text-xs font-bold text-white flex items-center gap-1.5">
@@ -2584,7 +2584,7 @@
     </div>
 
     <!-- MODAL 3: Broadcast Report & Progress Modal -->
-    <div id="broadcastReportModal" class="absolute inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+    <div id="broadcastReportModal" class="absolute inset-0 modal-backdrop z-50 flex items-center justify-center p-4 hidden">
       <div class="modal-card border border-slate-700 rounded-3xl p-5 w-full max-w-[360px] space-y-4 shadow-2xl relative">
         <div class="flex justify-between items-center border-b border-slate-700/60 pb-2.5">
           <h4 class="text-xs font-bold text-white flex items-center gap-1.5">
@@ -2633,7 +2633,7 @@
     </div>
 
     <!-- MODAL 4: Reset Trial Subscription (مودال فعال‌سازی مجدد اکانت تست) -->
-    <div id="trialModal" class="absolute inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+    <div id="trialModal" class="absolute inset-0 modal-backdrop z-50 flex items-center justify-center p-4 hidden">
       <div class="modal-card border border-purple-800/60 rounded-3xl p-5 w-full max-w-[340px] space-y-4 shadow-2xl relative">
         <div class="flex justify-between items-center border-b border-slate-700/60 pb-2.5">
           <h4 class="text-xs font-bold text-white flex items-center gap-1.5">
@@ -2678,7 +2678,7 @@
     </div>
 
     <!-- MODAL: Confirmation Modal (جایگزین تایید مرورگر) -->
-    <div id="confirmActionModal" class="absolute inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+    <div id="confirmActionModal" class="absolute inset-0 modal-backdrop z-50 flex items-center justify-center p-4 hidden">
       <div class="modal-card border border-slate-700 rounded-3xl p-5 w-full max-w-[340px] space-y-4 shadow-2xl relative">
         <div class="flex items-center gap-3">
           <div id="confirmModalIconBox" class="w-10 h-10 rounded-2xl bg-rose-500/20 text-rose-400 border border-rose-500/30 flex items-center justify-center flex-shrink-0">
@@ -2706,7 +2706,7 @@
     </div>
 
     <!-- MODAL: Operation Result Report (گزارش زیبا و خوشگل نتیجه تراکنش کیف پول یا تست) -->
-    <div id="operationReportModal" class="absolute inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+    <div id="operationReportModal" class="absolute inset-0 modal-backdrop z-50 flex items-center justify-center p-4 hidden">
       <div class="modal-card border border-slate-700 rounded-3xl p-5 w-full max-w-[350px] space-y-4 shadow-2xl relative">
         <div class="flex items-center gap-3 border-b border-slate-700/60 pb-3">
           <div id="opReportIconBox" class="w-10 h-10 rounded-2xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center flex-shrink-0">
@@ -2730,7 +2730,7 @@
     </div>
 
     <!-- MODAL 5: Coupon Usages List (لیست تفصیلی استفاده‌کنندگان از کد تخفیف) -->
-    <div id="couponUsagesModal" class="absolute inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+    <div id="couponUsagesModal" class="absolute inset-0 modal-backdrop z-50 flex items-center justify-center p-4 hidden">
       <div class="modal-card bg-white dark:bg-[#1e293b] border border-pink-500/40 rounded-3xl p-5 w-full max-w-[420px] space-y-3.5 shadow-2xl relative max-h-[86vh] flex flex-col text-slate-800 dark:text-white">
         <!-- Header -->
         <div class="flex justify-between items-center border-b border-slate-200 dark:border-slate-700/60 pb-3 flex-shrink-0">
@@ -2773,7 +2773,7 @@
     </div>
 
     <!-- MODAL: Bot Access Mode Selector (حالت دسترسی و ثبت‌نام ربات) -->
-    <div id="accessModeModal" class="absolute inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+    <div id="accessModeModal" class="absolute inset-0 modal-backdrop z-50 flex items-center justify-center p-4 hidden">
       <div class="modal-card border border-slate-700/80 rounded-3xl p-5 w-full max-w-[400px] space-y-4 shadow-2xl relative">
         <div class="flex justify-between items-center border-b border-slate-700/60 pb-3">
           <div class="flex items-center gap-2">
@@ -2851,7 +2851,7 @@
     </div>
 
     <!-- MODAL 6: Live Crypto & Currency Rates Inspector & Fast Updater -->
-    <div id="cryptoRatesModal" class="absolute inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+    <div id="cryptoRatesModal" class="absolute inset-0 modal-backdrop z-50 flex items-center justify-center p-4 hidden">
       <div class="modal-card border border-cyan-500/30 rounded-3xl p-5 w-full max-w-[420px] space-y-4 shadow-2xl relative">
         <div class="flex justify-between items-center border-b border-slate-700/60 pb-2.5">
           <div class="flex items-center gap-2">
@@ -2914,7 +2914,7 @@
     </div>
 
     <!-- MODAL: Node Billing & Cost Settings Modal -->
-    <div id="nodeBillingModal" class="absolute inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+    <div id="nodeBillingModal" class="absolute inset-0 modal-backdrop z-50 flex items-center justify-center p-4 hidden">
       <div class="modal-card border border-slate-700 rounded-3xl p-5 w-full max-w-[370px] space-y-4 shadow-2xl relative">
         <div class="flex justify-between items-center border-b border-slate-700/60 pb-2.5">
           <div class="flex items-center gap-2">
@@ -3011,7 +3011,7 @@
     </div>
 
     <!-- MODAL: Campaign Details & Analytics (جزئیات و تحلیل مالی کمپین) -->
-    <div id="campaignDetailModal" class="absolute inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div id="campaignDetailModal" class="absolute inset-0 modal-backdrop z-50 flex items-center justify-center p-4 hidden">
       <div class="modal-card border border-slate-700 rounded-3xl p-5 w-full max-w-[390px] space-y-4 shadow-2xl relative">
         <div class="flex justify-between items-center border-b border-slate-700/60 pb-2.5">
           <h4 class="text-xs font-bold text-white flex items-center gap-1.5">
@@ -3065,7 +3065,7 @@
     </div>
 
     <!-- MODAL: Create Ad Campaign (لینک تبلیغاتی جدید) -->
-    <div id="createCampaignModal" class="absolute inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div id="createCampaignModal" class="absolute inset-0 modal-backdrop z-50 flex items-center justify-center p-4 hidden">
       <div class="modal-card border border-slate-700 rounded-3xl p-5 w-full max-w-[380px] space-y-4 shadow-2xl relative">
         <div class="flex justify-between items-center border-b border-slate-700/60 pb-2.5">
           <h4 class="text-xs font-bold text-white flex items-center gap-1.5">
@@ -3113,7 +3113,7 @@
 
 
     <!-- MODAL: Recommended App Picker (انتخاب برنامه پیشنهادی) -->
-    <div id="recommendedAppPickerModal" class="absolute inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div id="recommendedAppPickerModal" class="absolute inset-0 modal-backdrop z-50 flex items-center justify-center p-4 hidden">
       <div class="modal-card border border-slate-700 rounded-3xl p-5 w-full max-w-[360px] space-y-3.5 shadow-2xl relative max-h-[85vh] flex flex-col">
         <div class="flex justify-between items-center border-b border-slate-700/60 pb-2.5 shrink-0">
           <h4 id="recommendedAppPickerTitle" class="text-xs font-bold text-white flex items-center gap-1.5">
@@ -3129,7 +3129,7 @@
     </div>
 
     <!-- MODAL: Create User (ایجاد کاربر جدید متصل به شناسه تلگرام) -->
-    <div id="createUserModal" class="absolute inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-4 hidden">
+    <div id="createUserModal" class="absolute inset-0 modal-backdrop z-50 flex items-center justify-center p-3 sm:p-4 hidden">
       <div class="modal-card border border-slate-700 rounded-3xl p-5 w-full max-w-[360px] space-y-4 shadow-2xl relative">
         <div class="flex justify-between items-center border-b border-slate-700/60 pb-2.5">
           <h4 class="text-xs font-bold text-white flex items-center gap-1.5">
@@ -3218,7 +3218,7 @@
     </div>
 
     <!-- MODAL: Plan Picker for Create User (انتخاب بسته کامل) -->
-    <div id="planPickerModal" class="absolute inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-4 hidden">
+    <div id="planPickerModal" class="absolute inset-0 modal-backdrop z-50 flex items-center justify-center p-3 sm:p-4 hidden">
       <div class="modal-card border border-slate-700/80 rounded-3xl p-4 sm:p-5 w-full max-w-[360px] max-h-[80vh] flex flex-col space-y-3 shadow-2xl relative">
         <div class="flex justify-between items-center border-b border-slate-700/60 pb-2.5 shrink-0">
           <div class="flex items-center gap-2">
@@ -3234,7 +3234,7 @@
     </div>
 
     <!-- MODAL: High-Risk Users (کاربران پرخطر و نشست‌های بالا) -->
-    <div id="highRiskUsersModal" class="absolute inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-4 hidden">
+    <div id="highRiskUsersModal" class="absolute inset-0 modal-backdrop z-50 flex items-center justify-center p-3 sm:p-4 hidden">
       <div class="modal-card border border-rose-500/40 rounded-3xl p-4 sm:p-5 w-full max-w-[360px] max-h-[80vh] flex flex-col space-y-3 shadow-2xl relative">
         <div class="flex justify-between items-center border-b border-slate-700/60 pb-2.5 shrink-0">
           <div class="flex items-center gap-2">
