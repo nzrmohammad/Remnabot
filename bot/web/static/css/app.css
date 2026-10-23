@@ -1,11 +1,12 @@
 /* RemnaStore Pro - App Styles */
-/* Local High-Performance Vazirmatn Font */
+/* Local High-Performance Vazirmatn Font with Unicode Range Splitting */
 @font-face {
   font-family: 'Vazirmatn';
   font-style: normal;
   font-weight: 100 900;
   font-display: swap;
   src: local('Vazirmatn'), local('Vazirmatn-Regular'), url('/static/fonts/vazirmatn-arabic.woff2') format('woff2');
+  unicode-range: U+0600-06FF, U+FB50-FDFF, U+FE70-FEFF, U+0750-077F, U+08A0-08FF;
 }
 @font-face {
   font-family: 'Vazirmatn';
@@ -13,10 +14,11 @@
   font-weight: 100 900;
   font-display: swap;
   src: local('Vazirmatn'), local('Vazirmatn-Regular'), url('/static/fonts/vazirmatn-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 
 html, body, button, input, optgroup, select, textarea, div, span, p, h1, h2, h3, h4, h5, h6, a, b, strong {
-  font-family: 'Vazirmatn', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Segoe UI Emoji', 'Apple Color Emoji', 'Noto Color Emoji', sans-serif !important;
+  font-family: 'Vazirmatn', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Segoe UI Emoji', 'Apple Color Emoji', 'Noto Color Emoji', sans-serif;
 }
 
 * {
@@ -45,7 +47,7 @@ html, body, button, input, optgroup, select, textarea, div, span, p, h1, h2, h3,
 }
 
 .font-mono, code, pre, kbd, samp, [dir="ltr"].font-mono {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace !important;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
 }
 
 :root {
@@ -164,34 +166,34 @@ html.theme-light {
 
 /* Surface / Badge Semantic Soft Colors (replaces bg-*-950/50 + text-*) */
 .s-accent-soft {
-  background-color: var(--c-accent-soft) !important;
-  color: var(--c-accent) !important;
-  border-color: var(--c-accent-border) !important;
+  background-color: var(--c-accent-soft);
+  color: var(--c-accent);
+  border-color: var(--c-accent-border);
 }
 .s-success-soft {
-  background-color: var(--c-success-soft) !important;
-  color: var(--c-success) !important;
-  border-color: var(--c-success-border) !important;
+  background-color: var(--c-success-soft);
+  color: var(--c-success);
+  border-color: var(--c-success-border);
 }
 .s-warn-soft {
-  background-color: var(--c-warn-soft) !important;
-  color: var(--c-warn) !important;
-  border-color: var(--c-warn-border) !important;
+  background-color: var(--c-warn-soft);
+  color: var(--c-warn);
+  border-color: var(--c-warn-border);
 }
 .s-danger-soft {
-  background-color: var(--c-danger-soft) !important;
-  color: var(--c-danger) !important;
-  border-color: var(--c-danger-border) !important;
+  background-color: var(--c-danger-soft);
+  color: var(--c-danger);
+  border-color: var(--c-danger-border);
 }
 .s-info-soft {
-  background-color: var(--c-info-soft) !important;
-  color: var(--c-info) !important;
-  border-color: var(--c-info-border) !important;
+  background-color: var(--c-info-soft);
+  color: var(--c-info);
+  border-color: var(--c-info-border);
 }
 .s-purple-soft {
-  background-color: var(--c-purple-soft) !important;
-  color: var(--c-purple) !important;
-  border-color: var(--c-purple-border) !important;
+  background-color: var(--c-purple-soft);
+  color: var(--c-purple);
+  border-color: var(--c-purple-border);
 }
 
 .caption {
@@ -383,12 +385,12 @@ html.theme-light .text-slate-400 {
 html.theme-light .gauge-bg-circle {
   stroke: var(--card-border);
 }
-html.theme-light [class*="bg-slate-900"],
-html.theme-light [class*="bg-slate-950"] {
+html.theme-light [class*="bg-slate-900"]:not([class*="dark:bg-slate-900"]):not([class*="hover:bg-slate-900"]),
+html.theme-light [class*="bg-slate-950"]:not([class*="dark:bg-slate-950"]):not([class*="hover:bg-slate-950"]) {
   background-color: var(--card-inner-bg);
   border-color: var(--card-border);
 }
-html.theme-light [class*="bg-slate-800"] {
+html.theme-light [class*="bg-slate-800"]:not([class*="dark:bg-slate-800"]):not([class*="hover:bg-slate-800"]) {
   background-color: var(--card-bg);
   border-color: var(--card-border);
   box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
@@ -524,7 +526,7 @@ html.theme-light .text-pink-600 {
 }
 
 /* Eye-Friendly harmonious light theme adaptations for dark background classes */
-html.theme-light [class*="bg-slate-750"],
+html.theme-light [class*="bg-slate-750"]:not([class*="dark:bg-slate-750"]):not([class*="hover:bg-slate-750"]),
 html.theme-light .bg-slate-750,
 html.theme-light .bg-slate-750\/70 {
   background-color: var(--card-inner-bg);
@@ -849,8 +851,8 @@ html.theme-light #copyTopupCardAmountBtn {
 /* Unified Inner Card Surfaces in Light Theme */
 html.theme-light .node-card .bg-slate-800\/40,
 html.theme-light .node-card .bg-slate-900\/40,
-html.theme-light .node-card [class*="bg-slate-800"],
-html.theme-light .node-card [class*="bg-slate-900"],
+html.theme-light .node-card [class*="bg-slate-800"]:not([class*="dark:bg-slate-800"]),
+html.theme-light .node-card [class*="bg-slate-900"]:not([class*="dark:bg-slate-900"]),
 html.theme-light .node-header:hover,
 html.theme-light .topup-card .bg-slate-950\/40,
 html.theme-light .topup-card .bg-slate-900\/50,
@@ -1220,37 +1222,37 @@ html.theme-light #closeSupportChatBtn:hover {
 /* ======================================================== */
 /* Light Theme: Universal Pastel Badges (*-950 overrides)   */
 /* ======================================================== */
-html.theme-light [class*="bg-cyan-950"] {
+html.theme-light [class*="bg-cyan-950"]:not([class*="dark:bg-cyan-950"]) {
   background-color: #ecfeff;
   border-color: #a5f3fc;
   color: #0891b2;
 }
 
-html.theme-light [class*="bg-indigo-950"] {
+html.theme-light [class*="bg-indigo-950"]:not([class*="dark:bg-indigo-950"]) {
   background-color: #eef2ff;
   border-color: #c7d2fe;
   color: #4f46e5;
 }
 
-html.theme-light [class*="bg-emerald-950"] {
+html.theme-light [class*="bg-emerald-950"]:not([class*="dark:bg-emerald-950"]) {
   background-color: var(--c-success-soft);
   border-color: var(--c-success-border);
   color: var(--c-success);
 }
 
-html.theme-light [class*="bg-rose-950"] {
+html.theme-light [class*="bg-rose-950"]:not([class*="dark:bg-rose-950"]) {
   background-color: var(--c-danger-soft);
   border-color: var(--c-danger-border);
   color: #e11d48;
 }
 
-html.theme-light [class*="bg-amber-950"] {
+html.theme-light [class*="bg-amber-950"]:not([class*="dark:bg-amber-950"]) {
   background-color: var(--c-warn-soft);
   border-color: var(--c-warn-border);
   color: var(--c-warn);
 }
 
-html.theme-light [class*="bg-blue-950"] {
+html.theme-light [class*="bg-blue-950"]:not([class*="dark:bg-blue-950"]) {
   background-color: #eff6ff;
   border-color: #bfdbfe;
   color: #2563eb;

@@ -1,0 +1,152 @@
+/* ==========================================================================
+   Remnabot Design System — Universal Components Layer (components.css)
+   Reusable, tokenized UI components for User App & Admin Dashboard
+   ========================================================================== */
+
+/* --- 1. Surfaces & Cards --- */
+.card,
+.card-surface {
+  background-color: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-xl);
+  transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card-inset {
+  background-color: var(--card-inner-bg);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-lg);
+}
+
+.modal-card {
+  background-color: var(--modal-bg);
+  border: 1px solid var(--modal-border);
+  border-radius: var(--radius-xl);
+  box-shadow: 0 20px 45px -10px rgba(0, 0, 0, 0.45);
+}
+
+/* --- 2. Buttons --- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-weight: 700;
+  border-radius: var(--radius-md);
+  transition: all 0.15s ease;
+  user-select: none;
+  cursor: pointer;
+}
+
+.btn:active {
+  transform: scale(0.97);
+}
+
+.btn-primary {
+  background-color: var(--c-accent);
+  color: var(--text-inverse);
+  box-shadow: 0 4px 12px var(--c-accent-soft);
+}
+
+.btn-primary:hover {
+  background-color: var(--c-accent-hover);
+}
+
+.btn-secondary {
+  background-color: var(--card-inner-bg);
+  border: 1px solid var(--card-border);
+  color: var(--text-main);
+}
+
+.btn-secondary:hover {
+  border-color: var(--c-accent-border);
+}
+
+.btn-icon {
+  min-width: var(--control-h-md);
+  min-height: var(--control-h-md);
+  padding: 0.5rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-md);
+  background-color: transparent;
+  color: var(--text-muted);
+  border: 1px solid transparent;
+  transition: all 0.15s ease;
+}
+
+.btn-icon:hover {
+  color: var(--text-main);
+  background-color: var(--card-inner-bg);
+}
+
+/* --- 3. Inputs & Form Controls --- */
+.input-base,
+.select-base,
+.textarea-base {
+  width: 100%;
+  background-color: var(--card-inner-bg);
+  border: 1px solid var(--card-border);
+  color: var(--text-main);
+  border-radius: var(--radius-md);
+  padding: 0.625rem 0.875rem;
+  font-size: 0.75rem;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.input-base:focus,
+.select-base:focus,
+.textarea-base:focus {
+  border-color: var(--c-accent);
+  box-shadow: 0 0 0 2px var(--c-accent-soft);
+}
+
+/* --- 4. Badges & Chips --- */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.625rem;
+  font-weight: 700;
+  padding: 0.125rem 0.5rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+}
+
+.badge-accent  { background-color: var(--c-accent-soft); color: var(--c-accent); border-color: var(--c-accent-border); }
+.badge-success { background-color: var(--c-success-soft); color: var(--c-success); border-color: var(--c-success-border); }
+.badge-warn    { background-color: var(--c-warn-soft); color: var(--c-warn); border-color: var(--c-warn-border); }
+.badge-danger  { background-color: var(--c-danger-soft); color: var(--c-danger); border-color: var(--c-danger-border); }
+.badge-info    { background-color: var(--c-info-soft); color: var(--c-info); border-color: var(--c-info-border); }
+.badge-purple  { background-color: var(--c-purple-soft); color: var(--c-purple); border-color: var(--c-purple-border); }
+.badge-pink    { background-color: var(--c-pink-soft); color: var(--c-pink); border-color: var(--c-pink-border); }
+
+/* --- 5. Semantic Typography Utilities --- */
+.t-main       { color: var(--text-main); }
+.t-muted      { color: var(--text-muted); }
+.t-subtle     { color: var(--text-subtle); }
+.t-accent     { color: var(--c-accent); }
+.t-success    { color: var(--c-success); }
+.t-warn       { color: var(--c-warn); }
+.t-danger     { color: var(--c-danger); }
+.t-info       { color: var(--c-info); }
+.t-purple     { color: var(--c-purple); }
+.t-pink       { color: var(--c-pink); }
+
+.s-accent-soft  { background-color: var(--c-accent-soft); color: var(--c-accent); border-color: var(--c-accent-border); }
+.s-success-soft { background-color: var(--c-success-soft); color: var(--c-success); border-color: var(--c-success-border); }
+.s-warn-soft    { background-color: var(--c-warn-soft); color: var(--c-warn); border-color: var(--c-warn-border); }
+.s-danger-soft  { background-color: var(--c-danger-soft); color: var(--c-danger); border-color: var(--c-danger-border); }
+.s-info-soft    { background-color: var(--c-info-soft); color: var(--c-info); border-color: var(--c-info-border); }
+.s-purple-soft  { background-color: var(--c-purple-soft); color: var(--c-purple); border-color: var(--c-purple-border); }
+.s-pink-soft    { background-color: var(--c-pink-soft); color: var(--c-pink); border-color: var(--c-pink-border); }
+
+/* --- 6. BiDi Number & Unit Isolation --- */
+.num-bidi {
+  direction: ltr !important;
+  unicode-bidi: isolate;
+  display: inline-block;
+  white-space: nowrap;
+}

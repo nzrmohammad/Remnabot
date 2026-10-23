@@ -9,6 +9,29 @@ module.exports = {
     extend: {
       colors: {
         'slate-750': '#293548',
+        surface: {
+          DEFAULT: 'var(--card-bg)',
+          page: 'var(--page-bg)',
+          frame: 'var(--frame-bg)',
+          inner: 'var(--card-inner-bg)',
+          modal: 'var(--modal-bg)',
+        },
+        border: {
+          DEFAULT: 'var(--card-border)',
+          frame: 'var(--frame-border)',
+          modal: 'var(--modal-border)',
+        },
+        content: {
+          DEFAULT: 'var(--text-main)',
+          main: 'var(--text-main)',
+          muted: 'var(--text-muted)',
+          subtle: 'var(--text-subtle)',
+          inverse: 'var(--text-inverse)',
+        },
+      },
+      fontSize: {
+        '2xs': ['10px', '14px'],
+        'caption': ['11px', '15px'],
       },
       keyframes: {
         fadeIn: {

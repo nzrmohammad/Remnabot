@@ -1,0 +1,143 @@
+/* ==========================================================================
+   Remnabot Unified Design System — Design Tokens (tokens.css)
+   Single Source of Truth for Colors, Surfaces, Scales & Theming
+   ========================================================================== */
+
+:root {
+  color-scheme: dark;
+
+  /* --- 1. Surfaces & Frames (Dark Theme Default) --- */
+  --page-bg: #080d1a;
+  --frame-bg: #0f172a;
+  --frame-border: rgba(51, 65, 85, 0.8);
+  --card-bg: rgba(30, 41, 59, 0.85);
+  --card-inner-bg: rgba(15, 23, 42, 0.6);
+  --card-border: rgba(51, 65, 85, 0.8);
+  --modal-bg: #1e293b;
+  --modal-border: rgba(51, 65, 85, 0.9);
+  --inset-bg: rgba(15, 23, 42, 0.7);
+
+  /* --- 2. Typography & Content --- */
+  --text-main: #f8fafc;
+  --text-muted: #94a3b8;
+  --text-subtle: #64748b;
+  --text-inverse: #0f172a;
+
+  /* --- 3. Interactive Accent (Cyan/Sky Brand Signature) --- */
+  --c-accent: #22d3ee;                 /* cyan-400 */
+  --c-accent-hover: #67e8f9;           /* cyan-300 */
+  --c-accent-soft: rgba(34, 211, 238, 0.12);
+  --c-accent-border: rgba(34, 211, 238, 0.30);
+  --c-accent-solid: #0284c7;
+
+  /* --- 4. Semantic Status Tokens (Dark Mode) --- */
+  --c-success: #34d399;                /* emerald-400 */
+  --c-success-soft: rgba(52, 211, 153, 0.12);
+  --c-success-border: rgba(52, 211, 153, 0.30);
+
+  --c-warn: #fbbf24;                   /* amber-400 */
+  --c-warn-soft: rgba(251, 191, 36, 0.12);
+  --c-warn-border: rgba(251, 191, 36, 0.30);
+
+  --c-danger: #fb7185;                 /* rose-400 */
+  --c-danger-soft: rgba(251, 113, 133, 0.12);
+  --c-danger-border: rgba(251, 113, 133, 0.30);
+
+  --c-info: #60a5fa;                   /* blue-400 */
+  --c-info-soft: rgba(96, 165, 250, 0.12);
+  --c-info-border: rgba(96, 165, 250, 0.30);
+
+  --c-purple: #c084fc;                 /* purple-400 */
+  --c-purple-soft: rgba(192, 132, 252, 0.12);
+  --c-purple-border: rgba(192, 132, 252, 0.30);
+
+  --c-pink: #f472b6;                   /* pink-400 */
+  --c-pink-soft: rgba(244, 114, 182, 0.12);
+  --c-pink-border: rgba(244, 114, 182, 0.30);
+
+  /* --- 5. Data Visualization (Charts) --- */
+  --chart-1: #22d3ee;
+  --chart-2: #a78bfa;
+  --chart-3: #fb7185;
+  --chart-4: #fbbf24;
+  --chart-5: #34d399;
+  --chart-6: #818cf8;
+
+  /* --- 6. Standardized Physical Scales (Apple HIG & TMA) --- */
+  --touch-target-min: 44px;
+  --control-h-sm: 32px;
+  --control-h-md: 36px;
+  --control-h-lg: 44px;
+
+  --radius-xs: 6px;
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-lg: 18px;
+  --radius-xl: 24px;
+  --radius-full: 9999px;
+}
+
+/* ==========================================================================
+   Light Mode Token Overrides
+   High Contrast WCAG AA >= 4.5:1 compliant surfaces & accents
+   ========================================================================== */
+html.theme-light {
+  color-scheme: light;
+
+  /* Surfaces & Frames */
+  --page-bg: #f1f5f9;
+  --frame-bg: #ffffff;
+  --frame-border: #cbd5e1;
+  --card-bg: #ffffff;
+  --card-inner-bg: #f8fafc;
+  --card-border: #e2e8f0;
+  --modal-bg: #ffffff;
+  --modal-border: #cbd5e1;
+  --inset-bg: #f1f5f9;
+
+  /* Typography & Content */
+  --text-main: #0f172a;
+  --text-muted: #475569;
+  --text-subtle: #94a3b8;
+  --text-inverse: #f8fafc;
+
+  /* Interactive Accent */
+  --c-accent: #0284c7;                 /* sky-600 */
+  --c-accent-hover: #0369a1;           /* sky-700 */
+  --c-accent-soft: rgba(2, 132, 199, 0.08);
+  --c-accent-border: rgba(2, 132, 199, 0.25);
+  --c-accent-solid: #0284c7;
+
+  /* Semantic Status Tokens (Light Mode Contrast) */
+  --c-success: #047857;                /* emerald-700 */
+  --c-success-soft: rgba(4, 120, 87, 0.08);
+  --c-success-border: rgba(4, 120, 87, 0.22);
+
+  --c-warn: #b45309;                   /* amber-700 */
+  --c-warn-soft: rgba(180, 83, 9, 0.08);
+  --c-warn-border: rgba(180, 83, 9, 0.22);
+
+  --c-danger: #be123c;                 /* rose-700 */
+  --c-danger-soft: rgba(190, 18, 60, 0.08);
+  --c-danger-border: rgba(190, 18, 60, 0.22);
+
+  --c-info: #1d4ed8;                   /* blue-700 */
+  --c-info-soft: rgba(29, 78, 216, 0.08);
+  --c-info-border: rgba(29, 78, 216, 0.22);
+
+  --c-purple: #7c3aed;                 /* purple-600 */
+  --c-purple-soft: rgba(124, 58, 237, 0.08);
+  --c-purple-border: rgba(124, 58, 237, 0.22);
+
+  --c-pink: #be185d;                   /* pink-700 */
+  --c-pink-soft: rgba(190, 24, 93, 0.08);
+  --c-pink-border: rgba(190, 24, 93, 0.25);
+
+  /* Charts */
+  --chart-1: #0284c7;
+  --chart-2: #7c3aed;
+  --chart-3: #be123c;
+  --chart-4: #b45309;
+  --chart-5: #047857;
+  --chart-6: #4338ca;
+}

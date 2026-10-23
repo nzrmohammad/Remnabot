@@ -5,7 +5,25 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Remnabot Admin WebApp - Pro Management Suite</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <link rel="stylesheet" href="/static/css/tokens.css">
   <link rel="stylesheet" href="/static/css/tailwind.min.css">
+  <script>
+    try {
+      var savedTheme = localStorage.getItem("remna_admin_theme");
+      var isDarkTheme = true;
+      if (savedTheme) {
+        isDarkTheme = (savedTheme === "dark");
+      } else if (window.Telegram?.WebApp?.colorScheme) {
+        isDarkTheme = (window.Telegram.WebApp.colorScheme === "dark");
+      } else if (window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches) {
+        isDarkTheme = false;
+      }
+      if (!isDarkTheme) {
+        document.documentElement.classList.remove("dark");
+        document.documentElement.classList.add("theme-light");
+      }
+    } catch(e) {}
+  </script>
   <link rel="stylesheet" href="/static/css/app.css">
 </head>
 <body id="appBody" class="h-screen h-[100dvh] overflow-hidden flex justify-center antialiased transition-colors duration-300">
