@@ -309,6 +309,7 @@ html.theme-light .on-dark .text-slate-400 {
 }
 
 .settings-box-header,
+.settings-box-header b,
 .settings-box-header .text-white {
   color: var(--text-main);
 }

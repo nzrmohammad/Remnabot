@@ -176,20 +176,20 @@ function updateWheelUIState(canSpin, hasActiveSub, nextSeconds, streak, multipli
   if (wheelSubEl) {
     if (!hasActiveSub) {
       wheelSubEl.textContent = '🔒 قفل (ویژه اشتراک‌های فعال)';
-      wheelSubEl.classList.remove('text-slate-300', 'text-emerald-400', 'text-purple-400');
-      wheelSubEl.classList.add('text-amber-400/80');
+      wheelSubEl.classList.remove('t-warn', 't-muted', 't-success', 't-purple', 'text-slate-300', 'text-emerald-400', 'text-purple-400');
+      wheelSubEl.classList.add('t-warn');
     } else if (isCooldown && hasTicket) {
       wheelSubEl.textContent = `🎫 شانس با تیکت دعوت (${fNum(currentWheelTickets)} عدد)`;
-      wheelSubEl.classList.remove('text-amber-400/80', 'text-slate-300', 'text-emerald-400');
-      wheelSubEl.classList.add('text-purple-400');
+      wheelSubEl.classList.remove('t-warn', 't-muted', 't-success', 't-purple', 'text-amber-400/80', 'text-slate-300', 'text-emerald-400');
+      wheelSubEl.classList.add('t-purple');
     } else if (isCooldown) {
       wheelSubEl.textContent = '⏳ شانس بعدی تا ۲۴ ساعت';
-      wheelSubEl.classList.remove('text-amber-400/80', 'text-emerald-400', 'text-purple-400');
-      wheelSubEl.classList.add('text-slate-300');
+      wheelSubEl.classList.remove('t-warn', 't-muted', 't-success', 't-purple', 'text-amber-400/80', 'text-emerald-400', 'text-purple-400');
+      wheelSubEl.classList.add('t-muted');
     } else {
       wheelSubEl.textContent = '🎁 ۱ شانس روزانه فعال';
-      wheelSubEl.classList.remove('text-amber-400/80', 'text-slate-300', 'text-purple-400');
-      wheelSubEl.classList.add('text-emerald-400');
+      wheelSubEl.classList.remove('t-warn', 't-muted', 't-success', 't-purple', 'text-amber-400/80', 'text-slate-300', 'text-purple-400');
+      wheelSubEl.classList.add('t-success');
     }
   }
 

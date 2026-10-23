@@ -255,9 +255,9 @@ function renderNodeBreakdown(containerId, nodes, emptyText = 'مصرفی ثبت 
   }
 
   container.innerHTML = nodes.map(n => `
-    <div dir="ltr" class="bg-transparent p-2 rounded-lg flex items-center justify-between border border-slate-700/40">
+    <div dir="ltr" class="card-inset p-2 rounded-xl flex items-center justify-between">
       <span class="text-base">${n.flag || '🌐'}</span>
-      <span class="font-bold text-slate-100 font-mono num-bidi" dir="ltr">${fmtTraffic(n.total_formatted || '0 GB', { html: false })}</span>
+      <span class="font-bold t-main font-mono num-bidi" dir="ltr">${fmtTraffic(n.total_formatted || '0 GB', { html: false })}</span>
     </div>
   `).join('');
 }
@@ -607,22 +607,22 @@ function renderBurnRate(burnRate, sub) {
     if (burnRate.status === 'fast') {
       statusIconEl.innerText = '⚠️';
       if (analysisBox) {
-        analysisBox.className = 'p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-xs text-amber-200 flex items-start gap-2';
+        analysisBox.className = 'p-2.5 rounded-xl s-warn-soft text-xs flex items-start gap-2';
       }
     } else if (burnRate.status === 'safe') {
       statusIconEl.innerText = '✅';
       if (analysisBox) {
-        analysisBox.className = 'p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-xs text-emerald-200 flex items-start gap-2';
+        analysisBox.className = 'p-2.5 rounded-xl s-success-soft text-xs flex items-start gap-2';
       }
     } else if (burnRate.status === 'unlimited') {
       statusIconEl.innerText = '♾️';
       if (analysisBox) {
-        analysisBox.className = 'p-2.5 rounded-xl bg-cyan-500/10 border border-cyan-500/30 text-xs text-cyan-200 flex items-start gap-2';
+        analysisBox.className = 'p-2.5 rounded-xl s-accent-soft text-xs flex items-start gap-2';
       }
     } else {
       statusIconEl.innerText = '🎯';
       if (analysisBox) {
-        analysisBox.className = 'p-2.5 rounded-xl bg-slate-900/40 border border-slate-700/40 text-xs text-slate-300 flex items-start gap-2';
+        analysisBox.className = 'p-2.5 rounded-xl card-inset text-xs t-muted flex items-start gap-2';
       }
     }
   }

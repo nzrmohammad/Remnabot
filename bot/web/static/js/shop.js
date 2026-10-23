@@ -119,9 +119,9 @@ function renderWonCoupons(data) {
       <div class="text-right">
         <div class="flex items-center gap-1">
           <span class="text-xs">🎟</span>
-          <span class="font-bold font-mono text-white text-xs">${escapeHtml(c.code)}</span>
+          <span class="font-bold font-mono t-main text-xs">${escapeHtml(c.code)}</span>
         </div>
-        <span class="text-[11px] text-emerald-400 font-sans block mt-0.5"><span dir="ltr" class="font-mono font-bold inline-block">${toEnglishDigits(c.discount_percent || 10)}%</span> تخفیف</span>
+        <span class="text-[11px] t-success font-sans block mt-0.5"><span dir="ltr" class="font-mono font-bold inline-block">${toEnglishDigits(c.discount_percent || 10)}%</span> تخفیف</span>
       </div>
       <button type="button" class="won-coupon-apply-btn bg-transparent hover:bg-amber-500/15 text-amber-400 border border-amber-500/40 font-bold px-2.5 py-1 rounded-lg text-[11px] transition active:scale-95 shrink-0" data-code="${escapeHtml(c.code)}">
         ⚡️ اعمال
@@ -149,7 +149,7 @@ function switchShopCategory(cat, shouldRender = true) {
     currentShopCategory = cat;
   }
   const activeClass = 'flex-1 py-1.5 px-2 rounded-xl font-bold transition flex items-center justify-center gap-1 bg-blue-600 text-white shadow';
-  const inactiveClass = 'flex-1 py-1.5 px-2 rounded-xl font-medium transition flex items-center justify-center gap-1 text-slate-400 hover:text-white';
+  const inactiveClass = 'flex-1 py-1.5 px-2 rounded-xl font-medium transition flex items-center justify-center gap-1 t-muted hover:t-main';
   ['full', 'traffic', 'time'].forEach(c => {
     const btn = document.getElementById(`shopCategoryBtn-${c}`);
     if (btn) {
@@ -179,7 +179,7 @@ function renderShopPlans(data) {
   const noticeEl = document.getElementById('shopSmartNotice');
   if (noticeEl) {
     if (!hasActiveSub) {
-      noticeEl.className = 'p-2.5 rounded-2xl text-[11px] leading-relaxed mb-1 transition flex items-center gap-2 bg-blue-950/40 border border-blue-500/30 text-blue-200';
+      noticeEl.className = 'p-2.5 rounded-2xl text-[11px] leading-relaxed mb-1 transition flex items-center gap-2 s-accent-soft';
       noticeEl.innerHTML = '<span>💎</span><span>جهت شروع، یکی از <b>سرویس‌های کامل</b> زیر را انتخاب فرمایید.</span>';
       noticeEl.classList.remove('hidden');
       if (!window._shopCategoryManuallyChanged) currentShopCategory = 'full';
@@ -212,10 +212,10 @@ function renderFilteredShopPlans() {
 
   if (allPlans.length === 0) {
     shopContainer.innerHTML = `
-      <div class="py-8 px-4 rounded-2xl bg-slate-900/60 border border-slate-700/60 text-center space-y-2">
+      <div class="py-8 px-4 rounded-2xl card-inset text-center space-y-2">
         <span class="text-3xl block">📦</span>
-        <b class="text-xs text-slate-200 block">در حال حاضر بسته‌ای برای خرید موجود نیست</b>
-        <p class="text-[11px] text-slate-400">لطفاً بعداً مراجعه فرمایید یا با پشتیبانی در ارتباط باشید.</p>
+        <b class="text-xs t-main block">در حال حاضر بسته‌ای برای خرید موجود نیست</b>
+        <p class="text-[11px] t-muted">لطفاً بعداً مراجعه فرمایید یا با پشتیبانی در ارتباط باشید.</p>
       </div>
     `;
     if (couponSection) couponSection.classList.add('hidden');
@@ -237,10 +237,10 @@ function renderFilteredShopPlans() {
     const catLabels = { traffic: 'افزایش حجم', time: 'افزایش زمان', full: 'سرویس‌های کامل' };
     const curLabel = catLabels[currentShopCategory] || 'این دسته‌بندی';
     shopContainer.innerHTML = `
-      <div class="py-8 px-4 rounded-2xl bg-slate-900/60 border border-slate-700/60 text-center space-y-3">
+      <div class="py-8 px-4 rounded-2xl card-inset text-center space-y-3">
         <span class="text-3xl block">🔍</span>
-        <b class="text-xs text-slate-200 block">بسته‌ای در بخش «${curLabel}» یافت نشد</b>
-        <p class="text-[11px] text-slate-400">می‌توانید سایر سرویس‌های فعال را بررسی نمایید.</p>
+        <b class="text-xs t-main block">بسته‌ای در بخش «${curLabel}» یافت نشد</b>
+        <p class="text-[11px] t-muted">می‌توانید سایر سرویس‌های فعال را بررسی نمایید.</p>
         <button type="button" onclick="window.switchShopCategory('full')" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs transition shadow active:scale-95 mx-auto">
           <span>💎</span> مشاهده سرویس‌های کامل
         </button>
@@ -303,8 +303,8 @@ function renderFilteredShopPlans() {
       : (isTimeOnly
           ? `<span class="flex items-center gap-1">📅 <b class="text-amber-400 font-bold">${p.duration_days} روز اضافه</b></span>`
           : (Number(p.duration_days) > 0
-              ? `<span class="flex items-center gap-1">📅 <b class="text-slate-200">${p.duration_days} روز</b></span>`
-              : '<span class="flex items-center gap-1">📅 <b class="text-slate-200">نامحدود روز</b></span>'));
+              ? `<span class="flex items-center gap-1">📅 <b class="t-main">${p.duration_days} روز</b></span>`
+              : '<span class="flex items-center gap-1">📅 <b class="t-main">نامحدود روز</b></span>'));
     const trafficText = isTimeOnly
       ? '<span class="text-amber-400 font-bold">بدون تغییر حجم</span>'
       : (Number(p.traffic_gb) > 0 ? fmtTraffic(p.traffic_gb, { html: false }) : 'نامحدود');
@@ -319,21 +319,21 @@ function renderFilteredShopPlans() {
         <div class="flex justify-between items-start ${planBadge ? 'mt-1' : ''}">
           <div>
             <div class="flex items-center gap-2">
-              <h4 class="font-bold text-sm text-slate-900 dark:text-white">${formatPlanTitle(p.name)}</h4>
-              ${discountVal > 0 ? '<span class="text-[10px] text-emerald-400 font-bold bg-transparent border-0 px-0 py-0">🏷 تخفیف ویژه</span>' : ''}
+              <h4 class="font-bold text-sm t-main">${formatPlanTitle(p.name)}</h4>
+              ${discountVal > 0 ? '<span class="text-[10px] t-success font-bold bg-transparent border-0 px-0 py-0">🏷 تخفیف ویژه</span>' : ''}
             </div>
-            <p class="text-xs text-slate-400 mt-1">${p.description || (isExtraTraffic ? 'افزایش حجم بدون تغییر در تاریخ انقضای سرویس فعلی' : (isTimeOnly ? 'افزایش مدت زمان اعتبار بدون تغییر در میزان ترافیک' : 'ترافیک پایدار و بدون محدودیت روی تمام سرورها'))}</p>
+            <p class="text-xs t-muted mt-1">${p.description || (isExtraTraffic ? 'افزایش حجم بدون تغییر در تاریخ انقضای سرویس فعلی' : (isTimeOnly ? 'افزایش مدت زمان اعتبار بدون تغییر در میزان ترافیک' : 'ترافیک پایدار و بدون محدودیت روی تمام سرورها'))}</p>
           </div>
           <div class="text-left font-mono">
-            ${discountVal > 0 ? `<span class="line-through text-slate-400 text-xs block -mb-0.5">${formattedOriginal}</span>` : ''}
-            <span class="text-base font-black text-emerald-400">${formattedFinal}</span>
-            <span class="text-[10px] text-slate-400 block -mt-1 font-sans">تومان</span>
+            ${discountVal > 0 ? `<span class="line-through t-muted text-xs block -mb-0.5">${formattedOriginal}</span>` : ''}
+            <span class="text-base font-black t-success">${formattedFinal}</span>
+            <span class="text-[10px] t-muted block -mt-1 font-sans">تومان</span>
           </div>
         </div>
         <div class="flex items-center justify-between my-2.5 text-[10px] card-inset px-3 py-2 whitespace-nowrap overflow-hidden">
-          <span class="flex items-center gap-1">📊 <b dir="ltr" class="font-mono text-slate-200 num-bidi">${trafficText}</b></span>
+          <span class="flex items-center gap-1">📊 <b dir="ltr" class="font-mono t-main num-bidi">${trafficText}</b></span>
           ${durationText}
-          <span class="flex items-center gap-1">📱 <b class="text-slate-200">${devLimitText}</b></span>
+          <span class="flex items-center gap-1">📱 <b class="t-main">${devLimitText}</b></span>
         </div>
         <button class="buy-plan-btn w-full ${btnClass} text-xs py-2.5 rounded-xl transition shadow active:scale-[0.98]" data-id="${p.id}" data-price="${finalPrice}" data-name="${p.name}" data-traffic="${p.traffic_gb}" data-days="${p.duration_days}" data-badge="${p.badge || ''}">
           🛒 ${buttonLabel} (${formattedFinal} تومان)

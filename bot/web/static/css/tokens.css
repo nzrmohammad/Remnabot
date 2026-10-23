@@ -102,7 +102,7 @@ html.theme-light {
   /* Typography & Content */
   --text-main: #0f172a;
   --text-muted: #475569;
-  --text-subtle: #94a3b8;
+  --text-subtle: #64748b;              /* slate-500 (4.76:1 on #ffffff - WCAG AA compliant) */
   --text-inverse: #f8fafc;
 
   /* Interactive Accent */

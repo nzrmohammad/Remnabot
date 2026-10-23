@@ -29,7 +29,7 @@ function renderWalletTransactions(transactions) {
   const txList = allWalletTransactions || [];
   if (txList.length === 0) {
     txContainer.innerHTML = `
-      <div class="p-4 rounded-xl bg-transparent border border-slate-700/50 text-center text-xs text-slate-400">
+      <div class="p-4 rounded-xl bg-transparent border border-[var(--card-border)] text-center text-xs text-slate-400">
         <span>🧾 هنوز تراکنش یا سفارشی برای این حساب ثبت نشده است.</span>
       </div>
     `;
@@ -47,24 +47,24 @@ function renderWalletTransactions(transactions) {
 
   txContainer.innerHTML = pageItems.map(tx => {
     const statusColor = (tx.status_color === 'amber' || tx.status_color === 'yellow')
-      ? 'text-amber-400'
+      ? 't-warn'
       : ((tx.status_color === 'rose' || tx.status_color === 'red')
-        ? 'text-rose-400'
-        : (tx.status_color === 'slate' ? 'text-slate-400' : 'text-emerald-400'));
+        ? 't-danger'
+        : (tx.status_color === 'slate' ? 't-muted' : 't-success'));
     return `
-    <div class="bg-transparent rounded-xl p-3 border border-slate-700/60 flex items-center justify-between text-xs">
+    <div class="card-inset rounded-xl p-3 flex items-center justify-between text-xs">
       <div class="flex items-center gap-2.5">
         <span class="text-xl">${tx.type === 'topup' ? '💳' : (tx.type === 'admin_adjust' ? '⚡️' : '🛒')}</span>
         <div>
-          <span class="font-bold text-slate-200 block">${formatTxTitle(tx)}</span>
-          <span class="text-[10px] text-slate-400 font-mono mt-0.5" dir="ltr">${toEnglishDigits(tx.date_jalali || '')}</span>
+          <span class="font-bold t-main block">${formatTxTitle(tx)}</span>
+          <span class="text-[10px] t-muted font-mono mt-0.5" dir="ltr">${toEnglishDigits(tx.date_jalali || '')}</span>
         </div>
       </div>
       <div class="text-left space-y-0.5">
-        <div class="inline-flex items-center gap-1 font-bold ${tx.is_positive ? 'text-emerald-400' : 'text-slate-200'}" dir="rtl">
+        <div class="inline-flex items-center gap-1 font-bold ${tx.is_positive ? 't-success' : 't-main'}" dir="rtl">
           <span class="font-mono text-xs" dir="ltr">${Number(tx.amount != null ? tx.amount : 0).toLocaleString('en-US')}</span>
           <span class="font-mono text-sm leading-none font-bold">${tx.is_positive ? '+' : '-'}</span>
-          <span class="font-sans text-[10px] text-slate-400 font-normal">تومان</span>
+          <span class="font-sans text-[10px] t-muted font-normal">تومان</span>
         </div>
         <span class="text-[10px] ${statusColor} font-sans block">
           ${escapeHtml(tx.status || 'موفق')}
@@ -79,7 +79,7 @@ function renderWalletTransactions(transactions) {
   if (!pagEl) {
     pagEl = document.createElement('div');
     pagEl.id = 'walletTxPagination';
-    pagEl.className = 'flex items-center justify-between pt-2 border-t border-slate-700/50 text-xs';
+    pagEl.className = 'flex items-center justify-between pt-2 border-t border-[var(--card-border)] text-xs';
     txContainer.parentNode.appendChild(pagEl);
   }
 
@@ -88,13 +88,13 @@ function renderWalletTransactions(transactions) {
   } else {
     pagEl.classList.remove('hidden');
     pagEl.innerHTML = `
-      <button type="button" id="walletPrevPageBtn" class="p-1.5 rounded-lg border border-slate-700/80 hover:border-slate-500 bg-transparent text-slate-300 hover:text-white transition active:scale-95 flex items-center justify-center ${currentWalletPage === 1 ? 'opacity-30 cursor-not-allowed pointer-events-none' : ''}" title="صفحه قبل">
+      <button type="button" id="walletPrevPageBtn" class="p-1.5 rounded-lg border border-[var(--card-border)] bg-transparent t-muted hover:t-main transition active:scale-95 flex items-center justify-center ${currentWalletPage === 1 ? 'opacity-30 cursor-not-allowed pointer-events-none' : ''}" title="صفحه قبل">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
       </button>
       <span class="text-[11px] text-slate-400 font-mono">
-        صفحه <b class="text-slate-200">${currentWalletPage}</b> از <b class="text-slate-200">${totalPages}</b>
+        صفحه <b class="t-main">${currentWalletPage}</b> از <b class="t-main">${totalPages}</b>
       </span>
-      <button type="button" id="walletNextPageBtn" class="p-1.5 rounded-lg border border-slate-700/80 hover:border-slate-500 bg-transparent text-slate-300 hover:text-white transition active:scale-95 flex items-center justify-center ${currentWalletPage === totalPages ? 'opacity-30 cursor-not-allowed pointer-events-none' : ''}" title="صفحه بعد">
+      <button type="button" id="walletNextPageBtn" class="p-1.5 rounded-lg border border-[var(--card-border)] bg-transparent t-muted hover:t-main transition active:scale-95 flex items-center justify-center ${currentWalletPage === totalPages ? 'opacity-30 cursor-not-allowed pointer-events-none' : ''}" title="صفحه بعد">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
       </button>
     `;
