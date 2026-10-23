@@ -396,6 +396,11 @@ label:active .switch-label .switch-ball {
   color: var(--text-main);
 }
 
+.gauge-bg-circle,
+.speed-gauge-track {
+  stroke: var(--gauge-track, #1e293b);
+}
+
 .gauge-circle {
   transition: stroke-dashoffset 1s ease-in-out;
   transform: rotate(-90deg);

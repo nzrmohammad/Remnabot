@@ -115,7 +115,7 @@
         <div class="absolute w-64 h-64 bg-amber-500/10 rounded-full blur-3xl pointer-events-none -top-4"></div>
         <div class="absolute w-56 h-56 bg-orange-600/10 rounded-full blur-2xl pointer-events-none -bottom-4"></div>
 
-        <div class="system-status-card relative z-10 w-full max-w-sm mx-auto bg-slate-900/85 backdrop-blur-xl border border-slate-700/70 rounded-3xl p-6 sm:p-7 shadow-2xl flex flex-col items-center text-center">
+        <div class="system-status-card relative z-10 w-full max-w-sm mx-auto card rounded-3xl p-6 sm:p-7 shadow-2xl flex flex-col items-center text-center">
           <!-- Floating Animated Badge -->
           <div class="relative mb-5">
             <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-amber-500/20 via-orange-500/20 to-amber-500/10 border border-amber-500/30 flex items-center justify-center shadow-lg shadow-amber-500/10">
@@ -153,7 +153,7 @@
         <div class="absolute w-64 h-64 bg-blue-500/10 rounded-full blur-3xl pointer-events-none -top-4"></div>
         <div class="absolute w-56 h-56 bg-indigo-600/10 rounded-full blur-2xl pointer-events-none -bottom-4"></div>
 
-        <div class="system-status-card relative z-10 w-full max-w-sm mx-auto bg-slate-900/85 backdrop-blur-xl border border-slate-700/70 rounded-3xl p-6 sm:p-7 shadow-2xl flex flex-col items-center text-center">
+        <div class="system-status-card relative z-10 w-full max-w-sm mx-auto card rounded-3xl p-6 sm:p-7 shadow-2xl flex flex-col items-center text-center">
           <!-- Floating Animated Badge -->
           <div class="relative mb-5">
             <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-cyan-500/20 via-blue-500/20 to-indigo-500/10 border border-blue-500/30 flex items-center justify-center shadow-lg shadow-blue-500/10">
@@ -224,7 +224,7 @@
               <span class="text-[10px] text-slate-300 mt-0.5 font-medium speedtest-sub">سنجش دقیق پهنای‌باند دانلود، آپلود و پینگ</span>
             </div>
           </div>
-          <div class="flex items-center gap-1 text-emerald-400 font-bold text-xs bg-slate-900/60 px-2.5 py-1.5 rounded-xl border border-emerald-500/20 group-hover:border-emerald-500/50 transition">
+          <div class="flex items-center gap-1 text-emerald-400 font-bold text-xs card-inset px-2.5 py-1.5 rounded-xl border border-emerald-500/20 group-hover:border-emerald-500/50 transition">
             <span>شروع</span>
             <span class="text-sm">←</span>
           </div>
@@ -256,7 +256,7 @@
 
           <!-- Top Status Pill -->
           <div class="flex justify-center">
-            <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-900/80 text-slate-300 border border-slate-700/80">
+            <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold card-inset t-muted border border-slate-700/60">
               <span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>
               <span>بدون اشتراک فعال</span>
             </span>
@@ -277,15 +277,15 @@
 
           <!-- Value Proposition Chips (Single line, icon beside text) -->
           <div class="grid grid-cols-3 gap-1.5 py-0.5 text-center">
-            <div class="bg-slate-900/60 rounded-xl py-1.5 px-1 border border-slate-700/50 flex items-center justify-center gap-1">
+            <div class="card-inset rounded-xl py-1.5 px-1 flex items-center justify-center gap-1">
               <span class="text-xs">⚡️</span>
               <span class="text-[10px] text-slate-300 font-bold truncate">پرسرعت</span>
             </div>
-            <div class="bg-slate-900/60 rounded-xl py-1.5 px-1 border border-slate-700/50 flex items-center justify-center gap-1">
+            <div class="card-inset rounded-xl py-1.5 px-1 flex items-center justify-center gap-1">
               <span class="text-xs">🛡️</span>
               <span class="text-[10px] text-slate-300 font-bold truncate">ضد فیلتر</span>
             </div>
-            <div class="bg-slate-900/60 rounded-xl py-1.5 px-1 border border-slate-700/50 flex items-center justify-center gap-1">
+            <div class="card-inset rounded-xl py-1.5 px-1 flex items-center justify-center gap-1">
               <span class="text-xs">🔄</span>
               <span class="text-[10px] text-slate-300 font-bold truncate">پشتیبانی</span>
             </div>
@@ -316,7 +316,7 @@
           <!-- Circular SVG Gauge -->
           <div class="flex flex-col items-center justify-center my-1 relative">
             <svg class="w-48 h-48" viewBox="0 0 120 120">
-              <circle cx="60" cy="60" r="50" class="gauge-bg-circle" stroke="#1e293b" stroke-width="8" fill="transparent" />
+              <circle cx="60" cy="60" r="50" class="gauge-bg-circle" stroke="var(--gauge-track, #1e293b)" stroke-width="8" fill="transparent" />
               <circle id="gaugeProgress" class="gauge-circle" cx="60" cy="60" r="50" stroke="url(#gradientMain)" stroke-width="8" stroke-dasharray="314.15" stroke-dashoffset="62.8" stroke-linecap="round" fill="transparent" />
               <defs>
                 <linearGradient id="gradientMain" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -329,7 +329,7 @@
             <div class="absolute inset-0 flex flex-col items-center justify-center text-center p-2 -translate-y-1">
               <span id="dashboardPercentRemaining" class="text-xl font-black text-white tracking-tight leading-none font-mono" dir="ltr">--%</span>
               <span class="text-[11px] text-slate-400 font-medium mt-0.5">باقی‌مانده</span>
-              <div class="mt-1 text-[9.5px] text-indigo-200 bg-slate-900/90 border border-indigo-500/40 px-2 py-0.5 rounded-full font-semibold shadow-sm flex items-center justify-center">
+              <div class="mt-1 text-[9.5px] text-indigo-200 card-inset border border-indigo-500/40 px-2 py-0.5 rounded-full font-semibold shadow-sm flex items-center justify-center">
                 <span id="dashboardUsagePill" class="font-mono font-bold text-cyan-300 num-bidi" dir="ltr">-- / -- GB</span>
               </div>
             </div>
@@ -412,7 +412,7 @@
             <div id="subDisplayBox" class="hidden"></div>
 
             <!-- Dynamic QR Popup (Collapsible fallback) -->
-            <div id="qrContainer" class="hidden flex flex-col items-center justify-center p-3.5 bg-slate-900/90 border border-slate-700/70 rounded-2xl text-slate-100 animate-fadeIn text-center">
+            <div id="qrContainer" class="hidden flex flex-col items-center justify-center p-3.5 card-inset rounded-2xl text-slate-100 animate-fadeIn text-center">
               <img id="qrImage" src="" alt="کیوآرکد اشتراک" class="w-36 h-36 rounded-xl bg-white p-1.5 shadow mb-2" loading="lazy" />
               <span class="text-[11px] text-slate-300 font-medium">اسکن مستقیم با دوربین گوشی یا نرم‌افزارهای VPN</span>
             </div>
@@ -421,23 +421,23 @@
             <div class="pt-1">
               <span class="text-[11px] text-slate-400 block mb-2 font-medium">اتصال خودکار به کلاینت دلخواه</span>
               <div class="grid grid-cols-5 gap-1.5 text-center text-xs">
-                <button id="appImportIncy" type="button" class="client-import-btn bg-slate-800/80 hover:bg-slate-700/80 p-1.5 rounded-xl border border-slate-700/80 flex flex-col items-center gap-1 transition group active:scale-95 shadow-sm">
+                <button id="appImportIncy" type="button" class="client-import-btn card-inset hover:border-cyan-500/50 p-1.5 rounded-xl flex flex-col items-center gap-1 transition group active:scale-95 shadow-sm">
                   <span class="text-base group-hover:scale-110 transition">⚡️</span>
                   <span class="font-bold text-[10px] text-indigo-400 group-hover:text-indigo-300">Incy</span>
                 </button>
-                <button id="appImportHapp" type="button" class="client-import-btn bg-slate-800/80 hover:bg-slate-700/80 p-1.5 rounded-xl border border-slate-700/80 flex flex-col items-center gap-1 transition group active:scale-95 shadow-sm">
+                <button id="appImportHapp" type="button" class="client-import-btn card-inset hover:border-cyan-500/50 p-1.5 rounded-xl flex flex-col items-center gap-1 transition group active:scale-95 shadow-sm">
                   <span class="text-base group-hover:scale-110 transition">🪐</span>
                   <span class="font-bold text-[10px] text-pink-400 group-hover:text-pink-300">Happ</span>
                 </button>
-                <button id="appImportV2ray" type="button" class="client-import-btn bg-slate-800/80 hover:bg-slate-700/80 p-1.5 rounded-xl border border-slate-700/80 flex flex-col items-center gap-1 transition group active:scale-95 shadow-sm">
+                <button id="appImportV2ray" type="button" class="client-import-btn card-inset hover:border-cyan-500/50 p-1.5 rounded-xl flex flex-col items-center gap-1 transition group active:scale-95 shadow-sm">
                   <span class="text-base group-hover:scale-110 transition">🤖</span>
                   <span class="font-bold text-[10px] text-emerald-400 group-hover:text-emerald-300">v2rayNG</span>
                 </button>
-                <button id="appImportHiddify" type="button" class="client-import-btn bg-slate-800/80 hover:bg-slate-700/80 p-1.5 rounded-xl border border-slate-700/80 flex flex-col items-center gap-1 transition group active:scale-95 shadow-sm">
+                <button id="appImportHiddify" type="button" class="client-import-btn card-inset hover:border-cyan-500/50 p-1.5 rounded-xl flex flex-col items-center gap-1 transition group active:scale-95 shadow-sm">
                   <span class="text-base group-hover:scale-110 transition">🛡️</span>
                   <span class="font-bold text-[10px] text-cyan-400 group-hover:text-cyan-300">Hiddify</span>
                 </button>
-                <button id="appImportStreisand" type="button" class="client-import-btn bg-slate-800/80 hover:bg-slate-700/80 p-1.5 rounded-xl border border-slate-700/80 flex flex-col items-center gap-1 transition group active:scale-95 shadow-sm">
+                <button id="appImportStreisand" type="button" class="client-import-btn card-inset hover:border-cyan-500/50 p-1.5 rounded-xl flex flex-col items-center gap-1 transition group active:scale-95 shadow-sm">
                   <span class="text-base group-hover:scale-110 transition">🍏</span>
                   <span class="font-bold text-[10px] text-amber-400 group-hover:text-amber-300">Streisand</span>
                 </button>
@@ -589,7 +589,7 @@
         <!-- 4. Advanced Analytics & Visualizers (تحلیل هوشمند مصرف) -->
         <div id="viewRepAnalytics" class="space-y-3 hidden">
           <!-- Chart 1: Download vs Upload Split (توازن دانلود و آپلود) -->
-          <div class="bg-slate-800/90 rounded-2xl p-4 border border-slate-700/80 space-y-2.5 shadow-md">
+          <div class="card rounded-2xl p-4 space-y-2.5 shadow-md">
             <div class="flex justify-between items-center border-b border-slate-700/60 pb-2">
               <span class="text-xs font-bold text-white flex items-center gap-1.5">
                 <span>⚡️</span> توازن ترافیک (دانلود در برابر آپلود)
@@ -602,7 +602,7 @@
                 <span class="text-cyan-400 font-bold flex items-center gap-1">📥 DL: <span id="repSplitDownGb" class="num-bidi">-- GB</span> (<span id="repSplitDownPct">--%</span>)</span>
                 <span class="text-purple-400 font-bold flex items-center gap-1">📤 UL: <span id="repSplitUpGb" class="num-bidi">-- GB</span> (<span id="repSplitUpPct">--%</span>)</span>
               </div>
-              <div class="w-full h-2.5 rounded-full bg-slate-950/80 p-[1px] border border-slate-700/50 flex overflow-hidden relative" dir="ltr">
+              <div class="w-full h-2.5 rounded-full card-inset p-[1px] flex overflow-hidden relative" dir="ltr">
                 <div id="repSplitDownBar" class="h-full bg-gradient-to-r from-cyan-500 to-teal-400 rounded-l-full transition-all duration-700" style="width: 0%;"></div>
                 <div id="repSplitUpBar" class="h-full bg-gradient-to-r from-purple-500 to-indigo-500 rounded-r-full transition-all duration-700" style="width: 0%;"></div>
               </div>
@@ -610,7 +610,7 @@
           </div>
 
           <!-- Chart 2: Burn-Rate & Projected Expiry (پیش‌بینی هوشمند اتمام حجم) -->
-          <div class="bg-slate-800/90 rounded-2xl p-4 border border-slate-700/80 space-y-2.5 shadow-md">
+          <div class="card rounded-2xl p-4 space-y-2.5 shadow-md">
             <div class="flex justify-between items-center border-b border-slate-700/60 pb-2">
               <span class="text-xs font-bold text-white flex items-center gap-1.5">
                 <span>⏳</span> پیش‌بینی هوشمند اتمام حجم
@@ -620,17 +620,17 @@
 
             <div class="space-y-2">
               <div class="grid grid-cols-2 gap-2 text-xs">
-                <div class="bg-slate-900/60 border border-slate-700/50 rounded-xl p-2.5 space-y-1">
+                <div class="card-inset rounded-xl p-2.5 space-y-1">
                   <span class="text-[10px] text-slate-400 block">میانگین مصرف ۳ روز اخیر:</span>
                   <b id="repBurnAvgDaily" class="font-mono text-cyan-400 text-xs num-bidi" dir="ltr">-- GB</b>
                 </div>
-                <div class="bg-slate-900/60 border border-slate-700/50 rounded-xl p-2.5 space-y-1">
+                <div class="card-inset rounded-xl p-2.5 space-y-1">
                   <span class="text-[10px] text-slate-400 block">تخمین حجم باقی‌مانده:</span>
                   <b id="repBurnProjectedDays" class="font-mono text-emerald-400 text-xs num-bidi" dir="ltr">-- روز</b>
                 </div>
               </div>
 
-              <div id="repBurnAnalysisBox" class="p-2.5 rounded-xl bg-slate-900/40 border border-slate-700/40 text-xs text-slate-300 flex items-start gap-2">
+              <div id="repBurnAnalysisBox" class="p-2.5 rounded-xl card-inset text-xs t-muted flex items-start gap-2">
                 <span id="repBurnStatusIcon" class="text-base shrink-0">🎯</span>
                 <span id="repBurnAnalysisText" class="text-[11px] leading-relaxed text-slate-300">در حال تحلیل الگوی مصرف...</span>
               </div>
@@ -638,7 +638,7 @@
           </div>
 
           <!-- Chart 2: 24h Peak Usage Curve (ساعات اوج مصرف شبانه‌روز) -->
-          <div class="bg-slate-800/90 rounded-2xl p-4 border border-slate-700/80 space-y-2.5 shadow-md">
+          <div class="card rounded-2xl p-4 space-y-2.5 shadow-md">
             <div class="flex justify-between items-center border-b border-slate-700/60 pb-2">
               <span class="text-xs font-bold text-white flex items-center gap-1.5">
                 <span>📈</span> منحنی ساعات اوج مصرف
@@ -668,28 +668,28 @@
 
               <!-- 4 Diurnal Intervals Breakdown Summary -->
               <div id="repHourlyPeriodsSummary" class="grid grid-cols-2 sm:grid-cols-4 gap-1.5 pt-1 font-mono text-[11px]">
-                <div class="bg-slate-900/60 p-2 rounded-xl border border-slate-700/50 flex flex-col justify-between">
+                <div class="card-inset p-2 rounded-xl flex flex-col justify-between">
                   <div class="flex items-center justify-between text-slate-400 text-[10px] font-sans">
                     <span class="flex items-center gap-1"><span>🌙 بامداد</span> <span dir="ltr" class="font-mono text-[9.5px] text-slate-400">(00-06)</span></span>
                     <span id="periodDawnPercent" class="text-cyan-400 font-bold font-mono">0%</span>
                   </div>
                   <b id="periodDawnVal" class="text-white text-xs mt-1 block num-bidi" dir="ltr">0.00 GB</b>
                 </div>
-                <div class="bg-slate-900/60 p-2 rounded-xl border border-slate-700/50 flex flex-col justify-between">
+                <div class="card-inset p-2 rounded-xl flex flex-col justify-between">
                   <div class="flex items-center justify-between text-slate-400 text-[10px] font-sans">
                     <span class="flex items-center gap-1"><span>🌅 صبح</span> <span dir="ltr" class="font-mono text-[9.5px] text-slate-400">(06-12)</span></span>
                     <span id="periodMorningPercent" class="text-emerald-400 font-bold font-mono">0%</span>
                   </div>
                   <b id="periodMorningVal" class="text-white text-xs mt-1 block num-bidi" dir="ltr">0.00 GB</b>
                 </div>
-                <div class="bg-slate-900/60 p-2 rounded-xl border border-slate-700/50 flex flex-col justify-between">
+                <div class="card-inset p-2 rounded-xl flex flex-col justify-between">
                   <div class="flex items-center justify-between text-slate-400 text-[10px] font-sans">
                     <span class="flex items-center gap-1"><span>☀️ عصر</span> <span dir="ltr" class="font-mono text-[9.5px] text-slate-400">(12-18)</span></span>
                     <span id="periodAfternoonPercent" class="text-amber-400 font-bold font-mono">0%</span>
                   </div>
                   <b id="periodAfternoonVal" class="text-white text-xs mt-1 block num-bidi" dir="ltr">0.00 GB</b>
                 </div>
-                <div class="bg-slate-900/60 p-2 rounded-xl border border-slate-700/50 flex flex-col justify-between">
+                <div class="card-inset p-2 rounded-xl flex flex-col justify-between">
                   <div class="flex items-center justify-between text-slate-400 text-[10px] font-sans">
                     <span class="flex items-center gap-1"><span>🌆 شب</span> <span dir="ltr" class="font-mono text-[9.5px] text-slate-400">(18-24)</span></span>
                     <span id="periodNightPercent" class="text-purple-400 font-bold font-mono">0%</span>
@@ -703,7 +703,7 @@
           <!-- Dual Cards: Country Share Donut + Device Platform Share -->
           <div class="grid grid-cols-1 gap-3">
             <!-- Chart 3: Country Share Donut (سهم لوکیشن‌ها) -->
-            <div class="bg-slate-800/90 rounded-2xl p-4 border border-slate-700/80 space-y-2 shadow-md">
+            <div class="card rounded-2xl p-4 space-y-2 shadow-md">
               <div class="flex justify-between items-center border-b border-slate-700/60 pb-2">
                 <span class="text-xs font-bold text-white flex items-center gap-1.5">
                   <span>🍩</span> سهم لوکیشن‌ها و کشورها
@@ -716,7 +716,7 @@
             </div>
 
             <!-- Chart 4: Device & OS Platform Share (توزیع سیستم‌عامل‌ها) -->
-            <div class="bg-slate-800/90 rounded-2xl p-4 border border-slate-700/80 space-y-2 shadow-md">
+            <div class="card rounded-2xl p-4 space-y-2 shadow-md">
               <div class="flex justify-between items-center border-b border-slate-700/60 pb-2">
                 <span class="text-xs font-bold text-white flex items-center gap-1.5">
                   <span>📱</span> توزیع پلتفرم و دستگاه‌ها
@@ -746,7 +746,7 @@
         </div>
 
         <!-- Smart Shop Sub-tabs (سرویس کامل / افزایش حجم / افزایش زمان) -->
-        <div class="flex items-center p-1 bg-slate-900/80 rounded-2xl border border-slate-700/60 text-xs gap-1">
+        <div class="flex items-center p-1 card-inset rounded-2xl text-xs gap-1">
           <button type="button" onclick="window.switchShopCategory('full')" id="shopCategoryBtn-full" class="flex-1 py-1.5 px-2 rounded-xl font-bold transition flex items-center justify-center gap-1 bg-blue-600 text-white shadow">
             <span>💎</span> سرویس کامل
           </button>
@@ -763,15 +763,15 @@
 
         <!-- Dynamic Plans Container (Loaded from Admin DB) -->
         <div id="shopPlansContainer" class="space-y-3">
-          <div class="p-4 rounded-xl bg-slate-800/80 border border-slate-700/60 text-center text-xs text-slate-400">
+          <div class="p-4 rounded-xl card-inset text-center text-xs t-muted">
             در حال بارگذاری بسته‌های فعال...
           </div>
         </div>
 
         <!-- Coupon Box (Hidden until plans are rendered) -->
         <div id="shopCouponSection" class="space-y-2 hidden">
-          <div class="bg-slate-800/60 rounded-xl p-2.5 border border-slate-700/60 flex items-center gap-2">
-            <input type="text" placeholder="کد تخفیف (مثال: OFF20)" class="bg-slate-900 text-xs px-3 py-2 rounded-lg border border-slate-700 flex-1 outline-none text-slate-200 uppercase font-mono" id="couponInput" />
+          <div class="card-inset rounded-xl p-2.5 flex items-center gap-2">
+            <input type="text" placeholder="کد تخفیف (مثال: OFF20)" class="input-base text-xs px-3 py-2 rounded-lg flex-1 outline-none uppercase font-mono" id="couponInput" />
             <button id="applyCouponBtn" type="button" class="btn btn-primary text-xs font-semibold px-4 py-2 rounded-lg shadow shrink-0">اعمال</button>
           </div>
 
@@ -825,7 +825,7 @@
             <button id="redeemVoucherBtn" type="button" class="bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white text-xs font-bold px-4 py-2 rounded-xl transition active:scale-95 shadow shrink-0">
               اعمال
             </button>
-            <input type="text" id="voucherCodeInput" placeholder="کد شارژ (مثال: GIFT-XXXX)" dir="ltr" class="flex-1 bg-slate-900 border border-slate-700/80 rounded-xl px-3 py-2 text-xs font-mono text-cyan-300 placeholder-slate-500 outline-none focus:border-cyan-500 transition uppercase text-left" />
+            <input type="text" id="voucherCodeInput" placeholder="کد شارژ (مثال: GIFT-XXXX)" dir="ltr" class="input-base flex-1 rounded-xl px-3 py-2 text-xs font-mono text-cyan-500 dark:text-cyan-300 placeholder-slate-400 outline-none uppercase text-left" />
           </div>
         </div>
 
@@ -995,11 +995,11 @@
           </div>
           <div id="userBoxReferral" class="settings-box-body p-3.5 border-t border-slate-700/60 space-y-3 hidden">
             <div class="grid grid-cols-2 gap-2 text-center py-1">
-              <div class="ref-stat-box bg-slate-900/60 rounded-xl p-2.5 border border-slate-700/50">
+              <div class="ref-stat-box card-inset rounded-xl p-2.5">
                 <span class="text-[11px] text-slate-400 block mb-0.5">تعداد دعوت‌های موفق</span>
                 <span id="profileReferralsCount" class="text-sm font-black font-mono text-cyan-400">0 نفر</span>
               </div>
-              <div class="ref-stat-box bg-slate-900/60 rounded-xl p-2.5 border border-slate-700/50">
+              <div class="ref-stat-box card-inset rounded-xl p-2.5">
                 <span class="text-[11px] text-slate-400 block mb-0.5">پاداش ترافیک دریافتی</span>
                 <div class="flex items-center justify-center gap-1 text-sm font-black font-mono text-emerald-400 num-bidi" dir="ltr">
                   <span id="profileReferralRewardTotal">0</span>
@@ -1010,7 +1010,7 @@
 
             <div class="space-y-1.5">
               <span class="text-[10px] text-slate-300 font-medium block">لینک اختصاصی دعوت شما:</span>
-              <div class="ref-input-box flex items-center gap-1.5 bg-slate-900/90 border border-indigo-500/30 rounded-xl p-1.5">
+              <div class="ref-input-box card-inset flex items-center gap-1.5 rounded-xl p-1.5 border border-indigo-500/30">
                 <button id="copyReferralLinkBtn" type="button" class="text-indigo-400 hover:text-indigo-300 text-sm px-2 py-1 transition active:scale-90 flex-shrink-0 bg-transparent border-0 shadow-none outline-none" title="کپی لینک اختصاصی">
                   📋
                 </button>
@@ -1129,7 +1129,7 @@
               </div>
               <div class="flex items-center gap-2 relative">
                 <input type="hidden" id="settingTrafficPercentSelect" value="80">
-                <button id="trafficPercentTriggerBtn" type="button" onclick="window.openAlertPickerModal('traffic')" class="bg-slate-900 border border-slate-700 hover:border-cyan-500/50 text-cyan-400 text-[11px] rounded-lg px-2.5 py-1 outline-none font-mono font-bold flex items-center gap-1 transition active:scale-95 shadow-sm">
+                <button id="trafficPercentTriggerBtn" type="button" onclick="window.openAlertPickerModal('traffic')" class="card-inset hover:border-cyan-500/50 text-cyan-500 dark:text-cyan-400 text-[11px] rounded-lg px-2.5 py-1 outline-none font-mono font-bold flex items-center gap-1 transition active:scale-95 shadow-sm">
                   <span id="trafficPercentDisplay">80%</span>
                   <span class="text-[9px] text-slate-400">⚙️</span>
                 </button>
@@ -1150,7 +1150,7 @@
               </div>
               <div class="flex items-center gap-2 relative">
                 <input type="hidden" id="settingExpireDaysSelect" value="3">
-                <button id="expireDaysTriggerBtn" type="button" onclick="window.openAlertPickerModal('expire')" class="bg-slate-900 border border-slate-700 hover:border-amber-500/50 text-amber-400 text-[11px] rounded-lg px-2.5 py-1 outline-none font-mono font-bold flex items-center gap-1 transition active:scale-95 shadow-sm">
+                <button id="expireDaysTriggerBtn" type="button" onclick="window.openAlertPickerModal('expire')" class="card-inset hover:border-amber-500/50 text-amber-500 dark:text-amber-400 text-[11px] rounded-lg px-2.5 py-1 outline-none font-mono font-bold flex items-center gap-1 transition active:scale-95 shadow-sm">
                   <span id="expireDaysDisplay">3 روز</span>
                   <span class="text-[9px] text-slate-400">⚙️</span>
                 </button>
@@ -1214,7 +1214,7 @@
                 <span class="text-slate-200 font-medium block">🌐 زبان برنامه (Language)</span>
                 <span class="text-[11px] text-slate-400">زبان پیش‌فرض ربات و داشبورد</span>
               </div>
-              <div class="flex items-center gap-1 bg-slate-900 p-0.5 rounded-lg border border-slate-700">
+              <div class="flex items-center gap-1 card-inset p-0.5 rounded-lg">
                 <button id="langFaBtn" class="px-2.5 py-1 text-xs rounded-md font-bold transition bg-blue-600 text-white">فارسی</button>
                 <button id="langEnBtn" class="px-2.5 py-1 text-xs rounded-md font-medium transition text-slate-400 hover:text-slate-200">English</button>
               </div>
@@ -1278,7 +1278,7 @@
     <!-- ======================================================== -->
     <!-- 4. MODAL: REVOKE SUBSCRIPTION CONFIRMATION               -->
     <!-- ======================================================== -->
-    <div id="revokeModal" class="absolute inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center p-5 hidden animate-fadeIn">
+    <div id="revokeModal" class="fixed inset-0 modal-backdrop z-50 flex items-center justify-center p-5 hidden animate-fadeIn">
       <div class="modal-card border border-rose-500/50 rounded-3xl p-5 w-full text-center space-y-4 shadow-2xl relative">
         <div class="w-14 h-14 bg-rose-500/20 text-rose-400 rounded-full flex items-center justify-center text-2xl mx-auto border border-rose-500/40">
           ⚠️
@@ -1329,7 +1329,7 @@
     <!-- ======================================================== -->
     <div id="configsModal" class="fixed inset-0 modal-backdrop z-50 flex items-center justify-center p-4 hidden animate-fadeIn overflow-y-auto">
       <div class="modal-card border border-cyan-500/50 rounded-3xl p-5 w-full space-y-3.5 shadow-2xl relative max-w-[370px] my-auto text-xs max-h-[85vh] flex flex-col">
-        <button id="closeConfigsModalBtn" class="absolute top-3.5 left-3.5 text-slate-400 hover:text-white text-xs bg-slate-800 rounded-full w-9 h-9 min-w-[36px] min-h-[36px] flex items-center justify-center transition active:scale-95 shadow-sm" title="بستن" aria-label="بستن پنجره کانفیگ‌ها">✕</button>
+        <button id="closeConfigsModalBtn" class="modal-close-btn absolute top-3.5 left-3.5" title="بستن" aria-label="بستن پنجره کانفیگ‌ها">✕</button>
         <div class="border-b border-slate-700/60 pb-2.5 text-right">
           <div class="flex items-center gap-2">
             <span class="text-xl">🧩</span>
@@ -1358,7 +1358,7 @@
     <!-- ======================================================== -->
     <!-- 4.1 MODAL: ACCOUNT SWITCHER (تغییر اکانت فعال)            -->
     <!-- ======================================================== -->
-    <div id="switchAccountModal" class="absolute inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden animate-fadeIn">
+    <div id="switchAccountModal" class="fixed inset-0 modal-backdrop z-50 flex items-center justify-center p-4 hidden animate-fadeIn">
       <div class="modal-card border border-blue-500/50 rounded-3xl p-5 w-full space-y-4 shadow-2xl relative max-w-[340px]">
         <div class="flex items-center justify-between border-b border-slate-700/60 pb-2.5">
           <span class="text-xs font-bold text-white flex items-center gap-1.5">
@@ -1417,7 +1417,7 @@
         </div>
 
         <!-- Method Tabs -->
-        <div id="topupMethodTabs" class="flex bg-slate-900/90 p-1 rounded-xl border border-slate-700/80 gap-1">
+        <div id="topupMethodTabs" class="flex card-inset p-1 rounded-xl gap-1">
           <button id="topupMethodCardBtn" class="flex-1 py-1.5 rounded-lg font-bold text-xs bg-blue-600 text-white transition flex items-center justify-center gap-1">
             <span>💳</span> کارت
           </button>
@@ -1433,16 +1433,16 @@
         <div id="topupAmountSection" class="space-y-1.5">
           <label class="text-[11px] text-slate-300 font-medium block">مبلغ شارژ مورد نظر (تومان):</label>
           <div class="grid grid-cols-2 gap-1.5 font-mono text-[11px]">
-            <button type="button" class="topup-preset-btn py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200" data-amt="50000">50,000 تومان</button>
-            <button type="button" class="topup-preset-btn py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200" data-amt="100000">100,000 تومان</button>
-            <button type="button" class="topup-preset-btn py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200" data-amt="200000">200,000 تومان</button>
-            <button type="button" class="topup-preset-btn py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200" data-amt="500000">500,000 تومان</button>
+            <button type="button" class="topup-preset-btn py-1.5 rounded-lg card-inset hover:border-emerald-500/50 t-main font-mono" data-amt="50000">50,000 تومان</button>
+            <button type="button" class="topup-preset-btn py-1.5 rounded-lg card-inset hover:border-emerald-500/50 t-main font-mono" data-amt="100000">100,000 تومان</button>
+            <button type="button" class="topup-preset-btn py-1.5 rounded-lg card-inset hover:border-emerald-500/50 t-main font-mono" data-amt="200000">200,000 تومان</button>
+            <button type="button" class="topup-preset-btn py-1.5 rounded-lg card-inset hover:border-emerald-500/50 t-main font-mono" data-amt="500000">500,000 تومان</button>
           </div>
-          <input type="number" inputmode="numeric" pattern="[0-9]*" id="topupAmountInput" placeholder="مبلغ دلخواه به تومان (حداقل 50,000)" class="w-full bg-slate-900 px-3 py-2 rounded-xl border border-slate-700 text-slate-100 font-mono outline-none text-xs mt-1" />
+          <input type="number" inputmode="numeric" pattern="[0-9]*" id="topupAmountInput" placeholder="مبلغ دلخواه به تومان (حداقل 50,000)" class="input-base w-full px-3 py-2 rounded-xl font-mono outline-none text-xs mt-1" />
         </div>
 
         <!-- All Methods Disabled State -->
-        <div id="topupAllDisabledState" class="hidden py-8 px-4 text-center space-y-2 rounded-2xl bg-slate-900/60 border border-slate-700/60">
+        <div id="topupAllDisabledState" class="hidden py-8 px-4 text-center space-y-2 rounded-2xl card-inset">
           <span class="text-3xl block">🚫</span>
           <b class="text-xs text-slate-200 block">در حال حاضر روش پرداختی فعال نیست</b>
           <p class="text-[11px] text-slate-400">امکان افزایش موجودی موقتاً غیرفعال است. لطفاً با پشتیبانی در ارتباط باشید.</p>
@@ -1464,7 +1464,7 @@
           </div>
 
           <div id="topupCardDetailsBox" class="space-y-3">
-            <div class="bg-slate-900/80 rounded-2xl p-3 border border-slate-700/80 space-y-2">
+            <div class="card-inset rounded-2xl p-3 space-y-2">
               <div class="flex justify-between items-center text-[11px]">
                 <span class="text-slate-400">شماره کارت مقصد:</span>
                 <div class="flex items-center gap-1.5" dir="rtl">
@@ -1495,11 +1495,11 @@
                   <span class="text-[10px] text-rose-400 font-bold bg-rose-500/10 px-2 py-0.5 rounded-full border border-rose-500/20">الزامی</span>
                 </div>
                 <input type="file" id="topupCardImageInput" accept="image/*" class="hidden">
-                <button id="uploadCardReceiptImageBtn" type="button" class="w-full bg-slate-900 hover:bg-slate-800 text-slate-200 text-xs py-2.5 px-3 rounded-xl border border-dashed border-cyan-500/50 hover:border-cyan-400 transition flex items-center justify-center gap-2 active:scale-95 shadow-sm">
+                <button id="uploadCardReceiptImageBtn" type="button" class="w-full card-inset hover:border-cyan-400 t-main text-xs py-2.5 px-3 rounded-xl border border-dashed border-cyan-500/50 transition flex items-center justify-center gap-2 active:scale-95 shadow-sm">
                   <span class="text-base">📸</span>
                   <span id="uploadReceiptBtnText" class="font-bold">انتخاب و بارگذاری عکس فیش</span>
                 </button>
-                <div id="receiptImagePreviewContainer" class="hidden relative p-2 bg-slate-900/90 rounded-xl border border-emerald-500/40 flex items-center justify-between">
+                <div id="receiptImagePreviewContainer" class="hidden relative p-2 card-inset rounded-xl border border-emerald-500/40 flex items-center justify-between">
                   <div class="flex items-center gap-2 overflow-hidden">
                     <img id="receiptImagePreview" class="h-10 w-10 object-cover rounded-lg border border-slate-700 shrink-0" src="" alt="رسید" loading="lazy">
                     <span class="text-[10px] text-slate-200 truncate max-w-[170px]" id="receiptImageName">تصویر فیش انتخاب شد</span>
@@ -1514,10 +1514,10 @@
                   <label class="text-[11px] text-slate-300 font-medium">کد پیگیری یا توضیحات (اختیاری):</label>
                   <span class="text-[11px] text-slate-400">اختیاری</span>
                 </div>
-                <textarea id="topupCardReceiptInput" rows="2" placeholder="کد پیگیری، شماره ارجاع یا توضیح دلخواه (اختیاری)..." class="w-full bg-slate-900 p-2.5 rounded-xl border border-slate-700 text-slate-200 text-xs outline-none resize-none focus:border-cyan-500 transition"></textarea>
+                <textarea id="topupCardReceiptInput" rows="2" placeholder="کد پیگیری، شماره ارجاع یا توضیح دلخواه (اختیاری)..." class="input-base w-full p-2.5 rounded-xl text-xs outline-none resize-none focus:border-cyan-500 transition"></textarea>
               </div>
 
-              <p class="text-[11px] text-slate-400 leading-relaxed bg-slate-800/50 p-2 rounded-xl border border-slate-700/50">
+              <p class="text-[11px] t-muted leading-relaxed card-inset p-2 rounded-xl">
                 💡 <b>راهنما:</b> بارگذاری عکس فیش واریزی الزامی است. درج کد پیگیری اختیاری بوده و به تسریع تایید فیش توسط ادمین کمک می‌کند.
               </p>
             </div>
@@ -1577,10 +1577,10 @@
                 <span>🚀</span> پرداخت با Tonkeeper / ولت
               </a>
               <div class="grid grid-cols-2 gap-2">
-                <button id="cryptoCheckStatusBtn" type="button" class="bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold py-2 px-2 rounded-xl transition border border-slate-700 flex items-center justify-center gap-1 text-xs shadow-sm active:scale-95">
+                <button id="cryptoCheckStatusBtn" type="button" class="btn btn-secondary py-2 px-2 rounded-xl flex items-center justify-center gap-1 text-xs active:scale-95">
                   <span>🔄</span> بررسی پرداخت
                 </button>
-                <button id="cryptoCancelInvoiceBtn" type="button" onclick="window.cancelCryptoInvoice && window.cancelCryptoInvoice()" class="bg-slate-800 hover:bg-rose-950/40 text-slate-200 hover:text-rose-300 font-semibold py-2 px-2 rounded-xl transition border border-slate-700 hover:border-rose-700 flex items-center justify-center gap-1 text-xs shadow-sm active:scale-95">
+                <button id="cryptoCancelInvoiceBtn" type="button" onclick="window.cancelCryptoInvoice && window.cancelCryptoInvoice()" class="btn btn-secondary hover:border-rose-600 hover:text-rose-500 py-2 px-2 rounded-xl flex items-center justify-center gap-1 text-xs active:scale-95">
                   <span>✕</span> انصراف و جدید
                 </button>
               </div>
@@ -1629,7 +1629,7 @@
           <h3 class="text-sm font-bold t-main mt-1">پیش‌فاکتور خرید بسته</h3>
         </div>
 
-        <div class="bg-slate-900/80 rounded-2xl p-3 border border-slate-700/70 space-y-2">
+        <div class="card-inset rounded-2xl p-3 space-y-2">
           <div class="flex justify-between items-center">
             <span class="text-slate-400">بسته انتخابی:</span>
             <b id="checkoutPlanName" class="text-white font-bold">--</b>
@@ -1648,7 +1648,7 @@
           </div>
         </div>
 
-        <div class="bg-slate-900/60 rounded-xl p-2.5 border border-slate-700/50 space-y-1.5 text-[11px]">
+        <div class="card-inset rounded-xl p-2.5 space-y-1.5 text-[11px]">
           <div class="flex justify-between items-center">
             <span class="text-slate-400">موجودی کیف پول شما:</span>
             <span id="checkoutWalletBalance" class="text-slate-200 font-mono font-bold">-- تومان</span>
@@ -1687,7 +1687,7 @@
     <!-- ======================================================== -->
     <div id="shopGuidanceModal" class="fixed inset-0 modal-backdrop z-50 flex items-center justify-center p-4 hidden animate-fadeIn overflow-y-auto">
       <div class="modal-card border border-cyan-500/40 rounded-3xl p-5 w-full space-y-4 shadow-2xl relative max-w-[340px] my-auto text-xs text-right">
-        <button id="closeGuidanceModalBtn" class="absolute top-3 left-3 text-slate-400 hover:text-white text-xs bg-slate-800 rounded-full w-9 h-9 min-w-[36px] min-h-[36px] flex items-center justify-center transition active:scale-95 shadow-sm" onclick="closeModal('shopGuidanceModal')" title="انصراف" aria-label="بستن پنجره راهنما">✕</button>
+        <button id="closeGuidanceModalBtn" class="modal-close-btn absolute top-3.5 left-3.5" onclick="closeModal('shopGuidanceModal')" title="انصراف" aria-label="بستن پنجره راهنما">✕</button>
         <div class="border-b border-slate-700/60 pb-2">
           <span id="shopGuidanceBadge" class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/40">
             ⚡️ پیشنهاد هوشمند
@@ -1714,7 +1714,7 @@
     <!-- 5. MODAL: LUCKY WHEEL (گردونه شانس روزانه)                 -->
     <!-- ======================================================== -->
     <div id="luckyWheelModal" class="fixed inset-0 modal-backdrop z-50 flex items-center justify-center p-3 hidden animate-fadeIn overflow-y-auto">
-      <div class="modal-card surface-dark on-dark border border-amber-500/50 rounded-3xl p-4 w-full text-center space-y-2.5 shadow-2xl relative max-w-[330px] my-auto">
+      <div class="modal-card border border-amber-500/50 rounded-3xl p-4 w-full text-center space-y-2.5 shadow-2xl relative max-w-[330px] my-auto">
         <button id="closeLuckyWheelBtn" class="modal-close-btn absolute top-3 left-3" title="بستن" aria-label="بستن گردونه شانس">✕</button>
         
         <div>
@@ -1827,12 +1827,12 @@
         </div>
 
         <!-- Status / Result Message -->
-        <div id="wheelResultBox" class="surface-dark on-dark bg-slate-900/80 p-2 rounded-xl border border-slate-700/60 text-[11px]">
+        <div id="wheelResultBox" class="card-inset p-2 rounded-xl text-[11px]">
           <span id="wheelResultText" class="text-slate-300">دکمه وسط گردونه را لمس کنید تا شانس خود را امتحان نمایید!</span>
         </div>
 
         <!-- 24-Hour Countdown Timer Container -->
-        <div id="wheelTimerContainer" class="hidden surface-dark on-dark bg-slate-900/90 border border-amber-500/40 rounded-xl p-2.5 text-center text-xs space-y-1">
+        <div id="wheelTimerContainer" class="hidden card-inset border border-amber-500/40 rounded-xl p-2.5 text-center text-xs space-y-1">
           <span class="text-slate-300 text-[10px] block font-medium">⏳ زمان باقیمانده تا شانس بعدی شما:</span>
           <b id="wheelCountdownText" class="text-amber-400 font-mono font-bold text-base tracking-wider block" dir="ltr">00:00:00</b>
         </div>
@@ -1851,7 +1851,7 @@
         <button id="closeStoryCardBtn" class="modal-close-btn absolute -top-3.5 left-0 z-20" title="بستن" aria-label="بستن کارت استوری">✕</button>
 
         <!-- Redesigned Premium Glassmorphic Card Container -->
-        <div id="exportableStoryCard" class="w-full rounded-[28px] p-4 border border-indigo-500/30 shadow-[0_20px_50px_rgba(0,0,0,0.7)] relative overflow-hidden text-center flex flex-col justify-between transition-all duration-300 bg-gradient-to-b from-[#131b2e] via-[#0d1322] to-[#0a0f1d] backdrop-blur-xl">
+        <div id="exportableStoryCard" class="surface-dark on-dark w-full rounded-[28px] p-4 border border-indigo-500/30 shadow-[0_20px_50px_rgba(0,0,0,0.7)] relative overflow-hidden text-center flex flex-col justify-between transition-all duration-300 bg-gradient-to-b from-[#131b2e] via-[#0d1322] to-[#0a0f1d] backdrop-blur-xl">
           <!-- Background decorative glows -->
           <div id="storyGlow1" class="absolute -top-10 -right-10 w-36 h-36 bg-cyan-500/20 rounded-full blur-3xl pointer-events-none"></div>
           <div id="storyGlow2" class="absolute -bottom-10 -left-10 w-36 h-36 bg-purple-500/25 rounded-full blur-3xl pointer-events-none"></div>
@@ -1946,7 +1946,7 @@
         </div>
 
         <!-- Receipt Details Box -->
-        <div class="bg-slate-900/80 rounded-2xl p-3 border border-slate-700/70 text-xs space-y-2 text-right">
+        <div class="card-inset rounded-2xl p-3 text-xs space-y-2 text-right">
           <div class="flex justify-between items-center">
             <span class="text-slate-400">بسته خریداری‌شده:</span>
             <div class="flex items-center gap-1.5">
@@ -1962,9 +1962,9 @@
         </div>
 
         <!-- Subscription URL Box -->
-        <div class="bg-slate-900/90 rounded-2xl p-2.5 border border-cyan-500/30 text-right space-y-1.5">
+        <div class="card-inset rounded-2xl p-2.5 border border-cyan-500/30 text-right space-y-1.5">
           <span class="text-[11px] text-slate-400 block font-medium">لینک اشتراک سرویس شما:</span>
-          <div id="psvcSubDisplay" dir="ltr" class="font-mono text-[10px] text-cyan-300 break-all select-all leading-tight max-h-16 overflow-y-auto custom-scroll p-1.5 bg-slate-950/70 rounded-lg">
+          <div id="psvcSubDisplay" dir="ltr" class="font-mono text-[10px] text-cyan-400 dark:text-cyan-300 break-all select-all leading-tight max-h-16 overflow-y-auto custom-scroll p-1.5 card-inset rounded-lg">
             --
           </div>
           <div class="grid grid-cols-2 gap-1.5 pt-1">
@@ -2014,7 +2014,7 @@
 
           <!-- Chat Empty State -->
           <div id="chatEmptyState" class="hidden text-center py-8 space-y-2">
-            <div class="w-12 h-12 rounded-full bg-slate-800/80 text-2xl flex items-center justify-center mx-auto text-blue-400">
+            <div class="w-12 h-12 rounded-full card-inset text-2xl flex items-center justify-center mx-auto text-blue-400">
               💬
             </div>
             <p class="text-xs text-slate-300 font-medium">گفتگوی مستقیم با پشتیبانی</p>
@@ -2047,7 +2047,7 @@
     <div id="tutorialModal" class="fixed inset-0 modal-backdrop z-50 flex items-center justify-center p-4 hidden animate-fadeIn overflow-y-auto">
       <div class="modal-card border border-cyan-500/40 rounded-3xl p-4 sm:p-5 w-full max-w-[380px] shadow-2xl relative my-auto text-xs max-h-[85vh] flex flex-col space-y-3">
         <!-- Close Button -->
-        <button id="closeTutorialModalBtn" type="button" class="absolute top-3.5 left-3.5 text-slate-400 hover:text-white text-xs bg-slate-800 rounded-full w-9 h-9 min-w-[36px] min-h-[36px] flex items-center justify-center transition active:scale-95 shadow-sm" title="بستن" aria-label="بستن راهنمای اتصال">✕</button>
+        <button id="closeTutorialModalBtn" type="button" class="modal-close-btn absolute top-3.5 left-3.5" title="بستن" aria-label="بستن راهنمای اتصال">✕</button>
 
         <!-- Modal Header -->
         <div class="flex items-center gap-2.5 pb-2 border-b border-slate-700/60 pl-8 flex-shrink-0">
@@ -2099,7 +2099,7 @@
     <div id="speedTestModal" onclick="if(event.target === this) window.closeSpeedTestModal()" class="speedtest-modal-backdrop fixed inset-0 z-50 flex items-center justify-center p-4 hidden animate-fadeIn overflow-y-auto">
       <div class="modal-card border border-emerald-500/40 rounded-3xl p-4 sm:p-5 w-full max-w-[380px] shadow-2xl relative my-auto text-xs max-h-[92vh] flex flex-col space-y-3">
         <!-- Close Button -->
-        <button id="closeSpeedTestModalBtn" type="button" onclick="window.closeSpeedTestModal()" class="absolute top-3.5 left-3.5 text-slate-400 hover:text-white text-xs bg-slate-800 rounded-full w-9 h-9 min-w-[36px] min-h-[36px] flex items-center justify-center transition active:scale-95 shadow-sm" title="بستن" aria-label="بستن تست سرعت">✕</button>
+        <button id="closeSpeedTestModalBtn" type="button" onclick="window.closeSpeedTestModal()" class="modal-close-btn absolute top-3.5 left-3.5" title="بستن" aria-label="بستن تست سرعت">✕</button>
 
         <!-- Modal Header -->
         <div class="flex items-center gap-2.5 pb-1.5 border-b border-slate-700/60 pl-8 flex-shrink-0">
@@ -2113,7 +2113,7 @@
         </div>
 
         <!-- Connected IP Box -->
-        <div id="speedNetworkInfoBox" class="speed-network-box bg-slate-900/85 py-2 px-3 rounded-2xl border border-slate-700/70 flex items-center justify-between text-[11px] transition">
+        <div id="speedNetworkInfoBox" class="speed-network-box card-inset py-2 px-3 rounded-2xl border border-slate-700/70 flex items-center justify-between text-[11px] transition">
           <div class="flex items-center gap-2">
             <span class="text-sm">🌐</span>
             <span class="text-[11px] text-slate-400 font-medium">آدرس آی‌پی شما:</span>
@@ -2142,7 +2142,7 @@
             </defs>
 
             <!-- Background Track Arc (240 deg, r=75, cx=100, cy=100, rotated 150 deg) -->
-            <circle class="speed-gauge-track" cx="100" cy="100" r="75" fill="none" stroke="#334155" stroke-width="12" stroke-linecap="round" stroke-dasharray="314.16 471.24" transform="rotate(150 100 100)" opacity="0.4" />
+            <circle class="speed-gauge-track" cx="100" cy="100" r="75" fill="none" stroke="var(--gauge-track, #334155)" stroke-width="12" stroke-linecap="round" stroke-dasharray="314.16 471.24" transform="rotate(150 100 100)" opacity="0.4" />
 
             <!-- Progress Colored Arc -->
             <circle id="speedGaugeProgressArc" cx="100" cy="100" r="75" fill="none" stroke="url(#speedArcGrad)" stroke-width="12" stroke-linecap="round" stroke-dasharray="314.16 471.24" stroke-dashoffset="314.16" transform="rotate(150 100 100)" filter="url(#gaugeGlow)" style="transition: stroke-dashoffset 0.15s ease-out;" />
@@ -2180,28 +2180,28 @@
 
         <!-- 4 Metric Chips: Download, Upload, Ping, Jitter -->
         <div class="grid grid-cols-4 gap-1.5">
-          <div class="speed-chip-card bg-slate-900/85 p-2 rounded-2xl border border-slate-700/60 text-center flex flex-col items-center">
+          <div class="speed-chip-card card-inset p-2 rounded-2xl border border-slate-700/60 text-center flex flex-col items-center">
             <span class="text-[11px] text-slate-400 font-medium flex items-center gap-0.5"><span>📥</span> دانلود</span>
             <div class="flex items-baseline gap-0.5 mt-0.5" dir="ltr">
               <span id="speedDownloadVal" class="text-xs font-bold text-emerald-400 font-mono">--</span>
               <span class="text-[11px] text-slate-400 font-sans">Mbps</span>
             </div>
           </div>
-          <div class="speed-chip-card bg-slate-900/85 p-2 rounded-2xl border border-slate-700/60 text-center flex flex-col items-center">
+          <div class="speed-chip-card card-inset p-2 rounded-2xl border border-slate-700/60 text-center flex flex-col items-center">
             <span class="text-[11px] text-slate-400 font-medium flex items-center gap-0.5"><span>📤</span> آپلود</span>
             <div class="flex items-baseline gap-0.5 mt-0.5" dir="ltr">
               <span id="speedUploadVal" class="text-xs font-bold text-cyan-400 font-mono">--</span>
               <span class="text-[11px] text-slate-400 font-sans">Mbps</span>
             </div>
           </div>
-          <div class="speed-chip-card bg-slate-900/85 p-2 rounded-2xl border border-slate-700/60 text-center flex flex-col items-center">
+          <div class="speed-chip-card card-inset p-2 rounded-2xl border border-slate-700/60 text-center flex flex-col items-center">
             <span class="text-[11px] text-slate-400 font-medium flex items-center gap-0.5"><span>📶</span> پینگ</span>
             <div class="flex items-baseline gap-0.5 mt-0.5" dir="ltr">
               <span id="speedPingVal" class="text-xs font-bold text-teal-400 font-mono">--</span>
               <span class="text-[11px] text-slate-400 font-sans">ms</span>
             </div>
           </div>
-          <div class="speed-chip-card bg-slate-900/85 p-2 rounded-2xl border border-slate-700/60 text-center flex flex-col items-center">
+          <div class="speed-chip-card card-inset p-2 rounded-2xl border border-slate-700/60 text-center flex flex-col items-center">
             <span class="text-[11px] text-slate-400 font-medium flex items-center gap-0.5"><span>〰️</span> نوسان</span>
             <div class="flex items-baseline gap-0.5 mt-0.5" dir="ltr">
               <span id="speedJitterVal" class="text-xs font-bold text-indigo-400 font-mono">--</span>
@@ -2211,7 +2211,7 @@
         </div>
 
         <!-- Status & Verdict Badge -->
-        <div id="speedStatusBadge" class="py-2 px-3 rounded-xl bg-slate-900/80 border border-slate-700/60 text-[11px] text-slate-300 font-medium text-center transition min-h-[38px] flex items-center justify-center">
+        <div id="speedStatusBadge" class="py-2 px-3 rounded-xl card-inset text-[11px] t-muted font-medium text-center transition min-h-[38px] flex items-center justify-center">
           آماده برای تست سرعت دانلود، آپلود و پینگ
         </div>
 
@@ -2230,7 +2230,7 @@
     <!-- ======================================================== -->
     <div id="wheelResultModal" onclick="if(event.target === this) window.closeWheelResultModal()" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop hidden animate-fadeIn">
       <div class="modal-card border border-amber-500/50 rounded-3xl p-5 w-full max-w-[320px] text-center shadow-2xl relative my-auto space-y-3">
-        <button type="button" onclick="window.closeWheelResultModal()" class="absolute top-3 left-3 text-slate-400 hover:text-white text-xs bg-slate-800 rounded-full w-9 h-9 min-w-[36px] min-h-[36px] flex items-center justify-center transition active:scale-95 shadow-sm" title="بستن" aria-label="بستن نتیجه شانس">✕</button>
+        <button type="button" onclick="window.closeWheelResultModal()" class="modal-close-btn absolute top-3 left-3" title="بستن" aria-label="بستن نتیجه شانس">✕</button>
         
         <div id="wheelResultModalIconBox" class="w-16 h-16 rounded-2xl mx-auto flex items-center justify-center text-3xl shadow-lg border border-amber-500/30 bg-amber-500/10 mt-1">
           <span id="wheelResultModalIcon">🎉</span>
@@ -2242,7 +2242,7 @@
           <!-- Dynamically filled -->
         </div>
 
-        <div id="wheelResultModalCouponBox" class="hidden bg-slate-900/90 border border-amber-500/40 rounded-2xl p-2.5 text-center space-y-1.5">
+        <div id="wheelResultModalCouponBox" class="hidden card-inset border border-amber-500/40 rounded-2xl p-2.5 text-center space-y-1.5">
           <span class="text-[11px] text-slate-400 block">کد تخفیف اختصاصی شما:</span>
           <div class="flex items-center justify-center gap-2">
             <code id="wheelResultModalCouponCode" class="font-mono text-cyan-300 font-extrabold text-sm select-all tracking-wider" dir="ltr">CODE</code>
@@ -2264,7 +2264,7 @@
     <!-- ======================================================== -->
     <div id="speedResultsModal" onclick="if(event.target === this) window.closeSpeedResultsModal()" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop hidden animate-fadeIn">
       <div class="modal-card border border-emerald-500/50 rounded-3xl p-5 w-full max-w-[340px] text-center shadow-2xl relative my-auto space-y-3.5">
-        <button type="button" onclick="window.closeSpeedResultsModal()" class="absolute top-3 left-3 text-slate-400 hover:text-white text-xs bg-slate-800 rounded-full w-9 h-9 min-w-[36px] min-h-[36px] flex items-center justify-center transition active:scale-95 shadow-sm" title="بستن" aria-label="بستن نتیجه تست کیفیت شبکه">✕</button>
+        <button type="button" onclick="window.closeSpeedResultsModal()" class="modal-close-btn absolute top-3 left-3" title="بستن" aria-label="بستن نتیجه تست کیفیت شبکه">✕</button>
         
         <div class="w-14 h-14 rounded-2xl mx-auto flex items-center justify-center text-3xl shadow-lg border border-emerald-500/30 bg-emerald-500/10 mt-1">
           🚀
@@ -2276,28 +2276,28 @@
         </div>
 
         <div class="grid grid-cols-2 gap-2 text-center text-xs">
-          <div class="bg-slate-900/85 p-2.5 rounded-2xl border border-slate-700/60">
+          <div class="card-inset p-2.5 rounded-2xl">
             <span class="text-[11px] text-slate-400 block mb-0.5">📥 دانلود</span>
             <div class="flex items-baseline justify-center gap-1" dir="ltr">
               <b id="finalDownloadVal" class="text-base font-black text-emerald-400 font-mono">0.0</b>
               <span class="text-[11px] text-slate-400">Mbps</span>
             </div>
           </div>
-          <div class="bg-slate-900/85 p-2.5 rounded-2xl border border-slate-700/60">
+          <div class="card-inset p-2.5 rounded-2xl">
             <span class="text-[11px] text-slate-400 block mb-0.5">📤 آپلود</span>
             <div class="flex items-baseline justify-center gap-1" dir="ltr">
               <b id="finalUploadVal" class="text-base font-black text-cyan-400 font-mono">0.0</b>
               <span class="text-[11px] text-slate-400">Mbps</span>
             </div>
           </div>
-          <div class="bg-slate-900/85 p-2.5 rounded-2xl border border-slate-700/60">
+          <div class="card-inset p-2.5 rounded-2xl">
             <span class="text-[11px] text-slate-400 block mb-0.5">📶 پینگ (Ping)</span>
             <div class="flex items-baseline justify-center gap-1" dir="ltr">
               <b id="finalPingVal" class="text-base font-black text-teal-400 font-mono">--</b>
               <span class="text-[11px] text-slate-400">ms</span>
             </div>
           </div>
-          <div class="bg-slate-900/85 p-2.5 rounded-2xl border border-slate-700/60">
+          <div class="card-inset p-2.5 rounded-2xl">
             <span class="text-[11px] text-slate-400 block mb-0.5">〰️ نوسان (Jitter)</span>
             <div class="flex items-baseline justify-center gap-1" dir="ltr">
               <b id="finalJitterVal" class="text-base font-black text-indigo-400 font-mono">--</b>
@@ -2306,7 +2306,7 @@
           </div>
         </div>
 
-        <div class="bg-slate-900/70 p-2 rounded-xl border border-slate-800 text-xs text-slate-300 flex items-center justify-between px-3">
+        <div class="card-inset p-2 rounded-xl text-xs t-muted flex items-center justify-between px-3">
           <span class="text-slate-400">حجم مصرفی تست:</span>
           <div class="flex items-baseline gap-1" dir="ltr">
             <b id="finalDataUsedVal" class="font-mono text-slate-200 font-bold">0.0</b>
@@ -2318,7 +2318,7 @@
           <button type="button" onclick="window.closeSpeedResultsModal(); window.toggleSpeedTest();" class="flex-1 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-bold text-xs py-2 rounded-xl transition active:scale-95 shadow">
             تست مجدد 🔄
           </button>
-          <button type="button" onclick="window.closeSpeedResultsModal()" class="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs py-2 rounded-xl transition border border-slate-700/70 active:scale-95">
+          <button type="button" onclick="window.closeSpeedResultsModal()" class="btn btn-secondary flex-1 py-2 rounded-xl text-xs active:scale-95">
             بستن
           </button>
         </div>
@@ -2329,7 +2329,7 @@
       <div class="modal-card border border-indigo-500/40 rounded-3xl p-4 sm:p-5 w-full max-w-[360px] max-h-[88vh] flex flex-col text-center shadow-2xl relative my-auto space-y-3">
         
         <div class="w-10 h-1 bg-slate-700/60 rounded-full mx-auto -mt-1 mb-1"></div>
-        <button type="button" onclick="window.closeBirthdayModal()" class="w-8 h-8 rounded-full bg-slate-800/80 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center text-xs transition active:scale-95 absolute top-3.5 left-3.5 shadow" title="بستن" aria-label="بستن پنجره زادروز">✕</button>
+        <button type="button" onclick="window.closeBirthdayModal()" class="modal-close-btn absolute top-3.5 left-3.5" title="بستن" aria-label="بستن پنجره زادروز">✕</button>
 
         <!-- Header -->
         <div class="flex flex-col items-center">
@@ -2343,7 +2343,7 @@
         </div>
 
         <!-- Selected Date Display Card -->
-        <div class="bday-preview-box bg-slate-900/80 rounded-2xl p-2.5 border border-indigo-500/30 flex items-center justify-between px-3 text-xs">
+        <div class="bday-preview-box card-inset rounded-2xl p-2.5 border border-indigo-500/30 flex items-center justify-between px-3 text-xs">
           <span class="text-slate-400 font-medium">تاریخ انتخابی شما:</span>
           <div class="flex items-center gap-1 font-bold text-indigo-300 font-mono" dir="rtl">
             <span id="bdayDayDisplay">۱</span>
@@ -2358,7 +2358,7 @@
         <input type="hidden" id="birthdayYearSelect" value="1375">
 
         <!-- 3 Segmented Tabs: [روز] [ماه] [سال] -->
-        <div class="bday-tabs-bar bg-slate-900/90 p-1 rounded-2xl border border-slate-700/80 flex items-center gap-1" dir="rtl">
+        <div class="bday-tabs-bar card-inset p-1 rounded-2xl border border-slate-700/80 flex items-center gap-1" dir="rtl">
           <button type="button" id="bdayTabDay" onclick="window.switchBdayPickerTab('day')" class="flex-1 py-1.5 rounded-xl font-bold text-xs bg-indigo-600 text-white shadow transition flex items-center justify-center gap-1">
             <span>📅 روز:</span> <span id="bdayDayPillVal">۱</span>
           </button>
@@ -2371,17 +2371,17 @@
         </div>
 
         <!-- Pane 1: Days Grid (4 columns, 1..31, compact, no scroll) -->
-        <div id="bdayPaneDay" class="bday-pane bg-slate-900/60 rounded-2xl p-2 sm:p-2.5 border border-slate-700/60 max-h-[300px] overflow-y-auto custom-scroll">
+        <div id="bdayPaneDay" class="bday-pane card-inset rounded-2xl p-2 sm:p-2.5 border border-slate-700/60 max-h-[300px] overflow-y-auto custom-scroll">
           <div class="grid grid-cols-4 gap-1.5" id="bdayDaysGrid"></div>
         </div>
 
         <!-- Pane 2: Months Grid (3 columns, 12 months) -->
-        <div id="bdayPaneMonth" class="bday-pane hidden bg-slate-900/60 rounded-2xl p-2 border border-slate-700/60 max-h-[260px] overflow-y-auto custom-scroll">
+        <div id="bdayPaneMonth" class="bday-pane hidden card-inset rounded-2xl p-2 border border-slate-700/60 max-h-[260px] overflow-y-auto custom-scroll">
           <div class="grid grid-cols-3 gap-1.5" id="bdayMonthsGrid"></div>
         </div>
 
         <!-- Pane 3: Years Grid (5 columns, quick selectable years) -->
-        <div id="bdayPaneYear" class="bday-pane hidden bg-slate-900/60 rounded-2xl p-2 border border-slate-700/60 h-48 max-h-48 overflow-y-auto overscroll-contain custom-scroll" style="-webkit-overflow-scrolling: touch; touch-action: pan-y;">
+        <div id="bdayPaneYear" class="bday-pane hidden card-inset rounded-2xl p-2 border border-slate-700/60 h-48 max-h-48 overflow-y-auto overscroll-contain custom-scroll" style="-webkit-overflow-scrolling: touch; touch-action: pan-y;">
           <div class="grid grid-cols-5 gap-1" id="bdayYearsGrid"></div>
         </div>
 
@@ -2390,7 +2390,7 @@
           <button id="saveBirthdayBtn" type="button" onclick="window.saveBirthday()" class="w-full bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-bold text-xs py-2.5 rounded-xl transition active:scale-95 shadow-lg shadow-indigo-500/20 flex items-center justify-center gap-1.5">
             <span>ثبت تاریخ تولد 🎉</span>
           </button>
-          <button type="button" onclick="window.closeBirthdayModal()" class="w-full bg-slate-800/80 hover:bg-slate-750 text-slate-300 font-bold text-xs py-2 rounded-xl transition border border-slate-700/70 active:scale-95">
+          <button type="button" onclick="window.closeBirthdayModal()" class="btn btn-secondary w-full py-2 rounded-xl text-xs active:scale-95">
             انصراف
           </button>
         </div>
@@ -2402,7 +2402,7 @@
       <div class="modal-card border border-cyan-500/40 rounded-3xl p-5 w-full max-w-[380px] max-h-[88vh] flex flex-col shadow-2xl relative my-auto space-y-3.5 text-right">
         
         <div class="w-10 h-1 bg-slate-700/60 rounded-full mx-auto -mt-1 mb-1"></div>
-        <button type="button" onclick="window.closeAlertThresholdModal()" class="w-8 h-8 rounded-full bg-slate-800/80 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center text-xs transition active:scale-95 absolute top-3.5 left-3.5 shadow" title="بستن" aria-label="بستن پنجره">✕</button>
+        <button type="button" onclick="window.closeAlertThresholdModal()" class="modal-close-btn absolute top-3.5 left-3.5" title="بستن" aria-label="بستن پنجره">✕</button>
 
         <div class="flex items-center gap-2.5 pb-2 border-b border-slate-700/60 pl-10 shrink-0">
           <div id="alertThresholdIconBox" class="w-10 h-10 rounded-2xl bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 flex items-center justify-center text-lg flex-shrink-0">
@@ -2419,7 +2419,7 @@
         </div>
 
         <div class="pt-1">
-          <button type="button" onclick="window.closeAlertThresholdModal()" class="w-full bg-slate-800/80 hover:bg-slate-700 text-slate-300 font-bold text-xs py-2 rounded-xl transition border border-slate-700/70 active:scale-95">
+          <button type="button" onclick="window.closeAlertThresholdModal()" class="btn btn-secondary w-full py-2 rounded-xl text-xs active:scale-95">
             بستن
           </button>
         </div>
@@ -2429,7 +2429,7 @@
     <!-- 13. MODAL: SERVICE EXPIRY COUNTDOWN (شمارش معکوس زنده پایان اعتبار) -->
     <div id="expiryCountdownModal" onclick="if(event.target === this) window.closeExpiryCountdownModal()" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop hidden animate-fadeIn">
       <div class="modal-card border border-amber-500/50 rounded-3xl p-5 w-full max-w-[350px] text-center shadow-2xl relative my-auto space-y-4">
-        <button type="button" onclick="window.closeExpiryCountdownModal()" class="absolute top-3 left-3 text-slate-400 hover:text-white text-xs bg-slate-800 rounded-full w-9 h-9 min-w-[36px] min-h-[36px] flex items-center justify-center transition active:scale-95 shadow-sm" title="بستن" aria-label="بستن پنجره پایان اعتبار">✕</button>
+        <button type="button" onclick="window.closeExpiryCountdownModal()" class="modal-close-btn absolute top-3 left-3" title="بستن" aria-label="بستن پنجره پایان اعتبار">✕</button>
 
         <div class="w-14 h-14 rounded-2xl mx-auto flex items-center justify-center text-3xl shadow-lg border border-amber-500/30 bg-amber-500/10 mt-1">
           ⏳
@@ -2463,7 +2463,7 @@
         </div>
 
         <!-- Smart Consumption Pace & Daily Allowance Box -->
-        <div class="bg-slate-900/70 rounded-2xl p-3 border border-slate-700/60 text-right space-y-2 text-xs">
+        <div class="card-inset rounded-2xl p-3 text-right space-y-2 text-xs">
           <div class="flex items-center justify-between">
             <span class="text-slate-400 text-[11px] flex items-center gap-1">
               <span>💡</span> میانگین مجاز مصرف روزانه:
@@ -2485,7 +2485,7 @@
         </div>
 
         <!-- Live Auto-Renew Quick Switch inside Expiry Modal -->
-        <div class="bg-slate-900/60 rounded-xl p-2.5 border border-slate-700/60 flex items-center justify-between text-right text-xs">
+        <div class="card-inset rounded-xl p-2.5 flex items-center justify-between text-right text-xs">
           <div>
             <span class="text-slate-200 font-bold block text-[11px]">🔄 تمدید خودکار (Auto-Renew)</span>
             <span class="text-[11px] text-slate-400 block">تمدید خودکار هنگام پایان با موجودی کیف پول</span>
@@ -2503,7 +2503,7 @@
           <button type="button" onclick="window.closeExpiryCountdownModal(); window.switchTab('tab-shop');" class="w-full bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-black text-xs py-2.5 rounded-xl transition active:scale-95 shadow flex items-center justify-center gap-1.5">
             <span>⚡️</span> تمدید یا خرید اشتراک جدید
           </button>
-          <button type="button" onclick="window.closeExpiryCountdownModal()" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs py-2 rounded-xl transition border border-slate-700/70 active:scale-95">
+          <button type="button" onclick="window.closeExpiryCountdownModal()" class="btn btn-secondary w-full py-2 rounded-xl text-xs active:scale-95">
             بستن پنجره
           </button>
         </div>
@@ -2513,7 +2513,7 @@
     <!-- 14. MODAL: LIVE BIRTHDAY COUNTDOWN & TRAITS (شمارش معکوس زنده زادروز و طالع) -->
     <div id="birthdayCountdownModal" onclick="if(event.target === this) window.closeBirthdayCountdownModal()" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop hidden animate-fadeIn">
       <div class="modal-card border border-pink-500/50 rounded-3xl p-5 w-full max-w-[350px] text-center shadow-2xl relative my-auto space-y-4">
-        <button type="button" onclick="window.closeBirthdayCountdownModal()" class="absolute top-3 left-3 text-slate-400 hover:text-white text-xs bg-slate-800 rounded-full w-9 h-9 min-w-[36px] min-h-[36px] flex items-center justify-center transition active:scale-95 shadow-sm" title="بستن" aria-label="بستن شمارش معکوس زادروز">✕</button>
+        <button type="button" onclick="window.closeBirthdayCountdownModal()" class="modal-close-btn absolute top-3 left-3" title="بستن" aria-label="بستن شمارش معکوس زادروز">✕</button>
 
         <div class="w-14 h-14 rounded-2xl mx-auto flex items-center justify-center text-3xl shadow-lg border border-pink-500/30 bg-pink-500/10 mt-1">
           🎂
@@ -2573,10 +2573,10 @@
 
         <!-- Action Buttons -->
         <div class="space-y-2 pt-1">
-          <button type="button" onclick="window.closeBirthdayCountdownModal(); window.openBirthdayModal();" class="w-full bg-slate-800 hover:bg-slate-700 text-pink-300 hover:text-pink-200 font-bold text-xs py-2.5 rounded-xl transition border border-pink-500/40 active:scale-95 flex items-center justify-center gap-1.5 shadow">
+          <button type="button" onclick="window.closeBirthdayCountdownModal(); window.openBirthdayModal();" class="btn btn-primary w-full py-2.5 rounded-xl text-xs active:scale-95 flex items-center justify-center gap-1.5 shadow">
             <span>✏️ ویرایش تاریخ تولد</span>
           </button>
-          <button type="button" onclick="window.closeBirthdayCountdownModal()" class="w-full bg-slate-900 hover:bg-slate-850 text-slate-400 hover:text-slate-200 text-xs py-2 rounded-xl transition border border-slate-800 active:scale-95">
+          <button type="button" onclick="window.closeBirthdayCountdownModal()" class="btn btn-secondary w-full py-2 rounded-xl text-xs active:scale-95">
             بستن
           </button>
         </div>

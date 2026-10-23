@@ -167,10 +167,10 @@ def test_modal_backdrops_use_tokenized_overlay():
         assert "bg-black/85" not in content, f"Found hardcoded bg-black/85 in {html_path.name}; use .modal-backdrop instead."
 
 
-def test_surface_dark_and_lucky_wheel_contract():
-    """Ensure Lucky Wheel modal adheres to the .surface-dark & .on-dark immersive game canvas contract."""
+def test_surface_dark_contract():
+    """Ensure media cards adhere to the .surface-dark & .on-dark immersive canvas contract."""
     content = APP_HTML_PATH.read_text(encoding="utf-8")
-    assert 'id="luckyWheelModal"' in content
+    assert 'id="exportableStoryCard"' in content
     assert 'surface-dark on-dark' in content, "Missing surface-dark on-dark contract in app.html"
     components_css = COMPONENTS_CSS_PATH.read_text(encoding="utf-8")
     assert ".surface-dark," in components_css, "Missing .surface-dark in components.css"

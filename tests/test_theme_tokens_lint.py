@@ -43,6 +43,9 @@ def test_no_banned_raw_utility_anti_patterns_in_templates():
         (r"\bbg-\[#131d31\]\b", "Raw hex bg; use .top-nav-bar or .bottom-nav-bar instead"),
         (r"\bbg-\[#1a263e\]\b", "Raw hex bg; use .card-inset or tokens instead"),
         (r"settings-box\s+bg-slate-800", "Component duality; settings-box must rely purely on .settings-box component"),
+        (r'class="gauge-bg-circle"\s+stroke="#1e293b"', "Hardcoded dark SVG stroke; use var(--gauge-track)"),
+        (r'client-import-btn[^"]*\bbg-slate', "Hardcoded dark button; use .card-inset or .btn-secondary"),
+        (r'topup-preset-btn[^"]*\bbg-slate', "Hardcoded dark preset button; use .card-inset"),
     ]
 
     violations = []
