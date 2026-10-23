@@ -55,27 +55,65 @@ def test_app_css_banned_id_overrides():
 
 
 def test_app_css_important_count_budget():
-    """Ensure !important count does not balloon in app.css (budget tightened to <= 25)."""
-    content = APP_CSS_PATH.read_text(encoding="utf-8")
-    count = len(re.findall(r"!important\b", content))
-    assert count <= MAX_IMPORTANT_ALLOWANCE, (
-        f"!important count in app.css is {count}, exceeding tightened budget of {MAX_IMPORTANT_ALLOWANCE}. "
+    """Ensure !important count across design system CSS files is strictly within budget (<= 5)."""
+    total_important = 0
+    for css_path in [APP_CSS_PATH, COMPONENTS_CSS_PATH, BASE_CSS_PATH, TOKENS_CSS_PATH]:
+        count = len(re.findall(r"!important\b", css_path.read_text(encoding="utf-8")))
+        total_important += count
+    assert total_important <= MAX_IMPORTANT_ALLOWANCE, (
+        f"Total !important count across design system CSS is {total_important}, "
+        f"exceeding tightened budget of {MAX_IMPORTANT_ALLOWANCE}. "
         "Avoid using !important; prefer proper cascade specificity or CSS tokens."
     )
 
 
 def test_templates_use_modal_card_class():
-    """Ensure all modal containers in HTML templates have the .modal-card class."""
+    """Ensure all modal containers in HTML templates have the exact .modal-card class and no raw dark background."""
     for html_path in [APP_HTML_PATH, ADMIN_HTML_PATH]:
         content = html_path.read_text(encoding="utf-8")
         pattern = re.compile(r'id=["\'](\w+Modal)["\'][^>]*>\s*<div\s+class=["\']([^"\']+)["\']')
         missing = []
+        raw_dark_violations = []
         for modal_id, class_list in pattern.findall(content):
             if "storyCardModal" in modal_id:
                 continue
-            if "modal-card" not in class_list:
-                missing.append(f"{html_path.name}: #{modal_id} inner div lacks 'modal-card'")
-        assert not missing, "Found modal cards without .modal-card class:\n" + "\n".join(missing)
+            classes = class_list.split()
+            if "modal-card" not in classes:
+                missing.append(f"{html_path.name}: #{modal_id} inner div lacks exact 'modal-card' token")
+            raw_darks = [c for c in classes if c.startswith("bg-[#") or (c.startswith("bg-slate-") and "hover:" not in c)]
+            if raw_darks:
+                raw_dark_violations.append(f"{html_path.name}: #{modal_id} inner div has raw dark bg: {raw_darks}")
+        assert not missing, "Found modal cards without exact .modal-card class:\n" + "\n".join(missing)
+        assert not raw_dark_violations, "Found modal cards with raw dark background:\n" + "\n".join(raw_dark_violations)
+
+
+def test_top_nav_bar_contrast():
+    """Ensure top-nav-bar elements in templates do not use raw low-contrast text classes on white."""
+    for html_path in [APP_HTML_PATH, ADMIN_HTML_PATH]:
+        content = html_path.read_text(encoding="utf-8")
+        m = re.search(r'class=["\'][^"\']*top-nav-bar[^"\']*["\'][\s\S]*?</header>', content)
+        if m:
+            header_html = m.group(0)
+            for low_contrast in ["text-blue-300", "text-amber-400"]:
+                assert low_contrast not in header_html, (
+                    f"Found low-contrast '{low_contrast}' in header of {html_path.name}; "
+                    "use semantic tokens (t-accent, t-warn, t-muted, t-success) instead."
+                )
+
+
+def test_colored_buttons_and_safety_umbrella():
+    """Ensure safety umbrella does not strip white text from colored buttons and dark avatars."""
+    app_css = APP_CSS_PATH.read_text(encoding="utf-8")
+    assert 'html.theme-light button[class*="bg-"]' in app_css, "Missing colored button protection in app.css"
+    assert 'html.theme-light [class*="bg-slate-900"]' in app_css, "Missing dark avatar protection in app.css"
+
+
+def test_settings_box_text_theme_support():
+    """Ensure settings-box headers and bodies support themed text."""
+    components_css = COMPONENTS_CSS_PATH.read_text(encoding="utf-8")
+    assert ".settings-box-header," in components_css, "Missing settings-box-header rule in components.css"
+    app_css = APP_CSS_PATH.read_text(encoding="utf-8")
+    assert "html.theme-light .settings-box" in app_css, "Missing settings-box umbrella rule in app.css"
 
 
 def test_design_system_core_tokens_and_fonts():

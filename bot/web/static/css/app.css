@@ -4,19 +4,58 @@
    ========================================================================== */
 
 /* --- Transitional Safety Umbrella (Prevents white-on-white & dark blobs during markup migration) --- */
-html.theme-light .card :not(.btn):not(.badge):not(.shop-plan-badge).text-white,
-html.theme-light .card-inset :not(.btn):not(.badge):not(.shop-plan-badge).text-white,
-html.theme-light .modal-card :not(.btn):not(.badge):not(.shop-plan-badge).text-white {
+html.theme-light .card :not(button):not([class*="btn"]):not([class*="badge"]):not([class*="bg-"]):not([class*="gradient"]).text-white,
+html.theme-light .card-inset :not(button):not([class*="btn"]):not([class*="badge"]):not([class*="bg-"]):not([class*="gradient"]).text-white,
+html.theme-light .modal-card :not(button):not([class*="btn"]):not([class*="badge"]):not([class*="bg-"]):not([class*="gradient"]).text-white,
+html.theme-light .settings-box :not(button):not([class*="btn"]):not([class*="badge"]):not([class*="bg-"]):not([class*="gradient"]).text-white {
   color: var(--text-main);
 }
 
-html.theme-light .card :not(.btn):not(.badge).text-slate-200,
-html.theme-light .card :not(.btn):not(.badge).text-slate-300,
-html.theme-light .card-inset :not(.btn):not(.badge).text-slate-200,
-html.theme-light .card-inset :not(.btn):not(.badge).text-slate-300,
-html.theme-light .modal-card :not(.btn):not(.badge).text-slate-200,
-html.theme-light .modal-card :not(.btn):not(.badge).text-slate-300 {
+html.theme-light .card :not(button):not([class*="btn"]):not([class*="badge"]):not([class*="bg-"]).text-slate-200,
+html.theme-light .card :not(button):not([class*="btn"]):not([class*="badge"]):not([class*="bg-"]).text-slate-300,
+html.theme-light .card-inset :not(button):not([class*="btn"]):not([class*="badge"]):not([class*="bg-"]).text-slate-200,
+html.theme-light .card-inset :not(button):not([class*="btn"]):not([class*="badge"]):not([class*="bg-"]).text-slate-300,
+html.theme-light .modal-card :not(button):not([class*="btn"]):not([class*="badge"]):not([class*="bg-"]).text-slate-200,
+html.theme-light .modal-card :not(button):not([class*="btn"]):not([class*="badge"]):not([class*="bg-"]).text-slate-300,
+html.theme-light .settings-box :not(button):not([class*="btn"]):not([class*="badge"]):not([class*="bg-"]).text-slate-200,
+html.theme-light .settings-box :not(button):not([class*="btn"]):not([class*="badge"]):not([class*="bg-"]).text-slate-300 {
   color: var(--text-muted);
+}
+
+/* Light theme secondary text contrast (maps unmapped slate-400 to WCAG AA compliant Slate-600 #475569) */
+html.theme-light .text-slate-400:not(button):not([class*="btn"]):not([class*="badge"]):not([class*="bg-"]) {
+  color: var(--text-muted);
+}
+
+/* Ensure colored CTAs, badges and avatars strictly maintain white text across light theme */
+html.theme-light [class*="bg-rose-"],
+html.theme-light [class*="bg-red-"],
+html.theme-light [class*="bg-emerald-"],
+html.theme-light [class*="bg-green-"],
+html.theme-light [class*="bg-blue-"],
+html.theme-light [class*="bg-indigo-"],
+html.theme-light [class*="bg-violet-"],
+html.theme-light [class*="bg-purple-"],
+html.theme-light [class*="bg-amber-600"],
+html.theme-light [class*="bg-amber-700"],
+html.theme-light [class*="bg-slate-900"],
+html.theme-light [class*="bg-slate-950"],
+html.theme-light .btn-primary,
+html.theme-light .btn-danger,
+html.theme-light .btn-success,
+html.theme-light button[class*="bg-"] {
+  color: #ffffff;
+}
+
+html.theme-light [class*="bg-rose-"] .text-white,
+html.theme-light [class*="bg-red-"] .text-white,
+html.theme-light [class*="bg-emerald-"] .text-white,
+html.theme-light [class*="bg-green-"] .text-white,
+html.theme-light [class*="bg-blue-"] .text-white,
+html.theme-light [class*="bg-indigo-"] .text-white,
+html.theme-light [class*="bg-slate-900"] .text-white,
+html.theme-light button[class*="bg-"] .text-white {
+  color: #ffffff;
 }
 
 html.theme-light .bg-\[\#131d31\],
@@ -28,75 +67,6 @@ html.theme-light .bg-\[\#131d31\]\/95 {
 html.theme-light .settings-box {
   background-color: var(--card-bg);
   border-color: var(--card-border);
-}
-
-/* Badges inside shop cards: Luminous & high-contrast in both themes */
-.shop-plan-badge,
-.shop-plan-card .shop-plan-badge,
-html.theme-light .shop-plan-card .shop-plan-badge,
-html.theme-light .shop-plan-badge {
-  color: #ffffff;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
-}
-
-.shop-plan-card .shop-plan-badge.badge-vip,
-html.theme-light .shop-plan-card .shop-plan-badge.badge-vip {
-  background: linear-gradient(135deg, #f43f5e 0%, #c026d3 100%);
-  color: #ffffff;
-  border-bottom: 1.5px solid rgba(254, 205, 211, 0.7);
-  border-right: 1.5px solid rgba(254, 205, 211, 0.7);
-  box-shadow: 0 4px 14px rgba(244, 63, 94, 0.4);
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
-}
-
-.shop-plan-card .shop-plan-badge.badge-bestseller,
-html.theme-light .shop-plan-card .shop-plan-badge.badge-bestseller {
-  background: linear-gradient(135deg, #d97706 0%, #ea580c 100%);
-  color: #ffffff;
-  border-bottom: 1.5px solid rgba(254, 240, 138, 0.9);
-  border-right: 1.5px solid rgba(254, 240, 138, 0.9);
-  box-shadow: 0 4px 14px rgba(245, 158, 11, 0.45);
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
-}
-
-.shop-plan-card .shop-plan-badge.badge-popular,
-html.theme-light .shop-plan-card .shop-plan-badge.badge-popular {
-  background: linear-gradient(135deg, #7c3aed 0%, #4f46e5 50%, #2563eb 100%);
-  color: #ffffff;
-  border-bottom: 1.5px solid rgba(199, 210, 254, 0.8);
-  border-right: 1.5px solid rgba(199, 210, 254, 0.8);
-  box-shadow: 0 4px 14px rgba(99, 102, 241, 0.45);
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
-}
-
-.shop-plan-card .shop-plan-badge.badge-economic,
-html.theme-light .shop-plan-card .shop-plan-badge.badge-economic {
-  background: linear-gradient(135deg, #059669 0%, #0d9488 100%);
-  color: #ffffff;
-  border-bottom: 1.5px solid rgba(167, 243, 208, 0.7);
-  border-right: 1.5px solid rgba(167, 243, 208, 0.7);
-  box-shadow: 0 4px 14px rgba(5, 150, 105, 0.4);
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
-}
-
-.shop-plan-card .shop-plan-badge.badge-traffic,
-html.theme-light .shop-plan-card .shop-plan-badge.badge-traffic {
-  background: linear-gradient(135deg, #0891b2 0%, #2563eb 100%);
-  color: #ffffff;
-  border-bottom: 1.5px solid rgba(165, 243, 252, 0.7);
-  border-right: 1.5px solid rgba(165, 243, 252, 0.7);
-  box-shadow: 0 4px 14px rgba(8, 145, 178, 0.4);
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
-}
-
-.shop-plan-card .shop-plan-badge.badge-time,
-html.theme-light .shop-plan-card .shop-plan-badge.badge-time {
-  background: linear-gradient(135deg, #d97706 0%, #ea580c 100%);
-  color: #ffffff;
-  border-bottom: 1.5px solid rgba(254, 240, 138, 0.8);
-  border-right: 1.5px solid rgba(254, 240, 138, 0.8);
-  box-shadow: 0 4px 14px rgba(217, 119, 6, 0.4);
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
 }
 
 /* Speed Test Component & Modal Backdrop */

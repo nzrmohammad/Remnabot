@@ -261,6 +261,16 @@
   background-color: var(--card-inner-bg);
 }
 
+.settings-box-header,
+.settings-box-header .text-white {
+  color: var(--text-main);
+}
+
+.settings-box-header .text-slate-400,
+.settings-box-header .text-slate-300 {
+  color: var(--text-muted);
+}
+
 .settings-box-body {
   border-top: 1px solid var(--card-border);
 }

@@ -59,13 +59,13 @@
     <!-- ======================================================== -->
     <div id="adminTopBar" class="top-nav-bar px-4 pt-[max(1.125rem,calc(var(--tg-content-safe-area-inset-top,var(--tg-safe-area-inset-top,env(safe-area-inset-top,0px)))+8px))] pb-2.5 flex items-center justify-between z-20">
       <div class="flex items-center gap-2">
-        <span class="text-amber-400 text-xs font-bold flex items-center gap-1.5 select-none">
-          <svg class="w-3.5 h-3.5 text-amber-400" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+        <span class="t-warn text-xs font-bold flex items-center gap-1.5 select-none">
+          <svg class="w-3.5 h-3.5 t-warn" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
           <span>پنل مدیریت</span>
         </span>
       </div>
 
-      <button id="adminThemeToggle" class="text-slate-300 text-xs p-1.5 w-9 h-9 min-w-[36px] min-h-[36px] bg-slate-800/80 hover:bg-slate-750 rounded-xl border border-slate-700/70 transition flex items-center justify-center active:scale-95 shadow-sm" title="تغییر تم" aria-label="تغییر تم پنل مدیریت">
+      <button id="adminThemeToggle" class="header-action-btn text-xs p-1.5 w-9 h-9 min-w-[36px] min-h-[36px] t-muted hover:t-main rounded-xl transition flex items-center justify-center active:scale-95 shadow-sm" title="تغییر تم" aria-label="تغییر تم پنل مدیریت">
         <span id="adminThemeIcon">
           <svg class="w-3.5 h-3.5 text-amber-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 18.75V21m-4.773-4.227l-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z" /></svg>
         </span>
@@ -1837,7 +1837,7 @@
 
     <!-- MODAL: User Profile & Identity Inspector (شناسنامه و مشخصات کامل کاربر) -->
     <div id="userProfileModal" class="absolute inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-4 hidden">
-      <div class="modal-card bg-[#1e293b] border border-slate-700/80 rounded-3xl p-4 sm:p-5 w-full max-w-[370px] max-h-[90vh] flex flex-col space-y-3.5 shadow-2xl relative overflow-y-auto custom-scroll">
+      <div class="modal-card border border-slate-700/80 rounded-3xl p-4 sm:p-5 w-full max-w-[370px] max-h-[90vh] flex flex-col space-y-3.5 shadow-2xl relative overflow-y-auto custom-scroll">
         <!-- Header -->
         <div class="flex justify-between items-center border-b border-slate-700/60 pb-2.5 flex-shrink-0">
           <div class="flex items-center gap-2 min-w-0">
@@ -1963,7 +1963,7 @@
 
     <!-- MODAL 1: Quick Modify User (افزایش حجم و تمدید اشتراک) -->
     <div id="modifyUserModal" class="absolute inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-      <div class="modal-card bg-[#1e293b] border border-slate-700 rounded-3xl p-5 w-full max-w-[360px] space-y-4 shadow-2xl relative">
+      <div class="modal-card border border-slate-700 rounded-3xl p-5 w-full max-w-[360px] space-y-4 shadow-2xl relative">
         <div class="flex justify-between items-center border-b border-slate-700/60 pb-2.5">
           <h4 id="modifyModalTitle" class="text-xs font-bold text-white flex items-center gap-1.5">
             <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
@@ -2022,7 +2022,7 @@
 
     <!-- MODAL: Charge / Deduct User Wallet -->
     <div id="walletModal" class="absolute inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-      <div class="modal-card bg-[#1e293b] border border-slate-700 rounded-3xl p-5 w-full max-w-[340px] space-y-4 shadow-2xl relative">
+      <div class="modal-card border border-slate-700 rounded-3xl p-5 w-full max-w-[340px] space-y-4 shadow-2xl relative">
         <div class="flex justify-between items-center border-b border-slate-700/60 pb-2">
           <h4 id="walletModalTitle" class="text-xs font-bold text-white flex items-center gap-1.5">
             <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
@@ -2061,7 +2061,7 @@
 
     <!-- MODAL: Connected HWID Devices & Live Sessions Inspector -->
     <div id="hwidModal" class="absolute inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-4 hidden">
-      <div class="modal-card bg-[#1e293b] border border-slate-700/80 rounded-3xl p-4 sm:p-5 w-full max-w-[390px] max-h-[85vh] flex flex-col space-y-3 shadow-2xl relative">
+      <div class="modal-card border border-slate-700/80 rounded-3xl p-4 sm:p-5 w-full max-w-[390px] max-h-[85vh] flex flex-col space-y-3 shadow-2xl relative">
         <!-- Header -->
         <div class="flex justify-between items-center border-b border-slate-700/60 pb-2.5 flex-shrink-0">
           <div class="flex items-center gap-2 min-w-0">
@@ -2130,7 +2130,7 @@
 
     <!-- MODAL: Bulk Users Action (عملیات گروهی: تمدید روز یا افزایش حجم) -->
     <div id="bulkUsersModal" class="absolute inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-4 hidden">
-      <div class="modal-card bg-[#1e293b] border border-slate-700/80 rounded-3xl p-4 sm:p-5 w-full max-w-[370px] flex flex-col space-y-4 shadow-2xl relative">
+      <div class="modal-card border border-slate-700/80 rounded-3xl p-4 sm:p-5 w-full max-w-[370px] flex flex-col space-y-4 shadow-2xl relative">
         <div class="flex justify-between items-center border-b border-slate-700/60 pb-2.5">
           <div class="flex items-center gap-2">
             <div class="w-7 h-7 rounded-lg bg-indigo-500/20 border border-indigo-500/40 flex items-center justify-center text-indigo-400">
@@ -2199,7 +2199,7 @@
 
     <!-- MODAL: Subscription Link Inspector & Regenerator -->
     <div id="subModal" class="absolute inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
-      <div class="modal-card bg-[#1e293b] border border-slate-700 rounded-3xl p-5 w-full max-w-[360px] space-y-4 shadow-2xl relative">
+      <div class="modal-card border border-slate-700 rounded-3xl p-5 w-full max-w-[360px] space-y-4 shadow-2xl relative">
         <div class="flex justify-between items-center border-b border-slate-700/60 pb-2">
           <h4 id="subModalTitle" class="text-xs font-bold text-white flex items-center gap-1.5">
             <svg class="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
@@ -2238,7 +2238,7 @@
 
     <!-- MODAL: Create / Edit Plan -->
     <div id="planModal" class="absolute inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
-      <div class="modal-card bg-[#1e293b] border border-slate-700 rounded-3xl p-5 w-full max-w-[360px] space-y-3 shadow-2xl relative max-h-[90vh] overflow-y-auto custom-scroll">
+      <div class="modal-card border border-slate-700 rounded-3xl p-5 w-full max-w-[360px] space-y-3 shadow-2xl relative max-h-[90vh] overflow-y-auto custom-scroll">
         <div class="flex justify-between items-center border-b border-slate-700/60 pb-2">
           <h4 id="planModalTitle" class="text-xs font-bold text-white flex items-center gap-1.5">
             <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
@@ -2323,7 +2323,7 @@
 
     <!-- MODAL: Create Discount Coupon -->
     <div id="couponModal" class="absolute inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
-      <div class="modal-card bg-[#1e293b] border border-slate-700 rounded-3xl p-5 w-full max-w-[340px] space-y-3 shadow-2xl relative">
+      <div class="modal-card border border-slate-700 rounded-3xl p-5 w-full max-w-[340px] space-y-3 shadow-2xl relative">
         <div class="flex justify-between items-center border-b border-slate-700/60 pb-2">
           <h4 class="text-xs font-bold text-white flex items-center gap-1.5">
             <svg class="w-4 h-4 text-pink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z"/></svg>
@@ -2368,7 +2368,7 @@
 
     <!-- MODAL: Edit SSL Domain (ویرایش دامنه سفارشی) -->
     <div id="editSslDomainModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden flex items-center justify-center p-4 animate-fadeIn">
-      <div class="modal-card bg-slate-900 border border-slate-700/80 rounded-3xl p-5 max-w-sm w-full space-y-4 shadow-2xl relative">
+      <div class="modal-card border border-slate-700/80 rounded-3xl p-5 max-w-sm w-full space-y-4 shadow-2xl relative">
         <div class="flex items-center justify-between border-b border-slate-800 pb-3">
           <div class="flex items-center gap-2">
             <div class="w-8 h-8 rounded-xl bg-cyan-500/15 text-cyan-400 flex items-center justify-center border border-cyan-500/30">
@@ -2408,7 +2408,7 @@
 
     <!-- MODAL: Delete SSL Domain Confirmation (حذف دامنه سفارشی) -->
     <div id="deleteSslDomainModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden flex items-center justify-center p-4 animate-fadeIn">
-      <div class="modal-card bg-slate-900 border border-slate-700/80 rounded-3xl p-5 max-w-sm w-full space-y-4 shadow-2xl relative">
+      <div class="modal-card border border-slate-700/80 rounded-3xl p-5 max-w-sm w-full space-y-4 shadow-2xl relative">
         <div class="flex items-center justify-between border-b border-slate-800 pb-3">
           <div class="flex items-center gap-2">
             <div class="w-8 h-8 rounded-xl bg-rose-500/15 text-rose-400 flex items-center justify-center border border-rose-500/30">
@@ -2446,7 +2446,7 @@
 
     <!-- MODAL: Delete Coupon Confirmation -->
     <div id="deleteCouponModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden flex items-center justify-center p-4 animate-fadeIn">
-      <div class="modal-card bg-slate-900 border border-slate-700/80 rounded-3xl p-5 max-w-sm w-full space-y-4 shadow-2xl relative">
+      <div class="modal-card border border-slate-700/80 rounded-3xl p-5 max-w-sm w-full space-y-4 shadow-2xl relative">
         <div class="flex items-center justify-between border-b border-slate-800 pb-3">
           <div class="flex items-center gap-2">
             <div class="w-8 h-8 rounded-xl bg-rose-500/15 text-rose-400 flex items-center justify-center border border-rose-500/30">
@@ -2484,7 +2484,7 @@
 
     <!-- MODAL: Batch Generate Vouchers -->
     <div id="batchVoucherModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden flex items-center justify-center p-4 animate-fadeIn">
-      <div class="modal-card bg-slate-900 border border-slate-700/80 rounded-3xl p-5 max-w-sm w-full space-y-4 shadow-2xl relative">
+      <div class="modal-card border border-slate-700/80 rounded-3xl p-5 max-w-sm w-full space-y-4 shadow-2xl relative">
         <div class="flex items-center justify-between border-b border-slate-800 pb-3">
           <h3 class="text-xs font-bold text-white flex items-center gap-1.5">
             <span>⚡️</span>
@@ -2536,7 +2536,7 @@
 
     <!-- MODAL 2: Broadcast Message (ارسال پیام همگانی با فیلتر هوشمند) -->
     <div id="broadcastModal" class="absolute inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-      <div class="modal-card bg-[#1e293b] border border-slate-700 rounded-3xl p-5 w-full max-w-[380px] space-y-3.5 shadow-2xl relative">
+      <div class="modal-card border border-slate-700 rounded-3xl p-5 w-full max-w-[380px] space-y-3.5 shadow-2xl relative">
         <div class="flex justify-between items-center border-b border-slate-700/60 pb-2">
           <h4 class="text-xs font-bold text-white flex items-center gap-1.5">
             <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"/></svg>
@@ -2585,7 +2585,7 @@
 
     <!-- MODAL 3: Broadcast Report & Progress Modal -->
     <div id="broadcastReportModal" class="absolute inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
-      <div class="modal-card bg-[#1e293b] border border-slate-700 rounded-3xl p-5 w-full max-w-[360px] space-y-4 shadow-2xl relative">
+      <div class="modal-card border border-slate-700 rounded-3xl p-5 w-full max-w-[360px] space-y-4 shadow-2xl relative">
         <div class="flex justify-between items-center border-b border-slate-700/60 pb-2.5">
           <h4 class="text-xs font-bold text-white flex items-center gap-1.5">
             <svg class="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
@@ -2634,7 +2634,7 @@
 
     <!-- MODAL 4: Reset Trial Subscription (مودال فعال‌سازی مجدد اکانت تست) -->
     <div id="trialModal" class="absolute inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
-      <div class="modal-card bg-[#1e293b] border border-purple-800/60 rounded-3xl p-5 w-full max-w-[340px] space-y-4 shadow-2xl relative">
+      <div class="modal-card border border-purple-800/60 rounded-3xl p-5 w-full max-w-[340px] space-y-4 shadow-2xl relative">
         <div class="flex justify-between items-center border-b border-slate-700/60 pb-2.5">
           <h4 class="text-xs font-bold text-white flex items-center gap-1.5">
             <div class="w-6 h-6 rounded-lg bg-purple-500/20 text-purple-400 flex items-center justify-center">
@@ -2679,7 +2679,7 @@
 
     <!-- MODAL: Confirmation Modal (جایگزین تایید مرورگر) -->
     <div id="confirmActionModal" class="absolute inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
-      <div class="modal-card bg-[#1e293b] border border-slate-700 rounded-3xl p-5 w-full max-w-[340px] space-y-4 shadow-2xl relative">
+      <div class="modal-card border border-slate-700 rounded-3xl p-5 w-full max-w-[340px] space-y-4 shadow-2xl relative">
         <div class="flex items-center gap-3">
           <div id="confirmModalIconBox" class="w-10 h-10 rounded-2xl bg-rose-500/20 text-rose-400 border border-rose-500/30 flex items-center justify-center flex-shrink-0">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
@@ -2707,7 +2707,7 @@
 
     <!-- MODAL: Operation Result Report (گزارش زیبا و خوشگل نتیجه تراکنش کیف پول یا تست) -->
     <div id="operationReportModal" class="absolute inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
-      <div class="modal-card bg-[#1e293b] border border-slate-700 rounded-3xl p-5 w-full max-w-[350px] space-y-4 shadow-2xl relative">
+      <div class="modal-card border border-slate-700 rounded-3xl p-5 w-full max-w-[350px] space-y-4 shadow-2xl relative">
         <div class="flex items-center gap-3 border-b border-slate-700/60 pb-3">
           <div id="opReportIconBox" class="w-10 h-10 rounded-2xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center flex-shrink-0">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
@@ -2774,7 +2774,7 @@
 
     <!-- MODAL: Bot Access Mode Selector (حالت دسترسی و ثبت‌نام ربات) -->
     <div id="accessModeModal" class="absolute inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
-      <div class="modal-card bg-[#1e293b] border border-slate-700/80 rounded-3xl p-5 w-full max-w-[400px] space-y-4 shadow-2xl relative">
+      <div class="modal-card border border-slate-700/80 rounded-3xl p-5 w-full max-w-[400px] space-y-4 shadow-2xl relative">
         <div class="flex justify-between items-center border-b border-slate-700/60 pb-3">
           <div class="flex items-center gap-2">
             <div class="w-8 h-8 rounded-xl bg-blue-500/15 text-blue-400 border border-blue-500/30 flex items-center justify-center flex-shrink-0">
@@ -2852,7 +2852,7 @@
 
     <!-- MODAL 6: Live Crypto & Currency Rates Inspector & Fast Updater -->
     <div id="cryptoRatesModal" class="absolute inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
-      <div class="modal-card bg-[#1e293b] border border-cyan-500/30 rounded-3xl p-5 w-full max-w-[420px] space-y-4 shadow-2xl relative">
+      <div class="modal-card border border-cyan-500/30 rounded-3xl p-5 w-full max-w-[420px] space-y-4 shadow-2xl relative">
         <div class="flex justify-between items-center border-b border-slate-700/60 pb-2.5">
           <div class="flex items-center gap-2">
             <div class="w-8 h-8 rounded-xl bg-cyan-500/15 text-cyan-400 border border-cyan-500/30 flex items-center justify-center flex-shrink-0">
@@ -2883,7 +2883,7 @@
 
     <!-- MODAL 7: Receipt Photo Fullscreen Preview Modal -->
     <div id="receiptPhotoModal" class="absolute inset-0 bg-black/90 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
-      <div class="modal-card bg-[#1e293b] border border-slate-700 rounded-3xl p-4 w-full max-w-[420px] max-h-[90vh] flex flex-col space-y-3 shadow-2xl relative">
+      <div class="modal-card border border-slate-700 rounded-3xl p-4 w-full max-w-[420px] max-h-[90vh] flex flex-col space-y-3 shadow-2xl relative">
         <div class="flex justify-between items-center border-b border-slate-700/60 pb-2 flex-shrink-0">
           <h4 class="text-xs font-bold text-white flex items-center gap-1.5">
             <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
@@ -2915,7 +2915,7 @@
 
     <!-- MODAL: Node Billing & Cost Settings Modal -->
     <div id="nodeBillingModal" class="absolute inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
-      <div class="modal-card bg-[#1e293b] border border-slate-700 rounded-3xl p-5 w-full max-w-[370px] space-y-4 shadow-2xl relative">
+      <div class="modal-card border border-slate-700 rounded-3xl p-5 w-full max-w-[370px] space-y-4 shadow-2xl relative">
         <div class="flex justify-between items-center border-b border-slate-700/60 pb-2.5">
           <div class="flex items-center gap-2">
             <span class="text-xl" id="nodeBillingModalFlag">🖥️</span>
@@ -3012,7 +3012,7 @@
 
     <!-- MODAL: Campaign Details & Analytics (جزئیات و تحلیل مالی کمپین) -->
     <div id="campaignDetailModal" class="absolute inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-      <div class="modal-card bg-[#1e293b] border border-slate-700 rounded-3xl p-5 w-full max-w-[390px] space-y-4 shadow-2xl relative">
+      <div class="modal-card border border-slate-700 rounded-3xl p-5 w-full max-w-[390px] space-y-4 shadow-2xl relative">
         <div class="flex justify-between items-center border-b border-slate-700/60 pb-2.5">
           <h4 class="text-xs font-bold text-white flex items-center gap-1.5">
             <svg class="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
@@ -3066,7 +3066,7 @@
 
     <!-- MODAL: Create Ad Campaign (لینک تبلیغاتی جدید) -->
     <div id="createCampaignModal" class="absolute inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-      <div class="modal-card bg-[#1e293b] border border-slate-700 rounded-3xl p-5 w-full max-w-[380px] space-y-4 shadow-2xl relative">
+      <div class="modal-card border border-slate-700 rounded-3xl p-5 w-full max-w-[380px] space-y-4 shadow-2xl relative">
         <div class="flex justify-between items-center border-b border-slate-700/60 pb-2.5">
           <h4 class="text-xs font-bold text-white flex items-center gap-1.5">
             <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"/></svg>
@@ -3114,7 +3114,7 @@
 
     <!-- MODAL: Recommended App Picker (انتخاب برنامه پیشنهادی) -->
     <div id="recommendedAppPickerModal" class="absolute inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-      <div class="modal-card bg-[#1e293b] border border-slate-700 rounded-3xl p-5 w-full max-w-[360px] space-y-3.5 shadow-2xl relative max-h-[85vh] flex flex-col">
+      <div class="modal-card border border-slate-700 rounded-3xl p-5 w-full max-w-[360px] space-y-3.5 shadow-2xl relative max-h-[85vh] flex flex-col">
         <div class="flex justify-between items-center border-b border-slate-700/60 pb-2.5 shrink-0">
           <h4 id="recommendedAppPickerTitle" class="text-xs font-bold text-white flex items-center gap-1.5">
             <span>⭐️</span>
@@ -3130,7 +3130,7 @@
 
     <!-- MODAL: Create User (ایجاد کاربر جدید متصل به شناسه تلگرام) -->
     <div id="createUserModal" class="absolute inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-4 hidden">
-      <div class="modal-card bg-[#1e293b] border border-slate-700 rounded-3xl p-5 w-full max-w-[360px] space-y-4 shadow-2xl relative">
+      <div class="modal-card border border-slate-700 rounded-3xl p-5 w-full max-w-[360px] space-y-4 shadow-2xl relative">
         <div class="flex justify-between items-center border-b border-slate-700/60 pb-2.5">
           <h4 class="text-xs font-bold text-white flex items-center gap-1.5">
             <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
@@ -3219,7 +3219,7 @@
 
     <!-- MODAL: Plan Picker for Create User (انتخاب بسته کامل) -->
     <div id="planPickerModal" class="absolute inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-4 hidden">
-      <div class="modal-card bg-[#1e293b] border border-slate-700/80 rounded-3xl p-4 sm:p-5 w-full max-w-[360px] max-h-[80vh] flex flex-col space-y-3 shadow-2xl relative">
+      <div class="modal-card border border-slate-700/80 rounded-3xl p-4 sm:p-5 w-full max-w-[360px] max-h-[80vh] flex flex-col space-y-3 shadow-2xl relative">
         <div class="flex justify-between items-center border-b border-slate-700/60 pb-2.5 shrink-0">
           <div class="flex items-center gap-2">
             <span class="text-base">📦</span>
@@ -3235,7 +3235,7 @@
 
     <!-- MODAL: High-Risk Users (کاربران پرخطر و نشست‌های بالا) -->
     <div id="highRiskUsersModal" class="absolute inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-4 hidden">
-      <div class="modal-card bg-[#1e293b] border border-rose-500/40 rounded-3xl p-4 sm:p-5 w-full max-w-[360px] max-h-[80vh] flex flex-col space-y-3 shadow-2xl relative">
+      <div class="modal-card border border-rose-500/40 rounded-3xl p-4 sm:p-5 w-full max-w-[360px] max-h-[80vh] flex flex-col space-y-3 shadow-2xl relative">
         <div class="flex justify-between items-center border-b border-slate-700/60 pb-2.5 shrink-0">
           <div class="flex items-center gap-2">
             <span class="text-base">⚠️</span>
