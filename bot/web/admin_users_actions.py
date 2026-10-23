@@ -307,7 +307,7 @@ async def post_admin_user_revoke_sub(request: web.Request) -> web.Response:
 
 
 async def post_admin_create_user(request: web.Request) -> web.Response:
-    """Create a new panel user directly linked to a customer's Telegram ID."""
+    """Create a new panel user directly linked to a customer's Telegram ID with validation and compensation rollback."""
     admin = _check_admin(request)
     if not admin:
         return web.json_response({"ok": False, "error": "Forbidden"}, status=403)
@@ -319,7 +319,7 @@ async def post_admin_create_user(request: web.Request) -> web.Response:
 
     telegram_id_raw = body.get("telegram_id")
     if not telegram_id_raw:
-        return web.json_response({"ok": False, "error": "شناسه عددی تلگرام (Telegram ID) الزامی است."}, status=400)
+        return web.json_response({"ok": False, "error": "شناسه عددی تلگرام الزامی است."}, status=400)
 
     try:
         telegram_id = int(telegram_id_raw)
@@ -331,6 +331,19 @@ async def post_admin_create_user(request: web.Request) -> web.Response:
     username = (body.get("username") or "").strip()
     if not username:
         username = f"user_{telegram_id}"
+
+    import re
+    if not re.match(r"^[a-zA-Z0-9_-]{3,32}$", username):
+        return web.json_response({"ok": False, "error": "نام کاربری باید شامل ۳ تا ۳۲ کاراکتر انگلیسی، اعداد یا _ و - باشد."}, status=400)
+
+    remnawave = request.app.get("remnawave")
+    if not remnawave:
+        return web.json_response({"ok": False, "error": "ارتباط با پنل رمناویو برقرار نشد."}, status=503)
+
+    # Pre-check: Ensure username is not already taken in Remnawave
+    existing_panel_user = await remnawave.get_user_by_username(username)
+    if existing_panel_user:
+        return web.json_response({"ok": False, "error": f"نام کاربری '{username}' قبلاً در پنل رمناویو ثبت شده است."}, status=400)
 
     try:
         traffic_gb = max(0, int(float(body.get("traffic_gb") or 0)))
@@ -349,9 +362,11 @@ async def post_admin_create_user(request: web.Request) -> web.Response:
         except (ValueError, TypeError):
             hwid_limit = None
 
-    remnawave = request.app.get("remnawave")
-    if not remnawave:
-        return web.json_response({"ok": False, "error": "ارتباط با پنل رمناویو برقرار نشد."}, status=503)
+    squad_uuids = body.get("squad_uuids")
+    if isinstance(squad_uuids, str) and squad_uuids.strip():
+        squad_uuids = [squad_uuids.strip()]
+    elif not isinstance(squad_uuids, list):
+        squad_uuids = None
 
     created_user = await remnawave.create_user(
         username=username,
@@ -359,34 +374,89 @@ async def post_admin_create_user(request: web.Request) -> web.Response:
         traffic_gb=traffic_gb,
         telegram_id=telegram_id,
         hwid_device_limit=hwid_limit,
+        squad_uuids=squad_uuids,
     )
 
     if not created_user:
         return web.json_response(
-            {"ok": False, "error": "خطا در ایجاد کاربر در پنل رمناویو (احتمالاً نام کاربری تکراری است)."},
+            {"ok": False, "error": "خطا در ایجاد کاربر در پنل رمناویو."},
             status=500,
         )
 
-    async with db_session(request) as session:
-        user_repo = UserRepository(session)
-        db_user = await user_repo.get_or_create(telegram_id, username=username)
-        db_user.is_verified = True
+    # Step 2: Atomic DB registration with compensation rollback
+    try:
+        async with db_session(request) as session:
+            user_repo = UserRepository(session)
+            db_user = await user_repo.get_or_create(telegram_id, username=username)
+            db_user.is_verified = True
 
-        log_detail = f"ایجاد کاربر {username} (شناسه: {telegram_id}) با حجم {traffic_gb} گیگابایت و مدت {duration_days} روز"
-        if hwid_limit:
-            log_detail += f" (محدودیت دستگاه: {hwid_limit})"
-        session.add(AdminLog(admin_id=admin["id"], action="create_user", target_user_id=telegram_id, detail=log_detail))
-        await session.commit()
+            log_detail = f"ایجاد کاربر {username} (شناسه: {telegram_id}) با حجم {traffic_gb} گیگابایت و مدت {duration_days} روز"
+            if hwid_limit:
+                log_detail += f" (محدودیت دستگاه: {hwid_limit})"
+            session.add(AdminLog(admin_id=admin["id"], action="create_user", target_user_id=telegram_id, detail=log_detail))
+            await session.commit()
+    except Exception as db_exc:
+        logger.exception("DB error after creating panel user %s. Triggering compensation rollback.", username)
+        try:
+            p_uid = created_user.get("id")
+            if p_uid:
+                await remnawave.delete_user(p_uid)
+        except Exception as del_exc:
+            logger.error("Failed to delete orphaned panel user %s: %s", username, del_exc)
+        return web.json_response({"ok": False, "error": "خطا در ثبت کاربر در پایگاه داده ربات. عملیات بازگردانده شد."}, status=500)
 
     cache: FastCache | None = request.app.get("cache")
     if cache:
         await cache.delete(f"tma:user:{telegram_id}:dashboard")
         await cache.delete(f"tma:user:{telegram_id}:dashboard:default")
         await cache.delete(f"tma:user:{telegram_id}:profile")
-        await cache.delete("tma:admin:users:*")
 
     return web.json_response({
         "ok": True,
         "message": f"کاربر {username} با موفقیت در پنل رمناویو ایجاد شد.",
         "user": created_user,
     })
+
+async def get_admin_check_username(request: web.Request) -> web.Response:
+    """Check if a username is available in Remnawave."""
+    admin = _check_admin(request)
+    if not admin:
+        return web.json_response({"ok": False, "error": "Forbidden"}, status=403)
+
+    username = (request.query.get("username") or "").strip()
+    if not username:
+        return web.json_response({"ok": True, "available": True})
+
+    import re
+    if not re.match(r"^[a-zA-Z0-9_-]{3,32}$", username):
+        return web.json_response({
+            "ok": True,
+            "available": False,
+            "error": "نام کاربری باید شامل ۳ تا ۳۲ کاراکتر انگلیسی، اعداد یا _ و - باشد.",
+        })
+
+    remnawave = request.app.get("remnawave")
+    if not remnawave:
+        return web.json_response({"ok": False, "error": "ارتباط با پنل رمناویو برقرار نشد."}, status=503)
+
+    user = await remnawave.get_user_by_username(username)
+    return web.json_response({"ok": True, "available": user is None})
+
+
+async def get_admin_internal_squads(request: web.Request) -> web.Response:
+    """Fetch internal squads list from Remnawave for admin panel."""
+    admin = _check_admin(request)
+    if not admin:
+        return web.json_response({"ok": False, "error": "Forbidden"}, status=403)
+
+    remnawave = request.app.get("remnawave")
+    if not remnawave:
+        return web.json_response({"ok": False, "error": "ارتباط با پنل رمناویو برقرار نشد."}, status=503)
+
+    try:
+        squads = await remnawave.get_internal_squads()
+        return web.json_response({"ok": True, "squads": squads or []})
+    except Exception as exc:
+        logger.error("Error fetching internal squads: %s", exc)
+        return web.json_response({"ok": True, "squads": []})
+

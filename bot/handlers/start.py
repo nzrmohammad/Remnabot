@@ -48,7 +48,6 @@ async def cmd_start(
                     has_invite = True
             if not has_invite:
                 from aiogram.utils.keyboard import InlineKeyboardBuilder
-                from bot.config import get_settings
                 kb = InlineKeyboardBuilder()
                 st = get_settings()
                 support_url = getattr(st, "SUPPORT_LINK", "") or getattr(store_settings, "support_link", "")

@@ -1321,7 +1321,7 @@
     window.currentHighRiskUsers = hwidDist?.high_risk_users || [];
     const badge = $('hwidRiskBadge');
     if (badge) {
-      badge.innerText = riskCount > 0 ? `⚠️ ${riskCount} کاربر پرخطر (مشاهده)` : 'توزیع HWID';
+      badge.innerText = riskCount > 0 ? `⚠️ ${riskCount} کاربر پرخطر` : 'توزیع HWID';
       badge.className = riskCount > 0
         ? 'text-[10px] text-rose-400 font-bold font-mono animate-pulse cursor-pointer hover:underline'
         : 'text-[10px] text-amber-400 font-bold font-mono cursor-pointer hover:underline';
@@ -4518,37 +4518,66 @@
     },
 
     // --- Create User Modal ---
+    _usernameCheckTimer: null,
+
     async openCreateUserModal() {
       const modal = $('createUserModal');
       if (modal) modal.classList.remove('hidden');
       if (window.hapticFeedback) window.hapticFeedback('impact');
 
-      // Populate plan templates dropdown
-      const planSelect = $('createUserPlanSelect');
-      if (planSelect) {
-        planSelect.innerHTML = '<option value="custom">⚙️ تنظیمات سفارشی (دستی)</option>';
-        let plans = window.adminData && window.adminData.plans ? window.adminData.plans : [];
-        if (!plans.length && window.api && window.api.getAdminPlans) {
-          try {
-            const res = await window.api.getAdminPlans();
-            if (res && res.ok && Array.isArray(res.plans)) {
-              plans = res.plans;
-              if (window.adminData) window.adminData.plans = plans;
-            }
-          } catch (e) {
-            console.error('Failed to load plans for create user modal', e);
+      // Reset form
+      const telegramIdInput = $('createUserTelegramId');
+      const usernameInput = $('createUserUsername');
+      const usernameStatus = $('createUserUsernameStatus');
+      const selectedIdEl = $('createUserSelectedPlanId');
+      const iconEl = $('createUserPlanIcon');
+      const labelEl = $('createUserPlanLabel');
+      const trafficInput = $('createUserTraffic');
+      const durationInput = $('createUserDuration');
+      const hwidInput = $('createUserHwid');
+      const squadSelect = $('createUserSquadSelect');
+
+      if (telegramIdInput) telegramIdInput.value = '';
+      if (usernameInput) usernameInput.value = '';
+      if (usernameStatus) {
+        usernameStatus.className = 'text-[10px] font-medium hidden';
+        usernameStatus.innerText = '';
+      }
+      if (selectedIdEl) selectedIdEl.value = 'custom';
+      if (iconEl) iconEl.innerText = '⚙️';
+      if (labelEl) labelEl.innerText = 'تنظیمات سفارشی (دستی)';
+      if (trafficInput) trafficInput.value = '50';
+      if (durationInput) durationInput.value = '30';
+      if (hwidInput) hwidInput.value = '';
+
+      // Pre-fetch plans so they are readily available in picker
+      if (window.api && window.api.getAdminPlans) {
+        try {
+          const res = await window.api.getAdminPlans();
+          if (res && res.ok && Array.isArray(res.plans)) {
+            if (window.adminData) window.adminData.plans = res.plans;
           }
+        } catch (e) {
+          console.error('Failed to pre-fetch plans for create user modal', e);
         }
-        plans.filter(p => p.is_active !== false).forEach(p => {
-          const opt = document.createElement('option');
-          opt.value = p.id;
-          const trafficLabel = typeof fmtTraffic === 'function' ? fmtTraffic(p.traffic_gb, { html: false }) : `${p.traffic_gb} گیگابایت`;
-          opt.textContent = `${p.name} (${trafficLabel} - ${p.duration_days} روز)`;
-          opt.dataset.traffic = p.traffic_gb || 0;
-          opt.dataset.days = p.duration_days || 30;
-          opt.dataset.hwid = p.hwid_limit || '';
-          planSelect.appendChild(opt);
-        });
+      }
+
+      // Populate internal squads dropdown
+      if (squadSelect && window.api && window.api.getAdminInternalSquads) {
+        squadSelect.innerHTML = '<option value="">🌐 پیش‌فرض فروشگاه / بدون اسکواد اختصاصی</option>';
+        try {
+          const res = await window.api.getAdminInternalSquads();
+          if (res && res.ok && Array.isArray(res.squads)) {
+            res.squads.forEach(sq => {
+              const opt = document.createElement('option');
+              opt.value = sq.uuid || sq.id;
+              opt.textContent = `🧩 ${sq.name || sq.uuid || 'Squad'}`;
+              squadSelect.appendChild(opt);
+            });
+          }
+        } catch (e) {
+          console.error('Failed to load internal squads', e);
+        }
       }
     },
 
@@ -4557,18 +4586,176 @@
       if (modal) modal.classList.add('hidden');
     },
 
-    onPlanSelectChange() {
-      const select = $('createUserPlanSelect');
-      if (!select) return;
-      const selectedOption = select.options[select.selectedIndex];
-      if (selectedOption && selectedOption.value !== 'custom') {
-        const trafficInput = $('createUserTraffic');
-        const durationInput = $('createUserDuration');
-        const hwidInput = $('createUserHwid');
-        if (trafficInput) trafficInput.value = selectedOption.dataset.traffic || '0';
-        if (durationInput) durationInput.value = selectedOption.dataset.days || '30';
-        if (hwidInput) hwidInput.value = selectedOption.dataset.hwid || '';
+    onUsernameInput(val) {
+      if (this._usernameCheckTimer) clearTimeout(this._usernameCheckTimer);
+      const statusEl = $('createUserUsernameStatus');
+      if (!statusEl) return;
+
+      const trimmed = (val || '').trim();
+      if (!trimmed) {
+        statusEl.className = 'text-[10px] font-medium hidden';
+        statusEl.innerText = '';
+        return;
       }
+
+      if (trimmed.length < 3) {
+        statusEl.className = 'text-[10px] font-medium text-amber-400 block mt-1';
+        statusEl.innerText = '⚠️ حداقل ۳ کاراکتر انگلیسی وارد کنید';
+        return;
+      }
+
+      if (!/^[a-zA-Z0-9_-]{3,32}$/.test(trimmed)) {
+        statusEl.className = 'text-[10px] font-medium text-rose-400 block mt-1';
+        statusEl.innerText = '✕ فقط حروف انگلیسی، اعداد، _ و - مجاز است';
+        return;
+      }
+
+      statusEl.className = 'text-[10px] font-medium text-slate-400 block mt-1';
+      statusEl.innerText = 'در حال بررسی نام کاربری در پنل...';
+
+      this._usernameCheckTimer = setTimeout(async () => {
+        try {
+          const res = await window.api.checkAdminUsername(trimmed);
+          if (res && res.ok) {
+            if (res.available) {
+              statusEl.className = 'text-[10px] font-medium text-emerald-400 block mt-1';
+              statusEl.innerText = '✓ این نام کاربری آزاد است';
+            } else {
+              statusEl.className = 'text-[10px] font-medium text-rose-400 block mt-1';
+              statusEl.innerText = res.error || '✕ این نام کاربری قبلاً در پنل ثبت شده است';
+            }
+          }
+        } catch (e) {
+          console.error('Check username error:', e);
+        }
+      }, 300);
+    },
+
+    async openPlanPickerModal() {
+      const modal = $('planPickerModal');
+      const list = $('planPickerList');
+      if (!modal || !list) return;
+
+      modal.classList.remove('hidden');
+      if (window.hapticFeedback) window.hapticFeedback('selection');
+
+      // Ensure plans are loaded
+      let plans = window.adminData && window.adminData.plans ? window.adminData.plans : [];
+      if (!plans.length && window.api && window.api.getAdminPlans) {
+        try {
+          const res = await window.api.getAdminPlans();
+          if (res && res.ok && Array.isArray(res.plans)) {
+            plans = res.plans;
+            if (window.adminData) window.adminData.plans = plans;
+          }
+        } catch (e) {
+          console.error('Failed to load plans for plan picker modal', e);
+        }
+      }
+
+      // Filter ONLY complete packages (traffic_gb > 0 && duration_days > 0)
+      const completePlans = plans.filter(p => p.is_active !== false && p.traffic_gb > 0 && p.duration_days > 0);
+      const selectedId = $('createUserSelectedPlanId')?.value || 'custom';
+
+      let html = `
+        <div onclick="window.adminActions.selectCreateUserPlan('custom')" class="p-3 rounded-2xl border transition cursor-pointer flex items-center justify-between gap-3 ${selectedId === 'custom' ? 'bg-blue-600/15 border-blue-500 shadow-sm' : 'bg-slate-900/70 border-slate-700/60 hover:border-slate-600'}">
+          <div class="flex items-center gap-3 min-w-0">
+            <div class="w-9 h-9 rounded-xl bg-slate-800 text-slate-300 border border-slate-700 flex items-center justify-center font-bold text-base shrink-0">
+              ⚙️
+            </div>
+            <div class="min-w-0">
+              <span class="font-bold text-white text-xs block">تنظیمات سفارشی (دستی)</span>
+              <span class="text-[10px] text-slate-400 block mt-0.5">تعیین دستی حجم، روز و محدودیت دلخواه</span>
+            </div>
+          </div>
+          <div class="shrink-0 text-blue-400 text-sm font-bold">${selectedId === 'custom' ? '✓' : ''}</div>
+        </div>
+      `;
+
+      if (completePlans.length === 0) {
+        html += `
+          <div class="p-4 text-center text-slate-400 text-xs">
+            بسته کاملی تعریف نشده است.
+          </div>
+        `;
+      } else {
+        html += completePlans.map(p => {
+          const isSelected = String(selectedId) === String(p.id);
+          const trafficLabel = fmtTraffic(p.traffic_gb, { html: false });
+          const badgeHtml = p.badge ? `<span class="px-1.5 py-0.5 text-[9.5px] rounded bg-blue-500/15 text-blue-400 font-bold border border-blue-500/30">${escapeHtml(p.badge)}</span>` : '';
+          const priceLabel = p.price ? (typeof fmtMoney === 'function' ? fmtMoney(p.price) : `${p.price} تومان`) : '';
+
+          return `
+            <div onclick="window.adminActions.selectCreateUserPlan('${p.id}')" class="p-3 rounded-2xl border transition cursor-pointer flex items-center justify-between gap-3 ${isSelected ? 'bg-blue-600/15 border-blue-500 shadow-sm' : 'bg-slate-900/70 border-slate-700/60 hover:border-slate-600'}">
+              <div class="flex items-center gap-3 min-w-0 flex-1">
+                <div class="w-9 h-9 rounded-xl bg-blue-500/15 text-blue-400 border border-blue-500/30 flex items-center justify-center font-bold text-base shrink-0">
+                  📦
+                </div>
+                <div class="min-w-0 flex-1">
+                  <div class="flex items-center gap-1.5 flex-wrap">
+                    <span class="font-bold text-white text-xs truncate">${escapeHtml(p.name)}</span>
+                    ${badgeHtml}
+                  </div>
+                  <div class="flex items-center gap-2 text-[10px] text-slate-400 mt-0.5 font-mono">
+                    <span class="text-cyan-300 font-bold">${trafficLabel}</span>
+                    <span>•</span>
+                    <span class="text-amber-300 font-bold">${p.duration_days} روز</span>
+                    ${priceLabel ? `<span>•</span> <span class="text-slate-300 font-sans">${escapeHtml(priceLabel)}</span>` : ''}
+                  </div>
+                </div>
+              </div>
+              <div class="shrink-0 text-blue-400 text-sm font-bold">${isSelected ? '✓' : ''}</div>
+            </div>
+          `;
+        }).join('');
+      }
+
+      list.innerHTML = html;
+    },
+
+    closePlanPickerModal() {
+      const modal = $('planPickerModal');
+      if (modal) modal.classList.add('hidden');
+    },
+
+    selectCreateUserPlan(planId) {
+      this.closePlanPickerModal();
+      if (window.hapticFeedback) window.hapticFeedback('selection');
+
+      const selectedIdEl = $('createUserSelectedPlanId');
+      const iconEl = $('createUserPlanIcon');
+      const labelEl = $('createUserPlanLabel');
+      const trafficInput = $('createUserTraffic');
+      const durationInput = $('createUserDuration');
+      const hwidInput = $('createUserHwid');
+      const squadSelect = $('createUserSquadSelect');
+
+      if (selectedIdEl) selectedIdEl.value = planId;
+
+      if (planId === 'custom') {
+        if (iconEl) iconEl.innerText = '⚙️';
+        if (labelEl) labelEl.innerText = 'تنظیمات سفارشی (دستی)';
+        return;
+      }
+
+      const plans = (window.adminData && window.adminData.plans) || [];
+      const plan = plans.find(p => String(p.id) === String(planId));
+      if (!plan) return;
+
+      const trafficLabel = fmtTraffic(plan.traffic_gb, { html: false });
+      if (iconEl) iconEl.innerText = '📦';
+      if (labelEl) labelEl.innerText = `${plan.name} (${trafficLabel} - ${plan.duration_days} روز)`;
+      if (trafficInput) trafficInput.value = plan.traffic_gb || 0;
+      if (durationInput) durationInput.value = plan.duration_days || 30;
+      if (hwidInput) hwidInput.value = plan.hwid_limit || '';
+
+      if (plan.squad_uuid && squadSelect) {
+        squadSelect.value = plan.squad_uuid;
+      }
+    },
+
+    onPlanSelectChange() {
+      // Legacy fallback
     },
 
     async submitCreateUser() {
@@ -4577,6 +4764,7 @@
       const trafficInput = $('createUserTraffic');
       const durationInput = $('createUserDuration');
       const hwidInput = $('createUserHwid');
+      const squadSelect = $('createUserSquadSelect');
       const submitBtn = $('createUserSubmitBtn');
 
       const telegram_id = (telegramIdInput ? telegramIdInput.value : '').trim();
@@ -4590,6 +4778,7 @@
       const traffic_gb = trafficInput ? parseFloat(trafficInput.value) || 0 : 0;
       const duration_days = durationInput ? parseInt(durationInput.value, 10) || 30 : 30;
       const hwid_limit = hwidInput && hwidInput.value.trim() ? parseInt(hwidInput.value.trim(), 10) : null;
+      const squad_uuid = squadSelect && squadSelect.value ? squadSelect.value.trim() : null;
 
       if (submitBtn) {
         submitBtn.disabled = true;
@@ -4603,17 +4792,12 @@
           traffic_gb,
           duration_days,
           hwid_limit,
+          squad_uuids: squad_uuid ? [squad_uuid] : undefined,
         });
 
         if (res && res.ok) {
           if (window.showToast) window.showToast(res.message || 'کاربر با موفقیت ایجاد شد.', 'success');
           this.closeCreateUserModal();
-          // Reset form
-          if (telegramIdInput) telegramIdInput.value = '';
-          if (usernameInput) usernameInput.value = '';
-          if (trafficInput) trafficInput.value = '50';
-          if (durationInput) durationInput.value = '30';
-          if (hwidInput) hwidInput.value = '';
           // Reload users list
           if (this.loadUsers) this.loadUsers(1);
         } else {
@@ -4637,6 +4821,7 @@
       const modal = $('bulkUsersModal');
       if (modal) modal.classList.remove('hidden');
       this.setBulkActionType('add_traffic');
+      this.onBulkTargetChange('all_active');
       const valInput = $('bulkAmountInput');
       if (valInput) valInput.value = '5';
       if (window.hapticFeedback) window.hapticFeedback('impact');
@@ -4647,6 +4832,32 @@
       if (modal) modal.classList.add('hidden');
     },
 
+    onBulkTargetChange(target = 'all_active') {
+      const hiddenInput = $('bulkTargetSelect');
+      if (hiddenInput) hiddenInput.value = target;
+
+      const activeCard = $('bulkTargetCard_active');
+      const allCard = $('bulkTargetCard_all');
+
+      if (target === 'all_active') {
+        if (activeCard) {
+          activeCard.className = 'p-2.5 rounded-xl border border-blue-500 bg-blue-500/10 cursor-pointer flex flex-col items-center text-center gap-1 transition';
+        }
+        if (allCard) {
+          allCard.className = 'p-2.5 rounded-xl border border-slate-700 bg-slate-900/60 cursor-pointer flex flex-col items-center text-center gap-1 transition hover:border-slate-600';
+        }
+      } else {
+        if (activeCard) {
+          activeCard.className = 'p-2.5 rounded-xl border border-slate-700 bg-slate-900/60 cursor-pointer flex flex-col items-center text-center gap-1 transition hover:border-slate-600';
+        }
+        if (allCard) {
+          allCard.className = 'p-2.5 rounded-xl border border-blue-500 bg-blue-500/10 cursor-pointer flex flex-col items-center text-center gap-1 transition';
+        }
+      }
+
+      if (window.hapticFeedback) window.hapticFeedback('selection');
+    },
+
     setBulkActionType(type = 'add_traffic') {
       this.currentBulkActionType = type;
       const trafficBtn = $('bulkTypeBtn_traffic');
@@ -4654,8 +4865,8 @@
       const labelEl = $('bulkAmountLabel');
       const inputEl = $('bulkAmountInput');
 
-      const activeClass = 'py-1.5 rounded-xl font-bold bg-blue-600 text-white shadow text-center flex items-center justify-center gap-1.5 transition';
-      const inactiveClass = 'py-1.5 rounded-xl text-slate-400 hover:text-white font-medium text-center flex items-center justify-center gap-1.5 transition';
+      const activeClass = 'py-2 rounded-xl font-bold bg-blue-600 text-white shadow-md text-center flex items-center justify-center gap-1.5 transition active:scale-95';
+      const inactiveClass = 'py-2 rounded-xl font-semibold text-slate-300 hover:text-white hover:bg-slate-800/60 text-center flex items-center justify-center gap-1.5 transition active:scale-95';
 
       if (type === 'add_traffic') {
         if (trafficBtn) trafficBtn.className = activeClass;
@@ -5381,24 +5592,24 @@
         `;
       } else {
         list.innerHTML = users.map((u, idx) => {
-          const safeName = escapeHtml(u.name || `کاربر ${u.user_id}`);
-          const safeUname = u.username ? `@${escapeHtml(u.username)}` : (u.telegram_id ? `ID: ${u.telegram_id}` : '');
+          const accountName = escapeHtml(u.name || u.username || `اکانت #${u.user_id}`);
+          const tgInfo = u.telegram_id ? `ID: ${u.telegram_id}` : (u.user_id ? `ID: ${u.user_id}` : '');
           const devCount = u.device_count || 3;
           const tgId = u.telegram_id || u.user_id;
           return `
             <div class="p-3 bg-slate-900/70 border border-slate-700/60 rounded-2xl flex items-center justify-between gap-2.5 transition hover:border-slate-600">
               <div class="flex items-center gap-2.5 min-w-0 flex-1">
-                <div class="w-9 h-9 rounded-xl bg-rose-500/15 text-rose-400 border border-rose-500/30 flex items-center justify-center font-bold text-xs shrink-0 font-mono">
+                <div class="w-8 h-8 rounded-xl bg-rose-500/15 text-rose-400 border border-rose-500/30 flex items-center justify-center font-bold text-xs shrink-0 font-mono">
                   ${idx + 1}
                 </div>
                 <div class="min-w-0 flex-1">
                   <div class="flex items-center gap-2">
-                    <span class="font-bold text-white text-xs truncate">${safeName}</span>
+                    <span class="font-bold text-white text-xs truncate font-mono" dir="ltr">${accountName}</span>
                     <span class="text-[9.5px] font-mono px-1.5 py-0.5 rounded bg-rose-500/15 text-rose-400 border border-rose-500/30 font-bold shrink-0">
                       🔥 ${devCount} دستگاه
                     </span>
                   </div>
-                  <span class="text-[10px] text-slate-400 block font-mono truncate mt-0.5" dir="ltr">${safeUname}</span>
+                  <span class="text-[10px] text-slate-400 block font-mono truncate mt-0.5" dir="ltr">${escapeHtml(tgInfo)}</span>
                 </div>
               </div>
               <div class="flex items-center gap-1.5 shrink-0">
@@ -6463,9 +6674,14 @@
   window.quickCopy = (text, label) => window.adminActions.quickCopy(text, label);
   window.openCreateUserModal = () => window.adminActions.openCreateUserModal();
   window.closeCreateUserModal = () => window.adminActions.closeCreateUserModal();
+  window.openPlanPickerModal = () => window.adminActions.openPlanPickerModal();
+  window.closePlanPickerModal = () => window.adminActions.closePlanPickerModal();
+  window.selectCreateUserPlan = (id) => window.adminActions.selectCreateUserPlan(id);
+  window.onUsernameInput = (val) => window.adminActions.onUsernameInput(val);
   window.submitCreateUser = () => window.adminActions.submitCreateUser();
   window.onPlanSelectChange = () => window.adminActions.onPlanSelectChange();
   window.openBulkUsersModal = () => window.adminActions.openBulkUsersModal();
+  window.onBulkTargetChange = (target) => window.adminActions.onBulkTargetChange(target);
   window.closeBulkUsersModal = () => window.adminActions.closeBulkUsersModal();
   window.openNodeBillingModal = (...args) => window.adminActions.openNodeBillingModal(...args);
   window.closeNodeBillingModal = () => window.adminActions.closeNodeBillingModal();

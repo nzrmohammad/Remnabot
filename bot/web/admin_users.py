@@ -7,6 +7,8 @@ Decomposed into focused domain submodules:
 """
 
 from bot.web.admin_users_actions import (
+    get_admin_check_username,
+    get_admin_internal_squads,
     post_admin_create_user,
     post_admin_kill_sessions,
     post_admin_modify_user,
@@ -33,6 +35,8 @@ __all__ = [
     "get_admin_user_sessions",
     "get_admin_user_srh",
     "get_admin_users",
+    "get_admin_check_username",
+    "get_admin_internal_squads",
     "post_admin_create_user",
     "post_admin_kill_sessions",
     "post_admin_modify_user",

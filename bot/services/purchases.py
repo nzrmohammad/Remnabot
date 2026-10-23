@@ -22,7 +22,7 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from typing import Any
 
-from sqlalchemy import select, text
+from sqlalchemy import or_, select, text, update
 
 from bot.db.models import Service, Wallet
 from bot.db.repositories.order_repo import OrderRepository
@@ -456,15 +456,29 @@ async def _execute_purchase_impl(
 
     if getattr(service, "id", None) and isinstance(service.id, int):
         try:
-            svc_current = await session.get(Service, service.id)
-            if svc_current and hasattr(svc_current, "purchases_count"):
-                cur_cnt = getattr(svc_current, "purchases_count", 0)
-                if isinstance(cur_cnt, int):
-                    svc_current.purchases_count = cur_cnt + 1
-                    max_lim = getattr(svc_current, "max_purchases", None)
-                    if isinstance(max_lim, int) and max_lim > 0 and svc_current.purchases_count >= max_lim:
-                        svc_current.is_active = False
-                        logger.info("Service %d (%s) reached max purchases (%d). Deactivated.", svc_current.id, getattr(svc_current, "name", ""), max_lim)
+            stmt = (
+                update(Service)
+                .where(
+                    Service.id == service.id,
+                    or_(
+                        Service.max_purchases.is_(None),
+                        Service.purchases_count < Service.max_purchases,
+                    ),
+                )
+                .values(purchases_count=Service.purchases_count + 1)
+            )
+            upd_res = await session.execute(stmt)
+            if upd_res.rowcount > 0:
+                svc_current = await session.get(Service, service.id)
+                if (
+                    svc_current
+                    and svc_current.max_purchases
+                    and svc_current.purchases_count >= svc_current.max_purchases
+                ):
+                    svc_current.is_active = False
+                    logger.info("Service %d (%s) reached max purchases (%d). Deactivated.", svc_current.id, getattr(svc_current, "name", ""), svc_current.max_purchases)
+            else:
+                logger.warning("Service %d exceeded max purchases during race check.", service.id)
         except Exception as svc_err:
             logger.debug("Could not increment service purchases_count: %s", svc_err)
 

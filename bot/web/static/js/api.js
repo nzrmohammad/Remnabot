@@ -256,6 +256,14 @@ const api = {
     return this.post('/api/admin/users/create', payload);
   },
 
+  async checkAdminUsername(username) {
+    return this.get('/api/admin/user/check_username', { username });
+  },
+
+  async getAdminInternalSquads() {
+    return this.get('/api/admin/internal-squads');
+  },
+
   async modifyUser(telegram_id, actionOrPayload, amount) {
     if (typeof actionOrPayload === 'object' && actionOrPayload !== null) {
       return this.post('/api/admin/user/modify', { telegram_id, ...actionOrPayload });

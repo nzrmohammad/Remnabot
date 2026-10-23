@@ -15,6 +15,8 @@ Central router aggregating domain-specific modular handlers:
 from bot.web.admin_common import _check_admin
 from bot.web.admin_overview import get_admin_overview
 from bot.web.admin_users import (
+    get_admin_check_username,
+    get_admin_internal_squads,
     get_admin_users,
     post_admin_create_user,
     post_admin_modify_user,
@@ -77,6 +79,8 @@ from bot.web.admin_infra_api import (
 
 __all__ = [
     "get_admin_overview",
+    "get_admin_check_username",
+    "get_admin_internal_squads",
     "get_admin_users",
     "post_admin_create_user",
     "post_admin_modify_user",

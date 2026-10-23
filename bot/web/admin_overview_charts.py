@@ -372,13 +372,31 @@ async def _calc_platform_and_hwid(session, remnawave) -> tuple[dict[str, Any], d
     three_plus = sum(1 for cnt in user_hwid_counts.values() if cnt >= 3)
     high_risk = sum(1 for cnt in user_hwid_counts.values() if cnt >= 4)
 
+    order_user_map: dict[str, str] = {}
+    try:
+        order_rows = (await session.execute(
+            select(Order.panel_user_id, Order.panel_username)
+            .where(Order.panel_user_id.is_not(None), Order.panel_username.is_not(None))
+        )).all()
+        for p_id, p_name in order_rows:
+            if p_id and p_name:
+                order_user_map[str(p_id)] = p_name
+    except Exception:
+        pass
+
     dev_user_names: dict[Any, str] = {}
     for dev in devices_raw:
-        uid = dev.get("userId") or dev.get("telegram_id")
+        uid = dev.get("userId") or dev.get("telegram_id") or dev.get("user_id")
         if uid and uid not in dev_user_names:
             u_obj = dev.get("user")
+            p_name = None
             if isinstance(u_obj, dict):
-                dev_user_names[uid] = u_obj.get("username") or u_obj.get("telegramId") or str(uid)
+                p_name = u_obj.get("username")
+            if not p_name:
+                p_name = dev.get("username") or dev.get("account_username")
+            if p_name:
+                dev_user_names[str(uid)] = p_name
+                dev_user_names[uid] = p_name
 
     high_risk_users = []
     sorted_risk = sorted([(u, c) for u, c in user_hwid_counts.items() if c >= 3], key=lambda x: x[1], reverse=True)[:50]
@@ -400,14 +418,16 @@ async def _calc_platform_and_hwid(session, remnawave) -> tuple[dict[str, Any], d
     for u, c in sorted_risk:
         t_id = int(u) if str(u).isdigit() else None
         db_u = user_info_map.get(t_id) if t_id else None
-        display_name = (db_u.get("full_name") or db_u.get("username")) if db_u else None
-        if not display_name:
-            display_name = dev_user_names.get(u) or f"کاربر {u}"
+        panel_name = dev_user_names.get(str(u)) or dev_user_names.get(u) or order_user_map.get(str(u))
+        if not panel_name and db_u:
+            panel_name = db_u.get("username") or db_u.get("full_name")
+
+        display_name = panel_name or f"اکانت {u}"
         high_risk_users.append({
             "user_id": str(u),
             "telegram_id": t_id,
             "name": display_name,
-            "username": db_u.get("username") if db_u else None,
+            "username": panel_name or (db_u.get("username") if db_u else None),
             "device_count": c,
         })
 

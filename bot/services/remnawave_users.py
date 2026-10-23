@@ -218,6 +218,16 @@ class RemnawaveUsersMixin:
             logger.error("Remnawave get_user_by_username error (username=%s): %s", username, exc)
             return None
 
+    async def delete_user(self, user_id: int) -> bool:
+        """Delete a user in the panel."""
+        try:
+            resp = await self._client.delete(f"/api/users/{user_id}")
+            resp.raise_for_status()
+            return True
+        except Exception as exc:
+            logger.error("Remnawave delete_user error: %s", exc)
+            return False
+
     async def create_user(
         self,
         username: str,

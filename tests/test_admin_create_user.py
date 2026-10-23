@@ -10,6 +10,8 @@ from sqlalchemy import select
 async def test_admin_create_user_endpoint(session_factory):
     # Mock Remnawave client
     mock_remnawave = MagicMock()
+    mock_remnawave.get_user_by_username = AsyncMock(return_value=None)
+    mock_remnawave.delete_user = AsyncMock(return_value=True)
     mock_remnawave.create_user = AsyncMock(return_value={
         "id": 999,
         "username": "custom_user",
@@ -66,6 +68,7 @@ async def test_admin_create_user_endpoint(session_factory):
             traffic_gb=50,
             telegram_id=12345678,
             hwid_device_limit=2,
+            squad_uuids=None,
         )
 
         # Verify DB user and AdminLog were created
@@ -79,3 +82,53 @@ async def test_admin_create_user_endpoint(session_factory):
             assert log is not None
             assert log.action == "create_user"
             assert "custom_user" in log.detail
+
+            # 4. Test duplicate username check rejection
+            mock_remnawave.get_user_by_username = AsyncMock(return_value={"id": 888, "username": "custom_user"})
+            resp_dup = await post_admin_create_user(request_valid)
+            assert resp_dup.status == 400
+            dup_data = json.loads(resp_dup.text)
+            assert "قبلاً" in dup_data["error"]
+
+
+@pytest.mark.anyio
+async def test_admin_check_username_and_squads():
+    from bot.web.admin_users_actions import get_admin_check_username, get_admin_internal_squads
+    import json
+
+    mock_remnawave = MagicMock()
+    mock_remnawave.get_user_by_username = AsyncMock(return_value=None)
+    mock_remnawave.get_internal_squads = AsyncMock(return_value=[{"uuid": "sq-1", "name": "Squad 1"}])
+
+    app = web.Application()
+    app["remnawave"] = mock_remnawave
+    app["admin_id"] = 111111
+
+    with pytest.MonkeyPatch.context() as mp:
+        mp.setattr("bot.web.admin_users_actions._check_admin", lambda r: {"id": 111111, "name": "Admin"})
+
+        # Check username available
+        req_check = MagicMock()
+        req_check.app = app
+        req_check.query = {"username": "valid_user"}
+        resp_check = await get_admin_check_username(req_check)
+        data_check = json.loads(resp_check.text)
+        assert data_check["ok"] is True
+        assert data_check["available"] is True
+
+        # Check username taken
+        mock_remnawave.get_user_by_username = AsyncMock(return_value={"id": 10})
+        resp_check2 = await get_admin_check_username(req_check)
+        data_check2 = json.loads(resp_check2.text)
+        assert data_check2["ok"] is True
+        assert data_check2["available"] is False
+
+        # Check internal squads
+        req_squads = MagicMock()
+        req_squads.app = app
+        resp_squads = await get_admin_internal_squads(req_squads)
+        data_squads = json.loads(resp_squads.text)
+        assert data_squads["ok"] is True
+        assert len(data_squads["squads"]) == 1
+        assert data_squads["squads"][0]["name"] == "Squad 1"
+
