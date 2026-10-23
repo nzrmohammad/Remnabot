@@ -8,6 +8,8 @@
   const $ = id => document.getElementById(id);
   const api = window.api;
   const tg = window.Telegram?.WebApp;
+  const formatNumber = window.formatNumber || (n => String(n));
+  const formatDateToJalali = window.formatDateToJalali || (d => d);
   window.adminActions = window.adminActions || {};
 
   window.adminPlansData = window.adminPlansData || [];

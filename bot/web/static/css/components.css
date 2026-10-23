@@ -572,3 +572,61 @@ html.theme-light .wallet-hero-card #walletTabBalance {
   background-clip: unset;
   color: var(--c-success);
 }
+
+/* --- 18. Admin Panel Light Theme Unification --- */
+html.theme-light #phoneFrame {
+  border-color: var(--card-border);
+  background-color: var(--page-bg);
+}
+
+html.theme-light #adminContentArea .bg-slate-800,
+html.theme-light #adminContentArea .bg-slate-800\/80,
+html.theme-light #adminContentArea .bg-slate-800\/90,
+html.theme-light #adminContentArea .bg-slate-900,
+html.theme-light #adminContentArea .bg-slate-900\/50,
+html.theme-light #adminContentArea .bg-slate-900\/60,
+html.theme-light #adminContentArea .bg-slate-900\/70,
+html.theme-light #adminContentArea .bg-slate-900\/80,
+html.theme-light #adminContentArea .node-card,
+html.theme-light #adminContentArea .plan-card,
+html.theme-light #adminContentArea .topup-card {
+  background-color: var(--card-bg);
+  border-color: var(--card-border);
+}
+
+html.theme-light #adminContentArea .bg-slate-950,
+html.theme-light #adminContentArea .bg-slate-950\/60 {
+  background-color: var(--card-inner-bg);
+  border-color: var(--card-border);
+}
+
+html.theme-light .modal-card .bg-slate-800,
+html.theme-light .modal-card .bg-slate-800\/60,
+html.theme-light .modal-card .bg-slate-800\/80,
+html.theme-light .modal-card .bg-slate-800\/90,
+html.theme-light .modal-card .bg-slate-900,
+html.theme-light .modal-card .bg-slate-900\/40,
+html.theme-light .modal-card .bg-slate-900\/50,
+html.theme-light .modal-card .bg-slate-900\/60,
+html.theme-light .modal-card .bg-slate-900\/70,
+html.theme-light .modal-card .bg-slate-900\/80,
+html.theme-light .modal-card .bg-slate-950 {
+  background-color: var(--card-inner-bg);
+  border-color: var(--card-border);
+}
+
+html.theme-light input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not(.on-dark):not(.surface-dark),
+html.theme-light select:not(.on-dark):not(.surface-dark),
+html.theme-light textarea:not(.on-dark):not(.surface-dark) {
+  background-color: var(--card-inner-bg);
+  border-color: var(--card-border);
+  color: var(--text-main);
+}
+
+html.theme-light #adminContentArea .text-white:not(button):not([class*="btn"]):not([class*="badge"]):not(.on-dark),
+html.theme-light #adminContentArea .text-slate-100:not(button):not([class*="btn"]):not([class*="badge"]):not(.on-dark),
+html.theme-light #adminContentArea .text-slate-200:not(button):not([class*="btn"]):not([class*="badge"]):not(.on-dark),
+html.theme-light #adminContentArea .text-slate-300:not(button):not([class*="btn"]):not([class*="badge"]):not(.on-dark) {
+  color: var(--text-main);
+}
+

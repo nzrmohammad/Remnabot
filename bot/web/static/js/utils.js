@@ -290,6 +290,72 @@ function formatPrice(amt) {
   return Number(amt).toLocaleString('en-US');
 }
 
+function formatNumber(num) {
+  if (num === null || num === undefined || isNaN(Number(num))) return '0';
+  const n = Number(num);
+  const rounded = Number.isInteger(n) ? n.toString() : (Math.round(n * 100) / 100).toString();
+  const [intPart, decPart] = rounded.split('.');
+  const formattedInt = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  return decPart !== undefined ? `${formattedInt}.${decPart}` : formattedInt;
+}
+
+function getFlagEmoji(code) {
+  if (!code || code.length !== 2) return '🌐';
+  const c = code.toUpperCase();
+  const offset = 127397;
+  return String.fromCodePoint(c.charCodeAt(0) + offset, c.charCodeAt(1) + offset);
+}
+
+function formatSpeed(bytesPerSec) {
+  const bytes = Number(bytesPerSec || 0);
+  if (!bytes || bytes <= 0) return '0 B/s';
+  const units = ['B/s', 'KB/s', 'MB/s', 'GB/s'];
+  let i = 0;
+  let val = bytes;
+  while (val >= 1024 && i < units.length - 1) {
+    val /= 1024;
+    i++;
+  }
+  return `${val.toFixed(val >= 10 ? 1 : 2)} ${units[i]}`;
+}
+
+function formatChatTimestamp(m) {
+  if (!m) return '';
+  if (m.timestamp) {
+    const tsMs = m.timestamp > 1e11 ? m.timestamp : m.timestamp * 1000;
+    const d = new Date(tsMs);
+    if (!isNaN(d.getTime())) {
+      return d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hourCycle: 'h23' });
+    }
+  }
+  if (m.created_at) {
+    if (typeof m.created_at === 'string' && m.created_at.includes('T')) {
+      const d = new Date(m.created_at);
+      if (!isNaN(d.getTime())) {
+        return d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hourCycle: 'h23' });
+      }
+    }
+    return m.created_at;
+  }
+  return '';
+}
+
+function dismissSplash() {
+  const splash = document.getElementById('splashScreen');
+  const splashBar = document.getElementById('splashBar');
+  if (!splash || splash.classList.contains('hidden')) return;
+
+  if (splashBar) splashBar.style.width = '100%';
+  setTimeout(() => {
+    splash.style.opacity = '0';
+    splash.style.pointerEvents = 'none';
+    setTimeout(() => {
+      splash.classList.add('hidden');
+    }, 350);
+  }, 250);
+}
+
+
 // Plan Title Formatter (places icon on the visual left of the plan name)
 function formatPlanTitle(name, options = {}) {
   if (!name) return options.plainText ? '💎 پلن' : '';
@@ -543,6 +609,12 @@ if (typeof window !== 'undefined') {
   window.toEnglishDigits = toEnglishDigits;
   window.toPersianDigits = toPersianDigits;
   window.formatPrice = formatPrice;
+  window.formatNumber = formatNumber;
+  window.getFlagEmoji = getFlagEmoji;
+  window.formatSpeed = formatSpeed;
+  window.formatChatTimestamp = formatChatTimestamp;
+  window.dismissSplash = dismissSplash;
+  window.formatDateToJalali = formatDateToJalali;
   window.formatPlanTitle = formatPlanTitle;
   window.buildRefLink = buildRefLink;
   window.bindModal = bindModal;
@@ -560,6 +632,11 @@ if (typeof module !== 'undefined' && module.exports) {
     toEnglishDigits,
     toPersianDigits,
     formatPrice,
+    formatNumber,
+    getFlagEmoji,
+    formatSpeed,
+    formatChatTimestamp,
+    formatDateToJalali,
     formatPlanTitle,
     fmtTrafficValue,
     fmtTraffic,

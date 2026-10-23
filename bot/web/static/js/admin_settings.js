@@ -8,6 +8,8 @@
   const $ = id => document.getElementById(id);
   const api = window.api;
   const tg = window.Telegram?.WebApp;
+  const formatNumber = window.formatNumber || (n => String(n));
+  const formatChatTimestamp = window.formatChatTimestamp || (() => '');
   window.adminActions = window.adminActions || {};
 
   let currentBroadcastTarget = 'all';

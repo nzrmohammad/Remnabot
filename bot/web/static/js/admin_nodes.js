@@ -8,6 +8,10 @@
   const $ = id => document.getElementById(id);
   const api = window.api;
   const tg = window.Telegram?.WebApp;
+  const formatNumber = window.formatNumber || (n => String(n));
+  const getFlagEmoji = window.getFlagEmoji || (() => '🌐');
+  const formatSpeed = window.formatSpeed || (n => String(n));
+  const formatDateToJalali = window.formatDateToJalali || (d => d);
   window.adminActions = window.adminActions || {};
 
   let currentEditSslDomainTarget = null;
@@ -731,7 +735,7 @@ openEditSslDomainModal(domain) {
           if (window.showToast) window.showToast('✅ اطلاعات مالی و تمدید سرور با موفقیت ثبت شد');
           if (window.hapticFeedback) window.hapticFeedback('success');
           this.closeNodeBillingModal();
-          syncAdminOverview(true);
+          if (window.syncAdminOverview) window.syncAdminOverview(true);
         } else {
           if (window.showToast) window.showToast(`⚠️ ${res?.error || 'خطا در ذخیره هزینه‌های سرور'}`);
           if (window.hapticFeedback) window.hapticFeedback('error');
@@ -749,7 +753,7 @@ openEditSslDomainModal(domain) {
 
   $('syncAllNodesBtn')?.addEventListener('click', (e) => {
     e.stopPropagation();
-    syncAdminOverview(true);
+    if (window.syncAdminOverview) window.syncAdminOverview(true);
     if (window.showToast) window.showToast('🔄 نودها همگام‌سازی شدند.');
     if (window.hapticFeedback) window.hapticFeedback('impact');
   });
@@ -772,7 +776,7 @@ openEditSslDomainModal(domain) {
     const icon = $('refreshNodesTabIcon');
     if (icon) icon.classList.add('animate-spin');
     try {
-      await syncAdminOverview(true);
+      if (window.syncAdminOverview) await window.syncAdminOverview(true);
       await fetchAdminSslHealth();
       if (window.showToast) window.showToast('🔄 وضعیت سرورها و گواهی‌های SSL به‌روزرسانی شد');
       if (window.hapticFeedback) window.hapticFeedback('success');

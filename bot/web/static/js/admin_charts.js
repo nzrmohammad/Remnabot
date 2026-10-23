@@ -8,6 +8,8 @@
   const $ = id => document.getElementById(id);
   const api = window.api;
   const tg = window.Telegram?.WebApp;
+  const formatNumber = window.formatNumber || (n => String(n));
+  const dismissSplash = window.dismissSplash || (() => {});
   window.adminActions = window.adminActions || {};
 
   let cachedOverviewData = null;
@@ -240,7 +242,7 @@
       if (syncText) syncText.innerText = 'Sync: آنلاین';
 
       // Render Dashboard Analytics Charts
-      lastOverviewData = data;
+      cachedOverviewData = data;
       if (data.rates) {
         if (data.rates.usdt_rate_toman) window.currentUsdRate = Number(data.rates.usdt_rate_toman);
         if (data.rates.eur_rate_toman) window.currentEurRate = Number(data.rates.eur_rate_toman);
@@ -266,8 +268,8 @@
       }
 
       // Render Accordion Nodes
-      renderOverviewNodes(nodes);
-      renderFullNodes(nodes);
+      if (window.renderOverviewNodes) window.renderOverviewNodes(nodes);
+      if (window.renderFullNodes) window.renderFullNodes(nodes);
       dismissSplash();
     } catch (err) {
       console.error('Failed to sync admin overview:', err);
@@ -275,7 +277,6 @@
     }
   }
 
-  let lastOverviewData = null;
   if (typeof Chart !== 'undefined') {
     Chart.defaults.color = isDark ? '#f8fafc' : '#0f172a';
     Chart.defaults.font.family = 'Vazirmatn';

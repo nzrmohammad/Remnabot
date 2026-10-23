@@ -313,16 +313,20 @@ async quickCopy(text, label = 'مقدار') {
     if (window.hapticFeedback) window.hapticFeedback('success');
   }
 
+  window.showConfirmModal = showConfirmModal;
+  window.showOperationReportModal = showOperationReportModal;
+  window.dismissSplash = dismissSplash;
+
 
   // --- 10. Header & Action Trigger Buttons ---
   $('adminReloadBtn')?.addEventListener('click', () => {
-    syncAdminOverview(true);
+    if (window.syncAdminOverview) window.syncAdminOverview(true);
     if (window.showToast) window.showToast('🔄 اطلاعات به‌روزرسانی شد.');
     if (window.hapticFeedback) window.hapticFeedback('impact');
   });
 
   $('quickRefreshMetricsBtn')?.addEventListener('click', () => {
-    syncAdminOverview(true);
+    if (window.syncAdminOverview) window.syncAdminOverview(true);
     if (window.showToast) window.showToast('🔄 داده‌ها سینک شدند.');
     if (window.hapticFeedback) window.hapticFeedback('impact');
   });

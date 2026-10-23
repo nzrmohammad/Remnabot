@@ -8,6 +8,9 @@
   const $ = id => document.getElementById(id);
   const api = window.api;
   const tg = window.Telegram?.WebApp;
+  const formatNumber = window.formatNumber || (n => String(n));
+  const showConfirmModal = window.showConfirmModal || window.adminActions?.showConfirmModal;
+  const showOperationReportModal = window.showOperationReportModal || window.adminActions?.showOperationReportModal;
   window.adminActions = window.adminActions || {};
 
   let currentWalletTarget = null;
@@ -56,7 +59,7 @@ async handleTopup(topup_id, approved) {
           if (window.showToast) window.showToast(`✅ ${res.message}`);
           if (window.hapticFeedback) window.hapticFeedback('success');
           fetchAdminTopups();
-          syncAdminOverview();
+          if (window.syncAdminOverview) window.syncAdminOverview();
         } else {
           if (window.showToast) window.showToast(`⚠️ ${res?.error || 'خطا در تعیین تکلیف فیش'}`);
           if (window.hapticFeedback) window.hapticFeedback('error');
@@ -108,8 +111,8 @@ async handleTopup(topup_id, approved) {
           const targetId = currentWalletTarget.telegram_id;
 
           this.closeWalletModal();
-          fetchAdminUsers(currentPage);
-          syncAdminOverview();
+          if (window.fetchAdminUsers) window.fetchAdminUsers();
+          if (window.syncAdminOverview) window.syncAdminOverview();
 
           showOperationReportModal({
             title: 'گزارش تراکنش کیف پول',

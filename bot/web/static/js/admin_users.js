@@ -8,6 +8,11 @@
   const $ = id => document.getElementById(id);
   const api = window.api;
   const tg = window.Telegram?.WebApp;
+  const formatNumber = window.formatNumber || (n => String(n));
+  const getFlagEmoji = window.getFlagEmoji || (() => '🌐');
+  const formatDateToJalali = window.formatDateToJalali || (d => d);
+  const showConfirmModal = window.showConfirmModal || window.adminActions?.showConfirmModal;
+  const showOperationReportModal = window.showOperationReportModal || window.adminActions?.showOperationReportModal;
   window.adminActions = window.adminActions || {};
 
   let currentPage = 1;
@@ -426,7 +431,7 @@ async applyUserModification() {
           if (window.hapticFeedback) window.hapticFeedback('success');
           this.closeModifyModal();
           fetchAdminUsers(currentPage);
-          syncAdminOverview();
+          if (window.syncAdminOverview) window.syncAdminOverview();
         } else {
           if (window.showToast) window.showToast(`⚠️ ${res?.error || 'خطا در ثبت تغییرات'}`);
           if (window.hapticFeedback) window.hapticFeedback('error');
@@ -511,7 +516,7 @@ async applyUserModification() {
         if (res && res.ok) {
           if (window.showToast) window.showToast(`✅ تعداد ${formatNumber(res.killed_devices || 0)} نشست فعال قطع شدند.`);
           if (window.hapticFeedback) window.hapticFeedback('success');
-          syncAdminOverview();
+          if (window.syncAdminOverview) window.syncAdminOverview();
         } else {
           if (window.showToast) window.showToast(`⚠️ ${res?.error || 'خطا در قطع نشست‌ها'}`);
           if (window.hapticFeedback) window.hapticFeedback('error');
@@ -1128,7 +1133,7 @@ async applyUserModification() {
           if (window.showToast) window.showToast(`✅ تمامی نشست‌های فعال کاربر قطع شدند.`);
           if (window.hapticFeedback) window.hapticFeedback('success');
           await this.refreshCurrentDeviceTab();
-          syncAdminOverview();
+          if (window.syncAdminOverview) window.syncAdminOverview();
         } else {
           if (window.showToast) window.showToast(`⚠️ ${res?.error || 'خطا در قطع نشست‌ها'}`);
           if (window.hapticFeedback) window.hapticFeedback('error');
@@ -1565,7 +1570,7 @@ async applyUserModification() {
           if (window.showToast) window.showToast(`✅ ${res.message || 'عملیات گروهی انجام شد'}`);
           if (window.hapticFeedback) window.hapticFeedback('success');
           this.closeBulkUsersModal();
-          syncAdminOverview(true);
+          if (window.syncAdminOverview) window.syncAdminOverview(true);
         } else {
           if (window.showToast) window.showToast(`⚠️ ${res?.error || res?.message || 'خطا در عملیات گروهی'}`);
           if (window.hapticFeedback) window.hapticFeedback('error');
