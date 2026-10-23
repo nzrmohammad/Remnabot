@@ -1318,12 +1318,14 @@
     const values = hwidDist?.data || [0, 0, 0, 0];
     const riskCount = hwidDist?.high_risk_count || 0;
 
+    window.currentHighRiskUsers = hwidDist?.high_risk_users || [];
     const badge = $('hwidRiskBadge');
     if (badge) {
-      badge.innerText = riskCount > 0 ? `⚠️ ${riskCount} کاربر پرخطر` : 'توزیع HWID';
-      if (riskCount > 0) {
-        badge.className = 'text-[10px] text-rose-400 font-bold font-mono animate-pulse';
-      }
+      badge.innerText = riskCount > 0 ? `⚠️ ${riskCount} کاربر پرخطر (مشاهده)` : 'توزیع HWID';
+      badge.className = riskCount > 0
+        ? 'text-[10px] text-rose-400 font-bold font-mono animate-pulse cursor-pointer hover:underline'
+        : 'text-[10px] text-amber-400 font-bold font-mono cursor-pointer hover:underline';
+      badge.onclick = () => window.adminActions.openHighRiskUsersModal();
     }
 
     if (hwidChartInstance) {
@@ -3370,6 +3372,10 @@
           } else if (bKey === 'vip') {
             tagBadge = '<span class="badge-vip text-[10px] bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/30 px-1.5 py-0.5 rounded-lg font-bold">👑 پیشنهاد ویژه</span>';
           }
+          if (p.max_purchases) {
+            const pCount = p.purchases_count || 0;
+            tagBadge += ` <span class="text-[9.5px] bg-amber-500/15 text-amber-500 dark:text-amber-400 border border-amber-500/30 px-1.5 py-0.5 rounded-lg font-bold font-mono">سقف: ${pCount}/${p.max_purchases}</span>`;
+          }
 
           let specsHtml = '';
           if (isExtraTraffic) {
@@ -3576,6 +3582,7 @@
       $('planModalHwid').value = plan ? (plan.hwid_limit || '') : '';
       $('planModalDesc').value = plan ? (plan.description || '') : '';
       if ($('planModalBadge')) $('planModalBadge').value = plan ? (plan.badge || '') : '';
+      if ($('planModalMaxPurchases')) $('planModalMaxPurchases').value = (plan && plan.max_purchases) ? plan.max_purchases : '';
       $('planModalActive').checked = plan ? !!plan.is_active : true;
 
       if (plan) {
@@ -3608,6 +3615,7 @@
       const description = $('planModalDesc')?.value?.trim();
       const badge = $('planModalBadge')?.value || (window._currentAdminPlanType === 'traffic' ? 'traffic' : (window._currentAdminPlanType === 'time' ? 'time' : ''));
       const is_active = $('planModalActive')?.checked ?? true;
+      const max_purchases = parseInt($('planModalMaxPurchases')?.value || '0', 10) || null;
 
       if (!name) {
         if (window.showToast) window.showToast('نام تعرفه الزامی است.');
@@ -3618,7 +3626,7 @@
       if (saveBtn) { saveBtn.disabled = true; saveBtn.innerText = 'در حال ذخیره...'; }
 
       try {
-        const payload = { id: id ? parseInt(id, 10) : undefined, name, price, traffic_gb, duration_days, hwid_limit, description, badge, is_active };
+        const payload = { id: id ? parseInt(id, 10) : undefined, name, price, traffic_gb, duration_days, hwid_limit, description, badge, is_active, max_purchases };
         const res = await window.api.saveAdminPlan(payload);
         if (res && res.ok) {
           if (window.showToast) window.showToast(`✅ ${res.message}`);
@@ -5150,6 +5158,162 @@
         }
       }
     },
+
+    openRecommendedAppModal(os) {
+      const modal = $('recommendedAppPickerModal');
+      const list = $('recommendedAppPickerList');
+      const title = $('recommendedAppPickerTitle');
+      if (!modal || !list) return;
+
+      const osNames = { ios: 'iOS', android: 'اندروید', windows: 'ویندوز', macos: 'مک', linux: 'لینوکس' };
+      if (title) title.innerHTML = `<span>⭐️</span><span>انتخاب برنامه پیشنهادی (${osNames[os] || os})</span>`;
+
+      const currentVal = $(`appRecommended_${os}`)?.value || '';
+      const osApps = {
+        ios: ['shadowrocket', 'streisand', 'v2box', 'incy', 'happ', 'onexray'],
+        android: ['v2rayng', 'happ', 'hiddify', 'incy'],
+        windows: ['v2rayn', 'hiddify', 'happ', 'incy'],
+        macos: ['hiddify', 'happ', 'incy', 'v2box'],
+        linux: ['hiddify', 'incy', 'nekoray', 'v2raya']
+      };
+      const appNames = {
+        shadowrocket: 'Shadowrocket',
+        streisand: 'Streisand',
+        v2box: 'V2Box',
+        incy: 'Incy',
+        happ: 'Happ',
+        onexray: 'OneXray',
+        v2rayng: 'v2rayNG',
+        v2rayn: 'v2rayN',
+        hiddify: 'Hiddify',
+        nekoray: 'NekoRay',
+        v2raya: 'v2rayA'
+      };
+
+      const appIds = osApps[os] || [];
+      let html = `
+        <button type="button" onclick="window.adminActions.selectRecommendedApp('${os}', '', 'بدون برنامه پیشنهادی')" class="w-full text-right p-3 rounded-2xl border transition flex items-center justify-between ${!currentVal ? 'bg-cyan-500/15 border-cyan-500/40 text-cyan-300 font-bold' : 'bg-slate-900/60 border-slate-700/60 text-slate-300 hover:bg-slate-800'} active:scale-95">
+          <div class="flex items-center gap-2">
+            <span class="text-base">🚫</span>
+            <span>بدون برنامه پیشنهادی</span>
+          </div>
+          ${!currentVal ? '<span class="text-cyan-400 font-bold">✓</span>' : ''}
+        </button>
+      `;
+
+      appIds.forEach(appId => {
+        const appName = appNames[appId] || appId;
+        const isSelected = currentVal === appId;
+        html += `
+          <button type="button" onclick="window.adminActions.selectRecommendedApp('${os}', '${appId}', '${escapeHtml(appName)}')" class="w-full text-right p-3 rounded-2xl border transition flex items-center justify-between ${isSelected ? 'bg-cyan-500/15 border-cyan-500/40 text-cyan-300 font-bold' : 'bg-slate-900/60 border-slate-700/60 text-slate-300 hover:bg-slate-800'} active:scale-95">
+            <div class="flex items-center gap-2">
+              <span class="text-base">📱</span>
+              <span class="font-medium">${escapeHtml(appName)}</span>
+            </div>
+            ${isSelected ? '<span class="text-cyan-400 font-bold">✓</span>' : ''}
+          </button>
+        `;
+      });
+
+      list.innerHTML = html;
+      modal.classList.remove('hidden');
+      if (window.hapticFeedback) window.hapticFeedback('selection');
+    },
+
+    selectRecommendedApp(os, appId, appName) {
+      const inp = $(`appRecommended_${os}`);
+      if (inp) inp.value = appId;
+      this.updateRecommendedAppButton(os, appId);
+      this.closeRecommendedAppModal();
+      if (window.hapticFeedback) window.hapticFeedback('selection');
+    },
+
+    closeRecommendedAppModal() {
+      $('recommendedAppPickerModal')?.classList.add('hidden');
+    },
+
+    updateRecommendedAppButton(os, appId) {
+      const lbl = $(`appRecommendedLabel_${os}`);
+      if (lbl) {
+        const appNames = {
+          shadowrocket: 'Shadowrocket',
+          streisand: 'Streisand',
+          v2box: 'V2Box',
+          incy: 'Incy',
+          happ: 'Happ',
+          onexray: 'OneXray',
+          v2rayng: 'v2rayNG',
+          v2rayn: 'v2rayN',
+          hiddify: 'Hiddify',
+          nekoray: 'NekoRay',
+          v2raya: 'v2rayA'
+        };
+        lbl.innerText = appId ? (appNames[appId] || appId) : 'بدون برنامه پیشنهادی';
+      }
+    },
+
+    openHighRiskUsersModal() {
+      const modal = $('highRiskUsersModal');
+      const list = $('highRiskUsersModalList');
+      if (!modal || !list) return;
+
+      const users = window.currentHighRiskUsers || [];
+      if (users.length === 0) {
+        list.innerHTML = `
+          <div class="text-center py-8 text-slate-400 space-y-2">
+            <span class="text-3xl">🛡️</span>
+            <div class="text-xs font-bold text-slate-200">هیچ کاربر پرخطری یافت نشد</div>
+            <div class="text-[11px] text-slate-400">تمام کاربران دارای ۳ دستگاه متصل یا کمتر هستند.</div>
+          </div>
+        `;
+      } else {
+        list.innerHTML = users.map((u, idx) => {
+          const safeName = escapeHtml(u.name || `کاربر ${u.user_id}`);
+          const safeUname = u.username ? `@${escapeHtml(u.username)}` : (u.telegram_id ? `ID: ${u.telegram_id}` : '');
+          const devCount = u.device_count || 3;
+          const tgId = u.telegram_id || u.user_id;
+          return `
+            <div class="p-3 bg-slate-900/70 border border-slate-700/60 rounded-2xl flex items-center justify-between gap-2.5 transition hover:border-slate-600">
+              <div class="flex items-center gap-2.5 min-w-0 flex-1">
+                <div class="w-9 h-9 rounded-xl bg-rose-500/15 text-rose-400 border border-rose-500/30 flex items-center justify-center font-bold text-xs shrink-0 font-mono">
+                  ${idx + 1}
+                </div>
+                <div class="min-w-0 flex-1">
+                  <div class="flex items-center gap-2">
+                    <span class="font-bold text-white text-xs truncate">${safeName}</span>
+                    <span class="text-[9.5px] font-mono px-1.5 py-0.5 rounded bg-rose-500/15 text-rose-400 border border-rose-500/30 font-bold shrink-0">
+                      🔥 ${devCount} دستگاه
+                    </span>
+                  </div>
+                  <span class="text-[10px] text-slate-400 block font-mono truncate mt-0.5" dir="ltr">${safeUname}</span>
+                </div>
+              </div>
+              <div class="flex items-center gap-1.5 shrink-0">
+                <button type="button" onclick="window.adminActions.inspectHighRiskUser('${tgId}')" class="px-2.5 py-1.5 rounded-xl bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 border border-blue-500/30 text-[11px] font-bold transition active:scale-95 flex items-center gap-1">
+                  <span>🔍</span><span>بررسی</span>
+                </button>
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+
+      modal.classList.remove('hidden');
+      if (window.hapticFeedback) window.hapticFeedback('selection');
+    },
+
+    closeHighRiskUsersModal() {
+      $('highRiskUsersModal')?.classList.add('hidden');
+    },
+
+    inspectHighRiskUser(telegramId) {
+      this.closeHighRiskUsersModal();
+      if (this.openModifyModal) {
+        this.openModifyModal(telegramId);
+      } else if (this.openHwidModal) {
+        this.openHwidModal(telegramId);
+      }
+    },
   };
 
   const fetchAdminPlans = () => window.adminActions.fetchAdminPlans();
@@ -5613,7 +5777,9 @@
             for (const [os, appIds] of Object.entries(OS_APPS_MAP)) {
               const recSelect = $(`appRecommended_${os}`);
               if (recSelect) {
-                recSelect.value = appOverrides.recommended?.[os] || (os === 'windows' ? appOverrides.recommended?.desktop : '') || '';
+                const recVal = appOverrides.recommended?.[os] || (os === 'windows' ? appOverrides.recommended?.desktop : '') || '';
+                recSelect.value = recVal;
+                window.adminActions.updateRecommendedAppButton(os, recVal);
               }
               const osSource = appOverrides[os] || (os === 'windows' ? appOverrides.desktop : null);
               for (const appId of appIds) {

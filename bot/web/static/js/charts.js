@@ -204,7 +204,18 @@ async function renderBarChart(containerId, totals, labels, isMonthly = false) {
         x: {
           grid: { display: false },
           border: { display: false },
-          ticks: {
+          ticks: chartKey === 'repPeakHoursBarCanvas' ? {
+            color: textColor,
+            autoSkip: false,
+            maxTicksLimit: 12,
+            maxRotation: 45,
+            minRotation: 45,
+            font: { family: 'monospace', size: 8.5, weight: '600' },
+            callback: function(val, index) {
+              const raw = cleanLabels[index] ?? this.getLabelForValue(val);
+              return toEnglishDigits(String(raw));
+            }
+          } : {
             color: textColor,
             font: { family: 'Vazirmatn', size: 10, weight: isLight ? '600' : '500' }
           }

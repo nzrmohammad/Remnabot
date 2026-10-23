@@ -665,28 +665,28 @@
               <div id="repHourlyPeriodsSummary" class="grid grid-cols-2 sm:grid-cols-4 gap-1.5 pt-1 font-mono text-[11px]">
                 <div class="bg-slate-900/60 p-2 rounded-xl border border-slate-700/50 flex flex-col justify-between">
                   <div class="flex items-center justify-between text-slate-400 text-[10px] font-sans">
-                    <span>🌙 بامداد (۰۰-۰۶)</span>
+                    <span class="flex items-center gap-1"><span>🌙 بامداد</span> <span dir="ltr" class="font-mono text-[9.5px] text-slate-400">(00-06)</span></span>
                     <span id="periodDawnPercent" class="text-cyan-400 font-bold font-mono">0%</span>
                   </div>
                   <b id="periodDawnVal" class="text-white text-xs mt-1 block num-bidi" dir="ltr">0.00 GB</b>
                 </div>
                 <div class="bg-slate-900/60 p-2 rounded-xl border border-slate-700/50 flex flex-col justify-between">
                   <div class="flex items-center justify-between text-slate-400 text-[10px] font-sans">
-                    <span>🌅 صبح (۰۶-۱۲)</span>
+                    <span class="flex items-center gap-1"><span>🌅 صبح</span> <span dir="ltr" class="font-mono text-[9.5px] text-slate-400">(06-12)</span></span>
                     <span id="periodMorningPercent" class="text-emerald-400 font-bold font-mono">0%</span>
                   </div>
                   <b id="periodMorningVal" class="text-white text-xs mt-1 block num-bidi" dir="ltr">0.00 GB</b>
                 </div>
                 <div class="bg-slate-900/60 p-2 rounded-xl border border-slate-700/50 flex flex-col justify-between">
                   <div class="flex items-center justify-between text-slate-400 text-[10px] font-sans">
-                    <span>☀️ عصر (۱۲-۱۸)</span>
+                    <span class="flex items-center gap-1"><span>☀️ عصر</span> <span dir="ltr" class="font-mono text-[9.5px] text-slate-400">(12-18)</span></span>
                     <span id="periodAfternoonPercent" class="text-amber-400 font-bold font-mono">0%</span>
                   </div>
                   <b id="periodAfternoonVal" class="text-white text-xs mt-1 block num-bidi" dir="ltr">0.00 GB</b>
                 </div>
                 <div class="bg-slate-900/60 p-2 rounded-xl border border-slate-700/50 flex flex-col justify-between">
                   <div class="flex items-center justify-between text-slate-400 text-[10px] font-sans">
-                    <span>🌆 شب (۱۸-۲۴)</span>
+                    <span class="flex items-center gap-1"><span>🌆 شب</span> <span dir="ltr" class="font-mono text-[9.5px] text-slate-400">(18-24)</span></span>
                     <span id="periodNightPercent" class="text-purple-400 font-bold font-mono">0%</span>
                   </div>
                   <b id="periodNightVal" class="text-white text-xs mt-1 block num-bidi" dir="ltr">0.00 GB</b>
@@ -2321,7 +2321,7 @@
     </div>
     <!-- 12. MODAL: JALALI BIRTHDAY PICKER (ثبت تاریخ زادروز) -->
     <div id="birthdayModal" onclick="if(event.target === this) window.closeBirthdayModal()" class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-md hidden animate-fadeIn overflow-y-auto">
-      <div class="modal-card bg-[#0f172a] dark:bg-[#131d31] border border-indigo-500/40 rounded-3xl p-5 w-full max-w-[360px] text-center shadow-2xl relative my-auto space-y-3.5">
+      <div class="modal-card bg-[#0f172a] dark:bg-[#131d31] border border-indigo-500/40 rounded-3xl p-4 sm:p-5 w-full max-w-[360px] max-h-[88vh] flex flex-col text-center shadow-2xl relative my-auto space-y-3">
         
         <div class="w-10 h-1 bg-slate-700/60 rounded-full mx-auto -mt-1 mb-1"></div>
         <button type="button" onclick="window.closeBirthdayModal()" class="w-8 h-8 rounded-full bg-slate-800/80 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center text-xs transition active:scale-95 absolute top-3.5 left-3.5 shadow" title="بستن" aria-label="بستن پنجره زادروز">✕</button>
@@ -2376,7 +2376,7 @@
         </div>
 
         <!-- Pane 3: Years Grid (5 columns, quick selectable years) -->
-        <div id="bdayPaneYear" class="bday-pane hidden bg-slate-900/60 rounded-2xl p-2 border border-slate-700/60 h-[250px] max-h-[250px] overflow-y-auto overscroll-contain custom-scroll">
+        <div id="bdayPaneYear" class="bday-pane hidden bg-slate-900/60 rounded-2xl p-2 border border-slate-700/60 h-48 max-h-48 overflow-y-auto overscroll-contain custom-scroll" style="-webkit-overflow-scrolling: touch; touch-action: pan-y;">
           <div class="grid grid-cols-5 gap-1" id="bdayYearsGrid"></div>
         </div>
 

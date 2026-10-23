@@ -472,8 +472,8 @@ async def post_user_purchase(request: web.Request) -> web.Response:
 
     async with db_session(request) as session:
         service = await session.get(Service, int(service_id))
-        if not service or not service.is_active:
-            return web.json_response({"ok": False, "message": "بسته مورد نظر یافت نشد یا غیرفعال است."}, status=404)
+        if not service or not service.is_active or (service.max_purchases and (service.purchases_count or 0) >= service.max_purchases):
+            return web.json_response({"ok": False, "message": "بسته مورد نظر یافت نشد، منقضی شده یا سقف فروش آن تکمیل شده است."}, status=404)
 
         coupon_repo = CouponRepository(session)
         discount_amount = 0

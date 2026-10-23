@@ -8,7 +8,7 @@ from typing import Any
 from sqlalchemy import func, or_, select
 
 from bot.common.helpers import get_used_bytes
-from bot.db.models import CryptoInvoice, KnownDevice, Order, Service, Topup
+from bot.db.models import CryptoInvoice, KnownDevice, Order, Service, Topup, User
 from bot.db.repositories.traffic_snapshot_repo import TrafficSnapshotRepository
 from bot.services.formatting import country_name, ltr_frag
 from bot.web.admin_common import format_service_name_icon_first
@@ -372,6 +372,45 @@ async def _calc_platform_and_hwid(session, remnawave) -> tuple[dict[str, Any], d
     three_plus = sum(1 for cnt in user_hwid_counts.values() if cnt >= 3)
     high_risk = sum(1 for cnt in user_hwid_counts.values() if cnt >= 4)
 
+    dev_user_names: dict[Any, str] = {}
+    for dev in devices_raw:
+        uid = dev.get("userId") or dev.get("telegram_id")
+        if uid and uid not in dev_user_names:
+            u_obj = dev.get("user")
+            if isinstance(u_obj, dict):
+                dev_user_names[uid] = u_obj.get("username") or u_obj.get("telegramId") or str(uid)
+
+    high_risk_users = []
+    sorted_risk = sorted([(u, c) for u, c in user_hwid_counts.items() if c >= 3], key=lambda x: x[1], reverse=True)[:50]
+    tg_candidates = []
+    for u, _ in sorted_risk:
+        try:
+            tg_candidates.append(int(u))
+        except (ValueError, TypeError):
+            pass
+
+    user_info_map = {}
+    if tg_candidates:
+        rows = (await session.execute(
+            select(User.telegram_id, User.username, User.full_name).where(User.telegram_id.in_(tg_candidates))
+        )).all()
+        for t_id, uname, fname in rows:
+            user_info_map[t_id] = {"username": uname, "full_name": fname}
+
+    for u, c in sorted_risk:
+        t_id = int(u) if str(u).isdigit() else None
+        db_u = user_info_map.get(t_id) if t_id else None
+        display_name = (db_u.get("full_name") or db_u.get("username")) if db_u else None
+        if not display_name:
+            display_name = dev_user_names.get(u) or f"کاربر {u}"
+        high_risk_users.append({
+            "user_id": str(u),
+            "telegram_id": t_id,
+            "name": display_name,
+            "username": db_u.get("username") if db_u else None,
+            "device_count": c,
+        })
+
     platform_dist = {
         "labels": ["اندروید (Android)", "آیفون (iOS)", "ویندوز (Windows)", "مک و لینوکس", "سایر"],
         "data": [platform_counts["Android"], platform_counts["iOS"], platform_counts["Windows"], platform_counts["macOS/Linux"], platform_counts["Other"]],
@@ -379,8 +418,9 @@ async def _calc_platform_and_hwid(session, remnawave) -> tuple[dict[str, Any], d
     hwid_dist = {
         "labels": ["1 دستگاه", "2 دستگاه", "3+ دستگاه", "ریسک بالا (4+)"],
         "data": [single_device, two_device, three_plus, high_risk],
-        "high_risk_count": high_risk,
+        "high_risk_count": len(high_risk_users),
         "total_monitored_users": len(user_hwid_counts),
+        "high_risk_users": high_risk_users,
     }
     return platform_dist, hwid_dist
 

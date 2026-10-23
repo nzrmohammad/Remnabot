@@ -71,6 +71,8 @@ async def get_admin_plans(request: web.Request) -> web.Response:
                 "is_active": s.is_active,
                 "hwid_limit": s.hwid_limit or 0,
                 "badge": s.badge or "",
+                "max_purchases": s.max_purchases,
+                "purchases_count": s.purchases_count or 0,
             }
             for s in services
         ]
@@ -101,6 +103,16 @@ async def post_admin_plan_save(request: web.Request) -> web.Response:
     except (ValueError, TypeError):
         return web.json_response({"ok": False, "error": "مقادیر عددی نامعتبر هستند."}, status=400)
 
+    raw_max = body.get("max_purchases")
+    max_purchases = None
+    if raw_max is not None and str(raw_max).strip() != "":
+        try:
+            val = int(raw_max)
+            if val > 0:
+                max_purchases = val
+        except (ValueError, TypeError):
+            pass
+
     description = str(body.get("description") or "").strip() or None
     badge = str(body.get("badge") or "").strip() or None
     is_active = bool(body.get("is_active", True))
@@ -118,6 +130,7 @@ async def post_admin_plan_save(request: web.Request) -> web.Response:
             service.badge = badge
             service.is_active = is_active
             service.hwid_limit = hwid_limit
+            service.max_purchases = max_purchases
             msg = "پلن با موفقیت ویرایش شد."
         else:
             service = Service(
@@ -129,6 +142,8 @@ async def post_admin_plan_save(request: web.Request) -> web.Response:
                 badge=badge,
                 is_active=is_active,
                 hwid_limit=hwid_limit,
+                max_purchases=max_purchases,
+                purchases_count=0,
             )
             session.add(service)
             msg = "پلن جدید با موفقیت ایجاد شد."

@@ -965,7 +965,7 @@
             <div class="bg-slate-900/60 rounded-xl p-3 border border-slate-700/60 space-y-2 mt-2">
               <div class="flex items-center justify-between">
                 <div>
-                  <span class="text-slate-200 font-medium block text-xs">عضویت اجباری کانال (Join Gate)</span>
+                  <span class="text-slate-200 font-medium block text-xs">عضویت اجباری در کانال</span>
                   <span class="text-[11px] text-slate-400">اجبار عضویت در کانال تلگرام جهت دریافت تست رایگان و گردونه شانس</span>
                 </div>
                 <label class="relative inline-flex items-center cursor-pointer">
@@ -1072,8 +1072,7 @@
           <div id="settingsBoxApps" class="settings-box-body p-4 pt-1 border-t border-slate-700/60 space-y-3 text-xs hidden">
             <div class="flex items-center justify-between">
               <div>
-                <b class="text-[11px] text-slate-200 block">📱 کلاینت‌ها و نرم‌افزارهای اتصال:</b>
-                <span class="text-[11px] text-slate-400 block mt-0.5">در صورت خالی بودن لینک دانلود، برنامه در لیست کاربر نمایش داده نمی‌شود.</span>
+                <span class="text-[11px] text-slate-400 block">در صورت خالی بودن لینک دانلود، برنامه در لیست کاربر نمایش داده نمی‌شود.</span>
               </div>
             </div>
 
@@ -1110,15 +1109,11 @@
                   <span class="text-sm">⭐️</span>
                   <span class="text-[11px] text-slate-300 font-medium">برنامه پیشنهادی:</span>
                 </div>
-                <select id="appRecommended_ios" class="bg-slate-800 text-cyan-300 border border-slate-700 rounded-xl px-2.5 py-1 text-xs outline-none focus:border-cyan-500 transition font-medium">
-                  <option value="">بدون برنامه پیشنهادی</option>
-                  <option value="shadowrocket">Shadowrocket</option>
-                  <option value="streisand">Streisand</option>
-                  <option value="v2box">V2Box</option>
-                  <option value="incy">Incy</option>
-                  <option value="happ">Happ</option>
-                  <option value="onexray">OneXray</option>
-                </select>
+                <input type="hidden" id="appRecommended_ios" value="">
+                <button type="button" onclick="window.adminActions.openRecommendedAppModal('ios')" id="appRecommendedBtn_ios" class="bg-slate-800 hover:bg-slate-750 text-cyan-300 border border-slate-700 rounded-xl px-3 py-1.5 text-xs outline-none transition font-medium flex items-center gap-1.5 shadow-sm active:scale-95">
+                  <span id="appRecommendedLabel_ios">بدون برنامه پیشنهادی</span>
+                  <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                </button>
               </div>
 
               <!-- Shadowrocket -->
@@ -1128,7 +1123,7 @@
                     <span class="text-base">🚀</span>
                     <b class="text-white text-xs">Shadowrocket</b>
                   </div>
-                  <span class="text-[10px] text-slate-500 font-mono">iOS / iPadOS</span>
+                  
                 </div>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   <div>
@@ -1153,7 +1148,7 @@
                     <img src="/static/img/apps/streisand.webp" class="w-5 h-5 rounded-md object-contain" alt="Streisand" onerror="this.style.display='none'" loading="lazy" />
                     <b class="text-white text-xs">Streisand</b>
                   </div>
-                  <span class="text-[10px] text-slate-500 font-mono">iOS / iPadOS</span>
+                  
                 </div>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   <div>
@@ -1178,7 +1173,7 @@
                     <img src="/static/img/apps/v2box.webp" class="w-5 h-5 rounded-md object-contain" alt="V2Box" onerror="this.style.display='none'" loading="lazy" />
                     <b class="text-white text-xs">V2Box</b>
                   </div>
-                  <span class="text-[10px] text-slate-500 font-mono">iOS / iPadOS</span>
+                  
                 </div>
                 <div>
                   <label class="text-[11px] text-slate-400 block mb-1">لینک دانلود نرم‌افزار (اپ‌استور):</label>
@@ -1201,7 +1196,7 @@
                     <img src="/static/img/apps/incy.webp" class="w-5 h-5 rounded-md object-contain" alt="Incy" onerror="this.style.display='none'" loading="lazy" />
                     <b class="text-white text-xs">Incy</b>
                   </div>
-                  <span class="text-[10px] text-slate-500 font-mono">iOS / iPadOS</span>
+                  
                 </div>
                 <div>
                   <label class="text-[11px] text-slate-400 block mb-1">لینک دانلود نرم‌افزار (اپ‌استور):</label>
@@ -1224,7 +1219,7 @@
                     <img src="/static/img/apps/happ.webp" class="w-5 h-5 rounded-md object-contain" alt="Happ" onerror="this.style.display='none'" loading="lazy" />
                     <b class="text-white text-xs">Happ</b>
                   </div>
-                  <span class="text-[10px] text-slate-500 font-mono">iOS / iPadOS</span>
+                  
                 </div>
                 <div>
                   <label class="text-[11px] text-slate-400 block mb-1">لینک دانلود نرم‌افزار (اپ‌استور):</label>
@@ -1247,7 +1242,7 @@
                     <span class="text-base">⚡️</span>
                     <b class="text-white text-xs">OneXray</b>
                   </div>
-                  <span class="text-[10px] text-slate-500 font-mono">iOS / iPadOS</span>
+                  
                 </div>
                 <div>
                   <label class="text-[11px] text-slate-400 block mb-1">لینک دانلود نرم‌افزار (اپ‌استور):</label>
@@ -1272,13 +1267,11 @@
                   <span class="text-sm">⭐️</span>
                   <span class="text-[11px] text-slate-300 font-medium">برنامه پیشنهادی:</span>
                 </div>
-                <select id="appRecommended_android" class="bg-slate-800 text-cyan-300 border border-slate-700 rounded-xl px-2.5 py-1 text-xs outline-none focus:border-cyan-500 transition font-medium">
-                  <option value="">بدون برنامه پیشنهادی</option>
-                  <option value="v2rayng">v2rayNG</option>
-                  <option value="happ">Happ</option>
-                  <option value="hiddify">Hiddify</option>
-                  <option value="incy">Incy</option>
-                </select>
+                <input type="hidden" id="appRecommended_android" value="">
+                <button type="button" onclick="window.adminActions.openRecommendedAppModal('android')" id="appRecommendedBtn_android" class="bg-slate-800 hover:bg-slate-750 text-cyan-300 border border-slate-700 rounded-xl px-3 py-1.5 text-xs outline-none transition font-medium flex items-center gap-1.5 shadow-sm active:scale-95">
+                  <span id="appRecommendedLabel_android">بدون برنامه پیشنهادی</span>
+                  <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                </button>
               </div>
 
               <!-- v2rayNG -->
@@ -1401,13 +1394,11 @@
                   <span class="text-sm">⭐️</span>
                   <span class="text-[11px] text-slate-300 font-medium">برنامه پیشنهادی:</span>
                 </div>
-                <select id="appRecommended_windows" class="bg-slate-800 text-cyan-300 border border-slate-700 rounded-xl px-2.5 py-1 text-xs outline-none focus:border-cyan-500 transition font-medium">
-                  <option value="">بدون برنامه پیشنهادی</option>
-                  <option value="v2rayn">v2rayN</option>
-                  <option value="hiddify">Hiddify</option>
-                  <option value="happ">Happ</option>
-                  <option value="incy">Incy</option>
-                </select>
+                <input type="hidden" id="appRecommended_windows" value="">
+                <button type="button" onclick="window.adminActions.openRecommendedAppModal('windows')" id="appRecommendedBtn_windows" class="bg-slate-800 hover:bg-slate-750 text-cyan-300 border border-slate-700 rounded-xl px-3 py-1.5 text-xs outline-none transition font-medium flex items-center gap-1.5 shadow-sm active:scale-95">
+                  <span id="appRecommendedLabel_windows">بدون برنامه پیشنهادی</span>
+                  <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                </button>
               </div>
 
               <!-- v2rayN -->
@@ -1530,13 +1521,11 @@
                   <span class="text-sm">⭐️</span>
                   <span class="text-[11px] text-slate-300 font-medium">برنامه پیشنهادی:</span>
                 </div>
-                <select id="appRecommended_macos" class="bg-slate-800 text-cyan-300 border border-slate-700 rounded-xl px-2.5 py-1 text-xs outline-none focus:border-cyan-500 transition font-medium">
-                  <option value="">بدون برنامه پیشنهادی</option>
-                  <option value="hiddify">Hiddify</option>
-                  <option value="happ">Happ</option>
-                  <option value="incy">Incy</option>
-                  <option value="v2box">V2Box</option>
-                </select>
+                <input type="hidden" id="appRecommended_macos" value="">
+                <button type="button" onclick="window.adminActions.openRecommendedAppModal('macos')" id="appRecommendedBtn_macos" class="bg-slate-800 hover:bg-slate-750 text-cyan-300 border border-slate-700 rounded-xl px-3 py-1.5 text-xs outline-none transition font-medium flex items-center gap-1.5 shadow-sm active:scale-95">
+                  <span id="appRecommendedLabel_macos">بدون برنامه پیشنهادی</span>
+                  <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                </button>
               </div>
 
               <!-- Hiddify (macOS) -->
@@ -1546,7 +1535,7 @@
                     <img src="/static/img/apps/hiddify.webp" class="w-5 h-5 rounded-md object-contain" alt="Hiddify" onerror="this.style.display='none'" loading="lazy" />
                     <b class="text-white text-xs">Hiddify</b>
                   </div>
-                  <span class="text-[10px] text-slate-500 font-mono">macOS</span>
+                  
                 </div>
                 <div>
                   <label class="text-[11px] text-slate-400 block mb-1">لینک دانلود نرم‌افزار (مک):</label>
@@ -1569,7 +1558,7 @@
                     <img src="/static/img/apps/happ.webp" class="w-5 h-5 rounded-md object-contain" alt="Happ" onerror="this.style.display='none'" loading="lazy" />
                     <b class="text-white text-xs">Happ</b>
                   </div>
-                  <span class="text-[10px] text-slate-500 font-mono">macOS</span>
+                  
                 </div>
                 <div>
                   <label class="text-[11px] text-slate-400 block mb-1">لینک دانلود نرم‌افزار (اپ‌استور مک):</label>
@@ -1592,7 +1581,7 @@
                     <img src="/static/img/apps/incy.webp" class="w-5 h-5 rounded-md object-contain" alt="Incy" onerror="this.style.display='none'" loading="lazy" />
                     <b class="text-white text-xs">Incy</b>
                   </div>
-                  <span class="text-[10px] text-slate-500 font-mono">macOS</span>
+                  
                 </div>
                 <div>
                   <label class="text-[11px] text-slate-400 block mb-1">لینک دانلود نرم‌افزار (اپ‌استور مک):</label>
@@ -1615,7 +1604,7 @@
                     <img src="/static/img/apps/v2box.webp" class="w-5 h-5 rounded-md object-contain" alt="V2Box" onerror="this.style.display='none'" loading="lazy" />
                     <b class="text-white text-xs">V2Box</b>
                   </div>
-                  <span class="text-[10px] text-slate-500 font-mono">macOS</span>
+                  
                 </div>
                 <div>
                   <label class="text-[11px] text-slate-400 block mb-1">لینک دانلود نرم‌افزار (اپ‌استور مک):</label>
@@ -1640,13 +1629,11 @@
                   <span class="text-sm">⭐️</span>
                   <span class="text-[11px] text-slate-300 font-medium">برنامه پیشنهادی:</span>
                 </div>
-                <select id="appRecommended_linux" class="bg-slate-800 text-cyan-300 border border-slate-700 rounded-xl px-2.5 py-1 text-xs outline-none focus:border-cyan-500 transition font-medium">
-                  <option value="">بدون برنامه پیشنهادی</option>
-                  <option value="hiddify">Hiddify</option>
-                  <option value="nekoray">NekoRay</option>
-                  <option value="v2raya">v2rayA</option>
-                  <option value="incy">Incy</option>
-                </select>
+                <input type="hidden" id="appRecommended_linux" value="">
+                <button type="button" onclick="window.adminActions.openRecommendedAppModal('linux')" id="appRecommendedBtn_linux" class="bg-slate-800 hover:bg-slate-750 text-cyan-300 border border-slate-700 rounded-xl px-3 py-1.5 text-xs outline-none transition font-medium flex items-center gap-1.5 shadow-sm active:scale-95">
+                  <span id="appRecommendedLabel_linux">بدون برنامه پیشنهادی</span>
+                  <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                </button>
               </div>
 
               <!-- Hiddify (Linux) -->
@@ -2270,6 +2257,10 @@
           <div id="planModalDescContainer">
             <label class="text-[11px] text-slate-300 block mb-1">توضیحات کوتاه (اختیاری):</label>
             <input type="text" id="planModalDesc" placeholder="مناسب بازی، بدون قطعی..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-200 outline-none" />
+          </div>
+          <div>
+            <label class="text-[11px] text-slate-300 block mb-1">سقف تعداد فروش (اختیاری - خالی = نامحدود):</label>
+            <input type="number" inputmode="numeric" pattern="[0-9]*" id="planModalMaxPurchases" placeholder="مثلاً: 5 (پس از 5 خرید خودکار غیرفعال می‌شود)" min="0" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-amber-300 outline-none focus:border-blue-500 mb-2" />
           </div>
           <div>
             <label class="text-[11px] text-slate-300 block mb-1">نشان و بج بازاریابی (Badge):</label>
@@ -3086,6 +3077,42 @@
     </div>
 
   </div>
+
+
+    <!-- MODAL: Recommended App Picker (انتخاب برنامه پیشنهادی) -->
+    <div id="recommendedAppPickerModal" class="absolute inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+      <div class="modal-card bg-[#1e293b] border border-slate-700 rounded-3xl p-5 w-full max-w-[360px] space-y-3.5 shadow-2xl relative max-h-[85vh] flex flex-col">
+        <div class="flex justify-between items-center border-b border-slate-700/60 pb-2.5 shrink-0">
+          <h4 id="recommendedAppPickerTitle" class="text-xs font-bold text-white flex items-center gap-1.5">
+            <span>⭐️</span>
+            <span>انتخاب برنامه پیشنهادی</span>
+          </h4>
+          <button type="button" onclick="window.adminActions.closeRecommendedAppModal()" class="w-8 h-8 rounded-full bg-slate-800/80 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center text-xs transition active:scale-95" aria-label="بستن">✕</button>
+        </div>
+        <div id="recommendedAppPickerList" class="space-y-1.5 flex-1 overflow-y-auto custom-scroll text-xs">
+          <!-- Dynamically populated options -->
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL: High-Risk Users (کاربران پرخطر و نشست‌های بالا) -->
+    <div id="highRiskUsersModal" class="absolute inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-4 hidden">
+      <div class="modal-card bg-[#1e293b] border border-rose-500/40 rounded-3xl p-5 w-full max-w-[420px] max-h-[88vh] flex flex-col space-y-3.5 shadow-2xl relative">
+        <div class="flex justify-between items-center border-b border-slate-700/60 pb-2.5 shrink-0">
+          <div class="flex items-center gap-2">
+            <span class="text-lg">⚠️</span>
+            <div>
+              <h4 class="text-xs font-bold text-white">کاربران پرخطر (نشست‌های همزمان بالا)</h4>
+              <span class="text-[10px] text-slate-400 block mt-0.5">کاربرانی که ۳ دستگاه متصل یا بیشتر دارند</span>
+            </div>
+          </div>
+          <button type="button" onclick="window.adminActions.closeHighRiskUsersModal()" class="w-8 h-8 rounded-full bg-slate-800/80 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center text-xs transition active:scale-95" aria-label="بستن">✕</button>
+        </div>
+        <div id="highRiskUsersModalList" class="space-y-2 flex-1 overflow-y-auto custom-scroll text-xs">
+          <!-- Dynamically populated list of high risk users -->
+        </div>
+      </div>
+    </div>
 
   <!-- Shared & Modular Scripts -->
   <script src="/static/js/chart.umd.min.js" defer></script>

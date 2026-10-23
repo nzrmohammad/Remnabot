@@ -24,7 +24,7 @@ from typing import Any
 
 from sqlalchemy import select, text
 
-from bot.db.models import Wallet
+from bot.db.models import Service, Wallet
 from bot.db.repositories.order_repo import OrderRepository
 from bot.services.app_settings import get_store_settings
 from bot.services.remnawave import RemnawaveClient
@@ -240,6 +240,13 @@ async def _execute_purchase_impl(
             )
         # len == 0 -> create a new account
 
+    max_p = getattr(service, "max_purchases", None)
+    if isinstance(max_p, int) and max_p > 0:
+        p_count = getattr(service, "purchases_count", 0)
+        p_count_int = int(p_count) if isinstance(p_count, (int, float)) else 0
+        if p_count_int >= max_p:
+            return PurchaseResult(ok=False, kind="failed")
+
     is_extra_traffic = (service.duration_days == 0 and service.traffic_gb > 0) or (getattr(service, "badge", None) == "traffic")
     is_extra_time = (service.traffic_gb == 0 and service.duration_days > 0) or (getattr(service, "badge", None) == "time")
 
@@ -446,6 +453,21 @@ async def _execute_purchase_impl(
             logger.exception("Failed to reset traffic after successful renewal for %s: %s", panel_user_id, exc)
 
     await order_repo.mark_paid(pending, panel_user_id, panel_username, subscription_url)
+
+    if getattr(service, "id", None) and isinstance(service.id, int):
+        try:
+            svc_current = await session.get(Service, service.id)
+            if svc_current and hasattr(svc_current, "purchases_count"):
+                cur_cnt = getattr(svc_current, "purchases_count", 0)
+                if isinstance(cur_cnt, int):
+                    svc_current.purchases_count = cur_cnt + 1
+                    max_lim = getattr(svc_current, "max_purchases", None)
+                    if isinstance(max_lim, int) and max_lim > 0 and svc_current.purchases_count >= max_lim:
+                        svc_current.is_active = False
+                        logger.info("Service %d (%s) reached max purchases (%d). Deactivated.", svc_current.id, getattr(svc_current, "name", ""), max_lim)
+        except Exception as svc_err:
+            logger.debug("Could not increment service purchases_count: %s", svc_err)
+
     await session.commit()
 
     return PurchaseResult(

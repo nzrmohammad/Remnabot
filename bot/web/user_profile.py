@@ -275,7 +275,13 @@ async def get_user_me(request: web.Request) -> web.Response:
         referral_reward_gb = store_settings.referral_reward_gb if store_settings.referral_enabled else 5
 
         services_res = await session.execute(
-            select(Service).where(Service.is_active.is_(True)).order_by(Service.price.asc())
+            select(Service).where(
+                Service.is_active.is_(True),
+                or_(
+                    Service.max_purchases.is_(None),
+                    Service.purchases_count < Service.max_purchases,
+                ),
+            ).order_by(Service.price.asc())
         )
         plans_data = [
             {

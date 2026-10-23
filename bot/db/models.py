@@ -140,6 +140,11 @@ class Service(Base):
     # Optional marketing badge (bestseller/popular/economic/vip/traffic/None)
     badge: Mapped[str | None] = mapped_column(String(32), nullable=True)
 
+    # Optional maximum purchase limit (e.g. 5 purchases then auto-deactivates; None = unlimited)
+    max_purchases: Mapped[int | None] = mapped_column(Integer, nullable=True, default=None)
+    # Current completed purchase count
+    purchases_count: Mapped[int] = mapped_column(Integer, default=0)
+
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
     )

@@ -2604,3 +2604,58 @@ def test_maintenance_invite_overlays_and_traffic_split_fix():
     assert split["upload_gb"] == 0.0
     assert split["download_percent"] == 100
     assert split["upload_percent"] == 0
+
+
+@pytest.mark.anyio
+async def test_new_7_features_and_fixes():
+    from pathlib import Path
+    html_text = Path("bot/web/templates/app.html").read_text(encoding="utf-8")
+    admin_html = Path("bot/web/templates/admin.html").read_text(encoding="utf-8")
+    app_js = Path("bot/web/static/js/app.js").read_text(encoding="utf-8")
+    admin_js = Path("bot/web/static/js/admin.js").read_text(encoding="utf-8")
+    charts_js = Path("bot/web/static/js/charts.js").read_text(encoding="utf-8")
+    user_sub_py = Path("bot/web/user_subscription.py").read_text(encoding="utf-8")
+    overview_py = Path("bot/web/admin_overview_charts.py").read_text(encoding="utf-8")
+
+    # 1. Diurnal intervals formatting: English digits & LTR
+    assert '(00-06)' in html_text
+    assert '(06-12)' in html_text
+    assert '(12-18)' in html_text
+    assert '(18-24)' in html_text
+    assert 'dir="ltr"' in html_text
+
+    # 2. Peak hours hourly distribution in charts.js
+    assert "chartKey === 'repPeakHoursBarCanvas'" in charts_js
+    assert "autoSkip: false" in charts_js
+    assert "maxTicksLimit: 12" in charts_js
+
+    # 3. Birthday year range: 1350 to 1406
+    assert "for (let y = 1406; y >= 1350; y--)" in app_js
+    assert "bdayPaneYear" in html_text
+    assert "max-h-[88vh]" in html_text
+
+    # 4. Plan max purchases limit
+    assert "planModalMaxPurchases" in admin_html
+    assert "max_purchases" in admin_js
+    from bot.db.models import Service
+    s = Service(name="Test", price=1000, duration_days=30, traffic_gb=10, max_purchases=5, purchases_count=0)
+    assert s.max_purchases == 5
+    assert s.purchases_count == 0
+
+    # 5. Join gate phrase removed
+    assert "(Join Gate)" not in admin_html
+    assert "عضویت اجباری در کانال" in admin_html
+
+    # 6. Connection guide cleanups: heading & OS tags removed, custom picker modal used
+    assert "📱 کلاینت‌ها و نرم‌افزارهای اتصال:" not in admin_html
+    assert "iOS / iPadOS" not in admin_html
+    assert "macOS</span>" not in admin_html
+    assert 'id="recommendedAppPickerModal"' in admin_html
+    assert "openRecommendedAppModal" in admin_js
+
+    # 7. Sessions explorer high risk users modal
+    assert 'id="highRiskUsersModal"' in admin_html
+    assert "openHighRiskUsersModal" in admin_js
+    assert "high_risk_users" in overview_py
+    assert "raw_configs" in user_sub_py
+    assert "/api/sub/" in user_sub_py

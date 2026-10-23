@@ -1,5 +1,5 @@
 """Repository for the admin-managed services (plans) shown to users."""
-from sqlalchemy import select
+from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from bot.db.models import Service
@@ -17,7 +17,13 @@ class ServiceRepository:
 
     async def list_active(self) -> list[Service]:
         result = await self.session.execute(
-            select(Service).where(Service.is_active.is_(True)).order_by(Service.id)
+            select(Service).where(
+                Service.is_active.is_(True),
+                or_(
+                    Service.max_purchases.is_(None),
+                    Service.purchases_count < Service.max_purchases,
+                ),
+            ).order_by(Service.id)
         )
         return list(result.scalars().all())
 

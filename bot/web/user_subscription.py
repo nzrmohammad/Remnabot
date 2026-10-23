@@ -6,7 +6,7 @@ from aiohttp import web
 from sqlalchemy import select
 
 from bot.db.models import Order
-from bot.services.configs import fetch_subscription_configs
+from bot.services.configs import fetch_subscription_configs, parse_subscription_text
 from bot.web.cache import FastCache
 from bot.web.user_common import db_session, require_user
 
@@ -102,8 +102,38 @@ async def get_user_subscription_configs(request: web.Request) -> web.Response:
             "message": "اشتراک فعالی برای این حساب یافت نشد.",
         })
 
-    # Download and parse configs
-    raw_configs = await fetch_subscription_configs(sub_url)
+    # Download and parse configs: Try direct Remnawave internal fetch first
+    raw_configs = []
+    sub_token = ""
+    if target:
+        sub_token = str(target.get("shortUuid") or target.get("uuid") or target.get("shortId") or target.get("vlessUuid") or "").strip()
+    if not sub_token and sub_url:
+        parsed_sub = urllib.parse.urlparse(sub_url)
+        path_segments = [p for p in parsed_sub.path.split("/") if p]
+        if path_segments:
+            sub_token = path_segments[-1]
+
+    if sub_token and hasattr(remnawave, "_client"):
+        for sub_ep in (f"/api/sub/{sub_token}", f"/sub/{sub_token}"):
+            try:
+                resp = await remnawave._client.get(
+                    sub_ep,
+                    headers={"User-Agent": "v2rayNG/1.8.5", "Accept": "*/*"},
+                    timeout=4.0,
+                )
+                if resp.status_code == 200 and resp.text.strip():
+                    body = resp.text.strip()
+                    if not body.lower().startswith(("<!doctype", "<html")):
+                        raw_configs = parse_subscription_text(body)
+                        if raw_configs:
+                            logger.info("Successfully fetched %d configs directly from Remnawave internal %s", len(raw_configs), sub_ep)
+                            break
+            except Exception as direct_exc:
+                logger.debug("Direct internal subscription fetch failed on %s: %s", sub_ep, direct_exc)
+
+    # Fallback to general fetcher if direct fetch was empty
+    if not raw_configs and sub_url:
+        raw_configs = await fetch_subscription_configs(sub_url)
 
     configs = []
     for idx, cfg in enumerate(raw_configs, start=1):

@@ -1054,10 +1054,9 @@ function switchBdayPickerTab(tab) {
       const curYear = $('birthdayYearSelect')?.value || '1375';
       const activeYearBtn = yPane?.querySelector('.active-bday-item') || yPane?.querySelector(`[data-val="${curYear}"]`);
       if (yPane && activeYearBtn) {
-        if (typeof yPane.scrollTo === 'function') {
-          const topPos = activeYearBtn.offsetTop - yPane.offsetTop - (yPane.clientHeight / 2) + (activeYearBtn.clientHeight / 2);
-          yPane.scrollTo({ top: Math.max(0, topPos), behavior: 'smooth' });
-        } else if (activeYearBtn.scrollIntoView) {
+        const topPos = activeYearBtn.offsetTop - yPane.offsetTop - (yPane.clientHeight / 2) + (activeYearBtn.clientHeight / 2);
+        yPane.scrollTop = Math.max(0, topPos);
+        if (typeof activeYearBtn.scrollIntoView === 'function') {
           activeYearBtn.scrollIntoView({ block: 'center', behavior: 'smooth' });
         }
       }
@@ -1175,7 +1174,7 @@ function initBirthdaySelects() {
   }
 
   if (yearGrid && yearGrid.children.length === 0) {
-    for (let y = 1395; y >= 1335; y--) {
+    for (let y = 1406; y >= 1350; y--) {
       const btn = document.createElement('button');
       btn.type = 'button';
       btn.setAttribute('data-val', y);
