@@ -2555,3 +2555,52 @@ def test_admin_plans_filter_and_birthday_ux_enhancements():
     assert safe_date_1403.year == 1403
     assert safe_date_1403.month == 12
     assert safe_date_1403.day == 30
+
+
+def test_maintenance_invite_overlays_and_traffic_split_fix():
+    from pathlib import Path
+    import re
+    html_text = Path("bot/web/templates/app.html").read_text(encoding="utf-8")
+    app_js = Path("bot/web/static/js/app.js").read_text(encoding="utf-8")
+    charts_js = Path("bot/web/static/js/charts.js").read_text(encoding="utf-8")
+    profile_py = Path("bot/web/user_profile.py").read_text(encoding="utf-8")
+    usd_py = Path("bot/web/user_subscription_detail.py").read_text(encoding="utf-8")
+
+    # 1. Maintenance & Invite-only screens: close & retry buttons removed from both overlays
+    assert "تلاش مجدد" not in html_text
+    maint_html = re.search(r'id="systemMaintenanceScreen"[\s\S]*?</div>\s*</div>', html_text).group(0)
+    invite_html = re.search(r'id="systemInviteOnlyScreen"[\s\S]*?</div>\s*</div>', html_text).group(0)
+    assert "بستن برنامه" not in maint_html
+    assert "بستن برنامه" not in invite_html
+    assert 'id="maintSupportBox"' in html_text
+    assert 'id="inviteSupportBox"' in html_text
+
+    # 2. Support contact logic in app.js and profile.py
+    assert "openSupportContact" in app_js
+    assert '"support_contact": raw_support_contact' in profile_py
+    assert '"support_link": support_link' in profile_py
+
+    # 3. Traffic split: eliminated 85/15 hardcoded fake calculations
+    assert "0.85" not in usd_py
+    assert 'style="width: 85%;"' not in html_text
+    assert 'style="width: 15%;"' not in html_text
+    assert "has_split = (raw_up > 0 or raw_down > 0)" in usd_py
+
+    # 4. Behavioral test of calc_usage_curves when no split available from panel
+    from bot.web.user_subscription_detail import calc_usage_curves
+    res = calc_usage_curves(
+        primary={"usedTrafficBytes": 10 * 1024**3},
+        devices=[],
+        traffic={},
+        used_bytes=10 * 1024**3,
+        today_used_gb=1.0,
+        week_used_gb=5.0,
+        panel_user_id="user1",
+        source_breakdown=[],
+    )
+    split = res["traffic_split"]
+    assert split["has_split"] is False
+    assert split["download_gb"] == 10.0
+    assert split["upload_gb"] == 0.0
+    assert split["download_percent"] == 100
+    assert split["upload_percent"] == 0

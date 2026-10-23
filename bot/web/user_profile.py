@@ -413,6 +413,18 @@ async def get_user_me(request: web.Request) -> web.Response:
         bot_username = getattr(getattr(bot, "_me", None), "username", "") if bot else ""
         ref_link = build_ref_link(bot_username, telegram_id)
 
+        raw_support_contact = (store_settings.support_contact or "").strip()
+        support_link = ""
+        if raw_support_contact and raw_support_contact not in ("—", "-"):
+            if raw_support_contact.startswith(("http://", "https://")):
+                support_link = raw_support_contact
+            elif raw_support_contact.startswith("t.me/"):
+                support_link = f"https://{raw_support_contact}"
+            elif raw_support_contact.startswith("@"):
+                support_link = f"https://t.me/{raw_support_contact[1:]}"
+            else:
+                support_link = f"https://t.me/{raw_support_contact}"
+
         data = {
             "partial": is_partial,
             "panel_error": panel_error,
@@ -420,6 +432,9 @@ async def get_user_me(request: web.Request) -> web.Response:
             "referral_reward_gb": referral_reward_gb,
             "referral_enabled": store_settings.referral_enabled,
             "referral_link": ref_link,
+            "support_contact": raw_support_contact,
+            "support_link": support_link,
+            "support_direct_enabled": store_settings.support_direct_enabled,
             "tutorial_channel_url": store_settings.tutorial_channel_url,
             "routing_tutorial_url": store_settings.routing_tutorial_url,
             "client_apps_override": store_settings.client_apps_json,

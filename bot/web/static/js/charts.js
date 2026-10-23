@@ -524,25 +524,28 @@ function renderTrafficSplit(splitData) {
   const upGb = splitData.upload_gb ?? 0;
   const downPct = splitData.download_percent || 0;
   const upPct = splitData.upload_percent || 0;
+  const hasSplit = Boolean(splitData.has_split);
 
   const downGbEl = document.getElementById('repSplitDownGb');
   if (downGbEl) downGbEl.innerText = fmtTraffic(downGb, { html: false, isolate: true });
   const downPctEl = document.getElementById('repSplitDownPct');
-  if (downPctEl) downPctEl.innerText = `${toEnglishDigits(downPct)}%`;
+  if (downPctEl) downPctEl.innerText = hasSplit ? `${toEnglishDigits(downPct)}%` : (downGb > 0 ? '۱۰۰٪' : '۰٪');
 
   const upGbEl = document.getElementById('repSplitUpGb');
   if (upGbEl) upGbEl.innerText = fmtTraffic(upGb, { html: false, isolate: true });
   const upPctEl = document.getElementById('repSplitUpPct');
-  if (upPctEl) upPctEl.innerText = `${toEnglishDigits(upPct)}%`;
+  if (upPctEl) upPctEl.innerText = hasSplit ? `${toEnglishDigits(upPct)}%` : '۰٪';
 
   const downBar = document.getElementById('repSplitDownBar');
-  if (downBar) downBar.style.width = `${downPct}%`;
+  if (downBar) downBar.style.width = hasSplit ? `${downPct}%` : (downGb > 0 ? '100%' : '0%');
   const upBar = document.getElementById('repSplitUpBar');
-  if (upBar) upBar.style.width = `${upPct}%`;
+  if (upBar) upBar.style.width = hasSplit ? `${upPct}%` : '0%';
 
   const ratioBadge = document.getElementById('repUpDownRatioBadge');
   if (ratioBadge) {
-    ratioBadge.innerText = `RX ${toEnglishDigits(downPct)}% / TX ${toEnglishDigits(upPct)}%`;
+    ratioBadge.innerText = hasSplit
+      ? `RX ${toEnglishDigits(downPct)}% / TX ${toEnglishDigits(upPct)}%`
+      : 'ثبت کل (تجمیعی)';
   }
 }
 

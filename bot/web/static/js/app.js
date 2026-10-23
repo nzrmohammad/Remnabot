@@ -2634,6 +2634,23 @@ function renderActiveSubAnalytics(sub) {
 function hydrateUserInterface(data) {
   if (!data || typeof data !== 'object') return;
 
+  // --- Support Contact Visibility & Handler ---
+  const rawSupportContact = data.support_contact || '';
+  const supportLink = data.support_link || '';
+  const hasSupportContact = Boolean(supportLink && rawSupportContact && rawSupportContact !== '—' && rawSupportContact !== '-');
+
+  const maintSupportBox = $('maintSupportBox');
+  if (maintSupportBox) {
+    if (hasSupportContact) maintSupportBox.classList.remove('hidden');
+    else maintSupportBox.classList.add('hidden');
+  }
+
+  const inviteSupportBox = $('inviteSupportBox');
+  if (inviteSupportBox) {
+    if (hasSupportContact) inviteSupportBox.classList.remove('hidden');
+    else inviteSupportBox.classList.add('hidden');
+  }
+
   // --- Maintenance & Invite-Only Gateways ---
   const maintScreen = $('systemMaintenanceScreen');
   if (data.is_maintenance && !data.user?.is_admin) {
@@ -3643,3 +3660,19 @@ window.hydrateUserInterface = hydrateUserInterface;
 window.renderActiveSubAnalytics = renderActiveSubAnalytics;
 window.saveUserCache = saveUserCache;
 window.loadUserCache = loadUserCache;
+
+function openSupportContact() {
+  const link = window.lastUserData?.support_link || window.lastUserData?.data?.support_link;
+  if (link) {
+    if (window.Telegram?.WebApp?.openTelegramLink && (link.includes('t.me') || link.startsWith('tg://'))) {
+      window.Telegram.WebApp.openTelegramLink(link);
+    } else if (window.Telegram?.WebApp?.openLink) {
+      window.Telegram.WebApp.openLink(link);
+    } else {
+      window.open(link, '_blank');
+    }
+  } else if (typeof window.openSupportModal === 'function') {
+    window.openSupportModal();
+  }
+}
+window.openSupportContact = openSupportContact;

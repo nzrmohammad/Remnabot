@@ -221,15 +221,10 @@ def calc_usage_curves(
     """Compute download/upload split, country donut chart, 24h curve, and platform distribution."""
     raw_up = int(traffic.get("uploadTrafficBytes") or primary.get("uploadTrafficBytes") or primary.get("up") or 0)
     raw_down = int(traffic.get("downloadTrafficBytes") or primary.get("downloadTrafficBytes") or primary.get("down") or 0)
-    split_estimated = False
-    if raw_up == 0 and raw_down == 0:
-        if used_bytes > 0:
-            raw_down = int(used_bytes * 0.85)
-            raw_up = max(0, used_bytes - raw_down)
-            split_estimated = True
-        else:
-            raw_down = 0
-            raw_up = 0
+    has_split = (raw_up > 0 or raw_down > 0)
+    if not has_split:
+        raw_down = used_bytes
+        raw_up = 0
 
     tot_updown = (raw_down + raw_up) or 1
     traffic_split = {
@@ -237,7 +232,8 @@ def calc_usage_curves(
         "upload_gb": round(raw_up / (1024**3), 2),
         "download_percent": round((raw_down / tot_updown) * 100) if (raw_down + raw_up) > 0 else 0,
         "upload_percent": round((raw_up / tot_updown) * 100) if (raw_down + raw_up) > 0 else 0,
-        "is_estimated": split_estimated,
+        "is_estimated": False,
+        "has_split": has_split,
     }
 
     country_totals: dict[str, int] = {}
