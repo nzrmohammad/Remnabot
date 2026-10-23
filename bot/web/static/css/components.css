@@ -81,7 +81,41 @@
   background-color: var(--card-inner-bg);
 }
 
+.modal-close-btn {
+  width: var(--control-h-md);
+  height: var(--control-h-md);
+  min-width: var(--control-h-md);
+  min-height: var(--control-h-md);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-md);
+  background-color: var(--card-inner-bg);
+  border: 1px solid var(--card-border);
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  transition: all 0.15s ease;
+  cursor: pointer;
+  user-select: none;
+}
+
+.modal-close-btn:hover {
+  background-color: var(--card-bg);
+  color: var(--text-main);
+  border-color: var(--c-accent-border);
+}
+
+.modal-close-btn:active {
+  transform: scale(0.95);
+}
+
 /* --- 3. Inputs & Form Controls --- */
+:where(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not(.bg-transparent), select, textarea) {
+  background-color: var(--card-inner-bg);
+  border-color: var(--card-border);
+  color: var(--text-main);
+}
+
 .input-base,
 .select-base,
 .textarea-base {

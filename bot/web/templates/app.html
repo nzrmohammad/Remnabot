@@ -7,6 +7,8 @@
   <title>RemnaStore Pro</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <link rel="stylesheet" href="/static/css/tokens.css">
+  <link rel="stylesheet" href="/static/css/base.css">
+  <link rel="stylesheet" href="/static/css/components.css">
   <link rel="stylesheet" href="/static/css/tailwind.min.css">
   <script>
     try {
@@ -1291,7 +1293,7 @@
           <button id="confirmRevokeBtn" class="w-full bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs py-2.5 rounded-xl transition active:scale-[0.98] shadow shadow-rose-600/30">
             ✅ بله، لینک جدید صادر کن
           </button>
-          <button id="cancelRevokeBtn" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium text-xs py-2.5 rounded-xl transition">
+          <button id="cancelRevokeBtn" class="btn btn-secondary w-full py-2.5 text-xs font-medium">
             انصراف
           </button>
         </div>
@@ -1303,7 +1305,7 @@
     <!-- ======================================================== -->
     <div id="qrModal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-[70] flex items-center justify-center p-4 hidden animate-fadeIn overflow-y-auto">
       <div class="qr-modal-card bg-[#1a233a] border border-cyan-500/40 rounded-3xl p-5 w-full space-y-4 shadow-2xl relative max-w-[340px] my-auto text-center">
-        <button id="closeQrModalBtn" class="absolute top-3 left-3 text-slate-400 hover:text-white text-xs bg-slate-800 rounded-full w-9 h-9 min-w-[36px] min-h-[36px] flex items-center justify-center transition active:scale-95 shadow-sm" title="بستن" aria-label="بستن پنجره کیوآرکد">✕</button>
+        <button id="closeQrModalBtn" class="modal-close-btn absolute top-3 left-3" title="بستن" aria-label="بستن پنجره کیوآرکد">✕</button>
         <div>
           <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/40">
             📷 اسکن مستقیم
@@ -1362,7 +1364,7 @@
           <span class="text-xs font-bold text-white flex items-center gap-1.5">
             <span>🔄</span> انتخاب اکانت فعال
           </span>
-          <button id="closeSwitchAccountBtn" class="text-slate-400 hover:text-white text-xs bg-slate-800 rounded-full w-9 h-9 min-w-[36px] min-h-[36px] flex items-center justify-center transition active:scale-95 shadow-sm" title="بستن" aria-label="بستن پنجره تعویض اکانت">✕</button>
+          <button id="closeSwitchAccountBtn" class="modal-close-btn" title="بستن" aria-label="بستن پنجره تعویض اکانت">✕</button>
         </div>
         <p class="text-[11px] text-slate-300">لطفاً یکی از اشتراک‌های فعال خود را انتخاب کنید:</p>
         <div id="switchAccountList" class="space-y-2 max-h-60 overflow-y-auto custom-scroll">
@@ -1384,7 +1386,7 @@
               <span class="text-[11px] text-slate-400 block">دستگاه‌های فعال روی این اشتراک (HWID)</span>
             </div>
           </div>
-          <button id="closeSessionsModalBtn" class="text-slate-400 hover:text-white text-xs bg-slate-800 rounded-full w-9 h-9 min-w-[36px] min-h-[36px] flex items-center justify-center transition active:scale-95 shadow-sm" title="بستن" aria-label="بستن پنجره دستگاه‌ها">✕</button>
+          <button id="closeSessionsModalBtn" class="modal-close-btn" title="بستن" aria-label="بستن پنجره دستگاه‌ها">✕</button>
         </div>
 
         <div id="modalSessionsList" class="flex-1 overflow-y-auto custom-scroll space-y-2 py-1 max-h-[50vh]">
@@ -1405,7 +1407,7 @@
     <!-- ======================================================== -->
     <div id="topupModal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden animate-fadeIn overflow-y-auto">
       <div class="topup-modal-card bg-[#1a233a] border border-indigo-500/50 rounded-3xl p-5 w-full space-y-4 shadow-2xl relative max-w-[370px] my-auto text-xs">
-        <button id="closeTopupModalBtn" class="absolute top-3 left-3 text-slate-400 hover:text-white text-xs bg-slate-800 rounded-full w-9 h-9 min-w-[36px] min-h-[36px] flex items-center justify-center transition active:scale-95 shadow-sm" title="بستن" aria-label="بستن پنجره افزایش موجودی">✕</button>
+        <button id="closeTopupModalBtn" class="modal-close-btn absolute top-3 left-3" title="بستن" aria-label="بستن پنجره افزایش موجودی">✕</button>
         
         <div class="border-b border-slate-700/60 pb-2">
           <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/40">
@@ -1619,7 +1621,7 @@
     <!-- ======================================================== -->
     <div id="checkoutConfirmModal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden animate-fadeIn overflow-y-auto">
       <div class="checkout-modal-card bg-[#1a233a] border border-blue-500/40 rounded-3xl p-5 w-full space-y-4 shadow-2xl relative max-w-[350px] my-auto text-xs text-right">
-        <button id="closeCheckoutModalBtn" class="absolute top-3 left-3 text-slate-400 hover:text-white text-xs bg-slate-800 rounded-full w-9 h-9 min-w-[36px] min-h-[36px] flex items-center justify-center transition active:scale-95 shadow-sm" onclick="closeModal('checkoutConfirmModal')" title="انصراف" aria-label="انصراف و بستن پیش‌فاکتور">✕</button>
+        <button id="closeCheckoutModalBtn" class="modal-close-btn absolute top-3 left-3" onclick="closeModal('checkoutConfirmModal')" title="انصراف" aria-label="انصراف و بستن پیش‌فاکتور">✕</button>
         <div class="border-b border-slate-700/60 pb-2">
           <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-500/20 text-blue-300 border border-blue-500/40">
             🛒 تایید سفارش
@@ -1673,7 +1675,7 @@
           <button id="checkoutTopupBtn" class="hidden w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold py-2.5 rounded-xl transition shadow active:scale-[0.98] flex items-center justify-center gap-1.5">
             💳 شارژ کیف پول
           </button>
-          <button id="cancelCheckoutBtn" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium text-xs py-2 rounded-xl transition" onclick="closeModal('checkoutConfirmModal')">
+          <button id="cancelCheckoutBtn" class="btn btn-secondary w-full py-2 text-xs font-medium" onclick="closeModal('checkoutConfirmModal')">
             انصراف
           </button>
         </div>
@@ -1713,7 +1715,7 @@
     <!-- ======================================================== -->
     <div id="luckyWheelModal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-3 hidden animate-fadeIn overflow-y-auto">
       <div class="modal-card bg-[#1a233a] border border-amber-500/50 rounded-3xl p-4 w-full text-center space-y-2.5 shadow-2xl relative max-w-[330px] my-auto">
-        <button id="closeLuckyWheelBtn" class="absolute top-3 left-3 text-slate-400 hover:text-white text-sm bg-slate-800 rounded-full w-9 h-9 min-w-[36px] min-h-[36px] flex items-center justify-center transition active:scale-95 shadow-sm" title="بستن" aria-label="بستن گردونه شانس">✕</button>
+        <button id="closeLuckyWheelBtn" class="modal-close-btn absolute top-3 left-3" title="بستن" aria-label="بستن گردونه شانس">✕</button>
         
         <div>
           <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-500/20 text-amber-300 border border-amber-500/40 uppercase tracking-wide">
@@ -1846,7 +1848,7 @@
     <!-- ======================================================== -->
     <div id="storyCardModal" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-3 hidden animate-fadeIn overflow-y-auto">
       <div class="modal-card relative w-full max-w-[330px] flex flex-col items-center space-y-3 my-auto">
-        <button id="closeStoryCardBtn" class="absolute -top-3.5 left-0 text-slate-300 hover:text-white text-xs bg-slate-800/90 hover:bg-slate-700 border border-slate-600/50 rounded-full w-9 h-9 min-w-[36px] min-h-[36px] flex items-center justify-center z-20 shadow-md transition active:scale-95" title="بستن" aria-label="بستن کارت استوری">✕</button>
+        <button id="closeStoryCardBtn" class="modal-close-btn absolute -top-3.5 left-0 z-20" title="بستن" aria-label="بستن کارت استوری">✕</button>
 
         <!-- Redesigned Premium Glassmorphic Card Container -->
         <div id="exportableStoryCard" class="w-full rounded-[28px] p-4 border border-indigo-500/30 shadow-[0_20px_50px_rgba(0,0,0,0.7)] relative overflow-hidden text-center flex flex-col justify-between transition-all duration-300 bg-gradient-to-b from-[#131b2e] via-[#0d1322] to-[#0a0f1d] backdrop-blur-xl">
@@ -1934,7 +1936,7 @@
     <!-- ======================================================== -->
     <div id="purchaseSuccessModal" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden animate-fadeIn overflow-y-auto">
       <div class="modal-card bg-[#1a233a] border border-emerald-500/50 rounded-3xl p-5 w-full text-center space-y-3.5 shadow-2xl relative max-w-[340px] my-auto">
-        <button id="psvcTopCloseBtn" class="absolute top-4 left-4 text-slate-400 hover:text-white text-sm bg-slate-800/80 hover:bg-slate-700 rounded-full w-9 h-9 min-w-[36px] min-h-[36px] flex items-center justify-center transition active:scale-95 shadow-sm z-10" title="بستن" aria-label="بستن رسید خرید">✕</button>
+        <button id="psvcTopCloseBtn" class="modal-close-btn absolute top-4 left-4 z-10" title="بستن" aria-label="بستن رسید خرید">✕</button>
         <div class="w-16 h-16 bg-emerald-500/20 text-emerald-400 rounded-full flex items-center justify-center text-3xl mx-auto border border-emerald-500/40 shadow-lg shadow-emerald-500/30">
           🎉
         </div>
@@ -1975,7 +1977,7 @@
           </div>
         </div>
 
-        <button id="psvcCloseBtn" type="button" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs py-2.5 rounded-xl transition border border-slate-700 active:scale-95">
+        <button id="psvcCloseBtn" type="button" class="btn btn-secondary w-full py-2.5 text-xs font-bold">
           مشاهده در داشبورد
         </button>
       </div>
@@ -2000,7 +2002,7 @@
               <span class="text-[10px] text-emerald-400 font-medium">🟢 آنلاین (پاسخگویی زیر 2 دقیقه)</span>
             </div>
           </div>
-          <button id="closeSupportChatBtn" class="text-slate-400 hover:text-white text-xs bg-slate-800 rounded-full w-9 h-9 min-w-[36px] min-h-[36px] flex items-center justify-center transition active:scale-95 shadow-sm" title="بستن" aria-label="بستن چت پشتیبانی">✕</button>
+          <button id="closeSupportChatBtn" class="modal-close-btn" title="بستن" aria-label="بستن چت پشتیبانی">✕</button>
         </div>
 
         <!-- Chat Messages Container -->

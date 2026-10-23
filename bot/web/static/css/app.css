@@ -833,20 +833,7 @@ html.theme-light #dashboardBirthdayCard #birthdayCardBadge {
   color: #9d174d;
 }
 
-/* Transparent copy icon buttons without background */
-#copyTonCommentBtn,
-#copyTonAmountBtn,
-#copyTopupCardBtn,
-#copyTopupCardAmountBtn,
-html.theme-light #copyTonCommentBtn,
-html.theme-light #copyTonAmountBtn,
-html.theme-light #copyTopupCardBtn,
-html.theme-light #copyTopupCardAmountBtn {
-  background: transparent;
-  background-color: transparent;
-  border: none;
-  box-shadow: none;
-}
+/* Transparent copy icon buttons handled by .btn-icon / component utility */
 
 /* Unified Inner Card Surfaces in Light Theme */
 html.theme-light .node-card .bg-slate-800\/40,
@@ -936,12 +923,7 @@ html.theme-light #couponUsagesModal .bg-slate-900\/50 {
   border-color: var(--card-border);
 }
 
-/* Settings tab input styling in light mode */
-html.theme-light #tab-admin-settings input {
-  background-color: var(--card-inner-bg);
-  border-color: var(--frame-border);
-  color: var(--text-main);
-}
+/* Settings tab input styling handled universally by components.css */
 
 /* Settings accordion boxes */
 .settings-box {
@@ -1186,38 +1168,7 @@ html.theme-light #topupModal #topupCardNumber {
   color: var(--text-main);
 }
 
-html.theme-light #closeTopupModalBtn,
-html.theme-light #closeQrModalBtn,
-html.theme-light #closeCheckoutModalBtn,
-html.theme-light #closeSessionsModalBtn,
-html.theme-light #closeSwitchAccountBtn,
-html.theme-light #cancelRevokeBtn,
-html.theme-light #cancelCheckoutBtn,
-html.theme-light #psvcCloseBtn,
-html.theme-light #psvcTopCloseBtn,
-html.theme-light #closeLuckyWheelBtn,
-html.theme-light #closeStoryCardBtn,
-html.theme-light #closeSupportChatBtn {
-  background-color: var(--page-bg);
-  border-color: var(--card-border);
-  color: var(--text-muted);
-}
-
-html.theme-light #closeTopupModalBtn:hover,
-html.theme-light #closeQrModalBtn:hover,
-html.theme-light #closeCheckoutModalBtn:hover,
-html.theme-light #closeSessionsModalBtn:hover,
-html.theme-light #closeSwitchAccountBtn:hover,
-html.theme-light #cancelRevokeBtn:hover,
-html.theme-light #cancelCheckoutBtn:hover,
-html.theme-light #psvcCloseBtn:hover,
-html.theme-light #psvcTopCloseBtn:hover,
-html.theme-light #closeLuckyWheelBtn:hover,
-html.theme-light #closeStoryCardBtn:hover,
-html.theme-light #closeSupportChatBtn:hover {
-  background-color: #e2e8f0;
-  color: var(--text-main);
-}
+/* Modal close & cancel buttons handled universally by .modal-close-btn and .btn-secondary */
 
 /* ======================================================== */
 /* Light Theme: Universal Pastel Badges (*-950 overrides)   */
@@ -1281,24 +1232,15 @@ html.theme-light #toggleSessionsAccordionBtn:hover {
 }
 
 /* Subscription Action Buttons (Copy, QR, Revoke) Transparent */
-.sub-action-btn,
-#copySubBtn,
-#qrToggleBtn,
-#revokeSubBtnTop {
+.sub-action-btn {
   background-color: transparent;
 }
-html.theme-light .sub-action-btn,
-html.theme-light #copySubBtn,
-html.theme-light #qrToggleBtn,
-html.theme-light #revokeSubBtnTop {
+html.theme-light .sub-action-btn {
   background-color: transparent;
   color: var(--text-muted);
   border-color: var(--frame-border);
 }
-html.theme-light .sub-action-btn:hover,
-html.theme-light #copySubBtn:hover,
-html.theme-light #qrToggleBtn:hover,
-html.theme-light #revokeSubBtnTop:hover {
+html.theme-light .sub-action-btn:hover {
   color: var(--c-accent);
   border-color: #94a3b8;
 }
