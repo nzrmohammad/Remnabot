@@ -91,21 +91,64 @@ def test_top_nav_bar_contrast():
     """Ensure top-nav-bar elements in templates do not use raw low-contrast text classes on white."""
     for html_path in [APP_HTML_PATH, ADMIN_HTML_PATH]:
         content = html_path.read_text(encoding="utf-8")
-        m = re.search(r'class=["\'][^"\']*top-nav-bar[^"\']*["\'][\s\S]*?</header>', content)
-        if m:
-            header_html = m.group(0)
-            for low_contrast in ["text-blue-300", "text-amber-400"]:
-                assert low_contrast not in header_html, (
-                    f"Found low-contrast '{low_contrast}' in header of {html_path.name}; "
-                    "use semantic tokens (t-accent, t-warn, t-muted, t-success) instead."
-                )
+        m = re.search(r'<div[^>]*class=["\'][^"\']*top-nav-bar[^"\']*["\'][\s\S]*?(?=<div[^>]*id=["\'](?:contentArea|adminContentArea)["\'])', content)
+        assert m is not None, f"Could not find top-nav-bar section in {html_path.name}!"
+        header_html = m.group(0)
+        for low_contrast in ["text-blue-300", "text-amber-400", "text-slate-300", "text-indigo-300"]:
+            assert low_contrast not in header_html, (
+                f"Found low-contrast '{low_contrast}' in header of {html_path.name}; "
+                "use semantic tokens (t-accent, t-warn, t-muted, t-success) instead."
+            )
 
 
-def test_colored_buttons_and_safety_umbrella():
-    """Ensure safety umbrella does not strip white text from colored buttons and dark avatars."""
+def test_safety_umbrella_and_no_broad_cta_overreach():
+    """Ensure safety umbrella does not use broad wildcards that force white text on translucent tints."""
     app_css = APP_CSS_PATH.read_text(encoding="utf-8")
-    assert 'html.theme-light button[class*="bg-"]' in app_css, "Missing colored button protection in app.css"
-    assert 'html.theme-light [class*="bg-slate-900"]' in app_css, "Missing dark avatar protection in app.css"
+    # Banned broad wildcard rules that cause white-on-white on translucent badge tints
+    for banned_rule in [
+        'html.theme-light [class*="bg-emerald-"]',
+        'html.theme-light [class*="bg-blue-"]',
+        'html.theme-light [class*="bg-rose-"]',
+        'html.theme-light button[class*="bg-"]',
+    ]:
+        assert banned_rule not in app_css, (
+            f"Found banned broad CTA rule '{banned_rule}' in app.css! "
+            "This forces white text on translucent tints (e.g. bg-emerald-500/20 text-emerald-400)."
+        )
+
+    # Buttons must be explicitly excluded from the umbrella so solid CTAs naturally retain text-white
+    assert ':not(button)' in app_css, "Buttons must be excluded from the transitional safety umbrella!"
+    # Dark avatar initial must retain white text
+    assert 'html.theme-light #profileAvatarInitial' in app_css, "Missing #profileAvatarInitial rule in app.css"
+
+
+def test_soft_tint_badges_retain_color():
+    """Ensure badges with soft tints (e.g. bg-emerald-500/20 text-emerald-400) exist and are untainted."""
+    app_html = APP_HTML_PATH.read_text(encoding="utf-8")
+    assert 'bg-emerald-500/20 text-emerald-400' in app_html, "Missing expected status badge in app.html"
+    assert 'bg-blue-500/15' in app_html, "Missing expected icon container in app.html"
+    admin_html = ADMIN_HTML_PATH.read_text(encoding="utf-8")
+    assert 'bg-blue-600/20 text-blue-400' in admin_html, "Missing expected filter badge in admin.html"
+
+
+def test_speedtest_modal_theme_styles():
+    """Ensure speedtest modal has active theme rules for #speedTestModal .modal-card."""
+    app_css = APP_CSS_PATH.read_text(encoding="utf-8")
+    assert 'html.theme-light #speedTestModal .modal-card' in app_css, "Missing #speedTestModal .modal-card in app.css"
+    assert '.speedtest-modal-card' not in app_css, "Found dead .speedtest-modal-card selector in app.css"
+
+
+def test_support_chat_modal_uses_tokenized_surfaces():
+    """Ensure supportChatModal does not use hardcoded dark surfaces (bg-[#1a263e]) that break in light theme."""
+    content = APP_HTML_PATH.read_text(encoding="utf-8")
+    assert 'bg-[#1a263e]' not in content, "Found hardcoded bg-[#1a263e] in app.html; use .card-inset or tokens instead."
+
+
+def test_semantic_typography_hover_variants():
+    """Ensure hover variants for semantic tokens (.hover:t-main, .hover:t-muted) are defined in components.css."""
+    components_css = COMPONENTS_CSS_PATH.read_text(encoding="utf-8")
+    assert r".hover\:t-main:hover" in components_css, "Missing .hover:t-main:hover in components.css"
+    assert r".hover\:t-muted:hover" in components_css, "Missing .hover:t-muted:hover in components.css"
 
 
 def test_settings_box_text_theme_support():

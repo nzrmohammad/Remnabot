@@ -169,6 +169,10 @@
 .t-purple     { color: var(--c-purple); }
 .t-pink       { color: var(--c-pink); }
 
+.hover\:t-main:hover   { color: var(--text-main); }
+.hover\:t-muted:hover  { color: var(--text-muted); }
+.hover\:t-accent:hover { color: var(--c-accent); }
+
 .s-accent-soft  { background-color: var(--c-accent-soft); color: var(--c-accent); border-color: var(--c-accent-border); }
 .s-success-soft { background-color: var(--c-success-soft); color: var(--c-success); border-color: var(--c-success-border); }
 .s-warn-soft    { background-color: var(--c-warn-soft); color: var(--c-warn); border-color: var(--c-warn-border); }

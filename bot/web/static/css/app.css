@@ -27,34 +27,8 @@ html.theme-light .text-slate-400:not(button):not([class*="btn"]):not([class*="ba
   color: var(--text-muted);
 }
 
-/* Ensure colored CTAs, badges and avatars strictly maintain white text across light theme */
-html.theme-light [class*="bg-rose-"],
-html.theme-light [class*="bg-red-"],
-html.theme-light [class*="bg-emerald-"],
-html.theme-light [class*="bg-green-"],
-html.theme-light [class*="bg-blue-"],
-html.theme-light [class*="bg-indigo-"],
-html.theme-light [class*="bg-violet-"],
-html.theme-light [class*="bg-purple-"],
-html.theme-light [class*="bg-amber-600"],
-html.theme-light [class*="bg-amber-700"],
-html.theme-light [class*="bg-slate-900"],
-html.theme-light [class*="bg-slate-950"],
-html.theme-light .btn-primary,
-html.theme-light .btn-danger,
-html.theme-light .btn-success,
-html.theme-light button[class*="bg-"] {
-  color: #ffffff;
-}
-
-html.theme-light [class*="bg-rose-"] .text-white,
-html.theme-light [class*="bg-red-"] .text-white,
-html.theme-light [class*="bg-emerald-"] .text-white,
-html.theme-light [class*="bg-green-"] .text-white,
-html.theme-light [class*="bg-blue-"] .text-white,
-html.theme-light [class*="bg-indigo-"] .text-white,
-html.theme-light [class*="bg-slate-900"] .text-white,
-html.theme-light button[class*="bg-"] .text-white {
+/* Profile avatar initial retains crisp white text on its dark background */
+html.theme-light #profileAvatarInitial {
   color: #ffffff;
 }
 
@@ -110,24 +84,24 @@ html.theme-light .speedtest-entry-btn .bg-slate-900\/60 {
   color: var(--c-success);
 }
 
-html.theme-light .speedtest-modal-card {
+html.theme-light #speedTestModal .modal-card {
   background-color: var(--card-bg);
   border-color: var(--frame-border);
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
 }
-html.theme-light .speedtest-modal-card .border-slate-700\/60 {
+html.theme-light #speedTestModal .modal-card .border-slate-700\/60 {
   border-color: var(--card-border);
 }
-html.theme-light .speedtest-modal-card .w-8 {
+html.theme-light #speedTestModal .modal-card .w-8 {
   background-color: var(--c-success-soft);
   border-color: var(--c-success-border);
   color: var(--c-success);
 }
-html.theme-light .speedtest-modal-card h3 {
+html.theme-light #speedTestModal .modal-card h3 {
   color: var(--text-main);
   font-weight: 900;
 }
-html.theme-light .speedtest-modal-card p {
+html.theme-light #speedTestModal .modal-card p {
   color: #475569;
 }
 
