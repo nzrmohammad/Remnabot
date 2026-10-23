@@ -191,22 +191,29 @@
   border-top: 1px solid var(--frame-border);
 }
 
-.nav-btn {
+.nav-btn,
+.admin-nav-btn {
   color: var(--text-muted);
   transition: all 0.15s ease;
+  user-select: none;
 }
 
-.nav-btn:hover {
+.nav-btn:hover,
+.admin-nav-btn:hover {
   color: var(--text-main);
 }
 
 .nav-btn.is-active,
-.nav-btn[aria-selected="true"] {
+.nav-btn[aria-selected="true"],
+.admin-nav-btn.is-active,
+.admin-nav-btn[aria-selected="true"] {
   color: var(--c-accent);
 }
 
 .nav-btn.is-active span:last-child,
-.nav-btn[aria-selected="true"] span:last-child {
+.nav-btn[aria-selected="true"] span:last-child,
+.admin-nav-btn.is-active span:last-child,
+.admin-nav-btn[aria-selected="true"] span:last-child {
   font-weight: 700;
 }
 
