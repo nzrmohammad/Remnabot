@@ -820,7 +820,7 @@ function renderTutorialApps(osKey) {
     if (dlButtons.length === 1) {
       const d = dlButtons[0];
       actionButtonsHtml = `
-        <div class="grid grid-cols-2 gap-1.5 pt-1.5 border-t border-slate-800/60">
+        <div class="grid grid-cols-2 gap-1.5 pt-0.5">
           <button type="button" class="btn-download-app bg-slate-800 hover:bg-slate-750 text-slate-200 text-xs font-bold py-1.5 px-2 rounded-xl transition border border-slate-700/80 flex items-center justify-center gap-1 active:scale-95 shadow-sm truncate" data-url="${escapeHtml(d.url)}">
             <span>${d.icon}</span> <span class="truncate">${d.label}</span>
           </button>
@@ -831,7 +831,7 @@ function renderTutorialApps(osKey) {
       `;
     } else if (dlButtons.length >= 2) {
       actionButtonsHtml = `
-        <div class="space-y-1.5 pt-1.5 border-t border-slate-800/60">
+        <div class="space-y-1.5 pt-0.5">
           <div class="grid grid-cols-2 gap-1.5">
             <button type="button" class="btn-download-app bg-slate-800 hover:bg-slate-750 text-slate-200 text-xs font-bold py-1.5 px-2 rounded-xl transition border border-slate-700/80 flex items-center justify-center gap-1 active:scale-95 shadow-sm truncate" data-url="${escapeHtml(dlButtons[0].url)}">
               <span>${dlButtons[0].icon}</span> <span class="truncate">${dlButtons[0].label}</span>
@@ -852,7 +852,7 @@ function renderTutorialApps(osKey) {
     const cardBorder = app.isRecommended ? 'border-amber-500/50 bg-transparent shadow-sm' : 'border-slate-700/60 bg-transparent';
 
     return `
-      <div class="tutorial-app-card rounded-2xl p-2.5 border ${cardBorder} space-y-2 transition hover:border-slate-600">
+      <div class="tutorial-app-card rounded-2xl p-2.5 border ${cardBorder} space-y-1.5 transition hover:border-slate-600">
         <div class="flex items-center justify-between gap-2">
           <!-- Right side: App Icon + Name -->
           <div class="flex items-center gap-2.5 min-w-0">
@@ -869,7 +869,7 @@ function renderTutorialApps(osKey) {
           </div>
           <!-- Left side: Recommended badge + Tutorial button -->
           <div class="flex items-center gap-1.5 flex-shrink-0">
-            ${app.isRecommended ? '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/15 text-amber-300 border border-amber-500/30">⭐️ پیشنهادی</span>' : ''}
+            ${app.isRecommended ? '<span class="w-6 h-6 rounded-full flex items-center justify-center text-xs bg-amber-500/15 text-amber-300 border border-amber-500/30 flex-shrink-0" title="پیشنهادی">⭐️</span>' : ''}
             ${tutorialBtnHtml}
           </div>
         </div>
@@ -1037,6 +1037,16 @@ function switchBdayPickerTab(tab) {
       }
     }
   });
+  if (tab === 'year') {
+    setTimeout(() => {
+      const yPane = $('bdayPaneYear');
+      const curYear = $('birthdayYearSelect')?.value || '1375';
+      const activeYearBtn = yPane?.querySelector('.active-bday-item') || yPane?.querySelector(`[data-val="${curYear}"]`);
+      if (activeYearBtn) {
+        activeYearBtn.scrollIntoView({ block: 'center', behavior: 'smooth' });
+      }
+    }, 40);
+  }
   hapticFeedback('selection');
 }
 window.switchBdayPickerTab = switchBdayPickerTab;
@@ -1128,7 +1138,7 @@ function initBirthdaySelects() {
       const btn = document.createElement('button');
       btn.type = 'button';
       btn.setAttribute('data-val', d);
-      btn.className = 'bday-grid-btn aspect-square min-w-[34px] min-h-[34px] sm:min-w-[38px] sm:min-h-[38px] p-0 text-center text-xs sm:text-sm font-bold text-slate-300 bg-slate-800/80 hover:bg-slate-700 border border-slate-700/60 rounded-xl transition font-mono active:scale-95 flex items-center justify-center';
+      btn.className = 'bday-grid-btn py-1.5 px-1 h-8 min-h-[32px] text-center text-xs font-bold text-slate-300 bg-slate-800/80 hover:bg-slate-700 border border-slate-700/60 rounded-xl transition font-mono active:scale-95 flex items-center justify-center';
       btn.textContent = toPersianDigits(d);
       btn.onclick = () => selectBdayItem('day', d, toPersianDigits(d), false);
       dayGrid.appendChild(btn);

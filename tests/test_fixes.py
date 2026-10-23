@@ -2394,9 +2394,10 @@ def test_ui_improvements_verification():
     css_text = Path("bot/web/static/css/app.css").read_text(encoding="utf-8")
     js_text = Path("bot/web/static/js/app.js").read_text(encoding="utf-8")
 
-    # 1. Birthday picker is 7-column calendar grid without scroll
-    assert 'grid grid-cols-7 gap-1.5" id="bdayDaysGrid"' in html_text
-    assert "overflow-hidden" in html_text
+    # 1. Birthday picker is 4-column compact grid with smooth scrollable panes
+    assert 'grid grid-cols-4 gap-1.5" id="bdayDaysGrid"' in html_text
+    assert "#bdayDaysGrid" in css_text
+    assert ".bday-pane" in css_text
 
     # 2. Alert threshold modal has increased height
     assert "max-h-[88vh]" in html_text
@@ -2417,3 +2418,39 @@ def test_ui_improvements_verification():
     assert "html.theme-light .shop-plan-card .shop-plan-badge.badge-vip" in css_text
     assert "#e11d48" in css_text or "#f43f5e" in css_text
     assert "#7c3aed, #4f46e5" not in css_text
+
+
+def test_latest_ui_refinements():
+    from pathlib import Path
+    html_text = Path("bot/web/templates/app.html").read_text(encoding="utf-8")
+    admin_html = Path("bot/web/templates/admin.html").read_text(encoding="utf-8")
+    css_text = Path("bot/web/static/css/app.css").read_text(encoding="utf-8")
+    wheel_text = Path("bot/web/static/js/wheel.js").read_text(encoding="utf-8")
+    app_js = Path("bot/web/static/js/app.js").read_text(encoding="utf-8")
+    admin_js = Path("bot/web/static/js/admin.js").read_text(encoding="utf-8")
+    api_js = Path("bot/web/static/js/api.js").read_text(encoding="utf-8")
+    admin_api = Path("bot/web/admin_settings_api.py").read_text(encoding="utf-8")
+
+    # 1. Birthday days grid is 4 columns
+    assert 'id="bdayDaysGrid"' in html_text
+    assert "repeat(4, minmax(0, 1fr))" in css_text
+
+    # 2. Year auto scroll into view on tab switch
+    assert "activeYearBtn.scrollIntoView" in app_js
+
+    # 3. Wheel streak note wording and contrast
+    assert "تداوم حضور شما" in wheel_text
+    assert "استریک شما" not in wheel_text
+    assert "wheel-streak-note" in wheel_text
+    assert "html.theme-light .wheel-streak-note" in css_text
+
+    # 4. App guide modal: star icon badge without 'پیشنهادی' word and removed border-t
+    assert '<span class="w-6 h-6 rounded-full' in app_js
+    assert "⭐️</span>" in app_js
+
+    # 5. Admin crypto refresh button border and force refresh
+    assert 'onclick="window.adminActions.refreshLiveCryptoRates()"' in admin_html
+    assert "border-slate-300" in admin_html
+    assert "getAdminCryptoRates(force" in api_js
+    assert "force_refresh=force" in admin_api
+    assert "refreshLiveCryptoRates(force = true)" in admin_js

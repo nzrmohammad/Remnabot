@@ -366,11 +366,11 @@ function setupLuckyWheel() {
 
       let streakNote = '';
       if (currentWheelStreak > 1) {
-        streakNote = `<div class="mt-2 text-[11px] text-amber-300/90 font-medium">🔥 استریک شما: <b>${fNum(currentWheelStreak)} روز</b> پی‌درپی (شانس جوایز ویژه فعال است)</div>`;
+        streakNote = `<div class="wheel-streak-note mt-2.5 text-[11px] text-amber-500 dark:text-amber-300 font-semibold bg-amber-500/10 px-3 py-1.5 rounded-xl border border-amber-500/30 inline-block">🔥 تداوم حضور شما: <b>${fNum(currentWheelStreak)} روز</b> پی‌درپی (شانس جوایز ویژه فعال است)</div>`;
       }
       let ticketNote = '';
       if (usedTicket) {
-        ticketNote = `<div class="mt-1 text-[10px] text-purple-300 font-medium">🎫 ۱ تیکت مصرف شد (باقیمانده: <b>${fNum(currentWheelTickets)}</b>)</div>`;
+        ticketNote = `<div class="mt-1 text-[10px] text-purple-600 dark:text-purple-300 font-medium">🎫 ۱ تیکت مصرف شد (باقیمانده: <b>${fNum(currentWheelTickets)}</b>)</div>`;
       }
 
       if (isAgain) {

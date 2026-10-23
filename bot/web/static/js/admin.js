@@ -4204,12 +4204,12 @@
       $('cryptoRatesModal')?.classList.add('hidden');
     },
 
-    async refreshLiveCryptoRates() {
+    async refreshLiveCryptoRates(force = true) {
       const container = $('cryptoRatesContent');
       if (!container) return;
       container.innerHTML = '<div class="p-6 text-center text-xs text-slate-400">در حال استعلام جدیدترین نرخ‌ها از صرافی‌های معتبر...</div>';
       try {
-        const res = await window.api.getAdminCryptoRates();
+        const res = await window.api.getAdminCryptoRates(force);
         if (!res || !res.ok) {
           container.innerHTML = `<div class="p-6 text-center text-xs text-rose-400">${escapeHtml(res?.error || 'خطا در دریافت نرخ‌ها')}</div>`;
           return;
@@ -4275,9 +4275,10 @@
 
         if (binanceUsd) {
           const tonTomanBinance = bestTon.price;
+          const globalSrc = res.global_ton_source ? `${res.global_ton_source} (جهانی)` : 'بایننس (جهانی)';
           tonRowsHtml += `
             <div class="flex items-center justify-between py-1.5 px-2.5 rounded-xl bg-slate-800/60 border border-slate-700/50 hover:border-slate-600 transition">
-              <span class="text-slate-300 font-medium text-[11px]">بایننس (جهانی)</span>
+              <span class="text-slate-300 font-medium text-[11px]">${escapeHtml(globalSrc)}</span>
               <div class="flex items-center gap-2">
                 <span class="font-mono font-bold text-cyan-300 text-[11px]">$${Number(binanceUsd).toFixed(2)}</span>
                 ${tonTomanBinance ? `

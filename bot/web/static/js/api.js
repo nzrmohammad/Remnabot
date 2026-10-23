@@ -363,8 +363,8 @@ const api = {
     return this.post('/api/admin/coupons/batch-generate', data);
   },
 
-  async getAdminCryptoRates() {
-    return this.get('/api/admin/crypto/rates');
+  async getAdminCryptoRates(force = false) {
+    return this.get('/api/admin/crypto/rates' + (force ? '?force=1' : ''));
   },
 
   async getSessionsExplorer() {

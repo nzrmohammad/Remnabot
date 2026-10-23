@@ -2306,18 +2306,18 @@
           </button>
         </div>
 
-        <!-- Pane 1: Days Grid (7 columns calendar grid, 1..31, compact, no scroll) -->
-        <div id="bdayPaneDay" class="bday-pane bg-slate-900/60 rounded-2xl p-2 sm:p-2.5 border border-slate-700/60 overflow-hidden">
-          <div class="grid grid-cols-7 gap-1.5" id="bdayDaysGrid"></div>
+        <!-- Pane 1: Days Grid (4 columns, 1..31, compact, no scroll) -->
+        <div id="bdayPaneDay" class="bday-pane bg-slate-900/60 rounded-2xl p-2 sm:p-2.5 border border-slate-700/60 max-h-[300px] overflow-y-auto custom-scroll">
+          <div class="grid grid-cols-4 gap-1.5" id="bdayDaysGrid"></div>
         </div>
 
         <!-- Pane 2: Months Grid (3 columns, 12 months) -->
-        <div id="bdayPaneMonth" class="bday-pane hidden bg-slate-900/60 rounded-2xl p-2 border border-slate-700/60 max-h-48 overflow-y-auto custom-scroll">
+        <div id="bdayPaneMonth" class="bday-pane hidden bg-slate-900/60 rounded-2xl p-2 border border-slate-700/60 max-h-[260px] overflow-y-auto custom-scroll">
           <div class="grid grid-cols-3 gap-1.5" id="bdayMonthsGrid"></div>
         </div>
 
         <!-- Pane 3: Years Grid (4 columns, quick selectable years) -->
-        <div id="bdayPaneYear" class="bday-pane hidden bg-slate-900/60 rounded-2xl p-2 border border-slate-700/60 max-h-48 overflow-y-auto custom-scroll">
+        <div id="bdayPaneYear" class="bday-pane hidden bg-slate-900/60 rounded-2xl p-2 border border-slate-700/60 max-h-[260px] overflow-y-auto custom-scroll">
           <div class="grid grid-cols-4 gap-1.5" id="bdayYearsGrid"></div>
         </div>
 
