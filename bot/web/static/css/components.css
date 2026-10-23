@@ -229,7 +229,9 @@ html.theme-light .on-dark .text-slate-400 {
 }
 
 /* --- 7. Bottom Navigation Bar --- */
-#navBottom {
+#navBottom,
+#adminNavBottom,
+.bottom-nav-bar {
   background-color: var(--frame-bg);
   border-top: 1px solid var(--frame-border);
 }
