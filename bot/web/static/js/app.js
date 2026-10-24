@@ -1635,14 +1635,14 @@ function openExpiryCountdownModal() {
   const paceStatusEl = $('modalExpiryPaceStatus');
   if (paceStatusEl) {
     if (daysLeft <= 3 && daysLeft > 0) {
-      paceStatusEl.className = 'font-semibold text-[11px] text-amber-400 bg-amber-500/15 border border-amber-500/30 px-2 py-0.5 rounded-full';
-      paceStatusEl.innerText = '⚠️ مهلت رو به پایان است';
+      paceStatusEl.className = 'font-bold text-[11px] text-amber-600 dark:text-amber-400';
+      paceStatusEl.innerText = 'مهلت رو به پایان است';
     } else if (daysLeft === 0) {
-      paceStatusEl.className = 'font-semibold text-[11px] text-rose-400 bg-rose-500/15 border border-rose-500/30 px-2 py-0.5 rounded-full';
-      paceStatusEl.innerText = '🔴 اشتراک منقضی شده';
+      paceStatusEl.className = 'font-bold text-[11px] text-rose-600 dark:text-rose-400';
+      paceStatusEl.innerText = 'منقضی شده';
     } else {
-      paceStatusEl.className = 'font-semibold text-[11px] text-emerald-400 bg-emerald-500/15 border border-emerald-500/30 px-2 py-0.5 rounded-full';
-      paceStatusEl.innerText = '🟢 نرمال و بهینه';
+      paceStatusEl.className = 'font-bold text-[11px] text-emerald-600 dark:text-emerald-400';
+      paceStatusEl.innerText = 'بهینه';
     }
   }
 
@@ -2776,10 +2776,10 @@ function hydrateUserInterface(data) {
     if (profAuthBadge) {
       if (hasPhone) {
         profAuthBadge.innerHTML = '<span class="inline-flex items-center gap-1"><span>🛡️</span><span>حساب تأییدشده</span></span>';
-        profAuthBadge.className = 'px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 inline-flex items-center gap-1 transition';
+        profAuthBadge.className = 'px-2.5 py-0.5 rounded-full text-[10.5px] font-bold bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 inline-flex items-center gap-1 transition';
       } else {
         profAuthBadge.innerHTML = '<span class="inline-flex items-center gap-1"><span>⚠️</span><span>نیازمند احراز شماره</span></span>';
-        profAuthBadge.className = 'px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30 inline-flex items-center gap-1 transition';
+        profAuthBadge.className = 'px-2.5 py-0.5 rounded-full text-[10.5px] font-bold bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30 inline-flex items-center gap-1 transition';
       }
     }
 
@@ -3060,6 +3060,15 @@ function hydrateUserInterface(data) {
         const pct = Math.max(0, Math.min(100, sub.percent_remaining ?? 100));
         const offset = circumference - (circumference * (pct / 100));
         gaugeProgress.style.strokeDashoffset = offset;
+
+        // Dynamic color transition as remaining traffic decreases
+        if (pct <= 15) {
+          gaugeProgress.setAttribute('stroke', 'url(#gradientDanger)');
+        } else if (pct <= 35) {
+          gaugeProgress.setAttribute('stroke', 'url(#gradientWarn)');
+        } else {
+          gaugeProgress.setAttribute('stroke', 'url(#gradientMain)');
+        }
       }
 
       const subInputEl = $('subInput');
@@ -3106,7 +3115,7 @@ function hydrateUserInterface(data) {
       if (expireEl) expireEl.innerText = 'غیرفعال';
       const todayEl = $('dashboardTodayUsed');
       if (todayEl) todayEl.innerText = fmtTraffic(0, { html: false });
-      if (gaugeProgress) gaugeProgress.style.strokeDashoffset = 314.15;
+      if (gaugeProgress) { gaugeProgress.style.strokeDashoffset = 314.15; gaugeProgress.setAttribute('stroke', 'url(#gradientMain)'); }
     }
   });
 

@@ -356,6 +356,38 @@ server {
 > 
 > *If you instead use `host.docker.internal:8080`, ensure `WEB_BIND_IP=0.0.0.0` is set in `remnawave-bot/.env`.*
 
+#### 3. نصب و اتصال گواهینامه SSL در حالت استقرار در کنار پنل Remnawave (Docker Volume Mounting):
+
+هنگامی که مینی‌اپلیکیشن یا وب‌سرور Nginx بر روی **همان سرور پنل Remnawave** و در قالب کانتینر داکر اجرا می‌شود، فایل‌های گواهینامه SSL ساب‌دامین اختصاصی ربات (مانند `app.cloudvibe.ir`) باید در بخش `volumes` کانتینر Nginx به صورت فقط‌خواندنی (`:ro`) مونت گردند:
+
+```yaml
+services:
+  # سرویس Nginx اصلی پنل یا پروکسی مشترک
+  remnawave-nginx:
+    volumes:
+      - /etc/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - /etc/nginx/conf.d:/etc/nginx/conf.d:ro
+      # اتصال مستقیم فایل‌های سرتیفیکیت دامنه مینی‌اپلیکیشن به داکر:
+      - ./app.cloudvibe.ir_fullchain.pem:/etc/nginx/ssl/app.cloudvibe.ir_fullchain.pem:ro
+      - ./app.cloudvibe.ir_privkey.key:/etc/nginx/ssl/app.cloudvibe.ir_privkey.key:ro
+```
+
+سپس در فایل تنظیمات Nginx مربوط به ربات (`/etc/nginx/conf.d/remnabot.conf`)، دقیقاً به مسیرهای داخل کانتینر ارجاع دهید:
+
+```nginx
+server {
+    server_name app.cloudvibe.ir;
+    listen 443 ssl;
+    listen [::]:443 ssl;
+    http2 on;
+
+    ssl_certificate "/etc/nginx/ssl/app.cloudvibe.ir_fullchain.pem";
+    ssl_certificate_key "/etc/nginx/ssl/app.cloudvibe.ir_privkey.key";
+    ssl_trusted_certificate "/etc/nginx/ssl/app.cloudvibe.ir_fullchain.pem";
+    ...
+}
+```
+
 ---
 
 ### Stage 6: Orchestration Launch & Verification

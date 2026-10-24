@@ -192,20 +192,20 @@
         <div class="grid grid-cols-2 gap-2.5">
           <button id="openLuckyWheelBtn" class="lucky-wheel-entry-btn bg-gradient-to-r from-amber-500/20 via-orange-500/20 to-amber-600/10 hover:from-amber-500/30 p-2.5 rounded-2xl border border-amber-500/40 text-right flex items-center justify-between transition shadow-sm group active:scale-95">
             <div class="flex flex-col">
-              <span class="text-[11px] font-black t-warn flex items-center gap-1 lucky-wheel-title">
+              <span class="text-xs font-black text-amber-600 dark:text-amber-400 flex items-center gap-1 lucky-wheel-title">
                 <span>🎰</span> گردونه شانس
               </span>
-              <span class="text-[10px] t-muted mt-0.5 font-medium lucky-wheel-sub">چرخش روزانه شانس</span>
+              <span class="text-[10px] t-muted mt-0.5 font-normal lucky-wheel-sub">۱ شانس روزانه</span>
             </div>
             <span class="text-xl group-hover:rotate-45 transition transform">🎁</span>
           </button>
 
           <button id="openTutorialModalBtn" type="button" onclick="window.openTutorialModal()" class="tutorial-entry-btn card-inset p-2.5 rounded-2xl border border-cyan-500/30 text-right flex items-center justify-between transition shadow-sm group active:scale-95">
             <div class="flex flex-col">
-              <span class="text-[11px] font-black t-accent flex items-center gap-1.5 tutorial-title">
+              <span class="text-xs font-black text-cyan-700 dark:text-cyan-400 flex items-center gap-1.5 tutorial-title">
                 <span>📱</span> راهنمای اتصال
               </span>
-              <span class="text-[10px] t-muted mt-0.5 font-medium tutorial-sub">دانلود برنامه‌ها و آموزش</span>
+              <span class="text-[10px] t-muted mt-0.5 font-normal tutorial-sub">دانلود برنامه‌ها و آموزش</span>
             </div>
             <span class="text-xl group-hover:scale-110 transition">🚀</span>
           </button>
@@ -307,9 +307,9 @@
             <span class="text-xs text-slate-400 font-semibold flex items-center gap-1">
               <span>⚡️</span> ترافیک کل سرویس
             </span>
-            <span class="text-xs font-bold s-success-soft px-2.5 py-0.5 rounded-full flex items-center gap-1">
-              <span id="dashboardRemainingTraffic" class="font-mono num-bidi" dir="ltr">-- GB</span>
-              <span>مانده</span>
+            <span class="text-xs font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+              <span id="dashboardRemainingTraffic" class="font-mono num-bidi font-bold" dir="ltr">-- GB</span>
+              <span class="text-[11px] t-muted">مانده</span>
             </span>
           </div>
 
@@ -320,9 +320,19 @@
               <circle id="gaugeProgress" class="gauge-circle" cx="60" cy="60" r="50" stroke="url(#gradientMain)" stroke-width="8" stroke-dasharray="314.15" stroke-dashoffset="62.8" stroke-linecap="round" fill="transparent" />
               <defs>
                 <linearGradient id="gradientMain" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stop-color="#38bdf8" />
-                  <stop offset="50%" stop-color="#6366f1" />
-                  <stop offset="100%" stop-color="#a855f7" />
+                  <stop offset="0%" stop-color="#10b981" />
+                  <stop offset="50%" stop-color="#06b6d4" />
+                  <stop offset="100%" stop-color="#3b82f6" />
+                </linearGradient>
+                <linearGradient id="gradientWarn" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#f59e0b" />
+                  <stop offset="50%" stop-color="#f97316" />
+                  <stop offset="100%" stop-color="#eab308" />
+                </linearGradient>
+                <linearGradient id="gradientDanger" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#f43f5e" />
+                  <stop offset="50%" stop-color="#ef4444" />
+                  <stop offset="100%" stop-color="#e11d48" />
                 </linearGradient>
               </defs>
             </svg>
@@ -363,7 +373,7 @@
                 <span>🌍</span> ریز مصرف
               </span>
             </div>
-            <span class="text-[10px] font-mono text-cyan-400 bg-transparent px-1 py-0.5 font-medium">مجموع: <span id="countryTodayTotalHeader" class="num-bidi" dir="ltr">0.00 GB</span></span>
+            <span class="text-[10.5px] font-mono text-cyan-700 dark:text-cyan-300 font-bold">مجموع: <span id="countryTodayTotalHeader" class="num-bidi" dir="ltr">0.00 GB</span></span>
           </button>
 
           <!-- Collapsible Content (Hidden by default, opens on click) -->
@@ -386,7 +396,7 @@
                 <span>📥</span> لینک اشتراک
               </span>
             </div>
-            <span class="text-[10px] text-cyan-400 bg-transparent px-1 py-0.5 font-medium">مشاهده</span>
+            <span class="text-[10.5px] text-cyan-700 dark:text-cyan-300 font-bold">مشاهده</span>
           </button>
 
           <!-- Collapsible Content (Hidden by default, opens on click) -->
@@ -423,23 +433,23 @@
               <div class="grid grid-cols-5 gap-1.5 text-center text-xs">
                 <button id="appImportIncy" type="button" class="client-import-btn card-inset hover:border-cyan-500/50 p-1.5 rounded-xl flex flex-col items-center gap-1 transition group active:scale-95 shadow-sm">
                   <span class="text-base group-hover:scale-110 transition">⚡️</span>
-                  <span class="font-bold text-[10px] text-indigo-400 group-hover:text-indigo-300">Incy</span>
+                  <span class="font-bold text-[10px] t-main">Incy</span>
                 </button>
                 <button id="appImportHapp" type="button" class="client-import-btn card-inset hover:border-cyan-500/50 p-1.5 rounded-xl flex flex-col items-center gap-1 transition group active:scale-95 shadow-sm">
                   <span class="text-base group-hover:scale-110 transition">🪐</span>
-                  <span class="font-bold text-[10px] text-pink-400 group-hover:text-pink-300">Happ</span>
+                  <span class="font-bold text-[10px] t-main">Happ</span>
                 </button>
                 <button id="appImportV2ray" type="button" class="client-import-btn card-inset hover:border-cyan-500/50 p-1.5 rounded-xl flex flex-col items-center gap-1 transition group active:scale-95 shadow-sm">
                   <span class="text-base group-hover:scale-110 transition">🤖</span>
-                  <span class="font-bold text-[10px] text-emerald-400 group-hover:text-emerald-300">v2rayNG</span>
+                  <span class="font-bold text-[10px] t-main">v2rayNG</span>
                 </button>
                 <button id="appImportHiddify" type="button" class="client-import-btn card-inset hover:border-cyan-500/50 p-1.5 rounded-xl flex flex-col items-center gap-1 transition group active:scale-95 shadow-sm">
                   <span class="text-base group-hover:scale-110 transition">🛡️</span>
-                  <span class="font-bold text-[10px] text-cyan-400 group-hover:text-cyan-300">Hiddify</span>
+                  <span class="font-bold text-[10px] t-main">Hiddify</span>
                 </button>
                 <button id="appImportStreisand" type="button" class="client-import-btn card-inset hover:border-cyan-500/50 p-1.5 rounded-xl flex flex-col items-center gap-1 transition group active:scale-95 shadow-sm">
                   <span class="text-base group-hover:scale-110 transition">🍏</span>
-                  <span class="font-bold text-[10px] text-amber-400 group-hover:text-amber-300">Streisand</span>
+                  <span class="font-bold text-[10px] t-main">Streisand</span>
                 </button>
               </div>
             </div>
@@ -863,7 +873,7 @@
           <span id="profileUsername" dir="ltr" class="text-xs text-blue-400 font-mono font-medium block mt-0.5">@user</span>
           <div class="flex items-center justify-center gap-2 mt-2.5">
             <span id="profileStatusBadge" class="px-2.5 py-0.5 rounded-full text-[10px] s-success-soft font-bold inline-flex items-center gap-1"><span>🟢</span><span>کاربر فعال</span></span>
-            <span id="profileAuthBadge" class="px-2.5 py-0.5 rounded-full text-[10px] s-accent-soft font-bold inline-flex items-center gap-1"><span>✅</span><span>احراز هویت شده</span></span>
+            <span id="profileAuthBadge" class="px-2.5 py-0.5 rounded-full text-[10.5px] bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 font-bold inline-flex items-center gap-1"><span>🛡️</span><span>حساب تأییدشده</span></span>
           </div>
         </div>
 
@@ -964,7 +974,7 @@
               </span>
               <div class="text-right">
                 <b class="text-xs t-main block">دعوت از دوستان و دریافت پاداش ترافیک</b>
-                <span id="profileReferralRewardBadge" class="text-[10px] text-amber-400 font-medium block mt-0.5">🎁 ۱ گیگابایت هدیه به ازای هر دعوت</span>
+                <span id="profileReferralRewardBadge" class="text-[10.5px] text-amber-700 dark:text-amber-400 font-bold block mt-0.5">🎁 ۱ گیگابایت هدیه به ازای هر دعوت</span>
               </div>
             </div>
             <div class="flex items-center gap-2">
@@ -1177,7 +1187,7 @@
             <!-- Toggle: Auto-Renew -->
             <div class="flex items-center justify-between py-1 border-t border-slate-700/50 pt-2">
               <div>
-                <span class="text-slate-200 font-medium block">🔄 تمدید خودکار اشتراک (Auto-Renew)</span>
+                <span class="text-slate-200 font-medium block">🔄 تمدید خودکار اشتراک</span>
                 <span class="text-[11px] text-slate-400">تمدید خودکار اشتراک هنگام پایان با استفاده از موجودی کیف پول</span>
               </div>
               <label dir="ltr" class="relative inline-flex items-center cursor-pointer">
@@ -1698,7 +1708,7 @@
         <button id="closeLuckyWheelBtn" class="modal-close-btn absolute top-3 left-3" title="بستن" aria-label="بستن گردونه شانس">✕</button>
         
         <div>
-          <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-500/20 text-amber-300 border border-amber-500/40 uppercase tracking-wide">
+          <span class="px-2.5 py-0.5 rounded-full text-[10.5px] font-extrabold bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/40 uppercase tracking-wide">
             🎰 گردونه شانس روزانه
           </span>
           <h3 class="text-sm font-extrabold t-main mt-1">شانس دریافت ترافیک هدیه!</h3>
@@ -2416,7 +2426,7 @@
         </div>
 
         <div>
-          <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-500/20 text-amber-300 border border-amber-500/40 uppercase tracking-wide">
+          <span class="px-2.5 py-0.5 rounded-full text-[10.5px] font-extrabold bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/40 uppercase tracking-wide">
             شمارش معکوس پایان اعتبار سرویس
           </span>
           <h3 id="modalExpiryAccountName" class="text-sm font-extrabold t-main mt-1.5">وضعیت اشتراک فعال</h3>
@@ -2460,14 +2470,14 @@
             <span class="text-slate-400 text-[11px] flex items-center gap-1">
               <span>⚡</span> وضعیت سرعت مصرف:
             </span>
-            <span id="modalExpiryPaceStatus" class="font-semibold text-[10px] text-emerald-400 bg-emerald-500/15 border border-emerald-500/30 px-2 py-0.5 rounded-full">🟢 نرمال و بهینه</span>
+            <span id="modalExpiryPaceStatus" class="font-bold text-[11px] text-emerald-600 dark:text-emerald-400">بهینه</span>
           </div>
         </div>
 
         <!-- Live Auto-Renew Quick Switch inside Expiry Modal -->
         <div class="card-inset rounded-xl p-2.5 flex items-center justify-between text-right text-xs">
           <div>
-            <span class="text-slate-200 font-bold block text-[11px]">🔄 تمدید خودکار (Auto-Renew)</span>
+            <span class="text-slate-200 font-bold block text-[11px]">🔄 تمدید خودکار</span>
             <span class="text-[11px] text-slate-400 block">تمدید خودکار هنگام پایان با موجودی کیف پول</span>
           </div>
           <label dir="ltr" class="relative inline-flex items-center cursor-pointer">
@@ -2479,12 +2489,9 @@
         </div>
 
         <!-- Quick Action: Renew / Buy Plan Button -->
-        <div class="space-y-2 pt-1">
+        <div class="pt-1">
           <button type="button" onclick="window.closeExpiryCountdownModal(); window.switchTab('tab-shop');" class="w-full bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-black text-xs py-2.5 rounded-xl transition active:scale-95 shadow flex items-center justify-center gap-1.5">
             <span>⚡️</span> تمدید یا خرید اشتراک جدید
-          </button>
-          <button type="button" onclick="window.closeExpiryCountdownModal()" class="btn btn-secondary w-full py-2 rounded-xl text-xs active:scale-95">
-            بستن پنجره
           </button>
         </div>
       </div>

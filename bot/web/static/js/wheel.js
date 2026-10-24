@@ -187,9 +187,9 @@ function updateWheelUIState(canSpin, hasActiveSub, nextSeconds, streak, multipli
       wheelSubEl.classList.remove('t-warn', 't-muted', 't-success', 't-purple', 'text-amber-400/80', 'text-emerald-400', 'text-purple-400');
       wheelSubEl.classList.add('t-muted');
     } else {
-      wheelSubEl.textContent = '🎁 ۱ شانس روزانه فعال';
-      wheelSubEl.classList.remove('t-warn', 't-muted', 't-success', 't-purple', 'text-amber-400/80', 'text-slate-300', 'text-purple-400');
-      wheelSubEl.classList.add('t-success');
+      wheelSubEl.textContent = '۱ شانس روزانه';
+      wheelSubEl.classList.remove('t-warn', 't-success', 't-purple', 'text-amber-400/80', 'text-slate-300', 'text-purple-400');
+      wheelSubEl.classList.add('t-muted');
     }
   }
 

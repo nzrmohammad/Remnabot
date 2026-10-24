@@ -2,8 +2,9 @@
 import asyncio
 import json
 import logging
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 from pathlib import Path
+from uuid import UUID
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -39,9 +40,23 @@ logger = logging.getLogger(__name__)
 
 
 def _serialize_val(val):
-    if isinstance(val, datetime):
+    if isinstance(val, (datetime, date)):
         return val.isoformat()
+    if isinstance(val, UUID):
+        return str(val)
+    if hasattr(val, "value"):
+        return val.value
     return val
+
+
+def _json_serializer(obj):
+    if isinstance(obj, (datetime, date)):
+        return obj.isoformat()
+    if isinstance(obj, UUID):
+        return str(obj)
+    if hasattr(obj, "value"):
+        return obj.value
+    return str(obj)
 
 
 async def create_database_backup(session: AsyncSession, out_dir: str | Path | None = None) -> Path:
@@ -403,7 +418,7 @@ async def create_database_backup(session: AsyncSession, out_dir: str | Path | No
 
     def _write_file():
         with open(file_path, "w", encoding="utf-8") as f:
-            json.dump(data, f, ensure_ascii=False, indent=2)
+            json.dump(data, f, ensure_ascii=False, indent=2, default=_json_serializer)
 
     await asyncio.to_thread(_write_file)
 

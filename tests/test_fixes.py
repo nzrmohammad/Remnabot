@@ -2659,3 +2659,17 @@ async def test_new_7_features_and_fixes():
     assert "high_risk_users" in overview_py
     assert "raw_configs" in user_sub_py
     assert "/api/sub/" in user_sub_py
+
+def test_backup_json_serializer_handles_datetimes_and_uuids():
+    import json
+    from datetime import datetime, date, timezone
+    from uuid import uuid4
+    from bot.services.backup import _json_serializer
+
+    data = {
+        "datetime": datetime.now(timezone.utc),
+        "date": date(2026, 10, 24),
+        "uuid": uuid4(),
+    }
+    encoded = json.dumps(data, default=_json_serializer)
+    assert "2026" in encoded
