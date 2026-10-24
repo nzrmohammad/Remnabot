@@ -193,19 +193,20 @@ html.theme-light #startSpeedTestBtn {
   display: inline-flex;
   align-items: center;
   gap: 0.25rem;
-  padding: 0.125rem 0.25rem;
+  padding: 0.125rem 0.625rem;
+  border-radius: 9999px;
   font-size: 10px;
   font-weight: 700;
   transition: all 0.2s ease;
   background-color: transparent;
   color: #fdba74;
-  border: none;
+  border: 1px solid rgba(249, 115, 22, 0.4);
 }
 
 .badge-streak.streak-boost {
   background-color: transparent;
   color: #fcd34d;
-  border: none;
+  border: 1px solid rgba(245, 158, 11, 0.5);
   box-shadow: none;
 }
 
@@ -213,19 +214,20 @@ html.theme-light #startSpeedTestBtn {
   display: inline-flex;
   align-items: center;
   gap: 0.25rem;
-  padding: 0.125rem 0.25rem;
+  padding: 0.125rem 0.625rem;
+  border-radius: 9999px;
   font-size: 10px;
   font-weight: 700;
   transition: all 0.2s ease;
   background-color: transparent;
   color: rgba(216, 180, 254, 0.9);
-  border: none;
+  border: 1px solid rgba(168, 85, 247, 0.4);
 }
 
 .badge-ticket.has-tickets {
   background-color: transparent;
   color: #e9d5ff;
-  border: none;
+  border: 1px solid rgba(192, 132, 252, 0.6);
   box-shadow: none;
 }
 
@@ -233,25 +235,25 @@ html.theme-light #startSpeedTestBtn {
 html.theme-light .badge-streak {
   background-color: transparent;
   color: #c2410c;
-  border: none;
+  border: 1px solid #fed7aa;
 }
 
 html.theme-light .badge-streak.streak-boost {
   background-color: transparent;
   color: #b45309;
-  border: none;
+  border: 1px solid #fde68a;
 }
 
 html.theme-light .badge-ticket {
   background-color: transparent;
   color: #7e22ce;
-  border: none;
+  border: 1px solid #e9d5ff;
 }
 
 html.theme-light .badge-ticket.has-tickets {
   background-color: transparent;
   color: #6b21a8;
-  border: none;
+  border: 1px solid #d8b4fe;
 }
 
 html.theme-light .text-orange-300 {
@@ -385,9 +387,9 @@ button, a, .tab-btn, .nav-item, [role="button"] {
   -webkit-tap-highlight-color: transparent;
 }
 
-/* Prevent iOS Safari 16px auto-zoom on input focus */
+/* Prevent iOS Safari 16px auto-zoom on input focus (excluding readonly/display inputs) */
 @media screen and (max-width: 768px) {
-  html body input:not([type="checkbox"]):not([type="radio"]),
+  html body input:not([type="checkbox"]):not([type="radio"]):not([readonly]),
   html body select,
   html body textarea {
     font-size: 16px;

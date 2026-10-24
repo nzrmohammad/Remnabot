@@ -853,7 +853,7 @@ function renderTutorialApps(osKey) {
       `;
     }
 
-    const cardBorder = app.isRecommended ? 'border-amber-500/50 card-inset shadow-sm' : 'card-inset';
+    const cardBorder = app.isRecommended ? 'border-amber-500/60 dark:border-amber-500/50 card-inset shadow-md ring-1 ring-amber-500/30' : 'card-inset';
 
     return `
       <div class="tutorial-app-card rounded-2xl p-2.5 ${cardBorder} space-y-1.5 transition">
@@ -873,7 +873,7 @@ function renderTutorialApps(osKey) {
           </div>
           <!-- Left side: Recommended badge + Tutorial button -->
           <div class="flex items-center gap-1.5 flex-shrink-0">
-            ${app.isRecommended ? '<span class="w-6 h-6 rounded-full flex items-center justify-center text-xs bg-amber-500/15 text-amber-300 border border-amber-500/30 flex-shrink-0" title="پیشنهادی">⭐️</span>' : ''}
+            ${app.isRecommended ? '<span class="w-6 h-6 rounded-full flex items-center justify-center text-xs bg-amber-500/25 text-amber-600 dark:text-amber-300 border border-amber-500/60 font-black shadow-sm flex-shrink-0" title="پیشنهادی">⭐️</span>' : ''}
             ${tutorialBtnHtml}
           </div>
         </div>

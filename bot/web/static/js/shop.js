@@ -322,7 +322,7 @@ function renderFilteredShopPlans() {
               <h4 class="font-bold text-sm t-main">${formatPlanTitle(p.name)}</h4>
               ${discountVal > 0 ? '<span class="text-[10px] t-success font-bold bg-transparent border-0 px-0 py-0">🏷 تخفیف ویژه</span>' : ''}
             </div>
-            <p class="text-xs t-muted mt-1">${p.description || (isExtraTraffic ? 'افزایش حجم بدون تغییر در تاریخ انقضای سرویس فعلی' : (isTimeOnly ? 'افزایش مدت زمان اعتبار بدون تغییر در میزان ترافیک' : 'ترافیک پایدار و بدون محدودیت روی تمام سرورها'))}</p>
+            <p class="text-[11px] leading-snug t-muted mt-0.5">${p.description || (isExtraTraffic ? 'افزایش حجم بدون تغییر در تاریخ انقضای سرویس&nbsp;فعلی' : (isTimeOnly ? 'افزایش مدت زمان اعتبار بدون تغییر در میزان&nbsp;ترافیک' : 'ترافیک پایدار و بدون محدودیت روی تمام سرورها'))}</p>
           </div>
           <div class="text-left font-mono">
             ${discountVal > 0 ? `<span class="line-through t-muted text-xs block -mb-0.5">${formattedOriginal}</span>` : ''}

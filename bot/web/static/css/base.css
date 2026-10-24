@@ -101,9 +101,9 @@ button, a, .tab-btn, .nav-item, [role="button"] {
   -webkit-tap-highlight-color: transparent;
 }
 
-/* Prevent iOS Safari 16px auto-zoom on input focus */
+/* Prevent iOS Safari 16px auto-zoom on input focus (excluding readonly/display inputs) */
 @media screen and (max-width: 768px) {
-  html body input:not([type="checkbox"]):not([type="radio"]),
+  html body input:not([type="checkbox"]):not([type="radio"]):not([readonly]),
   html body select,
   html body textarea {
     font-size: 16px;

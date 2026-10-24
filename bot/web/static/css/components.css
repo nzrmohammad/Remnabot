@@ -183,6 +183,10 @@ html.theme-light .on-dark .text-slate-400 {
   box-shadow: 0 0 0 2px var(--c-accent-soft);
 }
 
+.ref-input-box input {
+  font-size: 10px;
+}
+
 /* --- 4. Badges & Chips --- */
 .badge {
   display: inline-flex;

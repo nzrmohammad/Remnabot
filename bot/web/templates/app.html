@@ -89,16 +89,16 @@
       </div>
 
       <!-- Left Side (in RTL): Support + Theme Toggle + Fallback Close + Hidden Sessions Stub -->
-      <div class="flex items-center gap-1.5 flex-shrink-0">
+      <div class="flex items-center gap-1 flex-shrink-0">
         <button id="headerOnlineBadge" class="hidden"><span id="headerOnlineCount"></span></button>
-        <button id="openSupportBtn" class="header-support-btn text-xs t-success hover:opacity-80 p-1 w-9 h-9 min-w-[36px] min-h-[36px] rounded-xl transition flex items-center justify-center font-semibold active:scale-95" title="پشتیبانی آنلاین" aria-label="پشتیبانی آنلاین">
+        <button id="openSupportBtn" class="header-support-btn text-xs t-success card-inset border border-slate-200 dark:border-slate-800 w-8 h-8 min-w-[32px] min-h-[32px] rounded-xl transition flex items-center justify-center font-semibold active:scale-95 shadow-sm" title="پشتیبانی آنلاین" aria-label="پشتیبانی آنلاین">
           <span>💬</span>
         </button>
-        <button id="themeToggle" class="text-xs p-1 w-9 h-9 min-w-[36px] min-h-[36px] t-muted hover:t-main rounded-xl transition flex items-center justify-center active:scale-95" title="تغییر تم" aria-label="تغییر تم (روشن/تاریک)">
+        <button id="themeToggle" class="text-xs w-8 h-8 min-w-[32px] min-h-[32px] card-inset border border-slate-200 dark:border-slate-800 t-muted hover:t-main rounded-xl transition flex items-center justify-center active:scale-95 shadow-sm" title="تغییر تم" aria-label="تغییر تم (روشن/تاریک)">
           <span id="themeIcon">🌙</span>
         </button>
-        <button id="closeBtn" class="hidden t-accent text-[11px] font-semibold hover:opacity-80 transition px-2 py-1 min-h-[36px] rounded-lg bg-transparent border-0" aria-label="بستن برنامه">بستن</button>
-        <button id="reloadBtn" class="hidden t-muted hover:t-main text-xs p-1.5 min-w-[36px] min-h-[36px] rounded-lg bg-transparent border-0 flex items-center justify-center" title="تازه‌سازی" aria-label="تازه‌سازی">🔄</button>
+        <button id="closeBtn" class="hidden t-accent text-[11px] font-semibold hover:opacity-80 transition px-2 py-1 min-h-[32px] rounded-lg bg-transparent border-0" aria-label="بستن برنامه">بستن</button>
+        <button id="reloadBtn" class="hidden t-muted hover:t-main text-xs p-1 min-w-[32px] min-h-[32px] rounded-lg bg-transparent border-0 flex items-center justify-center" title="تازه‌سازی" aria-label="تازه‌سازی">🔄</button>
       </div>
     </div>
 
@@ -195,7 +195,7 @@
               <span class="text-xs font-black text-amber-600 dark:text-amber-400 flex items-center gap-1 lucky-wheel-title">
                 <span>🎰</span> گردونه شانس
               </span>
-              <span class="text-[10px] t-muted mt-0.5 font-normal lucky-wheel-sub">۱ شانس روزانه</span>
+              <span class="text-[10.5px] font-bold text-amber-700 dark:text-amber-300 mt-0.5 lucky-wheel-sub">۱ شانس روزانه</span>
             </div>
             <span class="text-xl group-hover:rotate-45 transition transform">🎁</span>
           </button>
@@ -205,7 +205,7 @@
               <span class="text-xs font-black text-cyan-700 dark:text-cyan-400 flex items-center gap-1.5 tutorial-title">
                 <span>📱</span> راهنمای اتصال
               </span>
-              <span class="text-[10px] t-muted mt-0.5 font-normal tutorial-sub">دانلود برنامه‌ها و آموزش</span>
+              <span class="text-[10.5px] font-bold text-cyan-700 dark:text-cyan-300 mt-0.5 tutorial-sub">دانلود برنامه‌ها و آموزش</span>
             </div>
             <span class="text-xl group-hover:scale-110 transition">🚀</span>
           </button>
@@ -221,7 +221,7 @@
               <span class="text-xs font-black t-success speedtest-title">
                 تست سرعت اینترنت
               </span>
-              <span class="text-[10px] t-muted mt-0.5 font-medium speedtest-sub">سنجش دقیق پهنای‌باند دانلود، آپلود و پینگ</span>
+              <span class="text-[10.5px] font-bold text-emerald-700 dark:text-emerald-300 mt-0.5 speedtest-sub">سنجش دقیق پهنای‌باند دانلود، آپلود و پینگ</span>
             </div>
           </div>
           <div class="flex items-center gap-1 t-success font-bold text-xs card-inset px-2.5 py-1.5 rounded-xl border border-emerald-500/20 group-hover:border-emerald-500/50 transition">
@@ -238,7 +238,7 @@
             </div>
             <div>
               <span id="birthdayCardTitle" class="text-xs font-black t-pink block">شمارش معکوس زادروز شما</span>
-              <span id="birthdayCardSubtitle" class="text-[10px] t-muted mt-0.5 font-medium block">-- روز تا روز تولدتان باقی مانده است</span>
+              <span id="birthdayCardSubtitle" class="text-[10.5px] font-bold text-pink-700 dark:text-pink-300 mt-0.5 block">-- روز تا روز تولدتان باقی مانده است</span>
             </div>
           </div>
           <div id="birthdayCardBadge" class="px-2.5 py-1 rounded-xl s-pink-soft text-[10px] font-mono font-bold flex items-center gap-1">
@@ -524,7 +524,7 @@
             <div class="flex justify-between"><span>📊 حجم کل بسته:</span><b id="repNightlyTotal" class="font-mono t-main num-bidi" dir="ltr">-- GB</b></div>
             <div class="flex justify-between"><span>🔥 حجم مصرف‌شده:</span><b id="repNightlyUsed" class="font-mono t-warn num-bidi" dir="ltr">-- GB</b></div>
             <div class="flex justify-between"><span>📥 حجم باقیمانده:</span><b id="repNightlyRemain" class="font-mono t-success num-bidi" dir="ltr">-- GB</b></div>
-            <div class="flex justify-between"><span>⚡️ مجموع مصرف دیشب:</span><b id="repNightlyYesterday" class="font-mono t-accent text-sm num-bidi" dir="ltr">0.00 GB</b></div>
+            <div class="flex justify-between"><span>⚡️ مجموع مصرف:</span><b id="repNightlyYesterday" class="font-mono t-accent text-sm num-bidi" dir="ltr">0.00 GB</b></div>
             <div class="flex justify-between"><span>📅 انقضا:</span><span id="repNightlyExpire" class="font-semibold t-main">--</span></div>
           </div>
 
@@ -872,7 +872,7 @@
           <h3 id="profileFullName" class="text-base font-extrabold t-main">کاربر گرامی</h3>
           <span id="profileUsername" dir="ltr" class="text-xs text-blue-400 font-mono font-medium block mt-0.5">@user</span>
           <div class="flex items-center justify-center gap-2 mt-2.5">
-            <span id="profileStatusBadge" class="px-2.5 py-0.5 rounded-full text-[10px] s-success-soft font-bold inline-flex items-center gap-1"><span>🟢</span><span>کاربر فعال</span></span>
+            <span id="profileStatusBadge" class="px-2.5 py-0.5 rounded-full text-[10px] bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 font-bold inline-flex items-center gap-1"><span>🟢</span><span>کاربر فعال</span></span>
             <span id="profileAuthBadge" class="px-2.5 py-0.5 rounded-full text-[10.5px] bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 font-bold inline-flex items-center gap-1"><span>🛡️</span><span>حساب تأییدشده</span></span>
           </div>
         </div>
@@ -1201,11 +1201,11 @@
             <!-- Language Selector (تغییر زبان) -->
             <div class="flex items-center justify-between py-1 border-t border-slate-700/50 pt-2">
               <div>
-                <span class="text-slate-200 font-medium block">🌐 زبان برنامه (Language)</span>
+                <span class="text-slate-200 font-medium block">🌐 زبان برنامه</span>
                 <span class="text-[11px] text-slate-400">زبان پیش‌فرض ربات و داشبورد</span>
               </div>
               <div class="flex items-center gap-1 card-inset p-0.5 rounded-lg">
-                <button id="langFaBtn" class="px-2.5 py-1 text-xs rounded-md font-bold transition bg-blue-600 text-white">فارسی</button>
+                <button id="langFaBtn" class="px-2.5 py-1 text-xs rounded-md font-bold transition bg-blue-600 text-white">Persian</button>
                 <button id="langEnBtn" class="px-2.5 py-1 text-xs rounded-md font-medium transition text-slate-400 hover:text-slate-200">English</button>
               </div>
             </div>
@@ -1613,7 +1613,7 @@
       <div class="modal-card border border-blue-500/40 rounded-3xl p-5 w-full space-y-4 shadow-2xl relative max-w-[350px] my-auto text-xs text-right">
         <button id="closeCheckoutModalBtn" class="modal-close-btn absolute top-3 left-3" onclick="closeModal('checkoutConfirmModal')" title="انصراف" aria-label="انصراف و بستن پیش‌فاکتور">✕</button>
         <div class="border-b border-slate-700/60 pb-2">
-          <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-500/20 text-blue-300 border border-blue-500/40">
+          <span class="text-[10.5px] font-black text-blue-600 dark:text-blue-400 uppercase tracking-wide inline-block">
             🛒 تایید سفارش
           </span>
           <h3 class="text-sm font-bold t-main mt-1">پیش‌فاکتور خرید بسته</h3>
@@ -1650,12 +1650,12 @@
         </div>
 
         <!-- Shortage Warning Box (shown only when balance is insufficient) -->
-        <div id="checkoutShortageBox" class="hidden bg-rose-500/10 border border-rose-500/30 rounded-xl p-2.5 text-[11px] text-rose-300 space-y-1">
-          <div class="flex justify-between items-center font-bold">
+        <div id="checkoutShortageBox" class="hidden s-danger-soft border border-rose-500/30 rounded-xl p-2.5 text-xs text-rose-700 dark:text-rose-300 space-y-1">
+          <div class="flex justify-between items-center font-extrabold">
             <span>⚠️ کسری موجودی کیف پول:</span>
-            <span id="checkoutShortageAmount" class="font-mono">-- تومان</span>
+            <span id="checkoutShortageAmount" class="font-mono font-bold num-bidi" dir="ltr">-- تومان</span>
           </div>
-          <p class="text-[10px] text-rose-200/80">برای خرید این بسته ابتدا باید کیف پول خود را شارژ فرمایید.</p>
+          <p class="text-[11px] font-medium text-rose-800 dark:text-rose-200 leading-relaxed">برای خرید این بسته ابتدا باید کیف پول خود را شارژ فرمایید.</p>
         </div>
 
         <div class="space-y-2 pt-1">
@@ -1712,7 +1712,7 @@
             🎰 گردونه شانس روزانه
           </span>
           <h3 class="text-sm font-extrabold t-main mt-1">شانس دریافت ترافیک هدیه!</h3>
-          <p id="wheelSubText" class="text-[10px] text-slate-300 mt-0.5">ویژه کاربران دارای اشتراک فعال</p>
+          <p id="wheelSubText" class="text-[10.5px] font-bold text-slate-700 dark:text-slate-200 mt-0.5">ویژه کاربران دارای اشتراک فعال</p>
 
           <!-- Badges: Daily Streak & Referral Tickets -->
           <div class="flex items-center justify-center gap-1.5 mt-2">
@@ -2515,19 +2515,19 @@
 
         <!-- 4 Ticking Digit Boxes: Days, Hours, Minutes, Seconds -->
         <div class="grid grid-cols-4 gap-1.5" dir="ltr">
-          <div class="card-inset rounded-2xl p-2 shadow-sm text-center">
+          <div class="card-inset border-2 border-pink-500/40 dark:border-pink-500/50 rounded-2xl p-2 shadow-sm text-center">
             <span id="bdayCountdownDays" class="text-xl font-black font-mono text-pink-400 block leading-tight">--</span>
             <span class="text-[11px] text-slate-400 uppercase tracking-wider block mt-1 font-semibold">روز</span>
           </div>
-          <div class="card-inset rounded-2xl p-2 shadow-sm text-center">
+          <div class="card-inset border-2 border-rose-500/40 dark:border-rose-500/50 rounded-2xl p-2 shadow-sm text-center">
             <span id="bdayCountdownHours" class="text-xl font-black font-mono text-rose-400 block leading-tight">--</span>
             <span class="text-[11px] text-slate-400 uppercase tracking-wider block mt-1 font-semibold">ساعت</span>
           </div>
-          <div class="card-inset rounded-2xl p-2 shadow-sm text-center">
+          <div class="card-inset border-2 border-purple-500/40 dark:border-purple-500/50 rounded-2xl p-2 shadow-sm text-center">
             <span id="bdayCountdownMinutes" class="text-xl font-black font-mono text-purple-400 block leading-tight">--</span>
             <span class="text-[11px] text-slate-400 uppercase tracking-wider block mt-1 font-semibold">دقیقه</span>
           </div>
-          <div class="card-inset rounded-2xl p-2 shadow-sm text-center">
+          <div class="card-inset border-2 border-cyan-500/40 dark:border-cyan-500/50 rounded-2xl p-2 shadow-sm text-center">
             <span id="bdayCountdownSeconds" class="text-xl font-black font-mono text-cyan-400 block leading-tight">--</span>
             <span class="text-[11px] text-slate-400 uppercase tracking-wider block mt-1 font-semibold">ثانیه</span>
           </div>
