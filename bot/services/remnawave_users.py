@@ -357,14 +357,14 @@ class RemnawaveUsersMixin:
             logger.error("Remnawave update_user_subscription error (user_id=%s): %s", user_id, exc)
             return None
 
-    async def set_user_status(self, user_id: int, status: str) -> dict[str, Any] | None:
+    async def set_user_status(self, user_id: int | str, status: str) -> dict[str, Any] | None:
         """Update a user's status in the Remnawave panel.
 
         Allowed statuses: 'active', 'disabled', 'limited', 'expired'.
         """
         payload = {
             "id": user_id,
-            "status": status,
+            "status": str(status).lower() if status else "disabled",
         }
         try:
             resp = await self._client.patch("/api/users", json=payload)

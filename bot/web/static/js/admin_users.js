@@ -337,7 +337,7 @@
   document.querySelectorAll('.user-filter-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       document.querySelectorAll('.user-filter-btn').forEach(b => {
-        b.className = 'user-filter-btn px-2.5 py-1 rounded-xl card-inset t-muted hover:t-main font-medium transition flex items-center gap-1 border border-slate-700/50';
+        b.className = 'user-filter-btn px-2.5 py-1 rounded-xl card-inset text-slate-700 dark:text-slate-200 hover:text-white font-bold transition flex items-center gap-1 border border-slate-700/50';
       });
       btn.className = 'user-filter-btn px-2.5 py-1 rounded-xl bg-blue-600 text-white font-bold transition flex items-center gap-1 border border-blue-500 shadow-sm';
       currentFilter = btn.getAttribute('data-filter') || 'all';

@@ -2673,3 +2673,61 @@ def test_backup_json_serializer_handles_datetimes_and_uuids():
     }
     encoded = json.dumps(data, default=_json_serializer)
     assert "2026" in encoded
+
+
+@pytest.mark.anyio
+async def test_admin_toggle_ban_persistence_and_cache_invalidation():
+    from unittest.mock import AsyncMock, MagicMock
+    from aiohttp import web
+    from bot.web.admin_users_actions import post_admin_toggle_ban
+    from bot.db.models import User
+
+    # Mock DB session and repository
+    mock_session = AsyncMock()
+    mock_repo = AsyncMock()
+    mock_user = None
+
+    async def get_by_tid(tid):
+        return mock_user
+
+    async def get_or_create(tid):
+        nonlocal mock_user
+        mock_user = User(telegram_id=tid, is_banned=False)
+        return mock_user
+
+    mock_repo.get_by_telegram_id = get_by_tid
+    mock_repo.get_or_create = get_or_create
+
+    # Mock app
+    app = web.Application()
+    mock_remna = AsyncMock()
+    mock_remna.get_users_by_telegram_id.return_value = [{"id": "uuid-123"}]
+    mock_remna.set_user_status.return_value = {"ok": True}
+    mock_cache = AsyncMock()
+
+    app["remnawave"] = mock_remna
+    app["cache"] = mock_cache
+    app["session_factory"] = MagicMock(return_value=mock_session)
+
+    # Patch UserRepository and _check_admin inside module
+    import bot.web.admin_users_actions as aua
+    orig_repo = aua.UserRepository
+    orig_check = aua._check_admin
+    aua.UserRepository = MagicMock(return_value=mock_repo)
+    aua._check_admin = MagicMock(return_value={"id": 999999, "is_admin": True})
+
+    try:
+        request = AsyncMock()
+        request.app = app
+        request.json.return_value = {"telegram_id": 1234567, "ban": True}
+
+        resp = await post_admin_toggle_ban(request)
+        assert resp.status == 200
+        assert mock_user is not None
+        assert mock_user.is_banned is True
+        mock_remna.set_user_status.assert_called_once_with("uuid-123", "disabled")
+        mock_cache.delete.assert_any_call("user:ban:1234567")
+    finally:
+        aua.UserRepository = orig_repo
+        aua._check_admin = orig_check
+

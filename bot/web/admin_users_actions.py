@@ -152,25 +152,40 @@ async def post_admin_toggle_ban(request: web.Request) -> web.Response:
         body = {}
 
     target_id = body.get("telegram_id")
+    if target_id is None:
+        return web.json_response({"ok": False, "error": "شناسه کاربر الزامی است."}, status=400)
+
+    try:
+        tid = int(target_id)
+    except (ValueError, TypeError):
+        return web.json_response({"ok": False, "error": "شناسه کاربر نامعتبر است."}, status=400)
+
     ban_state = bool(body.get("ban", True))
     remnawave = request.app["remnawave"]
 
     async with db_session(request) as session:
         user_repo = UserRepository(session)
-        user = await user_repo.get_by_telegram_id(int(target_id))
-        if user:
-            user.is_banned = ban_state
-            await session.commit()
+        user = await user_repo.get_by_telegram_id(tid)
+        if not user:
+            user = await user_repo.get_or_create(tid)
+        user.is_banned = ban_state
+        await session.commit()
 
-    panel_users = await remnawave.get_users_by_telegram_id(int(target_id))
-    if panel_users:
-        primary_id = panel_users[0].get("id")
-        await remnawave.set_user_status(primary_id, "DISABLED" if ban_state else "ACTIVE")
+    try:
+        panel_users = await remnawave.get_users_by_telegram_id(tid)
+        if panel_users:
+            for p_acc in panel_users:
+                pid = p_acc.get("id") or p_acc.get("uuid")
+                if pid:
+                    await remnawave.set_user_status(pid, "disabled" if ban_state else "active")
+    except Exception as panel_err:
+        logger.warning("Error syncing ban status to Remnawave for user %s: %s", tid, panel_err)
 
     cache: FastCache = request.app["cache"]
-    await cache.delete(f"tma:user:{target_id}:dashboard")
-    await cache.delete(f"tma:user:{target_id}:dashboard:default")
-    await cache.delete(f"tma:user:{target_id}:profile")
+    await cache.delete(f"user:ban:{tid}")
+    await cache.delete(f"tma:user:{tid}:dashboard")
+    await cache.delete(f"tma:user:{tid}:dashboard:default")
+    await cache.delete(f"tma:user:{tid}:profile")
 
     return web.json_response({"ok": True, "banned": ban_state})
 

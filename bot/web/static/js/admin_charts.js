@@ -445,7 +445,7 @@
     const currentToday = Number(todayGb || (values && values[values.length - 1]) || 0);
     const totalEl = $('trafficChartTotal');
     if (totalEl) {
-      totalEl.innerHTML = `<span class="text-cyan-300 font-mono text-xs">${fmtTraffic(totalGb || currentToday || 0, { html: true })}</span>`;
+      totalEl.innerHTML = `<span class="t-main font-bold font-mono text-xs">${fmtTraffic(totalGb || currentToday || 0, { html: true })}</span>`;
     }
 
     if (trafficChartInstance) {
@@ -1039,8 +1039,8 @@
     if (badge) {
       badge.innerText = riskCount > 0 ? `⚠️ ${riskCount} کاربر پرخطر` : 'توزیع HWID';
       badge.className = riskCount > 0
-        ? 'text-[10px] text-rose-400 font-bold font-mono animate-pulse cursor-pointer hover:underline'
-        : 'text-[10px] text-amber-400 font-bold font-mono cursor-pointer hover:underline';
+        ? 'text-[10px] text-rose-700 dark:text-rose-400 font-bold font-mono animate-pulse cursor-pointer hover:underline'
+        : 'text-[10px] text-slate-700 dark:text-slate-300 font-bold font-mono cursor-pointer hover:underline';
       badge.onclick = () => window.adminActions.openHighRiskUsersModal();
     }
 

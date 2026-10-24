@@ -236,9 +236,9 @@
               <svg class="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
               <span>روند مصرف ترافیک</span>
             </span>
-            <div id="trafficChartTotal" class="text-[10px] text-cyan-400 font-bold inline-flex items-center gap-1" dir="ltr">
-              <span class="font-mono">--</span>
-              <span class="text-[10px] text-cyan-300 font-sans">GB</span>
+            <div id="trafficChartTotal" class="text-[11px] font-bold t-main inline-flex items-center gap-1 font-mono" dir="ltr">
+              <span>--</span>
+              <span class="text-[10px] t-muted font-sans">GB</span>
             </div>
           </div>
           <div class="h-36 w-full relative">
@@ -255,7 +255,7 @@
                 <svg class="w-4 h-4 text-violet-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                 <span>سهم مصرف لوکیشن‌ها</span>
               </span>
-              <span class="text-[10px] text-violet-400 font-medium">تفکیک کشورها</span>
+              <span class="text-[10px] text-slate-700 dark:text-slate-300 font-bold">تفکیک کشورها</span>
             </div>
             <div class="h-40 w-full relative flex items-center justify-center">
               <canvas id="adminLocationChart" dir="ltr"></canvas>
@@ -269,7 +269,7 @@
                 <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                 <span>ساعات اوج مصرف</span>
               </span>
-              <span id="peakHourBadge" class="text-[10px] text-amber-400 font-mono font-bold" dir="ltr">---</span>
+              <span id="peakHourBadge" class="text-[10px] text-amber-800 dark:text-amber-300 font-mono font-bold" dir="ltr">---</span>
             </div>
             <div class="h-40 w-full relative">
               <canvas id="adminHourlyChart" dir="ltr"></canvas>
@@ -332,7 +332,7 @@
                 <svg class="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
                 <span>روش‌های پرداخت</span>
               </span>
-              <span class="text-[10px] text-cyan-400 font-medium">کارت / کریپتو</span>
+              <span class="text-[10px] text-slate-700 dark:text-slate-300 font-bold">کارت / کریپتو</span>
             </div>
             <div class="h-40 w-full relative flex items-center justify-center">
               <canvas id="adminPaymentChart" dir="ltr"></canvas>
@@ -346,7 +346,7 @@
                 <svg class="w-4 h-4 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
                 <span>نرخ تمدید و ریزش اشتراک</span>
               </span>
-              <span id="churnRateBadge" class="text-[10px] text-indigo-400 font-bold font-mono">تمدید: --%</span>
+              <span id="churnRateBadge" class="text-[10px] text-indigo-800 dark:text-indigo-300 font-bold font-mono">تمدید: --%</span>
             </div>
             <div class="h-40 w-full relative flex items-center justify-center">
               <canvas id="adminChurnChart" dir="ltr"></canvas>
@@ -360,7 +360,7 @@
                 <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
                 <span>کاوشگر نشست‌ها و ریسک اشتراک</span>
               </span>
-              <span id="hwidRiskBadge" class="text-[10px] text-amber-400 font-bold font-mono">توزیع HWID</span>
+              <span id="hwidRiskBadge" class="text-[10px] text-slate-700 dark:text-slate-300 font-bold font-mono">توزیع HWID</span>
             </div>
             <div class="h-40 w-full relative">
               <canvas id="adminHwidChart" dir="ltr"></canvas>
@@ -417,19 +417,19 @@
 
           <div class="flex gap-1.5 overflow-x-auto custom-scroll text-[10px] whitespace-nowrap pb-1">
             <button class="user-filter-btn px-2.5 py-1 rounded-xl bg-blue-600 text-white font-bold transition flex items-center gap-1 border border-blue-500 shadow-sm" data-filter="all">همه کاربران</button>
-            <button class="user-filter-btn px-2.5 py-1 rounded-xl card-inset t-muted hover:t-main font-medium transition flex items-center gap-1 border border-slate-700/50" data-filter="online">
+            <button class="user-filter-btn px-2.5 py-1 rounded-xl card-inset text-slate-700 dark:text-slate-200 hover:text-white font-bold transition flex items-center gap-1 border border-slate-700/50" data-filter="online">
               <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block"></span>
               <span>متصل</span>
             </button>
-            <button class="user-filter-btn px-2.5 py-1 rounded-xl card-inset t-muted hover:t-main font-medium transition flex items-center gap-1 border border-slate-700/50" data-filter="expiring">
+            <button class="user-filter-btn px-2.5 py-1 rounded-xl card-inset text-slate-700 dark:text-slate-200 hover:text-white font-bold transition flex items-center gap-1 border border-slate-700/50" data-filter="expiring">
               <svg class="w-2.5 h-2.5 text-amber-500 dark:text-amber-300" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z"/></svg>
               <span>رو به اتمام</span>
             </button>
-            <button class="user-filter-btn px-2.5 py-1 rounded-xl card-inset t-muted hover:t-main font-medium transition flex items-center gap-1 border border-slate-700/50" data-filter="expired">
+            <button class="user-filter-btn px-2.5 py-1 rounded-xl card-inset text-slate-700 dark:text-slate-200 hover:text-white font-bold transition flex items-center gap-1 border border-slate-700/50" data-filter="expired">
               <span class="w-1.5 h-1.5 rounded-full bg-rose-400 inline-block"></span>
               <span>منقضی شده</span>
             </button>
-            <button class="user-filter-btn px-2.5 py-1 rounded-xl card-inset t-muted hover:t-main font-medium transition flex items-center gap-1 border border-slate-700/50" data-filter="banned">مسدود شده</button>
+            <button class="user-filter-btn px-2.5 py-1 rounded-xl card-inset text-slate-700 dark:text-slate-200 hover:text-white font-bold transition flex items-center gap-1 border border-slate-700/50" data-filter="banned">مسدود شده</button>
           </div>
         </div>
 
@@ -473,22 +473,22 @@
               <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
               <span>تعرفه‌های فروش</span>
             </h3>
-            <button id="openCreatePlanBtn" class="bg-transparent hover:bg-blue-600/10 text-blue-400 hover:text-blue-300 border border-blue-500/40 text-[11px] font-bold px-3 py-1.5 rounded-xl transition active:scale-95 flex items-center gap-1">
+            <button id="openCreatePlanBtn" class="bg-blue-600 hover:bg-blue-500 text-white font-extrabold text-xs px-3.5 py-1.5 rounded-xl transition active:scale-95 flex items-center gap-1 shadow-sm">
               <span>+</span> سرویس جدید
             </button>
           </div>
           <!-- Plans Category Filter Bar -->
-          <div class="flex items-center gap-1.5 p-1 bg-slate-900/80 rounded-xl border border-slate-800 text-[11px] overflow-x-auto custom-scroll" id="adminPlanFilterBar">
+          <div class="flex items-center gap-1.5 p-1 card-inset rounded-xl border border-card-border text-[11px] overflow-x-auto custom-scroll" id="adminPlanFilterBar">
             <button type="button" onclick="window.adminActions.filterPlans('all')" data-plan-filter="all" class="admin-plan-filter-btn flex-1 py-1 px-2.5 rounded-lg font-bold bg-blue-600 text-white shadow transition whitespace-nowrap text-center">
               همه
             </button>
-            <button type="button" onclick="window.adminActions.filterPlans('full')" data-plan-filter="full" class="admin-plan-filter-btn flex-1 py-1 px-2.5 rounded-lg font-medium text-slate-400 hover:text-white transition whitespace-nowrap text-center">
+            <button type="button" onclick="window.adminActions.filterPlans('full')" data-plan-filter="full" class="admin-plan-filter-btn flex-1 py-1 px-2.5 rounded-lg font-bold text-slate-700 dark:text-slate-200 hover:text-white transition whitespace-nowrap text-center">
               💎 دوره کامل
             </button>
-            <button type="button" onclick="window.adminActions.filterPlans('time')" data-plan-filter="time" class="admin-plan-filter-btn flex-1 py-1 px-2.5 rounded-lg font-medium text-slate-400 hover:text-white transition whitespace-nowrap text-center">
+            <button type="button" onclick="window.adminActions.filterPlans('time')" data-plan-filter="time" class="admin-plan-filter-btn flex-1 py-1 px-2.5 rounded-lg font-bold text-slate-700 dark:text-slate-200 hover:text-white transition whitespace-nowrap text-center">
               ⏳ افزایش زمان
             </button>
-            <button type="button" onclick="window.adminActions.filterPlans('traffic')" data-plan-filter="traffic" class="admin-plan-filter-btn flex-1 py-1 px-2.5 rounded-lg font-medium text-slate-400 hover:text-white transition whitespace-nowrap text-center">
+            <button type="button" onclick="window.adminActions.filterPlans('traffic')" data-plan-filter="traffic" class="admin-plan-filter-btn flex-1 py-1 px-2.5 rounded-lg font-bold text-slate-700 dark:text-slate-200 hover:text-white transition whitespace-nowrap text-center">
               ⚡️ افزایش حجم
             </button>
           </div>
@@ -505,10 +505,10 @@
               <span>کدهای تخفیف</span>
             </h3>
             <div class="flex items-center gap-2">
-              <button id="openBatchVoucherBtn" onclick="window.adminActions.openBatchVoucherModal()" class="bg-transparent hover:bg-cyan-600/10 text-cyan-400 hover:text-cyan-300 border border-cyan-500/40 text-[11px] font-bold px-3 py-1.5 rounded-xl transition active:scale-95 flex items-center gap-1">
+              <button id="openBatchVoucherBtn" onclick="window.adminActions.openBatchVoucherModal()" class="bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-black px-3.5 py-1.5 rounded-xl transition active:scale-95 flex items-center gap-1 shadow-sm">
                 <span>⚡️</span> تولید کارت شارژ
               </button>
-              <button id="openCreateCouponBtn" class="bg-transparent hover:bg-indigo-600/10 text-indigo-400 hover:text-indigo-300 border border-indigo-500/40 text-[11px] font-bold px-3 py-1.5 rounded-xl transition active:scale-95 flex items-center gap-1">
+              <button id="openCreateCouponBtn" class="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-black px-3.5 py-1.5 rounded-xl transition active:scale-95 flex items-center gap-1 shadow-sm">
                 <span>+</span> کد تخفیف
               </button>
             </div>
@@ -621,49 +621,49 @@
           </div>
 
           <!-- Live Support Chat Room (Hidden by default, opens on 'چت با کاربر') -->
-          <div id="adminChatContainer" class="bg-slate-800/90 rounded-2xl p-4 border border-slate-700/80 space-y-3 text-xs shadow mt-3 hidden">
-            <div id="activeChatWindow" class="bg-slate-950/70 rounded-2xl border border-slate-700/60 overflow-hidden space-y-0 shadow-md">
-              <!-- Header matching top card structure -->
-              <div class="p-3 bg-slate-900/95 border-b border-slate-800 space-y-2">
-                <!-- Top Header Row: Status on right (بدون تکرار #2), Close (✕) on left -->
+          <div id="adminChatContainer" class="card p-0 overflow-hidden shadow-lg mt-3 border border-slate-700/60 text-xs hidden">
+            <div id="activeChatWindow" class="space-y-0">
+              <!-- Header -->
+              <div class="p-3 card-inset border-b border-card-border space-y-2">
+                <!-- Top Header Row -->
                 <div class="flex items-center justify-between">
                   <div class="flex items-center gap-1.5">
-                    <span id="activeChatStatusBadge" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30">
+                    <span id="activeChatStatusBadge" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-bold bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30">
                       <span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>
                       در انتظار بررسی
                     </span>
                   </div>
-                  <button type="button" onclick="window.adminActions.closeUserChat()" class="modal-close-btn w-10 h-10 min-w-[40px] min-h-[40px]" title="بستن چت" aria-label="بستن چت کاربر">✕</button>
+                  <button type="button" onclick="window.adminActions.closeUserChat()" class="modal-close-btn w-9 h-9 min-w-[36px] min-h-[36px]" title="بستن چت" aria-label="بستن چت کاربر">✕</button>
                 </div>
 
-                <!-- Second Header Row: Photo + Name on right, Username on line 1, ID on line 2 under username sticking to left -->
+                <!-- Second Header Row: Photo + Name on right, Username & ID on left -->
                 <div class="flex items-center justify-between gap-2.5">
                   <div class="flex items-center gap-2 min-w-0">
                     <div id="activeChatUserAvatar" class="w-8 h-8 rounded-full bg-gradient-to-tr from-cyan-600 to-blue-600 text-white font-bold text-xs flex items-center justify-center flex-shrink-0 shadow overflow-hidden relative">
                       U
                     </div>
-                    <b id="activeChatUserName" class="text-white text-xs font-bold truncate max-w-[140px]">کاربر</b>
+                    <b id="activeChatUserName" class="t-main text-xs font-bold truncate max-w-[140px]">کاربر</b>
                   </div>
 
-                  <div class="flex flex-col items-start gap-0.5 font-mono text-[11px] text-slate-400 flex-shrink-0 text-left" dir="ltr">
-                    <span id="activeChatUserTag" class="text-slate-300 font-mono truncate max-w-[130px] block leading-tight">—</span>
-                    <span id="activeChatUserId" class="text-slate-400 font-mono block leading-tight">—</span>
+                  <div class="flex flex-col items-start gap-0.5 font-mono text-[11px] t-muted flex-shrink-0 text-left" dir="ltr">
+                    <span id="activeChatUserTag" class="t-main font-mono truncate max-w-[130px] block leading-tight">—</span>
+                    <span id="activeChatUserId" class="t-muted font-mono block leading-tight">—</span>
                   </div>
                 </div>
               </div>
 
               <!-- Speech Bubbles Feed -->
-              <div id="ticketChatStream" class="p-3.5 space-y-2.5 min-h-[180px] max-h-[300px] overflow-y-auto custom-scroll text-xs">
-                <div class="p-6 text-center text-slate-400 text-[11px]">در حال اتصال به چت...</div>
+              <div id="ticketChatStream" class="p-3.5 space-y-2.5 min-h-[180px] max-h-[300px] overflow-y-auto custom-scroll text-xs bg-transparent">
+                <div class="p-6 text-center t-muted text-[11px]">در حال اتصال به چت...</div>
               </div>
 
-              <!-- Message Composer Form: Send Icon on RIGHT (start in RTL), Input on LEFT (بدون پس‌زمینه) -->
-              <div class="p-2.5 bg-slate-900 border-t border-slate-800 flex items-center gap-2">
+              <!-- Message Composer Form -->
+              <div class="p-2.5 card-inset border-t border-card-border flex items-center gap-2">
                 <input type="hidden" id="directTicketUserId" value="" />
-                <button id="sendDirectTicketReplyBtn" class="bg-transparent hover:bg-blue-500/10 text-blue-400 hover:text-blue-300 p-2 rounded-xl transition active:scale-95 flex items-center justify-center flex-shrink-0" title="ارسال پیام">
+                <button id="sendDirectTicketReplyBtn" class="bg-blue-600 hover:bg-blue-500 text-white p-2 rounded-xl transition active:scale-95 flex items-center justify-center flex-shrink-0 shadow-sm" title="ارسال پیام">
                   <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
                 </button>
-                <input type="text" id="directTicketMsg" placeholder="پاسخ را بنویسید..." class="flex-1 bg-slate-950 border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-slate-200 outline-none focus:border-blue-500 transition" />
+                <input type="text" id="directTicketMsg" placeholder="پاسخ را بنویسید..." class="flex-1 input-base text-xs" />
               </div>
             </div>
           </div>
@@ -1788,7 +1788,7 @@
                 <input type="number" id="settingBirthdayRewardTraffic" dir="ltr" placeholder="2" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-pink-300 outline-none focus:border-pink-500 transition" />
               </div>
               <div>
-                <label class="text-[11px] text-slate-400 block mb-1">درصد کد تخفیف هدیه (٪)</label>
+                <label class="text-[11px] text-slate-400 block mb-1">درصد کد تخفیف هدیه (<span dir="ltr" class="font-mono font-bold">%</span>)</label>
                 <input type="number" id="settingBirthdayRewardDiscount" dir="ltr" placeholder="20" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-purple-300 outline-none focus:border-purple-500 transition" />
               </div>
             </div>
@@ -2386,7 +2386,7 @@
           <button type="button" id="confirmEditSslDomainBtn" onclick="window.adminActions.executeEditSslDomain()" class="flex-1 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-bold text-xs py-2.5 rounded-xl transition shadow active:scale-95 flex items-center justify-center gap-1.5">
             <span>ذخیره تغییرات</span>
           </button>
-          <button type="button" onclick="window.adminActions.closeEditSslDomainModal()" class="flex-1 bg-transparent hover:bg-slate-800 border border-slate-700/80 text-slate-300 hover:text-white text-xs py-2.5 rounded-xl transition">
+          <button type="button" onclick="window.adminActions.closeEditSslDomainModal()" class="flex-1 btn btn-secondary text-xs py-2.5 rounded-xl transition">
             انصراف
           </button>
         </div>
@@ -2462,7 +2462,7 @@
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
             <span>حذف دائمی کد</span>
           </button>
-          <button onclick="window.adminActions.closeDeleteCouponModal()" class="flex-1 bg-transparent hover:bg-slate-800 border border-slate-700/80 text-slate-300 hover:text-white text-xs py-2.5 rounded-xl transition">
+          <button onclick="window.adminActions.closeDeleteCouponModal()" class="flex-1 btn btn-secondary text-xs py-2.5 rounded-xl transition">
             انصراف
           </button>
         </div>
@@ -2677,7 +2677,7 @@
           </div>
         </div>
 
-        <p id="confirmModalMessage" class="text-xs text-slate-300 leading-relaxed bg-slate-900/60 p-3 rounded-2xl border border-slate-800/80">
+        <p id="confirmModalMessage" class="text-xs t-main leading-relaxed card-inset p-3 rounded-2xl border border-card-border">
           آیا از انجام این عملیات اطمینان دارید؟
         </p>
 
@@ -2685,7 +2685,7 @@
           <button id="confirmModalConfirmBtn" class="flex-1 bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs py-2.5 rounded-xl transition shadow active:scale-95 flex items-center justify-center gap-1.5">
             تایید و اجرا
           </button>
-          <button id="confirmModalCancelBtn" class="flex-1 bg-transparent hover:bg-slate-800/60 border border-slate-700/80 text-slate-300 hover:text-white text-xs py-2.5 rounded-xl transition">
+          <button id="confirmModalCancelBtn" class="flex-1 btn btn-secondary text-xs py-2.5 rounded-xl transition">
             انصراف
           </button>
         </div>
@@ -2778,16 +2778,16 @@
         <!-- Options List -->
         <div class="space-y-2.5">
           <!-- Option 1: Open -->
-          <div onclick="window.adminActions.selectAccessMode('open')" id="accessOpt-open" class="access-mode-opt cursor-pointer p-3.5 rounded-2xl border transition flex items-start gap-3 bg-slate-800/60 border-slate-700/70 hover:border-emerald-500/50">
-            <div class="w-9 h-9 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 flex items-center justify-center text-lg flex-shrink-0 mt-0.5">
+          <div onclick="window.adminActions.selectAccessMode('open')" id="accessOpt-open" class="access-mode-opt cursor-pointer p-3 rounded-2xl border transition flex items-start gap-3 card-inset border-card-border hover:border-emerald-500/50">
+            <div class="w-8 h-8 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-500 flex items-center justify-center text-base flex-shrink-0 mt-0.5">
               🌐
             </div>
             <div class="flex-1 min-w-0">
               <div class="flex items-center justify-between">
-                <b class="text-xs text-white">عمومی (Open)</b>
-                <span class="text-[10px] font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 px-2 py-0.5 rounded-full">پیش‌فرض</span>
+                <b class="text-xs t-main font-bold">عمومی</b>
+                <span class="text-[10px] font-bold text-emerald-600 dark:text-emerald-400">پیش‌فرض</span>
               </div>
-              <p class="text-[11px] text-slate-300 mt-1 leading-relaxed">ورود و ثبت‌نام برای تمامی کاربران تلگرام آزاد است و هر شخصی می‌تواند ربات را استارت کند.</p>
+              <p class="text-[10px] t-muted mt-0.5 leading-relaxed">ورود و ثبت‌نام برای تمامی کاربران تلگرام آزاد است و هر شخصی می‌تواند ربات را استارت کند.</p>
             </div>
             <div class="radio-check w-5 h-5 rounded-full border-2 border-slate-600 flex items-center justify-center mt-1 flex-shrink-0">
               <div class="radio-dot w-2.5 h-2.5 rounded-full bg-emerald-400 hidden"></div>
@@ -2795,16 +2795,16 @@
           </div>
 
           <!-- Option 2: Invite-Only -->
-          <div onclick="window.adminActions.selectAccessMode('invite_only')" id="accessOpt-invite_only" class="access-mode-opt cursor-pointer p-3.5 rounded-2xl border transition flex items-start gap-3 bg-slate-800/60 border-slate-700/70 hover:border-cyan-500/50">
-            <div class="w-9 h-9 rounded-xl bg-cyan-500/15 border border-cyan-500/30 text-cyan-400 flex items-center justify-center text-lg flex-shrink-0 mt-0.5">
+          <div onclick="window.adminActions.selectAccessMode('invite_only')" id="accessOpt-invite_only" class="access-mode-opt cursor-pointer p-3 rounded-2xl border transition flex items-start gap-3 card-inset border-card-border hover:border-cyan-500/50">
+            <div class="w-8 h-8 rounded-xl bg-cyan-500/15 border border-cyan-500/30 text-cyan-500 flex items-center justify-center text-base flex-shrink-0 mt-0.5">
               🎟️
             </div>
             <div class="flex-1 min-w-0">
               <div class="flex items-center justify-between">
-                <b class="text-xs text-white">فقط با دعوت (Invite-Only)</b>
-                <span class="text-[10px] font-bold text-cyan-400 bg-cyan-500/10 border border-cyan-500/30 px-2 py-0.5 rounded-full">اختصاصی</span>
+                <b class="text-xs t-main font-bold">فقط با دعوت</b>
+                <span class="text-[10px] font-bold text-cyan-600 dark:text-cyan-400">اختصاصی</span>
               </div>
-              <p class="text-[11px] text-slate-300 mt-1 leading-relaxed">تنها کاربرانی که از طریق لینک دعوت/رفرال وارد شوند اجازه ثبت‌نام دارند.</p>
+              <p class="text-[10px] t-muted mt-0.5 leading-relaxed">تنها کاربرانی که از طریق لینک دعوت/رفرال وارد شوند اجازه ثبت‌نام دارند.</p>
             </div>
             <div class="radio-check w-5 h-5 rounded-full border-2 border-slate-600 flex items-center justify-center mt-1 flex-shrink-0">
               <div class="radio-dot w-2.5 h-2.5 rounded-full bg-cyan-400 hidden"></div>
@@ -2812,16 +2812,16 @@
           </div>
 
           <!-- Option 3: Closed -->
-          <div onclick="window.adminActions.selectAccessMode('closed')" id="accessOpt-closed" class="access-mode-opt cursor-pointer p-3.5 rounded-2xl border transition flex items-start gap-3 bg-slate-800/60 border-slate-700/70 hover:border-rose-500/50">
-            <div class="w-9 h-9 rounded-xl bg-rose-500/15 border border-rose-500/30 text-rose-400 flex items-center justify-center text-lg flex-shrink-0 mt-0.5">
+          <div onclick="window.adminActions.selectAccessMode('closed')" id="accessOpt-closed" class="access-mode-opt cursor-pointer p-3 rounded-2xl border transition flex items-start gap-3 card-inset border-card-border hover:border-rose-500/50">
+            <div class="w-8 h-8 rounded-xl bg-rose-500/15 border border-rose-500/30 text-rose-500 flex items-center justify-center text-base flex-shrink-0 mt-0.5">
               🔒
             </div>
             <div class="flex-1 min-w-0">
               <div class="flex items-center justify-between">
-                <b class="text-xs text-white">بسته / تعمیرات (Closed)</b>
-                <span class="text-[10px] font-bold text-rose-400 bg-rose-500/10 border border-rose-500/30 px-2 py-0.5 rounded-full">محدود</span>
+                <b class="text-xs t-main font-bold">بسته / تعمیرات</b>
+                <span class="text-[10px] font-bold text-rose-600 dark:text-rose-400">محدود</span>
               </div>
-              <p class="text-[11px] text-slate-300 mt-1 leading-relaxed">ثبت‌نام کاربران جدید متوقف است؛ کاربران فعلی می‌توانند سرویس‌های خود را مدیریت کنند.</p>
+              <p class="text-[10px] t-muted mt-0.5 leading-relaxed">ثبت‌نام کاربران جدید متوقف است؛ کاربران فعلی می‌توانند سرویس‌های خود را مدیریت کنند.</p>
             </div>
             <div class="radio-check w-5 h-5 rounded-full border-2 border-slate-600 flex items-center justify-center mt-1 flex-shrink-0">
               <div class="radio-dot w-2.5 h-2.5 rounded-full bg-rose-400 hidden"></div>
@@ -2830,7 +2830,7 @@
         </div>
 
         <div class="pt-2">
-          <button type="button" onclick="window.adminActions.closeAccessModeModal()" class="w-full bg-slate-800 hover:bg-slate-750 text-slate-300 hover:text-white font-bold text-xs py-2.5 rounded-xl border border-slate-700 transition">
+          <button type="button" onclick="window.adminActions.closeAccessModeModal()" class="w-full btn btn-secondary text-xs py-2.5 rounded-xl transition">
             بستن
           </button>
         </div>
@@ -2869,7 +2869,7 @@
     </div>
 
     <!-- MODAL 7: Receipt Photo Fullscreen Preview Modal -->
-    <div id="receiptPhotoModal" class="absolute inset-0 bg-black/90 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+    <div id="receiptPhotoModal" class="absolute inset-0 modal-backdrop z-50 flex items-center justify-center p-4 hidden">
       <div class="modal-card border border-slate-700 rounded-3xl p-4 w-full max-w-[420px] max-h-[90vh] flex flex-col space-y-3 shadow-2xl relative">
         <div class="flex justify-between items-center border-b border-slate-700/60 pb-2 flex-shrink-0">
           <h4 class="text-xs font-bold t-main flex items-center gap-1.5">
@@ -2878,23 +2878,23 @@
           </h4>
           <button onclick="window.adminActions.closeReceiptPhotoModal()" class="modal-close-btn" aria-label="بستن">✕</button>
         </div>
-        <div class="flex-1 min-h-[160px] overflow-auto flex items-center justify-center p-2 bg-black/40 rounded-2xl border border-slate-800 relative">
+        <div class="flex-1 min-h-[160px] overflow-auto flex items-center justify-center p-2 card-inset rounded-2xl relative">
           <!-- Spinner -->
-          <div id="receiptModalSpinner" class="flex flex-col items-center gap-2 text-slate-400 text-xs hidden">
+          <div id="receiptModalSpinner" class="flex flex-col items-center gap-2 t-muted text-xs hidden">
             <span class="w-7 h-7 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin"></span>
             <span>در حال دریافت تصویر فیش از سرور تلگرام...</span>
           </div>
           <!-- Error Box -->
           <div id="receiptModalError" class="p-4 text-center text-xs text-rose-400 hidden"></div>
           <!-- Text Info Box (for text tracking code) -->
-          <div id="receiptModalTextInfo" class="p-4 text-center text-xs text-slate-200 hidden space-y-2 w-full">
-            <p class="text-slate-400 text-[11px]">شماره پیگیری / اطلاعات ثبت‌شده توسط کاربر:</p>
-            <div id="receiptModalTextContent" class="p-3 bg-slate-900 rounded-xl border border-slate-700 font-mono text-cyan-300 text-xs select-all break-all"></div>
+          <div id="receiptModalTextInfo" class="p-4 text-center text-xs t-main hidden space-y-2 w-full">
+            <p class="t-muted text-[11px]">شماره پیگیری / اطلاعات ثبت‌شده توسط کاربر:</p>
+            <div id="receiptModalTextContent" class="p-3 card-inset rounded-xl border border-card-border font-mono text-cyan-700 dark:text-cyan-300 font-bold text-xs select-all break-all"></div>
           </div>
           <!-- Image Element -->
           <img id="receiptModalImage" src="" alt="رسید واریزی" class="max-h-[65vh] w-auto max-w-full rounded-xl object-contain shadow-lg hidden" loading="lazy" />
         </div>
-        <button onclick="window.adminActions.closeReceiptPhotoModal()" class="w-full bg-transparent hover:bg-slate-800 border border-slate-700 text-slate-300 hover:text-white font-bold text-xs py-2 rounded-xl transition">
+        <button onclick="window.adminActions.closeReceiptPhotoModal()" class="w-full btn btn-secondary text-xs py-2 rounded-xl transition">
           بستن
         </button>
       </div>
@@ -2959,7 +2959,7 @@
             </div>
 
             <!-- Auto-conversion calculation banner (pure calculation, strictly LTR) -->
-            <div id="nodeBillingEurConvertHint" dir="ltr" class="text-[11px] font-mono font-semibold p-2 rounded-xl hidden flex items-center justify-start gap-2 border bg-emerald-500/10 border-emerald-500/25 text-emerald-300 text-left">
+            <div id="nodeBillingEurConvertHint" dir="ltr" class="text-[11px] font-mono font-bold p-2 rounded-xl hidden flex items-center justify-start gap-2 border bg-emerald-500/10 border-emerald-500/30 text-emerald-800 dark:text-emerald-300 text-left">
               <svg class="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
               <span id="nodeBillingEurConvertText"></span>
             </div>
