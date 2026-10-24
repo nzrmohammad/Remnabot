@@ -305,7 +305,7 @@ openUserChat(telegram_id, name, tag, topup_id) {
                   </div>
                   <div class="min-w-0">
                     <div class="flex items-center gap-1.5">
-                      <b class="text-xs text-white truncate">${escapeHtml(c.name)}</b>
+                      <b class="text-xs t-main truncate">${escapeHtml(c.name)}</b>
                       ${roiText ? `<span class="px-1.5 py-0.5 rounded text-[9px] font-mono ${roiColor} bg-slate-900/80 border border-slate-700/60" dir="ltr">${roiText}</span>` : ''}
                     </div>
                     <span class="text-[10px] font-mono text-cyan-400 dir-ltr block mt-0.5">ad_${escapeHtml(c.code)}</span>
@@ -329,21 +329,21 @@ openUserChat(telegram_id, name, tag, topup_id) {
 
               <!-- Stats Grid: 4 symmetric boxes including Cost -->
               <div class="grid grid-cols-4 gap-1.5 sm:gap-2 pt-1 border-t border-slate-700/50 text-center">
-                <div class="p-1.5 sm:p-2 rounded-xl bg-slate-900/40 border border-slate-700/40">
-                  <span class="text-[10px] text-slate-400 block mb-0.5 whitespace-nowrap">ورودی</span>
-                  <b class="text-xs font-mono text-white">${formatNumber(c.users_count)}</b>
+                <div class="p-1.5 sm:p-2 rounded-xl card-inset">
+                  <span class="text-[10px] t-muted block mb-0.5 whitespace-nowrap">ورودی</span>
+                  <b class="text-xs font-mono t-main">${formatNumber(c.users_count)}</b>
                 </div>
-                <div class="p-1.5 sm:p-2 rounded-xl bg-slate-900/40 border border-slate-700/40">
-                  <span class="text-[10px] text-slate-400 block mb-0.5 whitespace-nowrap">خریداران</span>
-                  <b class="text-xs font-mono text-cyan-300">${formatNumber(c.buyers_count)}</b>
+                <div class="p-1.5 sm:p-2 rounded-xl card-inset">
+                  <span class="text-[10px] t-muted block mb-0.5 whitespace-nowrap">خریداران</span>
+                  <b class="text-xs font-mono text-cyan-600 dark:text-cyan-300">${formatNumber(c.buyers_count)}</b>
                 </div>
-                <div class="p-1.5 sm:p-2 rounded-xl bg-slate-900/40 border border-slate-700/40">
-                  <span class="text-[10px] text-slate-400 block mb-0.5 whitespace-nowrap">درآمد فروش</span>
-                  <b class="text-xs font-mono text-emerald-400">${formatNumber(c.total_revenue)}</b>
+                <div class="p-1.5 sm:p-2 rounded-xl card-inset">
+                  <span class="text-[10px] t-muted block mb-0.5 whitespace-nowrap">درآمد فروش</span>
+                  <b class="text-xs font-mono text-emerald-600 dark:text-emerald-400">${formatNumber(c.total_revenue)}</b>
                 </div>
-                <div class="p-1.5 sm:p-2 rounded-xl bg-slate-900/40 border border-slate-700/40">
-                  <span class="text-[10px] text-slate-400 block mb-0.5 whitespace-nowrap">هزینه تبلیغ</span>
-                  <b class="text-xs font-mono text-amber-300">${c.cost ? formatNumber(c.cost) : '۰'}</b>
+                <div class="p-1.5 sm:p-2 rounded-xl card-inset">
+                  <span class="text-[10px] t-muted block mb-0.5 whitespace-nowrap">هزینه تبلیغ</span>
+                  <b class="text-xs font-mono text-amber-600 dark:text-amber-300">${c.cost ? formatNumber(c.cost) : '۰'}</b>
                 </div>
               </div>
             </div>

@@ -1216,18 +1216,17 @@ async applyUserModification() {
         }
       }
 
-      // Populate internal squads dropdown
-      if (squadSelect && window.api && window.api.getAdminInternalSquads) {
-        squadSelect.innerHTML = '<option value="">🌐 پیش‌فرض فروشگاه / بدون اسکواد اختصاصی</option>';
+      // Initialize internal squad selector
+      if (squadSelect) squadSelect.value = '';
+      if ($('createUserSquadLabel')) $('createUserSquadLabel').innerText = 'پیش‌فرض فروشگاه / بدون اسکواد اختصاصی';
+      if ($('createUserSquadIcon')) $('createUserSquadIcon').innerText = '🌐';
+
+      // Pre-fetch internal squads
+      if (window.api && window.api.getAdminInternalSquads) {
         try {
           const res = await window.api.getAdminInternalSquads();
           if (res && res.ok && Array.isArray(res.squads)) {
-            res.squads.forEach(sq => {
-              const opt = document.createElement('option');
-              opt.value = sq.uuid || sq.id;
-              opt.textContent = `🧩 ${sq.name || sq.uuid || 'Squad'}`;
-              squadSelect.appendChild(opt);
-            });
+            window._adminInternalSquads = res.squads;
           }
         } catch (e) {
           console.error('Failed to load internal squads', e);
@@ -1312,14 +1311,14 @@ async applyUserModification() {
       const selectedId = $('createUserSelectedPlanId')?.value || 'custom';
 
       let html = `
-        <div onclick="window.adminActions.selectCreateUserPlan('custom')" class="p-3 rounded-2xl border transition cursor-pointer flex items-center justify-between gap-3 ${selectedId === 'custom' ? 'bg-blue-600/15 border-blue-500 shadow-sm' : 'bg-slate-900/70 border-slate-700/60 hover:border-slate-600'}">
+        <div onclick="window.adminActions.selectCreateUserPlan('custom')" class="p-3 rounded-2xl border transition cursor-pointer flex items-center justify-between gap-3 ${selectedId === 'custom' ? 'bg-blue-600/15 border-blue-500 shadow-sm' : 'card-inset hover:border-slate-500/50'}">
           <div class="flex items-center gap-3 min-w-0">
-            <div class="w-9 h-9 rounded-xl bg-slate-800 text-slate-300 border border-slate-700 flex items-center justify-center font-bold text-base shrink-0">
+            <div class="w-9 h-9 rounded-xl bg-blue-500/15 text-blue-400 border border-blue-500/30 flex items-center justify-center font-bold text-base shrink-0">
               ⚙️
             </div>
             <div class="min-w-0">
-              <span class="font-bold text-white text-xs block">تنظیمات سفارشی (دستی)</span>
-              <span class="text-[10px] text-slate-400 block mt-0.5">تعیین دستی حجم، روز و محدودیت دلخواه</span>
+              <span class="font-bold t-main text-xs block">تنظیمات سفارشی (دستی)</span>
+              <span class="text-[10px] t-muted block mt-0.5">تعیین دستی حجم، روز و محدودیت دلخواه</span>
             </div>
           </div>
           <div class="shrink-0 text-blue-400 text-sm font-bold">${selectedId === 'custom' ? '✓' : ''}</div>
@@ -1336,25 +1335,25 @@ async applyUserModification() {
         html += completePlans.map(p => {
           const isSelected = String(selectedId) === String(p.id);
           const trafficLabel = fmtTraffic(p.traffic_gb, { html: false });
-          const badgeHtml = p.badge ? `<span class="px-1.5 py-0.5 text-[9.5px] rounded bg-blue-500/15 text-blue-400 font-bold border border-blue-500/30">${escapeHtml(p.badge)}</span>` : '';
+          const badgeHtml = p.badge ? `<span class="px-1.5 py-0.5 text-[9.5px] rounded border border-blue-500/40 text-blue-500 dark:text-blue-400 font-bold">${escapeHtml(p.badge)}</span>` : '';
           const priceLabel = p.price ? (typeof fmtMoney === 'function' ? fmtMoney(p.price) : `${p.price} تومان`) : '';
 
           return `
-            <div onclick="window.adminActions.selectCreateUserPlan('${p.id}')" class="p-3 rounded-2xl border transition cursor-pointer flex items-center justify-between gap-3 ${isSelected ? 'bg-blue-600/15 border-blue-500 shadow-sm' : 'bg-slate-900/70 border-slate-700/60 hover:border-slate-600'}">
+            <div onclick="window.adminActions.selectCreateUserPlan('${p.id}')" class="p-3 rounded-2xl border transition cursor-pointer flex items-center justify-between gap-3 ${isSelected ? 'bg-blue-600/15 border-blue-500 shadow-sm' : 'card-inset hover:border-slate-500/50'}">
               <div class="flex items-center gap-3 min-w-0 flex-1">
                 <div class="w-9 h-9 rounded-xl bg-blue-500/15 text-blue-400 border border-blue-500/30 flex items-center justify-center font-bold text-base shrink-0">
                   📦
                 </div>
                 <div class="min-w-0 flex-1">
                   <div class="flex items-center gap-1.5 flex-wrap">
-                    <span class="font-bold text-white text-xs truncate">${escapeHtml(p.name)}</span>
+                    <span class="font-bold t-main text-xs truncate">${escapeHtml(p.name)}</span>
                     ${badgeHtml}
                   </div>
-                  <div class="flex items-center gap-2 text-[10px] text-slate-400 mt-0.5 font-mono">
-                    <span class="text-cyan-300 font-bold">${trafficLabel}</span>
+                  <div class="flex items-center gap-2 text-[10px] t-muted mt-0.5 font-mono">
+                    <span class="text-cyan-600 dark:text-cyan-300 font-bold">${trafficLabel}</span>
                     <span>•</span>
-                    <span class="text-amber-300 font-bold">${p.duration_days} روز</span>
-                    ${priceLabel ? `<span>•</span> <span class="text-slate-300 font-sans">${escapeHtml(priceLabel)}</span>` : ''}
+                    <span class="text-amber-600 dark:text-amber-300 font-bold">${p.duration_days} روز</span>
+                    ${priceLabel ? `<span>•</span> <span class="t-muted font-sans">${escapeHtml(priceLabel)}</span>` : ''}
                   </div>
                 </div>
               </div>
@@ -1370,6 +1369,74 @@ async applyUserModification() {
     closePlanPickerModal() {
       const modal = $('planPickerModal');
       if (modal) modal.classList.add('hidden');
+    },
+
+    async openSquadPickerModal() {
+      const modal = $('squadPickerModal');
+      const list = $('squadPickerList');
+      if (!modal || !list) return;
+
+      modal.classList.remove('hidden');
+      if (window.hapticFeedback) window.hapticFeedback('selection');
+
+      const currentVal = $('createUserSquadSelect')?.value || '';
+
+      list.innerHTML = '<div class="p-4 text-center t-muted text-xs">در حال بارگذاری اسکوادها...</div>';
+
+      let squads = window._adminInternalSquads || [];
+      if (!squads.length && window.api && window.api.getAdminInternalSquads) {
+        try {
+          const res = await window.api.getAdminInternalSquads();
+          if (res && res.ok && Array.isArray(res.squads)) {
+            squads = res.squads;
+            window._adminInternalSquads = squads;
+          }
+        } catch (e) {
+          console.error('Failed to load squads for picker', e);
+        }
+      }
+
+      let html = `
+        <div onclick="window.adminActions.selectCreateUserSquad('', 'پیش‌فرض فروشگاه / بدون اسکواد اختصاصی', '🌐')" class="p-3 rounded-2xl border transition cursor-pointer flex items-center justify-between gap-3 ${currentVal === '' ? 'bg-blue-600/15 border-blue-500 shadow-sm' : 'card-inset hover:border-slate-500/50'}">
+          <div class="flex items-center gap-2.5 min-w-0">
+            <span class="text-base">🌐</span>
+            <span class="text-xs font-bold ${currentVal === '' ? 't-info' : 't-main'}">پیش‌فرض فروشگاه / بدون اسکواد اختصاصی</span>
+          </div>
+          <span class="text-xs font-bold t-info">${currentVal === '' ? '✓' : ''}</span>
+        </div>
+      `;
+
+      squads.forEach(sq => {
+        const sqId = sq.uuid || sq.id;
+        const sqName = sq.name || sq.uuid || 'Squad';
+        const isSelected = String(currentVal) === String(sqId);
+        html += `
+          <div onclick="window.adminActions.selectCreateUserSquad('${escapeHtml(sqId)}', '${escapeHtml(sqName)}', '🧩')" class="p-3 rounded-2xl border transition cursor-pointer flex items-center justify-between gap-3 ${isSelected ? 'bg-blue-600/15 border-blue-500 shadow-sm' : 'card-inset hover:border-slate-500/50'}">
+            <div class="flex items-center gap-2.5 min-w-0">
+              <span class="text-base">🧩</span>
+              <span class="text-xs font-bold ${isSelected ? 't-info' : 't-main'}">${escapeHtml(sqName)}</span>
+            </div>
+            <span class="text-xs font-bold t-info">${isSelected ? '✓' : ''}</span>
+          </div>
+        `;
+      });
+
+      list.innerHTML = html;
+    },
+
+    closeSquadPickerModal() {
+      $('squadPickerModal')?.classList.add('hidden');
+    },
+
+    selectCreateUserSquad(uuid, name, icon = '🧩') {
+      const input = $('createUserSquadSelect');
+      const label = $('createUserSquadLabel');
+      const iconEl = $('createUserSquadIcon');
+      if (input) input.value = uuid;
+      if (label) label.innerText = name;
+      if (iconEl) iconEl.innerText = icon;
+      this.closeSquadPickerModal();
+      if (window.hapticFeedback) window.hapticFeedback('selection');
     },
 
     selectCreateUserPlan(planId) {
@@ -1403,8 +1470,12 @@ async applyUserModification() {
       if (durationInput) durationInput.value = plan.duration_days || 30;
       if (hwidInput) hwidInput.value = plan.hwid_limit || '';
 
-      if (plan.squad_uuid && squadSelect) {
-        squadSelect.value = plan.squad_uuid;
+      if (plan.squad_uuid) {
+        if (squadSelect) squadSelect.value = plan.squad_uuid;
+        const squads = window._adminInternalSquads || [];
+        const sq = squads.find(s => (s.uuid || s.id) === plan.squad_uuid);
+        if ($('createUserSquadLabel')) $('createUserSquadLabel').innerText = sq ? (sq.name || sq.uuid) : 'اسکواد بسته انتخابی';
+        if ($('createUserSquadIcon')) $('createUserSquadIcon').innerText = '🧩';
       }
     },
 
@@ -1498,11 +1569,11 @@ async applyUserModification() {
           activeCard.className = 'p-2.5 rounded-xl border border-blue-500 bg-blue-500/10 cursor-pointer flex flex-col items-center text-center gap-1 transition';
         }
         if (allCard) {
-          allCard.className = 'p-2.5 rounded-xl border border-slate-700 bg-slate-900/60 cursor-pointer flex flex-col items-center text-center gap-1 transition hover:border-slate-600';
+          allCard.className = 'p-2.5 rounded-xl border border-slate-700/80 card-inset cursor-pointer flex flex-col items-center text-center gap-1 transition hover:border-slate-500/50';
         }
       } else {
         if (activeCard) {
-          activeCard.className = 'p-2.5 rounded-xl border border-slate-700 bg-slate-900/60 cursor-pointer flex flex-col items-center text-center gap-1 transition hover:border-slate-600';
+          activeCard.className = 'p-2.5 rounded-xl border border-slate-700/80 card-inset cursor-pointer flex flex-col items-center text-center gap-1 transition hover:border-slate-500/50';
         }
         if (allCard) {
           allCard.className = 'p-2.5 rounded-xl border border-blue-500 bg-blue-500/10 cursor-pointer flex flex-col items-center text-center gap-1 transition';
@@ -1520,7 +1591,7 @@ async applyUserModification() {
       const inputEl = $('bulkAmountInput');
 
       const activeClass = 'py-2 rounded-xl font-bold bg-blue-600 text-white shadow-md text-center flex items-center justify-center gap-1.5 transition active:scale-95';
-      const inactiveClass = 'py-2 rounded-xl font-semibold text-slate-300 hover:text-white hover:bg-slate-800/60 text-center flex items-center justify-center gap-1.5 transition active:scale-95';
+      const inactiveClass = 'py-2 rounded-xl font-semibold t-muted hover:t-main hover:bg-slate-500/10 text-center flex items-center justify-center gap-1.5 transition active:scale-95';
 
       if (type === 'add_traffic') {
         if (trafficBtn) trafficBtn.className = activeClass;

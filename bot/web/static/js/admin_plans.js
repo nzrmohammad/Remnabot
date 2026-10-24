@@ -17,6 +17,40 @@
   let adminPlansData = window.adminPlansData;
   let adminCouponsData = window.adminCouponsData;
 
+  const PLAN_BADGE_MAP = {
+    '': 'بدون نشان (پلن استاندارد)',
+    'bestseller': '🔥 پرفروش‌ترین',
+    'popular': '⭐ محبوب‌ترین',
+    'economic': '💰 اقتصادی‌ترین',
+    'vip': '👑 پیشنهاد ویژه',
+    'traffic': '⚡️ بسته افزایش حجم',
+    'time': '⏳ بسته افزایش زمان'
+  };
+
+  window.switchServicesSubtab = function(subtab) {
+    const btnPlans = $('subtabBtnPlans');
+    const btnCoupons = $('subtabBtnCoupons');
+    const contentPlans = $('subtabContentPlans');
+    const contentCoupons = $('subtabContentCoupons');
+
+    if (window.hapticFeedback) window.hapticFeedback('selection');
+
+    const isPlans = subtab === 'plans';
+    btnPlans?.classList.toggle('is-active', isPlans);
+    btnPlans?.setAttribute('aria-selected', isPlans ? 'true' : 'false');
+    btnCoupons?.classList.toggle('is-active', !isPlans);
+    btnCoupons?.setAttribute('aria-selected', !isPlans ? 'true' : 'false');
+
+    contentPlans?.classList.toggle('hidden', !isPlans);
+    contentCoupons?.classList.toggle('hidden', isPlans);
+
+    if (isPlans) {
+      if (window.adminActions?.fetchAdminPlans) window.adminActions.fetchAdminPlans();
+    } else {
+      if (window.adminActions?.fetchAdminCoupons) window.adminActions.fetchAdminCoupons();
+    }
+  };
+
   // Plans & Coupons Actions
   Object.assign(window.adminActions, {
 // --- Plans Actions ---
@@ -113,36 +147,36 @@
           let specsHtml = '';
           if (isExtraTraffic) {
             specsHtml = `
-              <div class="grid grid-cols-1 text-center text-[10px] bg-slate-900/60 p-2 rounded-xl font-mono">
+              <div class="grid grid-cols-1 text-center text-[10px] card-inset p-2 rounded-xl font-mono">
                 <div>
-                  <span class="text-slate-400 block text-[10px] font-sans">حجم اضافه</span>
+                  <span class="t-muted block text-[10px] font-sans">حجم اضافه</span>
                   ${trafficHtml}
                 </div>
               </div>
             `;
           } else if (isExtraTime) {
             specsHtml = `
-              <div class="grid grid-cols-1 text-center text-[10px] bg-slate-900/60 p-2 rounded-xl font-mono">
+              <div class="grid grid-cols-1 text-center text-[10px] card-inset p-2 rounded-xl font-mono">
                 <div>
-                  <span class="text-slate-400 block text-[10px] font-sans">مدت زمان اضافه</span>
-                  <b class="text-amber-300">${durationText}</b>
+                  <span class="t-muted block text-[10px] font-sans">مدت زمان اضافه</span>
+                  <b class="text-amber-500 dark:text-amber-300">${durationText}</b>
                 </div>
               </div>
             `;
           } else {
             specsHtml = `
-              <div class="grid grid-cols-3 gap-1.5 text-center text-[10px] bg-slate-900/60 p-2 rounded-xl font-mono">
+              <div class="grid grid-cols-3 gap-1.5 text-center text-[10px] card-inset p-2 rounded-xl font-mono">
                 <div>
-                  <span class="text-slate-400 block text-[10px] font-sans">حجم ترافیک</span>
+                  <span class="t-muted block text-[10px] font-sans">حجم ترافیک</span>
                   ${trafficHtml}
                 </div>
                 <div>
-                  <span class="text-slate-400 block text-[10px] font-sans">مدت زمان</span>
-                  <b class="text-amber-300">${durationText}</b>
+                  <span class="t-muted block text-[10px] font-sans">مدت زمان</span>
+                  <b class="text-amber-500 dark:text-amber-300">${durationText}</b>
                 </div>
                 <div>
-                  <span class="text-slate-400 block text-[10px] font-sans">محدودیت HWID</span>
-                  <b class="text-purple-300">${hwidText}</b>
+                  <span class="t-muted block text-[10px] font-sans">محدودیت HWID</span>
+                  <b class="text-purple-500 dark:text-purple-300">${hwidText}</b>
                 </div>
               </div>
             `;
@@ -314,7 +348,9 @@
       $('planModalDuration').value = plan ? plan.duration_days : '';
       $('planModalHwid').value = plan ? (plan.hwid_limit || '') : '';
       $('planModalDesc').value = plan ? (plan.description || '') : '';
-      if ($('planModalBadge')) $('planModalBadge').value = plan ? (plan.badge || '') : '';
+      const currentBadge = plan ? (plan.badge || '') : '';
+      if ($('planModalBadge')) $('planModalBadge').value = currentBadge;
+      if ($('planModalBadgeLabel')) $('planModalBadgeLabel').innerText = PLAN_BADGE_MAP[currentBadge] || PLAN_BADGE_MAP[''];
       if ($('planModalMaxPurchases')) $('planModalMaxPurchases').value = (plan && plan.max_purchases) ? plan.max_purchases : '';
       $('planModalActive').checked = plan ? !!plan.is_active : true;
 
@@ -331,6 +367,37 @@
 
     closePlanModal() {
       $('planModal')?.classList.add('hidden');
+    },
+
+    openPlanBadgePickerModal() {
+      const modal = $('planBadgePickerModal');
+      const list = $('planBadgePickerList');
+      if (!modal || !list) return;
+
+      const currentVal = $('planModalBadge')?.value || '';
+      list.innerHTML = Object.entries(PLAN_BADGE_MAP).map(([key, label]) => {
+        const isSelected = currentVal === key;
+        return `
+          <div onclick="window.adminActions.selectPlanBadge('${key}')" class="p-3 rounded-2xl border transition cursor-pointer flex items-center justify-between gap-3 ${isSelected ? 'bg-blue-600/15 border-blue-500 shadow-sm' : 'card-inset hover:border-slate-500/50'}">
+            <span class="text-xs font-bold ${isSelected ? 't-info' : 't-main'}">${escapeHtml(label)}</span>
+            <span class="text-xs font-bold t-info">${isSelected ? '✓' : ''}</span>
+          </div>
+        `;
+      }).join('');
+
+      modal.classList.remove('hidden');
+      if (window.hapticFeedback) window.hapticFeedback('selection');
+    },
+
+    closePlanBadgePickerModal() {
+      $('planBadgePickerModal')?.classList.add('hidden');
+    },
+
+    selectPlanBadge(key) {
+      if ($('planModalBadge')) $('planModalBadge').value = key;
+      if ($('planModalBadgeLabel')) $('planModalBadgeLabel').innerText = PLAN_BADGE_MAP[key] || PLAN_BADGE_MAP[''];
+      this.closePlanBadgePickerModal();
+      if (window.hapticFeedback) window.hapticFeedback('selection');
     },
 
     async savePlan() {

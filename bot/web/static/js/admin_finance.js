@@ -580,9 +580,9 @@ openCryptoRatesModal() {
             <!-- Top Status Row: Receipt & Status on right (بدون علامت #), Date on left -->
             <div class="flex items-center justify-between border-b border-slate-700/60 pb-2">
               <div class="flex items-center gap-1.5">
-                <span class="font-mono text-xs font-bold text-amber-400">فیش ${t.id}</span>
-                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30">
-                  <span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>
+                <span class="font-mono text-xs font-bold text-amber-500 dark:text-amber-400">فیش ${t.id}</span>
+                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-bold bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30">
+                  <span class="w-1.5 h-1.5 rounded-full bg-amber-500 dark:bg-amber-400 animate-pulse"></span>
                   در انتظار بررسی
                 </span>
               </div>
@@ -597,7 +597,7 @@ openCryptoRatesModal() {
                   <span class="font-bold">${escapeHtml(initial)}</span>
                 </div>
                 <div class="min-w-0 space-y-0.5">
-                  <b class="text-white text-xs font-bold block truncate max-w-[140px] cursor-pointer hover:text-cyan-300" data-copy="${escapeHtml(uLabel)}" onclick="window.adminActions.quickCopy(this.dataset.copy, 'نام')" title="${escapeHtml(uLabel)}">${escapeHtml(uLabel)}</b>
+                  <b class="t-main text-xs font-bold block truncate max-w-[140px] cursor-pointer hover:text-cyan-500 dark:hover:text-cyan-300" data-copy="${escapeHtml(uLabel)}" onclick="window.adminActions.quickCopy(this.dataset.copy, 'نام')" title="${escapeHtml(uLabel)}">${escapeHtml(uLabel)}</b>
                   <div class="flex items-baseline gap-1 text-emerald-400 font-bold" dir="rtl">
                     <span class="text-sm font-black font-mono leading-none">${formatNumber(t.amount || 0)}</span>
                     <span class="text-[10px] text-emerald-500/90 font-sans">تومان</span>
@@ -614,8 +614,8 @@ openCryptoRatesModal() {
 
             <!-- Action Buttons: Chat on right, Photo icon & Action buttons on left (همه بدون پس‌زمینه) -->
             <div class="flex items-center justify-between gap-2 pt-1 border-t border-slate-700/50">
-              <button data-action="chat" data-tgid="${t.telegram_id}" data-name="${escapeHtml(uLabel)}" data-tag="${escapeHtml(usernameTag || ('#' + t.telegram_id))}" data-topupid="${t.id}" onclick="window.adminActions.openUserChat(this.dataset.tgid, this.dataset.name, this.dataset.tag, this.dataset.topupid)" class="bg-transparent hover:bg-slate-750/30 text-slate-300 hover:text-white px-3 py-1.5 rounded-xl text-xs font-medium transition flex items-center gap-1.5 active:scale-95 border border-slate-700/60" title="گفتگوی مستقیم با کاربر">
-                <svg class="w-3.5 h-3.5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+              <button data-action="chat" data-tgid="${t.telegram_id}" data-name="${escapeHtml(uLabel)}" data-tag="${escapeHtml(usernameTag || ('#' + t.telegram_id))}" data-topupid="${t.id}" onclick="window.adminActions.openUserChat(this.dataset.tgid, this.dataset.name, this.dataset.tag, this.dataset.topupid)" class="btn btn-secondary px-3 py-1.5 rounded-xl text-xs font-medium transition flex items-center gap-1.5 active:scale-95" title="گفتگوی مستقیم با کاربر">
+                <svg class="w-3.5 h-3.5 text-cyan-500 dark:text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
                 <span>چت با کاربر</span>
               </button>
 

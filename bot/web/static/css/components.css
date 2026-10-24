@@ -610,7 +610,10 @@ html.theme-light .modal-card .bg-slate-900\/50,
 html.theme-light .modal-card .bg-slate-900\/60,
 html.theme-light .modal-card .bg-slate-900\/70,
 html.theme-light .modal-card .bg-slate-900\/80,
-html.theme-light .modal-card .bg-slate-950 {
+html.theme-light .modal-card .bg-slate-900\/90,
+html.theme-light .modal-card .bg-slate-950,
+html.theme-light .modal-card .bg-slate-950\/60,
+html.theme-light .modal-card .bg-slate-950\/80 {
   background-color: var(--card-inner-bg);
   border-color: var(--card-border);
 }

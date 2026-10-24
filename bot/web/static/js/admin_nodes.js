@@ -44,7 +44,7 @@
       return `
         <div class="bg-slate-900/70 rounded-2xl border border-slate-700/60 overflow-hidden transition shadow-sm">
           <!-- Accordion Header -->
-          <div class="p-3 flex justify-between items-center cursor-pointer hover:bg-slate-800/40 transition select-none" onclick="window.toggleNodeAccordion(${idx})">
+          <div class="p-3 flex justify-between items-center cursor-pointer hover:bg-slate-500/10 transition select-none" onclick="window.toggleNodeAccordion(${idx})">
             <div class="flex items-center gap-2.5">
               <span class="text-xl flex-shrink-0">${flag}</span>
               <div>
@@ -255,7 +255,7 @@
           <div class="absolute top-0 right-0 left-0 h-[2px] ${isOnline ? 'bg-gradient-to-r from-emerald-500/0 via-emerald-400/50 to-emerald-500/0' : 'bg-gradient-to-r from-rose-500/0 via-rose-500/40 to-rose-500/0'}"></div>
 
           <!-- Header: Flag, Name, Status & Chevron (Clickable) -->
-          <div class="node-header p-3.5 flex justify-between items-center cursor-pointer select-none hover:bg-slate-750/30 transition active:scale-[0.99]" onclick="window.adminActions.toggleSettingsBox('${boxId}')">
+          <div class="node-header p-3.5 flex justify-between items-center cursor-pointer select-none hover:bg-slate-500/10 transition active:scale-[0.99]" onclick="window.adminActions.toggleSettingsBox('${boxId}')">
             <!-- Right: Flag and Server Name -->
             <div class="flex items-center gap-2.5 min-w-0">
               <span class="text-2xl flex-shrink-0 filter drop-shadow">${flag}</span>
