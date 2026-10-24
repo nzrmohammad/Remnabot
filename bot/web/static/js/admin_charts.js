@@ -290,7 +290,7 @@
 
     const totalSum = (values || []).reduce((a, b) => a + b, 0);
     const totalEl = $('salesChartTotal');
-    if (totalEl) totalEl.innerHTML = `<span class="font-mono font-bold">${formatNumber(totalSum)}</span> <span>تومان</span>`;
+    if (totalEl) totalEl.innerHTML = `<span class="font-mono font-bold t-main">${formatNumber(totalSum)}</span> <span class="t-muted">تومان</span>`;
 
     const emptyOverlay = $('adminSalesEmptyOverlay');
     if (emptyOverlay) {
@@ -360,7 +360,7 @@
 
     const total = totalSum != null ? totalSum : (values || []).reduce((a, b) => a + b, 0);
     const totalEl = $('monthlySalesChartTotal');
-    if (totalEl) totalEl.innerHTML = `<span class="font-mono font-bold">${formatNumber(total)}</span> <span>تومان</span>`;
+    if (totalEl) totalEl.innerHTML = `<span class="font-mono font-bold t-main">${formatNumber(total)}</span> <span class="t-muted">تومان</span>`;
 
     const emptyMonthlyOverlay = $('adminMonthlySalesEmptyOverlay');
     if (emptyMonthlyOverlay) {
@@ -1124,27 +1124,27 @@ openHighRiskUsersModal() {
       } else {
         list.innerHTML = users.map((u, idx) => {
           const accountName = escapeHtml(u.name || u.username || `اکانت #${u.user_id}`);
-          const tgInfo = u.telegram_id ? `ID: ${u.telegram_id}` : (u.user_id ? `ID: ${u.user_id}` : '');
-          const devCount = u.device_count || 3;
           const tgId = u.telegram_id || u.user_id;
+          const tgInfo = tgId ? `شناسه: ${tgId}` : '';
+          const devCount = u.device_count || 3;
           return `
-            <div class="p-3 bg-slate-900/70 border border-slate-700/60 rounded-2xl flex items-center justify-between gap-2.5 transition hover:border-slate-600">
+            <div class="p-3 card-inset border border-slate-700/50 rounded-2xl flex items-center justify-between gap-2.5 transition">
               <div class="flex items-center gap-2.5 min-w-0 flex-1">
-                <div class="w-8 h-8 rounded-xl bg-rose-500/15 text-rose-400 border border-rose-500/30 flex items-center justify-center font-bold text-xs shrink-0 font-mono">
-                  ${idx + 1}
-                </div>
+                <span class="w-6 text-center font-mono font-bold text-xs text-rose-600 dark:text-rose-400 shrink-0">
+                  ${idx + 1}.
+                </span>
                 <div class="min-w-0 flex-1">
                   <div class="flex items-center gap-2">
-                    <span class="font-bold text-white text-xs truncate font-mono" dir="ltr">${accountName}</span>
-                    <span class="text-[9.5px] font-mono px-1.5 py-0.5 rounded bg-rose-500/15 text-rose-400 border border-rose-500/30 font-bold shrink-0">
+                    <span class="font-bold t-main text-xs truncate font-mono" dir="ltr">${accountName}</span>
+                    <span class="text-[10px] font-mono text-rose-600 dark:text-rose-400 font-bold shrink-0">
                       🔥 ${devCount} دستگاه
                     </span>
                   </div>
-                  <span class="text-[10px] text-slate-400 block font-mono truncate mt-0.5" dir="ltr">${escapeHtml(tgInfo)}</span>
+                  ${tgInfo ? `<span class="text-[10px] t-muted block truncate mt-0.5" dir="rtl">${escapeHtml(tgInfo)}</span>` : ''}
                 </div>
               </div>
               <div class="flex items-center gap-1.5 shrink-0">
-                <button type="button" onclick="window.adminActions.inspectHighRiskUser('${tgId}')" class="px-2.5 py-1.5 rounded-xl bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 border border-blue-500/30 text-[11px] font-bold transition active:scale-95 flex items-center gap-1">
+                <button type="button" onclick="window.adminActions.inspectHighRiskUser('${tgId}')" class="px-2.5 py-1.5 rounded-xl bg-transparent hover:bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/40 text-[11px] font-bold transition active:scale-95 flex items-center gap-1">
                   <span>🔍</span><span>بررسی</span>
                 </button>
               </div>

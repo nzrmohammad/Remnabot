@@ -283,7 +283,7 @@
         }
         if (badgeSel && (!badgeSel.value || badgeSel.value === 'time')) badgeSel.value = 'traffic';
         if (notice) {
-          notice.className = 'text-[10.5px] text-cyan-300 mt-1.5 p-1.5 rounded-lg bg-cyan-950/40 border border-cyan-500/40 leading-relaxed';
+          notice.className = 'text-[10.5px] text-cyan-700 dark:text-cyan-300 mt-1.5 p-2 rounded-xl bg-cyan-500/10 border border-cyan-500/30 leading-relaxed font-medium';
           notice.innerHTML = '⚡️ <b>بسته افزایش حجم:</b> تاریخ انقضای سرویس فعلی کاربر تغییر نمی‌کند و صرفاً به سقف ترافیک اکانت اضافه می‌شود.';
           notice.classList.remove('hidden');
         }
@@ -305,7 +305,7 @@
         }
         if (badgeSel && (!badgeSel.value || badgeSel.value === 'traffic')) badgeSel.value = 'time';
         if (notice) {
-          notice.className = 'text-[10.5px] text-amber-300 mt-1.5 p-1.5 rounded-lg bg-amber-950/40 border border-amber-500/40 leading-relaxed';
+          notice.className = 'text-[10.5px] text-amber-700 dark:text-amber-300 mt-1.5 p-2 rounded-xl bg-amber-500/10 border border-amber-500/30 leading-relaxed font-medium';
           notice.innerHTML = '⏳ <b>بسته افزایش زمان:</b> ترافیک اکانت بدون تغییر مانده و صرفاً مدت زمان اعتبار سرویس افزایش می‌یابد.';
           notice.classList.remove('hidden');
         }
@@ -326,7 +326,7 @@
         }
         if (badgeSel && (badgeSel.value === 'traffic' || badgeSel.value === 'time')) badgeSel.value = '';
         if (notice) {
-          notice.className = 'text-[10.5px] text-blue-300 mt-1.5 p-1.5 rounded-lg bg-blue-950/40 border border-blue-500/40 leading-relaxed';
+          notice.className = 'text-[10.5px] text-blue-700 dark:text-blue-300 mt-1.5 p-2 rounded-xl bg-blue-500/10 border border-blue-500/30 leading-relaxed font-medium';
           notice.innerHTML = '💎 <b>سرویس دوره کامل:</b> بسته دارای حجم مشخص و مدت زمان معین است.';
           notice.classList.remove('hidden');
         }
@@ -515,32 +515,32 @@
           const maxText = c.max_uses > 0 ? `${toEnglishDigits(usedCount)} / ${toEnglishDigits(c.max_uses)}` : `${toEnglishDigits(usedCount)} (نامحدود)`;
           const expiryText = c.expires_at_jalali || (c.expires_at ? (window.formatDateToJalali ? window.formatDateToJalali(c.expires_at) : c.expires_at) : 'نامحدود (دائمی)');
 
-          let remainingDaysHtml = '<b class="text-slate-400 font-sans">نامحدود</b>';
+          let remainingDaysHtml = '<b class="t-muted font-sans">نامحدود</b>';
           if (c.expires_at) {
             const diffMs = new Date(c.expires_at).getTime() - Date.now();
             const daysLeft = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
             if (daysLeft > 0) {
-              remainingDaysHtml = `<b class="text-amber-400 font-bold">${toEnglishDigits(daysLeft)} روز</b>`;
+              remainingDaysHtml = `<b class="text-amber-600 dark:text-amber-400 font-bold">${toEnglishDigits(daysLeft)} روز</b>`;
             } else {
-              remainingDaysHtml = '<b class="text-rose-400 font-bold">منقضی</b>';
+              remainingDaysHtml = '<b class="text-rose-600 dark:text-rose-400 font-bold">منقضی</b>';
             }
           }
 
           const usagesBtnHtml = usedCount > 0
-            ? `<button type="button" data-id="${c.id}" data-code="${escapeHtml(c.code)}" class="btn-coupon-usages flex-1 bg-transparent hover:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/30 hover:border-indigo-400/60 py-2 rounded-xl transition flex items-center justify-center active:scale-95 shadow-sm" title="استفاده‌کنندگان (${formatNumber(usedCount)})" aria-label="استفاده‌کنندگان (${formatNumber(usedCount)})">
+            ? `<button type="button" data-id="${c.id}" data-code="${escapeHtml(c.code)}" class="btn-coupon-usages flex-1 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-700 dark:text-indigo-300 border border-indigo-500/40 hover:border-indigo-400 py-2 rounded-xl transition flex items-center justify-center active:scale-95 shadow-sm font-bold" title="استفاده‌کنندگان (${formatNumber(usedCount)})" aria-label="استفاده‌کنندگان (${formatNumber(usedCount)})">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
               </button>`
             : `<div class="flex-1 bg-transparent text-slate-500 border border-slate-700/40 py-2 rounded-xl flex items-center justify-center opacity-40 cursor-not-allowed select-none" title="فاقد استفاده">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
               </div>`;
 
-          const toggleBtnHtml = `<button onclick="window.adminActions.toggleCoupon(${c.id}, ${c.is_active})" class="flex-1 bg-transparent hover:bg-slate-500/10 ${c.is_active ? 't-warn border border-amber-500/30 hover:border-amber-400/60' : 't-success border border-emerald-500/30 hover:border-emerald-400/60'} py-2 rounded-xl transition flex items-center justify-center active:scale-95 shadow-sm" title="${c.is_active ? 'غیرفعال‌سازی کد تخفیف' : 'فعال‌سازی کد تخفیف'}" aria-label="${c.is_active ? 'غیرفعال‌سازی کد تخفیف' : 'فعال‌سازی کد تخفیف'}">
+          const toggleBtnHtml = `<button onclick="window.adminActions.toggleCoupon(${c.id}, ${c.is_active})" class="flex-1 ${c.is_active ? 'bg-amber-500/10 hover:bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-500/40 hover:border-amber-400' : 'bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-500/40 hover:border-emerald-400'} py-2 rounded-xl transition flex items-center justify-center active:scale-95 shadow-sm font-bold" title="${c.is_active ? 'غیرفعال‌سازی کد تخفیف' : 'فعال‌سازی کد تخفیف'}" aria-label="${c.is_active ? 'غیرفعال‌سازی کد تخفیف' : 'فعال‌سازی کد تخفیف'}">
             ${c.is_active
               ? '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>'
               : '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>'}
           </button>`;
 
-          const deleteBtnHtml = `<button type="button" data-id="${c.id}" data-code="${escapeHtml(c.code)}" class="btn-delete-coupon flex-1 bg-transparent hover:bg-rose-500/10 t-danger border border-rose-500/30 hover:border-rose-400/60 py-2 rounded-xl transition flex items-center justify-center active:scale-95 shadow-sm" title="حذف کد تخفیف" aria-label="حذف کد تخفیف">
+          const deleteBtnHtml = `<button type="button" data-id="${c.id}" data-code="${escapeHtml(c.code)}" class="btn-delete-coupon flex-1 bg-rose-500/10 hover:bg-rose-500/20 text-rose-700 dark:text-rose-300 border border-rose-500/40 hover:border-rose-400 py-2 rounded-xl transition flex items-center justify-center active:scale-95 shadow-sm font-bold" title="حذف کد تخفیف" aria-label="حذف کد تخفیف">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
           </button>`;
 
@@ -559,17 +559,17 @@
                 </div>
               </div>
 
-              <div class="grid grid-cols-3 gap-1.5 text-center text-[10px] bg-slate-900/60 p-2 rounded-xl font-mono">
+              <div class="grid grid-cols-3 gap-1.5 text-center text-[10.5px] card-inset p-2.5 rounded-xl font-mono border border-slate-700/50">
                 <div>
-                  <span class="text-slate-400 block text-[10px] font-sans">دفعات استفاده:</span>
-                  <b class="text-slate-200">${maxText}</b>
+                  <span class="t-muted block text-[10px] font-sans">دفعات استفاده:</span>
+                  <b class="t-main block font-bold">${maxText}</b>
                 </div>
                 <div>
-                  <span class="text-slate-400 block text-[10px] font-sans">تاریخ انقضا:</span>
-                  <b class="text-slate-200 truncate block">${escapeHtml(expiryText)}</b>
+                  <span class="t-muted block text-[10px] font-sans">تاریخ انقضا:</span>
+                  <b class="t-main truncate block font-bold">${escapeHtml(expiryText)}</b>
                 </div>
                 <div>
-                  <span class="text-slate-400 block text-[10px] font-sans">مهلت باقی‌مانده:</span>
+                  <span class="t-muted block text-[10px] font-sans">مهلت باقی‌مانده:</span>
                   ${remainingDaysHtml}
                 </div>
               </div>

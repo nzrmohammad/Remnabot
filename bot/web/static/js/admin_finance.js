@@ -528,14 +528,14 @@ openCryptoRatesModal() {
 
   walletActionAddBtn?.addEventListener('click', () => {
     walletActionType = 'add';
-    walletActionAddBtn.className = 'flex-1 py-1.5 text-xs font-bold rounded-xl border border-emerald-500/50 bg-emerald-950/70 text-emerald-300 transition';
-    walletActionDeductBtn.className = 'flex-1 py-1.5 text-xs font-medium rounded-xl border border-slate-700 bg-slate-900/60 text-slate-400 transition';
+    walletActionAddBtn.className = 'py-2 rounded-xl bg-emerald-600 text-white font-bold transition flex items-center justify-center gap-1 shadow-sm';
+    walletActionDeductBtn.className = 'py-2 rounded-xl t-muted hover:t-main font-medium transition flex items-center justify-center gap-1';
   });
 
   walletActionDeductBtn?.addEventListener('click', () => {
     walletActionType = 'deduct';
-    walletActionDeductBtn.className = 'flex-1 py-1.5 text-xs font-bold rounded-xl border border-rose-500/50 bg-rose-950/70 text-rose-300 transition';
-    walletActionAddBtn.className = 'flex-1 py-1.5 text-xs font-medium rounded-xl border border-slate-700 bg-slate-900/60 text-slate-400 transition';
+    walletActionDeductBtn.className = 'py-2 rounded-xl bg-rose-600 text-white font-bold transition flex items-center justify-center gap-1 shadow-sm';
+    walletActionAddBtn.className = 'py-2 rounded-xl t-muted hover:t-main font-medium transition flex items-center justify-center gap-1';
   });
 
   // --- 7. Pending Topups Fetcher ---

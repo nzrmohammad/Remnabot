@@ -196,7 +196,7 @@
                 </span>
               </div>
               <!-- Vercel-Style Glass Track -->
-              <div class="w-full h-1.5 rounded-full bg-slate-800/40 p-[1px] border border-slate-700/40 overflow-hidden relative" dir="ltr">
+              <div class="w-full h-1.5 rounded-full card-inset border border-slate-700/40 overflow-hidden relative" dir="ltr">
                 <div class="h-full rounded-full bg-gradient-to-r ${barGradient} ${barGlow} transition-all duration-500" style="width: ${percentUsed}%;"></div>
               </div>
             </div>
@@ -264,11 +264,11 @@
 
             <!-- Left: Wallet Balance (Number on top, small تومان underneath) -->
             <div class="text-left flex-shrink-0">
-              <div class="flex flex-col items-center justify-center bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-0.5 rounded-xl text-center leading-tight min-w-[54px]" title="موجودی کیف پول کاربر">
-                <span class="text-xs font-mono font-bold text-emerald-400 num-bidi" dir="ltr">
+              <div class="flex flex-col items-center justify-center text-center leading-tight min-w-[50px]" title="موجودی کیف پول کاربر">
+                <span class="text-xs font-mono font-bold text-emerald-600 dark:text-emerald-400 num-bidi" dir="ltr">
                   ${formatNumber(u.wallet_balance || 0)}
                 </span>
-                <span class="text-[9px] font-sans text-emerald-400/80 -mt-0.5">تومان</span>
+                <span class="text-[9.5px] font-sans text-emerald-600/80 dark:text-emerald-400/80 -mt-0.5">تومان</span>
               </div>
             </div>
           </div>
@@ -337,9 +337,9 @@
   document.querySelectorAll('.user-filter-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       document.querySelectorAll('.user-filter-btn').forEach(b => {
-        b.className = 'user-filter-btn px-2.5 py-1 rounded-xl bg-transparent text-slate-400 hover:text-white transition flex items-center gap-1 border border-slate-700/60';
+        b.className = 'user-filter-btn px-2.5 py-1 rounded-xl card-inset t-muted hover:t-main font-medium transition flex items-center gap-1 border border-slate-700/50';
       });
-      btn.className = 'user-filter-btn px-2.5 py-1 rounded-xl bg-blue-600/20 text-blue-400 font-bold transition flex items-center gap-1 border border-blue-500 shadow-sm';
+      btn.className = 'user-filter-btn px-2.5 py-1 rounded-xl bg-blue-600 text-white font-bold transition flex items-center gap-1 border border-blue-500 shadow-sm';
       currentFilter = btn.getAttribute('data-filter') || 'all';
       fetchAdminUsers(1);
       if (window.hapticFeedback) window.hapticFeedback('impact');
@@ -822,7 +822,7 @@ async applyUserModification() {
       const srhPane = $('srhTabPane');
 
       const activeClass = 'py-1.5 rounded-xl font-bold bg-cyan-600 text-white shadow text-center flex items-center justify-center gap-1 transition';
-      const inactiveClass = 'py-1.5 rounded-xl text-slate-400 hover:text-cyan-300 font-medium text-center flex items-center justify-center gap-1 transition';
+      const inactiveClass = 'py-1.5 rounded-xl t-muted hover:t-main font-medium text-center flex items-center justify-center gap-1 transition';
 
       if (hwidBtn) hwidBtn.className = (tab === 'hwid') ? activeClass : inactiveClass;
       if (sessionsBtn) sessionsBtn.className = (tab === 'sessions') ? activeClass : inactiveClass;
@@ -873,31 +873,31 @@ async applyUserModification() {
 
         if (list) {
           list.innerHTML = records.map(r => `
-            <div class="srh-card bg-transparent p-2.5 rounded-2xl border border-slate-700/60 space-y-1.5">
-              <!-- Line 1: Client name on right, status badge on left -->
+            <div class="srh-card card-inset p-2.5 rounded-2xl border border-slate-700/50 space-y-1.5">
+              <!-- Line 1: Client name & tag on right, status badge on left -->
               <div class="flex items-center justify-between gap-2">
                 <div class="flex items-center gap-1.5 min-w-0 flex-1">
                   <span class="text-base flex-shrink-0">${r.client_icon || '📱'}</span>
-                  <b class="text-white text-xs truncate" title="${escapeHtml(r.user_agent || r.client_name || '')}">${escapeHtml(r.client_name || 'کلاینت')}</b>
+                  <b class="t-main text-xs truncate" title="${escapeHtml(r.user_agent || r.client_name || '')}">${escapeHtml(r.client_name || 'کلاینت')}</b>
+                  <span class="text-[9.5px] px-1.5 py-0.5 rounded-md card-inset border border-slate-700/60 t-muted font-mono flex-shrink-0">${escapeHtml(r.client_tag || 'App')}</span>
                 </div>
-                <span class="inline-flex items-center gap-1 text-[10px] font-bold ${r.is_success ? 'text-emerald-400 border-emerald-500/30' : 'text-rose-400 border-rose-500/30'} bg-transparent px-2 py-0.5 rounded-lg border flex-shrink-0">
+                <span class="inline-flex items-center gap-1 text-[10px] font-bold ${r.is_success ? 'text-emerald-600 dark:text-emerald-400 border-emerald-500/30' : 'text-rose-600 dark:text-rose-400 border-rose-500/30'} bg-transparent px-2 py-0.5 rounded-lg border flex-shrink-0">
                   ${r.is_success ? 'موفق' : (r.status_code ? 'خطا ' + r.status_code : 'خطا')}
                 </span>
               </div>
 
-              <!-- Line 2: Tag badge, IP with tap-to-copy, and update time -->
-              <div class="flex items-center justify-between text-[10px] pt-1 border-t border-slate-800/60 text-slate-400 gap-2">
-                <div class="flex items-center gap-1.5 flex-wrap min-w-0">
-                  <span class="text-[10px] px-1.5 py-0.5 rounded-md bg-transparent border border-slate-700/80 text-slate-300 font-mono flex-shrink-0">${escapeHtml(r.client_tag || 'App')}</span>
-                  <button type="button" dir="ltr" class="font-mono t-accent font-semibold select-all hover:underline cursor-pointer flex items-center gap-1 btn-copy-ip-r" data-ip="${escapeHtml(r.ip || '')}" title="کلیک جهت کپی آی‌پی">
+              <!-- Line 2: IP with tap-to-copy, and update time -->
+              <div class="flex items-center justify-between text-[10px] pt-1 border-t border-slate-800/60 t-muted gap-2">
+                <div class="flex items-center gap-1.5 min-w-0">
+                  <button type="button" dir="ltr" class="font-mono text-cyan-700 dark:text-cyan-400 font-bold select-all hover:underline cursor-pointer flex items-center gap-1 btn-copy-ip-r" data-ip="${escapeHtml(r.ip || '')}" title="کلیک جهت کپی آی‌پی">
                     <span>🌐 ${escapeHtml(r.ip || '')}</span>
                     <span class="text-[10px] opacity-70">📋</span>
                   </button>
                 </div>
-                <div class="flex items-center gap-1.5 text-[10px] text-slate-300 font-mono flex-shrink-0" dir="ltr">
+                <div class="flex items-center gap-1.5 text-[10px] t-muted font-mono flex-shrink-0" dir="ltr">
                   <span>⏱</span>
-                  <span class="font-bold text-slate-200" title="${escapeHtml(r.relative_time || '')}">${toEnglishDigits(r.date_str && r.date_str !== '—' ? r.date_str : (r.relative_time || 'ثبت‌شده'))}</span>
-                  ${r.relative_time && r.relative_time !== '—' && r.relative_time !== r.date_str ? `<span class="text-[10px] text-slate-400 font-sans">(${r.relative_time})</span>` : ''}
+                  <span class="font-bold t-main" title="${escapeHtml(r.relative_time || '')}">${toEnglishDigits(r.date_str && r.date_str !== '—' ? r.date_str : (r.relative_time || 'ثبت‌شده'))}</span>
+                  ${r.relative_time && r.relative_time !== '—' && r.relative_time !== r.date_str ? `<span class="text-[10px] t-dim font-sans">(${r.relative_time})</span>` : ''}
                 </div>
               </div>
             </div>
@@ -969,7 +969,7 @@ async applyUserModification() {
                 if (!isNaN(dateObj.getTime())) {
                   const dateStr = dateObj.toLocaleDateString('fa-IR');
                   const timeStr = dateObj.toLocaleTimeString('fa-IR', { hour: '2-digit', minute: '2-digit' });
-                  timeHtml = `<div class="flex items-center gap-1 mt-1 text-[10px] text-slate-400 font-mono" dir="ltr"><span>⏱</span><span>${toEnglishDigits(timeStr)} - ${toEnglishDigits(dateStr)}</span></div>`;
+                  timeHtml = `<div class="flex items-center gap-1.5 mt-1 text-[10px] t-muted font-mono justify-start" dir="rtl"><span class="text-xs">⏱</span><span dir="ltr">${toEnglishDigits(timeStr)} - ${toEnglishDigits(dateStr)}</span></div>`;
                 }
               } catch(e) {}
             }
@@ -983,7 +983,7 @@ async applyUserModification() {
                   </div>
                   <div class="flex items-center gap-1.5 mt-0.5 text-[10px] text-slate-400">
                     <span>آی‌پی:</span>
-                    <button type="button" dir="ltr" class="font-mono t-accent font-semibold select-all hover:underline cursor-pointer flex items-center gap-1 btn-copy-hwid-ip" data-ip="${escapeHtml(ip)}" title="کپی آی‌پی">
+                    <button type="button" dir="ltr" class="font-mono text-cyan-700 dark:text-cyan-400 font-bold select-all hover:underline cursor-pointer flex items-center gap-1 btn-copy-hwid-ip" data-ip="${escapeHtml(ip)}" title="کپی آی‌پی">
                       <span>${escapeHtml(ip)}</span>
                       <span class="text-[10px] opacity-70">📋</span>
                     </button>
@@ -1070,7 +1070,7 @@ async applyUserModification() {
         const ipsHtml = ips.map(ip => `
           <div class="flex items-center justify-between bg-transparent px-2.5 py-1.5 rounded-xl border border-slate-700/60 text-xs">
             <span class="text-slate-400 text-[10px]">آی‌پی کلاینت:</span>
-            <button type="button" dir="ltr" class="btn-copy-ip-direct font-mono t-accent font-bold select-all hover:underline cursor-pointer flex items-center gap-1" data-ip="${escapeHtml(ip)}" title="کلیک جهت کپی آی‌پی">
+            <button type="button" dir="ltr" class="btn-copy-ip-direct font-mono text-cyan-700 dark:text-cyan-400 font-bold select-all hover:underline cursor-pointer flex items-center gap-1" data-ip="${escapeHtml(ip)}" title="کلیک جهت کپی آی‌پی">
               <span>${escapeHtml(ip)}</span>
               <span class="text-[10px] opacity-70">📋</span>
             </button>
@@ -1084,7 +1084,7 @@ async applyUserModification() {
                 <span class="text-sm">${flag}</span>
                 <span>${escapeHtml(nodeName)}</span>
               </span>
-              <span class="text-[10px] bg-transparent text-cyan-400 border border-cyan-500/30 px-2 py-0.5 rounded-lg font-mono">
+              <span class="text-[10px] card-inset text-cyan-700 dark:text-cyan-300 border border-cyan-500/40 px-2 py-0.5 rounded-lg font-mono font-bold">
                 ${formatNumber(ips.length)} اتصال
               </span>
             </div>

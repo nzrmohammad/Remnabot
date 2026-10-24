@@ -506,12 +506,12 @@ openUserChat(telegram_id, name, tag, topup_id) {
 
       const appIds = osApps[os] || [];
       let html = `
-        <button type="button" onclick="window.adminActions.selectRecommendedApp('${os}', '', 'بدون برنامه پیشنهادی')" class="w-full text-right p-3 rounded-2xl border transition flex items-center justify-between ${!currentVal ? 'bg-cyan-500/15 border-cyan-500/40 text-cyan-300 font-bold' : 'bg-slate-900/60 border-slate-700/60 text-slate-300 hover:bg-slate-800'} active:scale-95">
+        <button type="button" onclick="window.adminActions.selectRecommendedApp('${os}', '', 'بدون برنامه پیشنهادی')" class="w-full text-right p-3 rounded-2xl border transition flex items-center justify-between ${!currentVal ? 'bg-cyan-500/15 border-cyan-500/40 text-cyan-700 dark:text-cyan-300 font-bold' : 'card-inset border-slate-700/50 t-muted hover:t-main'} active:scale-95">
           <div class="flex items-center gap-2">
             <span class="text-base">🚫</span>
             <span>بدون برنامه پیشنهادی</span>
           </div>
-          ${!currentVal ? '<span class="text-cyan-400 font-bold">✓</span>' : ''}
+          ${!currentVal ? '<span class="text-cyan-600 dark:text-cyan-400 font-bold">✓</span>' : ''}
         </button>
       `;
 
@@ -519,12 +519,12 @@ openUserChat(telegram_id, name, tag, topup_id) {
         const appName = appNames[appId] || appId;
         const isSelected = currentVal === appId;
         html += `
-          <button type="button" onclick="window.adminActions.selectRecommendedApp('${os}', '${appId}', '${escapeHtml(appName)}')" class="w-full text-right p-3 rounded-2xl border transition flex items-center justify-between ${isSelected ? 'bg-cyan-500/15 border-cyan-500/40 text-cyan-300 font-bold' : 'bg-slate-900/60 border-slate-700/60 text-slate-300 hover:bg-slate-800'} active:scale-95">
+          <button type="button" onclick="window.adminActions.selectRecommendedApp('${os}', '${appId}', '${escapeHtml(appName)}')" class="w-full text-right p-3 rounded-2xl border transition flex items-center justify-between ${isSelected ? 'bg-cyan-500/15 border-cyan-500/40 text-cyan-700 dark:text-cyan-300 font-bold' : 'card-inset border-slate-700/50 t-muted hover:t-main'} active:scale-95">
             <div class="flex items-center gap-2">
               <span class="text-base">📱</span>
               <span class="font-medium">${escapeHtml(appName)}</span>
             </div>
-            ${isSelected ? '<span class="text-cyan-400 font-bold">✓</span>' : ''}
+            ${isSelected ? '<span class="text-cyan-600 dark:text-cyan-400 font-bold">✓</span>' : ''}
           </button>
         `;
       });
@@ -1125,9 +1125,9 @@ openUserChat(telegram_id, name, tag, topup_id) {
     } catch (e) {
       if (window.showToast) window.showToast('خطای شبکه در ذخیره تنظیمات');
     } finally {
-      saveBtns.forEach(b => { if (b) { b.disabled = false; b.innerText = '💾 ذخیره همه'; } });
+      saveBtns.forEach(b => { if (b) { b.disabled = false; b.innerText = '💾 ذخیره تنظیمات'; } });
       const mainBtn = $('saveAllSettingsBtn');
-      if (mainBtn) mainBtn.innerHTML = '<span>💾</span> ذخیره تمامی تغییرات تنظیمات';
+      if (mainBtn) mainBtn.innerHTML = '<span>💾</span> ذخیره تنظیمات';
     }
   }
 
@@ -1171,9 +1171,9 @@ openUserChat(telegram_id, name, tag, topup_id) {
   document.querySelectorAll('.broadcast-audience-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       document.querySelectorAll('.broadcast-audience-btn').forEach(b => {
-        b.className = 'broadcast-audience-btn px-2.5 py-1 rounded-xl bg-transparent text-slate-400 hover:text-white text-[10px] transition border border-slate-700/60';
+        b.className = 'broadcast-audience-btn px-2.5 py-1 rounded-xl card-inset t-muted hover:t-main text-[10.5px] font-medium transition border border-slate-700/50';
       });
-      btn.className = 'broadcast-audience-btn px-2.5 py-1 rounded-xl bg-blue-600/20 text-blue-400 font-bold text-[10px] transition border border-blue-500 shadow-sm';
+      btn.className = 'broadcast-audience-btn px-2.5 py-1 rounded-xl bg-blue-600 text-white font-bold text-[10.5px] transition border border-blue-500 shadow-sm';
       currentBroadcastTarget = btn.getAttribute('data-target') || 'all';
 
       const labelMap = {
