@@ -193,67 +193,65 @@ html.theme-light #startSpeedTestBtn {
   display: inline-flex;
   align-items: center;
   gap: 0.25rem;
-  padding: 0.125rem 0.625rem;
-  border-radius: 9999px;
+  padding: 0.125rem 0.25rem;
   font-size: 10px;
   font-weight: 700;
   transition: all 0.2s ease;
-  background-color: rgba(249, 115, 22, 0.15);
+  background-color: transparent;
   color: #fdba74;
-  border: 1px solid rgba(249, 115, 22, 0.3);
+  border: none;
 }
 
 .badge-streak.streak-boost {
-  background-color: rgba(245, 158, 11, 0.2);
+  background-color: transparent;
   color: #fcd34d;
-  border-color: rgba(245, 158, 11, 0.4);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  border: none;
+  box-shadow: none;
 }
 
 .badge-ticket {
   display: inline-flex;
   align-items: center;
   gap: 0.25rem;
-  padding: 0.125rem 0.625rem;
-  border-radius: 9999px;
+  padding: 0.125rem 0.25rem;
   font-size: 10px;
   font-weight: 700;
   transition: all 0.2s ease;
-  background-color: rgba(168, 85, 247, 0.1);
-  color: rgba(216, 180, 254, 0.8);
-  border: 1px solid rgba(168, 85, 247, 0.2);
+  background-color: transparent;
+  color: rgba(216, 180, 254, 0.9);
+  border: none;
 }
 
 .badge-ticket.has-tickets {
-  background-color: rgba(168, 85, 247, 0.25);
+  background-color: transparent;
   color: #e9d5ff;
-  border-color: rgba(192, 132, 252, 0.5);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  border: none;
+  box-shadow: none;
 }
 
 /* Light Theme Overrides for Badges & Accents */
 html.theme-light .badge-streak {
-  background-color: #fff7ed;
+  background-color: transparent;
   color: #c2410c;
-  border-color: #fed7aa;
+  border: none;
 }
 
 html.theme-light .badge-streak.streak-boost {
-  background-color: #fef3c7;
+  background-color: transparent;
   color: #b45309;
-  border-color: #fde68a;
+  border: none;
 }
 
 html.theme-light .badge-ticket {
-  background-color: #faf5ff;
+  background-color: transparent;
   color: #7e22ce;
-  border-color: #f3e8ff;
+  border: none;
 }
 
 html.theme-light .badge-ticket.has-tickets {
-  background-color: #f3e8ff;
+  background-color: transparent;
   color: #6b21a8;
-  border-color: #d8b4fe;
+  border: none;
 }
 
 html.theme-light .text-orange-300 {

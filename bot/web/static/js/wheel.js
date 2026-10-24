@@ -156,15 +156,15 @@ function updateWheelUIState(canSpin, hasActiveSub, nextSeconds, streak, multipli
   const fNum = (n) => (typeof toPersianDigits === 'function' ? toPersianDigits(n) : n);
 
   if (streakTextEl) {
-    const multStr = currentWheelMultiplier > 1.0 ? ` (شانس ${fNum(currentWheelMultiplier.toFixed(1))}×)` : "";
-    streakTextEl.textContent = `زنجیره روزانه: ${fNum(currentWheelStreak)} روز${multStr}`;
+    const multStr = currentWheelMultiplier > 1.0 ? ` (شانس ${currentWheelMultiplier.toFixed(1)}×)` : "";
+    streakTextEl.textContent = `زنجیره روزانه: ${currentWheelStreak} روز${multStr}`;
   }
   if (streakBadgeEl) {
     streakBadgeEl.className = currentWheelStreak >= 3 ? 'badge-streak streak-boost' : 'badge-streak';
   }
 
   if (ticketsTextEl) {
-    ticketsTextEl.textContent = `${fNum(currentWheelTickets)} تیکت`;
+    ticketsTextEl.textContent = `${currentWheelTickets} تیکت`;
   }
   if (ticketsBadgeEl) {
     ticketsBadgeEl.className = currentWheelTickets > 0 ? 'badge-ticket has-tickets' : 'badge-ticket';

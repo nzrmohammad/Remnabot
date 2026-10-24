@@ -502,34 +502,34 @@
       return {
         text: '⚠️ سرور پاسخ نداد؛ وضعیت اتصال فیلترشکن را بررسی فرمایید.',
         cls: 'bg-amber-950/70 border-amber-500/50 text-amber-300',
-        rating: 'قطع ارتباط ❌',
+        rating: '❌ قطع ارتباط',
       };
     }
     if (dlSpeed >= 25 && ping <= 90) {
       return {
         text: '🚀 کیفیت فوق‌العاده؛ عالی برای استریم 4K، بازی آنلاین و وب‌گردی پرسرعت',
         cls: 'bg-emerald-950/70 border-emerald-500/50 text-emerald-300',
-        rating: 'فوق‌العاده 🚀',
+        rating: '🚀 فوق‌العاده',
       };
     }
     if (dlSpeed >= 12) {
       return {
         text: '⚡️ کیفیت بسیار خوب؛ عالی برای اینستاگرام، تلگرام، یوتیوب HD و تماس ویدیویی',
         cls: 'bg-cyan-950/70 border-cyan-500/50 text-cyan-300',
-        rating: 'بسیار خوب ⚡️',
+        rating: '⚡️ بسیار خوب',
       };
     }
     if (dlSpeed >= 4) {
       return {
         text: '🟡 کیفیت معمولی؛ مناسب برای چت، وب‌گردی و دانلود با سرعت استاندارد',
         cls: 'bg-amber-950/70 border-amber-500/50 text-amber-300',
-        rating: 'معمولی 📶',
+        rating: '📶 معمولی',
       };
     }
     return {
       text: '⚠️ سرعت محدود؛ مناسب برای ارسال پیام متنی یا نیازمند تغییر سرور/پروکسی',
       cls: 'bg-rose-950/70 border-rose-500/50 text-rose-300',
-      rating: 'ضعیف ⚠️',
+      rating: '⚠️ ضعیف',
     };
   }
 

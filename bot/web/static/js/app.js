@@ -143,9 +143,9 @@ function setupReportsSubtabs() {
 
   function setRepSub(activeBtn, activeView) {
     [repSubNightly, repSubWeekly, repSubMonthly, repSubAnalytics].forEach(b => {
-      if (b) b.className = 'flex-1 py-1.5 rounded-lg font-medium text-slate-400 hover:text-slate-200 transition';
+      if (b) b.className = 'flex-1 py-1.5 rounded-lg font-bold text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition';
     });
-    if (activeBtn) activeBtn.className = 'flex-1 py-1.5 rounded-lg font-bold bg-blue-600 text-white transition';
+    if (activeBtn) activeBtn.className = 'flex-1 py-1.5 rounded-lg font-bold bg-blue-600 text-white shadow-sm transition';
 
     [viewRepNightly, viewRepWeekly, viewRepMonthly, viewRepAnalytics].forEach(v => v?.classList.add('hidden'));
     activeView?.classList.remove('hidden');
@@ -846,7 +846,7 @@ function renderTutorialApps(osKey) {
           </div>
           <div>
             <button type="button" class="btn-autoconnect-app w-full text-xs font-bold py-1.5 px-2 rounded-xl transition flex items-center justify-center gap-1 active:scale-95 shadow-sm" data-id="${app.id}" data-name="${escapeHtml(app.name)}">
-              <span>⚡️</span> اتصال خودکار به سرویس
+              <span>⚡️</span> اتصال خودکار
             </button>
           </div>
         </div>
@@ -3348,7 +3348,7 @@ function hydrateUserInterface(data) {
       if (repWeeklyTotal) repWeeklyTotal.innerHTML = fmtTraffic(sub.week_used_gb ?? '0.00', { html: true });
       const repWeeklyBusiest = $('repWeeklyBusiest');
       if (repWeeklyBusiest) {
-        repWeeklyBusiest.innerHTML = `${sub.busiest_day_name || '—'} <span class="font-mono text-cyan-300 font-semibold num-bidi">(${fmtTraffic(sub.busiest_day_amount || '0 GB', { html: false })})</span>`;
+        repWeeklyBusiest.innerHTML = `${sub.busiest_day_name || '—'} <span class="font-mono text-cyan-600 dark:text-cyan-400 font-bold num-bidi">(${fmtTraffic(sub.busiest_day_amount || '0 GB', { html: false })})</span>`;
       }
 
       if (typeof renderBarChart === 'function') {

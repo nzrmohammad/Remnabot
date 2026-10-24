@@ -356,34 +356,34 @@ server {
 > 
 > *If you instead use `host.docker.internal:8080`, ensure `WEB_BIND_IP=0.0.0.0` is set in `remnawave-bot/.env`.*
 
-#### 3. نصب و اتصال گواهینامه SSL در حالت استقرار در کنار پنل Remnawave (Docker Volume Mounting):
+#### 3. SSL Certificate Setup for Co-Located Remnawave Deployments (Docker Volume Mounting):
 
-هنگامی که مینی‌اپلیکیشن یا وب‌سرور Nginx بر روی **همان سرور پنل Remnawave** و در قالب کانتینر داکر اجرا می‌شود، فایل‌های گواهینامه SSL ساب‌دامین اختصاصی ربات (مانند `app.cloudvibe.ir`) باید در بخش `volumes` کانتینر Nginx به صورت فقط‌خواندنی (`:ro`) مونت گردند:
+When the Mini App reverse proxy or Nginx runs on the **same server as the Remnawave panel** inside a Docker container, the SSL certificate files for your bot's dedicated subdomain (e.g. `app.yourdomain.com`) must be mounted as read-only (`:ro`) in the `volumes` section of the Nginx container:
 
 ```yaml
 services:
-  # سرویس Nginx اصلی پنل یا پروکسی مشترک
+  # Primary panel Nginx service or shared reverse proxy
   remnawave-nginx:
     volumes:
       - /etc/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       - /etc/nginx/conf.d:/etc/nginx/conf.d:ro
-      # اتصال مستقیم فایل‌های سرتیفیکیت دامنه مینی‌اپلیکیشن به داکر:
-      - ./app.cloudvibe.ir_fullchain.pem:/etc/nginx/ssl/app.cloudvibe.ir_fullchain.pem:ro
-      - ./app.cloudvibe.ir_privkey.key:/etc/nginx/ssl/app.cloudvibe.ir_privkey.key:ro
+      # Mount the bot Mini App SSL certificate files into the container:
+      - ./app.yourdomain.com_fullchain.pem:/etc/nginx/ssl/app.yourdomain.com_fullchain.pem:ro
+      - ./app.yourdomain.com_privkey.key:/etc/nginx/ssl/app.yourdomain.com_privkey.key:ro
 ```
 
-سپس در فایل تنظیمات Nginx مربوط به ربات (`/etc/nginx/conf.d/remnabot.conf`)، دقیقاً به مسیرهای داخل کانتینر ارجاع دهید:
+Then in your Nginx site configuration file (`/etc/nginx/conf.d/remnabot.conf`), reference the paths inside the container:
 
 ```nginx
 server {
-    server_name app.cloudvibe.ir;
+    server_name app.yourdomain.com;
     listen 443 ssl;
     listen [::]:443 ssl;
     http2 on;
 
-    ssl_certificate "/etc/nginx/ssl/app.cloudvibe.ir_fullchain.pem";
-    ssl_certificate_key "/etc/nginx/ssl/app.cloudvibe.ir_privkey.key";
-    ssl_trusted_certificate "/etc/nginx/ssl/app.cloudvibe.ir_fullchain.pem";
+    ssl_certificate "/etc/nginx/ssl/app.yourdomain.com_fullchain.pem";
+    ssl_certificate_key "/etc/nginx/ssl/app.yourdomain.com_privkey.key";
+    ssl_trusted_certificate "/etc/nginx/ssl/app.yourdomain.com_fullchain.pem";
     ...
 }
 ```
@@ -463,35 +463,65 @@ docker compose logs -f bot
 
 ## 💾 Migration & Server Relocation
 
-To migrate the bot and all operational data to a new server or restore from a backup:
+To migrate Remnabot and all user balances, orders, and configurations to a new server, choose either the **Native JSON Backup (Recommended)** or the **PostgreSQL SQL Dump**.
 
-### Step 1: Export Database Dump on Old Server
+### Method 1: Native JSON Database Backup (Recommended)
+
+Remnabot includes an integrated JSON backup engine (`bot/services/backup.py`) that exports all operational data (users, wallets, services, coupons, orders, settings, and logs) into a schema-agnostic, portable JSON format with atomic integrity.
+
+#### Step 1: Generate JSON Backup on Current Server
+You can generate a backup in two ways:
+- **Via Telegram Bot**: Go to Admin Dashboard ➔ System Settings ➔ Tap **"💾 Backup Database"**. The bot will immediately send the `.json` file to your Telegram chat.
+- **Via Server CLI**:
+  ```bash
+  docker compose exec bot python -c "import asyncio; from bot.db.base import async_session_factory; from bot.services.backup import create_database_backup; asyncio.run(create_database_backup(async_session_factory()))"
+  ```
+  The generated file is saved under `./backups/remnabot_backup_YYYYMMDD_HHMMSS.json`.
+
+#### Step 2: Transfer Backup & Environment to New Server
 ```bash
-docker compose exec -t db pg_dump -U remnabot remnabot > remnabot_backup.sql
+scp backups/remnabot_backup_*.json .env root@NEW_SERVER_IP:/root/
 ```
 
-### Step 2: Transfer Backup & Credentials to New Server
-```bash
-scp remnabot_backup.sql .env root@NEW_SERVER_IP:/root/
-```
-
-### Step 3: Launch and Restore on New Server
+#### Step 3: Setup & Restore on New Server
 ```bash
 # 1. SSH into the new server and clone the repository
 ssh root@NEW_SERVER_IP
 git clone https://github.com/nzrmohammad/Remnabot.git remnawave-bot
 cd remnawave-bot
 
-# 2. Place your existing .env configuration file in the project folder
+# 2. Move your .env and backup file into place
 mv /root/.env .env
+mkdir -p backups
+mv /root/remnabot_backup_*.json backups/
 
-# 3. Start database and cache containers
+# 3. Start the containers (PostgreSQL schema is automatically provisioned on boot)
 docker compose up -d
 
-# 4. Restore the database dump into the PostgreSQL container
-cat /root/remnabot_backup.sql | docker compose exec -T db psql -U remnabot remnabot
+# 4. Restore the JSON backup into the database
+BACKUP_FILE=$(ls backups/remnabot_backup_*.json | tail -n 1)
+docker compose exec bot python -c "import asyncio; from bot.db.base import async_session_factory; from bot.services.backup import restore_database_backup; asyncio.run(restore_database_backup(async_session_factory(), '${BACKUP_FILE}'))"
 
-# 5. Restart the bot container to apply the restored data
+# 5. Restart the bot container to refresh caches
+docker compose restart bot
+```
+
+---
+
+### Method 2: Standard PostgreSQL SQL Dump
+
+Alternatively, you can perform a raw PostgreSQL dump:
+
+```bash
+# On Old Server:
+docker compose exec -t db pg_dump -U remnabot remnabot > remnabot_backup.sql
+scp remnabot_backup.sql .env root@NEW_SERVER_IP:/root/
+
+# On New Server:
+cd remnawave-bot
+mv /root/.env .env
+docker compose up -d
+cat /root/remnabot_backup.sql | docker compose exec -T db psql -U remnabot remnabot
 docker compose restart bot
 ```
 

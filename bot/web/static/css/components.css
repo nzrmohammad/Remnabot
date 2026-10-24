@@ -424,15 +424,15 @@ label:active .switch-label .switch-ball {
 
 /* --- 12. Connection Guide Auto-Connect Button --- */
 .btn-autoconnect-app {
-  background-color: var(--c-accent-soft);
+  background-color: transparent;
   border: 1px solid var(--c-accent-border);
   color: var(--c-accent);
   transition: all 0.15s ease;
 }
 
 .btn-autoconnect-app:hover {
-  background-color: var(--c-accent-hover);
-  color: var(--text-inverse);
+  background-color: var(--c-accent-soft);
+  color: var(--c-accent);
 }
 
 /* --- 13. Top Navigation Bar (Header) --- */

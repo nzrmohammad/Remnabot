@@ -583,16 +583,16 @@ function renderBurnRate(burnRate, sub) {
     if (projDays != null && projDays > 0) {
       projectedDaysEl.innerText = `حدود ${toEnglishDigits(projDays)} روز`;
       if (burnRate.status === 'fast') {
-        projectedDaysEl.className = 'font-mono text-amber-400 text-xs num-bidi';
+        projectedDaysEl.className = 'font-mono text-amber-600 dark:text-amber-400 font-bold text-xs num-bidi';
       } else {
-        projectedDaysEl.className = 'font-mono text-emerald-400 text-xs num-bidi';
+        projectedDaysEl.className = 'font-mono text-emerald-600 dark:text-emerald-400 font-bold text-xs num-bidi';
       }
     } else if (burnRate.status === 'unlimited') {
       projectedDaysEl.innerText = 'نامحدود ♾️';
-      projectedDaysEl.className = 'font-mono text-cyan-400 text-xs';
+      projectedDaysEl.className = 'font-mono text-cyan-600 dark:text-cyan-400 font-bold text-xs';
     } else if (burnRate.status === 'exhausted') {
       projectedDaysEl.innerText = 'پایان‌یافته';
-      projectedDaysEl.className = 'font-mono text-rose-400 text-xs';
+      projectedDaysEl.className = 'font-mono text-rose-600 dark:text-rose-400 font-bold text-xs';
     } else {
       projectedDaysEl.innerText = '—';
       projectedDaysEl.className = 'font-mono text-slate-400 text-xs';
