@@ -17,7 +17,7 @@
   --modal-border: rgba(51, 65, 85, 0.9);
   --inset-bg: rgba(15, 23, 42, 0.7);
   --surface-overlay: rgba(0, 0, 0, 0.75);
-  --gauge-track: #1e293b;
+  --gauge-track: rgba(148, 163, 184, 0.35);
 
   /* --- 2. Typography & Content --- */
   --text-main: #f8fafc;

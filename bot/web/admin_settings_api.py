@@ -43,6 +43,11 @@ async def get_admin_settings(request: web.Request) -> web.Response:
             "eur_rate_toman": store_settings.eur_rate_toman,
             "ton_rate_toman": store_settings.ton_rate_toman,
             "ton_wallet_address": store_settings.ton_wallet_address,
+            "trx_enabled": store_settings.trx_enabled,
+            "trx_wallet_address": store_settings.trx_wallet_address,
+            "trx_rate_toman": store_settings.trx_rate_toman,
+            "xrocket_enabled": store_settings.xrocket_enabled,
+            "xrocket_api_key": store_settings.xrocket_api_key,
             "trial_enabled": store_settings.trial_enabled,
             "trial_traffic_gb": store_settings.trial_traffic_gb,
             "trial_duration_days": store_settings.trial_duration_days,
@@ -109,7 +114,8 @@ async def post_admin_settings(request: web.Request) -> web.Response:
         bool_keys = (
             "card_enabled", "crypto_enabled", "trial_enabled",
             "referral_enabled", "support_direct_enabled", "maintenance",
-            "stars_enabled", "card_require_phone_verification", "card_phone_iran_only", "birthday_reward_enabled",
+            "stars_enabled", "trx_enabled", "xrocket_enabled",
+            "card_require_phone_verification", "card_phone_iran_only", "birthday_reward_enabled",
             "join_gate_enabled", "auto_clean_reports",
         )
         for bk in bool_keys:
@@ -121,6 +127,7 @@ async def post_admin_settings(request: web.Request) -> web.Response:
         raw_keys = (
             "card_number", "card_holder", "topup_min_amount", "topup_max_amount",
             "usdt_rate_toman", "eur_rate_toman", "ton_rate_toman", "ton_wallet_address",
+            "trx_rate_toman", "trx_wallet_address", "xrocket_api_key",
             "stars_rate_toman",
             "trial_traffic_gb", "trial_duration_days",
             "referral_reward_gb", "support_contact",

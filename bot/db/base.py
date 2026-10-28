@@ -29,6 +29,34 @@ def create_engine_and_sessionmaker():
 
 
 async def init_db(engine) -> None:
-    """Create all tables on boot."""
+    """Create all tables on boot and apply non-destructive schema migrations."""
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+        dialect_name = conn.dialect.name
+        from sqlalchemy import text
+        if dialect_name == "postgresql":
+            try:
+                await conn.execute(text(
+                    "ALTER TABLE crypto_invoices ADD COLUMN IF NOT EXISTS currency VARCHAR(16) DEFAULT 'TON';"
+                ))
+            except Exception:
+                pass
+            try:
+                await conn.execute(text(
+                    "ALTER TABLE crypto_invoices ALTER COLUMN comment TYPE VARCHAR(64);"
+                ))
+            except Exception:
+                pass
+            try:
+                await conn.execute(text(
+                    "CREATE INDEX IF NOT EXISTS ix_crypto_invoices_currency ON crypto_invoices (currency);"
+                ))
+            except Exception:
+                pass
+        elif dialect_name == "sqlite":
+            try:
+                await conn.execute(text(
+                    "ALTER TABLE crypto_invoices ADD COLUMN currency VARCHAR(16) DEFAULT 'TON';"
+                ))
+            except Exception:
+                pass

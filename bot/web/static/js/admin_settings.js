@@ -782,6 +782,12 @@ openUserChat(telegram_id, name, tag, topup_id) {
       const cryptoSwitch = $('settingCryptoSwitch');
       if (cryptoSwitch) cryptoSwitch.checked = !!s.crypto_enabled;
 
+      const trxSwitch = $('settingTrxSwitch');
+      if (trxSwitch) trxSwitch.checked = s.trx_enabled !== false;
+
+      const xrocketSwitch = $('settingXRocketSwitch');
+      if (xrocketSwitch) xrocketSwitch.checked = s.xrocket_enabled !== false;
+
       const trialSwitch = $('settingTrialSwitch');
       if (trialSwitch) trialSwitch.checked = !!s.trial_enabled;
 
@@ -856,6 +862,15 @@ openUserChat(telegram_id, name, tag, topup_id) {
 
       const tonWallet = $('settingTonWallet');
       if (tonWallet) tonWallet.value = s.ton_wallet_address || '';
+
+      const trxRate = $('settingTrxRate');
+      if (trxRate) trxRate.value = s.trx_rate_toman ?? 0;
+
+      const trxWallet = $('settingTrxWallet');
+      if (trxWallet) trxWallet.value = s.trx_wallet_address || '';
+
+      const xrocketKey = $('settingXRocketApiKey');
+      if (xrocketKey) xrocketKey.value = s.xrocket_api_key || '';
 
       // Trial & Referral
       const trialTraffic = $('settingTrialTraffic');
@@ -1047,6 +1062,11 @@ openUserChat(telegram_id, name, tag, topup_id) {
       eur_rate_toman: parseInt($('settingEurRate')?.value || '105000', 10),
       ton_rate_toman: parseInt($('settingTonRate')?.value || '0', 10),
       ton_wallet_address: $('settingTonWallet')?.value?.trim() || '',
+      trx_enabled: $('settingTrxSwitch')?.checked ?? true,
+      xrocket_enabled: $('settingXRocketSwitch')?.checked ?? true,
+      trx_rate_toman: parseInt($('settingTrxRate')?.value || '0', 10),
+      trx_wallet_address: $('settingTrxWallet')?.value?.trim() || '',
+      xrocket_api_key: $('settingXRocketApiKey')?.value?.trim() || '',
       trial_traffic_gb: parseInt($('settingTrialTraffic')?.value || '1', 10),
       trial_duration_days: parseInt($('settingTrialDays')?.value || '1', 10),
       referral_reward_gb: parseInt($('settingRefReward')?.value || '5', 10),
