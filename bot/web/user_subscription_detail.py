@@ -15,6 +15,90 @@ from bot.services.formatting import country_flag, country_name, human_bytes, par
 logger = logging.getLogger(__name__)
 
 
+def _build_monthly_history(
+    series: list[dict[str, Any]] | None, now_dt: datetime
+) -> list[dict[str, Any]]:
+    """Build multi-month traffic history and server breakdown for monthly navigation."""
+    now_j = jdatetime.datetime.fromgregorian(datetime=now_dt)
+    month_names = [
+        "فروردین", "اردیبهشت", "خرداد", "تیر", "مرداد", "شهریور",
+        "مهر", "آبان", "آذر", "دی", "بهمن", "اسفند"
+    ]
+
+    target_months: list[tuple[int, int]] = []
+    cur_y, cur_m = now_j.year, now_j.month
+    for _ in range(3):
+        target_months.append((cur_y, cur_m))
+        if cur_m > 1:
+            cur_m -= 1
+        else:
+            cur_m = 12
+            cur_y -= 1
+
+    monthly_history: list[dict[str, Any]] = []
+
+    for ty, tm in target_months:
+        weeks_bytes = [0, 0, 0, 0]
+        node_totals: dict[str, dict[str, Any]] = {}
+        m_name = month_names[tm - 1]
+        full_name = f"{m_name} {ty}"
+
+        if series and isinstance(series, list) and isinstance(series[0], dict):
+            for r in series:
+                data = r.get("data") or []
+                n_name = r.get("name") or r.get("nodeName") or "Server"
+                c_code = (r.get("countryCode") or "EU").upper()
+                c_fa = country_name(c_code) or n_name
+
+                if n_name not in node_totals:
+                    node_totals[n_name] = {
+                        "name": n_name,
+                        "country_code": c_code,
+                        "country_name": c_fa,
+                        "flag": country_flag(c_code),
+                        "total_bytes": 0,
+                    }
+
+                for offset in range(len(data)):
+                    d = now_dt.date() - timedelta(days=offset)
+                    d_j = jdatetime.date.fromgregorian(date=d)
+                    if d_j.year == ty and d_j.month == tm:
+                        val = int(data[-(offset + 1)] or 0)
+                        if val > 0:
+                            w_idx = min(3, (d_j.day - 1) // 7)
+                            weeks_bytes[w_idx] += val
+                            node_totals[n_name]["total_bytes"] += val
+
+        total_bytes = sum(weeks_bytes)
+        nodes_breakdown = []
+        for n_info in node_totals.values():
+            if n_info["total_bytes"] > 0:
+                nodes_breakdown.append({
+                    "name": n_info["name"],
+                    "country_code": n_info["country_code"],
+                    "country_name": n_info["country_name"],
+                    "flag": n_info["flag"],
+                    "total_bytes": n_info["total_bytes"],
+                    "total_formatted": human_bytes(n_info["total_bytes"]),
+                    "total_gb": round(n_info["total_bytes"] / (1024**3), 2),
+                    "percent": round((n_info["total_bytes"] / total_bytes) * 100) if total_bytes > 0 else 0,
+                })
+        nodes_breakdown.sort(key=lambda x: x["total_bytes"], reverse=True)
+
+        monthly_history.append({
+            "year": ty,
+            "month": tm,
+            "month_name": m_name,
+            "full_name": full_name,
+            "total_bytes": total_bytes,
+            "total_used_gb": round(total_bytes / (1024**3), 2),
+            "month_weeks_totals_gb": [round(b / (1024**3), 2) for b in weeks_bytes],
+            "nodes_breakdown": nodes_breakdown,
+        })
+
+    return monthly_history
+
+
 async def calc_bandwidth_stats(
     remnawave: Any, primary: dict[str, Any], panel_user_id: Any, now_dt: datetime, tz_name: str
 ) -> dict[str, Any]:
@@ -129,16 +213,9 @@ async def calc_bandwidth_stats(
             for i, val in enumerate(last_7):
                 week_daily_totals[i] += int(val or 0)
 
-        month_4weeks_bytes = [0, 0, 0, 0]
-        for r in series:
-            data = r.get("data") or []
-            last_28 = data[-28:] if len(data) >= 28 else ([0] * (28 - len(data)) + data)
-            for w_idx in range(4):
-                chunk = last_28[w_idx * 7 : (w_idx + 1) * 7]
-                month_4weeks_bytes[w_idx] += sum(int(v or 0) for v in chunk)
-        month_weeks_totals_gb = [round(b / (1024**3), 2) for b in month_4weeks_bytes]
+        monthly_history = _build_monthly_history(series, now_dt)
+        month_weeks_totals_gb = monthly_history[0]["month_weeks_totals_gb"] if monthly_history else [0.0, 0.0, 0.0, 0.0]
     else:
-        month_weeks_totals_gb = [0.0, 0.0, 0.0, round(today_bytes / (1024**3), 2)]
         try:
             start_today_dt = start_of_today(tz_name)
             today_tuple = await asyncio.wait_for(
@@ -164,6 +241,14 @@ async def calc_bandwidth_stats(
                         })
         except (TimeoutError, Exception) as exc:
             logger.warning("Fallback today usage failed or timed out for %s: %s", panel_user_id, exc)
+
+        monthly_history = _build_monthly_history([], now_dt)
+        if today_bytes > 0 and monthly_history:
+            monthly_history[0]["total_bytes"] = today_bytes
+            monthly_history[0]["total_used_gb"] = round(today_bytes / (1024**3), 2)
+            monthly_history[0]["month_weeks_totals_gb"] = [0.0, 0.0, 0.0, round(today_bytes / (1024**3), 2)]
+            monthly_history[0]["nodes_breakdown"] = today_breakdown
+        month_weeks_totals_gb = monthly_history[0]["month_weeks_totals_gb"] if monthly_history else [0.0, 0.0, 0.0, round(today_bytes / (1024**3), 2)]
 
     week_breakdown = sorted(week_nodes_dict.values(), key=lambda x: x["total_bytes"], reverse=True)
     busiest_day_name = "—"
@@ -196,6 +281,7 @@ async def calc_bandwidth_stats(
         "busiest_day_amount": busiest_day_amount,
         "week_day_labels": week_day_labels,
         "month_weeks_totals_gb": month_weeks_totals_gb,
+        "monthly_history": monthly_history,
         "uid_arg": uid_arg,
     }
 
@@ -497,6 +583,7 @@ async def build_active_subscription(
         "current_month_name": current_month_name,
         "month_used_gb": traffic_used_gb,
         "month_weeks_totals_gb": bw["month_weeks_totals_gb"],
+        "monthly_history": bw.get("monthly_history", []),
         "week_day_labels": bw["week_day_labels"],
         "traffic_split": curves["traffic_split"],
         "burn_rate": burn_rate,

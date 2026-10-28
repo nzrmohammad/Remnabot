@@ -61,6 +61,98 @@ function toggleSettingsBox(targetId) {
 }
 window.toggleSettingsBox = toggleSettingsBox;
 
+let currentMonthlyIndex = 0;
+
+function updateMonthlyReportView(index) {
+  if (typeof index === 'number') currentMonthlyIndex = index;
+  const sub = window.lastUserData?.active_sub || window.currentSub;
+  if (!sub) return;
+
+  const history = (Array.isArray(sub.monthly_history) && sub.monthly_history.length > 0)
+    ? sub.monthly_history
+    : [{
+        month_name: sub.current_month_name || 'ماه جاری',
+        full_name: sub.current_month_name || 'ماه جاری',
+        total_used_gb: sub.month_used_gb ?? '0.00',
+        month_weeks_totals_gb: sub.month_weeks_totals_gb || [0, 0, 0, sub.week_used_gb || 0],
+        nodes_breakdown: sub.week_breakdown || sub.today_breakdown || [],
+      }];
+
+  if (currentMonthlyIndex < 0) currentMonthlyIndex = 0;
+  if (currentMonthlyIndex >= history.length) currentMonthlyIndex = history.length - 1;
+
+  const mData = history[currentMonthlyIndex];
+
+  const repMonthlyTitle = $('repMonthlyTitle');
+  if (repMonthlyTitle) repMonthlyTitle.innerText = `📅 گزارش جامع ماه ${mData.month_name || ''}`;
+
+  const repMonthlyCurrentLabel = $('repMonthlyCurrentLabel');
+  if (repMonthlyCurrentLabel) repMonthlyCurrentLabel.innerText = mData.full_name || mData.month_name || 'ماه جاری';
+
+  const repMonthlyPeriodBadge = $('repMonthlyPeriodBadge');
+  if (repMonthlyPeriodBadge) {
+    repMonthlyPeriodBadge.innerText = (currentMonthlyIndex === 0) ? 'ماه جاری' : 'آرشیو گذشته';
+  }
+
+  const repMonthlyTotal = $('repMonthlyTotal');
+  if (repMonthlyTotal) repMonthlyTotal.innerHTML = fmtTraffic(mData.total_used_gb ?? '0.00', { html: true });
+
+  const monthlyCanvas = $('repMonthlyChartCanvas');
+  const monthlyEmpty = $('repMonthlyEmptyState');
+  if (monthlyCanvas && monthlyEmpty) {
+    monthlyCanvas.classList.remove('hidden');
+    monthlyEmpty.classList.add('hidden');
+  }
+
+  if (typeof renderBarChart === 'function') {
+    try {
+      renderBarChart(
+        'repMonthlyChartCanvas',
+        mData.month_weeks_totals_gb || [0, 0, 0, 0],
+        ['هفته ۱', 'هفته ۲', 'هفته ۳', 'هفته ۴'],
+        true
+      );
+    } catch (e) {
+      console.warn('Could not render monthly chart:', e);
+    }
+  }
+
+  if (typeof renderNodeBreakdown === 'function') {
+    renderNodeBreakdown(
+      'repMonthlyNodesContainer',
+      mData.nodes_breakdown || [],
+      `مصرفی در ماه ${mData.month_name || ''} ثبت نشده است.`
+    );
+  }
+
+  const prevBtn = $('repMonthPrevBtn');
+  const nextBtn = $('repMonthNextBtn');
+  const prevLabel = $('repMonthPrevLabel');
+  const nextLabel = $('repMonthNextLabel');
+
+  const hasPrev = currentMonthlyIndex < history.length - 1;
+  const hasNext = currentMonthlyIndex > 0;
+
+  if (prevBtn) {
+    prevBtn.disabled = !hasPrev;
+    prevBtn.classList.toggle('opacity-40', !hasPrev);
+    prevBtn.classList.toggle('cursor-not-allowed', !hasPrev);
+  }
+  if (prevLabel) {
+    prevLabel.innerText = hasPrev ? (history[currentMonthlyIndex + 1]?.month_name || 'ماه قبل') : 'ماه قبل';
+  }
+
+  if (nextBtn) {
+    nextBtn.disabled = !hasNext;
+    nextBtn.classList.toggle('opacity-40', !hasNext);
+    nextBtn.classList.toggle('cursor-not-allowed', !hasNext);
+  }
+  if (nextLabel) {
+    nextLabel.innerText = hasNext ? (history[currentMonthlyIndex - 1]?.month_name || 'ماه بعد') : 'ماه بعد';
+  }
+}
+window.updateMonthlyReportView = updateMonthlyReportView;
+
 // 2. Tab Navigation (5 Tabs)
 function renderReportsCharts(sub) {
   const currentSub = sub || window.lastUserData?.active_sub;
@@ -83,6 +175,10 @@ function renderReportsCharts(sub) {
 
   if (typeof renderBarChart === 'function') {
     renderBarChart('repWeeklyChartCanvas', currentSub.week_daily_totals_gb || [0, 0, 0, 0, 0, 0, 0], currentSub.week_day_labels || ['ش', 'ی', 'د', 'س', 'چ', 'پ', 'ج'], false);
+  }
+  if (typeof updateMonthlyReportView === 'function') {
+    updateMonthlyReportView(currentMonthlyIndex);
+  } else if (typeof renderBarChart === 'function') {
     renderBarChart('repMonthlyChartCanvas', currentSub.month_weeks_totals_gb || [0, 0, 0, currentSub.week_used_gb || 0], ['هفته ۱', 'هفته ۲', 'هفته ۳', 'هفته ۴'], true);
   }
   if (typeof renderActiveSubAnalytics === 'function') {
@@ -157,8 +253,26 @@ function setupReportsSubtabs() {
 
   repSubNightly?.addEventListener('click', () => setRepSub(repSubNightly, viewRepNightly));
   repSubWeekly?.addEventListener('click', () => setRepSub(repSubWeekly, viewRepWeekly));
-  repSubMonthly?.addEventListener('click', () => setRepSub(repSubMonthly, viewRepMonthly));
+  repSubMonthly?.addEventListener('click', () => {
+    setRepSub(repSubMonthly, viewRepMonthly);
+    if (typeof updateMonthlyReportView === 'function') {
+      updateMonthlyReportView(currentMonthlyIndex);
+    }
+  });
   repSubAnalytics?.addEventListener('click', () => setRepSub(repSubAnalytics, viewRepAnalytics));
+
+  $('repMonthPrevBtn')?.addEventListener('click', () => {
+    if (typeof updateMonthlyReportView === 'function') {
+      updateMonthlyReportView(currentMonthlyIndex + 1);
+    }
+    if (typeof hapticFeedback === 'function') hapticFeedback('selection');
+  });
+  $('repMonthNextBtn')?.addEventListener('click', () => {
+    if (typeof updateMonthlyReportView === 'function') {
+      updateMonthlyReportView(currentMonthlyIndex - 1);
+    }
+    if (typeof hapticFeedback === 'function') hapticFeedback('selection');
+  });
 }
 
 // 4. Copy Subscription Button & Box
@@ -2472,6 +2586,21 @@ function resetActiveSubAnalytics() {
   if (repWeeklyBusiest) repWeeklyBusiest.innerText = '—';
   const repMonthlyTotal = $('repMonthlyTotal');
   if (repMonthlyTotal) repMonthlyTotal.innerText = '۰ GB';
+  currentMonthlyIndex = 0;
+  const repMonthlyCurrentLabel = $('repMonthlyCurrentLabel');
+  if (repMonthlyCurrentLabel) repMonthlyCurrentLabel.innerText = '—';
+  const repMonthlyPeriodBadge = $('repMonthlyPeriodBadge');
+  if (repMonthlyPeriodBadge) repMonthlyPeriodBadge.innerText = 'ماه جاری';
+  const prevMonthBtn = $('repMonthPrevBtn');
+  const nextMonthBtn = $('repMonthNextBtn');
+  if (prevMonthBtn) {
+    prevMonthBtn.disabled = true;
+    prevMonthBtn.classList.add('opacity-40', 'cursor-not-allowed');
+  }
+  if (nextMonthBtn) {
+    nextMonthBtn.disabled = true;
+    nextMonthBtn.classList.add('opacity-40', 'cursor-not-allowed');
+  }
 
   // 3. Reset Traffic Split & Burn Rate & Diurnal breakdown
   const downGbEl = document.getElementById('repSplitDownGb');
@@ -3373,7 +3502,6 @@ function hydrateUserInterface(data) {
       if (typeof renderNodeBreakdown === 'function') {
         renderNodeBreakdown('repNightlyNodesContainer', sub.yesterday_breakdown || sub.today_breakdown || [], 'دیشب مصرفی روی سرورها ثبت نشده است.');
         renderNodeBreakdown('repWeeklyNodesContainer', sub.week_breakdown || [], 'مصرفی در 7 روز گذشته ثبت نشده است.');
-        renderNodeBreakdown('repMonthlyNodesContainer', sub.week_breakdown || sub.today_breakdown || [], 'مصرفی در ماه جاری ثبت نشده است.');
       }
 
       const repWeeklyTotal = $('repWeeklyTotal');
@@ -3391,16 +3519,19 @@ function hydrateUserInterface(data) {
         }
       }
 
-      const repMonthlyTitle = $('repMonthlyTitle');
-      if (repMonthlyTitle) repMonthlyTitle.innerText = `📅 گزارش جامع ماه ${sub.current_month_name || ''}`;
-      const repMonthlyTotal = $('repMonthlyTotal');
-      if (repMonthlyTotal) repMonthlyTotal.innerHTML = fmtTraffic(sub.month_used_gb ?? '0.00', { html: true });
-
-      if (typeof renderBarChart === 'function') {
-        try {
-          renderBarChart('repMonthlyChartCanvas', sub.month_weeks_totals_gb || [0, 0, 0, sub.week_used_gb || 0], ['هفته ۱', 'هفته ۲', 'هفته ۳', 'هفته ۴'], true);
-        } catch (e) {
-          console.warn('Could not render monthly chart:', e);
+      if (typeof updateMonthlyReportView === 'function') {
+        updateMonthlyReportView(currentMonthlyIndex);
+      } else {
+        const repMonthlyTitle = $('repMonthlyTitle');
+        if (repMonthlyTitle) repMonthlyTitle.innerText = `📅 گزارش جامع ماه ${sub.current_month_name || ''}`;
+        const repMonthlyTotal = $('repMonthlyTotal');
+        if (repMonthlyTotal) repMonthlyTotal.innerHTML = fmtTraffic(sub.month_used_gb ?? '0.00', { html: true });
+        if (typeof renderBarChart === 'function') {
+          try {
+            renderBarChart('repMonthlyChartCanvas', sub.month_weeks_totals_gb || [0, 0, 0, sub.week_used_gb || 0], ['هفته ۱', 'هفته ۲', 'هفته ۳', 'هفته ۴'], true);
+          } catch (e) {
+            console.warn('Could not render monthly chart:', e);
+          }
         }
       }
 
