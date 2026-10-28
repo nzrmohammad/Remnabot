@@ -695,26 +695,36 @@
             <!-- Chart 3: Country Share Donut (سهم لوکیشن‌ها) -->
             <div class="card rounded-2xl p-4 space-y-2 shadow-md">
               <div class="flex justify-between items-center border-b border-slate-700/60 pb-2">
-                <span class="text-xs font-bold text-white flex items-center gap-1.5">
+                <span class="text-xs font-bold t-main flex items-center gap-1.5">
                   <span>🍩</span> سهم لوکیشن‌ها و کشورها
                 </span>
                 <span class="text-[11px] text-slate-400 font-mono">تفکیک جغرافیایی</span>
               </div>
               <div class="h-44 w-full p-2 bg-transparent rounded-xl relative flex items-center justify-center">
                 <canvas id="repCountryChartCanvas" dir="ltr" class="w-full h-full"></canvas>
+                <div id="repCountryEmptyState" class="hidden flex flex-col items-center justify-center text-center p-3 text-slate-400 space-y-1">
+                  <span class="text-xl">🌍</span>
+                  <span class="text-[11px] font-bold t-main">داده‌ای برای تفکیک موقعیت جغرافیایی ثبت نشده است</span>
+                  <span class="text-[10px] t-muted">پس از اتصال و مصرف ترافیک روی سرورها، سهم مصرف کشورها رسم می‌شود.</span>
+                </div>
               </div>
             </div>
 
             <!-- Chart 4: Device & OS Platform Share (توزیع سیستم‌عامل‌ها) -->
             <div class="card rounded-2xl p-4 space-y-2 shadow-md">
               <div class="flex justify-between items-center border-b border-slate-700/60 pb-2">
-                <span class="text-xs font-bold text-white flex items-center gap-1.5">
+                <span class="text-xs font-bold t-main flex items-center gap-1.5">
                   <span>📱</span> توزیع پلتفرم و دستگاه‌ها
                 </span>
                 <span class="text-[11px] text-slate-400 font-mono">سهم نشست‌ها</span>
               </div>
               <div class="h-40 w-full p-2 bg-transparent rounded-xl relative flex items-center justify-center">
                 <canvas id="repDeviceChartCanvas" dir="ltr" class="w-full h-full"></canvas>
+                <div id="repDeviceEmptyState" class="hidden flex flex-col items-center justify-center text-center p-3 text-slate-400 space-y-1">
+                  <span class="text-xl">📱</span>
+                  <span class="text-[11px] font-bold t-main">دستگاه یا پلتفرم فعالی ثبت نشده است</span>
+                  <span class="text-[10px] t-muted">با اتصال دستگاه‌ها به اشتراک، توزیع پلتفرم‌ها رسم خواهد شد.</span>
+                </div>
               </div>
             </div>
           </div>
@@ -885,10 +895,10 @@
             </div>
             <div class="flex-1 space-y-1.5">
               <div class="flex items-center justify-between">
-                <span class="text-xs font-black text-amber-300">ارتقای امنیت حساب و جوایز ویژه</span>
-                <span class="text-[10px] font-bold text-amber-400 bg-amber-500/20 px-2 py-0.5 rounded-full border border-amber-500/30">سریع</span>
+                <span class="text-xs font-black text-amber-700 dark:text-amber-300">ارتقای امنیت حساب و جوایز ویژه</span>
+                <span class="text-[10px] font-bold text-amber-700 dark:text-amber-300 bg-amber-500/15 px-2 py-0.5 rounded-full border border-amber-500/30">سریع</span>
               </div>
-              <p class="text-[11px] text-slate-300 leading-relaxed">
+              <p class="text-[11px] text-slate-700 dark:text-slate-300 leading-relaxed font-medium">
                 با تأیید شماره تماس، حساب شما نشان رسمی اعتماد دریافت کرده و دسترسی به پرداخت کارت‌به‌کارت و جوایز دوره‌ای فعال می‌شود.
               </p>
               <div class="pt-1.5">
@@ -936,7 +946,7 @@
               <span class="text-slate-400 flex items-center gap-1.5"><span>📞</span> شماره همراه</span>
               <div id="profilePhoneContainer" class="flex items-center gap-1.5">
                 <span id="profilePhone" class="text-slate-400 font-medium font-mono" dir="ltr">وارد نشده</span>
-                <button id="verifyPhoneInBotBtn" type="button" onclick="window.verifyPhoneNative()" class="hidden px-2.5 py-1 rounded-xl bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[10px] font-bold hover:bg-amber-500/30 transition active:scale-95 flex items-center gap-1">
+                <button id="verifyPhoneInBotBtn" type="button" onclick="window.verifyPhoneNative()" class="hidden px-2 py-0.5 rounded-lg bg-transparent text-amber-600 dark:text-amber-400 border border-amber-500/50 text-xs font-black hover:bg-amber-500/10 transition active:scale-95 flex items-center gap-1">
                   <span>⚡️</span>
                   <span>تأیید</span>
                 </button>
@@ -1444,9 +1454,9 @@
             <div class="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-300 border border-amber-500/30 mx-auto flex items-center justify-center text-lg">
               🔒
             </div>
-            <b class="text-xs text-amber-300 block">احراز هویت شماره تماس الزامی است</b>
-            <p class="text-xs text-slate-300 leading-relaxed">
-              جهت استفاده از درگاه پرداخت کارت‌به‌کارت و جلوگیری از سوءاستفاده‌های بانکی (فیشینگ)، تأیید شماره همراه با یک کلیک الزامی می‌باشد.
+            <b class="text-xs text-amber-700 dark:text-amber-300 block">احراز هویت شماره تماس الزامی است</b>
+            <p class="text-xs text-slate-700 dark:text-slate-300 leading-relaxed font-medium">
+              جهت استفاده از درگاه پرداخت کارت‌به‌کارت و جلوگیری از سوءاستفاده‌های بانکی (فیشینگ)، تأیید شماره همراه الزامی می‌باشد.
             </p>
             <button type="button" onclick="window.verifyPhoneNative()" class="w-full bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-slate-950 font-bold text-xs py-2.5 rounded-xl transition shadow active:scale-95 flex items-center justify-center gap-1.5">
               <span>📱</span> تأیید شماره همراه
@@ -1827,7 +1837,7 @@
           <b id="wheelCountdownText" class="text-amber-400 font-mono font-bold text-base tracking-wider block" dir="ltr">00:00:00</b>
         </div>
 
-        <div id="wheelSubWarning" class="hidden text-[10px] text-amber-300/90 bg-amber-950/40 p-2 rounded-lg border border-amber-700/30">
+        <div id="wheelSubWarning" class="hidden text-xs font-bold text-amber-600 dark:text-amber-300 bg-transparent p-2.5 rounded-xl border border-amber-500/40 text-center leading-relaxed">
           ⚠️ برای استفاده از گردونه شانس، داشتن یک اشتراک فعال در پنل الزامی است.
         </div>
       </div>

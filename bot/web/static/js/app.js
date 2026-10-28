@@ -2513,6 +2513,16 @@ function resetActiveSubAnalytics() {
   const pAftPct = $('periodAfternoonPercent'); if (pAftPct) pAftPct.innerText = '۰%';
   const pNgt = $('periodNightVal'); if (pNgt) pNgt.innerText = '۰ GB';
   const pNgtPct = $('periodNightPercent'); if (pNgtPct) pNgtPct.innerText = '۰%';
+
+  const countryCanvas = $('repCountryChartCanvas');
+  const countryEmpty = $('repCountryEmptyState');
+  if (countryCanvas) countryCanvas.classList.add('hidden');
+  if (countryEmpty) countryEmpty.classList.remove('hidden');
+
+  const devCanvas = $('repDeviceChartCanvas');
+  const devEmpty = $('repDeviceEmptyState');
+  if (devCanvas) devCanvas.classList.add('hidden');
+  if (devEmpty) devEmpty.classList.remove('hidden');
 }
 window.resetActiveSubAnalytics = resetActiveSubAnalytics;
 
@@ -2604,18 +2614,40 @@ function renderActiveSubAnalytics(sub) {
   // 3. Country / Cluster Donut Chart
   if (typeof renderDonutChart === 'function') {
     try {
+      const countryCanvas = $('repCountryChartCanvas');
+      const countryEmpty = $('repCountryEmptyState');
       const countryLabels = sub.country_share?.labels?.length ? sub.country_share.labels : [];
       const countryData = sub.country_share?.data?.length ? sub.country_share.data : [];
-      renderDonutChart('repCountryChartCanvas', countryLabels, countryData, false);
+      const hasCountryData = countryData.some(v => Number(v) > 0);
+
+      if (!hasCountryData) {
+        if (countryCanvas) countryCanvas.classList.add('hidden');
+        if (countryEmpty) countryEmpty.classList.remove('hidden');
+      } else {
+        if (countryCanvas) countryCanvas.classList.remove('hidden');
+        if (countryEmpty) countryEmpty.classList.add('hidden');
+        renderDonutChart('repCountryChartCanvas', countryLabels, countryData, false);
+      }
     } catch (e) {
       console.warn('Error rendering country donut chart', e);
     }
 
     // 4. Device Platform Donut Chart
     try {
+      const devCanvas = $('repDeviceChartCanvas');
+      const devEmpty = $('repDeviceEmptyState');
       const devLabels = sub.device_share?.labels?.length ? sub.device_share.labels : [];
       const devData = sub.device_share?.data?.length ? sub.device_share.data : [];
-      renderDonutChart('repDeviceChartCanvas', devLabels, devData, true);
+      const hasDevData = devData.some(v => Number(v) > 0);
+
+      if (!hasDevData) {
+        if (devCanvas) devCanvas.classList.add('hidden');
+        if (devEmpty) devEmpty.classList.remove('hidden');
+      } else {
+        if (devCanvas) devCanvas.classList.remove('hidden');
+        if (devEmpty) devEmpty.classList.add('hidden');
+        renderDonutChart('repDeviceChartCanvas', devLabels, devData, true);
+      }
     } catch (e) {
       console.warn('Error rendering device donut chart', e);
     }
