@@ -1433,15 +1433,21 @@
         </div>
 
         <!-- Method Tabs -->
-        <div id="topupMethodTabs" class="flex card-inset p-1 rounded-xl gap-1">
-          <button id="topupMethodCardBtn" class="flex-1 py-1.5 rounded-lg font-bold text-xs bg-blue-600 text-white transition flex items-center justify-center gap-1">
+        <div id="topupMethodTabs" class="flex card-inset p-1 rounded-xl gap-1 overflow-x-auto no-scrollbar">
+          <button id="topupMethodCardBtn" type="button" class="flex-1 min-w-[65px] py-1.5 rounded-lg font-bold text-xs bg-blue-600 text-white transition flex items-center justify-center gap-1">
             <span>💳</span> کارت
           </button>
-          <button id="topupMethodStarsBtn" class="flex-1 py-1.5 rounded-lg font-medium text-xs text-slate-400 hover:text-slate-200 transition flex items-center justify-center gap-1">
-            <span>⭐</span> استارز
+          <button id="topupMethodCryptoBtn" type="button" class="flex-1 min-w-[65px] py-1.5 rounded-lg font-medium text-xs text-slate-400 hover:text-slate-200 transition flex items-center justify-center gap-1">
+            <span>💎</span> TON
           </button>
-          <button id="topupMethodCryptoBtn" class="flex-1 py-1.5 rounded-lg font-medium text-xs text-slate-400 hover:text-slate-200 transition flex items-center justify-center gap-1">
-            <span>💎</span> کریپتو (TON)
+          <button id="topupMethodTrxBtn" type="button" class="flex-1 min-w-[65px] py-1.5 rounded-lg font-medium text-xs text-slate-400 hover:text-slate-200 transition flex items-center justify-center gap-1">
+            <span>🔴</span> ترون
+          </button>
+          <button id="topupMethodXRocketBtn" type="button" class="flex-1 min-w-[65px] py-1.5 rounded-lg font-medium text-xs text-slate-400 hover:text-slate-200 transition flex items-center justify-center gap-1">
+            <span>🚀</span> xRocket
+          </button>
+          <button id="topupMethodStarsBtn" type="button" class="flex-1 min-w-[65px] py-1.5 rounded-lg font-medium text-xs text-slate-400 hover:text-slate-200 transition flex items-center justify-center gap-1">
+            <span>⭐</span> استارز
           </button>
         </div>
 
@@ -1589,7 +1595,11 @@
             </div>
 
             <div class="space-y-2 pt-1">
-              <a id="cryptoTonkeeperLink" href="#" class="w-full bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-white font-bold py-2.5 rounded-xl transition shadow active:scale-[0.98] flex items-center justify-center gap-1.5 text-xs text-center block">
+              <button id="tonConnectPayBtn" type="button" class="w-full bg-gradient-to-r from-blue-600 via-sky-500 to-indigo-600 hover:opacity-90 text-white font-black py-2.5 rounded-xl transition shadow active:scale-[0.98] flex items-center justify-center gap-2 text-xs">
+                <span>💎</span>
+                <span>پرداخت با والت تلگرام (TON Connect)</span>
+              </button>
+              <a id="cryptoTonkeeperLink" href="#" class="w-full bg-slate-800 hover:bg-slate-700 text-white font-bold py-2 rounded-xl transition shadow active:scale-[0.98] flex items-center justify-center gap-1.5 text-xs text-center block border border-slate-700">
                 <span>🚀</span> پرداخت با Tonkeeper
               </a>
               <div class="grid grid-cols-2 gap-2">
@@ -1604,7 +1614,79 @@
           </div>
         </div>
 
-        <!-- 3. Telegram Stars Section -->
+        <!-- 3. TRX (Tron) Section -->
+        <div id="topupTrxView" class="space-y-3 hidden">
+          <div id="trxInvoiceInitial" class="text-center py-2 space-y-2">
+            <p class="text-[11px] text-slate-300">پرداخت مستقیم ترون (TRX) روی شبکه ترون بدون کارمزد واسطه</p>
+            <button id="generateTrxInvoiceBtn" type="button" class="w-full bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 text-white font-bold py-2.5 rounded-xl transition shadow active:scale-[0.98] flex items-center justify-center gap-1.5">
+              <span>🔴</span> ایجاد فاکتور ترون (TRX)
+            </button>
+          </div>
+
+          <div id="trxInvoiceDetails" class="space-y-2.5 hidden">
+            <div class="card-inset rounded-2xl p-3 border border-rose-500/40 space-y-2">
+              <div class="flex justify-between items-center text-[11px] pb-1.5 border-b border-slate-700/50">
+                <span class="text-slate-400">مقدار قابل واریز:</span>
+                <div class="flex items-center gap-1">
+                  <button id="copyTrxAmountBtn" type="button" class="text-rose-400 hover:text-rose-300 text-xs px-1" title="کپی مقدار">📋</button>
+                  <b id="trxAmountDisplay" class="text-rose-400 font-mono font-bold" dir="ltr">-- TRX</b>
+                </div>
+              </div>
+              <div class="space-y-1">
+                <span class="text-slate-400 text-[11px] block">آدرس کیف پول ترون (TRX):</span>
+                <button id="copyTrxAddressBtn" type="button" class="w-full text-left card-inset p-2.5 rounded-xl font-mono text-[10px] break-all select-all transition text-rose-400 flex items-center justify-between gap-2 cursor-pointer active:scale-[0.99]" dir="ltr">
+                  <span id="trxPayAddress" class="break-all leading-relaxed">--</span>
+                  <span class="text-xs shrink-0">📋</span>
+                </button>
+                <p class="text-[10px] text-slate-400 leading-tight">💡 آدرس را کپی کنید و در ولت خود (Trust Wallet یا TronLink) ارسال کنید.</p>
+              </div>
+              <div class="space-y-1 pt-1.5 border-t border-slate-700/40">
+                <label class="text-[11px] text-slate-300 font-bold block">شناسه تراکنش (TxID):</label>
+                <input type="text" id="trxTxIdInput" placeholder="کد رهگیری یا TxID تراکنش پس از ارسال..." class="input-base w-full p-2 rounded-xl font-mono text-xs outline-none" dir="ltr" />
+              </div>
+            </div>
+
+            <div class="space-y-2 pt-1">
+              <button id="submitTrxTxIdBtn" type="button" class="w-full bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 text-white font-bold py-2.5 rounded-xl transition shadow active:scale-[0.98] flex items-center justify-center gap-1.5">
+                <span>🔍</span> بررسی و تأیید واریز TRX
+              </button>
+              <button id="cancelTrxInvoiceBtn" type="button" class="w-full btn btn-secondary py-2 rounded-xl text-xs flex items-center justify-center gap-1">
+                <span>✕</span> انصراف و فاکتور جدید
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4. xRocket Section -->
+        <div id="topupXRocketView" class="space-y-3 hidden">
+          <div class="card-inset rounded-2xl p-3 border border-indigo-500/40 space-y-2.5">
+            <div class="flex justify-between items-center text-[11px] pb-1.5 border-b border-slate-700/50">
+              <span class="text-slate-400 flex items-center gap-1"><span>🚀</span> درگاه ربات تلگرام xRocket:</span>
+              <span class="font-bold text-indigo-400 font-mono text-[10.5px]">t.me/xrocket</span>
+            </div>
+            <div class="flex justify-between items-center text-[11px]">
+              <span class="text-slate-400">معادل ارزی تقریبی:</span>
+              <b id="xrocketAmountUsd" class="text-indigo-400 font-mono font-bold text-sm" dir="ltr">-- USDT</b>
+            </div>
+            <div class="space-y-1">
+              <label class="text-[11px] text-slate-300">ارز پرداختی در xRocket:</label>
+              <select id="xrocketCurrencySelect" class="input-base w-full p-2 rounded-xl text-xs font-mono outline-none">
+                <option value="USDT" selected>USDT (تتر)</option>
+                <option value="TON">TON (تون)</option>
+                <option value="TRX">TRX (ترون)</option>
+              </select>
+            </div>
+            <p class="text-[11px] t-muted leading-relaxed">
+              💡 با زدن دکمه زیر، ربات رسمی پرداخت xRocket در تلگرام باز شده و تسویه حساب فوری و بدون کارمزد انجام خواهد شد.
+            </p>
+          </div>
+
+          <button id="submitXRocketTopupBtn" type="button" class="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold py-2.5 rounded-xl transition shadow active:scale-[0.98] flex items-center justify-center gap-1.5 text-xs">
+            <span>🚀</span> ایجاد و پرداخت با xRocket
+          </button>
+        </div>
+
+        <!-- 5. Telegram Stars Section -->
         <div id="topupStarsView" class="space-y-3 hidden">
           <div class="card-inset rounded-2xl p-3 border border-amber-500/40 space-y-2.5">
             <div class="flex justify-between items-center text-[11px] pb-1.5 border-b border-slate-200 dark:border-slate-800">

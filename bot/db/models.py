@@ -450,7 +450,8 @@ class CryptoInvoice(Base):
     amount_toman: Mapped[int] = mapped_column(BigInteger)
     amount_ton: Mapped[str] = mapped_column(String(32))
     nanotons: Mapped[int] = mapped_column(BigInteger)
-    comment: Mapped[str] = mapped_column(String(32), unique=True, index=True)
+    currency: Mapped[str] = mapped_column(String(16), default="TON", server_default="TON", index=True)
+    comment: Mapped[str] = mapped_column(String(64), unique=True, index=True)
     pay_address: Mapped[str] = mapped_column(String(128))
     status: Mapped[str] = mapped_column(String(16), default="pending", index=True)  # pending / paid / expired / cancelled
     tx_hash: Mapped[str | None] = mapped_column(String(128), nullable=True, unique=True, index=True)

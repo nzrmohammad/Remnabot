@@ -199,6 +199,22 @@ const api = {
     return this.post('/api/user/topup/stars', { amount });
   },
 
+  async createTrxInvoice(amount) {
+    return this.post('/api/user/topup/trx', { amount });
+  },
+
+  async verifyTrxInvoice(invoice_id, tx_hash) {
+    return this.post('/api/user/topup/trx/verify', { invoice_id, tx_hash });
+  },
+
+  async submitTonConnectInvoice(invoice_id, tx_hash) {
+    return this.post('/api/user/topup/crypto/tonconnect_submit', { invoice_id, tx_hash });
+  },
+
+  async createXRocketInvoice(amount, currency = 'USDT') {
+    return this.post('/api/user/topup/xrocket', { amount, currency });
+  },
+
 
   async saveSetting(key, value) {
     return this.post('/api/user/settings', { key, value });

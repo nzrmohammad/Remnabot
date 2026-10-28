@@ -33,6 +33,11 @@ from bot.web.user_topup import (
     post_user_topup_crypto,
     post_user_topup_crypto_check,
     post_user_topup_stars,
+    post_user_topup_tonconnect_submit,
+    post_user_topup_trx,
+    post_user_topup_trx_verify,
+    post_user_topup_xrocket,
+    post_webhook_xrocket,
 )
 from bot.web.user_support import (
     get_user_support_messages,
@@ -65,6 +70,11 @@ __all__ = [
     "post_user_topup_crypto",
     "post_user_topup_crypto_check",
     "post_user_topup_stars",
+    "post_user_topup_tonconnect_submit",
+    "post_user_topup_trx",
+    "post_user_topup_trx_verify",
+    "post_user_topup_xrocket",
+    "post_webhook_xrocket",
     "get_user_support_messages",
     "post_user_support_message",
     "get_user_subscription_configs",

@@ -29,10 +29,15 @@ class Settings(BaseSettings):
     ADMIN_TOPIC_ERRORS: int | None = None   # Topic ID for system error logs and exceptions
     ADMIN_TOPIC_BACKUPS: int | None = None  # Topic ID for database backup archives
 
-    # --- Crypto (TON on-chain top-up) ---
+    # --- Crypto (TON & TRX on-chain top-up & xRocket) ---
     TON_WALLET_ADDRESS: str = ""
     TON_RATE_TOMAN: int = 0
     CRYPTO_ENABLED: bool = False
+    TRX_WALLET_ADDRESS: str = ""
+    TRX_RATE_TOMAN: int = 0
+    TRX_ENABLED: bool = False
+    XROCKET_API_KEY: str = ""
+    XROCKET_ENABLED: bool = False
     USDT_RATE_TOMAN: int = 0
     EUR_RATE_TOMAN: int = 0
     IRAN_PROXY: str = ""

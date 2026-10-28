@@ -33,6 +33,11 @@ class StoreSettings:
     ton_wallet_address: str = ""
     ton_rate_toman: int = 0
     crypto_enabled: bool = False
+    trx_wallet_address: str = ""
+    trx_rate_toman: int = 0
+    trx_enabled: bool = False
+    xrocket_api_key: str = ""
+    xrocket_enabled: bool = False
     usdt_rate_toman: int = field(default_factory=lambda: getattr(get_settings(), "USDT_RATE_TOMAN", 0))
     eur_rate_toman: int = 0
     card_enabled: bool = True
@@ -103,6 +108,11 @@ async def get_store_settings(session: AsyncSession) -> StoreSettings:
         ton_wallet_address=values.get("ton_wallet_address", env.TON_WALLET_ADDRESS),
         ton_rate_toman=_int(values.get("ton_rate_toman"), env.TON_RATE_TOMAN),
         crypto_enabled=_bool(values.get("crypto_enabled"), env.CRYPTO_ENABLED),
+        trx_wallet_address=values.get("trx_wallet_address", getattr(env, "TRX_WALLET_ADDRESS", "")),
+        trx_rate_toman=_int(values.get("trx_rate_toman"), getattr(env, "TRX_RATE_TOMAN", 0)),
+        trx_enabled=_bool(values.get("trx_enabled"), getattr(env, "TRX_ENABLED", False)),
+        xrocket_api_key=values.get("xrocket_api_key", getattr(env, "XROCKET_API_KEY", "")),
+        xrocket_enabled=_bool(values.get("xrocket_enabled"), getattr(env, "XROCKET_ENABLED", False)),
         usdt_rate_toman=_int(values.get("usdt_rate_toman"), env.USDT_RATE_TOMAN),
         eur_rate_toman=_int(values.get("eur_rate_toman"), getattr(env, "EUR_RATE_TOMAN", 0) or 0),
         card_enabled=_bool(values.get("card_enabled"), True),

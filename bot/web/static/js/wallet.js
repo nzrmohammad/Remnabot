@@ -125,6 +125,16 @@ function updateTopupDisplays(amt) {
     const cryptoTonEl = document.getElementById('cryptoAmountTon');
     if (cryptoTonEl) cryptoTonEl.innerText = `${tonAmt} TON`;
   }
+  if (window.storeSettings?.trx_rate_toman && window.storeSettings.trx_rate_toman > 0) {
+    const trxAmt = ((amt || 0) / window.storeSettings.trx_rate_toman).toFixed(2);
+    const trxDisplay = document.getElementById('trxAmountDisplay');
+    if (trxDisplay) trxDisplay.innerText = `${trxAmt} TRX`;
+  }
+  const usdtRate = window.storeSettings?.usdt_rate_toman || 100000;
+  const usdtAmt = ((amt || 0) / usdtRate).toFixed(2);
+  const xrocketAmtEl = document.getElementById('xrocketAmountUsd');
+  if (xrocketAmtEl) xrocketAmtEl.innerText = `${usdtAmt} USDT`;
+
   const starsRate = window.storeSettings?.stars_rate_toman || 1600;
   const starsCount = Math.max(1, Math.ceil((amt || 0) / starsRate));
   const starsReqEl = document.getElementById('starsRequiredCount');
@@ -228,18 +238,22 @@ function switchTopupTab(tab) {
   const btnCard = document.getElementById('topupMethodCardBtn');
   const btnStars = document.getElementById('topupMethodStarsBtn');
   const btnCrypto = document.getElementById('topupMethodCryptoBtn');
+  const btnTrx = document.getElementById('topupMethodTrxBtn');
+  const btnXRocket = document.getElementById('topupMethodXRocketBtn');
 
   const viewCard = document.getElementById('topupCardView');
   const viewStars = document.getElementById('topupStarsView');
   const viewCrypto = document.getElementById('topupCryptoView');
+  const viewTrx = document.getElementById('topupTrxView');
+  const viewXRocket = document.getElementById('topupXRocketView');
 
-  [btnCard, btnStars, btnCrypto].forEach(b => {
+  [btnCard, btnStars, btnCrypto, btnTrx, btnXRocket].forEach(b => {
     if (b) {
       b.classList.remove('bg-blue-600', 'text-white');
       b.classList.add('text-slate-400');
     }
   });
-  [viewCard, viewStars, viewCrypto].forEach(v => {
+  [viewCard, viewStars, viewCrypto, viewTrx, viewXRocket].forEach(v => {
     if (v) v.classList.add('hidden');
   });
 
@@ -255,6 +269,14 @@ function switchTopupTab(tab) {
     btnCrypto?.classList.add('bg-blue-600', 'text-white');
     btnCrypto?.classList.remove('text-slate-400');
     viewCrypto?.classList.remove('hidden');
+  } else if (tab === 'trx') {
+    btnTrx?.classList.add('bg-blue-600', 'text-white');
+    btnTrx?.classList.remove('text-slate-400');
+    viewTrx?.classList.remove('hidden');
+  } else if (tab === 'xrocket') {
+    btnXRocket?.classList.add('bg-blue-600', 'text-white');
+    btnXRocket?.classList.remove('text-slate-400');
+    viewXRocket?.classList.remove('hidden');
   }
 }
 
@@ -434,60 +456,105 @@ function restoreActiveCryptoInvoice() {
   }
 }
 
+let currentTrxInvoice = null;
+
+function getActiveTrxStorageKey() {
+  const tgId = window.lastUserData?.user?.telegram_id || window.Telegram?.WebApp?.initDataUnsafe?.user?.id || 'default';
+  return `remna_active_trx_invoice_${tgId}`;
+}
+
+function saveActiveTrxInvoice(inv) {
+  try {
+    const expiresAt = Date.now() + (60 * 60 * 1000);
+    localStorage.setItem(getActiveTrxStorageKey(), JSON.stringify({
+      invoice: inv,
+      expires_at: expiresAt
+    }));
+  } catch (e) {}
+}
+
+function clearActiveTrxInvoice() {
+  try {
+    localStorage.removeItem(getActiveTrxStorageKey());
+  } catch (e) {}
+  currentTrxInvoice = null;
+  const detailsEl = document.getElementById('trxInvoiceDetails');
+  const initialEl = document.getElementById('trxInvoiceInitial');
+  if (detailsEl) detailsEl.classList.add('hidden');
+  if (initialEl) initialEl.classList.remove('hidden');
+  const input = document.getElementById('trxTxIdInput');
+  if (input) input.value = '';
+}
+
+function restoreActiveTrxInvoice() {
+  try {
+    const raw = localStorage.getItem(getActiveTrxStorageKey());
+    if (!raw) return false;
+    const data = JSON.parse(raw);
+    const now = Date.now();
+    if (now >= data.expires_at || !data.invoice) {
+      clearActiveTrxInvoice();
+      return false;
+    }
+    currentTrxInvoice = data.invoice;
+    document.getElementById('trxInvoiceInitial')?.classList.add('hidden');
+    document.getElementById('trxInvoiceDetails')?.classList.remove('hidden');
+    const amtEl = document.getElementById('trxAmountDisplay');
+    if (amtEl) amtEl.innerText = `${data.invoice.amount_trx} TRX`;
+    const addrEl = document.getElementById('trxPayAddress');
+    if (addrEl) addrEl.innerText = data.invoice.pay_address;
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
 async function openTopupModal(defaultAmt, forceCrypto = false) {
   const amt = defaultAmt && defaultAmt >= 50000 ? defaultAmt : 50000;
   const inputEl = document.getElementById('topupAmountInput');
   if (inputEl) inputEl.value = amt;
   updateTopupDisplays(amt);
 
-  // Apply cached storeSettings immediately if available
-  const s = window.storeSettings;
-  if (s) {
+  const applyMethodTabs = (s) => {
+    if (!s) return;
     const hasActiveCrypto = restoreActiveCryptoInvoice();
-    const anyEnabled = s.card_enabled !== false || s.stars_enabled !== false || s.crypto_enabled !== false;
-    if (!anyEnabled || (s.card_enabled === false && s.stars_enabled === false && s.crypto_enabled === false)) {
+    const hasActiveTrx = restoreActiveTrxInvoice();
+    const anyEnabled = s.card_enabled !== false || s.stars_enabled !== false || s.crypto_enabled !== false || s.trx_enabled !== false || s.xrocket_enabled !== false;
+    if (!anyEnabled) {
       document.getElementById('topupMethodTabs')?.classList.add('hidden');
       document.getElementById('topupAmountSection')?.classList.add('hidden');
       document.getElementById('topupCardView')?.classList.add('hidden');
       document.getElementById('topupStarsView')?.classList.add('hidden');
       document.getElementById('topupCryptoView')?.classList.add('hidden');
+      document.getElementById('topupTrxView')?.classList.add('hidden');
+      document.getElementById('topupXRocketView')?.classList.add('hidden');
       document.getElementById('topupAllDisabledState')?.classList.remove('hidden');
     } else if ((hasActiveCrypto || forceCrypto) && s.crypto_enabled !== false) {
       switchToCryptoTab();
+    } else if (hasActiveTrx && s.trx_enabled !== false) {
+      switchTopupTab('trx');
     } else if (s.card_enabled !== false) {
       switchToCardTab();
-    } else if (s.stars_enabled !== false) {
-      switchTopupTab('stars');
     } else if (s.crypto_enabled !== false) {
       switchToCryptoTab();
+    } else if (s.trx_enabled !== false) {
+      switchTopupTab('trx');
+    } else if (s.xrocket_enabled !== false) {
+      switchTopupTab('xrocket');
+    } else if (s.stars_enabled !== false) {
+      switchTopupTab('stars');
     }
-  }
+  };
+
+  // Apply cached storeSettings immediately if available
+  applyMethodTabs(window.storeSettings);
 
   // Open modal immediately with 0ms delay
   openModal('topupModal');
 
   // Load/refresh settings in background (SWR pattern)
   await loadTopupInfo();
-
-  const sFresh = window.storeSettings || {};
-  const hasActiveCryptoFresh = restoreActiveCryptoInvoice();
-  const anyEnabledFresh = sFresh.card_enabled !== false || sFresh.stars_enabled !== false || sFresh.crypto_enabled !== false;
-  if (!anyEnabledFresh || (sFresh.card_enabled === false && sFresh.stars_enabled === false && sFresh.crypto_enabled === false)) {
-    document.getElementById('topupMethodTabs')?.classList.add('hidden');
-    document.getElementById('topupAmountSection')?.classList.add('hidden');
-    document.getElementById('topupCardView')?.classList.add('hidden');
-    document.getElementById('topupStarsView')?.classList.add('hidden');
-    document.getElementById('topupCryptoView')?.classList.add('hidden');
-    document.getElementById('topupAllDisabledState')?.classList.remove('hidden');
-  } else if ((hasActiveCryptoFresh || forceCrypto) && sFresh.crypto_enabled !== false) {
-    switchToCryptoTab();
-  } else if (sFresh.card_enabled !== false) {
-    switchToCardTab();
-  } else if (sFresh.stars_enabled !== false) {
-    switchTopupTab('stars');
-  } else if (sFresh.crypto_enabled !== false) {
-    switchToCryptoTab();
-  }
+  applyMethodTabs(window.storeSettings);
 }
 
 function setupWalletListeners() {
@@ -507,6 +574,8 @@ function setupWalletListeners() {
   const methodCardBtn = document.getElementById('topupMethodCardBtn');
   const methodStarsBtn = document.getElementById('topupMethodStarsBtn');
   const methodCryptoBtn = document.getElementById('topupMethodCryptoBtn');
+  const methodTrxBtn = document.getElementById('topupMethodTrxBtn');
+  const methodXRocketBtn = document.getElementById('topupMethodXRocketBtn');
 
   methodCardBtn?.addEventListener('click', () => {
     switchTopupTab('card');
@@ -519,6 +588,15 @@ function setupWalletListeners() {
   methodCryptoBtn?.addEventListener('click', () => {
     switchTopupTab('crypto');
     restoreActiveCryptoInvoice();
+  });
+
+  methodTrxBtn?.addEventListener('click', () => {
+    switchTopupTab('trx');
+    restoreActiveTrxInvoice();
+  });
+
+  methodXRocketBtn?.addEventListener('click', () => {
+    switchTopupTab('xrocket');
   });
 
   document.getElementById('closeTopupModalBtn')?.addEventListener('click', () => {
@@ -855,7 +933,149 @@ function setupWalletListeners() {
     });
   }
 
+  document.getElementById('tonConnectPayBtn')?.addEventListener('click', () => {
+    if (!currentTopupInvoice?.pay_address) {
+      showToast('⚠️ ابتدا فاکتور پرداخت TON را ایجاد فرمایید.');
+      return;
+    }
+    const address = currentTopupInvoice.pay_address;
+    const amountNano = Math.round((Number(currentTopupInvoice.amount_ton) || 0) * 1e9);
+    const text = encodeURIComponent(currentTopupInvoice.comment || '');
+    const tonUrl = `ton://transfer/${address}?amount=${amountNano}&text=${text}`;
+    if (window.Telegram?.WebApp?.openLink) {
+      try {
+        window.Telegram.WebApp.openLink(tonUrl);
+      } catch (e) {
+        window.open(tonUrl, '_blank');
+      }
+    } else {
+      window.open(tonUrl, '_blank');
+    }
+  });
+
+  // TRX Gateway Listeners
+  document.getElementById('generateTrxInvoiceBtn')?.addEventListener('click', async () => {
+    const amt = parseInt(topupAmountInput?.value || '0', 10);
+    if (!amt || amt < 10000) {
+      showToast('⚠️ لطفاً مبلغ معتبر وارد فرمایید (حداقل ۱۰,۰۰۰ تومان).');
+      return;
+    }
+    const btn = document.getElementById('generateTrxInvoiceBtn');
+    btn.disabled = true;
+    btn.innerText = 'در حال ایجاد فاکتور ترون...';
+    try {
+      const res = await window.api.createTrxInvoice(amt);
+      if (res.ok && res.invoice) {
+        currentTrxInvoice = res.invoice;
+        saveActiveTrxInvoice(res.invoice);
+        document.getElementById('trxInvoiceInitial')?.classList.add('hidden');
+        document.getElementById('trxInvoiceDetails')?.classList.remove('hidden');
+        const amtEl = document.getElementById('trxAmountDisplay');
+        if (amtEl) amtEl.innerText = `${res.invoice.amount_trx} TRX`;
+        const addrEl = document.getElementById('trxPayAddress');
+        if (addrEl) addrEl.innerText = res.invoice.pay_address;
+      } else {
+        showToast(`❌ ${res.message || 'خطا در ایجاد فاکتور ترون'}`);
+      }
+    } catch (e) {
+      showToast('❌ خطا در برقراری ارتباط با سرور.');
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = '<span>🔴</span> ایجاد فاکتور ترون (TRX)';
+    }
+  });
+
+  const handleCopyTrxAddress = () => {
+    const addr = document.getElementById('trxPayAddress')?.innerText?.trim();
+    if (addr && addr !== '--') {
+      copyToClipboard(addr, '📋 آدرس ولت ترون کپی شد.');
+      hapticFeedback('success');
+    }
+  };
+  document.getElementById('copyTrxAddressBtn')?.addEventListener('click', handleCopyTrxAddress);
+  document.getElementById('trxPayAddress')?.addEventListener('click', handleCopyTrxAddress);
+
+  document.getElementById('copyTrxAmountBtn')?.addEventListener('click', () => {
+    const amt = currentTrxInvoice?.amount_trx;
+    if (amt) {
+      copyToClipboard(String(amt), '📋 مقدار TRX کپی شد.');
+      hapticFeedback('success');
+    }
+  });
+
+  document.getElementById('cancelTrxInvoiceBtn')?.addEventListener('click', () => {
+    clearActiveTrxInvoice();
+    showToast('فاکتور ترون لغو شد.');
+  });
+
+  document.getElementById('submitTrxTxIdBtn')?.addEventListener('click', async () => {
+    if (!currentTrxInvoice?.id) {
+      showToast('⚠️ ابتدا فاکتور ترون را ایجاد فرمایید.');
+      return;
+    }
+    const txId = document.getElementById('trxTxIdInput')?.value?.trim();
+    if (!txId) {
+      showToast('⚠️ لطفاً شناسه تراکنش (TxID) را وارد فرمایید.');
+      return;
+    }
+    const btn = document.getElementById('submitTrxTxIdBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<span>⏳</span> در حال استعلام از شبکه ترون...';
+    try {
+      const res = await window.api.verifyTrxInvoice(currentTrxInvoice.id, txId);
+      if (res.ok) {
+        showToast('🎉 واریز TRX در شبکه تأیید شد و کیف پول شارژ گردید!');
+        clearActiveTrxInvoice();
+        closeModal('topupModal');
+        hapticFeedback('success');
+        if (typeof syncUserDataWithApi === 'function') syncUserDataWithApi(window.currentAccountId);
+      } else {
+        showToast(`❌ ${res.message || 'تراکنش در شبکه ترون تأیید نشد'}`);
+      }
+    } catch (e) {
+      showToast('❌ خطا در بررسی تراکنش.');
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = '<span>🔍</span> بررسی و تأیید واریز TRX';
+    }
+  });
+
+  // xRocket Gateway Listener
+  document.getElementById('submitXRocketTopupBtn')?.addEventListener('click', async () => {
+    const amt = parseInt(topupAmountInput?.value || '0', 10);
+    if (!amt || amt < 10000) {
+      showToast('⚠️ لطفاً مبلغ معتبر وارد فرمایید.');
+      return;
+    }
+    const currency = document.getElementById('xrocketCurrencySelect')?.value || 'USDT';
+    const btn = document.getElementById('submitXRocketTopupBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<span>⏳</span> در حال ایجاد فاکتور xRocket...';
+    try {
+      const res = await window.api.createXRocketInvoice(amt, currency);
+      if (res.ok && res.pay_url) {
+        if (window.Telegram?.WebApp?.openTelegramLink && res.pay_url.includes('t.me')) {
+          window.Telegram.WebApp.openTelegramLink(res.pay_url);
+        } else if (window.Telegram?.WebApp?.openLink) {
+          window.Telegram.WebApp.openLink(res.pay_url);
+        } else {
+          window.open(res.pay_url, '_blank');
+        }
+        showToast('🚀 درگاه xRocket باز شد. پس از پرداخت، کیف پول به‌صورت آنی شارژ خواهد شد.');
+        closeModal('topupModal');
+      } else {
+        showToast(`❌ ${res.message || res.error || 'خطا در ایجاد درگاه xRocket'}`);
+      }
+    } catch (e) {
+      showToast('❌ خطا در ارتباط با سرور.');
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = '<span>🚀</span> ایجاد و پرداخت با xRocket';
+    }
+  });
+
   restoreActiveCryptoInvoice();
+  restoreActiveTrxInvoice();
   // Pre-fetch topup settings in background for instant modal responsiveness
   loadTopupInfo().catch(() => {});
 }

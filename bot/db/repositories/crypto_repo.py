@@ -80,6 +80,7 @@ class CryptoRepository:
         nanotons: int,
         pay_address: str,
         expires_minutes: int = 45,
+        currency: str = "TON",
     ) -> CryptoInvoice:
         comment = await self.generate_unique_comment()
         expires_at = datetime.now(timezone.utc) + timedelta(minutes=expires_minutes)
@@ -89,6 +90,7 @@ class CryptoRepository:
             amount_toman=amount_toman,
             amount_ton=amount_ton,
             nanotons=nanotons,
+            currency=currency,
             comment=comment,
             pay_address=pay_address,
             status="pending",

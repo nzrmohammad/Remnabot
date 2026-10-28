@@ -126,6 +126,10 @@ async def api_rate_limit_middleware(request: web.Request, handler):
             "/api/user/topup/card",
             "/api/user/topup/crypto",
             "/api/user/topup/crypto/check",
+            "/api/user/topup/crypto/tonconnect_submit",
+            "/api/user/topup/trx",
+            "/api/user/topup/trx/verify",
+            "/api/user/topup/xrocket",
             "/api/user/topup/stars",
         }
         is_sensitive = request.path in sensitive_paths and request.method == "POST"
@@ -529,6 +533,11 @@ def create_web_app(
     app.router.add_post("/api/user/topup/card", routes_user.post_user_topup_card)
     app.router.add_post("/api/user/topup/crypto", routes_user.post_user_topup_crypto)
     app.router.add_post("/api/user/topup/crypto/check", routes_user.post_user_topup_crypto_check)
+    app.router.add_post("/api/user/topup/crypto/tonconnect_submit", routes_user.post_user_topup_tonconnect_submit)
+    app.router.add_post("/api/user/topup/trx", routes_user.post_user_topup_trx)
+    app.router.add_post("/api/user/topup/trx/verify", routes_user.post_user_topup_trx_verify)
+    app.router.add_post("/api/user/topup/xrocket", routes_user.post_user_topup_xrocket)
+    app.router.add_post("/api/webhooks/xrocket", routes_user.post_webhook_xrocket)
     app.router.add_post("/api/user/topup/stars", routes_user.post_user_topup_stars)
     app.router.add_post("/api/user/validate_coupon", routes_user.post_user_validate_coupon)
     app.router.add_post("/api/user/wallet/redeem", routes_user.post_user_redeem_voucher)
