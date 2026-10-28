@@ -1310,15 +1310,24 @@ async applyUserModification() {
       const completePlans = plans.filter(p => p.is_active !== false && p.traffic_gb > 0 && p.duration_days > 0);
       const selectedId = $('createUserSelectedPlanId')?.value || 'custom';
 
+      const BADGE_MAP = {
+        'bestseller': '🔥 پرفروش‌ترین',
+        'best seller': '🔥 پرفروش‌ترین',
+        'popular': '⭐ محبوب‌ترین',
+        'economic': '🌱 اقتصادی',
+        'vip': '👑 پیشنهاد ویژه',
+        'special': '✨ ویژه'
+      };
+
       let html = `
         <div onclick="window.adminActions.selectCreateUserPlan('custom')" class="p-3 rounded-2xl border transition cursor-pointer flex items-center justify-between gap-3 ${selectedId === 'custom' ? 'bg-blue-600/15 border-blue-500 shadow-sm' : 'card-inset hover:border-slate-500/50'}">
-          <div class="flex items-center gap-3 min-w-0">
-            <div class="w-9 h-9 rounded-xl bg-blue-500/15 text-blue-400 border border-blue-500/30 flex items-center justify-center font-bold text-base shrink-0">
-              ⚙️
-            </div>
-            <div class="min-w-0">
+          <div class="flex items-center justify-between min-w-0 flex-1 gap-3">
+            <div class="min-w-0 flex-1">
               <span class="font-bold t-main text-xs block">تنظیمات سفارشی (دستی)</span>
               <span class="text-[10px] t-muted block mt-0.5">تعیین دستی حجم، روز و محدودیت دلخواه</span>
+            </div>
+            <div class="w-8 h-8 rounded-xl bg-blue-500/15 text-blue-400 border border-blue-500/30 flex items-center justify-center font-bold text-sm shrink-0">
+              ⚙️
             </div>
           </div>
           <div class="shrink-0 text-blue-400 text-sm font-bold">${selectedId === 'custom' ? '✓' : ''}</div>
@@ -1334,27 +1343,33 @@ async applyUserModification() {
       } else {
         html += completePlans.map(p => {
           const isSelected = String(selectedId) === String(p.id);
-          const trafficLabel = fmtTraffic(p.traffic_gb, { html: false });
-          const badgeHtml = p.badge ? `<span class="px-1.5 py-0.5 text-[9.5px] rounded border border-blue-500/40 text-blue-500 dark:text-blue-400 font-bold">${escapeHtml(p.badge)}</span>` : '';
+          const bKey = (p.badge || '').toLowerCase().trim();
+          const badgeText = BADGE_MAP[bKey] || (p.badge ? escapeHtml(p.badge) : '');
+          let badgeClass = 'border-blue-500/40 text-blue-500 dark:text-blue-400 bg-blue-500/10';
+          if (bKey.includes('vip')) badgeClass = 'border-rose-500/40 text-rose-500 dark:text-rose-400 bg-rose-500/10';
+          else if (bKey.includes('seller')) badgeClass = 'border-amber-500/40 text-amber-500 dark:text-amber-400 bg-amber-500/10';
+          else if (bKey.includes('popular')) badgeClass = 'border-purple-500/40 text-purple-500 dark:text-purple-400 bg-purple-500/10';
+          else if (bKey.includes('eco')) badgeClass = 'border-emerald-500/40 text-emerald-500 dark:text-emerald-400 bg-emerald-500/10';
+          const badgeHtml = badgeText ? `<span class="px-1.5 py-0.5 text-[9.5px] rounded border font-bold ${badgeClass}">${badgeText}</span>` : '';
           const priceLabel = p.price ? (typeof fmtMoney === 'function' ? fmtMoney(p.price) : `${p.price} تومان`) : '';
 
           return `
             <div onclick="window.adminActions.selectCreateUserPlan('${p.id}')" class="p-3 rounded-2xl border transition cursor-pointer flex items-center justify-between gap-3 ${isSelected ? 'bg-blue-600/15 border-blue-500 shadow-sm' : 'card-inset hover:border-slate-500/50'}">
-              <div class="flex items-center gap-3 min-w-0 flex-1">
-                <div class="w-9 h-9 rounded-xl bg-blue-500/15 text-blue-400 border border-blue-500/30 flex items-center justify-center font-bold text-base shrink-0">
-                  📦
-                </div>
+              <div class="flex items-center justify-between min-w-0 flex-1 gap-3">
                 <div class="min-w-0 flex-1">
                   <div class="flex items-center gap-1.5 flex-wrap">
                     <span class="font-bold t-main text-xs truncate">${escapeHtml(p.name)}</span>
                     ${badgeHtml}
                   </div>
                   <div class="flex items-center gap-2 text-[10px] t-muted mt-0.5 font-mono">
-                    <span class="text-cyan-600 dark:text-cyan-300 font-bold">${trafficLabel}</span>
+                    <span class="text-cyan-600 dark:text-cyan-300 font-bold inline-flex items-center gap-0.5" dir="rtl"><span>GB</span><span class="font-mono font-bold">${toEnglishDigits(p.traffic_gb)}</span></span>
                     <span>•</span>
                     <span class="text-amber-600 dark:text-amber-300 font-bold">${p.duration_days} روز</span>
                     ${priceLabel ? `<span>•</span> <span class="t-muted font-sans">${escapeHtml(priceLabel)}</span>` : ''}
                   </div>
+                </div>
+                <div class="w-8 h-8 rounded-xl bg-blue-500/15 text-blue-400 border border-blue-500/30 flex items-center justify-center font-bold text-sm shrink-0">
+                  📦
                 </div>
               </div>
               <div class="shrink-0 text-blue-400 text-sm font-bold">${isSelected ? '✓' : ''}</div>

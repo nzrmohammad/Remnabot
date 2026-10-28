@@ -2632,7 +2632,7 @@ function resetActiveSubAnalytics() {
   const statusIconEl = document.getElementById('repBurnStatusIcon');
   if (statusIconEl) statusIconEl.innerText = 'ℹ️';
   const analysisBox = document.getElementById('repBurnAnalysisBox');
-  if (analysisBox) analysisBox.className = 'p-2.5 rounded-xl bg-slate-900/60 border border-slate-700/60 text-xs text-slate-400 flex items-start gap-2';
+  if (analysisBox) analysisBox.className = 'p-2 rounded-xl text-xs t-muted flex items-start gap-2 bg-transparent border-0';
 
   const pDawn = $('periodDawnVal'); if (pDawn) pDawn.innerText = '۰ GB';
   const pDawnPct = $('periodDawnPercent'); if (pDawnPct) pDawnPct.innerText = '۰%';
@@ -2927,10 +2927,10 @@ function hydrateUserInterface(data) {
     if (profStatusBadge) {
       if (hasActiveSub) {
         profStatusBadge.innerHTML = '<span class="inline-flex items-center gap-1"><span>🟢</span><span>کاربر فعال</span></span>';
-        profStatusBadge.className = 'px-2.5 py-0.5 rounded-full text-[10px] font-bold border badge-active transition inline-flex items-center gap-1';
+        profStatusBadge.className = 'badge badge-success rounded-full text-[10px] font-bold inline-flex items-center gap-1';
       } else {
         profStatusBadge.innerHTML = '<span class="inline-flex items-center gap-1"><span>⚪️</span><span>بدون سرویس فعال</span></span>';
-        profStatusBadge.className = 'px-2.5 py-0.5 rounded-full text-[10px] font-bold border badge-inactive transition inline-flex items-center gap-1';
+        profStatusBadge.className = 'badge badge-warn rounded-full text-[10px] font-bold inline-flex items-center gap-1';
       }
     }
 

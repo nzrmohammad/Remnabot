@@ -21,15 +21,15 @@
 
   // Core Shared Admin Actions (Clipboard & Global Modals)
   Object.assign(window.adminActions, {
-async quickCopy(text, label = 'مقدار') {
+    async quickCopy(text, label = 'مقدار') {
       if (!text) return;
-      const safeText = escapeHtml(String(text));
-      const safeLabel = escapeHtml(String(label));
-      const toastHtml = `📋 ${safeLabel} کپی شد: <span dir="ltr" class="font-mono inline-block font-bold text-cyan-300">${safeText}</span>`;
+      const safeText = String(text).trim();
+      const safeLabel = String(label).trim();
+      const toastMsg = `📋 ${safeLabel} کپی شد: ${safeText}`;
       if (typeof copyToClipboard === 'function') {
-        await copyToClipboard(String(text), toastHtml);
+        await copyToClipboard(safeText, toastMsg);
       } else if (window.copyToClipboard) {
-        await window.copyToClipboard(String(text), toastHtml);
+        await window.copyToClipboard(safeText, toastMsg);
       }
     },
 

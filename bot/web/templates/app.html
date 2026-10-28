@@ -575,16 +575,16 @@
 
           <!-- Month Navigation Switcher (جا‌به‌جایی بین ماه‌های سال با فلش) -->
           <div class="flex items-center justify-between card-inset rounded-xl px-2.5 py-1.5 border border-slate-700/40">
-            <button id="repMonthPrevBtn" type="button" class="px-2.5 py-1 rounded-lg text-xs font-bold text-slate-300 hover:text-white hover:bg-slate-700/50 transition flex items-center gap-1 active:scale-95" title="ماه قبل">
-              <span>◀</span>
+            <button id="repMonthPrevBtn" type="button" class="px-2.5 py-1 rounded-lg text-xs font-bold t-main card-inset hover:border-cyan-500/50 transition flex items-center gap-1 active:scale-95" title="ماه قبل">
+              <span>▶</span>
               <span id="repMonthPrevLabel">ماه قبل</span>
             </button>
             <div class="text-center px-1">
               <span id="repMonthlyCurrentLabel" class="text-xs font-black t-main block">—</span>
             </div>
-            <button id="repMonthNextBtn" type="button" class="px-2.5 py-1 rounded-lg text-xs font-bold text-slate-300 hover:text-white hover:bg-slate-700/50 transition flex items-center gap-1 active:scale-95 opacity-40 cursor-not-allowed" disabled title="ماه بعد">
+            <button id="repMonthNextBtn" type="button" class="px-2.5 py-1 rounded-lg text-xs font-bold t-main card-inset hover:border-cyan-500/50 transition flex items-center gap-1 active:scale-95 opacity-40 cursor-not-allowed" disabled title="ماه بعد">
               <span id="repMonthNextLabel">ماه بعد</span>
-              <span>▶</span>
+              <span>◀</span>
             </button>
           </div>
 
@@ -636,9 +636,9 @@
                 </div>
               </div>
 
-              <div id="repBurnAnalysisBox" class="p-2.5 rounded-xl card-inset text-xs t-muted flex items-start gap-2">
-                <span id="repBurnStatusIcon" class="text-base shrink-0">🎯</span>
-                <span id="repBurnAnalysisText" class="text-[11px] leading-relaxed text-slate-300">در حال تحلیل الگوی مصرف...</span>
+              <div id="repBurnAnalysisBox" class="p-2 rounded-xl text-xs t-muted flex items-start gap-2 bg-transparent border-0">
+                <span id="repBurnStatusIcon" class="text-base shrink-0">ℹ️</span>
+                <span id="repBurnAnalysisText" class="text-[11px] leading-relaxed t-main">در حال تحلیل الگوی مصرف...</span>
               </div>
             </div>
           </div>
@@ -898,7 +898,7 @@
           <h3 id="profileFullName" class="text-base font-extrabold t-main">کاربر گرامی</h3>
           <span id="profileUsername" dir="ltr" class="text-xs text-blue-400 font-mono font-medium block mt-0.5">@user</span>
           <div class="flex items-center justify-center gap-2 mt-2.5">
-            <span id="profileStatusBadge" class="px-2.5 py-0.5 rounded-full text-[10px] bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 font-bold inline-flex items-center gap-1"><span>🟢</span><span>کاربر فعال</span></span>
+            <span id="profileStatusBadge" class="badge badge-success rounded-full text-[10px] font-bold inline-flex items-center gap-1"><span>🟢</span><span>کاربر فعال</span></span>
             <span id="profileAuthBadge" class="px-2.5 py-0.5 rounded-full text-[10.5px] bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 font-bold inline-flex items-center gap-1"><span>🛡️</span><span>حساب تأییدشده</span></span>
           </div>
         </div>
