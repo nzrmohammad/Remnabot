@@ -56,6 +56,8 @@ class Settings(BaseSettings):
     # --- Wallet (card-to-card top-up) ---
     CARD_NUMBER: str = ""              # e.g. 6037-9917-1234-5678 (empty → top-up disabled)
     CARD_HOLDER: str = ""              # card owner's name shown to the user
+    CARD_AUTO_ENABLED: bool = False    # automated card-to-card via SMS forwarder
+    SMS_WEBHOOK_SECRET: str = ""       # secret token to authenticate incoming SMS webhooks
     TOPUP_MIN_AMOUNT: int = 10000      # Toman
     TOPUP_MAX_AMOUNT: int = 50_000_000 # Toman
 

@@ -226,6 +226,17 @@ async function loadTopupInfo() {
         }
       }
 
+      const cardAutoContainer = document.getElementById('cardAutoTopupContainer');
+      const manualCardSection = document.getElementById('manualCardTopupSection');
+      if (res.card_auto_enabled) {
+        if (cardAutoContainer) cardAutoContainer.classList.remove('hidden');
+        if (manualCardSection) manualCardSection.classList.add('hidden');
+        checkActiveCardAutoInvoice();
+      } else {
+        if (cardAutoContainer) cardAutoContainer.classList.add('hidden');
+        if (manualCardSection) manualCardSection.classList.remove('hidden');
+      }
+
       const inputEl = document.getElementById('topupAmountInput');
       updateTopupDisplays(parseInt(inputEl?.value || '50000'));
     }
@@ -283,6 +294,197 @@ function switchTopupTab(tab) {
 function switchToCryptoTab() { switchTopupTab('crypto'); }
 function switchToCardTab() { switchTopupTab('card'); }
 function switchToStarsTab() { switchTopupTab('stars'); }
+
+let cardAutoTimerInterval = null;
+let cardAutoPollingInterval = null;
+let activeCardAutoUuid = null;
+
+async function checkActiveCardAutoInvoice() {
+  try {
+    const res = await window.api.getCardAutoStatus();
+    if (res && res.ok && res.status === 'pending' && res.invoice_uuid) {
+      renderCardAutoInvoice(res);
+    }
+  } catch (e) {}
+}
+
+function renderCardAutoInvoice(inv) {
+  activeCardAutoUuid = inv.invoice_uuid;
+  const initialBox = document.getElementById('cardAutoInitialBox');
+  const detailsBox = document.getElementById('cardAutoInvoiceDetails');
+  if (initialBox) initialBox.classList.add('hidden');
+  if (detailsBox) detailsBox.classList.remove('hidden');
+
+  const exactTomanEl = document.getElementById('cardAutoExactToman');
+  const exactRialEl = document.getElementById('cardAutoExactRial');
+  const cardNumEl = document.getElementById('cardAutoCardNumber');
+  const cardHolderEl = document.getElementById('cardAutoCardHolder');
+
+  if (exactTomanEl) exactTomanEl.innerText = `${Number(inv.exact_amount || 0).toLocaleString('en-US')} تومان`;
+  if (exactRialEl) exactRialEl.innerText = `${Number(inv.exact_rial || (inv.exact_amount * 10) || 0).toLocaleString('en-US')} ریال`;
+  if (cardNumEl) cardNumEl.innerText = inv.card_number || window.storeSettings?.card_number || '----';
+  if (cardHolderEl) cardHolderEl.innerText = inv.card_holder || window.storeSettings?.card_holder || 'مدیریت سرور';
+
+  startCardAutoCountdownTimer(inv.remaining_seconds || 900);
+  startCardAutoPolling(inv.invoice_uuid);
+}
+
+function startCardAutoCountdownTimer(seconds) {
+  if (cardAutoTimerInterval) {
+    clearInterval(cardAutoTimerInterval);
+    cardAutoTimerInterval = null;
+  }
+  let remaining = seconds || 900;
+  const timerEl = document.getElementById('cardAutoCountdownTimer');
+
+  const updateDisplay = () => {
+    if (remaining <= 0) {
+      clearInterval(cardAutoTimerInterval);
+      cardAutoTimerInterval = null;
+      if (timerEl) timerEl.innerText = '00:00 (منقضی شد)';
+      stopCardAutoPolling();
+      return;
+    }
+    const mins = Math.floor(remaining / 60);
+    const secs = remaining % 60;
+    if (timerEl) {
+      timerEl.innerText = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+    }
+    remaining--;
+  };
+  updateDisplay();
+  cardAutoTimerInterval = setInterval(updateDisplay, 1000);
+}
+
+function startCardAutoPolling(uuid) {
+  stopCardAutoPolling();
+  cardAutoPollingInterval = setInterval(async () => {
+    try {
+      const res = await window.api.getCardAutoStatus(uuid);
+      if (res && res.ok) {
+        if (res.status === 'paid') {
+          stopCardAutoPolling();
+          if (cardAutoTimerInterval) {
+            clearInterval(cardAutoTimerInterval);
+            cardAutoTimerInterval = null;
+          }
+          if (window.showToast) {
+            window.showToast('✅ پرداخت شما با موفقیت تأیید شد و کیف پول شارژ گردید!', 'success');
+          }
+          if (window.Telegram?.WebApp?.HapticFeedback) {
+            window.Telegram.WebApp.HapticFeedback.notificationOccurred('success');
+          }
+          resetCardAutoUI();
+          if (typeof loadProfileData === 'function') loadProfileData();
+          if (typeof loadWalletHistory === 'function') loadWalletHistory(1);
+          closeTopupModal();
+        } else if (res.status === 'expired' || res.status === 'cancelled') {
+          stopCardAutoPolling();
+          resetCardAutoUI();
+        }
+      }
+    } catch (e) {}
+  }, 4000);
+}
+
+function stopCardAutoPolling() {
+  if (cardAutoPollingInterval) {
+    clearInterval(cardAutoPollingInterval);
+    cardAutoPollingInterval = null;
+  }
+}
+
+function resetCardAutoUI() {
+  activeCardAutoUuid = null;
+  const initialBox = document.getElementById('cardAutoInitialBox');
+  const detailsBox = document.getElementById('cardAutoInvoiceDetails');
+  if (initialBox) initialBox.classList.remove('hidden');
+  if (detailsBox) detailsBox.classList.add('hidden');
+}
+
+window.createCardAutoInvoice = async function () {
+  const inputEl = document.getElementById('topupAmountInput');
+  const amount = parseInt(inputEl?.value || '0', 10);
+  if (!amount || amount < (window.storeSettings?.min_amount || 10000)) {
+    if (window.showToast) window.showToast(`حداقل مبلغ شارژ ${Number(window.storeSettings?.min_amount || 10000).toLocaleString('en-US')} تومان است.`, 'warning');
+    return;
+  }
+  const btn = document.getElementById('createCardAutoInvoiceBtn');
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = '<span class="inline-block animate-spin mr-1">⌛</span> در حال ایجاد فاکتور...';
+  }
+  try {
+    const res = await window.api.createCardAutoInvoice(amount);
+    if (res && res.ok) {
+      renderCardAutoInvoice(res);
+      if (window.showToast) window.showToast('فاکتور پرداخت هوشمند با موفقیت ایجاد شد.', 'success');
+    } else {
+      if (window.showToast) window.showToast(res?.message || 'خطا در ایجاد فاکتور', 'error');
+    }
+  } catch (err) {
+    if (window.showToast) window.showToast('خطا در برقراری ارتباط با سرور', 'error');
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = '<span>⚡️</span> ایجاد فاکتور پرداخت آنی کارت‌به‌کارت';
+    }
+  }
+};
+
+window.checkCardAutoStatus = async function (isManual = false) {
+  if (!activeCardAutoUuid) return;
+  try {
+    const res = await window.api.getCardAutoStatus(activeCardAutoUuid);
+    if (res && res.ok) {
+      if (res.status === 'paid') {
+        stopCardAutoPolling();
+        if (window.showToast) window.showToast('✅ پرداخت تایید شد و حساب شما شارژ گردید!', 'success');
+        resetCardAutoUI();
+        if (typeof loadProfileData === 'function') loadProfileData();
+        closeTopupModal();
+      } else if (res.status === 'expired') {
+        if (window.showToast) window.showToast('مهلت پرداخت این فاکتور به پایان رسیده است.', 'warning');
+        resetCardAutoUI();
+      } else if (isManual) {
+        if (window.showToast) window.showToast('هنوز پیامی مبنی بر واریز دریافت نشده است؛ لطفاً پس از واریز صبور باشید.', 'info');
+      }
+    }
+  } catch (e) {}
+};
+
+window.cancelCardAutoInvoice = async function () {
+  if (!activeCardAutoUuid) {
+    resetCardAutoUI();
+    return;
+  }
+  try {
+    await window.api.cancelCardAutoInvoice(activeCardAutoUuid);
+    stopCardAutoPolling();
+    if (cardAutoTimerInterval) {
+      clearInterval(cardAutoTimerInterval);
+      cardAutoTimerInterval = null;
+    }
+    resetCardAutoUI();
+    if (window.showToast) window.showToast('فاکتور پرداخت لغو گردید.', 'info');
+  } catch (e) {}
+};
+
+window.copyCardAutoAmount = function (type) {
+  const el = type === 'rial' ? document.getElementById('cardAutoExactRial') : document.getElementById('cardAutoExactToman');
+  const text = el?.innerText?.trim() || '';
+  const digits = text.replace(/[^\d]/g, '');
+  if (digits) {
+    copyToClipboard(digits, `📋 مبلغ (${type === 'rial' ? 'ریال' : 'تومان'}) در کلیپ‌بورد کپی شد.`);
+  }
+};
+
+window.toggleManualReceiptUpload = function () {
+  const section = document.getElementById('manualCardTopupSection');
+  if (section) {
+    section.classList.toggle('hidden');
+  }
+};
 
 function updatePendingCardUI(invoice, remainingSec) {
   const card = document.getElementById('activeCryptoPendingCard');

@@ -1486,6 +1486,105 @@
           </div>
 
           <div id="topupCardDetailsBox" class="space-y-3">
+            <!-- Smart Auto Card-to-Card Container (shown when card_auto_enabled is true) -->
+            <div id="cardAutoTopupContainer" class="hidden space-y-3">
+              <div id="cardAutoInitialBox" class="card-inset rounded-2xl p-3 text-center space-y-2 border border-emerald-500/30">
+                <div class="flex items-center justify-between text-xs font-bold text-emerald-400">
+                  <span class="flex items-center gap-1.5">⚡️ کارت‌به‌کارت آنی و خودکار</span>
+                  <span class="text-[10px] bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded-full border border-emerald-500/30">تایید هوشمند پیامکی</span>
+                </div>
+                <p class="text-[11px] text-slate-300 leading-relaxed">
+                  با ایجاد فاکتور هوشمند، مبلغ دقیق و اختصاصی به شما اختصاص می‌یابد و پس از واریز از همراه بانک، کیف پول شما در کمتر از ۱۰ ثانیه بدون نیاز به ارسال فیش شارژ می‌شود.
+                </p>
+                <button type="button" id="createCardAutoInvoiceBtn" onclick="window.createCardAutoInvoice()" class="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold py-2.5 rounded-xl transition shadow active:scale-[0.98] text-xs flex items-center justify-center gap-1.5">
+                  <span>⚡️</span> ایجاد فاکتور پرداخت آنی کارت‌به‌کارت
+                </button>
+              </div>
+
+              <!-- Active Smart Invoice Box -->
+              <div id="cardAutoInvoiceDetails" class="hidden card-inset rounded-2xl p-3.5 space-y-3 border border-emerald-500/40 relative">
+                <div class="flex justify-between items-center text-xs pb-2 border-b border-slate-800">
+                  <span class="text-slate-300 flex items-center gap-1 font-bold">
+                    <span class="relative flex h-2.5 w-2.5">
+                      <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                      <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+                    </span>
+                    در انتظار واریز بانکی...
+                  </span>
+                  <div class="flex items-center gap-1 font-mono text-xs font-bold text-amber-400" dir="ltr">
+                    <span>⏳</span>
+                    <span id="cardAutoCountdownTimer">15:00</span>
+                  </div>
+                </div>
+
+                <!-- Amounts Box (Toman and Rial) -->
+                <div class="space-y-2">
+                  <div class="flex items-center justify-between p-2 rounded-xl bg-slate-900/80 border border-slate-700/60">
+                    <div>
+                      <span class="text-[10.5px] text-slate-400 block">مبلغ به تومان:</span>
+                      <b id="cardAutoExactToman" class="text-emerald-400 text-sm font-mono">-- تومان</b>
+                    </div>
+                    <button type="button" onclick="window.copyCardAutoAmount('toman')" class="px-2.5 py-1.5 rounded-lg bg-emerald-950/60 hover:bg-emerald-900 text-emerald-300 border border-emerald-700/40 text-[11px] transition active:scale-95 flex items-center gap-1">
+                      📋 کپی تومان
+                    </button>
+                  </div>
+                  <div class="flex items-center justify-between p-2 rounded-xl bg-slate-900/80 border border-slate-700/60">
+                    <div>
+                      <span class="text-[10.5px] text-slate-400 block">مبلغ به ریال (همراه‌بانک):</span>
+                      <b id="cardAutoExactRial" class="text-cyan-400 text-sm font-mono">-- ریال</b>
+                    </div>
+                    <button type="button" onclick="window.copyCardAutoAmount('rial')" class="px-2.5 py-1.5 rounded-lg bg-cyan-950/60 hover:bg-cyan-900 text-cyan-300 border border-cyan-700/40 text-[11px] transition active:scale-95 flex items-center gap-1">
+                      📋 کپی ریال
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Strict Warning Alert -->
+                <div class="bg-rose-500/15 border border-rose-500/40 rounded-xl p-2.5 text-right space-y-1">
+                  <b class="text-xs text-rose-400 flex items-center gap-1 font-extrabold">
+                    <span>⚠️</span> مبلغ را رند نکنید!
+                  </b>
+                  <p class="text-[11px] text-slate-200 leading-relaxed">
+                    سیستم هوشمند دقیقاً همین رقم را برای شما رزرو کرده است؛ لطفاً رقم را تغییر ندهید تا شارژ بلافاصله و اتوماتیک انجام گیرد.
+                  </p>
+                </div>
+
+                <!-- Card Details -->
+                <div class="space-y-1.5 p-2.5 rounded-xl bg-slate-900/60 border border-slate-800">
+                  <div class="flex justify-between items-center text-xs">
+                    <span class="text-slate-400">شماره کارت مقصد:</span>
+                    <div class="flex items-center gap-1.5" dir="rtl">
+                      <button type="button" onclick="window.copyCardNumber()" class="text-blue-400 hover:text-blue-300 p-1 text-xs">📋</button>
+                      <code id="cardAutoCardNumber" class="text-white font-mono font-bold tracking-wider" dir="ltr">---- ---- ---- ----</code>
+                    </div>
+                  </div>
+                  <div class="flex justify-between items-center text-xs">
+                    <span class="text-slate-400">صاحب حساب:</span>
+                    <b id="cardAutoCardHolder" class="text-slate-200">--</b>
+                  </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="grid grid-cols-2 gap-2 pt-1">
+                  <button type="button" onclick="window.checkCardAutoStatus(true)" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2 rounded-xl text-xs transition active:scale-95 flex items-center justify-center gap-1 shadow">
+                    <span>🔄</span> بررسی وضعیت
+                  </button>
+                  <button type="button" onclick="window.cancelCardAutoInvoice()" class="w-full bg-slate-800 hover:bg-slate-700 text-rose-300 border border-rose-500/30 font-bold py-2 rounded-xl text-xs transition active:scale-95">
+                    انصراف
+                  </button>
+                </div>
+              </div>
+
+              <!-- Manual Fallback Toggle -->
+              <div class="pt-1">
+                <button type="button" onclick="window.toggleManualReceiptUpload()" class="text-[11px] text-slate-400 hover:text-slate-200 flex items-center justify-center gap-1 w-full py-1.5 transition">
+                  <span>📤</span> ارسال دستی تصویر فیش واریزی (اختیاری) ▾
+                </button>
+              </div>
+            </div>
+
+            <!-- Legacy / Manual Card Topup Details Box -->
+            <div id="manualCardTopupSection" class="space-y-3">
             <div class="card-inset rounded-2xl p-3 space-y-2">
               <div class="flex justify-between items-center text-[11px]">
                 <span class="text-slate-400">شماره کارت مقصد:</span>
@@ -1547,6 +1646,7 @@
             <button id="submitCardTopupBtn" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold py-2.5 rounded-xl transition shadow active:scale-[0.98]">
               📤 ثبت و ارسال رسید پرداخت
             </button>
+            </div>
           </div>
         </div>
 

@@ -465,6 +465,48 @@ class CryptoInvoice(Base):
     )
 
 
+class CardAutoInvoice(Base):
+    """Invoice for automated card-to-card top-up via SMS forwarding & amount suffix matching."""
+
+    __tablename__ = "card_auto_invoices"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    invoice_uuid: Mapped[str] = mapped_column(String(64), unique=True, index=True)
+    telegram_id: Mapped[int] = mapped_column(BigInteger, index=True)
+    base_amount: Mapped[int] = mapped_column(BigInteger)
+    exact_amount: Mapped[int] = mapped_column(BigInteger, index=True)  # in Tomans
+    exact_rial: Mapped[int] = mapped_column(BigInteger)               # in Rials
+    card_number: Mapped[str] = mapped_column(String(32))
+    card_holder: Mapped[str] = mapped_column(String(64))
+    status: Mapped[str] = mapped_column(String(16), default="pending", index=True)  # pending / paid / expired / cancelled
+    sms_log_id: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
+
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+    paid_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+
+
+class BankSmsLog(Base):
+    """Log of incoming SMS messages forwarded from bank phone."""
+
+    __tablename__ = "bank_sms_logs"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    sender: Mapped[str] = mapped_column(String(64), index=True)
+    raw_message: Mapped[str] = mapped_column(Text)
+    amount_toman: Mapped[int | None] = mapped_column(BigInteger, nullable=True, index=True)
+    bank_detected: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    matched_invoice_id: Mapped[int | None] = mapped_column(BigInteger, nullable=True, index=True)
+    processed: Mapped[bool] = mapped_column(Boolean, default=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+
+
 class NodeCost(Base):
     """Infrastructure cost and billing details for Remnawave nodes / servers."""
 

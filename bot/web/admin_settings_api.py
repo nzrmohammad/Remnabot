@@ -34,6 +34,8 @@ async def get_admin_settings(request: web.Request) -> web.Response:
         data = {
             "maintenance": is_maintenance,
             "card_enabled": store_settings.card_enabled,
+            "card_auto_enabled": store_settings.card_auto_enabled,
+            "sms_webhook_secret": store_settings.sms_webhook_secret,
             "crypto_enabled": store_settings.crypto_enabled,
             "card_number": store_settings.card_number,
             "card_holder": store_settings.card_holder,
@@ -112,7 +114,7 @@ async def post_admin_settings(request: web.Request) -> web.Response:
 
         # Boolean flags
         bool_keys = (
-            "card_enabled", "crypto_enabled", "trial_enabled",
+            "card_enabled", "card_auto_enabled", "crypto_enabled", "trial_enabled",
             "referral_enabled", "support_direct_enabled", "maintenance",
             "stars_enabled", "trx_enabled", "xrocket_enabled",
             "card_require_phone_verification", "card_phone_iran_only", "birthday_reward_enabled",
@@ -125,7 +127,7 @@ async def post_admin_settings(request: web.Request) -> web.Response:
 
         # Numeric / string settings
         raw_keys = (
-            "card_number", "card_holder", "topup_min_amount", "topup_max_amount",
+            "card_number", "card_holder", "sms_webhook_secret", "topup_min_amount", "topup_max_amount",
             "usdt_rate_toman", "eur_rate_toman", "ton_rate_toman", "ton_wallet_address",
             "trx_rate_toman", "trx_wallet_address", "xrocket_api_key",
             "stars_rate_toman",

@@ -337,6 +337,47 @@ async def _create_and_render_ton_invoice(
     await _render_ton_invoice(bot, user, user_repo, session, invoice)
 
 
+async def _create_and_render_card_auto_invoice(
+    bot: Bot,
+    user: Any,
+    user_repo: UserRepository,
+    session: AsyncSession,
+    state: FSMContext,
+    store: Any,
+    amount: int,
+) -> None:
+    from bot.services.payment.card_auto_service import generate_card_auto_invoice
+    lang = user.language or "fa"
+    invoice = await generate_card_auto_invoice(
+        session=session,
+        telegram_id=user.telegram_id,
+        base_amount=amount,
+        store=store,
+        ttl_minutes=15,
+    )
+    await session.commit()
+    await state.update_data(amount=amount, auto_invoice_uuid=invoice.invoice_uuid)
+    await state.set_state(TopupStates.waiting_receipt)
+
+    kb = InlineKeyboardBuilder()
+    kb.button(text="🔄 استعلام وضعیت پرداخت", callback_data=f"wallet:c2c_check:{invoice.invoice_uuid}")
+    kb.button(text="📤 ارسال دستی تصویر فیش", callback_data=f"wallet:manual_receipt:{invoice.invoice_uuid}")
+    kb.button(text=t(lang, "btn_cancel"), callback_data=f"wallet:c2c_cancel:{invoice.invoice_uuid}")
+    kb.adjust(1)
+
+    c2c_text = (
+        "⚡️ <b>فاکتور پرداخت هوشمند کارت‌به‌کارت (تأیید آنی)</b>\n"
+        "──────────────────\n"
+        f"💰 مبلغ به تومان: <code>{invoice.exact_amount:,}</code> تومان\n"
+        f"💰 مبلغ به ریال: <code>{invoice.exact_rial:,}</code> ریال\n\n"
+        f"💳 شماره کارت مقصد:\n<code>{escape(store.card_number)}</code>\n"
+        f"👤 بنام: <b>{escape(store.card_holder or 'مدیریت')}</b>\n"
+        f"⏳ مهلت پرداخت: <b>۱۵ دقیقه</b>\n\n"
+        "⚠️ <b>توجه مهم:</b> لطفاً هنگام واریز از همراه‌بانک، <u>دقیقاً همین رقم</u> را وارد نمایید و مبلغ را رند نکنید. بلافاصله پس از واریز، کیف پول شما به صورت اتوماتیک شارژ خواهد شد."
+    )
+    await render_menu(bot, user, user_repo, c2c_text, kb.as_markup())
+
+
 @router.callback_query(F.data.startswith("wallet:amt:"))
 async def topup_preset_amount(
     call: CallbackQuery, bot: Bot, user_repo: UserRepository, session: AsyncSession,
@@ -368,6 +409,11 @@ async def topup_preset_amount(
             return
 
         await _create_and_render_ton_invoice(bot, user, user_repo, session, state, store, amount)
+        await call.answer()
+        return
+
+    if getattr(store, "card_auto_enabled", False):
+        await _create_and_render_card_auto_invoice(bot, user, user_repo, session, state, store, amount)
         await call.answer()
         return
 
@@ -423,6 +469,10 @@ async def topup_amount(
             return
 
         await _create_and_render_ton_invoice(bot, user, user_repo, session, state, store, amount)
+        return
+
+    if getattr(store, "card_auto_enabled", False):
+        await _create_and_render_card_auto_invoice(bot, user, user_repo, session, state, store, amount)
         return
 
     if not (store.card_enabled and store.card_number and store.card_number.strip()):
@@ -491,3 +541,78 @@ __all__ = [
     "topup_receipt",
     "topup_decide",
 ]
+
+
+@router.callback_query(F.data.startswith("wallet:c2c_check:"))
+async def c2c_check_callback(
+    call: CallbackQuery, bot: Bot, user_repo: UserRepository, session: AsyncSession,
+):
+    uuid_str = call.data.split(":", 2)[2]
+    from bot.db.repositories.card_auto_repo import CardAutoRepository
+    repo = CardAutoRepository(session)
+    inv = await repo.get_invoice_by_uuid(uuid_str)
+    if not inv or inv.telegram_id != call.from_user.id:
+        await call.answer("فاکتور یافت نشد.", show_alert=True)
+        return
+
+    if inv.status == "paid":
+        user = await user_repo.get_or_create(call.from_user.id, call.from_user.username)
+        kb = InlineKeyboardBuilder()
+        kb.button(text="🛍 مشاهده سرویس‌ها", callback_data="menu:services")
+        kb.button(text="💳 کیف پول من", callback_data="menu:wallet")
+        kb.adjust(2)
+        await render_menu(
+            bot, user, user_repo,
+            f"✅ <b>پرداخت کارت‌به‌کارت شما با موفقیت تأیید شد!</b>\n\nمبلغ {inv.exact_amount:,} تومان به حساب شما منظور گردید.",
+            kb.as_markup(),
+        )
+        await call.answer()
+    elif inv.status == "expired":
+        await call.answer("مهلت پرداخت این فاکتور به پایان رسیده است.", show_alert=True)
+    else:
+        await call.answer("هنوز پیامک واریز از بانک دریافت نشده است؛ لطفاً پس از واریز صبور باشید.", show_alert=True)
+
+
+@router.callback_query(F.data.startswith("wallet:c2c_cancel:"))
+async def c2c_cancel_callback(
+    call: CallbackQuery, bot: Bot, user_repo: UserRepository, session: AsyncSession,
+    state: FSMContext,
+):
+    uuid_str = call.data.split(":", 2)[2]
+    from bot.db.repositories.card_auto_repo import CardAutoRepository
+    repo = CardAutoRepository(session)
+    await repo.cancel_invoice(uuid_str, call.from_user.id)
+    await session.commit()
+    await state.clear()
+    await call.answer("فاکتور پرداخت لغو گردید.")
+    user = await user_repo.get_or_create(call.from_user.id, call.from_user.username)
+    await _render_wallet(bot, user, user_repo, WalletRepository(session), user.language)
+
+
+@router.callback_query(F.data.startswith("wallet:manual_receipt:"))
+async def c2c_manual_receipt_callback(
+    call: CallbackQuery, bot: Bot, user_repo: UserRepository, session: AsyncSession,
+    state: FSMContext,
+):
+    user = await user_repo.get_or_create(call.from_user.id, call.from_user.username)
+    lang = user.language or "fa"
+    data = await state.get_data()
+    amount = data.get("amount", 0)
+    store = await get_store_settings(session)
+    await state.set_state(TopupStates.waiting_receipt)
+
+    kb = InlineKeyboardBuilder()
+    kb.button(text=t(lang, "btn_cancel"), callback_data="menu:wallet")
+    kb.adjust(1)
+
+    await render_menu(
+        bot, user, user_repo,
+        t(
+            lang, "topup_card_info",
+            amount=_fmt(amount),
+            card=escape(store.card_number),
+            holder=escape(store.card_holder or "—"),
+        ),
+        kb.as_markup(),
+    )
+    await call.answer("اکنون تصویر فیش واریزی خود را ارسال فرمایید.")

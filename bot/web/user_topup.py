@@ -113,6 +113,7 @@ async def get_user_topup_info(request: web.Request) -> web.Response:
             "ok": True,
             "min_amount": store.topup_min_amount,
             "card_enabled": bool(store.card_enabled and store.card_number and str(store.card_number).strip()),
+            "card_auto_enabled": bool(store.card_auto_enabled and store.card_number and str(store.card_number).strip()),
             "card_number": "" if card_locked_reason else (store.card_number or ""),
             "card_holder": "" if card_locked_reason else (store.card_holder or ""),
             "card_require_phone_verification": require_phone,
@@ -931,5 +932,237 @@ async def post_webhook_xrocket(request: web.Request) -> web.Response:
                 return web.json_response({"ok": True, "credited": True, "new_balance": new_bal})
 
     return web.json_response({"ok": True, "status": "ignored"})
+
+
+async def post_user_topup_card_auto_create(request: web.Request) -> web.Response:
+    """Create an automated card-to-card invoice with unique exact amount suffix."""
+    user_auth, err = require_user(request)
+    if err:
+        return err
+
+    if user_auth.get("is_preview"):
+        return web.json_response({"ok": False, "message": "این عملیات در حالت پیش‌نمایش در دسترس نیست."}, status=400)
+
+    try:
+        body = await request.json()
+    except Exception:
+        body = {}
+
+    try:
+        amount = int(body.get("amount") or 0)
+    except (ValueError, TypeError):
+        return web.json_response({"ok": False, "message": "مبلغ نامعتبر است."}, status=400)
+
+    telegram_id = int(user_auth["id"])
+
+    async with db_session(request) as session:
+        store = await get_store_settings(session)
+
+        # Phone verification check
+        require_phone = getattr(store, "card_require_phone_verification", False) is True
+        if require_phone:
+            db_user = None
+            if hasattr(session, "execute"):
+                try:
+                    from bot.db.repositories.user_repo import UserRepository
+                    db_user = await UserRepository(session).get_by_telegram_id(telegram_id)
+                except Exception:
+                    db_user = None
+            if not db_user or not getattr(db_user, "phone_number", None) or not db_user.phone_number.strip():
+                return web.json_response(
+                    {
+                        "ok": False,
+                        "error": "phone_required",
+                        "message": "جهت پرداخت کارت‌به‌کارت، تأیید شماره همراه الزامی است.",
+                    },
+                    status=403,
+                )
+
+        card_num = getattr(store, "card_number", "")
+        card_auto_enabled = getattr(store, "card_auto_enabled", False)
+        if not card_auto_enabled or not (str(card_num).strip() if card_num else ""):
+            return web.json_response(
+                {"ok": False, "error": "card_auto_disabled", "message": "پرداخت خودکار کارت‌به‌کارت در حال حاضر فعال نیست."},
+                status=400,
+            )
+
+        if amount < store.topup_min_amount:
+            return web.json_response(
+                {"ok": False, "message": f"حداقل مبلغ شارژ {store.topup_min_amount:,} تومان است."},
+                status=400,
+            )
+
+        max_amount = getattr(store, "topup_max_amount", 0)
+        if isinstance(max_amount, (int, float)) and max_amount > 0 and amount > max_amount:
+            return web.json_response(
+                {"ok": False, "message": f"حداکثر مبلغ شارژ {int(max_amount):,} تومان است."},
+                status=400,
+            )
+
+        from bot.services.payment.card_auto_service import generate_card_auto_invoice
+        invoice = await generate_card_auto_invoice(
+            session=session,
+            telegram_id=telegram_id,
+            base_amount=amount,
+            store=store,
+            ttl_minutes=15,
+        )
+        await session.commit()
+
+        remaining_secs = max(0, int((invoice.expires_at - datetime.now(timezone.utc)).total_seconds()))
+
+        return web.json_response({
+            "ok": True,
+            "invoice_uuid": invoice.invoice_uuid,
+            "base_amount": invoice.base_amount,
+            "exact_amount": invoice.exact_amount,
+            "exact_rial": invoice.exact_rial,
+            "card_number": invoice.card_number,
+            "card_holder": invoice.card_holder,
+            "status": invoice.status,
+            "expires_at": invoice.expires_at.isoformat(),
+            "remaining_seconds": remaining_secs,
+        })
+
+
+async def get_user_topup_card_auto_status(request: web.Request) -> web.Response:
+    """Check payment status of an automated card-to-card invoice."""
+    user_auth, err = require_user(request)
+    if err:
+        return err
+
+    telegram_id = int(user_auth["id"])
+    uuid_str = request.query.get("uuid")
+
+    from bot.db.repositories.card_auto_repo import CardAutoRepository
+    async with db_session(request) as session:
+        repo = CardAutoRepository(session)
+        if uuid_str:
+            invoice = await repo.get_invoice_by_uuid(uuid_str)
+            if invoice and invoice.telegram_id != telegram_id:
+                return web.json_response({"ok": False, "message": "دسترسی غیرمجاز"}, status=403)
+        else:
+            invoice = await repo.get_active_invoice_by_user(telegram_id)
+
+        if not invoice:
+            return web.json_response({"ok": True, "status": "none", "invoice_uuid": None})
+
+        now = datetime.now(timezone.utc)
+        if invoice.status == "pending" and invoice.expires_at <= now:
+            invoice.status = "expired"
+            await session.commit()
+
+        remaining_secs = max(0, int((invoice.expires_at - now).total_seconds()))
+
+        return web.json_response({
+            "ok": True,
+            "invoice_uuid": invoice.invoice_uuid,
+            "status": invoice.status,
+            "base_amount": invoice.base_amount,
+            "exact_amount": invoice.exact_amount,
+            "exact_rial": invoice.exact_rial,
+            "remaining_seconds": remaining_secs,
+        })
+
+
+async def post_user_topup_card_auto_cancel(request: web.Request) -> web.Response:
+    """Cancel a pending card-to-card invoice."""
+    user_auth, err = require_user(request)
+    if err:
+        return err
+
+    telegram_id = int(user_auth["id"])
+    try:
+        body = await request.json()
+    except Exception:
+        body = {}
+
+    uuid_str = body.get("uuid")
+    if not uuid_str:
+        return web.json_response({"ok": False, "message": "شناسه فاکتور مشخص نشده است."}, status=400)
+
+    from bot.db.repositories.card_auto_repo import CardAutoRepository
+    async with db_session(request) as session:
+        repo = CardAutoRepository(session)
+        cancelled = await repo.cancel_invoice(str(uuid_str), telegram_id)
+        if cancelled:
+            await session.commit()
+            return web.json_response({"ok": True, "status": "cancelled"})
+        return web.json_response({"ok": False, "message": "فاکتور معتبر برای لغو یافت نشد."}, status=400)
+
+
+async def post_webhook_sms(request: web.Request) -> web.Response:
+    """Handle incoming bank SMS forwarded from mobile phone."""
+    async with db_session(request) as session:
+        store = await get_store_settings(session)
+
+        # 1. Authenticate token
+        secret = (store.sms_webhook_secret or "").strip()
+        auth_header = request.headers.get("Authorization", "")
+        token_header = request.headers.get("X-SMS-Token", "")
+        token_query = request.query.get("token", "")
+
+        provided_token = ""
+        if token_header:
+            provided_token = token_header.strip()
+        elif auth_header.startswith("Bearer "):
+            provided_token = auth_header.split("Bearer ", 1)[1].strip()
+        elif token_query:
+            provided_token = token_query.strip()
+
+        # If secret configured, verify
+        if secret:
+            if not provided_token or provided_token != secret:
+                return web.json_response({"ok": False, "message": "Unauthorized"}, status=401)
+
+        # 2. Extract sender and message text
+        sender = ""
+        raw_message = ""
+
+        try:
+            body = await request.json()
+            if isinstance(body, dict):
+                sender = str(body.get("from") or body.get("sender") or body.get("phone") or "")
+                raw_message = str(body.get("message") or body.get("text") or body.get("content") or body.get("msg") or "")
+                if not provided_token and body.get("token"):
+                    if secret and str(body.get("token")).strip() != secret:
+                        return web.json_response({"ok": False, "message": "Unauthorized"}, status=401)
+        except Exception:
+            pass
+
+        if not raw_message:
+            try:
+                post_data = await request.post()
+                sender = str(post_data.get("from") or post_data.get("sender") or post_data.get("phone") or sender)
+                raw_message = str(post_data.get("message") or post_data.get("text") or post_data.get("content") or "")
+            except Exception:
+                pass
+
+        if not raw_message:
+            try:
+                raw_message = await request.text()
+            except Exception:
+                pass
+
+        if not raw_message or not raw_message.strip():
+            return web.json_response({"ok": False, "message": "Empty message body"}, status=400)
+
+        from bot.services.payment.card_auto_service import process_incoming_sms
+        bot = request.app.get("bot")
+        settings = request.app.get("settings")
+        cache = request.app.get("cache")
+
+        result = await process_incoming_sms(
+            session=session,
+            bot=bot,
+            settings=settings,
+            store=store,
+            sender=sender or "SMS_Forwarder",
+            raw_message=raw_message,
+            cache=cache,
+        )
+        await session.commit()
+        return web.json_response(result)
+
 
 

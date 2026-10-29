@@ -755,6 +755,26 @@ openUserChat(telegram_id, name, tag, topup_id) {
     'settingTopicErrors'
   ];
 
+  function updateSmsWebhookUrlDisplay(secret) {
+    const el = $('settingSmsWebhookUrlDisplay');
+    if (!el) return;
+    const origin = window.location.origin || '';
+    const tokenPart = secret && String(secret).trim() ? `?token=${encodeURIComponent(String(secret).trim())}` : '';
+    el.value = `${origin}/api/webhooks/sms${tokenPart}`;
+  }
+
+  window.copySmsWebhookUrl = function () {
+    const el = $('settingSmsWebhookUrlDisplay');
+    const val = el?.value?.trim() || '';
+    if (!val) return;
+    const copyFn = typeof copyToClipboard === 'function' ? copyToClipboard : window.copyToClipboard;
+    if (copyFn) {
+      copyFn(val, '📋 آدرس وب‌هوک در کلیپ‌بورد کپی شد.');
+    } else {
+      prompt('آدرس وب‌هوک SMS:', val);
+    }
+  };
+
   async function fetchAdminSettings() {
     try {
       const res = await window.api.getAdminSettings();
@@ -823,6 +843,16 @@ openUserChat(telegram_id, name, tag, topup_id) {
 
       const cardIranSwitch = $('settingCardPhoneIranSwitch');
       if (cardIranSwitch) cardIranSwitch.checked = s.card_phone_iran_only ?? true;
+
+      const cardAutoSwitch = $('settingCardAutoSwitch');
+      if (cardAutoSwitch) cardAutoSwitch.checked = !!s.card_auto_enabled;
+
+      const smsSecretInput = $('settingSmsWebhookSecret');
+      if (smsSecretInput) {
+        smsSecretInput.value = s.sms_webhook_secret || '';
+        smsSecretInput.oninput = () => updateSmsWebhookUrlDisplay(smsSecretInput.value);
+      }
+      updateSmsWebhookUrlDisplay(s.sms_webhook_secret || '');
 
       // Birthday Rewards
       const bdaySwitch = $('settingBirthdayRewardSwitch');
@@ -1041,6 +1071,8 @@ openUserChat(telegram_id, name, tag, topup_id) {
       maintenance: isMaint,
       access_mode: accessModeVal,
       card_enabled: $('settingCardSwitch')?.checked ?? true,
+      card_auto_enabled: $('settingCardAutoSwitch')?.checked ?? false,
+      sms_webhook_secret: $('settingSmsWebhookSecret')?.value?.trim() || '',
       card_require_phone_verification: $('settingCardRequirePhoneSwitch')?.checked ?? true,
       card_phone_iran_only: $('settingCardPhoneIranSwitch')?.checked ?? true,
       auto_clean_reports: $('settingAutoCleanReportsSwitch')?.checked ?? true,

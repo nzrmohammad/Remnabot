@@ -41,6 +41,8 @@ class StoreSettings:
     usdt_rate_toman: int = field(default_factory=lambda: getattr(get_settings(), "USDT_RATE_TOMAN", 0))
     eur_rate_toman: int = 0
     card_enabled: bool = True
+    card_auto_enabled: bool = False
+    sms_webhook_secret: str = ""
     topic_errors: int | None = None
     access_mode: str = "open"  # open, invite_only, closed
     stars_enabled: bool = False
@@ -116,6 +118,8 @@ async def get_store_settings(session: AsyncSession) -> StoreSettings:
         usdt_rate_toman=_int(values.get("usdt_rate_toman"), env.USDT_RATE_TOMAN),
         eur_rate_toman=_int(values.get("eur_rate_toman"), getattr(env, "EUR_RATE_TOMAN", 0) or 0),
         card_enabled=_bool(values.get("card_enabled"), True),
+        card_auto_enabled=_bool(values.get("card_auto_enabled"), getattr(env, "CARD_AUTO_ENABLED", False)),
+        sms_webhook_secret=str(values.get("sms_webhook_secret") or getattr(env, "SMS_WEBHOOK_SECRET", "")).strip(),
         topic_errors=_opt_int(values.get("topic_errors"), env.ADMIN_TOPIC_ERRORS),
         access_mode=str(values.get("access_mode") or "open").strip().lower(),
         stars_enabled=_bool(values.get("stars_enabled"), False),

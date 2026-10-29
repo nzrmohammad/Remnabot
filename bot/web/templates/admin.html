@@ -824,6 +824,44 @@
                 </div>
               </label>
             </div>
+
+            <!-- Auto Card-to-Card via SMS Forwarder -->
+            <div class="flex items-center justify-between py-2 border-t border-slate-700/50">
+              <div>
+                <span class="text-slate-200 font-medium block">کارت‌به‌کارت هوشمند و آنی (پیامکی)</span>
+                <span class="text-[11px] text-slate-400">شارژ خودکار و لحظه‌ای کیف پول با پیامک واریز بانکی (SMS Forwarder)</span>
+              </div>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" class="sr-only switch-checkbox" id="settingCardAutoSwitch">
+                <div class="switch-label w-11 h-6 bg-slate-700 rounded-full transition-colors duration-200 flex items-center px-0.5">
+                  <div class="switch-ball w-5 h-5 bg-white rounded-full shadow-md transition-transform duration-200"></div>
+                </div>
+              </label>
+            </div>
+
+            <!-- SMS Forwarder Config Box -->
+            <div id="smsForwarderConfigContainer" class="card-inset rounded-2xl p-3 border border-indigo-500/30 space-y-2.5">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-indigo-400 flex items-center gap-1.5">
+                  <span>📱</span> تنظیمات اتصال اپلیکیشن SMS Forwarder
+                </span>
+                <span class="text-[10px] bg-indigo-500/20 text-indigo-300 border border-indigo-500/40 px-2 py-0.5 rounded-full font-mono">WebHook</span>
+              </div>
+              <div>
+                <label class="text-[11px] text-slate-400 block mb-1">کلید امنیتی وب‌هوک (Secret Token):</label>
+                <input type="text" id="settingSmsWebhookSecret" dir="ltr" placeholder="یک کلمه عبور قوی برای وب‌هوک..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-cyan-300 outline-none focus:border-indigo-500 transition" />
+              </div>
+              <div>
+                <label class="text-[11px] text-slate-400 block mb-1">آدرس وب‌هوک اختصاصی سرور (جهت ثبت در اپلیکیشن):</label>
+                <div class="flex items-center gap-1.5" dir="ltr">
+                  <button type="button" id="copySmsWebhookUrlBtn" onclick="window.copySmsWebhookUrl()" class="p-2 rounded-xl bg-indigo-600/30 hover:bg-indigo-600/50 text-indigo-300 border border-indigo-500/40 text-xs transition active:scale-95 flex items-center justify-center shrink-0" title="کپی آدرس وب‌هوک">📋 کپی</button>
+                  <input type="text" id="settingSmsWebhookUrlDisplay" readonly dir="ltr" class="w-full bg-slate-900/90 border border-slate-700/80 rounded-xl px-2.5 py-2 text-[10.5px] font-mono text-slate-300 select-all outline-none" value="" />
+                </div>
+              </div>
+              <p class="text-[10.5px] text-slate-400 leading-relaxed card-inset p-2 rounded-xl">
+                💡 <b>راهنمای اتصال:</b> اپلیکیشن اندروید <b>SMS Forwarder</b> را روی گوشی متصل به سیم‌کارت حساب بانکی نصب کنید. یک فورواردر Webhook با متد POST ایجاد نموده و آدرس فوق را در آن قرار دهید. پیامک‌های واریزی در کمتر از ۵ ثانیه شناسایی شده و کیف پول کاربر خودکار شارژ می‌شود.
+              </p>
+            </div>
           </div>
         </div>
         <!-- 3. Crypto & Rates Settings Box -->

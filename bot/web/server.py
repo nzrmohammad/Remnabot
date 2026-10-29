@@ -124,6 +124,8 @@ async def api_rate_limit_middleware(request: web.Request, handler):
             "/api/user/purchase",
             "/api/user/spin",
             "/api/user/topup/card",
+            "/api/user/topup/card-auto/create",
+            "/api/user/topup/card-auto/cancel",
             "/api/user/topup/crypto",
             "/api/user/topup/crypto/check",
             "/api/user/topup/crypto/tonconnect_submit",
@@ -531,6 +533,10 @@ def create_web_app(
     app.router.add_get("/api/user/avatar", routes_user.get_user_avatar)
     app.router.add_get("/api/user/topup_info", routes_user.get_user_topup_info)
     app.router.add_post("/api/user/topup/card", routes_user.post_user_topup_card)
+    app.router.add_post("/api/user/topup/card-auto/create", routes_user.post_user_topup_card_auto_create)
+    app.router.add_get("/api/user/topup/card-auto/status", routes_user.get_user_topup_card_auto_status)
+    app.router.add_post("/api/user/topup/card-auto/cancel", routes_user.post_user_topup_card_auto_cancel)
+    app.router.add_post("/api/webhooks/sms", routes_user.post_webhook_sms)
     app.router.add_post("/api/user/topup/crypto", routes_user.post_user_topup_crypto)
     app.router.add_post("/api/user/topup/crypto/check", routes_user.post_user_topup_crypto_check)
     app.router.add_post("/api/user/topup/crypto/tonconnect_submit", routes_user.post_user_topup_tonconnect_submit)

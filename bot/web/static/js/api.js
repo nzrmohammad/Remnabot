@@ -187,6 +187,18 @@ const api = {
     return this.post('/api/user/topup/card', { amount, receipt_text, receipt_image });
   },
 
+  async createCardAutoInvoice(amount) {
+    return this.post('/api/user/topup/card-auto/create', { amount });
+  },
+
+  async getCardAutoStatus(uuid = null) {
+    return this.get('/api/user/topup/card-auto/status' + (uuid ? `?uuid=${encodeURIComponent(uuid)}` : ''));
+  },
+
+  async cancelCardAutoInvoice(uuid) {
+    return this.post('/api/user/topup/card-auto/cancel', { uuid });
+  },
+
   async createCryptoInvoice(amount) {
     return this.post('/api/user/topup/crypto', { amount });
   },
