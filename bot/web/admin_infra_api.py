@@ -1,6 +1,10 @@
 """Admin Infrastructure Billing and Node Costs API handlers for Telegram Mini App."""
+import asyncio
 import logging
 from datetime import datetime, timedelta, timezone
+import socket
+import time
+import aiohttp
 from aiohttp import web
 from sqlalchemy import func, select
 
@@ -360,3 +364,203 @@ async def get_admin_github_releases(request: web.Request) -> web.Response:
 
 
 
+
+
+async def get_admin_tools_check_host(request: web.Request) -> web.Response:
+    """Perform network check (IP Info, Ping, HTTP, TCP, UDP, DNS) on target host/IP."""
+    admin = _check_admin(request)
+    if not admin:
+        return web.json_response({"ok": False, "error": "Forbidden"}, status=403)
+
+    host = (request.query.get("host") or "").strip()
+    check_type = (request.query.get("type") or "info").lower().strip()
+    port_str = (request.query.get("port") or "").strip()
+
+    if not host:
+        return web.json_response({"ok": False, "error": "نام دامنه یا آدرس آی‌پی الزامی است."}, status=400)
+
+    clean_host = host.replace("http://", "").replace("https://", "").split("/")[0].split(":")[0].strip()
+    if not clean_host:
+        return web.json_response({"ok": False, "error": "آدرس نامعتبر است."}, status=400)
+
+    port = 443
+    if port_str.isdigit():
+        port = int(port_str)
+    elif check_type in ("http", "info"):
+        port = 80
+    elif check_type in ("ping", "tcp"):
+        port = 443
+
+    result = {}
+    try:
+        if check_type == "info":
+            async with aiohttp.ClientSession() as s:
+                url = f"http://ip-api.com/json/{clean_host}?fields=status,message,country,countryCode,regionName,city,zip,lat,lon,timezone,isp,org,as,query"
+                async with s.get(url, timeout=aiohttp.ClientTimeout(total=5)) as resp:
+                    if resp.status == 200:
+                        data = await resp.json()
+                        result = {
+                            "status": data.get("status"),
+                            "ip": data.get("query"),
+                            "country": data.get("country"),
+                            "country_code": data.get("countryCode"),
+                            "city": data.get("city"),
+                            "region": data.get("regionName"),
+                            "isp": data.get("isp"),
+                            "org": data.get("org"),
+                            "asn": data.get("as"),
+                            "timezone": data.get("timezone"),
+                        }
+                    else:
+                        result = {"error": f"HTTP {resp.status}"}
+
+        elif check_type == "dns":
+            loop = asyncio.get_event_loop()
+            try:
+                addr_info = await loop.getaddrinfo(clean_host, None)
+                ips = sorted(list({info[4][0] for info in addr_info}))
+                result = {
+                    "host": clean_host,
+                    "resolved_ips": ips,
+                    "count": len(ips),
+                }
+            except Exception as e:
+                result = {"error": f"خطا در تحلیل دامنه DNS: {e}"}
+
+        elif check_type in ("ping", "tcp"):
+            t0 = time.monotonic()
+            try:
+                reader, writer = await asyncio.wait_for(
+                    asyncio.open_connection(clean_host, port),
+                    timeout=4.0
+                )
+                dt = (time.monotonic() - t0) * 1000.0
+                writer.close()
+                await writer.wait_closed()
+                result = {
+                    "host": clean_host,
+                    "port": port,
+                    "status": "OPEN",
+                    "latency_ms": round(dt, 1),
+                    "accessible": True,
+                }
+            except asyncio.TimeoutError:
+                result = {
+                    "host": clean_host,
+                    "port": port,
+                    "status": "TIMEOUT",
+                    "latency_ms": None,
+                    "accessible": False,
+                }
+            except Exception as e:
+                result = {
+                    "host": clean_host,
+                    "port": port,
+                    "status": "CLOSED",
+                    "error": str(e),
+                    "accessible": False,
+                }
+
+        elif check_type == "udp":
+            t0 = time.monotonic()
+            sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            sock.setblocking(False)
+            try:
+                loop = asyncio.get_event_loop()
+                await loop.sock_connect(sock, (clean_host, port))
+                await loop.sock_sendall(sock, b"\x00")
+                dt = (time.monotonic() - t0) * 1000.0
+                result = {
+                    "host": clean_host,
+                    "port": port,
+                    "status": "SENT",
+                    "latency_ms": round(dt, 1),
+                    "accessible": True,
+                }
+            except Exception as e:
+                result = {
+                    "host": clean_host,
+                    "port": port,
+                    "status": "ERROR",
+                    "error": str(e),
+                    "accessible": False,
+                }
+            finally:
+                sock.close()
+
+        elif check_type == "http":
+            t0 = time.monotonic()
+            url = f"https://{clean_host}" if port == 443 else (f"http://{clean_host}:{port}" if port != 80 else f"http://{clean_host}")
+            async with aiohttp.ClientSession() as s:
+                try:
+                    async with s.get(url, timeout=aiohttp.ClientTimeout(total=5), allow_redirects=True, ssl=False) as resp:
+                        dt = (time.monotonic() - t0) * 1000.0
+                        result = {
+                            "url": url,
+                            "status_code": resp.status,
+                            "latency_ms": round(dt, 1),
+                            "server": resp.headers.get("Server", "Unknown"),
+                            "content_type": resp.headers.get("Content-Type", ""),
+                            "accessible": True,
+                        }
+                except Exception as e:
+                    result = {
+                        "url": url,
+                        "accessible": False,
+                        "error": str(e),
+                    }
+
+        return web.json_response({"ok": True, "type": check_type, "host": clean_host, "result": result})
+    except Exception as exc:
+        logger.exception("Check-host error: %s", exc)
+        return web.json_response({"ok": False, "error": str(exc)}, status=500)
+
+
+async def get_admin_tools_asn_prefixes(request: web.Request) -> web.Response:
+    """Fetch announced IP prefixes (CIDRs) for a given Autonomous System Number (ASN)."""
+    admin = _check_admin(request)
+    if not admin:
+        return web.json_response({"ok": False, "error": "Forbidden"}, status=403)
+
+    raw_asn = (request.query.get("asn") or "").strip().upper()
+    if not raw_asn:
+        return web.json_response({"ok": False, "error": "شماره ASN الزامی است (مثال: AS44244 یا 13335)."}, status=400)
+
+    clean_asn = raw_asn.replace("AS", "").strip()
+    if not clean_asn.isdigit():
+        return web.json_response({"ok": False, "error": "فرمت ASN نامعتبر است. فقط از عدد یا پیشوند AS استفاده کنید."}, status=400)
+
+    url = f"https://stat.ripe.net/data/announced-prefixes/data.json?resource=AS{clean_asn}"
+    try:
+        async with aiohttp.ClientSession() as s:
+            async with s.get(url, timeout=aiohttp.ClientTimeout(total=8)) as resp:
+                if resp.status != 200:
+                    return web.json_response({"ok": False, "error": f"خطا در دریافت اطلاعات از پایگاه داده RIPE (کد {resp.status})."}, status=502)
+                data = await resp.json()
+
+        raw_prefixes = data.get("data", {}).get("prefixes", [])
+        ipv4_list = []
+        ipv6_list = []
+        for p in raw_prefixes:
+            prefix_str = p.get("prefix")
+            if not prefix_str:
+                continue
+            if ":" in prefix_str:
+                ipv6_list.append(prefix_str)
+            else:
+                ipv4_list.append(prefix_str)
+
+        all_prefixes = sorted(ipv4_list) + sorted(ipv6_list)
+        return web.json_response({
+            "ok": True,
+            "asn": f"AS{clean_asn}",
+            "total_count": len(all_prefixes),
+            "ipv4_count": len(ipv4_list),
+            "ipv6_count": len(ipv6_list),
+            "prefixes": all_prefixes,
+        })
+    except asyncio.TimeoutError:
+        return web.json_response({"ok": False, "error": "پایگاه RIPE در زمان مقرر پاسخ نداد (Timeout)."}, status=504)
+    except Exception as exc:
+        logger.exception("ASN lookup error: %s", exc)
+        return web.json_response({"ok": False, "error": str(exc)}, status=500)

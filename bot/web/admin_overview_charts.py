@@ -398,6 +398,22 @@ async def _calc_platform_and_hwid(session, remnawave) -> tuple[dict[str, Any], d
                 dev_user_names[str(uid)] = p_name
                 dev_user_names[uid] = p_name
 
+    missing_panel_ids = [str(u) for u in user_hwid_counts if not (dev_user_names.get(str(u)) or dev_user_names.get(u) or order_user_map.get(str(u)))]
+    if missing_panel_ids and remnawave:
+        try:
+            p_users = await remnawave.get_all_panel_users(size=1000) or []
+            for pu in p_users:
+                p_uid = str(pu.get("id", ""))
+                p_uuid = str(pu.get("uuid", ""))
+                p_uname = pu.get("username")
+                if p_uname:
+                    if p_uid:
+                        dev_user_names[p_uid] = p_uname
+                    if p_uuid:
+                        dev_user_names[p_uuid] = p_uname
+        except Exception:
+            pass
+
     high_risk_users = []
     sorted_risk = sorted([(u, c) for u, c in user_hwid_counts.items() if c >= 3], key=lambda x: x[1], reverse=True)[:50]
     tg_candidates = []

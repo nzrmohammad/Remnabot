@@ -28,6 +28,7 @@ class Settings(BaseSettings):
     ADMIN_TOPIC_CRYPTO: int | None = None   # Topic ID for crypto rates and payments
     ADMIN_TOPIC_ERRORS: int | None = None   # Topic ID for system error logs and exceptions
     ADMIN_TOPIC_BACKUPS: int | None = None  # Topic ID for database backup archives
+    ADMIN_TOPIC_SMS_MANUAL: int | None = None  # Topic ID for manual bank SMS pasting
 
     # --- Crypto (TON & TRX on-chain top-up & xRocket) ---
     TON_WALLET_ADDRESS: str = ""

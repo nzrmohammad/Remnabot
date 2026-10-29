@@ -66,6 +66,7 @@ async def get_admin_settings(request: web.Request) -> web.Response:
             "topic_nodes": store_settings.topic_nodes,
             "topic_crypto": store_settings.topic_crypto,
             "topic_errors": store_settings.topic_errors,
+            "topic_sms_manual": store_settings.topic_sms_manual,
             "auto_clean_reports": store_settings.auto_clean_reports,
             "access_mode": store_settings.access_mode,
             "stars_enabled": store_settings.stars_enabled,
@@ -78,6 +79,8 @@ async def get_admin_settings(request: web.Request) -> web.Response:
             "birthday_reward_enabled": store_settings.birthday_reward_enabled,
             "birthday_reward_traffic_gb": store_settings.birthday_reward_traffic_gb,
             "birthday_reward_discount_percent": store_settings.birthday_reward_discount_percent,
+            "birthday_custom_message": store_settings.birthday_custom_message,
+            "card_blubank_color": store_settings.card_blubank_color,
             "join_gate_enabled": store_settings.join_gate_enabled,
             "join_gate_channel": store_settings.join_gate_channel,
         }
@@ -133,10 +136,11 @@ async def post_admin_settings(request: web.Request) -> web.Response:
             "stars_rate_toman",
             "trial_traffic_gb", "trial_duration_days",
             "referral_reward_gb", "support_contact",
-            "topic_topups", "topic_orders", "topic_support", "topic_alerts", "topic_backups", "topic_reports", "topic_nodes", "topic_crypto", "topic_errors",
+            "topic_topups", "topic_orders", "topic_support", "topic_alerts", "topic_backups", "topic_reports", "topic_nodes", "topic_crypto", "topic_errors", "topic_sms_manual",
             "access_mode",
             "tutorial_channel_url", "routing_tutorial_url", "client_apps_json",
             "birthday_reward_traffic_gb", "birthday_reward_discount_percent",
+            "birthday_custom_message", "card_blubank_color",
             "join_gate_channel",
         )
         for rk in raw_keys:

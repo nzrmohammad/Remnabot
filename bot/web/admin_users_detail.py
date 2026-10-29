@@ -148,6 +148,36 @@ def _parse_srh_timestamp(created_at_raw: Any, now_utc: datetime) -> tuple[str, s
         return "ثبت‌شده", str(created_at_raw)[:19], "—"
 
 
+async def _resolve_panel_user(remnawave, target_id: Any) -> tuple[Any, str | None]:
+    """Resolve target_id (Telegram ID, Remnawave user ID, or username) to (primary_id, primary_uuid)."""
+    target_str = str(target_id).strip()
+    panel_users = None
+    if target_str.isdigit():
+        try:
+            panel_users = await remnawave.get_users_by_telegram_id(int(target_str))
+        except Exception:
+            panel_users = None
+
+    if not panel_users:
+        try:
+            p_user = await remnawave.get_panel_user_by_id(int(target_str) if target_str.isdigit() else target_str)
+            if p_user:
+                panel_users = [p_user]
+        except Exception:
+            pass
+
+    if not panel_users:
+        try:
+            p_user = await remnawave.get_user_by_username(target_str)
+            if p_user:
+                panel_users = [p_user]
+        except Exception:
+            pass
+
+    if panel_users and len(panel_users) > 0:
+        return panel_users[0].get("id"), panel_users[0].get("uuid")
+    return target_str, target_str
+
 async def get_admin_user_hwid_devices(request: web.Request) -> web.Response:
     """Fetch all active connected HWID devices for a specific user."""
     admin = _check_admin(request)
@@ -159,12 +189,7 @@ async def get_admin_user_hwid_devices(request: web.Request) -> web.Response:
         return web.json_response({"ok": False, "error": "شناسه کاربر الزامی است."}, status=400)
 
     remnawave = request.app["remnawave"]
-    panel_users = await remnawave.get_users_by_telegram_id(int(target_id))
-    if not panel_users:
-        return web.json_response({"ok": True, "devices": []})
-
-    primary_id = panel_users[0].get("id")
-    primary_uuid = panel_users[0].get("uuid")
+    primary_id, primary_uuid = await _resolve_panel_user(remnawave, target_id)
     devices = await remnawave.get_user_hwid_devices(primary_id, user_uuid=primary_uuid)
     return web.json_response({"ok": True, "devices": devices or []})
 
@@ -186,11 +211,7 @@ async def post_admin_user_delete_hwid(request: web.Request) -> web.Response:
         return web.json_response({"ok": False, "error": "شناسه کاربر و شناسه سخت‌افزار (HWID) الزامی است."}, status=400)
 
     remnawave = request.app["remnawave"]
-    panel_users = await remnawave.get_users_by_telegram_id(int(target_id))
-    if not panel_users:
-        return web.json_response({"ok": False, "error": "اکانتی در پنل یافت نشد."}, status=404)
-
-    primary_id = panel_users[0].get("id")
+    primary_id, _ = await _resolve_panel_user(remnawave, target_id)
     success = await remnawave.delete_hwid_device(primary_id, hwid)
     if not success:
         return web.json_response({"ok": False, "error": "خطا در حذف دستگاه از پنل."}, status=502)
@@ -210,10 +231,7 @@ async def get_admin_user_sessions(request: web.Request) -> web.Response:
 
     remnawave = request.app["remnawave"]
     try:
-        panel_users = await remnawave.get_users_by_telegram_id(int(target_id))
-        if not panel_users:
-            return web.json_response({"ok": True, "data": {"isOnline": False, "totalConnections": 0, "uniqueIps": [], "nodeConnections": []}})
-        primary_id = panel_users[0].get("id")
+        primary_id, _ = await _resolve_panel_user(remnawave, target_id)
         user_sessions = await remnawave.get_user_live_sessions(primary_id)
         return web.json_response({"ok": True, "data": user_sessions})
     except Exception as exc:

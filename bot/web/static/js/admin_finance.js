@@ -254,23 +254,26 @@ openCryptoRatesModal() {
         const bestTon = res.best_ton || {};
         const bestUsdt = res.best_usdt || {};
         const bestEur = res.best_eur || {};
-        window.lastLiveCryptoRates = { ton: bestTon.price, usdt: bestUsdt.price, eur: bestEur.price };
+        const bestTrx = res.best_trx || {};
+        window.lastLiveCryptoRates = { ton: bestTon.price, usdt: bestUsdt.price, eur: bestEur.price, trx: bestTrx.price };
         if (bestEur.price) window.currentEurRate = bestEur.price;
         if (bestUsdt.price) window.currentUsdRate = bestUsdt.price;
 
         const usdtList = Object.entries(res.usdt_prices || {});
         const eurList = Object.entries(res.eur_prices || {});
         const tonList = Object.entries(res.ton_prices || {});
+        const trxList = Object.entries(res.trx_prices || {});
         const binanceUsd = res.binance_usd;
         const binanceEurUsd = res.binance_eur_usd;
+        const binanceTrxUsd = res.binance_trx_usd;
 
         let usdtRowsHtml = '';
         if (usdtList.length > 0) {
           usdtRowsHtml = usdtList.map(([src, p]) => `
-            <div class="flex items-center justify-between py-1.5 px-2.5 rounded-xl bg-slate-800/60 border border-slate-700/50 hover:border-slate-600 transition">
-              <span class="text-slate-300 font-medium text-[11px]">${src}</span>
+            <div class="flex items-center justify-between py-1.5 px-2.5 rounded-xl card-inset border border-slate-700/50 hover:border-slate-500/50 transition">
+              <span class="t-main font-medium text-[11px]">${src}</span>
               <div class="flex items-center gap-2">
-                <span class="font-mono font-bold text-slate-100 text-[11px]">${formatNumber(p)} <span class="text-[10px] text-slate-400 font-sans">تومان</span></span>
+                <span class="font-mono font-bold t-main text-[11px] num-bidi">${formatNumber(p)} <span class="text-[10px] t-muted font-sans">تومان</span></span>
                 <button onclick="window.adminActions.applySpecificRate('usdt', ${p}, this)" class="bg-transparent hover:bg-emerald-500/10 text-emerald-400 hover:text-emerald-300 border border-emerald-500/40 text-[10px] font-bold px-2 py-0.5 rounded-lg transition active:scale-95">
                   اعمال
                 </button>
@@ -282,10 +285,10 @@ openCryptoRatesModal() {
         let eurRowsHtml = '';
         if (eurList.length > 0) {
           eurRowsHtml = eurList.map(([src, p]) => `
-            <div class="flex items-center justify-between py-1.5 px-2.5 rounded-xl bg-slate-800/60 border border-slate-700/50 hover:border-slate-600 transition">
-              <span class="text-slate-300 font-medium text-[11px]">${src}</span>
+            <div class="flex items-center justify-between py-1.5 px-2.5 rounded-xl card-inset border border-slate-700/50 hover:border-slate-500/50 transition">
+              <span class="t-main font-medium text-[11px]">${src}</span>
               <div class="flex items-center gap-2">
-                <span class="font-mono font-bold text-slate-100 text-[11px]">${formatNumber(p)} <span class="text-[10px] text-slate-400 font-sans">تومان</span></span>
+                <span class="font-mono font-bold t-main text-[11px] num-bidi">${formatNumber(p)} <span class="text-[10px] t-muted font-sans">تومان</span></span>
                 <button onclick="window.adminActions.applySpecificRate('eur', ${p}, this)" class="bg-transparent hover:bg-indigo-500/10 text-indigo-400 hover:text-indigo-300 border border-indigo-500/40 text-[10px] font-bold px-2 py-0.5 rounded-lg transition active:scale-95">
                   اعمال
                 </button>
@@ -297,10 +300,10 @@ openCryptoRatesModal() {
         let tonRowsHtml = '';
         if (tonList.length > 0) {
           tonRowsHtml = tonList.map(([src, p]) => `
-            <div class="flex items-center justify-between py-1.5 px-2.5 rounded-xl bg-slate-800/60 border border-slate-700/50 hover:border-slate-600 transition">
-              <span class="text-slate-300 font-medium text-[11px]">${src}</span>
+            <div class="flex items-center justify-between py-1.5 px-2.5 rounded-xl card-inset border border-slate-700/50 hover:border-slate-500/50 transition">
+              <span class="t-main font-medium text-[11px]">${src}</span>
               <div class="flex items-center gap-2">
-                <span class="font-mono font-bold text-slate-100 text-[11px]">${formatNumber(p)} <span class="text-[10px] text-slate-400 font-sans">تومان</span></span>
+                <span class="font-mono font-bold t-main text-[11px] num-bidi">${formatNumber(p)} <span class="text-[10px] t-muted font-sans">تومان</span></span>
                 <button onclick="window.adminActions.applySpecificRate('ton', ${p}, this)" class="bg-transparent hover:bg-cyan-500/10 text-cyan-400 hover:text-cyan-300 border border-cyan-500/40 text-[10px] font-bold px-2 py-0.5 rounded-lg transition active:scale-95">
                   اعمال
                 </button>
@@ -313,12 +316,43 @@ openCryptoRatesModal() {
           const tonTomanBinance = bestTon.price;
           const globalSrc = res.global_ton_source ? `${res.global_ton_source} (جهانی)` : 'بایننس (جهانی)';
           tonRowsHtml += `
-            <div class="flex items-center justify-between py-1.5 px-2.5 rounded-xl bg-slate-800/60 border border-slate-700/50 hover:border-slate-600 transition">
-              <span class="text-slate-300 font-medium text-[11px]">${escapeHtml(globalSrc)}</span>
+            <div class="flex items-center justify-between py-1.5 px-2.5 rounded-xl card-inset border border-slate-700/50 hover:border-slate-500/50 transition">
+              <span class="t-main font-medium text-[11px]">${escapeHtml(globalSrc)}</span>
               <div class="flex items-center gap-2">
-                <span class="font-mono font-bold text-cyan-300 text-[11px]">$${Number(binanceUsd).toFixed(2)}</span>
+                <span class="font-mono font-bold text-cyan-500 dark:text-cyan-300 text-[11px] num-bidi">${Number(binanceUsd).toFixed(2)}</span>
                 ${tonTomanBinance ? `
                 <button onclick="window.adminActions.applySpecificRate('ton', ${tonTomanBinance}, this)" class="bg-transparent hover:bg-cyan-500/10 text-cyan-400 hover:text-cyan-300 border border-cyan-500/40 text-[10px] font-bold px-2 py-0.5 rounded-lg transition active:scale-95">
+                  اعمال
+                </button>` : ''}
+              </div>
+            </div>
+          `;
+        }
+
+        let trxRowsHtml = '';
+        if (trxList.length > 0) {
+          trxRowsHtml = trxList.map(([src, p]) => `
+            <div class="flex items-center justify-between py-1.5 px-2.5 rounded-xl card-inset border border-slate-700/50 hover:border-slate-500/50 transition">
+              <span class="t-main font-medium text-[11px]">${src}</span>
+              <div class="flex items-center gap-2">
+                <span class="font-mono font-bold t-main text-[11px] num-bidi">${formatNumber(p)} <span class="text-[10px] t-muted font-sans">تومان</span></span>
+                <button onclick="window.adminActions.applySpecificRate('trx', ${p}, this)" class="bg-transparent hover:bg-rose-500/10 text-rose-500 dark:text-rose-400 border border-rose-500/40 text-[10px] font-bold px-2 py-0.5 rounded-lg transition active:scale-95">
+                  اعمال
+                </button>
+              </div>
+            </div>
+          `).join('');
+        }
+
+        if (binanceTrxUsd) {
+          const trxTomanBinance = bestTrx.price;
+          trxRowsHtml += `
+            <div class="flex items-center justify-between py-1.5 px-2.5 rounded-xl card-inset border border-slate-700/50 hover:border-slate-500/50 transition">
+              <span class="t-main font-medium text-[11px]">بایننس (جهانی)</span>
+              <div class="flex items-center gap-2">
+                <span class="font-mono font-bold text-rose-500 dark:text-rose-300 text-[11px] num-bidi">${Number(binanceTrxUsd).toFixed(4)}</span>
+                ${trxTomanBinance ? `
+                <button onclick="window.adminActions.applySpecificRate('trx', ${trxTomanBinance}, this)" class="bg-transparent hover:bg-rose-500/10 text-rose-500 dark:text-rose-400 border border-rose-500/40 text-[10px] font-bold px-2 py-0.5 rounded-lg transition active:scale-95">
                   اعمال
                 </button>` : ''}
               </div>
@@ -329,27 +363,35 @@ openCryptoRatesModal() {
         container.innerHTML = `
           <!-- All USDT Exchanges List -->
           <div class="space-y-1.5">
-            <span class="text-[10px] font-bold text-slate-400 block px-1">استعلام صرافی‌های داخلی (USDT):</span>
+            <span class="text-[10px] font-bold t-muted block px-1">استعلام صرافی‌های داخلی (USDT تتر):</span>
             <div class="space-y-1">
-              ${usdtRowsHtml || '<div class="text-[10px] text-slate-500 text-center py-1">اطلاعاتی دریافت نشد</div>'}
+              ${usdtRowsHtml || '<div class="text-[10px] t-muted text-center py-1">اطلاعاتی دریافت نشد</div>'}
             </div>
           </div>
 
           <!-- All EUR Rates List -->
           <div class="space-y-1.5 mt-3">
-            <span class="text-[10px] font-bold text-slate-400 block px-1">استعلام نرخ ارز یورو (EUR):</span>
+            <span class="text-[10px] font-bold t-muted block px-1">استعلام نرخ ارز یورو (EUR):</span>
             <div class="space-y-1">
-              ${eurRowsHtml || '<div class="text-[10px] text-slate-500 text-center py-1">اطلاعاتی دریافت نشد</div>'}
+              ${eurRowsHtml || '<div class="text-[10px] t-muted text-center py-1">اطلاعاتی دریافت نشد</div>'}
             </div>
           </div>
 
           <!-- All TON Exchanges List -->
           <div class="space-y-1.5 mt-3">
-            <span class="text-[10px] font-bold text-slate-400 block px-1">استعلام صرافی‌ها (TON):</span>
+            <span class="text-[10px] font-bold t-muted block px-1">استعلام صرافی‌ها (TON تون):</span>
             <div class="space-y-1">
-              ${tonRowsHtml || '<div class="text-[10px] text-slate-500 text-center py-1">اطلاعاتی دریافت نشد</div>'}
+              ${tonRowsHtml || '<div class="text-[10px] t-muted text-center py-1">اطلاعاتی دریافت نشد</div>'}
             </div>
           </div>
+
+          <!-- All TRX Exchanges List -->
+          <div class="space-y-1.5 mt-3">
+            <span class="text-[10px] font-bold t-muted block px-1">استعلام صرافی‌ها (TRX ترون):</span>
+            <div class="space-y-1">
+              ${trxRowsHtml || '<div class="text-[10px] t-muted text-center py-1">اطلاعاتی دریافت نشد</div>'}
+            </div>
+          </div>`;
 
           <!-- Stars Auto-Calculation from Live USDT Benchmark -->
           <div class="space-y-1.5 mt-3 pt-2.5 border-t border-slate-700/60">
@@ -446,6 +488,10 @@ openCryptoRatesModal() {
         const inp = $('settingTonRate');
         if (inp) inp.value = numVal;
         payload.ton_rate_toman = numVal;
+      } else if (type === 'trx') {
+        const inp = $('settingTrxRate');
+        if (inp) inp.value = numVal;
+        payload.trx_rate_toman = numVal;
       } else if (type === 'stars') {
         const inp = $('settingStarsRate');
         if (inp) inp.value = numVal;
@@ -467,7 +513,7 @@ openCryptoRatesModal() {
       try {
         const res = await window.api.saveAdminSettings(payload);
         if (res && res.ok) {
-          const typeName = type === 'usdt' ? 'تتر' : (type === 'eur' ? 'یورو' : (type === 'ton' ? 'تون' : 'استارز'));
+          const typeName = type === 'usdt' ? 'تتر' : (type === 'eur' ? 'یورو' : (type === 'ton' ? 'تون' : (type === 'trx' ? 'ترون' : 'استارز')));
           if (window.showToast) window.showToast(`✅ نرخ ${typeName} به ${formatNumber(numVal)} تومان ذخیره شد`);
           if (window.hapticFeedback) window.hapticFeedback('success');
         } else {
@@ -482,11 +528,13 @@ openCryptoRatesModal() {
       const usdtInp = $('settingUsdtRate');
       const eurInp = $('settingEurRate');
       const tonInp = $('settingTonRate');
+      const trxInp = $('settingTrxRate');
       const starsInp = $('settingStarsRate');
 
       const usdtVal = window.lastLiveCryptoRates?.usdt || parseInt(usdtInp?.value || '95000', 10);
       const tonVal = window.lastLiveCryptoRates?.ton || parseInt(tonInp?.value || '0', 10);
       const eurVal = window.lastLiveCryptoRates?.eur || parseInt(eurInp?.value || '105000', 10);
+      const trxVal = window.lastLiveCryptoRates?.trx || parseInt(trxInp?.value || '0', 10);
       const starsVal = window.lastLiveCryptoRates?.stars || parseInt(starsInp?.value || '0', 10) || Math.round(usdtVal * 0.013);
 
       if (usdtInp && usdtVal) {
@@ -494,6 +542,7 @@ openCryptoRatesModal() {
         window.currentUsdRate = usdtVal;
       }
       if (tonInp && tonVal) tonInp.value = tonVal;
+      if (trxInp && trxVal) trxInp.value = trxVal;
       if (eurInp && eurVal) {
         eurInp.value = eurVal;
         window.currentEurRate = eurVal;
@@ -504,6 +553,7 @@ openCryptoRatesModal() {
         const payload = {
           usdt_rate_toman: usdtVal,
           ton_rate_toman: tonVal,
+          trx_rate_toman: trxVal,
           eur_rate_toman: eurVal,
           stars_rate_toman: starsVal,
         };

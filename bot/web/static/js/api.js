@@ -227,6 +227,10 @@ const api = {
     return this.post('/api/user/topup/xrocket', { amount, currency });
   },
 
+  async getActiveCryptoInvoice() {
+    return this.get('/api/user/topup/crypto/active');
+  },
+
 
   async saveSetting(key, value) {
     return this.post('/api/user/settings', { key, value });
@@ -462,6 +466,14 @@ const api = {
 
   async deleteAdminCampaign(id) {
     return this.post('/api/admin/campaign/delete', { id });
+  },
+
+  async runCheckHost(data) {
+    return this.post('/api/admin/tools/check-host', data);
+  },
+
+  async getAsnPrefixes(asn) {
+    return this.get(`/api/admin/tools/asn-prefixes?asn=${encodeURIComponent(asn)}`);
   },
 
   haptic(type = 'success') {

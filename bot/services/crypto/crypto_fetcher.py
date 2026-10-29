@@ -27,6 +27,8 @@ async def fetch_all_exchange_prices(usdt_rate: int | None = None) -> dict:
     ton_prices: dict[str, int] = {}
     usdt_prices: dict[str, int] = {}
     eur_prices: dict[str, int] = {}
+    trx_prices: dict[str, int] = {}
+    binance_trx_usd: float | None = None
     closed_status: dict[str, str] = {}
     binance_ton_usd: float | None = None
     binance_eur_usd: float | None = None
@@ -66,6 +68,14 @@ async def fetch_all_exchange_prices(usdt_rate: int | None = None) -> dict:
                                 closed_status["نوبیتکس_eur"] = "موقتاً غیرفعال (محدودیت نظارتی)"
                             elif eur_info.get("latest"):
                                 eur_prices["نوبیتکس"] = int(float(eur_info["latest"]) // 10)
+
+                        # TRX stats
+                        trx_info = st.get("trx-rls") or st.get("trx-irt")
+                        if trx_info:
+                            if trx_info.get("isClosed") or trx_info.get("status") == "closed":
+                                closed_status["نوبیتکس_trx"] = "موقتاً غیرفعال"
+                            elif trx_info.get("latest"):
+                                trx_prices["نوبیتکس"] = int(float(trx_info["latest"]) // 10)
             except Exception as e:
                 logger.debug("Nobitex stats failed: %s", e)
 
@@ -110,6 +120,14 @@ async def fetch_all_exchange_prices(usdt_rate: int | None = None) -> dict:
                                     p = m.get("price") or (m.get("order_book_info") or {}).get("last_trade_price")
                                     if p:
                                         usdt_prices["بیت‌پین"] = int(float(p) // 10)
+                                elif code in ("TRX_IRT", "TRX_TMN", "TRXIRT"):
+                                    p = m.get("price") or (m.get("order_book_info") or {}).get("last_trade_price")
+                                    if p:
+                                        trx_prices["بیت‌پین"] = int(float(p))
+                                elif code == "TRX_RLS":
+                                    p = m.get("price") or (m.get("order_book_info") or {}).get("last_trade_price")
+                                    if p:
+                                        trx_prices["بیت‌پین"] = int(float(p) // 10)
                             if "بیت‌پین" in ton_prices or "بیت‌پین" in usdt_prices:
                                 break
                 except Exception as e:
@@ -133,6 +151,12 @@ async def fetch_all_exchange_prices(usdt_rate: int | None = None) -> dict:
                                 lp = (symbols[sym].get("stats") or {}).get("lastPrice")
                                 if lp and str(lp).strip() not in ("", "-"):
                                     usdt_prices["والکس"] = int(float(lp))
+                                    break
+                        for sym in ("TRXTMN", "TRXIRT"):
+                            if sym in symbols:
+                                lp = (symbols[sym].get("stats") or {}).get("lastPrice")
+                                if lp and str(lp).strip() not in ("", "-"):
+                                    trx_prices["والکس"] = int(float(lp))
                                     break
             except Exception as e:
                 logger.debug("Wallex failed: %s", e)
@@ -225,6 +249,17 @@ async def fetch_all_exchange_prices(usdt_rate: int | None = None) -> dict:
             except Exception as e:
                 logger.debug("Binance EUR failed: %s", e)
 
+            try:
+                nonlocal binance_trx_usd
+                async with session.get("https://api.binance.com/api/v3/ticker/price?symbol=TRXUSDT", headers=headers) as resp:
+                    if resp.status == 200:
+                        data = await resp.json()
+                        p = float(data.get("price", "0"))
+                        if p > 0:
+                            binance_trx_usd = p
+            except Exception as e:
+                logger.debug("Binance TRX failed: %s", e)
+
         await asyncio.gather(
             _fetch_nobitex(),
             _fetch_bitpin(),
@@ -288,18 +323,33 @@ async def fetch_all_exchange_prices(usdt_rate: int | None = None) -> dict:
             best_eur_source = src if src != "بایننس" else f"بایننس (${binance_eur_usd:.3f})"
             break
 
+    best_trx_price: int | None = None
+    best_trx_source = ""
+    for src in ("نوبیتکس", "بیت‌پین", "والکس"):
+        if src in trx_prices:
+            best_trx_price = trx_prices[src]
+            best_trx_source = src
+            break
+
+    if best_trx_price is None and binance_trx_usd and effective_usdt > 0:
+        best_trx_price = int(round(binance_trx_usd * effective_usdt))
+        best_trx_source = f"بایننس (${binance_trx_usd:.4f})"
+
     return {
         "ton": ton_prices,
         "usdt": usdt_prices,
         "eur": eur_prices,
+        "trx": trx_prices,
         "closed_status": closed_status,
         "binance_usd": global_ton_usd,
         "global_ton_usd": global_ton_usd,
         "global_ton_source": global_ton_source,
         "binance_eur_usd": binance_eur_usd,
+        "binance_trx_usd": binance_trx_usd,
         "best_ton": (best_ton_price, best_ton_source),
         "best_usdt": (best_usdt_price, best_usdt_source),
         "best_eur": (best_eur_price, best_eur_source),
+        "best_trx": (best_trx_price, best_trx_source),
     }
 
 

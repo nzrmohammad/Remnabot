@@ -805,21 +805,25 @@ openEditSslDomainModal(domain) {
   window.switchNodesSubtab = function(subtab) {
     const btnServers = $('subtabBtnNodesServers');
     const btnSsl = $('subtabBtnNodesSsl');
+    const btnTools = $('subtabBtnNodesTools');
     const contentServers = $('subtabContentNodesServers');
     const contentSsl = $('subtabContentNodesSsl');
+    const contentTools = $('subtabContentNodesTools');
 
     if (window.hapticFeedback) window.hapticFeedback('selection');
 
-    const isSsl = subtab === 'ssl';
-    btnServers?.classList.toggle('is-active', !isSsl);
-    btnServers?.setAttribute('aria-selected', !isSsl ? 'true' : 'false');
-    btnSsl?.classList.toggle('is-active', isSsl);
-    btnSsl?.setAttribute('aria-selected', isSsl ? 'true' : 'false');
+    btnServers?.classList.toggle('is-active', subtab === 'servers');
+    btnServers?.setAttribute('aria-selected', subtab === 'servers' ? 'true' : 'false');
+    btnSsl?.classList.toggle('is-active', subtab === 'ssl');
+    btnSsl?.setAttribute('aria-selected', subtab === 'ssl' ? 'true' : 'false');
+    btnTools?.classList.toggle('is-active', subtab === 'tools');
+    btnTools?.setAttribute('aria-selected', subtab === 'tools' ? 'true' : 'false');
 
-    contentServers?.classList.toggle('hidden', isSsl);
-    contentSsl?.classList.toggle('hidden', !isSsl);
+    contentServers?.classList.toggle('hidden', subtab !== 'servers');
+    contentSsl?.classList.toggle('hidden', subtab !== 'ssl');
+    contentTools?.classList.toggle('hidden', subtab !== 'tools');
 
-    if (isSsl) {
+    if (subtab === 'ssl') {
       fetchAdminSslHealth();
     }
   };
@@ -893,6 +897,181 @@ openEditSslDomainModal(domain) {
       nodeJalaliPreview.innerText = d ? (window.formatDateToJalali ? window.formatDateToJalali(d) : d) : '';
     }
   });
+
+
+  // --- Network Diagnostics Tools (Check-Host & RIPE Stat) ---
+  window.toggleToolsAccordion = function(boxId) {
+    const box = $(boxId);
+    const chevron = $(boxId + 'Chevron');
+    if (!box) return;
+    const isClosed = box.classList.contains('hidden');
+    box.classList.toggle('hidden', !isClosed);
+    if (chevron) {
+      chevron.style.transform = isClosed ? 'rotate(180deg)' : 'rotate(0deg)';
+    }
+    if (window.hapticFeedback) window.hapticFeedback('light');
+  };
+
+  window.handleCheckHostTypeChange = function(type) {
+    const portRow = $('checkHostPortRow');
+    if (portRow) portRow.classList.toggle('hidden', type !== 'tcp');
+  };
+
+  window.runCheckHostTest = async function() {
+    const targetInput = $('checkHostTargetInput');
+    const target = (targetInput?.value || '').trim();
+    if (!target) {
+      if (window.showToast) window.showToast('لطفاً آدرس سرور یا دامنه را وارد کنید', 'warning');
+      return;
+    }
+    const type = $('checkHostTypeSelect')?.value || 'ping';
+    const port = parseInt($('checkHostPortInput')?.value || '443', 10);
+
+    const btn = $('runCheckHostBtn');
+    const btnText = $('runCheckHostBtnText');
+    const icon = $('runCheckHostIcon');
+    const resBox = $('checkHostResultsBox');
+    const resList = $('checkHostResultsList');
+    const badge = $('checkHostStatusBadge');
+
+    if (btn) btn.disabled = true;
+    if (btnText) btnText.innerText = 'درحال اتصال به Check-Host...';
+    if (icon) icon.classList.add('animate-spin');
+    if (resBox) resBox.classList.remove('hidden');
+    if (resList) resList.innerHTML = '<div class="col-span-2 p-6 text-center t-muted text-xs">در حال ارسال درخواست به نودهای جهانی و دریافت نتایج...</div>';
+    if (badge) {
+      badge.className = 'badge badge-info';
+      badge.innerText = 'درحال بررسی...';
+    }
+
+    try {
+      const res = await window.api.runCheckHost({ host: target, check_type: type, port: port });
+      if (!res || !res.ok) {
+        if (badge) {
+          badge.className = 'badge badge-danger';
+          badge.innerText = 'خطا در ارزیابی';
+        }
+        if (resList) resList.innerHTML = `<div class="col-span-2 p-4 text-center text-rose-500 font-bold">${res?.message || 'خطا در دریافت نتایج از Check-Host'}</div>`;
+        return;
+      }
+
+      if (badge) {
+        badge.className = 'badge badge-success';
+        badge.innerText = `تکمیل شد (${res.results?.length || 0} نود)`;
+      }
+
+      if (!res.results || res.results.length === 0) {
+        if (resList) resList.innerHTML = '<div class="col-span-2 p-4 text-center t-muted">هیچ نتیجه‌ای بازگردانده نشد.</div>';
+        return;
+      }
+
+      resList.innerHTML = res.results.map(r => {
+        const isOk = r.ok;
+        const statusClass = isOk ? 'text-emerald-500 border-emerald-500/30' : 'text-rose-500 border-rose-500/30';
+        const pingTime = r.ping_ms !== undefined && r.ping_ms !== null ? `${r.ping_ms} ms` : (r.status || (isOk ? 'OK' : 'Fail'));
+        return `
+          <div class="card-inset p-2 rounded-xl border flex items-center justify-between ${statusClass}">
+            <div class="flex items-center gap-1.5 truncate">
+              <span class="text-sm">${r.flag || '🌐'}</span>
+              <span class="t-main font-bold truncate">${r.node_name || r.location}</span>
+            </div>
+            <span class="font-bold text-xs" dir="ltr">${pingTime}</span>
+          </div>
+        `;
+      }).join('');
+    } catch (err) {
+      if (resList) resList.innerHTML = `<div class="col-span-2 p-4 text-center text-rose-500 font-bold">خطا: ${err.message || 'عدم دسترسی به سرور'}</div>`;
+    } finally {
+      if (btn) btn.disabled = false;
+      if (btnText) btnText.innerText = 'شروع بررسی آنلاین';
+      if (icon) icon.classList.remove('animate-spin');
+    }
+  };
+
+  let cachedAsnPrefixes = [];
+
+  window.selectAsnPreset = function(asn) {
+    const inp = $('asnNumberInput');
+    if (inp) {
+      inp.value = asn;
+      window.runAsnLookup();
+    }
+  };
+
+  window.runAsnLookup = async function() {
+    const input = $('asnNumberInput');
+    let asn = (input?.value || '').trim();
+    if (!asn) {
+      if (window.showToast) window.showToast('لطفاً شماره ASN را وارد کنید (مثال: AS44244)', 'warning');
+      return;
+    }
+    const cleanAsn = asn.toUpperCase().startsWith('AS') ? asn.toUpperCase().replace('AS', '') : asn;
+
+    const btn = $('runAsnLookupBtn');
+    const btnText = $('runAsnLookupBtnText');
+    const icon = $('runAsnLookupIcon');
+    const resultsBox = $('asnResultsBox');
+    const list = $('asnPrefixesList');
+    const countBadge = $('asnCountBadge');
+
+    if (btn) btn.disabled = true;
+    if (btnText) btnText.innerText = 'در حال استعلام...';
+    if (icon) icon.classList.add('animate-spin');
+    if (resultsBox) resultsBox.classList.remove('hidden');
+    if (list) list.innerHTML = '<div class="col-span-4 p-4 text-center t-muted text-xs">در حال استعلام پیشوندها از RIPE Stat API...</div>';
+
+    try {
+      const res = await window.api.getAsnPrefixes(cleanAsn);
+      if (!res || !res.ok) {
+        if (list) list.innerHTML = `<div class="col-span-4 p-4 text-center text-rose-500 font-bold">${res?.message || 'خطا در استعلام ASN'}</div>`;
+        return;
+      }
+      cachedAsnPrefixes = res.prefixes || [];
+      if (countBadge) countBadge.innerText = `${cachedAsnPrefixes.length} رنج`;
+      renderAsnPrefixes(cachedAsnPrefixes);
+      if (window.showToast) window.showToast(`✅ ${cachedAsnPrefixes.length} پیشوند برای AS${cleanAsn} دریافت شد`, 'success');
+    } catch (err) {
+      if (list) list.innerHTML = `<div class="col-span-4 p-4 text-center text-rose-500 font-bold">خطا: ${err.message || 'خطای شبکه'}</div>`;
+    } finally {
+      if (btn) btn.disabled = false;
+      if (btnText) btnText.innerText = 'دریافت رنج‌ها';
+      if (icon) icon.classList.remove('animate-spin');
+    }
+  };
+
+  function renderAsnPrefixes(items) {
+    const list = $('asnPrefixesList');
+    if (!list) return;
+    if (!items || items.length === 0) {
+      list.innerHTML = '<div class="col-span-4 p-4 text-center t-muted">هیچ پیشوندی یافت نشد.</div>';
+      return;
+    }
+    list.innerHTML = items.map(p => `
+      <div class="px-2 py-1 rounded-lg card-inset border border-[var(--card-border)] hover:border-purple-500 text-purple-600 dark:text-purple-300 font-bold text-[11px] text-center cursor-pointer select-all active:scale-95 transition" onclick="window.copyToClipboard('${p}', 'پیشوند ${p} کپی شد')">
+        ${p}
+      </div>
+    `).join('');
+  }
+
+  window.filterAsnPrefixes = function(val) {
+    const q = (val || '').trim().toLowerCase();
+    if (!q) {
+      renderAsnPrefixes(cachedAsnPrefixes);
+      return;
+    }
+    const filtered = cachedAsnPrefixes.filter(p => p.toLowerCase().includes(q));
+    renderAsnPrefixes(filtered);
+  };
+
+  window.copyAllAsnPrefixes = function() {
+    if (!cachedAsnPrefixes || cachedAsnPrefixes.length === 0) {
+      if (window.showToast) window.showToast('رنجی برای کپی وجود ندارد', 'warning');
+      return;
+    }
+    const text = cachedAsnPrefixes.join('\n');
+    window.copyToClipboard(text, `✅ ${cachedAsnPrefixes.length} رنج در کلیپ‌بورد کپی شد`);
+  };
+
 
   // Global exports
   window.renderOverviewNodes = renderOverviewNodes;

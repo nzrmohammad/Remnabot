@@ -1144,7 +1144,7 @@ openHighRiskUsersModal() {
                 </div>
               </div>
               <div class="flex items-center gap-1.5 shrink-0">
-                <button type="button" onclick="window.adminActions.inspectHighRiskUser('${tgId}')" class="px-2.5 py-1.5 rounded-xl bg-transparent hover:bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/40 text-[11px] font-bold transition active:scale-95 flex items-center gap-1">
+                <button type="button" onclick="window.adminActions.inspectHighRiskUser('${tgId}', '${accountName.replace(/'/g, "\\'")}')" class="px-2.5 py-1.5 rounded-xl bg-transparent hover:bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/40 text-[11px] font-bold transition active:scale-95 flex items-center gap-1">
                   <span>🔍</span><span>بررسی</span>
                 </button>
               </div>
@@ -1161,12 +1161,12 @@ openHighRiskUsersModal() {
       $('highRiskUsersModal')?.classList.add('hidden');
     },
 
-    inspectHighRiskUser(telegramId) {
+    inspectHighRiskUser(telegramId, name) {
       this.closeHighRiskUsersModal();
-      if (this.openModifyModal) {
+      if (this.openHwidModal) {
+        this.openHwidModal(telegramId, name || telegramId);
+      } else if (this.openModifyModal) {
         this.openModifyModal(telegramId);
-      } else if (this.openHwidModal) {
-        this.openHwidModal(telegramId);
       }
     }
   });

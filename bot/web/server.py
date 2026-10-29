@@ -537,6 +537,7 @@ def create_web_app(
     app.router.add_get("/api/user/topup/card-auto/status", routes_user.get_user_topup_card_auto_status)
     app.router.add_post("/api/user/topup/card-auto/cancel", routes_user.post_user_topup_card_auto_cancel)
     app.router.add_post("/api/webhooks/sms", routes_user.post_webhook_sms)
+    app.router.add_get("/api/user/topup/crypto/active", routes_user.get_user_topup_crypto_active)
     app.router.add_post("/api/user/topup/crypto", routes_user.post_user_topup_crypto)
     app.router.add_post("/api/user/topup/crypto/check", routes_user.post_user_topup_crypto_check)
     app.router.add_post("/api/user/topup/crypto/tonconnect_submit", routes_user.post_user_topup_tonconnect_submit)
@@ -616,6 +617,8 @@ def create_web_app(
     app.router.add_post("/api/admin/infra/ssl-domains/add", routes_admin.post_admin_add_ssl_domain)
     app.router.add_post("/api/admin/infra/ssl-domains/delete", routes_admin.post_admin_delete_ssl_domain)
     app.router.add_get("/api/admin/infra/github-releases", routes_admin.get_admin_github_releases)
+    app.router.add_get("/api/admin/tools/check-host", routes_admin.get_admin_tools_check_host)
+    app.router.add_get("/api/admin/tools/asn-prefixes", routes_admin.get_admin_tools_asn_prefixes)
 
     return app
 

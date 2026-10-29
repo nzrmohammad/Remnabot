@@ -2,6 +2,31 @@
  * RemnaStore Pro - Wallet & Topup Logic
  */
 
+const BLUBANK_GRADIENTS = {
+  blue: 'linear-gradient(135deg, #0d47a1 0%, #1976d2 50%, #0288d1 100%)',
+  green: 'linear-gradient(135deg, #004d40 0%, #00796b 50%, #00bfa5 100%)',
+  red: 'linear-gradient(135deg, #b71c1c 0%, #d32f2f 50%, #f44336 100%)',
+  yellow: 'linear-gradient(135deg, #e65100 0%, #f57f17 50%, #fbc02d 100%)',
+  purple: 'linear-gradient(135deg, #4a148c 0%, #7b1fa2 50%, #ab47bc 100%)',
+  rose: 'linear-gradient(135deg, #880e4f 0%, #c2185b 50%, #e91e63 100%)',
+  black: 'linear-gradient(135deg, #18181b 0%, #27272a 50%, #09090b 100%)',
+};
+
+function formatCardNumberDisplay(num) {
+  if (!num) return '---- ---- ---- ----';
+  const clean = String(num).replace(/\D/g, '');
+  if (!clean || clean.length < 4) return String(num);
+  return clean.replace(/(\d{4})(?=\d)/g, '$1 ');
+}
+
+function applyBluBankCardTheme(color) {
+  const grad = BLUBANK_GRADIENTS[color] || BLUBANK_GRADIENTS.blue;
+  const cards = [document.getElementById('cardAutoBluCardBox'), document.getElementById('manualBluCardBox')];
+  cards.forEach(card => {
+    if (card) card.style.background = grad;
+  });
+}
+
 let currentTopupInvoice = null;
 let allWalletTransactions = [];
 let currentWalletPage = 1;
@@ -150,8 +175,9 @@ async function loadTopupInfo() {
       window.storeSettings = res;
       const cardNumEl = document.getElementById('topupCardNumber');
       const cardHolderEl = document.getElementById('topupCardHolder');
-      if (cardNumEl) cardNumEl.innerText = res.card_number || 'هنوز ثبت نشده';
+      if (cardNumEl) cardNumEl.innerText = formatCardNumberDisplay(res.card_number || 'هنوز ثبت نشده');
       if (cardHolderEl) cardHolderEl.innerText = res.card_holder || 'مدیریت سرور';
+      applyBluBankCardTheme(res.card_blubank_color || 'blue');
 
       const hasCard = res.card_enabled === true;
       const hasStars = res.stars_enabled === true;
@@ -239,6 +265,7 @@ async function loadTopupInfo() {
         if (cardAutoContainer) cardAutoContainer.classList.remove('hidden');
         if (manualCardSection) manualCardSection.classList.add('hidden');
         checkActiveCardAutoInvoice();
+      syncActiveInvoicesWithServer();
       } else {
         if (cardAutoContainer) cardAutoContainer.classList.add('hidden');
         if (manualCardSection) manualCardSection.classList.remove('hidden');
@@ -330,8 +357,9 @@ function renderCardAutoInvoice(inv) {
 
   if (exactTomanEl) exactTomanEl.innerText = `${Number(inv.exact_amount || 0).toLocaleString('en-US')} تومان`;
   if (exactRialEl) exactRialEl.innerText = `${Number(inv.exact_rial || (inv.exact_amount * 10) || 0).toLocaleString('en-US')} ریال`;
-  if (cardNumEl) cardNumEl.innerText = inv.card_number || window.storeSettings?.card_number || '----';
+  if (cardNumEl) cardNumEl.innerText = formatCardNumberDisplay(inv.card_number || window.storeSettings?.card_number || '----');
   if (cardHolderEl) cardHolderEl.innerText = inv.card_holder || window.storeSettings?.card_holder || 'مدیریت سرور';
+  applyBluBankCardTheme(inv.card_blubank_color || window.storeSettings?.card_blubank_color || 'blue');
 
   startCardAutoCountdownTimer(inv.remaining_seconds || 3600);
   startCardAutoPolling(inv.invoice_uuid);
@@ -676,6 +704,32 @@ window.cancelCryptoInvoice = function() {
   showToast('✅ فاکتور لغو شد. می‌توانید فاکتور جدید صادر فرمایید.');
 };
 
+
+async function syncActiveInvoicesWithServer() {
+  try {
+    if (!window.api || !window.api.getActiveCryptoInvoice) return;
+    const res = await window.api.getActiveCryptoInvoice();
+    if (res && res.ok && res.has_active && res.invoice) {
+      const inv = res.invoice;
+      const currency = inv.currency || 'TON';
+      const remSec = inv.remaining_seconds || 3600;
+      if (currency === 'TRX') {
+        saveActiveTrxInvoice(inv, remSec);
+        restoreActiveTrxInvoice();
+      } else {
+        saveActiveCryptoInvoice(inv, remSec);
+        restoreActiveCryptoInvoice();
+      }
+    } else if (res && res.ok && !res.has_active) {
+      if (window.activePendingInvoiceType === 'TON') {
+        clearActiveCryptoInvoice();
+      } else if (window.activePendingInvoiceType === 'TRX') {
+        clearActiveTrxInvoice();
+      }
+    }
+  } catch (e) {}
+}
+
 function restoreActiveCryptoInvoice() {
   try {
     const raw = localStorage.getItem(getActiveCryptoStorageKey()) || localStorage.getItem('remna_active_crypto_invoice');
@@ -786,9 +840,9 @@ function getActiveTrxStorageKey() {
   return `remna_active_trx_invoice_${tgId}`;
 }
 
-function saveActiveTrxInvoice(inv) {
+function saveActiveTrxInvoice(inv, durationSec = 3600) {
   try {
-    const expiresAt = Date.now() + (60 * 60 * 1000);
+    const expiresAt = Date.now() + (durationSec * 1000);
     localStorage.setItem(getActiveTrxStorageKey(), JSON.stringify({
       invoice: inv,
       expires_at: expiresAt

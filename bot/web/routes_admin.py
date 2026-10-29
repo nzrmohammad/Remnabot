@@ -75,6 +75,8 @@ from bot.web.admin_infra_api import (
     post_admin_add_ssl_domain,
     post_admin_delete_ssl_domain,
     get_admin_github_releases,
+    get_admin_tools_check_host,
+    get_admin_tools_asn_prefixes,
 )
 
 __all__ = [
@@ -127,4 +129,6 @@ __all__ = [
     "post_admin_add_ssl_domain",
     "post_admin_delete_ssl_domain",
     "get_admin_github_releases",
+    "get_admin_tools_check_host",
+    "get_admin_tools_asn_prefixes",
 ]

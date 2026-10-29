@@ -97,16 +97,28 @@ async def birthday_sweep_loop(
                         if traffic_added
                         else f"🎁 <b>{traffic_gb} گیگابایت حجم هدیه</b>\n"
                     )
-                    congrats_text = (
-                        "🎂 <b>زادروزتان فرخنده و همایون باد!</b> 🎉\n\n"
-                        "کاربر گرامی، فرا رسیدن سالروز تولدتان را صمیمانه تبریک عرض می‌کنیم! 🌸\n\n"
-                        "به مناسبت روز زادروز شما، پکیج هدیه اختصاصی VIP تقدیم حضورتان می‌گردد:\n"
-                        f"{traffic_msg}"
-                        f"🎟 <b>کد تخفیف اختصاصی {discount_pct}٪ برای سفارش یا تمدید بعدی:</b>\n"
-                        f"<code>{coupon_code}</code>\n"
-                        "⏱ <i>(مهلت استفاده: ۷ روز در مینی‌اپ و ربات)</i>\n\n"
-                        "با آرزوی بهترین‌ها و لحظاتی سرشار از سلامتی و شادی برای شما! 💫"
-                    )
+                    custom_msg = (getattr(store, "birthday_custom_message", None) or "").strip()
+                    if custom_msg:
+                        user_name = user.full_name or user.username or "کاربر گرامی"
+                        congrats_text = (
+                            custom_msg
+                            .replace("{first_name}", user_name)
+                            .replace("{traffic_msg}", traffic_msg.strip())
+                            .replace("{traffic_gb}", str(traffic_gb))
+                            .replace("{discount_pct}", str(discount_pct))
+                            .replace("{coupon_code}", coupon_code)
+                        )
+                    else:
+                        congrats_text = (
+                            "🎂 <b>زادروزتان فرخنده و همایون باد!</b> 🎉\n\n"
+                            "کاربر گرامی، فرا رسیدن سالروز تولدتان را صمیمانه تبریک عرض می‌کنیم! 🌸\n\n"
+                            "به مناسبت روز زادروز شما، پکیج هدیه اختصاصی VIP تقدیم حضورتان می‌گردد:\n"
+                            f"{traffic_msg}"
+                            f"🎟 <b>کد تخفیف اختصاصی {discount_pct}٪ برای سفارش یا تمدید بعدی:</b>\n"
+                            f"<code>{coupon_code}</code>\n"
+                            "⏱ <i>(مهلت استفاده: ۷ روز در مینی‌اپ و ربات)</i>\n\n"
+                            "با آرزوی بهترین‌ها و لحظاتی سرشار از سلامتی و شادی برای شما! 💫"
+                        )
                     try:
                         await bot.send_message(user.telegram_id, congrats_text, parse_mode="HTML")
                     except Exception as msg_err:

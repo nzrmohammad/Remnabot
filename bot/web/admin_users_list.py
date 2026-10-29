@@ -313,7 +313,7 @@ async def get_admin_users(request: web.Request) -> web.Response:
 
 
 async def post_admin_users_bulk_action(request: web.Request) -> web.Response:
-    """Execute bulk traffic or validity days extension across users."""
+    """Execute bulk traffic/days extension or deletion across users."""
     admin = _check_admin(request)
     if not admin:
         return web.json_response({"ok": False, "error": "Forbidden"}, status=403)
@@ -325,22 +325,80 @@ async def post_admin_users_bulk_action(request: web.Request) -> web.Response:
 
     action_type = body.get("action_type")
     try:
-        amount = int(body.get("amount") or 0)
+        amount = int(body.get("amount") or body.get("value") or 0)
     except (ValueError, TypeError):
         amount = 0
-    target = body.get("target") or "all_active"
+    target = body.get("target") or body.get("audience") or "all_active"
 
-    if action_type not in ("add_traffic", "add_days") or amount <= 0:
-        return web.json_response({"ok": False, "error": "نوع عملیات یا مقدار عددی معتبر نیست."}, status=400)
+    if action_type not in ("add_traffic", "add_days", "delete_users"):
+        return web.json_response({"ok": False, "error": "نوع عملیات نامعتبر است."}, status=400)
+
+    if action_type in ("add_traffic", "add_days") and amount <= 0:
+        return web.json_response({"ok": False, "error": "مقدار عددی معتبر نیست."}, status=400)
 
     remnawave = request.app["remnawave"]
     all_users = await remnawave.get_all_panel_users(size=2000) or []
     if not all_users:
         return web.json_response({"ok": False, "error": "هیچ کاربری در پنل یافت نشد."}, status=404)
 
-    target_users = [u for u in all_users if (u.get("status") or "").upper() == "ACTIVE"] if target == "all_active" else all_users
+    # Filter target users
+    if target == "selected":
+        raw_ids = body.get("user_ids", [])
+        selected_ids = {str(x).strip() for x in raw_ids if str(x).strip()}
+        if not selected_ids:
+            return web.json_response({"ok": False, "error": "هیچ کاربری انتخاب نشده است."}, status=400)
+        target_users = [
+            u for u in all_users
+            if str(u.get("id") or "").strip() in selected_ids
+            or str(u.get("uuid") or "").strip() in selected_ids
+            or str(u.get("telegramId") or "").strip() in selected_ids
+        ]
+    elif target == "by_status":
+        target_status = str(body.get("target_status") or "").upper().strip()
+        if not target_status:
+            return web.json_response({"ok": False, "error": "وضعیت کاربران جهت فیلتر الزامی است."}, status=400)
+        target_users = [u for u in all_users if (u.get("status") or "").upper() == target_status]
+    elif target == "all_active":
+        target_users = [u for u in all_users if (u.get("status") or "").upper() == "ACTIVE"]
+    else:
+        target_users = all_users
+
     if not target_users:
         return web.json_response({"ok": False, "error": "هیچ کاربری با فیلتر مشخص‌شده یافت نشد."}, status=404)
+
+    # Handle deletion
+    if action_type == "delete_users":
+        success_count = 0
+        fail_count = 0
+        batch_size = 10
+        for i in range(0, len(target_users), batch_size):
+            batch = target_users[i : i + batch_size]
+            tasks = [remnawave.delete_user(u.get("id")) for u in batch if u.get("id")]
+            results = await asyncio.gather(*tasks, return_exceptions=True)
+            for r in results:
+                if r is True:
+                    success_count += 1
+                else:
+                    fail_count += 1
+
+        detail_msg = f"حذف گروهی {success_count} کاربر از پنل (ناموفق: {fail_count})"
+        try:
+            async with db_session(request) as session:
+                session.add(AdminLog(admin_id=admin.get("telegram_id", 0), action="BULK_USERS_DELETE", detail=detail_msg))
+                await session.commit()
+        except Exception as e:
+            logger.warning("Failed to save AdminLog for bulk delete: %s", e)
+
+        cache = request.app.get("cache")
+        if cache:
+            await cache.delete("tma:admin:overview")
+
+        return web.json_response({
+            "ok": True,
+            "message": f"{success_count} کاربر با موفقیت از پنل حذف شدند.",
+            "deleted_count": success_count,
+            "failed_count": fail_count,
+        })
 
     extra_gb = amount if action_type == "add_traffic" else 0
     extra_days = amount if action_type == "add_days" else 0

@@ -413,6 +413,25 @@
               <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
               <span>عملیات گروهی</span>
             </button>
+            <button id="toggleSelectModeBtn" onclick="window.adminActions.toggleUserSelectMode()" class="px-2.5 py-2 bg-transparent hover:bg-slate-800 text-teal-400 hover:text-teal-300 border border-teal-500/30 hover:border-teal-400/70 font-bold text-[11px] rounded-2xl flex items-center gap-1 transition active:scale-95 flex-shrink-0" title="انتخاب چندگانه کاربران" aria-label="انتخاب چندگانه کاربران">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+              <span id="toggleSelectModeBtnText">انتخاب</span>
+            </button>
+          </div>
+
+          <!-- Selection Action Bar -->
+          <div id="usersBulkSelectionBar" class="hidden card-inset border border-teal-500/40 p-2.5 rounded-2xl flex items-center justify-between gap-2 shadow-lg">
+            <div class="flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-teal-400 animate-pulse"></span>
+              <span class="text-xs font-bold t-main"><span id="usersSelectedCount">0</span> کاربر انتخاب شده</span>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <button type="button" onclick="window.adminActions.selectAllVisibleUsers()" class="px-2 py-1 rounded-xl card-inset border border-slate-700 hover:border-slate-500 text-[10.5px] font-medium t-muted hover:t-main transition active:scale-95">همه</button>
+              <button type="button" onclick="window.adminActions.clearSelectedUsers()" class="px-2 py-1 rounded-xl card-inset border border-slate-700 hover:border-rose-500/50 text-[10.5px] font-medium text-rose-400 transition active:scale-95">لغو</button>
+              <button type="button" onclick="window.adminActions.openBulkUsersModal('selected')" class="px-3 py-1 rounded-xl bg-gradient-to-r from-teal-600 to-indigo-600 hover:from-teal-500 hover:to-indigo-500 text-white font-bold text-[11px] shadow transition active:scale-95 flex items-center gap-1">
+                <span>عملیات</span>
+              </button>
+            </div>
           </div>
 
           <div class="flex gap-1.5 overflow-x-auto custom-scroll text-[10px] whitespace-nowrap pb-1">
@@ -533,6 +552,10 @@
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
             <span>گواهی‌های SSL</span>
           </button>
+          <button id="subtabBtnNodesTools" type="button" onclick="window.switchNodesSubtab('tools')" class="admin-subtab-btn" aria-selected="false">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+            <span>ابزارها</span>
+          </button>
         </div>
 
         <!-- Subtab 1: Servers Content -->
@@ -583,6 +606,122 @@
             <!-- SSL Status Items Container -->
             <div id="adminSslHealthList" class="space-y-2">
               <div class="p-4 text-center text-xs text-slate-400">در حال ارزیابی گواهی‌های SSL...</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Subtab 3: Network & Diagnostics Tools Content -->
+        <div id="subtabContentNodesTools" class="space-y-3.5 hidden">
+          <!-- Accordion 1: Check-Host Connectivity & Latency Diagnostics -->
+          <div class="card p-3.5 rounded-2xl border border-[var(--card-border)] shadow space-y-3">
+            <div class="flex items-center justify-between cursor-pointer select-none" onclick="window.toggleToolsAccordion('toolBoxCheckHost')">
+              <div class="flex items-center gap-2.5">
+                <div class="w-8 h-8 rounded-xl bg-blue-500/15 text-blue-400 border border-blue-500/30 flex items-center justify-center flex-shrink-0">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                </div>
+                <div>
+                  <b class="text-xs t-main block">تست وضعیت و پینگ سرور (Check-Host)</b>
+                  <span class="text-[11px] t-muted block mt-0.5">بررسی پینگ، وضعیت پورت TCP/UDP و DNS از نقاط مختلف جهان</span>
+                </div>
+              </div>
+              <svg id="toolBoxCheckHostChevron" class="w-4 h-4 text-slate-400 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+            </div>
+
+            <div id="toolBoxCheckHost" class="space-y-3 pt-2 border-t border-[var(--card-border)]">
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                <div class="sm:col-span-2 space-y-1">
+                  <label class="text-[11px] t-muted block">آدرس سرور یا دامنه مقصد:</label>
+                  <input id="checkHostTargetInput" type="text" dir="ltr" placeholder="example.com یا 1.2.3.4" class="input-base w-full p-2.5 rounded-xl font-mono text-xs outline-none" />
+                </div>
+                <div class="space-y-1">
+                  <label class="text-[11px] t-muted block">نوع تست:</label>
+                  <select id="checkHostTypeSelect" onchange="window.handleCheckHostTypeChange(this.value)" class="input-base w-full p-2.5 rounded-xl text-xs outline-none font-bold">
+                    <option value="ping" selected>📡 پینگ (Ping)</option>
+                    <option value="tcp">🔌 پورت TCP</option>
+                    <option value="http">🌐 درخواست HTTP</option>
+                    <option value="dns">🔍 استعلام DNS</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- TCP Port Row (hidden unless tcp selected) -->
+              <div id="checkHostPortRow" class="hidden space-y-1">
+                <label class="text-[11px] t-muted block">شماره پورت TCP مقصد:</label>
+                <input id="checkHostPortInput" type="number" dir="ltr" placeholder="443" value="443" class="input-base w-full sm:w-48 p-2 rounded-xl font-mono text-xs outline-none" />
+              </div>
+
+              <div class="flex items-center gap-2">
+                <button id="runCheckHostBtn" type="button" onclick="window.runCheckHostTest()" class="px-4 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 active:scale-95 text-white text-xs font-bold rounded-xl transition flex items-center justify-center gap-1.5 shadow flex-1 sm:flex-initial">
+                  <svg id="runCheckHostIcon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/></svg>
+                  <span id="runCheckHostBtnText">شروع بررسی آنلاین</span>
+                </button>
+              </div>
+
+              <!-- Check-Host Results Container -->
+              <div id="checkHostResultsBox" class="hidden space-y-2 pt-2">
+                <div class="flex items-center justify-between text-xs t-muted pb-1 border-b border-[var(--card-border)]">
+                  <span class="font-bold t-main">نتایج تست نودها:</span>
+                  <span id="checkHostStatusBadge" class="badge badge-info">در حال سنجش...</span>
+                </div>
+                <div id="checkHostResultsList" class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs font-mono max-h-72 overflow-y-auto no-scrollbar">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Accordion 2: RIPE Stat ASN Prefix Lookup Tool -->
+          <div class="card p-3.5 rounded-2xl border border-[var(--card-border)] shadow space-y-3">
+            <div class="flex items-center justify-between cursor-pointer select-none" onclick="window.toggleToolsAccordion('toolBoxAsnLookup')">
+              <div class="flex items-center gap-2.5">
+                <div class="w-8 h-8 rounded-xl bg-purple-500/15 text-purple-400 border border-purple-500/30 flex items-center justify-center flex-shrink-0">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/></svg>
+                </div>
+                <div>
+                  <b class="text-xs t-main block">استعلام رنج آی‌پی و CIDR اپراتورها (RIPE Stat)</b>
+                  <span class="text-[11px] t-muted block mt-0.5">دریافت خودکار کلیه پیشوندهای IP اعلام‌شده یک شماره خودگردان (ASN)</span>
+                </div>
+              </div>
+              <svg id="toolBoxAsnLookupChevron" class="w-4 h-4 text-slate-400 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+            </div>
+
+            <div id="toolBoxAsnLookup" class="space-y-3 pt-2 border-t border-[var(--card-border)]">
+              <!-- Quick Preset ASN Chips -->
+              <div class="space-y-1.5">
+                <label class="text-[11px] t-muted block">پیش‌تنظیم‌های سریع اپراتورها:</label>
+                <div class="flex flex-wrap gap-1.5 text-xs">
+                  <button type="button" onclick="window.selectAsnPreset('AS44244')" class="px-2.5 py-1 rounded-lg card-inset hover:border-yellow-500 text-yellow-600 dark:text-yellow-400 font-bold transition active:scale-95 text-[11px]">ایرانسل (AS44244)</button>
+                  <button type="button" onclick="window.selectAsnPreset('AS197207')" class="px-2.5 py-1 rounded-lg card-inset hover:border-cyan-500 text-cyan-600 dark:text-cyan-400 font-bold transition active:scale-95 text-[11px]">همراه اول (AS197207)</button>
+                  <button type="button" onclick="window.selectAsnPreset('AS58224')" class="px-2.5 py-1 rounded-lg card-inset hover:border-blue-500 text-blue-600 dark:text-blue-400 font-bold transition active:scale-95 text-[11px]">مخابرات ایران (AS58224)</button>
+                  <button type="button" onclick="window.selectAsnPreset('AS56402')" class="px-2.5 py-1 rounded-lg card-inset hover:border-emerald-500 text-emerald-600 dark:text-emerald-400 font-bold transition active:scale-95 text-[11px]">رایتل (AS56402)</button>
+                  <button type="button" onclick="window.selectAsnPreset('AS13335')" class="px-2.5 py-1 rounded-lg card-inset hover:border-amber-500 text-amber-600 dark:text-amber-400 font-bold transition active:scale-95 text-[11px]">کلودفلر (AS13335)</button>
+                </div>
+              </div>
+
+              <div class="flex items-center gap-2">
+                <input id="asnNumberInput" type="text" dir="ltr" placeholder="مثال: AS44244 یا 44244" class="input-base flex-1 p-2.5 rounded-xl font-mono text-xs outline-none uppercase" />
+                <button id="runAsnLookupBtn" type="button" onclick="window.runAsnLookup()" class="px-4 py-2.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 active:scale-95 text-white text-xs font-bold rounded-xl transition flex items-center justify-center gap-1.5 shadow flex-shrink-0">
+                  <svg id="runAsnLookupIcon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+                  <span id="runAsnLookupBtnText">دریافت رنج‌ها</span>
+                </button>
+              </div>
+
+              <!-- ASN Results Box -->
+              <div id="asnResultsBox" class="hidden space-y-2 pt-2">
+                <div class="flex flex-wrap items-center justify-between gap-2 pb-1.5 border-b border-[var(--card-border)]">
+                  <div class="flex items-center gap-2">
+                    <span class="text-xs font-bold t-main">پیشوندهای اعلام‌شده:</span>
+                    <span id="asnCountBadge" class="badge badge-info font-mono">0 رنج</span>
+                  </div>
+                  <div class="flex items-center gap-1.5">
+                    <input id="asnFilterInput" type="text" oninput="window.filterAsnPrefixes(this.value)" placeholder="فیلتر رنج..." dir="ltr" class="input-base px-2 py-1 text-[11px] font-mono rounded-lg w-28 sm:w-36 outline-none" />
+                    <button type="button" onclick="window.copyAllAsnPrefixes()" class="btn btn-secondary px-2.5 py-1 text-[11px] font-bold rounded-lg flex items-center gap-1">
+                      <span>📋</span> کپی همه
+                    </button>
+                  </div>
+                </div>
+                <div id="asnPrefixesList" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-1.5 text-xs font-mono max-h-60 overflow-y-auto no-scrollbar p-1 card-inset rounded-xl">
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -795,6 +934,18 @@
             <div>
               <label class="text-[11px] text-slate-400 block mb-1">شماره کارت</label>
               <input type="text" id="settingCardNumber" dir="ltr" placeholder="6037..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-cyan-300 outline-none focus:border-cyan-500 transition" />
+            </div>
+            <div>
+              <label class="text-[11px] text-slate-400 block mb-1">رنگ کارت بلوبانک (BluBank Theme):</label>
+              <select id="settingBluBankColor" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-200 outline-none focus:border-blue-500 transition">
+                <option value="blue">🔵 آبی کلاسیک (Blue)</option>
+                <option value="green">🟢 سبز چمنی (Green)</option>
+                <option value="red">🔴 قرمز گیلاسی (Red)</option>
+                <option value="yellow">🟡 زرد لیمویی (Yellow)</option>
+                <option value="purple">🟣 بنفش شاه‌توتی (Purple)</option>
+                <option value="rose">🌸 رزگلد / صورتی (Rose Gold)</option>
+                <option value="black">⚫ مشکی مات / بلوباکس (Black Matte)</option>
+              </select>
             </div>
             <div>
               <label class="text-[11px] text-slate-400 block mb-1">حداقل مبلغ افزایش موجودی (تومان)</label>
@@ -1143,9 +1294,13 @@
                 <label class="text-[11px] t-muted block mb-1 font-medium truncate">🪙 تاپیک پرداخت کریپتو</label>
                 <input type="text" id="settingTopicCrypto" data-topic-label="Crypto" dir="ltr" placeholder="مثلاً: 8" class="w-full card-inset rounded-xl px-2.5 py-1.5 text-xs font-mono text-purple-600 dark:text-purple-300 outline-none focus:border-purple-500 transition placeholder:text-[10px]" />
               </div>
-              <div class="col-span-2">
+              <div>
                 <label class="text-[11px] t-muted block mb-1 font-medium truncate">⚠️ تاپیک لاگ و خطای سیستم</label>
                 <input type="text" id="settingTopicErrors" data-topic-label="Errors" dir="ltr" placeholder="مثلاً: 9" class="w-full card-inset rounded-xl px-2.5 py-1.5 text-xs font-mono text-rose-600 dark:text-rose-400 outline-none focus:border-rose-500 transition placeholder:text-[10px]" />
+              </div>
+              <div>
+                <label class="text-[11px] t-muted block mb-1 font-medium truncate">📥 تاپیک ثبت دستی پیامک بانک</label>
+                <input type="text" id="settingTopicSmsManual" data-topic-label="SmsManual" dir="ltr" placeholder="مثلاً: 15" class="w-full card-inset rounded-xl px-2.5 py-1.5 text-xs font-mono text-amber-600 dark:text-amber-400 outline-none focus:border-amber-500 transition placeholder:text-[10px]" />
               </div>
             </div>
             <!-- Auto Clean Previous Reports Switch -->
@@ -1880,6 +2035,21 @@
                 <input type="number" id="settingBirthdayRewardDiscount" dir="ltr" placeholder="20" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-purple-300 outline-none focus:border-purple-500 transition" />
               </div>
             </div>
+            <div class="pt-2 border-t border-slate-700/50 space-y-1.5">
+              <div class="flex items-center justify-between">
+                <label class="text-[11px] text-slate-300 font-medium block">متن پیام تبریک و هدیه زادروز:</label>
+                <button type="button" onclick="window.adminActions.resetBirthdayTemplate()" class="text-[10px] text-pink-400 hover:text-pink-300 transition">بازنشانی پیش‌فرض</button>
+              </div>
+              <textarea id="settingBirthdayMessage" rows="6" dir="rtl" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-xs text-slate-200 outline-none focus:border-pink-500 transition font-sans leading-relaxed resize-y" placeholder="متن پیام تبریک زادروز..."></textarea>
+              <div class="flex flex-wrap items-center gap-1.5 pt-1 text-[10px]">
+                <span class="text-slate-400">تگ‌های متغیر:</span>
+                <button type="button" onclick="window.adminActions.insertBirthdayTag('{first_name}')" class="px-2 py-0.5 rounded-md card-inset border border-slate-700 text-pink-400 hover:border-pink-500/50 font-mono transition" title="نام کاربر">{first_name}</button>
+                <button type="button" onclick="window.adminActions.insertBirthdayTag('{traffic_msg}')" class="px-2 py-0.5 rounded-md card-inset border border-slate-700 text-pink-400 hover:border-pink-500/50 font-mono transition" title="متن حجم هدیه">{traffic_msg}</button>
+                <button type="button" onclick="window.adminActions.insertBirthdayTag('{discount_pct}')" class="px-2 py-0.5 rounded-md card-inset border border-slate-700 text-pink-400 hover:border-pink-500/50 font-mono transition" title="درصد تخفیف">{discount_pct}</button>
+                <button type="button" onclick="window.adminActions.insertBirthdayTag('{coupon_code}')" class="px-2 py-0.5 rounded-md card-inset border border-slate-700 text-pink-400 hover:border-pink-500/50 font-mono transition" title="کد کوپن">{coupon_code}</button>
+                <button type="button" onclick="window.adminActions.insertBirthdayTag('{traffic_gb}')" class="px-2 py-0.5 rounded-md card-inset border border-slate-700 text-pink-400 hover:border-pink-500/50 font-mono transition" title="مقدار گیگابایت">{traffic_gb}</button>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -2034,13 +2204,10 @@
         </div>
 
         <!-- Footer Actions -->
-        <div class="flex items-center gap-2 pt-2 border-t border-slate-700/60 flex-shrink-0">
-          <button id="userProfModalQuickChatBtn" class="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs py-2.5 rounded-xl transition shadow active:scale-95 flex items-center justify-center gap-1.5">
+        <div class="pt-2 border-t border-slate-700/60 flex-shrink-0">
+          <button id="userProfModalQuickChatBtn" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs py-2.5 rounded-xl transition shadow active:scale-95 flex items-center justify-center gap-1.5">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
             <span>ارسال پیام در تلگرام</span>
-          </button>
-          <button onclick="window.adminActions.closeUserProfileModal()" class="px-4 py-2.5 bg-slate-800 hover:bg-slate-750 text-slate-300 hover:text-white font-medium text-xs rounded-xl transition flex-shrink-0">
-            بستن
           </button>
         </div>
       </div>
@@ -2156,7 +2323,7 @@
             <h4 id="hwidModalTitle" class="text-xs font-bold t-main truncate">دستگاه‌ها و نشست‌های کاربر</h4>
           </div>
           <div class="flex items-center gap-1.5 flex-shrink-0">
-            <button onclick="window.adminActions.refreshCurrentDeviceTab()" class="btn-icon btn-secondary w-8 h-8 rounded-xl transition" title="تازه‌سازی" aria-label="تازه‌سازی">
+            <button onclick="window.adminActions.refreshCurrentDeviceTab()" class="w-8 h-8 rounded-xl card-inset border border-[var(--card-border)] hover:border-cyan-500/50 text-slate-400 hover:t-main flex items-center justify-center transition active:scale-95 shadow-sm" title="تازه‌سازی" aria-label="تازه‌سازی">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
             </button>
             <button onclick="window.adminActions.closeHwidModal()" class="modal-close-btn" aria-label="بستن">✕</button>
@@ -2223,18 +2390,22 @@
           <button onclick="window.adminActions.closeBulkUsersModal()" class="modal-close-btn" aria-label="بستن">✕</button>
         </div>
 
-        <!-- Action Type Tabs: Add Traffic (GB) vs Add Days -->
-        <div class="grid grid-cols-2 p-1 card-inset rounded-2xl text-[11px]">
-          <button id="bulkTypeBtn_traffic" type="button" onclick="window.adminActions.setBulkActionType('add_traffic')" class="py-2 rounded-xl font-bold bg-blue-600 text-white shadow-md text-center flex items-center justify-center gap-1.5 transition active:scale-95">
+        <!-- Action Type Tabs: Add Traffic (GB) vs Add Days vs Delete Users -->
+        <div class="grid grid-cols-3 p-1 card-inset rounded-2xl text-[11px] gap-1">
+          <button id="bulkTypeBtn_traffic" type="button" onclick="window.adminActions.setBulkActionType('add_traffic')" class="py-2 rounded-xl font-bold bg-blue-600 text-white shadow-md text-center flex items-center justify-center gap-1 transition active:scale-95">
             <span>🎁 افزایش حجم</span>
           </button>
-          <button id="bulkTypeBtn_days" type="button" onclick="window.adminActions.setBulkActionType('add_days')" class="py-2 rounded-xl font-semibold t-muted hover:t-main hover:bg-slate-500/10 text-center flex items-center justify-center gap-1.5 transition active:scale-95">
-            <span>⏳ تمدید اعتبار</span>
+          <button id="bulkTypeBtn_days" type="button" onclick="window.adminActions.setBulkActionType('add_days')" class="py-2 rounded-xl font-semibold t-muted hover:t-main hover:bg-slate-500/10 text-center flex items-center justify-center gap-1 transition active:scale-95">
+            <span>⏳ تمدید روز</span>
+          </button>
+          <button id="bulkTypeBtn_delete" type="button" onclick="window.adminActions.setBulkActionType('delete_users')" class="py-2 rounded-xl font-semibold text-rose-500 hover:text-rose-400 hover:bg-rose-500/10 text-center flex items-center justify-center gap-1 transition active:scale-95">
+            <span>🗑️ حذف کاربران</span>
           </button>
         </div>
 
         <div class="space-y-3 text-xs">
-          <div>
+          <!-- Amount Input Container (Hidden when Deleting) -->
+          <div id="bulkAmountContainer">
             <label id="bulkAmountLabel" class="t-main text-[11px] font-medium block mb-1">مقدار حجم هدیه (گیگابایت):</label>
             <div class="flex items-center gap-2">
               <input type="number" id="bulkAmountInput" min="1" max="1000" value="5" class="w-full card-inset rounded-xl p-2.5 t-main font-mono text-xs outline-none focus:border-indigo-500" />
@@ -2249,23 +2420,43 @@
           <div>
             <label class="t-main text-[11px] font-medium block mb-1.5">گروه هدف کاربران:</label>
             <div class="grid grid-cols-2 gap-2 text-xs" id="bulkTargetOptionCards">
-              <label class="p-2.5 rounded-xl border border-blue-500 bg-blue-500/10 cursor-pointer flex flex-col items-center text-center gap-1 transition" id="bulkTargetCard_active">
+              <label class="p-2 rounded-xl border border-blue-500 bg-blue-500/10 cursor-pointer flex flex-col items-center text-center gap-0.5 transition" id="bulkTargetCard_active">
                 <input type="radio" name="bulk_target" value="all_active" checked onchange="window.adminActions.onBulkTargetChange('all_active')" class="sr-only" />
                 <span class="font-bold t-main text-[11px]">کاربران فعال (Active)</span>
                 <span class="text-[9.5px] t-muted">سرویس‌های منقضی‌نشده</span>
               </label>
-              <label class="p-2.5 rounded-xl border border-slate-700/80 card-inset cursor-pointer flex flex-col items-center text-center gap-1 transition hover:border-slate-500/50" id="bulkTargetCard_all">
+              <label class="p-2 rounded-xl border border-slate-700/80 card-inset cursor-pointer flex flex-col items-center text-center gap-0.5 transition hover:border-slate-500/50" id="bulkTargetCard_status">
+                <input type="radio" name="bulk_target" value="by_status" onchange="window.adminActions.onBulkTargetChange('by_status')" class="sr-only" />
+                <span class="font-bold t-main text-[11px]">بر اساس وضعیت</span>
+                <span class="text-[9.5px] t-muted">انتخاب وضعیت خاص</span>
+              </label>
+              <label class="p-2 rounded-xl border border-slate-700/80 card-inset cursor-pointer flex flex-col items-center text-center gap-0.5 transition hover:border-slate-500/50" id="bulkTargetCard_selected">
+                <input type="radio" name="bulk_target" value="selected" onchange="window.adminActions.onBulkTargetChange('selected')" class="sr-only" />
+                <span class="font-bold t-main text-[11px]">کاربران انتخابی</span>
+                <span id="bulkSelectedTargetLabel" class="text-[9.5px] text-teal-400 font-bold">0 کاربر انتخاب‌شده</span>
+              </label>
+              <label class="p-2 rounded-xl border border-slate-700/80 card-inset cursor-pointer flex flex-col items-center text-center gap-0.5 transition hover:border-slate-500/50" id="bulkTargetCard_all">
                 <input type="radio" name="bulk_target" value="all_panel" onchange="window.adminActions.onBulkTargetChange('all_panel')" class="sr-only" />
                 <span class="font-bold t-main text-[11px]">تمام کاربران پنل</span>
                 <span class="text-[9.5px] t-muted">فعال + منقضی‌شده</span>
               </label>
             </div>
             <input type="hidden" id="bulkTargetSelect" value="all_active" />
+
+            <!-- Status selector when by_status is chosen -->
+            <div id="bulkStatusDropdownContainer" class="hidden mt-2 pt-2 border-t border-slate-700/50">
+              <label class="t-main text-[11px] font-medium block mb-1">وضعیت مورد نظر جهت عملیات:</label>
+              <select id="bulkStatusSelect" class="w-full card-inset rounded-xl p-2 t-main text-xs outline-none focus:border-indigo-500">
+                <option value="EXPIRED">❌ منقضی‌شده (EXPIRED)</option>
+                <option value="LIMITED">⚠️ پایان ترافیک / محدودشده (LIMITED)</option>
+                <option value="DISABLED">⛔ غیرفعال‌شده (DISABLED)</option>
+              </select>
+            </div>
           </div>
 
-          <div class="p-2.5 bg-amber-500/10 border border-amber-500/30 rounded-xl text-[10.5px] text-amber-700 dark:text-amber-300 font-medium leading-relaxed flex items-start gap-1.5">
+          <div id="bulkWarningBox" class="p-2.5 bg-amber-500/10 border border-amber-500/30 rounded-xl text-[10.5px] text-amber-700 dark:text-amber-300 font-medium leading-relaxed flex items-start gap-1.5">
             <span class="flex-shrink-0 text-xs">⚠️</span>
-            <span>این عملیات به صورت مستقیم در پنل رمناویو اعمال می‌شود و حجم یا روز مشخص‌شده به تمام کاربران منتخب افزوده خواهد شد.</span>
+            <span id="bulkWarningText">این عملیات به صورت مستقیم در پنل رمناویو اعمال می‌شود و حجم یا روز مشخص‌شده به تمام کاربران منتخب افزوده خواهد شد.</span>
           </div>
         </div>
 
@@ -2915,12 +3106,6 @@
               <div class="radio-dot w-2.5 h-2.5 rounded-full bg-rose-400 hidden"></div>
             </div>
           </div>
-        </div>
-
-        <div class="pt-2">
-          <button type="button" onclick="window.adminActions.closeAccessModeModal()" class="w-full btn btn-secondary text-xs py-2.5 rounded-xl transition">
-            بستن
-          </button>
         </div>
       </div>
     </div>

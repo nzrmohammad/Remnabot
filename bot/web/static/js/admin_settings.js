@@ -16,8 +16,24 @@
   let activeChatTelegramId = null;
   let activeChatUserName = '';
 
+  const DEFAULT_BIRTHDAY_TEMPLATE = `🎂 <b>زادروزتان فرخنده و همایون باد!</b> 🎉\n\nکاربر گرامی {first_name}، فرا رسیدن سالروز تولدتان را صمیمانه تبریک عرض می‌کنیم! 🌸\n\nبه مناسبت روز زادروز شما، پکیج هدیه اختصاصی VIP تقدیم حضورتان می‌گردد:\n{traffic_msg}\n🎟 <b>کد تخفیف اختصاصی {discount_pct}٪ برای سفارش یا تمدید بعدی:</b>\n<code>{coupon_code}</code>\n⏱ <i>(مهلت استفاده: ۷ روز در مینی‌اپ و ربات)</i>\n\nبا آرزوی بهترین‌ها و لحظاتی سرشار از سلامتی و شادی برای شما! 💫`;
+
   // Support Chat, Campaigns, App Recommendations & Settings Actions
   Object.assign(window.adminActions, {
+    resetBirthdayTemplate() {
+      const el = $('settingBirthdayMessage');
+      if (el) el.value = DEFAULT_BIRTHDAY_TEMPLATE;
+      if (window.showToast) window.showToast('متن پیش‌فرض بارگذاری شد.', 'info');
+    },
+    insertBirthdayTag(tag) {
+      const el = $('settingBirthdayMessage');
+      if (!el) return;
+      const start = el.selectionStart ?? el.value.length;
+      const end = el.selectionEnd ?? el.value.length;
+      el.value = el.value.substring(0, start) + tag + el.value.substring(end);
+      el.focus();
+      el.selectionStart = el.selectionEnd = start + tag.length;
+    },
 openUserChat(telegram_id, name, tag, topup_id) {
       activeChatTelegramId = telegram_id;
       activeChatUserName = name || String(telegram_id);
@@ -752,7 +768,8 @@ openUserChat(telegram_id, name, tag, topup_id) {
     'settingTopicNodes',
     'settingTopicReports',
     'settingTopicCrypto',
-    'settingTopicErrors'
+    'settingTopicErrors',
+    'settingTopicSmsManual'
   ];
 
   function updateSmsWebhookUrlDisplay(secret) {
@@ -864,6 +881,12 @@ openUserChat(telegram_id, name, tag, topup_id) {
       const bdayDiscount = $('settingBirthdayRewardDiscount');
       if (bdayDiscount) bdayDiscount.value = s.birthday_reward_discount_percent ?? 20;
 
+      const bdayMsg = $('settingBirthdayMessage');
+      if (bdayMsg) bdayMsg.value = s.birthday_custom_message || DEFAULT_BIRTHDAY_TEMPLATE;
+
+      const bluColor = $('settingBluBankColor');
+      if (bluColor) bluColor.value = s.card_blubank_color || 'blue';
+
       // Join Gate
       const jgSwitch = $('settingJoinGateSwitch');
       if (jgSwitch) jgSwitch.checked = s.join_gate_enabled ?? false;
@@ -971,6 +994,7 @@ openUserChat(telegram_id, name, tag, topup_id) {
         settingTopicReports: s.topic_reports,
         settingTopicCrypto: s.topic_crypto,
         settingTopicErrors: s.topic_errors,
+        settingTopicSmsManual: s.topic_sms_manual,
       };
       topicInputIds.forEach(id => {
         const inp = $(id);
@@ -1079,6 +1103,8 @@ openUserChat(telegram_id, name, tag, topup_id) {
       birthday_reward_enabled: $('settingBirthdayRewardSwitch')?.checked ?? true,
       birthday_reward_traffic_gb: parseInt($('settingBirthdayRewardTraffic')?.value || '2', 10),
       birthday_reward_discount_percent: parseInt($('settingBirthdayRewardDiscount')?.value || '20', 10),
+      birthday_custom_message: $('settingBirthdayMessage')?.value?.trim() || '',
+      card_blubank_color: $('settingBluBankColor')?.value || 'blue',
       join_gate_enabled: $('settingJoinGateSwitch')?.checked ?? false,
       join_gate_channel: $('settingJoinGateChannel')?.value?.trim() || '',
       crypto_enabled: $('settingCryptoSwitch')?.checked ?? false,
@@ -1112,6 +1138,7 @@ openUserChat(telegram_id, name, tag, topup_id) {
       topic_reports: parseTopicVal($('settingTopicReports')?.value),
       topic_crypto: parseTopicVal($('settingTopicCrypto')?.value),
       topic_errors: parseTopicVal($('settingTopicErrors')?.value),
+      topic_sms_manual: parseTopicVal($('settingTopicSmsManual')?.value),
       tutorial_channel_url: $('settingTutorialChannelUrl')?.value?.trim() || '',
       routing_tutorial_url: $('settingRoutingTutorialUrl')?.value?.trim() || '',
       client_apps_json: (() => {

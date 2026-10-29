@@ -109,6 +109,9 @@ async def get_user_topup_info(request: web.Request) -> web.Response:
         stars_resolved = resolve_stars_rate(stars_rate, usdt_rate)
         stars_enabled = bool(getattr(store, "stars_enabled", False) is True and stars_resolved > 0)
 
+        raw_card_color = getattr(store, "card_blubank_color", "blue")
+        blubank_color = str(raw_card_color) if isinstance(raw_card_color, str) else "blue"
+
         payload = {
             "ok": True,
             "min_amount": store.topup_min_amount,
@@ -116,6 +119,7 @@ async def get_user_topup_info(request: web.Request) -> web.Response:
             "card_auto_enabled": bool(store.card_auto_enabled and store.card_number and str(store.card_number).strip()),
             "card_number": "" if card_locked_reason else (store.card_number or ""),
             "card_holder": "" if card_locked_reason else (store.card_holder or ""),
+            "card_blubank_color": blubank_color or "blue",
             "card_require_phone_verification": require_phone,
             "is_phone_verified": is_phone_verified,
             "card_locked_reason": card_locked_reason,
@@ -415,6 +419,51 @@ async def post_user_topup_crypto(request: web.Request) -> web.Response:
                 "deep_link": deep_link,
                 "universal_link": universal_link,
                 "expires_minutes": 60,
+            }
+        })
+
+
+async def get_user_topup_crypto_active(request: web.Request) -> web.Response:
+    """Return active pending crypto invoice (TON or TRX) for the user."""
+    user_auth, err = require_user(request)
+    if err:
+        return err
+
+    telegram_id = int(user_auth["id"])
+    async with db_session(request) as session:
+        crypto_repo = CryptoRepository(session)
+        invoice = await crypto_repo.get_pending_by_user(telegram_id)
+        if not invoice:
+            return web.json_response({"ok": True, "has_active": False})
+
+        now = datetime.now(timezone.utc)
+        if invoice.expires_at <= now:
+            invoice.status = "expired"
+            await session.commit()
+            return web.json_response({"ok": True, "has_active": False})
+
+        remaining_secs = max(0, int((invoice.expires_at - now).total_seconds()))
+        currency = getattr(invoice, "currency", "TON") or "TON"
+
+        deep_link = f"ton://transfer/{invoice.pay_address}?amount={invoice.nanotons}&text={invoice.comment}" if currency == "TON" else None
+        universal_link = f"https://app.tonkeeper.com/transfer/{invoice.pay_address}?amount={invoice.nanotons}&text={invoice.comment}" if currency == "TON" else None
+
+        return web.json_response({
+            "ok": True,
+            "has_active": True,
+            "invoice": {
+                "id": invoice.id,
+                "amount_toman": invoice.amount_toman,
+                "amount_ton": invoice.amount_ton,
+                "amount_trx": invoice.amount_ton,
+                "currency": currency,
+                "nanotons": invoice.nanotons,
+                "suns": invoice.nanotons,
+                "pay_address": invoice.pay_address,
+                "comment": invoice.comment,
+                "deep_link": deep_link,
+                "universal_link": universal_link,
+                "remaining_seconds": remaining_secs,
             }
         })
 

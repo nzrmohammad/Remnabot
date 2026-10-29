@@ -20,6 +20,8 @@
   let currentSearch = '';
   let currentModifyTarget = null;
   let currentHwidTarget = null;
+  window.selectedAdminUsers = window.selectedAdminUsers || new Set();
+  window.adminUserSelectMode = false;
   let currentSubTarget = null;
   let currentTrialTarget = null;
 
@@ -235,11 +237,19 @@
 
       const avatarSrc = u.avatar_url || `/api/user/avatar?user_id=${u.telegram_id}`;
 
+      const isSelected = window.selectedAdminUsers.has(u.telegram_id) || window.selectedAdminUsers.has(String(u.telegram_id));
+      const checkboxHtml = `
+        <div class="flex-shrink-0 ${window.adminUserSelectMode ? '' : 'hidden'} user-select-checkbox-wrap" onclick="event.stopPropagation()">
+          <input type="checkbox" ${isSelected ? 'checked' : ''} onchange="window.adminActions.toggleUserSelect('${u.telegram_id}')" class="w-4 h-4 rounded text-teal-600 bg-slate-900 border-slate-700 focus:ring-teal-500 cursor-pointer" />
+        </div>
+      `;
+
       return `
-        <div class="bg-slate-800/80 rounded-2xl p-3.5 border border-slate-700/80 space-y-2.5 shadow transition">
+        <div class="bg-slate-800/80 rounded-2xl p-3.5 border ${isSelected ? 'border-teal-500/80 shadow-[0_0_12px_rgba(20,184,166,0.2)]' : 'border-slate-700/80'} space-y-2.5 shadow transition relative">
           <div class="flex items-center justify-between gap-3">
-            <!-- Right: Avatar + Profile Name + Status Badge (Clickable to open Profile Modal) -->
-            <div class="flex items-center gap-2.5 min-w-0 cursor-pointer group select-none" onclick="window.adminActions.openUserProfileModal(${u.telegram_id})" title="مشاهده شناسنامه و پروفایل کاربر">
+            <!-- Right: Checkbox + Avatar + Profile Name + Status Badge -->
+            <div class="flex items-center gap-2.5 min-w-0 cursor-pointer group select-none" onclick="window.adminUserSelectMode ? window.adminActions.toggleUserSelect('${u.telegram_id}') : window.adminActions.openUserProfileModal(${u.telegram_id})" title="مشاهده شناسنامه و پروفایل کاربر">
+              ${checkboxHtml}
               <!-- User Profile Avatar with Online/Offline indicator badge at bottom-left -->
               <div class="relative flex-shrink-0">
                 <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center font-bold text-white text-xs shadow overflow-hidden group-hover:ring-2 group-hover:ring-cyan-400/50 transition">
@@ -1554,14 +1564,87 @@ async applyUserModification() {
       }
     },
 
-// --- Users Bulk Actions Modal ---
+// --- Users Multi-Select & Bulk Actions Modal ---
+    toggleUserSelectMode() {
+      window.adminUserSelectMode = !window.adminUserSelectMode;
+      const btn = $('toggleSelectModeBtn');
+      const txt = $('toggleSelectModeBtnText');
+      if (window.adminUserSelectMode) {
+        if (btn) btn.className = 'px-2.5 py-2 bg-teal-500/20 text-teal-300 border border-teal-500 font-bold text-[11px] rounded-2xl flex items-center gap-1 transition active:scale-95 flex-shrink-0';
+        if (txt) txt.innerText = 'پایان انتخاب';
+      } else {
+        if (btn) btn.className = 'px-2.5 py-2 bg-transparent hover:bg-slate-800 text-teal-400 hover:text-teal-300 border border-teal-500/30 hover:border-teal-400/70 font-bold text-[11px] rounded-2xl flex items-center gap-1 transition active:scale-95 flex-shrink-0';
+        if (txt) txt.innerText = 'انتخاب';
+      }
+      document.querySelectorAll('.user-select-checkbox-wrap').forEach(el => {
+        el.classList.toggle('hidden', !window.adminUserSelectMode);
+      });
+      this.updateSelectionBar();
+      if (window.hapticFeedback) window.hapticFeedback('selection');
+    },
+
+    toggleUserSelect(userId) {
+      const idStr = String(userId);
+      if (window.selectedAdminUsers.has(idStr) || window.selectedAdminUsers.has(Number(userId))) {
+        window.selectedAdminUsers.delete(idStr);
+        window.selectedAdminUsers.delete(Number(userId));
+      } else {
+        window.selectedAdminUsers.add(idStr);
+      }
+      this.updateSelectionBar();
+      if (window.currentAdminUsersList) {
+        renderUsersList(window.currentAdminUsersList);
+      }
+      if (window.hapticFeedback) window.hapticFeedback('selection');
+    },
+
+    selectAllVisibleUsers() {
+      if (!window.currentAdminUsersList) return;
+      window.currentAdminUsersList.forEach(u => {
+        if (u.telegram_id) window.selectedAdminUsers.add(String(u.telegram_id));
+      });
+      this.updateSelectionBar();
+      renderUsersList(window.currentAdminUsersList);
+      if (window.hapticFeedback) window.hapticFeedback('selection');
+    },
+
+    clearSelectedUsers() {
+      window.selectedAdminUsers.clear();
+      this.updateSelectionBar();
+      if (window.currentAdminUsersList) {
+        renderUsersList(window.currentAdminUsersList);
+      }
+      if (window.hapticFeedback) window.hapticFeedback('selection');
+    },
+
+    updateSelectionBar() {
+      const count = window.selectedAdminUsers.size;
+      const countEl = $('usersSelectedCount');
+      if (countEl) countEl.innerText = String(count);
+      const bar = $('usersBulkSelectionBar');
+      if (bar) bar.classList.toggle('hidden', count === 0);
+
+      const targetLabel = $('bulkSelectedTargetLabel');
+      if (targetLabel) targetLabel.innerText = `${count} کاربر انتخاب‌شده`;
+    },
+
     currentBulkActionType: 'add_traffic',
 
-    openBulkUsersModal() {
+    openBulkUsersModal(preferredTarget) {
       const modal = $('bulkUsersModal');
       if (modal) modal.classList.remove('hidden');
+
+      const count = window.selectedAdminUsers.size;
+      const targetLabel = $('bulkSelectedTargetLabel');
+      if (targetLabel) targetLabel.innerText = `${count} کاربر انتخاب‌شده`;
+
       this.setBulkActionType('add_traffic');
-      this.onBulkTargetChange('all_active');
+      if (preferredTarget === 'selected' || (count > 0 && !preferredTarget)) {
+        this.onBulkTargetChange('selected');
+      } else {
+        this.onBulkTargetChange('all_active');
+      }
+
       const valInput = $('bulkAmountInput');
       if (valInput) valInput.value = '5';
       if (window.hapticFeedback) window.hapticFeedback('impact');
@@ -1576,24 +1659,23 @@ async applyUserModification() {
       const hiddenInput = $('bulkTargetSelect');
       if (hiddenInput) hiddenInput.value = target;
 
-      const activeCard = $('bulkTargetCard_active');
-      const allCard = $('bulkTargetCard_all');
+      const cards = {
+        all_active: $('bulkTargetCard_active'),
+        by_status: $('bulkTargetCard_status'),
+        selected: $('bulkTargetCard_selected'),
+        all_panel: $('bulkTargetCard_all'),
+      };
 
-      if (target === 'all_active') {
-        if (activeCard) {
-          activeCard.className = 'p-2.5 rounded-xl border border-blue-500 bg-blue-500/10 cursor-pointer flex flex-col items-center text-center gap-1 transition';
-        }
-        if (allCard) {
-          allCard.className = 'p-2.5 rounded-xl border border-slate-700/80 card-inset cursor-pointer flex flex-col items-center text-center gap-1 transition hover:border-slate-500/50';
-        }
-      } else {
-        if (activeCard) {
-          activeCard.className = 'p-2.5 rounded-xl border border-slate-700/80 card-inset cursor-pointer flex flex-col items-center text-center gap-1 transition hover:border-slate-500/50';
-        }
-        if (allCard) {
-          allCard.className = 'p-2.5 rounded-xl border border-blue-500 bg-blue-500/10 cursor-pointer flex flex-col items-center text-center gap-1 transition';
-        }
-      }
+      const activeClass = 'p-2 rounded-xl border border-blue-500 bg-blue-500/10 cursor-pointer flex flex-col items-center text-center gap-0.5 transition shadow-sm';
+      const inactiveClass = 'p-2 rounded-xl border border-slate-700/80 card-inset cursor-pointer flex flex-col items-center text-center gap-0.5 transition hover:border-slate-500/50';
+
+      Object.entries(cards).forEach(([k, card]) => {
+        if (!card) return;
+        card.className = (k === target) ? activeClass : inactiveClass;
+      });
+
+      const statusDrop = $('bulkStatusDropdownContainer');
+      if (statusDrop) statusDrop.classList.toggle('hidden', target !== 'by_status');
 
       if (window.hapticFeedback) window.hapticFeedback('selection');
     },
@@ -1602,40 +1684,78 @@ async applyUserModification() {
       this.currentBulkActionType = type;
       const trafficBtn = $('bulkTypeBtn_traffic');
       const daysBtn = $('bulkTypeBtn_days');
+      const delBtn = $('bulkTypeBtn_delete');
       const labelEl = $('bulkAmountLabel');
       const inputEl = $('bulkAmountInput');
+      const amountContainer = $('bulkAmountContainer');
+      const warningBox = $('bulkWarningBox');
+      const warningText = $('bulkWarningText');
+      const submitBtn = $('bulkSubmitBtn');
+      const submitText = $('bulkSubmitText');
 
-      const activeClass = 'py-2 rounded-xl font-bold bg-blue-600 text-white shadow-md text-center flex items-center justify-center gap-1.5 transition active:scale-95';
-      const inactiveClass = 'py-2 rounded-xl font-semibold t-muted hover:t-main hover:bg-slate-500/10 text-center flex items-center justify-center gap-1.5 transition active:scale-95';
+      const activeBlue = 'py-2 rounded-xl font-bold bg-blue-600 text-white shadow-md text-center flex items-center justify-center gap-1 transition active:scale-95';
+      const activeRed = 'py-2 rounded-xl font-bold bg-rose-600 text-white shadow-md text-center flex items-center justify-center gap-1 transition active:scale-95';
+      const inactive = 'py-2 rounded-xl font-semibold t-muted hover:t-main hover:bg-slate-500/10 text-center flex items-center justify-center gap-1 transition active:scale-95';
 
-      if (type === 'add_traffic') {
-        if (trafficBtn) trafficBtn.className = activeClass;
-        if (daysBtn) daysBtn.className = inactiveClass;
-        if (labelEl) labelEl.innerText = 'مقدار حجم هدیه (گیگابایت):';
-        if (inputEl) inputEl.value = '5';
+      if (trafficBtn) trafficBtn.className = (type === 'add_traffic') ? activeBlue : inactive;
+      if (daysBtn) daysBtn.className = (type === 'add_days') ? activeBlue : inactive;
+      if (delBtn) delBtn.className = (type === 'delete_users') ? activeRed : inactive;
+
+      if (type === 'delete_users') {
+        if (amountContainer) amountContainer.classList.add('hidden');
+        if (warningBox) warningBox.className = 'p-2.5 bg-rose-500/15 border border-rose-500/40 rounded-xl text-[10.5px] text-rose-300 font-medium leading-relaxed flex items-start gap-1.5';
+        if (warningText) warningText.innerText = '⚠️ هشدار حساس: کاربران انتخاب‌شده به طور کامل و غیرقابل بازگشت از پنل رمناویو حذف خواهند شد!';
+        if (submitBtn) submitBtn.className = 'flex-1 bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-500 hover:to-red-500 text-white font-bold text-xs py-2.5 rounded-xl transition shadow active:scale-95 flex items-center justify-center gap-1.5';
+        if (submitText) submitText.innerText = 'حذف دائم کاربران';
       } else {
-        if (trafficBtn) trafficBtn.className = inactiveClass;
-        if (daysBtn) daysBtn.className = activeClass;
-        if (labelEl) labelEl.innerText = 'تعداد روز تمدید (روز):';
-        if (inputEl) inputEl.value = '7';
+        if (amountContainer) amountContainer.classList.remove('hidden');
+        if (warningBox) warningBox.className = 'p-2.5 bg-amber-500/10 border border-amber-500/30 rounded-xl text-[10.5px] text-amber-700 dark:text-amber-300 font-medium leading-relaxed flex items-start gap-1.5';
+        if (warningText) warningText.innerText = 'این عملیات به صورت مستقیم در پنل رمناویو اعمال می‌شود و حجم یا روز مشخص‌شده به تمام کاربران منتخب افزوده خواهد شد.';
+        if (submitBtn) submitBtn.className = 'flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs py-2.5 rounded-xl transition shadow active:scale-95 flex items-center justify-center gap-1.5';
+        if (submitText) submitText.innerText = 'اعمال عملیات گروهی';
+
+        if (type === 'add_traffic') {
+          if (labelEl) labelEl.innerText = 'مقدار حجم هدیه (گیگابایت):';
+          if (inputEl) inputEl.value = '5';
+        } else {
+          if (labelEl) labelEl.innerText = 'تعداد روز تمدید (روز):';
+          if (inputEl) inputEl.value = '7';
+        }
       }
+
       if (window.hapticFeedback) window.hapticFeedback('selection');
     },
 
     async submitBulkUsersAction() {
-      const amount = parseInt($('bulkAmountInput')?.value, 10);
-      if (!amount || amount <= 0) {
-        if (window.showToast) window.showToast('⚠️ لطفاً مقدار معتبری وارد کنید.');
+      const type = this.currentBulkActionType;
+      const target = $('bulkTargetSelect')?.value || 'all_active';
+      const targetStatus = $('bulkStatusSelect')?.value || 'EXPIRED';
+
+      let amount = 0;
+      if (type !== 'delete_users') {
+        amount = parseInt($('bulkAmountInput')?.value, 10);
+        if (!amount || amount <= 0) {
+          if (window.showToast) window.showToast('⚠️ لطفاً مقدار عددی معتبری وارد کنید.');
+          return;
+        }
+      }
+
+      if (target === 'selected' && window.selectedAdminUsers.size === 0) {
+        if (window.showToast) window.showToast('⚠️ هیچ کاربری انتخاب نشده است. لطفاً ابتدا کاربران مورد نظر را تیک بزنید.');
         return;
       }
 
-      const audience = $('bulkTargetSelect')?.value || 'all_active';
-      const typeText = this.currentBulkActionType === 'add_traffic' ? `${amount} گیگابایت حجم` : `${amount} روز اعتبار`;
-      const audText = audience === 'all_active' ? 'تمام کاربران فعال' : 'تمام کاربران پنل';
-
-      if (!confirm(`آیا از اعمال گروهی (${typeText}) برای ${audText} اطمینان دارید؟`)) {
-        return;
+      let confirmMsg = '';
+      if (type === 'delete_users') {
+        const targetDesc = target === 'selected' ? `${window.selectedAdminUsers.size} کاربر انتخاب‌شده` : (target === 'by_status' ? `کاربران وضعیت ${targetStatus}` : (target === 'all_active' ? 'تمام کاربران فعال' : 'تمام کاربران پنل'));
+        confirmMsg = `🚨 آیا از حذف کامل و دائم ${targetDesc} از پنل اطمینان قطعی دارید؟ این عمل غیرقابل بازگشت است.`;
+      } else {
+        const typeText = type === 'add_traffic' ? `${amount} گیگابایت حجم` : `${amount} روز اعتبار`;
+        const targetDesc = target === 'selected' ? `${window.selectedAdminUsers.size} کاربر انتخاب‌شده` : (target === 'by_status' ? `کاربران وضعیت ${targetStatus}` : (target === 'all_active' ? 'تمام کاربران فعال' : 'تمام کاربران پنل'));
+        confirmMsg = `آیا از اعمال گروهی (${typeText}) برای ${targetDesc} اطمینان دارید؟`;
       }
+
+      if (!confirm(confirmMsg)) return;
 
       const btn = $('bulkSubmitBtn');
       const txt = $('bulkSubmitText');
@@ -1643,22 +1763,30 @@ async applyUserModification() {
 
       if (btn) btn.disabled = true;
       if (spin) spin.classList.remove('hidden');
-      if (txt) txt.innerText = 'در حال اعمال عملیات...';
+      if (txt) txt.innerText = 'در حال انجام عملیات...';
 
       try {
-        const res = await window.api.bulkUsersAction({
-          action_type: this.currentBulkActionType,
+        const payload = {
+          action_type: type,
+          amount: amount,
           value: amount,
-          audience: audience,
-        });
+          target: target,
+          audience: target,
+          target_status: targetStatus,
+          user_ids: Array.from(window.selectedAdminUsers),
+        };
 
+        const res = await window.api.bulkUsersAction(payload);
         if (res && res.ok) {
-          if (window.showToast) window.showToast(`✅ ${res.message || 'عملیات گروهی انجام شد'}`);
+          if (window.showToast) window.showToast(`✅ ${res.message || 'عملیات با موفقیت انجام شد'}`);
           if (window.hapticFeedback) window.hapticFeedback('success');
           this.closeBulkUsersModal();
+          if (target === 'selected') {
+            this.clearSelectedUsers();
+          }
           if (window.syncAdminOverview) window.syncAdminOverview(true);
         } else {
-          if (window.showToast) window.showToast(`⚠️ ${res?.error || res?.message || 'خطا در عملیات گروهی'}`);
+          if (window.showToast) window.showToast(`⚠️ ${res?.error || res?.message || 'خطا در انجام عملیات'}`);
           if (window.hapticFeedback) window.hapticFeedback('error');
         }
       } catch (err) {
@@ -1666,7 +1794,7 @@ async applyUserModification() {
       } finally {
         if (btn) btn.disabled = false;
         if (spin) spin.classList.add('hidden');
-        if (txt) txt.innerText = 'اعمال عملیات گروهی';
+        if (txt) txt.innerText = (type === 'delete_users') ? 'حذف دائم کاربران' : 'اعمال عملیات گروهی';
       }
     }
   });

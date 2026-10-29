@@ -188,7 +188,7 @@ function renderReportsCharts(sub) {
 window.renderReportsCharts = renderReportsCharts;
 
 function switchTab(targetId) {
-  if (!targetId) return;
+  if (!targetId || window.isSystemBlocked) return;
   const navButtons = document.querySelectorAll('.nav-btn');
   const tabPanes = document.querySelectorAll('.tab-pane');
 
@@ -219,6 +219,7 @@ function setupTabNavigation() {
   const navButtons = document.querySelectorAll('.nav-btn');
   navButtons.forEach(btn => {
     btn.onclick = () => {
+      if (window.isSystemBlocked) return;
       const targetId = btn.getAttribute('data-tab');
       if (targetId) switchTab(targetId);
     };
@@ -2806,6 +2807,7 @@ function hydrateUserInterface(data) {
 
   // --- Maintenance & Invite-Only Gateways (Unified Experience) ---
   const isBlocked = (data.is_maintenance || data.is_invite_only) && !data.user?.is_admin;
+  window.isSystemBlocked = Boolean(isBlocked);
   const maintScreen = $('systemMaintenanceScreen');
   const inviteScreen = $('systemInviteOnlyScreen');
 
@@ -2824,6 +2826,7 @@ function hydrateUserInterface(data) {
     const splash = $('splashScreen'); if (splash) splash.classList.add('hidden');
     $('topHeaderBar')?.classList.remove('hidden');
     $('bottomNavigationBar')?.classList.add('hidden');
+    $('navBottom')?.classList.add('hidden');
     document.querySelector('nav')?.classList.add('hidden');
     document.querySelectorAll('.tab-pane').forEach(el => el.classList.add('hidden'));
 
@@ -2841,6 +2844,8 @@ function hydrateUserInterface(data) {
     }
     return;
   }
+
+  $('navBottom')?.classList.remove('hidden');
 
   const safeStep = (stepName, fn) => {
     try {
