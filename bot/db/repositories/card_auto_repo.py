@@ -62,7 +62,7 @@ class CardAutoRepository:
         exact_amount: int,
         card_number: str,
         card_holder: str,
-        ttl_minutes: int = 15,
+        ttl_minutes: int = 60,
     ) -> CardAutoInvoice:
         """Create a new pending card-to-card invoice with unique exact amount."""
         now = datetime.now(timezone.utc)

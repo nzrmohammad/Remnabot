@@ -846,16 +846,20 @@
         </div>
 
         <!-- Active Pending Crypto Invoice Notification -->
-        <div id="activeCryptoPendingCard" class="hidden bg-transparent border border-sky-500/50 rounded-2xl p-3 text-right space-y-2 animate-fadeIn">
+        <div id="activeCryptoPendingCard" class="hidden card-inset border-2 border-sky-500/50 rounded-2xl p-3 text-right space-y-2 animate-fadeIn shadow-sm">
           <div class="flex justify-between items-center text-xs">
-            <span class="font-bold text-sky-300 flex items-center gap-1.5">
-              <span class="animate-pulse">⏳</span> فاکتور ارز دیجیتال در جریان
+            <span class="font-bold text-sky-600 dark:text-sky-300 flex items-center gap-1.5">
+              <span class="relative flex h-2.5 w-2.5">
+                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-400 opacity-75"></span>
+                <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-sky-500"></span>
+              </span>
+              <span id="activePendingCardTitle">فاکتور پرداخت در جریان</span>
             </span>
-            <span id="activeCryptoPendingTimer" class="font-mono text-xs font-bold text-amber-400" dir="ltr">45:00</span>
+            <span id="activeCryptoPendingTimer" class="font-mono text-xs font-bold text-amber-500 dark:text-amber-400" dir="ltr">60:00</span>
           </div>
-          <div class="flex justify-between items-center text-[11px] text-slate-300">
-            <span>مبلغ: <b id="activeCryptoPendingAmount" class="font-mono text-sky-300 font-bold" dir="ltr">-- TON</b></span>
-            <button type="button" id="openActiveCryptoBtn" class="bg-sky-600 hover:bg-sky-500 text-white font-bold px-3 py-1 rounded-xl text-xs transition active:scale-95 shadow">
+          <div class="flex justify-between items-center text-xs t-main">
+            <span>مبلغ: <b id="activeCryptoPendingAmount" class="font-mono text-sky-600 dark:text-sky-300 font-bold" dir="ltr">--</b></span>
+            <button type="button" id="openActiveCryptoBtn" class="bg-sky-600 hover:bg-sky-500 text-white font-bold px-3 py-1.5 rounded-xl text-xs transition active:scale-95 shadow">
               مشاهده و پرداخت
             </button>
           </div>
@@ -1466,8 +1470,8 @@
         <!-- All Methods Disabled State -->
         <div id="topupAllDisabledState" class="hidden py-8 px-4 text-center space-y-2 rounded-2xl card-inset">
           <span class="text-3xl block">🚫</span>
-          <b class="text-xs text-slate-200 block">در حال حاضر روش پرداختی فعال نیست</b>
-          <p class="text-[11px] text-slate-400">امکان افزایش موجودی موقتاً غیرفعال است. لطفاً با پشتیبانی در ارتباط باشید.</p>
+          <b class="text-xs t-main block">در حال حاضر روش پرداختی فعال نیست</b>
+          <p class="text-[11px] t-muted">امکان افزایش موجودی موقتاً غیرفعال است. لطفاً بعداً مراجعه نمایید یا با پشتیبانی در ارتباط باشید.</p>
         </div>
 
         <!-- 1. Card-to-Card Section -->
@@ -1503,64 +1507,64 @@
 
               <!-- Active Smart Invoice Box -->
               <div id="cardAutoInvoiceDetails" class="hidden card-inset rounded-2xl p-3.5 space-y-3 border border-emerald-500/40 relative">
-                <div class="flex justify-between items-center text-xs pb-2 border-b border-slate-800">
-                  <span class="text-slate-300 flex items-center gap-1 font-bold">
+                <div class="flex justify-between items-center text-xs pb-2 border-b border-[var(--card-border)]">
+                  <span class="t-main flex items-center gap-1 font-bold">
                     <span class="relative flex h-2.5 w-2.5">
                       <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                       <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
                     </span>
                     در انتظار واریز بانکی...
                   </span>
-                  <div class="flex items-center gap-1 font-mono text-xs font-bold text-amber-400" dir="ltr">
+                  <div class="flex items-center gap-1 font-mono text-xs font-bold text-amber-500 dark:text-amber-400" dir="ltr">
                     <span>⏳</span>
-                    <span id="cardAutoCountdownTimer">15:00</span>
+                    <span id="cardAutoCountdownTimer">60:00</span>
                   </div>
                 </div>
 
                 <!-- Amounts Box (Toman and Rial) -->
                 <div class="space-y-2">
-                  <div class="flex items-center justify-between p-2 rounded-xl bg-slate-900/80 border border-slate-700/60">
+                  <div class="card-inset rounded-xl p-2.5 flex items-center justify-between border border-[var(--card-border)]">
                     <div>
-                      <span class="text-[10.5px] text-slate-400 block">مبلغ به تومان:</span>
-                      <b id="cardAutoExactToman" class="text-emerald-400 text-sm font-mono">-- تومان</b>
+                      <span class="text-[10px] t-muted block">مبلغ قابل پرداخت به تومان:</span>
+                      <b id="cardAutoExactToman" class="text-emerald-600 dark:text-emerald-400 text-sm font-mono font-bold">-- تومان</b>
                     </div>
-                    <button type="button" onclick="window.copyCardAutoAmount('toman')" class="px-2.5 py-1.5 rounded-lg bg-emerald-950/60 hover:bg-emerald-900 text-emerald-300 border border-emerald-700/40 text-[11px] transition active:scale-95 flex items-center gap-1">
-                      📋 کپی تومان
+                    <button type="button" onclick="window.copyCardAutoAmount('toman')" class="p-2 rounded-xl border border-[var(--card-border)] hover:border-emerald-500 text-emerald-600 dark:text-emerald-400 text-sm transition active:scale-95 flex items-center justify-center bg-transparent" title="کپی مبلغ به تومان" aria-label="کپی مبلغ به تومان">
+                      📋
                     </button>
                   </div>
-                  <div class="flex items-center justify-between p-2 rounded-xl bg-slate-900/80 border border-slate-700/60">
+                  <div class="card-inset rounded-xl p-2.5 flex items-center justify-between border border-[var(--card-border)]">
                     <div>
-                      <span class="text-[10.5px] text-slate-400 block">مبلغ به ریال (همراه‌بانک):</span>
-                      <b id="cardAutoExactRial" class="text-cyan-400 text-sm font-mono">-- ریال</b>
+                      <span class="text-[10px] t-muted block">مبلغ قابل پرداخت به ریال (همراه‌بانک):</span>
+                      <b id="cardAutoExactRial" class="text-cyan-600 dark:text-cyan-400 text-sm font-mono font-bold">-- ریال</b>
                     </div>
-                    <button type="button" onclick="window.copyCardAutoAmount('rial')" class="px-2.5 py-1.5 rounded-lg bg-cyan-950/60 hover:bg-cyan-900 text-cyan-300 border border-cyan-700/40 text-[11px] transition active:scale-95 flex items-center gap-1">
-                      📋 کپی ریال
+                    <button type="button" onclick="window.copyCardAutoAmount('rial')" class="p-2 rounded-xl border border-[var(--card-border)] hover:border-cyan-500 text-cyan-600 dark:text-cyan-400 text-sm transition active:scale-95 flex items-center justify-center bg-transparent" title="کپی مبلغ به ریال" aria-label="کپی مبلغ به ریال">
+                      📋
                     </button>
                   </div>
                 </div>
 
                 <!-- Strict Warning Alert -->
-                <div class="bg-rose-500/15 border border-rose-500/40 rounded-xl p-2.5 text-right space-y-1">
-                  <b class="text-xs text-rose-400 flex items-center gap-1 font-extrabold">
+                <div class="bg-rose-500/10 border border-rose-500/30 rounded-xl p-2.5 text-right space-y-1">
+                  <b class="text-xs text-rose-600 dark:text-rose-400 flex items-center gap-1 font-extrabold">
                     <span>⚠️</span> مبلغ را رند نکنید!
                   </b>
-                  <p class="text-[11px] text-slate-200 leading-relaxed">
+                  <p class="text-[11px] t-main leading-relaxed font-medium">
                     سیستم هوشمند دقیقاً همین رقم را برای شما رزرو کرده است؛ لطفاً رقم را تغییر ندهید تا شارژ بلافاصله و اتوماتیک انجام گیرد.
                   </p>
                 </div>
 
                 <!-- Card Details -->
-                <div class="space-y-1.5 p-2.5 rounded-xl bg-slate-900/60 border border-slate-800">
+                <div class="card-inset rounded-xl p-2.5 space-y-1.5 border border-[var(--card-border)]">
                   <div class="flex justify-between items-center text-xs">
-                    <span class="text-slate-400">شماره کارت مقصد:</span>
+                    <span class="t-muted">شماره کارت مقصد:</span>
                     <div class="flex items-center gap-1.5" dir="rtl">
-                      <button type="button" onclick="window.copyCardNumber()" class="text-blue-400 hover:text-blue-300 p-1 text-xs">📋</button>
-                      <code id="cardAutoCardNumber" class="text-white font-mono font-bold tracking-wider" dir="ltr">---- ---- ---- ----</code>
+                      <button type="button" onclick="window.copyCardNumber()" class="text-blue-500 hover:text-blue-400 p-1 text-xs">📋</button>
+                      <code id="cardAutoCardNumber" class="text-blue-600 dark:text-cyan-300 font-mono font-bold tracking-wider" dir="ltr">---- ---- ---- ----</code>
                     </div>
                   </div>
                   <div class="flex justify-between items-center text-xs">
-                    <span class="text-slate-400">صاحب حساب:</span>
-                    <b id="cardAutoCardHolder" class="text-slate-200">--</b>
+                    <span class="t-muted">صاحب حساب:</span>
+                    <b id="cardAutoCardHolder" class="t-main font-bold">--</b>
                   </div>
                 </div>
 
@@ -1569,16 +1573,26 @@
                   <button type="button" onclick="window.checkCardAutoStatus(true)" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2 rounded-xl text-xs transition active:scale-95 flex items-center justify-center gap-1 shadow">
                     <span>🔄</span> بررسی وضعیت
                   </button>
-                  <button type="button" onclick="window.cancelCardAutoInvoice()" class="w-full bg-slate-800 hover:bg-slate-700 text-rose-300 border border-rose-500/30 font-bold py-2 rounded-xl text-xs transition active:scale-95">
+                  <button type="button" onclick="window.cancelCardAutoInvoice()" class="w-full card-inset border border-rose-500/40 text-rose-600 dark:text-rose-400 hover:bg-rose-500/10 font-bold py-2 rounded-xl text-xs transition active:scale-95">
                     انصراف
                   </button>
+                </div>
+
+                <!-- 1-Hour Informational Note -->
+                <div class="card-inset rounded-xl p-2.5 text-right text-[10.5px] leading-relaxed t-muted space-y-1 border border-amber-500/20">
+                  <div class="flex items-center gap-1 font-bold text-amber-600 dark:text-amber-400 text-[11px]">
+                    <span>💡</span> <b>راهنمای تأیید خودکار:</b>
+                  </div>
+                  <p>
+                    مهلت واریز و تایید خودکار فاکتور <b>۱ ساعت</b> است. در صورتی که پس از پایان این زمان واریزی شما به دلیل تاخیر پیامک بانک تایید نشد، تصویر فیش را از طریق دکمه زیر ارسال فرمایید.
+                  </p>
                 </div>
               </div>
 
               <!-- Manual Fallback Toggle -->
               <div class="pt-1">
-                <button type="button" onclick="window.toggleManualReceiptUpload()" class="text-[11px] text-slate-400 hover:text-slate-200 flex items-center justify-center gap-1 w-full py-1.5 transition">
-                  <span>📤</span> ارسال دستی تصویر فیش واریزی (اختیاری) ▾
+                <button type="button" onclick="window.toggleManualReceiptUpload()" class="w-full card-inset border border-[var(--card-border)] hover:border-cyan-500/50 t-main font-bold py-2.5 px-3 rounded-xl transition flex items-center justify-center gap-1.5 text-xs shadow-sm active:scale-[0.98]">
+                  <span>📤</span> ارسال دستی تصویر فیش واریزی (اختیاری) <span class="text-[10px] t-muted">▾</span>
                 </button>
               </div>
             </div>
@@ -1697,7 +1711,7 @@
             <div class="space-y-2 pt-1">
               <button id="tonConnectPayBtn" type="button" class="w-full bg-gradient-to-r from-blue-600 via-sky-500 to-indigo-600 hover:opacity-90 text-white font-black py-2.5 rounded-xl transition shadow active:scale-[0.98] flex items-center justify-center gap-2 text-xs">
                 <span>💎</span>
-                <span>پرداخت با والت تلگرام (TON Connect)</span>
+                <span>پرداخت با کیف پول تلگرام</span>
               </button>
               <a id="cryptoTonkeeperLink" href="#" class="w-full bg-slate-800 hover:bg-slate-700 text-white font-bold py-2 rounded-xl transition shadow active:scale-[0.98] flex items-center justify-center gap-1.5 text-xs text-center block border border-slate-700">
                 <span>🚀</span> پرداخت با Tonkeeper
@@ -1726,6 +1740,10 @@
           <div id="trxInvoiceDetails" class="space-y-2.5 hidden">
             <div class="card-inset rounded-2xl p-3 border border-rose-500/40 space-y-2">
               <div class="flex justify-between items-center text-[11px] pb-1.5 border-b border-slate-700/50">
+                <span class="text-slate-400">مهلت واریز و ثبت:</span>
+                <span id="trxCountdownTimer" class="font-mono font-bold text-rose-500 dark:text-rose-400 text-xs" dir="ltr">60:00</span>
+              </div>
+              <div class="flex justify-between items-center text-[11px] pb-1.5 border-b border-slate-700/50">
                 <span class="text-slate-400">مقدار قابل واریز:</span>
                 <div class="flex items-center gap-1">
                   <button id="copyTrxAmountBtn" type="button" class="text-rose-400 hover:text-rose-300 text-xs px-1" title="کپی مقدار">📋</button>
@@ -1747,6 +1765,9 @@
             </div>
 
             <div class="space-y-2 pt-1">
+              <a id="openTronLinkBtn" href="#" class="w-full bg-gradient-to-r from-red-600 via-rose-600 to-amber-600 hover:opacity-95 text-white font-bold py-2.5 rounded-xl transition shadow active:scale-[0.98] flex items-center justify-center gap-1.5 text-xs text-center block">
+                <span>⚡️</span> پرداخت مستقیم با کیف پول ترون (TronLink)
+              </a>
               <button id="submitTrxTxIdBtn" type="button" class="w-full bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 text-white font-bold py-2.5 rounded-xl transition shadow active:scale-[0.98] flex items-center justify-center gap-1.5">
                 <span>🔍</span> بررسی و تأیید واریز TRX
               </button>
@@ -1893,7 +1914,7 @@
           <h3 id="shopGuidanceTitle" class="text-sm font-bold t-main mt-1">راهنمای انتخاب بسته</h3>
         </div>
 
-        <div id="shopGuidanceBody" class="p-3 rounded-2xl card-inset text-slate-300 leading-relaxed space-y-2">
+        <div id="shopGuidanceBody" class="p-3 rounded-2xl card-inset t-main text-xs font-medium leading-relaxed space-y-2">
           <p id="shopGuidanceText">متن راهنمای هوشمند در این بخش نمایش داده می‌شود.</p>
         </div>
 

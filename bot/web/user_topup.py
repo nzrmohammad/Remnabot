@@ -395,7 +395,7 @@ async def post_user_topup_crypto(request: web.Request) -> web.Response:
             amount_ton=f"{ton_amount:.4f}",
             nanotons=nanotons,
             pay_address=store.ton_wallet_address,
-            expires_minutes=45,
+            expires_minutes=60,
         )
         await session.commit()
 
@@ -414,7 +414,7 @@ async def post_user_topup_crypto(request: web.Request) -> web.Response:
                 "comment": invoice.comment,
                 "deep_link": deep_link,
                 "universal_link": universal_link,
-                "expires_minutes": 45,
+                "expires_minutes": 60,
             }
         })
 
@@ -1005,7 +1005,7 @@ async def post_user_topup_card_auto_create(request: web.Request) -> web.Response
             telegram_id=telegram_id,
             base_amount=amount,
             store=store,
-            ttl_minutes=15,
+            ttl_minutes=60,
         )
         await session.commit()
 

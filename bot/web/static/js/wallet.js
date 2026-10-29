@@ -153,10 +153,12 @@ async function loadTopupInfo() {
       if (cardNumEl) cardNumEl.innerText = res.card_number || 'هنوز ثبت نشده';
       if (cardHolderEl) cardHolderEl.innerText = res.card_holder || 'مدیریت سرور';
 
-      const hasCard = res.card_enabled !== false;
-      const hasStars = res.stars_enabled !== false;
-      const hasCrypto = res.crypto_enabled !== false;
-      const anyMethodEnabled = hasCard || hasStars || hasCrypto;
+      const hasCard = res.card_enabled === true;
+      const hasStars = res.stars_enabled === true;
+      const hasCrypto = res.crypto_enabled === true;
+      const hasTrx = res.trx_enabled === true;
+      const hasXRocket = res.xrocket_enabled === true;
+      const anyMethodEnabled = hasCard || hasStars || hasCrypto || hasTrx || hasXRocket;
 
       const tabsContainer = document.getElementById('topupMethodTabs');
       const amountSection = document.getElementById('topupAmountSection');
@@ -164,6 +166,8 @@ async function loadTopupInfo() {
       const viewCard = document.getElementById('topupCardView');
       const viewStars = document.getElementById('topupStarsView');
       const viewCrypto = document.getElementById('topupCryptoView');
+      const viewTrx = document.getElementById('topupTrxView');
+      const viewXRocket = document.getElementById('topupXRocketView');
 
       if (!anyMethodEnabled) {
         tabsContainer?.classList.add('hidden');
@@ -171,28 +175,31 @@ async function loadTopupInfo() {
         viewCard?.classList.add('hidden');
         viewStars?.classList.add('hidden');
         viewCrypto?.classList.add('hidden');
+        viewTrx?.classList.add('hidden');
+        viewXRocket?.classList.add('hidden');
         disabledState?.classList.remove('hidden');
       } else {
         disabledState?.classList.add('hidden');
         tabsContainer?.classList.remove('hidden');
         amountSection?.classList.remove('hidden');
 
-        if (!hasStars) {
-          document.getElementById('topupMethodStarsBtn')?.classList.add('hidden');
-        } else {
-          document.getElementById('topupMethodStarsBtn')?.classList.remove('hidden');
-        }
+        document.getElementById('topupMethodCardBtn')?.classList.toggle('hidden', !hasCard);
+        document.getElementById('topupMethodCryptoBtn')?.classList.toggle('hidden', !hasCrypto);
+        document.getElementById('topupMethodTrxBtn')?.classList.toggle('hidden', !hasTrx);
+        document.getElementById('topupMethodStarsBtn')?.classList.toggle('hidden', !hasStars);
+        document.getElementById('topupMethodXRocketBtn')?.classList.toggle('hidden', !hasXRocket);
 
-        if (!hasCard) {
-          document.getElementById('topupMethodCardBtn')?.classList.add('hidden');
-        } else {
-          document.getElementById('topupMethodCardBtn')?.classList.remove('hidden');
-        }
-
-        if (!hasCrypto) {
-          document.getElementById('topupMethodCryptoBtn')?.classList.add('hidden');
-        } else {
-          document.getElementById('topupMethodCryptoBtn')?.classList.remove('hidden');
+        const activeMethod = window.currentTopupTab || 'card';
+        const methodEnabledMap = {
+          card: hasCard,
+          crypto: hasCrypto,
+          trx: hasTrx,
+          stars: hasStars,
+          xrocket: hasXRocket
+        };
+        if (!methodEnabledMap[activeMethod]) {
+          const fallback = ['card', 'crypto', 'trx', 'stars', 'xrocket'].find(k => methodEnabledMap[k]);
+          if (fallback) switchTopupTab(fallback);
         }
       }
 
@@ -246,6 +253,7 @@ async function loadTopupInfo() {
 let cryptoCountdownTimerInterval = null;
 
 function switchTopupTab(tab) {
+  window.currentTopupTab = tab;
   const btnCard = document.getElementById('topupMethodCardBtn');
   const btnStars = document.getElementById('topupMethodStarsBtn');
   const btnCrypto = document.getElementById('topupMethodCryptoBtn');
@@ -325,8 +333,9 @@ function renderCardAutoInvoice(inv) {
   if (cardNumEl) cardNumEl.innerText = inv.card_number || window.storeSettings?.card_number || '----';
   if (cardHolderEl) cardHolderEl.innerText = inv.card_holder || window.storeSettings?.card_holder || 'مدیریت سرور';
 
-  startCardAutoCountdownTimer(inv.remaining_seconds || 900);
+  startCardAutoCountdownTimer(inv.remaining_seconds || 3600);
   startCardAutoPolling(inv.invoice_uuid);
+  updatePendingCardUI(inv, inv.remaining_seconds || 3600, 'CARD');
 }
 
 function startCardAutoCountdownTimer(seconds) {
@@ -334,7 +343,7 @@ function startCardAutoCountdownTimer(seconds) {
     clearInterval(cardAutoTimerInterval);
     cardAutoTimerInterval = null;
   }
-  let remaining = seconds || 900;
+  let remaining = seconds || 3600;
   const timerEl = document.getElementById('cardAutoCountdownTimer');
 
   const updateDisplay = () => {
@@ -342,13 +351,23 @@ function startCardAutoCountdownTimer(seconds) {
       clearInterval(cardAutoTimerInterval);
       cardAutoTimerInterval = null;
       if (timerEl) timerEl.innerText = '00:00 (منقضی شد)';
+      if (window.activePendingInvoiceType === 'CARD') {
+        const pendingTimer = document.getElementById('activeCryptoPendingTimer');
+        if (pendingTimer) pendingTimer.innerText = '00:00 (منقضی شد)';
+        updatePendingCardUI(null);
+      }
       stopCardAutoPolling();
       return;
     }
     const mins = Math.floor(remaining / 60);
     const secs = remaining % 60;
+    const timeStr = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
     if (timerEl) {
-      timerEl.innerText = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+      timerEl.innerText = timeStr;
+    }
+    if (window.activePendingInvoiceType === 'CARD') {
+      const pendingTimer = document.getElementById('activeCryptoPendingTimer');
+      if (pendingTimer) pendingTimer.innerText = timeStr;
     }
     remaining--;
   };
@@ -400,6 +419,9 @@ function resetCardAutoUI() {
   const detailsBox = document.getElementById('cardAutoInvoiceDetails');
   if (initialBox) initialBox.classList.remove('hidden');
   if (detailsBox) detailsBox.classList.add('hidden');
+  if (window.activePendingInvoiceType === 'CARD') {
+    updatePendingCardUI(null);
+  }
 }
 
 window.createCardAutoInvoice = async function () {
@@ -486,16 +508,42 @@ window.toggleManualReceiptUpload = function () {
   }
 };
 
-function updatePendingCardUI(invoice, remainingSec) {
+window.activePendingInvoiceType = null;
+
+function updatePendingCardUI(invoice, remainingSec, type = 'TON') {
   const card = document.getElementById('activeCryptoPendingCard');
   if (!card) return;
   if (!invoice) {
+    window.activePendingInvoiceType = null;
     card.classList.add('hidden');
     return;
   }
+  window.activePendingInvoiceType = type;
   card.classList.remove('hidden');
+
+  const titleEl = document.getElementById('activePendingCardTitle');
+  if (titleEl) {
+    if (type === 'TRX') {
+      titleEl.innerText = 'فاکتور ترون (TRX) در جریان';
+    } else if (type === 'CARD') {
+      titleEl.innerText = 'فاکتور کارت‌به‌کارت در جریان';
+    } else {
+      titleEl.innerText = 'فاکتور تون (TON) در جریان';
+    }
+  }
+
   const amtEl = document.getElementById('activeCryptoPendingAmount');
-  if (amtEl) amtEl.innerText = `${invoice.amount_ton} TON`;
+  if (amtEl) {
+    if (type === 'TRX') {
+      amtEl.innerText = `${invoice.amount_trx} TRX`;
+    } else if (type === 'CARD') {
+      const rial = invoice.exact_rial || (Number(invoice.exact_amount || 0) * 10);
+      amtEl.innerText = `${Number(rial).toLocaleString('en-US')} ریال`;
+    } else {
+      amtEl.innerText = `${invoice.amount_ton} TON`;
+    }
+  }
+
   const timerEl = document.getElementById('activeCryptoPendingTimer');
   if (timerEl && remainingSec !== undefined) {
     const mins = Math.max(0, Math.floor(remainingSec / 60));
@@ -509,7 +557,7 @@ function getActiveCryptoStorageKey() {
   return `remna_active_crypto_invoice_${tgId}`;
 }
 
-function startCryptoCountdownTimer(seconds = 2700) {
+function startCryptoCountdownTimer(seconds = 3600) {
   if (cryptoCountdownTimerInterval) {
     clearInterval(cryptoCountdownTimerInterval);
     cryptoCountdownTimerInterval = null;
@@ -541,7 +589,7 @@ function startCryptoCountdownTimer(seconds = 2700) {
         timer.classList.remove('t-warn', 'text-amber-400', 'bg-amber-500/10', 'border-amber-500/20');
         timer.classList.add('t-danger');
       }
-      if (pendingTimer) {
+      if (pendingTimer && window.activePendingInvoiceType === 'TON') {
         pendingTimer.innerText = '00:00 (منقضی شد)';
       }
       if (cryptoCountdownTimerInterval) {
@@ -552,14 +600,16 @@ function startCryptoCountdownTimer(seconds = 2700) {
         localStorage.removeItem(getActiveCryptoStorageKey());
         try { localStorage.removeItem('remna_active_crypto_invoice'); } catch (e) {}
       } catch (e) {}
-      updatePendingCardUI(null);
+      if (window.activePendingInvoiceType === 'TON') {
+        updatePendingCardUI(null);
+      }
       return;
     }
     const mins = Math.floor(remaining / 60);
     const secs = remaining % 60;
     const timeStr = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
     if (timer) timer.innerText = timeStr;
-    if (pendingTimer) pendingTimer.innerText = timeStr;
+    if (pendingTimer && window.activePendingInvoiceType === 'TON') pendingTimer.innerText = timeStr;
   };
 
   updateDisplay();
@@ -573,7 +623,7 @@ function stopCryptoCountdownTimer() {
   }
 }
 
-function saveActiveCryptoInvoice(inv, durationSec = 2700) {
+function saveActiveCryptoInvoice(inv, durationSec = 3600) {
   try {
     const expiresAt = Date.now() + (durationSec * 1000);
     localStorage.setItem(getActiveCryptoStorageKey(), JSON.stringify({
@@ -596,7 +646,9 @@ function clearActiveCryptoInvoice() {
   if (detailsEl) detailsEl.classList.add('hidden');
   if (initialEl) initialEl.classList.remove('hidden');
 
-  updatePendingCardUI(null);
+  if (window.activePendingInvoiceType === 'TON') {
+    updatePendingCardUI(null);
+  }
 
   const genBtn = document.getElementById('generateTonInvoiceBtn');
   if (genBtn) {
@@ -606,7 +658,7 @@ function clearActiveCryptoInvoice() {
 
   const timerEl = document.getElementById('cryptoCountdownTimer');
   if (timerEl) {
-    timerEl.innerText = '45:00';
+    timerEl.innerText = '60:00';
     timerEl.classList.remove('t-danger', 'text-rose-400', 'bg-rose-500/10', 'border-rose-500/20', 'bg-amber-500/10', 'border-amber-500/20');
     timerEl.classList.add('t-warn');
   }
@@ -628,7 +680,7 @@ function restoreActiveCryptoInvoice() {
   try {
     const raw = localStorage.getItem(getActiveCryptoStorageKey()) || localStorage.getItem('remna_active_crypto_invoice');
     if (!raw) {
-      updatePendingCardUI(null);
+      if (window.activePendingInvoiceType === 'TON') updatePendingCardUI(null);
       return false;
     }
     const data = JSON.parse(raw);
@@ -651,7 +703,7 @@ function restoreActiveCryptoInvoice() {
     const tonBtn = document.getElementById('cryptoTonkeeperLink');
     if (tonBtn) tonBtn.href = targetLink;
     startCryptoCountdownTimer(remainingSec);
-    updatePendingCardUI(data.invoice, remainingSec);
+    updatePendingCardUI(data.invoice, remainingSec, 'TON');
     return true;
   } catch (e) {
     return false;
@@ -659,6 +711,75 @@ function restoreActiveCryptoInvoice() {
 }
 
 let currentTrxInvoice = null;
+let trxCountdownTimerInterval = null;
+
+function updateTronLinkButton(inv) {
+  const btn = document.getElementById('openTronLinkBtn');
+  if (!btn || !inv || !inv.pay_address || !inv.amount_trx) return;
+  const sun = Math.round(Number(inv.amount_trx) * 1e6);
+  const tronUri = `tron:${inv.pay_address}?amount=${sun}`;
+  btn.href = tronUri;
+  btn.onclick = (e) => {
+    e.preventDefault();
+    try {
+      if (window.Telegram?.WebApp?.openLink) {
+        window.Telegram.WebApp.openLink(tronUri);
+      } else {
+        window.location.href = tronUri;
+      }
+    } catch (err) {
+      window.location.href = tronUri;
+    }
+  };
+}
+
+function startTrxCountdownTimer(seconds = 3600) {
+  if (trxCountdownTimerInterval) {
+    clearInterval(trxCountdownTimerInterval);
+    trxCountdownTimerInterval = null;
+  }
+  let targetEnd = Date.now() + (seconds * 1000);
+  try {
+    const raw = localStorage.getItem(getActiveTrxStorageKey());
+    if (raw) {
+      const data = JSON.parse(raw);
+      if (data && data.expires_at) targetEnd = data.expires_at;
+    }
+  } catch (e) {}
+
+  const updateDisplay = () => {
+    const now = Date.now();
+    const remaining = Math.max(0, Math.floor((targetEnd - now) / 1000));
+    const timer = document.getElementById('trxCountdownTimer');
+    const pendingTimer = document.getElementById('activeCryptoPendingTimer');
+
+    if (remaining <= 0) {
+      if (timer) timer.innerText = '00:00 (منقضی شد)';
+      if (pendingTimer && window.activePendingInvoiceType === 'TRX') pendingTimer.innerText = '00:00 (منقضی شد)';
+      if (trxCountdownTimerInterval) {
+        clearInterval(trxCountdownTimerInterval);
+        trxCountdownTimerInterval = null;
+      }
+      clearActiveTrxInvoice();
+      return;
+    }
+    const mins = Math.floor(remaining / 60);
+    const secs = remaining % 60;
+    const timeStr = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+    if (timer) timer.innerText = timeStr;
+    if (pendingTimer && window.activePendingInvoiceType === 'TRX') pendingTimer.innerText = timeStr;
+  };
+
+  updateDisplay();
+  trxCountdownTimerInterval = setInterval(updateDisplay, 1000);
+}
+
+function stopTrxCountdownTimer() {
+  if (trxCountdownTimerInterval) {
+    clearInterval(trxCountdownTimerInterval);
+    trxCountdownTimerInterval = null;
+  }
+}
 
 function getActiveTrxStorageKey() {
   const tgId = window.lastUserData?.user?.telegram_id || window.Telegram?.WebApp?.initDataUnsafe?.user?.id || 'default';
@@ -679,6 +800,7 @@ function clearActiveTrxInvoice() {
   try {
     localStorage.removeItem(getActiveTrxStorageKey());
   } catch (e) {}
+  stopTrxCountdownTimer();
   currentTrxInvoice = null;
   const detailsEl = document.getElementById('trxInvoiceDetails');
   const initialEl = document.getElementById('trxInvoiceInitial');
@@ -686,6 +808,9 @@ function clearActiveTrxInvoice() {
   if (initialEl) initialEl.classList.remove('hidden');
   const input = document.getElementById('trxTxIdInput');
   if (input) input.value = '';
+  if (window.activePendingInvoiceType === 'TRX') {
+    updatePendingCardUI(null);
+  }
 }
 
 function restoreActiveTrxInvoice() {
@@ -694,7 +819,8 @@ function restoreActiveTrxInvoice() {
     if (!raw) return false;
     const data = JSON.parse(raw);
     const now = Date.now();
-    if (now >= data.expires_at || !data.invoice) {
+    const remainingSec = Math.floor((data.expires_at - now) / 1000);
+    if (remainingSec <= 0 || !data.invoice) {
       clearActiveTrxInvoice();
       return false;
     }
@@ -705,6 +831,9 @@ function restoreActiveTrxInvoice() {
     if (amtEl) amtEl.innerText = `${data.invoice.amount_trx} TRX`;
     const addrEl = document.getElementById('trxPayAddress');
     if (addrEl) addrEl.innerText = data.invoice.pay_address;
+    updateTronLinkButton(data.invoice);
+    startTrxCountdownTimer(remainingSec);
+    updatePendingCardUI(data.invoice, remainingSec, 'TRX');
     return true;
   } catch (e) {
     return false;
@@ -810,7 +939,16 @@ function setupWalletListeners() {
   });
 
   document.getElementById('openActiveCryptoBtn')?.addEventListener('click', () => {
-    openTopupModal(50000, true);
+    const pType = window.activePendingInvoiceType;
+    if (pType === 'TRX') {
+      openTopupModal(50000);
+      switchTopupTab('trx');
+    } else if (pType === 'CARD') {
+      openTopupModal(50000);
+      switchTopupTab('card');
+    } else {
+      openTopupModal(50000, true);
+    }
   });
 
   document.getElementById('chargeWalletBtn')?.addEventListener('click', () => {
@@ -1176,6 +1314,9 @@ function setupWalletListeners() {
         if (amtEl) amtEl.innerText = `${res.invoice.amount_trx} TRX`;
         const addrEl = document.getElementById('trxPayAddress');
         if (addrEl) addrEl.innerText = res.invoice.pay_address;
+        updateTronLinkButton(res.invoice);
+        startTrxCountdownTimer(3600);
+        updatePendingCardUI(res.invoice, 3600, 'TRX');
       } else {
         showToast(`❌ ${res.message || 'خطا در ایجاد فاکتور ترون'}`);
       }

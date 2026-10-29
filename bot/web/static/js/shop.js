@@ -547,7 +547,7 @@ function setupBuyButtons() {
           openShopGuidanceModal({
             title: 'پیشنهاد هوشمند خرید حجم',
             badgeText: '⚡️ صرفه‌جویی در هزینه',
-            badgeClass: 'px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/40',
+            badgeClass: 'px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-cyan-500/20 text-cyan-600 dark:text-cyan-300 border border-cyan-500/40',
             message: `شما هنوز <b>${daysLeft} روز</b> از اشتراک فعلی‌تان اعتبار دارید! با خرید «بسته افزایش حجم»، نیازی به پرداخت هزینه سرویس کامل نیست و روزهای باقیمانده شما حفظ می‌شود.`,
             actionText: '⚡️ رفتن به بسته‌های افزایش حجم',
             onAction: () => switchShopCategory('traffic'),
@@ -558,7 +558,7 @@ function setupBuyButtons() {
           openShopGuidanceModal({
             title: 'اشتراک شما فعال است',
             badgeText: 'ℹ️ سرویس فعال دارید',
-            badgeClass: 'px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-500/20 text-blue-300 border border-blue-500/40',
+            badgeClass: 'px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-500/20 text-blue-600 dark:text-blue-300 border border-blue-500/40',
             message: `شما در حال حاضر دارای اشتراک فعال با <b>${daysLeft} روز</b> اعتبار باقیمانده هستید. خرید سرویس کامل جدید صرفاً در ۳ روز پایانی اعتبار امکان‌پذیر است. در صورت نیاز به حجم یا زمان بیشتر، لطفاً از بسته‌های افزایش حجم یا افزایش زمان استفاده فرمایید.`,
             actionText: '⚡️ بسته‌های افزایش حجم',
             onAction: () => switchShopCategory('traffic'),
@@ -574,7 +574,7 @@ function setupBuyButtons() {
         openShopGuidanceModal({
           title: 'هشدار پایان اعتبار زمانی',
           badgeText: '⏳ تمدید سرویس کامل',
-          badgeClass: 'px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40',
+          badgeClass: 'px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-600 dark:text-amber-300 border border-amber-500/40',
           message: `تنها <b>${daysLeft} روز</b> از اعتبار زمانی اشتراک شما باقی مانده است! خرید بسته افزایش حجم، زمان سرویس شما را تمدید نمی‌کند و پس از پایان زمان، حجم باقی‌مانده غیرقابل استفاده می‌شود. پیشنهاد ما <b>تمدید دوره کامل</b> است.`,
           actionText: '💎 تمدید دوره کامل',
           onAction: () => switchShopCategory('full'),

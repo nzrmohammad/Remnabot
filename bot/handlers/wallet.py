@@ -330,7 +330,7 @@ async def _create_and_render_ton_invoice(
         amount_ton=f"{ton_amount:.4f}",
         nanotons=nanotons,
         pay_address=store.ton_wallet_address,
-        expires_minutes=30,
+        expires_minutes=60,
     )
     await session.commit()
     await state.clear()
@@ -353,7 +353,7 @@ async def _create_and_render_card_auto_invoice(
         telegram_id=user.telegram_id,
         base_amount=amount,
         store=store,
-        ttl_minutes=15,
+        ttl_minutes=60,
     )
     await session.commit()
     await state.update_data(amount=amount, auto_invoice_uuid=invoice.invoice_uuid)
@@ -372,7 +372,7 @@ async def _create_and_render_card_auto_invoice(
         f"💰 مبلغ به ریال: <code>{invoice.exact_rial:,}</code> ریال\n\n"
         f"💳 شماره کارت مقصد:\n<code>{escape(store.card_number)}</code>\n"
         f"👤 بنام: <b>{escape(store.card_holder or 'مدیریت')}</b>\n"
-        f"⏳ مهلت پرداخت: <b>۱۵ دقیقه</b>\n\n"
+        f"⏳ مهلت پرداخت: <b>۱ ساعت</b>\n\n"
         "⚠️ <b>توجه مهم:</b> لطفاً هنگام واریز از همراه‌بانک، <u>دقیقاً همین رقم</u> را وارد نمایید و مبلغ را رند نکنید. بلافاصله پس از واریز، کیف پول شما به صورت اتوماتیک شارژ خواهد شد."
     )
     await render_menu(bot, user, user_repo, c2c_text, kb.as_markup())

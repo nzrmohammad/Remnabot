@@ -28,7 +28,7 @@ async def generate_card_auto_invoice(
     telegram_id: int,
     base_amount: int,
     store: StoreSettings,
-    ttl_minutes: int = 15,
+    ttl_minutes: int = 60,
 ) -> CardAutoInvoice:
     """Generate a card-to-card invoice with an exact amount suffix avoiding collisions."""
     repo = CardAutoRepository(session)
