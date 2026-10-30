@@ -1,7 +1,9 @@
 """Service for reporting exceptions and system errors to the dedicated Error Logs topic."""
 import asyncio
+import contextvars
 import html
 import logging
+import re
 import time
 import traceback
 from typing import Any
@@ -16,6 +18,59 @@ from bot.services.app_settings import get_store_settings
 from bot.services.formatting import format_datetime, now_tz
 
 logger = logging.getLogger(__name__)
+
+# Re-entrancy guard to 100% prevent recursive logging loops
+_is_reporting_var: contextvars.ContextVar[bool] = contextvars.ContextVar("_is_reporting_var", default=False)
+
+# In-memory resilient cache for topic_errors (persists across transient DB connection drops)
+_cached_topic_errors: int | None = None
+_last_topic_cached_epoch: float = 0.0
+
+
+def update_cached_topic_errors(topic_id: int | None) -> None:
+    """Updates the in-memory cached topic ID for error logs."""
+    global _cached_topic_errors, _last_topic_cached_epoch
+    if topic_id is not None:
+        _cached_topic_errors = int(topic_id)
+        _last_topic_cached_epoch = time.time()
+
+
+def get_cached_topic_errors() -> int | None:
+    """Returns the in-memory cached topic ID for error logs."""
+    return _cached_topic_errors
+
+
+def safe_html_truncate(html_text: str, max_chars: int = 3900) -> str:
+    """Safely truncate HTML text ensuring that all opened tags are properly closed."""
+    if len(html_text) <= max_chars:
+        return html_text
+
+    # Take slice allowing room for closing tags and ellipsis
+    truncated = html_text[: max_chars - 30]
+
+    # If cut mid-tag (e.g. "<pre" or "<b"), strip the incomplete tag
+    last_open = truncated.rfind("<")
+    last_close = truncated.rfind(">")
+    if last_open > last_close:
+        truncated = truncated[:last_open]
+
+    # Supported formatting tags in Telegram HTML
+    tag_pattern = re.compile(r"<\/?([a-zA-Z0-9]+)(?:\s+[^>]*)?>")
+    open_tags: list[str] = []
+
+    for match in tag_pattern.finditer(truncated):
+        full_tag = match.group(0)
+        tag_name = match.group(1).lower()
+        if full_tag.startswith("</"):
+            if open_tags and open_tags[-1] == tag_name:
+                open_tags.pop()
+        elif not full_tag.endswith("/>"):
+            open_tags.append(tag_name)
+
+    # Append ellipsis and close any dangling open tags in reverse order
+    closing = "".join(f"</{t}>" for t in reversed(open_tags))
+    return truncated + "..." + closing
+
 
 # Error throttle: error_signature -> last_sent_epoch
 _recent_errors: dict[str, float] = {}
@@ -76,20 +131,29 @@ async def report_error(
     try:
         if session is not None:
             store = await get_store_settings(session)
+            if store.topic_errors is not None:
+                update_cached_topic_errors(store.topic_errors)
             topic_id = store.topic_errors if store.topic_errors is not None else settings.ADMIN_TOPIC_ERRORS
         elif session_factory is not None:
             if hasattr(session_factory, "execute") and not callable(session_factory):
                 store = await get_store_settings(session_factory)
+                if store.topic_errors is not None:
+                    update_cached_topic_errors(store.topic_errors)
                 topic_id = store.topic_errors if store.topic_errors is not None else settings.ADMIN_TOPIC_ERRORS
             else:
                 async with session_factory() as sess:
                     store = await get_store_settings(sess)
+                    if store.topic_errors is not None:
+                        update_cached_topic_errors(store.topic_errors)
                     topic_id = store.topic_errors if store.topic_errors is not None else settings.ADMIN_TOPIC_ERRORS
         else:
-            topic_id = settings.ADMIN_TOPIC_ERRORS
+            topic_id = _cached_topic_errors or settings.ADMIN_TOPIC_ERRORS
     except Exception as db_exc:
-        logger.warning("Could not fetch topic_errors from DB: %s", db_exc)
-        topic_id = settings.ADMIN_TOPIC_ERRORS
+        logger.warning("Could not fetch topic_errors from DB, using cached fallback: %s", db_exc)
+        topic_id = _cached_topic_errors or settings.ADMIN_TOPIC_ERRORS
+
+    if topic_id is None:
+        topic_id = _cached_topic_errors or settings.ADMIN_TOPIC_ERRORS
 
     # Format timestamp
     now = now_tz(settings.TIMEZONE)
@@ -101,83 +165,91 @@ async def report_error(
     elif is_exc and getattr(exc, "__traceback__", None):
         try:
             tb_str = "".join(traceback.format_exception(type(exc), exc, exc.__traceback__))
-        except Exception as exc:
-            logger.warning("Failed to format traceback: %s", exc)
+        except Exception as exc_fmt:
+            logger.warning("Failed to format traceback: %s", exc_fmt)
             tb_str = ""
     else:
         tb_str = ""
-    tb_tail = tb_str[-1200:] if len(tb_str) > 1200 else tb_str
+    tb_tail = tb_str[-1800:] if len(tb_str) > 1800 else tb_str
 
     user_info = f"<code>{user_id}</code>" if user_id else "—"
     if username:
         user_info += f" (@{html.escape(username)})"
 
-    context_info = html.escape(context) if context else "سیستم / پس‌زمینه"
+    context_info = html.escape(context[:150]) if context else "سیستم / پس‌زمینه"
+    exc_msg_safe = html.escape(exc_msg[:400])
+
     traceback_section = (
         f"\n\n🔍 <b>ردیابی خطا (Traceback) :</b>\n<pre><code>{html.escape(tb_tail)}</code></pre>"
         if tb_tail
         else ""
     )
 
-    text = (
+    raw_html = (
         "⚠️ <b>سیستم هشدار خطای ربات (Error Log)</b>\n"
         "──────────────────\n"
         f"⏰ <b>زمان :</b> {time_str}\n"
         f"📍 <b>محل وقوع :</b> {context_info}\n"
         f"👤 <b>کاربر :</b> {user_info}\n"
         f"💥 <b>کلاس خطا :</b> <code>{html.escape(exc_type)}</code>\n"
-        f"📝 <b>پیام خطا :</b> <code>{html.escape(exc_msg[:350])}</code>"
+        f"📝 <b>پیام خطا :</b> <code>{exc_msg_safe}</code>"
         f"{traceback_section}"
-    )[:3900]
+    )
+
+    text = safe_html_truncate(raw_html, 4000)
 
     plain_text = (
         "⚠️ سیستم هشدار خطای ربات (Error Log)\n"
         "──────────────────\n"
         f"⏰ زمان : {time_str}\n"
-        f"📍 محل وقوع : {context or 'سیستم'}\n"
+        f"📍 محل وقوع : {context[:150] or 'سیستم'}\n"
         f"👤 کاربر : {user_id or '—'}\n"
         f"💥 کلاس خطا : {exc_type}\n"
-        f"📝 پیام خطا : {exc_msg[:350]}\n\n"
+        f"📝 پیام خطا : {exc_msg[:400]}\n\n"
         f"🔍 Traceback:\n{tb_tail}"
     )[:3900]
 
-    thread_kwargs = admin_thread_kwargs(topic_id=topic_id)
-    delivered = False
+    token = _is_reporting_var.set(True)
+    try:
+        thread_kwargs = admin_thread_kwargs(topic_id=topic_id)
+        delivered = False
 
-    if settings.ADMIN_CHAT_ID:
-        try:
-            await bot.send_message(settings.ADMIN_CHAT_ID, text, **thread_kwargs)
-            delivered = True
-        except Exception as send_exc:
-            logger.warning(
-                "Failed sending HTML error alert to admin chat %s (topic %s): %s",
-                settings.ADMIN_CHAT_ID,
-                topic_id,
-                send_exc,
-            )
-            # Retry plain text with topic
+        if settings.ADMIN_CHAT_ID:
             try:
-                await bot.send_message(settings.ADMIN_CHAT_ID, plain_text, parse_mode=None, **thread_kwargs)
+                await bot.send_message(settings.ADMIN_CHAT_ID, text, **thread_kwargs)
                 delivered = True
-            except Exception:
-                # Retry plain text without topic (in case topic ID is invalid)
+            except Exception as send_exc:
+                logger.warning(
+                    "Failed sending HTML error alert to admin chat %s (topic %s): %s",
+                    settings.ADMIN_CHAT_ID,
+                    topic_id,
+                    send_exc,
+                )
+                # Retry plain text with topic
                 try:
-                    await bot.send_message(settings.ADMIN_CHAT_ID, plain_text, parse_mode=None)
+                    await bot.send_message(settings.ADMIN_CHAT_ID, plain_text, parse_mode=None, **thread_kwargs)
                     delivered = True
-                except Exception as retry_exc:
-                    logger.warning("Failed retry without thread: %s", retry_exc)
+                except Exception:
+                    # Retry plain text without topic (in case topic ID is invalid)
+                    try:
+                        await bot.send_message(settings.ADMIN_CHAT_ID, plain_text, parse_mode=None)
+                        delivered = True
+                    except Exception as retry_exc:
+                        logger.warning("Failed retry without thread: %s", retry_exc)
 
-    if not delivered and settings.ADMIN_IDS:
-        for aid in settings.ADMIN_IDS:
-            try:
-                await bot.send_message(aid, text)
-                delivered = True
-            except Exception:
+        if not delivered and settings.ADMIN_IDS:
+            for aid in settings.ADMIN_IDS:
                 try:
-                    await bot.send_message(aid, plain_text, parse_mode=None)
+                    await bot.send_message(aid, text)
                     delivered = True
-                except Exception as exc:
-                    logger.warning("Failed to send error fallback to admin %s: %s", aid, exc)
+                except Exception:
+                    try:
+                        await bot.send_message(aid, plain_text, parse_mode=None)
+                        delivered = True
+                    except Exception as exc_fallback:
+                        logger.warning("Failed to send error fallback to admin %s: %s", aid, exc_fallback)
+    finally:
+        _is_reporting_var.reset(token)
 
 
 async def report_error_event(
@@ -233,12 +305,15 @@ class TelegramErrorLogHandler(logging.Handler):
         self._active_tasks: set[asyncio.Task] = set()
 
     def emit(self, record: logging.LogRecord) -> None:
-        # Prevent recursion and loop storms
+        # Check re-entrancy / infinite loop guard
+        if _is_reporting_var.get():
+            return
+
+        # Prevent recursion and noise from error reporter itself or raw HTTP client
         if record.name.startswith((
             "bot.services.error_reporter",
-            "aiogram",
+            "aiogram.client",
             "aiohttp.access",
-            "aiohttp.server",
             "urllib3",
             "asyncio",
         )):
@@ -336,16 +411,23 @@ async def send_test_error_report(
     try:
         if session is not None:
             store = await get_store_settings(session)
+            if store.topic_errors is not None:
+                update_cached_topic_errors(store.topic_errors)
             topic_id = store.topic_errors if store.topic_errors is not None else settings.ADMIN_TOPIC_ERRORS
         elif session_factory is not None:
             async with session_factory() as sess:
                 store = await get_store_settings(sess)
+                if store.topic_errors is not None:
+                    update_cached_topic_errors(store.topic_errors)
                 topic_id = store.topic_errors if store.topic_errors is not None else settings.ADMIN_TOPIC_ERRORS
         else:
-            topic_id = settings.ADMIN_TOPIC_ERRORS
+            topic_id = _cached_topic_errors or settings.ADMIN_TOPIC_ERRORS
     except Exception as db_exc:
-        logger.warning("Failed to fetch topic_errors from store: %s", db_exc)
-        topic_id = settings.ADMIN_TOPIC_ERRORS
+        logger.warning("Failed to fetch topic_errors from store, using cached fallback: %s", db_exc)
+        topic_id = _cached_topic_errors or settings.ADMIN_TOPIC_ERRORS
+
+    if not topic_id:
+        topic_id = _cached_topic_errors or settings.ADMIN_TOPIC_ERRORS
 
     if not topic_id:
         return False, "شناسه تاپیک لاگ‌های ارور (topic_errors) هنوز تنظیم نشده است.", None

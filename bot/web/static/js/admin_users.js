@@ -811,9 +811,9 @@ async applyUserModification() {
     // --- Unified Devices & Live Sessions Modal ---
     currentDeviceTab: 'hwid',
 
-    async openHwidModal(telegram_id, name, initialTab = 'hwid') {
-      currentHwidTarget = { telegram_id, name };
-      this.currentUserSessionsTarget = { telegram_id, name };
+    async openHwidModal(telegram_id, name, initialTab = 'hwid', panel_user_id = null) {
+      currentHwidTarget = { telegram_id, name, panel_user_id };
+      this.currentUserSessionsTarget = { telegram_id, name, panel_user_id };
       const modal = $('hwidModal');
       const title = $('hwidModalTitle');
       if (modal) modal.classList.remove('hidden');
@@ -870,7 +870,8 @@ async applyUserModification() {
       if (list) list.innerHTML = '<div class="p-6 text-center text-slate-400">در حال دریافت تاریخچه سابسکریپشن...</div>';
 
       try {
-        const res = await window.api.getUserSrh({ telegram_id });
+        const pUserId = currentHwidTarget?.panel_user_id || null;
+        const res = await window.api.getUserSrh({ telegram_id, user_id: pUserId });
         if (!res || !res.ok) {
           if (list) list.innerHTML = `<div class="p-4 text-center text-rose-400">${escapeHtml(res?.error || 'خطا در دریافت تاریخچه')}</div>`;
           return;
@@ -930,7 +931,8 @@ async applyUserModification() {
       if (list) list.innerHTML = '<div class="p-6 text-center text-slate-400">در حال دریافت دستگاه‌ها...</div>';
 
       try {
-        const res = await window.api.getUserHwidDevices(telegram_id);
+        const pUserId = currentHwidTarget?.panel_user_id || null;
+        const res = await window.api.getUserHwidDevices(telegram_id, pUserId);
         if (!res || !res.ok) {
           if (list) list.innerHTML = `<div class="p-4 text-center text-rose-400">${escapeHtml(res?.error || 'خطا در دریافت لیست')}</div>`;
           return;

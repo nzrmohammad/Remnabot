@@ -363,8 +363,10 @@ const api = {
     return this.post('/api/admin/user/revoke_sub', { telegram_id });
   },
 
-  async getUserHwidDevices(telegram_id) {
-    return this.get('/api/admin/user/hwid_devices', { telegram_id });
+  async getUserHwidDevices(telegram_id, user_id = null) {
+    const params = { telegram_id };
+    if (user_id) params.user_id = user_id;
+    return this.get('/api/admin/user/hwid_devices', params);
   },
 
   async deleteUserHwid(telegram_id, hwid) {

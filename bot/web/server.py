@@ -459,10 +459,52 @@ async def serve_open_client(request: web.Request) -> web.Response:
 
 @web.middleware
 async def global_error_middleware(request: web.Request, handler):
-    """Catch unhandled exceptions in TMA web routes and report them to the admin topic."""
+    """Catch unhandled exceptions and 500 errors in TMA web routes and report them to the admin topic."""
     try:
-        return await handler(request)
-    except web.HTTPException:
+        response = await handler(request)
+        if isinstance(response, web.Response) and response.status >= 500 and request.path.startswith("/api/"):
+            try:
+                from bot.services.error_reporter import report_error
+                bot = request.app.get("bot")
+                session_factory = request.app.get("session_factory")
+                if bot and session_factory:
+                    user_id = None
+                    if "user_auth" in request and isinstance(request["user_auth"], dict):
+                        user_id = request["user_auth"].get("id")
+                    elif "user_id" in request:
+                        user_id = request["user_id"]
+                    resp_body = response.text[:300] if hasattr(response, "text") and response.text else "HTTP 500 Internal Error"
+                    await report_error(
+                        bot,
+                        session_factory,
+                        exc=f"HTTPResponseError({response.status}): {resp_body}",
+                        context=f"WEB {request.method} {request.path}",
+                        user_id=user_id,
+                    )
+            except Exception as rep_err:
+                logger.warning("Failed to dispatch web status error to topic: %s", rep_err)
+        return response
+    except web.HTTPException as http_exc:
+        if http_exc.status >= 500 and request.path.startswith("/api/"):
+            try:
+                from bot.services.error_reporter import report_error
+                bot = request.app.get("bot")
+                session_factory = request.app.get("session_factory")
+                if bot and session_factory:
+                    user_id = None
+                    if "user_auth" in request and isinstance(request["user_auth"], dict):
+                        user_id = request["user_auth"].get("id")
+                    elif "user_id" in request:
+                        user_id = request["user_id"]
+                    await report_error(
+                        bot,
+                        session_factory,
+                        exc=http_exc,
+                        context=f"WEB {request.method} {request.path} [{http_exc.status}]",
+                        user_id=user_id,
+                    )
+            except Exception as rep_err:
+                logger.warning("Failed to dispatch HTTPException to topic: %s", rep_err)
         raise
     except Exception as exc:
         logger.exception("Unhandled TMA web error on %s %s: %s", request.method, request.path, exc)

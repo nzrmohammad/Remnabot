@@ -281,6 +281,6 @@ async def ton_watcher_loop(bot: Any, session_factory: Any) -> None:
         try:
             await verify_and_process_payments(bot, session_factory)
         except Exception as exc:
-            logger.warning("Error in TON payment watcher: %s", exc)
+            logger.error("Error in TON payment watcher: %s", exc)
 
         await asyncio.sleep(25)

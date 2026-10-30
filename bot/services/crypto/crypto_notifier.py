@@ -150,7 +150,7 @@ async def nobitex_rate_loop(bot: Bot, session_factory) -> None:
                 if store.crypto_enabled or store.ton_wallet_address or store.ton_rate_toman > 0:
                     await send_rate_notification(bot, session_factory, hour_str)
         except Exception as exc:
-            logger.warning("Error in Nobitex rate scheduled task: %s", exc)
+            logger.error("Error in Nobitex rate scheduled task: %s", exc)
 
         # Sleep briefly to avoid double-triggering in the same minute
         await asyncio.sleep(120)

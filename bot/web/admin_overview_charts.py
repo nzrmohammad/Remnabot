@@ -432,6 +432,8 @@ async def _calc_platform_and_hwid(session, remnawave) -> tuple[dict[str, Any], d
             user_info_map[t_id] = {"username": uname, "full_name": fname}
 
     for u, c in sorted_risk:
+        if not u or str(u).lower() in ("none", "null", ""):
+            continue
         t_id = int(u) if str(u).isdigit() else None
         db_u = user_info_map.get(t_id) if t_id else None
         panel_name = dev_user_names.get(str(u)) or dev_user_names.get(u) or order_user_map.get(str(u))

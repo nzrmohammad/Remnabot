@@ -149,10 +149,13 @@ def _parse_srh_timestamp(created_at_raw: Any, now_utc: datetime) -> tuple[str, s
 
 
 async def _resolve_panel_user(remnawave, target_id: Any) -> tuple[Any, str | None]:
-    """Resolve target_id (Telegram ID, Remnawave user ID, or username) to (primary_id, primary_uuid)."""
+    """Resolve target_id (Telegram ID, Remnawave user ID, username, or UUID) to (primary_id, primary_uuid)."""
     if not target_id:
         return None, None
     target_str = str(target_id).strip()
+    if not target_str or target_str.lower() in ("none", "null", "undefined"):
+        return None, None
+
     panel_users = None
     if target_str.isdigit():
         try:
@@ -178,7 +181,13 @@ async def _resolve_panel_user(remnawave, target_id: Any) -> tuple[Any, str | Non
 
     if panel_users and len(panel_users) > 0:
         return panel_users[0].get("id"), panel_users[0].get("uuid")
-    return None, None
+
+    # Reliable fallback: preserve target_id as valid identifier
+    if "-" in target_str and len(target_str) >= 32:
+        return None, target_str
+    if target_str.isdigit():
+        return int(target_str), None
+    return target_str, None
 
 async def get_admin_user_hwid_devices(request: web.Request) -> web.Response:
     """Fetch all active connected HWID devices for a specific user."""
@@ -186,7 +195,7 @@ async def get_admin_user_hwid_devices(request: web.Request) -> web.Response:
     if not admin:
         return web.json_response({"ok": False, "error": "Forbidden"}, status=403)
 
-    target_id = request.query.get("telegram_id") or request.query.get("id") or request.query.get("target_id")
+    target_id = request.query.get("telegram_id") or request.query.get("id") or request.query.get("target_id") or request.query.get("user_id")
     if not target_id:
         return web.json_response({"ok": False, "error": "شناسه کاربر الزامی است."}, status=400)
 
@@ -227,7 +236,7 @@ async def get_admin_user_sessions(request: web.Request) -> web.Response:
     if not admin:
         return web.json_response({"ok": False, "error": "Forbidden"}, status=403)
 
-    target_id = request.query.get("telegram_id") or request.query.get("id") or request.query.get("target_id")
+    target_id = request.query.get("telegram_id") or request.query.get("id") or request.query.get("target_id") or request.query.get("user_id")
     if not target_id:
         return web.json_response({"ok": False, "error": "شناسه کاربر الزامی است."}, status=400)
 
@@ -269,7 +278,7 @@ async def get_admin_user_srh(request: web.Request) -> web.Response:
     if not admin:
         return web.json_response({"ok": False, "error": "Forbidden"}, status=403)
 
-    target_id = request.query.get("telegram_id") or request.query.get("id") or request.query.get("target_id")
+    target_id = request.query.get("telegram_id") or request.query.get("id") or request.query.get("target_id") or request.query.get("user_id")
     panel_user_id = request.query.get("user_id") or request.query.get("panel_user_id")
     panel_user_uuid = request.query.get("uuid")
     remnawave = request.app["remnawave"]
@@ -289,7 +298,7 @@ async def get_admin_user_srh(request: web.Request) -> web.Response:
     if not panel_user_id and not panel_user_uuid:
         return web.json_response({"ok": False, "error": "شناسه کاربر الزامی است."}, status=400)
 
-    raw_records = await remnawave.get_user_srh(panel_user_id or panel_user_uuid, user_uuid=panel_user_uuid, size=50)
+    raw_records = await remnawave.get_user_srh(panel_user_id or panel_user_uuid, user_uuid=panel_user_uuid, size=50) or []
     formatted = []
     now_utc = datetime.now(timezone.utc)
     for r in raw_records:

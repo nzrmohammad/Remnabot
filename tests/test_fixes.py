@@ -2730,3 +2730,128 @@ async def test_admin_toggle_ban_persistence_and_cache_invalidation():
         aua.UserRepository = orig_repo
         aua._check_admin = orig_check
 
+
+def test_safe_html_truncate_balanced_tags():
+    """Verify safe_html_truncate keeps opened tags closed when truncated."""
+    from bot.services.error_reporter import safe_html_truncate
+
+    # 1. Short text stays unchanged
+    short_text = "<b>Normal Alert</b>"
+    assert safe_html_truncate(short_text, max_chars=100) == short_text
+
+    # 2. Long text with nested tags gets cleanly closed
+    long_text = "⚠️ <b>Alert:</b>\n<pre><code>" + "A" * 200 + "</code></pre>"
+    truncated = safe_html_truncate(long_text, max_chars=60)
+    assert len(truncated) <= 65
+    assert truncated.endswith("</code></pre>")
+    assert "<b>" in truncated
+    assert "</b>" in truncated
+
+    # 3. Partial tag at cutoff is stripped cleanly before closing
+    text_with_tag = "<b>Message <pre" + "X" * 100
+    res = safe_html_truncate(text_with_tag, max_chars=20)
+    assert "<pre" not in res
+    assert res.endswith("</b>")
+
+
+@pytest.mark.anyio
+async def test_cached_topic_errors_resilience():
+    """Verify report_error uses in-memory cached topic ID during database outages."""
+    from bot.services.error_reporter import (
+        report_error,
+        update_cached_topic_errors,
+        get_cached_topic_errors,
+    )
+
+    update_cached_topic_errors(68)
+    assert get_cached_topic_errors() == 68
+
+    bot = AsyncMock()
+    mock_session = AsyncMock()
+    mock_session.execute.side_effect = Exception("DB Connection Refused!")
+
+    with patch("bot.services.error_reporter.get_settings") as mock_settings, \
+         patch("bot.services.error_reporter.get_store_settings") as mock_store:
+        mock_settings.return_value = MagicMock(
+            ADMIN_CHAT_ID=-1009999999,
+            ADMIN_IDS=[111],
+            ADMIN_TOPIC_ERRORS=None,  # No .env topic
+            TIMEZONE="Asia/Tehran",
+        )
+        mock_store.side_effect = Exception("OperationalError: database locked")
+
+        await report_error(
+            bot=bot,
+            session=mock_session,
+            exc=Exception("Crash during checkout"),
+            context="test_checkout",
+        )
+
+        assert bot.send_message.called
+        kwargs = bot.send_message.call_args.kwargs
+        assert kwargs.get("message_thread_id") == 68
+
+
+@pytest.mark.anyio
+async def test_telegram_error_log_handler_filtering_and_loop_guard():
+    """Verify TelegramErrorLogHandler captures dispatcher/server errors but prevents loops via contextvar."""
+    import logging
+    from bot.services.error_reporter import TelegramErrorLogHandler, _is_reporting_var
+
+    bot = AsyncMock()
+    session_factory = MagicMock()
+    handler = TelegramErrorLogHandler(bot, session_factory)
+
+    # 1. When _is_reporting_var is active, emit drops the record
+    token = _is_reporting_var.set(True)
+    try:
+        rec = logging.LogRecord(
+            name="bot.handlers.shop",
+            level=logging.ERROR,
+            pathname="shop.py",
+            lineno=10,
+            msg="Purchase failed",
+            args=(),
+            exc_info=None,
+        )
+        handler.emit(rec)
+        assert len(handler._active_tasks) == 0
+    finally:
+        _is_reporting_var.reset(token)
+
+    # 2. Disallowed loggers (error reporter itself or raw HTTP client) are dropped
+    rec_self = logging.LogRecord(
+        name="bot.services.error_reporter",
+        level=logging.ERROR,
+        pathname="error_reporter.py",
+        lineno=50,
+        msg="Error reporting failed",
+        args=(),
+        exc_info=None,
+    )
+    handler.emit(rec_self)
+    assert len(handler._active_tasks) == 0
+
+
+@pytest.mark.anyio
+async def test_admin_user_srh_resolves_uuid_and_non_tg_id():
+    """Verify _resolve_panel_user correctly handles UUIDs and raw panel IDs."""
+    from bot.web.admin_users_detail import _resolve_panel_user
+
+    mock_remna = AsyncMock()
+    mock_remna.get_users_by_telegram_id.return_value = []
+    mock_remna.get_panel_user_by_id.return_value = {"id": 105, "uuid": "uuid-105-abc"}
+
+    # Numeric ID that is not a telegram ID falls back to get_panel_user_by_id
+    p_id, p_uuid = await _resolve_panel_user(mock_remna, "105")
+    assert p_id == 105
+    assert p_uuid == "uuid-105-abc"
+
+    # Raw UUID format directly returns uuid even if panel lookup fails
+    mock_remna.get_panel_user_by_id.return_value = None
+    mock_remna.get_user_by_username.return_value = None
+    test_uuid = "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+    p_id2, p_uuid2 = await _resolve_panel_user(mock_remna, test_uuid)
+    assert p_uuid2 == test_uuid
+
+

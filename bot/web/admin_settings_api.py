@@ -156,6 +156,15 @@ async def post_admin_settings(request: web.Request) -> web.Response:
                     v = json.dumps(v, ensure_ascii=False)
                 await app_repo.set(rk, str(v).strip())
 
+        if "topic_errors" in body:
+            try:
+                from bot.services.error_reporter import update_cached_topic_errors
+                te_val = body.get("topic_errors")
+                if te_val is not None and str(te_val).strip().isdigit():
+                    update_cached_topic_errors(int(str(te_val).strip()))
+            except Exception:
+                pass
+
         # Invalidate cached settings
         cache = request.app.get("cache")
         if cache:
