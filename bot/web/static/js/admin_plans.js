@@ -16,6 +16,25 @@
   window.adminCouponsData = window.adminCouponsData || [];
   let adminPlansData = window.adminPlansData;
   let adminCouponsData = window.adminCouponsData;
+  let adminRemnawaveSquads = [];
+
+  async function loadRemnawaveSquads() {
+    try {
+      const res = await window.api.getAdminRemnawaveSquads();
+      if (res && res.ok && Array.isArray(res.squads)) {
+        adminRemnawaveSquads = res.squads;
+        const sel = $('planModalSquadUuid');
+        if (sel) {
+          const curVal = sel.value;
+          sel.innerHTML = '<option value="">🌐 همه سرورها (سراسری / عمومی)</option>' +
+            res.squads.map(s => `<option value="${escapeHtml(s.uuid)}">🧩 ${escapeHtml(s.name)}</option>`).join('');
+          if (curVal) sel.value = curVal;
+        }
+      }
+    } catch (e) {
+      console.debug('Failed to load remnawave squads', e);
+    }
+  }
 
   const PLAN_BADGE_MAP = {
     '': 'بدون نشان (پلن استاندارد)',
@@ -102,6 +121,10 @@
           return;
         }
 
+        if (!adminRemnawaveSquads || adminRemnawaveSquads.length === 0) {
+          loadRemnawaveSquads();
+        }
+
         container.innerHTML = adminPlansData.map(p => {
           const statusBadge = p.is_active
             ? '<span class="text-[10px] bg-emerald-500/10 t-success border border-emerald-500/30 px-2 py-0.5 rounded-lg font-bold">فعال</span>'
@@ -182,6 +205,10 @@
             `;
           }
 
+          const squadObj = adminRemnawaveSquads.find(s => s.uuid === p.squad_uuid);
+          const squadName = squadObj ? squadObj.name : (p.squad_uuid ? `اسکادران ${p.squad_uuid.slice(0, 8)}…` : '');
+          const squadBadge = squadName ? `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-500/15 text-purple-700 dark:text-purple-300 border border-purple-500/30 truncate max-w-[130px]" title="اسکادران: ${escapeHtml(squadName)}">🧩 ${escapeHtml(squadName)}</span>` : '';
+
           const descHtml = (!isExtraTraffic && !isExtraTime && p.description)
             ? `<p class="text-[11px] text-slate-400 line-clamp-1 pr-9">${escapeHtml(p.description)}</p>`
             : '';
@@ -210,6 +237,7 @@
                 <div class="flex items-center gap-1.5 flex-wrap pt-0.5">
                   ${typeBadge}
                   ${tagBadge}
+                  ${squadBadge}
                 </div>
               </div>
 
@@ -354,6 +382,7 @@
       if ($('planModalBadge')) $('planModalBadge').value = currentBadge;
       if ($('planModalBadgeLabel')) $('planModalBadgeLabel').innerText = PLAN_BADGE_MAP[currentBadge] || PLAN_BADGE_MAP[''];
       if ($('planModalMaxPurchases')) $('planModalMaxPurchases').value = (plan && plan.max_purchases) ? plan.max_purchases : '';
+      if ($('planModalSquadUuid')) $('planModalSquadUuid').value = plan ? (plan.squad_uuid || '') : '';
       $('planModalActive').checked = plan ? !!plan.is_active : true;
 
       if (plan) {
@@ -418,6 +447,7 @@
       const badge = $('planModalBadge')?.value || (window._currentAdminPlanType === 'traffic' ? 'traffic' : (window._currentAdminPlanType === 'time' ? 'time' : ''));
       const is_active = $('planModalActive')?.checked ?? true;
       const max_purchases = parseInt($('planModalMaxPurchases')?.value || '0', 10) || null;
+      const squad_uuid = $('planModalSquadUuid')?.value || null;
 
       if (!name) {
         if (window.showToast) window.showToast('نام تعرفه الزامی است.');
@@ -428,7 +458,7 @@
       if (saveBtn) { saveBtn.disabled = true; saveBtn.innerText = 'در حال ذخیره...'; }
 
       try {
-        const payload = { id: id ? parseInt(id, 10) : undefined, name, price, traffic_gb, duration_days, hwid_limit, description, badge, is_active, max_purchases };
+        const payload = { id: id ? parseInt(id, 10) : undefined, name, price, traffic_gb, duration_days, hwid_limit, description, badge, is_active, max_purchases, squad_uuid };
         const res = await window.api.saveAdminPlan(payload);
         if (res && res.ok) {
           if (window.showToast) window.showToast(`✅ ${res.message}`);
@@ -529,21 +559,24 @@
           }
 
           const usagesBtnHtml = usedCount > 0
-            ? `<button type="button" data-id="${c.id}" data-code="${escapeHtml(c.code)}" class="btn-coupon-usages flex-1 bg-transparent hover:bg-slate-500/10 text-indigo-600 dark:text-indigo-400 border border-slate-700/60 py-2 rounded-xl transition flex items-center justify-center active:scale-95 shadow-sm font-bold" title="استفاده‌کنندگان (${formatNumber(usedCount)})" aria-label="استفاده‌کنندگان (${formatNumber(usedCount)})">
+            ? `<button type="button" data-id="${c.id}" data-code="${escapeHtml(c.code)}" class="btn-coupon-usages flex-1 bg-transparent hover:bg-slate-500/10 text-indigo-600 dark:text-indigo-400 border border-slate-700/60 py-2 rounded-xl transition flex items-center justify-center gap-1.5 active:scale-95 shadow-sm font-bold" title="استفاده‌کنندگان (${formatNumber(usedCount)})" aria-label="استفاده‌کنندگان (${formatNumber(usedCount)})">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+                <span class="text-[11px] font-bold">مصرف‌کنندگان</span>
               </button>`
-            : `<div class="flex-1 bg-transparent text-slate-500 border border-slate-700/40 py-2 rounded-xl flex items-center justify-center opacity-40 cursor-not-allowed select-none" title="فاقد استفاده">
+            : `<div class="flex-1 bg-transparent text-slate-500 border border-slate-700/40 py-2 rounded-xl flex items-center justify-center gap-1.5 opacity-40 cursor-not-allowed select-none" title="فاقد استفاده">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+                <span class="text-[11px] font-bold">بدون مصرف</span>
               </div>`;
 
-          const toggleBtnHtml = `<button onclick="window.adminActions.toggleCoupon(${c.id}, ${c.is_active})" class="flex-1 bg-transparent hover:bg-slate-500/10 ${c.is_active ? 'text-amber-600 dark:text-amber-400' : 'text-emerald-600 dark:text-emerald-400'} border border-slate-700/60 py-2 rounded-xl transition flex items-center justify-center active:scale-95 shadow-sm font-bold" title="${c.is_active ? 'غیرفعال‌سازی کد تخفیف' : 'فعال‌سازی کد تخفیف'}" aria-label="${c.is_active ? 'غیرفعال‌سازی کد تخفیف' : 'فعال‌سازی کد تخفیف'}">
+          const toggleBtnHtml = `<button onclick="window.adminActions.toggleCoupon(${c.id}, ${c.is_active})" class="flex-1 bg-transparent hover:bg-slate-500/10 ${c.is_active ? 'text-amber-600 dark:text-amber-400' : 'text-emerald-600 dark:text-emerald-400'} border border-slate-700/60 py-2 rounded-xl transition flex items-center justify-center gap-1.5 active:scale-95 shadow-sm font-bold" title="${c.is_active ? 'غیرفعال‌سازی کد تخفیف' : 'فعال‌سازی کد تخفیف'}" aria-label="${c.is_active ? 'غیرفعال‌سازی کد تخفیف' : 'فعال‌سازی کد تخفیف'}">
             ${c.is_active
-              ? '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>'
-              : '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>'}
+              ? '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg><span class="text-[11px] font-bold">غیرفعال</span>'
+              : '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg><span class="text-[11px] font-bold">فعال‌سازی</span>'}
           </button>`;
 
-          const deleteBtnHtml = `<button type="button" data-id="${c.id}" data-code="${escapeHtml(c.code)}" class="btn-delete-coupon flex-1 bg-transparent hover:bg-slate-500/10 text-rose-600 dark:text-rose-400 border border-slate-700/60 py-2 rounded-xl transition flex items-center justify-center active:scale-95 shadow-sm font-bold" title="حذف کد تخفیف" aria-label="حذف کد تخفیف">
+          const deleteBtnHtml = `<button type="button" data-id="${c.id}" data-code="${escapeHtml(c.code)}" class="btn-delete-coupon flex-1 bg-transparent hover:bg-slate-500/10 text-rose-600 dark:text-rose-400 border border-slate-700/60 py-2 rounded-xl transition flex items-center justify-center gap-1.5 active:scale-95 shadow-sm font-bold" title="حذف کد تخفیف" aria-label="حذف کد تخفیف">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+            <span class="text-[11px] font-bold">حذف</span>
           </button>`;
 
           return `

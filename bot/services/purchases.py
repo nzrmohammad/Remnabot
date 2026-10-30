@@ -346,6 +346,32 @@ async def _execute_purchase_impl(
             await session.commit()
     else:
         # Renew the existing account (+ reactivate if expiry job disabled it).
+        if (is_extra_traffic or is_extra_time) and service.squad_uuid:
+            raw_squads = account.get("activeInternalSquads") or account.get("internalSquads") or []
+            acc_squad_uuids = set()
+            for sq in raw_squads:
+                if isinstance(sq, dict):
+                    u = sq.get("uuid") or sq.get("id")
+                    if u:
+                        acc_squad_uuids.add(str(u))
+                elif isinstance(sq, str):
+                    acc_squad_uuids.add(sq)
+            if acc_squad_uuids and str(service.squad_uuid) not in acc_squad_uuids:
+                if claimed_usage and coupon_obj:
+                    try:
+                        await coupon_repo.release_usage(coupon_obj.id, telegram_id, claimed_usage.id)
+                    except Exception as c_err:
+                        logger.warning("Failed to release coupon usage: %s", c_err)
+                await order_repo.mark_failed(pending)
+                await session.commit()
+                return PurchaseResult(ok=False, kind="squad_mismatch")
+
+        if not is_extra_traffic and not is_extra_time and service.squad_uuid:
+            try:
+                await remnawave.set_user_squads(int(account["id"]), [service.squad_uuid])
+            except Exception as sq_err:
+                logger.warning("Failed to update user squad on full plan renewal: %s", sq_err)
+
         should_reset_traffic = False
         current_expire_str = account.get("expireAt")
         current_expire = _parse_expire(current_expire_str)

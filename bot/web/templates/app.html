@@ -1553,32 +1553,67 @@
                   </p>
                 </div>
 
-                <!-- Realistic BluBank Card Graphic -->
+                <!-- Realistic BluBank Card Graphic (Vertical 3D Flip Card) -->
                 <div class="space-y-2.5">
-                  <div id="cardAutoBluCardBox" class="surface-dark on-dark relative w-full max-w-[340px] mx-auto rounded-2xl p-4 text-white shadow-xl overflow-hidden transition-all duration-300 select-none border border-white/20" style="background: linear-gradient(135deg, #0d47a1 0%, #1976d2 50%, #0288d1 100%);">
-                    <!-- Subtle glass sheen / reflection overlay -->
-                    <div class="absolute inset-0 bg-gradient-to-tr from-black/25 via-white/10 to-transparent pointer-events-none"></div>
+                  <div class="blu-card-perspective-box" onclick="window.flipBluCard(this)" title="لمس برای چرخش کارت">
+                    <div id="cardAutoBluCardBox" class="blu-card-flipper surface-dark on-dark">
+                      <!-- FRONT FACE (Vertical Card: Left Maroon Stripe, Name at Top, 4 Rows of 4 Digits, Saman Bank) -->
+                      <div class="blu-card-face blu-card-front flex text-white overflow-hidden shadow-2xl border border-white/20" style="background: linear-gradient(135deg, #c93b4a 0%, #ad2836 60%, #8b1e2a 100%);">
+                        <!-- Left dark maroon vertical stripe -->
+                        <div class="w-12 sm:w-14 h-full bg-[#48161c]/90 border-r border-black/20 flex flex-col justify-between py-6 items-center flex-shrink-0">
+                          <div class="w-2.5 h-10 rounded-full bg-white/20"></div>
+                          <div class="text-[9.5px] text-white/40 font-mono tracking-widest -rotate-90 origin-center whitespace-nowrap">DEBIT CARD</div>
+                        </div>
 
-                    <!-- Top row: Blu Logo & Bank Name & Contactless Wave -->
-                    <div class="relative z-10 flex items-center justify-between pb-2.5">
-                      <div class="flex items-center gap-2">
-                        <span class="text-base sm:text-lg font-black tracking-tight font-sans text-white drop-shadow">blu</span>
-                        <span class="text-[10px] text-white/80 font-medium border-r border-white/40 pr-2">سامان</span>
+                        <!-- Main card body -->
+                        <div class="flex-1 flex flex-col justify-between p-4 relative z-10 text-right">
+                          <!-- Top: Cardholder Name -->
+                          <div>
+                            <span id="cardAutoCardHolder" class="text-xs sm:text-sm font-bold text-white drop-shadow truncate block">در حال دریافت...</span>
+                          </div>
+
+                          <!-- Center: 4 rows of 4 digits -->
+                          <div class="my-auto py-2 text-center">
+                            <div id="cardAutoCardNumber" class="flex flex-col items-center gap-1 font-mono font-black text-lg sm:text-xl tracking-[0.16em] text-white drop-shadow-md num-bidi" dir="ltr">
+                              <span>----</span>
+                              <span>----</span>
+                              <span>----</span>
+                              <span>----</span>
+                            </div>
+                          </div>
+
+                          <!-- Bottom: EXP/CVV2 & Saman Bank logo -->
+                          <div class="space-y-1.5">
+                            <div class="flex justify-between items-center text-[9px] font-mono text-white/80 border-t border-white/15 pt-1.5" dir="ltr">
+                              <div><span class="text-white/50">EXP: </span>1408/08</div>
+                              <div><span class="text-white/50">CVV2: </span>743</div>
+                            </div>
+                            <div class="flex items-center justify-between text-white/90">
+                              <span class="text-[11px] font-bold tracking-tight">Saman Bank</span>
+                              <span class="text-xs">🌸</span>
+                            </div>
+                          </div>
+                        </div>
                       </div>
-                      <div class="flex items-center gap-1.5 text-white/85">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.111 16.404a5.5 5.5 0 017.778 0M5.636 13.93a9 9 0 0112.728 0M3.161 11.455a12.5 12.5 0 0117.678 0"/></svg>
-                        <span class="text-[9.5px] font-bold">پرداخت کارت به کارت</span>
+
+                      <!-- BACK FACE: Centered 'blu' logo + 'bank, but lovely' + 360 hint -->
+                      <div class="blu-card-face blu-card-back flex flex-col justify-between items-center p-6 text-white text-center shadow-2xl border border-white/20" style="background: linear-gradient(135deg, #c93b4a 0%, #ad2836 60%, #8b1e2a 100%);">
+                        <div class="w-full flex justify-end">
+                          <span class="text-[10px] text-white/50 font-mono">blubank.com</span>
+                        </div>
+
+                        <!-- Center Branding -->
+                        <div class="my-auto space-y-1">
+                          <h2 class="text-4xl sm:text-5xl font-black tracking-tight font-sans drop-shadow">blu</h2>
+                          <p class="text-xs sm:text-sm font-medium text-white/90 tracking-wide font-sans">bank, but lovely</p>
+                        </div>
+
+                        <!-- Bottom: Flip indicator -->
+                        <div class="flex flex-col items-center gap-1 opacity-80">
+                          <svg class="w-5 h-5 text-white animate-spin" style="animation-duration: 4s;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                          <span class="text-[9.5px] font-medium text-white/80">لمس برای چرخش کارت</span>
+                        </div>
                       </div>
-                    </div>
-
-                    <!-- 16-digit Card Number Display -->
-                    <div class="relative z-10 py-2 text-center">
-                      <div id="cardAutoCardNumber" class="text-base sm:text-lg font-mono font-bold tracking-[0.16em] text-white drop-shadow-md num-bidi" dir="ltr">---- ---- ---- ----</div>
-                    </div>
-
-                    <!-- Bottom row: Cardholder Name -->
-                    <div class="relative z-10 flex items-center justify-between pt-0.5">
-                      <span id="cardAutoCardHolder" class="text-xs font-bold text-white drop-shadow truncate block">در حال دریافت...</span>
                     </div>
                   </div>
 
@@ -1625,27 +1660,54 @@
 
             <!-- Legacy / Manual Card Topup Details Box -->
             <div id="manualCardTopupSection" class="space-y-3">
-              <!-- BluBank Styled Card Graphic -->
-              <div id="manualBluCardBox" class="surface-dark on-dark relative w-full max-w-[340px] mx-auto rounded-2xl p-4 text-white shadow-xl overflow-hidden transition-all duration-300 select-none border border-white/20" style="background: linear-gradient(135deg, #0d47a1 0%, #1976d2 50%, #0288d1 100%);">
-                <div class="absolute inset-0 bg-gradient-to-tr from-black/25 via-white/10 to-transparent pointer-events-none"></div>
-
-                <div class="relative z-10 flex items-center justify-between pb-2.5">
-                  <div class="flex items-center gap-2">
-                    <span class="text-base sm:text-lg font-black tracking-tight font-sans text-white drop-shadow">blu</span>
-                    <span class="text-[10px] text-white/80 font-medium border-r border-white/40 pr-2">سامان</span>
+              <!-- BluBank Styled Card Graphic (Vertical 3D Flip Card) -->
+              <div class="blu-card-perspective-box" onclick="window.flipBluCard(this)" title="لمس برای چرخش کارت">
+                <div id="manualBluCardBox" class="blu-card-flipper surface-dark on-dark">
+                  <!-- FRONT FACE -->
+                  <div class="blu-card-face blu-card-front flex text-white overflow-hidden shadow-2xl border border-white/20" style="background: linear-gradient(135deg, #c93b4a 0%, #ad2836 60%, #8b1e2a 100%);">
+                    <div class="w-12 sm:w-14 h-full bg-[#48161c]/90 border-r border-black/20 flex flex-col justify-between py-6 items-center flex-shrink-0">
+                      <div class="w-2.5 h-10 rounded-full bg-white/20"></div>
+                      <div class="text-[9.5px] text-white/40 font-mono tracking-widest -rotate-90 origin-center whitespace-nowrap">DEBIT CARD</div>
+                    </div>
+                    <div class="flex-1 flex flex-col justify-between p-4 relative z-10 text-right">
+                      <div>
+                        <span id="topupCardHolder" class="text-xs sm:text-sm font-bold text-white drop-shadow truncate block">در حال دریافت...</span>
+                      </div>
+                      <div class="my-auto py-2 text-center">
+                        <div id="topupCardNumber" class="flex flex-col items-center gap-1 font-mono font-black text-lg sm:text-xl tracking-[0.16em] text-white drop-shadow-md num-bidi" dir="ltr">
+                          <span>----</span>
+                          <span>----</span>
+                          <span>----</span>
+                          <span>----</span>
+                        </div>
+                      </div>
+                      <div class="space-y-1.5">
+                        <div class="flex justify-between items-center text-[9px] font-mono text-white/80 border-t border-white/15 pt-1.5" dir="ltr">
+                          <div><span class="text-white/50">EXP: </span>1408/08</div>
+                          <div><span class="text-white/50">CVV2: </span>743</div>
+                        </div>
+                        <div class="flex items-center justify-between text-white/90">
+                          <span class="text-[11px] font-bold tracking-tight">Saman Bank</span>
+                          <span class="text-xs">🌸</span>
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                  <div class="flex items-center gap-1.5 text-white/85">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.111 16.404a5.5 5.5 0 017.778 0M5.636 13.93a9 9 0 0112.728 0M3.161 11.455a12.5 12.5 0 0117.678 0"/></svg>
-                    <span class="text-[9.5px] font-bold">پرداخت کارت به کارت</span>
+
+                  <!-- BACK FACE -->
+                  <div class="blu-card-face blu-card-back flex flex-col justify-between items-center p-6 text-white text-center shadow-2xl border border-white/20" style="background: linear-gradient(135deg, #c93b4a 0%, #ad2836 60%, #8b1e2a 100%);">
+                    <div class="w-full flex justify-end">
+                      <span class="text-[10px] text-white/50 font-mono">blubank.com</span>
+                    </div>
+                    <div class="my-auto space-y-1">
+                      <h2 class="text-4xl sm:text-5xl font-black tracking-tight font-sans drop-shadow">blu</h2>
+                      <p class="text-xs sm:text-sm font-medium text-white/90 tracking-wide font-sans">bank, but lovely</p>
+                    </div>
+                    <div class="flex flex-col items-center gap-1 opacity-80">
+                      <svg class="w-5 h-5 text-white animate-spin" style="animation-duration: 4s;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                      <span class="text-[9.5px] font-medium text-white/80">لمس برای چرخش کارت</span>
+                    </div>
                   </div>
-                </div>
-
-                <div class="relative z-10 py-2 text-center">
-                  <div id="topupCardNumber" class="text-base sm:text-lg font-mono font-bold tracking-[0.16em] text-white drop-shadow-md num-bidi cursor-pointer" dir="ltr" title="کلیک جهت کپی">---- ---- ---- ----</div>
-                </div>
-
-                <div class="relative z-10 flex items-center justify-between pt-0.5">
-                  <span id="topupCardHolder" class="text-xs font-bold text-white drop-shadow truncate block">در حال دریافت...</span>
                 </div>
               </div>
 
@@ -2654,12 +2716,9 @@
         </div>
 
         <!-- Actions -->
-        <div class="space-y-2 pt-1">
+        <div class="pt-1">
           <button id="saveBirthdayBtn" type="button" onclick="window.saveBirthday()" class="w-full bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-bold text-xs py-2.5 rounded-xl transition active:scale-95 shadow-lg shadow-indigo-500/20 flex items-center justify-center gap-1.5">
             <span>ثبت تاریخ تولد 🎉</span>
-          </button>
-          <button type="button" onclick="window.closeBirthdayModal()" class="btn btn-secondary w-full py-2 rounded-xl text-xs active:scale-95">
-            انصراف
           </button>
         </div>
       </div>

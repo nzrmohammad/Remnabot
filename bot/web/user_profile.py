@@ -297,19 +297,7 @@ async def get_user_me(request: web.Request) -> web.Response:
                 await session.rollback()
                 raw_services = []
 
-        plans_data = [
-            {
-                "id": s.id,
-                "name": s.name,
-                "price": s.price,
-                "duration_days": s.duration_days,
-                "traffic_gb": s.traffic_gb,
-                "description": s.description,
-                "hwid_limit": s.hwid_limit,
-                "badge": s.badge or "",
-            }
-            for s in raw_services
-        ]
+        plans_data = []
 
         tz_name = getattr(settings, "TIMEZONE", "Asia/Tehran")
         now_dt = now_tz(tz_name)
@@ -373,6 +361,40 @@ async def get_user_me(request: web.Request) -> web.Response:
         active_sub, has_active_sub, accounts_list = await _build_active_subscription(
             remnawave, panel_users, req_account_id, telegram_id, user_auth, session, tz_name, now_dt
         )
+
+        user_squad_uuids = set()
+        for p in panel_users:
+            if p.get("status") in ("ACTIVE", "DISABLED", "LIMITED", "EXPIRED"):
+                for sq in (p.get("activeInternalSquads") or p.get("internalSquads") or []):
+                    if isinstance(sq, dict):
+                        u = sq.get("uuid") or sq.get("id")
+                        if u:
+                            user_squad_uuids.add(str(u))
+                    elif isinstance(sq, str):
+                        user_squad_uuids.add(sq)
+
+        filtered_services = []
+        for s in raw_services:
+            is_addon = (s.traffic_gb > 0 and s.duration_days == 0) or (s.duration_days > 0 and s.traffic_gb == 0)
+            if is_addon and s.squad_uuid:
+                if user_squad_uuids and str(s.squad_uuid) not in user_squad_uuids:
+                    continue
+            filtered_services.append(s)
+
+        plans_data = [
+            {
+                "id": s.id,
+                "name": s.name,
+                "price": s.price,
+                "duration_days": s.duration_days,
+                "traffic_gb": s.traffic_gb,
+                "description": s.description,
+                "hwid_limit": s.hwid_limit,
+                "badge": s.badge or "",
+                "squad_uuid": s.squad_uuid or "",
+            }
+            for s in filtered_services
+        ]
         is_invite_only = False
         is_adm = bool(user_auth.get("is_admin", False))
         if not is_adm:

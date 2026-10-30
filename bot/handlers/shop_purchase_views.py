@@ -266,6 +266,18 @@ async def _render_purchase_result(
             else "⚠️ <b>No active subscription found!</b>\n\nAdd-on packages can only be applied to active services."
         )
         await render_menu(bot, user, user_repo, msg, kb.as_markup())
+    elif result.kind == "squad_mismatch":
+        kb = InlineKeyboardBuilder()
+        kb.button(text=t(lang, "btn_back"), callback_data="menu:services")
+        kb.adjust(1)
+        msg = (
+            "⚠️ <b>عدم تطابق نوع سرویس!</b>\n\n"
+            "این بسته افزایشی (حجم یا زمان) با سرورها و اسکادران سرویس فعال شما سازگار نیست.\n"
+            "لطفاً بسته متناسب با اشتراک خود را انتخاب فرمایید."
+            if lang == "fa"
+            else "⚠️ <b>Squad Mismatch!</b>\n\nThis add-on package is not compatible with your active subscription squad."
+        )
+        await render_menu(bot, user, user_repo, msg, kb.as_markup())
     elif result.kind == "coupon_exhausted":
         kb = InlineKeyboardBuilder()
         kb.button(text=t(lang, "btn_back"), callback_data="menu:services")

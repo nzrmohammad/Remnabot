@@ -78,10 +78,35 @@ async def get_admin_plans(request: web.Request) -> web.Response:
                 "badge": s.badge or "",
                 "max_purchases": s.max_purchases,
                 "purchases_count": s.purchases_count or 0,
+                "squad_uuid": s.squad_uuid or "",
             }
             for s in services
         ]
     return web.json_response({"ok": True, "plans": plans})
+
+
+async def get_admin_remnawave_squads(request: web.Request) -> web.Response:
+    """Fetch all internal squads from Remnawave panel."""
+    admin = _check_admin(request)
+    if not admin:
+        return web.json_response({"ok": False, "error": "Forbidden"}, status=403)
+
+    remnawave = request.app.get("remnawave")
+    if not remnawave:
+        return web.json_response({"ok": False, "error": "ارتباط با پنل رمناویو برقرار نیست"}, status=503)
+
+    try:
+        raw_squads = await remnawave.get_internal_squads()
+        squads = []
+        for s in (raw_squads or []):
+            uuid = s.get("uuid") or s.get("id")
+            name = s.get("name") or uuid
+            if uuid:
+                squads.append({"uuid": str(uuid), "name": str(name)})
+        return web.json_response({"ok": True, "squads": squads})
+    except Exception as exc:
+        logger.warning("Failed to fetch internal squads from Remnawave: %s", exc)
+        return web.json_response({"ok": False, "error": "خطا در دریافت لیست اسکادران‌ها از پنل"}, status=500)
 
 
 async def post_admin_plan_save(request: web.Request) -> web.Response:
@@ -121,6 +146,7 @@ async def post_admin_plan_save(request: web.Request) -> web.Response:
     description = str(body.get("description") or "").strip() or None
     badge = str(body.get("badge") or "").strip() or None
     is_active = bool(body.get("is_active", True))
+    squad_uuid = str(body.get("squad_uuid") or "").strip() or None
 
     async with db_session(request) as session:
         if plan_id:
@@ -136,6 +162,7 @@ async def post_admin_plan_save(request: web.Request) -> web.Response:
             service.is_active = is_active
             service.hwid_limit = hwid_limit
             service.max_purchases = max_purchases
+            service.squad_uuid = squad_uuid
             msg = "پلن با موفقیت ویرایش شد."
         else:
             service = Service(
@@ -148,6 +175,7 @@ async def post_admin_plan_save(request: web.Request) -> web.Response:
                 is_active=is_active,
                 hwid_limit=hwid_limit,
                 max_purchases=max_purchases,
+                squad_uuid=squad_uuid,
                 purchases_count=0,
             )
             session.add(service)

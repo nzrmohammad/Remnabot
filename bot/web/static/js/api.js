@@ -375,6 +375,10 @@ const api = {
     return this.get('/api/admin/plans');
   },
 
+  async getAdminRemnawaveSquads() {
+    return this.get('/api/admin/remnawave/squads');
+  },
+
   async saveAdminPlan(data) {
     return this.post('/api/admin/plan/save', data);
   },

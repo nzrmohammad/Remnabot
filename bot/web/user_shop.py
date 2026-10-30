@@ -572,6 +572,12 @@ async def post_user_purchase(request: web.Request) -> web.Response:
                     "error": "needs_active_sub",
                     "message": "برای خرید بسته افزایش حجم یا افزایش زمان، داشتن یک اشتراک فعال الزامی است.",
                 }, status=400)
+            elif result.kind == "squad_mismatch":
+                return web.json_response({
+                    "ok": False,
+                    "error": "squad_mismatch",
+                    "message": "این بسته افزایشی با نوع سرویس و سرورهای فعال شما سازگار نیست.",
+                }, status=400)
 
             logger.error("Purchase failed for user %s, service %s, result_kind: %s", telegram_id, service_id, result.kind)
             if bot and session_factory:

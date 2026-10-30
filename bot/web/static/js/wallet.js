@@ -19,11 +19,32 @@ function formatCardNumberDisplay(num) {
   return clean.replace(/(\d{4})(?=\d)/g, '$1 ');
 }
 
+function renderBluCardNumber(el, num) {
+  if (!el) return;
+  const clean = String(num || '').replace(/\D/g, '');
+  if (clean.length === 16) {
+    el.innerHTML = `
+      <span>${clean.slice(0, 4)}</span>
+      <span>${clean.slice(4, 8)}</span>
+      <span>${clean.slice(8, 12)}</span>
+      <span>${clean.slice(12, 16)}</span>
+    `;
+  } else {
+    el.innerText = formatCardNumberDisplay(num);
+  }
+}
+
+window.flipBluCard = function(el) {
+  if (!el) return;
+  const flipper = el.classList.contains('blu-card-flipper') ? el : (el.querySelector('.blu-card-flipper') || el);
+  flipper.classList.toggle('is-flipped');
+  if (window.hapticFeedback) window.hapticFeedback('impact');
+};
+
 function applyBluBankCardTheme(color) {
-  const grad = BLUBANK_GRADIENTS[color] || BLUBANK_GRADIENTS.blue;
-  const cards = [document.getElementById('cardAutoBluCardBox'), document.getElementById('manualBluCardBox')];
-  cards.forEach(card => {
-    if (card) card.style.background = grad;
+  const grad = BLUBANK_GRADIENTS[color] || BLUBANK_GRADIENTS.rose;
+  document.querySelectorAll('.blu-card-face').forEach(face => {
+    face.style.background = grad;
   });
 }
 
@@ -175,9 +196,9 @@ async function loadTopupInfo() {
       window.storeSettings = res;
       const cardNumEl = document.getElementById('topupCardNumber');
       const cardHolderEl = document.getElementById('topupCardHolder');
-      if (cardNumEl) cardNumEl.innerText = formatCardNumberDisplay(res.card_number || 'هنوز ثبت نشده');
+      if (cardNumEl) renderBluCardNumber(cardNumEl, res.card_number || '----');
       if (cardHolderEl) cardHolderEl.innerText = res.card_holder || 'مدیریت سرور';
-      applyBluBankCardTheme(res.card_blubank_color || 'blue');
+      applyBluBankCardTheme(res.card_blubank_color || 'rose');
 
       const hasCard = res.card_enabled === true;
       const hasStars = res.stars_enabled === true;
@@ -409,9 +430,9 @@ function renderCardAutoInvoice(inv) {
 
   if (exactTomanEl) exactTomanEl.innerText = `${Number(inv.exact_amount || 0).toLocaleString('en-US')} تومان`;
   if (exactRialEl) exactRialEl.innerText = `${Number(inv.exact_rial || (inv.exact_amount * 10) || 0).toLocaleString('en-US')} ریال`;
-  if (cardNumEl) cardNumEl.innerText = formatCardNumberDisplay(inv.card_number || window.storeSettings?.card_number || '----');
+  if (cardNumEl) renderBluCardNumber(cardNumEl, inv.card_number || window.storeSettings?.card_number || '----');
   if (cardHolderEl) cardHolderEl.innerText = inv.card_holder || window.storeSettings?.card_holder || 'مدیریت سرور';
-  applyBluBankCardTheme(inv.card_blubank_color || window.storeSettings?.card_blubank_color || 'blue');
+  applyBluBankCardTheme(inv.card_blubank_color || window.storeSettings?.card_blubank_color || 'rose');
 
   startCardAutoCountdownTimer(inv.remaining_seconds || 3600);
   startCardAutoPolling(inv.invoice_uuid);

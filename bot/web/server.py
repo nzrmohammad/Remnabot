@@ -592,6 +592,7 @@ def create_web_app(
     app.router.add_get("/api/admin/broadcast/status", routes_admin.get_admin_broadcast_status)
     app.router.add_post("/api/admin/user/reset_trial", routes_admin.post_admin_reset_trial)
     app.router.add_get("/api/admin/plans", routes_admin.get_admin_plans)
+    app.router.add_get("/api/admin/remnawave/squads", routes_admin.get_admin_remnawave_squads)
     app.router.add_post("/api/admin/plan/save", routes_admin.post_admin_plan_save)
     app.router.add_post("/api/admin/plan/toggle", routes_admin.post_admin_plan_toggle)
     app.router.add_post("/api/admin/plan/delete", routes_admin.post_admin_plan_delete)

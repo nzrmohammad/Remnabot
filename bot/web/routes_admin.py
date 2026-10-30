@@ -39,6 +39,7 @@ from bot.web.admin_tickets import (
 )
 from bot.web.admin_plans import (
     get_admin_plans,
+    get_admin_remnawave_squads,
     post_admin_plan_save,
     post_admin_plan_toggle,
     post_admin_plan_delete,
@@ -101,6 +102,7 @@ __all__ = [
     "get_admin_ticket_messages",
     "post_admin_reply_ticket",
     "get_admin_plans",
+    "get_admin_remnawave_squads",
     "post_admin_plan_save",
     "post_admin_plan_toggle",
     "post_admin_plan_delete",

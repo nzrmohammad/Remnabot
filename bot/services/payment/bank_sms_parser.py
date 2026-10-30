@@ -58,12 +58,15 @@ _DEPOSIT_KEYWORDS = (
     "انتقال به سپرده",
     "افزایش موجودی",
     "+",
+    "به حساب شما نشست",
+    "نشست",
 )
 
 # Known Iranian banks keywords in SMS sender or body, ordered by priority (specific banks first)
 _BANK_NAMES: list[tuple[str, str]] = [
     ("blubank", "بلوبانک"),
     ("بلو", "بلوبانک"),
+    ("به حساب شما نشست", "بلوبانک"),
     ("vepod", "ویپاد"),
     ("ویپاد", "ویپاد"),
     ("mellat", "بانک ملت"),
@@ -149,7 +152,7 @@ def parse_bank_sms(text: str, sender: str = "") -> ParsedBankSms:
     norm_text = normalize_sms_digits(text)
     bank_name = detect_bank_name(norm_text, sender)
 
-    # 1. Check for withdrawal keywords
+    # 1. Check for withdrawal keywords or negative amounts (e.g. 1,290,000-)
     norm_lower = norm_text.lower()
     for kw in _WITHDRAWAL_KEYWORDS:
         if kw in norm_lower:
@@ -162,6 +165,17 @@ def parse_bank_sms(text: str, sender: str = "") -> ParsedBankSms:
                 tracking_code=None,
                 raw_text=text,
             )
+
+    if re.search(r"(?:خرید|برداشت|کارت|حساب|سپرده|مبلغ)?\s*[\d,]{4,15}\s*\-", norm_lower):
+        return ParsedBankSms(
+            is_deposit=False,
+            amount_toman=None,
+            amount_rial=None,
+            bank_name=bank_name,
+            card_last4=None,
+            tracking_code=None,
+            raw_text=text,
+        )
 
     # 2. Check for deposit keywords
     has_deposit = any(kw in norm_lower for kw in _DEPOSIT_KEYWORDS)
@@ -196,18 +210,20 @@ def parse_bank_sms(text: str, sender: str = "") -> ParsedBankSms:
     # 5. Extract Amount
     # Common Patterns:
     # Pattern A: "مبلغ: 503,700 ریال" or "مبلغ 50,370 تومان" or "مبلغ: 503700R"
-    # Pattern B: "واریز: 503,700 ریال" or "واریز 50,370 تومان" or "+503,700 ریال"
-    # Pattern C: "50,370 تومان واریز شد"
+    # Pattern B: "واریز: 503,700 ریال" or "واریز 50,370 تومان" or "+503,700 ریال" or "کارت700,000+"
+    # Pattern C: "50,370 تومان واریز شد" or "11,421,100ریال به حساب شما نشست"
     amount_toman = None
     amount_rial = None
 
-    # First look for explicit amount patterns with unit
-    # (مبلغ|واریز|\+)\s*[:：]?\s*([\d,]+)\s*(ریال|تومان|ت|R|IRR)?
     patterns = [
         # Explicit "مبلغ: 559,370 ریال" or "واریز: 559,370 ریال"
-        r"(?:مبلغ|واریز|بستانکار|\+)\s*[:：]?\s*([\d,]{3,15})\s*(ریال|تومان|ت|R|IRR)?",
-        # "559,370 ریال واریز شد" or "55,937 تومان واریز شد"
-        r"([\d,]{3,15})\s*(ریال|تومان)\s*(?:واریز|به حساب|به کارت)",
+        r"(?:مبلغ|واریز|بستانکار)\s*[:：]?\s*([\d,]{3,15})\s*(ریال|تومان|ت|R|IRR)?",
+        # Refah / Keshavarzi plus notation: "کارت700,000+" or "700,000+"
+        r"(?:کارت|حساب|سپرده|واریز)?\s*([\d,]{4,15})\s*\+",
+        # "+700,000 ریال" or "+700,000"
+        r"\+\s*([\d,]{3,15})\s*(ریال|تومان|ت|R|IRR)?",
+        # "559,370 ریال واریز شد" or "11,421,100ریال به حساب شما نشست"
+        r"([\d,]{3,15})\s*(ریال|تومان)\s*(?:واریز|به حساب|به کارت|نشست)",
         # Any number immediately followed by ریال or تومان
         r"([\d,]{3,15})\s*(ریال|تومان)",
     ]

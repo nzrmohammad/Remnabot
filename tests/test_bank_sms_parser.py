@@ -127,3 +127,41 @@ def test_parse_resalat_deposit():
     assert res.is_deposit is True
     assert res.amount_toman == 75000
     assert res.bank_name == "بانک رسالت"
+
+
+def test_parse_blubank_neshast_sms():
+    sms = """واریز پول
+محمدجواد عزیز، 11,421,100ریال به حساب شما نشست.
+موجودی: 781,437,047 ریال
+۱۳:۳۰
+۱۴۰۵.۰۸.۰۸"""
+    res = parse_bank_sms(sms)
+    assert res.is_deposit is True
+    assert res.amount_rial == 11421100
+    assert res.amount_toman == 1142110
+    assert res.bank_name == "بلوبانک"
+
+
+def test_parse_refah_plus_deposit_sms():
+    sms = """بانک رفاه
+حساب216357100
+کارت700,000+
+مانده33,066,894
+08/07-21:04"""
+    res = parse_bank_sms(sms)
+    assert res.is_deposit is True
+    assert res.amount_rial == 700000
+    assert res.amount_toman == 70000
+    assert res.bank_name == "بانک رفاه"
+    assert res.card_last4 == "7100"
+
+
+def test_reject_refah_minus_withdrawal_sms():
+    sms = """بانک رفاه
+حساب216357100
+خرید1,290,000-
+مانده31,776,894
+08/08-07:27"""
+    res = parse_bank_sms(sms)
+    assert res.is_deposit is False
+
