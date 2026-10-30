@@ -391,7 +391,7 @@ openCryptoRatesModal() {
             <div class="space-y-1">
               ${trxRowsHtml || '<div class="text-[10px] t-muted text-center py-1">اطلاعاتی دریافت نشد</div>'}
             </div>
-          </div>`;
+          </div>
 
           <!-- Stars Auto-Calculation from Live USDT Benchmark -->
           <div class="space-y-1.5 mt-3 pt-2.5 border-t border-slate-700/60">

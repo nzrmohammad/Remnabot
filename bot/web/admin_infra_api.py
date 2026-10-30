@@ -4,6 +4,7 @@ import logging
 from datetime import datetime, timedelta, timezone
 import socket
 import time
+from typing import Any
 import aiohttp
 from aiohttp import web
 from sqlalchemy import func, select
@@ -366,15 +367,34 @@ async def get_admin_github_releases(request: web.Request) -> web.Response:
 
 
 
+def _cc_to_flag(cc: str) -> str:
+    """Convert 2-letter country code to flag emoji."""
+    if not cc or len(cc) != 2:
+        return "🌐"
+    try:
+        return "".join(chr(127397 + ord(c)) for c in cc.upper())
+    except Exception:
+        return "🌐"
+
+
 async def get_admin_tools_check_host(request: web.Request) -> web.Response:
-    """Perform network check (IP Info, Ping, HTTP, TCP, UDP, DNS) on target host/IP."""
+    """Perform network check (Ping, HTTP, TCP, DNS) using Check-Host API with local fallback."""
     admin = _check_admin(request)
     if not admin:
         return web.json_response({"ok": False, "error": "Forbidden"}, status=403)
 
-    host = (request.query.get("host") or "").strip()
-    check_type = (request.query.get("type") or "info").lower().strip()
-    port_str = (request.query.get("port") or "").strip()
+    if request.method == "POST":
+        try:
+            body = await request.json()
+        except Exception:
+            body = {}
+        host = (body.get("host") or "").strip()
+        check_type = (body.get("check_type") or body.get("type") or "ping").lower().strip()
+        port_val = body.get("port")
+    else:
+        host = (request.query.get("host") or "").strip()
+        check_type = (request.query.get("type") or "ping").lower().strip()
+        port_val = request.query.get("port")
 
     if not host:
         return web.json_response({"ok": False, "error": "نام دامنه یا آدرس آی‌پی الزامی است."}, status=400)
@@ -384,136 +404,138 @@ async def get_admin_tools_check_host(request: web.Request) -> web.Response:
         return web.json_response({"ok": False, "error": "آدرس نامعتبر است."}, status=400)
 
     port = 443
-    if port_str.isdigit():
-        port = int(port_str)
+    if port_val is not None and str(port_val).isdigit():
+        port = int(port_val)
     elif check_type in ("http", "info"):
         port = 80
     elif check_type in ("ping", "tcp"):
         port = 443
 
-    result = {}
-    try:
-        if check_type == "info":
-            async with aiohttp.ClientSession() as s:
-                url = f"http://ip-api.com/json/{clean_host}?fields=status,message,country,countryCode,regionName,city,zip,lat,lon,timezone,isp,org,as,query"
-                async with s.get(url, timeout=aiohttp.ClientTimeout(total=5)) as resp:
-                    if resp.status == 200:
-                        data = await resp.json()
-                        result = {
-                            "status": data.get("status"),
-                            "ip": data.get("query"),
-                            "country": data.get("country"),
-                            "country_code": data.get("countryCode"),
-                            "city": data.get("city"),
-                            "region": data.get("regionName"),
-                            "isp": data.get("isp"),
-                            "org": data.get("org"),
-                            "asn": data.get("as"),
-                            "timezone": data.get("timezone"),
-                        }
-                    else:
-                        result = {"error": f"HTTP {resp.status}"}
+    results: list[dict[str, Any]] = []
 
+    # 1. Try public Check-Host API
+    try:
+        endpoint = "ping"
+        query_host = clean_host
+        if check_type == "tcp":
+            endpoint = "tcp"
+            query_host = f"{clean_host}:{port}"
+        elif check_type == "http":
+            endpoint = "http"
+            query_host = f"{clean_host}:{port}" if port not in (80, 443) else clean_host
         elif check_type == "dns":
-            loop = asyncio.get_event_loop()
+            endpoint = "dns"
+            query_host = clean_host
+
+        init_url = f"https://check-host.net/check-{endpoint}?host={query_host}&max_nodes=6"
+        headers = {"Accept": "application/json", "User-Agent": "Remnabot-Monitor/1.0"}
+
+        import aiohttp
+        async with aiohttp.ClientSession(headers=headers) as session:
+            async with session.get(init_url, timeout=aiohttp.ClientTimeout(total=4)) as init_resp:
+                if init_resp.status == 200:
+                    init_data = await init_resp.json()
+                    req_id = init_data.get("request_id")
+                    nodes = init_data.get("nodes", {})
+                    if req_id and nodes:
+                        await asyncio.sleep(2.5)
+                        res_url = f"https://check-host.net/check-result/{req_id}"
+                        async with session.get(res_url, timeout=aiohttp.ClientTimeout(total=4)) as res_resp:
+                            if res_resp.status == 200:
+                                res_data = await res_resp.json()
+                                for node_key, node_val in (res_data or {}).items():
+                                    node_info = nodes.get(node_key, ["", "جهانی", ""])
+                                    cc = node_info[0] if len(node_info) > 0 else "UN"
+                                    country = node_info[1] if len(node_info) > 1 else "جهانی"
+                                    city = node_info[2] if len(node_info) > 2 else ""
+                                    loc_name = f"{country} ({city})" if city else country
+
+                                    pings: list[float] = []
+                                    status_text = "OK"
+                                    is_ok = False
+
+                                    if isinstance(node_val, list) and node_val:
+                                        first_elem = node_val[0]
+                                        if isinstance(first_elem, list):
+                                            for p in first_elem:
+                                                if isinstance(p, list) and len(p) >= 2 and p[0] == "OK":
+                                                    pings.append(float(p[1]))
+                                        elif isinstance(node_val, dict):
+                                            status_text = str(node_val.get("status") or "OK")
+                                            is_ok = node_val.get("error") is None
+
+                                    if pings:
+                                        is_ok = True
+                                        avg_ms = round((sum(pings) / len(pings)) * 1000.0, 1)
+                                    else:
+                                        avg_ms = None
+
+                                    results.append({
+                                        "node_name": loc_name,
+                                        "flag": _cc_to_flag(cc),
+                                        "ok": is_ok,
+                                        "ping_ms": avg_ms,
+                                        "status": "OK" if is_ok else (status_text or "Timeout"),
+                                    })
+    except Exception as check_exc:
+        logger.warning("Check-Host external API request failed, falling back to local diagnostics: %s", check_exc)
+
+    # 2. Fallback to local socket / ping / DNS if external API failed or yielded no results
+    if not results:
+        loop = asyncio.get_event_loop()
+        if check_type == "dns":
             try:
                 addr_info = await loop.getaddrinfo(clean_host, None)
                 ips = sorted(list({info[4][0] for info in addr_info}))
-                result = {
-                    "host": clean_host,
-                    "resolved_ips": ips,
-                    "count": len(ips),
-                }
+                for ip in ips[:6]:
+                    results.append({
+                        "node_name": f"DNS IP: {ip}",
+                        "flag": "🔍",
+                        "ok": True,
+                        "ping_ms": None,
+                        "status": "Resolved",
+                    })
             except Exception as e:
-                result = {"error": f"خطا در تحلیل دامنه DNS: {e}"}
-
-        elif check_type in ("ping", "tcp"):
+                results.append({
+                    "node_name": "تحلیل DNS",
+                    "flag": "❌",
+                    "ok": False,
+                    "ping_ms": None,
+                    "status": f"خطا: {e}",
+                })
+        else:
+            # Measure local TCP / socket connection
             t0 = time.monotonic()
             try:
                 reader, writer = await asyncio.wait_for(
                     asyncio.open_connection(clean_host, port),
-                    timeout=4.0
+                    timeout=3.0,
                 )
                 dt = (time.monotonic() - t0) * 1000.0
                 writer.close()
                 await writer.wait_closed()
-                result = {
-                    "host": clean_host,
-                    "port": port,
+                results.append({
+                    "node_name": f"سرور اصلی (پورت {port})",
+                    "flag": "🇮🇷",
+                    "ok": True,
+                    "ping_ms": round(dt, 1),
                     "status": "OPEN",
-                    "latency_ms": round(dt, 1),
-                    "accessible": True,
-                }
-            except asyncio.TimeoutError:
-                result = {
-                    "host": clean_host,
-                    "port": port,
-                    "status": "TIMEOUT",
-                    "latency_ms": None,
-                    "accessible": False,
-                }
-            except Exception as e:
-                result = {
-                    "host": clean_host,
-                    "port": port,
-                    "status": "CLOSED",
-                    "error": str(e),
-                    "accessible": False,
-                }
+                })
+            except Exception as err:
+                results.append({
+                    "node_name": f"سرور اصلی (پورت {port})",
+                    "flag": "❌",
+                    "ok": False,
+                    "ping_ms": None,
+                    "status": "عدم دسترسی",
+                })
 
-        elif check_type == "udp":
-            t0 = time.monotonic()
-            sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-            sock.setblocking(False)
-            try:
-                loop = asyncio.get_event_loop()
-                await loop.sock_connect(sock, (clean_host, port))
-                await loop.sock_sendall(sock, b"\x00")
-                dt = (time.monotonic() - t0) * 1000.0
-                result = {
-                    "host": clean_host,
-                    "port": port,
-                    "status": "SENT",
-                    "latency_ms": round(dt, 1),
-                    "accessible": True,
-                }
-            except Exception as e:
-                result = {
-                    "host": clean_host,
-                    "port": port,
-                    "status": "ERROR",
-                    "error": str(e),
-                    "accessible": False,
-                }
-            finally:
-                sock.close()
-
-        elif check_type == "http":
-            t0 = time.monotonic()
-            url = f"https://{clean_host}" if port == 443 else (f"http://{clean_host}:{port}" if port != 80 else f"http://{clean_host}")
-            async with aiohttp.ClientSession() as s:
-                try:
-                    async with s.get(url, timeout=aiohttp.ClientTimeout(total=5), allow_redirects=True, ssl=False) as resp:
-                        dt = (time.monotonic() - t0) * 1000.0
-                        result = {
-                            "url": url,
-                            "status_code": resp.status,
-                            "latency_ms": round(dt, 1),
-                            "server": resp.headers.get("Server", "Unknown"),
-                            "content_type": resp.headers.get("Content-Type", ""),
-                            "accessible": True,
-                        }
-                except Exception as e:
-                    result = {
-                        "url": url,
-                        "accessible": False,
-                        "error": str(e),
-                    }
-
-        return web.json_response({"ok": True, "type": check_type, "host": clean_host, "result": result})
-    except Exception as exc:
-        logger.exception("Check-host error: %s", exc)
-        return web.json_response({"ok": False, "error": str(exc)}, status=500)
+    return web.json_response({
+        "ok": True,
+        "type": check_type,
+        "host": clean_host,
+        "results": results,
+    })
 
 
 async def get_admin_tools_asn_prefixes(request: web.Request) -> web.Response:

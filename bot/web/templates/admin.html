@@ -546,7 +546,7 @@
         <div class="admin-subtab-bar">
           <button id="subtabBtnNodesServers" type="button" onclick="window.switchNodesSubtab('servers')" class="admin-subtab-btn is-active" aria-selected="true">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01"/></svg>
-            <span>سرورها و منابع</span>
+            <span>سرور</span>
           </button>
           <button id="subtabBtnNodesSsl" type="button" onclick="window.switchNodesSubtab('ssl')" class="admin-subtab-btn" aria-selected="false">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
@@ -627,7 +627,7 @@
               <svg id="toolBoxCheckHostChevron" class="w-4 h-4 text-slate-400 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
             </div>
 
-            <div id="toolBoxCheckHost" class="space-y-3 pt-2 border-t border-[var(--card-border)]">
+            <div id="toolBoxCheckHost" class="space-y-3 pt-2 border-t border-[var(--card-border)] hidden">
               <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
                 <div class="sm:col-span-2 space-y-1">
                   <label class="text-[11px] t-muted block">آدرس سرور یا دامنه مقصد:</label>
@@ -684,7 +684,7 @@
               <svg id="toolBoxAsnLookupChevron" class="w-4 h-4 text-slate-400 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
             </div>
 
-            <div id="toolBoxAsnLookup" class="space-y-3 pt-2 border-t border-[var(--card-border)]">
+            <div id="toolBoxAsnLookup" class="space-y-3 pt-2 border-t border-[var(--card-border)] hidden">
               <!-- Quick Preset ASN Chips -->
               <div class="space-y-1.5">
                 <label class="text-[11px] t-muted block">پیش‌تنظیم‌های سریع اپراتورها:</label>
@@ -698,25 +698,25 @@
               </div>
 
               <div class="flex items-center gap-2">
-                <input id="asnNumberInput" type="text" dir="ltr" placeholder="مثال: AS44244 یا 44244" class="input-base flex-1 p-2.5 rounded-xl font-mono text-xs outline-none uppercase" />
                 <button id="runAsnLookupBtn" type="button" onclick="window.runAsnLookup()" class="px-4 py-2.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 active:scale-95 text-white text-xs font-bold rounded-xl transition flex items-center justify-center gap-1.5 shadow flex-shrink-0">
                   <svg id="runAsnLookupIcon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
                   <span id="runAsnLookupBtnText">دریافت رنج‌ها</span>
                 </button>
+                <input id="asnNumberInput" type="text" dir="ltr" placeholder="مثال: AS44244 یا 44244" class="input-base flex-1 p-2.5 rounded-xl font-mono text-xs outline-none uppercase" />
               </div>
 
               <!-- ASN Results Box -->
               <div id="asnResultsBox" class="hidden space-y-2 pt-2">
                 <div class="flex flex-wrap items-center justify-between gap-2 pb-1.5 border-b border-[var(--card-border)]">
                   <div class="flex items-center gap-2">
+                    <button type="button" onclick="window.copyAllAsnPrefixes()" class="btn btn-secondary p-1.5 rounded-lg flex items-center justify-center text-xs" title="کپی همه پیشوندها" aria-label="کپی همه">
+                      <span>📋</span>
+                    </button>
                     <span class="text-xs font-bold t-main">پیشوندهای اعلام‌شده:</span>
                     <span id="asnCountBadge" class="badge badge-info font-mono">0 رنج</span>
                   </div>
                   <div class="flex items-center gap-1.5">
                     <input id="asnFilterInput" type="text" oninput="window.filterAsnPrefixes(this.value)" placeholder="فیلتر رنج..." dir="ltr" class="input-base px-2 py-1 text-[11px] font-mono rounded-lg w-28 sm:w-36 outline-none" />
-                    <button type="button" onclick="window.copyAllAsnPrefixes()" class="btn btn-secondary px-2.5 py-1 text-[11px] font-bold rounded-lg flex items-center gap-1">
-                      <span>📋</span> کپی همه
-                    </button>
                   </div>
                 </div>
                 <div id="asnPrefixesList" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-1.5 text-xs font-mono max-h-60 overflow-y-auto no-scrollbar p-1 card-inset rounded-xl">
@@ -980,7 +980,7 @@
             <div class="flex items-center justify-between py-2 border-t border-slate-700/50">
               <div>
                 <span class="text-slate-200 font-medium block">کارت‌به‌کارت هوشمند و آنی (پیامکی)</span>
-                <span class="text-[11px] text-slate-400">شارژ خودکار و لحظه‌ای کیف پول با پیامک واریز بانکی (SMS Forwarder)</span>
+                <span class="text-[11px] text-slate-400">شارژ خودکار و لحظه‌ای کیف پول با پیامک واریز بانکی</span>
               </div>
               <label class="relative inline-flex items-center cursor-pointer">
                 <input type="checkbox" class="sr-only switch-checkbox" id="settingCardAutoSwitch">
@@ -2460,12 +2460,11 @@
           </div>
         </div>
 
-        <div class="flex items-center gap-2 pt-2 border-t border-slate-700/60">
-          <button id="bulkSubmitBtn" onclick="window.adminActions.submitBulkUsersAction()" class="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs py-2.5 rounded-xl transition shadow active:scale-95 flex items-center justify-center gap-1.5">
+        <div class="pt-2 border-t border-slate-700/60">
+          <button id="bulkSubmitBtn" onclick="window.adminActions.submitBulkUsersAction()" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs py-2.5 rounded-xl transition shadow active:scale-95 flex items-center justify-center gap-1.5">
             <span id="bulkSubmitText">اعمال عملیات گروهی</span>
             <div id="bulkSubmitSpinner" class="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin hidden"></div>
           </button>
-          <button type="button" onclick="window.adminActions.closeBulkUsersModal()" class="px-4 py-2.5 btn btn-secondary text-xs rounded-xl transition">انصراف</button>
         </div>
       </div>
     </div>

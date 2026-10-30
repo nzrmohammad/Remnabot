@@ -1555,7 +1555,7 @@
 
                 <!-- Realistic BluBank Card Graphic -->
                 <div class="space-y-2.5">
-                  <div id="cardAutoBluCardBox" class="relative w-full max-w-[340px] mx-auto rounded-3xl p-4 sm:p-5 text-white shadow-2xl overflow-hidden transition-all duration-300 select-none border border-white/20" style="background: linear-gradient(135deg, #0d47a1 0%, #1976d2 50%, #0288d1 100%);">
+                  <div id="cardAutoBluCardBox" class="surface-dark on-dark relative w-full max-w-[340px] mx-auto rounded-2xl p-4 text-white shadow-xl overflow-hidden transition-all duration-300 select-none border border-white/20" style="background: linear-gradient(135deg, #0d47a1 0%, #1976d2 50%, #0288d1 100%);">
                     <!-- Subtle glass sheen / reflection overlay -->
                     <div class="absolute inset-0 bg-gradient-to-tr from-black/25 via-white/10 to-transparent pointer-events-none"></div>
 
@@ -1571,29 +1571,14 @@
                       </div>
                     </div>
 
-                    <!-- Middle row: EMV Golden Chip & Shetab Logo -->
-                    <div class="relative z-10 my-1 flex items-center justify-between">
-                      <div class="w-10 h-7 rounded-md bg-gradient-to-br from-amber-200 via-amber-400 to-amber-500 border border-amber-600/40 relative overflow-hidden shadow-inner flex items-center justify-center">
-                        <div class="w-full h-[1px] bg-amber-700/40 absolute top-2"></div>
-                        <div class="w-full h-[1px] bg-amber-700/40 absolute bottom-2"></div>
-                        <div class="w-[1px] h-full bg-amber-700/40 absolute left-3"></div>
-                        <div class="w-[1px] h-full bg-amber-700/40 absolute right-3"></div>
-                      </div>
-                      <span class="text-[10px] font-bold tracking-widest text-white/70 uppercase">SHETAB</span>
-                    </div>
-
                     <!-- 16-digit Card Number Display -->
-                    <div class="relative z-10 py-2.5 text-center">
+                    <div class="relative z-10 py-2 text-center">
                       <div id="cardAutoCardNumber" class="text-base sm:text-lg font-mono font-bold tracking-[0.16em] text-white drop-shadow-md num-bidi" dir="ltr">---- ---- ---- ----</div>
                     </div>
 
-                    <!-- Bottom row: Cardholder Name & Debit label -->
-                    <div class="relative z-10 flex items-center justify-between pt-1">
-                      <div class="min-w-0 flex-1">
-                        <span class="text-[9px] text-white/70 block">دارنده کارت:</span>
-                        <span id="cardAutoCardHolder" class="text-xs font-bold text-white drop-shadow truncate block">در حال دریافت...</span>
-                      </div>
-                      <span class="text-[10px] font-mono text-white/70 tracking-wider">DEBIT</span>
+                    <!-- Bottom row: Cardholder Name -->
+                    <div class="relative z-10 flex items-center justify-between pt-0.5">
+                      <span id="cardAutoCardHolder" class="text-xs font-bold text-white drop-shadow truncate block">در حال دریافت...</span>
                     </div>
                   </div>
 
@@ -1609,16 +1594,6 @@
                   </div>
                 </div>
 
-                <!-- Action Buttons -->
-                <div class="grid grid-cols-2 gap-2 pt-1">
-                  <button type="button" onclick="window.checkCardAutoStatus(true)" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2 rounded-xl text-xs transition active:scale-95 flex items-center justify-center gap-1 shadow">
-                    <span>🔄</span> بررسی وضعیت
-                  </button>
-                  <button type="button" onclick="window.cancelCardAutoInvoice()" class="w-full bg-rose-50 dark:bg-rose-950/40 border border-rose-300 dark:border-rose-800 text-rose-700 dark:text-rose-400 hover:bg-rose-100 dark:hover:bg-rose-900/60 font-bold py-2 rounded-xl text-xs transition active:scale-95 shadow-sm">
-                    انصراف
-                  </button>
-                </div>
-
                 <!-- 1-Hour Informational Note -->
                 <div class="card-inset rounded-xl p-2.5 text-right text-[10.5px] leading-relaxed t-muted space-y-1 border border-amber-500/20">
                   <div class="flex items-center gap-1 font-bold text-amber-600 dark:text-amber-400 text-[11px]">
@@ -1627,6 +1602,16 @@
                   <p>
                     مهلت واریز و تایید خودکار فاکتور <b>۱ ساعت</b> است. در صورتی که پس از پایان این زمان واریزی شما به دلیل تاخیر پیامک بانک تایید نشد، تصویر فیش را از طریق دکمه زیر ارسال فرمایید.
                   </p>
+                </div>
+
+                <!-- Action Buttons: Positioned below guide -->
+                <div class="grid grid-cols-2 gap-2 pt-1">
+                  <button type="button" onclick="window.checkCardAutoStatus(true)" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2 rounded-xl text-xs transition active:scale-95 flex items-center justify-center gap-1 shadow">
+                    <span>🔄</span> بررسی وضعیت
+                  </button>
+                  <button type="button" onclick="window.cancelCardAutoInvoice()" class="w-full bg-rose-50 dark:bg-rose-950/40 border border-rose-300 dark:border-rose-800 text-rose-700 dark:text-rose-400 hover:bg-rose-100 dark:hover:bg-rose-900/60 font-bold py-2 rounded-xl text-xs transition active:scale-95 shadow-sm">
+                    انصراف
+                  </button>
                 </div>
               </div>
 
@@ -1641,7 +1626,7 @@
             <!-- Legacy / Manual Card Topup Details Box -->
             <div id="manualCardTopupSection" class="space-y-3">
               <!-- BluBank Styled Card Graphic -->
-              <div id="manualBluCardBox" class="relative w-full max-w-[340px] mx-auto rounded-3xl p-4 sm:p-5 text-white shadow-2xl overflow-hidden transition-all duration-300 select-none border border-white/20" style="background: linear-gradient(135deg, #0d47a1 0%, #1976d2 50%, #0288d1 100%);">
+              <div id="manualBluCardBox" class="surface-dark on-dark relative w-full max-w-[340px] mx-auto rounded-2xl p-4 text-white shadow-xl overflow-hidden transition-all duration-300 select-none border border-white/20" style="background: linear-gradient(135deg, #0d47a1 0%, #1976d2 50%, #0288d1 100%);">
                 <div class="absolute inset-0 bg-gradient-to-tr from-black/25 via-white/10 to-transparent pointer-events-none"></div>
 
                 <div class="relative z-10 flex items-center justify-between pb-2.5">
@@ -1655,26 +1640,12 @@
                   </div>
                 </div>
 
-                <div class="relative z-10 my-1 flex items-center justify-between">
-                  <div class="w-10 h-7 rounded-md bg-gradient-to-br from-amber-200 via-amber-400 to-amber-500 border border-amber-600/40 relative overflow-hidden shadow-inner flex items-center justify-center">
-                    <div class="w-full h-[1px] bg-amber-700/40 absolute top-2"></div>
-                    <div class="w-full h-[1px] bg-amber-700/40 absolute bottom-2"></div>
-                    <div class="w-[1px] h-full bg-amber-700/40 absolute left-3"></div>
-                    <div class="w-[1px] h-full bg-amber-700/40 absolute right-3"></div>
-                  </div>
-                  <span class="text-[10px] font-bold tracking-widest text-white/70 uppercase">SHETAB</span>
-                </div>
-
-                <div class="relative z-10 py-2.5 text-center">
+                <div class="relative z-10 py-2 text-center">
                   <div id="topupCardNumber" class="text-base sm:text-lg font-mono font-bold tracking-[0.16em] text-white drop-shadow-md num-bidi cursor-pointer" dir="ltr" title="کلیک جهت کپی">---- ---- ---- ----</div>
                 </div>
 
-                <div class="relative z-10 flex items-center justify-between pt-1">
-                  <div class="min-w-0 flex-1">
-                    <span class="text-[9px] text-white/70 block">دارنده کارت:</span>
-                    <span id="topupCardHolder" class="text-xs font-bold text-white drop-shadow truncate block">در حال دریافت...</span>
-                  </div>
-                  <span class="text-[10px] font-mono text-white/70 tracking-wider">DEBIT</span>
+                <div class="relative z-10 flex items-center justify-between pt-0.5">
+                  <span id="topupCardHolder" class="text-xs font-bold text-white drop-shadow truncate block">در حال دریافت...</span>
                 </div>
               </div>
 

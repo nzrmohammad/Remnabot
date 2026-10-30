@@ -272,15 +272,16 @@ async def get_admin_user_srh(request: web.Request) -> web.Response:
     panel_user_uuid = request.query.get("uuid")
     remnawave = request.app["remnawave"]
 
-    if target_id:
+    if target_id and (not panel_user_id or not panel_user_uuid):
         try:
-            panel_users = await remnawave.get_users_by_telegram_id(int(target_id))
-            if panel_users:
-                primary = panel_users[0]
-                panel_user_id = panel_user_id or primary.get("id")
-                panel_user_uuid = panel_user_uuid or primary.get("uuid")
-        except Exception:
-            pass
+            resolved_id, resolved_uuid = await _resolve_panel_user(remnawave, target_id)
+            panel_user_id = panel_user_id or resolved_id
+            panel_user_uuid = panel_user_uuid or resolved_uuid
+        except Exception as resolve_exc:
+            logger.warning("Failed to resolve user for SRH: %s", resolve_exc)
+
+    if not panel_user_id and not panel_user_uuid and target_id:
+        panel_user_id = target_id
 
     if not panel_user_id and not panel_user_uuid:
         return web.json_response({"ok": False, "error": "شناسه کاربر الزامی است."}, status=400)

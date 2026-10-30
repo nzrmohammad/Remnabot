@@ -41,7 +41,7 @@ async def report_error(
 ) -> None:
     """Dispatches a formatted error alert to the dedicated admin error topic."""
     settings = get_settings()
-    if not settings.ADMIN_CHAT_ID:
+    if not settings.ADMIN_CHAT_ID and not settings.ADMIN_IDS:
         return
 
     # Error deduplication / throttle
@@ -95,7 +95,7 @@ async def report_error(
     now = now_tz(settings.TIMEZONE)
     time_str = format_datetime(now, "fa")
 
-    # Format traceback tail
+    # Format traceback tail (keep safe under Telegram's 4096 char limit)
     if traceback_str:
         tb_str = traceback_str
     elif is_exc and getattr(exc, "__traceback__", None):
@@ -106,7 +106,7 @@ async def report_error(
             tb_str = ""
     else:
         tb_str = ""
-    tb_tail = tb_str[-1800:] if len(tb_str) > 1800 else tb_str
+    tb_tail = tb_str[-1200:] if len(tb_str) > 1200 else tb_str
 
     user_info = f"<code>{user_id}</code>" if user_id else "—"
     if username:
@@ -126,36 +126,58 @@ async def report_error(
         f"📍 <b>محل وقوع :</b> {context_info}\n"
         f"👤 <b>کاربر :</b> {user_info}\n"
         f"💥 <b>کلاس خطا :</b> <code>{html.escape(exc_type)}</code>\n"
-        f"📝 <b>پیام خطا :</b> <code>{html.escape(exc_msg[:400])}</code>"
+        f"📝 <b>پیام خطا :</b> <code>{html.escape(exc_msg[:350])}</code>"
         f"{traceback_section}"
-    )
+    )[:3900]
+
+    plain_text = (
+        "⚠️ سیستم هشدار خطای ربات (Error Log)\n"
+        "──────────────────\n"
+        f"⏰ زمان : {time_str}\n"
+        f"📍 محل وقوع : {context or 'سیستم'}\n"
+        f"👤 کاربر : {user_id or '—'}\n"
+        f"💥 کلاس خطا : {exc_type}\n"
+        f"📝 پیام خطا : {exc_msg[:350]}\n\n"
+        f"🔍 Traceback:\n{tb_tail}"
+    )[:3900]
 
     thread_kwargs = admin_thread_kwargs(topic_id=topic_id)
     delivered = False
 
-    try:
-        await bot.send_message(settings.ADMIN_CHAT_ID, text, **thread_kwargs)
-        delivered = True
-    except Exception as send_exc:
-        logger.warning(
-            "Failed sending error alert to admin chat %s (topic %s): %s",
-            settings.ADMIN_CHAT_ID,
-            topic_id,
-            send_exc,
-        )
-        if thread_kwargs:
+    if settings.ADMIN_CHAT_ID:
+        try:
+            await bot.send_message(settings.ADMIN_CHAT_ID, text, **thread_kwargs)
+            delivered = True
+        except Exception as send_exc:
+            logger.warning(
+                "Failed sending HTML error alert to admin chat %s (topic %s): %s",
+                settings.ADMIN_CHAT_ID,
+                topic_id,
+                send_exc,
+            )
+            # Retry plain text with topic
             try:
-                await bot.send_message(settings.ADMIN_CHAT_ID, text)
+                await bot.send_message(settings.ADMIN_CHAT_ID, plain_text, parse_mode=None, **thread_kwargs)
                 delivered = True
-            except Exception as retry_exc:
-                logger.warning("Failed retry without thread: %s", retry_exc)
+            except Exception:
+                # Retry plain text without topic (in case topic ID is invalid)
+                try:
+                    await bot.send_message(settings.ADMIN_CHAT_ID, plain_text, parse_mode=None)
+                    delivered = True
+                except Exception as retry_exc:
+                    logger.warning("Failed retry without thread: %s", retry_exc)
 
     if not delivered and settings.ADMIN_IDS:
         for aid in settings.ADMIN_IDS:
             try:
                 await bot.send_message(aid, text)
-            except Exception as exc:
-                logger.warning("Failed to send error fallback to admin %s: %s", aid, exc)
+                delivered = True
+            except Exception:
+                try:
+                    await bot.send_message(aid, plain_text, parse_mode=None)
+                    delivered = True
+                except Exception as exc:
+                    logger.warning("Failed to send error fallback to admin %s: %s", aid, exc)
 
 
 async def report_error_event(
@@ -261,8 +283,9 @@ class TelegramErrorLogHandler(logging.Handler):
             return
         self._recent_errors[dedup_key] = now
 
-        # Limit concurrent alert tasks to at most 5
-        if len(self._active_tasks) >= 5:
+        # Limit concurrent alert tasks to at most 10, purging completed tasks
+        self._active_tasks = {t for t in self._active_tasks if not t.done()}
+        if len(self._active_tasks) >= 10:
             return
 
         tb_str = ""

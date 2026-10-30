@@ -618,6 +618,7 @@ def create_web_app(
     app.router.add_post("/api/admin/infra/ssl-domains/delete", routes_admin.post_admin_delete_ssl_domain)
     app.router.add_get("/api/admin/infra/github-releases", routes_admin.get_admin_github_releases)
     app.router.add_get("/api/admin/tools/check-host", routes_admin.get_admin_tools_check_host)
+    app.router.add_post("/api/admin/tools/check-host", routes_admin.get_admin_tools_check_host)
     app.router.add_get("/api/admin/tools/asn-prefixes", routes_admin.get_admin_tools_asn_prefixes)
 
     return app

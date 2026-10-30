@@ -183,7 +183,7 @@ async def process_incoming_sms(
         try:
             thread_kwargs = admin_thread_kwargs(store, settings, kind="topups")
             admin_msg = (
-                "✅ <b>واریز خودکار کارت‌به‌کارت تأیید شد (SMS Forwarder)</b>\n"
+                "✅ <b>واریز خودکار کارت‌به‌کارت تأیید شد</b>\n"
                 "──────────────────\n"
                 f"🆔 شناسه فاکتور: <code>#{invoice.invoice_uuid}</code>\n"
                 f"👤 شناسه کاربر: <code>{invoice.telegram_id}</code>\n"
