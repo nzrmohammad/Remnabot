@@ -1703,15 +1703,15 @@ async applyUserModification() {
 
       if (type === 'delete_users') {
         if (amountContainer) amountContainer.classList.add('hidden');
-        if (warningBox) warningBox.className = 'p-2.5 bg-rose-500/15 border border-rose-500/40 rounded-xl text-[10.5px] text-rose-300 font-medium leading-relaxed flex items-start gap-1.5';
-        if (warningText) warningText.innerText = '⚠️ هشدار حساس: کاربران انتخاب‌شده به طور کامل و غیرقابل بازگشت از پنل رمناویو حذف خواهند شد!';
-        if (submitBtn) submitBtn.className = 'flex-1 bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-500 hover:to-red-500 text-white font-bold text-xs py-2.5 rounded-xl transition shadow active:scale-95 flex items-center justify-center gap-1.5';
+        if (warningBox) warningBox.className = 'p-2.5 bg-amber-500/10 border border-amber-500/30 rounded-xl text-[10.5px] text-amber-700 dark:text-amber-300 font-medium leading-relaxed flex items-start gap-1.5';
+        if (warningText) warningText.innerText = 'هشدار حساس: کاربران انتخاب‌شده به طور کامل و غیرقابل بازگشت از پنل رمناویو حذف خواهند شد.';
+        if (submitBtn) submitBtn.className = 'w-full bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-500 hover:to-red-500 text-white font-bold text-xs py-2.5 rounded-xl transition shadow active:scale-95 flex items-center justify-center gap-1.5';
         if (submitText) submitText.innerText = 'حذف دائم کاربران';
       } else {
         if (amountContainer) amountContainer.classList.remove('hidden');
         if (warningBox) warningBox.className = 'p-2.5 bg-amber-500/10 border border-amber-500/30 rounded-xl text-[10.5px] text-amber-700 dark:text-amber-300 font-medium leading-relaxed flex items-start gap-1.5';
         if (warningText) warningText.innerText = 'این عملیات به صورت مستقیم در پنل رمناویو اعمال می‌شود و حجم یا روز مشخص‌شده به تمام کاربران منتخب افزوده خواهد شد.';
-        if (submitBtn) submitBtn.className = 'flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs py-2.5 rounded-xl transition shadow active:scale-95 flex items-center justify-center gap-1.5';
+        if (submitBtn) submitBtn.className = 'w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs py-2.5 rounded-xl transition shadow active:scale-95 flex items-center justify-center gap-1.5';
         if (submitText) submitText.innerText = 'اعمال عملیات گروهی';
 
         if (type === 'add_traffic') {

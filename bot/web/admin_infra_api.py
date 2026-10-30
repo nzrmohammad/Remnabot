@@ -427,7 +427,8 @@ async def get_admin_tools_check_host(request: web.Request) -> web.Response:
             endpoint = "dns"
             query_host = clean_host
 
-        init_url = f"https://check-host.net/check-{endpoint}?host={query_host}&max_nodes=6"
+        from urllib.parse import quote
+        init_url = f"https://check-host.net/check-{endpoint}?host={quote(query_host)}&max_nodes=6"
         headers = {"Accept": "application/json", "User-Agent": "Remnabot-Monitor/1.0"}
 
         import aiohttp
@@ -460,9 +461,16 @@ async def get_admin_tools_check_host(request: web.Request) -> web.Response:
                                             for p in first_elem:
                                                 if isinstance(p, list) and len(p) >= 2 and p[0] == "OK":
                                                     pings.append(float(p[1]))
-                                        elif isinstance(node_val, dict):
-                                            status_text = str(node_val.get("status") or "OK")
-                                            is_ok = node_val.get("error") is None
+                                        elif isinstance(first_elem, dict):
+                                            status_text = str(first_elem.get("status") or "OK")
+                                            if first_elem.get("time") is not None:
+                                                pings.append(float(first_elem["time"]))
+                                            is_ok = first_elem.get("error") is None
+                                    elif isinstance(node_val, dict):
+                                        status_text = str(node_val.get("status") or "OK")
+                                        if node_val.get("time") is not None:
+                                            pings.append(float(node_val["time"]))
+                                        is_ok = node_val.get("error") is None
 
                                     if pings:
                                         is_ok = True

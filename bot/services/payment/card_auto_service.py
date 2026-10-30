@@ -55,8 +55,19 @@ async def generate_card_auto_invoice(
             break
 
     if selected_delta is None:
-        # Fallback to random offset up to 1990 if high volume
-        selected_delta = random.randint(1000, 1990)
+        # Fallback: scan available offsets not currently active
+        for fallback_delta in range(1000, 9991, 10):
+            if (base_amount + fallback_delta) not in used_amounts:
+                selected_delta = fallback_delta
+                break
+        if selected_delta is None:
+            for _ in range(50):
+                cand = random.randint(1000, 9990)
+                if (base_amount + cand) not in used_amounts:
+                    selected_delta = cand
+                    break
+            if selected_delta is None:
+                selected_delta = random.randint(1000, 9990)
 
     exact_amount = base_amount + selected_delta
     card_number = getattr(store, "card_number", "") or ""

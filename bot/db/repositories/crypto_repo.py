@@ -24,18 +24,22 @@ class CryptoRepository:
         )
         return result.scalar_one_or_none()
 
-    async def get_pending_by_user(self, telegram_id: int) -> CryptoInvoice | None:
+    async def get_pending_by_user(self, telegram_id: int, currency: str | None = None) -> CryptoInvoice | None:
         now = datetime.now(timezone.utc)
+        conditions = [
+            CryptoInvoice.telegram_id == telegram_id,
+            CryptoInvoice.status == "pending",
+            CryptoInvoice.expires_at > now,
+        ]
+        if currency:
+            conditions.append(CryptoInvoice.currency == currency)
         result = await self.session.execute(
-            select(CryptoInvoice).where(
-                and_(
-                    CryptoInvoice.telegram_id == telegram_id,
-                    CryptoInvoice.status == "pending",
-                    CryptoInvoice.expires_at > now,
-                )
-            )
+            select(CryptoInvoice)
+            .where(and_(*conditions))
+            .order_by(CryptoInvoice.id.desc())
+            .limit(1)
         )
-        return result.scalar_one_or_none()
+        return result.scalars().first()
 
     async def get_all_pending(self) -> list[CryptoInvoice]:
         result = await self.session.execute(

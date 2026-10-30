@@ -231,6 +231,10 @@ const api = {
     return this.get('/api/user/topup/crypto/active');
   },
 
+  async cancelCryptoInvoice(invoice_id) {
+    return this.post('/api/user/topup/crypto/cancel', { invoice_id });
+  },
+
 
   async saveSetting(key, value) {
     return this.post('/api/user/settings', { key, value });

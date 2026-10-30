@@ -265,11 +265,11 @@ async function loadTopupInfo() {
         if (cardAutoContainer) cardAutoContainer.classList.remove('hidden');
         if (manualCardSection) manualCardSection.classList.add('hidden');
         checkActiveCardAutoInvoice();
-      syncActiveInvoicesWithServer();
       } else {
         if (cardAutoContainer) cardAutoContainer.classList.add('hidden');
         if (manualCardSection) manualCardSection.classList.remove('hidden');
       }
+      syncActiveInvoicesWithServer();
 
       const inputEl = document.getElementById('topupAmountInput');
       updateTopupDisplays(parseInt(inputEl?.value || '50000'));
@@ -279,7 +279,59 @@ async function loadTopupInfo() {
 
 let cryptoCountdownTimerInterval = null;
 
+function getActiveInvoiceType() {
+  if (activeCardAutoUuid) return 'CARD';
+  if (currentTopupInvoice && currentTopupInvoice.id) return 'TON';
+  if (currentTrxInvoice && currentTrxInvoice.id) return 'TRX';
+  return null;
+}
+
+function updateTopupMutexUI() {
+  const activeType = getActiveInvoiceType();
+  const amountSection = document.getElementById('topupAmountSection');
+  const btnCard = document.getElementById('topupMethodCardBtn');
+  const btnStars = document.getElementById('topupMethodStarsBtn');
+  const btnCrypto = document.getElementById('topupMethodCryptoBtn');
+  const btnTrx = document.getElementById('topupMethodTrxBtn');
+  const btnXRocket = document.getElementById('topupMethodXRocketBtn');
+  const tabs = [
+    { el: btnCard, type: 'CARD' },
+    { el: btnCrypto, type: 'TON' },
+    { el: btnTrx, type: 'TRX' },
+    { el: btnXRocket, type: null },
+    { el: btnStars, type: null }
+  ];
+
+  if (activeType) {
+    if (amountSection) amountSection.classList.add('hidden');
+    tabs.forEach(({ el, type }) => {
+      if (!el) return;
+      if (type === activeType) {
+        el.classList.remove('opacity-40');
+      } else {
+        el.classList.add('opacity-40');
+      }
+    });
+  } else {
+    if (amountSection) amountSection.classList.remove('hidden');
+    tabs.forEach(({ el }) => {
+      if (el) el.classList.remove('opacity-40');
+    });
+  }
+}
+
 function switchTopupTab(tab) {
+  const activeType = getActiveInvoiceType();
+  if (activeType) {
+    const requiredTab = activeType === 'CARD' ? 'card' : (activeType === 'TRX' ? 'trx' : 'crypto');
+    if (tab !== requiredTab) {
+      if (window.showToast) {
+        const typeName = activeType === 'CARD' ? 'کارت‌به‌کارت' : (activeType === 'TRX' ? 'ترون (TRX)' : 'تون (TON)');
+        window.showToast(`شما یک فاکتور فعال در جریان (${typeName}) دارید. لطفاً ابتدا آن را پرداخت یا لغو نمایید.`, 'warning');
+      }
+      return;
+    }
+  }
   window.currentTopupTab = tab;
   const btnCard = document.getElementById('topupMethodCardBtn');
   const btnStars = document.getElementById('topupMethodStarsBtn');
@@ -364,6 +416,7 @@ function renderCardAutoInvoice(inv) {
   startCardAutoCountdownTimer(inv.remaining_seconds || 3600);
   startCardAutoPolling(inv.invoice_uuid);
   updatePendingCardUI(inv, inv.remaining_seconds || 3600, 'CARD');
+  updateTopupMutexUI();
 }
 
 function startCardAutoCountdownTimer(seconds) {
@@ -450,6 +503,7 @@ function resetCardAutoUI() {
   if (window.activePendingInvoiceType === 'CARD') {
     updatePendingCardUI(null);
   }
+  updateTopupMutexUI();
 }
 
 window.createCardAutoInvoice = async function () {
@@ -697,10 +751,15 @@ function clearActiveCryptoInvoice() {
   if (addrEl) addrEl.innerText = '--';
   const commEl = document.getElementById('cryptoComment');
   if (commEl) commEl.innerText = '--';
+  updateTopupMutexUI();
 }
 
-window.cancelCryptoInvoice = function() {
+window.cancelCryptoInvoice = async function() {
+  if (currentTopupInvoice?.id && window.api?.cancelCryptoInvoice) {
+    try { await window.api.cancelCryptoInvoice(currentTopupInvoice.id); } catch (e) {}
+  }
   clearActiveCryptoInvoice();
+  updateTopupMutexUI();
   showToast('✅ فاکتور لغو شد. می‌توانید فاکتور جدید صادر فرمایید.');
 };
 
@@ -758,6 +817,7 @@ function restoreActiveCryptoInvoice() {
     if (tonBtn) tonBtn.href = targetLink;
     startCryptoCountdownTimer(remainingSec);
     updatePendingCardUI(data.invoice, remainingSec, 'TON');
+    updateTopupMutexUI();
     return true;
   } catch (e) {
     return false;
@@ -770,8 +830,8 @@ let trxCountdownTimerInterval = null;
 function updateTronLinkButton(inv) {
   const btn = document.getElementById('openTronLinkBtn');
   if (!btn || !inv || !inv.pay_address || !inv.amount_trx) return;
-  const sun = Math.round(Number(inv.amount_trx) * 1e6);
-  const tronUri = `tron:${inv.pay_address}?amount=${sun}`;
+  const trxAmount = Number(inv.amount_trx);
+  const tronUri = `tron:${inv.pay_address}?amount=${trxAmount}`;
   btn.href = tronUri;
   btn.onclick = (e) => {
     e.preventDefault();
@@ -814,7 +874,6 @@ function startTrxCountdownTimer(seconds = 3600) {
         clearInterval(trxCountdownTimerInterval);
         trxCountdownTimerInterval = null;
       }
-      clearActiveTrxInvoice();
       return;
     }
     const mins = Math.floor(remaining / 60);
@@ -865,6 +924,7 @@ function clearActiveTrxInvoice() {
   if (window.activePendingInvoiceType === 'TRX') {
     updatePendingCardUI(null);
   }
+  updateTopupMutexUI();
 }
 
 function restoreActiveTrxInvoice() {
@@ -888,6 +948,7 @@ function restoreActiveTrxInvoice() {
     updateTronLinkButton(data.invoice);
     startTrxCountdownTimer(remainingSec);
     updatePendingCardUI(data.invoice, remainingSec, 'TRX');
+    updateTopupMutexUI();
     return true;
   } catch (e) {
     return false;
@@ -904,6 +965,7 @@ async function openTopupModal(defaultAmt, forceCrypto = false) {
     if (!s) return;
     const hasActiveCrypto = restoreActiveCryptoInvoice();
     const hasActiveTrx = restoreActiveTrxInvoice();
+    const activeType = getActiveInvoiceType();
     const anyEnabled = s.card_enabled !== false || s.stars_enabled !== false || s.crypto_enabled !== false || s.trx_enabled !== false || s.xrocket_enabled !== false;
     if (!anyEnabled) {
       document.getElementById('topupMethodTabs')?.classList.add('hidden');
@@ -914,6 +976,12 @@ async function openTopupModal(defaultAmt, forceCrypto = false) {
       document.getElementById('topupTrxView')?.classList.add('hidden');
       document.getElementById('topupXRocketView')?.classList.add('hidden');
       document.getElementById('topupAllDisabledState')?.classList.remove('hidden');
+    } else if (activeType === 'CARD') {
+      switchToCardTab();
+    } else if (activeType === 'TON') {
+      switchToCryptoTab();
+    } else if (activeType === 'TRX') {
+      switchTopupTab('trx');
     } else if ((hasActiveCrypto || forceCrypto) && s.crypto_enabled !== false) {
       switchToCryptoTab();
     } else if (hasActiveTrx && s.trx_enabled !== false) {
@@ -929,6 +997,7 @@ async function openTopupModal(defaultAmt, forceCrypto = false) {
     } else if (s.stars_enabled !== false) {
       switchTopupTab('stars');
     }
+    updateTopupMutexUI();
   };
 
   // Apply cached storeSettings immediately if available
@@ -1223,6 +1292,7 @@ function setupWalletListeners() {
         const tonBtn = document.getElementById('cryptoTonkeeperLink');
         if (tonBtn) tonBtn.href = targetLink;
         startCryptoCountdownTimer(durationSec);
+        updateTopupMutexUI();
       } else {
         showToast(`❌ ${res.message || 'خطا در ایجاد فاکتور کریپتو'}`);
       }
@@ -1371,6 +1441,7 @@ function setupWalletListeners() {
         updateTronLinkButton(res.invoice);
         startTrxCountdownTimer(3600);
         updatePendingCardUI(res.invoice, 3600, 'TRX');
+        updateTopupMutexUI();
       } else {
         showToast(`❌ ${res.message || 'خطا در ایجاد فاکتور ترون'}`);
       }
@@ -1400,8 +1471,12 @@ function setupWalletListeners() {
     }
   });
 
-  document.getElementById('cancelTrxInvoiceBtn')?.addEventListener('click', () => {
+  document.getElementById('cancelTrxInvoiceBtn')?.addEventListener('click', async () => {
+    if (currentTrxInvoice?.id && window.api?.cancelCryptoInvoice) {
+      try { await window.api.cancelCryptoInvoice(currentTrxInvoice.id); } catch (e) {}
+    }
     clearActiveTrxInvoice();
+    updateTopupMutexUI();
     showToast('فاکتور ترون لغو شد.');
   });
 

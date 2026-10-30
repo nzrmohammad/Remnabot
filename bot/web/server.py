@@ -127,6 +127,7 @@ async def api_rate_limit_middleware(request: web.Request, handler):
             "/api/user/topup/card-auto/create",
             "/api/user/topup/card-auto/cancel",
             "/api/user/topup/crypto",
+            "/api/user/topup/crypto/cancel",
             "/api/user/topup/crypto/check",
             "/api/user/topup/crypto/tonconnect_submit",
             "/api/user/topup/trx",
@@ -539,6 +540,7 @@ def create_web_app(
     app.router.add_post("/api/webhooks/sms", routes_user.post_webhook_sms)
     app.router.add_get("/api/user/topup/crypto/active", routes_user.get_user_topup_crypto_active)
     app.router.add_post("/api/user/topup/crypto", routes_user.post_user_topup_crypto)
+    app.router.add_post("/api/user/topup/crypto/cancel", routes_user.post_user_topup_crypto_cancel)
     app.router.add_post("/api/user/topup/crypto/check", routes_user.post_user_topup_crypto_check)
     app.router.add_post("/api/user/topup/crypto/tonconnect_submit", routes_user.post_user_topup_tonconnect_submit)
     app.router.add_post("/api/user/topup/trx", routes_user.post_user_topup_trx)

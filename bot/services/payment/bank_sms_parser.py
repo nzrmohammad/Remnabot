@@ -22,9 +22,13 @@ _WITHDRAWAL_KEYWORDS = (
     "برداشت",
     "خرید",
     "انتقال از حساب",
+    "انتقال از کارت",
+    "انتقال از سپرده",
+    "انتقال کارت به کارت",
     "انتقال به دیگری",
     "کاهش موجودی",
     "بدهکار شد",
+    "بدهکار",
     "رمز پویا",
     "رمز یکبار مصرف",
     "رمز موقت",
@@ -32,6 +36,14 @@ _WITHDRAWAL_KEYWORDS = (
     "تسویه",
     "چک برگشتی",
     "کسر شد",
+    "ناموفق",
+    "برگشت",
+    "برگشتی",
+    "لغو",
+    "خطا",
+    "عدم موفقیت",
+    "برگشت داده شد",
+    "برگشت به حساب",
 )
 
 # Deposit keywords confirming an incoming transfer/credit
@@ -41,9 +53,9 @@ _DEPOSIT_KEYWORDS = (
     "واریز به",
     "بستانکار شد",
     "بستانکار",
-    "انتقال به کارت شما",
-    "انتقال به حساب شما",
-    "انتقال از",
+    "انتقال به کارت",
+    "انتقال به حساب",
+    "انتقال به سپرده",
     "افزایش موجودی",
     "+",
 )
@@ -105,6 +117,8 @@ def normalize_sms_digits(text: str) -> str:
     if not text:
         return ""
     cleaned = text.translate(_DIGIT_MAP)
+    # Normalize Persian comma and arabic decimal/thousands separators
+    cleaned = cleaned.replace("٬", ",").replace("٫", ".").replace("،", ",")
     # Remove zero-width spaces / non-joiners
     cleaned = cleaned.replace("\u200c", " ").replace("\u200b", "").replace("\ufeff", "")
     return cleaned

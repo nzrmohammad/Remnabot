@@ -86,6 +86,14 @@ def test_reject_withdrawal_and_otp():
     res_otp = parse_bank_sms(otp)
     assert res_otp.is_deposit is False
 
+    outbound_card = "بانک ملی\nانتقال از کارت 603799***1234 به 502229***5678\nمبلغ: 50,000 تومان"
+    res_outbound = parse_bank_sms(outbound_card)
+    assert res_outbound.is_deposit is False
+
+    failed_sms = "واریز به حساب شما به مبلغ 100,000 ریال ناموفق بود و به مبدأ برگشت داده شد."
+    res_failed = parse_bank_sms(failed_sms)
+    assert res_failed.is_deposit is False
+
 
 def test_parse_saderat_with_plus():
     sms = """بانک صادرات ایران

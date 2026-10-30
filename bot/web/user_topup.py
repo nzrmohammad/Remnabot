@@ -5,6 +5,7 @@ from bot.web.user_common import db_session, require_user
 """TMA User Wallet and Top-up API endpoints."""
 import hashlib
 import logging
+import secrets
 from datetime import datetime, timedelta, timezone
 from html import escape
 
@@ -20,6 +21,15 @@ from bot.services.crypto.ton import fetch_ton_transactions
 from bot.web.cache import FastCache
 
 logger = logging.getLogger(__name__)
+
+
+def _as_utc(dt: datetime | None) -> datetime:
+    """Ensure datetime is offset-aware in UTC to prevent naive vs aware comparison bugs."""
+    if dt is None:
+        return datetime.now(timezone.utc)
+    if dt.tzinfo is None:
+        return dt.replace(tzinfo=timezone.utc)
+    return dt.astimezone(timezone.utc)
 
 
 async def get_user_topup_info(request: web.Request) -> web.Response:
@@ -253,6 +263,23 @@ async def post_user_topup_card(request: web.Request) -> web.Response:
                 status=400,
             )
 
+        # Cancel any active card-auto invoice to avoid double-crediting if bank SMS arrives later
+        if hasattr(session, "execute"):
+            try:
+                from bot.db.repositories.card_auto_repo import CardAutoRepository
+                card_auto_repo = CardAutoRepository(session)
+                active_auto_inv = await card_auto_repo.get_active_invoice_by_user(telegram_id)
+                if active_auto_inv:
+                    if active_auto_inv.status == "paid":
+                        return web.json_response(
+                            {"ok": False, "message": "فاکتور شما پیش‌تر به‌صورت خودکار توسط سیستم پیامک بانکی تأیید و حسابتان شارژ شده است."},
+                            status=400,
+                        )
+                    active_auto_inv.status = "cancelled"
+                    logger.info("Cancelled pending card-auto invoice %s on manual receipt upload by user %s", active_auto_inv.invoice_uuid, telegram_id)
+            except Exception:
+                pass
+
         img_hash = "img:" + hashlib.sha256(img_bytes).hexdigest()[:48]
         if await wallet_repo.receipt_exists(img_hash):
             return web.json_response(
@@ -390,7 +417,25 @@ async def post_user_topup_crypto(request: web.Request) -> web.Response:
                 status=400,
             )
 
+        # Mutex: check if user has active card-auto or other crypto invoice
+        from bot.db.repositories.card_auto_repo import CardAutoRepository
+        card_auto_repo = CardAutoRepository(session)
+        active_card = await card_auto_repo.get_active_invoice_by_user(telegram_id)
+        if active_card and active_card.status == "pending" and _as_utc(active_card.expires_at) > datetime.now(timezone.utc):
+            return web.json_response(
+                {"ok": False, "message": "شما یک فاکتور کارت‌به‌کارت فعال در جریان دارید. لطفاً ابتدا آن را پرداخت کرده یا لغو نمایید."},
+                status=400,
+            )
+
         crypto_repo = CryptoRepository(session)
+        active_crypto = await crypto_repo.get_pending_by_user(telegram_id)
+        if active_crypto and _as_utc(active_crypto.expires_at) > datetime.now(timezone.utc):
+            curr_name = "ترون (TRX)" if getattr(active_crypto, "currency", "TON") == "TRX" else "تون (TON)"
+            return web.json_response(
+                {"ok": False, "message": f"شما یک فاکتور در جریان {curr_name} دارید. لطفاً ابتدا آن را پرداخت کرده یا لغو نمایید."},
+                status=400,
+            )
+
         ton_amount = round(amount / store.ton_rate_toman, 4)
         nanotons = int(round(ton_amount * 1_000_000_000))
         invoice = await crypto_repo.create_invoice(
@@ -436,13 +481,14 @@ async def get_user_topup_crypto_active(request: web.Request) -> web.Response:
         if not invoice:
             return web.json_response({"ok": True, "has_active": False})
 
+        exp_utc = _as_utc(invoice.expires_at)
         now = datetime.now(timezone.utc)
-        if invoice.expires_at <= now:
+        if exp_utc <= now:
             invoice.status = "expired"
             await session.commit()
             return web.json_response({"ok": True, "has_active": False})
 
-        remaining_secs = max(0, int((invoice.expires_at - now).total_seconds()))
+        remaining_secs = max(0, int((exp_utc - now).total_seconds()))
         currency = getattr(invoice, "currency", "TON") or "TON"
 
         deep_link = f"ton://transfer/{invoice.pay_address}?amount={invoice.nanotons}&text={invoice.comment}" if currency == "TON" else None
@@ -704,6 +750,25 @@ async def post_user_topup_trx(request: web.Request) -> web.Response:
         if isinstance(max_amount, int | float) and max_amount > 0 and amount > max_amount:
             return web.json_response(
                 {"ok": False, "message": f"حداکثر مبلغ شارژ {int(max_amount):,} تومان است."},
+                status=400,
+            )
+
+        # Mutex: check active card-to-card or other crypto invoice
+        from bot.db.repositories.card_auto_repo import CardAutoRepository
+        card_auto_repo = CardAutoRepository(session)
+        active_card = await card_auto_repo.get_active_invoice_by_user(telegram_id)
+        if active_card and active_card.status == "pending" and _as_utc(active_card.expires_at) > datetime.now(timezone.utc):
+            return web.json_response(
+                {"ok": False, "message": "شما یک فاکتور کارت‌به‌کارت فعال در جریان دارید. لطفاً ابتدا آن را پرداخت کرده یا لغو نمایید."},
+                status=400,
+            )
+
+        crypto_repo = CryptoRepository(session)
+        active_crypto = await crypto_repo.get_pending_by_user(telegram_id)
+        if active_crypto and _as_utc(active_crypto.expires_at) > datetime.now(timezone.utc):
+            curr_name = "ترون (TRX)" if getattr(active_crypto, "currency", "TON") == "TRX" else "تون (TON)"
+            return web.json_response(
+                {"ok": False, "message": f"شما یک فاکتور در جریان {curr_name} دارید. لطفاً ابتدا آن را پرداخت کرده یا لغو نمایید."},
                 status=400,
             )
 
@@ -1048,6 +1113,34 @@ async def post_user_topup_card_auto_create(request: web.Request) -> web.Response
                 status=400,
             )
 
+        # Mutex: check if user already has an active pending card-auto or crypto invoice
+        from bot.db.repositories.card_auto_repo import CardAutoRepository
+        card_auto_repo = CardAutoRepository(session)
+        existing_card = await card_auto_repo.get_active_invoice_by_user(telegram_id)
+        if existing_card and existing_card.status == "pending" and _as_utc(existing_card.expires_at) > datetime.now(timezone.utc):
+            remaining_secs = max(0, int((_as_utc(existing_card.expires_at) - datetime.now(timezone.utc)).total_seconds()))
+            return web.json_response({
+                "ok": True,
+                "invoice_uuid": existing_card.invoice_uuid,
+                "base_amount": existing_card.base_amount,
+                "exact_amount": existing_card.exact_amount,
+                "exact_rial": existing_card.exact_rial,
+                "card_number": existing_card.card_number,
+                "card_holder": existing_card.card_holder,
+                "status": existing_card.status,
+                "expires_at": existing_card.expires_at.isoformat(),
+                "remaining_seconds": remaining_secs,
+            })
+
+        crypto_repo = CryptoRepository(session)
+        active_crypto = await crypto_repo.get_pending_by_user(telegram_id)
+        if active_crypto and _as_utc(active_crypto.expires_at) > datetime.now(timezone.utc):
+            curr_name = "ترون (TRX)" if getattr(active_crypto, "currency", "TON") == "TRX" else "تون (TON)"
+            return web.json_response(
+                {"ok": False, "message": f"شما یک فاکتور فعال در جریان {curr_name} دارید. لطفاً ابتدا آن را پرداخت کرده یا لغو نمایید."},
+                status=400,
+            )
+
         from bot.services.payment.card_auto_service import generate_card_auto_invoice
         invoice = await generate_card_auto_invoice(
             session=session,
@@ -1058,7 +1151,7 @@ async def post_user_topup_card_auto_create(request: web.Request) -> web.Response
         )
         await session.commit()
 
-        remaining_secs = max(0, int((invoice.expires_at - datetime.now(timezone.utc)).total_seconds()))
+        remaining_secs = max(0, int((_as_utc(invoice.expires_at) - datetime.now(timezone.utc)).total_seconds()))
 
         return web.json_response({
             "ok": True,
@@ -1096,12 +1189,13 @@ async def get_user_topup_card_auto_status(request: web.Request) -> web.Response:
         if not invoice:
             return web.json_response({"ok": True, "status": "none", "invoice_uuid": None})
 
+        exp_utc = _as_utc(invoice.expires_at)
         now = datetime.now(timezone.utc)
-        if invoice.status == "pending" and invoice.expires_at <= now:
+        if invoice.status == "pending" and exp_utc <= now:
             invoice.status = "expired"
             await session.commit()
 
-        remaining_secs = max(0, int((invoice.expires_at - now).total_seconds()))
+        remaining_secs = max(0, int((exp_utc - now).total_seconds()))
 
         return web.json_response({
             "ok": True,
@@ -1140,6 +1234,41 @@ async def post_user_topup_card_auto_cancel(request: web.Request) -> web.Response
         return web.json_response({"ok": False, "message": "فاکتور معتبر برای لغو یافت نشد."}, status=400)
 
 
+async def post_user_topup_crypto_cancel(request: web.Request) -> web.Response:
+    """Cancel an active pending crypto invoice (TON or TRX)."""
+    user_auth, err = require_user(request)
+    if err:
+        return err
+
+    telegram_id = int(user_auth["id"])
+    try:
+        body = await request.json()
+    except Exception:
+        body = {}
+
+    invoice_id = body.get("invoice_id")
+
+    async with db_session(request) as session:
+        crypto_repo = CryptoRepository(session)
+        if invoice_id:
+            try:
+                inv = await crypto_repo.get_by_id(int(invoice_id))
+            except (ValueError, TypeError):
+                inv = None
+        else:
+            inv = await crypto_repo.get_pending_by_user(telegram_id)
+
+        if not inv or inv.telegram_id != telegram_id:
+            return web.json_response({"ok": False, "message": "فاکتور یافت نشد."}, status=404)
+
+        if inv.status != "pending":
+            return web.json_response({"ok": False, "message": "فقط فاکتورهای در انتظار پرداخت قابل لغو هستند."}, status=400)
+
+        inv.status = "cancelled"
+        await session.commit()
+        return web.json_response({"ok": True, "status": "cancelled", "message": "فاکتور با موفقیت لغو شد."})
+
+
 async def post_webhook_sms(request: web.Request) -> web.Response:
     """Handle incoming bank SMS forwarded from mobile phone."""
     async with db_session(request) as session:
@@ -1147,6 +1276,10 @@ async def post_webhook_sms(request: web.Request) -> web.Response:
 
         # 1. Authenticate token
         secret = (store.sms_webhook_secret or "").strip()
+        if not secret:
+            logger.warning("SMS webhook rejected: sms_webhook_secret is not configured")
+            return web.json_response({"ok": False, "message": "SMS webhook not configured"}, status=403)
+
         auth_header = request.headers.get("Authorization", "")
         token_header = request.headers.get("X-SMS-Token", "")
         token_query = request.query.get("token", "")
@@ -1159,11 +1292,6 @@ async def post_webhook_sms(request: web.Request) -> web.Response:
         elif token_query:
             provided_token = token_query.strip()
 
-        # If secret configured, verify
-        if secret:
-            if not provided_token or provided_token != secret:
-                return web.json_response({"ok": False, "message": "Unauthorized"}, status=401)
-
         # 2. Extract sender and message text
         sender = ""
         raw_message = ""
@@ -1174,10 +1302,12 @@ async def post_webhook_sms(request: web.Request) -> web.Response:
                 sender = str(body.get("from") or body.get("sender") or body.get("phone") or "")
                 raw_message = str(body.get("message") or body.get("text") or body.get("content") or body.get("msg") or "")
                 if not provided_token and body.get("token"):
-                    if secret and str(body.get("token")).strip() != secret:
-                        return web.json_response({"ok": False, "message": "Unauthorized"}, status=401)
+                    provided_token = str(body.get("token")).strip()
         except Exception:
             pass
+
+        if not provided_token or not secrets.compare_digest(provided_token, secret):
+            return web.json_response({"ok": False, "message": "Unauthorized"}, status=401)
 
         if not raw_message:
             try:

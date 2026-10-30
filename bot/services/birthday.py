@@ -1,5 +1,6 @@
 """Automated Daily Birthday Reward Cron Service."""
 import asyncio
+import html
 import logging
 import secrets
 from datetime import datetime, timedelta, timezone
@@ -92,6 +93,9 @@ async def birthday_sweep_loop(
                     session.add(coupon)
                     await session.commit()
 
+                    if cache:
+                        await cache.set(dedup_key, "1", ttl_seconds=86400 * 400)
+
                     traffic_msg = (
                         f"🎁 <b>{traffic_gb} گیگابایت حجم هدیه آنی</b> (به اشتراک فعال شما افزوده شد)\n"
                         if traffic_added
@@ -99,7 +103,7 @@ async def birthday_sweep_loop(
                     )
                     custom_msg = (getattr(store, "birthday_custom_message", None) or "").strip()
                     if custom_msg:
-                        user_name = user.full_name or user.username or "کاربر گرامی"
+                        user_name = html.escape(user.full_name or user.username or "کاربر گرامی")
                         congrats_text = (
                             custom_msg
                             .replace("{first_name}", user_name)
@@ -123,9 +127,6 @@ async def birthday_sweep_loop(
                         await bot.send_message(user.telegram_id, congrats_text, parse_mode="HTML")
                     except Exception as msg_err:
                         logger.warning("Failed to send birthday congratulations to %s: %s", user.telegram_id, msg_err)
-
-                    if cache:
-                        await cache.set(dedup_key, "1", ttl_seconds=86400 * 400)
 
             await asyncio.sleep(3600)
         except asyncio.CancelledError:

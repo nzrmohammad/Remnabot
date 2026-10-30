@@ -393,7 +393,8 @@ async def topup_preset_amount(
     lang = user.language
     store = await get_store_settings(session)
 
-    if amount < store.topup_min_amount or amount > MAX_TOPUP:
+    max_amt = getattr(store, "topup_max_amount", 0) or MAX_TOPUP
+    if amount < store.topup_min_amount or amount > max_amt:
         await call.answer(
             t(lang, "topup_amount_invalid", min=_fmt(store.topup_min_amount)),
             show_alert=True,
@@ -452,7 +453,8 @@ async def topup_amount(
     kb = InlineKeyboardBuilder()
     kb.button(text=t(lang, "btn_cancel"), callback_data="menu:wallet")
 
-    if amount is None or amount < store.topup_min_amount or amount > MAX_TOPUP:
+    max_amt = getattr(store, "topup_max_amount", 0) or MAX_TOPUP
+    if amount is None or amount < store.topup_min_amount or amount > max_amt:
         await render_menu(
             bot, user, user_repo,
             t(lang, "topup_amount_invalid", min=_fmt(store.topup_min_amount)),
@@ -462,6 +464,24 @@ async def topup_amount(
 
     data = await state.get_data()
     method = data.get("topup_method", "card")
+
+    if method == "card" and store.card_require_phone_verification and not getattr(user, "phone_number", None):
+        kb_phone = InlineKeyboardBuilder()
+        kb_phone.button(text="📱 احراز هویت و ارسال شماره تماس", callback_data="user:verify_phone_prompt")
+        kb_phone.button(text=t(lang, "btn_back"), callback_data="menu:wallet")
+        kb_phone.adjust(1)
+        notice_text = (
+            "🔒 <b>احراز هویت شماره همراه الزامی است</b>\n\n"
+            "جهت استفاده از درگاه پرداخت کارت‌به‌کارت و جلوگیری از سوءاستفاده‌های بانکی (فیشینگ)، تأیید شماره تماس در ربات الزامی است.\n\n"
+            "لطفاً بر روی دکمه زیر کلیک کرده و شماره همراه خود را ارسال فرمایید."
+            if lang == "fa"
+            else
+            "🔒 <b>Phone Verification Required</b>\n\n"
+            "To use Card-to-Card payment, you must verify your phone number first.\n"
+            "Please tap the button below to share your contact."
+        )
+        await render_menu(bot, user, user_repo, notice_text, kb_phone.as_markup())
+        return
 
     if method == "ton":
         if not (store.crypto_enabled and store.ton_wallet_address and store.ton_rate_toman > 0):
@@ -596,9 +616,27 @@ async def c2c_manual_receipt_callback(
 ):
     user = await user_repo.get_or_create(call.from_user.id, call.from_user.username)
     lang = user.language or "fa"
-    data = await state.get_data()
-    amount = data.get("amount", 0)
+    uuid_str = call.data.split(":", 2)[2]
+    from bot.db.repositories.card_auto_repo import CardAutoRepository
+    repo = CardAutoRepository(session)
+    invoice = await repo.get_invoice_by_uuid(uuid_str)
+
+    if invoice and invoice.status == "paid":
+        await call.answer("این فاکتور پیش‌تر به‌صورت خودکار توسط سیستم پیامک بانکی تأیید شده است.", show_alert=True)
+        return
+
+    # Cancel auto invoice so delayed SMS will not double credit
+    if invoice and invoice.status == "pending":
+        await repo.cancel_invoice(uuid_str, call.from_user.id)
+        await session.commit()
+
+    amount = invoice.exact_amount if invoice else 0
+    if not amount:
+        data = await state.get_data()
+        amount = data.get("amount", 0)
+
     store = await get_store_settings(session)
+    await state.update_data(amount=amount, auto_invoice_uuid=uuid_str)
     await state.set_state(TopupStates.waiting_receipt)
 
     kb = InlineKeyboardBuilder()

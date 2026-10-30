@@ -81,7 +81,22 @@ async def topup_decide_from_panel(
     await call.answer(note, show_alert=not changed)
 
 
-@router.message(F.text)
+from aiogram.filters import StateFilter
+
+
+def _is_admin_sms_message(message: Message) -> bool:
+    if not message.text or not message.from_user:
+        return False
+    if not _is_admin(message.from_user.id):
+        return False
+    raw_text = message.text.strip()
+    if raw_text.startswith("/sms"):
+        return True
+    bank_keywords = ("واریز", "انتقال", "مانده", "بانک", "بانك", "حساب", "شبا", "پایا", "ساتنا", "پل")
+    return any(kw in raw_text for kw in bank_keywords) and any(c.isdigit() for c in raw_text)
+
+
+@router.message(StateFilter(None), F.text, _is_admin_sms_message)
 async def handle_manual_bank_sms(
     message: Message, bot: Bot, session: AsyncSession,
 ) -> None:

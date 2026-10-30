@@ -459,32 +459,32 @@ openUserChat(telegram_id, name, tag, topup_id) {
       if (mode === 'invite_only') {
         if (badge) {
           badge.textContent = 'فقط با دعوت';
-          badge.className = 'px-2 py-0.5 rounded-full text-[10px] font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/30';
+          badge.className = 'px-2 py-0.5 rounded-full text-[10px] font-bold bg-cyan-500/15 text-cyan-700 dark:text-cyan-300 border border-cyan-500/30';
         }
         if (sub) sub.textContent = 'کاربران جدید نیازمند لینک دعوت/رفرال هستند';
         if (icon) {
           icon.textContent = '🎟️';
-          icon.className = 'w-8 h-8 rounded-xl bg-cyan-500/15 border border-cyan-500/30 text-cyan-400 flex items-center justify-center text-sm flex-shrink-0';
+          icon.className = 'w-8 h-8 rounded-xl bg-cyan-500/15 border border-cyan-500/30 text-cyan-700 dark:text-cyan-400 flex items-center justify-center text-sm flex-shrink-0';
         }
       } else if (mode === 'closed') {
         if (badge) {
           badge.textContent = 'بسته (تعمیرات)';
-          badge.className = 'px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-500/20 text-rose-300 border border-rose-500/30';
+          badge.className = 'px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-500/15 text-rose-700 dark:text-rose-300 border border-rose-500/30';
         }
         if (sub) sub.textContent = 'ثبت‌نام متوقف شده است؛ سرویس‌های فعلی فعالند';
         if (icon) {
           icon.textContent = '🔒';
-          icon.className = 'w-8 h-8 rounded-xl bg-rose-500/15 border border-rose-500/30 text-rose-400 flex items-center justify-center text-sm flex-shrink-0';
+          icon.className = 'w-8 h-8 rounded-xl bg-rose-500/15 border border-rose-500/30 text-rose-700 dark:text-rose-400 flex items-center justify-center text-sm flex-shrink-0';
         }
       } else {
         if (badge) {
           badge.textContent = 'عمومی (آزاد)';
-          badge.className = 'px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30';
+          badge.className = 'px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30';
         }
         if (sub) sub.textContent = 'ورود و ثبت‌نام برای تمامی کاربران آزاد است';
         if (icon) {
           icon.textContent = '🌐';
-          icon.className = 'w-8 h-8 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 flex items-center justify-center text-sm flex-shrink-0';
+          icon.className = 'w-8 h-8 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-700 dark:text-emerald-400 flex items-center justify-center text-sm flex-shrink-0';
         }
       }
     },

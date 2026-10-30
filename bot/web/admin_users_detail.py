@@ -150,6 +150,8 @@ def _parse_srh_timestamp(created_at_raw: Any, now_utc: datetime) -> tuple[str, s
 
 async def _resolve_panel_user(remnawave, target_id: Any) -> tuple[Any, str | None]:
     """Resolve target_id (Telegram ID, Remnawave user ID, or username) to (primary_id, primary_uuid)."""
+    if not target_id:
+        return None, None
     target_str = str(target_id).strip()
     panel_users = None
     if target_str.isdigit():
@@ -176,7 +178,7 @@ async def _resolve_panel_user(remnawave, target_id: Any) -> tuple[Any, str | Non
 
     if panel_users and len(panel_users) > 0:
         return panel_users[0].get("id"), panel_users[0].get("uuid")
-    return target_str, target_str
+    return None, None
 
 async def get_admin_user_hwid_devices(request: web.Request) -> web.Response:
     """Fetch all active connected HWID devices for a specific user."""
@@ -184,13 +186,13 @@ async def get_admin_user_hwid_devices(request: web.Request) -> web.Response:
     if not admin:
         return web.json_response({"ok": False, "error": "Forbidden"}, status=403)
 
-    target_id = request.query.get("telegram_id")
+    target_id = request.query.get("telegram_id") or request.query.get("id") or request.query.get("target_id")
     if not target_id:
         return web.json_response({"ok": False, "error": "شناسه کاربر الزامی است."}, status=400)
 
     remnawave = request.app["remnawave"]
     primary_id, primary_uuid = await _resolve_panel_user(remnawave, target_id)
-    devices = await remnawave.get_user_hwid_devices(primary_id, user_uuid=primary_uuid)
+    devices = await remnawave.get_user_hwid_devices(primary_id or target_id, user_uuid=primary_uuid)
     return web.json_response({"ok": True, "devices": devices or []})
 
 
@@ -205,14 +207,14 @@ async def post_admin_user_delete_hwid(request: web.Request) -> web.Response:
     except Exception:
         body = {}
 
-    target_id = body.get("telegram_id")
+    target_id = body.get("telegram_id") or body.get("id") or body.get("target_id")
     hwid = body.get("hwid")
     if not target_id or not hwid:
         return web.json_response({"ok": False, "error": "شناسه کاربر و شناسه سخت‌افزار (HWID) الزامی است."}, status=400)
 
     remnawave = request.app["remnawave"]
     primary_id, _ = await _resolve_panel_user(remnawave, target_id)
-    success = await remnawave.delete_hwid_device(primary_id, hwid)
+    success = await remnawave.delete_hwid_device(primary_id or target_id, hwid)
     if not success:
         return web.json_response({"ok": False, "error": "خطا در حذف دستگاه از پنل."}, status=502)
 
@@ -225,14 +227,14 @@ async def get_admin_user_sessions(request: web.Request) -> web.Response:
     if not admin:
         return web.json_response({"ok": False, "error": "Forbidden"}, status=403)
 
-    target_id = request.query.get("telegram_id")
+    target_id = request.query.get("telegram_id") or request.query.get("id") or request.query.get("target_id")
     if not target_id:
         return web.json_response({"ok": False, "error": "شناسه کاربر الزامی است."}, status=400)
 
     remnawave = request.app["remnawave"]
     try:
         primary_id, _ = await _resolve_panel_user(remnawave, target_id)
-        user_sessions = await remnawave.get_user_live_sessions(primary_id)
+        user_sessions = await remnawave.get_user_live_sessions(primary_id or target_id)
         return web.json_response({"ok": True, "data": user_sessions})
     except Exception as exc:
         logger.warning("Error fetching user live sessions: %s", exc)
@@ -267,7 +269,7 @@ async def get_admin_user_srh(request: web.Request) -> web.Response:
     if not admin:
         return web.json_response({"ok": False, "error": "Forbidden"}, status=403)
 
-    target_id = request.query.get("telegram_id")
+    target_id = request.query.get("telegram_id") or request.query.get("id") or request.query.get("target_id")
     panel_user_id = request.query.get("user_id") or request.query.get("panel_user_id")
     panel_user_uuid = request.query.get("uuid")
     remnawave = request.app["remnawave"]
@@ -275,8 +277,9 @@ async def get_admin_user_srh(request: web.Request) -> web.Response:
     if target_id and (not panel_user_id or not panel_user_uuid):
         try:
             resolved_id, resolved_uuid = await _resolve_panel_user(remnawave, target_id)
-            panel_user_id = panel_user_id or resolved_id
-            panel_user_uuid = panel_user_uuid or resolved_uuid
+            if resolved_id:
+                panel_user_id = panel_user_id or resolved_id
+                panel_user_uuid = panel_user_uuid or resolved_uuid
         except Exception as resolve_exc:
             logger.warning("Failed to resolve user for SRH: %s", resolve_exc)
 

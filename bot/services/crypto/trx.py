@@ -58,7 +58,7 @@ async def fetch_trx_rate(store_rate: int = 0) -> int:
     except Exception as exc:
         logger.debug("Could not poll Nobitex TRX rate: %s", exc)
 
-    return 90_000  # Fallback reasonable estimate
+    return 18_500  # Fallback reasonable estimate (~$0.20 - $0.25)
 
 
 async def verify_tron_transaction(
