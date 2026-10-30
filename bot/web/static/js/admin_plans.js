@@ -42,6 +42,7 @@
     'popular': '⭐ محبوب‌ترین',
     'economic': '💰 اقتصادی‌ترین',
     'vip': '👑 پیشنهاد ویژه',
+    'tunnel': '🚇 تانل (اختصاصی)',
     'traffic': '⚡️ بسته افزایش حجم',
     'time': '⏳ بسته افزایش زمان'
   };
@@ -73,8 +74,8 @@
   // Plans & Coupons Actions
   Object.assign(window.adminActions, {
 // --- Plans Actions ---
-    currentPlanFilter: 'all',
-    filterPlans(cat = 'all') {
+    currentPlanFilter: 'full',
+    filterPlans(cat = 'full') {
       this.currentPlanFilter = cat;
       const bar = $('adminPlanFilterBar');
       if (bar) {
@@ -161,6 +162,8 @@
             tagBadge = '<span class="text-[10px] bg-emerald-500/15 t-success border border-emerald-500/30 px-1.5 py-0.5 rounded-lg font-bold">💰 اقتصادی</span>';
           } else if (bKey === 'vip') {
             tagBadge = '<span class="badge-vip text-[10px] bg-rose-500/15 t-danger border border-rose-500/30 px-1.5 py-0.5 rounded-lg font-bold">👑 پیشنهاد ویژه</span>';
+          } else if (bKey === 'tunnel') {
+            tagBadge = '<span class="text-[10px] bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 border border-indigo-500/30 px-1.5 py-0.5 rounded-lg font-bold">🚇 تانل اختصاصی</span>';
           }
           if (p.max_purchases) {
             const pCount = p.purchases_count || 0;
@@ -206,8 +209,8 @@
           }
 
           const squadObj = adminRemnawaveSquads.find(s => s.uuid === p.squad_uuid);
-          const squadName = squadObj ? squadObj.name : (p.squad_uuid ? `اسکادران ${p.squad_uuid.slice(0, 8)}…` : '');
-          const squadBadge = squadName ? `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-500/15 text-purple-700 dark:text-purple-300 border border-purple-500/30 truncate max-w-[130px]" title="اسکادران: ${escapeHtml(squadName)}">🧩 ${escapeHtml(squadName)}</span>` : '';
+          const squadName = squadObj ? squadObj.name : (p.squad_uuid ? `اسکواد ${p.squad_uuid.slice(0, 8)}…` : '');
+          const squadBadge = squadName ? `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-500/15 text-purple-700 dark:text-purple-300 border border-purple-500/30 truncate max-w-[130px]" title="اسکواد: ${escapeHtml(squadName)}">🧩 ${escapeHtml(squadName)}</span>` : '';
 
           const descHtml = (!isExtraTraffic && !isExtraTime && p.description)
             ? `<p class="text-[11px] text-slate-400 line-clamp-1 pr-9">${escapeHtml(p.description)}</p>`
@@ -264,7 +267,7 @@
           `;
         }).join('');
         if (typeof this.filterPlans === 'function') {
-          this.filterPlans(this.currentPlanFilter || 'all');
+          this.filterPlans(this.currentPlanFilter || 'full');
         }
       } catch (e) {
         container.innerHTML = '<div class="p-6 text-center text-rose-400 text-xs">خطای شبکه در دریافت تعرفه‌ها</div>';

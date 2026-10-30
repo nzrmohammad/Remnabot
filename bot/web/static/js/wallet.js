@@ -23,12 +23,7 @@ function renderBluCardNumber(el, num) {
   if (!el) return;
   const clean = String(num || '').replace(/\D/g, '');
   if (clean.length === 16) {
-    el.innerHTML = `
-      <span>${clean.slice(0, 4)}</span>
-      <span>${clean.slice(4, 8)}</span>
-      <span>${clean.slice(8, 12)}</span>
-      <span>${clean.slice(12, 16)}</span>
-    `;
+    el.innerHTML = `<span>${clean.slice(0, 4)}</span>&nbsp;&nbsp;<span>${clean.slice(4, 8)}</span>&nbsp;&nbsp;<span>${clean.slice(8, 12)}</span>&nbsp;&nbsp;<span>${clean.slice(12, 16)}</span>`;
   } else {
     el.innerText = formatCardNumberDisplay(num);
   }
@@ -194,10 +189,21 @@ async function loadTopupInfo() {
     const res = await window.api.getTopupInfo();
     if (res.ok) {
       window.storeSettings = res;
+      const isGraphic = res.card_graphical_view_enabled !== false && (res.card_template || 'blubank') === 'blubank';
+      document.querySelectorAll('.card-graphic-box').forEach(el => el.classList.toggle('hidden', !isGraphic));
+      document.querySelectorAll('.card-classic-box').forEach(el => el.classList.toggle('hidden', isGraphic));
+
       const cardNumEl = document.getElementById('topupCardNumber');
       const cardHolderEl = document.getElementById('topupCardHolder');
-      if (cardNumEl) renderBluCardNumber(cardNumEl, res.card_number || '----');
-      if (cardHolderEl) cardHolderEl.innerText = res.card_holder || 'مدیریت سرور';
+      const manualClassicNum = document.getElementById('manualClassicNumber');
+      const manualClassicHolder = document.getElementById('manualClassicHolder');
+      const rawNum = res.card_number || '----';
+      const rawHolder = res.card_holder || 'مدیریت سرور';
+
+      if (cardNumEl) renderBluCardNumber(cardNumEl, rawNum);
+      if (cardHolderEl) cardHolderEl.innerText = rawHolder;
+      if (manualClassicNum) manualClassicNum.innerText = formatCardNumberDisplay(rawNum);
+      if (manualClassicHolder) manualClassicHolder.innerText = rawHolder;
       applyBluBankCardTheme(res.card_blubank_color || 'rose');
 
       const hasCard = res.card_enabled === true;
@@ -423,15 +429,25 @@ function renderCardAutoInvoice(inv) {
   if (initialBox) initialBox.classList.add('hidden');
   if (detailsBox) detailsBox.classList.remove('hidden');
 
+  const isGraphic = (window.storeSettings?.card_graphical_view_enabled !== false) && ((window.storeSettings?.card_template || 'blubank') === 'blubank');
+  document.querySelectorAll('.card-graphic-box').forEach(el => el.classList.toggle('hidden', !isGraphic));
+  document.querySelectorAll('.card-classic-box').forEach(el => el.classList.toggle('hidden', isGraphic));
+
   const exactTomanEl = document.getElementById('cardAutoExactToman');
   const exactRialEl = document.getElementById('cardAutoExactRial');
   const cardNumEl = document.getElementById('cardAutoCardNumber');
   const cardHolderEl = document.getElementById('cardAutoCardHolder');
+  const autoClassicNum = document.getElementById('cardAutoClassicNumber');
+  const autoClassicHolder = document.getElementById('cardAutoClassicHolder');
+  const numToDisplay = inv.card_number || window.storeSettings?.card_number || '----';
+  const holderToDisplay = inv.card_holder || window.storeSettings?.card_holder || 'مدیریت سرور';
 
   if (exactTomanEl) exactTomanEl.innerText = `${Number(inv.exact_amount || 0).toLocaleString('en-US')} تومان`;
   if (exactRialEl) exactRialEl.innerText = `${Number(inv.exact_rial || (inv.exact_amount * 10) || 0).toLocaleString('en-US')} ریال`;
-  if (cardNumEl) renderBluCardNumber(cardNumEl, inv.card_number || window.storeSettings?.card_number || '----');
-  if (cardHolderEl) cardHolderEl.innerText = inv.card_holder || window.storeSettings?.card_holder || 'مدیریت سرور';
+  if (cardNumEl) renderBluCardNumber(cardNumEl, numToDisplay);
+  if (cardHolderEl) cardHolderEl.innerText = holderToDisplay;
+  if (autoClassicNum) autoClassicNum.innerText = formatCardNumberDisplay(numToDisplay);
+  if (autoClassicHolder) autoClassicHolder.innerText = holderToDisplay;
   applyBluBankCardTheme(inv.card_blubank_color || window.storeSettings?.card_blubank_color || 'rose');
 
   startCardAutoCountdownTimer(inv.remaining_seconds || 3600);

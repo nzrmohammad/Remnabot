@@ -1326,6 +1326,7 @@ async applyUserModification() {
         'popular': '⭐ محبوب‌ترین',
         'economic': '🌱 اقتصادی',
         'vip': '👑 پیشنهاد ویژه',
+        'tunnel': '🚇 تانل (اختصاصی)',
         'special': '✨ ویژه'
       };
 

@@ -887,6 +887,27 @@ openUserChat(telegram_id, name, tag, topup_id) {
       const bluColor = $('settingBluBankColor');
       if (bluColor) bluColor.value = s.card_blubank_color || 'blue';
 
+      const cardGraphicalSwitch = $('settingCardGraphicalSwitch');
+      if (cardGraphicalSwitch) cardGraphicalSwitch.checked = s.card_graphical_view_enabled !== false;
+
+      const cardTemplate = $('settingCardTemplate');
+      if (cardTemplate) cardTemplate.value = s.card_template || 'blubank';
+
+      const defSquadEl = $('settingDefaultSquadUuid');
+      if (defSquadEl) {
+        defSquadEl.value = s.default_squad_uuid || '';
+        if (window.api && typeof window.api.getAdminRemnawaveSquads === 'function' && !defSquadEl._loadedSquads) {
+          window.api.getAdminRemnawaveSquads().then(res => {
+            if (res && res.ok && Array.isArray(res.squads)) {
+              defSquadEl.innerHTML = '<option value="">🌐 همه سرورها (سراسری / بدون اسکواد اختصاصی)</option>' +
+                res.squads.map(sq => `<option value="${sq.uuid}">${sq.name || sq.uuid}</option>`).join('');
+              defSquadEl.value = s.default_squad_uuid || '';
+              defSquadEl._loadedSquads = true;
+            }
+          }).catch(() => {});
+        }
+      }
+
       // Join Gate
       const jgSwitch = $('settingJoinGateSwitch');
       if (jgSwitch) jgSwitch.checked = s.join_gate_enabled ?? false;
@@ -1105,6 +1126,9 @@ openUserChat(telegram_id, name, tag, topup_id) {
       birthday_reward_discount_percent: parseInt($('settingBirthdayRewardDiscount')?.value || '20', 10),
       birthday_custom_message: $('settingBirthdayMessage')?.value?.trim() || '',
       card_blubank_color: $('settingBluBankColor')?.value || 'blue',
+      card_graphical_view_enabled: $('settingCardGraphicalSwitch')?.checked ?? true,
+      card_template: $('settingCardTemplate')?.value || 'blubank',
+      default_squad_uuid: $('settingDefaultSquadUuid')?.value || '',
       join_gate_enabled: $('settingJoinGateSwitch')?.checked ?? false,
       join_gate_channel: $('settingJoinGateChannel')?.value?.trim() || '',
       crypto_enabled: $('settingCryptoSwitch')?.checked ?? false,

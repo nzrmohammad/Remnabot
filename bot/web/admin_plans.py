@@ -106,7 +106,7 @@ async def get_admin_remnawave_squads(request: web.Request) -> web.Response:
         return web.json_response({"ok": True, "squads": squads})
     except Exception as exc:
         logger.warning("Failed to fetch internal squads from Remnawave: %s", exc)
-        return web.json_response({"ok": False, "error": "خطا در دریافت لیست اسکادران‌ها از پنل"}, status=500)
+        return web.json_response({"ok": False, "error": "خطا در دریافت لیست اسکوادها از پنل"}, status=500)
 
 
 async def post_admin_plan_save(request: web.Request) -> web.Response:

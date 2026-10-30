@@ -498,10 +498,7 @@
           </div>
           <!-- Plans Category Filter Bar -->
           <div class="flex items-center gap-1.5 p-1 card-inset rounded-xl border border-card-border text-[11px] overflow-x-auto custom-scroll" id="adminPlanFilterBar">
-            <button type="button" onclick="window.adminActions.filterPlans('all')" data-plan-filter="all" class="admin-plan-filter-btn flex-1 py-1 px-2.5 rounded-lg font-bold bg-blue-600 text-white shadow transition whitespace-nowrap text-center">
-              همه
-            </button>
-            <button type="button" onclick="window.adminActions.filterPlans('full')" data-plan-filter="full" class="admin-plan-filter-btn flex-1 py-1 px-2.5 rounded-lg font-bold text-slate-700 dark:text-slate-200 hover:text-white transition whitespace-nowrap text-center">
+            <button type="button" onclick="window.adminActions.filterPlans('full')" data-plan-filter="full" class="admin-plan-filter-btn flex-1 py-1 px-2.5 rounded-lg font-bold bg-blue-600 text-white shadow transition whitespace-nowrap text-center">
               💎 دوره کامل
             </button>
             <button type="button" onclick="window.adminActions.filterPlans('time')" data-plan-filter="time" class="admin-plan-filter-btn flex-1 py-1 px-2.5 rounded-lg font-bold text-slate-700 dark:text-slate-200 hover:text-white transition whitespace-nowrap text-center">
@@ -896,6 +893,15 @@
               </div>
               <input type="hidden" id="settingAccessMode" value="open" />
             </div>
+
+            <!-- Default Store & Trial Squad -->
+            <div class="py-2 border-t border-[var(--card-border)]">
+              <label class="text-[11px] t-muted block mb-1 font-medium">🧩 اسکواد پیش‌فرض فروشگاه و سرویس تست:</label>
+              <select id="settingDefaultSquadUuid" dir="rtl" class="w-full card-inset rounded-xl px-3 py-2 text-xs t-main outline-none focus:border-blue-500 transition">
+                <option value="">🌐 همه سرورها (سراسری / بدون اسکواد اختصاصی)</option>
+              </select>
+              <span class="text-[10px] t-muted block mt-1">کاربران جدید و سرویس‌های تست رایگان به‌طور خودکار روی این اسکواد ساخته می‌شوند.</span>
+            </div>
           </div>
         </div>
 
@@ -934,6 +940,26 @@
             <div>
               <label class="text-[11px] text-slate-400 block mb-1">شماره کارت</label>
               <input type="text" id="settingCardNumber" dir="ltr" placeholder="6037..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-cyan-300 outline-none focus:border-cyan-500 transition" />
+            </div>
+            <!-- Graphical Card Toggle -->
+            <div class="flex items-center justify-between py-2 border-t border-slate-700/50">
+              <div>
+                <span class="text-slate-200 font-semibold block text-xs">طراحی گرافیکی مدرن کارت</span>
+                <span class="text-[11px] text-slate-400">نمایش کارت بانکی به شکل کارت اعتباری سه‌بعدی و مدرن با قابلیت چرخش</span>
+              </div>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" class="sr-only switch-checkbox" id="settingCardGraphicalSwitch" checked>
+                <div class="switch-label w-11 h-6 bg-slate-700 rounded-full transition-colors duration-200 flex items-center px-0.5">
+                  <div class="switch-ball w-5 h-5 bg-white rounded-full shadow-md transition-transform duration-200"></div>
+                </div>
+              </label>
+            </div>
+            <!-- Card Template Select -->
+            <div>
+              <label class="text-[11px] text-slate-400 block mb-1">قالب کارت بانکی:</label>
+              <select id="settingCardTemplate" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-200 outline-none focus:border-blue-500 transition">
+                <option value="blubank">💳 بلوبانک (BluBank)</option>
+              </select>
             </div>
             <div>
               <label class="text-[11px] text-slate-400 block mb-1">رنگ کارت بلوبانک (BluBank Theme):</label>
@@ -1264,43 +1290,43 @@
             <div class="grid grid-cols-2 gap-2">
               <div>
                 <label class="text-[10.5px] t-muted block mb-0.5 font-medium truncate">💳 تاپیک فیش‌های واریزی</label>
-                <input type="text" id="settingTopicTopups" data-topic-label="Topups" dir="ltr" placeholder="مثلاً: 2" class="w-full card-inset rounded-lg px-2 py-1 text-[11px] font-mono font-medium text-cyan-700 dark:text-cyan-300 outline-none focus:border-cyan-500 transition placeholder:text-[10px]" />
+                <input type="text" id="settingTopicTopups" data-topic-label="Topups" dir="ltr" placeholder="مثلاً: 2" class="w-full card-inset rounded-lg px-2 py-1 text-[10px] font-mono font-medium text-cyan-700 dark:text-cyan-300 outline-none focus:border-cyan-500 transition placeholder:text-[9.5px]" />
               </div>
               <div>
                 <label class="text-[10.5px] t-muted block mb-0.5 font-medium truncate">🛒 تاپیک سفارشات و خرید</label>
-                <input type="text" id="settingTopicOrders" data-topic-label="Orders" dir="ltr" placeholder="مثلاً: 3" class="w-full card-inset rounded-lg px-2 py-1 text-[11px] font-mono font-medium text-emerald-700 dark:text-emerald-400 outline-none focus:border-emerald-500 transition placeholder:text-[10px]" />
+                <input type="text" id="settingTopicOrders" data-topic-label="Orders" dir="ltr" placeholder="مثلاً: 3" class="w-full card-inset rounded-lg px-2 py-1 text-[10px] font-mono font-medium text-emerald-700 dark:text-emerald-400 outline-none focus:border-emerald-500 transition placeholder:text-[9.5px]" />
               </div>
               <div>
                 <label class="text-[10.5px] t-muted block mb-0.5 font-medium truncate">💬 تاپیک پشتیبانی و تیکت</label>
-                <input type="text" id="settingTopicSupport" data-topic-label="Support" dir="ltr" placeholder="مثلاً: 4" class="w-full card-inset rounded-lg px-2 py-1 text-[11px] font-mono font-medium text-blue-700 dark:text-blue-300 outline-none focus:border-blue-500 transition placeholder:text-[10px]" />
+                <input type="text" id="settingTopicSupport" data-topic-label="Support" dir="ltr" placeholder="مثلاً: 4" class="w-full card-inset rounded-lg px-2 py-1 text-[10px] font-mono font-medium text-blue-700 dark:text-blue-300 outline-none focus:border-blue-500 transition placeholder:text-[9.5px]" />
               </div>
               <div>
                 <label class="text-[10.5px] t-muted block mb-0.5 font-medium truncate">⚡ تاپیک هشدارهای سیستم</label>
-                <input type="text" id="settingTopicAlerts" data-topic-label="Alerts" dir="ltr" placeholder="مثلاً: 5" class="w-full card-inset rounded-lg px-2 py-1 text-[11px] font-mono font-medium text-amber-700 dark:text-amber-300 outline-none focus:border-amber-500 transition placeholder:text-[10px]" />
+                <input type="text" id="settingTopicAlerts" data-topic-label="Alerts" dir="ltr" placeholder="مثلاً: 5" class="w-full card-inset rounded-lg px-2 py-1 text-[10px] font-mono font-medium text-amber-700 dark:text-amber-300 outline-none focus:border-amber-500 transition placeholder:text-[9.5px]" />
               </div>
               <div>
                 <label class="text-[10.5px] t-muted block mb-0.5 font-medium truncate">💾 تاپیک بکاپ دیتابیس</label>
-                <input type="text" id="settingTopicBackups" data-topic-label="Backups" dir="ltr" placeholder="مثلاً: 12" class="w-full card-inset rounded-lg px-2 py-1 text-[11px] font-mono font-medium text-emerald-700 dark:text-emerald-400 outline-none focus:border-emerald-500 transition placeholder:text-[10px]" />
+                <input type="text" id="settingTopicBackups" data-topic-label="Backups" dir="ltr" placeholder="مثلاً: 12" class="w-full card-inset rounded-lg px-2 py-1 text-[10px] font-mono font-medium text-emerald-700 dark:text-emerald-400 outline-none focus:border-emerald-500 transition placeholder:text-[9.5px]" />
               </div>
               <div>
                 <label class="text-[10.5px] t-muted block mb-0.5 font-medium truncate">🖥️ تاپیک وضعیت سرورها</label>
-                <input type="text" id="settingTopicNodes" data-topic-label="Nodes" dir="ltr" placeholder="مثلاً: 6" class="w-full card-inset rounded-lg px-2 py-1 text-[11px] font-mono font-medium text-emerald-700 dark:text-emerald-400 outline-none focus:border-emerald-500 transition placeholder:text-[10px]" />
+                <input type="text" id="settingTopicNodes" data-topic-label="Nodes" dir="ltr" placeholder="مثلاً: 6" class="w-full card-inset rounded-lg px-2 py-1 text-[10px] font-mono font-medium text-emerald-700 dark:text-emerald-400 outline-none focus:border-emerald-500 transition placeholder:text-[9.5px]" />
               </div>
               <div>
                 <label class="text-[10.5px] t-muted block mb-0.5 font-medium truncate">📊 تاپیک گزارش‌های مدیریتی</label>
-                <input type="text" id="settingTopicReports" data-topic-label="Reports" dir="ltr" placeholder="مثلاً: 7" class="w-full card-inset rounded-lg px-2 py-1 text-[11px] font-mono font-medium text-cyan-700 dark:text-cyan-300 outline-none focus:border-cyan-500 transition placeholder:text-[10px]" />
+                <input type="text" id="settingTopicReports" data-topic-label="Reports" dir="ltr" placeholder="مثلاً: 7" class="w-full card-inset rounded-lg px-2 py-1 text-[10px] font-mono font-medium text-cyan-700 dark:text-cyan-300 outline-none focus:border-cyan-500 transition placeholder:text-[9.5px]" />
               </div>
               <div>
                 <label class="text-[10.5px] t-muted block mb-0.5 font-medium truncate">🪙 تاپیک پرداخت کریپتو</label>
-                <input type="text" id="settingTopicCrypto" data-topic-label="Crypto" dir="ltr" placeholder="مثلاً: 8" class="w-full card-inset rounded-lg px-2 py-1 text-[11px] font-mono font-medium text-purple-700 dark:text-purple-300 outline-none focus:border-purple-500 transition placeholder:text-[10px]" />
+                <input type="text" id="settingTopicCrypto" data-topic-label="Crypto" dir="ltr" placeholder="مثلاً: 8" class="w-full card-inset rounded-lg px-2 py-1 text-[10px] font-mono font-medium text-purple-700 dark:text-purple-300 outline-none focus:border-purple-500 transition placeholder:text-[9.5px]" />
               </div>
               <div>
                 <label class="text-[10.5px] t-muted block mb-0.5 font-medium truncate">⚠️ تاپیک لاگ و خطای سیستم</label>
-                <input type="text" id="settingTopicErrors" data-topic-label="Errors" dir="ltr" placeholder="مثلاً: 9" class="w-full card-inset rounded-lg px-2 py-1 text-[11px] font-mono font-medium text-rose-700 dark:text-rose-400 outline-none focus:border-rose-500 transition placeholder:text-[10px]" />
+                <input type="text" id="settingTopicErrors" data-topic-label="Errors" dir="ltr" placeholder="مثلاً: 9" class="w-full card-inset rounded-lg px-2 py-1 text-[10px] font-mono font-medium text-rose-700 dark:text-rose-400 outline-none focus:border-rose-500 transition placeholder:text-[9.5px]" />
               </div>
               <div>
                 <label class="text-[10.5px] t-muted block mb-0.5 font-medium truncate">📥 تاپیک ثبت دستی پیامک بانک</label>
-                <input type="text" id="settingTopicSmsManual" data-topic-label="SmsManual" dir="ltr" placeholder="مثلاً: 15" class="w-full card-inset rounded-lg px-2 py-1 text-[11px] font-mono font-medium text-amber-700 dark:text-amber-400 outline-none focus:border-amber-500 transition placeholder:text-[10px]" />
+                <input type="text" id="settingTopicSmsManual" data-topic-label="SmsManual" dir="ltr" placeholder="مثلاً: 15" class="w-full card-inset rounded-lg px-2 py-1 text-[10px] font-mono font-medium text-amber-700 dark:text-amber-400 outline-none focus:border-amber-500 transition placeholder:text-[9.5px]" />
               </div>
             </div>
             <!-- Auto Clean Previous Reports Switch -->
@@ -2565,7 +2591,7 @@
             <input type="number" inputmode="numeric" pattern="[0-9]*" id="planModalMaxPurchases" placeholder="مثلاً: 5 (پس از 5 خرید خودکار غیرفعال می‌شود)" min="0" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-amber-300 outline-none focus:border-blue-500 mb-2" />
           </div>
           <div>
-            <label class="text-[11px] t-main block mb-1">نشان و بج بازاریابی (Badge):</label>
+            <label class="text-[11px] t-main block mb-1">نشان و بج بازاریابی:</label>
             <input type="hidden" id="planModalBadge" value="" />
             <div onclick="window.adminActions.openPlanBadgePickerModal()" class="w-full card-inset rounded-xl px-3 py-2.5 flex items-center justify-between cursor-pointer transition active:scale-[0.99] group">
               <span id="planModalBadgeLabel" class="text-xs t-main font-medium truncate">بدون نشان (پلن استاندارد)</span>
@@ -2573,7 +2599,7 @@
             </div>
           </div>
           <div>
-            <label class="text-[11px] t-main block mb-1 font-semibold">اسکادران متصل (Internal Squad):</label>
+            <label class="text-[11px] t-main block mb-1 font-semibold">اسکواد متصل (Internal Squad):</label>
             <select id="planModalSquadUuid" dir="rtl" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-blue-500">
               <option value="">🌐 همه سرورها (سراسری / عمومی)</option>
             </select>

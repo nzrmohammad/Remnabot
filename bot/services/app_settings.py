@@ -57,6 +57,8 @@ class StoreSettings:
     birthday_reward_discount_percent: int = 20
     birthday_custom_message: str = ""
     card_blubank_color: str = "blue"
+    card_graphical_view_enabled: bool = True
+    card_template: str = "blubank"
     join_gate_enabled: bool = False
     join_gate_channel: str = ""
     topic_backups: int | None = None
@@ -137,6 +139,8 @@ async def get_store_settings(session: AsyncSession) -> StoreSettings:
         birthday_reward_discount_percent=_int(values.get("birthday_reward_discount_percent"), 20),
         birthday_custom_message=str(values.get("birthday_custom_message") or "").strip(),
         card_blubank_color=str(values.get("card_blubank_color") or "blue").strip().lower(),
+        card_graphical_view_enabled=_bool(values.get("card_graphical_view_enabled"), True),
+        card_template=str(values.get("card_template") or "blubank").strip().lower(),
         join_gate_enabled=_bool(values.get("join_gate_enabled"), False),
         join_gate_channel=str(values.get("join_gate_channel") or "").strip(),
         topic_backups=_opt_int(values.get("topic_backups"), getattr(env, "ADMIN_TOPIC_BACKUPS", None)),

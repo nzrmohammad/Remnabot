@@ -272,7 +272,7 @@ async def _render_purchase_result(
         kb.adjust(1)
         msg = (
             "⚠️ <b>عدم تطابق نوع سرویس!</b>\n\n"
-            "این بسته افزایشی (حجم یا زمان) با سرورها و اسکادران سرویس فعال شما سازگار نیست.\n"
+            "این بسته افزایشی (حجم یا زمان) با سرورها و اسکواد سرویس فعال شما سازگار نیست.\n"
             "لطفاً بسته متناسب با اشتراک خود را انتخاب فرمایید."
             if lang == "fa"
             else "⚠️ <b>Squad Mismatch!</b>\n\nThis add-on package is not compatible with your active subscription squad."

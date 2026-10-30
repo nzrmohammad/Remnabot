@@ -2510,13 +2510,12 @@ def test_admin_plans_filter_and_birthday_ux_enhancements():
 
     # 2. Admin Plans Category Filter Bar
     assert 'id="adminPlanFilterBar"' in admin_html
-    assert 'data-plan-filter="all"' in admin_html
     assert 'data-plan-filter="full"' in admin_html
     assert 'data-plan-filter="time"' in admin_html
     assert 'data-plan-filter="traffic"' in admin_html
 
     # 3. Admin JS filtering logic
-    assert "filterPlans(cat = 'all')" in admin_js
+    assert "filterPlans(cat = 'full')" in admin_js
     assert "admin-plan-card" in admin_js
     assert "data-plan-type" in admin_js
 

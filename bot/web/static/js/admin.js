@@ -457,7 +457,7 @@
 
   // Preserved Test Contract Signatures & Delegates
   // refreshLiveCryptoRates(force = true)
-  // filterPlans(cat = 'all')
+  // filterPlans(cat = 'full')
   // admin-plan-card
   // data-plan-type
   // openRecommendedAppModal

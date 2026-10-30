@@ -365,19 +365,26 @@ async def get_user_me(request: web.Request) -> web.Response:
         user_squad_uuids = set()
         for p in panel_users:
             if p.get("status") in ("ACTIVE", "DISABLED", "LIMITED", "EXPIRED"):
-                for sq in (p.get("activeInternalSquads") or p.get("internalSquads") or []):
+                raw_sqs = (
+                    p.get("activeInternalSquads")
+                    or p.get("internalSquads")
+                    or p.get("activeInternalSquadsUuids")
+                    or p.get("internalSquadsUuids")
+                    or []
+                )
+                for sq in raw_sqs:
                     if isinstance(sq, dict):
                         u = sq.get("uuid") or sq.get("id")
                         if u:
-                            user_squad_uuids.add(str(u))
+                            user_squad_uuids.add(str(u).strip().lower())
                     elif isinstance(sq, str):
-                        user_squad_uuids.add(sq)
+                        user_squad_uuids.add(sq.strip().lower())
 
         filtered_services = []
         for s in raw_services:
             is_addon = (s.traffic_gb > 0 and s.duration_days == 0) or (s.duration_days > 0 and s.traffic_gb == 0)
             if is_addon and s.squad_uuid:
-                if user_squad_uuids and str(s.squad_uuid) not in user_squad_uuids:
+                if str(s.squad_uuid).strip().lower() not in user_squad_uuids:
                     continue
             filtered_services.append(s)
 

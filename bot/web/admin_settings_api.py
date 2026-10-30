@@ -81,6 +81,9 @@ async def get_admin_settings(request: web.Request) -> web.Response:
             "birthday_reward_discount_percent": store_settings.birthday_reward_discount_percent,
             "birthday_custom_message": store_settings.birthday_custom_message,
             "card_blubank_color": store_settings.card_blubank_color,
+            "card_graphical_view_enabled": store_settings.card_graphical_view_enabled,
+            "card_template": store_settings.card_template,
+            "default_squad_uuid": store_settings.default_squad_uuid,
             "join_gate_enabled": store_settings.join_gate_enabled,
             "join_gate_channel": store_settings.join_gate_channel,
         }
@@ -121,6 +124,7 @@ async def post_admin_settings(request: web.Request) -> web.Response:
             "referral_enabled", "support_direct_enabled", "maintenance",
             "stars_enabled", "trx_enabled", "xrocket_enabled",
             "card_require_phone_verification", "card_phone_iran_only", "birthday_reward_enabled",
+            "card_graphical_view_enabled",
             "join_gate_enabled", "auto_clean_reports",
         )
         for bk in bool_keys:
@@ -137,10 +141,10 @@ async def post_admin_settings(request: web.Request) -> web.Response:
             "trial_traffic_gb", "trial_duration_days",
             "referral_reward_gb", "support_contact",
             "topic_topups", "topic_orders", "topic_support", "topic_alerts", "topic_backups", "topic_reports", "topic_nodes", "topic_crypto", "topic_errors", "topic_sms_manual",
-            "access_mode",
+            "access_mode", "default_squad_uuid",
             "tutorial_channel_url", "routing_tutorial_url", "client_apps_json",
             "birthday_reward_traffic_gb", "birthday_reward_discount_percent",
-            "birthday_custom_message", "card_blubank_color",
+            "birthday_custom_message", "card_blubank_color", "card_template",
             "join_gate_channel",
         )
         for rk in raw_keys:

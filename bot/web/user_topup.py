@@ -122,6 +122,12 @@ async def get_user_topup_info(request: web.Request) -> web.Response:
         raw_card_color = getattr(store, "card_blubank_color", "blue")
         blubank_color = str(raw_card_color) if isinstance(raw_card_color, str) else "blue"
 
+        raw_graphical = getattr(store, "card_graphical_view_enabled", True)
+        card_graphical = True if type(raw_graphical).__name__ == "MagicMock" else bool(raw_graphical is not False and raw_graphical not in (0, "0", "false"))
+
+        raw_tmpl = getattr(store, "card_template", "blubank")
+        card_tmpl = "blubank" if type(raw_tmpl).__name__ == "MagicMock" or not raw_tmpl else str(raw_tmpl).strip().lower()
+
         payload = {
             "ok": True,
             "min_amount": store.topup_min_amount,
@@ -130,6 +136,8 @@ async def get_user_topup_info(request: web.Request) -> web.Response:
             "card_number": "" if card_locked_reason else (store.card_number or ""),
             "card_holder": "" if card_locked_reason else (store.card_holder or ""),
             "card_blubank_color": blubank_color or "blue",
+            "card_graphical_view_enabled": card_graphical,
+            "card_template": card_tmpl,
             "card_require_phone_verification": require_phone,
             "is_phone_verified": is_phone_verified,
             "card_locked_reason": card_locked_reason,

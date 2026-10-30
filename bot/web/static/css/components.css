@@ -557,6 +557,16 @@ html.theme-light .shop-plan-card .shop-plan-badge.badge-economic {
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
 }
 
+.shop-plan-card .shop-plan-badge.badge-tunnel,
+html.theme-light .shop-plan-card .shop-plan-badge.badge-tunnel {
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #06b6d4 100%);
+  color: #ffffff;
+  border-bottom: 1.5px solid rgba(199, 210, 254, 0.85);
+  border-right: 1.5px solid rgba(199, 210, 254, 0.85);
+  box-shadow: 0 4px 14px rgba(99, 102, 241, 0.4);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
+}
+
 .shop-plan-card .shop-plan-badge.badge-special,
 html.theme-light .shop-plan-card .shop-plan-badge.badge-special {
   background: linear-gradient(135deg, #ec4899 0%, #db2777 100%);
@@ -644,19 +654,19 @@ html.theme-light #adminContentArea .text-slate-300:not(button):not([class*="btn"
   color: var(--text-main);
 }
 
-/* --- 10. BluBank Vertical 3D Flip Card Animation --- */
+/* --- 10. BluBank 3D Flip Card Animation (Horizontal) --- */
 .blu-card-perspective-box {
   perspective: 1200px;
   width: 100%;
-  max-width: 250px;
+  max-width: 340px;
   margin: 0.5rem auto;
 }
 
 .blu-card-flipper {
   position: relative;
   width: 100%;
-  aspect-ratio: 1 / 1.58;
-  min-height: 380px;
+  aspect-ratio: 1.586 / 1;
+  min-height: 195px;
   transition: transform 0.65s cubic-bezier(0.34, 1.56, 0.64, 1);
   transform-style: preserve-3d;
   cursor: pointer;
