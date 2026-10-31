@@ -15,6 +15,8 @@ from bot.db.models import Service, User
 from bot.db.repositories.coupon_repo import CouponRepository
 from bot.services.app_settings import get_store_settings
 from bot.services.formatting import ltr_frag
+from bot.services.gift_service import claim_gift, create_gift, get_user_gifts
+from bot.services.loyalty import apply_loyalty_discount, get_user_loyalty
 from bot.services.purchases import execute_purchase
 from bot.web.cache import FastCache
 
@@ -524,20 +526,25 @@ async def post_user_purchase(request: web.Request) -> web.Response:
         bot = request.app.get("bot")
         session_factory = request.app.get("session_factory")
 
+        loyalty_info = await get_user_loyalty(session, telegram_id, cache=cache)
+        loyalty_disc_pct = loyalty_info.get("discount_percent", 0)
+        loyalty_disc_amount, _ = apply_loyalty_discount(service.price, loyalty_disc_pct)
+        total_discount = max(discount_amount, loyalty_disc_amount)
+
         result = await execute_purchase(
             remnawave=remnawave,
             session=session,
             service=service,
             telegram_id=telegram_id,
             chosen_account=chosen_acc,
-            discount_amount=discount_amount,
+            discount_amount=total_discount,
             coupon_code=coupon_code,
             bot=bot,
             session_factory=session_factory,
             cache=cache,
         )
 
-        effective_price = max(0, service.price - discount_amount)
+        effective_price = max(0, service.price - total_discount)
         if not result.ok:
             await session.rollback()
             if result.kind == "insufficient":
@@ -636,3 +643,232 @@ async def post_user_purchase(request: web.Request) -> web.Response:
             "order_id": result.order_id,
             "effective_price": effective_price,
         })
+
+
+async def post_user_create_gift(request: web.Request) -> web.Response:
+    """Create a gift card / voucher (Balance or Service) with atomic balance deduction."""
+    user_auth, err = require_user(request)
+    if err:
+        return err
+
+    telegram_id = int(user_auth["id"])
+    data = await request.json()
+    delivery_type = data.get("delivery_type", "LINK")
+    gift_type = data.get("gift_type", "BALANCE")
+    amount = int(data.get("amount", 0) or 0)
+    service_id = int(data.get("service_id")) if data.get("service_id") else None
+    receiver_target = data.get("receiver_target")
+    message = data.get("message")
+    bot = request.app.get("bot")
+    bot_username = getattr(getattr(bot, "_me", None), "username", "") if bot else ""
+    cache = request.app.get("cache")
+
+    async with db_session(request) as session:
+        sender_full_name = user_auth.get("first_name", "")
+        if user_auth.get("last_name"):
+            sender_full_name += f" {user_auth.get('last_name')}"
+        sender_full_name = sender_full_name.strip() or user_auth.get("username") or "کاربر"
+
+        res = await create_gift(
+            session=session,
+            sender_telegram_id=telegram_id,
+            sender_name=sender_full_name,
+            delivery_type=delivery_type,
+            gift_type=gift_type,
+            amount=amount,
+            service_id=service_id,
+            receiver_target=receiver_target,
+            message=message,
+            bot=bot,
+            bot_username=bot_username,
+            cache=cache,
+        )
+        if not res.get("ok"):
+            return web.json_response(res, status=400)
+        if cache:
+            await cache.delete(f"tma:user:{telegram_id}:dashboard")
+        return web.json_response(res)
+
+
+async def post_user_claim_gift(request: web.Request) -> web.Response:
+    """Claim a gift card by code in TMA."""
+    user_auth, err = require_user(request)
+    if err:
+        return err
+
+    telegram_id = int(user_auth["id"])
+    data = await request.json()
+    code = (data.get("code") or "").strip()
+    if not code:
+        return web.json_response({"ok": False, "message": "کد هدیه الزامی است."}, status=400)
+
+    bot = request.app.get("bot")
+    remnawave = request.app.get("remnawave")
+    session_factory = request.app.get("session_factory")
+    cache = request.app.get("cache")
+
+    async with db_session(request) as session:
+        res = await claim_gift(
+            session=session,
+            code=code,
+            claimer_telegram_id=telegram_id,
+            claimer_username=user_auth.get("username"),
+            remnawave=remnawave,
+            bot=bot,
+            session_factory=session_factory,
+        )
+        if not res.get("ok"):
+            return web.json_response(res, status=400)
+        if cache:
+            await cache.delete(f"tma:user:{telegram_id}:dashboard")
+        return web.json_response(res)
+
+
+async def get_user_gifts_history(request: web.Request) -> web.Response:
+    """Return sent and received gift cards history for user."""
+    user_auth, err = require_user(request)
+    if err:
+        return err
+
+    telegram_id = int(user_auth["id"])
+    async with db_session(request) as session:
+        gifts = await get_user_gifts(session, telegram_id)
+        return web.json_response({"ok": True, "gifts": gifts})
+
+
+async def post_user_custom_plan_calculate(request: web.Request) -> web.Response:
+    """Calculate price and loyalty discount for custom plan on slider change."""
+    user_auth, err = require_user(request)
+    if err:
+        return err
+
+    telegram_id = int(user_auth["id"])
+    data = await request.json()
+    traffic_gb = max(1, int(data.get("traffic_gb", 10) or 10))
+    duration_days = max(1, int(data.get("duration_days", 30) or 30))
+    cache = request.app.get("cache")
+
+    async with db_session(request) as session:
+        store_settings = await get_store_settings(session)
+        base_price = (
+            (traffic_gb * store_settings.custom_plan_price_per_gb)
+            + (duration_days * store_settings.custom_plan_price_per_day)
+            + store_settings.custom_plan_base_price
+        )
+        loyalty = await get_user_loyalty(session, telegram_id, cache=cache)
+        loyalty_pct = loyalty.get("discount_percent", 0)
+        disc_amt, final_price = apply_loyalty_discount(base_price, loyalty_pct)
+
+        return web.json_response({
+            "ok": True,
+            "traffic_gb": traffic_gb,
+            "duration_days": duration_days,
+            "base_price": base_price,
+            "loyalty_discount_percent": loyalty_pct,
+            "loyalty_discount_amount": disc_amt,
+            "final_price": final_price,
+        })
+
+
+async def post_user_custom_plan_purchase(request: web.Request) -> web.Response:
+    """Purchase and activate a custom built plan with wallet balance."""
+    user_auth, err = require_user(request)
+    if err:
+        return err
+
+    telegram_id = int(user_auth["id"])
+    data = await request.json()
+    traffic_gb = int(data.get("traffic_gb", 0) or 0)
+    duration_days = int(data.get("duration_days", 0) or 0)
+    account_id = data.get("account_id")
+    remnawave = request.app["remnawave"]
+    cache = request.app.get("cache")
+
+    async with db_session(request) as session:
+        store_settings = await get_store_settings(session)
+        if not store_settings.custom_plan_enabled:
+            return web.json_response({"ok": False, "message": "طراحی بسته اختصاصی در حال حاضر غیرفعال است."}, status=400)
+
+        if traffic_gb < store_settings.custom_plan_min_gb or traffic_gb > store_settings.custom_plan_max_gb:
+            return web.json_response({
+                "ok": False,
+                "message": f"حجم انتخابی باید بین {store_settings.custom_plan_min_gb} تا {store_settings.custom_plan_max_gb} گیگابایت باشد."
+            }, status=400)
+
+        if duration_days < store_settings.custom_plan_min_days or duration_days > store_settings.custom_plan_max_days:
+            return web.json_response({
+                "ok": False,
+                "message": f"مدت زمان انتخابی باید بین {store_settings.custom_plan_min_days} تا {store_settings.custom_plan_max_days} روز باشد."
+            }, status=400)
+
+        base_price = (
+            (traffic_gb * store_settings.custom_plan_price_per_gb)
+            + (duration_days * store_settings.custom_plan_price_per_day)
+            + store_settings.custom_plan_base_price
+        )
+        loyalty = await get_user_loyalty(session, telegram_id, cache=cache)
+        loyalty_pct = loyalty.get("discount_percent", 0)
+        disc_amt, final_price = apply_loyalty_discount(base_price, loyalty_pct)
+
+        class CustomDynamicService:
+            id = None
+            name = f"بسته دلخواه ({ltr_frag(f'{traffic_gb} GB')} - {duration_days} روز)"
+            price = base_price
+            duration_days = duration_days
+            traffic_gb = traffic_gb
+            hwid_limit = 2
+            squad_uuid = store_settings.custom_plan_squad_uuid or store_settings.default_squad_uuid or None
+            badge = "custom"
+            traffic_strategy = "NO_RESET"
+            max_purchases = None
+            purchases_count = 0
+
+        custom_svc = CustomDynamicService()
+
+        chosen_acc = None
+        panel_users = await remnawave.get_users_by_telegram_id(telegram_id) or []
+        if account_id:
+            chosen_acc = next((u for u in panel_users if str(u.get("id")) == str(account_id)), None)
+
+        bot = request.app.get("bot")
+        session_factory = request.app.get("session_factory")
+
+        result = await execute_purchase(
+            remnawave=remnawave,
+            session=session,
+            service=custom_svc,
+            telegram_id=telegram_id,
+            chosen_account=chosen_acc,
+            discount_amount=disc_amt,
+            bot=bot,
+            session_factory=session_factory,
+            cache=cache,
+        )
+
+        if not result.ok:
+            await session.rollback()
+            if result.kind == "insufficient":
+                return web.json_response({
+                    "ok": False,
+                    "error": "insufficient_balance",
+                    "needed": final_price,
+                    "current": result.new_balance,
+                    "message": "موجودی کیف پول شما کافی نیست.",
+                }, status=400)
+            return web.json_response({"ok": False, "message": "خطا در خرید بسته اختصاصی."}, status=400)
+
+        await session.commit()
+        if cache:
+            await cache.delete(f"tma:user:{telegram_id}:dashboard")
+
+        return web.json_response({
+            "ok": True,
+            "message": "بسته دلخواه شما با موفقیت فعال شد!",
+            "subscription_url": result.subscription_url,
+            "new_balance": result.new_balance,
+            "service_name": custom_svc.name,
+            "traffic_gb": traffic_gb,
+            "duration_days": duration_days,
+            "final_price": final_price,
+        })
+

@@ -27,6 +27,7 @@ from bot.db.repositories.report_repo import ReportRepository
 from bot.db.repositories.user_repo import UserRepository
 from bot.services.app_settings import get_store_settings, is_maintenance
 from bot.services.formatting import COUNTRY_FLAGS_MAP, country_flag, now_tz
+from bot.services.loyalty import apply_loyalty_discount, get_user_loyalty
 
 FLAG_EMOJI_RE = re.compile(r"[\U0001F1E6-\U0001F1FF]{2}")
 
@@ -479,6 +480,9 @@ async def get_user_me(request: web.Request) -> web.Response:
         if not default_cluster_flags:
             default_cluster_flags = ["🇩🇪", "🇳🇱", "🇫🇮"]
 
+        loyalty_data = await get_user_loyalty(session, telegram_id, cache=cache)
+        loyalty_pct = loyalty_data.get("discount_percent", 0)
+
         plans_data = []
         for s in filtered_services:
             plan_flags = []
@@ -520,10 +524,15 @@ async def get_user_me(request: web.Request) -> web.Response:
             else:
                 plan_flags = default_cluster_flags[:4]
 
+            disc_amt, final_price = apply_loyalty_discount(s.price, loyalty_pct)
+
             plans_data.append({
                 "id": s.id,
                 "name": s.name,
                 "price": s.price,
+                "final_price": final_price,
+                "loyalty_discount_percent": loyalty_pct,
+                "loyalty_discount_amount": disc_amt,
                 "duration_days": s.duration_days,
                 "traffic_gb": s.traffic_gb,
                 "description": s.description,
@@ -763,6 +772,17 @@ async def get_user_me(request: web.Request) -> web.Response:
             "wheel_status": wheel_status,
             "achievements": achievements_data,
             "leaderboard": user_leaderboard,
+            "loyalty": loyalty_data,
+            "custom_plan_settings": {
+                "enabled": store_settings.custom_plan_enabled,
+                "price_per_gb": store_settings.custom_plan_price_per_gb,
+                "price_per_day": store_settings.custom_plan_price_per_day,
+                "base_price": store_settings.custom_plan_base_price,
+                "min_gb": store_settings.custom_plan_min_gb,
+                "max_gb": store_settings.custom_plan_max_gb,
+                "min_days": store_settings.custom_plan_min_days,
+                "max_days": store_settings.custom_plan_max_days,
+            },
         }
 
         if not is_partial:

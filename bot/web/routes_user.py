@@ -13,6 +13,11 @@ Modularized into domain-specific modules:
 from bot.db.repositories.user_repo import UserRepository
 from bot.web.user_profile import get_user_me, post_user_set_birthday
 from bot.web.user_shop import (
+    get_user_gifts_history,
+    post_user_claim_gift,
+    post_user_create_gift,
+    post_user_custom_plan_calculate,
+    post_user_custom_plan_purchase,
     post_user_kill_device,
     post_user_purchase,
     post_user_revoke_sub,
@@ -96,4 +101,9 @@ __all__ = [
     "post_user_speedtest_upload",
     "post_user_redeem_voucher",
     "post_user_auto_renew",
+    "post_user_create_gift",
+    "post_user_claim_gift",
+    "get_user_gifts_history",
+    "post_user_custom_plan_calculate",
+    "post_user_custom_plan_purchase",
 ]

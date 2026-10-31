@@ -24,7 +24,7 @@ router = Router(name="start")
 @router.message(CommandStart())
 async def cmd_start(
     message: Message, bot: Bot, user_repo: UserRepository,
-    session, state: FSMContext,
+    session, state: FSMContext, remnawave=None,
 ):
     await state.clear()
 
@@ -77,6 +77,32 @@ async def cmd_start(
             ad_code = param.removeprefix("ad_").strip().lower()
             if ad_code and getattr(user, "campaign_code", None) is None:
                 await user_repo.set_campaign(user, ad_code)
+        elif param.startswith("gift_"):
+            gift_code = param.removeprefix("gift_").strip().upper()
+            from bot.services.gift_service import claim_gift
+            session_factory = getattr(bot, "session_factory", None)
+            res = await claim_gift(
+                session=session,
+                code=gift_code,
+                claimer_telegram_id=message.from_user.id,
+                claimer_username=message.from_user.username,
+                remnawave=remnawave,
+                bot=bot,
+                session_factory=session_factory,
+            )
+            if res.get("ok"):
+                await message.answer(
+                    f"🎁 <b>هدیه با موفقیت فعال شد!</b>\n\n"
+                    f"👤 از طرف: <b>{res.get('sender_name')}</b>\n"
+                    f"✨ {res.get('message')}\n\n"
+                    "از همراهی شما بسیار خوشحالیم! ❤️",
+                    parse_mode="HTML"
+                )
+            else:
+                await message.answer(
+                    f"⚠️ <b>خطا در دریافت هدیه:</b>\n{res.get('message', 'کارت هدیه نامعتبر است.')}",
+                    parse_mode="HTML"
+                )
         elif param == "verify_phone":
             from aiogram.types import KeyboardButton, ReplyKeyboardMarkup
             phone_kb = ReplyKeyboardMarkup(

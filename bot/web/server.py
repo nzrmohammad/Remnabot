@@ -608,6 +608,11 @@ def create_web_app(
     app.router.add_get("/api/user/speedtest/ping", routes_user.get_user_speedtest_ping)
     app.router.add_get("/api/user/speedtest/payload", routes_user.get_user_speedtest_payload)
     app.router.add_post("/api/user/speedtest/upload", routes_user.post_user_speedtest_upload)
+    app.router.add_post("/api/user/gift/create", routes_user.post_user_create_gift)
+    app.router.add_post("/api/user/gift/claim", routes_user.post_user_claim_gift)
+    app.router.add_get("/api/user/gifts", routes_user.get_user_gifts_history)
+    app.router.add_post("/api/user/custom-plan/calculate", routes_user.post_user_custom_plan_calculate)
+    app.router.add_post("/api/user/custom-plan/purchase", routes_user.post_user_custom_plan_purchase)
 
     # Admin APIs
     app.router.add_get("/api/admin/overview", routes_admin.get_admin_overview)

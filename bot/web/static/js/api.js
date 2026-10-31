@@ -179,6 +179,26 @@ const api = {
     });
   },
 
+  async createGift(data) {
+    return this.post('/api/user/gift/create', data);
+  },
+
+  async claimGift(code) {
+    return this.post('/api/user/gift/claim', { code });
+  },
+
+  async getGiftsHistory() {
+    return this.get('/api/user/gifts');
+  },
+
+  async calculateCustomPlan(traffic_gb, duration_days) {
+    return this.post('/api/user/custom-plan/calculate', { traffic_gb, duration_days });
+  },
+
+  async purchaseCustomPlan(traffic_gb, duration_days, account_id = null) {
+    return this.post('/api/user/custom-plan/purchase', { traffic_gb, duration_days, account_id });
+  },
+
   async getTopupInfo() {
     return this.get('/api/user/topup_info');
   },

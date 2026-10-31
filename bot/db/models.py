@@ -560,5 +560,34 @@ class Campaign(Base):
     )
 
 
+class GiftCard(Base):
+    """Gift card / voucher for balance or service subscription."""
+
+    __tablename__ = "gift_cards"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    code: Mapped[str] = mapped_column(String(32), unique=True, index=True)
+    sender_telegram_id: Mapped[int] = mapped_column(
+        BigInteger, ForeignKey("users.telegram_id", ondelete="CASCADE"), index=True
+    )
+    sender_name: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    receiver_telegram_id: Mapped[int | None] = mapped_column(BigInteger, nullable=True, index=True)
+    receiver_username: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    delivery_type: Mapped[str] = mapped_column(String(16), default="LINK")  # "DIRECT" or "LINK"
+    gift_type: Mapped[str] = mapped_column(String(16))  # "BALANCE" or "SERVICE"
+    amount: Mapped[int] = mapped_column(BigInteger, default=0)  # Toman (if BALANCE)
+    service_id: Mapped[int | None] = mapped_column(
+        Integer, ForeignKey("services.id", ondelete="SET NULL"), nullable=True
+    )
+    service_name: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    message: Mapped[str | None] = mapped_column(String(256), nullable=True)
+    is_claimed: Mapped[bool] = mapped_column(Boolean, default=False, index=True)
+    claimed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+
+
+
 
 

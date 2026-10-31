@@ -150,17 +150,146 @@ function switchShopCategory(cat, shouldRender = true) {
   }
   const activeClass = 'flex-1 py-1.5 px-2 rounded-xl font-bold transition flex items-center justify-center gap-1 bg-blue-600 text-white shadow';
   const inactiveClass = 'flex-1 py-1.5 px-2 rounded-xl font-medium transition flex items-center justify-center gap-1 t-muted hover:t-main';
-  ['full', 'traffic', 'time'].forEach(c => {
+  ['full', 'traffic', 'time', 'custom'].forEach(c => {
     const btn = document.getElementById(`shopCategoryBtn-${c}`);
     if (btn) {
       btn.className = (c === currentShopCategory) ? activeClass : inactiveClass;
     }
   });
+
+  const customContainer = document.getElementById('customPlanBuilderContainer');
+  const shopContainer = document.getElementById('shopPlansContainer');
+  const couponSection = document.getElementById('shopCouponSection');
+
+  if (currentShopCategory === 'custom') {
+    if (customContainer) customContainer.classList.remove('hidden');
+    if (shopContainer) shopContainer.classList.add('hidden');
+    if (couponSection) couponSection.classList.add('hidden');
+    initCustomPlanBuilder();
+    return;
+  } else {
+    if (customContainer) customContainer.classList.add('hidden');
+    if (shopContainer) shopContainer.classList.remove('hidden');
+  }
+
   if (shouldRender && cachedPlansData) {
     renderFilteredShopPlans();
   }
 }
 window.switchShopCategory = switchShopCategory;
+
+let _customPlanBuilderInitialized = false;
+let _calcDebounce = null;
+
+function initCustomPlanBuilder() {
+  const gbSlider = document.getElementById('customPlanGbSlider');
+  const daysSlider = document.getElementById('customPlanDaysSlider');
+  if (!gbSlider || !daysSlider) return;
+
+  const settings = cachedPlansData?.custom_plan_settings || window.storeSettings?.custom_plan_settings || {};
+  if (settings.min_gb) {
+    gbSlider.min = settings.min_gb;
+    const minGbEl = document.getElementById('customPlanGbMin');
+    if (minGbEl) minGbEl.innerText = fmtTraffic(settings.min_gb, { html: false });
+  }
+  if (settings.max_gb) {
+    gbSlider.max = settings.max_gb;
+    const maxGbEl = document.getElementById('customPlanGbMax');
+    if (maxGbEl) maxGbEl.innerText = fmtTraffic(settings.max_gb, { html: false });
+  }
+  if (settings.min_days) {
+    daysSlider.min = settings.min_days;
+    const minDaysEl = document.getElementById('customPlanDaysMin');
+    if (minDaysEl) minDaysEl.innerText = `${settings.min_days} روز`;
+  }
+  if (settings.max_days) {
+    daysSlider.max = settings.max_days;
+    const maxDaysEl = document.getElementById('customPlanDaysMax');
+    if (maxDaysEl) maxDaysEl.innerText = `${settings.max_days} روز`;
+  }
+
+  if (!_customPlanBuilderInitialized) {
+    _customPlanBuilderInitialized = true;
+    gbSlider.addEventListener('input', () => updateCustomPlanCalculation());
+    daysSlider.addEventListener('input', () => updateCustomPlanCalculation());
+  }
+
+  updateCustomPlanCalculation();
+}
+
+async function updateCustomPlanCalculation() {
+  const gbSlider = document.getElementById('customPlanGbSlider');
+  const daysSlider = document.getElementById('customPlanDaysSlider');
+  if (!gbSlider || !daysSlider) return;
+
+  const gb = Number(gbSlider.value || 30);
+  const days = Number(daysSlider.value || 30);
+
+  const valGbEl = document.getElementById('customPlanGbVal');
+  const valDaysEl = document.getElementById('customPlanDaysVal');
+  if (valGbEl) valGbEl.innerText = gb;
+  if (valDaysEl) valDaysEl.innerText = days;
+
+  if (_calcDebounce) clearTimeout(_calcDebounce);
+  _calcDebounce = setTimeout(async () => {
+    try {
+      const res = await window.api.calculateCustomPlan(gb, days);
+      if (res && res.ok && res.data) {
+        const d = res.data;
+        const baseEl = document.getElementById('customPlanBasePriceDisplay');
+        if (baseEl) baseEl.innerText = `${Number(d.base_price).toLocaleString('en-US')} تومان`;
+
+        const discRow = document.getElementById('customPlanDiscountRow');
+        const discEl = document.getElementById('customPlanDiscountDisplay');
+        if (d.loyalty_discount_amount > 0) {
+          if (discRow) discRow.classList.remove('hidden');
+          if (discEl) discEl.innerText = `-${Number(d.loyalty_discount_amount).toLocaleString('en-US')} تومان (${d.loyalty_discount_percent}٪)`;
+        } else {
+          if (discRow) discRow.classList.add('hidden');
+        }
+
+        const finalEl = document.getElementById('customPlanFinalPrice');
+        if (finalEl) finalEl.innerText = Number(d.final_price).toLocaleString('en-US');
+
+        const pill = document.getElementById('customPlanLoyaltyDiscountPill');
+        const pctEl = document.getElementById('customPlanLoyaltyPct');
+        if (d.loyalty_discount_percent > 0) {
+          if (pill) pill.classList.remove('hidden');
+          if (pctEl) pctEl.innerText = d.loyalty_discount_percent;
+        } else {
+          if (pill) pill.classList.add('hidden');
+        }
+      }
+    } catch (e) {
+      console.warn('Error calculating custom plan:', e);
+    }
+  }, 100);
+}
+
+async function purchaseCustomPlan() {
+  const gb = Number(document.getElementById('customPlanGbSlider')?.value || 30);
+  const days = Number(document.getElementById('customPlanDaysSlider')?.value || 30);
+  const submitBtn = document.getElementById('submitCustomPlanBtn');
+  if (submitBtn) submitBtn.disabled = true;
+
+  try {
+    const res = await window.api.purchaseCustomPlan(gb, days);
+    if (!res || !res.ok) {
+      showToast(`❌ ${res?.message || 'خطا در ثبت سفارش بسته اختصاصی'}`);
+      hapticFeedback('error');
+      return;
+    }
+
+    hapticFeedback('success');
+    showToast('🎉 بسته اختصاصی شما با موفقیت ایجاد و فعال شد!');
+    if (window.loadUserData) window.loadUserData();
+  } catch (err) {
+    showToast('❌ خطا در ارتباط با سرور.');
+  } finally {
+    if (submitBtn) submitBtn.disabled = false;
+  }
+}
+window.purchaseCustomPlan = purchaseCustomPlan;
 
 function renderShopPlans(data) {
   cachedPlansData = data;
@@ -168,6 +297,17 @@ function renderShopPlans(data) {
   const shopBalAmt = document.getElementById('shopWalletBalanceAmount');
   if (shopBalAmt && data?.user?.wallet_balance !== undefined) {
     shopBalAmt.innerText = Number(data.user.wallet_balance || 0).toLocaleString('en-US');
+  }
+
+  const customSettings = data?.custom_plan_settings || window.storeSettings?.custom_plan_settings;
+  const customBtn = document.getElementById('shopCategoryBtn-custom');
+  if (customBtn) {
+    if (customSettings && customSettings.enabled === false) {
+      customBtn.classList.add('hidden');
+    } else {
+      customBtn.classList.remove('hidden');
+    }
+  }
   }
 
   // Smart User Routing & Recommendation Banner
@@ -289,6 +429,9 @@ function renderFilteredShopPlans() {
       btnClass = 'bg-gradient-to-r from-teal-600 via-cyan-600 to-sky-600 hover:from-teal-500 hover:to-sky-500 text-white font-bold shadow-md shadow-cyan-600/25';
     }
 
+    const hasLoyaltyDiscount = Boolean(p.loyalty_discount_percent && p.loyalty_discount_percent > 0 && p.original_price && p.original_price > p.price);
+    const originalPriceToDisplay = hasLoyaltyDiscount ? p.original_price : p.price;
+
     let discountVal = 0;
     if (window.activeCoupon) {
       if (window.activeCoupon.discount_percent > 0) {
@@ -298,8 +441,9 @@ function renderFilteredShopPlans() {
       }
     }
     const finalPrice = Math.max(0, p.price - discountVal);
+    const hasAnyDiscount = hasLoyaltyDiscount || (discountVal > 0);
     const formattedFinal = Number(finalPrice).toLocaleString('en-US');
-    const formattedOriginal = Number(p.price || 0).toLocaleString('en-US');
+    const formattedOriginal = Number(originalPriceToDisplay || 0).toLocaleString('en-US');
     const devLimitText = (p.hwid_limit && p.hwid_limit > 0) ? `${p.hwid_limit} کاربر` : 'کاربر نامحدود';
 
     const durationText = isExtraTraffic
@@ -330,14 +474,15 @@ function renderFilteredShopPlans() {
         ${planBadge}
         <div class="flex justify-between items-start ${planBadge ? 'mt-1' : ''}">
           <div>
-            <div class="flex items-center gap-2">
+            <div class="flex items-center gap-1.5 flex-wrap">
               <h4 class="font-bold text-sm t-main">${formatPlanTitle(p.name)}</h4>
-              ${discountVal > 0 ? '<span class="text-[10px] t-success font-bold bg-transparent border-0 px-0 py-0">🏷 تخفیف ویژه</span>' : ''}
+              ${discountVal > 0 ? '<span class="text-[10px] t-success font-bold bg-transparent border-0 px-0 py-0">🏷 تخفیف کوپن</span>' : ''}
+              ${hasLoyaltyDiscount ? `<span class="text-[10px] text-amber-500 font-bold bg-amber-500/10 px-1.5 py-0.5 rounded-md">👑 VIP (${p.loyalty_discount_percent}٪)</span>` : ''}
             </div>
             <p class="text-[11px] leading-snug t-muted mt-0.5">${p.description || (isExtraTraffic ? 'افزایش حجم بدون تغییر در تاریخ انقضای سرویس&nbsp;فعلی' : (isTimeOnly ? 'افزایش مدت زمان اعتبار بدون تغییر در میزان&nbsp;ترافیک' : defaultFeatureDesc))}</p>
           </div>
           <div class="text-left font-mono">
-            ${discountVal > 0 ? `<span class="line-through t-muted text-xs block -mb-0.5">${formattedOriginal}</span>` : ''}
+            ${hasAnyDiscount ? `<span class="line-through t-muted text-xs block -mb-0.5">${formattedOriginal}</span>` : ''}
             <span class="text-base font-black t-success">${formattedFinal}</span>
             <span class="text-[10px] t-muted block -mt-1 font-sans">تومان</span>
           </div>

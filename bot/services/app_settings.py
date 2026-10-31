@@ -65,6 +65,16 @@ class StoreSettings:
     topic_sms_manual: int | None = None
     auto_clean_reports: bool = True
     topup_max_amount: int = 50000000
+    custom_plan_enabled: bool = True
+    custom_plan_price_per_gb: int = 2500
+    custom_plan_price_per_day: int = 500
+    custom_plan_base_price: int = 10000
+    custom_plan_min_gb: int = 5
+    custom_plan_max_gb: int = 300
+    custom_plan_min_days: int = 10
+    custom_plan_max_days: int = 180
+    custom_plan_squad_uuid: str = ""
+
 
 
 async def get_store_settings(session: AsyncSession) -> StoreSettings:
@@ -147,6 +157,15 @@ async def get_store_settings(session: AsyncSession) -> StoreSettings:
         topic_sms_manual=_opt_int(values.get("topic_sms_manual"), getattr(env, "ADMIN_TOPIC_SMS_MANUAL", None)),
         auto_clean_reports=_bool(values.get("auto_clean_reports"), True),
         topup_max_amount=_int(values.get("topup_max_amount"), getattr(env, "TOPUP_MAX_AMOUNT", 50000000)),
+        custom_plan_enabled=_bool(values.get("custom_plan_enabled"), True),
+        custom_plan_price_per_gb=_int(values.get("custom_plan_price_per_gb"), 2500),
+        custom_plan_price_per_day=_int(values.get("custom_plan_price_per_day"), 500),
+        custom_plan_base_price=_int(values.get("custom_plan_base_price"), 10000),
+        custom_plan_min_gb=_int(values.get("custom_plan_min_gb"), 5),
+        custom_plan_max_gb=_int(values.get("custom_plan_max_gb"), 300),
+        custom_plan_min_days=_int(values.get("custom_plan_min_days"), 10),
+        custom_plan_max_days=_int(values.get("custom_plan_max_days"), 180),
+        custom_plan_squad_uuid=str(values.get("custom_plan_squad_uuid") or "").strip(),
     )
 
 

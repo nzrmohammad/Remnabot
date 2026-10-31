@@ -2988,6 +2988,61 @@ function hydrateUserInterface(data) {
         }
       }
     }
+
+    // --- VIP Loyalty Tier & Club Integration ---
+    const loyalty = data.loyalty;
+    const headerBadge = $('headerLoyaltyBadge');
+    if (headerBadge && loyalty) {
+      headerBadge.innerText = `${loyalty.icon} ${loyalty.name}`;
+      headerBadge.classList.remove('hidden');
+      if (loyalty.tier === 'DIAMOND') {
+        headerBadge.className = 'px-1.5 py-0.5 rounded-lg text-[9px] font-bold border border-cyan-400/50 bg-cyan-500/15 text-cyan-600 dark:text-cyan-300 transition cursor-pointer active:scale-95 shrink-0';
+      } else if (loyalty.tier === 'GOLD') {
+        headerBadge.className = 'px-1.5 py-0.5 rounded-lg text-[9px] font-bold border border-amber-400/50 bg-amber-500/15 text-amber-600 dark:text-amber-300 transition cursor-pointer active:scale-95 shrink-0';
+      } else if (loyalty.tier === 'SILVER') {
+        headerBadge.className = 'px-1.5 py-0.5 rounded-lg text-[9px] font-bold border border-slate-400/50 bg-slate-500/15 text-slate-700 dark:text-slate-300 transition cursor-pointer active:scale-95 shrink-0';
+      } else {
+        headerBadge.className = 'px-1.5 py-0.5 rounded-lg text-[9px] font-bold border border-amber-700/40 bg-amber-700/10 text-amber-700 dark:text-amber-400 transition cursor-pointer active:scale-95 shrink-0';
+      }
+    }
+
+    const loyaltyCard = $('profileLoyaltyCard');
+    if (loyaltyCard && loyalty) {
+      if ($('loyaltyTierIcon')) $('loyaltyTierIcon').innerText = loyalty.icon || '🥉';
+      if ($('loyaltyTierName')) $('loyaltyTierName').innerText = loyalty.name || 'برنزی';
+      const discBadge = $('loyaltyDiscountBadge');
+      if (discBadge) {
+        discBadge.innerText = loyalty.discount_percent > 0 ? `${loyalty.discount_percent}٪ تخفیف دائمی` : 'بدون تخفیف';
+      }
+      const nextText = $('loyaltyNextTierText');
+      const progPct = $('loyaltyProgressPct');
+      const progBar = $('loyaltyProgressBar');
+      const totalSpent = $('loyaltyTotalSpent');
+      const targetSpent = $('loyaltyNextTierTarget');
+      const benefitDesc = $('loyaltyBenefitDesc');
+
+      if (totalSpent) totalSpent.innerText = `مجموع خرید: ${Number(loyalty.total_spent || 0).toLocaleString('en-US')} تومان`;
+
+      if (loyalty.next_tier_name && loyalty.next_tier_threshold) {
+        if (nextText) nextText.innerText = `تا سطح بعدی (${loyalty.next_tier_name}):`;
+        if (progPct) progPct.innerText = `${loyalty.progress_pct}%`;
+        if (progBar) progBar.style.width = `${loyalty.progress_pct}%`;
+        if (targetSpent) targetSpent.innerText = `هدف بعدی: ${Number(loyalty.next_tier_threshold).toLocaleString('en-US')} تومان`;
+      } else {
+        if (nextText) nextText.innerText = 'بالاترین سطح باشگاه VIP 🎉';
+        if (progPct) progPct.innerText = '100%';
+        if (progBar) progBar.style.width = '100%';
+        if (targetSpent) targetSpent.innerText = 'الماس درخشان';
+      }
+
+      if (benefitDesc) {
+        if (loyalty.discount_percent > 0) {
+          benefitDesc.innerText = `شما دارای ${loyalty.discount_percent}٪ تخفیف وفاداری دائم روی تمامی بسته‌ها هستید. با افزایش خریدها، به سطوح بالاتر با تخفیف‌های بیشتر ارتقا می‌یابید!`;
+        } else {
+          benefitDesc.innerText = 'با خرید بیشتر از فروشگاه، سطح خود را ارتقا دهید و از تخفیف دائمی روی تمامی بسته‌ها بهره‌مند شوید.';
+        }
+      }
+    }
   });
 
   // --- PHASE 2: Wallet Balance & Shop Plans (DB Data) ---
@@ -4211,3 +4266,274 @@ function openSupportContact() {
   }
 }
 window.openSupportContact = openSupportContact;
+
+// ========================================================
+// GIFT TO FRIENDS SYSTEM (ارسال هدیه به دوستان)
+// ========================================================
+let currentGiftType = 'BALANCE';
+let currentGiftDelivery = 'DIRECT';
+
+function openGiftModal() {
+  const modal = $('giftModal');
+  if (!modal) return;
+  modal.classList.remove('hidden');
+  switchGiftModalTab('new');
+  setGiftType('BALANCE');
+  setGiftDeliveryType('DIRECT');
+  populateGiftServices();
+  updateGiftCostDisplay();
+  const bal = window.lastUserData?.user?.wallet_balance || 0;
+  const currBalEl = $('giftCurrentBalanceDisplay');
+  if (currBalEl) currBalEl.innerText = Number(bal).toLocaleString('en-US');
+  $('giftCreatedSuccessBox')?.classList.add('hidden');
+}
+
+function closeGiftModal() {
+  $('giftModal')?.classList.add('hidden');
+}
+
+function switchGiftModalTab(tab) {
+  const isNew = tab === 'new';
+  $('giftNewView')?.classList.toggle('hidden', !isNew);
+  $('giftHistoryView')?.classList.toggle('hidden', isNew);
+  const activeClass = 'flex-1 py-1.5 px-2 rounded-xl font-bold transition flex items-center justify-center gap-1 bg-pink-600 text-white shadow';
+  const inactiveClass = 'flex-1 py-1.5 px-2 rounded-xl font-medium transition flex items-center justify-center gap-1 text-slate-400 hover:text-white';
+  const btnNew = $('giftTabBtn-new');
+  const btnHistory = $('giftTabBtn-history');
+  if (btnNew) btnNew.className = isNew ? activeClass : inactiveClass;
+  if (btnHistory) btnHistory.className = !isNew ? activeClass : inactiveClass;
+  if (!isNew) {
+    loadGiftsHistory();
+  }
+}
+
+function setGiftType(type) {
+  currentGiftType = type;
+  const isBal = type === 'BALANCE';
+  $('giftBalanceSection')?.classList.toggle('hidden', !isBal);
+  $('giftServiceSection')?.classList.toggle('hidden', isBal);
+
+  const activeBtnClass = 'py-2 px-2.5 rounded-xl border border-pink-500/40 bg-pink-500/15 text-pink-600 dark:text-pink-300 font-bold text-xs flex items-center justify-center gap-1.5 transition';
+  const inactiveBtnClass = 'py-2 px-2.5 rounded-xl border border-card-border text-slate-400 hover:text-white font-medium text-xs flex items-center justify-center gap-1.5 transition';
+
+  const btnBal = $('giftTypeBtn-balance');
+  const btnSvc = $('giftTypeBtn-service');
+  if (btnBal) btnBal.className = isBal ? activeBtnClass : inactiveBtnClass;
+  if (btnSvc) btnSvc.className = !isBal ? activeBtnClass : inactiveBtnClass;
+  updateGiftCostDisplay();
+}
+
+function setGiftDeliveryType(type) {
+  currentGiftDelivery = type;
+  const isDirect = type === 'DIRECT';
+  $('giftReceiverSection')?.classList.toggle('hidden', !isDirect);
+
+  const activeBtnClass = 'py-2 px-2.5 rounded-xl border border-pink-500/40 bg-pink-500/15 text-pink-600 dark:text-pink-300 font-bold text-xs flex items-center justify-center gap-1.5 transition';
+  const inactiveBtnClass = 'py-2 px-2.5 rounded-xl border border-card-border text-slate-400 hover:text-white font-medium text-xs flex items-center justify-center gap-1.5 transition';
+
+  const btnDir = $('giftDeliveryBtn-direct');
+  const btnLink = $('giftDeliveryBtn-link');
+  if (btnDir) btnDir.className = isDirect ? activeBtnClass : inactiveBtnClass;
+  if (btnLink) btnLink.className = !isDirect ? activeBtnClass : inactiveBtnClass;
+}
+
+function setGiftBalancePreset(amount) {
+  const inp = $('giftBalanceAmount');
+  if (inp) {
+    inp.value = amount;
+    updateGiftCostDisplay();
+  }
+}
+
+function populateGiftServices() {
+  const sel = $('giftServiceSelect');
+  if (!sel) return;
+  const plans = window.lastUserData?.plans || [];
+  if (!plans.length) {
+    sel.innerHTML = '<option value="">هیچ بسته فعالی یافت نشد</option>';
+    return;
+  }
+  sel.innerHTML = plans.map(p => {
+    const priceStr = Number(p.price || 0).toLocaleString('en-US');
+    return `<option value="${p.id}" data-price="${p.price}" data-name="${p.name}">${p.name} (${priceStr} تومان)</option>`;
+  }).join('');
+}
+
+function updateGiftCostDisplay() {
+  let cost = 0;
+  if (currentGiftType === 'BALANCE') {
+    cost = Math.max(0, Number($('giftBalanceAmount')?.value || 0));
+  } else {
+    const sel = $('giftServiceSelect');
+    const opt = sel?.selectedOptions?.[0];
+    cost = Math.max(0, Number(opt?.getAttribute('data-price') || 0));
+  }
+  const costEl = $('giftCostDisplay');
+  if (costEl) costEl.innerText = Number(cost).toLocaleString('en-US');
+}
+
+async function submitCreateGift() {
+  const btn = $('submitCreateGiftBtn');
+  if (btn) btn.disabled = true;
+
+  try {
+    const payload = {
+      delivery_type: currentGiftDelivery,
+      gift_type: currentGiftType,
+      message: $('giftMessageInput')?.value.trim() || ''
+    };
+
+    if (currentGiftType === 'BALANCE') {
+      const amt = Number($('giftBalanceAmount')?.value || 0);
+      if (!amt || amt < 5000) {
+        showToast('⚠️ حداقل مبلغ هدیه اعتبار ۵,۰۰۰ تومان می‌باشد.');
+        if (btn) btn.disabled = false;
+        return;
+      }
+      payload.amount = amt;
+    } else {
+      const svcId = $('giftServiceSelect')?.value;
+      if (!svcId) {
+        showToast('⚠️ لطفاً بسته مورد نظر را انتخاب فرمایید.');
+        if (btn) btn.disabled = false;
+        return;
+      }
+      payload.service_id = Number(svcId);
+    }
+
+    if (currentGiftDelivery === 'DIRECT') {
+      const rec = $('giftReceiverInput')?.value.trim();
+      if (!rec) {
+        showToast('⚠️ لطفاً آیدی یا شناسه عددی تلگرام گیرنده را وارد فرمایید.');
+        if (btn) btn.disabled = false;
+        return;
+      }
+      payload.receiver = rec;
+    }
+
+    const res = await window.api.createGift(payload);
+    if (!res || !res.ok) {
+      showToast(`❌ ${res?.message || 'خطا در ثبت هدیه'}`);
+      hapticFeedback('error');
+      return;
+    }
+
+    hapticFeedback('success');
+    showToast('🎉 هدیه با موفقیت ایجاد شد!');
+
+    const d = res.data;
+    const successBox = $('giftCreatedSuccessBox');
+    if (successBox) {
+      successBox.classList.remove('hidden');
+      const linkInput = $('giftCreatedLinkInput');
+      if (linkInput) linkInput.value = d.share_url || d.claim_url || d.code || '';
+      const notice = $('giftCreatedNotice');
+      if (notice) {
+        if (currentGiftDelivery === 'DIRECT') {
+          notice.innerText = 'هدیه به دوستتان تحویل شد و پیام تبریک به همراه دکمه فعال‌سازی در تلگرام برای ایشان ارسال گردید.';
+        } else {
+          notice.innerText = 'لینک بالا را کپی کرده و برای دوستتان ارسال نمایید تا با یک کلیک هدیه را دریافت کند.';
+        }
+      }
+    }
+
+    if (window.loadUserData) window.loadUserData();
+  } catch (err) {
+    showToast('❌ خطا در ارتباط با سرور.');
+  } finally {
+    if (btn) btn.disabled = false;
+  }
+}
+
+function copyGiftShareLink() {
+  const linkInp = $('giftCreatedLinkInput');
+  if (!linkInp || !linkInp.value) return;
+  copyToClipboard(linkInp.value);
+  showToast('📋 لینک هدیه در کلیپ‌بورد کپی شد!');
+  hapticFeedback('selection');
+}
+
+async function submitClaimVoucher() {
+  const inp = $('claimVoucherInput');
+  const code = inp?.value.trim().toUpperCase();
+  if (!code) {
+    showToast('⚠️ لطفاً کد هدیه را وارد فرمایید.');
+    return;
+  }
+
+  try {
+    const res = await window.api.claimGift(code);
+    if (!res || !res.ok) {
+      showToast(`❌ ${res?.message || 'کد هدیه نامعتبر است یا قبلاً استفاده شده.'}`);
+      hapticFeedback('error');
+      return;
+    }
+    hapticFeedback('success');
+    showToast(`🎉 تبریک! هدیه «${res.data?.gift_type === 'BALANCE' ? Number(res.data.amount).toLocaleString('en-US') + ' تومان اعتبار' : res.data.service_name}» دریافت و به حسابتان اضافه شد!`);
+    inp.value = '';
+    if (window.loadUserData) window.loadUserData();
+    loadGiftsHistory();
+  } catch (err) {
+    showToast('❌ خطا در دریافت کد هدیه.');
+  }
+}
+
+async function loadGiftsHistory() {
+  const container = $('giftsHistoryContainer');
+  if (!container) return;
+  container.innerHTML = '<div class="p-3 rounded-xl card-inset text-center text-xs t-muted">در حال دریافت تاریخچه...</div>';
+
+  try {
+    const res = await window.api.getGiftsHistory();
+    if (!res || !res.ok || !res.data || !res.data.sent_gifts) {
+      container.innerHTML = '<div class="p-3 rounded-xl card-inset text-center text-xs t-muted">تاریخچه‌ای یافت نشد.</div>';
+      return;
+    }
+    const sent = res.data.sent_gifts || [];
+    if (!sent.length) {
+      container.innerHTML = '<div class="p-3 rounded-xl card-inset text-center text-xs t-muted">هنوز هدیه‌ای ارسال نکرده‌اید.</div>';
+      return;
+    }
+    container.innerHTML = sent.map(g => {
+      const isClaimed = g.is_claimed;
+      const statusBadge = isClaimed
+        ? '<span class="text-emerald-500 font-bold text-[10px] bg-emerald-500/10 px-2 py-0.5 rounded-full">✅ دریافت شده</span>'
+        : '<span class="text-amber-500 font-bold text-[10px] bg-amber-500/10 px-2 py-0.5 rounded-full">⏳ در انتظار دریافت</span>';
+      const desc = g.gift_type === 'BALANCE'
+        ? `${Number(g.amount).toLocaleString('en-US')} تومان شارژ کیف پول`
+        : `اشتراک ${g.service_name || 'سرویس'}`;
+      const rec = g.receiver_username ? `@${g.receiver_username}` : (g.receiver_telegram_id ? String(g.receiver_telegram_id) : 'از طریق لینک ووچر');
+      return `
+        <div class="card-inset p-2.5 rounded-xl space-y-1.5 text-xs">
+          <div class="flex justify-between items-center">
+            <b class="t-main text-[11px]">${desc}</b>
+            ${statusBadge}
+          </div>
+          <div class="flex justify-between items-center text-[10px] t-muted">
+            <span>گیرنده: <code class="font-mono">${rec}</code></span>
+            <span dir="ltr" class="font-mono">${toEnglishDigits(g.created_at_jalali || '')}</span>
+          </div>
+          <div class="flex items-center justify-between text-[10px] border-t border-card-border pt-1">
+            <span class="font-mono t-muted text-[10px] select-all">${g.code}</span>
+            ${!isClaimed && g.share_url ? `<button type="button" onclick="copyToClipboard('${g.share_url}'); showToast('📋 لینک کپی شد!');" class="text-pink-500 hover:text-pink-400 font-bold">کپی لینک</button>` : ''}
+          </div>
+        </div>
+      `;
+    }).join('');
+  } catch (err) {
+    container.innerHTML = '<div class="p-3 rounded-xl card-inset text-center text-xs t-muted">خطا در بارگذاری تاریخچه.</div>';
+  }
+}
+
+window.openGiftModal = openGiftModal;
+window.closeGiftModal = closeGiftModal;
+window.switchGiftModalTab = switchGiftModalTab;
+window.setGiftType = setGiftType;
+window.setGiftDeliveryType = setGiftDeliveryType;
+window.setGiftBalancePreset = setGiftBalancePreset;
+window.updateGiftCostDisplay = updateGiftCostDisplay;
+window.submitCreateGift = submitCreateGift;
+window.copyGiftShareLink = copyGiftShareLink;
+window.submitClaimVoucher = submitClaimVoucher;
+window.loadGiftsHistory = loadGiftsHistory;
+window.populateGiftServices = populateGiftServices;
