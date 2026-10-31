@@ -3654,25 +3654,43 @@ window.renderUserAchievements = renderUserAchievements;
 
 let cachedUserLeaderboardData = null;
 let currentUserLbPeriod = 'weekly';
+let currentUserLbMonthIndex = 0;
 let userLeaderboardChartInstance = null;
 
 function switchUserLeaderboardPeriod(period) {
   currentUserLbPeriod = period;
   window.currentUserLbPeriod = period;
+  const tabDaily = $('userLbTabDaily');
   const tabWeekly = $('userLbTabWeekly');
+  const tabMonthly30d = $('userLbTabMonthly30d');
   const tabMonthly = $('userLbTabMonthly');
   const monthBar = $('userLbMonthBar');
-  if (tabWeekly && tabMonthly) {
-    if (period === 'weekly') {
-      tabWeekly.className = 'px-2 py-0.5 rounded-md font-bold transition bg-cyan-600 text-white shadow';
-      tabMonthly.className = 'px-2 py-0.5 rounded-md font-medium transition text-slate-400 hover:text-white';
-      if (monthBar) monthBar.classList.add('hidden');
+
+  const tabs = [
+    { el: tabDaily, id: 'daily' },
+    { el: tabWeekly, id: 'weekly' },
+    { el: tabMonthly30d, id: 'monthly_30d' },
+    { el: tabMonthly, id: 'monthly' },
+  ];
+
+  tabs.forEach(t => {
+    if (!t.el) return;
+    if (t.id === period) {
+      t.el.className = 'px-2.5 py-1.5 rounded-lg font-bold transition bg-cyan-600 text-white shadow';
     } else {
-      tabMonthly.className = 'px-2 py-0.5 rounded-md font-bold transition bg-cyan-600 text-white shadow';
-      tabWeekly.className = 'px-2 py-0.5 rounded-md font-medium transition text-slate-400 hover:text-white';
-      if (monthBar) monthBar.classList.remove('hidden');
+      t.el.className = 'px-2.5 py-1.5 rounded-lg font-medium transition text-slate-400 hover:text-white';
+    }
+  });
+
+  if (monthBar) {
+    if (period === 'monthly') {
+      monthBar.classList.remove('hidden');
+      currentUserLbMonthIndex = 0;
+    } else {
+      monthBar.classList.add('hidden');
     }
   }
+
   if (cachedUserLeaderboardData) {
     renderUserLeaderboard(cachedUserLeaderboardData, period);
   }
@@ -3680,21 +3698,33 @@ function switchUserLeaderboardPeriod(period) {
 window.switchUserLeaderboardPeriod = switchUserLeaderboardPeriod;
 
 function navigateUserLbMonth(dir) {
-  if (dir === -1 && currentUserLbPeriod !== 'prev_month') {
-    currentUserLbPeriod = 'prev_month';
-  } else if (dir === 1 && currentUserLbPeriod !== 'monthly') {
-    currentUserLbPeriod = 'monthly';
-  }
-  window.currentUserLbPeriod = currentUserLbPeriod;
+  const avail = cachedUserLeaderboardData?.available_months || [];
+  if (avail.length === 0) return;
+  // dir = -1 (prev/older month) -> index increases
+  // dir = 1 (next/newer month) -> index decreases
+  currentUserLbMonthIndex = Math.max(0, Math.min(avail.length - 1, currentUserLbMonthIndex - dir));
   if (cachedUserLeaderboardData) {
-    renderUserLeaderboard(cachedUserLeaderboardData, currentUserLbPeriod);
+    renderUserLeaderboard(cachedUserLeaderboardData, 'monthly');
   }
 }
 window.navigateUserLbMonth = navigateUserLbMonth;
 
 function renderUserLeaderboard(leaderboardData, period = currentUserLbPeriod) {
   if (leaderboardData) cachedUserLeaderboardData = leaderboardData;
-  const periodData = cachedUserLeaderboardData?.[period] || cachedUserLeaderboardData?.weekly || {};
+
+  const avail = cachedUserLeaderboardData?.available_months || [];
+  let periodData = null;
+  let activeMonthName = '';
+
+  if (period === 'monthly') {
+    activeMonthName = avail[currentUserLbMonthIndex] || avail[0] || '';
+    periodData = (activeMonthName && cachedUserLeaderboardData?.calendar_months?.[activeMonthName])
+      || cachedUserLeaderboardData?.monthly
+      || {};
+  } else {
+    periodData = cachedUserLeaderboardData?.[period] || cachedUserLeaderboardData?.weekly || {};
+  }
+
   const top20 = periodData.top_20 || [];
   const inTop20 = Boolean(periodData.in_top_20);
   const myRank = periodData.my_rank;
@@ -3709,27 +3739,29 @@ function renderUserLeaderboard(leaderboardData, period = currentUserLbPeriod) {
   const nextLabel = $('userLbMonthNextLabel');
   const curLabel = $('userLbMonthCurrentLabel');
 
-  if (period === 'weekly') {
+  if (period !== 'monthly') {
     if (monthBar) monthBar.classList.add('hidden');
   } else {
     if (monthBar) monthBar.classList.remove('hidden');
-    const currMName = cachedUserLeaderboardData?.monthly?.month_name || 'ماه جاری';
-    const prevMName = cachedUserLeaderboardData?.prev_month?.month_name || 'ماه قبل';
-    const isPrev = period === 'prev_month';
+    if (curLabel) curLabel.innerText = activeMonthName ? `ماه ${activeMonthName}` : '--';
 
-    if (curLabel) curLabel.innerText = isPrev ? `${prevMName} (ماه قبل)` : `${currMName} (ماه جاری)`;
-    if (prevLabel) prevLabel.innerText = prevMName;
-    if (nextLabel) nextLabel.innerText = currMName;
+    const prevMName = avail[currentUserLbMonthIndex + 1] || '';
+    const nextMName = avail[currentUserLbMonthIndex - 1] || '';
+
+    if (prevLabel) prevLabel.innerText = prevMName || '---';
+    if (nextLabel) nextLabel.innerText = nextMName || '---';
 
     if (prevBtn) {
-      prevBtn.disabled = isPrev;
-      prevBtn.classList.toggle('opacity-40', isPrev);
-      prevBtn.classList.toggle('cursor-not-allowed', isPrev);
+      const hasPrev = Boolean(prevMName);
+      prevBtn.disabled = !hasPrev;
+      prevBtn.classList.toggle('opacity-40', !hasPrev);
+      prevBtn.classList.toggle('cursor-not-allowed', !hasPrev);
     }
     if (nextBtn) {
-      nextBtn.disabled = !isPrev;
-      nextBtn.classList.toggle('opacity-40', !isPrev);
-      nextBtn.classList.toggle('cursor-not-allowed', !isPrev);
+      const hasNext = Boolean(nextMName);
+      nextBtn.disabled = !hasNext;
+      nextBtn.classList.toggle('opacity-40', !hasNext);
+      nextBtn.classList.toggle('cursor-not-allowed', !hasNext);
     }
   }
 
@@ -3739,10 +3771,14 @@ function renderUserLeaderboard(leaderboardData, period = currentUserLbPeriod) {
 
   if (noticeTextEl) {
     let periodLabel = '7 روز اخیر';
-    if (period === 'monthly') {
-      periodLabel = periodData.month_name ? `${periodData.month_name} (30 روز اخیر)` : '30 روز اخیر';
-    } else if (period === 'prev_month') {
-      periodLabel = periodData.month_name ? `${periodData.month_name} (ماه قبل)` : 'ماه قبل';
+    if (period === 'daily') {
+      periodLabel = 'روزانه';
+    } else if (period === 'weekly') {
+      periodLabel = '7 روز اخیر';
+    } else if (period === 'monthly_30d') {
+      periodLabel = '30 روز اخیر';
+    } else if (period === 'monthly') {
+      periodLabel = activeMonthName ? `ماه ${activeMonthName}` : (periodData.month_name ? `ماه ${periodData.month_name}` : 'ماهانه');
     }
 
     const myTrafficHtml = fmtTraffic(myUsedGb, { html: true, persianDigits: false });

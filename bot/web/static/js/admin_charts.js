@@ -1178,35 +1178,107 @@ openHighRiskUsersModal() {
   let topConsumersChartInstance = null;
   let cachedTopConsumersData = null;
   let currentTopConsumersPeriod = 'weekly';
+  let adminTopConsumersMonthIndex = 0;
 
   function switchAdminTopConsumersPeriod(period) {
     currentTopConsumersPeriod = period;
+    const btnDaily = $('adminTopConsumersPeriodDaily');
     const btnWeek = $('adminTopConsumersPeriodWeekly');
+    const btnMonth30d = $('adminTopConsumersPeriodMonthly30d');
     const btnMonth = $('adminTopConsumersPeriodMonthly');
-    const btnCompare = $('adminTopConsumersPeriodCompare');
-    [btnWeek, btnMonth, btnCompare].forEach(b => {
-      b?.classList.remove('bg-blue-600', 'text-white', 'shadow-sm');
-      b?.classList.add('t-muted');
+    const monthBar = $('adminTopConsumersMonthBar');
+
+    const buttons = [
+      { el: btnDaily, id: 'daily' },
+      { el: btnWeek, id: 'weekly' },
+      { el: btnMonth30d, id: 'monthly_30d' },
+      { el: btnMonth, id: 'monthly' },
+    ];
+
+    buttons.forEach(b => {
+      if (!b.el) return;
+      if (b.id === period) {
+        b.el.classList.add('bg-blue-600', 'text-white', 'shadow-sm');
+        b.el.classList.remove('t-muted');
+      } else {
+        b.el.classList.remove('bg-blue-600', 'text-white', 'shadow-sm');
+        b.el.classList.add('t-muted');
+      }
     });
-    if (period === 'weekly') {
-      btnWeek?.classList.add('bg-blue-600', 'text-white', 'shadow-sm');
-      btnWeek?.classList.remove('t-muted');
-    } else if (period === 'monthly') {
-      btnMonth?.classList.add('bg-blue-600', 'text-white', 'shadow-sm');
-      btnMonth?.classList.remove('t-muted');
-    } else if (period === 'comparison') {
-      btnCompare?.classList.add('bg-blue-600', 'text-white', 'shadow-sm');
-      btnCompare?.classList.remove('t-muted');
+
+    if (monthBar) {
+      if (period === 'monthly') {
+        monthBar.classList.remove('hidden');
+        adminTopConsumersMonthIndex = 0;
+      } else {
+        monthBar.classList.add('hidden');
+      }
     }
+
     if (cachedTopConsumersData) {
       renderAdminTopConsumersChart(cachedTopConsumersData, period);
     }
   }
   window.switchAdminTopConsumersPeriod = switchAdminTopConsumersPeriod;
 
+  function navigateAdminTopConsumersMonth(dir) {
+    const avail = cachedTopConsumersData?.available_months || [];
+    if (avail.length === 0) return;
+    adminTopConsumersMonthIndex = Math.max(0, Math.min(avail.length - 1, adminTopConsumersMonthIndex - dir));
+    if (cachedTopConsumersData) {
+      renderAdminTopConsumersChart(cachedTopConsumersData, 'monthly');
+    }
+  }
+  window.navigateAdminTopConsumersMonth = navigateAdminTopConsumersMonth;
+
   function renderAdminTopConsumersChart(topData, period = currentTopConsumersPeriod) {
     if (topData) cachedTopConsumersData = topData;
-    const activeData = cachedTopConsumersData?.[period] || cachedTopConsumersData?.weekly || cachedTopConsumersData || {};
+    const avail = cachedTopConsumersData?.available_months || [];
+    let activeData = null;
+    let activeMonthName = '';
+
+    if (period === 'monthly') {
+      activeMonthName = avail[adminTopConsumersMonthIndex] || avail[0] || '';
+      activeData = (activeMonthName && cachedTopConsumersData?.calendar_months?.[activeMonthName])
+        || cachedTopConsumersData?.monthly
+        || {};
+    } else {
+      activeData = cachedTopConsumersData?.[period] || cachedTopConsumersData?.weekly || cachedTopConsumersData || {};
+    }
+
+    // Sync admin month navigation bar
+    const monthBar = $('adminTopConsumersMonthBar');
+    const prevBtn = $('adminTopMonthPrevBtn');
+    const nextBtn = $('adminTopMonthNextBtn');
+    const prevLabel = $('adminTopMonthPrevLabel');
+    const nextLabel = $('adminTopMonthNextLabel');
+    const curLabel = $('adminTopMonthCurrentLabel');
+
+    if (period !== 'monthly') {
+      if (monthBar) monthBar.classList.add('hidden');
+    } else {
+      if (monthBar) monthBar.classList.remove('hidden');
+      if (curLabel) curLabel.innerText = activeMonthName ? `ماه ${activeMonthName}` : '--';
+
+      const prevMName = avail[adminTopConsumersMonthIndex + 1] || '';
+      const nextMName = avail[adminTopConsumersMonthIndex - 1] || '';
+
+      if (prevLabel) prevLabel.innerText = prevMName || '---';
+      if (nextLabel) nextLabel.innerText = nextMName || '---';
+
+      if (prevBtn) {
+        const hasPrev = Boolean(prevMName);
+        prevBtn.disabled = !hasPrev;
+        prevBtn.classList.toggle('opacity-40', !hasPrev);
+        prevBtn.classList.toggle('cursor-not-allowed', !hasPrev);
+      }
+      if (nextBtn) {
+        const hasNext = Boolean(nextMName);
+        nextBtn.disabled = !hasNext;
+        nextBtn.classList.toggle('opacity-40', !hasNext);
+        nextBtn.classList.toggle('cursor-not-allowed', !hasNext);
+      }
+    }
 
     const canvas = $('adminTopConsumersChart');
     if (!canvas) return;
@@ -1246,44 +1318,16 @@ openHighRiskUsersModal() {
       }
     }
 
-    const isCompare = period === 'comparison';
-    let datasets = [];
-
-    if (isCompare) {
-      const currData = (activeData?.current_data || []).slice(0, 10);
-      const prevData = (activeData?.prev_data || []).slice(0, 10);
-      datasets = [
-        {
-          label: 'ماه جاری',
-          data: currData,
-          backgroundColor: 'rgba(99, 102, 241, 0.75)',
-          borderColor: '#6366f1',
-          borderWidth: 1,
-          borderRadius: 4,
-          borderSkipped: false,
-        },
-        {
-          label: 'ماه قبل',
-          data: prevData,
-          backgroundColor: 'rgba(6, 182, 212, 0.75)',
-          borderColor: '#06b6d4',
-          borderWidth: 1,
-          borderRadius: 4,
-          borderSkipped: false,
-        },
-      ];
-    } else {
-      const values = (activeData?.data || []).slice(0, 10);
-      datasets = [{
-        label: 'مصرف ترافیک',
-        data: values,
-        backgroundColor: 'rgba(99, 102, 241, 0.7)',
-        borderColor: '#6366f1',
-        borderWidth: 1,
-        borderRadius: 4,
-        borderSkipped: false,
-      }];
-    }
+    const values = (activeData?.data || []).slice(0, 10);
+    const datasets = [{
+      label: 'مصرف ترافیک',
+      data: values,
+      backgroundColor: 'rgba(99, 102, 241, 0.7)',
+      borderColor: '#6366f1',
+      borderWidth: 1,
+      borderRadius: 4,
+      borderSkipped: false,
+    }];
 
     if (topConsumersChartInstance) {
       topConsumersChartInstance.destroy();
@@ -1303,13 +1347,7 @@ openHighRiskUsersModal() {
         maintainAspectRatio: false,
         plugins: {
           legend: {
-            display: isCompare,
-            position: 'top',
-            labels: {
-              boxWidth: 12,
-              font: { family: 'Vazirmatn', size: 10 },
-              color: tickColor,
-            },
+            display: false,
           },
           tooltip: {
             rtl: true,
@@ -1318,8 +1356,7 @@ openHighRiskUsersModal() {
             callbacks: {
               label: (c) => {
                 const trafVal = typeof fmtTraffic === 'function' ? fmtTraffic(c.raw, { html: false, isolate: true }) : c.raw;
-                const prefix = isCompare ? `${c.dataset.label}: ` : 'مصرف دوره: ';
-                return `${prefix}${trafVal}`;
+                return `مصرف: ${trafVal}`;
               },
             },
           },

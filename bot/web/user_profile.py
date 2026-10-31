@@ -619,8 +619,8 @@ async def get_user_me(request: web.Request) -> web.Response:
         user_leaderboard = {}
         now_utc = datetime.now(timezone.utc)
         try:
-            cached_bw = await cache.get("analytics:users_periodic_bandwidth_v4")
-            if cached_bw and isinstance(cached_bw, dict) and "weekly" in cached_bw:
+            cached_bw = await cache.get("analytics:users_periodic_bandwidth_v5")
+            if cached_bw and isinstance(cached_bw, dict) and "weekly" in cached_bw and "daily" in cached_bw:
                 periodic_bw = cached_bw
             else:
                 cached_all_panel = await cache.get("tma:all_panel_users")
@@ -633,23 +633,22 @@ async def get_user_me(request: web.Request) -> web.Response:
                 periodic_bw = await get_periodic_users_bandwidth(remnawave, cache, all_panel, now_utc)
 
             my_user_ids = {str(p["id"]) for p in panel_users if isinstance(p, dict) and p.get("id")}
-            j_now = jdatetime.date.fromgregorian(date=now_utc.date())
-            curr_month_name = j_now.strftime("%B")
-            prev_j_m = j_now.month - 1 or 12
-            prev_j_y = j_now.year if j_now.month > 1 else j_now.year - 1
-            prev_month_name = jdatetime.date(prev_j_y, prev_j_m, 1).strftime("%B")
 
-            for period_key in ("weekly", "monthly", "prev_month"):
-                if period_key == "prev_month":
-                    all_u = sorted(
-                        periodic_bw.get("monthly", {}).get("all_users", []),
-                        key=lambda x: x.get("prev_month_gb", 0.0),
-                        reverse=True,
-                    )
-                else:
-                    period_data = periodic_bw.get(period_key, {})
-                    all_u = period_data.get("all_users", [])
-
+            def _build_user_lb(lb_item, gb_key_override=None):
+                if not lb_item or not isinstance(lb_item, dict):
+                    return {
+                        "top_20": [],
+                        "labels": [],
+                        "data": [],
+                        "my_rank": None,
+                        "my_used_gb": 0.0,
+                        "in_top_20": False,
+                        "diff_gb": 0.0,
+                        "month_name": None,
+                        "period_label": "",
+                    }
+                all_u = lb_item.get("all_users", [])
+                gb_key = gb_key_override or lb_item.get("gb_key", "used_gb")
                 top_20 = []
                 my_rank = None
                 my_used_gb = 0.0
@@ -663,12 +662,7 @@ async def get_user_me(request: web.Request) -> web.Response:
                         or (req_account_id and uid_str == str(req_account_id))
                         or (active_primary and uid_str == str(active_primary.get("id", "")))
                     )
-                    if period_key == "weekly":
-                        used_val = u.get("week_gb", 0.0)
-                    elif period_key == "monthly":
-                        used_val = u.get("month_gb", 0.0)
-                    else:
-                        used_val = u.get("prev_month_gb", 0.0)
+                    used_val = u.get(gb_key, 0.0)
 
                     if is_me and my_rank is None:
                         my_rank = idx + 1
@@ -694,8 +688,7 @@ async def get_user_me(request: web.Request) -> web.Response:
                 cutoff_gb = top_20[-1]["used_gb"] if len(top_20) == 20 else (top_20[-1]["used_gb"] if top_20 else 0.0)
                 diff_gb = round(max(0.0, cutoff_gb - my_used_gb), 2) if (my_rank and my_rank > 20) else 0.0
 
-                period_lbl = "7 روز اخیر" if period_key == "weekly" else (f"{curr_month_name} (30 روز اخیر)" if period_key == "monthly" else f"{prev_month_name} (ماه قبل)")
-                user_leaderboard[period_key] = {
+                return {
                     "top_20": top_20,
                     "labels": [u["username"] for u in top_20],
                     "data": [u["used_gb"] for u in top_20],
@@ -703,9 +696,25 @@ async def get_user_me(request: web.Request) -> web.Response:
                     "my_used_gb": my_used_gb,
                     "in_top_20": bool(my_rank and my_rank <= 20),
                     "diff_gb": diff_gb,
-                    "month_name": curr_month_name if period_key == "monthly" else (prev_month_name if period_key == "prev_month" else None),
-                    "period_label": period_lbl,
+                    "month_name": lb_item.get("month_name"),
+                    "period_label": lb_item.get("label", ""),
                 }
+
+            user_leaderboard["daily"] = _build_user_lb(periodic_bw.get("daily", {}), "daily_gb")
+            user_leaderboard["weekly"] = _build_user_lb(periodic_bw.get("weekly", {}), "week_gb")
+            user_leaderboard["monthly_30d"] = _build_user_lb(periodic_bw.get("monthly_30d", {}), "month_30d_gb")
+
+            cal_months = periodic_bw.get("calendar_months", {})
+            user_leaderboard["calendar_months"] = {}
+            for m_name, m_lb in cal_months.items():
+                user_leaderboard["calendar_months"][m_name] = _build_user_lb(m_lb)
+
+            avail_months = periodic_bw.get("available_months", [])
+            user_leaderboard["available_months"] = avail_months
+            if avail_months and avail_months[0] in user_leaderboard["calendar_months"]:
+                user_leaderboard["monthly"] = user_leaderboard["calendar_months"][avail_months[0]]
+            else:
+                user_leaderboard["monthly"] = _build_user_lb(periodic_bw.get("monthly", {}))
         except Exception as lb_err:
             logger.debug("Failed calculating user leaderboard: %s", lb_err)
 

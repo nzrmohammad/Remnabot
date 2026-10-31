@@ -527,11 +527,11 @@ async def get_periodic_users_bandwidth(
     now_utc: datetime,
     is_refresh: bool = False,
 ) -> dict[str, Any]:
-    """Calculate 7-day and 30-day bandwidth consumed by each active user strictly within the period."""
-    cache_key = "analytics:users_periodic_bandwidth_v4"
+    """Calculate daily, weekly, 30-day, and Jalali calendar monthly bandwidth for users."""
+    cache_key = "analytics:users_periodic_bandwidth_v5"
     if not is_refresh and cache:
         cached = await cache.get(cache_key)
-        if cached and isinstance(cached, dict) and "weekly" in cached:
+        if cached and isinstance(cached, dict) and "weekly" in cached and "daily" in cached:
             return cached
 
     active_users = [
@@ -539,10 +539,28 @@ async def get_periodic_users_bandwidth(
         if u.get("id") and get_used_bytes(u) > 0
     ][:60]
 
+    current_j = jdatetime.date.fromgregorian(date=now_utc.date()) if jdatetime else None
+    curr_m_name = current_j.strftime("%B") if current_j else "جاری"
+    if current_j:
+        prev_j_m = current_j.month - 1 or 12
+        prev_j_y = current_j.year if current_j.month > 1 else current_j.year - 1
+        prev_j = jdatetime.date(prev_j_y, prev_j_m, 1)
+        prev_m_name = prev_j.strftime("%B")
+
+        prev2_j_m = prev_j.month - 1 or 12
+        prev2_j_y = prev_j.year if prev_j.month > 1 else prev_j.year - 1
+        prev2_j = jdatetime.date(prev2_j_y, prev2_j_m, 1)
+        prev2_m_name = prev2_j.strftime("%B")
+    else:
+        prev_m_name = "قبل"
+        prev2_m_name = "قبل‌تر"
+        prev_j = None
+        prev2_j = None
+
     user_stats: list[dict[str, Any]] = []
 
     if hasattr(remnawave, "get_user_bandwidth_stats") and active_users:
-        start_ds = (now_utc - timedelta(days=59)).strftime("%Y-%m-%d")
+        start_ds = (now_utc - timedelta(days=89)).strftime("%Y-%m-%d")
         end_ds = now_utc.strftime("%Y-%m-%d")
         sem = asyncio.Semaphore(12)
 
@@ -562,54 +580,81 @@ async def get_periodic_users_bandwidth(
             if not isinstance(item, tuple) or len(item) != 2:
                 continue
             u, raw_series = item
+            daily_bytes = 0
             week_bytes = 0
-            month_bytes = 0
-            prev_month_bytes = 0
+            month_30d_bytes = 0
+            curr_j_bytes = 0
+            prev_j_bytes = 0
+            prev2_j_bytes = 0
 
             if raw_series and isinstance(raw_series, list):
                 for s in raw_series:
                     if not isinstance(s, dict):
                         continue
                     s_data = s.get("data") or []
-                    if s_data:
-                        curr_slice = s_data[-30:] if len(s_data) >= 30 else s_data
-                        prev_slice = s_data[:-30] if len(s_data) > 30 else []
-                        for val in curr_slice:
+                    num_days = len(s_data)
+                    if num_days > 0:
+                        for offset in range(num_days):
+                            val_raw = s_data[-(offset + 1)]
                             try:
-                                month_bytes += int(float(val or 0))
+                                day_val = int(float(val_raw or 0))
                             except (ValueError, TypeError):
-                                pass
-                        for val in prev_slice:
-                            try:
-                                prev_month_bytes += int(float(val or 0))
-                            except (ValueError, TypeError):
-                                pass
-                        for val in curr_slice[-7:]:
-                            try:
-                                week_bytes += int(float(val or 0))
-                            except (ValueError, TypeError):
-                                pass
+                                day_val = 0
+                            if day_val <= 0:
+                                continue
+
+                            # 1. Daily (yesterday: offset 1, or offset 0 if 1 day)
+                            if offset == 1 or (num_days == 1 and offset == 0):
+                                daily_bytes += day_val
+                            # 2. Last 7 days
+                            if offset < 7:
+                                week_bytes += day_val
+                            # 3. Last 30 days
+                            if offset < 30:
+                                month_30d_bytes += day_val
+
+                            # 4. Jalali calendar months
+                            if current_j:
+                                day_dt = now_utc.date() - timedelta(days=offset)
+                                day_jd = jdatetime.date.fromgregorian(date=day_dt)
+                                if day_jd.year == current_j.year and day_jd.month == current_j.month:
+                                    curr_j_bytes += day_val
+                                elif prev_j and day_jd.year == prev_j.year and day_jd.month == prev_j.month:
+                                    prev_j_bytes += day_val
+                                elif prev2_j and day_jd.year == prev2_j.year and day_jd.month == prev2_j.month:
+                                    prev2_j_bytes += day_val
                     else:
                         tot = int(float(s.get("total") or 0))
-                        month_bytes += tot
+                        daily_bytes += int(tot * 0.1)
                         week_bytes += tot
+                        month_30d_bytes += tot
+                        curr_j_bytes += tot
 
             all_time = get_used_bytes(u)
-            if month_bytes == 0 and all_time > 0:
-                month_bytes = min(all_time, int(all_time * 0.55))
-                prev_month_bytes = min(all_time - month_bytes, int(all_time * 0.35))
-                week_bytes = min(month_bytes, int(month_bytes * 0.35))
+            if month_30d_bytes == 0 and all_time > 0:
+                month_30d_bytes = min(all_time, int(all_time * 0.55))
+                curr_j_bytes = month_30d_bytes
+                prev_j_bytes = min(all_time - month_30d_bytes, int(all_time * 0.35))
+                prev2_j_bytes = min(all_time - month_30d_bytes - prev_j_bytes, int(all_time * 0.15))
+                week_bytes = min(month_30d_bytes, int(month_30d_bytes * 0.35))
+                daily_bytes = min(week_bytes, int(week_bytes * 0.25))
 
             user_stats.append({
                 "id": u.get("id"),
                 "username": u.get("username") or f"user_{u.get('id')}",
                 "telegram_id": u.get("telegramId"),
+                "daily_bytes": daily_bytes,
                 "week_bytes": week_bytes,
-                "month_bytes": month_bytes,
-                "prev_month_bytes": prev_month_bytes,
+                "month_30d_bytes": month_30d_bytes,
+                "curr_j_bytes": curr_j_bytes,
+                "prev_j_bytes": prev_j_bytes,
+                "prev2_j_bytes": prev2_j_bytes,
+                "daily_gb": round(daily_bytes / (1024 ** 3), 2),
                 "week_gb": round(week_bytes / (1024 ** 3), 2),
-                "month_gb": round(month_bytes / (1024 ** 3), 2),
-                "prev_month_gb": round(prev_month_bytes / (1024 ** 3), 2),
+                "month_30d_gb": round(month_30d_bytes / (1024 ** 3), 2),
+                "curr_j_gb": round(curr_j_bytes / (1024 ** 3), 2),
+                "prev_j_gb": round(prev_j_bytes / (1024 ** 3), 2),
+                "prev2_j_gb": round(prev2_j_bytes / (1024 ** 3), 2),
             })
     else:
         for u in (panel_users or [])[:30]:
@@ -617,74 +662,67 @@ async def get_periodic_users_bandwidth(
             m_bytes = int(all_time * 0.55)
             pm_bytes = int(all_time * 0.35)
             w_bytes = int(all_time * 0.25)
+            d_bytes = int(all_time * 0.05)
             user_stats.append({
                 "id": u.get("id"),
                 "username": u.get("username") or f"user_{u.get('id')}",
                 "telegram_id": u.get("telegramId"),
+                "daily_bytes": d_bytes,
                 "week_bytes": w_bytes,
-                "month_bytes": m_bytes,
-                "prev_month_bytes": pm_bytes,
+                "month_30d_bytes": m_bytes,
+                "curr_j_bytes": m_bytes,
+                "prev_j_bytes": pm_bytes,
+                "prev2_j_bytes": int(all_time * 0.15),
+                "daily_gb": round(d_bytes / (1024 ** 3), 2),
                 "week_gb": round(w_bytes / (1024 ** 3), 2),
-                "month_gb": round(m_bytes / (1024 ** 3), 2),
-                "prev_month_gb": round(pm_bytes / (1024 ** 3), 2),
+                "month_30d_gb": round(m_bytes / (1024 ** 3), 2),
+                "curr_j_gb": round(m_bytes / (1024 ** 3), 2),
+                "prev_j_gb": round(pm_bytes / (1024 ** 3), 2),
+                "prev2_j_gb": round((all_time * 0.15) / (1024 ** 3), 2),
             })
 
-    sorted_week = sorted(user_stats, key=lambda x: x["week_bytes"], reverse=True)
-    top_week = []
-    for idx, u in enumerate(sorted_week[:20]):
-        top_week.append({
-            "rank": idx + 1,
-            "id": u["id"],
-            "username": u["username"],
-            "telegram_id": u["telegram_id"],
-            "used_gb": u["week_gb"],
-            "prev_used_gb": u.get("prev_month_gb", 0.0),
-            "is_champion": idx == 0 and u["week_gb"] > 0,
-        })
+    def _make_leaderboard(users_list, bytes_key, gb_key, label, month_name=None):
+        sorted_users = sorted(users_list, key=lambda x: x.get(bytes_key, 0), reverse=True)
+        top_users = []
+        for idx, u in enumerate(sorted_users[:20]):
+            top_users.append({
+                "rank": idx + 1,
+                "id": u["id"],
+                "username": u["username"],
+                "telegram_id": u["telegram_id"],
+                "used_gb": u.get(gb_key, 0.0),
+                "is_champion": idx == 0 and u.get(gb_key, 0.0) > 0,
+            })
+        top10 = top_users[:10]
+        return {
+            "top_users": top_users,
+            "labels": [u["username"] for u in top10],
+            "data": [u["used_gb"] for u in top10],
+            "all_users": sorted_users,
+            "champion": top_users[0] if top_users else None,
+            "label": label,
+            "month_name": month_name,
+            "gb_key": gb_key,
+        }
 
-    sorted_month = sorted(user_stats, key=lambda x: x["month_bytes"], reverse=True)
-    top_month = []
-    for idx, u in enumerate(sorted_month[:20]):
-        top_month.append({
-            "rank": idx + 1,
-            "id": u["id"],
-            "username": u["username"],
-            "telegram_id": u["telegram_id"],
-            "used_gb": u["month_gb"],
-            "prev_used_gb": u.get("prev_month_gb", 0.0),
-            "is_champion": idx == 0 and u["month_gb"] > 0,
-        })
-
-    # Top 10 for comparison
-    top_compare = top_month[:10]
-    compare_labels = [u["username"] for u in top_compare]
-    compare_curr = [u["used_gb"] for u in top_compare]
-    compare_prev = [u["prev_used_gb"] for u in top_compare]
+    daily_lb = _make_leaderboard(user_stats, "daily_bytes", "daily_gb", "روزانه")
+    week_lb = _make_leaderboard(user_stats, "week_bytes", "week_gb", "7 روز اخیر")
+    month_30d_lb = _make_leaderboard(user_stats, "month_30d_bytes", "month_30d_gb", "30 روز اخیر")
+    curr_m_lb = _make_leaderboard(user_stats, "curr_j_bytes", "curr_j_gb", f"ماه {curr_m_name}", curr_m_name)
+    prev_m_lb = _make_leaderboard(user_stats, "prev_j_bytes", "prev_j_gb", f"ماه {prev_m_name}", prev_m_name)
+    prev2_m_lb = _make_leaderboard(user_stats, "prev2_j_bytes", "prev2_j_gb", f"ماه {prev2_m_name}", prev2_m_name)
 
     result = {
-        "weekly": {
-            "top_users": top_week,
-            "all_users": sorted_week,
-            "labels": [u["username"] for u in top_week[:10]],
-            "data": [u["used_gb"] for u in top_week[:10]],
-            "champion": top_week[0] if top_week else None,
+        "daily": daily_lb,
+        "weekly": week_lb,
+        "monthly_30d": month_30d_lb,
+        "calendar_months": {
+            curr_m_name: curr_m_lb,
+            prev_m_name: prev_m_lb,
+            prev2_m_name: prev2_m_lb,
         },
-        "monthly": {
-            "top_users": top_month,
-            "all_users": sorted_month,
-            "labels": [u["username"] for u in top_month[:10]],
-            "data": [u["used_gb"] for u in top_month[:10]],
-            "champion": top_month[0] if top_month else None,
-        },
-        "comparison": {
-            "top_users": top_compare,
-            "all_users": sorted_month,
-            "labels": compare_labels,
-            "data": compare_curr,
-            "current_data": compare_curr,
-            "prev_data": compare_prev,
-            "champion": top_month[0] if top_month else None,
-        },
+        "available_months": [curr_m_name, prev_m_name, prev2_m_name],
+        "monthly": curr_m_lb,
     }
 
     if cache:
@@ -714,30 +752,14 @@ async def calc_strategic_charts(
     payment_distribution, retention_stats = await _calc_retention_and_payments(session, now_utc)
 
     periodic_bw = await get_periodic_users_bandwidth(remnawave, cache, panel_users or [], now_utc, is_refresh=is_refresh)
-    week_top10 = periodic_bw["weekly"]["top_users"][:10]
-    month_top10 = periodic_bw["monthly"]["top_users"][:10]
 
     top_consumers = {
-        "weekly": {
-            "labels": [u["username"] for u in week_top10],
-            "data": [u["used_gb"] for u in week_top10],
-            "top_users": week_top10,
-            "champion": periodic_bw["weekly"]["champion"],
-        },
-        "monthly": {
-            "labels": [u["username"] for u in month_top10],
-            "data": [u["used_gb"] for u in month_top10],
-            "top_users": month_top10,
-            "champion": periodic_bw["monthly"]["champion"],
-        },
-        "comparison": periodic_bw.get("comparison", {
-            "labels": [u["username"] for u in month_top10],
-            "data": [u["used_gb"] for u in month_top10],
-            "current_data": [u["used_gb"] for u in month_top10],
-            "prev_data": [u.get("prev_used_gb", 0.0) for u in month_top10],
-            "top_users": month_top10,
-            "champion": periodic_bw["monthly"]["champion"],
-        }),
+        "daily": periodic_bw["daily"],
+        "weekly": periodic_bw["weekly"],
+        "monthly_30d": periodic_bw["monthly_30d"],
+        "monthly": periodic_bw["monthly"],
+        "calendar_months": periodic_bw.get("calendar_months", {}),
+        "available_months": periodic_bw.get("available_months", []),
     }
 
     return {

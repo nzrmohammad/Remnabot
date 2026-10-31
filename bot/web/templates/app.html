@@ -633,7 +633,7 @@
               <div class="card-inset rounded-xl p-2.5 flex flex-col items-center justify-between">
                 <span class="text-[10px] text-slate-400 block mb-1">حجم هدیه برنده</span>
                 <b id="achieveGiftTraffic" class="font-mono text-cyan-600 dark:text-cyan-400 text-xs font-bold num-bidi" dir="ltr">0.0 GB</b>
-                <span class="text-[9.5px] font-medium text-slate-500 dark:text-slate-400 mt-0.5">از گردونه شانس</span>
+                <button type="button" onclick="window.openLuckyWheel()" class="text-[9.5px] font-medium text-cyan-600 dark:text-cyan-400 mt-0.5 hover:underline bg-transparent border-0 p-0 cursor-pointer flex items-center gap-0.5 justify-center"><span>🎡</span> گردونه شانس</button>
               </div>
 
               <!-- Active Won Coupons -->
@@ -666,18 +666,24 @@
 
           <!-- Chart: Top 20 Users Leaderboard (رده‌بندی ۲۰ کاربر برتر دوره) -->
           <div id="userLeaderboardCard" class="card rounded-2xl p-4 space-y-3 shadow-md border border-cyan-500/20">
-            <div class="flex justify-between items-center border-b border-slate-700/60 pb-2">
+            <div class="flex flex-wrap justify-between items-center border-b border-slate-700/60 pb-2.5 gap-2">
               <span class="text-xs font-bold t-main flex items-center gap-1.5">
                 <span class="text-sm">🏆</span>
                 <span>برترین مصرف‌کنندگان دوره</span>
               </span>
-              <!-- Weekly / Monthly Switcher -->
-              <div class="flex items-center p-0.5 card-inset rounded-lg text-[10px]">
-                <button type="button" id="userLbTabWeekly" onclick="window.switchUserLeaderboardPeriod('weekly')" class="px-2 py-0.5 rounded-md font-bold transition bg-cyan-600 text-white shadow">
+              <!-- Period Switcher: Daily / 7-Day / 30-Day / Monthly -->
+              <div class="flex items-center p-0.5 card-inset rounded-xl text-[10.5px]">
+                <button type="button" id="userLbTabDaily" onclick="window.switchUserLeaderboardPeriod('daily')" class="px-2.5 py-1.5 rounded-lg font-medium transition text-slate-400 hover:text-white">
+                  روزانه
+                </button>
+                <button type="button" id="userLbTabWeekly" onclick="window.switchUserLeaderboardPeriod('weekly')" class="px-2.5 py-1.5 rounded-lg font-bold transition bg-cyan-600 text-white shadow">
                   7 روز اخیر
                 </button>
-                <button type="button" id="userLbTabMonthly" onclick="window.switchUserLeaderboardPeriod('monthly')" class="px-2 py-0.5 rounded-md font-medium transition text-slate-400 hover:text-white">
+                <button type="button" id="userLbTabMonthly30d" onclick="window.switchUserLeaderboardPeriod('monthly_30d')" class="px-2.5 py-1.5 rounded-lg font-medium transition text-slate-400 hover:text-white">
                   30 روز اخیر
+                </button>
+                <button type="button" id="userLbTabMonthly" onclick="window.switchUserLeaderboardPeriod('monthly')" class="px-2.5 py-1.5 rounded-lg font-medium transition text-slate-400 hover:text-white">
+                  ماهانه
                 </button>
               </div>
             </div>
@@ -689,7 +695,7 @@
                 <span id="userLbMonthPrevLabel">ماه قبل</span>
               </button>
               <div class="text-center px-1">
-                <span id="userLbMonthCurrentLabel" class="text-xs font-black t-main block">ماه جاری</span>
+                <span id="userLbMonthCurrentLabel" class="text-xs font-black text-cyan-600 dark:text-cyan-400 block font-mono">--</span>
               </div>
               <button id="userLbMonthNextBtn" type="button" onclick="window.navigateUserLbMonth(1)" class="px-2.5 py-1 rounded-lg text-xs font-bold t-main card-inset hover:border-cyan-500/50 transition flex items-center gap-1 active:scale-95 opacity-40 cursor-not-allowed" disabled title="ماه بعد">
                 <span id="userLbMonthNextLabel">ماه بعد</span>
@@ -810,7 +816,7 @@
             <div class="card rounded-2xl p-4 space-y-2 shadow-md">
               <div class="flex justify-between items-center border-b border-slate-700/60 pb-2">
                 <span class="text-xs font-bold t-main flex items-center gap-1.5">
-                  <span>🍩</span> سهم لوکیشن‌ها و کشورها
+                  <span>🍩</span> سهم منطقه‌ها و کشورها
                 </span>
                 <span class="text-[11px] text-slate-400 font-mono">تفکیک جغرافیایی</span>
               </div>
@@ -1718,17 +1724,17 @@
                 </div>
 
                 <!-- 2. Minimalist Payment Details Box (When graphical card is disabled in Admin) -->
-                <div id="cardAutoClassicContainer" class="card-classic-box card-inset rounded-2xl p-3.5 border border-card-border space-y-2.5 hidden">
-                  <div class="flex items-center justify-between">
-                    <span class="text-xs font-semibold t-muted flex items-center gap-1.5">
+                <div id="cardAutoClassicContainer" class="card-classic-box card-inset rounded-2xl p-4 border border-card-border space-y-3 hidden">
+                  <div class="flex items-center justify-between text-xs border-b border-card-border pb-2.5">
+                    <span class="font-medium t-muted flex items-center gap-1.5">
                       <span>👤</span>
                       <span>صاحب حساب:</span>
                     </span>
-                    <b id="cardAutoClassicHolder" class="text-xs sm:text-sm font-bold t-main truncate max-w-[180px]">در حال دریافت...</b>
+                    <b id="cardAutoClassicHolder" class="font-bold t-main text-sm truncate max-w-[200px]">در حال دریافت...</b>
                   </div>
-                  <div class="p-3 rounded-xl bg-slate-900/60 dark:bg-slate-950/70 border border-slate-700/60 flex items-center justify-between gap-2">
-                    <span class="text-[11px] t-muted shrink-0">شماره کارت:</span>
-                    <span id="cardAutoClassicNumber" class="text-base sm:text-lg font-mono font-black tracking-widest text-cyan-600 dark:text-cyan-400 select-all num-bidi" dir="ltr">---- ---- ---- ----</span>
+                  <div class="space-y-1 text-center">
+                    <span class="text-[11px] t-muted block">شماره کارت مقصد:</span>
+                    <div id="cardAutoClassicNumber" class="text-base sm:text-lg font-mono font-black tracking-[0.12em] text-cyan-600 dark:text-cyan-400 select-all num-bidi py-1" dir="ltr">---- ---- ---- ----</div>
                   </div>
                 </div>
 
@@ -1844,17 +1850,17 @@
               </div>
 
               <!-- 2. Minimalist Payment Details Box (When graphical card is disabled in Admin) -->
-              <div id="manualClassicContainer" class="card-classic-box card-inset rounded-2xl p-3.5 border border-card-border space-y-2.5 hidden">
-                <div class="flex items-center justify-between">
-                  <span class="text-xs font-semibold t-muted flex items-center gap-1.5">
+              <div id="manualClassicContainer" class="card-classic-box card-inset rounded-2xl p-4 border border-card-border space-y-3 hidden">
+                <div class="flex items-center justify-between text-xs border-b border-card-border pb-2.5">
+                  <span class="font-medium t-muted flex items-center gap-1.5">
                     <span>👤</span>
                     <span>صاحب حساب:</span>
                   </span>
-                  <b id="manualClassicHolder" class="text-xs sm:text-sm font-bold t-main truncate max-w-[180px]">در حال دریافت...</b>
+                  <b id="manualClassicHolder" class="font-bold t-main text-sm truncate max-w-[200px]">در حال دریافت...</b>
                 </div>
-                <div class="p-3 rounded-xl bg-slate-900/60 dark:bg-slate-950/70 border border-slate-700/60 flex items-center justify-between gap-2">
-                  <span class="text-[11px] t-muted shrink-0">شماره کارت:</span>
-                  <span id="manualClassicNumber" class="text-base sm:text-lg font-mono font-black tracking-widest text-cyan-600 dark:text-cyan-400 select-all num-bidi" dir="ltr">---- ---- ---- ----</span>
+                <div class="space-y-1 text-center">
+                  <span class="text-[11px] t-muted block">شماره کارت مقصد:</span>
+                  <div id="manualClassicNumber" class="text-base sm:text-lg font-mono font-black tracking-[0.12em] text-cyan-600 dark:text-cyan-400 select-all num-bidi py-1" dir="ltr">---- ---- ---- ----</div>
                 </div>
               </div>
 
