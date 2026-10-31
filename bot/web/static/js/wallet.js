@@ -23,7 +23,7 @@ function renderBluCardNumber(el, num) {
   if (!el) return;
   const clean = String(num || '').replace(/\D/g, '');
   if (clean.length === 16) {
-    el.innerHTML = `<span>${clean.slice(0, 4)}</span>&nbsp;&nbsp;<span>${clean.slice(4, 8)}</span>&nbsp;&nbsp;<span>${clean.slice(8, 12)}</span>&nbsp;&nbsp;<span>${clean.slice(12, 16)}</span>`;
+    el.innerHTML = `<span class="tracking-widest font-black">${clean.slice(0, 4)}</span>&nbsp;&nbsp;&nbsp;<span class="tracking-widest font-black">${clean.slice(4, 8)}</span>&nbsp;&nbsp;&nbsp;<span class="tracking-widest font-black">${clean.slice(8, 12)}</span>&nbsp;&nbsp;&nbsp;<span class="tracking-widest font-black">${clean.slice(12, 16)}</span>`;
   } else {
     el.innerText = formatCardNumberDisplay(num);
   }

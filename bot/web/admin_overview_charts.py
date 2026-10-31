@@ -528,7 +528,7 @@ async def get_periodic_users_bandwidth(
     is_refresh: bool = False,
 ) -> dict[str, Any]:
     """Calculate 7-day and 30-day bandwidth consumed by each active user strictly within the period."""
-    cache_key = "analytics:users_periodic_bandwidth_v3"
+    cache_key = "analytics:users_periodic_bandwidth_v4"
     if not is_refresh and cache:
         cached = await cache.get(cache_key)
         if cached and isinstance(cached, dict) and "weekly" in cached:
@@ -730,6 +730,14 @@ async def calc_strategic_charts(
             "top_users": month_top10,
             "champion": periodic_bw["monthly"]["champion"],
         },
+        "comparison": periodic_bw.get("comparison", {
+            "labels": [u["username"] for u in month_top10],
+            "data": [u["used_gb"] for u in month_top10],
+            "current_data": [u["used_gb"] for u in month_top10],
+            "prev_data": [u.get("prev_used_gb", 0.0) for u in month_top10],
+            "top_users": month_top10,
+            "champion": periodic_bw["monthly"]["champion"],
+        }),
     }
 
     return {

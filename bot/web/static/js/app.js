@@ -3661,13 +3661,16 @@ function switchUserLeaderboardPeriod(period) {
   window.currentUserLbPeriod = period;
   const tabWeekly = $('userLbTabWeekly');
   const tabMonthly = $('userLbTabMonthly');
+  const monthBar = $('userLbMonthBar');
   if (tabWeekly && tabMonthly) {
     if (period === 'weekly') {
       tabWeekly.className = 'px-2 py-0.5 rounded-md font-bold transition bg-cyan-600 text-white shadow';
       tabMonthly.className = 'px-2 py-0.5 rounded-md font-medium transition text-slate-400 hover:text-white';
+      if (monthBar) monthBar.classList.add('hidden');
     } else {
       tabMonthly.className = 'px-2 py-0.5 rounded-md font-bold transition bg-cyan-600 text-white shadow';
       tabWeekly.className = 'px-2 py-0.5 rounded-md font-medium transition text-slate-400 hover:text-white';
+      if (monthBar) monthBar.classList.remove('hidden');
     }
   }
   if (cachedUserLeaderboardData) {
@@ -3675,6 +3678,19 @@ function switchUserLeaderboardPeriod(period) {
   }
 }
 window.switchUserLeaderboardPeriod = switchUserLeaderboardPeriod;
+
+function navigateUserLbMonth(dir) {
+  if (dir === -1 && currentUserLbPeriod !== 'prev_month') {
+    currentUserLbPeriod = 'prev_month';
+  } else if (dir === 1 && currentUserLbPeriod !== 'monthly') {
+    currentUserLbPeriod = 'monthly';
+  }
+  window.currentUserLbPeriod = currentUserLbPeriod;
+  if (cachedUserLeaderboardData) {
+    renderUserLeaderboard(cachedUserLeaderboardData, currentUserLbPeriod);
+  }
+}
+window.navigateUserLbMonth = navigateUserLbMonth;
 
 function renderUserLeaderboard(leaderboardData, period = currentUserLbPeriod) {
   if (leaderboardData) cachedUserLeaderboardData = leaderboardData;
@@ -3685,35 +3701,73 @@ function renderUserLeaderboard(leaderboardData, period = currentUserLbPeriod) {
   const myUsedGb = Number(periodData.my_used_gb || 0);
   const diffGb = Number(periodData.diff_gb || 0);
 
+  // Sync month navigation bar
+  const monthBar = $('userLbMonthBar');
+  const prevBtn = $('userLbMonthPrevBtn');
+  const nextBtn = $('userLbMonthNextBtn');
+  const prevLabel = $('userLbMonthPrevLabel');
+  const nextLabel = $('userLbMonthNextLabel');
+  const curLabel = $('userLbMonthCurrentLabel');
+
+  if (period === 'weekly') {
+    if (monthBar) monthBar.classList.add('hidden');
+  } else {
+    if (monthBar) monthBar.classList.remove('hidden');
+    const currMName = cachedUserLeaderboardData?.monthly?.month_name || 'ماه جاری';
+    const prevMName = cachedUserLeaderboardData?.prev_month?.month_name || 'ماه قبل';
+    const isPrev = period === 'prev_month';
+
+    if (curLabel) curLabel.innerText = isPrev ? `${prevMName} (ماه قبل)` : `${currMName} (ماه جاری)`;
+    if (prevLabel) prevLabel.innerText = prevMName;
+    if (nextLabel) nextLabel.innerText = currMName;
+
+    if (prevBtn) {
+      prevBtn.disabled = isPrev;
+      prevBtn.classList.toggle('opacity-40', isPrev);
+      prevBtn.classList.toggle('cursor-not-allowed', isPrev);
+    }
+    if (nextBtn) {
+      nextBtn.disabled = !isPrev;
+      nextBtn.classList.toggle('opacity-40', !isPrev);
+      nextBtn.classList.toggle('cursor-not-allowed', !isPrev);
+    }
+  }
+
   const noticeEl = $('userLeaderboardNotice');
   const noticeTextEl = $('userLbNoticeText');
   const noticeIconEl = $('userLbNoticeIcon');
 
   if (noticeTextEl) {
-    const periodLabel = period === 'weekly' ? '۷ روز اخیر' : '۳۰ روز اخیر';
-    const myUsedStr = typeof fmtTraffic === 'function' ? fmtTraffic(myUsedGb, { html: false }) : myUsedGb;
+    let periodLabel = '7 روز اخیر';
+    if (period === 'monthly') {
+      periodLabel = periodData.month_name ? `${periodData.month_name} (30 روز اخیر)` : '30 روز اخیر';
+    } else if (period === 'prev_month') {
+      periodLabel = periodData.month_name ? `${periodData.month_name} (ماه قبل)` : 'ماه قبل';
+    }
+
+    const myTrafficHtml = fmtTraffic(myUsedGb, { html: true, persianDigits: false });
     if (inTop20 && myRank) {
       if (noticeIconEl) noticeIconEl.innerText = '🎖️';
-      noticeTextEl.innerText = `تبریک! شما با مصرف ${myUsedStr} در رتبه ${myRank} از ۲۰ کاربر برتر دوره (${periodLabel}) قرار دارید.`;
+      noticeTextEl.innerHTML = `تبریک! شما با مصرف ${myTrafficHtml} در رتبه <b class="font-mono font-bold">${myRank}</b> از <b class="font-mono">20</b> کاربر برتر دوره (${periodLabel}) قرار دارید.`;
       if (noticeEl) {
         noticeEl.className = 'p-2.5 rounded-xl text-xs flex items-start gap-2 bg-emerald-500/10 border border-emerald-500/30 text-emerald-800 dark:text-emerald-300';
       }
     } else if (myRank && myRank > 20) {
       if (noticeIconEl) noticeIconEl.innerText = '📊';
-      const diffStr = typeof fmtTraffic === 'function' ? fmtTraffic(diffGb, { html: false }) : diffGb;
-      noticeTextEl.innerText = `شما با مصرف ${myUsedStr} در رتبه ${myRank} دوره (${periodLabel}) قرار دارید. برای ورود به ۲۰ کاربر برتر، به ${diffStr} مصرف بیشتر نیاز دارید.`;
+      const diffTrafficHtml = fmtTraffic(diffGb, { html: true, persianDigits: false });
+      noticeTextEl.innerHTML = `شما با مصرف ${myTrafficHtml} در رتبه <b class="font-mono font-bold">${myRank}</b> دوره (${periodLabel}) قرار دارید. برای ورود به <b class="font-mono">20</b> کاربر برتر، به ${diffTrafficHtml} مصرف بیشتر نیاز دارید.`;
       if (noticeEl) {
         noticeEl.className = 'p-2.5 rounded-xl text-xs flex items-start gap-2 bg-slate-500/10 border border-slate-700/40 t-main';
       }
     } else if (myUsedGb > 0) {
       if (noticeIconEl) noticeIconEl.innerText = '📈';
-      noticeTextEl.innerText = `مصرف شما در دوره (${periodLabel}) برابر ${myUsedStr} است. با مصرف بیشتر به جمع ۲۰ کاربر برتر بپیوندید!`;
+      noticeTextEl.innerHTML = `مصرف شما در دوره (${periodLabel}) برابر ${myTrafficHtml} است. با مصرف بیشتر به جمع <b class="font-mono">20</b> کاربر برتر بپیوندید!`;
       if (noticeEl) {
         noticeEl.className = 'p-2.5 rounded-xl text-xs flex items-start gap-2 bg-slate-500/10 border border-slate-700/40 t-main';
       }
     } else {
       if (noticeIconEl) noticeIconEl.innerText = 'ℹ️';
-      noticeTextEl.innerText = `در دوره (${periodLabel}) هنوز مصرفی برای شما ثبت نشده است.`;
+      noticeTextEl.innerHTML = `در دوره (${periodLabel}) هنوز مصرفی برای شما ثبت نشده است.`;
       if (noticeEl) {
         noticeEl.className = 'p-2.5 rounded-xl text-xs flex items-start gap-2 bg-slate-500/10 border border-slate-700/40 t-muted';
       }

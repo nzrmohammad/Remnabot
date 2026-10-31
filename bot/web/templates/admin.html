@@ -3635,15 +3635,25 @@
           <button type="button" onclick="window.adminActions.closeCardTemplateModal()" class="modal-close-btn" aria-label="بستن">✕</button>
         </div>
         <div id="cardTemplateList" class="space-y-2 flex-1 overflow-y-auto custom-scroll text-xs pr-0.5">
-          <div onclick="window.adminActions.selectCardTemplate('blubank', 'بلوبانک', '💳')" class="p-3 rounded-2xl border transition cursor-pointer flex items-center justify-between gap-3 bg-blue-600/15 border-blue-500 shadow-sm">
+          <div id="cardTplOpt_blubank" onclick="window.adminActions.selectCardTemplate('blubank', 'بلوبانک', '💳')" class="p-3 rounded-2xl border transition cursor-pointer flex items-center justify-between gap-3 bg-blue-600/15 border-blue-500 shadow-sm">
             <div class="flex items-center gap-2.5">
               <span class="text-base">💳</span>
               <div>
-                <span class="text-xs font-bold t-info block">بلوبانک (BluBank)</span>
+                <span class="text-xs font-bold t-info block">بلوبانک</span>
                 <span class="text-[10px] t-muted block">طراحی سه‌بعدی کارت با افکت چرخش و چیپ هوشمند</span>
               </div>
             </div>
-            <span class="text-xs text-blue-400 font-bold">✓</span>
+            <span class="text-xs text-blue-400 font-bold" id="cardTplCheck_blubank">✓</span>
+          </div>
+          <div id="cardTplOpt_minimal" onclick="window.adminActions.selectCardTemplate('minimal', 'ساده و مینیمال', '📄')" class="p-3 rounded-2xl border transition cursor-pointer flex items-center justify-between gap-3 card-inset border-card-border hover:border-slate-500">
+            <div class="flex items-center gap-2.5">
+              <span class="text-base">📄</span>
+              <div>
+                <span class="text-xs font-bold t-main block">ساده و مینیمال</span>
+                <span class="text-[10px] t-muted block">کادر فلت متنی ساده فقط با نمایش شماره کارت و کپی</span>
+              </div>
+            </div>
+            <span class="text-xs text-blue-400 font-bold hidden" id="cardTplCheck_minimal">✓</span>
           </div>
         </div>
       </div>

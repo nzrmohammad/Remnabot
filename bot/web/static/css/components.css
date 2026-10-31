@@ -489,6 +489,13 @@ label:active .switch-label .switch-ball {
   box-shadow: 0 2px 8px var(--c-accent-soft);
 }
 
+.admin-subtab-btn.is-active svg,
+.admin-subtab-btn[aria-selected="true"] svg,
+html.theme-dark .admin-subtab-btn.is-active svg,
+html.theme-dark .admin-subtab-btn[aria-selected="true"] svg {
+  color: var(--text-inverse);
+}
+
 /* --- 15. Admin Search Box Container --- */
 .admin-search-box {
   display: flex;

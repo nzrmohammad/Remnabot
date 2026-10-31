@@ -26,7 +26,29 @@ from bot.db.repositories.alert_repo import AlertRepository
 from bot.db.repositories.report_repo import ReportRepository
 from bot.db.repositories.user_repo import UserRepository
 from bot.services.app_settings import get_store_settings, is_maintenance
-from bot.services.formatting import country_flag, now_tz
+from bot.services.formatting import COUNTRY_FLAGS_MAP, country_flag, now_tz
+
+FLAG_EMOJI_RE = re.compile(r"[\U0001F1E6-\U0001F1FF]{2}")
+
+
+def _extract_node_flag(node: dict[str, Any]) -> str | None:
+    """Extract a country flag emoji from node metadata, name, or country code."""
+    if not isinstance(node, dict):
+        return None
+    cc = str(node.get("countryCode") or node.get("country_code") or "").strip().upper()
+    if cc and len(cc) == 2 and cc.isalpha() and cc != "XX":
+        f = country_flag(cc)
+        if f and f != "🌐":
+            return f
+    name = str(node.get("name") or "")
+    m = FLAG_EMOJI_RE.search(name)
+    if m:
+        return m.group(0)
+    search_text = f"{name} {node.get('country_name') or ''} {node.get('address') or ''}".lower()
+    for kw, (f_emoji, _) in sorted(COUNTRY_FLAGS_MAP.items(), key=lambda x: len(x[0]), reverse=True):
+        if kw in search_text:
+            return f_emoji
+    return None
 from bot.web.cache import FastCache
 from bot.web.user_common import db_session, require_user
 
@@ -432,14 +454,28 @@ async def get_user_me(request: web.Request) -> web.Response:
         except Exception as node_err:
             logger.debug("Failed fetching nodes for plan flags: %s", node_err)
 
+        # Resolve squad lookup map (aliases)
+        squad_alias_map: dict[str, set[str]] = {}
+        try:
+            raw_squads = await remnawave.get_internal_squads() or []
+            for sq in raw_squads:
+                if isinstance(sq, dict):
+                    tokens = set()
+                    for k in ("uuid", "id", "name"):
+                        val = sq.get(k)
+                        if val is not None and str(val).strip():
+                            tokens.add(str(val).strip().lower())
+                    for t in tokens:
+                        squad_alias_map[t] = tokens
+        except Exception as sq_err:
+            logger.debug("Failed fetching internal squads for plan flags: %s", sq_err)
+
         default_cluster_flags = []
         for n in cluster_nodes:
             if isinstance(n, dict):
-                cc = str(n.get("countryCode") or n.get("country_code") or "").strip().upper()
-                if cc and cc != "XX":
-                    f = country_flag(cc)
-                    if f and f != "🌐" and f not in default_cluster_flags:
-                        default_cluster_flags.append(f)
+                f = _extract_node_flag(n)
+                if f and f != "🌐" and f not in default_cluster_flags:
+                    default_cluster_flags.append(f)
         if not default_cluster_flags:
             default_cluster_flags = ["🇩🇪", "🇳🇱", "🇫🇮"]
 
@@ -447,30 +483,40 @@ async def get_user_me(request: web.Request) -> web.Response:
         for s in filtered_services:
             plan_flags = []
             if s.squad_uuid:
-                s_uuid_clean = str(s.squad_uuid).strip().lower()
+                s_key = str(s.squad_uuid).strip().lower()
+                matching_tokens = squad_alias_map.get(s_key, {s_key})
                 for n in cluster_nodes:
                     if not isinstance(n, dict):
                         continue
-                    sqs = n.get("internalSquads") or n.get("squads") or []
-                    node_squad_uuids = [
-                        str(sq.get("uuid") if isinstance(sq, dict) else sq).strip().lower()
-                        for sq in sqs if sq
-                    ]
+                    node_tokens = set()
+                    sqs = n.get("internalSquads") or n.get("squads") or n.get("activeInternalSquads") or []
+                    for sq in sqs:
+                        if isinstance(sq, dict):
+                            for k in ("uuid", "id", "name"):
+                                v = sq.get(k)
+                                if v is not None and str(v).strip():
+                                    node_tokens.add(str(v).strip().lower())
+                        elif sq:
+                            node_tokens.add(str(sq).strip().lower())
                     inbounds = n.get("inbounds") or []
                     for ib in inbounds:
                         if isinstance(ib, dict):
                             ib_sqs = ib.get("internalSquads") or ib.get("squads") or []
                             for sq in ib_sqs:
-                                u = str(sq.get("uuid") if isinstance(sq, dict) else sq).strip().lower()
-                                if u:
-                                    node_squad_uuids.append(u)
-                    if s_uuid_clean in node_squad_uuids:
-                        cc = str(n.get("countryCode") or n.get("country_code") or "").strip().upper()
-                        f = country_flag(cc) if cc and cc != "XX" else "🌐"
-                        if f not in plan_flags:
+                                if isinstance(sq, dict):
+                                    for k in ("uuid", "id", "name"):
+                                        v = sq.get(k)
+                                        if v is not None and str(v).strip():
+                                            node_tokens.add(str(v).strip().lower())
+                                elif sq:
+                                    node_tokens.add(str(sq).strip().lower())
+
+                    if node_tokens & matching_tokens:
+                        f = _extract_node_flag(n)
+                        if f and f != "🌐" and f not in plan_flags:
                             plan_flags.append(f)
                 if not plan_flags:
-                    plan_flags = ["🌐"]
+                    plan_flags = default_cluster_flags[:3]
             else:
                 plan_flags = default_cluster_flags[:4]
 
@@ -573,7 +619,7 @@ async def get_user_me(request: web.Request) -> web.Response:
         user_leaderboard = {}
         now_utc = datetime.now(timezone.utc)
         try:
-            cached_bw = await cache.get("analytics:users_periodic_bandwidth_v3")
+            cached_bw = await cache.get("analytics:users_periodic_bandwidth_v4")
             if cached_bw and isinstance(cached_bw, dict) and "weekly" in cached_bw:
                 periodic_bw = cached_bw
             else:
@@ -587,9 +633,23 @@ async def get_user_me(request: web.Request) -> web.Response:
                 periodic_bw = await get_periodic_users_bandwidth(remnawave, cache, all_panel, now_utc)
 
             my_user_ids = {str(p["id"]) for p in panel_users if isinstance(p, dict) and p.get("id")}
-            for period_key in ("weekly", "monthly"):
-                period_data = periodic_bw.get(period_key, {})
-                all_u = period_data.get("all_users", [])
+            j_now = jdatetime.date.fromgregorian(date=now_utc.date())
+            curr_month_name = j_now.strftime("%B")
+            prev_j_m = j_now.month - 1 or 12
+            prev_j_y = j_now.year if j_now.month > 1 else j_now.year - 1
+            prev_month_name = jdatetime.date(prev_j_y, prev_j_m, 1).strftime("%B")
+
+            for period_key in ("weekly", "monthly", "prev_month"):
+                if period_key == "prev_month":
+                    all_u = sorted(
+                        periodic_bw.get("monthly", {}).get("all_users", []),
+                        key=lambda x: x.get("prev_month_gb", 0.0),
+                        reverse=True,
+                    )
+                else:
+                    period_data = periodic_bw.get(period_key, {})
+                    all_u = period_data.get("all_users", [])
+
                 top_20 = []
                 my_rank = None
                 my_used_gb = 0.0
@@ -603,7 +663,13 @@ async def get_user_me(request: web.Request) -> web.Response:
                         or (req_account_id and uid_str == str(req_account_id))
                         or (active_primary and uid_str == str(active_primary.get("id", "")))
                     )
-                    used_val = u.get(f"{'week' if period_key == 'weekly' else 'month'}_gb", 0.0)
+                    if period_key == "weekly":
+                        used_val = u.get("week_gb", 0.0)
+                    elif period_key == "monthly":
+                        used_val = u.get("month_gb", 0.0)
+                    else:
+                        used_val = u.get("prev_month_gb", 0.0)
+
                     if is_me and my_rank is None:
                         my_rank = idx + 1
                         my_used_gb = used_val
@@ -628,6 +694,7 @@ async def get_user_me(request: web.Request) -> web.Response:
                 cutoff_gb = top_20[-1]["used_gb"] if len(top_20) == 20 else (top_20[-1]["used_gb"] if top_20 else 0.0)
                 diff_gb = round(max(0.0, cutoff_gb - my_used_gb), 2) if (my_rank and my_rank > 20) else 0.0
 
+                period_lbl = "7 روز اخیر" if period_key == "weekly" else (f"{curr_month_name} (30 روز اخیر)" if period_key == "monthly" else f"{prev_month_name} (ماه قبل)")
                 user_leaderboard[period_key] = {
                     "top_20": top_20,
                     "labels": [u["username"] for u in top_20],
@@ -636,6 +703,8 @@ async def get_user_me(request: web.Request) -> web.Response:
                     "my_used_gb": my_used_gb,
                     "in_top_20": bool(my_rank and my_rank <= 20),
                     "diff_gb": diff_gb,
+                    "month_name": curr_month_name if period_key == "monthly" else (prev_month_name if period_key == "prev_month" else None),
+                    "period_label": period_lbl,
                 }
         except Exception as lb_err:
             logger.debug("Failed calculating user leaderboard: %s", lb_err)

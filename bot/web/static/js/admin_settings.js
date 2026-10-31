@@ -21,7 +21,21 @@
   // Support Chat, Campaigns, App Recommendations & Settings Actions
   Object.assign(window.adminActions, {
     openCardTemplateModal() {
-      $('cardTemplateModal')?.classList.remove('hidden');
+      const modal = $('cardTemplateModal');
+      if (!modal) return;
+      const curVal = $('settingCardTemplate')?.value || 'blubank';
+      const isMin = curVal === 'minimal';
+      const optBlu = $('cardTplOpt_blubank');
+      const optMin = $('cardTplOpt_minimal');
+      const chkBlu = $('cardTplCheck_blubank');
+      const chkMin = $('cardTplCheck_minimal');
+      if (optBlu && optMin) {
+        optBlu.className = isMin ? 'p-3 rounded-2xl border transition cursor-pointer flex items-center justify-between gap-3 card-inset border-card-border hover:border-slate-500' : 'p-3 rounded-2xl border transition cursor-pointer flex items-center justify-between gap-3 bg-blue-600/15 border-blue-500 shadow-sm';
+        optMin.className = isMin ? 'p-3 rounded-2xl border transition cursor-pointer flex items-center justify-between gap-3 bg-blue-600/15 border-blue-500 shadow-sm' : 'p-3 rounded-2xl border transition cursor-pointer flex items-center justify-between gap-3 card-inset border-card-border hover:border-slate-500';
+        chkBlu?.classList.toggle('hidden', isMin);
+        chkMin?.classList.toggle('hidden', !isMin);
+      }
+      modal.classList.remove('hidden');
       if (window.hapticFeedback) window.hapticFeedback('selection');
     },
     closeCardTemplateModal() {
@@ -1048,8 +1062,9 @@ openUserChat(telegram_id, name, tag, topup_id) {
       const cardTemplate = $('settingCardTemplate');
       if (cardTemplate) {
         cardTemplate.value = s.card_template || 'blubank';
-        if ($('settingCardTemplateLabel')) $('settingCardTemplateLabel').innerText = 'بلوبانک';
-        if ($('settingCardTemplateIcon')) $('settingCardTemplateIcon').innerText = '💳';
+        const isMin = s.card_template === 'minimal';
+        if ($('settingCardTemplateLabel')) $('settingCardTemplateLabel').innerText = isMin ? 'ساده و مینیمال' : 'بلوبانک';
+        if ($('settingCardTemplateIcon')) $('settingCardTemplateIcon').innerText = isMin ? '📄' : '💳';
       }
 
       const defSquadEl = $('settingDefaultSquadUuid');

@@ -674,12 +674,27 @@
               <!-- Weekly / Monthly Switcher -->
               <div class="flex items-center p-0.5 card-inset rounded-lg text-[10px]">
                 <button type="button" id="userLbTabWeekly" onclick="window.switchUserLeaderboardPeriod('weekly')" class="px-2 py-0.5 rounded-md font-bold transition bg-cyan-600 text-white shadow">
-                  ۷ روز اخیر
+                  7 روز اخیر
                 </button>
                 <button type="button" id="userLbTabMonthly" onclick="window.switchUserLeaderboardPeriod('monthly')" class="px-2 py-0.5 rounded-md font-medium transition text-slate-400 hover:text-white">
-                  ۳۰ روز اخیر
+                  30 روز اخیر
                 </button>
               </div>
+            </div>
+
+            <!-- Month Navigator (هنگام مرور ماهانه) -->
+            <div id="userLbMonthBar" class="hidden flex items-center justify-between card-inset rounded-xl px-2.5 py-1.5 border border-slate-700/40 text-xs">
+              <button id="userLbMonthPrevBtn" type="button" onclick="window.navigateUserLbMonth(-1)" class="px-2.5 py-1 rounded-lg text-xs font-bold t-main card-inset hover:border-cyan-500/50 transition flex items-center gap-1 active:scale-95" title="ماه قبل">
+                <span>▶</span>
+                <span id="userLbMonthPrevLabel">ماه قبل</span>
+              </button>
+              <div class="text-center px-1">
+                <span id="userLbMonthCurrentLabel" class="text-xs font-black t-main block">ماه جاری</span>
+              </div>
+              <button id="userLbMonthNextBtn" type="button" onclick="window.navigateUserLbMonth(1)" class="px-2.5 py-1 rounded-lg text-xs font-bold t-main card-inset hover:border-cyan-500/50 transition flex items-center gap-1 active:scale-95 opacity-40 cursor-not-allowed" disabled title="ماه بعد">
+                <span id="userLbMonthNextLabel">ماه بعد</span>
+                <span>◀</span>
+              </button>
             </div>
 
             <!-- Dynamic User Status / Rank Notice -->
@@ -1651,27 +1666,26 @@
                             <svg class="w-4 h-4 text-white/80" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.111 16.404a5.5 5.5 0 017.778 0M5.636 13.93a9 9 0 0112.728 0M3.161 11.455a12.5 12.5 0 0117.678 0"/></svg>
                           </div>
                           <div class="text-right">
-                            <span class="text-[9px] text-white/60 block">دارنده کارت</span>
                             <span id="cardAutoCardHolder" class="text-xs sm:text-sm font-bold text-white drop-shadow truncate block">در حال دریافت...</span>
                           </div>
                         </div>
 
-                        <!-- Center: 16-digit Card Number Display (Single horizontal line with spaces) -->
-                        <div class="relative z-10 py-1 text-center">
-                          <div id="cardAutoCardNumber" class="text-base sm:text-lg font-mono font-black tracking-[0.16em] text-white drop-shadow-md num-bidi" dir="ltr">
+                        <!-- Center: 16-digit Card Number Display -->
+                        <div class="relative z-10 py-2.5 text-center">
+                          <div id="cardAutoCardNumber" class="text-lg sm:text-xl font-mono font-black tracking-[0.18em] text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.85)] num-bidi" dir="ltr">
                             ---- ---- ---- ----
                           </div>
                         </div>
 
-                        <!-- Bottom row: EXP/CVV2 on Left, Saman Bank Logo on Right -->
+                        <!-- Bottom row: Saman Bank Logo on Left, Contactless on Right -->
                         <div class="relative z-10 flex items-center justify-between text-[10px] font-mono border-t border-white/15 pt-1.5" dir="ltr">
-                          <div class="flex items-center gap-3 text-white/80">
-                            <div><span class="text-white/50 text-[9px]">EXP: </span>1408/08</div>
-                            <div><span class="text-white/50 text-[9px]">CVV2: </span>743</div>
-                          </div>
                           <div class="flex items-center gap-1.5 text-white/90">
-                            <span class="text-[11px] font-bold font-sans tracking-tight">Saman Bank</span>
                             <span class="text-xs">🌸</span>
+                            <span class="text-[11px] font-bold font-sans tracking-tight">Saman Bank</span>
+                          </div>
+                          <div class="flex items-center gap-1 text-white/70 text-[9px]">
+                            <svg class="w-3.5 h-3.5 text-white/80" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.111 16.404a5.5 5.5 0 017.778 0M5.636 13.93a9 9 0 0112.728 0M3.161 11.455a12.5 12.5 0 0117.678 0"/></svg>
+                            <span>Contactless</span>
                           </div>
                         </div>
                       </div>
@@ -1681,8 +1695,9 @@
                         <div class="w-full h-8 bg-slate-950/90 mt-3 border-y border-black/40"></div>
 
                         <div class="flex items-center justify-between px-4 py-1">
-                          <div class="bg-white/90 text-slate-900 px-2 py-0.5 rounded text-[10px] font-mono font-bold">
-                            CVV2: 743
+                          <div class="flex items-center gap-1.5 text-white/80 text-[10px]">
+                            <span>🌸</span>
+                            <span class="font-sans font-bold">Saman Bank</span>
                           </div>
                           <div class="text-right">
                             <span class="text-2xl font-black font-sans text-white drop-shadow tracking-tight">blu</span>
@@ -1702,20 +1717,18 @@
                   </div>
                 </div>
 
-                <!-- 2. Classic Minimalist Card Box (When graphical card is disabled in Admin) -->
-                <div id="cardAutoClassicContainer" class="card-classic-box card-inset rounded-2xl p-4 border border-[var(--card-border)] space-y-2.5 hidden">
-                  <div class="flex items-center justify-between border-b border-[var(--card-border)] pb-2">
-                    <div class="flex items-center gap-2">
-                      <span class="text-xl">💳</span>
-                      <div>
-                        <b class="text-xs t-main block">پرداخت کارت به کارت</b>
-                        <span class="text-[10px] t-muted block">کارت بانکی مقصد</span>
-                      </div>
-                    </div>
-                    <span id="cardAutoClassicHolder" class="text-xs font-bold t-main">در حال دریافت...</span>
+                <!-- 2. Minimalist Payment Details Box (When graphical card is disabled in Admin) -->
+                <div id="cardAutoClassicContainer" class="card-classic-box card-inset rounded-2xl p-3.5 border border-card-border space-y-2.5 hidden">
+                  <div class="flex items-center justify-between">
+                    <span class="text-xs font-semibold t-muted flex items-center gap-1.5">
+                      <span>👤</span>
+                      <span>صاحب حساب:</span>
+                    </span>
+                    <b id="cardAutoClassicHolder" class="text-xs sm:text-sm font-bold t-main truncate max-w-[180px]">در حال دریافت...</b>
                   </div>
-                  <div class="text-center py-1">
-                    <span id="cardAutoClassicNumber" class="text-lg font-mono font-bold tracking-[0.16em] t-main num-bidi" dir="ltr">---- ---- ---- ----</span>
+                  <div class="p-3 rounded-xl bg-slate-900/60 dark:bg-slate-950/70 border border-slate-700/60 flex items-center justify-between gap-2">
+                    <span class="text-[11px] t-muted shrink-0">شماره کارت:</span>
+                    <span id="cardAutoClassicNumber" class="text-base sm:text-lg font-mono font-black tracking-widest text-cyan-600 dark:text-cyan-400 select-all num-bidi" dir="ltr">---- ---- ---- ----</span>
                   </div>
                 </div>
 
@@ -1779,27 +1792,26 @@
                           <svg class="w-4 h-4 text-white/80" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.111 16.404a5.5 5.5 0 017.778 0M5.636 13.93a9 9 0 0112.728 0M3.161 11.455a12.5 12.5 0 0117.678 0"/></svg>
                         </div>
                         <div class="text-right">
-                          <span class="text-[9px] text-white/60 block">دارنده کارت</span>
                           <span id="topupCardHolder" class="text-xs sm:text-sm font-bold text-white drop-shadow truncate block">در حال دریافت...</span>
                         </div>
                       </div>
 
                       <!-- Center: 16-digit Card Number Display -->
-                      <div class="relative z-10 py-1 text-center">
-                        <div id="topupCardNumber" class="text-base sm:text-lg font-mono font-black tracking-[0.16em] text-white drop-shadow-md num-bidi" dir="ltr">
+                      <div class="relative z-10 py-2.5 text-center">
+                        <div id="topupCardNumber" class="text-lg sm:text-xl font-mono font-black tracking-[0.18em] text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.85)] num-bidi" dir="ltr">
                           ---- ---- ---- ----
                         </div>
                       </div>
 
-                      <!-- Bottom row: EXP/CVV2 on Left, Saman Bank Logo on Right -->
+                      <!-- Bottom row: Saman Bank Logo on Left, Contactless on Right -->
                       <div class="relative z-10 flex items-center justify-between text-[10px] font-mono border-t border-white/15 pt-1.5" dir="ltr">
-                        <div class="flex items-center gap-3 text-white/80">
-                          <div><span class="text-white/50 text-[9px]">EXP: </span>1408/08</div>
-                          <div><span class="text-white/50 text-[9px]">CVV2: </span>743</div>
-                        </div>
                         <div class="flex items-center gap-1.5 text-white/90">
-                          <span class="text-[11px] font-bold font-sans tracking-tight">Saman Bank</span>
                           <span class="text-xs">🌸</span>
+                          <span class="text-[11px] font-bold font-sans tracking-tight">Saman Bank</span>
+                        </div>
+                        <div class="flex items-center gap-1 text-white/70 text-[9px]">
+                          <svg class="w-3.5 h-3.5 text-white/80" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.111 16.404a5.5 5.5 0 017.778 0M5.636 13.93a9 9 0 0112.728 0M3.161 11.455a12.5 12.5 0 0117.678 0"/></svg>
+                          <span>Contactless</span>
                         </div>
                       </div>
                     </div>
@@ -1809,8 +1821,9 @@
                       <div class="w-full h-8 bg-slate-950/90 mt-3 border-y border-black/40"></div>
 
                       <div class="flex items-center justify-between px-4 py-1">
-                        <div class="bg-white/90 text-slate-900 px-2 py-0.5 rounded text-[10px] font-mono font-bold">
-                          CVV2: 743
+                        <div class="flex items-center gap-1.5 text-white/80 text-[10px]">
+                          <span>🌸</span>
+                          <span class="font-sans font-bold">Saman Bank</span>
                         </div>
                         <div class="text-right">
                           <span class="text-2xl font-black font-sans text-white drop-shadow tracking-tight">blu</span>
@@ -1830,20 +1843,18 @@
                 </div>
               </div>
 
-              <!-- 2. Classic Minimalist Card Box (When graphical card is disabled in Admin) -->
-              <div id="manualClassicContainer" class="card-classic-box card-inset rounded-2xl p-4 border border-[var(--card-border)] space-y-2.5 hidden">
-                <div class="flex items-center justify-between border-b border-[var(--card-border)] pb-2">
-                  <div class="flex items-center gap-2">
-                    <span class="text-xl">💳</span>
-                    <div>
-                      <b class="text-xs t-main block">پرداخت کارت به کارت</b>
-                      <span class="text-[10px] t-muted block">کارت بانکی مقصد</span>
-                    </div>
-                  </div>
-                  <span id="manualClassicHolder" class="text-xs font-bold t-main">در حال دریافت...</span>
+              <!-- 2. Minimalist Payment Details Box (When graphical card is disabled in Admin) -->
+              <div id="manualClassicContainer" class="card-classic-box card-inset rounded-2xl p-3.5 border border-card-border space-y-2.5 hidden">
+                <div class="flex items-center justify-between">
+                  <span class="text-xs font-semibold t-muted flex items-center gap-1.5">
+                    <span>👤</span>
+                    <span>صاحب حساب:</span>
+                  </span>
+                  <b id="manualClassicHolder" class="text-xs sm:text-sm font-bold t-main truncate max-w-[180px]">در حال دریافت...</b>
                 </div>
-                <div class="text-center py-1">
-                  <span id="manualClassicNumber" class="text-lg font-mono font-bold tracking-[0.16em] t-main num-bidi" dir="ltr">---- ---- ---- ----</span>
+                <div class="p-3 rounded-xl bg-slate-900/60 dark:bg-slate-950/70 border border-slate-700/60 flex items-center justify-between gap-2">
+                  <span class="text-[11px] t-muted shrink-0">شماره کارت:</span>
+                  <span id="manualClassicNumber" class="text-base sm:text-lg font-mono font-black tracking-widest text-cyan-600 dark:text-cyan-400 select-all num-bidi" dir="ltr">---- ---- ---- ----</span>
                 </div>
               </div>
 

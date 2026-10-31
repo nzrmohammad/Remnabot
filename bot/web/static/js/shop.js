@@ -320,9 +320,10 @@ function renderFilteredShopPlans() {
     const isTunnel = planBadgeKey === 'tunnel' || (!planBadgeKey && (planText.includes('تانل') || planText.includes('tunnel')));
     const defaultFeatureDesc = isTunnel ? 'ترافیک پایدار روی سرورها + تانل اختصاصی' : 'ترافیک پایدار روی سرورها';
 
-    const flagsList = (p.flags && Array.isArray(p.flags) && p.flags.length > 0)
-      ? p.flags.map(f => `<span class="text-xs inline-block" title="${f}">${f}</span>`).join(' ')
-      : '🌐';
+    const cleanFlags = (p.flags && Array.isArray(p.flags)) ? p.flags.filter(f => f && (p.flags.length === 1 || f !== '🌐')) : [];
+    const flagsList = cleanFlags.length > 0
+      ? cleanFlags.map(f => `<span class="text-xs inline-block" title="${f}">${f}</span>`).join(' ')
+      : '🇩🇪 🇳🇱 🇫🇮';
 
     return `
       <div class="shop-plan-card card p-4 border ${badgeBorderClass} relative overflow-hidden group">
