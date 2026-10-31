@@ -323,7 +323,6 @@ function renderFilteredShopPlans() {
     const flagsList = (p.flags && Array.isArray(p.flags) && p.flags.length > 0)
       ? p.flags.map(f => `<span class="text-xs inline-block" title="${f}">${f}</span>`).join(' ')
       : '🌐';
-    const flagsLabel = p.flags_label || (p.squad_uuid ? 'اسکواد اختصاصی' : 'سراسری');
 
     return `
       <div class="shop-plan-card card p-4 border ${badgeBorderClass} relative overflow-hidden group">
@@ -351,7 +350,6 @@ function renderFilteredShopPlans() {
           <span class="flex items-center gap-1">
             <span>🌍</span>
             <span>لوکیشن‌ها:</span>
-            <span class="font-semibold t-main">${flagsLabel}</span>
           </span>
           <span class="inline-flex items-center gap-1 text-xs tracking-wider" dir="ltr">${flagsList}</span>
         </div>

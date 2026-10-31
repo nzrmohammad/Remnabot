@@ -1176,38 +1176,69 @@ openHighRiskUsersModal() {
 
   // Top Consumers & Daily Champion Chart
   let topConsumersChartInstance = null;
-  function renderAdminTopConsumersChart(topData) {
+  let cachedTopConsumersData = null;
+  let currentTopConsumersPeriod = 'weekly';
+
+  function switchAdminTopConsumersPeriod(period) {
+    currentTopConsumersPeriod = period;
+    const btnWeek = $('adminTopConsumersPeriodWeekly');
+    const btnMonth = $('adminTopConsumersPeriodMonthly');
+    if (period === 'weekly') {
+      btnWeek?.classList.add('bg-blue-600', 'text-white', 'shadow-sm');
+      btnWeek?.classList.remove('t-muted');
+      btnMonth?.classList.remove('bg-blue-600', 'text-white', 'shadow-sm');
+      btnMonth?.classList.add('t-muted');
+    } else {
+      btnMonth?.classList.add('bg-blue-600', 'text-white', 'shadow-sm');
+      btnMonth?.classList.remove('t-muted');
+      btnWeek?.classList.remove('bg-blue-600', 'text-white', 'shadow-sm');
+      btnWeek?.classList.add('t-muted');
+    }
+    if (cachedTopConsumersData) {
+      renderAdminTopConsumersChart(cachedTopConsumersData, period);
+    }
+  }
+  window.switchAdminTopConsumersPeriod = switchAdminTopConsumersPeriod;
+
+  function renderAdminTopConsumersChart(topData, period = currentTopConsumersPeriod) {
+    if (topData) cachedTopConsumersData = topData;
+    const activeData = cachedTopConsumersData?.[period] || cachedTopConsumersData?.weekly || cachedTopConsumersData || {};
+
     const canvas = $('adminTopConsumersChart');
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    const labels = topData?.labels || [];
-    const values = topData?.data || [];
-    const champIdx = Number(topData?.champion_day_index ?? -1);
-    const champLabel = topData?.champion_day_label || '—';
-    const champTraffic = topData?.champion_day_traffic || 0;
-    const topUsers = topData?.top_users || [];
+    const labels = (activeData?.labels || []).slice(0, 10);
+    const values = (activeData?.data || []).slice(0, 10);
+    const topUsers = (activeData?.top_users || []).slice(0, 10);
+    const champion = activeData?.champion || topUsers[0] || null;
 
     // Update champion badge
-    const badgeLabel = $('championDayLabel');
+    const badgeLabel = $('championUserLabel');
     if (badgeLabel) {
-      const champTrafStr = typeof fmtTraffic === 'function' ? fmtTraffic(champTraffic, { html: false }) : champTraffic;
-      badgeLabel.innerText = `قهرمان هفته: ${champLabel} (${champTrafStr})`;
+      if (champion && champion.username && champion.used_gb > 0) {
+        const champTrafStr = typeof fmtTraffic === 'function' ? fmtTraffic(champion.used_gb, { html: false }) : champion.used_gb;
+        badgeLabel.innerText = `قهرمان ${period === 'weekly' ? 'هفته' : 'ماه'}: @${champion.username} (${champTrafStr})`;
+      } else {
+        badgeLabel.innerText = `قهرمان ${period === 'weekly' ? 'هفته' : 'ماه'}: --`;
+      }
     }
 
     // Render leaderboard
     const usersListEl = $('adminTopUsersList');
     if (usersListEl) {
-      if (topUsers.length === 0) {
-        usersListEl.innerHTML = '<div class="text-slate-400 text-[11px] text-center py-4">داده‌ای ثبت نشده است</div>';
+      if (topUsers.length === 0 || values.every(v => v === 0)) {
+        usersListEl.innerHTML = '<div class="text-slate-400 text-[11px] text-center py-4">داده‌ای در این بازه ثبت نشده است</div>';
       } else {
-        const medals = ['🥇', '🥈', '🥉', '4️⃣', '5️⃣'];
+        const medals = ['🥇', '🥈', '🥉', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣', '🔟'];
         usersListEl.innerHTML = topUsers.map((u, i) => {
           const medal = medals[i] || '👤';
-          const isChamp = u.is_champion;
-          const bgCls = isChamp ? 'bg-amber-500/10 border border-amber-500/30' : 'bg-slate-700/30 border border-slate-700/40';
-          const txtCls = isChamp ? 'text-amber-300 font-bold' : 't-main';
+          const isChamp = i === 0 && u.used_gb > 0;
+          const bgCls = isChamp
+            ? 'bg-amber-500/10 border border-amber-500/30'
+            : 'card-inset border border-slate-200 dark:border-slate-700/40';
+          const txtCls = isChamp ? 'text-amber-600 dark:text-amber-300 font-bold' : 't-main font-semibold';
           const crown = isChamp ? '<span class="text-xs">👑</span>' : '';
           const userTrafStr = typeof fmtTraffic === 'function' ? fmtTraffic(u.used_gb, { html: false }) : u.used_gb;
           return `
@@ -1217,17 +1248,17 @@ openHighRiskUsersModal() {
                 <span class="font-mono text-xs ${txtCls} truncate max-w-[110px]" dir="ltr">@${u.username}</span>
                 ${crown}
               </div>
-              <span class="font-mono text-xs text-cyan-400 font-bold" dir="ltr">${userTrafStr}</span>
+              <span class="font-mono text-xs text-cyan-600 dark:text-cyan-400 font-bold" dir="ltr">${userTrafStr}</span>
             </div>
           `;
         }).join('');
       }
     }
 
-    // Generate colors: Highlight champion day with gold amber gradient
-    const bgColors = values.map((_, i) => i === champIdx ? 'rgba(245, 158, 11, 0.85)' : 'rgba(99, 102, 241, 0.55)');
-    const borderColors = values.map((_, i) => i === champIdx ? '#fbbf24' : '#818cf8');
-    const borderWidths = values.map((_, i) => i === champIdx ? 2 : 1);
+    // Generate colors: Highlight champion with gold amber gradient
+    const bgColors = values.map((_, i) => i === 0 ? 'rgba(245, 158, 11, 0.85)' : 'rgba(99, 102, 241, 0.6)');
+    const borderColors = values.map((_, i) => i === 0 ? '#fbbf24' : '#818cf8');
+    const borderWidths = values.map((_, i) => i === 0 ? 2 : 1);
 
     if (topConsumersChartInstance) {
       topConsumersChartInstance.data.labels = labels;
@@ -1246,7 +1277,7 @@ openHighRiskUsersModal() {
       data: {
         labels: labels,
         datasets: [{
-          label: 'مصرف ترافیک (GB)',
+          label: 'مصرف ترافیک',
           data: values,
           backgroundColor: bgColors,
           borderColor: borderColors,
@@ -1266,9 +1297,9 @@ openHighRiskUsersModal() {
             bodyFont: { family: 'Vazirmatn' },
             callbacks: {
               label: (c) => {
-                const isC = c.dataIndex === champIdx;
+                const isC = c.dataIndex === 0;
                 const trafVal = typeof fmtTraffic === 'function' ? fmtTraffic(c.raw, { html: false, isolate: true }) : c.raw;
-                return `${isC ? '👑 قهرمان مصرف: ' : 'مصرف: '}${trafVal}`;
+                return `${isC ? '👑 قهرمان دوره: ' : 'مصرف دوره: '}${trafVal}`;
               },
             },
           },

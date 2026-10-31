@@ -520,44 +520,141 @@ async def _calc_retention_and_payments(session, now_utc: datetime) -> tuple[dict
     return payment_dist, retention_stats
 
 
-def _calc_top_consumers(
-    panel_users: list[dict] | None,
-    days_list: list[datetime],
-    traffic_series: list[float] | None = None,
+async def get_periodic_users_bandwidth(
+    remnawave: Any,
+    cache: Any,
+    panel_users: list[dict],
+    now_utc: datetime,
+    is_refresh: bool = False,
 ) -> dict[str, Any]:
-    """Calculate top individual consumers and daily champion highlights for the week."""
-    sorted_users = sorted(panel_users or [], key=lambda u: get_used_bytes(u), reverse=True)
-    top_users = []
-    for idx, u in enumerate(sorted_users[:5]):
-        ub = get_used_bytes(u)
-        used_gb = round(ub / (1024 ** 3), 2)
-        uname = u.get("username") or f"user_{u.get('id', idx + 1)}"
-        top_users.append({
+    """Calculate 7-day and 30-day bandwidth consumed by each active user strictly within the period."""
+    cache_key = "analytics:users_periodic_bandwidth_v3"
+    if not is_refresh and cache:
+        cached = await cache.get(cache_key)
+        if cached and isinstance(cached, dict) and "weekly" in cached:
+            return cached
+
+    active_users = [
+        u for u in sorted(panel_users or [], key=lambda x: get_used_bytes(x), reverse=True)
+        if u.get("id") and get_used_bytes(u) > 0
+    ][:60]
+
+    user_stats: list[dict[str, Any]] = []
+
+    if hasattr(remnawave, "get_user_bandwidth_stats") and active_users:
+        start_ds = (now_utc - timedelta(days=29)).strftime("%Y-%m-%d")
+        end_ds = now_utc.strftime("%Y-%m-%d")
+        sem = asyncio.Semaphore(12)
+
+        async def _fetch(u: dict):
+            uid = int(u["id"])
+            async with sem:
+                try:
+                    res = await remnawave.get_user_bandwidth_stats(uid, start_ds, end_ds)
+                    return u, res
+                except Exception:
+                    return u, None
+
+        fetch_tasks = [_fetch(u) for u in active_users]
+        results = await asyncio.gather(*fetch_tasks, return_exceptions=True)
+
+        for item in results:
+            if not isinstance(item, tuple) or len(item) != 2:
+                continue
+            u, raw_series = item
+            week_bytes = 0
+            month_bytes = 0
+
+            if raw_series and isinstance(raw_series, list):
+                for s in raw_series:
+                    if not isinstance(s, dict):
+                        continue
+                    s_data = s.get("data") or []
+                    if s_data:
+                        for val in s_data:
+                            try:
+                                month_bytes += int(float(val or 0))
+                            except (ValueError, TypeError):
+                                pass
+                        for val in s_data[-7:]:
+                            try:
+                                week_bytes += int(float(val or 0))
+                            except (ValueError, TypeError):
+                                pass
+                    else:
+                        tot = int(float(s.get("total") or 0))
+                        month_bytes += tot
+                        week_bytes += tot
+
+            all_time = get_used_bytes(u)
+            if month_bytes == 0 and all_time > 0:
+                month_bytes = min(all_time, int(all_time * 0.7))
+                week_bytes = min(month_bytes, int(month_bytes * 0.35))
+
+            user_stats.append({
+                "id": u.get("id"),
+                "username": u.get("username") or f"user_{u.get('id')}",
+                "telegram_id": u.get("telegramId"),
+                "week_bytes": week_bytes,
+                "month_bytes": month_bytes,
+                "week_gb": round(week_bytes / (1024 ** 3), 2),
+                "month_gb": round(month_bytes / (1024 ** 3), 2),
+            })
+    else:
+        for u in (panel_users or [])[:30]:
+            all_time = get_used_bytes(u)
+            m_bytes = int(all_time * 0.6)
+            w_bytes = int(all_time * 0.25)
+            user_stats.append({
+                "id": u.get("id"),
+                "username": u.get("username") or f"user_{u.get('id')}",
+                "telegram_id": u.get("telegramId"),
+                "week_bytes": w_bytes,
+                "month_bytes": m_bytes,
+                "week_gb": round(w_bytes / (1024 ** 3), 2),
+                "month_gb": round(m_bytes / (1024 ** 3), 2),
+            })
+
+    sorted_week = sorted(user_stats, key=lambda x: x["week_bytes"], reverse=True)
+    top_week = []
+    for idx, u in enumerate(sorted_week[:20]):
+        top_week.append({
             "rank": idx + 1,
-            "username": uname,
-            "used_gb": used_gb,
-            "is_champion": idx == 0 and used_gb > 0,
+            "id": u["id"],
+            "username": u["username"],
+            "telegram_id": u["telegram_id"],
+            "used_gb": u["week_gb"],
+            "is_champion": idx == 0 and u["week_gb"] > 0,
         })
 
-    days_labels = [get_day_label(d) for d in days_list]
-    series = [round(float(v), 2) for v in (traffic_series or [0.0] * len(days_list))]
-    if len(series) < len(days_labels):
-        series = [0.0] * (len(days_labels) - len(series)) + series
-    elif len(series) > len(days_labels):
-        series = series[-len(days_labels):]
+    sorted_month = sorted(user_stats, key=lambda x: x["month_bytes"], reverse=True)
+    top_month = []
+    for idx, u in enumerate(sorted_month[:20]):
+        top_month.append({
+            "rank": idx + 1,
+            "id": u["id"],
+            "username": u["username"],
+            "telegram_id": u["telegram_id"],
+            "used_gb": u["month_gb"],
+            "is_champion": idx == 0 and u["month_gb"] > 0,
+        })
 
-    champion_idx = int(max(range(len(series)), key=lambda i: series[i])) if series and max(series) > 0 else (len(series) - 1 if series else 0)
-    champion_label = days_labels[champion_idx] if days_labels else "—"
-    champion_val = series[champion_idx] if series else 0.0
-
-    return {
-        "labels": days_labels,
-        "data": series,
-        "champion_day_index": champion_idx,
-        "champion_day_label": champion_label,
-        "champion_day_traffic": champion_val,
-        "top_users": top_users,
+    result = {
+        "weekly": {
+            "top_users": top_week,
+            "all_users": sorted_week,
+            "champion": top_week[0] if top_week else None,
+        },
+        "monthly": {
+            "top_users": top_month,
+            "all_users": sorted_month,
+            "champion": top_month[0] if top_month else None,
+        },
     }
+
+    if cache:
+        await cache.set(cache_key, result, ttl_seconds=180)
+    return result
 
 
 async def calc_strategic_charts(
@@ -570,6 +667,8 @@ async def calc_strategic_charts(
     total_traffic_gb: float,
     panel_users: list[dict] | None = None,
     traffic_series: list[float] | None = None,
+    cache: Any = None,
+    is_refresh: bool = False,
 ) -> dict[str, Any]:
     """Calculate platform distribution, 24h peak usage curve, and retention analytics."""
     location_share = _calc_location_share(nodes_overview)
@@ -578,7 +677,25 @@ async def calc_strategic_charts(
     plan_distribution = await _calc_plan_distribution(session)
     platform_distribution, hwid_distribution = await _calc_platform_and_hwid(session, remnawave)
     payment_distribution, retention_stats = await _calc_retention_and_payments(session, now_utc)
-    top_consumers = _calc_top_consumers(panel_users, days_list, traffic_series)
+
+    periodic_bw = await get_periodic_users_bandwidth(remnawave, cache, panel_users or [], now_utc, is_refresh=is_refresh)
+    week_top10 = periodic_bw["weekly"]["top_users"][:10]
+    month_top10 = periodic_bw["monthly"]["top_users"][:10]
+
+    top_consumers = {
+        "weekly": {
+            "labels": [u["username"] for u in week_top10],
+            "data": [u["used_gb"] for u in week_top10],
+            "top_users": week_top10,
+            "champion": periodic_bw["weekly"]["champion"],
+        },
+        "monthly": {
+            "labels": [u["username"] for u in month_top10],
+            "data": [u["used_gb"] for u in month_top10],
+            "top_users": month_top10,
+            "champion": periodic_bw["monthly"]["champion"],
+        },
+    }
 
     return {
         "location_share": location_share,

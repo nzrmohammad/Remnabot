@@ -2524,7 +2524,7 @@ function setupProfileHandlers() {
 
 function resetActiveSubAnalytics() {
   // 1. Destroy all charts to prevent ghost/dummy rendering
-  ['repWeeklyChartCanvas', 'repMonthlyChartCanvas', 'repPeakHoursChartCanvas', 'repPeakHoursBarCanvas'].forEach(id => {
+  ['repWeeklyChartCanvas', 'repMonthlyChartCanvas', 'repPeakHoursChartCanvas', 'repPeakHoursBarCanvas', 'userLeaderboardChartCanvas'].forEach(id => {
     if (window.chartInstances && window.chartInstances[id]) {
       try { window.chartInstances[id].destroy(); } catch(e) {}
       delete window.chartInstances[id];
@@ -3577,6 +3577,11 @@ function hydrateUserInterface(data) {
       renderUserAchievements(data);
     }
 
+    // User Leaderboard (Top 20 Consumers)
+    if (typeof renderUserLeaderboard === 'function') {
+      renderUserLeaderboard(data?.leaderboard, window.currentUserLbPeriod || 'weekly');
+    }
+
     // Tutorial App Updates Badge
     if (typeof checkTutorialAppUpdates === 'function') {
       checkTutorialAppUpdates();
@@ -3602,10 +3607,10 @@ function renderUserAchievements(data) {
     if (couponsActionEl) {
       if (count > 0) {
         couponsActionEl.innerText = 'کپی آخرین کد';
-        couponsActionEl.classList.remove('opacity-50');
+        couponsActionEl.className = 'text-[9.5px] text-emerald-600 dark:text-emerald-400 mt-0.5 font-medium hover:underline bg-transparent border-0 p-0';
       } else {
         couponsActionEl.innerText = 'بدون کد فعال';
-        couponsActionEl.classList.add('opacity-50');
+        couponsActionEl.className = 'text-[9.5px] text-slate-500 dark:text-slate-400 mt-0.5 font-medium cursor-default bg-transparent border-0 p-0';
       }
     }
   }
@@ -3646,6 +3651,178 @@ function renderUserAchievements(data) {
   }
 }
 window.renderUserAchievements = renderUserAchievements;
+
+let cachedUserLeaderboardData = null;
+let currentUserLbPeriod = 'weekly';
+let userLeaderboardChartInstance = null;
+
+function switchUserLeaderboardPeriod(period) {
+  currentUserLbPeriod = period;
+  window.currentUserLbPeriod = period;
+  const tabWeekly = $('userLbTabWeekly');
+  const tabMonthly = $('userLbTabMonthly');
+  if (tabWeekly && tabMonthly) {
+    if (period === 'weekly') {
+      tabWeekly.className = 'px-2 py-0.5 rounded-md font-bold transition bg-cyan-600 text-white shadow';
+      tabMonthly.className = 'px-2 py-0.5 rounded-md font-medium transition text-slate-400 hover:text-white';
+    } else {
+      tabMonthly.className = 'px-2 py-0.5 rounded-md font-bold transition bg-cyan-600 text-white shadow';
+      tabWeekly.className = 'px-2 py-0.5 rounded-md font-medium transition text-slate-400 hover:text-white';
+    }
+  }
+  if (cachedUserLeaderboardData) {
+    renderUserLeaderboard(cachedUserLeaderboardData, period);
+  }
+}
+window.switchUserLeaderboardPeriod = switchUserLeaderboardPeriod;
+
+function renderUserLeaderboard(leaderboardData, period = currentUserLbPeriod) {
+  if (leaderboardData) cachedUserLeaderboardData = leaderboardData;
+  const periodData = cachedUserLeaderboardData?.[period] || cachedUserLeaderboardData?.weekly || {};
+  const top20 = periodData.top_20 || [];
+  const inTop20 = Boolean(periodData.in_top_20);
+  const myRank = periodData.my_rank;
+  const myUsedGb = Number(periodData.my_used_gb || 0);
+  const diffGb = Number(periodData.diff_gb || 0);
+
+  const noticeEl = $('userLeaderboardNotice');
+  const noticeTextEl = $('userLbNoticeText');
+  const noticeIconEl = $('userLbNoticeIcon');
+
+  if (noticeTextEl) {
+    const periodLabel = period === 'weekly' ? '۷ روز اخیر' : '۳۰ روز اخیر';
+    const myUsedStr = typeof fmtTraffic === 'function' ? fmtTraffic(myUsedGb, { html: false }) : myUsedGb;
+    if (inTop20 && myRank) {
+      if (noticeIconEl) noticeIconEl.innerText = '🎖️';
+      noticeTextEl.innerText = `تبریک! شما با مصرف ${myUsedStr} در رتبه ${myRank} از ۲۰ کاربر برتر دوره (${periodLabel}) قرار دارید.`;
+      if (noticeEl) {
+        noticeEl.className = 'p-2.5 rounded-xl text-xs flex items-start gap-2 bg-emerald-500/10 border border-emerald-500/30 text-emerald-800 dark:text-emerald-300';
+      }
+    } else if (myRank && myRank > 20) {
+      if (noticeIconEl) noticeIconEl.innerText = '📊';
+      const diffStr = typeof fmtTraffic === 'function' ? fmtTraffic(diffGb, { html: false }) : diffGb;
+      noticeTextEl.innerText = `شما با مصرف ${myUsedStr} در رتبه ${myRank} دوره (${periodLabel}) قرار دارید. برای ورود به ۲۰ کاربر برتر، به ${diffStr} مصرف بیشتر نیاز دارید.`;
+      if (noticeEl) {
+        noticeEl.className = 'p-2.5 rounded-xl text-xs flex items-start gap-2 bg-slate-500/10 border border-slate-700/40 t-main';
+      }
+    } else if (myUsedGb > 0) {
+      if (noticeIconEl) noticeIconEl.innerText = '📈';
+      noticeTextEl.innerText = `مصرف شما در دوره (${periodLabel}) برابر ${myUsedStr} است. با مصرف بیشتر به جمع ۲۰ کاربر برتر بپیوندید!`;
+      if (noticeEl) {
+        noticeEl.className = 'p-2.5 rounded-xl text-xs flex items-start gap-2 bg-slate-500/10 border border-slate-700/40 t-main';
+      }
+    } else {
+      if (noticeIconEl) noticeIconEl.innerText = 'ℹ️';
+      noticeTextEl.innerText = `در دوره (${periodLabel}) هنوز مصرفی برای شما ثبت نشده است.`;
+      if (noticeEl) {
+        noticeEl.className = 'p-2.5 rounded-xl text-xs flex items-start gap-2 bg-slate-500/10 border border-slate-700/40 t-muted';
+      }
+    }
+  }
+
+  const canvas = $('userLeaderboardChartCanvas');
+  const emptyState = $('userLeaderboardEmptyState');
+  if (!canvas) return;
+
+  if (top20.length === 0 || top20.every(u => !u.used_gb || u.used_gb <= 0)) {
+    canvas.classList.add('hidden');
+    if (emptyState) emptyState.classList.remove('hidden');
+    return;
+  }
+
+  canvas.classList.remove('hidden');
+  if (emptyState) emptyState.classList.add('hidden');
+
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return;
+
+  const labels = top20.map(u => u.username);
+  const values = top20.map(u => u.used_gb);
+
+  const bgColors = top20.map((u, i) => {
+    if (u.is_me) return 'rgba(16, 185, 129, 0.85)';
+    if (i === 0) return 'rgba(245, 158, 11, 0.85)';
+    return 'rgba(99, 102, 241, 0.45)';
+  });
+  const borderColors = top20.map((u, i) => {
+    if (u.is_me) return '#10b981';
+    if (i === 0) return '#fbbf24';
+    return '#818cf8';
+  });
+  const borderWidths = top20.map((u, i) => (u.is_me || i === 0 ? 2 : 1));
+
+  if (userLeaderboardChartInstance) {
+    userLeaderboardChartInstance.data.labels = labels;
+    userLeaderboardChartInstance.data.datasets[0].data = values;
+    userLeaderboardChartInstance.data.datasets[0].backgroundColor = bgColors;
+    userLeaderboardChartInstance.data.datasets[0].borderColor = borderColors;
+    userLeaderboardChartInstance.data.datasets[0].borderWidth = borderWidths;
+    userLeaderboardChartInstance.update();
+    return;
+  }
+
+  const isLight = document.documentElement.classList.contains('theme-light');
+  const gridColor = isLight ? 'rgba(0, 0, 0, 0.05)' : 'rgba(255, 255, 255, 0.05)';
+  const tickColor = isLight ? '#475569' : '#94a3b8';
+
+  userLeaderboardChartInstance = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: 'مصرف ترافیک',
+        data: values,
+        backgroundColor: bgColors,
+        borderColor: borderColors,
+        borderWidth: borderWidths,
+        borderRadius: 4,
+        borderSkipped: false,
+      }],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          rtl: true,
+          titleFont: { family: 'Vazirmatn' },
+          bodyFont: { family: 'Vazirmatn' },
+          callbacks: {
+            label: (c) => {
+              const u = top20[c.dataIndex] || {};
+              const trafVal = typeof fmtTraffic === 'function' ? fmtTraffic(c.raw, { html: false, isolate: true }) : c.raw;
+              const prefix = u.is_me ? '👤 شما: ' : (c.dataIndex === 0 ? '👑 رتبه اول: ' : `رتبه ${c.dataIndex + 1}: `);
+              return `${prefix}${trafVal}`;
+            },
+          },
+        },
+      },
+      scales: {
+        x: {
+          grid: { display: false },
+          ticks: {
+            color: tickColor,
+            font: { family: 'Vazirmatn', size: 9 },
+            maxRotation: 45,
+            minRotation: 0,
+          },
+        },
+        y: {
+          grid: { color: gridColor },
+          ticks: {
+            color: tickColor,
+            font: { family: 'Vazirmatn', size: 9 },
+            callback: (v) => typeof fmtTraffic === 'function' ? fmtTraffic(v, { html: false, isolate: true }) : v,
+          },
+        },
+      },
+    },
+  });
+  if (!window.chartInstances) window.chartInstances = {};
+  window.chartInstances['userLeaderboardChartCanvas'] = userLeaderboardChartInstance;
+}
+window.renderUserLeaderboard = renderUserLeaderboard;
 
 function copyActiveCoupon() {
   const coupons = window.lastUserData?.won_coupons || [];

@@ -33,6 +33,7 @@ from bot.web.user_common import db_session, require_user
 logger = logging.getLogger(__name__)
 
 
+from bot.web.admin_overview_charts import get_periodic_users_bandwidth
 from bot.web.user_subscription_detail import (
     build_active_subscription as _build_active_subscription,
 )
@@ -569,6 +570,76 @@ async def get_user_me(request: web.Request) -> web.Response:
             "birthday_claimed": birthday_claimed,
         }
 
+        user_leaderboard = {}
+        now_utc = datetime.now(timezone.utc)
+        try:
+            cached_bw = await cache.get("analytics:users_periodic_bandwidth_v3")
+            if cached_bw and isinstance(cached_bw, dict) and "weekly" in cached_bw:
+                periodic_bw = cached_bw
+            else:
+                cached_all_panel = await cache.get("tma:all_panel_users")
+                if cached_all_panel:
+                    all_panel = cached_all_panel
+                else:
+                    all_panel = await remnawave.get_all_panel_users(size=1000) or []
+                    if all_panel:
+                        await cache.set("tma:all_panel_users", all_panel, ttl_seconds=60)
+                periodic_bw = await get_periodic_users_bandwidth(remnawave, cache, all_panel, now_utc)
+
+            my_user_ids = {str(p["id"]) for p in panel_users if isinstance(p, dict) and p.get("id")}
+            for period_key in ("weekly", "monthly"):
+                period_data = periodic_bw.get(period_key, {})
+                all_u = period_data.get("all_users", [])
+                top_20 = []
+                my_rank = None
+                my_used_gb = 0.0
+
+                for idx, u in enumerate(all_u):
+                    uid_str = str(u.get("id", ""))
+                    u_tg_id = str(u.get("telegram_id", ""))
+                    is_me = bool(
+                        (u_tg_id and u_tg_id == str(telegram_id))
+                        or (uid_str and uid_str in my_user_ids)
+                        or (req_account_id and uid_str == str(req_account_id))
+                        or (active_primary and uid_str == str(active_primary.get("id", "")))
+                    )
+                    used_val = u.get(f"{'week' if period_key == 'weekly' else 'month'}_gb", 0.0)
+                    if is_me and my_rank is None:
+                        my_rank = idx + 1
+                        my_used_gb = used_val
+
+                    if idx < 20:
+                        raw_uname = u.get("username") or f"user_{u.get('id')}"
+                        if is_me:
+                            display_name = f"{raw_uname} (شما)"
+                        else:
+                            if len(raw_uname) > 4:
+                                display_name = f"{raw_uname[:2]}***{raw_uname[-1]}"
+                            else:
+                                display_name = f"{raw_uname[:1]}***"
+
+                        top_20.append({
+                            "rank": idx + 1,
+                            "username": display_name,
+                            "used_gb": used_val,
+                            "is_me": is_me,
+                        })
+
+                cutoff_gb = top_20[-1]["used_gb"] if len(top_20) == 20 else (top_20[-1]["used_gb"] if top_20 else 0.0)
+                diff_gb = round(max(0.0, cutoff_gb - my_used_gb), 2) if (my_rank and my_rank > 20) else 0.0
+
+                user_leaderboard[period_key] = {
+                    "top_20": top_20,
+                    "labels": [u["username"] for u in top_20],
+                    "data": [u["used_gb"] for u in top_20],
+                    "my_rank": my_rank,
+                    "my_used_gb": my_used_gb,
+                    "in_top_20": bool(my_rank and my_rank <= 20),
+                    "diff_gb": diff_gb,
+                }
+        except Exception as lb_err:
+            logger.debug("Failed calculating user leaderboard: %s", lb_err)
+
         data = {
             "partial": is_partial,
             "panel_error": panel_error,
@@ -613,6 +684,7 @@ async def get_user_me(request: web.Request) -> web.Response:
             "won_coupons": active_won_coupons,
             "wheel_status": wheel_status,
             "achievements": achievements_data,
+            "leaderboard": user_leaderboard,
         }
 
         if not is_partial:

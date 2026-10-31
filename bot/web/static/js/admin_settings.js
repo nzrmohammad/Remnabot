@@ -123,10 +123,7 @@
           <div onclick="window.adminActions.selectDefaultSquad('${escapeHtml(uuid)}', '${escapeHtml(name)}', '🧩')" class="p-3 rounded-2xl border transition cursor-pointer flex items-center justify-between gap-3 ${isSelected ? 'bg-blue-600/15 border-blue-500 shadow-sm' : 'card-inset hover:border-slate-500/50'}">
             <div class="flex items-center gap-2.5 min-w-0">
               <span class="text-base">🧩</span>
-              <div>
-                <span class="text-xs font-bold ${isSelected ? 't-info' : 't-main'} truncate block">${escapeHtml(name)}</span>
-                <span class="text-[10px] t-muted font-mono block">${escapeHtml(uuid.slice(0, 18))}…</span>
-              </div>
+              <span class="text-xs font-bold ${isSelected ? 't-info' : 't-main'} truncate block">${escapeHtml(name)}</span>
             </div>
             ${isSelected ? '<span class="text-xs text-blue-400 font-bold">✓</span>' : ''}
           </div>

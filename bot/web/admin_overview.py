@@ -77,7 +77,9 @@ async def _fetch_and_build_overview(
         sales_traffic["today_traffic_gb"],
         kpis["month_traffic_gb"],
         panel_users=panel_users,
-        traffic_series=sales_traffic.get("chart_traffic_data"),
+        traffic_series=sales_traffic.get("traffic_data"),
+        cache=cache,
+        is_refresh=is_refresh,
     )
 
     return {

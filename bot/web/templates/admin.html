@@ -216,7 +216,7 @@
           <div class="flex justify-between items-center border-b border-slate-700/60 pb-2">
             <span class="text-xs font-bold text-slate-200 flex items-center gap-1.5">
               <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 8v8m-4-5v5m-4-2v2m-2 4h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-              <span>روند فروش ۱ ماه گذشته (۳۰ روزه)</span>
+              <span>روند فروش ۱ ماه گذشته</span>
             </span>
             <span id="monthlySalesChartTotal" class="text-xs text-emerald-600 dark:text-emerald-400 font-bold" dir="rtl"><span class="font-mono">--</span> <span>تومان</span></span>
           </div>
@@ -367,40 +367,45 @@
             </div>
           </div>
 
-          <!-- Chart 9: Top Consumers & Daily Champion (برترین مصرف‌کنندگان و قهرمان روز) -->
-          <div class="bg-slate-800/80 rounded-2xl p-4 border border-slate-700/80 shadow space-y-3 md:col-span-2">
-            <div class="flex justify-between items-center border-b border-slate-700/60 pb-2">
-              <span class="text-xs font-bold text-slate-200 flex items-center gap-1.5">
+          <!-- Chart 9: Top Consumers (۱۰ کاربر برتر دوره) -->
+          <div class="card p-4 space-y-3 md:col-span-2 shadow-md">
+            <div class="flex flex-wrap justify-between items-center border-b border-slate-700/60 pb-2.5 gap-2">
+              <span class="text-xs font-bold t-main flex items-center gap-1.5">
                 <span class="text-sm">🏆</span>
-                <span>برترین مصرف‌کنندگان و قهرمان روز</span>
+                <span>برترین مصرف‌کنندگان (۱۰ کاربر برتر)</span>
               </span>
               <div class="flex items-center gap-2">
-                <span id="championDayBadge" class="text-[10px] bg-amber-500/15 border border-amber-500/30 text-amber-300 font-bold px-2 py-0.5 rounded-lg flex items-center gap-1">
+                <!-- Period Switcher: Weekly / Monthly -->
+                <div class="flex card-inset p-0.5 rounded-xl text-[10px] font-bold">
+                  <button type="button" id="adminTopConsumersPeriodWeekly" onclick="window.switchAdminTopConsumersPeriod('weekly')" class="px-2.5 py-1 rounded-lg bg-blue-600 text-white shadow-sm transition">هفتگی (۷ روز)</button>
+                  <button type="button" id="adminTopConsumersPeriodMonthly" onclick="window.switchAdminTopConsumersPeriod('monthly')" class="px-2.5 py-1 rounded-lg t-muted hover:t-main transition">ماهانه (۳۰ روز)</button>
+                </div>
+                <span id="championUserBadge" class="text-[10px] bg-amber-500/15 border border-amber-500/30 text-amber-600 dark:text-amber-300 font-bold px-2 py-0.5 rounded-lg flex items-center gap-1">
                   <span>👑</span>
-                  <span id="championDayLabel">قهرمان هفته: --</span>
+                  <span id="championUserLabel">قهرمان: --</span>
                 </span>
               </div>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-              <!-- Bar Chart Canvas -->
-              <div class="md:col-span-2 h-44 w-full relative">
+              <!-- Bar Chart Canvas (Top 10 users) -->
+              <div class="md:col-span-2 h-52 w-full relative">
                 <canvas id="adminTopConsumersChart" dir="ltr"></canvas>
               </div>
 
-              <!-- Mini Leaderboard -->
+              <!-- Leaderboard (Top 10 users) -->
               <div class="card-inset rounded-xl p-3 flex flex-col justify-between space-y-2">
                 <div>
-                  <span class="text-[11px] font-bold text-slate-300 block mb-2 flex items-center gap-1">
-                    <span>🥇</span> پرمصرف‌ترین کاربران کلینت
+                  <span class="text-[11px] font-bold t-main block mb-2 flex items-center gap-1">
+                    <span>🥇</span> پرمصرف‌ترین کاربران دوره
                   </span>
-                  <div id="adminTopUsersList" class="space-y-1.5 text-xs">
+                  <div id="adminTopUsersList" class="space-y-1.5 text-xs max-h-[190px] overflow-y-auto custom-scroll">
                     <div class="text-slate-400 text-[11px] text-center py-4">در حال بارگذاری...</div>
                   </div>
                 </div>
-                <div class="text-[10px] text-slate-400 border-t border-slate-700/40 pt-1.5 flex items-center justify-between">
-                  <span>ستون طلایی 👑</span>
-                  <span class="text-amber-400 font-medium">پرمصرف‌ترین روز هفته</span>
+                <div class="text-[10px] t-muted border-t border-slate-700/40 pt-1.5 flex items-center justify-between">
+                  <span>رنگ طلایی 👑</span>
+                  <span class="text-amber-600 dark:text-amber-400 font-medium">قهرمان دوره</span>
                 </div>
               </div>
             </div>
@@ -890,28 +895,16 @@
               </div>
               <div>
                 <b class="text-xs text-white block">تنظیمات عمومی و کنترل دسترسی</b>
-                <span class="text-[11px] text-slate-400 block mt-0.5">حالت تعمیر ربات و سطح دسترسی کاربران</span>
+                <span class="text-[11px] text-slate-400 block mt-0.5">تعیین سطح دسترسی و ثبت‌نام کاربران</span>
               </div>
             </div>
             <svg class="settings-box-chevron w-4 h-4 text-slate-400 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
           </div>
-          <div id="settingsBoxSwitches" class="settings-box-body p-4 pt-1 border-t border-slate-700/60 space-y-2.5 text-xs hidden">
-            <!-- Maintenance Mode -->
-            <div class="flex items-center justify-between py-1">
-              <div>
-                <span class="text-slate-200 font-medium block">حالت تعمیر ربات</span>
-                <span class="text-[11px] text-slate-400">فقط ادمین‌ها به ربات دسترسی دارند</span>
-              </div>
-              <label class="relative inline-flex items-center cursor-pointer">
-                <input type="checkbox" class="sr-only switch-checkbox" id="settingMaintSwitch">
-                <div class="switch-label w-11 h-6 bg-slate-700 rounded-full transition-colors duration-200 flex items-center px-0.5">
-                  <div class="switch-ball w-5 h-5 bg-white rounded-full shadow-md transition-transform duration-200"></div>
-                </div>
-              </label>
-            </div>
+          <div id="settingsBoxSwitches" class="settings-box-body p-4 pt-2 border-t border-slate-700/60 space-y-2.5 text-xs hidden">
+            <input type="checkbox" class="sr-only hidden" id="settingMaintSwitch">
 
             <!-- Access Mode (حالت دسترسی ربات) -->
-            <div class="py-2 border-t border-[var(--card-border)]">
+            <div class="py-1">
               <div class="flex items-center justify-between cursor-pointer p-2.5 rounded-xl card-inset hover:border-emerald-500/50 transition active:scale-[0.99]" onclick="window.adminActions.openAccessModeModal()">
                 <div class="flex items-center gap-2.5">
                   <div id="accessModeIconBox" class="w-8 h-8 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-700 dark:text-emerald-400 flex items-center justify-center text-sm flex-shrink-0">
@@ -1058,15 +1051,14 @@
             </div>
 
             <!-- SMS Forwarder Config Box -->
-            <div id="smsForwarderConfigContainer" class="card-inset rounded-2xl p-3 border border-indigo-500/30 space-y-2.5">
+            <div id="smsForwarderConfigContainer" class="border-t border-slate-700/50 pt-3 space-y-2.5">
               <div class="flex items-center justify-between">
                 <span class="text-xs font-bold text-indigo-400 flex items-center gap-1.5">
                   <span>📱</span> تنظیمات اتصال اپلیکیشن SMS Forwarder
                 </span>
-                <div class="flex items-center gap-2">
-                  <a href="https://github.com/pppscn/SmsForwarder" target="_blank" rel="noopener noreferrer" class="text-slate-400 hover:text-indigo-400 transition flex items-center gap-1 text-[11px] font-medium" title="سورس‌کد SMS Forwarder در گیت‌هاب">
-                    <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
-                    <span>گیت‌هاب</span>
+                <div class="flex items-center gap-1.5">
+                  <a href="https://github.com/pppscn/SmsForwarder" target="_blank" rel="noopener noreferrer" class="p-1 rounded-lg text-slate-400 hover:text-white transition flex items-center justify-center border-0 bg-transparent" title="سورس‌کد SMS Forwarder در گیت‌هاب">
+                    <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
                   </a>
                   <span class="text-[10px] text-indigo-400 dark:text-indigo-300 border border-indigo-500/40 px-2 py-0.5 rounded-full font-mono">WebHook</span>
                 </div>
@@ -1082,7 +1074,7 @@
                   <input type="text" id="settingSmsWebhookUrlDisplay" readonly dir="ltr" class="w-full card-inset border border-slate-700/80 rounded-xl px-2.5 py-2 text-[10.5px] font-mono t-main select-all outline-none" value="" />
                 </div>
               </div>
-              <p class="text-[10.5px] text-slate-400 leading-relaxed card-inset p-2 rounded-xl">
+              <p class="text-[10.5px] text-slate-400 leading-relaxed pt-1">
                 💡 <b>راهنمای اتصال:</b> اپلیکیشن اندروید <b>SMS Forwarder</b> را روی گوشی متصل به سیم‌کارت حساب بانکی نصب کنید. یک فورواردر Webhook با متد POST ایجاد نموده و آدرس فوق را در آن قرار دهید. پیامک‌های واریزی در کمتر از ۵ ثانیه شناسایی شده و کیف پول کاربر خودکار شارژ می‌شود.
               </p>
             </div>
@@ -1305,8 +1297,8 @@
               <input type="text" id="settingSupportContact" dir="ltr" placeholder="@Support_Admin" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-200 outline-none focus:border-indigo-500 transition" />
             </div>
 
-            <!-- Join Gate Settings Card (Inside Trial Section) -->
-            <div class="bg-slate-900/60 rounded-xl p-3 border border-slate-700/60 space-y-2 mt-2">
+            <!-- Join Gate Settings (Inside Trial Section) -->
+            <div class="border-t border-slate-700/50 pt-3 space-y-2.5">
               <div class="flex items-center justify-between">
                 <div>
                   <span class="text-slate-200 font-medium block text-xs">عضویت اجباری در کانال</span>
@@ -1319,9 +1311,9 @@
                   </div>
                 </label>
               </div>
-              <div class="pt-1 border-t border-slate-800">
+              <div class="pt-1">
                 <label class="text-[11px] text-slate-400 block mb-1">آیدی یا لینک کانال تلگرام (مثال: <span dir="ltr" class="font-mono text-cyan-400 inline-block font-bold">@MyChannel</span>)</label>
-                <input type="text" id="settingJoinGateChannel" dir="ltr" placeholder="@MyChannel" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-1.5 text-xs font-mono text-cyan-300 text-left outline-none focus:border-cyan-500 transition" />
+                <input type="text" id="settingJoinGateChannel" dir="ltr" placeholder="@MyChannel" class="w-full card-inset border border-slate-700/80 rounded-xl px-3 py-2 text-xs font-mono text-cyan-600 dark:text-cyan-300 text-left outline-none focus:border-cyan-500 transition" />
               </div>
             </div>
           </div>

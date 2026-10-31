@@ -622,7 +622,7 @@
                 <span class="text-sm">🎁</span>
                 <span>هدایا و دستاوردهای من</span>
               </span>
-              <button type="button" onclick="window.openLuckyWheel()" class="px-2.5 py-1 rounded-lg text-[10px] font-bold text-amber-500 dark:text-amber-300 bg-amber-500/10 border border-amber-500/30 hover:bg-amber-500/20 transition flex items-center gap-1 active:scale-95">
+              <button type="button" onclick="window.openLuckyWheel()" class="px-2.5 py-1 rounded-lg text-[10px] font-bold text-amber-800 dark:text-amber-300 bg-amber-500/15 dark:bg-amber-500/20 border border-amber-500/40 hover:bg-amber-500/30 transition flex items-center gap-1 active:scale-95 shadow-sm">
                 <span>🎡</span> گردونه شانس
               </button>
             </div>
@@ -633,14 +633,14 @@
               <div class="card-inset rounded-xl p-2.5 flex flex-col items-center justify-between">
                 <span class="text-[10px] text-slate-400 block mb-1">حجم هدیه برنده</span>
                 <b id="achieveGiftTraffic" class="font-mono text-cyan-600 dark:text-cyan-400 text-xs font-bold num-bidi" dir="ltr">0.0 GB</b>
-                <span class="text-[9px] t-muted mt-0.5">از گردونه شانس</span>
+                <span class="text-[9.5px] font-medium text-slate-500 dark:text-slate-400 mt-0.5">از گردونه شانس</span>
               </div>
 
               <!-- Active Won Coupons -->
               <div class="card-inset rounded-xl p-2.5 flex flex-col items-center justify-between">
-                <span class="text-[10px] text-slate-400 block mb-1">کدهای تخفیف فعال</span>
+                <span class="text-[10px] text-slate-400 block mb-1">کدهای تخفیف</span>
                 <b id="achieveWonCoupons" class="font-mono text-emerald-600 dark:text-emerald-400 text-xs font-bold num-bidi" dir="ltr">۰ کد</b>
-                <button type="button" id="achieveCouponsAction" class="text-[9px] text-emerald-600 dark:text-emerald-400 mt-0.5 font-medium hover:underline bg-transparent border-0 p-0" onclick="window.copyActiveCoupon()">مشاهده و کپی</button>
+                <button type="button" id="achieveCouponsAction" class="text-[9.5px] text-emerald-600 dark:text-emerald-400 mt-0.5 font-medium hover:underline bg-transparent border-0 p-0" onclick="window.copyActiveCoupon()">مشاهده و کپی</button>
               </div>
 
               <!-- Birthday Status -->
@@ -660,6 +660,40 @@
               <div class="flex items-center gap-1.5 text-slate-400">
                 <span>🎫 بلیط گردونه:</span>
                 <b id="achieveSpinTickets" class="font-mono text-indigo-600 dark:text-indigo-400 font-bold">۰ عدد</b>
+              </div>
+            </div>
+          </div>
+
+          <!-- Chart: Top 20 Users Leaderboard (رده‌بندی ۲۰ کاربر برتر دوره) -->
+          <div id="userLeaderboardCard" class="card rounded-2xl p-4 space-y-3 shadow-md border border-cyan-500/20">
+            <div class="flex justify-between items-center border-b border-slate-700/60 pb-2">
+              <span class="text-xs font-bold t-main flex items-center gap-1.5">
+                <span class="text-sm">🏆</span>
+                <span>برترین مصرف‌کنندگان دوره</span>
+              </span>
+              <!-- Weekly / Monthly Switcher -->
+              <div class="flex items-center p-0.5 card-inset rounded-lg text-[10px]">
+                <button type="button" id="userLbTabWeekly" onclick="window.switchUserLeaderboardPeriod('weekly')" class="px-2 py-0.5 rounded-md font-bold transition bg-cyan-600 text-white shadow">
+                  ۷ روز اخیر
+                </button>
+                <button type="button" id="userLbTabMonthly" onclick="window.switchUserLeaderboardPeriod('monthly')" class="px-2 py-0.5 rounded-md font-medium transition text-slate-400 hover:text-white">
+                  ۳۰ روز اخیر
+                </button>
+              </div>
+            </div>
+
+            <!-- Dynamic User Status / Rank Notice -->
+            <div id="userLeaderboardNotice" class="p-2.5 rounded-xl text-xs t-muted flex items-start gap-2 bg-transparent border border-slate-700/40">
+              <span id="userLbNoticeIcon" class="text-base shrink-0">📊</span>
+              <span id="userLbNoticeText" class="text-[11px] leading-relaxed t-main">در حال بارگذاری رتبه‌بندی...</span>
+            </div>
+
+            <!-- Chart Canvas -->
+            <div class="h-52 w-full p-1 bg-transparent rounded-xl relative flex items-center justify-center">
+              <canvas id="userLeaderboardChartCanvas" dir="ltr" class="w-full h-full"></canvas>
+              <div id="userLeaderboardEmptyState" class="hidden flex flex-col items-center justify-center text-center p-3 text-slate-400 space-y-1">
+                <span class="text-xl">🏆</span>
+                <span class="text-[11px] font-medium text-slate-300">داده‌ای برای رده‌بندی ثبت نشده است</span>
               </div>
             </div>
           </div>
