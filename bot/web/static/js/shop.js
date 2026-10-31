@@ -284,9 +284,9 @@ function renderFilteredShopPlans() {
       badgeBorderClass = 'border-emerald-500/70 shadow-lg shadow-emerald-500/15';
       btnClass = 'bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold shadow-md shadow-emerald-600/20';
     } else if (planBadgeKey === 'tunnel' || (!planBadgeKey && (planText.includes('تانل') || planText.includes('tunnel')))) {
-      planBadge = '<div class="shop-plan-badge badge-tunnel absolute top-0 left-0 bg-gradient-to-r from-violet-600 via-indigo-600 to-cyan-600 text-white text-[10px] font-black px-3 py-0.5 rounded-br-xl border-b border-r border-indigo-400/40 shadow-md flex items-center gap-1">🚇 تانل اختصاصی</div>';
-      badgeBorderClass = 'border-indigo-500/70 shadow-lg shadow-indigo-500/20';
-      btnClass = 'bg-gradient-to-r from-violet-600 via-indigo-600 to-cyan-600 hover:from-violet-500 hover:to-cyan-500 text-white font-bold shadow-md shadow-indigo-600/25';
+      planBadge = '<div class="shop-plan-badge badge-tunnel absolute top-0 left-0 bg-gradient-to-r from-teal-600 via-cyan-600 to-sky-600 text-white text-[10px] font-black px-3 py-0.5 rounded-br-xl border-b border-r border-cyan-400/50 shadow-md flex items-center gap-1">🚇 تانل اختصاصی</div>';
+      badgeBorderClass = 'border-cyan-500/70 shadow-lg shadow-cyan-500/20';
+      btnClass = 'bg-gradient-to-r from-teal-600 via-cyan-600 to-sky-600 hover:from-teal-500 hover:to-sky-500 text-white font-bold shadow-md shadow-cyan-600/25';
     }
 
     let discountVal = 0;
@@ -317,6 +317,14 @@ function renderFilteredShopPlans() {
     if (isExtraTraffic) buttonLabel = 'خرید بسته ترافیک';
     else if (isTimeOnly) buttonLabel = 'تمدید مدت زمان';
 
+    const isTunnel = planBadgeKey === 'tunnel' || (!planBadgeKey && (planText.includes('تانل') || planText.includes('tunnel')));
+    const defaultFeatureDesc = isTunnel ? 'ترافیک پایدار روی سرورها + تانل اختصاصی' : 'ترافیک پایدار روی سرورها';
+
+    const flagsList = (p.flags && Array.isArray(p.flags) && p.flags.length > 0)
+      ? p.flags.map(f => `<span class="text-xs inline-block" title="${f}">${f}</span>`).join(' ')
+      : '🌐';
+    const flagsLabel = p.flags_label || (p.squad_uuid ? 'اسکواد اختصاصی' : 'سراسری');
+
     return `
       <div class="shop-plan-card card p-4 border ${badgeBorderClass} relative overflow-hidden group">
         ${planBadge}
@@ -326,7 +334,7 @@ function renderFilteredShopPlans() {
               <h4 class="font-bold text-sm t-main">${formatPlanTitle(p.name)}</h4>
               ${discountVal > 0 ? '<span class="text-[10px] t-success font-bold bg-transparent border-0 px-0 py-0">🏷 تخفیف ویژه</span>' : ''}
             </div>
-            <p class="text-[11px] leading-snug t-muted mt-0.5">${p.description || (isExtraTraffic ? 'افزایش حجم بدون تغییر در تاریخ انقضای سرویس&nbsp;فعلی' : (isTimeOnly ? 'افزایش مدت زمان اعتبار بدون تغییر در میزان&nbsp;ترافیک' : 'ترافیک پایدار و بدون محدودیت روی تمام سرورها'))}</p>
+            <p class="text-[11px] leading-snug t-muted mt-0.5">${p.description || (isExtraTraffic ? 'افزایش حجم بدون تغییر در تاریخ انقضای سرویس&nbsp;فعلی' : (isTimeOnly ? 'افزایش مدت زمان اعتبار بدون تغییر در میزان&nbsp;ترافیک' : defaultFeatureDesc))}</p>
           </div>
           <div class="text-left font-mono">
             ${discountVal > 0 ? `<span class="line-through t-muted text-xs block -mb-0.5">${formattedOriginal}</span>` : ''}
@@ -338,6 +346,14 @@ function renderFilteredShopPlans() {
           <span class="flex items-center gap-1">📊 <b dir="ltr" class="font-mono t-main num-bidi">${trafficText}</b></span>
           ${durationText}
           <span class="flex items-center gap-1">📱 <b class="t-main">${devLimitText}</b></span>
+        </div>
+        <div class="flex items-center justify-between mt-1 mb-2.5 px-1 text-[10px] t-muted">
+          <span class="flex items-center gap-1">
+            <span>🌍</span>
+            <span>لوکیشن‌ها:</span>
+            <span class="font-semibold t-main">${flagsLabel}</span>
+          </span>
+          <span class="inline-flex items-center gap-1 text-xs tracking-wider" dir="ltr">${flagsList}</span>
         </div>
         <button class="buy-plan-btn w-full ${btnClass} text-xs py-2.5 rounded-xl transition shadow active:scale-[0.98]" data-id="${p.id}" data-price="${finalPrice}" data-name="${p.name}" data-traffic="${p.traffic_gb}" data-days="${p.duration_days}" data-badge="${p.badge || ''}">
           🛒 ${buttonLabel} (${formattedFinal} تومان)

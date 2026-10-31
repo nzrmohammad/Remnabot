@@ -366,6 +366,45 @@
               <canvas id="adminHwidChart" dir="ltr"></canvas>
             </div>
           </div>
+
+          <!-- Chart 9: Top Consumers & Daily Champion (برترین مصرف‌کنندگان و قهرمان روز) -->
+          <div class="bg-slate-800/80 rounded-2xl p-4 border border-slate-700/80 shadow space-y-3 md:col-span-2">
+            <div class="flex justify-between items-center border-b border-slate-700/60 pb-2">
+              <span class="text-xs font-bold text-slate-200 flex items-center gap-1.5">
+                <span class="text-sm">🏆</span>
+                <span>برترین مصرف‌کنندگان و قهرمان روز</span>
+              </span>
+              <div class="flex items-center gap-2">
+                <span id="championDayBadge" class="text-[10px] bg-amber-500/15 border border-amber-500/30 text-amber-300 font-bold px-2 py-0.5 rounded-lg flex items-center gap-1">
+                  <span>👑</span>
+                  <span id="championDayLabel">قهرمان هفته: --</span>
+                </span>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <!-- Bar Chart Canvas -->
+              <div class="md:col-span-2 h-44 w-full relative">
+                <canvas id="adminTopConsumersChart" dir="ltr"></canvas>
+              </div>
+
+              <!-- Mini Leaderboard -->
+              <div class="card-inset rounded-xl p-3 flex flex-col justify-between space-y-2">
+                <div>
+                  <span class="text-[11px] font-bold text-slate-300 block mb-2 flex items-center gap-1">
+                    <span>🥇</span> پرمصرف‌ترین کاربران کلینت
+                  </span>
+                  <div id="adminTopUsersList" class="space-y-1.5 text-xs">
+                    <div class="text-slate-400 text-[11px] text-center py-4">در حال بارگذاری...</div>
+                  </div>
+                </div>
+                <div class="text-[10px] text-slate-400 border-t border-slate-700/40 pt-1.5 flex items-center justify-between">
+                  <span>ستون طلایی 👑</span>
+                  <span class="text-amber-400 font-medium">پرمصرف‌ترین روز هفته</span>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
         <!-- Quick Admin Commands Hub -->
@@ -893,15 +932,6 @@
               </div>
               <input type="hidden" id="settingAccessMode" value="open" />
             </div>
-
-            <!-- Default Store & Trial Squad -->
-            <div class="py-2 border-t border-[var(--card-border)]">
-              <label class="text-[11px] t-muted block mb-1 font-medium">🧩 اسکواد پیش‌فرض فروشگاه و سرویس تست:</label>
-              <select id="settingDefaultSquadUuid" dir="rtl" class="w-full card-inset rounded-xl px-3 py-2 text-xs t-main outline-none focus:border-blue-500 transition">
-                <option value="">🌐 همه سرورها (سراسری / بدون اسکواد اختصاصی)</option>
-              </select>
-              <span class="text-[10px] t-muted block mt-1">کاربران جدید و سرویس‌های تست رایگان به‌طور خودکار روی این اسکواد ساخته می‌شوند.</span>
-            </div>
           </div>
         </div>
 
@@ -954,24 +984,35 @@
                 </div>
               </label>
             </div>
-            <!-- Card Template Select -->
+            <!-- Card Template Custom Selector -->
             <div>
               <label class="text-[11px] text-slate-400 block mb-1">قالب کارت بانکی:</label>
-              <select id="settingCardTemplate" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-200 outline-none focus:border-blue-500 transition">
-                <option value="blubank">💳 بلوبانک (BluBank)</option>
-              </select>
+              <input type="hidden" id="settingCardTemplate" value="blubank" />
+              <div onclick="window.adminActions.openCardTemplateModal()" class="w-full card-inset rounded-xl px-3 py-2.5 flex items-center justify-between cursor-pointer transition active:scale-[0.99] border border-slate-700 hover:border-blue-500/50 group">
+                <div class="flex items-center gap-2">
+                  <span id="settingCardTemplateIcon" class="text-sm">💳</span>
+                  <span id="settingCardTemplateLabel" class="text-xs text-slate-200 font-bold">بلوبانک</span>
+                </div>
+                <div class="flex items-center t-muted group-hover:text-slate-200 text-xs gap-1">
+                  <span class="text-[10px]">تغییر</span>
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                </div>
+              </div>
             </div>
+            <!-- Card Color Custom Selector -->
             <div>
-              <label class="text-[11px] text-slate-400 block mb-1">رنگ کارت بلوبانک (BluBank Theme):</label>
-              <select id="settingBluBankColor" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-200 outline-none focus:border-blue-500 transition">
-                <option value="blue">🔵 آبی کلاسیک (Blue)</option>
-                <option value="green">🟢 سبز چمنی (Green)</option>
-                <option value="red">🔴 قرمز گیلاسی (Red)</option>
-                <option value="yellow">🟡 زرد لیمویی (Yellow)</option>
-                <option value="purple">🟣 بنفش شاه‌توتی (Purple)</option>
-                <option value="rose">🌸 رزگلد / صورتی (Rose Gold)</option>
-                <option value="black">⚫ مشکی مات / بلوباکس (Black Matte)</option>
-              </select>
+              <label class="text-[11px] text-slate-400 block mb-1">رنگ کارت بلوبانک:</label>
+              <input type="hidden" id="settingBluBankColor" value="red" />
+              <div onclick="window.adminActions.openCardColorModal()" class="w-full card-inset rounded-xl px-3 py-2.5 flex items-center justify-between cursor-pointer transition active:scale-[0.99] border border-slate-700 hover:border-blue-500/50 group">
+                <div class="flex items-center gap-2">
+                  <span id="settingBluBankColorIcon" class="text-sm">🔴</span>
+                  <span id="settingBluBankColorLabel" class="text-xs text-slate-200 font-bold">قرمز گیلاسی</span>
+                </div>
+                <div class="flex items-center t-muted group-hover:text-slate-200 text-xs gap-1">
+                  <span class="text-[10px]">تغییر</span>
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                </div>
+              </div>
             </div>
             <div>
               <label class="text-[11px] text-slate-400 block mb-1">حداقل مبلغ افزایش موجودی (تومان)</label>
@@ -1226,6 +1267,23 @@
             <div>
               <label class="text-[11px] text-slate-400 block mb-1">پاداش دعوت (GB)</label>
               <input type="number" id="settingRefReward" dir="ltr" placeholder="5" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-purple-300 outline-none focus:border-purple-500 transition" />
+            </div>
+
+            <!-- Default Store & Trial Squad Custom Selector -->
+            <div class="py-2.5 border-t border-slate-700/50">
+              <label class="text-[11px] text-slate-300 block mb-1.5 font-medium">🧩 اسکواد پیش‌فرض فروشگاه و سرویس تست:</label>
+              <input type="hidden" id="settingDefaultSquadUuid" value="" />
+              <div onclick="window.adminActions.openDefaultSquadPickerModal()" class="w-full card-inset rounded-xl px-3 py-2.5 flex items-center justify-between cursor-pointer transition active:scale-[0.99] border border-slate-700 hover:border-blue-500/50 group">
+                <div class="flex items-center gap-2 min-w-0">
+                  <span id="settingDefaultSquadIcon" class="text-sm">🧩</span>
+                  <span id="settingDefaultSquadLabel" class="text-xs t-main font-bold truncate">انتخاب کنید</span>
+                </div>
+                <div class="flex items-center t-muted group-hover:text-slate-200 text-xs gap-1 flex-shrink-0">
+                  <span class="text-[10px]">تغییر</span>
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                </div>
+              </div>
+              <span class="text-[10px] t-muted block mt-1.5 leading-relaxed">کاربران جدید و سرویس‌های تست رایگان به‌طور خودکار روی این اسکواد ساخته می‌شوند.</span>
             </div>
 
             <!-- Direct Support in Bot Switch -->
@@ -2089,29 +2147,29 @@
     </div>
 
     <!-- Admin Bottom Navigation Bar -->
-    <div id="adminNavBottom" class="bottom-nav-bar absolute bottom-0 inset-x-0 backdrop-blur-md px-1 py-1.5 pb-[calc(0.375rem+env(safe-area-inset-bottom,0px))] flex justify-between items-center z-30 overflow-x-auto no-scrollbar">
-      <button class="admin-nav-btn is-active flex flex-col items-center justify-center gap-1 transition min-w-[46px] min-h-[44px] py-1" data-admin-tab="tab-admin-overview" aria-label="داشبورد" aria-selected="true">
-        <svg class="w-5 h-5 transition-transform" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" /></svg>
+    <div id="adminNavBottom" class="bottom-nav-bar absolute bottom-0 inset-x-0 backdrop-blur-md px-1 py-1 pb-[calc(0.5rem+env(safe-area-inset-bottom,0px))] flex justify-between items-center z-30 overflow-x-auto no-scrollbar">
+      <button class="admin-nav-btn is-active flex flex-col items-center justify-center gap-0.5 transition min-w-[48px] min-h-[44px] py-1 cursor-pointer active:scale-95" data-admin-tab="tab-admin-overview" aria-label="داشبورد" aria-selected="true">
+        <span class="text-lg">📊</span>
         <span class="text-[10px] font-bold">داشبورد</span>
       </button>
-      <button class="admin-nav-btn flex flex-col items-center justify-center gap-1 transition min-w-[46px] min-h-[44px] py-1" aria-selected="false" data-admin-tab="tab-admin-users" aria-label="کاربران">
-        <svg class="w-5 h-5 transition-transform" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" /></svg>
+      <button class="admin-nav-btn flex flex-col items-center justify-center gap-0.5 transition min-w-[48px] min-h-[44px] py-1 cursor-pointer active:scale-95" aria-selected="false" data-admin-tab="tab-admin-users" aria-label="کاربران">
+        <span class="text-lg">👥</span>
         <span class="text-[10px] font-medium">کاربران</span>
       </button>
-      <button class="admin-nav-btn flex flex-col items-center justify-center gap-1 transition min-w-[46px] min-h-[44px] py-1" aria-selected="false" data-admin-tab="tab-admin-plans" aria-label="سرویس و تخفیف">
-        <svg class="w-5 h-5 transition-transform" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 7.5l-9-5.25L3 7.5m18 0l-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9" /></svg>
-        <span class="text-[10px] font-medium">سرویس و تخفیف</span>
+      <button class="admin-nav-btn flex flex-col items-center justify-center gap-0.5 transition min-w-[48px] min-h-[44px] py-1 cursor-pointer active:scale-95" aria-selected="false" data-admin-tab="tab-admin-plans" aria-label="سرویس و تخفیف">
+        <span class="text-lg">💎</span>
+        <span class="text-[10px] font-medium">سرویس‌ها</span>
       </button>
-      <button class="admin-nav-btn flex flex-col items-center justify-center gap-1 transition min-w-[46px] min-h-[44px] py-1" aria-selected="false" data-admin-tab="tab-admin-nodes" aria-label="سرورها">
-        <svg class="w-5 h-5 transition-transform" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5.25 14.25h13.5m-13.5 0a3 3 0 01-3-3m3 3a3 3 0 100 6h13.5a3 3 0 100-6m-16.5-3a3 3 0 013-3h13.5a3 3 0 013 3m-19.5 0a4.5 4.5 0 01.9-2.7L5.75 5.1a3 3 0 012.35-1.35h7.8a3 3 0 012.35 1.35l1.6 3.45a4.5 4.5 0 01.9 2.7" /></svg>
+      <button class="admin-nav-btn flex flex-col items-center justify-center gap-0.5 transition min-w-[48px] min-h-[44px] py-1 cursor-pointer active:scale-95" aria-selected="false" data-admin-tab="tab-admin-nodes" aria-label="سرورها">
+        <span class="text-lg">🌐</span>
         <span class="text-[10px] font-medium">سرورها</span>
       </button>
-      <button class="admin-nav-btn flex flex-col items-center justify-center gap-1 transition min-w-[46px] min-h-[44px] py-1" aria-selected="false" data-admin-tab="tab-admin-tickets" aria-label="مالی و کمپین">
-        <svg class="w-5 h-5 transition-transform" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-6.75 3h18a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15A2.25 2.25 0 002.25 6.75v10.5A2.25 2.25 0 004.5 19.5z" /></svg>
-        <span class="text-[10px] font-medium">مالی و کمپین</span>
+      <button class="admin-nav-btn flex flex-col items-center justify-center gap-0.5 transition min-w-[48px] min-h-[44px] py-1 cursor-pointer active:scale-95" aria-selected="false" data-admin-tab="tab-admin-tickets" aria-label="مالی و کمپین">
+        <span class="text-lg">💳</span>
+        <span class="text-[10px] font-medium">مالی</span>
       </button>
-      <button class="admin-nav-btn flex flex-col items-center justify-center gap-1 transition min-w-[46px] min-h-[44px] py-1" aria-selected="false" data-admin-tab="tab-admin-settings" aria-label="تنظیمات">
-        <svg class="w-5 h-5 transition-transform" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759 6.759 0 010 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 010-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+      <button class="admin-nav-btn flex flex-col items-center justify-center gap-0.5 transition min-w-[48px] min-h-[44px] py-1 cursor-pointer active:scale-95" aria-selected="false" data-admin-tab="tab-admin-settings" aria-label="تنظیمات">
+        <span class="text-lg">⚙️</span>
         <span class="text-[10px] font-medium">تنظیمات</span>
       </button>
     </div>
@@ -3497,7 +3555,7 @@
             <div onclick="window.adminActions.openSquadPickerModal()" class="w-full card-inset rounded-xl px-3 py-2.5 flex items-center justify-between cursor-pointer transition active:scale-[0.99] group">
               <div class="flex items-center gap-2 min-w-0">
                 <span id="createUserSquadIcon" class="text-sm">🌐</span>
-                <span id="createUserSquadLabel" class="text-xs t-main font-medium truncate">پیش‌فرض فروشگاه / بدون اسکواد اختصاصی</span>
+                <span id="createUserSquadLabel" class="text-xs t-main font-medium truncate">انتخاب کنید</span>
               </div>
               <span class="t-muted text-xs group-hover:t-main transition">▼</span>
             </div>
@@ -3577,6 +3635,63 @@
         </div>
         <div id="squadPickerList" class="space-y-2 flex-1 overflow-y-auto custom-scroll text-xs pr-0.5">
           <!-- Dynamically populated squads -->
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL: Default Squad Picker for Settings (اسکواد پیش‌فرض فروشگاه و تست) -->
+    <div id="defaultSquadPickerModal" class="absolute inset-0 modal-backdrop z-50 flex items-center justify-center p-3 sm:p-4 hidden">
+      <div class="modal-card border border-slate-700/80 rounded-3xl p-4 sm:p-5 w-full max-w-[360px] max-h-[80vh] flex flex-col space-y-3 shadow-2xl relative">
+        <div class="flex justify-between items-center border-b border-slate-700/60 pb-2.5 shrink-0">
+          <div class="flex items-center gap-2">
+            <span class="text-base">🧩</span>
+            <h4 class="text-xs font-bold t-main">اسکواد پیش‌فرض فروشگاه و تست</h4>
+          </div>
+          <button type="button" onclick="window.adminActions.closeDefaultSquadPickerModal()" class="modal-close-btn" aria-label="بستن">✕</button>
+        </div>
+        <div id="defaultSquadPickerList" class="space-y-2 flex-1 overflow-y-auto custom-scroll text-xs pr-0.5">
+          <!-- Dynamically populated squads -->
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL: Card Template Picker (قالب کارت بانکی) -->
+    <div id="cardTemplateModal" class="absolute inset-0 modal-backdrop z-50 flex items-center justify-center p-3 sm:p-4 hidden">
+      <div class="modal-card border border-slate-700/80 rounded-3xl p-4 sm:p-5 w-full max-w-[340px] max-h-[80vh] flex flex-col space-y-3 shadow-2xl relative">
+        <div class="flex justify-between items-center border-b border-slate-700/60 pb-2.5 shrink-0">
+          <div class="flex items-center gap-2">
+            <span class="text-base">💳</span>
+            <h4 class="text-xs font-bold t-main">انتخاب قالب کارت بانکی</h4>
+          </div>
+          <button type="button" onclick="window.adminActions.closeCardTemplateModal()" class="modal-close-btn" aria-label="بستن">✕</button>
+        </div>
+        <div id="cardTemplateList" class="space-y-2 flex-1 overflow-y-auto custom-scroll text-xs pr-0.5">
+          <div onclick="window.adminActions.selectCardTemplate('blubank', 'بلوبانک', '💳')" class="p-3 rounded-2xl border transition cursor-pointer flex items-center justify-between gap-3 bg-blue-600/15 border-blue-500 shadow-sm">
+            <div class="flex items-center gap-2.5">
+              <span class="text-base">💳</span>
+              <div>
+                <span class="text-xs font-bold t-info block">بلوبانک (BluBank)</span>
+                <span class="text-[10px] t-muted block">طراحی سه‌بعدی کارت با افکت چرخش و چیپ هوشمند</span>
+              </div>
+            </div>
+            <span class="text-xs text-blue-400 font-bold">✓</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL: Card Color Picker (رنگ کارت بلوبانک) -->
+    <div id="cardColorModal" class="absolute inset-0 modal-backdrop z-50 flex items-center justify-center p-3 sm:p-4 hidden">
+      <div class="modal-card border border-slate-700/80 rounded-3xl p-4 sm:p-5 w-full max-w-[340px] max-h-[80vh] flex flex-col space-y-3 shadow-2xl relative">
+        <div class="flex justify-between items-center border-b border-slate-700/60 pb-2.5 shrink-0">
+          <div class="flex items-center gap-2">
+            <span class="text-base">🎨</span>
+            <h4 class="text-xs font-bold t-main">انتخاب رنگ کارت بلوبانک</h4>
+          </div>
+          <button type="button" onclick="window.adminActions.closeCardColorModal()" class="modal-close-btn" aria-label="بستن">✕</button>
+        </div>
+        <div id="cardColorList" class="space-y-2 flex-1 overflow-y-auto custom-scroll text-xs pr-0.5">
+          <!-- Dynamically populated colors -->
         </div>
       </div>
     </div>

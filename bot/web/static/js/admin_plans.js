@@ -133,7 +133,7 @@
 
           const trafficHtml = p.traffic_gb > 0
             ? fmtTraffic(p.traffic_gb, { html: true })
-            : '<span class="text-cyan-300 font-bold">نامحدود</span>';
+            : '<span class="t-main font-bold">نامحدود</span>';
           const durationText = p.duration_days > 0 ? `${p.duration_days} روز` : 'نامحدود';
           const hwidText = p.hwid_limit > 0 ? `${p.hwid_limit} کاربر` : 'پیش‌فرض';
 
@@ -146,11 +146,11 @@
           const bKey = (p.badge || '').toLowerCase();
           const isExtraTraffic = (bKey === 'traffic' || (Number(p.duration_days) === 0 && Number(p.traffic_gb) > 0)) && bKey !== 'time';
           const isExtraTime = !isExtraTraffic && (bKey === 'time' || (Number(p.traffic_gb) === 0 && Number(p.duration_days) > 0 && bKey !== 'traffic'));
-          let typeBadge = '<span class="text-[10px] bg-blue-500/15 t-info border border-blue-500/30 px-2 py-0.5 rounded-lg font-bold">💎 دوره کامل</span>';
+          let typeBadge = '<span class="text-[10px] card-inset t-muted border border-slate-700/60 px-2 py-0.5 rounded-lg font-bold">💎 دوره کامل</span>';
           if (isExtraTraffic) {
-            typeBadge = '<span class="text-[10px] bg-cyan-500/15 t-accent border border-cyan-500/30 px-2 py-0.5 rounded-lg font-bold">⚡️ بسته حجمی</span>';
+            typeBadge = '<span class="text-[10px] card-inset t-muted border border-slate-700/60 px-2 py-0.5 rounded-lg font-bold">⚡️ بسته حجمی</span>';
           } else if (isExtraTime) {
-            typeBadge = '<span class="text-[10px] bg-amber-500/15 t-warn border border-amber-500/30 px-2 py-0.5 rounded-lg font-bold">⏳ بسته زمانی</span>';
+            typeBadge = '<span class="text-[10px] card-inset t-muted border border-slate-700/60 px-2 py-0.5 rounded-lg font-bold">⏳ بسته زمانی</span>';
           }
 
           let tagBadge = '';
@@ -163,11 +163,11 @@
           } else if (bKey === 'vip') {
             tagBadge = '<span class="badge-vip text-[10px] bg-rose-500/15 t-danger border border-rose-500/30 px-1.5 py-0.5 rounded-lg font-bold">👑 پیشنهاد ویژه</span>';
           } else if (bKey === 'tunnel') {
-            tagBadge = '<span class="text-[10px] bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 border border-indigo-500/30 px-1.5 py-0.5 rounded-lg font-bold">🚇 تانل اختصاصی</span>';
+            tagBadge = '<span class="text-[10px] bg-cyan-500/15 text-cyan-700 dark:text-cyan-300 border border-cyan-500/30 px-1.5 py-0.5 rounded-lg font-bold">🚇 تانل اختصاصی</span>';
           }
           if (p.max_purchases) {
             const pCount = p.purchases_count || 0;
-            tagBadge += ` <span class="text-[9.5px] bg-amber-500/15 text-amber-500 dark:text-amber-400 border border-amber-500/30 px-1.5 py-0.5 rounded-lg font-bold font-mono">سقف: ${pCount}/${p.max_purchases}</span>`;
+            tagBadge += ` <span class="text-[9.5px] card-inset t-muted border border-slate-700/60 px-1.5 py-0.5 rounded-lg font-bold font-mono">سقف: ${pCount}/${p.max_purchases}</span>`;
           }
 
           let specsHtml = '';
@@ -185,7 +185,7 @@
               <div class="grid grid-cols-1 text-center text-[10px] card-inset p-2 rounded-xl font-mono">
                 <div>
                   <span class="t-muted block text-[10px] font-sans">مدت زمان اضافه</span>
-                  <b class="text-amber-500 dark:text-amber-300">${durationText}</b>
+                  <b class="t-main font-bold">${durationText}</b>
                 </div>
               </div>
             `;
@@ -198,11 +198,11 @@
                 </div>
                 <div>
                   <span class="t-muted block text-[10px] font-sans">مدت زمان</span>
-                  <b class="text-amber-500 dark:text-amber-300">${durationText}</b>
+                  <b class="t-main font-bold">${durationText}</b>
                 </div>
                 <div>
                   <span class="t-muted block text-[10px] font-sans">محدودیت HWID</span>
-                  <b class="text-purple-500 dark:text-purple-300">${hwidText}</b>
+                  <b class="t-main font-bold">${hwidText}</b>
                 </div>
               </div>
             `;
@@ -210,7 +210,7 @@
 
           const squadObj = adminRemnawaveSquads.find(s => s.uuid === p.squad_uuid);
           const squadName = squadObj ? squadObj.name : (p.squad_uuid ? `اسکواد ${p.squad_uuid.slice(0, 8)}…` : '');
-          const squadBadge = squadName ? `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-500/15 text-purple-700 dark:text-purple-300 border border-purple-500/30 truncate max-w-[130px]" title="اسکواد: ${escapeHtml(squadName)}">🧩 ${escapeHtml(squadName)}</span>` : '';
+          const squadBadge = squadName ? `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold card-inset t-muted border border-slate-700/60 truncate max-w-[130px]" title="اسکواد: ${escapeHtml(squadName)}">🧩 ${escapeHtml(squadName)}</span>` : '';
 
           const descHtml = (!isExtraTraffic && !isExtraTime && p.description)
             ? `<p class="text-[11px] text-slate-400 line-clamp-1 pr-9">${escapeHtml(p.description)}</p>`
@@ -555,14 +555,14 @@
             const diffMs = new Date(c.expires_at).getTime() - Date.now();
             const daysLeft = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
             if (daysLeft > 0) {
-              remainingDaysHtml = `<b class="text-amber-600 dark:text-amber-400 font-bold">${toEnglishDigits(daysLeft)} روز</b>`;
+              remainingDaysHtml = `<b class="t-main font-bold">${toEnglishDigits(daysLeft)} روز</b>`;
             } else {
-              remainingDaysHtml = '<b class="text-rose-600 dark:text-rose-400 font-bold">منقضی</b>';
+              remainingDaysHtml = '<b class="t-danger font-bold">منقضی</b>';
             }
           }
 
           const usagesBtnHtml = usedCount > 0
-            ? `<button type="button" data-id="${c.id}" data-code="${escapeHtml(c.code)}" class="btn-coupon-usages flex-1 bg-transparent hover:bg-slate-500/10 text-indigo-600 dark:text-indigo-400 border border-slate-700/60 py-2 rounded-xl transition flex items-center justify-center gap-1.5 active:scale-95 shadow-sm font-bold" title="استفاده‌کنندگان (${formatNumber(usedCount)})" aria-label="استفاده‌کنندگان (${formatNumber(usedCount)})">
+            ? `<button type="button" data-id="${c.id}" data-code="${escapeHtml(c.code)}" class="btn-coupon-usages flex-1 bg-transparent hover:bg-slate-500/10 t-muted hover:t-main border border-slate-700/60 py-2 rounded-xl transition flex items-center justify-center gap-1.5 active:scale-95 shadow-sm font-bold" title="استفاده‌کنندگان (${formatNumber(usedCount)})" aria-label="استفاده‌کنندگان (${formatNumber(usedCount)})">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
                 <span class="text-[11px] font-bold">مصرف‌کنندگان</span>
               </button>`
@@ -571,7 +571,7 @@
                 <span class="text-[11px] font-bold">بدون مصرف</span>
               </div>`;
 
-          const toggleBtnHtml = `<button onclick="window.adminActions.toggleCoupon(${c.id}, ${c.is_active})" class="flex-1 bg-transparent hover:bg-slate-500/10 ${c.is_active ? 'text-amber-600 dark:text-amber-400' : 'text-emerald-600 dark:text-emerald-400'} border border-slate-700/60 py-2 rounded-xl transition flex items-center justify-center gap-1.5 active:scale-95 shadow-sm font-bold" title="${c.is_active ? 'غیرفعال‌سازی کد تخفیف' : 'فعال‌سازی کد تخفیف'}" aria-label="${c.is_active ? 'غیرفعال‌سازی کد تخفیف' : 'فعال‌سازی کد تخفیف'}">
+          const toggleBtnHtml = `<button onclick="window.adminActions.toggleCoupon(${c.id}, ${c.is_active})" class="flex-1 bg-transparent hover:bg-slate-500/10 t-muted hover:t-main border border-slate-700/60 py-2 rounded-xl transition flex items-center justify-center gap-1.5 active:scale-95 shadow-sm font-bold" title="${c.is_active ? 'غیرفعال‌سازی کد تخفیف' : 'فعال‌سازی کد تخفیف'}" aria-label="${c.is_active ? 'غیرفعال‌سازی کد تخفیف' : 'فعال‌سازی کد تخفیف'}">
             ${c.is_active
               ? '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg><span class="text-[11px] font-bold">غیرفعال</span>'
               : '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg><span class="text-[11px] font-bold">فعال‌سازی</span>'}

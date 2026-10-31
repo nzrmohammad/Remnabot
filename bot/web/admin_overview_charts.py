@@ -281,32 +281,44 @@ async def _calc_hourly_distribution(session, now_utc: datetime) -> dict[str, Any
 
 
 async def _calc_retention_trend(session, now_utc: datetime, days_list: list[datetime]) -> dict[str, Any]:
-    """Distinguish new buyers from renewals over the last 7 days."""
+    """Distinguish unique new buyers from renewals over the last 7 days (unique users per day)."""
     seven_days_ago = now_utc - timedelta(days=6)
     orders_7d = (await session.execute(
-        select(Order.telegram_id, Order.created_at).where(Order.status == "paid", Order.created_at >= seven_days_ago)
+        select(Order.telegram_id, Order.created_at)
+        .where(Order.status == "paid", Order.created_at >= seven_days_ago)
+        .order_by(Order.created_at.asc())
     )).all()
     day_keys = [d.strftime("%Y-%m-%d") for d in days_list]
-    new_sales_day = {k: 0 for k in day_keys}
-    renewal_sales_day = {k: 0 for k in day_keys}
-    seen_user_ids = set((await session.execute(
+    seen_prior_user_ids = set((await session.execute(
         select(Order.telegram_id).where(Order.status == "paid", Order.created_at < seven_days_ago).distinct()
     )).scalars().all())
 
+    day_new_users: dict[str, set[int]] = {k: set() for k in day_keys}
+    day_renewal_users: dict[str, set[int]] = {k: set() for k in day_keys}
+
     for u_id, o_dt in orders_7d:
-        if o_dt:
+        if o_dt and u_id:
             ds = o_dt.strftime("%Y-%m-%d")
-            if ds in new_sales_day:
-                if u_id not in seen_user_ids:
-                    seen_user_ids.add(u_id)
-                    new_sales_day[ds] += 1
+            if ds in day_keys:
+                if u_id in seen_prior_user_ids:
+                    day_renewal_users[ds].add(u_id)
                 else:
-                    renewal_sales_day[ds] += 1
+                    first_day = None
+                    for k in day_keys:
+                        if u_id in day_new_users[k]:
+                            first_day = k
+                            break
+                    if first_day is None:
+                        day_new_users[ds].add(u_id)
+                    elif first_day == ds:
+                        pass
+                    else:
+                        day_renewal_users[ds].add(u_id)
 
     return {
         "labels": [get_day_label(d) for d in days_list],
-        "new_sales": [new_sales_day[k] for k in day_keys],
-        "renewal_sales": [renewal_sales_day[k] for k in day_keys],
+        "new_sales": [len(day_new_users[k]) for k in day_keys],
+        "renewal_sales": [len(day_renewal_users[k]) for k in day_keys],
     }
 
 
@@ -508,6 +520,46 @@ async def _calc_retention_and_payments(session, now_utc: datetime) -> tuple[dict
     return payment_dist, retention_stats
 
 
+def _calc_top_consumers(
+    panel_users: list[dict] | None,
+    days_list: list[datetime],
+    traffic_series: list[float] | None = None,
+) -> dict[str, Any]:
+    """Calculate top individual consumers and daily champion highlights for the week."""
+    sorted_users = sorted(panel_users or [], key=lambda u: get_used_bytes(u), reverse=True)
+    top_users = []
+    for idx, u in enumerate(sorted_users[:5]):
+        ub = get_used_bytes(u)
+        used_gb = round(ub / (1024 ** 3), 2)
+        uname = u.get("username") or f"user_{u.get('id', idx + 1)}"
+        top_users.append({
+            "rank": idx + 1,
+            "username": uname,
+            "used_gb": used_gb,
+            "is_champion": idx == 0 and used_gb > 0,
+        })
+
+    days_labels = [get_day_label(d) for d in days_list]
+    series = [round(float(v), 2) for v in (traffic_series or [0.0] * len(days_list))]
+    if len(series) < len(days_labels):
+        series = [0.0] * (len(days_labels) - len(series)) + series
+    elif len(series) > len(days_labels):
+        series = series[-len(days_labels):]
+
+    champion_idx = int(max(range(len(series)), key=lambda i: series[i])) if series and max(series) > 0 else (len(series) - 1 if series else 0)
+    champion_label = days_labels[champion_idx] if days_labels else "—"
+    champion_val = series[champion_idx] if series else 0.0
+
+    return {
+        "labels": days_labels,
+        "data": series,
+        "champion_day_index": champion_idx,
+        "champion_day_label": champion_label,
+        "champion_day_traffic": champion_val,
+        "top_users": top_users,
+    }
+
+
 async def calc_strategic_charts(
     session,
     remnawave,
@@ -516,6 +568,8 @@ async def calc_strategic_charts(
     days_list: list[datetime],
     today_cluster_gb: float,
     total_traffic_gb: float,
+    panel_users: list[dict] | None = None,
+    traffic_series: list[float] | None = None,
 ) -> dict[str, Any]:
     """Calculate platform distribution, 24h peak usage curve, and retention analytics."""
     location_share = _calc_location_share(nodes_overview)
@@ -524,6 +578,7 @@ async def calc_strategic_charts(
     plan_distribution = await _calc_plan_distribution(session)
     platform_distribution, hwid_distribution = await _calc_platform_and_hwid(session, remnawave)
     payment_distribution, retention_stats = await _calc_retention_and_payments(session, now_utc)
+    top_consumers = _calc_top_consumers(panel_users, days_list, traffic_series)
 
     return {
         "location_share": location_share,
@@ -534,6 +589,7 @@ async def calc_strategic_charts(
         "payment_distribution": payment_distribution,
         "retention_stats": retention_stats,
         "hwid_distribution": hwid_distribution,
+        "top_consumers": top_consumers,
     }
 
 

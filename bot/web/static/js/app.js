@@ -3572,12 +3572,102 @@ function hydrateUserInterface(data) {
       renderDashboardBirthdayCountdown(data.user);
     }
 
+    // User Achievements & Perks Card
+    if (typeof renderUserAchievements === 'function') {
+      renderUserAchievements(data);
+    }
+
     // Tutorial App Updates Badge
     if (typeof checkTutorialAppUpdates === 'function') {
       checkTutorialAppUpdates();
     }
   });
 }
+
+function renderUserAchievements(data) {
+  const ach = data?.achievements || {};
+  const wonCoupons = data?.won_coupons || [];
+
+  const giftTrafficEl = $('achieveGiftTraffic');
+  if (giftTrafficEl) {
+    const traf = Number(ach.total_gift_traffic_gb || 0);
+    giftTrafficEl.innerText = typeof fmtTraffic === 'function' ? fmtTraffic(traf, { html: false }) : `${traf.toFixed(1)}`;
+  }
+
+  const wonCouponsEl = $('achieveWonCoupons');
+  const couponsActionEl = $('achieveCouponsAction');
+  if (wonCouponsEl) {
+    const count = Number(ach.active_coupons_count ?? wonCoupons.length);
+    wonCouponsEl.innerText = `${count} کد`;
+    if (couponsActionEl) {
+      if (count > 0) {
+        couponsActionEl.innerText = 'کپی آخرین کد';
+        couponsActionEl.classList.remove('opacity-50');
+      } else {
+        couponsActionEl.innerText = 'بدون کد فعال';
+        couponsActionEl.classList.add('opacity-50');
+      }
+    }
+  }
+
+  const bdayStatusEl = $('achieveBdayStatus');
+  const bdayBtn = $('achieveBdayBtn');
+  if (bdayStatusEl) {
+    if (ach.birthday_claimed) {
+      bdayStatusEl.innerText = '🎁 دریافت شده';
+      bdayStatusEl.className = 'text-emerald-500 dark:text-emerald-400 text-[11px] font-bold truncate max-w-full';
+      if (bdayBtn) bdayBtn.innerText = 'هدیه ثبت شد';
+    } else if (ach.is_birthday_today) {
+      bdayStatusEl.innerText = '🎉 امروز زادروز شماست!';
+      bdayStatusEl.className = 'text-amber-500 dark:text-amber-300 text-[11px] font-bold truncate max-w-full animate-pulse';
+      if (bdayBtn) bdayBtn.innerText = 'تبریک زادروز 🎂';
+    } else if (ach.has_birthday_set && ach.days_until_birthday !== null && ach.days_until_birthday !== undefined) {
+      const d = ach.days_until_birthday;
+      bdayStatusEl.innerText = d === 0 ? 'امروز' : `${d} روز مانده`;
+      bdayStatusEl.className = 'text-cyan-500 dark:text-cyan-400 text-[11px] font-bold truncate max-w-full';
+      if (bdayBtn) bdayBtn.innerText = 'ویرایش تاریخ';
+    } else {
+      bdayStatusEl.innerText = 'ثبت نشده';
+      bdayStatusEl.className = 'text-amber-600 dark:text-amber-400 text-[11px] font-bold truncate max-w-full';
+      if (bdayBtn) bdayBtn.innerText = 'ثبت تاریخ';
+    }
+  }
+
+  const streakEl = $('achieveStreakCount');
+  if (streakEl) {
+    const s = Number(ach.wheel_streak ?? data?.wheel_status?.streak ?? 0);
+    streakEl.innerText = `${s} روز`;
+  }
+
+  const spinTicketsEl = $('achieveSpinTickets');
+  if (spinTicketsEl) {
+    const t = Number(ach.spin_tickets ?? data?.wheel_status?.spin_tickets ?? 0);
+    spinTicketsEl.innerText = `${t} عدد`;
+  }
+}
+window.renderUserAchievements = renderUserAchievements;
+
+function copyActiveCoupon() {
+  const coupons = window.lastUserData?.won_coupons || [];
+  if (coupons.length === 0) {
+    if (typeof showToast === 'function') {
+      showToast('کد تخفیف فعالی برای کپی وجود ندارد', 'info');
+    }
+    return;
+  }
+  const code = coupons[0]?.code;
+  if (code) {
+    if (typeof copyToClipboard === 'function') {
+      copyToClipboard(code, `کد تخفیف ${code} کپی شد!`);
+    } else if (navigator.clipboard) {
+      navigator.clipboard.writeText(code);
+      if (typeof showToast === 'function') showToast(`کد تخفیف ${code} کپی شد!`, 'success');
+    }
+    const couponInput = $('couponInput');
+    if (couponInput) couponInput.value = code;
+  }
+}
+window.copyActiveCoupon = copyActiveCoupon;
 
 // 16. Versioned Cache Storage & Retrieval with Multi-Account Isolation
 const USER_CACHE_VERSION = 4;

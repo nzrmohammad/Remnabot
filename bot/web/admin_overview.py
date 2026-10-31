@@ -69,7 +69,15 @@ async def _fetch_and_build_overview(
         session, remnawave, cache, now_utc, is_refresh, nodes, panel_users, kpis["month_traffic_gb"]
     )
     strategic = await calc_strategic_charts(
-        session, remnawave, now_utc, nodes_overview, days_list, sales_traffic["today_traffic_gb"], kpis["month_traffic_gb"]
+        session,
+        remnawave,
+        now_utc,
+        nodes_overview,
+        days_list,
+        sales_traffic["today_traffic_gb"],
+        kpis["month_traffic_gb"],
+        panel_users=panel_users,
+        traffic_series=sales_traffic.get("chart_traffic_data"),
     )
 
     return {

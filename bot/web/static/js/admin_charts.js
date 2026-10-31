@@ -100,6 +100,7 @@
     }
     updateScaleChart(retentionChartInstance);
     updateScaleChart(hwidChartInstance);
+    updateScaleChart(topConsumersChartInstance);
 
     updateDoughnutChart(locationChartInstance);
     updateDoughnutChart(planSalesChartInstance);
@@ -264,6 +265,7 @@
           renderAdminPaymentChart(c.payment_distribution);
           renderAdminRetentionStatsChart(c.retention_stats);
           renderAdminHwidChart(c.hwid_distribution);
+          if (c.top_consumers) renderAdminTopConsumersChart(c.top_consumers);
         }
       }
 
@@ -1172,6 +1174,124 @@ openHighRiskUsersModal() {
     }
   });
 
+  // Top Consumers & Daily Champion Chart
+  let topConsumersChartInstance = null;
+  function renderAdminTopConsumersChart(topData) {
+    const canvas = $('adminTopConsumersChart');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const labels = topData?.labels || [];
+    const values = topData?.data || [];
+    const champIdx = Number(topData?.champion_day_index ?? -1);
+    const champLabel = topData?.champion_day_label || '—';
+    const champTraffic = topData?.champion_day_traffic || 0;
+    const topUsers = topData?.top_users || [];
+
+    // Update champion badge
+    const badgeLabel = $('championDayLabel');
+    if (badgeLabel) {
+      const champTrafStr = typeof fmtTraffic === 'function' ? fmtTraffic(champTraffic, { html: false }) : champTraffic;
+      badgeLabel.innerText = `قهرمان هفته: ${champLabel} (${champTrafStr})`;
+    }
+
+    // Render leaderboard
+    const usersListEl = $('adminTopUsersList');
+    if (usersListEl) {
+      if (topUsers.length === 0) {
+        usersListEl.innerHTML = '<div class="text-slate-400 text-[11px] text-center py-4">داده‌ای ثبت نشده است</div>';
+      } else {
+        const medals = ['🥇', '🥈', '🥉', '4️⃣', '5️⃣'];
+        usersListEl.innerHTML = topUsers.map((u, i) => {
+          const medal = medals[i] || '👤';
+          const isChamp = u.is_champion;
+          const bgCls = isChamp ? 'bg-amber-500/10 border border-amber-500/30' : 'bg-slate-700/30 border border-slate-700/40';
+          const txtCls = isChamp ? 'text-amber-300 font-bold' : 't-main';
+          const crown = isChamp ? '<span class="text-xs">👑</span>' : '';
+          const userTrafStr = typeof fmtTraffic === 'function' ? fmtTraffic(u.used_gb, { html: false }) : u.used_gb;
+          return `
+            <div class="flex items-center justify-between p-1.5 rounded-lg ${bgCls}">
+              <div class="flex items-center gap-1.5 min-w-0">
+                <span class="text-xs">${medal}</span>
+                <span class="font-mono text-xs ${txtCls} truncate max-w-[110px]" dir="ltr">@${u.username}</span>
+                ${crown}
+              </div>
+              <span class="font-mono text-xs text-cyan-400 font-bold" dir="ltr">${userTrafStr}</span>
+            </div>
+          `;
+        }).join('');
+      }
+    }
+
+    // Generate colors: Highlight champion day with gold amber gradient
+    const bgColors = values.map((_, i) => i === champIdx ? 'rgba(245, 158, 11, 0.85)' : 'rgba(99, 102, 241, 0.55)');
+    const borderColors = values.map((_, i) => i === champIdx ? '#fbbf24' : '#818cf8');
+    const borderWidths = values.map((_, i) => i === champIdx ? 2 : 1);
+
+    if (topConsumersChartInstance) {
+      topConsumersChartInstance.data.labels = labels;
+      topConsumersChartInstance.data.datasets[0].data = values;
+      topConsumersChartInstance.data.datasets[0].backgroundColor = bgColors;
+      topConsumersChartInstance.data.datasets[0].borderColor = borderColors;
+      topConsumersChartInstance.data.datasets[0].borderWidth = borderWidths;
+      topConsumersChartInstance.update();
+      return;
+    }
+
+    const { grid: gridColor, tick: tickColor } = getThemeColors();
+
+    topConsumersChartInstance = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: labels,
+        datasets: [{
+          label: 'مصرف ترافیک (GB)',
+          data: values,
+          backgroundColor: bgColors,
+          borderColor: borderColors,
+          borderWidth: borderWidths,
+          borderRadius: 6,
+          borderSkipped: false,
+        }],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            rtl: true,
+            titleFont: { family: 'Vazirmatn' },
+            bodyFont: { family: 'Vazirmatn' },
+            callbacks: {
+              label: (c) => {
+                const isC = c.dataIndex === champIdx;
+                const trafVal = typeof fmtTraffic === 'function' ? fmtTraffic(c.raw, { html: false, isolate: true }) : c.raw;
+                return `${isC ? '👑 قهرمان مصرف: ' : 'مصرف: '}${trafVal}`;
+              },
+            },
+          },
+        },
+        scales: {
+          x: {
+            grid: { display: false },
+            ticks: { color: tickColor, font: { family: 'Vazirmatn', size: 10 } },
+          },
+          y: {
+            grid: { color: gridColor },
+            ticks: {
+              color: tickColor,
+              font: { family: 'Vazirmatn', size: 10 },
+              callback: (v) => typeof fmtTraffic === 'function' ? fmtTraffic(v, { html: false, isolate: true }) : v,
+            },
+            beginAtZero: true,
+          },
+        },
+      },
+    });
+  }
+
   // Global exports
   window.syncAdminOverview = syncAdminOverview;
   window.updateChartsTheme = updateChartsTheme;
@@ -1189,6 +1309,7 @@ openHighRiskUsersModal() {
       paymentChartInstance?.resize();
       churnChartInstance?.resize();
       hwidChartInstance?.resize();
+      topConsumersChartInstance?.resize();
     }
   };
 })(window);

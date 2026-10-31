@@ -1230,8 +1230,8 @@ async applyUserModification() {
 
       // Initialize internal squad selector
       if (squadSelect) squadSelect.value = '';
-      if ($('createUserSquadLabel')) $('createUserSquadLabel').innerText = 'پیش‌فرض فروشگاه / بدون اسکواد اختصاصی';
-      if ($('createUserSquadIcon')) $('createUserSquadIcon').innerText = '🌐';
+      if ($('createUserSquadLabel')) $('createUserSquadLabel').innerText = 'انتخاب کنید';
+      if ($('createUserSquadIcon')) $('createUserSquadIcon').innerText = '🧩';
 
       // Pre-fetch internal squads
       if (window.api && window.api.getAdminInternalSquads) {
@@ -1425,10 +1425,10 @@ async applyUserModification() {
       }
 
       let html = `
-        <div onclick="window.adminActions.selectCreateUserSquad('', 'پیش‌فرض فروشگاه / بدون اسکواد اختصاصی', '🌐')" class="p-3 rounded-2xl border transition cursor-pointer flex items-center justify-between gap-3 ${currentVal === '' ? 'bg-blue-600/15 border-blue-500 shadow-sm' : 'card-inset hover:border-slate-500/50'}">
+        <div onclick="window.adminActions.selectCreateUserSquad('', 'انتخاب کنید', '🧩')" class="p-3 rounded-2xl border transition cursor-pointer flex items-center justify-between gap-3 ${currentVal === '' ? 'bg-blue-600/15 border-blue-500 shadow-sm' : 'card-inset hover:border-slate-500/50'}">
           <div class="flex items-center gap-2.5 min-w-0">
-            <span class="text-base">🌐</span>
-            <span class="text-xs font-bold ${currentVal === '' ? 't-info' : 't-main'}">پیش‌فرض فروشگاه / بدون اسکواد اختصاصی</span>
+            <span class="text-base">🧩</span>
+            <span class="text-xs font-bold ${currentVal === '' ? 't-info' : 't-main'}">انتخاب کنید</span>
           </div>
           <span class="text-xs font-bold t-info">${currentVal === '' ? '✓' : ''}</span>
         </div>

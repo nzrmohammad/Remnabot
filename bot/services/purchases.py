@@ -356,7 +356,7 @@ async def _execute_purchase_impl(
                         acc_squad_uuids.add(str(u))
                 elif isinstance(sq, str):
                     acc_squad_uuids.add(sq)
-            if acc_squad_uuids and str(service.squad_uuid) not in acc_squad_uuids:
+            if not acc_squad_uuids or str(service.squad_uuid) not in acc_squad_uuids:
                 if claimed_usage and coupon_obj:
                     try:
                         await coupon_repo.release_usage(coupon_obj.id, telegram_id, claimed_usage.id)

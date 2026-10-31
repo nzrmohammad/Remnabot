@@ -226,6 +226,11 @@ async def _do_user_spin(request: web.Request, telegram_id: int, cache: FastCache
                         )
                         if up_res is not None:
                             applied = True
+                            try:
+                                cur_traffic = float(await cache.get(f"wheel:total_won_traffic:{telegram_id}") or 0.0)
+                                await cache.set(f"wheel:total_won_traffic:{telegram_id}", cur_traffic + float(chosen["value"]), ttl_seconds=86400 * 365)
+                            except Exception:
+                                pass
                 elif chosen["type"] == "days":
                     from bot.services.formatting import parse_iso
                     cur_dt = parse_iso(current_expire)

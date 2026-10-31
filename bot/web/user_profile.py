@@ -26,7 +26,7 @@ from bot.db.repositories.alert_repo import AlertRepository
 from bot.db.repositories.report_repo import ReportRepository
 from bot.db.repositories.user_repo import UserRepository
 from bot.services.app_settings import get_store_settings, is_maintenance
-from bot.services.formatting import now_tz
+from bot.services.formatting import country_flag, now_tz
 from bot.web.cache import FastCache
 from bot.web.user_common import db_session, require_user
 
@@ -231,7 +231,24 @@ async def _fetch_user_perks_and_settings(
         logger.debug("Failed to verify user coupons in DB for %s: %s", telegram_id, exc)
 
     settings_combined = {**rep_settings_data, **alert_settings_data}
-    return settings_combined, active_won_coupons, wheel_status
+
+    total_gift_traffic = 0.0
+    try:
+        raw_gt = await cache.get(f"wheel:total_won_traffic:{telegram_id}")
+        if raw_gt is not None:
+            total_gift_traffic = float(raw_gt)
+    except Exception:
+        pass
+
+    birthday_claimed = False
+    try:
+        today_j = jdatetime.date.today() if jdatetime else None
+        if today_j:
+            birthday_claimed = bool(await cache.get(f"birthday_reward:{telegram_id}:{today_j.year}"))
+    except Exception:
+        pass
+
+    return settings_combined, active_won_coupons, wheel_status, total_gift_traffic, birthday_claimed
 
 
 async def get_user_me(request: web.Request) -> web.Response:
@@ -362,34 +379,101 @@ async def get_user_me(request: web.Request) -> web.Response:
             remnawave, panel_users, req_account_id, telegram_id, user_auth, session, tz_name, now_dt
         )
 
-        user_squad_uuids = set()
-        for p in panel_users:
-            if p.get("status") in ("ACTIVE", "DISABLED", "LIMITED", "EXPIRED"):
-                raw_sqs = (
-                    p.get("activeInternalSquads")
-                    or p.get("internalSquads")
-                    or p.get("activeInternalSquadsUuids")
-                    or p.get("internalSquadsUuids")
-                    or []
-                )
-                for sq in raw_sqs:
-                    if isinstance(sq, dict):
-                        u = sq.get("uuid") or sq.get("id")
-                        if u:
-                            user_squad_uuids.add(str(u).strip().lower())
-                    elif isinstance(sq, str):
-                        user_squad_uuids.add(sq.strip().lower())
+        active_primary = None
+        if panel_users:
+            if req_account_id:
+                active_primary = next((u for u in panel_users if str(u.get("id")) == str(req_account_id)), None)
+            else:
+                active_primary = next((u for u in panel_users if (u.get("status") or "").upper() == "ACTIVE"), None)
+            if not active_primary:
+                active_primary = panel_users[0]
+
+        active_squad_uuids = set()
+        if active_primary and has_active_sub:
+            raw_sqs = (
+                active_primary.get("activeInternalSquads")
+                or active_primary.get("internalSquads")
+                or active_primary.get("activeInternalSquadsUuids")
+                or active_primary.get("internalSquadsUuids")
+                or []
+            )
+            for sq in raw_sqs:
+                if isinstance(sq, dict):
+                    u = sq.get("uuid") or sq.get("id")
+                    if u:
+                        active_squad_uuids.add(str(u).strip().lower())
+                elif isinstance(sq, str):
+                    active_squad_uuids.add(sq.strip().lower())
 
         filtered_services = []
         for s in raw_services:
-            is_addon = (s.traffic_gb > 0 and s.duration_days == 0) or (s.duration_days > 0 and s.traffic_gb == 0)
+            is_addon = (
+                (s.traffic_gb > 0 and s.duration_days == 0)
+                or (s.duration_days > 0 and s.traffic_gb == 0)
+                or bool(s.badge and s.badge.lower() in ("traffic", "time"))
+            )
             if is_addon and s.squad_uuid:
-                if str(s.squad_uuid).strip().lower() not in user_squad_uuids:
+                if not has_active_sub or str(s.squad_uuid).strip().lower() not in active_squad_uuids:
                     continue
             filtered_services.append(s)
 
-        plans_data = [
-            {
+        # Resolve server country flags for shop plans
+        cluster_nodes = []
+        try:
+            cached_cluster_nodes = await cache.get("tma:cluster:nodes_overview")
+            if cached_cluster_nodes:
+                cluster_nodes = cached_cluster_nodes
+            else:
+                raw_nodes = await remnawave.get_nodes() or []
+                cluster_nodes = raw_nodes
+                if raw_nodes:
+                    await cache.set("tma:cluster:nodes_overview", raw_nodes, ttl_seconds=60)
+        except Exception as node_err:
+            logger.debug("Failed fetching nodes for plan flags: %s", node_err)
+
+        default_cluster_flags = []
+        for n in cluster_nodes:
+            if isinstance(n, dict):
+                cc = str(n.get("countryCode") or n.get("country_code") or "").strip().upper()
+                if cc and cc != "XX":
+                    f = country_flag(cc)
+                    if f and f != "🌐" and f not in default_cluster_flags:
+                        default_cluster_flags.append(f)
+        if not default_cluster_flags:
+            default_cluster_flags = ["🇩🇪", "🇳🇱", "🇫🇮"]
+
+        plans_data = []
+        for s in filtered_services:
+            plan_flags = []
+            if s.squad_uuid:
+                s_uuid_clean = str(s.squad_uuid).strip().lower()
+                for n in cluster_nodes:
+                    if not isinstance(n, dict):
+                        continue
+                    sqs = n.get("internalSquads") or n.get("squads") or []
+                    node_squad_uuids = [
+                        str(sq.get("uuid") if isinstance(sq, dict) else sq).strip().lower()
+                        for sq in sqs if sq
+                    ]
+                    inbounds = n.get("inbounds") or []
+                    for ib in inbounds:
+                        if isinstance(ib, dict):
+                            ib_sqs = ib.get("internalSquads") or ib.get("squads") or []
+                            for sq in ib_sqs:
+                                u = str(sq.get("uuid") if isinstance(sq, dict) else sq).strip().lower()
+                                if u:
+                                    node_squad_uuids.append(u)
+                    if s_uuid_clean in node_squad_uuids:
+                        cc = str(n.get("countryCode") or n.get("country_code") or "").strip().upper()
+                        f = country_flag(cc) if cc and cc != "XX" else "🌐"
+                        if f not in plan_flags:
+                            plan_flags.append(f)
+                if not plan_flags:
+                    plan_flags = ["🌐"]
+            else:
+                plan_flags = default_cluster_flags[:4]
+
+            plans_data.append({
                 "id": s.id,
                 "name": s.name,
                 "price": s.price,
@@ -399,9 +483,9 @@ async def get_user_me(request: web.Request) -> web.Response:
                 "hwid_limit": s.hwid_limit,
                 "badge": s.badge or "",
                 "squad_uuid": s.squad_uuid or "",
-            }
-            for s in filtered_services
-        ]
+                "flags": plan_flags,
+                "flags_label": "اسکواد اختصاصی" if s.squad_uuid else "سراسری",
+            })
         is_invite_only = False
         is_adm = bool(user_auth.get("is_admin", False))
         if not is_adm:
@@ -414,7 +498,7 @@ async def get_user_me(request: web.Request) -> web.Response:
             except Exception as e:
                 logger.debug("Failed checking invite-only status: %s", e)
         transactions = await _fetch_transaction_history(session, telegram_id, tz_name)
-        user_settings, active_won_coupons, wheel_status = await _fetch_user_perks_and_settings(
+        user_settings, active_won_coupons, wheel_status, total_gift_traffic, birthday_claimed = await _fetch_user_perks_and_settings(
             session, cache, telegram_id, has_active_sub, db_user
         )
 
@@ -474,6 +558,17 @@ async def get_user_me(request: web.Request) -> web.Response:
             else:
                 support_link = f"https://t.me/{raw_support_contact}"
 
+        achievements_data = {
+            "total_gift_traffic_gb": round(total_gift_traffic, 2),
+            "active_coupons_count": len(active_won_coupons),
+            "wheel_streak": wheel_status.get("streak", 0),
+            "spin_tickets": wheel_status.get("spin_tickets", 0),
+            "has_birthday_set": bool(birth_date_val and str(birth_date_val).strip()),
+            "days_until_birthday": days_until_birthday,
+            "is_birthday_today": is_birthday_today,
+            "birthday_claimed": birthday_claimed,
+        }
+
         data = {
             "partial": is_partial,
             "panel_error": panel_error,
@@ -517,6 +612,7 @@ async def get_user_me(request: web.Request) -> web.Response:
             "transactions": transactions[:50],
             "won_coupons": active_won_coupons,
             "wheel_status": wheel_status,
+            "achievements": achievements_data,
         }
 
         if not is_partial:

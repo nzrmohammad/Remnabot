@@ -20,6 +20,152 @@
 
   // Support Chat, Campaigns, App Recommendations & Settings Actions
   Object.assign(window.adminActions, {
+    openCardTemplateModal() {
+      $('cardTemplateModal')?.classList.remove('hidden');
+      if (window.hapticFeedback) window.hapticFeedback('selection');
+    },
+    closeCardTemplateModal() {
+      $('cardTemplateModal')?.classList.add('hidden');
+    },
+    selectCardTemplate(val, name, icon = '💳') {
+      const input = $('settingCardTemplate');
+      if (input) input.value = val;
+      if ($('settingCardTemplateLabel')) $('settingCardTemplateLabel').innerText = name;
+      if ($('settingCardTemplateIcon')) $('settingCardTemplateIcon').innerText = icon;
+      this.closeCardTemplateModal();
+      if (window.hapticFeedback) window.hapticFeedback('selection');
+    },
+
+    openCardColorModal() {
+      const modal = $('cardColorModal');
+      const list = $('cardColorList');
+      if (!modal || !list) return;
+      modal.classList.remove('hidden');
+      if (window.hapticFeedback) window.hapticFeedback('selection');
+
+      const currentVal = $('settingBluBankColor')?.value || 'red';
+      const colors = [
+        { id: 'blue', name: 'آبی کلاسیک', icon: '🔵', desc: 'Blue' },
+        { id: 'green', name: 'سبز چمنی', icon: '🟢', desc: 'Green' },
+        { id: 'red', name: 'قرمز گیلاسی', icon: '🔴', desc: 'Red' },
+        { id: 'yellow', name: 'زرد لیمویی', icon: '🟡', desc: 'Yellow' },
+        { id: 'purple', name: 'بنفش شاه‌توتی', icon: '🟣', desc: 'Purple' },
+        { id: 'rose', name: 'رز صورتی', icon: '🌸', desc: 'Rose' },
+        { id: 'black', name: 'مشکی مات', icon: '⚫️', desc: 'Black Matte' },
+      ];
+
+      list.innerHTML = colors.map(c => `
+        <div onclick="window.adminActions.selectCardColor('${c.id}', '${c.name}', '${c.icon}')" class="p-3 rounded-2xl border transition cursor-pointer flex items-center justify-between gap-3 ${currentVal === c.id ? 'bg-blue-600/15 border-blue-500 shadow-sm' : 'card-inset hover:border-slate-500/50'}">
+          <div class="flex items-center gap-2.5">
+            <span class="text-base">${c.icon}</span>
+            <div>
+              <span class="text-xs font-bold ${currentVal === c.id ? 't-info' : 't-main'} block">${c.name}</span>
+              <span class="text-[10px] t-muted block">${c.desc}</span>
+            </div>
+          </div>
+          ${currentVal === c.id ? '<span class="text-xs text-blue-400 font-bold">✓</span>' : ''}
+        </div>
+      `).join('');
+    },
+    closeCardColorModal() {
+      $('cardColorModal')?.classList.add('hidden');
+    },
+    selectCardColor(val, name, icon) {
+      const input = $('settingBluBankColor');
+      if (input) input.value = val;
+      if ($('settingBluBankColorLabel')) $('settingBluBankColorLabel').innerText = name;
+      if ($('settingBluBankColorIcon')) $('settingBluBankColorIcon').innerText = icon;
+      this.closeCardColorModal();
+      if (window.hapticFeedback) window.hapticFeedback('selection');
+    },
+
+    async openDefaultSquadPickerModal() {
+      const modal = $('defaultSquadPickerModal');
+      const list = $('defaultSquadPickerList');
+      if (!modal || !list) return;
+      modal.classList.remove('hidden');
+      if (window.hapticFeedback) window.hapticFeedback('selection');
+
+      const currentVal = $('settingDefaultSquadUuid')?.value || '';
+      list.innerHTML = '<div class="p-4 text-center t-muted text-xs">در حال بارگذاری اسکوادها...</div>';
+
+      let squads = window._adminInternalSquads || [];
+      if (!squads.length && window.api && window.api.getAdminRemnawaveSquads) {
+        try {
+          const res = await window.api.getAdminRemnawaveSquads();
+          if (res && res.ok && Array.isArray(res.squads)) {
+            squads = res.squads;
+            window._adminInternalSquads = squads;
+          }
+        } catch (e) {
+          console.error('Failed to load squads', e);
+        }
+      }
+
+      let html = `
+        <div onclick="window.adminActions.selectDefaultSquad('', 'انتخاب کنید', '🧩')" class="p-3 rounded-2xl border transition cursor-pointer flex items-center justify-between gap-3 ${currentVal === '' ? 'bg-blue-600/15 border-blue-500 shadow-sm' : 'card-inset hover:border-slate-500/50'}">
+          <div class="flex items-center gap-2.5 min-w-0">
+            <span class="text-base">🧩</span>
+            <div>
+              <span class="text-xs font-bold ${currentVal === '' ? 't-info' : 't-main'} block">انتخاب کنید</span>
+              <span class="text-[10px] t-muted block">بدون تعیین اسکواد اختصاصی پیش‌فرض</span>
+            </div>
+          </div>
+          ${currentVal === '' ? '<span class="text-xs text-blue-400 font-bold">✓</span>' : ''}
+        </div>
+      `;
+
+      squads.forEach(sq => {
+        const uuid = sq.uuid || sq.id;
+        const name = sq.name || uuid;
+        const isSelected = currentVal === uuid;
+        html += `
+          <div onclick="window.adminActions.selectDefaultSquad('${escapeHtml(uuid)}', '${escapeHtml(name)}', '🧩')" class="p-3 rounded-2xl border transition cursor-pointer flex items-center justify-between gap-3 ${isSelected ? 'bg-blue-600/15 border-blue-500 shadow-sm' : 'card-inset hover:border-slate-500/50'}">
+            <div class="flex items-center gap-2.5 min-w-0">
+              <span class="text-base">🧩</span>
+              <div>
+                <span class="text-xs font-bold ${isSelected ? 't-info' : 't-main'} truncate block">${escapeHtml(name)}</span>
+                <span class="text-[10px] t-muted font-mono block">${escapeHtml(uuid.slice(0, 18))}…</span>
+              </div>
+            </div>
+            ${isSelected ? '<span class="text-xs text-blue-400 font-bold">✓</span>' : ''}
+          </div>
+        `;
+      });
+
+      list.innerHTML = html;
+    },
+    closeDefaultSquadPickerModal() {
+      $('defaultSquadPickerModal')?.classList.add('hidden');
+    },
+    selectDefaultSquad(uuid, name, icon = '🧩') {
+      const input = $('settingDefaultSquadUuid');
+      if (input) input.value = uuid;
+      if ($('settingDefaultSquadLabel')) $('settingDefaultSquadLabel').innerText = uuid ? name : 'انتخاب کنید';
+      if ($('settingDefaultSquadIcon')) $('settingDefaultSquadIcon').innerText = icon;
+      this.closeDefaultSquadPickerModal();
+      if (window.hapticFeedback) window.hapticFeedback('selection');
+    },
+    async updateDefaultSquadDisplay(uuid) {
+      if (!uuid) {
+        if ($('settingDefaultSquadLabel')) $('settingDefaultSquadLabel').innerText = 'انتخاب کنید';
+        return;
+      }
+      let squads = window._adminInternalSquads || [];
+      if (!squads.length && window.api && window.api.getAdminRemnawaveSquads) {
+        try {
+          const res = await window.api.getAdminRemnawaveSquads();
+          if (res && res.ok && Array.isArray(res.squads)) {
+            squads = res.squads;
+            window._adminInternalSquads = squads;
+          }
+        } catch (e) {}
+      }
+      const match = squads.find(s => (s.uuid || s.id) === uuid);
+      if ($('settingDefaultSquadLabel')) {
+        $('settingDefaultSquadLabel').innerText = match ? (match.name || match.uuid) : 'انتخاب کنید';
+      }
+    },
     resetBirthdayTemplate() {
       const el = $('settingBirthdayMessage');
       if (el) el.value = DEFAULT_BIRTHDAY_TEMPLATE;
@@ -885,27 +1031,38 @@ openUserChat(telegram_id, name, tag, topup_id) {
       if (bdayMsg) bdayMsg.value = s.birthday_custom_message || DEFAULT_BIRTHDAY_TEMPLATE;
 
       const bluColor = $('settingBluBankColor');
-      if (bluColor) bluColor.value = s.card_blubank_color || 'blue';
+      if (bluColor) {
+        const cVal = s.card_blubank_color || 'red';
+        bluColor.value = cVal;
+        const colorMap = {
+          blue: { name: 'آبی کلاسیک', icon: '🔵' },
+          green: { name: 'سبز چمنی', icon: '🟢' },
+          red: { name: 'قرمز گیلاسی', icon: '🔴' },
+          yellow: { name: 'زرد لیمویی', icon: '🟡' },
+          purple: { name: 'بنفش شاه‌توتی', icon: '🟣' },
+          rose: { name: 'رز صورتی', icon: '🌸' },
+          black: { name: 'مشکی مات', icon: '⚫️' }
+        };
+        const cMeta = colorMap[cVal] || colorMap.red;
+        if ($('settingBluBankColorLabel')) $('settingBluBankColorLabel').innerText = cMeta.name;
+        if ($('settingBluBankColorIcon')) $('settingBluBankColorIcon').innerText = cMeta.icon;
+      }
 
       const cardGraphicalSwitch = $('settingCardGraphicalSwitch');
       if (cardGraphicalSwitch) cardGraphicalSwitch.checked = s.card_graphical_view_enabled !== false;
 
       const cardTemplate = $('settingCardTemplate');
-      if (cardTemplate) cardTemplate.value = s.card_template || 'blubank';
+      if (cardTemplate) {
+        cardTemplate.value = s.card_template || 'blubank';
+        if ($('settingCardTemplateLabel')) $('settingCardTemplateLabel').innerText = 'بلوبانک';
+        if ($('settingCardTemplateIcon')) $('settingCardTemplateIcon').innerText = '💳';
+      }
 
       const defSquadEl = $('settingDefaultSquadUuid');
       if (defSquadEl) {
-        defSquadEl.value = s.default_squad_uuid || '';
-        if (window.api && typeof window.api.getAdminRemnawaveSquads === 'function' && !defSquadEl._loadedSquads) {
-          window.api.getAdminRemnawaveSquads().then(res => {
-            if (res && res.ok && Array.isArray(res.squads)) {
-              defSquadEl.innerHTML = '<option value="">🌐 همه سرورها (سراسری / بدون اسکواد اختصاصی)</option>' +
-                res.squads.map(sq => `<option value="${sq.uuid}">${sq.name || sq.uuid}</option>`).join('');
-              defSquadEl.value = s.default_squad_uuid || '';
-              defSquadEl._loadedSquads = true;
-            }
-          }).catch(() => {});
-        }
+        const sqUuid = s.default_squad_uuid || '';
+        defSquadEl.value = sqUuid;
+        window.adminActions.updateDefaultSquadDisplay(sqUuid);
       }
 
       // Join Gate
