@@ -29,19 +29,84 @@ async def get_user_nodes(request: web.Request) -> web.Response:
         return err
     remnawave = request.app["remnawave"]
     cache: FastCache = request.app["cache"]
-    cache_key = "tma:public:nodes"
+    cache_key = f"tma:user:{int(user_auth['id'])}:nodes"
 
     cached_nodes = await cache.get(cache_key)
     if cached_nodes:
         return web.json_response({"ok": True, "nodes": cached_nodes})
 
+    telegram_id = int(user_auth["id"])
     nodes = await remnawave.get_nodes() or []
+    # Resolve user's active squad(s)
+    active_squad_ids = set()
+    try:
+        user_panel_users = await remnawave.get_users_by_telegram_id(telegram_id) or []
+        for pu in user_panel_users:
+            if str(pu.get("status") or "").upper() == "ACTIVE":
+                raw_sqs = (
+                    pu.get("activeInternalSquads")
+                    or pu.get("internalSquads")
+                    or pu.get("activeInternalSquadsUuids")
+                    or pu.get("internalSquadsUuids")
+                    or []
+                )
+                for sq in raw_sqs:
+                    if isinstance(sq, dict):
+                        u = sq.get("uuid") or sq.get("id")
+                        if u:
+                            active_squad_ids.add(str(u).strip().lower())
+                        n_name = sq.get("name")
+                        if n_name:
+                            active_squad_ids.add(str(n_name).strip().lower())
+                    elif isinstance(sq, str):
+                        active_squad_ids.add(sq.strip().lower())
+    except Exception as sq_err:
+        logger.debug("Failed resolving user squads for nodes filter: %s", sq_err)
+
     cleaned_nodes = []
     for node in nodes:
+        if node.get("isDisabled"):
+            continue
+
+        # Extract node squads (node-level and inbound-level)
+        node_squad_ids = set()
+        sqs = node.get("internalSquads") or node.get("squads") or []
+        for sq in sqs:
+            if isinstance(sq, dict):
+                u = sq.get("uuid") or sq.get("id")
+                if u:
+                    node_squad_ids.add(str(u).strip().lower())
+                n_name = sq.get("name")
+                if n_name:
+                    node_squad_ids.add(str(n_name).strip().lower())
+            elif isinstance(sq, str):
+                node_squad_ids.add(sq.strip().lower())
+
+        inbounds = node.get("inbounds") or []
+        for ib in inbounds:
+            if isinstance(ib, dict):
+                ib_sqs = ib.get("internalSquads") or ib.get("squads") or []
+                for sq in ib_sqs:
+                    if isinstance(sq, dict):
+                        u = sq.get("uuid") or sq.get("id")
+                        if u:
+                            node_squad_ids.add(str(u).strip().lower())
+                        n_name = sq.get("name")
+                        if n_name:
+                            node_squad_ids.add(str(n_name).strip().lower())
+                    elif isinstance(sq, str):
+                        node_squad_ids.add(sq.strip().lower())
+
+        # If user has active squad, filter out nodes from other squads
+        if active_squad_ids and node_squad_ids:
+            if not (node_squad_ids & active_squad_ids):
+                continue
+
         cleaned_nodes.append({
+            "address": node.get("address") or node.get("host") or "اتصال مستقیم",
             "name": node.get("name", "Server"),
             "country_code": node.get("country_code", "EU"),
-            "status": node.get("status", "ONLINE"),
+            "status": "ONLINE" if (node.get("isConnected") and not node.get("isDisabled")) else "OFFLINE",
         })
 
     await cache.set(cache_key, cleaned_nodes, ttl_seconds=30)

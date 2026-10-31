@@ -171,11 +171,6 @@ function updateTopupDisplays(amt) {
     const trxDisplay = document.getElementById('trxAmountDisplay');
     if (trxDisplay) trxDisplay.innerText = `${trxAmt} TRX`;
   }
-  const usdtRate = window.storeSettings?.usdt_rate_toman || 100000;
-  const usdtAmt = ((amt || 0) / usdtRate).toFixed(2);
-  const xrocketAmtEl = document.getElementById('xrocketAmountUsd');
-  if (xrocketAmtEl) xrocketAmtEl.innerText = `${usdtAmt} USDT`;
-
   const starsRate = window.storeSettings?.stars_rate_toman || 1600;
   const starsCount = Math.max(1, Math.ceil((amt || 0) / starsRate));
   const starsReqEl = document.getElementById('starsRequiredCount');
@@ -210,8 +205,7 @@ async function loadTopupInfo() {
       const hasStars = res.stars_enabled === true;
       const hasCrypto = res.crypto_enabled === true;
       const hasTrx = res.trx_enabled === true;
-      const hasXRocket = res.xrocket_enabled === true;
-      const anyMethodEnabled = hasCard || hasStars || hasCrypto || hasTrx || hasXRocket;
+      const anyMethodEnabled = hasCard || hasStars || hasCrypto || hasTrx;
 
       const tabsContainer = document.getElementById('topupMethodTabs');
       const amountSection = document.getElementById('topupAmountSection');
@@ -220,7 +214,6 @@ async function loadTopupInfo() {
       const viewStars = document.getElementById('topupStarsView');
       const viewCrypto = document.getElementById('topupCryptoView');
       const viewTrx = document.getElementById('topupTrxView');
-      const viewXRocket = document.getElementById('topupXRocketView');
 
       if (!anyMethodEnabled) {
         tabsContainer?.classList.add('hidden');
@@ -229,7 +222,6 @@ async function loadTopupInfo() {
         viewStars?.classList.add('hidden');
         viewCrypto?.classList.add('hidden');
         viewTrx?.classList.add('hidden');
-        viewXRocket?.classList.add('hidden');
         disabledState?.classList.remove('hidden');
       } else {
         disabledState?.classList.add('hidden');
@@ -240,7 +232,6 @@ async function loadTopupInfo() {
         document.getElementById('topupMethodCryptoBtn')?.classList.toggle('hidden', !hasCrypto);
         document.getElementById('topupMethodTrxBtn')?.classList.toggle('hidden', !hasTrx);
         document.getElementById('topupMethodStarsBtn')?.classList.toggle('hidden', !hasStars);
-        document.getElementById('topupMethodXRocketBtn')?.classList.toggle('hidden', !hasXRocket);
 
         const activeMethod = window.currentTopupTab || 'card';
         const methodEnabledMap = {
@@ -248,10 +239,9 @@ async function loadTopupInfo() {
           crypto: hasCrypto,
           trx: hasTrx,
           stars: hasStars,
-          xrocket: hasXRocket
         };
         if (!methodEnabledMap[activeMethod]) {
-          const fallback = ['card', 'crypto', 'trx', 'stars', 'xrocket'].find(k => methodEnabledMap[k]);
+          const fallback = ['card', 'crypto', 'trx', 'stars'].find(k => methodEnabledMap[k]);
           if (fallback) switchTopupTab(fallback);
         }
       }
@@ -320,12 +310,10 @@ function updateTopupMutexUI() {
   const btnStars = document.getElementById('topupMethodStarsBtn');
   const btnCrypto = document.getElementById('topupMethodCryptoBtn');
   const btnTrx = document.getElementById('topupMethodTrxBtn');
-  const btnXRocket = document.getElementById('topupMethodXRocketBtn');
   const tabs = [
     { el: btnCard, type: 'CARD' },
     { el: btnCrypto, type: 'TON' },
     { el: btnTrx, type: 'TRX' },
-    { el: btnXRocket, type: null },
     { el: btnStars, type: null }
   ];
 
@@ -364,21 +352,19 @@ function switchTopupTab(tab) {
   const btnStars = document.getElementById('topupMethodStarsBtn');
   const btnCrypto = document.getElementById('topupMethodCryptoBtn');
   const btnTrx = document.getElementById('topupMethodTrxBtn');
-  const btnXRocket = document.getElementById('topupMethodXRocketBtn');
 
   const viewCard = document.getElementById('topupCardView');
   const viewStars = document.getElementById('topupStarsView');
   const viewCrypto = document.getElementById('topupCryptoView');
   const viewTrx = document.getElementById('topupTrxView');
-  const viewXRocket = document.getElementById('topupXRocketView');
 
-  [btnCard, btnStars, btnCrypto, btnTrx, btnXRocket].forEach(b => {
+  [btnCard, btnStars, btnCrypto, btnTrx].forEach(b => {
     if (b) {
       b.classList.remove('bg-blue-600', 'text-white');
       b.classList.add('text-slate-400');
     }
   });
-  [viewCard, viewStars, viewCrypto, viewTrx, viewXRocket].forEach(v => {
+  [viewCard, viewStars, viewCrypto, viewTrx].forEach(v => {
     if (v) v.classList.add('hidden');
   });
 
@@ -398,10 +384,6 @@ function switchTopupTab(tab) {
     btnTrx?.classList.add('bg-blue-600', 'text-white');
     btnTrx?.classList.remove('text-slate-400');
     viewTrx?.classList.remove('hidden');
-  } else if (tab === 'xrocket') {
-    btnXRocket?.classList.add('bg-blue-600', 'text-white');
-    btnXRocket?.classList.remove('text-slate-400');
-    viewXRocket?.classList.remove('hidden');
   }
 }
 
@@ -1003,7 +985,7 @@ async function openTopupModal(defaultAmt, forceCrypto = false) {
     const hasActiveCrypto = restoreActiveCryptoInvoice();
     const hasActiveTrx = restoreActiveTrxInvoice();
     const activeType = getActiveInvoiceType();
-    const anyEnabled = s.card_enabled !== false || s.stars_enabled !== false || s.crypto_enabled !== false || s.trx_enabled !== false || s.xrocket_enabled !== false;
+    const anyEnabled = s.card_enabled !== false || s.stars_enabled !== false || s.crypto_enabled !== false || s.trx_enabled !== false;
     if (!anyEnabled) {
       document.getElementById('topupMethodTabs')?.classList.add('hidden');
       document.getElementById('topupAmountSection')?.classList.add('hidden');
@@ -1011,7 +993,6 @@ async function openTopupModal(defaultAmt, forceCrypto = false) {
       document.getElementById('topupStarsView')?.classList.add('hidden');
       document.getElementById('topupCryptoView')?.classList.add('hidden');
       document.getElementById('topupTrxView')?.classList.add('hidden');
-      document.getElementById('topupXRocketView')?.classList.add('hidden');
       document.getElementById('topupAllDisabledState')?.classList.remove('hidden');
     } else if (activeType === 'CARD') {
       switchToCardTab();
@@ -1029,8 +1010,6 @@ async function openTopupModal(defaultAmt, forceCrypto = false) {
       switchToCryptoTab();
     } else if (s.trx_enabled !== false) {
       switchTopupTab('trx');
-    } else if (s.xrocket_enabled !== false) {
-      switchTopupTab('xrocket');
     } else if (s.stars_enabled !== false) {
       switchTopupTab('stars');
     }
@@ -1066,7 +1045,6 @@ function setupWalletListeners() {
   const methodStarsBtn = document.getElementById('topupMethodStarsBtn');
   const methodCryptoBtn = document.getElementById('topupMethodCryptoBtn');
   const methodTrxBtn = document.getElementById('topupMethodTrxBtn');
-  const methodXRocketBtn = document.getElementById('topupMethodXRocketBtn');
 
   methodCardBtn?.addEventListener('click', () => {
     switchTopupTab('card');
@@ -1084,10 +1062,6 @@ function setupWalletListeners() {
   methodTrxBtn?.addEventListener('click', () => {
     switchTopupTab('trx');
     restoreActiveTrxInvoice();
-  });
-
-  methodXRocketBtn?.addEventListener('click', () => {
-    switchTopupTab('xrocket');
   });
 
   document.getElementById('closeTopupModalBtn')?.addEventListener('click', () => {
@@ -1546,40 +1520,6 @@ function setupWalletListeners() {
     } finally {
       btn.disabled = false;
       btn.innerHTML = '<span>🔍</span> بررسی و تأیید واریز TRX';
-    }
-  });
-
-  // xRocket Gateway Listener
-  document.getElementById('submitXRocketTopupBtn')?.addEventListener('click', async () => {
-    const amt = parseInt(topupAmountInput?.value || '0', 10);
-    if (!amt || amt < 10000) {
-      showToast('⚠️ لطفاً مبلغ معتبر وارد فرمایید.');
-      return;
-    }
-    const currency = document.getElementById('xrocketCurrencySelect')?.value || 'USDT';
-    const btn = document.getElementById('submitXRocketTopupBtn');
-    btn.disabled = true;
-    btn.innerHTML = '<span>⏳</span> در حال ایجاد فاکتور xRocket...';
-    try {
-      const res = await window.api.createXRocketInvoice(amt, currency);
-      if (res.ok && res.pay_url) {
-        if (window.Telegram?.WebApp?.openTelegramLink && res.pay_url.includes('t.me')) {
-          window.Telegram.WebApp.openTelegramLink(res.pay_url);
-        } else if (window.Telegram?.WebApp?.openLink) {
-          window.Telegram.WebApp.openLink(res.pay_url);
-        } else {
-          window.open(res.pay_url, '_blank');
-        }
-        showToast('🚀 درگاه xRocket باز شد. پس از پرداخت، کیف پول به‌صورت آنی شارژ خواهد شد.');
-        closeModal('topupModal');
-      } else {
-        showToast(`❌ ${res.message || res.error || 'خطا در ایجاد درگاه xRocket'}`);
-      }
-    } catch (e) {
-      showToast('❌ خطا در ارتباط با سرور.');
-    } finally {
-      btn.disabled = false;
-      btn.innerHTML = '<span>🚀</span> ایجاد و پرداخت با xRocket';
     }
   });
 

@@ -968,7 +968,7 @@ openEditSslDomainModal(domain) {
       resList.innerHTML = res.results.map(r => {
         const isOk = r.ok;
         const statusClass = isOk ? 'text-emerald-500 border-emerald-500/30' : 'text-rose-500 border-rose-500/30';
-        const pingTime = r.ping_ms !== undefined && r.ping_ms !== null ? `${r.ping_ms} ms` : (r.status || (isOk ? 'OK' : 'Fail'));
+        const pingTime = r.ping_ms !== undefined && r.ping_ms !== null ? `${r.ping_ms} ms` : (r.status || (isOk ? 'OK' : 'عدم دسترسی'));
         return `
           <div class="card-inset p-2 rounded-xl border flex items-center justify-between ${statusClass}">
             <div class="flex items-center gap-1.5 truncate">

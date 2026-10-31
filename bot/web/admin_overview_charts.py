@@ -542,7 +542,7 @@ async def get_periodic_users_bandwidth(
     user_stats: list[dict[str, Any]] = []
 
     if hasattr(remnawave, "get_user_bandwidth_stats") and active_users:
-        start_ds = (now_utc - timedelta(days=29)).strftime("%Y-%m-%d")
+        start_ds = (now_utc - timedelta(days=59)).strftime("%Y-%m-%d")
         end_ds = now_utc.strftime("%Y-%m-%d")
         sem = asyncio.Semaphore(12)
 
@@ -564,6 +564,7 @@ async def get_periodic_users_bandwidth(
             u, raw_series = item
             week_bytes = 0
             month_bytes = 0
+            prev_month_bytes = 0
 
             if raw_series and isinstance(raw_series, list):
                 for s in raw_series:
@@ -571,12 +572,19 @@ async def get_periodic_users_bandwidth(
                         continue
                     s_data = s.get("data") or []
                     if s_data:
-                        for val in s_data:
+                        curr_slice = s_data[-30:] if len(s_data) >= 30 else s_data
+                        prev_slice = s_data[:-30] if len(s_data) > 30 else []
+                        for val in curr_slice:
                             try:
                                 month_bytes += int(float(val or 0))
                             except (ValueError, TypeError):
                                 pass
-                        for val in s_data[-7:]:
+                        for val in prev_slice:
+                            try:
+                                prev_month_bytes += int(float(val or 0))
+                            except (ValueError, TypeError):
+                                pass
+                        for val in curr_slice[-7:]:
                             try:
                                 week_bytes += int(float(val or 0))
                             except (ValueError, TypeError):
@@ -588,7 +596,8 @@ async def get_periodic_users_bandwidth(
 
             all_time = get_used_bytes(u)
             if month_bytes == 0 and all_time > 0:
-                month_bytes = min(all_time, int(all_time * 0.7))
+                month_bytes = min(all_time, int(all_time * 0.55))
+                prev_month_bytes = min(all_time - month_bytes, int(all_time * 0.35))
                 week_bytes = min(month_bytes, int(month_bytes * 0.35))
 
             user_stats.append({
@@ -597,13 +606,16 @@ async def get_periodic_users_bandwidth(
                 "telegram_id": u.get("telegramId"),
                 "week_bytes": week_bytes,
                 "month_bytes": month_bytes,
+                "prev_month_bytes": prev_month_bytes,
                 "week_gb": round(week_bytes / (1024 ** 3), 2),
                 "month_gb": round(month_bytes / (1024 ** 3), 2),
+                "prev_month_gb": round(prev_month_bytes / (1024 ** 3), 2),
             })
     else:
         for u in (panel_users or [])[:30]:
             all_time = get_used_bytes(u)
-            m_bytes = int(all_time * 0.6)
+            m_bytes = int(all_time * 0.55)
+            pm_bytes = int(all_time * 0.35)
             w_bytes = int(all_time * 0.25)
             user_stats.append({
                 "id": u.get("id"),
@@ -611,8 +623,10 @@ async def get_periodic_users_bandwidth(
                 "telegram_id": u.get("telegramId"),
                 "week_bytes": w_bytes,
                 "month_bytes": m_bytes,
+                "prev_month_bytes": pm_bytes,
                 "week_gb": round(w_bytes / (1024 ** 3), 2),
                 "month_gb": round(m_bytes / (1024 ** 3), 2),
+                "prev_month_gb": round(pm_bytes / (1024 ** 3), 2),
             })
 
     sorted_week = sorted(user_stats, key=lambda x: x["week_bytes"], reverse=True)
@@ -624,6 +638,7 @@ async def get_periodic_users_bandwidth(
             "username": u["username"],
             "telegram_id": u["telegram_id"],
             "used_gb": u["week_gb"],
+            "prev_used_gb": u.get("prev_month_gb", 0.0),
             "is_champion": idx == 0 and u["week_gb"] > 0,
         })
 
@@ -636,18 +651,38 @@ async def get_periodic_users_bandwidth(
             "username": u["username"],
             "telegram_id": u["telegram_id"],
             "used_gb": u["month_gb"],
+            "prev_used_gb": u.get("prev_month_gb", 0.0),
             "is_champion": idx == 0 and u["month_gb"] > 0,
         })
+
+    # Top 10 for comparison
+    top_compare = top_month[:10]
+    compare_labels = [u["username"] for u in top_compare]
+    compare_curr = [u["used_gb"] for u in top_compare]
+    compare_prev = [u["prev_used_gb"] for u in top_compare]
 
     result = {
         "weekly": {
             "top_users": top_week,
             "all_users": sorted_week,
+            "labels": [u["username"] for u in top_week[:10]],
+            "data": [u["used_gb"] for u in top_week[:10]],
             "champion": top_week[0] if top_week else None,
         },
         "monthly": {
             "top_users": top_month,
             "all_users": sorted_month,
+            "labels": [u["username"] for u in top_month[:10]],
+            "data": [u["used_gb"] for u in top_month[:10]],
+            "champion": top_month[0] if top_month else None,
+        },
+        "comparison": {
+            "top_users": top_compare,
+            "all_users": sorted_month,
+            "labels": compare_labels,
+            "data": compare_curr,
+            "current_data": compare_curr,
+            "prev_data": compare_prev,
             "champion": top_month[0] if top_month else None,
         },
     }

@@ -1183,16 +1183,20 @@ openHighRiskUsersModal() {
     currentTopConsumersPeriod = period;
     const btnWeek = $('adminTopConsumersPeriodWeekly');
     const btnMonth = $('adminTopConsumersPeriodMonthly');
+    const btnCompare = $('adminTopConsumersPeriodCompare');
+    [btnWeek, btnMonth, btnCompare].forEach(b => {
+      b?.classList.remove('bg-blue-600', 'text-white', 'shadow-sm');
+      b?.classList.add('t-muted');
+    });
     if (period === 'weekly') {
       btnWeek?.classList.add('bg-blue-600', 'text-white', 'shadow-sm');
       btnWeek?.classList.remove('t-muted');
-      btnMonth?.classList.remove('bg-blue-600', 'text-white', 'shadow-sm');
-      btnMonth?.classList.add('t-muted');
-    } else {
+    } else if (period === 'monthly') {
       btnMonth?.classList.add('bg-blue-600', 'text-white', 'shadow-sm');
       btnMonth?.classList.remove('t-muted');
-      btnWeek?.classList.remove('bg-blue-600', 'text-white', 'shadow-sm');
-      btnWeek?.classList.add('t-muted');
+    } else if (period === 'comparison') {
+      btnCompare?.classList.add('bg-blue-600', 'text-white', 'shadow-sm');
+      btnCompare?.classList.remove('t-muted');
     }
     if (cachedTopConsumersData) {
       renderAdminTopConsumersChart(cachedTopConsumersData, period);
@@ -1210,43 +1214,30 @@ openHighRiskUsersModal() {
     if (!ctx) return;
 
     const labels = (activeData?.labels || []).slice(0, 10);
-    const values = (activeData?.data || []).slice(0, 10);
     const topUsers = (activeData?.top_users || []).slice(0, 10);
     const champion = activeData?.champion || topUsers[0] || null;
 
-    // Update champion badge
+    // Update champion badge: show ONLY name without @ and without GB
     const badgeLabel = $('championUserLabel');
     if (badgeLabel) {
-      if (champion && champion.username && champion.used_gb > 0) {
-        const champTrafStr = typeof fmtTraffic === 'function' ? fmtTraffic(champion.used_gb, { html: false }) : champion.used_gb;
-        badgeLabel.innerText = `قهرمان ${period === 'weekly' ? 'هفته' : 'ماه'}: @${champion.username} (${champTrafStr})`;
-      } else {
-        badgeLabel.innerText = `قهرمان ${period === 'weekly' ? 'هفته' : 'ماه'}: --`;
-      }
+      badgeLabel.innerText = champion && champion.username ? champion.username : '--';
     }
 
-    // Render leaderboard
+    // Render leaderboard without @ prefix and without crown
     const usersListEl = $('adminTopUsersList');
     if (usersListEl) {
-      if (topUsers.length === 0 || values.every(v => v === 0)) {
+      if (topUsers.length === 0) {
         usersListEl.innerHTML = '<div class="text-slate-400 text-[11px] text-center py-4">داده‌ای در این بازه ثبت نشده است</div>';
       } else {
         const medals = ['🥇', '🥈', '🥉', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣', '🔟'];
         usersListEl.innerHTML = topUsers.map((u, i) => {
           const medal = medals[i] || '👤';
-          const isChamp = i === 0 && u.used_gb > 0;
-          const bgCls = isChamp
-            ? 'bg-amber-500/10 border border-amber-500/30'
-            : 'card-inset border border-slate-200 dark:border-slate-700/40';
-          const txtCls = isChamp ? 'text-amber-600 dark:text-amber-300 font-bold' : 't-main font-semibold';
-          const crown = isChamp ? '<span class="text-xs">👑</span>' : '';
           const userTrafStr = typeof fmtTraffic === 'function' ? fmtTraffic(u.used_gb, { html: false }) : u.used_gb;
           return `
-            <div class="flex items-center justify-between p-1.5 rounded-lg ${bgCls}">
+            <div class="flex items-center justify-between p-1.5 rounded-lg border border-slate-700/40 bg-transparent">
               <div class="flex items-center gap-1.5 min-w-0">
                 <span class="text-xs">${medal}</span>
-                <span class="font-mono text-xs ${txtCls} truncate max-w-[110px]" dir="ltr">@${u.username}</span>
-                ${crown}
+                <span class="font-mono text-xs t-main font-semibold truncate max-w-[120px]" dir="ltr">${u.username}</span>
               </div>
               <span class="font-mono text-xs text-cyan-600 dark:text-cyan-400 font-bold" dir="ltr">${userTrafStr}</span>
             </div>
@@ -1255,19 +1246,48 @@ openHighRiskUsersModal() {
       }
     }
 
-    // Generate colors: Highlight champion with gold amber gradient
-    const bgColors = values.map((_, i) => i === 0 ? 'rgba(245, 158, 11, 0.85)' : 'rgba(99, 102, 241, 0.6)');
-    const borderColors = values.map((_, i) => i === 0 ? '#fbbf24' : '#818cf8');
-    const borderWidths = values.map((_, i) => i === 0 ? 2 : 1);
+    const isCompare = period === 'comparison';
+    let datasets = [];
+
+    if (isCompare) {
+      const currData = (activeData?.current_data || []).slice(0, 10);
+      const prevData = (activeData?.prev_data || []).slice(0, 10);
+      datasets = [
+        {
+          label: 'ماه جاری',
+          data: currData,
+          backgroundColor: 'rgba(99, 102, 241, 0.75)',
+          borderColor: '#6366f1',
+          borderWidth: 1,
+          borderRadius: 4,
+          borderSkipped: false,
+        },
+        {
+          label: 'ماه قبل',
+          data: prevData,
+          backgroundColor: 'rgba(6, 182, 212, 0.75)',
+          borderColor: '#06b6d4',
+          borderWidth: 1,
+          borderRadius: 4,
+          borderSkipped: false,
+        },
+      ];
+    } else {
+      const values = (activeData?.data || []).slice(0, 10);
+      datasets = [{
+        label: 'مصرف ترافیک',
+        data: values,
+        backgroundColor: 'rgba(99, 102, 241, 0.7)',
+        borderColor: '#6366f1',
+        borderWidth: 1,
+        borderRadius: 4,
+        borderSkipped: false,
+      }];
+    }
 
     if (topConsumersChartInstance) {
-      topConsumersChartInstance.data.labels = labels;
-      topConsumersChartInstance.data.datasets[0].data = values;
-      topConsumersChartInstance.data.datasets[0].backgroundColor = bgColors;
-      topConsumersChartInstance.data.datasets[0].borderColor = borderColors;
-      topConsumersChartInstance.data.datasets[0].borderWidth = borderWidths;
-      topConsumersChartInstance.update();
-      return;
+      topConsumersChartInstance.destroy();
+      topConsumersChartInstance = null;
     }
 
     const { grid: gridColor, tick: tickColor } = getThemeColors();
@@ -1276,30 +1296,30 @@ openHighRiskUsersModal() {
       type: 'bar',
       data: {
         labels: labels,
-        datasets: [{
-          label: 'مصرف ترافیک',
-          data: values,
-          backgroundColor: bgColors,
-          borderColor: borderColors,
-          borderWidth: borderWidths,
-          borderRadius: 6,
-          borderSkipped: false,
-        }],
+        datasets: datasets,
       },
       options: {
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
-          legend: { display: false },
+          legend: {
+            display: isCompare,
+            position: 'top',
+            labels: {
+              boxWidth: 12,
+              font: { family: 'Vazirmatn', size: 10 },
+              color: tickColor,
+            },
+          },
           tooltip: {
             rtl: true,
             titleFont: { family: 'Vazirmatn' },
             bodyFont: { family: 'Vazirmatn' },
             callbacks: {
               label: (c) => {
-                const isC = c.dataIndex === 0;
                 const trafVal = typeof fmtTraffic === 'function' ? fmtTraffic(c.raw, { html: false, isolate: true }) : c.raw;
-                return `${isC ? '👑 قهرمان دوره: ' : 'مصرف دوره: '}${trafVal}`;
+                const prefix = isCompare ? `${c.dataset.label}: ` : 'مصرف دوره: ';
+                return `${prefix}${trafVal}`;
               },
             },
           },

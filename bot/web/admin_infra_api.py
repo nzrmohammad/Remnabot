@@ -403,6 +403,34 @@ async def get_admin_tools_check_host(request: web.Request) -> web.Response:
     if not clean_host:
         return web.json_response({"ok": False, "error": "آدرس نامعتبر است."}, status=400)
 
+    # Validate DNS existence for hostnames before testing
+    import socket
+    is_ip = False
+    try:
+        socket.inet_aton(clean_host)
+        is_ip = True
+    except OSError:
+        pass
+
+    if not is_ip:
+        try:
+            await asyncio.get_event_loop().getaddrinfo(clean_host, None)
+        except Exception:
+            return web.json_response({
+                "ok": True,
+                "type": check_type,
+                "host": clean_host,
+                "results": [
+                    {
+                        "node_name": "وضعیت دامنه / DNS",
+                        "flag": "❌",
+                        "ok": False,
+                        "ping_ms": None,
+                        "status": "دامنه نامعتبر (عدم پاسخ DNS)",
+                    }
+                ],
+            })
+
     port = 443
     if port_val is not None and str(port_val).isdigit():
         port = int(port_val)
@@ -452,38 +480,48 @@ async def get_admin_tools_check_host(request: web.Request) -> web.Response:
                                     loc_name = f"{country} ({city})" if city else country
 
                                     pings: list[float] = []
-                                    status_text = "OK"
+                                    status_text = "عدم پاسخ (Timeout)"
                                     is_ok = False
 
                                     if isinstance(node_val, list) and node_val:
                                         first_elem = node_val[0]
                                         if isinstance(first_elem, list):
                                             for p in first_elem:
-                                                if isinstance(p, list) and len(p) >= 2 and p[0] == "OK":
-                                                    pings.append(float(p[1]))
+                                                if isinstance(p, list) and len(p) >= 2:
+                                                    if str(p[0]).upper() == "OK" and p[1] is not None:
+                                                        try:
+                                                            pings.append(float(p[1]))
+                                                        except (ValueError, TypeError):
+                                                            pass
+                                                    elif p[0]:
+                                                        status_text = str(p[0])
                                         elif isinstance(first_elem, dict):
-                                            status_text = str(first_elem.get("status") or "OK")
+                                            status_text = str(first_elem.get("status") or first_elem.get("error") or "عدم دسترسی")
                                             if first_elem.get("time") is not None:
                                                 pings.append(float(first_elem["time"]))
-                                            is_ok = first_elem.get("error") is None
+                                            is_ok = first_elem.get("error") is None and bool(pings)
                                     elif isinstance(node_val, dict):
-                                        status_text = str(node_val.get("status") or "OK")
+                                        status_text = str(node_val.get("status") or node_val.get("error") or "عدم دسترسی")
                                         if node_val.get("time") is not None:
                                             pings.append(float(node_val["time"]))
-                                        is_ok = node_val.get("error") is None
+                                        is_ok = node_val.get("error") is None and bool(pings)
 
                                     if pings:
                                         is_ok = True
                                         avg_ms = round((sum(pings) / len(pings)) * 1000.0, 1)
+                                        status_text = "OK"
                                     else:
                                         avg_ms = None
+                                        is_ok = False
+                                        if not status_text or status_text == "OK":
+                                            status_text = "عدم پاسخ (Timeout)"
 
                                     results.append({
                                         "node_name": loc_name,
                                         "flag": _cc_to_flag(cc),
                                         "ok": is_ok,
                                         "ping_ms": avg_ms,
-                                        "status": "OK" if is_ok else (status_text or "Timeout"),
+                                        "status": status_text,
                                     })
     except Exception as check_exc:
         logger.warning("Check-Host external API request failed, falling back to local diagnostics: %s", check_exc)
