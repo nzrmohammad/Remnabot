@@ -2550,9 +2550,14 @@
           </div>
         </div>
 
-        <button id="psvcCloseBtn" type="button" class="btn btn-secondary w-full py-2.5 text-xs font-bold">
-          مشاهده در داشبورد
-        </button>
+        <div class="grid grid-cols-2 gap-2 pt-1">
+          <button id="psvcInvoiceBtn" type="button" class="btn btn-primary py-2.5 text-xs font-bold flex items-center justify-center gap-1.5 shadow">
+            <span>🧾</span> فاکتور رسمی
+          </button>
+          <button id="psvcCloseBtn" type="button" class="btn btn-secondary py-2.5 text-xs font-bold">
+            مشاهده در داشبورد
+          </button>
+        </div>
       </div>
     </div>
 
@@ -3288,18 +3293,106 @@
 
       </div>
     </div>
+    <!-- ======================================================== -->
+    <!-- 16. MODAL: DIGITAL INVOICE & OFFICIAL RECEIPT (فاکتور رسمی) -->
+    <!-- ======================================================== -->
+    <div id="invoiceModal" onclick="if(event.target === this) window.closeInvoiceModal()" class="fixed inset-0 modal-backdrop z-[80] flex items-center justify-center p-3 sm:p-4 hidden animate-fadeIn overflow-y-auto">
+      <div class="modal-card border border-cyan-500/40 rounded-3xl p-4 sm:p-5 w-full text-right space-y-3.5 shadow-2xl relative max-w-[390px] my-auto">
+        <button type="button" onclick="window.closeInvoiceModal()" class="modal-close-btn absolute top-3.5 left-3.5 z-10" title="بستن" aria-label="بستن فاکتور">✕</button>
+
+        <!-- Official Header -->
+        <div class="border-b border-card-border pb-3 flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <span class="text-2xl">🧾</span>
+            <div>
+              <h3 class="text-xs font-bold t-main">فاکتور رسمی خدمات دیجیتال</h3>
+              <span class="text-[10px] t-muted block">رسید الکترونیک معتبر سامانه</span>
+            </div>
+          </div>
+          <div class="text-left font-mono">
+            <span id="invNumberDisplay" class="text-xs font-bold text-cyan-600 dark:text-cyan-400 block select-all">INV-0000-00000</span>
+            <span id="invDateDisplay" class="text-[10px] t-muted block">1403/00/00</span>
+          </div>
+        </div>
+
+        <!-- Buyer & Seller Details Grid -->
+        <div class="grid grid-cols-2 gap-2 text-[10.5px]">
+          <div class="card-inset p-2.5 rounded-xl space-y-1">
+            <span class="font-bold t-muted block border-b border-card-border pb-1">🏢 ارائه‌دهنده:</span>
+            <span id="invSellerName" class="font-bold t-main block truncate">سرویس ابری رمنا</span>
+            <span class="t-muted text-[10px] block">خدمات شبکه و رایانش</span>
+          </div>
+          <div class="card-inset p-2.5 rounded-xl space-y-1">
+            <span class="font-bold t-muted block border-b border-card-border pb-1">👤 خریدار / مشترک:</span>
+            <span id="invBuyerName" class="font-bold t-main block truncate">کاربر گرامی</span>
+            <span id="invBuyerId" class="t-muted font-mono text-[10px] block">ID: --</span>
+          </div>
+        </div>
+
+        <!-- Invoice Items Table -->
+        <div class="card-inset rounded-2xl p-3 space-y-2 text-xs">
+          <div class="flex justify-between items-center text-[11px] t-muted border-b border-card-border pb-1.5 font-medium">
+            <span>شرح خدمات و مشخصات</span>
+            <span>مبلغ (تومان)</span>
+          </div>
+          <div class="flex justify-between items-start pt-1">
+            <div class="space-y-0.5">
+              <b id="invItemTitle" class="t-main text-xs block">بسته اشتراک</b>
+              <span id="invItemSpecs" class="t-muted text-[10px] block">-- گیگابایت | -- روز</span>
+            </div>
+            <div class="text-left font-mono font-bold text-xs t-main">
+              <span id="invItemAmount">0</span>
+            </div>
+          </div>
+          <div class="border-t border-card-border pt-2 flex justify-between items-center text-xs">
+            <span class="font-bold t-main">مجموع پرداختی:</span>
+            <div class="text-left">
+              <span id="invFinalAmountToman" class="text-sm font-black text-emerald-500 font-mono">0</span>
+              <span class="text-[10px] t-muted font-sans mr-1">تومان</span>
+              <span id="invFinalAmountRial" class="text-[9.5px] t-muted font-mono block">(-- ریال)</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Official Payment Status & Verification Stamp -->
+        <div class="card-inset rounded-xl p-2.5 flex items-center justify-between text-[10.5px]">
+          <div>
+            <span class="t-muted block">وضعیت تراکنش:</span>
+            <span id="invPaymentStatus" class="font-bold text-emerald-500 flex items-center gap-1 mt-0.5">
+              <span>✅</span> <span>پرداخت شده و فعال</span>
+            </span>
+          </div>
+          <div class="text-left font-mono">
+            <span class="t-muted block text-[9.5px]">شناسه رهگیری:</span>
+            <code id="invTrackingCode" class="font-bold t-accent text-[10.5px] select-all">TRX-00000000</code>
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="space-y-2 pt-1">
+          <button id="sendInvoiceTelegramBtn" type="button" onclick="window.sendCurrentInvoiceTelegram()" class="btn btn-primary w-full py-2.5 rounded-xl text-xs font-bold shadow flex items-center justify-center gap-1.5">
+            <span>📨</span>
+            <span>ارسال رسید رسمی به تلگرام من</span>
+          </button>
+          <button type="button" onclick="window.printCurrentInvoice()" class="btn btn-secondary w-full py-2 text-xs font-bold flex items-center justify-center gap-1.5">
+            <span>🖨️</span>
+            <span>چاپ / ذخیره فاکتور</span>
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- Modular Frontend Architecture (DRY) -->
   <script src="/static/js/chart.umd.min.js" defer></script>
-  <script src="/static/js/utils.js?v=59.0" defer></script>
-  <script src="/static/js/api.js?v=59.0" defer></script>
-  <script src="/static/js/charts.js?v=59.0" defer></script>
-  <script src="/static/js/shop.js?v=60.0" defer></script>
-  <script src="/static/js/wallet.js?v=59.0" defer></script>
-  <script src="/static/js/wheel.js?v=59.0" defer></script>
-  <script src="/static/js/story.js?v=59.0" defer></script>
-  <script src="/static/js/speedtest.js?v=59.0" defer></script>
-  <script src="/static/js/app.js?v=60.0" defer></script>
+  <script src="/static/js/utils.js?v=61.0" defer></script>
+  <script src="/static/js/api.js?v=61.0" defer></script>
+  <script src="/static/js/charts.js?v=61.0" defer></script>
+  <script src="/static/js/shop.js?v=61.0" defer></script>
+  <script src="/static/js/wallet.js?v=61.0" defer></script>
+  <script src="/static/js/wheel.js?v=61.0" defer></script>
+  <script src="/static/js/story.js?v=61.0" defer></script>
+  <script src="/static/js/speedtest.js?v=61.0" defer></script>
+  <script src="/static/js/app.js?v=61.0" defer></script>
 </body>
 </html>

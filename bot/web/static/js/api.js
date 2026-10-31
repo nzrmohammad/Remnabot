@@ -191,6 +191,14 @@ const api = {
     return this.get('/api/user/gifts');
   },
 
+  async getInvoice(orderId) {
+    return this.get(`/api/user/invoice/${orderId}`);
+  },
+
+  async sendInvoiceToTelegram(orderId) {
+    return this.post(`/api/user/invoice/${orderId}/send-telegram`, {});
+  },
+
   async calculateCustomPlan(traffic_gb, duration_days) {
     return this.post('/api/user/custom-plan/calculate', { traffic_gb, duration_days });
   },

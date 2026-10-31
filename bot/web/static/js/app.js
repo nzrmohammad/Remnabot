@@ -3024,9 +3024,10 @@ function hydrateUserInterface(data) {
       if (totalSpent) totalSpent.innerText = `مجموع خرید: ${Number(loyalty.total_spent || 0).toLocaleString('en-US')} تومان`;
 
       if (loyalty.next_tier_name && loyalty.next_tier_threshold) {
+        const pct = loyalty.progress_percent ?? loyalty.progress_pct ?? 0;
         if (nextText) nextText.innerText = `تا سطح بعدی (${loyalty.next_tier_name}):`;
-        if (progPct) progPct.innerText = `${loyalty.progress_pct}%`;
-        if (progBar) progBar.style.width = `${loyalty.progress_pct}%`;
+        if (progPct) progPct.innerText = `${pct}%`;
+        if (progBar) progBar.style.width = `${pct}%`;
         if (targetSpent) targetSpent.innerText = `هدف بعدی: ${Number(loyalty.next_tier_threshold).toLocaleString('en-US')} تومان`;
       } else {
         if (nextText) nextText.innerText = 'بالاترین سطح باشگاه VIP 🎉';
@@ -4537,3 +4538,100 @@ window.copyGiftShareLink = copyGiftShareLink;
 window.submitClaimVoucher = submitClaimVoucher;
 window.loadGiftsHistory = loadGiftsHistory;
 window.populateGiftServices = populateGiftServices;
+
+// ========================================================
+// DIGITAL INVOICE & OFFICIAL RECEIPT CONTROLLERS
+// ========================================================
+let currentInvoiceData = null;
+
+async function openInvoiceModal(orderId) {
+  if (!orderId) return;
+  const modal = $('invoiceModal');
+  if (!modal) return;
+
+  modal.classList.remove('hidden');
+  $('invNumberDisplay').innerText = 'در حال استخراج...';
+  $('invDateDisplay').innerText = '--';
+  $('invSellerName').innerText = '...';
+  $('invBuyerName').innerText = '...';
+  $('invBuyerId').innerText = 'ID: --';
+  $('invItemTitle').innerText = 'در حال دریافت اطلاعات فاکتور...';
+  $('invItemSpecs').innerText = '';
+  $('invItemAmount').innerText = '--';
+  $('invFinalAmountToman').innerText = '--';
+  $('invFinalAmountRial').innerText = '';
+  $('invTrackingCode').innerText = 'TRX-........';
+
+  try {
+    const res = await window.api.getInvoice(orderId);
+    if (!res || !res.ok || !res.data) {
+      showToast(`❌ ${res?.message || 'فاکتور یافت نشد.'}`);
+      closeInvoiceModal();
+      return;
+    }
+
+    currentInvoiceData = res.data;
+    const inv = res.data;
+
+    $('invNumberDisplay').innerText = inv.invoice_number || `INV-${orderId}`;
+    $('invDateDisplay').innerText = `${inv.date_jalali} - ${inv.time_jalali}`;
+    $('invSellerName').innerText = inv.seller?.name || 'سرویس ابری رمنا';
+    $('invBuyerName').innerText = inv.buyer?.name || 'کاربر گرامی';
+    $('invBuyerId').innerText = `ID: ${inv.buyer?.telegram_id || '--'}`;
+
+    $('invItemTitle').innerText = inv.item?.title || 'بسته اشتراک';
+    $('invItemSpecs').innerText = `${inv.item?.traffic_text || ''} | ${inv.item?.duration_text || ''}`;
+    $('invItemAmount').innerText = Number(inv.payment?.amount_toman || 0).toLocaleString('en-US');
+
+    $('invFinalAmountToman').innerText = Number(inv.payment?.amount_toman || 0).toLocaleString('en-US');
+    $('invFinalAmountRial').innerText = `(${Number((inv.payment?.amount_toman || 0) * 10).toLocaleString('en-US')} ریال)`;
+    $('invTrackingCode').innerText = inv.payment?.tracking_code || `TRX-${orderId}`;
+
+    const statusEl = $('invPaymentStatus');
+    if (statusEl) {
+      statusEl.innerHTML = `<span>✅</span> <span>${inv.payment?.status || 'پرداخت شده و فعال'}</span>`;
+    }
+  } catch (err) {
+    console.warn('Failed loading invoice:', err);
+    showToast('❌ خطا در بارگذاری اطلاعات فاکتور.');
+    closeInvoiceModal();
+  }
+}
+
+function closeInvoiceModal() {
+  $('invoiceModal')?.classList.add('hidden');
+}
+
+async function sendCurrentInvoiceTelegram() {
+  if (!currentInvoiceData || !currentInvoiceData.order_id) {
+    showToast('⚠️ اطلاعات فاکتور در دسترس نیست.');
+    return;
+  }
+  const btn = $('sendInvoiceTelegramBtn');
+  if (btn) btn.disabled = true;
+
+  try {
+    const res = await window.api.sendInvoiceToTelegram(currentInvoiceData.order_id);
+    if (res && res.ok) {
+      hapticFeedback('success');
+      showToast('🎉 فاکتور رسمی به پیوی تلگرام شما ارسال شد!');
+    } else {
+      showToast(`❌ ${res?.message || 'خطا در ارسال پیام به تلگرام'}`);
+    }
+  } catch (err) {
+    showToast('❌ خطا در ارتباط با سرور.');
+  } finally {
+    if (btn) btn.disabled = false;
+  }
+}
+
+function printCurrentInvoice() {
+  if (!currentInvoiceData) return;
+  hapticFeedback('selection');
+  window.print();
+}
+
+window.openInvoiceModal = openInvoiceModal;
+window.closeInvoiceModal = closeInvoiceModal;
+window.sendCurrentInvoiceTelegram = sendCurrentInvoiceTelegram;
+window.printCurrentInvoice = printCurrentInvoice;

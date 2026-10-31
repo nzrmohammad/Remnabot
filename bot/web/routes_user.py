@@ -14,6 +14,7 @@ from bot.db.repositories.user_repo import UserRepository
 from bot.web.user_profile import get_user_me, post_user_set_birthday
 from bot.web.user_shop import (
     get_user_gifts_history,
+    get_user_invoice,
     post_user_claim_gift,
     post_user_create_gift,
     post_user_custom_plan_calculate,
@@ -21,6 +22,7 @@ from bot.web.user_shop import (
     post_user_kill_device,
     post_user_purchase,
     post_user_revoke_sub,
+    post_user_send_invoice_telegram,
     post_user_spin,
     post_user_validate_coupon,
 )
@@ -106,4 +108,6 @@ __all__ = [
     "get_user_gifts_history",
     "post_user_custom_plan_calculate",
     "post_user_custom_plan_purchase",
+    "get_user_invoice",
+    "post_user_send_invoice_telegram",
 ]

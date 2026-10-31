@@ -9,6 +9,7 @@ from datetime import datetime, timedelta, timezone
 from zoneinfo import ZoneInfo
 
 from aiohttp import web
+from aiogram import Bot
 from sqlalchemy import select
 
 from bot.db.models import Service, User
@@ -16,6 +17,7 @@ from bot.db.repositories.coupon_repo import CouponRepository
 from bot.services.app_settings import get_store_settings
 from bot.services.formatting import ltr_frag
 from bot.services.gift_service import claim_gift, create_gift, get_user_gifts
+from bot.services.invoice_service import get_order_invoice_data, send_invoice_to_telegram
 from bot.services.loyalty import apply_loyalty_discount, get_user_loyalty
 from bot.services.purchases import execute_purchase
 from bot.web.cache import FastCache
@@ -870,5 +872,84 @@ async def post_user_custom_plan_purchase(request: web.Request) -> web.Response:
             "traffic_gb": traffic_gb,
             "duration_days": duration_days,
             "final_price": final_price,
+            "order_id": result.order_id,
         })
+
+
+async def get_user_invoice(request: web.Request) -> web.Response:
+    """Fetch digital invoice for a specific order owned by user."""
+    user_auth, err = require_user(request)
+    if err:
+        return err
+
+    order_id_str = request.match_info.get("order_id", "")
+    if not order_id_str.isdigit():
+        return web.json_response({"ok": False, "message": "شناسه سفارش نامعتبر است."}, status=400)
+
+    order_id = int(order_id_str)
+    telegram_id = int(user_auth["id"])
+
+    store_settings = await get_store_settings(request)
+    store_name = getattr(store_settings, "bot_name", "سرویس ابری رمنا") or "سرویس ابری رمنا"
+    support_contact = getattr(store_settings, "support_contact", "") or ""
+
+    async with db_session(request) as session:
+        inv_data = await get_order_invoice_data(
+            session=session,
+            order_id=order_id,
+            telegram_id=telegram_id,
+            store_name=store_name,
+            support_contact=support_contact,
+        )
+        if not inv_data:
+            return web.json_response({"ok": False, "message": "فاکتور مورد نظر یافت نشد."}, status=404)
+
+        return web.json_response({"ok": True, "data": inv_data})
+
+
+async def post_user_send_invoice_telegram(request: web.Request) -> web.Response:
+    """Send official receipt and digital invoice directly to user's Telegram chat."""
+    user_auth, err = require_user(request)
+    if err:
+        return err
+
+    order_id_str = request.match_info.get("order_id", "")
+    if not order_id_str.isdigit():
+        return web.json_response({"ok": False, "message": "شناسه سفارش نامعتبر است."}, status=400)
+
+    order_id = int(order_id_str)
+    telegram_id = int(user_auth["id"])
+
+    bot: Bot | None = request.app.get("bot")
+    if not bot:
+        return web.json_response({"ok": False, "message": "ربات در دسترس نیست."}, status=503)
+
+    store_settings = await get_store_settings(request)
+    store_name = getattr(store_settings, "bot_name", "سرویس ابری رمنا") or "سرویس ابری رمنا"
+    support_contact = getattr(store_settings, "support_contact", "") or ""
+
+    async with db_session(request) as session:
+        inv_data = await get_order_invoice_data(
+            session=session,
+            order_id=order_id,
+            telegram_id=telegram_id,
+            store_name=store_name,
+            support_contact=support_contact,
+        )
+        if not inv_data:
+            return web.json_response({"ok": False, "message": "فاکتور یافت نشد."}, status=404)
+
+        sent = await send_invoice_to_telegram(
+            bot=bot,
+            telegram_id=telegram_id,
+            invoice=inv_data,
+        )
+        if not sent:
+            return web.json_response({"ok": False, "message": "خطا در ارسال پیام به تلگرام شما."}, status=500)
+
+        return web.json_response({
+            "ok": True,
+            "message": "فاکتور رسمی با موفقیت به پیوی تلگرام شما ارسال شد!",
+        })
+
 

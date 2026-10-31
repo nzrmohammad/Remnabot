@@ -98,6 +98,7 @@ async def get_user_loyalty(
         progress_percent = int(min(100, max(0, (current_in_tier / needed) * 100)))
 
     data = {
+        "tier": current_tier["id"].upper(),
         "tier_id": current_tier["id"],
         "name": current_tier["name"],
         "icon": current_tier["icon"],
@@ -111,6 +112,7 @@ async def get_user_loyalty(
         "next_tier_name": next_tier["name"] if next_tier else None,
         "next_tier_icon": next_tier["icon"] if next_tier else None,
         "next_tier_discount": next_tier["discount_percent"] if next_tier else None,
+        "next_tier_threshold": next_tier["min_spent"] if next_tier else None,
         "is_max_tier": next_tier is None,
     }
 

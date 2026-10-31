@@ -613,6 +613,8 @@ def create_web_app(
     app.router.add_get("/api/user/gifts", routes_user.get_user_gifts_history)
     app.router.add_post("/api/user/custom-plan/calculate", routes_user.post_user_custom_plan_calculate)
     app.router.add_post("/api/user/custom-plan/purchase", routes_user.post_user_custom_plan_purchase)
+    app.router.add_get("/api/user/invoice/{order_id}", routes_user.get_user_invoice)
+    app.router.add_post("/api/user/invoice/{order_id}/send-telegram", routes_user.post_user_send_invoice_telegram)
 
     # Admin APIs
     app.router.add_get("/api/admin/overview", routes_admin.get_admin_overview)

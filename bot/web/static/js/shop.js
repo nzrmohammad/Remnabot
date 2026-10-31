@@ -308,7 +308,6 @@ function renderShopPlans(data) {
       customBtn.classList.remove('hidden');
     }
   }
-  }
 
   // Smart User Routing & Recommendation Banner
   const sub = window.lastUserData?.active_subscription;
@@ -850,6 +849,18 @@ function showPurchaseModal(res, fallbackPlanName, fallbackPlanPrice) {
   if (closeSuccessBtn) closeSuccessBtn.onclick = handleClose;
   const psvcTopCloseBtn = document.getElementById('psvcTopCloseBtn');
   if (psvcTopCloseBtn) psvcTopCloseBtn.onclick = handleClose;
+
+  const invoiceBtn = document.getElementById('psvcInvoiceBtn');
+  if (invoiceBtn) {
+    invoiceBtn.onclick = () => {
+      const orderId = res.order_id || (window.lastUserData?.transactions?.[0]?.id);
+      if (orderId && window.openInvoiceModal) {
+        window.openInvoiceModal(orderId);
+      } else {
+        showToast('فاکتور این سفارش در بخش کیف پول ثبت گردید.');
+      }
+    };
+  }
 
   openModal('purchaseSuccessModal');
 }
