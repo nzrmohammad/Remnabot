@@ -239,6 +239,9 @@ async def fetch_all_exchange_prices(usdt_rate: int | None = None) -> dict:
                 except Exception as e:
                     logger.debug("CoinGecko rates failed: %s", e)
 
+            if not global_ton_usd:
+                logger.warning("All global TON price sources (Binance, TonAPI, CoinGecko) failed!")
+
             try:
                 async with session.get("https://api.binance.com/api/v3/ticker/price?symbol=EURUSDT", headers=headers) as resp:
                     if resp.status == 200:
@@ -334,6 +337,19 @@ async def fetch_all_exchange_prices(usdt_rate: int | None = None) -> dict:
     if best_trx_price is None and binance_trx_usd and effective_usdt > 0:
         best_trx_price = int(round(binance_trx_usd * effective_usdt))
         best_trx_source = f"بایننس (${binance_trx_usd:.4f})"
+
+    if not ton_prices:
+        logger.warning(
+            "All domestic exchange rates failed for TON; fallback=%s source=%r",
+            best_ton_price, best_ton_source,
+        )
+    if not usdt_prices:
+        logger.warning("All domestic exchange rates failed for USDT; fallback_usdt=%s", effective_usdt)
+    if not trx_prices:
+        logger.warning(
+            "All domestic exchange rates failed for TRX; fallback=%s source=%r",
+            best_trx_price, best_trx_source,
+        )
 
     return {
         "ton": ton_prices,

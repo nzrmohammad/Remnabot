@@ -66,6 +66,10 @@ const api = {
         data._status = response.status;
         data._httpOk = response.ok;
       }
+
+      if (!response.ok && response.status >= 500) {
+        console.error('[api error]', options.method || 'GET', url, response.status, data);
+      }
       return { ok: response.ok, status: response.status, data };
     } catch (netErr) {
       const isTimeout = netErr?.name === 'AbortError' || String(netErr).toLowerCase().includes('timeout');

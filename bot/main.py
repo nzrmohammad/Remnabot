@@ -38,9 +38,30 @@ from bot.services.retention import retention_loop
 from bot.services.traffic_monitor import traffic_monitor_loop
 from bot.web.cache import FastCache
 
+log_level_name = os.getenv("LOG_LEVEL", "INFO").upper()
+log_level = getattr(logging, log_level_name, logging.INFO)
+log_handlers: list[logging.Handler] = [logging.StreamHandler()]
+
+log_file_path = os.getenv("LOG_FILE", "").strip()
+if log_file_path:
+    try:
+        from logging.handlers import RotatingFileHandler
+        from pathlib import Path
+        Path(log_file_path).parent.mkdir(parents=True, exist_ok=True)
+        file_handler = RotatingFileHandler(
+            log_file_path,
+            maxBytes=20 * 1024 * 1024,  # 20 MB
+            backupCount=5,
+            encoding="utf-8",
+        )
+        log_handlers.append(file_handler)
+    except Exception as exc:
+        print(f"Failed setting up RotatingFileHandler for {log_file_path}: {exc}")
+
 logging.basicConfig(
-    level=logging.INFO,
+    level=log_level,
     format="%(asctime)s | %(levelname)-8s | %(name)s | %(message)s",
+    handlers=log_handlers,
 )
 logger = logging.getLogger(__name__)
 

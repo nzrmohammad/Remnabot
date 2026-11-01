@@ -81,6 +81,10 @@ async def generate_card_auto_invoice(
         card_holder=card_holder,
         ttl_minutes=ttl_minutes,
     )
+    logger.info(
+        "Created card-auto invoice: uuid=%s telegram_id=%s base_amount=%s exact_amount=%s ttl_min=%s",
+        invoice.invoice_uuid, telegram_id, base_amount, exact_amount, ttl_minutes,
+    )
     return invoice
 
 
@@ -98,6 +102,10 @@ async def process_incoming_sms(
     wallet_repo = WalletRepository(session)
 
     parsed = parse_bank_sms(raw_message, sender)
+    logger.debug(
+        "Bank SMS parsed result: sender=%r is_deposit=%s amount_rial=%s amount_toman=%s bank=%s raw_preview=%r",
+        sender, parsed.is_deposit, parsed.amount_rial, parsed.amount_toman, parsed.bank_name, raw_message[:80],
+    )
 
     # Log incoming SMS
     log_entry = await repo.log_bank_sms(
@@ -160,14 +168,18 @@ async def process_incoming_sms(
     # Credit user wallet atomically
     credited_amount = invoice.exact_amount
     new_bal = await wallet_repo.add_balance_atomic(invoice.telegram_id, credited_amount)
+    logger.info(
+        "Card-auto deposit credited successfully: invoice_uuid=%s sms_log_id=%s telegram_id=%s amount=%s new_balance=%s bank=%s",
+        invoice.invoice_uuid, log_entry.id, invoice.telegram_id, credited_amount, new_bal, parsed.bank_name,
+    )
 
     # Invalidate user TMA cache
     if cache and hasattr(cache, "delete"):
         try:
             await cache.delete(f"tma:user:{invoice.telegram_id}:profile")
             await cache.delete(f"tma:user:{invoice.telegram_id}:dashboard")
-        except Exception:
-            pass
+        except Exception as exc:
+            logger.debug("Failed invalidating user cache for %s: %s", invoice.telegram_id, exc)
 
     # 1. Notify user in Telegram
     if bot:

@@ -56,8 +56,9 @@ async def fetch_trx_rate(store_rate: int = 0) -> int:
                         if toman_price > 100:
                             return toman_price
     except Exception as exc:
-        logger.debug("Could not poll Nobitex TRX rate: %s", exc)
+        logger.warning("Could not poll Nobitex TRX rate, using fallback 18,500 Toman: %s", exc)
 
+    logger.warning("Nobitex TRX rate unavailable; using fallback rate: 18,500 Toman")
     return 18_500  # Fallback reasonable estimate (~$0.20 - $0.25)
 
 
@@ -154,19 +155,32 @@ async def verify_and_credit_trx_invoice(
     # Check anti-replay across system
     existing = await crypto_repo.get_by_tx_hash(clean_tx)
     if existing and existing.id != invoice.id:
+        logger.warning(
+            "TRX verify replay attempted: tx_hash=%s invoice_id=%s existing_invoice_id=%s tg_id=%s",
+            clean_tx, invoice.id, existing.id, invoice.telegram_id,
+        )
         return False, 0, "این شناسه تراکنش (TxID) قبلاً برای فاکتور دیگری ثبت و استفاده شده است."
 
     # Minimum SUN needed (1 TRX = 1,000,000 SUN)
     min_sun = invoice.nanotons  # We store SUN amount in nanotons field for TRX invoices
 
-    ok, reason, _ = await verify_tron_transaction(clean_tx, invoice.pay_address, min_sun)
+    ok, reason, confirmed_sun = await verify_tron_transaction(clean_tx, invoice.pay_address, min_sun)
     if not ok:
+        logger.warning(
+            "TRX verification failed: invoice_id=%s tg_id=%s tx_hash=%s reason=%s expected_sun=%s confirmed_sun=%s",
+            invoice.id, invoice.telegram_id, clean_tx, reason, min_sun, confirmed_sun,
+        )
         return False, 0, reason
 
     # Mark paid and credit atomically
     paid_inv = await crypto_repo.mark_paid(invoice.id, clean_tx, allow_expired=True)
     if not paid_inv:
+        logger.warning("TRX mark_paid failed: invoice_id=%s tg_id=%s tx_hash=%s", invoice.id, invoice.telegram_id, clean_tx)
         return False, 0, "امکان تغییر وضعیت فاکتور به پرداخت‌شده وجود ندارد."
 
     new_bal = await wallet_repo.add_balance_atomic(invoice.telegram_id, invoice.amount_toman)
+    logger.info(
+        "TRX invoice paid and credited: invoice_id=%s tg_id=%s tx_hash=%s amount_toman=%s new_balance=%s confirmed_sun=%s",
+        invoice.id, invoice.telegram_id, clean_tx, invoice.amount_toman, new_bal, confirmed_sun,
+    )
     return True, new_bal, "پرداخت ترون (TRX) با موفقیت تأیید شد و کیف پول شارژ گردید!"

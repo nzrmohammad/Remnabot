@@ -308,6 +308,7 @@ async def post_user_topup_card(request: web.Request) -> web.Response:
         receipt_hash = f"{img_hash}|{text_hash}" if text_hash else img_hash
         try:
             topup = await wallet_repo.create_topup(telegram_id, amount, receipt_hash)
+            topup_id = topup.id
 
             if img_bytes:
                 import asyncio
@@ -385,6 +386,11 @@ async def post_user_topup_card(request: web.Request) -> web.Response:
             except Exception as exc:
                 logger.error("Failed to notify admin of TMA topup: %s", exc)
 
+        logger.info(
+            "Manual card topup submitted: topup_id=%s tg_id=%s amount=%s has_image=%s",
+            topup_id, telegram_id, amount, bool(img_bytes),
+        )
+
         return web.json_response({
             "ok": True,
             "message": "رسید شما با موفقیت ثبت شد و پس از بررسی ادمین حساب شما شارژ می‌گردد.",
@@ -455,6 +461,10 @@ async def post_user_topup_crypto(request: web.Request) -> web.Response:
             expires_minutes=60,
         )
         await session.commit()
+        logger.info(
+            "Created TON invoice: id=%s tg_id=%s amount_toman=%s ton_amount=%s ton_rate=%s",
+            invoice.id, telegram_id, amount, ton_amount, store.ton_rate_toman,
+        )
 
         deep_link = f"ton://transfer/{invoice.pay_address}?amount={invoice.nanotons}&text={invoice.comment}"
         universal_link = f"https://app.tonkeeper.com/transfer/{invoice.pay_address}?amount={invoice.nanotons}&text={invoice.comment}"
@@ -859,6 +869,10 @@ async def post_user_topup_trx(request: web.Request) -> web.Response:
             currency="TRX",
         )
         await session.commit()
+        logger.info(
+            "Created TRX invoice: id=%s tg_id=%s amount_toman=%s trx_amount=%s trx_rate=%s",
+            invoice.id, telegram_id, amount, trx_amount, trx_rate,
+        )
 
         return web.json_response({
             "ok": True,
@@ -1062,14 +1076,17 @@ async def post_user_topup_xrocket(request: web.Request) -> web.Response:
 
 async def post_webhook_xrocket(request: web.Request) -> web.Response:
     """Handle incoming payment webhooks from xRocket (pay.xrocket.tg)."""
+    peer_ip = request.headers.get("CF-Connecting-IP") or request.headers.get("X-Forwarded-For") or request.remote or "unknown"
     try:
         body = await request.json()
-    except Exception:
+    except Exception as exc:
+        logger.warning("xRocket webhook invalid JSON from %s: %s", peer_ip, exc)
         return web.json_response({"ok": False, "message": "invalid json"}, status=400)
 
     data = body.get("data") or {}
     status = str(data.get("status") or body.get("status") or "").upper()
     payload = str(data.get("payload") or body.get("payload") or "")
+    payment_id = str(data.get("id") or body.get("id") or "")
 
     if status in ("PAID", "COMPLETED") and payload.startswith("topup:"):
         parts = payload.split(":")
@@ -1078,20 +1095,25 @@ async def post_webhook_xrocket(request: web.Request) -> web.Response:
                 tg_id = int(parts[1])
                 toman_amount = int(parts[2])
             except (ValueError, TypeError):
+                logger.warning("xRocket webhook malformed payload %r from %s", payload, peer_ip)
                 return web.json_response({"ok": False}, status=400)
 
-            payment_id = str(data.get("id") or body.get("id") or "")
             tx_key = f"xrocket_{payment_id}"
 
             async with db_session(request) as session:
                 wallet_repo = WalletRepository(session)
                 if payment_id and await wallet_repo.receipt_exists(tx_key):
+                    logger.info("xRocket webhook already_processed: payment_id=%s tg_id=%s", payment_id, tg_id)
                     return web.json_response({"ok": True, "status": "already_processed"})
 
                 new_bal = await wallet_repo.add_balance_atomic(tg_id, toman_amount)
                 if payment_id:
                     await wallet_repo.create_topup(tg_id, toman_amount, tx_key)
                 await session.commit()
+                logger.info(
+                    "xRocket payment credited successfully: payment_id=%s tg_id=%s amount=%s new_balance=%s",
+                    payment_id, tg_id, toman_amount, new_bal,
+                )
 
                 cache: FastCache = request.app.get("cache")
                 if cache:
@@ -1106,11 +1128,12 @@ async def post_webhook_xrocket(request: web.Request) -> web.Response:
                             text=f"🚀 <b>پرداخت با درگاه xRocket با موفقیت تأیید شد!</b>\n\n💰 مبلغ: <b>{toman_amount:,} تومان</b>\n💳 موجودی جدید: <b>{new_bal:,} تومان</b>",
                             parse_mode="HTML",
                         )
-                    except Exception:
-                        pass
+                    except Exception as exc:
+                        logger.warning("Failed to notify user %s for xRocket topup (%s Toman): %s", tg_id, toman_amount, exc)
 
                 return web.json_response({"ok": True, "credited": True, "new_balance": new_bal})
 
+    logger.info("xRocket webhook ignored: status=%s payment_id=%s payload=%r ip=%s", status, payment_id, payload, peer_ip)
     return web.json_response({"ok": True, "status": "ignored"})
 
 
@@ -1146,9 +1169,11 @@ async def post_user_topup_card_auto_create(request: web.Request) -> web.Response
                 try:
                     from bot.db.repositories.user_repo import UserRepository
                     db_user = await UserRepository(session).get_by_telegram_id(telegram_id)
-                except Exception:
+                except Exception as exc:
+                    logger.warning("Failed to fetch user %s for card-auto phone check: %s", telegram_id, exc)
                     db_user = None
             if not db_user or not getattr(db_user, "phone_number", None) or not db_user.phone_number.strip():
+                logger.info("Card-auto rejected (phone_required) for tg_id=%s", telegram_id)
                 return web.json_response(
                     {
                         "ok": False,
@@ -1161,12 +1186,14 @@ async def post_user_topup_card_auto_create(request: web.Request) -> web.Response
         card_num = getattr(store, "card_number", "")
         card_auto_enabled = getattr(store, "card_auto_enabled", False)
         if not card_auto_enabled or not (str(card_num).strip() if card_num else ""):
+            logger.info("Card-auto rejected (card_auto_disabled) for tg_id=%s", telegram_id)
             return web.json_response(
                 {"ok": False, "error": "card_auto_disabled", "message": "پرداخت خودکار کارت‌به‌کارت در حال حاضر فعال نیست."},
                 status=400,
             )
 
         if amount < store.topup_min_amount:
+            logger.info("Card-auto rejected (below min amount %s) for tg_id=%s", store.topup_min_amount, telegram_id)
             return web.json_response(
                 {"ok": False, "message": f"حداقل مبلغ شارژ {store.topup_min_amount:,} تومان است."},
                 status=400,
@@ -1174,6 +1201,7 @@ async def post_user_topup_card_auto_create(request: web.Request) -> web.Response
 
         max_amount = getattr(store, "topup_max_amount", 0)
         if isinstance(max_amount, (int, float)) and max_amount > 0 and amount > max_amount:
+            logger.info("Card-auto rejected (above max amount %s) for tg_id=%s", max_amount, telegram_id)
             return web.json_response(
                 {"ok": False, "message": f"حداکثر مبلغ شارژ {int(max_amount):,} تومان است."},
                 status=400,
@@ -1216,6 +1244,10 @@ async def post_user_topup_card_auto_create(request: web.Request) -> web.Response
             ttl_minutes=60,
         )
         await session.commit()
+        logger.info(
+            "Card-auto invoice generated: uuid=%s tg_id=%s base_amount=%s exact_amount=%s",
+            invoice.invoice_uuid, telegram_id, invoice.base_amount, invoice.exact_amount,
+        )
 
         remaining_secs = max(0, int((_as_utc(invoice.expires_at) - datetime.now(timezone.utc)).total_seconds()))
 
@@ -1295,6 +1327,7 @@ async def post_user_topup_card_auto_cancel(request: web.Request) -> web.Response
         repo = CardAutoRepository(session)
         cancelled = await repo.cancel_invoice(str(uuid_str), telegram_id)
         if cancelled:
+            logger.info("Cancelled card-auto invoice: uuid=%s tg_id=%s", uuid_str, telegram_id)
             await session.commit()
             return web.json_response({"ok": True, "status": "cancelled"})
         return web.json_response({"ok": False, "message": "فاکتور معتبر برای لغو یافت نشد."}, status=400)
@@ -1331,19 +1364,21 @@ async def post_user_topup_crypto_cancel(request: web.Request) -> web.Response:
             return web.json_response({"ok": False, "message": "فقط فاکتورهای در انتظار پرداخت قابل لغو هستند."}, status=400)
 
         inv.status = "cancelled"
+        logger.info("Cancelled crypto invoice: id=%s tg_id=%s currency=%s", inv.id, telegram_id, getattr(inv, "currency", "TON"))
         await session.commit()
         return web.json_response({"ok": True, "status": "cancelled", "message": "فاکتور با موفقیت لغو شد."})
 
 
 async def post_webhook_sms(request: web.Request) -> web.Response:
     """Handle incoming bank SMS forwarded from mobile phone."""
+    peer_ip = request.headers.get("CF-Connecting-IP") or request.headers.get("X-Forwarded-For") or request.remote or "unknown"
     async with db_session(request) as session:
         store = await get_store_settings(session)
 
         # 1. Authenticate token
         secret = (store.sms_webhook_secret or "").strip()
         if not secret:
-            logger.warning("SMS webhook rejected: sms_webhook_secret is not configured")
+            logger.warning("SMS webhook rejected: sms_webhook_secret is not configured (ip=%s)", peer_ip)
             return web.json_response({"ok": False, "message": "SMS webhook not configured"}, status=403)
 
         auth_header = request.headers.get("Authorization", "")
@@ -1369,10 +1404,11 @@ async def post_webhook_sms(request: web.Request) -> web.Response:
                 raw_message = str(body.get("message") or body.get("text") or body.get("content") or body.get("msg") or "")
                 if not provided_token and body.get("token"):
                     provided_token = str(body.get("token")).strip()
-        except Exception:
-            pass
+        except Exception as j_err:
+            logger.debug("SMS webhook non-JSON body from %s: %s", peer_ip, j_err)
 
         if not provided_token or not secrets.compare_digest(provided_token, secret):
+            logger.warning("SMS webhook unauthorized attempt from %s (wrong or missing token)", peer_ip)
             return web.json_response({"ok": False, "message": "Unauthorized"}, status=401)
 
         if not raw_message:
@@ -1380,16 +1416,17 @@ async def post_webhook_sms(request: web.Request) -> web.Response:
                 post_data = await request.post()
                 sender = str(post_data.get("from") or post_data.get("sender") or post_data.get("phone") or sender)
                 raw_message = str(post_data.get("message") or post_data.get("text") or post_data.get("content") or "")
-            except Exception:
-                pass
+            except Exception as p_err:
+                logger.debug("SMS webhook non-POST-form body from %s: %s", peer_ip, p_err)
 
         if not raw_message:
             try:
                 raw_message = await request.text()
-            except Exception:
-                pass
+            except Exception as t_err:
+                logger.debug("SMS webhook could not read text body from %s: %s", peer_ip, t_err)
 
         if not raw_message or not raw_message.strip():
+            logger.warning("SMS webhook empty message body from %s (sender=%r)", peer_ip, sender)
             return web.json_response({"ok": False, "message": "Empty message body"}, status=400)
 
         from bot.services.payment.card_auto_service import process_incoming_sms
@@ -1405,6 +1442,10 @@ async def post_webhook_sms(request: web.Request) -> web.Response:
             sender=sender or "SMS_Forwarder",
             raw_message=raw_message,
             cache=cache,
+        )
+        logger.info(
+            "SMS webhook processed from %s (sender=%r): action=%s ok=%s",
+            peer_ip, sender, result.get("action"), result.get("ok"),
         )
         await session.commit()
         return web.json_response(result)

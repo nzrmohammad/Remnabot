@@ -184,6 +184,14 @@ async def post_admin_settings(request: web.Request) -> web.Response:
             await cache.delete("store_settings")
             await cache.delete("tma:admin:overview")
 
+        sensitive_keys = {"sms_webhook_secret", "ton_wallet_address", "trx_wallet_address", "xrocket_api_key"}
+        safe_keys = [k for k in body.keys() if k not in sensitive_keys]
+        has_secret_change = any(k in body for k in sensitive_keys)
+        logger.info(
+            "Admin settings updated: admin_id=%s keys=%s sensitive_changed=%s",
+            admin.get("id"), safe_keys, has_secret_change,
+        )
+
         session.add(
             AdminLog(
                 admin_id=admin["id"],

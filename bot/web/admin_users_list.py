@@ -129,7 +129,7 @@ async def _extract_online_data(remnawave: Any) -> tuple[set[int], set[str]]:
                     except (ValueError, TypeError):
                         pass
     except Exception as exc:
-        logger.debug("Failed fetching online sessions for admin: %s", exc)
+        logger.warning("Failed fetching online sessions for admin: %s", exc)
 
     _ONLINE_CACHE = (online_ids, active_uids, now)
     return online_ids, active_uids
@@ -298,7 +298,7 @@ async def get_admin_users(request: web.Request) -> web.Response:
         try:
             return await asyncio.wait_for(remnawave.get_users_by_telegram_id(uid), timeout=4.0) or []
         except Exception as exc:
-            logger.debug("Failed fetching panel user for %s: %s", uid, exc)
+            logger.warning("Failed fetching panel user for %s: %s", uid, exc)
             return []
 
     panel_fetch_results = await asyncio.gather(*[_fetch_single_panel(u.telegram_id) for u in users])
@@ -375,11 +375,22 @@ async def post_admin_users_bulk_action(request: web.Request) -> web.Response:
             batch = target_users[i : i + batch_size]
             tasks = [remnawave.delete_user(u.get("id")) for u in batch if u.get("id")]
             results = await asyncio.gather(*tasks, return_exceptions=True)
-            for r in results:
+            for u, r in zip(batch, results):
                 if r is True:
                     success_count += 1
                 else:
                     fail_count += 1
+                    logger.warning(
+                        "Bulk delete user failed for user_id=%s username=%s: %s",
+                        u.get("id"), u.get("username"), r,
+                    )
+
+        admin_tg = admin.get("telegram_id", 0)
+        log_level_func = logger.warning if target in ("all_panel", "all") else logger.info
+        log_level_func(
+            "Bulk user deletion executed: admin_id=%s target=%s total=%s success=%s fail=%s",
+            admin_tg, target, len(target_users), success_count, fail_count,
+        )
 
         detail_msg = f"حذف گروهی {success_count} کاربر از پنل (ناموفق: {fail_count})"
         try:

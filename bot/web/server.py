@@ -67,14 +67,14 @@ async def api_ban_check_middleware(request: web.Request, handler):
                     db_user = await UserRepository(session).get_by_telegram_id(user_id)
                     is_banned = bool(db_user and getattr(db_user, "is_banned", False))
             except Exception as exc:
-                logger.debug("Ban check DB lookup error: %s", exc)
+                logger.warning("Ban check DB lookup failed for user %s: %s", user_id, exc)
                 is_banned = False
 
         if cache and hasattr(cache, "set") and is_banned is not None:
             try:
                 await cache.set(ban_cache_key, 1 if is_banned else 0, ttl_seconds=30)
-            except Exception:
-                pass
+            except Exception as exc:
+                logger.warning("Ban check cache set error for %s: %s", user_id, exc)
 
     auth_user["is_banned"] = bool(is_banned)
     request["user"] = auth_user
@@ -681,7 +681,10 @@ async def start_web_server(
     app: web.Application, host: str = "0.0.0.0", port: int = 8080
 ) -> web.AppRunner:
     """Start the aiohttp web server runner asynchronously."""
-    runner = web.AppRunner(app)
+    access_logger = logging.getLogger("aiohttp.access")
+    if not app.get("is_dev", False):
+        access_logger.setLevel(logging.WARNING)
+    runner = web.AppRunner(app, access_log=access_logger)
     await runner.setup()
     site = web.TCPSite(runner, host, port)
     await site.start()

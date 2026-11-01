@@ -403,6 +403,11 @@ async def get_admin_tools_check_host(request: web.Request) -> web.Response:
     if not clean_host:
         return web.json_response({"ok": False, "error": "آدرس نامعتبر است."}, status=400)
 
+    logger.info(
+        "Admin network check requested: admin_id=%s host=%s check_type=%s port=%s",
+        admin.get("id"), clean_host, check_type, port_val,
+    )
+
     # Validate DNS existence for hostnames before testing
     import socket
     is_ip = False

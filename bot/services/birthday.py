@@ -92,6 +92,10 @@ async def birthday_sweep_loop(
                     )
                     session.add(coupon)
                     await session.commit()
+                    logger.info(
+                        "Birthday gift granted: tg_id=%s coupon=%s discount_pct=%s traffic_gb=%s traffic_added=%s",
+                        user.telegram_id, coupon_code, discount_pct, traffic_gb, traffic_added,
+                    )
 
                     if cache:
                         await cache.set(dedup_key, "1", ttl_seconds=86400 * 400)

@@ -79,7 +79,7 @@ async def fetch_ton_transactions(address: str, limit: int = 100) -> list[dict]:
                                 })
                         return parsed
     except Exception as e:
-        logger.debug("Failed to query TonCenter API: %s", e)
+        logger.warning("Failed to query TonCenter API: %s", e)
 
     return []
 
@@ -108,6 +108,11 @@ async def verify_and_credit_ton_invoice(
     wallet_repo = WalletRepository(session)
 
     for tx in txs:
+        if tx.get("comment") == inv.comment and tx.get("nanotons", 0) < inv.nanotons:
+            logger.warning(
+                "TON deposit underpaid for invoice #%s (tg_id=%s): expected_nano=%s, received_nano=%s, tx=%s",
+                inv.id, inv.telegram_id, inv.nanotons, tx.get("nanotons", 0), tx.get("tx_hash"),
+            )
         if tx.get("comment") != inv.comment or tx.get("nanotons", 0) < inv.nanotons:
             continue
         # Timing check: transaction utime must not be before invoice creation (allow 60s clock skew)
@@ -130,6 +135,10 @@ async def verify_and_credit_ton_invoice(
 
         try:
             new_bal = await wallet_repo.add_balance_atomic(inv.telegram_id, inv.amount_toman)
+            logger.info(
+                "TON invoice paid and credited: invoice_id=%s tg_id=%s tx_hash=%s amount_toman=%s new_balance=%s",
+                inv.id, inv.telegram_id, tx_hash, inv.amount_toman, new_bal,
+            )
         except Exception as exc:
             logger.error("Failed to credit wallet for TON invoice %s: %s", inv.id, exc, exc_info=True)
             if bot:
@@ -142,8 +151,8 @@ async def verify_and_credit_ton_invoice(
                         context=f"Failed to credit wallet for TON invoice #{inv.id} amount={inv.amount_toman}",
                         user_id=inv.telegram_id,
                     )
-                except Exception:
-                    pass
+                except Exception as rep_err:
+                    logger.warning("Failed reporting TON credit error to admin topic: %s", rep_err)
             raise
         return True, new_bal, tx_hash
 

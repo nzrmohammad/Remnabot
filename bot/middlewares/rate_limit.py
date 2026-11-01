@@ -43,8 +43,8 @@ class RateLimitMiddleware(BaseMiddleware):
             from bot.config import get_settings
             if uid in get_settings().ADMIN_IDS:
                 return await handler(event, data)
-        except Exception:
-            pass
+        except Exception as exc:
+            logger.warning("Failed to check admin status in rate_limit: %s", exc)
 
         now = time.monotonic()
         bucket = _buckets[uid]
