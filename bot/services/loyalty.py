@@ -11,8 +11,8 @@ from bot.db.models import Order, OrderStatus
 
 logger = logging.getLogger(__name__)
 
-# VIP Loyalty Tiers definition (Single Source of Truth)
-LOYALTY_TIERS = [
+# VIP Loyalty Tiers definition (Single Source of Truth - 7 Tiers)
+DEFAULT_LOYALTY_TIERS = [
     {
         "id": "bronze",
         "name": "برنزی",
@@ -21,39 +21,110 @@ LOYALTY_TIERS = [
         "discount_percent": 0,
         "color": "amber-700",
         "badge_class": "bg-amber-700/15 text-amber-600 dark:text-amber-500 border-amber-700/30",
-        "description": "سطح آغازین باشگاه مشتریان",
+        "description": "سطح آغازین باشگاه مشتریان (بدون تخفیف)",
     },
     {
         "id": "silver",
         "name": "نقره‌ای",
         "icon": "🥈",
-        "min_spent": 500_000,
-        "discount_percent": 5,
+        "min_spent": 300_000,
+        "discount_percent": 3,
         "color": "slate-300",
         "badge_class": "bg-slate-400/15 text-slate-300 border-slate-400/30",
-        "description": "۵٪ تخفیف دائمی تمامی بسته‌ها",
+        "description": "۳٪ تخفیف دائمی تمامی بسته‌ها",
     },
     {
         "id": "gold",
         "name": "طلایی",
         "icon": "🥇",
-        "min_spent": 1_500_000,
-        "discount_percent": 10,
+        "min_spent": 700_000,
+        "discount_percent": 5,
         "color": "amber-400",
         "badge_class": "bg-amber-500/15 text-amber-500 dark:text-amber-400 border-amber-500/30",
+        "description": "۵٪ تخفیف دائمی تمامی بسته‌ها",
+    },
+    {
+        "id": "platinum",
+        "name": "پلاتین",
+        "icon": "💎",
+        "min_spent": 1_500_000,
+        "discount_percent": 8,
+        "color": "cyan-400",
+        "badge_class": "bg-cyan-500/15 text-cyan-500 dark:text-cyan-400 border-cyan-500/30",
+        "description": "۸٪ تخفیف دائمی تمامی بسته‌ها",
+    },
+    {
+        "id": "ruby",
+        "name": "یاقوت",
+        "icon": "🔮",
+        "min_spent": 3_000_000,
+        "discount_percent": 10,
+        "color": "purple-400",
+        "badge_class": "bg-purple-500/15 text-purple-400 border-purple-500/30",
         "description": "۱۰٪ تخفیف دائمی تمامی بسته‌ها",
+    },
+    {
+        "id": "emerald",
+        "name": "زمرد",
+        "icon": "❇️",
+        "min_spent": 6_000_000,
+        "discount_percent": 12,
+        "color": "emerald-400",
+        "badge_class": "bg-emerald-500/15 text-emerald-400 border-emerald-500/30",
+        "description": "۱۲٪ تخفیف دائمی تمامی بسته‌ها",
     },
     {
         "id": "diamond",
         "name": "الماس",
-        "icon": "💎",
-        "min_spent": 4_000_000,
+        "icon": "👑",
+        "min_spent": 10_000_000,
         "discount_percent": 15,
-        "color": "cyan-400",
-        "badge_class": "bg-cyan-500/15 text-cyan-500 dark:text-cyan-400 border-cyan-500/30",
+        "color": "amber-300",
+        "badge_class": "bg-amber-300/15 text-amber-300 border-amber-300/30",
         "description": "۱۵٪ تخفیف دائمی تمام خریدها + اولویت VIP",
     },
 ]
+
+LOYALTY_TIERS = DEFAULT_LOYALTY_TIERS
+
+
+async def get_configured_loyalty_tiers(session: AsyncSession | None = None) -> list[dict[str, Any]]:
+    """Return active loyalty tiers, merged with admin-configured thresholds & discounts if present."""
+    if session is None:
+        return DEFAULT_LOYALTY_TIERS
+
+    try:
+        from bot.db.repositories.app_setting_repo import AppSettingRepository
+        import json
+        repo = AppSettingRepository(session)
+        raw_json = await repo.get("loyalty_tiers_json")
+        if not raw_json:
+            return DEFAULT_LOYALTY_TIERS
+        custom_cfg = json.loads(raw_json)
+        if not isinstance(custom_cfg, dict):
+            return DEFAULT_LOYALTY_TIERS
+
+        merged_tiers: list[dict[str, Any]] = []
+        for default_tier in DEFAULT_LOYALTY_TIERS:
+            tid = default_tier["id"]
+            tier_copy = dict(default_tier)
+            if tid in custom_cfg and isinstance(custom_cfg[tid], dict):
+                c = custom_cfg[tid]
+                if "min_spent" in c and isinstance(c["min_spent"], (int, float)):
+                    tier_copy["min_spent"] = max(0, int(c["min_spent"]))
+                if "discount_percent" in c and isinstance(c["discount_percent"], (int, float)):
+                    tier_copy["discount_percent"] = max(0, min(100, int(c["discount_percent"])))
+                if tier_copy["discount_percent"] > 0:
+                    tier_copy["description"] = f"{tier_copy['discount_percent']}٪ تخفیف دائمی تمامی بسته‌ها"
+                else:
+                    tier_copy["description"] = "سطح آغازین باشگاه مشتریان (بدون تخفیف)"
+            merged_tiers.append(tier_copy)
+        # Keep sorted by min_spent
+        merged_tiers.sort(key=lambda x: x["min_spent"])
+        return merged_tiers
+    except Exception as exc:
+        logger.debug("Failed parsing custom loyalty tiers, fallback to defaults: %s", exc)
+        return DEFAULT_LOYALTY_TIERS
 
 
 async def get_user_loyalty(
@@ -71,6 +142,8 @@ async def get_user_loyalty(
         except Exception as exc:
             logger.debug("Failed reading loyalty cache for %s: %s", telegram_id, exc)
 
+    active_tiers = await get_configured_loyalty_tiers(session)
+
     # Calculate total spent on successful orders
     spent_query = select(func.coalesce(func.sum(Order.amount), 0)).where(
         Order.telegram_id == telegram_id,
@@ -79,13 +152,13 @@ async def get_user_loyalty(
     res = await session.execute(spent_query)
     total_spent = int(res.scalar() or 0)
 
-    current_tier = LOYALTY_TIERS[0]
+    current_tier = active_tiers[0]
     next_tier = None
 
-    for i, tier in enumerate(LOYALTY_TIERS):
+    for i, tier in enumerate(active_tiers):
         if total_spent >= tier["min_spent"]:
             current_tier = tier
-            next_tier = LOYALTY_TIERS[i + 1] if i + 1 < len(LOYALTY_TIERS) else None
+            next_tier = active_tiers[i + 1] if i + 1 < len(active_tiers) else None
         else:
             break
 
@@ -95,7 +168,18 @@ async def get_user_loyalty(
         needed = next_tier["min_spent"] - current_tier["min_spent"]
         current_in_tier = total_spent - current_tier["min_spent"]
         amount_to_next = max(0, next_tier["min_spent"] - total_spent)
-        progress_percent = int(min(100, max(0, (current_in_tier / needed) * 100)))
+        progress_percent = int(min(100, max(0, (current_in_tier / needed) * 100))) if needed > 0 else 100
+
+    next_tier_obj = None
+    if next_tier:
+        next_tier_obj = {
+            "id": next_tier["id"],
+            "name": next_tier["name"],
+            "icon": next_tier["icon"],
+            "discount_percent": next_tier["discount_percent"],
+            "min_spent": next_tier["min_spent"],
+            "remaining_amount": amount_to_next,
+        }
 
     data = {
         "tier": current_tier["id"].upper(),
@@ -109,11 +193,23 @@ async def get_user_loyalty(
         "total_spent": total_spent,
         "amount_to_next": amount_to_next,
         "progress_percent": progress_percent,
+        "next_tier": next_tier_obj,
         "next_tier_name": next_tier["name"] if next_tier else None,
         "next_tier_icon": next_tier["icon"] if next_tier else None,
         "next_tier_discount": next_tier["discount_percent"] if next_tier else None,
         "next_tier_threshold": next_tier["min_spent"] if next_tier else None,
         "is_max_tier": next_tier is None,
+        "all_tiers": [
+            {
+                "id": t["id"],
+                "name": t["name"],
+                "icon": t["icon"],
+                "min_spent": t["min_spent"],
+                "discount_percent": t["discount_percent"],
+                "description": t["description"],
+            }
+            for t in active_tiers
+        ],
     }
 
     if cache and hasattr(cache, "set"):

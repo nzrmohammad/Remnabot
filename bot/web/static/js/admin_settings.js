@@ -1165,8 +1165,26 @@ openUserChat(telegram_id, name, tag, topup_id) {
       const cpMaxDays = $('settingCustomPlanMaxDays');
       if (cpMaxDays) cpMaxDays.value = s.custom_plan_max_days ?? 180;
 
-      const cpSquad = $('settingCustomPlanSquadUuid');
-      if (cpSquad) cpSquad.value = s.custom_plan_squad_uuid || '';
+      // VIP Loyalty Tiers
+      let loyaltyCfg = {};
+      try {
+        if (s.loyalty_tiers_json) loyaltyCfg = JSON.parse(s.loyalty_tiers_json);
+      } catch (e) {}
+      const tierDefaults = {
+        silver: { min_spent: 300000, discount_percent: 3 },
+        gold: { min_spent: 700000, discount_percent: 5 },
+        platinum: { min_spent: 1500000, discount_percent: 8 },
+        ruby: { min_spent: 3000000, discount_percent: 10 },
+        emerald: { min_spent: 6000000, discount_percent: 12 },
+        diamond: { min_spent: 10000000, discount_percent: 15 },
+      };
+      ['silver', 'gold', 'platinum', 'ruby', 'emerald', 'diamond'].forEach(t => {
+        const spentInp = $(`loyalty_${t}_spent`);
+        const pctInp = $(`loyalty_${t}_pct`);
+        const val = loyaltyCfg[t] || tierDefaults[t];
+        if (spentInp) spentInp.value = val.min_spent ?? tierDefaults[t].min_spent;
+        if (pctInp) pctInp.value = val.discount_percent ?? tierDefaults[t].discount_percent;
+      });
 
       // Store Logo & Branding
       const logoInp = $('settingStoreLogoUrl');
@@ -1399,7 +1417,32 @@ openUserChat(telegram_id, name, tag, topup_id) {
       custom_plan_max_gb: parseInt($('settingCustomPlanMaxGb')?.value || '300', 10),
       custom_plan_min_days: parseInt($('settingCustomPlanMinDays')?.value || '10', 10),
       custom_plan_max_days: parseInt($('settingCustomPlanMaxDays')?.value || '180', 10),
-      custom_plan_squad_uuid: $('settingCustomPlanSquadUuid')?.value?.trim() || '',
+      loyalty_tiers_json: JSON.stringify({
+        silver: {
+          min_spent: parseInt($('loyalty_silver_spent')?.value || '300000', 10),
+          discount_percent: parseInt($('loyalty_silver_pct')?.value || '3', 10),
+        },
+        gold: {
+          min_spent: parseInt($('loyalty_gold_spent')?.value || '700000', 10),
+          discount_percent: parseInt($('loyalty_gold_pct')?.value || '5', 10),
+        },
+        platinum: {
+          min_spent: parseInt($('loyalty_platinum_spent')?.value || '1500000', 10),
+          discount_percent: parseInt($('loyalty_platinum_pct')?.value || '8', 10),
+        },
+        ruby: {
+          min_spent: parseInt($('loyalty_ruby_spent')?.value || '3000000', 10),
+          discount_percent: parseInt($('loyalty_ruby_pct')?.value || '10', 10),
+        },
+        emerald: {
+          min_spent: parseInt($('loyalty_emerald_spent')?.value || '6000000', 10),
+          discount_percent: parseInt($('loyalty_emerald_pct')?.value || '12', 10),
+        },
+        diamond: {
+          min_spent: parseInt($('loyalty_diamond_spent')?.value || '10000000', 10),
+          discount_percent: parseInt($('loyalty_diamond_pct')?.value || '15', 10),
+        },
+      }),
       store_logo_url: $('settingStoreLogoUrl')?.value?.trim() || '',
       crypto_enabled: $('settingCryptoSwitch')?.checked ?? false,
       stars_enabled: $('settingStarsSwitch')?.checked ?? false,

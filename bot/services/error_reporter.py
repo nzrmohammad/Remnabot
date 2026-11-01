@@ -104,7 +104,7 @@ async def report_error(
     exc_type = type(exc).__name__ if is_exc else "Error"
     exc_msg = str(exc) or "—"
 
-    # Ignore client-side protocol/scanner noise
+    # Ignore client-side protocol/scanner noise & transient polling network drops
     if exc_type in (
         "BadHttpMessage",
         "HttpProcessingError",
@@ -117,6 +117,15 @@ async def report_error(
         "BrokenPipeError",
     ) or "Pause on PRI/Upgrade" in exc_msg:
         return
+
+    # Filter out normal Telegram long-polling socket timeouts and network blips
+    if (
+        exc_type in ("TelegramNetworkError", "ClientConnectorError", "ServerDisconnectedError", "TimeoutError")
+        or any(phrase in exc_msg for phrase in ("Request timeout error", "Cannot connect to host api.telegram.org", "Server disconnected"))
+    ):
+        ctx_lower = str(context).lower()
+        if "dispatcher" in ctx_lower or "getupdates" in ctx_lower or "polling" in ctx_lower or "aiogram" in ctx_lower:
+            return
 
     sig = f"{exc_type}:{exc_msg[:80]}:{context[:50]}"
     now_epoch = time.time()
@@ -338,6 +347,9 @@ class TelegramErrorLogHandler(logging.Handler):
                 "BrokenPipeError",
             ):
                 return
+            if exc_name in ("TelegramNetworkError", "ClientConnectorError", "ServerDisconnectedError", "TimeoutError"):
+                if "dispatcher" in record.name.lower() or "aiogram" in record.name.lower():
+                    return
 
         try:
             loop = asyncio.get_running_loop()

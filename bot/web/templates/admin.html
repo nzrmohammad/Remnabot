@@ -2190,16 +2190,130 @@
                 <input type="number" id="settingCustomPlanMaxDays" dir="ltr" placeholder="180" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-slate-200 outline-none focus:border-indigo-500 transition" />
               </div>
             </div>
+          </div>
+        </div>
 
-            <!-- Squad Assignment for Custom Plan -->
-            <div class="pt-2 border-t border-slate-700/50">
-              <label class="text-[11px] text-slate-400 block mb-1">شناسه اسکواد اختصاصی (اختیاری - پیش‌فرض سرور)</label>
-              <input type="text" id="settingCustomPlanSquadUuid" dir="ltr" placeholder="اختیاری: UUID اسکواد" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-slate-300 outline-none focus:border-blue-500 transition" />
+        <!-- 9. VIP Loyalty Tiers Configuration (باشگاه مشتریان و سطوح وفاداری) -->
+        <div class="settings-box shadow transition-all">
+          <div class="settings-box-header p-3.5 flex items-center justify-between cursor-pointer select-none hover:bg-slate-750/40 transition" onclick="window.adminActions.toggleSettingsBox('settingsBoxLoyalty')" data-target="settingsBoxLoyalty">
+            <div class="flex items-center gap-2.5">
+              <div class="w-8 h-8 rounded-xl bg-amber-500/15 text-amber-400 border border-amber-500/30 flex items-center justify-center flex-shrink-0">
+                <span class="text-base">👑</span>
+              </div>
+              <div>
+                <b class="text-xs text-white block">باشگاه مشتریان و سطوح وفاداری (VIP)</b>
+                <span class="text-[11px] text-slate-400 block mt-0.5">تنظیم حد آستانه خرید (تومان) و درصد تخفیف ۷ سطح کاربری</span>
+              </div>
+            </div>
+            <svg class="settings-box-chevron w-4 h-4 text-slate-400 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+          </div>
+          <div id="settingsBoxLoyalty" class="settings-box-body p-4 pt-1 border-t border-slate-700/60 space-y-3 text-xs hidden">
+            <p class="text-[11px] text-slate-400 leading-relaxed">
+              کاربران بر اساس مجموع خریدهای موفق قبلی به سطوح بالاتر ارتقا یافته و از تخفیف دائمی خودکار در فروشگاه بهره‌مند می‌شوند:
+            </p>
+            <div class="space-y-2" id="adminLoyaltyTiersForm">
+              <!-- Tier 1: Bronze -->
+              <div class="card-inset p-2.5 rounded-xl flex items-center justify-between gap-2 border border-slate-700/50">
+                <div class="flex items-center gap-2 min-w-0">
+                  <span class="text-base">🥉</span>
+                  <div>
+                    <b class="text-xs text-slate-200 block">سطح برنزی (پایه)</b>
+                    <span class="text-[10px] text-slate-400">سطح پیش‌فرض اولیه</span>
+                  </div>
+                </div>
+                <div class="flex items-center gap-2 shrink-0">
+                  <span class="text-[10px] text-slate-400">بدون تخفیف دائمی</span>
+                </div>
+              </div>
+
+              <!-- Tier 2: Silver -->
+              <div class="card-inset p-2.5 rounded-xl flex items-center justify-between gap-2 border border-slate-700/50">
+                <div class="flex items-center gap-2 min-w-0">
+                  <span class="text-base">🥈</span>
+                  <b class="text-xs text-slate-200">نقره‌ای</b>
+                </div>
+                <div class="flex items-center gap-2 shrink-0">
+                  <input type="number" id="loyalty_silver_spent" dir="ltr" placeholder="300000" class="w-24 bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-xs font-mono text-cyan-300 outline-none text-center" title="حداقل خرید (تومان)" />
+                  <span class="text-[10px] text-slate-400">تومان</span>
+                  <input type="number" id="loyalty_silver_pct" dir="ltr" placeholder="3" class="w-14 bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-xs font-mono text-emerald-400 outline-none text-center" title="درصد تخفیف" />
+                  <span class="text-[10px] text-slate-400">٪</span>
+                </div>
+              </div>
+
+              <!-- Tier 3: Gold -->
+              <div class="card-inset p-2.5 rounded-xl flex items-center justify-between gap-2 border border-slate-700/50">
+                <div class="flex items-center gap-2 min-w-0">
+                  <span class="text-base">🥇</span>
+                  <b class="text-xs text-amber-400">طلایی</b>
+                </div>
+                <div class="flex items-center gap-2 shrink-0">
+                  <input type="number" id="loyalty_gold_spent" dir="ltr" placeholder="700000" class="w-24 bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-xs font-mono text-cyan-300 outline-none text-center" title="حداقل خرید (تومان)" />
+                  <span class="text-[10px] text-slate-400">تومان</span>
+                  <input type="number" id="loyalty_gold_pct" dir="ltr" placeholder="5" class="w-14 bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-xs font-mono text-emerald-400 outline-none text-center" title="درصد تخفیف" />
+                  <span class="text-[10px] text-slate-400">٪</span>
+                </div>
+              </div>
+
+              <!-- Tier 4: Platinum -->
+              <div class="card-inset p-2.5 rounded-xl flex items-center justify-between gap-2 border border-slate-700/50">
+                <div class="flex items-center gap-2 min-w-0">
+                  <span class="text-base">💎</span>
+                  <b class="text-xs text-cyan-300">پلاتین</b>
+                </div>
+                <div class="flex items-center gap-2 shrink-0">
+                  <input type="number" id="loyalty_platinum_spent" dir="ltr" placeholder="1500000" class="w-24 bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-xs font-mono text-cyan-300 outline-none text-center" title="حداقل خرید (تومان)" />
+                  <span class="text-[10px] text-slate-400">تومان</span>
+                  <input type="number" id="loyalty_platinum_pct" dir="ltr" placeholder="8" class="w-14 bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-xs font-mono text-emerald-400 outline-none text-center" title="درصد تخفیف" />
+                  <span class="text-[10px] text-slate-400">٪</span>
+                </div>
+              </div>
+
+              <!-- Tier 5: Ruby -->
+              <div class="card-inset p-2.5 rounded-xl flex items-center justify-between gap-2 border border-slate-700/50">
+                <div class="flex items-center gap-2 min-w-0">
+                  <span class="text-base">🔮</span>
+                  <b class="text-xs text-purple-400">یاقوت</b>
+                </div>
+                <div class="flex items-center gap-2 shrink-0">
+                  <input type="number" id="loyalty_ruby_spent" dir="ltr" placeholder="3000000" class="w-24 bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-xs font-mono text-cyan-300 outline-none text-center" title="حداقل خرید (تومان)" />
+                  <span class="text-[10px] text-slate-400">تومان</span>
+                  <input type="number" id="loyalty_ruby_pct" dir="ltr" placeholder="10" class="w-14 bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-xs font-mono text-emerald-400 outline-none text-center" title="درصد تخفیف" />
+                  <span class="text-[10px] text-slate-400">٪</span>
+                </div>
+              </div>
+
+              <!-- Tier 6: Emerald -->
+              <div class="card-inset p-2.5 rounded-xl flex items-center justify-between gap-2 border border-slate-700/50">
+                <div class="flex items-center gap-2 min-w-0">
+                  <span class="text-base">❇️</span>
+                  <b class="text-xs text-emerald-400">زمرد</b>
+                </div>
+                <div class="flex items-center gap-2 shrink-0">
+                  <input type="number" id="loyalty_emerald_spent" dir="ltr" placeholder="6000000" class="w-24 bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-xs font-mono text-cyan-300 outline-none text-center" title="حداقل خرید (تومان)" />
+                  <span class="text-[10px] text-slate-400">تومان</span>
+                  <input type="number" id="loyalty_emerald_pct" dir="ltr" placeholder="12" class="w-14 bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-xs font-mono text-emerald-400 outline-none text-center" title="درصد تخفیف" />
+                  <span class="text-[10px] text-slate-400">٪</span>
+                </div>
+              </div>
+
+              <!-- Tier 7: Diamond -->
+              <div class="card-inset p-2.5 rounded-xl flex items-center justify-between gap-2 border border-slate-700/50">
+                <div class="flex items-center gap-2 min-w-0">
+                  <span class="text-base">👑</span>
+                  <b class="text-xs text-amber-300">الماس (VIP)</b>
+                </div>
+                <div class="flex items-center gap-2 shrink-0">
+                  <input type="number" id="loyalty_diamond_spent" dir="ltr" placeholder="10000000" class="w-24 bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-xs font-mono text-cyan-300 outline-none text-center" title="حداقل خرید (تومان)" />
+                  <span class="text-[10px] text-slate-400">تومان</span>
+                  <input type="number" id="loyalty_diamond_pct" dir="ltr" placeholder="15" class="w-14 bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-xs font-mono text-emerald-400 outline-none text-center" title="درصد تخفیف" />
+                  <span class="text-[10px] text-slate-400">٪</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
 
-        <!-- 9. Store Branding & Logo Box -->
+        <!-- 10. Store Branding & Logo Box -->
         <div class="settings-box shadow transition-all">
           <div class="settings-box-header p-3.5 flex items-center justify-between cursor-pointer select-none hover:bg-slate-750/40 transition" onclick="window.adminActions.toggleSettingsBox('settingsBoxBranding')" data-target="settingsBoxBranding">
             <div class="flex items-center gap-2.5">
@@ -2216,7 +2330,7 @@
           <div id="settingsBoxBranding" class="settings-box-body p-4 pt-1 border-t border-slate-700/60 space-y-3.5 text-xs hidden">
             <!-- Logo Preview & Upload Section -->
             <div class="flex items-center gap-3.5 card-inset p-3 rounded-2xl border border-slate-700/60">
-              <div id="adminLogoPreviewBox" class="w-14 h-14 rounded-2xl bg-slate-900 border border-slate-700 flex items-center justify-center overflow-hidden shrink-0 shadow-inner">
+              <div id="adminLogoPreviewBox" class="w-14 h-14 rounded-2xl flex items-center justify-center overflow-hidden shrink-0">
                 <img id="adminStoreLogoImg" class="w-full h-full object-contain hidden" alt="Logo Preview" />
                 <span id="adminStoreLogoEmpty" class="text-2xl text-slate-500">🛍️</span>
               </div>
@@ -3814,15 +3928,15 @@
 
   <!-- Shared & Modular Scripts -->
   <script src="/static/js/chart.umd.min.js" defer></script>
-  <script src="/static/js/utils.js?v=59.0" defer></script>
-  <script src="/static/js/api.js?v=59.0" defer></script>
-  <script src="/static/js/charts.js?v=59.0" defer></script>
-  <script src="/static/js/admin_charts.js?v=60.0" defer></script>
-  <script src="/static/js/admin_nodes.js?v=60.0" defer></script>
-  <script src="/static/js/admin_plans.js?v=60.0" defer></script>
-  <script src="/static/js/admin_finance.js?v=60.0" defer></script>
-  <script src="/static/js/admin_users.js?v=60.0" defer></script>
-  <script src="/static/js/admin_settings.js?v=60.0" defer></script>
-  <script src="/static/js/admin.js?v=60.0" defer></script>
+  <script src="/static/js/utils.js?v=63.0" defer></script>
+  <script src="/static/js/api.js?v=63.0" defer></script>
+  <script src="/static/js/charts.js?v=63.0" defer></script>
+  <script src="/static/js/admin_charts.js?v=63.0" defer></script>
+  <script src="/static/js/admin_nodes.js?v=63.0" defer></script>
+  <script src="/static/js/admin_plans.js?v=63.0" defer></script>
+  <script src="/static/js/admin_finance.js?v=63.0" defer></script>
+  <script src="/static/js/admin_users.js?v=63.0" defer></script>
+  <script src="/static/js/admin_settings.js?v=63.0" defer></script>
+  <script src="/static/js/admin.js?v=63.0" defer></script>
 </body>
 </html>

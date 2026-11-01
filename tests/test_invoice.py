@@ -55,3 +55,23 @@ async def test_get_order_invoice_data_and_telegram_dispatch(session_factory):
         assert call_kwargs["chat_id"] == 987654321
         assert "صورت‌حساب و فاکتور رسمی" in call_kwargs["text"]
         assert "INV-" in call_kwargs["text"]
+
+        # 4. Null traffic and duration safe handling
+        null_order = Order(
+            telegram_id=987654321,
+            service_name="شارژ کیف پول",
+            amount=50000,
+            duration_days=None,
+            traffic_gb=None,
+            status=OrderStatus.PAID.value,
+        )
+        session.add(null_order)
+        await session.commit()
+        await session.refresh(null_order)
+
+        null_inv = await get_order_invoice_data(session, null_order.id, 987654321)
+        assert null_inv is not None
+        assert null_inv["item"]["traffic_gb"] == 0
+        assert null_inv["item"]["duration_days"] == 0
+        assert null_inv["item"]["traffic_text"] == "نامحدود"
+        assert null_inv["item"]["duration_text"] == "بدون محدودیت زمانی"

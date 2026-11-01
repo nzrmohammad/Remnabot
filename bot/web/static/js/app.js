@@ -2688,7 +2688,10 @@ function renderActiveSubAnalytics(sub) {
       const emptyStateEl = $('repPeakHoursEmptyState');
       const peakBadge = $('repPeakHourBadge');
       const hourlyData = sub.hourly_usage?.data || [];
-      const hasRealTraffic = Boolean(sub.hourly_usage?.has_real_data && hourlyData.some(v => Number(v) > 0));
+      const hasRealTraffic = Boolean(
+        (sub.hourly_usage?.has_real_data || hourlyData.some(v => Number(v) > 0)) &&
+        hourlyData.length > 0
+      );
 
       const barContainer = $('repPeakHoursBarContainer');
       if (!hasRealTraffic) {
@@ -4640,7 +4643,117 @@ async function sendCurrentInvoiceTelegram() {
 function printCurrentInvoice() {
   if (!currentInvoiceData) return;
   hapticFeedback('selection');
-  window.print();
+
+  try {
+    const canvas = document.createElement('canvas');
+    canvas.width = 600;
+    canvas.height = 760;
+    const ctx = canvas.getContext('2d');
+    if (ctx) {
+      // Background gradient
+      const grad = ctx.createLinearGradient(0, 0, 0, 760);
+      grad.addColorStop(0, '#0f172a');
+      grad.addColorStop(1, '#020617');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, 600, 760);
+
+      // Card border
+      ctx.strokeStyle = '#334155';
+      ctx.lineWidth = 3;
+      ctx.strokeRect(15, 15, 570, 730);
+
+      // Header
+      ctx.fillStyle = '#38bdf8';
+      ctx.font = 'bold 24px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('رسید رسمی فاکتور خرید', 300, 65);
+
+      // Invoice ID & Date
+      const invNum = currentInvoiceData.invoice_number || `INV-${currentInvoiceData.order_id || '---'}`;
+      const invDate = currentInvoiceData.date_jalali || '---';
+      ctx.fillStyle = '#94a3b8';
+      ctx.font = '14px monospace';
+      ctx.fillText(`فاکتور: ${invNum}   |   تاریخ: ${invDate}`, 300, 100);
+
+      // Separator line
+      ctx.strokeStyle = '#1e293b';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(30, 120);
+      ctx.lineTo(570, 120);
+      ctx.stroke();
+
+      // Buyer & Service info
+      const buyerName = currentInvoiceData.buyer?.name || 'کاربر گرامی';
+      const buyerTgId = currentInvoiceData.buyer?.telegram_id || '---';
+      ctx.textAlign = 'right';
+      ctx.font = 'bold 16px sans-serif';
+      ctx.fillStyle = '#e2e8f0';
+      ctx.fillText(`مشترک: ${buyerName}`, 550, 160);
+      ctx.font = '13px monospace';
+      ctx.fillStyle = '#64748b';
+      ctx.fillText(`شناسه تلگرام: ${buyerTgId}`, 550, 190);
+
+      // Item box
+      ctx.fillStyle = '#1e293b';
+      ctx.fillRect(30, 220, 540, 120);
+      ctx.strokeStyle = '#334155';
+      ctx.strokeRect(30, 220, 540, 120);
+
+      const itemTitle = currentInvoiceData.item?.title || 'سرویس اشتراک';
+      const trafficGb = currentInvoiceData.item?.traffic_gb || 0;
+      const durationDays = currentInvoiceData.item?.duration_days || 0;
+      ctx.fillStyle = '#38bdf8';
+      ctx.font = 'bold 18px sans-serif';
+      ctx.fillText(itemTitle, 540, 260);
+
+      ctx.fillStyle = '#94a3b8';
+      ctx.font = '14px sans-serif';
+      ctx.fillText(`${trafficGb} گیگابایت   |   ${durationDays} روز اعتبار`, 540, 295);
+
+      // Total Amount
+      const finalAmount = currentInvoiceData.payment?.amount_toman || 0;
+      ctx.fillStyle = '#10b981';
+      ctx.font = 'bold 22px monospace';
+      ctx.textAlign = 'left';
+      ctx.fillText(`${Number(finalAmount).toLocaleString('en-US')} تومان`, 50, 280);
+
+      // Status Box
+      ctx.textAlign = 'center';
+      ctx.fillStyle = '#064e3b';
+      ctx.fillRect(30, 370, 540, 50);
+      ctx.fillStyle = '#34d399';
+      ctx.font = 'bold 16px sans-serif';
+      ctx.fillText('✅ پرداخت موفق و فعال‌سازی سرویس انجام شد', 300, 402);
+
+      // Tracking code
+      const trackingCode = currentInvoiceData.payment?.tracking_code || `TRX-${currentInvoiceData.order_id || 'SUCCESS'}`;
+      ctx.fillStyle = '#94a3b8';
+      ctx.font = '13px monospace';
+      ctx.fillText(`کد پیگیری تراکنش: ${trackingCode}`, 300, 460);
+
+      // Footer branding
+      ctx.fillStyle = '#475569';
+      ctx.font = '12px sans-serif';
+      ctx.fillText('صادر شده توسط سامانه هوشمند مدیریت سرویس', 300, 710);
+
+      // Trigger download
+      const link = document.createElement('a');
+      link.download = `Invoice-${currentInvoiceData.order_id || 'receipt'}.png`;
+      link.href = canvas.toDataURL('image/png');
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      showToast('📸 تصویر فاکتور رسمی ذخیره شد.');
+      return;
+    }
+  } catch (err) {
+    console.warn('Canvas export failed, falling back to print:', err);
+  }
+
+  try {
+    window.print();
+  } catch (e) {}
 }
 
 window.openInvoiceModal = openInvoiceModal;
@@ -4663,17 +4776,38 @@ function openLoyaltyModal() {
       $('loyaltyModalCurrentDiscount').className = disc > 0 ? 'text-xs font-bold text-emerald-500' : 'text-xs font-medium t-muted';
     }
     if ($('loyaltyModalProgressText')) {
-      if (loyalty.next_tier) {
-        const needed = Number(loyalty.next_tier.remaining_amount || 0).toLocaleString('en-US');
-        $('loyaltyModalProgressText').innerText = `با ${needed} تومان خرید دیگر، به سطح ${loyalty.next_tier.name} ارتقا می‌یابید و از ${loyalty.next_tier.discount_percent}٪ تخفیف دائمی بهره‌مند می‌شوید.`;
+      const nextTier = loyalty.next_tier || (loyalty.next_tier_name ? {
+        name: loyalty.next_tier_name,
+        remaining_amount: loyalty.amount_to_next,
+        discount_percent: loyalty.next_tier_discount,
+      } : null);
+
+      if (nextTier && !loyalty.is_max_tier) {
+        const needed = Number(nextTier.remaining_amount || loyalty.amount_to_next || 0).toLocaleString('en-US');
+        const nextDisc = nextTier.discount_percent ?? loyalty.next_tier_discount ?? 0;
+        $('loyaltyModalProgressText').innerText = `با ${needed} تومان خرید دیگر، به سطح ${nextTier.name} ارتقا می‌یابید و از ${nextDisc}٪ تخفیف دائمی بهره‌مند می‌شوید.`;
       } else {
         $('loyaltyModalProgressText').innerText = 'تبریک! شما به بالاترین سطح باشگاه مشتریان (الماس VIP) دست یافته‌اید.';
       }
     }
 
+    // Dynamic thresholds update if all_tiers is provided
+    if (Array.isArray(loyalty.all_tiers)) {
+      loyalty.all_tiers.forEach(t => {
+        const spentEl = $(`loyaltyTierCard_${t.id}_spent`);
+        const pctEl = $(`loyaltyTierCard_${t.id}_pct`);
+        if (spentEl && t.min_spent !== undefined) {
+          spentEl.innerText = `${Number(t.min_spent).toLocaleString('en-US')} تومان`;
+        }
+        if (pctEl && t.discount_percent !== undefined) {
+          pctEl.innerText = `${t.discount_percent}٪ تخفیف دائمی`;
+        }
+      });
+    }
+
     // Highlight user's active tier card
     const activeTierId = (loyalty.tier_id || 'bronze').toLowerCase();
-    ['bronze', 'silver', 'gold', 'diamond'].forEach(t => {
+    ['bronze', 'silver', 'gold', 'platinum', 'ruby', 'emerald', 'diamond'].forEach(t => {
       const card = $(`loyaltyTierCard_${t}`);
       if (card) {
         if (t === activeTierId) {

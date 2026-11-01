@@ -259,6 +259,19 @@ async function updateCustomPlanCalculation() {
         } else {
           if (pill) pill.classList.add('hidden');
         }
+
+        const submitBtn = document.getElementById('submitCustomPlanBtn');
+        const isPricingValid = Boolean(d.is_configured !== false && d.final_price > 0);
+        if (submitBtn) {
+          submitBtn.disabled = !isPricingValid;
+          submitBtn.classList.toggle('opacity-50', !isPricingValid);
+          submitBtn.classList.toggle('cursor-not-allowed', !isPricingValid);
+          if (!isPricingValid) {
+            submitBtn.innerText = 'تعرفه بسته دلخواه هنوز تعریف نشده است';
+          } else {
+            submitBtn.innerText = `خرید بسته دلخواه (${Number(d.final_price).toLocaleString('en-US')} تومان)`;
+          }
+        }
       }
     } catch (e) {
       console.warn('Error calculating custom plan:', e);
@@ -468,6 +481,9 @@ function renderFilteredShopPlans() {
       ? cleanFlags.map(f => `<span class="text-xs inline-block" title="${f}">${f}</span>`).join(' ')
       : '🇩🇪 🇳🇱 🇫🇮';
 
+    const userTierIcon = window.lastUserData?.loyalty?.icon || '⭐';
+    const loyaltyPctEnglish = toEnglishDigits(p.loyalty_discount_percent || 0);
+
     return `
       <div class="shop-plan-card card p-4 border ${badgeBorderClass} relative overflow-hidden group">
         ${planBadge}
@@ -476,14 +492,16 @@ function renderFilteredShopPlans() {
             <div class="flex items-center gap-1.5 flex-wrap">
               <h4 class="font-bold text-sm t-main">${formatPlanTitle(p.name)}</h4>
               ${discountVal > 0 ? '<span class="text-[10px] t-success font-bold bg-transparent border-0 px-0 py-0">🏷 تخفیف کوپن</span>' : ''}
-              ${hasLoyaltyDiscount ? `<span class="text-[10px] text-amber-500 font-bold bg-amber-500/10 px-1.5 py-0.5 rounded-md">👑 VIP (${p.loyalty_discount_percent}٪)</span>` : ''}
+              ${hasLoyaltyDiscount ? `<span dir="ltr" class="inline-flex items-center gap-1 text-[10px] text-amber-500 font-bold bg-amber-500/10 px-1.5 py-0.5 rounded-md font-mono"><span>${userTierIcon}</span><span>VIP (${loyaltyPctEnglish}%)</span></span>` : ''}
             </div>
             <p class="text-[11px] leading-snug t-muted mt-0.5">${p.description || (isExtraTraffic ? 'افزایش حجم بدون تغییر در تاریخ انقضای سرویس&nbsp;فعلی' : (isTimeOnly ? 'افزایش مدت زمان اعتبار بدون تغییر در میزان&nbsp;ترافیک' : defaultFeatureDesc))}</p>
           </div>
           <div class="text-left font-mono">
-            ${hasAnyDiscount ? `<span class="line-through t-muted text-xs block -mb-0.5">${formattedOriginal}</span>` : ''}
-            <span class="text-base font-black t-success">${formattedFinal}</span>
-            <span class="text-[10px] t-muted block -mt-1 font-sans">تومان</span>
+            <div class="flex items-center gap-1.5 justify-end">
+              ${hasAnyDiscount ? `<span class="line-through t-muted text-xs font-semibold">${formattedOriginal}</span>` : ''}
+              <span class="text-base font-black t-success">${formattedFinal}</span>
+            </div>
+            <span class="text-[10px] t-muted block text-left font-sans">تومان</span>
           </div>
         </div>
         <div class="flex items-center justify-between my-2.5 text-[10px] card-inset px-3 py-2 whitespace-nowrap overflow-hidden">

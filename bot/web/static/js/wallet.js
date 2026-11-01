@@ -992,50 +992,58 @@ async function openTopupModal(defaultAmt, forceCrypto = false) {
   updateTopupDisplays(amt);
 
   const applyMethodTabs = (s) => {
-    if (!s) return;
-    const hasActiveCrypto = restoreActiveCryptoInvoice();
-    const hasActiveTrx = restoreActiveTrxInvoice();
-    const activeType = getActiveInvoiceType();
-    const anyEnabled = s.card_enabled !== false || s.stars_enabled !== false || s.crypto_enabled !== false || s.trx_enabled !== false;
-    if (!anyEnabled) {
-      document.getElementById('topupMethodTabs')?.classList.add('hidden');
-      document.getElementById('topupAmountSection')?.classList.add('hidden');
-      document.getElementById('topupCardView')?.classList.add('hidden');
-      document.getElementById('topupStarsView')?.classList.add('hidden');
-      document.getElementById('topupCryptoView')?.classList.add('hidden');
-      document.getElementById('topupTrxView')?.classList.add('hidden');
-      document.getElementById('topupAllDisabledState')?.classList.remove('hidden');
-    } else if (activeType === 'CARD') {
-      switchToCardTab();
-    } else if (activeType === 'TON') {
-      switchToCryptoTab();
-    } else if (activeType === 'TRX') {
-      switchTopupTab('trx');
-    } else if ((hasActiveCrypto || forceCrypto) && s.crypto_enabled !== false) {
-      switchToCryptoTab();
-    } else if (hasActiveTrx && s.trx_enabled !== false) {
-      switchTopupTab('trx');
-    } else if (s.card_enabled !== false) {
-      switchToCardTab();
-    } else if (s.crypto_enabled !== false) {
-      switchToCryptoTab();
-    } else if (s.trx_enabled !== false) {
-      switchTopupTab('trx');
-    } else if (s.stars_enabled !== false) {
-      switchTopupTab('stars');
+    try {
+      if (!s) return;
+      const hasActiveCrypto = restoreActiveCryptoInvoice();
+      const hasActiveTrx = restoreActiveTrxInvoice();
+      const activeType = getActiveInvoiceType();
+      const anyEnabled = s.card_enabled !== false || s.stars_enabled !== false || s.crypto_enabled !== false || s.trx_enabled !== false;
+      if (!anyEnabled) {
+        document.getElementById('topupMethodTabs')?.classList.add('hidden');
+        document.getElementById('topupAmountSection')?.classList.add('hidden');
+        document.getElementById('topupCardView')?.classList.add('hidden');
+        document.getElementById('topupStarsView')?.classList.add('hidden');
+        document.getElementById('topupCryptoView')?.classList.add('hidden');
+        document.getElementById('topupTrxView')?.classList.add('hidden');
+        document.getElementById('topupAllDisabledState')?.classList.remove('hidden');
+      } else if (activeType === 'CARD') {
+        switchToCardTab();
+      } else if (activeType === 'TON') {
+        switchToCryptoTab();
+      } else if (activeType === 'TRX') {
+        switchTopupTab('trx');
+      } else if ((hasActiveCrypto || forceCrypto) && s.crypto_enabled !== false) {
+        switchToCryptoTab();
+      } else if (hasActiveTrx && s.trx_enabled !== false) {
+        switchTopupTab('trx');
+      } else if (s.card_enabled !== false) {
+        switchToCardTab();
+      } else if (s.crypto_enabled !== false) {
+        switchToCryptoTab();
+      } else if (s.trx_enabled !== false) {
+        switchTopupTab('trx');
+      } else if (s.stars_enabled !== false) {
+        switchTopupTab('stars');
+      }
+      updateTopupMutexUI();
+    } catch (err) {
+      console.warn('Error applying topup method tabs:', err);
     }
-    updateTopupMutexUI();
   };
 
   // Apply cached storeSettings immediately if available
-  applyMethodTabs(window.storeSettings);
+  try {
+    applyMethodTabs(window.storeSettings);
+  } catch (e) {}
 
   // Open modal immediately with 0ms delay
   openModal('topupModal');
 
   // Load/refresh settings in background (SWR pattern)
-  await loadTopupInfo();
-  applyMethodTabs(window.storeSettings);
+  try {
+    await loadTopupInfo();
+    applyMethodTabs(window.storeSettings);
+  } catch (e) {}
 }
 
 function setupWalletListeners() {

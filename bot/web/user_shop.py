@@ -752,6 +752,11 @@ async def post_user_custom_plan_calculate(request: web.Request) -> web.Response:
 
     async with db_session(request) as session:
         store_settings = await get_store_settings(session)
+        is_configured = not (
+            store_settings.custom_plan_price_per_gb <= 0
+            and store_settings.custom_plan_price_per_day <= 0
+            and store_settings.custom_plan_base_price <= 0
+        )
         base_price = (
             (traffic_gb * store_settings.custom_plan_price_per_gb)
             + (duration_days * store_settings.custom_plan_price_per_day)
@@ -769,6 +774,8 @@ async def post_user_custom_plan_calculate(request: web.Request) -> web.Response:
             "loyalty_discount_percent": loyalty_pct,
             "loyalty_discount_amount": disc_amt,
             "final_price": final_price,
+            "is_configured": is_configured,
+            "enabled": store_settings.custom_plan_enabled,
         })
 
 
@@ -803,16 +810,46 @@ async def post_user_custom_plan_purchase(request: web.Request) -> web.Response:
                 "message": f"مدت زمان انتخابی باید بین {store_settings.custom_plan_min_days} تا {store_settings.custom_plan_max_days} روز باشد."
             }, status=400)
 
+        if (
+            store_settings.custom_plan_price_per_gb <= 0
+            and store_settings.custom_plan_price_per_day <= 0
+            and store_settings.custom_plan_base_price <= 0
+        ):
+            return web.json_response({
+                "ok": False,
+                "message": "تعرفه بسته دلخواه هنوز توسط مدیریت تنظیم نشده است."
+            }, status=400)
+
         base_price = (
             (traffic_gb * store_settings.custom_plan_price_per_gb)
             + (duration_days * store_settings.custom_plan_price_per_day)
             + store_settings.custom_plan_base_price
         )
+        if base_price <= 0:
+            return web.json_response({
+                "ok": False,
+                "message": "تعرفه محاسبه شده نامعتبر است."
+            }, status=400)
+
         loyalty = await get_user_loyalty(session, telegram_id, cache=cache)
         loyalty_pct = loyalty.get("discount_percent", 0)
         disc_amt, final_price = apply_loyalty_discount(base_price, loyalty_pct)
 
+        chosen_acc = None
+        panel_users = await remnawave.get_users_by_telegram_id(telegram_id) or []
+        if account_id:
+            chosen_acc = next((u for u in panel_users if str(u.get("id")) == str(account_id)), None)
+
         from types import SimpleNamespace
+
+        # Derive squad from existing user account or fallback to default squad
+        target_squad = None
+        if chosen_acc and isinstance(chosen_acc, dict):
+            inbounds = chosen_acc.get("active_user_inbounds") or []
+            if inbounds and isinstance(inbounds[0], dict):
+                target_squad = inbounds[0].get("squad_uuid")
+        if not target_squad:
+            target_squad = store_settings.default_squad_uuid or None
 
         custom_svc = SimpleNamespace(
             id=None,
@@ -821,17 +858,12 @@ async def post_user_custom_plan_purchase(request: web.Request) -> web.Response:
             duration_days=duration_days,
             traffic_gb=traffic_gb,
             hwid_limit=2,
-            squad_uuid=store_settings.custom_plan_squad_uuid or store_settings.default_squad_uuid or None,
+            squad_uuid=target_squad,
             badge="custom",
             traffic_strategy="NO_RESET",
             max_purchases=None,
             purchases_count=0,
         )
-
-        chosen_acc = None
-        panel_users = await remnawave.get_users_by_telegram_id(telegram_id) or []
-        if account_id:
-            chosen_acc = next((u for u in panel_users if str(u.get("id")) == str(account_id)), None)
 
         bot = request.app.get("bot")
         session_factory = request.app.get("session_factory")

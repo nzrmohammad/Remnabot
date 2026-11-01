@@ -73,7 +73,7 @@ class StoreSettings:
     custom_plan_max_gb: int = 300
     custom_plan_min_days: int = 10
     custom_plan_max_days: int = 180
-    custom_plan_squad_uuid: str = ""
+    loyalty_tiers_json: str = ""
     store_logo_url: str = ""
 
 
@@ -166,7 +166,7 @@ async def get_store_settings(session: AsyncSession) -> StoreSettings:
         custom_plan_max_gb=_int(values.get("custom_plan_max_gb"), 300),
         custom_plan_min_days=_int(values.get("custom_plan_min_days"), 10),
         custom_plan_max_days=_int(values.get("custom_plan_max_days"), 180),
-        custom_plan_squad_uuid=str(values.get("custom_plan_squad_uuid") or "").strip(),
+        loyalty_tiers_json=str(values.get("loyalty_tiers_json") or "").strip(),
         store_logo_url=str(values.get("store_logo_url") or "").strip(),
     )
 

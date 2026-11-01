@@ -17,15 +17,16 @@ async def test_loyalty_tiers_progression(session_factory):
         loyalty = await get_user_loyalty(session, tg_id)
         assert loyalty["tier_id"] == "bronze"
         assert loyalty["discount_percent"] == 0
-        assert loyalty["amount_to_next"] == 500_000
+        assert loyalty["amount_to_next"] == 300_000
         assert loyalty["progress_percent"] == 0
         assert not loyalty["is_max_tier"]
+        assert len(loyalty["all_tiers"]) == 7
 
-        # 2. Add orders for 750,000 -> Silver
+        # 2. Add orders for 400,000 -> Silver (threshold: 300,000, next: 700,000)
         order1 = Order(
             telegram_id=tg_id,
             service_name="Test Plan",
-            amount=750_000,
+            amount=400_000,
             status=OrderStatus.PAID.value,
         )
         session.add(order1)
@@ -33,16 +34,16 @@ async def test_loyalty_tiers_progression(session_factory):
 
         loyalty = await get_user_loyalty(session, tg_id)
         assert loyalty["tier_id"] == "silver"
-        assert loyalty["discount_percent"] == 5
-        assert loyalty["total_spent"] == 750_000
-        assert loyalty["amount_to_next"] == 750_000  # 1.5M - 750k = 750k
-        assert loyalty["progress_percent"] == 25  # 250k / 1000k
+        assert loyalty["discount_percent"] == 3
+        assert loyalty["total_spent"] == 400_000
+        assert loyalty["amount_to_next"] == 300_000  # 700k - 400k = 300k to Gold
+        assert loyalty["progress_percent"] == 25  # 100k / 400k
 
-        # 3. Add orders for 1,000,000 more (total 1,750,000) -> Gold
+        # 3. Add orders for 600,000 more (total 1,000,000) -> Gold (threshold: 700,000, next: 1,500,000)
         order2 = Order(
             telegram_id=tg_id,
             service_name="Test Plan 2",
-            amount=1_000_000,
+            amount=600_000,
             status=OrderStatus.PAID.value,
         )
         session.add(order2)
@@ -50,14 +51,14 @@ async def test_loyalty_tiers_progression(session_factory):
 
         loyalty = await get_user_loyalty(session, tg_id)
         assert loyalty["tier_id"] == "gold"
-        assert loyalty["discount_percent"] == 10
-        assert loyalty["total_spent"] == 1_750_000
+        assert loyalty["discount_percent"] == 5
+        assert loyalty["total_spent"] == 1_000_000
 
-        # 4. Add orders for 3,000,000 more (total 4,750,000) -> Diamond
+        # 4. Add orders for 10,000,000 more (total 11,000,000) -> Diamond (threshold: 10,000,000)
         order3 = Order(
             telegram_id=tg_id,
             service_name="Test Plan 3",
-            amount=3_000_000,
+            amount=10_000_000,
             status=OrderStatus.PAID.value,
         )
         session.add(order3)
@@ -219,4 +220,42 @@ async def test_custom_plan_calculation(session_factory):
         disc, final = apply_loyalty_discount(expected_base, 10)
         assert disc == 12500
         assert final == 112500
+
+
+@pytest.mark.anyio
+async def test_voucher_redeem_with_gift_card(session_factory):
+    async with session_factory() as session:
+        sender_id = 771122
+        claimer_id = 883344
+
+        sender_w = Wallet(telegram_id=sender_id, balance=50_000)
+        claimer_w = Wallet(telegram_id=claimer_id, balance=0)
+        session.add_all([sender_w, claimer_w])
+        await session.commit()
+
+        # Create gift
+        created = await create_gift(
+            session=session,
+            sender_telegram_id=sender_id,
+            sender_name="Ali",
+            delivery_type="LINK",
+            gift_type="BALANCE",
+            amount=30_000,
+        )
+        assert created["ok"] is True
+        code = created["code"]
+        assert code.startswith("GIFT-")
+
+        # Claim via claim_gift directly (used by post_user_redeem_voucher)
+        res = await claim_gift(
+            session=session,
+            code=code,
+            claimer_telegram_id=claimer_id,
+        )
+        assert res["ok"] is True
+        assert res["amount"] == 30_000
+
+        # Check claimer wallet
+        await session.refresh(claimer_w)
+        assert claimer_w.balance == 30_000
 

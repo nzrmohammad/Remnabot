@@ -671,10 +671,68 @@ async def post_user_redeem_voucher(request: web.Request) -> web.Response:
     from bot.db.repositories.wallet_repo import WalletRepository
 
     async with db_session(request) as session:
+        clean_code = code.strip().upper()
+        # Support claiming friend gift cards (GIFT-XXXX) directly via the voucher box
+        if clean_code.startswith("GIFT-"):
+            from bot.services.gift_service import claim_gift
+            remnawave = request.app.get("remnawave")
+            bot = request.app.get("bot")
+            session_factory = request.app.get("session_factory")
+            res_gift = await claim_gift(
+                session=session,
+                code=clean_code,
+                claimer_telegram_id=telegram_id,
+                claimer_username=user_auth.get("username"),
+                remnawave=remnawave,
+                bot=bot,
+                session_factory=session_factory,
+            )
+            if not res_gift.get("ok"):
+                return web.json_response(res_gift, status=400)
+
+            wallet_repo = WalletRepository(session)
+            wallet = await wallet_repo.get_wallet(telegram_id)
+            new_balance = wallet.balance if wallet else 0
+            cache: FastCache = request.app.get("cache")
+            if cache:
+                await cache.delete(f"tma:user:{telegram_id}:profile")
+                await cache.delete(f"tma:user:{telegram_id}:dashboard")
+                await cache.delete(f"tma:user:{telegram_id}:dashboard:default")
+
+            return web.json_response({
+                "ok": True,
+                "amount": res_gift.get("amount", 0),
+                "new_balance": new_balance,
+                "message": res_gift.get("message", "کارت هدیه با موفقیت فعال شد!"),
+            })
+
         coupon_repo = CouponRepository(session)
         wallet_repo = WalletRepository(session)
-        ok, amount, msg = await coupon_repo.redeem_credit_voucher(code, telegram_id)
+        ok, amount, msg = await coupon_repo.redeem_credit_voucher(clean_code, telegram_id)
         if not ok:
+            # Fallback to gift card if code did not have GIFT- prefix
+            from bot.services.gift_service import claim_gift
+            remnawave = request.app.get("remnawave")
+            bot = request.app.get("bot")
+            session_factory = request.app.get("session_factory")
+            res_gift = await claim_gift(
+                session=session,
+                code=clean_code,
+                claimer_telegram_id=telegram_id,
+                claimer_username=user_auth.get("username"),
+                remnawave=remnawave,
+                bot=bot,
+                session_factory=session_factory,
+            )
+            if res_gift.get("ok"):
+                wallet = await wallet_repo.get_wallet(telegram_id)
+                new_balance = wallet.balance if wallet else 0
+                return web.json_response({
+                    "ok": True,
+                    "amount": res_gift.get("amount", 0),
+                    "new_balance": new_balance,
+                    "message": res_gift.get("message", "کارت هدیه با موفقیت فعال شد!"),
+                })
             return web.json_response({"ok": False, "message": msg}, status=400)
 
         await session.commit()

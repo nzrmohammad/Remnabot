@@ -34,7 +34,7 @@ async def get_order_invoice_data(
     """Fetch order and compile complete official digital invoice data dictionary."""
     stmt = (
         select(Order, User)
-        .join(User, Order.telegram_id == User.telegram_id)
+        .outerjoin(User, Order.telegram_id == User.telegram_id)
         .where(Order.id == order_id, Order.telegram_id == telegram_id)
     )
     res = await session.execute(stmt)
@@ -43,7 +43,7 @@ async def get_order_invoice_data(
         return None
 
     order: Order = row[0]
-    user: User = row[1]
+    user: User | None = row[1]
 
     # Jalali conversion
     tz = ZoneInfo(tz_name)
@@ -65,11 +65,15 @@ async def get_order_invoice_data(
         time_jalali = "—"
         invoice_number = f"INV-0000-{order.id:05d}"
 
-    buyer_name = user.full_name or (f"@{user.username}" if user.username else f"کاربر {user.telegram_id}")
-    phone = user.phone_number or "—"
+    buyer_name = (
+        user.full_name or (f"@{user.username}" if user.username else f"کاربر {order.telegram_id}")
+    ) if user else f"کاربر {order.telegram_id}"
+    phone = (user.phone_number or "—") if user else "—"
 
-    traffic_desc = f"{order.traffic_gb} گیگابایت" if order.traffic_gb > 0 else "نامحدود"
-    duration_desc = f"{order.duration_days} روز" if order.duration_days > 0 else "بدون محدودیت زمانی"
+    traffic_gb = int(order.traffic_gb or 0)
+    duration_days = int(order.duration_days or 0)
+    traffic_desc = f"{traffic_gb} گیگابایت" if traffic_gb > 0 else "نامحدود"
+    duration_desc = f"{duration_days} روز" if duration_days > 0 else "بدون محدودیت زمانی"
 
     is_paid = (order.status == OrderStatus.PAID.value) or (str(order.status).lower() == "paid")
     status_label = "پرداخت شده و فعال" if is_paid else "ناموفق / لغو شده"
@@ -95,18 +99,18 @@ async def get_order_invoice_data(
         },
         "buyer": {
             "name": buyer_name,
-            "telegram_id": user.telegram_id,
-            "username": f"@{user.username}" if user.username else "",
+            "telegram_id": order.telegram_id,
+            "username": (f"@{user.username}" if user.username else "") if user else "",
             "phone": phone,
         },
         "item": {
             "service_id": order.service_id,
             "title": order.service_name,
-            "traffic_gb": order.traffic_gb,
+            "traffic_gb": traffic_gb,
             "traffic_text": traffic_desc,
-            "duration_days": order.duration_days,
+            "duration_days": duration_days,
             "duration_text": duration_desc,
-            "is_renewal": order.is_renewal,
+            "is_renewal": bool(order.is_renewal),
         },
         "payment": {
             "amount_toman": amount_toman,
