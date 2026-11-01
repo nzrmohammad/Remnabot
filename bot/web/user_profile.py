@@ -675,10 +675,11 @@ async def get_user_me(request: web.Request) -> web.Response:
                     used_val = u.get(gb_key, 0.0)
 
                     if is_me and my_rank is None:
-                        my_rank = idx + 1
                         my_used_gb = used_val
+                        if used_val > 0:
+                            my_rank = idx + 1
 
-                    if idx < 20:
+                    if idx < 20 and used_val > 0:
                         raw_uname = u.get("username") or f"user_{u.get('id')}"
                         if is_me:
                             display_name = f"{raw_uname} (شما)"
@@ -696,15 +697,15 @@ async def get_user_me(request: web.Request) -> web.Response:
                         })
 
                 cutoff_gb = top_20[-1]["used_gb"] if len(top_20) == 20 else (top_20[-1]["used_gb"] if top_20 else 0.0)
-                diff_gb = round(max(0.0, cutoff_gb - my_used_gb), 2) if (my_rank and my_rank > 20) else 0.0
+                diff_gb = round(max(0.0, cutoff_gb - my_used_gb), 2) if (my_rank and my_rank > 20 and my_used_gb > 0) else 0.0
 
                 return {
                     "top_20": top_20,
                     "labels": [u["username"] for u in top_20],
                     "data": [u["used_gb"] for u in top_20],
-                    "my_rank": my_rank,
+                    "my_rank": my_rank if (my_used_gb > 0) else None,
                     "my_used_gb": my_used_gb,
-                    "in_top_20": bool(my_rank and my_rank <= 20),
+                    "in_top_20": bool(my_rank and my_rank <= 20 and my_used_gb > 0),
                     "diff_gb": diff_gb,
                     "month_name": lb_item.get("month_name"),
                     "period_label": lb_item.get("label", ""),

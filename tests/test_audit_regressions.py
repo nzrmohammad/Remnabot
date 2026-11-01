@@ -1092,3 +1092,58 @@ async def test_run_expiry_check_skips_when_panel_unreachable(session_factory):
     # Must NOT hammer panel with individual requests
     assert remnawave.get_users_by_telegram_id.call_count == 0
 
+
+@pytest.mark.anyio
+async def test_user_leaderboard_zero_traffic_unranked(session_factory):
+    """Verify user with 0 GB traffic is never ranked or marked in_top_20 in empty weeks."""
+    from bot.web.user_profile import get_user_me
+    import json
+
+    tid = 887766
+    async with session_factory() as s:
+        s.add(User(telegram_id=tid, username="test_u"))
+        s.add(Wallet(telegram_id=tid, balance=10000))
+        await s.commit()
+
+    req = MagicMock()
+    req.headers = {}
+    req.query = {}
+    req.match_info = {}
+    cache = MagicMock()
+    cache.get = AsyncMock(return_value=None)
+    cache.set = AsyncMock()
+
+    remnawave = AsyncMock()
+    remnawave.get_users_by_telegram_id = AsyncMock(return_value=[{"id": 999, "status": "ACTIVE"}])
+    remnawave.get_all_panel_users = AsyncMock(return_value=[{"id": 999, "status": "ACTIVE", "telegramId": tid}])
+    remnawave.get_user_hwid_devices = AsyncMock(return_value=[])
+    remnawave.get_user_bandwidth_stats = AsyncMock(return_value={})
+    remnawave.get_user_today_usage = AsyncMock(return_value=0)
+
+    req.app = {
+        "session_factory": session_factory,
+        "cache": cache,
+        "bot": None,
+        "remnawave": remnawave,
+        "bot_token": "dummy:token",
+        "settings": MagicMock(TIMEZONE="Asia/Tehran"),
+    }
+
+    with patch("bot.web.user_profile.require_user", return_value=({"id": tid, "username": "test_u"}, None)), \
+         patch("bot.web.user_profile.get_periodic_users_bandwidth", new_callable=AsyncMock) as mock_bw:
+        mock_bw.return_value = {
+            "daily": {"all_users": [{"id": 999, "telegram_id": tid, "daily_gb": 0.0}], "gb_key": "daily_gb"},
+            "weekly": {"all_users": [{"id": 999, "telegram_id": tid, "week_gb": 0.0}], "gb_key": "week_gb"},
+            "monthly": {"all_users": [{"id": 999, "telegram_id": tid, "used_gb": 0.0}], "gb_key": "used_gb"},
+        }
+        resp = await get_user_me(req)
+        assert resp.status == 200
+        res_json = json.loads(resp.text)
+        data = res_json.get("data", {})
+        lb = data.get("leaderboard", {})
+        daily = lb.get("daily", {})
+        assert daily.get("my_rank") is None
+        assert daily.get("in_top_20") is False
+        assert daily.get("top_20") == []
+
+

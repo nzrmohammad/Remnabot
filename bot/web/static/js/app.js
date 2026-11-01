@@ -3874,14 +3874,22 @@ function renderUserLeaderboard(leaderboardData, period = currentUserLbPeriod) {
       periodLabel = `ماه ${mPersian}${wLabel}`;
     }
 
+    const isPeriodEmpty = top20.length === 0 || top20.every(u => !u.used_gb || u.used_gb <= 0);
     const myTrafficHtml = fmtTraffic(myUsedGb, { html: true, persianDigits: false });
-    if (inTop20 && myRank) {
+
+    if (isPeriodEmpty) {
+      if (noticeIconEl) noticeIconEl.innerText = '⏳';
+      noticeTextEl.innerHTML = `در دوره (${periodLabel}) هنوز داده‌ای از مصرف کاربران ثبت نشده است.`;
+      if (noticeEl) {
+        noticeEl.className = 'p-2.5 rounded-xl text-xs flex items-start gap-2 bg-slate-500/10 border border-slate-700/40 t-muted';
+      }
+    } else if (inTop20 && myRank && myUsedGb > 0) {
       if (noticeIconEl) noticeIconEl.innerText = '🎖️';
       noticeTextEl.innerHTML = `تبریک! شما با مصرف ${myTrafficHtml} در رتبه <b class="font-mono font-bold">${myRank}</b> از <b class="font-mono">20</b> کاربر برتر دوره (${periodLabel}) قرار دارید.`;
       if (noticeEl) {
         noticeEl.className = 'p-2.5 rounded-xl text-xs flex items-start gap-2 bg-emerald-500/10 border border-emerald-500/30 text-emerald-800 dark:text-emerald-300';
       }
-    } else if (myRank && myRank > 20) {
+    } else if (myRank && myRank > 20 && myUsedGb > 0) {
       if (noticeIconEl) noticeIconEl.innerText = '📊';
       const diffTrafficHtml = fmtTraffic(diffGb, { html: true, persianDigits: false });
       noticeTextEl.innerHTML = `شما با مصرف ${myTrafficHtml} در رتبه <b class="font-mono font-bold">${myRank}</b> دوره (${periodLabel}) قرار دارید. برای ورود به <b class="font-mono">20</b> کاربر برتر، به ${diffTrafficHtml} مصرف بیشتر نیاز دارید.`;

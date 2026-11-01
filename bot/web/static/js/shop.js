@@ -266,7 +266,7 @@ async function updateCustomPlanCalculation() {
     if (baseEl) baseEl.innerText = `${Number(localBase).toLocaleString('en-US')} تومان`;
     if (localDisc > 0) {
       if (discRow) discRow.classList.remove('hidden');
-      if (discEl) discEl.innerText = `-${Number(localDisc).toLocaleString('en-US')} تومان (${loyaltyPct}٪)`;
+      if (discEl) discEl.innerHTML = `<span dir="ltr" class="font-mono">-${Number(localDisc).toLocaleString('en-US')}</span> تومان <span dir="ltr" class="font-mono font-bold">(${loyaltyPct}%)</span>`;
     } else {
       if (discRow) discRow.classList.add('hidden');
     }
@@ -300,7 +300,7 @@ async function updateCustomPlanCalculation() {
         if (baseEl) baseEl.innerText = `${Number(d.base_price).toLocaleString('en-US')} تومان`;
         if (d.loyalty_discount_amount > 0) {
           if (discRow) discRow.classList.remove('hidden');
-          if (discEl) discEl.innerText = `-${Number(d.loyalty_discount_amount).toLocaleString('en-US')} تومان (${d.loyalty_discount_percent}٪)`;
+          if (discEl) discEl.innerHTML = `<span dir="ltr" class="font-mono">-${Number(d.loyalty_discount_amount).toLocaleString('en-US')}</span> تومان <span dir="ltr" class="font-mono font-bold">(${d.loyalty_discount_percent}%)</span>`;
         } else {
           if (discRow) discRow.classList.add('hidden');
         }
@@ -340,9 +340,14 @@ async function purchaseCustomPlan() {
   try {
     const res = await window.api.purchaseCustomPlan(gb, days);
     if (!res || !res.ok) {
-      const errMsg = res?.message || res?.data?.message || 'خطا در ثبت سفارش بسته اختصاصی';
+      const errMsg = res?.data?.message || res?.message || 'خطا در ثبت سفارش بسته اختصاصی';
       showToast(`❌ ${errMsg}`);
       hapticFeedback('error');
+      if (res?.data?.error === 'insufficient_balance' || res?.error === 'insufficient_balance') {
+        setTimeout(() => {
+          if (typeof window.openTopupModal === 'function') window.openTopupModal();
+        }, 1200);
+      }
       return;
     }
 

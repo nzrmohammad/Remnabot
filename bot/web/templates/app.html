@@ -908,7 +908,7 @@
               </div>
             </div>
             <span id="customPlanLoyaltyDiscountPill" class="hidden px-2 py-0.5 rounded-lg text-[10px] font-bold bg-amber-500/20 text-amber-500 dark:text-amber-300 border border-amber-500/30">
-              تخفیف وفاداری: <span id="customPlanLoyaltyPct">0</span>%
+              تخفیف وفاداری: <span dir="ltr" class="font-mono font-bold"><span id="customPlanLoyaltyPct">0</span>%</span>
             </span>
           </div>
 
@@ -920,10 +920,10 @@
                 <span id="customPlanGbVal">30</span> <span>GB</span>
               </div>
             </div>
-            <input type="range" id="customPlanGbSlider" min="5" max="300" step="5" value="30" class="w-full accent-cyan-500 cursor-pointer" />
-            <div class="flex justify-between text-[10px] t-muted font-mono" dir="ltr">
-              <span id="customPlanGbMin">5 GB</span>
-              <span id="customPlanGbMax">300 GB</span>
+            <input type="range" id="customPlanGbSlider" dir="rtl" min="5" max="300" step="5" value="30" class="w-full h-2 bg-slate-200 dark:bg-slate-700/80 rounded-lg appearance-none cursor-pointer accent-cyan-500" />
+            <div class="flex justify-between text-[10px] t-muted font-mono" dir="rtl">
+              <span id="customPlanGbMin" dir="ltr">5 GB</span>
+              <span id="customPlanGbMax" dir="ltr">300 GB</span>
             </div>
           </div>
 
@@ -935,8 +935,8 @@
                 <span id="customPlanDaysVal">30</span> <span class="text-xs t-muted font-sans">روز</span>
               </div>
             </div>
-            <input type="range" id="customPlanDaysSlider" min="10" max="180" step="5" value="30" class="w-full accent-indigo-500 cursor-pointer" />
-            <div class="flex justify-between text-[10px] t-muted font-mono">
+            <input type="range" id="customPlanDaysSlider" dir="rtl" min="10" max="180" step="5" value="30" class="w-full h-2 bg-slate-200 dark:bg-slate-700/80 rounded-lg appearance-none cursor-pointer accent-indigo-500" />
+            <div class="flex justify-between text-[10px] t-muted font-mono" dir="rtl">
               <span id="customPlanDaysMin">10 روز</span>
               <span id="customPlanDaysMax">180 روز</span>
             </div>
@@ -3186,16 +3186,16 @@
 
     <!-- 15.1 MODAL: SELECT SUBSCRIPTION FOR GIFT (انتخاب بسته اشتراک هدیه) -->
     <div id="giftServiceSelectModal" onclick="if(event.target === this) window.closeGiftServiceSelectModal()" class="fixed inset-0 modal-backdrop z-[90] flex items-center justify-center p-3 sm:p-4 hidden animate-fadeIn overflow-y-auto">
-      <div class="modal-card border border-pink-500/40 rounded-3xl p-4 sm:p-5 w-full text-right space-y-3 shadow-2xl relative max-w-[390px] my-auto">
+      <div class="modal-card border border-pink-500/40 rounded-3xl p-4 sm:p-5 w-full text-right space-y-3 shadow-2xl relative max-w-[420px] max-h-[85vh] flex flex-col my-auto">
         <button type="button" onclick="window.closeGiftServiceSelectModal()" class="modal-close-btn absolute top-3.5 left-3.5 z-10" title="بستن" aria-label="بستن پنجره انتخاب بسته">✕</button>
-        <div class="border-b border-card-border pb-2.5 flex items-center gap-2">
+        <div class="border-b border-card-border pb-2.5 flex items-center gap-2 shrink-0">
           <span class="text-xl">🎁</span>
           <div>
             <h3 class="text-xs font-bold t-main">انتخاب بسته اشتراک هدیه</h3>
             <span class="text-[10px] t-muted block">یکی از بسته‌های زیر را برای هدیه انتخاب فرمایید:</span>
           </div>
         </div>
-        <div id="giftServiceSelectModalList" class="space-y-2 max-h-72 overflow-y-auto pr-0.5">
+        <div id="giftServiceSelectModalList" class="space-y-2 max-h-[65vh] overflow-y-auto pr-0.5 flex-1 min-h-[260px]">
           <div class="p-4 rounded-xl card-inset text-center text-xs t-muted">در حال بارگذاری بسته‌ها...</div>
         </div>
       </div>
