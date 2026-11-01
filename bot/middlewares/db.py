@@ -22,6 +22,7 @@ class DbSessionMiddleware(BaseMiddleware):
     ) -> Any:
         async with self.session_factory() as session:
             data["session"] = session
+            data["session_factory"] = self.session_factory
             data["user_repo"] = UserRepository(session)
             try:
                 result = await handler(event, data)

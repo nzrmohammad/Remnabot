@@ -105,7 +105,7 @@ async def get_order_invoice_data(
         },
         "item": {
             "service_id": order.service_id,
-            "title": order.service_name,
+            "title": order.service_name or "بسته اشتراک",
             "traffic_gb": traffic_gb,
             "traffic_text": traffic_desc,
             "duration_days": duration_days,
@@ -174,7 +174,7 @@ async def send_invoice_to_telegram(bot: Bot, telegram_id: int, invoice: dict[str
                 except Exception as p_err:
                     logger.debug("Failed sending remote logo photo: %s", p_err)
             else:
-                clean_path = logo_url.lstrip("/")
+                clean_path = logo_url.split("?")[0].lstrip("/")
                 disk_path = Path("bot/web") / clean_path
                 if disk_path.exists() and disk_path.is_file():
                     try:

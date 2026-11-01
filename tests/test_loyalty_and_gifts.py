@@ -259,3 +259,73 @@ async def test_voucher_redeem_with_gift_card(session_factory):
         await session.refresh(claimer_w)
         assert claimer_w.balance == 30_000
 
+        # Check history includes share_url and jalali date
+        history = await get_user_gifts(session, sender_id, bot_username="MyTestBot")
+        assert len(history["sent"]) == 1
+        assert "share_url" in history["sent"][0]
+        assert "https://t.me/MyTestBot?start=gift_" in history["sent"][0]["share_url"]
+        assert "created_at_jalali" in history["sent"][0]
+
+
+@pytest.mark.anyio
+async def test_gift_subscription_provisioning_for_new_user_without_wallet(session_factory):
+    """Ensure a brand new user who has never created a wallet can claim a gifted subscription."""
+    from unittest.mock import AsyncMock
+
+    async with session_factory() as session:
+        sender_id = 991122
+        claimer_id = 993344
+
+        sender_w = Wallet(telegram_id=sender_id, balance=120_000)
+        session.add(sender_w)
+        
+        # Active service
+        srv = Service(
+            name="VIP Special 30D",
+            price=80_000,
+            duration_days=30,
+            traffic_gb=30,
+            is_active=True,
+        )
+        session.add(srv)
+        await session.commit()
+        await session.refresh(srv)
+
+        # Sender creates a service gift
+        created = await create_gift(
+            session=session,
+            sender_telegram_id=sender_id,
+            delivery_type="LINK",
+            gift_type="SERVICE",
+            service_id=srv.id,
+        )
+        assert created["ok"] is True
+        code = created["code"]
+
+        # Mock Remnawave
+        mock_remnawave = AsyncMock()
+        mock_remnawave.get_users_by_telegram_id = AsyncMock(return_value=[])
+        mock_remnawave.create_user = AsyncMock(return_value={
+            "id": 12345,
+            "username": f"u{claimer_id}_abc",
+            "subscriptionUrl": "https://panel.test/sub/token123",
+            "status": "ACTIVE",
+        })
+
+        # Claimer does NOT have a wallet row in DB yet
+        claim_res = await claim_gift(
+            session=session,
+            code=code,
+            claimer_telegram_id=claimer_id,
+            claimer_username="new_claimer",
+            remnawave=mock_remnawave,
+        )
+        assert claim_res["ok"] is True
+        assert claim_res["service_name"] == "VIP Special 30D"
+
+        # Verify a wallet was auto-created for claimer and not broken by zero balance deduction
+        from bot.db.repositories.wallet_repo import WalletRepository
+        w = await WalletRepository(session).get_wallet(claimer_id)
+        assert w is not None
+        assert w.balance == 0
+

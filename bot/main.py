@@ -106,6 +106,8 @@ async def main() -> None:
 
     # dependency injection
     dp["remnawave"] = remnawave
+    dp["session_factory"] = session_factory
+    setattr(bot, "session_factory", session_factory)
     # Rate-limit first (drops floods before DB sessions are opened).
     dp.update.outer_middleware(RateLimitMiddleware())
     dp.update.outer_middleware(DbSessionMiddleware(session_factory))

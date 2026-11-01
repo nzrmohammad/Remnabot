@@ -221,7 +221,13 @@ async def _execute_purchase_impl(
         select(Wallet.balance).where(Wallet.telegram_id == telegram_id)
     )
     val = wallet_res.scalar_one_or_none()
-    current_balance = int(getattr(val, "balance", val) or 0)
+    if val is None:
+        # Ensure a wallet row exists so subsequent atomic UPDATE returns a valid row even if price is 0
+        from bot.db.repositories.wallet_repo import WalletRepository
+        w = await WalletRepository(session).get_wallet(telegram_id)
+        current_balance = w.balance
+    else:
+        current_balance = int(getattr(val, "balance", val) or 0)
     if current_balance < effective_price:
         return PurchaseResult(ok=False, kind="insufficient", new_balance=current_balance)
 

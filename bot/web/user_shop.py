@@ -733,8 +733,10 @@ async def get_user_gifts_history(request: web.Request) -> web.Response:
         return err
 
     telegram_id = int(user_auth["id"])
+    bot = request.app.get("bot")
+    bot_username = getattr(getattr(bot, "_me", None), "username", "") if bot else ""
     async with db_session(request) as session:
-        gifts = await get_user_gifts(session, telegram_id)
+        gifts = await get_user_gifts(session, telegram_id, bot_username=bot_username)
         return web.json_response({"ok": True, "gifts": gifts})
 
 

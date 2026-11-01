@@ -3036,7 +3036,7 @@ function hydrateUserInterface(data) {
         if (nextText) nextText.innerText = 'بالاترین سطح باشگاه VIP 🎉';
         if (progPct) progPct.innerText = '100%';
         if (progBar) progBar.style.width = '100%';
-        if (targetSpent) targetSpent.innerText = 'الماس درخشان';
+        if (targetSpent) targetSpent.innerText = `${loyalty.name || 'الماس'} VIP`;
       }
 
       if (benefitDesc) {
@@ -4473,7 +4473,13 @@ async function submitClaimVoucher() {
       return;
     }
     hapticFeedback('success');
-    showToast(`🎉 تبریک! هدیه «${res.data?.gift_type === 'BALANCE' ? Number(res.data.amount).toLocaleString('en-US') + ' تومان اعتبار' : res.data.service_name}» دریافت و به حسابتان اضافه شد!`);
+    const giftType = res.gift_type || res.data?.gift_type;
+    const amount = res.amount || res.data?.amount;
+    const serviceName = res.service_name || res.data?.service_name;
+    const giftTitle = giftType === 'BALANCE'
+      ? `${Number(amount || 0).toLocaleString('en-US')} تومان اعتبار کیف پول`
+      : `اشتراک «${serviceName || 'سرویس'}»`;
+    showToast(`🎉 تبریک! هدیه ${giftTitle} دریافت و به حسابتان اضافه شد!`);
     inp.value = '';
     if (window.loadUserData) window.loadUserData();
     loadGiftsHistory();
@@ -4489,12 +4495,9 @@ async function loadGiftsHistory() {
 
   try {
     const res = await window.api.getGiftsHistory();
-    if (!res || !res.ok || !res.data || !res.data.sent_gifts) {
-      container.innerHTML = '<div class="p-3 rounded-xl card-inset text-center text-xs t-muted">تاریخچه‌ای یافت نشد.</div>';
-      return;
-    }
-    const sent = res.data.sent_gifts || [];
-    if (!sent.length) {
+    const giftsObj = res?.gifts || res?.data?.gifts;
+    const sent = giftsObj?.sent || res?.sent_gifts || res?.data?.sent_gifts || (Array.isArray(giftsObj) ? giftsObj : []);
+    if (!res || !res.ok || !sent.length) {
       container.innerHTML = '<div class="p-3 rounded-xl card-inset text-center text-xs t-muted">هنوز هدیه‌ای ارسال نکرده‌اید.</div>';
       return;
     }
@@ -4507,6 +4510,8 @@ async function loadGiftsHistory() {
         ? `${Number(g.amount).toLocaleString('en-US')} تومان شارژ کیف پول`
         : `اشتراک ${g.service_name || 'سرویس'}`;
       const rec = g.receiver_username ? `@${g.receiver_username}` : (g.receiver_telegram_id ? String(g.receiver_telegram_id) : 'از طریق لینک ووچر');
+      const dateStr = g.created_at_jalali || (g.created_at && window.formatDateToJalali ? window.formatDateToJalali(g.created_at) : '');
+      const shareUrl = g.share_url || `https://t.me?start=gift_${g.code}`;
       return `
         <div class="card-inset p-2.5 rounded-xl space-y-1.5 text-xs">
           <div class="flex justify-between items-center">
@@ -4515,11 +4520,11 @@ async function loadGiftsHistory() {
           </div>
           <div class="flex justify-between items-center text-[10px] t-muted">
             <span>گیرنده: <code class="font-mono">${rec}</code></span>
-            <span dir="ltr" class="font-mono">${toEnglishDigits(g.created_at_jalali || '')}</span>
+            <span dir="ltr" class="font-mono">${toEnglishDigits(dateStr)}</span>
           </div>
           <div class="flex items-center justify-between text-[10px] border-t border-card-border pt-1">
             <span class="font-mono t-muted text-[10px] select-all">${g.code}</span>
-            ${!isClaimed && g.share_url ? `<button type="button" onclick="copyToClipboard('${g.share_url}'); showToast('📋 لینک کپی شد!');" class="text-pink-500 hover:text-pink-400 font-bold">کپی لینک</button>` : ''}
+            ${!isClaimed ? `<button type="button" onclick="copyToClipboard('${shareUrl}'); showToast('📋 لینک کپی شد!');" class="text-pink-500 hover:text-pink-400 font-bold">کپی لینک</button>` : ''}
           </div>
         </div>
       `;

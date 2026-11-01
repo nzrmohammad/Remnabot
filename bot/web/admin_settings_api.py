@@ -267,7 +267,8 @@ async def post_admin_upload_store_logo(request: web.Request) -> web.Response:
 
     await asyncio.to_thread(_write_file)
 
-    logo_url = f"/static/img/store_logo.{ext}"
+    import time
+    logo_url = f"/static/img/store_logo.{ext}?v={int(time.time())}"
 
     async with db_session(request) as session:
         app_repo = AppSettingRepository(session)

@@ -288,7 +288,8 @@ async function purchaseCustomPlan() {
   try {
     const res = await window.api.purchaseCustomPlan(gb, days);
     if (!res || !res.ok) {
-      showToast(`❌ ${res?.message || 'خطا در ثبت سفارش بسته اختصاصی'}`);
+      const errMsg = res?.message || res?.data?.message || 'خطا در ثبت سفارش بسته اختصاصی';
+      showToast(`❌ ${errMsg}`);
       hapticFeedback('error');
       return;
     }

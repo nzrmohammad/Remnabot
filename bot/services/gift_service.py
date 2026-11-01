@@ -25,9 +25,9 @@ def generate_gift_code() -> str:
 async def create_gift(
     session: AsyncSession,
     sender_telegram_id: int,
-    sender_name: str | None,
-    delivery_type: str,  # "DIRECT" or "LINK"
-    gift_type: str,      # "BALANCE" or "SERVICE"
+    sender_name: str | None = None,
+    delivery_type: str = "LINK",  # "DIRECT" or "LINK"
+    gift_type: str = "BALANCE",    # "BALANCE" or "SERVICE"
     amount: int = 0,     # Toman for balance
     service_id: int | None = None,
     receiver_target: str | None = None,  # @username or telegram_id
@@ -197,6 +197,11 @@ async def claim_gift(
     if sender_id == claimer_telegram_id:
         return {"ok": False, "message": "شما نمی‌توانید هدیه‌ای که خودتان ساخته‌اید را تحویل بگیرید."}
 
+    # Mark claimed immediately under row lock to prevent concurrency race during mid-purchase commits
+    gift.is_claimed = True
+    gift.claimed_at = datetime.now(timezone.utc)
+    gift.receiver_telegram_id = claimer_telegram_id
+
     # 1. Apply Reward
     if gift.gift_type == "BALANCE":
         # Charge claimer wallet
@@ -250,10 +255,7 @@ async def claim_gift(
                     session.add(wallet)
                 wallet.balance += gift.amount
 
-    # 2. Mark Gift Claimed
-    gift.is_claimed = True
-    gift.claimed_at = datetime.now(timezone.utc)
-    gift.receiver_telegram_id = claimer_telegram_id
+    # 2. Finalize Transaction
     await session.commit()
 
     # 3. Notify Sender
@@ -280,7 +282,11 @@ async def claim_gift(
     }
 
 
-async def get_user_gifts(session: AsyncSession, telegram_id: int) -> dict[str, list[dict[str, Any]]]:
+async def get_user_gifts(
+    session: AsyncSession,
+    telegram_id: int,
+    bot_username: str = "",
+) -> dict[str, list[dict[str, Any]]]:
     """Return sent and received gifts for a user."""
     sent_res = await session.execute(
         select(GiftCard).where(GiftCard.sender_telegram_id == telegram_id).order_by(GiftCard.created_at.desc()).limit(20)
@@ -293,9 +299,19 @@ async def get_user_gifts(session: AsyncSession, telegram_id: int) -> dict[str, l
     received_items = received_res.scalars().all()
 
     def _fmt(g: GiftCard) -> dict[str, Any]:
+        share_url = f"https://t.me/{bot_username}?start=gift_{g.code}" if bot_username else g.code
+        created_at_jalali = ""
+        if g.created_at:
+            try:
+                import jdatetime
+                created_at_jalali = jdatetime.datetime.fromgregorian(datetime=g.created_at).strftime("%Y/%m/%d %H:%M")
+            except Exception:
+                created_at_jalali = g.created_at.strftime("%Y/%m/%d")
+
         return {
             "id": g.id,
             "code": g.code,
+            "share_url": share_url,
             "gift_type": g.gift_type,
             "amount": g.amount,
             "service_name": g.service_name,
@@ -306,6 +322,7 @@ async def get_user_gifts(session: AsyncSession, telegram_id: int) -> dict[str, l
             "message": g.message,
             "is_claimed": g.is_claimed,
             "created_at": g.created_at.isoformat() if g.created_at else None,
+            "created_at_jalali": created_at_jalali,
             "claimed_at": g.claimed_at.isoformat() if g.claimed_at else None,
         }
 
