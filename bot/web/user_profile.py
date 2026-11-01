@@ -717,7 +717,12 @@ async def get_user_me(request: web.Request) -> web.Response:
             cal_months = periodic_bw.get("calendar_months", {})
             user_leaderboard["calendar_months"] = {}
             for m_name, m_lb in cal_months.items():
-                user_leaderboard["calendar_months"][m_name] = _build_user_lb(m_lb)
+                built_m = _build_user_lb(m_lb)
+                if isinstance(m_lb, dict) and "weeks" in m_lb:
+                    built_m["weeks"] = {
+                        w_k: _build_user_lb(w_v) for w_k, w_v in m_lb["weeks"].items()
+                    }
+                user_leaderboard["calendar_months"][m_name] = built_m
 
             avail_months = periodic_bw.get("available_months", [])
             user_leaderboard["available_months"] = avail_months

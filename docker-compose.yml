@@ -29,6 +29,7 @@ services:
     build: .
     container_name: remnawave-bot
     restart: unless-stopped
+    stop_grace_period: 30s
     env_file: .env
     environment:
       DATABASE_URL: ${DATABASE_URL:-postgresql+asyncpg://${POSTGRES_USER:-remnabot}:${POSTGRES_PASSWORD:-remnabot}@db:5432/${POSTGRES_DB:-remnabot}}

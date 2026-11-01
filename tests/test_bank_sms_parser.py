@@ -165,3 +165,27 @@ def test_reject_refah_minus_withdrawal_sms():
     res = parse_bank_sms(sms)
     assert res.is_deposit is False
 
+
+def test_reject_outbound_transfer_sms():
+    sms = "انتقال به کارت 6037****9911 مبلغ 500,000 ریال انجام شد"
+    res = parse_bank_sms(sms)
+    assert res.is_deposit is False
+    assert res.amount_toman is None
+
+
+def test_parse_mellat_triple_card_deposit_sms():
+    sms = "بانک ملت: کارت به کارت به کارت 6104****9900 مبلغ 503,700 ریال"
+    res = parse_bank_sms(sms)
+    assert res.is_deposit is True
+    assert res.amount_toman == 50370
+    assert res.amount_rial == 503700
+    assert res.card_last4 == "9900"
+
+
+def test_reject_unitless_amount_sms():
+    sms = "واریز 50,000"
+    res = parse_bank_sms(sms)
+    assert res.is_deposit is False
+    assert res.amount_toman is None
+
+

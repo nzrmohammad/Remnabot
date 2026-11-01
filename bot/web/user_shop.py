@@ -659,7 +659,7 @@ async def post_user_create_gift(request: web.Request) -> web.Response:
     gift_type = data.get("gift_type", "BALANCE")
     amount = int(data.get("amount", 0) or 0)
     service_id = int(data.get("service_id")) if data.get("service_id") else None
-    receiver_target = data.get("receiver_target")
+    receiver_target = data.get("receiver_target") or data.get("receiver")
     message = data.get("message")
     bot = request.app.get("bot")
     bot_username = getattr(getattr(bot, "_me", None), "username", "") if bot else ""

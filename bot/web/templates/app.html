@@ -706,6 +706,15 @@
               </button>
             </div>
 
+            <!-- 4-Week Monthly Breakdown Filter (تفکیک ۴ هفته‌ای ماه) -->
+            <div id="userLbWeekBar" class="hidden grid grid-cols-5 gap-1 p-0.5 card-inset rounded-xl text-[10px] font-bold">
+              <button type="button" id="userLbWeekAllBtn" onclick="window.switchUserLbWeek('all')" class="py-1 rounded-lg bg-cyan-600 text-white shadow text-center transition">کل ماه</button>
+              <button type="button" id="userLbWeek1Btn" onclick="window.switchUserLbWeek('week1')" class="py-1 rounded-lg text-slate-400 hover:text-white text-center transition">هفته ۱</button>
+              <button type="button" id="userLbWeek2Btn" onclick="window.switchUserLbWeek('week2')" class="py-1 rounded-lg text-slate-400 hover:text-white text-center transition">هفته ۲</button>
+              <button type="button" id="userLbWeek3Btn" onclick="window.switchUserLbWeek('week3')" class="py-1 rounded-lg text-slate-400 hover:text-white text-center transition">هفته ۳</button>
+              <button type="button" id="userLbWeek4Btn" onclick="window.switchUserLbWeek('week4')" class="py-1 rounded-lg text-slate-400 hover:text-white text-center transition">هفته ۴</button>
+            </div>
+
             <!-- Dynamic User Status / Rank Notice -->
             <div id="userLeaderboardNotice" class="p-2.5 rounded-xl text-xs t-muted flex items-start gap-2 bg-transparent border border-slate-700/40">
               <span id="userLbNoticeIcon" class="text-base shrink-0">📊</span>
@@ -1737,38 +1746,6 @@
                   </div>
                 </div>
 
-                <!-- Amounts Box (Toman and Rial) -->
-                <div class="space-y-2">
-                  <div class="card-inset rounded-xl p-2.5 flex items-center justify-between border border-[var(--card-border)]">
-                    <div>
-                      <span class="text-[10px] t-muted block">مبلغ قابل پرداخت به تومان:</span>
-                      <b id="cardAutoExactToman" class="text-emerald-600 dark:text-emerald-400 text-sm font-mono font-bold">-- تومان</b>
-                    </div>
-                    <button type="button" onclick="window.copyCardAutoAmount('toman')" class="p-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800/80 dark:hover:bg-slate-700/80 text-emerald-600 dark:text-emerald-400 text-sm transition active:scale-95 flex items-center justify-center shadow-sm" title="کپی مبلغ به تومان" aria-label="کپی مبلغ به تومان">
-                      📋
-                    </button>
-                  </div>
-                  <div class="card-inset rounded-xl p-2.5 flex items-center justify-between border border-[var(--card-border)]">
-                    <div>
-                      <span class="text-[10px] t-muted block">مبلغ قابل پرداخت به ریال (همراه‌بانک):</span>
-                      <b id="cardAutoExactRial" class="text-cyan-600 dark:text-cyan-400 text-sm font-mono font-bold">-- ریال</b>
-                    </div>
-                    <button type="button" onclick="window.copyCardAutoAmount('rial')" class="p-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800/80 dark:hover:bg-slate-700/80 text-cyan-600 dark:text-cyan-400 text-sm transition active:scale-95 flex items-center justify-center shadow-sm" title="کپی مبلغ به ریال" aria-label="کپی مبلغ به ریال">
-                      📋
-                    </button>
-                  </div>
-                </div>
-
-                <!-- Strict Warning Alert -->
-                <div class="bg-rose-500/10 border border-rose-500/30 rounded-xl p-2.5 text-right space-y-1">
-                  <b class="text-xs text-rose-600 dark:text-rose-400 flex items-center gap-1 font-extrabold">
-                    <span>⚠️</span> مبلغ را رند نکنید!
-                  </b>
-                  <p class="text-[11px] t-main leading-relaxed font-medium">
-                    سیستم هوشمند دقیقاً همین رقم را برای شما رزرو کرده است؛ لطفاً رقم را تغییر ندهید تا شارژ بلافاصله و اتوماتیک انجام گیرد.
-                  </p>
-                </div>
-
                 <!-- Clean Modern Bank Card Box -->
                 <div class="card p-4 rounded-2xl border border-card-border space-y-3.5 shadow-sm">
                   <!-- Header: Account Holder Name & Bank Icon -->
@@ -1800,6 +1777,38 @@
                     <svg class="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
                     <span>کپی شماره کارت</span>
                   </button>
+                </div>
+
+                <!-- Amounts Box (Rial for Mobile Bank & Toman) -->
+                <div class="space-y-2">
+                  <div class="card-inset rounded-xl p-2.5 flex items-center justify-between border border-[var(--card-border)]">
+                    <div>
+                      <span class="text-[10px] t-muted block">مبلغ قابل پرداخت به ریال (همراه‌بانک):</span>
+                      <b id="cardAutoExactRial" class="text-cyan-600 dark:text-cyan-400 text-sm font-mono font-bold">-- ریال</b>
+                    </div>
+                    <button type="button" onclick="window.copyCardAutoAmount('rial')" class="p-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800/80 dark:hover:bg-slate-700/80 text-cyan-600 dark:text-cyan-400 text-sm transition active:scale-95 flex items-center justify-center shadow-sm" title="کپی مبلغ به ریال" aria-label="کپی مبلغ به ریال">
+                      📋
+                    </button>
+                  </div>
+                  <div class="card-inset rounded-xl p-2.5 flex items-center justify-between border border-[var(--card-border)]">
+                    <div>
+                      <span class="text-[10px] t-muted block">مبلغ قابل پرداخت به تومان:</span>
+                      <b id="cardAutoExactToman" class="text-emerald-600 dark:text-emerald-400 text-sm font-mono font-bold">-- تومان</b>
+                    </div>
+                    <button type="button" onclick="window.copyCardAutoAmount('toman')" class="p-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800/80 dark:hover:bg-slate-700/80 text-emerald-600 dark:text-emerald-400 text-sm transition active:scale-95 flex items-center justify-center shadow-sm" title="کپی مبلغ به تومان" aria-label="کپی مبلغ به تومان">
+                      📋
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Strict Warning Alert (Placed immediately below card details & amounts) -->
+                <div class="bg-rose-500/10 border border-rose-500/30 rounded-xl p-2.5 text-right space-y-1">
+                  <b class="text-xs text-rose-600 dark:text-rose-400 flex items-center gap-1 font-extrabold">
+                    <span>⚠️</span> مبلغ را رند نکنید!
+                  </b>
+                  <p class="text-[11px] t-main leading-relaxed font-medium">
+                    سیستم هوشمند دقیقاً همین رقم را برای شما رزرو کرده است؛ لطفاً رقم را تغییر ندهید تا شارژ بلافاصله و اتوماتیک انجام گیرد.
+                  </p>
                 </div>
 
                   <!-- Transfer Rule Warning -->
@@ -3043,13 +3052,16 @@
           </div>
         </div>
 
-        <!-- Gift Modal Tabs (ارسال هدیه / تاریخچه هدایا) -->
+        <!-- Gift Modal Tabs (ارسال هدیه / ثبت کد / تاریخچه) -->
         <div class="flex items-center p-1 card-inset rounded-2xl text-xs gap-1">
           <button type="button" onclick="window.switchGiftModalTab('new')" id="giftTabBtn-new" class="flex-1 py-1.5 px-2 rounded-xl font-bold transition flex items-center justify-center gap-1 bg-pink-600 text-white shadow">
             <span>🎁</span> هدیه جدید
           </button>
+          <button type="button" onclick="window.switchGiftModalTab('claim')" id="giftTabBtn-claim" class="flex-1 py-1.5 px-2 rounded-xl font-medium transition flex items-center justify-center gap-1 text-slate-400 hover:text-white">
+            <span>🎟</span> ثبت کد
+          </button>
           <button type="button" onclick="window.switchGiftModalTab('history')" id="giftTabBtn-history" class="flex-1 py-1.5 px-2 rounded-xl font-medium transition flex items-center justify-center gap-1 text-slate-400 hover:text-white">
-            <span>📜</span> تاریخچه و ووچر
+            <span>📜</span> تاریخچه
           </button>
         </div>
 
@@ -3080,12 +3092,20 @@
             </div>
           </div>
 
-          <!-- Service Specific Inputs -->
+          <!-- Service Specific Visual Card (Opens dedicated selection modal) -->
           <div id="giftServiceSection" class="space-y-1.5 hidden">
-            <span class="text-[11px] t-muted block">انتخاب بسته اشتراک:</span>
-            <select id="giftServiceSelect" class="input-base w-full p-2.5 rounded-xl text-xs outline-none" onchange="window.updateGiftCostDisplay()">
-              <option value="">در حال بارگذاری بسته‌ها...</option>
-            </select>
+            <span class="text-[11px] t-muted block">بسته اشتراک هدیه:</span>
+            <div id="giftSelectedServiceCard" onclick="window.openGiftServiceSelectModal && window.openGiftServiceSelectModal()" class="card-inset p-3 rounded-2xl border border-pink-500/30 flex items-center justify-between cursor-pointer hover:border-pink-500 transition">
+              <div class="flex items-center gap-2.5 min-w-0">
+                <span class="text-xl shrink-0">📦</span>
+                <div class="min-w-0">
+                  <b id="giftSelectedServiceTitle" class="text-xs t-main block truncate">انتخاب بسته اشتراک...</b>
+                  <span id="giftSelectedServiceSpecs" class="text-[10px] t-muted block truncate">جهت انتخاب بسته دلخواه برای هدیه کلیک فرمایید</span>
+                </div>
+              </div>
+              <span class="text-xs text-pink-500 font-bold px-2.5 py-1 rounded-lg card-inset border border-pink-500/30 shrink-0">انتخاب</span>
+            </div>
+            <input type="hidden" id="giftServiceSelect" value="" />
           </div>
 
           <!-- Step 2: Select Delivery Model (Direct or Link) -->
@@ -3151,18 +3171,20 @@
           </div>
         </div>
 
-        <!-- Tab 2: Gifts History & Voucher Redeem -->
-        <div id="giftHistoryView" class="space-y-3 hidden">
-          <!-- Redeem Voucher Box -->
-          <div class="card-inset p-3 rounded-2xl space-y-2 border border-card-border">
-            <span class="text-[11px] font-bold t-main block">🎁 ثبت کد هدیه دریافتی (Claim Voucher):</span>
-            <div class="flex items-center gap-1.5">
-              <input type="text" id="claimVoucherInput" placeholder="کد هدیه (مثلاً GIFT-ABCD1234)" class="input-base text-xs font-mono uppercase p-2 rounded-xl flex-1 outline-none" dir="ltr" />
-              <button type="button" onclick="window.submitClaimVoucher()" class="btn btn-primary text-xs px-3 py-2 rounded-xl shrink-0 font-bold">دریافت</button>
+        <!-- Tab 2: Redeem Voucher (ثبت کد هدیه دریافتی با دکمه در سمت راست کادر) -->
+        <div id="giftClaimView" class="space-y-3 hidden">
+          <div class="card-inset p-3.5 rounded-2xl space-y-2.5 border border-card-border">
+            <span class="text-xs font-bold t-main block">🎁 ثبت کد هدیه دریافتی (Claim Voucher):</span>
+            <div class="flex items-center gap-2">
+              <button type="button" onclick="window.submitClaimVoucher()" class="btn btn-primary text-xs px-4 py-2 rounded-xl shrink-0 font-bold shadow-sm">دریافت</button>
+              <input type="text" id="claimVoucherInput" placeholder="کد هدیه (مثلاً GIFT-ABCD1234)" class="input-base text-xs font-mono uppercase p-2 rounded-xl flex-1 outline-none text-left" dir="ltr" />
             </div>
+            <p class="text-[10.5px] t-muted leading-relaxed">کد هدیه‌ای که دوستانتان برایتان فرستاده‌اند را وارد نموده و دکمه دریافت را بزنید تا شارژ یا سرویس بلافاصله به حسابتان اضافه گردد.</p>
           </div>
+        </div>
 
-          <!-- History List -->
+        <!-- Tab 3: Gifts History (لیست هدایای ارسال شده) -->
+        <div id="giftHistoryView" class="space-y-3 hidden">
           <div class="space-y-1.5">
             <span class="text-[11px] t-muted block">لیست هدایای ارسال شده شما:</span>
             <div id="giftsHistoryContainer" class="space-y-2 max-h-56 overflow-y-auto">
@@ -3175,6 +3197,23 @@
 
       </div>
     </div>
+
+    <!-- 15.1 MODAL: SELECT SUBSCRIPTION FOR GIFT (انتخاب بسته اشتراک هدیه) -->
+    <div id="giftServiceSelectModal" onclick="if(event.target === this) window.closeGiftServiceSelectModal()" class="fixed inset-0 modal-backdrop z-[90] flex items-center justify-center p-3 sm:p-4 hidden animate-fadeIn overflow-y-auto">
+      <div class="modal-card border border-pink-500/40 rounded-3xl p-4 sm:p-5 w-full text-right space-y-3 shadow-2xl relative max-w-[390px] my-auto">
+        <button type="button" onclick="window.closeGiftServiceSelectModal()" class="modal-close-btn absolute top-3.5 left-3.5 z-10" title="بستن" aria-label="بستن پنجره انتخاب بسته">✕</button>
+        <div class="border-b border-card-border pb-2.5 flex items-center gap-2">
+          <span class="text-xl">🎁</span>
+          <div>
+            <h3 class="text-xs font-bold t-main">انتخاب بسته اشتراک هدیه</h3>
+            <span class="text-[10px] t-muted block">یکی از بسته‌های زیر را برای هدیه انتخاب فرمایید:</span>
+          </div>
+        </div>
+        <div id="giftServiceSelectModalList" class="space-y-2 max-h-72 overflow-y-auto pr-0.5">
+          <div class="p-4 rounded-xl card-inset text-center text-xs t-muted">در حال بارگذاری بسته‌ها...</div>
+        </div>
+      </div>
+    </div>
     <!-- ======================================================== -->
     <!-- 16. MODAL: DIGITAL INVOICE & OFFICIAL RECEIPT (فاکتور رسمی) -->
     <!-- ======================================================== -->
@@ -3183,7 +3222,7 @@
         <button type="button" onclick="window.closeInvoiceModal()" class="modal-close-btn absolute top-3.5 left-3.5 z-10" title="بستن" aria-label="بستن فاکتور">✕</button>
 
         <!-- Official Header -->
-        <div class="border-b border-card-border pb-3 flex items-center justify-between">
+        <div class="border-b border-card-border pb-3 flex items-center justify-between pl-10">
           <div class="flex items-center gap-2.5">
             <img id="invSellerLogo" class="w-8 h-8 rounded-xl object-contain border border-card-border hidden" alt="Store Logo" />
             <span id="invSellerDefaultIcon" class="text-2xl">🧾</span>
@@ -3400,10 +3439,10 @@
               </div>
               <div class="flex-1 min-w-0">
                 <div class="flex items-center justify-between">
-                  <b class="text-xs text-amber-300 font-bold">سطح الماس (VIP)</b>
+                  <b class="text-xs text-amber-300 font-bold">سطح الماس</b>
                   <span id="loyaltyTierCard_diamond_spent" class="text-[10px] font-bold text-amber-300 font-mono">۱۰,۰۰۰,۰۰۰ تومان</span>
                 </div>
-                <p class="text-[10px] t-muted mt-0.5 leading-snug"><b id="loyaltyTierCard_diamond_pct" class="text-emerald-500 font-bold">۱۵٪ تخفیف دائمی</b> روی تمامی بسته‌ها + اولویت VIP.</p>
+                <p class="text-[10px] t-muted mt-0.5 leading-snug"><b id="loyaltyTierCard_diamond_pct" class="text-emerald-500 font-bold">۱۵٪ تخفیف دائمی</b> روی تمامی بسته‌ها + پشتیبانی اختصاصی.</p>
               </div>
             </div>
           </div>

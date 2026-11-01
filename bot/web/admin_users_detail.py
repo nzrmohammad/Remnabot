@@ -182,12 +182,11 @@ async def _resolve_panel_user(remnawave, target_id: Any) -> tuple[Any, str | Non
     if panel_users and len(panel_users) > 0:
         return panel_users[0].get("id"), panel_users[0].get("uuid")
 
-    # Reliable fallback: preserve target_id as valid identifier
+    # If target is explicitly formatted as UUID, preserve it
     if "-" in target_str and len(target_str) >= 32:
         return None, target_str
-    if target_str.isdigit():
-        return int(target_str), None
-    return target_str, None
+
+    return None, None
 
 async def get_admin_user_hwid_devices(request: web.Request) -> web.Response:
     """Fetch all active connected HWID devices for a specific user."""
@@ -201,7 +200,10 @@ async def get_admin_user_hwid_devices(request: web.Request) -> web.Response:
 
     remnawave = request.app["remnawave"]
     primary_id, primary_uuid = await _resolve_panel_user(remnawave, target_id)
-    devices = await remnawave.get_user_hwid_devices(primary_id or target_id, user_uuid=primary_uuid)
+    if not primary_id and not primary_uuid:
+        return web.json_response({"ok": False, "error": "کاربر مورد نظر در پنل یافت نشد."}, status=404)
+
+    devices = await remnawave.get_user_hwid_devices(primary_id, user_uuid=primary_uuid)
     return web.json_response({"ok": True, "devices": devices or []})
 
 
@@ -223,7 +225,10 @@ async def post_admin_user_delete_hwid(request: web.Request) -> web.Response:
 
     remnawave = request.app["remnawave"]
     primary_id, _ = await _resolve_panel_user(remnawave, target_id)
-    success = await remnawave.delete_hwid_device(primary_id or target_id, hwid)
+    if not primary_id:
+        return web.json_response({"ok": False, "error": "کاربر مورد نظر در پنل یافت نشد."}, status=404)
+
+    success = await remnawave.delete_hwid_device(primary_id, hwid)
     if not success:
         return web.json_response({"ok": False, "error": "خطا در حذف دستگاه از پنل."}, status=502)
 
@@ -243,7 +248,9 @@ async def get_admin_user_sessions(request: web.Request) -> web.Response:
     remnawave = request.app["remnawave"]
     try:
         primary_id, _ = await _resolve_panel_user(remnawave, target_id)
-        user_sessions = await remnawave.get_user_live_sessions(primary_id or target_id)
+        if not primary_id:
+            return web.json_response({"ok": False, "error": "کاربر مورد نظر در پنل یافت نشد."}, status=404)
+        user_sessions = await remnawave.get_user_live_sessions(primary_id)
         return web.json_response({"ok": True, "data": user_sessions})
     except Exception as exc:
         logger.warning("Error fetching user live sessions: %s", exc)

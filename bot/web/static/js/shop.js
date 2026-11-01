@@ -157,6 +157,15 @@ function switchShopCategory(cat, shouldRender = true) {
     }
   });
 
+  const noticeEl = document.getElementById('shopSmartNotice');
+  if (noticeEl) {
+    if (currentShopCategory !== 'full') {
+      noticeEl.classList.add('hidden');
+    } else if (noticeEl.dataset.shouldShow === 'true') {
+      noticeEl.classList.remove('hidden');
+    }
+  }
+
   const customContainer = document.getElementById('customPlanBuilderContainer');
   const shopContainer = document.getElementById('shopPlansContainer');
   const couponSection = document.getElementById('shopCouponSection');
@@ -210,8 +219,10 @@ function initCustomPlanBuilder() {
 
   if (!_customPlanBuilderInitialized) {
     _customPlanBuilderInitialized = true;
-    gbSlider.addEventListener('input', () => updateCustomPlanCalculation());
-    daysSlider.addEventListener('input', () => updateCustomPlanCalculation());
+    ['input', 'change'].forEach(evt => {
+      gbSlider.addEventListener(evt, () => updateCustomPlanCalculation());
+      daysSlider.addEventListener(evt, () => updateCustomPlanCalculation());
+    });
   }
 
   updateCustomPlanCalculation();
@@ -230,29 +241,70 @@ async function updateCustomPlanCalculation() {
   if (valGbEl) valGbEl.innerText = gb;
   if (valDaysEl) valDaysEl.innerText = days;
 
+  // Instantaneous 60fps client-side calculation
+  const settings = cachedPlansData?.custom_plan_settings || window.storeSettings?.custom_plan_settings || {};
+  const pricePerGb = Number(settings.price_per_gb || 0);
+  const pricePerDay = Number(settings.price_per_day || 0);
+  const baseFixed = Number(settings.base_price || 0);
+  const isConfigured = Boolean(pricePerGb > 0 || pricePerDay > 0 || baseFixed > 0);
+  const loyalty = cachedPlansData?.loyalty || window.lastUserData?.loyalty || {};
+  const loyaltyPct = Number(loyalty.discount_percent || 0);
+
+  const baseEl = document.getElementById('customPlanBasePriceDisplay');
+  const discRow = document.getElementById('customPlanDiscountRow');
+  const discEl = document.getElementById('customPlanDiscountDisplay');
+  const finalEl = document.getElementById('customPlanFinalPrice');
+  const pill = document.getElementById('customPlanLoyaltyDiscountPill');
+  const pctEl = document.getElementById('customPlanLoyaltyPct');
+  const submitBtn = document.getElementById('submitCustomPlanBtn');
+
+  if (isConfigured) {
+    const localBase = (gb * pricePerGb) + (days * pricePerDay) + baseFixed;
+    const localDisc = Math.floor((localBase * loyaltyPct) / 100);
+    const localFinal = Math.max(0, localBase - localDisc);
+
+    if (baseEl) baseEl.innerText = `${Number(localBase).toLocaleString('en-US')} تومان`;
+    if (localDisc > 0) {
+      if (discRow) discRow.classList.remove('hidden');
+      if (discEl) discEl.innerText = `-${Number(localDisc).toLocaleString('en-US')} تومان (${loyaltyPct}٪)`;
+    } else {
+      if (discRow) discRow.classList.add('hidden');
+    }
+    if (finalEl) finalEl.innerText = Number(localFinal).toLocaleString('en-US');
+    if (loyaltyPct > 0) {
+      if (pill) pill.classList.remove('hidden');
+      if (pctEl) pctEl.innerText = loyaltyPct;
+    } else {
+      if (pill) pill.classList.add('hidden');
+    }
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+      submitBtn.innerText = `خرید بسته دلخواه (${Number(localFinal).toLocaleString('en-US')} تومان)`;
+    }
+  } else {
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+      submitBtn.innerText = 'تعرفه بسته دلخواه هنوز تعریف نشده است';
+    }
+  }
+
+  // Debounced server confirmation
   if (_calcDebounce) clearTimeout(_calcDebounce);
   _calcDebounce = setTimeout(async () => {
     try {
       const res = await window.api.calculateCustomPlan(gb, days);
       if (res && res.ok && res.data) {
         const d = res.data;
-        const baseEl = document.getElementById('customPlanBasePriceDisplay');
         if (baseEl) baseEl.innerText = `${Number(d.base_price).toLocaleString('en-US')} تومان`;
-
-        const discRow = document.getElementById('customPlanDiscountRow');
-        const discEl = document.getElementById('customPlanDiscountDisplay');
         if (d.loyalty_discount_amount > 0) {
           if (discRow) discRow.classList.remove('hidden');
           if (discEl) discEl.innerText = `-${Number(d.loyalty_discount_amount).toLocaleString('en-US')} تومان (${d.loyalty_discount_percent}٪)`;
         } else {
           if (discRow) discRow.classList.add('hidden');
         }
-
-        const finalEl = document.getElementById('customPlanFinalPrice');
         if (finalEl) finalEl.innerText = Number(d.final_price).toLocaleString('en-US');
-
-        const pill = document.getElementById('customPlanLoyaltyDiscountPill');
-        const pctEl = document.getElementById('customPlanLoyaltyPct');
         if (d.loyalty_discount_percent > 0) {
           if (pill) pill.classList.remove('hidden');
           if (pctEl) pctEl.innerText = d.loyalty_discount_percent;
@@ -260,7 +312,6 @@ async function updateCustomPlanCalculation() {
           if (pill) pill.classList.add('hidden');
         }
 
-        const submitBtn = document.getElementById('submitCustomPlanBtn');
         const isPricingValid = Boolean(d.is_configured !== false && d.final_price > 0);
         if (submitBtn) {
           submitBtn.disabled = !isPricingValid;
@@ -276,13 +327,14 @@ async function updateCustomPlanCalculation() {
     } catch (e) {
       console.warn('Error calculating custom plan:', e);
     }
-  }, 100);
+  }, 120);
 }
 
 async function purchaseCustomPlan() {
   const gb = Number(document.getElementById('customPlanGbSlider')?.value || 30);
   const days = Number(document.getElementById('customPlanDaysSlider')?.value || 30);
   const submitBtn = document.getElementById('submitCustomPlanBtn');
+  if (submitBtn && submitBtn.disabled) return;
   if (submitBtn) submitBtn.disabled = true;
 
   try {
@@ -296,7 +348,7 @@ async function purchaseCustomPlan() {
 
     hapticFeedback('success');
     showToast('🎉 بسته اختصاصی شما با موفقیت ایجاد و فعال شد!');
-    if (window.loadUserData) window.loadUserData();
+    if (typeof window.syncUserDataWithApi === 'function') window.syncUserDataWithApi();
   } catch (err) {
     showToast('❌ خطا در ارتباط با سرور.');
   } finally {
@@ -333,22 +385,27 @@ function renderShopPlans(data) {
   if (noticeEl) {
     if (!hasActiveSub) {
       noticeEl.className = 'p-2.5 rounded-2xl text-[11px] leading-relaxed mb-1 transition flex items-center gap-2 s-accent-soft';
-      noticeEl.innerHTML = '<span>💎</span><span>جهت شروع، یکی از <b>سرویس‌های کامل</b> زیر را انتخاب فرمایید.</span>';
-      noticeEl.classList.remove('hidden');
+      noticeEl.innerHTML = '<span>💎</span><span>جهت شروع، یکی از <b>سرویس‌های کامل</b> را انتخاب فرمایید.</span>';
+      noticeEl.dataset.shouldShow = 'true';
+      if (currentShopCategory === 'full') noticeEl.classList.remove('hidden');
+      else noticeEl.classList.add('hidden');
       if (!window._shopCategoryManuallyChanged) currentShopCategory = 'full';
     } else if (daysLeft > 3 && pctRemaining <= 25) {
-      // User has > 3 days left and traffic is low -> Auto-suggest Extra Traffic!
       noticeEl.className = 'p-2.5 rounded-2xl text-[11px] leading-relaxed mb-1 transition flex items-center gap-2 bg-cyan-950/40 border border-cyan-500/40 text-cyan-200';
       noticeEl.innerHTML = `<span>⚡️</span><span>شما هنوز <b>${daysLeft} روز</b> اشتراک فعال دارید؛ خرید <b>بسته افزایش حجم</b> مانع از سوختن روزهای باقیمانده شما می‌شود.</span>`;
-      noticeEl.classList.remove('hidden');
+      noticeEl.dataset.shouldShow = 'true';
+      if (currentShopCategory === 'traffic') noticeEl.classList.remove('hidden');
+      else noticeEl.classList.add('hidden');
       if (!window._shopCategoryManuallyChanged) currentShopCategory = 'traffic';
     } else if (daysLeft <= 3) {
-      // User has <= 3 days left -> Suggest renewal / full plan!
       noticeEl.className = 'p-2.5 rounded-2xl text-[11px] leading-relaxed mb-1 transition flex items-center gap-2 bg-amber-950/40 border border-amber-500/40 text-amber-200';
       noticeEl.innerHTML = `<span>⏳</span><span>تنها <b>${daysLeft} روز</b> از اشتراک شما باقیمانده است؛ جهت جلوگیری از قطعی، <b>خرید یا تمدید دوره کامل</b> پیشنهاد می‌شود.</span>`;
-      noticeEl.classList.remove('hidden');
+      noticeEl.dataset.shouldShow = 'true';
+      if (currentShopCategory === 'full') noticeEl.classList.remove('hidden');
+      else noticeEl.classList.add('hidden');
       if (!window._shopCategoryManuallyChanged) currentShopCategory = 'full';
     } else {
+      noticeEl.dataset.shouldShow = 'false';
       noticeEl.classList.add('hidden');
     }
   }
@@ -482,8 +539,10 @@ function renderFilteredShopPlans() {
       ? cleanFlags.map(f => `<span class="text-xs inline-block" title="${f}">${f}</span>`).join(' ')
       : '🇩🇪 🇳🇱 🇫🇮';
 
-    const userTierIcon = window.lastUserData?.loyalty?.icon || '⭐';
-    const loyaltyPctEnglish = toEnglishDigits(p.loyalty_discount_percent || 0);
+    const userLoyalty = cachedPlansData?.loyalty || window.lastUserData?.loyalty;
+    const userTierIcon = userLoyalty?.icon || '🥈';
+    const userTierClass = userLoyalty?.badge_class || 'bg-slate-400/15 text-slate-300 border border-slate-400/30';
+    const loyaltyPctEnglish = toEnglishDigits(p.loyalty_discount_percent || userLoyalty?.discount_percent || 0);
 
     return `
       <div class="shop-plan-card card p-4 border ${badgeBorderClass} relative overflow-hidden group">
@@ -493,16 +552,16 @@ function renderFilteredShopPlans() {
             <div class="flex items-center gap-1.5 flex-wrap">
               <h4 class="font-bold text-sm t-main">${formatPlanTitle(p.name)}</h4>
               ${discountVal > 0 ? '<span class="text-[10px] t-success font-bold bg-transparent border-0 px-0 py-0">🏷 تخفیف کوپن</span>' : ''}
-              ${hasLoyaltyDiscount ? `<span dir="ltr" class="inline-flex items-center gap-1 text-[10px] text-amber-500 font-bold bg-amber-500/10 px-1.5 py-0.5 rounded-md font-mono"><span>${userTierIcon}</span><span>VIP (${loyaltyPctEnglish}%)</span></span>` : ''}
+              ${hasLoyaltyDiscount ? `<span dir="ltr" class="inline-flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded-md font-mono ${userTierClass}"><span>${userTierIcon}</span><span>${loyaltyPctEnglish}%</span></span>` : ''}
             </div>
             <p class="text-[11px] leading-snug t-muted mt-0.5">${p.description || (isExtraTraffic ? 'افزایش حجم بدون تغییر در تاریخ انقضای سرویس&nbsp;فعلی' : (isTimeOnly ? 'افزایش مدت زمان اعتبار بدون تغییر در میزان&nbsp;ترافیک' : defaultFeatureDesc))}</p>
           </div>
           <div class="text-left font-mono">
-            <div class="flex items-center gap-1.5 justify-end">
+            <div class="flex items-center gap-1.5 justify-end flex-wrap">
               ${hasAnyDiscount ? `<span class="line-through t-muted text-xs font-semibold">${formattedOriginal}</span>` : ''}
               <span class="text-base font-black t-success">${formattedFinal}</span>
+              <span class="text-[10px] t-muted font-sans">تومان</span>
             </div>
-            <span class="text-[10px] t-muted block text-left font-sans">تومان</span>
           </div>
         </div>
         <div class="flex items-center justify-between my-2.5 text-[10px] card-inset px-3 py-2 whitespace-nowrap overflow-hidden">

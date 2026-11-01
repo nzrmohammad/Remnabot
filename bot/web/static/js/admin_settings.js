@@ -1418,6 +1418,10 @@ openUserChat(telegram_id, name, tag, topup_id) {
       custom_plan_min_days: parseInt($('settingCustomPlanMinDays')?.value || '10', 10),
       custom_plan_max_days: parseInt($('settingCustomPlanMaxDays')?.value || '180', 10),
       loyalty_tiers_json: JSON.stringify({
+        bronze: {
+          min_spent: 0,
+          discount_percent: 0,
+        },
         silver: {
           min_spent: parseInt($('loyalty_silver_spent')?.value || '300000', 10),
           discount_percent: parseInt($('loyalty_silver_pct')?.value || '3', 10),

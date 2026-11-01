@@ -81,7 +81,7 @@ DEFAULT_LOYALTY_TIERS = [
         "discount_percent": 15,
         "color": "amber-300",
         "badge_class": "bg-amber-300/15 text-amber-300 border-amber-300/30",
-        "description": "۱۵٪ تخفیف دائمی تمام خریدها + اولویت VIP",
+        "description": "۱۵٪ تخفیف دائمی تمام خریدها + پشتیبانی اختصاصی",
     },
 ]
 

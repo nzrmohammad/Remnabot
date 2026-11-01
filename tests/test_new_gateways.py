@@ -146,3 +146,63 @@ async def test_xrocket_client_create_invoice():
         assert data is not None
         assert data["id"] == 12345
         assert "t.me/xrocket" in data["link"]
+
+
+@pytest.mark.anyio
+async def test_xrocket_webhook_security(session_factory):
+    from bot.web.user_topup import post_webhook_xrocket
+    from bot.db.repositories.app_setting_repo import AppSettingRepository
+
+    # Configure store settings
+    async with session_factory() as s:
+        repo = AppSettingRepository(s)
+        await repo.set("xrocket_enabled", "true")
+        await repo.set("xrocket_api_key", "sec_rocket_key")
+        await repo.set("usdt_rate_toman", "100000")
+        await s.commit()
+
+    # 1. Reject missing payment id
+    req_no_id = MagicMock()
+    req_no_id.headers = {}
+    req_no_id.remote = "127.0.0.1"
+    req_no_id.json = AsyncMock(return_value={"status": "PAID", "payload": "topup:999:100000"})
+    req_no_id.app = {"session_factory": session_factory}
+
+    resp1 = await post_webhook_xrocket(req_no_id)
+    assert resp1.status == 400
+
+    # 2. Reject unverified / fake invoice that cannot be verified by xRocket API
+    req_fake = MagicMock()
+    req_fake.headers = {}
+    req_fake.remote = "127.0.0.1"
+    req_fake.json = AsyncMock(return_value={"id": "fake_inv_999", "status": "PAID", "payload": "topup:999:5000000"})
+    req_fake.app = {"session_factory": session_factory}
+
+    with patch("bot.services.crypto.xrocket.XRocketClient.get_invoice", AsyncMock(return_value=None)):
+        resp2 = await post_webhook_xrocket(req_fake)
+        assert resp2.status == 400
+
+    # 3. Accept and credit authentic invoice verified with xRocket API
+    verified_remote_inv = {
+        "id": "legit_inv_123",
+        "status": "PAID",
+        "currency": "USDT",
+        "amount": 5.0,  # 5 USDT = 500,000 Tomans
+        "payload": "topup:888777:500000",
+    }
+    req_legit = MagicMock()
+    req_legit.headers = {}
+    req_legit.remote = "127.0.0.1"
+    req_legit.json = AsyncMock(return_value={"id": "legit_inv_123", "status": "PAID"})
+    req_legit.app = {"session_factory": session_factory}
+
+    with patch("bot.services.crypto.xrocket.XRocketClient.get_invoice", AsyncMock(return_value=verified_remote_inv)):
+        resp3 = await post_webhook_xrocket(req_legit)
+        assert resp3.status == 200
+
+        # Check user wallet balance credited
+        async with session_factory() as s:
+            w_repo = WalletRepository(s)
+            bal = await w_repo.get_balance(888777)
+            assert bal == 500000
+

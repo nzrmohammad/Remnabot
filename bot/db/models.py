@@ -14,6 +14,7 @@ from sqlalchemy import (
     Text,
     UniqueConstraint,
     func,
+    text,
 )
 from sqlalchemy import (
     Enum as SA_Enum,
@@ -469,6 +470,15 @@ class CardAutoInvoice(Base):
     """Invoice for automated card-to-card top-up via SMS forwarding & amount suffix matching."""
 
     __tablename__ = "card_auto_invoices"
+    __table_args__ = (
+        Index(
+            "uq_card_auto_pending_amount",
+            "exact_amount",
+            unique=True,
+            postgresql_where=(text("status = 'pending'")),
+            sqlite_where=(text("status = 'pending'")),
+        ),
+    )
 
     id: Mapped[int] = mapped_column(primary_key=True)
     invoice_uuid: Mapped[str] = mapped_column(String(64), unique=True, index=True)

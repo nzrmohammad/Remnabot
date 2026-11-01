@@ -419,7 +419,7 @@ async def get_admin_tools_check_host(request: web.Request) -> web.Response:
 
     if not is_ip:
         try:
-            await asyncio.get_event_loop().getaddrinfo(clean_host, None)
+            await asyncio.get_running_loop().getaddrinfo(clean_host, None)
         except Exception:
             return web.json_response({
                 "ok": True,

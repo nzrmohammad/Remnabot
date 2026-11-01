@@ -539,18 +539,24 @@ async def get_periodic_users_bandwidth(
         if u.get("id") and get_used_bytes(u) > 0
     ][:60]
 
+    JALALI_MONTH_NAMES = {
+        1: "فروردین", 2: "اردیبهشت", 3: "خرداد",
+        4: "تیر", 5: "مرداد", 6: "شهریور",
+        7: "مهر", 8: "آبان", 9: "آذر",
+        10: "دی", 11: "بهمن", 12: "اسفند",
+    }
     current_j = jdatetime.date.fromgregorian(date=now_utc.date()) if jdatetime else None
-    curr_m_name = current_j.strftime("%B") if current_j else "جاری"
+    curr_m_name = JALALI_MONTH_NAMES.get(current_j.month, current_j.strftime("%B")) if current_j else "جاری"
     if current_j:
         prev_j_m = current_j.month - 1 or 12
         prev_j_y = current_j.year if current_j.month > 1 else current_j.year - 1
         prev_j = jdatetime.date(prev_j_y, prev_j_m, 1)
-        prev_m_name = prev_j.strftime("%B")
+        prev_m_name = JALALI_MONTH_NAMES.get(prev_j.month, prev_j.strftime("%B"))
 
         prev2_j_m = prev_j.month - 1 or 12
         prev2_j_y = prev_j.year if prev_j.month > 1 else prev_j.year - 1
         prev2_j = jdatetime.date(prev2_j_y, prev2_j_m, 1)
-        prev2_m_name = prev2_j.strftime("%B")
+        prev2_m_name = JALALI_MONTH_NAMES.get(prev2_j.month, prev2_j.strftime("%B"))
     else:
         prev_m_name = "قبل"
         prev2_m_name = "قبل‌تر"
@@ -584,6 +590,10 @@ async def get_periodic_users_bandwidth(
             week_bytes = 0
             month_30d_bytes = 0
             curr_j_bytes = 0
+            curr_j_w1_bytes = 0
+            curr_j_w2_bytes = 0
+            curr_j_w3_bytes = 0
+            curr_j_w4_bytes = 0
             prev_j_bytes = 0
             prev2_j_bytes = 0
 
@@ -619,6 +629,14 @@ async def get_periodic_users_bandwidth(
                                 day_jd = jdatetime.date.fromgregorian(date=day_dt)
                                 if day_jd.year == current_j.year and day_jd.month == current_j.month:
                                     curr_j_bytes += day_val
+                                    if day_jd.day <= 7:
+                                        curr_j_w1_bytes += day_val
+                                    elif day_jd.day <= 14:
+                                        curr_j_w2_bytes += day_val
+                                    elif day_jd.day <= 21:
+                                        curr_j_w3_bytes += day_val
+                                    else:
+                                        curr_j_w4_bytes += day_val
                                 elif prev_j and day_jd.year == prev_j.year and day_jd.month == prev_j.month:
                                     prev_j_bytes += day_val
                                 elif prev2_j and day_jd.year == prev2_j.year and day_jd.month == prev2_j.month:
@@ -629,6 +647,10 @@ async def get_periodic_users_bandwidth(
                         week_bytes += tot
                         month_30d_bytes += tot
                         curr_j_bytes += tot
+                        curr_j_w1_bytes += int(tot * 0.25)
+                        curr_j_w2_bytes += int(tot * 0.25)
+                        curr_j_w3_bytes += int(tot * 0.25)
+                        curr_j_w4_bytes += int(tot * 0.25)
 
             all_time = get_used_bytes(u)
             if month_30d_bytes == 0 and all_time > 0:
@@ -638,6 +660,10 @@ async def get_periodic_users_bandwidth(
                 prev2_j_bytes = min(all_time - month_30d_bytes - prev_j_bytes, int(all_time * 0.15))
                 week_bytes = min(month_30d_bytes, int(month_30d_bytes * 0.35))
                 daily_bytes = min(week_bytes, int(week_bytes * 0.25))
+                curr_j_w1_bytes = int(curr_j_bytes * 0.25)
+                curr_j_w2_bytes = int(curr_j_bytes * 0.25)
+                curr_j_w3_bytes = int(curr_j_bytes * 0.25)
+                curr_j_w4_bytes = max(0, curr_j_bytes - (curr_j_w1_bytes + curr_j_w2_bytes + curr_j_w3_bytes))
 
             user_stats.append({
                 "id": u.get("id"),
@@ -647,12 +673,20 @@ async def get_periodic_users_bandwidth(
                 "week_bytes": week_bytes,
                 "month_30d_bytes": month_30d_bytes,
                 "curr_j_bytes": curr_j_bytes,
+                "curr_j_w1_bytes": curr_j_w1_bytes,
+                "curr_j_w2_bytes": curr_j_w2_bytes,
+                "curr_j_w3_bytes": curr_j_w3_bytes,
+                "curr_j_w4_bytes": curr_j_w4_bytes,
                 "prev_j_bytes": prev_j_bytes,
                 "prev2_j_bytes": prev2_j_bytes,
                 "daily_gb": round(daily_bytes / (1024 ** 3), 2),
                 "week_gb": round(week_bytes / (1024 ** 3), 2),
                 "month_30d_gb": round(month_30d_bytes / (1024 ** 3), 2),
                 "curr_j_gb": round(curr_j_bytes / (1024 ** 3), 2),
+                "curr_j_w1_gb": round(curr_j_w1_bytes / (1024 ** 3), 2),
+                "curr_j_w2_gb": round(curr_j_w2_bytes / (1024 ** 3), 2),
+                "curr_j_w3_gb": round(curr_j_w3_bytes / (1024 ** 3), 2),
+                "curr_j_w4_gb": round(curr_j_w4_bytes / (1024 ** 3), 2),
                 "prev_j_gb": round(prev_j_bytes / (1024 ** 3), 2),
                 "prev2_j_gb": round(prev2_j_bytes / (1024 ** 3), 2),
             })
@@ -663,6 +697,10 @@ async def get_periodic_users_bandwidth(
             pm_bytes = int(all_time * 0.35)
             w_bytes = int(all_time * 0.25)
             d_bytes = int(all_time * 0.05)
+            w1_b = int(m_bytes * 0.28)
+            w2_b = int(m_bytes * 0.26)
+            w3_b = int(m_bytes * 0.24)
+            w4_b = max(0, m_bytes - w1_b - w2_b - w3_b)
             user_stats.append({
                 "id": u.get("id"),
                 "username": u.get("username") or f"user_{u.get('id')}",
@@ -671,12 +709,20 @@ async def get_periodic_users_bandwidth(
                 "week_bytes": w_bytes,
                 "month_30d_bytes": m_bytes,
                 "curr_j_bytes": m_bytes,
+                "curr_j_w1_bytes": w1_b,
+                "curr_j_w2_bytes": w2_b,
+                "curr_j_w3_bytes": w3_b,
+                "curr_j_w4_bytes": w4_b,
                 "prev_j_bytes": pm_bytes,
                 "prev2_j_bytes": int(all_time * 0.15),
                 "daily_gb": round(d_bytes / (1024 ** 3), 2),
                 "week_gb": round(w_bytes / (1024 ** 3), 2),
                 "month_30d_gb": round(m_bytes / (1024 ** 3), 2),
                 "curr_j_gb": round(m_bytes / (1024 ** 3), 2),
+                "curr_j_w1_gb": round(w1_b / (1024 ** 3), 2),
+                "curr_j_w2_gb": round(w2_b / (1024 ** 3), 2),
+                "curr_j_w3_gb": round(w3_b / (1024 ** 3), 2),
+                "curr_j_w4_gb": round(w4_b / (1024 ** 3), 2),
                 "prev_j_gb": round(pm_bytes / (1024 ** 3), 2),
                 "prev2_j_gb": round((all_time * 0.15) / (1024 ** 3), 2),
             })
@@ -709,6 +755,12 @@ async def get_periodic_users_bandwidth(
     week_lb = _make_leaderboard(user_stats, "week_bytes", "week_gb", "7 روز اخیر")
     month_30d_lb = _make_leaderboard(user_stats, "month_30d_bytes", "month_30d_gb", "30 روز اخیر")
     curr_m_lb = _make_leaderboard(user_stats, "curr_j_bytes", "curr_j_gb", f"ماه {curr_m_name}", curr_m_name)
+    curr_m_lb["weeks"] = {
+        "week1": _make_leaderboard(user_stats, "curr_j_w1_bytes", "curr_j_w1_gb", "هفته ۱"),
+        "week2": _make_leaderboard(user_stats, "curr_j_w2_bytes", "curr_j_w2_gb", "هفته ۲"),
+        "week3": _make_leaderboard(user_stats, "curr_j_w3_bytes", "curr_j_w3_gb", "هفته ۳"),
+        "week4": _make_leaderboard(user_stats, "curr_j_w4_bytes", "curr_j_w4_gb", "هفته ۴"),
+    }
     prev_m_lb = _make_leaderboard(user_stats, "prev_j_bytes", "prev_j_gb", f"ماه {prev_m_name}", prev_m_name)
     prev2_m_lb = _make_leaderboard(user_stats, "prev2_j_bytes", "prev2_j_gb", f"ماه {prev2_m_name}", prev2_m_name)
 

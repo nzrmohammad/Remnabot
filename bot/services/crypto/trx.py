@@ -103,7 +103,7 @@ async def verify_tron_transaction(
                                 to_b58 = hex_to_tron_address(raw_to)
 
                                 if to_b58.lower() == expected_clean.lower() or raw_to.lower() == expected_clean.lower():
-                                    if raw_amount >= (min_sun * 0.98):  # allow 2% tolerance for dust/fee differences
+                                    if raw_amount >= (min_sun - 100_000):  # strict amount check with minimal 0.1 TRX dust tolerance
                                         return True, "SUCCESS", raw_amount
                                     else:
                                         trx_paid = raw_amount / 1_000_000
@@ -124,7 +124,7 @@ async def verify_tron_transaction(
                         to_addr = scan_data.get("toAddress", "")
                         raw_amount = int(scan_data.get("amount") or 0)
                         if to_addr.lower() == expected_clean.lower():
-                            if raw_amount >= (min_sun * 0.98):
+                            if raw_amount >= (min_sun - 100_000):
                                 return True, "SUCCESS", raw_amount
                             else:
                                 return False, "مبلغ واریز شده کمتر از فاکتور است.", 0

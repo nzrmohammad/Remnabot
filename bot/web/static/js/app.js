@@ -3033,10 +3033,10 @@ function hydrateUserInterface(data) {
         if (progBar) progBar.style.width = `${pct}%`;
         if (targetSpent) targetSpent.innerText = `هدف بعدی: ${Number(loyalty.next_tier_threshold).toLocaleString('en-US')} تومان`;
       } else {
-        if (nextText) nextText.innerText = 'بالاترین سطح باشگاه VIP 🎉';
+        if (nextText) nextText.innerText = 'بالاترین سطح باشگاه مشتریان 🎉';
         if (progPct) progPct.innerText = '100%';
         if (progBar) progBar.style.width = '100%';
-        if (targetSpent) targetSpent.innerText = `${loyalty.name || 'الماس'} VIP`;
+        if (targetSpent) targetSpent.innerText = `${loyalty.name || 'الماس'}`;
       }
 
       if (benefitDesc) {
@@ -3768,6 +3768,32 @@ function navigateUserLbMonth(dir) {
 }
 window.navigateUserLbMonth = navigateUserLbMonth;
 
+const JALALI_MONTHS_MAP = {
+  'Farvardin': 'فروردین', 'Ordibehesht': 'اردیبهشت', 'Khordad': 'خرداد',
+  'Tir': 'تیر', 'Mordad': 'مرداد', 'Shahrivar': 'شهریور',
+  'Mehr': 'مهر', 'Aban': 'آبان', 'Azar': 'آذر',
+  'Dey': 'دی', 'Bahman': 'بهمن', 'Esfand': 'اسفند'
+};
+function toPersianMonthName(m) {
+  if (!m) return '';
+  return JALALI_MONTHS_MAP[m] || m;
+}
+
+let currentUserLbWeek = 'all';
+
+function switchUserLbWeek(week) {
+  currentUserLbWeek = week;
+  const activeClass = 'py-1 rounded-lg bg-cyan-600 text-white shadow text-center transition';
+  const inactiveClass = 'py-1 rounded-lg text-slate-400 hover:text-white text-center transition';
+  ['all', 'week1', 'week2', 'week3', 'week4'].forEach(w => {
+    const idKey = w === 'all' ? 'All' : w.charAt(0).toUpperCase() + w.slice(1);
+    const btn = $(`userLbWeek${idKey}Btn`);
+    if (btn) btn.className = (w === week) ? activeClass : inactiveClass;
+  });
+  renderUserLeaderboard();
+}
+window.switchUserLbWeek = switchUserLbWeek;
+
 function renderUserLeaderboard(leaderboardData, period = currentUserLbPeriod) {
   if (leaderboardData) cachedUserLeaderboardData = leaderboardData;
 
@@ -3777,9 +3803,14 @@ function renderUserLeaderboard(leaderboardData, period = currentUserLbPeriod) {
 
   if (period === 'monthly') {
     activeMonthName = avail[currentUserLbMonthIndex] || avail[0] || '';
-    periodData = (activeMonthName && cachedUserLeaderboardData?.calendar_months?.[activeMonthName])
+    const fullMonthData = (activeMonthName && cachedUserLeaderboardData?.calendar_months?.[activeMonthName])
       || cachedUserLeaderboardData?.monthly
       || {};
+    if (currentUserLbWeek !== 'all' && fullMonthData.weeks?.[currentUserLbWeek]) {
+      periodData = fullMonthData.weeks[currentUserLbWeek];
+    } else {
+      periodData = fullMonthData;
+    }
   } else {
     periodData = cachedUserLeaderboardData?.[period] || cachedUserLeaderboardData?.weekly || {};
   }
@@ -3790,8 +3821,9 @@ function renderUserLeaderboard(leaderboardData, period = currentUserLbPeriod) {
   const myUsedGb = Number(periodData.my_used_gb || 0);
   const diffGb = Number(periodData.diff_gb || 0);
 
-  // Sync month navigation bar
+  // Sync month navigation bar and 4-week breakdown
   const monthBar = $('userLbMonthBar');
+  const weekBar = $('userLbWeekBar');
   const prevBtn = $('userLbMonthPrevBtn');
   const nextBtn = $('userLbMonthNextBtn');
   const prevLabel = $('userLbMonthPrevLabel');
@@ -3800,15 +3832,17 @@ function renderUserLeaderboard(leaderboardData, period = currentUserLbPeriod) {
 
   if (period !== 'monthly') {
     if (monthBar) monthBar.classList.add('hidden');
+    if (weekBar) weekBar.classList.add('hidden');
   } else {
     if (monthBar) monthBar.classList.remove('hidden');
-    if (curLabel) curLabel.innerText = activeMonthName ? `ماه ${activeMonthName}` : '--';
+    if (weekBar) weekBar.classList.remove('hidden');
+    if (curLabel) curLabel.innerText = activeMonthName ? `ماه ${toPersianMonthName(activeMonthName)}` : '--';
 
     const prevMName = avail[currentUserLbMonthIndex + 1] || '';
     const nextMName = avail[currentUserLbMonthIndex - 1] || '';
 
-    if (prevLabel) prevLabel.innerText = prevMName || '---';
-    if (nextLabel) nextLabel.innerText = nextMName || '---';
+    if (prevLabel) prevLabel.innerText = toPersianMonthName(prevMName) || '---';
+    if (nextLabel) nextLabel.innerText = toPersianMonthName(nextMName) || '---';
 
     if (prevBtn) {
       const hasPrev = Boolean(prevMName);
@@ -3837,7 +3871,9 @@ function renderUserLeaderboard(leaderboardData, period = currentUserLbPeriod) {
     } else if (period === 'monthly_30d') {
       periodLabel = '30 روز اخیر';
     } else if (period === 'monthly') {
-      periodLabel = activeMonthName ? `ماه ${activeMonthName}` : (periodData.month_name ? `ماه ${periodData.month_name}` : 'ماهانه');
+      const mPersian = toPersianMonthName(activeMonthName) || (periodData.month_name ? toPersianMonthName(periodData.month_name) : 'ماهانه');
+      const wLabel = currentUserLbWeek === 'all' ? '' : ` - ${currentUserLbWeek.replace('week', 'هفته ')}`;
+      periodLabel = `ماه ${mPersian}${wLabel}`;
     }
 
     const myTrafficHtml = fmtTraffic(myUsedGb, { html: true, persianDigits: false });
@@ -4297,19 +4333,97 @@ function closeGiftModal() {
 }
 
 function switchGiftModalTab(tab) {
-  const isNew = tab === 'new';
-  $('giftNewView')?.classList.toggle('hidden', !isNew);
-  $('giftHistoryView')?.classList.toggle('hidden', isNew);
+  $('giftNewView')?.classList.toggle('hidden', tab !== 'new');
+  $('giftClaimView')?.classList.toggle('hidden', tab !== 'claim');
+  $('giftHistoryView')?.classList.toggle('hidden', tab !== 'history');
+
   const activeClass = 'flex-1 py-1.5 px-2 rounded-xl font-bold transition flex items-center justify-center gap-1 bg-pink-600 text-white shadow';
   const inactiveClass = 'flex-1 py-1.5 px-2 rounded-xl font-medium transition flex items-center justify-center gap-1 text-slate-400 hover:text-white';
+
   const btnNew = $('giftTabBtn-new');
+  const btnClaim = $('giftTabBtn-claim');
   const btnHistory = $('giftTabBtn-history');
-  if (btnNew) btnNew.className = isNew ? activeClass : inactiveClass;
-  if (btnHistory) btnHistory.className = !isNew ? activeClass : inactiveClass;
-  if (!isNew) {
+
+  if (btnNew) btnNew.className = tab === 'new' ? activeClass : inactiveClass;
+  if (btnClaim) btnClaim.className = tab === 'claim' ? activeClass : inactiveClass;
+  if (btnHistory) btnHistory.className = tab === 'history' ? activeClass : inactiveClass;
+
+  if (tab === 'history') {
     loadGiftsHistory();
   }
 }
+
+let _giftSelectedService = null;
+
+function openGiftServiceSelectModal() {
+  const modal = $('giftServiceSelectModal');
+  if (!modal) return;
+  modal.classList.remove('hidden');
+  renderGiftServiceSelectModalList();
+}
+window.openGiftServiceSelectModal = openGiftServiceSelectModal;
+
+function closeGiftServiceSelectModal() {
+  $('giftServiceSelectModal')?.classList.add('hidden');
+}
+window.closeGiftServiceSelectModal = closeGiftServiceSelectModal;
+
+function renderGiftServiceSelectModalList() {
+  const container = $('giftServiceSelectModalList');
+  if (!container) return;
+  const plans = window.lastUserData?.plans || [];
+  if (!plans.length) {
+    container.innerHTML = '<div class="p-4 rounded-xl card-inset text-center text-xs t-muted">هیچ بسته فعالی یافت نشد.</div>';
+    return;
+  }
+
+  container.innerHTML = plans.map(p => {
+    const isSelected = _giftSelectedService && _giftSelectedService.id === p.id;
+    const priceStr = Number(p.price || 0).toLocaleString('en-US');
+    const durStr = p.duration_days > 0 ? `${p.duration_days} روز` : 'نامحدود';
+    const trafStr = p.traffic_gb > 0 ? fmtTraffic(p.traffic_gb, { html: false }) : 'نامحدود';
+
+    return `
+      <div onclick="window.selectGiftService(${p.id})" class="cursor-pointer card-inset p-3 rounded-2xl border ${isSelected ? 'border-pink-500 bg-pink-500/10' : 'border-card-border hover:border-pink-500/50'} flex items-center justify-between transition">
+        <div class="space-y-1 min-w-0">
+          <b class="text-xs t-main block truncate">${formatPlanTitle(p.name)}</b>
+          <div class="flex items-center gap-2 text-[10px] t-muted">
+            <span>📊 <b dir="ltr" class="font-mono t-main">${trafStr}</b></span>
+            <span>📅 <b class="t-main">${durStr}</b></span>
+          </div>
+        </div>
+        <div class="text-left font-mono shrink-0 pl-1">
+          <span class="text-xs font-black text-pink-600 dark:text-pink-400 block">${priceStr}</span>
+          <span class="text-[9px] t-muted font-sans block">تومان</span>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function selectGiftService(serviceId) {
+  const plans = window.lastUserData?.plans || [];
+  const chosen = plans.find(p => p.id === serviceId);
+  if (!chosen) return;
+  _giftSelectedService = chosen;
+
+  const titleEl = $('giftSelectedServiceTitle');
+  const specsEl = $('giftSelectedServiceSpecs');
+  const hiddenInp = $('giftServiceSelect');
+
+  if (titleEl) titleEl.innerText = formatPlanTitle(chosen.name);
+  if (specsEl) {
+    const durStr = chosen.duration_days > 0 ? `${chosen.duration_days} روز` : 'نامحدود';
+    const trafStr = chosen.traffic_gb > 0 ? fmtTraffic(chosen.traffic_gb, { html: false }) : 'نامحدود';
+    specsEl.innerText = `${trafStr} | ${durStr} (${Number(chosen.price).toLocaleString('en-US')} تومان)`;
+  }
+  if (hiddenInp) hiddenInp.value = chosen.id;
+
+  updateGiftCostDisplay();
+  closeGiftServiceSelectModal();
+  hapticFeedback('selection');
+}
+window.selectGiftService = selectGiftService;
 
 function setGiftType(type) {
   currentGiftType = type;
@@ -4350,17 +4464,10 @@ function setGiftBalancePreset(amount) {
 }
 
 function populateGiftServices() {
-  const sel = $('giftServiceSelect');
-  if (!sel) return;
   const plans = window.lastUserData?.plans || [];
-  if (!plans.length) {
-    sel.innerHTML = '<option value="">هیچ بسته فعالی یافت نشد</option>';
-    return;
+  if (plans.length > 0 && !_giftSelectedService) {
+    selectGiftService(plans[0].id);
   }
-  sel.innerHTML = plans.map(p => {
-    const priceStr = Number(p.price || 0).toLocaleString('en-US');
-    return `<option value="${p.id}" data-price="${p.price}" data-name="${p.name}">${p.name} (${priceStr} تومان)</option>`;
-  }).join('');
 }
 
 function updateGiftCostDisplay() {
@@ -4368,9 +4475,7 @@ function updateGiftCostDisplay() {
   if (currentGiftType === 'BALANCE') {
     cost = Math.max(0, Number($('giftBalanceAmount')?.value || 0));
   } else {
-    const sel = $('giftServiceSelect');
-    const opt = sel?.selectedOptions?.[0];
-    cost = Math.max(0, Number(opt?.getAttribute('data-price') || 0));
+    cost = Math.max(0, Number(_giftSelectedService?.price || 0));
   }
   const costEl = $('giftCostDisplay');
   if (costEl) costEl.innerText = Number(cost).toLocaleString('en-US');
@@ -4396,7 +4501,7 @@ async function submitCreateGift() {
       }
       payload.amount = amt;
     } else {
-      const svcId = $('giftServiceSelect')?.value;
+      const svcId = _giftSelectedService?.id || $('giftServiceSelect')?.value;
       if (!svcId) {
         showToast('⚠️ لطفاً بسته مورد نظر را انتخاب فرمایید.');
         if (btn) btn.disabled = false;
@@ -4413,19 +4518,21 @@ async function submitCreateGift() {
         return;
       }
       payload.receiver = rec;
+      payload.receiver_target = rec;
     }
 
     const res = await window.api.createGift(payload);
     if (!res || !res.ok) {
-      showToast(`❌ ${res?.message || 'خطا در ثبت هدیه'}`);
+      const errMsg = res?.message || res?.data?.message || 'خطا در ثبت هدیه';
+      showToast(`❌ ${errMsg}`);
       hapticFeedback('error');
       return;
     }
 
     hapticFeedback('success');
-    showToast('🎉 هدیه با موفقیت ایجاد شد!');
+    showToast('🎉 کارت هدیه با موفقیت صادر شد!');
 
-    const d = res.data;
+    const d = res.data || {};
     const successBox = $('giftCreatedSuccessBox');
     if (successBox) {
       successBox.classList.remove('hidden');
@@ -4441,8 +4548,23 @@ async function submitCreateGift() {
       }
     }
 
-    if (window.loadUserData) window.loadUserData();
+    if (d.cost) {
+      const balEl = $('giftCurrentBalanceDisplay');
+      if (balEl) {
+        const cur = Number(window.lastUserData?.user?.wallet_balance || 0);
+        balEl.innerText = Number(Math.max(0, cur - d.cost)).toLocaleString('en-US');
+      }
+    }
+
+    try {
+      if (typeof window.syncUserDataWithApi === 'function') {
+        window.syncUserDataWithApi();
+      }
+    } catch (e) {
+      console.warn('Error syncing after gift create:', e);
+    }
   } catch (err) {
+    console.error('submitCreateGift error:', err);
     showToast('❌ خطا در ارتباط با سرور.');
   } finally {
     if (btn) btn.disabled = false;
@@ -4481,7 +4603,11 @@ async function submitClaimVoucher() {
       : `اشتراک «${serviceName || 'سرویس'}»`;
     showToast(`🎉 تبریک! هدیه ${giftTitle} دریافت و به حسابتان اضافه شد!`);
     inp.value = '';
-    if (window.loadUserData) window.loadUserData();
+    try {
+      if (typeof window.syncUserDataWithApi === 'function') window.syncUserDataWithApi();
+    } catch (e) {
+      console.warn('Error syncing after claim voucher:', e);
+    }
     loadGiftsHistory();
   } catch (err) {
     showToast('❌ خطا در دریافت کد هدیه.');
@@ -4776,23 +4902,26 @@ function openLoyaltyModal() {
     if ($('loyaltyModalCurrentName')) $('loyaltyModalCurrentName').innerText = loyalty.name || 'برنزی';
     if ($('loyaltyModalTotalSpent')) $('loyaltyModalTotalSpent').innerText = `${Number(loyalty.total_spent || 0).toLocaleString('en-US')} تومان`;
     if ($('loyaltyModalCurrentDiscount')) {
-      const disc = Number(loyalty.discount_percent || 0);
-      $('loyaltyModalCurrentDiscount').innerText = disc > 0 ? `${disc}٪ تخفیف دائمی تمام خریدها` : 'بدون تخفیف دائمی';
-      $('loyaltyModalCurrentDiscount').className = disc > 0 ? 'text-xs font-bold text-emerald-500' : 'text-xs font-medium t-muted';
+      const disc = toEnglishDigits(loyalty.discount_percent || 0);
+      $('loyaltyModalCurrentDiscount').innerText = Number(disc) > 0 ? `${disc}% تخفیف دائمی تمام خریدها` : 'بدون تخفیف دائمی';
+      $('loyaltyModalCurrentDiscount').className = Number(disc) > 0 ? 'text-xs font-bold text-emerald-500 font-mono' : 'text-xs font-medium t-muted';
     }
     if ($('loyaltyModalProgressText')) {
+      const isMaxTier = Boolean(loyalty.is_max_tier || (loyalty.tier_id === 'diamond'));
       const nextTier = loyalty.next_tier || (loyalty.next_tier_name ? {
         name: loyalty.next_tier_name,
         remaining_amount: loyalty.amount_to_next,
         discount_percent: loyalty.next_tier_discount,
       } : null);
 
-      if (nextTier && !loyalty.is_max_tier) {
+      if (!isMaxTier && nextTier && nextTier.name) {
         const needed = Number(nextTier.remaining_amount || loyalty.amount_to_next || 0).toLocaleString('en-US');
-        const nextDisc = nextTier.discount_percent ?? loyalty.next_tier_discount ?? 0;
-        $('loyaltyModalProgressText').innerText = `با ${needed} تومان خرید دیگر، به سطح ${nextTier.name} ارتقا می‌یابید و از ${nextDisc}٪ تخفیف دائمی بهره‌مند می‌شوید.`;
+        const nextDisc = toEnglishDigits(nextTier.discount_percent ?? loyalty.next_tier_discount ?? 0);
+        $('loyaltyModalProgressText').innerText = `با ${needed} تومان خرید دیگر، به سطح ${nextTier.name} ارتقا می‌یابید و از ${nextDisc}% تخفیف دائمی بهره‌مند می‌شوید.`;
+      } else if (isMaxTier) {
+        $('loyaltyModalProgressText').innerText = 'تبریک! شما به بالاترین سطح باشگاه مشتریان (الماس) دست یافته‌اید.';
       } else {
-        $('loyaltyModalProgressText').innerText = 'تبریک! شما به بالاترین سطح باشگاه مشتریان (الماس VIP) دست یافته‌اید.';
+        $('loyaltyModalProgressText').innerText = 'با خرید بسته‌های بیشتر، سطح شما در باشگاه مشتریان ارتقا یافته و تخفیف دائمی دریافت می‌کنید.';
       }
     }
 
@@ -4805,7 +4934,7 @@ function openLoyaltyModal() {
           spentEl.innerText = `${Number(t.min_spent).toLocaleString('en-US')} تومان`;
         }
         if (pctEl && t.discount_percent !== undefined) {
-          pctEl.innerText = `${t.discount_percent}٪ تخفیف دائمی`;
+          pctEl.innerText = `${toEnglishDigits(t.discount_percent)}% تخفیف دائمی`;
         }
       });
     }

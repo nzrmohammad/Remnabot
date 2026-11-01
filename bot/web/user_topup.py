@@ -3,7 +3,9 @@ from sqlalchemy.exc import IntegrityError
 from bot.web.user_common import db_session, require_user
 
 """TMA User Wallet and Top-up API endpoints."""
+import asyncio
 import hashlib
+import json
 import logging
 import secrets
 from datetime import datetime, timedelta, timezone
@@ -1028,16 +1030,21 @@ async def post_user_topup_xrocket(request: web.Request) -> web.Response:
         return web.json_response({"ok": False, "message": "مبلغ نامعتبر است."}, status=400)
 
     telegram_id = int(user_auth["id"])
-    currency = str(body.get("currency") or "USDT").upper()
+    currency = "USDT"  # Strictly enforce USDT for xRocket payment gateway
 
     async with db_session(request) as session:
         store = await get_store_settings(session)
         if not (getattr(store, "xrocket_enabled", False) and getattr(store, "xrocket_api_key", "") and store.xrocket_api_key.strip()):
             return web.json_response({"ok": False, "message": "درگاه xRocket در حال حاضر فعال نیست."}, status=400)
 
-        if amount < store.topup_min_amount:
+        if store.topup_min_amount and amount < store.topup_min_amount:
             return web.json_response(
                 {"ok": False, "message": f"حداقل مبلغ شارژ {store.topup_min_amount:,} تومان است."},
+                status=400,
+            )
+        if store.topup_max_amount and amount > store.topup_max_amount:
+            return web.json_response(
+                {"ok": False, "message": f"حداکثر مبلغ شارژ {store.topup_max_amount:,} تومان است."},
                 status=400,
             )
 
@@ -1075,7 +1082,7 @@ async def post_user_topup_xrocket(request: web.Request) -> web.Response:
 
 
 async def post_webhook_xrocket(request: web.Request) -> web.Response:
-    """Handle incoming payment webhooks from xRocket (pay.xrocket.tg)."""
+    """Handle incoming payment webhooks from xRocket (pay.xrocket.tg) with server-side API verification."""
     peer_ip = request.headers.get("CF-Connecting-IP") or request.headers.get("X-Forwarded-For") or request.remote or "unknown"
     try:
         body = await request.json()
@@ -1084,57 +1091,92 @@ async def post_webhook_xrocket(request: web.Request) -> web.Response:
         return web.json_response({"ok": False, "message": "invalid json"}, status=400)
 
     data = body.get("data") or {}
-    status = str(data.get("status") or body.get("status") or "").upper()
-    payload = str(data.get("payload") or body.get("payload") or "")
-    payment_id = str(data.get("id") or body.get("id") or "")
+    payment_id = str(data.get("id") or body.get("id") or "").strip()
+    if not payment_id:
+        logger.warning("xRocket webhook missing payment id from %s", peer_ip)
+        return web.json_response({"ok": False, "message": "missing payment id"}, status=400)
 
-    if status in ("PAID", "COMPLETED") and payload.startswith("topup:"):
-        parts = payload.split(":")
-        if len(parts) >= 3:
+    async with db_session(request) as session:
+        store = await get_store_settings(session)
+        if not (getattr(store, "xrocket_enabled", False) and getattr(store, "xrocket_api_key", "") and store.xrocket_api_key.strip()):
+            logger.warning("xRocket webhook received but gateway is disabled or api key missing (ip=%s)", peer_ip)
+            return web.json_response({"ok": False, "message": "gateway disabled"}, status=400)
+
+        from bot.services.crypto.xrocket import XRocketClient
+        client = XRocketClient(store.xrocket_api_key)
+
+        # STRICT VERIFICATION: Fetch verified invoice details directly from xRocket API
+        remote_inv = await client.get_invoice(payment_id)
+        if not remote_inv:
+            logger.warning("xRocket webhook invoice %s could not be verified with xRocket API (from %s)", payment_id, peer_ip)
+            return web.json_response({"ok": False, "message": "unverified invoice"}, status=400)
+
+        remote_status = str(remote_inv.get("status") or "").upper()
+        if remote_status not in ("PAID", "COMPLETED"):
+            logger.info("xRocket webhook invoice %s status is %s (not paid)", payment_id, remote_status)
+            return web.json_response({"ok": True, "status": remote_status})
+
+        remote_payload = str(remote_inv.get("payload") or "")
+        if not remote_payload.startswith("topup:"):
+            logger.warning("xRocket webhook invalid remote payload %r for invoice %s", remote_payload, payment_id)
+            return web.json_response({"ok": False, "message": "invalid remote payload"}, status=400)
+
+        parts = remote_payload.split(":")
+        if len(parts) < 3:
+            logger.warning("xRocket webhook malformed remote payload %r for invoice %s", remote_payload, payment_id)
+            return web.json_response({"ok": False, "message": "malformed remote payload"}, status=400)
+
+        try:
+            tg_id = int(parts[1])
+            toman_amount = int(parts[2])
+        except (ValueError, TypeError):
+            logger.warning("xRocket webhook non-integer values in payload %r", remote_payload)
+            return web.json_response({"ok": False, "message": "invalid payload numbers"}, status=400)
+
+        # Verify amount in USD matches expected exchange rate
+        usdt_rate = getattr(store, "usdt_rate_toman", 0) or 100_000
+        expected_usd = round(toman_amount / usdt_rate, 2)
+        paid_amount = float(remote_inv.get("amount") or 0)
+        if paid_amount < (expected_usd * 0.98):
+            logger.warning(
+                "xRocket webhook amount discrepancy for invoice %s: expected ~%s USD, got %s USD",
+                payment_id, expected_usd, paid_amount,
+            )
+            return web.json_response({"ok": False, "message": "paid amount below expected"}, status=400)
+
+        tx_key = f"xrocket_{payment_id}"
+        wallet_repo = WalletRepository(session)
+        if await wallet_repo.receipt_exists(tx_key):
+            logger.info("xRocket webhook already_processed: payment_id=%s tg_id=%s", payment_id, tg_id)
+            return web.json_response({"ok": True, "status": "already_processed"})
+
+        new_bal = await wallet_repo.add_balance_atomic(tg_id, toman_amount)
+        await wallet_repo.create_topup(tg_id, toman_amount, tx_key)
+        await session.commit()
+        logger.info(
+            "xRocket payment verified & credited successfully: payment_id=%s tg_id=%s amount=%s new_balance=%s",
+            payment_id, tg_id, toman_amount, new_bal,
+        )
+
+        cache: FastCache = request.app.get("cache")
+        if cache:
+            await cache.delete(f"tma:user:{tg_id}:profile")
+
+        bot = request.app.get("bot")
+        settings = request.app.get("settings")
+        if bot:
             try:
-                tg_id = int(parts[1])
-                toman_amount = int(parts[2])
-            except (ValueError, TypeError):
-                logger.warning("xRocket webhook malformed payload %r from %s", payload, peer_ip)
-                return web.json_response({"ok": False}, status=400)
-
-            tx_key = f"xrocket_{payment_id}"
-
-            async with db_session(request) as session:
-                wallet_repo = WalletRepository(session)
-                if payment_id and await wallet_repo.receipt_exists(tx_key):
-                    logger.info("xRocket webhook already_processed: payment_id=%s tg_id=%s", payment_id, tg_id)
-                    return web.json_response({"ok": True, "status": "already_processed"})
-
-                new_bal = await wallet_repo.add_balance_atomic(tg_id, toman_amount)
-                if payment_id:
-                    await wallet_repo.create_topup(tg_id, toman_amount, tx_key)
-                await session.commit()
-                logger.info(
-                    "xRocket payment credited successfully: payment_id=%s tg_id=%s amount=%s new_balance=%s",
-                    payment_id, tg_id, toman_amount, new_bal,
+                user_msg = (
+                    f"🎉 <b>شارژ موفق کیف پول با xRocket</b>\n\n"
+                    f"💰 مبلغ: <b>{toman_amount:,} تومان</b>\n"
+                    f"💳 موجودی جدید: <b>{new_bal:,} تومان</b>\n"
+                    f"🧾 شناسه تراکنش: <code>{payment_id}</code>"
                 )
+                await bot.send_message(chat_id=tg_id, text=user_msg)
+            except Exception as e:
+                logger.warning("Failed to send topup notification to tg_id=%s: %s", tg_id, e)
 
-                cache: FastCache = request.app.get("cache")
-                if cache:
-                    await cache.delete(f"tma:user:{tg_id}:profile")
-                    await cache.delete(f"tma:user:{tg_id}:dashboard")
-
-                bot = request.app.get("bot")
-                if bot:
-                    try:
-                        await bot.send_message(
-                            chat_id=tg_id,
-                            text=f"🚀 <b>پرداخت با درگاه xRocket با موفقیت تأیید شد!</b>\n\n💰 مبلغ: <b>{toman_amount:,} تومان</b>\n💳 موجودی جدید: <b>{new_bal:,} تومان</b>",
-                            parse_mode="HTML",
-                        )
-                    except Exception as exc:
-                        logger.warning("Failed to notify user %s for xRocket topup (%s Toman): %s", tg_id, toman_amount, exc)
-
-                return web.json_response({"ok": True, "credited": True, "new_balance": new_bal})
-
-    logger.info("xRocket webhook ignored: status=%s payment_id=%s payload=%r ip=%s", status, payment_id, payload, peer_ip)
-    return web.json_response({"ok": True, "status": "ignored"})
+        return web.json_response({"ok": True, "new_balance": new_bal})
 
 
 async def post_user_topup_card_auto_create(request: web.Request) -> web.Response:
@@ -1393,37 +1435,72 @@ async def post_webhook_sms(request: web.Request) -> web.Response:
         elif token_query:
             provided_token = token_query.strip()
 
-        # 2. Extract sender and message text
+        # 2. Extract sender and message text by reading body once to avoid stream exhaustion
         sender = ""
         raw_message = ""
+        raw_bytes = b""
+        if hasattr(request, "read"):
+            try:
+                read_res = request.read()
+                if asyncio.iscoroutine(read_res):
+                    raw_bytes = await read_res
+                elif isinstance(read_res, bytes):
+                    raw_bytes = read_res
+            except Exception:
+                raw_bytes = b""
 
-        try:
-            body = await request.json()
-            if isinstance(body, dict):
-                sender = str(body.get("from") or body.get("sender") or body.get("phone") or "")
-                raw_message = str(body.get("message") or body.get("text") or body.get("content") or body.get("msg") or "")
-                if not provided_token and body.get("token"):
-                    provided_token = str(body.get("token")).strip()
-        except Exception as j_err:
-            logger.debug("SMS webhook non-JSON body from %s: %s", peer_ip, j_err)
+        raw_text_payload = raw_bytes.decode("utf-8", errors="replace").strip() if raw_bytes else ""
+        if not raw_text_payload and hasattr(request, "text"):
+            try:
+                text_res = request.text()
+                if asyncio.iscoroutine(text_res):
+                    raw_text_payload = await text_res
+                elif isinstance(text_res, str):
+                    raw_text_payload = text_res
+            except Exception:
+                pass
+
+        # Try parsing as JSON first
+        if raw_text_payload:
+            try:
+                body = json.loads(raw_text_payload)
+                if isinstance(body, dict):
+                    sender = str(body.get("from") or body.get("sender") or body.get("phone") or "")
+                    raw_message = str(body.get("message") or body.get("text") or body.get("content") or body.get("msg") or "")
+                    if not provided_token and body.get("token"):
+                        provided_token = str(body.get("token")).strip()
+            except Exception:
+                pass
+        elif hasattr(request, "json"):
+            try:
+                json_res = request.json()
+                body = (await json_res) if asyncio.iscoroutine(json_res) else json_res
+                if isinstance(body, dict):
+                    sender = str(body.get("from") or body.get("sender") or body.get("phone") or "")
+                    raw_message = str(body.get("message") or body.get("text") or body.get("content") or body.get("msg") or "")
+                    if not provided_token and body.get("token"):
+                        provided_token = str(body.get("token")).strip()
+            except Exception:
+                pass
+            # If not JSON, check URL-encoded form parameters or raw text
+            if "=" in raw_text_payload and ("from=" in raw_text_payload or "message=" in raw_text_payload or "text=" in raw_text_payload):
+                try:
+                    from urllib.parse import parse_qs
+                    qs = parse_qs(raw_text_payload)
+                    sender = str(qs.get("from", [""])[0] or qs.get("sender", [""])[0] or qs.get("phone", [""])[0] or "")
+                    raw_message = str(qs.get("message", [""])[0] or qs.get("text", [""])[0] or qs.get("content", [""])[0] or "")
+                    if not provided_token and qs.get("token"):
+                        provided_token = str(qs.get("token", [""])[0]).strip()
+                except Exception:
+                    pass
+
+        # Fallback to entire text payload if raw_message not extracted from fields
+        if not raw_message and raw_text_payload:
+            raw_message = raw_text_payload
 
         if not provided_token or not secrets.compare_digest(provided_token, secret):
             logger.warning("SMS webhook unauthorized attempt from %s (wrong or missing token)", peer_ip)
             return web.json_response({"ok": False, "message": "Unauthorized"}, status=401)
-
-        if not raw_message:
-            try:
-                post_data = await request.post()
-                sender = str(post_data.get("from") or post_data.get("sender") or post_data.get("phone") or sender)
-                raw_message = str(post_data.get("message") or post_data.get("text") or post_data.get("content") or "")
-            except Exception as p_err:
-                logger.debug("SMS webhook non-POST-form body from %s: %s", peer_ip, p_err)
-
-        if not raw_message:
-            try:
-                raw_message = await request.text()
-            except Exception as t_err:
-                logger.debug("SMS webhook could not read text body from %s: %s", peer_ip, t_err)
 
         if not raw_message or not raw_message.strip():
             logger.warning("SMS webhook empty message body from %s (sender=%r)", peer_ip, sender)

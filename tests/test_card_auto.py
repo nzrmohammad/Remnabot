@@ -208,3 +208,40 @@ async def test_webhook_sms_authorization(session_factory):
 
     resp_auth = await post_webhook_sms(req_auth)
     assert resp_auth.status == 200
+
+
+@pytest.mark.anyio
+async def test_card_auto_destination_mismatch(async_session: AsyncSession):
+    store = StoreSettings(
+        card_number="6037991234567890",  # last 4 = 7890
+        card_holder="مدیریت سیستم",
+        topup_min_amount=10000,
+        default_squad_uuid="",
+        expiry_grace_days=3,
+        expiry_remind_days="3,1,0",
+        topic_topups=None,
+        topic_orders=None,
+        topic_support=None,
+        topic_alerts=None,
+        support_contact="",
+        card_auto_enabled=True,
+    )
+
+    # SMS is for a different card (e.g. 1111)
+    sms_other_card = """بانک ملی
+واریز به ۶۰۳۷۹۹******۱۱۱۱
+مبلغ: ۵۵۹,۳۷۰ ریال
+مانده: ۱,۴۲۰,۰۰۰ ریال"""
+
+    res = await process_incoming_sms(
+        session=async_session,
+        bot=None,
+        settings=None,
+        store=store,
+        sender="Melli",
+        raw_message=sms_other_card,
+    )
+
+    assert res["ok"] is True
+    assert res["action"] == "card_mismatch"
+

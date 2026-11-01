@@ -7,10 +7,12 @@ from __future__ import annotations
 
 import logging
 import random
+import re
 from html import escape
 from typing import Any
 
 from aiogram import Bot
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from bot.common import admin_thread_kwargs
@@ -38,41 +40,66 @@ async def generate_card_auto_invoice(
     if active_inv and active_inv.base_amount == base_amount:
         return active_inv
 
-    # 2. Build candidate suffixes between 10 and 990 Tomans (step of 10 or 25)
-    # Using random offsets ending in 0 or 5 for bank and user clarity
+    # 2. Build candidate suffixes between 10 and 990 Tomans (step of 10)
+    # Using random offsets ending in 0 for bank and user clarity
     candidates = [delta for delta in range(10, 990, 10)]
     random.shuffle(candidates)
 
     min_val = base_amount + 10
-    max_val = base_amount + 990
+    max_val = base_amount + 9990
     used_amounts = await repo.get_pending_amounts_in_range(min_val, max_val)
 
-    selected_delta = None
-    for delta in candidates:
-        candidate_amount = base_amount + delta
-        if candidate_amount not in used_amounts:
-            selected_delta = delta
-            break
+    card_number = getattr(store, "card_number", "") or ""
+    card_holder = getattr(store, "card_holder", "") or ""
 
-    if selected_delta is None:
-        # Fallback: scan available offsets not currently active
-        for fallback_delta in range(1000, 9991, 10):
-            if (base_amount + fallback_delta) not in used_amounts:
-                selected_delta = fallback_delta
+    for attempt in range(5):
+        selected_delta = None
+        for delta in candidates:
+            candidate_amount = base_amount + delta
+            if candidate_amount not in used_amounts:
+                selected_delta = delta
                 break
+
         if selected_delta is None:
-            for _ in range(50):
-                cand = random.randint(1000, 9990)
-                if (base_amount + cand) not in used_amounts:
-                    selected_delta = cand
+            # Fallback: scan available offsets not currently active
+            fallback_candidates = [d for d in range(1000, 9991, 10)]
+            random.shuffle(fallback_candidates)
+            for fallback_delta in fallback_candidates:
+                if (base_amount + fallback_delta) not in used_amounts:
+                    selected_delta = fallback_delta
                     break
             if selected_delta is None:
                 selected_delta = random.randint(1000, 9990)
 
-    exact_amount = base_amount + selected_delta
-    card_number = getattr(store, "card_number", "") or ""
-    card_holder = getattr(store, "card_holder", "") or ""
+        exact_amount = base_amount + selected_delta
 
+        try:
+            async with session.begin_nested():
+                invoice = await repo.create_invoice(
+                    telegram_id=telegram_id,
+                    base_amount=base_amount,
+                    exact_amount=exact_amount,
+                    card_number=card_number,
+                    card_holder=card_holder,
+                    ttl_minutes=ttl_minutes,
+                )
+            logger.info(
+                "Created card-auto invoice: uuid=%s telegram_id=%s base_amount=%s exact_amount=%s ttl_min=%s",
+                invoice.invoice_uuid, telegram_id, base_amount, exact_amount, ttl_minutes,
+            )
+            return invoice
+        except IntegrityError:
+            logger.warning(
+                "Collision on exact_amount=%s, retrying with new suffix (attempt %s/5)",
+                exact_amount, attempt + 1,
+            )
+            used_amounts.add(exact_amount)
+            # Re-fetch latest pending amounts
+            fresh = await repo.get_pending_amounts_in_range(min_val, max_val)
+            used_amounts.update(fresh)
+
+    # Final attempt fallback
+    exact_amount = base_amount + random.randint(1000, 9990)
     invoice = await repo.create_invoice(
         telegram_id=telegram_id,
         base_amount=base_amount,
@@ -80,10 +107,6 @@ async def generate_card_auto_invoice(
         card_number=card_number,
         card_holder=card_holder,
         ttl_minutes=ttl_minutes,
-    )
-    logger.info(
-        "Created card-auto invoice: uuid=%s telegram_id=%s base_amount=%s exact_amount=%s ttl_min=%s",
-        invoice.invoice_uuid, telegram_id, base_amount, exact_amount, ttl_minutes,
     )
     return invoice
 
@@ -123,6 +146,23 @@ async def process_incoming_sms(
             "action": "ignored_non_deposit",
             "reason": "Not recognized as deposit",
         }
+
+    # Card destination check: If store has a designated card number and SMS specifies card_last4,
+    # verify that the SMS actually belongs to the store's card rather than personal admin cards.
+    if store and getattr(store, "card_number", None):
+        clean_store_card = re.sub(r"\D", "", str(store.card_number))
+        if len(clean_store_card) >= 4:
+            store_card_last4 = clean_store_card[-4:]
+            if parsed.card_last4 and parsed.card_last4 != store_card_last4:
+                logger.warning(
+                    "Bank deposit card mismatch: SMS card_last4=%s does not match store card_last4=%s (sender=%s)",
+                    parsed.card_last4, store_card_last4, sender,
+                )
+                return {
+                    "ok": True,
+                    "action": "card_mismatch",
+                    "reason": f"Card {parsed.card_last4} does not match store card {store_card_last4}",
+                }
 
     amount_toman = parsed.amount_toman
     invoice = await repo.claim_and_mark_paid(amount_toman, sms_log_id=log_entry.id)

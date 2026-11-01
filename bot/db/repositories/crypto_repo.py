@@ -3,6 +3,7 @@ import secrets
 from datetime import datetime, timedelta, timezone
 
 from sqlalchemy import and_, select, text
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from bot.db.models import CryptoInvoice
@@ -86,22 +87,29 @@ class CryptoRepository:
         expires_minutes: int = 60,
         currency: str = "TON",
     ) -> CryptoInvoice:
-        comment = await self.generate_unique_comment()
-        expires_at = datetime.now(timezone.utc) + timedelta(minutes=expires_minutes)
+        for attempt in range(5):
+            comment = await self.generate_unique_comment()
+            expires_at = datetime.now(timezone.utc) + timedelta(minutes=expires_minutes)
 
-        invoice = CryptoInvoice(
-            telegram_id=telegram_id,
-            amount_toman=amount_toman,
-            amount_ton=amount_ton,
-            nanotons=nanotons,
-            currency=currency,
-            comment=comment,
-            pay_address=pay_address,
-            status="pending",
-            expires_at=expires_at,
-        )
-        self.session.add(invoice)
-        await self.session.flush()
+            invoice = CryptoInvoice(
+                telegram_id=telegram_id,
+                amount_toman=amount_toman,
+                amount_ton=amount_ton,
+                nanotons=nanotons,
+                currency=currency,
+                comment=comment,
+                pay_address=pay_address,
+                status="pending",
+                expires_at=expires_at,
+            )
+            self.session.add(invoice)
+            try:
+                async with self.session.begin_nested():
+                    await self.session.flush()
+                return invoice
+            except IntegrityError:
+                if attempt == 4:
+                    raise
         return invoice
 
     async def mark_paid(

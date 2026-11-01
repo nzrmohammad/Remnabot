@@ -4,6 +4,7 @@ import logging
 import os
 import tempfile
 import time
+import uuid
 
 from aiogram import Bot, Dispatcher
 from aiogram.client.default import DefaultBotProperties
@@ -219,6 +220,49 @@ async def main() -> None:
         except Exception:
             logger.exception("Failed to start TMA web server")
 
+    # ── Startup Single-Instance Lock (Prevents TelegramConflictError) ──
+    lock_key = "remnabot:instance_lock"
+    lock_val = f"{os.getpid()}_{uuid.uuid4().hex[:8]}"
+    lock_refresh_task = None
+
+    if redis_client:
+        try:
+            acquired = await redis_client.set(lock_key, lock_val, nx=True, ex=30)
+            if not acquired:
+                holder = await redis_client.get(lock_key)
+                logger.critical(
+                    "STARTUP ABORTED: Another bot instance is holding the active polling lock (%s)! "
+                    "Ensure only ONE bot instance is running to prevent TelegramConflictError and split updates.",
+                    holder,
+                )
+                for task in background_tasks:
+                    task.cancel()
+                if web_runner:
+                    await web_runner.cleanup()
+                await remnawave.close()
+                await bot.session.close()
+                await engine.dispose()
+                return
+
+            async def _refresh_instance_lock():
+                try:
+                    while True:
+                        await asyncio.sleep(10)
+                        current_holder = await redis_client.get(lock_key)
+                        if current_holder == lock_val:
+                            await redis_client.expire(lock_key, 30)
+                        else:
+                            logger.warning("Instance lock lost or replaced: %s", current_holder)
+                            break
+                except asyncio.CancelledError:
+                    pass
+                except Exception as ex:
+                    logger.debug("Instance lock refresh exception: %s", ex)
+
+            lock_refresh_task = asyncio.create_task(_refresh_instance_lock(), name="instance-lock-refresh")
+        except Exception as lock_err:
+            logger.warning("Redis instance lock unavailable (falling back gracefully): %s", lock_err)
+
     try:
         logger.info("Bot started.")
         # Keep pending updates: dropping them would silently lose top-up
@@ -226,6 +270,15 @@ async def main() -> None:
         await bot.delete_webhook(drop_pending_updates=False)
         await dp.start_polling(bot)
     finally:
+        if lock_refresh_task:
+            lock_refresh_task.cancel()
+        if redis_client:
+            try:
+                current_holder = await redis_client.get(lock_key)
+                if current_holder == lock_val:
+                    await redis_client.delete(lock_key)
+            except Exception:
+                pass
         for task in background_tasks:
             task.cancel()
         if web_runner:

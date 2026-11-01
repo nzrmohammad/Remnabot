@@ -1748,9 +1748,14 @@ async applyUserModification() {
         return;
       }
 
+      if (type === 'delete_users' && (target === 'all_panel' || target === 'all')) {
+        if (window.showToast) window.showToast('⚠️ حذف همگانی تمام کاربران پنل مجاز نیست.');
+        return;
+      }
+
       let confirmMsg = '';
       if (type === 'delete_users') {
-        const targetDesc = target === 'selected' ? `${window.selectedAdminUsers.size} کاربر انتخاب‌شده` : (target === 'by_status' ? `کاربران وضعیت ${targetStatus}` : (target === 'all_active' ? 'تمام کاربران فعال' : 'تمام کاربران پنل'));
+        const targetDesc = target === 'selected' ? `${window.selectedAdminUsers.size} کاربر انتخاب‌شده` : (target === 'by_status' ? `کاربران وضعیت ${targetStatus}` : 'تمام کاربران فعال');
         confirmMsg = `🚨 آیا از حذف کامل و دائم ${targetDesc} از پنل اطمینان قطعی دارید؟ این عمل غیرقابل بازگشت است.`;
       } else {
         const typeText = type === 'add_traffic' ? `${amount} گیگابایت حجم` : `${amount} روز اعتبار`;
@@ -1777,6 +1782,7 @@ async applyUserModification() {
           audience: target,
           target_status: targetStatus,
           user_ids: Array.from(window.selectedAdminUsers),
+          confirm: type === 'delete_users' ? 'DELETE' : undefined,
         };
 
         const res = await window.api.bulkUsersAction(payload);

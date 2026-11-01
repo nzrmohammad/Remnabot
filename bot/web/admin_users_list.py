@@ -328,10 +328,23 @@ async def post_admin_users_bulk_action(request: web.Request) -> web.Response:
         amount = int(body.get("amount") or body.get("value") or 0)
     except (ValueError, TypeError):
         amount = 0
-    target = body.get("target") or body.get("audience") or "all_active"
 
     if action_type not in ("add_traffic", "add_days", "delete_users"):
         return web.json_response({"ok": False, "error": "نوع عملیات نامعتبر است."}, status=400)
+
+    # For dangerous delete operations, target MUST be explicitly specified and server-side confirmed
+    raw_target = body.get("target") or body.get("audience")
+    if action_type == "delete_users":
+        if not raw_target:
+            return web.json_response({"ok": False, "error": "مشخص کردن جامعه هدف برای عملیات حذف الزامی است."}, status=400)
+        target = str(raw_target).strip()
+        if target in ("all", "all_panel"):
+            return web.json_response({"ok": False, "error": "حذف همگانی تمام کاربران پنل از این بخش مجاز نیست."}, status=400)
+        confirm_token = str(body.get("confirm") or "").strip().upper()
+        if confirm_token != "DELETE":
+            return web.json_response({"ok": False, "error": "جهت تایید حذف گروهی، ارسال فیلد confirm: 'DELETE' الزامی است."}, status=400)
+    else:
+        target = raw_target or "all_active"
 
     if action_type in ("add_traffic", "add_days") and amount <= 0:
         return web.json_response({"ok": False, "error": "مقدار عددی معتبر نیست."}, status=400)

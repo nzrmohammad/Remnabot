@@ -26,6 +26,12 @@ _WITHDRAWAL_KEYWORDS = (
     "انتقال از سپرده",
     "انتقال کارت به کارت",
     "انتقال به دیگری",
+    "انتقال به کارت دیگری",
+    "انتقال به حساب دیگری",
+    "انتقال به سپرده دیگری",
+    "انتقال وجه",
+    "انتقال پایا",
+    "انتقال ساتنا",
     "کاهش موجودی",
     "بدهکار شد",
     "بدهکار",
@@ -53,9 +59,13 @@ _DEPOSIT_KEYWORDS = (
     "واریز به",
     "بستانکار شد",
     "بستانکار",
-    "انتقال به کارت",
-    "انتقال به حساب",
-    "انتقال به سپرده",
+    "واریز به کارت",
+    "واریز به حساب",
+    "واریز به سپرده",
+    "به کارت شما",
+    "به حساب شما",
+    "به سپرده شما",
+    "کارت به کارت به کارت",  # Bank Mellat incoming transfer pattern
     "افزایش موجودی",
     "+",
     "به حساب شما نشست",
@@ -177,6 +187,21 @@ def parse_bank_sms(text: str, sender: str = "") -> ParsedBankSms:
             raw_text=text,
         )
 
+    # Check for outgoing transfer without explicit deposit indicators (e.g. "انتقال به کارت ... مبلغ ... انجام شد")
+    if (
+        ("انتقال به کارت" in norm_lower or "انتقال به حساب" in norm_lower or "انتقال به سپرده" in norm_lower or "انتقال وجه" in norm_lower)
+        and not ("شما" in norm_lower or "واریز" in norm_lower or "بستانکار" in norm_lower or "+" in norm_lower or "کارت به کارت به کارت" in norm_lower)
+    ):
+        return ParsedBankSms(
+            is_deposit=False,
+            amount_toman=None,
+            amount_rial=None,
+            bank_name=bank_name,
+            card_last4=None,
+            tracking_code=None,
+            raw_text=text,
+        )
+
     # 2. Check for deposit keywords
     has_deposit = any(kw in norm_lower for kw in _DEPOSIT_KEYWORDS)
     if not has_deposit:
@@ -243,28 +268,30 @@ def parse_bank_sms(text: str, sender: str = "") -> ParsedBankSms:
                 continue
 
             unit_lower = unit.lower()
+            has_explicit_unit = False
             if "تومان" in unit_lower or unit_lower == "ت":
                 amount_toman = val
                 amount_rial = val * 10
+                has_explicit_unit = True
                 break
             elif "ریال" in unit_lower or unit_lower in ("r", "irr"):
                 amount_rial = val
                 amount_toman = val // 10
+                has_explicit_unit = True
+                break
+            elif "+" in raw_num or "+" in match.group(0):
+                amount_rial = val
+                amount_toman = val // 10
+                has_explicit_unit = True
                 break
             else:
-                # If no unit specified, Iranian banks almost universally send in Rials (ending in 0)
-                # If val is divisible by 10 and >= 10,000, treat as Rial
-                if val >= 10_000 and val % 10 == 0:
-                    amount_rial = val
-                    amount_toman = val // 10
-                else:
-                    amount_toman = val
-                    amount_rial = val * 10
+                # Disallow guessing currency units for critical financial matching
+                has_explicit_unit = False
                 break
         if amount_toman is not None:
             break
 
-    is_valid_deposit = bool(amount_toman is not None and amount_toman > 0)
+    is_valid_deposit = bool(amount_toman is not None and amount_toman > 0 and has_explicit_unit)
 
     return ParsedBankSms(
         is_deposit=is_valid_deposit,

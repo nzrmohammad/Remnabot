@@ -861,15 +861,22 @@ function updateTronLinkButton(inv) {
   const btn = document.getElementById('openTronLinkBtn');
   if (!btn || !inv || !inv.pay_address || !inv.amount_trx) return;
   const trxAmount = Number(inv.amount_trx);
+  const paramObj = {
+    url: window.location.href,
+    action: 'send',
+    to: inv.pay_address,
+    amount: trxAmount
+  };
+  const tronLinkDeepLink = `tronlinkoutside://pull.activity?param=${encodeURIComponent(JSON.stringify(paramObj))}`;
   const tronUri = `tron:${inv.pay_address}?amount=${trxAmount}`;
-  btn.href = tronUri;
+  btn.href = tronLinkDeepLink;
   btn.onclick = (e) => {
     e.preventDefault();
     try {
       if (window.Telegram?.WebApp?.openLink) {
-        window.Telegram.WebApp.openLink(tronUri);
+        window.Telegram.WebApp.openLink(tronLinkDeepLink);
       } else {
-        window.location.href = tronUri;
+        window.location.href = tronLinkDeepLink;
       }
     } catch (err) {
       window.location.href = tronUri;
@@ -1311,7 +1318,7 @@ function setupWalletListeners() {
       const res = await window.api.createCryptoInvoice(amt);
       if (res.ok && res.invoice) {
         currentTopupInvoice = res.invoice;
-        const durationSec = (res.invoice.expires_minutes ? res.invoice.expires_minutes * 60 : 2700);
+        const durationSec = res.invoice.remaining_seconds || (res.invoice.expires_minutes ? res.invoice.expires_minutes * 60 : 3600);
         saveActiveCryptoInvoice(res.invoice, durationSec);
         document.getElementById('cryptoInvoiceInitial')?.classList.add('hidden');
         document.getElementById('cryptoInvoiceDetails')?.classList.remove('hidden');
@@ -1469,8 +1476,9 @@ function setupWalletListeners() {
         const addrEl = document.getElementById('trxPayAddress');
         if (addrEl) addrEl.innerText = res.invoice.pay_address;
         updateTronLinkButton(res.invoice);
-        startTrxCountdownTimer(3600);
-        updatePendingCardUI(res.invoice, 3600, 'TRX');
+        const trxDurationSec = res.invoice.remaining_seconds || (res.invoice.expires_minutes ? res.invoice.expires_minutes * 60 : 3600);
+        startTrxCountdownTimer(trxDurationSec);
+        updatePendingCardUI(res.invoice, trxDurationSec, 'TRX');
         updateTopupMutexUI();
       } else {
         showToast(`❌ ${res.message || 'خطا در ایجاد فاکتور ترون'}`);

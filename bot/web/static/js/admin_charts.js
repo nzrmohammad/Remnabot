@@ -1147,7 +1147,7 @@ openHighRiskUsersModal() {
                 </div>
               </div>
               <div class="flex items-center gap-1.5 shrink-0">
-                <button type="button" onclick="window.adminActions.inspectHighRiskUser('${tgId}', '${accountName.replace(/'/g, "\\'")}', '${pUserId}')" class="px-2.5 py-1.5 rounded-xl bg-transparent hover:bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/40 text-[11px] font-bold transition active:scale-95 flex items-center gap-1">
+                <button type="button" data-tg-id="${escapeHtml(String(tgId))}" data-account-name="${escapeHtml(String(u.name || u.username || 'کاربر'))}" data-p-user-id="${escapeHtml(String(pUserId))}" onclick="window.adminActions.inspectHighRiskUser(this.dataset.tgId, this.dataset.accountName, this.dataset.pUserId)" class="px-2.5 py-1.5 rounded-xl bg-transparent hover:bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/40 text-[11px] font-bold transition active:scale-95 flex items-center gap-1">
                   <span>🔍</span><span>بررسی</span>
                 </button>
               </div>
@@ -1179,6 +1179,33 @@ openHighRiskUsersModal() {
   let cachedTopConsumersData = null;
   let currentTopConsumersPeriod = 'weekly';
   let adminTopConsumersMonthIndex = 0;
+  let adminTopConsumersWeek = 'all';
+
+  const JALALI_MONTHS_MAP = {
+    'Farvardin': 'فروردین', 'Ordibehesht': 'اردیبهشت', 'Khordad': 'خرداد',
+    'Tir': 'تیر', 'Mordad': 'مرداد', 'Shahrivar': 'شهریور',
+    'Mehr': 'مهر', 'Aban': 'آبان', 'Azar': 'آذر',
+    'Dey': 'دی', 'Bahman': 'بهمن', 'Esfand': 'اسفند'
+  };
+  function toPersianMonthName(m) {
+    if (!m) return '';
+    return JALALI_MONTHS_MAP[m] || m;
+  }
+
+  function switchAdminTopConsumersWeek(week) {
+    adminTopConsumersWeek = week;
+    const activeClass = 'py-1 rounded-lg bg-blue-600 text-white shadow-sm text-center transition';
+    const inactiveClass = 'py-1 rounded-lg t-muted hover:t-main text-center transition';
+    ['all', 'week1', 'week2', 'week3', 'week4'].forEach(w => {
+      const idKey = w === 'all' ? 'All' : w.charAt(0).toUpperCase() + w.slice(1);
+      const btn = $(`adminTopWeek${idKey}Btn`);
+      if (btn) btn.className = (w === week) ? activeClass : inactiveClass;
+    });
+    if (cachedTopConsumersData) {
+      renderAdminTopConsumersChart(cachedTopConsumersData, 'monthly');
+    }
+  }
+  window.switchAdminTopConsumersWeek = switchAdminTopConsumersWeek;
 
   function switchAdminTopConsumersPeriod(period) {
     currentTopConsumersPeriod = period;
@@ -1187,6 +1214,7 @@ openHighRiskUsersModal() {
     const btnMonth30d = $('adminTopConsumersPeriodMonthly30d');
     const btnMonth = $('adminTopConsumersPeriodMonthly');
     const monthBar = $('adminTopConsumersMonthBar');
+    const weekBar = $('adminTopConsumersWeekBar');
 
     const buttons = [
       { el: btnDaily, id: 'daily' },
@@ -1206,13 +1234,13 @@ openHighRiskUsersModal() {
       }
     });
 
-    if (monthBar) {
-      if (period === 'monthly') {
-        monthBar.classList.remove('hidden');
-        adminTopConsumersMonthIndex = 0;
-      } else {
-        monthBar.classList.add('hidden');
-      }
+    if (period === 'monthly') {
+      if (monthBar) monthBar.classList.remove('hidden');
+      if (weekBar) weekBar.classList.remove('hidden');
+      adminTopConsumersMonthIndex = 0;
+    } else {
+      if (monthBar) monthBar.classList.add('hidden');
+      if (weekBar) weekBar.classList.add('hidden');
     }
 
     if (cachedTopConsumersData) {
@@ -1239,15 +1267,21 @@ openHighRiskUsersModal() {
 
     if (period === 'monthly') {
       activeMonthName = avail[adminTopConsumersMonthIndex] || avail[0] || '';
-      activeData = (activeMonthName && cachedTopConsumersData?.calendar_months?.[activeMonthName])
+      const fullMonthData = (activeMonthName && cachedTopConsumersData?.calendar_months?.[activeMonthName])
         || cachedTopConsumersData?.monthly
         || {};
+      if (adminTopConsumersWeek !== 'all' && fullMonthData.weeks?.[adminTopConsumersWeek]) {
+        activeData = fullMonthData.weeks[adminTopConsumersWeek];
+      } else {
+        activeData = fullMonthData;
+      }
     } else {
       activeData = cachedTopConsumersData?.[period] || cachedTopConsumersData?.weekly || cachedTopConsumersData || {};
     }
 
     // Sync admin month navigation bar
     const monthBar = $('adminTopConsumersMonthBar');
+    const weekBar = $('adminTopConsumersWeekBar');
     const prevBtn = $('adminTopMonthPrevBtn');
     const nextBtn = $('adminTopMonthNextBtn');
     const prevLabel = $('adminTopMonthPrevLabel');
@@ -1256,15 +1290,17 @@ openHighRiskUsersModal() {
 
     if (period !== 'monthly') {
       if (monthBar) monthBar.classList.add('hidden');
+      if (weekBar) weekBar.classList.add('hidden');
     } else {
       if (monthBar) monthBar.classList.remove('hidden');
-      if (curLabel) curLabel.innerText = activeMonthName ? `ماه ${activeMonthName}` : '--';
+      if (weekBar) weekBar.classList.remove('hidden');
+      if (curLabel) curLabel.innerText = activeMonthName ? `ماه ${toPersianMonthName(activeMonthName)}` : '--';
 
       const prevMName = avail[adminTopConsumersMonthIndex + 1] || '';
       const nextMName = avail[adminTopConsumersMonthIndex - 1] || '';
 
-      if (prevLabel) prevLabel.innerText = prevMName || '---';
-      if (nextLabel) nextLabel.innerText = nextMName || '---';
+      if (prevLabel) prevLabel.innerText = toPersianMonthName(prevMName) || '---';
+      if (nextLabel) nextLabel.innerText = toPersianMonthName(nextMName) || '---';
 
       if (prevBtn) {
         const hasPrev = Boolean(prevMName);

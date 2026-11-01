@@ -2855,3 +2855,39 @@ async def test_admin_user_srh_resolves_uuid_and_non_tg_id():
     assert p_uuid2 == test_uuid
 
 
+@pytest.mark.anyio
+async def test_bulk_delete_security_protections():
+    """Verify that bulk deletion requires explicit target and confirmation, rejecting dangerous all_panel."""
+    import json
+    from bot.web.admin_users_list import post_admin_users_bulk_action
+
+    # 1. Reject delete without target
+    req_no_target = MagicMock()
+    req_no_target.headers = {"X-Admin-ID": "123"}
+    req_no_target.json = AsyncMock(return_value={"action_type": "delete_users"})
+    req_no_target.app = {"admin_ids": [123]}
+    with patch("bot.web.admin_users_list._check_admin", return_value={"telegram_id": 123}):
+        resp1 = await post_admin_users_bulk_action(req_no_target)
+        assert resp1.status == 400
+        assert "جامعه هدف" in json.loads(resp1.text)["error"]
+
+    # 2. Reject delete with all_panel
+    req_all_panel = MagicMock()
+    req_all_panel.headers = {"X-Admin-ID": "123"}
+    req_all_panel.json = AsyncMock(return_value={"action_type": "delete_users", "target": "all_panel"})
+    with patch("bot.web.admin_users_list._check_admin", return_value={"telegram_id": 123}):
+        resp2 = await post_admin_users_bulk_action(req_all_panel)
+        assert resp2.status == 400
+        assert "مجاز نیست" in json.loads(resp2.text)["error"]
+
+    # 3. Reject delete without confirm: "DELETE"
+    req_unconfirmed = MagicMock()
+    req_unconfirmed.headers = {"X-Admin-ID": "123"}
+    req_unconfirmed.json = AsyncMock(return_value={"action_type": "delete_users", "target": "selected", "user_ids": [1]})
+    with patch("bot.web.admin_users_list._check_admin", return_value={"telegram_id": 123}):
+        resp3 = await post_admin_users_bulk_action(req_unconfirmed)
+        assert resp3.status == 400
+        assert "confirm: 'DELETE'" in json.loads(resp3.text)["error"]
+
+
+
