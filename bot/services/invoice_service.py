@@ -7,7 +7,7 @@ from zoneinfo import ZoneInfo
 
 import jdatetime
 from aiogram import Bot
-from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
+from aiogram.types import FSInputFile, InlineKeyboardButton, InlineKeyboardMarkup
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -28,6 +28,7 @@ async def get_order_invoice_data(
     telegram_id: int,
     store_name: str = "سرویس ابری رمنا",
     support_contact: str = "",
+    store_logo_url: str = "",
     tz_name: str = "Asia/Tehran",
 ) -> dict[str, Any] | None:
     """Fetch order and compile complete official digital invoice data dictionary."""
@@ -87,6 +88,7 @@ async def get_order_invoice_data(
         "created_at_iso": o_dt.isoformat() if o_dt else "",
         "seller": {
             "name": store_name,
+            "logo_url": store_logo_url,
             "type": "خدمات رایانش و شبکه ابری",
             "support": support_contact or "پشتیبانی ربات تلگرام",
             "verified": True,
@@ -150,13 +152,46 @@ async def send_invoice_to_telegram(bot: Bot, telegram_id: int, invoice: dict[str
             InlineKeyboardButton(text="📄 مشاهده نسخه وب و چاپ", url=web_app_url)
         ]])
 
+    logo_url = invoice.get("seller", {}).get("logo_url") or ""
     try:
-        await bot.send_message(
-            chat_id=telegram_id,
-            text=msg,
-            reply_markup=markup,
-            parse_mode="HTML",
-        )
+        from pathlib import Path
+        photo_sent = False
+        if logo_url:
+            if logo_url.startswith("http://") or logo_url.startswith("https://"):
+                try:
+                    await bot.send_photo(
+                        chat_id=telegram_id,
+                        photo=logo_url,
+                        caption=msg,
+                        reply_markup=markup,
+                        parse_mode="HTML",
+                    )
+                    photo_sent = True
+                except Exception as p_err:
+                    logger.debug("Failed sending remote logo photo: %s", p_err)
+            else:
+                clean_path = logo_url.lstrip("/")
+                disk_path = Path("bot/web") / clean_path
+                if disk_path.exists() and disk_path.is_file():
+                    try:
+                        await bot.send_photo(
+                            chat_id=telegram_id,
+                            photo=FSInputFile(str(disk_path)),
+                            caption=msg,
+                            reply_markup=markup,
+                            parse_mode="HTML",
+                        )
+                        photo_sent = True
+                    except Exception as p_err:
+                        logger.debug("Failed sending local logo photo: %s", p_err)
+
+        if not photo_sent:
+            await bot.send_message(
+                chat_id=telegram_id,
+                text=msg,
+                reply_markup=markup,
+                parse_mode="HTML",
+            )
         return True
     except Exception as exc:
         logger.warning("Failed sending invoice to Telegram %s: %s", telegram_id, exc)

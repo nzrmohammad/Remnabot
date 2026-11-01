@@ -416,7 +416,7 @@
                   <span class="text-[11px] font-bold t-main block mb-2 flex items-center gap-1">
                     <span>🥇</span> پرمصرف‌ترین کاربران دوره
                   </span>
-                  <div id="adminTopUsersList" class="space-y-1.5 text-xs max-h-[210px] overflow-y-auto custom-scroll px-1.5 py-1">
+                  <div id="adminTopUsersList" class="space-y-1.5 text-xs max-h-[210px] overflow-y-auto custom-scroll p-2 pr-3.5 pl-2">
                     <div class="text-slate-400 text-[11px] text-center py-4">در حال بارگذاری...</div>
                   </div>
                 </div>
@@ -2122,7 +2122,128 @@
           </div>
         </div>
 
-        <!-- 8. Big Save Button -->
+        <!-- 8. Custom Plan Builder Settings Box -->
+        <div class="settings-box shadow transition-all">
+          <div class="settings-box-header p-3.5 flex items-center justify-between cursor-pointer select-none hover:bg-slate-750/40 transition" onclick="window.adminActions.toggleSettingsBox('settingsBoxCustomPlan')" data-target="settingsBoxCustomPlan">
+            <div class="flex items-center gap-2.5">
+              <div class="w-8 h-8 rounded-xl bg-cyan-500/15 text-cyan-400 border border-cyan-500/30 flex items-center justify-center flex-shrink-0">
+                <span class="text-base">🎛️</span>
+              </div>
+              <div>
+                <b class="text-xs text-white block">بسته دلخواه (Custom Plan Builder)</b>
+                <span class="text-[11px] text-slate-400 block mt-0.5">نرخ‌گذاری، اسلایدر حجم و روز و اسکواد انتخابی</span>
+              </div>
+            </div>
+            <svg class="settings-box-chevron w-4 h-4 text-slate-400 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+          </div>
+          <div id="settingsBoxCustomPlan" class="settings-box-body p-4 pt-1 border-t border-slate-700/60 space-y-3 text-xs hidden">
+            <!-- Custom Plan Switch -->
+            <div class="flex items-center justify-between py-1">
+              <div>
+                <span class="text-slate-200 font-medium block">فعال‌سازی ساخت بسته دلخواه</span>
+                <span class="text-[11px] text-slate-400">امکان انتخاب حجم و زمان دلخواه توسط کاربر در فروشگاه</span>
+              </div>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" class="sr-only switch-checkbox" id="settingCustomPlanSwitch">
+                <div class="switch-label w-11 h-6 bg-slate-700 rounded-full transition-colors duration-200 flex items-center px-0.5">
+                  <div class="switch-ball w-5 h-5 bg-white rounded-full shadow-md transition-transform duration-200"></div>
+                </div>
+              </label>
+            </div>
+
+            <!-- Pricing Rates: Per GB, Per Day, Base Price -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-2 border-t border-slate-700/50">
+              <div>
+                <label class="text-[11px] text-slate-400 block mb-1">قیمت هر گیگابایت (تومان)</label>
+                <input type="number" id="settingCustomPlanPricePerGb" dir="ltr" placeholder="2500" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-cyan-300 outline-none focus:border-cyan-500 transition" />
+              </div>
+              <div>
+                <label class="text-[11px] text-slate-400 block mb-1">قیمت هر روز اعتبار (تومان)</label>
+                <input type="number" id="settingCustomPlanPricePerDay" dir="ltr" placeholder="500" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-indigo-300 outline-none focus:border-indigo-500 transition" />
+              </div>
+              <div>
+                <label class="text-[11px] text-slate-400 block mb-1">هزینه پایه ثابت (تومان)</label>
+                <input type="number" id="settingCustomPlanBasePrice" dir="ltr" placeholder="10000" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-emerald-300 outline-none focus:border-emerald-500 transition" />
+              </div>
+            </div>
+
+            <!-- Volume Slider Limits: Min / Max GB -->
+            <div class="grid grid-cols-2 gap-2.5 pt-2 border-t border-slate-700/50">
+              <div>
+                <label class="text-[11px] text-slate-400 block mb-1">حداقل حجم (GB)</label>
+                <input type="number" id="settingCustomPlanMinGb" dir="ltr" placeholder="5" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-slate-200 outline-none focus:border-cyan-500 transition" />
+              </div>
+              <div>
+                <label class="text-[11px] text-slate-400 block mb-1">حداکثر حجم (GB)</label>
+                <input type="number" id="settingCustomPlanMaxGb" dir="ltr" placeholder="300" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-slate-200 outline-none focus:border-cyan-500 transition" />
+              </div>
+            </div>
+
+            <!-- Duration Slider Limits: Min / Max Days -->
+            <div class="grid grid-cols-2 gap-2.5 pt-2 border-t border-slate-700/50">
+              <div>
+                <label class="text-[11px] text-slate-400 block mb-1">حداقل مدت (روز)</label>
+                <input type="number" id="settingCustomPlanMinDays" dir="ltr" placeholder="10" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-slate-200 outline-none focus:border-indigo-500 transition" />
+              </div>
+              <div>
+                <label class="text-[11px] text-slate-400 block mb-1">حداکثر مدت (روز)</label>
+                <input type="number" id="settingCustomPlanMaxDays" dir="ltr" placeholder="180" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-slate-200 outline-none focus:border-indigo-500 transition" />
+              </div>
+            </div>
+
+            <!-- Squad Assignment for Custom Plan -->
+            <div class="pt-2 border-t border-slate-700/50">
+              <label class="text-[11px] text-slate-400 block mb-1">شناسه اسکواد اختصاصی (اختیاری - پیش‌فرض سرور)</label>
+              <input type="text" id="settingCustomPlanSquadUuid" dir="ltr" placeholder="اختیاری: UUID اسکواد" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-slate-300 outline-none focus:border-blue-500 transition" />
+            </div>
+          </div>
+        </div>
+
+        <!-- 9. Store Branding & Logo Box -->
+        <div class="settings-box shadow transition-all">
+          <div class="settings-box-header p-3.5 flex items-center justify-between cursor-pointer select-none hover:bg-slate-750/40 transition" onclick="window.adminActions.toggleSettingsBox('settingsBoxBranding')" data-target="settingsBoxBranding">
+            <div class="flex items-center gap-2.5">
+              <div class="w-8 h-8 rounded-xl bg-purple-500/15 text-purple-400 border border-purple-500/30 flex items-center justify-center flex-shrink-0">
+                <span class="text-base">🎨</span>
+              </div>
+              <div>
+                <b class="text-xs text-white block">لوگو و هویت برند فروشگاه</b>
+                <span class="text-[11px] text-slate-400 block mt-0.5">آپلود لوگوی باکیفیت برای نمایش در مینی‌اپ و رسیدهای رسمی</span>
+              </div>
+            </div>
+            <svg class="settings-box-chevron w-4 h-4 text-slate-400 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+          </div>
+          <div id="settingsBoxBranding" class="settings-box-body p-4 pt-1 border-t border-slate-700/60 space-y-3.5 text-xs hidden">
+            <!-- Logo Preview & Upload Section -->
+            <div class="flex items-center gap-3.5 card-inset p-3 rounded-2xl border border-slate-700/60">
+              <div id="adminLogoPreviewBox" class="w-14 h-14 rounded-2xl bg-slate-900 border border-slate-700 flex items-center justify-center overflow-hidden shrink-0 shadow-inner">
+                <img id="adminStoreLogoImg" class="w-full h-full object-contain hidden" alt="Logo Preview" />
+                <span id="adminStoreLogoEmpty" class="text-2xl text-slate-500">🛍️</span>
+              </div>
+              <div class="flex-1 space-y-1.5 min-w-0">
+                <span class="text-xs font-bold text-slate-200 block">لوگوی اختصاصی فروشگاه</span>
+                <p class="text-[10px] text-slate-400 leading-snug">این تصویر در بالای فاکتورها، رسیدهای دیجیتال تلگرام و مینی‌اپ نمایش داده می‌شود.</p>
+                <div class="flex items-center gap-2 pt-1">
+                  <label class="btn btn-primary text-xs py-1.5 px-3 rounded-xl cursor-pointer active:scale-95 transition inline-flex items-center gap-1 shadow-sm">
+                    <span>📤 آپلود فایل لوگو</span>
+                    <input type="file" id="settingLogoFileInput" accept="image/png,image/jpeg,image/webp" class="hidden" onchange="window.adminActions.uploadStoreLogoFile(event)" />
+                  </label>
+                  <button type="button" id="adminDeleteLogoBtn" onclick="window.adminActions.clearStoreLogo()" class="text-[11px] text-rose-400 hover:text-rose-300 transition hidden">
+                    حذف لوگو
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Direct URL Input -->
+            <div class="space-y-1">
+              <label class="text-[11px] text-slate-400 block">آدرس مستقیم تصویر لوگو (URL):</label>
+              <input type="text" id="settingStoreLogoUrl" dir="ltr" placeholder="https://example.com/logo.png یا /static/img/store_logo.png" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-cyan-300 outline-none focus:border-cyan-500 transition" oninput="window.adminActions.updateLogoPreview(this.value)" />
+            </div>
+          </div>
+        </div>
+
+        <!-- 10. Big Save Button -->
         <button id="saveAllSettingsBtn" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-2xl shadow-md shadow-blue-500/30 active:scale-[0.99] transition flex items-center justify-center gap-2 text-xs">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/></svg>
           <span>ذخیره تنظیمات</span>

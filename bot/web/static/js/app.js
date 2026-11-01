@@ -2993,16 +2993,16 @@ function hydrateUserInterface(data) {
     const loyalty = data.loyalty;
     const headerBadge = $('headerLoyaltyBadge');
     if (headerBadge && loyalty) {
-      headerBadge.innerText = `${loyalty.icon} ${loyalty.name}`;
+      headerBadge.innerText = loyalty.icon || '🥉';
       headerBadge.classList.remove('hidden');
       if (loyalty.tier === 'DIAMOND') {
-        headerBadge.className = 'px-1.5 py-0.5 rounded-lg text-[9px] font-bold border border-cyan-400/50 bg-cyan-500/15 text-cyan-600 dark:text-cyan-300 transition cursor-pointer active:scale-95 shrink-0';
+        headerBadge.className = 'w-7 h-7 flex items-center justify-center rounded-xl text-xs font-bold border border-cyan-400/50 bg-cyan-500/15 text-cyan-600 dark:text-cyan-300 transition cursor-pointer active:scale-95 shrink-0 shadow-sm';
       } else if (loyalty.tier === 'GOLD') {
-        headerBadge.className = 'px-1.5 py-0.5 rounded-lg text-[9px] font-bold border border-amber-400/50 bg-amber-500/15 text-amber-600 dark:text-amber-300 transition cursor-pointer active:scale-95 shrink-0';
+        headerBadge.className = 'w-7 h-7 flex items-center justify-center rounded-xl text-xs font-bold border border-amber-400/50 bg-amber-500/15 text-amber-600 dark:text-amber-300 transition cursor-pointer active:scale-95 shrink-0 shadow-sm';
       } else if (loyalty.tier === 'SILVER') {
-        headerBadge.className = 'px-1.5 py-0.5 rounded-lg text-[9px] font-bold border border-slate-400/50 bg-slate-500/15 text-slate-700 dark:text-slate-300 transition cursor-pointer active:scale-95 shrink-0';
+        headerBadge.className = 'w-7 h-7 flex items-center justify-center rounded-xl text-xs font-bold border border-slate-400/50 bg-slate-500/15 text-slate-700 dark:text-slate-300 transition cursor-pointer active:scale-95 shrink-0 shadow-sm';
       } else {
-        headerBadge.className = 'px-1.5 py-0.5 rounded-lg text-[9px] font-bold border border-amber-700/40 bg-amber-700/10 text-amber-700 dark:text-amber-400 transition cursor-pointer active:scale-95 shrink-0';
+        headerBadge.className = 'w-7 h-7 flex items-center justify-center rounded-xl text-xs font-bold border border-amber-700/40 bg-amber-700/10 text-amber-700 dark:text-amber-400 transition cursor-pointer active:scale-95 shrink-0 shadow-sm';
       }
     }
 
@@ -3732,9 +3732,9 @@ function switchUserLeaderboardPeriod(period) {
   tabs.forEach(t => {
     if (!t.el) return;
     if (t.id === period) {
-      t.el.className = 'px-2.5 py-1.5 rounded-lg font-bold transition bg-cyan-600 text-white shadow';
+      t.el.className = 'w-full py-2 rounded-lg font-bold transition bg-cyan-600 text-white shadow text-center text-xs';
     } else {
-      t.el.className = 'px-2.5 py-1.5 rounded-lg font-medium transition text-slate-400 hover:text-white';
+      t.el.className = 'w-full py-2 rounded-lg font-medium transition text-slate-400 hover:text-white text-center text-xs';
     }
   });
 
@@ -4576,6 +4576,18 @@ async function openInvoiceModal(orderId) {
     $('invNumberDisplay').innerText = inv.invoice_number || `INV-${orderId}`;
     $('invDateDisplay').innerText = `${inv.date_jalali} - ${inv.time_jalali}`;
     $('invSellerName').innerText = inv.seller?.name || 'سرویس ابری رمنا';
+    const logoImg = $('invSellerLogo');
+    const defaultIcon = $('invSellerDefaultIcon');
+    if (inv.seller?.logo_url) {
+      if (logoImg) {
+        logoImg.src = inv.seller.logo_url;
+        logoImg.classList.remove('hidden');
+      }
+      if (defaultIcon) defaultIcon.classList.add('hidden');
+    } else {
+      if (logoImg) logoImg.classList.add('hidden');
+      if (defaultIcon) defaultIcon.classList.remove('hidden');
+    }
     $('invBuyerName').innerText = inv.buyer?.name || 'کاربر گرامی';
     $('invBuyerId').innerText = `ID: ${inv.buyer?.telegram_id || '--'}`;
 
@@ -4635,3 +4647,52 @@ window.openInvoiceModal = openInvoiceModal;
 window.closeInvoiceModal = closeInvoiceModal;
 window.sendCurrentInvoiceTelegram = sendCurrentInvoiceTelegram;
 window.printCurrentInvoice = printCurrentInvoice;
+
+// VIP Loyalty Modal Handler
+function openLoyaltyModal() {
+  const modal = $('loyaltyModal');
+  if (!modal) return;
+  const loyalty = window.lastUserData?.loyalty;
+  if (loyalty) {
+    if ($('loyaltyModalCurrentIcon')) $('loyaltyModalCurrentIcon').innerText = loyalty.icon || '🥉';
+    if ($('loyaltyModalCurrentName')) $('loyaltyModalCurrentName').innerText = loyalty.name || 'برنزی';
+    if ($('loyaltyModalTotalSpent')) $('loyaltyModalTotalSpent').innerText = `${Number(loyalty.total_spent || 0).toLocaleString('en-US')} تومان`;
+    if ($('loyaltyModalCurrentDiscount')) {
+      const disc = Number(loyalty.discount_percent || 0);
+      $('loyaltyModalCurrentDiscount').innerText = disc > 0 ? `${disc}٪ تخفیف دائمی تمام خریدها` : 'بدون تخفیف دائمی';
+      $('loyaltyModalCurrentDiscount').className = disc > 0 ? 'text-xs font-bold text-emerald-500' : 'text-xs font-medium t-muted';
+    }
+    if ($('loyaltyModalProgressText')) {
+      if (loyalty.next_tier) {
+        const needed = Number(loyalty.next_tier.remaining_amount || 0).toLocaleString('en-US');
+        $('loyaltyModalProgressText').innerText = `با ${needed} تومان خرید دیگر، به سطح ${loyalty.next_tier.name} ارتقا می‌یابید و از ${loyalty.next_tier.discount_percent}٪ تخفیف دائمی بهره‌مند می‌شوید.`;
+      } else {
+        $('loyaltyModalProgressText').innerText = 'تبریک! شما به بالاترین سطح باشگاه مشتریان (الماس VIP) دست یافته‌اید.';
+      }
+    }
+
+    // Highlight user's active tier card
+    const activeTierId = (loyalty.tier_id || 'bronze').toLowerCase();
+    ['bronze', 'silver', 'gold', 'diamond'].forEach(t => {
+      const card = $(`loyaltyTierCard_${t}`);
+      if (card) {
+        if (t === activeTierId) {
+          card.classList.add('ring-2', 'ring-cyan-500', 'bg-cyan-500/10');
+          card.classList.remove('opacity-60');
+        } else {
+          card.classList.remove('ring-2', 'ring-cyan-500', 'bg-cyan-500/10');
+          card.classList.add('opacity-75');
+        }
+      }
+    });
+  }
+  hapticFeedback('selection');
+  modal.classList.remove('hidden');
+}
+
+function closeLoyaltyModal() {
+  $('loyaltyModal')?.classList.add('hidden');
+}
+
+window.openLoyaltyModal = openLoyaltyModal;
+window.closeLoyaltyModal = closeLoyaltyModal;

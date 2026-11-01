@@ -67,6 +67,7 @@ from bot.web.admin_settings_api import (
     get_admin_settings,
     post_admin_settings,
     get_admin_crypto_rates,
+    post_admin_upload_store_logo,
 )
 from bot.web.admin_infra_api import (
     get_admin_infra_billing,
@@ -124,6 +125,7 @@ __all__ = [
     "get_admin_settings",
     "post_admin_settings",
     "get_admin_crypto_rates",
+    "post_admin_upload_store_logo",
     "get_admin_infra_billing",
     "post_admin_node_cost",
     "get_admin_ssl_health",

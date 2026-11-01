@@ -371,6 +371,10 @@ const api = {
     return this.post('/api/admin/settings', data);
   },
 
+  async uploadStoreLogo(logo_image) {
+    return this.post('/api/admin/settings/upload-logo', { logo_image });
+  },
+
   async broadcastMessage(message, target = 'all') {
     return this.post('/api/admin/broadcast', { message, target });
   },

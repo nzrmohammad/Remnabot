@@ -657,6 +657,7 @@ def create_web_app(
     app.router.add_get("/api/admin/crypto/rates", routes_admin.get_admin_crypto_rates)
     app.router.add_get("/api/admin/settings", routes_admin.get_admin_settings)
     app.router.add_post("/api/admin/settings", routes_admin.post_admin_settings)
+    app.router.add_post("/api/admin/settings/upload-logo", routes_admin.post_admin_upload_store_logo)
     app.router.add_get("/api/admin/campaigns", routes_admin.get_admin_campaigns)
     app.router.add_post("/api/admin/campaigns", routes_admin.post_admin_campaign_create)
     app.router.add_post("/api/admin/campaign/create", routes_admin.post_admin_campaign_create)

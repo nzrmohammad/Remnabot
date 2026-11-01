@@ -275,6 +275,65 @@ openUserChat(telegram_id, name, tag, topup_id) {
       this.toggleSettingsBox(targetId);
     },
 
+    updateLogoPreview(url) {
+      const img = $('adminStoreLogoImg');
+      const empty = $('adminStoreLogoEmpty');
+      const delBtn = $('adminDeleteLogoBtn');
+      if (url && url.trim()) {
+        if (img) {
+          img.src = url.trim();
+          img.classList.remove('hidden');
+        }
+        if (empty) empty.classList.add('hidden');
+        if (delBtn) delBtn.classList.remove('hidden');
+      } else {
+        if (img) {
+          img.src = '';
+          img.classList.add('hidden');
+        }
+        if (empty) empty.classList.remove('hidden');
+        if (delBtn) delBtn.classList.add('hidden');
+      }
+    },
+
+    async uploadStoreLogoFile(event) {
+      const file = event.target.files?.[0];
+      if (!file) return;
+      if (file.size > 5 * 1024 * 1024) {
+        showToast('⚠️ حداکثر حجم فایل لوگو ۵ مگابایت است.');
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        const base64Data = e.target.result;
+        try {
+          if (window.showToast) window.showToast('در حال آپلود لوگوی فروشگاه...');
+          const res = await window.api.uploadStoreLogo(base64Data);
+          if (res && res.ok && res.logo_url) {
+            const urlInp = $('settingStoreLogoUrl');
+            if (urlInp) urlInp.value = res.logo_url;
+            window.adminActions.updateLogoPreview(res.logo_url);
+            if (window.showToast) window.showToast('✅ لوگوی فروشگاه با موفقیت بارگذاری و ذخیره شد.');
+            if (window.hapticFeedback) window.hapticFeedback('success');
+          } else {
+            showToast(`❌ ${res?.error || 'خطا در بارگذاری لوگو'}`);
+          }
+        } catch (err) {
+          showToast('❌ خطا در ارتباط با سرور هنگام آپلود لوگو.');
+        }
+      };
+      reader.readAsDataURL(file);
+    },
+
+    clearStoreLogo() {
+      const urlInp = $('settingStoreLogoUrl');
+      if (urlInp) urlInp.value = '';
+      window.adminActions.updateLogoPreview('');
+      const fileInp = $('settingLogoFileInput');
+      if (fileInp) fileInp.value = '';
+      if (window.showToast) window.showToast('لوگو پاک شد. جهت اعمال دکمه ذخیره تنظیمات را بزنید.');
+    },
+
 // --- Campaign Detail & Financial Analysis Modal ---
     openCampaignDetailModal(id) {
       const campaigns = window._adminCampaignsData || [];
@@ -1081,6 +1140,41 @@ openUserChat(telegram_id, name, tag, topup_id) {
       const jgChannel = $('settingJoinGateChannel');
       if (jgChannel) jgChannel.value = s.join_gate_channel || '';
 
+      // Custom Plan Builder Settings
+      const cpSwitch = $('settingCustomPlanSwitch');
+      if (cpSwitch) cpSwitch.checked = s.custom_plan_enabled !== false;
+
+      const cpPerGb = $('settingCustomPlanPricePerGb');
+      if (cpPerGb) cpPerGb.value = s.custom_plan_price_per_gb ?? 2500;
+
+      const cpPerDay = $('settingCustomPlanPricePerDay');
+      if (cpPerDay) cpPerDay.value = s.custom_plan_price_per_day ?? 500;
+
+      const cpBase = $('settingCustomPlanBasePrice');
+      if (cpBase) cpBase.value = s.custom_plan_base_price ?? 10000;
+
+      const cpMinGb = $('settingCustomPlanMinGb');
+      if (cpMinGb) cpMinGb.value = s.custom_plan_min_gb ?? 5;
+
+      const cpMaxGb = $('settingCustomPlanMaxGb');
+      if (cpMaxGb) cpMaxGb.value = s.custom_plan_max_gb ?? 300;
+
+      const cpMinDays = $('settingCustomPlanMinDays');
+      if (cpMinDays) cpMinDays.value = s.custom_plan_min_days ?? 10;
+
+      const cpMaxDays = $('settingCustomPlanMaxDays');
+      if (cpMaxDays) cpMaxDays.value = s.custom_plan_max_days ?? 180;
+
+      const cpSquad = $('settingCustomPlanSquadUuid');
+      if (cpSquad) cpSquad.value = s.custom_plan_squad_uuid || '';
+
+      // Store Logo & Branding
+      const logoInp = $('settingStoreLogoUrl');
+      if (logoInp) {
+        logoInp.value = s.store_logo_url || '';
+        window.adminActions.updateLogoPreview(s.store_logo_url || '');
+      }
+
       // Crypto & Rates
       const usdtRate = $('settingUsdtRate');
       if (usdtRate) {
@@ -1259,6 +1353,9 @@ openUserChat(telegram_id, name, tag, topup_id) {
   $('settingJoinGateSwitch')?.addEventListener('change', (e) => {
     updateSettingToggle('join_gate_enabled', e.target.checked);
   });
+  $('settingCustomPlanSwitch')?.addEventListener('change', (e) => {
+    updateSettingToggle('custom_plan_enabled', e.target.checked);
+  });
   $('settingAccessMode')?.addEventListener('change', (e) => {
     updateSettingToggle('access_mode', e.target.value);
   });
@@ -1294,6 +1391,16 @@ openUserChat(telegram_id, name, tag, topup_id) {
       default_squad_uuid: $('settingDefaultSquadUuid')?.value || '',
       join_gate_enabled: $('settingJoinGateSwitch')?.checked ?? false,
       join_gate_channel: $('settingJoinGateChannel')?.value?.trim() || '',
+      custom_plan_enabled: $('settingCustomPlanSwitch')?.checked ?? true,
+      custom_plan_price_per_gb: parseInt($('settingCustomPlanPricePerGb')?.value || '2500', 10),
+      custom_plan_price_per_day: parseInt($('settingCustomPlanPricePerDay')?.value || '500', 10),
+      custom_plan_base_price: parseInt($('settingCustomPlanBasePrice')?.value || '10000', 10),
+      custom_plan_min_gb: parseInt($('settingCustomPlanMinGb')?.value || '5', 10),
+      custom_plan_max_gb: parseInt($('settingCustomPlanMaxGb')?.value || '300', 10),
+      custom_plan_min_days: parseInt($('settingCustomPlanMinDays')?.value || '10', 10),
+      custom_plan_max_days: parseInt($('settingCustomPlanMaxDays')?.value || '180', 10),
+      custom_plan_squad_uuid: $('settingCustomPlanSquadUuid')?.value?.trim() || '',
+      store_logo_url: $('settingStoreLogoUrl')?.value?.trim() || '',
       crypto_enabled: $('settingCryptoSwitch')?.checked ?? false,
       stars_enabled: $('settingStarsSwitch')?.checked ?? false,
       stars_rate_toman: parseInt($('settingStarsRate')?.value || '1600', 10),

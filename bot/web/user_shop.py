@@ -531,7 +531,7 @@ async def post_user_purchase(request: web.Request) -> web.Response:
         loyalty_info = await get_user_loyalty(session, telegram_id, cache=cache)
         loyalty_disc_pct = loyalty_info.get("discount_percent", 0)
         loyalty_disc_amount, _ = apply_loyalty_discount(service.price, loyalty_disc_pct)
-        total_discount = max(discount_amount, loyalty_disc_amount)
+        total_discount = min(service.price, discount_amount + loyalty_disc_amount)
 
         result = await execute_purchase(
             remnawave=remnawave,
@@ -812,20 +812,21 @@ async def post_user_custom_plan_purchase(request: web.Request) -> web.Response:
         loyalty_pct = loyalty.get("discount_percent", 0)
         disc_amt, final_price = apply_loyalty_discount(base_price, loyalty_pct)
 
-        class CustomDynamicService:
-            id = None
-            name = f"بسته دلخواه ({ltr_frag(f'{traffic_gb} GB')} - {duration_days} روز)"
-            price = base_price
-            duration_days = duration_days
-            traffic_gb = traffic_gb
-            hwid_limit = 2
-            squad_uuid = store_settings.custom_plan_squad_uuid or store_settings.default_squad_uuid or None
-            badge = "custom"
-            traffic_strategy = "NO_RESET"
-            max_purchases = None
-            purchases_count = 0
+        from types import SimpleNamespace
 
-        custom_svc = CustomDynamicService()
+        custom_svc = SimpleNamespace(
+            id=None,
+            name=f"بسته دلخواه ({ltr_frag(f'{traffic_gb} GB')} - {duration_days} روز)",
+            price=base_price,
+            duration_days=duration_days,
+            traffic_gb=traffic_gb,
+            hwid_limit=2,
+            squad_uuid=store_settings.custom_plan_squad_uuid or store_settings.default_squad_uuid or None,
+            badge="custom",
+            traffic_strategy="NO_RESET",
+            max_purchases=None,
+            purchases_count=0,
+        )
 
         chosen_acc = None
         panel_users = await remnawave.get_users_by_telegram_id(telegram_id) or []
@@ -889,17 +890,19 @@ async def get_user_invoice(request: web.Request) -> web.Response:
     order_id = int(order_id_str)
     telegram_id = int(user_auth["id"])
 
-    store_settings = await get_store_settings(request)
-    store_name = getattr(store_settings, "bot_name", "سرویس ابری رمنا") or "سرویس ابری رمنا"
-    support_contact = getattr(store_settings, "support_contact", "") or ""
-
     async with db_session(request) as session:
+        store_settings = await get_store_settings(session)
+        store_name = getattr(store_settings, "bot_name", "سرویس ابری رمنا") or "سرویس ابری رمنا"
+        support_contact = getattr(store_settings, "support_contact", "") or ""
+        store_logo_url = getattr(store_settings, "store_logo_url", "") or ""
+
         inv_data = await get_order_invoice_data(
             session=session,
             order_id=order_id,
             telegram_id=telegram_id,
             store_name=store_name,
             support_contact=support_contact,
+            store_logo_url=store_logo_url,
         )
         if not inv_data:
             return web.json_response({"ok": False, "message": "فاکتور مورد نظر یافت نشد."}, status=404)
@@ -924,17 +927,19 @@ async def post_user_send_invoice_telegram(request: web.Request) -> web.Response:
     if not bot:
         return web.json_response({"ok": False, "message": "ربات در دسترس نیست."}, status=503)
 
-    store_settings = await get_store_settings(request)
-    store_name = getattr(store_settings, "bot_name", "سرویس ابری رمنا") or "سرویس ابری رمنا"
-    support_contact = getattr(store_settings, "support_contact", "") or ""
-
     async with db_session(request) as session:
+        store_settings = await get_store_settings(session)
+        store_name = getattr(store_settings, "bot_name", "سرویس ابری رمنا") or "سرویس ابری رمنا"
+        support_contact = getattr(store_settings, "support_contact", "") or ""
+        store_logo_url = getattr(store_settings, "store_logo_url", "") or ""
+
         inv_data = await get_order_invoice_data(
             session=session,
             order_id=order_id,
             telegram_id=telegram_id,
             store_name=store_name,
             support_contact=support_contact,
+            store_logo_url=store_logo_url,
         )
         if not inv_data:
             return web.json_response({"ok": False, "message": "فاکتور یافت نشد."}, status=404)

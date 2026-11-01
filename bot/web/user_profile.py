@@ -529,7 +529,8 @@ async def get_user_me(request: web.Request) -> web.Response:
             plans_data.append({
                 "id": s.id,
                 "name": s.name,
-                "price": s.price,
+                "price": final_price,
+                "original_price": s.price,
                 "final_price": final_price,
                 "loyalty_discount_percent": loyalty_pct,
                 "loyalty_discount_amount": disc_amt,

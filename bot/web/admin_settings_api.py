@@ -86,6 +86,16 @@ async def get_admin_settings(request: web.Request) -> web.Response:
             "default_squad_uuid": store_settings.default_squad_uuid,
             "join_gate_enabled": store_settings.join_gate_enabled,
             "join_gate_channel": store_settings.join_gate_channel,
+            "custom_plan_enabled": store_settings.custom_plan_enabled,
+            "custom_plan_price_per_gb": store_settings.custom_plan_price_per_gb,
+            "custom_plan_price_per_day": store_settings.custom_plan_price_per_day,
+            "custom_plan_base_price": store_settings.custom_plan_base_price,
+            "custom_plan_min_gb": store_settings.custom_plan_min_gb,
+            "custom_plan_max_gb": store_settings.custom_plan_max_gb,
+            "custom_plan_min_days": store_settings.custom_plan_min_days,
+            "custom_plan_max_days": store_settings.custom_plan_max_days,
+            "custom_plan_squad_uuid": store_settings.custom_plan_squad_uuid,
+            "store_logo_url": store_settings.store_logo_url,
         }
         bot = request.app.get("bot")
         settings_cfg = request.app.get("settings")
@@ -125,7 +135,7 @@ async def post_admin_settings(request: web.Request) -> web.Response:
             "stars_enabled", "trx_enabled", "xrocket_enabled",
             "card_require_phone_verification", "card_phone_iran_only", "birthday_reward_enabled",
             "card_graphical_view_enabled",
-            "join_gate_enabled", "auto_clean_reports",
+            "join_gate_enabled", "auto_clean_reports", "custom_plan_enabled",
         )
         for bk in bool_keys:
             if bk in body:
@@ -146,6 +156,9 @@ async def post_admin_settings(request: web.Request) -> web.Response:
             "birthday_reward_traffic_gb", "birthday_reward_discount_percent",
             "birthday_custom_message", "card_blubank_color", "card_template",
             "join_gate_channel",
+            "custom_plan_price_per_gb", "custom_plan_price_per_day", "custom_plan_base_price",
+            "custom_plan_min_gb", "custom_plan_max_gb", "custom_plan_min_days", "custom_plan_max_days",
+            "custom_plan_squad_uuid", "store_logo_url",
         )
         for rk in raw_keys:
             if rk in body:
@@ -193,3 +206,82 @@ async def get_admin_crypto_rates(request: web.Request) -> web.Response:
     from bot.services.crypto.nobitex import get_crypto_rates_summary
     rates = await get_crypto_rates_summary(force_refresh=force)
     return web.json_response({**rates, "rates": rates})
+
+
+async def post_admin_upload_store_logo(request: web.Request) -> web.Response:
+    """Upload and set store logo image."""
+    admin = _check_admin(request)
+    if not admin:
+        return web.json_response({"ok": False, "error": "Forbidden"}, status=403)
+
+    img_bytes = None
+    ext = "png"
+
+    if request.content_type.startswith("application/json"):
+        try:
+            body = await request.json()
+            logo_data = body.get("logo_image") or ""
+            if "base64," in logo_data:
+                header, b64_data = logo_data.split("base64,", 1)
+                if "jpeg" in header or "jpg" in header:
+                    ext = "jpg"
+                elif "webp" in header:
+                    ext = "webp"
+                import base64
+                img_bytes = base64.b64decode(b64_data)
+        except Exception as e:
+            return web.json_response({"ok": False, "error": f"Invalid image payload: {e}"}, status=400)
+    elif request.content_type.startswith("multipart/form-data"):
+        try:
+            reader = await request.multipart()
+            while True:
+                part = await reader.next()
+                if part is None:
+                    break
+                if part.name == "file":
+                    fn = (part.filename or "").lower()
+                    if fn.endswith(".jpg") or fn.endswith(".jpeg"):
+                        ext = "jpg"
+                    elif fn.endswith(".webp"):
+                        ext = "webp"
+                    img_bytes = await part.read()
+                    break
+        except Exception as e:
+            return web.json_response({"ok": False, "error": f"Upload error: {e}"}, status=400)
+
+    if not img_bytes:
+        return web.json_response({"ok": False, "error": "هیچ تصویری دریافت نشد."}, status=400)
+
+    if len(img_bytes) > 5 * 1024 * 1024:
+        return web.json_response({"ok": False, "error": "حجم تصویر نباید بیشتر از ۵ مگابایت باشد."}, status=400)
+
+    import asyncio
+    from pathlib import Path
+    dest_dir = Path("bot/web/static/img")
+    dest_dir.mkdir(parents=True, exist_ok=True)
+    dest_file = dest_dir / f"store_logo.{ext}"
+
+    def _write_file():
+        with open(dest_file, "wb") as f:
+            f.write(img_bytes)
+
+    await asyncio.to_thread(_write_file)
+
+    logo_url = f"/static/img/store_logo.{ext}"
+
+    async with db_session(request) as session:
+        app_repo = AppSettingRepository(session)
+        await app_repo.set("store_logo_url", logo_url)
+        cache = request.app.get("cache")
+        if cache:
+            await cache.delete("store_settings")
+        session.add(
+            AdminLog(
+                admin_id=admin["id"],
+                action="upload_store_logo",
+                detail=f"آپلود لوگوی جدید فروشگاه: {logo_url}",
+            )
+        )
+        await session.commit()
+
+    return web.json_response({"ok": True, "logo_url": logo_url, "message": "لوگو با موفقیت ذخیره شد."})
