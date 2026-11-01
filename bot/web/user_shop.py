@@ -25,6 +25,18 @@ from bot.web.cache import FastCache
 logger = logging.getLogger(__name__)
 
 
+async def _invalidate_user_caches(cache, telegram_id: int) -> None:
+    if not cache or not hasattr(cache, "delete"):
+        return
+    for k in (
+        f"tma:user:{telegram_id}:dashboard",
+        f"tma:user:{telegram_id}:dashboard:default",
+        f"tma:user:{telegram_id}:profile",
+        f"tma:user:{telegram_id}:topup_info",
+    ):
+        await cache.delete(k)
+
+
 async def post_user_spin(request: web.Request) -> web.Response:
     """Handle Lucky Wheel spin with anti-cheat, streak bonuses, referral tickets and prize allocation."""
     user_auth, err = require_user(request)
@@ -141,18 +153,29 @@ async def _do_user_spin(request: web.Request, telegram_id: int, cache: FastCache
                     },
                     status=400,
                 )
-        elif is_cooldown:
-            hours = rem_secs // 3600
-            mins = (rem_secs % 3600) // 60
-            return web.json_response(
-                {
-                    "ok": False,
-                    "error": f"گردونه شانس هر ۲۴ ساعت یک‌بار قابل استفاده است. زمان باقیمانده: {hours} ساعت و {mins} دقیقه.",
-                    "next_spin_seconds": rem_secs,
-                    "code": "cooldown",
-                },
-                status=400,
-            )
+        else:
+            now_utc_check = datetime.now(timezone.utc)
+            if not is_cooldown and db_user and db_user.wheel_last_spin_at:
+                db_last_spin_utc = db_user.wheel_last_spin_at
+                if db_last_spin_utc.tzinfo is None:
+                    db_last_spin_utc = db_last_spin_utc.replace(tzinfo=timezone.utc)
+                elapsed_db = (now_utc_check - db_last_spin_utc).total_seconds()
+                if elapsed_db < 86400:
+                    is_cooldown = True
+                    rem_secs = max(1, int(86400 - elapsed_db))
+
+            if is_cooldown:
+                hours = rem_secs // 3600
+                mins = (rem_secs % 3600) // 60
+                return web.json_response(
+                    {
+                        "ok": False,
+                        "error": f"گردونه شانس هر ۲۴ ساعت یک‌بار قابل استفاده است. زمان باقیمانده: {hours} ساعت و {mins} دقیقه.",
+                        "next_spin_seconds": rem_secs,
+                        "code": "cooldown",
+                    },
+                    status=400,
+                )
 
         # Calculate daily streak
         settings = request.app.get("settings")
@@ -295,9 +318,8 @@ async def _do_user_spin(request: web.Request, telegram_id: int, cache: FastCache
 
         remaining_tickets = int(getattr(db_user, "spin_tickets", 0) or 0) if db_user else 0
 
-    # Invalidate dashboard caches
-    await cache.delete(f"tma:user:{telegram_id}:dashboard")
-    await cache.delete(f"tma:user:{telegram_id}:profile")
+    # Invalidate dashboard and profile caches
+    await _invalidate_user_caches(cache, telegram_id)
 
     # Notify via Telegram bot if winning
     bot = request.app.get("bot")
@@ -360,7 +382,7 @@ async def post_user_revoke_sub(request: web.Request) -> web.Response:
 
     # Invalidate cache
     cache: FastCache = request.app["cache"]
-    await cache.delete(f"tma:user:{telegram_id}:dashboard")
+    await _invalidate_user_caches(cache, telegram_id)
 
     new_sub_url = revoked.get("subscriptionUrl") or revoked.get("subscription_url") or ""
     return web.json_response({
@@ -401,7 +423,7 @@ async def post_user_kill_device(request: web.Request) -> web.Response:
 
     # Invalidate cache
     cache: FastCache = request.app["cache"]
-    await cache.delete(f"tma:user:{telegram_id}:dashboard")
+    await _invalidate_user_caches(cache, telegram_id)
 
     return web.json_response({"ok": bool(success)})
 
@@ -631,7 +653,7 @@ async def post_user_purchase(request: web.Request) -> web.Response:
             except Exception as exc:
                 logger.warning("TMA purchase post-actions failed: %s", exc)
 
-        await cache.delete(f"tma:user:{telegram_id}:dashboard")
+        await _invalidate_user_caches(cache, telegram_id)
 
         return web.json_response({
             "ok": True,
@@ -688,7 +710,7 @@ async def post_user_create_gift(request: web.Request) -> web.Response:
         if not res.get("ok"):
             return web.json_response(res, status=400)
         if cache:
-            await cache.delete(f"tma:user:{telegram_id}:dashboard")
+            await _invalidate_user_caches(cache, telegram_id)
         return web.json_response(res)
 
 
@@ -722,7 +744,7 @@ async def post_user_claim_gift(request: web.Request) -> web.Response:
         if not res.get("ok"):
             return web.json_response(res, status=400)
         if cache:
-            await cache.delete(f"tma:user:{telegram_id}:dashboard")
+            await _invalidate_user_caches(cache, telegram_id)
         return web.json_response(res)
 
 
@@ -747,7 +769,10 @@ async def post_user_custom_plan_calculate(request: web.Request) -> web.Response:
         return err
 
     telegram_id = int(user_auth["id"])
-    data = await request.json()
+    try:
+        data = await request.json()
+    except Exception:
+        data = {}
     traffic_gb = max(1, int(data.get("traffic_gb", 10) or 10))
     duration_days = max(1, int(data.get("duration_days", 30) or 30))
     cache = request.app.get("cache")
@@ -788,7 +813,10 @@ async def post_user_custom_plan_purchase(request: web.Request) -> web.Response:
         return err
 
     telegram_id = int(user_auth["id"])
-    data = await request.json()
+    try:
+        data = await request.json()
+    except Exception:
+        data = {}
     traffic_gb = int(data.get("traffic_gb", 0) or 0)
     duration_days = int(data.get("duration_days", 0) or 0)
     account_id = data.get("account_id")
@@ -896,7 +924,7 @@ async def post_user_custom_plan_purchase(request: web.Request) -> web.Response:
 
         await session.commit()
         if cache:
-            await cache.delete(f"tma:user:{telegram_id}:dashboard")
+            await _invalidate_user_caches(cache, telegram_id)
 
         return web.json_response({
             "ok": True,
@@ -926,7 +954,7 @@ async def get_user_invoice(request: web.Request) -> web.Response:
 
     async with db_session(request) as session:
         store_settings = await get_store_settings(session)
-        store_name = getattr(store_settings, "bot_name", "سرویس ابری رمنا") or "سرویس ابری رمنا"
+        store_name = getattr(store_settings, "invoice_company_name", "") or getattr(store_settings, "bot_name", "سرویس ابری رمنا") or "سرویس ابری رمنا"
         support_contact = getattr(store_settings, "support_contact", "") or ""
         store_logo_url = getattr(store_settings, "store_logo_url", "") or ""
 
@@ -963,7 +991,7 @@ async def post_user_send_invoice_telegram(request: web.Request) -> web.Response:
 
     async with db_session(request) as session:
         store_settings = await get_store_settings(session)
-        store_name = getattr(store_settings, "bot_name", "سرویس ابری رمنا") or "سرویس ابری رمنا"
+        store_name = getattr(store_settings, "invoice_company_name", "") or getattr(store_settings, "bot_name", "سرویس ابری رمنا") or "سرویس ابری رمنا"
         support_contact = getattr(store_settings, "support_contact", "") or ""
         store_logo_url = getattr(store_settings, "store_logo_url", "") or ""
 

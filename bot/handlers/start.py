@@ -91,12 +91,20 @@ async def cmd_start(
                 session_factory=session_factory,
             )
             if res.get("ok"):
+                sub_url = res.get("subscription_url")
+                kb = None
+                if sub_url:
+                    from aiogram.utils.keyboard import InlineKeyboardBuilder
+                    builder = InlineKeyboardBuilder()
+                    builder.button(text="🚀 اتصال به اشتراک / دریافت کانفیگ", url=sub_url)
+                    kb = builder.as_markup()
                 await message.answer(
                     f"🎁 <b>هدیه با موفقیت فعال شد!</b>\n\n"
                     f"👤 از طرف: <b>{res.get('sender_name')}</b>\n"
                     f"✨ {res.get('message')}\n\n"
                     "از همراهی شما بسیار خوشحالیم! ❤️",
-                    parse_mode="HTML"
+                    reply_markup=kb,
+                    parse_mode="HTML",
                 )
             else:
                 await message.answer(

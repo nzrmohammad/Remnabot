@@ -272,12 +272,17 @@ async def claim_gift(
             logger.debug("Failed notifying gift sender %s: %s", sender_id, notify_err)
 
     gift_title = f"{gift.amount:,} تومان اعتبار کیف‌پول" if gift.gift_type == "BALANCE" else f"اشتراک «{gift.service_name}»"
+    sub_url = None
+    if gift.gift_type == "SERVICE" and "purchase_res" in locals() and purchase_res and getattr(purchase_res, "ok", False):
+        sub_url = getattr(purchase_res, "subscription_url", None)
+
     return {
         "ok": True,
         "gift_type": gift.gift_type,
         "amount": gift.amount,
         "service_name": gift.service_name,
         "sender_name": gift.sender_name,
+        "subscription_url": sub_url,
         "message": f"تبریک! {gift_title} با موفقیت به حساب شما اضافه شد.",
     }
 

@@ -1052,7 +1052,7 @@ openUserChat(telegram_id, name, tag, topup_id) {
       if (starsSwitch) starsSwitch.checked = !!s.stars_enabled;
 
       const starsRate = $('settingStarsRate');
-      if (starsRate) starsRate.value = s.stars_rate_toman ?? 1600;
+      if (starsRate) starsRate.value = s.stars_rate_toman ?? 1500;
 
       // Auto Clean Previous Reports
       const autoCleanSwitch = $('settingAutoCleanReportsSwitch');
@@ -1191,6 +1191,10 @@ openUserChat(telegram_id, name, tag, topup_id) {
       if (logoInp) {
         logoInp.value = s.store_logo_url || '';
         window.adminActions.updateLogoPreview(s.store_logo_url || '');
+      }
+      const invCompInp = $('settingInvoiceCompanyName');
+      if (invCompInp) {
+        invCompInp.value = s.invoice_company_name || '';
       }
 
       // Crypto & Rates
@@ -1448,9 +1452,10 @@ openUserChat(telegram_id, name, tag, topup_id) {
         },
       }),
       store_logo_url: $('settingStoreLogoUrl')?.value?.trim() || '',
+      invoice_company_name: $('settingInvoiceCompanyName')?.value?.trim() || '',
       crypto_enabled: $('settingCryptoSwitch')?.checked ?? false,
       stars_enabled: $('settingStarsSwitch')?.checked ?? false,
-      stars_rate_toman: parseInt($('settingStarsRate')?.value || '1600', 10),
+      stars_rate_toman: parseInt($('settingStarsRate')?.value || '1500', 10),
       trial_enabled: $('settingTrialSwitch')?.checked ?? true,
       referral_enabled: $('settingRefSwitch')?.checked ?? true,
       support_direct_enabled: $('settingSupportDirectSwitch')?.checked ?? true,

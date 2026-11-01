@@ -2890,4 +2890,110 @@ async def test_bulk_delete_security_protections():
         assert "confirm: 'DELETE'" in json.loads(resp3.text)["error"]
 
 
+@pytest.mark.anyio
+async def test_card_auto_amount_mismatch_returns_400():
+    import json
+    from datetime import datetime, timedelta, timezone
+    from bot.web.user_topup import post_user_topup_card_auto_create
+
+    req = MagicMock()
+    req.json = AsyncMock(return_value={"amount": 100000})
+    user_auth = {"id": 999999, "is_preview": False}
+
+    active_inv = MagicMock()
+    active_inv.status = "pending"
+    active_inv.base_amount = 50000
+    active_inv.expires_at = datetime.now(timezone.utc) + timedelta(minutes=10)
+
+    mock_repo = MagicMock()
+    mock_repo.get_active_invoice_by_user = AsyncMock(return_value=active_inv)
+
+    mock_session = AsyncMock()
+    mock_session_factory = MagicMock()
+    mock_session_factory.return_value.__aenter__.return_value = mock_session
+
+    store = MagicMock()
+    store.topup_min_amount = 10000
+    store.topup_max_amount = 50000000
+    store.card_auto_enabled = True
+    store.card_number = "6037991122334455"
+    store.card_require_phone_verification = False
+
+    req.app = {
+        "session_factory": mock_session_factory,
+        "store": store,
+    }
+
+    with patch("bot.web.user_topup.require_user", return_value=(user_auth, None)), \
+         patch("bot.web.user_topup.get_store_settings", AsyncMock(return_value=store)), \
+         patch("bot.db.repositories.card_auto_repo.CardAutoRepository", return_value=mock_repo), \
+         patch("bot.db.repositories.user_repo.UserRepository.get_by_telegram_id", AsyncMock(return_value=MagicMock(phone_number="09120000000"))):
+        resp = await post_user_topup_card_auto_create(req)
+        assert resp.status == 400
+        data = json.loads(resp.text)
+        assert data["ok"] is False
+        assert "50,000" in data["message"]
+
+
+@pytest.mark.anyio
+async def test_user_topup_info_returns_limits():
+    import json
+    from bot.web.user_topup import get_user_topup_info
+
+    req = MagicMock()
+    user_auth = {"id": 888888, "is_preview": False}
+
+    store = MagicMock()
+    store.topup_min_amount = 25000
+    store.topup_max_amount = 40000000
+    store.card_enabled = True
+    store.card_auto_enabled = True
+    store.card_number = "6037991122334455"
+    store.card_holder = "تست"
+    store.card_template = "blubank"
+    store.card_graphical_view_enabled = True
+    store.card_blubank_color = "blue"
+    store.card_require_phone_verification = False
+    store.crypto_enabled = False
+    store.trx_enabled = False
+    store.xrocket_enabled = False
+    store.stars_enabled = False
+
+    mock_session = AsyncMock()
+    mock_session_factory = MagicMock()
+    mock_session_factory.return_value.__aenter__.return_value = mock_session
+
+    req.app = {
+        "session_factory": mock_session_factory,
+        "store": store,
+        "cache": None,
+    }
+
+    with patch("bot.web.user_topup.require_user", return_value=(user_auth, None)), \
+         patch("bot.services.app_settings.get_store_settings", AsyncMock(return_value=store)), \
+         patch("bot.web.user_topup.get_store_settings", AsyncMock(return_value=store)), \
+         patch("bot.db.repositories.user_repo.UserRepository.get_by_telegram_id", AsyncMock(return_value=MagicMock(phone_number="09120000000"))):
+        resp = await get_user_topup_info(req)
+        assert resp.status == 200
+        data = json.loads(resp.text)
+        assert data["topup_min_amount"] == 25000
+        assert data["topup_max_amount"] == 40000000
+        assert data["min_amount"] == 25000
+        assert data["max_amount"] == 40000000
+
+
+@pytest.mark.anyio
+async def test_user_shop_invalidate_caches_helper():
+    from bot.web.user_shop import _invalidate_user_caches
+
+    mock_cache = AsyncMock()
+    await _invalidate_user_caches(mock_cache, 777777)
+    deleted_keys = [call.args[0] for call in mock_cache.delete.call_args_list]
+    assert "tma:user:777777:dashboard" in deleted_keys
+    assert "tma:user:777777:dashboard:default" in deleted_keys
+    assert "tma:user:777777:profile" in deleted_keys
+    assert "tma:user:777777:topup_info" in deleted_keys
+
+
+
 

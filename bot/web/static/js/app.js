@@ -2921,7 +2921,7 @@ function hydrateUserInterface(data) {
         profPhone.innerText = 'وارد نشده';
       }
     }
-    if (profJoin) profJoin.innerText = toEnglishDigits(user.created_at_jalali || '1403/07/01');
+    if (profJoin) profJoin.innerText = user.created_at_jalali ? toEnglishDigits(user.created_at_jalali) : '—';
     if (profBirth) profBirth.innerText = user.birth_date ? toEnglishDigits(user.birth_date) : 'ثبت‌نشده';
 
     const bdayBtn = $('openBirthdayModalBtn');
@@ -2998,15 +2998,7 @@ function hydrateUserInterface(data) {
     if (headerBadge && loyalty) {
       headerBadge.innerText = loyalty.icon || '🥉';
       headerBadge.classList.remove('hidden');
-      if (loyalty.tier === 'DIAMOND') {
-        headerBadge.className = 'w-7 h-7 flex items-center justify-center rounded-xl text-xs font-bold border border-cyan-400/50 bg-cyan-500/15 text-cyan-600 dark:text-cyan-300 transition cursor-pointer active:scale-95 shrink-0 shadow-sm';
-      } else if (loyalty.tier === 'GOLD') {
-        headerBadge.className = 'w-7 h-7 flex items-center justify-center rounded-xl text-xs font-bold border border-amber-400/50 bg-amber-500/15 text-amber-600 dark:text-amber-300 transition cursor-pointer active:scale-95 shrink-0 shadow-sm';
-      } else if (loyalty.tier === 'SILVER') {
-        headerBadge.className = 'w-7 h-7 flex items-center justify-center rounded-xl text-xs font-bold border border-slate-400/50 bg-slate-500/15 text-slate-700 dark:text-slate-300 transition cursor-pointer active:scale-95 shrink-0 shadow-sm';
-      } else {
-        headerBadge.className = 'w-7 h-7 flex items-center justify-center rounded-xl text-xs font-bold border border-amber-700/40 bg-amber-700/10 text-amber-700 dark:text-amber-400 transition cursor-pointer active:scale-95 shrink-0 shadow-sm';
-      }
+      headerBadge.className = 'w-7 h-7 flex items-center justify-center text-lg bg-transparent border-0 transition cursor-pointer active:scale-95 shrink-0 select-none';
     }
 
     const loyaltyCard = $('profileLoyaltyCard');
@@ -3015,7 +3007,7 @@ function hydrateUserInterface(data) {
       if ($('loyaltyTierName')) $('loyaltyTierName').innerText = loyalty.name || 'برنزی';
       const discBadge = $('loyaltyDiscountBadge');
       if (discBadge) {
-        discBadge.innerText = loyalty.discount_percent > 0 ? `${loyalty.discount_percent}٪ تخفیف دائمی` : 'بدون تخفیف';
+        discBadge.innerText = loyalty.discount_percent > 0 ? `${loyalty.discount_percent}% تخفیف دائمی` : 'بدون تخفیف';
       }
       const nextText = $('loyaltyNextTierText');
       const progPct = $('loyaltyProgressPct');
@@ -3041,7 +3033,7 @@ function hydrateUserInterface(data) {
 
       if (benefitDesc) {
         if (loyalty.discount_percent > 0) {
-          benefitDesc.innerText = `شما دارای ${loyalty.discount_percent}٪ تخفیف وفاداری دائم روی تمامی بسته‌ها هستید. با افزایش خریدها، به سطوح بالاتر با تخفیف‌های بیشتر ارتقا می‌یابید!`;
+          benefitDesc.innerHTML = `شما دارای <span class="font-mono font-bold">${loyalty.discount_percent}%</span> تخفیف وفاداری دائم روی تمامی بسته‌ها هستید. با افزایش خریدها، به سطوح بالاتر با تخفیف‌های بیشتر ارتقا&nbsp;می‌یابید!`;
         } else {
           benefitDesc.innerText = 'با خرید بیشتر از فروشگاه، سطح خود را ارتقا دهید و از تخفیف دائمی روی تمامی بسته‌ها بهره‌مند شوید.';
         }
@@ -3762,9 +3754,7 @@ function navigateUserLbMonth(dir) {
   // dir = -1 (prev/older month) -> index increases
   // dir = 1 (next/newer month) -> index decreases
   currentUserLbMonthIndex = Math.max(0, Math.min(avail.length - 1, currentUserLbMonthIndex - dir));
-  if (cachedUserLeaderboardData) {
-    renderUserLeaderboard(cachedUserLeaderboardData, 'monthly');
-  }
+  switchUserLbWeek('all');
 }
 window.navigateUserLbMonth = navigateUserLbMonth;
 
@@ -3800,12 +3790,14 @@ function renderUserLeaderboard(leaderboardData, period = currentUserLbPeriod) {
   const avail = cachedUserLeaderboardData?.available_months || [];
   let periodData = null;
   let activeMonthName = '';
+  let hasWeeks = false;
 
   if (period === 'monthly') {
     activeMonthName = avail[currentUserLbMonthIndex] || avail[0] || '';
     const fullMonthData = (activeMonthName && cachedUserLeaderboardData?.calendar_months?.[activeMonthName])
       || cachedUserLeaderboardData?.monthly
       || {};
+    hasWeeks = Boolean(fullMonthData.weeks && Object.keys(fullMonthData.weeks).length > 0);
     if (currentUserLbWeek !== 'all' && fullMonthData.weeks?.[currentUserLbWeek]) {
       periodData = fullMonthData.weeks[currentUserLbWeek];
     } else {
@@ -3835,7 +3827,13 @@ function renderUserLeaderboard(leaderboardData, period = currentUserLbPeriod) {
     if (weekBar) weekBar.classList.add('hidden');
   } else {
     if (monthBar) monthBar.classList.remove('hidden');
-    if (weekBar) weekBar.classList.remove('hidden');
+    if (weekBar) {
+      if (hasWeeks) {
+        weekBar.classList.remove('hidden');
+      } else {
+        weekBar.classList.add('hidden');
+      }
+    }
     if (curLabel) curLabel.innerText = activeMonthName ? `ماه ${toPersianMonthName(activeMonthName)}` : '--';
 
     const prevMName = avail[currentUserLbMonthIndex + 1] || '';
@@ -3910,6 +3908,10 @@ function renderUserLeaderboard(leaderboardData, period = currentUserLbPeriod) {
   if (!canvas) return;
 
   if (top20.length === 0 || top20.every(u => !u.used_gb || u.used_gb <= 0)) {
+    if (userLeaderboardChartInstance) {
+      userLeaderboardChartInstance.destroy();
+      userLeaderboardChartInstance = null;
+    }
     canvas.classList.add('hidden');
     if (emptyState) emptyState.classList.remove('hidden');
     return;
@@ -4411,7 +4413,7 @@ function selectGiftService(serviceId) {
   const specsEl = $('giftSelectedServiceSpecs');
   const hiddenInp = $('giftServiceSelect');
 
-  if (titleEl) titleEl.innerText = formatPlanTitle(chosen.name);
+  if (titleEl) titleEl.innerHTML = formatPlanTitle(chosen.name);
   if (specsEl) {
     const durStr = chosen.duration_days > 0 ? `${chosen.duration_days} روز` : 'نامحدود';
     const trafStr = chosen.traffic_gb > 0 ? fmtTraffic(chosen.traffic_gb, { html: false }) : 'نامحدود';
@@ -4494,8 +4496,8 @@ async function submitCreateGift() {
 
     if (currentGiftType === 'BALANCE') {
       const amt = Number($('giftBalanceAmount')?.value || 0);
-      if (!amt || amt < 5000) {
-        showToast('⚠️ حداقل مبلغ هدیه اعتبار ۵,۰۰۰ تومان می‌باشد.');
+      if (!amt || amt < 10000) {
+        showToast('⚠️ حداقل مبلغ هدیه اعتبار ۱۰,۰۰۰ تومان می‌باشد.');
         if (btn) btn.disabled = false;
         return;
       }
@@ -4532,7 +4534,7 @@ async function submitCreateGift() {
     hapticFeedback('success');
     showToast('🎉 کارت هدیه با موفقیت صادر شد!');
 
-    const d = res.data || {};
+    const d = res.data || res || {};
     const successBox = $('giftCreatedSuccessBox');
     if (successBox) {
       successBox.classList.remove('hidden');
@@ -4650,7 +4652,7 @@ async function loadGiftsHistory() {
           </div>
           <div class="flex items-center justify-between text-[10px] border-t border-card-border pt-1">
             <span class="font-mono t-muted text-[10px] select-all">${g.code}</span>
-            ${!isClaimed ? `<button type="button" onclick="copyToClipboard('${shareUrl}'); showToast('📋 لینک کپی شد!');" class="text-pink-500 hover:text-pink-400 font-bold">کپی لینک</button>` : ''}
+            ${!isClaimed ? `<button type="button" onclick="copyToClipboard('${shareUrl}'); showToast('📋 لینک کپی شد!');" class="p-1 rounded-md text-pink-500 hover:text-pink-400 hover:bg-pink-500/10 active:scale-95 transition" title="کپی لینک">📋</button>` : ''}
           </div>
         </div>
       `;
@@ -4774,6 +4776,11 @@ async function sendCurrentInvoiceTelegram() {
 function printCurrentInvoice() {
   if (!currentInvoiceData) return;
   hapticFeedback('selection');
+
+  if (window.Telegram?.WebApp?.initData) {
+    sendCurrentInvoiceTelegram();
+    return;
+  }
 
   try {
     const canvas = document.createElement('canvas');

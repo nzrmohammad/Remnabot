@@ -532,3 +532,11 @@ html.theme-light .system-status-card .status-pill-invite {
   position: fixed;
   z-index: 10000;
 }
+
+/* Print Media Styles for Official Digital Invoice */
+@media print {
+  body * { visibility: hidden; }
+  #invoiceModal, #invoiceModal * { visibility: visible; }
+  #invoiceModal { position: absolute; left: 0; top: 0; width: 100%; margin: 0; padding: 0; background: transparent; }
+  #invoiceModal .modal-close-btn, #invoiceModal .btn { display: none; }
+}

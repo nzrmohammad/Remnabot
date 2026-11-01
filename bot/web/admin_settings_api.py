@@ -96,6 +96,7 @@ async def get_admin_settings(request: web.Request) -> web.Response:
             "custom_plan_max_days": store_settings.custom_plan_max_days,
             "store_logo_url": store_settings.store_logo_url,
             "loyalty_tiers_json": store_settings.loyalty_tiers_json,
+            "invoice_company_name": store_settings.invoice_company_name,
         }
         bot = request.app.get("bot")
         settings_cfg = request.app.get("settings")
@@ -158,7 +159,7 @@ async def post_admin_settings(request: web.Request) -> web.Response:
             "join_gate_channel",
             "custom_plan_price_per_gb", "custom_plan_price_per_day", "custom_plan_base_price",
             "custom_plan_min_gb", "custom_plan_max_gb", "custom_plan_min_days", "custom_plan_max_days",
-            "store_logo_url", "loyalty_tiers_json",
+            "store_logo_url", "loyalty_tiers_json", "invoice_company_name",
         )
         for rk in raw_keys:
             if rk in body:

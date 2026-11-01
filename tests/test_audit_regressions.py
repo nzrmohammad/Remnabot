@@ -963,3 +963,132 @@ async def test_stars_payment_from_user_mismatch_rejected(session_factory):
         stmt = select(Topup).where(Topup.receipt_hash == "stars:test_charge_stars_1")
         topup = (await session.execute(stmt)).scalar_one_or_none()
         assert topup is None
+
+
+@pytest.mark.anyio
+async def test_sms_webhook_urlencoded_token_and_message_parsed(session_factory):
+    """Verify post_webhook_sms parses application/x-www-form-urlencoded payloads."""
+    from bot.db.repositories.app_setting_repo import AppSettingRepository
+    from bot.web.user_topup import post_webhook_sms
+
+    async with session_factory() as s:
+        repo = AppSettingRepository(s)
+        await repo.set("sms_webhook_secret", "secret_url_encoded_123")
+        await s.commit()
+
+    req = MagicMock()
+    req.headers = {}
+    req.query = {}
+    req.read = AsyncMock(return_value=b"from=09123456789&message=variz+100000+rial&token=secret_url_encoded_123")
+    req.text = AsyncMock(return_value="from=09123456789&message=variz+100000+rial&token=secret_url_encoded_123")
+    req.app = {"session_factory": session_factory, "bot": None, "settings": None, "cache": None}
+
+    resp = await post_webhook_sms(req)
+    assert resp.status == 200
+
+
+@pytest.mark.anyio
+async def test_spin_wheel_db_cooldown_without_redis_cache(session_factory):
+    """Verify spin wheel rejects spins if user spun <24h ago in DB, even on Redis cache miss."""
+    from bot.web.user_shop import _do_user_spin
+    import json
+
+    tid = 987654
+    recent_spin = datetime.now(timezone.utc) - timedelta(hours=2)
+
+    async with session_factory() as s:
+        s.add(User(telegram_id=tid, wheel_last_spin_at=recent_spin, wheel_streak=2))
+        await s.commit()
+
+    cache = MagicMock()
+    cache.get = AsyncMock(return_value=None)  # Redis cache miss / restart
+
+    req = MagicMock()
+    req.headers = {}
+    req.query = {}
+    req.json = AsyncMock(return_value={})
+    req.app = {
+        "session_factory": session_factory,
+        "cache": cache,
+        "bot": None,
+        "remnawave": MagicMock(get_users_by_telegram_id=AsyncMock(return_value=[{"status": "ACTIVE"}])),
+        "settings": MagicMock(TIMEZONE="Asia/Tehran"),
+    }
+
+    resp = await _do_user_spin(req, tid, cache)
+    assert resp.status == 400
+    body = json.loads(resp.text)
+    assert body.get("code") == "cooldown"
+    assert "ساعت" in body.get("error", "")
+
+
+@pytest.mark.anyio
+async def test_birthday_sweep_loop_db_dedup_without_redis(session_factory):
+    """Verify birthday_sweep_loop does not grant rewards twice if Coupon already exists in DB."""
+    import asyncio
+    from bot.services.birthday import birthday_sweep_loop
+    from zoneinfo import ZoneInfo
+    import jdatetime
+
+    tid = 112233
+    now_tehran = datetime.now(ZoneInfo("Asia/Tehran"))
+    today_j = jdatetime.date.fromgregorian(date=now_tehran.date())
+    m_str = f"{today_j.month:02d}"
+    d_str = f"{today_j.day:02d}"
+
+    async with session_factory() as s:
+        s.add(User(
+            telegram_id=tid,
+            birth_date=f"1380/{m_str}/{d_str}",
+        ))
+        # Existing coupon created 10 days ago (within 300 days)
+        s.add(Coupon(
+            code=f"BDAY_{tid}_TEST",
+            discount_percent=20,
+            discount_amount=0,
+            max_uses=1,
+            created_at=datetime.now(timezone.utc) - timedelta(days=10),
+            expires_at=datetime.now(timezone.utc) + timedelta(days=5),
+            is_active=True,
+        ))
+        await s.commit()
+
+    bot = MagicMock()
+    bot.send_message = AsyncMock()
+    remnawave = MagicMock()
+    remnawave.get_users_by_telegram_id = AsyncMock(return_value=[])
+    cache = MagicMock()
+    cache.get = AsyncMock(return_value=None)  # Redis cache cleared
+    cache.set = AsyncMock()
+
+    # Run one pass of birthday sweep
+    with patch("asyncio.sleep", side_effect=[None, asyncio.CancelledError]):
+        try:
+            await birthday_sweep_loop(bot, session_factory, remnawave, cache=cache)
+        except asyncio.CancelledError:
+            pass
+
+    # Bot should NOT send any message since user already received birthday gift in DB
+    assert bot.send_message.call_count == 0
+
+
+@pytest.mark.anyio
+async def test_run_expiry_check_skips_when_panel_unreachable(session_factory):
+    """Verify run_expiry_check skips execution when get_all_panel_users returns None."""
+    from bot.services.expiry import run_expiry_check
+
+    tid = 445566
+    async with session_factory() as s:
+        s.add(User(telegram_id=tid))
+        await s.commit()
+
+    bot = MagicMock()
+    remnawave = MagicMock()
+    remnawave.get_all_panel_users = AsyncMock(return_value=None)
+    remnawave.get_users_by_telegram_id = AsyncMock()
+
+    await run_expiry_check(bot, session_factory, remnawave)
+
+    # Must NOT hammer panel with individual requests
+    assert remnawave.get_users_by_telegram_id.call_count == 0
+

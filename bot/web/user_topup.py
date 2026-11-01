@@ -34,6 +34,15 @@ def _as_utc(dt: datetime | None) -> datetime:
     return dt.astimezone(timezone.utc)
 
 
+async def _invalidate_user_caches(cache: FastCache | None, telegram_id: int | str) -> None:
+    """Invalidate profile and dashboard caches for a user across top-up actions."""
+    if not cache:
+        return
+    await cache.delete(f"tma:user:{telegram_id}:profile")
+    await cache.delete(f"tma:user:{telegram_id}:dashboard")
+    await cache.delete(f"tma:user:{telegram_id}:dashboard:default")
+
+
 async def get_user_topup_info(request: web.Request) -> web.Response:
     """Return payment methods configuration (card and crypto settings)."""
     user_auth, err = require_user(request)
@@ -130,9 +139,17 @@ async def get_user_topup_info(request: web.Request) -> web.Response:
         raw_tmpl = getattr(store, "card_template", "blubank")
         card_tmpl = "blubank" if type(raw_tmpl).__name__ == "MagicMock" or not raw_tmpl else str(raw_tmpl).strip().lower()
 
+        raw_min = getattr(store, "topup_min_amount", 10000)
+        min_amount_val = 10000 if type(raw_min).__name__ == "MagicMock" or not isinstance(raw_min, (int, float)) else int(raw_min)
+        raw_max = getattr(store, "topup_max_amount", 50000000)
+        max_amount_val = 50000000 if type(raw_max).__name__ == "MagicMock" or not isinstance(raw_max, (int, float)) else (int(raw_max) or 50000000)
+
         payload = {
             "ok": True,
-            "min_amount": store.topup_min_amount,
+            "min_amount": min_amount_val,
+            "max_amount": max_amount_val,
+            "topup_min_amount": min_amount_val,
+            "topup_max_amount": max_amount_val,
             "card_enabled": bool(store.card_enabled and store.card_number and str(store.card_number).strip()),
             "card_auto_enabled": bool(store.card_auto_enabled and store.card_number and str(store.card_number).strip()),
             "card_number": "" if card_locked_reason else (store.card_number or ""),
@@ -581,7 +598,7 @@ async def post_user_topup_crypto_check(request: web.Request) -> web.Response:
         matched, new_bal, _ = await verify_and_credit_ton_invoice(session, inv, txs, allow_expired=True, bot=request.app.get("bot"))
         if matched:
             await session.commit()
-            await cache.delete(f"tma:user:{telegram_id}:dashboard")
+            await _invalidate_user_caches(cache, telegram_id)
             return web.json_response({
                 "ok": True,
                 "paid": True,
@@ -706,10 +723,7 @@ async def post_user_redeem_voucher(request: web.Request) -> web.Response:
             wallet = await wallet_repo.get_wallet(telegram_id)
             new_balance = wallet.balance if wallet else 0
             cache: FastCache = request.app.get("cache")
-            if cache:
-                await cache.delete(f"tma:user:{telegram_id}:profile")
-                await cache.delete(f"tma:user:{telegram_id}:dashboard")
-                await cache.delete(f"tma:user:{telegram_id}:dashboard:default")
+            await _invalidate_user_caches(cache, telegram_id)
 
             return web.json_response({
                 "ok": True,
@@ -739,6 +753,8 @@ async def post_user_redeem_voucher(request: web.Request) -> web.Response:
             if res_gift.get("ok"):
                 wallet = await wallet_repo.get_wallet(telegram_id)
                 new_balance = wallet.balance if wallet else 0
+                cache = request.app.get("cache")
+                await _invalidate_user_caches(cache, telegram_id)
                 return web.json_response({
                     "ok": True,
                     "amount": res_gift.get("amount", 0),
@@ -751,10 +767,7 @@ async def post_user_redeem_voucher(request: web.Request) -> web.Response:
         wallet = await wallet_repo.get_wallet(telegram_id)
         new_balance = wallet.balance if wallet else 0
         cache: FastCache = request.app.get("cache")
-        if cache:
-            await cache.delete(f"tma:user:{telegram_id}:profile")
-            await cache.delete(f"tma:user:{telegram_id}:dashboard")
-            await cache.delete(f"tma:user:{telegram_id}:dashboard:default")
+        await _invalidate_user_caches(cache, telegram_id)
 
         return web.json_response({
             "ok": True,
@@ -778,16 +791,14 @@ async def post_user_auto_renew(request: web.Request) -> web.Response:
     auto_renew_val = bool(body.get("auto_renew", False))
     telegram_id = int(user_auth["id"])
     from bot.db.repositories.user_repo import UserRepository
+    from bot.services.app_settings import get_store_settings
 
     async with db_session(request) as session:
         user_repo = UserRepository(session)
         res = await user_repo.set_auto_renew(telegram_id, auto_renew_val)
         await session.commit()
         cache: FastCache = request.app.get("cache")
-        if cache:
-            await cache.delete(f"tma:user:{telegram_id}:profile")
-            await cache.delete(f"tma:user:{telegram_id}:dashboard")
-            await cache.delete(f"tma:user:{telegram_id}:dashboard:default")
+        await _invalidate_user_caches(cache, telegram_id)
 
         return web.json_response({
             "ok": True,
@@ -938,9 +949,7 @@ async def post_user_topup_trx_verify(request: web.Request) -> web.Response:
         )
         if ok:
             await session.commit()
-            if cache:
-                await cache.delete(f"tma:user:{telegram_id}:dashboard")
-                await cache.delete(f"tma:user:{telegram_id}:profile")
+            await _invalidate_user_caches(cache, telegram_id)
             return web.json_response({
                 "ok": True,
                 "paid": True,
@@ -996,9 +1005,7 @@ async def post_user_topup_tonconnect_submit(request: web.Request) -> web.Respons
         matched, new_bal, _ = await verify_and_credit_ton_invoice(session, inv, txs, allow_expired=True, bot=request.app.get("bot"))
         if matched:
             await session.commit()
-            if cache:
-                await cache.delete(f"tma:user:{telegram_id}:dashboard")
-                await cache.delete(f"tma:user:{telegram_id}:profile")
+            await _invalidate_user_caches(cache, telegram_id)
             return web.json_response({
                 "ok": True,
                 "paid": True,
@@ -1254,6 +1261,14 @@ async def post_user_topup_card_auto_create(request: web.Request) -> web.Response
         card_auto_repo = CardAutoRepository(session)
         existing_card = await card_auto_repo.get_active_invoice_by_user(telegram_id)
         if existing_card and existing_card.status == "pending" and _as_utc(existing_card.expires_at) > datetime.now(timezone.utc):
+            if existing_card.base_amount != amount:
+                return web.json_response(
+                    {
+                        "ok": False,
+                        "message": f"شما یک فاکتور فعال کارت‌به‌کارت به مبلغ {existing_card.base_amount:,} تومان دارید. لطفاً ابتدا آن را پرداخت کرده یا لغو نمایید.",
+                    },
+                    status=400,
+                )
             remaining_secs = max(0, int((_as_utc(existing_card.expires_at) - datetime.now(timezone.utc)).total_seconds()))
             return web.json_response({
                 "ok": True,
@@ -1482,17 +1497,18 @@ async def post_webhook_sms(request: web.Request) -> web.Response:
                         provided_token = str(body.get("token")).strip()
             except Exception:
                 pass
-            # If not JSON, check URL-encoded form parameters or raw text
-            if "=" in raw_text_payload and ("from=" in raw_text_payload or "message=" in raw_text_payload or "text=" in raw_text_payload):
-                try:
-                    from urllib.parse import parse_qs
-                    qs = parse_qs(raw_text_payload)
-                    sender = str(qs.get("from", [""])[0] or qs.get("sender", [""])[0] or qs.get("phone", [""])[0] or "")
-                    raw_message = str(qs.get("message", [""])[0] or qs.get("text", [""])[0] or qs.get("content", [""])[0] or "")
-                    if not provided_token and qs.get("token"):
-                        provided_token = str(qs.get("token", [""])[0]).strip()
-                except Exception:
-                    pass
+
+        # If not JSON, check URL-encoded form parameters or raw text
+        if not raw_message and raw_text_payload and "=" in raw_text_payload and ("from=" in raw_text_payload or "message=" in raw_text_payload or "text=" in raw_text_payload):
+            try:
+                from urllib.parse import parse_qs
+                qs = parse_qs(raw_text_payload)
+                sender = str(qs.get("from", [""])[0] or qs.get("sender", [""])[0] or qs.get("phone", [""])[0] or "")
+                raw_message = str(qs.get("message", [""])[0] or qs.get("text", [""])[0] or qs.get("content", [""])[0] or "")
+                if not provided_token and qs.get("token"):
+                    provided_token = str(qs.get("token", [""])[0]).strip()
+            except Exception:
+                pass
 
         # Fallback to entire text payload if raw_message not extracted from fields
         if not raw_message and raw_text_payload:

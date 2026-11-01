@@ -57,6 +57,20 @@ async def birthday_sweep_loop(
                         if already_given:
                             continue
 
+                    # Persistent DB check: ensure birthday gift is awarded at most once per 300 days
+                    existing_bday = (
+                        await session.execute(
+                            select(Coupon.id).where(
+                                Coupon.code.like(f"BDAY_{user.telegram_id}_%"),
+                                Coupon.created_at >= datetime.now(timezone.utc) - timedelta(days=300),
+                            )
+                        )
+                    ).first()
+                    if existing_bday:
+                        if cache:
+                            await cache.set(dedup_key, "1", ttl_seconds=86400 * 400)
+                        continue
+
                     panel_users = []
                     try:
                         panel_users = await remnawave.get_users_by_telegram_id(user.telegram_id) or []

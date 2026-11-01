@@ -75,6 +75,7 @@ class StoreSettings:
     custom_plan_max_days: int = 180
     loyalty_tiers_json: str = ""
     store_logo_url: str = ""
+    invoice_company_name: str = ""
 
 
 
@@ -168,6 +169,7 @@ async def get_store_settings(session: AsyncSession) -> StoreSettings:
         custom_plan_max_days=_int(values.get("custom_plan_max_days"), 180),
         loyalty_tiers_json=str(values.get("loyalty_tiers_json") or "").strip(),
         store_logo_url=str(values.get("store_logo_url") or "").strip(),
+        invoice_company_name=str(values.get("invoice_company_name") or "").strip(),
     )
 
 

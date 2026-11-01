@@ -167,6 +167,31 @@ function renderWalletTransactions(transactions) {
   }
 }
 
+function getTopupLimits() {
+  const minAmt = Number(window.storeSettings?.topup_min_amount || window.storeSettings?.min_amount || 10000);
+  const maxAmt = Number(window.storeSettings?.topup_max_amount || window.storeSettings?.max_amount || 50000000);
+  return { minAmt, maxAmt };
+}
+window.getTopupLimits = getTopupLimits;
+
+function validateTopupAmount(amt) {
+  const { minAmt, maxAmt } = getTopupLimits();
+  if (!amt || isNaN(amt) || amt < minAmt) {
+    if (window.showToast) {
+      window.showToast(`حداقل مبلغ شارژ ${minAmt.toLocaleString('en-US')} تومان است.`, 'warning');
+    }
+    return false;
+  }
+  if (maxAmt > 0 && amt > maxAmt) {
+    if (window.showToast) {
+      window.showToast(`حداکثر مبلغ شارژ ${maxAmt.toLocaleString('en-US')} تومان است.`, 'warning');
+    }
+    return false;
+  }
+  return true;
+}
+window.validateTopupAmount = validateTopupAmount;
+
 function updateTopupDisplays(amt) {
   const cardAmountDisplay = document.getElementById('topupCardAmountDisplay');
   if (cardAmountDisplay) {
@@ -182,7 +207,7 @@ function updateTopupDisplays(amt) {
     const trxDisplay = document.getElementById('trxAmountDisplay');
     if (trxDisplay) trxDisplay.innerText = `${trxAmt} TRX`;
   }
-  const starsRate = window.storeSettings?.stars_rate_toman || 1600;
+  const starsRate = window.storeSettings?.stars_rate_toman || 1500;
   const starsCount = Math.max(1, Math.ceil((amt || 0) / starsRate));
   const starsReqEl = document.getElementById('starsRequiredCount');
   if (starsReqEl) starsReqEl.innerText = `${starsCount} ⭐️`;
@@ -539,10 +564,7 @@ function resetCardAutoUI() {
 window.createCardAutoInvoice = async function () {
   const inputEl = document.getElementById('topupAmountInput');
   const amount = parseInt(inputEl?.value || '0', 10);
-  if (!amount || amount < (window.storeSettings?.min_amount || 10000)) {
-    if (window.showToast) window.showToast(`حداقل مبلغ شارژ ${Number(window.storeSettings?.min_amount || 10000).toLocaleString('en-US')} تومان است.`, 'warning');
-    return;
-  }
+  if (!validateTopupAmount(amount)) return;
   const btn = document.getElementById('createCardAutoInvoiceBtn');
   if (btn) {
     btn.disabled = true;
@@ -993,9 +1015,13 @@ function restoreActiveTrxInvoice() {
 }
 
 async function openTopupModal(defaultAmt, forceCrypto = false) {
-  const amt = defaultAmt && defaultAmt >= 50000 ? defaultAmt : 50000;
+  const { minAmt } = getTopupLimits();
+  const amt = defaultAmt ? Math.max(Number(defaultAmt), minAmt) : Math.max(50000, minAmt);
   const inputEl = document.getElementById('topupAmountInput');
-  if (inputEl) inputEl.value = amt;
+  if (inputEl) {
+    inputEl.value = amt;
+    inputEl.placeholder = `حداقل ${minAmt.toLocaleString('en-US')}`;
+  }
   updateTopupDisplays(amt);
 
   const applyMethodTabs = (s) => {
@@ -1224,12 +1250,9 @@ function setupWalletListeners() {
   });
 
   document.getElementById('submitCardTopupBtn')?.addEventListener('click', async () => {
-    const amt = parseInt(topupAmountInput?.value || '0');
+    const amt = parseInt(topupAmountInput?.value || '0', 10);
     const receipt = document.getElementById('topupCardReceiptInput')?.value?.trim();
-    if (!amt || amt < 10000) {
-      showToast('⚠️ لطفاً مبلغ معتبر وارد فرمایید.');
-      return;
-    }
+    if (!validateTopupAmount(amt)) return;
     if (!selectedReceiptImageBase64) {
       showToast('⚠️ لطفاً تصویر فیش واریزی را بارگذاری فرمایید.');
       return;
@@ -1261,10 +1284,7 @@ function setupWalletListeners() {
 
   document.getElementById('submitStarsTopupBtn')?.addEventListener('click', async () => {
     const amt = parseInt(topupAmountInput?.value || '0', 10);
-    if (!amt || amt < 10000) {
-      showToast('⚠️ لطفاً مبلغ معتبر وارد فرمایید.');
-      return;
-    }
+    if (!validateTopupAmount(amt)) return;
     const btn = document.getElementById('submitStarsTopupBtn');
     if (btn) {
       btn.disabled = true;
@@ -1306,11 +1326,8 @@ function setupWalletListeners() {
   });
 
   document.getElementById('generateTonInvoiceBtn')?.addEventListener('click', async () => {
-    const amt = parseInt(topupAmountInput?.value || '0');
-    if (!amt || amt < 10000) {
-      showToast('⚠️ لطفاً مبلغ معتبر وارد فرمایید.');
-      return;
-    }
+    const amt = parseInt(topupAmountInput?.value || '0', 10);
+    if (!validateTopupAmount(amt)) return;
     const genBtn = document.getElementById('generateTonInvoiceBtn');
     genBtn.disabled = true;
     genBtn.innerText = 'ایجاد فاکتور...';
@@ -1457,10 +1474,7 @@ function setupWalletListeners() {
   // TRX Gateway Listeners
   document.getElementById('generateTrxInvoiceBtn')?.addEventListener('click', async () => {
     const amt = parseInt(topupAmountInput?.value || '0', 10);
-    if (!amt || amt < 10000) {
-      showToast('⚠️ لطفاً مبلغ معتبر وارد فرمایید (حداقل ۱۰,۰۰۰ تومان).');
-      return;
-    }
+    if (!validateTopupAmount(amt)) return;
     const btn = document.getElementById('generateTrxInvoiceBtn');
     btn.disabled = true;
     btn.innerText = 'در حال ایجاد فاکتور ترون...';
