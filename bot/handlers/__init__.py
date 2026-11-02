@@ -14,6 +14,7 @@ from bot.handlers import (
     cleanup,
     configs,
     guide,
+    inline,
     main_menu,
     payment_stars,
     profile,
@@ -45,6 +46,7 @@ def get_main_router() -> Router:
     router.include_router(support.router)    # must come BEFORE main_menu ("menu:*" catch-all)
     router.include_router(configs.router)    # must come BEFORE main_menu ("menu:*" catch-all)
     router.include_router(referral.router)   # must come BEFORE main_menu ("menu:*" catch-all)
+    router.include_router(inline.router)
     router.include_router(alerts.router)
     router.include_router(main_menu.router)
     router.include_router(cleanup.router)  # keep last!

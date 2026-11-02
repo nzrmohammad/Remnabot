@@ -1,5 +1,5 @@
 """Formatting helpers: human-readable bytes, progress bar, localized dates."""
-from datetime import datetime
+from datetime import datetime, timezone
 from zoneinfo import ZoneInfo
 
 import jdatetime
@@ -162,15 +162,33 @@ def start_of_today(tz_name: str) -> datetime:
     return now.replace(hour=0, minute=0, second=0, microsecond=0)
 
 
-def format_datetime(dt: datetime, lang: str) -> str:
-    """`1404/12/05 - 23:57` for fa, `2026-02-24 - 23:57` for others."""
+def format_datetime(dt: datetime, lang: str, tz_name: str = "Asia/Tehran") -> str:
+    """`1404/12/05 - 23:57` for fa, `2026-02-24 - 23:57` for others, localized to tz_name."""
+    if tz_name:
+        try:
+            tz = ZoneInfo(tz_name)
+            if dt.tzinfo is None:
+                dt = dt.replace(tzinfo=timezone.utc).astimezone(tz)
+            else:
+                dt = dt.astimezone(tz)
+        except Exception:
+            pass
     if lang == "fa":
         j = jdatetime.datetime.fromgregorian(datetime=dt)
         return j.strftime("%Y/%m/%d - %H:%M")
     return dt.strftime("%Y-%m-%d - %H:%M")
 
 
-def format_date(dt: datetime, lang: str) -> str:
+def format_date(dt: datetime, lang: str, tz_name: str = "Asia/Tehran") -> str:
+    if tz_name:
+        try:
+            tz = ZoneInfo(tz_name)
+            if dt.tzinfo is None:
+                dt = dt.replace(tzinfo=timezone.utc).astimezone(tz)
+            else:
+                dt = dt.astimezone(tz)
+        except Exception:
+            pass
     if lang == "fa":
         return jdatetime.datetime.fromgregorian(datetime=dt).strftime("%Y/%m/%d")
     return dt.strftime("%Y-%m-%d")

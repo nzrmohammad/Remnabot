@@ -74,7 +74,7 @@ function updateMonthlyReportView(index) {
         month_name: sub.current_month_name || 'ماه جاری',
         full_name: sub.current_month_name || 'ماه جاری',
         total_used_gb: sub.month_used_gb ?? '0.00',
-        month_weeks_totals_gb: sub.month_weeks_totals_gb || [0, 0, 0, sub.week_used_gb || 0],
+        month_weeks_totals_gb: sub.month_weeks_totals_gb || [0, 0, 0, 0],
         nodes_breakdown: sub.week_breakdown || sub.today_breakdown || [],
       }];
 
@@ -179,7 +179,7 @@ function renderReportsCharts(sub) {
   if (typeof updateMonthlyReportView === 'function') {
     updateMonthlyReportView(currentMonthlyIndex);
   } else if (typeof renderBarChart === 'function') {
-    renderBarChart('repMonthlyChartCanvas', currentSub.month_weeks_totals_gb || [0, 0, 0, currentSub.week_used_gb || 0], ['هفته ۱', 'هفته ۲', 'هفته ۳', 'هفته ۴'], true);
+    renderBarChart('repMonthlyChartCanvas', currentSub.month_weeks_totals_gb || [0, 0, 0, 0], ['هفته ۱', 'هفته ۲', 'هفته ۳', 'هفته ۴'], true);
   }
   if (typeof renderActiveSubAnalytics === 'function') {
     renderActiveSubAnalytics(currentSub);
@@ -1940,7 +1940,7 @@ function setupThemeToggle() {
       const sub = window.lastUserData.active_sub;
       if (typeof renderBarChart === 'function') {
         renderBarChart('repWeeklyChartCanvas', sub.week_daily_totals_gb || [0, 0, 0, 0, 0, 0, 0], sub.week_day_labels || ['ش', 'ی', 'د', 'س', 'چ', 'پ', 'ج'], false);
-        renderBarChart('repMonthlyChartCanvas', sub.month_weeks_totals_gb || [0, 0, 0, sub.week_used_gb || 0], ['هفته ۱', 'هفته ۲', 'هفته ۳', 'هفته ۴'], true);
+        renderBarChart('repMonthlyChartCanvas', sub.month_weeks_totals_gb || [0, 0, 0, 0], ['هفته ۱', 'هفته ۲', 'هفته ۳', 'هفته ۴'], true);
       }
       if (typeof renderActiveSubAnalytics === 'function') {
         renderActiveSubAnalytics(sub);
@@ -3390,7 +3390,7 @@ function hydrateUserInterface(data) {
         if (repMonthlyTotal) repMonthlyTotal.innerHTML = fmtTraffic(sub.month_used_gb ?? '0.00', { html: true });
         if (typeof renderBarChart === 'function') {
           try {
-            renderBarChart('repMonthlyChartCanvas', sub.month_weeks_totals_gb || [0, 0, 0, sub.week_used_gb || 0], ['هفته ۱', 'هفته ۲', 'هفته ۳', 'هفته ۴'], true);
+            renderBarChart('repMonthlyChartCanvas', sub.month_weeks_totals_gb || [0, 0, 0, 0], ['هفته ۱', 'هفته ۲', 'هفته ۳', 'هفته ۴'], true);
           } catch (e) {
             console.warn('Could not render monthly chart:', e);
           }

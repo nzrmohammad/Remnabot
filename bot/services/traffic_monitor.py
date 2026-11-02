@@ -17,13 +17,23 @@ async def record_hourly_traffic_snapshot_once(
     now_utc: datetime | None = None,
 ) -> None:
     """Record a single hourly snapshot of cluster-wide traffic consumption."""
+    panel_users = []
     try:
         panel_users = await remnawave.get_all_panel_users(size=1000) or []
     except Exception as exc:
         logger.warning("Failed to fetch panel users for traffic snapshot: %s", exc)
-        return
 
-    current_total_bytes = sum(get_used_bytes(u) for u in panel_users)
+    if panel_users:
+        current_total_bytes = sum(get_used_bytes(u) for u in panel_users)
+    else:
+        try:
+            nodes = await remnawave.get_nodes() or []
+            current_total_bytes = sum(int(n.get("traffic") or n.get("todayTrafficBytes") or 0) for n in nodes if isinstance(n, dict))
+        except Exception:
+            return
+
+    if current_total_bytes <= 0:
+        return
     if now_utc is None:
         now_utc = datetime.now(timezone.utc)
     current_hour_dt = datetime(

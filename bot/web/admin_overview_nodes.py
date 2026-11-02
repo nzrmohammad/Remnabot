@@ -1,6 +1,7 @@
 """Node metrics, telemetry extraction, and cluster KPIs for admin overview."""
 from datetime import datetime, timedelta, timezone
 from typing import Any
+from zoneinfo import ZoneInfo
 
 from sqlalchemy import func, select
 
@@ -307,7 +308,10 @@ async def calc_cluster_kpis(
     user_count_res = await session.execute(select(func.count(User.id)))
     total_bot_users = int(user_count_res.scalar_one() or 0)
 
-    start_of_day = datetime(now_utc.year, now_utc.month, now_utc.day, tzinfo=timezone.utc)
+    tehran_tz = ZoneInfo("Asia/Tehran")
+    now_tehran = now_utc.astimezone(tehran_tz) if now_utc.tzinfo else now_utc.replace(tzinfo=timezone.utc).astimezone(tehran_tz)
+    start_of_day_tehran = now_tehran.replace(hour=0, minute=0, second=0, microsecond=0)
+    start_of_day = start_of_day_tehran.astimezone(timezone.utc)
     rev_res = await session.execute(
         select(func.coalesce(func.sum(Order.amount), 0)).where(
             Order.created_at >= start_of_day,

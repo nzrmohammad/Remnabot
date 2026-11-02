@@ -2,8 +2,9 @@
 import asyncio
 import logging
 from collections import defaultdict
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Any
+from zoneinfo import ZoneInfo
 
 from sqlalchemy import func, or_, select
 
@@ -33,20 +34,23 @@ def get_day_label(dt: datetime) -> str:
 
 
 async def _calc_sales_trends(session, now_utc: datetime) -> tuple[list[str], list[int], list[str], list[int]]:
-    """Calculate 7-day and 30-day daily sales totals."""
-    days_list = [now_utc - timedelta(days=i) for i in range(6, -1, -1)]
-    days_30_list = [now_utc - timedelta(days=i) for i in range(29, -1, -1)]
-    thirty_days_ago = now_utc - timedelta(days=29)
+    """Calculate 7-day and 30-day daily sales totals in Tehran official time."""
+    tehran_tz = ZoneInfo("Asia/Tehran")
+    now_tehran = now_utc.astimezone(tehran_tz) if now_utc.tzinfo else now_utc.replace(tzinfo=timezone.utc).astimezone(tehran_tz)
+    days_list = [now_tehran - timedelta(days=i) for i in range(6, -1, -1)]
+    days_30_list = [now_tehran - timedelta(days=i) for i in range(29, -1, -1)]
+    thirty_days_ago_utc = (now_tehran.replace(hour=0, minute=0, second=0, microsecond=0) - timedelta(days=29)).astimezone(timezone.utc)
 
     rev_30d_res = await session.execute(
         select(Order.created_at, Order.amount)
-        .where(Order.status == "paid", Order.created_at >= thirty_days_ago)
+        .where(Order.status == "paid", Order.created_at >= thirty_days_ago_utc)
     )
-    daily_revenue = {(now_utc - timedelta(days=i)).strftime("%Y-%m-%d"): 0 for i in range(6, -1, -1)}
-    monthly_revenue = {(now_utc - timedelta(days=i)).strftime("%Y-%m-%d"): 0 for i in range(29, -1, -1)}
+    daily_revenue = {d.strftime("%Y-%m-%d"): 0 for d in days_list}
+    monthly_revenue = {d.strftime("%Y-%m-%d"): 0 for d in days_30_list}
     for cat_dt, amt in rev_30d_res.all():
         if cat_dt:
-            ds = cat_dt.strftime("%Y-%m-%d")
+            cat_dt_tehran = cat_dt.astimezone(tehran_tz) if cat_dt.tzinfo else cat_dt.replace(tzinfo=timezone.utc).astimezone(tehran_tz)
+            ds = cat_dt_tehran.strftime("%Y-%m-%d")
             if ds in daily_revenue:
                 daily_revenue[ds] += (amt or 0)
             if ds in monthly_revenue:
@@ -113,7 +117,9 @@ async def calc_sales_and_traffic_charts(
     total_traffic_gb: float,
 ) -> dict[str, Any]:
     """Calculate 7-day sales, 30-day sales, and 7-day traffic telemetry series."""
-    days_list = [now_utc - timedelta(days=i) for i in range(6, -1, -1)]
+    tehran_tz = ZoneInfo("Asia/Tehran")
+    now_tehran = now_utc.astimezone(tehran_tz) if now_utc.tzinfo else now_utc.replace(tzinfo=timezone.utc).astimezone(tehran_tz)
+    days_list = [now_tehran - timedelta(days=i) for i in range(6, -1, -1)]
     sales_7d_labels, sales_7d_data, sales_30d_labels, sales_30d_data = await _calc_sales_trends(session, now_utc)
 
     # Traffic telemetry calculation
@@ -138,8 +144,8 @@ async def calc_sales_and_traffic_charts(
         traffic_total_gb = round(sum(chart_traffic_data), 2)
         is_traffic_real = bool(cached_traffic.get("is_real", True))
     else:
-        start_ds = (now_utc - timedelta(days=6)).strftime("%Y-%m-%d")
-        end_ds = now_utc.strftime("%Y-%m-%d")
+        start_ds = (now_tehran - timedelta(days=6)).strftime("%Y-%m-%d")
+        end_ds = now_tehran.strftime("%Y-%m-%d")
         daily_bytes_sum, has_real_stats, user_today_country_bytes, user_today_total_bytes = (
             await _fetch_user_bandwidth_series(remnawave, panel_users, start_ds, end_ds)
         )
@@ -156,12 +162,12 @@ async def calc_sales_and_traffic_charts(
             traffic_total_gb = round(sum(chart_traffic_data), 2)
             is_traffic_real = True
         else:
-            today_ds = now_utc.strftime("%Y-%m-%d")
+            today_ds = now_tehran.strftime("%Y-%m-%d")
             await cache.set(f"analytics:traffic:snapshot:{today_ds}", total_traffic_gb, ttl_seconds=86400 * 30)
             snapshot_deltas: list[float] = []
             for i in range(6, -1, -1):
-                target_ds = (now_utc - timedelta(days=i)).strftime("%Y-%m-%d")
-                prev_ds = (now_utc - timedelta(days=i + 1)).strftime("%Y-%m-%d")
+                target_ds = (now_tehran - timedelta(days=i)).strftime("%Y-%m-%d")
+                prev_ds = (now_tehran - timedelta(days=i + 1)).strftime("%Y-%m-%d")
                 s_curr = await cache.get(f"analytics:traffic:snapshot:{target_ds}")
                 s_prev = await cache.get(f"analytics:traffic:snapshot:{prev_ds}")
                 if s_curr is not None and s_prev is not None:
@@ -282,15 +288,17 @@ async def _calc_hourly_distribution(session, now_utc: datetime) -> dict[str, Any
 
 async def _calc_retention_trend(session, now_utc: datetime, days_list: list[datetime]) -> dict[str, Any]:
     """Distinguish unique new buyers from renewals over the last 7 days (unique users per day)."""
-    seven_days_ago = now_utc - timedelta(days=6)
+    tehran_tz = ZoneInfo("Asia/Tehran")
+    now_tehran = now_utc.astimezone(tehran_tz) if now_utc.tzinfo else now_utc.replace(tzinfo=timezone.utc).astimezone(tehran_tz)
+    seven_days_ago_utc = (now_tehran.replace(hour=0, minute=0, second=0, microsecond=0) - timedelta(days=6)).astimezone(timezone.utc)
     orders_7d = (await session.execute(
         select(Order.telegram_id, Order.created_at)
-        .where(Order.status == "paid", Order.created_at >= seven_days_ago)
+        .where(Order.status == "paid", Order.created_at >= seven_days_ago_utc)
         .order_by(Order.created_at.asc())
     )).all()
     day_keys = [d.strftime("%Y-%m-%d") for d in days_list]
     seen_prior_user_ids = set((await session.execute(
-        select(Order.telegram_id).where(Order.status == "paid", Order.created_at < seven_days_ago).distinct()
+        select(Order.telegram_id).where(Order.status == "paid", Order.created_at < seven_days_ago_utc).distinct()
     )).scalars().all())
 
     day_new_users: dict[str, set[int]] = {k: set() for k in day_keys}
@@ -298,7 +306,8 @@ async def _calc_retention_trend(session, now_utc: datetime, days_list: list[date
 
     for u_id, o_dt in orders_7d:
         if o_dt and u_id:
-            ds = o_dt.strftime("%Y-%m-%d")
+            o_dt_tehran = o_dt.astimezone(tehran_tz) if o_dt.tzinfo else o_dt.replace(tzinfo=timezone.utc).astimezone(tehran_tz)
+            ds = o_dt_tehran.strftime("%Y-%m-%d")
             if ds in day_keys:
                 if u_id in seen_prior_user_ids:
                     day_renewal_users[ds].add(u_id)
@@ -545,7 +554,9 @@ async def get_periodic_users_bandwidth(
         7: "مهر", 8: "آبان", 9: "آذر",
         10: "دی", 11: "بهمن", 12: "اسفند",
     }
-    current_j = jdatetime.date.fromgregorian(date=now_utc.date()) if jdatetime else None
+    tehran_tz = ZoneInfo("Asia/Tehran")
+    now_tehran = now_utc.astimezone(tehran_tz) if now_utc.tzinfo else now_utc.replace(tzinfo=timezone.utc).astimezone(tehran_tz)
+    current_j = jdatetime.date.fromgregorian(date=now_tehran.date()) if jdatetime else None
     curr_m_name = JALALI_MONTH_NAMES.get(current_j.month, current_j.strftime("%B")) if current_j else "جاری"
     if current_j:
         prev_j_m = current_j.month - 1 or 12
@@ -566,8 +577,8 @@ async def get_periodic_users_bandwidth(
     user_stats: list[dict[str, Any]] = []
 
     if hasattr(remnawave, "get_user_bandwidth_stats") and active_users:
-        start_ds = (now_utc - timedelta(days=89)).strftime("%Y-%m-%d")
-        end_ds = now_utc.strftime("%Y-%m-%d")
+        start_ds = (now_tehran - timedelta(days=89)).strftime("%Y-%m-%d")
+        end_ds = now_tehran.strftime("%Y-%m-%d")
         sem = asyncio.Semaphore(12)
 
         async def _fetch(u: dict):
@@ -633,7 +644,7 @@ async def get_periodic_users_bandwidth(
 
                             # 4. Jalali calendar months
                             if current_j:
-                                day_dt = now_utc.date() - timedelta(days=offset)
+                                day_dt = now_tehran.date() - timedelta(days=offset)
                                 day_jd = jdatetime.date.fromgregorian(date=day_dt)
                                 if day_jd.year == current_j.year and day_jd.month == current_j.month:
                                     curr_j_bytes += day_val

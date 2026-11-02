@@ -4,7 +4,7 @@ from collections.abc import Awaitable, Callable
 from typing import Any
 
 from aiogram import BaseMiddleware
-from aiogram.types import CallbackQuery, Message, TelegramObject
+from aiogram.types import CallbackQuery, InlineQuery, Message, TelegramObject
 
 from bot.config import get_settings
 from bot.db.repositories.user_repo import UserRepository
@@ -47,6 +47,11 @@ class BanCheckMiddleware(BaseMiddleware):
                 elif isinstance(event, Message):
                     try:
                         await event.answer(ban_text)
+                    except Exception:
+                        pass
+                elif isinstance(event, InlineQuery):
+                    try:
+                        await event.answer([], cache_time=30, is_personal=True)
                     except Exception:
                         pass
                 return None

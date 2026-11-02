@@ -242,13 +242,20 @@ async def calc_bandwidth_stats(
         except (TimeoutError, Exception) as exc:
             logger.warning("Fallback today usage failed or timed out for %s: %s", panel_user_id, exc)
 
+        now_j = jdatetime.datetime.fromgregorian(datetime=now_dt)
+        w_idx = min(3, (now_j.day - 1) // 7)
+        weeks_gb = [0.0, 0.0, 0.0, 0.0]
+        today_gb = round(today_bytes / (1024**3), 2)
+        if today_bytes > 0:
+            weeks_gb[w_idx] = today_gb
+
         monthly_history = _build_monthly_history([], now_dt)
         if today_bytes > 0 and monthly_history:
             monthly_history[0]["total_bytes"] = today_bytes
-            monthly_history[0]["total_used_gb"] = round(today_bytes / (1024**3), 2)
-            monthly_history[0]["month_weeks_totals_gb"] = [0.0, 0.0, 0.0, round(today_bytes / (1024**3), 2)]
+            monthly_history[0]["total_used_gb"] = today_gb
+            monthly_history[0]["month_weeks_totals_gb"] = weeks_gb
             monthly_history[0]["nodes_breakdown"] = today_breakdown
-        month_weeks_totals_gb = monthly_history[0]["month_weeks_totals_gb"] if monthly_history else [0.0, 0.0, 0.0, round(today_bytes / (1024**3), 2)]
+        month_weeks_totals_gb = weeks_gb
 
     week_breakdown = sorted(week_nodes_dict.values(), key=lambda x: x["total_bytes"], reverse=True)
     busiest_day_name = "—"

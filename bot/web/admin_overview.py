@@ -7,6 +7,7 @@ Decomposed into focused modules:
 """
 from datetime import datetime, timedelta, timezone
 from typing import Any
+from zoneinfo import ZoneInfo
 
 from aiohttp import web
 
@@ -48,7 +49,9 @@ async def _fetch_and_build_overview(
 ) -> dict[str, Any]:
     """Fetch database metrics, telemetry and compute charts."""
     store_settings = await get_store_settings(session)
-    days_list = [now_utc - timedelta(days=i) for i in range(6, -1, -1)]
+    tehran_tz = ZoneInfo("Asia/Tehran")
+    now_tehran = now_utc.astimezone(tehran_tz) if now_utc.tzinfo else now_utc.replace(tzinfo=timezone.utc).astimezone(tehran_tz)
+    days_list = [now_tehran - timedelta(days=i) for i in range(6, -1, -1)]
 
     kpis, panel_users, nodes, costs_by_uuid, costs_by_id = await calc_cluster_kpis(
         session, remnawave, now_utc
