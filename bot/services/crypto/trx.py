@@ -43,7 +43,7 @@ async def fetch_trx_rate(store_rate: int = 0) -> int:
     if store_rate > 0:
         return store_rate
 
-    # Fetch live TRX price from Nobitex
+    # Fetch live TRX price from Nobitex directly
     try:
         timeout = aiohttp.ClientTimeout(total=4)
         async with aiohttp.ClientSession(timeout=timeout) as session:
@@ -56,10 +56,28 @@ async def fetch_trx_rate(store_rate: int = 0) -> int:
                         if toman_price > 100:
                             return toman_price
     except Exception as exc:
-        logger.warning("Could not poll Nobitex TRX rate, using fallback 18,500 Toman: %s", exc)
+        logger.warning("Could not poll Nobitex TRX rate directly: %s", exc)
 
-    logger.warning("Nobitex TRX rate unavailable; using fallback rate: 18,500 Toman")
-    return 18_500  # Fallback reasonable estimate (~$0.20 - $0.25)
+    # Secondary: query live multi-exchange fetcher (Bitpin, Wallex, Binance benchmark)
+    try:
+        from bot.services.crypto.nobitex import get_crypto_rates_summary
+        summary = await get_crypto_rates_summary()
+        trx_prices = summary.get("trx_prices") or {}
+        for exch in ("نوبیتکس", "بیت‌پین", "والکس"):
+            if exch in trx_prices and trx_prices[exch] > 0:
+                return trx_prices[exch]
+
+        # Calculate from Binance TRX/USD * live domestic USDT
+        bin_trx = summary.get("binance_trx_usd")
+        usdt_prices = summary.get("usdt_prices") or {}
+        best_usdt = next((v for v in usdt_prices.values() if v > 0), 0)
+        if bin_trx and best_usdt > 0:
+            return int(round(bin_trx * best_usdt))
+    except Exception as exc:
+        logger.warning("Could not resolve live TRX rate via secondary sources: %s", exc)
+
+    logger.warning("Live TRX rate unavailable from all domestic and global exchanges; returning 0")
+    return 0
 
 
 async def verify_tron_transaction(

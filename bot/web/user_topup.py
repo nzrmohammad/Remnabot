@@ -866,6 +866,12 @@ async def post_user_topup_trx(request: web.Request) -> web.Response:
         if trx_rate <= 0:
             trx_rate = await fetch_trx_rate(0)
 
+        if trx_rate <= 0:
+            return web.json_response(
+                {"ok": False, "message": "نرخ ترون در حال حاضر در دسترس نیست. لطفاً دقایقی دیگر تلاش کنید یا از روش‌های دیگر پرداخت استفاده نمایید."},
+                status=503,
+            )
+
         trx_amount = round(amount / trx_rate, 2)
         if trx_amount <= 0:
             trx_amount = 1.0
