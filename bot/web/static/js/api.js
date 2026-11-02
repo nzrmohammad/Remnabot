@@ -308,7 +308,7 @@ const api = {
     if (subUrl) {
       params.sub_url = subUrl;
     }
-    return this.get('/api/user/subscription/configs', params, { timeout: 6000 });
+    return this.get('/api/user/subscription/configs', params, { timeout: 4000 });
   },
 
   // Admin Suite Endpoints

@@ -36,12 +36,48 @@ async def test_get_user_subscription_configs_cached():
 
 
 @pytest.mark.anyio
+async def test_get_user_subscription_configs_priority1_connection_keys():
+    import base64
+    import json
+    app = web.Application()
+    cache = FastCache(redis_client=None)
+    app["cache"] = cache
+    mock_remnawave = AsyncMock()
+    mock_remnawave.get_users_by_telegram_id.return_value = [
+        {"id": "user-42", "uuid": "uuid-42", "shortUuid": "su-42", "subscriptionUrl": "https://sub.example.com/sub/su-42"}
+    ]
+    vmess_payload = base64.b64encode(json.dumps({"v": "2", "ps": "🇳🇱 Amsterdam", "add": "server2.com"}).encode()).decode()
+    mock_remnawave.get_user_connection_keys.return_value = [
+        "vless://user@server1.com:443?type=tcp#🇩🇪%20Frankfurt",
+        f"vmess://{vmess_payload}",
+    ]
+    app["remnawave"] = mock_remnawave
+    session_factory = MagicMock()
+    app["session_factory"] = session_factory
+
+    request = MagicMock(spec=web.Request)
+    request.app = app
+    request.query = {"account_id": "user-42"}
+    request.get = lambda k, default=None: {"id": 12345, "username": "testuser"} if k == "user" else default
+
+    resp = await get_user_subscription_configs(request)
+    assert resp.status == 200
+    data = json.loads(resp.text)
+    assert data["ok"] is True
+    assert len(data["configs"]) == 2
+    assert data["configs"][0]["flag"] == "🇩🇪"
+    assert data["configs"][1]["flag"] == "🇳🇱"
+    mock_remnawave.get_user_connection_keys.assert_called_once()
+
+
+@pytest.mark.anyio
 async def test_get_user_subscription_configs_fetches_sub_url():
     app = web.Application()
     cache = FastCache(redis_client=None)
     app["cache"] = cache
     mock_remnawave = AsyncMock()
     mock_remnawave.get_users_by_telegram_id.return_value = [{"id": "user-1", "subscriptionUrl": "https://sub.example.com/sub/abc"}]
+    mock_remnawave.get_user_connection_keys.return_value = None
     app["remnawave"] = mock_remnawave
     session_factory = MagicMock()
     app["session_factory"] = session_factory

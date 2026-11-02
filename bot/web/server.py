@@ -293,9 +293,12 @@ def get_versioned_html(html_path: Path, is_dev: bool = False) -> str:
     cache_key = str(html_path)
 
     if not is_dev and cache_key in _VERSIONED_HTML_CACHE:
-        cached_content, mtime = _VERSIONED_HTML_CACHE[cache_key]
+        cached_entry = _VERSIONED_HTML_CACHE[cache_key]
+        cached_content = cached_entry[0]
+        mtime = cached_entry[1]
+        cached_version = cached_entry[2] if len(cached_entry) > 2 else ""
         try:
-            if html_path.stat().st_mtime <= mtime:
+            if html_path.stat().st_mtime <= mtime and (not cached_version or cached_version == version):
                 return cached_content
         except OSError:
             pass
@@ -311,7 +314,7 @@ def get_versioned_html(html_path: Path, is_dev: bool = False) -> str:
     except OSError:
         cur_mtime = time.time()
 
-    _VERSIONED_HTML_CACHE[cache_key] = (versioned_content, cur_mtime)
+    _VERSIONED_HTML_CACHE[cache_key] = (versioned_content, cur_mtime, version)
     return versioned_content
 
 

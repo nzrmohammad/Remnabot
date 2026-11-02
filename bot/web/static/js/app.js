@@ -442,10 +442,44 @@ function setupConfigsModal() {
       </div>
     `;
 
+    let isSettled = false;
+    const safetyTimer = setTimeout(() => {
+      if (isSettled) return;
+      isSettled = true;
+      if (configsModalCount) configsModalCount.innerText = '0 کانفیگ';
+      configsModalList.innerHTML = `
+        <div class="text-center py-6 t-muted text-xs space-y-2">
+          <span class="text-base block">⚠️</span>
+          <div class="leading-relaxed font-medium">پاسخ سرور در زمان مقرر دریافت نشد.</div>
+          <p class="text-[11px] text-slate-400 leading-normal">می‌توانید لینک اشتراک را کپی کرده و مستقیماً در نرم‌افزار VPN وارد نمایید.</p>
+          <div class="pt-2 flex items-center justify-center gap-2">
+            <button type="button" id="copySubFallbackBtn" class="px-3 py-1.5 rounded-xl bg-cyan-600/25 hover:bg-cyan-600/40 text-cyan-300 border border-cyan-500/40 text-[11px] font-bold transition active:scale-95">
+              📋 کپی لینک اشتراک
+            </button>
+            <button type="button" id="retryConfigsBtnTimeout" class="px-3 py-1.5 rounded-xl bg-slate-700/50 hover:bg-slate-700 text-slate-300 border border-slate-600/40 text-[11px] font-bold transition active:scale-95">
+              🔄 تلاش مجدد
+            </button>
+          </div>
+        </div>
+      `;
+      $('copySubFallbackBtn')?.addEventListener('click', () => {
+        const urlToCopy = window.lastUserData?.active_sub?.subscription_url || $('subInput')?.value || '';
+        if (urlToCopy) {
+          copyToClipboard(urlToCopy, '📋 لینک اشتراک با موفقیت کپی شد.');
+          hapticFeedback('success');
+        }
+      });
+      $('retryConfigsBtnTimeout')?.addEventListener('click', loadAndRenderConfigs);
+    }, 3800);
+
     try {
       const targetAccId = window.currentAccountId || window.lastUserData?.active_sub?.account_id || window.lastUserData?.active_sub?.id;
       const subUrl = window.lastUserData?.active_sub?.subscription_url || $('subInput')?.value || '';
       const res = await window.api.getSubscriptionConfigs(targetAccId, subUrl);
+      if (isSettled) return;
+      clearTimeout(safetyTimer);
+      isSettled = true;
+
       const resData = res?.data || res;
       let configs = resData?.configs || res?.configs || [];
 
@@ -461,27 +495,50 @@ function setupConfigsModal() {
             <div class="leading-relaxed font-medium">${escapeHtml(msg)}</div>
             <p class="text-[11px] text-slate-400 leading-normal">می‌توانید لینک اشتراک را از بالای صفحه کپی کرده و مستقیماً در نرم‌افزار VPN وارد نمایید.</p>
             <div class="pt-2 flex items-center justify-center gap-2">
-              <button type="button" id="retryConfigsBtn" class="px-3 py-1.5 rounded-xl bg-cyan-600/25 hover:bg-cyan-600/40 text-cyan-300 border border-cyan-500/40 text-[11px] font-bold transition active:scale-95">
+              <button type="button" id="copySubFallbackBtn2" class="px-3 py-1.5 rounded-xl bg-cyan-600/25 hover:bg-cyan-600/40 text-cyan-300 border border-cyan-500/40 text-[11px] font-bold transition active:scale-95">
+                📋 کپی لینک اشتراک
+              </button>
+              <button type="button" id="retryConfigsBtn" class="px-3 py-1.5 rounded-xl bg-slate-700/50 hover:bg-slate-700 text-slate-300 border border-slate-600/40 text-[11px] font-bold transition active:scale-95">
                 🔄 تلاش مجدد
               </button>
             </div>
           </div>
         `;
+        $('copySubFallbackBtn2')?.addEventListener('click', () => {
+          const urlToCopy = window.lastUserData?.active_sub?.subscription_url || $('subInput')?.value || '';
+          if (urlToCopy) {
+            copyToClipboard(urlToCopy, '📋 لینک اشتراک با موفقیت کپی شد.');
+            hapticFeedback('success');
+          }
+        });
         $('retryConfigsBtn')?.addEventListener('click', loadAndRenderConfigs);
       }
     } catch (e) {
+      if (isSettled) return;
+      clearTimeout(safetyTimer);
+      isSettled = true;
       configsModalList.innerHTML = `
         <div class="text-center py-6 text-rose-400 text-xs space-y-2">
           <span class="text-base block">❌</span>
           <div class="leading-relaxed">خطا در دریافت کانفیگ‌های اشتراک: ${escapeHtml(e?.message || 'ارتباط با سرور برقرار نشد')}</div>
           <p class="text-[11px] text-slate-400 leading-normal">می‌توانید لینک اشتراک را کپی کرده و مستقیماً در نرم‌افزار خود Import نمایید.</p>
           <div class="pt-2 flex items-center justify-center gap-2">
-            <button type="button" id="retryConfigsBtnErr" class="px-3 py-1.5 rounded-xl bg-cyan-600/25 hover:bg-cyan-600/40 text-cyan-300 border border-cyan-500/40 text-[11px] font-bold transition active:scale-95">
+            <button type="button" id="copySubFallbackBtnErr" class="px-3 py-1.5 rounded-xl bg-cyan-600/25 hover:bg-cyan-600/40 text-cyan-300 border border-cyan-500/40 text-[11px] font-bold transition active:scale-95">
+              📋 کپی لینک اشتراک
+            </button>
+            <button type="button" id="retryConfigsBtnErr" class="px-3 py-1.5 rounded-xl bg-slate-700/50 hover:bg-slate-700 text-slate-300 border border-slate-600/40 text-[11px] font-bold transition active:scale-95">
               🔄 تلاش مجدد
             </button>
           </div>
         </div>
       `;
+      $('copySubFallbackBtnErr')?.addEventListener('click', () => {
+        const urlToCopy = window.lastUserData?.active_sub?.subscription_url || $('subInput')?.value || '';
+        if (urlToCopy) {
+          copyToClipboard(urlToCopy, '📋 لینک اشتراک با موفقیت کپی شد.');
+          hapticFeedback('success');
+        }
+      });
       $('retryConfigsBtnErr')?.addEventListener('click', loadAndRenderConfigs);
     }
   };

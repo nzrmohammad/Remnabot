@@ -120,36 +120,9 @@ async def get_user_subscription_configs(request: web.Request) -> web.Response:
         if path_segments:
             sub_token = path_segments[-1]
 
-    # Priority 1: Fetch directly from sub_url (fastest & most reliable when user's sub link is live)
-    if sub_url:
-        try:
-            raw_configs = await fetch_subscription_configs(sub_url, timeout=2.5)
-            if raw_configs:
-                logger.info("Successfully fetched %d configs from subscription URL", len(raw_configs))
-        except Exception as exc:
-            logger.debug("Direct sub_url fetch attempt failed: %s", exc)
-
-    # Priority 2: Direct internal Remnawave panel sub endpoint (/api/sub/{token} or /sub/{token})
-    if not raw_configs and sub_token and hasattr(remnawave, "_client"):
-        for sub_ep in (f"/api/sub/{sub_token}", f"/sub/{sub_token}"):
-            try:
-                resp = await remnawave._client.get(
-                    sub_ep,
-                    headers={"User-Agent": "v2rayNG/1.8.5", "Accept": "text/plain, */*"},
-                    timeout=2.0,
-                )
-                if resp.status_code == 200 and resp.text.strip():
-                    body = resp.text.strip()
-                    if not body.lower().startswith(("<!doctype", "<html")):
-                        raw_configs = parse_subscription_text(body)
-                        if raw_configs:
-                            logger.info("Successfully fetched %d configs directly from Remnawave internal %s", len(raw_configs), sub_ep)
-                            break
-            except Exception as direct_exc:
-                logger.debug("Direct internal subscription fetch failed on %s: %s", sub_ep, direct_exc)
-
-    # Priority 3: Official Remnawave API: GET /api/subscriptions/connection-keys/{userId}
-    if not raw_configs and target:
+    # Priority 1: Official Remnawave API: GET /api/subscriptions/connection-keys/{userId}
+    # This is instantaneous (<50ms) and avoids DNS, WAN, and Hairpin NAT timeouts.
+    if target:
         candidate_ids = [cid for cid in (target.get("id"), target.get("uuid")) if cid is not None and str(cid).strip()]
         for candidate_id in candidate_ids:
             try:
@@ -159,7 +132,7 @@ async def get_user_subscription_configs(request: web.Request) -> web.Response:
                         short_uuid=target.get("shortUuid") or target.get("shortId"),
                         user_uuid=target.get("uuid"),
                     ),
-                    timeout=2.0,
+                    timeout=1.5,
                 )
                 if conn_keys:
                     for k in conn_keys:
@@ -172,6 +145,34 @@ async def get_user_subscription_configs(request: web.Request) -> web.Response:
                         break
             except Exception as ck_err:
                 logger.debug("Failed calling get_user_connection_keys(%s): %s", candidate_id, ck_err)
+
+    # Priority 2: Direct internal Remnawave panel sub endpoint (/api/sub/{token} or /sub/{token})
+    if not raw_configs and sub_token and hasattr(remnawave, "_client"):
+        for sub_ep in (f"/api/sub/{sub_token}", f"/sub/{sub_token}"):
+            try:
+                resp = await remnawave._client.get(
+                    sub_ep,
+                    headers={"User-Agent": "v2rayNG/1.8.5", "Accept": "text/plain, */*"},
+                    timeout=1.5,
+                )
+                if resp.status_code == 200 and resp.text.strip():
+                    body = resp.text.strip()
+                    if not body.lower().startswith(("<!doctype", "<html")):
+                        raw_configs = parse_subscription_text(body)
+                        if raw_configs:
+                            logger.info("Successfully fetched %d configs directly from Remnawave internal %s", len(raw_configs), sub_ep)
+                            break
+            except Exception as direct_exc:
+                logger.debug("Direct internal subscription fetch failed on %s: %s", sub_ep, direct_exc)
+
+    # Priority 3: Fallback fetch directly from sub_url
+    if not raw_configs and sub_url:
+        try:
+            raw_configs = await fetch_subscription_configs(sub_url, timeout=2.0)
+            if raw_configs:
+                logger.info("Successfully fetched %d configs from subscription URL", len(raw_configs))
+        except Exception as exc:
+            logger.debug("Direct sub_url fetch attempt failed: %s", exc)
 
     configs = []
     for idx, cfg in enumerate(raw_configs, start=1):

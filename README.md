@@ -29,6 +29,8 @@
   - [Stage 6: Orchestration Launch & Verification](#stage-6-orchestration-launch--verification)
   - [Stage 7: Telegram Menu Button Registration](#stage-7-telegram-menu-button-registration)
 - [🔄 Updating Guide](#-updating-guide)
+- [⚡ Redis Verification & Operational Monitoring](#-redis-verification--operational-monitoring)
+- [🔍 Troubleshooting & Conflict Resolution](#-troubleshooting--conflict-resolution)
 - [💾 Migration & Server Relocation](#-migration--server-relocation)
 - [⚙️ Configuration Guide (`.env`)](#-configuration-guide-env)
 - [⏰ Background Schedulers & Lifecycle Engine](#-background-schedulers--lifecycle-engine)
@@ -118,7 +120,7 @@ remnawave-bot/
 │   ├── states/                     # Finite State Machine (FSM) conversation groups
 │   ├── config.py                   # Strongly-typed Pydantic v2 application settings
 │   └── main.py                     # Bot entrypoint, router binding, & scheduler launcher
-├── tests/                          # Comprehensive test suite (299 passing tests)
+├── tests/                          # Comprehensive test suite (322 passing tests)
 ├── docker-compose.yml              # Production multi-container orchestration (Bot, DB, Redis)
 ├── Dockerfile                      # Optimized Python 3.12-slim multi-stage image
 ├── requirements.txt                # Pinned production dependencies
@@ -481,6 +483,50 @@ docker compose logs -f bot
 
 ---
 
+## ⚡ Redis Verification & Operational Monitoring
+
+Remnabot leverages **Redis 7** for:
+1. **FSM State Preservation**: Retains user conversation states across bot restarts (checkout, admin wizards, top-up receipts).
+2. **FastCache & SWR**: Delivers sub-millisecond response times for Mini App endpoints (active plans, node health, subscription configs).
+3. **Distributed Instance Lock**: Prevents multiple bot containers or processes from polling simultaneously (`remnabot:instance_lock`).
+4. **Anti-Flood & Rate Limiting**: Redis counters protecting spin-wheel, speedtest, and coupon redemption against brute-force abuse.
+
+### How to verify that Redis is active and being used:
+
+#### Method 1: Check Bot Startup Logs (Fastest)
+Run the following command on your server:
+```bash
+docker compose logs bot | grep -i "redis"
+```
+When Redis is properly connected, you will see:
+```text
+INFO | bot.main | Using RedisStorage for FSM.
+```
+*(If Redis is not configured or connection fails, it falls back to `Using MemoryStorage for FSM`)*.
+
+#### Method 2: Ping Redis CLI inside Container
+Verify that the Redis service is healthy and responding to authentication:
+```bash
+docker compose exec redis redis-cli -a remnabot_redis_secret ping
+# Expected output: PONG
+```
+
+#### Method 3: Inspect Stored Keys
+Check keys currently active in Redis (FSM state, Mini App caches, instance lock):
+```bash
+docker compose exec redis redis-cli -a remnabot_redis_secret keys "*"
+```
+Typical keys you will observe:
+* `fsm:*` — Active Telegram state machine contexts.
+* `tma:*` — Cached Telegram Mini App user profiles and subscription configs.
+* `remnabot:instance_lock:*` — Single-instance polling lock.
+
+#### Method 4: Real-Time Command Monitor
+Watch live database commands processed by Redis in real-time as users interact with the bot and Mini App:
+```bash
+docker compose exec redis redis-cli -a remnabot_redis_secret monitor
+```
+
 ## 💾 Migration & Server Relocation
 
 To migrate Remnabot and all user balances, orders, and configurations to a new server, choose either the **Native JSON Backup (Recommended)** or the **PostgreSQL SQL Dump**.
@@ -603,7 +649,7 @@ Remnabot executes asynchronous automation routines using an internal non-blockin
 
 ## 🧪 Testing & Quality Assurance
 
-Remnabot maintains a strict test-driven development workflow with **299 passing unit & integration tests** covering database models, repositories, business logic services, and FSM handlers:
+Remnabot maintains a strict test-driven development workflow with **322 passing unit & integration tests** covering database models, repositories, business logic services, and FSM handlers:
 
 ```bash
 # Execute test suite

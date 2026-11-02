@@ -192,13 +192,13 @@ def parse_subscription_text(text: str) -> list[dict[str, str]]:
     return configs
 
 
-async def fetch_subscription_configs(url: str, timeout: float = 2.5) -> list[dict[str, str]]:
+async def fetch_subscription_configs(url: str, timeout: float = 2.0) -> list[dict[str, str]]:
     """Download subscription content and return parsed configs with robust candidate fallback."""
     if not url or not url.startswith(("http://", "https://")):
         return []
 
     try:
-        return await asyncio.wait_for(_fetch_subscription_configs_impl(url, timeout), timeout=5.5)
+        return await asyncio.wait_for(_fetch_subscription_configs_impl(url, timeout), timeout=3.0)
     except TimeoutError:
         logger.warning("Subscription fetch reached overall timeout for %s", url)
         return []
@@ -290,9 +290,13 @@ async def _fetch_subscription_configs_impl(url: str, timeout: float = 2.5) -> li
                     async with httpx.AsyncClient(verify=True, follow_redirects=True, timeout=timeout, proxy=p) as client:
                         resp = await client.get(target_url, headers={"User-Agent": primary_ua, "Accept": "text/plain, */*"})
                 except Exception as cert_err:
-                    logger.debug("SSL verify=True failed for %s (%s), retrying with verify=False", target_url, cert_err)
-                    async with httpx.AsyncClient(verify=False, follow_redirects=True, timeout=timeout, proxy=p) as client:
-                        resp = await client.get(target_url, headers={"User-Agent": primary_ua, "Accept": "text/plain, */*"})
+                    err_str = str(cert_err).lower()
+                    if "ssl" in err_str or "cert" in err_str:
+                        logger.debug("SSL verify=True failed for %s (%s), retrying with verify=False", target_url, cert_err)
+                        async with httpx.AsyncClient(verify=False, follow_redirects=True, timeout=timeout, proxy=p) as client:
+                            resp = await client.get(target_url, headers={"User-Agent": primary_ua, "Accept": "text/plain, */*"})
+                    else:
+                        raise
 
                 if resp is not None and resp.status_code == 200 and resp.text.strip():
                     text_body = resp.text.strip()
