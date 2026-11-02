@@ -496,6 +496,37 @@ html.theme-dark .admin-subtab-btn[aria-selected="true"] svg {
   color: var(--text-inverse);
 }
 
+/* Admin Top Consumers Week Selector */
+.admin-week-btn {
+  color: var(--text-muted);
+  background-color: transparent;
+  border: 1px solid transparent;
+  user-select: none;
+  cursor: pointer;
+}
+.admin-week-btn:hover {
+  color: var(--text-main);
+}
+.admin-week-btn.is-active,
+#adminTopConsumersWeekBar button.admin-week-btn.is-active {
+  background-color: #2563eb;
+  color: #ffffff;
+  border-color: #1d4ed8;
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.45);
+}
+html.theme-light .admin-week-btn:not(.is-active) {
+  color: #64748b;
+  background-color: rgba(241, 245, 249, 0.8);
+  border-color: rgba(203, 213, 225, 0.6);
+}
+html.theme-light #adminTopConsumersWeekBar button.admin-week-btn.is-active {
+  background-color: #2563eb;
+  color: #ffffff;
+  border-color: #1d4ed8;
+  font-weight: 800;
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.45);
+}
+
 /* --- 15. Admin Search Box Container --- */
 .admin-search-box {
   display: flex;

@@ -42,13 +42,24 @@
 Remnabot provides a production-grade Telegram client portal and administrative operations suite:
 
 - **👤 Unified Client Hub**: Multi-subscription management under a single Telegram ID, one-step free trial provisioning, HWID device control, and persistent bilingual localization (English & Persian).
+- **📱 Next-Gen Telegram Mini App (TMA)**: High-performance, mobile-native client web application with Stale-While-Revalidate (SWR) caching, native haptics, theme parameters (dark & light tokens), and app PIN lock.
+- **🚀 Real-Time Speedtest Engine**: Zero-bloat client-server throughput benchmark streaming non-compressible binary chunks to accurately measure download, upload, ping, and jitter.
+- **🎡 Gamified Lucky Wheel & Retention**: Daily spin rewards, streak bonus multipliers, spin tickets, traffic bonuses, and promotional coupon prizes.
+- **🎂 Jalali Birthday Rewards & Live Countdown**: Persian birthday picker, live countdown ticker, month traits, and autonomous dispatch of VIP discount codes and extra traffic.
+- **📊 Deep Analytics & Interactive Visualizations**: Country/node donut charts, download vs. upload splits, 24-hour diurnal peak usage curves, and OS/device platform breakdowns.
+- **🎛️ Dynamic Custom Plan Builder**: Interactive two-way slider allowing customers to design custom volume (GB) and duration (Days) plans with real-time loyalty discounts.
+- **🎁 Gift System for Friends**: Send prepaid subscriptions or wallet credits to friends with personalized greetings.
 - **⚡ Live 1-Tap Single Configs**: Instant extraction of raw subscription payloads into distinct VLESS, Trojan, and Shadowsocks nodes with native 1-tap clipboard copy buttons (`CopyTextButton`).
-- **💳 Financial & Wallet Integrity**: Card-to-card deposit processing with SHA-256 duplicate slip prevention, interactive review queues with instant push notifications, Telegram Supergroup Forum Topic routing, percentage/fixed discount coupons, and referral reward bonuses.
-- **💎 Direct On-Chain Crypto Payments**: Native The Open Network (TON) cryptocurrency top-up with 1-tap Tonkeeper and Telegram Wallet deep-links (auto-filling address, TON amount, and memo), multi-source resilient real-time rate queries (Nobitex / Bitpin / Wallex or global Binance / TonAPI / CoinGecko fallback), and 4x daily rate notifications with 1-click update buttons.
-- **👑 Autonomous Executive Reports**: Automated daily reports at 23:59 with country-level node bandwidth breakdowns, active user summaries, 3-day expiry alerts, and weekly top-20 rankings with daily champions.
+- **💳 Financial & Wallet Integrity**: Card-to-card deposit processing with automated unique micro-deposit verification, dual templates (Blubank & Minimalist), SHA-256 duplicate slip prevention, interactive review queues, and Telegram Supergroup Forum Topic routing.
+- **💎 Multi-Currency On-Chain Crypto & Stars**:
+  - **TON**: Deep-links for Tonkeeper and Telegram Wallet with automated memo collision prevention.
+  - **TRX (Tron)**: Live on-chain verification via TronGrid RPC and TronScan explorer.
+  - **Telegram Stars (XTR)**: Native Telegram Stars invoices directly in the Mini App and bot.
+  - **Multi-Source Rate Engine**: Real-time rates from 5 domestic exchanges (Nobitex, Bitpin, Wallex, Tetherland, Ramzinex) and Binance benchmarks.
+- **👑 Autonomous Executive Reports**: Automated daily reports at 23:59 with country-level node bandwidth breakdowns, active user summaries, 3-day expiry alerts, and weekly top-20 rankings.
 - **🤖 Intelligent Lifecycle & Retention Engine**: Autonomous asynchronous workers handling proactive expiration warnings (3-Day, 1-Day, Day-0), grace period policy enforcement, auto-disabling expired panel subscriptions, and automated 7-day win-back retention campaigns.
 - **📊 Real-Time Cluster Telemetry**: Proactive monitoring of all Remnawave v3 nodes with automated country flag resolution, core version detection (`Xray-core` / `Node`), hardware load metrics (CPU, RAM, Uptime), and real-time active user counts.
-- **🐳 Zero-Conflict Production Architecture**: Outbound-only long-polling requiring zero exposed HTTP/SSL ports on the host, fully isolated PostgreSQL 16 and Redis 7 containers, and an automated native self-healing schema engine with zero manual migrations.
+- **🐳 Zero-Conflict Production Architecture**: Outbound-only long-polling requiring zero exposed HTTP/SSL ingress ports for the bot, fully isolated PostgreSQL 16 and Redis 7 containers, and an automated native self-healing schema engine with zero manual migrations.
 
 ---
 
@@ -87,18 +98,27 @@ remnawave-bot/
 │   │   ├── db.py                   # Async database session lifecycle injection
 │   │   └── rate_limit.py           # Anti-flood leaky bucket rate limiter
 │   ├── services/                   # Domain Logic & Asynchronous Automation Workers
+│   │   ├── crypto/                 # Multi-exchange rate fetcher, TRX TronGrid & TON engines
+│   │   ├── payment/                # Card-to-card auto verification & micro-deposit router
+│   │   ├── reports/                # Nightly, weekly, & monthly executive summary generators
 │   │   ├── remnawave.py            # Remnawave v3+ REST API client & cluster adapter
 │   │   ├── backup.py               # Database snapshot creation & Telegram document dispatcher
 │   │   ├── configs.py              # Subscription URI decoder & node parser
 │   │   ├── expiry.py               # Expiration warnings & account deactivation
-│   │   ├── formatting.py           # Jalali dates, traffic formatters, & visual progress bars
-│   │   ├── reports.py              # Executive nightly, weekly, & monthly summaries (23:59)
-│   │   ├── retention.py            # Automated customer win-back retention campaigns
+│   │   ├── loyalty.py              # Customer tier discounts & spending progress
+│   │   ├── birthday.py             # Jalali birthday reward scheduler & coupon dispenser
 │   │   └── topups.py               # Top-up decision workflows & smart routing
+│   ├── web/                        # Web Presentation Layer: Aiohttp TMA Server & REST APIs
+│   │   ├── static/                 # Modular CSS tokens, Tailwind minified & domain JS
+│   │   ├── templates/              # Semantic RTL HTML templates (User TMA & Admin Web Suite)
+│   │   ├── server.py               # Aiohttp application entrypoint & middleware pipeline
+│   │   ├── routes_user.py          # User REST endpoints (Speedtest, Shop, Wheel, Subscriptions)
+│   │   ├── routes_admin.py         # Admin management endpoints (Infra, Finance, Users, Settings)
+│   │   └── cache.py                # FastCache with Stale-While-Revalidate (SWR) & Redis fallback
 │   ├── states/                     # Finite State Machine (FSM) conversation groups
 │   ├── config.py                   # Strongly-typed Pydantic v2 application settings
 │   └── main.py                     # Bot entrypoint, router binding, & scheduler launcher
-├── tests/                          # Comprehensive test suite (210 passing tests)
+├── tests/                          # Comprehensive test suite (299 passing tests)
 ├── docker-compose.yml              # Production multi-container orchestration (Bot, DB, Redis)
 ├── Dockerfile                      # Optimized Python 3.12-slim multi-stage image
 ├── requirements.txt                # Pinned production dependencies
@@ -583,7 +603,7 @@ Remnabot executes asynchronous automation routines using an internal non-blockin
 
 ## 🧪 Testing & Quality Assurance
 
-Remnabot maintains a strict test-driven development workflow with **210 passing unit & integration tests** covering database models, repositories, business logic services, and FSM handlers:
+Remnabot maintains a strict test-driven development workflow with **299 passing unit & integration tests** covering database models, repositories, business logic services, and FSM handlers:
 
 ```bash
 # Execute test suite

@@ -230,7 +230,8 @@ function setupLuckyWheel() {
   const wheelResultText = document.getElementById('wheelResultText');
 
   const wheelModal = bindModal('luckyWheelModal', 'closeLuckyWheelBtn');
-  openLuckyWheelBtn?.addEventListener('click', () => {
+
+  function openLuckyWheel() {
     window.api?.haptic?.('selection');
     checkAndUpdateWheelCooldown();
     if (window.lastUserData?.wheel_status) {
@@ -246,7 +247,10 @@ function setupLuckyWheel() {
       );
     }
     wheelModal.open();
-  });
+  }
+  window.openLuckyWheel = openLuckyWheel;
+
+  openLuckyWheelBtn?.addEventListener('click', openLuckyWheel);
 
   document.addEventListener('visibilitychange', () => {
     if (!document.hidden) checkAndUpdateWheelCooldown();

@@ -542,7 +542,7 @@ function renderFilteredShopPlans() {
     const cleanFlags = (p.flags && Array.isArray(p.flags)) ? p.flags.filter(f => f && (p.flags.length === 1 || f !== '🌐')) : [];
     const flagsList = cleanFlags.length > 0
       ? cleanFlags.map(f => `<span class="text-xs inline-block" title="${f}">${f}</span>`).join(' ')
-      : '🇩🇪 🇳🇱 🇫🇮';
+      : '<span class="text-[10px] t-muted">سراسری (همه سرورها)</span>';
 
     const userLoyalty = cachedPlansData?.loyalty || window.lastUserData?.loyalty;
     const userTierIcon = userLoyalty?.icon || '🥈';

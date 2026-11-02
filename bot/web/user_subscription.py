@@ -41,6 +41,10 @@ async def get_user_subscription_configs(request: web.Request) -> web.Response:
     if account_id_param and str(account_id_param).strip().lower() in ("null", "undefined", "none", ""):
         account_id_param = None
 
+    sub_url_param = (request.query.get("sub_url") or "").strip()
+    if sub_url_param and str(sub_url_param).lower() in ("null", "undefined", "none"):
+        sub_url_param = ""
+
     cache: FastCache = request.app["cache"]
     cache_key = f"tma:user:{telegram_id}:configs:{account_id_param or 'def'}"
     cached = await cache.get(cache_key)
@@ -52,7 +56,7 @@ async def get_user_subscription_configs(request: web.Request) -> web.Response:
     if not session_factory or not remnawave:
         return web.json_response({"ok": False, "error": "سرویس سرور در دسترس نیست."}, status=503)
 
-    sub_url = ""
+    sub_url = sub_url_param if (sub_url_param and sub_url_param.startswith(("http://", "https://"))) else ""
     settings = request.app.get("settings")
     base_remna = (getattr(settings, "REMNAWAVE_BASE_URL", "") or getattr(settings, "REMNAWAVE_URL", "")).strip() if settings else ""
 
@@ -75,7 +79,7 @@ async def get_user_subscription_configs(request: web.Request) -> web.Response:
             if not target and panel_users:
                 target = panel_users[0]
 
-            if target:
+            if target and not sub_url:
                 sub_url = target.get("subscriptionUrl") or target.get("subscription_url") or ""
                 target_sub_id = target.get("shortUuid") or target.get("vlessUuid") or target.get("uuid") or target.get("shortId")
                 if not sub_url and target_sub_id and base_remna:
@@ -102,7 +106,7 @@ async def get_user_subscription_configs(request: web.Request) -> web.Response:
             "message": "اشتراک فعالی برای این حساب یافت نشد.",
         })
 
-    # Download and parse configs: Try direct Remnawave internal fetch first
+    # Download and parse configs
     raw_configs = []
     sub_token = ""
     if target:
@@ -119,7 +123,7 @@ async def get_user_subscription_configs(request: web.Request) -> web.Response:
                 resp = await remnawave._client.get(
                     sub_ep,
                     headers={"User-Agent": "v2rayNG/1.8.5", "Accept": "*/*"},
-                    timeout=4.0,
+                    timeout=1.5,
                 )
                 if resp.status_code == 200 and resp.text.strip():
                     body = resp.text.strip()
@@ -131,9 +135,8 @@ async def get_user_subscription_configs(request: web.Request) -> web.Response:
             except Exception as direct_exc:
                 logger.debug("Direct internal subscription fetch failed on %s: %s", sub_ep, direct_exc)
 
-    # Fallback to general fetcher if direct fetch was empty
     if not raw_configs and sub_url:
-        raw_configs = await fetch_subscription_configs(sub_url)
+        raw_configs = await fetch_subscription_configs(sub_url, timeout=2.5)
 
     configs = []
     for idx, cfg in enumerate(raw_configs, start=1):

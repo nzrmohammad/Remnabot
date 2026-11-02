@@ -1194,12 +1194,12 @@ openHighRiskUsersModal() {
 
   function switchAdminTopConsumersWeek(week) {
     adminTopConsumersWeek = week;
-    const activeClass = 'py-1 rounded-lg bg-blue-600 text-white shadow-sm text-center transition';
-    const inactiveClass = 'py-1 rounded-lg t-muted hover:t-main text-center transition';
     ['all', 'week1', 'week2', 'week3', 'week4'].forEach(w => {
       const idKey = w === 'all' ? 'All' : w.charAt(0).toUpperCase() + w.slice(1);
       const btn = $(`adminTopWeek${idKey}Btn`);
-      if (btn) btn.className = (w === week) ? activeClass : inactiveClass;
+      if (btn) {
+        btn.classList.toggle('is-active', w === week);
+      }
     });
     if (cachedTopConsumersData) {
       renderAdminTopConsumersChart(cachedTopConsumersData, 'monthly');

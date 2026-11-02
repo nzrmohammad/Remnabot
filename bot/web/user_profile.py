@@ -477,8 +477,6 @@ async def get_user_me(request: web.Request) -> web.Response:
                 f = _extract_node_flag(n)
                 if f and f != "🌐" and f not in default_cluster_flags:
                     default_cluster_flags.append(f)
-        if not default_cluster_flags:
-            default_cluster_flags = ["🇩🇪", "🇳🇱", "🇫🇮"]
 
         loyalty_data = await get_user_loyalty(session, telegram_id, cache=cache)
         loyalty_pct = loyalty_data.get("discount_percent", 0)
@@ -519,10 +517,8 @@ async def get_user_me(request: web.Request) -> web.Response:
                         f = _extract_node_flag(n)
                         if f and f != "🌐" and f not in plan_flags:
                             plan_flags.append(f)
-                if not plan_flags:
-                    plan_flags = default_cluster_flags[:3]
             else:
-                plan_flags = default_cluster_flags[:4]
+                plan_flags = list(default_cluster_flags)
 
             disc_amt, final_price = apply_loyalty_discount(s.price, loyalty_pct)
 

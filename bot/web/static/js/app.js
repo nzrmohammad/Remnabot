@@ -386,8 +386,10 @@ function setupConfigsModal() {
       const targetAccId = window.currentAccountId || window.lastUserData?.active_sub?.account_id || window.lastUserData?.active_sub?.id;
       const subUrl = window.lastUserData?.active_sub?.subscription_url || $('subInput')?.value || '';
       const res = await window.api.getSubscriptionConfigs(targetAccId, subUrl);
-      if (res.ok && res.configs && res.configs.length > 0) {
-        currentConfigsList = res.configs;
+      const resData = res?.data || res;
+      const configs = resData?.configs || res?.configs || [];
+      if (res?.ok && configs.length > 0) {
+        currentConfigsList = configs;
         if (configsModalCount) configsModalCount.innerText = `${currentConfigsList.length} کانفیگ`;
 
         configsModalList.innerHTML = currentConfigsList.map(c => {
@@ -447,7 +449,7 @@ function setupConfigsModal() {
       } else {
         currentConfigsList = [];
         if (configsModalCount) configsModalCount.innerText = '0 کانفیگ';
-        const msg = res.message || res.error || 'کانفیگی در لینک اشتراک یافت نشد یا اشتراک منقضی شده است.';
+        const msg = resData?.message || res?.message || resData?.error || res?.error || 'کانفیگی در لینک اشتراک یافت نشد یا اشتراک منقضی شده است.';
         configsModalList.innerHTML = `
           <div class="text-center py-6 t-muted text-xs">
             <span class="text-base">⚠️</span>

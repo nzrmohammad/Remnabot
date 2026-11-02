@@ -401,12 +401,12 @@
             </div>
 
             <!-- Admin 4-Week Monthly Breakdown Filter (تفکیک ۴ هفته‌ای ماه) -->
-            <div id="adminTopConsumersWeekBar" class="hidden grid grid-cols-5 gap-1 p-0.5 card-inset rounded-xl text-[10px] font-bold">
-              <button type="button" id="adminTopWeekAllBtn" onclick="window.switchAdminTopConsumersWeek('all')" class="py-1 rounded-lg bg-blue-600 text-white shadow-sm text-center transition">کل ماه</button>
-              <button type="button" id="adminTopWeek1Btn" onclick="window.switchAdminTopConsumersWeek('week1')" class="py-1 rounded-lg t-muted hover:t-main text-center transition">هفته ۱</button>
-              <button type="button" id="adminTopWeek2Btn" onclick="window.switchAdminTopConsumersWeek('week2')" class="py-1 rounded-lg t-muted hover:t-main text-center transition">هفته ۲</button>
-              <button type="button" id="adminTopWeek3Btn" onclick="window.switchAdminTopConsumersWeek('week3')" class="py-1 rounded-lg t-muted hover:t-main text-center transition">هفته ۳</button>
-              <button type="button" id="adminTopWeek4Btn" onclick="window.switchAdminTopConsumersWeek('week4')" class="py-1 rounded-lg t-muted hover:t-main text-center transition">هفته ۴</button>
+            <div id="adminTopConsumersWeekBar" class="hidden grid grid-cols-5 gap-1 p-1 card-inset rounded-xl text-xs font-bold">
+              <button type="button" id="adminTopWeekAllBtn" onclick="window.switchAdminTopConsumersWeek('all')" class="admin-week-btn is-active py-1.5 rounded-lg text-center transition">کل ماه</button>
+              <button type="button" id="adminTopWeek1Btn" onclick="window.switchAdminTopConsumersWeek('week1')" class="admin-week-btn py-1.5 rounded-lg text-center transition">هفته ۱</button>
+              <button type="button" id="adminTopWeek2Btn" onclick="window.switchAdminTopConsumersWeek('week2')" class="admin-week-btn py-1.5 rounded-lg text-center transition">هفته ۲</button>
+              <button type="button" id="adminTopWeek3Btn" onclick="window.switchAdminTopConsumersWeek('week3')" class="admin-week-btn py-1.5 rounded-lg text-center transition">هفته ۳</button>
+              <button type="button" id="adminTopWeek4Btn" onclick="window.switchAdminTopConsumersWeek('week4')" class="admin-week-btn py-1.5 rounded-lg text-center transition">هفته ۴</button>
             </div>
 
             <!-- Bar Chart Canvas (Full Width) -->
@@ -2331,7 +2331,6 @@
                 <span id="adminStoreLogoEmpty" class="text-2xl text-slate-500">🛍️</span>
               </div>
               <div class="flex-1 space-y-1.5 min-w-0">
-                <span class="text-xs font-bold text-slate-200 block">لوگوی اختصاصی فروشگاه</span>
                 <p class="text-[10px] text-slate-400 leading-snug">این تصویر در بالای فاکتورها، رسیدهای دیجیتال تلگرام و مینی‌اپ نمایش داده می‌شود.</p>
                 <div class="flex items-center gap-2 pt-1">
                   <label class="btn btn-primary text-xs py-1.5 px-3 rounded-xl cursor-pointer active:scale-95 transition inline-flex items-center gap-1 shadow-sm">

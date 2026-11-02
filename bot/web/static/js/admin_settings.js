@@ -16,7 +16,7 @@
   let activeChatTelegramId = null;
   let activeChatUserName = '';
 
-  const DEFAULT_BIRTHDAY_TEMPLATE = `🎂 <b>زادروزتان فرخنده و همایون باد!</b> 🎉\n\nکاربر گرامی {first_name}، فرا رسیدن سالروز تولدتان را صمیمانه تبریک عرض می‌کنیم! 🌸\n\nبه مناسبت روز زادروز شما، پکیج هدیه اختصاصی VIP تقدیم حضورتان می‌گردد:\n{traffic_msg}\n🎟 <b>کد تخفیف اختصاصی {discount_pct}٪ برای سفارش یا تمدید بعدی:</b>\n<code>{coupon_code}</code>\n⏱ <i>(مهلت استفاده: ۷ روز در مینی‌اپ و ربات)</i>\n\nبا آرزوی بهترین‌ها و لحظاتی سرشار از سلامتی و شادی برای شما! 💫`;
+  const DEFAULT_BIRTHDAY_TEMPLATE = `🎂 <b>زادروزتان فرخنده و همایون باد!</b> 🎉\n\nکاربر گرامی {first_name}، فرا رسیدن سالروز تولدتان را صمیمانه تبریک عرض می‌کنیم! 🌸\n\nبه مناسبت روز زادروز شما، پکیج هدیه اختصاصی VIP تقدیم حضورتان می‌گردد:\n{traffic_msg}\n🎟 <b>کد تخفیف اختصاصی \u200e{discount_pct}% برای سفارش یا تمدید بعدی:</b>\n<code>{coupon_code}</code>\n⏱ <i>(مهلت استفاده: 7 روز در مینی‌اپ و ربات)</i>\n\nبا آرزوی بهترین‌ها و لحظاتی سرشار از سلامتی و شادی برای شما! 💫`;
 
   // Support Chat, Campaigns, App Recommendations & Settings Actions
   Object.assign(window.adminActions, {
