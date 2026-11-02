@@ -4697,8 +4697,8 @@ async function openInvoiceModal(orderId) {
   $('invNumberDisplay').innerText = 'در حال استخراج...';
   $('invDateDisplay').innerText = '--';
   $('invSellerName').innerText = '...';
-  $('invBuyerName').innerText = '...';
-  $('invBuyerId').innerText = 'ID: --';
+  if ($('invBuyerName')) $('invBuyerName').innerText = '...';
+  if ($('invBuyerId')) $('invBuyerId').innerText = '--';
   $('invItemTitle').innerText = 'در حال دریافت اطلاعات فاکتور...';
   $('invItemSpecs').innerText = '';
   $('invItemAmount').innerText = '--';
@@ -4732,8 +4732,11 @@ async function openInvoiceModal(orderId) {
       if (logoImg) logoImg.classList.add('hidden');
       if (defaultIcon) defaultIcon.classList.remove('hidden');
     }
-    $('invBuyerName').innerText = inv.buyer?.name || 'کاربر گرامی';
-    $('invBuyerId').innerText = `ID: ${inv.buyer?.telegram_id || '--'}`;
+    const bName = inv.buyer?.name || 'کاربر گرامی';
+    const bId = inv.buyer?.telegram_id || '';
+    const buyerFormatted = bId ? `${bName} - ${bId}` : bName;
+    if ($('invBuyerName')) $('invBuyerName').innerText = buyerFormatted;
+    if ($('invBuyerId')) $('invBuyerId').innerText = bId ? `${bId}` : '--';
 
     $('invItemTitle').innerText = inv.item?.title || 'بسته اشتراک';
     $('invItemSpecs').innerText = `${inv.item?.traffic_text || ''} | ${inv.item?.duration_text || ''}`;
@@ -4745,7 +4748,9 @@ async function openInvoiceModal(orderId) {
 
     const statusEl = $('invPaymentStatus');
     if (statusEl) {
-      statusEl.innerHTML = `<span>✅</span> <span>${inv.payment?.status || 'پرداخت شده و فعال'}</span>`;
+      let statusText = inv.payment?.status || 'پرداخت شده';
+      if (statusText === 'پرداخت شده و فعال') statusText = 'پرداخت شده';
+      statusEl.innerHTML = `<span>✅</span> <span>${statusText}</span>`;
     }
   } catch (err) {
     console.warn('Failed loading invoice:', err);

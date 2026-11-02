@@ -626,6 +626,25 @@ window.cancelCardAutoInvoice = async function () {
   } catch (e) {}
 };
 
+window.copyCardNumber = function (btnEl) {
+  const el = document.getElementById('cardAutoCardNumber') || document.getElementById('topupCardNumber');
+  const card = el?.innerText?.trim();
+  if (card && !card.includes('----') && !card.includes('ثبت نشده')) {
+    const cleanDigits = card.replace(/[^\d]/g, '');
+    const copyFn = typeof copyToClipboard === 'function' ? copyToClipboard : window.copyToClipboard;
+    if (copyFn) copyFn(cleanDigits || card, '📋 شماره کارت در کلیپ‌بورد کپی شد.');
+    if (typeof hapticFeedback === 'function') hapticFeedback('success');
+    const targetBtn = btnEl || document.getElementById('copyCardAutoBtn') || document.getElementById('copyTopupCardBtn');
+    if (targetBtn && targetBtn.tagName === 'BUTTON') {
+      const orig = targetBtn.innerText;
+      targetBtn.innerText = '✅';
+      setTimeout(() => { targetBtn.innerText = orig; }, 1500);
+    }
+  } else {
+    if (typeof showToast === 'function') showToast('⚠️ شماره کارتی برای کپی کردن یافت نشد.');
+  }
+};
+
 window.copyCardAutoAmount = function (type) {
   const el = type === 'rial' ? document.getElementById('cardAutoExactRial') : document.getElementById('cardAutoExactToman');
   const text = el?.innerText?.trim() || '';

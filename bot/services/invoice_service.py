@@ -76,7 +76,7 @@ async def get_order_invoice_data(
     duration_desc = f"{duration_days} روز" if duration_days > 0 else "بدون محدودیت زمانی"
 
     is_paid = (order.status == OrderStatus.PAID.value) or (str(order.status).lower() == "paid")
-    status_label = "پرداخت شده و فعال" if is_paid else "ناموفق / لغو شده"
+    status_label = "پرداخت شده" if is_paid else "ناموفق / لغو شده"
 
     amount_toman = int(order.amount or 0)
     amount_rial = amount_toman * 10
