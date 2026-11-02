@@ -141,7 +141,7 @@
           barGradient = 'from-rose-500 to-red-500';
           barGlow = 'shadow-[0_0_10px_rgba(244,63,94,0.4)]';
           badgeColor = 't-danger bg-transparent border-rose-500/30';
-          statusLabel = `${percentUsed}% (بحرانی)`;
+          statusLabel = `${percentUsed}%`;
         } else if (percentUsed >= 70) {
           barGradient = 'from-amber-500 to-orange-400';
           barGlow = 'shadow-[0_0_10px_rgba(245,158,11,0.35)]';

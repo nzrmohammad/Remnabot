@@ -667,45 +667,8 @@ async def get_periodic_users_bandwidth(
                                         prev2_j_w4_bytes += day_val
                     else:
                         tot = int(float(s.get("total") or 0))
-                        daily_bytes += int(tot * 0.1)
-                        week_bytes += tot
                         month_30d_bytes += tot
                         curr_j_bytes += tot
-                        curr_j_w1_bytes += int(tot * 0.25)
-                        curr_j_w2_bytes += int(tot * 0.25)
-                        curr_j_w3_bytes += int(tot * 0.25)
-                        curr_j_w4_bytes += int(tot * 0.25)
-                        prev_j_bytes += int(tot * 0.7)
-                        prev_j_w1_bytes += int(tot * 0.18)
-                        prev_j_w2_bytes += int(tot * 0.18)
-                        prev_j_w3_bytes += int(tot * 0.17)
-                        prev_j_w4_bytes += int(tot * 0.17)
-                        prev2_j_bytes += int(tot * 0.5)
-                        prev2_j_w1_bytes += int(tot * 0.13)
-                        prev2_j_w2_bytes += int(tot * 0.13)
-                        prev2_j_w3_bytes += int(tot * 0.12)
-                        prev2_j_w4_bytes += int(tot * 0.12)
-
-            all_time = get_used_bytes(u)
-            if month_30d_bytes == 0 and all_time > 0:
-                month_30d_bytes = min(all_time, int(all_time * 0.55))
-                curr_j_bytes = month_30d_bytes
-                prev_j_bytes = min(all_time - month_30d_bytes, int(all_time * 0.35))
-                prev2_j_bytes = min(all_time - month_30d_bytes - prev_j_bytes, int(all_time * 0.15))
-                week_bytes = min(month_30d_bytes, int(month_30d_bytes * 0.35))
-                daily_bytes = min(week_bytes, int(week_bytes * 0.25))
-                curr_j_w1_bytes = int(curr_j_bytes * 0.25)
-                curr_j_w2_bytes = int(curr_j_bytes * 0.25)
-                curr_j_w3_bytes = int(curr_j_bytes * 0.25)
-                curr_j_w4_bytes = max(0, curr_j_bytes - (curr_j_w1_bytes + curr_j_w2_bytes + curr_j_w3_bytes))
-                prev_j_w1_bytes = int(prev_j_bytes * 0.25)
-                prev_j_w2_bytes = int(prev_j_bytes * 0.25)
-                prev_j_w3_bytes = int(prev_j_bytes * 0.25)
-                prev_j_w4_bytes = max(0, prev_j_bytes - (prev_j_w1_bytes + prev_j_w2_bytes + prev_j_w3_bytes))
-                prev2_j_w1_bytes = int(prev2_j_bytes * 0.25)
-                prev2_j_w2_bytes = int(prev2_j_bytes * 0.25)
-                prev2_j_w3_bytes = int(prev2_j_bytes * 0.25)
-                prev2_j_w4_bytes = max(0, prev2_j_bytes - (prev2_j_w1_bytes + prev2_j_w2_bytes + prev2_j_w3_bytes))
 
             user_stats.append({
                 "id": u.get("id"),
@@ -747,67 +710,6 @@ async def get_periodic_users_bandwidth(
                 "prev2_j_w2_gb": round(prev2_j_w2_bytes / (1024 ** 3), 2),
                 "prev2_j_w3_gb": round(prev2_j_w3_bytes / (1024 ** 3), 2),
                 "prev2_j_w4_gb": round(prev2_j_w4_bytes / (1024 ** 3), 2),
-            })
-    else:
-        for u in (panel_users or [])[:30]:
-            all_time = get_used_bytes(u)
-            m_bytes = int(all_time * 0.55)
-            pm_bytes = int(all_time * 0.35)
-            pm2_bytes = int(all_time * 0.15)
-            w_bytes = int(all_time * 0.25)
-            d_bytes = int(all_time * 0.05)
-            w1_b = int(m_bytes * 0.28)
-            w2_b = int(m_bytes * 0.26)
-            w3_b = int(m_bytes * 0.24)
-            w4_b = max(0, m_bytes - w1_b - w2_b - w3_b)
-            pm_w1_b = int(pm_bytes * 0.28)
-            pm_w2_b = int(pm_bytes * 0.26)
-            pm_w3_b = int(pm_bytes * 0.24)
-            pm_w4_b = max(0, pm_bytes - pm_w1_b - pm_w2_b - pm_w3_b)
-            pm2_w1_b = int(pm2_bytes * 0.28)
-            pm2_w2_b = int(pm2_bytes * 0.26)
-            pm2_w3_b = int(pm2_bytes * 0.24)
-            pm2_w4_b = max(0, pm2_bytes - pm2_w1_b - pm2_w2_b - pm2_w3_b)
-            user_stats.append({
-                "id": u.get("id"),
-                "username": u.get("username") or f"user_{u.get('id')}",
-                "telegram_id": u.get("telegramId"),
-                "daily_bytes": d_bytes,
-                "week_bytes": w_bytes,
-                "month_30d_bytes": m_bytes,
-                "curr_j_bytes": m_bytes,
-                "curr_j_w1_bytes": w1_b,
-                "curr_j_w2_bytes": w2_b,
-                "curr_j_w3_bytes": w3_b,
-                "curr_j_w4_bytes": w4_b,
-                "prev_j_bytes": pm_bytes,
-                "prev_j_w1_bytes": pm_w1_b,
-                "prev_j_w2_bytes": pm_w2_b,
-                "prev_j_w3_bytes": pm_w3_b,
-                "prev_j_w4_bytes": pm_w4_b,
-                "prev2_j_bytes": pm2_bytes,
-                "prev2_j_w1_bytes": pm2_w1_b,
-                "prev2_j_w2_bytes": pm2_w2_b,
-                "prev2_j_w3_bytes": pm2_w3_b,
-                "prev2_j_w4_bytes": pm2_w4_b,
-                "daily_gb": round(d_bytes / (1024 ** 3), 2),
-                "week_gb": round(w_bytes / (1024 ** 3), 2),
-                "month_30d_gb": round(m_bytes / (1024 ** 3), 2),
-                "curr_j_gb": round(m_bytes / (1024 ** 3), 2),
-                "curr_j_w1_gb": round(w1_b / (1024 ** 3), 2),
-                "curr_j_w2_gb": round(w2_b / (1024 ** 3), 2),
-                "curr_j_w3_gb": round(w3_b / (1024 ** 3), 2),
-                "curr_j_w4_gb": round(w4_b / (1024 ** 3), 2),
-                "prev_j_gb": round(pm_bytes / (1024 ** 3), 2),
-                "prev_j_w1_gb": round(pm_w1_b / (1024 ** 3), 2),
-                "prev_j_w2_gb": round(pm_w2_b / (1024 ** 3), 2),
-                "prev_j_w3_gb": round(pm_w3_b / (1024 ** 3), 2),
-                "prev_j_w4_gb": round(pm_w4_b / (1024 ** 3), 2),
-                "prev2_j_gb": round(pm2_bytes / (1024 ** 3), 2),
-                "prev2_j_w1_gb": round(pm2_w1_b / (1024 ** 3), 2),
-                "prev2_j_w2_gb": round(pm2_w2_b / (1024 ** 3), 2),
-                "prev2_j_w3_gb": round(pm2_w3_b / (1024 ** 3), 2),
-                "prev2_j_w4_gb": round(pm2_w4_b / (1024 ** 3), 2),
             })
 
     def _make_leaderboard(users_list, bytes_key, gb_key, label, month_name=None):
