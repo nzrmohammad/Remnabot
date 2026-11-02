@@ -76,7 +76,11 @@ async def _render_account_configs(
     configs = []
     if remnawave and account_id is not None:
         try:
-            conn_keys = await remnawave.get_user_connection_keys(account_id)
+            conn_keys = await remnawave.get_user_connection_keys(
+                account_id,
+                short_uuid=account.get("shortUuid") or account.get("shortId"),
+                user_uuid=account.get("uuid"),
+            )
             if conn_keys:
                 for k in conn_keys:
                     configs.extend(parse_subscription_text(k))
@@ -197,9 +201,13 @@ async def single_config_detail(
 
     sub_url = account.get("subscriptionUrl")
     configs = []
-    if account.get("id") is not None:
+    if remnawave and account.get("id") is not None:
         try:
-            conn_keys = await remnawave.get_user_connection_keys(account.get("id"))
+            conn_keys = await remnawave.get_user_connection_keys(
+                account.get("id"),
+                short_uuid=account.get("shortUuid") or account.get("shortId"),
+                user_uuid=account.get("uuid"),
+            )
             if conn_keys:
                 for k in conn_keys:
                     configs.extend(parse_subscription_text(k))

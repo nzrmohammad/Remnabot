@@ -51,25 +51,87 @@ class RemnawaveUsersMixin:
             logger.warning("Remnawave unexpected error (telegram_id=%s): %s", telegram_id, exc)
             return None
 
-    async def get_user_connection_keys(self, user_id: int | str) -> list[str] | None:
+    async def get_user_connection_keys(
+        self,
+        user_id: int | str,
+        short_uuid: str | None = None,
+        user_uuid: str | None = None,
+    ) -> list[str] | None:
         """Fetch connection keys for user via official Remnawave API:
-        GET /api/subscriptions/connection-keys/{userId}
+        1. GET /api/subscriptions/connection-keys/{userId}
+        2. GET /api/subscriptions/by-short-uuid/{shortUuid}/raw
+        3. GET /api/subscriptions/by-short-uuid/{shortUuid}
+        4. GET /api/subscriptions/connection-keys/{userUuid}
         Returns list of connection keys (base64 or plaintext strings) or None on error.
         """
-        try:
-            resp = await self._client.get(f"/api/subscriptions/connection-keys/{user_id}")
-            if resp.status_code == 200:
-                data = resp.json().get("response") or {}
-                if isinstance(data, dict):
-                    enabled_keys = data.get("enabledKeys") or []
-                    if isinstance(enabled_keys, list):
-                        return [str(k) for k in enabled_keys if k]
-            elif resp.status_code == 404:
-                return []
-            return None
-        except Exception as exc:
-            logger.debug("Remnawave get_user_connection_keys(%s) error: %s", user_id, exc)
-            return None
+        def _extract_keys(data: Any, raw_text: str = "") -> list[str]:
+            if isinstance(data, list):
+                extracted = []
+                for item in data:
+                    if isinstance(item, str) and item.strip():
+                        extracted.append(item.strip())
+                    elif isinstance(item, dict):
+                        val = item.get("uri") or item.get("link") or item.get("key") or item.get("config")
+                        if val:
+                            extracted.append(str(val).strip())
+                if extracted:
+                    return extracted
+
+            if isinstance(data, dict):
+                candidates = (
+                    data.get("enabledKeys")
+                    or data.get("keys")
+                    or data.get("connectionKeys")
+                    or data.get("configs")
+                )
+                if isinstance(candidates, list) and candidates:
+                    extracted = []
+                    for item in candidates:
+                        if isinstance(item, str) and item.strip():
+                            extracted.append(item.strip())
+                        elif isinstance(item, dict):
+                            val = item.get("uri") or item.get("link") or item.get("key") or item.get("config")
+                            if val:
+                                extracted.append(str(val).strip())
+                    if extracted:
+                        return extracted
+
+                raw_val = data.get("raw") or data.get("text") or data.get("subscription")
+                if isinstance(raw_val, str) and raw_val.strip():
+                    return [raw_val.strip()]
+
+            if raw_text and any(proto in raw_text for proto in ("vless://", "vmess://", "trojan://", "ss://")):
+                return [raw_text.strip()]
+
+            return []
+
+        endpoints: list[str] = [f"/api/subscriptions/connection-keys/{user_id}"]
+        if short_uuid and str(short_uuid).strip():
+            su = str(short_uuid).strip()
+            endpoints.append(f"/api/subscriptions/by-short-uuid/{su}/raw")
+            endpoints.append(f"/api/subscriptions/by-short-uuid/{su}")
+        if user_uuid and str(user_uuid).strip() and str(user_uuid).strip() != str(user_id).strip():
+            endpoints.append(f"/api/subscriptions/connection-keys/{str(user_uuid).strip()}")
+
+        for ep in endpoints:
+            try:
+                resp = await self._client.get(ep, headers={"Accept": "application/json, text/plain, */*"})
+                if resp.status_code == 200:
+                    text_body = resp.text.strip()
+                    try:
+                        json_body = resp.json()
+                        res_obj = json_body.get("response") if isinstance(json_body, dict) and "response" in json_body else json_body
+                        keys = _extract_keys(res_obj, text_body)
+                        if keys:
+                            return keys
+                    except Exception:
+                        pass
+                    if any(proto in text_body for proto in ("vless://", "vmess://", "trojan://", "ss://")):
+                        return [text_body]
+            except Exception as exc:
+                logger.debug("Remnawave connection keys endpoint %s error: %s", ep, exc)
+
+        return None
 
     async def telegram_id_exists(self, telegram_id: int) -> bool | None:
         """True if registered, False if not found, None if panel is down."""

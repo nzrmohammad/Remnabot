@@ -363,65 +363,6 @@ function setupConfigsModal() {
 
   let currentConfigsList = [];
 
-  const parseClientConfigs = (rawText) => {
-    if (!rawText || typeof rawText !== 'string') return [];
-    let text = rawText.trim();
-    if (text.startsWith('<!doctype') || text.startsWith('<html')) return [];
-
-    if (!text.includes('://') && text.length > 20) {
-      try {
-        const cleanB64 = text.replace(/\s+/g, '').replace(/-/g, '+').replace(/_/g, '/');
-        const decoded = atob(cleanB64);
-        if (decoded && decoded.includes('://')) {
-          text = decoded;
-        }
-      } catch (b64Err) {}
-    }
-
-    const lines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
-    const protocols = ['vless://', 'vmess://', 'trojan://', 'ss://', 'shadowsocks://', 'hysteria2://', 'hy2://', 'tuic://', 'wireguard://'];
-    const configs = [];
-
-    lines.forEach((line, idx) => {
-      const lower = line.toLowerCase();
-      const matchedProto = protocols.find(p => lower.startsWith(p));
-      if (!matchedProto) return;
-      const proto = matchedProto.replace('://', '');
-      let name = '';
-      if (proto === 'vmess') {
-        try {
-          const b64 = line.slice(8).trim().replace(/-/g, '+').replace(/_/g, '/');
-          const jsonStr = atob(b64);
-          const obj = JSON.parse(jsonStr);
-          name = obj.ps || obj.add || `VMess ${idx + 1}`;
-        } catch (e) {
-          name = `VMess ${idx + 1}`;
-        }
-      } else if (line.includes('#')) {
-        name = decodeURIComponent(line.split('#')[1] || '').trim();
-      }
-      if (!name) name = `${proto.toUpperCase()} ${idx + 1}`;
-
-      let flag = '🌐';
-      let countryName = 'سرور';
-      const flagMatch = name.match(/[\uD83C][\uDDE6-\uDDFF][\uD83C][\uDDE6-\uDDFF]/);
-      if (flagMatch) {
-        flag = flagMatch[0];
-      }
-
-      configs.push({
-        id: idx + 1,
-        name,
-        protocol: proto,
-        flag,
-        country_name: countryName,
-        uri: line,
-      });
-    });
-
-    return configs;
-  };
-
   const renderConfigsCards = (configs) => {
     currentConfigsList = configs;
     if (configsModalCount) configsModalCount.innerText = `${currentConfigsList.length} کانفیگ`;
@@ -507,24 +448,6 @@ function setupConfigsModal() {
       const res = await window.api.getSubscriptionConfigs(targetAccId, subUrl);
       const resData = res?.data || res;
       let configs = resData?.configs || res?.configs || [];
-
-      // Direct client-side fetch fallback if backend returned empty configs
-      if ((!configs || configs.length === 0) && subUrl && typeof fetch !== 'undefined') {
-        try {
-          const rawResp = await fetch(subUrl, {
-            headers: { 'Accept': 'text/plain, */*' },
-          });
-          if (rawResp.ok) {
-            const rawText = await rawResp.text();
-            const parsed = parseClientConfigs(rawText);
-            if (parsed && parsed.length > 0) {
-              configs = parsed;
-            }
-          }
-        } catch (fetchErr) {
-          console.debug('Direct client fetch fallback skipped:', fetchErr);
-        }
-      }
 
       if (configs && configs.length > 0) {
         renderConfigsCards(configs);

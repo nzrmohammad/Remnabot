@@ -115,7 +115,11 @@ async def get_user_subscription_configs(request: web.Request) -> web.Response:
         for candidate_id in (target.get("id"), target.get("uuid"), target.get("shortUuid")):
             if candidate_id is not None and str(candidate_id).strip():
                 try:
-                    conn_keys = await remnawave.get_user_connection_keys(candidate_id)
+                    conn_keys = await remnawave.get_user_connection_keys(
+                        candidate_id,
+                        short_uuid=target.get("shortUuid") or target.get("shortId"),
+                        user_uuid=target.get("uuid"),
+                    )
                     if conn_keys:
                         for k in conn_keys:
                             raw_configs.extend(parse_subscription_text(k))

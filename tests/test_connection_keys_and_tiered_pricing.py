@@ -93,6 +93,33 @@ async def test_remnawave_get_user_connection_keys():
     assert keys is not None
     assert len(keys) == 2
     assert "vless://" in keys[0]
-    client._client.get.assert_called_once_with("/api/subscriptions/connection-keys/42")
+    client._client.get.assert_called_once_with(
+        "/api/subscriptions/connection-keys/42",
+        headers={"Accept": "application/json, text/plain, */*"},
+    )
+
+    await client.close()
+
+
+@pytest.mark.anyio
+async def test_remnawave_get_user_connection_keys_with_short_uuid():
+    from bot.services.remnawave import RemnawaveClient
+
+    client = RemnawaveClient(base_url="http://mock-panel", token="dummy-token")
+    mock_resp_empty = MagicMock()
+    mock_resp_empty.status_code = 404
+    mock_resp_empty.json.return_value = {}
+
+    mock_resp_raw = MagicMock()
+    mock_resp_raw.status_code = 200
+    mock_resp_raw.text = "vless://sub-token@server:443?security=reality#Server-1\nvmess://b64#Server-2"
+    mock_resp_raw.json.side_effect = Exception("Not json")
+
+    client._client.get = AsyncMock(side_effect=[mock_resp_empty, mock_resp_raw])
+
+    keys = await client.get_user_connection_keys(42, short_uuid="abc-123")
+    assert keys is not None
+    assert len(keys) == 1
+    assert "vless://" in keys[0]
 
     await client.close()
