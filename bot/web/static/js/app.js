@@ -2844,7 +2844,7 @@ function hydrateUserInterface(data) {
 
       if (benefitDesc) {
         if (loyalty.discount_percent > 0) {
-          benefitDesc.innerHTML = `شما دارای <span class="font-mono font-bold">${loyalty.discount_percent}%</span> تخفیف وفاداری دائم روی تمامی بسته‌ها هستید. با افزایش خریدها، به سطوح بالاتر با تخفیف‌های بیشتر ارتقا&nbsp;می‌یابید!`;
+          benefitDesc.innerHTML = `شما دارای <span class="num-bidi font-mono font-bold" dir="ltr">${toEnglishDigits(loyalty.discount_percent)}%</span> تخفیف وفاداری دائم روی تمامی بسته‌ها هستید. با افزایش خریدها، به سطوح بالاتر با تخفیف‌های بیشتر ارتقا&nbsp;می‌یابید!`;
         } else {
           benefitDesc.innerText = 'با خرید بیشتر از فروشگاه، سطح خود را ارتقا دهید و از تخفیف دائمی روی تمامی بسته‌ها بهره‌مند شوید.';
         }
@@ -3584,11 +3584,17 @@ let currentUserLbWeek = 'all';
 
 function switchUserLbWeek(week) {
   currentUserLbWeek = week;
-  const activeClass = 'py-1 rounded-lg bg-cyan-600 text-white shadow text-center transition';
-  const inactiveClass = 'py-1 rounded-lg text-slate-400 hover:text-white text-center transition';
-  ['all', 'week1', 'week2', 'week3', 'week4'].forEach(w => {
-    const idKey = w === 'all' ? 'All' : w.charAt(0).toUpperCase() + w.slice(1);
-    const btn = $(`userLbWeek${idKey}Btn`);
+  const activeClass = 'py-1 rounded-lg bg-cyan-600 text-white shadow text-center transition font-bold';
+  const inactiveClass = 'py-1 rounded-lg t-muted hover:t-main text-center transition';
+  const weekMap = {
+    all: 'userLbWeekAllBtn',
+    week1: 'userLbWeek1Btn',
+    week2: 'userLbWeek2Btn',
+    week3: 'userLbWeek3Btn',
+    week4: 'userLbWeek4Btn',
+  };
+  Object.entries(weekMap).forEach(([w, btnId]) => {
+    const btn = $(btnId);
     if (btn) btn.className = (w === week) ? activeClass : inactiveClass;
   });
   renderUserLeaderboard();
@@ -4761,7 +4767,7 @@ function openLoyaltyModal() {
       if (!isMaxTier && nextTier && nextTier.name) {
         const needed = Number(nextTier.remaining_amount || loyalty.amount_to_next || 0).toLocaleString('en-US');
         const nextDisc = toEnglishDigits(nextTier.discount_percent ?? loyalty.next_tier_discount ?? 0);
-        $('loyaltyModalProgressText').innerText = `با ${needed} تومان خرید دیگر، به سطح ${nextTier.name} ارتقا می‌یابید و از ${nextDisc}% تخفیف دائمی بهره‌مند می‌شوید.`;
+        $('loyaltyModalProgressText').innerHTML = `با ${needed} تومان خرید دیگر، به سطح ${nextTier.name} ارتقا می‌یابید و از <span class="num-bidi font-mono font-bold" dir="ltr">${nextDisc}%</span> تخفیف دائمی بهره‌مند می‌شوید.`;
       } else if (isMaxTier) {
         $('loyaltyModalProgressText').innerText = 'تبریک! شما به بالاترین سطح باشگاه مشتریان (الماس) دست یافته‌اید.';
       } else {
@@ -4778,7 +4784,7 @@ function openLoyaltyModal() {
           spentEl.innerText = `${Number(t.min_spent).toLocaleString('en-US')} تومان`;
         }
         if (pctEl && t.discount_percent !== undefined) {
-          pctEl.innerText = `${toEnglishDigits(t.discount_percent)}% تخفیف دائمی`;
+          pctEl.innerHTML = `<span class="num-bidi font-mono font-bold" dir="ltr">${toEnglishDigits(t.discount_percent)}%</span>`;
         }
       });
     }

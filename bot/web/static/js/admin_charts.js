@@ -1194,9 +1194,15 @@ openHighRiskUsersModal() {
 
   function switchAdminTopConsumersWeek(week) {
     adminTopConsumersWeek = week;
-    ['all', 'week1', 'week2', 'week3', 'week4'].forEach(w => {
-      const idKey = w === 'all' ? 'All' : w.charAt(0).toUpperCase() + w.slice(1);
-      const btn = $(`adminTopWeek${idKey}Btn`);
+    const weekMap = {
+      all: 'adminTopWeekAllBtn',
+      week1: 'adminTopWeek1Btn',
+      week2: 'adminTopWeek2Btn',
+      week3: 'adminTopWeek3Btn',
+      week4: 'adminTopWeek4Btn',
+    };
+    Object.entries(weekMap).forEach(([w, btnId]) => {
+      const btn = $(btnId);
       if (btn) {
         btn.classList.toggle('is-active', w === week);
       }
