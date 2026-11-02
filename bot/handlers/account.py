@@ -347,6 +347,44 @@ async def account_view(
     await call.answer()
 
 
+@router.callback_query(F.data == "menu:devices")
+async def menu_devices_entry(
+    call: CallbackQuery, bot: Bot, user_repo: UserRepository, remnawave: RemnawaveClient
+):
+    """Direct entry point to view and manage connected HWID devices."""
+    user = await user_repo.get_or_create(call.from_user.id, call.from_user.username)
+    lang = user.language or "fa"
+
+    accounts = await _get_accounts(remnawave, call.from_user.id)
+    if not accounts:
+        text = "شما در حال حاضر سرویس فعالی ندارید." if lang == "fa" else "You do not have any active subscriptions."
+        kb = InlineKeyboardBuilder()
+        kb.button(text=t(lang, "btn_back_to_menu"), callback_data="nav:main_menu")
+        await render_menu(bot, user, user_repo, text, kb.as_markup())
+        await call.answer()
+        return
+
+    if len(accounts) == 1:
+        await _render_devices(bot, user, user_repo, remnawave, accounts[0], lang)
+        await call.answer()
+        return
+
+    kb = InlineKeyboardBuilder()
+    for acc in accounts:
+        kb.button(
+            text=f"📱 {_format_account_btn(acc, lang)}",
+            callback_data=f"acc:devices:{acc.get('id')}",
+        )
+    kb.button(text=t(lang, "btn_back_to_menu"), callback_data="nav:main_menu")
+    kb.adjust(1)
+    text = (
+        f"{t(lang, 'devices_title')}\n{SEPARATOR}\n"
+        + ("لطفاً اکانت مورد نظر خود را جهت مدیریت دستگاه‌های متصل انتخاب کنید:" if lang == "fa" else "Please select an account to manage connected devices:")
+    )
+    await render_menu(bot, user, user_repo, text, kb.as_markup())
+    await call.answer()
+
+
 @router.callback_query(F.data.startswith("acc:devices:"))
 async def account_devices(
     call: CallbackQuery, bot: Bot, user_repo: UserRepository, remnawave: RemnawaveClient

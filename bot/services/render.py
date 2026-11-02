@@ -52,6 +52,17 @@ async def render_services(
             text=f"{indicator} {service.name} — {traffic_str} — {price_str}",
             callback_data=cb,
         )
+
+    if not renew_account_id:
+        try:
+            from bot.services.app_settings import get_store_settings
+            store_settings = await get_store_settings(session)
+            if getattr(store_settings, "custom_plan_enabled", True):
+                custom_btn_label = "🛠 ساخت بسته دلخواه (سفارشی)" if lang == "fa" else "🛠 Build Custom Plan"
+                kb.button(text=custom_btn_label, callback_data="menu:custom_plan")
+        except Exception:
+            pass
+
     kb.button(text=t(lang, "btn_back_to_menu"), callback_data="nav:main_menu")
     kb.adjust(1)
 

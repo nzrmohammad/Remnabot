@@ -35,6 +35,9 @@ FA_TEXTS: dict[str, str] = {
         "btn_settings": "⚙️ تنظیمات",
         "btn_support": "\u200f🎧 پشتیبانی",
         "btn_profile": "👤 حساب کاربری",
+        "btn_wheel": "🎡 گردونه شانس",
+        "btn_gifts": "🎁 ارسال هدیه",
+        "btn_custom_plan": "🛠 بسته دلخواه",
         "btn_admin_panel": "🔐 پنل مدیریت",
         "section_placeholder": (
             "🚧 <b>{section}</b>\n\n"

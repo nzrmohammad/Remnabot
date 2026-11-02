@@ -64,14 +64,17 @@ def main_menu_keyboard(
     # row 2
     kb.button(text=t(lang, "btn_services"), callback_data="menu:services")
     kb.button(text=t(lang, "btn_wallet"), callback_data="menu:wallet")
-    # row 3
+    # row 3 (Wheel | Gift)
+    kb.button(text=t(lang, "btn_gifts"), callback_data="menu:gift")
+    kb.button(text=t(lang, "btn_wheel"), callback_data="menu:wheel")
+    # row 4
     kb.button(text=t(lang, "btn_settings"), callback_data="menu:settings")
     kb.button(text=t(lang, "btn_connection_guide"), callback_data="menu:guide")
-    # row 4
+    # row 5
     kb.button(text=t(lang, "btn_profile"), callback_data="menu:profile")
     kb.button(text=t(lang, "btn_support"), callback_data="menu:support")
 
-    sizes.extend([2, 2, 2, 2])
+    sizes.extend([2, 2, 2, 2, 2])
     if is_admin:
         kb.button(text=t(lang, "btn_admin_panel"), callback_data="menu:admin")
         sizes.append(1)

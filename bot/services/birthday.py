@@ -152,3 +152,100 @@ async def birthday_sweep_loop(
         except Exception as loop_err:
             logger.exception("Error in birthday_sweep_loop: %s", loop_err)
             await asyncio.sleep(300)
+
+
+def days_until_jalali_birthday(birth_date_val: str | None, tz_name: str = "Asia/Tehran") -> int | None:
+    """Calculate days until next Jalali birthday. Returns 0 if today is birthday."""
+    if not birth_date_val or not isinstance(birth_date_val, str) or not birth_date_val.strip():
+        return None
+
+    try:
+        clean = birth_date_val.strip().replace("-", "/")
+        parts = [int(p) for p in clean.split("/") if p.isdigit()]
+        if len(parts) == 3:
+            _, b_month, b_day = parts
+        elif len(parts) == 2:
+            b_month, b_day = parts
+        else:
+            return None
+
+        now_local = datetime.now(ZoneInfo(tz_name))
+        today_j = jdatetime.date.fromgregorian(date=now_local.date())
+
+        if today_j.month == b_month and today_j.day == b_day:
+            return 0
+
+        # Try this year
+        try:
+            this_bday = jdatetime.date(today_j.year, b_month, b_day)
+        except ValueError:
+            this_bday = jdatetime.date(today_j.year, b_month, max(1, b_day - 1))
+
+        if this_bday >= today_j:
+            return (this_bday - today_j).days
+
+        # Next year
+        try:
+            next_bday = jdatetime.date(today_j.year + 1, b_month, b_day)
+        except ValueError:
+            next_bday = jdatetime.date(today_j.year + 1, b_month, max(1, b_day - 1))
+
+        return (next_bday - today_j).days
+    except Exception:
+        return None
+
+
+def parse_and_validate_jalali_birthdate(raw_input: str) -> tuple[bool, str, str | None]:
+    """Parse, normalize and validate user inputted Jalali birth date.
+
+    Supports:
+    - Standard: '1378/04/15', '1378-04-15', '1378.04.15'
+    - Short (month/day): '04/15' -> defaults year to 1380
+    - Persian numerals: '۱۳۷۸/۰۴/۱۵'
+
+    Returns:
+        (is_valid, formatted_date_string, error_message_or_none)
+    """
+    if not raw_input or not raw_input.strip():
+        return False, "", "لطفاً تاریخ تولد را وارد نمایید."
+
+    # Convert Persian/Arabic digits to Latin
+    persian_to_latin = str.maketrans("۰۱۲۳۴۵۶۷۸۹٠١٢٣٤٥٦٧٨٩", "01234567890123456789")
+    clean = raw_input.strip().translate(persian_to_latin)
+
+    # Normalize delimiters
+    for sep in ("-", ".", " "):
+        clean = clean.replace(sep, "/")
+
+    parts = [p.strip() for p in clean.split("/") if p.strip()]
+
+    if len(parts) == 2:
+        # User entered MM/DD -> default year to 1380
+        year = 1380
+        m_str, d_str = parts[0], parts[1]
+    elif len(parts) == 3:
+        y_str, m_str, d_str = parts[0], parts[1], parts[2]
+        if not y_str.isdigit():
+            return False, "", "سال تولد باید فقط شامل عدد باشد."
+        year = int(y_str)
+    else:
+        return False, "", "فرمت نامعتبر است. نمونه صحیح: ۱۳۷۸/۰۴/۱۵ یا ۰۴/۱۵"
+
+    if not m_str.isdigit() or not d_str.isdigit():
+        return False, "", "ماه و روز باید فقط شامل عدد باشند."
+
+    month = int(m_str)
+    day = int(d_str)
+
+    if year < 1300 or year > 1410:
+        return False, "", "سال تولد باید بین ۱۳۰۰ تا ۱۴۱۰ باشد."
+
+    if month < 1 or month > 12:
+        return False, "", "ماه تولد باید بین ۱ تا ۱۲ باشد."
+
+    max_days = 31 if month <= 6 else (30 if month <= 11 else 29)
+    if day < 1 or day > max_days:
+        return False, "", f"روز تولد برای ماه {month} باید بین ۱ تا {max_days} باشد."
+
+    formatted = f"{year:04d}/{month:02d}/{day:02d}"
+    return True, formatted, None

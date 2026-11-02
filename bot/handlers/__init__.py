@@ -13,6 +13,8 @@ from bot.handlers import (
     auth,
     cleanup,
     configs,
+    custom_plan,
+    gift,
     guide,
     inline,
     main_menu,
@@ -25,6 +27,7 @@ from bot.handlers import (
     stats,
     support,
     wallet,
+    wheel,
 )
 
 
@@ -34,6 +37,9 @@ def get_main_router() -> Router:
     router.include_router(auth.router)
     router.include_router(payment_stars.router)
     router.include_router(service_request.router)
+    router.include_router(custom_plan.router) # must come BEFORE main_menu ("menu:*" catch-all)
+    router.include_router(wheel.router)       # must come BEFORE main_menu ("menu:*" catch-all)
+    router.include_router(gift.router)        # must come BEFORE main_menu ("menu:*" catch-all)
     router.include_router(stats.router)      # must come BEFORE main_menu ("menu:*" catch-all)
     router.include_router(account.router)    # must come BEFORE main_menu ("menu:*" catch-all)
     router.include_router(guide.router)      # must come BEFORE main_menu ("menu:*" catch-all)
