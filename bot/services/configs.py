@@ -239,12 +239,6 @@ async def _fetch_subscription_configs_impl(url: str, timeout: float = 2.5) -> li
             "",
         )))
 
-    # Add Docker internal network candidates for Remnawave subscription page container (port 3010)
-    if sub_token and not sub_token.endswith((".html", ".js", ".css")):
-        for host in ("http://remnawave-subscription-page:3010", "http://subscription-page:3010", "http://127.0.0.1:3010"):
-            candidate_urls.append(f"{host}/sub/{sub_token}")
-            candidate_urls.append(f"{host}/api/sub/{sub_token}")
-
     # If base_remna is configured and host differs, add internal panel rewrite as fallback
     if base_remna:
         parsed_orig = urllib.parse.urlparse(url)

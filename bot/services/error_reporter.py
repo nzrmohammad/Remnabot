@@ -118,10 +118,24 @@ async def report_error(
     ) or "Pause on PRI/Upgrade" in exc_msg:
         return
 
-    # Filter out normal Telegram long-polling socket timeouts and network blips
+    # Filter out normal Telegram long-polling socket timeouts, network blips, and polling conflict errors
     if (
-        exc_type in ("TelegramNetworkError", "ClientConnectorError", "ServerDisconnectedError", "TimeoutError")
-        or any(phrase in exc_msg for phrase in ("Request timeout error", "Cannot connect to host api.telegram.org", "Server disconnected"))
+        exc_type in (
+            "TelegramNetworkError",
+            "ClientConnectorError",
+            "ServerDisconnectedError",
+            "TimeoutError",
+            "TelegramConflictError",
+        )
+        or any(
+            phrase in exc_msg
+            for phrase in (
+                "Request timeout error",
+                "Cannot connect to host api.telegram.org",
+                "Server disconnected",
+                "Conflict: terminated by other getUpdates request",
+            )
+        )
     ):
         ctx_lower = str(context).lower()
         if "dispatcher" in ctx_lower or "getupdates" in ctx_lower or "polling" in ctx_lower or "aiogram" in ctx_lower:
@@ -347,9 +361,31 @@ class TelegramErrorLogHandler(logging.Handler):
                 "BrokenPipeError",
             ):
                 return
-            if exc_name in ("TelegramNetworkError", "ClientConnectorError", "ServerDisconnectedError", "TimeoutError"):
+            if exc_name in (
+                "TelegramNetworkError",
+                "ClientConnectorError",
+                "ServerDisconnectedError",
+                "TimeoutError",
+                "TelegramConflictError",
+            ):
                 if "dispatcher" in record.name.lower() or "aiogram" in record.name.lower():
                     return
+
+        # Also check message string if exc_info was stripped
+        rec_msg = str(record.getMessage())
+        if "dispatcher" in record.name.lower() or "aiogram" in record.name.lower():
+            if any(
+                p in rec_msg
+                for p in (
+                    "TelegramConflictError",
+                    "Conflict: terminated by other getUpdates request",
+                    "TelegramNetworkError",
+                    "ClientConnectorError",
+                    "ServerDisconnectedError",
+                    "TimeoutError",
+                )
+            ):
+                return
 
         try:
             loop = asyncio.get_running_loop()

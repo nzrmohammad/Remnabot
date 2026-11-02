@@ -221,10 +221,51 @@ async def main() -> None:
             logger.exception("Failed to start TMA web server")
 
     # ── Startup Single-Instance Lock (Prevents TelegramConflictError) ──
-    lock_key = "remnabot:instance_lock"
+    import hashlib
+    token_hash = hashlib.sha256(settings.BOT_TOKEN.encode()).hexdigest()[:12]
+    lock_key = f"remnabot:instance_lock:{token_hash}"
     lock_val = f"{os.getpid()}_{uuid.uuid4().hex[:8]}"
     lock_refresh_task = None
 
+    # 1. OS Host File Lock (Prevents multiple processes on the same host)
+    lock_dir = "/app/data" if os.path.isdir("/app/data") and os.access("/app/data", os.W_OK) else tempfile.gettempdir()
+    file_lock_path = os.path.join(lock_dir, f"remnabot_{token_hash}.lock")
+    file_lock_fd = None
+    try:
+        file_lock_fd = open(file_lock_path, "a+")
+        if os.name == "posix":
+            import fcntl
+            fcntl.flock(file_lock_fd.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+        elif os.name == "nt":
+            import msvcrt
+            file_lock_fd.seek(0)
+            msvcrt.locking(file_lock_fd.fileno(), msvcrt.LK_NBLCK, 1)
+        file_lock_fd.seek(0)
+        file_lock_fd.truncate()
+        file_lock_fd.write(f"pid={os.getpid()}\ntime={int(time.time())}\n")
+        file_lock_fd.flush()
+    except (BlockingIOError, OSError) as flock_err:
+        logger.critical(
+            "STARTUP ABORTED: Another bot instance is ALREADY running on this host with the same token! "
+            "(Lock file: %s, Details: %s). Stop the previous instance before starting a new one to prevent TelegramConflictError.",
+            file_lock_path,
+            flock_err,
+        )
+        if file_lock_fd:
+            try:
+                file_lock_fd.close()
+            except Exception:
+                pass
+        for task in background_tasks:
+            task.cancel()
+        if web_runner:
+            await web_runner.cleanup()
+        await remnawave.close()
+        await bot.session.close()
+        await engine.dispose()
+        return
+
+    # 2. Redis Distributed Lock (Prevents multiple containers/nodes with same token)
     if redis_client:
         try:
             acquired = await redis_client.set(lock_key, lock_val, nx=True, ex=30)
@@ -235,6 +276,11 @@ async def main() -> None:
                     "Ensure only ONE bot instance is running to prevent TelegramConflictError and split updates.",
                     holder,
                 )
+                if file_lock_fd:
+                    try:
+                        file_lock_fd.close()
+                    except Exception:
+                        pass
                 for task in background_tasks:
                     task.cancel()
                 if web_runner:
@@ -270,6 +316,23 @@ async def main() -> None:
         await bot.delete_webhook(drop_pending_updates=False)
         await dp.start_polling(bot)
     finally:
+        if file_lock_fd:
+            try:
+                if os.name == "posix":
+                    import fcntl
+                    fcntl.flock(file_lock_fd.fileno(), fcntl.LOCK_UN)
+                elif os.name == "nt":
+                    import msvcrt
+                    file_lock_fd.seek(0)
+                    msvcrt.locking(file_lock_fd.fileno(), msvcrt.LK_UNLCK, 1)
+                file_lock_fd.close()
+            except Exception:
+                pass
+            try:
+                if os.path.exists(file_lock_path):
+                    os.remove(file_lock_path)
+            except Exception:
+                pass
         if lock_refresh_task:
             lock_refresh_task.cancel()
         if redis_client:

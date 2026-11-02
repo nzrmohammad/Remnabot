@@ -1,4 +1,5 @@
 """Subscription configuration endpoints for Telegram Mini App."""
+import asyncio
 import logging
 import urllib.parse
 
@@ -110,30 +111,8 @@ async def get_user_subscription_configs(request: web.Request) -> web.Response:
     # Download and parse configs
     raw_configs = []
 
-    # 1. Official Remnawave API: GET /api/subscriptions/connection-keys/{userId}
-    if target:
-        for candidate_id in (target.get("id"), target.get("uuid"), target.get("shortUuid")):
-            if candidate_id is not None and str(candidate_id).strip():
-                try:
-                    conn_keys = await remnawave.get_user_connection_keys(
-                        candidate_id,
-                        short_uuid=target.get("shortUuid") or target.get("shortId"),
-                        user_uuid=target.get("uuid"),
-                    )
-                    if conn_keys:
-                        for k in conn_keys:
-                            raw_configs.extend(parse_subscription_text(k))
-                        if raw_configs:
-                            logger.info(
-                                "Successfully fetched %d configs from official Remnawave connection-keys API (user_id=%s)",
-                                len(raw_configs), candidate_id,
-                            )
-                            break
-                except Exception as ck_err:
-                    logger.debug("Failed calling get_user_connection_keys(%s): %s", candidate_id, ck_err)
-
     sub_token = ""
-    if not raw_configs and target:
+    if target:
         sub_token = str(target.get("shortUuid") or target.get("uuid") or target.get("shortId") or target.get("vlessUuid") or "").strip()
     if not sub_token and sub_url:
         parsed_sub = urllib.parse.urlparse(sub_url)
@@ -141,35 +120,23 @@ async def get_user_subscription_configs(request: web.Request) -> web.Response:
         if path_segments:
             sub_token = path_segments[-1]
 
-    if sub_token:
-        # Check subscription-page containers on port 3010 first
-        for host in ("http://remnawave-subscription-page:3010", "http://subscription-page:3010", "http://127.0.0.1:3010"):
-            for sub_ep in (f"/sub/{sub_token}", f"/api/sub/{sub_token}"):
-                try:
-                    async with httpx.AsyncClient(timeout=1.0) as cli:
-                        resp = await cli.get(
-                            f"{host}{sub_ep}",
-                            headers={"User-Agent": "v2rayNG/1.8.5", "Accept": "text/plain, */*"},
-                        )
-                        if resp.status_code == 200 and resp.text.strip():
-                            body = resp.text.strip()
-                            if not body.lower().startswith(("<!doctype", "<html")):
-                                raw_configs = parse_subscription_text(body)
-                                if raw_configs:
-                                    logger.info("Successfully fetched %d configs from container %s%s", len(raw_configs), host, sub_ep)
-                                    break
-                except Exception:
-                    pass
+    # Priority 1: Fetch directly from sub_url (fastest & most reliable when user's sub link is live)
+    if sub_url:
+        try:
+            raw_configs = await fetch_subscription_configs(sub_url, timeout=2.5)
             if raw_configs:
-                break
+                logger.info("Successfully fetched %d configs from subscription URL", len(raw_configs))
+        except Exception as exc:
+            logger.debug("Direct sub_url fetch attempt failed: %s", exc)
 
+    # Priority 2: Direct internal Remnawave panel sub endpoint (/api/sub/{token} or /sub/{token})
     if not raw_configs and sub_token and hasattr(remnawave, "_client"):
         for sub_ep in (f"/api/sub/{sub_token}", f"/sub/{sub_token}"):
             try:
                 resp = await remnawave._client.get(
                     sub_ep,
                     headers={"User-Agent": "v2rayNG/1.8.5", "Accept": "text/plain, */*"},
-                    timeout=1.5,
+                    timeout=2.0,
                 )
                 if resp.status_code == 200 and resp.text.strip():
                     body = resp.text.strip()
@@ -181,8 +148,30 @@ async def get_user_subscription_configs(request: web.Request) -> web.Response:
             except Exception as direct_exc:
                 logger.debug("Direct internal subscription fetch failed on %s: %s", sub_ep, direct_exc)
 
-    if not raw_configs and sub_url:
-        raw_configs = await fetch_subscription_configs(sub_url, timeout=2.5)
+    # Priority 3: Official Remnawave API: GET /api/subscriptions/connection-keys/{userId}
+    if not raw_configs and target:
+        candidate_ids = [cid for cid in (target.get("id"), target.get("uuid")) if cid is not None and str(cid).strip()]
+        for candidate_id in candidate_ids:
+            try:
+                conn_keys = await asyncio.wait_for(
+                    remnawave.get_user_connection_keys(
+                        candidate_id,
+                        short_uuid=target.get("shortUuid") or target.get("shortId"),
+                        user_uuid=target.get("uuid"),
+                    ),
+                    timeout=2.0,
+                )
+                if conn_keys:
+                    for k in conn_keys:
+                        raw_configs.extend(parse_subscription_text(k))
+                    if raw_configs:
+                        logger.info(
+                            "Successfully fetched %d configs from official Remnawave connection-keys API (user_id=%s)",
+                            len(raw_configs), candidate_id,
+                        )
+                        break
+            except Exception as ck_err:
+                logger.debug("Failed calling get_user_connection_keys(%s): %s", candidate_id, ck_err)
 
     configs = []
     for idx, cfg in enumerate(raw_configs, start=1):
@@ -216,8 +205,13 @@ async def get_user_subscription_configs(request: web.Request) -> web.Response:
             "uri": uri,
         })
 
-    # Cache for 60 seconds
+    # Cache for 120 seconds
     if configs:
-        await cache.set(cache_key, configs, ttl_seconds=60)
+        await cache.set(cache_key, configs, ttl_seconds=120)
+        return web.json_response({"ok": True, "configs": configs})
 
-    return web.json_response({"ok": True, "configs": configs})
+    return web.json_response({
+        "ok": True,
+        "configs": [],
+        "message": "کانفیگی در لینک اشتراک یافت نشد یا سرور اشتراک موقتاً در دسترس نیست.",
+    })
