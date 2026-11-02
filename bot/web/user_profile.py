@@ -45,7 +45,8 @@ def _extract_node_flag(node: dict[str, Any]) -> str | None:
     m = FLAG_EMOJI_RE.search(name)
     if m:
         return m.group(0)
-    search_text = f"{name} {node.get('country_name') or ''} {node.get('address') or ''}".lower()
+    tags_str = " ".join(str(t) for t in (node.get("tags") or []) if t)
+    search_text = f"{name} {node.get('country_name') or ''} {node.get('address') or ''} {node.get('hostname') or ''} {node.get('city') or ''} {node.get('remark') or ''} {tags_str}".lower()
     for kw, (f_emoji, _) in sorted(COUNTRY_FLAGS_MAP.items(), key=lambda x: len(x[0]), reverse=True):
         if kw in search_text:
             return f_emoji
@@ -770,6 +771,7 @@ async def get_user_me(request: web.Request) -> web.Response:
             "today_jalali": today_jalali_str,
             "yesterday_jalali": yesterday_jalali_str,
             "plans": plans_data,
+            "cluster_flags": default_cluster_flags,
             "transactions": transactions[:50],
             "won_coupons": active_won_coupons,
             "wheel_status": wheel_status,

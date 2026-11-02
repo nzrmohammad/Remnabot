@@ -2,6 +2,7 @@
 import logging
 import urllib.parse
 
+import httpx
 from aiohttp import web
 from sqlalchemy import select
 
@@ -117,12 +118,34 @@ async def get_user_subscription_configs(request: web.Request) -> web.Response:
         if path_segments:
             sub_token = path_segments[-1]
 
-    if sub_token and hasattr(remnawave, "_client"):
+    if sub_token:
+        # Check subscription-page containers on port 3010 first
+        for host in ("http://remnawave-subscription-page:3010", "http://subscription-page:3010", "http://127.0.0.1:3010"):
+            for sub_ep in (f"/sub/{sub_token}", f"/api/sub/{sub_token}"):
+                try:
+                    async with httpx.AsyncClient(timeout=1.0) as cli:
+                        resp = await cli.get(
+                            f"{host}{sub_ep}",
+                            headers={"User-Agent": "v2rayNG/1.8.5", "Accept": "text/plain, */*"},
+                        )
+                        if resp.status_code == 200 and resp.text.strip():
+                            body = resp.text.strip()
+                            if not body.lower().startswith(("<!doctype", "<html")):
+                                raw_configs = parse_subscription_text(body)
+                                if raw_configs:
+                                    logger.info("Successfully fetched %d configs from container %s%s", len(raw_configs), host, sub_ep)
+                                    break
+                except Exception:
+                    pass
+            if raw_configs:
+                break
+
+    if not raw_configs and sub_token and hasattr(remnawave, "_client"):
         for sub_ep in (f"/api/sub/{sub_token}", f"/sub/{sub_token}"):
             try:
                 resp = await remnawave._client.get(
                     sub_ep,
-                    headers={"User-Agent": "v2rayNG/1.8.5", "Accept": "*/*"},
+                    headers={"User-Agent": "v2rayNG/1.8.5", "Accept": "text/plain, */*"},
                     timeout=1.5,
                 )
                 if resp.status_code == 200 and resp.text.strip():

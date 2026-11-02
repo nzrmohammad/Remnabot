@@ -921,10 +921,6 @@
               </div>
             </div>
             <input type="range" id="customPlanGbSlider" dir="rtl" min="5" max="300" step="5" value="30" class="w-full h-2 bg-slate-200 dark:bg-slate-700/80 rounded-lg appearance-none cursor-pointer accent-cyan-500" />
-            <div class="flex justify-between text-[10px] t-muted font-mono" dir="rtl">
-              <span id="customPlanGbMin" dir="ltr">5 GB</span>
-              <span id="customPlanGbMax" dir="ltr">300 GB</span>
-            </div>
           </div>
 
           <!-- Duration Slider -->
@@ -936,10 +932,6 @@
               </div>
             </div>
             <input type="range" id="customPlanDaysSlider" dir="rtl" min="10" max="180" step="5" value="30" class="w-full h-2 bg-slate-200 dark:bg-slate-700/80 rounded-lg appearance-none cursor-pointer accent-indigo-500" />
-            <div class="flex justify-between text-[10px] t-muted font-mono" dir="rtl">
-              <span id="customPlanDaysMin">10 روز</span>
-              <span id="customPlanDaysMax">180 روز</span>
-            </div>
           </div>
 
           <!-- Price Calculation Box -->
@@ -3095,7 +3087,7 @@
                 <span>⚡</span> ارسال مستقیم در تلگرام
               </button>
               <button type="button" onclick="window.setGiftDeliveryType('LINK')" id="giftDeliveryBtn-link" class="py-2 px-2.5 rounded-xl border border-card-border text-slate-400 hover:text-white font-medium text-xs flex items-center justify-center gap-1.5 transition">
-                <span>🔗</span> ساخت لینک هدیه (ووچر)
+                <span>🔗</span> ساخت لینک هدیه
               </button>
             </div>
           </div>
@@ -3103,7 +3095,10 @@
           <!-- Direct Recipient Input (Shown only for DIRECT delivery) -->
           <div id="giftReceiverSection" class="space-y-1">
             <span class="text-[11px] t-muted block">آیدی یا شناسه عددی تلگرام گیرنده:</span>
-            <input type="text" id="giftReceiverInput" placeholder="@username یا شناسه عددی (123456...)" class="input-base w-full p-2.5 rounded-xl text-xs font-mono outline-none" dir="ltr" />
+            <div class="relative flex items-center">
+              <input type="text" id="giftReceiverInput" placeholder="username یا 123456789" class="input-base w-full p-2.5 rounded-xl text-xs font-mono outline-none text-left pl-7" dir="ltr" />
+              <span class="absolute left-2.5 text-xs text-slate-400 font-mono select-none pointer-events-none">@</span>
+            </div>
             <span class="text-[10px] text-slate-400 block">ربات بلافاصله هدیه را همراه پیام شما به دوستتان تحویل می‌دهد.</span>
           </div>
 
@@ -3139,10 +3134,17 @@
             <div class="flex items-center gap-1.5 text-xs text-emerald-500 font-bold">
               <span>✅</span> هدیه شما با موفقیت ایجاد شد!
             </div>
+            <div id="giftCreatedCodeRow" class="space-y-1">
+              <span class="text-[10px] t-muted block">کد هدیه اختصاصی:</span>
+              <div class="flex items-center gap-1.5">
+                <button type="button" onclick="window.copyGiftCode()" class="btn btn-secondary text-xs p-2.5 rounded-xl shrink-0 font-bold active:scale-95" title="کپی کد هدیه">📋 کپی کد</button>
+                <input type="text" id="giftCreatedCodeInput" readonly class="input-base text-xs font-mono p-2.5 rounded-xl flex-1 select-all text-left" dir="ltr" />
+              </div>
+            </div>
             <div id="giftCreatedLinkRow" class="space-y-1">
               <span class="text-[10px] t-muted block">لینک دریافت هدیه برای ارسال به دوستتان:</span>
               <div class="flex items-center gap-1.5">
-                <button type="button" onclick="window.copyGiftShareLink()" class="btn btn-secondary text-xs p-2.5 rounded-xl shrink-0 font-bold active:scale-95" title="کپی لینک">📋</button>
+                <button type="button" onclick="window.copyGiftShareLink()" class="btn btn-secondary text-xs p-2.5 rounded-xl shrink-0 font-bold active:scale-95" title="کپی لینک">📋 کپی لینک</button>
                 <input type="text" id="giftCreatedLinkInput" readonly class="input-base text-xs font-mono p-2.5 rounded-xl flex-1 select-all text-left" dir="ltr" />
               </div>
             </div>

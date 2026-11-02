@@ -540,9 +540,11 @@ function renderFilteredShopPlans() {
     const defaultFeatureDesc = isTunnel ? 'ترافیک پایدار روی سرورها + تانل اختصاصی' : 'ترافیک پایدار روی سرورها';
 
     const cleanFlags = (p.flags && Array.isArray(p.flags)) ? p.flags.filter(f => f && (p.flags.length === 1 || f !== '🌐')) : [];
-    const flagsList = cleanFlags.length > 0
-      ? cleanFlags.map(f => `<span class="text-xs inline-block" title="${f}">${f}</span>`).join(' ')
-      : '<span class="text-[10px] t-muted">سراسری (همه سرورها)</span>';
+    const clusterFlags = (cachedPlansData?.cluster_flags || window.lastUserData?.cluster_flags || []).filter(f => f && f !== '🌐');
+    const activeFlags = cleanFlags.length > 0 ? cleanFlags : clusterFlags;
+    const flagsList = activeFlags.length > 0
+      ? activeFlags.map(f => `<span class="text-xs inline-block" title="${f}">${f}</span>`).join(' ')
+      : '<span class="text-xs inline-block" title="سرور اختصاصی">🌐</span>';
 
     const userLoyalty = cachedPlansData?.loyalty || window.lastUserData?.loyalty;
     const userTierIcon = userLoyalty?.icon || '🥈';

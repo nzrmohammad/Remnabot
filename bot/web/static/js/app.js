@@ -363,6 +363,125 @@ function setupConfigsModal() {
 
   let currentConfigsList = [];
 
+  const parseClientConfigs = (rawText) => {
+    if (!rawText || typeof rawText !== 'string') return [];
+    let text = rawText.trim();
+    if (text.startsWith('<!doctype') || text.startsWith('<html')) return [];
+
+    if (!text.includes('://') && text.length > 20) {
+      try {
+        const cleanB64 = text.replace(/\s+/g, '').replace(/-/g, '+').replace(/_/g, '/');
+        const decoded = atob(cleanB64);
+        if (decoded && decoded.includes('://')) {
+          text = decoded;
+        }
+      } catch (b64Err) {}
+    }
+
+    const lines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+    const protocols = ['vless://', 'vmess://', 'trojan://', 'ss://', 'shadowsocks://', 'hysteria2://', 'hy2://', 'tuic://', 'wireguard://'];
+    const configs = [];
+
+    lines.forEach((line, idx) => {
+      const lower = line.toLowerCase();
+      const matchedProto = protocols.find(p => lower.startsWith(p));
+      if (!matchedProto) return;
+      const proto = matchedProto.replace('://', '');
+      let name = '';
+      if (proto === 'vmess') {
+        try {
+          const b64 = line.slice(8).trim().replace(/-/g, '+').replace(/_/g, '/');
+          const jsonStr = atob(b64);
+          const obj = JSON.parse(jsonStr);
+          name = obj.ps || obj.add || `VMess ${idx + 1}`;
+        } catch (e) {
+          name = `VMess ${idx + 1}`;
+        }
+      } else if (line.includes('#')) {
+        name = decodeURIComponent(line.split('#')[1] || '').trim();
+      }
+      if (!name) name = `${proto.toUpperCase()} ${idx + 1}`;
+
+      let flag = '🌐';
+      let countryName = 'سرور';
+      const flagMatch = name.match(/[\uD83C][\uDDE6-\uDDFF][\uD83C][\uDDE6-\uDDFF]/);
+      if (flagMatch) {
+        flag = flagMatch[0];
+      }
+
+      configs.push({
+        id: idx + 1,
+        name,
+        protocol: proto,
+        flag,
+        country_name: countryName,
+        uri: line,
+      });
+    });
+
+    return configs;
+  };
+
+  const renderConfigsCards = (configs) => {
+    currentConfigsList = configs;
+    if (configsModalCount) configsModalCount.innerText = `${currentConfigsList.length} کانفیگ`;
+
+    configsModalList.innerHTML = currentConfigsList.map(c => {
+      const safeName = escapeHtml(c.name || 'کانفیگ سرور');
+      const protoBadge = escapeHtml((c.protocol || 'vpn').toUpperCase());
+      const flag = c.flag || '🌐';
+
+      return `
+        <div class="config-row-item card-inset p-2.5 flex items-center justify-between gap-2 transition hover:border-slate-600">
+          <div class="flex items-center gap-2 overflow-hidden flex-1 min-w-0">
+            <span class="text-base select-none flex-shrink-0" title="${escapeHtml(c.country_name || 'سرور')}">${flag}</span>
+            <span class="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-cyan-500/15 text-cyan-400 border border-cyan-500/30 uppercase flex-shrink-0">${protoBadge}</span>
+            <span class="text-xs font-bold t-main truncate config-name-label" title="${safeName}">${safeName}</span>
+          </div>
+          <div class="flex items-center gap-1 shrink-0">
+            <button type="button" class="copy-single-cfg-btn btn-icon t-muted hover:text-cyan-400 text-sm" data-uri="${encodeURIComponent(c.uri)}" title="کپی کانفیگ">
+              📋
+            </button>
+            <button type="button" class="qr-single-cfg-btn btn-icon t-muted hover:text-cyan-400 text-sm" data-uri="${encodeURIComponent(c.uri)}" data-name="${encodeURIComponent(c.name)}" title="نمایش کیوآرکد">
+              📷
+            </button>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    // Wire single copy buttons
+    configsModalList.querySelectorAll('.copy-single-cfg-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const uri = decodeURIComponent(btn.getAttribute('data-uri') || '');
+        if (uri) {
+          copyToClipboard(uri, '📋 کانفیگ اختصاصی با موفقیت در کلیپ‌بورد کپی شد.');
+          hapticFeedback('success');
+          btn.innerText = '✅';
+          setTimeout(() => {
+            btn.innerText = '📋';
+          }, 1800);
+        }
+      });
+    });
+
+    // Wire single QR buttons
+    configsModalList.querySelectorAll('.qr-single-cfg-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const uri = decodeURIComponent(btn.getAttribute('data-uri') || '');
+        if (uri) {
+          window.currentModalQrUri = uri;
+          const modalQrImg = $('modalQrImage');
+          if (modalQrImg) {
+            modalQrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=260x260&data=${encodeURIComponent(uri)}`;
+          }
+          openModal('qrModal');
+          syncTelegramBackButton();
+        }
+      });
+    });
+  };
+
   const loadAndRenderConfigs = async () => {
     if (!configsModalList) return;
     if (!window.lastUserData?.active_sub) {
@@ -387,65 +506,28 @@ function setupConfigsModal() {
       const subUrl = window.lastUserData?.active_sub?.subscription_url || $('subInput')?.value || '';
       const res = await window.api.getSubscriptionConfigs(targetAccId, subUrl);
       const resData = res?.data || res;
-      const configs = resData?.configs || res?.configs || [];
-      if (res?.ok && configs.length > 0) {
-        currentConfigsList = configs;
-        if (configsModalCount) configsModalCount.innerText = `${currentConfigsList.length} کانفیگ`;
+      let configs = resData?.configs || res?.configs || [];
 
-        configsModalList.innerHTML = currentConfigsList.map(c => {
-          const safeName = escapeHtml(c.name || 'کانفیگ سرور');
-          const protoBadge = escapeHtml((c.protocol || 'vpn').toUpperCase());
-          const flag = c.flag || '🌐';
-
-          return `
-            <div class="config-row-item card-inset p-2.5 flex items-center justify-between gap-2 transition hover:border-slate-600">
-              <div class="flex items-center gap-2 overflow-hidden flex-1 min-w-0">
-                <span class="text-base select-none flex-shrink-0" title="${escapeHtml(c.country_name || 'سرور')}">${flag}</span>
-                <span class="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-cyan-500/15 text-cyan-400 border border-cyan-500/30 uppercase flex-shrink-0">${protoBadge}</span>
-                <span class="text-xs font-bold t-main truncate config-name-label" title="${safeName}">${safeName}</span>
-              </div>
-              <div class="flex items-center gap-1 shrink-0">
-                <button type="button" class="copy-single-cfg-btn btn-icon t-muted hover:text-cyan-400 text-sm" data-uri="${encodeURIComponent(c.uri)}" title="کپی کانفیگ">
-                  📋
-                </button>
-                <button type="button" class="qr-single-cfg-btn btn-icon t-muted hover:text-cyan-400 text-sm" data-uri="${encodeURIComponent(c.uri)}" data-name="${encodeURIComponent(c.name)}" title="نمایش کیوآرکد">
-                  📷
-                </button>
-              </div>
-            </div>
-          `;
-        }).join('');
-
-        // Wire single copy buttons
-        configsModalList.querySelectorAll('.copy-single-cfg-btn').forEach(btn => {
-          btn.addEventListener('click', () => {
-            const uri = decodeURIComponent(btn.getAttribute('data-uri') || '');
-            if (uri) {
-              copyToClipboard(uri, '📋 کانفیگ اختصاصی با موفقیت در کلیپ‌بورد کپی شد.');
-              hapticFeedback('success');
-              btn.innerText = '✅';
-              setTimeout(() => {
-                btn.innerText = '📋';
-              }, 1800);
-            }
+      // Direct client-side fetch fallback if backend returned empty configs
+      if ((!configs || configs.length === 0) && subUrl && typeof fetch !== 'undefined') {
+        try {
+          const rawResp = await fetch(subUrl, {
+            headers: { 'Accept': 'text/plain, */*' },
           });
-        });
-
-        // Wire single QR buttons
-        configsModalList.querySelectorAll('.qr-single-cfg-btn').forEach(btn => {
-          btn.addEventListener('click', () => {
-            const uri = decodeURIComponent(btn.getAttribute('data-uri') || '');
-            if (uri) {
-              window.currentModalQrUri = uri;
-              const modalQrImg = $('modalQrImage');
-              if (modalQrImg) {
-                modalQrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=260x260&data=${encodeURIComponent(uri)}`;
-              }
-              openModal('qrModal');
-              syncTelegramBackButton();
+          if (rawResp.ok) {
+            const rawText = await rawResp.text();
+            const parsed = parseClientConfigs(rawText);
+            if (parsed && parsed.length > 0) {
+              configs = parsed;
             }
-          });
-        });
+          }
+        } catch (fetchErr) {
+          console.debug('Direct client fetch fallback skipped:', fetchErr);
+        }
+      }
+
+      if (configs && configs.length > 0) {
+        renderConfigsCards(configs);
       } else {
         currentConfigsList = [];
         if (configsModalCount) configsModalCount.innerText = '0 کانفیگ';
@@ -4323,12 +4405,13 @@ async function submitCreateGift() {
     }
 
     if (currentGiftDelivery === 'DIRECT') {
-      const rec = $('giftReceiverInput')?.value.trim();
+      let rec = $('giftReceiverInput')?.value.trim() || '';
       if (!rec) {
         showToast('⚠️ لطفاً آیدی یا شناسه عددی تلگرام گیرنده را وارد فرمایید.');
         if (btn) btn.disabled = false;
         return;
       }
+      rec = rec.replace(/^@+/, '');
       payload.receiver = rec;
       payload.receiver_target = rec;
     }
@@ -4348,8 +4431,10 @@ async function submitCreateGift() {
     const successBox = $('giftCreatedSuccessBox');
     if (successBox) {
       successBox.classList.remove('hidden');
+      const codeInput = $('giftCreatedCodeInput');
+      if (codeInput) codeInput.value = d.code || '';
       const linkInput = $('giftCreatedLinkInput');
-      if (linkInput) linkInput.value = d.share_url || d.claim_url || d.code || '';
+      if (linkInput) linkInput.value = d.share_url || d.claim_url || (d.code ? `https://t.me/${window.botUsername || ''}?start=gift_${d.code}` : '');
       const notice = $('giftCreatedNotice');
       if (notice) {
         if (currentGiftDelivery === 'DIRECT') {
@@ -4388,6 +4473,14 @@ function copyGiftShareLink() {
   if (!linkInp || !linkInp.value) return;
   copyToClipboard(linkInp.value);
   showToast('📋 لینک هدیه در کلیپ‌بورد کپی شد!');
+  hapticFeedback('selection');
+}
+
+function copyGiftCode() {
+  const codeInp = $('giftCreatedCodeInput');
+  if (!codeInp || !codeInp.value) return;
+  copyToClipboard(codeInp.value);
+  showToast('📋 کد اختصاصی هدیه کپی شد!');
   hapticFeedback('selection');
 }
 
@@ -4447,7 +4540,9 @@ async function loadGiftsHistory() {
       const desc = g.gift_type === 'BALANCE'
         ? `${Number(g.amount).toLocaleString('en-US')} تومان شارژ کیف پول`
         : `اشتراک ${g.service_name || 'سرویس'}`;
-      const rec = g.receiver_username ? `@${g.receiver_username}` : (g.receiver_telegram_id ? String(g.receiver_telegram_id) : 'از طریق لینک ووچر');
+      const rec = g.receiver_username
+        ? `<span dir="ltr">@${escapeHtml(g.receiver_username)}</span>`
+        : (g.receiver_telegram_id ? `<span dir="ltr">${escapeHtml(String(g.receiver_telegram_id))}</span>` : 'از طریق لینک هدیه');
       const dateStr = g.created_at_jalali || (g.created_at && window.formatDateToJalali ? window.formatDateToJalali(g.created_at) : '');
       const shareUrl = g.share_url || `https://t.me?start=gift_${g.code}`;
       return `
@@ -4461,8 +4556,11 @@ async function loadGiftsHistory() {
             <span dir="ltr" class="font-mono">${toEnglishDigits(dateStr)}</span>
           </div>
           <div class="flex items-center justify-between text-[10px] border-t border-card-border pt-1">
-            <span class="font-mono t-muted text-[10px] select-all">${g.code}</span>
-            ${!isClaimed ? `<button type="button" onclick="copyToClipboard('${shareUrl}'); showToast('📋 لینک کپی شد!');" class="p-1 rounded-md text-pink-500 hover:text-pink-400 hover:bg-pink-500/10 active:scale-95 transition" title="کپی لینک">📋</button>` : ''}
+            <div class="flex items-center gap-1.5" dir="ltr">
+              <span class="font-mono t-muted text-[10px] select-all">${g.code}</span>
+              <button type="button" onclick="copyToClipboard('${g.code}'); showToast('📋 کد کپی شد!');" class="p-1 rounded-md text-cyan-400 hover:text-cyan-300 hover:bg-cyan-500/10 active:scale-95 transition" title="کپی کد">📋</button>
+            </div>
+            ${!isClaimed ? `<button type="button" onclick="copyToClipboard('${shareUrl}'); showToast('📋 لینک کپی شد!');" class="text-[10px] text-pink-400 hover:text-pink-300 font-bold flex items-center gap-1 active:scale-95 transition" title="کپی لینک"><span>🔗</span> کپی لینک</button>` : ''}
           </div>
         </div>
       `;
@@ -4481,6 +4579,7 @@ window.setGiftBalancePreset = setGiftBalancePreset;
 window.updateGiftCostDisplay = updateGiftCostDisplay;
 window.submitCreateGift = submitCreateGift;
 window.copyGiftShareLink = copyGiftShareLink;
+window.copyGiftCode = copyGiftCode;
 window.submitClaimVoucher = submitClaimVoucher;
 window.loadGiftsHistory = loadGiftsHistory;
 window.populateGiftServices = populateGiftServices;

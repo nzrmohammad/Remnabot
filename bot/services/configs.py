@@ -217,6 +217,9 @@ async def _fetch_subscription_configs_impl(url: str, timeout: float = 2.5) -> li
 
     # Add /api/ variant of original URL
     parsed_u = urllib.parse.urlparse(url)
+    path_segments = [p for p in parsed_u.path.split("/") if p]
+    sub_token = path_segments[-1] if path_segments else ""
+
     if parsed_u.path.startswith("/sub/"):
         candidate_urls.append(urllib.parse.urlunparse((
             parsed_u.scheme,
@@ -235,6 +238,12 @@ async def _fetch_subscription_configs_impl(url: str, timeout: float = 2.5) -> li
             parsed_u.query,
             "",
         )))
+
+    # Add Docker internal network candidates for Remnawave subscription page container (port 3010)
+    if sub_token and not sub_token.endswith((".html", ".js", ".css")):
+        for host in ("http://remnawave-subscription-page:3010", "http://subscription-page:3010", "http://127.0.0.1:3010"):
+            candidate_urls.append(f"{host}/sub/{sub_token}")
+            candidate_urls.append(f"{host}/api/sub/{sub_token}")
 
     # If base_remna is configured and host differs, add internal panel rewrite as fallback
     if base_remna:
@@ -268,11 +277,11 @@ async def _fetch_subscription_configs_impl(url: str, timeout: float = 2.5) -> li
             deduped_candidates.append(c_url)
 
     primary_ua = "v2rayNG/1.8.5"
-    fallback_uas = ["Shadowrocket/1982", "v2ray"]
+    fallback_uas = ["Shadowrocket/1982", "v2ray", "ClashforWindows/0.19.0"]
 
     for target_url in deduped_candidates:
         parsed = urllib.parse.urlparse(target_url)
-        is_internal = parsed.hostname in ("127.0.0.1", "localhost", "remnawave") or (
+        is_internal = parsed.hostname in ("127.0.0.1", "localhost", "remnawave", "remnawave-subscription-page", "subscription-page") or (
             parsed.hostname and (parsed.hostname.startswith("172.") or parsed.hostname.startswith("192.168.") or parsed.hostname.startswith("10."))
         )
 
@@ -285,11 +294,11 @@ async def _fetch_subscription_configs_impl(url: str, timeout: float = 2.5) -> li
                 resp = None
                 try:
                     async with httpx.AsyncClient(verify=True, follow_redirects=True, timeout=timeout, proxy=p) as client:
-                        resp = await client.get(target_url, headers={"User-Agent": primary_ua, "Accept": "*/*"})
+                        resp = await client.get(target_url, headers={"User-Agent": primary_ua, "Accept": "text/plain, */*"})
                 except Exception as cert_err:
                     logger.debug("SSL verify=True failed for %s (%s), retrying with verify=False", target_url, cert_err)
                     async with httpx.AsyncClient(verify=False, follow_redirects=True, timeout=timeout, proxy=p) as client:
-                        resp = await client.get(target_url, headers={"User-Agent": primary_ua, "Accept": "*/*"})
+                        resp = await client.get(target_url, headers={"User-Agent": primary_ua, "Accept": "text/plain, */*"})
 
                 if resp is not None and resp.status_code == 200 and resp.text.strip():
                     text_body = resp.text.strip()

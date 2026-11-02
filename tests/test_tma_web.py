@@ -1865,8 +1865,9 @@ async def test_admin_crypto_rates_endpoint(monkeypatch):
         }
 
     monkeypatch.setattr("bot.services.crypto.nobitex.fetch_all_exchange_prices", mock_fetch)
+    monkeypatch.setattr("bot.services.crypto.nobitex._rates_cache", {})
 
-    req = make_mocked_request("GET", "/api/admin/crypto/rates")
+    req = make_mocked_request("GET", "/api/admin/crypto/rates?force=1")
     res = await get_admin_crypto_rates(req)
     assert res.status == 200
     data = json.loads(res.text)
