@@ -1,6 +1,7 @@
 from bot.web.user_common import db_session, require_user
 
 """TMA User Shop, Purchase, Subscriptions, Devices, and Lucky Wheel endpoints."""
+import json
 import logging
 import random
 import re
@@ -14,7 +15,7 @@ from sqlalchemy import select
 
 from bot.db.models import Service, User
 from bot.db.repositories.coupon_repo import CouponRepository
-from bot.services.app_settings import get_store_settings
+from bot.services.app_settings import StoreSettings, get_store_settings
 from bot.services.formatting import ltr_frag
 from bot.services.gift_service import claim_gift, create_gift, get_user_gifts
 from bot.services.invoice_service import get_order_invoice_data, send_invoice_to_telegram
@@ -762,8 +763,56 @@ async def get_user_gifts_history(request: web.Request) -> web.Response:
         return web.json_response({"ok": True, "gifts": gifts})
 
 
+def compute_custom_plan_price(
+    traffic_gb: int,
+    duration_days: int,
+    store_settings: StoreSettings,
+) -> tuple[int, int, int]:
+    """Calculate (raw_base_price, volume_discount_percent, discounted_base_price).
+
+    Implements tiered volume pricing (مدل پلکانی):
+    - Higher traffic = lower rate per GB.
+    - Default tiers: 1-50 GB: 0%, 51-100 GB: 10%, 101-200 GB: 20%, >200 GB: 30%.
+    - Can be customized via store_settings.custom_plan_volume_tiers_json.
+    """
+    raw_traffic_price = traffic_gb * store_settings.custom_plan_price_per_gb
+    time_price = duration_days * store_settings.custom_plan_price_per_day
+    base_fee = store_settings.custom_plan_base_price
+
+    volume_pct = 0
+    tiers_json = getattr(store_settings, "custom_plan_volume_tiers_json", "")
+    if tiers_json:
+        try:
+            tiers = json.loads(tiers_json)
+            if isinstance(tiers, list):
+                for t in tiers:
+                    min_g = int(t.get("min_gb", 0))
+                    max_g = int(t.get("max_gb", 999999))
+                    pct = int(t.get("discount_percent", 0))
+                    if min_g <= traffic_gb <= max_g:
+                        volume_pct = max(0, min(100, pct))
+                        break
+        except Exception:
+            pass
+
+    # Default slabs if not customized in settings:
+    # 1-50 GB: 0%, 51-100 GB: 10%, 101-200 GB: 20%, > 200 GB: 30%
+    if volume_pct == 0 and not tiers_json:
+        if 51 <= traffic_gb <= 100:
+            volume_pct = 10
+        elif 101 <= traffic_gb <= 200:
+            volume_pct = 20
+        elif traffic_gb > 200:
+            volume_pct = 30
+
+    discounted_traffic_price = int(raw_traffic_price * (100 - volume_pct) / 100)
+    raw_base = raw_traffic_price + time_price + base_fee
+    discounted_base = discounted_traffic_price + time_price + base_fee
+    return (raw_base, volume_pct, discounted_base)
+
+
 async def post_user_custom_plan_calculate(request: web.Request) -> web.Response:
-    """Calculate price and loyalty discount for custom plan on slider change."""
+    """Calculate price, volume tier discount, and loyalty discount for custom plan on slider change."""
     user_auth, err = require_user(request)
     if err:
         return err
@@ -784,11 +833,9 @@ async def post_user_custom_plan_calculate(request: web.Request) -> web.Response:
             and store_settings.custom_plan_price_per_day <= 0
             and store_settings.custom_plan_base_price <= 0
         )
-        base_price = (
-            (traffic_gb * store_settings.custom_plan_price_per_gb)
-            + (duration_days * store_settings.custom_plan_price_per_day)
-            + store_settings.custom_plan_base_price
-        )
+        raw_base, volume_pct, base_price = compute_custom_plan_price(traffic_gb, duration_days, store_settings)
+        volume_discount_amount = max(0, raw_base - base_price)
+
         loyalty = await get_user_loyalty(session, telegram_id, cache=cache)
         loyalty_pct = loyalty.get("discount_percent", 0)
         disc_amt, final_price = apply_loyalty_discount(base_price, loyalty_pct)
@@ -797,7 +844,10 @@ async def post_user_custom_plan_calculate(request: web.Request) -> web.Response:
             "ok": True,
             "traffic_gb": traffic_gb,
             "duration_days": duration_days,
+            "raw_base_price": raw_base,
             "base_price": base_price,
+            "volume_discount_percent": volume_pct,
+            "volume_discount_amount": volume_discount_amount,
             "loyalty_discount_percent": loyalty_pct,
             "loyalty_discount_amount": disc_amt,
             "final_price": final_price,
@@ -850,11 +900,7 @@ async def post_user_custom_plan_purchase(request: web.Request) -> web.Response:
                 "message": "تعرفه بسته دلخواه هنوز توسط مدیریت تنظیم نشده است."
             }, status=400)
 
-        base_price = (
-            (traffic_gb * store_settings.custom_plan_price_per_gb)
-            + (duration_days * store_settings.custom_plan_price_per_day)
-            + store_settings.custom_plan_base_price
-        )
+        raw_base, volume_pct, base_price = compute_custom_plan_price(traffic_gb, duration_days, store_settings)
         if base_price <= 0:
             return web.json_response({
                 "ok": False,

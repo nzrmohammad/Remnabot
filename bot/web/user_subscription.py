@@ -109,8 +109,27 @@ async def get_user_subscription_configs(request: web.Request) -> web.Response:
 
     # Download and parse configs
     raw_configs = []
-    sub_token = ""
+
+    # 1. Official Remnawave API: GET /api/subscriptions/connection-keys/{userId}
     if target:
+        for candidate_id in (target.get("id"), target.get("uuid"), target.get("shortUuid")):
+            if candidate_id is not None and str(candidate_id).strip():
+                try:
+                    conn_keys = await remnawave.get_user_connection_keys(candidate_id)
+                    if conn_keys:
+                        for k in conn_keys:
+                            raw_configs.extend(parse_subscription_text(k))
+                        if raw_configs:
+                            logger.info(
+                                "Successfully fetched %d configs from official Remnawave connection-keys API (user_id=%s)",
+                                len(raw_configs), candidate_id,
+                            )
+                            break
+                except Exception as ck_err:
+                    logger.debug("Failed calling get_user_connection_keys(%s): %s", candidate_id, ck_err)
+
+    sub_token = ""
+    if not raw_configs and target:
         sub_token = str(target.get("shortUuid") or target.get("uuid") or target.get("shortId") or target.get("vlessUuid") or "").strip()
     if not sub_token and sub_url:
         parsed_sub = urllib.parse.urlparse(sub_url)

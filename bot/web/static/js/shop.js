@@ -259,11 +259,38 @@ async function updateCustomPlanCalculation() {
   const submitBtn = document.getElementById('submitCustomPlanBtn');
 
   if (isConfigured) {
-    const localBase = (gb * pricePerGb) + (days * pricePerDay) + baseFixed;
+    let volPct = 0;
+    if (gb >= 51 && gb <= 100) volPct = 10;
+    else if (gb >= 101 && gb <= 200) volPct = 20;
+    else if (gb > 200) volPct = 30;
+
+    const rawTraffic = gb * pricePerGb;
+    const discountedTraffic = Math.floor(rawTraffic * (100 - volPct) / 100);
+    const localRawBase = rawTraffic + (days * pricePerDay) + baseFixed;
+    const localBase = discountedTraffic + (days * pricePerDay) + baseFixed;
+    const localVolDiscAmt = Math.max(0, localRawBase - localBase);
     const localDisc = Math.floor((localBase * loyaltyPct) / 100);
     const localFinal = Math.max(0, localBase - localDisc);
 
-    if (baseEl) baseEl.innerText = `${Number(localBase).toLocaleString('en-US')} تومان`;
+    if (baseEl) baseEl.innerText = `${Number(localRawBase).toLocaleString('en-US')} تومان`;
+
+    const volRow = document.getElementById('customPlanVolumeDiscountRow');
+    const volEl = document.getElementById('customPlanVolumeDiscountDisplay');
+    const volTierPct = document.getElementById('customPlanVolumeTierPct');
+    const volBadge = document.getElementById('customPlanVolumeBadge');
+    const volPctVal = document.getElementById('customPlanVolumePct');
+
+    if (volPct > 0) {
+      if (volRow) volRow.classList.remove('hidden');
+      if (volTierPct) volTierPct.innerText = volPct;
+      if (volEl) volEl.innerHTML = `<span dir="ltr" class="font-mono">-${Number(localVolDiscAmt).toLocaleString('en-US')}</span> تومان`;
+      if (volBadge) volBadge.classList.remove('hidden');
+      if (volPctVal) volPctVal.innerText = volPct;
+    } else {
+      if (volRow) volRow.classList.add('hidden');
+      if (volBadge) volBadge.classList.add('hidden');
+    }
+
     if (localDisc > 0) {
       if (discRow) discRow.classList.remove('hidden');
       if (discEl) discEl.innerHTML = `<span dir="ltr" class="font-mono">-${Number(localDisc).toLocaleString('en-US')}</span> تومان <span dir="ltr" class="font-mono font-bold">(${loyaltyPct}%)</span>`;
@@ -297,7 +324,25 @@ async function updateCustomPlanCalculation() {
       const res = await window.api.calculateCustomPlan(gb, days);
       if (res && res.ok && res.data) {
         const d = res.data;
-        if (baseEl) baseEl.innerText = `${Number(d.base_price).toLocaleString('en-US')} تومان`;
+        if (baseEl) baseEl.innerText = `${Number(d.raw_base_price || d.base_price).toLocaleString('en-US')} تومان`;
+
+        const volRow = document.getElementById('customPlanVolumeDiscountRow');
+        const volEl = document.getElementById('customPlanVolumeDiscountDisplay');
+        const volTierPct = document.getElementById('customPlanVolumeTierPct');
+        const volBadge = document.getElementById('customPlanVolumeBadge');
+        const volPctVal = document.getElementById('customPlanVolumePct');
+
+        if (d.volume_discount_percent > 0) {
+          if (volRow) volRow.classList.remove('hidden');
+          if (volTierPct) volTierPct.innerText = d.volume_discount_percent;
+          if (volEl) volEl.innerHTML = `<span dir="ltr" class="font-mono">-${Number(d.volume_discount_amount).toLocaleString('en-US')}</span> تومان`;
+          if (volBadge) volBadge.classList.remove('hidden');
+          if (volPctVal) volPctVal.innerText = d.volume_discount_percent;
+        } else {
+          if (volRow) volRow.classList.add('hidden');
+          if (volBadge) volBadge.classList.add('hidden');
+        }
+
         if (d.loyalty_discount_amount > 0) {
           if (discRow) discRow.classList.remove('hidden');
           if (discEl) discEl.innerHTML = `<span dir="ltr" class="font-mono">-${Number(d.loyalty_discount_amount).toLocaleString('en-US')}</span> تومان <span dir="ltr" class="font-mono font-bold">(${d.loyalty_discount_percent}%)</span>`;

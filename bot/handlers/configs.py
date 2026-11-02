@@ -16,7 +16,7 @@ from bot.common import SEPARATOR, parse_int
 from bot.db.repositories.user_repo import UserRepository
 from bot.keyboards.inline import welcome_keyboard
 from bot.locales.texts import t
-from bot.services.configs import fetch_subscription_configs
+from bot.services.configs import fetch_subscription_configs, parse_subscription_text
 from bot.services.menu import render_menu
 from bot.services.remnawave import RemnawaveClient
 
@@ -67,20 +67,25 @@ async def _render_account_configs(
     account: dict,
     lang: str,
     multi: bool = False,
+    remnawave: RemnawaveClient | None = None,
 ) -> None:
     account_id = account.get("id")
     username = escape(str(account.get("username", "—")))
     sub_url = account.get("subscriptionUrl")
 
-    if not sub_url:
-        kb = InlineKeyboardBuilder()
-        kb.button(text=t(lang, "btn_back"), callback_data=f"acc:view:{account_id}")
-        kb.button(text=t(lang, "btn_back_to_menu"), callback_data="nav:main_menu")
-        kb.adjust(1, 1)
-        await render_menu(bot, user, user_repo, t(lang, "configs_empty"), kb.as_markup())
-        return
+    configs = []
+    if remnawave and account_id is not None:
+        try:
+            conn_keys = await remnawave.get_user_connection_keys(account_id)
+            if conn_keys:
+                for k in conn_keys:
+                    configs.extend(parse_subscription_text(k))
+        except Exception as ck_err:
+            logger.debug("Failed fetching connection keys in handler for %s: %s", account_id, ck_err)
 
-    configs = await fetch_subscription_configs(sub_url)
+    if not configs and sub_url:
+        configs = await fetch_subscription_configs(sub_url)
+
     if not configs:
         kb = InlineKeyboardBuilder()
         kb.button(text=t(lang, "btn_back"), callback_data=f"acc:view:{account_id}")
@@ -162,7 +167,7 @@ async def single_configs_account_view(
         await call.answer(t(lang, "acc_error"), show_alert=True)
         return
 
-    await _render_account_configs(bot, user, user_repo, account, lang)
+    await _render_account_configs(bot, user, user_repo, account, lang, remnawave=remnawave)
     await call.answer()
 
 
@@ -191,12 +196,23 @@ async def single_config_detail(
         return
 
     sub_url = account.get("subscriptionUrl")
-    if not sub_url:
+    configs = []
+    if account.get("id") is not None:
+        try:
+            conn_keys = await remnawave.get_user_connection_keys(account.get("id"))
+            if conn_keys:
+                for k in conn_keys:
+                    configs.extend(parse_subscription_text(k))
+        except Exception as ck_err:
+            logger.debug("Failed fetching connection keys in single_config_detail: %s", ck_err)
+
+    if not configs and sub_url:
+        configs = await fetch_subscription_configs(sub_url)
+
+    if not configs:
         await call.answer(t(lang, "configs_empty"), show_alert=True)
         return
 
-    # Always fetch latest configs from subscription URL so user gets updated configs
-    configs = await fetch_subscription_configs(sub_url)
     if idx < 0 or idx >= len(configs):
         await call.answer(t(lang, "configs_empty"), show_alert=True)
         return
@@ -252,7 +268,7 @@ async def single_configs_entry(
     await user_repo.set_verified(user, True)
 
     if len(accounts) == 1:
-        await _render_account_configs(bot, user, user_repo, accounts[0], lang)
+        await _render_account_configs(bot, user, user_repo, accounts[0], lang, remnawave=remnawave)
         await call.answer()
         return
 

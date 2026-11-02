@@ -51,6 +51,26 @@ class RemnawaveUsersMixin:
             logger.warning("Remnawave unexpected error (telegram_id=%s): %s", telegram_id, exc)
             return None
 
+    async def get_user_connection_keys(self, user_id: int | str) -> list[str] | None:
+        """Fetch connection keys for user via official Remnawave API:
+        GET /api/subscriptions/connection-keys/{userId}
+        Returns list of connection keys (base64 or plaintext strings) or None on error.
+        """
+        try:
+            resp = await self._client.get(f"/api/subscriptions/connection-keys/{user_id}")
+            if resp.status_code == 200:
+                data = resp.json().get("response") or {}
+                if isinstance(data, dict):
+                    enabled_keys = data.get("enabledKeys") or []
+                    if isinstance(enabled_keys, list):
+                        return [str(k) for k in enabled_keys if k]
+            elif resp.status_code == 404:
+                return []
+            return None
+        except Exception as exc:
+            logger.debug("Remnawave get_user_connection_keys(%s) error: %s", user_id, exc)
+            return None
+
     async def telegram_id_exists(self, telegram_id: int) -> bool | None:
         """True if registered, False if not found, None if panel is down."""
         users = await self.get_users_by_telegram_id(telegram_id)

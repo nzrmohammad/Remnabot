@@ -907,9 +907,14 @@
                 <span class="text-[10px] t-muted block">حجم و زمان دلخواه خود را بسازید</span>
               </div>
             </div>
-            <span id="customPlanLoyaltyDiscountPill" class="hidden px-2 py-0.5 rounded-lg text-[10px] font-bold bg-amber-500/20 text-amber-500 dark:text-amber-300 border border-amber-500/30">
-              تخفیف وفاداری: <span dir="ltr" class="font-mono font-bold"><span id="customPlanLoyaltyPct">0</span>%</span>
-            </span>
+            <div class="flex items-center gap-1.5 flex-wrap">
+              <span id="customPlanVolumeBadge" class="hidden px-2 py-0.5 rounded-lg text-[10px] font-bold bg-emerald-500/20 text-emerald-500 dark:text-emerald-300 border border-emerald-500/30">
+                🔥 تخفیف حجم: <span dir="ltr" class="font-mono font-bold"><span id="customPlanVolumePct">0</span>%</span>
+              </span>
+              <span id="customPlanLoyaltyDiscountPill" class="hidden px-2 py-0.5 rounded-lg text-[10px] font-bold bg-amber-500/20 text-amber-500 dark:text-amber-300 border border-amber-500/30">
+                تخفیف وفاداری: <span dir="ltr" class="font-mono font-bold"><span id="customPlanLoyaltyPct">0</span>%</span>
+              </span>
+            </div>
           </div>
 
           <!-- GB Slider -->
@@ -939,6 +944,10 @@
             <div class="flex justify-between items-center text-[11px] t-muted">
               <span>نرخ پایه + روز و حجم:</span>
               <span id="customPlanBasePriceDisplay" class="font-mono">0 تومان</span>
+            </div>
+            <div id="customPlanVolumeDiscountRow" class="flex justify-between items-center text-[11px] text-emerald-500 hidden">
+              <span>تخفیف پلکانی حجم انتخابی (<span id="customPlanVolumeTierPct">0</span>٪):</span>
+              <span id="customPlanVolumeDiscountDisplay" class="font-mono">0 تومان</span>
             </div>
             <div id="customPlanDiscountRow" class="flex justify-between items-center text-[11px] text-amber-500 hidden">
               <span>تخفیف باشگاه مشتریان شما:</span>
