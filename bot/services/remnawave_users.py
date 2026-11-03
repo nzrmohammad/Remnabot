@@ -110,12 +110,17 @@ class RemnawaveUsersMixin:
             su = str(short_uuid).strip()
             endpoints.append(f"/api/subscriptions/by-short-uuid/{su}/raw")
             endpoints.append(f"/api/subscriptions/by-short-uuid/{su}")
+            endpoints.append(f"/api/sub/{su}")
+            endpoints.append(f"/sub/{su}")
         if user_uuid and str(user_uuid).strip() and str(user_uuid).strip() != str(user_id).strip():
             endpoints.append(f"/api/subscriptions/connection-keys/{str(user_uuid).strip()}")
 
         for ep in endpoints:
             try:
-                resp = await self._client.get(ep, headers={"Accept": "application/json, text/plain, */*"})
+                headers = {"Accept": "application/json, text/plain, */*"}
+                if "/sub/" in ep:
+                    headers["User-Agent"] = "v2rayNG/1.8.5"
+                resp = await self._client.get(ep, headers=headers)
                 if resp.status_code == 200:
                     text_body = resp.text.strip()
                     try:
@@ -126,7 +131,7 @@ class RemnawaveUsersMixin:
                             return keys
                     except Exception:
                         pass
-                    if any(proto in text_body for proto in ("vless://", "vmess://", "trojan://", "ss://")):
+                    if not text_body.lower().startswith(("<!doctype", "<html")) and len(text_body) > 10:
                         return [text_body]
             except Exception as exc:
                 logger.debug("Remnawave connection keys endpoint %s error: %s", ep, exc)

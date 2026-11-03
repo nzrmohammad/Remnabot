@@ -71,7 +71,7 @@ async def test_get_user_subscription_configs_priority1_connection_keys():
 
 
 @pytest.mark.anyio
-async def test_get_user_subscription_configs_fetches_sub_url():
+async def test_get_user_subscription_configs_empty_when_no_keys():
     app = web.Application()
     cache = FastCache(redis_client=None)
     app["cache"] = cache
@@ -84,23 +84,16 @@ async def test_get_user_subscription_configs_fetches_sub_url():
 
     request = MagicMock(spec=web.Request)
     request.app = app
-    request.query = {"sub_url": "https://sub.example.com/sub/abc"}
+    request.query = {"account_id": "user-1"}
     request.get = lambda k, default=None: {"id": 12345, "username": "testuser"} if k == "user" else default
 
-    mock_cfgs = [
-        {"name": "DE-Frankfurt", "protocol": "vless", "uri": "vless://frankfurt"},
-        {"name": "NL-Amsterdam", "protocol": "vmess", "uri": "vmess://amsterdam"},
-    ]
-
-    with patch("bot.web.user_subscription.fetch_subscription_configs", AsyncMock(return_value=mock_cfgs)):
-        resp = await get_user_subscription_configs(request)
-        assert resp.status == 200
-        import json
-        data = json.loads(resp.text)
-        assert data["ok"] is True
-        assert len(data["configs"]) == 2
-        assert data["configs"][0]["flag"] == "🇩🇪"
-        assert data["configs"][1]["flag"] == "🇳🇱"
+    resp = await get_user_subscription_configs(request)
+    assert resp.status == 200
+    import json
+    data = json.loads(resp.text)
+    assert data["ok"] is True
+    assert data["configs"] == []
+    assert "یافت نشد" in data["message"]
 
 
 @pytest.mark.anyio

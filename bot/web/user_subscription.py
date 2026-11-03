@@ -1,16 +1,12 @@
 """Subscription configuration endpoints for Telegram Mini App."""
-import asyncio
 import logging
 import urllib.parse
 
-import httpx
 from aiohttp import web
-from sqlalchemy import select
 
-from bot.db.models import Order
-from bot.services.configs import fetch_subscription_configs, parse_subscription_text
+from bot.services.configs import parse_subscription_text
 from bot.web.cache import FastCache
-from bot.web.user_common import db_session, require_user
+from bot.web.user_common import require_user
 
 logger = logging.getLogger(__name__)
 
@@ -33,7 +29,7 @@ COUNTRY_MAP = [
 
 
 async def get_user_subscription_configs(request: web.Request) -> web.Response:
-    """Fetch parsed individual configs from the user's active subscription."""
+    """Fetch parsed individual configs directly via Remnawave API."""
     user_auth, err = require_user(request)
     if err:
         return err
@@ -43,10 +39,6 @@ async def get_user_subscription_configs(request: web.Request) -> web.Response:
     if account_id_param and str(account_id_param).strip().lower() in ("null", "undefined", "none", ""):
         account_id_param = None
 
-    sub_url_param = (request.query.get("sub_url") or "").strip()
-    if sub_url_param and str(sub_url_param).lower() in ("null", "undefined", "none"):
-        sub_url_param = ""
-
     cache: FastCache = request.app["cache"]
     cache_key = f"tma:user:{telegram_id}:configs:{account_id_param or 'def'}"
     cached = await cache.get(cache_key)
@@ -54,125 +46,71 @@ async def get_user_subscription_configs(request: web.Request) -> web.Response:
         return web.json_response({"ok": True, "configs": cached, "cached": True})
 
     remnawave = request.app.get("remnawave")
-    session_factory = request.app.get("session_factory")
-    if not session_factory or not remnawave:
+    if not remnawave:
         return web.json_response({"ok": False, "error": "سرویس سرور در دسترس نیست."}, status=503)
 
-    sub_url = sub_url_param if (sub_url_param and sub_url_param.startswith(("http://", "https://"))) else ""
-    settings = request.app.get("settings")
-    base_remna = (getattr(settings, "REMNAWAVE_BASE_URL", "") or getattr(settings, "REMNAWAVE_URL", "")).strip() if settings else ""
+    # 1. Fetch user accounts directly from Remnawave API
+    try:
+        panel_users = await remnawave.get_users_by_telegram_id(telegram_id) or []
+    except Exception as exc:
+        logger.warning("Error fetching panel users for configs %s: %s", telegram_id, exc)
+        panel_users = []
 
-    async with db_session(request) as session:
-        # 1. Fetch user accounts from Remnawave
-        try:
-            panel_users = await remnawave.get_users_by_telegram_id(telegram_id) or []
-            target = None
-            if account_id_param:
-                for pu in panel_users:
-                    pu_short = pu.get("shortUuid") or pu.get("shortId")
-                    pu_vless = pu.get("vlessUuid") or pu.get("uuid")
-                    if (
-                        str(pu.get("id")) == str(account_id_param)
-                        or (pu_short and str(pu_short) == str(account_id_param))
-                        or (pu_vless and str(pu_vless) == str(account_id_param))
-                    ):
-                        target = pu
-                        break
-            if not target and panel_users:
-                target = panel_users[0]
+    target = None
+    if account_id_param:
+        for pu in panel_users:
+            pu_short = pu.get("shortUuid") or pu.get("shortId")
+            pu_vless = pu.get("vlessUuid") or pu.get("uuid")
+            if (
+                str(pu.get("id")) == str(account_id_param)
+                or (pu_short and str(pu_short) == str(account_id_param))
+                or (pu_vless and str(pu_vless) == str(account_id_param))
+            ):
+                target = pu
+                break
 
-            if target and not sub_url:
-                sub_url = target.get("subscriptionUrl") or target.get("subscription_url") or ""
-                target_sub_id = target.get("shortUuid") or target.get("vlessUuid") or target.get("uuid") or target.get("shortId")
-                if not sub_url and target_sub_id and base_remna:
-                    sub_url = f"{base_remna.rstrip('/')}/api/sub/{target_sub_id}"
-                elif sub_url and sub_url.startswith("/") and base_remna:
-                    sub_url = urllib.parse.urljoin(base_remna, sub_url)
-        except Exception as exc:
-            logger.warning("Error fetching panel users for configs %s: %s", telegram_id, exc)
+    if not target and panel_users:
+        target = panel_users[0]
 
-        # Fallback to Order table if not in panel response
-        if not sub_url:
-            order_res = await session.execute(
-                select(Order.subscription_url).where(
-                    Order.telegram_id == telegram_id,
-                    Order.subscription_url.isnot(None),
-                ).order_by(Order.id.desc()).limit(1)
-            )
-            sub_url = order_res.scalar_one_or_none() or ""
-
-    if not sub_url:
+    if not target:
         return web.json_response({
             "ok": True,
             "configs": [],
-            "message": "اشتراک فعالی برای این حساب یافت نشد.",
+            "message": "اشتراک فعالی برای این حساب در پنل یافت نشد.",
         })
 
-    # Download and parse configs
+    # 2. Extract user identifiers for direct Remnawave API
+    user_id = target.get("id")
+    short_uuid = str(target.get("shortUuid") or target.get("shortId") or target.get("vlessUuid") or "").strip()
+    user_uuid = str(target.get("uuid") or "").strip()
+
+    if not short_uuid:
+        sub_url = target.get("subscriptionUrl") or target.get("subscription_url") or ""
+        if sub_url and "/api/sub/" in sub_url:
+            short_uuid = sub_url.split("/api/sub/")[-1].split("?")[0].strip("/")
+        elif sub_url and "/" in sub_url:
+            path_segments = [p for p in urllib.parse.urlparse(sub_url).path.split("/") if p]
+            if path_segments:
+                short_uuid = path_segments[-1]
+
+    # 3. Direct Remnawave API call ONLY (no external scraping or fallbacks)
     raw_configs = []
-
-    sub_token = ""
-    if target:
-        sub_token = str(target.get("shortUuid") or target.get("uuid") or target.get("shortId") or target.get("vlessUuid") or "").strip()
-    if not sub_token and sub_url:
-        parsed_sub = urllib.parse.urlparse(sub_url)
-        path_segments = [p for p in parsed_sub.path.split("/") if p]
-        if path_segments:
-            sub_token = path_segments[-1]
-
-    # Priority 1: Official Remnawave API: GET /api/subscriptions/connection-keys/{userId}
-    # This is instantaneous (<50ms) and avoids DNS, WAN, and Hairpin NAT timeouts.
-    if target:
-        candidate_ids = [cid for cid in (target.get("id"), target.get("uuid")) if cid is not None and str(cid).strip()]
-        for candidate_id in candidate_ids:
-            try:
-                conn_keys = await asyncio.wait_for(
-                    remnawave.get_user_connection_keys(
-                        candidate_id,
-                        short_uuid=target.get("shortUuid") or target.get("shortId"),
-                        user_uuid=target.get("uuid"),
-                    ),
-                    timeout=1.5,
-                )
-                if conn_keys:
-                    for k in conn_keys:
-                        raw_configs.extend(parse_subscription_text(k))
-                    if raw_configs:
-                        logger.info(
-                            "Successfully fetched %d configs from official Remnawave connection-keys API (user_id=%s)",
-                            len(raw_configs), candidate_id,
-                        )
-                        break
-            except Exception as ck_err:
-                logger.debug("Failed calling get_user_connection_keys(%s): %s", candidate_id, ck_err)
-
-    # Priority 2: Direct internal Remnawave panel sub endpoint (/api/sub/{token} or /sub/{token})
-    if not raw_configs and sub_token and hasattr(remnawave, "_client"):
-        for sub_ep in (f"/api/sub/{sub_token}", f"/sub/{sub_token}"):
-            try:
-                resp = await remnawave._client.get(
-                    sub_ep,
-                    headers={"User-Agent": "v2rayNG/1.8.5", "Accept": "text/plain, */*"},
-                    timeout=1.5,
-                )
-                if resp.status_code == 200 and resp.text.strip():
-                    body = resp.text.strip()
-                    if not body.lower().startswith(("<!doctype", "<html")):
-                        raw_configs = parse_subscription_text(body)
-                        if raw_configs:
-                            logger.info("Successfully fetched %d configs directly from Remnawave internal %s", len(raw_configs), sub_ep)
-                            break
-            except Exception as direct_exc:
-                logger.debug("Direct internal subscription fetch failed on %s: %s", sub_ep, direct_exc)
-
-    # Priority 3: Fallback fetch directly from sub_url
-    if not raw_configs and sub_url:
+    candidate_ids = [cid for cid in (user_id, user_uuid) if cid is not None and str(cid).strip()]
+    for cid in candidate_ids:
         try:
-            raw_configs = await fetch_subscription_configs(sub_url, timeout=2.0)
-            if raw_configs:
-                logger.info("Successfully fetched %d configs from subscription URL", len(raw_configs))
-        except Exception as exc:
-            logger.debug("Direct sub_url fetch attempt failed: %s", exc)
+            conn_keys = await remnawave.get_user_connection_keys(
+                user_id=cid,
+                short_uuid=short_uuid or None,
+                user_uuid=user_uuid or None,
+            )
+            if conn_keys:
+                for k in conn_keys:
+                    raw_configs.extend(parse_subscription_text(k))
+                if raw_configs:
+                    logger.info("Direct Remnawave API returned %d configs for user %s", len(raw_configs), cid)
+                    break
+        except Exception as ck_err:
+            logger.warning("Direct Remnawave API connection keys failed (user_id=%s): %s", cid, ck_err)
 
     configs = []
     for idx, cfg in enumerate(raw_configs, start=1):
@@ -214,5 +152,5 @@ async def get_user_subscription_configs(request: web.Request) -> web.Response:
     return web.json_response({
         "ok": True,
         "configs": [],
-        "message": "کانفیگی در لینک اشتراک یافت نشد یا سرور اشتراک موقتاً در دسترس نیست.",
+        "message": "کانفیگی در پنل رمنانو یافت نشد.",
     })
