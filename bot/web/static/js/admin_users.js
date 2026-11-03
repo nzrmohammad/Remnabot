@@ -93,6 +93,8 @@
       let statusBadge = '<span class="px-1.5 py-0.5 rounded-lg text-[10px] bg-transparent border border-slate-400/30 t-muted font-medium">بدون اکانت</span>';
       if (u.is_banned) {
         statusBadge = '<span class="px-1.5 py-0.5 rounded-lg text-[10px] bg-transparent t-danger font-bold border border-rose-500/30">مسدود</span>';
+      } else if (u.is_limited || (p && p.exists && ((p.status || '').toUpperCase() === 'LIMITED' || (p.remaining_traffic_gb === 0 && p.limit_traffic_gb > 0)))) {
+        statusBadge = '<span class="px-1.5 py-0.5 rounded-lg text-[10px] bg-transparent text-amber-500 dark:text-amber-400 font-bold border border-amber-500/30">اتمام حجم</span>';
       } else if (u.is_expired || (p && p.exists && (p.status || '').toUpperCase() === 'EXPIRED')) {
         statusBadge = '<span class="px-1.5 py-0.5 rounded-lg text-[10px] bg-transparent t-danger font-bold border border-rose-500/30">منقضی</span>';
       } else if (p && p.exists) {
@@ -607,6 +609,8 @@ async applyUserModification() {
       let statusBadge = '<span class="px-2 py-0.5 rounded-lg text-[10px] bg-slate-800 border border-slate-700 text-slate-400 font-medium">بدون اکانت</span>';
       if (user.is_banned) {
         statusBadge = '<span class="px-2 py-0.5 rounded-lg text-[10px] bg-rose-500/10 text-rose-400 font-bold border border-rose-500/30">مسدود</span>';
+      } else if (user.is_limited || (p && p.exists && ((p.status || '').toUpperCase() === 'LIMITED' || (p.remaining_traffic_gb === 0 && p.limit_traffic_gb > 0)))) {
+        statusBadge = '<span class="px-2 py-0.5 rounded-lg text-[10px] bg-amber-500/10 text-amber-400 font-bold border border-amber-500/30">اتمام حجم</span>';
       } else if (user.is_expired || (p && p.exists && (p.status || '').toUpperCase() === 'EXPIRED')) {
         statusBadge = '<span class="px-2 py-0.5 rounded-lg text-[10px] bg-rose-500/10 text-rose-400 font-bold border border-rose-500/30">منقضی</span>';
       } else if (p && p.exists) {
@@ -615,8 +619,6 @@ async applyUserModification() {
           statusBadge = '<span class="px-2 py-0.5 rounded-lg text-[10px] bg-emerald-500/10 text-emerald-400 font-bold border border-emerald-500/30">فعال</span>';
         } else if (st === 'DISABLED') {
           statusBadge = '<span class="px-2 py-0.5 rounded-lg text-[10px] bg-amber-500/10 text-amber-400 font-bold border border-amber-500/30">غیرفعال</span>';
-        } else if (st === 'LIMITED') {
-          statusBadge = '<span class="px-2 py-0.5 rounded-lg text-[10px] bg-purple-500/10 text-purple-400 font-bold border border-purple-500/30">محدود شده</span>';
         } else {
           statusBadge = `<span class="px-2 py-0.5 rounded-lg text-[10px] bg-slate-800 border border-slate-700 text-slate-300 font-medium">${escapeHtml(st)}</span>`;
         }

@@ -1998,18 +1998,18 @@ function setupSupportChat() {
     if (isUser) {
       bubble.className = 'self-start ml-auto mr-0 max-w-[85%] animate-fadeIn';
       bubble.innerHTML = `
-        <div class="chat-user-bubble border border-blue-500/40 bg-blue-500/10 rounded-2xl rounded-tr-none p-2.5 text-blue-100 leading-relaxed shadow-sm text-right">
+        <div class="chat-user-bubble border border-blue-500/40 bg-blue-500/15 dark:bg-blue-500/10 rounded-2xl rounded-tr-none p-2.5 text-blue-900 dark:text-blue-100 leading-relaxed shadow-sm text-right">
           ${safeText}
-          <span class="text-[10px] text-blue-300 block text-left mt-1 font-mono" dir="ltr">${timeStr}</span>
+          <span class="text-[10px] text-blue-700/80 dark:text-blue-300 block text-left mt-1 font-mono" dir="ltr">${timeStr}</span>
         </div>
       `;
     } else {
       bubble.className = 'self-end mr-auto ml-0 max-w-[85%] flex items-start gap-2 animate-fadeIn';
       bubble.innerHTML = `
         <div class="w-6 h-6 rounded-full bg-emerald-600 flex items-center justify-center text-[10px] shrink-0 text-white mt-0.5">🎧</div>
-        <div class="chat-admin-bubble border border-slate-700/60 bg-slate-800/25 rounded-2xl rounded-tl-none p-2.5 text-slate-200 leading-relaxed shadow-sm text-right">
+        <div class="chat-admin-bubble border border-slate-300 dark:border-slate-700/60 bg-slate-100 dark:bg-slate-800/40 rounded-2xl rounded-tl-none p-2.5 text-slate-800 dark:text-slate-200 leading-relaxed shadow-sm text-right">
           ${safeText}
-          <span class="text-[10px] text-slate-400 block text-left mt-1 font-mono" dir="ltr">${timeStr}</span>
+          <span class="text-[10px] text-slate-500 dark:text-slate-400 block text-left mt-1 font-mono" dir="ltr">${timeStr}</span>
         </div>
       `;
     }

@@ -54,7 +54,8 @@ class FastCache:
     async def set(self, key: str, value: Any, ttl_seconds: int = 15) -> None:
         """Store item in both Memory and Redis with TTL and LRU bounds."""
         now = time.time()
-        self._memory[key] = (now + ttl_seconds, value)
+        mem_ttl = min(ttl_seconds, 10) if self._redis else ttl_seconds
+        self._memory[key] = (now + mem_ttl, value)
         self._memory.move_to_end(key)
         if len(self._memory) > self._maxsize:
             self._memory.popitem(last=False)

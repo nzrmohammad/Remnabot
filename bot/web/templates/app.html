@@ -899,21 +899,23 @@
 
         <!-- Custom Plan Builder Container (طراحی بسته اختصاصی) -->
         <div id="customPlanBuilderContainer" class="card p-4 space-y-4 hidden shadow-md">
-          <div class="flex items-center justify-between border-b border-card-border pb-2.5">
-            <div class="flex items-center gap-2">
-              <span class="text-xl">⚙️</span>
-              <div>
-                <b class="text-xs t-main block">طراحی بسته اختصاصی</b>
-                <span class="text-[10px] t-muted block">حجم و زمان دلخواه خود را بسازید</span>
+          <div class="border-b border-card-border pb-2.5 space-y-1.5">
+            <div class="flex items-center justify-between gap-2 flex-wrap">
+              <div class="flex items-center gap-2 shrink-0">
+                <span class="text-xl shrink-0">⚙️</span>
+                <div>
+                  <b class="text-xs t-main block whitespace-nowrap">طراحی بسته اختصاصی</b>
+                  <span class="text-[10px] t-muted block whitespace-nowrap">حجم و زمان دلخواه خود را بسازید</span>
+                </div>
               </div>
-            </div>
-            <div class="flex items-center gap-1.5 flex-wrap">
-              <span id="customPlanVolumeBadge" class="hidden px-2 py-0.5 rounded-lg text-[10px] font-bold bg-emerald-500/20 text-emerald-500 dark:text-emerald-300 border border-emerald-500/30">
-                🔥 تخفیف حجم: <span dir="ltr" class="font-mono font-bold"><span id="customPlanVolumePct">0</span>%</span>
-              </span>
-              <span id="customPlanLoyaltyDiscountPill" class="hidden px-2 py-0.5 rounded-lg text-[10px] font-bold bg-amber-500/20 text-amber-500 dark:text-amber-300 border border-amber-500/30">
-                تخفیف وفاداری: <span dir="ltr" class="font-mono font-bold"><span id="customPlanLoyaltyPct">0</span>%</span>
-              </span>
+              <div class="flex items-center gap-1.5 flex-wrap justify-end">
+                <span id="customPlanVolumeBadge" class="hidden px-2 py-0.5 rounded-lg text-[10px] font-bold bg-emerald-500/20 text-emerald-500 dark:text-emerald-300 border border-emerald-500/30 whitespace-nowrap">
+                  🔥 تخفیف حجم: <span dir="ltr" class="font-mono font-bold"><span id="customPlanVolumePct">0</span>%</span>
+                </span>
+                <span id="customPlanLoyaltyDiscountPill" class="hidden px-2 py-0.5 rounded-lg text-[10px] font-bold bg-amber-500/20 text-amber-500 dark:text-amber-300 border border-amber-500/30 whitespace-nowrap">
+                  تخفیف وفاداری: <span dir="ltr" class="font-mono font-bold"><span id="customPlanLoyaltyPct">0</span>%</span>
+                </span>
+              </div>
             </div>
           </div>
 
@@ -1208,39 +1210,36 @@
             </div>
           </div>
 
-          <div id="userBoxLoyalty" class="settings-box-body p-4 pt-2 border-t border-slate-700/60 space-y-3 text-xs hidden">
-            <!-- Clickable Card inside that opens the Loyalty Modal -->
-            <div onclick="window.openLoyaltyModal && window.openLoyaltyModal()" class="card-inset p-3 rounded-2xl border border-amber-500/30 space-y-2.5 cursor-pointer hover:border-amber-500/60 active:scale-[0.99] transition group" title="کلیک برای مشاهده جزئیات سطوح ۷‌گانه">
-              <!-- Progress Bar to Next Tier -->
-              <div class="space-y-1.5">
-                <div class="flex justify-between items-center text-[11px]">
-                  <span id="loyaltyNextTierText" class="t-muted">تا سطح بعدی (نقره‌ای):</span>
-                  <span id="loyaltyProgressPct" class="font-mono font-bold t-main" dir="ltr">0%</span>
-                </div>
-                <div class="w-full bg-slate-700/30 rounded-full h-2 overflow-hidden card-inset">
-                  <div id="loyaltyProgressBar" class="bg-gradient-to-r from-amber-500 to-yellow-400 h-2 rounded-full transition-all duration-500" style="width: 0%"></div>
-                </div>
-                <div class="flex justify-between items-center text-[10px] t-muted font-mono">
-                  <span id="loyaltyTotalSpent">مجموع خرید: 0 تومان</span>
-                  <span id="loyaltyNextTierTarget">هدف بعدی: 500,000 تومان</span>
-                </div>
+          <div id="userBoxLoyalty" class="settings-box-body p-3.5 border-t border-slate-700/60 space-y-3 text-xs hidden">
+            <!-- Progress Bar to Next Tier -->
+            <div class="space-y-1.5">
+              <div class="flex justify-between items-center text-[11px]">
+                <span id="loyaltyNextTierText" class="t-muted">تا سطح بعدی (نقره‌ای):</span>
+                <span id="loyaltyProgressPct" class="font-mono font-bold t-main" dir="ltr">0%</span>
               </div>
-
-              <!-- Benefits description -->
-              <div class="p-2 rounded-xl text-[10.5px] t-muted leading-relaxed flex items-center gap-2 bg-transparent">
-                <span>✨</span>
-                <span id="loyaltyBenefitDesc">با خرید بیشتر از فروشگاه، سطح خود را ارتقا دهید و از تخفیف دائمی روی تمامی بسته‌ها بهره‌مند شوید.</span>
+              <div class="w-full bg-slate-700/30 dark:bg-slate-700/50 rounded-full h-2 overflow-hidden card-inset">
+                <div id="loyaltyProgressBar" class="bg-gradient-to-r from-amber-500 to-yellow-400 h-2 rounded-full transition-all duration-500" style="width: 0%"></div>
               </div>
-
-              <!-- Call to Action button to open modal -->
-              <div class="pt-1 flex items-center justify-between border-t border-card-border text-[11px] font-bold text-amber-500 dark:text-amber-400">
-                <span class="flex items-center gap-1">
-                  <span>👑</span>
-                  <span>مشاهده سطوح ۷‌گانه و جزئیات تخفیف</span>
-                </span>
-                <span class="text-xs transition-transform group-hover:translate-x-[2px]">▶</span>
+              <div class="flex justify-between items-center text-[10px] t-muted font-mono">
+                <span id="loyaltyTotalSpent">مجموع خرید: 0 تومان</span>
+                <span id="loyaltyNextTierTarget">هدف بعدی: 500,000 تومان</span>
               </div>
             </div>
+
+            <!-- Benefits description -->
+            <div class="text-[10.5px] t-muted leading-relaxed flex items-center gap-2">
+              <span>✨</span>
+              <span id="loyaltyBenefitDesc">با خرید بیشتر از فروشگاه، سطح خود را ارتقا دهید و از تخفیف دائمی روی تمامی بسته‌ها بهره‌مند شوید.</span>
+            </div>
+
+            <!-- Call to Action button to open modal -->
+            <button type="button" onclick="window.openLoyaltyModal && window.openLoyaltyModal()" class="w-full bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/30 font-bold text-xs py-2 px-3 rounded-xl transition flex items-center justify-between shadow-sm active:scale-[0.99]">
+              <span class="flex items-center gap-1.5">
+                <span>👑</span>
+                <span>مشاهده سطوح ۷‌گانه و جزئیات تخفیف</span>
+              </span>
+              <span class="text-xs">◀</span>
+            </button>
           </div>
         </div>
 
@@ -1817,14 +1816,14 @@
                 </div>
 
                 <!-- Graphical Bank Card (3D Realistic Flip View when enabled) -->
-                <div id="cardAutoGraphicBox" class="card-graphic-box blu-card-perspective-box hidden my-2 select-none" onclick="window.flipBluCard(this)" title="برای چرخش کارت کلیک فرمایید">
+                <div id="cardAutoGraphicBox" class="card-graphic-box blu-card-perspective-box hidden my-2 select-none" onclick="window.flipBluCard(this)">
                   <div class="blu-card-flipper">
                     <!-- FRONT FACE -->
-                    <div class="blu-card-face blu-card-front p-4 sm:p-5 text-white flex flex-col justify-between shadow-2xl relative overflow-hidden" style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);">
+                    <div class="blu-card-face blu-card-front p-3.5 sm:p-4 text-white flex flex-col justify-between shadow-2xl relative overflow-hidden" style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);">
                       <!-- Card Header -->
                       <div class="flex items-center justify-between z-10">
-                        <div class="w-10 h-7 rounded-md bg-gradient-to-tr from-amber-300 via-yellow-200 to-amber-400 border border-amber-500/50 flex items-center justify-center shadow-inner opacity-90">
-                          <div class="w-6 h-4 border border-amber-600/40 rounded-sm grid grid-cols-2 gap-0.5 p-0.5">
+                        <div class="w-9 h-6 rounded-md bg-gradient-to-tr from-amber-300 via-yellow-200 to-amber-400 border border-amber-500/50 flex items-center justify-center shadow-inner opacity-90">
+                          <div class="w-5 h-3.5 border border-amber-600/40 rounded-sm grid grid-cols-2 gap-0.5 p-0.5">
                             <div class="bg-amber-600/25 rounded-[1px]"></div>
                             <div class="bg-amber-600/25 rounded-[1px]"></div>
                           </div>
@@ -1836,38 +1835,26 @@
                       </div>
 
                       <!-- Card Number -->
-                      <div class="my-auto py-2.5 text-center z-10" dir="ltr">
+                      <div class="my-auto py-1.5 text-center z-10" dir="ltr">
                         <span id="graphicCardNumberDisplay" class="font-mono text-base sm:text-lg font-black tracking-widest drop-shadow select-all">---- ---- ---- ----</span>
                       </div>
 
-                      <!-- Card Footer: Holder & Flip Prompt -->
-                      <div class="flex items-center justify-between text-xs pt-1 z-10">
+                      <!-- Card Footer: Card Holder Only -->
+                      <div class="flex items-center justify-between text-xs pt-0.5 z-10">
                         <div class="text-right">
-                          <span class="text-[9px] text-white/70 block uppercase tracking-wider">دارنده حساب:</span>
-                          <b id="graphicCardHolderDisplay" class="font-bold text-xs sm:text-sm drop-shadow truncate max-w-[190px] block">مدیریت سامانه</b>
-                        </div>
-                        <div class="text-left flex items-center gap-1 text-[10px] text-white/80 bg-black/25 px-2 py-0.5 rounded-lg border border-white/10">
-                          <span>چرخش کارت</span>
-                          <span class="text-xs">🔄</span>
+                          <b id="graphicCardHolderDisplay" class="font-bold text-xs sm:text-sm drop-shadow truncate max-w-[240px] block">مدیریت سامانه</b>
                         </div>
                       </div>
                     </div>
 
                     <!-- BACK FACE -->
-                    <div class="blu-card-face blu-card-back p-4 sm:p-5 text-white flex flex-col justify-between shadow-2xl relative overflow-hidden" style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);">
+                    <div class="blu-card-face blu-card-back p-3.5 sm:p-4 text-white flex flex-col justify-between shadow-2xl relative overflow-hidden" style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);">
                       <!-- Black Magnetic Stripe -->
-                      <div class="w-full h-8 bg-slate-950/90 -mx-5 mt-2 shadow-inner"></div>
+                      <div class="w-full h-7 bg-slate-950/90 -mx-4 mt-1 shadow-inner"></div>
                       <div class="my-auto px-2 space-y-2 z-10">
-                        <div class="bg-white/15 rounded-lg p-2 flex items-center justify-between text-xs" dir="ltr">
-                          <span class="text-[10px] text-white/70 font-mono">CVV2 / AUTHORIZED</span>
-                          <span class="font-mono font-bold tracking-widest text-sm">***</span>
-                        </div>
                         <p class="text-[10.5px] text-white/85 text-center leading-relaxed font-medium" dir="rtl">
                           کارت عضو شبکه شتاب بانکی کشور. جهت واریز کارت‌به‌کارت معتبر است.
                         </p>
-                      </div>
-                      <div class="text-center text-[10px] text-white/70 z-10">
-                        <span>کلیک برای بازگشت به روی کارت ↩️</span>
                       </div>
                     </div>
                   </div>

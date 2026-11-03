@@ -219,10 +219,11 @@ async def admin_support_reply(
                 message_id=message.message_id,
             )
 
-        # Cache admin reply for web admin chat room
+        # Cache admin reply for web admin chat room and Mini App
         try:
-            redis = getattr(state.storage, "redis", None)
-            if redis and message.text:
+            redis = getattr(state.storage, "redis", None) or getattr(state.storage, "_redis", None)
+            reply_text = message.text or message.caption or ("📷 [تصویر]" if message.photo else ("🎙 [پیام صوتی]" if message.voice else "📎 [فایل]"))
+            if redis and reply_text:
                 import json
 
                 from bot.services.formatting import now_tz
@@ -230,7 +231,7 @@ async def admin_support_reply(
                 admin_msg = {
                     "id": str(message.message_id),
                     "sender": "admin",
-                    "text": message.text,
+                    "text": reply_text,
                     "created_at": msg_time.strftime("%H:%M"),
                     "timestamp": int(msg_time.timestamp()),
                 }

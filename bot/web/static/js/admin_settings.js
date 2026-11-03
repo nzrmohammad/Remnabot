@@ -93,6 +93,52 @@
       if (window.hapticFeedback) window.hapticFeedback('selection');
     },
 
+    openTimezoneModal() {
+      const modal = $('timezoneModal');
+      const list = $('timezoneList');
+      if (!modal || !list) return;
+      modal.classList.remove('hidden');
+      if (window.hapticFeedback) window.hapticFeedback('selection');
+
+      const currentVal = $('settingAppTimezone')?.value || 'Asia/Tehran';
+      const zones = [
+        { id: 'Asia/Tehran', name: 'Asia/Tehran', flag: '🇮🇷' },
+        { id: 'UTC', name: 'UTC', flag: '🌐' },
+        { id: 'Europe/Berlin', name: 'Europe/Berlin', flag: '🇩🇪' },
+        { id: 'Europe/London', name: 'Europe/London', flag: '🇬🇧' },
+        { id: 'Europe/Paris', name: 'Europe/Paris', flag: '🇫🇷' },
+        { id: 'Europe/Istanbul', name: 'Europe/Istanbul', flag: '🇹🇷' },
+        { id: 'Asia/Dubai', name: 'Asia/Dubai', flag: '🇦🇪' },
+        { id: 'Asia/Baku', name: 'Asia/Baku', flag: '🇦🇿' },
+        { id: 'America/New_York', name: 'America/New_York', flag: '🇺🇸' },
+        { id: 'America/Los_Angeles', name: 'America/Los_Angeles', flag: '🇺🇸' },
+      ];
+
+      list.innerHTML = zones.map(z => {
+        const isSelected = currentVal === z.id;
+        return `
+          <div onclick="window.adminActions.selectTimezone('${z.id}')" class="p-3 rounded-2xl border transition cursor-pointer flex items-center justify-between gap-3 ${isSelected ? 'bg-blue-600/15 border-blue-500 shadow-sm' : 'card-inset hover:border-slate-500/50'}">
+            <div class="flex items-center gap-2.5">
+              <span class="text-base">${z.flag}</span>
+              <span class="text-xs font-mono font-bold ${isSelected ? 'text-blue-400' : 't-main'}">${z.name}</span>
+            </div>
+            ${isSelected ? '<span class="text-xs text-blue-400 font-bold">✓</span>' : ''}
+          </div>
+        `;
+      }).join('');
+    },
+    closeTimezoneModal() {
+      $('timezoneModal')?.classList.add('hidden');
+    },
+    selectTimezone(val) {
+      const input = $('settingAppTimezone');
+      if (input) input.value = val;
+      const display = $('settingAppTimezoneDisplay');
+      if (display) display.innerText = val;
+      this.closeTimezoneModal();
+      if (window.hapticFeedback) window.hapticFeedback('selection');
+    },
+
     async openDefaultSquadPickerModal() {
       const modal = $('defaultSquadPickerModal');
       const list = $('defaultSquadPickerList');
@@ -1168,6 +1214,7 @@ openUserChat(telegram_id, name, tag, topup_id) {
       // App Timezone
       if ($('settingAppTimezone') && s.timezone) {
         $('settingAppTimezone').value = s.timezone;
+        if ($('settingAppTimezoneDisplay')) $('settingAppTimezoneDisplay').innerText = s.timezone;
       }
 
       // Custom Plan Volume Discount Tiers

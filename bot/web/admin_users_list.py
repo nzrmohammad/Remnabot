@@ -203,18 +203,21 @@ def _serialize_user_item(
                 break
     is_expiring = False
     is_expired = False
+    is_limited = False
     if panel_exists:
         status_up = str(p.get("status") or "").upper()
-        if (days_left is not None and days_left <= 0) or status_up == "EXPIRED" or (remaining_gb == 0.0 and limit_bytes > 0):
+        if (remaining_gb == 0.0 and limit_bytes > 0) or status_up == "LIMITED":
+            is_limited = True
+        elif (days_left is not None and days_left <= 0) or status_up == "EXPIRED":
             is_expired = True
 
-        if not is_expired:
+        if not is_expired and not is_limited:
             if (days_left is not None and 0 < days_left <= 3) or (0 <= remaining_gb <= 2.0 and limit_bytes > 0):
                 is_expiring = True
 
     if status_filter == "expiring" and not is_expiring:
         return None
-    if status_filter == "expired" and not is_expired:
+    if status_filter == "expired" and not (is_expired or is_limited):
         return None
 
     profile_name = getattr(u, "full_name", None)
@@ -243,6 +246,7 @@ def _serialize_user_item(
         "is_online": is_online,
         "is_expiring": is_expiring,
         "is_expired": is_expired,
+        "is_limited": is_limited,
         "avatar_url": f"/api/user/avatar?user_id={u.telegram_id}",
         "phone_number": u.phone_number if getattr(u, "phone_number", None) else "",
         "birth_date": u.birth_date if getattr(u, "birth_date", None) else "",

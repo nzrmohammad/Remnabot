@@ -703,8 +703,8 @@ html.theme-light #adminContentArea .text-slate-300:not(button):not([class*="btn"
 .blu-card-flipper {
   position: relative;
   width: 100%;
-  aspect-ratio: 1.586 / 1;
-  min-height: 195px;
+  aspect-ratio: 1.7 / 1;
+  min-height: 155px;
   transition: transform 0.65s cubic-bezier(0.34, 1.56, 0.64, 1);
   transform-style: preserve-3d;
   cursor: pointer;
