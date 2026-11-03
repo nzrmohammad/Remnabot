@@ -1,4 +1,5 @@
 """Subscription configuration endpoints for Telegram Mini App."""
+import asyncio
 import logging
 import urllib.parse
 
@@ -49,12 +50,35 @@ async def get_user_subscription_configs(request: web.Request) -> web.Response:
     if not remnawave:
         return web.json_response({"ok": False, "error": "سرویس سرور در دسترس نیست."}, status=503)
 
-    # 1. Fetch user accounts directly from Remnawave API
+    # 1. Fetch user accounts directly from Remnawave API with bounded timeout
+    panel_fetch_failed = False
+    panel_users = []
     try:
-        panel_users = await remnawave.get_users_by_telegram_id(telegram_id) or []
+        panel_users_raw = await asyncio.wait_for(
+            remnawave.get_users_by_telegram_id(telegram_id),
+            timeout=6.0,
+        )
+        if panel_users_raw is None:
+            panel_fetch_failed = True
+        else:
+            # Strictly filter by telegramId to prevent cross-account leakage
+            panel_users = [
+                u for u in panel_users_raw
+                if not (u.get("telegramId") or u.get("telegram_id"))
+                or str(u.get("telegramId") or u.get("telegram_id")) == str(telegram_id)
+            ]
+    except (asyncio.TimeoutError, TimeoutError):
+        logger.warning("Timeout fetching panel users for configs (telegram_id=%s)", telegram_id)
+        panel_fetch_failed = True
     except Exception as exc:
         logger.warning("Error fetching panel users for configs %s: %s", telegram_id, exc)
-        panel_users = []
+        panel_fetch_failed = True
+
+    if panel_fetch_failed:
+        return web.json_response({
+            "ok": False,
+            "error": "ارتباط با پنل سرور موقتاً برقرار نشد. لطفاً چند لحظه دیگر تلاش فرمایید.",
+        }, status=503)
 
     target = None
     if account_id_param:
@@ -79,6 +103,15 @@ async def get_user_subscription_configs(request: web.Request) -> web.Response:
             "message": "اشتراک فعالی برای این حساب در پنل یافت نشد.",
         })
 
+    # Strict check: ensure target matches telegram_id if present
+    target_tid = target.get("telegramId") or target.get("telegram_id")
+    if target_tid is not None and str(target_tid) != str(telegram_id):
+        return web.json_response({
+            "ok": True,
+            "configs": [],
+            "message": "اشتراک فعالی برای این حساب در پنل یافت نشد.",
+        })
+
     # 2. Extract user identifiers for direct Remnawave API
     user_id = target.get("id")
     short_uuid = str(target.get("shortUuid") or target.get("shortId") or target.get("vlessUuid") or "").strip()
@@ -93,15 +126,18 @@ async def get_user_subscription_configs(request: web.Request) -> web.Response:
             if path_segments:
                 short_uuid = path_segments[-1]
 
-    # 3. Direct Remnawave API call ONLY (no external scraping or fallbacks)
+    # 3. Direct Remnawave API call ONLY (bounded timeout, no external scraping)
     raw_configs = []
     candidate_ids = [cid for cid in (user_id, user_uuid) if cid is not None and str(cid).strip()]
     for cid in candidate_ids:
         try:
-            conn_keys = await remnawave.get_user_connection_keys(
-                user_id=cid,
-                short_uuid=short_uuid or None,
-                user_uuid=user_uuid or None,
+            conn_keys = await asyncio.wait_for(
+                remnawave.get_user_connection_keys(
+                    user_id=cid,
+                    short_uuid=short_uuid or None,
+                    user_uuid=user_uuid or None,
+                ),
+                timeout=4.0,
             )
             if conn_keys:
                 for k in conn_keys:
@@ -109,6 +145,8 @@ async def get_user_subscription_configs(request: web.Request) -> web.Response:
                 if raw_configs:
                     logger.info("Direct Remnawave API returned %d configs for user %s", len(raw_configs), cid)
                     break
+        except (asyncio.TimeoutError, TimeoutError):
+            logger.warning("Timeout calling Remnawave connection keys (user_id=%s)", cid)
         except Exception as ck_err:
             logger.warning("Direct Remnawave API connection keys failed (user_id=%s): %s", cid, ck_err)
 

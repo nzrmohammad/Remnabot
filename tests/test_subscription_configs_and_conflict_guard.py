@@ -97,6 +97,83 @@ async def test_get_user_subscription_configs_empty_when_no_keys():
 
 
 @pytest.mark.anyio
+async def test_get_user_subscription_configs_panel_unreachable_503():
+    """Verify HTTP 503 is returned when Remnawave panel is unreachable."""
+    import json
+    app = web.Application()
+    cache = FastCache(redis_client=None)
+    app["cache"] = cache
+    mock_remnawave = AsyncMock()
+    # Panel unreachable returns None
+    mock_remnawave.get_users_by_telegram_id.return_value = None
+    app["remnawave"] = mock_remnawave
+    app["session_factory"] = MagicMock()
+
+    request = MagicMock(spec=web.Request)
+    request.app = app
+    request.query = {}
+    request.get = lambda k, default=None: {"id": 12345, "username": "testuser"} if k == "user" else default
+
+    resp = await get_user_subscription_configs(request)
+    assert resp.status == 503
+    data = json.loads(resp.text)
+    assert data["ok"] is False
+    assert "موقتاً برقرار نشد" in data["error"]
+
+
+@pytest.mark.anyio
+async def test_get_user_subscription_configs_panel_timeout_503():
+    """Verify HTTP 503 is returned when fetching panel users times out or fails with exception."""
+    import json
+    app = web.Application()
+    cache = FastCache(redis_client=None)
+    app["cache"] = cache
+    mock_remnawave = AsyncMock()
+    mock_remnawave.get_users_by_telegram_id.side_effect = TimeoutError("Connection timed out")
+    app["remnawave"] = mock_remnawave
+    app["session_factory"] = MagicMock()
+
+    request = MagicMock(spec=web.Request)
+    request.app = app
+    request.query = {}
+    request.get = lambda k, default=None: {"id": 12345, "username": "testuser"} if k == "user" else default
+
+    resp = await get_user_subscription_configs(request)
+    assert resp.status == 503
+    data = json.loads(resp.text)
+    assert data["ok"] is False
+    assert "موقتاً برقرار نشد" in data["error"]
+
+
+@pytest.mark.anyio
+async def test_get_user_subscription_configs_prevents_cross_user_leak():
+    """Verify accounts belonging to a different telegramId are strictly ignored."""
+    import json
+    app = web.Application()
+    cache = FastCache(redis_client=None)
+    app["cache"] = cache
+    mock_remnawave = AsyncMock()
+    # Return user belonging to a DIFFERENT telegramId (999999 vs 12345)
+    mock_remnawave.get_users_by_telegram_id.return_value = [
+        {"id": "user-other", "telegramId": 999999, "subscriptionUrl": "https://sub.example.com/sub/other"}
+    ]
+    app["remnawave"] = mock_remnawave
+    app["session_factory"] = MagicMock()
+
+    request = MagicMock(spec=web.Request)
+    request.app = app
+    request.query = {}
+    request.get = lambda k, default=None: {"id": 12345, "username": "testuser"} if k == "user" else default
+
+    resp = await get_user_subscription_configs(request)
+    assert resp.status == 200
+    data = json.loads(resp.text)
+    assert data["ok"] is True
+    assert data["configs"] == []
+    assert "اشتراک فعالی برای این حساب در پنل یافت نشد." in data["message"]
+
+
+@pytest.mark.anyio
 async def test_error_reporter_filters_telegram_conflict_error():
     bot = AsyncMock()
     session_factory = MagicMock()

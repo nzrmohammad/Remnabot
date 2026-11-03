@@ -2126,6 +2126,10 @@ const APP_MODAL_IDS = [
   'topupModal', 'luckyWheelModal', 'storyModal', 'storyCardModal',
   'supportChatModal', 'purchaseSuccessModal',
   'qrModal', 'checkoutConfirmModal', 'configsModal', 'tutorialModal',
+  'shopGuidanceModal', 'speedTestModal', 'wheelResultModal',
+  'speedResultsModal', 'birthdayModal', 'alertThresholdModal',
+  'expiryCountdownModal', 'birthdayCountdownModal', 'giftModal',
+  'giftServiceSelectModal', 'invoiceModal', 'loyaltyModal',
 ];
 
 function updateTopPadding() {
