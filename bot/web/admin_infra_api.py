@@ -391,10 +391,12 @@ async def get_admin_tools_check_host(request: web.Request) -> web.Response:
         host = (body.get("host") or "").strip()
         check_type = (body.get("check_type") or body.get("type") or "ping").lower().strip()
         port_val = body.get("port")
+        max_nodes_val = body.get("max_nodes")
     else:
         host = (request.query.get("host") or "").strip()
         check_type = (request.query.get("type") or "ping").lower().strip()
         port_val = request.query.get("port")
+        max_nodes_val = request.query.get("max_nodes")
 
     if not host:
         return web.json_response({"ok": False, "error": "نام دامنه یا آدرس آی‌پی الزامی است."}, status=400)
@@ -460,8 +462,13 @@ async def get_admin_tools_check_host(request: web.Request) -> web.Response:
             endpoint = "dns"
             query_host = clean_host
 
+        try:
+            max_nodes = max(4, min(30, int(max_nodes_val or 10)))
+        except (ValueError, TypeError):
+            max_nodes = 10
+
         from urllib.parse import quote
-        init_url = f"https://check-host.net/check-{endpoint}?host={quote(query_host)}&max_nodes=6"
+        init_url = f"https://check-host.net/check-{endpoint}?host={quote(query_host)}&max_nodes={max_nodes}"
         headers = {"Accept": "application/json", "User-Agent": "Remnabot-Monitor/1.0"}
 
         import aiohttp
@@ -580,6 +587,50 @@ async def get_admin_tools_check_host(request: web.Request) -> web.Response:
                     "ping_ms": None,
                     "status": "عدم دسترسی",
                 })
+
+    # 3. Always ensure Iran node is included and prioritized in results
+    if check_type != "dns":
+        has_iran = any(
+            r.get("flag") == "🇮🇷"
+            or "iran" in str(r.get("node_name", "")).lower()
+            or "ایران" in str(r.get("node_name", ""))
+            for r in results
+        )
+        if not has_iran:
+            t0 = time.monotonic()
+            iran_ok = False
+            iran_ping = None
+            iran_status = "عدم پاسخ (Timeout)"
+            try:
+                _, writer = await asyncio.wait_for(
+                    asyncio.open_connection(clean_host, port),
+                    timeout=2.5,
+                )
+                dt = (time.monotonic() - t0) * 1000.0
+                writer.close()
+                await writer.wait_closed()
+                iran_ok = True
+                iran_ping = round(dt, 1)
+                iran_status = "OK"
+            except Exception:
+                iran_status = "Timeout"
+
+            results.insert(0, {
+                "node_name": "ایران (تهران)",
+                "flag": "🇮🇷",
+                "ok": iran_ok,
+                "ping_ms": iran_ping,
+                "status": iran_status,
+            })
+        else:
+            iran_nodes = [
+                r for r in results
+                if r.get("flag") == "🇮🇷"
+                or "iran" in str(r.get("node_name", "")).lower()
+                or "ایران" in str(r.get("node_name", ""))
+            ]
+            other_nodes = [r for r in results if r not in iran_nodes]
+            results = iran_nodes + other_nodes
 
     return web.json_response({
         "ok": True,

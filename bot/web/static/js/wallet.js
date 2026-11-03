@@ -220,7 +220,9 @@ async function loadTopupInfo() {
     const res = await window.api.getTopupInfo();
     if (res.ok) {
       window.storeSettings = res;
-      const isGraphic = res.card_graphical_view_enabled !== false && (res.card_template || 'blubank') === 'blubank';
+      const isGraphic = res.card_graphical_view_enabled !== false;
+      const graphicBox = document.getElementById('cardAutoGraphicBox');
+      if (graphicBox) graphicBox.classList.toggle('hidden', !isGraphic);
       document.querySelectorAll('.card-graphic-box').forEach(el => el.classList.toggle('hidden', !isGraphic));
       document.querySelectorAll('.card-classic-box').forEach(el => el.classList.toggle('hidden', isGraphic));
 
@@ -228,11 +230,15 @@ async function loadTopupInfo() {
       const cardHolderEl = document.getElementById('topupCardHolder');
       const manualClassicNum = document.getElementById('manualClassicNumber');
       const manualClassicHolder = document.getElementById('manualClassicHolder');
+      const graphicNum = document.getElementById('graphicCardNumberDisplay');
+      const graphicHolder = document.getElementById('graphicCardHolderDisplay');
       const rawNum = res.card_number || '----';
       const rawHolder = res.card_holder || 'مدیریت سرور';
 
       if (cardNumEl) renderBluCardNumber(cardNumEl, rawNum);
       if (cardHolderEl) cardHolderEl.innerText = rawHolder;
+      if (graphicNum) renderBluCardNumber(graphicNum, rawNum);
+      if (graphicHolder) graphicHolder.innerText = rawHolder;
       if (manualClassicNum) manualClassicNum.innerText = formatCardNumberDisplay(rawNum);
       if (manualClassicHolder) manualClassicHolder.innerText = rawHolder;
       applyBluBankCardTheme(res.card_blubank_color || 'rose');
@@ -447,7 +453,9 @@ function renderCardAutoInvoice(inv) {
   if (initialBox) initialBox.classList.add('hidden');
   if (detailsBox) detailsBox.classList.remove('hidden');
 
-  const isGraphic = (window.storeSettings?.card_graphical_view_enabled !== false) && ((window.storeSettings?.card_template || 'blubank') === 'blubank');
+  const isGraphic = (inv.card_graphical_view_enabled ?? window.storeSettings?.card_graphical_view_enabled) !== false;
+  const graphicBox = document.getElementById('cardAutoGraphicBox');
+  if (graphicBox) graphicBox.classList.toggle('hidden', !isGraphic);
   document.querySelectorAll('.card-graphic-box').forEach(el => el.classList.toggle('hidden', !isGraphic));
   document.querySelectorAll('.card-classic-box').forEach(el => el.classList.toggle('hidden', isGraphic));
 
@@ -457,6 +465,8 @@ function renderCardAutoInvoice(inv) {
   const cardHolderEl = document.getElementById('cardAutoCardHolder');
   const autoClassicNum = document.getElementById('cardAutoClassicNumber');
   const autoClassicHolder = document.getElementById('cardAutoClassicHolder');
+  const graphicNum = document.getElementById('graphicCardNumberDisplay');
+  const graphicHolder = document.getElementById('graphicCardHolderDisplay');
   const numToDisplay = inv.card_number || window.storeSettings?.card_number || '----';
   const holderToDisplay = inv.card_holder || window.storeSettings?.card_holder || 'مدیریت سرور';
 
@@ -464,6 +474,8 @@ function renderCardAutoInvoice(inv) {
   if (exactRialEl) exactRialEl.innerText = `${Number(inv.exact_rial || (inv.exact_amount * 10) || 0).toLocaleString('en-US')} ریال`;
   if (cardNumEl) renderBluCardNumber(cardNumEl, numToDisplay);
   if (cardHolderEl) cardHolderEl.innerText = holderToDisplay;
+  if (graphicNum) renderBluCardNumber(graphicNum, numToDisplay);
+  if (graphicHolder) graphicHolder.innerText = holderToDisplay;
   if (autoClassicNum) autoClassicNum.innerText = formatCardNumberDisplay(numToDisplay);
   if (autoClassicHolder) autoClassicHolder.innerText = holderToDisplay;
   applyBluBankCardTheme(inv.card_blubank_color || window.storeSettings?.card_blubank_color || 'rose');
@@ -913,15 +925,23 @@ function updateTronLinkButton(inv) {
   btn.href = tronLinkDeepLink;
   btn.onclick = (e) => {
     e.preventDefault();
-    try {
-      if (window.Telegram?.WebApp?.openLink) {
-        window.Telegram.WebApp.openLink(tronLinkDeepLink);
-      } else {
-        window.location.href = tronLinkDeepLink;
-      }
-    } catch (err) {
-      window.location.href = tronUri;
+    if (typeof copyToClipboard === 'function') {
+      copyToClipboard(inv.pay_address, 'آدرس کیف پول کپی شد');
     }
+    try {
+      window.location.href = tronLinkDeepLink;
+    } catch (_) {
+      try {
+        window.location.href = tronUri;
+      } catch (err) {
+        window.open(tronUri, '_blank');
+      }
+    }
+    setTimeout(() => {
+      try {
+        window.location.href = tronUri;
+      } catch (_) {}
+    }, 400);
   };
 }
 

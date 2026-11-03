@@ -2120,6 +2120,14 @@ function setupSupportChat() {
 // 11. Telegram WebApp SDK Lifecycle & BackButton
 const tg = window.Telegram?.WebApp;
 
+// Single source of truth for modal ids used by the Telegram BackButton sync
+const APP_MODAL_IDS = [
+  'revokeModal', 'switchAccountModal', 'activeSessionsModal',
+  'topupModal', 'luckyWheelModal', 'storyModal', 'storyCardModal',
+  'supportChatModal', 'purchaseSuccessModal',
+  'qrModal', 'checkoutConfirmModal', 'configsModal', 'tutorialModal',
+];
+
 function updateTopPadding() {
   const topBar = $('topHeaderBar');
   if (!topBar) return;
@@ -2204,12 +2212,7 @@ function setupTelegramSDK() {
         dashBtn?.click();
       });
 
-      const observedModalIds = [
-        'revokeModal', 'switchAccountModal', 'activeSessionsModal',
-        'topupModal', 'luckyWheelModal', 'storyModal', 'storyCardModal',
-        'supportChatModal', 'qrContainer',
-        'purchaseSuccessModal', 'qrModal', 'checkoutConfirmModal', 'configsModal', 'tutorialModal'
-      ];
+      const observedModalIds = [...APP_MODAL_IDS, 'qrContainer'];
       observedModalIds.forEach(id => {
         const el = $(id);
         if (el) {
@@ -2821,7 +2824,7 @@ function hydrateUserInterface(data) {
       if ($('loyaltyTierName')) $('loyaltyTierName').innerText = loyalty.name || 'برنزی';
       const discBadge = $('loyaltyDiscountBadge');
       if (discBadge) {
-        discBadge.innerText = loyalty.discount_percent > 0 ? `${loyalty.discount_percent}% تخفیف دائمی` : 'بدون تخفیف';
+        discBadge.innerHTML = loyalty.discount_percent > 0 ? `<span class="font-mono font-bold" dir="ltr">${toEnglishDigits(loyalty.discount_percent)}%</span> تخفیف دائمی` : 'بدون تخفیف';
       }
       const nextText = $('loyaltyNextTierText');
       const progPct = $('loyaltyProgressPct');
@@ -4488,11 +4491,11 @@ async function loadGiftsHistory() {
             <span dir="ltr" class="font-mono">${toEnglishDigits(dateStr)}</span>
           </div>
           <div class="flex items-center justify-between text-[10px] border-t border-card-border pt-1">
+            ${!isClaimed ? `<button type="button" onclick="copyToClipboard('${shareUrl}'); showToast('📋 لینک کپی شد!');" class="text-[10px] text-pink-400 hover:text-pink-300 font-bold flex items-center gap-1 active:scale-95 transition" title="کپی لینک"><span>🔗</span> کپی لینک</button>` : '<span></span>'}
             <div class="flex items-center gap-1.5" dir="ltr">
-              <span class="font-mono t-muted text-[10px] select-all">${g.code}</span>
               <button type="button" onclick="copyToClipboard('${g.code}'); showToast('📋 کد کپی شد!');" class="p-1 rounded-md text-cyan-400 hover:text-cyan-300 hover:bg-cyan-500/10 active:scale-95 transition" title="کپی کد">📋</button>
+              <span class="font-mono t-muted text-[10px] select-all">${g.code}</span>
             </div>
-            ${!isClaimed ? `<button type="button" onclick="copyToClipboard('${shareUrl}'); showToast('📋 لینک کپی شد!');" class="text-[10px] text-pink-400 hover:text-pink-300 font-bold flex items-center gap-1 active:scale-95 transition" title="کپی لینک"><span>🔗</span> کپی لینک</button>` : ''}
           </div>
         </div>
       `;
@@ -4567,9 +4570,11 @@ async function openInvoiceModal(orderId) {
     }
     const bName = inv.buyer?.name || 'کاربر گرامی';
     const bId = inv.buyer?.telegram_id || '';
-    const buyerFormatted = bId ? `${bName} - ${bId}` : bName;
-    if ($('invBuyerName')) $('invBuyerName').innerText = buyerFormatted;
-    if ($('invBuyerId')) $('invBuyerId').innerText = bId ? `${bId}` : '--';
+    if ($('invBuyerName')) $('invBuyerName').innerText = bName;
+    if ($('invBuyerId')) {
+      $('invBuyerId').innerText = bId ? `ID: ${bId}` : '';
+      $('invBuyerId').className = bId ? 'text-[10px] text-slate-400 font-mono block select-all' : 'hidden';
+    }
 
     $('invItemTitle').innerText = inv.item?.title || 'بسته اشتراک';
     $('invItemSpecs').innerText = `${inv.item?.traffic_text || ''} | ${inv.item?.duration_text || ''}`;
@@ -4756,8 +4761,8 @@ function openLoyaltyModal() {
     if ($('loyaltyModalTotalSpent')) $('loyaltyModalTotalSpent').innerText = `${Number(loyalty.total_spent || 0).toLocaleString('en-US')} تومان`;
     if ($('loyaltyModalCurrentDiscount')) {
       const disc = toEnglishDigits(loyalty.discount_percent || 0);
-      $('loyaltyModalCurrentDiscount').innerText = Number(disc) > 0 ? `${disc}% تخفیف دائمی تمام خریدها` : 'بدون تخفیف دائمی';
-      $('loyaltyModalCurrentDiscount').className = Number(disc) > 0 ? 'text-xs font-bold text-emerald-500 font-mono' : 'text-xs font-medium t-muted';
+      $('loyaltyModalCurrentDiscount').innerHTML = Number(disc) > 0 ? `<span class="font-mono font-bold" dir="ltr">${disc}%</span> تخفیف دائمی` : 'بدون تخفیف دائمی';
+      $('loyaltyModalCurrentDiscount').className = Number(disc) > 0 ? 'text-xs font-bold text-emerald-500' : 'text-xs font-medium t-muted';
     }
     if ($('loyaltyModalProgressText')) {
       const isMaxTier = Boolean(loyalty.is_max_tier || (loyalty.tier_id === 'diamond'));

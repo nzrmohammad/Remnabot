@@ -98,6 +98,7 @@ async def get_admin_settings(request: web.Request) -> web.Response:
             "store_logo_url": store_settings.store_logo_url,
             "loyalty_tiers_json": store_settings.loyalty_tiers_json,
             "invoice_company_name": store_settings.invoice_company_name,
+            "timezone": store_settings.timezone,
         }
         bot = request.app.get("bot")
         settings_cfg = request.app.get("settings")
@@ -161,6 +162,7 @@ async def post_admin_settings(request: web.Request) -> web.Response:
             "custom_plan_price_per_gb", "custom_plan_price_per_day", "custom_plan_base_price",
             "custom_plan_min_gb", "custom_plan_max_gb", "custom_plan_min_days", "custom_plan_max_days",
             "store_logo_url", "loyalty_tiers_json", "custom_plan_volume_tiers_json", "invoice_company_name",
+            "timezone",
         )
         for rk in raw_keys:
             if rk in body:
@@ -170,6 +172,17 @@ async def post_admin_settings(request: web.Request) -> web.Response:
                 if isinstance(v, (dict, list)):
                     v = json.dumps(v, ensure_ascii=False)
                 await app_repo.set(rk, str(v).strip())
+
+        if "timezone" in body and body["timezone"]:
+            try:
+                from zoneinfo import ZoneInfo
+                tz_cand = str(body["timezone"]).strip()
+                ZoneInfo(tz_cand)
+                settings_cfg = request.app.get("settings")
+                if settings_cfg:
+                    settings_cfg.TIMEZONE = tz_cand
+            except Exception as tz_err:
+                logger.warning("Invalid timezone submitted: %s", tz_err)
 
         if "topic_errors" in body:
             try:

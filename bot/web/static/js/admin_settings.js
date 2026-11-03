@@ -1165,6 +1165,32 @@ openUserChat(telegram_id, name, tag, topup_id) {
       const cpMaxDays = $('settingCustomPlanMaxDays');
       if (cpMaxDays) cpMaxDays.value = s.custom_plan_max_days ?? 180;
 
+      // App Timezone
+      if ($('settingAppTimezone') && s.timezone) {
+        $('settingAppTimezone').value = s.timezone;
+      }
+
+      // Custom Plan Volume Discount Tiers
+      let vTiers = [];
+      try {
+        if (s.custom_plan_volume_tiers_json) vTiers = JSON.parse(s.custom_plan_volume_tiers_json);
+      } catch (e) {}
+      if (Array.isArray(vTiers) && vTiers.length >= 3) {
+        if ($('settingCustomPlanTier1MinGb')) $('settingCustomPlanTier1MinGb').value = vTiers[0].min_gb ?? 51;
+        if ($('settingCustomPlanTier1Discount')) $('settingCustomPlanTier1Discount').value = vTiers[0].discount_percent ?? 10;
+        if ($('settingCustomPlanTier2MinGb')) $('settingCustomPlanTier2MinGb').value = vTiers[1].min_gb ?? 101;
+        if ($('settingCustomPlanTier2Discount')) $('settingCustomPlanTier2Discount').value = vTiers[1].discount_percent ?? 20;
+        if ($('settingCustomPlanTier3MinGb')) $('settingCustomPlanTier3MinGb').value = vTiers[2].min_gb ?? 201;
+        if ($('settingCustomPlanTier3Discount')) $('settingCustomPlanTier3Discount').value = vTiers[2].discount_percent ?? 30;
+      } else {
+        if ($('settingCustomPlanTier1MinGb')) $('settingCustomPlanTier1MinGb').value = 51;
+        if ($('settingCustomPlanTier1Discount')) $('settingCustomPlanTier1Discount').value = 10;
+        if ($('settingCustomPlanTier2MinGb')) $('settingCustomPlanTier2MinGb').value = 101;
+        if ($('settingCustomPlanTier2Discount')) $('settingCustomPlanTier2Discount').value = 20;
+        if ($('settingCustomPlanTier3MinGb')) $('settingCustomPlanTier3MinGb').value = 201;
+        if ($('settingCustomPlanTier3Discount')) $('settingCustomPlanTier3Discount').value = 30;
+      }
+
       // VIP Loyalty Tiers
       let loyaltyCfg = {};
       try {
@@ -1421,6 +1447,24 @@ openUserChat(telegram_id, name, tag, topup_id) {
       custom_plan_max_gb: parseInt($('settingCustomPlanMaxGb')?.value || '300', 10),
       custom_plan_min_days: parseInt($('settingCustomPlanMinDays')?.value || '10', 10),
       custom_plan_max_days: parseInt($('settingCustomPlanMaxDays')?.value || '180', 10),
+      timezone: $('settingAppTimezone')?.value || 'Asia/Tehran',
+      custom_plan_volume_tiers_json: JSON.stringify([
+        {
+          min_gb: parseInt($('settingCustomPlanTier1MinGb')?.value || '51', 10),
+          max_gb: Math.max(1, parseInt($('settingCustomPlanTier2MinGb')?.value || '101', 10) - 1),
+          discount_percent: parseInt($('settingCustomPlanTier1Discount')?.value || '10', 10),
+        },
+        {
+          min_gb: parseInt($('settingCustomPlanTier2MinGb')?.value || '101', 10),
+          max_gb: Math.max(1, parseInt($('settingCustomPlanTier3MinGb')?.value || '201', 10) - 1),
+          discount_percent: parseInt($('settingCustomPlanTier2Discount')?.value || '20', 10),
+        },
+        {
+          min_gb: parseInt($('settingCustomPlanTier3MinGb')?.value || '201', 10),
+          max_gb: 999999,
+          discount_percent: parseInt($('settingCustomPlanTier3Discount')?.value || '30', 10),
+        },
+      ]),
       loyalty_tiers_json: JSON.stringify({
         bronze: {
           min_spent: 0,

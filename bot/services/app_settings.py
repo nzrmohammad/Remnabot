@@ -77,6 +77,7 @@ class StoreSettings:
     custom_plan_volume_tiers_json: str = ""
     store_logo_url: str = ""
     invoice_company_name: str = ""
+    timezone: str = "Asia/Tehran"
 
 
 
@@ -172,6 +173,7 @@ async def get_store_settings(session: AsyncSession) -> StoreSettings:
         custom_plan_volume_tiers_json=str(values.get("custom_plan_volume_tiers_json") or "").strip(),
         store_logo_url=str(values.get("store_logo_url") or "").strip(),
         invoice_company_name=str(values.get("invoice_company_name") or "").strip(),
+        timezone=str(values.get("timezone") or getattr(env, "TIMEZONE", "Asia/Tehran") or "Asia/Tehran").strip(),
     )
 
 

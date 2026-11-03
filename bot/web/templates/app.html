@@ -1121,65 +1121,6 @@
           </div>
         </div>
 
-        <!-- VIP Loyalty Tier & Club Accordion Box (باشگاه مشتریان و سطح وفاداری) -->
-        <div id="profileLoyaltyCard" class="settings-box shadow transition-all">
-          <div class="settings-box-header p-3.5 flex items-center justify-between cursor-pointer select-none transition" onclick="window.toggleSettingsBox('userBoxLoyalty')">
-            <div class="flex items-center gap-2.5">
-              <div class="w-8 h-8 rounded-xl bg-amber-500/15 text-amber-500 dark:text-amber-400 border border-amber-500/30 flex items-center justify-center flex-shrink-0 text-base">
-                <span id="loyaltyTierIcon">🥉</span>
-              </div>
-              <div>
-                <div class="flex items-center gap-1.5">
-                  <b class="text-xs t-main block">سطح کاربری:</b>
-                  <b id="loyaltyTierName" class="text-xs font-black text-amber-500">برنزی</b>
-                </div>
-                <span class="text-[11px] text-slate-400 block mt-0.5">باشگاه مشتریان و تخفیف وفاداری</span>
-              </div>
-            </div>
-            <div class="flex items-center gap-2">
-              <span id="loyaltyDiscountBadge" class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-amber-500/15 text-amber-600 dark:text-amber-300 border border-amber-500/30">
-                بدون تخفیف
-              </span>
-              <svg class="settings-box-chevron w-4 h-4 text-slate-400 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-            </div>
-          </div>
-
-          <div id="userBoxLoyalty" class="settings-box-body p-4 pt-2 border-t border-slate-700/60 space-y-3 text-xs hidden">
-            <!-- Clickable Card inside that opens the Loyalty Modal -->
-            <div onclick="window.openLoyaltyModal && window.openLoyaltyModal()" class="card-inset p-3 rounded-2xl border border-amber-500/30 space-y-2.5 cursor-pointer hover:border-amber-500/60 active:scale-[0.99] transition group" title="کلیک برای مشاهده جزئیات سطوح ۷‌گانه">
-              <!-- Progress Bar to Next Tier -->
-              <div class="space-y-1.5">
-                <div class="flex justify-between items-center text-[11px]">
-                  <span id="loyaltyNextTierText" class="t-muted">تا سطح بعدی (نقره‌ای):</span>
-                  <span id="loyaltyProgressPct" class="font-mono font-bold t-main">0%</span>
-                </div>
-                <div class="w-full bg-slate-700/30 rounded-full h-2 overflow-hidden card-inset">
-                  <div id="loyaltyProgressBar" class="bg-gradient-to-r from-amber-500 to-yellow-400 h-2 rounded-full transition-all duration-500" style="width: 0%"></div>
-                </div>
-                <div class="flex justify-between items-center text-[10px] t-muted font-mono">
-                  <span id="loyaltyTotalSpent">مجموع خرید: 0 تومان</span>
-                  <span id="loyaltyNextTierTarget">هدف بعدی: 500,000 تومان</span>
-                </div>
-              </div>
-
-              <!-- Benefits description -->
-              <div class="p-2 rounded-xl text-[10.5px] t-muted leading-relaxed flex items-center gap-2 bg-transparent">
-                <span>✨</span>
-                <span id="loyaltyBenefitDesc">با خرید بیشتر از فروشگاه، سطح خود را ارتقا دهید و از تخفیف دائمی روی تمامی بسته‌ها بهره‌مند شوید.</span>
-              </div>
-
-              <!-- Call to Action button to open modal -->
-              <div class="pt-1 flex items-center justify-between border-t border-card-border text-[11px] font-bold text-amber-500 dark:text-amber-400">
-                <span class="flex items-center gap-1">
-                  <span>👑</span>
-                  <span>مشاهده سطوح ۷‌گانه و جزئیات تخفیف</span>
-                </span>
-                <span class="text-xs transition-transform group-hover:translate-x-[-2px]">◀</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
         <!-- 1. Box: مشخصات حساب کاربری -->
         <div class="settings-box shadow transition-all">
           <div class="settings-box-header p-3.5 flex items-center justify-between cursor-pointer select-none transition" onclick="window.toggleSettingsBox('userBoxIdentity')">
@@ -1240,6 +1181,65 @@
             <div class="flex justify-between items-center py-1.5 border-t border-slate-700/60 pt-2">
               <span class="text-slate-400 flex items-center gap-1.5"><span>⚡️</span> وضعیت سرویس</span>
               <span id="profileSubStatus" class="font-semibold text-emerald-400">فعال</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- VIP Loyalty Tier & Club Accordion Box (باشگاه مشتریان و سطح وفاداری) -->
+        <div id="profileLoyaltyCard" class="settings-box shadow transition-all">
+          <div class="settings-box-header p-3.5 flex items-center justify-between cursor-pointer select-none transition" onclick="window.toggleSettingsBox('userBoxLoyalty')">
+            <div class="flex items-center gap-2.5">
+              <div class="w-8 h-8 rounded-xl bg-amber-500/15 text-amber-500 dark:text-amber-400 border border-amber-500/30 flex items-center justify-center flex-shrink-0 text-base">
+                <span id="loyaltyTierIcon">🥉</span>
+              </div>
+              <div>
+                <div class="flex items-center gap-1.5">
+                  <b class="text-xs t-main block">سطح کاربری:</b>
+                  <b id="loyaltyTierName" class="text-xs font-black text-amber-500">برنزی</b>
+                </div>
+                <span class="text-[11px] text-slate-400 block mt-0.5">باشگاه مشتریان و تخفیف وفاداری</span>
+              </div>
+            </div>
+            <div class="flex items-center gap-2">
+              <span id="loyaltyDiscountBadge" class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-amber-500/15 text-amber-600 dark:text-amber-300 border border-amber-500/30">
+                بدون تخفیف
+              </span>
+              <svg class="settings-box-chevron w-4 h-4 text-slate-400 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+            </div>
+          </div>
+
+          <div id="userBoxLoyalty" class="settings-box-body p-4 pt-2 border-t border-slate-700/60 space-y-3 text-xs hidden">
+            <!-- Clickable Card inside that opens the Loyalty Modal -->
+            <div onclick="window.openLoyaltyModal && window.openLoyaltyModal()" class="card-inset p-3 rounded-2xl border border-amber-500/30 space-y-2.5 cursor-pointer hover:border-amber-500/60 active:scale-[0.99] transition group" title="کلیک برای مشاهده جزئیات سطوح ۷‌گانه">
+              <!-- Progress Bar to Next Tier -->
+              <div class="space-y-1.5">
+                <div class="flex justify-between items-center text-[11px]">
+                  <span id="loyaltyNextTierText" class="t-muted">تا سطح بعدی (نقره‌ای):</span>
+                  <span id="loyaltyProgressPct" class="font-mono font-bold t-main" dir="ltr">0%</span>
+                </div>
+                <div class="w-full bg-slate-700/30 rounded-full h-2 overflow-hidden card-inset">
+                  <div id="loyaltyProgressBar" class="bg-gradient-to-r from-amber-500 to-yellow-400 h-2 rounded-full transition-all duration-500" style="width: 0%"></div>
+                </div>
+                <div class="flex justify-between items-center text-[10px] t-muted font-mono">
+                  <span id="loyaltyTotalSpent">مجموع خرید: 0 تومان</span>
+                  <span id="loyaltyNextTierTarget">هدف بعدی: 500,000 تومان</span>
+                </div>
+              </div>
+
+              <!-- Benefits description -->
+              <div class="p-2 rounded-xl text-[10.5px] t-muted leading-relaxed flex items-center gap-2 bg-transparent">
+                <span>✨</span>
+                <span id="loyaltyBenefitDesc">با خرید بیشتر از فروشگاه، سطح خود را ارتقا دهید و از تخفیف دائمی روی تمامی بسته‌ها بهره‌مند شوید.</span>
+              </div>
+
+              <!-- Call to Action button to open modal -->
+              <div class="pt-1 flex items-center justify-between border-t border-card-border text-[11px] font-bold text-amber-500 dark:text-amber-400">
+                <span class="flex items-center gap-1">
+                  <span>👑</span>
+                  <span>مشاهده سطوح ۷‌گانه و جزئیات تخفیف</span>
+                </span>
+                <span class="text-xs transition-transform group-hover:translate-x-[2px]">▶</span>
+              </div>
             </div>
           </div>
         </div>
@@ -1813,6 +1813,63 @@
                     <button type="button" onclick="window.copyCardAutoAmount('toman')" class="p-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800/80 dark:hover:bg-slate-700/80 text-emerald-600 dark:text-emerald-400 text-sm transition active:scale-95 flex items-center justify-center shadow-sm" title="کپی مبلغ به تومان" aria-label="کپی مبلغ به تومان">
                       📋
                     </button>
+                  </div>
+                </div>
+
+                <!-- Graphical Bank Card (3D Realistic Flip View when enabled) -->
+                <div id="cardAutoGraphicBox" class="card-graphic-box blu-card-perspective-box hidden my-2 select-none" onclick="window.flipBluCard(this)" title="برای چرخش کارت کلیک فرمایید">
+                  <div class="blu-card-flipper">
+                    <!-- FRONT FACE -->
+                    <div class="blu-card-face blu-card-front p-4 sm:p-5 text-white flex flex-col justify-between shadow-2xl relative overflow-hidden" style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);">
+                      <!-- Card Header -->
+                      <div class="flex items-center justify-between z-10">
+                        <div class="w-10 h-7 rounded-md bg-gradient-to-tr from-amber-300 via-yellow-200 to-amber-400 border border-amber-500/50 flex items-center justify-center shadow-inner opacity-90">
+                          <div class="w-6 h-4 border border-amber-600/40 rounded-sm grid grid-cols-2 gap-0.5 p-0.5">
+                            <div class="bg-amber-600/25 rounded-[1px]"></div>
+                            <div class="bg-amber-600/25 rounded-[1px]"></div>
+                          </div>
+                        </div>
+                        <div class="flex items-center gap-1.5 opacity-90 text-[11px] font-black tracking-widest uppercase">
+                          <span id="graphicBankTitle">SHETAB</span>
+                          <span class="text-xs">📶</span>
+                        </div>
+                      </div>
+
+                      <!-- Card Number -->
+                      <div class="my-auto py-2.5 text-center z-10" dir="ltr">
+                        <span id="graphicCardNumberDisplay" class="font-mono text-base sm:text-lg font-black tracking-widest drop-shadow select-all">---- ---- ---- ----</span>
+                      </div>
+
+                      <!-- Card Footer: Holder & Flip Prompt -->
+                      <div class="flex items-center justify-between text-xs pt-1 z-10">
+                        <div class="text-right">
+                          <span class="text-[9px] text-white/70 block uppercase tracking-wider">دارنده حساب:</span>
+                          <b id="graphicCardHolderDisplay" class="font-bold text-xs sm:text-sm drop-shadow truncate max-w-[190px] block">مدیریت سامانه</b>
+                        </div>
+                        <div class="text-left flex items-center gap-1 text-[10px] text-white/80 bg-black/25 px-2 py-0.5 rounded-lg border border-white/10">
+                          <span>چرخش کارت</span>
+                          <span class="text-xs">🔄</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- BACK FACE -->
+                    <div class="blu-card-face blu-card-back p-4 sm:p-5 text-white flex flex-col justify-between shadow-2xl relative overflow-hidden" style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);">
+                      <!-- Black Magnetic Stripe -->
+                      <div class="w-full h-8 bg-slate-950/90 -mx-5 mt-2 shadow-inner"></div>
+                      <div class="my-auto px-2 space-y-2 z-10">
+                        <div class="bg-white/15 rounded-lg p-2 flex items-center justify-between text-xs" dir="ltr">
+                          <span class="text-[10px] text-white/70 font-mono">CVV2 / AUTHORIZED</span>
+                          <span class="font-mono font-bold tracking-widest text-sm">***</span>
+                        </div>
+                        <p class="text-[10.5px] text-white/85 text-center leading-relaxed font-medium" dir="rtl">
+                          کارت عضو شبکه شتاب بانکی کشور. جهت واریز کارت‌به‌کارت معتبر است.
+                        </p>
+                      </div>
+                      <div class="text-center text-[10px] text-white/70 z-10">
+                        <span>کلیک برای بازگشت به روی کارت ↩️</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
 
@@ -2717,12 +2774,12 @@
         <div id="wheelResultModalCouponBox" class="hidden card-inset border border-amber-500/40 rounded-2xl p-2.5 text-center space-y-1.5">
           <span class="text-[11px] text-slate-400 block">کد تخفیف اختصاصی شما:</span>
           <div class="flex items-center justify-center gap-2">
-            <code id="wheelResultModalCouponCode" class="font-mono text-cyan-300 font-extrabold text-sm select-all tracking-wider" dir="ltr">CODE</code>
-            <button id="copyWheelCouponBtn" type="button" class="text-xs bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 px-2 py-1 rounded-lg border border-cyan-500/30 flex items-center gap-1 transition active:scale-95" aria-label="کپی کد تخفیف">
-              <span>📋</span> کپی
+            <button id="copyWheelCouponBtn" type="button" class="text-base p-1 text-cyan-500 dark:text-cyan-400 hover:opacity-80 transition active:scale-90 bg-transparent border-0 shadow-none cursor-pointer flex items-center justify-center" title="کپی کد تخفیف" aria-label="کپی کد تخفیف">
+              📋
             </button>
+            <code id="wheelResultModalCouponCode" class="font-mono text-cyan-600 dark:text-cyan-300 font-extrabold text-sm select-all tracking-wider" dir="ltr">CODE</code>
           </div>
-          <span class="text-[10px] text-amber-300/80 block">⏳ مهلت استفاده: ۷ روز در تب فروشگاه</span>
+          <span class="text-[11px] font-bold text-amber-600 dark:text-amber-400 block mt-1">⏳ مهلت استفاده: ۷ روز در تب فروشگاه</span>
         </div>
 
         <button type="button" onclick="window.closeWheelResultModal()" class="w-full bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-slate-950 font-bold text-xs py-2.5 rounded-xl transition active:scale-95 shadow-md">
@@ -3245,8 +3302,8 @@
           </div>
           <div class="card-inset p-2.5 rounded-xl space-y-1">
             <span class="font-bold t-muted block border-b border-card-border pb-1">👤 خریدار:</span>
-            <span id="invBuyerName" class="font-bold t-main block truncate text-xs select-all num-bidi" dir="ltr">کاربر گرامی</span>
-            <span id="invBuyerId" class="hidden"></span>
+            <span id="invBuyerName" class="font-bold t-main block truncate text-xs select-all">کاربر گرامی</span>
+            <span id="invBuyerId" class="text-[10px] text-slate-400 font-mono block select-all" dir="ltr">--</span>
           </div>
         </div>
 
@@ -3342,7 +3399,7 @@
         <!-- Tier Tiers List (7 Levels) -->
         <div class="space-y-2 text-xs">
           <span class="text-[11px] font-bold t-muted block px-1">سطوح ۷‌گانه باشگاه مشتریان:</span>
-          <div id="loyaltyModalTiersList" class="space-y-2 max-h-72 overflow-y-auto pr-0.5">
+          <div id="loyaltyModalTiersList" class="space-y-2 max-h-72 overflow-y-auto px-1.5 py-1">
             <!-- Tier 1: Bronze -->
             <div id="loyaltyTierCard_bronze" class="card-inset p-2.5 rounded-2xl border border-card-border flex items-start gap-2.5 transition">
               <div class="w-8 h-8 rounded-xl bg-amber-800/15 text-amber-700 dark:text-amber-500 border border-amber-800/30 flex items-center justify-center text-base shrink-0">
@@ -3359,15 +3416,15 @@
 
             <!-- Tier 2: Silver -->
             <div id="loyaltyTierCard_silver" class="card-inset p-2.5 rounded-2xl border border-card-border flex items-start gap-2.5 transition">
-              <div class="w-8 h-8 rounded-xl bg-slate-400/15 text-slate-300 border border-slate-400/30 flex items-center justify-center text-base shrink-0">
+              <div class="w-8 h-8 rounded-xl bg-slate-400/15 text-slate-600 dark:text-slate-300 border border-slate-400/30 flex items-center justify-center text-base shrink-0">
                 🥈
               </div>
               <div class="flex-1 min-w-0">
                 <div class="flex items-center justify-between">
                   <b class="text-xs t-main">سطح نقره‌ای</b>
-                  <span id="loyaltyTierCard_silver_spent" class="text-[10px] font-bold text-slate-300 font-mono">300,000 تومان</span>
+                  <span id="loyaltyTierCard_silver_spent" class="text-[10px] font-bold text-slate-600 dark:text-slate-300 font-mono">300,000 تومان</span>
                 </div>
-                <p class="text-[10px] t-muted mt-0.5 leading-snug"><span id="loyaltyTierCard_silver_pct" class="text-emerald-500 font-bold font-mono num-bidi" dir="ltr">3%</span> <b class="text-emerald-500 font-bold">تخفیف دائمی</b> روی تمامی بسته‌ها.</p>
+                <p class="text-[10px] t-muted mt-0.5 leading-snug"><span id="loyaltyTierCard_silver_pct" class="text-emerald-500 font-bold font-mono num-bidi" dir="ltr">3%</span> <b class="text-emerald-500 font-bold">تخفیف دائمی</b>.</p>
               </div>
             </div>
 
@@ -3381,7 +3438,7 @@
                   <b class="text-xs t-main">سطح طلایی</b>
                   <span id="loyaltyTierCard_gold_spent" class="text-[10px] font-bold text-amber-500 font-mono">700,000 تومان</span>
                 </div>
-                <p class="text-[10px] t-muted mt-0.5 leading-snug"><span id="loyaltyTierCard_gold_pct" class="text-emerald-500 font-bold font-mono num-bidi" dir="ltr">5%</span> <b class="text-emerald-500 font-bold">تخفیف دائمی</b> روی تمامی بسته‌ها.</p>
+                <p class="text-[10px] t-muted mt-0.5 leading-snug"><span id="loyaltyTierCard_gold_pct" class="text-emerald-500 font-bold font-mono num-bidi" dir="ltr">5%</span> <b class="text-emerald-500 font-bold">تخفیف دائمی</b>.</p>
               </div>
             </div>
 
@@ -3395,7 +3452,7 @@
                   <b class="text-xs text-cyan-500 dark:text-cyan-300 font-bold">سطح پلاتین</b>
                   <span id="loyaltyTierCard_platinum_spent" class="text-[10px] font-bold text-cyan-400 font-mono">1,500,000 تومان</span>
                 </div>
-                <p class="text-[10px] t-muted mt-0.5 leading-snug"><span id="loyaltyTierCard_platinum_pct" class="text-emerald-500 font-bold font-mono num-bidi" dir="ltr">8%</span> <b class="text-emerald-500 font-bold">تخفیف دائمی</b> روی تمامی بسته‌ها.</p>
+                <p class="text-[10px] t-muted mt-0.5 leading-snug"><span id="loyaltyTierCard_platinum_pct" class="text-emerald-500 font-bold font-mono num-bidi" dir="ltr">8%</span> <b class="text-emerald-500 font-bold">تخفیف دائمی</b>.</p>
               </div>
             </div>
 
@@ -3409,7 +3466,7 @@
                   <b class="text-xs text-purple-400 font-bold">سطح یاقوت</b>
                   <span id="loyaltyTierCard_ruby_spent" class="text-[10px] font-bold text-purple-400 font-mono">3,000,000 تومان</span>
                 </div>
-                <p class="text-[10px] t-muted mt-0.5 leading-snug"><span id="loyaltyTierCard_ruby_pct" class="text-emerald-500 font-bold font-mono num-bidi" dir="ltr">10%</span> <b class="text-emerald-500 font-bold">تخفیف دائمی</b> روی تمامی بسته‌ها.</p>
+                <p class="text-[10px] t-muted mt-0.5 leading-snug"><span id="loyaltyTierCard_ruby_pct" class="text-emerald-500 font-bold font-mono num-bidi" dir="ltr">10%</span> <b class="text-emerald-500 font-bold">تخفیف دائمی</b>.</p>
               </div>
             </div>
 
@@ -3423,21 +3480,21 @@
                   <b class="text-xs text-emerald-400 font-bold">سطح زمرد</b>
                   <span id="loyaltyTierCard_emerald_spent" class="text-[10px] font-bold text-emerald-400 font-mono">6,000,000 تومان</span>
                 </div>
-                <p class="text-[10px] t-muted mt-0.5 leading-snug"><span id="loyaltyTierCard_emerald_pct" class="text-emerald-500 font-bold font-mono num-bidi" dir="ltr">12%</span> <b class="text-emerald-500 font-bold">تخفیف دائمی</b> روی تمامی بسته‌ها.</p>
+                <p class="text-[10px] t-muted mt-0.5 leading-snug"><span id="loyaltyTierCard_emerald_pct" class="text-emerald-500 font-bold font-mono num-bidi" dir="ltr">12%</span> <b class="text-emerald-500 font-bold">تخفیف دائمی</b>.</p>
               </div>
             </div>
 
             <!-- Tier 7: Diamond -->
-            <div id="loyaltyTierCard_diamond" class="card-inset p-2.5 rounded-2xl border border-amber-400/30 flex items-start gap-2.5 transition">
-              <div class="w-8 h-8 rounded-xl bg-amber-400/15 text-amber-300 border border-amber-400/30 flex items-center justify-center text-base shrink-0">
+            <div id="loyaltyTierCard_diamond" class="card-inset p-2.5 rounded-2xl border border-amber-500/40 dark:border-amber-400/30 flex items-start gap-2.5 transition">
+              <div class="w-8 h-8 rounded-xl bg-amber-500/15 text-amber-600 dark:text-amber-300 border border-amber-500/30 flex items-center justify-center text-base shrink-0">
                 👑
               </div>
               <div class="flex-1 min-w-0">
                 <div class="flex items-center justify-between">
-                  <b class="text-xs text-amber-300 font-bold">سطح الماس</b>
-                  <span id="loyaltyTierCard_diamond_spent" class="text-[10px] font-bold text-amber-300 font-mono">10,000,000 تومان</span>
+                  <b class="text-xs text-amber-600 dark:text-amber-300 font-bold">سطح الماس</b>
+                  <span id="loyaltyTierCard_diamond_spent" class="text-[10px] font-bold text-amber-600 dark:text-amber-300 font-mono">10,000,000 تومان</span>
                 </div>
-                <p class="text-[10px] t-muted mt-0.5 leading-snug"><span id="loyaltyTierCard_diamond_pct" class="text-emerald-500 font-bold font-mono num-bidi" dir="ltr">15%</span> <b class="text-emerald-500 font-bold">تخفیف دائمی</b> روی تمامی بسته‌ها + پشتیبانی اختصاصی.</p>
+                <p class="text-[10px] t-muted mt-0.5 leading-snug"><span id="loyaltyTierCard_diamond_pct" class="text-emerald-500 font-bold font-mono num-bidi" dir="ltr">15%</span> <b class="text-emerald-500 font-bold">تخفیف دائمی</b> + پشتیبانی اختصاصی.</p>
               </div>
             </div>
           </div>

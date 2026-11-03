@@ -260,9 +260,26 @@ async function updateCustomPlanCalculation() {
 
   if (isConfigured) {
     let volPct = 0;
-    if (gb >= 51 && gb <= 100) volPct = 10;
-    else if (gb >= 101 && gb <= 200) volPct = 20;
-    else if (gb > 200) volPct = 30;
+    let vTiers = null;
+    try {
+      if (settings.volume_tiers_json) vTiers = JSON.parse(settings.volume_tiers_json);
+      else if (Array.isArray(settings.volume_tiers)) vTiers = settings.volume_tiers;
+    } catch (_) {}
+
+    if (Array.isArray(vTiers) && vTiers.length > 0) {
+      for (const t of vTiers) {
+        const minG = Number(t.min_gb || 0);
+        const maxG = Number(t.max_gb || 999999);
+        if (gb >= minG && gb <= maxG) {
+          volPct = Math.max(0, Math.min(100, Number(t.discount_percent || 0)));
+          break;
+        }
+      }
+    } else {
+      if (gb >= 51 && gb <= 100) volPct = 10;
+      else if (gb >= 101 && gb <= 200) volPct = 20;
+      else if (gb > 200) volPct = 30;
+    }
 
     const rawTraffic = gb * pricePerGb;
     const discountedTraffic = Math.floor(rawTraffic * (100 - volPct) / 100);

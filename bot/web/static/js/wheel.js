@@ -411,12 +411,12 @@ function setupLuckyWheel() {
             } catch(e) {}
           }
           if (wheelResultText) {
-            wheelResultText.innerHTML = `🎉 <b>تبریک!</b> شما برنده <b class="text-amber-400 font-bold">${chosenPrize.name || chosenPrize.text}</b> شدید!<br/><span class="font-mono text-cyan-400 font-bold block mt-1 select-all" dir="ltr">کد: ${couponCode}</span><span class="text-[11px] text-slate-400 block mt-0.5">⏱ مهلت استفاده: ۷ روز در تب فروشگاه</span>`;
+            wheelResultText.innerHTML = `🎉 <b>تبریک!</b> شما برنده <b class="text-amber-400 font-bold">${chosenPrize.name || chosenPrize.text}</b> شدید!<br/><span class="font-mono text-cyan-400 font-bold block mt-1 select-all" dir="ltr">کد: ${couponCode}</span><span class="text-[11px] text-amber-500/90 font-medium block mt-0.5">⏱ مهلت استفاده: ۷ روز در تب فروشگاه</span>`;
           }
           showWheelResultModal({
             icon: '🎟',
             title: 'تبریک! برنده کد تخفیف شدید',
-            message: `کد تخفیف اختصاصی ۱۰٪ برای شما فعال شد. می‌توانید در خرید بعدی از تب فروشگاه آن را اعمال کنید.${streakNote}${ticketNote}`,
+            message: `کد تخفیف اختصاصی <span dir="ltr" class="font-mono font-bold">10%</span> برای شما فعال شد. می‌توانید در خرید بعدی از تب فروشگاه آن را اعمال کنید.${streakNote}${ticketNote}`,
             couponCode: couponCode,
           });
         } else {

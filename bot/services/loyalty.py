@@ -31,7 +31,7 @@ DEFAULT_LOYALTY_TIERS = [
         "discount_percent": 3,
         "color": "slate-300",
         "badge_class": "bg-slate-400/15 text-slate-300 border-slate-400/30",
-        "description": "۳٪ تخفیف دائمی تمامی بسته‌ها",
+        "description": "3% تخفیف دائمی",
     },
     {
         "id": "gold",
@@ -41,7 +41,7 @@ DEFAULT_LOYALTY_TIERS = [
         "discount_percent": 5,
         "color": "amber-400",
         "badge_class": "bg-amber-500/15 text-amber-500 dark:text-amber-400 border-amber-500/30",
-        "description": "۵٪ تخفیف دائمی تمامی بسته‌ها",
+        "description": "5% تخفیف دائمی",
     },
     {
         "id": "platinum",
@@ -51,7 +51,7 @@ DEFAULT_LOYALTY_TIERS = [
         "discount_percent": 8,
         "color": "cyan-400",
         "badge_class": "bg-cyan-500/15 text-cyan-500 dark:text-cyan-400 border-cyan-500/30",
-        "description": "۸٪ تخفیف دائمی تمامی بسته‌ها",
+        "description": "8% تخفیف دائمی",
     },
     {
         "id": "ruby",
@@ -61,7 +61,7 @@ DEFAULT_LOYALTY_TIERS = [
         "discount_percent": 10,
         "color": "purple-400",
         "badge_class": "bg-purple-500/15 text-purple-400 border-purple-500/30",
-        "description": "۱۰٪ تخفیف دائمی تمامی بسته‌ها",
+        "description": "10% تخفیف دائمی",
     },
     {
         "id": "emerald",
@@ -71,7 +71,7 @@ DEFAULT_LOYALTY_TIERS = [
         "discount_percent": 12,
         "color": "emerald-400",
         "badge_class": "bg-emerald-500/15 text-emerald-400 border-emerald-500/30",
-        "description": "۱۲٪ تخفیف دائمی تمامی بسته‌ها",
+        "description": "12% تخفیف دائمی",
     },
     {
         "id": "diamond",
@@ -81,7 +81,7 @@ DEFAULT_LOYALTY_TIERS = [
         "discount_percent": 15,
         "color": "amber-300",
         "badge_class": "bg-amber-300/15 text-amber-300 border-amber-300/30",
-        "description": "۱۵٪ تخفیف دائمی تمام خریدها + پشتیبانی اختصاصی",
+        "description": "15% تخفیف دائمی + پشتیبانی اختصاصی",
     },
 ]
 
@@ -115,7 +115,7 @@ async def get_configured_loyalty_tiers(session: AsyncSession | None = None) -> l
                 if "discount_percent" in c and isinstance(c["discount_percent"], (int, float)):
                     tier_copy["discount_percent"] = max(0, min(100, int(c["discount_percent"])))
                 if tier_copy["discount_percent"] > 0:
-                    tier_copy["description"] = f"{tier_copy['discount_percent']}٪ تخفیف دائمی تمامی بسته‌ها"
+                    tier_copy["description"] = f"{tier_copy['discount_percent']}% تخفیف دائمی"
                 else:
                     tier_copy["description"] = "سطح آغازین باشگاه مشتریان (بدون تخفیف)"
             merged_tiers.append(tier_copy)

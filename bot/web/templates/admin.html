@@ -678,7 +678,7 @@
             </div>
 
             <div id="toolBoxCheckHost" class="space-y-3 pt-2 border-t border-[var(--card-border)] hidden">
-              <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+              <div class="grid grid-cols-1 sm:grid-cols-4 gap-2">
                 <div class="sm:col-span-2 space-y-1">
                   <label class="text-[11px] t-muted block">آدرس سرور یا دامنه مقصد:</label>
                   <input id="checkHostTargetInput" type="text" dir="ltr" placeholder="example.com یا 1.2.3.4" class="input-base w-full p-2.5 rounded-xl font-mono text-xs outline-none" />
@@ -690,6 +690,15 @@
                     <option value="tcp">🔌 پورت TCP</option>
                     <option value="http">🌐 درخواست HTTP</option>
                     <option value="dns">🔍 استعلام DNS</option>
+                  </select>
+                </div>
+                <div class="space-y-1">
+                  <label class="text-[11px] t-muted block">تعداد نودها:</label>
+                  <select id="checkHostMaxNodesSelect" class="input-base w-full p-2.5 rounded-xl text-xs outline-none font-bold font-mono" dir="ltr">
+                    <option value="6">6 نود</option>
+                    <option value="10" selected>10 نود</option>
+                    <option value="15">15 نود</option>
+                    <option value="20">20 نود</option>
                   </select>
                 </div>
               </div>
@@ -933,6 +942,33 @@
                 </div>
               </div>
               <input type="hidden" id="settingAccessMode" value="open" />
+            </div>
+
+            <!-- Timezone Selector (منطقه زمانی سامانه) -->
+            <div class="py-1 border-t border-slate-700/50 pt-2">
+              <div class="flex items-center justify-between p-2.5 rounded-xl card-inset">
+                <div class="flex items-center gap-2.5">
+                  <div class="w-8 h-8 rounded-xl bg-indigo-500/15 border border-indigo-500/30 text-indigo-400 flex items-center justify-center text-sm flex-shrink-0">
+                    🕒
+                  </div>
+                  <div>
+                    <span class="t-main font-semibold text-xs block">منطقه زمانی سامانه (Timezone)</span>
+                    <span class="text-[11px] t-muted block mt-0.5">مبنای ثبت تاریخ، نمودارهای مصرف و گزارش‌ها</span>
+                  </div>
+                </div>
+                <select id="settingAppTimezone" class="input-base text-xs font-mono font-bold py-1.5 px-2.5 rounded-xl outline-none" dir="ltr">
+                  <option value="Asia/Tehran">Asia/Tehran (UTC+3:30)</option>
+                  <option value="UTC">UTC (UTC+0)</option>
+                  <option value="Europe/Berlin">Europe/Berlin (UTC+1)</option>
+                  <option value="Europe/London">Europe/London (UTC+0)</option>
+                  <option value="Europe/Paris">Europe/Paris (UTC+1)</option>
+                  <option value="Europe/Istanbul">Europe/Istanbul (UTC+3)</option>
+                  <option value="Asia/Dubai">Asia/Dubai (UTC+4)</option>
+                  <option value="Asia/Baku">Asia/Baku (UTC+4)</option>
+                  <option value="America/New_York">America/New_York (UTC-5)</option>
+                  <option value="America/Los_Angeles">America/Los_Angeles (UTC-8)</option>
+                </select>
+              </div>
             </div>
           </div>
         </div>
@@ -2184,6 +2220,55 @@
               <div>
                 <label class="text-[11px] text-slate-400 block mb-1">حداکثر مدت (روز)</label>
                 <input type="number" id="settingCustomPlanMaxDays" dir="ltr" placeholder="180" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-slate-200 outline-none focus:border-indigo-500 transition" />
+              </div>
+            </div>
+
+            <!-- Volume Discount Tiers (تخفیف‌های پلکانی حجم مصرفی) -->
+            <div class="pt-3 border-t border-slate-700/50 space-y-2">
+              <div class="flex items-center justify-between">
+                <div>
+                  <b class="text-xs text-slate-200 block">تخفیف‌های پلکانی حجم مصرفی</b>
+                  <span class="text-[10.5px] text-slate-400">اعمال تخفیف خودکار بر اساس حجم انتخابی کاربر</span>
+                </div>
+                <span class="badge badge-info text-[10px] font-mono font-bold">3 Tiers</span>
+              </div>
+
+              <div class="space-y-2 pt-1">
+                <!-- Tier 1 -->
+                <div class="card-inset p-2.5 rounded-xl grid grid-cols-2 gap-2 border border-slate-750">
+                  <div>
+                    <label class="text-[10px] text-slate-400 block mb-1">پله اول: از چند گیگابایت</label>
+                    <input type="number" id="settingCustomPlanTier1MinGb" dir="ltr" placeholder="51" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-xs font-mono text-cyan-300 outline-none" />
+                  </div>
+                  <div>
+                    <label class="text-[10px] text-slate-400 block mb-1">درصد تخفیف پله اول (%)</label>
+                    <input type="number" id="settingCustomPlanTier1Discount" dir="ltr" placeholder="10" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-xs font-mono text-emerald-400 outline-none" />
+                  </div>
+                </div>
+
+                <!-- Tier 2 -->
+                <div class="card-inset p-2.5 rounded-xl grid grid-cols-2 gap-2 border border-slate-750">
+                  <div>
+                    <label class="text-[10px] text-slate-400 block mb-1">پله دوم: از چند گیگابایت</label>
+                    <input type="number" id="settingCustomPlanTier2MinGb" dir="ltr" placeholder="101" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-xs font-mono text-cyan-300 outline-none" />
+                  </div>
+                  <div>
+                    <label class="text-[10px] text-slate-400 block mb-1">درصد تخفیف پله دوم (%)</label>
+                    <input type="number" id="settingCustomPlanTier2Discount" dir="ltr" placeholder="20" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-xs font-mono text-emerald-400 outline-none" />
+                  </div>
+                </div>
+
+                <!-- Tier 3 -->
+                <div class="card-inset p-2.5 rounded-xl grid grid-cols-2 gap-2 border border-slate-750">
+                  <div>
+                    <label class="text-[10px] text-slate-400 block mb-1">پله سوم: از چند گیگابایت</label>
+                    <input type="number" id="settingCustomPlanTier3MinGb" dir="ltr" placeholder="201" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-xs font-mono text-cyan-300 outline-none" />
+                  </div>
+                  <div>
+                    <label class="text-[10px] text-slate-400 block mb-1">درصد تخفیف پله سوم (%)</label>
+                    <input type="number" id="settingCustomPlanTier3Discount" dir="ltr" placeholder="30" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-xs font-mono text-emerald-400 outline-none" />
+                  </div>
+                </div>
               </div>
             </div>
           </div>

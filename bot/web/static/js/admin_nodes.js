@@ -926,6 +926,7 @@ openEditSslDomainModal(domain) {
     }
     const type = $('checkHostTypeSelect')?.value || 'ping';
     const port = parseInt($('checkHostPortInput')?.value || '443', 10);
+    const maxNodes = parseInt($('checkHostMaxNodesSelect')?.value || '10', 10);
 
     const btn = $('runCheckHostBtn');
     const btnText = $('runCheckHostBtnText');
@@ -945,7 +946,7 @@ openEditSslDomainModal(domain) {
     }
 
     try {
-      const res = await window.api.runCheckHost({ host: target, check_type: type, port: port });
+      const res = await window.api.runCheckHost({ host: target, check_type: type, port: port, max_nodes: maxNodes });
       if (!res || !res.ok) {
         if (badge) {
           badge.className = 'badge badge-danger';

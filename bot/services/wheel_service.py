@@ -27,7 +27,7 @@ logger = logging.getLogger(__name__)
 WHEEL_PRIZES = [
     {"id": "1gb", "name": f"{ltr_frag('1 GB')} ترافیک هدیه", "icon": "🎁", "type": "traffic", "value": 1},
     {"id": "blank_1", "name": "پوچ (شانس بعدی فردا)", "icon": "❌", "type": "blank", "value": 0},
-    {"id": "discount10", "name": "۱۰٪ کد تخفیف ویژه", "icon": "🎟", "type": "coupon", "code": "OFF10"},
+    {"id": "discount10", "name": f"{ltr_frag('10%')} کد تخفیف ویژه", "icon": "🎟", "type": "coupon", "code": "OFF10"},
     {"id": "500mb", "name": f"{ltr_frag('500 MB')} ترافیک هدیه", "icon": "⚡️", "type": "traffic", "value": 0.5},
     {"id": "2gb", "name": f"{ltr_frag('2 GB')} ترافیک هدیه (سوپر شانس)", "icon": "👑", "type": "traffic", "value": 2},
     {"id": "again", "name": "دوباره (شانس مجدد!)", "icon": "🔄", "type": "again", "value": 0},
@@ -311,7 +311,7 @@ async def execute_lucky_wheel_spin(
                     expires_at=expire_time,
                 )
                 chosen["code"] = unique_code
-                chosen["name"] = f"کد تخفیف ۱۰٪ (مهلت ۷ روز): {unique_code}"
+                chosen["name"] = f"کد تخفیف 10% (مهلت ۷ روز): {unique_code}"
 
                 if cache and hasattr(cache, "get"):
                     user_coupons = await cache.get(f"wheel:user_coupons:{telegram_id}") or []
