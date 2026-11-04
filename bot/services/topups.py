@@ -79,6 +79,17 @@ async def decide_topup(
             detail=f"topup={topup_id} user={topup.telegram_id} amount={topup.amount}",
         )
 
+    cache = getattr(bot, "cache", None)
+    if cache and hasattr(cache, "delete"):
+        try:
+            if hasattr(cache, "invalidate_user"):
+                await cache.invalidate_user(topup.telegram_id)
+            else:
+                await cache.delete(f"tma:user:{topup.telegram_id}")
+            await cache.delete("tma:admin:overview")
+        except Exception as c_exc:
+            logger.debug("Failed invalidating cache for topup %s: %s", topup_id, c_exc)
+
     try:
         user_repo = UserRepository(session)
         if target:

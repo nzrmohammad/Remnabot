@@ -452,7 +452,10 @@ async def post_user_create_gift(request: web.Request) -> web.Response:
         return err
 
     telegram_id = int(user_auth["id"])
-    data = await request.json()
+    try:
+        data = await request.json()
+    except Exception:
+        return web.json_response({"ok": False, "message": "فرمت داده نامعتبر است."}, status=400)
     delivery_type = data.get("delivery_type", "LINK")
     gift_type = data.get("gift_type", "BALANCE")
     amount = int(data.get("amount", 0) or 0)
@@ -497,7 +500,10 @@ async def post_user_claim_gift(request: web.Request) -> web.Response:
         return err
 
     telegram_id = int(user_auth["id"])
-    data = await request.json()
+    try:
+        data = await request.json()
+    except Exception:
+        return web.json_response({"ok": False, "message": "فرمت داده نامعتبر است."}, status=400)
     code = (data.get("code") or "").strip()
     if not code:
         return web.json_response({"ok": False, "message": "کد هدیه الزامی است."}, status=400)

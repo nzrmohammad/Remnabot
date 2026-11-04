@@ -3023,7 +3023,49 @@ async def test_init_db_auto_migrates_missing_columns():
 
         await conn.run_sync(check_columns)
 
+@pytest.mark.anyio
+async def test_fastcache_invalidate_user():
+    from bot.web.cache import FastCache
+
+    cache = FastCache(redis_client=None)
+    tid = 445566
+    await cache.set(f"tma:user:{tid}:dashboard", {"bal": 100})
+    await cache.set(f"tma:user:{tid}:dashboard:default", {"bal": 100})
+    await cache.set(f"tma:user:{tid}:profile", {"name": "Test"})
+    await cache.set(f"tma:user:{tid}:topup_info", {"min": 5000})
+    await cache.set("tma:user:999999:dashboard", {"other": True})
+
+    assert await cache.get(f"tma:user:{tid}:dashboard") is not None
+    assert await cache.get(f"tma:user:{tid}:profile") is not None
+
+    await cache.invalidate_user(tid)
+
+    assert await cache.get(f"tma:user:{tid}:dashboard") is None
+    assert await cache.get(f"tma:user:{tid}:dashboard:default") is None
+    assert await cache.get(f"tma:user:{tid}:profile") is None
+    assert await cache.get(f"tma:user:{tid}:topup_info") is None
+    assert await cache.get("tma:user:999999:dashboard") is not None
 
 
+@pytest.mark.anyio
+async def test_user_gift_endpoints_bad_json():
+    import json
+    from unittest.mock import MagicMock
+    from aiohttp import web
+    from bot.web.user_shop import post_user_create_gift, post_user_claim_gift
 
+    req = MagicMock()
+    user_auth = {"id": 12345, "username": "buyer"}
+    req.json = MagicMock(side_effect=ValueError("Invalid JSON"))
+
+    with patch("bot.web.user_shop.require_user", return_value=(user_auth, None)):
+        resp1 = await post_user_create_gift(req)
+        assert resp1.status == 400
+        data1 = json.loads(resp1.text)
+        assert data1["ok"] is False
+
+        resp2 = await post_user_claim_gift(req)
+        assert resp2.status == 400
+        data2 = json.loads(resp2.text)
+        assert data2["ok"] is False
 

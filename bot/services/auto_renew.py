@@ -68,18 +68,18 @@ async def process_auto_renewals(
                 # Each renewal attempt runs in its own session to guarantee safe transaction boundary
                 async with session_factory() as session:
                     # Find plan specifically for this panel account (fallback to user's last base plan)
-                    last_order_stmt = (
+                    stmt = (
                         select(Order)
                         .where(
                             Order.telegram_id == tid,
-                            Order.panel_user_id == int(acc_id) if acc_id else None,
                             Order.status == "paid",
                             Order.duration_days > 0,
                         )
-                        .order_by(Order.id.desc())
-                        .limit(1)
                     )
-                    last_order = (await session.execute(last_order_stmt)).scalar_one_or_none()
+                    acc_id_int = int(acc_id) if (acc_id and str(acc_id).isdigit()) else None
+                    if acc_id_int is not None:
+                        stmt = stmt.where(Order.panel_user_id == acc_id_int)
+                    last_order = (await session.execute(stmt.order_by(Order.id.desc()).limit(1))).scalar_one_or_none()
                     if not last_order or not last_order.service_id:
                         # Fallback to user's general last paid base order
                         gen_stmt = (

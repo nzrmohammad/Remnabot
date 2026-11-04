@@ -105,6 +105,10 @@ class FastCache:
             except Exception as exc:
                 logger.debug("Redis cache delete error for %s: %s", key, exc)
 
+    async def invalidate_user(self, telegram_id: int | str) -> None:
+        """Invalidate all cached data for a user across dashboard, profile, and topup info."""
+        await self.delete(f"tma:user:{telegram_id}")
+
     async def release_lock(self, key: str, token: str) -> bool:
         """Safely release distributed lock only if the current value matches token."""
         async with self._lock:

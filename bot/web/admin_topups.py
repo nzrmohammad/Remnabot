@@ -18,7 +18,6 @@ from bot.db.repositories.user_repo import UserRepository
 from bot.db.repositories.wallet_repo import WalletRepository
 from bot.services.app_settings import get_store_settings
 from bot.web.admin_common import _check_admin, db_session
-from bot.web.cache import FastCache
 
 logger = logging.getLogger(__name__)
 
@@ -141,9 +140,13 @@ async def post_admin_topup_action(request: web.Request) -> web.Response:
         await session.commit()
 
     # Clear cache
-    cache: FastCache = request.app["cache"]
-    await cache.delete(f"tma:user:{claimed.telegram_id}:dashboard")
-    await cache.delete("tma:admin:overview")
+    cache = request.app.get("cache")
+    if cache and hasattr(cache, "delete"):
+        if hasattr(cache, "invalidate_user"):
+            await cache.invalidate_user(claimed.telegram_id)
+        else:
+            await cache.delete(f"tma:user:{claimed.telegram_id}")
+        await cache.delete("tma:admin:overview")
 
     # Send telegram notification to user with navigation keyboard
     try:

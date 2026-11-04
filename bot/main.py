@@ -125,11 +125,15 @@ async def main() -> None:
     # aiogram.fsm.storage.redis.RedisStorage(redis) — no code changes
     # needed beyond this line.
     dp = Dispatcher(storage=_build_storage(settings))
+    redis_client = getattr(dp.storage, "redis", None)
+    fast_cache = FastCache(redis_client=redis_client)
 
     # dependency injection
     dp["remnawave"] = remnawave
     dp["session_factory"] = session_factory
+    dp["cache"] = fast_cache
     bot.session_factory = session_factory
+    bot.cache = fast_cache
     # Rate-limit first (drops floods before DB sessions are opened).
     dp.update.outer_middleware(RateLimitMiddleware())
     dp.update.outer_middleware(DbSessionMiddleware(session_factory))
@@ -145,9 +149,6 @@ async def main() -> None:
             await report_error_event(bot, session_factory, event)
         except Exception as exc:
             logger.warning("Failed to dispatch error report: %s", exc)
-
-    redis_client = getattr(dp.storage, "redis", None)
-    fast_cache = FastCache(redis_client=redis_client)
 
     background_tasks = [
         asyncio.create_task(

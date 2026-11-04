@@ -153,7 +153,7 @@ async def execute_purchase(
 
     try:
         async with lock:
-            return await _execute_purchase_impl(
+            res = await _execute_purchase_impl(
                 remnawave=remnawave,
                 session=session,
                 service=service,
@@ -165,6 +165,15 @@ async def execute_purchase(
                 bot=bot,
                 session_factory=session_factory,
             )
+            if res.ok and cache and hasattr(cache, "delete"):
+                try:
+                    if hasattr(cache, "invalidate_user"):
+                        await cache.invalidate_user(telegram_id)
+                    else:
+                        await cache.delete(f"tma:user:{telegram_id}")
+                except Exception as c_err:
+                    logger.debug("Failed to invalidate cache after purchase: %s", c_err)
+            return res
     finally:
         if dist_lock and cache and lock_token:
             try:

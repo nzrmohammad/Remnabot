@@ -216,8 +216,10 @@ async def process_incoming_sms(
     # Invalidate user TMA cache
     if cache and hasattr(cache, "delete"):
         try:
-            await cache.delete(f"tma:user:{invoice.telegram_id}:profile")
-            await cache.delete(f"tma:user:{invoice.telegram_id}:dashboard")
+            if hasattr(cache, "invalidate_user"):
+                await cache.invalidate_user(invoice.telegram_id)
+            else:
+                await cache.delete(f"tma:user:{invoice.telegram_id}")
         except Exception as exc:
             logger.debug("Failed invalidating user cache for %s: %s", invoice.telegram_id, exc)
 
