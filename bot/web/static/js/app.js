@@ -375,8 +375,6 @@ function setupConfigsModal() {
       return `
         <div class="config-row-item card-inset p-2.5 flex items-center justify-between gap-2 transition hover:border-slate-600">
           <div class="flex items-center gap-2 overflow-hidden flex-1 min-w-0">
-            <span class="text-base select-none flex-shrink-0" title="${escapeHtml(c.country_name || 'سرور')}">${flag}</span>
-            <span class="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-cyan-500/15 text-cyan-400 border border-cyan-500/30 uppercase flex-shrink-0">${protoBadge}</span>
             <span class="text-xs font-bold t-main truncate config-name-label" title="${safeName}">${safeName}</span>
           </div>
           <div class="flex items-center gap-1 shrink-0">
@@ -2006,8 +2004,8 @@ function setupSupportChat() {
     } else {
       bubble.className = 'self-end mr-auto ml-0 max-w-[85%] flex items-start gap-2 animate-fadeIn';
       bubble.innerHTML = `
-        <div class="w-6 h-6 rounded-full bg-emerald-600 flex items-center justify-center text-[10px] shrink-0 text-white mt-0.5">🎧</div>
-        <div class="chat-admin-bubble border border-slate-300 dark:border-slate-700/60 bg-slate-100 dark:bg-slate-800/40 rounded-2xl rounded-tl-none p-2.5 text-slate-800 dark:text-slate-200 leading-relaxed shadow-sm text-right">
+        <div class="w-6 h-6 rounded-full bg-emerald-600 flex items-center justify-center text-[10px] shrink-0 text-white mt-0.5 shadow-sm">🎧</div>
+        <div class="chat-admin-bubble border border-slate-300 dark:border-emerald-500/35 bg-slate-100 dark:bg-slate-900/90 rounded-2xl rounded-tl-none p-2.5 text-slate-900 dark:text-slate-100 leading-relaxed shadow-md text-right">
           ${safeText}
           <span class="text-[10px] text-slate-500 dark:text-slate-400 block text-left mt-1 font-mono" dir="ltr">${timeStr}</span>
         </div>
@@ -2123,7 +2121,7 @@ const tg = window.Telegram?.WebApp;
 // Single source of truth for modal ids used by the Telegram BackButton sync
 const APP_MODAL_IDS = [
   'revokeModal', 'switchAccountModal', 'activeSessionsModal',
-  'topupModal', 'luckyWheelModal', 'storyModal', 'storyCardModal',
+  'topupModal', 'luckyWheelModal', 'storyCardModal',
   'supportChatModal', 'purchaseSuccessModal',
   'qrModal', 'checkoutConfirmModal', 'configsModal', 'tutorialModal',
   'shopGuidanceModal', 'speedTestModal', 'wheelResultModal',
@@ -2424,22 +2422,7 @@ function resetActiveSubAnalytics() {
     nextMonthBtn.classList.add('opacity-40', 'cursor-not-allowed');
   }
 
-  // 3. Reset Traffic Split & Burn Rate & Diurnal breakdown
-  const downGbEl = document.getElementById('repSplitDownGb');
-  if (downGbEl) downGbEl.innerText = '۰ GB';
-  const upGbEl = document.getElementById('repSplitUpGb');
-  if (upGbEl) upGbEl.innerText = '۰ GB';
-  const downPctEl = document.getElementById('repSplitDownPct');
-  if (downPctEl) downPctEl.innerText = '۰%';
-  const upPctEl = document.getElementById('repSplitUpPct');
-  if (upPctEl) upPctEl.innerText = '۰%';
-  const downBar = document.getElementById('repSplitDownBar');
-  if (downBar) downBar.style.width = '0%';
-  const upBar = document.getElementById('repSplitUpBar');
-  if (upBar) upBar.style.width = '0%';
-  const ratioBadge = document.getElementById('repUpDownRatioBadge');
-  if (ratioBadge) ratioBadge.innerText = 'بدون داده';
-
+  // 3. Reset Burn Rate & Analytics
   const speedBadge = document.getElementById('repBurnSpeedBadge');
   if (speedBadge) speedBadge.innerText = 'غیرفعال';
   const avgDailyEl = document.getElementById('repBurnAvgDaily');
@@ -3475,7 +3458,7 @@ function renderUserAchievements(data) {
   const couponsActionEl = $('achieveCouponsAction');
   if (wonCouponsEl) {
     const count = Number(ach.active_coupons_count ?? wonCoupons.length);
-    wonCouponsEl.innerText = `${count} کد`;
+    wonCouponsEl.innerText = `${typeof toPersianDigits === 'function' ? toPersianDigits(count) : count} کد`;
     if (couponsActionEl) {
       if (count > 0) {
         couponsActionEl.innerText = 'کپی آخرین کد';
@@ -4179,18 +4162,15 @@ function closeGiftModal() {
 
 function switchGiftModalTab(tab) {
   $('giftNewView')?.classList.toggle('hidden', tab !== 'new');
-  $('giftClaimView')?.classList.toggle('hidden', tab !== 'claim');
   $('giftHistoryView')?.classList.toggle('hidden', tab !== 'history');
 
   const activeClass = 'flex-1 py-1.5 px-2 rounded-xl font-bold transition flex items-center justify-center gap-1 bg-pink-600 text-white shadow';
   const inactiveClass = 'flex-1 py-1.5 px-2 rounded-xl font-medium transition flex items-center justify-center gap-1 text-slate-400 hover:text-white';
 
   const btnNew = $('giftTabBtn-new');
-  const btnClaim = $('giftTabBtn-claim');
   const btnHistory = $('giftTabBtn-history');
 
   if (btnNew) btnNew.className = tab === 'new' ? activeClass : inactiveClass;
-  if (btnClaim) btnClaim.className = tab === 'claim' ? activeClass : inactiveClass;
   if (btnHistory) btnHistory.className = tab === 'history' ? activeClass : inactiveClass;
 
   if (tab === 'history') {

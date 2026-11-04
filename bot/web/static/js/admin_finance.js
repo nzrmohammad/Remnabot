@@ -9,8 +9,8 @@
   const api = window.api;
   const tg = window.Telegram?.WebApp;
   const formatNumber = window.formatNumber || (n => String(n));
-  const showConfirmModal = window.showConfirmModal || window.adminActions?.showConfirmModal;
-  const showOperationReportModal = window.showOperationReportModal || window.adminActions?.showOperationReportModal;
+  const showConfirmModal = (opts) => (window.showConfirmModal || window.adminActions?.showConfirmModal || ((o) => Promise.resolve(window.confirm(o?.message || 'آیا مطمئن هستید؟'))))(opts);
+  const showOperationReportModal = (opts) => (window.showOperationReportModal || window.adminActions?.showOperationReportModal || ((o) => { if (window.showToast) window.showToast(o?.title || 'عملیات ثبت شد'); }))(opts);
   window.adminActions = window.adminActions || {};
 
   let currentWalletTarget = null;

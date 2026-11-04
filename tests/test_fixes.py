@@ -2995,5 +2995,35 @@ async def test_user_shop_invalidate_caches_helper():
     assert "tma:user:777777:topup_info" in deleted_keys
 
 
+@pytest.mark.anyio
+async def test_init_db_auto_migrates_missing_columns():
+    from sqlalchemy import inspect, text
+    from sqlalchemy.ext.asyncio import create_async_engine
+
+    from bot.db.base import init_db
+
+    engine = create_async_engine("sqlite+aiosqlite:///:memory:")
+    async with engine.begin() as conn:
+        # Intentionally create users table missing columns (wheel_streak, spin_tickets, etc.)
+        await conn.execute(text(
+            "CREATE TABLE users (id INTEGER PRIMARY KEY, telegram_id BIGINT UNIQUE);"
+        ))
+
+    # Run init_db which should detect missing columns and auto-migrate them
+    await init_db(engine)
+
+    async with engine.begin() as conn:
+        def check_columns(sync_conn):
+            insp = inspect(sync_conn)
+            cols = {c["name"] for c in insp.get_columns("users")}
+            assert "wheel_streak" in cols
+            assert "spin_tickets" in cols
+            assert "created_at" in cols
+            assert "is_verified" in cols
+
+        await conn.run_sync(check_columns)
+
+
+
 
 

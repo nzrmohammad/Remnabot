@@ -590,6 +590,7 @@ def create_web_app(
     app.router.add_post("/api/user/topup/crypto/tonconnect_submit", routes_user.post_user_topup_tonconnect_submit)
     app.router.add_post("/api/user/topup/trx", routes_user.post_user_topup_trx)
     app.router.add_post("/api/user/topup/trx/verify", routes_user.post_user_topup_trx_verify)
+    app.router.add_get("/api/user/topup/trx/redirect", routes_user.get_user_topup_trx_redirect)
     app.router.add_post("/api/user/topup/xrocket", routes_user.post_user_topup_xrocket)
     app.router.add_post("/api/webhooks/xrocket", routes_user.post_webhook_xrocket)
     app.router.add_post("/api/user/topup/stars", routes_user.post_user_topup_stars)

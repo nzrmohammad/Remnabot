@@ -634,13 +634,12 @@
               <div class="card-inset rounded-xl p-2.5 flex flex-col items-center justify-between">
                 <span class="text-[10px] text-slate-400 block mb-1">حجم هدیه برنده</span>
                 <b id="achieveGiftTraffic" class="font-mono text-cyan-600 dark:text-cyan-400 text-xs font-bold num-bidi" dir="ltr">0.0 GB</b>
-                <button type="button" onclick="window.openLuckyWheel()" class="text-[9.5px] font-medium text-cyan-600 dark:text-cyan-400 mt-0.5 hover:underline bg-transparent border-0 p-0 cursor-pointer flex items-center gap-0.5 justify-center"><span>🎡</span> گردونه شانس</button>
               </div>
 
               <!-- Active Won Coupons -->
               <div class="card-inset rounded-xl p-2.5 flex flex-col items-center justify-between">
                 <span class="text-[10px] text-slate-400 block mb-1">کدهای تخفیف</span>
-                <b id="achieveWonCoupons" class="font-mono text-emerald-600 dark:text-emerald-400 text-xs font-bold num-bidi" dir="ltr">۰ کد</b>
+                <b id="achieveWonCoupons" class="font-mono text-emerald-600 dark:text-emerald-400 text-xs font-bold">۰ کد</b>
                 <button type="button" id="achieveCouponsAction" class="text-[9.5px] text-emerald-600 dark:text-emerald-400 mt-0.5 font-medium hover:underline bg-transparent border-0 p-0" onclick="window.copyActiveCoupon()">مشاهده و کپی</button>
               </div>
 
@@ -661,6 +660,34 @@
               <div class="flex items-center gap-1.5 text-slate-400">
                 <span>🎫 بلیط گردونه:</span>
                 <b id="achieveSpinTickets" class="font-mono text-indigo-600 dark:text-indigo-400 font-bold">۰ عدد</b>
+              </div>
+            </div>
+          </div>
+
+          <!-- Chart 2: Burn-Rate & Projected Expiry (پیش‌بینی هوشمند اتمام حجم) -->
+          <div class="card rounded-2xl p-4 space-y-2.5 shadow-md">
+            <div class="flex justify-between items-center border-b border-slate-700/60 pb-2">
+              <span class="text-xs font-bold t-main flex items-center gap-1.5">
+                <span>⏳</span> پیش‌بینی هوشمند اتمام حجم
+              </span>
+              <span id="repBurnSpeedBadge" class="text-[10px] font-mono font-bold text-cyan-600 dark:text-cyan-400 bg-transparent p-0" dir="ltr">-- GB</span>
+            </div>
+
+            <div class="space-y-2">
+              <div class="grid grid-cols-2 gap-2 text-xs">
+                <div class="card-inset rounded-xl p-2.5 space-y-1">
+                  <span class="text-[10px] text-slate-400 block">میانگین مصرف ۳ روز اخیر:</span>
+                  <b id="repBurnAvgDaily" class="font-mono text-cyan-600 dark:text-cyan-400 text-xs num-bidi" dir="ltr">-- GB</b>
+                </div>
+                <div class="card-inset rounded-xl p-2.5 space-y-1">
+                  <span class="text-[10px] text-slate-400 block">تخمین حجم باقی‌مانده:</span>
+                  <b id="repBurnProjectedDays" class="font-mono text-emerald-600 dark:text-emerald-400 text-xs num-bidi" dir="ltr">-- روز</b>
+                </div>
+              </div>
+
+              <div id="repBurnAnalysisBox" class="p-2 rounded-xl text-xs t-muted flex items-start gap-2 bg-transparent border-0">
+                <span id="repBurnStatusIcon" class="text-base shrink-0">ℹ️</span>
+                <span id="repBurnAnalysisText" class="text-[11px] leading-relaxed t-main">در حال تحلیل الگوی مصرف...</span>
               </div>
             </div>
           </div>
@@ -728,34 +755,6 @@
                 <span class="text-xl">🏆</span>
                 <span class="text-[11px] font-medium text-slate-300">داده‌ای برای رده‌بندی ثبت نشده است</span>
                 <span class="text-[10px] text-slate-500">پس از مصرف ترافیک در این بازه، نمودار رسم خواهد شد.</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Chart 2: Burn-Rate & Projected Expiry (پیش‌بینی هوشمند اتمام حجم) -->
-          <div class="card rounded-2xl p-4 space-y-2.5 shadow-md">
-            <div class="flex justify-between items-center border-b border-slate-700/60 pb-2">
-              <span class="text-xs font-bold t-main flex items-center gap-1.5">
-                <span>⏳</span> پیش‌بینی هوشمند اتمام حجم
-              </span>
-              <span id="repBurnSpeedBadge" class="text-[10px] font-mono font-bold text-cyan-600 dark:text-cyan-400 bg-transparent p-0" dir="ltr">-- GB</span>
-            </div>
-
-            <div class="space-y-2">
-              <div class="grid grid-cols-2 gap-2 text-xs">
-                <div class="card-inset rounded-xl p-2.5 space-y-1">
-                  <span class="text-[10px] text-slate-400 block">میانگین مصرف ۳ روز اخیر:</span>
-                  <b id="repBurnAvgDaily" class="font-mono text-cyan-600 dark:text-cyan-400 text-xs num-bidi" dir="ltr">-- GB</b>
-                </div>
-                <div class="card-inset rounded-xl p-2.5 space-y-1">
-                  <span class="text-[10px] text-slate-400 block">تخمین حجم باقی‌مانده:</span>
-                  <b id="repBurnProjectedDays" class="font-mono text-emerald-600 dark:text-emerald-400 text-xs num-bidi" dir="ltr">-- روز</b>
-                </div>
-              </div>
-
-              <div id="repBurnAnalysisBox" class="p-2 rounded-xl text-xs t-muted flex items-start gap-2 bg-transparent border-0">
-                <span id="repBurnStatusIcon" class="text-base shrink-0">ℹ️</span>
-                <span id="repBurnAnalysisText" class="text-[11px] leading-relaxed t-main">در حال تحلیل الگوی مصرف...</span>
               </div>
             </div>
           </div>
@@ -1820,30 +1819,39 @@
                   <div class="blu-card-flipper">
                     <!-- FRONT FACE -->
                     <div class="blu-card-face blu-card-front p-3.5 sm:p-4 text-white flex flex-col justify-between shadow-2xl relative overflow-hidden" style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);">
-                      <!-- Card Header -->
-                      <div class="flex items-center justify-between z-10">
-                        <div class="w-9 h-6 rounded-md bg-gradient-to-tr from-amber-300 via-yellow-200 to-amber-400 border border-amber-500/50 flex items-center justify-center shadow-inner opacity-90">
-                          <div class="w-5 h-3.5 border border-amber-600/40 rounded-sm grid grid-cols-2 gap-0.5 p-0.5">
-                            <div class="bg-amber-600/25 rounded-[1px]"></div>
-                            <div class="bg-amber-600/25 rounded-[1px]"></div>
+                      <!-- Card Header (RTL: Bank logo on right, Chip on left) -->
+                      <div class="flex items-center justify-between z-10" dir="rtl">
+                        <div id="graphicBankLogoContainer" class="flex items-center gap-1.5">
+                          <span id="graphicBankTitle" class="flex items-center gap-1.5 text-xs font-black tracking-tight select-none">
+                            <span class="w-5 h-5 rounded-full bg-white/20 border border-white/40 flex items-center justify-center text-[11px] font-black leading-none lowercase font-mono">b</span>
+                            <span class="font-extrabold tracking-normal">blubank</span>
+                          </span>
+                        </div>
+                        <div class="flex items-center gap-2" dir="ltr">
+                          <div class="w-8 h-5.5 rounded-md bg-gradient-to-tr from-amber-300 via-yellow-200 to-amber-400 border border-amber-500/50 flex items-center justify-center shadow-inner opacity-90">
+                            <div class="w-4.5 h-3 border border-amber-600/40 rounded-sm grid grid-cols-2 gap-0.5 p-0.5">
+                              <div class="bg-amber-600/25 rounded-[1px]"></div>
+                              <div class="bg-amber-600/25 rounded-[1px]"></div>
+                            </div>
                           </div>
-                        </div>
-                        <div class="flex items-center gap-1.5 opacity-90 text-[11px] font-black tracking-widest uppercase">
-                          <span id="graphicBankTitle">SHETAB</span>
-                          <span class="text-xs">📶</span>
+                          <span class="text-xs opacity-80">📶</span>
                         </div>
                       </div>
 
-                      <!-- Card Number -->
-                      <div class="my-auto py-1.5 text-center z-10" dir="ltr">
-                        <span id="graphicCardNumberDisplay" class="font-mono text-base sm:text-lg font-black tracking-widest drop-shadow select-all">---- ---- ---- ----</span>
+                      <!-- Card Center: Number & Holder brought higher up & compact -->
+                      <div class="my-auto py-1 text-center space-y-1.5 z-10">
+                        <div dir="ltr">
+                          <span id="graphicCardNumberDisplay" class="font-mono text-base sm:text-lg font-black tracking-widest drop-shadow select-all">---- ---- ---- ----</span>
+                        </div>
+                        <div class="text-center">
+                          <b id="graphicCardHolderDisplay" class="font-bold text-xs sm:text-sm drop-shadow truncate max-w-[260px] inline-block text-white/95">مدیریت سامانه</b>
+                        </div>
                       </div>
 
-                      <!-- Card Footer: Card Holder Only -->
-                      <div class="flex items-center justify-between text-xs pt-0.5 z-10">
-                        <div class="text-right">
-                          <b id="graphicCardHolderDisplay" class="font-bold text-xs sm:text-sm drop-shadow truncate max-w-[240px] block">مدیریت سامانه</b>
-                        </div>
+                      <!-- Card Footer: subtle Shateb & Debit -->
+                      <div class="flex items-center justify-between text-[9px] opacity-75 font-mono pt-0.5 z-10" dir="ltr">
+                        <span>SHETAB</span>
+                        <span class="text-[8px] tracking-widest opacity-80">DEBIT CARD</span>
                       </div>
                     </div>
 
@@ -2515,7 +2523,6 @@
             </div>
             <div>
               <h4 class="text-xs font-bold t-main">پشتیبانی اختصاصی RemnaStore</h4>
-              <span class="text-[10px] t-success font-medium">🟢 آنلاین (پاسخگویی زیر 2 دقیقه)</span>
             </div>
           </div>
           <button id="closeSupportChatBtn" class="modal-close-btn" title="بستن" aria-label="بستن چت پشتیبانی">✕</button>

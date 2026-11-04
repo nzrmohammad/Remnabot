@@ -71,6 +71,21 @@ def test_modals_targeted_exist_in_templates():
     )
 
 
+def test_app_modal_ids_exist_in_templates():
+    """Ensure every modal listed in APP_MODAL_IDS in app.js exists in the HTML templates."""
+    html_ids = _get_all_html_ids()
+    app_js_text = (JS_DIR / "app.js").read_text(encoding="utf-8")
+
+    match = re.search(r"const APP_MODAL_IDS\s*=\s*\[(.*?)\];", app_js_text, re.DOTALL)
+    assert match, "Could not find APP_MODAL_IDS array in app.js"
+
+    modal_ids = re.findall(r"""['"]([a-zA-Z0-9_-]+)['"]""", match.group(1))
+    assert modal_ids, "APP_MODAL_IDS must contain at least one modal ID"
+
+    missing = [m_id for m_id in modal_ids if m_id not in html_ids]
+    assert not missing, f"Nonexistent modal IDs in APP_MODAL_IDS: {missing}"
+
+
 def test_admin_settings_payload_keys_guarded():
     """Ensure settings in admin_settings.js don't unconditionally read missing DOM inputs, preventing DB wipe."""
     admin_settings_js = JS_DIR / "admin_settings.js"

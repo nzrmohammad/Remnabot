@@ -969,6 +969,120 @@ async def post_user_topup_trx_verify(request: web.Request) -> web.Response:
         })
 
 
+async def get_user_topup_trx_redirect(request: web.Request) -> web.Response:
+    """Intermediary redirect page for launching TronLink and other Tron wallets safely outside TMA."""
+    import html
+    import json
+    import urllib.parse
+
+    address = (request.query.get("address") or "").strip()
+    amount = (request.query.get("amount") or "0").strip()
+
+    param_obj = {
+        "url": str(request.url),
+        "action": "transfer",
+        "protocol": "TronLink",
+        "version": "1.0",
+        "to": address,
+        "amount": str(amount),
+        "tokenId": "0",
+    }
+    encoded_param = urllib.parse.quote(json.dumps(param_obj))
+    tronlink_url = f"tronlinkoutside://pull.activity?param={encoded_param}"
+    tron_uri = f"tron:{address}?amount={amount}"
+
+    safe_addr = html.escape(address)
+    safe_amt = html.escape(amount)
+
+    page_html = f"""<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>هدایت به کیف پول TronLink</title>
+  <meta http-equiv="refresh" content="0;url={tronlink_url}">
+  <style>
+    * {{ box-sizing: border-box; }}
+    body {{
+      background: #080d1a;
+      color: #f8fafc;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Vazirmatn", sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      margin: 0;
+      padding: 16px;
+    }}
+    .card {{
+      background: #0f172a;
+      border: 1px solid rgba(51, 65, 85, 0.8);
+      border-radius: 24px;
+      padding: 24px;
+      max-width: 380px;
+      width: 100%;
+      text-align: center;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+    }}
+    .icon {{ font-size: 40px; margin-bottom: 12px; }}
+    h2 {{ font-size: 16px; margin: 0 0 8px; font-weight: 800; }}
+    p {{ font-size: 12px; color: #94a3b8; line-height: 1.6; margin: 0 0 20px; }}
+    .btn {{
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      text-decoration: none;
+      font-weight: 700;
+      font-size: 13px;
+      padding: 12px;
+      border-radius: 14px;
+      margin-bottom: 10px;
+      transition: all 0.2s;
+    }}
+    .btn-tronlink {{
+      background: linear-gradient(135deg, #dc2626, #e11d48, #f59e0b);
+      color: #ffffff;
+    }}
+    .btn-other {{
+      background: rgba(30, 41, 59, 0.9);
+      border: 1px solid rgba(51, 65, 85, 0.8);
+      color: #38bdf8;
+    }}
+    .info-box {{
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px dashed rgba(51, 65, 85, 0.9);
+      border-radius: 14px;
+      padding: 10px;
+      margin-top: 14px;
+      font-size: 11px;
+      color: #cbd5e1;
+      word-break: break-all;
+    }}
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="icon">⚡️</div>
+    <h2>انتقال مستقیم با ترون‌لینک</h2>
+    <p>در حال انتقال به کیف پول TronLink... اگر به صورت خودکار باز نشد، دکمه زیر را لمس فرمایید:</p>
+    <a href="{tronlink_url}" class="btn btn-tronlink">⚡️ باز کردن در TronLink</a>
+    <a href="{tron_uri}" class="btn btn-other">📱 باز کردن در سایر ولت‌ها (Trust Wallet)</a>
+    <div class="info-box">
+      <div>مبلغ: <b style="color:#22d3ee;font-family:monospace;">{safe_amt} TRX</b></div>
+      <div style="margin-top:4px;font-family:monospace;font-size:10px;color:#94a3b8;">{safe_addr}</div>
+    </div>
+  </div>
+  <script>
+    setTimeout(function() {{
+      window.location.href = "{tronlink_url}";
+    }}, 150);
+  </script>
+</body>
+</html>"""
+    return web.Response(text=page_html, content_type="text/html", charset="utf-8")
+
+
 async def post_user_topup_tonconnect_submit(request: web.Request) -> web.Response:
     """Submit transaction hash from TON Connect 2.0 wallet transaction."""
     user_auth, err = require_user(request)

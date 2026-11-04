@@ -3,16 +3,15 @@
  */
 
 function setupStoryCard() {
-  const openStoryCardBtn = document.getElementById('openStoryCardBtn');
   const closeStoryCardBtn = document.getElementById('closeStoryCardBtn');
   const downloadStoryBtn = document.getElementById('downloadStoryBtn');
   const shareTelegramStoryBtn = document.getElementById('shareTelegramStoryBtn');
 
   const storyModal = bindModal('storyCardModal', 'closeStoryCardBtn');
-  openStoryCardBtn?.addEventListener('click', () => {
+  window.openStoryCard = () => {
     (window.api?.haptic || window.hapticFeedback || hapticFeedback)('selection');
     storyModal.open();
-  });
+  };
 
   shareTelegramStoryBtn?.addEventListener('click', () => {
     (window.api?.haptic || window.hapticFeedback || hapticFeedback)('light');

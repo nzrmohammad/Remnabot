@@ -633,8 +633,8 @@ async def get_periodic_users_bandwidth(
                             if day_val <= 0:
                                 continue
 
-                            # 1. Daily (yesterday: offset 1, or offset 0 if 1 day)
-                            if offset == 1 or (num_days == 1 and offset == 0):
+                            # 1. Daily: today's usage (offset 0), aligned with bot's daily report
+                            if offset == 0:
                                 daily_bytes += day_val
                             # 2. Last 7 days
                             if offset < 7:

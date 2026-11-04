@@ -315,16 +315,13 @@
 
   window.showConfirmModal = showConfirmModal;
   window.showOperationReportModal = showOperationReportModal;
+  window.adminActions = window.adminActions || {};
+  window.adminActions.showConfirmModal = showConfirmModal;
+  window.adminActions.showOperationReportModal = showOperationReportModal;
   window.dismissSplash = dismissSplash;
 
 
   // --- 10. Header & Action Trigger Buttons ---
-  $('adminReloadBtn')?.addEventListener('click', () => {
-    if (window.syncAdminOverview) window.syncAdminOverview(true);
-    if (window.showToast) window.showToast('🔄 اطلاعات به‌روزرسانی شد.');
-    if (window.hapticFeedback) window.hapticFeedback('impact');
-  });
-
   $('quickRefreshMetricsBtn')?.addEventListener('click', () => {
     if (window.syncAdminOverview) window.syncAdminOverview(true);
     if (window.showToast) window.showToast('🔄 داده‌ها سینک شدند.');

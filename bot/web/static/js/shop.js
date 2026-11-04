@@ -198,23 +198,15 @@ function initCustomPlanBuilder() {
   const settings = cachedPlansData?.custom_plan_settings || window.storeSettings?.custom_plan_settings || {};
   if (settings.min_gb) {
     gbSlider.min = settings.min_gb;
-    const minGbEl = document.getElementById('customPlanGbMin');
-    if (minGbEl) minGbEl.innerText = fmtTraffic(settings.min_gb, { html: false });
   }
   if (settings.max_gb) {
     gbSlider.max = settings.max_gb;
-    const maxGbEl = document.getElementById('customPlanGbMax');
-    if (maxGbEl) maxGbEl.innerText = fmtTraffic(settings.max_gb, { html: false });
   }
   if (settings.min_days) {
     daysSlider.min = settings.min_days;
-    const minDaysEl = document.getElementById('customPlanDaysMin');
-    if (minDaysEl) minDaysEl.innerText = `${settings.min_days} روز`;
   }
   if (settings.max_days) {
     daysSlider.max = settings.max_days;
-    const maxDaysEl = document.getElementById('customPlanDaysMax');
-    if (maxDaysEl) maxDaysEl.innerText = `${settings.max_days} روز`;
   }
 
   if (!_customPlanBuilderInitialized) {
@@ -599,7 +591,10 @@ function renderFilteredShopPlans() {
     else if (isTimeOnly) buttonLabel = 'تمدید مدت زمان';
 
     const isTunnel = planBadgeKey === 'tunnel' || (!planBadgeKey && (planText.includes('تانل') || planText.includes('tunnel')));
-    const defaultFeatureDesc = isTunnel ? 'ترافیک پایدار روی سرورها + تانل اختصاصی' : 'ترافیک پایدار روی سرورها';
+    const rawDesc = p.description || (isExtraTraffic ? 'افزایش حجم بدون تغییر در تاریخ انقضای سرویس فعلی' : (isTimeOnly ? 'افزایش مدت زمان اعتبار بدون تغییر در میزان ترافیک' : (isTunnel ? 'ترافیک پایدار روی سرورها + تانل اختصاصی' : 'ترافیک پایدار روی سرورها')));
+    const safeDesc = escapeHtml(rawDesc)
+      .replace(/تانل\s+اختصاصی/g, 'تانل&nbsp;اختصاصی')
+      .replace(/\+\s*تانل/g, '+&nbsp;تانل');
 
     const cleanFlags = (p.flags && Array.isArray(p.flags)) ? p.flags.filter(f => f && (p.flags.length === 1 || f !== '🌐')) : [];
     const clusterFlags = (cachedPlansData?.cluster_flags || window.lastUserData?.cluster_flags || []).filter(f => f && f !== '🌐');
@@ -616,20 +611,24 @@ function renderFilteredShopPlans() {
     return `
       <div class="shop-plan-card card p-4 border ${badgeBorderClass} relative overflow-hidden group">
         ${planBadge}
-        <div class="flex justify-between items-start ${planBadge ? 'mt-1' : ''}">
-          <div>
-            <div class="flex items-center gap-1.5 flex-wrap">
-              <h4 class="font-bold text-sm t-main">${formatPlanTitle(p.name)}</h4>
-              ${discountVal > 0 ? '<span class="text-[10px] t-success font-bold bg-transparent border-0 px-0 py-0">🏷 تخفیف کوپن</span>' : ''}
-              ${hasLoyaltyDiscount ? `<span dir="ltr" class="inline-flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded-md font-mono ${userTierClass}"><span>${userTierIcon}</span><span>${loyaltyPctEnglish}%</span></span>` : ''}
-            </div>
-            <p class="text-[11px] leading-snug t-muted mt-0.5">${p.description || (isExtraTraffic ? 'افزایش حجم بدون تغییر در تاریخ انقضای سرویس&nbsp;فعلی' : (isTimeOnly ? 'افزایش مدت زمان اعتبار بدون تغییر در میزان&nbsp;ترافیک' : defaultFeatureDesc))}</p>
+        <div class="flex justify-between items-start gap-2 ${planBadge ? 'mt-1' : ''}">
+          <div class="min-w-0 flex-1">
+            <h4 class="font-bold text-sm t-main truncate">${formatPlanTitle(p.name)}</h4>
+            ${(discountVal > 0 || hasLoyaltyDiscount) ? `
+              <div class="flex items-center gap-1.5 mt-1 flex-wrap">
+                ${hasLoyaltyDiscount ? `<span dir="ltr" class="inline-flex items-center gap-1 text-[9.5px] font-bold px-1.5 py-0.5 rounded-md font-mono ${userTierClass}" title="تخفیف وفاداری"><span>${userTierIcon}</span><span>${loyaltyPctEnglish}% وفاداری</span></span>` : ''}
+                ${discountVal > 0 ? `<span class="inline-flex items-center gap-1 text-[9.5px] font-bold px-1.5 py-0.5 rounded-md bg-emerald-500/15 text-emerald-400 border border-emerald-500/30"><span>🏷</span><span>${window.activeCoupon?.code ? escapeHtml(window.activeCoupon.code) : 'کوپن'} (${window.activeCoupon?.discount_percent ? `${window.activeCoupon.discount_percent}%-` : 'تخفیف'})</span></span>` : ''}
+              </div>
+            ` : ''}
+            <p class="text-[11px] leading-snug t-muted mt-1">${safeDesc}</p>
           </div>
-          <div class="text-left font-mono">
-            <div class="flex items-center gap-1.5 justify-end flex-wrap">
-              ${hasAnyDiscount ? `<span class="line-through t-muted text-xs font-semibold">${formattedOriginal}</span>` : ''}
-              <span class="text-base font-black t-success">${formattedFinal}</span>
-              <span class="text-[10px] t-muted font-sans">تومان</span>
+          <div class="text-left font-mono shrink-0">
+            <div class="flex flex-col items-end">
+              ${hasAnyDiscount ? `<span class="line-through t-muted text-xs font-semibold leading-tight">${formattedOriginal}</span>` : ''}
+              <div class="flex items-baseline gap-1">
+                <span class="text-base font-black t-success leading-tight">${formattedFinal}</span>
+                <span class="text-[10px] t-muted font-sans">تومان</span>
+              </div>
             </div>
           </div>
         </div>

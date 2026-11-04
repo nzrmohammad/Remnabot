@@ -36,11 +36,23 @@ window.flipBluCard = function(el) {
   if (window.hapticFeedback) window.hapticFeedback('impact');
 };
 
-function applyBluBankCardTheme(color) {
+function applyBluBankCardTheme(color, bankTmpl) {
   const grad = BLUBANK_GRADIENTS[color] || BLUBANK_GRADIENTS.rose;
   document.querySelectorAll('.blu-card-face').forEach(face => {
     face.style.background = grad;
   });
+  const titleEl = document.getElementById('graphicBankTitle');
+  if (titleEl) {
+    const tmpl = (bankTmpl || window.storeSettings?.card_template || 'blubank').toLowerCase();
+    if (tmpl === 'blubank' || tmpl === 'blu') {
+      titleEl.innerHTML = `
+        <span class="w-5 h-5 rounded-full bg-white/20 border border-white/40 flex items-center justify-center text-[11px] font-black leading-none lowercase font-mono">b</span>
+        <span class="font-extrabold tracking-normal">blubank</span>
+      `;
+    } else {
+      titleEl.innerText = tmpl.toUpperCase();
+    }
+  }
 }
 
 let currentTopupInvoice = null;
@@ -241,7 +253,7 @@ async function loadTopupInfo() {
       if (graphicHolder) graphicHolder.innerText = rawHolder;
       if (manualClassicNum) manualClassicNum.innerText = formatCardNumberDisplay(rawNum);
       if (manualClassicHolder) manualClassicHolder.innerText = rawHolder;
-      applyBluBankCardTheme(res.card_blubank_color || 'rose');
+      applyBluBankCardTheme(res.card_blubank_color || 'rose', res.card_template || 'blubank');
 
       const hasCard = res.card_enabled === true;
       const hasStars = res.stars_enabled === true;
@@ -431,7 +443,6 @@ function switchTopupTab(tab) {
 
 function switchToCryptoTab() { switchTopupTab('crypto'); }
 function switchToCardTab() { switchTopupTab('card'); }
-function switchToStarsTab() { switchTopupTab('stars'); }
 
 let cardAutoTimerInterval = null;
 let cardAutoPollingInterval = null;
@@ -478,7 +489,7 @@ function renderCardAutoInvoice(inv) {
   if (graphicHolder) graphicHolder.innerText = holderToDisplay;
   if (autoClassicNum) autoClassicNum.innerText = formatCardNumberDisplay(numToDisplay);
   if (autoClassicHolder) autoClassicHolder.innerText = holderToDisplay;
-  applyBluBankCardTheme(inv.card_blubank_color || window.storeSettings?.card_blubank_color || 'rose');
+  applyBluBankCardTheme(inv.card_blubank_color || window.storeSettings?.card_blubank_color || 'rose', inv.card_template || window.storeSettings?.card_template || 'blubank');
 
   startCardAutoCountdownTimer(inv.remaining_seconds || 3600);
   startCardAutoPolling(inv.invoice_uuid);
@@ -915,25 +926,36 @@ function updateTronLinkButton(inv) {
   const trxAmount = Number(inv.amount_trx);
   const paramObj = {
     url: window.location.href,
-    action: 'send',
+    action: 'transfer',
+    protocol: 'TronLink',
+    version: '1.0',
     to: inv.pay_address,
-    amount: trxAmount
+    amount: String(trxAmount),
+    tokenId: '0'
   };
   const tronLinkDeepLink = `tronlinkoutside://pull.activity?param=${encodeURIComponent(JSON.stringify(paramObj))}`;
   const tronUri = `tron:${inv.pay_address}?amount=${trxAmount}`;
-  btn.href = tronLinkDeepLink;
+  const redirectUrl = `${window.location.origin}/api/user/topup/trx/redirect?address=${encodeURIComponent(inv.pay_address)}&amount=${trxAmount}`;
+
+  btn.href = redirectUrl;
   btn.onclick = (e) => {
     e.preventDefault();
     if (typeof copyToClipboard === 'function') {
-      copyToClipboard(inv.pay_address, 'آدرس کیف پول کپی شد');
+      copyToClipboard(inv.pay_address, `📋 آدرس ترون کپی شد (${trxAmount} TRX)`);
     }
+
+    if (window.Telegram?.WebApp?.openLink) {
+      window.Telegram.WebApp.openLink(redirectUrl);
+      return;
+    }
+
     try {
       window.location.href = tronLinkDeepLink;
     } catch (_) {
       try {
         window.location.href = tronUri;
       } catch (err) {
-        window.open(tronUri, '_blank');
+        window.open(redirectUrl, '_blank');
       }
     }
     setTimeout(() => {
