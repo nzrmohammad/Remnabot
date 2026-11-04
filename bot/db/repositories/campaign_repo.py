@@ -1,5 +1,6 @@
 """Repository for ad/marketing campaigns."""
 import logging
+
 from sqlalchemy import distinct, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 

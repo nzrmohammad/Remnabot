@@ -1,47 +1,19 @@
 """Admin Services, Plans, and Coupons Management API endpoints."""
-import asyncio
-import json
 import logging
-import math
-import time
 from datetime import datetime, timedelta, timezone
-from html import escape
-from pathlib import Path
-from typing import Any
 
 # Bot instance resolved dynamically from request.app["bot"]
 from aiohttp import web
-from sqlalchemy import desc, func, or_, select
+from sqlalchemy import or_, select
 
-from bot.common import admin_thread_kwargs
-from bot.common.helpers import get_limit_bytes, get_used_bytes
 from bot.db.models import (
     AdminLog,
-    AppSetting,
     Coupon,
-    CryptoInvoice,
-    KnownDevice,
-    NodeCost,
-    Order,
     Service,
-    SupportMessage,
-    Topup,
-    User,
-    Wallet,
 )
-from bot.db.repositories.admin_log_repo import AdminLogRepository
-from bot.db.repositories.app_setting_repo import AppSettingRepository
 from bot.db.repositories.coupon_repo import CouponRepository
-from bot.db.repositories.node_cost_repo import NodeCostRepository
-from bot.db.repositories.service_repo import ServiceRepository
-from bot.db.repositories.support_repo import SupportMessageRepository
 from bot.db.repositories.user_repo import UserRepository
-from bot.db.repositories.wallet_repo import WalletRepository
-from bot.services.broadcast import resolve_broadcast_recipients as _resolve_broadcast_recipients
-from bot.locales.texts import t
-from bot.services.app_settings import get_store_settings
-from bot.web.admin_common import _check_admin, db_session, format_service_name_icon_first
-from bot.web.cache import FastCache
+from bot.web.admin_common import _check_admin, db_session
 
 logger = logging.getLogger(__name__)
 

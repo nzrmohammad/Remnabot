@@ -1576,8 +1576,6 @@ openUserChat(telegram_id, name, tag, topup_id) {
       topic_crypto: parseTopicVal($('settingTopicCrypto')?.value),
       topic_errors: parseTopicVal($('settingTopicErrors')?.value),
       topic_sms_manual: parseTopicVal($('settingTopicSmsManual')?.value),
-      tutorial_channel_url: $('settingTutorialChannelUrl')?.value?.trim() || '',
-      routing_tutorial_url: $('settingRoutingTutorialUrl')?.value?.trim() || '',
       client_apps_json: (() => {
         const OS_APPS_MAP = {
           ios: ['shadowrocket', 'streisand', 'v2box', 'incy', 'happ', 'onexray'],
@@ -1621,6 +1619,13 @@ openUserChat(telegram_id, name, tag, topup_id) {
         return JSON.stringify(clientAppsObj);
       })(),
     };
+
+    if ($('settingTutorialChannelUrl')) {
+      payload.tutorial_channel_url = $('settingTutorialChannelUrl').value.trim();
+    }
+    if ($('settingRoutingTutorialUrl')) {
+      payload.routing_tutorial_url = $('settingRoutingTutorialUrl').value.trim();
+    }
 
     const saveBtns = [$('saveAllSettingsBtn'), $('saveAllSettingsTopBtn')];
     saveBtns.forEach(b => { if (b) { b.disabled = true; b.innerText = 'در حال ذخیره...'; } });

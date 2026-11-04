@@ -1,5 +1,6 @@
 """Repository for hourly cluster traffic snapshots."""
 from datetime import datetime, timedelta, timezone
+
 from sqlalchemy import delete, desc, select
 from sqlalchemy.ext.asyncio import AsyncSession
 

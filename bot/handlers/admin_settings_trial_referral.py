@@ -7,10 +7,10 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from bot.common import SEPARATOR, is_admin
-from bot.services.formatting import ltr_frag
 from bot.db.repositories.user_repo import UserRepository
 from bot.locales.texts import t
 from bot.services.app_settings import get_store_settings
+from bot.services.formatting import ltr_frag
 from bot.services.menu import render_menu
 
 logger = logging.getLogger(__name__)

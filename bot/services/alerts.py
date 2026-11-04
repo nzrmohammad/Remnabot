@@ -11,9 +11,9 @@ Each alert fires exactly once per crossing: the sent-flag is stored in
 (usage drops below the threshold / expiry moves away again).
 """
 import asyncio
-from html import escape
 import logging
 from datetime import datetime
+from html import escape
 
 from aiogram import Bot
 from aiogram.exceptions import TelegramAPIError

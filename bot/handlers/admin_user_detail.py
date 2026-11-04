@@ -10,7 +10,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from bot.common import (
     SEPARATOR,
-    fmt,
     get_limit_bytes,
     get_online_at,
     get_used_bytes,

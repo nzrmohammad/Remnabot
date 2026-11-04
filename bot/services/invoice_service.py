@@ -12,7 +12,6 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from bot.db.models import Order, OrderStatus, User
-from bot.services.formatting import ltr_frag
 
 logger = logging.getLogger(__name__)
 

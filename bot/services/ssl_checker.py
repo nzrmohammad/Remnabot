@@ -8,8 +8,6 @@ import urllib.parse
 from datetime import datetime, timezone
 from typing import Any
 
-from bot.config import get_settings
-
 logger = logging.getLogger(__name__)
 
 
@@ -119,7 +117,7 @@ def _check_domain_ssl_sync(domain: str, port: int = 443, timeout: float = 4.0) -
             "status": "invalid",
             "error": f"گواهی نامعتبر یا منقضی شده: {exc.verify_message}",
         }
-    except Exception as exc:
+    except Exception:
         return {
             "domain": clean_host,
             "port": port,

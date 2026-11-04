@@ -1,6 +1,6 @@
 """Remnawave HWID, SRH and multi-IP session auditing mixin."""
-from collections import defaultdict
 import logging
+from collections import defaultdict
 from typing import Any
 
 import httpx

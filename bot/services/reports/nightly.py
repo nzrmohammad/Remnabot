@@ -1,7 +1,7 @@
 """User nightly reports generation and delivery."""
+import logging
 from datetime import datetime, timedelta
 from html import escape
-import logging
 
 from aiogram import Bot
 from aiogram.exceptions import TelegramAPIError

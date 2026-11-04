@@ -1,5 +1,6 @@
 """Repository for managing server / node infrastructure costs and billing."""
 from datetime import datetime, timezone
+
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 

@@ -11,6 +11,8 @@ from bot.handlers.admin_orders_detail import (
     _render_order_detail,
     _revert_panel_subscription,
     order_view_or_refund,
+)
+from bot.handlers.admin_orders_detail import (
     router as detail_router,
 )
 from bot.handlers.admin_orders_list import (
@@ -21,6 +23,8 @@ from bot.handlers.admin_orders_list import (
     orders_filtered_view,
     orders_search_prompt,
     orders_search_submit,
+)
+from bot.handlers.admin_orders_list import (
     router as list_router,
 )
 from bot.handlers.admin_reports_hub import (
@@ -32,8 +36,10 @@ from bot.handlers.admin_reports_hub import (
     report_sessions_explorer_handler,
     report_srh_inspector_handler,
     reports_hub_entry,
-    router as reports_router,
     trigger_admin_report_handler,
+)
+from bot.handlers.admin_reports_hub import (
+    router as reports_router,
 )
 
 logger = logging.getLogger(__name__)

@@ -542,9 +542,8 @@ function startCardAutoPolling(uuid) {
             window.Telegram.WebApp.HapticFeedback.notificationOccurred('success');
           }
           resetCardAutoUI();
-          if (typeof loadProfileData === 'function') loadProfileData();
-          if (typeof loadWalletHistory === 'function') loadWalletHistory(1);
-          closeTopupModal();
+          if (typeof syncUserDataWithApi === 'function') syncUserDataWithApi(window.currentAccountId);
+          if (typeof closeModal === 'function') closeModal('topupModal');
         } else if (res.status === 'expired' || res.status === 'cancelled') {
           stopCardAutoPolling();
           resetCardAutoUI();
@@ -609,8 +608,8 @@ window.checkCardAutoStatus = async function (isManual = false) {
         stopCardAutoPolling();
         if (window.showToast) window.showToast('✅ پرداخت تایید شد و حساب شما شارژ گردید!', 'success');
         resetCardAutoUI();
-        if (typeof loadProfileData === 'function') loadProfileData();
-        closeTopupModal();
+        if (typeof syncUserDataWithApi === 'function') syncUserDataWithApi(window.currentAccountId);
+        if (typeof closeModal === 'function') closeModal('topupModal');
       } else if (res.status === 'expired') {
         if (window.showToast) window.showToast('مهلت پرداخت این فاکتور به پایان رسیده است.', 'warning');
         resetCardAutoUI();
@@ -1611,4 +1610,7 @@ function setupWalletListeners() {
 
 window.renderWalletTransactions = renderWalletTransactions;
 window.openTopupModal = openTopupModal;
+window.closeTopupModal = function () {
+  if (typeof closeModal === 'function') closeModal('topupModal');
+};
 window.setupWalletListeners = setupWalletListeners;

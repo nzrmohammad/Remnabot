@@ -18,6 +18,7 @@ from aiogram import Bot, F, Router
 from aiogram.types import CallbackQuery
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
+from bot.common import SEPARATOR
 from bot.config import get_settings
 from bot.db.repositories.user_repo import UserRepository
 from bot.keyboards.inline import welcome_keyboard
@@ -34,8 +35,6 @@ from bot.services.formatting import (
 )
 from bot.services.menu import render_menu
 from bot.services.remnawave import RemnawaveClient
-
-from bot.common import SEPARATOR
 
 logger = logging.getLogger(__name__)
 router = Router(name="stats")

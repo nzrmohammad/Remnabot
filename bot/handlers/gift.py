@@ -12,7 +12,6 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from bot.common import SEPARATOR, fmt, parse_int
-from bot.config import get_settings
 from bot.db.repositories.service_repo import ServiceRepository
 from bot.db.repositories.user_repo import UserRepository
 from bot.db.repositories.wallet_repo import WalletRepository
@@ -164,8 +163,7 @@ async def gift_custom_amount_input(
     state: FSMContext,
 ):
     """Handle text input for custom balance amount."""
-    user = await user_repo.get_or_create(message.from_user.id, message.from_user.username)
-    lang = user.language or "fa"
+    await user_repo.get_or_create(message.from_user.id, message.from_user.username)
 
     raw = (message.text or "").strip().replace(",", "").replace("،", "")
     # Persian to English digits
@@ -318,7 +316,6 @@ async def gift_delivery_direct(
 ):
     """Prompt user for recipient's @username or Telegram ID."""
     user = await user_repo.get_or_create(call.from_user.id, call.from_user.username)
-    lang = user.language or "fa"
 
     await state.set_state(GiftStates.waiting_for_receiver)
     await state.update_data(delivery_type="DIRECT")
@@ -419,7 +416,6 @@ async def _prompt_message_or_confirm(
     call: CallbackQuery, bot: Bot, user_repo, session, state: FSMContext, cache
 ):
     user = await user_repo.get_or_create(call.from_user.id, call.from_user.username)
-    lang = user.language or "fa"
 
     await state.set_state(GiftStates.waiting_for_message)
 
@@ -515,7 +511,6 @@ async def gift_checkout_confirm(
 ):
     """Execute gift creation, atomically deduct wallet balance, and issue gift card."""
     user = await user_repo.get_or_create(call.from_user.id, call.from_user.username)
-    lang = user.language or "fa"
 
     data = await state.get_data()
     await state.clear()
@@ -577,7 +572,6 @@ async def gift_checkout_confirm(
     kb = InlineKeyboardBuilder()
 
     # Share via Telegram button
-    share_caption = f"🎁 یک کارت هدیه ویژه برای شما ارسال شد:\n{share_url}"
     tg_share_link = f"https://t.me/share/url?url={urllib.parse.quote(share_url)}&text={urllib.parse.quote('🎁 یک کارت هدیه برای شما ارسال شد!')}"
     kb.button(text="📤 ارسال مستقیم در تلگرام", url=tg_share_link)
 

@@ -3,17 +3,12 @@ from bot.web.user_common import db_session, require_user
 """TMA User Shop, Purchase, Subscriptions, Devices, and Lucky Wheel endpoints."""
 import json
 import logging
-import random
 import re
-import time
-from datetime import datetime, timedelta, timezone
-from zoneinfo import ZoneInfo
 
-from aiohttp import web
 from aiogram import Bot
-from sqlalchemy import select
+from aiohttp import web
 
-from bot.db.models import Service, User
+from bot.db.models import Service
 from bot.db.repositories.coupon_repo import CouponRepository
 from bot.services.app_settings import StoreSettings, get_store_settings
 from bot.services.formatting import ltr_frag

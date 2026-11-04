@@ -8,7 +8,6 @@ Provides rich interactive inline query results:
 """
 import logging
 from html import escape
-from zoneinfo import ZoneInfo
 
 from aiogram import Bot, Router
 from aiogram.types import (
@@ -24,7 +23,7 @@ from bot.common.links import ref_link
 from bot.config import get_settings
 from bot.db.repositories.user_repo import UserRepository
 from bot.services.app_settings import get_store_settings
-from bot.services.formatting import country_flag, country_name, human_bytes, now_tz, parse_iso
+from bot.services.formatting import country_flag, country_name, now_tz, parse_iso
 from bot.services.remnawave import RemnawaveClient
 
 logger = logging.getLogger(__name__)
@@ -153,10 +152,10 @@ async def inline_query_handler(
                 description="مشاهده پلن‌ها و خرید آنی اشتراک پرسرعت و پایدار",
                 input_message_content=InputTextMessageContent(
                     message_text=(
-                        f"🚀 <b>خرید و فعال‌سازی آنی اشتراک</b>\n"
-                        f"──────────────────\n"
-                        f"⚡️ سرورهای قدرتمند، آی‌پی ثابت و پشتیبانی از تمامی اپراتورها\n"
-                        f"جهت مشاهده تعرفه‌ها و خرید اشتراک، روی دکمه زیر کلیک کنید:"
+                        "🚀 <b>خرید و فعال‌سازی آنی اشتراک</b>\n"
+                        "──────────────────\n"
+                        "⚡️ سرورهای قدرتمند، آی‌پی ثابت و پشتیبانی از تمامی اپراتورها\n"
+                        "جهت مشاهده تعرفه‌ها و خرید اشتراک، روی دکمه زیر کلیک کنید:"
                     ),
                     parse_mode="HTML",
                 ),
@@ -221,11 +220,11 @@ async def inline_query_handler(
                 loc_lines.append(f"{flag} <b>{c_fa}:</b> <code>{count} سرور آنلاین</code>")
 
             server_msg = (
-                f"🌐 <b>وضعیت آنلاین سرورها و لوکیشن‌های فعال</b>\n"
-                f"──────────────────\n"
+                "🌐 <b>وضعیت آنلاین سرورها و لوکیشن‌های فعال</b>\n"
+                "──────────────────\n"
                 + "\n".join(loc_lines)
-                + f"\n──────────────────\n"
-                f"✅ کلیه سرورها مجهز به پروتکل‌های ضد فیلتر و رمزنگاری پیشرفته هستند."
+                + "\n──────────────────\n"
+                "✅ کلیه سرورها مجهز به پروتکل‌های ضد فیلتر و رمزنگاری پیشرفته هستند."
             )
             results.append(
                 InlineQueryResultArticle(
@@ -248,11 +247,11 @@ async def inline_query_handler(
     trial_enabled = bool(getattr(store_settings, "trial_enabled", True))
     if trial_enabled:
         trial_msg = (
-            f"⚡️ <b>تست رایگان کیفیت و سرعت</b>\n"
-            f"──────────────────\n"
-            f"جهت دریافت اکانت تست رایگان و بررسی کیفیت، سرعت و پینگ سرورها، روی دکمه زیر کلیک کنید:\n"
-            f"──────────────────\n"
-            f"⏱ فعال‌سازی آنی و خودکار"
+            "⚡️ <b>تست رایگان کیفیت و سرعت</b>\n"
+            "──────────────────\n"
+            "جهت دریافت اکانت تست رایگان و بررسی کیفیت، سرعت و پینگ سرورها، روی دکمه زیر کلیک کنید:\n"
+            "──────────────────\n"
+            "⏱ فعال‌سازی آنی و خودکار"
         )
         results.append(
             InlineQueryResultArticle(

@@ -94,8 +94,9 @@ async def get_configured_loyalty_tiers(session: AsyncSession | None = None) -> l
         return DEFAULT_LOYALTY_TIERS
 
     try:
-        from bot.db.repositories.app_setting_repo import AppSettingRepository
         import json
+
+        from bot.db.repositories.app_setting_repo import AppSettingRepository
         repo = AppSettingRepository(session)
         raw_json = await repo.get("loyalty_tiers_json")
         if not raw_json:

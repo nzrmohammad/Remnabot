@@ -217,8 +217,6 @@ async def _fetch_subscription_configs_impl(url: str, timeout: float = 2.5) -> li
 
     # Add /api/ variant of original URL
     parsed_u = urllib.parse.urlparse(url)
-    path_segments = [p for p in parsed_u.path.split("/") if p]
-    sub_token = path_segments[-1] if path_segments else ""
 
     if parsed_u.path.startswith("/sub/"):
         candidate_urls.append(urllib.parse.urlunparse((

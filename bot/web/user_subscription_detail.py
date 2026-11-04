@@ -10,7 +10,13 @@ from sqlalchemy import select
 
 from bot.db.models import Order
 from bot.db.repositories.traffic_snapshot_repo import TrafficSnapshotRepository
-from bot.services.formatting import country_flag, country_name, human_bytes, parse_iso, start_of_today
+from bot.services.formatting import (
+    country_flag,
+    country_name,
+    human_bytes,
+    parse_iso,
+    start_of_today,
+)
 
 logger = logging.getLogger(__name__)
 

@@ -12,73 +12,73 @@ Central router aggregating domain-specific modular handlers:
 """
 
 # Re-export modular domain handlers for seamless backward-compatibility
-from bot.web.admin_common import _check_admin
-from bot.web.admin_overview import get_admin_overview
-from bot.web.admin_users import (
-    get_admin_check_username,
-    get_admin_internal_squads,
-    get_admin_users,
-    post_admin_create_user,
-    post_admin_modify_user,
-    post_admin_kill_sessions,
-    post_admin_toggle_ban,
-    post_admin_reset_trial,
-    post_admin_user_wallet,
-    post_admin_user_revoke_sub,
-    get_admin_user_hwid_devices,
-    get_admin_user_sessions,
-    get_admin_sessions_explorer,
-    get_admin_user_srh,
-    post_admin_users_bulk_action,
-    post_admin_user_delete_hwid,
-)
-from bot.web.admin_tickets import (
-    get_admin_ticket_threads,
-    get_admin_ticket_messages,
-    post_admin_reply_ticket,
-)
-from bot.web.admin_plans import (
-    get_admin_plans,
-    get_admin_remnawave_squads,
-    post_admin_plan_save,
-    post_admin_plan_toggle,
-    post_admin_plan_delete,
-    get_admin_coupons,
-    post_admin_coupon_save,
-    post_admin_coupon_toggle,
-    post_admin_coupon_delete,
-    get_admin_coupon_usages,
-    post_admin_batch_vouchers,
-)
-from bot.web.admin_topups import (
-    get_admin_topups,
-    post_admin_topup_action,
-    get_admin_topup_photo,
-)
 from bot.web.admin_campaigns import (
     _BROADCAST_STATUSES,
-    post_admin_broadcast,
     get_admin_broadcast_status,
     get_admin_campaigns,
+    post_admin_broadcast,
     post_admin_campaign_create,
     post_admin_campaign_delete,
 )
-from bot.web.admin_settings_api import (
-    get_admin_settings,
-    post_admin_settings,
-    get_admin_crypto_rates,
-    post_admin_upload_store_logo,
-)
+from bot.web.admin_common import _check_admin as _check_admin
 from bot.web.admin_infra_api import (
+    get_admin_github_releases,
     get_admin_infra_billing,
-    post_admin_node_cost,
     get_admin_ssl_health,
-    post_admin_ssl_check,
+    get_admin_tools_asn_prefixes,
+    get_admin_tools_check_host,
     post_admin_add_ssl_domain,
     post_admin_delete_ssl_domain,
-    get_admin_github_releases,
-    get_admin_tools_check_host,
-    get_admin_tools_asn_prefixes,
+    post_admin_node_cost,
+    post_admin_ssl_check,
+)
+from bot.web.admin_overview import get_admin_overview
+from bot.web.admin_plans import (
+    get_admin_coupon_usages,
+    get_admin_coupons,
+    get_admin_plans,
+    get_admin_remnawave_squads,
+    post_admin_batch_vouchers,
+    post_admin_coupon_delete,
+    post_admin_coupon_save,
+    post_admin_coupon_toggle,
+    post_admin_plan_delete,
+    post_admin_plan_save,
+    post_admin_plan_toggle,
+)
+from bot.web.admin_settings_api import (
+    get_admin_crypto_rates,
+    get_admin_settings,
+    post_admin_settings,
+    post_admin_upload_store_logo,
+)
+from bot.web.admin_tickets import (
+    get_admin_ticket_messages,
+    get_admin_ticket_threads,
+    post_admin_reply_ticket,
+)
+from bot.web.admin_topups import (
+    get_admin_topup_photo,
+    get_admin_topups,
+    post_admin_topup_action,
+)
+from bot.web.admin_users import (
+    get_admin_check_username,
+    get_admin_internal_squads,
+    get_admin_sessions_explorer,
+    get_admin_user_hwid_devices,
+    get_admin_user_sessions,
+    get_admin_user_srh,
+    get_admin_users,
+    post_admin_create_user,
+    post_admin_kill_sessions,
+    post_admin_modify_user,
+    post_admin_reset_trial,
+    post_admin_toggle_ban,
+    post_admin_user_delete_hwid,
+    post_admin_user_revoke_sub,
+    post_admin_user_wallet,
+    post_admin_users_bulk_action,
 )
 
 __all__ = [

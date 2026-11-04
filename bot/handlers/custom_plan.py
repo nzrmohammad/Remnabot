@@ -8,14 +8,13 @@ from aiogram import Bot, F, Router
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
 from aiogram.utils.keyboard import InlineKeyboardBuilder
-from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from bot.common import SEPARATOR, fmt, parse_int
-from bot.services.formatting import ltr_frag
 from bot.db.repositories.user_repo import UserRepository
 from bot.db.repositories.wallet_repo import WalletRepository
-from bot.locales.texts import t
 from bot.services.app_settings import get_store_settings
+from bot.services.formatting import ltr_frag
 from bot.services.loyalty import apply_loyalty_discount, get_user_loyalty
 from bot.services.menu import render_menu
 from bot.services.purchases import execute_purchase
@@ -119,8 +118,7 @@ async def custom_plan_custom_gb_input(
     state: FSMContext,
 ):
     """Handle text input for custom GB."""
-    user = await user_repo.get_or_create(message.from_user.id, message.from_user.username)
-    lang = user.language or "fa"
+    await user_repo.get_or_create(message.from_user.id, message.from_user.username)
 
     store_settings = await get_store_settings(session)
     raw = (message.text or "").strip()
@@ -322,7 +320,6 @@ async def custom_plan_execute_purchase(
     days = parse_int(parts[3]) or 30
 
     user = await user_repo.get_or_create(call.from_user.id, call.from_user.username)
-    lang = user.language or "fa"
     store_settings = await get_store_settings(session)
 
     if not store_settings.custom_plan_enabled:

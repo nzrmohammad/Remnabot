@@ -5,10 +5,10 @@ from datetime import datetime, timedelta, timezone
 from aiohttp import web
 
 from bot.common.helpers import get_limit_bytes
-from bot.services.formatting import ltr_frag
 from bot.db.models import AdminLog
 from bot.db.repositories.user_repo import UserRepository
 from bot.db.repositories.wallet_repo import WalletRepository
+from bot.services.formatting import ltr_frag
 from bot.web.admin_common import _check_admin, db_session
 from bot.web.cache import FastCache
 
@@ -410,7 +410,7 @@ async def post_admin_create_user(request: web.Request) -> web.Response:
                 log_detail += f" (محدودیت دستگاه: {hwid_limit})"
             session.add(AdminLog(admin_id=admin["id"], action="create_user", target_user_id=telegram_id, detail=log_detail))
             await session.commit()
-    except Exception as db_exc:
+    except Exception:
         logger.exception("DB error after creating panel user %s. Triggering compensation rollback.", username)
         try:
             p_uid = created_user.get("id")

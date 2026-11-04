@@ -1,4 +1,3 @@
-from bot.web.user_common import require_user
 """User API endpoints for Telegram Mini App.
 
 Modularized into domain-specific modules:
@@ -10,7 +9,14 @@ Modularized into domain-specific modules:
 - user_subscription.py: Dynamic per-protocol config parsers.
 - user_speedtest.py: Low-overhead network throughput benchmarks.
 """
-from bot.db.repositories.user_repo import UserRepository
+from bot.db.repositories.user_repo import UserRepository as UserRepository
+from bot.web.user_common import require_user as require_user
+from bot.web.user_nodes import (
+    get_user_avatar,
+    get_user_ip_info,
+    get_user_nodes,
+    post_user_settings,
+)
 from bot.web.user_profile import get_user_me, post_user_set_birthday
 from bot.web.user_shop import (
     get_user_gifts_history,
@@ -26,22 +32,28 @@ from bot.web.user_shop import (
     post_user_spin,
     post_user_validate_coupon,
 )
-from bot.web.user_nodes import (
-    get_user_avatar,
-    get_user_ip_info,
-    get_user_nodes,
-    post_user_settings,
+from bot.web.user_speedtest import (
+    _get_speedtest_chunk,
+    get_user_speedtest_payload,
+    get_user_speedtest_ping,
+    post_user_speedtest_upload,
+)
+from bot.web.user_subscription import (
+    get_user_subscription_configs,
+)
+from bot.web.user_support import (
+    get_user_support_messages,
+    post_user_support_message,
 )
 from bot.web.user_topup import (
+    get_user_topup_card_auto_status,
+    get_user_topup_crypto_active,
     get_user_topup_info,
     post_user_auto_renew,
     post_user_redeem_voucher,
     post_user_topup_card,
-    post_user_topup_card_auto_create,
-    get_user_topup_card_auto_status,
     post_user_topup_card_auto_cancel,
-    get_user_topup_crypto_active,
-    post_webhook_sms,
+    post_user_topup_card_auto_create,
     post_user_topup_crypto,
     post_user_topup_crypto_cancel,
     post_user_topup_crypto_check,
@@ -50,20 +62,8 @@ from bot.web.user_topup import (
     post_user_topup_trx,
     post_user_topup_trx_verify,
     post_user_topup_xrocket,
+    post_webhook_sms,
     post_webhook_xrocket,
-)
-from bot.web.user_support import (
-    get_user_support_messages,
-    post_user_support_message,
-)
-from bot.web.user_subscription import (
-    get_user_subscription_configs,
-)
-from bot.web.user_speedtest import (
-    _get_speedtest_chunk,
-    get_user_speedtest_payload,
-    get_user_speedtest_ping,
-    post_user_speedtest_upload,
 )
 
 __all__ = [

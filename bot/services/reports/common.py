@@ -1,8 +1,7 @@
 """Common constants and formatting helpers for reports."""
-from datetime import datetime
 import logging
+from datetime import datetime
 
-from bot.common import SEPARATOR, fmt
 from bot.services.formatting import country_flag, human_bytes
 
 logger = logging.getLogger(__name__)

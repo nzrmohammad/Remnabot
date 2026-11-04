@@ -6,10 +6,10 @@ import secrets
 from datetime import datetime, timezone
 from typing import Any
 
-from sqlalchemy import func, select, update
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from bot.db.models import GiftCard, Order, OrderStatus, Service, User, Wallet
+from bot.db.models import GiftCard, Service, User, Wallet
 from bot.services.loyalty import apply_loyalty_discount, get_user_loyalty
 
 logger = logging.getLogger(__name__)

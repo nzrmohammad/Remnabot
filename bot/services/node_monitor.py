@@ -7,8 +7,8 @@ Monitors nodes every 2 minutes:
 4. Prevents duplicate alert spam via cooldown timestamps.
 """
 import asyncio
-from datetime import datetime, timezone
 import logging
+from datetime import datetime, timezone
 from typing import Any
 
 from aiogram import Bot
@@ -215,7 +215,7 @@ async def check_ssl_certificates_due_dates(
     if not session_factory:
         return
     try:
-        from bot.services.ssl_checker import get_system_ssl_domains, check_domains_ssl
+        from bot.services.ssl_checker import check_domains_ssl, get_system_ssl_domains
         async with session_factory() as session:
             domain_items = await get_system_ssl_domains(remnawave, session)
         if not domain_items:

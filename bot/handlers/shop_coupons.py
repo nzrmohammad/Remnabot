@@ -1,5 +1,6 @@
 """Coupon handling in user purchase and renewal flows."""
 import logging
+
 from aiogram import Bot, F, Router
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
@@ -10,16 +11,16 @@ from bot.db.repositories.coupon_repo import CouponRepository
 from bot.db.repositories.service_repo import ServiceRepository
 from bot.db.repositories.user_repo import UserRepository
 from bot.db.repositories.wallet_repo import WalletRepository
-from bot.locales.texts import t
-from bot.services.menu import delete_message_silently, render_menu
-from bot.services.remnawave import RemnawaveClient
-from bot.states.service_request import ServiceRequestStates
 from bot.handlers.shop_purchase import (
     _render_buy_confirm,
     buy_new_account,
     service_buy,
 )
 from bot.handlers.shop_renew import buy_for_account
+from bot.locales.texts import t
+from bot.services.menu import delete_message_silently, render_menu
+from bot.services.remnawave import RemnawaveClient
+from bot.states.service_request import ServiceRequestStates
 
 logger = logging.getLogger(__name__)
 router = Router(name="shop_coupons")

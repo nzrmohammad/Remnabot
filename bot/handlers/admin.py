@@ -34,9 +34,11 @@ from bot.handlers.admin_services_mgmt import (
     edit_service_field,
     edit_service_pick,
     edit_value_save,
-    router as services_router,
     service_view_detail,
     toggle_service,
+)
+from bot.handlers.admin_services_mgmt import (
+    router as services_router,
 )
 from bot.locales.texts import t
 from bot.services.menu import render_menu

@@ -14,13 +14,13 @@ from bot.common import SEPARATOR, admin_thread_kwargs, parse_int
 from bot.config import get_settings
 from bot.db.repositories.support_repo import SupportMessageRepository
 from bot.db.repositories.user_repo import UserRepository
+from bot.handlers.shop_purchase import _maybe_reward_referrer
 from bot.locales.texts import t
 from bot.services.app_settings import get_store_settings
 from bot.services.formatting import format_datetime, ltr_frag, now_tz
 from bot.services.menu import delete_message_silently, render_menu
 from bot.services.remnawave import RemnawaveClient
 from bot.states.service_request import ServiceRequestStates
-from bot.handlers.shop_purchase import _maybe_reward_referrer
 
 logger = logging.getLogger(__name__)
 router = Router(name="shop_trial")

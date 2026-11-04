@@ -8,6 +8,7 @@ from aiogram.types import CallbackQuery, Message
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from bot.common import SEPARATOR, fmt
 from bot.config import get_settings
 from bot.db.models import User
 from bot.db.repositories.order_repo import OrderRepository
@@ -20,7 +21,6 @@ from bot.services.menu import render_menu
 from bot.services.remnawave import RemnawaveClient
 from bot.states.profile import ProfileStates
 from bot.web.cache import FastCache
-from bot.common import SEPARATOR, fmt
 
 router = Router(name="profile")
 

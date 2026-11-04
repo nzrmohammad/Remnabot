@@ -1,7 +1,7 @@
 """Background worker: Hourly cluster traffic snapshot recorder."""
 import asyncio
-from datetime import datetime, timezone
 import logging
+from datetime import datetime, timezone
 from typing import Any
 
 from bot.common.helpers import get_used_bytes

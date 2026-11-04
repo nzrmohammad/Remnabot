@@ -67,7 +67,7 @@ async def get_user_subscription_configs(request: web.Request) -> web.Response:
                 if not (u.get("telegramId") or u.get("telegram_id"))
                 or str(u.get("telegramId") or u.get("telegram_id")) == str(telegram_id)
             ]
-    except (asyncio.TimeoutError, TimeoutError):
+    except TimeoutError:
         logger.warning("Timeout fetching panel users for configs (telegram_id=%s)", telegram_id)
         panel_fetch_failed = True
     except Exception as exc:
@@ -145,7 +145,7 @@ async def get_user_subscription_configs(request: web.Request) -> web.Response:
                 if raw_configs:
                     logger.info("Direct Remnawave API returned %d configs for user %s", len(raw_configs), cid)
                     break
-        except (asyncio.TimeoutError, TimeoutError):
+        except TimeoutError:
             logger.warning("Timeout calling Remnawave connection keys (user_id=%s)", cid)
         except Exception as ck_err:
             logger.warning("Direct Remnawave API connection keys failed (user_id=%s): %s", cid, ck_err)

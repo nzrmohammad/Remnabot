@@ -15,11 +15,11 @@ from zoneinfo import ZoneInfo
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from bot.services.formatting import ltr_frag
 from bot.db.models import User
 from bot.db.repositories.coupon_repo import CouponRepository
 from bot.db.repositories.report_repo import ReportRepository
 from bot.services.app_settings import get_store_settings
+from bot.services.formatting import ltr_frag
 
 logger = logging.getLogger(__name__)
 

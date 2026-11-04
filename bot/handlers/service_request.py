@@ -12,17 +12,21 @@ from aiogram import Bot, F, Router
 from aiogram.types import CallbackQuery
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from bot.common import SEPARATOR, admin_thread_kwargs, fmt, parse_int
+from bot.common import parse_int
 from bot.db.repositories.coupon_repo import CouponRepository
 from bot.db.repositories.referral_repo import ReferralRepository
 from bot.db.repositories.service_repo import ServiceRepository
 from bot.db.repositories.support_repo import SupportMessageRepository
 from bot.db.repositories.user_repo import UserRepository
 from bot.db.repositories.wallet_repo import WalletRepository
-from bot.services.menu import delete_message_silently, render_menu
-from bot.services.remnawave import RemnawaveClient
-from bot.services.render import render_services
-from bot.states.service_request import ServiceRequestStates
+from bot.handlers.shop_coupons import (
+    apply_coupon_prompt,
+    process_coupon_code,
+    remove_coupon,
+)
+from bot.handlers.shop_coupons import (
+    router as _shop_coupons_router,
+)
 
 # Re-exports from sub-handlers for backward compatibility and test mock patching
 from bot.handlers.shop_purchase import (
@@ -34,34 +38,38 @@ from bot.handlers.shop_purchase import (
     _render_purchase_result,
     buy_new_account,
     confirm_new_account,
-    router as _shop_purchase_router,
     service_buy,
     service_confirm,
     service_view,
+)
+from bot.handlers.shop_purchase import (
+    router as _shop_purchase_router,
 )
 from bot.handlers.shop_renew import (
     _verify_account,
     buy_for_account,
     confirm_for_account,
     renew_pick_service,
-    router as _shop_renew_router,
     service_choose_account,
+)
+from bot.handlers.shop_renew import (
+    router as _shop_renew_router,
 )
 from bot.handlers.shop_trial import (
     _REQUEST_DONE_NOTIFIED,
     _request_done_kb,
     request_done_notify,
-    router as _shop_trial_router,
     service_new_forward,
     service_new_request,
     service_trial_username,
 )
-from bot.handlers.shop_coupons import (
-    apply_coupon_prompt,
-    process_coupon_code,
-    remove_coupon,
-    router as _shop_coupons_router,
+from bot.handlers.shop_trial import (
+    router as _shop_trial_router,
 )
+from bot.services.menu import delete_message_silently, render_menu
+from bot.services.remnawave import RemnawaveClient
+from bot.services.render import render_services
+from bot.states.service_request import ServiceRequestStates
 
 logger = logging.getLogger(__name__)
 router = Router(name="service_request")

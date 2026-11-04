@@ -1,9 +1,10 @@
 from bot.web.user_common import db_session, require_user
+
 """Support chat message endpoints for Telegram Mini App."""
-from html import escape
 import logging
 import time
 from datetime import datetime
+from html import escape
 
 from aiohttp import web
 

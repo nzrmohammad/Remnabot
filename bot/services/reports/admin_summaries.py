@@ -1,8 +1,8 @@
 """Admin executive reports (nightly, weekly, monthly summaries)."""
 import asyncio
+import logging
 from datetime import datetime, timedelta, timezone
 from html import escape
-import logging
 
 from aiogram import Bot
 from sqlalchemy import func, select
@@ -328,7 +328,7 @@ async def _send_admin_weekly_summary(
     results = await asyncio.gather(*[_fetch_user_week(u) for u in active_traffic_users])
 
     all_nodes: list[dict] = []
-    for u, stats in results:
+    for _u, stats in results:
         all_nodes.extend(stats)
     flag_map = make_node_flag_map(all_nodes)
 

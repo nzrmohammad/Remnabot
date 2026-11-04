@@ -11,13 +11,12 @@ from aiogram.types import CallbackQuery
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from bot.common import SEPARATOR
 from bot.db.repositories.alert_repo import AlertRepository
 from bot.db.repositories.report_repo import ReportRepository
 from bot.db.repositories.user_repo import UserRepository
 from bot.locales.texts import t
 from bot.services.menu import render_menu
-
-from bot.common import SEPARATOR
 
 logger = logging.getLogger(__name__)
 router = Router(name="settings")

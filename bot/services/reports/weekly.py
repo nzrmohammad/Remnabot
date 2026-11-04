@@ -1,7 +1,7 @@
 """User weekly reports generation and delivery."""
+import logging
 from datetime import datetime, timedelta
 from html import escape
-import logging
 
 from aiogram import Bot
 from aiogram.exceptions import TelegramAPIError
@@ -12,7 +12,6 @@ from bot.locales.texts import t
 from bot.services.formatting import country_flag, format_date, format_datetime, human_bytes
 from bot.services.remnawave import RemnawaveClient
 from bot.services.reports.common import (
-    _node_label,
     _weekday_name,
     make_node_flag_map,
 )

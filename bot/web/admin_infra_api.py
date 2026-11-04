@@ -1,25 +1,26 @@
 """Admin Infrastructure Billing and Node Costs API handlers for Telegram Mini App."""
 import asyncio
 import logging
-from datetime import datetime, timedelta, timezone
 import socket
 import time
+from datetime import datetime, timedelta, timezone
 from typing import Any
+
 import aiohttp
 from aiohttp import web
 from sqlalchemy import func, select
 
 from bot.db.models import AdminLog, Order
 from bot.db.repositories.node_cost_repo import NodeCostRepository
-from bot.web.admin_common import _check_admin as _default_check_admin, db_session
-from bot.web.cache import FastCache
 from bot.services.ssl_checker import (
+    add_custom_ssl_domain,
     check_domain_ssl,
     check_domains_ssl,
-    get_system_ssl_domains,
-    add_custom_ssl_domain,
     delete_custom_ssl_domain,
+    get_system_ssl_domains,
 )
+from bot.web.admin_common import _check_admin as _default_check_admin
+from bot.web.admin_common import db_session
 
 try:
     import jdatetime
@@ -411,7 +412,6 @@ async def get_admin_tools_check_host(request: web.Request) -> web.Response:
     )
 
     # Validate DNS existence for hostnames before testing
-    import socket
     is_ip = False
     try:
         socket.inet_aton(clean_host)
@@ -579,7 +579,7 @@ async def get_admin_tools_check_host(request: web.Request) -> web.Response:
                     "ping_ms": round(dt, 1),
                     "status": "OPEN",
                 })
-            except Exception as err:
+            except Exception:
                 results.append({
                     "node_name": f"سرور اصلی (پورت {port})",
                     "flag": "❌",
@@ -683,7 +683,7 @@ async def get_admin_tools_asn_prefixes(request: web.Request) -> web.Response:
             "ipv6_count": len(ipv6_list),
             "prefixes": all_prefixes,
         })
-    except asyncio.TimeoutError:
+    except TimeoutError:
         return web.json_response({"ok": False, "error": "پایگاه RIPE در زمان مقرر پاسخ نداد (Timeout)."}, status=504)
     except Exception as exc:
         logger.exception("ASN lookup error: %s", exc)

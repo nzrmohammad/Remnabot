@@ -10,15 +10,13 @@ from aiogram.types import CallbackQuery
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from bot.common import SEPARATOR, fmt
+from bot.common import SEPARATOR
 from bot.config import get_settings
 from bot.db.repositories.user_repo import UserRepository
-from bot.locales.texts import t
 from bot.services.formatting import ltr_frag
 from bot.services.menu import render_menu
 from bot.services.remnawave import RemnawaveClient
 from bot.services.wheel_service import (
-    WHEEL_PRIZES,
     execute_lucky_wheel_spin,
     get_wheel_status,
 )
@@ -114,7 +112,6 @@ async def wheel_spin_action(
 ):
     """Execute spin with native Telegram slot machine animation."""
     user = await user_repo.get_or_create(call.from_user.id, call.from_user.username)
-    lang = user.language or "fa"
     tz = get_settings().TIMEZONE
     use_ticket = (call.data == "wheel:spin_ticket")
 
@@ -162,9 +159,9 @@ async def wheel_spin_action(
 
         # Telegram native slot animation
         try:
-            dice_msg = await bot.send_dice(chat_id=call.message.chat.id, emoji="🎰")
+            await bot.send_dice(chat_id=call.message.chat.id, emoji="🎰")
         except Exception:
-            dice_msg = None
+            pass
 
         await asyncio.sleep(2.5)
 
@@ -230,7 +227,6 @@ async def wheel_prizes_list(
 ):
     """Display the full prize catalogue and streak multiplier explanations."""
     user = await user_repo.get_or_create(call.from_user.id, call.from_user.username)
-    lang = user.language or "fa"
 
     lines = [
         "📋 <b>فهرست جوایز گردونه شانس</b>",
@@ -266,7 +262,6 @@ async def wheel_my_coupons(
 ):
     """Display coupons won by user from lucky wheel."""
     user = await user_repo.get_or_create(call.from_user.id, call.from_user.username)
-    lang = user.language or "fa"
 
     status = await get_wheel_status(session, cache, call.from_user.id)
     coupons = status.get("user_coupons") or []

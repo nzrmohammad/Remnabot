@@ -1,8 +1,6 @@
 """TRX (Tron) on-chain payment processor and verification service."""
-import asyncio
 import hashlib
 import logging
-from datetime import datetime, timezone
 from typing import Any
 
 import aiohttp

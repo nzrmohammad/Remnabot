@@ -20,15 +20,19 @@ from bot.handlers.wallet_card import (
     MAX_PENDING_TOPUPS,
     MAX_RECEIPT_BYTES,
     MAX_TOPUP,
-    router as card_router,
     topup_decide,
     topup_receipt,
 )
+from bot.handlers.wallet_card import (
+    router as card_router,
+)
 from bot.handlers.wallet_crypto import (
     _render_ton_invoice,
-    router as crypto_router,
     ton_invoice_cancel,
     ton_invoice_check,
+)
+from bot.handlers.wallet_crypto import (
+    router as crypto_router,
 )
 from bot.locales.texts import t
 from bot.services.app_settings import get_store_settings, is_maintenance

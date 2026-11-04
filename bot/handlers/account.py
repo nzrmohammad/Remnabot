@@ -20,6 +20,7 @@ from aiogram.types import BufferedInputFile, CallbackQuery, InlineKeyboardMarkup
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from bot.common import SEPARATOR, parse_int
 from bot.config import get_settings
 from bot.db.repositories.user_repo import UserRepository
 from bot.keyboards.inline import welcome_keyboard
@@ -27,8 +28,6 @@ from bot.locales.texts import t
 from bot.services.formatting import format_date, format_datetime, now_tz, parse_iso
 from bot.services.menu import render_menu
 from bot.services.remnawave import RemnawaveClient
-
-from bot.common import SEPARATOR, parse_int
 
 logger = logging.getLogger(__name__)
 router = Router(name="account")

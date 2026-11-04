@@ -13,7 +13,7 @@ from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram.types import ErrorEvent
 
 from bot.config import get_settings
-from bot.db.base import Base, create_engine_and_sessionmaker, init_db
+from bot.db.base import create_engine_and_sessionmaker, init_db
 from bot.handlers import get_main_router
 from bot.middlewares.ban_check import BanCheckMiddleware
 from bot.middlewares.db import DbSessionMiddleware
@@ -129,7 +129,7 @@ async def main() -> None:
     # dependency injection
     dp["remnawave"] = remnawave
     dp["session_factory"] = session_factory
-    setattr(bot, "session_factory", session_factory)
+    bot.session_factory = session_factory
     # Rate-limit first (drops floods before DB sessions are opened).
     dp.update.outer_middleware(RateLimitMiddleware())
     dp.update.outer_middleware(DbSessionMiddleware(session_factory))

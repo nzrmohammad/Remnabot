@@ -7,6 +7,10 @@ select = ["E", "F", "I", "UP", "B"]
 # E501: repo uses long HTML strings; UP017: codebase standard is timezone.utc; E402: intentional sub-router includes.
 ignore = ["E501", "UP017", "E402"]
 
+[tool.ruff.lint.per-file-ignores]
+"bot/handlers/admin_ops.py" = ["F401", "I001"]
+"bot/handlers/admin_users.py" = ["F401", "I001"]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["."]

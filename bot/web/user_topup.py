@@ -791,7 +791,6 @@ async def post_user_auto_renew(request: web.Request) -> web.Response:
     auto_renew_val = bool(body.get("auto_renew", False))
     telegram_id = int(user_auth["id"])
     from bot.db.repositories.user_repo import UserRepository
-    from bot.services.app_settings import get_store_settings
 
     async with db_session(request) as session:
         user_repo = UserRepository(session)
@@ -982,7 +981,6 @@ async def post_user_topup_tonconnect_submit(request: web.Request) -> web.Respons
         body = {}
 
     invoice_id = body.get("invoice_id")
-    tx_hash = (body.get("tx_hash") or "").strip()
     if not invoice_id:
         return web.json_response({"ok": False, "message": "شناسه فاکتور الزامی است."}, status=400)
 
@@ -1176,7 +1174,6 @@ async def post_webhook_xrocket(request: web.Request) -> web.Response:
             await cache.delete(f"tma:user:{tg_id}:profile")
 
         bot = request.app.get("bot")
-        settings = request.app.get("settings")
         if bot:
             try:
                 user_msg = (

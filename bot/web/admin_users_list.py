@@ -392,7 +392,7 @@ async def post_admin_users_bulk_action(request: web.Request) -> web.Response:
             batch = target_users[i : i + batch_size]
             tasks = [remnawave.delete_user(u.get("id")) for u in batch if u.get("id")]
             results = await asyncio.gather(*tasks, return_exceptions=True)
-            for u, r in zip(batch, results):
+            for u, r in zip(batch, results, strict=False):
                 if r is True:
                     success_count += 1
                 else:

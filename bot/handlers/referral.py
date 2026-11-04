@@ -7,14 +7,13 @@ from aiogram.types import CallbackQuery, CopyTextButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from bot.common import SEPARATOR
 from bot.common.links import ref_link
 from bot.db.repositories.referral_repo import ReferralRepository
 from bot.db.repositories.user_repo import UserRepository
 from bot.locales.texts import t
 from bot.services.app_settings import get_store_settings
 from bot.services.menu import render_menu
-
-from bot.common import SEPARATOR
 
 logger = logging.getLogger(__name__)
 router = Router(name="referral")

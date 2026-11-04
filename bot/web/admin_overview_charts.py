@@ -239,6 +239,7 @@ async def _calc_hourly_distribution(session, now_utc: datetime) -> dict[str, Any
     """Calculate 24h peak hourly traffic curve from snapshots in rolling chronological order (Option 3)."""
     from datetime import timezone
     from zoneinfo import ZoneInfo
+
     from bot.config import get_settings
 
     settings = get_settings()

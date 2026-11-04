@@ -9,8 +9,10 @@ from bot.handlers.admin_settings_crypto import (
     apply_nobitex_rate,
     crypto_nobitex_now,
     crypto_settings_view,
-    router as crypto_router,
     toggle_crypto_enabled,
+)
+from bot.handlers.admin_settings_crypto import (
+    router as crypto_router,
 )
 from bot.handlers.admin_settings_store import (
     GRACE_DAYS_CHOICES,
@@ -26,28 +28,34 @@ from bot.handlers.admin_settings_store import (
     maintenance_toggle,
     remind_days_picker_entry,
     remind_days_toggle,
-    router as store_router,
     setting_toggle_boolean,
     settings_edit_start,
     settings_set_squad,
     settings_value_save,
     store_settings_view,
 )
+from bot.handlers.admin_settings_store import (
+    router as store_router,
+)
 from bot.handlers.admin_settings_topics import (
     _cached_admin_group_title,
     _cached_admin_group_title_time,
     _render_topics_settings,
     get_admin_group_title,
-    router as topics_router,
     topics_settings_view,
+)
+from bot.handlers.admin_settings_topics import (
+    router as topics_router,
 )
 from bot.handlers.admin_settings_trial_referral import (
     _render_referral_settings,
     _render_trial_settings,
     referral_settings_view,
-    router as trial_ref_router,
     trial_ref_settings_view,
     trial_settings_view,
+)
+from bot.handlers.admin_settings_trial_referral import (
+    router as trial_ref_router,
 )
 
 logger = logging.getLogger(__name__)

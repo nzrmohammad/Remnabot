@@ -4124,6 +4124,16 @@ window.renderActiveSubAnalytics = renderActiveSubAnalytics;
 window.saveUserCache = saveUserCache;
 window.loadUserCache = loadUserCache;
 
+function openSupportModal() {
+  const btn = document.getElementById('openSupportBtn');
+  if (btn) {
+    btn.click();
+  } else if (typeof openModal === 'function') {
+    openModal('supportChatModal');
+  }
+}
+window.openSupportModal = openSupportModal;
+
 function openSupportContact() {
   const link = window.lastUserData?.support_link || window.lastUserData?.data?.support_link;
   if (link) {
@@ -4136,6 +4146,8 @@ function openSupportContact() {
     }
   } else if (typeof window.openSupportModal === 'function') {
     window.openSupportModal();
+  } else {
+    openSupportModal();
   }
 }
 window.openSupportContact = openSupportContact;
