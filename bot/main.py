@@ -214,6 +214,7 @@ async def main() -> None:
                 remnawave=remnawave,
                 settings=settings,
                 redis_client=redis_client,
+                cache=fast_cache,
             )
             web_runner = await start_web_server(
                 web_app, host=settings.WEB_HOST, port=settings.WEB_PORT

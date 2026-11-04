@@ -547,6 +547,7 @@ def create_web_app(
     settings,
     redis_client=None,
     is_dev: bool = False,
+    cache=None,
 ) -> web.Application:
     app = web.Application(
         middlewares=[cors_and_security_middleware, global_error_middleware, api_rate_limit_middleware, api_ban_check_middleware],
@@ -561,7 +562,7 @@ def create_web_app(
     app["bot_token"] = settings.BOT_TOKEN
     app["admin_ids"] = settings.ADMIN_IDS
     app["is_dev"] = is_dev
-    app["cache"] = FastCache(redis_client=redis_client)
+    app["cache"] = cache if cache is not None else FastCache(redis_client=redis_client)
 
     # UI routes
     app.router.add_get("/", serve_app_html)

@@ -217,6 +217,16 @@ async def verify_and_process_payments(bot: Any, session_factory: Any) -> int:
             if matched:
                 processed_count += 1
 
+                if hasattr(bot, "cache") and bot.cache:
+                    try:
+                        if hasattr(bot.cache, "invalidate_user"):
+                            await bot.cache.invalidate_user(inv.telegram_id)
+                        else:
+                            await bot.cache.delete(f"tma:user:{inv.telegram_id}")
+                        await bot.cache.delete("tma:admin:overview")
+                    except Exception as exc:
+                        logger.debug("Failed invalidating cache after TON payment: %s", exc)
+
                 # Send user notification
                 try:
                     user = await user_repo.get_by_telegram_id(inv.telegram_id)
