@@ -3671,9 +3671,9 @@ function renderUserLeaderboard(leaderboardData, period = currentUserLbPeriod) {
   const noticeIconEl = $('userLbNoticeIcon');
 
   if (noticeTextEl) {
-    let periodLabel = '7 روز اخیر';
+    let periodLabel = periodData.period_label || '7 روز اخیر';
     if (period === 'daily') {
-      periodLabel = 'روزانه';
+      periodLabel = periodData.period_label || 'روزانه';
     } else if (period === 'weekly') {
       periodLabel = '7 روز اخیر';
     } else if (period === 'monthly_30d') {

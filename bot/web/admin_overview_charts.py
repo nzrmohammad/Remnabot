@@ -547,7 +547,7 @@ async def get_periodic_users_bandwidth(
     active_users = [
         u for u in sorted(panel_users or [], key=lambda x: get_used_bytes(x), reverse=True)
         if u.get("id") and get_used_bytes(u) > 0
-    ][:60]
+    ][:100]
 
     JALALI_MONTH_NAMES = {
         1: "فروردین", 2: "اردیبهشت", 3: "خرداد",
@@ -599,6 +599,7 @@ async def get_periodic_users_bandwidth(
                 continue
             u, raw_series = item
             daily_bytes = 0
+            yesterday_bytes = 0
             week_bytes = 0
             month_30d_bytes = 0
             curr_j_bytes = 0
@@ -636,6 +637,8 @@ async def get_periodic_users_bandwidth(
                             # 1. Daily: today's usage (offset 0), aligned with bot's daily report
                             if offset == 0:
                                 daily_bytes += day_val
+                            elif offset == 1:
+                                yesterday_bytes += day_val
                             # 2. Last 7 days
                             if offset < 7:
                                 week_bytes += day_val
@@ -687,6 +690,7 @@ async def get_periodic_users_bandwidth(
                 "username": u.get("username") or f"user_{u.get('id')}",
                 "telegram_id": u.get("telegramId"),
                 "daily_bytes": daily_bytes,
+                "yesterday_bytes": yesterday_bytes,
                 "week_bytes": week_bytes,
                 "month_30d_bytes": month_30d_bytes,
                 "curr_j_bytes": curr_j_bytes,
@@ -705,6 +709,7 @@ async def get_periodic_users_bandwidth(
                 "prev2_j_w3_bytes": prev2_j_w3_bytes,
                 "prev2_j_w4_bytes": prev2_j_w4_bytes,
                 "daily_gb": round(daily_bytes / (1024 ** 3), 2),
+                "yesterday_gb": round(yesterday_bytes / (1024 ** 3), 2),
                 "week_gb": round(week_bytes / (1024 ** 3), 2),
                 "month_30d_gb": round(month_30d_bytes / (1024 ** 3), 2),
                 "curr_j_gb": round(curr_j_bytes / (1024 ** 3), 2),
@@ -748,7 +753,15 @@ async def get_periodic_users_bandwidth(
             "gb_key": gb_key,
         }
 
-    daily_lb = _make_leaderboard(user_stats, "daily_bytes", "daily_gb", "روزانه")
+    has_today_traffic = any(u.get("daily_bytes", 0) > 0 for u in user_stats)
+    daily_label = "روزانه"
+    if not has_today_traffic:
+        daily_label = "روزانه (۲۴ ساعت گذشته)"
+        for u in user_stats:
+            u["daily_bytes"] = u.get("yesterday_bytes", 0)
+            u["daily_gb"] = u.get("yesterday_gb", 0.0)
+
+    daily_lb = _make_leaderboard(user_stats, "daily_bytes", "daily_gb", daily_label)
     week_lb = _make_leaderboard(user_stats, "week_bytes", "week_gb", "7 روز اخیر")
     month_30d_lb = _make_leaderboard(user_stats, "month_30d_bytes", "month_30d_gb", "30 روز اخیر")
     curr_m_lb = _make_leaderboard(user_stats, "curr_j_bytes", "curr_j_gb", f"ماه {curr_m_name}", curr_m_name)

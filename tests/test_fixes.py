@@ -3069,3 +3069,27 @@ async def test_user_gift_endpoints_bad_json():
         data2 = json.loads(resp2.text)
         assert data2["ok"] is False
 
+
+
+@pytest.mark.anyio
+async def test_periodic_users_bandwidth_daily_fallback():
+    from datetime import datetime, timezone
+    from bot.web.admin_overview_charts import get_periodic_users_bandwidth
+
+    mock_remnawave = AsyncMock()
+    ten_gb_bytes = 10 * (1024 ** 3)
+    data_series = [0] * 88 + [ten_gb_bytes, 0]
+    mock_remnawave.get_user_bandwidth_stats = AsyncMock(return_value=[
+        {"countryCode": "DE", "data": data_series}
+    ])
+
+    panel_users = [{"id": 1, "username": "top_user", "usedTrafficBytes": 100 * (1024 ** 3)}]
+    now_utc = datetime(2026, 11, 5, 0, 15, tzinfo=timezone.utc)
+
+    result = await get_periodic_users_bandwidth(mock_remnawave, None, panel_users, now_utc, is_refresh=True)
+
+    daily = result["daily"]
+    assert daily["label"] == "روزانه (۲۴ ساعت گذشته)"
+    assert len(daily["top_users"]) == 1
+    assert daily["top_users"][0]["username"] == "top_user"
+    assert daily["top_users"][0]["used_gb"] == 10.0
