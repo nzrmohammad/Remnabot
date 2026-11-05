@@ -188,7 +188,17 @@ function switchShopCategory(cat, shouldRender = true) {
     if (customContainer) customContainer.classList.remove('hidden');
     if (shopContainer) shopContainer.classList.add('hidden');
     if (couponSection) couponSection.classList.add('hidden');
-    initCustomPlanBuilder();
+    const customSettings = cachedPlansData?.custom_plan_settings || window.storeSettings?.custom_plan_settings || {};
+    const disabledNotice = document.getElementById('customPlanDisabledNotice');
+    const builderContent = document.getElementById('customPlanBuilderContent');
+    if (customSettings.enabled === false) {
+      if (disabledNotice) disabledNotice.classList.remove('hidden');
+      if (builderContent) builderContent.classList.add('hidden');
+    } else {
+      if (disabledNotice) disabledNotice.classList.add('hidden');
+      if (builderContent) builderContent.classList.remove('hidden');
+      initCustomPlanBuilder();
+    }
     return;
   } else {
     if (customContainer) customContainer.classList.add('hidden');
@@ -441,11 +451,7 @@ function renderShopPlans(data) {
   const customSettings = data?.custom_plan_settings || window.storeSettings?.custom_plan_settings;
   const customBtn = document.getElementById('shopCategoryBtn-custom');
   if (customBtn) {
-    if (customSettings && customSettings.enabled === false) {
-      customBtn.classList.add('hidden');
-    } else {
-      customBtn.classList.remove('hidden');
-    }
+    customBtn.classList.remove('hidden');
   }
 
   // Smart User Routing & Recommendation Banner

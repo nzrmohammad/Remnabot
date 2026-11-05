@@ -519,7 +519,7 @@
             <span class="text-xs font-bold t-main flex items-center gap-1.5">
               <span>☀️</span> گزارش روزانه
             </span>
-            <span id="repDailyDate" class="text-[11px] font-mono text-slate-400">--/--/-- - ۲۳:۵۹</span>
+            <span id="repDailyDate" class="text-[11px] font-mono text-slate-400">--/--/-- - 23:59</span>
           </div>
 
           <div class="space-y-1.5 text-xs t-muted">
@@ -535,6 +535,44 @@
             <span class="text-slate-400 font-medium block mb-1">تفکیک مصرف سرورها:</span>
             <div id="repDailyNodesContainer" dir="ltr" class="grid grid-cols-2 gap-1.5 font-mono text-[11px]">
               <div class="col-span-2 text-center py-2 text-slate-400 text-[11px]">در حال دریافت داده‌ها...</div>
+            </div>
+          </div>
+
+          <!-- Daily Diurnal Intervals Breakdown (توزیع بازه‌های زمانی) -->
+          <div class="pt-2 border-t border-slate-700/60 text-xs space-y-1.5">
+            <div class="flex justify-between items-center text-slate-400">
+              <span class="font-medium flex items-center gap-1"><span>📊</span> توزیع مصرف بازه‌ها:</span>
+              <span class="text-[10px] font-mono">۴ بازه شبانه‌روز</span>
+            </div>
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-1.5 pt-0.5 font-mono text-[11px]">
+              <div class="card-inset p-2 rounded-xl flex flex-col justify-between">
+                <div class="flex items-center justify-between text-slate-400 text-[10px] font-sans">
+                  <span class="flex items-center gap-1"><span>🌙 بامداد</span> <span dir="ltr" class="font-mono text-[9px] text-slate-400">(00-06)</span></span>
+                  <span id="repDailyPeriodDawnPct" class="text-cyan-400 font-bold font-mono">0%</span>
+                </div>
+                <b id="repDailyPeriodDawnVal" class="text-white text-xs mt-1 block num-bidi" dir="ltr">0.00 GB</b>
+              </div>
+              <div class="card-inset p-2 rounded-xl flex flex-col justify-between">
+                <div class="flex items-center justify-between text-slate-400 text-[10px] font-sans">
+                  <span class="flex items-center gap-1"><span>🌅 صبح</span> <span dir="ltr" class="font-mono text-[9px] text-slate-400">(06-12)</span></span>
+                  <span id="repDailyPeriodMornPct" class="text-emerald-400 font-bold font-mono">0%</span>
+                </div>
+                <b id="repDailyPeriodMornVal" class="text-white text-xs mt-1 block num-bidi" dir="ltr">0.00 GB</b>
+              </div>
+              <div class="card-inset p-2 rounded-xl flex flex-col justify-between">
+                <div class="flex items-center justify-between text-slate-400 text-[10px] font-sans">
+                  <span class="flex items-center gap-1"><span>☀️ عصر</span> <span dir="ltr" class="font-mono text-[9px] text-slate-400">(12-18)</span></span>
+                  <span id="repDailyPeriodAftPct" class="text-amber-400 font-bold font-mono">0%</span>
+                </div>
+                <b id="repDailyPeriodAftVal" class="text-white text-xs mt-1 block num-bidi" dir="ltr">0.00 GB</b>
+              </div>
+              <div class="card-inset p-2 rounded-xl flex flex-col justify-between">
+                <div class="flex items-center justify-between text-slate-400 text-[10px] font-sans">
+                  <span class="flex items-center gap-1"><span>🌆 شب</span> <span dir="ltr" class="font-mono text-[9px] text-slate-400">(18-24)</span></span>
+                  <span id="repDailyPeriodNgtPct" class="text-purple-400 font-bold font-mono">0%</span>
+                </div>
+                <b id="repDailyPeriodNgtVal" class="text-white text-xs mt-1 block num-bidi" dir="ltr">0.00 GB</b>
+              </div>
             </div>
           </div>
         </div>
@@ -563,6 +601,44 @@
               <div class="col-span-2 text-center py-2 text-slate-400 text-[11px]">در حال دریافت داده‌ها...</div>
             </div>
           </div>
+
+          <!-- Nightly Diurnal Intervals Breakdown (توزیع بازه‌های زمانی دیشب) -->
+          <div class="pt-2 border-t border-slate-700/60 text-xs space-y-1.5">
+            <div class="flex justify-between items-center text-slate-400">
+              <span class="font-medium flex items-center gap-1"><span>📊</span> توزیع مصرف بازه‌ها:</span>
+              <span class="text-[10px] font-mono">۴ بازه شبانه‌روز</span>
+            </div>
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-1.5 pt-0.5 font-mono text-[11px]">
+              <div class="card-inset p-2 rounded-xl flex flex-col justify-between">
+                <div class="flex items-center justify-between text-slate-400 text-[10px] font-sans">
+                  <span class="flex items-center gap-1"><span>🌙 بامداد</span> <span dir="ltr" class="font-mono text-[9px] text-slate-400">(00-06)</span></span>
+                  <span id="repNightlyPeriodDawnPct" class="text-cyan-400 font-bold font-mono">0%</span>
+                </div>
+                <b id="repNightlyPeriodDawnVal" class="text-white text-xs mt-1 block num-bidi" dir="ltr">0.00 GB</b>
+              </div>
+              <div class="card-inset p-2 rounded-xl flex flex-col justify-between">
+                <div class="flex items-center justify-between text-slate-400 text-[10px] font-sans">
+                  <span class="flex items-center gap-1"><span>🌅 صبح</span> <span dir="ltr" class="font-mono text-[9px] text-slate-400">(06-12)</span></span>
+                  <span id="repNightlyPeriodMornPct" class="text-emerald-400 font-bold font-mono">0%</span>
+                </div>
+                <b id="repNightlyPeriodMornVal" class="text-white text-xs mt-1 block num-bidi" dir="ltr">0.00 GB</b>
+              </div>
+              <div class="card-inset p-2 rounded-xl flex flex-col justify-between">
+                <div class="flex items-center justify-between text-slate-400 text-[10px] font-sans">
+                  <span class="flex items-center gap-1"><span>☀️ عصر</span> <span dir="ltr" class="font-mono text-[9px] text-slate-400">(12-18)</span></span>
+                  <span id="repNightlyPeriodAftPct" class="text-amber-400 font-bold font-mono">0%</span>
+                </div>
+                <b id="repNightlyPeriodAftVal" class="text-white text-xs mt-1 block num-bidi" dir="ltr">0.00 GB</b>
+              </div>
+              <div class="card-inset p-2 rounded-xl flex flex-col justify-between">
+                <div class="flex items-center justify-between text-slate-400 text-[10px] font-sans">
+                  <span class="flex items-center gap-1"><span>🌆 شب</span> <span dir="ltr" class="font-mono text-[9px] text-slate-400">(18-24)</span></span>
+                  <span id="repNightlyPeriodNgtPct" class="text-purple-400 font-bold font-mono">0%</span>
+                </div>
+                <b id="repNightlyPeriodNgtVal" class="text-white text-xs mt-1 block num-bidi" dir="ltr">0.00 GB</b>
+              </div>
+            </div>
+          </div>
         </div>
 
         <!-- 2. Weekly Report Card -->
@@ -576,7 +652,7 @@
             <div class="flex justify-between"><span>🏆 پرمصرف‌ترین روز شما :</span><span id="repWeeklyBusiest" class="font-bold t-main">—</span></div>
           </div>
           <div class="pt-2 border-t border-slate-700/60">
-            <span class="text-[11px] text-slate-400 font-medium block mb-2">نمودار مصرف روزانه (7 روز اخیر):</span>
+            <span class="text-[11px] text-slate-400 font-medium block mb-2">نمودار مصرف هفتگی (7 روز اخیر):</span>
             <div class="h-36 w-full p-2 bg-transparent rounded-xl relative flex items-center justify-center">
               <canvas id="repWeeklyChartCanvas" dir="ltr" class="w-full h-full"></canvas>
               <div id="repWeeklyEmptyState" class="hidden text-center py-6 text-xs text-slate-400">
@@ -928,6 +1004,17 @@
 
         <!-- Custom Plan Builder Container (طراحی بسته اختصاصی) -->
         <div id="customPlanBuilderContainer" class="card p-4 space-y-4 hidden shadow-md">
+          <!-- Disabled Notice (when custom plan is disabled by admin) -->
+          <div id="customPlanDisabledNotice" class="hidden card-inset p-5 rounded-2xl text-center space-y-2.5">
+            <span class="text-3xl block">🛠️</span>
+            <b class="text-sm font-bold t-main block">امکان سفارش بسته دلخواه موقتاً غیرفعال است</b>
+            <p class="text-xs t-muted leading-relaxed max-w-xs mx-auto">
+              در حال حاضر سفارش بسته با حجم و زمان دلخواه توسط مدیریت غیرفعال شده است. لطفاً از سایر بسته‌های استاندارد فروشگاه استفاده فرمایید.
+            </p>
+          </div>
+
+          <!-- Builder Content (Active State) -->
+          <div id="customPlanBuilderContent" class="space-y-4">
           <div class="border-b border-card-border pb-2.5 space-y-1.5">
             <div class="flex items-center justify-between gap-2 flex-wrap">
               <div class="flex items-center gap-2 shrink-0">
@@ -996,6 +1083,7 @@
           <button id="submitCustomPlanBtn" type="button" onclick="window.purchaseCustomPlan && window.purchaseCustomPlan()" class="btn btn-primary w-full py-2.5 rounded-xl text-xs font-bold shadow-md flex items-center justify-center gap-2">
             <span>🚀</span> خرید و فعال‌سازی آنی بسته اختصاصی
           </button>
+          </div>
         </div>
 
         <!-- Dynamic Plans Container (Loaded from Admin DB) -->
@@ -1874,8 +1962,9 @@
 
                     <!-- BACK FACE -->
                     <div class="blu-card-face blu-card-back p-3.5 sm:p-4 text-white flex flex-col justify-between shadow-2xl relative overflow-hidden" style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);">
-                      <!-- Black Magnetic Stripe -->
-                      <div class="w-full h-7 bg-slate-950/90 -mx-4 mt-1 shadow-inner"></div>
+                      <!-- Black Magnetic Stripe (Edge-to-Edge across entire card width) -->
+                      <div class="absolute inset-x-0 top-3 sm:top-4 h-7 bg-slate-950/90 shadow-inner"></div>
+                      <div class="h-7 shrink-0"></div>
                       <div class="my-auto px-2 z-10 text-center">
                         <p id="graphicCardBackText" class="text-xs sm:text-sm font-bold tracking-wide font-sans select-none" dir="ltr">
                           Blu, But Lovely

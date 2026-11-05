@@ -261,3 +261,27 @@ def test_frontend_polish_and_reports_5_tabs():
     shop_js = Path("bot/web/static/js/shop.js").read_text(encoding="utf-8")
     assert "(${discMsg} تخفیف)" in shop_js
     assert "dir=\"ltr\"" in shop_js
+
+
+def test_custom_plan_disabled_card_stripe_and_reports_polish():
+    """Verify card magnetic stripe is edge-to-edge, custom plan has disabled notice, and reports polish."""
+    from pathlib import Path
+
+    app_html = Path("bot/web/templates/app.html").read_text(encoding="utf-8")
+    assert "absolute inset-x-0 top-3 sm:top-4 h-7 bg-slate-950/90 shadow-inner" in app_html
+    assert "id=\"customPlanDisabledNotice\"" in app_html
+    assert "id=\"customPlanBuilderContent\"" in app_html
+    assert "نمودار مصرف هفتگی (7 روز اخیر):" in app_html
+    assert "نمودار مصرف روزانه (7 روز اخیر):" not in app_html
+    assert "id=\"repDailyPeriodDawnVal\"" in app_html
+    assert "id=\"repNightlyPeriodDawnVal\"" in app_html
+    assert "--/--/-- - 23:59" in app_html
+
+    shop_js = Path("bot/web/static/js/shop.js").read_text(encoding="utf-8")
+    assert "customPlanDisabledNotice" in shop_js
+    assert "customPlanBuilderContent" in shop_js
+
+    app_js = Path("bot/web/static/js/app.js").read_text(encoding="utf-8")
+    assert "toEnglishDigits(data.today_jalali)} - 23:59" in app_js
+    assert "repDailyPeriodDawnVal" in app_js
+    assert "repNightlyPeriodDawnVal" in app_js

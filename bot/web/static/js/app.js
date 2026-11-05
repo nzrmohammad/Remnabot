@@ -2442,14 +2442,15 @@ function resetActiveSubAnalytics() {
   const analysisBox = document.getElementById('repBurnAnalysisBox');
   if (analysisBox) analysisBox.className = 'p-2 rounded-xl text-xs t-muted flex items-start gap-2 bg-transparent border-0';
 
-  const pDawn = $('periodDawnVal'); if (pDawn) pDawn.innerText = '۰ GB';
-  const pDawnPct = $('periodDawnPercent'); if (pDawnPct) pDawnPct.innerText = '۰%';
-  const pMorn = $('periodMorningVal'); if (pMorn) pMorn.innerText = '۰ GB';
-  const pMornPct = $('periodMorningPercent'); if (pMornPct) pMornPct.innerText = '۰%';
-  const pAft = $('periodAfternoonVal'); if (pAft) pAft.innerText = '۰ GB';
-  const pAftPct = $('periodAfternoonPercent'); if (pAftPct) pAftPct.innerText = '۰%';
-  const pNgt = $('periodNightVal'); if (pNgt) pNgt.innerText = '۰ GB';
-  const pNgtPct = $('periodNightPercent'); if (pNgtPct) pNgtPct.innerText = '۰%';
+  ['periodDawnVal', 'periodMorningVal', 'periodAfternoonVal', 'periodNightVal',
+   'repDailyPeriodDawnVal', 'repDailyPeriodMornVal', 'repDailyPeriodAftVal', 'repDailyPeriodNgtVal',
+   'repNightlyPeriodDawnVal', 'repNightlyPeriodMornVal', 'repNightlyPeriodAftVal', 'repNightlyPeriodNgtVal'
+  ].forEach(id => { const el = $(id); if (el) el.innerText = '0.00 GB'; });
+
+  ['periodDawnPercent', 'periodMorningPercent', 'periodAfternoonPercent', 'periodNightPercent',
+   'repDailyPeriodDawnPct', 'repDailyPeriodMornPct', 'repDailyPeriodAftPct', 'repDailyPeriodNgtPct',
+   'repNightlyPeriodDawnPct', 'repNightlyPeriodMornPct', 'repNightlyPeriodAftPct', 'repNightlyPeriodNgtPct'
+  ].forEach(id => { const el = $(id); if (el) el.innerText = '0%'; });
 
   const countryCanvas = $('repCountryChartCanvas');
   const countryEmpty = $('repCountryEmptyState');
@@ -2531,14 +2532,27 @@ function renderActiveSubAnalytics(sub) {
             else nightSum += val;
           });
           const totalPeriods = (dawnSum + morningSum + afternoonSum + nightSum) || 1;
-          const pDawn = $('periodDawnVal'); if (pDawn) pDawn.innerHTML = fmtTraffic(dawnSum, { isBytes: false });
-          const pDawnPct = $('periodDawnPercent'); if (pDawnPct) pDawnPct.innerText = `${Math.round((dawnSum / totalPeriods) * 100)}%`;
-          const pMorn = $('periodMorningVal'); if (pMorn) pMorn.innerHTML = fmtTraffic(morningSum, { isBytes: false });
-          const pMornPct = $('periodMorningPercent'); if (pMornPct) pMornPct.innerText = `${Math.round((morningSum / totalPeriods) * 100)}%`;
-          const pAft = $('periodAfternoonVal'); if (pAft) pAft.innerHTML = fmtTraffic(afternoonSum, { isBytes: false });
-          const pAftPct = $('periodAfternoonPercent'); if (pAftPct) pAftPct.innerText = `${Math.round((afternoonSum / totalPeriods) * 100)}%`;
-          const pNgt = $('periodNightVal'); if (pNgt) pNgt.innerHTML = fmtTraffic(nightSum, { isBytes: false });
-          const pNgtPct = $('periodNightPercent'); if (pNgtPct) pNgtPct.innerText = `${Math.round((nightSum / totalPeriods) * 100)}%`;
+          const dawnPct = `${Math.round((dawnSum / totalPeriods) * 100)}%`;
+          const mornPct = `${Math.round((morningSum / totalPeriods) * 100)}%`;
+          const aftPct = `${Math.round((afternoonSum / totalPeriods) * 100)}%`;
+          const ngtPct = `${Math.round((nightSum / totalPeriods) * 100)}%`;
+
+          const dawnTraffic = fmtTraffic(dawnSum, { isBytes: false });
+          const mornTraffic = fmtTraffic(morningSum, { isBytes: false });
+          const aftTraffic = fmtTraffic(afternoonSum, { isBytes: false });
+          const ngtTraffic = fmtTraffic(nightSum, { isBytes: false });
+
+          ['periodDawnVal', 'repDailyPeriodDawnVal', 'repNightlyPeriodDawnVal'].forEach(id => { const el = $(id); if (el) el.innerHTML = dawnTraffic; });
+          ['periodDawnPercent', 'repDailyPeriodDawnPct', 'repNightlyPeriodDawnPct'].forEach(id => { const el = $(id); if (el) el.innerText = dawnPct; });
+
+          ['periodMorningVal', 'repDailyPeriodMornVal', 'repNightlyPeriodMornVal'].forEach(id => { const el = $(id); if (el) el.innerHTML = mornTraffic; });
+          ['periodMorningPercent', 'repDailyPeriodMornPct', 'repNightlyPeriodMornPct'].forEach(id => { const el = $(id); if (el) el.innerText = mornPct; });
+
+          ['periodAfternoonVal', 'repDailyPeriodAftVal', 'repNightlyPeriodAftVal'].forEach(id => { const el = $(id); if (el) el.innerHTML = aftTraffic; });
+          ['periodAfternoonPercent', 'repDailyPeriodAftPct', 'repNightlyPeriodAftPct'].forEach(id => { const el = $(id); if (el) el.innerText = aftPct; });
+
+          ['periodNightVal', 'repDailyPeriodNgtVal', 'repNightlyPeriodNgtVal'].forEach(id => { const el = $(id); if (el) el.innerHTML = ngtTraffic; });
+          ['periodNightPercent', 'repDailyPeriodNgtPct', 'repNightlyPeriodNgtPct'].forEach(id => { const el = $(id); if (el) el.innerText = ngtPct; });
         } catch (perr) {
           console.debug('Error computing diurnal periods:', perr);
         }
@@ -3337,7 +3351,7 @@ function hydrateUserInterface(data) {
     // Reports Hub
     if (data.today_jalali) {
       const repDailyDateEl = $('repDailyDate');
-      if (repDailyDateEl) repDailyDateEl.innerText = `${toEnglishDigits(data.today_jalali)} - ۲۳:۵۹`;
+      if (repDailyDateEl) repDailyDateEl.innerText = `${toEnglishDigits(data.today_jalali)} - 23:59`;
     }
     if (data.yesterday_jalali) {
       const repDateEl = $('repNightlyDate');
