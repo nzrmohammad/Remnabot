@@ -68,9 +68,12 @@ async def stars_pre_checkout_handler(pre_checkout_query: PreCheckoutQuery, bot: 
         await bot.answer_pre_checkout_query(pre_checkout_query.id, ok=True)
     except Exception as exc:
         logger.exception("Failed to answer stars pre-checkout query: %s", exc)
-        await bot.answer_pre_checkout_query(
-            pre_checkout_query.id, ok=False, error_message="خطا در اعتبارسنجی پرداخت با استارز."
-        )
+        try:
+            await bot.answer_pre_checkout_query(
+                pre_checkout_query.id, ok=False, error_message="خطا در اعتبارسنجی پرداخت با استارز."
+            )
+        except Exception:
+            pass
 
 
 @router.message(F.successful_payment)

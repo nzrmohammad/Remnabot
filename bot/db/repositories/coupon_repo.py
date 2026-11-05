@@ -213,11 +213,10 @@ class CouponRepository:
     ) -> tuple[bool, int, str]:
         """Redeem a credit/gift coupon to the user's wallet atomically."""
         clean_code = code.strip().upper()
-        stmt = (
-            select(Coupon)
-            .where(Coupon.code == clean_code)
-            .with_for_update()
-        )
+        stmt = select(Coupon).where(Coupon.code == clean_code)
+        bind = self.session.get_bind()
+        if not (bind and bind.dialect.name == "sqlite"):
+            stmt = stmt.with_for_update()
         res = await self.session.execute(stmt)
         coupon = res.scalar_one_or_none()
         if not coupon:

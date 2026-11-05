@@ -191,7 +191,17 @@ async function renderBarChart(containerId, totals, labels, isMonthly = false) {
               if (chartKey === 'repPeakHoursBarCanvas' || String(lbl).includes('-') || String(lbl).includes(':')) {
                 return `بازه ساعتی: ${lbl} (ساعت ${lbl.replace('-', ' الی ')})`;
               }
-              return `روز ${lbl}`;
+              const faDaysMap = {
+                'ش': 'شنبه', 'شنبه': 'شنبه',
+                'ی': 'یکشنبه', 'یکشنبه': 'یکشنبه',
+                'د': 'دوشنبه', 'دوشنبه': 'دوشنبه',
+                'س': 'سه‌شنبه', 'سه‌شنبه': 'سه‌شنبه',
+                'چ': 'چهارشنبه', 'چهارشنبه': 'چهارشنبه',
+                'پ': 'پنج‌شنبه', 'پنج‌شنبه': 'پنج‌شنبه',
+                'ج': 'جمعه', 'جمعه': 'جمعه'
+              };
+              const dayName = faDaysMap[lbl] || lbl;
+              return `روز ${dayName}`;
             },
             label: function(context) {
               const val = context.raw != null ? context.raw : 0;

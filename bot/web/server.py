@@ -236,6 +236,7 @@ async def cors_and_security_middleware(request: web.Request, handler):
     response.headers["Content-Security-Policy"] = (
         "frame-ancestors 'self' https://web.telegram.org https://*.telegram.org"
     )
+    response.headers["X-Content-Type-Options"] = "nosniff" 
 
     # Caching strategy for static assets (/static/...)
     if request.path.startswith("/static/"):

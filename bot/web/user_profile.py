@@ -709,6 +709,7 @@ async def get_user_me(request: web.Request) -> web.Response:
                 }
 
             user_leaderboard["daily"] = _build_user_lb(periodic_bw.get("daily", {}), "daily_gb")
+            user_leaderboard["nightly"] = _build_user_lb(periodic_bw.get("nightly", {}), "yesterday_gb")
             user_leaderboard["weekly"] = _build_user_lb(periodic_bw.get("weekly", {}), "week_gb")
             user_leaderboard["monthly_30d"] = _build_user_lb(periodic_bw.get("monthly_30d", {}), "month_30d_gb")
 

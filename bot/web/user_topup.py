@@ -7,6 +7,7 @@ import asyncio
 import hashlib
 import json
 import logging
+import math
 import secrets
 from datetime import datetime, timedelta, timezone
 from html import escape
@@ -659,7 +660,8 @@ async def post_user_topup_stars(request: web.Request) -> web.Response:
                 status=400,
             )
 
-        stars_count = max(1, round(amount / rate))
+        import math
+        stars_count = max(1, math.ceil(amount / rate))
 
         bot = request.app["bot"]
         from aiogram.types import LabeledPrice
@@ -874,7 +876,7 @@ async def post_user_topup_trx(request: web.Request) -> web.Response:
                 status=503,
             )
 
-        trx_amount = round(amount / trx_rate, 2)
+        trx_amount = max(1.0, math.ceil((amount / trx_rate) * 100) / 100)
         if trx_amount <= 0:
             trx_amount = 1.0
         suns = int(round(trx_amount * 1_000_000))

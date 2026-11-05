@@ -2,6 +2,7 @@
 from datetime import datetime, timedelta, timezone
 
 from sqlalchemy import func, or_, select, text
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from bot.db.models import User
@@ -27,13 +28,17 @@ class UserRepository:
         if user is None:
             user = User(telegram_id=telegram_id, username=username, full_name=full_name)
             self.session.add(user)
-            await self.session.flush()
-        else:
+            try:
+                async with self.session.begin_nested():
+                    await self.session.flush()
+            except IntegrityError:
+                user = await self.get_by_telegram_id(telegram_id)
+        if user is not None:
             if username and user.username != username:
                 user.username = username
             if full_name and user.full_name != full_name:
                 user.full_name = full_name
-        user.last_active_at = datetime.now(timezone.utc)
+            user.last_active_at = datetime.now(timezone.utc)
         return user
 
     async def set_language(self, user: User, language: str) -> None:

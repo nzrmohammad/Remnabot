@@ -1,5 +1,6 @@
 """Node metrics, telemetry extraction, and cluster KPIs for admin overview."""
 from datetime import datetime, timedelta, timezone
+import math
 from typing import Any
 from zoneinfo import ZoneInfo
 
@@ -344,7 +345,7 @@ async def calc_cluster_kpis(
     costs_by_uuid = {str(c.node_uuid): c for c in all_node_costs}
     costs_by_id = {str(c.node_id): c for c in all_node_costs if c.node_id is not None}
     total_infra_cost_toman = sum(c.monthly_cost_toman for c in all_node_costs)
-    total_infra_cost_eur = round(sum(c.monthly_cost_eur for c in all_node_costs), 2)
+    total_infra_cost_eur = round(math.fsum(float(c.monthly_cost_eur or 0.0) for c in all_node_costs), 2)
     net_profit_toman = monthly_revenue - total_infra_cost_toman
     profit_margin_percent = round((net_profit_toman / monthly_revenue * 100), 1) if monthly_revenue > 0 else None
     avg_cost_per_gb = round(total_infra_cost_toman / total_traffic_gb, 0) if total_traffic_gb > 0 else 0.0

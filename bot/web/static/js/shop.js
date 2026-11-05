@@ -22,7 +22,10 @@ function setupCouponInput() {
       showToast('ℹ️ کد تخفیف حذف گردید.');
       hapticFeedback('selection');
     }
-    if (window.lastUserData) renderShopPlans(window.lastUserData);
+    if (window.lastUserData) {
+      renderShopPlans(window.lastUserData);
+      renderWonCoupons(window.lastUserData);
+    }
   };
 
   applyCouponBtn.addEventListener('click', async () => {
@@ -45,14 +48,17 @@ function setupCouponInput() {
       if (res.ok && res.data) {
         window.activeCoupon = res.data;
         let discMsg = '';
-        if (res.data.discount_percent > 0) discMsg = `٪${res.data.discount_percent}`;
+        if (res.data.discount_percent > 0) discMsg = `${toEnglishDigits(res.data.discount_percent)}%`;
         else if (res.data.discount_amount > 0) discMsg = `${Number(res.data.discount_amount).toLocaleString('en-US')} تومان`;
         showToast(`🎉 کد تخفیف اعمال شد! (${discMsg} تخفیف)`);
         hapticFeedback('success');
         applyCouponBtn.innerText = '✕ حذف';
         applyCouponBtn.className = 'bg-rose-600 hover:bg-rose-500 text-white text-xs font-semibold px-4 py-2 rounded-lg transition active:scale-95 shadow shrink-0';
         couponInput.disabled = true;
-        if (window.lastUserData) renderShopPlans(window.lastUserData);
+        if (window.lastUserData) {
+          renderShopPlans(window.lastUserData);
+          renderWonCoupons(window.lastUserData);
+        }
       } else {
         window.activeCoupon = null;
         showToast(`❌ ${res.message || 'کد تخفیف نامعتبر است.'}`);
@@ -114,20 +120,28 @@ function renderWonCoupons(data) {
 
   container.classList.remove('hidden');
 
-  list.innerHTML = coupons.map(c => `
-    <div class="won-coupon-card flex-1 min-w-[140px] flex items-center justify-between gap-2 p-2 rounded-xl bg-transparent border border-amber-500/40 transition shadow-none">
-      <div class="text-right">
-        <div class="flex items-center gap-1">
-          <span class="text-xs">🎟</span>
-          <span class="font-bold font-mono t-main text-xs">${escapeHtml(c.code)}</span>
+  const activeCode = (window.activeCoupon?.code || '').toUpperCase();
+  list.innerHTML = coupons.map(c => {
+    const isApplied = Boolean(activeCode && c.code && activeCode === String(c.code).toUpperCase());
+    const btnText = isApplied ? '✓ اعمال شد' : '⚡️ اعمال';
+    const btnClass = isApplied
+      ? 'won-coupon-apply-btn bg-emerald-600 text-white border border-emerald-500 font-bold px-2.5 py-1 rounded-lg text-[11px] transition active:scale-95 shrink-0 shadow-sm'
+      : 'won-coupon-apply-btn bg-transparent hover:bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-600/50 dark:border-amber-500/40 font-bold px-2.5 py-1 rounded-lg text-[11px] transition active:scale-95 shrink-0';
+    return `
+      <div class="won-coupon-card flex-1 min-w-[140px] flex items-center justify-between gap-2 p-2 rounded-xl bg-amber-500/5 border ${isApplied ? 'border-emerald-500/60 ring-1 ring-emerald-500/30' : 'border-amber-600/40 dark:border-amber-500/40'} transition shadow-none">
+        <div class="text-right">
+          <div class="flex items-center gap-1">
+            <span class="text-xs">🎟</span>
+            <span class="font-bold font-mono t-main text-xs">${escapeHtml(c.code)}</span>
+          </div>
+          <span class="text-[11px] t-success font-sans block mt-0.5"><span dir="ltr" class="font-mono font-bold inline-block">${toEnglishDigits(c.discount_percent || 10)}%</span> تخفیف</span>
         </div>
-        <span class="text-[11px] t-success font-sans block mt-0.5"><span dir="ltr" class="font-mono font-bold inline-block">${toEnglishDigits(c.discount_percent || 10)}%</span> تخفیف</span>
+        <button type="button" class="${btnClass}" data-code="${escapeHtml(c.code)}">
+          ${btnText}
+        </button>
       </div>
-      <button type="button" class="won-coupon-apply-btn bg-transparent hover:bg-amber-500/15 text-amber-400 border border-amber-500/40 font-bold px-2.5 py-1 rounded-lg text-[11px] transition active:scale-95 shrink-0" data-code="${escapeHtml(c.code)}">
-        ⚡️ اعمال
-      </button>
-    </div>
-  `).join('');
+    `;
+  }).join('');
 
   list.querySelectorAll('.won-coupon-apply-btn').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -576,7 +590,7 @@ function renderFilteredShopPlans() {
     const devLimitText = (p.hwid_limit && p.hwid_limit > 0) ? `${p.hwid_limit} کاربر` : 'کاربر نامحدود';
 
     const durationText = isExtraTraffic
-      ? '<span class="flex items-center gap-1">📅 <b class="text-emerald-400 font-bold">بدون تغییر زمان انقضا</b></span>'
+      ? '<span class="flex items-center gap-1">📅 <b class="text-emerald-700 dark:text-emerald-400 font-bold">بدون تغییر زمان انقضا</b></span>'
       : (isTimeOnly
           ? `<span class="flex items-center gap-1">📅 <b class="t-accent font-bold">${p.duration_days} روز اضافه</b></span>`
           : (Number(p.duration_days) > 0
@@ -617,7 +631,7 @@ function renderFilteredShopPlans() {
             ${(discountVal > 0 || hasLoyaltyDiscount) ? `
               <div class="flex items-center gap-1.5 mt-1 flex-wrap">
                 ${hasLoyaltyDiscount ? `<span dir="ltr" class="inline-flex items-center gap-1 text-[9.5px] font-bold px-1.5 py-0.5 rounded-md font-mono ${userTierClass}" title="تخفیف وفاداری"><span>${userTierIcon}</span><span>${loyaltyPctEnglish}% وفاداری</span></span>` : ''}
-                ${discountVal > 0 ? `<span class="inline-flex items-center gap-1 text-[9.5px] font-bold px-1.5 py-0.5 rounded-md bg-emerald-500/15 text-emerald-400 border border-emerald-500/30"><span>🏷</span><span>${window.activeCoupon?.code ? escapeHtml(window.activeCoupon.code) : 'کوپن'} (${window.activeCoupon?.discount_percent ? `${window.activeCoupon.discount_percent}%-` : 'تخفیف'})</span></span>` : ''}
+                ${discountVal > 0 ? `<span class="inline-flex items-center gap-1 text-[9.5px] font-bold px-1.5 py-0.5 rounded-md bg-emerald-500/15 text-emerald-400 border border-emerald-500/30"><span>🏷</span><span>${window.activeCoupon?.code ? escapeHtml(window.activeCoupon.code) : 'کوپن'} <span dir="ltr" class="font-mono">(-${toEnglishDigits(window.activeCoupon?.discount_percent || 0)}%)</span></span></span>` : ''}
               </div>
             ` : ''}
             <p class="text-[11px] leading-snug t-muted mt-1">${safeDesc}</p>
@@ -640,7 +654,7 @@ function renderFilteredShopPlans() {
         <div class="flex items-center justify-between mt-1 mb-2.5 px-1 text-[10px] t-muted">
           <span class="flex items-center gap-1">
             <span>🌍</span>
-            <span>لوکیشن‌ها:</span>
+            <span>کشورها:</span>
           </span>
           <span class="inline-flex items-center gap-1 text-xs tracking-wider" dir="ltr">${flagsList}</span>
         </div>

@@ -6,7 +6,7 @@ import secrets
 from datetime import datetime, timezone
 from typing import Any
 
-from sqlalchemy import func, select
+from sqlalchemy import func, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from bot.db.models import GiftCard, Service, User, Wallet
@@ -69,11 +69,20 @@ async def create_gift(
         cost_to_charge = final_cost
 
     # 1. Atomic Balance Check & Deduction
-    wallet_res = await session.execute(
-        select(Wallet).where(Wallet.telegram_id == sender_telegram_id).with_for_update()
+    row = await session.execute(
+        text(
+            "UPDATE wallets SET balance = balance - :cost "
+            "WHERE telegram_id = :tid AND balance >= :cost "
+            "RETURNING balance"
+        ),
+        {"cost": cost_to_charge, "tid": sender_telegram_id},
     )
-    wallet = wallet_res.scalar_one_or_none()
-    if not wallet or wallet.balance < cost_to_charge:
+    new_bal = row.scalar_one_or_none()
+    if new_bal is None:
+        chk_res = await session.execute(
+            select(Wallet).where(Wallet.telegram_id == sender_telegram_id)
+        )
+        wallet = chk_res.scalar_one_or_none()
         return {
             "ok": False,
             "error": "insufficient_balance",
@@ -81,9 +90,6 @@ async def create_gift(
             "current": wallet.balance if wallet else 0,
             "message": "موجودی کیف پول شما برای ارسال این هدیه کافی نیست.",
         }
-
-    # Deduct atomically
-    wallet.balance -= cost_to_charge
 
     # 2. Resolve recipient if direct
     receiver_tg_id: int | None = None

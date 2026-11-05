@@ -538,10 +538,10 @@ async def get_periodic_users_bandwidth(
     is_refresh: bool = False,
 ) -> dict[str, Any]:
     """Calculate daily, weekly, 30-day, and Jalali calendar monthly bandwidth for users."""
-    cache_key = "analytics:users_periodic_bandwidth_v5"
+    cache_key = "analytics:users_periodic_bandwidth_v6"
     if not is_refresh and cache:
         cached = await cache.get(cache_key)
-        if cached and isinstance(cached, dict) and "weekly" in cached and "daily" in cached:
+        if cached and isinstance(cached, dict) and "weekly" in cached and "daily" in cached and "nightly" in cached:
             return cached
 
     active_users = [
@@ -753,15 +753,16 @@ async def get_periodic_users_bandwidth(
             "gb_key": gb_key,
         }
 
-    has_today_traffic = any(u.get("daily_bytes", 0) > 0 for u in user_stats)
-    daily_label = "روزانه"
-    if not has_today_traffic:
-        daily_label = "روزانه (۲۴ ساعت گذشته)"
-        for u in user_stats:
-            u["daily_bytes"] = u.get("yesterday_bytes", 0)
-            u["daily_gb"] = u.get("yesterday_gb", 0.0)
+    if current_j:
+        yesterday_j = jdatetime.date.fromgregorian(date=(now_tehran - timedelta(days=1)).date())
+        today_label = f"روزانه ({current_j.strftime('%Y/%m/%d')} - تا الان)"
+        nightly_label = f"شبانه ({yesterday_j.strftime('%Y/%m/%d')} - ۲۳:۵۹)"
+    else:
+        today_label = "روزانه (امروز - تا الان)"
+        nightly_label = "شبانه (روز قبل - ۲۳:۵۹)"
 
-    daily_lb = _make_leaderboard(user_stats, "daily_bytes", "daily_gb", daily_label)
+    daily_lb = _make_leaderboard(user_stats, "daily_bytes", "daily_gb", today_label)
+    nightly_lb = _make_leaderboard(user_stats, "yesterday_bytes", "yesterday_gb", nightly_label)
     week_lb = _make_leaderboard(user_stats, "week_bytes", "week_gb", "7 روز اخیر")
     month_30d_lb = _make_leaderboard(user_stats, "month_30d_bytes", "month_30d_gb", "30 روز اخیر")
     curr_m_lb = _make_leaderboard(user_stats, "curr_j_bytes", "curr_j_gb", f"ماه {curr_m_name}", curr_m_name)
@@ -788,6 +789,7 @@ async def get_periodic_users_bandwidth(
 
     result = {
         "daily": daily_lb,
+        "nightly": nightly_lb,
         "weekly": week_lb,
         "monthly_30d": month_30d_lb,
         "calendar_months": {

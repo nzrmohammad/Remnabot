@@ -2,6 +2,7 @@
 from datetime import datetime, timezone
 
 from sqlalchemy import func, select, text
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from bot.db.models import Topup, Wallet
@@ -22,7 +23,14 @@ class WalletRepository:
         if wallet is None:
             wallet = Wallet(telegram_id=telegram_id, balance=0)
             self.session.add(wallet)
-            await self.session.flush()
+            try:
+                async with self.session.begin_nested():
+                    await self.session.flush()
+            except IntegrityError:
+                result = await self.session.execute(
+                    select(Wallet).where(Wallet.telegram_id == telegram_id)
+                )
+                wallet = result.scalar_one_or_none()
         return wallet
 
     async def get_balance(self, telegram_id: int) -> int:
@@ -124,11 +132,11 @@ class WalletRepository:
 
     async def pending_count(self, telegram_id: int) -> int:
         result = await self.session.execute(
-            select(Topup).where(
+            select(func.count(Topup.id)).where(
                 Topup.telegram_id == telegram_id, Topup.status == "pending"
             )
         )
-        return len(result.scalars().all())
+        return int(result.scalar_one() or 0)
 
     async def list_pending_topups(self) -> list[Topup]:
         result = await self.session.execute(

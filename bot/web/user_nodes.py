@@ -1,6 +1,8 @@
 from bot.web.user_common import db_session, require_user
 
 """TMA User Nodes, IP telemetry, Settings, and Avatar endpoints."""
+import ipaddress
+import hashlib
 import logging
 
 from aiohttp import web
@@ -113,6 +115,14 @@ async def get_user_nodes(request: web.Request) -> web.Response:
     return web.json_response({"ok": True, "nodes": cleaned_nodes})
 
 
+def _is_safe_public_ip(ip_str: str) -> bool:
+    try:
+        ip = ipaddress.ip_address(ip_str)
+        return not (ip.is_private or ip.is_loopback or ip.is_reserved or ip.is_link_local)
+    except ValueError:
+        return False
+
+
 async def get_user_ip_info(request: web.Request) -> web.Response:
     """Return the client's public IP detected by Nginx/proxy."""
     user, err = require_user(request)
@@ -122,7 +132,7 @@ async def get_user_ip_info(request: web.Request) -> web.Response:
     return web.json_response({
         "ok": True,
         "ip": client_ip,
-        "is_safe": not client_ip.startswith(("10.", "192.168.", "172.16.")),
+        "is_safe": _is_safe_public_ip(client_ip),
     })
 
 
@@ -261,7 +271,8 @@ async def get_user_avatar(request: web.Request) -> web.Response:
     }
 
     cache = request.app.get("cache")
-    cache_key = f"tma:avatar:{telegram_id}" if telegram_id else f"tma:avatar:url:{hash(fallback_url)}"
+    fallback_hash = hashlib.sha256(fallback_url.encode("utf-8")).hexdigest()[:32] if fallback_url else ""
+    cache_key = f"tma:avatar:{telegram_id}" if telegram_id else f"tma:avatar:url:{fallback_hash}"
     if cache:
         cached_bytes = await cache.get(cache_key)
         if cached_bytes == b"EMPTY":

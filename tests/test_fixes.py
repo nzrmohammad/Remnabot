@@ -3089,7 +3089,9 @@ async def test_periodic_users_bandwidth_daily_fallback():
     result = await get_periodic_users_bandwidth(mock_remnawave, None, panel_users, now_utc, is_refresh=True)
 
     daily = result["daily"]
-    assert daily["label"] == "روزانه (۲۴ ساعت گذشته)"
-    assert len(daily["top_users"]) == 1
-    assert daily["top_users"][0]["username"] == "top_user"
-    assert daily["top_users"][0]["used_gb"] == 10.0
+    assert "روزانه" in daily["label"]
+    nightly = result["nightly"]
+    assert "شبانه" in nightly["label"]
+    assert len(nightly["top_users"]) == 1
+    assert nightly["top_users"][0]["username"] == "top_user"
+    assert nightly["top_users"][0]["used_gb"] == 10.0

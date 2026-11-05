@@ -105,11 +105,9 @@ class CardAutoRepository:
             .order_by(CardAutoInvoice.id.desc())
             .limit(1)
         )
-        # For Postgres we can add with_for_update, fallback gracefully on sqlite
-        try:
+        bind = self.session.get_bind()
+        if not (bind and bind.dialect.name == "sqlite"):
             stmt = stmt.with_for_update()
-        except Exception:
-            pass
 
         res = await self.session.execute(stmt)
         invoice = res.scalar_one_or_none()

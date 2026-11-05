@@ -36,22 +36,75 @@ window.flipBluCard = function(el) {
   if (window.hapticFeedback) window.hapticFeedback('impact');
 };
 
+const BLUBANK_PALETTES = {
+  red: {
+    grad: 'linear-gradient(135deg, #b71c1c 0%, #d32f2f 50%, #f44336 100%)',
+    text: '#ffffff',
+    accent: '#fecaca',
+  },
+  blue: {
+    grad: 'linear-gradient(135deg, #0d47a1 0%, #1976d2 50%, #0288d1 100%)',
+    text: '#ffffff',
+    accent: '#bfdbfe',
+  },
+  green: {
+    grad: 'linear-gradient(135deg, #004d40 0%, #00796b 50%, #00bfa5 100%)',
+    text: '#ffffff',
+    accent: '#a7f3d0',
+  },
+  rose: {
+    grad: 'linear-gradient(135deg, #880e4f 0%, #c2185b 50%, #e91e63 100%)',
+    text: '#ffffff',
+    accent: '#fbcfe8',
+  },
+  yellow: {
+    grad: 'linear-gradient(135deg, #e65100 0%, #f57f17 50%, #fbc02d 100%)',
+    text: '#ffffff',
+    accent: '#fef08a',
+  },
+  black: {
+    grad: 'linear-gradient(135deg, #18181b 0%, #27272a 50%, #09090b 100%)',
+    text: '#ffffff',
+    accent: '#cbd5e1',
+  },
+};
+
 function applyBluBankCardTheme(color, bankTmpl) {
-  const grad = BLUBANK_GRADIENTS[color] || BLUBANK_GRADIENTS.rose;
+  const selectedKey = String(color || 'rose').toLowerCase();
+  const palette = BLUBANK_PALETTES[selectedKey] || BLUBANK_PALETTES.rose;
+  const grad = palette.grad;
+
   document.querySelectorAll('.blu-card-face').forEach(face => {
     face.style.background = grad;
+    face.style.color = palette.text;
   });
+
   const titleEl = document.getElementById('graphicBankTitle');
   if (titleEl) {
-    const tmpl = (bankTmpl || window.storeSettings?.card_template || 'blubank').toLowerCase();
-    if (tmpl === 'blubank' || tmpl === 'blu') {
-      titleEl.innerHTML = `
-        <span class="w-5 h-5 rounded-full bg-white/20 border border-white/40 flex items-center justify-center text-[11px] font-black leading-none lowercase font-mono">b</span>
-        <span class="font-extrabold tracking-normal">blubank</span>
-      `;
-    } else {
-      titleEl.innerText = tmpl.toUpperCase();
-    }
+    titleEl.innerText = 'SamanBank';
+    titleEl.style.color = palette.text;
+  }
+
+  const iconEl = document.getElementById('graphicBankIcon');
+  if (iconEl) {
+    iconEl.style.color = palette.text;
+    iconEl.style.borderColor = palette.accent;
+  }
+
+  const holderEl = document.getElementById('graphicCardHolderDisplay');
+  if (holderEl) {
+    holderEl.style.color = palette.text;
+  }
+
+  const numberEl = document.getElementById('graphicCardNumberDisplay');
+  if (numberEl) {
+    numberEl.style.color = palette.text;
+  }
+
+  const backTextEl = document.getElementById('graphicCardBackText');
+  if (backTextEl) {
+    backTextEl.innerText = 'Blu Bank, But Lovely';
+    backTextEl.style.color = palette.text;
   }
 }
 

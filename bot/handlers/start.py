@@ -49,8 +49,17 @@ async def cmd_start(
             if not has_invite:
                 from aiogram.utils.keyboard import InlineKeyboardBuilder
                 kb = InlineKeyboardBuilder()
-                st = get_settings()
-                support_url = getattr(st, "SUPPORT_LINK", "") or getattr(store_settings, "support_link", "")
+                raw_contact = (getattr(store_settings, "support_contact", "") or "").strip()
+                support_url = ""
+                if raw_contact and raw_contact not in ("—", "-"):
+                    if raw_contact.startswith(("http://", "https://")):
+                        support_url = raw_contact
+                    elif raw_contact.startswith("t.me/"):
+                        support_url = f"https://{raw_contact}"
+                    elif raw_contact.startswith("@"):
+                        support_url = f"https://t.me/{raw_contact[1:]}"
+                    else:
+                        support_url = f"https://t.me/{raw_contact}"
                 if support_url:
                     kb.button(text="🎧 ارتباط با پشتیبانی", url=support_url)
                 await message.answer(INVITE_ONLY_NOTICE, reply_markup=kb.as_markup() if support_url else None)

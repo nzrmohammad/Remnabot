@@ -17,7 +17,8 @@ if (typeof window !== 'undefined') {
 }
 
 // Toast notification utility
-function showToast(msg) {
+let _appToastTimer = null;
+function showToast(msg, duration = 3200) {
   let toast = document.getElementById('appToast');
   if (!toast) {
     toast = document.createElement('div');
@@ -28,13 +29,18 @@ function showToast(msg) {
     toast.dir = 'rtl';
     document.body.appendChild(toast);
   }
+  if (_appToastTimer) {
+    clearTimeout(_appToastTimer);
+    _appToastTimer = null;
+  }
   toast.textContent = String(msg || '');
   toast.classList.remove('opacity-0', '-translate-y-2');
   toast.classList.add('opacity-100', 'translate-y-0');
-  setTimeout(() => {
+  _appToastTimer = setTimeout(() => {
     toast.classList.remove('opacity-100', 'translate-y-0');
     toast.classList.add('opacity-0', '-translate-y-2');
-  }, 3000);
+    _appToastTimer = null;
+  }, duration);
 }
 
 // Global Banner Notification Utility (for session expiry, timeouts, system notices)
@@ -371,12 +377,12 @@ function formatPlanTitle(name, options = {}) {
   }
 
   if (!emojiStr) {
-    return `<span class="inline-block font-bold">${escapeHtml(name)}</span>`;
+    return `<span dir="ltr" class="inline-block font-bold select-all">${escapeHtml(name)}</span>`;
   }
   if (!cleanText) {
-    return `<span class="inline-block text-base">${emojiStr}</span>`;
+    return `<span dir="ltr" class="inline-block text-base">${emojiStr}</span>`;
   }
-  return `<span class="inline-flex items-center gap-1.5" dir="ltr"><span class="shrink-0 text-base">${emojiStr}</span><span class="font-bold">${escapeHtml(cleanText)}</span></span>`;
+  return `<span class="inline-flex items-center gap-1.5" dir="ltr"><span class="shrink-0 text-base">${emojiStr}</span><span class="font-bold select-all">${escapeHtml(cleanText)}</span></span>`;
 }
 
 function buildRefLink(botUsername, userId) {

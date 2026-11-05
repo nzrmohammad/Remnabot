@@ -92,6 +92,8 @@ def _is_admin_sms_message(message: Message) -> bool:
     raw_text = message.text.strip()
     if raw_text.startswith("/sms"):
         return True
+    if message.chat.type == "private":
+        return False
     bank_keywords = ("واریز", "انتقال", "مانده", "بانک", "بانك", "حساب", "شبا", "پایا", "ساتنا", "پل")
     return any(kw in raw_text for kw in bank_keywords) and any(c.isdigit() for c in raw_text)
 
@@ -133,7 +135,7 @@ async def handle_manual_bank_sms(
     bank_keywords = ("واریز", "انتقال", "مانده", "بانک", "بانك", "حساب", "شبا", "پایا", "ساتنا", "پل")
     is_bank_like = any(kw in raw_text for kw in bank_keywords) and any(c.isdigit() for c in raw_text)
 
-    if not (is_target_topic or is_sms_command or (message.chat.type == "private" and is_bank_like)):
+    if not (is_target_topic or is_sms_command):
         return
 
     if not raw_text:

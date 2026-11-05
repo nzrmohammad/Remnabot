@@ -701,18 +701,21 @@
                   <span>برترین مصرف‌کنندگان دوره</span>
                 </span>
               </div>
-              <!-- Period Switcher: Daily / 7-Day / 30-Day / Monthly (Full Width 4 Columns) -->
-              <div class="w-full grid grid-cols-4 gap-1 p-1 card-inset rounded-xl text-xs font-bold">
-                <button type="button" id="userLbTabDaily" onclick="window.switchUserLeaderboardPeriod('daily')" class="w-full py-2 rounded-lg font-medium transition text-slate-400 hover:text-white text-center text-xs">
+              <!-- Period Switcher: Daily / Nightly / 7-Day / 30-Day / Monthly (Full Width 5 Columns) -->
+              <div class="w-full grid grid-cols-5 gap-1 p-1 card-inset rounded-xl text-[11px] sm:text-xs font-bold">
+                <button type="button" id="userLbTabDaily" onclick="window.switchUserLeaderboardPeriod('daily')" class="w-full py-2 rounded-lg font-medium transition text-slate-400 hover:text-white text-center text-[10.5px] sm:text-xs">
                   روزانه
                 </button>
-                <button type="button" id="userLbTabWeekly" onclick="window.switchUserLeaderboardPeriod('weekly')" class="w-full py-2 rounded-lg font-bold transition bg-cyan-600 text-white shadow text-center text-xs">
-                  7 روز اخیر
+                <button type="button" id="userLbTabNightly" onclick="window.switchUserLeaderboardPeriod('nightly')" class="w-full py-2 rounded-lg font-medium transition text-slate-400 hover:text-white text-center text-[10.5px] sm:text-xs">
+                  شبانه
                 </button>
-                <button type="button" id="userLbTabMonthly30d" onclick="window.switchUserLeaderboardPeriod('monthly_30d')" class="w-full py-2 rounded-lg font-medium transition text-slate-400 hover:text-white text-center text-xs">
-                  30 روز اخیر
+                <button type="button" id="userLbTabWeekly" onclick="window.switchUserLeaderboardPeriod('weekly')" class="w-full py-2 rounded-lg font-bold transition bg-cyan-600 text-white shadow text-center text-[10.5px] sm:text-xs">
+                  ۷ روز
                 </button>
-                <button type="button" id="userLbTabMonthly" onclick="window.switchUserLeaderboardPeriod('monthly')" class="w-full py-2 rounded-lg font-medium transition text-slate-400 hover:text-white text-center text-xs">
+                <button type="button" id="userLbTabMonthly30d" onclick="window.switchUserLeaderboardPeriod('monthly_30d')" class="w-full py-2 rounded-lg font-medium transition text-slate-400 hover:text-white text-center text-[10.5px] sm:text-xs">
+                  ۳۰ روز
+                </button>
+                <button type="button" id="userLbTabMonthly" onclick="window.switchUserLeaderboardPeriod('monthly')" class="w-full py-2 rounded-lg font-medium transition text-slate-400 hover:text-white text-center text-[10.5px] sm:text-xs">
                   ماهانه
                 </button>
               </div>
@@ -1819,39 +1822,26 @@
                   <div class="blu-card-flipper">
                     <!-- FRONT FACE -->
                     <div class="blu-card-face blu-card-front p-3.5 sm:p-4 text-white flex flex-col justify-between shadow-2xl relative overflow-hidden" style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);">
-                      <!-- Card Header (RTL: Bank logo on right, Chip on left) -->
-                      <div class="flex items-center justify-between z-10" dir="rtl">
-                        <div id="graphicBankLogoContainer" class="flex items-center gap-1.5">
-                          <span id="graphicBankTitle" class="flex items-center gap-1.5 text-xs font-black tracking-tight select-none">
-                            <span class="w-5 h-5 rounded-full bg-white/20 border border-white/40 flex items-center justify-center text-[11px] font-black leading-none lowercase font-mono">b</span>
-                            <span class="font-extrabold tracking-normal">blubank</span>
+                      <!-- Card Header (LTR: SamanBank on left, Bank Logo on right) -->
+                      <div class="flex items-center justify-between z-10" dir="ltr">
+                        <div id="graphicBankTitleContainer" class="flex items-center gap-1.5">
+                          <span id="graphicBankTitle" class="text-xs sm:text-sm font-extrabold tracking-tight select-none">
+                            SamanBank
                           </span>
                         </div>
-                        <div class="flex items-center gap-2" dir="ltr">
-                          <div class="w-8 h-5.5 rounded-md bg-gradient-to-tr from-amber-300 via-yellow-200 to-amber-400 border border-amber-500/50 flex items-center justify-center shadow-inner opacity-90">
-                            <div class="w-4.5 h-3 border border-amber-600/40 rounded-sm grid grid-cols-2 gap-0.5 p-0.5">
-                              <div class="bg-amber-600/25 rounded-[1px]"></div>
-                              <div class="bg-amber-600/25 rounded-[1px]"></div>
-                            </div>
-                          </div>
-                          <span class="text-xs opacity-80">📶</span>
+                        <div id="graphicBankLogoContainer" class="flex items-center gap-1.5">
+                          <span id="graphicBankIcon" class="w-6 h-6 rounded-full bg-white/20 border border-white/40 flex items-center justify-center text-xs font-black leading-none font-mono shadow-sm" title="BluBank">b</span>
                         </div>
                       </div>
 
-                      <!-- Card Center: Number & Holder brought higher up & compact -->
-                      <div class="my-auto py-1 text-center space-y-1.5 z-10">
+                      <!-- Card Center: Holder Name & Number brought higher up & compact -->
+                      <div class="my-auto py-0.5 text-center space-y-1 z-10">
+                        <div class="text-center">
+                          <b id="graphicCardHolderDisplay" class="font-bold text-xs sm:text-sm drop-shadow truncate max-w-[260px] inline-block tracking-wide">مدیریت سامانه</b>
+                        </div>
                         <div dir="ltr">
                           <span id="graphicCardNumberDisplay" class="font-mono text-base sm:text-lg font-black tracking-widest drop-shadow select-all">---- ---- ---- ----</span>
                         </div>
-                        <div class="text-center">
-                          <b id="graphicCardHolderDisplay" class="font-bold text-xs sm:text-sm drop-shadow truncate max-w-[260px] inline-block text-white/95">مدیریت سامانه</b>
-                        </div>
-                      </div>
-
-                      <!-- Card Footer: subtle Shateb & Debit -->
-                      <div class="flex items-center justify-between text-[9px] opacity-75 font-mono pt-0.5 z-10" dir="ltr">
-                        <span>SHETAB</span>
-                        <span class="text-[8px] tracking-widest opacity-80">DEBIT CARD</span>
                       </div>
                     </div>
 
@@ -1859,9 +1849,9 @@
                     <div class="blu-card-face blu-card-back p-3.5 sm:p-4 text-white flex flex-col justify-between shadow-2xl relative overflow-hidden" style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);">
                       <!-- Black Magnetic Stripe -->
                       <div class="w-full h-7 bg-slate-950/90 -mx-4 mt-1 shadow-inner"></div>
-                      <div class="my-auto px-2 space-y-2 z-10">
-                        <p class="text-[10.5px] text-white/85 text-center leading-relaxed font-medium" dir="rtl">
-                          کارت عضو شبکه شتاب بانکی کشور. جهت واریز کارت‌به‌کارت معتبر است.
+                      <div class="my-auto px-2 z-10 text-center">
+                        <p id="graphicCardBackText" class="text-xs sm:text-sm font-bold tracking-wide font-sans select-none" dir="ltr">
+                          Blu Bank, But Lovely
                         </p>
                       </div>
                     </div>
@@ -3268,10 +3258,8 @@
     <!-- ======================================================== -->
     <div id="invoiceModal" onclick="if(event.target === this) window.closeInvoiceModal()" class="fixed inset-0 modal-backdrop z-[80] flex items-center justify-center p-3 sm:p-4 hidden animate-fadeIn overflow-y-auto">
       <div class="modal-card border border-cyan-500/40 rounded-3xl p-4 sm:p-5 w-full text-right space-y-3.5 shadow-2xl relative max-w-[390px] my-auto">
-        <button type="button" onclick="window.closeInvoiceModal()" class="modal-close-btn absolute top-3.5 left-3.5 z-10" title="بستن" aria-label="بستن فاکتور">✕</button>
-
         <!-- Official Header -->
-        <div class="border-b border-card-border pb-3 flex items-start justify-between gap-3 pt-6 sm:pt-4">
+        <div class="border-b border-card-border pb-3 flex items-start justify-between gap-3 pt-1">
           <div class="flex items-center gap-2.5">
             <img id="invSellerLogo" class="w-8 h-8 rounded-xl object-contain border border-card-border hidden" alt="Store Logo" />
             <span id="invSellerDefaultIcon" class="text-2xl">🧾</span>
@@ -3296,8 +3284,10 @@
           </div>
           <div class="card-inset p-2.5 rounded-xl space-y-1">
             <span class="font-bold t-muted block border-b border-card-border pb-1">👤 خریدار:</span>
-            <span id="invBuyerName" class="font-bold t-main block truncate text-xs select-all">کاربر گرامی</span>
-            <span id="invBuyerId" class="text-[10px] text-slate-400 font-mono block select-all" dir="ltr">--</span>
+            <div class="text-left font-mono" dir="ltr">
+              <span id="invBuyerName" class="font-bold t-main block truncate text-xs select-all text-left">کاربر گرامی</span>
+              <span id="invBuyerId" class="text-[10px] text-slate-400 font-mono block select-all text-left">--</span>
+            </div>
           </div>
         </div>
 
@@ -3340,11 +3330,14 @@
           </div>
         </div>
 
-        <!-- Action Button -->
-        <div class="pt-1">
+        <!-- Action Buttons -->
+        <div class="pt-1 space-y-2">
           <button id="sendInvoiceTelegramBtn" type="button" onclick="window.sendCurrentInvoiceTelegram()" class="btn btn-primary w-full py-2.5 rounded-xl text-xs font-bold shadow flex items-center justify-center gap-1.5 active:scale-[0.98]">
             <span>📨</span>
             <span>ارسال رسید رسمی به تلگرام من</span>
+          </button>
+          <button type="button" onclick="window.closeInvoiceModal()" class="btn btn-secondary w-full py-2 rounded-xl text-xs font-medium flex items-center justify-center gap-1 active:scale-[0.98]">
+            <span>بستن فاکتور</span>
           </button>
         </div>
       </div>

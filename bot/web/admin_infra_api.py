@@ -1,6 +1,7 @@
 """Admin Infrastructure Billing and Node Costs API handlers for Telegram Mini App."""
 import asyncio
 import logging
+import math
 import socket
 import time
 from datetime import datetime, timedelta, timezone
@@ -64,7 +65,7 @@ async def get_admin_infra_billing(request: web.Request) -> web.Response:
 
             nodes = await remnawave.get_nodes() or []
             total_infra_cost_toman = sum(c.monthly_cost_toman for c in all_costs)
-            total_infra_cost_eur = round(sum(c.monthly_cost_eur for c in all_costs), 2)
+            total_infra_cost_eur = round(math.fsum(float(c.monthly_cost_eur or 0.0) for c in all_costs), 2)
             net_profit_toman = monthly_revenue - total_infra_cost_toman
             profit_margin_percent = round((net_profit_toman / monthly_revenue * 100), 1) if monthly_revenue > 0 else None
 
