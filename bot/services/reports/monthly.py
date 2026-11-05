@@ -85,7 +85,9 @@ async def _monthly_text_for_user(
             node_totals[label] = node_totals.get(label, 0) + int(row.get("total") or 0)
             all_node_totals[label] = all_node_totals.get(label, 0) + int(row.get("total") or 0)
             data = row.get("data") or []
-            for offset, value in enumerate(data):
+            num_days = days_in_month + 1
+            padded = ([0] * (num_days - len(data)) + data) if len(data) < num_days else data[-num_days:]
+            for offset, value in enumerate(padded):
                 day = (month_start + timedelta(days=offset)).strftime("%Y-%m-%d")
                 value = int(value or 0)
                 if value <= 0:

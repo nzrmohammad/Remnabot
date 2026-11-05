@@ -10,9 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from bot.common import SEPARATOR, fmt
 from bot.db.models import AlertState, User
-from bot.db.repositories.order_repo import OrderRepository
 from bot.db.repositories.user_repo import UserRepository
-from bot.db.repositories.wallet_repo import WalletRepository
 from bot.services.formatting import country_flag, format_date, human_bytes, parse_iso
 from bot.services.remnawave import RemnawaveClient
 from bot.services.reports.common import (
@@ -41,21 +39,9 @@ async def _send_admin_nightly_summary(
     today_start_utc = today_start.astimezone(timezone.utc)
 
     # 1. Orders & Topups financial metrics today (SSOT, no double counting)
-    from bot.services.reports.common import get_financial_metrics_today
+    from bot.services.reports.common import format_financial_summary, get_financial_metrics_today
     fin = await get_financial_metrics_today(session, today_start_utc)
-    orders_count = fin["orders_count"]
-    revenue_today = fin["orders_revenue"]
-    topup_count = fin["topups_count"]
-    topup_amount = fin["topups_amount"]
-
-    if orders_count > 0 and topup_count > 0:
-        payments_str = f"{orders_count} خرید ({fmt(revenue_today)} ت) | {topup_count} واریز ({fmt(topup_amount)} ت)"
-    elif orders_count > 0:
-        payments_str = f"{orders_count} خرید ({fmt(revenue_today)} تومان)"
-    elif topup_count > 0:
-        payments_str = f"{topup_count} واریز نقدی ({fmt(topup_amount)} تومان)"
-    else:
-        payments_str = "۰"
+    payments_str = format_financial_summary(fin, fmt)
 
     # 3. User growth (both bot users & panel accounts)
     user_repo = UserRepository(session)
@@ -83,16 +69,8 @@ async def _send_admin_nightly_summary(
 
     # 6. Active users today and their usage
     today_str = now.strftime("%Y-%m-%d")
-    active_traffic_users = [
-        u
-        for u in panel_users
-        if int(
-            u.get("usedTrafficBytes")
-            or (u.get("userTraffic") or {}).get("usedTrafficBytes")
-            or 0
-        )
-        > 0
-    ]
+    from bot.common.helpers import get_used_bytes
+    active_traffic_users = [u for u in panel_users if get_used_bytes(u) > 0]
 
     sem = asyncio.Semaphore(10)
 
@@ -281,31 +259,17 @@ async def _send_admin_weekly_summary(
     total_panel_users = len(panel_users)
     active_panel_users = sum(1 for u in panel_users if str(u.get("status", "")).upper() == "ACTIVE")
 
-    # Orders & Wallet topups this week
-    order_repo = OrderRepository(session)
-    orders_count = await order_repo.count(since=week_start_utc)
-    revenue_week = await order_repo.total_revenue(since=week_start_utc)
-
-    wallet_repo = WalletRepository(session)
-    topup_count, topup_amount = await wallet_repo.topup_stats(since=week_start_utc)
-
-    weekly_payments = orders_count + topup_count
-    weekly_amount = revenue_week + topup_amount
-    weekly_payments_str = f"{weekly_payments} ({fmt(weekly_amount)} تومان)" if weekly_payments > 0 else "0"
+    # Orders & Wallet topups this week (SSOT, no double-counting)
+    from bot.services.reports.common import format_financial_summary, get_financial_metrics
+    fin_week = await get_financial_metrics(session, week_start_utc)
+    weekly_payments_str = format_financial_summary(fin_week, fmt)
 
     user_repo = UserRepository(session)
+    total_bot_users = await user_repo.count()
     new_users_week = await user_repo.count(User.created_at >= week_start_utc)
 
-    active_traffic_users = [
-        u
-        for u in panel_users
-        if int(
-            u.get("usedTrafficBytes")
-            or (u.get("userTraffic") or {}).get("usedTrafficBytes")
-            or 0
-        )
-        > 0
-    ]
+    from bot.common.helpers import get_used_bytes
+    active_traffic_users = [u for u in panel_users if get_used_bytes(u) > 0]
 
     sem = asyncio.Semaphore(10)
 
@@ -372,9 +336,8 @@ async def _send_admin_weekly_summary(
         f"👑 <b>گزارش جامع هفتگی پنل — {date_str}</b>",
         SEPARATOR,
         "⚙️ <b>خلاصه وضعیت هفته</b>",
-        f"👤 تعداد کل اکانت‌ها : {total_panel_users}",
-        f"✅ اکانت‌های فعال : {active_panel_users}",
-        f"➕ کاربران جدید این هفته : {new_users_week}",
+        f"👥 اعضای ربات : {total_bot_users} نفر (+{new_users_week} جدید)",
+        f"🌐 اشتراک‌های پنل : {total_panel_users} ({active_panel_users} فعال)",
         f"💳 پرداخت‌های این هفته : {weekly_payments_str}",
         SEPARATOR,
         "⚡️ <b>مصرف روزانه کل پنل در ۷ روز اخیر:</b>",
@@ -450,29 +413,15 @@ async def _send_admin_monthly_summary(
     days_count = (now.date() - month_start.date()).days + 1
 
     panel_users = await remnawave.get_all_panel_users() or []
-    active_traffic_users = [
-        u
-        for u in panel_users
-        if int(
-            u.get("usedTrafficBytes")
-            or (u.get("userTraffic") or {}).get("usedTrafficBytes")
-            or 0
-        )
-        > 0
-    ]
+    from bot.common.helpers import get_used_bytes
+    active_traffic_users = [u for u in panel_users if get_used_bytes(u) > 0]
 
-    order_repo = OrderRepository(session)
-    orders_count = await order_repo.count(since=month_start_utc)
-    revenue_month = await order_repo.total_revenue(since=month_start_utc)
-
-    wallet_repo = WalletRepository(session)
-    topup_count, topup_amount = await wallet_repo.topup_stats(since=month_start_utc)
-
-    monthly_payments = orders_count + topup_count
-    monthly_amount = revenue_month + topup_amount
-    monthly_payments_str = f"{monthly_payments} ({fmt(monthly_amount)} تومان)" if monthly_payments > 0 else "0"
+    from bot.services.reports.common import format_financial_summary, get_financial_metrics
+    fin_month = await get_financial_metrics(session, month_start_utc)
+    monthly_payments_str = format_financial_summary(fin_month, fmt)
 
     user_repo = UserRepository(session)
+    total_bot_users = await user_repo.count()
     new_users_month = await user_repo.count(User.created_at >= month_start_utc)
 
     total_panel_users = len(panel_users)
@@ -512,12 +461,12 @@ async def _send_admin_monthly_summary(
             for row in stats:
                 label = _node_label(row)
                 data = row.get("data") or []
-                if d_idx < len(data):
-                    val = int(data[d_idx] or 0)
-                    if val > 0:
-                        day_bytes += val
-                        day_nodes[d_idx][label] = day_nodes[d_idx].get(label, 0) + val
-                        monthly_nodes[label] = monthly_nodes.get(label, 0) + val
+                padded = ([0] * (days_count - len(data)) + data) if len(data) < days_count else data[-days_count:]
+                val = int(padded[d_idx] or 0)
+                if val > 0:
+                    day_bytes += val
+                    day_nodes[d_idx][label] = day_nodes[d_idx].get(label, 0) + val
+                    monthly_nodes[label] = monthly_nodes.get(label, 0) + val
             user_total += day_bytes
             day_totals[d_idx] += day_bytes
         if user_total > 0:
@@ -530,9 +479,8 @@ async def _send_admin_monthly_summary(
         f"👑 <b>گزارش جامع ماهانه پنل — {month_name_fa}</b>",
         SEPARATOR,
         "⚙️ <b>خلاصه وضعیت ماه</b>",
-        f"👤 تعداد کل اکانت‌ها : {total_panel_users}",
-        f"✅ اکانت‌های فعال : {active_panel_users}",
-        f"➕ کاربران جدید این ماه : {new_users_month}",
+        f"👥 اعضای ربات : {total_bot_users} نفر (+{new_users_month} جدید)",
+        f"🌐 اشتراک‌های پنل : {total_panel_users} ({active_panel_users} فعال)",
         f"💳 پرداخت‌های این ماه : {monthly_payments_str}",
         SEPARATOR,
         f"⚡️ <b>مجموع مصرف کل ماه {month_name_fa} : {human_bytes(month_total)}</b>",

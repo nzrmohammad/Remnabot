@@ -57,7 +57,7 @@ from bot.web.user_common import db_session, require_user
 logger = logging.getLogger(__name__)
 
 
-from bot.web.admin_overview_charts import get_periodic_users_bandwidth
+from bot.web.admin_overview_charts import USERS_PERIODIC_BANDWIDTH_CACHE_KEY, get_periodic_users_bandwidth
 from bot.web.user_subscription_detail import (
     build_active_subscription as _build_active_subscription,
 )
@@ -623,8 +623,8 @@ async def get_user_me(request: web.Request) -> web.Response:
         user_leaderboard = {}
         now_utc = datetime.now(timezone.utc)
         try:
-            cached_bw = await cache.get("analytics:users_periodic_bandwidth_v5")
-            if cached_bw and isinstance(cached_bw, dict) and "weekly" in cached_bw and "daily" in cached_bw:
+            cached_bw = await cache.get(USERS_PERIODIC_BANDWIDTH_CACHE_KEY)
+            if cached_bw and isinstance(cached_bw, dict) and "weekly" in cached_bw and "daily" in cached_bw and "nightly" in cached_bw:
                 periodic_bw = cached_bw
             else:
                 cached_all_panel = await cache.get("tma:all_panel_users")

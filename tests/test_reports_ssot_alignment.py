@@ -106,3 +106,64 @@ async def test_user_bandwidth_series_aligns_short_data():
     # 100 to index 4 (2 days ago)
     assert daily_bytes_sum[4] == 100
     assert total_bytes == 300
+
+
+def test_format_financial_summary_ssot():
+    """Verify format_financial_summary formats sales and topups cleanly."""
+    from bot.services.reports.common import format_financial_summary
+
+    # Both
+    fin1 = {"orders_count": 2, "orders_revenue": 100000, "topups_count": 3, "topups_amount": 150000}
+    res1 = format_financial_summary(fin1)
+    assert "2 خرید (100,000 ت)" in res1
+    assert "3 واریز (150,000 ت)" in res1
+
+    # Purchases only
+    fin2 = {"orders_count": 1, "orders_revenue": 50000, "topups_count": 0, "topups_amount": 0}
+    res2 = format_financial_summary(fin2)
+    assert res2 == "1 خرید (50,000 تومان)"
+
+    # Topups only
+    fin3 = {"orders_count": 0, "orders_revenue": 0, "topups_count": 4, "topups_amount": 200000}
+    res3 = format_financial_summary(fin3)
+    assert res3 == "4 واریز نقدی (200,000 تومان)"
+
+    # Empty
+    fin4 = {"orders_count": 0, "orders_revenue": 0, "topups_count": 0, "topups_amount": 0}
+    res4 = format_financial_summary(fin4)
+    assert res4 == "۰"
+
+
+def test_get_used_bytes_resilience():
+    """Verify get_used_bytes safely handles all panel payload formats."""
+    from bot.common.helpers import get_used_bytes
+
+    # 1. Nested format
+    u1 = {"userTraffic": {"usedTrafficBytes": 1048576}}
+    assert get_used_bytes(u1) == 1048576
+
+    # 2. Flat format
+    u2 = {"usedTrafficBytes": 2097152}
+    assert get_used_bytes(u2) == 2097152
+
+    # 3. Nested is 0 but flat has value
+    u3 = {"userTraffic": {"usedTrafficBytes": 0}, "usedTrafficBytes": 3145728}
+    assert get_used_bytes(u3) == 3145728
+
+    # 4. String values
+    u4 = {"usedTrafficBytes": "4194304"}
+    assert get_used_bytes(u4) == 4194304
+
+    # 5. Invalid / None
+    assert get_used_bytes(None) == 0
+    assert get_used_bytes({}) == 0
+    assert get_used_bytes({"usedTrafficBytes": "invalid"}) == 0
+
+
+def test_periodic_bandwidth_cache_key_ssot():
+    """Verify admin charts and user profile use identical periodic bandwidth cache key."""
+    from bot.web.admin_overview_charts import USERS_PERIODIC_BANDWIDTH_CACHE_KEY
+    from bot.web.user_profile import USERS_PERIODIC_BANDWIDTH_CACHE_KEY as USER_KEY
+
+    assert USERS_PERIODIC_BANDWIDTH_CACHE_KEY == "analytics:users_periodic_bandwidth_v6"
+    assert USERS_PERIODIC_BANDWIDTH_CACHE_KEY == USER_KEY

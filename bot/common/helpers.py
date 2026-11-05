@@ -17,11 +17,15 @@ def parse_int(text: str) -> int | None:
 
 
 
-def get_used_bytes(u: dict) -> int:
+def get_used_bytes(u: dict | None) -> int:
     """Safely extract used traffic bytes from a panel user payload."""
+    if not isinstance(u, dict):
+        return 0
     if isinstance(u.get("userTraffic"), dict):
         try:
-            return int(u["userTraffic"].get("usedTrafficBytes") or 0)
+            val = int(u["userTraffic"].get("usedTrafficBytes") or 0)
+            if val > 0:
+                return val
         except (ValueError, TypeError):
             pass
     try:

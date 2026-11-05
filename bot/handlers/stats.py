@@ -1,3 +1,5 @@
+from bot.common.helpers import get_used_bytes
+
 """Quick Stats section.
 
 Fetches the user's account(s) from the Remnawave panel by Telegram ID and
@@ -143,11 +145,9 @@ def _account_block(
     status_text = t(lang, STATUS_KEYS.get(status, "status_active"))
 
     limit = int(account.get("trafficLimitBytes") or 0)
-    # Newer Remnawave versions nest usage under `userTraffic`; older ones
-    # expose `usedTrafficBytes` at the top level.
-    traffic = account.get("userTraffic") or {}
-    used = int(traffic.get("usedTrafficBytes") or account.get("usedTrafficBytes") or 0)
+    used = get_used_bytes(account)
 
+    traffic = account.get("userTraffic") or {}
     account_label = t(lang, "stats_account")
     if count > 1:
         account_label = f"{account_label} ({index}/{count})"
@@ -286,8 +286,7 @@ async def _render_stats_page(
     sparkline: tuple[str, int] | None = None
     account_id = account.get("id")
     limit = int(account.get("trafficLimitBytes") or 0)
-    traffic = account.get("userTraffic") or {}
-    used = int(traffic.get("usedTrafficBytes") or account.get("usedTrafficBytes") or 0)
+    used = get_used_bytes(account)
     remaining = max(0, limit - used) if limit > 0 else 0
 
     if account_id:
@@ -309,7 +308,8 @@ async def _render_stats_page(
                 daily_totals = [0] * 7
                 for r in series:
                     data = r.get("data") or []
-                    for i, val in enumerate(data[:7]):
+                    last_7 = data[-7:] if len(data) >= 7 else ([0] * (7 - len(data)) + data)
+                    for i, val in enumerate(last_7):
                         daily_totals[i] += int(val or 0)
                 total_7d = sum(daily_totals)
                 if total_7d > 0:

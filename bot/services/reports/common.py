@@ -82,8 +82,8 @@ def _breakdown_lines(rows: list[dict], value_key: int | None = None) -> list[str
     return lines
 
 
-async def get_financial_metrics_today(session: Any, start_of_day_utc: datetime) -> dict[str, int]:
-    """Calculate centralized financial metrics for today (orders vs topups) without double counting."""
+async def get_financial_metrics(session: Any, since_utc: datetime) -> dict[str, int]:
+    """Calculate centralized financial metrics (orders vs topups) since a given UTC datetime without double counting."""
     from bot.db.models import Order, Topup
     from sqlalchemy import func, select
 
@@ -93,7 +93,7 @@ async def get_financial_metrics_today(session: Any, start_of_day_utc: datetime) 
             func.count(Order.id),
             func.coalesce(func.sum(Order.amount), 0),
         ).where(
-            Order.created_at >= start_of_day_utc,
+            Order.created_at >= since_utc,
             Order.status == "paid",
         )
     )
@@ -107,7 +107,7 @@ async def get_financial_metrics_today(session: Any, start_of_day_utc: datetime) 
             func.count(Topup.id),
             func.coalesce(func.sum(Topup.amount), 0),
         ).where(
-            Topup.decided_at >= start_of_day_utc,
+            Topup.decided_at >= since_utc,
             Topup.status == "approved",
         )
     )
@@ -121,3 +121,28 @@ async def get_financial_metrics_today(session: Any, start_of_day_utc: datetime) 
         "topups_count": topups_count,
         "topups_amount": topups_amount,
     }
+
+
+async def get_financial_metrics_today(session: Any, start_of_day_utc: datetime) -> dict[str, int]:
+    """Calculate centralized financial metrics for today (orders vs topups) without double counting."""
+    return await get_financial_metrics(session, start_of_day_utc)
+
+
+def format_financial_summary(fin: dict[str, int], fmt_fn=None) -> str:
+    """Format orders and topups financial summary string consistently."""
+    if fmt_fn is None:
+        def fmt_fn(v: int) -> str:
+            return f"{v:,}"
+
+    orders_count = fin.get("orders_count", 0)
+    orders_revenue = fin.get("orders_revenue", 0)
+    topups_count = fin.get("topups_count", 0)
+    topups_amount = fin.get("topups_amount", 0)
+
+    if orders_count > 0 and topups_count > 0:
+        return f"{orders_count} خرید ({fmt_fn(orders_revenue)} ت) | {topups_count} واریز ({fmt_fn(topups_amount)} ت)"
+    elif orders_count > 0:
+        return f"{orders_count} خرید ({fmt_fn(orders_revenue)} تومان)"
+    elif topups_count > 0:
+        return f"{topups_count} واریز نقدی ({fmt_fn(topups_amount)} تومان)"
+    return "۰"
