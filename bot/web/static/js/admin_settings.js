@@ -918,12 +918,12 @@ openUserChat(telegram_id, name, tag, topup_id) {
         const timeDisplay = formatChatTimestamp(m);
         return `
           <div class="flex ${isAdmin ? 'justify-start' : 'justify-end'}">
-            <div class="max-w-[85%] rounded-2xl p-2.5 space-y-1 shadow-sm ${isAdmin ? 'bg-blue-600/15 dark:bg-blue-600/25 border border-blue-400/40 dark:border-blue-500/30 text-blue-950 dark:text-blue-100 rounded-tr-sm' : 'bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700/60 text-slate-900 dark:text-slate-200 rounded-tl-sm shadow-sm'}">
-              <div class="flex items-center justify-between gap-3 text-[10px] ${isAdmin ? 'text-blue-700 dark:text-blue-300 font-bold' : 't-muted font-bold'}">
+            <div class="max-w-[85%] rounded-2xl p-2.5 space-y-1 shadow-sm ${isAdmin ? 'chat-bubble-admin rounded-tr-sm' : 'chat-bubble-user rounded-tl-sm'}">
+              <div class="flex items-center justify-between gap-3 text-[10px] ${isAdmin ? 'text-blue-400 dark:text-blue-300 font-bold' : 't-muted font-bold'}">
                 <span>${isAdmin ? '🛡️ پشتیبانی' : '👤 کاربر'}</span>
                 <span class="font-mono ${isAdmin ? 't-info' : 't-muted'}" dir="ltr">${timeDisplay}</span>
               </div>
-              <p class="text-xs leading-relaxed break-words whitespace-pre-wrap text-slate-900 dark:text-slate-100 font-medium dark:font-normal">${escapeHtml(m.text)}</p>
+              <p class="text-xs leading-relaxed break-words whitespace-pre-wrap t-main font-medium">${escapeHtml(m.text)}</p>
             </div>
           </div>
         `;

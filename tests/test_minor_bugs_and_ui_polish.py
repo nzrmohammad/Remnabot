@@ -232,3 +232,32 @@ async def test_support_link_resolution_in_start_invite_only(memory_db):
         assert len(inline_kb) == 1
         btn = inline_kb[0][0]
         assert btn.url == "https://t.me/RemnaSupport"
+
+
+def test_frontend_polish_and_reports_5_tabs():
+    """Verify reports 5 tabs, card text, support bubbles, and coupon formatting."""
+    from pathlib import Path
+
+    app_html = Path("bot/web/templates/app.html").read_text(encoding="utf-8")
+    assert "id=\"repSubDaily\"" in app_html
+    assert "id=\"repSubNightly\"" in app_html
+    assert "id=\"repSubWeekly\"" in app_html
+    assert "id=\"repSubMonthly\"" in app_html
+    assert "id=\"repSubAnalytics\"" in app_html
+    assert "id=\"viewRepDaily\"" in app_html
+    assert "id=\"viewRepNightly\"" in app_html
+    assert "Blu, But Lovely" in app_html
+    assert "Blu Bank, But Lovely" not in app_html
+
+    wallet_js = Path("bot/web/static/js/wallet.js").read_text(encoding="utf-8")
+    assert "Blu, But Lovely" in wallet_js
+    assert "Blu Bank, But Lovely" not in wallet_js
+
+    comp_css = Path("bot/web/static/css/components.css").read_text(encoding="utf-8")
+    assert ".chat-bubble-user" in comp_css
+    assert ".chat-bubble-admin" in comp_css
+    assert "html.theme-light #cardAutoCardNumber" in comp_css
+
+    shop_js = Path("bot/web/static/js/shop.js").read_text(encoding="utf-8")
+    assert "(${discMsg} تخفیف)" in shop_js
+    assert "dir=\"ltr\"" in shop_js

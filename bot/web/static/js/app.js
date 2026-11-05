@@ -229,22 +229,24 @@ window.setupTabNavigation = setupTabNavigation;
 
 // 3. Sub-tabs in Reports Hub
 function setupReportsSubtabs() {
+  const repSubDaily = $('repSubDaily');
   const repSubNightly = $('repSubNightly');
   const repSubWeekly = $('repSubWeekly');
   const repSubMonthly = $('repSubMonthly');
   const repSubAnalytics = $('repSubAnalytics');
+  const viewRepDaily = $('viewRepDaily');
   const viewRepNightly = $('viewRepNightly');
   const viewRepWeekly = $('viewRepWeekly');
   const viewRepMonthly = $('viewRepMonthly');
   const viewRepAnalytics = $('viewRepAnalytics');
 
   function setRepSub(activeBtn, activeView) {
-    [repSubNightly, repSubWeekly, repSubMonthly, repSubAnalytics].forEach(b => {
+    [repSubDaily, repSubNightly, repSubWeekly, repSubMonthly, repSubAnalytics].forEach(b => {
       if (b) b.className = 'flex-1 py-1.5 rounded-lg font-bold text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition';
     });
     if (activeBtn) activeBtn.className = 'flex-1 py-1.5 rounded-lg font-bold bg-blue-600 text-white shadow-sm transition';
 
-    [viewRepNightly, viewRepWeekly, viewRepMonthly, viewRepAnalytics].forEach(v => v?.classList.add('hidden'));
+    [viewRepDaily, viewRepNightly, viewRepWeekly, viewRepMonthly, viewRepAnalytics].forEach(v => v?.classList.add('hidden'));
     activeView?.classList.remove('hidden');
 
     if (activeView === viewRepWeekly || activeView === viewRepMonthly || activeView === viewRepAnalytics) {
@@ -252,6 +254,7 @@ function setupReportsSubtabs() {
     }
   }
 
+  repSubDaily?.addEventListener('click', () => setRepSub(repSubDaily, viewRepDaily));
   repSubNightly?.addEventListener('click', () => setRepSub(repSubNightly, viewRepNightly));
   repSubWeekly?.addEventListener('click', () => setRepSub(repSubWeekly, viewRepWeekly));
   repSubMonthly?.addEventListener('click', () => {
@@ -1996,18 +1999,18 @@ function setupSupportChat() {
     if (isUser) {
       bubble.className = 'self-start ml-auto mr-0 max-w-[85%] animate-fadeIn';
       bubble.innerHTML = `
-        <div class="chat-user-bubble border border-blue-500/40 dark:border-blue-400/30 bg-blue-500/20 dark:bg-blue-950/85 rounded-2xl rounded-tr-none p-2.5 text-blue-950 dark:text-blue-50 leading-relaxed shadow-sm text-right">
+        <div class="chat-user-bubble chat-bubble-user rounded-2xl rounded-tr-none p-2.5 leading-relaxed shadow-sm text-right">
           ${safeText}
-          <span class="text-[10px] text-blue-700/80 dark:text-blue-300 block text-left mt-1 font-mono" dir="ltr">${timeStr}</span>
+          <span class="text-[10px] text-blue-400 dark:text-blue-300 block text-left mt-1 font-mono" dir="ltr">${timeStr}</span>
         </div>
       `;
     } else {
       bubble.className = 'self-end mr-auto ml-0 max-w-[85%] flex items-start gap-2 animate-fadeIn';
       bubble.innerHTML = `
         <div class="w-6 h-6 rounded-full bg-emerald-600 flex items-center justify-center text-[10px] shrink-0 text-white mt-0.5 shadow-sm">🎧</div>
-        <div class="chat-admin-bubble border border-slate-300 dark:border-emerald-500/40 bg-slate-100 dark:bg-slate-800/95 rounded-2xl rounded-tl-none p-2.5 text-slate-900 dark:text-slate-100 leading-relaxed shadow-md text-right">
+        <div class="chat-admin-bubble chat-bubble-admin rounded-2xl rounded-tl-none p-2.5 leading-relaxed shadow-md text-right">
           ${safeText}
-          <span class="text-[10px] text-slate-500 dark:text-slate-400 block text-left mt-1 font-mono" dir="ltr">${timeStr}</span>
+          <span class="text-[10px] t-muted block text-left mt-1 font-mono" dir="ltr">${timeStr}</span>
         </div>
       `;
     }
@@ -3332,6 +3335,10 @@ function hydrateUserInterface(data) {
     }
 
     // Reports Hub
+    if (data.today_jalali) {
+      const repDailyDateEl = $('repDailyDate');
+      if (repDailyDateEl) repDailyDateEl.innerText = `${toEnglishDigits(data.today_jalali)} - ۲۳:۵۹`;
+    }
     if (data.yesterday_jalali) {
       const repDateEl = $('repNightlyDate');
       if (repDateEl) repDateEl.innerText = `${toEnglishDigits(data.yesterday_jalali)} - 23:59`;
@@ -3348,6 +3355,19 @@ function hydrateUserInterface(data) {
       if (monthlyCanvas) monthlyCanvas.classList.remove('hidden');
       if (monthlyEmpty) monthlyEmpty.classList.add('hidden');
 
+      // Daily report card
+      const repDailyTotal = $('repDailyTotal');
+      if (repDailyTotal) repDailyTotal.innerText = fmtTraffic(sub.traffic_total_gb, { html: false });
+      const repDailyUsed = $('repDailyUsed');
+      if (repDailyUsed) repDailyUsed.innerText = fmtTraffic(sub.traffic_used_gb, { html: false });
+      const repDailyRemain = $('repDailyRemain');
+      if (repDailyRemain) repDailyRemain.innerText = fmtTraffic(sub.traffic_remaining_gb, { html: false });
+      const repDailyToday = $('repDailyToday');
+      if (repDailyToday) repDailyToday.innerText = fmtTraffic(sub.today_used_gb ?? '0.00', { html: false });
+      const repDailyExpire = $('repDailyExpire');
+      if (repDailyExpire) repDailyExpire.innerText = `${toEnglishDigits(sub.days_left ?? 0)} روز (${toEnglishDigits(sub.expire_jalali || 'نامحدود')})`;
+
+      // Nightly report card
       const repTotal = $('repNightlyTotal');
       if (repTotal) repTotal.innerText = fmtTraffic(sub.traffic_total_gb, { html: false });
       const repUsed = $('repNightlyUsed');
@@ -3360,6 +3380,7 @@ function hydrateUserInterface(data) {
       if (repExpire) repExpire.innerText = `${toEnglishDigits(sub.days_left ?? 0)} روز (${toEnglishDigits(sub.expire_jalali || 'نامحدود')})`;
 
       if (typeof renderNodeBreakdown === 'function') {
+        renderNodeBreakdown('repDailyNodesContainer', sub.today_breakdown || [], 'امروز مصرفی روی سرورها ثبت نشده است.');
         renderNodeBreakdown('repNightlyNodesContainer', sub.yesterday_breakdown || sub.today_breakdown || [], 'دیشب مصرفی روی سرورها ثبت نشده است.');
         renderNodeBreakdown('repWeeklyNodesContainer', sub.week_breakdown || [], 'مصرفی در 7 روز گذشته ثبت نشده است.');
       }
@@ -3693,32 +3714,32 @@ function renderUserLeaderboard(leaderboardData, period = currentUserLbPeriod) {
 
     if (isPeriodEmpty) {
       if (noticeIconEl) noticeIconEl.innerText = '⏳';
-      noticeTextEl.innerHTML = `در دوره (${periodLabel}) هنوز داده‌ای از مصرف کاربران ثبت نشده است.`;
+      noticeTextEl.innerHTML = `در این بازه هنوز داده‌ای از مصرف کاربران ثبت نشده است.`;
       if (noticeEl) {
         noticeEl.className = 'p-2.5 rounded-xl text-xs flex items-start gap-2 bg-slate-500/10 border border-slate-700/40 t-muted';
       }
     } else if (inTop20 && myRank && myUsedGb > 0) {
       if (noticeIconEl) noticeIconEl.innerText = '🎖️';
-      noticeTextEl.innerHTML = `تبریک! شما با مصرف ${myTrafficHtml} در رتبه <b class="font-mono font-bold">${myRank}</b> از <b class="font-mono">20</b> کاربر برتر دوره (${periodLabel}) قرار دارید.`;
+      noticeTextEl.innerHTML = `تبریک! شما با مصرف ${myTrafficHtml} در رتبه <b class="font-mono font-bold">${myRank}</b> از <b class="font-mono">20</b> کاربر برتر قرار دارید.`;
       if (noticeEl) {
         noticeEl.className = 'p-2.5 rounded-xl text-xs flex items-start gap-2 bg-emerald-500/10 border border-emerald-500/30 text-emerald-800 dark:text-emerald-300';
       }
     } else if (myRank && myRank > 20 && myUsedGb > 0) {
       if (noticeIconEl) noticeIconEl.innerText = '📊';
       const diffTrafficHtml = fmtTraffic(diffGb, { html: true, persianDigits: false });
-      noticeTextEl.innerHTML = `شما با مصرف ${myTrafficHtml} در رتبه <b class="font-mono font-bold">${myRank}</b> دوره (${periodLabel}) قرار دارید. برای ورود به <b class="font-mono">20</b> کاربر برتر، به ${diffTrafficHtml} مصرف بیشتر نیاز دارید.`;
+      noticeTextEl.innerHTML = `شما با مصرف ${myTrafficHtml} در رتبه <b class="font-mono font-bold">${myRank}</b> قرار دارید. برای ورود به <b class="font-mono">20</b> کاربر برتر، به ${diffTrafficHtml} مصرف بیشتر نیاز دارید.`;
       if (noticeEl) {
         noticeEl.className = 'p-2.5 rounded-xl text-xs flex items-start gap-2 bg-slate-500/10 border border-slate-700/40 t-main';
       }
     } else if (myUsedGb > 0) {
       if (noticeIconEl) noticeIconEl.innerText = '📈';
-      noticeTextEl.innerHTML = `مصرف شما در دوره (${periodLabel}) برابر ${myTrafficHtml} است. با مصرف بیشتر به جمع <b class="font-mono">20</b> کاربر برتر بپیوندید!`;
+      noticeTextEl.innerHTML = `مصرف شما برابر ${myTrafficHtml} است. با مصرف بیشتر به جمع <b class="font-mono">20</b> کاربر برتر بپیوندید!`;
       if (noticeEl) {
         noticeEl.className = 'p-2.5 rounded-xl text-xs flex items-start gap-2 bg-slate-500/10 border border-slate-700/40 t-main';
       }
     } else {
       if (noticeIconEl) noticeIconEl.innerText = 'ℹ️';
-      noticeTextEl.innerHTML = `در دوره (${periodLabel}) هنوز مصرفی برای شما ثبت نشده است.`;
+      noticeTextEl.innerHTML = `در این بازه هنوز مصرفی برای شما ثبت نشده است.`;
       if (noticeEl) {
         noticeEl.className = 'p-2.5 rounded-xl text-xs flex items-start gap-2 bg-slate-500/10 border border-slate-700/40 t-muted';
       }

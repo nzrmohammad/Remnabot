@@ -71,3 +71,19 @@ async def check_channel_membership(bot, channel: str, user_id: int) -> bool:
     except Exception:
         # If bot is not in channel or channel is unreachable, allow user through
         return True
+
+
+def get_node_daily_bytes(n: dict) -> int:
+    """Safely extract today's traffic bytes from a node payload without cumulative fallback."""
+    if not isinstance(n, dict):
+        return 0
+    val = (
+        n.get("trafficDailyBytes")
+        or n.get("dailyTrafficBytes")
+        or n.get("todayTrafficBytes")
+        or 0
+    )
+    try:
+        return max(0, int(val))
+    except (ValueError, TypeError):
+        return 0

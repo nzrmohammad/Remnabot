@@ -109,10 +109,12 @@ class OrderRepository:
         )
         return list(result.scalars().all())
 
-    async def count(self, since: datetime | None = None) -> int:
+    async def count(self, since: datetime | None = None, status: str | None = None) -> int:
         stmt = select(func.count(Order.id))
         if since is not None:
             stmt = stmt.where(Order.created_at >= since)
+        if status is not None:
+            stmt = stmt.where(Order.status == status)
         result = await self.session.execute(stmt)
         return int(result.scalar_one())
 

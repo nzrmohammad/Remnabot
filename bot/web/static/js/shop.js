@@ -50,7 +50,7 @@ function setupCouponInput() {
         let discMsg = '';
         if (res.data.discount_percent > 0) discMsg = `${toEnglishDigits(res.data.discount_percent)}%`;
         else if (res.data.discount_amount > 0) discMsg = `${Number(res.data.discount_amount).toLocaleString('en-US')} تومان`;
-        showToast(`🎉 کد تخفیف اعمال شد! (${discMsg} تخفیف)`);
+        showToast(`🎉 کد تخفیف اعمال شد!\n(${discMsg} تخفیف)`);
         hapticFeedback('success');
         applyCouponBtn.innerText = '✕ حذف';
         applyCouponBtn.className = 'bg-rose-600 hover:bg-rose-500 text-white text-xs font-semibold px-4 py-2 rounded-lg transition active:scale-95 shadow shrink-0';
@@ -631,7 +631,7 @@ function renderFilteredShopPlans() {
             ${(discountVal > 0 || hasLoyaltyDiscount) ? `
               <div class="flex items-center gap-1.5 mt-1 flex-wrap">
                 ${hasLoyaltyDiscount ? `<span dir="ltr" class="inline-flex items-center gap-1 text-[9.5px] font-bold px-1.5 py-0.5 rounded-md font-mono ${userTierClass}" title="تخفیف وفاداری"><span>${userTierIcon}</span><span>${loyaltyPctEnglish}% وفاداری</span></span>` : ''}
-                ${discountVal > 0 ? `<span class="inline-flex items-center gap-1 text-[9.5px] font-bold px-1.5 py-0.5 rounded-md bg-emerald-500/15 text-emerald-400 border border-emerald-500/30"><span>🏷</span><span>${window.activeCoupon?.code ? escapeHtml(window.activeCoupon.code) : 'کوپن'} <span dir="ltr" class="font-mono">(-${toEnglishDigits(window.activeCoupon?.discount_percent || 0)}%)</span></span></span>` : ''}
+                ${discountVal > 0 ? `<span dir="ltr" class="inline-flex items-center gap-1 text-[9.5px] font-bold px-1.5 py-0.5 rounded-md bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 font-mono"><span>🏷</span><span>${window.activeCoupon?.code ? escapeHtml(window.activeCoupon.code) : 'کوپن'}</span><span>(-${toEnglishDigits(window.activeCoupon?.discount_percent || 0)}%)</span></span>` : ''}
               </div>
             ` : ''}
             <p class="text-[11px] leading-snug t-muted mt-1">${safeDesc}</p>

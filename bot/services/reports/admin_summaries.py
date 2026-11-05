@@ -40,21 +40,26 @@ async def _send_admin_nightly_summary(
     today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
     today_start_utc = today_start.astimezone(timezone.utc)
 
-    # 1. Orders & Revenue today
-    order_repo = OrderRepository(session)
-    orders_count = await order_repo.count(since=today_start_utc)
-    revenue_today = await order_repo.total_revenue(since=today_start_utc)
+    # 1. Orders & Topups financial metrics today (SSOT, no double counting)
+    from bot.services.reports.common import get_financial_metrics_today
+    fin = await get_financial_metrics_today(session, today_start_utc)
+    orders_count = fin["orders_count"]
+    revenue_today = fin["orders_revenue"]
+    topup_count = fin["topups_count"]
+    topup_amount = fin["topups_amount"]
 
-    # 2. Wallet top-ups today
-    wallet_repo = WalletRepository(session)
-    topup_count, topup_amount = await wallet_repo.topup_stats(since=today_start_utc)
+    if orders_count > 0 and topup_count > 0:
+        payments_str = f"{orders_count} خرید ({fmt(revenue_today)} ت) | {topup_count} واریز ({fmt(topup_amount)} ت)"
+    elif orders_count > 0:
+        payments_str = f"{orders_count} خرید ({fmt(revenue_today)} تومان)"
+    elif topup_count > 0:
+        payments_str = f"{topup_count} واریز نقدی ({fmt(topup_amount)} تومان)"
+    else:
+        payments_str = "۰"
 
-    total_payments = orders_count + topup_count
-    total_amount = revenue_today + topup_amount
-    payments_str = f"{total_payments} ({fmt(total_amount)} تومان)" if total_payments > 0 else "0"
-
-    # 3. User growth
+    # 3. User growth (both bot users & panel accounts)
     user_repo = UserRepository(session)
+    total_bot_users = await user_repo.count()
     new_users = await user_repo.count(User.created_at >= today_start_utc)
 
     # 4. Cluster & Panel metrics
@@ -71,13 +76,10 @@ async def _send_admin_nightly_summary(
         cc = (n.get("countryCode") or "").upper()
         if cc:
             country_totals.setdefault(cc, 0)
-        tb = n.get("todayTrafficBytes") or n.get("traffic") or 0
-        try:
-            val = int(tb)
-            if cc:
-                country_totals[cc] += val
-        except (ValueError, TypeError):
-            pass
+        from bot.common.helpers import get_node_daily_bytes
+        val = get_node_daily_bytes(n)
+        if cc and val > 0:
+            country_totals[cc] += val
 
     # 6. Active users today and their usage
     today_str = now.strftime("%Y-%m-%d")
@@ -202,10 +204,9 @@ async def _send_admin_nightly_summary(
         report_title,
         SEPARATOR,
         "⚙️ <b>خلاصه وضعیت کل پنل</b>",
-        f"👤 تعداد کل اکانت‌ها : {total_panel_users}",
-        f"✅ اکانت‌های فعال : {active_panel_users}",
-        f"➕ کاربران جدید امروز : {new_users}",
-        f"💳 پرداخت‌های امروز : {payments_str}",
+        f"🤖 اعضای ربات : {total_bot_users} (➕ {new_users} عضو جدید امروز)",
+        f"👤 اشتراک‌های پنل : {total_panel_users} (✅ {active_panel_users} فعال)",
+        f"💳 فروش و واریز امروز : {payments_str}",
         f"⚡️ مصرف کل امروز : {human_bytes(total_bandwidth_today)}",
     ]
 

@@ -504,16 +504,43 @@
           </div>
         </div>
 
-        <!-- Periodic Reports Sub-Tabs -->
+        <!-- Periodic Reports Sub-Tabs (5 items: Daily & Nightly on the right) -->
         <div class="flex bg-transparent p-1 rounded-xl border border-slate-200 dark:border-slate-800 text-xs">
-          <button id="repSubNightly" class="flex-1 py-1.5 rounded-lg font-bold bg-blue-600 text-white shadow-sm transition">🌙 شبانه</button>
+          <button id="repSubDaily" class="flex-1 py-1.5 rounded-lg font-bold bg-blue-600 text-white shadow-sm transition">☀️ روزانه</button>
+          <button id="repSubNightly" class="flex-1 py-1.5 rounded-lg font-bold text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition">🌙 شبانه</button>
           <button id="repSubWeekly" class="flex-1 py-1.5 rounded-lg font-bold text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition">📊 هفتگی</button>
           <button id="repSubMonthly" class="flex-1 py-1.5 rounded-lg font-bold text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition">📅 ماهانه</button>
           <button id="repSubAnalytics" class="flex-1 py-1.5 rounded-lg font-bold text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition">⚡️ تحلیل</button>
         </div>
 
+        <!-- 0. Daily Report Card -->
+        <div id="viewRepDaily" class="card p-4 space-y-3 shadow-md">
+          <div class="flex justify-between items-center border-b border-slate-700/60 pb-2">
+            <span class="text-xs font-bold t-main flex items-center gap-1.5">
+              <span>☀️</span> گزارش روزانه
+            </span>
+            <span id="repDailyDate" class="text-[11px] font-mono text-slate-400">--/--/-- - ۲۳:۵۹</span>
+          </div>
+
+          <div class="space-y-1.5 text-xs t-muted">
+            <div class="flex justify-between"><span>📊 حجم کل بسته:</span><b id="repDailyTotal" class="font-mono t-main num-bidi" dir="ltr">-- GB</b></div>
+            <div class="flex justify-between"><span>🔥 حجم مصرف‌شده:</span><b id="repDailyUsed" class="font-mono t-warn num-bidi" dir="ltr">-- GB</b></div>
+            <div class="flex justify-between"><span>📥 حجم باقیمانده:</span><b id="repDailyRemain" class="font-mono t-success num-bidi" dir="ltr">-- GB</b></div>
+            <div class="flex justify-between"><span>⚡️ مجموع مصرف امروز:</span><b id="repDailyToday" class="font-mono t-accent text-sm num-bidi" dir="ltr">0.00 GB</b></div>
+            <div class="flex justify-between"><span>📅 انقضا:</span><span id="repDailyExpire" class="font-semibold t-main">--</span></div>
+          </div>
+
+          <!-- Daily Per-Server Breakdown (تفکیک مصرف سرورها) -->
+          <div class="pt-2 border-t border-slate-700/60 text-xs">
+            <span class="text-slate-400 font-medium block mb-1">تفکیک مصرف سرورها:</span>
+            <div id="repDailyNodesContainer" dir="ltr" class="grid grid-cols-2 gap-1.5 font-mono text-[11px]">
+              <div class="col-span-2 text-center py-2 text-slate-400 text-[11px]">در حال دریافت داده‌ها...</div>
+            </div>
+          </div>
+        </div>
+
         <!-- 1. Nightly Report Card (مشابه هفتگی و ماهانه) -->
-        <div id="viewRepNightly" class="card p-4 space-y-3 shadow-md">
+        <div id="viewRepNightly" class="card p-4 space-y-3 shadow-md hidden">
           <div class="flex justify-between items-center border-b border-slate-700/60 pb-2">
             <span class="text-xs font-bold t-main flex items-center gap-1.5">
               <span>🌙</span> گزارش شبانه
@@ -1783,7 +1810,7 @@
                   <div class="card-inset rounded-xl p-2.5 flex items-center justify-between border border-[var(--card-border)]">
                     <div>
                       <span class="text-[10px] t-muted block">شماره کارت مقصد:</span>
-                      <b id="cardAutoCardNumber" onclick="window.copyCardNumber(document.getElementById('copyCardAutoBtn'))" class="text-cyan-600 dark:text-cyan-400 text-sm sm:text-base font-mono font-black tracking-wider select-all num-bidi cursor-pointer block" dir="ltr" title="کلیک برای کپی شماره کارت">---- ---- ---- ----</b>
+                      <b id="cardAutoCardNumber" onclick="window.copyCardNumber(document.getElementById('copyCardAutoBtn'))" class="text-slate-900 dark:text-cyan-400 font-black text-sm sm:text-base font-mono font-black tracking-wider select-all num-bidi cursor-pointer block" dir="ltr" title="کلیک برای کپی شماره کارت">---- ---- ---- ----</b>
                     </div>
                     <button id="copyCardAutoBtn" type="button" onclick="window.copyCardNumber(this)" class="p-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800/80 dark:hover:bg-slate-700/80 text-cyan-600 dark:text-cyan-400 text-sm transition active:scale-95 flex items-center justify-center shadow-sm" title="کپی شماره کارت" aria-label="کپی شماره کارت">
                       📋
@@ -1851,7 +1878,7 @@
                       <div class="w-full h-7 bg-slate-950/90 -mx-4 mt-1 shadow-inner"></div>
                       <div class="my-auto px-2 z-10 text-center">
                         <p id="graphicCardBackText" class="text-xs sm:text-sm font-bold tracking-wide font-sans select-none" dir="ltr">
-                          Blu Bank, But Lovely
+                          Blu, But Lovely
                         </p>
                       </div>
                     </div>
@@ -1914,7 +1941,7 @@
               <div class="card-inset rounded-xl p-2.5 flex items-center justify-between border border-[var(--card-border)]">
                 <div>
                   <span class="text-[10px] t-muted block">شماره کارت مقصد:</span>
-                  <b id="topupCardNumber" onclick="window.copyCardNumber(document.getElementById('copyTopupCardBtn'))" class="text-cyan-600 dark:text-cyan-400 text-sm sm:text-base font-mono font-black tracking-wider select-all num-bidi cursor-pointer block" dir="ltr" title="کلیک برای کپی شماره کارت">---- ---- ---- ----</b>
+                  <b id="topupCardNumber" onclick="window.copyCardNumber(document.getElementById('copyTopupCardBtn'))" class="text-slate-900 dark:text-cyan-400 font-black text-sm sm:text-base font-mono font-black tracking-wider select-all num-bidi cursor-pointer block" dir="ltr" title="کلیک برای کپی شماره کارت">---- ---- ---- ----</b>
                 </div>
                 <button id="copyTopupCardBtn" type="button" onclick="window.copyCardNumber(this)" class="p-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800/80 dark:hover:bg-slate-700/80 text-cyan-600 dark:text-cyan-400 text-sm transition active:scale-95 flex items-center justify-center shadow-sm" title="کپی شماره کارت" aria-label="کپی شماره کارت">
                   📋

@@ -25,7 +25,7 @@ function showToast(msg, duration = 3200) {
     toast.id = 'appToast';
     toast.setAttribute('role', 'status');
     toast.setAttribute('aria-live', 'assertive');
-    toast.className = 'fixed top-12 left-1/2 transform -translate-x-1/2 z-50 bg-slate-900/95 text-white border border-slate-700/80 px-4 py-2.5 rounded-2xl shadow-2xl text-xs font-semibold text-center transition-all duration-300 opacity-0 pointer-events-none max-w-[90%]';
+    toast.className = 'fixed top-12 left-1/2 transform -translate-x-1/2 z-50 bg-slate-900/95 text-white border border-slate-700/80 px-4 py-2.5 rounded-2xl shadow-2xl text-xs font-semibold text-center transition-all duration-300 opacity-0 pointer-events-none max-w-[90%] whitespace-pre-line leading-relaxed';
     toast.dir = 'rtl';
     document.body.appendChild(toast);
   }

@@ -103,7 +103,7 @@ function applyBluBankCardTheme(color, bankTmpl) {
 
   const backTextEl = document.getElementById('graphicCardBackText');
   if (backTextEl) {
-    backTextEl.innerText = 'Blu Bank, But Lovely';
+    backTextEl.innerText = 'Blu, But Lovely';
     backTextEl.style.color = palette.text;
   }
 }

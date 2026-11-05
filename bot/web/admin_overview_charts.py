@@ -88,11 +88,13 @@ async def _fetch_user_bandwidth_series(remnawave, panel_users: list[dict], start
                     for s in r:
                         cc = str(s.get("countryCode") or s.get("country_code") or "").strip().upper()
                         s_data = s.get("data") or []
-                        if len(s_data) == 7:
+                        if s_data:
                             has_real_stats = True
-                            for idx, val in enumerate(s_data):
+                            n_days = min(len(s_data), 7)
+                            for offset in range(1, n_days + 1):
+                                chart_idx = 7 - offset
                                 try:
-                                    daily_bytes_sum[idx] += int(float(val or 0))
+                                    daily_bytes_sum[chart_idx] += int(float(s_data[-offset] or 0))
                                 except (ValueError, TypeError):
                                     pass
                         val_today = int(float(s_data[-1])) if s_data else int(float(s.get("total") or 0))
@@ -128,14 +130,11 @@ async def calc_sales_and_traffic_charts(
     for n in nodes:
         if isinstance(n, dict):
             cc = str(n.get("countryCode") or n.get("country_code") or "").strip().upper()
-            tb = n.get("trafficDailyBytes") or n.get("dailyTrafficBytes") or n.get("todayTrafficBytes") or n.get("traffic") or 0
-            try:
-                val = int(tb)
-                if cc:
-                    country_node_bytes[cc] = country_node_bytes.get(cc, 0) + val
-                total_node_today_bytes += val
-            except (ValueError, TypeError):
-                pass
+            from bot.common.helpers import get_node_daily_bytes
+            val = get_node_daily_bytes(n)
+            if cc and val > 0:
+                country_node_bytes[cc] = country_node_bytes.get(cc, 0) + val
+            total_node_today_bytes += val
 
     cached_traffic = None if is_refresh else await cache.get("analytics:traffic:7day_series")
     if cached_traffic and isinstance(cached_traffic, dict) and "data" in cached_traffic:

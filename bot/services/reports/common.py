@@ -1,3 +1,4 @@
+from typing import Any
 """Common constants and formatting helpers for reports."""
 import logging
 from datetime import datetime
@@ -79,3 +80,44 @@ def _breakdown_lines(rows: list[dict], value_key: int | None = None) -> list[str
             continue
         lines.append(f"{_node_label(row)} : \u200e{human_bytes(value)}")
     return lines
+
+
+async def get_financial_metrics_today(session: Any, start_of_day_utc: datetime) -> dict[str, int]:
+    """Calculate centralized financial metrics for today (orders vs topups) without double counting."""
+    from bot.db.models import Order, Topup
+    from sqlalchemy import func, select
+
+    # 1. Paid store orders (actual service purchases)
+    orders_res = await session.execute(
+        select(
+            func.count(Order.id),
+            func.coalesce(func.sum(Order.amount), 0),
+        ).where(
+            Order.created_at >= start_of_day_utc,
+            Order.status == "paid",
+        )
+    )
+    orders_row = orders_res.one()
+    orders_count = int(orders_row[0] or 0)
+    orders_revenue = int(orders_row[1] or 0)
+
+    # 2. Approved wallet topups (actual cash inflow)
+    topups_res = await session.execute(
+        select(
+            func.count(Topup.id),
+            func.coalesce(func.sum(Topup.amount), 0),
+        ).where(
+            Topup.decided_at >= start_of_day_utc,
+            Topup.status == "approved",
+        )
+    )
+    topups_row = topups_res.one()
+    topups_count = int(topups_row[0] or 0)
+    topups_amount = int(topups_row[1] or 0)
+
+    return {
+        "orders_count": orders_count,
+        "orders_revenue": orders_revenue,
+        "topups_count": topups_count,
+        "topups_amount": topups_amount,
+    }

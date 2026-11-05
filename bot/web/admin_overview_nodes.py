@@ -313,13 +313,10 @@ async def calc_cluster_kpis(
     now_tehran = now_utc.astimezone(tehran_tz) if now_utc.tzinfo else now_utc.replace(tzinfo=timezone.utc).astimezone(tehran_tz)
     start_of_day_tehran = now_tehran.replace(hour=0, minute=0, second=0, microsecond=0)
     start_of_day = start_of_day_tehran.astimezone(timezone.utc)
-    rev_res = await session.execute(
-        select(func.coalesce(func.sum(Order.amount), 0)).where(
-            Order.created_at >= start_of_day,
-            Order.status == "paid",
-        )
-    )
-    today_revenue = int(rev_res.scalar_one() or 0)
+    from bot.services.reports.common import get_financial_metrics_today
+    fin = await get_financial_metrics_today(session, start_of_day)
+    today_revenue = fin["orders_revenue"]
+    today_topup_amount = fin["topups_amount"]
 
     topup_res = await session.execute(
         select(func.count(Topup.id)).where(Topup.status == "pending")
@@ -352,8 +349,12 @@ async def calc_cluster_kpis(
 
     kpis = {
         "total_users": total_bot_users,
+        "total_panel_users": len(panel_users),
         "active_panel_users": active_panel_users,
         "today_revenue_toman": today_revenue,
+        "today_topup_toman": today_topup_amount,
+        "today_orders_count": fin["orders_count"],
+        "today_topups_count": fin["topups_count"],
         "month_traffic_gb": total_traffic_gb,
         "pending_topups": pending_topups,
         "open_tickets": 0,
