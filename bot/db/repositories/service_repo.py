@@ -42,7 +42,7 @@ class ServiceRepository:
             except Exception as exc2:
                 logger.exception("Failed fallback query for active services: %s", exc2)
                 await self.session.rollback()
-                return []
+                raise
 
     async def get(self, service_id: int) -> Service | None:
         result = await self.session.execute(

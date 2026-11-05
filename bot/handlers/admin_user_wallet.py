@@ -82,6 +82,7 @@ async def balance_change_save(
         message.from_user.id,
         "balance_add" if action == "add" else "balance_sub",
         detail=f"user={telegram_id} amount={amount}",
+        target_user_id=telegram_id,
     )
 
     await state.clear()

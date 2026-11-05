@@ -139,6 +139,18 @@ async def stars_successful_payment_handler(
             sp.telegram_payment_charge_id,
         )
         try:
+            mismatch_topup = Topup(
+                telegram_id=message.from_user.id,
+                amount=amount_toman,
+                status="rejected",
+                receipt_hash=f"mismatch:{sp.telegram_payment_charge_id}",
+            )
+            session.add(mismatch_topup)
+            await session.commit()
+        except Exception as rec_err:
+            logger.warning("Failed to record stars mismatch topup: %s", rec_err)
+
+        try:
             from bot.services.error_reporter import report_error
             await report_error(
                 bot,

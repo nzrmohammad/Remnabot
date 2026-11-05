@@ -128,6 +128,18 @@ async def broadcast_text(
 ACTIVE_BROADCASTS: dict[str, dict] = {}
 
 
+def _prune_active_broadcasts(max_keep: int = 5) -> None:
+    """Prune finished/stopped broadcasts to bound memory usage."""
+    if len(ACTIVE_BROADCASTS) <= max_keep:
+        return
+    finished_keys = [
+        k for k, v in ACTIVE_BROADCASTS.items()
+        if v.get("status") in ("finished", "stopped", "revoked")
+    ]
+    for k in finished_keys[:-max_keep]:
+        ACTIVE_BROADCASTS.pop(k, None)
+
+
 @router.callback_query(F.data == BROADCAST_CONFIRM_KEY)
 async def broadcast_send(
     call: CallbackQuery, bot: Bot, user_repo: UserRepository,
@@ -149,6 +161,7 @@ async def broadcast_send(
         await call.answer(t("fa", "acc_error"), show_alert=True)
         return
 
+    _prune_active_broadcasts(max_keep=5)
     import time
     bcast_id = f"bc_{int(time.time())}_{call.from_user.id}"
     ACTIVE_BROADCASTS[bcast_id] = {
@@ -302,6 +315,7 @@ async def broadcast_revoke_handler(
             await asyncio.sleep(0.5)
 
     task["sent"] = []
+    task["status"] = "revoked"
     user = await user_repo.get_or_create(call.from_user.id, call.from_user.username)
     lang = user.language
 

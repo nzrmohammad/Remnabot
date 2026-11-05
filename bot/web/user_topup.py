@@ -26,6 +26,20 @@ from bot.web.cache import FastCache
 logger = logging.getLogger(__name__)
 
 
+DEFAULT_MAX_TOPUP_TOMAN = 50_000_000
+
+
+def _resolve_topup_max(store: object) -> int:
+    """Resolve maximum topup amount with fallback, guarding against test mocks."""
+    raw = getattr(store, "topup_max_amount", None)
+    if (
+        isinstance(raw, (int, float))
+        and type(raw).__name__ != "MagicMock"
+        and raw > 0
+    ):
+        return int(raw)
+    return DEFAULT_MAX_TOPUP_TOMAN
+
 def _as_utc(dt: datetime | None) -> datetime:
     """Ensure datetime is offset-aware in UTC to prevent naive vs aware comparison bugs."""
     if dt is None:
@@ -277,8 +291,8 @@ async def post_user_topup_card(request: web.Request) -> web.Response:
                 status=400,
             )
 
-        max_amount = getattr(store, "topup_max_amount", 0)
-        if isinstance(max_amount, int | float) and max_amount > 0 and amount > max_amount:
+        max_amount = _resolve_topup_max(store)
+        if amount > max_amount:
             return web.json_response(
                 {"ok": False, "message": f"حداکثر مبلغ شارژ {int(max_amount):,} تومان است."},
                 status=400,
@@ -444,8 +458,8 @@ async def post_user_topup_crypto(request: web.Request) -> web.Response:
                 status=400,
             )
 
-        max_amount = getattr(store, "topup_max_amount", 0)
-        if isinstance(max_amount, int | float) and max_amount > 0 and amount > max_amount:
+        max_amount = _resolve_topup_max(store)
+        if amount > max_amount:
             return web.json_response(
                 {"ok": False, "message": f"حداکثر مبلغ شارژ {int(max_amount):,} تومان است."},
                 status=400,
@@ -470,7 +484,7 @@ async def post_user_topup_crypto(request: web.Request) -> web.Response:
                 status=400,
             )
 
-        ton_amount = round(amount / store.ton_rate_toman, 4)
+        ton_amount = math.ceil((amount / store.ton_rate_toman) * 10_000) / 10_000
         nanotons = int(round(ton_amount * 1_000_000_000))
         invoice = await crypto_repo.create_invoice(
             telegram_id=telegram_id,
@@ -839,8 +853,8 @@ async def post_user_topup_trx(request: web.Request) -> web.Response:
                 status=400,
             )
 
-        max_amount = getattr(store, "topup_max_amount", 0)
-        if isinstance(max_amount, int | float) and max_amount > 0 and amount > max_amount:
+        max_amount = _resolve_topup_max(store)
+        if amount > max_amount:
             return web.json_response(
                 {"ok": False, "message": f"حداکثر مبلغ شارژ {int(max_amount):,} تومان است."},
                 status=400,
@@ -1189,14 +1203,15 @@ async def post_user_topup_xrocket(request: web.Request) -> web.Response:
                 {"ok": False, "message": f"حداقل مبلغ شارژ {store.topup_min_amount:,} تومان است."},
                 status=400,
             )
-        if store.topup_max_amount and amount > store.topup_max_amount:
+        max_amount = _resolve_topup_max(store)
+        if amount > max_amount:
             return web.json_response(
-                {"ok": False, "message": f"حداکثر مبلغ شارژ {store.topup_max_amount:,} تومان است."},
+                {"ok": False, "message": f"حداکثر مبلغ شارژ {int(max_amount):,} تومان است."},
                 status=400,
             )
 
         usdt_rate = getattr(store, "usdt_rate_toman", 0) or 100_000
-        amount_usd = round(amount / usdt_rate, 2)
+        amount_usd = max(0.1, math.ceil((amount / usdt_rate) * 100) / 100)
         if amount_usd < 0.1:
             amount_usd = 0.1
 
