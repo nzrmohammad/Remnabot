@@ -38,11 +38,11 @@ class TrafficSnapshotRepository:
         await self.session.refresh(snapshot)
         return snapshot
 
-    async def get_last_24_hours(self, now: datetime | None = None) -> list[HourlyTrafficSnapshot]:
-        """Fetch all recorded snapshots within the last 24 hours."""
+    async def get_last_hours(self, hours: int = 48, now: datetime | None = None) -> list[HourlyTrafficSnapshot]:
+        """Fetch all recorded snapshots within the last N hours."""
         if now is None:
             now = datetime.now(timezone.utc)
-        since = now - timedelta(hours=24)
+        since = now - timedelta(hours=hours)
         stmt = (
             select(HourlyTrafficSnapshot)
             .where(HourlyTrafficSnapshot.timestamp >= since)
@@ -50,6 +50,10 @@ class TrafficSnapshotRepository:
         )
         res = await self.session.execute(stmt)
         return list(res.scalars().all())
+
+    async def get_last_24_hours(self, now: datetime | None = None) -> list[HourlyTrafficSnapshot]:
+        """Fetch all recorded snapshots within the last 24 hours."""
+        return await self.get_last_hours(24, now)
 
     async def cleanup_older_than(self, days: int = 30) -> int:
         """Delete snapshots older than specified days to keep the database lightweight."""

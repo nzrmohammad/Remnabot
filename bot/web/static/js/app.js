@@ -183,15 +183,29 @@ function renderReportsCharts(sub) {
   if (monthlyCanvas) monthlyCanvas.classList.remove('hidden');
   if (monthlyEmpty) monthlyEmpty.classList.add('hidden');
 
-  const hourlyData = currentSub.hourly_usage?.data || [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+  const hourlyData = currentSub.hourly_usage?.data || Array(24).fill(0);
   const hourlyLabels = currentSub.hourly_usage?.labels || [
-    '00-02','02-04','04-06','06-08','08-10','10-12',
-    '12-14','14-16','16-18','18-20','20-22','22-24'
+    '00-01','01-02','02-03','03-04','04-05','05-06',
+    '06-07','07-08','08-09','09-10','10-11','11-12',
+    '12-13','13-14','14-15','15-16','16-17','17-18',
+    '18-19','19-20','20-21','21-22','22-23','23-24'
   ];
+
+  const yHourlyData = currentSub.yesterday_hourly_usage?.data || Array(24).fill(0);
+  const yHourlyLabels = currentSub.yesterday_hourly_usage?.labels || hourlyLabels;
+  const hasYTraffic = Boolean(
+    (currentSub.yesterday_used_gb && Number(currentSub.yesterday_used_gb) > 0) ||
+    yHourlyData.some(v => Number(v) > 0)
+  );
+
+  if (nightlyCanvas) nightlyCanvas.classList.toggle('hidden', !hasYTraffic);
+  if (nightlyEmpty) nightlyEmpty.classList.toggle('hidden', hasYTraffic);
 
   if (typeof renderBarChart === 'function') {
     renderBarChart('repDailyChartCanvas', hourlyData, hourlyLabels, false);
-    renderBarChart('repNightlyChartCanvas', hourlyData, hourlyLabels, false);
+    if (hasYTraffic) {
+      renderBarChart('repNightlyChartCanvas', yHourlyData, yHourlyLabels, false);
+    }
     renderBarChart('repWeeklyChartCanvas', currentSub.week_daily_totals_gb || [0, 0, 0, 0, 0, 0, 0], currentSub.week_day_labels || ['ش', 'ی', 'د', 'س', 'چ', 'پ', 'ج'], false);
   }
   if (typeof updateMonthlyReportView === 'function') {
@@ -2548,7 +2562,16 @@ function renderActiveSubAnalytics(sub) {
         if (typeof renderBarChart === 'function') {
           renderBarChart('repPeakHoursBarCanvas', hourlyData, hourlyLabels, false);
           renderBarChart('repDailyChartCanvas', hourlyData, hourlyLabels, false);
-          renderBarChart('repNightlyChartCanvas', hourlyData, hourlyLabels, false);
+          const yData = sub.yesterday_hourly_usage?.data || Array(24).fill(0);
+          const yLabels = sub.yesterday_hourly_usage?.labels || hourlyLabels;
+          const hasY = Boolean((sub.yesterday_used_gb && Number(sub.yesterday_used_gb) > 0) || yData.some(v => Number(v) > 0));
+          const nCanvas = $('repNightlyChartCanvas');
+          const nEmpty = $('repNightlyEmptyState');
+          if (nCanvas) nCanvas.classList.toggle('hidden', !hasY);
+          if (nEmpty) nEmpty.classList.toggle('hidden', hasY);
+          if (hasY) {
+            renderBarChart('repNightlyChartCanvas', yData, yLabels, false);
+          }
         }
         // Update 4 Diurnal Periods Summary
         try {
@@ -4667,6 +4690,14 @@ async function openInvoiceModal(orderId) {
       }
       statusEl.className = `flex items-center gap-1 font-bold ${colorClass}`;
       statusEl.innerHTML = `<span>${icon}</span> <span>${statusText}</span>`;
+    }
+
+    const dedStatusEl = $('invWalletDeductionStatus');
+    if (dedStatusEl) {
+      const note = inv.payment?.deduction_note || (inv.payment?.is_paid ? 'کسر شده از موجودی کیف پول' : 'هیچ هزینه‌ای از کیف پول شما کسر نشده است');
+      const isPaid = inv.payment?.is_paid;
+      dedStatusEl.innerText = note;
+      dedStatusEl.className = `text-xs font-semibold ${isPaid ? 'text-emerald-500' : 'text-slate-400'}`;
     }
   } catch (err) {
     console.warn('Failed loading invoice:', err);

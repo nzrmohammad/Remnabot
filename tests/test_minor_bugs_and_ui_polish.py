@@ -275,6 +275,13 @@ def test_custom_plan_disabled_card_stripe_and_reports_polish():
     assert "نمودار مصرف روزانه (7 روز اخیر):" not in app_html
     assert "id=\"repDailyChartCanvas\"" in app_html
     assert "id=\"repNightlyChartCanvas\"" in app_html
+    assert app_html.index("id=\"repDailyChartCanvas\"") < app_html.index("id=\"repDailyNodesContainer\"")
+    assert app_html.index("id=\"repNightlyChartCanvas\"") < app_html.index("id=\"repNightlyNodesContainer\"")
+    assert "نمودار مصرف ساعتی امروز (24 ساعت):" in app_html
+    assert "نمودار مصرف ساعتی دیشب (24 ساعت):" in app_html
+    assert "data-amt=\"50000\"" not in app_html
+    assert "data-amt=\"100000\"" in app_html
+    assert "placeholder=\"مبلغ دلخواه را وارد کنید (تومان)...\"" in app_html
     assert "--/--/-- - 23:59" in app_html
 
     shop_js = Path("bot/web/static/js/shop.js").read_text(encoding="utf-8")
@@ -336,3 +343,7 @@ async def test_wallet_transaction_history_and_invoice_status_ssot(session_factor
         inv_fail = await get_order_invoice_data(session, o_fail.id, 987654321)
         assert inv_fail["payment"]["status"] == "ناموفق / لغو شده"
         assert inv_fail["payment"]["is_paid"] is False
+        assert inv_paid["payment"]["deducted_amount"] == 50000
+        assert inv_fail["payment"]["deducted_amount"] == 0
+        assert "کسر شده" in inv_paid["payment"]["deduction_note"]
+        assert "هیچ هزینه‌ای" in inv_fail["payment"]["deduction_note"]

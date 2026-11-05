@@ -1131,11 +1131,11 @@ function restoreActiveTrxInvoice() {
 
 async function openTopupModal(defaultAmt, forceCrypto = false) {
   const { minAmt } = getTopupLimits();
-  const amt = defaultAmt ? Math.max(Number(defaultAmt), minAmt) : Math.max(50000, minAmt);
+  const amt = defaultAmt ? Math.max(Number(defaultAmt), minAmt) : Math.max(100000, minAmt);
   const inputEl = document.getElementById('topupAmountInput');
   if (inputEl) {
     inputEl.value = amt;
-    inputEl.placeholder = `حداقل ${minAmt.toLocaleString('en-US')}`;
+    inputEl.placeholder = 'مبلغ دلخواه را وارد کنید (تومان)...';
   }
   updateTopupDisplays(amt);
 

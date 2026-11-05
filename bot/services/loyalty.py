@@ -104,6 +104,9 @@ async def get_configured_loyalty_tiers(session: AsyncSession | None = None) -> l
         custom_cfg = json.loads(raw_json)
         if not isinstance(custom_cfg, dict):
             return DEFAULT_LOYALTY_TIERS
+        # Automatically upgrade legacy uncustomized defaults (300k, 700k) to current DEFAULT_LOYALTY_TIERS
+        if custom_cfg.get("silver", {}).get("min_spent") == 300_000 and custom_cfg.get("gold", {}).get("min_spent") == 700_000:
+            return DEFAULT_LOYALTY_TIERS
 
         merged_tiers: list[dict[str, Any]] = []
         for default_tier in DEFAULT_LOYALTY_TIERS:
@@ -134,7 +137,7 @@ async def get_user_loyalty(
     cache: Any = None,
 ) -> dict[str, Any]:
     """Calculate and return user loyalty tier, total spending, progress, and perks."""
-    cache_key = f"loyalty:user:{telegram_id}"
+    cache_key = f"loyalty:user:v2:{telegram_id}"
     if cache and hasattr(cache, "get"):
         try:
             cached = await cache.get(cache_key)
