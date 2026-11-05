@@ -424,6 +424,7 @@ async def post_user_purchase(request: web.Request) -> web.Response:
                         bot, db_user, service, result, session,
                         coupon_code=coupon_code if coupon_obj else None,
                         discount_amount=discount_amount,
+                        loyalty_discount_amount=loyalty_disc_amount,
                         full_name=user_full_name or None,
                     )
             except Exception as exc:

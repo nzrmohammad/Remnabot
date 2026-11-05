@@ -88,6 +88,10 @@ async def ton_invoice_check(
         await call.answer("❌ این فاکتور متعلق به حساب شما نیست.", show_alert=True)
         return
 
+    if getattr(inv, "currency", "TON") != "TON":
+        await call.answer("❌ این فاکتور مربوط به شبکه تون (TON) نمی‌باشد.", show_alert=True)
+        return
+
     if inv.status == "paid":
         wallet_repo = WalletRepository(session)
         w = await wallet_repo.get_wallet(inv.telegram_id)

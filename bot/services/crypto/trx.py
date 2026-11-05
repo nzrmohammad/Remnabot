@@ -1,4 +1,5 @@
 """TRX (Tron) on-chain payment processor and verification service."""
+from datetime import datetime, timezone
 import hashlib
 import logging
 from typing import Any
@@ -79,7 +80,7 @@ async def fetch_trx_rate(store_rate: int = 0) -> int:
 
 
 async def verify_tron_transaction(
-    tx_hash: str, expected_address: str, min_sun: int
+    tx_hash: str, expected_address: str, min_sun: int, min_timestamp_ms: int = 0
 ) -> tuple[bool, str, int]:
     """Verify on-chain Tron transaction via TronGrid RPC.
 
@@ -112,13 +113,16 @@ async def verify_tron_transaction(
                         # Verify contract parameter
                         contracts = tx_data.get("raw_data", {}).get("contract", [])
                         for c in contracts:
-                            if c.get("type") in ("TransferContract", "TriggerSmartContract"):
+                            if c.get("type") == "TransferContract":
                                 val_dict = c.get("parameter", {}).get("value", {})
                                 raw_amount = int(val_dict.get("amount") or 0)
                                 raw_to = str(val_dict.get("to_address") or "")
                                 to_b58 = hex_to_tron_address(raw_to)
 
                                 if to_b58.lower() == expected_clean.lower() or raw_to.lower() == expected_clean.lower():
+                                    tx_ts = int(tx_data.get("raw_data", {}).get("timestamp") or 0)
+                                    if min_timestamp_ms and tx_ts and tx_ts < min_timestamp_ms:
+                                        return False, "این تراکنش قبل از زمان ایجاد فاکتور ثبت شده و نامعتبر است.", 0
                                     if raw_amount >= (min_sun - 100_000):  # strict amount check with minimal 0.1 TRX dust tolerance
                                         return True, "SUCCESS", raw_amount
                                     else:
@@ -137,6 +141,12 @@ async def verify_tron_transaction(
                 if resp.status == 200:
                     scan_data = await resp.json()
                     if scan_data and scan_data.get("contractRet") == "SUCCESS":
+                        contract_type = scan_data.get("contractType")
+                        if contract_type is not None and contract_type != 1:
+                            return False, "نوع تراکنش نامعتبر است (فقط انتقال مستقیم TRX پذیرفته می‌شود).", 0
+                        tx_ts = int(scan_data.get("timestamp") or 0)
+                        if min_timestamp_ms and tx_ts and tx_ts < min_timestamp_ms:
+                            return False, "این تراکنش قبل از زمان ایجاد فاکتور ثبت شده و نامعتبر است.", 0
                         to_addr = scan_data.get("toAddress", "")
                         raw_amount = int(scan_data.get("amount") or 0)
                         if to_addr.lower() == expected_clean.lower():
@@ -161,6 +171,14 @@ async def verify_and_credit_trx_invoice(
     if clean_tx.startswith("0x"):
         clean_tx = clean_tx[2:]
 
+    if getattr(invoice, "currency", "TRX") != "TRX":
+        logger.warning(
+            "verify_and_credit_trx_invoice called with non-TRX invoice #%s (currency=%s)",
+            invoice.id,
+            getattr(invoice, "currency", None),
+        )
+        return False, 0, "این فاکتور مربوط به ارز ترون (TRX) نمی‌باشد."
+
     if invoice.status == "paid":
         w = await WalletRepository(session).get_wallet(invoice.telegram_id)
         return True, (w.balance if w else 0), "این فاکتور قبلاً پرداخت و تسویه شده است."
@@ -180,7 +198,11 @@ async def verify_and_credit_trx_invoice(
     # Minimum SUN needed (1 TRX = 1,000,000 SUN)
     min_sun = invoice.nanotons  # We store SUN amount in nanotons field for TRX invoices
 
-    ok, reason, confirmed_sun = await verify_tron_transaction(clean_tx, invoice.pay_address, min_sun)
+    now = datetime.now(timezone.utc)
+    inv_created = invoice.created_at if (invoice.created_at and invoice.created_at.tzinfo) else (invoice.created_at.replace(tzinfo=timezone.utc) if invoice.created_at else now)
+    min_timestamp_ms = int(inv_created.timestamp() * 1000) - 60_000
+
+    ok, reason, confirmed_sun = await verify_tron_transaction(clean_tx, invoice.pay_address, min_sun, min_timestamp_ms=min_timestamp_ms)
     if not ok:
         logger.warning(
             "TRX verification failed: invoice_id=%s tg_id=%s tx_hash=%s reason=%s expected_sun=%s confirmed_sun=%s",

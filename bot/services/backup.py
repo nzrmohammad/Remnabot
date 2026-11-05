@@ -1004,8 +1004,33 @@ async def auto_backup_loop(bot, session_factory) -> None:
             if admin_chat_id:
                 async with session_factory() as session:
                     raw_backup_path = await create_database_backup(session)
-                    backup_pwd = getattr(settings, "BACKUP_PASSWORD", "") or os.environ.get("BACKUP_PASSWORD", "") or (settings.BOT_TOKEN[:16] if getattr(settings, "BOT_TOKEN", "") else "remnabot_secure_backup")
+                    backup_pwd = (getattr(settings, "BACKUP_PASSWORD", "") or os.environ.get("BACKUP_PASSWORD", "") or "").strip()
+                    if not backup_pwd:
+                        logger.critical(
+                            "Automated database backup skipped: BACKUP_PASSWORD is not set. "
+                            "Refusing to create backup with predictable/default encryption keys."
+                        )
+                        store = await get_store_settings(session)
+                        thread_kwargs = admin_thread_kwargs(store, settings, kind="alerts")
+                        try:
+                            await bot.send_message(
+                                chat_id=admin_chat_id,
+                                text=(
+                                    "⚠️ <b>هشدار امنیتی سیستم بکاپ خودکار</b>\n\n"
+                                    "متغیر <code>BACKUP_PASSWORD</code> در فایل <code>.env</code> مقداردهی نشده است. "
+                                    "جهت جلوگیری از نشت داده‌های حساس دیتابیس (API Keys، کلیدها و اطلاعات مالی)، ایجاد نسخه پشتیبان خودکار تا زمان تنظیم رمز متوقف شد.\n\n"
+                                    "👉 لطفاً یک رمز عبور قوی در متغیر <code>BACKUP_PASSWORD</code> در <code>.env</code> قرار دهید."
+                                ),
+                                **thread_kwargs,
+                            )
+                        except Exception as alert_err:
+                            logger.warning("Failed alerting admin about missing BACKUP_PASSWORD: %s", alert_err)
+                        continue
+
                     backup_path = await asyncio.to_thread(create_encrypted_backup_archive, raw_backup_path, backup_pwd)
+                    if not backup_path or not backup_path.is_file():
+                        logger.error("Failed to generate encrypted backup archive.")
+                        continue
 
                     store = await get_store_settings(session)
                     thread_kwargs = admin_thread_kwargs(store, settings, kind="backups")

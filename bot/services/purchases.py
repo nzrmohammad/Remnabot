@@ -361,16 +361,20 @@ async def _execute_purchase_impl(
             await session.commit()
     else:
         # Renew the existing account (+ reactivate if expiry job disabled it).
+        raw_squads = account.get("activeInternalSquads") or account.get("internalSquads") or account.get("squads") or []
+        orig_squad_uuids = []
+        acc_squad_uuids = set()
+        for sq in raw_squads:
+            if isinstance(sq, dict):
+                u = sq.get("uuid") or sq.get("id")
+                if u:
+                    acc_squad_uuids.add(str(u))
+                    orig_squad_uuids.append(str(u))
+            elif isinstance(sq, str):
+                acc_squad_uuids.add(sq)
+                orig_squad_uuids.append(sq)
+
         if (is_extra_traffic or is_extra_time) and service.squad_uuid:
-            raw_squads = account.get("activeInternalSquads") or account.get("internalSquads") or []
-            acc_squad_uuids = set()
-            for sq in raw_squads:
-                if isinstance(sq, dict):
-                    u = sq.get("uuid") or sq.get("id")
-                    if u:
-                        acc_squad_uuids.add(str(u))
-                elif isinstance(sq, str):
-                    acc_squad_uuids.add(sq)
             if not acc_squad_uuids or str(service.squad_uuid) not in acc_squad_uuids:
                 if claimed_usage and coupon_obj:
                     try:
@@ -381,9 +385,11 @@ async def _execute_purchase_impl(
                 await session.commit()
                 return PurchaseResult(ok=False, kind="squad_mismatch")
 
+        squads_changed = False
         if not is_extra_traffic and not is_extra_time and service.squad_uuid:
             try:
                 await remnawave.set_user_squads(int(account["id"]), [service.squad_uuid])
+                squads_changed = True
             except Exception as sq_err:
                 logger.warning("Failed to update user squad on full plan renewal: %s", sq_err)
 
@@ -431,6 +437,11 @@ async def _execute_purchase_impl(
             status="ACTIVE",
         )
         if user is None:
+            if squads_changed and orig_squad_uuids:
+                try:
+                    await remnawave.set_user_squads(int(account["id"]), orig_squad_uuids)
+                except Exception as sq_revert_err:
+                    logger.warning("Failed to revert user squad after failed update: %s", sq_revert_err)
             if claimed_usage and coupon_obj:
                 try:
                     await coupon_repo.release_usage(coupon_obj.id, telegram_id, claimed_usage.id)
@@ -481,6 +492,11 @@ async def _execute_purchase_impl(
                 )
             except Exception as exc:
                 logger.exception("Failed to revert renewal for user %s during compensation: %s", panel_user_id, exc)
+            if squads_changed and orig_squad_uuids:
+                try:
+                    await remnawave.set_user_squads(int(account["id"]), orig_squad_uuids)
+                except Exception as sq_exc:
+                    logger.exception("Failed to revert squads for user %s during compensation: %s", panel_user_id, sq_exc)
         await order_repo.mark_failed(pending)
         await session.commit()
         await _report_purchase_err("balance_race", "race: balance went below price during purchase")
@@ -661,6 +677,7 @@ async def notify_admin(
     session: Any = None,
     coupon_code: str | None = None,
     discount_amount: int = 0,
+    loyalty_discount_amount: int = 0,
     full_name: str | None = None,
 ) -> None:
     """Notify admin chat/topic about a successful service purchase or renewal."""
@@ -671,17 +688,31 @@ async def notify_admin(
     from bot.locales.texts import t
 
     tg_username = f"\u200e@{escape(user.username)}\u200e" if getattr(user, "username", None) else "—"
-    effective_price, discount_amount = calc_price(service.price, discount_amount)
+    total_discount = int(discount_amount or 0) + int(loyalty_discount_amount or 0)
+    effective_price, _ = calc_price(service.price, total_discount)
     display_name = escape(full_name or getattr(user, "username", None) or str(getattr(user, "telegram_id", "")))
 
     price_lines = []
-    if coupon_code and discount_amount > 0:
+    if coupon_code and discount_amount > 0 and loyalty_discount_amount > 0:
+        price_lines.append(f"💰 {t('fa', 'svc_field_price')} : <b>{fmt(service.price)}</b> {t('fa', 'svc_currency')}")
+        price_lines.append(f"🏷 {t('fa', 'retention_code_label')} (<code>{escape(coupon_code)}</code>) : <b>\u200e-{fmt(discount_amount)}</b> {t('fa', 'svc_currency')}")
+        price_lines.append(f"💎 تخفیف وفاداری : <b>\u200e-{fmt(loyalty_discount_amount)}</b> {t('fa', 'svc_currency')}")
+        price_lines.append(f"💵 پرداختی از کیف پول : <b>{fmt(effective_price)}</b> {t('fa', 'svc_currency')}")
+    elif coupon_code and discount_amount > 0:
         price_lines.append(f"💰 {t('fa', 'svc_field_price')} : <b>{fmt(service.price)}</b> {t('fa', 'svc_currency')}")
         price_lines.append(f"🏷 {t('fa', 'retention_code_label')} (<code>{escape(coupon_code)}</code>) : <b>\u200e-{fmt(discount_amount)}</b> {t('fa', 'svc_currency')}")
         price_lines.append(f"💵 پرداختی از کیف پول : <b>{fmt(effective_price)}</b> {t('fa', 'svc_currency')}")
+    elif loyalty_discount_amount > 0:
+        price_lines.append(f"💰 {t('fa', 'svc_field_price')} : <b>{fmt(service.price)}</b> {t('fa', 'svc_currency')}")
+        price_lines.append(f"💎 تخفیف وفاداری : <b>\u200e-{fmt(loyalty_discount_amount)}</b> {t('fa', 'svc_currency')}")
+        price_lines.append(f"💵 پرداختی از کیف پول : <b>{fmt(effective_price)}</b> {t('fa', 'svc_currency')}")
+    elif discount_amount > 0:
+        price_lines.append(f"💰 {t('fa', 'svc_field_price')} : <b>{fmt(service.price)}</b> {t('fa', 'svc_currency')}")
+        price_lines.append(f"🏷 تخفیف ویژه : <b>\u200e-{fmt(discount_amount)}</b> {t('fa', 'svc_currency')}")
+        price_lines.append(f"💵 پرداختی از کیف پول : <b>{fmt(effective_price)}</b> {t('fa', 'svc_currency')}")
     else:
         price_lines.append(f"💰 مبلغ کل : <b>{fmt(service.price)}</b> {t('fa', 'svc_currency')}")
-        price_lines.append(f"💵 پرداختی از کیف پول : <b>{fmt(service.price)}</b> {t('fa', 'svc_currency')}")
+        price_lines.append(f"💵 پرداختی از کیف پول : <b>{fmt(effective_price)}</b> {t('fa', 'svc_currency')}")
 
     prices_str = "\n".join(price_lines)
 

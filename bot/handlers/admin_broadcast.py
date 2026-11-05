@@ -176,6 +176,10 @@ async def broadcast_send(
     await render_menu(bot, user, user_repo, progress_text, kb_cancel.as_markup())
     await call.answer("🚀 ارسال همگانی آغاز شد.")
 
+    # Commit any pending session transaction before the network-heavy sending loop
+    # so the connection is not held 'idle in transaction' during broadcast.
+    await session.commit()
+
     safe_text = escape(draft)
 
     for idx, tid in enumerate(recipient_ids, 1):

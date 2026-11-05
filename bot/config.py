@@ -114,6 +114,7 @@ class Settings(BaseSettings):
         "ADMIN_TOPIC_CRYPTO",
         "ADMIN_TOPIC_ERRORS",
         "ADMIN_TOPIC_BACKUPS",
+        "ADMIN_TOPIC_SMS_MANUAL",
         mode="before",
     )
     @classmethod

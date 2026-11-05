@@ -631,8 +631,15 @@ async def c2c_manual_receipt_callback(
 
     # Cancel auto invoice so delayed SMS will not double credit
     if invoice and invoice.status == "pending":
-        await repo.cancel_invoice(uuid_str, call.from_user.id)
+        cancelled = await repo.cancel_invoice(uuid_str, call.from_user.id)
         await session.commit()
+        if not cancelled:
+            fresh = await repo.get_invoice_by_uuid(uuid_str)
+            if fresh and fresh.status == "paid":
+                await call.answer("این فاکتور هم‌اکنون به‌صورت خودکار توسط سیستم پیامک بانکی تأیید شد.", show_alert=True)
+                return
+            await call.answer("این فاکتور لغو شده یا منقضی گردیده است.", show_alert=True)
+            return
 
     amount = invoice.exact_amount if invoice else 0
     if not amount:

@@ -1,8 +1,12 @@
 """Repository for the admin-managed services (plans) shown to users."""
+import logging
+
 from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from bot.db.models import Service
+
+logger = logging.getLogger(__name__)
 
 
 class ServiceRepository:
@@ -27,14 +31,16 @@ class ServiceRepository:
                 ).order_by(Service.id)
             )
             return list(result.scalars().all())
-        except Exception:
+        except Exception as exc:
+            logger.warning("Failed to query active services with purchase limits (%s), falling back to basic query", exc)
             await self.session.rollback()
             try:
                 result = await self.session.execute(
                     select(Service).where(Service.is_active.is_(True)).order_by(Service.id)
                 )
                 return list(result.scalars().all())
-            except Exception:
+            except Exception as exc2:
+                logger.exception("Failed fallback query for active services: %s", exc2)
                 await self.session.rollback()
                 return []
 

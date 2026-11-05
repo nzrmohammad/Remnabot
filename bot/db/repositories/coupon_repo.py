@@ -106,41 +106,42 @@ class CouponRepository:
         else:
             coupon_obj = await self.get_by_id(coupon)
 
-        if coupon_obj:
-            # Atomic conditional increment: never exceeds max_uses, never raises.
-            # synchronize_session="fetch" keeps the identity-map Coupon in sync so
-            # later validate_coupon() reads within the same session see the truth.
-            res = await self.session.execute(
-                update(Coupon)
-                .where(
-                    Coupon.id == coupon_obj.id,
-                    or_(
-                        Coupon.max_uses.is_(None),
-                        Coupon.max_uses == 0,
-                        Coupon.used_count < Coupon.max_uses,
-                    ),
-                )
-                .values(used_count=Coupon.used_count + 1)
-                .execution_options(synchronize_session="fetch"),
-            )
-            if res.rowcount == 0:
-                logger.warning("Coupon %s reached max_uses concurrently, usage not recorded", coupon_obj.code)
-                return None
-
-        usage = CouponUsage(
-            coupon_id=coupon_obj.id if coupon_obj else (coupon if isinstance(coupon, int) else None),
-            telegram_id=telegram_id,
-            order_id=order_id,
-            discount_applied=discount_applied,
-        )
+        code_str = getattr(coupon_obj, "code", None) or (coupon if isinstance(coupon, (str, int)) else "unknown")
         try:
             async with self.session.begin_nested():
+                if coupon_obj:
+                    # Atomic conditional increment: never exceeds max_uses, never raises.
+                    # synchronize_session="fetch" keeps the identity-map Coupon in sync so
+                    # later validate_coupon() reads within the same session see the truth.
+                    res = await self.session.execute(
+                        update(Coupon)
+                        .where(
+                            Coupon.id == coupon_obj.id,
+                            or_(
+                                Coupon.max_uses.is_(None),
+                                Coupon.max_uses == 0,
+                                Coupon.used_count < Coupon.max_uses,
+                            ),
+                        )
+                        .values(used_count=Coupon.used_count + 1)
+                        .execution_options(synchronize_session="fetch"),
+                    )
+                    if res.rowcount == 0:
+                        logger.warning("Coupon %s reached max_uses concurrently, usage not recorded", code_str)
+                        return None
+
+                usage = CouponUsage(
+                    coupon_id=coupon_obj.id if coupon_obj else (coupon if isinstance(coupon, int) else None),
+                    telegram_id=telegram_id,
+                    order_id=order_id,
+                    discount_applied=discount_applied,
+                )
                 self.session.add(usage)
                 await self.session.flush()
         except IntegrityError:
             logger.warning(
                 "Coupon %s duplicate usage prevented for user %s",
-                coupon_obj.code if coupon_obj else coupon,
+                code_str,
                 telegram_id,
             )
             return None
@@ -188,8 +189,10 @@ class CouponRepository:
             return False, "coupon_not_found", 0
         if not coupon.is_active:
             return False, "coupon_inactive", 0
-        if coupon.expires_at and coupon.expires_at < datetime.now(timezone.utc):
-            return False, "coupon_expired", 0
+        if coupon.expires_at:
+            exp = coupon.expires_at if coupon.expires_at.tzinfo else coupon.expires_at.replace(tzinfo=timezone.utc)
+            if exp < datetime.now(timezone.utc):
+                return False, "coupon_expired", 0
         if coupon.max_uses and coupon.max_uses > 0 and coupon.used_count >= coupon.max_uses:
             return False, "coupon_limit_reached", 0
         if await self.has_user_used(coupon.id, telegram_id):
@@ -222,8 +225,10 @@ class CouponRepository:
         if not coupon.is_active:
             return False, 0, "این کد شارژ غیرفعال شده است."
         now_utc = datetime.now(timezone.utc)
-        if coupon.expires_at and coupon.expires_at <= now_utc:
-            return False, 0, "مهلت استفاده از این کد شارژ به پایان رسیده است."
+        if coupon.expires_at:
+            exp = coupon.expires_at if coupon.expires_at.tzinfo else coupon.expires_at.replace(tzinfo=timezone.utc)
+            if exp <= now_utc:
+                return False, 0, "مهلت استفاده از این کد شارژ به پایان رسیده است."
         if coupon.max_uses > 0 and coupon.used_count >= coupon.max_uses:
             return False, 0, "سقف مجاز استفاده از این کد شارژ تکمیل شده است."
         if await self.has_user_used(coupon.id, telegram_id):

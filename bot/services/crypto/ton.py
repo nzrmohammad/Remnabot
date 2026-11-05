@@ -96,6 +96,14 @@ async def verify_and_credit_ton_invoice(
     Returns:
         (is_paid, new_balance, tx_hash)
     """
+    if getattr(inv, "currency", "TON") != "TON":
+        logger.warning(
+            "verify_and_credit_ton_invoice called with non-TON invoice #%s (currency=%s)",
+            inv.id,
+            getattr(inv, "currency", None),
+        )
+        return False, 0, ""
+
     if inv.status == "paid":
         w = await WalletRepository(session).get_wallet(inv.telegram_id)
         return True, (w.balance if w else 0), getattr(inv, "tx_hash", "") or ""
@@ -163,7 +171,7 @@ async def verify_and_process_payments(bot: Any, session_factory: Any) -> int:
     """Check pending invoices against TON blockchain and process payments."""
     async with session_factory() as session:
         crypto_repo = CryptoRepository(session)
-        pending_invoices = await crypto_repo.get_all_pending()
+        pending_invoices = await crypto_repo.get_all_pending(currency="TON")
         if not pending_invoices:
             return 0
 
@@ -171,6 +179,8 @@ async def verify_and_process_payments(bot: Any, session_factory: Any) -> int:
         # Check and expire overdue invoices
         active_invoices = []
         for inv in pending_invoices:
+            if getattr(inv, "currency", "TON") != "TON":
+                continue
             exp = inv.expires_at
             if exp and exp.tzinfo is None:
                 exp = exp.replace(tzinfo=timezone.utc)

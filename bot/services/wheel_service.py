@@ -218,6 +218,8 @@ async def execute_lucky_wheel_spin(
         if not last_spin_at:
             new_streak = 1
         else:
+            if last_spin_at.tzinfo is None:
+                last_spin_at = last_spin_at.replace(tzinfo=timezone.utc)
             last_local = last_spin_at.astimezone(ZoneInfo(tz_name))
             days_diff = (today_date - last_local.date()).days
             if days_diff == 1:

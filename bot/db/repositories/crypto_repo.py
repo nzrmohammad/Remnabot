@@ -2,7 +2,7 @@
 import secrets
 from datetime import datetime, timedelta, timezone
 
-from sqlalchemy import and_, select, text
+from sqlalchemy import and_, select, text, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -42,10 +42,11 @@ class CryptoRepository:
         )
         return result.scalars().first()
 
-    async def get_all_pending(self) -> list[CryptoInvoice]:
-        result = await self.session.execute(
-            select(CryptoInvoice).where(CryptoInvoice.status == "pending")
-        )
+    async def get_all_pending(self, currency: str | None = None) -> list[CryptoInvoice]:
+        stmt = select(CryptoInvoice).where(CryptoInvoice.status == "pending")
+        if currency:
+            stmt = stmt.where(CryptoInvoice.currency == currency)
+        result = await self.session.execute(stmt)
         return list(result.scalars().all())
 
     async def get_by_tx_hash(self, tx_hash: str) -> CryptoInvoice | None:
@@ -136,14 +137,22 @@ class CryptoRepository:
             await self.session.refresh(invoice)
         return invoice
 
-    async def mark_expired(self, invoice_id: int) -> None:
-        invoice = await self.get_by_id(invoice_id)
-        if invoice and invoice.status == "pending":
-            invoice.status = "expired"
-            await self.session.flush()
+    async def mark_expired(self, invoice_id: int) -> bool:
+        stmt = (
+            update(CryptoInvoice)
+            .where(CryptoInvoice.id == invoice_id, CryptoInvoice.status == "pending")
+            .values(status="expired")
+        )
+        res = await self.session.execute(stmt)
+        await self.session.flush()
+        return (res.rowcount or 0) > 0
 
-    async def mark_cancelled(self, invoice_id: int) -> None:
-        invoice = await self.get_by_id(invoice_id)
-        if invoice and invoice.status == "pending":
-            invoice.status = "cancelled"
-            await self.session.flush()
+    async def mark_cancelled(self, invoice_id: int) -> bool:
+        stmt = (
+            update(CryptoInvoice)
+            .where(CryptoInvoice.id == invoice_id, CryptoInvoice.status == "pending")
+            .values(status="cancelled")
+        )
+        res = await self.session.execute(stmt)
+        await self.session.flush()
+        return (res.rowcount or 0) > 0

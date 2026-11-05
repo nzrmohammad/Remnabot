@@ -289,8 +289,8 @@ async def _fetch_subscription_configs_impl(url: str, timeout: float = 2.5) -> li
                         resp = await client.get(target_url, headers={"User-Agent": primary_ua, "Accept": "text/plain, */*"})
                 except Exception as cert_err:
                     err_str = str(cert_err).lower()
-                    if "ssl" in err_str or "cert" in err_str:
-                        logger.debug("SSL verify=True failed for %s (%s), retrying with verify=False", target_url, cert_err)
+                    if ("ssl" in err_str or "cert" in err_str) and is_internal:
+                        logger.debug("SSL verify=True failed for internal %s (%s), retrying with verify=False", target_url, cert_err)
                         async with httpx.AsyncClient(verify=False, follow_redirects=True, timeout=timeout, proxy=p) as client:
                             resp = await client.get(target_url, headers={"User-Agent": primary_ua, "Accept": "text/plain, */*"})
                     else:
@@ -309,9 +309,14 @@ async def _fetch_subscription_configs_impl(url: str, timeout: float = 2.5) -> li
                         try:
                             async with httpx.AsyncClient(verify=True, follow_redirects=True, timeout=timeout, proxy=p) as client:
                                 alt_resp = await client.get(target_url, headers={"User-Agent": alt_ua, "Accept": "*/*"})
-                        except Exception:
-                            async with httpx.AsyncClient(verify=False, follow_redirects=True, timeout=timeout, proxy=p) as client:
-                                alt_resp = await client.get(target_url, headers={"User-Agent": alt_ua, "Accept": "*/*"})
+                        except Exception as cert_err:
+                            err_str = str(cert_err).lower()
+                            if ("ssl" in err_str or "cert" in err_str) and is_internal:
+                                logger.debug("SSL verify=True failed for internal %s (%s), retrying with verify=False", target_url, cert_err)
+                                async with httpx.AsyncClient(verify=False, follow_redirects=True, timeout=timeout, proxy=p) as client:
+                                    alt_resp = await client.get(target_url, headers={"User-Agent": alt_ua, "Accept": "*/*"})
+                            else:
+                                alt_resp = None
                         if alt_resp and alt_resp.status_code == 200 and alt_resp.text.strip():
                             text_body = alt_resp.text.strip()
                             if not text_body.lower().startswith(("<!doctype", "<html")):

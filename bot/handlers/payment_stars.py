@@ -130,10 +130,21 @@ async def stars_successful_payment_handler(
 
     if message.from_user and message.from_user.id != user_tid:
         logger.error(
-            "Stars payment from_user %s does not match payload user %s",
+            "Stars payment from_user %s does not match payload user %s (charge_id=%s)",
             message.from_user.id,
             user_tid,
+            sp.telegram_payment_charge_id,
         )
+        try:
+            from bot.services.error_reporter import report_error
+            await report_error(
+                bot,
+                session=session,
+                exc=f"Stars payment mismatch: from_user={message.from_user.id} != payload={user_tid}, charge_id={sp.telegram_payment_charge_id}, amount={amount_toman}",
+                user_id=message.from_user.id,
+            )
+        except Exception:
+            pass
         return
 
     if sp.currency != "XTR" or sp.total_amount < stars_count:

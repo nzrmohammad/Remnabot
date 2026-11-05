@@ -580,6 +580,9 @@ async def post_user_topup_crypto_check(request: web.Request) -> web.Response:
         if not inv or inv.telegram_id != telegram_id:
             return web.json_response({"ok": False, "message": "فاکتور یافت نشد."}, status=404)
 
+        if getattr(inv, "currency", "TON") != "TON":
+            return web.json_response({"ok": False, "message": "این فاکتور مربوط به شبکه تون (TON) نمی‌باشد."}, status=400)
+
         if inv.status == "paid":
             wallet_repo = WalletRepository(session)
             w = await wallet_repo.get_wallet(telegram_id)
@@ -973,10 +976,24 @@ async def get_user_topup_trx_redirect(request: web.Request) -> web.Response:
     """Intermediary redirect page for launching TronLink and other Tron wallets safely outside TMA."""
     import html
     import json
+    import re
     import urllib.parse
 
     address = (request.query.get("address") or "").strip()
-    amount = (request.query.get("amount") or "0").strip()
+    amount_raw = (request.query.get("amount") or "0").strip()
+
+    # Strict Tron address validation: Base58 (T + 33 chars) or 41-hex (42 chars)
+    if not (re.match(r"^T[1-9A-HJ-NP-Za-km-z]{33}$", address) or re.match(r"^41[0-9a-fA-F]{40}$", address)):
+        return web.Response(text="آدرس کیف پول ترون نامعتبر است.", status=400)
+
+    # Strict amount validation: must be positive float
+    try:
+        amt_float = float(amount_raw)
+        if amt_float <= 0 or amt_float > 10_000_000:
+            raise ValueError
+        amount = f"{amt_float:.6f}".rstrip("0").rstrip(".")
+    except (ValueError, TypeError):
+        return web.Response(text="مبلغ ترون نامعتبر است.", status=400)
 
     param_obj = {
         "url": str(request.url),
@@ -991,8 +1008,11 @@ async def get_user_topup_trx_redirect(request: web.Request) -> web.Response:
     tronlink_url = f"tronlinkoutside://pull.activity?param={encoded_param}"
     tron_uri = f"tron:{address}?amount={amount}"
 
+    safe_tronlink_url = html.escape(tronlink_url)
+    safe_tron_uri = html.escape(tron_uri)
     safe_addr = html.escape(address)
     safe_amt = html.escape(amount)
+    safe_js_url = json.dumps(tronlink_url)
 
     page_html = f"""<!DOCTYPE html>
 <html lang="fa" dir="rtl">
@@ -1000,7 +1020,7 @@ async def get_user_topup_trx_redirect(request: web.Request) -> web.Response:
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>هدایت به کیف پول TronLink</title>
-  <meta http-equiv="refresh" content="0;url={tronlink_url}">
+  <meta http-equiv="refresh" content="0;url={safe_tronlink_url}">
   <style>
     * {{ box-sizing: border-box; }}
     body {{
@@ -1066,8 +1086,8 @@ async def get_user_topup_trx_redirect(request: web.Request) -> web.Response:
     <div class="icon">⚡️</div>
     <h2>انتقال مستقیم با ترون‌لینک</h2>
     <p>در حال انتقال به کیف پول TronLink... اگر به صورت خودکار باز نشد، دکمه زیر را لمس فرمایید:</p>
-    <a href="{tronlink_url}" class="btn btn-tronlink">⚡️ باز کردن در TronLink</a>
-    <a href="{tron_uri}" class="btn btn-other">📱 باز کردن در سایر ولت‌ها (Trust Wallet)</a>
+    <a href="{safe_tronlink_url}" class="btn btn-tronlink">⚡️ باز کردن در TronLink</a>
+    <a href="{safe_tron_uri}" class="btn btn-other">📱 باز کردن در سایر ولت‌ها (Trust Wallet)</a>
     <div class="info-box">
       <div>مبلغ: <b style="color:#22d3ee;font-family:monospace;">{safe_amt} TRX</b></div>
       <div style="margin-top:4px;font-family:monospace;font-size:10px;color:#94a3b8;">{safe_addr}</div>
@@ -1075,7 +1095,7 @@ async def get_user_topup_trx_redirect(request: web.Request) -> web.Response:
   </div>
   <script>
     setTimeout(function() {{
-      window.location.href = "{tronlink_url}";
+      window.location.href = {safe_js_url};
     }}, 150);
   </script>
 </body>

@@ -122,7 +122,12 @@ async def api_rate_limit_middleware(request: web.Request, handler):
         sensitive_paths = {
             "/api/user/validate_coupon",
             "/api/user/purchase",
+            "/api/user/custom-plan/purchase",
             "/api/user/spin",
+            "/api/user/gift/claim",
+            "/api/user/gift/create",
+            "/api/user/wallet/redeem",
+            "/api/user/wallet/redeem-voucher",
             "/api/user/topup/card",
             "/api/user/topup/card-auto/create",
             "/api/user/topup/card-auto/cancel",

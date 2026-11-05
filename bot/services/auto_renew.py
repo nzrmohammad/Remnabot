@@ -10,6 +10,7 @@ from datetime import datetime, timezone
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import async_sessionmaker
 
+from bot.common.helpers import get_used_bytes
 from bot.db.models import Order, User
 from bot.db.repositories.service_repo import ServiceRepository
 from bot.db.repositories.wallet_repo import WalletRepository
@@ -52,7 +53,7 @@ async def process_auto_renewals(
                     except Exception:
                         pass
 
-                used_bytes = int(acc.get("usedTrafficBytes") or 0)
+                used_bytes = get_used_bytes(acc)
                 limit_bytes = int(acc.get("trafficLimitBytes") or 0)
                 traffic_exhausted = (limit_bytes > 0 and used_bytes >= limit_bytes)
                 expiring_soon = (days_left <= 1.0 or traffic_exhausted)

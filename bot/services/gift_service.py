@@ -189,8 +189,10 @@ async def claim_gift(
     if gift.delivery_type == "DIRECT":
         if gift.receiver_telegram_id and gift.receiver_telegram_id != claimer_telegram_id:
             return {"ok": False, "message": "این کارت هدیه اختصاصاً برای کاربر دیگری ارسال شده است."}
-        if gift.receiver_username and claimer_username:
-            if gift.receiver_username.lower() != claimer_username.lower() and gift.receiver_telegram_id != claimer_telegram_id:
+        if gift.receiver_username:
+            r_uname = gift.receiver_username.lstrip("@").strip().lower()
+            c_uname = claimer_username.lstrip("@").strip().lower() if claimer_username else None
+            if gift.receiver_telegram_id != claimer_telegram_id and (not c_uname or c_uname != r_uname):
                 return {"ok": False, "message": "این کارت هدیه اختصاصاً برای کاربر دیگری ارسال شده است."}
 
     sender_id = gift.sender_telegram_id

@@ -49,31 +49,48 @@ class CampaignRepository:
 
     async def get_campaigns_with_stats(self, bot_username: str = "") -> list[dict]:
         campaigns = await self.list_all()
+        if not campaigns:
+            return []
+
+        campaign_codes = [c.code for c in campaigns if c.code]
+        users_by_code: dict[str, int] = {}
+        buyers_rev_by_code: dict[str, tuple[int, int]] = {}
+
+        if campaign_codes:
+            try:
+                u_stmt = (
+                    select(User.campaign_code, func.count(User.id))
+                    .where(User.campaign_code.in_(campaign_codes))
+                    .group_by(User.campaign_code)
+                )
+                u_res = await self.session.execute(u_stmt)
+                users_by_code = {row[0]: int(row[1] or 0) for row in u_res.fetchall()}
+            except Exception as e:
+                logger.warning("Error batch querying campaign users count: %s", e)
+
+            try:
+                b_stmt = (
+                    select(
+                        User.campaign_code,
+                        func.count(distinct(Order.telegram_id)),
+                        func.coalesce(func.sum(Order.amount), 0),
+                    )
+                    .join(User, Order.telegram_id == User.telegram_id)
+                    .where(User.campaign_code.in_(campaign_codes), Order.status.in_(["paid", "PAID"]))
+                    .group_by(User.campaign_code)
+                )
+                b_res = await self.session.execute(b_stmt)
+                buyers_rev_by_code = {
+                    row[0]: (int(row[1] or 0), int(row[2] or 0)) for row in b_res.fetchall()
+                }
+            except Exception as e:
+                logger.warning("Error batch querying campaign buyers/revenue: %s", e)
+
         stats = []
         for c in campaigns:
             try:
-                # 1. Total users registered through this campaign
-                u_stmt = select(func.count(User.id)).where(User.campaign_code == c.code)
-                u_res = await self.session.execute(u_stmt)
-                users_count = int(u_res.scalar_one() or 0)
-
-                # 2. Distinct buyers
-                b_stmt = (
-                    select(func.count(distinct(Order.telegram_id)))
-                    .join(User, Order.telegram_id == User.telegram_id)
-                    .where(User.campaign_code == c.code, Order.status.in_(["paid", "PAID"]))
-                )
-                b_res = await self.session.execute(b_stmt)
-                buyers_count = int(b_res.scalar_one() or 0)
-
-                # 3. Total revenue from this campaign
-                r_stmt = (
-                    select(func.coalesce(func.sum(Order.amount), 0))
-                    .join(User, Order.telegram_id == User.telegram_id)
-                    .where(User.campaign_code == c.code, Order.status.in_(["paid", "PAID"]))
-                )
-                r_res = await self.session.execute(r_stmt)
-                total_revenue = int(r_res.scalar_one() or 0)
+                users_count = users_by_code.get(c.code, 0)
+                buyers_count, total_revenue = buyers_rev_by_code.get(c.code, (0, 0))
 
                 profit = total_revenue - c.cost
                 roi_pct = round((profit / c.cost) * 100, 1) if c.cost > 0 else 0

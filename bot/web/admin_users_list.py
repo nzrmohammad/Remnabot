@@ -342,7 +342,7 @@ async def post_admin_users_bulk_action(request: web.Request) -> web.Response:
         if not raw_target:
             return web.json_response({"ok": False, "error": "مشخص کردن جامعه هدف برای عملیات حذف الزامی است."}, status=400)
         target = str(raw_target).strip()
-        if target in ("all", "all_panel"):
+        if target.lower() in ("all", "all_panel"):
             return web.json_response({"ok": False, "error": "حذف همگانی تمام کاربران پنل از این بخش مجاز نیست."}, status=400)
         confirm_token = str(body.get("confirm") or "").strip().upper()
         if confirm_token != "DELETE":
@@ -377,8 +377,12 @@ async def post_admin_users_bulk_action(request: web.Request) -> web.Response:
         target_users = [u for u in all_users if (u.get("status") or "").upper() == target_status]
     elif target == "all_active":
         target_users = [u for u in all_users if (u.get("status") or "").upper() == "ACTIVE"]
-    else:
+    elif target.lower() in ("all", "all_panel"):
+        if action_type == "delete_users":
+            return web.json_response({"ok": False, "error": "حذف همگانی تمام کاربران پنل از این بخش مجاز نیست."}, status=400)
         target_users = all_users
+    else:
+        return web.json_response({"ok": False, "error": f"جامعه هدف مشخص‌شده نامعتبر است: {target}"}, status=400)
 
     if not target_users:
         return web.json_response({"ok": False, "error": "هیچ کاربری با فیلتر مشخص‌شده یافت نشد."}, status=404)

@@ -83,6 +83,20 @@ def _migrate_db_schema(sync_conn) -> None:
             except Exception as exc:
                 logger.warning("Could not add column %s.%s: %s", table_name, col.name, exc)
 
+        # Inspect and create missing table indexes (e.g. partial unique indexes on upgraded DBs)
+        try:
+            existing_indexes = {idx["name"] for idx in inspector.get_indexes(table_name) if idx.get("name")}
+        except Exception:
+            existing_indexes = set()
+
+        for idx in table.indexes:
+            if idx.name and idx.name not in existing_indexes:
+                try:
+                    idx.create(bind=sync_conn)
+                    logger.info("Migrated schema: created missing index %s on %s", idx.name, table_name)
+                except Exception as exc:
+                    logger.warning("Could not create index %s on %s: %s", idx.name, table_name, exc)
+
 
 async def init_db(engine) -> None:
     """Create all tables on boot and apply non-destructive schema migrations."""
