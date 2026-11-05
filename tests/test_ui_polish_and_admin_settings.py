@@ -35,11 +35,11 @@ def test_app_html_profile_card_order_and_arrow():
 def test_loyalty_service_copy_and_english_pct():
     for tier in DEFAULT_LOYALTY_TIERS:
         if tier["id"] == "silver":
-            assert tier["description"] == "3% تخفیف دائمی"
+            assert tier["description"] == "3% تخفیف"
         elif tier["id"] == "gold":
-            assert tier["description"] == "5% تخفیف دائمی"
+            assert tier["description"] == "5% تخفیف"
         elif tier["id"] == "diamond":
-            assert "15% تخفیف دائمی" in tier["description"]
+            assert "15% تخفیف" in tier["description"]
 
 
 def test_custom_plan_volume_discount_tiered_calculation():

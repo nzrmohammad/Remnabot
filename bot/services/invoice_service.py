@@ -74,8 +74,18 @@ async def get_order_invoice_data(
     traffic_desc = f"{traffic_gb} گیگابایت" if traffic_gb > 0 else "نامحدود"
     duration_desc = f"{duration_days} روز" if duration_days > 0 else "بدون محدودیت زمانی"
 
-    is_paid = (order.status == OrderStatus.PAID.value) or (str(order.status).lower() == "paid")
-    status_label = "پرداخت شده" if is_paid else "ناموفق / لغو شده"
+    raw_status = (
+        order.status.value if hasattr(order.status, "value") else str(order.status or "")
+    ).lower()
+    is_paid = raw_status in (OrderStatus.PAID.value, "paid")
+    if is_paid:
+        status_label = "پرداخت شده"
+    elif raw_status in (OrderStatus.REFUNDED.value, "refunded"):
+        status_label = "مسترد شده (مرجوع)"
+    elif raw_status in (OrderStatus.PENDING.value, "pending"):
+        status_label = "در انتظار پرداخت"
+    else:
+        status_label = "ناموفق / لغو شده"
 
     amount_toman = int(order.amount or 0)
     amount_rial = amount_toman * 10

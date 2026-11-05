@@ -538,40 +538,13 @@
             </div>
           </div>
 
-          <!-- Daily Diurnal Intervals Breakdown (توزیع بازه‌های زمانی) -->
-          <div class="pt-2 border-t border-slate-700/60 text-xs space-y-1.5">
-            <div class="flex justify-between items-center text-slate-400">
-              <span class="font-medium flex items-center gap-1"><span>📊</span> توزیع مصرف بازه‌ها:</span>
-              <span class="text-[10px] font-mono">۴ بازه شبانه‌روز</span>
-            </div>
-            <div class="grid grid-cols-2 sm:grid-cols-4 gap-1.5 pt-0.5 font-mono text-[11px]">
-              <div class="card-inset p-2 rounded-xl flex flex-col justify-between">
-                <div class="flex items-center justify-between text-slate-400 text-[10px] font-sans">
-                  <span class="flex items-center gap-1"><span>🌙 بامداد</span> <span dir="ltr" class="font-mono text-[9px] text-slate-400">(00-06)</span></span>
-                  <span id="repDailyPeriodDawnPct" class="text-cyan-400 font-bold font-mono">0%</span>
-                </div>
-                <b id="repDailyPeriodDawnVal" class="text-white text-xs mt-1 block num-bidi" dir="ltr">0.00 GB</b>
-              </div>
-              <div class="card-inset p-2 rounded-xl flex flex-col justify-between">
-                <div class="flex items-center justify-between text-slate-400 text-[10px] font-sans">
-                  <span class="flex items-center gap-1"><span>🌅 صبح</span> <span dir="ltr" class="font-mono text-[9px] text-slate-400">(06-12)</span></span>
-                  <span id="repDailyPeriodMornPct" class="text-emerald-400 font-bold font-mono">0%</span>
-                </div>
-                <b id="repDailyPeriodMornVal" class="text-white text-xs mt-1 block num-bidi" dir="ltr">0.00 GB</b>
-              </div>
-              <div class="card-inset p-2 rounded-xl flex flex-col justify-between">
-                <div class="flex items-center justify-between text-slate-400 text-[10px] font-sans">
-                  <span class="flex items-center gap-1"><span>☀️ عصر</span> <span dir="ltr" class="font-mono text-[9px] text-slate-400">(12-18)</span></span>
-                  <span id="repDailyPeriodAftPct" class="text-amber-400 font-bold font-mono">0%</span>
-                </div>
-                <b id="repDailyPeriodAftVal" class="text-white text-xs mt-1 block num-bidi" dir="ltr">0.00 GB</b>
-              </div>
-              <div class="card-inset p-2 rounded-xl flex flex-col justify-between">
-                <div class="flex items-center justify-between text-slate-400 text-[10px] font-sans">
-                  <span class="flex items-center gap-1"><span>🌆 شب</span> <span dir="ltr" class="font-mono text-[9px] text-slate-400">(18-24)</span></span>
-                  <span id="repDailyPeriodNgtPct" class="text-purple-400 font-bold font-mono">0%</span>
-                </div>
-                <b id="repDailyPeriodNgtVal" class="text-white text-xs mt-1 block num-bidi" dir="ltr">0.00 GB</b>
+          <!-- Daily Hourly Bar Chart (نمودار مصرف ساعتی امروز) -->
+          <div class="pt-2 border-t border-slate-700/60">
+            <span class="text-[11px] text-slate-400 font-medium block mb-2">نمودار مصرف ساعتی امروز (۲۴ ساعت):</span>
+            <div class="h-36 w-full p-2 bg-transparent rounded-xl relative flex items-center justify-center">
+              <canvas id="repDailyChartCanvas" dir="ltr" class="w-full h-full"></canvas>
+              <div id="repDailyEmptyState" class="hidden text-center py-6 text-xs text-slate-400">
+                <span>ℹ️ اشتراک فعالی برای نمایش نمودار امروز وجود ندارد.</span>
               </div>
             </div>
           </div>
@@ -602,40 +575,13 @@
             </div>
           </div>
 
-          <!-- Nightly Diurnal Intervals Breakdown (توزیع بازه‌های زمانی دیشب) -->
-          <div class="pt-2 border-t border-slate-700/60 text-xs space-y-1.5">
-            <div class="flex justify-between items-center text-slate-400">
-              <span class="font-medium flex items-center gap-1"><span>📊</span> توزیع مصرف بازه‌ها:</span>
-              <span class="text-[10px] font-mono">۴ بازه شبانه‌روز</span>
-            </div>
-            <div class="grid grid-cols-2 sm:grid-cols-4 gap-1.5 pt-0.5 font-mono text-[11px]">
-              <div class="card-inset p-2 rounded-xl flex flex-col justify-between">
-                <div class="flex items-center justify-between text-slate-400 text-[10px] font-sans">
-                  <span class="flex items-center gap-1"><span>🌙 بامداد</span> <span dir="ltr" class="font-mono text-[9px] text-slate-400">(00-06)</span></span>
-                  <span id="repNightlyPeriodDawnPct" class="text-cyan-400 font-bold font-mono">0%</span>
-                </div>
-                <b id="repNightlyPeriodDawnVal" class="text-white text-xs mt-1 block num-bidi" dir="ltr">0.00 GB</b>
-              </div>
-              <div class="card-inset p-2 rounded-xl flex flex-col justify-between">
-                <div class="flex items-center justify-between text-slate-400 text-[10px] font-sans">
-                  <span class="flex items-center gap-1"><span>🌅 صبح</span> <span dir="ltr" class="font-mono text-[9px] text-slate-400">(06-12)</span></span>
-                  <span id="repNightlyPeriodMornPct" class="text-emerald-400 font-bold font-mono">0%</span>
-                </div>
-                <b id="repNightlyPeriodMornVal" class="text-white text-xs mt-1 block num-bidi" dir="ltr">0.00 GB</b>
-              </div>
-              <div class="card-inset p-2 rounded-xl flex flex-col justify-between">
-                <div class="flex items-center justify-between text-slate-400 text-[10px] font-sans">
-                  <span class="flex items-center gap-1"><span>☀️ عصر</span> <span dir="ltr" class="font-mono text-[9px] text-slate-400">(12-18)</span></span>
-                  <span id="repNightlyPeriodAftPct" class="text-amber-400 font-bold font-mono">0%</span>
-                </div>
-                <b id="repNightlyPeriodAftVal" class="text-white text-xs mt-1 block num-bidi" dir="ltr">0.00 GB</b>
-              </div>
-              <div class="card-inset p-2 rounded-xl flex flex-col justify-between">
-                <div class="flex items-center justify-between text-slate-400 text-[10px] font-sans">
-                  <span class="flex items-center gap-1"><span>🌆 شب</span> <span dir="ltr" class="font-mono text-[9px] text-slate-400">(18-24)</span></span>
-                  <span id="repNightlyPeriodNgtPct" class="text-purple-400 font-bold font-mono">0%</span>
-                </div>
-                <b id="repNightlyPeriodNgtVal" class="text-white text-xs mt-1 block num-bidi" dir="ltr">0.00 GB</b>
+          <!-- Nightly Hourly Bar Chart (نمودار مصرف ساعتی دیشب / شبانه) -->
+          <div class="pt-2 border-t border-slate-700/60">
+            <span class="text-[11px] text-slate-400 font-medium block mb-2">نمودار مصرف ساعتی دیشب (۲۴ ساعت):</span>
+            <div class="h-36 w-full p-2 bg-transparent rounded-xl relative flex items-center justify-center">
+              <canvas id="repNightlyChartCanvas" dir="ltr" class="w-full h-full"></canvas>
+              <div id="repNightlyEmptyState" class="hidden text-center py-6 text-xs text-slate-400">
+                <span>ℹ️ اشتراک فعالی برای نمایش نمودار شبانه وجود ندارد.</span>
               </div>
             </div>
           </div>
@@ -1346,7 +1292,7 @@
             <!-- Benefits description -->
             <div class="text-[10.5px] t-muted leading-relaxed flex items-center gap-2">
               <span>✨</span>
-              <span id="loyaltyBenefitDesc">با خرید بیشتر از فروشگاه، سطح خود را ارتقا دهید و از تخفیف دائمی روی تمامی بسته‌ها بهره‌مند شوید.</span>
+              <span id="loyaltyBenefitDesc">با خرید بیشتر از فروشگاه، سطح خود را ارتقا دهید و از تخفیف روی تمامی بسته‌ها بهره‌مند شوید.</span>
             </div>
 
             <!-- Call to Action button to open modal -->
@@ -3473,7 +3419,7 @@
           </div>
           <div>
             <h3 class="text-sm font-bold t-main">باشگاه مشتریان و سطوح وفاداری</h3>
-            <span class="text-[10px] t-muted block">تخفیف‌های دائمی و پاداش خریدهای شما</span>
+            <span class="text-[10px] t-muted block">تخفیف‌ها و پاداش خریدهای شما</span>
           </div>
         </div>
 
@@ -3491,11 +3437,11 @@
             <b id="loyaltyModalTotalSpent" class="font-mono text-xs t-main">۰ تومان</b>
           </div>
           <div class="flex items-center justify-between text-xs">
-            <span class="t-muted text-[11px]">میزان تخفیف دائمی شما:</span>
+            <span class="t-muted text-[11px]">میزان تخفیف شما:</span>
             <b id="loyaltyModalCurrentDiscount" class="text-xs font-bold text-emerald-500">بدون تخفیف</b>
           </div>
           <p id="loyaltyModalProgressText" class="text-[10px] text-amber-600 dark:text-amber-400 pt-1 leading-snug">
-            با خرید بسته‌های بیشتر، سطح شما ارتقا یافته و تخفیف دائمی دریافت می‌کنید.
+            با خرید بسته‌های بیشتر، سطح شما ارتقا یافته و تخفیف دریافت می‌کنید.
           </p>
         </div>
 
@@ -3513,7 +3459,7 @@
                   <b class="text-xs t-main">سطح برنزی (پایه)</b>
                   <span class="text-[10px] text-slate-400 font-medium">از ۰ تومان</span>
                 </div>
-                <p class="text-[10px] t-muted mt-0.5 leading-snug">سطح پیش‌فرض هنگام عضویت. بدون تخفیف دائمی.</p>
+                <p class="text-[10px] t-muted mt-0.5 leading-snug">سطح پیش‌فرض هنگام عضویت. بدون تخفیف.</p>
               </div>
             </div>
 
@@ -3525,9 +3471,9 @@
               <div class="flex-1 min-w-0">
                 <div class="flex items-center justify-between">
                   <b class="text-xs t-main">سطح نقره‌ای</b>
-                  <span id="loyaltyTierCard_silver_spent" class="text-[10px] font-bold text-slate-600 dark:text-slate-300 font-mono">300,000 تومان</span>
+                  <span id="loyaltyTierCard_silver_spent" class="text-[10px] font-bold text-slate-600 dark:text-slate-300 font-mono">1,000,000 تومان</span>
                 </div>
-                <p class="text-[10px] t-muted mt-0.5 leading-snug"><span id="loyaltyTierCard_silver_pct" class="text-emerald-500 font-bold font-mono num-bidi" dir="ltr">3%</span> <b class="text-emerald-500 font-bold">تخفیف دائمی</b>.</p>
+                <p class="text-[10px] t-muted mt-0.5 leading-snug"><span id="loyaltyTierCard_silver_pct" class="text-emerald-500 font-bold font-mono num-bidi" dir="ltr">3%</span> <b class="text-emerald-500 font-bold">تخفیف</b>.</p>
               </div>
             </div>
 
@@ -3539,9 +3485,9 @@
               <div class="flex-1 min-w-0">
                 <div class="flex items-center justify-between">
                   <b class="text-xs t-main">سطح طلایی</b>
-                  <span id="loyaltyTierCard_gold_spent" class="text-[10px] font-bold text-amber-500 font-mono">700,000 تومان</span>
+                  <span id="loyaltyTierCard_gold_spent" class="text-[10px] font-bold text-amber-500 font-mono">2,500,000 تومان</span>
                 </div>
-                <p class="text-[10px] t-muted mt-0.5 leading-snug"><span id="loyaltyTierCard_gold_pct" class="text-emerald-500 font-bold font-mono num-bidi" dir="ltr">5%</span> <b class="text-emerald-500 font-bold">تخفیف دائمی</b>.</p>
+                <p class="text-[10px] t-muted mt-0.5 leading-snug"><span id="loyaltyTierCard_gold_pct" class="text-emerald-500 font-bold font-mono num-bidi" dir="ltr">5%</span> <b class="text-emerald-500 font-bold">تخفیف</b>.</p>
               </div>
             </div>
 
@@ -3553,9 +3499,9 @@
               <div class="flex-1 min-w-0">
                 <div class="flex items-center justify-between">
                   <b class="text-xs text-cyan-500 dark:text-cyan-300 font-bold">سطح پلاتین</b>
-                  <span id="loyaltyTierCard_platinum_spent" class="text-[10px] font-bold text-cyan-400 font-mono">1,500,000 تومان</span>
+                  <span id="loyaltyTierCard_platinum_spent" class="text-[10px] font-bold text-cyan-400 font-mono">5,000,000 تومان</span>
                 </div>
-                <p class="text-[10px] t-muted mt-0.5 leading-snug"><span id="loyaltyTierCard_platinum_pct" class="text-emerald-500 font-bold font-mono num-bidi" dir="ltr">8%</span> <b class="text-emerald-500 font-bold">تخفیف دائمی</b>.</p>
+                <p class="text-[10px] t-muted mt-0.5 leading-snug"><span id="loyaltyTierCard_platinum_pct" class="text-emerald-500 font-bold font-mono num-bidi" dir="ltr">8%</span> <b class="text-emerald-500 font-bold">تخفیف</b>.</p>
               </div>
             </div>
 
@@ -3567,9 +3513,9 @@
               <div class="flex-1 min-w-0">
                 <div class="flex items-center justify-between">
                   <b class="text-xs text-purple-400 font-bold">سطح یاقوت</b>
-                  <span id="loyaltyTierCard_ruby_spent" class="text-[10px] font-bold text-purple-400 font-mono">3,000,000 تومان</span>
+                  <span id="loyaltyTierCard_ruby_spent" class="text-[10px] font-bold text-purple-400 font-mono">8,000,000 تومان</span>
                 </div>
-                <p class="text-[10px] t-muted mt-0.5 leading-snug"><span id="loyaltyTierCard_ruby_pct" class="text-emerald-500 font-bold font-mono num-bidi" dir="ltr">10%</span> <b class="text-emerald-500 font-bold">تخفیف دائمی</b>.</p>
+                <p class="text-[10px] t-muted mt-0.5 leading-snug"><span id="loyaltyTierCard_ruby_pct" class="text-emerald-500 font-bold font-mono num-bidi" dir="ltr">10%</span> <b class="text-emerald-500 font-bold">تخفیف</b>.</p>
               </div>
             </div>
 
@@ -3581,9 +3527,9 @@
               <div class="flex-1 min-w-0">
                 <div class="flex items-center justify-between">
                   <b class="text-xs text-emerald-400 font-bold">سطح زمرد</b>
-                  <span id="loyaltyTierCard_emerald_spent" class="text-[10px] font-bold text-emerald-400 font-mono">6,000,000 تومان</span>
+                  <span id="loyaltyTierCard_emerald_spent" class="text-[10px] font-bold text-emerald-400 font-mono">12,000,000 تومان</span>
                 </div>
-                <p class="text-[10px] t-muted mt-0.5 leading-snug"><span id="loyaltyTierCard_emerald_pct" class="text-emerald-500 font-bold font-mono num-bidi" dir="ltr">12%</span> <b class="text-emerald-500 font-bold">تخفیف دائمی</b>.</p>
+                <p class="text-[10px] t-muted mt-0.5 leading-snug"><span id="loyaltyTierCard_emerald_pct" class="text-emerald-500 font-bold font-mono num-bidi" dir="ltr">12%</span> <b class="text-emerald-500 font-bold">تخفیف</b>.</p>
               </div>
             </div>
 
@@ -3595,9 +3541,9 @@
               <div class="flex-1 min-w-0">
                 <div class="flex items-center justify-between">
                   <b class="text-xs text-amber-600 dark:text-amber-300 font-bold">سطح الماس</b>
-                  <span id="loyaltyTierCard_diamond_spent" class="text-[10px] font-bold text-amber-600 dark:text-amber-300 font-mono">10,000,000 تومان</span>
+                  <span id="loyaltyTierCard_diamond_spent" class="text-[10px] font-bold text-amber-600 dark:text-amber-300 font-mono">20,000,000 تومان</span>
                 </div>
-                <p class="text-[10px] t-muted mt-0.5 leading-snug"><span id="loyaltyTierCard_diamond_pct" class="text-emerald-500 font-bold font-mono num-bidi" dir="ltr">15%</span> <b class="text-emerald-500 font-bold">تخفیف دائمی</b> + پشتیبانی اختصاصی.</p>
+                <p class="text-[10px] t-muted mt-0.5 leading-snug"><span id="loyaltyTierCard_diamond_pct" class="text-emerald-500 font-bold font-mono num-bidi" dir="ltr">15%</span> <b class="text-emerald-500 font-bold">تخفیف</b> + پشتیبانی اختصاصی.</p>
               </div>
             </div>
           </div>

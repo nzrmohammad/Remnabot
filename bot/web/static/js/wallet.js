@@ -38,7 +38,7 @@ window.flipBluCard = function(el) {
 
 const BLUBANK_PALETTES = {
   red: {
-    grad: 'linear-gradient(135deg, #b71c1c 0%, #d32f2f 50%, #f44336 100%)',
+    grad: 'linear-gradient(135deg, #991b1b 0%, #b91c1c 50%, #dc2626 100%)',
     text: '#ffffff',
     accent: '#fecaca',
   },
@@ -156,7 +156,9 @@ function renderWalletTransactions(transactions) {
       ? 't-warn'
       : ((tx.status_color === 'rose' || tx.status_color === 'red')
         ? 't-danger'
-        : (tx.status_color === 'slate' ? 't-muted' : 't-success'));
+        : (tx.status_color === 'purple'
+          ? 'text-purple-400'
+          : (tx.status_color === 'slate' ? 't-muted' : 't-success')));
 
     const isOrder = tx.type === 'order' && tx.id;
     const invoiceBtn = isOrder ? `

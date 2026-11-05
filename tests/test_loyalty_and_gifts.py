@@ -17,16 +17,16 @@ async def test_loyalty_tiers_progression(session_factory):
         loyalty = await get_user_loyalty(session, tg_id)
         assert loyalty["tier_id"] == "bronze"
         assert loyalty["discount_percent"] == 0
-        assert loyalty["amount_to_next"] == 300_000
+        assert loyalty["amount_to_next"] == 1_000_000
         assert loyalty["progress_percent"] == 0
         assert not loyalty["is_max_tier"]
         assert len(loyalty["all_tiers"]) == 7
 
-        # 2. Add orders for 400,000 -> Silver (threshold: 300,000, next: 700,000)
+        # 2. Add orders for 1,200,000 -> Silver (threshold: 1,000,000, next: 2,500,000)
         order1 = Order(
             telegram_id=tg_id,
             service_name="Test Plan",
-            amount=400_000,
+            amount=1_200_000,
             status=OrderStatus.PAID.value,
         )
         session.add(order1)
@@ -35,15 +35,15 @@ async def test_loyalty_tiers_progression(session_factory):
         loyalty = await get_user_loyalty(session, tg_id)
         assert loyalty["tier_id"] == "silver"
         assert loyalty["discount_percent"] == 3
-        assert loyalty["total_spent"] == 400_000
-        assert loyalty["amount_to_next"] == 300_000  # 700k - 400k = 300k to Gold
-        assert loyalty["progress_percent"] == 25  # 100k / 400k
+        assert loyalty["total_spent"] == 1_200_000
+        assert loyalty["amount_to_next"] == 1_300_000  # 2.5M - 1.2M = 1.3M to Gold
+        assert loyalty["progress_percent"] == 13  # 200k / 1.5M
 
-        # 3. Add orders for 600,000 more (total 1,000,000) -> Gold (threshold: 700,000, next: 1,500,000)
+        # 3. Add orders for 1,500,000 more (total 2,700,000) -> Gold (threshold: 2,500,000, next: 5,000,000)
         order2 = Order(
             telegram_id=tg_id,
             service_name="Test Plan 2",
-            amount=600_000,
+            amount=1_500_000,
             status=OrderStatus.PAID.value,
         )
         session.add(order2)
@@ -52,13 +52,13 @@ async def test_loyalty_tiers_progression(session_factory):
         loyalty = await get_user_loyalty(session, tg_id)
         assert loyalty["tier_id"] == "gold"
         assert loyalty["discount_percent"] == 5
-        assert loyalty["total_spent"] == 1_000_000
+        assert loyalty["total_spent"] == 2_700_000
 
-        # 4. Add orders for 10,000,000 more (total 11,000,000) -> Diamond (threshold: 10,000,000)
+        # 4. Add orders for 20,000,000 more (total 22,700,000) -> Diamond (threshold: 20,000,000)
         order3 = Order(
             telegram_id=tg_id,
             service_name="Test Plan 3",
-            amount=10_000_000,
+            amount=20_000_000,
             status=OrderStatus.PAID.value,
         )
         session.add(order3)

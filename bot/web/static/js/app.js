@@ -163,6 +163,16 @@ function renderReportsCharts(sub) {
     }
     return;
   }
+  const dailyCanvas = $('repDailyChartCanvas');
+  const dailyEmpty = $('repDailyEmptyState');
+  if (dailyCanvas) dailyCanvas.classList.remove('hidden');
+  if (dailyEmpty) dailyEmpty.classList.add('hidden');
+
+  const nightlyCanvas = $('repNightlyChartCanvas');
+  const nightlyEmpty = $('repNightlyEmptyState');
+  if (nightlyCanvas) nightlyCanvas.classList.remove('hidden');
+  if (nightlyEmpty) nightlyEmpty.classList.add('hidden');
+
   const weeklyCanvas = $('repWeeklyChartCanvas');
   const weeklyEmpty = $('repWeeklyEmptyState');
   if (weeklyCanvas) weeklyCanvas.classList.remove('hidden');
@@ -173,7 +183,15 @@ function renderReportsCharts(sub) {
   if (monthlyCanvas) monthlyCanvas.classList.remove('hidden');
   if (monthlyEmpty) monthlyEmpty.classList.add('hidden');
 
+  const hourlyData = currentSub.hourly_usage?.data || [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+  const hourlyLabels = currentSub.hourly_usage?.labels || [
+    '00-02','02-04','04-06','06-08','08-10','10-12',
+    '12-14','14-16','16-18','18-20','20-22','22-24'
+  ];
+
   if (typeof renderBarChart === 'function') {
+    renderBarChart('repDailyChartCanvas', hourlyData, hourlyLabels, false);
+    renderBarChart('repNightlyChartCanvas', hourlyData, hourlyLabels, false);
     renderBarChart('repWeeklyChartCanvas', currentSub.week_daily_totals_gb || [0, 0, 0, 0, 0, 0, 0], currentSub.week_day_labels || ['ش', 'ی', 'د', 'س', 'چ', 'پ', 'ج'], false);
   }
   if (typeof updateMonthlyReportView === 'function') {
@@ -2346,14 +2364,24 @@ function setupProfileHandlers() {
 
 function resetActiveSubAnalytics() {
   // 1. Destroy all charts to prevent ghost/dummy rendering
-  ['repWeeklyChartCanvas', 'repMonthlyChartCanvas', 'repPeakHoursChartCanvas', 'repPeakHoursBarCanvas', 'userLeaderboardChartCanvas'].forEach(id => {
+  ['repDailyChartCanvas', 'repNightlyChartCanvas', 'repWeeklyChartCanvas', 'repMonthlyChartCanvas', 'repPeakHoursChartCanvas', 'repPeakHoursBarCanvas', 'userLeaderboardChartCanvas'].forEach(id => {
     if (window.chartInstances && window.chartInstances[id]) {
       try { window.chartInstances[id].destroy(); } catch(e) {}
       delete window.chartInstances[id];
     }
   });
 
-  // 2. Hide canvases and display clean empty states on weekly & monthly cards
+  // 2. Hide canvases and display clean empty states on daily, nightly, weekly & monthly cards
+  const dailyCanvas = $('repDailyChartCanvas');
+  const dailyEmpty = $('repDailyEmptyState');
+  if (dailyCanvas) dailyCanvas.classList.add('hidden');
+  if (dailyEmpty) dailyEmpty.classList.remove('hidden');
+
+  const nightlyCanvas = $('repNightlyChartCanvas');
+  const nightlyEmpty = $('repNightlyEmptyState');
+  if (nightlyCanvas) nightlyCanvas.classList.add('hidden');
+  if (nightlyEmpty) nightlyEmpty.classList.remove('hidden');
+
   const weeklyCanvas = $('repWeeklyChartCanvas');
   const weeklyEmpty = $('repWeeklyEmptyState');
   if (weeklyCanvas) weeklyCanvas.classList.add('hidden');
@@ -2519,6 +2547,8 @@ function renderActiveSubAnalytics(sub) {
         renderLineCurveChart('repPeakHoursChartCanvas', hourlyLabels, hourlyData, peakHour);
         if (typeof renderBarChart === 'function') {
           renderBarChart('repPeakHoursBarCanvas', hourlyData, hourlyLabels, false);
+          renderBarChart('repDailyChartCanvas', hourlyData, hourlyLabels, false);
+          renderBarChart('repNightlyChartCanvas', hourlyData, hourlyLabels, false);
         }
         // Update 4 Diurnal Periods Summary
         try {
@@ -2828,7 +2858,7 @@ function hydrateUserInterface(data) {
       if ($('loyaltyTierName')) $('loyaltyTierName').innerText = loyalty.name || 'برنزی';
       const discBadge = $('loyaltyDiscountBadge');
       if (discBadge) {
-        discBadge.innerHTML = loyalty.discount_percent > 0 ? `<span class="font-mono font-bold" dir="ltr">${toEnglishDigits(loyalty.discount_percent)}%</span> تخفیف دائمی` : 'بدون تخفیف';
+        discBadge.innerHTML = loyalty.discount_percent > 0 ? `<span class="font-mono font-bold" dir="ltr">${toEnglishDigits(loyalty.discount_percent)}%</span> تخفیف` : 'بدون تخفیف';
       }
       const nextText = $('loyaltyNextTierText');
       const progPct = $('loyaltyProgressPct');
@@ -2854,9 +2884,9 @@ function hydrateUserInterface(data) {
 
       if (benefitDesc) {
         if (loyalty.discount_percent > 0) {
-          benefitDesc.innerHTML = `شما دارای <span class="num-bidi font-mono font-bold" dir="ltr">${toEnglishDigits(loyalty.discount_percent)}%</span> تخفیف وفاداری دائم روی تمامی بسته‌ها هستید. با افزایش خریدها، به سطوح بالاتر با تخفیف‌های بیشتر ارتقا&nbsp;می‌یابید!`;
+          benefitDesc.innerHTML = `شما دارای <span class="num-bidi font-mono font-bold" dir="ltr">${toEnglishDigits(loyalty.discount_percent)}%</span> تخفیف وفاداری روی تمامی بسته‌ها هستید. با افزایش خریدها، به سطوح بالاتر با تخفیف‌های بیشتر ارتقا&nbsp;می‌یابید!`;
         } else {
-          benefitDesc.innerText = 'با خرید بیشتر از فروشگاه، سطح خود را ارتقا دهید و از تخفیف دائمی روی تمامی بسته‌ها بهره‌مند شوید.';
+          benefitDesc.innerText = 'با خرید بیشتر از فروشگاه، سطح خود را ارتقا دهید و از تخفیف روی تمامی بسته‌ها بهره‌مند شوید.';
         }
       }
     }
@@ -4623,7 +4653,20 @@ async function openInvoiceModal(orderId) {
     if (statusEl) {
       let statusText = inv.payment?.status || 'پرداخت شده';
       if (statusText === 'پرداخت شده و فعال') statusText = 'پرداخت شده';
-      statusEl.innerHTML = `<span>✅</span> <span>${statusText}</span>`;
+      let icon = '✅';
+      let colorClass = 'text-emerald-500';
+      if (statusText.includes('ناموفق') || statusText.includes('لغو')) {
+        icon = '❌';
+        colorClass = 'text-rose-500';
+      } else if (statusText.includes('انتظار')) {
+        icon = '⏳';
+        colorClass = 'text-amber-500';
+      } else if (statusText.includes('مسترد')) {
+        icon = '↩️';
+        colorClass = 'text-purple-400';
+      }
+      statusEl.className = `flex items-center gap-1 font-bold ${colorClass}`;
+      statusEl.innerHTML = `<span>${icon}</span> <span>${statusText}</span>`;
     }
   } catch (err) {
     console.warn('Failed loading invoice:', err);
@@ -4796,7 +4839,7 @@ function openLoyaltyModal() {
     if ($('loyaltyModalTotalSpent')) $('loyaltyModalTotalSpent').innerText = `${Number(loyalty.total_spent || 0).toLocaleString('en-US')} تومان`;
     if ($('loyaltyModalCurrentDiscount')) {
       const disc = toEnglishDigits(loyalty.discount_percent || 0);
-      $('loyaltyModalCurrentDiscount').innerHTML = Number(disc) > 0 ? `<span class="font-mono font-bold" dir="ltr">${disc}%</span> تخفیف دائمی` : 'بدون تخفیف دائمی';
+      $('loyaltyModalCurrentDiscount').innerHTML = Number(disc) > 0 ? `<span class="font-mono font-bold" dir="ltr">${disc}%</span> تخفیف` : 'بدون تخفیف';
       $('loyaltyModalCurrentDiscount').className = Number(disc) > 0 ? 'text-xs font-bold text-emerald-500' : 'text-xs font-medium t-muted';
     }
     if ($('loyaltyModalProgressText')) {
@@ -4810,11 +4853,11 @@ function openLoyaltyModal() {
       if (!isMaxTier && nextTier && nextTier.name) {
         const needed = Number(nextTier.remaining_amount || loyalty.amount_to_next || 0).toLocaleString('en-US');
         const nextDisc = toEnglishDigits(nextTier.discount_percent ?? loyalty.next_tier_discount ?? 0);
-        $('loyaltyModalProgressText').innerHTML = `با ${needed} تومان خرید دیگر، به سطح ${nextTier.name} ارتقا می‌یابید و از <span class="num-bidi font-mono font-bold" dir="ltr">${nextDisc}%</span> تخفیف دائمی بهره‌مند می‌شوید.`;
+        $('loyaltyModalProgressText').innerHTML = `با ${needed} تومان خرید دیگر، به سطح ${nextTier.name} ارتقا می‌یابید و از <span class="num-bidi font-mono font-bold" dir="ltr">${nextDisc}%</span> تخفیف بهره‌مند می‌شوید.`;
       } else if (isMaxTier) {
         $('loyaltyModalProgressText').innerText = 'تبریک! شما به بالاترین سطح باشگاه مشتریان (الماس) دست یافته‌اید.';
       } else {
-        $('loyaltyModalProgressText').innerText = 'با خرید بسته‌های بیشتر، سطح شما در باشگاه مشتریان ارتقا یافته و تخفیف دائمی دریافت می‌کنید.';
+        $('loyaltyModalProgressText').innerText = 'با خرید بسته‌های بیشتر، سطح شما در باشگاه مشتریان ارتقا یافته و تخفیف دریافت می‌کنید.';
       }
     }
 

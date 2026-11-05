@@ -273,8 +273,8 @@ def test_custom_plan_disabled_card_stripe_and_reports_polish():
     assert "id=\"customPlanBuilderContent\"" in app_html
     assert "نمودار مصرف هفتگی (7 روز اخیر):" in app_html
     assert "نمودار مصرف روزانه (7 روز اخیر):" not in app_html
-    assert "id=\"repDailyPeriodDawnVal\"" in app_html
-    assert "id=\"repNightlyPeriodDawnVal\"" in app_html
+    assert "id=\"repDailyChartCanvas\"" in app_html
+    assert "id=\"repNightlyChartCanvas\"" in app_html
     assert "--/--/-- - 23:59" in app_html
 
     shop_js = Path("bot/web/static/js/shop.js").read_text(encoding="utf-8")
@@ -283,5 +283,56 @@ def test_custom_plan_disabled_card_stripe_and_reports_polish():
 
     app_js = Path("bot/web/static/js/app.js").read_text(encoding="utf-8")
     assert "toEnglishDigits(data.today_jalali)} - 23:59" in app_js
-    assert "repDailyPeriodDawnVal" in app_js
-    assert "repNightlyPeriodDawnVal" in app_js
+    assert "repDailyChartCanvas" in app_js
+    assert "repNightlyChartCanvas" in app_js
+
+
+@pytest.mark.anyio
+async def test_wallet_transaction_history_and_invoice_status_ssot(session_factory):
+    """Verify order status in wallet transaction history matches DB status and invoice service."""
+    from bot.db.models import Order, OrderStatus, User
+    from bot.web.user_profile import _fetch_transaction_history
+    from bot.services.invoice_service import get_order_invoice_data
+
+    async with session_factory() as session:
+        u = User(telegram_id=987654321, username="status_tester", full_name="Tester")
+        session.add(u)
+        await session.commit()
+
+        # Create paid order, pending order, refunded order, and failed order
+        o_paid = Order(telegram_id=987654321, service_name="Plan Paid", amount=50000, status=OrderStatus.PAID.value)
+        o_pend = Order(telegram_id=987654321, service_name="Plan Pend", amount=60000, status=OrderStatus.PENDING.value)
+        o_ref = Order(telegram_id=987654321, service_name="Plan Ref", amount=70000, status=OrderStatus.REFUNDED.value)
+        o_fail = Order(telegram_id=987654321, service_name="Plan Fail", amount=80000, status=OrderStatus.FAILED.value)
+        session.add_all([o_paid, o_pend, o_ref, o_fail])
+        await session.commit()
+
+        txs = await _fetch_transaction_history(session, 987654321, "Asia/Tehran")
+        tx_by_id = {tx["id"]: tx for tx in txs if tx["type"] == "order"}
+
+        # Verify wallet status mapping
+        assert tx_by_id[o_paid.id]["status"] == "موفق"
+        assert tx_by_id[o_paid.id]["status_color"] == "emerald"
+        assert tx_by_id[o_pend.id]["status"] == "در انتظار پرداخت"
+        assert tx_by_id[o_pend.id]["status_color"] == "amber"
+        assert tx_by_id[o_ref.id]["status"] == "مسترد شده"
+        assert tx_by_id[o_ref.id]["status_color"] == "purple"
+        assert tx_by_id[o_fail.id]["status"] == "ناموفق"
+        assert tx_by_id[o_fail.id]["status_color"] == "rose"
+
+        # Verify invoice service matches
+        inv_paid = await get_order_invoice_data(session, o_paid.id, 987654321)
+        assert inv_paid["payment"]["status"] == "پرداخت شده"
+        assert inv_paid["payment"]["is_paid"] is True
+
+        inv_pend = await get_order_invoice_data(session, o_pend.id, 987654321)
+        assert inv_pend["payment"]["status"] == "در انتظار پرداخت"
+        assert inv_pend["payment"]["is_paid"] is False
+
+        inv_ref = await get_order_invoice_data(session, o_ref.id, 987654321)
+        assert inv_ref["payment"]["status"] == "مسترد شده (مرجوع)"
+        assert inv_ref["payment"]["is_paid"] is False
+
+        inv_fail = await get_order_invoice_data(session, o_fail.id, 987654321)
+        assert inv_fail["payment"]["status"] == "ناموفق / لغو شده"
+        assert inv_fail["payment"]["is_paid"] is False

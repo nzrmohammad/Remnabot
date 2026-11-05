@@ -1244,12 +1244,12 @@ openUserChat(telegram_id, name, tag, topup_id) {
         if (s.loyalty_tiers_json) loyaltyCfg = JSON.parse(s.loyalty_tiers_json);
       } catch (e) {}
       const tierDefaults = {
-        silver: { min_spent: 300000, discount_percent: 3 },
-        gold: { min_spent: 700000, discount_percent: 5 },
-        platinum: { min_spent: 1500000, discount_percent: 8 },
-        ruby: { min_spent: 3000000, discount_percent: 10 },
-        emerald: { min_spent: 6000000, discount_percent: 12 },
-        diamond: { min_spent: 10000000, discount_percent: 15 },
+        silver: { min_spent: 1000000, discount_percent: 3 },
+        gold: { min_spent: 2500000, discount_percent: 5 },
+        platinum: { min_spent: 5000000, discount_percent: 8 },
+        ruby: { min_spent: 8000000, discount_percent: 10 },
+        emerald: { min_spent: 12000000, discount_percent: 12 },
+        diamond: { min_spent: 20000000, discount_percent: 15 },
       };
       ['silver', 'gold', 'platinum', 'ruby', 'emerald', 'diamond'].forEach(t => {
         const spentInp = $(`loyalty_${t}_spent`);

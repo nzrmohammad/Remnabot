@@ -57,7 +57,10 @@ from bot.web.user_common import db_session, require_user
 logger = logging.getLogger(__name__)
 
 
-from bot.web.admin_overview_charts import USERS_PERIODIC_BANDWIDTH_CACHE_KEY, get_periodic_users_bandwidth
+from bot.web.admin_overview_charts import (
+    USERS_PERIODIC_BANDWIDTH_CACHE_KEY,
+    get_periodic_users_bandwidth,
+)
 from bot.web.user_subscription_detail import (
     build_active_subscription as _build_active_subscription,
 )
@@ -78,6 +81,26 @@ async def _fetch_transaction_history(session: Any, telegram_id: int, tz_name: st
                     datetime=o_dt.astimezone(ZoneInfo(tz_name)) if o_dt.tzinfo else o_dt
                 )
                 o_j_str = f"{o_j.year}/{o_j.month:02d}/{o_j.day:02d} - {o_j.hour:02d}:{o_j.minute:02d}"
+            raw_st = (
+                o.status.value if hasattr(o.status, "value") else str(o.status or "")
+            ).lower()
+            if raw_st == "paid":
+                st_text = "موفق"
+                st_color = "emerald"
+                is_pos = False
+            elif raw_st == "refunded":
+                st_text = "مسترد شده"
+                st_color = "purple"
+                is_pos = True
+            elif raw_st == "pending":
+                st_text = "در انتظار پرداخت"
+                st_color = "amber"
+                is_pos = False
+            else:
+                st_text = "ناموفق"
+                st_color = "rose"
+                is_pos = False
+
             history_items.append({
                 "id": o.id,
                 "type": "order",
@@ -85,9 +108,9 @@ async def _fetch_transaction_history(session: Any, telegram_id: int, tz_name: st
                 "service_name": o.service_name,
                 "amount": o.amount,
                 "amount_formatted": f"{o.amount:,} تومان",
-                "is_positive": False,
-                "status": "موفق",
-                "status_color": "emerald",
+                "is_positive": is_pos,
+                "status": st_text,
+                "status_color": st_color,
                 "date_jalali": o_j_str,
                 "timestamp": o_dt.timestamp() if o_dt else 0,
             })

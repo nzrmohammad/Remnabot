@@ -27,61 +27,61 @@ DEFAULT_LOYALTY_TIERS = [
         "id": "silver",
         "name": "نقره‌ای",
         "icon": "🥈",
-        "min_spent": 300_000,
+        "min_spent": 1_000_000,
         "discount_percent": 3,
         "color": "slate-300",
         "badge_class": "bg-slate-400/15 text-slate-300 border-slate-400/30",
-        "description": "3% تخفیف دائمی",
+        "description": "3% تخفیف",
     },
     {
         "id": "gold",
         "name": "طلایی",
         "icon": "🥇",
-        "min_spent": 700_000,
+        "min_spent": 2_500_000,
         "discount_percent": 5,
         "color": "amber-400",
         "badge_class": "bg-amber-500/15 text-amber-500 dark:text-amber-400 border-amber-500/30",
-        "description": "5% تخفیف دائمی",
+        "description": "5% تخفیف",
     },
     {
         "id": "platinum",
         "name": "پلاتین",
         "icon": "💎",
-        "min_spent": 1_500_000,
+        "min_spent": 5_000_000,
         "discount_percent": 8,
         "color": "cyan-400",
         "badge_class": "bg-cyan-500/15 text-cyan-500 dark:text-cyan-400 border-cyan-500/30",
-        "description": "8% تخفیف دائمی",
+        "description": "8% تخفیف",
     },
     {
         "id": "ruby",
         "name": "یاقوت",
         "icon": "🔮",
-        "min_spent": 3_000_000,
+        "min_spent": 8_000_000,
         "discount_percent": 10,
         "color": "purple-400",
         "badge_class": "bg-purple-500/15 text-purple-400 border-purple-500/30",
-        "description": "10% تخفیف دائمی",
+        "description": "10% تخفیف",
     },
     {
         "id": "emerald",
         "name": "زمرد",
         "icon": "❇️",
-        "min_spent": 6_000_000,
+        "min_spent": 12_000_000,
         "discount_percent": 12,
         "color": "emerald-400",
         "badge_class": "bg-emerald-500/15 text-emerald-400 border-emerald-500/30",
-        "description": "12% تخفیف دائمی",
+        "description": "12% تخفیف",
     },
     {
         "id": "diamond",
         "name": "الماس",
         "icon": "👑",
-        "min_spent": 10_000_000,
+        "min_spent": 20_000_000,
         "discount_percent": 15,
         "color": "amber-300",
         "badge_class": "bg-amber-300/15 text-amber-300 border-amber-300/30",
-        "description": "15% تخفیف دائمی + پشتیبانی اختصاصی",
+        "description": "15% تخفیف + پشتیبانی اختصاصی",
     },
 ]
 
@@ -116,7 +116,7 @@ async def get_configured_loyalty_tiers(session: AsyncSession | None = None) -> l
                 if "discount_percent" in c and isinstance(c["discount_percent"], (int, float)):
                     tier_copy["discount_percent"] = max(0, min(100, int(c["discount_percent"])))
                 if tier_copy["discount_percent"] > 0:
-                    tier_copy["description"] = f"{tier_copy['discount_percent']}% تخفیف دائمی"
+                    tier_copy["description"] = f"{tier_copy['discount_percent']}% تخفیف"
                 else:
                     tier_copy["description"] = "سطح آغازین باشگاه مشتریان (بدون تخفیف)"
             merged_tiers.append(tier_copy)
