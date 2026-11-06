@@ -21,7 +21,7 @@
 
 ## 📖 Table of Contents
 - [⚡ Key Features](#-key-features)
-- [📱 پیش‌نمایش محیط کاربری (Screenshots)](#-پیشنمایش-محیط-کاربری-screenshots)
+- [📱 UI & Mini App Showcase](#-ui--mini-app-showcase)
 - [🏛 Project Architecture](#-project-architecture)
 - [⚡ Zero-Conflict Deployment Model](#-zero-conflict-deployment-model)
 - [📦 Prerequisites & Compatibility](#-prerequisites--compatibility)
@@ -70,55 +70,55 @@ Remnabot provides a production-grade Telegram client portal and administrative o
 
 ---
 
-## 📱 پیش‌نمایش محیط کاربری (Screenshots)
+## 📱 UI & Mini App Showcase
 
 <div align="center">
   <table>
     <tr>
-      <td align="center" width="50%"><b>📱 داشبورد اصلی و مشخصات سرویس</b></td>
-      <td align="center" width="50%"><b>📊 گزارش تفصیلی مصرف و نمودارهای تحلیلی</b></td>
+      <td align="center" width="50%"><b>📱 Main Dashboard</b></td>
+      <td align="center" width="50%"><b>📊 Usage Analytics & Sessions</b></td>
     </tr>
     <tr>
-      <td align="center"><img src="docs/assets/screenshot-dashboard.png" width="340" alt="داشبورد اصلی مینی‌اپ" /></td>
-      <td align="center"><img src="docs/assets/screenshot-reports.png" width="340" alt="گزارش تحلیلی مصرف و نشست‌های فعال" /></td>
+      <td align="center"><img src="docs/assets/screenshot-dashboard.png" width="220" alt="Main Dashboard" /></td>
+      <td align="center"><img src="docs/assets/screenshot-reports.png" width="220" alt="Usage Analytics & Sessions" /></td>
     </tr>
     <tr>
-      <td align="center" width="50%"><b>🛒 فروشگاه هوشمند و پلن‌های پویا</b></td>
-      <td align="center" width="50%"><b>🎛️ پلن‌ساز سفارشی منعطف (حجم و زمان)</b></td>
+      <td align="center" width="50%"><b>🛒 Smart Shop & Dynamic Plans</b></td>
+      <td align="center" width="50%"><b>🎛️ Custom Plan Builder</b></td>
     </tr>
     <tr>
-      <td align="center"><img src="docs/assets/screenshot-shop.png" width="340" alt="فروشگاه هوشمند و خرید بسته" /></td>
-      <td align="center"><img src="docs/assets/screenshot-custom-plan.png" width="340" alt="پلن‌ساز سفارشی مشتریان" /></td>
+      <td align="center"><img src="docs/assets/screenshot-shop.png" width="220" alt="Smart Shop & Plans" /></td>
+      <td align="center"><img src="docs/assets/screenshot-custom-plan.png" width="220" alt="Custom Plan Builder" /></td>
     </tr>
     <tr>
-      <td align="center" width="50%"><b>👛 کیف پول اختصاصی و کارت ۳ بعدی</b></td>
-      <td align="center" width="50%"><b>⚡️ درگاه کارت‌به‌کارت آنی و فاکتور هوشمند</b></td>
+      <td align="center" width="50%"><b>👛 Digital Wallet & 3D Card</b></td>
+      <td align="center" width="50%"><b>⚡️ Instant Card-to-Card Invoice</b></td>
     </tr>
     <tr>
-      <td align="center"><img src="docs/assets/screenshot-wallet.png" width="340" alt="کیف پول و کارت گرافیکی ۳ بعدی" /></td>
-      <td align="center"><img src="docs/assets/screenshot-card-auto.png" width="340" alt="کارت‌به‌کارت آنی با تایید خودکار پیامکی" /></td>
+      <td align="center"><img src="docs/assets/screenshot-wallet.png" width="220" alt="Digital Wallet & 3D Interactive Card" /></td>
+      <td align="center"><img src="docs/assets/screenshot-card-auto.png" width="220" alt="Instant Card-to-Card Smart Verification" /></td>
     </tr>
     <tr>
-      <td align="center" width="50%"><b>👤 پروفایل کاربری، سطح وفاداری و دعوت دوستان</b></td>
-      <td align="center" width="50%"><b>🎡 گردونه شانس و جوایز وفاداری</b></td>
+      <td align="center" width="50%"><b>👤 User Profile & Referrals</b></td>
+      <td align="center" width="50%"><b>🎡 Daily Lucky Wheel</b></td>
     </tr>
     <tr>
-      <td align="center"><img src="docs/assets/screenshot-profile.png" width="340" alt="پروفایل کاربری، سطح وفاداری و تنظیمات" /></td>
-      <td align="center"><img src="docs/assets/screenshot-wheel.png" width="340" alt="گردونه شانس روزانه و جوایز" /></td>
+      <td align="center"><img src="docs/assets/screenshot-profile.png" width="220" alt="User Profile, Loyalty Tier & Referrals" /></td>
+      <td align="center"><img src="docs/assets/screenshot-wheel.png" width="220" alt="Daily Lucky Wheel & Spin Rewards" /></td>
     </tr>
     <tr>
-      <td align="center" width="50%"><b>🚀 سنجش زنده سرعت اینترنت (Speedtest)</b></td>
-      <td align="center" width="50%"><b>🎂 باشگاه مشتریان و هدیه زادروز</b></td>
+      <td align="center" width="50%"><b>🚀 Live Speed & Ping Test</b></td>
+      <td align="center" width="50%"><b>🎂 Birthday Rewards & Countdown</b></td>
     </tr>
     <tr>
-      <td align="center"><img src="docs/assets/screenshot-speedtest.png" width="340" alt="تست دقیق پهنای‌باند دانلود، آپلود و پینگ" /></td>
-      <td align="center"><img src="docs/assets/screenshot-birthday.png" width="340" alt="هدیه زادروز و کارت تبریک" /></td>
+      <td align="center"><img src="docs/assets/screenshot-speedtest.png" width="220" alt="Real-Time Network Speedtest & Latency" /></td>
+      <td align="center"><img src="docs/assets/screenshot-birthday.png" width="220" alt="Birthday Gift Card & Live Countdown" /></td>
     </tr>
     <tr>
-      <td align="center" colspan="2"><b>💻 داشبورد و آمار تحلیلی وب ادمین (Admin Web Panel)</b></td>
+      <td align="center" colspan="2"><b>💻 Admin Operations Web Panel</b></td>
     </tr>
     <tr>
-      <td align="center" colspan="2"><img src="docs/assets/screenshot-admin.png" width="700" alt="پنل جامع مدیریت وب و گزارش مصرف سرورها" /></td>
+      <td align="center" colspan="2"><img src="docs/assets/screenshot-admin.png" width="540" alt="Unified Admin Web Panel & Real-Time Telemetry" /></td>
     </tr>
   </table>
 </div>
