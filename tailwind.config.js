@@ -29,6 +29,9 @@ module.exports = {
           inverse: 'var(--text-inverse)',
         },
       },
+      fontFamily: {
+        sans: ['Vazirmatn', 'ui-sans-serif', 'system-ui', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'sans-serif'],
+      },
       fontSize: {
         '2xs': ['10px', '14px'],
         'caption': ['11px', '15px'],

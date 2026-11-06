@@ -764,3 +764,8 @@ html.theme-light #topupCardNumber {
   color: #0f172a;
   font-weight: 900;
 }
+
+/* --- Standard Persian Sans Typography --- */
+.font-sans {
+  font-family: 'Vazirmatn', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Segoe UI Emoji', sans-serif;
+}

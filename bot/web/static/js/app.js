@@ -109,7 +109,7 @@ function updateMonthlyReportView(index) {
       renderBarChart(
         'repMonthlyChartCanvas',
         mData.month_weeks_totals_gb || [0, 0, 0, 0],
-        ['هفته ۱', 'هفته ۲', 'هفته ۳', 'هفته ۴'],
+        ['هفته 1', 'هفته 2', 'هفته 3', 'هفته 4'],
         true
       );
     } catch (e) {
@@ -183,15 +183,13 @@ function renderReportsCharts(sub) {
   if (monthlyCanvas) monthlyCanvas.classList.remove('hidden');
   if (monthlyEmpty) monthlyEmpty.classList.add('hidden');
 
-  const hourlyData = currentSub.hourly_usage?.data || Array(24).fill(0);
+  const hourlyData = currentSub.hourly_usage?.data || Array(12).fill(0);
   const hourlyLabels = currentSub.hourly_usage?.labels || [
-    '00-01','01-02','02-03','03-04','04-05','05-06',
-    '06-07','07-08','08-09','09-10','10-11','11-12',
-    '12-13','13-14','14-15','15-16','16-17','17-18',
-    '18-19','19-20','20-21','21-22','22-23','23-24'
+    '00-02','02-04','04-06','06-08','08-10','10-12',
+    '12-14','14-16','16-18','18-20','20-22','22-24'
   ];
 
-  const yHourlyData = currentSub.yesterday_hourly_usage?.data || Array(24).fill(0);
+  const yHourlyData = currentSub.yesterday_hourly_usage?.data || Array(12).fill(0);
   const yHourlyLabels = currentSub.yesterday_hourly_usage?.labels || hourlyLabels;
   const hasYTraffic = Boolean(
     (currentSub.yesterday_used_gb && Number(currentSub.yesterday_used_gb) > 0) ||
@@ -211,7 +209,7 @@ function renderReportsCharts(sub) {
   if (typeof updateMonthlyReportView === 'function') {
     updateMonthlyReportView(currentMonthlyIndex);
   } else if (typeof renderBarChart === 'function') {
-    renderBarChart('repMonthlyChartCanvas', currentSub.month_weeks_totals_gb || [0, 0, 0, 0], ['هفته ۱', 'هفته ۲', 'هفته ۳', 'هفته ۴'], true);
+    renderBarChart('repMonthlyChartCanvas', currentSub.month_weeks_totals_gb || [0, 0, 0, 0], ['هفته 1', 'هفته 2', 'هفته 3', 'هفته 4'], true);
   }
   if (typeof renderActiveSubAnalytics === 'function') {
     renderActiveSubAnalytics(currentSub);
@@ -1981,7 +1979,7 @@ function setupThemeToggle() {
       const sub = window.lastUserData.active_sub;
       if (typeof renderBarChart === 'function') {
         renderBarChart('repWeeklyChartCanvas', sub.week_daily_totals_gb || [0, 0, 0, 0, 0, 0, 0], sub.week_day_labels || ['ش', 'ی', 'د', 'س', 'چ', 'پ', 'ج'], false);
-        renderBarChart('repMonthlyChartCanvas', sub.month_weeks_totals_gb || [0, 0, 0, 0], ['هفته ۱', 'هفته ۲', 'هفته ۳', 'هفته ۴'], true);
+        renderBarChart('repMonthlyChartCanvas', sub.month_weeks_totals_gb || [0, 0, 0, 0], ['هفته 1', 'هفته 2', 'هفته 3', 'هفته 4'], true);
       }
       if (typeof renderActiveSubAnalytics === 'function') {
         renderActiveSubAnalytics(sub);
@@ -2562,7 +2560,7 @@ function renderActiveSubAnalytics(sub) {
         if (typeof renderBarChart === 'function') {
           renderBarChart('repPeakHoursBarCanvas', hourlyData, hourlyLabels, false);
           renderBarChart('repDailyChartCanvas', hourlyData, hourlyLabels, false);
-          const yData = sub.yesterday_hourly_usage?.data || Array(24).fill(0);
+          const yData = sub.yesterday_hourly_usage?.data || Array(12).fill(0);
           const yLabels = sub.yesterday_hourly_usage?.labels || hourlyLabels;
           const hasY = Boolean((sub.yesterday_used_gb && Number(sub.yesterday_used_gb) > 0) || yData.some(v => Number(v) > 0));
           const nCanvas = $('repNightlyChartCanvas');
@@ -3476,7 +3474,7 @@ function hydrateUserInterface(data) {
         if (repMonthlyTotal) repMonthlyTotal.innerHTML = fmtTraffic(sub.month_used_gb ?? '0.00', { html: true });
         if (typeof renderBarChart === 'function') {
           try {
-            renderBarChart('repMonthlyChartCanvas', sub.month_weeks_totals_gb || [0, 0, 0, 0], ['هفته ۱', 'هفته ۲', 'هفته ۳', 'هفته ۴'], true);
+            renderBarChart('repMonthlyChartCanvas', sub.month_weeks_totals_gb || [0, 0, 0, 0], ['هفته 1', 'هفته 2', 'هفته 3', 'هفته 4'], true);
           } catch (e) {
             console.warn('Could not render monthly chart:', e);
           }
@@ -3761,11 +3759,11 @@ function renderUserLeaderboard(leaderboardData, period = currentUserLbPeriod) {
   const noticeIconEl = $('userLbNoticeIcon');
 
   if (noticeTextEl) {
-    let periodLabel = periodData.period_label || '۷ روز اخیر';
+    let periodLabel = periodData.period_label || '7 روز اخیر';
     if (period === 'daily') {
       periodLabel = periodData.period_label || 'روزانه (امروز)';
     } else if (period === 'nightly') {
-      periodLabel = periodData.period_label || 'شبانه (روز قبل - ۲۳:۵۹)';
+      periodLabel = periodData.period_label || 'شبانه (روز قبل - 23:59)';
     } else if (period === 'weekly') {
       periodLabel = '7 روز اخیر';
     } else if (period === 'monthly_30d') {
@@ -3888,8 +3886,9 @@ function renderUserLeaderboard(leaderboardData, period = currentUserLbPeriod) {
           callbacks: {
             label: (c) => {
               const u = top20[c.dataIndex] || {};
-              const trafVal = typeof fmtTraffic === 'function' ? fmtTraffic(c.raw, { html: false, isolate: true }) : c.raw;
-              const prefix = u.is_me ? '👤 شما: ' : (c.dataIndex === 0 ? '👑 رتبه اول: ' : `رتبه ${c.dataIndex + 1}: `);
+              const trafVal = typeof fmtTraffic === 'function' ? fmtTraffic(c.raw, { html: false, isolate: true, persianDigits: false }) : c.raw;
+              const rankNum = c.dataIndex + 1;
+              const prefix = u.is_me ? '👤 شما: ' : (c.dataIndex === 0 ? '👑 رتبه 1: ' : `رتبه ${rankNum}: `);
               return `${prefix}${trafVal}`;
             },
           },
@@ -3910,7 +3909,7 @@ function renderUserLeaderboard(leaderboardData, period = currentUserLbPeriod) {
           ticks: {
             color: tickColor,
             font: { family: 'Vazirmatn', size: 9 },
-            callback: (v) => typeof fmtTraffic === 'function' ? fmtTraffic(v, { html: false, isolate: true }) : v,
+            callback: (v) => typeof fmtTraffic === 'function' ? fmtTraffic(v, { html: false, isolate: true, persianDigits: false }) : v,
           },
         },
       },

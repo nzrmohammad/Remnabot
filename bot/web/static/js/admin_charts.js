@@ -1414,7 +1414,7 @@ openHighRiskUsersModal() {
             bodyFont: { family: 'Vazirmatn' },
             callbacks: {
               label: (c) => {
-                const trafVal = typeof fmtTraffic === 'function' ? fmtTraffic(c.raw, { html: false, isolate: true }) : c.raw;
+                const trafVal = typeof fmtTraffic === 'function' ? fmtTraffic(c.raw, { html: false, isolate: true, persianDigits: false }) : c.raw;
                 return `مصرف: ${trafVal}`;
               },
             },
@@ -1430,7 +1430,7 @@ openHighRiskUsersModal() {
             ticks: {
               color: tickColor,
               font: { family: 'Vazirmatn', size: 10 },
-              callback: (v) => typeof fmtTraffic === 'function' ? fmtTraffic(v, { html: false, isolate: true }) : v,
+              callback: (v) => typeof fmtTraffic === 'function' ? fmtTraffic(v, { html: false, isolate: true, persianDigits: false }) : v,
             },
             beginAtZero: true,
           },

@@ -187,7 +187,7 @@ async function renderBarChart(containerId, totals, labels, isMonthly = false) {
           callbacks: {
             title: function(context) {
               const lbl = context[0]?.label || '';
-              if (isMonthly) return `هفته ${lbl}`;
+              if (isMonthly) return String(lbl).startsWith('هفته') ? toEnglishDigits(lbl) : `هفته ${toEnglishDigits(lbl)}`;
               if (chartKey === 'repPeakHoursBarCanvas' || String(lbl).includes('-') || String(lbl).includes(':')) {
                 return `بازه ساعتی: ${lbl} (ساعت ${lbl.replace('-', ' الی ')})`;
               }

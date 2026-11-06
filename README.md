@@ -285,8 +285,9 @@ ADMIN_CHAT_ID=-1001234567890
 REMNAWAVE_BASE_URL=http://host.docker.internal:3000
 REMNAWAVE_TOKEN=your_remnawave_api_token_here
 
-# --- 3. Database Credentials ---
+# --- 3. Database Credentials & Backup Security ---
 DATABASE_URL=postgresql+asyncpg://remnabot:remnabot@db:5432/remnabot
+BACKUP_PASSWORD=generate_a_strong_backup_password_here
 
 # --- 4. Mini App & Web Configuration ---
 WEB_ENABLED=true
@@ -605,6 +606,7 @@ All primary credentials are configuration-driven via `.env`. In-bot operational 
 | `REMNAWAVE_BASE_URL` | **Yes** | — | Base URL of your Remnawave v3+ Panel (e.g. `https://panel.example.com` or `http://host.docker.internal:3000`). |
 | `REMNAWAVE_TOKEN` | **Yes** | — | API Token generated in Remnawave Panel (`Admin ➔ API Tokens`). |
 | `DATABASE_URL` | **Yes** | — | PostgreSQL async connection string (`postgresql+asyncpg://user:pass@host:5432/dbname`). |
+| `BACKUP_PASSWORD` | **Yes** | — | Strong encryption key for daily automated database backups (AES-encrypted ZIP). The bot strictly refuses to generate backups without this key to protect user and financial data. |
 | `ADMIN_TOPIC_TOPUPS` | No | *(empty)* | Optional topic ID for card-to-card deposit review queues. |
 | `ADMIN_TOPIC_ORDERS` | No | *(empty)* | Optional topic ID for new service purchases and renewal logs. |
 | `ADMIN_TOPIC_SUPPORT` | No | *(empty)* | Optional topic ID for user support inquiries and forward messages. |
@@ -639,7 +641,7 @@ Remnabot executes asynchronous automation routines using an internal non-blockin
 | `alerts_loop` | **180 min** | Evaluates bandwidth consumption thresholds (80%, 90%, 100%) and delivers proactive renewal alerts. |
 | `crypto_rates_loop` | **4x Daily (00:00, 06:00, 12:00, 18:00)** | Queries live TON market rates (Nobitex/Bitpin or Binance/TonAPI global fallback) and dispatches interactive price alerts to the crypto topic. |
 | `retention_loop` | **12 hours** | Identifies users whose services expired 7 days ago and sends personalized win-back discount promotions. |
-| `auto_backup_loop` | **Daily @ 03:00** | Generates an encrypted database snapshot and dispatches the document to the Telegram admin chat. |
+| `auto_backup_loop` | **Daily @ 01:30** | Generates an AES-encrypted database snapshot and dispatches the document to the Telegram admin chat. |
 | `nightly_report_loop`| **Daily @ 23:59** | Compiles panel status, node bandwidths by country flag, active users, and 3-day expirations. |
 | `weekly_report_loop` | **Fri @ 23:59** | Calculates top 20 weekly consumers and daily champions from Saturday to Friday. |
 | `monthly_report_loop`| **Last Day @ 23:59**| Produces comprehensive monthly fiscal and bandwidth rollups for the Jalali month. |

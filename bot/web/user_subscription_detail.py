@@ -356,12 +356,12 @@ def calc_usage_curves(
     has_traffic = (today_used_gb > 0) or (week_used_gb > 0) or (used_bytes > 0)
     base_curve_gb = today_used_gb if today_used_gb > 0 else (round(week_used_gb / 7.0, 2) if week_used_gb > 0 else 0.0)
 
-    # 24 1-hour slots (00-01, 01-02, ..., 23-24)
-    hourly_curve_labels = [f"{h:02d}-{h+1:02d}" for h in range(24)]
+    # 12 2-hour slots (00-02, 02-04, ..., 22-24)
+    hourly_curve_labels = [f"{h*2:02d}-{h*2+2:02d}" for h in range(12)]
 
     # Check snapshots for today and yesterday deltas
-    today_slot_bytes = [0] * 24
-    yesterday_slot_bytes = [0] * 24
+    today_slot_bytes = [0] * 12
+    yesterday_slot_bytes = [0] * 12
     if snapshots_24h:
         tz = ZoneInfo(tz_name) if tz_name else timezone.utc
         now_local = now_dt.astimezone(tz) if now_dt.tzinfo else now_dt
@@ -372,58 +372,58 @@ def calc_usage_curves(
             s_delta = getattr(s, "delta_bytes", 0) or 0
             if s_ts:
                 local_s_ts = s_ts.replace(tzinfo=timezone.utc).astimezone(tz) if s_ts.tzinfo is None else s_ts.astimezone(tz)
-                h = local_s_ts.hour % 24
+                h = (local_s_ts.hour // 2) % 12
                 if local_s_ts.date() == today_date:
                     today_slot_bytes[h] += s_delta
                 elif local_s_ts.date() == yesterday_date:
                     yesterday_slot_bytes[h] += s_delta
 
-    # 1. Today Hourly Usage
+    # 1. Today Hourly Usage (12 2-hour intervals)
     total_today_snap = sum(today_slot_bytes)
     has_real_data = total_today_snap > 0
     if base_curve_gb <= 0.0:
-        today_hourly_vals = [0.0] * 24
+        today_hourly_vals = [0.0] * 12
         peak_hour_str = None
     elif total_today_snap > 0:
         today_hourly_vals = [
             round(base_curve_gb * (b / total_today_snap), 2) for b in today_slot_bytes
         ]
-        peak_h = max(range(24), key=lambda i: today_hourly_vals[i])
-        peak_hour_str = f"{peak_h:02d}:00 - {peak_h+1:02d}:00"
+        peak_h = max(range(12), key=lambda i: today_hourly_vals[i])
+        peak_hour_str = f"{peak_h*2:02d}:00 - {peak_h*2+2:02d}:00"
     else:
-        # Realistic diurnal curve elapsed up to current hour
-        cur_h = min(23, max(0, now_dt.hour))
-        today_hourly_vals = [0.0] * 24
-        elapsed_slots = max(1, cur_h + 1)
+        # Realistic diurnal curve elapsed up to current 2-hour slot
+        cur_slot = min(11, max(0, now_dt.hour // 2))
+        today_hourly_vals = [0.0] * 12
+        elapsed_slots = max(1, cur_slot + 1)
         portion = round(base_curve_gb / elapsed_slots, 2)
         for i in range(elapsed_slots):
             today_hourly_vals[i] = portion
-        peak_h = cur_h
-        peak_hour_str = f"{peak_h:02d}:00 - {peak_h+1:02d}:00"
+        peak_h = cur_slot
+        peak_hour_str = f"{peak_h*2:02d}:00 - {peak_h*2+2:02d}:00"
 
-    # 2. Yesterday Hourly Usage (Distinct for Nightly report)
+    # 2. Yesterday Hourly Usage (12 2-hour intervals for Nightly report)
     total_yesterday_snap = sum(yesterday_slot_bytes)
     y_base_gb = float(yesterday_used_gb or 0.0)
     if y_base_gb <= 0.0:
-        yesterday_hourly_vals = [0.0] * 24
+        yesterday_hourly_vals = [0.0] * 12
         y_peak_hour_str = None
     elif total_yesterday_snap > 0:
         yesterday_hourly_vals = [
             round(y_base_gb * (b / total_yesterday_snap), 2) for b in yesterday_slot_bytes
         ]
-        y_peak_h = max(range(24), key=lambda i: yesterday_hourly_vals[i])
-        y_peak_hour_str = f"{y_peak_h:02d}:00 - {y_peak_h+1:02d}:00"
+        y_peak_h = max(range(12), key=lambda i: yesterday_hourly_vals[i])
+        y_peak_hour_str = f"{y_peak_h*2:02d}:00 - {y_peak_h*2+2:02d}:00"
     else:
-        # Standard realistic diurnal profile over 24 hours
-        diurnal_weights = [
-            0.02, 0.01, 0.01, 0.01, 0.01, 0.02,
-            0.03, 0.04, 0.05, 0.06, 0.06, 0.05,
-            0.05, 0.05, 0.05, 0.05, 0.06, 0.07,
-            0.08, 0.09, 0.08, 0.06, 0.04, 0.02,
+        # Standard realistic diurnal profile over 12 2-hour intervals
+        diurnal_weights_12 = [
+            0.03, 0.02, 0.03, 0.07, 0.11, 0.10,
+            0.10, 0.10, 0.13, 0.17, 0.09, 0.05,
         ]
-        yesterday_hourly_vals = [round(y_base_gb * w, 2) for w in diurnal_weights]
-        y_peak_h = max(range(24), key=lambda i: yesterday_hourly_vals[i])
-        y_peak_hour_str = f"{y_peak_h:02d}:00 - {y_peak_h+1:02d}:00"
+        w_sum = sum(diurnal_weights_12)
+        norm_weights = [w / w_sum for w in diurnal_weights_12]
+        yesterday_hourly_vals = [round(y_base_gb * w, 2) for w in norm_weights]
+        y_peak_h = max(range(12), key=lambda i: yesterday_hourly_vals[i])
+        y_peak_hour_str = f"{y_peak_h*2:02d}:00 - {y_peak_h*2+2:02d}:00"
 
     platform_counts: dict[str, int] = {}
     for d in devices:
