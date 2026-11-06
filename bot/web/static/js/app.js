@@ -646,6 +646,9 @@ function setupClientImporters() {
   $('appImportStreisand')?.addEventListener('click', () => {
     copyAndLaunch(u => `streisand://import/${u}`, 'Streisand');
   });
+  $('appImportV2box')?.addEventListener('click', () => {
+    copyAndLaunch(u => `v2box://install-sub?url=${encodeURIComponent(u)}&name=${encodeURIComponent(window.lastUserData?.bot_username || 'Subscription')}`, 'V2Box');
+  });
 }
 
 // 7.1 Client Apps Structure & Tutorial Guide
@@ -2866,48 +2869,58 @@ function hydrateUserInterface(data) {
 
     // --- VIP Loyalty Tier & Club Integration ---
     const loyalty = data.loyalty;
+    const isLoyaltyEnabled = Boolean(loyalty && loyalty.enabled !== false);
     const headerBadge = $('headerLoyaltyBadge');
-    if (headerBadge && loyalty) {
-      headerBadge.innerText = loyalty.icon || '🥉';
-      headerBadge.classList.remove('hidden');
-      headerBadge.className = 'w-7 h-7 flex items-center justify-center text-lg bg-transparent border-0 transition cursor-pointer active:scale-95 shrink-0 select-none';
+    if (headerBadge) {
+      if (isLoyaltyEnabled) {
+        headerBadge.innerText = loyalty.icon || '🥉';
+        headerBadge.classList.remove('hidden');
+        headerBadge.className = 'w-7 h-7 flex items-center justify-center text-lg bg-transparent border-0 transition cursor-pointer active:scale-95 shrink-0 select-none';
+      } else {
+        headerBadge.classList.add('hidden');
+      }
     }
 
     const loyaltyCard = $('profileLoyaltyCard');
-    if (loyaltyCard && loyalty) {
-      if ($('loyaltyTierIcon')) $('loyaltyTierIcon').innerText = loyalty.icon || '🥉';
-      if ($('loyaltyTierName')) $('loyaltyTierName').innerText = loyalty.name || 'برنزی';
-      const discBadge = $('loyaltyDiscountBadge');
-      if (discBadge) {
-        discBadge.innerHTML = loyalty.discount_percent > 0 ? `<span class="font-mono font-bold" dir="ltr">${toEnglishDigits(loyalty.discount_percent)}%</span> تخفیف` : 'بدون تخفیف';
-      }
-      const nextText = $('loyaltyNextTierText');
-      const progPct = $('loyaltyProgressPct');
-      const progBar = $('loyaltyProgressBar');
-      const totalSpent = $('loyaltyTotalSpent');
-      const targetSpent = $('loyaltyNextTierTarget');
-      const benefitDesc = $('loyaltyBenefitDesc');
-
-      if (totalSpent) totalSpent.innerText = `مجموع خرید: ${Number(loyalty.total_spent || 0).toLocaleString('en-US')} تومان`;
-
-      if (loyalty.next_tier_name && loyalty.next_tier_threshold) {
-        const pct = loyalty.progress_percent ?? loyalty.progress_pct ?? 0;
-        if (nextText) nextText.innerText = `تا سطح بعدی (${loyalty.next_tier_name}):`;
-        if (progPct) progPct.innerText = `${pct}%`;
-        if (progBar) progBar.style.width = `${pct}%`;
-        if (targetSpent) targetSpent.innerText = `هدف بعدی: ${Number(loyalty.next_tier_threshold).toLocaleString('en-US')} تومان`;
+    if (loyaltyCard) {
+      if (!isLoyaltyEnabled) {
+        loyaltyCard.classList.add('hidden');
       } else {
-        if (nextText) nextText.innerText = 'بالاترین سطح باشگاه مشتریان 🎉';
-        if (progPct) progPct.innerText = '100%';
-        if (progBar) progBar.style.width = '100%';
-        if (targetSpent) targetSpent.innerText = `${loyalty.name || 'الماس'}`;
-      }
+        loyaltyCard.classList.remove('hidden');
+        if ($('loyaltyTierIcon')) $('loyaltyTierIcon').innerText = loyalty.icon || '🥉';
+        if ($('loyaltyTierName')) $('loyaltyTierName').innerText = loyalty.name || 'برنزی';
+        const discBadge = $('loyaltyDiscountBadge');
+        if (discBadge) {
+          discBadge.innerHTML = loyalty.discount_percent > 0 ? `<span class="font-mono font-bold" dir="ltr">${toEnglishDigits(loyalty.discount_percent)}%</span> تخفیف` : 'بدون تخفیف';
+        }
+        const nextText = $('loyaltyNextTierText');
+        const progPct = $('loyaltyProgressPct');
+        const progBar = $('loyaltyProgressBar');
+        const totalSpent = $('loyaltyTotalSpent');
+        const targetSpent = $('loyaltyNextTierTarget');
+        const benefitDesc = $('loyaltyBenefitDesc');
 
-      if (benefitDesc) {
-        if (loyalty.discount_percent > 0) {
-          benefitDesc.innerHTML = `شما دارای <span class="num-bidi font-mono font-bold" dir="ltr">${toEnglishDigits(loyalty.discount_percent)}%</span> تخفیف وفاداری روی تمامی بسته‌ها هستید. با افزایش خریدها، به سطوح بالاتر با تخفیف‌های بیشتر ارتقا&nbsp;می‌یابید!`;
+        if (totalSpent) totalSpent.innerText = `مجموع خرید: ${Number(loyalty.total_spent || 0).toLocaleString('en-US')} تومان`;
+
+        if (loyalty.next_tier_name && loyalty.next_tier_threshold) {
+          const pct = loyalty.progress_percent ?? loyalty.progress_pct ?? 0;
+          if (nextText) nextText.innerText = `تا سطح بعدی (${loyalty.next_tier_name}):`;
+          if (progPct) progPct.innerText = `${pct}%`;
+          if (progBar) progBar.style.width = `${pct}%`;
+          if (targetSpent) targetSpent.innerText = `هدف بعدی: ${Number(loyalty.next_tier_threshold).toLocaleString('en-US')} تومان`;
         } else {
-          benefitDesc.innerText = 'با خرید بیشتر از فروشگاه، سطح خود را ارتقا دهید و از تخفیف روی تمامی بسته‌ها بهره‌مند شوید.';
+          if (nextText) nextText.innerText = 'بالاترین سطح باشگاه مشتریان 🎉';
+          if (progPct) progPct.innerText = '100%';
+          if (progBar) progBar.style.width = '100%';
+          if (targetSpent) targetSpent.innerText = `${loyalty.name || 'الماس'}`;
+        }
+
+        if (benefitDesc) {
+          if (loyalty.discount_percent > 0) {
+            benefitDesc.innerHTML = `شما دارای <span class="num-bidi font-mono font-bold" dir="ltr">${toEnglishDigits(loyalty.discount_percent)}%</span> تخفیف وفاداری روی تمامی بسته‌ها هستید. با افزایش خریدها، به سطوح بالاتر با تخفیف‌های بیشتر ارتقا&nbsp;می‌یابید!`;
+          } else {
+            benefitDesc.innerText = 'با خرید بیشتر از فروشگاه، سطح خود را ارتقا دهید و از تخفیف روی تمامی بسته‌ها بهره‌مند شوید.';
+          }
         }
       }
     }

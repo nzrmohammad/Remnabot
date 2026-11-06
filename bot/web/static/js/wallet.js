@@ -1139,7 +1139,10 @@ async function openTopupModal(defaultAmt, forceCrypto = false) {
   }
   updateTopupDisplays(amt);
 
-  const applyMethodTabs = (s) => {
+  // Initialize selected tab for new modal session
+  window.currentTopupTab = forceCrypto ? 'crypto' : null;
+
+  const applyMethodTabs = (s, isInitial = false) => {
     try {
       if (!s) return;
       const hasActiveCrypto = restoreActiveCryptoInvoice();
@@ -1164,6 +1167,21 @@ async function openTopupModal(defaultAmt, forceCrypto = false) {
         switchToCryptoTab();
       } else if (hasActiveTrx && s.trx_enabled !== false) {
         switchTopupTab('trx');
+      } else if (!isInitial && window.currentTopupTab) {
+        if (window.currentTopupTab === 'stars' && s.stars_enabled !== false) {
+          switchTopupTab('stars');
+        } else if (window.currentTopupTab === 'crypto' && s.crypto_enabled !== false) {
+          switchToCryptoTab();
+        } else if (window.currentTopupTab === 'trx' && s.trx_enabled !== false) {
+          switchTopupTab('trx');
+        } else if (window.currentTopupTab === 'card' && s.card_enabled !== false) {
+          switchToCardTab();
+        } else {
+          if (s.card_enabled !== false) switchToCardTab();
+          else if (s.crypto_enabled !== false) switchToCryptoTab();
+          else if (s.trx_enabled !== false) switchTopupTab('trx');
+          else if (s.stars_enabled !== false) switchTopupTab('stars');
+        }
       } else if (s.card_enabled !== false) {
         switchToCardTab();
       } else if (s.crypto_enabled !== false) {
@@ -1181,7 +1199,7 @@ async function openTopupModal(defaultAmt, forceCrypto = false) {
 
   // Apply cached storeSettings immediately if available
   try {
-    applyMethodTabs(window.storeSettings);
+    applyMethodTabs(window.storeSettings, true);
   } catch (e) {}
 
   // Open modal immediately with 0ms delay
@@ -1190,7 +1208,7 @@ async function openTopupModal(defaultAmt, forceCrypto = false) {
   // Load/refresh settings in background (SWR pattern)
   try {
     await loadTopupInfo();
-    applyMethodTabs(window.storeSettings);
+    applyMethodTabs(window.storeSettings, false);
   } catch (e) {}
 }
 

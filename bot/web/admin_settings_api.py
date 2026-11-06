@@ -96,6 +96,7 @@ async def get_admin_settings(request: web.Request) -> web.Response:
             "custom_plan_max_days": store_settings.custom_plan_max_days,
             "custom_plan_volume_tiers_json": store_settings.custom_plan_volume_tiers_json,
             "store_logo_url": store_settings.store_logo_url,
+            "loyalty_enabled": store_settings.loyalty_enabled,
             "loyalty_tiers_json": store_settings.loyalty_tiers_json,
             "invoice_company_name": store_settings.invoice_company_name,
             "timezone": store_settings.timezone,
@@ -138,7 +139,7 @@ async def post_admin_settings(request: web.Request) -> web.Response:
             "stars_enabled", "trx_enabled", "xrocket_enabled",
             "card_require_phone_verification", "card_phone_iran_only", "birthday_reward_enabled",
             "card_graphical_view_enabled",
-            "join_gate_enabled", "auto_clean_reports", "custom_plan_enabled",
+            "join_gate_enabled", "auto_clean_reports", "custom_plan_enabled", "loyalty_enabled",
         )
         for bk in bool_keys:
             if bk in body:

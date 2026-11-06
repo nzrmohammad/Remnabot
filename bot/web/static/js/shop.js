@@ -128,7 +128,7 @@ function renderWonCoupons(data) {
       ? 'won-coupon-apply-btn bg-emerald-600 text-white border border-emerald-500 font-bold px-2.5 py-1 rounded-lg text-[11px] transition active:scale-95 shrink-0 shadow-sm'
       : 'won-coupon-apply-btn bg-transparent hover:bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-600/50 dark:border-amber-500/40 font-bold px-2.5 py-1 rounded-lg text-[11px] transition active:scale-95 shrink-0';
     return `
-      <div class="won-coupon-card flex-1 min-w-[140px] flex items-center justify-between gap-2 p-2 rounded-xl bg-amber-500/5 border ${isApplied ? 'border-emerald-500/60 ring-1 ring-emerald-500/30' : 'border-amber-600/40 dark:border-amber-500/40'} transition shadow-none">
+      <div class="won-coupon-card flex-1 min-w-[140px] flex items-center justify-between gap-2 p-2 rounded-xl bg-transparent border ${isApplied ? 'border-emerald-500/60 ring-1 ring-emerald-500/30' : 'border-amber-600/40 dark:border-amber-500/40'} transition shadow-none">
         <div class="text-right">
           <div class="flex items-center gap-1">
             <span class="text-xs">🎟</span>
@@ -625,8 +625,22 @@ function renderFilteredShopPlans() {
 
     const userLoyalty = cachedPlansData?.loyalty || window.lastUserData?.loyalty;
     const userTierIcon = userLoyalty?.icon || '🥈';
-    const userTierClass = userLoyalty?.badge_class || 'bg-slate-400/15 text-slate-300 border border-slate-400/30';
     const loyaltyPctEnglish = toEnglishDigits(p.loyalty_discount_percent || userLoyalty?.discount_percent || 0);
+
+    let tagThemeClass = 'badge-info';
+    if (isExtraTraffic || isTimeOnly) {
+      tagThemeClass = 'badge-accent';
+    } else if (planBadgeKey === 'vip' || (!planBadgeKey && (planText.includes('پیشنهاد ویژه') || planText.includes('vip')))) {
+      tagThemeClass = 'badge-danger';
+    } else if (planBadgeKey === 'bestseller' || (!planBadgeKey && (planText.includes('پرفروش') || planText.includes('bestseller')))) {
+      tagThemeClass = 'badge-warn';
+    } else if (planBadgeKey === 'popular' || (!planBadgeKey && (planText.includes('محبوب') || planText.includes('popular')))) {
+      tagThemeClass = 'badge-purple';
+    } else if (planBadgeKey === 'economic' || (!planBadgeKey && (planText.includes('اقتصادی') || planText.includes('economic') || planText.includes('به‌صرفه') || planText.includes('بصرفه') || planText.includes('ارزان')))) {
+      tagThemeClass = 'badge-success';
+    } else if (planBadgeKey === 'tunnel' || (!planBadgeKey && (planText.includes('تانل') || planText.includes('tunnel')))) {
+      tagThemeClass = 'badge-accent';
+    }
 
     return `
       <div class="shop-plan-card card p-4 border ${badgeBorderClass} relative overflow-hidden group">
@@ -636,22 +650,20 @@ function renderFilteredShopPlans() {
             <h4 class="font-bold text-sm t-main truncate">${formatPlanTitle(p.name)}</h4>
             ${(discountVal > 0 || hasLoyaltyDiscount) ? `
               <div class="flex items-center gap-1.5 mt-1 flex-wrap">
-                ${hasLoyaltyDiscount ? `<span dir="ltr" class="inline-flex items-center gap-1 text-[9.5px] font-bold px-1.5 py-0.5 rounded-md font-mono ${userTierClass}" title="تخفیف وفاداری"><span>${userTierIcon}</span><span>${loyaltyPctEnglish}% وفاداری</span></span>` : ''}
-                ${discountVal > 0 ? `<span dir="ltr" class="inline-flex items-center gap-1 text-[9.5px] font-bold px-1.5 py-0.5 rounded-md bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 font-mono"><span>🏷</span><span>${window.activeCoupon?.code ? escapeHtml(window.activeCoupon.code) : 'کوپن'}</span><span>(-${toEnglishDigits(window.activeCoupon?.discount_percent || 0)}%)</span></span>` : ''}
+                ${hasLoyaltyDiscount ? `<span dir="ltr" class="badge ${tagThemeClass} text-[9.5px] font-mono" title="تخفیف وفاداری"><span>${userTierIcon}</span><span>${loyaltyPctEnglish}% Loyality</span></span>` : ''}
+                ${discountVal > 0 ? `<span dir="ltr" class="badge ${tagThemeClass} text-[9.5px] font-mono"><span>🏷</span><span>${window.activeCoupon?.code ? escapeHtml(window.activeCoupon.code) : 'کوپن'}</span><span>(-${toEnglishDigits(window.activeCoupon?.discount_percent || 0)}%)</span></span>` : ''}
               </div>
             ` : ''}
-            <p class="text-[11px] leading-snug t-muted mt-1">${safeDesc}</p>
           </div>
           <div class="text-left font-mono shrink-0">
             <div class="flex flex-col items-end">
-              ${hasAnyDiscount ? `<span class="line-through t-muted text-xs font-semibold leading-tight">${formattedOriginal}</span>` : ''}
-              <div class="flex items-baseline gap-1">
-                <span class="text-base font-black t-success leading-tight">${formattedFinal}</span>
-                <span class="text-[10px] t-muted font-sans">تومان</span>
-              </div>
+              ${hasAnyDiscount ? `<span class="line-through t-muted text-xs font-semibold leading-tight mb-0.5">${formattedOriginal}</span>` : ''}
+              <span class="text-base font-black t-success leading-tight">${formattedFinal}</span>
+              <span class="text-[9.5px] t-muted font-sans leading-none mt-0.5">تومان</span>
             </div>
           </div>
         </div>
+        <p class="text-[10.5px] leading-snug t-muted mt-1.5 whitespace-nowrap overflow-hidden text-ellipsis tracking-tight">${safeDesc}</p>
         <div class="flex items-center justify-between my-2.5 text-[10px] card-inset px-3 py-2 whitespace-nowrap overflow-hidden">
           <span class="flex items-center gap-1">📊 <b dir="ltr" class="font-mono t-main num-bidi">${trafficText}</b></span>
           ${durationText}

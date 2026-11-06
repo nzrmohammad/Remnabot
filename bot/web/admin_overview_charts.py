@@ -804,7 +804,7 @@ async def get_periodic_users_bandwidth(
     }
 
     if cache:
-        await cache.set(cache_key, result, ttl_seconds=180)
+        await cache.set(cache_key, result, ttl_seconds=300)
     return result
 
 

@@ -137,6 +137,32 @@ async def get_user_loyalty(
     cache: Any = None,
 ) -> dict[str, Any]:
     """Calculate and return user loyalty tier, total spending, progress, and perks."""
+    from bot.services.app_settings import get_store_settings
+
+    store_settings = await get_store_settings(session)
+    if not store_settings.loyalty_enabled:
+        return {
+            "enabled": False,
+            "tier": "NONE",
+            "tier_id": "bronze",
+            "name": "غیرفعال",
+            "icon": "⚪️",
+            "discount_percent": 0,
+            "color": "#94a3b8",
+            "badge_class": "bg-slate-400/15 text-slate-300 border border-slate-400/30",
+            "description": "باشگاه مشتریان در حال حاضر غیرفعال است.",
+            "total_spent": 0,
+            "amount_to_next": 0,
+            "progress_percent": 0,
+            "next_tier": None,
+            "next_tier_name": None,
+            "next_tier_icon": None,
+            "next_tier_discount": None,
+            "next_tier_threshold": None,
+            "is_max_tier": True,
+            "all_tiers": [],
+        }
+
     cache_key = f"loyalty:user:v2:{telegram_id}"
     if cache and hasattr(cache, "get"):
         try:
@@ -186,6 +212,7 @@ async def get_user_loyalty(
         }
 
     data = {
+        "enabled": True,
         "tier": current_tier["id"].upper(),
         "tier_id": current_tier["id"],
         "name": current_tier["name"],

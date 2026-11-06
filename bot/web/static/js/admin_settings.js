@@ -1239,6 +1239,8 @@ openUserChat(telegram_id, name, tag, topup_id) {
       }
 
       // VIP Loyalty Tiers
+      const loyaltyToggle = $('settingLoyaltyEnabled');
+      if (loyaltyToggle) loyaltyToggle.checked = s.loyalty_enabled !== false;
       let loyaltyCfg = {};
       try {
         if (s.loyalty_tiers_json) loyaltyCfg = JSON.parse(s.loyalty_tiers_json);
@@ -1451,6 +1453,9 @@ openUserChat(telegram_id, name, tag, topup_id) {
   $('settingCustomPlanSwitch')?.addEventListener('change', (e) => {
     updateSettingToggle('custom_plan_enabled', e.target.checked);
   });
+  $('settingLoyaltyEnabled')?.addEventListener('change', (e) => {
+    updateSettingToggle('loyalty_enabled', e.target.checked);
+  });
   $('settingAccessMode')?.addEventListener('change', (e) => {
     updateSettingToggle('access_mode', e.target.value);
   });
@@ -1512,6 +1517,7 @@ openUserChat(telegram_id, name, tag, topup_id) {
           discount_percent: parseInt($('settingCustomPlanTier3Discount')?.value || '30', 10),
         },
       ]),
+      loyalty_enabled: $('settingLoyaltyEnabled')?.checked ?? true,
       loyalty_tiers_json: JSON.stringify({
         bronze: {
           min_spent: 0,

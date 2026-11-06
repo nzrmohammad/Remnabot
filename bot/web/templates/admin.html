@@ -2282,6 +2282,17 @@
             <svg class="settings-box-chevron w-4 h-4 text-slate-400 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
           </div>
           <div id="settingsBoxLoyalty" class="settings-box-body p-4 pt-1 border-t border-slate-700/60 space-y-3 text-xs hidden">
+            <!-- Main Enable/Disable Toggle for Loyalty Club -->
+            <div class="flex items-center justify-between p-3 rounded-xl bg-slate-900/80 border border-slate-700/60">
+              <div>
+                <b class="text-xs text-slate-100 block">فعال‌سازی باشگاه مشتریان</b>
+                <span class="text-[10px] text-slate-400 block mt-0.5">در صورت غیرفعال بودن، تخفیف‌های سطوح وفاداری در فروشگاه اعمال نخواهند شد.</span>
+              </div>
+              <label class="toggle-switch relative inline-flex items-center cursor-pointer shrink-0">
+                <input type="checkbox" id="settingLoyaltyEnabled" class="sr-only peer" checked>
+                <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:right-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-500"></div>
+              </label>
+            </div>
             <p class="text-[11px] text-slate-400 leading-relaxed">
               کاربران بر اساس مجموع خریدهای موفق قبلی به سطوح بالاتر ارتقا یافته و از تخفیف خودکار در فروشگاه بهره‌مند می‌شوند:
             </p>

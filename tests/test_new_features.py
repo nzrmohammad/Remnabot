@@ -1297,3 +1297,33 @@ async def test_card_phone_iran_only_validation(async_session: AsyncSession):
 
 
 
+
+
+@pytest.mark.anyio
+async def test_loyalty_club_enable_disable_toggle(async_session: AsyncSession):
+    from bot.db.repositories.app_setting_repo import AppSettingRepository
+    from bot.services.app_settings import get_store_settings
+    from bot.services.loyalty import get_user_loyalty
+
+    app_repo = AppSettingRepository(async_session)
+
+    # 1. Default should be enabled
+    settings = await get_store_settings(async_session)
+    assert settings.loyalty_enabled is True
+    loyalty_active = await get_user_loyalty(async_session, 123456)
+    assert loyalty_active.get("enabled") is True
+
+    # 2. Admin disables loyalty club
+    await app_repo.set("loyalty_enabled", "0")
+    settings_disabled = await get_store_settings(async_session)
+    assert settings_disabled.loyalty_enabled is False
+    loyalty_disabled = await get_user_loyalty(async_session, 123456)
+    assert loyalty_disabled.get("enabled") is False
+    assert loyalty_disabled.get("discount_percent") == 0
+
+    # 3. Admin re-enables loyalty club
+    await app_repo.set("loyalty_enabled", "1")
+    settings_re_enabled = await get_store_settings(async_session)
+    assert settings_re_enabled.loyalty_enabled is True
+    loyalty_re_enabled = await get_user_loyalty(async_session, 123456)
+    assert loyalty_re_enabled.get("enabled") is True
