@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="docs/assets/banner.png" alt="Remnabot — Enterprise Remnawave Telegram Bot & Mini App Ecosystem" width="100%">
+</p>
+
 # 🚀 Remnabot — Enterprise Remnawave Telegram Bot
 
 <p align="center">
@@ -17,6 +21,7 @@
 
 ## 📖 Table of Contents
 - [⚡ Key Features](#-key-features)
+- [📱 پیش‌نمایش محیط کاربری (Screenshots)](#-پیشنمایش-محیط-کاربری-screenshots)
 - [🏛 Project Architecture](#-project-architecture)
 - [⚡ Zero-Conflict Deployment Model](#-zero-conflict-deployment-model)
 - [📦 Prerequisites & Compatibility](#-prerequisites--compatibility)
@@ -62,6 +67,61 @@ Remnabot provides a production-grade Telegram client portal and administrative o
 - **🤖 Intelligent Lifecycle & Retention Engine**: Autonomous asynchronous workers handling proactive expiration warnings (3-Day, 1-Day, Day-0), grace period policy enforcement, auto-disabling expired panel subscriptions, and automated 7-day win-back retention campaigns.
 - **📊 Real-Time Cluster Telemetry**: Proactive monitoring of all Remnawave v3 nodes with automated country flag resolution, core version detection (`Xray-core` / `Node`), hardware load metrics (CPU, RAM, Uptime), and real-time active user counts.
 - **🐳 Zero-Conflict Production Architecture**: Outbound-only long-polling requiring zero exposed HTTP/SSL ingress ports for the bot, fully isolated PostgreSQL 16 and Redis 7 containers, and an automated native self-healing schema engine with zero manual migrations.
+
+---
+
+## 📱 پیش‌نمایش محیط کاربری (Screenshots)
+
+<div align="center">
+  <table>
+    <tr>
+      <td align="center" width="50%"><b>📱 داشبورد اصلی و مشخصات سرویس</b></td>
+      <td align="center" width="50%"><b>📊 گزارش تفصیلی مصرف و نمودارهای تحلیلی</b></td>
+    </tr>
+    <tr>
+      <td align="center"><img src="docs/assets/screenshot-dashboard.png" width="340" alt="داشبورد اصلی مینی‌اپ" /></td>
+      <td align="center"><img src="docs/assets/screenshot-reports.png" width="340" alt="گزارش تحلیلی مصرف و نشست‌های فعال" /></td>
+    </tr>
+    <tr>
+      <td align="center" width="50%"><b>🛒 فروشگاه هوشمند و پلن‌های پویا</b></td>
+      <td align="center" width="50%"><b>🎛️ پلن‌ساز سفارشی منعطف (حجم و زمان)</b></td>
+    </tr>
+    <tr>
+      <td align="center"><img src="docs/assets/screenshot-shop.png" width="340" alt="فروشگاه هوشمند و خرید بسته" /></td>
+      <td align="center"><img src="docs/assets/screenshot-custom-plan.png" width="340" alt="پلن‌ساز سفارشی مشتریان" /></td>
+    </tr>
+    <tr>
+      <td align="center" width="50%"><b>👛 کیف پول اختصاصی و کارت ۳ بعدی</b></td>
+      <td align="center" width="50%"><b>⚡️ درگاه کارت‌به‌کارت آنی و فاکتور هوشمند</b></td>
+    </tr>
+    <tr>
+      <td align="center"><img src="docs/assets/screenshot-wallet.png" width="340" alt="کیف پول و کارت گرافیکی ۳ بعدی" /></td>
+      <td align="center"><img src="docs/assets/screenshot-card-auto.png" width="340" alt="کارت‌به‌کارت آنی با تایید خودکار پیامکی" /></td>
+    </tr>
+    <tr>
+      <td align="center" width="50%"><b>👤 پروفایل کاربری، سطح وفاداری و دعوت دوستان</b></td>
+      <td align="center" width="50%"><b>🎡 گردونه شانس و جوایز وفاداری</b></td>
+    </tr>
+    <tr>
+      <td align="center"><img src="docs/assets/screenshot-profile.png" width="340" alt="پروفایل کاربری، سطح وفاداری و تنظیمات" /></td>
+      <td align="center"><img src="docs/assets/screenshot-wheel.png" width="340" alt="گردونه شانس روزانه و جوایز" /></td>
+    </tr>
+    <tr>
+      <td align="center" width="50%"><b>🚀 سنجش زنده سرعت اینترنت (Speedtest)</b></td>
+      <td align="center" width="50%"><b>🎂 باشگاه مشتریان و هدیه زادروز</b></td>
+    </tr>
+    <tr>
+      <td align="center"><img src="docs/assets/screenshot-speedtest.png" width="340" alt="تست دقیق پهنای‌باند دانلود، آپلود و پینگ" /></td>
+      <td align="center"><img src="docs/assets/screenshot-birthday.png" width="340" alt="هدیه زادروز و کارت تبریک" /></td>
+    </tr>
+    <tr>
+      <td align="center" colspan="2"><b>💻 داشبورد و آمار تحلیلی وب ادمین (Admin Web Panel)</b></td>
+    </tr>
+    <tr>
+      <td align="center" colspan="2"><img src="docs/assets/screenshot-admin.png" width="700" alt="پنل جامع مدیریت وب و گزارش مصرف سرورها" /></td>
+    </tr>
+  </table>
+</div>
 
 ---
 
