@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/assets/banner.png" alt="Remnabot — Enterprise Remnawave Telegram Bot & Mini App Ecosystem" width="100%">
+  <img src="docs/assets/banner.png" alt="Remnabot — Enterprise Remnawave Telegram Bot & Mini App Ecosystem" width="720">
 </p>
 
 # 🚀 Remnabot — Enterprise Remnawave Telegram Bot
@@ -115,10 +115,12 @@ Remnabot provides a production-grade Telegram client portal and administrative o
       <td align="center"><img src="docs/assets/screenshot-birthday.png" width="220" alt="Birthday Gift Card & Live Countdown" /></td>
     </tr>
     <tr>
-      <td align="center" colspan="2"><b>💻 Admin Operations Web Panel</b></td>
+      <td align="center" width="50%"><b>💻 Admin Overview & Analytics</b></td>
+      <td align="center" width="50%"><b>💻 Admin Users & Nodes Control</b></td>
     </tr>
     <tr>
-      <td align="center" colspan="2"><img src="docs/assets/screenshot-admin.png" width="540" alt="Unified Admin Web Panel & Real-Time Telemetry" /></td>
+      <td align="center"><img src="docs/assets/screenshot-admin.png" width="310" alt="Admin Overview & Analytics" /></td>
+      <td align="center"><img src="docs/assets/screenshot-admin-users.png" width="310" alt="Admin Users & Nodes Control" /></td>
     </tr>
   </table>
 </div>
