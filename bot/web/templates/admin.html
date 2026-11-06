@@ -461,17 +461,17 @@
           </div>
           <!-- Action Buttons Toolbar -->
           <div class="grid grid-cols-3 gap-1.5">
-            <button onclick="window.adminActions.openCreateUserModal()" class="py-2 px-2.5 bg-blue-600/15 hover:bg-blue-600/25 text-blue-400 border border-blue-500/30 font-bold text-xs rounded-xl flex items-center justify-center gap-1.5 transition active:scale-95" title="ایجاد کاربر جدید در پنل" aria-label="ایجاد کاربر جدید">
-              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
-              <span>کاربر جدید</span>
+            <button onclick="window.adminActions.openCreateUserModal()" class="py-2 px-1.5 sm:px-2.5 bg-blue-50 hover:bg-blue-100 text-blue-700 dark:bg-blue-600/15 dark:hover:bg-blue-600/25 dark:text-blue-400 border border-blue-200 dark:border-blue-500/30 font-bold text-xs rounded-xl flex items-center justify-center gap-1.5 transition active:scale-95 whitespace-nowrap shadow-xs" title="ایجاد کاربر جدید در پنل" aria-label="ایجاد کاربر جدید">
+              <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
+              <span class="whitespace-nowrap">کاربر جدید</span>
             </button>
-            <button onclick="window.adminActions.openBulkUsersModal()" class="py-2 px-2.5 bg-indigo-600/15 hover:bg-indigo-600/25 text-indigo-400 border border-indigo-500/30 font-bold text-xs rounded-xl flex items-center justify-center gap-1.5 transition active:scale-95" title="عملیات گروهی روی کاربران" aria-label="عملیات گروهی روی کاربران">
-              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-              <span>عملیات گروهی</span>
+            <button onclick="window.adminActions.openBulkUsersModal()" class="py-2 px-1.5 sm:px-2.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 dark:bg-indigo-600/15 dark:hover:bg-indigo-600/25 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-500/30 font-bold text-xs rounded-xl flex items-center justify-center gap-1.5 transition active:scale-95 whitespace-nowrap shadow-xs" title="عملیات گروهی روی کاربران" aria-label="عملیات گروهی روی کاربران">
+              <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+              <span class="whitespace-nowrap">عملیات گروهی</span>
             </button>
-            <button id="toggleSelectModeBtn" onclick="window.adminActions.toggleUserSelectMode()" class="py-2 px-2.5 bg-teal-600/15 hover:bg-teal-600/25 text-teal-400 border border-teal-500/30 font-bold text-xs rounded-xl flex items-center justify-center gap-1.5 transition active:scale-95" title="انتخاب چندگانه کاربران" aria-label="انتخاب چندگانه کاربران">
-              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
-              <span id="toggleSelectModeBtnText">انتخاب</span>
+            <button id="toggleSelectModeBtn" onclick="window.adminActions.toggleUserSelectMode()" class="py-2 px-1.5 sm:px-2.5 bg-teal-50 hover:bg-teal-100 text-teal-700 dark:bg-teal-600/15 dark:hover:bg-teal-600/25 dark:text-teal-400 border border-teal-200 dark:border-teal-500/30 font-bold text-xs rounded-xl flex items-center justify-center gap-1.5 transition active:scale-95 whitespace-nowrap shadow-xs" title="انتخاب چندگانه کاربران" aria-label="انتخاب چندگانه کاربران">
+              <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+              <span id="toggleSelectModeBtnText" class="whitespace-nowrap">انتخاب</span>
             </button>
           </div>
 
@@ -2286,7 +2286,7 @@
           </div>
           <div id="settingsBoxLoyalty" class="settings-box-body p-4 pt-1 border-t border-slate-700/60 space-y-3 text-xs hidden">
             <!-- Main Enable/Disable Toggle for Loyalty Club -->
-            <div class="flex items-center justify-between p-3 rounded-xl bg-slate-900/80 border border-slate-700/60">
+            <div class="flex items-center justify-between py-2.5 border-b border-slate-700/50">
               <div>
                 <b class="text-xs text-slate-100 block">فعال‌سازی باشگاه مشتریان</b>
                 <span class="text-[10px] text-slate-400 block mt-0.5">در صورت غیرفعال بودن، تخفیف‌های سطوح وفاداری در فروشگاه اعمال نخواهند شد.</span>
@@ -2325,8 +2325,8 @@
                 <div class="flex items-center gap-2 shrink-0">
                   <input type="number" id="loyalty_silver_spent" dir="ltr" placeholder="1000000" class="w-24 bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-xs font-mono text-cyan-300 outline-none text-center" title="حداقل خرید (تومان)" />
                   <span class="text-[10px] text-slate-400">تومان</span>
-                  <input type="number" id="loyalty_silver_pct" dir="ltr" placeholder="3" class="w-14 bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-xs font-mono text-emerald-400 outline-none text-center" title="درصد تخفیف" />
-                  <span class="text-[10px] text-slate-400">٪</span>
+                  <input type="number" id="loyalty_silver_pct" dir="ltr" placeholder="3" class="w-14 bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-xs font-mono font-en num-bidi text-emerald-400 outline-none text-center" title="درصد تخفیف" autocomplete="off" />
+                  <span class="text-[10px] text-slate-400 font-mono font-bold" dir="ltr">%</span>
                 </div>
               </div>
 
@@ -2339,8 +2339,8 @@
                 <div class="flex items-center gap-2 shrink-0">
                   <input type="number" id="loyalty_gold_spent" dir="ltr" placeholder="2500000" class="w-24 bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-xs font-mono text-cyan-300 outline-none text-center" title="حداقل خرید (تومان)" />
                   <span class="text-[10px] text-slate-400">تومان</span>
-                  <input type="number" id="loyalty_gold_pct" dir="ltr" placeholder="5" class="w-14 bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-xs font-mono text-emerald-400 outline-none text-center" title="درصد تخفیف" />
-                  <span class="text-[10px] text-slate-400">٪</span>
+                  <input type="number" id="loyalty_gold_pct" dir="ltr" placeholder="5" class="w-14 bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-xs font-mono font-en num-bidi text-emerald-400 outline-none text-center" title="درصد تخفیف" autocomplete="off" />
+                  <span class="text-[10px] text-slate-400 font-mono font-bold" dir="ltr">%</span>
                 </div>
               </div>
 
@@ -2353,8 +2353,8 @@
                 <div class="flex items-center gap-2 shrink-0">
                   <input type="number" id="loyalty_platinum_spent" dir="ltr" placeholder="5000000" class="w-24 bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-xs font-mono text-cyan-300 outline-none text-center" title="حداقل خرید (تومان)" />
                   <span class="text-[10px] text-slate-400">تومان</span>
-                  <input type="number" id="loyalty_platinum_pct" dir="ltr" placeholder="8" class="w-14 bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-xs font-mono text-emerald-400 outline-none text-center" title="درصد تخفیف" />
-                  <span class="text-[10px] text-slate-400">٪</span>
+                  <input type="number" id="loyalty_platinum_pct" dir="ltr" placeholder="8" class="w-14 bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-xs font-mono font-en num-bidi text-emerald-400 outline-none text-center" title="درصد تخفیف" autocomplete="off" />
+                  <span class="text-[10px] text-slate-400 font-mono font-bold" dir="ltr">%</span>
                 </div>
               </div>
 
@@ -2367,8 +2367,8 @@
                 <div class="flex items-center gap-2 shrink-0">
                   <input type="number" id="loyalty_ruby_spent" dir="ltr" placeholder="8000000" class="w-24 bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-xs font-mono text-cyan-300 outline-none text-center" title="حداقل خرید (تومان)" />
                   <span class="text-[10px] text-slate-400">تومان</span>
-                  <input type="number" id="loyalty_ruby_pct" dir="ltr" placeholder="10" class="w-14 bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-xs font-mono text-emerald-400 outline-none text-center" title="درصد تخفیف" />
-                  <span class="text-[10px] text-slate-400">٪</span>
+                  <input type="number" id="loyalty_ruby_pct" dir="ltr" placeholder="10" class="w-14 bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-xs font-mono font-en num-bidi text-emerald-400 outline-none text-center" title="درصد تخفیف" autocomplete="off" />
+                  <span class="text-[10px] text-slate-400 font-mono font-bold" dir="ltr">%</span>
                 </div>
               </div>
 
@@ -2381,8 +2381,8 @@
                 <div class="flex items-center gap-2 shrink-0">
                   <input type="number" id="loyalty_emerald_spent" dir="ltr" placeholder="12000000" class="w-24 bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-xs font-mono text-cyan-300 outline-none text-center" title="حداقل خرید (تومان)" />
                   <span class="text-[10px] text-slate-400">تومان</span>
-                  <input type="number" id="loyalty_emerald_pct" dir="ltr" placeholder="12" class="w-14 bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-xs font-mono text-emerald-400 outline-none text-center" title="درصد تخفیف" />
-                  <span class="text-[10px] text-slate-400">٪</span>
+                  <input type="number" id="loyalty_emerald_pct" dir="ltr" placeholder="12" class="w-14 bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-xs font-mono font-en num-bidi text-emerald-400 outline-none text-center" title="درصد تخفیف" autocomplete="off" />
+                  <span class="text-[10px] text-slate-400 font-mono font-bold" dir="ltr">%</span>
                 </div>
               </div>
 
@@ -2395,8 +2395,8 @@
                 <div class="flex items-center gap-2 shrink-0">
                   <input type="number" id="loyalty_diamond_spent" dir="ltr" placeholder="20000000" class="w-24 bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-xs font-mono text-cyan-300 outline-none text-center" title="حداقل خرید (تومان)" />
                   <span class="text-[10px] text-slate-400">تومان</span>
-                  <input type="number" id="loyalty_diamond_pct" dir="ltr" placeholder="15" class="w-14 bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-xs font-mono text-emerald-400 outline-none text-center" title="درصد تخفیف" />
-                  <span class="text-[10px] text-slate-400">٪</span>
+                  <input type="number" id="loyalty_diamond_pct" dir="ltr" placeholder="15" class="w-14 bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-xs font-mono font-en num-bidi text-emerald-400 outline-none text-center" title="درصد تخفیف" autocomplete="off" />
+                  <span class="text-[10px] text-slate-400 font-mono font-bold" dir="ltr">%</span>
                 </div>
               </div>
             </div>
@@ -4032,7 +4032,7 @@
           </div>
           <button type="button" onclick="window.adminActions.closeTimezoneModal()" class="modal-close-btn" aria-label="بستن">✕</button>
         </div>
-        <div id="timezoneList" class="space-y-1.5 flex-1 overflow-y-auto custom-scroll text-xs pr-0.5">
+        <div id="timezoneList" class="space-y-1.5 flex-1 overflow-y-auto custom-scroll text-xs px-2 py-1">
           <!-- Dynamically populated timezone options -->
         </div>
       </div>

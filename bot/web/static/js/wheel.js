@@ -378,6 +378,17 @@ function setupLuckyWheel() {
       }
 
       if (isAgain) {
+        wheelCooldownSeconds = 0;
+        wheelTargetEndTime = 0;
+        if (wheelCountdownInterval) clearInterval(wheelCountdownInterval);
+        const timerBox = document.getElementById('wheelTimerContainer');
+        if (timerBox) timerBox.classList.add('hidden');
+        if (window.lastUserData?.wheel_status) {
+          window.lastUserData.wheel_status.next_spin_seconds = 0;
+          window.lastUserData.wheel_status.can_spin = true;
+          window.lastUserData.wheel_status.is_cooldown = false;
+        }
+        updateWheelUIState(true, true, 0, currentWheelStreak, currentWheelMultiplier, currentWheelTickets);
         spinBtnState(spinWheelBtn, false, 'بچرخون!');
         if (wheelResultText) wheelResultText.innerHTML = '🔄 <b>شانس مجدد!</b> گردونه دوباره برای شما شارژ شد، همین الان بچرخون!';
         showWheelResultModal({

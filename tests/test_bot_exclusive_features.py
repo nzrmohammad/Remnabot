@@ -128,6 +128,57 @@ async def test_wheel_coupon_reward_generation(session_factory):
             assert res["applied"] is True
 
 
+@pytest.mark.anyio
+async def test_wheel_again_free_retry_flow(session_factory):
+    async with session_factory() as session:
+        tg_id = 9005
+        u = User(telegram_id=tg_id, username="retry_spinner")
+        session.add(u)
+        await session.commit()
+
+        cache = FastCache(redis_client=None)
+        mock_remnawave = AsyncMock()
+        mock_remnawave.get_users_by_telegram_id.return_value = [
+            {"status": "ACTIVE", "id": 15, "trafficLimitBytes": 10 * 1024**3}
+        ]
+
+        # Spin 1 lands on "again" (شانس مجدد)
+        with patch("random.choices", return_value=[{"id": "again_1", "name": "شانس مجدد", "icon": "🔄", "type": "again", "value": 0}]):
+            res_spin1 = await execute_lucky_wheel_spin(
+                session=session,
+                remnawave=mock_remnawave,
+                cache=cache,
+                bot=None,
+                telegram_id=tg_id,
+            )
+            assert res_spin1["ok"] is True
+            assert res_spin1["prize"]["type"] == "again"
+
+        # Check status: should still be able to spin and not in cooldown!
+        status = await get_wheel_status(session, cache, tg_id)
+        assert status["can_spin"] is True
+        assert status["is_cooldown"] is False
+        assert status["remaining_seconds"] == 0
+
+        # Spin 2 immediately afterwards: must succeed without cooldown error
+        with patch("random.choices", return_value=[{"id": "blank_1", "name": "پوچ", "icon": "❌", "type": "blank", "value": 0}]):
+            res_spin2 = await execute_lucky_wheel_spin(
+                session=session,
+                remnawave=mock_remnawave,
+                cache=cache,
+                bot=None,
+                telegram_id=tg_id,
+            )
+            assert res_spin2["ok"] is True
+            assert res_spin2["prize"]["type"] == "blank"
+
+        # After landing on blank (not again), normal cooldown applies
+        status_after = await get_wheel_status(session, cache, tg_id)
+        assert status_after["is_cooldown"] is True
+        assert status_after["can_spin"] is False
+
+
+
 # -------------------------------------------------------------------------
 # 2. Birthday Registration Tests
 # -------------------------------------------------------------------------

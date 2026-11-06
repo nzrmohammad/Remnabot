@@ -35,18 +35,33 @@ async def _send_admin_nightly_summary(
     target_user_id: int | None = None,
     is_daily: bool = False,
 ) -> None:
-    today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
-    today_start_utc = today_start.astimezone(timezone.utc)
+    # 0. Define interval: Daily = today (00:00 to 23:59), Nightly = previous day (00:00 to 23:59)
+    if is_daily:
+        report_date = now.date()
+        day_label_fa = "امروز"
+        report_dt = now
+    else:
+        report_date = (now - timedelta(days=1)).date()
+        day_label_fa = "روز قبل"
+        report_dt = now - timedelta(days=1)
 
-    # 1. Orders & Topups financial metrics today (SSOT, no double counting)
-    from bot.services.reports.common import format_financial_summary, get_financial_metrics_today
-    fin = await get_financial_metrics_today(session, today_start_utc)
+    period_start = report_dt.replace(hour=0, minute=0, second=0, microsecond=0)
+    period_end = report_dt.replace(hour=23, minute=59, second=59, microsecond=999999)
+    period_start_utc = period_start.astimezone(timezone.utc)
+    period_end_utc = period_end.astimezone(timezone.utc)
+
+    # 1. Orders & Topups financial metrics (SSOT, no double counting)
+    from bot.services.reports.common import format_financial_summary, get_financial_metrics
+    fin = await get_financial_metrics(session, period_start_utc, period_end_utc)
     payments_str = format_financial_summary(fin, fmt)
 
     # 3. User growth (both bot users & panel accounts)
     user_repo = UserRepository(session)
     total_bot_users = await user_repo.count()
-    new_users = await user_repo.count(User.created_at >= today_start_utc)
+    new_users = await user_repo.count(
+        User.created_at >= period_start_utc,
+        User.created_at <= period_end_utc,
+    )
 
     # 4. Cluster & Panel metrics
     panel_users = await remnawave.get_all_panel_users() or []
@@ -63,18 +78,18 @@ async def _send_admin_nightly_summary(
         if cc:
             country_totals.setdefault(cc, 0)
         from bot.common.helpers import get_node_daily_bytes
-        val = get_node_daily_bytes(n)
+        val = get_node_daily_bytes(n) if is_daily else 0
         if cc and val > 0:
             country_totals[cc] += val
 
-    # 6. Active users today and their usage
-    today_str = now.strftime("%Y-%m-%d")
+    # 6. Active users in period and their usage
+    report_date_str = report_date.strftime("%Y-%m-%d")
     from bot.common.helpers import get_used_bytes
     active_traffic_users = [u for u in panel_users if get_used_bytes(u) > 0]
 
     sem = asyncio.Semaphore(10)
 
-    async def _fetch_user_today(u: dict):
+    async def _fetch_user_period(u: dict):
         uid = u.get("id")
         if not uid:
             return u, []
@@ -82,20 +97,20 @@ async def _send_admin_nightly_summary(
             try:
                 stats = (
                     await remnawave.get_user_bandwidth_stats(
-                        int(uid), today_str, today_str
+                        int(uid), report_date_str, report_date_str
                     )
                     or []
                 )
                 return u, stats
             except Exception as exc:
-                logger.warning("Failed to fetch user today stats for %s: %s", uid, exc)
+                logger.warning("Failed to fetch user %s stats for %s: %s", day_label_fa, uid, exc)
                 return u, []
 
     user_stats_results = await asyncio.gather(
-        *[_fetch_user_today(u) for u in active_traffic_users]
+        *[_fetch_user_period(u) for u in active_traffic_users]
     )
 
-    active_users_today: list[tuple[str, int, str]] = []
+    active_users_period: list[tuple[str, int, str]] = []
     user_country_totals: dict[str, int] = {}
 
     for u, stats in user_stats_results:
@@ -117,16 +132,16 @@ async def _send_admin_nightly_summary(
                     user_node_usage.items(), key=lambda x: x[1], reverse=True
                 )
             ]
-            active_users_today.append((username, user_total, " ".join(breakdown_parts)))
+            active_users_period.append((username, user_total, " ".join(breakdown_parts)))
 
     for cc, val in user_country_totals.items():
         if cc:
             country_totals[cc] = max(country_totals.get(cc, 0), val)
 
-    total_bandwidth_today = sum(country_totals.values()) if country_totals else sum(
-        u[1] for u in active_users_today
+    total_bandwidth_target = sum(country_totals.values()) if country_totals else sum(
+        u[1] for u in active_users_period
     )
-    active_users_today.sort(key=lambda x: x[1], reverse=True)
+    active_users_period.sort(key=lambda x: x[1], reverse=True)
 
     # 7. Expiring users in 0..3 days
     expiring_soon_users: list[tuple[int, str]] = []
@@ -158,12 +173,13 @@ async def _send_admin_nightly_summary(
 
     expired_24h_users.sort(key=str.lower)
 
-    # 9. Alerts sent today
+    # 9. Alerts sent in period
     traffic_alerts_count = (
         await session.scalar(
             select(func.count(AlertState.account_id)).where(
                 AlertState.traffic_alerted.is_(True),
-                AlertState.updated_at >= today_start_utc,
+                AlertState.updated_at >= period_start_utc,
+                AlertState.updated_at <= period_end_utc,
             )
         )
         or 0
@@ -172,20 +188,20 @@ async def _send_admin_nightly_summary(
     expired_count = len(expired_24h_users)
 
     # Build report text
-    date_str = format_date(now, "fa")
+    date_str = format_date(report_dt, "fa")
     report_title = (
-        f"👑 <b>گزارش جامع روزانه (لحظه‌ای) — {date_str} — {now.strftime('%H:%M')}</b>"
+        f"👑 <b>گزارش جامع روزانه (امروز) — {date_str} — 00:00 تا 23:59</b>"
         if is_daily
-        else f"👑 <b>گزارش جامع شبانه — {date_str} — 23:59</b>"
+        else f"👑 <b>گزارش جامع شبانه (روز قبل) — {date_str} — 00:00 تا 23:59</b>"
     )
     lines = [
         report_title,
         SEPARATOR,
         "⚙️ <b>خلاصه وضعیت کل پنل</b>",
-        f"🤖 اعضای ربات : {total_bot_users} (➕ {new_users} عضو جدید امروز)",
+        f"🤖 اعضای ربات : {total_bot_users} (➕ {new_users} عضو جدید {day_label_fa})",
         f"👤 اشتراک‌های پنل : {total_panel_users} (✅ {active_panel_users} فعال)",
-        f"💳 فروش و واریز امروز : {payments_str}",
-        f"⚡️ مصرف کل امروز : {human_bytes(total_bandwidth_today)}",
+        f"💳 فروش و واریز {day_label_fa} : {payments_str}",
+        f"⚡️ مصرف کل {day_label_fa} : {human_bytes(total_bandwidth_target)}",
     ]
 
     if country_totals:
@@ -193,15 +209,15 @@ async def _send_admin_nightly_summary(
             lines.append(f"{country_flag(cc)} : {human_bytes(val)}")
 
     lines.append(SEPARATOR)
-    lines.append("✅ <b>کاربران فعال امروز و مصرفشان</b>")
-    if active_users_today:
-        for i, (uname, u_total, b_str) in enumerate(active_users_today):
+    lines.append(f"✅ <b>کاربران فعال {day_label_fa} و مصرفشان</b>")
+    if active_users_period:
+        for i, (uname, u_total, b_str) in enumerate(active_users_period):
             lines.append(f"👤 {escape(uname)} : {human_bytes(u_total)}")
             lines.append(b_str)
-            if i < len(active_users_today) - 1:
+            if i < len(active_users_period) - 1:
                 lines.append("")
     else:
-        lines.append("  (هیچ کاربری امروز مصرف نداشته است)")
+        lines.append(f"  (هیچ کاربری {day_label_fa} مصرف نداشته است)")
 
     lines.append(SEPARATOR)
     lines.append("⚠️ <b>کاربرانی که تا ۳ روز آینده منقضی می شوند</b>")
@@ -220,7 +236,7 @@ async def _send_admin_nightly_summary(
         lines.append("  (هیچ کاربری در ۲۴ ساعت اخیر منقضی نشده است)")
 
     lines.append(SEPARATOR)
-    lines.append("🔔 <b>هشدارهای ارسال شده امروز</b>")
+    lines.append(f"🔔 <b>هشدارهای ارسال شده {day_label_fa}</b>")
     lines.append(f"کمبود حجم : {traffic_alerts_count}")
     lines.append(f"در آستانه انقضا : {near_expiry_count}")
     lines.append(f"منقضی شده : {expired_count}")

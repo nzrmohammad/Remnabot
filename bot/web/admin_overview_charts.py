@@ -757,11 +757,11 @@ async def get_periodic_users_bandwidth(
 
     if current_j:
         yesterday_j = jdatetime.date.fromgregorian(date=(now_tehran - timedelta(days=1)).date())
-        today_label = f"روزانه ({current_j.strftime('%Y/%m/%d')} - تا الان)"
-        nightly_label = f"شبانه ({yesterday_j.strftime('%Y/%m/%d')} - ۲۳:۵۹)"
+        today_label = f"روزانه ({current_j.strftime('%Y/%m/%d')} - 00:00 تا 23:59)"
+        nightly_label = f"شبانه ({yesterday_j.strftime('%Y/%m/%d')} - 00:00 تا 23:59)"
     else:
-        today_label = "روزانه (امروز - تا الان)"
-        nightly_label = "شبانه (روز قبل - ۲۳:۵۹)"
+        today_label = "روزانه (امروز - 00:00 تا 23:59)"
+        nightly_label = "شبانه (روز قبل - 00:00 تا 23:59)"
 
     daily_lb = _make_leaderboard(user_stats, "daily_bytes", "daily_gb", today_label)
     nightly_lb = _make_leaderboard(user_stats, "yesterday_bytes", "yesterday_gb", nightly_label)

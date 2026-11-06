@@ -3774,9 +3774,9 @@ function renderUserLeaderboard(leaderboardData, period = currentUserLbPeriod) {
   if (noticeTextEl) {
     let periodLabel = periodData.period_label || '7 روز اخیر';
     if (period === 'daily') {
-      periodLabel = periodData.period_label || 'روزانه (امروز)';
+      periodLabel = periodData.period_label || 'روزانه (امروز - 00:00 تا 23:59)';
     } else if (period === 'nightly') {
-      periodLabel = periodData.period_label || 'شبانه (روز قبل - 23:59)';
+      periodLabel = periodData.period_label || 'شبانه (روز قبل - 00:00 تا 23:59)';
     } else if (period === 'weekly') {
       periodLabel = '7 روز اخیر';
     } else if (period === 'monthly_30d') {

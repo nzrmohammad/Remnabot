@@ -343,8 +343,6 @@ function renderFlagHtml(countryCodeOrEmoji, className = 'w-4 h-3 inline-block ro
   return `<span class="inline-block">${escapeHtml(str)}</span>`;
 }
 
-window.renderFlagHtml = renderFlagHtml;
-window.getCountryCodeFromEmoji = getCountryCodeFromEmoji;
 
 function formatSpeed(bytesPerSec) {
   const bytes = Number(bytesPerSec || 0);
@@ -646,6 +644,8 @@ function fmtCompact(val) {
 }
 
 if (typeof window !== 'undefined') {
+  window.renderFlagHtml = renderFlagHtml;
+  window.getCountryCodeFromEmoji = getCountryCodeFromEmoji;
   window.toEnglishDigits = toEnglishDigits;
   window.toPersianDigits = toPersianDigits;
   window.formatPrice = formatPrice;
@@ -668,6 +668,8 @@ if (typeof window !== 'undefined') {
 
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = {
+    renderFlagHtml,
+    getCountryCodeFromEmoji,
     escapeHtml,
     toEnglishDigits,
     toPersianDigits,

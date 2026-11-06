@@ -239,6 +239,14 @@ html.theme-light .on-dark .text-slate-400 {
   white-space: nowrap;
 }
 
+input.font-en,
+input.font-mono,
+.font-en {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace, sans-serif !important;
+  font-variant-numeric: tabular-nums lining-nums !important;
+  font-feature-settings: "cv01" 0, "ss01" 0, "numr" 0, "tnum" 1 !important;
+}
+
 /* --- 7. Bottom Navigation Bar --- */
 #navBottom,
 #adminNavBottom,
@@ -765,6 +773,13 @@ html.theme-light .chat-bubble-admin {
   background: #ffffff;
   border-color: #e2e8f0;
   color: #0f172a;
+}
+
+/* --- High Prominence Card Numbers in Light Mode --- */
+html.theme-light #cardAutoCardNumber,
+html.theme-light #topupCardNumber {
+  color: #0f172a;
+  font-weight: 900;
 }
 
 /* --- Standard Persian Sans Typography --- */

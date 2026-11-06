@@ -1575,10 +1575,10 @@ async applyUserModification() {
       const btn = $('toggleSelectModeBtn');
       const txt = $('toggleSelectModeBtnText');
       if (window.adminUserSelectMode) {
-        if (btn) btn.className = 'px-3 py-2 bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs rounded-xl shadow-md flex items-center justify-center gap-1.5 transition active:scale-95 shrink-0';
+        if (btn) btn.className = 'py-2 px-1.5 sm:px-2.5 bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs rounded-xl shadow-md flex items-center justify-center gap-1.5 transition active:scale-95 whitespace-nowrap shrink-0';
         if (txt) txt.innerText = 'پایان انتخاب';
       } else {
-        if (btn) btn.className = 'px-3 py-2 bg-teal-600/15 hover:bg-teal-600/25 text-teal-400 border border-teal-500/30 font-bold text-xs rounded-xl flex items-center justify-center gap-1.5 transition active:scale-95 shrink-0';
+        if (btn) btn.className = 'py-2 px-1.5 sm:px-2.5 bg-teal-50 hover:bg-teal-100 text-teal-700 dark:bg-teal-600/15 dark:hover:bg-teal-600/25 dark:text-teal-400 border border-teal-200 dark:border-teal-500/30 font-bold text-xs rounded-xl flex items-center justify-center gap-1.5 transition active:scale-95 whitespace-nowrap shadow-xs shrink-0';
         if (txt) txt.innerText = 'انتخاب';
       }
       document.querySelectorAll('.user-select-checkbox-wrap').forEach(el => {

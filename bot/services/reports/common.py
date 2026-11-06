@@ -82,35 +82,37 @@ def _breakdown_lines(rows: list[dict], value_key: int | None = None) -> list[str
     return lines
 
 
-async def get_financial_metrics(session: Any, since_utc: datetime) -> dict[str, int]:
-    """Calculate centralized financial metrics (orders vs topups) since a given UTC datetime without double counting."""
+async def get_financial_metrics(session: Any, since_utc: datetime, until_utc: datetime | None = None) -> dict[str, int]:
+    """Calculate centralized financial metrics (orders vs topups) in a given UTC interval without double counting."""
     from bot.db.models import Order, Topup
     from sqlalchemy import func, select
 
     # 1. Paid store orders (actual service purchases)
-    orders_res = await session.execute(
-        select(
-            func.count(Order.id),
-            func.coalesce(func.sum(Order.amount), 0),
-        ).where(
-            Order.created_at >= since_utc,
-            Order.status == "paid",
-        )
+    orders_stmt = select(
+        func.count(Order.id),
+        func.coalesce(func.sum(Order.amount), 0),
+    ).where(
+        Order.created_at >= since_utc,
+        Order.status == "paid",
     )
+    if until_utc is not None:
+        orders_stmt = orders_stmt.where(Order.created_at <= until_utc)
+    orders_res = await session.execute(orders_stmt)
     orders_row = orders_res.one()
     orders_count = int(orders_row[0] or 0)
     orders_revenue = int(orders_row[1] or 0)
 
     # 2. Approved wallet topups (actual cash inflow)
-    topups_res = await session.execute(
-        select(
-            func.count(Topup.id),
-            func.coalesce(func.sum(Topup.amount), 0),
-        ).where(
-            Topup.decided_at >= since_utc,
-            Topup.status == "approved",
-        )
+    topups_stmt = select(
+        func.count(Topup.id),
+        func.coalesce(func.sum(Topup.amount), 0),
+    ).where(
+        Topup.decided_at >= since_utc,
+        Topup.status == "approved",
     )
+    if until_utc is not None:
+        topups_stmt = topups_stmt.where(Topup.decided_at <= until_utc)
+    topups_res = await session.execute(topups_stmt)
     topups_row = topups_res.one()
     topups_count = int(topups_row[0] or 0)
     topups_amount = int(topups_row[1] or 0)

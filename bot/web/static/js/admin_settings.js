@@ -117,7 +117,7 @@
       list.innerHTML = zones.map(z => {
         const isSelected = currentVal === z.id;
         return `
-          <div onclick="window.adminActions.selectTimezone('${z.id}')" class="p-3 rounded-2xl border transition cursor-pointer flex items-center justify-between gap-3 ${isSelected ? 'bg-blue-600/15 border-blue-500 shadow-sm' : 'card-inset border-card-border hover:border-slate-500/50'}">
+          <div onclick="window.adminActions.selectTimezone('${z.id}')" class="p-3 rounded-2xl border transition cursor-pointer flex items-center justify-between gap-3 mx-0.5 ${isSelected ? 'bg-blue-600/15 border-blue-500 shadow-sm' : 'card-inset border-card-border hover:border-slate-500/50'}">
             <div class="flex items-center gap-2.5">
               <span class="text-base">${typeof renderFlagHtml === 'function' ? renderFlagHtml(z.flag, 'w-5 h-3.5 inline-block rounded-xs shadow-xs object-cover align-middle') : z.flag}</span>
               <span class="text-xs font-mono font-bold ${isSelected ? 'text-blue-600 dark:text-blue-400 font-black' : 't-main'}">${z.name}</span>

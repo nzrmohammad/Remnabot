@@ -85,6 +85,13 @@ async def get_wheel_status(
             is_cooldown = True
             rem_secs = max(1, int(86400 - elapsed_db))
 
+    has_free_retry = False
+    if cache and hasattr(cache, "get"):
+        has_free_retry = bool(await cache.get(f"wheel:has_free_retry:{telegram_id}"))
+    if has_free_retry:
+        is_cooldown = False
+        rem_secs = 0
+
     streak = int(getattr(db_user, "wheel_streak", 0) or 0) if db_user else 0
     spin_tickets = int(getattr(db_user, "spin_tickets", 0) or 0) if db_user else 0
 
@@ -183,6 +190,13 @@ async def execute_lucky_wheel_spin(
             is_cooldown = True
             rem_secs = max(1, int(86400 - elapsed_db))
 
+    has_free_retry = False
+    if cache and hasattr(cache, "get"):
+        has_free_retry = bool(await cache.get(f"wheel:has_free_retry:{telegram_id}"))
+    if has_free_retry:
+        is_cooldown = False
+        rem_secs = 0
+
     using_ticket = False
     if use_ticket:
         cur_tickets = int(getattr(db_user, "spin_tickets", 0) or 0) if db_user else 0
@@ -233,7 +247,6 @@ async def execute_lucky_wheel_spin(
 
         if db_user:
             db_user.wheel_streak = new_streak
-            db_user.wheel_last_spin_at = now_utc
     else:
         new_streak = max(1, cur_streak)
 
@@ -327,16 +340,28 @@ async def execute_lucky_wheel_spin(
             except Exception as exc:
                 logger.warning("Failed to prepare coupon for wheel prize: %s", exc)
 
-    # Record spin in DB report
+    # Record spin in DB report & update spin cooldown
     if chosen["type"] != "again":
-        if not using_ticket and cache and hasattr(cache, "set"):
-            await cache.set(wheel_ts_key, now_ts, ttl_seconds=86400)
+        if cache and hasattr(cache, "delete"):
+            await cache.delete(f"wheel:has_free_retry:{telegram_id}")
+        if not using_ticket:
+            if db_user:
+                db_user.wheel_last_spin_at = now_utc
+            if cache and hasattr(cache, "set"):
+                await cache.set(wheel_ts_key, now_ts, ttl_seconds=86400)
         if session is not None:
             try:
                 rep_repo = ReportRepository(session)
                 await rep_repo.record_wheel_spin(telegram_id)
             except Exception as exc:
                 logger.warning("Failed to record wheel spin in DB for %s: %s", telegram_id, exc)
+    else:
+        # Free retry prize! Keep cooldown off and restore ticket if used
+        if cache and hasattr(cache, "set"):
+            await cache.set(f"wheel:has_free_retry:{telegram_id}", 1, ttl_seconds=86400)
+        if using_ticket and db_user:
+            db_user.spin_tickets = cur_tickets
+            using_ticket = False
 
     if session is not None:
         await session.commit()
