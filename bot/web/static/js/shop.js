@@ -16,8 +16,8 @@ function setupCouponInput() {
     couponInput.value = '';
     couponInput.disabled = false;
     applyCouponBtn.disabled = false;
-    applyCouponBtn.innerText = 'اعمال';
-    applyCouponBtn.className = 'bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold px-4 py-2 rounded-lg transition active:scale-95 shadow shrink-0';
+    applyCouponBtn.innerText = '⚡️ اعمال';
+    applyCouponBtn.className = 'btn btn-primary text-xs font-semibold px-4 py-2 rounded-lg shadow shrink-0';
     if (showFeedback) {
       showToast('ℹ️ کد تخفیف حذف گردید.');
       hapticFeedback('selection');
@@ -63,8 +63,8 @@ function setupCouponInput() {
         window.activeCoupon = null;
         showToast(`❌ ${res.message || 'کد تخفیف نامعتبر است.'}`);
         hapticFeedback('error');
-        applyCouponBtn.innerText = 'اعمال';
-        applyCouponBtn.className = 'bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold px-4 py-2 rounded-lg transition active:scale-95 shadow shrink-0';
+        applyCouponBtn.innerText = '⚡️ اعمال';
+        applyCouponBtn.className = 'btn btn-primary text-xs font-semibold px-4 py-2 rounded-lg shadow shrink-0';
         couponInput.disabled = false;
         if (window.lastUserData) renderShopPlans(window.lastUserData);
       }
@@ -125,10 +125,10 @@ function renderWonCoupons(data) {
     const isApplied = Boolean(activeCode && c.code && activeCode === String(c.code).toUpperCase());
     const btnText = isApplied ? '✓ اعمال شد' : '⚡️ اعمال';
     const btnClass = isApplied
-      ? 'won-coupon-apply-btn bg-emerald-600 text-white border border-emerald-500 font-bold px-2.5 py-1 rounded-lg text-[11px] transition active:scale-95 shrink-0 shadow-sm'
-      : 'won-coupon-apply-btn bg-transparent hover:bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-600/50 dark:border-amber-500/40 font-bold px-2.5 py-1 rounded-lg text-[11px] transition active:scale-95 shrink-0';
+      ? 'won-coupon-apply-btn bg-emerald-600 text-white font-semibold px-3 py-1.5 rounded-lg text-xs transition active:scale-95 shrink-0 shadow-sm'
+      : 'won-coupon-apply-btn btn btn-primary text-xs font-semibold px-3 py-1.5 rounded-lg shadow shrink-0';
     return `
-      <div class="won-coupon-card flex-1 min-w-[140px] flex items-center justify-between gap-2 p-2 rounded-xl bg-transparent border ${isApplied ? 'border-emerald-500/60 ring-1 ring-emerald-500/30' : 'border-amber-600/40 dark:border-amber-500/40'} transition shadow-none">
+      <div class="won-coupon-card flex-1 min-w-[140px] flex items-center justify-between gap-2 p-2.5 rounded-xl bg-transparent border border-[var(--card-border)] transition shadow-none">
         <div class="text-right">
           <div class="flex items-center gap-1">
             <span class="text-xs">🎟</span>
@@ -620,7 +620,7 @@ function renderFilteredShopPlans() {
     const clusterFlags = (cachedPlansData?.cluster_flags || window.lastUserData?.cluster_flags || []).filter(f => f && f !== '🌐');
     const activeFlags = cleanFlags.length > 0 ? cleanFlags : clusterFlags;
     const flagsList = activeFlags.length > 0
-      ? activeFlags.map(f => `<span class="text-xs inline-block" title="${f}">${f}</span>`).join(' ')
+      ? activeFlags.map(f => (typeof renderFlagHtml === 'function' ? renderFlagHtml(f, 'w-4 h-3 inline-block rounded-xs shadow-xs object-cover align-middle') : `<span class="text-xs inline-block" title="${f}">${f}</span>`)).join(' ')
       : '<span class="text-xs inline-block" title="سرور اختصاصی">🌐</span>';
 
     const userLoyalty = cachedPlansData?.loyalty || window.lastUserData?.loyalty;

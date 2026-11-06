@@ -46,7 +46,7 @@
           <!-- Accordion Header -->
           <div class="p-3 flex justify-between items-center cursor-pointer hover:bg-slate-500/10 transition select-none" onclick="window.toggleNodeAccordion(${idx})">
             <div class="flex items-center gap-2.5">
-              <span class="text-xl flex-shrink-0">${flag}</span>
+              <span class="text-xl flex-shrink-0">${typeof renderFlagHtml === 'function' ? renderFlagHtml(flag, 'w-5 h-3.5 inline-block rounded-xs shadow-xs object-cover align-middle') : flag}</span>
               <div>
                 <span class="font-bold text-white block text-xs">${escapeHtml(n.name || 'Node')}</span>
                 ${specs ? `<span class="text-[10px] text-slate-400 font-mono">${specs}</span>` : ''}
@@ -258,7 +258,7 @@
           <div class="node-header p-3.5 flex justify-between items-center cursor-pointer select-none hover:bg-slate-500/10 transition active:scale-[0.99]" onclick="window.adminActions.toggleSettingsBox('${boxId}')">
             <!-- Right: Flag and Server Name -->
             <div class="flex items-center gap-2.5 min-w-0">
-              <span class="text-2xl flex-shrink-0 filter drop-shadow">${flag}</span>
+              <span class="text-2xl flex-shrink-0 filter drop-shadow">${typeof renderFlagHtml === 'function' ? renderFlagHtml(flag, 'w-6 h-4 inline-block rounded-xs shadow-xs object-cover align-middle') : flag}</span>
               <h4 class="font-bold text-xs text-white truncate">${escapeHtml(n.name || 'Server Node')}</h4>
             </div>
 

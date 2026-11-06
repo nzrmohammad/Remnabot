@@ -2965,7 +2965,7 @@ function hydrateUserInterface(data) {
 
     const refCount = Number(user.referrals_count || 0);
     const refRewardGb = Number(data.referral_reward_gb || 1);
-    if (refCountEl) refCountEl.innerText = `${toEnglishDigits(refCount)} نفر`;
+    if (refCountEl) refCountEl.innerHTML = `<span class="font-mono font-bold">${toEnglishDigits(refCount)}</span> <span class="font-sans">نفر</span>`;
     if (refRewardTotalEl) refRewardTotalEl.innerText = `${toEnglishDigits(refCount * refRewardGb)}`;
     if (refRewardBadge) refRewardBadge.innerText = `🎁 ${toEnglishDigits(refRewardGb)} گیگابایت هدیه به ازای هر دعوت`;
 
@@ -3402,7 +3402,7 @@ function hydrateUserInterface(data) {
               <span class="t-accent font-black text-xs font-mono num-bidi" dir="ltr">${fmtTraffic(item.total_formatted, { html: false })}</span>
               <span class="flex items-center gap-2 font-bold t-main">
                 <span>${escapeHtml(item.name || '')}</span>
-                <span class="text-base">${escapeHtml(item.flag || '🌐')}</span>
+                <span class="text-base">${typeof renderFlagHtml === 'function' ? renderFlagHtml(item.flag || '🌐', 'w-4 h-3 inline-block rounded-xs shadow-xs object-cover align-middle') : escapeHtml(item.flag || '🌐')}</span>
               </span>
             </div>
             ${barHtml}
@@ -4008,6 +4008,14 @@ function loadUserCache() {
         }
         const age = Date.now() - (parsed.ts || 0);
         if (age < 7 * 24 * 3600 * 1000) {
+          if (parsed.data?.wheel_status && typeof parsed.data.wheel_status.next_spin_seconds === 'number') {
+            const elapsedSec = age / 1000;
+            const adjustedRemaining = Math.max(0, Math.round(parsed.data.wheel_status.next_spin_seconds - elapsedSec));
+            parsed.data.wheel_status.next_spin_seconds = adjustedRemaining;
+            if (adjustedRemaining <= 0) {
+              parsed.data.wheel_status.can_spin = true;
+            }
+          }
           return parsed.data;
         }
       }

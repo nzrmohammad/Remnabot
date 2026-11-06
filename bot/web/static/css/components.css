@@ -725,6 +725,15 @@ html.theme-light #adminContentArea .text-slate-300:not(button):not([class*="btn"
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
   box-shadow: 0 16px 36px -8px rgba(0, 0, 0, 0.42), 0 0 0 1px rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+}
+
+.blu-card-face *,
+html.theme-light .blu-card-face,
+html.theme-light .blu-card-face *,
+html.theme-light .card-inset .blu-card-face,
+html.theme-light .card-inset .blu-card-face * {
+  color: #ffffff;
 }
 
 .blu-card-front {
@@ -761,4 +770,25 @@ html.theme-light .chat-bubble-admin {
 /* --- Standard Persian Sans Typography --- */
 .font-sans {
   font-family: 'Vazirmatn', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Segoe UI Emoji', sans-serif;
+}
+
+/* --- Settings Box Inputs Typography --- */
+.settings-box-body input,
+.settings-box-body select,
+.settings-box-body textarea {
+  font-size: 0.6875rem;
+  line-height: 1.25rem;
+}
+
+/* --- Enforce Vazirmatn Font on Badges, Action Cards, Modals & SVG Text --- */
+.shop-plan-badge,
+.tutorial-entry-btn,
+.lucky-wheel-entry-btn,
+.speedtest-entry-btn,
+#dashboardBirthdayCard,
+#luckyWheelModal,
+#wheelResultModal,
+#wheelSvg text,
+#wheelSvg tspan {
+  font-family: 'Vazirmatn', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }

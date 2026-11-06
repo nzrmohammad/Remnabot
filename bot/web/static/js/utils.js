@@ -312,6 +312,40 @@ function getFlagEmoji(code) {
   return String.fromCodePoint(c.charCodeAt(0) + offset, c.charCodeAt(1) + offset);
 }
 
+function getCountryCodeFromEmoji(emoji) {
+  if (!emoji || typeof emoji !== 'string') return '';
+  const chars = [...emoji.trim()];
+  if (chars.length === 2) {
+    const c1 = chars[0].codePointAt(0) - 127397;
+    const c2 = chars[1].codePointAt(0) - 127397;
+    if (c1 >= 65 && c1 <= 90 && c2 >= 65 && c2 <= 90) {
+      return String.fromCharCode(c1, c2).toUpperCase();
+    }
+  }
+  return '';
+}
+
+function renderFlagHtml(countryCodeOrEmoji, className = 'w-4 h-3 inline-block rounded-xs shadow-xs object-cover align-middle') {
+  if (!countryCodeOrEmoji) return '<span class="inline-block">🌐</span>';
+  const str = String(countryCodeOrEmoji).trim();
+  if (str === '🌐' || str === '🖥️') return `<span class="inline-block">${str}</span>`;
+  let cc = '';
+  if (str.length === 2 && /^[a-zA-Z]{2}$/.test(str)) {
+    cc = str.toUpperCase();
+  } else {
+    cc = getCountryCodeFromEmoji(str);
+  }
+  if (cc && cc.length === 2) {
+    const code = cc.toLowerCase();
+    const fallback = getFlagEmoji(cc);
+    return `<img src="/static/img/flags/${code}.svg" class="${className}" alt="${cc}" title="${cc}" onerror="this.outerHTML='<span class=\'inline-block\'>${fallback}</span>'" loading="lazy" />`;
+  }
+  return `<span class="inline-block">${escapeHtml(str)}</span>`;
+}
+
+window.renderFlagHtml = renderFlagHtml;
+window.getCountryCodeFromEmoji = getCountryCodeFromEmoji;
+
 function formatSpeed(bytesPerSec) {
   const bytes = Number(bytesPerSec || 0);
   if (!bytes || bytes <= 0) return '0 B/s';

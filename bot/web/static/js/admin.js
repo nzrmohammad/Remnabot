@@ -322,9 +322,16 @@
 
 
   // --- 10. Header & Action Trigger Buttons ---
-  $('quickRefreshMetricsBtn')?.addEventListener('click', () => {
+  $('quickRefreshMetricsBtn')?.addEventListener('click', async () => {
     if (window.syncAdminOverview) window.syncAdminOverview(true);
-    if (window.showToast) window.showToast('🔄 داده‌ها سینک شدند.');
+    if (window.adminActions && typeof window.adminActions.fetchUsers === 'function') {
+      window.adminActions.fetchUsers(1, true);
+    }
+    if (window.adminActions && typeof window.adminActions.fetchNodes === 'function') {
+      window.adminActions.fetchNodes(true);
+    }
+    if (window.fetchAdminTopups) window.fetchAdminTopups();
+    if (window.showToast) window.showToast('🔄 تمامی داده‌ها و آمار با سرور سینک شدند.');
     if (window.hapticFeedback) window.hapticFeedback('impact');
   });
 

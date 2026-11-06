@@ -592,8 +592,8 @@
         plugins: {
           legend: {
             position: 'bottom',
-            rtl: true,
-            textDirection: 'rtl',
+            rtl: false,
+            textDirection: 'ltr',
             labels: createDoughnutLegendLabels()
           },
           tooltip: {
@@ -824,8 +824,8 @@
         plugins: {
           legend: {
             position: 'bottom',
-            rtl: true,
-            textDirection: 'rtl',
+            rtl: false,
+            textDirection: 'ltr',
             labels: createDoughnutLegendLabels()
           },
           tooltip: {
@@ -885,8 +885,8 @@
         plugins: {
           legend: {
             position: 'bottom',
-            rtl: true,
-            textDirection: 'rtl',
+            rtl: false,
+            textDirection: 'ltr',
             labels: createDoughnutLegendLabels()
           },
           tooltip: {
@@ -945,8 +945,8 @@
         plugins: {
           legend: {
             position: 'bottom',
-            rtl: true,
-            textDirection: 'rtl',
+            rtl: false,
+            textDirection: 'ltr',
             labels: createDoughnutLegendLabels()
           },
           tooltip: {
@@ -1008,8 +1008,8 @@
         plugins: {
           legend: {
             position: 'bottom',
-            rtl: true,
-            textDirection: 'rtl',
+            rtl: false,
+            textDirection: 'ltr',
             labels: createDoughnutLegendLabels()
           },
           tooltip: {
@@ -1216,6 +1216,7 @@ openHighRiskUsersModal() {
   function switchAdminTopConsumersPeriod(period) {
     currentTopConsumersPeriod = period;
     const btnDaily = $('adminTopConsumersPeriodDaily');
+    const btnNightly = $('adminTopConsumersPeriodNightly');
     const btnWeek = $('adminTopConsumersPeriodWeekly');
     const btnMonth30d = $('adminTopConsumersPeriodMonthly30d');
     const btnMonth = $('adminTopConsumersPeriodMonthly');
@@ -1224,6 +1225,7 @@ openHighRiskUsersModal() {
 
     const buttons = [
       { el: btnDaily, id: 'daily' },
+      { el: btnNightly, id: 'nightly' },
       { el: btnWeek, id: 'weekly' },
       { el: btnMonth30d, id: 'monthly_30d' },
       { el: btnMonth, id: 'monthly' },

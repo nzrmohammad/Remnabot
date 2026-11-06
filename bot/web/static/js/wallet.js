@@ -23,7 +23,7 @@ function renderBluCardNumber(el, num) {
   if (!el) return;
   const clean = String(num || '').replace(/\D/g, '');
   if (clean.length === 16) {
-    el.innerHTML = `<span class="tracking-wide font-black">${clean.slice(0, 4)}</span>&nbsp;<span class="tracking-wide font-black">${clean.slice(4, 8)}</span>&nbsp;<span class="tracking-wide font-black">${clean.slice(8, 12)}</span>&nbsp;<span class="tracking-wide font-black">${clean.slice(12, 16)}</span>`;
+    el.innerHTML = `<span class="tracking-wide font-black text-white" style="color: #ffffff;">${clean.slice(0, 4)}</span>&nbsp;<span class="tracking-wide font-black text-white" style="color: #ffffff;">${clean.slice(4, 8)}</span>&nbsp;<span class="tracking-wide font-black text-white" style="color: #ffffff;">${clean.slice(8, 12)}</span>&nbsp;<span class="tracking-wide font-black text-white" style="color: #ffffff;">${clean.slice(12, 16)}</span>`;
   } else {
     el.innerText = formatCardNumberDisplay(num);
   }
@@ -99,6 +99,7 @@ function applyBluBankCardTheme(color, bankTmpl) {
   const numberEl = document.getElementById('graphicCardNumberDisplay');
   if (numberEl) {
     numberEl.style.color = palette.text;
+    numberEl.querySelectorAll('span').forEach(s => { s.style.color = palette.text; });
   }
 
   const backTextEl = document.getElementById('graphicCardBackText');

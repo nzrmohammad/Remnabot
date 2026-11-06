@@ -955,7 +955,7 @@ async applyUserModification() {
 
             if (osLower.includes('windows') || osLower.includes('win32') || osLower.includes('win64')) {
               osDisplay = 'ویندوز';
-              osIcon = '🪟';
+              osIcon = '💻';
             } else if (osLower.includes('android')) {
               osDisplay = 'اندروید';
               osIcon = '🤖';
@@ -1095,7 +1095,7 @@ async applyUserModification() {
           <div class="bg-transparent rounded-2xl p-3 border border-slate-700/60 space-y-2">
             <div class="flex items-center justify-between">
               <span class="text-white font-bold text-xs flex items-center gap-1.5">
-                <span class="text-sm">${flag}</span>
+                <span class="text-sm">${typeof renderFlagHtml === 'function' ? renderFlagHtml(flag, 'w-4 h-3 inline-block rounded-xs shadow-xs object-cover align-middle') : flag}</span>
                 <span>${escapeHtml(nodeName)}</span>
               </span>
               <span class="text-[10px] card-inset text-cyan-700 dark:text-cyan-300 border border-cyan-500/40 px-2 py-0.5 rounded-lg font-mono font-bold">
@@ -1575,10 +1575,10 @@ async applyUserModification() {
       const btn = $('toggleSelectModeBtn');
       const txt = $('toggleSelectModeBtnText');
       if (window.adminUserSelectMode) {
-        if (btn) btn.className = 'px-2.5 py-2 bg-teal-500/20 text-teal-300 border border-teal-500 font-bold text-[11px] rounded-2xl flex items-center gap-1 transition active:scale-95 flex-shrink-0';
+        if (btn) btn.className = 'px-3 py-2 bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs rounded-xl shadow-md flex items-center justify-center gap-1.5 transition active:scale-95 shrink-0';
         if (txt) txt.innerText = 'پایان انتخاب';
       } else {
-        if (btn) btn.className = 'px-2.5 py-2 bg-transparent hover:bg-slate-800 text-teal-400 hover:text-teal-300 border border-teal-500/30 hover:border-teal-400/70 font-bold text-[11px] rounded-2xl flex items-center gap-1 transition active:scale-95 flex-shrink-0';
+        if (btn) btn.className = 'px-3 py-2 bg-teal-600/15 hover:bg-teal-600/25 text-teal-400 border border-teal-500/30 font-bold text-xs rounded-xl flex items-center justify-center gap-1.5 transition active:scale-95 shrink-0';
         if (txt) txt.innerText = 'انتخاب';
       }
       document.querySelectorAll('.user-select-checkbox-wrap').forEach(el => {

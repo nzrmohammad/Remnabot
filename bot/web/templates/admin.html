@@ -376,11 +376,12 @@
                   <span>برترین مصرف‌کنندگان دوره</span>
                 </span>
               </div>
-              <!-- Period Switcher: Daily / Weekly / 30-Day / Calendar Monthly (Full Width 4 Columns) -->
-              <div class="w-full grid grid-cols-4 gap-1 p-1 card-inset rounded-xl text-xs font-bold">
-                <button type="button" id="adminTopConsumersPeriodDaily" onclick="window.switchAdminTopConsumersPeriod('daily')" class="w-full py-2 rounded-lg t-muted hover:t-main text-center transition">شبانه</button>
-                <button type="button" id="adminTopConsumersPeriodWeekly" onclick="window.switchAdminTopConsumersPeriod('weekly')" class="w-full py-2 rounded-lg bg-blue-600 text-white shadow-sm text-center transition">7 روز اخیر</button>
-                <button type="button" id="adminTopConsumersPeriodMonthly30d" onclick="window.switchAdminTopConsumersPeriod('monthly_30d')" class="w-full py-2 rounded-lg t-muted hover:t-main text-center transition">30 روز اخیر</button>
+              <!-- Period Switcher: Daily / Nightly / Weekly / 30-Day / Calendar Monthly (Full Width 5 Columns) -->
+              <div class="w-full grid grid-cols-5 gap-1 p-1 card-inset rounded-xl text-xs font-bold">
+                <button type="button" id="adminTopConsumersPeriodDaily" onclick="window.switchAdminTopConsumersPeriod('daily')" class="w-full py-2 rounded-lg bg-blue-600 text-white shadow-sm text-center transition">روزانه</button>
+                <button type="button" id="adminTopConsumersPeriodNightly" onclick="window.switchAdminTopConsumersPeriod('nightly')" class="w-full py-2 rounded-lg t-muted hover:t-main text-center transition">شبانه</button>
+                <button type="button" id="adminTopConsumersPeriodWeekly" onclick="window.switchAdminTopConsumersPeriod('weekly')" class="w-full py-2 rounded-lg t-muted hover:t-main text-center transition">7 روز</button>
+                <button type="button" id="adminTopConsumersPeriodMonthly30d" onclick="window.switchAdminTopConsumersPeriod('monthly_30d')" class="w-full py-2 rounded-lg t-muted hover:t-main text-center transition">30 روز</button>
                 <button type="button" id="adminTopConsumersPeriodMonthly" onclick="window.switchAdminTopConsumersPeriod('monthly')" class="w-full py-2 rounded-lg t-muted hover:t-main text-center transition">ماهانه</button>
               </div>
             </div>
@@ -452,21 +453,23 @@
       <div id="tab-admin-users" class="admin-tab-pane space-y-3 hidden">
         <!-- Search and Filter -->
         <div class="space-y-2">
-          <div class="flex items-center gap-1.5">
-            <div class="admin-search-box">
-              <svg class="w-3.5 h-3.5 text-slate-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-              <input type="text" id="userSearchInput" placeholder="جستجوی کاربر (نام، نام کاربری یا شناسه)..." class="bg-transparent text-[11px] placeholder:text-[11px] t-main outline-none flex-1 font-sans min-w-0" />
-              <button id="userSearchClear" class="text-slate-400 hover:text-white text-xs w-8 h-8 flex items-center justify-center hidden active:scale-95 transition" aria-label="پاک کردن جستجو">✕</button>
-            </div>
-            <button onclick="window.adminActions.openCreateUserModal()" class="px-2.5 py-2 bg-transparent hover:bg-slate-800 text-blue-400 hover:text-blue-300 border border-blue-500/30 hover:border-blue-400/70 font-bold text-[11px] rounded-2xl flex items-center gap-1 transition active:scale-95 flex-shrink-0" title="ایجاد کاربر جدید در پنل" aria-label="ایجاد کاربر جدید">
+          <!-- Full-width Search Box -->
+          <div class="admin-search-box w-full">
+            <svg class="w-4 h-4 text-slate-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+            <input type="text" id="userSearchInput" placeholder="جستجوی کاربر (نام، نام کاربری یا شناسه)..." class="bg-transparent text-xs placeholder:text-[11px] t-main outline-none flex-1 font-sans min-w-0" />
+            <button id="userSearchClear" class="text-slate-400 hover:text-white text-xs w-8 h-8 flex items-center justify-center hidden active:scale-95 transition" aria-label="پاک کردن جستجو">✕</button>
+          </div>
+          <!-- Action Buttons Toolbar -->
+          <div class="grid grid-cols-3 gap-1.5">
+            <button onclick="window.adminActions.openCreateUserModal()" class="py-2 px-2.5 bg-blue-600/15 hover:bg-blue-600/25 text-blue-400 border border-blue-500/30 font-bold text-xs rounded-xl flex items-center justify-center gap-1.5 transition active:scale-95" title="ایجاد کاربر جدید در پنل" aria-label="ایجاد کاربر جدید">
               <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
               <span>کاربر جدید</span>
             </button>
-            <button onclick="window.adminActions.openBulkUsersModal()" class="px-2.5 py-2 bg-transparent hover:bg-slate-800 text-indigo-400 hover:text-indigo-300 border border-indigo-500/30 hover:border-indigo-400/70 font-bold text-[11px] rounded-2xl flex items-center gap-1 transition active:scale-95 flex-shrink-0" title="عملیات گروهی روی کاربران" aria-label="عملیات گروهی روی کاربران">
+            <button onclick="window.adminActions.openBulkUsersModal()" class="py-2 px-2.5 bg-indigo-600/15 hover:bg-indigo-600/25 text-indigo-400 border border-indigo-500/30 font-bold text-xs rounded-xl flex items-center justify-center gap-1.5 transition active:scale-95" title="عملیات گروهی روی کاربران" aria-label="عملیات گروهی روی کاربران">
               <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
               <span>عملیات گروهی</span>
             </button>
-            <button id="toggleSelectModeBtn" onclick="window.adminActions.toggleUserSelectMode()" class="px-2.5 py-2 bg-transparent hover:bg-slate-800 text-teal-400 hover:text-teal-300 border border-teal-500/30 hover:border-teal-400/70 font-bold text-[11px] rounded-2xl flex items-center gap-1 transition active:scale-95 flex-shrink-0" title="انتخاب چندگانه کاربران" aria-label="انتخاب چندگانه کاربران">
+            <button id="toggleSelectModeBtn" onclick="window.adminActions.toggleUserSelectMode()" class="py-2 px-2.5 bg-teal-600/15 hover:bg-teal-600/25 text-teal-400 border border-teal-500/30 font-bold text-xs rounded-xl flex items-center justify-center gap-1.5 transition active:scale-95" title="انتخاب چندگانه کاربران" aria-label="انتخاب چندگانه کاربران">
               <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
               <span id="toggleSelectModeBtnText">انتخاب</span>
             </button>
@@ -805,12 +808,12 @@
         <!-- Subtab 1: Pending Topups & Support Desk -->
         <div id="subtabContentTopups" class="space-y-4">
           <div class="flex justify-between items-center">
-            <h3 class="text-sm font-bold text-slate-200 flex items-center gap-1.5">
-              <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
+            <h3 class="text-sm font-bold t-main flex items-center gap-1.5">
+              <svg class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
               <span>فیش‌های واریزی در انتظار بررسی</span>
             </h3>
-            <button id="refreshTopupsBtn" class="p-1.5 bg-transparent hover:bg-slate-700/40 text-slate-400 hover:text-slate-200 rounded-lg border border-slate-700 transition flex items-center justify-center active:scale-95" title="تازه‌سازی">
-              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+            <button id="refreshTopupsBtn" class="btn-icon w-8 h-8 rounded-xl border border-[var(--card-border)] bg-[var(--card-inner-bg)] t-main hover:text-[var(--c-accent)] transition flex items-center justify-center active:scale-95 shadow-xs" title="تازه‌سازی">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
             </button>
           </div>
 
@@ -957,9 +960,9 @@
                   </div>
                 </div>
                 <input type="hidden" id="settingAppTimezone" value="Asia/Tehran" />
-                <button type="button" id="openTimezoneModalBtn" onclick="window.adminActions.openTimezoneModal()" class="flex items-center gap-2 px-3 py-1.5 rounded-xl border border-slate-700/60 bg-slate-800/80 hover:bg-slate-750 transition text-xs font-mono font-bold text-slate-200 active:scale-95 shadow-sm" dir="ltr">
-                  <span id="settingAppTimezoneDisplay">Asia/Tehran</span>
-                  <span class="text-[10px] text-slate-400">▾</span>
+                <button type="button" id="openTimezoneModalBtn" onclick="window.adminActions.openTimezoneModal()" class="flex items-center gap-2 px-3 py-1.5 rounded-xl border border-[var(--card-border)] bg-[var(--card-inner-bg)] hover:border-[var(--c-accent)] transition text-xs font-mono font-bold t-main active:scale-95 shadow-xs" dir="ltr">
+                  <span id="settingAppTimezoneDisplay" class="font-bold text-xs t-main">Asia/Tehran</span>
+                  <span class="text-[10px] t-muted">▾</span>
                 </button>
               </div>
             </div>
@@ -1449,7 +1452,7 @@
                 <span>🤖</span><span>اندروید</span>
               </button>
               <button type="button" onclick="switchAdminAppsTab('windows')" id="adminAppTab_windows" class="admin-app-os-tab w-full py-1.5 px-0.5 rounded-xl font-medium text-[10px] sm:text-[11px] whitespace-nowrap text-slate-400 hover:text-slate-200 transition flex items-center justify-center gap-0.5 sm:gap-1">
-                <span>🪟</span><span>ویندوز</span>
+                <svg class="w-3.5 h-3.5 inline-block fill-current" viewBox="0 0 24 24"><path d="M0 3.449L9.75 2.1v9.451H0m10.949-9.602L24 0v11.4H10.949M0 12.6h9.75v9.451L0 20.699M10.949 12.6H24V24l-12.949-1.801"/></svg><span>ویندوز</span>
               </button>
               <button type="button" onclick="switchAdminAppsTab('macos')" id="adminAppTab_macos" class="admin-app-os-tab w-full py-1.5 px-0.5 rounded-xl font-medium text-[10px] sm:text-[11px] whitespace-nowrap text-slate-400 hover:text-slate-200 transition flex items-center justify-center gap-0.5 sm:gap-1">
                 <span>🍎</span><span>مک</span>
@@ -2288,9 +2291,11 @@
                 <b class="text-xs text-slate-100 block">فعال‌سازی باشگاه مشتریان</b>
                 <span class="text-[10px] text-slate-400 block mt-0.5">در صورت غیرفعال بودن، تخفیف‌های سطوح وفاداری در فروشگاه اعمال نخواهند شد.</span>
               </div>
-              <label class="toggle-switch relative inline-flex items-center cursor-pointer shrink-0">
-                <input type="checkbox" id="settingLoyaltyEnabled" class="sr-only peer" checked>
-                <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:right-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-500"></div>
+              <label class="relative inline-flex items-center cursor-pointer shrink-0">
+                <input type="checkbox" class="sr-only switch-checkbox" id="settingLoyaltyEnabled" checked>
+                <div class="switch-label w-11 h-6 bg-slate-700 rounded-full transition-colors duration-200 flex items-center px-0.5">
+                  <div class="switch-ball w-5 h-5 bg-white rounded-full shadow-md transition-transform duration-200"></div>
+                </div>
               </label>
             </div>
             <p class="text-[11px] text-slate-400 leading-relaxed">

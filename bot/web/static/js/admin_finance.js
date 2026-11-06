@@ -605,12 +605,12 @@ openCryptoRatesModal() {
       const topups = res.topups || [];
       if (topups.length === 0) {
         container.innerHTML = `
-          <div class="bg-slate-900/40 rounded-2xl p-6 text-center text-slate-400 text-xs border border-slate-800 space-y-2">
-            <div class="w-10 h-10 rounded-2xl bg-emerald-500/15 text-emerald-400 flex items-center justify-center mx-auto">
+          <div class="card-inset rounded-2xl p-6 text-center text-xs border border-[var(--card-border)] space-y-2">
+            <div class="w-10 h-10 rounded-2xl bg-emerald-500/15 text-emerald-500 flex items-center justify-center mx-auto">
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
             </div>
-            <p class="font-medium text-slate-300">هیچ فیش واریزی در انتظاری وجود ندارد</p>
-            <span class="text-[10px] text-slate-500">تمامی پرداخت‌های کارت به کارت بررسی شده‌اند.</span>
+            <p class="font-bold t-main text-xs">هیچ فیش واریزی در انتظاری وجود ندارد</p>
+            <span class="text-[10px] t-subtle">تمامی پرداخت‌های کارت به کارت بررسی شده‌اند.</span>
           </div>
         `;
         return;

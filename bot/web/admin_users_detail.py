@@ -26,7 +26,7 @@ def _parse_client_app(ua: str) -> dict[str, str]:
     os_icon = "📱"
     if "windows" in ua_lower or "win64" in ua_lower or "win32" in ua_lower or "wow64" in ua_lower:
         os_name = "ویندوز"
-        os_icon = "🪟"
+        os_icon = "💻"
     elif "android" in ua_lower:
         os_name = "اندروید"
         os_icon = "🤖"
@@ -46,7 +46,7 @@ def _parse_client_app(ua: str) -> dict[str, str]:
     if "v2rayng" in ua_lower:
         return {"name": "v2rayNG", "icon": "🤖", "tag": "اندروید"}
     if "v2rayn" in ua_lower:
-        return {"name": "v2rayN", "icon": "🪟", "tag": "ویندوز"}
+        return {"name": "v2rayN", "icon": "💻", "tag": "ویندوز"}
     if "streisand" in ua_lower:
         return {"name": "Streisand", "icon": "🛡️", "tag": "iOS"}
     if "sing-box" in ua_lower or "singbox" in ua_lower:
