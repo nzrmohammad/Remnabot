@@ -265,7 +265,7 @@
           renderAdminPaymentChart(c.payment_distribution);
           renderAdminRetentionStatsChart(c.retention_stats);
           renderAdminHwidChart(c.hwid_distribution);
-          if (c.top_consumers) renderAdminTopConsumersChart(c.top_consumers);
+          if (c.top_consumers) { renderAdminTopConsumersChart(c.top_consumers, 'daily'); switchAdminTopConsumersPeriod('daily'); }
         }
       }
 
@@ -1177,7 +1177,7 @@ openHighRiskUsersModal() {
   // Top Consumers & Daily Champion Chart
   let topConsumersChartInstance = null;
   let cachedTopConsumersData = null;
-  let currentTopConsumersPeriod = 'weekly';
+  let currentTopConsumersPeriod = 'daily';
   let adminTopConsumersMonthIndex = 0;
   let adminTopConsumersWeek = 'all';
 

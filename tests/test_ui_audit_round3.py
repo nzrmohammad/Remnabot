@@ -110,8 +110,8 @@ def test_custom_plan_price_breakdown_label():
     comp_css = Path("bot/web/static/css/components.css").read_text(encoding="utf-8")
 
     assert 'id="customPlanDiscountPct"' in app_html
-    assert 'تخفیف باشگاه مشتریان شما (<span dir="ltr" class="inline-block num-bidi font-bold"><span id="customPlanDiscountPct">0</span>%</span>):' in app_html
-    assert 'تخفیف پلکانی حجم انتخابی (<span dir="ltr" class="inline-block num-bidi font-bold"><span id="customPlanVolumeTierPct">0</span>%</span>):' in app_html
+    assert 'تخفیف باشگاه مشتریان (<span dir="ltr" class="inline-block num-bidi font-bold"><span id="customPlanDiscountPct">0</span>%</span>):' in app_html
+    assert 'تخفیف حجم انتخابی (<span dir="ltr" class="inline-block num-bidi font-bold"><span id="customPlanVolumeTierPct">0</span>%</span>):' in app_html
 
     # High contrast in light mode
     assert "html.theme-light #customPlanVolumeDiscountRow" in comp_css
@@ -209,3 +209,31 @@ def test_client_autoconnect_app_names_and_compact_grid():
     assert "text-[9.5px] sm:text-[11px]" in app_html
     assert "tracking-tighter" in app_html
 
+
+
+def test_admin_marketing_badges_and_plan_limit_label():
+    """Marketing badges must be streamlined and plan limit must have stylish optional tag."""
+    admin_html = Path("bot/web/templates/admin.html").read_text(encoding="utf-8")
+    admin_plans = Path("bot/web/static/js/admin_plans.js").read_text(encoding="utf-8")
+
+    # Marketing badges
+    assert "': 'انتخاب کنید'" in admin_plans
+    assert "'gaming': '🎮 ویژه گیمینگ'" in admin_plans
+    assert "پینگ پایین" not in admin_plans
+    assert "'antifilter':" not in admin_plans
+    assert "'speed':" not in admin_plans
+
+    # Plan limit label & optional badge
+    assert "سقف تعداد فروش (خالی = نامحدود):" in admin_html
+    assert ">اختیاری</span>" in admin_html
+
+    # Badge modal list padding
+    assert "pl-1 pr-2 py-1" in admin_html
+
+
+def test_top_consumers_period_sync():
+    """Top consumers period must start on daily to match active UI button."""
+    admin_charts = Path("bot/web/static/js/admin_charts.js").read_text(encoding="utf-8")
+
+    assert "let currentTopConsumersPeriod = 'daily';" in admin_charts
+    assert "renderAdminTopConsumersChart(c.top_consumers, 'daily')" in admin_charts

@@ -2968,14 +2968,17 @@
             <input type="text" id="planModalDesc" dir="rtl" placeholder="مناسب بازی، بدون قطعی" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-right text-slate-200 outline-none focus:border-blue-500" />
           </div>
           <div>
-            <label class="text-[11px] text-slate-300 block mb-1">سقف تعداد فروش (اختیاری - خالی = نامحدود):</label>
+            <div class="flex items-center justify-between mb-1">
+              <label class="text-[11px] text-slate-300 block">سقف تعداد فروش (خالی = نامحدود):</label>
+              <span class="text-[10px] px-2 py-0.5 rounded-full card-inset border border-card-border t-muted font-normal select-none">اختیاری</span>
+            </div>
             <input type="number" inputmode="numeric" pattern="[0-9]*" id="planModalMaxPurchases" placeholder="مثلاً: 5 (پس از 5 خرید خودکار غیرفعال می‌شود)" min="0" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-amber-300 outline-none focus:border-blue-500 mb-2" />
           </div>
           <div>
             <label class="text-[11px] t-main block mb-1">نشان و بج بازاریابی:</label>
             <input type="hidden" id="planModalBadge" value="" />
             <div onclick="window.adminActions.openPlanBadgePickerModal()" class="w-full card-inset rounded-xl px-3 py-2.5 flex items-center justify-between cursor-pointer transition active:scale-[0.99] group">
-              <span id="planModalBadgeLabel" class="text-xs t-main font-medium truncate">بدون نشان (پلن استاندارد)</span>
+              <span id="planModalBadgeLabel" class="text-xs t-main font-medium truncate">انتخاب کنید</span>
               <span class="t-muted text-xs group-hover:t-main transition">▼</span>
             </div>
           </div>
@@ -3981,7 +3984,7 @@
           </div>
           <button type="button" onclick="window.adminActions.closePlanBadgePickerModal()" class="modal-close-btn" aria-label="بستن">✕</button>
         </div>
-        <div id="planBadgePickerList" class="space-y-2 flex-1 overflow-y-auto custom-scroll text-xs pr-0.5">
+        <div id="planBadgePickerList" class="space-y-2.5 flex-1 overflow-y-auto custom-scroll text-xs pl-1 pr-2 py-1">
           <!-- Dynamically populated options -->
         </div>
       </div>

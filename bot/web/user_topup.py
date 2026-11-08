@@ -1040,15 +1040,15 @@ async def get_user_topup_trx_redirect(request: web.Request) -> web.Response:
     safe_tron_uri = html.escape(tron_uri)
     safe_addr = html.escape(address)
     safe_amt = html.escape(amount)
-    safe_js_url = json.dumps(tronlink_url)
+    safe_tron_uri_js = json.dumps(tron_uri)
 
     page_html = f"""<!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>هدایت به کیف پول TronLink</title>
-  <meta http-equiv="refresh" content="0;url={safe_tronlink_url}">
+  <title>انتقال با کیف پول ترون</title>
+  <meta http-equiv="refresh" content="0;url={safe_tron_uri}">
   <style>
     * {{ box-sizing: border-box; }}
     body {{
@@ -1113,9 +1113,9 @@ async def get_user_topup_trx_redirect(request: web.Request) -> web.Response:
   <div class="card">
     <div class="icon">⚡️</div>
     <h2>انتقال مستقیم با ترون‌لینک</h2>
-    <p>در حال انتقال به کیف پول TronLink... اگر به صورت خودکار باز نشد، دکمه زیر را لمس فرمایید:</p>
-    <a href="{safe_tronlink_url}" class="btn btn-tronlink">⚡️ باز کردن در TronLink</a>
-    <a href="{safe_tron_uri}" class="btn btn-other">📱 باز کردن در سایر ولت‌ها (Trust Wallet)</a>
+    <p>در حال باز کردن کیف پول ترون... اگر به صورت خودکار باز نشد، دکمه زیر را لمس فرمایید:</p>
+    <a href="{safe_tron_uri}" class="btn btn-tronlink">⚡️ پرداخت مستقیم با کیف پول ترون (TronLink / Trust Wallet)</a>
+    <a href="{safe_tronlink_url}" class="btn btn-other">🚀 باز کردن از طریق پروتکل اپ TronLink</a>
     <div class="info-box">
       <div>مبلغ: <b style="color:#22d3ee;font-family:monospace;">{safe_amt} TRX</b></div>
       <div style="margin-top:4px;font-family:monospace;font-size:10px;color:#94a3b8;">{safe_addr}</div>
@@ -1123,7 +1123,7 @@ async def get_user_topup_trx_redirect(request: web.Request) -> web.Response:
   </div>
   <script>
     setTimeout(function() {{
-      window.location.href = {safe_js_url};
+      window.location.href = {safe_tron_uri_js};
     }}, 150);
   </script>
 </body>
