@@ -37,22 +37,22 @@
     <!-- ======================================================== -->
     <!-- 0. SPLASH / INITIAL LOADING SCREEN                       -->
     <!-- ======================================================== -->
-    <div id="splashScreen" class="absolute inset-0 bg-[#0f172a] z-50 flex flex-col items-center justify-center p-6 text-center transition-opacity duration-500">
+    <div id="splashScreen" class="absolute inset-0 z-50 flex flex-col items-center justify-center p-6 text-center transition-opacity duration-500" style="background: var(--page-bg); color: var(--text-main);">
       <div class="relative mb-6">
-        <div class="w-24 h-24 rounded-3xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-cyan-400 flex items-center justify-center shadow-xl shadow-blue-500/30 pulse-glow">
+        <div class="w-24 h-24 rounded-3xl bg-gradient-to-tr from-cyan-600 via-sky-600 to-blue-500 flex items-center justify-center shadow-xl shadow-cyan-500/25 pulse-glow">
           <span class="text-4xl">⚡️</span>
         </div>
-        <div class="absolute -bottom-1 -right-1 w-7 h-7 bg-emerald-500 rounded-full border-4 border-[#0f172a] flex items-center justify-center text-xs text-white font-bold">
+        <div class="absolute -bottom-1 -right-1 w-7 h-7 bg-[var(--c-success)] rounded-full border-4 flex items-center justify-center text-xs text-white font-bold" style="border-color: var(--page-bg);">
           ✓
         </div>
       </div>
       <h2 class="text-xl font-extrabold t-main tracking-wide">RemnaStore Bot</h2>
-      <p class="text-xs text-slate-400 mt-1">سامانه اختصاصی مدیریت اشتراک و پروکسی</p>
+      <p class="text-xs t-muted mt-1">سامانه اختصاصی مدیریت اشتراک و پروکسی</p>
 
-      <div class="w-48 h-1.5 bg-slate-800 rounded-full overflow-hidden mt-8">
-        <div id="splashBar" class="h-full bg-gradient-to-r from-blue-500 to-indigo-500 w-0 transition-all duration-1000 ease-out"></div>
+      <div class="w-48 h-1.5 rounded-full overflow-hidden mt-8" style="background: var(--card-inner-bg); border: 1px solid var(--card-border);">
+        <div id="splashBar" class="h-full bg-gradient-to-r from-cyan-500 to-sky-600 w-0 transition-all duration-1000 ease-out"></div>
       </div>
-      <span class="text-[11px] font-mono text-slate-500 mt-2">در حال بارگذاری اطلاعات حساب و نشست‌ها...</span>
+      <span class="text-[11px] font-mono t-subtle mt-2">در حال بارگذاری اطلاعات حساب و نشست‌ها...</span>
     </div>
 
 
@@ -193,7 +193,7 @@
         <div class="grid grid-cols-2 gap-2.5">
           <button id="openLuckyWheelBtn" class="lucky-wheel-entry-btn bg-gradient-to-r from-amber-500/20 via-orange-500/20 to-amber-600/10 hover:from-amber-500/30 p-2.5 rounded-2xl border border-amber-500/40 text-right flex items-center justify-between transition shadow-sm group active:scale-95">
             <div class="flex flex-col">
-              <span class="text-xs font-black text-amber-600 dark:text-amber-400 flex items-center gap-1 lucky-wheel-title">
+              <span class="text-xs font-black t-warn flex items-center gap-1 lucky-wheel-title">
                 <span>🎰</span> گردونه شانس
               </span>
               <span class="text-[10.5px] font-bold text-amber-700 dark:text-amber-300 mt-0.5 lucky-wheel-sub">۱ شانس روزانه</span>
@@ -203,7 +203,7 @@
 
           <button id="openTutorialModalBtn" type="button" onclick="window.openTutorialModal()" class="tutorial-entry-btn card-inset p-2.5 rounded-2xl border border-cyan-500/30 text-right flex items-center justify-between transition shadow-sm group active:scale-95">
             <div class="flex flex-col">
-              <span class="text-xs font-black text-cyan-700 dark:text-cyan-400 flex items-center gap-1.5 tutorial-title">
+              <span class="text-xs font-black t-accent flex items-center gap-1.5 tutorial-title">
                 <span>📱</span> راهنمای اتصال
               </span>
               <span class="text-[10.5px] font-bold text-cyan-700 dark:text-cyan-300 mt-0.5 tutorial-sub">دانلود برنامه‌ها و آموزش</span>
@@ -215,7 +215,7 @@
         <!-- Speed & Quality Test Entry Banner Card -->
         <button id="openSpeedTestModalBtn" type="button" onclick="window.openSpeedTestModal()" class="w-full speedtest-entry-btn bg-gradient-to-r from-emerald-500/15 via-teal-500/15 to-cyan-500/10 hover:from-emerald-500/25 p-3 rounded-2xl border border-emerald-500/40 text-right flex items-center justify-between transition shadow-sm group active:scale-[0.98]">
           <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center text-lg flex-shrink-0 group-hover:scale-110 transition">
+            <div class="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-400 t-success border border-emerald-500/30 flex items-center justify-center text-lg flex-shrink-0 group-hover:scale-110 transition">
               ⚡️
             </div>
             <div class="flex flex-col">
@@ -308,7 +308,7 @@
             <span class="text-xs text-slate-400 font-semibold flex items-center gap-1">
               <span>⚡️</span> ترافیک کل سرویس
             </span>
-            <span class="text-xs font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+            <span class="text-xs font-bold t-success flex items-center gap-1">
               <span id="dashboardRemainingTraffic" class="font-mono num-bidi font-bold" dir="ltr">-- GB</span>
               <span class="text-[11px] t-muted">مانده</span>
             </span>
@@ -486,7 +486,7 @@
               </span>
             </div>
             <div class="flex items-center gap-2">
-              <span id="reportsSessionsBadge" class="text-[10px] font-mono font-bold text-emerald-500 dark:text-emerald-400 bg-transparent border-0 px-0 py-0">0 دستگاه</span>
+              <span id="reportsSessionsBadge" class="text-[10px] font-mono font-bold t-success bg-transparent border-0 px-0 py-0">0 دستگاه</span>
             </div>
           </button>
 
@@ -494,7 +494,7 @@
           <div id="sessionsAccordionBody" class="hidden px-4 pb-4 pt-1 space-y-3 text-xs border-t border-slate-700/50">
             <div class="flex justify-between items-center pt-2">
               <span class="text-[11px] text-slate-400">دستگاه‌های فعال روی این اکانت (HWID):</span>
-              <button id="killAllBtn" class="text-[10px] text-rose-400 hover:text-rose-300 bg-transparent hover:bg-rose-950/30 border border-rose-800/60 px-2.5 py-1 rounded-lg font-medium transition active:scale-95">
+              <button id="killAllBtn" class="text-[10px] t-danger hover:text-rose-300 bg-transparent hover:bg-rose-950/30 border border-rose-800/60 px-2.5 py-1 rounded-lg font-medium transition active:scale-95">
                 ⛔️ قطع همه
               </button>
             </div>
@@ -686,21 +686,21 @@
               <!-- Gift Traffic Won -->
               <div class="card-inset rounded-xl p-2.5 flex flex-col items-center justify-between">
                 <span class="text-[10px] text-slate-400 block mb-1">حجم هدیه برنده</span>
-                <b id="achieveGiftTraffic" class="font-mono text-cyan-600 dark:text-cyan-400 text-xs font-bold num-bidi" dir="ltr">0.0 GB</b>
+                <b id="achieveGiftTraffic" class="font-mono t-accent text-xs font-bold num-bidi" dir="ltr">0.0 GB</b>
               </div>
 
               <!-- Active Won Coupons -->
               <div class="card-inset rounded-xl p-2.5 flex flex-col items-center justify-between">
                 <span class="text-[10px] text-slate-400 block mb-1">کدهای تخفیف</span>
-                <b id="achieveWonCoupons" class="font-mono text-emerald-600 dark:text-emerald-400 text-xs font-bold">۰ کد</b>
-                <button type="button" id="achieveCouponsAction" class="text-[9.5px] text-emerald-600 dark:text-emerald-400 mt-0.5 font-medium hover:underline bg-transparent border-0 p-0" onclick="window.copyActiveCoupon()">مشاهده و کپی</button>
+                <b id="achieveWonCoupons" class="font-mono t-success text-xs font-bold">۰ کد</b>
+                <button type="button" id="achieveCouponsAction" class="text-[9.5px] t-success mt-0.5 font-medium hover:underline bg-transparent border-0 p-0" onclick="window.copyActiveCoupon()">مشاهده و کپی</button>
               </div>
 
               <!-- Birthday Status -->
               <div class="card-inset rounded-xl p-2.5 flex flex-col items-center justify-between">
                 <span class="text-[10px] text-slate-400 block mb-1">هدیه زادروز</span>
-                <b id="achieveBdayStatus" class="text-amber-600 dark:text-amber-400 text-[11px] font-bold truncate max-w-full">ثبت نشده</b>
-                <button id="achieveBdayBtn" type="button" onclick="window.openBirthdayModal()" class="text-[9px] text-amber-600 dark:text-amber-400 mt-0.5 hover:underline bg-transparent border-0 p-0">ثبت تاریخ</button>
+                <b id="achieveBdayStatus" class="t-warn text-[11px] font-bold truncate max-w-full">ثبت نشده</b>
+                <button id="achieveBdayBtn" type="button" onclick="window.openBirthdayModal()" class="text-[9px] t-warn mt-0.5 hover:underline bg-transparent border-0 p-0">ثبت تاریخ</button>
               </div>
             </div>
 
@@ -708,11 +708,11 @@
             <div class="flex items-center justify-between card-inset rounded-xl px-3 py-1.5 text-[10px]">
               <div class="flex items-center gap-1.5 text-slate-400">
                 <span>🔥 روزهای متوالی چرخش:</span>
-                <b id="achieveStreakCount" class="font-mono text-amber-600 dark:text-amber-400 font-bold">۰ روز</b>
+                <b id="achieveStreakCount" class="font-mono t-warn font-bold">۰ روز</b>
               </div>
               <div class="flex items-center gap-1.5 text-slate-400">
                 <span>🎫 بلیط گردونه:</span>
-                <b id="achieveSpinTickets" class="font-mono text-indigo-600 dark:text-indigo-400 font-bold">۰ عدد</b>
+                <b id="achieveSpinTickets" class="font-mono t-info font-bold">۰ عدد</b>
               </div>
             </div>
           </div>
@@ -723,18 +723,18 @@
               <span class="text-xs font-bold t-main flex items-center gap-1.5">
                 <span>⏳</span> پیش‌بینی هوشمند اتمام حجم
               </span>
-              <span id="repBurnSpeedBadge" class="text-[10px] font-mono font-bold text-cyan-600 dark:text-cyan-400 bg-transparent p-0" dir="ltr">-- GB</span>
+              <span id="repBurnSpeedBadge" class="text-[10px] font-mono font-bold t-accent bg-transparent p-0" dir="ltr">-- GB</span>
             </div>
 
             <div class="space-y-2">
               <div class="grid grid-cols-2 gap-2 text-xs">
                 <div class="card-inset rounded-xl p-2.5 space-y-1">
                   <span class="text-[10px] text-slate-400 block">میانگین مصرف ۳ روز اخیر:</span>
-                  <b id="repBurnAvgDaily" class="font-mono text-cyan-600 dark:text-cyan-400 text-xs num-bidi" dir="ltr">-- GB</b>
+                  <b id="repBurnAvgDaily" class="font-mono t-accent text-xs num-bidi" dir="ltr">-- GB</b>
                 </div>
                 <div class="card-inset rounded-xl p-2.5 space-y-1">
                   <span class="text-[10px] text-slate-400 block">تخمین حجم باقی‌مانده:</span>
-                  <b id="repBurnProjectedDays" class="font-mono text-emerald-600 dark:text-emerald-400 text-xs num-bidi" dir="ltr">-- روز</b>
+                  <b id="repBurnProjectedDays" class="font-mono t-success text-xs num-bidi" dir="ltr">-- روز</b>
                 </div>
               </div>
 
@@ -781,7 +781,7 @@
                 <span id="userLbMonthPrevLabel">ماه قبل</span>
               </button>
               <div class="text-center px-1">
-                <span id="userLbMonthCurrentLabel" class="text-xs font-black text-cyan-600 dark:text-cyan-400 block font-mono">--</span>
+                <span id="userLbMonthCurrentLabel" class="text-xs font-black t-accent block font-mono">--</span>
               </div>
               <button id="userLbMonthNextBtn" type="button" onclick="window.navigateUserLbMonth(1)" class="px-2.5 py-1 rounded-lg text-xs font-bold t-main card-inset hover:border-cyan-500/50 transition flex items-center gap-1 active:scale-95 opacity-40 cursor-not-allowed" disabled title="ماه بعد">
                 <span id="userLbMonthNextLabel">ماه بعد</span>
@@ -821,7 +821,7 @@
               <span class="text-xs font-bold t-main flex items-center gap-1.5">
                 <span>📈</span> منحنی ساعات اوج مصرف
               </span>
-              <span id="repPeakHourBadge" class="text-[10px] font-mono font-bold text-cyan-600 dark:text-cyan-400 bg-transparent p-0" dir="ltr">---</span>
+              <span id="repPeakHourBadge" class="text-[10px] font-mono font-bold t-accent bg-transparent p-0" dir="ltr">---</span>
             </div>
             <div class="h-36 w-full p-1 bg-transparent rounded-xl relative flex items-center justify-center">
               <canvas id="repPeakHoursChartCanvas" dir="ltr" class="w-full h-full"></canvas>
@@ -849,28 +849,28 @@
                 <div class="card-inset p-2 rounded-xl flex flex-col justify-between">
                   <div class="flex items-center justify-between text-slate-400 text-[10px] font-sans">
                     <span class="flex items-center gap-1"><span>🌙 بامداد</span> <span dir="ltr" class="font-mono text-[9.5px] text-slate-400">(00-06)</span></span>
-                    <span id="periodDawnPercent" class="text-cyan-400 font-bold font-mono">0%</span>
+                    <span id="periodDawnPercent" class="t-accent font-bold font-mono">0%</span>
                   </div>
                   <b id="periodDawnVal" class="text-white text-xs mt-1 block num-bidi" dir="ltr">0.00 GB</b>
                 </div>
                 <div class="card-inset p-2 rounded-xl flex flex-col justify-between">
                   <div class="flex items-center justify-between text-slate-400 text-[10px] font-sans">
                     <span class="flex items-center gap-1"><span>🌅 صبح</span> <span dir="ltr" class="font-mono text-[9.5px] text-slate-400">(06-12)</span></span>
-                    <span id="periodMorningPercent" class="text-emerald-400 font-bold font-mono">0%</span>
+                    <span id="periodMorningPercent" class="t-success font-bold font-mono">0%</span>
                   </div>
                   <b id="periodMorningVal" class="text-white text-xs mt-1 block num-bidi" dir="ltr">0.00 GB</b>
                 </div>
                 <div class="card-inset p-2 rounded-xl flex flex-col justify-between">
                   <div class="flex items-center justify-between text-slate-400 text-[10px] font-sans">
                     <span class="flex items-center gap-1"><span>☀️ عصر</span> <span dir="ltr" class="font-mono text-[9.5px] text-slate-400">(12-18)</span></span>
-                    <span id="periodAfternoonPercent" class="text-amber-400 font-bold font-mono">0%</span>
+                    <span id="periodAfternoonPercent" class="t-warn font-bold font-mono">0%</span>
                   </div>
                   <b id="periodAfternoonVal" class="text-white text-xs mt-1 block num-bidi" dir="ltr">0.00 GB</b>
                 </div>
                 <div class="card-inset p-2 rounded-xl flex flex-col justify-between">
                   <div class="flex items-center justify-between text-slate-400 text-[10px] font-sans">
                     <span class="flex items-center gap-1"><span>🌆 شب</span> <span dir="ltr" class="font-mono text-[9.5px] text-slate-400">(18-24)</span></span>
-                    <span id="periodNightPercent" class="text-purple-400 font-bold font-mono">0%</span>
+                    <span id="periodNightPercent" class="t-purple font-bold font-mono">0%</span>
                   </div>
                   <b id="periodNightVal" class="text-white text-xs mt-1 block num-bidi" dir="ltr">0.00 GB</b>
                 </div>
@@ -989,7 +989,7 @@
           <div class="space-y-2">
             <div class="flex justify-between items-center text-xs">
               <span class="t-muted font-medium">حجم ترافیک:</span>
-              <div class="font-mono font-bold text-sm text-cyan-600 dark:text-cyan-400" dir="ltr">
+              <div class="font-mono font-bold text-sm t-accent" dir="ltr">
                 <span id="customPlanGbVal">30</span> <span>GB</span>
               </div>
             </div>
@@ -1000,7 +1000,7 @@
           <div class="space-y-2">
             <div class="flex justify-between items-center text-xs">
               <span class="t-muted font-medium">مدت زمان اعتبار:</span>
-              <div class="font-mono font-bold text-sm text-indigo-600 dark:text-indigo-400">
+              <div class="font-mono font-bold text-sm t-info">
                 <span id="customPlanDaysVal">30</span> <span class="text-xs t-muted font-sans">روز</span>
               </div>
             </div>
@@ -1114,7 +1114,7 @@
               </span>
               <span id="activePendingCardTitle">فاکتور پرداخت در جریان</span>
             </span>
-            <span id="activeCryptoPendingTimer" class="font-mono text-xs font-bold text-amber-500 dark:text-amber-400" dir="ltr">60:00</span>
+            <span id="activeCryptoPendingTimer" class="font-mono text-xs font-bold t-warn" dir="ltr">60:00</span>
           </div>
           <div class="flex justify-between items-center text-xs t-main">
             <span>مبلغ: <b id="activeCryptoPendingAmount" class="font-mono text-sky-600 dark:text-sky-300 font-bold" dir="ltr">--</b></span>
@@ -1216,8 +1216,8 @@
             <div class="flex justify-between items-center py-1 border-t border-slate-700/50 pt-1.5">
               <span class="text-slate-400 flex items-center gap-1.5"><span>🤝</span> کد معرف شما</span>
               <div class="flex items-center gap-1.5" dir="rtl">
-                <button id="copyProfileRefBtn" class="text-slate-400 hover:text-amber-400 text-xs px-1" title="کپی کد معرف">📋</button>
-                <code id="profileRefCode" class="font-mono text-amber-400 dark:text-amber-400 font-bold bg-transparent border-0 p-0" dir="ltr">--</code>
+                <button id="copyProfileRefBtn" class="text-slate-400 hover:t-warn text-xs px-1" title="کپی کد معرف">📋</button>
+                <code id="profileRefCode" class="font-mono t-warn dark:t-warn font-bold bg-transparent border-0 p-0" dir="ltr">--</code>
               </div>
             </div>
 
@@ -1240,7 +1240,7 @@
             <div class="flex justify-between items-center py-1 border-t border-slate-700/50 pt-1.5">
               <span class="text-slate-400 flex items-center gap-1.5"><span>🎂</span> تاریخ تولد</span>
               <div class="flex items-center gap-1.5">
-                <button id="openBirthdayModalBtn" type="button" onclick="window.openBirthdayModal()" class="text-pink-400 hover:text-pink-300 text-xs transition active:scale-95 bg-transparent border-0 p-0 shadow-none" title="ثبت یا ویرایش تاریخ تولد">
+                <button id="openBirthdayModalBtn" type="button" onclick="window.openBirthdayModal()" class="t-pink hover:text-pink-300 text-xs transition active:scale-95 bg-transparent border-0 p-0 shadow-none" title="ثبت یا ویرایش تاریخ تولد">
                   <span>✏️</span>
                 </button>
                 <span id="profileBirthDate" class="text-slate-200 font-medium font-mono" dir="ltr">ثبت‌نشده</span>
@@ -1249,7 +1249,7 @@
 
             <div class="flex justify-between items-center py-1.5 border-t border-slate-700/60 pt-2">
               <span class="text-slate-400 flex items-center gap-1.5"><span>⚡️</span> وضعیت سرویس</span>
-              <span id="profileSubStatus" class="font-semibold text-emerald-400">فعال</span>
+              <span id="profileSubStatus" class="font-semibold t-success">فعال</span>
             </div>
           </div>
         </div>
@@ -1258,7 +1258,7 @@
         <div id="profileLoyaltyCard" class="settings-box shadow transition-all">
           <div class="settings-box-header p-3.5 flex items-center justify-between cursor-pointer select-none transition" onclick="window.toggleSettingsBox('userBoxLoyalty')">
             <div class="flex items-center gap-2.5">
-              <div class="w-8 h-8 rounded-xl bg-amber-500/15 text-amber-500 dark:text-amber-400 border border-amber-500/30 flex items-center justify-center flex-shrink-0 text-base">
+              <div class="w-8 h-8 rounded-xl bg-amber-500/15 t-warn border border-amber-500/30 flex items-center justify-center flex-shrink-0 text-base">
                 <span id="loyaltyTierIcon">🥉</span>
               </div>
               <div>
@@ -1300,7 +1300,7 @@
             </div>
 
             <!-- Call to Action button to open modal -->
-            <button type="button" onclick="window.openLoyaltyModal && window.openLoyaltyModal()" class="w-full bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/30 font-bold text-xs py-2 px-3 rounded-xl transition flex items-center justify-between shadow-sm active:scale-[0.99]">
+            <button type="button" onclick="window.openLoyaltyModal && window.openLoyaltyModal()" class="w-full bg-amber-500/10 hover:bg-amber-500/20 t-warn border border-amber-500/30 font-bold text-xs py-2 px-3 rounded-xl transition flex items-center justify-between shadow-sm active:scale-[0.99]">
               <span class="flex items-center gap-1.5">
                 <span>👑</span>
                 <span>مشاهده سطوح ۷‌گانه و جزئیات تخفیف</span>
@@ -1319,7 +1319,7 @@
               </span>
               <div class="text-right">
                 <b class="text-xs t-main block">دعوت از دوستان و دریافت پاداش ترافیک</b>
-                <span id="profileReferralRewardBadge" class="text-[10.5px] text-amber-700 dark:text-amber-400 font-bold block mt-0.5">🎁 ۱ گیگابایت هدیه به ازای هر دعوت</span>
+                <span id="profileReferralRewardBadge" class="text-[10.5px] t-warn font-bold block mt-0.5">🎁 ۱ گیگابایت هدیه به ازای هر دعوت</span>
               </div>
             </div>
             <div class="flex items-center gap-2">
@@ -1332,11 +1332,11 @@
             <div class="grid grid-cols-2 gap-2 text-center py-1">
               <div class="ref-stat-box card-inset rounded-xl p-2.5">
                 <span class="text-[11px] text-slate-400 block mb-0.5">تعداد دعوت‌های موفق</span>
-                <span id="profileReferralsCount" class="text-sm font-black text-cyan-400 font-sans"><span class="font-mono">0</span> نفر</span>
+                <span id="profileReferralsCount" class="text-sm font-black t-accent font-sans"><span class="font-mono">0</span> نفر</span>
               </div>
               <div class="ref-stat-box card-inset rounded-xl p-2.5">
                 <span class="text-[11px] text-slate-400 block mb-0.5">پاداش ترافیک دریافتی</span>
-                <div class="flex items-center justify-center gap-1 text-sm font-black font-mono text-emerald-400 num-bidi" dir="ltr">
+                <div class="flex items-center justify-center gap-1 text-sm font-black font-mono t-success num-bidi" dir="ltr">
                   <span id="profileReferralRewardTotal">0</span>
                   <span class="text-xs font-bold font-mono leading-none">GB</span>
                 </div>
@@ -1372,7 +1372,7 @@
         <div class="settings-box shadow transition-all">
           <div class="settings-box-header p-3.5 flex items-center justify-between cursor-pointer select-none transition" onclick="window.toggleSettingsBox('userBoxReports')">
             <div class="flex items-center gap-2.5">
-              <div class="w-8 h-8 rounded-xl bg-purple-500/15 text-purple-400 border border-purple-500/30 flex items-center justify-center flex-shrink-0">
+              <div class="w-8 h-8 rounded-xl bg-purple-500/15 t-purple border border-purple-500/30 flex items-center justify-center flex-shrink-0">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
               </div>
               <div>
@@ -1445,7 +1445,7 @@
         <div class="settings-box shadow transition-all">
           <div class="settings-box-header p-3.5 flex items-center justify-between cursor-pointer select-none transition" onclick="window.toggleSettingsBox('userBoxWarnings')">
             <div class="flex items-center gap-2.5">
-              <div class="w-8 h-8 rounded-xl bg-amber-500/15 text-amber-400 border border-amber-500/30 flex items-center justify-center flex-shrink-0">
+              <div class="w-8 h-8 rounded-xl bg-amber-500/15 t-warn border border-amber-500/30 flex items-center justify-center flex-shrink-0">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
               </div>
               <div>
@@ -1464,7 +1464,7 @@
               </div>
               <div class="flex items-center gap-2 relative">
                 <input type="hidden" id="settingTrafficPercentSelect" value="80">
-                <button id="trafficPercentTriggerBtn" type="button" onclick="window.openAlertPickerModal('traffic')" class="card-inset hover:border-cyan-500/50 text-cyan-500 dark:text-cyan-400 text-[11px] rounded-lg px-2.5 py-1 outline-none font-mono font-bold flex items-center gap-1 transition active:scale-95 shadow-sm">
+                <button id="trafficPercentTriggerBtn" type="button" onclick="window.openAlertPickerModal('traffic')" class="card-inset hover:border-cyan-500/50 t-accent text-[11px] rounded-lg px-2.5 py-1 outline-none font-mono font-bold flex items-center gap-1 transition active:scale-95 shadow-sm">
                   <span id="trafficPercentDisplay">80%</span>
                   <span class="text-[9px] text-slate-400">⚙️</span>
                 </button>
@@ -1485,7 +1485,7 @@
               </div>
               <div class="flex items-center gap-2 relative">
                 <input type="hidden" id="settingExpireDaysSelect" value="3">
-                <button id="expireDaysTriggerBtn" type="button" onclick="window.openAlertPickerModal('expire')" class="card-inset hover:border-amber-500/50 text-amber-500 dark:text-amber-400 text-[11px] rounded-lg px-2.5 py-1 outline-none font-mono font-bold flex items-center gap-1 transition active:scale-95 shadow-sm">
+                <button id="expireDaysTriggerBtn" type="button" onclick="window.openAlertPickerModal('expire')" class="card-inset hover:border-amber-500/50 t-warn text-[11px] rounded-lg px-2.5 py-1 outline-none font-mono font-bold flex items-center gap-1 transition active:scale-95 shadow-sm">
                   <span id="expireDaysDisplay">3 روز</span>
                   <span class="text-[9px] text-slate-400">⚙️</span>
                 </button>
@@ -1504,7 +1504,7 @@
         <div class="settings-box shadow transition-all">
           <div class="settings-box-header p-3.5 flex items-center justify-between cursor-pointer select-none transition" onclick="window.toggleSettingsBox('userBoxPreferences')">
             <div class="flex items-center gap-2.5">
-              <div class="w-8 h-8 rounded-xl bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 flex items-center justify-center flex-shrink-0">
+              <div class="w-8 h-8 rounded-xl bg-emerald-500/15 t-success border border-emerald-500/30 flex items-center justify-center flex-shrink-0">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
               </div>
               <div>
@@ -1561,7 +1561,7 @@
         <div class="settings-box shadow transition-all">
           <div class="settings-box-header p-3.5 flex items-center justify-between cursor-pointer select-none transition" onclick="window.toggleSettingsBox('userBoxSecurity')">
             <div class="flex items-center gap-2.5">
-              <div class="w-8 h-8 rounded-xl bg-rose-500/15 text-rose-400 border border-rose-500/30 flex items-center justify-center flex-shrink-0">
+              <div class="w-8 h-8 rounded-xl bg-rose-500/15 t-danger border border-rose-500/30 flex items-center justify-center flex-shrink-0">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
               </div>
               <div>
@@ -1615,7 +1615,7 @@
     <!-- ======================================================== -->
     <div id="revokeModal" class="fixed inset-0 modal-backdrop z-50 flex items-center justify-center p-5 hidden animate-fadeIn">
       <div class="modal-card border border-rose-500/50 rounded-3xl p-5 w-full text-center space-y-4 shadow-2xl relative">
-        <div class="w-14 h-14 bg-rose-500/20 text-rose-400 rounded-full flex items-center justify-center text-2xl mx-auto border border-rose-500/40">
+        <div class="w-14 h-14 bg-rose-500/20 t-danger rounded-full flex items-center justify-center text-2xl mx-auto border border-rose-500/40">
           ⚠️
         </div>
         <div>
@@ -1684,7 +1684,7 @@
 
         <div class="pt-2 border-t border-slate-700/60 flex items-center justify-between">
           <span id="configsModalCount" class="text-[11px] text-slate-400 font-mono">0 کانفیگ</span>
-          <button id="copyAllConfigsBtn" type="button" class="text-cyan-400 hover:text-cyan-300 border border-cyan-500/40 text-[11px] font-bold py-1.5 px-3 rounded-xl transition flex items-center gap-1 active:scale-95 shadow-sm" title="کپی همه کانفیگ‌ها">
+          <button id="copyAllConfigsBtn" type="button" class="t-accent hover:text-cyan-300 border border-cyan-500/40 text-[11px] font-bold py-1.5 px-3 rounded-xl transition flex items-center gap-1 active:scale-95 shadow-sm" title="کپی همه کانفیگ‌ها">
             <span>📋 کپی همه کانفیگ‌ها</span>
           </button>
         </div>
@@ -1806,7 +1806,7 @@
             <!-- Smart Auto Card-to-Card Container (shown when card_auto_enabled is true) -->
             <div id="cardAutoTopupContainer" class="hidden space-y-3">
               <div id="cardAutoInitialBox" class="card-inset rounded-2xl p-3 text-center space-y-2 border border-emerald-500/30">
-                <div class="flex items-center justify-between text-xs font-bold text-emerald-400">
+                <div class="flex items-center justify-between text-xs font-bold t-success">
                   <span class="flex items-center gap-1.5">⚡️ کارت‌به‌کارت آنی و خودکار</span>
                   <span class="text-[10px] bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded-full border border-emerald-500/30">تایید هوشمند پیامکی</span>
                 </div>
@@ -1828,7 +1828,7 @@
                     </span>
                     در انتظار واریز بانکی...
                   </span>
-                  <div class="flex items-center gap-1 font-mono text-xs font-bold text-amber-500 dark:text-amber-400" dir="ltr">
+                  <div class="flex items-center gap-1 font-mono text-xs font-bold t-warn" dir="ltr">
                     <span>⏳</span>
                     <span id="cardAutoCountdownTimer">60:00</span>
                   </div>
@@ -1850,7 +1850,7 @@
                       <span class="text-[10px] t-muted block">شماره کارت مقصد:</span>
                       <b id="cardAutoCardNumber" onclick="window.copyCardNumber(document.getElementById('copyCardAutoBtn'))" class="font-bold t-main text-sm sm:text-base font-mono tracking-wider select-all num-bidi cursor-pointer block" dir="ltr" title="کلیک برای کپی شماره کارت">---- ---- ---- ----</b>
                     </div>
-                    <button id="copyCardAutoBtn" type="button" onclick="window.copyCardNumber(this)" class="p-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800/80 dark:hover:bg-slate-700/80 text-cyan-600 dark:text-cyan-400 text-sm transition active:scale-95 flex items-center justify-center shadow-sm" title="کپی شماره کارت" aria-label="کپی شماره کارت">
+                    <button id="copyCardAutoBtn" type="button" onclick="window.copyCardNumber(this)" class="p-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800/80 dark:hover:bg-slate-700/80 t-accent text-sm transition active:scale-95 flex items-center justify-center shadow-sm" title="کپی شماره کارت" aria-label="کپی شماره کارت">
                       📋
                     </button>
                   </div>
@@ -1863,9 +1863,9 @@
                   <div class="card-inset rounded-xl p-2.5 flex items-center justify-between border border-[var(--card-border)]">
                     <div>
                       <span class="text-[10px] t-muted block">مبلغ قابل پرداخت به ریال (همراه‌بانک):</span>
-                      <b id="cardAutoExactRial" class="text-cyan-600 dark:text-cyan-400 text-sm font-mono font-bold">-- ریال</b>
+                      <b id="cardAutoExactRial" class="t-accent text-sm font-mono font-bold">-- ریال</b>
                     </div>
-                    <button type="button" onclick="window.copyCardAutoAmount('rial')" class="p-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800/80 dark:hover:bg-slate-700/80 text-cyan-600 dark:text-cyan-400 text-sm transition active:scale-95 flex items-center justify-center shadow-sm" title="کپی مبلغ به ریال" aria-label="کپی مبلغ به ریال">
+                    <button type="button" onclick="window.copyCardAutoAmount('rial')" class="p-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800/80 dark:hover:bg-slate-700/80 t-accent text-sm transition active:scale-95 flex items-center justify-center shadow-sm" title="کپی مبلغ به ریال" aria-label="کپی مبلغ به ریال">
                       📋
                     </button>
                   </div>
@@ -1874,9 +1874,9 @@
                   <div class="card-inset rounded-xl p-2.5 flex items-center justify-between border border-[var(--card-border)]">
                     <div>
                       <span class="text-[10px] t-muted block">مبلغ قابل پرداخت به تومان:</span>
-                      <b id="cardAutoExactToman" class="text-emerald-600 dark:text-emerald-400 text-sm font-mono font-bold">-- تومان</b>
+                      <b id="cardAutoExactToman" class="t-success text-sm font-mono font-bold">-- تومان</b>
                     </div>
-                    <button type="button" onclick="window.copyCardAutoAmount('toman')" class="p-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800/80 dark:hover:bg-slate-700/80 text-emerald-600 dark:text-emerald-400 text-sm transition active:scale-95 flex items-center justify-center shadow-sm" title="کپی مبلغ به تومان" aria-label="کپی مبلغ به تومان">
+                    <button type="button" onclick="window.copyCardAutoAmount('toman')" class="p-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800/80 dark:hover:bg-slate-700/80 t-success text-sm transition active:scale-95 flex items-center justify-center shadow-sm" title="کپی مبلغ به تومان" aria-label="کپی مبلغ به تومان">
                       📋
                     </button>
                   </div>
@@ -1926,7 +1926,7 @@
 
                 <!-- Strict Warning Alert (Placed immediately below card details & amounts) -->
                 <div class="bg-rose-500/10 border border-rose-500/30 rounded-xl p-2.5 text-right space-y-1">
-                  <b class="text-xs text-rose-600 dark:text-rose-400 flex items-center gap-1 font-extrabold">
+                  <b class="text-xs t-danger flex items-center gap-1 font-extrabold">
                     <span>⚠️</span> مبلغ را رند نکنید!
                   </b>
                   <p class="text-[11px] t-main leading-relaxed font-medium">
@@ -1941,7 +1941,7 @@
 
                 <!-- 1-Hour Informational Note -->
                 <div class="card-inset rounded-xl p-2.5 text-right text-[10.5px] leading-relaxed t-muted space-y-1 border border-amber-500/20">
-                  <div class="flex items-center gap-1 font-bold text-amber-600 dark:text-amber-400 text-[11px]">
+                  <div class="flex items-center gap-1 font-bold t-warn text-[11px]">
                     <span>💡</span> <b>راهنمای تأیید خودکار:</b>
                   </div>
                   <p>
@@ -1954,7 +1954,7 @@
                   <button type="button" onclick="window.checkCardAutoStatus(true)" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2 rounded-xl text-xs transition active:scale-95 flex items-center justify-center gap-1 shadow">
                     <span>🔄</span> بررسی وضعیت
                   </button>
-                  <button type="button" onclick="window.cancelCardAutoInvoice()" class="w-full bg-rose-50 dark:bg-rose-950/40 border border-rose-300 dark:border-rose-800 text-rose-700 dark:text-rose-400 hover:bg-rose-100 dark:hover:bg-rose-900/60 font-bold py-2 rounded-xl text-xs transition active:scale-95 shadow-sm">
+                  <button type="button" onclick="window.cancelCardAutoInvoice()" class="w-full bg-rose-50 dark:bg-rose-950/40 border border-rose-300 dark:border-rose-800 t-danger hover:bg-rose-100 dark:hover:bg-rose-900/60 font-bold py-2 rounded-xl text-xs transition active:scale-95 shadow-sm">
                     انصراف
                   </button>
                 </div>
@@ -1982,7 +1982,7 @@
                   <span class="text-[10px] t-muted block">شماره کارت مقصد:</span>
                   <b id="topupCardNumber" onclick="window.copyCardNumber(document.getElementById('copyTopupCardBtn'))" class="font-bold t-main text-sm sm:text-base font-mono tracking-wider select-all num-bidi cursor-pointer block" dir="ltr" title="کلیک برای کپی شماره کارت">---- ---- ---- ----</b>
                 </div>
-                <button id="copyTopupCardBtn" type="button" onclick="window.copyCardNumber(this)" class="p-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800/80 dark:hover:bg-slate-700/80 text-cyan-600 dark:text-cyan-400 text-sm transition active:scale-95 flex items-center justify-center shadow-sm" title="کپی شماره کارت" aria-label="کپی شماره کارت">
+                <button id="copyTopupCardBtn" type="button" onclick="window.copyCardNumber(this)" class="p-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800/80 dark:hover:bg-slate-700/80 t-accent text-sm transition active:scale-95 flex items-center justify-center shadow-sm" title="کپی شماره کارت" aria-label="کپی شماره کارت">
                   📋
                 </button>
               </div>
@@ -1994,9 +1994,9 @@
               <div class="card-inset rounded-xl p-2.5 flex items-center justify-between border border-[var(--card-border)]">
                 <div>
                   <span class="text-[10px] t-muted block">مبلغ واریزی:</span>
-                  <b id="topupCardAmountDisplay" class="text-emerald-600 dark:text-emerald-400 font-mono text-sm font-bold block">-- تومان</b>
+                  <b id="topupCardAmountDisplay" class="t-success font-mono text-sm font-bold block">-- تومان</b>
                 </div>
-                <button id="copyTopupCardAmountBtn" type="button" class="p-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800/80 dark:hover:bg-slate-700/80 text-emerald-600 dark:text-emerald-400 text-sm transition active:scale-95 flex items-center justify-center shadow-sm" title="کپی مبلغ واریزی" aria-label="کپی مبلغ واریزی">
+                <button id="copyTopupCardAmountBtn" type="button" class="p-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800/80 dark:hover:bg-slate-700/80 t-success text-sm transition active:scale-95 flex items-center justify-center shadow-sm" title="کپی مبلغ واریزی" aria-label="کپی مبلغ واریزی">
                   📋
                 </button>
               </div>
@@ -2012,7 +2012,7 @@
                   <label class="text-[11px] text-slate-300 font-bold flex items-center gap-1.5">
                     <span>📸</span> تصویر فیش واریزی:
                   </label>
-                  <span class="text-[10px] text-rose-400 font-bold bg-rose-500/10 px-2 py-0.5 rounded-full border border-rose-500/20">الزامی</span>
+                  <span class="text-[10px] t-danger font-bold bg-rose-500/10 px-2 py-0.5 rounded-full border border-rose-500/20">الزامی</span>
                 </div>
                 <input type="file" id="topupCardImageInput" accept="image/*" class="hidden">
                 <button id="uploadCardReceiptImageBtn" type="button" class="w-full card-inset hover:border-cyan-400 t-main text-xs py-2.5 px-3 rounded-xl border border-dashed border-cyan-500/50 transition flex items-center justify-center gap-2 active:scale-95 shadow-sm">
@@ -2024,7 +2024,7 @@
                     <img id="receiptImagePreview" class="h-10 w-10 object-cover rounded-lg border border-slate-700 shrink-0" src="" alt="رسید" loading="lazy">
                     <span class="text-[10px] text-slate-200 truncate max-w-[170px]" id="receiptImageName">تصویر فیش انتخاب شد</span>
                   </div>
-                  <button id="removeReceiptImageBtn" type="button" class="text-rose-400 hover:text-rose-300 text-xs px-2.5 py-1.5 min-h-[36px] bg-rose-950/40 rounded-lg border border-rose-800/40 transition active:scale-95 flex items-center justify-center" title="حذف تصویر" aria-label="حذف تصویر رسید">✕ حذف</button>
+                  <button id="removeReceiptImageBtn" type="button" class="t-danger hover:text-rose-300 text-xs px-2.5 py-1.5 min-h-[36px] bg-rose-950/40 rounded-lg border border-rose-800/40 transition active:scale-95 flex items-center justify-center" title="حذف تصویر" aria-label="حذف تصویر رسید">✕ حذف</button>
                 </div>
               </div>
 
@@ -2105,7 +2105,7 @@
                 <button id="cryptoCheckStatusBtn" type="button" class="btn btn-secondary py-2 px-2 rounded-xl flex items-center justify-center gap-1 text-xs active:scale-95">
                   <span>🔄</span> بررسی پرداخت
                 </button>
-                <button id="cryptoCancelInvoiceBtn" type="button" onclick="window.cancelCryptoInvoice && window.cancelCryptoInvoice()" class="bg-rose-50 dark:bg-rose-950/40 border border-rose-300 dark:border-rose-800 text-rose-700 dark:text-rose-400 hover:bg-rose-100 dark:hover:bg-rose-900/60 font-bold py-2 px-2 rounded-xl flex items-center justify-center gap-1 text-xs active:scale-95 transition shadow-sm">
+                <button id="cryptoCancelInvoiceBtn" type="button" onclick="window.cancelCryptoInvoice && window.cancelCryptoInvoice()" class="bg-rose-50 dark:bg-rose-950/40 border border-rose-300 dark:border-rose-800 t-danger hover:bg-rose-100 dark:hover:bg-rose-900/60 font-bold py-2 px-2 rounded-xl flex items-center justify-center gap-1 text-xs active:scale-95 transition shadow-sm">
                   <span>✕</span> انصراف و جدید
                 </button>
               </div>
@@ -2126,18 +2126,18 @@
             <div class="card-inset rounded-2xl p-3 border border-rose-500/40 space-y-2">
               <div class="flex justify-between items-center text-[11px] pb-1.5 border-b border-slate-700/50">
                 <span class="text-slate-400">مهلت واریز و ثبت:</span>
-                <span id="trxCountdownTimer" class="font-mono font-bold text-rose-500 dark:text-rose-400 text-xs" dir="ltr">60:00</span>
+                <span id="trxCountdownTimer" class="font-mono font-bold t-danger text-xs" dir="ltr">60:00</span>
               </div>
               <div class="flex justify-between items-center text-[11px] pb-1.5 border-b border-slate-700/50">
                 <span class="text-slate-400">مقدار قابل واریز:</span>
                 <div class="flex items-center gap-1">
-                  <button id="copyTrxAmountBtn" type="button" class="text-rose-400 hover:text-rose-300 text-xs px-1" title="کپی مقدار">📋</button>
-                  <b id="trxAmountDisplay" class="text-rose-400 font-mono font-bold" dir="ltr">-- TRX</b>
+                  <button id="copyTrxAmountBtn" type="button" class="t-danger hover:text-rose-300 text-xs px-1" title="کپی مقدار">📋</button>
+                  <b id="trxAmountDisplay" class="t-danger font-mono font-bold" dir="ltr">-- TRX</b>
                 </div>
               </div>
               <div class="space-y-1">
                 <span class="text-slate-400 text-[11px] block">آدرس کیف پول ترون (TRX):</span>
-                <button id="copyTrxAddressBtn" type="button" class="w-full text-left card-inset p-2.5 rounded-xl font-mono text-[10px] break-all select-all transition text-rose-400 flex items-center justify-between gap-2 cursor-pointer active:scale-[0.99]" dir="ltr">
+                <button id="copyTrxAddressBtn" type="button" class="w-full text-left card-inset p-2.5 rounded-xl font-mono text-[10px] break-all select-all transition t-danger flex items-center justify-between gap-2 cursor-pointer active:scale-[0.99]" dir="ltr">
                   <span id="trxPayAddress" class="break-all leading-relaxed">--</span>
                   <span class="text-xs shrink-0">📋</span>
                 </button>
@@ -2156,7 +2156,7 @@
               <button id="submitTrxTxIdBtn" type="button" class="w-full bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 text-white font-bold py-2.5 rounded-xl transition shadow active:scale-[0.98] flex items-center justify-center gap-1.5">
                 <span>🔍</span> بررسی و تأیید واریز TRX
               </button>
-              <button id="cancelTrxInvoiceBtn" type="button" class="w-full bg-rose-50 dark:bg-rose-950/40 border border-rose-300 dark:border-rose-800 text-rose-700 dark:text-rose-400 hover:bg-rose-100 dark:hover:bg-rose-900/60 font-bold py-2 rounded-xl text-xs flex items-center justify-center gap-1 active:scale-95 transition shadow-sm">
+              <button id="cancelTrxInvoiceBtn" type="button" class="w-full bg-rose-50 dark:bg-rose-950/40 border border-rose-300 dark:border-rose-800 t-danger hover:bg-rose-100 dark:hover:bg-rose-900/60 font-bold py-2 rounded-xl text-xs flex items-center justify-center gap-1 active:scale-95 transition shadow-sm">
                 <span>✕</span> انصراف و فاکتور جدید
               </button>
             </div>
@@ -2168,11 +2168,11 @@
           <div class="card-inset rounded-2xl p-3 border border-amber-500/40 space-y-2.5">
             <div class="flex justify-between items-center text-[11px] pb-1.5 border-b border-slate-200 dark:border-slate-800">
               <span class="text-slate-400 flex items-center gap-1"><span>⭐</span> پرداخت آنی تلگرام:</span>
-              <span class="font-bold text-amber-600 dark:text-amber-400 bg-transparent px-2 py-0.5 rounded-md border border-amber-500/40">Telegram Stars</span>
+              <span class="font-bold t-warn bg-transparent px-2 py-0.5 rounded-md border border-amber-500/40">Telegram Stars</span>
             </div>
             <div class="flex justify-between items-center text-[11px]">
               <span class="text-slate-400">تعداد استارز مورد نیاز:</span>
-              <b id="starsRequiredCount" class="text-amber-600 dark:text-amber-400 font-mono font-bold text-sm" dir="ltr">-- ⭐️</b>
+              <b id="starsRequiredCount" class="t-warn font-mono font-bold text-sm" dir="ltr">-- ⭐️</b>
             </div>
             <div class="flex justify-between items-center text-[11px] text-slate-400">
               <span>نرخ تبدیل تقریبی:</span>
@@ -2198,7 +2198,7 @@
       <div class="modal-card border border-blue-500/40 rounded-3xl p-5 w-full space-y-4 shadow-2xl relative max-w-[350px] my-auto text-xs text-right">
         <button id="closeCheckoutModalBtn" class="modal-close-btn absolute top-3 left-3" onclick="closeModal('checkoutConfirmModal')" title="انصراف" aria-label="انصراف و بستن پیش‌فاکتور">✕</button>
         <div class="border-b border-slate-700/60 pb-2">
-          <span class="text-[10.5px] font-black text-blue-600 dark:text-blue-400 uppercase tracking-wide inline-block">
+          <span class="text-[10.5px] font-black t-accent uppercase tracking-wide inline-block">
             🛒 تایید سفارش
           </span>
           <h3 class="text-sm font-bold t-main mt-1">پیش‌فاکتور خرید بسته</h3>
@@ -2211,7 +2211,7 @@
           </div>
           <div class="flex justify-between items-center">
             <span class="text-slate-400">حجم ترافیک:</span>
-            <b id="checkoutPlanTraffic" class="text-cyan-400 font-mono num-bidi" dir="ltr">-- GB</b>
+            <b id="checkoutPlanTraffic" class="t-accent font-mono num-bidi" dir="ltr">-- GB</b>
           </div>
           <div class="flex justify-between items-center">
             <span class="text-slate-400">مدت اعتبار:</span>
@@ -2219,7 +2219,7 @@
           </div>
           <div class="flex justify-between items-center border-t border-slate-800 pt-1.5">
             <span class="text-slate-400">مبلغ قابل پرداخت:</span>
-            <b id="checkoutPlanPrice" class="text-emerald-400 font-mono font-bold text-sm">-- تومان</b>
+            <b id="checkoutPlanPrice" class="t-success font-mono font-bold text-sm">-- تومان</b>
           </div>
         </div>
 
@@ -2230,20 +2230,20 @@
           </div>
           <div id="checkoutRemainRow" class="flex justify-between items-center">
             <span class="text-slate-400">موجودی پس از کسر:</span>
-            <span id="checkoutRemainingBalance" class="text-emerald-400 font-mono font-bold">-- تومان</span>
+            <span id="checkoutRemainingBalance" class="t-success font-mono font-bold">-- تومان</span>
           </div>
         </div>
 
         <!-- Squad Switch Warning Box (shown only when switching to another squad) -->
         <div id="checkoutSwitchWarningBox" class="hidden card-inset border border-amber-500/40 rounded-xl p-2.5 text-xs text-amber-700 dark:text-amber-300 space-y-1.5">
-          <div class="flex items-center gap-1.5 font-bold text-amber-600 dark:text-amber-400">
+          <div class="flex items-center gap-1.5 font-bold t-warn">
             <span>⚠️</span>
             <span>درخواست تغییر سرور و اسکواد</span>
           </div>
           <p class="text-[11px] leading-relaxed text-slate-700 dark:text-slate-300 font-medium">
             با تأیید این خرید، دسته سرورهای اشتراک فعلی شما به این بسته تغییر خواهد کرد و دوره جدید از همین لحظه آغاز می‌شود.
           </p>
-          <p class="text-[10px] text-slate-500 dark:text-slate-400 leading-normal">
+          <p class="text-[10px] t-muted leading-normal">
             • حجم و مهلت باقیمانده قبلی با بسته جدید جایگزین می‌شود.<br>
             • لینک اتصال شما تغییری نمی‌کند؛ تنها کافیست پس از پرداخت در نرم‌افزار خود Update Subscription را بزنید.
           </p>
@@ -2424,7 +2424,7 @@
         <!-- 24-Hour Countdown Timer Container -->
         <div id="wheelTimerContainer" class="hidden card-inset border border-amber-500/40 rounded-xl p-2.5 text-center text-xs space-y-1">
           <span class="text-slate-300 text-[10px] block font-medium">⏳ زمان باقیمانده تا شانس بعدی شما:</span>
-          <b id="wheelCountdownText" class="text-amber-400 font-mono font-bold text-base tracking-wider block" dir="ltr">00:00:00</b>
+          <b id="wheelCountdownText" class="t-warn font-mono font-bold text-base tracking-wider block" dir="ltr">00:00:00</b>
         </div>
 
         <div id="wheelSubWarning" class="hidden text-xs font-bold text-amber-600 dark:text-amber-300 bg-transparent p-2.5 rounded-xl border border-amber-500/40 text-center leading-relaxed">
@@ -2467,7 +2467,7 @@
             <div>
               <div class="flex items-center justify-center gap-1">
                 <h4 id="storyCardName" class="text-sm font-black t-main">کاربر</h4>
-                <svg class="w-3.5 h-3.5 text-cyan-400 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+                <svg class="w-3.5 h-3.5 t-accent shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
               </div>
               <span id="storyCardUsername" dir="ltr" class="text-[11px] text-sky-400 font-mono inline-block mt-0.5 font-medium">@user</span>
             </div>
@@ -2481,7 +2481,7 @@
               <div class="flex items-center justify-center gap-2.5 text-[10px] text-slate-300 mt-1.5 pt-1.5 border-t border-slate-800/80">
                 <span id="storyCardDays" class="font-semibold text-slate-200">-- روز اعتبار</span>
                 <span class="text-slate-500">•</span>
-                <span class="text-emerald-400 font-semibold flex items-center gap-1">
+                <span class="t-success font-semibold flex items-center gap-1">
                   <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> پایداری ۱۰۰٪
                 </span>
               </div>
@@ -2494,7 +2494,7 @@
             <img id="storyCardQr" src="" class="w-12 h-12 rounded-xl bg-white p-1 shrink-0 shadow-sm" alt="QR" crossorigin="anonymous" loading="lazy" />
             <div class="text-[10px] space-y-0.5 leading-snug">
               <span class="font-extrabold text-white block">اتصال امن و اینترنت آزاد</span>
-              <span id="storyCardRewardText" class="text-emerald-400 block text-[10px] font-bold">
+              <span id="storyCardRewardText" class="t-success block text-[10px] font-bold">
                 🎁 با این کارت <span id="storyCardRewardGb" class="font-mono">5</span> گیگابایت هدیه بگیرید
               </span>
             </div>
@@ -2527,7 +2527,7 @@
     <div id="purchaseSuccessModal" class="fixed inset-0 modal-backdrop z-50 flex items-center justify-center p-4 hidden animate-fadeIn overflow-y-auto">
       <div class="modal-card border border-emerald-500/50 rounded-3xl p-5 w-full text-center space-y-3.5 shadow-2xl relative max-w-[340px] my-auto">
         <button id="psvcTopCloseBtn" class="modal-close-btn absolute top-4 left-4 z-10" title="بستن" aria-label="بستن رسید خرید">✕</button>
-        <div class="w-16 h-16 bg-emerald-500/20 text-emerald-400 rounded-full flex items-center justify-center text-3xl mx-auto border border-emerald-500/40 shadow-lg shadow-emerald-500/30">
+        <div class="w-16 h-16 bg-emerald-500/20 t-success rounded-full flex items-center justify-center text-3xl mx-auto border border-emerald-500/40 shadow-lg shadow-emerald-500/30">
           🎉
         </div>
         <div>
@@ -2544,16 +2544,16 @@
               <span id="psvcIcon" class="text-base">📦</span>
             </div>
           </div>
-          <div class="flex justify-between items-center"><span class="text-slate-400">حجم ترافیک:</span><b id="psvcTraffic" class="text-cyan-400 font-mono num-bidi" dir="ltr">-- GB</b></div>
+          <div class="flex justify-between items-center"><span class="text-slate-400">حجم ترافیک:</span><b id="psvcTraffic" class="t-accent font-mono num-bidi" dir="ltr">-- GB</b></div>
           <div class="flex justify-between items-center"><span class="text-slate-400">مدت اعتبار:</span><b id="psvcDays" class="text-slate-200">-- روز</b></div>
           <div class="flex justify-between items-center"><span class="text-slate-400">نام کاربری:</span><code id="psvcUser" class="text-indigo-300 font-mono" dir="ltr">--</code></div>
-          <div class="flex justify-between items-center border-t border-slate-800 pt-1.5"><span class="text-slate-400">مبلغ کسر شده:</span><b id="psvcPrice" class="text-emerald-400 font-mono">-- تومان</b></div>
+          <div class="flex justify-between items-center border-t border-slate-800 pt-1.5"><span class="text-slate-400">مبلغ کسر شده:</span><b id="psvcPrice" class="t-success font-mono">-- تومان</b></div>
           <div class="flex justify-between items-center"><span class="text-slate-400">موجودی جدید ولت:</span><b id="psvcNewBalance" class="text-slate-300 font-mono">-- تومان</b></div>
         </div>
 
         <!-- Squad Switch Alert Box inside Modal -->
         <div id="psvcSquadNoticeBox" class="hidden card-inset rounded-2xl p-3 border border-amber-500/50 bg-amber-500/10 text-right space-y-1.5 animate-fadeIn">
-          <div class="flex items-center gap-1.5 text-amber-500 dark:text-amber-400 font-bold text-xs">
+          <div class="flex items-center gap-1.5 t-warn font-bold text-xs">
             <span>⚡️</span>
             <span>نکته مهم به‌روزرسانی اتصال:</span>
           </div>
@@ -2565,7 +2565,7 @@
         <!-- Subscription URL Box -->
         <div class="card-inset rounded-2xl p-2.5 border border-cyan-500/30 text-right space-y-1.5">
           <span class="text-[11px] text-slate-400 block font-medium">لینک اشتراک سرویس شما:</span>
-          <div id="psvcSubDisplay" dir="ltr" class="font-mono text-[10px] text-cyan-400 dark:text-cyan-300 break-all select-all leading-tight max-h-16 overflow-y-auto custom-scroll p-1.5 card-inset rounded-lg">
+          <div id="psvcSubDisplay" dir="ltr" class="font-mono text-[10px] t-accent dark:text-cyan-300 break-all select-all leading-tight max-h-16 overflow-y-auto custom-scroll p-1.5 card-inset rounded-lg">
             --
           </div>
           <div class="grid grid-cols-2 gap-1.5 pt-1">
@@ -2656,7 +2656,7 @@
 
         <!-- Modal Header -->
         <div class="flex items-center gap-2.5 pb-2 border-b border-slate-700/60 pl-8 flex-shrink-0">
-          <div class="w-8 h-8 rounded-xl bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 flex items-center justify-center text-sm flex-shrink-0">
+          <div class="w-8 h-8 rounded-xl bg-cyan-500/20 t-accent border border-cyan-500/30 flex items-center justify-center text-sm flex-shrink-0">
             📱
           </div>
           <div>
@@ -2708,7 +2708,7 @@
 
         <!-- Modal Header -->
         <div class="flex items-center gap-2.5 pb-1.5 border-b border-slate-700/60 pl-8 flex-shrink-0">
-          <div class="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center text-sm flex-shrink-0">
+          <div class="w-8 h-8 rounded-xl bg-emerald-500/20 t-success border border-emerald-500/30 flex items-center justify-center text-sm flex-shrink-0">
             ⚡️
           </div>
           <div class="flex-1">
@@ -2768,7 +2768,7 @@
 
           <!-- Digital Readout Display -->
           <div class="flex flex-col items-center justify-center -mt-6">
-            <span id="speedPhaseLabel" class="text-[10px] text-cyan-400 font-bold mb-0.5">آماده شروع</span>
+            <span id="speedPhaseLabel" class="text-[10px] t-accent font-bold mb-0.5">آماده شروع</span>
             <div class="flex items-baseline gap-1.5" dir="ltr">
               <span id="speedDisplayVal" class="text-4xl font-black text-white font-mono tracking-tight leading-none drop-shadow-md">0.0</span>
               <span id="speedUnitVal" class="text-xs font-bold text-slate-400">Mbps</span>
@@ -2788,14 +2788,14 @@
           <div class="speed-chip-card card-inset p-2 rounded-2xl border border-slate-700/60 text-center flex flex-col items-center">
             <span class="text-[11px] text-slate-400 font-medium flex items-center gap-0.5"><span>📥</span> دانلود</span>
             <div class="flex items-baseline gap-0.5 mt-0.5" dir="ltr">
-              <span id="speedDownloadVal" class="text-xs font-bold text-emerald-400 font-mono">--</span>
+              <span id="speedDownloadVal" class="text-xs font-bold t-success font-mono">--</span>
               <span class="text-[11px] text-slate-400 font-sans">Mbps</span>
             </div>
           </div>
           <div class="speed-chip-card card-inset p-2 rounded-2xl border border-slate-700/60 text-center flex flex-col items-center">
             <span class="text-[11px] text-slate-400 font-medium flex items-center gap-0.5"><span>📤</span> آپلود</span>
             <div class="flex items-baseline gap-0.5 mt-0.5" dir="ltr">
-              <span id="speedUploadVal" class="text-xs font-bold text-cyan-400 font-mono">--</span>
+              <span id="speedUploadVal" class="text-xs font-bold t-accent font-mono">--</span>
               <span class="text-[11px] text-slate-400 font-sans">Mbps</span>
             </div>
           </div>
@@ -2850,12 +2850,12 @@
         <div id="wheelResultModalCouponBox" class="hidden card-inset border border-amber-500/40 rounded-2xl p-2.5 text-center space-y-1.5">
           <span class="text-[11px] text-slate-400 block">کد تخفیف اختصاصی شما:</span>
           <div class="flex items-center justify-center gap-2">
-            <button id="copyWheelCouponBtn" type="button" class="text-base p-1 text-cyan-500 dark:text-cyan-400 hover:opacity-80 transition active:scale-90 bg-transparent border-0 shadow-none cursor-pointer flex items-center justify-center" title="کپی کد تخفیف" aria-label="کپی کد تخفیف">
+            <button id="copyWheelCouponBtn" type="button" class="text-base p-1 t-accent hover:opacity-80 transition active:scale-90 bg-transparent border-0 shadow-none cursor-pointer flex items-center justify-center" title="کپی کد تخفیف" aria-label="کپی کد تخفیف">
               📋
             </button>
             <code id="wheelResultModalCouponCode" class="font-mono text-cyan-600 dark:text-cyan-300 font-extrabold text-sm select-all tracking-wider" dir="ltr">CODE</code>
           </div>
-          <span class="text-[11px] font-bold text-amber-600 dark:text-amber-400 block mt-1">⏳ مهلت استفاده: ۷ روز در تب فروشگاه</span>
+          <span class="text-[11px] font-bold t-warn block mt-1">⏳ مهلت استفاده: ۷ روز در تب فروشگاه</span>
         </div>
 
         <button type="button" onclick="window.closeWheelResultModal()" class="w-full bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-slate-950 font-bold text-xs py-2.5 rounded-xl transition active:scale-95 shadow-md">
@@ -2877,21 +2877,21 @@
 
         <div>
           <h3 class="text-sm font-extrabold t-main">نتیجه نهایی تست کیفیت شبکه</h3>
-          <span id="speedResultRatingBadge" class="inline-block mt-1 text-[11px] font-bold text-emerald-600 dark:text-emerald-400">🟢 کیفیت عالی</span>
+          <span id="speedResultRatingBadge" class="inline-block mt-1 text-[11px] font-bold t-success">🟢 کیفیت عالی</span>
         </div>
 
         <div class="grid grid-cols-2 gap-2 text-center text-xs">
           <div class="card-inset p-2.5 rounded-2xl">
             <span class="text-[11px] text-slate-400 block mb-0.5">📥 دانلود</span>
             <div class="flex items-baseline justify-center gap-1" dir="ltr">
-              <b id="finalDownloadVal" class="text-base font-black text-emerald-400 font-mono">0.0</b>
+              <b id="finalDownloadVal" class="text-base font-black t-success font-mono">0.0</b>
               <span class="text-[11px] text-slate-400">Mbps</span>
             </div>
           </div>
           <div class="card-inset p-2.5 rounded-2xl">
             <span class="text-[11px] text-slate-400 block mb-0.5">📤 آپلود</span>
             <div class="flex items-baseline justify-center gap-1" dir="ltr">
-              <b id="finalUploadVal" class="text-base font-black text-cyan-400 font-mono">0.0</b>
+              <b id="finalUploadVal" class="text-base font-black t-accent font-mono">0.0</b>
               <span class="text-[11px] text-slate-400">Mbps</span>
             </div>
           </div>
@@ -2938,7 +2938,7 @@
 
         <!-- Header -->
         <div class="flex flex-col items-center">
-          <div class="w-12 h-12 rounded-2xl flex items-center justify-center text-3xl shadow-lg border border-pink-500/30 bg-gradient-to-tr from-pink-500/20 via-purple-500/15 to-indigo-500/20 text-pink-400 mb-1.5">
+          <div class="w-12 h-12 rounded-2xl flex items-center justify-center text-3xl shadow-lg border border-pink-500/30 bg-gradient-to-tr from-pink-500/20 via-purple-500/15 to-indigo-500/20 t-pink mb-1.5">
             🎂
           </div>
           <h3 class="text-sm font-extrabold text-slate-100">ثبت تاریخ زادروز</h3>
@@ -3007,7 +3007,7 @@
         <button type="button" onclick="window.closeAlertThresholdModal()" class="modal-close-btn absolute top-3.5 left-3.5" title="بستن" aria-label="بستن پنجره">✕</button>
 
         <div class="flex items-center gap-2.5 pb-2 border-b border-slate-700/60 pl-10 shrink-0">
-          <div id="alertThresholdIconBox" class="w-10 h-10 rounded-2xl bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 flex items-center justify-center text-lg flex-shrink-0">
+          <div id="alertThresholdIconBox" class="w-10 h-10 rounded-2xl bg-cyan-500/20 t-accent border border-cyan-500/30 flex items-center justify-center text-lg flex-shrink-0">
             ⚠️
           </div>
           <div>
@@ -3041,11 +3041,11 @@
         <!-- 4 Ticking Digit Boxes: Days, Hours, Minutes, Seconds -->
         <div class="grid grid-cols-4 gap-1.5" dir="ltr">
           <div class="card-inset rounded-2xl p-2 shadow-sm text-center">
-            <span id="countdownDays" class="text-xl font-black font-mono text-amber-400 block leading-tight">--</span>
+            <span id="countdownDays" class="text-xl font-black font-mono t-warn block leading-tight">--</span>
             <span class="text-[11px] text-slate-400 uppercase tracking-wider block mt-1 font-semibold">روز</span>
           </div>
           <div class="card-inset rounded-2xl p-2 shadow-sm text-center">
-            <span id="countdownHours" class="text-xl font-black font-mono text-cyan-400 block leading-tight">--</span>
+            <span id="countdownHours" class="text-xl font-black font-mono t-accent block leading-tight">--</span>
             <span class="text-[11px] text-slate-400 uppercase tracking-wider block mt-1 font-semibold">ساعت</span>
           </div>
           <div class="card-inset rounded-2xl p-2 shadow-sm text-center">
@@ -3053,7 +3053,7 @@
             <span class="text-[11px] text-slate-400 uppercase tracking-wider block mt-1 font-semibold">دقیقه</span>
           </div>
           <div class="card-inset rounded-2xl p-2 shadow-sm text-center">
-            <span id="countdownSeconds" class="text-xl font-black font-mono text-emerald-400 block leading-tight">--</span>
+            <span id="countdownSeconds" class="text-xl font-black font-mono t-success block leading-tight">--</span>
             <span class="text-[11px] text-slate-400 uppercase tracking-wider block mt-1 font-semibold">ثانیه</span>
           </div>
         </div>
@@ -3064,7 +3064,7 @@
             <span class="text-slate-400 text-[11px] flex items-center gap-1">
               <span>💡</span> میانگین مجاز مصرف روزانه:
             </span>
-            <span id="modalExpiryDailyAllowance" class="font-mono font-bold text-emerald-400 num-bidi" dir="ltr">-- GB</span>
+            <span id="modalExpiryDailyAllowance" class="font-mono font-bold t-success num-bidi" dir="ltr">-- GB</span>
           </div>
           <div class="flex items-center justify-between border-t border-slate-800/80 pt-1.5">
             <span class="text-slate-400 text-[11px] flex items-center gap-1">
@@ -3076,7 +3076,7 @@
             <span class="text-slate-400 text-[11px] flex items-center gap-1">
               <span>⚡</span> وضعیت سرعت مصرف:
             </span>
-            <span id="modalExpiryPaceStatus" class="font-bold text-[11px] text-emerald-600 dark:text-emerald-400">بهینه</span>
+            <span id="modalExpiryPaceStatus" class="font-bold text-[11px] t-success">بهینه</span>
           </div>
         </div>
 
@@ -3122,19 +3122,19 @@
         <!-- 4 Ticking Digit Boxes: Days, Hours, Minutes, Seconds -->
         <div class="grid grid-cols-4 gap-1.5" dir="ltr">
           <div class="card-inset border-2 border-pink-500/40 dark:border-pink-500/50 rounded-2xl p-2 shadow-sm text-center">
-            <span id="bdayCountdownDays" class="text-xl font-black font-mono text-pink-400 block leading-tight">--</span>
+            <span id="bdayCountdownDays" class="text-xl font-black font-mono t-pink block leading-tight">--</span>
             <span class="text-[11px] text-slate-400 uppercase tracking-wider block mt-1 font-semibold">روز</span>
           </div>
           <div class="card-inset border-2 border-rose-500/40 dark:border-rose-500/50 rounded-2xl p-2 shadow-sm text-center">
-            <span id="bdayCountdownHours" class="text-xl font-black font-mono text-rose-400 block leading-tight">--</span>
+            <span id="bdayCountdownHours" class="text-xl font-black font-mono t-danger block leading-tight">--</span>
             <span class="text-[11px] text-slate-400 uppercase tracking-wider block mt-1 font-semibold">ساعت</span>
           </div>
           <div class="card-inset border-2 border-purple-500/40 dark:border-purple-500/50 rounded-2xl p-2 shadow-sm text-center">
-            <span id="bdayCountdownMinutes" class="text-xl font-black font-mono text-purple-400 block leading-tight">--</span>
+            <span id="bdayCountdownMinutes" class="text-xl font-black font-mono t-purple block leading-tight">--</span>
             <span class="text-[11px] text-slate-400 uppercase tracking-wider block mt-1 font-semibold">دقیقه</span>
           </div>
           <div class="card-inset border-2 border-cyan-500/40 dark:border-cyan-500/50 rounded-2xl p-2 shadow-sm text-center">
-            <span id="bdayCountdownSeconds" class="text-xl font-black font-mono text-cyan-400 block leading-tight">--</span>
+            <span id="bdayCountdownSeconds" class="text-xl font-black font-mono t-accent block leading-tight">--</span>
             <span class="text-[11px] text-slate-400 uppercase tracking-wider block mt-1 font-semibold">ثانیه</span>
           </div>
         </div>
@@ -3145,7 +3145,7 @@
             <span class="text-slate-400 text-[11px] flex items-center gap-1">
               <span>✨</span> ماه تولد:
             </span>
-            <span id="bdayTraitMonthName" class="font-bold text-pink-400 text-xs">فروردین</span>
+            <span id="bdayTraitMonthName" class="font-bold t-pink text-xs">فروردین</span>
           </div>
           <div class="border-t border-slate-800/80 pt-1.5">
             <p id="bdayTraitDescription" class="text-[11px] text-slate-300 leading-relaxed text-justify">
@@ -3274,7 +3274,7 @@
           <div class="card-inset p-3 rounded-2xl space-y-1.5 text-xs">
             <div class="flex justify-between items-center text-[11px] t-muted">
               <span>مبلغ کسر شده از کیف پول:</span>
-              <div class="font-mono font-bold text-pink-600 dark:text-pink-400">
+              <div class="font-mono font-bold t-pink">
                 <span id="giftCostDisplay">0</span> <span class="text-[10px] font-sans">تومان</span>
               </div>
             </div>
@@ -3361,7 +3361,7 @@
             </div>
           </div>
           <div class="text-left font-mono shrink-0 pl-1" dir="ltr">
-            <span id="invNumberDisplay" class="text-xs font-bold text-cyan-600 dark:text-cyan-400 block select-all">INV-0000-00000</span>
+            <span id="invNumberDisplay" class="text-xs font-bold t-accent block select-all">INV-0000-00000</span>
             <div class="text-[10px] t-muted flex items-center gap-1 justify-end mt-0.5">
               <span id="invDateDisplay">--/--/--</span>
             </div>
@@ -3474,7 +3474,7 @@
             <span class="t-muted text-[11px]">میزان تخفیف شما:</span>
             <b id="loyaltyModalCurrentDiscount" class="text-xs font-bold text-emerald-500">بدون تخفیف</b>
           </div>
-          <p id="loyaltyModalProgressText" class="text-[10px] text-amber-600 dark:text-amber-400 pt-1 leading-snug">
+          <p id="loyaltyModalProgressText" class="text-[10px] t-warn pt-1 leading-snug">
             با خرید بسته‌های بیشتر، سطح شما ارتقا یافته و تخفیف دریافت می‌کنید.
           </p>
         </div>
@@ -3513,7 +3513,7 @@
 
             <!-- Tier 3: Gold -->
             <div id="loyaltyTierCard_gold" class="card-inset p-2.5 rounded-2xl border border-card-border flex items-start gap-2.5 transition">
-              <div class="w-8 h-8 rounded-xl bg-amber-500/15 text-amber-500 dark:text-amber-400 border border-amber-500/30 flex items-center justify-center text-base shrink-0">
+              <div class="w-8 h-8 rounded-xl bg-amber-500/15 t-warn border border-amber-500/30 flex items-center justify-center text-base shrink-0">
                 🥇
               </div>
               <div class="flex-1 min-w-0">
@@ -3527,13 +3527,13 @@
 
             <!-- Tier 4: Platinum -->
             <div id="loyaltyTierCard_platinum" class="card-inset p-2.5 rounded-2xl border border-cyan-500/30 flex items-start gap-2.5 transition">
-              <div class="w-8 h-8 rounded-xl bg-cyan-500/15 text-cyan-400 border border-cyan-500/30 flex items-center justify-center text-base shrink-0">
+              <div class="w-8 h-8 rounded-xl bg-cyan-500/15 t-accent border border-cyan-500/30 flex items-center justify-center text-base shrink-0">
                 💎
               </div>
               <div class="flex-1 min-w-0">
                 <div class="flex items-center justify-between">
                   <b class="text-xs text-cyan-500 dark:text-cyan-300 font-bold">سطح پلاتین</b>
-                  <span id="loyaltyTierCard_platinum_spent" class="text-[10px] font-bold text-cyan-400 font-mono">5,000,000 تومان</span>
+                  <span id="loyaltyTierCard_platinum_spent" class="text-[10px] font-bold t-accent font-mono">5,000,000 تومان</span>
                 </div>
                 <p class="text-[10px] t-muted mt-0.5 leading-snug"><span id="loyaltyTierCard_platinum_pct" class="text-emerald-500 font-bold font-mono num-bidi" dir="ltr">8%</span> <b class="text-emerald-500 font-bold">تخفیف</b>.</p>
               </div>
@@ -3541,13 +3541,13 @@
 
             <!-- Tier 5: Ruby -->
             <div id="loyaltyTierCard_ruby" class="card-inset p-2.5 rounded-2xl border border-purple-500/30 flex items-start gap-2.5 transition">
-              <div class="w-8 h-8 rounded-xl bg-purple-500/15 text-purple-400 border border-purple-500/30 flex items-center justify-center text-base shrink-0">
+              <div class="w-8 h-8 rounded-xl bg-purple-500/15 t-purple border border-purple-500/30 flex items-center justify-center text-base shrink-0">
                 🔮
               </div>
               <div class="flex-1 min-w-0">
                 <div class="flex items-center justify-between">
-                  <b class="text-xs text-purple-400 font-bold">سطح یاقوت</b>
-                  <span id="loyaltyTierCard_ruby_spent" class="text-[10px] font-bold text-purple-400 font-mono">8,000,000 تومان</span>
+                  <b class="text-xs t-purple font-bold">سطح یاقوت</b>
+                  <span id="loyaltyTierCard_ruby_spent" class="text-[10px] font-bold t-purple font-mono">8,000,000 تومان</span>
                 </div>
                 <p class="text-[10px] t-muted mt-0.5 leading-snug"><span id="loyaltyTierCard_ruby_pct" class="text-emerald-500 font-bold font-mono num-bidi" dir="ltr">10%</span> <b class="text-emerald-500 font-bold">تخفیف</b>.</p>
               </div>
@@ -3555,13 +3555,13 @@
 
             <!-- Tier 6: Emerald -->
             <div id="loyaltyTierCard_emerald" class="card-inset p-2.5 rounded-2xl border border-emerald-500/30 flex items-start gap-2.5 transition">
-              <div class="w-8 h-8 rounded-xl bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 flex items-center justify-center text-base shrink-0">
+              <div class="w-8 h-8 rounded-xl bg-emerald-500/15 t-success border border-emerald-500/30 flex items-center justify-center text-base shrink-0">
                 ❇️
               </div>
               <div class="flex-1 min-w-0">
                 <div class="flex items-center justify-between">
-                  <b class="text-xs text-emerald-400 font-bold">سطح زمرد</b>
-                  <span id="loyaltyTierCard_emerald_spent" class="text-[10px] font-bold text-emerald-400 font-mono">12,000,000 تومان</span>
+                  <b class="text-xs t-success font-bold">سطح زمرد</b>
+                  <span id="loyaltyTierCard_emerald_spent" class="text-[10px] font-bold t-success font-mono">12,000,000 تومان</span>
                 </div>
                 <p class="text-[10px] t-muted mt-0.5 leading-snug"><span id="loyaltyTierCard_emerald_pct" class="text-emerald-500 font-bold font-mono num-bidi" dir="ltr">12%</span> <b class="text-emerald-500 font-bold">تخفیف</b>.</p>
               </div>

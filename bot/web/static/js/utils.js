@@ -562,7 +562,7 @@ function getDonutPalette(isLight = false) {
     } catch (e) {}
   }
   return isLight
-    ? ['#0891b2', '#7c3aed', '#e11d48', '#b45309', '#047857', '#4f46e5']
+    ? ['#0284c7', '#7c3aed', '#be123c', '#b45309', '#047857', '#4338ca']
     : ['#22d3ee', '#a78bfa', '#fb7185', '#fbbf24', '#34d399', '#818cf8'];
 }
 

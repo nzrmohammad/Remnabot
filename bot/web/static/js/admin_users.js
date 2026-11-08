@@ -606,21 +606,21 @@ async applyUserModification() {
 
       // Status Badge
       const p = user.panel_account;
-      let statusBadge = '<span class="px-2 py-0.5 rounded-lg text-[10px] bg-slate-800 border border-slate-700 text-slate-400 font-medium">بدون اکانت</span>';
+      let statusBadge = '<span class="badge card-inset t-muted">بدون اکانت</span>';
       if (user.is_banned) {
-        statusBadge = '<span class="px-2 py-0.5 rounded-lg text-[10px] bg-rose-500/10 text-rose-400 font-bold border border-rose-500/30">مسدود</span>';
+        statusBadge = '<span class="badge s-danger-soft">مسدود</span>';
       } else if (user.is_limited || (p && p.exists && ((p.status || '').toUpperCase() === 'LIMITED' || (p.remaining_traffic_gb === 0 && p.limit_traffic_gb > 0)))) {
-        statusBadge = '<span class="px-2 py-0.5 rounded-lg text-[10px] bg-amber-500/10 text-amber-400 font-bold border border-amber-500/30">اتمام حجم</span>';
+        statusBadge = '<span class="badge s-warn-soft">اتمام حجم</span>';
       } else if (user.is_expired || (p && p.exists && (p.status || '').toUpperCase() === 'EXPIRED')) {
-        statusBadge = '<span class="px-2 py-0.5 rounded-lg text-[10px] bg-rose-500/10 text-rose-400 font-bold border border-rose-500/30">منقضی</span>';
+        statusBadge = '<span class="badge s-danger-soft">منقضی</span>';
       } else if (p && p.exists) {
         const st = (p.status || '').toUpperCase();
         if (st === 'ACTIVE') {
-          statusBadge = '<span class="px-2 py-0.5 rounded-lg text-[10px] bg-emerald-500/10 text-emerald-400 font-bold border border-emerald-500/30">فعال</span>';
+          statusBadge = '<span class="badge s-success-soft">فعال</span>';
         } else if (st === 'DISABLED') {
-          statusBadge = '<span class="px-2 py-0.5 rounded-lg text-[10px] bg-amber-500/10 text-amber-400 font-bold border border-amber-500/30">غیرفعال</span>';
+          statusBadge = '<span class="badge s-warn-soft">غیرفعال</span>';
         } else {
-          statusBadge = `<span class="px-2 py-0.5 rounded-lg text-[10px] bg-slate-800 border border-slate-700 text-slate-300 font-medium">${escapeHtml(st)}</span>`;
+          statusBadge = `<span class="badge card-inset t-muted">${escapeHtml(st)}</span>`;
         }
       }
       const statusBadgeElem = $('userProfModalStatusBadge');
@@ -628,7 +628,7 @@ async applyUserModification() {
 
       const expBadgeElem = $('userProfModalExpiringBadge');
       if (expBadgeElem) {
-        expBadgeElem.innerHTML = user.is_expiring ? '<span class="px-2 py-0.5 rounded-lg text-[10px] bg-amber-500/10 text-amber-300 font-bold border border-amber-500/30">رو به اتمام</span>' : '';
+        expBadgeElem.innerHTML = user.is_expiring ? '<span class="badge s-warn-soft">رو به اتمام</span>' : '';
       }
 
       // Username

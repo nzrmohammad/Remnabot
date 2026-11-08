@@ -398,51 +398,51 @@ button, a, .tab-btn, .nav-item, [role="button"] {
 
 /* Standardized Plan Action Buttons (Dark & Light) */
 .btn-plan-vip {
-  background: linear-gradient(135deg, #e11d48, #c026d3);
+  background: var(--plan-premium-bg, linear-gradient(135deg, #be123c, #86198f));
   color: #ffffff;
-  box-shadow: 0 4px 14px rgba(225, 29, 72, 0.35);
+  box-shadow: 0 4px 14px rgba(190, 18, 60, 0.35);
 }
 .btn-plan-vip:hover {
-  background: linear-gradient(135deg, #f43f5e, #d946ef);
+  background: linear-gradient(135deg, #e11d48, #a21caf);
 }
 
 .btn-plan-bestseller {
-  background: linear-gradient(135deg, #ea580c, #f59e0b);
+  background: var(--plan-featured-bg, linear-gradient(135deg, #0369a1, #0284c7));
   color: #ffffff;
-  box-shadow: 0 4px 14px rgba(234, 88, 12, 0.35);
+  box-shadow: 0 4px 14px rgba(3, 105, 161, 0.35);
 }
 .btn-plan-bestseller:hover {
-  background: linear-gradient(135deg, #f97316, #fbbf24);
+  background: linear-gradient(135deg, #0284c7, #0ea5e9);
 }
 
 .btn-plan-traffic {
-  background: linear-gradient(135deg, #0891b2, #2563eb);
+  background: linear-gradient(135deg, #0e7490, #1d4ed8);
   color: #ffffff;
-  box-shadow: 0 4px 14px rgba(8, 145, 178, 0.35);
+  box-shadow: 0 4px 14px rgba(14, 116, 144, 0.35);
 }
 
 .btn-plan-time {
-  background: linear-gradient(135deg, #d97706, #ea580c);
+  background: linear-gradient(135deg, #b45309, #9a3412);
   color: #ffffff;
-  box-shadow: 0 4px 14px rgba(217, 119, 6, 0.35);
+  box-shadow: 0 4px 14px rgba(180, 83, 9, 0.35);
 }
 
 .btn-plan-popular {
-  background: linear-gradient(135deg, #7c3aed, #2563eb);
+  background: linear-gradient(135deg, #6d28d9, #1d4ed8);
   color: #ffffff;
-  box-shadow: 0 4px 14px rgba(124, 58, 237, 0.35);
+  box-shadow: 0 4px 14px rgba(109, 40, 217, 0.35);
 }
 
 .btn-plan-economic {
-  background: linear-gradient(135deg, #059669, #0d9488);
+  background: linear-gradient(135deg, #047857, #0f766e);
   color: #ffffff;
-  box-shadow: 0 4px 14px rgba(5, 150, 105, 0.35);
+  box-shadow: 0 4px 14px rgba(4, 120, 87, 0.35);
 }
 
 .btn-plan-default {
-  background: linear-gradient(135deg, #2563eb, #4f46e5);
+  background: linear-gradient(135deg, #1d4ed8, #4338ca);
   color: #ffffff;
-  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.3);
+  box-shadow: 0 4px 14px rgba(29, 78, 216, 0.3);
 }
 
 /* Light Theme: Topup Method Tabs & Card Details */

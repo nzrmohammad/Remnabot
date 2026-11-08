@@ -255,3 +255,21 @@ def test_light_mode_accent_wcag_aa_contrast():
         f"Light theme --c-accent ({accent_hex}) contrast ratio against white is {contrast:.2f}:1, "
         "failing WCAG AA minimum of 4.5:1!"
     )
+
+
+def test_splash_screen_uses_tokenized_theme_background():
+    """Ensure splash screens in app.html and admin.html adapt to page theme and avoid hardcoded flash."""
+    for html_path in [APP_HTML_PATH, ADMIN_HTML_PATH]:
+        content = html_path.read_text(encoding="utf-8")
+        assert 'id="splashScreen" class="absolute inset-0 bg-[#0f172a]' not in content, (
+            f"Splash screen in {html_path.name} hardcodes dark #0f172a, causing blinding FOUC in light mode!"
+        )
+        assert 'var(--page-bg)' in content, f"Splash screen in {html_path.name} must use var(--page-bg)"
+
+
+def test_donut_chart_uses_tokenized_palette_not_flag_colors():
+    """Ensure donut chart slice colors in charts.js use tokenized chart palette instead of flag colors."""
+    charts_js = Path("bot/web/static/js/charts.js").read_text(encoding="utf-8")
+    assert "return defaultColors[idx % defaultColors.length];" in charts_js, (
+        "charts.js should map slices to defaultColors palette for distinct visibility!"
+    )

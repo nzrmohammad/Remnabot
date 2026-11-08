@@ -322,10 +322,10 @@ function setupSubscriptionActions() {
     const ok = await copyToClipboard(urlToCopy, '📋 لینک اشتراک با موفقیت در کلیپ‌بورد کپی شد.');
     if (ok) {
       hapticFeedback('success');
-      copySubBtn.classList.add('text-emerald-400', 'border-emerald-500');
+      copySubBtn.classList.add('t-success', 'border-emerald-500');
       copySubBtn.classList.remove('text-slate-300');
       setTimeout(() => {
-        copySubBtn.classList.remove('text-emerald-400', 'border-emerald-500');
+        copySubBtn.classList.remove('t-success', 'border-emerald-500');
         copySubBtn.classList.add('text-slate-300');
       }, 1800);
     }
@@ -411,10 +411,10 @@ function setupConfigsModal() {
             <span class="text-xs font-bold t-main truncate config-name-label" title="${safeName}">${safeName}</span>
           </div>
           <div class="flex items-center gap-1 shrink-0">
-            <button type="button" class="copy-single-cfg-btn btn-icon t-muted hover:text-cyan-400 text-sm" data-uri="${encodeURIComponent(c.uri)}" title="کپی کانفیگ">
+            <button type="button" class="copy-single-cfg-btn btn-icon t-muted hover:t-accent text-sm" data-uri="${encodeURIComponent(c.uri)}" title="کپی کانفیگ">
               📋
             </button>
-            <button type="button" class="qr-single-cfg-btn btn-icon t-muted hover:text-cyan-400 text-sm" data-uri="${encodeURIComponent(c.uri)}" data-name="${encodeURIComponent(c.name)}" title="نمایش کیوآرکد">
+            <button type="button" class="qr-single-cfg-btn btn-icon t-muted hover:t-accent text-sm" data-uri="${encodeURIComponent(c.uri)}" data-name="${encodeURIComponent(c.name)}" title="نمایش کیوآرکد">
               📷
             </button>
           </div>
@@ -500,7 +500,7 @@ function setupConfigsModal() {
       }
     } catch (e) {
       configsModalList.innerHTML = `
-        <div class="text-center py-6 text-rose-400 text-xs space-y-2">
+        <div class="text-center py-6 t-danger text-xs space-y-2">
           <span class="text-base block">❌</span>
           <div class="leading-relaxed">خطا در دریافت کانفیگ‌ها: ${escapeHtml(e?.message || 'ارتباط با سرور برقرار نشد')}</div>
           <div class="pt-2 flex items-center justify-center gap-2">
@@ -1379,7 +1379,7 @@ function openAlertPickerModal(type) {
     if (titleEl) titleEl.innerText = 'تنظیم درصد هشدار مصرف ترافیک';
     if (subEl) subEl.innerText = 'هنگامی که مصرف بسته به این درصد برسد، ربات پیام هشدار ارسال می‌کند.';
     if (iconBox) {
-      iconBox.className = 'w-10 h-10 rounded-2xl bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 flex items-center justify-center text-lg flex-shrink-0';
+      iconBox.className = 'w-10 h-10 rounded-2xl bg-cyan-500/20 t-accent border border-cyan-500/30 flex items-center justify-center text-lg flex-shrink-0';
       iconBox.innerHTML = '⚠️';
     }
     const currentVal = parseInt($('settingTrafficPercentSelect')?.value || '80', 10);
@@ -1406,7 +1406,7 @@ function openAlertPickerModal(type) {
     if (titleEl) titleEl.innerText = 'تنظیم زمان هشدار پایان اعتبار سرویس';
     if (subEl) subEl.innerText = 'چند روز مانده به پایان مدت اشتراک پیام یادآوری تمدید ارسال شود؟';
     if (iconBox) {
-      iconBox.className = 'w-10 h-10 rounded-2xl bg-amber-500/20 text-amber-400 border border-amber-500/30 flex items-center justify-center text-lg flex-shrink-0';
+      iconBox.className = 'w-10 h-10 rounded-2xl bg-amber-500/20 t-warn border border-amber-500/30 flex items-center justify-center text-lg flex-shrink-0';
       iconBox.innerHTML = '⏰';
     }
     const currentVal = parseInt($('settingExpireDaysSelect')?.value || '3', 10);
@@ -1794,13 +1794,13 @@ function openExpiryCountdownModal() {
   const paceStatusEl = $('modalExpiryPaceStatus');
   if (paceStatusEl) {
     if (daysLeft <= 3 && daysLeft > 0) {
-      paceStatusEl.className = 'font-bold text-[11px] text-amber-600 dark:text-amber-400';
+      paceStatusEl.className = 'font-bold text-[11px] t-warn';
       paceStatusEl.innerText = 'مهلت رو به پایان است';
     } else if (daysLeft === 0) {
-      paceStatusEl.className = 'font-bold text-[11px] text-rose-600 dark:text-rose-400';
+      paceStatusEl.className = 'font-bold text-[11px] t-danger';
       paceStatusEl.innerText = 'منقضی شده';
     } else {
-      paceStatusEl.className = 'font-bold text-[11px] text-emerald-600 dark:text-emerald-400';
+      paceStatusEl.className = 'font-bold text-[11px] t-success';
       paceStatusEl.innerText = 'بهینه';
     }
   }
@@ -2192,7 +2192,7 @@ function syncTelegramBackButton() {
   const qr = $('qrContainer');
   const hasOpenQr = qr && !qr.classList.contains('hidden');
 
-  const activeTabBtn = document.querySelector('.nav-btn.text-blue-400');
+  const activeTabBtn = document.querySelector('.nav-btn.is-active, .nav-btn[aria-selected="true"], .nav-btn.text-blue-400');
   const activeTab = activeTabBtn?.getAttribute('data-tab');
   const isSubTab = activeTab && activeTab !== 'tab-dashboard';
 
@@ -2786,7 +2786,7 @@ function hydrateUserInterface(data) {
       if (warningCard) warningCard.classList.add('hidden');
       if (verifyBtn) verifyBtn.classList.add('hidden');
       if (profPhone) {
-        profPhone.innerHTML = `<span class="text-white font-mono font-bold" dir="ltr">${toEnglishDigits(user.phone_number)}</span> <span class="text-emerald-400 text-xs inline-flex items-center" title="تأیید شده">✅</span>`;
+        profPhone.innerHTML = `<span class="text-white font-mono font-bold" dir="ltr">${toEnglishDigits(user.phone_number)}</span> <span class="t-success text-xs inline-flex items-center" title="تأیید شده">✅</span>`;
       }
     } else {
       if (phoneRewardCard) phoneRewardCard.classList.remove('hidden');
@@ -2801,7 +2801,7 @@ function hydrateUserInterface(data) {
 
     const bdayBtn = $('openBirthdayModalBtn');
     if (bdayBtn) {
-      bdayBtn.className = 'text-pink-400 hover:text-pink-300 text-xs transition active:scale-95 bg-transparent border-0 p-0 shadow-none';
+      bdayBtn.className = 't-pink hover:text-pink-300 text-xs transition active:scale-95 bg-transparent border-0 p-0 shadow-none';
       bdayBtn.innerHTML = '<span>✏️</span>';
       bdayBtn.title = user.birth_date ? 'ویرایش تاریخ تولد' : 'ثبت تاریخ تولد';
     }
@@ -2830,10 +2830,10 @@ function hydrateUserInterface(data) {
     if (profSub) {
       if (hasActiveSub) {
         profSub.innerText = 'فعال';
-        profSub.className = 'font-semibold text-emerald-400';
+        profSub.className = 'font-semibold t-success';
       } else {
         profSub.innerText = 'غیرفعال';
-        profSub.className = 'font-semibold text-rose-400';
+        profSub.className = 'font-semibold t-danger';
       }
     }
 
@@ -3263,11 +3263,11 @@ function hydrateUserInterface(data) {
                   <span class="text-xs font-bold text-slate-200">${escapeHtml(model)}</span>
                   <span class="w-2 h-2 rounded-full bg-emerald-400 inline-block shadow-sm shadow-emerald-400/50" title="فعال"></span>
                 </div>
-                <div class="text-[11px] font-mono text-cyan-400 mt-0.5">IP: ${escapeHtml(ip)}</div>
+                <div class="text-[11px] font-mono t-accent mt-0.5">IP: ${escapeHtml(ip)}</div>
               </div>
             </div>
-            <button class="kill-device-btn text-rose-400 hover:text-rose-300 w-8 h-8 rounded-xl bg-transparent hover:bg-rose-950/30 border-0 text-xs transition active:scale-95 flex items-center justify-center cursor-pointer" title="قطع این دستگاه" data-hwid="${escapeHtml(hwid)}">
-              <svg class="w-4 h-4 text-rose-400 hover:text-rose-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            <button class="kill-device-btn t-danger hover:text-rose-300 w-8 h-8 rounded-xl bg-transparent hover:bg-rose-950/30 border-0 text-xs transition active:scale-95 flex items-center justify-center cursor-pointer" title="قطع این دستگاه" data-hwid="${escapeHtml(hwid)}">
+              <svg class="w-4 h-4 t-danger hover:text-rose-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
             </button>
           </div>
         `;
@@ -3467,7 +3467,7 @@ function hydrateUserInterface(data) {
       if (repWeeklyTotal) repWeeklyTotal.innerHTML = fmtTraffic(sub.week_used_gb ?? '0.00', { html: true });
       const repWeeklyBusiest = $('repWeeklyBusiest');
       if (repWeeklyBusiest) {
-        repWeeklyBusiest.innerHTML = `${sub.busiest_day_name || '—'} <span class="font-mono text-cyan-600 dark:text-cyan-400 font-bold num-bidi">(${fmtTraffic(sub.busiest_day_amount || '0 GB', { html: false })})</span>`;
+        repWeeklyBusiest.innerHTML = `${sub.busiest_day_name || '—'} <span class="font-mono t-accent font-bold num-bidi">(${fmtTraffic(sub.busiest_day_amount || '0 GB', { html: false })})</span>`;
       }
 
       if (typeof renderBarChart === 'function') {
@@ -3561,7 +3561,7 @@ function renderUserAchievements(data) {
     if (couponsActionEl) {
       if (count > 0) {
         couponsActionEl.innerText = 'کپی آخرین کد';
-        couponsActionEl.className = 'text-[9.5px] text-emerald-600 dark:text-emerald-400 mt-0.5 font-medium hover:underline bg-transparent border-0 p-0';
+        couponsActionEl.className = 'text-[9.5px] t-success mt-0.5 font-medium hover:underline bg-transparent border-0 p-0';
       } else {
         couponsActionEl.innerText = 'بدون کد فعال';
         couponsActionEl.className = 'text-[9.5px] text-slate-500 dark:text-slate-400 mt-0.5 font-medium cursor-default bg-transparent border-0 p-0';
@@ -3574,7 +3574,7 @@ function renderUserAchievements(data) {
   if (bdayStatusEl) {
     if (ach.birthday_claimed) {
       bdayStatusEl.innerText = '🎁 دریافت شده';
-      bdayStatusEl.className = 'text-emerald-500 dark:text-emerald-400 text-[11px] font-bold truncate max-w-full';
+      bdayStatusEl.className = 't-success text-[11px] font-bold truncate max-w-full';
       if (bdayBtn) bdayBtn.innerText = 'هدیه ثبت شد';
     } else if (ach.is_birthday_today) {
       bdayStatusEl.innerText = '🎉 امروز زادروز شماست!';
@@ -3583,11 +3583,11 @@ function renderUserAchievements(data) {
     } else if (ach.has_birthday_set && ach.days_until_birthday !== null && ach.days_until_birthday !== undefined) {
       const d = ach.days_until_birthday;
       bdayStatusEl.innerText = d === 0 ? 'امروز' : `${d} روز مانده`;
-      bdayStatusEl.className = 'text-cyan-500 dark:text-cyan-400 text-[11px] font-bold truncate max-w-full';
+      bdayStatusEl.className = 't-accent text-[11px] font-bold truncate max-w-full';
       if (bdayBtn) bdayBtn.innerText = 'ویرایش تاریخ';
     } else {
       bdayStatusEl.innerText = 'ثبت نشده';
-      bdayStatusEl.className = 'text-amber-600 dark:text-amber-400 text-[11px] font-bold truncate max-w-full';
+      bdayStatusEl.className = 't-warn text-[11px] font-bold truncate max-w-full';
       if (bdayBtn) bdayBtn.innerText = 'ثبت تاریخ';
     }
   }
@@ -4330,7 +4330,7 @@ function renderGiftServiceSelectModalList() {
           </div>
         </div>
         <div class="text-left font-mono shrink-0 pl-1">
-          <span class="text-xs font-black text-pink-600 dark:text-pink-400 block">${priceStr}</span>
+          <span class="text-xs font-black text-pink-600 dark:t-pink block">${priceStr}</span>
           <span class="text-[9px] t-muted font-sans block">تومان</span>
         </div>
       </div>
@@ -4599,9 +4599,9 @@ async function loadGiftsHistory() {
             <span dir="ltr" class="font-mono">${toEnglishDigits(dateStr)}</span>
           </div>
           <div class="flex items-center justify-between text-[10px] border-t border-card-border pt-1">
-            ${!isClaimed ? `<button type="button" onclick="copyToClipboard('${shareUrl}'); showToast('📋 لینک کپی شد!');" class="text-[10px] text-pink-400 hover:text-pink-300 font-bold flex items-center gap-1 active:scale-95 transition" title="کپی لینک"><span>🔗</span> کپی لینک</button>` : '<span></span>'}
+            ${!isClaimed ? `<button type="button" onclick="copyToClipboard('${shareUrl}'); showToast('📋 لینک کپی شد!');" class="text-[10px] t-pink hover:text-pink-300 font-bold flex items-center gap-1 active:scale-95 transition" title="کپی لینک"><span>🔗</span> کپی لینک</button>` : '<span></span>'}
             <div class="flex items-center gap-1.5" dir="ltr">
-              <button type="button" onclick="copyToClipboard('${g.code}'); showToast('📋 کد کپی شد!');" class="p-1 rounded-md text-cyan-400 hover:text-cyan-300 hover:bg-cyan-500/10 active:scale-95 transition" title="کپی کد">📋</button>
+              <button type="button" onclick="copyToClipboard('${g.code}'); showToast('📋 کد کپی شد!');" class="p-1 rounded-md t-accent hover:text-cyan-300 hover:bg-cyan-500/10 active:scale-95 transition" title="کپی کد">📋</button>
               <span class="font-mono t-muted text-[10px] select-all">${g.code}</span>
             </div>
           </div>
@@ -4706,7 +4706,7 @@ async function openInvoiceModal(orderId) {
         colorClass = 'text-amber-500';
       } else if (statusText.includes('مسترد')) {
         icon = '↩️';
-        colorClass = 'text-purple-400';
+        colorClass = 't-purple';
       }
       statusEl.className = `flex items-center gap-1 font-bold ${colorClass}`;
       statusEl.innerHTML = `<span>${icon}</span> <span>${statusText}</span>`;

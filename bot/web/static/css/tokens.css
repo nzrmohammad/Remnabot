@@ -30,7 +30,7 @@
   --c-accent-hover: #67e8f9;           /* cyan-300 */
   --c-accent-soft: rgba(34, 211, 238, 0.12);
   --c-accent-border: rgba(34, 211, 238, 0.30);
-  --c-accent-solid: #0284c7;
+  --c-accent-solid: #0369a1;
 
   /* --- 4. Semantic Status Tokens (Dark Mode) --- */
   --c-success: #34d399;                /* emerald-400 */
@@ -65,7 +65,15 @@
   --chart-5: #34d399;
   --chart-6: #818cf8;
 
-  /* --- 6. Standardized Physical Scales (Apple HIG & TMA) --- */
+  /* --- 6. Semantic Surfaces & High-Contrast CTA Plan Gradients --- */
+  --on-accent: #0f172a;
+  --on-surface-dark: #f8fafc;
+  --plan-featured-bg: linear-gradient(135deg, #0891b2, #0369a1);
+  --plan-premium-bg: linear-gradient(135deg, #0f172a, #1e293b);
+  --plan-featured-fg: #ffffff;
+  --shadow-accent: 0 4px 14px rgba(34, 211, 238, 0.28);
+
+  /* --- 7. Standardized Physical Scales (Apple HIG & TMA) --- */
   --touch-target-min: 44px;
   --control-h-sm: 32px;
   --control-h-md: 36px;
@@ -136,6 +144,12 @@ html.theme-light {
   --c-pink: #be185d;                   /* pink-700 */
   --c-pink-soft: rgba(190, 24, 93, 0.08);
   --c-pink-border: rgba(190, 24, 93, 0.25);
+
+  /* Semantic Surfaces & High-Contrast CTA Plan Gradients */
+  --on-accent: #ffffff;
+  --plan-featured-bg: linear-gradient(135deg, #0369a1, #075985);
+  --plan-premium-bg: linear-gradient(135deg, #0f172a, #334155);
+  --shadow-accent: 0 4px 14px rgba(3, 105, 161, 0.25);
 
   /* Charts */
   --chart-1: #0284c7;

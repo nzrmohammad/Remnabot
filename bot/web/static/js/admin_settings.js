@@ -252,7 +252,7 @@ openUserChat(telegram_id, name, tag, topup_id) {
       const statusBadgeEl = $('activeChatStatusBadge');
       if (statusBadgeEl) {
         if (topup_id) {
-          statusBadgeEl.className = 'inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30';
+          statusBadgeEl.className = 'inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-bold bg-amber-500/15 t-warn border border-amber-500/30';
           statusBadgeEl.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>فیش ${topup_id}`;
         } else {
           statusBadgeEl.className = 'inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-bold bg-blue-500/15 text-blue-400 border border-blue-500/30';
@@ -416,12 +416,12 @@ openUserChat(telegram_id, name, tag, topup_id) {
         const sign = profit > 0 ? '+' : (profit < 0 ? '-' : '');
         const absFmt = formatNumber(Math.abs(profit));
         profEl.innerHTML = `<span dir="ltr">${sign}${absFmt}</span> <span class="text-[11px] font-sans">تومان</span>`;
-        profEl.className = profit > 0 ? 'text-emerald-400 font-mono text-sm block' : (profit < 0 ? 'text-rose-400 font-mono text-sm block' : 'text-slate-300 font-mono text-sm block');
+        profEl.className = profit > 0 ? 't-success font-mono text-sm block' : (profit < 0 ? 't-danger font-mono text-sm block' : 'text-slate-300 font-mono text-sm block');
       }
       if (roiEl) {
         const roiText = c.roi !== null && c.roi !== undefined ? `${c.roi > 0 ? '+' : ''}${toEnglishDigits(c.roi)}%` : '—';
         roiEl.innerText = roiText;
-        roiEl.className = c.roi !== null && c.roi > 0 ? 'text-emerald-400 font-mono text-sm block' : (c.roi !== null && c.roi < 0 ? 'text-rose-400 font-mono text-sm block' : 'text-slate-400 font-mono text-sm block');
+        roiEl.className = c.roi !== null && c.roi > 0 ? 't-success font-mono text-sm block' : (c.roi !== null && c.roi < 0 ? 't-danger font-mono text-sm block' : 'text-slate-400 font-mono text-sm block');
       }
       if (usersEl) usersEl.innerHTML = `${formatNumber(c.users_count)} <span class="font-sans text-[11px]">نفر</span>`;
       if (buyersEl) {
@@ -540,7 +540,7 @@ openUserChat(telegram_id, name, tag, topup_id) {
       try {
         const res = await window.api.getAdminCampaigns();
         if (!res || !res.ok) {
-          container.innerHTML = '<div class="p-6 text-center text-xs text-rose-400">خطا در بارگذاری لیست کمپین‌ها</div>';
+          container.innerHTML = '<div class="p-6 text-center text-xs t-danger">خطا در بارگذاری لیست کمپین‌ها</div>';
           return;
         }
 
@@ -550,7 +550,7 @@ openUserChat(telegram_id, name, tag, topup_id) {
         if (campaigns.length === 0) {
           container.innerHTML = `
             <div class="p-8 rounded-2xl bg-slate-800/40 border border-slate-700/60 text-center space-y-2">
-              <div class="w-12 h-12 mx-auto rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center">
+              <div class="w-12 h-12 mx-auto rounded-2xl bg-amber-500/10 border border-amber-500/20 t-warn flex items-center justify-center">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"/></svg>
               </div>
               <p class="text-xs text-white font-bold">هنوز هیچ کمپین یا لینکی ساخته نشده است</p>
@@ -571,14 +571,14 @@ openUserChat(telegram_id, name, tag, topup_id) {
           }
           c._resolvedLink = link;
           const roiText = c.roi !== null && c.roi !== undefined ? `${c.roi > 0 ? '+' : ''}${c.roi}%` : null;
-          const roiColor = c.roi !== null && c.roi > 0 ? 'text-emerald-400' : (c.roi !== null && c.roi < 0 ? 'text-rose-400' : 'text-slate-400');
+          const roiColor = c.roi !== null && c.roi > 0 ? 't-success' : (c.roi !== null && c.roi < 0 ? 't-danger' : 'text-slate-400');
 
           return `
             <div class="bg-slate-800/80 p-3.5 rounded-2xl border border-slate-700/80 space-y-3 transition hover:border-slate-600">
               <!-- Top Row: Name & Action Icons -->
               <div class="flex items-center justify-between gap-2">
                 <div class="flex items-center gap-2 min-w-0">
-                  <div class="w-8 h-8 rounded-xl bg-amber-500/15 border border-amber-500/30 text-amber-400 flex items-center justify-center flex-shrink-0">
+                  <div class="w-8 h-8 rounded-xl bg-amber-500/15 border border-amber-500/30 t-warn flex items-center justify-center flex-shrink-0">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"/></svg>
                   </div>
                   <div class="min-w-0">
@@ -586,12 +586,12 @@ openUserChat(telegram_id, name, tag, topup_id) {
                       <b class="text-xs t-main truncate">${escapeHtml(c.name)}</b>
                       ${roiText ? `<span class="px-1.5 py-0.5 rounded text-[9px] font-mono ${roiColor} bg-slate-900/80 border border-slate-700/60" dir="ltr">${roiText}</span>` : ''}
                     </div>
-                    <span class="text-[10px] font-mono text-cyan-400 dir-ltr block mt-0.5">ad_${escapeHtml(c.code)}</span>
+                    <span class="text-[10px] font-mono t-accent dir-ltr block mt-0.5">ad_${escapeHtml(c.code)}</span>
                   </div>
                 </div>
                 <div class="flex items-center gap-1.5 flex-shrink-0">
                   <!-- Copy Link Icon Button -->
-                  <button type="button" data-link="${escapeHtml(link)}" class="btn-copy-campaign-link w-8 h-8 min-w-[32px] min-h-[32px] bg-transparent hover:bg-cyan-500/10 text-cyan-400 border border-cyan-500/40 rounded-xl flex items-center justify-center transition active:scale-95 shadow-sm" title="کپی لینک اختصاصی" aria-label="کپی لینک اختصاصی">
+                  <button type="button" data-link="${escapeHtml(link)}" class="btn-copy-campaign-link w-8 h-8 min-w-[32px] min-h-[32px] bg-transparent hover:bg-cyan-500/10 t-accent border border-cyan-500/40 rounded-xl flex items-center justify-center transition active:scale-95 shadow-sm" title="کپی لینک اختصاصی" aria-label="کپی لینک اختصاصی">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
                   </button>
                   <!-- Details / Modal Icon Button -->
@@ -599,7 +599,7 @@ openUserChat(telegram_id, name, tag, topup_id) {
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
                   </button>
                   <!-- Delete Campaign Button -->
-                  <button type="button" data-id="${c.id}" data-name="${escapeHtml(c.name)}" class="btn-delete-campaign w-8 h-8 min-w-[32px] min-h-[32px] bg-transparent hover:bg-rose-500/10 text-rose-400 border border-rose-500/40 rounded-xl flex items-center justify-center transition active:scale-95 shadow-sm" title="حذف کمپین" aria-label="حذف کمپین">
+                  <button type="button" data-id="${c.id}" data-name="${escapeHtml(c.name)}" class="btn-delete-campaign w-8 h-8 min-w-[32px] min-h-[32px] bg-transparent hover:bg-rose-500/10 t-danger border border-rose-500/40 rounded-xl flex items-center justify-center transition active:scale-95 shadow-sm" title="حذف کمپین" aria-label="حذف کمپین">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                   </button>
                 </div>
@@ -617,7 +617,7 @@ openUserChat(telegram_id, name, tag, topup_id) {
                 </div>
                 <div class="p-1.5 sm:p-2 rounded-xl card-inset">
                   <span class="text-[10px] t-muted block mb-0.5 whitespace-nowrap">درآمد فروش</span>
-                  <b class="text-xs font-mono text-emerald-600 dark:text-emerald-400">${formatNumber(c.total_revenue)}</b>
+                  <b class="text-xs font-mono t-success">${formatNumber(c.total_revenue)}</b>
                 </div>
                 <div class="p-1.5 sm:p-2 rounded-xl card-inset">
                   <span class="text-[10px] t-muted block mb-0.5 whitespace-nowrap">هزینه تبلیغ</span>
@@ -628,7 +628,7 @@ openUserChat(telegram_id, name, tag, topup_id) {
           `;
         }).join('');
       } catch (e) {
-        container.innerHTML = '<div class="p-6 text-center text-xs text-rose-400">خطای شبکه در بارگذاری کمپین‌ها</div>';
+        container.innerHTML = '<div class="p-6 text-center text-xs t-danger">خطای شبکه در بارگذاری کمپین‌ها</div>';
       }
     },
 
@@ -726,7 +726,7 @@ openUserChat(telegram_id, name, tag, topup_id) {
         if (sub) sub.textContent = 'کاربران جدید نیازمند لینک دعوت/رفرال هستند';
         if (icon) {
           icon.textContent = '🎟️';
-          icon.className = 'w-8 h-8 rounded-xl bg-cyan-500/15 border border-cyan-500/30 text-cyan-700 dark:text-cyan-400 flex items-center justify-center text-sm flex-shrink-0';
+          icon.className = 'w-8 h-8 rounded-xl bg-cyan-500/15 border border-cyan-500/30 text-cyan-700 dark:t-accent flex items-center justify-center text-sm flex-shrink-0';
         }
       } else if (mode === 'closed') {
         if (badge) {
@@ -736,7 +736,7 @@ openUserChat(telegram_id, name, tag, topup_id) {
         if (sub) sub.textContent = 'ثبت‌نام متوقف شده است؛ سرویس‌های فعلی فعالند';
         if (icon) {
           icon.textContent = '🔒';
-          icon.className = 'w-8 h-8 rounded-xl bg-rose-500/15 border border-rose-500/30 text-rose-700 dark:text-rose-400 flex items-center justify-center text-sm flex-shrink-0';
+          icon.className = 'w-8 h-8 rounded-xl bg-rose-500/15 border border-rose-500/30 text-rose-700 dark:t-danger flex items-center justify-center text-sm flex-shrink-0';
         }
       } else {
         if (badge) {
@@ -746,7 +746,7 @@ openUserChat(telegram_id, name, tag, topup_id) {
         if (sub) sub.textContent = 'ورود و ثبت‌نام برای تمامی کاربران آزاد است';
         if (icon) {
           icon.textContent = '🌐';
-          icon.className = 'w-8 h-8 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-700 dark:text-emerald-400 flex items-center justify-center text-sm flex-shrink-0';
+          icon.className = 'w-8 h-8 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-700 dark:t-success flex items-center justify-center text-sm flex-shrink-0';
         }
       }
     },
@@ -789,7 +789,7 @@ openUserChat(telegram_id, name, tag, topup_id) {
             <span class="text-base">🚫</span>
             <span>بدون برنامه پیشنهادی</span>
           </div>
-          ${!currentVal ? '<span class="text-cyan-600 dark:text-cyan-400 font-bold">✓</span>' : ''}
+          ${!currentVal ? '<span class="t-accent font-bold">✓</span>' : ''}
         </button>
       `;
 
@@ -802,7 +802,7 @@ openUserChat(telegram_id, name, tag, topup_id) {
               <span class="text-base">📱</span>
               <span class="font-medium">${escapeHtml(appName)}</span>
             </div>
-            ${isSelected ? '<span class="text-cyan-600 dark:text-cyan-400 font-bold">✓</span>' : ''}
+            ${isSelected ? '<span class="t-accent font-bold">✓</span>' : ''}
           </button>
         `;
       });
@@ -859,7 +859,7 @@ openUserChat(telegram_id, name, tag, topup_id) {
     try {
       const res = await window.api.getAdminTicketMessages(telegram_id);
       if (!res || !res.ok) {
-        streamEl.innerHTML = `<div class="p-4 text-center text-rose-400 text-[11px]">${escapeHtml(res?.error || 'خطا در دریافت پیام‌ها')}</div>`;
+        streamEl.innerHTML = `<div class="p-4 text-center t-danger text-[11px]">${escapeHtml(res?.error || 'خطا در دریافت پیام‌ها')}</div>`;
         return;
       }
       const messages = res.messages || [];
@@ -932,7 +932,7 @@ openUserChat(telegram_id, name, tag, topup_id) {
       // Auto-scroll to bottom
       streamEl.scrollTop = streamEl.scrollHeight;
     } catch (e) {
-      streamEl.innerHTML = '<div class="p-4 text-center text-rose-400 text-[11px]">خطای شبکه در دریافت پیام‌ها</div>';
+      streamEl.innerHTML = '<div class="p-4 text-center t-danger text-[11px]">خطای شبکه در دریافت پیام‌ها</div>';
     }
   }
 

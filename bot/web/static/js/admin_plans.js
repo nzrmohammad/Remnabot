@@ -106,7 +106,7 @@
       try {
         const res = await window.api.getAdminPlans();
         if (!res || !res.ok) {
-          container.innerHTML = `<div class="p-6 text-center text-rose-400 text-xs">${escapeHtml(res?.error || 'خطا در دریافت تعرفه‌ها')}</div>`;
+          container.innerHTML = `<div class="p-6 text-center t-danger text-xs">${escapeHtml(res?.error || 'خطا در دریافت تعرفه‌ها')}</div>`;
           return;
         }
         adminPlansData = res.plans || [];
@@ -244,7 +244,7 @@
                     <div class="flex-shrink-0">${statusBadge}</div>
                   </div>
                   <div class="flex flex-col items-center justify-center flex-shrink-0 text-center leading-tight min-w-[45px]">
-                    <span class="text-sm font-black text-emerald-500 dark:text-emerald-400 font-mono num-bidi" dir="ltr">${formatNumber(p.price || 0)}</span>
+                    <span class="text-sm font-black t-success font-mono num-bidi" dir="ltr">${formatNumber(p.price || 0)}</span>
                     <span class="text-[9px] font-sans font-medium text-slate-400 -mt-0.5">تومان</span>
                   </div>
                 </div>
@@ -283,7 +283,7 @@
           this.filterPlans(this.currentPlanFilter || 'full');
         }
       } catch (e) {
-        container.innerHTML = '<div class="p-6 text-center text-rose-400 text-xs">خطای شبکه در دریافت تعرفه‌ها</div>';
+        container.innerHTML = '<div class="p-6 text-center t-danger text-xs">خطای شبکه در دریافت تعرفه‌ها</div>';
       }
     },
 
@@ -594,7 +594,7 @@
       try {
         const res = await window.api.getAdminCoupons();
         if (!res || !res.ok) {
-          container.innerHTML = `<div class="p-6 text-center text-rose-400 text-xs">${escapeHtml(res?.error || 'خطا در دریافت کدهای تخفیف')}</div>`;
+          container.innerHTML = `<div class="p-6 text-center t-danger text-xs">${escapeHtml(res?.error || 'خطا در دریافت کدهای تخفیف')}</div>`;
           return;
         }
         adminCouponsData = (res.coupons || []).filter(c => {
@@ -608,11 +608,11 @@
         if (adminCouponsData.length === 0) {
           container.innerHTML = `
             <div class="bg-slate-900/50 border border-slate-800 rounded-2xl p-6 text-center text-slate-400 space-y-3">
-              <div class="w-10 h-10 rounded-2xl bg-pink-500/15 text-pink-400 flex items-center justify-center mx-auto">
+              <div class="w-10 h-10 rounded-2xl bg-pink-500/15 t-pink flex items-center justify-center mx-auto">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z"/></svg>
               </div>
               <p class="text-xs">هیچ کد تخفیفی ایجاد نشده است.</p>
-              <button onclick="window.adminActions.openCouponModal()" class="bg-transparent hover:bg-pink-500/15 border border-pink-500/50 text-pink-400 hover:text-pink-300 text-xs font-bold px-4 py-2 rounded-xl transition active:scale-95">
+              <button onclick="window.adminActions.openCouponModal()" class="bg-transparent hover:bg-pink-500/15 border border-pink-500/50 t-pink hover:text-pink-300 text-xs font-bold px-4 py-2 rounded-xl transition active:scale-95">
                 + ایجاد اولین کد تخفیف
               </button>
             </div>
@@ -623,14 +623,14 @@
         container.innerHTML = adminCouponsData.map(c => {
           const usedCount = c.used_count || 0;
           const statusBadge = c.is_active
-            ? '<span class="text-[10px] bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/40 px-2 py-0.5 rounded-lg font-bold">فعال</span>'
+            ? '<span class="text-[10px] bg-emerald-500/15 t-success border border-emerald-500/40 px-2 py-0.5 rounded-lg font-bold">فعال</span>'
             : (usedCount > 0
                 ? '<span class="text-[10px] bg-slate-500/15 text-slate-400 border border-slate-500/30 px-2 py-0.5 rounded-lg font-medium">غیرفعال (مصرف‌شده)</span>'
-                : '<span class="text-[10px] bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/40 px-2 py-0.5 rounded-lg font-medium">غیرفعال (استفاده‌نشده)</span>');
+                : '<span class="text-[10px] bg-rose-500/15 t-danger border border-rose-500/40 px-2 py-0.5 rounded-lg font-medium">غیرفعال (استفاده‌نشده)</span>');
 
           const discountHtml = c.discount_percent > 0
-            ? `<div class="flex items-baseline gap-1 mt-1 leading-tight"><span class="text-xs font-bold text-emerald-500 dark:text-emerald-400 font-mono num-bidi" dir="ltr">${toEnglishDigits(c.discount_percent)}%</span><span class="text-[9px] font-sans text-slate-400">تخفیف</span></div>`
-            : `<div class="flex items-baseline gap-1 mt-1 leading-tight"><span class="text-xs font-bold text-emerald-500 dark:text-emerald-400 font-mono num-bidi" dir="ltr">${formatNumber(c.discount_amount || 0)}</span><span class="text-[9px] font-sans text-slate-400">تومان</span></div>`;
+            ? `<div class="flex items-baseline gap-1 mt-1 leading-tight"><span class="text-xs font-bold t-success font-mono num-bidi" dir="ltr">${toEnglishDigits(c.discount_percent)}%</span><span class="text-[9px] font-sans text-slate-400">تخفیف</span></div>`
+            : `<div class="flex items-baseline gap-1 mt-1 leading-tight"><span class="text-xs font-bold t-success font-mono num-bidi" dir="ltr">${formatNumber(c.discount_amount || 0)}</span><span class="text-[9px] font-sans text-slate-400">تومان</span></div>`;
 
           const maxText = c.max_uses > 0 ? `${toEnglishDigits(usedCount)} / ${toEnglishDigits(c.max_uses)}` : `${toEnglishDigits(usedCount)} (نامحدود)`;
           const expiryText = c.expires_at_jalali || (c.expires_at ? (window.formatDateToJalali ? window.formatDateToJalali(c.expires_at) : c.expires_at) : 'نامحدود (دائمی)');
@@ -647,8 +647,8 @@
           }
 
           const usagesBtnHtml = usedCount > 0
-            ? `<button type="button" data-id="${c.id}" data-code="${escapeHtml(c.code)}" class="btn-coupon-usages flex-1 bg-transparent hover:bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border border-cyan-500/30 hover:border-cyan-400/60 py-2 rounded-xl transition flex items-center justify-center gap-1.5 active:scale-95 shadow-sm font-bold" title="مصرف‌کنندگان (${formatNumber(usedCount)})" aria-label="مصرف‌کنندگان (${formatNumber(usedCount)})">
-                <svg class="w-4 h-4 text-cyan-500 dark:text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+            ? `<button type="button" data-id="${c.id}" data-code="${escapeHtml(c.code)}" class="btn-coupon-usages flex-1 bg-transparent hover:bg-cyan-500/10 t-accent border border-cyan-500/30 hover:border-cyan-400/60 py-2 rounded-xl transition flex items-center justify-center gap-1.5 active:scale-95 shadow-sm font-bold" title="مصرف‌کنندگان (${formatNumber(usedCount)})" aria-label="مصرف‌کنندگان (${formatNumber(usedCount)})">
+                <svg class="w-4 h-4 t-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
                 <span class="text-[11px] font-bold">مصرف‌کنندگان</span>
               </button>`
             : `<div class="flex-1 bg-transparent text-slate-500 border border-slate-700/40 py-2 rounded-xl flex items-center justify-center gap-1.5 opacity-40 cursor-not-allowed select-none" title="فاقد استفاده">
@@ -658,15 +658,15 @@
 
           const toggleBtnHtml = `<button onclick="window.adminActions.toggleCoupon(${c.id}, ${c.is_active})" class="flex-1 bg-transparent py-2 rounded-xl transition flex items-center justify-center gap-1.5 active:scale-95 shadow-sm font-bold ${
             c.is_active
-              ? 'text-amber-600 dark:text-amber-400 border border-amber-500/30 hover:border-amber-400/60 hover:bg-amber-500/10'
-              : 'text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 hover:border-emerald-400/60 hover:bg-emerald-500/10'
+              ? 't-warn border border-amber-500/30 hover:border-amber-400/60 hover:bg-amber-500/10'
+              : 't-success border border-emerald-500/30 hover:border-emerald-400/60 hover:bg-emerald-500/10'
           }" title="${c.is_active ? 'غیرفعال‌سازی کد تخفیف' : 'فعال‌سازی کد تخفیف'}" aria-label="${c.is_active ? 'غیرفعال‌سازی کد تخفیف' : 'فعال‌سازی کد تخفیف'}">
             ${c.is_active
-              ? '<svg class="w-4 h-4 text-amber-500 dark:text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg><span class="text-[11px] font-bold">غیرفعال</span>'
-              : '<svg class="w-4 h-4 text-emerald-500 dark:text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg><span class="text-[11px] font-bold">فعال‌سازی</span>'}
+              ? '<svg class="w-4 h-4 t-warn" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg><span class="text-[11px] font-bold">غیرفعال</span>'
+              : '<svg class="w-4 h-4 t-success" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg><span class="text-[11px] font-bold">فعال‌سازی</span>'}
           </button>`;
 
-          const deleteBtnHtml = `<button type="button" data-id="${c.id}" data-code="${escapeHtml(c.code)}" class="btn-delete-coupon flex-1 bg-transparent hover:bg-slate-500/10 text-rose-600 dark:text-rose-400 border border-slate-700/60 py-2 rounded-xl transition flex items-center justify-center gap-1.5 active:scale-95 shadow-sm font-bold" title="حذف کد تخفیف" aria-label="حذف کد تخفیف">
+          const deleteBtnHtml = `<button type="button" data-id="${c.id}" data-code="${escapeHtml(c.code)}" class="btn-delete-coupon flex-1 bg-transparent hover:bg-slate-500/10 t-danger border border-slate-700/60 py-2 rounded-xl transition flex items-center justify-center gap-1.5 active:scale-95 shadow-sm font-bold" title="حذف کد تخفیف" aria-label="حذف کد تخفیف">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
             <span class="text-[11px] font-bold">حذف</span>
           </button>`;
@@ -710,7 +710,7 @@
           `;
         }).join('');
       } catch (e) {
-        container.innerHTML = '<div class="p-6 text-center text-rose-400 text-xs">خطای شبکه در دریافت کدهای تخفیف</div>';
+        container.innerHTML = '<div class="p-6 text-center t-danger text-xs">خطای شبکه در دریافت کدهای تخفیف</div>';
       }
     },
 
@@ -891,7 +891,7 @@
       try {
         const res = await window.api.getAdminCouponUsages(coupon_id);
         if (!res || !res.ok) {
-          if (list) list.innerHTML = `<div class="p-6 text-center text-xs text-rose-400">${escapeHtml(res?.error || 'خطا در دریافت لیست')}</div>`;
+          if (list) list.innerHTML = `<div class="p-6 text-center text-xs t-danger">${escapeHtml(res?.error || 'خطا در دریافت لیست')}</div>`;
           return;
         }
 
@@ -907,7 +907,7 @@
         if (usages.length === 0) {
           list.innerHTML = `
             <div class="bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 text-center t-muted space-y-2">
-              <div class="w-12 h-12 rounded-2xl bg-pink-500/15 text-pink-500 dark:text-pink-400 flex items-center justify-center mx-auto shadow-sm">
+              <div class="w-12 h-12 rounded-2xl bg-pink-500/15 t-pink flex items-center justify-center mx-auto shadow-sm">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z"/></svg>
               </div>
               <b class="text-xs text-slate-800 dark:text-slate-300 block">بدون استفاده</b>
@@ -946,7 +946,7 @@
                     <span class="font-bold">${initial}</span>
                   </div>
                   <div class="min-w-0 space-y-0.5">
-                    <b class="t-main text-xs font-bold block truncate max-w-[130px] sm:max-w-[160px] cursor-pointer hover:text-pink-400" data-copy="${escapeHtml(displayName)}" onclick="window.adminActions.quickCopy(this.dataset.copy, 'نام کاربر')" title="${escapeHtml(displayName)}">${escapeHtml(displayName)}</b>
+                    <b class="t-main text-xs font-bold block truncate max-w-[130px] sm:max-w-[160px] cursor-pointer hover:t-pink" data-copy="${escapeHtml(displayName)}" onclick="window.adminActions.quickCopy(this.dataset.copy, 'نام کاربر')" title="${escapeHtml(displayName)}">${escapeHtml(displayName)}</b>
                     <div class="flex items-baseline gap-1 t-success font-bold" dir="rtl">
                       <span class="text-xs font-black font-mono leading-none">${formatNumber(u.discount_applied || 0)}</span>
                       <span class="text-[10px] text-emerald-600/90 dark:text-emerald-500/90 font-sans">تومان</span>
@@ -957,7 +957,7 @@
                 <!-- Left column: Username on line 1, Numeric ID on line 2 (سمت چپ‌ترین نقطه، بالا و بدون ID:) -->
                 <div class="flex flex-col items-start justify-center gap-0.5 font-mono text-[11px] t-muted flex-shrink-0 text-left" dir="ltr">
                   ${hasUsername ? `
-                    <div class="text-[11px] text-pink-500 dark:text-pink-400 font-mono cursor-pointer hover:underline truncate max-w-[130px] leading-tight" onclick="window.adminActions.quickCopy('@${escapeHtml(u.username)}', 'نام کاربری')" title="@${escapeHtml(u.username)}">
+                    <div class="text-[11px] t-pink font-mono cursor-pointer hover:underline truncate max-w-[130px] leading-tight" onclick="window.adminActions.quickCopy('@${escapeHtml(u.username)}', 'نام کاربری')" title="@${escapeHtml(u.username)}">
                       @${escapeHtml(u.username)}
                     </div>
                   ` : ''}
@@ -970,7 +970,7 @@
           `;
         }).join('');
       } catch (err) {
-        if (list) list.innerHTML = '<div class="p-6 text-center text-xs text-rose-400">خطای شبکه در دریافت لیست استفاده‌کنندگان</div>';
+        if (list) list.innerHTML = '<div class="p-6 text-center text-xs t-danger">خطای شبکه در دریافت لیست استفاده‌کنندگان</div>';
       }
     },
 

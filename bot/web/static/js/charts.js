@@ -314,7 +314,7 @@ async function renderDonutChart(containerId, labels, data, isDevice = false) {
   const chartValues = hasData ? cleanData : [1];
   const chartColors = hasData
     ? cleanLabels.map((lbl, idx) => {
-        return isDevice ? defaultColors[idx % defaultColors.length] : getCountryFlagColor(lbl, defaultColors[idx % defaultColors.length]);
+        return defaultColors[idx % defaultColors.length];
       })
     : ['#334155'];
 

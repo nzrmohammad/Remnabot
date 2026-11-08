@@ -46,8 +46,7 @@ html.theme-light .on-dark {
   --card-border: rgba(51, 65, 85, 0.8);
 }
 
-html.theme-light .surface-dark *,
-html.theme-light .on-dark * {
+html.theme-light :where(.surface-dark, .on-dark) :where(p, span, div, h1, h2, h3, h4, b, small, a) {
   color: inherit;
 }
 
@@ -206,7 +205,7 @@ html.theme-light .textarea-base:focus {
   display: inline-flex;
   align-items: center;
   gap: 0.25rem;
-  font-size: 0.625rem;
+  font-size: 0.6875rem;
   font-weight: 700;
   padding: 0.125rem 0.5rem;
   border-radius: var(--radius-sm);
@@ -233,9 +232,12 @@ html.theme-light .textarea-base:focus {
 .t-purple     { color: var(--c-purple); }
 .t-pink       { color: var(--c-pink); }
 
-.hover\:t-main:hover   { color: var(--text-main); }
-.hover\:t-muted:hover  { color: var(--text-muted); }
-.hover\:t-accent:hover { color: var(--c-accent); }
+.hover\:t-main:hover    { color: var(--text-main); }
+.hover\:t-muted:hover   { color: var(--text-muted); }
+.hover\:t-accent:hover  { color: var(--c-accent); }
+.hover\:t-success:hover { color: var(--c-success); }
+.hover\:t-warn:hover    { color: var(--c-warn); }
+.hover\:t-danger:hover  { color: var(--c-danger); }
 
 .s-accent-soft  { background-color: var(--c-accent-soft); color: var(--c-accent); border-color: var(--c-accent-border); }
 .s-success-soft { background-color: var(--c-success-soft); color: var(--c-success); border-color: var(--c-success-border); }
@@ -531,10 +533,10 @@ html.theme-dark .admin-subtab-btn[aria-selected="true"] svg {
 }
 .admin-week-btn.is-active,
 #adminTopConsumersWeekBar button.admin-week-btn.is-active {
-  background-color: #2563eb;
+  background-color: var(--c-accent-solid, #0369a1);
   color: #ffffff;
-  border-color: #1d4ed8;
-  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.45);
+  border-color: var(--c-accent);
+  box-shadow: 0 2px 8px var(--c-accent-soft);
 }
 html.theme-light .admin-week-btn:not(.is-active) {
   color: #64748b;
@@ -542,11 +544,11 @@ html.theme-light .admin-week-btn:not(.is-active) {
   border-color: rgba(203, 213, 225, 0.6);
 }
 html.theme-light #adminTopConsumersWeekBar button.admin-week-btn.is-active {
-  background-color: #2563eb;
+  background-color: var(--c-accent);
   color: #ffffff;
-  border-color: #1d4ed8;
+  border-color: var(--c-accent-hover);
   font-weight: 800;
-  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.45);
+  box-shadow: 0 2px 8px var(--c-accent-soft);
 }
 
 /* --- 15. Admin Search Box Container --- */
@@ -579,61 +581,61 @@ html.theme-light .shop-plan-badge {
 
 .shop-plan-card .shop-plan-badge.badge-vip,
 html.theme-light .shop-plan-card .shop-plan-badge.badge-vip {
-  background: linear-gradient(135deg, #f43f5e 0%, #c026d3 100%);
+  background: linear-gradient(135deg, #be123c 0%, #86198f 100%);
   color: #ffffff;
   border-bottom: 1.5px solid rgba(254, 205, 211, 0.7);
   border-right: 1.5px solid rgba(254, 205, 211, 0.7);
-  box-shadow: 0 4px 14px rgba(244, 63, 94, 0.4);
+  box-shadow: 0 4px 14px rgba(190, 18, 60, 0.4);
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
 }
 
 .shop-plan-card .shop-plan-badge.badge-bestseller,
 html.theme-light .shop-plan-card .shop-plan-badge.badge-bestseller {
-  background: linear-gradient(135deg, #d97706 0%, #ea580c 100%);
+  background: linear-gradient(135deg, #b45309 0%, #9a3412 100%);
   color: #ffffff;
   border-bottom: 1.5px solid rgba(254, 240, 138, 0.9);
   border-right: 1.5px solid rgba(254, 240, 138, 0.9);
-  box-shadow: 0 4px 14px rgba(245, 158, 11, 0.45);
+  box-shadow: 0 4px 14px rgba(180, 83, 9, 0.45);
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
 }
 
 .shop-plan-card .shop-plan-badge.badge-popular,
 html.theme-light .shop-plan-card .shop-plan-badge.badge-popular {
-  background: linear-gradient(135deg, #7c3aed 0%, #4f46e5 50%, #2563eb 100%);
+  background: linear-gradient(135deg, #6d28d9 0%, #4338ca 50%, #1d4ed8 100%);
   color: #ffffff;
   border-bottom: 1.5px solid rgba(199, 210, 254, 0.8);
   border-right: 1.5px solid rgba(199, 210, 254, 0.8);
-  box-shadow: 0 4px 14px rgba(99, 102, 241, 0.45);
+  box-shadow: 0 4px 14px rgba(67, 56, 202, 0.45);
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
 }
 
 .shop-plan-card .shop-plan-badge.badge-economic,
 html.theme-light .shop-plan-card .shop-plan-badge.badge-economic {
-  background: linear-gradient(135deg, #059669 0%, #0d9488 100%);
+  background: linear-gradient(135deg, #047857 0%, #0f766e 100%);
   color: #ffffff;
   border-bottom: 1.5px solid rgba(167, 243, 208, 0.8);
   border-right: 1.5px solid rgba(167, 243, 208, 0.8);
-  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);
+  box-shadow: 0 4px 14px rgba(4, 120, 87, 0.35);
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
 }
 
 .shop-plan-card .shop-plan-badge.badge-tunnel,
 html.theme-light .shop-plan-card .shop-plan-badge.badge-tunnel {
-  background: linear-gradient(135deg, #0d9488 0%, #0891b2 50%, #0284c7 100%);
+  background: linear-gradient(135deg, #0f766e 0%, #0e7490 50%, #0369a1 100%);
   color: #ffffff;
   border-bottom: 1.5px solid rgba(165, 243, 252, 0.85);
   border-right: 1.5px solid rgba(165, 243, 252, 0.85);
-  box-shadow: 0 4px 14px rgba(6, 182, 212, 0.4);
+  box-shadow: 0 4px 14px rgba(14, 116, 144, 0.4);
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
 }
 
 .shop-plan-card .shop-plan-badge.badge-special,
 html.theme-light .shop-plan-card .shop-plan-badge.badge-special {
-  background: linear-gradient(135deg, #ec4899 0%, #db2777 100%);
+  background: linear-gradient(135deg, #be185d 0%, #9d174d 100%);
   color: #ffffff;
   border-bottom: 1.5px solid rgba(251, 207, 232, 0.8);
   border-right: 1.5px solid rgba(251, 207, 232, 0.8);
-  box-shadow: 0 4px 14px rgba(236, 72, 153, 0.4);
+  box-shadow: 0 4px 14px rgba(190, 24, 93, 0.4);
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
 }
 
@@ -643,15 +645,15 @@ html.theme-light .shop-plan-card .shop-plan-badge.badge-special {
 }
 
 html.theme-light .wallet-hero-card {
-  background: linear-gradient(135deg, rgba(236, 253, 245, 0.7) 0%, rgba(240, 253, 250, 0.7) 50%, #ffffff 100%);
-  border-color: rgba(16, 185, 129, 0.3);
+  background: linear-gradient(135deg, var(--c-accent-soft) 0%, rgba(255, 255, 255, 0.95) 100%);
+  border-color: var(--c-accent-border);
 }
 
 html.theme-light .wallet-hero-card #walletTabBalance {
   background: none;
   -webkit-background-clip: unset;
   background-clip: unset;
-  color: var(--c-success);
+  color: var(--c-accent);
 }
 
 /* --- 18. Admin Panel Light Theme Unification --- */
