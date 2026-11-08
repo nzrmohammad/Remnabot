@@ -1281,6 +1281,10 @@ openUserChat(telegram_id, name, tag, topup_id) {
       if (invCompInp) {
         invCompInp.value = s.invoice_company_name || '';
       }
+      const histSizeInp = $('settingHistoryPageSize');
+      if (histSizeInp) {
+        histSizeInp.value = s.history_page_size ?? 15;
+      }
 
       // Crypto & Rates
       const usdtRate = $('settingUsdtRate');
@@ -1560,6 +1564,7 @@ openUserChat(telegram_id, name, tag, topup_id) {
       }),
       store_logo_url: $('settingStoreLogoUrl')?.value?.trim() || '',
       invoice_company_name: $('settingInvoiceCompanyName')?.value?.trim() || '',
+      history_page_size: parseInt($('settingHistoryPageSize')?.value || '15', 10),
       crypto_enabled: $('settingCryptoSwitch')?.checked ?? false,
       stars_enabled: $('settingStarsSwitch')?.checked ?? false,
       stars_rate_toman: parseInt($('settingStarsRate')?.value || '1500', 10),

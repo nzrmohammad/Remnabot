@@ -117,7 +117,9 @@ function applyBluBankCardTheme(color, bankTmpl) {
 let currentTopupInvoice = null;
 let allWalletTransactions = [];
 let currentWalletPage = 1;
-const TX_PER_PAGE = 10;
+function getTxPerPage() {
+  return Number(window.storeSettings?.history_page_size) || 15;
+}
 
 function formatTxTitle(tx) {
   if (!tx) return 'تراکنش';
@@ -150,12 +152,13 @@ function renderWalletTransactions(transactions) {
     return;
   }
 
-  const totalPages = Math.ceil(txList.length / TX_PER_PAGE);
+  const pageSize = getTxPerPage();
+  const totalPages = Math.ceil(txList.length / pageSize);
   if (currentWalletPage > totalPages) currentWalletPage = totalPages;
   if (currentWalletPage < 1) currentWalletPage = 1;
 
-  const startIdx = (currentWalletPage - 1) * TX_PER_PAGE;
-  const pageItems = txList.slice(startIdx, startIdx + TX_PER_PAGE);
+  const startIdx = (currentWalletPage - 1) * pageSize;
+  const pageItems = txList.slice(startIdx, startIdx + pageSize);
 
   txContainer.innerHTML = pageItems.map(tx => {
     const statusColor = (tx.status_color === 'amber' || tx.status_color === 'yellow')

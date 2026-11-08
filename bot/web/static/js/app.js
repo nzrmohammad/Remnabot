@@ -4349,8 +4349,8 @@ function setGiftType(type) {
   $('giftBalanceSection')?.classList.toggle('hidden', !isBal);
   $('giftServiceSection')?.classList.toggle('hidden', isBal);
 
-  const activeBtnClass = 'py-2 px-2.5 rounded-xl border border-pink-500/50 bg-pink-500/15 text-pink-600 dark:text-pink-300 font-bold text-xs flex items-center justify-center gap-1.5 transition shadow-sm';
-  const inactiveBtnClass = 'py-2 px-2.5 rounded-xl border border-card-border t-muted hover:t-main font-medium text-xs flex items-center justify-center gap-1.5 transition';
+  const activeBtnClass = 'py-2 px-2 rounded-xl bg-gradient-to-r from-pink-500 to-rose-500 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition shadow-md shadow-rose-500/25 border-0';
+  const inactiveBtnClass = 'py-2 px-2 rounded-xl card-inset border border-card-border t-muted hover:t-main font-medium text-xs flex items-center justify-center gap-1.5 transition';
 
   const btnBal = $('giftTypeBtn-balance');
   const btnSvc = $('giftTypeBtn-service');
@@ -4364,8 +4364,8 @@ function setGiftDeliveryType(type) {
   const isDirect = type === 'DIRECT';
   $('giftReceiverSection')?.classList.toggle('hidden', !isDirect);
 
-  const activeBtnClass = 'py-2 px-2.5 rounded-xl border border-pink-500/50 bg-pink-500/15 text-pink-600 dark:text-pink-300 font-bold text-xs flex items-center justify-center gap-1.5 transition shadow-sm';
-  const inactiveBtnClass = 'py-2 px-2.5 rounded-xl border border-card-border t-muted hover:t-main font-medium text-xs flex items-center justify-center gap-1.5 transition';
+  const activeBtnClass = 'py-2 px-2 rounded-xl bg-gradient-to-r from-pink-500 to-rose-500 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition shadow-md shadow-rose-500/25 border-0';
+  const inactiveBtnClass = 'py-2 px-2 rounded-xl card-inset border border-card-border t-muted hover:t-main font-medium text-xs flex items-center justify-center gap-1.5 transition';
 
   const btnDir = $('giftDeliveryBtn-direct');
   const btnLink = $('giftDeliveryBtn-link');
@@ -4613,10 +4613,87 @@ window.populateGiftServices = populateGiftServices;
 // ========================================================
 let currentInvoiceData = null;
 
+const invoiceClientCache = new Map();
+
+function renderInvoiceModalFields(inv, orderId) {
+  currentInvoiceData = inv;
+  $('invNumberDisplay').innerText = inv.invoice_number || `INV-${orderId}`;
+  $('invDateDisplay').innerText = `${inv.date_jalali} - ${inv.time_jalali}`;
+  $('invSellerName').innerText = inv.seller?.name || 'سرویس ابری رمنا';
+  if ($('invSellerDefaultIcon')) $('invSellerDefaultIcon').classList.remove('hidden');
+  const bName = inv.buyer?.name || 'کاربر گرامی';
+  const bId = inv.buyer?.telegram_id || '';
+  if ($('invBuyerName')) $('invBuyerName').innerText = bName;
+  if ($('invBuyerId')) {
+    $('invBuyerId').innerText = bId ? String(bId) : '';
+    $('invBuyerId').className = bId ? 'text-[11px] text-slate-400 font-mono block select-all text-left' : 'hidden';
+  }
+
+  $('invItemTitle').innerText = inv.item?.title || 'بسته اشتراک';
+  if ($('invItemIcon')) {
+    const title = (inv.item?.title || '').toLowerCase();
+    let icon = '📦';
+    if (title.includes('طلایی') || title.includes('gold')) icon = '🥇';
+    else if (title.includes('نقره') || title.includes('silver')) icon = '🥈';
+    else if (title.includes('برنز') || title.includes('bronze')) icon = '🥉';
+    else if (title.includes('الماس') || title.includes('diamond')) icon = '💎';
+    else if (title.includes('ویژه') || title.includes('vip')) icon = '👑';
+    $('invItemIcon').innerText = icon;
+  }
+  $('invItemSpecs').innerText = `${inv.item?.traffic_text || ''} | ${inv.item?.duration_text || ''}`;
+  $('invItemAmount').innerText = Number(inv.payment?.amount_toman || 0).toLocaleString('en-US');
+
+  $('invFinalAmountToman').innerText = Number(inv.payment?.amount_toman || 0).toLocaleString('en-US');
+  $('invFinalAmountRial').innerText = `(${Number((inv.payment?.amount_toman || 0) * 10).toLocaleString('en-US')} ریال)`;
+  $('invTrackingCode').innerText = inv.payment?.tracking_code || `TRX-${orderId}`;
+
+  const statusEl = $('invPaymentStatus');
+  if (statusEl) {
+    let statusText = inv.payment?.status || 'پرداخت شده';
+    if (statusText === 'پرداخت شده و فعال') statusText = 'پرداخت شده';
+    let icon = '✅';
+    let colorClass = 'text-emerald-500';
+    if (statusText.includes('ناموفق') || statusText.includes('لغو')) {
+      icon = '❌';
+      colorClass = 'text-rose-500';
+    } else if (statusText.includes('انتظار')) {
+      icon = '⏳';
+      colorClass = 'text-amber-500';
+    } else if (statusText.includes('مسترد')) {
+      icon = '↩️';
+      colorClass = 't-purple';
+    }
+    statusEl.className = `flex items-center gap-1 font-bold ${colorClass}`;
+    statusEl.innerHTML = `<span>${icon}</span> <span>${statusText}</span>`;
+  }
+
+  const dedStatusEl = $('invWalletDeductionStatus');
+  if (dedStatusEl) {
+    const note = inv.payment?.deduction_note || (inv.payment?.is_paid ? 'کسر شده از موجودی کیف پول' : 'هیچ هزینه‌ای از کیف پول شما کسر نشده است');
+    const isPaid = inv.payment?.is_paid;
+    dedStatusEl.innerText = note;
+    dedStatusEl.className = `text-xs font-semibold ${isPaid ? 'text-emerald-500' : 'text-slate-400'}`;
+  }
+}
+
 async function openInvoiceModal(orderId) {
   if (!orderId) return;
   const modal = $('invoiceModal');
   if (!modal) return;
+
+  // SWR: Instant render if cached in client memory (0ms perceived wait)
+  if (invoiceClientCache.has(orderId)) {
+    renderInvoiceModalFields(invoiceClientCache.get(orderId), orderId);
+    modal.classList.remove('hidden');
+    // Silently revalidate in background
+    window.api.getInvoice(orderId).then(res => {
+      if (res && res.ok && res.data) {
+        invoiceClientCache.set(orderId, res.data);
+        renderInvoiceModalFields(res.data, orderId);
+      }
+    }).catch(() => {});
+    return;
+  }
 
   modal.classList.remove('hidden');
   $('invNumberDisplay').innerText = 'در حال استخراج...';
@@ -4639,66 +4716,8 @@ async function openInvoiceModal(orderId) {
       return;
     }
 
-    currentInvoiceData = res.data;
-    const inv = res.data;
-
-    $('invNumberDisplay').innerText = inv.invoice_number || `INV-${orderId}`;
-    $('invDateDisplay').innerText = `${inv.date_jalali} - ${inv.time_jalali}`;
-    $('invSellerName').innerText = inv.seller?.name || 'سرویس ابری رمنا';
-    if ($('invSellerDefaultIcon')) $('invSellerDefaultIcon').classList.remove('hidden');
-    const bName = inv.buyer?.name || 'کاربر گرامی';
-    const bId = inv.buyer?.telegram_id || '';
-    if ($('invBuyerName')) $('invBuyerName').innerText = bName;
-    if ($('invBuyerId')) {
-      $('invBuyerId').innerText = bId ? String(bId) : '';
-      $('invBuyerId').className = bId ? 'text-[11px] text-slate-400 font-mono block select-all text-left' : 'hidden';
-    }
-
-    $('invItemTitle').innerText = inv.item?.title || 'بسته اشتراک';
-    if ($('invItemIcon')) {
-      const title = (inv.item?.title || '').toLowerCase();
-      let icon = '📦';
-      if (title.includes('طلایی') || title.includes('gold')) icon = '🥇';
-      else if (title.includes('نقره') || title.includes('silver')) icon = '🥈';
-      else if (title.includes('برنز') || title.includes('bronze')) icon = '🥉';
-      else if (title.includes('الماس') || title.includes('diamond')) icon = '💎';
-      else if (title.includes('ویژه') || title.includes('vip')) icon = '👑';
-      $('invItemIcon').innerText = icon;
-    }
-    $('invItemSpecs').innerText = `${inv.item?.traffic_text || ''} | ${inv.item?.duration_text || ''}`;
-    $('invItemAmount').innerText = Number(inv.payment?.amount_toman || 0).toLocaleString('en-US');
-
-    $('invFinalAmountToman').innerText = Number(inv.payment?.amount_toman || 0).toLocaleString('en-US');
-    $('invFinalAmountRial').innerText = `(${Number((inv.payment?.amount_toman || 0) * 10).toLocaleString('en-US')} ریال)`;
-    $('invTrackingCode').innerText = inv.payment?.tracking_code || `TRX-${orderId}`;
-
-    const statusEl = $('invPaymentStatus');
-    if (statusEl) {
-      let statusText = inv.payment?.status || 'پرداخت شده';
-      if (statusText === 'پرداخت شده و فعال') statusText = 'پرداخت شده';
-      let icon = '✅';
-      let colorClass = 'text-emerald-500';
-      if (statusText.includes('ناموفق') || statusText.includes('لغو')) {
-        icon = '❌';
-        colorClass = 'text-rose-500';
-      } else if (statusText.includes('انتظار')) {
-        icon = '⏳';
-        colorClass = 'text-amber-500';
-      } else if (statusText.includes('مسترد')) {
-        icon = '↩️';
-        colorClass = 't-purple';
-      }
-      statusEl.className = `flex items-center gap-1 font-bold ${colorClass}`;
-      statusEl.innerHTML = `<span>${icon}</span> <span>${statusText}</span>`;
-    }
-
-    const dedStatusEl = $('invWalletDeductionStatus');
-    if (dedStatusEl) {
-      const note = inv.payment?.deduction_note || (inv.payment?.is_paid ? 'کسر شده از موجودی کیف پول' : 'هیچ هزینه‌ای از کیف پول شما کسر نشده است');
-      const isPaid = inv.payment?.is_paid;
-      dedStatusEl.innerText = note;
-      dedStatusEl.className = `text-xs font-semibold ${isPaid ? 'text-emerald-500' : 'text-slate-400'}`;
-    }
+    invoiceClientCache.set(orderId, res.data);
+    renderInvoiceModalFields(res.data, orderId);
   } catch (err) {
     console.warn('Failed loading invoice:', err);
     showToast('❌ خطا در بارگذاری اطلاعات فاکتور.');

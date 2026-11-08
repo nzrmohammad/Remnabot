@@ -156,3 +156,56 @@ def test_tronlink_deeplink_sun_amount_and_parameters():
     assert "const amountSun = Math.round(trxAmount * 1000000);" in wallet_js
     assert "actionId: String(Date.now())" in wallet_js
     assert "chainId: '0x2b6653dc'" in wallet_js
+
+
+def test_gift_modal_clarity_and_nowrap():
+    """Gift modal options must have high-contrast active gradient and nowrap labels."""
+    app_html = Path("bot/web/templates/app.html").read_text(encoding="utf-8")
+    app_js = Path("bot/web/static/js/app.js").read_text(encoding="utf-8")
+
+    assert 'id="giftDeliveryBtn-direct"' in app_html
+    assert "whitespace-nowrap" in app_html
+    assert "bg-gradient-to-r from-pink-500 to-rose-500 text-white font-bold" in app_js
+    assert "card-inset border border-card-border t-muted" in app_js
+
+
+def test_invoice_caching_and_instant_load():
+    """Invoices must be cached in memory (client) and FastCache (server) for instant render."""
+    app_js = Path("bot/web/static/js/app.js").read_text(encoding="utf-8")
+    user_shop = Path("bot/web/user_shop.py").read_text(encoding="utf-8")
+
+    assert "const invoiceClientCache = new Map();" in app_js
+    assert "renderInvoiceModalFields(invoiceClientCache.get(orderId), orderId);" in app_js
+    assert 'cache_key = f"inv:ord:{telegram_id}:{order_id}"' in user_shop
+    assert "await cache.set(cache_key, inv_data, ttl_seconds=600)" in user_shop
+
+
+def test_history_page_size_setting():
+    """History page size must be customizable in settings (default 15) and reflected in UI."""
+    from bot.services.app_settings import StoreSettings
+    assert StoreSettings.__dataclass_fields__["history_page_size"].default == 15
+
+    admin_html = Path("bot/web/templates/admin.html").read_text(encoding="utf-8")
+    admin_settings_js = Path("bot/web/static/js/admin_settings.js").read_text(encoding="utf-8")
+    admin_settings_api = Path("bot/web/admin_settings_api.py").read_text(encoding="utf-8")
+    wallet_js = Path("bot/web/static/js/wallet.js").read_text(encoding="utf-8")
+    user_topup = Path("bot/web/user_topup.py").read_text(encoding="utf-8")
+
+    assert 'id="settingHistoryPageSize"' in admin_html
+    assert "$('settingHistoryPageSize')" in admin_settings_js
+    assert '"history_page_size":' in admin_settings_api
+    assert '"history_page_size"' in admin_settings_api
+    assert '"history_page_size": hist_page_val' in user_topup
+    assert "function getTxPerPage()" in wallet_js
+    assert "window.storeSettings?.history_page_size" in wallet_js
+
+
+def test_client_autoconnect_app_names_and_compact_grid():
+    """Client import buttons must use compact typography and padding so app names do not truncate."""
+    app_html = Path("bot/web/templates/app.html").read_text(encoding="utf-8")
+
+    assert "grid grid-cols-6 gap-1 sm:gap-1.5" in app_html
+    assert 'id="appImportStreisand"' in app_html
+    assert "text-[9.5px] sm:text-[11px]" in app_html
+    assert "tracking-tighter" in app_html
+

@@ -811,6 +811,13 @@ async def get_user_invoice(request: web.Request) -> web.Response:
     order_id = int(order_id_str)
     telegram_id = int(user_auth["id"])
 
+    cache = request.app.get("cache")
+    cache_key = f"inv:ord:{telegram_id}:{order_id}"
+    if cache and hasattr(cache, "get"):
+        cached_inv = await cache.get(cache_key)
+        if cached_inv:
+            return web.json_response({"ok": True, "data": cached_inv})
+
     async with db_session(request) as session:
         store_settings = await get_store_settings(session)
         store_name = getattr(store_settings, "invoice_company_name", "") or getattr(store_settings, "bot_name", "سرویس ابری رمنا") or "سرویس ابری رمنا"
@@ -827,6 +834,9 @@ async def get_user_invoice(request: web.Request) -> web.Response:
         )
         if not inv_data:
             return web.json_response({"ok": False, "message": "فاکتور مورد نظر یافت نشد."}, status=404)
+
+        if cache and hasattr(cache, "set"):
+            await cache.set(cache_key, inv_data, ttl_seconds=600)
 
         return web.json_response({"ok": True, "data": inv_data})
 

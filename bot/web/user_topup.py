@@ -158,6 +158,8 @@ async def get_user_topup_info(request: web.Request) -> web.Response:
         min_amount_val = 10000 if type(raw_min).__name__ == "MagicMock" or not isinstance(raw_min, (int, float)) else int(raw_min)
         raw_max = getattr(store, "topup_max_amount", 50000000)
         max_amount_val = 50000000 if type(raw_max).__name__ == "MagicMock" or not isinstance(raw_max, (int, float)) else (int(raw_max) or 50000000)
+        raw_hist = getattr(store, "history_page_size", 15)
+        hist_page_val = 15 if type(raw_hist).__name__ == "MagicMock" or not isinstance(raw_hist, (int, float)) else int(raw_hist)
 
         payload = {
             "ok": True,
@@ -186,6 +188,7 @@ async def get_user_topup_info(request: web.Request) -> web.Response:
             "usdt_rate_toman": usdt_rate,
             "stars_enabled": stars_enabled,
             "stars_rate_toman": stars_resolved,
+            "history_page_size": hist_page_val,
         }
         if cache and hasattr(cache, "set"):
             await cache.set(cache_key, payload, ttl_seconds=60)

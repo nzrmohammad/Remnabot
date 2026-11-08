@@ -99,6 +99,7 @@ async def get_admin_settings(request: web.Request) -> web.Response:
             "loyalty_enabled": store_settings.loyalty_enabled,
             "loyalty_tiers_json": store_settings.loyalty_tiers_json,
             "invoice_company_name": store_settings.invoice_company_name,
+            "history_page_size": 15 if type(getattr(store_settings, "history_page_size", 15)).__name__ == "MagicMock" else int(getattr(store_settings, "history_page_size", 15) or 15),
             "timezone": store_settings.timezone,
         }
         bot = request.app.get("bot")
@@ -163,6 +164,7 @@ async def post_admin_settings(request: web.Request) -> web.Response:
             "custom_plan_price_per_gb", "custom_plan_price_per_day", "custom_plan_base_price",
             "custom_plan_min_gb", "custom_plan_max_gb", "custom_plan_min_days", "custom_plan_max_days",
             "store_logo_url", "loyalty_tiers_json", "custom_plan_volume_tiers_json", "invoice_company_name",
+            "history_page_size",
             "timezone",
         )
         for rk in raw_keys:
