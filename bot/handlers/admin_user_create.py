@@ -122,7 +122,6 @@ async def user_create_duration_step(
         sq_name = sq.get("name") or "Squad"
         sq_uuid = sq.get("uuid")
         kb.button(text=f"🧩 {sq_name}", callback_data=f"adm:csq:{sq_uuid}")
-    kb.button(text=t(lang, "user_create_all_squads"), callback_data="adm:csq:all")
     kb.button(text=t(lang, "user_create_default_squad"), callback_data="adm:csq:default")
     kb.button(text=t(lang, "btn_cancel"), callback_data="adm:users")
     kb.adjust(1)

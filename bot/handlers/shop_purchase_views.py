@@ -152,17 +152,11 @@ async def _render_buy_confirm(
         squad_name = await resolve_squad_name(remnawave, service.squad_uuid) if remnawave else "جدید"
         if lang == "fa":
             switch_warning_block = (
-                f"\n⚠️ <b>درخواست تغییر سرور به «{escape(squad_name)}»:</b>\n"
-                f"• با تأیید این خرید، یک دوره کامل ({service.duration_days} روز و {service.traffic_gb} گیگابایت) از همین لحظه فعال می‌شود.\n"
-                f"• حجم و مهلت باقیمانده از سرویس قبلی شما جایگزین خواهد شد.\n"
-                f"• لینک اتصال شما تغییری نمی‌کند؛ پس از پرداخت تنها کافیست گزینه <b>Update Subscription</b> را در نرم‌افزار خود بزنید.\n"
+                f"🔄 عملیات : <b>ارتقای اشتراک به «{escape(squad_name)}»</b>\n\n"
             )
         else:
             switch_warning_block = (
-                f"\n⚠️ <b>Server & Squad Switch to «{escape(squad_name)}»:</b>\n"
-                f"• A full new cycle ({service.duration_days} days & {service.traffic_gb} GB) starts immediately.\n"
-                f"• Any remaining days and traffic from the previous plan will be replaced.\n"
-                f"• Your subscription link remains unchanged; simply tap <b>Update Subscription</b> in your VPN app.\n"
+                f"🔄 Operation: <b>Upgrade to «{escape(squad_name)}»</b>\n\n"
             )
 
     price_lines = receipt_price_lines(
@@ -181,7 +175,7 @@ async def _render_buy_confirm(
     else:
         balance_note = ""
 
-    title = "🔄 <b>تغییر و ارتقای بسته اشتراک</b>" if (is_squad_switch and lang == "fa") else t(lang, 'buy_confirm_title')
+    title = "🧾 <b>پیش‌فاکتور ارتقا و تغییر دسته سرور</b>" if (is_squad_switch and lang == "fa") else t(lang, 'buy_confirm_title')
 
     await render_menu(
         bot, user, user_repo,

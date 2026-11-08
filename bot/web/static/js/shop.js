@@ -901,6 +901,37 @@ function setupBuyButtons() {
         return;
       }
 
+      // Squad Switch Detection: Warning modal MUST appear BEFORE the pre-invoice / checkout modal!
+      const activeSub = window.lastUserData?.active_sub || window.lastUserData?.active_subscription;
+      const isSwitch = Boolean(
+        hasActiveSub &&
+        activeSub &&
+        !isExtraTraffic &&
+        !isTimeOnly &&
+        planObj.squad_uuid &&
+        activeSub.squad_uuid &&
+        String(planObj.squad_uuid).trim().toLowerCase() !== String(activeSub.squad_uuid).trim().toLowerCase()
+      );
+
+      if (isSwitch) {
+        openShopGuidanceModal({
+          title: '⚠️ هشدار مهم تغییر دسته سرور (اسکواد)',
+          badgeText: '🔄 تغییر دسته سرور',
+          badgeClass: 'px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-600 dark:text-amber-300 border border-amber-500/40',
+          message: `شما در حال تغییر دسته سرور اشتراک فعلی خود به «<b>${escapeHtml(planObj.name)}</b>» هستید.<br><br>
+📌 <b>نکات بسیار مهم پیش از مشاهده پیش‌فاکتور:</b><br>
+۱. با تغییر اسکواد، <b>حجم و روزهای باقیمانده بسته قبلی شما جایگزین می‌شوند</b> (سقف حجم و روزها از نو برای این بسته آغاز می‌گردند).<br>
+۲. <b>لینک اتصال اشتراک شما تغییری نمی‌کند</b> و تنها کافیست پس از پرداخت، گزینه <b>Update Subscription (بروزرسانی اشتراک)</b> را در برنامه بزنید.<br>
+۳. هزینه کامل بسته جدید دریافت خواهد شد.<br><br>
+آیا برای مشاهده پیش‌فاکتور و خرید این بسته موافقید؟`,
+          actionText: '✅ متوجه شدم، مشاهده پیش‌فاکتور',
+          onAction: () => openCheckoutConfirmModal(planObj),
+          secondaryText: '❌ انصراف',
+          onSecondary: () => closeModal('shopGuidanceModal'),
+        });
+        return;
+      }
+
       // Rule 2: User has active subscription with plenty of days (> 3 days), and clicked on a Full Plan
       if (hasActiveSub && daysLeft > 3 && isFullPlan) {
         if (pctRemaining <= 25) {

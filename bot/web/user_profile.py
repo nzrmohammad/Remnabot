@@ -558,7 +558,7 @@ async def get_user_me(request: web.Request) -> web.Response:
                 "badge": s.badge or "",
                 "squad_uuid": s.squad_uuid or "",
                 "flags": plan_flags,
-                "flags_label": "اسکواد اختصاصی" if s.squad_uuid else "سراسری",
+                "flags_label": "اسکواد اختصاصی" if s.squad_uuid else "بدون اسکواد",
             })
         is_invite_only = False
         is_adm = bool(user_auth.get("is_admin", False))

@@ -192,3 +192,89 @@ async def test_resolve_squad_name():
 
     name_fallback = await resolve_squad_name(remnawave, "sq-unknown")
     assert name_fallback == "sq-unknown"
+
+
+@pytest.mark.anyio
+async def test_squad_switch_warning_screen_before_invoice(session_factory):
+    """Test that selecting a service with a different squad renders the warning screen first, and confirming renders invoice."""
+    from aiogram.fsm.context import FSMContext
+    from aiogram.fsm.storage.memory import MemoryStorage
+    from aiogram.fsm.storage.base import StorageKey
+    from aiogram.types import CallbackQuery, User as TgUser
+    from bot.db.repositories.user_repo import UserRepository
+    from bot.handlers.shop_renew import buy_for_account
+
+    tid = 112233
+    async with session_factory() as session:
+        user = User(telegram_id=tid, username="switch_user2", full_name="Switch User 2", language="fa", is_verified=True)
+        wallet = Wallet(telegram_id=tid, balance=200000)
+        svc_tunnel = Service(
+            id=202,
+            name="Tunnel VIP 2",
+            price=150000,
+            duration_days=30,
+            traffic_gb=60,
+            traffic_strategy="NO_RESET",
+            squad_uuid="sq-tunnel-2",
+            is_active=True,
+        )
+        session.add_all([user, wallet, svc_tunnel])
+        await session.commit()
+
+    remnawave = MagicMock()
+    existing_acc = {
+        "id": 99,
+        "username": "switch_user2_panel",
+        "status": "ACTIVE",
+        "activeInternalSquads": ["sq-normal-2"],
+    }
+    remnawave.get_users_by_telegram_id = AsyncMock(return_value=[existing_acc])
+    remnawave.get_internal_squads = AsyncMock(return_value=[
+        {"uuid": "sq-normal-2", "name": "نرمال"},
+        {"uuid": "sq-tunnel-2", "name": "تانل اختصاصی"},
+    ])
+
+    bot = MagicMock()
+    bot.send_message = AsyncMock()
+    bot.edit_message_text = AsyncMock()
+    rendered_menus = []
+
+    async def mock_render_menu(b, u, ur, text, kb=None):
+        rendered_menus.append((text, kb))
+
+    storage = MemoryStorage()
+    key = StorageKey(bot_id=1, chat_id=tid, user_id=tid)
+    state = FSMContext(storage=storage, key=key)
+
+    call = MagicMock(spec=CallbackQuery)
+    call.from_user = TgUser(id=tid, is_bot=False, first_name="Switch", username="switch_user2")
+    call.data = "svc:buya:202:99"
+    call.answer = AsyncMock()
+
+    with patch("bot.handlers.shop_renew.render_menu", mock_render_menu), \
+         patch("bot.handlers.shop_purchase_views.render_menu", mock_render_menu), \
+         patch("bot.services.app_settings.is_maintenance", AsyncMock(return_value=False)):
+        async with session_factory() as session:
+            user_repo = UserRepository(session)
+            # Step 1: Initial click -> warning screen must be shown
+            await buy_for_account(call, bot, user_repo, session, remnawave, state, service_id=202, panel_user_id="99")
+            assert len(rendered_menus) == 1
+            text, kb = rendered_menus[0]
+            assert "هشدار مهم تغییر دسته سرور" in text
+            assert "تانل اختصاصی" in text
+            assert "حجم و روزهای باقیمانده بسته قبلی شما جایگزین می‌شوند" in text
+            assert "لینک اتصال اشتراک شما بدون تغییر می‌ماند" in text
+
+            # Check that the confirm button callback points to :ok
+            all_buttons = [btn for row in kb.inline_keyboard for btn in row]
+            ok_btn = next((b for b in all_buttons if b.callback_data == "svc:buya:202:99:ok"), None)
+            assert ok_btn is not None
+            assert "مشاهده پیش‌فاکتور" in ok_btn.text
+
+            # Step 2: User confirms -> calls callback with :ok -> pre-invoice must be shown
+            call.data = "svc:buya:202:99:ok"
+            await buy_for_account(call, bot, user_repo, session, remnawave, state, service_id=202, panel_user_id="99")
+            assert len(rendered_menus) == 2
+            text2, kb2 = rendered_menus[1]
+            assert "پیش‌فاکتور" in text2
+            assert "ارتقای اشتراک به «تانل اختصاصی»" in text2

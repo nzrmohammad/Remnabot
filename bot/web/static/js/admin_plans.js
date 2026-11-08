@@ -26,7 +26,7 @@
         const sel = $('planModalSquadUuid');
         if (sel) {
           const curVal = sel.value;
-          sel.innerHTML = '<option value="">🌐 همه سرورها (سراسری / عمومی)</option>' +
+          sel.innerHTML = '<option value="" disabled selected>— انتخاب دسته سرور (اسکواد الزامی) —</option>' +
             res.squads.map(s => `<option value="${escapeHtml(s.uuid)}">🧩 ${escapeHtml(s.name)}</option>`).join('');
           if (curVal) sel.value = curVal;
         }
@@ -454,6 +454,10 @@
 
       if (!name) {
         if (window.showToast) window.showToast('نام تعرفه الزامی است.');
+        return;
+      }
+      if (!squad_uuid) {
+        if (window.showToast) window.showToast('انتخاب دسته سرور (اسکواد) برای این بسته الزامی است.');
         return;
       }
 

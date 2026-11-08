@@ -114,7 +114,7 @@ async def _render_panel_user_detail(
     if squad_names:
         squads_display = ", ".join(squad_names)
     else:
-        squads_display = "همه نودها (سراسری)" if lang == "fa" else "All Nodes (Global)"
+        squads_display = "بدون اسکواد" if lang == "fa" else "No Squad"
 
     strat = str(puser.get("trafficLimitStrategy", "NO_RESET")).upper()
     strat_labels = {
