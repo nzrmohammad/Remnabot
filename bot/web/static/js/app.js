@@ -4257,14 +4257,20 @@ function switchGiftModalTab(tab) {
   $('giftNewView')?.classList.toggle('hidden', tab !== 'new');
   $('giftHistoryView')?.classList.toggle('hidden', tab !== 'history');
 
-  const activeClass = 'flex-1 py-1.5 px-2 rounded-xl font-bold transition flex items-center justify-center gap-1 bg-gradient-to-r from-pink-500 to-rose-500 text-white shadow-sm';
-  const inactiveClass = 'flex-1 py-1.5 px-2 rounded-xl font-medium transition flex items-center justify-center gap-1 t-muted hover:t-main';
+  const activeClass = 'flex-1 py-2 px-3 rounded-xl font-bold transition flex items-center justify-center gap-1.5 text-xs bg-pink-600 text-white shadow-sm border border-pink-500/40';
+  const inactiveClass = 'flex-1 py-2 px-3 rounded-xl font-medium transition flex items-center justify-center gap-1.5 text-xs t-muted hover:t-main bg-transparent border border-transparent';
 
   const btnNew = $('giftTabBtn-new');
   const btnHistory = $('giftTabBtn-history');
 
-  if (btnNew) btnNew.className = tab === 'new' ? activeClass : inactiveClass;
-  if (btnHistory) btnHistory.className = tab === 'history' ? activeClass : inactiveClass;
+  if (btnNew) {
+    btnNew.className = tab === 'new' ? activeClass : inactiveClass;
+    btnNew.setAttribute('aria-selected', tab === 'new' ? 'true' : 'false');
+  }
+  if (btnHistory) {
+    btnHistory.className = tab === 'history' ? activeClass : inactiveClass;
+    btnHistory.setAttribute('aria-selected', tab === 'history' ? 'true' : 'false');
+  }
 
   if (tab === 'history') {
     loadGiftsHistory();
@@ -4354,8 +4360,14 @@ function setGiftType(type) {
 
   const btnBal = $('giftTypeBtn-balance');
   const btnSvc = $('giftTypeBtn-service');
-  if (btnBal) btnBal.className = isBal ? activeBtnClass : inactiveBtnClass;
-  if (btnSvc) btnSvc.className = !isBal ? activeBtnClass : inactiveBtnClass;
+  if (btnBal) {
+    btnBal.className = isBal ? activeBtnClass : inactiveBtnClass;
+    btnBal.setAttribute('aria-selected', isBal ? 'true' : 'false');
+  }
+  if (btnSvc) {
+    btnSvc.className = !isBal ? activeBtnClass : inactiveBtnClass;
+    btnSvc.setAttribute('aria-selected', !isBal ? 'true' : 'false');
+  }
   updateGiftCostDisplay();
 }
 
@@ -4369,8 +4381,14 @@ function setGiftDeliveryType(type) {
 
   const btnDir = $('giftDeliveryBtn-direct');
   const btnLink = $('giftDeliveryBtn-link');
-  if (btnDir) btnDir.className = isDirect ? activeBtnClass : inactiveBtnClass;
-  if (btnLink) btnLink.className = !isDirect ? activeBtnClass : inactiveBtnClass;
+  if (btnDir) {
+    btnDir.className = isDirect ? activeBtnClass : inactiveBtnClass;
+    btnDir.setAttribute('aria-selected', isDirect ? 'true' : 'false');
+  }
+  if (btnLink) {
+    btnLink.className = !isDirect ? activeBtnClass : inactiveBtnClass;
+    btnLink.setAttribute('aria-selected', !isDirect ? 'true' : 'false');
+  }
 }
 
 function setGiftBalancePreset(amount) {
@@ -4629,16 +4647,23 @@ function renderInvoiceModalFields(inv, orderId) {
     $('invBuyerId').className = bId ? 'text-[11px] text-slate-400 font-mono block select-all text-left' : 'hidden';
   }
 
-  $('invItemTitle').innerText = inv.item?.title || 'بسته اشتراک';
+  const rawItemTitle = (inv.item?.title || 'بسته اشتراک').trim();
+  const emojiRegex = /([\uD800-\uDBFF][\uDC00-\uDFFF]|[\u2600-\u27BF]|\p{Extended_Pictographic}|\p{Emoji_Presentation})/gu;
+  const emojiMatches = rawItemTitle.match(emojiRegex);
+  const cleanItemTitle = rawItemTitle.replace(emojiRegex, '').trim() || rawItemTitle;
+  let itemIcon = (emojiMatches && emojiMatches[0]) ? emojiMatches[0] : '📦';
+  if (!emojiMatches || !emojiMatches.length) {
+    const lowerTitle = rawItemTitle.toLowerCase();
+    if (lowerTitle.includes('طلایی') || lowerTitle.includes('gold')) itemIcon = '🥇';
+    else if (lowerTitle.includes('نقره') || lowerTitle.includes('silver')) itemIcon = '🥈';
+    else if (lowerTitle.includes('برنز') || lowerTitle.includes('bronze')) itemIcon = '🥉';
+    else if (lowerTitle.includes('الماس') || lowerTitle.includes('diamond')) itemIcon = '💎';
+    else if (lowerTitle.includes('ویژه') || lowerTitle.includes('vip')) itemIcon = '👑';
+  }
+
+  $('invItemTitle').innerText = cleanItemTitle;
   if ($('invItemIcon')) {
-    const title = (inv.item?.title || '').toLowerCase();
-    let icon = '📦';
-    if (title.includes('طلایی') || title.includes('gold')) icon = '🥇';
-    else if (title.includes('نقره') || title.includes('silver')) icon = '🥈';
-    else if (title.includes('برنز') || title.includes('bronze')) icon = '🥉';
-    else if (title.includes('الماس') || title.includes('diamond')) icon = '💎';
-    else if (title.includes('ویژه') || title.includes('vip')) icon = '👑';
-    $('invItemIcon').innerText = icon;
+    $('invItemIcon').innerText = itemIcon;
   }
   $('invItemSpecs').innerText = `${inv.item?.traffic_text || ''} | ${inv.item?.duration_text || ''}`;
   $('invItemAmount').innerText = Number(inv.payment?.amount_toman || 0).toLocaleString('en-US');

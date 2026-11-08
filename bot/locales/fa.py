@@ -38,6 +38,7 @@ FA_TEXTS: dict[str, str] = {
         "btn_wheel": "🎡 گردونه شانس",
         "btn_gifts": "🎁 ارسال هدیه",
         "btn_custom_plan": "🛠 بسته دلخواه",
+        "btn_user_panel": "🚀 مینی‌اپ",
         "btn_admin_panel": "🔐 پنل مدیریت",
         "section_placeholder": (
             "🚧 <b>{section}</b>\n\n"

@@ -91,22 +91,28 @@ async def test_fast_cache():
 
 
 def test_main_menu_keyboard_with_webapp_url():
-    # Regular menu without web app buttons
+    # User Mini App button is full-width above admin section
     kb_no_web = main_menu_keyboard(lang="fa", is_admin=False, web_app_url="")
     all_buttons = [btn.text for row in kb_no_web.inline_keyboard for btn in row]
-    assert not any("مینی‌اپ" in b for b in all_buttons)
+    assert any("مینی‌اپ" in b for b in all_buttons)
+    # When no web_app_url, uses fallback callback
+    last_row = kb_no_web.inline_keyboard[-1]
+    assert len(last_row) == 1
+    assert last_row[0].callback_data == "nav:user_tma:nourl"
 
-    # Even with web_app_url, main menu should not have TMA buttons per design
+    # With web_app_url, links directly to user TMA /app
     kb_web = main_menu_keyboard(lang="fa", is_admin=False, web_app_url="https://app.test.com")
-    all_web_buttons = [btn.text for row in kb_web.inline_keyboard for btn in row]
-    assert not any("مینی‌اپ" in b for b in all_web_buttons)
-    assert not any("پنل وب کلاستر" in b for b in all_web_buttons)
+    web_last_row = kb_web.inline_keyboard[-1]
+    assert len(web_last_row) == 1
+    assert web_last_row[0].web_app.url == "https://app.test.com/app"
 
-    # Admin menu has bot admin panel button
+    # Admin menu has User TMA button followed by Admin Panel button
     kb_admin = main_menu_keyboard(lang="fa", is_admin=True, web_app_url="https://app.test.com")
-    admin_buttons = [btn.text for row in kb_admin.inline_keyboard for btn in row]
-    assert any("مدیریت" in b for b in admin_buttons)
-    assert not any("پنل وب کلاستر" in b for b in admin_buttons)
+    rows = kb_admin.inline_keyboard
+    assert len(rows[-2]) == 1
+    assert "مینی‌اپ" in rows[-2][0].text
+    assert len(rows[-1]) == 1
+    assert "مدیریت" in rows[-1][0].text
 
 
 @pytest.mark.anyio

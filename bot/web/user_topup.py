@@ -1042,6 +1042,7 @@ async def get_user_topup_trx_redirect(request: web.Request) -> web.Response:
     safe_addr = html.escape(address)
     safe_amt = html.escape(amount)
     safe_tron_uri_js = json.dumps(tron_uri)
+    safe_tronlink_url_js = json.dumps(tronlink_url)
 
     page_html = f"""<!DOCTYPE html>
 <html lang="fa" dir="rtl">
@@ -1049,7 +1050,6 @@ async def get_user_topup_trx_redirect(request: web.Request) -> web.Response:
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>انتقال با کیف پول ترون</title>
-  <meta http-equiv="refresh" content="0;url={safe_tron_uri}">
   <style>
     * {{ box-sizing: border-box; }}
     body {{
@@ -1093,6 +1093,11 @@ async def get_user_topup_trx_redirect(request: web.Request) -> web.Response:
       background: linear-gradient(135deg, #dc2626, #e11d48, #f59e0b);
       color: #ffffff;
     }}
+    .btn-secondary-wallet {{
+      background: #1e293b;
+      color: #cbd5e1;
+      border: 1px solid #334155;
+    }}
     .info-box {{
       background: rgba(15, 23, 42, 0.8);
       border: 1px dashed rgba(51, 65, 85, 0.9);
@@ -1110,7 +1115,8 @@ async def get_user_topup_trx_redirect(request: web.Request) -> web.Response:
     <div class="icon">⚡️</div>
     <h2>انتقال مستقیم با کیف پول ترون</h2>
     <p>در حال هدایت به کیف پول ترون... اگر به صورت خودکار باز نشد، دکمه زیر را لمس فرمایید:</p>
-    <a href="{safe_tron_uri}" data-fallback="{safe_tronlink_url}" class="btn btn-tronlink">⚡️ باز کردن در کیف پول ترون (TronLink / Trust Wallet)</a>
+    <a href="{safe_tronlink_url}" data-fallback="{safe_tron_uri}" class="btn btn-tronlink">⚡️ باز کردن مستقیم در ترون‌لینک (TronLink)</a>
+    <a href="{safe_tron_uri}" class="btn btn-secondary-wallet">باز کردن در Trust Wallet / سایر کیف پول‌ها</a>
     <div class="info-box">
       <div>مبلغ: <b style="color:#22d3ee;font-family:monospace;">{safe_amt} TRX</b></div>
       <div style="margin-top:4px;font-family:monospace;font-size:10px;color:#94a3b8;">{safe_addr}</div>
@@ -1118,8 +1124,8 @@ async def get_user_topup_trx_redirect(request: web.Request) -> web.Response:
   </div>
   <script>
     setTimeout(function() {{
-      window.location.href = {safe_tron_uri_js};
-    }}, 150);
+      window.location.href = {safe_tronlink_url_js};
+    }}, 120);
   </script>
 </body>
 </html>"""

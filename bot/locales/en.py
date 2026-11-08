@@ -38,6 +38,7 @@ EN_TEXTS: dict[str, str] = {
         "btn_wheel": "🎡 Lucky Wheel",
         "btn_gifts": "🎁 Send Gift",
         "btn_custom_plan": "🛠 Custom Plan",
+        "btn_user_panel": "🚀 Mini App",
         "btn_admin_panel": "🔐 Admin Panel",
         "section_placeholder": (
             "🚧 <b>{section}</b>\n\n"

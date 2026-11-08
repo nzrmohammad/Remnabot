@@ -65,3 +65,9 @@ async def open_section(call: CallbackQuery, bot: Bot, user_repo: UserRepository)
         back_to_menu_keyboard(lang),
     )
     await call.answer()
+
+
+@router.callback_query(F.data == "nav:user_tma:nourl")
+async def user_tma_no_url_handler(call: CallbackQuery) -> None:
+    """Handle click on User TMA button when WEB_APP_URL is not set."""
+    await call.answer("⚠️ آدرس مینی‌اپ در تنظیمات سرور ثبت نشده است.", show_alert=True)

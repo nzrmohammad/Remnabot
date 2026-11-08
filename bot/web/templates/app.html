@@ -3262,11 +3262,11 @@
         </div>
 
         <!-- Gift Modal Tabs (ارسال هدیه / تاریخچه) -->
-        <div class="flex items-center p-1 card-inset rounded-2xl text-xs gap-1">
-          <button type="button" onclick="window.switchGiftModalTab('new')" id="giftTabBtn-new" class="flex-1 py-1.5 px-2 rounded-xl font-bold transition flex items-center justify-center gap-1 bg-gradient-to-r from-pink-500 to-rose-500 text-white shadow-sm">
+        <div class="flex items-center p-1 card-inset rounded-2xl text-xs gap-1 border border-card-border" role="tablist">
+          <button type="button" onclick="window.switchGiftModalTab('new')" id="giftTabBtn-new" role="tab" aria-selected="true" class="flex-1 py-2 px-3 rounded-xl font-bold transition flex items-center justify-center gap-1.5 text-xs bg-pink-600 text-white shadow-sm border border-pink-500/40">
             <span>🎁</span> هدیه جدید
           </button>
-          <button type="button" onclick="window.switchGiftModalTab('history')" id="giftTabBtn-history" class="flex-1 py-1.5 px-2 rounded-xl font-medium transition flex items-center justify-center gap-1 t-muted hover:t-main">
+          <button type="button" onclick="window.switchGiftModalTab('history')" id="giftTabBtn-history" role="tab" aria-selected="false" class="flex-1 py-2 px-3 rounded-xl font-medium transition flex items-center justify-center gap-1.5 text-xs t-muted hover:t-main bg-transparent border border-transparent">
             <span>📜</span> تاریخچه
           </button>
         </div>
@@ -3277,10 +3277,10 @@
           <div class="space-y-1">
             <span class="text-[11px] t-muted block">نوع هدیه:</span>
             <div class="grid grid-cols-2 gap-1.5">
-              <button type="button" onclick="window.setGiftType('BALANCE')" id="giftTypeBtn-balance" class="py-2 px-2 rounded-xl bg-gradient-to-r from-pink-500 to-rose-500 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition shadow-md shadow-rose-500/25 border-0">
+              <button type="button" onclick="window.setGiftType('BALANCE')" id="giftTypeBtn-balance" class="py-2.5 px-3 rounded-xl bg-pink-500/15 border-2 border-pink-500 text-pink-500 font-bold text-xs flex items-center justify-center gap-1.5 transition shadow-sm">
                 <span>💰</span> <span class="whitespace-nowrap text-[11px] sm:text-xs">شارژ کیف پول</span>
               </button>
-              <button type="button" onclick="window.setGiftType('SERVICE')" id="giftTypeBtn-service" class="py-2 px-2 rounded-xl card-inset border border-card-border t-muted hover:t-main font-medium text-xs flex items-center justify-center gap-1.5 transition">
+              <button type="button" onclick="window.setGiftType('SERVICE')" id="giftTypeBtn-service" class="py-2.5 px-3 rounded-xl card-inset border border-card-border t-muted hover:t-main font-medium text-xs flex items-center justify-center gap-1.5 transition">
                 <span>📦</span> <span class="whitespace-nowrap text-[11px] sm:text-xs">بسته اشتراک</span>
               </button>
             </div>
@@ -3318,10 +3318,10 @@
           <div class="space-y-1">
             <span class="text-[11px] t-muted block">نحوه تحویل هدیه:</span>
             <div class="grid grid-cols-2 gap-1.5">
-              <button type="button" onclick="window.setGiftDeliveryType('DIRECT')" id="giftDeliveryBtn-direct" class="py-2 px-2 rounded-xl bg-gradient-to-r from-pink-500 to-rose-500 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition shadow-md shadow-rose-500/25 border-0">
+              <button type="button" onclick="window.setGiftDeliveryType('DIRECT')" id="giftDeliveryBtn-direct" class="py-2.5 px-3 rounded-xl bg-pink-500/15 border-2 border-pink-500 text-pink-500 font-bold text-xs flex items-center justify-center gap-1.5 transition shadow-sm">
                 <span>⚡</span> <span class="whitespace-nowrap text-[11px] sm:text-xs">ارسال مستقیم تلگرام</span>
               </button>
-              <button type="button" onclick="window.setGiftDeliveryType('LINK')" id="giftDeliveryBtn-link" class="py-2 px-2 rounded-xl card-inset border border-card-border t-muted hover:t-main font-medium text-xs flex items-center justify-center gap-1.5 transition">
+              <button type="button" onclick="window.setGiftDeliveryType('LINK')" id="giftDeliveryBtn-link" class="py-2.5 px-3 rounded-xl card-inset border border-card-border t-muted hover:t-main font-medium text-xs flex items-center justify-center gap-1.5 transition">
                 <span>🔗</span> <span class="whitespace-nowrap text-[11px] sm:text-xs">ساخت لینک هدیه</span>
               </button>
             </div>
@@ -3464,8 +3464,8 @@
           <div class="flex justify-between items-start pt-1">
             <div class="space-y-0.5">
               <div class="flex items-center gap-1.5">
-                <b id="invItemTitle" class="t-main text-xs">بسته اشتراک</b>
                 <span id="invItemIcon" class="text-xs shrink-0">📦</span>
+                <b id="invItemTitle" class="t-main text-xs">بسته اشتراک</b>
               </div>
               <span id="invItemSpecs" class="t-muted text-[11px] block">-- گیگابایت | -- روز</span>
             </div>

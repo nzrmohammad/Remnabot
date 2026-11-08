@@ -75,6 +75,16 @@ def main_menu_keyboard(
     kb.button(text=t(lang, "btn_support"), callback_data="menu:support")
 
     sizes.extend([2, 2, 2, 2, 2])
+
+    from aiogram.types import WebAppInfo
+    btn_user_panel_text = t(lang, "btn_user_panel")
+    if web_app_url:
+        user_tma_url = f"{web_app_url.rstrip('/')}/app"
+        kb.button(text=btn_user_panel_text, web_app=WebAppInfo(url=user_tma_url))
+    else:
+        kb.button(text=btn_user_panel_text, callback_data="nav:user_tma:nourl")
+    sizes.append(1)
+
     if is_admin:
         kb.button(text=t(lang, "btn_admin_panel"), callback_data="menu:admin")
         sizes.append(1)

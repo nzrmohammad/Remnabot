@@ -659,9 +659,9 @@
                 <svg class="w-4 h-4 t-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
                 <span class="text-[11px] font-bold">مصرف‌کنندگان</span>
               </button>`
-            : `<div class="flex-1 bg-transparent text-slate-500 border border-slate-700/40 py-2 rounded-xl flex items-center justify-center gap-1.5 opacity-40 cursor-not-allowed select-none" title="فاقد استفاده">
-                <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
-                <span class="text-[11px] font-bold">بدون مصرف</span>
+            : `<div class="flex-1 card-inset border border-slate-700/80 text-slate-400 py-2 rounded-xl flex items-center justify-center gap-1.5 cursor-not-allowed select-none shadow-xs" title="فاقد استفاده">
+                <svg class="w-4 h-4 text-slate-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+                <span class="text-[11px] font-bold text-slate-400">بدون مصرف</span>
               </div>`;
 
           const toggleBtnHtml = `<button onclick="window.adminActions.toggleCoupon(${c.id}, ${c.is_active})" class="flex-1 bg-transparent py-2 rounded-xl transition flex items-center justify-center gap-1.5 active:scale-95 shadow-sm font-bold ${
