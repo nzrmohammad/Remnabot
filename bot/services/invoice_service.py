@@ -187,8 +187,19 @@ async def send_invoice_to_telegram(bot: Bot, telegram_id: int, invoice: dict[str
                     logger.debug("Failed sending remote logo photo: %s", p_err)
             else:
                 clean_path = logo_url.split("?")[0].lstrip("/")
-                disk_path = Path("bot/web") / clean_path
-                if disk_path.exists() and disk_path.is_file():
+                base_dir = Path(__file__).resolve().parent.parent / "web"
+                candidate_paths = [
+                    Path(clean_path),
+                    Path("bot/web") / clean_path,
+                    base_dir / clean_path,
+                ]
+                disk_path = None
+                for p in candidate_paths:
+                    if p.exists() and p.is_file():
+                        disk_path = p
+                        break
+
+                if disk_path:
                     try:
                         await bot.send_photo(
                             chat_id=telegram_id,

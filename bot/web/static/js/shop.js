@@ -128,7 +128,7 @@ function renderWonCoupons(data) {
       ? 'won-coupon-apply-btn bg-emerald-600 text-white font-semibold px-3 py-1.5 rounded-lg text-xs transition active:scale-95 shrink-0 shadow-sm'
       : 'won-coupon-apply-btn btn btn-primary text-xs font-semibold px-3 py-1.5 rounded-lg shadow shrink-0';
     return `
-      <div class="won-coupon-card flex-1 min-w-[140px] flex items-center justify-between gap-2 p-2.5 rounded-xl bg-transparent border border-[var(--card-border)] transition shadow-none">
+      <div class="won-coupon-card flex-1 min-w-[140px] flex items-center justify-between gap-2 p-2.5 rounded-xl card-inset border border-slate-200 dark:border-slate-800 transition shadow-none">
         <div class="text-right">
           <div class="flex items-center gap-1">
             <span class="text-xs">🎟</span>
@@ -326,7 +326,9 @@ async function updateCustomPlanCalculation() {
 
     if (localDisc > 0) {
       if (discRow) discRow.classList.remove('hidden');
-      if (discEl) discEl.innerHTML = `<span dir="ltr" class="font-mono">-${Number(localDisc).toLocaleString('en-US')}</span> تومان <span dir="ltr" class="font-mono font-bold">(${loyaltyPct}%)</span>`;
+      const discPctEl = document.getElementById('customPlanDiscountPct');
+      if (discPctEl) discPctEl.innerText = loyaltyPct;
+      if (discEl) discEl.innerHTML = `<span dir="ltr" class="font-mono">-${Number(localDisc).toLocaleString('en-US')}</span> تومان`;
     } else {
       if (discRow) discRow.classList.add('hidden');
     }
@@ -560,7 +562,7 @@ function renderFilteredShopPlans() {
       planBadge = '<div class="shop-plan-badge badge-vip absolute top-0 left-0 bg-gradient-to-r from-rose-500 via-pink-500 to-purple-500 text-white text-[11px] font-black px-3 py-0.5 rounded-br-xl border-b border-r border-rose-300/70 shadow-lg shadow-rose-500/30 flex items-center gap-1">👑 پیشنهاد ویژه</div>';
       badgeBorderClass = 'border-rose-500/70 shadow-lg shadow-rose-500/20';
       btnClass = 'btn-plan-vip';
-    } else if (planBadgeKey === 'bestseller' || (!planBadgeKey && (planText.includes('پرفروش') || planText.includes('bestseller')))) {
+    } else if (planBadgeKey === 'bestseller' || planBadgeKey.includes('پرفروش') || (!planBadgeKey && (planText.includes('پرفروش') || planText.includes('bestseller')))) {
       planBadge = '<div class="shop-plan-badge badge-bestseller absolute top-0 left-0 bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 text-white text-[11px] font-black px-3 py-0.5 rounded-br-xl border-b border-r border-amber-300/80 shadow-lg shadow-amber-500/30 flex items-center gap-1">🔥 پرفروش‌ترین</div>';
       badgeBorderClass = 'border-amber-400/80 shadow-lg shadow-amber-500/25';
       btnClass = 'btn-plan-bestseller';

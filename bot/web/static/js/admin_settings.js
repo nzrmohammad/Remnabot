@@ -325,12 +325,22 @@ openUserChat(telegram_id, name, tag, topup_id) {
       const img = $('adminStoreLogoImg');
       const empty = $('adminStoreLogoEmpty');
       const delBtn = $('adminDeleteLogoBtn');
-      if (url && url.trim()) {
-        if (img) {
-          img.src = url.trim();
-          img.classList.remove('hidden');
+      let cleanUrl = (url || '').trim();
+      if (cleanUrl) {
+        if (!cleanUrl.startsWith('http://') && !cleanUrl.startsWith('https://') && !cleanUrl.startsWith('/')) {
+          cleanUrl = '/' + cleanUrl;
         }
-        if (empty) empty.classList.add('hidden');
+        if (img) {
+          img.onerror = () => {
+            img.classList.add('hidden');
+            if (empty) empty.classList.remove('hidden');
+          };
+          img.onload = () => {
+            img.classList.remove('hidden');
+            if (empty) empty.classList.add('hidden');
+          };
+          img.src = cleanUrl;
+        }
         if (delBtn) delBtn.classList.remove('hidden');
       } else {
         if (img) {

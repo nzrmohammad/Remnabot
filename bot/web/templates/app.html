@@ -494,7 +494,7 @@
           <div id="sessionsAccordionBody" class="hidden px-4 pb-4 pt-1 space-y-3 text-xs border-t border-slate-700/50">
             <div class="flex justify-between items-center pt-2">
               <span class="text-[11px] text-slate-400">دستگاه‌های فعال روی این اکانت (HWID):</span>
-              <button id="killAllBtn" class="text-[11px] t-danger hover:text-rose-300 bg-transparent hover:bg-rose-950/30 border border-rose-800/60 px-2.5 py-1 rounded-lg font-medium transition active:scale-95">
+              <button id="killAllBtn" type="button" onclick="window.openKillAllSessionsModal && window.openKillAllSessionsModal()" class="text-[11px] t-danger hover:text-rose-300 bg-transparent hover:bg-rose-950/30 border border-rose-800/60 px-2.5 py-1 rounded-lg font-medium transition active:scale-95">
                 ⛔️ قطع همه
               </button>
             </div>
@@ -1014,11 +1014,11 @@
               <span id="customPlanBasePriceDisplay" class="font-mono">0 تومان</span>
             </div>
             <div id="customPlanVolumeDiscountRow" class="flex justify-between items-center text-[11px] text-emerald-500 hidden">
-              <span>تخفیف پلکانی حجم انتخابی (<span id="customPlanVolumeTierPct">0</span>٪):</span>
+              <span>تخفیف پلکانی حجم انتخابی (<span id="customPlanVolumeTierPct">0</span>%):</span>
               <span id="customPlanVolumeDiscountDisplay" class="font-mono">0 تومان</span>
             </div>
             <div id="customPlanDiscountRow" class="flex justify-between items-center text-[11px] text-amber-500 hidden">
-              <span>تخفیف باشگاه مشتریان شما:</span>
+              <span>تخفیف باشگاه مشتریان شما (<span id="customPlanDiscountPct">0</span>%):</span>
               <span id="customPlanDiscountDisplay" class="font-mono">0 تومان</span>
             </div>
             <div class="border-t border-card-border pt-2 flex justify-between items-center">
@@ -1045,7 +1045,7 @@
 
         <!-- Coupon Box (Hidden until plans are rendered) -->
         <div id="shopCouponSection" class="space-y-2 hidden">
-          <div class="card-inset rounded-xl p-2.5 flex items-center gap-2">
+          <div class="card-inset rounded-xl p-2.5 flex items-center gap-2 border border-slate-200 dark:border-slate-800">
             <input type="text" placeholder="کد تخفیف (مثال: OFF20)" class="input-base text-xs placeholder:text-[11px] px-3 py-2 rounded-lg flex-1 outline-none uppercase font-mono" id="couponInput" />
             <button id="applyCouponBtn" type="button" class="btn btn-primary text-xs font-semibold px-4 py-2 rounded-lg shadow shrink-0">⚡️ اعمال</button>
           </div>
@@ -3172,7 +3172,41 @@
         </div>
       </div>
     </div>
-    <!-- 15. MODAL: GIFT TO FRIENDS (ارسال هدیه به دوستان) -->
+<!-- ======================================================== -->
+    <!-- 8.1 MODAL: KILL ALL SESSIONS CONFIRMATION (قطع همه نشست‌ها) -->
+    <!-- ======================================================== -->
+    <div id="killAllSessionsModal" onclick="if(event.target === this) window.closeKillAllSessionsModal()" class="fixed inset-0 modal-backdrop z-[85] flex items-center justify-center p-3 sm:p-4 hidden animate-fadeIn overflow-y-auto">
+      <div class="modal-card border border-rose-500/40 rounded-3xl p-4 sm:p-5 w-full text-right space-y-3.5 shadow-2xl relative max-w-[360px] my-auto">
+        <button type="button" onclick="window.closeKillAllSessionsModal()" class="modal-close-btn absolute top-3 left-3" title="بستن" aria-label="بستن پنجره">✕</button>
+        <div class="flex items-center gap-2.5 pb-2 border-b border-card-border">
+          <div class="w-10 h-10 rounded-2xl bg-rose-500/15 text-rose-500 border border-rose-500/30 flex items-center justify-center text-xl shrink-0 shadow-sm">
+            ⛔️
+          </div>
+          <div>
+            <h3 class="text-xs font-bold t-main">قطع تمام نشست‌های فعال</h3>
+            <span class="text-[11px] t-muted block mt-0.5">ابطال نشست‌ها و صدور شناسه اتصال امن جدید</span>
+          </div>
+        </div>
+        <div class="space-y-2 text-xs leading-relaxed card-inset p-3 rounded-2xl border border-card-border">
+          <p class="t-main font-medium">
+            آیا از قطع دسترسی تمامی دستگاه‌های متصل به این حساب اطمینان دارید؟
+          </p>
+          <p class="text-[11px] t-muted">
+            ⚠️ پس از تایید، کلیه نشست‌های فعال فوراً متوقف شده، شناسه اتصال قبلی منقضی می‌گردد و لینک اشتراک جدیدی برای شما صادر خواهد شد.
+          </p>
+        </div>
+        <div class="flex items-center gap-2 pt-1">
+          <button id="confirmKillAllSessionsBtn" type="button" onclick="window.confirmKillAllSessions()" class="btn btn-danger flex-1 py-2.5 rounded-xl text-xs font-bold shadow flex items-center justify-center gap-1.5">
+            <span>⛔️</span> بله، همه را قطع کن
+          </button>
+          <button type="button" onclick="window.closeKillAllSessionsModal()" class="btn btn-secondary py-2.5 px-4 rounded-xl text-xs font-medium">
+            انصراف
+          </button>
+        </div>
+      </div>
+    </div>
+
+        <!-- 15. MODAL: GIFT TO FRIENDS (ارسال هدیه به دوستان) -->
     <div id="giftModal" onclick="if(event.target === this) window.closeGiftModal()" class="fixed inset-0 modal-backdrop z-50 flex items-center justify-center p-3 sm:p-4 hidden animate-fadeIn overflow-y-auto">
       <div class="modal-card border border-pink-500/40 rounded-3xl p-4 sm:p-5 w-full text-right space-y-3.5 shadow-2xl relative max-w-[360px] my-auto">
         <button type="button" onclick="window.closeGiftModal()" class="modal-close-btn absolute top-3 left-3" title="بستن" aria-label="بستن مودال هدیه">✕</button>
@@ -3190,10 +3224,10 @@
 
         <!-- Gift Modal Tabs (ارسال هدیه / تاریخچه) -->
         <div class="flex items-center p-1 card-inset rounded-2xl text-xs gap-1">
-          <button type="button" onclick="window.switchGiftModalTab('new')" id="giftTabBtn-new" class="flex-1 py-1.5 px-2 rounded-xl font-bold transition flex items-center justify-center gap-1 bg-pink-600 text-white shadow">
+          <button type="button" onclick="window.switchGiftModalTab('new')" id="giftTabBtn-new" class="flex-1 py-1.5 px-2 rounded-xl font-bold transition flex items-center justify-center gap-1 bg-gradient-to-r from-pink-500 to-rose-500 text-white shadow-sm">
             <span>🎁</span> هدیه جدید
           </button>
-          <button type="button" onclick="window.switchGiftModalTab('history')" id="giftTabBtn-history" class="flex-1 py-1.5 px-2 rounded-xl font-medium transition flex items-center justify-center gap-1 text-slate-400 hover:text-white">
+          <button type="button" onclick="window.switchGiftModalTab('history')" id="giftTabBtn-history" class="flex-1 py-1.5 px-2 rounded-xl font-medium transition flex items-center justify-center gap-1 t-muted hover:t-main">
             <span>📜</span> تاریخچه
           </button>
         </div>
@@ -3207,7 +3241,7 @@
               <button type="button" onclick="window.setGiftType('BALANCE')" id="giftTypeBtn-balance" class="py-2 px-2.5 rounded-xl border border-pink-500/40 bg-pink-500/15 text-pink-600 dark:text-pink-300 font-bold text-xs flex items-center justify-center gap-1.5 transition">
                 <span>💰</span> شارژ کیف پول
               </button>
-              <button type="button" onclick="window.setGiftType('SERVICE')" id="giftTypeBtn-service" class="py-2 px-2.5 rounded-xl border border-card-border text-slate-400 hover:text-white font-medium text-xs flex items-center justify-center gap-1.5 transition">
+              <button type="button" onclick="window.setGiftType('SERVICE')" id="giftTypeBtn-service" class="py-2 px-2.5 rounded-xl border border-card-border t-muted hover:t-main font-medium text-xs flex items-center justify-center gap-1.5 transition">
                 <span>📦</span> بسته اشتراک
               </button>
             </div>
@@ -3248,20 +3282,20 @@
               <button type="button" onclick="window.setGiftDeliveryType('DIRECT')" id="giftDeliveryBtn-direct" class="py-2 px-2.5 rounded-xl border border-pink-500/40 bg-pink-500/15 text-pink-600 dark:text-pink-300 font-bold text-xs flex items-center justify-center gap-1.5 transition">
                 <span>⚡</span> ارسال مستقیم در تلگرام
               </button>
-              <button type="button" onclick="window.setGiftDeliveryType('LINK')" id="giftDeliveryBtn-link" class="py-2 px-2.5 rounded-xl border border-card-border text-slate-400 hover:text-white font-medium text-xs flex items-center justify-center gap-1.5 transition">
+              <button type="button" onclick="window.setGiftDeliveryType('LINK')" id="giftDeliveryBtn-link" class="py-2 px-2.5 rounded-xl border border-card-border t-muted hover:t-main font-medium text-xs flex items-center justify-center gap-1.5 transition">
                 <span>🔗</span> ساخت لینک هدیه
               </button>
             </div>
           </div>
 
           <!-- Direct Recipient Input (Shown only for DIRECT delivery) -->
-          <div id="giftReceiverSection" class="space-y-1">
+          <div id="giftReceiverSection" class="space-y-1.5">
             <span class="text-[11px] t-muted block">آیدی یا شناسه عددی تلگرام گیرنده:</span>
             <div class="relative flex items-center">
-              <input type="text" id="giftReceiverInput" placeholder="username یا 123456789" class="input-base w-full p-2.5 rounded-xl text-xs font-mono outline-none text-left pl-7" dir="ltr" />
+              <input type="text" id="giftReceiverInput" placeholder="username &lrm;یا&lrm; 123456789" class="input-base w-full p-2.5 rounded-xl text-xs font-mono outline-none text-left pl-7" dir="ltr" />
               <span class="absolute left-2.5 text-xs text-slate-400 font-mono select-none pointer-events-none">@</span>
             </div>
-            <span class="text-[11px] text-slate-400 block">ربات بلافاصله هدیه را همراه پیام شما به دوستتان تحویل می‌دهد.</span>
+            <span class="text-[11px] t-muted block leading-relaxed mt-0.5">ربات بلافاصله هدیه را همراه پیام شما به دوستتان تحویل می‌دهد.</span>
           </div>
 
           <!-- Optional Greeting Message -->
@@ -3391,7 +3425,10 @@
           </div>
           <div class="flex justify-between items-start pt-1">
             <div class="space-y-0.5">
-              <b id="invItemTitle" class="t-main text-xs block">بسته اشتراک</b>
+              <div class="flex items-center gap-1.5">
+                <b id="invItemTitle" class="t-main text-xs">بسته اشتراک</b>
+                <span id="invItemIcon" class="text-xs shrink-0">📦</span>
+              </div>
               <span id="invItemSpecs" class="t-muted text-[11px] block">-- گیگابایت | -- روز</span>
             </div>
             <div class="text-left font-mono font-bold text-xs t-main">
@@ -3507,7 +3544,7 @@
                   <b class="text-xs t-main">سطح نقره‌ای</b>
                   <span id="loyaltyTierCard_silver_spent" class="text-[11px] font-bold text-slate-600 dark:text-slate-300 font-mono">1,000,000 تومان</span>
                 </div>
-                <p class="text-[11px] t-muted mt-0.5 leading-snug"><span id="loyaltyTierCard_silver_pct" class="text-emerald-500 font-bold font-mono num-bidi" dir="ltr">3%</span> <b class="text-emerald-500 font-bold">تخفیف</b>.</p>
+                <p class="text-[11px] t-muted mt-0.5 leading-snug"><span id="loyaltyTierCard_silver_pct" class="text-emerald-500 font-bold font-sans num-bidi" dir="ltr">3%</span> <b class="text-emerald-500 font-bold">تخفیف</b>.</p>
               </div>
             </div>
 
@@ -3521,7 +3558,7 @@
                   <b class="text-xs t-main">سطح طلایی</b>
                   <span id="loyaltyTierCard_gold_spent" class="text-[11px] font-bold text-amber-500 font-mono">2,500,000 تومان</span>
                 </div>
-                <p class="text-[11px] t-muted mt-0.5 leading-snug"><span id="loyaltyTierCard_gold_pct" class="text-emerald-500 font-bold font-mono num-bidi" dir="ltr">5%</span> <b class="text-emerald-500 font-bold">تخفیف</b>.</p>
+                <p class="text-[11px] t-muted mt-0.5 leading-snug"><span id="loyaltyTierCard_gold_pct" class="text-emerald-500 font-bold font-sans num-bidi" dir="ltr">5%</span> <b class="text-emerald-500 font-bold">تخفیف</b>.</p>
               </div>
             </div>
 
@@ -3535,7 +3572,7 @@
                   <b class="text-xs text-cyan-500 dark:text-cyan-300 font-bold">سطح پلاتین</b>
                   <span id="loyaltyTierCard_platinum_spent" class="text-[11px] font-bold t-accent font-mono">5,000,000 تومان</span>
                 </div>
-                <p class="text-[11px] t-muted mt-0.5 leading-snug"><span id="loyaltyTierCard_platinum_pct" class="text-emerald-500 font-bold font-mono num-bidi" dir="ltr">8%</span> <b class="text-emerald-500 font-bold">تخفیف</b>.</p>
+                <p class="text-[11px] t-muted mt-0.5 leading-snug"><span id="loyaltyTierCard_platinum_pct" class="text-emerald-500 font-bold font-sans num-bidi" dir="ltr">8%</span> <b class="text-emerald-500 font-bold">تخفیف</b>.</p>
               </div>
             </div>
 
@@ -3549,7 +3586,7 @@
                   <b class="text-xs t-purple font-bold">سطح یاقوت</b>
                   <span id="loyaltyTierCard_ruby_spent" class="text-[11px] font-bold t-purple font-mono">8,000,000 تومان</span>
                 </div>
-                <p class="text-[11px] t-muted mt-0.5 leading-snug"><span id="loyaltyTierCard_ruby_pct" class="text-emerald-500 font-bold font-mono num-bidi" dir="ltr">10%</span> <b class="text-emerald-500 font-bold">تخفیف</b>.</p>
+                <p class="text-[11px] t-muted mt-0.5 leading-snug"><span id="loyaltyTierCard_ruby_pct" class="text-emerald-500 font-bold font-sans num-bidi" dir="ltr">10%</span> <b class="text-emerald-500 font-bold">تخفیف</b>.</p>
               </div>
             </div>
 
@@ -3563,7 +3600,7 @@
                   <b class="text-xs t-success font-bold">سطح زمرد</b>
                   <span id="loyaltyTierCard_emerald_spent" class="text-[11px] font-bold t-success font-mono">12,000,000 تومان</span>
                 </div>
-                <p class="text-[11px] t-muted mt-0.5 leading-snug"><span id="loyaltyTierCard_emerald_pct" class="text-emerald-500 font-bold font-mono num-bidi" dir="ltr">12%</span> <b class="text-emerald-500 font-bold">تخفیف</b>.</p>
+                <p class="text-[11px] t-muted mt-0.5 leading-snug"><span id="loyaltyTierCard_emerald_pct" class="text-emerald-500 font-bold font-sans num-bidi" dir="ltr">12%</span> <b class="text-emerald-500 font-bold">تخفیف</b>.</p>
               </div>
             </div>
 
@@ -3577,7 +3614,7 @@
                   <b class="text-xs text-amber-600 dark:text-amber-300 font-bold">سطح الماس</b>
                   <span id="loyaltyTierCard_diamond_spent" class="text-[11px] font-bold text-amber-600 dark:text-amber-300 font-mono">20,000,000 تومان</span>
                 </div>
-                <p class="text-[11px] t-muted mt-0.5 leading-snug"><span id="loyaltyTierCard_diamond_pct" class="text-emerald-500 font-bold font-mono num-bidi" dir="ltr">15%</span> <b class="text-emerald-500 font-bold">تخفیف</b> + پشتیبانی اختصاصی.</p>
+                <p class="text-[11px] t-muted mt-0.5 leading-snug"><span id="loyaltyTierCard_diamond_pct" class="text-emerald-500 font-bold font-sans num-bidi" dir="ltr">15%</span> <b class="text-emerald-500 font-bold">تخفیف</b> + پشتیبانی اختصاصی.</p>
               </div>
             </div>
           </div>

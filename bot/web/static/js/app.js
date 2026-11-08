@@ -579,19 +579,8 @@ function setupRevokeAndKill() {
     }
   });
 
-  $('killAllBtn')?.addEventListener('click', async () => {
-    if (!confirm('آیا از قطع اتصال تمام نشست‌ها و ابطال لینک قبلی اطمینان دارید؟')) return;
-    try {
-      const res = await window.api.revokeSub();
-      if (res.ok) {
-        showToast('✅ تمام نشست‌های فعال مسدود و لینک اشتراک امن جدید صادر شد.');
-        syncUserDataWithApi();
-      } else {
-        alert(res.error || 'خطا در قطع نشست‌ها.');
-      }
-    } catch (err) {
-      alert('خطا در برقراری ارتباط با سرور.');
-    }
+  $('killAllBtn')?.addEventListener('click', () => {
+    openKillAllSessionsModal();
   });
 }
 
@@ -2163,7 +2152,7 @@ const APP_MODAL_IDS = [
   'shopGuidanceModal', 'speedTestModal', 'wheelResultModal',
   'speedResultsModal', 'birthdayModal', 'alertThresholdModal',
   'expiryCountdownModal', 'birthdayCountdownModal', 'giftModal',
-  'giftServiceSelectModal', 'invoiceModal', 'loyaltyModal',
+  'giftServiceSelectModal', 'invoiceModal', 'loyaltyModal', 'killAllSessionsModal',
 ];
 
 function updateTopPadding() {
@@ -4276,8 +4265,8 @@ function switchGiftModalTab(tab) {
   $('giftNewView')?.classList.toggle('hidden', tab !== 'new');
   $('giftHistoryView')?.classList.toggle('hidden', tab !== 'history');
 
-  const activeClass = 'flex-1 py-1.5 px-2 rounded-xl font-bold transition flex items-center justify-center gap-1 bg-pink-600 text-white shadow';
-  const inactiveClass = 'flex-1 py-1.5 px-2 rounded-xl font-medium transition flex items-center justify-center gap-1 text-slate-400 hover:text-white';
+  const activeClass = 'flex-1 py-1.5 px-2 rounded-xl font-bold transition flex items-center justify-center gap-1 bg-gradient-to-r from-pink-500 to-rose-500 text-white shadow-sm';
+  const inactiveClass = 'flex-1 py-1.5 px-2 rounded-xl font-medium transition flex items-center justify-center gap-1 t-muted hover:t-main';
 
   const btnNew = $('giftTabBtn-new');
   const btnHistory = $('giftTabBtn-history');
@@ -4368,8 +4357,8 @@ function setGiftType(type) {
   $('giftBalanceSection')?.classList.toggle('hidden', !isBal);
   $('giftServiceSection')?.classList.toggle('hidden', isBal);
 
-  const activeBtnClass = 'py-2 px-2.5 rounded-xl border border-pink-500/40 bg-pink-500/15 text-pink-600 dark:text-pink-300 font-bold text-xs flex items-center justify-center gap-1.5 transition';
-  const inactiveBtnClass = 'py-2 px-2.5 rounded-xl border border-card-border text-slate-400 hover:text-white font-medium text-xs flex items-center justify-center gap-1.5 transition';
+  const activeBtnClass = 'py-2 px-2.5 rounded-xl border border-pink-500/50 bg-pink-500/15 text-pink-600 dark:text-pink-300 font-bold text-xs flex items-center justify-center gap-1.5 transition shadow-sm';
+  const inactiveBtnClass = 'py-2 px-2.5 rounded-xl border border-card-border t-muted hover:t-main font-medium text-xs flex items-center justify-center gap-1.5 transition';
 
   const btnBal = $('giftTypeBtn-balance');
   const btnSvc = $('giftTypeBtn-service');
@@ -4383,8 +4372,8 @@ function setGiftDeliveryType(type) {
   const isDirect = type === 'DIRECT';
   $('giftReceiverSection')?.classList.toggle('hidden', !isDirect);
 
-  const activeBtnClass = 'py-2 px-2.5 rounded-xl border border-pink-500/40 bg-pink-500/15 text-pink-600 dark:text-pink-300 font-bold text-xs flex items-center justify-center gap-1.5 transition';
-  const inactiveBtnClass = 'py-2 px-2.5 rounded-xl border border-card-border text-slate-400 hover:text-white font-medium text-xs flex items-center justify-center gap-1.5 transition';
+  const activeBtnClass = 'py-2 px-2.5 rounded-xl border border-pink-500/50 bg-pink-500/15 text-pink-600 dark:text-pink-300 font-bold text-xs flex items-center justify-center gap-1.5 transition shadow-sm';
+  const inactiveBtnClass = 'py-2 px-2.5 rounded-xl border border-card-border t-muted hover:t-main font-medium text-xs flex items-center justify-center gap-1.5 transition';
 
   const btnDir = $('giftDeliveryBtn-direct');
   const btnLink = $('giftDeliveryBtn-link');
@@ -4666,12 +4655,22 @@ async function openInvoiceModal(orderId) {
     $('invSellerName').innerText = inv.seller?.name || 'سرویس ابری رمنا';
     const logoImg = $('invSellerLogo');
     const defaultIcon = $('invSellerDefaultIcon');
-    if (inv.seller?.logo_url) {
-      if (logoImg) {
-        logoImg.src = inv.seller.logo_url;
-        logoImg.classList.remove('hidden');
+    let logoUrl = (inv.seller?.logo_url || '').trim();
+    if (logoUrl) {
+      if (!logoUrl.startsWith('http://') && !logoUrl.startsWith('https://') && !logoUrl.startsWith('/')) {
+        logoUrl = '/' + logoUrl;
       }
-      if (defaultIcon) defaultIcon.classList.add('hidden');
+      if (logoImg) {
+        logoImg.onerror = () => {
+          logoImg.classList.add('hidden');
+          if (defaultIcon) defaultIcon.classList.remove('hidden');
+        };
+        logoImg.onload = () => {
+          logoImg.classList.remove('hidden');
+          if (defaultIcon) defaultIcon.classList.add('hidden');
+        };
+        logoImg.src = logoUrl;
+      }
     } else {
       if (logoImg) logoImg.classList.add('hidden');
       if (defaultIcon) defaultIcon.classList.remove('hidden');
@@ -4685,6 +4684,16 @@ async function openInvoiceModal(orderId) {
     }
 
     $('invItemTitle').innerText = inv.item?.title || 'بسته اشتراک';
+    if ($('invItemIcon')) {
+      const title = (inv.item?.title || '').toLowerCase();
+      let icon = '📦';
+      if (title.includes('طلایی') || title.includes('gold')) icon = '🥇';
+      else if (title.includes('نقره') || title.includes('silver')) icon = '🥈';
+      else if (title.includes('برنز') || title.includes('bronze')) icon = '🥉';
+      else if (title.includes('الماس') || title.includes('diamond')) icon = '💎';
+      else if (title.includes('ویژه') || title.includes('vip')) icon = '👑';
+      $('invItemIcon').innerText = icon;
+    }
     $('invItemSpecs').innerText = `${inv.item?.traffic_text || ''} | ${inv.item?.duration_text || ''}`;
     $('invItemAmount').innerText = Number(inv.payment?.amount_toman || 0).toLocaleString('en-US');
 
@@ -4890,7 +4899,7 @@ function openLoyaltyModal() {
     if ($('loyaltyModalTotalSpent')) $('loyaltyModalTotalSpent').innerText = `${Number(loyalty.total_spent || 0).toLocaleString('en-US')} تومان`;
     if ($('loyaltyModalCurrentDiscount')) {
       const disc = toEnglishDigits(loyalty.discount_percent || 0);
-      $('loyaltyModalCurrentDiscount').innerHTML = Number(disc) > 0 ? `<span class="font-mono font-bold" dir="ltr">${disc}%</span> تخفیف` : 'بدون تخفیف';
+      $('loyaltyModalCurrentDiscount').innerHTML = Number(disc) > 0 ? `<span class="font-sans font-bold num-bidi" dir="ltr">${disc}%</span> تخفیف` : 'بدون تخفیف';
       $('loyaltyModalCurrentDiscount').className = Number(disc) > 0 ? 'text-xs font-bold text-emerald-500' : 'text-xs font-medium t-muted';
     }
     if ($('loyaltyModalProgressText')) {
@@ -4921,7 +4930,7 @@ function openLoyaltyModal() {
           spentEl.innerText = `${Number(t.min_spent).toLocaleString('en-US')} تومان`;
         }
         if (pctEl && t.discount_percent !== undefined) {
-          pctEl.innerHTML = `<span class="num-bidi font-mono font-bold" dir="ltr">${toEnglishDigits(t.discount_percent)}%</span>`;
+          pctEl.innerHTML = `<span class="num-bidi font-sans font-bold" dir="ltr">${toEnglishDigits(t.discount_percent)}%</span>`;
         }
       });
     }
@@ -4951,3 +4960,32 @@ function closeLoyaltyModal() {
 
 window.openLoyaltyModal = openLoyaltyModal;
 window.closeLoyaltyModal = closeLoyaltyModal;
+
+function openKillAllSessionsModal() {
+  const m = $('killAllSessionsModal');
+  if (m) m.classList.remove('hidden');
+  hapticFeedback('warning');
+}
+
+function closeKillAllSessionsModal() {
+  const m = $('killAllSessionsModal');
+  if (m) m.classList.add('hidden');
+}
+
+async function confirmKillAllSessions() {
+  closeKillAllSessionsModal();
+  try {
+    const res = await window.api.revokeSub();
+    if (res && res.ok) {
+      showToast('✅ تمام نشست‌های فعال مسدود و لینک اشتراک امن جدید صادر شد.');
+      syncUserDataWithApi();
+    } else {
+      showToast(`❌ ${res?.error || res?.message || 'خطا در قطع نشست‌ها.'}`);
+    }
+  } catch (err) {
+    showToast('❌ خطا در برقراری ارتباط با سرور.');
+  }
+}
+window.openKillAllSessionsModal = openKillAllSessionsModal;
+window.closeKillAllSessionsModal = closeKillAllSessionsModal;
+window.confirmKillAllSessions = confirmKillAllSessions;

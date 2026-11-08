@@ -407,12 +407,12 @@ button, a, .tab-btn, .nav-item, [role="button"] {
 }
 
 .btn-plan-bestseller {
-  background: var(--plan-featured-bg, linear-gradient(135deg, #0369a1, #0284c7));
+  background: linear-gradient(135deg, #f59e0b 0%, #ea580c 100%);
   color: #ffffff;
-  box-shadow: 0 4px 14px rgba(3, 105, 161, 0.35);
+  box-shadow: 0 4px 14px rgba(245, 158, 11, 0.4);
 }
 .btn-plan-bestseller:hover {
-  background: linear-gradient(135deg, #0284c7, #0ea5e9);
+  background: linear-gradient(135deg, #fbbf24 0%, #f97316 100%);
 }
 
 .btn-plan-traffic {

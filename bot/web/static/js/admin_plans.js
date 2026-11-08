@@ -554,6 +554,16 @@
     deletePlan(id, name) {
       window._pendingDeletePlanId = id;
       if ($('deletePlanModalName')) $('deletePlanModalName').innerText = name || 'تعرفه انتخابی';
+      if ($('deletePlanModalIcon')) {
+        let icon = '📦';
+        const lowerName = (name || '').toLowerCase();
+        if (lowerName.includes('طلایی') || lowerName.includes('gold')) icon = '🥇';
+        else if (lowerName.includes('نقره') || lowerName.includes('silver')) icon = '🥈';
+        else if (lowerName.includes('برنز') || lowerName.includes('bronze')) icon = '🥉';
+        else if (lowerName.includes('الماس') || lowerName.includes('diamond')) icon = '💎';
+        else if (lowerName.includes('ویژه') || lowerName.includes('vip')) icon = '👑';
+        $('deletePlanModalIcon').innerText = icon;
+      }
       $('deletePlanModal')?.classList.remove('hidden');
       if (window.hapticFeedback) window.hapticFeedback('warning');
     },

@@ -22,8 +22,13 @@ function formatCardNumberDisplay(num) {
 function renderBluCardNumber(el, num) {
   if (!el) return;
   const clean = String(num || '').replace(/\D/g, '');
+  const isGraphic = el.id === 'graphicCardNumberDisplay' || Boolean(el.closest && el.closest('.blu-card-perspective-box'));
   if (clean.length === 16) {
-    el.innerHTML = `<span class="tracking-wide font-black text-white" style="color: #ffffff;">${clean.slice(0, 4)}</span>&nbsp;<span class="tracking-wide font-black text-white" style="color: #ffffff;">${clean.slice(4, 8)}</span>&nbsp;<span class="tracking-wide font-black text-white" style="color: #ffffff;">${clean.slice(8, 12)}</span>&nbsp;<span class="tracking-wide font-black text-white" style="color: #ffffff;">${clean.slice(12, 16)}</span>`;
+    if (isGraphic) {
+      el.innerHTML = `<span class="tracking-wide font-black text-white" style="color: #ffffff;">${clean.slice(0, 4)}</span>&nbsp;<span class="tracking-wide font-black text-white" style="color: #ffffff;">${clean.slice(4, 8)}</span>&nbsp;<span class="tracking-wide font-black text-white" style="color: #ffffff;">${clean.slice(8, 12)}</span>&nbsp;<span class="tracking-wide font-black text-white" style="color: #ffffff;">${clean.slice(12, 16)}</span>`;
+    } else {
+      el.innerHTML = `<span class="tracking-wide font-black">${clean.slice(0, 4)}</span>&nbsp;<span class="tracking-wide font-black">${clean.slice(4, 8)}</span>&nbsp;<span class="tracking-wide font-black">${clean.slice(8, 12)}</span>&nbsp;<span class="tracking-wide font-black">${clean.slice(12, 16)}</span>`;
+    }
   } else {
     el.innerText = formatCardNumberDisplay(num);
   }

@@ -768,9 +768,15 @@ html.theme-light .chat-bubble-admin {
 
 /* --- High Prominence Card Numbers in Light Mode --- */
 html.theme-light #cardAutoCardNumber,
-html.theme-light #topupCardNumber {
+html.theme-light #topupCardNumber,
+html.theme-light #cardAutoCardHolder,
+html.theme-light #topupCardHolder {
   color: #0f172a;
   font-weight: 900;
+}
+html.theme-light #cardAutoCardNumber span,
+html.theme-light #topupCardNumber span {
+  color: #0f172a;
 }
 
 /* --- Standard Persian Sans Typography --- */
