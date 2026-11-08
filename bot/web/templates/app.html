@@ -1013,18 +1013,18 @@
               <span>نرخ پایه + روز و حجم:</span>
               <span id="customPlanBasePriceDisplay" class="font-mono">0 تومان</span>
             </div>
-            <div id="customPlanVolumeDiscountRow" class="flex justify-between items-center text-[11px] text-emerald-500 hidden">
-              <span>تخفیف پلکانی حجم انتخابی (<span id="customPlanVolumeTierPct">0</span>%):</span>
-              <span id="customPlanVolumeDiscountDisplay" class="font-mono">0 تومان</span>
+            <div id="customPlanVolumeDiscountRow" class="flex justify-between items-center text-xs font-semibold text-emerald-700 dark:text-emerald-400 hidden">
+              <span>تخفیف پلکانی حجم انتخابی (<span dir="ltr" class="inline-block num-bidi font-bold"><span id="customPlanVolumeTierPct">0</span>%</span>):</span>
+              <span id="customPlanVolumeDiscountDisplay" class="font-bold">0 تومان</span>
             </div>
-            <div id="customPlanDiscountRow" class="flex justify-between items-center text-[11px] text-amber-500 hidden">
-              <span>تخفیف باشگاه مشتریان شما (<span id="customPlanDiscountPct">0</span>%):</span>
-              <span id="customPlanDiscountDisplay" class="font-mono">0 تومان</span>
+            <div id="customPlanDiscountRow" class="flex justify-between items-center text-xs font-semibold text-amber-700 dark:text-amber-400 hidden">
+              <span>تخفیف باشگاه مشتریان شما (<span dir="ltr" class="inline-block num-bidi font-bold"><span id="customPlanDiscountPct">0</span>%</span>):</span>
+              <span id="customPlanDiscountDisplay" class="font-bold">0 تومان</span>
             </div>
             <div class="border-t border-card-border pt-2 flex justify-between items-center">
               <span class="font-bold t-main text-xs">مبلغ نهایی پرداخت:</span>
               <div class="text-right">
-                <span id="customPlanFinalPrice" class="text-base font-black text-emerald-500 font-mono">0</span>
+                <span id="customPlanFinalPrice" class="text-base font-black text-emerald-700 dark:text-emerald-400 font-mono">0</span>
                 <span class="text-[11px] t-muted font-sans mr-1">تومان</span>
               </div>
             </div>
@@ -3206,6 +3206,45 @@
       </div>
     </div>
 
+    <!-- ======================================================== -->
+    <!-- 8.2 MODAL: KILL SINGLE DEVICE CONFIRMATION (قطع نشست تکی)  -->
+    <!-- ======================================================== -->
+    <div id="killSingleDeviceModal" onclick="if(event.target === this) window.closeKillSingleDeviceModal()" class="fixed inset-0 modal-backdrop z-[86] flex items-center justify-center p-3 sm:p-4 hidden animate-fadeIn overflow-y-auto">
+      <div class="modal-card border border-rose-500/40 rounded-3xl p-4 sm:p-5 w-full text-right space-y-3.5 shadow-2xl relative max-w-[360px] my-auto">
+        <button type="button" onclick="window.closeKillSingleDeviceModal()" class="modal-close-btn absolute top-3 left-3" title="بستن" aria-label="بستن پنجره">✕</button>
+        <div class="flex items-center gap-2.5 pb-2 border-b border-card-border">
+          <div class="w-10 h-10 rounded-2xl bg-rose-500/15 text-rose-500 border border-rose-500/30 flex items-center justify-center text-xl shrink-0 shadow-sm">
+            📱
+          </div>
+          <div>
+            <h3 class="text-xs font-bold t-main">قطع اتصال دستگاه</h3>
+            <span class="text-[11px] t-muted block mt-0.5">ابطال دسترسی این دستگاه به اشتراک</span>
+          </div>
+        </div>
+        <div class="space-y-2 text-xs leading-relaxed card-inset p-3 rounded-2xl border border-card-border">
+          <div class="flex items-center justify-between pb-1.5 border-b border-card-border">
+            <span class="t-muted text-[11px]">دستگاه:</span>
+            <span id="killDeviceModalModel" class="font-bold t-main text-xs">...</span>
+          </div>
+          <div class="flex items-center justify-between pb-1.5 border-b border-card-border">
+            <span class="t-muted text-[11px]">آدرس آی‌پی:</span>
+            <span id="killDeviceModalIp" class="font-mono t-accent text-xs" dir="ltr">IP: —</span>
+          </div>
+          <p class="text-[11px] t-muted pt-1">
+            ⚠️ با قطع این دستگاه، اتصال آن فوراً متوقف شده و برای اتصال مجدد باید لینک اشتراک در نرم‌افزار بروزرسانی شود.
+          </p>
+        </div>
+        <div class="flex items-center gap-2 pt-1">
+          <button id="confirmKillSingleDeviceBtn" type="button" onclick="window.confirmKillSingleDevice()" class="btn btn-danger flex-1 py-2.5 rounded-xl text-xs font-bold shadow flex items-center justify-center gap-1.5">
+            <span>⛔️</span> بله، قطع کن
+          </button>
+          <button type="button" onclick="window.closeKillSingleDeviceModal()" class="btn btn-secondary py-2.5 px-4 rounded-xl text-xs font-medium">
+            انصراف
+          </button>
+        </div>
+      </div>
+    </div>
+
         <!-- 15. MODAL: GIFT TO FRIENDS (ارسال هدیه به دوستان) -->
     <div id="giftModal" onclick="if(event.target === this) window.closeGiftModal()" class="fixed inset-0 modal-backdrop z-50 flex items-center justify-center p-3 sm:p-4 hidden animate-fadeIn overflow-y-auto">
       <div class="modal-card border border-pink-500/40 rounded-3xl p-4 sm:p-5 w-full text-right space-y-3.5 shadow-2xl relative max-w-[360px] my-auto">
@@ -3387,7 +3426,6 @@
         <!-- Official Header -->
         <div class="border-b border-card-border pb-3 flex items-start justify-between gap-3 pt-1">
           <div class="flex items-center gap-2.5">
-            <img id="invSellerLogo" class="w-8 h-8 rounded-xl object-contain border border-card-border hidden" alt="Store Logo" />
             <span id="invSellerDefaultIcon" class="text-2xl">🧾</span>
             <div>
               <h3 class="text-xs font-bold t-main">فاکتور رسمی خدمات دیجیتال</h3>
@@ -3530,7 +3568,7 @@
                   <b class="text-xs t-main">سطح برنزی (پایه)</b>
                   <span class="text-[11px] text-slate-400 font-medium">از ۰ تومان</span>
                 </div>
-                <p class="text-[11px] t-muted mt-0.5 leading-snug">سطح پیش‌فرض هنگام عضویت. بدون تخفیف.</p>
+                <p class="text-[11px] t-muted mt-0.5 leading-snug">سطح پیش‌فرض هنگام عضویت (بدون تخفیف)</p>
               </div>
             </div>
 
@@ -3544,7 +3582,7 @@
                   <b class="text-xs t-main">سطح نقره‌ای</b>
                   <span id="loyaltyTierCard_silver_spent" class="text-[11px] font-bold text-slate-600 dark:text-slate-300 font-mono">1,000,000 تومان</span>
                 </div>
-                <p class="text-[11px] t-muted mt-0.5 leading-snug"><span id="loyaltyTierCard_silver_pct" class="text-emerald-500 font-bold font-sans num-bidi" dir="ltr">3%</span> <b class="text-emerald-500 font-bold">تخفیف</b>.</p>
+                <p class="text-[11px] t-muted mt-0.5 leading-snug"><span id="loyaltyTierCard_silver_pct" class="text-emerald-500 font-bold font-sans num-bidi" dir="ltr">3%</span> <b class="text-emerald-500 font-bold">تخفیف</b></p>
               </div>
             </div>
 
@@ -3558,7 +3596,7 @@
                   <b class="text-xs t-main">سطح طلایی</b>
                   <span id="loyaltyTierCard_gold_spent" class="text-[11px] font-bold text-amber-500 font-mono">2,500,000 تومان</span>
                 </div>
-                <p class="text-[11px] t-muted mt-0.5 leading-snug"><span id="loyaltyTierCard_gold_pct" class="text-emerald-500 font-bold font-sans num-bidi" dir="ltr">5%</span> <b class="text-emerald-500 font-bold">تخفیف</b>.</p>
+                <p class="text-[11px] t-muted mt-0.5 leading-snug"><span id="loyaltyTierCard_gold_pct" class="text-emerald-500 font-bold font-sans num-bidi" dir="ltr">5%</span> <b class="text-emerald-500 font-bold">تخفیف</b></p>
               </div>
             </div>
 
@@ -3572,7 +3610,7 @@
                   <b class="text-xs text-cyan-500 dark:text-cyan-300 font-bold">سطح پلاتین</b>
                   <span id="loyaltyTierCard_platinum_spent" class="text-[11px] font-bold t-accent font-mono">5,000,000 تومان</span>
                 </div>
-                <p class="text-[11px] t-muted mt-0.5 leading-snug"><span id="loyaltyTierCard_platinum_pct" class="text-emerald-500 font-bold font-sans num-bidi" dir="ltr">8%</span> <b class="text-emerald-500 font-bold">تخفیف</b>.</p>
+                <p class="text-[11px] t-muted mt-0.5 leading-snug"><span id="loyaltyTierCard_platinum_pct" class="text-emerald-500 font-bold font-sans num-bidi" dir="ltr">8%</span> <b class="text-emerald-500 font-bold">تخفیف</b></p>
               </div>
             </div>
 
@@ -3586,7 +3624,7 @@
                   <b class="text-xs t-purple font-bold">سطح یاقوت</b>
                   <span id="loyaltyTierCard_ruby_spent" class="text-[11px] font-bold t-purple font-mono">8,000,000 تومان</span>
                 </div>
-                <p class="text-[11px] t-muted mt-0.5 leading-snug"><span id="loyaltyTierCard_ruby_pct" class="text-emerald-500 font-bold font-sans num-bidi" dir="ltr">10%</span> <b class="text-emerald-500 font-bold">تخفیف</b>.</p>
+                <p class="text-[11px] t-muted mt-0.5 leading-snug"><span id="loyaltyTierCard_ruby_pct" class="text-emerald-500 font-bold font-sans num-bidi" dir="ltr">10%</span> <b class="text-emerald-500 font-bold">تخفیف</b></p>
               </div>
             </div>
 
@@ -3600,7 +3638,7 @@
                   <b class="text-xs t-success font-bold">سطح زمرد</b>
                   <span id="loyaltyTierCard_emerald_spent" class="text-[11px] font-bold t-success font-mono">12,000,000 تومان</span>
                 </div>
-                <p class="text-[11px] t-muted mt-0.5 leading-snug"><span id="loyaltyTierCard_emerald_pct" class="text-emerald-500 font-bold font-sans num-bidi" dir="ltr">12%</span> <b class="text-emerald-500 font-bold">تخفیف</b>.</p>
+                <p class="text-[11px] t-muted mt-0.5 leading-snug"><span id="loyaltyTierCard_emerald_pct" class="text-emerald-500 font-bold font-sans num-bidi" dir="ltr">12%</span> <b class="text-emerald-500 font-bold">تخفیف</b></p>
               </div>
             </div>
 
@@ -3614,7 +3652,7 @@
                   <b class="text-xs text-amber-600 dark:text-amber-300 font-bold">سطح الماس</b>
                   <span id="loyaltyTierCard_diamond_spent" class="text-[11px] font-bold text-amber-600 dark:text-amber-300 font-mono">20,000,000 تومان</span>
                 </div>
-                <p class="text-[11px] t-muted mt-0.5 leading-snug"><span id="loyaltyTierCard_diamond_pct" class="text-emerald-500 font-bold font-sans num-bidi" dir="ltr">15%</span> <b class="text-emerald-500 font-bold">تخفیف</b> + پشتیبانی اختصاصی.</p>
+                <p class="text-[11px] t-muted mt-0.5 leading-snug"><span id="loyaltyTierCard_diamond_pct" class="text-emerald-500 font-bold font-sans num-bidi" dir="ltr">15%</span> <b class="text-emerald-500 font-bold">تخفیف</b> + پشتیبانی اختصاصی</p>
               </div>
             </div>
           </div>

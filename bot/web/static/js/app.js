@@ -2152,7 +2152,7 @@ const APP_MODAL_IDS = [
   'shopGuidanceModal', 'speedTestModal', 'wheelResultModal',
   'speedResultsModal', 'birthdayModal', 'alertThresholdModal',
   'expiryCountdownModal', 'birthdayCountdownModal', 'giftModal',
-  'giftServiceSelectModal', 'invoiceModal', 'loyaltyModal', 'killAllSessionsModal',
+  'giftServiceSelectModal', 'invoiceModal', 'loyaltyModal', 'killAllSessionsModal', 'killSingleDeviceModal',
 ];
 
 function updateTopPadding() {
@@ -3255,7 +3255,7 @@ function hydrateUserInterface(data) {
                 <div class="text-[11px] font-mono t-accent mt-0.5">IP: ${escapeHtml(ip)}</div>
               </div>
             </div>
-            <button class="kill-device-btn t-danger hover:text-rose-300 w-8 h-8 rounded-xl bg-transparent hover:bg-rose-950/30 border-0 text-xs transition active:scale-95 flex items-center justify-center cursor-pointer" title="قطع این دستگاه" data-hwid="${escapeHtml(hwid)}">
+            <button class="kill-device-btn t-danger hover:text-rose-300 w-8 h-8 rounded-xl bg-transparent hover:bg-rose-950/30 border-0 text-xs transition active:scale-95 flex items-center justify-center cursor-pointer" title="قطع این دستگاه" data-hwid="${escapeHtml(hwid)}" data-model="${escapeHtml(model)}" data-ip="${escapeHtml(ip)}">
               <svg class="w-4 h-4 t-danger hover:text-rose-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
             </button>
           </div>
@@ -3263,20 +3263,12 @@ function hydrateUserInterface(data) {
       }).join('');
 
       container.querySelectorAll('.kill-device-btn').forEach(btn => {
-        btn.onclick = async () => {
+        btn.onclick = () => {
           const hwid = btn.getAttribute('data-hwid');
-          if (!hwid || !confirm('آیا از قطع اتصال این دستگاه اطمینان دارید؟')) return;
-          try {
-            const res = await window.api.killDevice(hwid);
-            if (res && res.ok) {
-              showToast('✅ دستگاه با موفقیت قطع شد.');
-              syncUserDataWithApi();
-            } else {
-              showToast(`❌ ${res?.error || 'خطا در قطع دستگاه'}`);
-            }
-          } catch (e) {
-            showToast('خطا در برقراری ارتباط با سرور.');
-          }
+          const model = btn.getAttribute('data-model') || 'دستگاه متصل';
+          const ip = btn.getAttribute('data-ip') || '';
+          if (!hwid) return;
+          openKillSingleDeviceModal(hwid, model, ip);
         };
       });
     }
@@ -4653,28 +4645,7 @@ async function openInvoiceModal(orderId) {
     $('invNumberDisplay').innerText = inv.invoice_number || `INV-${orderId}`;
     $('invDateDisplay').innerText = `${inv.date_jalali} - ${inv.time_jalali}`;
     $('invSellerName').innerText = inv.seller?.name || 'سرویس ابری رمنا';
-    const logoImg = $('invSellerLogo');
-    const defaultIcon = $('invSellerDefaultIcon');
-    let logoUrl = (inv.seller?.logo_url || '').trim();
-    if (logoUrl) {
-      if (!logoUrl.startsWith('http://') && !logoUrl.startsWith('https://') && !logoUrl.startsWith('/')) {
-        logoUrl = '/' + logoUrl;
-      }
-      if (logoImg) {
-        logoImg.onerror = () => {
-          logoImg.classList.add('hidden');
-          if (defaultIcon) defaultIcon.classList.remove('hidden');
-        };
-        logoImg.onload = () => {
-          logoImg.classList.remove('hidden');
-          if (defaultIcon) defaultIcon.classList.add('hidden');
-        };
-        logoImg.src = logoUrl;
-      }
-    } else {
-      if (logoImg) logoImg.classList.add('hidden');
-      if (defaultIcon) defaultIcon.classList.remove('hidden');
-    }
+    if ($('invSellerDefaultIcon')) $('invSellerDefaultIcon').classList.remove('hidden');
     const bName = inv.buyer?.name || 'کاربر گرامی';
     const bId = inv.buyer?.telegram_id || '';
     if ($('invBuyerName')) $('invBuyerName').innerText = bName;
@@ -4989,3 +4960,41 @@ async function confirmKillAllSessions() {
 window.openKillAllSessionsModal = openKillAllSessionsModal;
 window.closeKillAllSessionsModal = closeKillAllSessionsModal;
 window.confirmKillAllSessions = confirmKillAllSessions;
+
+let pendingKillSingleHwid = null;
+
+function openKillSingleDeviceModal(hwid, model, ip) {
+  pendingKillSingleHwid = hwid;
+  if ($('killDeviceModalModel')) $('killDeviceModalModel').innerText = model || 'دستگاه متصل';
+  if ($('killDeviceModalIp')) $('killDeviceModalIp').innerText = ip ? `IP: ${ip}` : 'IP: —';
+  const m = $('killSingleDeviceModal');
+  if (m) m.classList.remove('hidden');
+  hapticFeedback('warning');
+}
+
+function closeKillSingleDeviceModal() {
+  pendingKillSingleHwid = null;
+  const m = $('killSingleDeviceModal');
+  if (m) m.classList.add('hidden');
+}
+
+async function confirmKillSingleDevice() {
+  const hwid = pendingKillSingleHwid;
+  closeKillSingleDeviceModal();
+  if (!hwid) return;
+  try {
+    const res = await window.api.killDevice(hwid);
+    if (res && res.ok) {
+      showToast('✅ دستگاه با موفقیت قطع شد.');
+      syncUserDataWithApi();
+    } else {
+      showToast(`❌ ${res?.error || 'خطا در قطع دستگاه'}`);
+    }
+  } catch (e) {
+    showToast('❌ خطا در برقراری ارتباط با سرور.');
+  }
+}
+
+window.openKillSingleDeviceModal = openKillSingleDeviceModal;
+window.closeKillSingleDeviceModal = closeKillSingleDeviceModal;
+window.confirmKillSingleDevice = confirmKillSingleDevice;

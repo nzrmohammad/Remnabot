@@ -985,14 +985,20 @@ function updateTronLinkButton(inv) {
   const btn = document.getElementById('openTronLinkBtn');
   if (!btn || !inv || !inv.pay_address || !inv.amount_trx) return;
   const trxAmount = Number(inv.amount_trx);
+  const amountSun = Math.round(trxAmount * 1000000);
   const paramObj = {
     url: window.location.href,
     action: 'transfer',
+    actionId: String(Date.now()),
     protocol: 'TronLink',
     version: '1.0',
+    chainId: '0x2b6653dc',
+    dappName: 'Remnabot Cloud',
+    dappIcon: `${window.location.origin}/static/img/apps/v2rayng.png`,
     to: inv.pay_address,
-    amount: String(trxAmount),
-    tokenId: '0'
+    amount: String(amountSun),
+    tokenId: '0',
+    contract: ''
   };
   const tronLinkDeepLink = `tronlinkoutside://pull.activity?param=${encodeURIComponent(JSON.stringify(paramObj))}`;
   const tronUri = `tron:${inv.pay_address}?amount=${trxAmount}`;

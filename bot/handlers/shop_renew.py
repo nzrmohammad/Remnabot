@@ -159,7 +159,7 @@ async def buy_for_account(
             "۲. <b>لینک اتصال اشتراک شما تغییری نمی‌کند</b> و تنها کافیست پس از پرداخت، گزینه <b>Update Subscription (بروزرسانی اشتراک)</b> را در برنامه بزنید." if lang == "fa" else "2. Your subscription link remains unchanged; simply tap Update Subscription in your VPN app.",
             "۳. هزینه کامل بسته جدید دریافت خواهد شد." if lang == "fa" else "3. Full price of the new plan will be charged.",
             "",
-            "💡 <i>راهنما: چنانچه قصد تغییر دسته سرور اشتراک خود را ندارید، لطفاً از بسته‌های مربوط به دسته سرور فعلی جهت تمدید استفاده کرده و یا بسته افزایش حجم تهیه فرمایید.</i>" if lang == "fa" else "💡 <i>Tip: If you do not wish to switch server squads, please renew using plans from your current squad or purchase an extra traffic package.</i>",
+            "💡 راهنما: چنانچه قصد تغییر دسته سرور اشتراک خود را ندارید، لطفاً از بسته‌های مربوط به دسته سرور فعلی جهت تمدید استفاده کرده و یا بسته افزایش حجم تهیه فرمایید." if lang == "fa" else "💡 Tip: If you do not wish to switch server squads, please renew using plans from your current squad or purchase an extra traffic package.",
             "",
             "آیا برای مشاهده پیش‌فاکتور و خرید این بسته موافقید؟" if lang == "fa" else "Do you agree to proceed to the invoice?",
         ]

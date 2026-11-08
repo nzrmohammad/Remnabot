@@ -102,6 +102,30 @@ html.theme-light .on-dark .text-slate-400 {
   border-color: var(--c-accent-border);
 }
 
+.btn-danger {
+  background: var(--c-danger, #e11d48);
+  color: #ffffff;
+  border: 1px solid rgba(244, 63, 94, 0.4);
+  box-shadow: 0 2px 10px rgba(225, 29, 72, 0.3);
+}
+
+.btn-danger:hover {
+  background: #be123c;
+  border-color: rgba(244, 63, 94, 0.6);
+}
+
+html.theme-light .btn-danger {
+  background: #e11d48;
+  color: #ffffff;
+  border: 1px solid #be123c;
+  box-shadow: 0 2px 8px rgba(225, 29, 72, 0.25);
+}
+
+html.theme-light .btn-danger:hover {
+  background: #be123c;
+  border-color: #9f1239;
+}
+
 .btn-icon {
   min-width: var(--control-h-md);
   min-height: var(--control-h-md);
@@ -777,6 +801,17 @@ html.theme-light #topupCardHolder {
 html.theme-light #cardAutoCardNumber span,
 html.theme-light #topupCardNumber span {
   color: #0f172a;
+}
+
+/* High contrast custom plan discount rows & final price in Light Mode */
+html.theme-light #customPlanVolumeDiscountRow,
+html.theme-light #customPlanVolumeDiscountDisplay,
+html.theme-light #customPlanFinalPrice {
+  color: #047857;
+}
+html.theme-light #customPlanDiscountRow,
+html.theme-light #customPlanDiscountDisplay {
+  color: #b45309;
 }
 
 /* --- Standard Persian Sans Typography --- */

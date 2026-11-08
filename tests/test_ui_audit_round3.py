@@ -9,7 +9,7 @@ def test_invoice_service_logo_multiple_candidate_paths():
 
 
 def test_invoice_logo_and_icon_wiring():
-    """Invoice in TMA should support graceful logo onerror fallback and RTL left-positioned icon."""
+    """Invoice in TMA should always display the clean default icon 🧾 and RTL left-positioned plan icon."""
     app_html = Path("bot/web/templates/app.html").read_text(encoding="utf-8")
     app_js = Path("bot/web/static/js/app.js").read_text(encoding="utf-8")
 
@@ -17,11 +17,10 @@ def test_invoice_logo_and_icon_wiring():
     assert '<b id="invItemTitle" class="t-main text-xs">بسته اشتراک</b>' in app_html
     assert '<span id="invItemIcon" class="text-xs shrink-0">📦</span>' in app_html
 
-    # In app.js, onerror fallback and icon mapping exist
-    assert "logoImg.onerror = () => {" in app_js
-    assert "$('invItemIcon')" in app_js
-    assert "icon = '🥇'" in app_js
-    assert "icon = '🥉'" in app_js
+    # Invoice header displays defaultIcon 🧾
+    assert '<span id="invItemIcon" class="text-xs shrink-0">📦</span>' in app_html
+    assert '<span id="invSellerDefaultIcon" class="text-2xl">🧾</span>' in app_html
+    assert "$('invSellerDefaultIcon')" in app_js
 
 
 def test_card_number_light_theme_visibility():
@@ -48,14 +47,12 @@ def test_gift_modal_bidi_and_palette():
     assert 'placeholder="username &lrm;یا&lrm; 123456789"' in app_html
 
     # Inactive buttons do not have hover:text-white
-    assert 't-muted hover:t-main' in app_html
-
-    # app.js also uses tokenized classes
+    assert "t-muted hover:t-main" in app_html
     assert "t-muted hover:t-main" in app_js
 
 
-def test_loyalty_modal_typography():
-    """Loyalty discount numbers should use Vazirmatn (font-sans) instead of system font-mono."""
+def test_loyalty_modal_typography_and_dots_removed():
+    """Loyalty discount numbers should use Vazirmatn and have no trailing dots."""
     app_html = Path("bot/web/templates/app.html").read_text(encoding="utf-8")
     app_js = Path("bot/web/static/js/app.js").read_text(encoding="utf-8")
 
@@ -66,18 +63,31 @@ def test_loyalty_modal_typography():
     # In app.js, current discount and all_tiers use font-sans
     assert '<span class="font-sans font-bold num-bidi"' in app_js
 
+    # Trailing dots are removed from tier descriptions
+    assert '<b class="text-emerald-500 font-bold">تخفیف</b>.' not in app_html
+    assert 'سطح پیش‌فرض هنگام عضویت (بدون تخفیف)' in app_html
 
-def test_kill_all_sessions_dedicated_modal():
-    """Active sessions kill all action must have a dedicated confirmation modal."""
+
+def test_kill_sessions_modals():
+    """Both kill all sessions and kill single device must have dedicated modals."""
     app_html = Path("bot/web/templates/app.html").read_text(encoding="utf-8")
     app_js = Path("bot/web/static/js/app.js").read_text(encoding="utf-8")
+    comp_css = Path("bot/web/static/css/components.css").read_text(encoding="utf-8")
 
+    # Modals in HTML
     assert 'id="killAllSessionsModal"' in app_html
-    assert 'id="confirmKillAllSessionsBtn"' in app_html
-    assert 'window.openKillAllSessionsModal' in app_html
+    assert 'id="killSingleDeviceModal"' in app_html
+    assert 'id="confirmKillSingleDeviceBtn"' in app_html
+
+    # Modals in JS list and handlers
     assert "'killAllSessionsModal'" in app_js
-    assert "function openKillAllSessionsModal()" in app_js
-    assert "function confirmKillAllSessions()" in app_js
+    assert "'killSingleDeviceModal'" in app_js
+    assert "function openKillSingleDeviceModal" in app_js
+    assert "function confirmKillSingleDevice" in app_js
+
+    # .btn-danger component defined in components.css
+    assert ".btn-danger {" in comp_css
+    assert "html.theme-light .btn-danger" in comp_css
 
 
 def test_bestseller_badge_and_button_gradient():
@@ -94,13 +104,18 @@ def test_bestseller_badge_and_button_gradient():
 
 
 def test_custom_plan_price_breakdown_label():
-    """Custom plan breakdown must display percent in the label and value strictly as minus amount."""
+    """Custom plan breakdown must display percent with % on right and minus amount in value."""
     app_html = Path("bot/web/templates/app.html").read_text(encoding="utf-8")
     shop_js = Path("bot/web/static/js/shop.js").read_text(encoding="utf-8")
+    comp_css = Path("bot/web/static/css/components.css").read_text(encoding="utf-8")
 
     assert 'id="customPlanDiscountPct"' in app_html
-    assert 'تخفیف باشگاه مشتریان شما (<span id="customPlanDiscountPct">0</span>%):' in app_html
-    assert 'تخفیف پلکانی حجم انتخابی (<span id="customPlanVolumeTierPct">0</span>%):' in app_html
+    assert 'تخفیف باشگاه مشتریان شما (<span dir="ltr" class="inline-block num-bidi font-bold"><span id="customPlanDiscountPct">0</span>%</span>):' in app_html
+    assert 'تخفیف پلکانی حجم انتخابی (<span dir="ltr" class="inline-block num-bidi font-bold"><span id="customPlanVolumeTierPct">0</span>%</span>):' in app_html
+
+    # High contrast in light mode
+    assert "html.theme-light #customPlanVolumeDiscountRow" in comp_css
+    assert "html.theme-light #customPlanDiscountRow" in comp_css
 
     # In shop.js, loyalty percentage is set to label element and not suffixed onto value
     assert "const discPctEl = document.getElementById('customPlanDiscountPct');" in shop_js
@@ -115,3 +130,29 @@ def test_delete_plan_modal_icon_placement():
     assert '<span id="deletePlanModalName" class="text-sm font-bold t-main truncate">نام تعرفه</span>' in admin_html
     assert '<span id="deletePlanModalIcon" class="text-base shrink-0">📦</span>' in admin_html
     assert "$('deletePlanModalIcon')" in admin_plans
+
+
+def test_guidance_text_not_italic():
+    """Guidance text for squad switch must not be italic."""
+    shop_js = Path("bot/web/static/js/shop.js").read_text(encoding="utf-8")
+    shop_renew = Path("bot/handlers/shop_renew.py").read_text(encoding="utf-8")
+
+    assert "<i>راهنما: چنانچه قصد تغییر دسته سرور" not in shop_js
+    assert "<i>راهنما: چنانچه قصد تغییر دسته سرور" not in shop_renew
+
+
+def test_tronlink_deeplink_sun_amount_and_parameters():
+    """TronLink DeepLink must specify amount in SUN and include all required parameters."""
+    user_topup = Path("bot/web/user_topup.py").read_text(encoding="utf-8")
+    wallet_js = Path("bot/web/static/js/wallet.js").read_text(encoding="utf-8")
+
+    # In user_topup.py
+    assert "amount_sun = int(round(amt_float * 1_000_000))" in user_topup
+    assert '"chainId": "0x2b6653dc"' in user_topup
+    assert '"dappName": "Remnabot Cloud"' in user_topup
+    assert '"actionId": action_id' in user_topup
+
+    # In wallet.js
+    assert "const amountSun = Math.round(trxAmount * 1000000);" in wallet_js
+    assert "actionId: String(Date.now())" in wallet_js
+    assert "chainId: '0x2b6653dc'" in wallet_js

@@ -1008,17 +1008,26 @@ async def get_user_topup_trx_redirect(request: web.Request) -> web.Response:
         if amt_float <= 0 or amt_float > 10_000_000:
             raise ValueError
         amount = f"{amt_float:.6f}".rstrip("0").rstrip(".")
+        amount_sun = int(round(amt_float * 1_000_000))
     except (ValueError, TypeError):
         return web.Response(text="مبلغ ترون نامعتبر است.", status=400)
+
+    import time
+    action_id = str(int(time.time() * 1000))
 
     param_obj = {
         "url": str(request.url),
         "action": "transfer",
+        "actionId": action_id,
         "protocol": "TronLink",
         "version": "1.0",
+        "chainId": "0x2b6653dc",
+        "dappName": "Remnabot Cloud",
+        "dappIcon": f"{request.scheme}://{request.host}/static/img/apps/v2rayng.png",
         "to": address,
-        "amount": str(amount),
+        "amount": str(amount_sun),
         "tokenId": "0",
+        "contract": "",
     }
     encoded_param = urllib.parse.quote(json.dumps(param_obj))
     tronlink_url = f"tronlinkoutside://pull.activity?param={encoded_param}"
