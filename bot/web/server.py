@@ -156,9 +156,14 @@ async def api_rate_limit_middleware(request: web.Request, handler):
             rl_key = f"tma:rl:{subject_id}:{'sens' if is_sensitive else 'gen'}"
             pipe = redis.pipeline()
             pipe.incr(rl_key)
-            pipe.expire(rl_key, int(_API_WINDOW))
+            pipe.ttl(rl_key)
             results = await pipe.execute()
-            if results and int(results[0]) > max_reqs:
+            count = int(results[0])
+            ttl = int(results[1])
+            # Only set TTL on initial key creation to prevent sliding-window starvation
+            if ttl < 0:
+                await redis.expire(rl_key, int(_API_WINDOW))
+            if count > max_reqs:
                 rate_limited = True
             redis_checked = True
         except Exception as exc:
@@ -246,7 +251,16 @@ async def cors_and_security_middleware(request: web.Request, handler):
             response.headers["Cache-Control"] = "public, max-age=604800, stale-while-revalidate=86400"
         if request.path.startswith("/static/fonts/"):
             response.headers["Access-Control-Allow-Origin"] = "*"
-            response.headers["Content-Type"] = "font/woff2"
+            if request.path.endswith(".woff2"):
+                response.headers["Content-Type"] = "font/woff2"
+            elif request.path.endswith(".woff"):
+                response.headers["Content-Type"] = "font/woff"
+            elif request.path.endswith(".ttf"):
+                response.headers["Content-Type"] = "font/ttf"
+            elif request.path.endswith(".otf"):
+                response.headers["Content-Type"] = "font/otf"
+            else:
+                response.headers["Content-Type"] = "application/font-woff"
 
     # Enable automatic gzip/deflate compression for static files and API responses > 512 bytes (exclude speedtest payloads)
     if not request.path.startswith("/api/user/speedtest"):
@@ -261,7 +275,7 @@ async def cors_and_security_middleware(request: web.Request, handler):
 
 
 _STATIC_VERSION_CACHE: tuple[str, float] = ("", 0.0)
-_VERSIONED_HTML_CACHE: dict[str, tuple[str, float]] = {}
+_VERSIONED_HTML_CACHE: dict[str, tuple[str, float, str]] = {}
 
 
 def get_static_asset_version() -> str:

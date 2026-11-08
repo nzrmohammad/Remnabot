@@ -217,9 +217,11 @@ async def verify_and_process_payments(bot: Any, session_factory: Any) -> int:
         store = await get_store_settings(session)
 
         for inv in active_invoices:
+            live_inv = await crypto_repo.get_by_id(inv.id)
+            inv_to_process = live_inv or inv
             matched, new_balance, tx_hash = await verify_and_credit_ton_invoice(
                 session=session,
-                inv=inv,
+                inv=inv_to_process,
                 txs=transactions,
                 allow_expired=True,
                 bot=bot,

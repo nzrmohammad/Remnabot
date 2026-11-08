@@ -51,9 +51,13 @@ def validate_telegram_init_data(
             logger.warning("Telegram initData HMAC verification failed.")
             return None
 
-        # Expiry check
+        # Expiry & clock-skew check (reject auth_date > 300s in the future or older than max_age_seconds)
         auth_date = int(parsed.get("auth_date", 0))
-        if max_age_seconds > 0 and (time.time() - auth_date > max_age_seconds):
+        now_ts = time.time()
+        if auth_date > now_ts + 300:
+            logger.warning("Telegram initData auth_date is in the future (auth_date=%s, now=%s).", auth_date, now_ts)
+            return None
+        if max_age_seconds > 0 and (now_ts - auth_date > max_age_seconds):
             logger.warning("Telegram initData expired (auth_date=%s).", auth_date)
             return None
 

@@ -1,8 +1,8 @@
 from bot.web.user_common import db_session, require_user
 
 """TMA User Nodes, IP telemetry, Settings, and Avatar endpoints."""
-import ipaddress
 import hashlib
+import ipaddress
 import logging
 
 from aiohttp import web

@@ -1312,8 +1312,16 @@ async def post_webhook_xrocket(request: web.Request) -> web.Response:
             logger.info("xRocket webhook already_processed: payment_id=%s tg_id=%s", payment_id, tg_id)
             return web.json_response({"ok": True, "status": "already_processed"})
 
+        try:
+            # Create topup record first with flush to let the DB unique constraint catch races atomically
+            await wallet_repo.create_topup(tg_id, toman_amount, tx_key)
+            await session.flush()
+        except IntegrityError:
+            await session.rollback()
+            logger.info("xRocket webhook race caught by unique constraint: payment_id=%s", payment_id)
+            return web.json_response({"ok": True, "status": "already_processed"})
+
         new_bal = await wallet_repo.add_balance_atomic(tg_id, toman_amount)
-        await wallet_repo.create_topup(tg_id, toman_amount, tx_key)
         await session.commit()
         logger.info(
             "xRocket payment verified & credited successfully: payment_id=%s tg_id=%s amount=%s new_balance=%s",

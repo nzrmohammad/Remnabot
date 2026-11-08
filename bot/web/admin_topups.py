@@ -90,15 +90,27 @@ async def post_admin_topup_action(request: web.Request) -> web.Response:
         return web.json_response({"ok": False, "error": "Invalid JSON"}, status=400)
 
     topup_id = body.get("topup_id")
-    approved = bool(body.get("approved", True))
-    if not topup_id:
+    raw_approved = body.get("approved", True)
+    if isinstance(raw_approved, bool):
+        approved = raw_approved
+    elif isinstance(raw_approved, str):
+        approved = raw_approved.strip().lower() in {"1", "true", "yes", "ok"}
+    else:
+        approved = bool(raw_approved)
+
+    if topup_id is None:
         return web.json_response({"ok": False, "error": "شناسه فیش الزامی است."}, status=400)
+
+    try:
+        topup_id_int = int(topup_id)
+    except (TypeError, ValueError):
+        return web.json_response({"ok": False, "error": "شناسه فیش نامعتبر است."}, status=400)
 
     bot = request.app["bot"]
 
     async with db_session(request) as session:
         wallet_repo = WalletRepository(session)
-        claimed = await wallet_repo.claim_topup(int(topup_id), approved)
+        claimed = await wallet_repo.claim_topup(topup_id_int, approved)
         if not claimed:
             return web.json_response({"ok": False, "error": "این فیش قبلاً تعیین وضعیت شده است."}, status=400)
 

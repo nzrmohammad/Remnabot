@@ -9,6 +9,7 @@ Decomposed into focused calculation layers:
 - `get_user_me`: Lightweight async controller orchestrating user dashboard data
 """
 import asyncio
+import inspect
 import logging
 import re
 import time
@@ -186,7 +187,7 @@ async def _fetch_transaction_history(session: Any, telegram_id: int, tz_name: st
 
 async def _fetch_user_perks_and_settings(
     session: Any, cache: FastCache, telegram_id: int, has_active_sub: bool, db_user: Any = None
-) -> tuple[dict[str, Any], list[dict[str, Any]], dict[str, Any]]:
+) -> tuple[dict[str, Any], list[dict[str, Any]], dict[str, Any], float, bool]:
     """Fetch user alert/report preferences, active won coupons, and lucky wheel status."""
     last_spin_dt = getattr(db_user, "wheel_last_spin_at", None) if db_user else None
     cooldown_left = 0
@@ -287,7 +288,9 @@ async def _fetch_user_perks_and_settings(
 
     birthday_claimed = False
     try:
-        today_j = jdatetime.date.today() if jdatetime else None
+        tehran_tz = ZoneInfo("Asia/Tehran")
+        now_tehran = datetime.now(tehran_tz)
+        today_j = jdatetime.date.fromgregorian(date=now_tehran.date()) if jdatetime else None
         if today_j:
             birthday_claimed = bool(await cache.get(f"birthday_reward:{telegram_id}:{today_j.year}"))
     except Exception:
@@ -325,6 +328,10 @@ async def get_user_me(request: web.Request) -> web.Response:
         db_user = await user_repo.get_or_create(telegram_id, user_auth.get("username"))
         if auth_full_name and hasattr(db_user, "full_name"):
             db_user.full_name = auth_full_name
+        if hasattr(session, "commit"):
+            commit_res = session.commit()
+            if inspect.isawaitable(commit_res):
+                await commit_res
 
         wallet_res = await session.execute(select(Wallet).where(Wallet.telegram_id == telegram_id))
         wallet = wallet_res.scalar_one_or_none()
@@ -595,7 +602,9 @@ async def get_user_me(request: web.Request) -> web.Response:
                 b_parts = [int(p) for p in clean_bdate.split("/") if p.isdigit()]
                 if len(b_parts) == 3:
                     _by, b_month, b_day = b_parts
-                    today_j = jdatetime.date.today()
+                    tehran_tz = ZoneInfo("Asia/Tehran")
+                    now_tehran = datetime.now(tehran_tz)
+                    today_j = jdatetime.date.fromgregorian(date=now_tehran.date())
                     def _safe_jdate(y, m, d):
                         try:
                             return jdatetime.date(y, m, d)
@@ -840,6 +849,12 @@ async def post_user_set_birthday(request: web.Request) -> web.Response:
     if year < 1300 or year > 1410 or month < 1 or month > 12 or day < 1 or day > 31:
         return web.json_response({"ok": False, "error": "تاریخ وارد شده خارج از بازه مجاز است."}, status=400)
 
+    try:
+        if jdatetime:
+            jdatetime.date(year, month, day)
+    except (ValueError, TypeError):
+        return web.json_response({"ok": False, "error": "روز وارد شده برای این ماه در تقویم خورشیدی وجود ندارد."}, status=400)
+
     formatted_date = f"{year:04d}/{month:02d}/{day:02d}"
     telegram_id = int(user_auth["id"])
 
@@ -850,7 +865,10 @@ async def post_user_set_birthday(request: web.Request) -> web.Response:
             return web.json_response({"ok": False, "error": "کاربر یافت نشد."}, status=404)
 
         user.birth_date = formatted_date
-        await session.commit()
+        if hasattr(session, "commit"):
+            commit_res = session.commit()
+            if inspect.isawaitable(commit_res):
+                await commit_res
 
         cache: FastCache = request.app.get("cache")
         if cache:

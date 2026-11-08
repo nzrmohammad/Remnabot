@@ -207,6 +207,7 @@ async def test_user_me_dashboard_with_panel_user():
     class MockSession:
         async def __aenter__(self): return self
         async def __aexit__(self, *args): pass
+        async def commit(self): pass
         async def execute(self, stmt):
             m = MagicMock()
             m.scalar_one_or_none.return_value = None

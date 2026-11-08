@@ -205,11 +205,6 @@ async def claim_gift(
     if sender_id == claimer_telegram_id:
         return {"ok": False, "message": "شما نمی‌توانید هدیه‌ای که خودتان ساخته‌اید را تحویل بگیرید."}
 
-    # Mark claimed immediately under row lock to prevent concurrency race during mid-purchase commits
-    gift.is_claimed = True
-    gift.claimed_at = datetime.now(timezone.utc)
-    gift.receiver_telegram_id = claimer_telegram_id
-
     # 1. Apply Reward
     if gift.gift_type == "BALANCE":
         # Charge claimer wallet
@@ -241,18 +236,37 @@ async def claim_gift(
             wallet.balance += gift.amount
         else:
             from bot.services.purchases import execute_purchase
-            # Execute purchase with 100% discount since it's already paid by sender
-            purchase_res = await execute_purchase(
-                remnawave=remnawave,
-                session=session,
-                service=service,
-                telegram_id=claimer_telegram_id,
-                create_new=True,
-                discount_amount=service.price,
-                bot=bot,
-                session_factory=session_factory,
-            )
-            if not purchase_res.ok:
+            purchase_res = None
+            try:
+                if session_factory:
+                    async with session_factory() as purchase_session:
+                        p_service = await purchase_session.get(Service, service.id)
+                        purchase_res = await execute_purchase(
+                            remnawave=remnawave,
+                            session=purchase_session,
+                            service=p_service or service,
+                            telegram_id=claimer_telegram_id,
+                            create_new=True,
+                            discount_amount=service.price,
+                            bot=bot,
+                            session_factory=session_factory,
+                        )
+                else:
+                    purchase_res = await execute_purchase(
+                        remnawave=remnawave,
+                        session=session,
+                        service=service,
+                        telegram_id=claimer_telegram_id,
+                        create_new=True,
+                        discount_amount=service.price,
+                        bot=bot,
+                        session_factory=session_factory,
+                    )
+            except Exception as p_exc:
+                logger.error("Gift execute_purchase exception: %s", p_exc)
+                purchase_res = None
+
+            if not purchase_res or not purchase_res.ok:
                 # If panel call fails, credit balance instead so user doesn't lose the gift
                 wallet_res = await session.execute(
                     select(Wallet).where(Wallet.telegram_id == claimer_telegram_id).with_for_update()
@@ -263,7 +277,10 @@ async def claim_gift(
                     session.add(wallet)
                 wallet.balance += gift.amount
 
-    # 2. Finalize Transaction
+    # 2. Mark claimed and finalize transaction atomically AFTER reward is guaranteed
+    gift.is_claimed = True
+    gift.claimed_at = datetime.now(timezone.utc)
+    gift.receiver_telegram_id = claimer_telegram_id
     await session.commit()
 
     # 3. Notify Sender

@@ -460,8 +460,11 @@ async def post_user_create_gift(request: web.Request) -> web.Response:
         return web.json_response({"ok": False, "message": "فرمت داده نامعتبر است."}, status=400)
     delivery_type = data.get("delivery_type", "LINK")
     gift_type = data.get("gift_type", "BALANCE")
-    amount = int(data.get("amount", 0) or 0)
-    service_id = int(data.get("service_id")) if data.get("service_id") else None
+    try:
+        amount = int(data.get("amount", 0) or 0)
+        service_id = int(data.get("service_id")) if data.get("service_id") else None
+    except (ValueError, TypeError):
+        return web.json_response({"ok": False, "message": "مقادیر عددی نامعتبر هستند."}, status=400)
     receiver_target = data.get("receiver_target") or data.get("receiver")
     message = data.get("message")
     bot = request.app.get("bot")
@@ -650,8 +653,11 @@ async def post_user_custom_plan_purchase(request: web.Request) -> web.Response:
         data = await request.json()
     except Exception:
         data = {}
-    traffic_gb = int(data.get("traffic_gb", 0) or 0)
-    duration_days = int(data.get("duration_days", 0) or 0)
+    try:
+        traffic_gb = int(data.get("traffic_gb", 0) or 0)
+        duration_days = int(data.get("duration_days", 0) or 0)
+    except (ValueError, TypeError):
+        return web.json_response({"ok": False, "message": "مقادیر حجم و روز نامعتبر است."}, status=400)
     account_id = data.get("account_id")
     remnawave = request.app["remnawave"]
     cache = request.app.get("cache")
@@ -698,12 +704,23 @@ async def post_user_custom_plan_purchase(request: web.Request) -> web.Response:
         panel_users = await remnawave.get_users_by_telegram_id(telegram_id) or []
         if account_id:
             chosen_acc = next((u for u in panel_users if str(u.get("id")) == str(account_id)), None)
+            if not chosen_acc:
+                return web.json_response({"ok": False, "message": "اشتراک انتخابی جهت تمدید یافت نشد."}, status=400)
 
         from types import SimpleNamespace
 
         # Derive squad from payload if provided, else existing user account or fallback to default squad
         target_squad = data.get("squad_uuid")
-        if not target_squad and chosen_acc and isinstance(chosen_acc, dict):
+        if target_squad:
+            # Validate target squad exists in Remnawave squads to prevent arbitrary squad assignment
+            try:
+                available_squads = await remnawave.get_internal_squads() or []
+                squad_uuids = {str(sq.get("uuid") or sq.get("id")) for sq in available_squads if isinstance(sq, dict)}
+                if squad_uuids and str(target_squad) not in squad_uuids:
+                    target_squad = store_settings.default_squad_uuid or None
+            except Exception:
+                pass
+        elif chosen_acc and isinstance(chosen_acc, dict):
             raw_sqs = (
                 chosen_acc.get("activeInternalSquads")
                 or chosen_acc.get("internalSquads")

@@ -47,6 +47,7 @@ class PurchaseResult:
     accounts: list[dict] | None = None  # set when kind == "needs_account"
     order_id: int | None = None
     squad_changed: bool = False
+    message: str | None = None
 
 
 def _iso(dt: datetime) -> str:
@@ -107,6 +108,10 @@ _user_purchase_locks: dict[int, asyncio.Lock] = {}
 
 
 def _get_purchase_lock(telegram_id: int) -> asyncio.Lock:
+    if len(_user_purchase_locks) > 2000:
+        unlocked = [tid for tid, lock_obj in _user_purchase_locks.items() if not lock_obj.locked()]
+        for tid in unlocked:
+            _user_purchase_locks.pop(tid, None)
     if telegram_id not in _user_purchase_locks:
         _user_purchase_locks[telegram_id] = asyncio.Lock()
     return _user_purchase_locks[telegram_id]
@@ -135,7 +140,7 @@ async def execute_purchase(
             lock_token = uuid.uuid4().hex
             dist_lock = await cache.set_nx(lock_key, lock_token, ttl_seconds=60)
             if not dist_lock:
-                return PurchaseResult(ok=False, kind="conflict")
+                return PurchaseResult(ok=False, kind="conflict", message="عملیات خرید قبلی شما در حال پردازش است؛ لطفاً چند لحظه صبر فرمایید.")
         except Exception as exc:
             logger.warning("Distributed purchase lock set_nx error: %s", exc)
             dist_lock = False
@@ -150,7 +155,7 @@ async def execute_purchase(
                     await cache.delete(lock_key)
             except Exception:
                 pass
-        return PurchaseResult(ok=False, kind="conflict")
+        return PurchaseResult(ok=False, kind="conflict", message="عملیات خرید قبلی شما در حال پردازش است؛ لطفاً چند لحظه صبر فرمایید.")
 
     try:
         async with lock:

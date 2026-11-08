@@ -1,4 +1,5 @@
 from typing import Any
+
 """Common constants and formatting helpers for reports."""
 import logging
 from datetime import datetime
@@ -84,8 +85,9 @@ def _breakdown_lines(rows: list[dict], value_key: int | None = None) -> list[str
 
 async def get_financial_metrics(session: Any, since_utc: datetime, until_utc: datetime | None = None) -> dict[str, int]:
     """Calculate centralized financial metrics (orders vs topups) in a given UTC interval without double counting."""
-    from bot.db.models import Order, Topup
     from sqlalchemy import func, select
+
+    from bot.db.models import Order, Topup
 
     # 1. Paid store orders (actual service purchases)
     orders_stmt = select(

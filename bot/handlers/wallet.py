@@ -408,6 +408,25 @@ async def topup_preset_amount(
     data = await state.get_data()
     method = data.get("topup_method", "card")
 
+    if method == "card" and store.card_require_phone_verification and not getattr(user, "phone_number", None):
+        kb_phone = InlineKeyboardBuilder()
+        kb_phone.button(text="📱 احراز هویت و ارسال شماره تماس", callback_data="user:verify_phone_prompt")
+        kb_phone.button(text=t(lang, "btn_back"), callback_data="menu:wallet")
+        kb_phone.adjust(1)
+        notice_text = (
+            "🔒 <b>احراز هویت شماره همراه الزامی است</b>\n\n"
+            "جهت استفاده از درگاه پرداخت کارت‌به‌کارت و جلوگیری از سوءاستفاده‌های بانکی (فیشینگ)، تأیید شماره تماس در ربات الزامی است.\n\n"
+            "لطفاً بر روی دکمه زیر کلیک کرده و شماره همراه خود را ارسال فرمایید."
+            if lang == "fa"
+            else
+            "🔒 <b>Phone Verification Required</b>\n\n"
+            "To use Card-to-Card payment, you must verify your phone number first.\n"
+            "Please tap the button below to share your contact."
+        )
+        await render_menu(bot, user, user_repo, notice_text, kb_phone.as_markup())
+        await call.answer()
+        return
+
     if method == "ton":
         if not (store.crypto_enabled and store.ton_wallet_address and store.ton_rate_toman > 0):
             await call.answer("❌ پرداخت کریپتو موقتاً غیرفعال است.", show_alert=True)
@@ -420,6 +439,11 @@ async def topup_preset_amount(
     if getattr(store, "card_auto_enabled", False):
         await _create_and_render_card_auto_invoice(bot, user, user_repo, session, state, store, amount)
         await call.answer()
+        return
+
+    if not (store.card_enabled and store.card_number and store.card_number.strip()):
+        err_msg = "❌ پرداخت کارت به کارت موقتاً غیرفعال است." if lang == "fa" else "❌ Card payment is temporarily disabled."
+        await call.answer(err_msg, show_alert=True)
         return
 
     await state.update_data(amount=amount)
