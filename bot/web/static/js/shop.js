@@ -676,7 +676,7 @@ function renderFilteredShopPlans() {
           </span>
           <span class="inline-flex items-center gap-1 text-xs tracking-wider" dir="ltr">${flagsList}</span>
         </div>
-        <button class="buy-plan-btn w-full ${btnClass} text-xs py-2.5 rounded-xl transition shadow active:scale-[0.98]" data-id="${p.id}" data-price="${finalPrice}" data-name="${p.name}" data-traffic="${p.traffic_gb}" data-days="${p.duration_days}" data-badge="${p.badge || ''}">
+        <button class="buy-plan-btn w-full ${btnClass} text-xs py-2.5 rounded-xl transition shadow active:scale-[0.98]" data-id="${p.id}" data-price="${finalPrice}" data-name="${p.name}" data-traffic="${p.traffic_gb}" data-days="${p.duration_days}" data-badge="${p.badge || ''}" data-squad="${p.squad_uuid || ''}">
           🛒 ${buttonLabel} (${formattedFinal} تومان)
         </button>
       </div>
@@ -741,13 +741,14 @@ function openCheckoutConfirmModal(plan) {
 
   const switchBox = document.getElementById('checkoutSwitchWarningBox');
   const activeSub = window.lastUserData?.active_sub || window.lastUserData?.active_subscription;
+  const activeSquad = (activeSub?.squad_uuid || '').trim().toLowerCase();
+  const planSquadNorm = (plan.squad_uuid || '').trim().toLowerCase();
   const isSwitch = Boolean(
     activeSub &&
     !isExtraTraffic &&
     !isTimeOnly &&
-    plan.squad_uuid &&
-    activeSub.squad_uuid &&
-    String(plan.squad_uuid).trim().toLowerCase() !== String(activeSub.squad_uuid).trim().toLowerCase()
+    planSquadNorm &&
+    (!activeSquad || planSquadNorm !== activeSquad)
   );
 
   if (switchBox) {
@@ -869,6 +870,7 @@ function setupBuyButtons() {
       const planTraffic = parseInt(btn.getAttribute('data-traffic') || '0', 10);
       const planDays = parseInt(btn.getAttribute('data-days') || '0', 10);
       const planBadge = (btn.getAttribute('data-badge') || '').toLowerCase().trim();
+      const planSquad = (btn.getAttribute('data-squad') || '').trim();
 
       const planObj = {
         id: planId,
@@ -877,7 +879,13 @@ function setupBuyButtons() {
         traffic: planTraffic,
         days: planDays,
         badge: planBadge,
+        squad_uuid: planSquad,
       };
+
+      const cachedService = (window.lastUserData?.services || []).find(s => String(s.id) === String(planId));
+      if (cachedService && cachedService.squad_uuid && !planObj.squad_uuid) {
+        planObj.squad_uuid = cachedService.squad_uuid;
+      }
 
       const isExtraTraffic = (planDays === 0 && planTraffic > 0) || planBadge === 'traffic';
       const isTimeOnly = (planTraffic === 0 && planDays > 0) || planBadge === 'time';
@@ -903,14 +911,15 @@ function setupBuyButtons() {
 
       // Squad Switch Detection: Warning modal MUST appear BEFORE the pre-invoice / checkout modal!
       const activeSub = window.lastUserData?.active_sub || window.lastUserData?.active_subscription;
+      const activeSquad = (activeSub?.squad_uuid || '').trim().toLowerCase();
+      const planSquadNorm = (planObj.squad_uuid || '').trim().toLowerCase();
       const isSwitch = Boolean(
         hasActiveSub &&
         activeSub &&
         !isExtraTraffic &&
         !isTimeOnly &&
-        planObj.squad_uuid &&
-        activeSub.squad_uuid &&
-        String(planObj.squad_uuid).trim().toLowerCase() !== String(activeSub.squad_uuid).trim().toLowerCase()
+        planSquadNorm &&
+        (!activeSquad || planSquadNorm !== activeSquad)
       );
 
       if (isSwitch) {
@@ -1036,10 +1045,13 @@ function showPurchaseModal(res, fallbackPlanName, fallbackPlanPrice) {
   const subUrl = res.subscription_url || window.lastUserData?.active_sub?.subscription_url || '';
   if (sSubEl) sSubEl.innerText = subUrl || 'لینک اشتراک در داشبورد ثبت گردید.';
 
-  if (res.squad_changed) {
-    setTimeout(() => {
-      showToast('⚡️ سرورهای شما با موفقیت ارتقا یافت! لطفاً در نرم‌افزار گزینه Update Subscription را بزنید.');
-    }, 600);
+  const squadNoticeBox = document.getElementById('psvcSquadNoticeBox');
+  if (squadNoticeBox) {
+    if (res.squad_changed) {
+      squadNoticeBox.classList.remove('hidden');
+    } else {
+      squadNoticeBox.classList.add('hidden');
+    }
   }
 
   const copyBtn = document.getElementById('psvcCopyBtn');

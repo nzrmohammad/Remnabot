@@ -109,11 +109,16 @@ async def buy_for_account(
         return
 
     state_data = await state.get_data() if state else {}
-    if state_data.get(f"squad_ok_{service_id}_{panel_user_id}"):
+    if state_data.get("coupon_code"):
         is_confirmed = True
 
     # Detect squad switch
-    acc_squads = chosen.get("activeInternalSquads") or []
+    acc_squads = (
+        chosen.get("activeInternalSquads")
+        or chosen.get("internalSquads")
+        or chosen.get("squads")
+        or []
+    )
     acc_squad_uuids: set[str] = set()
     for sq in acc_squads:
         if isinstance(sq, dict):
@@ -169,9 +174,6 @@ async def buy_for_account(
         await render_menu(bot, user, user_repo, "\n".join(lines), kb.as_markup())
         await call.answer()
         return
-
-    if is_squad_switch and state:
-        await state.update_data({f"squad_ok_{service_id}_{panel_user_id}": True})
 
     coupon_code = state_data.get("coupon_code")
     discount_amount = state_data.get("discount_amount", 0) if coupon_code else 0
