@@ -352,8 +352,8 @@
               <div class="text-[11px] text-slate-400 group-hover:text-amber-300 flex items-center justify-center gap-1 font-medium transition">
                 <span>⏳</span> انقضای سرویس
               </div>
-              <div id="dashboardDaysLeft" class="text-sm font-extrabold t-warn mt-0.5 font-sans num-bidi">-- روز</div>
-              <div id="dashboardExpireDate" class="text-[11px] text-slate-400 font-sans num-bidi">--</div>
+              <div id="dashboardDaysLeft" class="text-sm font-extrabold t-warn mt-0.5">-- روز</div>
+              <div id="dashboardExpireDate" class="text-[11px] text-slate-400 font-mono">--</div>
             </div>
             <div class="bg-transparent rounded-2xl p-2.5 border border-slate-700/50">
               <div class="text-[11px] text-slate-400 flex items-center justify-center gap-1 font-medium">
@@ -517,7 +517,7 @@
             <span class="text-xs font-bold t-main flex items-center gap-1.5">
               <span>☀️</span> گزارش روزانه
             </span>
-            <span id="repDailyDate" class="text-[11px] font-mono text-slate-400">--/--/-- - 23:59</span>
+            <span id="repDailyDate" class="text-[11px] font-sans num-bidi text-slate-400">--/--/-- - 23:59</span>
           </div>
 
           <div class="space-y-1.5 text-xs t-muted">
@@ -554,7 +554,7 @@
             <span class="text-xs font-bold t-main flex items-center gap-1.5">
               <span>🌙</span> گزارش شبانه
             </span>
-            <span id="repNightlyDate" class="text-[11px] font-mono text-slate-400">--/--/-- - 23:59</span>
+            <span id="repNightlyDate" class="text-[11px] font-sans num-bidi text-slate-400">--/--/-- - 23:59</span>
           </div>
 
           <div class="space-y-1.5 text-xs t-muted">
@@ -686,7 +686,7 @@
               <!-- Active Won Coupons -->
               <div class="card-inset rounded-xl p-2.5 flex flex-col items-center justify-between">
                 <span class="text-[11px] text-slate-400 block mb-1">کدهای تخفیف</span>
-                <b id="achieveWonCoupons" class="font-mono t-success text-xs font-bold">۰ کد</b>
+                <b id="achieveWonCoupons" class="font-sans t-success text-xs font-bold num-bidi">۰ کد</b>
                 <button type="button" id="achieveCouponsAction" class="text-[11px] t-success mt-0.5 font-medium hover:underline bg-transparent border-0 p-0" onclick="window.copyActiveCoupon()">مشاهده و کپی</button>
               </div>
 
@@ -702,11 +702,11 @@
             <div class="flex items-center justify-between card-inset rounded-xl px-3 py-1.5 text-[11px]">
               <div class="flex items-center gap-1.5 text-slate-400">
                 <span>🔥 روزهای متوالی چرخش:</span>
-                <b id="achieveStreakCount" class="font-mono t-warn font-bold">۰ روز</b>
+                <b id="achieveStreakCount" class="font-sans t-warn font-bold num-bidi">۰ روز</b>
               </div>
               <div class="flex items-center gap-1.5 text-slate-400">
                 <span>🎫 بلیط گردونه:</span>
-                <b id="achieveSpinTickets" class="font-mono t-info font-bold">۰ عدد</b>
+                <b id="achieveSpinTickets" class="font-sans t-info font-bold num-bidi">۰ عدد</b>
               </div>
             </div>
           </div>
@@ -728,7 +728,7 @@
                 </div>
                 <div class="card-inset rounded-xl p-2.5 space-y-1">
                   <span class="text-[11px] text-slate-400 block">تخمین حجم باقی‌مانده:</span>
-                  <b id="repBurnProjectedDays" class="font-mono t-success text-xs num-bidi" dir="ltr">-- روز</b>
+                  <b id="repBurnProjectedDays" class="font-sans t-success text-xs num-bidi" dir="ltr">-- روز</b>
                 </div>
               </div>
 
@@ -2200,11 +2200,11 @@
             </div>
             <div class="flex justify-between items-center text-[11px]">
               <span class="text-slate-400">تعداد استارز مورد نیاز:</span>
-              <b id="starsRequiredCount" class="t-warn font-mono font-bold text-sm" dir="ltr">-- ⭐️</b>
+              <b id="starsRequiredCount" class="t-warn font-sans font-bold text-sm num-bidi" dir="ltr">-- ⭐️</b>
             </div>
             <div class="flex justify-between items-center text-[11px] text-slate-400">
               <span>نرخ تبدیل تقریبی:</span>
-              <span id="starsRateDisplay" class="font-mono t-main font-bold">-- تومان</span>
+              <span id="starsRateDisplay" class="font-sans t-main font-bold num-bidi">-- تومان</span>
             </div>
             <p class="text-[11px] t-muted leading-relaxed bg-transparent p-2 rounded-xl border border-slate-200 dark:border-slate-700/50">
               💡 با زدن دکمه پرداخت، پنجره امن پرداخت تلگرام باز شده و اعتبار حساب بلافاصله واریز می‌شود.
@@ -2247,18 +2247,18 @@
           </div>
           <div class="flex justify-between items-center border-t border-slate-800 pt-1.5">
             <span class="text-slate-400">مبلغ قابل پرداخت:</span>
-            <b id="checkoutPlanPrice" class="t-success font-mono font-bold text-sm">-- تومان</b>
+            <b id="checkoutPlanPrice" class="t-success font-sans font-bold text-sm num-bidi">-- تومان</b>
           </div>
         </div>
 
         <div class="card-inset rounded-xl p-2.5 space-y-1.5 text-[11px]">
           <div class="flex justify-between items-center">
             <span class="text-slate-400">موجودی کیف پول شما:</span>
-            <span id="checkoutWalletBalance" class="text-slate-200 font-mono font-bold">-- تومان</span>
+            <span id="checkoutWalletBalance" class="text-slate-200 font-sans font-bold num-bidi">-- تومان</span>
           </div>
           <div id="checkoutRemainRow" class="flex justify-between items-center">
             <span class="text-slate-400">موجودی پس از کسر:</span>
-            <span id="checkoutRemainingBalance" class="t-success font-mono font-bold">-- تومان</span>
+            <span id="checkoutRemainingBalance" class="t-success font-sans font-bold num-bidi">-- تومان</span>
           </div>
         </div>
 
@@ -2281,7 +2281,7 @@
         <div id="checkoutShortageBox" class="hidden s-danger-soft border border-rose-500/30 rounded-xl p-2.5 text-xs text-rose-700 dark:text-rose-300 space-y-1">
           <div class="flex justify-between items-center font-extrabold">
             <span>⚠️ کسری موجودی کیف پول:</span>
-            <span id="checkoutShortageAmount" class="font-mono font-bold num-bidi" dir="ltr">-- تومان</span>
+            <span id="checkoutShortageAmount" class="font-sans font-bold num-bidi" dir="ltr">-- تومان</span>
           </div>
           <p class="text-[11px] font-medium text-rose-800 dark:text-rose-200 leading-relaxed">برای خرید این بسته ابتدا باید کیف پول خود را شارژ فرمایید.</p>
         </div>
@@ -2575,8 +2575,8 @@
           <div class="flex justify-between items-center"><span class="text-slate-400">حجم ترافیک:</span><b id="psvcTraffic" class="t-accent font-mono num-bidi" dir="ltr">-- GB</b></div>
           <div class="flex justify-between items-center"><span class="text-slate-400">مدت اعتبار:</span><b id="psvcDays" class="text-slate-200">-- روز</b></div>
           <div class="flex justify-between items-center"><span class="text-slate-400">نام کاربری:</span><code id="psvcUser" class="text-indigo-300 font-mono" dir="ltr">--</code></div>
-          <div class="flex justify-between items-center border-t border-slate-800 pt-1.5"><span class="text-slate-400">مبلغ کسر شده:</span><b id="psvcPrice" class="t-success font-mono">-- تومان</b></div>
-          <div class="flex justify-between items-center"><span class="text-slate-400">موجودی جدید ولت:</span><b id="psvcNewBalance" class="text-slate-300 font-mono">-- تومان</b></div>
+          <div class="flex justify-between items-center border-t border-slate-800 pt-1.5"><span class="text-slate-400">مبلغ کسر شده:</span><b id="psvcPrice" class="t-success font-sans num-bidi">-- تومان</b></div>
+          <div class="flex justify-between items-center"><span class="text-slate-400">موجودی جدید ولت:</span><b id="psvcNewBalance" class="text-slate-300 font-sans num-bidi">-- تومان</b></div>
         </div>
 
         <!-- Squad Switch Alert Box inside Modal -->
@@ -3092,13 +3092,13 @@
             <span class="text-slate-400 text-[11px] flex items-center gap-1">
               <span>💡</span> میانگین مجاز مصرف روزانه:
             </span>
-            <span id="modalExpiryDailyAllowance" class="font-mono font-bold t-success num-bidi" dir="ltr">-- GB</span>
+            <span id="modalExpiryDailyAllowance" class="font-sans font-bold t-success num-bidi" dir="ltr">-- GB</span>
           </div>
           <div class="flex items-center justify-between border-t border-slate-800/80 pt-1.5">
             <span class="text-slate-400 text-[11px] flex items-center gap-1">
               <span>📅</span> تاریخ دقیق پایان اعتبار:
             </span>
-            <span id="modalExpiryExactDate" class="font-mono font-semibold text-slate-200 text-[11px]" dir="ltr">--</span>
+            <span id="modalExpiryExactDate" class="font-sans font-semibold text-slate-200 text-[11px] num-bidi" dir="ltr">--</span>
           </div>
           <div class="flex items-center justify-between border-t border-slate-800/80 pt-1.5">
             <span class="text-slate-400 text-[11px] flex items-center gap-1">
@@ -3459,7 +3459,7 @@
               <span class="text-[11px] t-muted block">رسید الکترونیک معتبر سامانه</span>
             </div>
           </div>
-          <div class="text-left font-mono shrink-0 pl-1" dir="ltr">
+          <div class="text-left font-sans num-bidi shrink-0 pl-1" dir="ltr">
             <span id="invNumberDisplay" class="text-xs font-bold t-accent block select-all">INV-0000-00000</span>
             <div class="text-[11px] t-muted flex items-center gap-1 justify-end mt-0.5">
               <span id="invDateDisplay">--/--/--</span>
@@ -3496,7 +3496,7 @@
               </div>
               <span id="invItemSpecs" class="t-muted text-[11px] block">-- گیگابایت | -- روز</span>
             </div>
-            <div class="text-left font-mono font-bold text-xs t-main">
+            <div class="text-left font-sans font-bold text-xs t-main num-bidi">
               <span id="invItemAmount">0</span>
             </div>
           </div>

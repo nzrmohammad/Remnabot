@@ -130,7 +130,10 @@ function getTxPerPage() {
 function formatTxTitle(tx) {
   if (!tx) return 'تراکنش';
   if (tx.type === 'order' || (tx.title && tx.title.startsWith('خرید '))) {
-    const rawPlan = (tx.service_name || tx.title.replace(/^خرید\s+/, '')).trim();
+    let rawPlan = (tx.service_name || tx.title.replace(/^خرید\s+/, '')).trim();
+    if (rawPlan.includes('بسته دلخواه')) {
+      rawPlan = 'بسته دلخواه';
+    }
     const formattedPlan = typeof formatPlanTitle === 'function' ? formatPlanTitle(rawPlan) : escapeHtml(rawPlan);
     return `<span class="inline-flex items-center gap-1"><span class="text-slate-400 font-normal">خرید</span> ${formattedPlan}</span>`;
   }

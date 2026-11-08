@@ -401,7 +401,16 @@ function formatPlanTitle(name, options = {}) {
   const str = String(name).trim();
   const emojis = str.match(emojiRegex);
   const cleanText = str.replace(emojiRegex, '').trim();
-  const emojiStr = (emojis && emojis.length > 0) ? emojis.join('') : (options.defaultIcon || '');
+  let emojiStr = (emojis && emojis.length > 0) ? emojis.join('') : (options.defaultIcon || '');
+
+  if (!emojiStr) {
+    const lowerName = str.toLowerCase();
+    if (lowerName.includes('طلایی') || lowerName.includes('gold')) emojiStr = '🥇';
+    else if (lowerName.includes('نقره') || lowerName.includes('silver')) emojiStr = '🥈';
+    else if (lowerName.includes('برنز') || lowerName.includes('bronze')) emojiStr = '🥉';
+    else if (lowerName.includes('الماس') || lowerName.includes('diamond')) emojiStr = '💎';
+    else if (lowerName.includes('ویژه') || lowerName.includes('vip')) emojiStr = '👑';
+  }
 
   if (options.plainText) {
     const icon = emojiStr || '💎';
@@ -412,9 +421,9 @@ function formatPlanTitle(name, options = {}) {
     return `<bdi class="inline-block font-bold select-all">${escapeHtml(name)}</bdi>`;
   }
   if (!cleanText) {
-    return `<span dir="ltr" class="inline-block text-base">${emojiStr}</span>`;
+    return `<span class="inline-block text-base">${emojiStr}</span>`;
   }
-  return `<span class="inline-flex items-center gap-1.5"><span class="shrink-0 text-base">${emojiStr}</span><bdi class="font-bold select-all">${escapeHtml(cleanText)}</bdi></span>`;
+  return `<span class="inline-flex items-center gap-1.5" dir="ltr"><span class="shrink-0 text-base">${emojiStr}</span><bdi class="font-bold select-all">${escapeHtml(cleanText)}</bdi></span>`;
 }
 
 function buildRefLink(botUsername, userId) {

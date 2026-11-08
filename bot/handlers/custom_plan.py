@@ -418,7 +418,7 @@ async def custom_plan_execute_purchase(
 
     custom_svc = SimpleNamespace(
         id=None,
-        name=f"بسته دلخواه ({ltr_frag(f'{gb} GB')} - {days} روز)",
+        name="بسته دلخواه",
         price=final_price,
         duration_days=days,
         traffic_gb=gb,

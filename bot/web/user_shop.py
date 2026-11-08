@@ -782,7 +782,7 @@ async def post_user_custom_plan_purchase(request: web.Request) -> web.Response:
 
         custom_svc = SimpleNamespace(
             id=None,
-            name=f"بسته دلخواه ({ltr_frag(f'{traffic_gb} GB')} - {duration_days} روز)",
+            name="بسته دلخواه",
             price=base_price,
             duration_days=duration_days,
             traffic_gb=traffic_gb,

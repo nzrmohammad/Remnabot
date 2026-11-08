@@ -3274,9 +3274,31 @@ function hydrateUserInterface(data) {
         const hwid = d.hwid || '';
 
         const ua = String(d.userAgent || d.user_agent || '').trim();
-        const uaHtml = ua ? `
+        let cleanUa = ua;
+        if (ua) {
+          const clients = [
+            'v2rayNG', 'Happ', 'Hiddify', 'Streisand', 'V2Box', 'Incy', 'NekoBox',
+            'ClashMeta', 'Clash', 'Sing-box', 'sing-box', 'Shadowrocket', 'Quantumult',
+            'Surge', 'Loon', 'Foxray', 'Karing', 'Wings', 'WireGuard', 'Outline'
+          ];
+          let matched = false;
+          for (const c of clients) {
+            const regex = new RegExp(`(${c})[/\\s]?([0-9]+(?:\\.[0-9]+)*)?`, 'i');
+            const m = ua.match(regex);
+            if (m) {
+              cleanUa = m[2] ? `${m[1]} ${m[2]}` : m[1];
+              matched = true;
+              break;
+            }
+          }
+          if (!matched) {
+            cleanUa = ua.replace(/\s*\([^)]*\)/g, '').trim().split(/[\s;]/)[0] || ua;
+            cleanUa = cleanUa.replace('/', ' ').trim();
+          }
+        }
+        const uaHtml = cleanUa ? `
           <div class="text-[10.5px] text-cyan-400/90 truncate mt-0.5 font-sans" title="${escapeHtml(ua)}">
-            <span class="text-slate-400">کلاینت:</span> ${escapeHtml(ua)}
+            <span class="text-slate-400">کلاینت:</span> ${escapeHtml(cleanUa)}
           </div>
         ` : '';
 
@@ -3325,8 +3347,8 @@ function hydrateUserInterface(data) {
                 <span class="flex items-center gap-1"><span>🌐</span> آی‌پی:</span>
                 <span class="font-sans font-bold t-accent num-bidi" dir="ltr">${escapeHtml(ip)}</span>
               </div>
-              ${updatedHtml}
               ${addedHtml}
+              ${updatedHtml}
             </div>
           </div>
         `;
@@ -4720,7 +4742,8 @@ function renderInvoiceModalFields(inv, orderId) {
   const rawItemTitle = (inv.item?.title || 'بسته اشتراک').trim();
   const emojiRegex = /([\uD800-\uDBFF][\uDC00-\uDFFF]|[\u2600-\u27BF]|\p{Extended_Pictographic}|\p{Emoji_Presentation})/gu;
   const emojiMatches = rawItemTitle.match(emojiRegex);
-  const cleanItemTitle = rawItemTitle.replace(emojiRegex, '').trim() || rawItemTitle;
+  let cleanItemTitle = rawItemTitle.replace(emojiRegex, '').trim() || rawItemTitle;
+  cleanItemTitle = cleanItemTitle.replace(/\s*\([^)]*(?:GB|روز|day)[^)]*\)/gi, '').trim();
   let itemIcon = (emojiMatches && emojiMatches[0]) ? emojiMatches[0] : '📦';
   if (!emojiMatches || !emojiMatches.length) {
     const lowerTitle = rawItemTitle.toLowerCase();

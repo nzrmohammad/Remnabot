@@ -420,7 +420,7 @@ function purchaseCustomPlan() {
   const customPlanObj = {
     id: 'custom',
     isCustom: true,
-    name: `بسته دلخواه (${fmtTraffic(gb, { html: false })} - ${days} روز)`,
+    name: 'بسته دلخواه',
     price: finalPrice,
     traffic: gb,
     days: days,
@@ -1049,7 +1049,10 @@ function showPurchaseModal(res, fallbackPlanName, fallbackPlanPrice) {
   const sBalEl = document.getElementById('psvcNewBalance');
   const sSubEl = document.getElementById('psvcSubDisplay');
 
-  const rawName = (res.service_name || fallbackPlanName || '').trim();
+  let rawName = (res.service_name || fallbackPlanName || '').trim();
+  if (rawName.includes('بسته دلخواه')) {
+    rawName = 'بسته دلخواه';
+  }
   const emojiMatch = rawName.match(/^([\uD800-\uDBFF][\uDC00-\uDFFF]|[\u2600-\u27BF]|\p{Emoji_Presentation}|\p{Extended_Pictographic})/u);
   if (emojiMatch) {
     const emoji = emojiMatch[0];
