@@ -90,23 +90,23 @@
       const initial = (displayName || String(u.telegram_id))[0].toUpperCase();
       const p = u.panel_account;
 
-      let statusBadge = '<span class="px-1.5 py-0.5 rounded-lg text-[10px] bg-transparent border border-slate-400/30 t-muted font-medium">بدون اکانت</span>';
+      let statusBadge = '<span class="px-1.5 py-0.5 rounded-lg text-[11px] bg-transparent border border-slate-400/30 t-muted font-medium">بدون اکانت</span>';
       if (u.is_banned) {
-        statusBadge = '<span class="px-1.5 py-0.5 rounded-lg text-[10px] bg-transparent t-danger font-bold border border-rose-500/30">مسدود</span>';
+        statusBadge = '<span class="px-1.5 py-0.5 rounded-lg text-[11px] bg-transparent t-danger font-bold border border-rose-500/30">مسدود</span>';
       } else if (u.is_limited || (p && p.exists && ((p.status || '').toUpperCase() === 'LIMITED' || (p.remaining_traffic_gb === 0 && p.limit_traffic_gb > 0)))) {
-        statusBadge = '<span class="px-1.5 py-0.5 rounded-lg text-[10px] bg-transparent text-amber-500 dark:text-amber-400 font-bold border border-amber-500/30">اتمام حجم</span>';
+        statusBadge = '<span class="px-1.5 py-0.5 rounded-lg text-[11px] bg-transparent text-amber-500 dark:text-amber-400 font-bold border border-amber-500/30">اتمام حجم</span>';
       } else if (u.is_expired || (p && p.exists && (p.status || '').toUpperCase() === 'EXPIRED')) {
-        statusBadge = '<span class="px-1.5 py-0.5 rounded-lg text-[10px] bg-transparent t-danger font-bold border border-rose-500/30">منقضی</span>';
+        statusBadge = '<span class="px-1.5 py-0.5 rounded-lg text-[11px] bg-transparent t-danger font-bold border border-rose-500/30">منقضی</span>';
       } else if (p && p.exists) {
         const st = (p.status || '').toUpperCase();
-        if (st === 'ACTIVE') statusBadge = '<span class="px-1.5 py-0.5 rounded-lg text-[10px] bg-transparent t-success font-bold border border-emerald-500/30">فعال</span>';
-        else if (st === 'DISABLED') statusBadge = '<span class="px-1.5 py-0.5 rounded-lg text-[10px] bg-transparent t-warn font-bold border border-amber-500/30">غیرفعال</span>';
-        else statusBadge = `<span class="px-1.5 py-0.5 rounded-lg text-[10px] bg-transparent t-info font-bold border border-blue-500/30">${st}</span>`;
+        if (st === 'ACTIVE') statusBadge = '<span class="px-1.5 py-0.5 rounded-lg text-[11px] bg-transparent t-success font-bold border border-emerald-500/30">فعال</span>';
+        else if (st === 'DISABLED') statusBadge = '<span class="px-1.5 py-0.5 rounded-lg text-[11px] bg-transparent t-warn font-bold border border-amber-500/30">غیرفعال</span>';
+        else statusBadge = `<span class="px-1.5 py-0.5 rounded-lg text-[11px] bg-transparent t-info font-bold border border-blue-500/30">${st}</span>`;
       }
 
       const isExpiring = u.is_expiring || (p && p.exists && !u.is_expired && ((p.days_left !== null && p.days_left > 0 && p.days_left <= 3) || (p.remaining_traffic_gb >= 0 && p.remaining_traffic_gb <= 2.0 && p.limit_traffic_gb > 0)));
       const expiringBadgeHtml = isExpiring
-        ? '<span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-lg bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[10px] font-bold animate-pulse flex-shrink-0 whitespace-nowrap" title="هشدار: حجم یا زمان رو به اتمام است"><svg class="w-2.5 h-2.5 text-amber-300" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z"/></svg> رو به اتمام</span>'
+        ? '<span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-lg bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[11px] font-bold animate-pulse flex-shrink-0 whitespace-nowrap" title="هشدار: حجم یا زمان رو به اتمام است"><svg class="w-2.5 h-2.5 text-amber-300" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z"/></svg> رو به اتمام</span>'
         : '';
 
       let serviceLineHtml = `
@@ -188,14 +188,14 @@
           <div class="bg-transparent rounded-xl p-2.5 border border-slate-700/60 space-y-2">
             <!-- Glass Progress Bar & Top Metrics -->
             <div class="space-y-1">
-              <div class="flex items-center justify-between text-[10px]">
+              <div class="flex items-center justify-between text-[11px]">
                 <div class="flex items-center gap-1 font-mono text-slate-300">
-                  <span class="text-slate-400 text-[10px] font-sans">مصرف:</span>
+                  <span class="text-slate-400 text-[11px] font-sans">مصرف:</span>
                   <span dir="ltr" class="font-bold t-main num-bidi">${usedDisplay}</span>
                   <span class="text-slate-400 font-sans">از</span>
                   <span dir="ltr" class="text-slate-400 font-mono num-bidi">${totalDisplay}</span>
                 </div>
-                <span class="px-1.5 py-0.5 rounded-md text-[10px] font-mono font-bold border ${badgeColor}">
+                <span class="px-1.5 py-0.5 rounded-md text-[11px] font-mono font-bold border ${badgeColor}">
                   ${statusLabel}
                 </span>
               </div>
@@ -206,14 +206,14 @@
             </div>
 
             <!-- Dual Metric Grid (گرید دوقلو بدون پس‌زمینه) -->
-            <div class="grid grid-cols-2 gap-2 pt-1 border-t border-slate-800/80 text-[10px]">
+            <div class="grid grid-cols-2 gap-2 pt-1 border-t border-slate-800/80 text-[11px]">
               <!-- Column 1: Remaining Volume -->
               <div class="bg-transparent rounded-lg p-1.5 border border-slate-700/60 flex items-center gap-2">
                 <div class="w-7 h-7 rounded-md bg-transparent border border-cyan-500/30 flex items-center justify-center text-cyan-500 dark:text-cyan-400 text-xs shrink-0">
                   ⚡
                 </div>
                 <div class="min-w-0 flex-1 leading-tight">
-                  <span class="text-slate-400 text-[10px] block">حجم باقی‌مانده</span>
+                  <span class="text-slate-400 text-[11px] block">حجم باقی‌مانده</span>
                   <span dir="ltr" class="font-mono font-bold t-accent truncate block text-[11px]">
                     ${remDisplay}
                   </span>
@@ -226,8 +226,8 @@
                   ⏳
                 </div>
                 <div class="min-w-0 flex-1 leading-tight">
-                  <span class="text-slate-400 text-[10px] block truncate" title="${timeSub}">${timeSub}</span>
-                  <span class="font-bold ${timeColor} truncate block text-[10px]">
+                  <span class="text-slate-400 text-[11px] block truncate" title="${timeSub}">${timeSub}</span>
+                  <span class="font-bold ${timeColor} truncate block text-[11px]">
                     ${timeText}
                   </span>
                 </div>
@@ -280,7 +280,7 @@
                 <span class="text-xs font-mono font-bold text-emerald-600 dark:text-emerald-400 num-bidi" dir="ltr">
                   ${formatNumber(u.wallet_balance || 0)}
                 </span>
-                <span class="text-[9.5px] font-sans text-emerald-600/80 dark:text-emerald-400/80 -mt-0.5">تومان</span>
+                <span class="text-[11px] font-sans text-emerald-600/80 dark:text-emerald-400/80 -mt-0.5">تومان</span>
               </div>
             </div>
           </div>
@@ -290,7 +290,7 @@
 
           <!-- Quick Action Buttons: 3x2 Symmetrical Grid -->
           <div class="space-y-1.5 pt-1">
-            <div class="grid grid-cols-3 gap-1.5 text-center text-[10px]">
+            <div class="grid grid-cols-3 gap-1.5 text-center text-[11px]">
               <button class="bg-transparent hover:bg-blue-500/10 text-blue-500 dark:text-blue-400 border border-blue-500/30 hover:border-blue-400/60 py-1.5 rounded-xl transition active:scale-95 font-medium flex items-center justify-center gap-1" data-action="modify" data-tgid="${u.telegram_id}" data-username="${escapeHtml(u.username || '')}" data-name="${escapeHtml(displayName)}" onclick="window.adminActions.openModifyUser(this.dataset.tgid, this.dataset.username, this.dataset.name)" title="افزایش حجم یا تمدید زمان">
                 <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
                 <span>حجم و تمدید</span>
@@ -304,7 +304,7 @@
                 <span>اکانت تست</span>
               </button>
             </div>
-            <div class="grid grid-cols-3 gap-1.5 text-center text-[10px]">
+            <div class="grid grid-cols-3 gap-1.5 text-center text-[11px]">
               <button class="bg-transparent hover:bg-cyan-500/10 t-accent border border-cyan-500/30 hover:border-cyan-400/60 py-1.5 rounded-xl transition active:scale-95 font-medium flex items-center justify-center gap-1" data-action="sub" data-tgid="${u.telegram_id}" data-name="${escapeHtml(displayName)}" data-suburl="${escapeHtml(p?.subscription_url || '')}" onclick="window.adminActions.openSubModal(this.dataset.tgid, this.dataset.name, this.dataset.suburl)" title="لینک سابسکریپشن">
                 <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
                 <span>لینک ساب</span>
@@ -892,25 +892,25 @@ async applyUserModification() {
                 <div class="flex items-center gap-1.5 min-w-0 flex-1">
                   <span class="text-base flex-shrink-0">${r.client_icon || '📱'}</span>
                   <b class="t-main text-xs truncate" title="${escapeHtml(r.user_agent || r.client_name || '')}">${escapeHtml(r.client_name || 'کلاینت')}</b>
-                  <span class="text-[9.5px] px-1.5 py-0.5 rounded-md card-inset border border-slate-700/60 t-muted font-mono flex-shrink-0">${escapeHtml(r.client_tag || 'App')}</span>
+                  <span class="text-[11px] px-1.5 py-0.5 rounded-md card-inset border border-slate-700/60 t-muted font-mono flex-shrink-0">${escapeHtml(r.client_tag || 'App')}</span>
                 </div>
-                <span class="inline-flex items-center gap-1 text-[10px] font-bold ${r.is_success ? 'text-emerald-600 dark:text-emerald-400 border-emerald-500/30' : 'text-rose-600 dark:text-rose-400 border-rose-500/30'} bg-transparent px-2 py-0.5 rounded-lg border flex-shrink-0">
+                <span class="inline-flex items-center gap-1 text-[11px] font-bold ${r.is_success ? 'text-emerald-600 dark:text-emerald-400 border-emerald-500/30' : 'text-rose-600 dark:text-rose-400 border-rose-500/30'} bg-transparent px-2 py-0.5 rounded-lg border flex-shrink-0">
                   ${r.is_success ? 'موفق' : (r.status_code ? 'خطا ' + r.status_code : 'خطا')}
                 </span>
               </div>
 
               <!-- Line 2: IP with tap-to-copy, and update time -->
-              <div class="flex items-center justify-between text-[10px] pt-1 border-t border-slate-800/60 t-muted gap-2">
+              <div class="flex items-center justify-between text-[11px] pt-1 border-t border-slate-800/60 t-muted gap-2">
                 <div class="flex items-center gap-1.5 min-w-0">
                   <button type="button" dir="ltr" class="font-mono text-cyan-700 dark:text-cyan-400 font-bold select-all hover:underline cursor-pointer flex items-center gap-1 btn-copy-ip-r" data-ip="${escapeHtml(r.ip || '')}" title="کلیک جهت کپی آی‌پی">
                     <span>🌐 ${escapeHtml(r.ip || '')}</span>
-                    <span class="text-[10px] opacity-70">📋</span>
+                    <span class="text-[11px] opacity-70">📋</span>
                   </button>
                 </div>
-                <div class="flex items-center gap-1.5 text-[10px] t-muted font-mono flex-shrink-0" dir="ltr">
+                <div class="flex items-center gap-1.5 text-[11px] t-muted font-mono flex-shrink-0" dir="ltr">
                   <span>⏱</span>
                   <span class="font-bold t-main" title="${escapeHtml(r.relative_time || '')}">${toEnglishDigits(r.date_str && r.date_str !== '—' ? r.date_str : (r.relative_time || 'ثبت‌شده'))}</span>
-                  ${r.relative_time && r.relative_time !== '—' && r.relative_time !== r.date_str ? `<span class="text-[10px] t-dim font-sans">(${r.relative_time})</span>` : ''}
+                  ${r.relative_time && r.relative_time !== '—' && r.relative_time !== r.date_str ? `<span class="text-[11px] t-dim font-sans">(${r.relative_time})</span>` : ''}
                 </div>
               </div>
             </div>
@@ -983,7 +983,7 @@ async applyUserModification() {
                 if (!isNaN(dateObj.getTime())) {
                   const dateStr = dateObj.toLocaleDateString('fa-IR');
                   const timeStr = dateObj.toLocaleTimeString('fa-IR', { hour: '2-digit', minute: '2-digit' });
-                  timeHtml = `<div class="flex items-center gap-1.5 mt-1 text-[10px] t-muted font-mono justify-start" dir="rtl"><span class="text-xs">⏱</span><span dir="ltr">${toEnglishDigits(timeStr)} - ${toEnglishDigits(dateStr)}</span></div>`;
+                  timeHtml = `<div class="flex items-center gap-1.5 mt-1 text-[11px] t-muted font-mono justify-start" dir="rtl"><span class="text-xs">⏱</span><span dir="ltr">${toEnglishDigits(timeStr)} - ${toEnglishDigits(dateStr)}</span></div>`;
                 }
               } catch(e) {}
             }
@@ -995,16 +995,16 @@ async applyUserModification() {
                     <span class="text-sm flex-shrink-0">${osIcon}</span>
                     <b class="text-white text-xs block truncate">${escapeHtml(osDisplay)} ${brand ? '(' + escapeHtml(brand) + ')' : ''}</b>
                   </div>
-                  <div class="flex items-center gap-1.5 mt-0.5 text-[10px] text-slate-400">
+                  <div class="flex items-center gap-1.5 mt-0.5 text-[11px] text-slate-400">
                     <span>آی‌پی:</span>
                     <button type="button" dir="ltr" class="font-mono text-cyan-700 dark:text-cyan-400 font-bold select-all hover:underline cursor-pointer flex items-center gap-1 btn-copy-hwid-ip" data-ip="${escapeHtml(ip)}" title="کپی آی‌پی">
                       <span>${escapeHtml(ip)}</span>
-                      <span class="text-[10px] opacity-70">📋</span>
+                      <span class="text-[11px] opacity-70">📋</span>
                     </button>
                   </div>
                   <div class="flex items-center gap-1.5 mt-1">
-                    <span class="text-[10px] text-slate-400">HWID:</span>
-                    <span dir="ltr" class="font-mono text-[10px] text-slate-300 bg-transparent px-2 py-0.5 rounded-lg border border-slate-700/60 truncate max-w-[170px]" title="${escapeHtml(hwid)}">${escapeHtml(hwid)}</span>
+                    <span class="text-[11px] text-slate-400">HWID:</span>
+                    <span dir="ltr" class="font-mono text-[11px] text-slate-300 bg-transparent px-2 py-0.5 rounded-lg border border-slate-700/60 truncate max-w-[170px]" title="${escapeHtml(hwid)}">${escapeHtml(hwid)}</span>
                   </div>
                   ${timeHtml}
                 </div>
@@ -1083,10 +1083,10 @@ async applyUserModification() {
         const ips = nc.ips || [];
         const ipsHtml = ips.map(ip => `
           <div class="flex items-center justify-between bg-transparent px-2.5 py-1.5 rounded-xl border border-slate-700/60 text-xs">
-            <span class="text-slate-400 text-[10px]">آی‌پی کلاینت:</span>
+            <span class="text-slate-400 text-[11px]">آی‌پی کلاینت:</span>
             <button type="button" dir="ltr" class="btn-copy-ip-direct font-mono text-cyan-700 dark:text-cyan-400 font-bold select-all hover:underline cursor-pointer flex items-center gap-1" data-ip="${escapeHtml(ip)}" title="کلیک جهت کپی آی‌پی">
               <span>${escapeHtml(ip)}</span>
-              <span class="text-[10px] opacity-70">📋</span>
+              <span class="text-[11px] opacity-70">📋</span>
             </button>
           </div>
         `).join('');
@@ -1098,12 +1098,12 @@ async applyUserModification() {
                 <span class="text-sm">${typeof renderFlagHtml === 'function' ? renderFlagHtml(flag, 'w-4 h-3 inline-block rounded-xs shadow-xs object-cover align-middle') : flag}</span>
                 <span>${escapeHtml(nodeName)}</span>
               </span>
-              <span class="text-[10px] card-inset text-cyan-700 dark:text-cyan-300 border border-cyan-500/40 px-2 py-0.5 rounded-lg font-mono font-bold">
+              <span class="text-[11px] card-inset text-cyan-700 dark:text-cyan-300 border border-cyan-500/40 px-2 py-0.5 rounded-lg font-mono font-bold">
                 ${formatNumber(ips.length)} اتصال
               </span>
             </div>
             <div class="space-y-1 pt-1">
-              ${ipsHtml || '<div class="text-slate-500 text-[10px] text-center">آی‌پی ثبت‌نشده</div>'}
+              ${ipsHtml || '<div class="text-slate-500 text-[11px] text-center">آی‌پی ثبت‌نشده</div>'}
             </div>
           </div>
         `;
@@ -1208,7 +1208,7 @@ async applyUserModification() {
       if (telegramIdInput) telegramIdInput.value = '';
       if (usernameInput) usernameInput.value = '';
       if (usernameStatus) {
-        usernameStatus.className = 'text-[10px] font-medium hidden';
+        usernameStatus.className = 'text-[11px] font-medium hidden';
         usernameStatus.innerText = '';
       }
       if (selectedIdEl) selectedIdEl.value = 'custom';
@@ -1260,24 +1260,24 @@ async applyUserModification() {
 
       const trimmed = (val || '').trim();
       if (!trimmed) {
-        statusEl.className = 'text-[10px] font-medium hidden';
+        statusEl.className = 'text-[11px] font-medium hidden';
         statusEl.innerText = '';
         return;
       }
 
       if (trimmed.length < 3) {
-        statusEl.className = 'text-[10px] font-medium text-amber-400 block mt-1';
+        statusEl.className = 'text-[11px] font-medium text-amber-400 block mt-1';
         statusEl.innerText = '⚠️ حداقل ۳ کاراکتر انگلیسی وارد کنید';
         return;
       }
 
       if (!/^[a-zA-Z0-9_-]{3,32}$/.test(trimmed)) {
-        statusEl.className = 'text-[10px] font-medium text-rose-400 block mt-1';
+        statusEl.className = 'text-[11px] font-medium text-rose-400 block mt-1';
         statusEl.innerText = '✕ فقط حروف انگلیسی، اعداد، _ و - مجاز است';
         return;
       }
 
-      statusEl.className = 'text-[10px] font-medium text-slate-400 block mt-1';
+      statusEl.className = 'text-[11px] font-medium text-slate-400 block mt-1';
       statusEl.innerText = 'در حال بررسی نام کاربری در پنل...';
 
       this._usernameCheckTimer = setTimeout(async () => {
@@ -1285,10 +1285,10 @@ async applyUserModification() {
           const res = await window.api.checkAdminUsername(trimmed);
           if (res && res.ok) {
             if (res.available) {
-              statusEl.className = 'text-[10px] font-medium text-emerald-400 block mt-1';
+              statusEl.className = 'text-[11px] font-medium text-emerald-400 block mt-1';
               statusEl.innerText = '✓ این نام کاربری آزاد است';
             } else {
-              statusEl.className = 'text-[10px] font-medium text-rose-400 block mt-1';
+              statusEl.className = 'text-[11px] font-medium text-rose-400 block mt-1';
               statusEl.innerText = res.error || '✕ این نام کاربری قبلاً در پنل ثبت شده است';
             }
           }
@@ -1344,7 +1344,7 @@ async applyUserModification() {
           <div class="flex items-center justify-between min-w-0 flex-1 gap-3">
             <div class="min-w-0 flex-1">
               <span class="font-bold t-main text-xs block">تنظیمات سفارشی (دستی)</span>
-              <span class="text-[10px] t-muted block mt-0.5">تعیین دستی حجم، روز و محدودیت دلخواه</span>
+              <span class="text-[11px] t-muted block mt-0.5">تعیین دستی حجم، روز و محدودیت دلخواه</span>
             </div>
             <div class="w-8 h-8 rounded-xl bg-blue-500/15 text-blue-400 border border-blue-500/30 flex items-center justify-center font-bold text-sm shrink-0">
               ⚙️
@@ -1370,7 +1370,7 @@ async applyUserModification() {
           else if (bKey.includes('seller')) badgeClass = 'border-amber-500/40 text-amber-500 dark:text-amber-400 bg-amber-500/10';
           else if (bKey.includes('popular')) badgeClass = 'border-purple-500/40 text-purple-500 dark:text-purple-400 bg-purple-500/10';
           else if (bKey.includes('eco')) badgeClass = 'border-emerald-500/40 text-emerald-500 dark:text-emerald-400 bg-emerald-500/10';
-          const badgeHtml = badgeText ? `<span class="px-1.5 py-0.5 text-[9.5px] rounded border font-bold ${badgeClass}">${badgeText}</span>` : '';
+          const badgeHtml = badgeText ? `<span class="px-1.5 py-0.5 text-[11px] rounded border font-bold ${badgeClass}">${badgeText}</span>` : '';
           const priceLabel = p.price ? (typeof fmtMoney === 'function' ? fmtMoney(p.price) : `${p.price} تومان`) : '';
 
           return `
@@ -1381,7 +1381,7 @@ async applyUserModification() {
                     <span class="font-bold t-main text-xs truncate">${escapeHtml(p.name)}</span>
                     ${badgeHtml}
                   </div>
-                  <div class="flex items-center gap-2 text-[10px] t-muted mt-0.5 font-mono">
+                  <div class="flex items-center gap-2 text-[11px] t-muted mt-0.5 font-mono">
                     <span class="text-cyan-600 dark:text-cyan-300 font-bold inline-flex items-center gap-0.5" dir="rtl"><span>GB</span><span class="font-mono font-bold">${toEnglishDigits(p.traffic_gb)}</span></span>
                     <span>•</span>
                     <span class="text-amber-600 dark:text-amber-300 font-bold">${p.duration_days} روز</span>

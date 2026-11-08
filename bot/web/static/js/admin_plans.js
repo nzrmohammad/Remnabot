@@ -131,8 +131,8 @@
 
         container.innerHTML = adminPlansData.map(p => {
           const statusBadge = p.is_active
-            ? '<span class="text-[10px] bg-emerald-500/10 t-success border border-emerald-500/30 px-2 py-0.5 rounded-lg font-bold">فعال</span>'
-            : '<span class="text-[10px] bg-slate-500/10 t-muted border border-slate-400/30 px-2 py-0.5 rounded-lg font-medium">غیرفعال</span>';
+            ? '<span class="text-[11px] bg-emerald-500/10 t-success border border-emerald-500/30 px-2 py-0.5 rounded-lg font-bold">فعال</span>'
+            : '<span class="text-[11px] bg-slate-500/10 t-muted border border-slate-400/30 px-2 py-0.5 rounded-lg font-medium">غیرفعال</span>';
 
           const trafficHtml = p.traffic_gb > 0
             ? fmtTraffic(p.traffic_gb, { html: true })
@@ -149,72 +149,72 @@
           const bKey = (p.badge || '').toLowerCase();
           const isExtraTraffic = (bKey === 'traffic' || (Number(p.duration_days) === 0 && Number(p.traffic_gb) > 0)) && bKey !== 'time';
           const isExtraTime = !isExtraTraffic && (bKey === 'time' || (Number(p.traffic_gb) === 0 && Number(p.duration_days) > 0 && bKey !== 'traffic'));
-          let typeBadge = '<span class="text-[10px] card-inset t-muted border border-slate-700/60 px-2 py-0.5 rounded-lg font-bold">💎 دوره کامل</span>';
+          let typeBadge = '<span class="text-[11px] card-inset t-muted border border-slate-700/60 px-2 py-0.5 rounded-lg font-bold">💎 دوره کامل</span>';
           if (isExtraTraffic) {
-            typeBadge = '<span class="text-[10px] card-inset t-muted border border-slate-700/60 px-2 py-0.5 rounded-lg font-bold">⚡️ بسته حجمی</span>';
+            typeBadge = '<span class="text-[11px] card-inset t-muted border border-slate-700/60 px-2 py-0.5 rounded-lg font-bold">⚡️ بسته حجمی</span>';
           } else if (isExtraTime) {
-            typeBadge = '<span class="text-[10px] card-inset t-muted border border-slate-700/60 px-2 py-0.5 rounded-lg font-bold">⏳ بسته زمانی</span>';
+            typeBadge = '<span class="text-[11px] card-inset t-muted border border-slate-700/60 px-2 py-0.5 rounded-lg font-bold">⏳ بسته زمانی</span>';
           }
 
           let tagBadge = '';
           if (bKey === 'bestseller') {
-            tagBadge = '<span class="badge-bestseller text-[10px] bg-amber-500/15 t-warn border border-amber-500/30 px-1.5 py-0.5 rounded-lg font-bold">🔥 پرفروش‌ترین</span>';
+            tagBadge = '<span class="badge-bestseller text-[11px] bg-amber-500/15 t-warn border border-amber-500/30 px-1.5 py-0.5 rounded-lg font-bold">🔥 پرفروش‌ترین</span>';
           } else if (bKey === 'popular') {
-            tagBadge = '<span class="text-[10px] bg-purple-500/15 t-purple border border-purple-500/30 px-1.5 py-0.5 rounded-lg font-bold">⭐️ پرطرفدار</span>';
+            tagBadge = '<span class="text-[11px] bg-purple-500/15 t-purple border border-purple-500/30 px-1.5 py-0.5 rounded-lg font-bold">⭐️ پرطرفدار</span>';
           } else if (bKey === 'economic') {
-            tagBadge = '<span class="text-[10px] bg-emerald-500/15 t-success border border-emerald-500/30 px-1.5 py-0.5 rounded-lg font-bold">💰 اقتصادی</span>';
+            tagBadge = '<span class="text-[11px] bg-emerald-500/15 t-success border border-emerald-500/30 px-1.5 py-0.5 rounded-lg font-bold">💰 اقتصادی</span>';
           } else if (bKey === 'vip') {
-            tagBadge = '<span class="badge-vip text-[10px] bg-rose-500/15 t-danger border border-rose-500/30 px-1.5 py-0.5 rounded-lg font-bold">👑 پیشنهاد ویژه</span>';
+            tagBadge = '<span class="badge-vip text-[11px] bg-rose-500/15 t-danger border border-rose-500/30 px-1.5 py-0.5 rounded-lg font-bold">👑 پیشنهاد ویژه</span>';
           } else if (bKey === 'gaming') {
-            tagBadge = '<span class="text-[10px] bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 border border-indigo-500/30 px-1.5 py-0.5 rounded-lg font-bold">🎮 گیمینگ</span>';
+            tagBadge = '<span class="text-[11px] bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 border border-indigo-500/30 px-1.5 py-0.5 rounded-lg font-bold">🎮 گیمینگ</span>';
           } else if (bKey === 'antifilter') {
-            tagBadge = '<span class="text-[10px] bg-teal-500/15 text-teal-700 dark:text-teal-300 border border-teal-500/30 px-1.5 py-0.5 rounded-lg font-bold">🛡 ضد فیلتر</span>';
+            tagBadge = '<span class="text-[11px] bg-teal-500/15 text-teal-700 dark:text-teal-300 border border-teal-500/30 px-1.5 py-0.5 rounded-lg font-bold">🛡 ضد فیلتر</span>';
           } else if (bKey === 'speed') {
-            tagBadge = '<span class="text-[10px] bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30 px-1.5 py-0.5 rounded-lg font-bold">⚡️ فوق سریع</span>';
+            tagBadge = '<span class="text-[11px] bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30 px-1.5 py-0.5 rounded-lg font-bold">⚡️ فوق سریع</span>';
           } else if (bKey === 'stream') {
-            tagBadge = '<span class="text-[10px] bg-red-500/15 text-red-700 dark:text-red-300 border border-red-500/30 px-1.5 py-0.5 rounded-lg font-bold">🎬 استریم</span>';
+            tagBadge = '<span class="text-[11px] bg-red-500/15 text-red-700 dark:text-red-300 border border-red-500/30 px-1.5 py-0.5 rounded-lg font-bold">🎬 استریم</span>';
           } else if (bKey === 'family') {
-            tagBadge = '<span class="text-[10px] bg-sky-500/15 text-sky-700 dark:text-sky-300 border border-sky-500/30 px-1.5 py-0.5 rounded-lg font-bold">👨‍👩‍👧 چند کاربره</span>';
+            tagBadge = '<span class="text-[11px] bg-sky-500/15 text-sky-700 dark:text-sky-300 border border-sky-500/30 px-1.5 py-0.5 rounded-lg font-bold">👨‍👩‍👧 چند کاربره</span>';
           } else if (bKey === 'tunnel') {
-            tagBadge = '<span class="text-[10px] bg-cyan-500/15 text-cyan-700 dark:text-cyan-300 border border-cyan-500/30 px-1.5 py-0.5 rounded-lg font-bold">🚇 تانل اختصاصی</span>';
+            tagBadge = '<span class="text-[11px] bg-cyan-500/15 text-cyan-700 dark:text-cyan-300 border border-cyan-500/30 px-1.5 py-0.5 rounded-lg font-bold">🚇 تانل اختصاصی</span>';
           }
           if (p.max_purchases) {
             const pCount = p.purchases_count || 0;
-            tagBadge += ` <span class="text-[9.5px] card-inset t-muted border border-slate-700/60 px-1.5 py-0.5 rounded-lg font-bold font-mono">سقف: ${pCount}/${p.max_purchases}</span>`;
+            tagBadge += ` <span class="text-[11px] card-inset t-muted border border-slate-700/60 px-1.5 py-0.5 rounded-lg font-bold font-mono">سقف: ${pCount}/${p.max_purchases}</span>`;
           }
 
           let specsHtml = '';
           if (isExtraTraffic) {
             specsHtml = `
-              <div class="grid grid-cols-1 text-center text-[10px] card-inset p-2 rounded-xl font-mono">
+              <div class="grid grid-cols-1 text-center text-[11px] card-inset p-2 rounded-xl font-mono">
                 <div>
-                  <span class="t-muted block text-[10px] font-sans">حجم اضافه</span>
+                  <span class="t-muted block text-[11px] font-sans">حجم اضافه</span>
                   ${trafficHtml}
                 </div>
               </div>
             `;
           } else if (isExtraTime) {
             specsHtml = `
-              <div class="grid grid-cols-1 text-center text-[10px] card-inset p-2 rounded-xl font-mono">
+              <div class="grid grid-cols-1 text-center text-[11px] card-inset p-2 rounded-xl font-mono">
                 <div>
-                  <span class="t-muted block text-[10px] font-sans">مدت زمان اضافه</span>
+                  <span class="t-muted block text-[11px] font-sans">مدت زمان اضافه</span>
                   <b class="t-main font-bold">${durationText}</b>
                 </div>
               </div>
             `;
           } else {
             specsHtml = `
-              <div class="grid grid-cols-3 gap-1.5 text-center text-[10px] card-inset p-2 rounded-xl font-mono">
+              <div class="grid grid-cols-3 gap-1.5 text-center text-[11px] card-inset p-2 rounded-xl font-mono">
                 <div>
-                  <span class="t-muted block text-[10px] font-sans">حجم ترافیک</span>
+                  <span class="t-muted block text-[11px] font-sans">حجم ترافیک</span>
                   ${trafficHtml}
                 </div>
                 <div>
-                  <span class="t-muted block text-[10px] font-sans">مدت زمان</span>
+                  <span class="t-muted block text-[11px] font-sans">مدت زمان</span>
                   <b class="t-main font-bold">${durationText}</b>
                 </div>
                 <div>
-                  <span class="t-muted block text-[10px] font-sans">محدودیت HWID</span>
+                  <span class="t-muted block text-[11px] font-sans">محدودیت HWID</span>
                   <b class="t-main font-bold">${hwidText}</b>
                 </div>
               </div>
@@ -223,7 +223,7 @@
 
           const squadObj = adminRemnawaveSquads.find(s => s.uuid === p.squad_uuid);
           const squadName = squadObj ? squadObj.name : (p.squad_uuid ? `اسکواد ${p.squad_uuid.slice(0, 8)}…` : '');
-          const squadBadge = squadName ? `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold card-inset t-muted border border-slate-700/60 truncate max-w-[130px]" title="اسکواد: ${escapeHtml(squadName)}">🧩 ${escapeHtml(squadName)}</span>` : '';
+          const squadBadge = squadName ? `<span class="px-2 py-0.5 rounded-full text-[11px] font-bold card-inset t-muted border border-slate-700/60 truncate max-w-[130px]" title="اسکواد: ${escapeHtml(squadName)}">🧩 ${escapeHtml(squadName)}</span>` : '';
 
           const descHtml = (!isExtraTraffic && !isExtraTime && p.description)
             ? `<p class="text-[11px] text-slate-400 line-clamp-1 pr-9">${escapeHtml(p.description)}</p>`
@@ -245,7 +245,7 @@
                   </div>
                   <div class="flex flex-col items-center justify-center flex-shrink-0 text-center leading-tight min-w-[45px]">
                     <span class="text-sm font-black t-success font-mono num-bidi" dir="ltr">${formatNumber(p.price || 0)}</span>
-                    <span class="text-[9px] font-sans font-medium text-slate-400 -mt-0.5">تومان</span>
+                    <span class="text-[11px] font-sans font-medium text-slate-400 -mt-0.5">تومان</span>
                   </div>
                 </div>
 
@@ -623,14 +623,14 @@
         container.innerHTML = adminCouponsData.map(c => {
           const usedCount = c.used_count || 0;
           const statusBadge = c.is_active
-            ? '<span class="text-[10px] bg-emerald-500/15 t-success border border-emerald-500/40 px-2 py-0.5 rounded-lg font-bold">فعال</span>'
+            ? '<span class="text-[11px] bg-emerald-500/15 t-success border border-emerald-500/40 px-2 py-0.5 rounded-lg font-bold">فعال</span>'
             : (usedCount > 0
-                ? '<span class="text-[10px] bg-slate-500/15 text-slate-400 border border-slate-500/30 px-2 py-0.5 rounded-lg font-medium">غیرفعال (مصرف‌شده)</span>'
-                : '<span class="text-[10px] bg-rose-500/15 t-danger border border-rose-500/40 px-2 py-0.5 rounded-lg font-medium">غیرفعال (استفاده‌نشده)</span>');
+                ? '<span class="text-[11px] bg-slate-500/15 text-slate-400 border border-slate-500/30 px-2 py-0.5 rounded-lg font-medium">غیرفعال (مصرف‌شده)</span>'
+                : '<span class="text-[11px] bg-rose-500/15 t-danger border border-rose-500/40 px-2 py-0.5 rounded-lg font-medium">غیرفعال (استفاده‌نشده)</span>');
 
           const discountHtml = c.discount_percent > 0
-            ? `<div class="flex items-baseline gap-1 mt-1 leading-tight"><span class="text-xs font-bold t-success font-mono num-bidi" dir="ltr">${toEnglishDigits(c.discount_percent)}%</span><span class="text-[9px] font-sans text-slate-400">تخفیف</span></div>`
-            : `<div class="flex items-baseline gap-1 mt-1 leading-tight"><span class="text-xs font-bold t-success font-mono num-bidi" dir="ltr">${formatNumber(c.discount_amount || 0)}</span><span class="text-[9px] font-sans text-slate-400">تومان</span></div>`;
+            ? `<div class="flex items-baseline gap-1 mt-1 leading-tight"><span class="text-xs font-bold t-success font-mono num-bidi" dir="ltr">${toEnglishDigits(c.discount_percent)}%</span><span class="text-[11px] font-sans text-slate-400">تخفیف</span></div>`
+            : `<div class="flex items-baseline gap-1 mt-1 leading-tight"><span class="text-xs font-bold t-success font-mono num-bidi" dir="ltr">${formatNumber(c.discount_amount || 0)}</span><span class="text-[11px] font-sans text-slate-400">تومان</span></div>`;
 
           const maxText = c.max_uses > 0 ? `${toEnglishDigits(usedCount)} / ${toEnglishDigits(c.max_uses)}` : `${toEnglishDigits(usedCount)} (نامحدود)`;
           const expiryText = c.expires_at_jalali || (c.expires_at ? (window.formatDateToJalali ? window.formatDateToJalali(c.expires_at) : c.expires_at) : 'نامحدود (دائمی)');
@@ -688,15 +688,15 @@
 
               <div class="grid grid-cols-3 gap-1.5 text-center text-[10.5px] card-inset p-2.5 rounded-xl font-mono border border-slate-700/50">
                 <div>
-                  <span class="t-muted block text-[10px] font-sans">دفعات استفاده:</span>
+                  <span class="t-muted block text-[11px] font-sans">دفعات استفاده:</span>
                   <b class="t-main block font-bold">${maxText}</b>
                 </div>
                 <div>
-                  <span class="t-muted block text-[10px] font-sans">تاریخ انقضا:</span>
+                  <span class="t-muted block text-[11px] font-sans">تاریخ انقضا:</span>
                   <b class="t-main truncate block font-bold">${escapeHtml(expiryText)}</b>
                 </div>
                 <div>
-                  <span class="t-muted block text-[10px] font-sans">مهلت باقی‌مانده:</span>
+                  <span class="t-muted block text-[11px] font-sans">مهلت باقی‌مانده:</span>
                   ${remainingDaysHtml}
                 </div>
               </div>
@@ -932,7 +932,7 @@
                 <div class="flex items-center gap-1.5 min-w-0">
                   ${u.order_id ? `<span class="text-[11px] font-mono t-accent font-medium">سفارش ${u.order_id}</span>` : `<span class="text-[11px] t-muted">ثبت تخفیف</span>`}
                 </div>
-                <div class="text-[10px] t-muted font-mono flex items-center gap-1" dir="ltr">
+                <div class="text-[11px] t-muted font-mono flex items-center gap-1" dir="ltr">
                   <svg class="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                   <span>${dateStr}</span>
                 </div>
@@ -949,7 +949,7 @@
                     <b class="t-main text-xs font-bold block truncate max-w-[130px] sm:max-w-[160px] cursor-pointer hover:t-pink" data-copy="${escapeHtml(displayName)}" onclick="window.adminActions.quickCopy(this.dataset.copy, 'نام کاربر')" title="${escapeHtml(displayName)}">${escapeHtml(displayName)}</b>
                     <div class="flex items-baseline gap-1 t-success font-bold" dir="rtl">
                       <span class="text-xs font-black font-mono leading-none">${formatNumber(u.discount_applied || 0)}</span>
-                      <span class="text-[10px] text-emerald-600/90 dark:text-emerald-500/90 font-sans">تومان</span>
+                      <span class="text-[11px] text-emerald-600/90 dark:text-emerald-500/90 font-sans">تومان</span>
                     </div>
                   </div>
                 </div>

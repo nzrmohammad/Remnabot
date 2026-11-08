@@ -197,7 +197,7 @@ function updateWheelUIState(canSpin, hasActiveSub, nextSeconds, streak, multipli
 
   if (!hasActiveSub) {
     spinBtn.disabled = true;
-    spinBtn.innerHTML = '<span class="text-[10px] font-bold">🔒 نیاز به اشتراک</span>';
+    spinBtn.innerHTML = '<span class="text-[11px] font-bold">🔒 نیاز به اشتراک</span>';
     if (warningBox) warningBox.classList.remove('hidden');
     if (timerBox) timerBox.classList.add('hidden');
     return;
@@ -208,16 +208,16 @@ function updateWheelUIState(canSpin, hasActiveSub, nextSeconds, streak, multipli
     startWheelCountdown(nextSeconds);
     if (hasTicket) {
       spinBtn.disabled = false;
-      spinBtn.innerHTML = '<span class="text-[10px] font-extrabold tracking-tight leading-tight">بچرخون!<br/><span class="text-[8px] opacity-90">(۱🎫)</span></span>';
+      spinBtn.innerHTML = '<span class="text-[11px] font-extrabold tracking-tight leading-tight">بچرخون!<br/><span class="text-[8px] opacity-90">(۱🎫)</span></span>';
     } else {
       spinBtn.disabled = true;
-      spinBtn.innerHTML = '<span class="text-[10px] font-bold">🔒 ۲۴ ساعت</span>';
+      spinBtn.innerHTML = '<span class="text-[11px] font-bold">🔒 ۲۴ ساعت</span>';
     }
   } else {
     if (wheelCountdownInterval) clearInterval(wheelCountdownInterval);
     if (timerBox) timerBox.classList.add('hidden');
     spinBtn.disabled = false;
-    spinBtn.innerHTML = '<span class="text-[10px] font-extrabold tracking-tight">بچرخون!</span>';
+    spinBtn.innerHTML = '<span class="text-[11px] font-extrabold tracking-tight">بچرخون!</span>';
   }
 }
 
@@ -374,7 +374,7 @@ function setupLuckyWheel() {
       }
       let ticketNote = '';
       if (usedTicket) {
-        ticketNote = `<div class="mt-1 text-[10px] text-purple-600 dark:text-purple-300 font-medium">🎫 ۱ تیکت مصرف شد (باقیمانده: <b>${fNum(currentWheelTickets)}</b>)</div>`;
+        ticketNote = `<div class="mt-1 text-[11px] text-purple-600 dark:text-purple-300 font-medium">🎫 ۱ تیکت مصرف شد (باقیمانده: <b>${fNum(currentWheelTickets)}</b>)</div>`;
       }
 
       if (isAgain) {
@@ -451,7 +451,7 @@ function setupLuckyWheel() {
 function spinBtnState(btn, disabled, text) {
   if (!btn) return;
   btn.disabled = disabled;
-  btn.innerHTML = `<span class="text-[10px] font-extrabold tracking-tight">${text}</span>`;
+  btn.innerHTML = `<span class="text-[11px] font-extrabold tracking-tight">${text}</span>`;
 }
 
 window.updateWheelUIState = updateWheelUIState;

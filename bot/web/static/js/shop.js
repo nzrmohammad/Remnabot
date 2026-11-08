@@ -549,51 +549,51 @@ function renderFilteredShopPlans() {
     let btnClass = 'btn-plan-default';
 
     if (isExtraTraffic) {
-      planBadge = '<div class="shop-plan-badge badge-traffic absolute top-0 left-0 bg-gradient-to-r from-cyan-600 to-blue-600 text-white text-[10px] font-black px-3 py-0.5 rounded-br-xl shadow flex items-center gap-1">⚡️ بسته افزایش حجم</div>';
+      planBadge = '<div class="shop-plan-badge badge-traffic absolute top-0 left-0 bg-gradient-to-r from-cyan-600 to-blue-600 text-white text-[11px] font-black px-3 py-0.5 rounded-br-xl shadow flex items-center gap-1">⚡️ بسته افزایش حجم</div>';
       badgeBorderClass = 'border-cyan-500/50 shadow-lg shadow-cyan-500/10';
       btnClass = 'btn-plan-traffic';
     } else if (isTimeOnly) {
-      planBadge = '<div class="shop-plan-badge badge-traffic absolute top-0 left-0 bg-gradient-to-r from-cyan-600 to-blue-600 text-white text-[10px] font-black px-3 py-0.5 rounded-br-xl shadow flex items-center gap-1">⏳ بسته افزایش زمان</div>';
+      planBadge = '<div class="shop-plan-badge badge-traffic absolute top-0 left-0 bg-gradient-to-r from-cyan-600 to-blue-600 text-white text-[11px] font-black px-3 py-0.5 rounded-br-xl shadow flex items-center gap-1">⏳ بسته افزایش زمان</div>';
       badgeBorderClass = 'border-cyan-500/50 shadow-lg shadow-cyan-500/10';
       btnClass = 'btn-plan-traffic';
     } else if (planBadgeKey === 'vip' || (!planBadgeKey && (planText.includes('پیشنهاد ویژه') || planText.includes('vip')))) {
-      planBadge = '<div class="shop-plan-badge badge-vip absolute top-0 left-0 bg-gradient-to-r from-rose-500 via-pink-500 to-purple-500 text-white text-[10px] font-black px-3 py-0.5 rounded-br-xl border-b border-r border-rose-300/70 shadow-lg shadow-rose-500/30 flex items-center gap-1">👑 پیشنهاد ویژه</div>';
+      planBadge = '<div class="shop-plan-badge badge-vip absolute top-0 left-0 bg-gradient-to-r from-rose-500 via-pink-500 to-purple-500 text-white text-[11px] font-black px-3 py-0.5 rounded-br-xl border-b border-r border-rose-300/70 shadow-lg shadow-rose-500/30 flex items-center gap-1">👑 پیشنهاد ویژه</div>';
       badgeBorderClass = 'border-rose-500/70 shadow-lg shadow-rose-500/20';
       btnClass = 'btn-plan-vip';
     } else if (planBadgeKey === 'bestseller' || (!planBadgeKey && (planText.includes('پرفروش') || planText.includes('bestseller')))) {
-      planBadge = '<div class="shop-plan-badge badge-bestseller absolute top-0 left-0 bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 text-white text-[10px] font-black px-3 py-0.5 rounded-br-xl border-b border-r border-amber-300/80 shadow-lg shadow-amber-500/30 flex items-center gap-1">🔥 پرفروش‌ترین</div>';
+      planBadge = '<div class="shop-plan-badge badge-bestseller absolute top-0 left-0 bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 text-white text-[11px] font-black px-3 py-0.5 rounded-br-xl border-b border-r border-amber-300/80 shadow-lg shadow-amber-500/30 flex items-center gap-1">🔥 پرفروش‌ترین</div>';
       badgeBorderClass = 'border-amber-400/80 shadow-lg shadow-amber-500/25';
       btnClass = 'btn-plan-bestseller';
     } else if (planBadgeKey === 'popular' || (!planBadgeKey && (planText.includes('محبوب') || planText.includes('popular')))) {
-      planBadge = '<div class="shop-plan-badge badge-popular absolute top-0 left-0 bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 text-white text-[10px] font-black px-3 py-0.5 rounded-br-xl border-b border-r border-indigo-400/40 shadow-md flex items-center gap-1">⭐ محبوب‌ترین</div>';
+      planBadge = '<div class="shop-plan-badge badge-popular absolute top-0 left-0 bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 text-white text-[11px] font-black px-3 py-0.5 rounded-br-xl border-b border-r border-indigo-400/40 shadow-md flex items-center gap-1">⭐ محبوب‌ترین</div>';
       badgeBorderClass = 'border-purple-500/70 shadow-lg shadow-purple-500/15';
       btnClass = 'btn-plan-popular';
     } else if (planBadgeKey === 'economic' || (!planBadgeKey && (planText.includes('اقتصادی') || planText.includes('economic') || planText.includes('به‌صرفه') || planText.includes('بصرفه') || planText.includes('ارزان')))) {
-      planBadge = '<div class="shop-plan-badge badge-economic absolute top-0 left-0 bg-gradient-to-r from-emerald-600 to-teal-600 text-white text-[10px] font-black px-3 py-0.5 rounded-br-xl border-b border-r border-emerald-400/40 shadow-md flex items-center gap-1">💰 اقتصادی‌ترین</div>';
+      planBadge = '<div class="shop-plan-badge badge-economic absolute top-0 left-0 bg-gradient-to-r from-emerald-600 to-teal-600 text-white text-[11px] font-black px-3 py-0.5 rounded-br-xl border-b border-r border-emerald-400/40 shadow-md flex items-center gap-1">💰 اقتصادی‌ترین</div>';
       badgeBorderClass = 'border-emerald-500/70 shadow-lg shadow-emerald-500/15';
       btnClass = 'bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold shadow-md shadow-emerald-600/20';
     } else if (planBadgeKey === 'tunnel' || (!planBadgeKey && (planText.includes('تانل') || planText.includes('tunnel')))) {
-      planBadge = '<div class="shop-plan-badge badge-tunnel absolute top-0 left-0 bg-gradient-to-r from-teal-600 via-cyan-600 to-sky-600 text-white text-[10px] font-black px-3 py-0.5 rounded-br-xl border-b border-r border-cyan-400/50 shadow-md flex items-center gap-1">🚇 تانل اختصاصی</div>';
+      planBadge = '<div class="shop-plan-badge badge-tunnel absolute top-0 left-0 bg-gradient-to-r from-teal-600 via-cyan-600 to-sky-600 text-white text-[11px] font-black px-3 py-0.5 rounded-br-xl border-b border-r border-cyan-400/50 shadow-md flex items-center gap-1">🚇 تانل اختصاصی</div>';
       badgeBorderClass = 'border-cyan-500/70 shadow-lg shadow-cyan-500/20';
       btnClass = 'bg-gradient-to-r from-teal-600 via-cyan-600 to-sky-600 hover:from-teal-500 hover:to-sky-500 text-white font-bold shadow-md shadow-cyan-600/25';
     } else if (planBadgeKey === 'gaming' || (!planBadgeKey && (planText.includes('گیم') || planText.includes('gaming')))) {
-      planBadge = '<div class="shop-plan-badge badge-gaming absolute top-0 left-0 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 text-white text-[10px] font-black px-3 py-0.5 rounded-br-xl border-b border-r border-indigo-400/50 shadow-md flex items-center gap-1">🎮 ویژه گیمینگ</div>';
+      planBadge = '<div class="shop-plan-badge badge-gaming absolute top-0 left-0 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 text-white text-[11px] font-black px-3 py-0.5 rounded-br-xl border-b border-r border-indigo-400/50 shadow-md flex items-center gap-1">🎮 ویژه گیمینگ</div>';
       badgeBorderClass = 'border-indigo-500/70 shadow-lg shadow-indigo-500/20';
       btnClass = 'bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold shadow-md shadow-indigo-600/20';
     } else if (planBadgeKey === 'antifilter' || (!planBadgeKey && (planText.includes('ضد فیلتر') || planText.includes('ضدفیلتر')))) {
-      planBadge = '<div class="shop-plan-badge badge-antifilter absolute top-0 left-0 bg-gradient-to-r from-teal-600 to-emerald-600 text-white text-[10px] font-black px-3 py-0.5 rounded-br-xl border-b border-r border-teal-400/50 shadow-md flex items-center gap-1">🛡 ضد فیلتر</div>';
+      planBadge = '<div class="shop-plan-badge badge-antifilter absolute top-0 left-0 bg-gradient-to-r from-teal-600 to-emerald-600 text-white text-[11px] font-black px-3 py-0.5 rounded-br-xl border-b border-r border-teal-400/50 shadow-md flex items-center gap-1">🛡 ضد فیلتر</div>';
       badgeBorderClass = 'border-teal-500/70 shadow-lg shadow-teal-500/20';
       btnClass = 'bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-500 hover:to-emerald-500 text-white font-bold shadow-md shadow-teal-600/20';
     } else if (planBadgeKey === 'speed' || (!planBadgeKey && (planText.includes('فوق سریع') || planText.includes('گیگابیت')))) {
-      planBadge = '<div class="shop-plan-badge badge-speed absolute top-0 left-0 bg-gradient-to-r from-amber-500 via-yellow-500 to-orange-500 text-white text-[10px] font-black px-3 py-0.5 rounded-br-xl border-b border-r border-amber-300/60 shadow-md flex items-center gap-1">⚡️ فوق سریع</div>';
+      planBadge = '<div class="shop-plan-badge badge-speed absolute top-0 left-0 bg-gradient-to-r from-amber-500 via-yellow-500 to-orange-500 text-white text-[11px] font-black px-3 py-0.5 rounded-br-xl border-b border-r border-amber-300/60 shadow-md flex items-center gap-1">⚡️ فوق سریع</div>';
       badgeBorderClass = 'border-amber-500/70 shadow-lg shadow-amber-500/20';
       btnClass = 'bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-white font-bold shadow-md shadow-amber-600/20';
     } else if (planBadgeKey === 'stream' || (!planBadgeKey && (planText.includes('استریم') || planText.includes('یوتیوب')))) {
-      planBadge = '<div class="shop-plan-badge badge-stream absolute top-0 left-0 bg-gradient-to-r from-red-600 to-rose-600 text-white text-[10px] font-black px-3 py-0.5 rounded-br-xl border-b border-r border-red-400/50 shadow-md flex items-center gap-1">🎬 ویژه استریم</div>';
+      planBadge = '<div class="shop-plan-badge badge-stream absolute top-0 left-0 bg-gradient-to-r from-red-600 to-rose-600 text-white text-[11px] font-black px-3 py-0.5 rounded-br-xl border-b border-r border-red-400/50 shadow-md flex items-center gap-1">🎬 ویژه استریم</div>';
       badgeBorderClass = 'border-red-500/70 shadow-lg shadow-red-500/20';
       btnClass = 'bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 text-white font-bold shadow-md shadow-red-600/20';
     } else if (planBadgeKey === 'family' || (!planBadgeKey && (planText.includes('خانوادگی') || planText.includes('چند کاربر')))) {
-      planBadge = '<div class="shop-plan-badge badge-family absolute top-0 left-0 bg-gradient-to-r from-sky-600 to-blue-600 text-white text-[10px] font-black px-3 py-0.5 rounded-br-xl border-b border-r border-sky-400/50 shadow-md flex items-center gap-1">👨‍👩‍👧 چند کاربره</div>';
+      planBadge = '<div class="shop-plan-badge badge-family absolute top-0 left-0 bg-gradient-to-r from-sky-600 to-blue-600 text-white text-[11px] font-black px-3 py-0.5 rounded-br-xl border-b border-r border-sky-400/50 shadow-md flex items-center gap-1">👨‍👩‍👧 چند کاربره</div>';
       badgeBorderClass = 'border-sky-500/70 shadow-lg shadow-sky-500/20';
       btnClass = 'bg-gradient-to-r from-sky-600 to-blue-600 hover:from-sky-500 hover:to-blue-500 text-white font-bold shadow-md shadow-sky-600/20';
     }
@@ -680,8 +680,8 @@ function renderFilteredShopPlans() {
             <h4 class="font-bold text-sm t-main truncate">${formatPlanTitle(p.name)}</h4>
             ${(discountVal > 0 || hasLoyaltyDiscount) ? `
               <div class="flex items-center gap-1.5 mt-1 flex-wrap">
-                ${hasLoyaltyDiscount ? `<span dir="ltr" class="badge ${tagThemeClass} text-[9.5px] font-mono" title="تخفیف وفاداری"><span>${userTierIcon}</span><span>${loyaltyPctEnglish}% Loyality</span></span>` : ''}
-                ${discountVal > 0 ? `<span dir="ltr" class="badge ${tagThemeClass} text-[9.5px] font-mono"><span>🏷</span><span>${window.activeCoupon?.code ? escapeHtml(window.activeCoupon.code) : 'کوپن'}</span><span>(-${toEnglishDigits(window.activeCoupon?.discount_percent || 0)}%)</span></span>` : ''}
+                ${hasLoyaltyDiscount ? `<span dir="ltr" class="badge ${tagThemeClass} text-[11px] font-mono" title="تخفیف وفاداری"><span>${userTierIcon}</span><span>${loyaltyPctEnglish}% Loyality</span></span>` : ''}
+                ${discountVal > 0 ? `<span dir="ltr" class="badge ${tagThemeClass} text-[11px] font-mono"><span>🏷</span><span>${window.activeCoupon?.code ? escapeHtml(window.activeCoupon.code) : 'کوپن'}</span><span>(-${toEnglishDigits(window.activeCoupon?.discount_percent || 0)}%)</span></span>` : ''}
               </div>
             ` : ''}
           </div>
@@ -689,17 +689,17 @@ function renderFilteredShopPlans() {
             <div class="flex flex-col items-end">
               ${hasAnyDiscount ? `<span class="line-through t-muted text-xs font-semibold leading-tight mb-0.5">${formattedOriginal}</span>` : ''}
               <span class="text-base font-black t-success leading-tight">${formattedFinal}</span>
-              <span class="text-[9.5px] t-muted font-sans leading-none mt-0.5">تومان</span>
+              <span class="text-[11px] t-muted font-sans leading-none mt-0.5">تومان</span>
             </div>
           </div>
         </div>
         <p class="text-[10.5px] leading-snug t-muted mt-1.5 whitespace-nowrap overflow-hidden text-ellipsis tracking-tight">${safeDesc}</p>
-        <div class="flex items-center justify-between my-2.5 text-[10px] card-inset px-3 py-2 whitespace-nowrap overflow-hidden">
+        <div class="flex items-center justify-between my-2.5 text-[11px] card-inset px-3 py-2 whitespace-nowrap overflow-hidden">
           <span class="flex items-center gap-1">📊 <b dir="ltr" class="font-mono t-main num-bidi">${trafficText}</b></span>
           ${durationText}
           <span class="flex items-center gap-1">📱 <b class="t-main">${devLimitText}</b></span>
         </div>
-        <div class="flex items-center justify-between mt-1 mb-2.5 px-1 text-[10px] t-muted">
+        <div class="flex items-center justify-between mt-1 mb-2.5 px-1 text-[11px] t-muted">
           <span class="flex items-center gap-1">
             <span>🌍</span>
             <span>کشورها:</span>
@@ -830,7 +830,7 @@ function openShopGuidanceModal({ title, badgeText, badgeClass, message, actionTe
   if (tEl) tEl.innerText = title || 'راهنمای انتخاب بسته';
   if (bEl) {
     bEl.innerText = badgeText || '⚡️ پیشنهاد هوشمند';
-    bEl.className = badgeClass || 'px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/40';
+    bEl.className = badgeClass || 'px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/40';
   }
   if (txtEl) txtEl.innerHTML = message || '';
 
@@ -931,7 +931,7 @@ function setupBuyButtons() {
         openShopGuidanceModal({
           title: 'اشتراک فعالی یافت نشد',
           badgeText: '❌ نیازمند سرویس فعال',
-          badgeClass: 'px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-500/20 text-rose-300 border border-rose-500/40',
+          badgeClass: 'px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-rose-500/20 text-rose-300 border border-rose-500/40',
           message: 'بسته‌های افزایش حجم و افزایش زمان صرفاً به سرویس‌های فعال اضافه می‌شوند. لطفاً ابتدا از تب «سرویس‌های کامل» یک اشتراک جدید تهیه فرمایید.',
           actionText: '💎 مشاهده سرویس‌های کامل',
           onAction: () => switchShopCategory('full'),
@@ -956,7 +956,7 @@ function setupBuyButtons() {
         openShopGuidanceModal({
           title: '⚠️ هشدار مهم تغییر دسته سرور',
           badgeText: '🔄 تغییر دسته سرور',
-          badgeClass: 'px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-600 dark:text-amber-300 border border-amber-500/40',
+          badgeClass: 'px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-500/20 text-amber-600 dark:text-amber-300 border border-amber-500/40',
           message: `شما در حال تغییر سرویس اشتراک فعلی خود به «<b>${escapeHtml(planObj.name)}</b>» هستید.<br><br>
 📌 <b>نکات بسیار مهم پیش از مشاهده پیش‌فاکتور:</b><br>
 ۱. با تغییر سرویس، <b>حجم و روزهای باقیمانده بسته قبلی شما جایگزین می‌شوند</b> (سقف حجم و روزها از نو برای این بسته آغاز می‌گردند).<br>
@@ -978,7 +978,7 @@ function setupBuyButtons() {
           openShopGuidanceModal({
             title: 'پیشنهاد هوشمند خرید حجم',
             badgeText: '⚡️ صرفه‌جویی در هزینه',
-            badgeClass: 'px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-cyan-500/20 text-cyan-600 dark:text-cyan-300 border border-cyan-500/40',
+            badgeClass: 'px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-cyan-500/20 text-cyan-600 dark:text-cyan-300 border border-cyan-500/40',
             message: `شما هنوز <b>${daysLeft} روز</b> از اشتراک فعلی‌تان اعتبار دارید! با خرید «بسته افزایش حجم»، نیازی به پرداخت هزینه سرویس کامل نیست و روزهای باقیمانده شما حفظ می‌شود.`,
             actionText: '⚡️ رفتن به بسته‌های افزایش حجم',
             onAction: () => switchShopCategory('traffic'),
@@ -989,7 +989,7 @@ function setupBuyButtons() {
           openShopGuidanceModal({
             title: 'اشتراک شما فعال است',
             badgeText: 'ℹ️ سرویس فعال دارید',
-            badgeClass: 'px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-500/20 text-blue-600 dark:text-blue-300 border border-blue-500/40',
+            badgeClass: 'px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-blue-500/20 text-blue-600 dark:text-blue-300 border border-blue-500/40',
             message: `شما در حال حاضر دارای اشتراک فعال با <b>${daysLeft} روز</b> اعتبار باقیمانده هستید. خرید سرویس کامل جدید صرفاً در ۳ روز پایانی اعتبار امکان‌پذیر است. در صورت نیاز به حجم یا زمان بیشتر، لطفاً از بسته‌های افزایش حجم یا افزایش زمان استفاده فرمایید.`,
             actionText: '⚡️ بسته‌های افزایش حجم',
             onAction: () => switchShopCategory('traffic'),
@@ -1005,7 +1005,7 @@ function setupBuyButtons() {
         openShopGuidanceModal({
           title: 'هشدار پایان اعتبار زمانی',
           badgeText: '⏳ تمدید سرویس کامل',
-          badgeClass: 'px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-600 dark:text-amber-300 border border-amber-500/40',
+          badgeClass: 'px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-500/20 text-amber-600 dark:text-amber-300 border border-amber-500/40',
           message: `تنها <b>${daysLeft} روز</b> از اعتبار زمانی اشتراک شما باقی مانده است! خرید بسته افزایش حجم، زمان سرویس شما را تمدید نمی‌کند و پس از پایان زمان، حجم باقی‌مانده غیرقابل استفاده می‌شود. پیشنهاد ما <b>تمدید دوره کامل</b> است.`,
           actionText: '💎 تمدید دوره کامل',
           onAction: () => switchShopCategory('full'),

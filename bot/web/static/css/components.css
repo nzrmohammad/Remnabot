@@ -662,41 +662,17 @@ html.theme-light #phoneFrame {
   background-color: var(--page-bg);
 }
 
-html.theme-light #adminContentArea .bg-slate-800,
-html.theme-light #adminContentArea .bg-slate-800\/80,
-html.theme-light #adminContentArea .bg-slate-800\/90,
-html.theme-light #adminContentArea .bg-slate-900,
-html.theme-light #adminContentArea .bg-slate-900\/50,
-html.theme-light #adminContentArea .bg-slate-900\/60,
-html.theme-light #adminContentArea .bg-slate-900\/70,
-html.theme-light #adminContentArea .bg-slate-900\/80,
-html.theme-light #adminContentArea .node-card,
-html.theme-light #adminContentArea .plan-card,
-html.theme-light #adminContentArea .topup-card {
+html.theme-light #adminContentArea :is(.node-card, .plan-card, .topup-card, [class*="bg-slate-800"], [class*="bg-slate-900"]) {
   background-color: var(--card-bg);
   border-color: var(--card-border);
 }
 
-html.theme-light #adminContentArea .bg-slate-950,
-html.theme-light #adminContentArea .bg-slate-950\/60 {
+html.theme-light :is(#adminContentArea, .modal-card) [class*="bg-slate-950"] {
   background-color: var(--card-inner-bg);
   border-color: var(--card-border);
 }
 
-html.theme-light .modal-card .bg-slate-800,
-html.theme-light .modal-card .bg-slate-800\/60,
-html.theme-light .modal-card .bg-slate-800\/80,
-html.theme-light .modal-card .bg-slate-800\/90,
-html.theme-light .modal-card .bg-slate-900,
-html.theme-light .modal-card .bg-slate-900\/40,
-html.theme-light .modal-card .bg-slate-900\/50,
-html.theme-light .modal-card .bg-slate-900\/60,
-html.theme-light .modal-card .bg-slate-900\/70,
-html.theme-light .modal-card .bg-slate-900\/80,
-html.theme-light .modal-card .bg-slate-900\/90,
-html.theme-light .modal-card .bg-slate-950,
-html.theme-light .modal-card .bg-slate-950\/60,
-html.theme-light .modal-card .bg-slate-950\/80 {
+html.theme-light .modal-card :is([class*="bg-slate-800"], [class*="bg-slate-900"]) {
   background-color: var(--card-inner-bg);
   border-color: var(--card-border);
 }
@@ -709,10 +685,9 @@ html.theme-light textarea:not(.on-dark):not(.surface-dark) {
   color: var(--text-main);
 }
 
-html.theme-light #adminContentArea .text-white:not(button):not([class*="btn"]):not([class*="badge"]):not(.on-dark),
-html.theme-light #adminContentArea .text-slate-100:not(button):not([class*="btn"]):not([class*="badge"]):not(.on-dark),
-html.theme-light #adminContentArea .text-slate-200:not(button):not([class*="btn"]):not([class*="badge"]):not(.on-dark),
-html.theme-light #adminContentArea .text-slate-300:not(button):not([class*="btn"]):not([class*="badge"]):not(.on-dark) {
+html.theme-light #adminContentArea :is(.text-white, .text-slate-100, .text-slate-200, .text-slate-300):not(button):not([class*="btn"]):not([class*="badge"]):not(.on-dark) {
+  color: var(--text-main);
+}
   color: var(--text-main);
 }
 

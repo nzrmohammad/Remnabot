@@ -101,15 +101,15 @@ html.theme-light #speedServerIpText {
 }
 
 html.theme-light #speedTestModal .speed-gauge-track {
-  stroke: #e2e8f0;
+  stroke: var(--gauge-track);
   opacity: 1;
 }
 html.theme-light #speedTestModal .speed-scale-lbl {
-  fill: #64748b;
+  fill: var(--text-subtle);
 }
 html.theme-light #speedTestModal .speed-needle-pivot {
-  fill: #ffffff;
-  stroke: #0284c7;
+  fill: var(--card-bg);
+  stroke: var(--c-accent);
 }
 html.theme-light #speedPhaseLabel {
   color: var(--c-accent);
@@ -132,7 +132,7 @@ html.theme-light .speed-chip-card {
   border-color: var(--card-border);
 }
 html.theme-light .speed-chip-card span.text-slate-400 {
-  color: #475569;
+  color: var(--text-muted);
 }
 html.theme-light #speedDownloadVal {
   color: var(--c-success);
@@ -141,51 +141,51 @@ html.theme-light #speedUploadVal {
   color: var(--c-accent);
 }
 html.theme-light #speedPingVal {
-  color: #0d9488;
+  color: var(--c-accent);
 }
 html.theme-light #speedJitterVal {
-  color: #6366f1;
+  color: var(--c-purple);
 }
 
 html.theme-light #speedStatusBadge {
   background-color: var(--card-inner-bg);
   border-color: var(--card-border);
-  color: #1e293b;
+  color: var(--text-main);
 }
 html.theme-light #speedStatusBadge.bg-emerald-950\/70 {
   background-color: var(--c-success-soft);
   border-color: var(--c-success-border);
-  color: #065f46;
+  color: var(--c-success);
 }
 html.theme-light #speedStatusBadge.bg-cyan-950\/70 {
-  background-color: #f0fdfa;
-  border-color: #99f6e4;
-  color: #115e59;
+  background-color: var(--c-accent-soft);
+  border-color: var(--c-accent-border);
+  color: var(--c-accent);
 }
 html.theme-light #speedStatusBadge.bg-amber-950\/70 {
   background-color: var(--c-warn-soft);
   border-color: var(--c-warn-border);
-  color: #92400e;
+  color: var(--c-warn);
 }
 html.theme-light #speedStatusBadge.bg-rose-950\/70 {
   background-color: var(--c-danger-soft);
   border-color: var(--c-danger-border);
-  color: #9f1239;
+  color: var(--c-danger);
 }
 
 html.theme-light #closeSpeedTestModalBtn {
   background-color: var(--page-bg);
   border-color: var(--card-border);
-  color: #475569;
+  color: var(--text-muted);
 }
 html.theme-light #closeSpeedTestModalBtn:hover {
-  background-color: #e2e8f0;
+  background-color: var(--inset-bg);
   color: var(--text-main);
 }
 html.theme-light #startSpeedTestBtn {
   color: #ffffff;
-  background: linear-gradient(135deg, #0d9488, #0284c7);
-  box-shadow: 0 4px 14px rgba(13, 148, 136, 0.25);
+  background: var(--plan-featured-bg, linear-gradient(135deg, #0369a1, #075985));
+  box-shadow: var(--shadow-accent);
 }
 
 /* Lucky Wheel Badges: Streak & Tickets */

@@ -973,7 +973,7 @@ function renderTutorialApps(osKey) {
     }
 
     const tutorialBtnHtml = app.tutorialUrl ? `
-      <button type="button" class="btn-tutorial-app bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/40 text-[10px] font-bold py-1 px-2 rounded-xl transition flex items-center justify-center gap-1 active:scale-95 shadow-sm" data-url="${escapeHtml(app.tutorialUrl)}">
+      <button type="button" class="btn-tutorial-app bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/40 text-[11px] font-bold py-1 px-2 rounded-xl transition flex items-center justify-center gap-1 active:scale-95 shadow-sm" data-url="${escapeHtml(app.tutorialUrl)}">
         <span>📖</span> آموزش
       </button>
     ` : '';
@@ -1025,7 +1025,7 @@ function renderTutorialApps(osKey) {
             </div>
             <div class="min-w-0 flex-1">
               <div class="flex items-center gap-1.5 min-w-0">
-                ${app.version ? `<span class="text-[10px] t-muted font-mono font-medium flex-shrink-0">v${toEnglishDigits(app.version)}</span>` : ''}
+                ${app.version ? `<span class="text-[11px] t-muted font-mono font-medium flex-shrink-0">v${toEnglishDigits(app.version)}</span>` : ''}
                 <b class="text-xs t-main font-bold truncate">${escapeHtml(app.name)}</b>
               </div>
             </div>
@@ -1395,7 +1395,7 @@ function openAlertPickerModal(type) {
       <div onclick="window.selectAlertSetting('traffic', ${opt.val})" class="alert-picker-option cursor-pointer p-2.5 rounded-2xl border transition flex items-center justify-between ${opt.val === currentVal ? 'active-alert-opt bg-cyan-500/15 border-cyan-500/50 text-cyan-300' : 'bg-slate-900/60 border-slate-700/60 hover:border-slate-500 text-slate-300'}">
         <div>
           <b class="text-xs block">${opt.label}</b>
-          <span class="text-[10px] text-slate-400 block mt-0.5">${opt.desc}</span>
+          <span class="text-[11px] text-slate-400 block mt-0.5">${opt.desc}</span>
         </div>
         <div class="w-5 h-5 rounded-full border ${opt.val === currentVal ? 'border-cyan-400 bg-cyan-500 flex items-center justify-center text-slate-950 font-bold text-xs' : 'border-slate-600'}">
           ${opt.val === currentVal ? '✓' : ''}
@@ -1421,7 +1421,7 @@ function openAlertPickerModal(type) {
       <div onclick="window.selectAlertSetting('expire', ${opt.val})" class="alert-picker-option cursor-pointer p-2.5 rounded-2xl border transition flex items-center justify-between ${opt.val === currentVal ? 'active-alert-opt bg-amber-500/15 border-amber-500/50 text-amber-300' : 'bg-slate-900/60 border-slate-700/60 hover:border-slate-500 text-slate-300'}">
         <div>
           <b class="text-xs block">${opt.label}</b>
-          <span class="text-[10px] text-slate-400 block mt-0.5">${opt.desc}</span>
+          <span class="text-[11px] text-slate-400 block mt-0.5">${opt.desc}</span>
         </div>
         <div class="w-5 h-5 rounded-full border ${opt.val === currentVal ? 'border-amber-400 bg-amber-500 flex items-center justify-center text-slate-950 font-bold text-xs' : 'border-slate-600'}">
           ${opt.val === currentVal ? '✓' : ''}
@@ -2034,16 +2034,16 @@ function setupSupportChat() {
       bubble.innerHTML = `
         <div class="chat-user-bubble chat-bubble-user rounded-2xl rounded-tr-none p-2.5 leading-relaxed shadow-sm text-right">
           ${safeText}
-          <span class="text-[10px] text-blue-400 dark:text-blue-300 block text-left mt-1 font-mono" dir="ltr">${timeStr}</span>
+          <span class="text-[11px] text-blue-400 dark:text-blue-300 block text-left mt-1 font-mono" dir="ltr">${timeStr}</span>
         </div>
       `;
     } else {
       bubble.className = 'self-end mr-auto ml-0 max-w-[85%] flex items-start gap-2 animate-fadeIn';
       bubble.innerHTML = `
-        <div class="w-6 h-6 rounded-full bg-emerald-600 flex items-center justify-center text-[10px] shrink-0 text-white mt-0.5 shadow-sm">🎧</div>
+        <div class="w-6 h-6 rounded-full bg-emerald-600 flex items-center justify-center text-[11px] shrink-0 text-white mt-0.5 shadow-sm">🎧</div>
         <div class="chat-admin-bubble chat-bubble-admin rounded-2xl rounded-tl-none p-2.5 leading-relaxed shadow-md text-right">
           ${safeText}
-          <span class="text-[10px] t-muted block text-left mt-1 font-mono" dir="ltr">${timeStr}</span>
+          <span class="text-[11px] t-muted block text-left mt-1 font-mono" dir="ltr">${timeStr}</span>
         </div>
       `;
     }
@@ -2286,7 +2286,7 @@ function setupAccountSwitcher() {
           <div class="font-bold text-white text-xs flex items-center gap-1.5">
             <span>👤</span> ${escapeHtml(acc.username || '')}
           </div>
-          <span class="text-[10px] text-slate-400 mt-0.5 block font-mono num-bidi" dir="ltr">
+          <span class="text-[11px] text-slate-400 mt-0.5 block font-mono num-bidi" dir="ltr">
             ${fmtTraffic(acc.used_gb, { html: false })} / ${acc.total_gb > 0 ? fmtTraffic(acc.total_gb, { html: false }) : 'نامحدود'}
           </span>
         </div>
@@ -2810,10 +2810,10 @@ function hydrateUserInterface(data) {
     if (profStatusBadge) {
       if (hasActiveSub) {
         profStatusBadge.innerHTML = '<span class="inline-flex items-center gap-1"><span>🟢</span><span>کاربر فعال</span></span>';
-        profStatusBadge.className = 'badge badge-success rounded-full text-[10px] font-bold inline-flex items-center gap-1';
+        profStatusBadge.className = 'badge badge-success rounded-full text-[11px] font-bold inline-flex items-center gap-1';
       } else {
         profStatusBadge.innerHTML = '<span class="inline-flex items-center gap-1"><span>⚪️</span><span>بدون سرویس فعال</span></span>';
-        profStatusBadge.className = 'badge badge-warn rounded-full text-[10px] font-bold inline-flex items-center gap-1';
+        profStatusBadge.className = 'badge badge-warn rounded-full text-[11px] font-bold inline-flex items-center gap-1';
       }
     }
 
@@ -3561,10 +3561,10 @@ function renderUserAchievements(data) {
     if (couponsActionEl) {
       if (count > 0) {
         couponsActionEl.innerText = 'کپی آخرین کد';
-        couponsActionEl.className = 'text-[9.5px] t-success mt-0.5 font-medium hover:underline bg-transparent border-0 p-0';
+        couponsActionEl.className = 'text-[11px] t-success mt-0.5 font-medium hover:underline bg-transparent border-0 p-0';
       } else {
         couponsActionEl.innerText = 'بدون کد فعال';
-        couponsActionEl.className = 'text-[9.5px] text-slate-500 dark:text-slate-400 mt-0.5 font-medium cursor-default bg-transparent border-0 p-0';
+        couponsActionEl.className = 'text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 font-medium cursor-default bg-transparent border-0 p-0';
       }
     }
   }
@@ -4324,14 +4324,14 @@ function renderGiftServiceSelectModalList() {
       <div onclick="window.selectGiftService(${p.id})" class="cursor-pointer card-inset p-3 rounded-2xl border ${isSelected ? 'border-pink-500 bg-pink-500/10' : 'border-card-border hover:border-pink-500/50'} flex items-center justify-between transition">
         <div class="space-y-1 min-w-0">
           <b class="text-xs t-main block truncate">${formatPlanTitle(p.name)}</b>
-          <div class="flex items-center gap-2 text-[10px] t-muted">
+          <div class="flex items-center gap-2 text-[11px] t-muted">
             <span>📊 <b dir="ltr" class="font-mono t-main">${trafStr}</b></span>
             <span>📅 <b class="t-main">${durStr}</b></span>
           </div>
         </div>
         <div class="text-left font-mono shrink-0 pl-1">
           <span class="text-xs font-black text-pink-600 dark:t-pink block">${priceStr}</span>
-          <span class="text-[9px] t-muted font-sans block">تومان</span>
+          <span class="text-[11px] t-muted font-sans block">تومان</span>
         </div>
       </div>
     `;
@@ -4578,8 +4578,8 @@ async function loadGiftsHistory() {
     container.innerHTML = sent.map(g => {
       const isClaimed = g.is_claimed;
       const statusBadge = isClaimed
-        ? '<span class="text-emerald-500 font-bold text-[10px] bg-emerald-500/10 px-2 py-0.5 rounded-full">✅ دریافت شده</span>'
-        : '<span class="text-amber-500 font-bold text-[10px] bg-amber-500/10 px-2 py-0.5 rounded-full">⏳ در انتظار دریافت</span>';
+        ? '<span class="text-emerald-500 font-bold text-[11px] bg-emerald-500/10 px-2 py-0.5 rounded-full">✅ دریافت شده</span>'
+        : '<span class="text-amber-500 font-bold text-[11px] bg-amber-500/10 px-2 py-0.5 rounded-full">⏳ در انتظار دریافت</span>';
       const desc = g.gift_type === 'BALANCE'
         ? `${Number(g.amount).toLocaleString('en-US')} تومان شارژ کیف پول`
         : `اشتراک ${g.service_name || 'سرویس'}`;
@@ -4594,15 +4594,15 @@ async function loadGiftsHistory() {
             <b class="t-main text-[11px]">${desc}</b>
             ${statusBadge}
           </div>
-          <div class="flex justify-between items-center text-[10px] t-muted">
+          <div class="flex justify-between items-center text-[11px] t-muted">
             <span>گیرنده: <code class="font-mono">${rec}</code></span>
             <span dir="ltr" class="font-mono">${toEnglishDigits(dateStr)}</span>
           </div>
-          <div class="flex items-center justify-between text-[10px] border-t border-card-border pt-1">
-            ${!isClaimed ? `<button type="button" onclick="copyToClipboard('${shareUrl}'); showToast('📋 لینک کپی شد!');" class="text-[10px] t-pink hover:text-pink-300 font-bold flex items-center gap-1 active:scale-95 transition" title="کپی لینک"><span>🔗</span> کپی لینک</button>` : '<span></span>'}
+          <div class="flex items-center justify-between text-[11px] border-t border-card-border pt-1">
+            ${!isClaimed ? `<button type="button" onclick="copyToClipboard('${shareUrl}'); showToast('📋 لینک کپی شد!');" class="text-[11px] t-pink hover:text-pink-300 font-bold flex items-center gap-1 active:scale-95 transition" title="کپی لینک"><span>🔗</span> کپی لینک</button>` : '<span></span>'}
             <div class="flex items-center gap-1.5" dir="ltr">
               <button type="button" onclick="copyToClipboard('${g.code}'); showToast('📋 کد کپی شد!');" class="p-1 rounded-md t-accent hover:text-cyan-300 hover:bg-cyan-500/10 active:scale-95 transition" title="کپی کد">📋</button>
-              <span class="font-mono t-muted text-[10px] select-all">${g.code}</span>
+              <span class="font-mono t-muted text-[11px] select-all">${g.code}</span>
             </div>
           </div>
         </div>
@@ -4681,7 +4681,7 @@ async function openInvoiceModal(orderId) {
     if ($('invBuyerName')) $('invBuyerName').innerText = bName;
     if ($('invBuyerId')) {
       $('invBuyerId').innerText = bId ? String(bId) : '';
-      $('invBuyerId').className = bId ? 'text-[10px] text-slate-400 font-mono block select-all text-left' : 'hidden';
+      $('invBuyerId').className = bId ? 'text-[11px] text-slate-400 font-mono block select-all text-left' : 'hidden';
     }
 
     $('invItemTitle').innerText = inv.item?.title || 'بسته اشتراک';

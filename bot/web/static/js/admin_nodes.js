@@ -31,8 +31,8 @@
       const isOnline = (n.status || '').toUpperCase() === 'ONLINE';
       const statusColor = isOnline ? 't-success' : 't-danger';
       const statusBadge = isOnline
-        ? '<span class="inline-flex items-center gap-1 text-[10px] font-bold bg-transparent t-success border border-emerald-500/30 px-2 py-0.5 rounded-lg"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>آنلاین</span>'
-        : '<span class="inline-flex items-center gap-1 text-[10px] font-bold bg-transparent t-danger border border-rose-500/30 px-2 py-0.5 rounded-lg"><span class="w-1.5 h-1.5 rounded-full bg-rose-400"></span>آفلاین</span>';
+        ? '<span class="inline-flex items-center gap-1 text-[11px] font-bold bg-transparent t-success border border-emerald-500/30 px-2 py-0.5 rounded-lg"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>آنلاین</span>'
+        : '<span class="inline-flex items-center gap-1 text-[11px] font-bold bg-transparent t-danger border border-rose-500/30 px-2 py-0.5 rounded-lg"><span class="w-1.5 h-1.5 rounded-full bg-rose-400"></span>آفلاین</span>';
 
       const cpuText = (n.cpu_percent && n.cpu_percent > 0) ? `CPU: ${n.cpu_percent}%` : null;
       const ramText = (n.ram_percent && n.ram_percent > 0) ? `RAM: ${n.ram_percent}%` : null;
@@ -49,7 +49,7 @@
               <span class="text-xl flex-shrink-0">${typeof renderFlagHtml === 'function' ? renderFlagHtml(flag, 'w-5 h-3.5 inline-block rounded-xs shadow-xs object-cover align-middle') : flag}</span>
               <div>
                 <span class="font-bold text-white block text-xs">${escapeHtml(n.name || 'Node')}</span>
-                ${specs ? `<span class="text-[10px] text-slate-400 font-mono">${specs}</span>` : ''}
+                ${specs ? `<span class="text-[11px] text-slate-400 font-mono">${specs}</span>` : ''}
               </div>
             </div>
             <div class="flex items-center gap-2">
@@ -62,21 +62,21 @@
           <div id="nodeBody_${idx}" class="hidden p-3 bg-slate-950/60 border-t border-slate-800/60 text-xs space-y-2">
             <div class="grid grid-cols-2 gap-2 text-[11px]">
               <div class="bg-slate-900/80 p-2 rounded-xl">
-                <span class="text-slate-400 text-[10px] block mb-0.5">آدرس سرور:</span>
+                <span class="text-slate-400 text-[11px] block mb-0.5">آدرس سرور:</span>
                 <span class="font-mono text-cyan-300 text-xs block truncate" dir="ltr">${escapeHtml(n.address || '—')}</span>
               </div>
               <div class="bg-slate-900/80 p-2 rounded-xl">
-                <span class="text-slate-400 text-[10px] block mb-0.5">وضعیت اتصال:</span>
+                <span class="text-slate-400 text-[11px] block mb-0.5">وضعیت اتصال:</span>
                 <span>${statusBadge}</span>
               </div>
             </div>
             <div class="grid grid-cols-2 gap-2 text-[11px]">
               <div class="bg-slate-900/80 p-2 rounded-xl">
-                <span class="text-slate-400 text-[10px] block mb-0.5">کاربران متصل زنده:</span>
+                <span class="text-slate-400 text-[11px] block mb-0.5">کاربران متصل زنده:</span>
                 <b class="t-success font-mono text-xs">${formatNumber(n.connected_users || 0)} نفر</b>
               </div>
               <div class="bg-slate-900/80 p-2 rounded-xl">
-                <span class="text-slate-400 text-[10px] block mb-0.5">ترافیک مصرفی نود:</span>
+                <span class="text-slate-400 text-[11px] block mb-0.5">ترافیک مصرفی نود:</span>
                 <b class="t-accent font-mono text-xs num-bidi" dir="ltr">${n.traffic_used_gb ? fmtTraffic(n.traffic_used_gb, { html: false }) : '—'}</b>
               </div>
             </div>
@@ -130,7 +130,7 @@
       const expiryDateFa = item.expires_at_jalali || (item.expires_at && typeof formatDateToJalali === 'function' ? formatDateToJalali(item.expires_at) : (item.expires_at || '—'));
 
       if (item.is_ip) {
-        badgeHtml = '<span class="text-[10px] text-slate-400 font-mono">IP سرور</span>';
+        badgeHtml = '<span class="text-[11px] text-slate-400 font-mono">IP سرور</span>';
       } else if (item.valid) {
         if (item.status === 'ok') {
           badgeHtml = `<span class="text-[11px] font-bold t-success">معتبر (${item.days_left} روز)</span>`;
@@ -160,7 +160,7 @@
       let detailsHtml = '';
       if (item.is_ip) {
         detailsHtml = `
-          <div class="text-[10px] text-slate-500">
+          <div class="text-[11px] text-slate-500">
             <span>آدرس IP مستقیم (بدون گواهی SSL دامنه)</span>
           </div>`;
       } else if (item.valid) {
@@ -265,19 +265,19 @@
             <!-- Left: Online Status + Speeds + Renewal Alert + Chevron Arrow -->
             <div class="flex items-center gap-2 flex-shrink-0">
               ${(n.days_until_due !== null && n.days_until_due <= 3) ? `
-                <span class="text-[10px] font-bold bg-transparent t-warn border border-amber-500/30 px-2 py-0.5 rounded-xl flex items-center gap-1">
+                <span class="text-[11px] font-bold bg-transparent t-warn border border-amber-500/30 px-2 py-0.5 rounded-xl flex items-center gap-1">
                   <span>⏳</span>
                   <span>${n.days_until_due <= 0 ? 'سررسید!' : n.days_until_due + ' روز'}</span>
                 </span>
               ` : ''}
               ${isOnline && (dlSpeed > 0 || ulSpeed > 0) ? `
-                <div class="hidden sm:flex items-center gap-1.5 text-[10px] font-mono text-slate-300 bg-slate-900/60 px-2 py-0.5 rounded-xl border border-slate-700/60" dir="ltr">
+                <div class="hidden sm:flex items-center gap-1.5 text-[11px] font-mono text-slate-300 bg-slate-900/60 px-2 py-0.5 rounded-xl border border-slate-700/60" dir="ltr">
                   <span class="t-success font-bold">↓${formatSpeed(dlSpeed)}</span>
                   <span class="text-slate-600">|</span>
                   <span class="text-indigo-400 font-bold">↑${formatSpeed(ulSpeed)}</span>
                 </div>
               ` : ''}
-              <span class="text-[10px] font-bold font-sans ${statusBorder} bg-transparent px-2.5 py-1 rounded-xl border flex items-center gap-1.5">
+              <span class="text-[11px] font-bold font-sans ${statusBorder} bg-transparent px-2.5 py-1 rounded-xl border flex items-center gap-1.5">
                 <span class="w-1.5 h-1.5 rounded-full ${isOnline ? 'bg-emerald-400' : 'bg-rose-400'}"></span>
                 ${statusBadge}
               </span>
@@ -299,24 +299,24 @@
             </div>
 
             <!-- Real-time Speeds: Download & Upload -->
-            <div class="grid grid-cols-2 gap-2 text-center text-[10px]">
+            <div class="grid grid-cols-2 gap-2 text-center text-[11px]">
               <div class="bg-transparent p-2.5 rounded-xl border border-slate-700/60">
-                <div class="flex items-center justify-between text-[10px] mb-1">
+                <div class="flex items-center justify-between text-[11px] mb-1">
                   <span class="text-slate-400 flex items-center gap-1">
                     <svg class="w-3 h-3 t-success" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"/></svg>
                     <span>سرعت دانلود (DL):</span>
                   </span>
-                  <span class="text-[10px] text-slate-500 font-mono">RX</span>
+                  <span class="text-[11px] text-slate-500 font-mono">RX</span>
                 </div>
                 <b class="t-success font-mono text-xs block text-left" dir="ltr">↓ ${formatSpeed(dlSpeed)}</b>
               </div>
               <div class="bg-transparent p-2.5 rounded-xl border border-slate-700/60">
-                <div class="flex items-center justify-between text-[10px] mb-1">
+                <div class="flex items-center justify-between text-[11px] mb-1">
                   <span class="text-slate-400 flex items-center gap-1">
                     <svg class="w-3 h-3 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"/></svg>
                     <span>سرعت آپلود (UL):</span>
                   </span>
-                  <span class="text-[10px] text-slate-500 font-mono">TX</span>
+                  <span class="text-[11px] text-slate-500 font-mono">TX</span>
                 </div>
                 <b class="text-indigo-400 font-mono text-xs block text-left" dir="ltr">↑ ${formatSpeed(ulSpeed)}</b>
               </div>
@@ -326,7 +326,7 @@
             <div class="space-y-2 bg-transparent p-2.5 rounded-xl border border-slate-700/50">
               <!-- CPU Progress -->
               <div class="space-y-1">
-                <div class="flex justify-between items-center text-[10px]">
+                <div class="flex justify-between items-center text-[11px]">
                   <span class="text-slate-400">پردازنده (CPU):</span>
                   <span class="font-mono font-bold ${cpu > 80 ? 't-danger' : 'text-slate-100'}">${cpuDisplay}</span>
                 </div>
@@ -337,7 +337,7 @@
 
               <!-- RAM Progress -->
               <div class="space-y-1">
-                <div class="flex justify-between items-center text-[10px]">
+                <div class="flex justify-between items-center text-[11px]">
                   <span class="text-slate-400">حافظه رم (RAM):</span>
                   <span class="font-mono font-bold ${ram > 80 ? 't-danger' : 'text-slate-100'}">${ramDisplay}</span>
                 </div>
@@ -348,7 +348,7 @@
             </div>
 
             <!-- Bottom Metrics: Connected users & Traffic -->
-            <div class="grid grid-cols-2 gap-2 text-center text-[10px]">
+            <div class="grid grid-cols-2 gap-2 text-center text-[11px]">
               <div class="bg-transparent p-2 rounded-xl border border-slate-700/60">
                 <span class="text-slate-400 block mb-0.5">کاربران متصل</span>
                 <b class="t-success font-mono text-xs">${formatNumber(n.connected_users || 0)} نفر</b>
@@ -360,7 +360,7 @@
             </div>
 
             <!-- Infra-Billing & Server Cost Details Strip -->
-            <div class="bg-transparent p-2.5 rounded-xl border border-slate-700/60 space-y-2 text-[10px]">
+            <div class="bg-transparent p-2.5 rounded-xl border border-slate-700/60 space-y-2 text-[11px]">
               <div class="flex items-center justify-between">
                 <span class="text-slate-400 flex items-center gap-1">
                   <svg class="w-3.5 h-3.5 t-success" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
@@ -369,8 +369,8 @@
                 <div class="flex items-center gap-1 font-bold">
                   ${n.monthly_cost_toman ? `
                     <span class="font-mono t-success">${formatNumber(n.monthly_cost_toman)}</span>
-                    <span class="text-[10px] text-slate-400 font-sans">تومان</span>
-                    ${n.monthly_cost_eur ? `<span class="text-indigo-300 font-mono text-[10px] mr-1">(${n.currency === 'USD' ? '$' : '€'}${n.monthly_cost_eur})</span>` : ''}
+                    <span class="text-[11px] text-slate-400 font-sans">تومان</span>
+                    ${n.monthly_cost_eur ? `<span class="text-indigo-300 font-mono text-[11px] mr-1">(${n.currency === 'USD' ? '$' : '€'}${n.monthly_cost_eur})</span>` : ''}
                   ` : '<span class="text-slate-500 font-medium">ثبت‌نشده</span>'}
                 </div>
               </div>
@@ -383,7 +383,7 @@
                 <div>${dueBadgeHtml}</div>
               </div>
 
-              <div class="grid grid-cols-2 gap-2 pt-1 border-t border-slate-800 text-[10px]">
+              <div class="grid grid-cols-2 gap-2 pt-1 border-t border-slate-800 text-[11px]">
                 <div>
                   <span class="text-slate-400 block mb-0.5">ارائه‌دهنده (هاست):</span>
                   <b class="text-cyan-300 truncate block">${n.provider || 'ثبت‌نشده'}</b>
@@ -393,24 +393,24 @@
                   <b class="text-indigo-300 font-bold block">
                     ${n.cost_per_gb ? `
                       <span class="font-mono">${formatNumber(n.cost_per_gb)}</span>
-                      <span class="text-[10px] text-slate-400 font-sans">تومان</span>
+                      <span class="text-[11px] text-slate-400 font-sans">تومان</span>
                     ` : '—'}
                   </b>
                 </div>
               </div>
 
               <!-- Node Profit / Loss & Estimated Revenue Strip -->
-              <div class="grid grid-cols-2 gap-2 pt-1 border-t border-slate-800 text-[10px]">
+              <div class="grid grid-cols-2 gap-2 pt-1 border-t border-slate-800 text-[11px]">
                 <div>
                   <span class="text-slate-400 block mb-0.5">درآمد تخمینی نود:</span>
                   <b class="t-success font-mono block">
-                    ${n.est_revenue_toman ? `${formatNumber(n.est_revenue_toman)} <span class="text-[10px] text-slate-400 font-sans">تومان</span>` : '۰ تومان'}
+                    ${n.est_revenue_toman ? `${formatNumber(n.est_revenue_toman)} <span class="text-[11px] text-slate-400 font-sans">تومان</span>` : '۰ تومان'}
                   </b>
                 </div>
                 <div>
                   <span class="text-slate-400 block mb-0.5">سود/زیان خالص:</span>
                   <b class="${n.is_profitable ? 't-success' : 't-danger'} font-bold block text-xs">
-                    <span class="inline-flex items-center gap-1 font-mono" dir="ltr"><span>${(n.net_profit_toman || 0) > 0 ? '+' : ''}${formatNumber(n.net_profit_toman || 0)}</span> <span class="font-sans text-[10px] text-slate-300">تومان</span> ${n.roi_percent !== null && n.roi_percent !== undefined ? `<span dir="ltr">(${n.roi_percent > 0 ? '+' : ''}${n.roi_percent}%)</span>` : ''}</span>
+                    <span class="inline-flex items-center gap-1 font-mono" dir="ltr"><span>${(n.net_profit_toman || 0) > 0 ? '+' : ''}${formatNumber(n.net_profit_toman || 0)}</span> <span class="font-sans text-[11px] text-slate-300">تومان</span> ${n.roi_percent !== null && n.roi_percent !== undefined ? `<span dir="ltr">(${n.roi_percent > 0 ? '+' : ''}${n.roi_percent}%)</span>` : ''}</span>
                   </b>
                 </div>
               </div>
@@ -653,9 +653,9 @@ openEditSslDomainModal(domain) {
         const isTarget = os === osKey;
         if (tabBtn) {
           if (isTarget) {
-            tabBtn.className = 'admin-app-os-tab w-full py-1.5 px-0.5 rounded-xl font-bold text-[10px] sm:text-[11px] whitespace-nowrap transition flex items-center justify-center gap-0.5 sm:gap-1 bg-cyan-600 text-white shadow';
+            tabBtn.className = 'admin-app-os-tab w-full py-1.5 px-0.5 rounded-xl font-bold text-[11px] sm:text-[11px] whitespace-nowrap transition flex items-center justify-center gap-0.5 sm:gap-1 bg-cyan-600 text-white shadow';
           } else {
-            tabBtn.className = 'admin-app-os-tab w-full py-1.5 px-0.5 rounded-xl font-medium text-[10px] sm:text-[11px] whitespace-nowrap text-slate-400 hover:text-slate-200 transition flex items-center justify-center gap-0.5 sm:gap-1';
+            tabBtn.className = 'admin-app-os-tab w-full py-1.5 px-0.5 rounded-xl font-medium text-[11px] sm:text-[11px] whitespace-nowrap text-slate-400 hover:text-slate-200 transition flex items-center justify-center gap-0.5 sm:gap-1';
           }
         }
         if (pane) {
