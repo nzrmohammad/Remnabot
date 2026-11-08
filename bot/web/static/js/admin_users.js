@@ -1330,6 +1330,11 @@ async applyUserModification() {
         'popular': '⭐ محبوب‌ترین',
         'economic': '🌱 اقتصادی',
         'vip': '👑 پیشنهاد ویژه',
+        'gaming': '🎮 ویژه گیمینگ',
+        'antifilter': '🛡 ضد فیلتر',
+        'speed': '⚡️ فوق سریع',
+        'stream': '🎬 ویژه استریم',
+        'family': '👨‍👩‍👧 چند کاربره',
         'tunnel': '🚇 تانل (اختصاصی)',
         'special': '✨ ویژه'
       };

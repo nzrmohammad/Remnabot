@@ -150,14 +150,16 @@ async def buy_for_account(
         squad_name = await resolve_squad_name(remnawave, service.squad_uuid)
         username = escape(str(chosen.get("username", "—")))
         lines = [
-            "⚠️ <b>هشدار مهم تغییر دسته سرور (اسکواد)</b>" if lang == "fa" else "⚠️ <b>Server Squad Switch Warning</b>",
+            "⚠️ <b>هشدار مهم تغییر دسته سرور</b>" if lang == "fa" else "⚠️ <b>Server Squad Switch Warning</b>",
             SEPARATOR,
             f"کاربر گرامی، شما در حال تغییر سرویس اشتراک <b>{username}</b> به دسته سرور «<b>{escape(squad_name)}</b>» هستید." if lang == "fa" else f"You are switching subscription <b>{username}</b> to squad <b>{escape(squad_name)}</b>.",
             "",
             "📌 <b>نکات بسیار مهم پیش از مشاهده پیش‌فاکتور:</b>" if lang == "fa" else "📌 <b>Important notes before proceeding:</b>",
-            "• با تغییر اسکواد، <b>حجم و روزهای باقیمانده بسته قبلی شما جایگزین می‌شوند</b> (سقف مصرف قبلی صفر شده و بسته جدید از امروز آغاز می‌گردد)." if lang == "fa" else "• Remaining traffic and days of your previous plan will be replaced starting fresh today.",
-            "• <b>لینک اتصال اشتراک شما بدون تغییر می‌ماند</b> و تنها کافیست پس از پرداخت، گزینه <b>Update Subscription</b> را در نرم‌افزار بزنید." if lang == "fa" else "• Your subscription link remains unchanged; simply tap Update Subscription in your VPN app.",
-            "• هزینه کامل بسته انتخابی جدید محاسبه و دریافت می‌گردد." if lang == "fa" else "• Full price of the new plan will be charged.",
+            "۱. با تغییر سرویس، <b>حجم و روزهای باقیمانده بسته قبلی شما جایگزین می‌شوند</b> (سقف حجم و روزها از نو برای این بسته آغاز می‌گردند)." if lang == "fa" else "1. Remaining traffic and days of your previous plan will be replaced starting fresh today.",
+            "۲. <b>لینک اتصال اشتراک شما تغییری نمی‌کند</b> و تنها کافیست پس از پرداخت، گزینه <b>Update Subscription (بروزرسانی اشتراک)</b> را در برنامه بزنید." if lang == "fa" else "2. Your subscription link remains unchanged; simply tap Update Subscription in your VPN app.",
+            "۳. هزینه کامل بسته جدید دریافت خواهد شد." if lang == "fa" else "3. Full price of the new plan will be charged.",
+            "",
+            "💡 <i>راهنما: چنانچه قصد تغییر دسته سرور اشتراک خود را ندارید، لطفاً از بسته‌های مربوط به دسته سرور فعلی جهت تمدید استفاده کرده و یا بسته افزایش حجم تهیه فرمایید.</i>" if lang == "fa" else "💡 <i>Tip: If you do not wish to switch server squads, please renew using plans from your current squad or purchase an extra traffic package.</i>",
             "",
             "آیا برای مشاهده پیش‌فاکتور و خرید این بسته موافقید؟" if lang == "fa" else "Do you agree to proceed to the invoice?",
         ]

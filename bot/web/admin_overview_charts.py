@@ -255,17 +255,35 @@ async def _calc_hourly_distribution(session, now_utc: datetime) -> dict[str, Any
     ordered_hours = [(curr_h - 23 + i) % 24 for i in range(24)]
     labels = [f"{h:02d}:00" for h in ordered_hours]
 
+    # Explicit rolling slot keys (year, month, day, hour) to prevent collisions between yesterday & today
+    slot_keys = [
+        (local_now - timedelta(hours=23 - i)).strftime("%Y-%m-%d-%H")
+        for i in range(24)
+    ]
+
     snapshot_repo = TrafficSnapshotRepository(session)
     snapshots_24h = await snapshot_repo.get_last_24_hours(now_utc)
 
-    snapshots_by_hour = {}
+    snapshots_by_slot = {}
     for s in snapshots_24h:
         s_ts = s.timestamp
         s_local = s_ts.replace(tzinfo=timezone.utc).astimezone(tz) if s_ts.tzinfo is None else s_ts.astimezone(tz)
-        snapshots_by_hour[s_local.hour] = s.delta_bytes
+        slot_key = s_local.strftime("%Y-%m-%d-%H")
+        snapshots_by_slot[slot_key] = max(snapshots_by_slot.get(slot_key, 0), s.delta_bytes)
 
-    if snapshots_by_hour:
-        hourly_data = [round(snapshots_by_hour.get(h, 0) / (1024 ** 3), 2) for h in ordered_hours]
+    if snapshots_by_slot:
+        raw_vals = [snapshots_by_slot.get(k, 0) for k in slot_keys]
+        # If an hour has 0 traffic between active non-zero slots (e.g. brief reboot / skipped tick),
+        # smooth it using surrounding values so it doesn't artificially plunge to 0.
+        for idx in range(1, 23):
+            if raw_vals[idx] == 0 and raw_vals[idx - 1] > 0 and raw_vals[idx + 1] > 0:
+                raw_vals[idx] = (raw_vals[idx - 1] + raw_vals[idx + 1]) // 2
+
+        # If current hour (last slot) has no snapshot yet or is 0, estimate from previous slot
+        if raw_vals[23] == 0 and raw_vals[22] > 0:
+            raw_vals[23] = raw_vals[22]
+
+        hourly_data = [round(v / (1024 ** 3), 2) for v in raw_vals]
         peak_pos = max(range(24), key=lambda i: hourly_data[i])
         peak_h = ordered_hours[peak_pos]
         peak_hour_str = f"{peak_h:02d}:00"
@@ -282,7 +300,7 @@ async def _calc_hourly_distribution(session, now_utc: datetime) -> dict[str, Any
         "unit": "GB",
         "is_real_telemetry": is_real_telemetry,
         "has_real_telemetry": is_real_telemetry,
-        "telemetry_count": len(snapshots_by_hour),
+        "telemetry_count": len(snapshots_by_slot),
     }
 
 
@@ -833,6 +851,7 @@ async def calc_strategic_charts(
 
     top_consumers = {
         "daily": periodic_bw["daily"],
+        "nightly": periodic_bw["nightly"],
         "weekly": periodic_bw["weekly"],
         "monthly_30d": periodic_bw["monthly_30d"],
         "monthly": periodic_bw["monthly"],

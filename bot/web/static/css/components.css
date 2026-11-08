@@ -183,6 +183,20 @@ html.theme-light .on-dark .text-slate-400 {
   box-shadow: 0 0 0 2px var(--c-accent-soft);
 }
 
+html.theme-light .input-base,
+html.theme-light .select-base,
+html.theme-light .textarea-base {
+  background-color: #ffffff;
+  border-color: #cbd5e1;
+}
+
+html.theme-light .input-base:focus,
+html.theme-light .select-base:focus,
+html.theme-light .textarea-base:focus {
+  background-color: #ffffff;
+  border-color: var(--c-accent);
+}
+
 .ref-input-box input {
   font-size: 10px;
 }

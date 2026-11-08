@@ -576,6 +576,26 @@ function renderFilteredShopPlans() {
       planBadge = '<div class="shop-plan-badge badge-tunnel absolute top-0 left-0 bg-gradient-to-r from-teal-600 via-cyan-600 to-sky-600 text-white text-[10px] font-black px-3 py-0.5 rounded-br-xl border-b border-r border-cyan-400/50 shadow-md flex items-center gap-1">🚇 تانل اختصاصی</div>';
       badgeBorderClass = 'border-cyan-500/70 shadow-lg shadow-cyan-500/20';
       btnClass = 'bg-gradient-to-r from-teal-600 via-cyan-600 to-sky-600 hover:from-teal-500 hover:to-sky-500 text-white font-bold shadow-md shadow-cyan-600/25';
+    } else if (planBadgeKey === 'gaming' || (!planBadgeKey && (planText.includes('گیم') || planText.includes('gaming')))) {
+      planBadge = '<div class="shop-plan-badge badge-gaming absolute top-0 left-0 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 text-white text-[10px] font-black px-3 py-0.5 rounded-br-xl border-b border-r border-indigo-400/50 shadow-md flex items-center gap-1">🎮 ویژه گیمینگ</div>';
+      badgeBorderClass = 'border-indigo-500/70 shadow-lg shadow-indigo-500/20';
+      btnClass = 'bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold shadow-md shadow-indigo-600/20';
+    } else if (planBadgeKey === 'antifilter' || (!planBadgeKey && (planText.includes('ضد فیلتر') || planText.includes('ضدفیلتر')))) {
+      planBadge = '<div class="shop-plan-badge badge-antifilter absolute top-0 left-0 bg-gradient-to-r from-teal-600 to-emerald-600 text-white text-[10px] font-black px-3 py-0.5 rounded-br-xl border-b border-r border-teal-400/50 shadow-md flex items-center gap-1">🛡 ضد فیلتر</div>';
+      badgeBorderClass = 'border-teal-500/70 shadow-lg shadow-teal-500/20';
+      btnClass = 'bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-500 hover:to-emerald-500 text-white font-bold shadow-md shadow-teal-600/20';
+    } else if (planBadgeKey === 'speed' || (!planBadgeKey && (planText.includes('فوق سریع') || planText.includes('گیگابیت')))) {
+      planBadge = '<div class="shop-plan-badge badge-speed absolute top-0 left-0 bg-gradient-to-r from-amber-500 via-yellow-500 to-orange-500 text-white text-[10px] font-black px-3 py-0.5 rounded-br-xl border-b border-r border-amber-300/60 shadow-md flex items-center gap-1">⚡️ فوق سریع</div>';
+      badgeBorderClass = 'border-amber-500/70 shadow-lg shadow-amber-500/20';
+      btnClass = 'bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-white font-bold shadow-md shadow-amber-600/20';
+    } else if (planBadgeKey === 'stream' || (!planBadgeKey && (planText.includes('استریم') || planText.includes('یوتیوب')))) {
+      planBadge = '<div class="shop-plan-badge badge-stream absolute top-0 left-0 bg-gradient-to-r from-red-600 to-rose-600 text-white text-[10px] font-black px-3 py-0.5 rounded-br-xl border-b border-r border-red-400/50 shadow-md flex items-center gap-1">🎬 ویژه استریم</div>';
+      badgeBorderClass = 'border-red-500/70 shadow-lg shadow-red-500/20';
+      btnClass = 'bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 text-white font-bold shadow-md shadow-red-600/20';
+    } else if (planBadgeKey === 'family' || (!planBadgeKey && (planText.includes('خانوادگی') || planText.includes('چند کاربر')))) {
+      planBadge = '<div class="shop-plan-badge badge-family absolute top-0 left-0 bg-gradient-to-r from-sky-600 to-blue-600 text-white text-[10px] font-black px-3 py-0.5 rounded-br-xl border-b border-r border-sky-400/50 shadow-md flex items-center gap-1">👨‍👩‍👧 چند کاربره</div>';
+      badgeBorderClass = 'border-sky-500/70 shadow-lg shadow-sky-500/20';
+      btnClass = 'bg-gradient-to-r from-sky-600 to-blue-600 hover:from-sky-500 hover:to-blue-500 text-white font-bold shadow-md shadow-sky-600/20';
     }
 
     const hasLoyaltyDiscount = Boolean(p.loyalty_discount_percent && p.loyalty_discount_percent > 0 && p.original_price && p.original_price > p.price);
@@ -640,6 +660,16 @@ function renderFilteredShopPlans() {
       tagThemeClass = 'badge-success';
     } else if (planBadgeKey === 'tunnel' || (!planBadgeKey && (planText.includes('تانل') || planText.includes('tunnel')))) {
       tagThemeClass = 'badge-accent';
+    } else if (planBadgeKey === 'gaming') {
+      tagThemeClass = 'badge-purple';
+    } else if (planBadgeKey === 'antifilter') {
+      tagThemeClass = 'badge-success';
+    } else if (planBadgeKey === 'speed') {
+      tagThemeClass = 'badge-warn';
+    } else if (planBadgeKey === 'stream') {
+      tagThemeClass = 'badge-danger';
+    } else if (planBadgeKey === 'family') {
+      tagThemeClass = 'badge-info';
     }
 
     return `
@@ -924,14 +954,15 @@ function setupBuyButtons() {
 
       if (isSwitch) {
         openShopGuidanceModal({
-          title: '⚠️ هشدار مهم تغییر دسته سرور (اسکواد)',
+          title: '⚠️ هشدار مهم تغییر دسته سرور',
           badgeText: '🔄 تغییر دسته سرور',
           badgeClass: 'px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-600 dark:text-amber-300 border border-amber-500/40',
-          message: `شما در حال تغییر دسته سرور اشتراک فعلی خود به «<b>${escapeHtml(planObj.name)}</b>» هستید.<br><br>
+          message: `شما در حال تغییر سرویس اشتراک فعلی خود به «<b>${escapeHtml(planObj.name)}</b>» هستید.<br><br>
 📌 <b>نکات بسیار مهم پیش از مشاهده پیش‌فاکتور:</b><br>
-۱. با تغییر اسکواد، <b>حجم و روزهای باقیمانده بسته قبلی شما جایگزین می‌شوند</b> (سقف حجم و روزها از نو برای این بسته آغاز می‌گردند).<br>
+۱. با تغییر سرویس، <b>حجم و روزهای باقیمانده بسته قبلی شما جایگزین می‌شوند</b> (سقف حجم و روزها از نو برای این بسته آغاز می‌گردند).<br>
 ۲. <b>لینک اتصال اشتراک شما تغییری نمی‌کند</b> و تنها کافیست پس از پرداخت، گزینه <b>Update Subscription (بروزرسانی اشتراک)</b> را در برنامه بزنید.<br>
 ۳. هزینه کامل بسته جدید دریافت خواهد شد.<br><br>
+💡 <i>راهنما: چنانچه قصد تغییر دسته سرور اشتراک خود را ندارید، می‌توانید از بسته‌های مربوط به دسته سرور فعلی جهت تمدید استفاده کرده و یا «بسته افزایش حجم» تهیه فرمایید.</i><br><br>
 آیا برای مشاهده پیش‌فاکتور و خرید این بسته موافقید؟`,
           actionText: '✅ متوجه شدم، مشاهده پیش‌فاکتور',
           onAction: () => openCheckoutConfirmModal(planObj),

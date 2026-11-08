@@ -263,7 +263,8 @@ async def test_squad_switch_warning_screen_before_invoice(session_factory):
             assert "هشدار مهم تغییر دسته سرور" in text
             assert "تانل اختصاصی" in text
             assert "حجم و روزهای باقیمانده بسته قبلی شما جایگزین می‌شوند" in text
-            assert "لینک اتصال اشتراک شما بدون تغییر می‌ماند" in text
+            assert "لینک اتصال اشتراک شما تغییری نمی‌کند" in text
+            assert "Update Subscription" in text
 
             # Check that the confirm button callback points to :ok
             all_buttons = [btn for row in kb.inline_keyboard for btn in row]

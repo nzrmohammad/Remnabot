@@ -23,12 +23,10 @@
       const res = await window.api.getAdminRemnawaveSquads();
       if (res && res.ok && Array.isArray(res.squads)) {
         adminRemnawaveSquads = res.squads;
-        const sel = $('planModalSquadUuid');
-        if (sel) {
-          const curVal = sel.value;
-          sel.innerHTML = '<option value="" disabled selected>— انتخاب دسته سرور (اسکواد الزامی) —</option>' +
-            res.squads.map(s => `<option value="${escapeHtml(s.uuid)}">🧩 ${escapeHtml(s.name)}</option>`).join('');
-          if (curVal) sel.value = curVal;
+        const curVal = $('planModalSquadUuid')?.value;
+        if (curVal) {
+          const sq = adminRemnawaveSquads.find(s => s.uuid === curVal);
+          if (sq && $('planModalSquadLabel')) $('planModalSquadLabel').innerText = `🧩 ${sq.name}`;
         }
       }
     } catch (e) {
@@ -42,6 +40,11 @@
     'popular': '⭐ محبوب‌ترین',
     'economic': '💰 اقتصادی‌ترین',
     'vip': '👑 پیشنهاد ویژه',
+    'gaming': '🎮 ویژه گیمینگ (پینگ پایین)',
+    'antifilter': '🛡 ضد فیلتر و پایدار',
+    'speed': '⚡️ فوق سریع (گیگابیتی)',
+    'stream': '🎬 ویژه استریم و یوتیوب',
+    'family': '👨‍👩‍👧 چند کاربره (خانوادگی)',
     'tunnel': '🚇 تانل (اختصاصی)',
     'traffic': '⚡️ بسته افزایش حجم',
     'time': '⏳ بسته افزایش زمان'
@@ -162,6 +165,16 @@
             tagBadge = '<span class="text-[10px] bg-emerald-500/15 t-success border border-emerald-500/30 px-1.5 py-0.5 rounded-lg font-bold">💰 اقتصادی</span>';
           } else if (bKey === 'vip') {
             tagBadge = '<span class="badge-vip text-[10px] bg-rose-500/15 t-danger border border-rose-500/30 px-1.5 py-0.5 rounded-lg font-bold">👑 پیشنهاد ویژه</span>';
+          } else if (bKey === 'gaming') {
+            tagBadge = '<span class="text-[10px] bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 border border-indigo-500/30 px-1.5 py-0.5 rounded-lg font-bold">🎮 گیمینگ</span>';
+          } else if (bKey === 'antifilter') {
+            tagBadge = '<span class="text-[10px] bg-teal-500/15 text-teal-700 dark:text-teal-300 border border-teal-500/30 px-1.5 py-0.5 rounded-lg font-bold">🛡 ضد فیلتر</span>';
+          } else if (bKey === 'speed') {
+            tagBadge = '<span class="text-[10px] bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30 px-1.5 py-0.5 rounded-lg font-bold">⚡️ فوق سریع</span>';
+          } else if (bKey === 'stream') {
+            tagBadge = '<span class="text-[10px] bg-red-500/15 text-red-700 dark:text-red-300 border border-red-500/30 px-1.5 py-0.5 rounded-lg font-bold">🎬 استریم</span>';
+          } else if (bKey === 'family') {
+            tagBadge = '<span class="text-[10px] bg-sky-500/15 text-sky-700 dark:text-sky-300 border border-sky-500/30 px-1.5 py-0.5 rounded-lg font-bold">👨‍👩‍👧 چند کاربره</span>';
           } else if (bKey === 'tunnel') {
             tagBadge = '<span class="text-[10px] bg-cyan-500/15 text-cyan-700 dark:text-cyan-300 border border-cyan-500/30 px-1.5 py-0.5 rounded-lg font-bold">🚇 تانل اختصاصی</span>';
           }
@@ -386,6 +399,8 @@
       if ($('planModalBadgeLabel')) $('planModalBadgeLabel').innerText = PLAN_BADGE_MAP[currentBadge] || PLAN_BADGE_MAP[''];
       if ($('planModalMaxPurchases')) $('planModalMaxPurchases').value = (plan && plan.max_purchases) ? plan.max_purchases : '';
       if ($('planModalSquadUuid')) $('planModalSquadUuid').value = plan ? (plan.squad_uuid || '') : '';
+      const curSquad = adminRemnawaveSquads.find(s => s.uuid === (plan ? plan.squad_uuid : ''));
+      if ($('planModalSquadLabel')) $('planModalSquadLabel').innerText = curSquad ? `🧩 ${curSquad.name}` : 'انتخاب کنید';
       $('planModalActive').checked = plan ? !!plan.is_active : true;
 
       if (plan) {
@@ -431,6 +446,50 @@
       if ($('planModalBadge')) $('planModalBadge').value = key;
       if ($('planModalBadgeLabel')) $('planModalBadgeLabel').innerText = PLAN_BADGE_MAP[key] || PLAN_BADGE_MAP[''];
       this.closePlanBadgePickerModal();
+      if (window.hapticFeedback) window.hapticFeedback('selection');
+    },
+
+    openPlanSquadPickerModal() {
+      const modal = $('planSquadPickerModal');
+      const list = $('planSquadPickerList');
+      if (!modal || !list) return;
+
+      const currentVal = $('planModalSquadUuid')?.value || '';
+
+      let itemsHtml = `
+        <div onclick="window.adminActions.selectPlanSquad('', 'انتخاب کنید')" class="p-3 rounded-2xl border transition cursor-pointer flex items-center justify-between gap-3 ${!currentVal ? 'bg-blue-600/15 border-blue-500 shadow-sm' : 'card-inset hover:border-slate-500/50'}">
+          <span class="text-xs font-bold ${!currentVal ? 't-info' : 't-main'}">انتخاب کنید</span>
+          <span class="text-xs font-bold t-info">${!currentVal ? '✓' : ''}</span>
+        </div>
+      `;
+
+      if (adminRemnawaveSquads && adminRemnawaveSquads.length > 0) {
+        itemsHtml += adminRemnawaveSquads.map(s => {
+          const isSelected = currentVal === s.uuid;
+          return `
+            <div onclick="window.adminActions.selectPlanSquad('${escapeHtml(s.uuid)}', '${escapeHtml(s.name)}')" class="p-3 rounded-2xl border transition cursor-pointer flex items-center justify-between gap-3 ${isSelected ? 'bg-blue-600/15 border-blue-500 shadow-sm' : 'card-inset hover:border-slate-500/50'}">
+              <span class="text-xs font-bold ${isSelected ? 't-info' : 't-main'}">🧩 ${escapeHtml(s.name)}</span>
+              <span class="text-xs font-bold t-info">${isSelected ? '✓' : ''}</span>
+            </div>
+          `;
+        }).join('');
+      } else {
+        itemsHtml += '<div class="p-4 text-center text-xs t-muted">اسکوادی در سیستم یافت نشد.</div>';
+      }
+
+      list.innerHTML = itemsHtml;
+      modal.classList.remove('hidden');
+      if (window.hapticFeedback) window.hapticFeedback('selection');
+    },
+
+    closePlanSquadPickerModal() {
+      $('planSquadPickerModal')?.classList.add('hidden');
+    },
+
+    selectPlanSquad(uuid, name) {
+      if ($('planModalSquadUuid')) $('planModalSquadUuid').value = uuid || '';
+      if ($('planModalSquadLabel')) $('planModalSquadLabel').innerText = (uuid && name && name !== 'انتخاب کنید') ? `🧩 ${name}` : 'انتخاب کنید';
+      this.closePlanSquadPickerModal();
       if (window.hapticFeedback) window.hapticFeedback('selection');
     },
 
@@ -492,15 +551,37 @@
       } catch (e) {}
     },
 
-    async deletePlan(id, name) {
-      if (!confirm(`آیا از حذف کامل تعرفه «${name}» اطمینان دارید؟`)) return;
+    deletePlan(id, name) {
+      window._pendingDeletePlanId = id;
+      if ($('deletePlanModalName')) $('deletePlanModalName').innerText = name || 'تعرفه انتخابی';
+      $('deletePlanModal')?.classList.remove('hidden');
+      if (window.hapticFeedback) window.hapticFeedback('warning');
+    },
+
+    closeDeletePlanModal() {
+      window._pendingDeletePlanId = null;
+      $('deletePlanModal')?.classList.add('hidden');
+    },
+
+    async executeDeletePlan() {
+      const id = window._pendingDeletePlanId;
+      if (!id) return;
+      const btn = $('confirmDeletePlanBtn');
+      if (btn) { btn.disabled = true; btn.innerText = 'در حال حذف...'; }
       try {
         const res = await window.api.deleteAdminPlan(id);
         if (res && res.ok) {
           if (window.showToast) window.showToast('✅ تعرفه با موفقیت حذف شد.');
+          this.closeDeletePlanModal();
           this.fetchAdminPlans();
+        } else {
+          if (window.showToast) window.showToast(res?.error || 'خطا در حذف تعرفه');
         }
-      } catch (e) {}
+      } catch (e) {
+        if (window.showToast) window.showToast('خطا در ارتباط با سرور');
+      } finally {
+        if (btn) { btn.disabled = false; btn.innerHTML = '<span>حذف دائمی تعرفه</span>'; }
+      }
     },
 
     // --- Coupons Actions ---
