@@ -44,7 +44,7 @@ def test_gift_modal_bidi_and_palette():
     app_js = Path("bot/web/static/js/app.js").read_text(encoding="utf-8")
 
     # Placeholder uses LRM to keep 'یا' strictly between username and number
-    assert 'placeholder="username &lrm;یا&lrm; 123456789"' in app_html
+    assert 'placeholder="@username &lrm;یا&lrm; 123456789"' in app_html
 
     # Inactive buttons do not have hover:text-white
     assert "t-muted hover:t-main" in app_html
@@ -164,7 +164,7 @@ def test_gift_modal_clarity_and_nowrap():
 
     assert 'id="giftDeliveryBtn-direct"' in app_html
     assert "whitespace-nowrap" in app_html
-    assert "bg-gradient-to-r from-pink-500 to-rose-500 text-white font-bold" in app_js
+    assert "bg-pink-600 text-white font-bold" in app_js
     assert "card-inset border border-card-border t-muted" in app_js
 
 
@@ -303,13 +303,18 @@ def test_ui_polish_round4():
     # 2. Gift modal active buttons have high-visibility border, components has .border-card-border
     assert ".border-card-border" in comp_css
     assert "border-color: var(--card-border);" in comp_css
-    assert "border border-pink-400/60" in app_js
+    assert "border border-pink-500/40" in app_js
     assert 'id="giftTypeBtn-balance"' in app_html
     assert 'id="giftDeliveryBtn-direct"' in app_html
 
-    # 3. History page size text has (پیش‌فرض: 15 عدد) removed
-    assert "تعداد فاکتورها و تراکنش‌های نمایش‌داده‌شده در هر صفحه کیف پول.</p>" in admin_html
-    assert "(پیش‌فرض: 15 عدد)" not in admin_html
+    # 3. History page size description text removed
+    assert "تعداد فاکتورها و تراکنش‌های نمایش‌داده‌شده در هر صفحه کیف پول" not in admin_html
+    assert 'id="settingHistoryPageSize"' in admin_html
+
+    # 3.1 English +98 in Iran phone limit note and Internal Squad removed from label
+    assert 'محدودیت احراز فقط برای شماره ایران (<span class="num-bidi font-mono" dir="ltr">+98</span>)' in admin_html
+    assert 'اسکواد متصل:</label>' in admin_html
+    assert 'اسکواد متصل (Internal Squad):' not in admin_html
 
     # 4. Bank card minimal mode hides bank title and logo
     assert "const isMinimal = String(bankTmpl || '').toLowerCase() === 'minimal';" in wallet_js
@@ -321,6 +326,8 @@ def test_ui_polish_round4():
     assert "تخصیص سرورهای این بسته به کاربر و تفکیک خودکار قیمت حجم/زمان" not in admin_html
     assert 'id="planModalActive" checked class="w-4 h-4 rounded text-blue-600 bg-slate-900 border-slate-700 ml-1.5"' in admin_html
 
-    # 6. Announced prefixes copy button is icon-only and in title group on the right
+    # 6. Announced prefixes copy button is icon-only and in title group on the right; badge uses font-sans
     assert 'button type="button" onclick="window.copyAllAsnPrefixes()" class="btn btn-secondary w-7 h-7 p-0 rounded-xl flex items-center justify-center transition active:scale-95 shadow-xs"' in admin_html
     assert "<span>کپی همه</span>" not in admin_html
+    assert 'id="asnCountBadge" class="badge badge-info font-sans">0 رنج</span>' in admin_html
+    assert 'id="asnFilterInput" type="text" oninput="window.filterAsnPrefixes(this.value)" placeholder="فیلتر رنج..." dir="ltr" class="input-base px-2.5 py-1 text-xs font-mono rounded-xl w-full flex-1 outline-none"' in admin_html

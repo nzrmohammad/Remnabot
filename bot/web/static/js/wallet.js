@@ -1126,13 +1126,13 @@ function restoreActiveTrxInvoice() {
 
 async function openTopupModal(defaultAmt, forceCrypto = false) {
   const { minAmt } = getTopupLimits();
-  const amt = defaultAmt ? Math.max(Number(defaultAmt), minAmt) : Math.max(100000, minAmt);
+  const amt = defaultAmt ? Math.max(Number(defaultAmt), minAmt) : null;
   const inputEl = document.getElementById('topupAmountInput');
   if (inputEl) {
-    inputEl.value = amt;
+    inputEl.value = amt !== null ? amt : '';
     inputEl.placeholder = 'مبلغ دلخواه را وارد کنید (تومان)...';
   }
-  updateTopupDisplays(amt);
+  updateTopupDisplays(amt || 0);
 
   // Initialize selected tab for new modal session
   window.currentTopupTab = forceCrypto ? 'crypto' : null;

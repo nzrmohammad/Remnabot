@@ -1075,7 +1075,7 @@ openEditSslDomainModal(domain) {
         return;
       }
       cachedAsnPrefixes = res.prefixes || [];
-      if (countBadge) countBadge.innerText = `${cachedAsnPrefixes.length} رنج`;
+      if (countBadge) countBadge.innerHTML = `<span class="num-bidi font-bold font-sans">${cachedAsnPrefixes.length}</span> رنج`;
       renderAsnPrefixes(cachedAsnPrefixes);
       if (window.showToast) window.showToast(`✅ ${cachedAsnPrefixes.length} پیشوند برای AS${cleanAsn} دریافت شد`, 'success');
     } catch (err) {

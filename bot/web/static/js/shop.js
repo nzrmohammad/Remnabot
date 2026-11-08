@@ -418,7 +418,7 @@ async function purchaseCustomPlan() {
   if (submitBtn) submitBtn.disabled = true;
 
   try {
-    const res = await window.api.purchaseCustomPlan(gb, days);
+    const res = await window.api.purchaseCustomPlan(gb, days, window.currentAccountId || null);
     if (!res || !res.ok) {
       const errMsg = res?.data?.message || res?.message || 'خطا در ثبت سفارش بسته اختصاصی';
       showToast(`❌ ${errMsg}`);
@@ -427,6 +427,11 @@ async function purchaseCustomPlan() {
         setTimeout(() => {
           if (typeof window.openTopupModal === 'function') window.openTopupModal();
         }, 1200);
+      } else if (res?.data?.error === 'needs_account' || res?.error === 'needs_account') {
+        const switchBtn = document.getElementById('switchAccountBtn');
+        if (switchBtn) {
+          setTimeout(() => switchBtn.click(), 800);
+        }
       }
       return;
     }

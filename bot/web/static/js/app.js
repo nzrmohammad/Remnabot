@@ -4355,8 +4355,8 @@ function setGiftType(type) {
   $('giftBalanceSection')?.classList.toggle('hidden', !isBal);
   $('giftServiceSection')?.classList.toggle('hidden', isBal);
 
-  const activeBtnClass = 'py-2 px-2 rounded-xl bg-gradient-to-r from-pink-500 to-rose-500 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition shadow-md shadow-rose-500/25 border border-pink-400/60';
-  const inactiveBtnClass = 'py-2 px-2 rounded-xl card-inset border border-card-border t-muted hover:t-main font-medium text-xs flex items-center justify-center gap-1.5 transition';
+  const activeBtnClass = 'py-2.5 px-3 rounded-xl bg-pink-600 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition shadow-sm border border-pink-500/40';
+  const inactiveBtnClass = 'py-2.5 px-3 rounded-xl card-inset border border-card-border t-muted hover:t-main font-medium text-xs flex items-center justify-center gap-1.5 transition';
 
   const btnBal = $('giftTypeBtn-balance');
   const btnSvc = $('giftTypeBtn-service');
@@ -4376,8 +4376,8 @@ function setGiftDeliveryType(type) {
   const isDirect = type === 'DIRECT';
   $('giftReceiverSection')?.classList.toggle('hidden', !isDirect);
 
-  const activeBtnClass = 'py-2 px-2 rounded-xl bg-gradient-to-r from-pink-500 to-rose-500 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition shadow-md shadow-rose-500/25 border border-pink-400/60';
-  const inactiveBtnClass = 'py-2 px-2 rounded-xl card-inset border border-card-border t-muted hover:t-main font-medium text-xs flex items-center justify-center gap-1.5 transition';
+  const activeBtnClass = 'py-2.5 px-3 rounded-xl bg-pink-600 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition shadow-sm border border-pink-500/40';
+  const inactiveBtnClass = 'py-2.5 px-3 rounded-xl card-inset border border-card-border t-muted hover:t-main font-medium text-xs flex items-center justify-center gap-1.5 transition';
 
   const btnDir = $('giftDeliveryBtn-direct');
   const btnLink = $('giftDeliveryBtn-link');

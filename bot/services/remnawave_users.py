@@ -236,21 +236,40 @@ class RemnawaveUsersMixin:
             logger.error("Remnawave reset_user_traffic error (user_id=%s): %s", user_id, exc)
             return False
 
-    async def revoke_user_subscription(self, user_id: int) -> dict[str, Any] | None:
+    async def revoke_user_subscription(self, user_id: int | str, user_uuid: str | None = None) -> dict[str, Any] | None:
         """Revoke subscription for user (generate new short UUID / sub link)."""
         endpoints = [
+            f"/api/users/{user_id}/actions/revoke",
+            f"/api/users/{user_uuid}/actions/revoke" if user_uuid else None,
             f"/api/users/{user_id}/actions/revoke-sub",
             f"/api/users/{user_id}/actions/revoke-subscription",
             f"/api/users/{user_id}/actions/reissue",
         ]
+        payloads = [
+            {"revokeOnlyPasswords": False},
+            {},
+        ]
         for ep in endpoints:
+            if not ep:
+                continue
+            for p in payloads:
+                try:
+                    resp = await self._client.post(ep, json=p)
+                    if resp.status_code in (200, 201):
+                        return resp.json().get("response") or resp.json()
+                except httpx.HTTPError as exc:
+                    logger.debug("Remnawave revoke_user_subscription endpoint %s failed: %s", ep, exc)
+                    continue
+
+        # Bulk fallback attempt
+        if user_uuid or user_id:
             try:
-                resp = await self._client.post(ep, json={})
+                bulk_payload = {"uuids": [str(user_uuid)]} if user_uuid else {"userIds": [int(user_id)]}
+                resp = await self._client.post("/api/users/bulk/revoke-subscription", json=bulk_payload)
                 if resp.status_code in (200, 201):
                     return resp.json().get("response") or resp.json()
             except httpx.HTTPError as exc:
-                logger.debug("Remnawave revoke_user_subscription endpoint %s failed: %s", ep, exc)
-                continue
+                logger.debug("Remnawave bulk revoke-subscription failed: %s", exc)
 
         logger.warning("Remnawave revoke_user_subscription failed across all endpoints for user %s", user_id)
         return None

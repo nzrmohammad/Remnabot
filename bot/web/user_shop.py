@@ -151,8 +151,13 @@ async def post_user_revoke_sub(request: web.Request) -> web.Response:
     if not panel_users:
         return web.json_response({"ok": False, "error": "سرویس فعالی یافت نشد."}, status=404)
 
-    primary_id = panel_users[0].get("id")
-    revoked = await remnawave.revoke_user_subscription(primary_id)
+    target_user = panel_users[0]
+    primary_id = target_user.get("id") or target_user.get("uuid")
+    user_uuid = target_user.get("uuid")
+    if user_uuid:
+        revoked = await remnawave.revoke_user_subscription(primary_id, user_uuid=user_uuid)
+    else:
+        revoked = await remnawave.revoke_user_subscription(primary_id)
     if not revoked:
         return web.json_response({"ok": False, "error": "خطا در تغییر لینک اشتراک."}, status=500)
 
@@ -161,6 +166,10 @@ async def post_user_revoke_sub(request: web.Request) -> web.Response:
     await _invalidate_user_caches(cache, telegram_id)
 
     new_sub_url = revoked.get("subscriptionUrl") or revoked.get("subscription_url") or ""
+    if not new_sub_url:
+        fresh_users = await remnawave.get_users_by_telegram_id(telegram_id) or []
+        if fresh_users:
+            new_sub_url = fresh_users[0].get("subscriptionUrl") or fresh_users[0].get("subscription_url") or ""
     return web.json_response({
         "ok": True,
         "subscription_url": new_sub_url,
@@ -706,6 +715,24 @@ async def post_user_custom_plan_purchase(request: web.Request) -> web.Response:
             chosen_acc = next((u for u in panel_users if str(u.get("id")) == str(account_id)), None)
             if not chosen_acc:
                 return web.json_response({"ok": False, "message": "اشتراک انتخابی جهت تمدید یافت نشد."}, status=400)
+        else:
+            if len(panel_users) == 1:
+                chosen_acc = panel_users[0]
+            elif len(panel_users) > 1:
+                return web.json_response({
+                    "ok": False,
+                    "error": "needs_account",
+                    "message": "شما چند اکانت فعال دارید. لطفاً ابتدا اکانت مورد نظر خود را انتخاب فرمایید.",
+                    "accounts": [
+                        {
+                            "id": u.get("id"),
+                            "username": u.get("username"),
+                            "status": u.get("status"),
+                            "expireAt": u.get("expireAt"),
+                        }
+                        for u in panel_users
+                    ],
+                }, status=400)
 
         from types import SimpleNamespace
 
@@ -778,7 +805,38 @@ async def post_user_custom_plan_purchase(request: web.Request) -> web.Response:
                     "current": result.new_balance,
                     "message": "موجودی کیف پول شما کافی نیست.",
                 }, status=400)
-            return web.json_response({"ok": False, "message": "خطا در خرید بسته اختصاصی."}, status=400)
+            if result.kind == "needs_account":
+                return web.json_response({
+                    "ok": False,
+                    "error": "needs_account",
+                    "message": "شما چند اکانت فعال دارید. لطفاً ابتدا اکانت مورد نظر خود را انتخاب فرمایید.",
+                    "accounts": [
+                        {
+                            "id": u.get("id"),
+                            "username": u.get("username"),
+                            "status": u.get("status"),
+                            "expireAt": u.get("expireAt"),
+                        }
+                        for u in (panel_users or [])
+                    ],
+                }, status=400)
+            if result.kind in ("failed", "error") or not result.message:
+                bot = request.app.get("bot")
+                if bot:
+                    try:
+                        from bot.services.error_reporter import report_error
+                        await report_error(
+                            bot,
+                            session_factory=session_factory,
+                            session=session,
+                            exc=f"custom_plan_purchase_failed: {result.kind or 'unknown'}",
+                            context=f"Custom Plan Purchase (u={telegram_id}, gb={traffic_gb}, days={duration_days})",
+                            user_id=telegram_id,
+                        )
+                    except Exception as rep_err:
+                        logger.warning("Failed to report custom plan purchase error: %s", rep_err)
+            err_msg = result.message or "خطا در خرید بسته اختصاصی."
+            return web.json_response({"ok": False, "message": err_msg}, status=400)
 
         await session.commit()
         if cache:

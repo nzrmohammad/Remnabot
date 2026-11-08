@@ -299,8 +299,13 @@ async def post_admin_user_revoke_sub(request: web.Request) -> web.Response:
     if not panel_users:
         return web.json_response({"ok": False, "error": "اکانتی در پنل برای این کاربر یافت نشد."}, status=404)
 
-    primary_id = panel_users[0].get("id")
-    revoked = await remnawave.revoke_user_subscription(primary_id)
+    target_user = panel_users[0]
+    primary_id = target_user.get("id") or target_user.get("uuid")
+    user_uuid = target_user.get("uuid")
+    if user_uuid:
+        revoked = await remnawave.revoke_user_subscription(primary_id, user_uuid=user_uuid)
+    else:
+        revoked = await remnawave.revoke_user_subscription(primary_id)
     if not revoked:
         return web.json_response({"ok": False, "error": "خطا در برقراری ارتباط با پنل رمناویو."}, status=502)
 
