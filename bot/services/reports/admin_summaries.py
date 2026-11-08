@@ -5,7 +5,7 @@ from datetime import datetime, timedelta, timezone
 from html import escape
 
 from aiogram import Bot
-from sqlalchemy import func, select
+from sqlalchemy import and_, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from bot.common import SEPARATOR, fmt
@@ -59,8 +59,10 @@ async def _send_admin_nightly_summary(
     user_repo = UserRepository(session)
     total_bot_users = await user_repo.count()
     new_users = await user_repo.count(
-        User.created_at >= period_start_utc,
-        User.created_at <= period_end_utc,
+        and_(
+            User.created_at >= period_start_utc,
+            User.created_at <= period_end_utc,
+        )
     )
 
     # 4. Cluster & Panel metrics
