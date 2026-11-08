@@ -142,20 +142,19 @@ def test_guidance_text_not_italic():
 
 
 def test_tronlink_deeplink_sun_amount_and_parameters():
-    """TronLink DeepLink must specify amount in SUN and include all required parameters."""
+    """TronLink DeepLink must specify valid parameters, Mainnet chainId, and prioritize native TRON URI."""
     user_topup = Path("bot/web/user_topup.py").read_text(encoding="utf-8")
     wallet_js = Path("bot/web/static/js/wallet.js").read_text(encoding="utf-8")
 
     # In user_topup.py
-    assert "amount_sun = int(round(amt_float * 1_000_000))" in user_topup
-    assert '"chainId": "0x2b6653dc"' in user_topup
+    assert '"chainId": "0x2b6653de"' in user_topup
     assert '"dappName": "Remnabot Cloud"' in user_topup
     assert '"actionId": action_id' in user_topup
+    assert "safe_tron_uri" in user_topup
 
     # In wallet.js
-    assert "const amountSun = Math.round(trxAmount * 1000000);" in wallet_js
-    assert "actionId: String(Date.now())" in wallet_js
-    assert "chainId: '0x2b6653dc'" in wallet_js
+    assert "const tronUri = `tron:${inv.pay_address}?amount=${trxAmount}`;" in wallet_js
+    assert "window.location.href = tronUri;" in wallet_js
 
 
 def test_gift_modal_clarity_and_nowrap():
@@ -237,3 +236,53 @@ def test_top_consumers_period_sync():
 
     assert "let currentTopConsumersPeriod = 'daily';" in admin_charts
     assert "renderAdminTopConsumersChart(c.top_consumers, 'daily')" in admin_charts
+
+
+
+def test_user_profile_modal_high_contrast_in_dark_theme():
+    """User profile modal Telegram ID must use t-main to stay high-contrast in dark mode."""
+    admin_html = Path("bot/web/templates/admin.html").read_text(encoding="utf-8")
+    assert 'id="userProfModalId" class="font-mono t-main font-black text-xs select-all"' in admin_html
+    assert 'text-slate-800 dark:text-slate-100' not in admin_html
+
+
+def test_check_host_custom_modals_and_ltr_result_cards():
+    """Check-Host must have custom modals and dir=ltr cards placing flag/country on the left."""
+    admin_html = Path("bot/web/templates/admin.html").read_text(encoding="utf-8")
+    admin_nodes_js = Path("bot/web/static/js/admin_nodes.js").read_text(encoding="utf-8")
+    admin_infra = Path("bot/web/admin_infra_api.py").read_text(encoding="utf-8")
+
+    # Modals in admin.html
+    assert 'id="checkHostTypeModal"' in admin_html
+    assert 'id="checkHostNodesModal"' in admin_html
+    assert 'id="checkHostTypeBtn"' in admin_html
+    assert 'id="checkHostNodesBtn"' in admin_html
+
+    # Modal methods in admin_nodes.js
+    assert "window.openCheckHostTypeModal" in admin_nodes_js
+    assert "window.openCheckHostNodesModal" in admin_nodes_js
+    assert "window.selectCheckHostType" in admin_nodes_js
+    assert "window.selectCheckHostNodes" in admin_nodes_js
+
+    # Result card orientation in admin_nodes.js (dir="ltr")
+    assert 'class="card-inset p-2 rounded-xl border flex items-center justify-between ${statusClass}" dir="ltr"' in admin_nodes_js
+
+    # admin_infra_api handles HTTPS and port properly
+    assert 'is_https = original_host.startswith("https://")' in admin_infra
+    assert 'query_host = f"https://{clean_host}"' in admin_infra
+
+
+def test_asn_lookup_ui_layout_and_copy_button():
+    """ASN lookup copy button must be grouped on the left with the filter and list stretched full width."""
+    admin_html = Path("bot/web/templates/admin.html").read_text(encoding="utf-8")
+    admin_nodes_js = Path("bot/web/static/js/admin_nodes.js").read_text(encoding="utf-8")
+
+    # ASN results box has full width
+    assert 'id="asnResultsBox" class="hidden space-y-2 pt-2 w-full"' in admin_html
+    # Copy button is after filter input (on the left side of the flex row)
+    assert 'id="asnFilterInput"' in admin_html
+    assert 'button type="button" onclick="window.copyAllAsnPrefixes()"' in admin_html
+    # Prefixes list has w-full
+    assert 'id="asnPrefixesList" class="w-full' in admin_html
+    # Prefix chips use tokenized t-purple
+    assert "t-purple font-bold text-[11px]" in admin_nodes_js

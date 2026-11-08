@@ -1011,7 +1011,7 @@ async def get_user_topup_trx_redirect(request: web.Request) -> web.Response:
         if amt_float <= 0 or amt_float > 10_000_000:
             raise ValueError
         amount = f"{amt_float:.6f}".rstrip("0").rstrip(".")
-        amount_sun = int(round(amt_float * 1_000_000))
+        _ = int(round(amt_float * 1_000_000))
     except (ValueError, TypeError):
         return web.Response(text="مبلغ ترون نامعتبر است.", status=400)
 
@@ -1020,15 +1020,16 @@ async def get_user_topup_trx_redirect(request: web.Request) -> web.Response:
 
     param_obj = {
         "url": str(request.url),
+        "callbackUrl": str(request.url),
         "action": "transfer",
         "actionId": action_id,
         "protocol": "TronLink",
         "version": "1.0",
-        "chainId": "0x2b6653dc",
+        "chainId": "0x2b6653de",
         "dappName": "Remnabot Cloud",
         "dappIcon": f"{request.scheme}://{request.host}/static/img/apps/v2rayng.png",
         "to": address,
-        "amount": str(amount_sun),
+        "amount": str(amount),
         "tokenId": "0",
         "contract": "",
     }
@@ -1092,11 +1093,6 @@ async def get_user_topup_trx_redirect(request: web.Request) -> web.Response:
       background: linear-gradient(135deg, #dc2626, #e11d48, #f59e0b);
       color: #ffffff;
     }}
-    .btn-other {{
-      background: rgba(30, 41, 59, 0.9);
-      border: 1px solid rgba(51, 65, 85, 0.8);
-      color: #38bdf8;
-    }}
     .info-box {{
       background: rgba(15, 23, 42, 0.8);
       border: 1px dashed rgba(51, 65, 85, 0.9);
@@ -1112,10 +1108,9 @@ async def get_user_topup_trx_redirect(request: web.Request) -> web.Response:
 <body>
   <div class="card">
     <div class="icon">⚡️</div>
-    <h2>انتقال مستقیم با ترون‌لینک</h2>
-    <p>در حال باز کردن کیف پول ترون... اگر به صورت خودکار باز نشد، دکمه زیر را لمس فرمایید:</p>
-    <a href="{safe_tron_uri}" class="btn btn-tronlink">⚡️ پرداخت مستقیم با کیف پول ترون (TronLink / Trust Wallet)</a>
-    <a href="{safe_tronlink_url}" class="btn btn-other">🚀 باز کردن از طریق پروتکل اپ TronLink</a>
+    <h2>انتقال مستقیم با کیف پول ترون</h2>
+    <p>در حال هدایت به کیف پول ترون... اگر به صورت خودکار باز نشد، دکمه زیر را لمس فرمایید:</p>
+    <a href="{safe_tron_uri}" data-fallback="{safe_tronlink_url}" class="btn btn-tronlink">⚡️ باز کردن در کیف پول ترون (TronLink / Trust Wallet)</a>
     <div class="info-box">
       <div>مبلغ: <b style="color:#22d3ee;font-family:monospace;">{safe_amt} TRX</b></div>
       <div style="margin-top:4px;font-family:monospace;font-size:10px;color:#94a3b8;">{safe_addr}</div>

@@ -403,7 +403,9 @@ async def get_admin_tools_check_host(request: web.Request) -> web.Response:
     if not host:
         return web.json_response({"ok": False, "error": "نام دامنه یا آدرس آی‌پی الزامی است."}, status=400)
 
-    clean_host = host.replace("http://", "").replace("https://", "").split("/")[0].split(":")[0].strip()
+    original_host = host.strip()
+    is_https = original_host.startswith("https://")
+    clean_host = original_host.replace("http://", "").replace("https://", "").split("/")[0].split(":")[0].strip()
     if not clean_host:
         return web.json_response({"ok": False, "error": "آدرس نامعتبر است."}, status=400)
 
@@ -439,12 +441,10 @@ async def get_admin_tools_check_host(request: web.Request) -> web.Response:
                 ],
             })
 
-    port = 443
+    port = None
     if port_val is not None and str(port_val).isdigit():
         port = int(port_val)
-    elif check_type in ("http", "info"):
-        port = 80
-    elif check_type in ("ping", "tcp"):
+    elif check_type in ("tcp",):
         port = 443
 
     results: list[dict[str, Any]] = []
@@ -455,10 +455,15 @@ async def get_admin_tools_check_host(request: web.Request) -> web.Response:
         query_host = clean_host
         if check_type == "tcp":
             endpoint = "tcp"
-            query_host = f"{clean_host}:{port}"
+            query_host = f"{clean_host}:{port or 443}"
         elif check_type == "http":
             endpoint = "http"
-            query_host = f"{clean_host}:{port}" if port not in (80, 443) else clean_host
+            if port and port not in (80, 443):
+                query_host = f"{clean_host}:{port}"
+            elif is_https:
+                query_host = f"https://{clean_host}"
+            else:
+                query_host = clean_host
         elif check_type == "dns":
             endpoint = "dns"
             query_host = clean_host
@@ -474,15 +479,15 @@ async def get_admin_tools_check_host(request: web.Request) -> web.Response:
 
         import aiohttp
         async with aiohttp.ClientSession(headers=headers) as session:
-            async with session.get(init_url, timeout=aiohttp.ClientTimeout(total=4)) as init_resp:
+            async with session.get(init_url, timeout=aiohttp.ClientTimeout(total=6)) as init_resp:
                 if init_resp.status == 200:
                     init_data = await init_resp.json()
                     req_id = init_data.get("request_id")
                     nodes = init_data.get("nodes", {})
                     if req_id and nodes:
-                        await asyncio.sleep(2.5)
+                        await asyncio.sleep(3.0)
                         res_url = f"https://check-host.net/check-result/{req_id}"
-                        async with session.get(res_url, timeout=aiohttp.ClientTimeout(total=4)) as res_resp:
+                        async with session.get(res_url, timeout=aiohttp.ClientTimeout(total=7)) as res_resp:
                             if res_resp.status == 200:
                                 res_data = await res_resp.json()
                                 for node_key, node_val in (res_data or {}).items():

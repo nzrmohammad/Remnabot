@@ -912,6 +912,51 @@ openEditSslDomainModal(domain) {
     if (window.hapticFeedback) window.hapticFeedback('light');
   };
 
+  window.openCheckHostTypeModal = function() {
+    const m = $('checkHostTypeModal');
+    if (m) m.classList.remove('hidden');
+    if (window.hapticFeedback) window.hapticFeedback('light');
+  };
+
+  window.closeCheckHostTypeModal = function() {
+    const m = $('checkHostTypeModal');
+    if (m) m.classList.add('hidden');
+  };
+
+  window.selectCheckHostType = function(type, label, icon) {
+    const input = $('checkHostTypeSelect');
+    if (input) input.value = type;
+    const disp = $('checkHostTypeDisplay');
+    if (disp) {
+      disp.innerHTML = `<span>${icon || '📡'}</span><span>${label || type}</span>`;
+    }
+    window.handleCheckHostTypeChange(type);
+    window.closeCheckHostTypeModal();
+    if (window.hapticFeedback) window.hapticFeedback('selection');
+  };
+
+  window.openCheckHostNodesModal = function() {
+    const m = $('checkHostNodesModal');
+    if (m) m.classList.remove('hidden');
+    if (window.hapticFeedback) window.hapticFeedback('light');
+  };
+
+  window.closeCheckHostNodesModal = function() {
+    const m = $('checkHostNodesModal');
+    if (m) m.classList.add('hidden');
+  };
+
+  window.selectCheckHostNodes = function(count, label, icon) {
+    const input = $('checkHostMaxNodesSelect');
+    if (input) input.value = count;
+    const disp = $('checkHostNodesDisplay');
+    if (disp) {
+      disp.innerHTML = `<span>${icon || '🌐'}</span><span>${label || count + ' نود'}</span>`;
+    }
+    window.closeCheckHostNodesModal();
+    if (window.hapticFeedback) window.hapticFeedback('selection');
+  };
+
   window.handleCheckHostTypeChange = function(type) {
     const portRow = $('checkHostPortRow');
     if (portRow) portRow.classList.toggle('hidden', type !== 'tcp');
@@ -946,7 +991,9 @@ openEditSslDomainModal(domain) {
     }
 
     try {
-      const res = await window.api.runCheckHost({ host: target, check_type: type, port: port, max_nodes: maxNodes });
+      const payload = { host: target, check_type: type, max_nodes: maxNodes };
+      if (type === 'tcp') payload.port = port;
+      const res = await window.api.runCheckHost(payload);
       if (!res || !res.ok) {
         if (badge) {
           badge.className = 'badge badge-danger';
@@ -971,12 +1018,12 @@ openEditSslDomainModal(domain) {
         const statusClass = isOk ? 'text-emerald-500 border-emerald-500/30' : 'text-rose-500 border-rose-500/30';
         const pingTime = r.ping_ms !== undefined && r.ping_ms !== null ? `${r.ping_ms} ms` : (r.status || (isOk ? 'OK' : 'عدم دسترسی'));
         return `
-          <div class="card-inset p-2 rounded-xl border flex items-center justify-between ${statusClass}">
+          <div class="card-inset p-2 rounded-xl border flex items-center justify-between ${statusClass}" dir="ltr">
             <div class="flex items-center gap-1.5 truncate">
               <span class="text-sm">${r.flag || '🌐'}</span>
               <span class="t-main font-bold truncate">${r.node_name || r.location}</span>
             </div>
-            <span class="font-bold text-xs" dir="ltr">${pingTime}</span>
+            <span class="font-bold text-xs font-mono">${pingTime}</span>
           </div>
         `;
       }).join('');
@@ -1048,7 +1095,7 @@ openEditSslDomainModal(domain) {
       return;
     }
     list.innerHTML = items.map(p => `
-      <div class="px-2 py-1 rounded-lg card-inset border border-[var(--card-border)] hover:border-purple-500 text-purple-600 dark:text-purple-300 font-bold text-[11px] text-center cursor-pointer select-all active:scale-95 transition" onclick="window.copyToClipboard('${p}', 'پیشوند ${p} کپی شد')">
+      <div class="px-2 py-1 rounded-lg card-inset border border-[var(--card-border)] hover:border-purple-500 t-purple font-bold text-[11px] text-center cursor-pointer select-all active:scale-95 transition" onclick="window.copyToClipboard('${p}', 'پیشوند ${p} کپی شد')">
         ${p}
       </div>
     `).join('');
