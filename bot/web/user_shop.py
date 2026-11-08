@@ -434,7 +434,7 @@ async def post_user_purchase(request: web.Request) -> web.Response:
 
         return web.json_response({
             "ok": True,
-            "message": "سرویس با موفقیت فعال / تمدید شد!",
+            "message": "سرویس با موفقیت به دسته جدید ارتقا یافت!" if getattr(result, "squad_changed", False) else "سرویس با موفقیت فعال / تمدید شد!",
             "subscription_url": result.subscription_url,
             "new_balance": result.new_balance,
             "service_name": service.name,
@@ -443,6 +443,7 @@ async def post_user_purchase(request: web.Request) -> web.Response:
             "panel_username": result.panel_username,
             "order_id": result.order_id,
             "effective_price": effective_price,
+            "squad_changed": getattr(result, "squad_changed", False),
         })
 
 
@@ -700,12 +701,24 @@ async def post_user_custom_plan_purchase(request: web.Request) -> web.Response:
 
         from types import SimpleNamespace
 
-        # Derive squad from existing user account or fallback to default squad
-        target_squad = None
-        if chosen_acc and isinstance(chosen_acc, dict):
-            inbounds = chosen_acc.get("active_user_inbounds") or []
-            if inbounds and isinstance(inbounds[0], dict):
-                target_squad = inbounds[0].get("squad_uuid")
+        # Derive squad from payload if provided, else existing user account or fallback to default squad
+        target_squad = data.get("squad_uuid")
+        if not target_squad and chosen_acc and isinstance(chosen_acc, dict):
+            raw_sqs = (
+                chosen_acc.get("activeInternalSquads")
+                or chosen_acc.get("internalSquads")
+                or chosen_acc.get("squads")
+                or []
+            )
+            for sq in raw_sqs:
+                if isinstance(sq, dict):
+                    u = sq.get("uuid") or sq.get("id")
+                    if u:
+                        target_squad = str(u)
+                        break
+                elif sq:
+                    target_squad = str(sq)
+                    break
         if not target_squad:
             target_squad = store_settings.default_squad_uuid or None
 
@@ -764,6 +777,7 @@ async def post_user_custom_plan_purchase(request: web.Request) -> web.Response:
             "duration_days": duration_days,
             "final_price": final_price,
             "order_id": result.order_id,
+            "squad_changed": getattr(result, "squad_changed", False),
         })
 
 

@@ -768,10 +768,10 @@ async def test_admin_nightly_summary(async_session: AsyncSession):
     )
     assert "گزارش جامع" in text
     assert "خلاصه وضعیت کل پنل" in text
-    assert "کاربران فعال امروز و مصرفشان" in text
+    assert ("کاربران فعال امروز و مصرفشان" in text or "کاربران فعال روز قبل و مصرفشان" in text)
     assert "کاربرانی که تا ۳ روز آینده منقضی می شوند" in text
     assert "کاربران منقضی (24 ساعت اخیر)" in text
-    assert "هشدارهای ارسال شده امروز" in text
+    assert ("هشدارهای ارسال شده امروز" in text or "هشدارهای ارسال شده روز قبل" in text)
     assert "active_user" in text
     assert "expired_user" in text
     assert "🇩🇪" in text

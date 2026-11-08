@@ -1,5 +1,6 @@
 """Centralized menu rendering services for user dashboards, services, and wallet."""
 import logging
+from typing import Any
 
 from aiogram import Bot
 from aiogram.utils.keyboard import InlineKeyboardBuilder
@@ -19,10 +20,55 @@ logger = logging.getLogger(__name__)
 async def render_services(
     bot: Bot, user, user_repo: UserRepository, session: AsyncSession,
     renew_account_id: str | None = None,
+    remnawave: Any = None,
 ) -> None:
-    """Render the active services catalog keyboard and balance status."""
+    """Render the active services catalog keyboard and balance status with squad-aware filtering."""
     lang = user.language or "fa"
-    services = await ServiceRepository(session).list_active()
+    active_squad_uuids: set[str] = set()
+    has_active_account = False
+    if remnawave:
+        try:
+            accounts = await remnawave.get_users_by_telegram_id(user.telegram_id) or []
+            target_accounts = (
+                [a for a in accounts if str(a.get("id")) == str(renew_account_id)]
+                if renew_account_id
+                else accounts
+            )
+            for acc in target_accounts:
+                status = str(acc.get("status", "")).upper()
+                if status not in ("DELETED",):
+                    has_active_account = True
+                    raw_sqs = (
+                        acc.get("activeInternalSquads")
+                        or acc.get("internalSquads")
+                        or acc.get("squads")
+                        or []
+                    )
+                    for sq in raw_sqs:
+                        if isinstance(sq, dict):
+                            uid = sq.get("uuid") or sq.get("id")
+                            if uid:
+                                active_squad_uuids.add(str(uid).strip().lower())
+                        elif isinstance(sq, str):
+                            active_squad_uuids.add(sq.strip().lower())
+        except Exception as exc:
+            logger.debug("Failed fetching user squads for services catalog: %s", exc)
+
+    all_services = await ServiceRepository(session).list_active()
+    services = []
+    for s in all_services:
+        is_addon = (
+            (s.traffic_gb > 0 and s.duration_days == 0)
+            or (s.duration_days > 0 and s.traffic_gb == 0)
+            or bool(s.badge and s.badge.lower() in ("traffic", "time"))
+        )
+        if is_addon:
+            # Add-ons strictly require an active account and matching squad
+            if not has_active_account or not s.squad_uuid:
+                continue
+            if str(s.squad_uuid).strip().lower() not in active_squad_uuids:
+                continue
+        services.append(s)
     wallet = await WalletRepository(session).get_wallet(user.telegram_id)
     balance = wallet.balance
 

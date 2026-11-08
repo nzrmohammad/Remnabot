@@ -29,7 +29,7 @@ EDIT_FIELDS = {
     "traffic": ("svc_prompt_traffic", "int"),
     "strategy": ("svc_prompt_strategy", "strategy"),
     "hwid": ("svc_prompt_hwid", "opt_int"),
-    "squad": ("svc_prompt_squad", "opt_text"),
+    "squad": ("svc_prompt_squad", "text"),
     "description": ("svc_prompt_description", "opt_text"),
 }
 
@@ -226,8 +226,14 @@ async def create_squad(
     await delete_message_silently(bot, message.chat.id, message.message_id)
 
     raw = message.text.strip()
-    squad = None if raw in ("/skip", "-", "—") else raw
-    await state.update_data(squad=squad)
+    if not raw or raw in ("/skip", "-", "—"):
+        await render_menu(
+            bot, user, user_repo,
+            "⚠️ <b>تعیین اسکواد (UUID دسته سرور) الزامی است:</b>\nلطفاً شناسه اسکواد را ارسال نمایید (امکان رد کردن وجود ندارد):",
+            _cancel_kb(lang).as_markup(),
+        )
+        return
+    await state.update_data(squad=raw)
     await state.set_state(ServiceAdminStates.create_description)
     await render_menu(
         bot, user, user_repo, t(lang, "svc_prompt_description"), _cancel_kb(lang).as_markup()

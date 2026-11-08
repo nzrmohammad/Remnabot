@@ -46,6 +46,7 @@ class PurchaseResult:
     panel_username: str | None = None
     accounts: list[dict] | None = None  # set when kind == "needs_account"
     order_id: int | None = None
+    squad_changed: bool = False
 
 
 def _iso(dt: datetime) -> str:
@@ -323,6 +324,8 @@ async def _execute_purchase_impl(
                 await session.commit()
                 return PurchaseResult(ok=False, kind="coupon_exhausted")
 
+    squads_changed = False
+
     if account is None:
         # Create a brand-new panel user (retry on global username collision).
         store = await get_store_settings(session)
@@ -385,13 +388,26 @@ async def _execute_purchase_impl(
                 await session.commit()
                 return PurchaseResult(ok=False, kind="squad_mismatch")
 
+        is_squad_switch = (
+            not is_extra_traffic
+            and not is_extra_time
+            and bool(service.squad_uuid)
+            and (not acc_squad_uuids or str(service.squad_uuid) not in acc_squad_uuids)
+        )
+
         squads_changed = False
-        if not is_extra_traffic and not is_extra_time and service.squad_uuid:
+        if is_squad_switch:
             try:
                 await remnawave.set_user_squads(int(account["id"]), [service.squad_uuid])
                 squads_changed = True
             except Exception as sq_err:
-                logger.warning("Failed to update user squad on full plan renewal: %s", sq_err)
+                logger.warning("Failed to update user squad on squad switch: %s", sq_err)
+
+            if getattr(service, "hwid_limit", None) is not None:
+                try:
+                    await remnawave.update_user_fields(int(account["id"]), hwidDeviceLimit=service.hwid_limit)
+                except Exception as hw_err:
+                    logger.warning("Failed to update hwid limit on squad switch: %s", hw_err)
 
         should_reset_traffic = False
         current_expire_str = account.get("expireAt")
@@ -408,6 +424,12 @@ async def _execute_purchase_impl(
             base = current_expire if (current_expire is not None and current_expire > now) else now
             expire_iso = _iso(_expire_from(service.duration_days, base))
             traffic = int(account.get("trafficLimitBytes") or 0)
+        elif is_squad_switch:
+            # Squad switch: Fresh start from now with new plan limits & reset used traffic
+            base = now
+            expire_iso = _iso(_expire_from(service.duration_days, base))
+            traffic = _traffic_bytes(service.traffic_gb, 0, strategy)
+            should_reset_traffic = True
         elif strategy == "NO_RESET":
             base = now
             if current_expire is not None and current_expire > now:
@@ -549,7 +571,24 @@ async def _execute_purchase_impl(
         panel_user_id=panel_user_id,
         panel_username=panel_username,
         order_id=pending.id,
+        squad_changed=squads_changed,
     )
+
+
+async def resolve_squad_name(remnawave: RemnawaveClient, squad_uuid: str | None) -> str:
+    """Return human-readable squad name or a clean fallback."""
+    if not squad_uuid:
+        return "پیش‌فرض"
+    try:
+        squads = await remnawave.get_internal_squads() or []
+        for sq in squads:
+            if isinstance(sq, dict):
+                uid = str(sq.get("uuid") or sq.get("id") or "")
+                if uid.strip().lower() == str(squad_uuid).strip().lower():
+                    return str(sq.get("name") or uid)
+    except Exception as exc:
+        logger.debug("Failed to resolve squad name: %s", exc)
+    return str(squad_uuid)
 
 
 def calc_price(price: int, discount_amount: int = 0) -> tuple[int, int]:

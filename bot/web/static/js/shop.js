@@ -739,6 +739,25 @@ function openCheckoutConfirmModal(plan) {
   if (priceEl) priceEl.innerText = `${Number(planPrice).toLocaleString('en-US')} تومان`;
   if (balEl) balEl.innerText = `${Number(userBalance).toLocaleString('en-US')} تومان`;
 
+  const switchBox = document.getElementById('checkoutSwitchWarningBox');
+  const activeSub = window.lastUserData?.active_sub || window.lastUserData?.active_subscription;
+  const isSwitch = Boolean(
+    activeSub &&
+    !isExtraTraffic &&
+    !isTimeOnly &&
+    plan.squad_uuid &&
+    activeSub.squad_uuid &&
+    String(plan.squad_uuid).trim().toLowerCase() !== String(activeSub.squad_uuid).trim().toLowerCase()
+  );
+
+  if (switchBox) {
+    if (isSwitch) {
+      switchBox.classList.remove('hidden');
+    } else {
+      switchBox.classList.add('hidden');
+    }
+  }
+
   if (isShortage) {
     if (remRow) remRow.classList.add('hidden');
     if (shortageBox) shortageBox.classList.remove('hidden');
@@ -759,7 +778,7 @@ function openCheckoutConfirmModal(plan) {
     if (confirmBtn) {
       confirmBtn.classList.remove('hidden');
       confirmBtn.disabled = false;
-      confirmBtn.innerText = '✅ تایید و خرید آنی';
+      confirmBtn.innerText = isSwitch ? '✅ تایید و ارتقای سرور' : '✅ تایید و خرید آنی';
       confirmBtn.onclick = executePurchase;
     }
   }
@@ -985,6 +1004,12 @@ function showPurchaseModal(res, fallbackPlanName, fallbackPlanPrice) {
 
   const subUrl = res.subscription_url || window.lastUserData?.active_sub?.subscription_url || '';
   if (sSubEl) sSubEl.innerText = subUrl || 'لینک اشتراک در داشبورد ثبت گردید.';
+
+  if (res.squad_changed) {
+    setTimeout(() => {
+      showToast('⚡️ سرورهای شما با موفقیت ارتقا یافت! لطفاً در نرم‌افزار گزینه Update Subscription را بزنید.');
+    }, 600);
+  }
 
   const copyBtn = document.getElementById('psvcCopyBtn');
   if (copyBtn) {

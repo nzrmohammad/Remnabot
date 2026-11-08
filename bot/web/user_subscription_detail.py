@@ -604,11 +604,29 @@ async def build_active_subscription(
         "days_left_plan": days_left,
     }
 
+    primary_squad_uuid = None
+    raw_primary_sqs = (
+        primary.get("activeInternalSquads")
+        or primary.get("internalSquads")
+        or primary.get("squads")
+        or []
+    )
+    for sq in raw_primary_sqs:
+        if isinstance(sq, dict):
+            u = sq.get("uuid") or sq.get("id")
+            if u:
+                primary_squad_uuid = str(u)
+                break
+        elif sq:
+            primary_squad_uuid = str(sq)
+            break
+
     active_sub = {
         "id": panel_user_id,
         "account_id": panel_user_id,
         "username": primary.get("username", user_auth.get("username")),
         "status": primary.get("status", "ACTIVE"),
+        "squad_uuid": primary_squad_uuid,
         "traffic_total_gb": traffic_total_gb,
         "traffic_used_gb": traffic_used_gb,
         "traffic_remaining_gb": traffic_remaining_gb,

@@ -16,7 +16,12 @@ from bot.config import get_settings
 from bot.db.repositories.user_repo import UserRepository
 from bot.locales.texts import t
 from bot.services.formatting import format_datetime, now_tz
-from bot.services.purchases import calc_price, receipt_price_lines, record_coupon_usage_if_any
+from bot.services.purchases import (
+    calc_price,
+    receipt_price_lines,
+    record_coupon_usage_if_any,
+    resolve_squad_name,
+)
 from bot.services.purchases import maybe_reward_referrer as _maybe_reward_referrer
 from bot.services.purchases import notify_admin as _notify_admin
 from bot.services.remnawave import RemnawaveClient
@@ -79,12 +84,46 @@ async def _render_buy_confirm(
     target_id: str = "0",
     coupon_code: str | None = None,
     discount_amount: int = 0,
+    account: dict | None = None,
+    remnawave: RemnawaveClient | None = None,
 ) -> None:
+    is_extra_traffic = (service.duration_days == 0 and service.traffic_gb > 0) or (getattr(service, "badge", None) == "traffic")
+    is_extra_time = (service.traffic_gb == 0 and service.duration_days > 0) or (getattr(service, "badge", None) == "time")
+
+    acc_squad_uuids = set()
+    if account:
+        raw_sqs = (
+            account.get("activeInternalSquads")
+            or account.get("internalSquads")
+            or account.get("squads")
+            or []
+        )
+        for sq in raw_sqs:
+            if isinstance(sq, dict):
+                u = sq.get("uuid") or sq.get("id")
+                if u:
+                    acc_squad_uuids.add(str(u).strip().lower())
+            elif isinstance(sq, str):
+                acc_squad_uuids.add(sq.strip().lower())
+
+    is_squad_switch = bool(
+        account
+        and not is_extra_traffic
+        and not is_extra_time
+        and service.squad_uuid
+        and (not acc_squad_uuids or str(service.squad_uuid).strip().lower() not in acc_squad_uuids)
+    )
+
     effective_price, discount_amount = calc_price(service.price, discount_amount)
     kb = InlineKeyboardBuilder()
 
     if balance >= effective_price:
-        kb.button(text=t(lang, "btn_confirm_pay"), callback_data=confirm_callback)
+        confirm_btn_text = (
+            ("✅ موافقم، پرداخت و ارتقا" if lang == "fa" else "✅ Confirm & Upgrade Squad")
+            if is_squad_switch
+            else t(lang, "btn_confirm_pay")
+        )
+        kb.button(text=confirm_btn_text, callback_data=confirm_callback)
     else:
         kb.button(text=t(lang, "btn_topup"), callback_data="wallet:topup")
 
@@ -108,6 +147,24 @@ async def _render_buy_confirm(
         else ""
     )
 
+    switch_warning_block = ""
+    if is_squad_switch:
+        squad_name = await resolve_squad_name(remnawave, service.squad_uuid) if remnawave else "جدید"
+        if lang == "fa":
+            switch_warning_block = (
+                f"\n⚠️ <b>درخواست تغییر سرور به «{escape(squad_name)}»:</b>\n"
+                f"• با تأیید این خرید، یک دوره کامل ({service.duration_days} روز و {service.traffic_gb} گیگابایت) از همین لحظه فعال می‌شود.\n"
+                f"• حجم و مهلت باقیمانده از سرویس قبلی شما جایگزین خواهد شد.\n"
+                f"• لینک اتصال شما تغییری نمی‌کند؛ پس از پرداخت تنها کافیست گزینه <b>Update Subscription</b> را در نرم‌افزار خود بزنید.\n"
+            )
+        else:
+            switch_warning_block = (
+                f"\n⚠️ <b>Server & Squad Switch to «{escape(squad_name)}»:</b>\n"
+                f"• A full new cycle ({service.duration_days} days & {service.traffic_gb} GB) starts immediately.\n"
+                f"• Any remaining days and traffic from the previous plan will be replaced.\n"
+                f"• Your subscription link remains unchanged; simply tap <b>Update Subscription</b> in your VPN app.\n"
+            )
+
     price_lines = receipt_price_lines(
         lang, service.price, effective_price, discount_amount, coupon_code, t(lang, "svc_currency"), is_confirm_card=True
     )
@@ -124,11 +181,14 @@ async def _render_buy_confirm(
     else:
         balance_note = ""
 
+    title = "🔄 <b>تغییر و ارتقای بسته اشتراک</b>" if (is_squad_switch and lang == "fa") else t(lang, 'buy_confirm_title')
+
     await render_menu(
         bot, user, user_repo,
-        f"{t(lang, 'buy_confirm_title')}\n{SEPARATOR}\n"
+        f"{title}\n{SEPARATOR}\n"
         f"{service_block(service, lang)}\n\n"
         f"{target_line}"
+        f"{switch_warning_block}"
         f"{chr(10).join(price_lines)}\n"
         f"👛 {t(lang, 'buy_current_balance')} : <b>{fmt(balance)}</b> {t(lang, 'svc_currency')}"
         f"{balance_note}",
@@ -222,6 +282,17 @@ async def _render_purchase_result(
         receipt_lines.append(
             f"👛 {t(lang, 'receipt_balance')} : <b>{fmt(result.new_balance)} {t(lang, 'svc_currency')}</b>"
         )
+        if getattr(result, "squad_changed", False):
+            receipt_lines.append(SEPARATOR)
+            receipt_lines.append(
+                "⚡️ <b>نکته مهم به‌روزرسانی اتصال:</b>\n"
+                "سرورهای اشتراک شما با موفقیت به دسته جدید تغییر یافت.\n"
+                "لطفاً در نرم‌افزار فیلترشکن خود گزینه <b>Update Subscription (به‌روزرسانی اشتراک)</b> را بزنید تا سرورهای جدید بارگذاری شوند."
+                if lang == "fa"
+                else "⚡️ <b>Important - Update Subscription:</b>\n"
+                "Your servers were successfully upgraded to the new squad.\n"
+                "Please tap <b>Update Subscription</b> in your VPN app to load new servers."
+            )
         if result.subscription_url:
             receipt_lines.append(SEPARATOR)
             receipt_lines.append(

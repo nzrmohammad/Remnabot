@@ -63,7 +63,7 @@ async def renew_pick_service(
         return
 
     await render_services(
-        bot, user, user_repo, session, renew_account_id=str(chosen["id"])
+        bot, user, user_repo, session, renew_account_id=str(chosen["id"]), remnawave=remnawave
     )
     await call.answer()
 
@@ -121,6 +121,8 @@ async def buy_for_account(
         target_id=str(panel_user_id),
         coupon_code=coupon_code,
         discount_amount=discount_amount,
+        account=chosen,
+        remnawave=remnawave,
     )
     await call.answer(t(lang, "buy_for_account_toast", username=username))
 

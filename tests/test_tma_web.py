@@ -1160,6 +1160,7 @@ async def test_admin_plans_crud(session_factory):
         "duration_days": 30,
         "hwid_limit": 2,
         "description": "مناسب ترید و گیم",
+        "squad_uuid": "sq-test-uuid",
         "is_active": True,
     })
     resp_save = await post_admin_plan_save(req_save)

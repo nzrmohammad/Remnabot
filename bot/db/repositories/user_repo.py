@@ -66,10 +66,11 @@ class UserRepository:
         result = await self.session.execute(stmt.offset(offset).limit(limit))
         return list(result.scalars().all())
 
-    async def count(self, condition=None) -> int:
+    async def count(self, *conditions) -> int:
         stmt = select(func.count(User.id))
-        if condition is not None:
-            stmt = stmt.where(condition)
+        for cond in conditions:
+            if cond is not None:
+                stmt = stmt.where(cond)
         result = await self.session.execute(stmt)
         return int(result.scalar_one())
 

@@ -1,6 +1,7 @@
 """Custom Plan Builder Handler: Interactive volume & duration selection with tiered pricing."""
 from __future__ import annotations
 
+from html import escape
 import logging
 from types import SimpleNamespace
 
@@ -17,7 +18,7 @@ from bot.services.app_settings import get_store_settings
 from bot.services.formatting import ltr_frag
 from bot.services.loyalty import apply_loyalty_discount, get_user_loyalty
 from bot.services.menu import render_menu
-from bot.services.purchases import execute_purchase
+from bot.services.purchases import execute_purchase, resolve_squad_name
 from bot.services.remnawave import RemnawaveClient
 from bot.states.custom_plan import CustomPlanStates
 from bot.web.cache import FastCache
@@ -30,30 +31,9 @@ PRESET_GB = [15, 30, 50, 80, 100, 150, 200]
 PRESET_DAYS = [(30, "۳۰ روز (۱ ماه)"), (60, "۶۰ روز (۲ ماه)"), (90, "۹۰ روز (۳ ماه)"), (180, "۱۸۰ روز (۶ ماه)")]
 
 
-@router.callback_query(F.data.in_({"menu:custom_plan", "shop:custom_plan"}))
-async def custom_plan_entry(
-    call: CallbackQuery,
-    bot: Bot,
-    user_repo: UserRepository,
-    session: AsyncSession,
-    state: FSMContext | None = None,
-):
-    """Step 1: Choose Traffic (GB)."""
-    if state:
-        await state.clear()
-    user = await user_repo.get_or_create(call.from_user.id, call.from_user.username)
-    lang = user.language or "fa"
-
-    store_settings = await get_store_settings(session)
-    if not store_settings.custom_plan_enabled:
-        await call.answer(
-            "طراحی بسته اختصاصی در حال حاضر غیرفعال است." if lang == "fa" else "Custom plan builder is currently disabled.",
-            show_alert=True,
-        )
-        return
-
+async def _prompt_traffic_gb(call: CallbackQuery, bot: Bot, user, user_repo, store_settings, lang: str):
     lines = [
-        "🛠 <b>طراحی بسته دلخواه (مرحله ۱ از ۲)</b>" if lang == "fa" else "🛠 <b>Custom Plan Builder (Step 1 of 2)</b>",
+        "🛠 <b>طراحی بسته دلخواه — انتخاب حجم</b>" if lang == "fa" else "🛠 <b>Custom Plan Builder — Select Traffic</b>",
         SEPARATOR,
         "در این بخش می‌توانید ترافیک و مدت زمان بسته خود را دقیقاً مطابق با مصرف خود انتخاب کنید.",
         "🔥 <b>تخفیف پلکانی حجم:</b> با انتخاب حجم‌های بالاتر، نرخ هر گیگابایت ارزان‌تر محاسبه می‌شود!",
@@ -71,6 +51,80 @@ async def custom_plan_entry(
 
     kb.adjust(2, 2, 2, 1, 1, 1)
     await render_menu(bot, user, user_repo, "\n".join(lines), kb.as_markup())
+
+
+@router.callback_query(F.data.in_({"menu:custom_plan", "shop:custom_plan"}))
+async def custom_plan_entry(
+    call: CallbackQuery,
+    bot: Bot,
+    user_repo: UserRepository,
+    session: AsyncSession,
+    state: FSMContext | None = None,
+    remnawave: RemnawaveClient | None = None,
+):
+    """Step 1: Choose Squad (or auto-select) and then Traffic (GB)."""
+    if state:
+        await state.clear()
+    user = await user_repo.get_or_create(call.from_user.id, call.from_user.username)
+    lang = user.language or "fa"
+
+    store_settings = await get_store_settings(session)
+    if not store_settings.custom_plan_enabled:
+        await call.answer(
+            "طراحی بسته اختصاصی در حال حاضر غیرفعال است." if lang == "fa" else "Custom plan builder is currently disabled.",
+            show_alert=True,
+        )
+        return
+
+    squads = []
+    if remnawave:
+        try:
+            raw_sqs = await remnawave.get_internal_squads() or []
+            for s in raw_sqs:
+                if isinstance(s, dict):
+                    uid = s.get("uuid") or s.get("id")
+                    name = s.get("name") or uid
+                    if uid:
+                        squads.append({"uuid": str(uid), "name": str(name)})
+        except Exception as exc:
+            logger.debug("Failed fetching squads for custom plan: %s", exc)
+
+    if len(squads) > 1:
+        lines = [
+            "🛠 <b>طراحی بسته دلخواه (مرحله ۱ از ۳)</b>" if lang == "fa" else "🛠 <b>Custom Plan Builder (Step 1 of 3)</b>",
+            SEPARATOR,
+            "لطفاً ابتدا دسته سرور (نوع سرویس) مورد نظر خود را انتخاب فرمایید:" if lang == "fa" else "Please select the server squad first:",
+        ]
+        kb = InlineKeyboardBuilder()
+        for sq in squads:
+            kb.button(text=f"🌐 {sq['name']}", callback_data=f"cplan:sq:{sq['uuid']}")
+        kb.button(text="🏠 منوی اصلی" if lang == "fa" else "🏠 Main Menu", callback_data="nav:main_menu")
+        kb.adjust(1)
+        await render_menu(bot, user, user_repo, "\n".join(lines), kb.as_markup())
+        await call.answer()
+        return
+
+    default_sq = squads[0]["uuid"] if squads else store_settings.default_squad_uuid
+    if state:
+        await state.update_data(squad_uuid=default_sq)
+    await _prompt_traffic_gb(call, bot, user, user_repo, store_settings, lang)
+    await call.answer()
+
+
+@router.callback_query(F.data.startswith("cplan:sq:"))
+async def custom_plan_squad_selected(
+    call: CallbackQuery,
+    bot: Bot,
+    user_repo: UserRepository,
+    session: AsyncSession,
+    state: FSMContext,
+):
+    squad_uuid = call.data.split(":", 2)[2]
+    await state.update_data(squad_uuid=squad_uuid)
+    user = await user_repo.get_or_create(call.from_user.id, call.from_user.username)
+    lang = user.language or "fa"
+    store_settings = await get_store_settings(session)
+    await _prompt_traffic_gb(call, bot, user, user_repo, store_settings, lang)
     await call.answer()
 
 
@@ -182,6 +236,7 @@ async def custom_plan_days_selected(
     user_repo: UserRepository,
     session: AsyncSession,
     state: FSMContext,
+    remnawave: RemnawaveClient | None = None,
     cache: FastCache | None = None,
 ):
     """Handle duration selection and show full live preview and breakdown."""
@@ -210,7 +265,12 @@ async def custom_plan_days_selected(
         return
 
     days = parse_int(val) or 30
-    await _render_custom_plan_preview(call, bot, user, user_repo, session, store_settings, gb, days, cache, lang)
+    st_data = await state.get_data() if state else {}
+    squad_uuid = st_data.get("squad_uuid")
+    squad_name = None
+    if squad_uuid and remnawave:
+        squad_name = await resolve_squad_name(remnawave, squad_uuid)
+    await _render_custom_plan_preview(call, bot, user, user_repo, session, store_settings, gb, days, cache, lang, squad_name)
 
 
 @router.message(CustomPlanStates.waiting_for_custom_days)
@@ -220,6 +280,7 @@ async def custom_plan_custom_days_input(
     user_repo: UserRepository,
     session: AsyncSession,
     state: FSMContext,
+    remnawave: RemnawaveClient | None = None,
     cache: FastCache | None = None,
 ):
     """Handle text input for custom Days."""
@@ -228,6 +289,10 @@ async def custom_plan_custom_days_input(
 
     data = await state.get_data()
     gb = int(data.get("traffic_gb", 10) or 10)
+    squad_uuid = data.get("squad_uuid")
+    squad_name = None
+    if squad_uuid and remnawave:
+        squad_name = await resolve_squad_name(remnawave, squad_uuid)
 
     store_settings = await get_store_settings(session)
     raw = (message.text or "").strip()
@@ -245,11 +310,13 @@ async def custom_plan_custom_days_input(
         return
 
     await state.clear()
-    lines, kb = await _build_custom_plan_summary(user, session, store_settings, gb, days, cache, lang)
+    if squad_uuid:
+        await state.update_data(squad_uuid=squad_uuid)
+    lines, kb = await _build_custom_plan_summary(user, session, store_settings, gb, days, cache, lang, squad_name)
     await message.reply("\n".join(lines), reply_markup=kb.as_markup(), parse_mode="HTML")
 
 
-async def _build_custom_plan_summary(user, session, store_settings, gb: int, days: int, cache, lang: str):
+async def _build_custom_plan_summary(user, session, store_settings, gb: int, days: int, cache, lang: str, squad_name: str | None = None):
     raw_base, volume_pct, base_price = compute_custom_plan_price(gb, days, store_settings)
     volume_discount_amount = max(0, raw_base - base_price)
 
@@ -263,12 +330,16 @@ async def _build_custom_plan_summary(user, session, store_settings, gb: int, day
     lines = [
         "🛠 <b>پیش‌نمایش بسته دلخواه شما</b>",
         SEPARATOR,
+    ]
+    if squad_name:
+        lines.append(f"🌐 دسته سرور : <b>{escape(squad_name)}</b>")
+    lines.extend([
         f"📦 حجم ترافیک : <b>{gb} گیگابایت</b>",
         f"⏳ مدت زمان اعتبار : <b>{days} روز</b>",
         "👥 کاربر همزمان مجاز : <b>۲ دستگاه</b>",
         SEPARATOR,
         f"💰 تعرفه بدون تخفیف : {fmt(raw_base)} تومان",
-    ]
+    ])
 
     if volume_pct > 0:
         lines.append(f"🔥 تخفیف پلکانی حجم : <b>{volume_pct}٪</b> ({fmt(volume_discount_amount)} تومان)")
@@ -299,8 +370,8 @@ async def _build_custom_plan_summary(user, session, store_settings, gb: int, day
     return lines, kb
 
 
-async def _render_custom_plan_preview(call: CallbackQuery, bot: Bot, user, user_repo, session, store_settings, gb: int, days: int, cache, lang: str):
-    lines, kb = await _build_custom_plan_summary(user, session, store_settings, gb, days, cache, lang)
+async def _render_custom_plan_preview(call: CallbackQuery, bot: Bot, user, user_repo, session, store_settings, gb: int, days: int, cache, lang: str, squad_name: str | None = None):
+    lines, kb = await _build_custom_plan_summary(user, session, store_settings, gb, days, cache, lang, squad_name)
     await render_menu(bot, user, user_repo, "\n".join(lines), kb.as_markup())
     await call.answer()
 
@@ -312,6 +383,7 @@ async def custom_plan_execute_purchase(
     user_repo: UserRepository,
     session: AsyncSession,
     remnawave: RemnawaveClient,
+    state: FSMContext | None = None,
     cache: FastCache | None = None,
 ):
     """Execute custom plan purchase atomically and deliver subscription."""
@@ -336,8 +408,13 @@ async def custom_plan_execute_purchase(
         await call.answer("موجودی کیف پول شما کافی نیست.", show_alert=True)
         return
 
-    # Derive target squad
-    target_squad = store_settings.default_squad_uuid or None
+    # Derive target squad from state or fallback
+    target_squad = None
+    if state:
+        st_data = await state.get_data()
+        target_squad = st_data.get("squad_uuid")
+    if not target_squad:
+        target_squad = store_settings.default_squad_uuid or None
 
     custom_svc = SimpleNamespace(
         id=None,
@@ -353,12 +430,22 @@ async def custom_plan_execute_purchase(
         purchases_count=0,
     )
 
+    chosen_acc = None
+    try:
+        user_accounts = await remnawave.get_users_by_telegram_id(user.telegram_id) or []
+        valid_accs = [a for a in user_accounts if str(a.get("status", "")).upper() not in ("DELETED",)]
+        if len(valid_accs) == 1:
+            chosen_acc = valid_accs[0]
+    except Exception as acc_err:
+        logger.debug("Failed checking existing account for custom plan: %s", acc_err)
+
     result = await execute_purchase(
         remnawave=remnawave,
         session=session,
         service=custom_svc,
         telegram_id=user.telegram_id,
-        create_new=True,
+        chosen_account=chosen_acc,
+        create_new=(chosen_acc is None),
         bot=bot,
         cache=cache,
     )
@@ -385,6 +472,13 @@ async def custom_plan_execute_purchase(
         f"📦 بسته : <b>{gb} گیگابایت — {days} روز</b>",
         f"💳 مبلغ پرداخت شده : <b>{fmt(final_price)} تومان</b>",
     ]
+    if getattr(result, "squad_changed", False):
+        lines.extend([
+            SEPARATOR,
+            "⚡️ <b>نکته مهم به‌روزرسانی اتصال:</b>",
+            "سرورهای اشتراک شما با موفقیت به دسته جدید تغییر یافت.",
+            "لطفاً در نرم‌افزار فیلترشکن خود گزینه <b>Update Subscription (به‌روزرسانی اشتراک)</b> را بزنید تا سرورهای جدید بارگذاری شوند.",
+        ])
     if sub_url:
         lines.extend([
             SEPARATOR,

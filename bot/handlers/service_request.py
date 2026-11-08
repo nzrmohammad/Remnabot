@@ -80,10 +80,14 @@ _render_services = render_services
 
 @router.callback_query(F.data == "menu:services")
 async def services_entry(
-    call: CallbackQuery, bot: Bot, user_repo: UserRepository, session: AsyncSession
+    call: CallbackQuery,
+    bot: Bot,
+    user_repo: UserRepository,
+    session: AsyncSession,
+    remnawave: RemnawaveClient | None = None,
 ):
     user = await user_repo.get_or_create(call.from_user.id, call.from_user.username)
-    await render_services(bot, user, user_repo, session)
+    await render_services(bot, user, user_repo, session, remnawave=remnawave)
     await call.answer()
 
 

@@ -119,6 +119,8 @@ async def post_admin_plan_save(request: web.Request) -> web.Response:
     badge = str(body.get("badge") or "").strip() or None
     is_active = bool(body.get("is_active", True))
     squad_uuid = str(body.get("squad_uuid") or "").strip() or None
+    if not squad_uuid:
+        return web.json_response({"ok": False, "error": "انتخاب اسکواد (دسته سرور) برای بسته الزامی است."}, status=400)
 
     async with db_session(request) as session:
         if plan_id:

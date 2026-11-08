@@ -457,8 +457,8 @@ async def get_user_me(request: web.Request) -> web.Response:
                 or (s.duration_days > 0 and s.traffic_gb == 0)
                 or bool(s.badge and s.badge.lower() in ("traffic", "time"))
             )
-            if is_addon and s.squad_uuid:
-                if not has_active_sub or str(s.squad_uuid).strip().lower() not in active_squad_uuids:
+            if is_addon:
+                if not has_active_sub or not s.squad_uuid or str(s.squad_uuid).strip().lower() not in active_squad_uuids:
                     continue
             filtered_services.append(s)
 
