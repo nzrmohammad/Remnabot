@@ -155,8 +155,10 @@ const api = {
     return data;
   },
 
-  async revokeSub() {
-    return this.post('/api/user/revoke_sub');
+  async revokeSub(accountId = null) {
+    const acc = accountId || window.currentAccountId;
+    const payload = acc ? { account_id: acc } : {};
+    return this.post('/api/user/revoke_sub', payload);
   },
 
   async killDevice(hwid) {

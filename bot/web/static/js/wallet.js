@@ -86,37 +86,38 @@ function applyBluBankCardTheme(color, bankTmpl) {
 
   const isMinimal = String(bankTmpl || '').toLowerCase() === 'minimal';
 
-  const titleEl = document.getElementById('graphicBankTitle');
-  if (titleEl) {
+  const isGraphic = !['none', 'classic'].includes(String(bankTmpl || '').toLowerCase());
+  const manualGraphicBox = document.getElementById('manualCardGraphicBox');
+  if (manualGraphicBox) {
+    manualGraphicBox.classList.toggle('hidden', !isGraphic);
+  }
+
+  document.querySelectorAll('#graphicBankTitle, .graphicBankTitle').forEach(titleEl => {
     titleEl.innerText = isMinimal ? '' : 'SamanBank';
     titleEl.style.display = isMinimal ? 'none' : '';
     titleEl.style.color = palette.text;
-  }
+  });
 
-  const iconEl = document.getElementById('graphicBankIcon');
-  if (iconEl) {
+  document.querySelectorAll('#graphicBankIcon, .graphicBankIcon').forEach(iconEl => {
     iconEl.style.display = isMinimal ? 'none' : '';
     iconEl.style.color = palette.text;
     iconEl.style.borderColor = palette.accent;
-  }
+  });
 
-  const holderEl = document.getElementById('graphicCardHolderDisplay');
-  if (holderEl) {
+  document.querySelectorAll('#graphicCardHolderDisplay, .graphicCardHolderDisplay').forEach(holderEl => {
     holderEl.style.color = palette.text;
-  }
+  });
 
-  const numberEl = document.getElementById('graphicCardNumberDisplay');
-  if (numberEl) {
+  document.querySelectorAll('#graphicCardNumberDisplay, .graphicCardNumberDisplay').forEach(numberEl => {
     numberEl.style.color = palette.text;
     numberEl.querySelectorAll('span').forEach(s => { s.style.color = palette.text; });
-  }
+  });
 
-  const backTextEl = document.getElementById('graphicCardBackText');
-  if (backTextEl) {
+  document.querySelectorAll('#graphicCardBackText, .graphicCardBackText').forEach(backTextEl => {
     backTextEl.innerText = isMinimal ? '' : 'Blu, But Lovely';
     backTextEl.style.display = isMinimal ? 'none' : '';
     backTextEl.style.color = palette.text;
-  }
+  });
 }
 
 let currentTopupInvoice = null;
@@ -320,6 +321,10 @@ async function loadTopupInfo() {
       if (cardHolderEl) cardHolderEl.innerText = rawHolder;
       if (graphicNum) renderBluCardNumber(graphicNum, rawNum);
       if (graphicHolder) graphicHolder.innerText = rawHolder;
+      const manualGraphicNum = document.getElementById('manualGraphicCardNumberDisplay');
+      const manualGraphicHolder = document.getElementById('manualGraphicCardHolderDisplay');
+      if (manualGraphicNum) renderBluCardNumber(manualGraphicNum, rawNum);
+      if (manualGraphicHolder) manualGraphicHolder.innerText = rawHolder;
       if (manualClassicNum) manualClassicNum.innerText = formatCardNumberDisplay(rawNum);
       if (manualClassicHolder) manualClassicHolder.innerText = rawHolder;
       applyBluBankCardTheme(res.card_blubank_color || 'rose', res.card_template || 'blubank');
@@ -1249,7 +1254,7 @@ function setupWalletListeners() {
   });
 
   document.getElementById('chargeWalletBtn')?.addEventListener('click', () => {
-    openTopupModal(50000);
+    openTopupModal();
   });
 
   document.getElementById('openActiveCryptoBtn')?.addEventListener('click', () => {
@@ -1266,7 +1271,7 @@ function setupWalletListeners() {
   });
 
   document.getElementById('chargeWalletBtn')?.addEventListener('click', () => {
-    openTopupModal(50000);
+    openTopupModal();
   });
 
   const handleCopyCard = () => {

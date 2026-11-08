@@ -114,6 +114,12 @@ async def init_db(engine) -> None:
                 pass
             try:
                 await conn.execute(text(
+                    "ALTER TABLE orders ALTER COLUMN service_id DROP NOT NULL;"
+                ))
+            except Exception as e:
+                logger.debug("ALTER TABLE orders service_id DROP NOT NULL: %s", e)
+            try:
+                await conn.execute(text(
                     "CREATE INDEX IF NOT EXISTS ix_crypto_invoices_currency ON crypto_invoices (currency);"
                 ))
             except Exception:

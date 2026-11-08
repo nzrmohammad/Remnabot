@@ -52,7 +52,7 @@
       <div class="w-48 h-1.5 rounded-full overflow-hidden mt-8" style="background: var(--card-inner-bg); border: 1px solid var(--card-border);">
         <div id="splashBar" class="h-full bg-gradient-to-r from-cyan-500 to-sky-600 w-0 transition-all duration-1000 ease-out"></div>
       </div>
-      <span class="text-[11px] font-mono t-subtle mt-2">در حال بارگذاری اطلاعات حساب و نشست‌ها...</span>
+      <span class="text-[11px] t-subtle mt-2 font-sans">در حال بارگذاری اطلاعات حساب و نشست‌ها...</span>
     </div>
 
 
@@ -81,7 +81,7 @@
           <span id="headerUserAvatarInitial">U</span>
         </div>
         <div class="flex items-center gap-1.5 min-w-0">
-          <span id="headerUsername" class="font-bold t-accent font-mono text-xs max-w-[100px] truncate">کاربر</span>
+          <span id="headerUsername" class="font-bold t-accent text-xs max-w-[100px] truncate font-sans">کاربر</span>
           <span id="headerLoyaltyBadge" onclick="window.openLoyaltyModal && window.openLoyaltyModal()" class="hidden w-7 h-7 flex items-center justify-center text-lg bg-transparent border-0 transition cursor-pointer active:scale-95 shrink-0 select-none" title="سطح وفاداری شما">🥉</span>
           <button id="switchAccountBtn" class="hidden inline-flex items-center justify-center w-4 h-4 t-muted hover:t-main active:scale-95 text-[11px] cursor-pointer transition flex-shrink-0" title="تعویض اکانت" aria-label="تعویض اکانت">
             <span class="text-[11px]">▼</span>
@@ -133,7 +133,7 @@
           <p class="text-xs text-slate-300/90 mt-2.5 leading-relaxed font-normal">
             به منظور پایداری شبکه و ارائه بالاترین سرعت، سامانه موقتاً در حال به‌روزرسانی و بهبود عملکرد سرورها می‌باشد.
           </p>
-          <span class="status-pill-maint inline-block mt-3 px-3 py-1 rounded-full text-[11px] font-mono font-medium text-amber-300 bg-amber-500/10 border border-amber-500/20">
+          <span class="status-pill-maint inline-block mt-3 px-3 py-1 rounded-full text-[11px] font-medium text-amber-300 bg-amber-500/10 border border-amber-500/20 font-sans">
             ⏳ به‌زودی مجدداً در دسترس خواهد بود
           </span>
 
@@ -171,7 +171,7 @@
           <p class="text-xs text-slate-300/90 mt-2.5 leading-relaxed font-normal">
             جهت تضمین پایداری و حفظ کیفیت سرویس، ثبت‌نام در سامانه در حال حاضر صرفاً از طریق لینک دعوت معتبر امکان‌پذیر است.
           </p>
-          <span class="status-pill-invite inline-block mt-3 px-3 py-1 rounded-full text-[11px] font-mono font-medium text-cyan-300 bg-cyan-500/10 border border-cyan-500/20">
+          <span class="status-pill-invite inline-block mt-3 px-3 py-1 rounded-full text-[11px] font-medium text-cyan-300 bg-cyan-500/10 border border-cyan-500/20 font-sans">
             🔐 دسترسی صرفاً با دعوت دوستان
           </span>
 
@@ -242,7 +242,7 @@
               <span id="birthdayCardSubtitle" class="text-[10.5px] font-bold text-pink-700 dark:text-pink-300 mt-0.5 block">-- روز تا روز تولدتان باقی مانده است</span>
             </div>
           </div>
-          <div id="birthdayCardBadge" class="px-2.5 py-1 rounded-xl s-pink-soft text-[11px] font-mono font-bold flex items-center gap-1">
+          <div id="birthdayCardBadge" class="px-2.5 py-1 rounded-xl s-pink-soft text-[11px] font-bold flex items-center gap-1 font-sans">
             <span>🎁</span>
             <span id="birthdayDaysLeftNum">--</span>
             <span>روز</span>
@@ -374,7 +374,7 @@
                 <span>🌍</span> ریز مصرف
               </span>
             </div>
-            <span class="text-[10.5px] font-mono text-cyan-700 dark:text-cyan-300 font-bold">مجموع: <span id="countryTodayTotalHeader" class="num-bidi" dir="ltr">0.00 GB</span></span>
+            <span class="text-[10.5px] text-cyan-700 dark:text-cyan-300 font-bold font-sans">مجموع: <span id="countryTodayTotalHeader" class="num-bidi font-sans" dir="ltr">0.00 GB</span></span>
           </button>
 
           <!-- Collapsible Content (Hidden by default, opens on click) -->
@@ -428,33 +428,27 @@
               <span class="text-[11px] text-slate-300 font-medium">اسکن مستقیم با دوربین گوشی یا نرم‌افزارهای VPN</span>
             </div>
 
-            <!-- 1-Click App Importers (Unified Harmonious Design) -->
+            <!-- 1-Click App Importers (Icon-Only Borderless Grid) -->
             <div class="pt-1">
               <span class="text-[11px] text-slate-400 block mb-2 font-medium">اتصال خودکار به کلاینت دلخواه</span>
-              <div class="grid grid-cols-6 gap-1 sm:gap-1.5 text-center text-xs">
-                <button id="appImportIncy" type="button" class="client-import-btn card-inset hover:border-cyan-500/50 p-1 sm:p-2 rounded-xl flex flex-col items-center justify-center transition group active:scale-95 shadow-sm" title="Incy">
-                  <img src="/static/img/apps/incy.webp" alt="Incy" class="w-6 h-6 sm:w-8 sm:h-8 rounded-lg object-contain group-hover:scale-110 transition flex-shrink-0 mb-1" onerror="this.src='/static/img/apps/incy.png'" />
-                  <span class="text-[9.5px] sm:text-[11px] font-medium t-muted truncate block max-w-full tracking-tighter sm:tracking-normal">Incy</span>
+              <div class="grid grid-cols-6 gap-1.5 sm:gap-2 text-center">
+                <button id="appImportIncy" type="button" class="client-import-btn p-0.5 rounded-2xl flex items-center justify-center transition group active:scale-90 hover:scale-105" title="Incy">
+                  <img src="/static/img/apps/incy.webp" alt="Incy" class="w-11 h-11 sm:w-13 sm:h-13 rounded-2xl object-cover drop-shadow-sm group-hover:drop-shadow-md transition flex-shrink-0" onerror="this.src='/static/img/apps/incy.png'" />
                 </button>
-                <button id="appImportHapp" type="button" class="client-import-btn card-inset hover:border-cyan-500/50 p-1 sm:p-2 rounded-xl flex flex-col items-center justify-center transition group active:scale-95 shadow-sm" title="Happ">
-                  <img src="/static/img/apps/happ.webp" alt="Happ" class="w-6 h-6 sm:w-8 sm:h-8 rounded-lg object-contain group-hover:scale-110 transition flex-shrink-0 mb-1" onerror="this.src='/static/img/apps/happ.png'" />
-                  <span class="text-[9.5px] sm:text-[11px] font-medium t-muted truncate block max-w-full tracking-tighter sm:tracking-normal">Happ</span>
+                <button id="appImportHapp" type="button" class="client-import-btn p-0.5 rounded-2xl flex items-center justify-center transition group active:scale-90 hover:scale-105" title="Happ">
+                  <img src="/static/img/apps/happ.webp" alt="Happ" class="w-11 h-11 sm:w-13 sm:h-13 rounded-2xl object-cover drop-shadow-sm group-hover:drop-shadow-md transition flex-shrink-0" onerror="this.src='/static/img/apps/happ.png'" />
                 </button>
-                <button id="appImportV2ray" type="button" class="client-import-btn card-inset hover:border-cyan-500/50 p-1 sm:p-2 rounded-xl flex flex-col items-center justify-center transition group active:scale-95 shadow-sm" title="v2rayNG">
-                  <img src="/static/img/apps/v2rayng.webp" alt="v2rayNG" class="w-6 h-6 sm:w-8 sm:h-8 rounded-lg object-contain group-hover:scale-110 transition flex-shrink-0 mb-1" onerror="this.src='/static/img/apps/v2rayng.png'" />
-                  <span class="text-[9.5px] sm:text-[11px] font-medium t-muted truncate block max-w-full tracking-tighter sm:tracking-normal">v2rayNG</span>
+                <button id="appImportV2ray" type="button" class="client-import-btn p-0.5 rounded-2xl flex items-center justify-center transition group active:scale-90 hover:scale-105" title="v2rayNG">
+                  <img src="/static/img/apps/v2rayng.webp" alt="v2rayNG" class="w-11 h-11 sm:w-13 sm:h-13 rounded-2xl object-cover drop-shadow-sm group-hover:drop-shadow-md transition flex-shrink-0" onerror="this.src='/static/img/apps/v2rayng.png'" />
                 </button>
-                <button id="appImportHiddify" type="button" class="client-import-btn card-inset hover:border-cyan-500/50 p-1 sm:p-2 rounded-xl flex flex-col items-center justify-center transition group active:scale-95 shadow-sm" title="Hiddify">
-                  <img src="/static/img/apps/hiddify.webp" alt="Hiddify" class="w-6 h-6 sm:w-8 sm:h-8 rounded-lg object-contain group-hover:scale-110 transition flex-shrink-0 mb-1" onerror="this.src='/static/img/apps/hiddify.png'" />
-                  <span class="text-[9.5px] sm:text-[11px] font-medium t-muted truncate block max-w-full tracking-tighter sm:tracking-normal">Hiddify</span>
+                <button id="appImportHiddify" type="button" class="client-import-btn p-0.5 rounded-2xl flex items-center justify-center transition group active:scale-90 hover:scale-105" title="Hiddify">
+                  <img src="/static/img/apps/hiddify.webp" alt="Hiddify" class="w-11 h-11 sm:w-13 sm:h-13 rounded-2xl object-cover drop-shadow-sm group-hover:drop-shadow-md transition flex-shrink-0" onerror="this.src='/static/img/apps/hiddify.png'" />
                 </button>
-                <button id="appImportStreisand" type="button" class="client-import-btn card-inset hover:border-cyan-500/50 p-1 sm:p-2 rounded-xl flex flex-col items-center justify-center transition group active:scale-95 shadow-sm" title="Streisand">
-                  <img src="/static/img/apps/streisand.webp" alt="Streisand" class="w-6 h-6 sm:w-8 sm:h-8 rounded-lg object-contain group-hover:scale-110 transition flex-shrink-0 mb-1" onerror="this.src='/static/img/apps/streisand.png'" />
-                  <span class="text-[9.5px] sm:text-[11px] font-medium t-muted truncate block max-w-full tracking-tighter sm:tracking-normal">Streisand</span>
+                <button id="appImportStreisand" type="button" class="client-import-btn p-0.5 rounded-2xl flex items-center justify-center transition group active:scale-90 hover:scale-105" title="Streisand">
+                  <img src="/static/img/apps/streisand.webp" alt="Streisand" class="w-11 h-11 sm:w-13 sm:h-13 rounded-2xl object-cover drop-shadow-sm group-hover:drop-shadow-md transition flex-shrink-0" onerror="this.src='/static/img/apps/streisand.png'" />
                 </button>
-                <button id="appImportV2box" type="button" class="client-import-btn card-inset hover:border-cyan-500/50 p-1 sm:p-2 rounded-xl flex flex-col items-center justify-center transition group active:scale-95 shadow-sm" title="V2Box">
-                  <img src="/static/img/apps/v2box.webp" alt="V2Box" class="w-6 h-6 sm:w-8 sm:h-8 rounded-lg object-contain group-hover:scale-110 transition flex-shrink-0 mb-1" onerror="this.src='/static/img/apps/v2box.png'" />
-                  <span class="text-[9.5px] sm:text-[11px] font-medium t-muted truncate block max-w-full tracking-tighter sm:tracking-normal">V2Box</span>
+                <button id="appImportV2box" type="button" class="client-import-btn p-0.5 rounded-2xl flex items-center justify-center transition group active:scale-90 hover:scale-105" title="V2Box">
+                  <img src="/static/img/apps/v2box.webp" alt="V2Box" class="w-11 h-11 sm:w-13 sm:h-13 rounded-2xl object-cover drop-shadow-sm group-hover:drop-shadow-md transition flex-shrink-0" onerror="this.src='/static/img/apps/v2box.png'" />
                 </button>
               </div>
             </div>
@@ -486,7 +480,7 @@
               </span>
             </div>
             <div class="flex items-center gap-2">
-              <span id="reportsSessionsBadge" class="text-[11px] font-mono font-bold t-success bg-transparent border-0 px-0 py-0">0 دستگاه</span>
+              <span id="reportsSessionsBadge" class="text-[11px] font-bold t-success bg-transparent border-0 px-0 py-0 font-sans num-bidi">0 دستگاه</span>
             </div>
           </button>
 
@@ -595,7 +589,7 @@
         <div id="viewRepWeekly" class="card p-4 space-y-3 shadow-md hidden">
           <div class="flex justify-between items-center border-b border-slate-700/60 pb-2">
             <span class="text-xs font-bold t-main flex items-center gap-1">📊 گزارش جامع 7 روز گذشته</span>
-            <span class="text-[11px] font-mono text-slate-400">7 روز اخیر</span>
+            <span class="text-[11px] text-slate-400 font-sans num-bidi">7 روز اخیر</span>
           </div>
           <div class="space-y-1.5 text-xs t-muted">
             <div class="flex justify-between"><span>⚡️ کل مصرف این هفته :</span><b id="repWeeklyTotal" class="font-mono t-accent text-sm num-bidi" dir="ltr">-- GB</b></div>
@@ -624,7 +618,7 @@
         <div id="viewRepMonthly" class="card p-4 space-y-3 shadow-md hidden">
           <div class="flex justify-between items-center border-b border-slate-700/60 pb-2">
             <span id="repMonthlyTitle" class="text-xs font-bold t-main flex items-center gap-1">📅 گزارش جامع ماهانه</span>
-            <span id="repMonthlyPeriodBadge" class="text-[11px] font-mono text-slate-400">ماه جاری</span>
+            <span id="repMonthlyPeriodBadge" class="text-[11px] text-slate-400 font-sans">ماه جاری</span>
           </div>
 
           <!-- Month Navigation Switcher (جا‌به‌جایی بین ماه‌های سال با فلش) -->
@@ -1046,7 +1040,7 @@
         <!-- Coupon Box (Hidden until plans are rendered) -->
         <div id="shopCouponSection" class="space-y-2 hidden">
           <div class="card-inset rounded-xl p-2.5 flex items-center gap-2 border border-slate-200 dark:border-slate-800">
-            <input type="text" placeholder="کد تخفیف (مثال: OFF20)" class="input-base text-xs placeholder:text-[11px] px-3 py-2 rounded-lg flex-1 outline-none uppercase font-mono" id="couponInput" />
+            <input type="text" placeholder="کد تخفیف (مثال: OFF20)" class="input-base text-xs placeholder:text-[11px] px-3 py-2 rounded-lg flex-1 outline-none uppercase font-sans tracking-wide" id="couponInput" />
             <button id="applyCouponBtn" type="button" class="btn btn-primary text-xs font-semibold px-4 py-2 rounded-lg shadow shrink-0">⚡️ اعمال</button>
           </div>
 
@@ -1080,7 +1074,7 @@
           </div>
 
           <div class="grid grid-cols-2 gap-2 pt-2 border-t border-slate-700/60">
-            <button id="chargeWalletBtn" onclick="window.openTopupModal && window.openTopupModal(100000)" class="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs py-2.5 rounded-xl transition shadow active:scale-95 flex items-center justify-center gap-1.5">
+            <button id="chargeWalletBtn" onclick="window.openTopupModal && window.openTopupModal()" class="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs py-2.5 rounded-xl transition shadow active:scale-95 flex items-center justify-center gap-1.5">
               <span>💳</span> شارژ کیف پول
             </button>
             <button type="button" onclick="window.openGiftModal && window.openGiftModal()" class="bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-500 hover:to-rose-500 text-white font-bold text-xs py-2.5 rounded-xl transition shadow active:scale-95 flex items-center justify-center gap-1.5">
@@ -1620,6 +1614,7 @@
         </div>
         <div>
           <h3 class="text-base font-extrabold t-main">آیا از ابطال لینک اشتراک مطمئنید؟</h3>
+          <p id="revokeTargetAccountName" class="text-xs font-bold text-cyan-500 dark:text-cyan-400 mt-1 num-bidi hidden"></p>
           <p class="text-xs text-slate-300 mt-2 leading-relaxed">
             با صدور لینک جدید، لینک قبلی شما در تمام گوشی‌ها و نرم‌افزارها <b>فوراً از کار خواهد افتاد</b> و باید لینک سابسکریپشن جدید را داخل کلاینت خود وارد کنید.
           </p>
@@ -1771,13 +1766,13 @@
         <!-- Amount Presets & Custom Input -->
         <div id="topupAmountSection" class="space-y-1.5">
           <label class="text-[11px] text-slate-300 font-medium block">مبلغ شارژ مورد نظر (تومان):</label>
-          <div class="grid grid-cols-2 gap-1.5 font-mono text-[11px]">
-            <button type="button" class="topup-preset-btn py-1.5 rounded-lg card-inset hover:border-emerald-500/50 t-main font-mono" data-amt="100000">100,000 تومان</button>
-            <button type="button" class="topup-preset-btn py-1.5 rounded-lg card-inset hover:border-emerald-500/50 t-main font-mono" data-amt="200000">200,000 تومان</button>
-            <button type="button" class="topup-preset-btn py-1.5 rounded-lg card-inset hover:border-emerald-500/50 t-main font-mono" data-amt="500000">500,000 تومان</button>
-            <button type="button" class="topup-preset-btn py-1.5 rounded-lg card-inset hover:border-emerald-500/50 t-main font-mono" data-amt="1000000">1,000,000 تومان</button>
+          <div class="grid grid-cols-2 gap-1.5 text-[11px] font-sans">
+            <button type="button" class="topup-preset-btn py-1.5 rounded-lg card-inset hover:border-emerald-500/50 t-main font-medium num-bidi" data-amt="100000">100,000 تومان</button>
+            <button type="button" class="topup-preset-btn py-1.5 rounded-lg card-inset hover:border-emerald-500/50 t-main font-medium num-bidi" data-amt="200000">200,000 تومان</button>
+            <button type="button" class="topup-preset-btn py-1.5 rounded-lg card-inset hover:border-emerald-500/50 t-main font-medium num-bidi" data-amt="500000">500,000 تومان</button>
+            <button type="button" class="topup-preset-btn py-1.5 rounded-lg card-inset hover:border-emerald-500/50 t-main font-medium num-bidi" data-amt="1000000">1,000,000 تومان</button>
           </div>
-          <input type="number" inputmode="numeric" pattern="[0-9]*" id="topupAmountInput" placeholder="مبلغ دلخواه را وارد کنید (تومان)..." class="input-base w-full px-3 py-2 rounded-xl font-mono outline-none text-xs mt-1" />
+          <input type="number" inputmode="numeric" pattern="[0-9]*" id="topupAmountInput" placeholder="مبلغ دلخواه را وارد کنید (تومان)..." class="input-base w-full px-3 py-2 rounded-xl outline-none text-xs mt-1 num-bidi font-sans" />
         </div>
 
         <!-- All Methods Disabled State -->
@@ -1970,6 +1965,39 @@
 
             <!-- Clean Manual Card Topup Details Box -->
             <div id="manualCardTopupSection" class="space-y-2">
+              <!-- Graphical Bank Card (3D Realistic Flip View for Manual Mode) -->
+              <div id="manualCardGraphicBox" class="card-graphic-box blu-card-perspective-box hidden my-2 select-none" onclick="window.flipBluCard(this)">
+                <div class="blu-card-flipper">
+                  <!-- FRONT FACE -->
+                  <div class="blu-card-face blu-card-front surface-dark on-dark p-3.5 sm:p-4 text-white flex flex-col justify-between shadow-2xl relative overflow-hidden" style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);">
+                    <div class="flex items-center justify-between z-10" dir="ltr">
+                      <div class="flex items-center gap-1.5">
+                        <span class="graphicBankTitle text-xs sm:text-sm font-extrabold tracking-tight select-none">SamanBank</span>
+                      </div>
+                      <div class="flex items-center gap-1.5">
+                        <span class="graphicBankIcon w-6 h-6 rounded-full bg-white/20 border border-white/40 flex items-center justify-center text-xs font-black leading-none font-mono shadow-sm" title="BluBank">b</span>
+                      </div>
+                    </div>
+                    <div class="my-auto py-0.5 text-center space-y-1 z-10">
+                      <div class="text-center">
+                        <b id="manualGraphicCardHolderDisplay" class="graphicCardHolderDisplay font-bold text-xs sm:text-sm drop-shadow truncate max-w-[260px] inline-block tracking-wide">مدیریت سامانه</b>
+                      </div>
+                      <div dir="ltr">
+                        <span id="manualGraphicCardNumberDisplay" class="graphicCardNumberDisplay font-mono text-base sm:text-lg font-black tracking-widest drop-shadow select-all text-white" style="color: #ffffff;">---- ---- ---- ----</span>
+                      </div>
+                    </div>
+                  </div>
+                  <!-- BACK FACE -->
+                  <div class="blu-card-face blu-card-back surface-dark on-dark p-3.5 sm:p-4 text-white flex flex-col justify-between shadow-2xl relative overflow-hidden" style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);">
+                    <div class="absolute inset-x-0 top-3 sm:top-4 h-7 bg-slate-950/90 shadow-inner"></div>
+                    <div class="h-7 shrink-0"></div>
+                    <div class="my-auto px-2 z-10 text-center">
+                      <p class="graphicCardBackText text-xs sm:text-sm font-bold tracking-wide font-sans select-none" dir="ltr">Blu, But Lovely</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
               <div class="card-inset rounded-xl p-2.5 flex items-center justify-between border border-[var(--card-border)]">
                 <div>
                   <span class="text-[11px] t-muted block">صاحب حساب:</span>
@@ -1994,7 +2022,7 @@
               <div class="card-inset rounded-xl p-2.5 flex items-center justify-between border border-[var(--card-border)]">
                 <div>
                   <span class="text-[11px] t-muted block">مبلغ واریزی:</span>
-                  <b id="topupCardAmountDisplay" class="t-success font-mono text-sm font-bold block">-- تومان</b>
+                  <b id="topupCardAmountDisplay" class="t-success font-sans num-bidi text-sm font-bold block">-- تومان</b>
                 </div>
                 <button id="copyTopupCardAmountBtn" type="button" class="p-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800/80 dark:hover:bg-slate-700/80 t-success text-sm transition active:scale-95 flex items-center justify-center shadow-sm" title="کپی مبلغ واریزی" aria-label="کپی مبلغ واریزی">
                   📋
@@ -3041,19 +3069,19 @@
         <!-- 4 Ticking Digit Boxes: Days, Hours, Minutes, Seconds -->
         <div class="grid grid-cols-4 gap-1.5" dir="ltr">
           <div class="card-inset rounded-2xl p-2 shadow-sm text-center">
-            <span id="countdownDays" class="text-xl font-black font-mono t-warn block leading-tight">--</span>
+            <span id="countdownDays" class="text-xl font-black font-sans num-bidi t-warn block leading-tight">--</span>
             <span class="text-[11px] text-slate-400 uppercase tracking-wider block mt-1 font-semibold">روز</span>
           </div>
           <div class="card-inset rounded-2xl p-2 shadow-sm text-center">
-            <span id="countdownHours" class="text-xl font-black font-mono t-accent block leading-tight">--</span>
+            <span id="countdownHours" class="text-xl font-black font-sans num-bidi t-accent block leading-tight">--</span>
             <span class="text-[11px] text-slate-400 uppercase tracking-wider block mt-1 font-semibold">ساعت</span>
           </div>
           <div class="card-inset rounded-2xl p-2 shadow-sm text-center">
-            <span id="countdownMinutes" class="text-xl font-black font-mono text-indigo-400 block leading-tight">--</span>
+            <span id="countdownMinutes" class="text-xl font-black font-sans num-bidi text-indigo-400 block leading-tight">--</span>
             <span class="text-[11px] text-slate-400 uppercase tracking-wider block mt-1 font-semibold">دقیقه</span>
           </div>
           <div class="card-inset rounded-2xl p-2 shadow-sm text-center">
-            <span id="countdownSeconds" class="text-xl font-black font-mono t-success block leading-tight">--</span>
+            <span id="countdownSeconds" class="text-xl font-black font-sans num-bidi t-success block leading-tight">--</span>
             <span class="text-[11px] text-slate-400 uppercase tracking-wider block mt-1 font-semibold">ثانیه</span>
           </div>
         </div>
@@ -3122,19 +3150,19 @@
         <!-- 4 Ticking Digit Boxes: Days, Hours, Minutes, Seconds -->
         <div class="grid grid-cols-4 gap-1.5" dir="ltr">
           <div class="card-inset border-2 border-pink-500/40 dark:border-pink-500/50 rounded-2xl p-2 shadow-sm text-center">
-            <span id="bdayCountdownDays" class="text-xl font-black font-mono t-pink block leading-tight">--</span>
+            <span id="bdayCountdownDays" class="text-xl font-black font-sans num-bidi t-pink block leading-tight">--</span>
             <span class="text-[11px] text-slate-400 uppercase tracking-wider block mt-1 font-semibold">روز</span>
           </div>
           <div class="card-inset border-2 border-rose-500/40 dark:border-rose-500/50 rounded-2xl p-2 shadow-sm text-center">
-            <span id="bdayCountdownHours" class="text-xl font-black font-mono t-danger block leading-tight">--</span>
+            <span id="bdayCountdownHours" class="text-xl font-black font-sans num-bidi t-danger block leading-tight">--</span>
             <span class="text-[11px] text-slate-400 uppercase tracking-wider block mt-1 font-semibold">ساعت</span>
           </div>
           <div class="card-inset border-2 border-purple-500/40 dark:border-purple-500/50 rounded-2xl p-2 shadow-sm text-center">
-            <span id="bdayCountdownMinutes" class="text-xl font-black font-mono t-purple block leading-tight">--</span>
+            <span id="bdayCountdownMinutes" class="text-xl font-black font-sans num-bidi t-purple block leading-tight">--</span>
             <span class="text-[11px] text-slate-400 uppercase tracking-wider block mt-1 font-semibold">دقیقه</span>
           </div>
           <div class="card-inset border-2 border-cyan-500/40 dark:border-cyan-500/50 rounded-2xl p-2 shadow-sm text-center">
-            <span id="bdayCountdownSeconds" class="text-xl font-black font-mono t-accent block leading-tight">--</span>
+            <span id="bdayCountdownSeconds" class="text-xl font-black font-sans num-bidi t-accent block leading-tight">--</span>
             <span class="text-[11px] text-slate-400 uppercase tracking-wider block mt-1 font-semibold">ثانیه</span>
           </div>
         </div>
@@ -3289,12 +3317,12 @@
           <!-- Balance Specific Inputs -->
           <div id="giftBalanceSection" class="space-y-2">
             <span class="text-[11px] t-muted block">مبلغ هدیه (تومان):</span>
-            <input type="number" id="giftBalanceAmount" min="10000" step="5000" placeholder="مثال: 50,000" class="input-base w-full p-2.5 rounded-xl text-xs font-mono outline-none" oninput="window.updateGiftCostDisplay()" />
-            <div class="grid grid-cols-4 gap-1 text-[11px] font-mono">
-              <button type="button" onclick="window.setGiftBalancePreset(20000)" class="py-1 px-1 rounded-lg card-inset border border-card-border text-center hover:border-pink-500 transition">20K</button>
-              <button type="button" onclick="window.setGiftBalancePreset(50000)" class="py-1 px-1 rounded-lg card-inset border border-card-border text-center hover:border-pink-500 transition">50K</button>
-              <button type="button" onclick="window.setGiftBalancePreset(100000)" class="py-1 px-1 rounded-lg card-inset border border-card-border text-center hover:border-pink-500 transition">100K</button>
-              <button type="button" onclick="window.setGiftBalancePreset(200000)" class="py-1 px-1 rounded-lg card-inset border border-card-border text-center hover:border-pink-500 transition">200K</button>
+            <input type="number" id="giftBalanceAmount" min="10000" step="5000" placeholder="مثال: 50,000" class="input-base w-full p-2.5 rounded-xl text-xs outline-none num-bidi font-sans" oninput="window.updateGiftCostDisplay()" />
+            <div class="grid grid-cols-4 gap-1 text-[11px] font-sans font-medium">
+              <button type="button" onclick="window.setGiftBalancePreset(20000)" class="py-1 px-1 rounded-lg card-inset border border-card-border text-center hover:border-pink-500 transition num-bidi">20K</button>
+              <button type="button" onclick="window.setGiftBalancePreset(50000)" class="py-1 px-1 rounded-lg card-inset border border-card-border text-center hover:border-pink-500 transition num-bidi">50K</button>
+              <button type="button" onclick="window.setGiftBalancePreset(100000)" class="py-1 px-1 rounded-lg card-inset border border-card-border text-center hover:border-pink-500 transition num-bidi">100K</button>
+              <button type="button" onclick="window.setGiftBalancePreset(200000)" class="py-1 px-1 rounded-lg card-inset border border-card-border text-center hover:border-pink-500 transition num-bidi">200K</button>
             </div>
           </div>
 
@@ -3331,7 +3359,7 @@
           <div id="giftReceiverSection" class="space-y-1.5">
             <span class="text-[11px] t-muted block">آیدی یا شناسه عددی تلگرام گیرنده:</span>
             <div class="relative flex items-center">
-              <input type="text" id="giftReceiverInput" placeholder="@username &lrm;یا&lrm; 123456789" class="input-base w-full p-2.5 rounded-xl text-xs font-mono outline-none text-left" dir="ltr" />
+              <input type="text" id="giftReceiverInput" placeholder="@username &lrm;یا&lrm; 123456789" class="input-base w-full p-2.5 rounded-xl text-xs outline-none text-left font-sans" dir="ltr" />
             </div>
             <span class="text-[11px] t-muted block leading-relaxed mt-0.5">ربات بلافاصله هدیه را همراه پیام شما به دوستتان تحویل می‌دهد.</span>
           </div>
@@ -3346,14 +3374,14 @@
           <div class="card-inset p-3 rounded-2xl space-y-1.5 text-xs">
             <div class="flex justify-between items-center text-[11px] t-muted">
               <span>مبلغ کسر شده از کیف پول:</span>
-              <div class="font-mono font-bold t-pink">
-                <span id="giftCostDisplay">0</span> <span class="text-[11px] font-sans">تومان</span>
+              <div class="font-sans font-bold t-pink num-bidi">
+                <span id="giftCostDisplay">0</span> <span class="text-[11px]">تومان</span>
               </div>
             </div>
             <div class="flex justify-between items-center text-[11px] t-muted">
               <span>موجودی فعلی کیف پول شما:</span>
-              <div class="font-mono">
-                <span id="giftCurrentBalanceDisplay">0</span> <span class="text-[11px] font-sans">تومان</span>
+              <div class="font-sans num-bidi">
+                <span id="giftCurrentBalanceDisplay">0</span> <span class="text-[11px]">تومان</span>
               </div>
             </div>
           </div>
@@ -3475,9 +3503,9 @@
           <div class="border-t border-card-border pt-2 flex justify-between items-center text-xs">
             <span class="font-bold t-main">مجموع پرداختی:</span>
             <div class="text-left">
-              <span id="invFinalAmountToman" class="text-sm font-black text-emerald-500 font-mono">0</span>
+              <span id="invFinalAmountToman" class="text-sm font-black text-emerald-500 font-sans num-bidi">0</span>
               <span class="text-[11px] t-muted font-sans mr-1">تومان</span>
-              <span id="invFinalAmountRial" class="text-[11px] t-muted font-mono block">(-- ریال)</span>
+              <span id="invFinalAmountRial" class="text-[11px] t-muted font-sans num-bidi block">(-- ریال)</span>
             </div>
           </div>
         </div>
@@ -3494,7 +3522,7 @@
             <span class="t-muted font-sans">وضعیت مالی کیف پول:</span>
             <span id="invWalletDeductionStatus" class="text-xs font-semibold t-main">--</span>
           </div>
-          <div class="flex items-center justify-between border-t border-card-border pt-1.5 font-mono">
+          <div class="flex items-center justify-between border-t border-card-border pt-1.5">
             <span class="t-muted font-sans">شناسه رهگیری:</span>
             <code id="invTrackingCode" class="font-bold t-accent text-[10.5px] select-all" dir="ltr">TRX-00000000</code>
           </div>
@@ -3542,7 +3570,7 @@
           </div>
           <div class="flex items-center justify-between text-xs pt-1 border-t border-card-border">
             <span class="t-muted text-[11px]">مجموع خریدهای موفق:</span>
-            <b id="loyaltyModalTotalSpent" class="font-mono text-xs t-main">۰ تومان</b>
+            <b id="loyaltyModalTotalSpent" class="text-xs t-main font-sans num-bidi">۰ تومان</b>
           </div>
           <div class="flex items-center justify-between text-xs">
             <span class="t-muted text-[11px]">میزان تخفیف شما:</span>
@@ -3579,7 +3607,7 @@
               <div class="flex-1 min-w-0">
                 <div class="flex items-center justify-between">
                   <b class="text-xs t-main">سطح نقره‌ای</b>
-                  <span id="loyaltyTierCard_silver_spent" class="text-[11px] font-bold text-slate-600 dark:text-slate-300 font-mono">1,000,000 تومان</span>
+                  <span id="loyaltyTierCard_silver_spent" class="text-[11px] font-bold text-slate-600 dark:text-slate-300 font-sans num-bidi">1,000,000 تومان</span>
                 </div>
                 <p class="text-[11px] t-muted mt-0.5 leading-snug"><span id="loyaltyTierCard_silver_pct" class="text-emerald-500 font-bold font-sans num-bidi" dir="ltr">3%</span> <b class="text-emerald-500 font-bold">تخفیف</b></p>
               </div>
@@ -3593,7 +3621,7 @@
               <div class="flex-1 min-w-0">
                 <div class="flex items-center justify-between">
                   <b class="text-xs t-main">سطح طلایی</b>
-                  <span id="loyaltyTierCard_gold_spent" class="text-[11px] font-bold text-amber-500 font-mono">2,500,000 تومان</span>
+                  <span id="loyaltyTierCard_gold_spent" class="text-[11px] font-bold text-amber-500 font-sans num-bidi">2,500,000 تومان</span>
                 </div>
                 <p class="text-[11px] t-muted mt-0.5 leading-snug"><span id="loyaltyTierCard_gold_pct" class="text-emerald-500 font-bold font-sans num-bidi" dir="ltr">5%</span> <b class="text-emerald-500 font-bold">تخفیف</b></p>
               </div>
@@ -3607,7 +3635,7 @@
               <div class="flex-1 min-w-0">
                 <div class="flex items-center justify-between">
                   <b class="text-xs text-cyan-500 dark:text-cyan-300 font-bold">سطح پلاتین</b>
-                  <span id="loyaltyTierCard_platinum_spent" class="text-[11px] font-bold t-accent font-mono">5,000,000 تومان</span>
+                  <span id="loyaltyTierCard_platinum_spent" class="text-[11px] font-bold t-accent font-sans num-bidi">5,000,000 تومان</span>
                 </div>
                 <p class="text-[11px] t-muted mt-0.5 leading-snug"><span id="loyaltyTierCard_platinum_pct" class="text-emerald-500 font-bold font-sans num-bidi" dir="ltr">8%</span> <b class="text-emerald-500 font-bold">تخفیف</b></p>
               </div>
@@ -3621,7 +3649,7 @@
               <div class="flex-1 min-w-0">
                 <div class="flex items-center justify-between">
                   <b class="text-xs t-purple font-bold">سطح یاقوت</b>
-                  <span id="loyaltyTierCard_ruby_spent" class="text-[11px] font-bold t-purple font-mono">8,000,000 تومان</span>
+                  <span id="loyaltyTierCard_ruby_spent" class="text-[11px] font-bold t-purple font-sans num-bidi">8,000,000 تومان</span>
                 </div>
                 <p class="text-[11px] t-muted mt-0.5 leading-snug"><span id="loyaltyTierCard_ruby_pct" class="text-emerald-500 font-bold font-sans num-bidi" dir="ltr">10%</span> <b class="text-emerald-500 font-bold">تخفیف</b></p>
               </div>
@@ -3635,7 +3663,7 @@
               <div class="flex-1 min-w-0">
                 <div class="flex items-center justify-between">
                   <b class="text-xs t-success font-bold">سطح زمرد</b>
-                  <span id="loyaltyTierCard_emerald_spent" class="text-[11px] font-bold t-success font-mono">12,000,000 تومان</span>
+                  <span id="loyaltyTierCard_emerald_spent" class="text-[11px] font-bold t-success font-sans num-bidi">12,000,000 تومان</span>
                 </div>
                 <p class="text-[11px] t-muted mt-0.5 leading-snug"><span id="loyaltyTierCard_emerald_pct" class="text-emerald-500 font-bold font-sans num-bidi" dir="ltr">12%</span> <b class="text-emerald-500 font-bold">تخفیف</b></p>
               </div>
@@ -3649,7 +3677,7 @@
               <div class="flex-1 min-w-0">
                 <div class="flex items-center justify-between">
                   <b class="text-xs text-amber-600 dark:text-amber-300 font-bold">سطح الماس</b>
-                  <span id="loyaltyTierCard_diamond_spent" class="text-[11px] font-bold text-amber-600 dark:text-amber-300 font-mono">20,000,000 تومان</span>
+                  <span id="loyaltyTierCard_diamond_spent" class="text-[11px] font-bold text-amber-600 dark:text-amber-300 font-sans num-bidi">20,000,000 تومان</span>
                 </div>
                 <p class="text-[11px] t-muted mt-0.5 leading-snug"><span id="loyaltyTierCard_diamond_pct" class="text-emerald-500 font-bold font-sans num-bidi" dir="ltr">15%</span> <b class="text-emerald-500 font-bold">تخفیف</b> + پشتیبانی اختصاصی</p>
               </div>

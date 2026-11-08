@@ -146,12 +146,26 @@ async def post_user_revoke_sub(request: web.Request) -> web.Response:
         )
 
     telegram_id = int(user_auth["id"])
+    data = {}
+    try:
+        data = await request.json()
+    except Exception:
+        pass
+
     remnawave = request.app["remnawave"]
     panel_users = await remnawave.get_users_by_telegram_id(telegram_id)
     if not panel_users:
         return web.json_response({"ok": False, "error": "سرویس فعالی یافت نشد."}, status=404)
 
-    target_user = panel_users[0]
+    account_id = data.get("account_id")
+    target_user = None
+    if account_id:
+        for u in panel_users:
+            if str(u.get("id")) == str(account_id) or str(u.get("uuid")) == str(account_id):
+                target_user = u
+                break
+    if not target_user:
+        target_user = panel_users[0]
     primary_id = target_user.get("id") or target_user.get("uuid")
     user_uuid = target_user.get("uuid")
     if user_uuid:
@@ -783,17 +797,43 @@ async def post_user_custom_plan_purchase(request: web.Request) -> web.Response:
         bot = request.app.get("bot")
         session_factory = request.app.get("session_factory")
 
-        result = await execute_purchase(
-            remnawave=remnawave,
-            session=session,
-            service=custom_svc,
-            telegram_id=telegram_id,
-            chosen_account=chosen_acc,
-            discount_amount=disc_amt,
-            bot=bot,
-            session_factory=session_factory,
-            cache=cache,
-        )
+        try:
+            result = await execute_purchase(
+                remnawave=remnawave,
+                session=session,
+                service=custom_svc,
+                telegram_id=telegram_id,
+                chosen_account=chosen_acc,
+                discount_amount=disc_amt,
+                bot=bot,
+                session_factory=session_factory,
+                cache=cache,
+            )
+        except Exception as exc:
+            err_str = str(exc)
+            if "service_id" in err_str and ("not-null" in err_str.lower() or "not null" in err_str.lower()):
+                logger.warning("Detected legacy NOT NULL on orders.service_id, executing inline self-healing migration...")
+                try:
+                    from sqlalchemy import text
+                    await session.rollback()
+                    await session.execute(text("ALTER TABLE orders ALTER COLUMN service_id DROP NOT NULL;"))
+                    await session.commit()
+                    result = await execute_purchase(
+                        remnawave=remnawave,
+                        session=session,
+                        service=custom_svc,
+                        telegram_id=telegram_id,
+                        chosen_account=chosen_acc,
+                        discount_amount=disc_amt,
+                        bot=bot,
+                        session_factory=session_factory,
+                        cache=cache,
+                    )
+                except Exception as retry_exc:
+                    logger.exception("Retry after schema migration failed: %s", retry_exc)
+                    raise retry_exc
+            else:
+                raise exc
 
         if not result.ok:
             await session.rollback()

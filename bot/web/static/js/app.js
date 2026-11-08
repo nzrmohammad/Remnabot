@@ -553,15 +553,32 @@ function setupRevokeAndKill() {
   const confirmRevokeBtn = $('confirmRevokeBtn');
   const subInput = $('subInput');
 
-  openRevokeModalBtn?.addEventListener('click', () => openModal('revokeModal'));
-  revokeSubBtnTop?.addEventListener('click', () => openModal('revokeModal'));
+  function prepareAndOpenRevokeModal() {
+    const targetEl = $('revokeTargetAccountName');
+    const curAcc = window.currentAccountId;
+    const accounts = window.lastUserData?.accounts || [];
+    let accObj = accounts.find(a => String(a.id) === String(curAcc) || String(a.uuid) === String(curAcc));
+    if (!accObj && accounts.length > 0) accObj = accounts[0];
+    if (targetEl) {
+      if (accObj) {
+        targetEl.innerText = `اکانت هدف: ${accObj.username || accObj.id}`;
+        targetEl.classList.remove('hidden');
+      } else {
+        targetEl.classList.add('hidden');
+      }
+    }
+    openModal('revokeModal');
+  }
+
+  openRevokeModalBtn?.addEventListener('click', prepareAndOpenRevokeModal);
+  revokeSubBtnTop?.addEventListener('click', prepareAndOpenRevokeModal);
   cancelRevokeBtn?.addEventListener('click', () => closeModal('revokeModal'));
 
   confirmRevokeBtn?.addEventListener('click', async () => {
     confirmRevokeBtn.disabled = true;
     confirmRevokeBtn.innerText = 'در حال صدور لینک جدید...';
     try {
-      const res = await window.api.revokeSub();
+      const res = await window.api.revokeSub(window.currentAccountId);
       if (res.ok && res.subscription_url) {
         if (subInput) subInput.value = res.subscription_url;
         closeModal('revokeModal');

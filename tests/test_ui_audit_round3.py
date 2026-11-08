@@ -200,13 +200,12 @@ def test_history_page_size_setting():
 
 
 def test_client_autoconnect_app_names_and_compact_grid():
-    """Client import buttons must use compact typography and padding so app names do not truncate."""
+    """Client import buttons must use icon-only borderless grid filling the card."""
     app_html = Path("bot/web/templates/app.html").read_text(encoding="utf-8")
 
-    assert "grid grid-cols-6 gap-1 sm:gap-1.5" in app_html
+    assert "grid grid-cols-6 gap-1.5 sm:gap-2 text-center" in app_html
     assert 'id="appImportStreisand"' in app_html
-    assert "text-[9.5px] sm:text-[11px]" in app_html
-    assert "tracking-tighter" in app_html
+    assert 'w-11 h-11 sm:w-13 sm:h-13 rounded-2xl object-cover' in app_html
 
 
 
@@ -331,3 +330,84 @@ def test_ui_polish_round4():
     assert "<span>کپی همه</span>" not in admin_html
     assert 'id="asnCountBadge" class="badge badge-info font-sans">0 رنج</span>' in admin_html
     assert 'id="asnFilterInput" type="text" oninput="window.filterAsnPrefixes(this.value)" placeholder="فیلتر رنج..." dir="ltr" class="input-base px-2.5 py-1 text-xs font-mono rounded-xl w-full flex-1 outline-none"' in admin_html
+
+
+def test_vazirmatn_typography_guard():
+    """Verify improper font-mono classes are replaced by Vazirmatn font-sans and num-bidi."""
+    app_html = Path("bot/web/templates/app.html").read_text(encoding="utf-8")
+    admin_html = Path("bot/web/templates/admin.html").read_text(encoding="utf-8")
+
+    # 1. Header username and inputs use font-sans
+    assert 'id="headerUsername" class="font-bold t-accent text-xs max-w-[100px] truncate font-sans"' in app_html
+    assert 'id="giftReceiverInput" placeholder="@username &lrm;یا&lrm; 123456789" class="input-base w-full p-2.5 rounded-xl text-xs outline-none text-left font-sans"' in app_html
+    assert 'id="giftBalanceAmount" min="10000" step="5000" placeholder="مثال: 50,000" class="input-base w-full p-2.5 rounded-xl text-xs outline-none num-bidi font-sans"' in app_html
+    assert 'id="topupAmountInput" placeholder="مبلغ دلخواه را وارد کنید (تومان)..." class="input-base w-full px-3 py-2 rounded-xl outline-none text-xs mt-1 num-bidi font-sans"' in app_html
+
+    # 2. Loyalty and countdown elements use font-sans / num-bidi
+    assert 'id="loyaltyModalTotalSpent" class="text-xs t-main font-sans num-bidi"' in app_html
+    assert 'id="countdownDays" class="text-xl font-black font-sans num-bidi t-warn block leading-tight"' in app_html
+    assert 'id="bdayCountdownDays" class="text-xl font-black font-sans num-bidi t-pink block leading-tight"' in app_html
+
+    # 3. Admin user page info uses font-sans num-bidi
+    assert 'id="adminUsersPageInfo" class="font-sans num-bidi text-[11px] text-slate-300"' in admin_html
+
+
+def test_topup_empty_default_and_manual_graphic_card():
+    """Verify topup modal opens with empty input and manual card includes 3D graphic view."""
+    app_html = Path("bot/web/templates/app.html").read_text(encoding="utf-8")
+    wallet_js = Path("bot/web/static/js/wallet.js").read_text(encoding="utf-8")
+
+    # In app.html and wallet.js, chargeWalletBtn opens topup modal without hardcoded amount
+    assert 'id="chargeWalletBtn" onclick="window.openTopupModal && window.openTopupModal()"' in app_html
+    assert "document.getElementById('chargeWalletBtn')?.addEventListener('click', () => {\n    openTopupModal();\n  });" in wallet_js
+
+    # In app.html, manual card mode has manualCardGraphicBox
+    assert 'id="manualCardGraphicBox" class="card-graphic-box blu-card-perspective-box hidden my-2 select-none"' in app_html
+    assert 'id="manualGraphicCardNumberDisplay"' in app_html
+    assert 'id="manualGraphicCardHolderDisplay"' in app_html
+
+    # In wallet.js, manual graphic elements are synced
+    assert "const manualGraphicNum = document.getElementById('manualGraphicCardNumberDisplay');" in wallet_js
+    assert "const manualGraphicHolder = document.getElementById('manualGraphicCardHolderDisplay');" in wallet_js
+
+
+def test_revoke_sub_account_selection_and_modal():
+    """Revoke sub should accept account_id and display target account name in confirmation modal."""
+    app_html = Path("bot/web/templates/app.html").read_text(encoding="utf-8")
+    app_js = Path("bot/web/static/js/app.js").read_text(encoding="utf-8")
+    api_js = Path("bot/web/static/js/api.js").read_text(encoding="utf-8")
+    user_shop_py = Path("bot/web/user_shop.py").read_text(encoding="utf-8")
+
+    # Target account label in modal
+    assert 'id="revokeTargetAccountName"' in app_html
+    assert "prepareAndOpenRevokeModal" in app_js
+    assert "targetEl.innerText = `اکانت هدف: ${accObj.username || accObj.id}`;" in app_js
+
+    # api.js passes account_id
+    assert "async revokeSub(accountId = null)" in api_js
+    assert "window.api.revokeSub(window.currentAccountId)" in app_js
+
+    # user_shop.py matches account_id
+    assert 'account_id = data.get("account_id")' in user_shop_py
+    assert 'str(u.get("id")) == str(account_id) or str(u.get("uuid")) == str(account_id)' in user_shop_py
+
+
+def test_client_importers_icon_only_grid():
+    """Verify 1-click importers display clean icon-only grid without redundant text labels."""
+    app_html = Path("bot/web/templates/app.html").read_text(encoding="utf-8")
+
+    # Importers are icon-only with larger images filling the button
+    assert '<!-- 1-Click App Importers (Icon-Only Borderless Grid) -->' in app_html
+    assert '<img src="/static/img/apps/incy.webp" alt="Incy" class="w-11 h-11 sm:w-13 sm:h-13 rounded-2xl object-cover' in app_html
+    assert '<img src="/static/img/apps/happ.webp" alt="Happ" class="w-11 h-11 sm:w-13 sm:h-13 rounded-2xl object-cover' in app_html
+    assert '<span class="text-[9.5px] sm:text-[11px] font-medium t-muted truncate block max-w-full tracking-tighter sm:tracking-normal">Incy</span>' not in app_html
+
+
+def test_orders_service_id_nullable_migration():
+    """Verify orders.service_id NOT NULL is dropped in base.py and self-heals in user_shop.py."""
+    base_py = Path("bot/db/base.py").read_text(encoding="utf-8")
+    user_shop_py = Path("bot/web/user_shop.py").read_text(encoding="utf-8")
+
+    assert "ALTER TABLE orders ALTER COLUMN service_id DROP NOT NULL;" in base_py
+    assert "ALTER TABLE orders ALTER COLUMN service_id DROP NOT NULL;" in user_shop_py
+    assert "Detected legacy NOT NULL on orders.service_id, executing inline self-healing migration..." in user_shop_py
