@@ -18,6 +18,10 @@
   border-radius: var(--radius-lg);
 }
 
+.border-card-border {
+  border-color: var(--card-border);
+}
+
 .modal-card {
   background-color: var(--modal-bg);
   border: 1px solid var(--modal-border);
@@ -209,14 +213,14 @@ html.theme-light .btn-danger:hover {
 html.theme-light .input-base,
 html.theme-light .select-base,
 html.theme-light .textarea-base {
-  background-color: #ffffff;
-  border-color: #cbd5e1;
+  background-color: var(--card-bg, #ffffff);
+  border-color: var(--card-border, #cbd5e1);
 }
 
 html.theme-light .input-base:focus,
 html.theme-light .select-base:focus,
 html.theme-light .textarea-base:focus {
-  background-color: #ffffff;
+  background-color: var(--card-bg, #ffffff);
   border-color: var(--c-accent);
 }
 
@@ -397,7 +401,7 @@ label .switch-label,
 
 html.theme-light label .switch-label,
 html.theme-light .switch-label {
-  background-color: #cbd5e1;
+  background-color: var(--card-border, #cbd5e1);
 }
 
 label .switch-label .switch-ball,
@@ -778,14 +782,14 @@ html.theme-light .card-inset .blu-card-face * {
   color: var(--text-main, #f8fafc);
 }
 html.theme-light .chat-bubble-user {
-  background: #eff6ff;
-  border-color: #bfdbfe;
-  color: #1e3a8a;
+  background: var(--c-accent-soft, #eff6ff);
+  border-color: var(--c-accent-border, #bfdbfe);
+  color: var(--c-accent, #1e3a8a);
 }
 html.theme-light .chat-bubble-admin {
-  background: #ffffff;
-  border-color: #e2e8f0;
-  color: #0f172a;
+  background: var(--card-bg, #ffffff);
+  border-color: var(--card-border, #e2e8f0);
+  color: var(--text-main, #0f172a);
 }
 
 /* --- High Prominence Card Numbers in Light Mode --- */
@@ -793,23 +797,23 @@ html.theme-light #cardAutoCardNumber,
 html.theme-light #topupCardNumber,
 html.theme-light #cardAutoCardHolder,
 html.theme-light #topupCardHolder {
-  color: #0f172a;
+  color: var(--text-main, #0f172a);
   font-weight: 900;
 }
 html.theme-light #cardAutoCardNumber span,
 html.theme-light #topupCardNumber span {
-  color: #0f172a;
+  color: var(--text-main, #0f172a);
 }
 
 /* High contrast custom plan discount rows & final price in Light Mode */
 html.theme-light #customPlanVolumeDiscountRow,
 html.theme-light #customPlanVolumeDiscountDisplay,
 html.theme-light #customPlanFinalPrice {
-  color: #047857;
+  color: var(--c-success, #047857);
 }
 html.theme-light #customPlanDiscountRow,
 html.theme-light #customPlanDiscountDisplay {
-  color: #b45309;
+  color: var(--c-warn, #b45309);
 }
 
 /* --- Standard Persian Sans Typography --- */

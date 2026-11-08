@@ -84,14 +84,18 @@ function applyBluBankCardTheme(color, bankTmpl) {
     face.style.color = palette.text;
   });
 
+  const isMinimal = String(bankTmpl || '').toLowerCase() === 'minimal';
+
   const titleEl = document.getElementById('graphicBankTitle');
   if (titleEl) {
-    titleEl.innerText = 'SamanBank';
+    titleEl.innerText = isMinimal ? '' : 'SamanBank';
+    titleEl.style.display = isMinimal ? 'none' : '';
     titleEl.style.color = palette.text;
   }
 
   const iconEl = document.getElementById('graphicBankIcon');
   if (iconEl) {
+    iconEl.style.display = isMinimal ? 'none' : '';
     iconEl.style.color = palette.text;
     iconEl.style.borderColor = palette.accent;
   }
@@ -109,7 +113,8 @@ function applyBluBankCardTheme(color, bankTmpl) {
 
   const backTextEl = document.getElementById('graphicCardBackText');
   if (backTextEl) {
-    backTextEl.innerText = 'Blu, But Lovely';
+    backTextEl.innerText = isMinimal ? '' : 'Blu, But Lovely';
+    backTextEl.style.display = isMinimal ? 'none' : '';
     backTextEl.style.color = palette.text;
   }
 }

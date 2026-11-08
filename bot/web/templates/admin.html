@@ -777,13 +777,12 @@
                   <div class="flex items-center gap-2">
                     <span class="text-xs font-bold t-main">پیشوندهای اعلام‌شده:</span>
                     <span id="asnCountBadge" class="badge badge-info font-mono">0 رنج</span>
+                    <button type="button" onclick="window.copyAllAsnPrefixes()" class="btn btn-secondary w-7 h-7 p-0 rounded-xl flex items-center justify-center transition active:scale-95 shadow-xs" title="کپی همه پیشوندها" aria-label="کپی همه">
+                      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                    </button>
                   </div>
                   <div class="flex items-center gap-2">
                     <input id="asnFilterInput" type="text" oninput="window.filterAsnPrefixes(this.value)" placeholder="فیلتر رنج..." dir="ltr" class="input-base px-2.5 py-1 text-xs font-mono rounded-xl w-32 sm:w-44 outline-none" />
-                    <button type="button" onclick="window.copyAllAsnPrefixes()" class="btn btn-secondary px-2.5 py-1 rounded-xl flex items-center gap-1.5 text-xs font-bold transition active:scale-95 shadow-xs" title="کپی همه پیشوندها" aria-label="کپی همه">
-                      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
-                      <span>کپی همه</span>
-                    </button>
                   </div>
                 </div>
                 <div id="asnPrefixesList" class="w-full grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-1.5 text-xs font-mono max-h-60 overflow-y-auto no-scrollbar p-1.5 card-inset rounded-xl border border-[var(--card-border)]">
@@ -976,7 +975,7 @@
             <div class="py-1 border-t border-slate-700/50 pt-2 space-y-1">
               <label class="text-[11px] text-slate-300 block font-semibold">تعداد آیتم تاریخچه تراکنش‌ها و سفارشات در هر صفحه:</label>
               <input type="number" id="settingHistoryPageSize" min="5" max="100" step="5" placeholder="15" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-cyan-300 outline-none focus:border-cyan-500 transition" />
-              <p class="text-[11px] text-slate-400">تعداد فاکتورها و تراکنش‌های نمایش‌داده‌شده در هر صفحه کیف پول (پیش‌فرض: <span class="num-bidi font-mono">15</span> عدد).</p>
+              <p class="text-[11px] text-slate-400">تعداد فاکتورها و تراکنش‌های نمایش‌داده‌شده در هر صفحه کیف پول.</p>
             </div>
           </div>
         </div>
@@ -2999,11 +2998,10 @@
               <span id="planModalSquadLabel" class="text-xs t-main font-medium truncate">انتخاب کنید</span>
               <span class="t-muted text-xs group-hover:t-main transition">▼</span>
             </div>
-            <span class="text-[11px] t-muted block mt-1">تخصیص سرورهای این بسته به کاربر و تفکیک خودکار قیمت حجم/زمان</span>
           </div>
-          <div class="flex items-center justify-between pt-1">
+          <div class="flex items-center justify-between pt-1 px-1.5">
             <span class="text-[11px] text-slate-300">وضعیت فعال برای خرید:</span>
-            <input type="checkbox" id="planModalActive" checked class="w-4 h-4 rounded text-blue-600 bg-slate-900 border-slate-700" />
+            <input type="checkbox" id="planModalActive" checked class="w-4 h-4 rounded text-blue-600 bg-slate-900 border-slate-700 ml-1.5" />
           </div>
         </div>
         <div class="flex gap-2 pt-2.5 border-t border-slate-700/60 shrink-0">

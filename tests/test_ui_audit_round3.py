@@ -286,3 +286,41 @@ def test_asn_lookup_ui_layout_and_copy_button():
     assert 'id="asnPrefixesList" class="w-full' in admin_html
     # Prefix chips use tokenized t-purple
     assert "t-purple font-bold text-[11px]" in admin_nodes_js
+
+
+def test_ui_polish_round4():
+    """Verify invoice icon placement, gift borders, card minimal mode, and admin layout."""
+    app_html = Path("bot/web/templates/app.html").read_text(encoding="utf-8")
+    app_js = Path("bot/web/static/js/app.js").read_text(encoding="utf-8")
+    admin_html = Path("bot/web/templates/admin.html").read_text(encoding="utf-8")
+    wallet_js = Path("bot/web/static/js/wallet.js").read_text(encoding="utf-8")
+    comp_css = Path("bot/web/static/css/components.css").read_text(encoding="utf-8")
+
+    # 1. Invoice item title precedes item icon in RTL flex row (icon is on visual left)
+    assert '<b id="invItemTitle" class="t-main text-xs">بسته اشتراک</b>' in app_html
+    assert '<span id="invItemIcon" class="text-xs shrink-0">📦</span>' in app_html
+
+    # 2. Gift modal active buttons have high-visibility border, components has .border-card-border
+    assert ".border-card-border" in comp_css
+    assert "border-color: var(--card-border);" in comp_css
+    assert "border border-pink-400/60" in app_js
+    assert 'id="giftTypeBtn-balance"' in app_html
+    assert 'id="giftDeliveryBtn-direct"' in app_html
+
+    # 3. History page size text has (پیش‌فرض: 15 عدد) removed
+    assert "تعداد فاکتورها و تراکنش‌های نمایش‌داده‌شده در هر صفحه کیف پول.</p>" in admin_html
+    assert "(پیش‌فرض: 15 عدد)" not in admin_html
+
+    # 4. Bank card minimal mode hides bank title and logo
+    assert "const isMinimal = String(bankTmpl || '').toLowerCase() === 'minimal';" in wallet_js
+    assert "titleEl.innerText = isMinimal ? '' : 'SamanBank';" in wallet_js
+    assert "iconEl.style.display = isMinimal ? 'none' : '';" in wallet_js
+    assert "backTextEl.innerText = isMinimal ? '' : 'Blu, But Lovely';" in wallet_js
+
+    # 5. Plan modal removes squad auto-split description & offsets active checkbox
+    assert "تخصیص سرورهای این بسته به کاربر و تفکیک خودکار قیمت حجم/زمان" not in admin_html
+    assert 'id="planModalActive" checked class="w-4 h-4 rounded text-blue-600 bg-slate-900 border-slate-700 ml-1.5"' in admin_html
+
+    # 6. Announced prefixes copy button is icon-only and in title group on the right
+    assert 'button type="button" onclick="window.copyAllAsnPrefixes()" class="btn btn-secondary w-7 h-7 p-0 rounded-xl flex items-center justify-center transition active:scale-95 shadow-xs"' in admin_html
+    assert "<span>کپی همه</span>" not in admin_html

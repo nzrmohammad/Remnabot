@@ -454,7 +454,7 @@ html.theme-light #topupMethodTabs button {
   color: var(--text-muted);
 }
 html.theme-light #topupMethodTabs button.bg-blue-600 {
-  background-color: #2563eb;
+  background-color: var(--c-accent-solid, #2563eb);
   color: #ffffff;
 }
 html.theme-light #topupCardDetailsBox > div {
