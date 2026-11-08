@@ -183,18 +183,18 @@ function renderWalletTransactions(transactions) {
     ` : '';
 
     return `
-    <div class="card-inset rounded-xl p-3 flex items-center justify-between text-xs ${isOrder ? 'cursor-pointer hover:border-cyan-500/40 transition active:scale-[0.99]' : ''}" ${isOrder ? `onclick="window.openInvoiceModal && window.openInvoiceModal(${tx.id});"` : ''}>
-      <div class="flex items-center gap-2.5">
-        <span class="text-xl">${tx.type === 'topup' ? '💳' : (tx.type === 'admin_adjust' ? '⚡️' : '🛒')}</span>
-        <div>
-          <span class="font-bold t-main block">${formatTxTitle(tx)}</span>
-          <span class="text-[10px] t-muted font-mono mt-0.5" dir="ltr">${toEnglishDigits(tx.date_jalali || '')}</span>
+    <div class="card-inset rounded-xl p-3 flex items-center justify-between text-xs gap-3 ${isOrder ? 'cursor-pointer hover:border-cyan-500/40 transition active:scale-[0.99]' : ''}" ${isOrder ? `onclick="window.openInvoiceModal && window.openInvoiceModal(${tx.id});"` : ''}>
+      <div class="flex items-center gap-2.5 min-w-0 flex-1">
+        <span class="text-xl shrink-0">${tx.type === 'topup' ? '💳' : (tx.type === 'admin_adjust' ? '⚡️' : '🛒')}</span>
+        <div class="min-w-0 flex-1">
+          <span class="font-bold t-main block truncate">${formatTxTitle(tx)}</span>
+          <span class="text-[10px] t-muted font-sans num-bidi mt-0.5 block" dir="ltr">${toEnglishDigits(tx.date_jalali || '')}</span>
         </div>
       </div>
-      <div class="text-left space-y-0.5">
+      <div class="text-left shrink-0 space-y-0.5">
         <div class="inline-flex items-center gap-1 font-bold ${tx.is_positive ? 't-success' : 't-main'}" dir="rtl">
-          <span class="font-mono text-xs" dir="ltr">${Number(tx.amount != null ? tx.amount : 0).toLocaleString('en-US')}</span>
-          <span class="font-mono text-sm leading-none font-bold">${tx.is_positive ? '+' : '-'}</span>
+          <span class="font-sans num-bidi text-xs" dir="ltr">${Number(tx.amount != null ? tx.amount : 0).toLocaleString('en-US')}</span>
+          <span class="font-sans num-bidi text-sm leading-none font-bold">${tx.is_positive ? '+' : '-'}</span>
           <span class="font-sans text-[10px] t-muted font-normal">تومان</span>
         </div>
         <div class="flex items-center justify-end gap-1.5">

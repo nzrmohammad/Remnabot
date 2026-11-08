@@ -352,8 +352,8 @@
               <div class="text-[11px] text-slate-400 group-hover:text-amber-300 flex items-center justify-center gap-1 font-medium transition">
                 <span>⏳</span> انقضای سرویس
               </div>
-              <div id="dashboardDaysLeft" class="text-sm font-extrabold t-warn mt-0.5">-- روز</div>
-              <div id="dashboardExpireDate" class="text-[11px] text-slate-400 font-mono">--</div>
+              <div id="dashboardDaysLeft" class="text-sm font-extrabold t-warn mt-0.5 font-sans num-bidi">-- روز</div>
+              <div id="dashboardExpireDate" class="text-[11px] text-slate-400 font-sans num-bidi">--</div>
             </div>
             <div class="bg-transparent rounded-2xl p-2.5 border border-slate-700/50">
               <div class="text-[11px] text-slate-400 flex items-center justify-center gap-1 font-medium">
@@ -1276,12 +1276,12 @@
             <div class="space-y-1.5">
               <div class="flex justify-between items-center text-[11px]">
                 <span id="loyaltyNextTierText" class="t-muted">تا سطح بعدی (نقره‌ای):</span>
-                <span id="loyaltyProgressPct" class="font-mono font-bold t-main" dir="ltr">0%</span>
+                <span id="loyaltyProgressPct" class="font-sans font-bold t-main num-bidi" dir="ltr">0%</span>
               </div>
               <div class="w-full bg-slate-700/30 dark:bg-slate-700/50 rounded-full h-2 overflow-hidden card-inset">
                 <div id="loyaltyProgressBar" class="bg-gradient-to-r from-amber-500 to-yellow-400 h-2 rounded-full transition-all duration-500" style="width: 0%"></div>
               </div>
-              <div class="flex justify-between items-center text-[11px] t-muted font-mono">
+              <div class="flex justify-between items-center text-[11px] t-muted font-sans num-bidi">
                 <span id="loyaltyTotalSpent">مجموع خرید: 0 تومان</span>
                 <span id="loyaltyNextTierTarget">هدف بعدی: 1,000,000 تومان</span>
               </div>
@@ -1965,6 +1965,37 @@
 
             <!-- Clean Manual Card Topup Details Box -->
             <div id="manualCardTopupSection" class="space-y-2">
+              <div class="card-inset rounded-xl p-2.5 flex items-center justify-between border border-[var(--card-border)]">
+                <div>
+                  <span class="text-[11px] t-muted block">صاحب حساب:</span>
+                  <b id="topupCardHolder" class="font-bold t-main text-sm block">در حال دریافت...</b>
+                </div>
+              </div>
+
+              <div class="card-inset rounded-xl p-2.5 flex items-center justify-between border border-[var(--card-border)]">
+                <div>
+                  <span class="text-[11px] t-muted block">شماره کارت مقصد:</span>
+                  <b id="topupCardNumber" onclick="window.copyCardNumber(document.getElementById('copyTopupCardBtn'))" class="font-bold t-main text-sm sm:text-base font-mono tracking-wider select-all num-bidi cursor-pointer block" dir="ltr" title="کلیک برای کپی شماره کارت">---- ---- ---- ----</b>
+                </div>
+                <button id="copyTopupCardBtn" type="button" onclick="window.copyCardNumber(this)" class="p-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800/80 dark:hover:bg-slate-700/80 t-accent text-sm transition active:scale-95 flex items-center justify-center shadow-sm" title="کپی شماره کارت" aria-label="کپی شماره کارت">
+                  📋
+                </button>
+              </div>
+
+              <!-- Hidden stubs for legacy sync -->
+              <span id="manualClassicHolder" class="hidden"></span>
+              <span id="manualClassicNumber" class="hidden"></span>
+
+              <div class="card-inset rounded-xl p-2.5 flex items-center justify-between border border-[var(--card-border)]">
+                <div>
+                  <span class="text-[11px] t-muted block">مبلغ واریزی:</span>
+                  <b id="topupCardAmountDisplay" class="t-success font-sans num-bidi text-sm font-bold block">-- تومان</b>
+                </div>
+                <button id="copyTopupCardAmountBtn" type="button" class="p-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800/80 dark:hover:bg-slate-700/80 t-success text-sm transition active:scale-95 flex items-center justify-center shadow-sm" title="کپی مبلغ واریزی" aria-label="کپی مبلغ واریزی">
+                  📋
+                </button>
+              </div>
+
               <!-- Graphical Bank Card (3D Realistic Flip View for Manual Mode) -->
               <div id="manualCardGraphicBox" class="card-graphic-box blu-card-perspective-box hidden my-2 select-none" onclick="window.flipBluCard(this)">
                 <div class="blu-card-flipper">
@@ -1996,37 +2027,6 @@
                     </div>
                   </div>
                 </div>
-              </div>
-
-              <div class="card-inset rounded-xl p-2.5 flex items-center justify-between border border-[var(--card-border)]">
-                <div>
-                  <span class="text-[11px] t-muted block">صاحب حساب:</span>
-                  <b id="topupCardHolder" class="font-bold t-main text-sm block">در حال دریافت...</b>
-                </div>
-              </div>
-
-              <div class="card-inset rounded-xl p-2.5 flex items-center justify-between border border-[var(--card-border)]">
-                <div>
-                  <span class="text-[11px] t-muted block">شماره کارت مقصد:</span>
-                  <b id="topupCardNumber" onclick="window.copyCardNumber(document.getElementById('copyTopupCardBtn'))" class="font-bold t-main text-sm sm:text-base font-mono tracking-wider select-all num-bidi cursor-pointer block" dir="ltr" title="کلیک برای کپی شماره کارت">---- ---- ---- ----</b>
-                </div>
-                <button id="copyTopupCardBtn" type="button" onclick="window.copyCardNumber(this)" class="p-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800/80 dark:hover:bg-slate-700/80 t-accent text-sm transition active:scale-95 flex items-center justify-center shadow-sm" title="کپی شماره کارت" aria-label="کپی شماره کارت">
-                  📋
-                </button>
-              </div>
-
-              <!-- Hidden stubs for legacy sync -->
-              <span id="manualClassicHolder" class="hidden"></span>
-              <span id="manualClassicNumber" class="hidden"></span>
-
-              <div class="card-inset rounded-xl p-2.5 flex items-center justify-between border border-[var(--card-border)]">
-                <div>
-                  <span class="text-[11px] t-muted block">مبلغ واریزی:</span>
-                  <b id="topupCardAmountDisplay" class="t-success font-sans num-bidi text-sm font-bold block">-- تومان</b>
-                </div>
-                <button id="copyTopupCardAmountBtn" type="button" class="p-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800/80 dark:hover:bg-slate-700/80 t-success text-sm transition active:scale-95 flex items-center justify-center shadow-sm" title="کپی مبلغ واریزی" aria-label="کپی مبلغ واریزی">
-                  📋
-                </button>
               </div>
 
               <div class="bg-rose-500/10 border border-rose-500/30 rounded-xl p-2 text-center text-[10.5px] text-rose-500 font-bold">

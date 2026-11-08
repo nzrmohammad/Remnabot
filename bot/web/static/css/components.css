@@ -327,15 +327,15 @@ input.font-mono,
 
 /* --- 8. Quick Actions & Importers --- */
 .client-import-btn {
-  background-color: var(--card-inner-bg);
-  border: 1px solid var(--card-border);
+  background-color: transparent;
+  border: none;
   border-radius: var(--radius-md);
   transition: all 0.15s ease;
 }
 
 .client-import-btn:hover {
-  background-color: var(--card-bg);
-  border-color: var(--c-accent-border);
+  background-color: transparent;
+  border-color: transparent;
 }
 
 .sub-action-btn {

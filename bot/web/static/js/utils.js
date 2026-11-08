@@ -409,12 +409,12 @@ function formatPlanTitle(name, options = {}) {
   }
 
   if (!emojiStr) {
-    return `<span dir="ltr" class="inline-block font-bold select-all">${escapeHtml(name)}</span>`;
+    return `<bdi class="inline-block font-bold select-all">${escapeHtml(name)}</bdi>`;
   }
   if (!cleanText) {
     return `<span dir="ltr" class="inline-block text-base">${emojiStr}</span>`;
   }
-  return `<span class="inline-flex items-center gap-1.5" dir="ltr"><span class="shrink-0 text-base">${emojiStr}</span><span class="font-bold select-all">${escapeHtml(cleanText)}</span></span>`;
+  return `<span class="inline-flex items-center gap-1.5"><span class="shrink-0 text-base">${emojiStr}</span><bdi class="font-bold select-all">${escapeHtml(cleanText)}</bdi></span>`;
 }
 
 function buildRefLink(botUsername, userId) {

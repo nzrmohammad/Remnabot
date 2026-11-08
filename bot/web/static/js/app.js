@@ -2897,7 +2897,7 @@ function hydrateUserInterface(data) {
         if ($('loyaltyTierName')) $('loyaltyTierName').innerText = loyalty.name || 'برنزی';
         const discBadge = $('loyaltyDiscountBadge');
         if (discBadge) {
-          discBadge.innerHTML = loyalty.discount_percent > 0 ? `<span class="font-mono font-bold" dir="ltr">${toEnglishDigits(loyalty.discount_percent)}%</span> تخفیف` : 'بدون تخفیف';
+          discBadge.innerHTML = loyalty.discount_percent > 0 ? `<span class="font-sans font-bold num-bidi" dir="ltr">${toEnglishDigits(loyalty.discount_percent)}%</span> تخفیف` : 'بدون تخفیف';
         }
         const nextText = $('loyaltyNextTierText');
         const progPct = $('loyaltyProgressPct');
@@ -2923,7 +2923,7 @@ function hydrateUserInterface(data) {
 
         if (benefitDesc) {
           if (loyalty.discount_percent > 0) {
-            benefitDesc.innerHTML = `شما دارای <span class="num-bidi font-mono font-bold" dir="ltr">${toEnglishDigits(loyalty.discount_percent)}%</span> تخفیف وفاداری روی تمامی بسته‌ها هستید. با افزایش خریدها، به سطوح بالاتر با تخفیف‌های بیشتر ارتقا&nbsp;می‌یابید!`;
+            benefitDesc.innerHTML = `شما دارای <span class="num-bidi font-sans font-bold" dir="ltr">${toEnglishDigits(loyalty.discount_percent)}%</span> تخفیف وفاداری روی تمامی بسته‌ها هستید. با افزایش خریدها، به سطوح بالاتر با تخفیف‌های بیشتر ارتقا&nbsp;می‌یابید!`;
           } else {
             benefitDesc.innerText = 'با خرید بیشتر از فروشگاه، سطح خود را ارتقا دهید و از تخفیف روی تمامی بسته‌ها بهره‌مند شوید.';
           }
@@ -3236,6 +3236,19 @@ function hydrateUserInterface(data) {
     const mCountText = $('modalSessionsCount');
     if (mCountText) mCountText.innerText = `${toEnglishDigits(activeDevCount)} دستگاه`;
 
+    function formatDeviceDate(isoStr) {
+      if (!isoStr) return '';
+      try {
+        const dateObj = new Date(isoStr);
+        if (!isNaN(dateObj.getTime())) {
+          const dateFa = dateObj.toLocaleDateString('fa-IR');
+          const timeFa = dateObj.toLocaleTimeString('fa-IR', { hour: '2-digit', minute: '2-digit' });
+          return `${toEnglishDigits(timeFa)} - ${toEnglishDigits(dateFa)}`;
+        }
+      } catch(e) {}
+      return String(isoStr);
+    }
+
     function renderDeviceList(container) {
       if (!container) return;
       if (devices.length === 0) {
@@ -3256,25 +3269,65 @@ function hydrateUserInterface(data) {
         else if (platform.includes('mac')) icon = '🍏';
         else if (platform.includes('linux')) icon = '🐧';
 
-        const model = d.deviceModel || d.platform || 'دستگاه';
-        const ip = d.requestIp || '—';
+        const model = d.deviceModel || d.model || d.platform || 'دستگاه متصل';
+        const ip = d.requestIp || d.ip || d.clientIp || '—';
         const hwid = d.hwid || '';
 
+        const ua = String(d.userAgent || d.user_agent || '').trim();
+        const uaHtml = ua ? `
+          <div class="text-[10.5px] text-cyan-400/90 truncate mt-0.5 font-sans" title="${escapeHtml(ua)}">
+            <span class="text-slate-400">کلاینت:</span> ${escapeHtml(ua)}
+          </div>
+        ` : '';
+
+        const updatedRaw = d.updatedAt || d.updated_at || d.lastSeen || d.lastActivity;
+        const updatedDate = formatDeviceDate(updatedRaw);
+        const updatedHtml = updatedDate ? `
+          <div class="flex items-center justify-between text-slate-400">
+            <span class="flex items-center gap-1"><span>🔄</span> آخرین فعالیت:</span>
+            <span class="font-sans font-medium text-slate-200 num-bidi" dir="ltr">${updatedDate}</span>
+          </div>
+        ` : '';
+
+        const addedRaw = d.createdAt || d.created_at || d.addedAt;
+        const addedDate = formatDeviceDate(addedRaw);
+        const addedHtml = addedDate ? `
+          <div class="flex items-center justify-between text-slate-400">
+            <span class="flex items-center gap-1"><span>📅</span> زمان ثبت:</span>
+            <span class="font-sans font-medium text-slate-300 num-bidi" dir="ltr">${addedDate}</span>
+          </div>
+        ` : '';
+
         return `
-          <div class="bg-transparent rounded-xl p-3 border border-slate-700/60 flex items-center justify-between">
-            <div class="flex items-center gap-2.5">
-              <span class="text-2xl">${icon}</span>
-              <div>
-                <div class="flex items-center gap-2">
-                  <span class="text-xs font-bold text-slate-200">${escapeHtml(model)}</span>
-                  <span class="w-2 h-2 rounded-full bg-emerald-400 inline-block shadow-sm shadow-emerald-400/50" title="فعال"></span>
+          <div class="card-inset rounded-2xl p-3 border border-slate-700/60 space-y-2 text-xs">
+            <div class="flex items-center justify-between gap-2">
+              <div class="flex items-center gap-2.5 min-w-0 flex-1">
+                <span class="text-2xl shrink-0">${icon}</span>
+                <div class="min-w-0 flex-1">
+                  <div class="flex items-center gap-1.5 flex-wrap">
+                    <span class="text-xs font-bold text-slate-200 truncate">${escapeHtml(model)}</span>
+                    <span class="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-500 bg-emerald-500/10 px-1.5 py-0.5 rounded-full border border-emerald-500/20">
+                      <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                      <span>فعال</span>
+                    </span>
+                  </div>
+                  ${uaHtml}
                 </div>
-                <div class="text-[11px] font-mono t-accent mt-0.5">IP: ${escapeHtml(ip)}</div>
               </div>
+              <button class="kill-device-btn t-danger hover:text-rose-300 w-8 h-8 rounded-xl bg-transparent hover:bg-rose-950/30 border border-rose-800/40 text-xs transition active:scale-95 flex items-center justify-center shrink-0 cursor-pointer" title="قطع این دستگاه" data-hwid="${escapeHtml(hwid)}" data-model="${escapeHtml(model)}" data-ip="${escapeHtml(ip)}">
+                <svg class="w-4 h-4 t-danger hover:text-rose-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+              </button>
             </div>
-            <button class="kill-device-btn t-danger hover:text-rose-300 w-8 h-8 rounded-xl bg-transparent hover:bg-rose-950/30 border-0 text-xs transition active:scale-95 flex items-center justify-center cursor-pointer" title="قطع این دستگاه" data-hwid="${escapeHtml(hwid)}" data-model="${escapeHtml(model)}" data-ip="${escapeHtml(ip)}">
-              <svg class="w-4 h-4 t-danger hover:text-rose-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-            </button>
+
+            <!-- Device Meta: IP, Updated, Added -->
+            <div class="pt-1.5 border-t border-slate-700/40 text-[11px] font-sans space-y-1">
+              <div class="flex items-center justify-between text-slate-400">
+                <span class="flex items-center gap-1"><span>🌐</span> آی‌پی:</span>
+                <span class="font-sans font-bold t-accent num-bidi" dir="ltr">${escapeHtml(ip)}</span>
+              </div>
+              ${updatedHtml}
+              ${addedHtml}
+            </div>
           </div>
         `;
       }).join('');

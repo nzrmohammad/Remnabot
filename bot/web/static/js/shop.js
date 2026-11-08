@@ -410,40 +410,25 @@ async function updateCustomPlanCalculation() {
   }, 120);
 }
 
-async function purchaseCustomPlan() {
+function purchaseCustomPlan() {
   const gb = Number(document.getElementById('customPlanGbSlider')?.value || 30);
   const days = Number(document.getElementById('customPlanDaysSlider')?.value || 30);
-  const submitBtn = document.getElementById('submitCustomPlanBtn');
-  if (submitBtn && submitBtn.disabled) return;
-  if (submitBtn) submitBtn.disabled = true;
+  const finalPriceEl = document.getElementById('customPlanFinalPrice');
+  const finalPriceText = finalPriceEl ? finalPriceEl.innerText.replace(/[^0-9]/g, '') : '';
+  const finalPrice = Number(finalPriceText) || 0;
 
-  try {
-    const res = await window.api.purchaseCustomPlan(gb, days, window.currentAccountId || null);
-    if (!res || !res.ok) {
-      const errMsg = res?.data?.message || res?.message || 'خطا در ثبت سفارش بسته اختصاصی';
-      showToast(`❌ ${errMsg}`);
-      hapticFeedback('error');
-      if (res?.data?.error === 'insufficient_balance' || res?.error === 'insufficient_balance') {
-        setTimeout(() => {
-          if (typeof window.openTopupModal === 'function') window.openTopupModal();
-        }, 1200);
-      } else if (res?.data?.error === 'needs_account' || res?.error === 'needs_account') {
-        const switchBtn = document.getElementById('switchAccountBtn');
-        if (switchBtn) {
-          setTimeout(() => switchBtn.click(), 800);
-        }
-      }
-      return;
-    }
+  const customPlanObj = {
+    id: 'custom',
+    isCustom: true,
+    name: `بسته دلخواه (${fmtTraffic(gb, { html: false })} - ${days} روز)`,
+    price: finalPrice,
+    traffic: gb,
+    days: days,
+    badge: 'custom',
+    gb: gb,
+  };
 
-    hapticFeedback('success');
-    showToast('🎉 بسته اختصاصی شما با موفقیت ایجاد و فعال شد!');
-    if (typeof window.syncUserDataWithApi === 'function') window.syncUserDataWithApi();
-  } catch (err) {
-    showToast('❌ خطا در ارتباط با سرور.');
-  } finally {
-    if (submitBtn) submitBtn.disabled = false;
-  }
+  openCheckoutConfirmModal(customPlanObj);
 }
 window.purchaseCustomPlan = purchaseCustomPlan;
 
@@ -863,7 +848,7 @@ window.openShopGuidanceModal = openShopGuidanceModal;
 
 async function executePurchase() {
   if (!currentPendingPlan) return;
-  const { id: planId, price: planPrice, name: planName } = currentPendingPlan;
+  const { id: planId, price: planPrice, name: planName, isCustom, gb, days } = currentPendingPlan;
   const confirmBtn = document.getElementById('confirmPurchaseBtn');
 
   if (confirmBtn) {
@@ -872,13 +857,18 @@ async function executePurchase() {
   }
 
   try {
-    const res = await window.api.purchase(
-      planId,
-      window.activeCoupon?.code || null,
-      window.currentAccountId || null
-    );
+    let res;
+    if (isCustom) {
+      res = await window.api.purchaseCustomPlan(gb, days, window.currentAccountId || null);
+    } else {
+      res = await window.api.purchase(
+        planId,
+        window.activeCoupon?.code || null,
+        window.currentAccountId || null
+      );
+    }
 
-    if (res.ok) {
+    if (res && res.ok) {
       closeModal('checkoutConfirmModal');
       showPurchaseModal(res, planName, planPrice);
       hapticFeedback('success');
@@ -886,7 +876,22 @@ async function executePurchase() {
         syncUserDataWithApi(window.currentAccountId);
       }
     } else {
-      showToast(`❌ ${res.message || 'خطا در ثبت خرید'}`);
+      const errMsg = res?.data?.message || res?.message || 'خطا در ثبت خرید';
+      showToast(`❌ ${errMsg}`);
+      hapticFeedback('error');
+      if (res?.data?.error === 'insufficient_balance' || res?.error === 'insufficient_balance') {
+        closeModal('checkoutConfirmModal');
+        const shortage = planPrice - (window.lastUserData?.user?.wallet_balance || 0);
+        setTimeout(() => {
+          if (typeof window.openTopupModal === 'function') window.openTopupModal(shortage > 0 ? shortage : null);
+        }, 300);
+      } else if (res?.data?.error === 'needs_account' || res?.error === 'needs_account') {
+        closeModal('checkoutConfirmModal');
+        const switchBtn = document.getElementById('switchAccountBtn');
+        if (switchBtn) {
+          setTimeout(() => switchBtn.click(), 500);
+        }
+      }
     }
   } catch (err) {
     showToast('❌ خطا در برقراری ارتباط با سرور.');

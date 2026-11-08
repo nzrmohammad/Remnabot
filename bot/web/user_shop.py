@@ -879,6 +879,28 @@ async def post_user_custom_plan_purchase(request: web.Request) -> web.Response:
             return web.json_response({"ok": False, "message": err_msg}, status=400)
 
         await session.commit()
+
+        bot = request.app.get("bot")
+        if bot:
+            try:
+                from bot.db.repositories.user_repo import UserRepository
+                from bot.services.purchases import maybe_reward_referrer as _maybe_reward_referrer
+                from bot.services.purchases import notify_admin as _notify_admin
+                db_user = await UserRepository(session).get_by_telegram_id(telegram_id)
+                if db_user:
+                    await _maybe_reward_referrer(bot, session, remnawave, db_user)
+                    user_full_name = user_auth.get("first_name", "")
+                    if user_auth.get("last_name"):
+                        user_full_name += f" {user_auth.get('last_name')}"
+                    await _notify_admin(
+                        bot, db_user, custom_svc, result, session,
+                        discount_amount=disc_amt,
+                        loyalty_discount_amount=disc_amt,
+                        full_name=user_full_name or None,
+                    )
+            except Exception as exc:
+                logger.warning("TMA custom plan purchase post-actions failed: %s", exc)
+
         if cache:
             await _invalidate_user_caches(cache, telegram_id)
 
@@ -891,6 +913,8 @@ async def post_user_custom_plan_purchase(request: web.Request) -> web.Response:
             "traffic_gb": traffic_gb,
             "duration_days": duration_days,
             "final_price": final_price,
+            "effective_price": final_price,
+            "panel_username": getattr(result, "panel_username", None),
             "order_id": result.order_id,
             "squad_changed": getattr(result, "squad_changed", False),
         })
