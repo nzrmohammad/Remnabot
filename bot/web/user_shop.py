@@ -98,27 +98,46 @@ async def _do_user_spin(request: web.Request, telegram_id: int, cache: FastCache
     chosen = result["prize"]
     applied = result["applied"]
 
-    # Notify via Telegram bot if winning
-    if bot and applied and chosen.get("type") not in ("blank", "again"):
+    # Notify via Telegram bot if winning and clean previous wheel messages if clean_reports is active
+    if bot:
         try:
-            if chosen.get("type") == "coupon":
-                msg_text = (
-                    f"🎉 <b>تبریک! شما در گردونه شانس برنده شدید:</b>\n\n"
-                    f"🎟 <b>کد تخفیف ۱۰٪ اختصاصی شما:</b> <code>{chosen.get('code')}</code>\n\n"
-                    f"⏳ <b>مهلت استفاده:</b> ۷ روز\n"
-                    f"💡 <i>این کد اختصاصی شماست و برای خرید از فروشگاه قابل استفاده است.</i>"
-                )
-            else:
-                msg_text = (
-                    f"🎉 <b>تبریک! شما در گردونه شانس برنده شدید:</b>\n"
-                    f"✨ <b>{chosen['name']}</b>\n\n"
-                    f"این جایزه با موفقیت به سرویس شما اعمال گردید."
-                )
-            await bot.send_message(
-                telegram_id,
-                msg_text,
-                parse_mode="HTML",
-            )
+            from bot.db.repositories.report_repo import ReportRepository
+            async with db_session(request) as s_notify:
+                rep_repo = ReportRepository(s_notify)
+                rep_prefs = await rep_repo.get_settings(telegram_id)
+                clean_reports_on = getattr(rep_prefs, "clean_reports", True)
+                old_wheel_msg_id = rep_prefs.last_wheel_message_id
+
+                if clean_reports_on and old_wheel_msg_id:
+                    try:
+                        await bot.delete_message(chat_id=telegram_id, message_id=old_wheel_msg_id)
+                    except Exception:
+                        pass
+                    rep_prefs.last_wheel_message_id = None
+
+                if applied and chosen.get("type") not in ("blank", "again"):
+                    if chosen.get("type") == "coupon":
+                        msg_text = (
+                            f"🎉 <b>تبریک! شما در گردونه شانس برنده شدید:</b>\n\n"
+                            f"🎟 <b>کد تخفیف ۱۰٪ اختصاصی شما:</b> <code>{chosen.get('code')}</code>\n\n"
+                            f"⏳ <b>مهلت استفاده:</b> ۷ روز\n"
+                            f"💡 <i>این کد اختصاصی شماست و برای خرید از فروشگاه قابل استفاده است.</i>"
+                        )
+                    else:
+                        msg_text = (
+                            f"🎉 <b>تبریک! شما در گردونه شانس برنده شدید:</b>\n"
+                            f"✨ <b>{chosen['name']}</b>\n\n"
+                            f"این جایزه با موفقیت به سرویس شما اعمال گردید."
+                        )
+                    sent_msg = await bot.send_message(
+                        telegram_id,
+                        msg_text,
+                        parse_mode="HTML",
+                    )
+                    if clean_reports_on and sent_msg:
+                        rep_prefs.last_wheel_message_id = sent_msg.message_id
+
+                await s_notify.commit()
         except Exception:
             pass
 

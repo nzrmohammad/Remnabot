@@ -632,11 +632,11 @@
     const yestBtn = $('hourlyChartYesterdayBtn');
     if (todayBtn && yestBtn) {
       if (day === 'today') {
-        todayBtn.className = 'px-2 py-0.5 rounded font-bold bg-amber-500/20 text-amber-400 transition';
-        yestBtn.className = 'px-2 py-0.5 rounded text-slate-400 hover:text-slate-200 transition font-normal';
+        todayBtn.className = 'px-2 py-0.5 rounded font-bold bg-amber-500/20 text-amber-800 dark:text-amber-300 border border-amber-500/30 transition';
+        yestBtn.className = 'px-2 py-0.5 rounded text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 border border-transparent transition font-normal';
       } else {
-        yestBtn.className = 'px-2 py-0.5 rounded font-bold bg-amber-500/20 text-amber-400 transition';
-        todayBtn.className = 'px-2 py-0.5 rounded text-slate-400 hover:text-slate-200 transition font-normal';
+        yestBtn.className = 'px-2 py-0.5 rounded font-bold bg-amber-500/20 text-amber-800 dark:text-amber-300 border border-amber-500/30 transition';
+        todayBtn.className = 'px-2 py-0.5 rounded text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 border border-transparent transition font-normal';
       }
     }
     updateHourlyBadge();

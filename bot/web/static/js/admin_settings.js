@@ -772,7 +772,7 @@ openUserChat(telegram_id, name, tag, topup_id) {
 
       const currentVal = $(`appRecommended_${os}`)?.value || '';
       const osApps = {
-        ios: ['shadowrocket', 'streisand', 'v2box', 'incy', 'happ', 'onexray'],
+        ios: ['shadowrocket', 'streisand', 'v2box', 'incy', 'happ', 'onexray', 'hiddify'],
         android: ['v2rayng', 'happ', 'hiddify', 'incy'],
         windows: ['v2rayn', 'hiddify', 'happ', 'incy'],
         macos: ['hiddify', 'happ', 'incy', 'v2box'],
@@ -1347,7 +1347,7 @@ openUserChat(telegram_id, name, tag, topup_id) {
       if (routingTutInp) routingTutInp.value = s.routing_tutorial_url || '';
 
       const OS_APPS_MAP = {
-        ios: ['shadowrocket', 'streisand', 'v2box', 'incy', 'happ', 'onexray'],
+        ios: ['shadowrocket', 'streisand', 'v2box', 'incy', 'happ', 'onexray', 'hiddify'],
         android: ['v2rayng', 'happ', 'hiddify', 'incy'],
         windows: ['v2rayn', 'hiddify', 'happ', 'incy'],
         macos: ['hiddify', 'happ', 'incy', 'v2box'],
@@ -1613,7 +1613,7 @@ openUserChat(telegram_id, name, tag, topup_id) {
       topic_sms_manual: parseTopicVal($('settingTopicSmsManual')?.value),
       client_apps_json: (() => {
         const OS_APPS_MAP = {
-          ios: ['shadowrocket', 'streisand', 'v2box', 'incy', 'happ', 'onexray'],
+          ios: ['shadowrocket', 'streisand', 'v2box', 'incy', 'happ', 'onexray', 'hiddify'],
           android: ['v2rayng', 'happ', 'hiddify', 'incy'],
           windows: ['v2rayn', 'hiddify', 'happ', 'incy'],
           macos: ['hiddify', 'happ', 'incy', 'v2box'],
@@ -1856,7 +1856,7 @@ openUserChat(telegram_id, name, tag, topup_id) {
       if (res && res.ok && res.versions) {
         let count = 0;
         const OS_APPS_MAP = {
-          ios: ['shadowrocket', 'streisand', 'v2box', 'incy', 'happ', 'onexray'],
+          ios: ['shadowrocket', 'streisand', 'v2box', 'incy', 'happ', 'onexray', 'hiddify'],
           android: ['v2rayng', 'happ', 'hiddify', 'incy'],
           windows: ['v2rayn', 'hiddify', 'happ', 'incy'],
           macos: ['hiddify', 'happ', 'incy', 'v2box'],

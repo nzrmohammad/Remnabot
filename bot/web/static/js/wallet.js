@@ -130,7 +130,7 @@ function getTxPerPage() {
 function getTxPurchaseInfo(tx) {
   if (!tx) return { typeRowText: 'خرید بسته', planHtml: '' };
   const rawPlan = (tx.service_name || tx.title?.replace(/^خرید\s+/, '') || '').trim();
-  const isCustom = rawPlan.includes('دلخواه') || tx.title?.includes('دلخواه') || tx.badge === 'custom' || (!tx.service_id && tx.traffic_gb && tx.duration_days);
+  const isCustom = Boolean(tx.is_custom || tx.badge === 'custom' || rawPlan.includes('دلخواه') || tx.title?.includes('دلخواه'));
 
   let typeRowText = 'خرید بسته';
   let planHtml = '';
@@ -179,7 +179,7 @@ function getTxPurchaseInfo(tx) {
       else if (lowerName.includes('خانواده') || lowerName.includes('family')) emojiStr = '👥';
     }
 
-    const iconHtml = emojiStr ? `<span class="shrink-0 text-base leading-none">${emojiStr}</span>` : '';
+    const iconHtml = `<span class="shrink-0 text-base leading-none">${emojiStr || '📦'}</span>`;
     planHtml = `<span class="inline-flex items-center gap-1.5"><bdi class="font-bold select-all">${escapeHtml(cleanOnly)}</bdi>${iconHtml}</span>`;
   }
 

@@ -341,7 +341,7 @@ def test_vazirmatn_typography_guard():
     assert 'id="headerUsername" class="font-bold t-accent text-xs max-w-[100px] truncate font-sans"' in app_html
     assert 'id="giftReceiverInput" placeholder="@username &lrm;یا&lrm; 123456789" class="input-base w-full p-2.5 rounded-xl text-xs outline-none text-left font-sans"' in app_html
     assert 'id="giftBalanceAmount" min="10000" step="5000" placeholder="مثال: 50,000" class="input-base w-full p-2.5 rounded-xl text-xs outline-none num-bidi font-sans"' in app_html
-    assert 'id="topupAmountInput" placeholder="مبلغ دلخواه را وارد کنید (تومان)..." class="input-base w-full px-3 py-2 rounded-xl outline-none text-xs mt-1 num-bidi font-sans"' in app_html
+    assert 'id="topupAmountInput" placeholder="مبلغ دلخواه را وارد کنید (تومان)" class="input-base w-full px-3 py-2 rounded-xl outline-none text-xs mt-1 num-bidi font-sans"' in app_html
 
     # 2. Loyalty and countdown elements use font-sans / num-bidi
     assert 'id="loyaltyModalTotalSpent" class="text-xs t-main font-sans num-bidi"' in app_html

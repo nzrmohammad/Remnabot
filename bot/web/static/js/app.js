@@ -713,6 +713,14 @@ const CLIENT_APPS_DATA = {
       desc: 'کلاینت پیشرفته هسته Xray در اپل استور با سرعت و پایداری بالا',
       icon: '⚡',
       scheme: (url) => `onexray://install-sub?url=${encodeURIComponent(url)}`
+    },
+    {
+      id: 'hiddify',
+      name: 'Hiddify',
+      version: '2.5.7',
+      desc: 'کلاینت هوشمند چندپروتکله بر پایه هسته قدرتمند sing-box',
+      icon: '🚀',
+      scheme: (url) => `hiddify://install-sub?url=${encodeURIComponent(url)}`
     }
   ],
   android: [

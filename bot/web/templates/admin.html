@@ -270,9 +270,9 @@
                 <span>ساعات اوج مصرف</span>
               </span>
               <div class="flex items-center gap-2">
-                <div class="flex items-center gap-1 bg-slate-900/60 p-0.5 rounded-lg border border-slate-700/60 text-[10px]">
-                  <button type="button" id="hourlyChartTodayBtn" onclick="window.switchHourlyChartDay('today')" class="px-2 py-0.5 rounded font-bold bg-amber-500/20 text-amber-400 transition">امروز</button>
-                  <button type="button" id="hourlyChartYesterdayBtn" onclick="window.switchHourlyChartDay('yesterday')" class="px-2 py-0.5 rounded text-slate-400 hover:text-slate-200 transition">دیروز</button>
+                <div class="flex items-center gap-1 card-inset p-0.5 rounded-lg border border-card-border text-[10px]">
+                  <button type="button" id="hourlyChartTodayBtn" onclick="window.switchHourlyChartDay('today')" class="px-2 py-0.5 rounded font-bold bg-amber-500/20 text-amber-800 dark:text-amber-300 border border-amber-500/30 transition">امروز</button>
+                  <button type="button" id="hourlyChartYesterdayBtn" onclick="window.switchHourlyChartDay('yesterday')" class="px-2 py-0.5 rounded text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 border border-transparent transition font-normal">دیروز</button>
                 </div>
                 <span id="peakHourBadge" class="text-[11px] text-amber-800 dark:text-amber-300 font-sans font-bold" dir="ltr">---</span>
               </div>
@@ -950,7 +950,7 @@
                   </div>
                 </div>
                 <div class="flex items-center t-muted hover:text-slate-200 text-xs gap-1">
-                  <span class="text-[11px]">تغییر</span>
+
                   <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
                 </div>
               </div>
@@ -1325,7 +1325,7 @@
 
             <!-- Default Store & Trial Squad Custom Selector -->
             <div class="py-2.5 border-t border-slate-700/50">
-              <label class="text-[11px] text-slate-300 block mb-1.5 font-medium">🧩 اسکواد پیش‌فرض فروشگاه و سرویس تست:</label>
+              <label class="text-[11px] text-slate-300 block mb-1.5 font-medium">🧩 اسکواد پیش‌فرض سرویس تست:</label>
               <input type="hidden" id="settingDefaultSquadUuid" value="" />
               <div onclick="window.adminActions.openDefaultSquadPickerModal()" class="w-full card-inset rounded-xl px-3 py-2.5 flex items-center justify-between cursor-pointer transition active:scale-[0.99] border border-slate-700 hover:border-blue-500/50 group">
                 <div class="flex items-center gap-2 min-w-0">
@@ -1333,11 +1333,11 @@
                   <span id="settingDefaultSquadLabel" class="text-xs t-main font-bold truncate">انتخاب کنید</span>
                 </div>
                 <div class="flex items-center t-muted group-hover:text-slate-200 text-xs gap-1 flex-shrink-0">
-                  <span class="text-[11px]">تغییر</span>
+
                   <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
                 </div>
               </div>
-              <span class="text-[11px] t-muted block mt-1.5 leading-relaxed">کاربران جدید و سرویس‌های تست رایگان به‌طور خودکار روی این اسکواد ساخته می‌شوند.</span>
+              <span class="text-[11px] t-muted block mt-1.5 leading-relaxed">سرویس‌های تست رایگان و کاربران جدید به‌طور خودکار روی این اسکواد ساخته می‌شوند (هر بسته فروشگاه می‌تواند اسکواد اختصاصی خود را داشته باشد).</span>
             </div>
 
             <!-- Direct Support in Bot Switch -->
@@ -1503,7 +1503,7 @@
               </button>
             </div>
 
-            <!-- PANE: iOS Apps (Shadowrocket, Streisand, V2Box, Incy, Happ, OneXray) -->
+            <!-- PANE: iOS Apps (Shadowrocket, Streisand, V2Box, Incy, Happ, OneXray, Hiddify) -->
             <div id="adminAppsPane_ios" class="admin-apps-pane space-y-2.5">
               <!-- Recommended App Selector: iOS -->
               <div class="flex items-center justify-between p-2.5 card-inset rounded-2xl border border-slate-700/50">
@@ -1657,6 +1657,28 @@
                 <div>
                   <label class="text-[11px] text-slate-400 block mb-1">نسخه نرم‌افزار (Version):</label>
                   <input type="text" id="appVersion_ios_onexray" dir="ltr" placeholder="پیش‌فرض: 1.4.2" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-amber-300 outline-none focus:border-cyan-500 transition" />
+                </div>
+              </div>
+
+              <!-- Hiddify -->
+              <div class="p-3 rounded-2xl border border-slate-700/50 space-y-2 bg-transparent">
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-2">
+                    <img src="/static/img/apps/hiddify.webp" class="w-5 h-5 rounded-md object-contain" alt="Hiddify" onerror="this.style.display='none'" loading="lazy" />
+                    <b class="text-white text-xs">Hiddify</b>
+                  </div>
+                </div>
+                <div>
+                  <label class="text-[11px] text-slate-400 block mb-1">لینک دانلود نرم‌افزار (اپ‌استور):</label>
+                  <input type="text" id="appDownload_ios_hiddify" dir="ltr" placeholder="https://apps.apple.com/us/app/hiddify-next/id6593660983" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-cyan-300 outline-none focus:border-cyan-500 transition" />
+                </div>
+                <div>
+                  <label class="text-[11px] text-slate-400 block mb-1">لینک آموزش (اختیاری):</label>
+                  <input type="text" id="appTutorial_ios_hiddify" dir="ltr" placeholder="مثلاً: https://t.me/..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-emerald-300 outline-none focus:border-emerald-500 transition" />
+                </div>
+                <div>
+                  <label class="text-[11px] text-slate-400 block mb-1">نسخه نرم‌افزار (Version):</label>
+                  <input type="text" id="appVersion_ios_hiddify" dir="ltr" placeholder="پیش‌فرض: 2.5.7" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-amber-300 outline-none focus:border-cyan-500 transition" />
                 </div>
               </div>
             </div>
