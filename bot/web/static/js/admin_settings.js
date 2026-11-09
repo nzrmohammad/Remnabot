@@ -120,7 +120,7 @@
           <div onclick="window.adminActions.selectTimezone('${z.id}')" class="p-3 rounded-2xl border transition cursor-pointer flex items-center justify-between gap-3 mx-0.5 ${isSelected ? 'bg-blue-600/15 border-blue-500 shadow-sm' : 'card-inset border-card-border hover:border-slate-500/50'}">
             <div class="flex items-center gap-2.5">
               <span class="text-base">${typeof renderFlagHtml === 'function' ? renderFlagHtml(z.flag, 'w-5 h-3.5 inline-block rounded-xs shadow-xs object-cover align-middle') : z.flag}</span>
-              <span class="text-xs font-mono font-bold ${isSelected ? 'text-blue-600 dark:text-blue-400 font-black' : 't-main'}">${z.name}</span>
+              <span class="text-xs font-sans num-bidi font-bold ${isSelected ? 'text-blue-600 dark:text-blue-400 font-black' : 't-main'}">${z.name}</span>
             </div>
             ${isSelected ? '<span class="text-[11px] text-blue-600 dark:text-blue-400 font-bold bg-blue-500/15 px-2 py-0.5 rounded-md">✓ انتخاب‌شده</span>' : ''}
           </div>
@@ -426,17 +426,17 @@ openUserChat(telegram_id, name, tag, topup_id) {
         const sign = profit > 0 ? '+' : (profit < 0 ? '-' : '');
         const absFmt = formatNumber(Math.abs(profit));
         profEl.innerHTML = `<span dir="ltr">${sign}${absFmt}</span> <span class="text-[11px] font-sans">تومان</span>`;
-        profEl.className = profit > 0 ? 't-success font-mono text-sm block' : (profit < 0 ? 't-danger font-mono text-sm block' : 'text-slate-300 font-mono text-sm block');
+        profEl.className = profit > 0 ? 't-success font-sans num-bidi text-sm block' : (profit < 0 ? 't-danger font-sans num-bidi text-sm block' : 'text-slate-300 font-sans num-bidi text-sm block');
       }
       if (roiEl) {
         const roiText = c.roi !== null && c.roi !== undefined ? `${c.roi > 0 ? '+' : ''}${toEnglishDigits(c.roi)}%` : '—';
         roiEl.innerText = roiText;
-        roiEl.className = c.roi !== null && c.roi > 0 ? 't-success font-mono text-sm block' : (c.roi !== null && c.roi < 0 ? 't-danger font-mono text-sm block' : 'text-slate-400 font-mono text-sm block');
+        roiEl.className = c.roi !== null && c.roi > 0 ? 't-success font-sans num-bidi text-sm block' : (c.roi !== null && c.roi < 0 ? 't-danger font-sans num-bidi text-sm block' : 'text-slate-400 font-sans num-bidi text-sm block');
       }
       if (usersEl) usersEl.innerHTML = `${formatNumber(c.users_count)} <span class="font-sans text-[11px]">نفر</span>`;
       if (buyersEl) {
         const enRate = toEnglishDigits(convRate);
-        buyersEl.innerHTML = `${formatNumber(c.buyers_count)} <span class="font-sans text-[11px]">نفر</span> <span dir="ltr" class="font-mono text-xs">(${enRate}%)</span>`;
+        buyersEl.innerHTML = `${formatNumber(c.buyers_count)} <span class="font-sans text-[11px]">نفر</span> <span dir="ltr" class="font-sans num-bidi text-xs">(${enRate}%)</span>`;
       }
 
       if (modal) modal.classList.remove('hidden');
@@ -594,9 +594,9 @@ openUserChat(telegram_id, name, tag, topup_id) {
                   <div class="min-w-0">
                     <div class="flex items-center gap-1.5">
                       <b class="text-xs t-main truncate">${escapeHtml(c.name)}</b>
-                      ${roiText ? `<span class="px-1.5 py-0.5 rounded text-[9px] font-mono ${roiColor} bg-slate-900/80 border border-slate-700/60" dir="ltr">${roiText}</span>` : ''}
+                      ${roiText ? `<span class="px-1.5 py-0.5 rounded text-[9px] font-sans num-bidi ${roiColor} bg-slate-900/80 border border-slate-700/60" dir="ltr">${roiText}</span>` : ''}
                     </div>
-                    <span class="text-[10px] font-mono t-accent dir-ltr block mt-0.5">ad_${escapeHtml(c.code)}</span>
+                    <span class="text-[10px] font-sans num-bidi t-accent dir-ltr block mt-0.5">ad_${escapeHtml(c.code)}</span>
                   </div>
                 </div>
                 <div class="flex items-center gap-1.5 flex-shrink-0">
@@ -619,19 +619,19 @@ openUserChat(telegram_id, name, tag, topup_id) {
               <div class="grid grid-cols-4 gap-1.5 sm:gap-2 pt-1 border-t border-slate-700/50 text-center">
                 <div class="p-1.5 sm:p-2 rounded-xl card-inset">
                   <span class="text-[10px] t-muted block mb-0.5 whitespace-nowrap">ورودی</span>
-                  <b class="text-xs font-mono t-main">${formatNumber(c.users_count)}</b>
+                  <b class="text-xs font-sans num-bidi t-main">${formatNumber(c.users_count)}</b>
                 </div>
                 <div class="p-1.5 sm:p-2 rounded-xl card-inset">
                   <span class="text-[10px] t-muted block mb-0.5 whitespace-nowrap">خریداران</span>
-                  <b class="text-xs font-mono text-cyan-600 dark:text-cyan-300">${formatNumber(c.buyers_count)}</b>
+                  <b class="text-xs font-sans num-bidi text-cyan-600 dark:text-cyan-300">${formatNumber(c.buyers_count)}</b>
                 </div>
                 <div class="p-1.5 sm:p-2 rounded-xl card-inset">
                   <span class="text-[10px] t-muted block mb-0.5 whitespace-nowrap">درآمد فروش</span>
-                  <b class="text-xs font-mono t-success">${formatNumber(c.total_revenue)}</b>
+                  <b class="text-xs font-sans num-bidi t-success">${formatNumber(c.total_revenue)}</b>
                 </div>
                 <div class="p-1.5 sm:p-2 rounded-xl card-inset">
                   <span class="text-[10px] t-muted block mb-0.5 whitespace-nowrap">هزینه تبلیغ</span>
-                  <b class="text-xs font-mono text-amber-600 dark:text-amber-300">${c.cost ? formatNumber(c.cost) : '۰'}</b>
+                  <b class="text-xs font-sans num-bidi text-amber-600 dark:text-amber-300">${c.cost ? formatNumber(c.cost) : '۰'}</b>
                 </div>
               </div>
             </div>
@@ -931,7 +931,7 @@ openUserChat(telegram_id, name, tag, topup_id) {
             <div class="max-w-[85%] rounded-2xl p-2.5 space-y-1 shadow-sm ${isAdmin ? 'chat-bubble-admin rounded-tr-sm' : 'chat-bubble-user rounded-tl-sm'}">
               <div class="flex items-center justify-between gap-3 text-[10px] ${isAdmin ? 'text-blue-400 dark:text-blue-300 font-bold' : 't-muted font-bold'}">
                 <span>${isAdmin ? '🛡️ پشتیبانی' : '👤 کاربر'}</span>
-                <span class="font-mono ${isAdmin ? 't-info' : 't-muted'}" dir="ltr">${timeDisplay}</span>
+                <span class="font-sans num-bidi ${isAdmin ? 't-info' : 't-muted'}" dir="ltr">${timeDisplay}</span>
               </div>
               <p class="text-xs leading-relaxed break-words whitespace-pre-wrap t-main font-medium">${escapeHtml(m.text)}</p>
             </div>

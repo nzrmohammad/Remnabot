@@ -691,6 +691,24 @@ html.theme-light .shop-plan-card .shop-plan-badge.badge-family {
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
 }
 
+.btn-plan-gaming {
+  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 50%, #db2777 100%);
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgba(124, 58, 237, 0.4);
+}
+.btn-plan-gaming:hover {
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #ec4899 100%);
+}
+
+.btn-plan-family {
+  background: linear-gradient(135deg, #0284c7 0%, #2563eb 50%, #4f46e5 100%);
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.4);
+}
+.btn-plan-family:hover {
+  background: linear-gradient(135deg, #0ea5e9 0%, #3b82f6 50%, #6366f1 100%);
+}
+
 /* --- 17. Wallet Hero Card --- */
 .wallet-hero-card {
   border: 1px solid var(--card-border);
@@ -706,6 +724,23 @@ html.theme-light .wallet-hero-card #walletTabBalance {
   -webkit-background-clip: unset;
   background-clip: unset;
   color: var(--c-accent);
+}
+
+/* Gift Modal Button Border Contrast in Dark Theme */
+#giftModal button.card-inset,
+#giftModal .card-inset {
+  border-color: rgba(51, 65, 85, 0.4);
+}
+#giftModal button.border-pink-500\/40 {
+  border-color: rgba(236, 72, 153, 0.4);
+}
+#giftModal [role="tablist"] {
+  border-color: rgba(51, 65, 85, 0.4);
+}
+html.theme-light #giftModal button.card-inset,
+html.theme-light #giftModal .card-inset,
+html.theme-light #giftModal [role="tablist"] {
+  border-color: var(--card-border);
 }
 
 /* --- 18. Admin Panel Light Theme Unification --- */

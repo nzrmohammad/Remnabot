@@ -576,6 +576,7 @@ def compute_custom_plan_price(
     traffic_gb: int,
     duration_days: int,
     store_settings: StoreSettings,
+    hwid_limit: int = 1,
 ) -> tuple[int, int, int]:
     """Calculate (raw_base_price, volume_discount_percent, discounted_base_price).
 
@@ -583,6 +584,7 @@ def compute_custom_plan_price(
     - Higher traffic = lower rate per GB.
     - Default tiers: 1-50 GB: 0%, 51-100 GB: 10%, 101-200 GB: 20%, >200 GB: 30%.
     - Can be customized via store_settings.custom_plan_volume_tiers_json.
+    - Concurrent users (hwid_limit) scales base price dynamically (+15% per extra user beyond 1).
     """
     raw_traffic_price = traffic_gb * store_settings.custom_plan_price_per_gb
     time_price = duration_days * store_settings.custom_plan_price_per_day
@@ -615,8 +617,9 @@ def compute_custom_plan_price(
             volume_pct = 30
 
     discounted_traffic_price = int(raw_traffic_price * (100 - volume_pct) / 100)
-    raw_base = raw_traffic_price + time_price + base_fee
-    discounted_base = discounted_traffic_price + time_price + base_fee
+    extra_user_pct = max(0, hwid_limit - 1) * 15
+    raw_base = int((raw_traffic_price + time_price + base_fee) * (100 + extra_user_pct) / 100)
+    discounted_base = int((discounted_traffic_price + time_price + base_fee) * (100 + extra_user_pct) / 100)
     return (raw_base, volume_pct, discounted_base)
 
 
@@ -643,7 +646,7 @@ async def post_user_custom_plan_calculate(request: web.Request) -> web.Response:
             and store_settings.custom_plan_price_per_day <= 0
             and store_settings.custom_plan_base_price <= 0
         )
-        raw_base, volume_pct, base_price = compute_custom_plan_price(traffic_gb, duration_days, store_settings)
+        raw_base, volume_pct, base_price = compute_custom_plan_price(traffic_gb, duration_days, store_settings, hwid_limit=hwid_limit)
         volume_discount_amount = max(0, raw_base - base_price)
 
         loyalty = await get_user_loyalty(session, telegram_id, cache=cache)
@@ -715,7 +718,7 @@ async def post_user_custom_plan_purchase(request: web.Request) -> web.Response:
                 "message": "تعرفه بسته دلخواه هنوز توسط مدیریت تنظیم نشده است."
             }, status=400)
 
-        raw_base, volume_pct, base_price = compute_custom_plan_price(traffic_gb, duration_days, store_settings)
+        raw_base, volume_pct, base_price = compute_custom_plan_price(traffic_gb, duration_days, store_settings, hwid_limit=hwid_limit)
         if base_price <= 0:
             return web.json_response({
                 "ok": False,

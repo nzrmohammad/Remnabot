@@ -142,7 +142,7 @@ function formatTxTitle(tx) {
       rawPlan = `${emojiPrefix}بسته ${cleanOnly}`;
     }
     const formattedPlan = typeof formatPlanTitle === 'function' ? formatPlanTitle(rawPlan) : escapeHtml(rawPlan);
-    return `<span class="inline-flex items-center gap-1"><span class="text-slate-400 font-normal">خرید</span> ${formattedPlan}</span>`;
+    return `<span class="inline-flex items-center gap-1.5"><span class="font-bold t-main">خرید</span> ${formattedPlan}</span>`;
   }
   return escapeHtml(tx.title || 'تراکنش');
 }
@@ -193,7 +193,7 @@ function renderWalletTransactions(transactions) {
     ` : '';
 
     return `
-    <div class="card-inset rounded-2xl p-3.5 sm:p-4 flex items-center justify-between text-xs gap-3 ${isOrder ? 'cursor-pointer hover:border-cyan-500/40 transition active:scale-[0.99]' : ''}" ${isOrder ? `onclick="window.openInvoiceModal && window.openInvoiceModal(${tx.id});"` : ''}>
+    <div class="card-inset rounded-2xl p-4 sm:p-4.5 flex items-center justify-between text-xs sm:text-[13px] gap-3 min-h-[72px] ${isOrder ? 'cursor-pointer hover:border-cyan-500/40 transition active:scale-[0.99]' : ''}" ${isOrder ? `onclick="window.openInvoiceModal && window.openInvoiceModal(${tx.id});"` : ''}>
       <div class="flex items-center gap-2.5 min-w-0 flex-1">
         <span class="text-xl shrink-0">${tx.type === 'topup' ? '💳' : (tx.type === 'admin_adjust' ? '⚡️' : '🛒')}</span>
         <div class="min-w-0 flex-1 space-y-0.5">

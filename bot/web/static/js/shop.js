@@ -132,9 +132,9 @@ function renderWonCoupons(data) {
         <div class="text-right">
           <div class="flex items-center gap-1">
             <span class="text-xs">🎟</span>
-            <span class="font-bold font-mono t-main text-xs">${escapeHtml(c.code)}</span>
+            <span class="font-bold font-sans num-bidi t-main text-xs">${escapeHtml(c.code)}</span>
           </div>
-          <span class="text-[11px] t-success font-sans block mt-0.5"><span dir="ltr" class="font-mono font-bold inline-block">${toEnglishDigits(c.discount_percent || 10)}%</span> تخفیف</span>
+          <span class="text-[11px] t-success font-sans block mt-0.5"><span dir="ltr" class="font-sans num-bidi font-bold inline-block">${toEnglishDigits(c.discount_percent || 10)}%</span> تخفیف</span>
         </div>
         <button type="button" class="${btnClass}" data-code="${escapeHtml(c.code)}">
           ${btnText}
@@ -303,10 +303,11 @@ async function updateCustomPlanCalculation() {
       else if (gb > 200) volPct = 30;
     }
 
+    const extraUserPct = Math.max(0, hwid - 1) * 15;
     const rawTraffic = gb * pricePerGb;
     const discountedTraffic = Math.floor(rawTraffic * (100 - volPct) / 100);
-    const localRawBase = rawTraffic + (days * pricePerDay) + baseFixed;
-    const localBase = discountedTraffic + (days * pricePerDay) + baseFixed;
+    const localRawBase = Math.floor((rawTraffic + (days * pricePerDay) + baseFixed) * (100 + extraUserPct) / 100);
+    const localBase = Math.floor((discountedTraffic + (days * pricePerDay) + baseFixed) * (100 + extraUserPct) / 100);
     const localVolDiscAmt = Math.max(0, localRawBase - localBase);
     const localDisc = Math.floor((localBase * loyaltyPct) / 100);
     const localFinal = Math.max(0, localBase - localDisc);
@@ -571,7 +572,7 @@ function renderFilteredShopPlans() {
     } else if (planBadgeKey === 'economic' || (!planBadgeKey && (planText.includes('اقتصادی') || planText.includes('economic') || planText.includes('به‌صرفه') || planText.includes('بصرفه') || planText.includes('ارزان')))) {
       planBadge = '<div class="shop-plan-badge badge-economic absolute top-0 left-0 bg-gradient-to-r from-emerald-600 to-teal-600 text-white text-[11px] font-black px-3 py-0.5 rounded-br-xl border-b border-r border-emerald-400/40 shadow-md flex items-center gap-1">💰 اقتصادی‌ترین</div>';
       badgeBorderClass = 'border-emerald-500/70 shadow-lg shadow-emerald-500/15';
-      btnClass = 'bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold shadow-md shadow-emerald-600/20';
+      btnClass = 'btn-plan-economic';
     } else if (planBadgeKey === 'tunnel' || (!planBadgeKey && (planText.includes('تانل') || planText.includes('tunnel')))) {
       planBadge = '<div class="shop-plan-badge badge-tunnel absolute top-0 left-0 bg-gradient-to-r from-teal-600 via-cyan-600 to-sky-600 text-white text-[11px] font-black px-3 py-0.5 rounded-br-xl border-b border-r border-cyan-400/50 shadow-md flex items-center gap-1">🚇 تانل اختصاصی</div>';
       badgeBorderClass = 'border-cyan-500/70 shadow-lg shadow-cyan-500/20';
@@ -579,7 +580,7 @@ function renderFilteredShopPlans() {
     } else if (planBadgeKey === 'gaming' || (!planBadgeKey && (planText.includes('گیم') || planText.includes('gaming')))) {
       planBadge = '<div class="shop-plan-badge badge-gaming absolute top-0 left-0 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 text-white text-[11px] font-black px-3 py-0.5 rounded-br-xl border-b border-r border-indigo-400/50 shadow-md flex items-center gap-1">🎮 ویژه گیمینگ</div>';
       badgeBorderClass = 'border-indigo-500/70 shadow-lg shadow-indigo-500/20';
-      btnClass = 'bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold shadow-md shadow-indigo-600/20';
+      btnClass = 'btn-plan-gaming';
     } else if (planBadgeKey === 'antifilter' || (!planBadgeKey && (planText.includes('ضد فیلتر') || planText.includes('ضدفیلتر')))) {
       planBadge = '<div class="shop-plan-badge badge-antifilter absolute top-0 left-0 bg-gradient-to-r from-teal-600 to-emerald-600 text-white text-[11px] font-black px-3 py-0.5 rounded-br-xl border-b border-r border-teal-400/50 shadow-md flex items-center gap-1">🛡 ضد فیلتر</div>';
       badgeBorderClass = 'border-teal-500/70 shadow-lg shadow-teal-500/20';
@@ -595,7 +596,7 @@ function renderFilteredShopPlans() {
     } else if (planBadgeKey === 'family' || (!planBadgeKey && (planText.includes('خانوادگی') || planText.includes('چند کاربر')))) {
       planBadge = '<div class="shop-plan-badge badge-family absolute top-0 left-0 bg-gradient-to-r from-sky-600 to-blue-600 text-white text-[11px] font-black px-3 py-0.5 rounded-br-xl border-b border-r border-sky-400/50 shadow-md flex items-center gap-1">👨‍👩‍👧 چند کاربره</div>';
       badgeBorderClass = 'border-sky-500/70 shadow-lg shadow-sky-500/20';
-      btnClass = 'bg-gradient-to-r from-sky-600 to-blue-600 hover:from-sky-500 hover:to-blue-500 text-white font-bold shadow-md shadow-sky-600/20';
+      btnClass = 'btn-plan-family';
     }
 
     const hasLoyaltyDiscount = Boolean(p.loyalty_discount_percent && p.loyalty_discount_percent > 0 && p.original_price && p.original_price > p.price);
@@ -680,12 +681,12 @@ function renderFilteredShopPlans() {
             <h4 class="font-bold text-sm t-main truncate">${formatPlanTitle(p.name)}</h4>
             ${(discountVal > 0 || hasLoyaltyDiscount) ? `
               <div class="flex items-center gap-1.5 mt-1 flex-wrap">
-                ${hasLoyaltyDiscount ? `<span dir="ltr" class="badge ${tagThemeClass} text-[11px] font-mono" title="تخفیف وفاداری"><span>${userTierIcon}</span><span>${loyaltyPctEnglish}% Loyality</span></span>` : ''}
-                ${discountVal > 0 ? `<span dir="ltr" class="badge ${tagThemeClass} text-[11px] font-mono"><span>🏷</span><span>${window.activeCoupon?.code ? escapeHtml(window.activeCoupon.code) : 'کوپن'}</span><span>(-${toEnglishDigits(window.activeCoupon?.discount_percent || 0)}%)</span></span>` : ''}
+                ${hasLoyaltyDiscount ? `<span dir="ltr" class="badge ${tagThemeClass} text-[11px] font-sans num-bidi" title="تخفیف وفاداری"><span>${userTierIcon}</span><span>${loyaltyPctEnglish}% Loyality</span></span>` : ''}
+                ${discountVal > 0 ? `<span dir="ltr" class="badge ${tagThemeClass} text-[11px] font-sans num-bidi"><span>🏷</span><span>${window.activeCoupon?.code ? escapeHtml(window.activeCoupon.code) : 'کوپن'}</span><span>(-${toEnglishDigits(window.activeCoupon?.discount_percent || 0)}%)</span></span>` : ''}
               </div>
             ` : ''}
           </div>
-          <div class="text-left font-mono shrink-0">
+          <div class="text-left font-sans num-bidi shrink-0">
             <div class="flex flex-col items-end">
               ${hasAnyDiscount ? `<span class="line-through t-muted text-xs font-semibold leading-tight mb-0.5">${formattedOriginal}</span>` : ''}
               <span class="text-base font-black t-success leading-tight">${formattedFinal}</span>
@@ -695,7 +696,7 @@ function renderFilteredShopPlans() {
         </div>
         <p class="text-[10.5px] leading-snug t-muted mt-1.5 whitespace-nowrap overflow-hidden text-ellipsis tracking-tight">${safeDesc}</p>
         <div class="flex items-center justify-between my-2.5 text-[11px] card-inset px-3 py-2 whitespace-nowrap overflow-hidden">
-          <span class="flex items-center gap-1">📊 <b dir="ltr" class="font-mono t-main num-bidi">${trafficText}</b></span>
+          <span class="flex items-center gap-1">📊 <b dir="ltr" class="font-sans t-main num-bidi">${trafficText}</b></span>
           ${durationText}
           <span class="flex items-center gap-1">📱 <b class="t-main">${devLimitText}</b></span>
         </div>

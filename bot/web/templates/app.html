@@ -1006,14 +1006,10 @@
             <div class="flex justify-between items-center text-xs">
               <span class="t-muted font-medium">سقف اتصال همزمان (تعداد کاربر):</span>
               <div class="font-sans font-bold text-sm text-sky-500 dark:text-sky-400 num-bidi">
-                <span id="customPlanHwidVal">2</span> <span class="text-xs t-muted font-sans">کاربر (دستگاه)</span>
+                <span id="customPlanHwidVal">2</span> <span class="text-xs t-muted font-sans">کاربر</span>
               </div>
             </div>
             <input type="range" id="customPlanHwidSlider" dir="rtl" min="1" max="10" step="1" value="2" class="w-full h-2 bg-slate-200 dark:bg-slate-700/80 rounded-lg appearance-none cursor-pointer accent-sky-500" />
-            <div class="flex justify-between items-center text-[10px] text-slate-400 font-sans num-bidi">
-              <span>۱ کاربر (تک‌کاربره)</span>
-              <span>۱۰ کاربر</span>
-            </div>
           </div>
 
           <!-- Price Calculation Box -->
@@ -2261,7 +2257,7 @@
             <b id="checkoutPlanDays" class="text-slate-200">-- روز</b>
           </div>
           <div id="checkoutPlanHwidRow" class="flex justify-between items-center hidden">
-            <span class="text-slate-400">سقف دستگاه همزمان:</span>
+            <span class="text-slate-400">سقف اتصال همزمان:</span>
             <b id="checkoutPlanHwid" class="text-sky-400 font-sans num-bidi">2 کاربر</b>
           </div>
           <div class="flex justify-between items-center border-t border-slate-800 pt-1.5">
@@ -3309,11 +3305,11 @@
         </div>
 
         <!-- Gift Modal Tabs (ارسال هدیه / تاریخچه) -->
-        <div class="flex items-center p-1 card-inset rounded-2xl text-xs gap-1 border border-card-border" role="tablist">
-          <button type="button" onclick="window.switchGiftModalTab('new')" id="giftTabBtn-new" role="tab" aria-selected="true" class="flex-1 py-2 px-3 rounded-xl font-bold transition flex items-center justify-center gap-1.5 text-xs bg-pink-600 text-white shadow-sm border border-pink-500/40">
+        <div class="flex items-center p-1 card-inset rounded-2xl text-xs gap-1 border-0" role="tablist">
+          <button type="button" onclick="window.switchGiftModalTab('new')" id="giftTabBtn-new" role="tab" aria-selected="true" class="flex-1 py-2 px-3 rounded-xl font-bold transition flex items-center justify-center gap-1.5 text-xs bg-pink-600 text-white shadow-sm border-0">
             <span>🎁</span> هدیه جدید
           </button>
-          <button type="button" onclick="window.switchGiftModalTab('history')" id="giftTabBtn-history" role="tab" aria-selected="false" class="flex-1 py-2 px-3 rounded-xl font-medium transition flex items-center justify-center gap-1.5 text-xs t-muted hover:t-main bg-transparent border border-transparent">
+          <button type="button" onclick="window.switchGiftModalTab('history')" id="giftTabBtn-history" role="tab" aria-selected="false" class="flex-1 py-2 px-3 rounded-xl font-medium transition flex items-center justify-center gap-1.5 text-xs t-muted hover:t-main bg-transparent border-0">
             <span>📜</span> تاریخچه
           </button>
         </div>
@@ -3387,7 +3383,7 @@
           <div class="space-y-1">
             <div class="flex items-center justify-between">
               <label for="giftMessageInput" class="text-[11px] t-muted block">پیام تبریک یا یادداشت دلخواه:</label>
-              <span class="text-[10px] text-slate-400 font-normal">اختیاری</span>
+              <span class="text-[10px] px-2 py-0.5 rounded-full card-inset border border-card-border t-muted font-normal select-none">اختیاری</span>
             </div>
             <input type="text" id="giftMessageInput" maxlength="150" placeholder="مثال: تقدیم با احترام، امیدوارم مفید باشه! 🌹" class="input-base w-full p-2.5 rounded-xl text-xs outline-none" />
           </div>
@@ -3422,14 +3418,14 @@
               <span class="text-[11px] t-muted block">کد هدیه اختصاصی:</span>
               <div class="flex items-center gap-1.5">
                 <button type="button" onclick="window.copyGiftCode()" class="btn btn-secondary text-xs p-2.5 rounded-xl shrink-0 font-bold active:scale-95" title="کپی کد هدیه">📋 کپی کد</button>
-                <input type="text" id="giftCreatedCodeInput" readonly class="input-base text-xs font-mono p-2.5 rounded-xl flex-1 select-all text-left" dir="ltr" />
+                <input type="text" id="giftCreatedCodeInput" readonly class="input-base text-xs font-sans num-bidi p-2.5 rounded-xl flex-1 select-all text-left" dir="ltr" />
               </div>
             </div>
             <div id="giftCreatedLinkRow" class="space-y-1">
               <span class="text-[11px] t-muted block">لینک دریافت هدیه برای ارسال به دوستتان:</span>
               <div class="flex items-center gap-1.5">
                 <button type="button" onclick="window.copyGiftShareLink()" class="btn btn-secondary text-xs p-2.5 rounded-xl shrink-0 font-bold active:scale-95" title="کپی لینک">📋 کپی لینک</button>
-                <input type="text" id="giftCreatedLinkInput" readonly class="input-base text-xs font-mono p-2.5 rounded-xl flex-1 select-all text-left" dir="ltr" />
+                <input type="text" id="giftCreatedLinkInput" readonly class="input-base text-xs font-sans num-bidi p-2.5 rounded-xl flex-1 select-all text-left" dir="ltr" />
               </div>
             </div>
             <p id="giftCreatedNotice" class="text-[10.5px] t-muted leading-relaxed"></p>
@@ -3529,7 +3525,7 @@
                 <span id="invFinalAmountToman" class="text-sm font-black text-emerald-500 font-sans num-bidi">0</span>
                 <span class="text-[11px] t-muted font-sans">تومان</span>
               </div>
-              <span id="invFinalAmountRial" class="text-[10px] t-muted font-sans num-bidi mt-0.5 block">(-- ریال)</span>
+              <span id="invFinalAmountRial" class="text-[10px] t-muted font-sans mt-0.5 block" dir="rtl">(<span class="num-bidi font-sans">--</span> ریال)</span>
             </div>
           </div>
         </div>

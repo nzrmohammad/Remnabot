@@ -964,7 +964,7 @@
                   </div>
                 </div>
                 <input type="hidden" id="settingAppTimezone" value="Asia/Tehran" />
-                <button type="button" id="openTimezoneModalBtn" onclick="window.adminActions.openTimezoneModal()" class="flex items-center gap-2 px-3 py-1.5 rounded-xl border border-[var(--card-border)] bg-[var(--card-inner-bg)] hover:border-[var(--c-accent)] transition text-xs font-mono font-bold t-main active:scale-95 shadow-xs" dir="ltr">
+                <button type="button" id="openTimezoneModalBtn" onclick="window.adminActions.openTimezoneModal()" class="flex items-center gap-2 px-3 py-1.5 rounded-xl border border-[var(--card-border)] bg-[var(--card-inner-bg)] hover:border-[var(--c-accent)] transition text-xs font-sans num-bidi font-bold t-main active:scale-95 shadow-xs" dir="ltr">
                   <span id="settingAppTimezoneDisplay" class="font-bold text-xs t-main">Asia/Tehran</span>
                   <span class="text-[11px] t-muted">▾</span>
                 </button>
@@ -974,7 +974,7 @@
             <!-- History Page Size -->
             <div class="py-1 border-t border-slate-700/50 pt-2 space-y-1">
               <label class="text-[11px] text-slate-300 block font-semibold">تعداد آیتم تاریخچه تراکنش‌ها و سفارشات در هر صفحه:</label>
-              <input type="number" id="settingHistoryPageSize" min="5" max="100" step="5" placeholder="15" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-cyan-300 outline-none focus:border-cyan-500 transition" />
+              <input type="number" id="settingHistoryPageSize" min="5" max="100" step="5" placeholder="15" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-sans num-bidi text-cyan-300 outline-none focus:border-cyan-500 transition" />
             </div>
           </div>
         </div>
@@ -1013,7 +1013,7 @@
             </div>
             <div>
               <label class="text-[11px] text-slate-400 block mb-1">شماره کارت</label>
-              <input type="text" id="settingCardNumber" dir="ltr" placeholder="6037..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-cyan-300 outline-none focus:border-cyan-500 transition" />
+              <input type="text" id="settingCardNumber" dir="ltr" placeholder="6037..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-sans num-bidi text-cyan-300 outline-none focus:border-cyan-500 transition" />
             </div>
             <!-- Graphical Card Toggle -->
             <div class="flex items-center justify-between py-2 border-t border-slate-700/50">
@@ -1060,7 +1060,7 @@
             </div>
             <div>
               <label class="text-[11px] text-slate-400 block mb-1">حداقل مبلغ افزایش موجودی (تومان)</label>
-              <input type="number" id="settingMinTopup" dir="ltr" placeholder="20000" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-amber-300 outline-none focus:border-amber-500 transition" />
+              <input type="number" id="settingMinTopup" dir="ltr" placeholder="20000" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-sans num-bidi text-amber-300 outline-none focus:border-amber-500 transition" />
             </div>
             <div class="flex items-center justify-between py-2 border-t border-slate-700/50">
               <div>
@@ -1111,18 +1111,18 @@
                   <a href="https://github.com/pppscn/SmsForwarder" target="_blank" rel="noopener noreferrer" class="p-1 rounded-lg text-slate-400 hover:text-white transition flex items-center justify-center border-0 bg-transparent" title="سورس‌کد SMS Forwarder در گیت‌هاب">
                     <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
                   </a>
-                  <span class="text-[11px] text-indigo-400 dark:text-indigo-300 border border-indigo-500/40 px-2 py-0.5 rounded-full font-mono">WebHook</span>
+                  <span class="text-[11px] text-indigo-400 dark:text-indigo-300 border border-indigo-500/40 px-2 py-0.5 rounded-full font-sans num-bidi">WebHook</span>
                 </div>
               </div>
               <div>
                 <label class="text-[11px] text-slate-400 block mb-1">کلید امنیتی وب‌هوک (Secret Token):</label>
-                <input type="text" id="settingSmsWebhookSecret" dir="ltr" placeholder="یک کلمه عبور قوی برای وب‌هوک..." class="w-full card-inset border border-slate-700/80 rounded-xl px-3 py-2 text-xs font-mono text-cyan-600 dark:text-cyan-300 outline-none focus:border-indigo-500 transition" />
+                <input type="text" id="settingSmsWebhookSecret" dir="ltr" placeholder="یک کلمه عبور قوی برای وب‌هوک..." class="w-full card-inset border border-slate-700/80 rounded-xl px-3 py-2 text-xs font-sans num-bidi text-cyan-600 dark:text-cyan-300 outline-none focus:border-indigo-500 transition" />
               </div>
               <div>
                 <label class="text-[11px] text-slate-400 block mb-1">آدرس وب‌هوک اختصاصی سرور (جهت ثبت در اپلیکیشن):</label>
                 <div class="flex items-center gap-1.5">
                   <button type="button" id="copySmsWebhookUrlBtn" onclick="window.copySmsWebhookUrl()" class="p-2 rounded-xl card-inset border border-indigo-500/40 text-indigo-400 hover:text-indigo-300 text-xs transition active:scale-95 flex items-center justify-center shrink-0" title="کپی آدرس وب‌هوک">📋</button>
-                  <input type="text" id="settingSmsWebhookUrlDisplay" readonly dir="ltr" class="w-full card-inset border border-slate-700/80 rounded-xl px-2.5 py-2 text-[10.5px] font-mono t-main select-all outline-none" value="" />
+                  <input type="text" id="settingSmsWebhookUrlDisplay" readonly dir="ltr" class="w-full card-inset border border-slate-700/80 rounded-xl px-2.5 py-2 text-[10.5px] font-sans num-bidi t-main select-all outline-none" value="" />
                 </div>
               </div>
               <p class="text-[10.5px] text-slate-400 leading-relaxed pt-1">
@@ -1150,36 +1150,36 @@
             <div class="grid grid-cols-2 gap-2.5">
               <div>
                 <label class="text-[11px] text-slate-400 block mb-1">نرخ تتر (تومان)</label>
-                <input type="number" id="settingUsdtRate" dir="ltr" placeholder="95000" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-2 text-xs font-mono text-emerald-300 outline-none focus:border-emerald-500 transition" />
+                <input type="number" id="settingUsdtRate" dir="ltr" placeholder="95000" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-2 text-xs font-sans num-bidi text-emerald-300 outline-none focus:border-emerald-500 transition" />
               </div>
               <div>
                 <label class="text-[11px] text-slate-400 block mb-1">نرخ TON (تومان)</label>
-                <input type="number" id="settingTonRate" dir="ltr" placeholder="0" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-2 text-xs font-mono text-cyan-300 outline-none focus:border-cyan-500 transition" />
+                <input type="number" id="settingTonRate" dir="ltr" placeholder="0" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-2 text-xs font-sans num-bidi text-cyan-300 outline-none focus:border-cyan-500 transition" />
               </div>
               <div>
                 <label class="text-[11px] text-slate-400 block mb-1">نرخ ترون TRX (تومان)</label>
-                <input type="number" id="settingTrxRate" dir="ltr" placeholder="0 (خودکار از نوبیتکس)" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-2 text-xs font-mono text-rose-300 outline-none focus:border-rose-500 transition" />
+                <input type="number" id="settingTrxRate" dir="ltr" placeholder="0 (خودکار از نوبیتکس)" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-2 text-xs font-sans num-bidi text-rose-300 outline-none focus:border-rose-500 transition" />
               </div>
               <div>
                 <label class="text-[11px] text-slate-400 block mb-1">نرخ هر استارز (تومان)</label>
-                <input type="number" id="settingStarsRate" dir="ltr" placeholder="1500" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-2 text-xs font-mono text-amber-300 outline-none focus:border-amber-500 transition" />
+                <input type="number" id="settingStarsRate" dir="ltr" placeholder="1500" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-2 text-xs font-sans num-bidi text-amber-300 outline-none focus:border-amber-500 transition" />
               </div>
               <div class="col-span-2">
                 <label class="text-[11px] text-slate-400 block mb-1">نرخ یورو (تومان)</label>
-                <input type="number" id="settingEurRate" dir="ltr" placeholder="105000" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-2 text-xs font-mono text-indigo-300 outline-none focus:border-indigo-500 transition" />
+                <input type="number" id="settingEurRate" dir="ltr" placeholder="105000" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-2 text-xs font-sans num-bidi text-indigo-300 outline-none focus:border-indigo-500 transition" />
               </div>
             </div>
 
             <!-- TON Wallet Address -->
             <div>
               <label class="text-[11px] text-slate-400 block mb-1">آدرس کیف پول TON</label>
-              <input type="text" id="settingTonWallet" dir="ltr" placeholder="UQ... یا EQ..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-slate-300 outline-none focus:border-blue-500 transition text-[11px]" />
+              <input type="text" id="settingTonWallet" dir="ltr" placeholder="UQ... یا EQ..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-sans num-bidi text-slate-300 outline-none focus:border-blue-500 transition text-[11px]" />
             </div>
 
             <!-- TRX Wallet Address -->
             <div>
               <label class="text-[11px] text-slate-400 block mb-1">آدرس کیف پول ترون (TRX - شبکه Tron)</label>
-              <input type="text" id="settingTrxWallet" dir="ltr" placeholder="T..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-slate-300 outline-none focus:border-rose-500 transition text-[11px]" />
+              <input type="text" id="settingTrxWallet" dir="ltr" placeholder="T..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-sans num-bidi text-slate-300 outline-none focus:border-rose-500 transition text-[11px]" />
             </div>
 
             <!-- Crypto Payment Switch -->
@@ -1265,11 +1265,11 @@
             <div class="grid grid-cols-2 gap-2">
               <div>
                 <label class="text-[11px] text-slate-400 block mb-1">حجم تست (GB)</label>
-                <input type="number" id="settingTrialTraffic" dir="ltr" placeholder="1" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-blue-300 outline-none focus:border-blue-500 transition" />
+                <input type="number" id="settingTrialTraffic" dir="ltr" placeholder="1" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-sans num-bidi text-blue-300 outline-none focus:border-blue-500 transition" />
               </div>
               <div>
                 <label class="text-[11px] text-slate-400 block mb-1">اعتبار تست (روز)</label>
-                <input type="number" id="settingTrialDays" dir="ltr" placeholder="1" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-blue-300 outline-none focus:border-blue-500 transition" />
+                <input type="number" id="settingTrialDays" dir="ltr" placeholder="1" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-sans num-bidi text-blue-300 outline-none focus:border-blue-500 transition" />
               </div>
             </div>
 
@@ -1289,7 +1289,7 @@
 
             <div>
               <label class="text-[11px] text-slate-400 block mb-1">پاداش دعوت (GB)</label>
-              <input type="number" id="settingRefReward" dir="ltr" placeholder="5" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-purple-300 outline-none focus:border-purple-500 transition" />
+              <input type="number" id="settingRefReward" dir="ltr" placeholder="5" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-sans num-bidi text-purple-300 outline-none focus:border-purple-500 transition" />
             </div>
 
             <!-- Default Store & Trial Squad Custom Selector -->
@@ -1344,7 +1344,7 @@
               </div>
               <div class="pt-1">
                 <label class="text-[11px] text-slate-400 block mb-1">آیدی یا لینک کانال تلگرام</label>
-                <input type="text" id="settingJoinGateChannel" dir="ltr" placeholder="@MyChannel" class="w-full card-inset border border-slate-700/80 rounded-xl px-3 py-2 text-xs font-mono text-cyan-600 dark:text-cyan-300 text-left outline-none focus:border-cyan-500 transition" />
+                <input type="text" id="settingJoinGateChannel" dir="ltr" placeholder="@MyChannel" class="w-full card-inset border border-slate-700/80 rounded-xl px-3 py-2 text-xs font-sans num-bidi text-cyan-600 dark:text-cyan-300 text-left outline-none focus:border-cyan-500 transition" />
               </div>
             </div>
           </div>
@@ -1371,43 +1371,43 @@
             <div class="grid grid-cols-2 gap-2">
               <div>
                 <label class="text-[10.5px] t-muted block mb-0.5 font-medium truncate">💳 تاپیک فیش‌های واریزی</label>
-                <input type="text" id="settingTopicTopups" data-topic-label="Topups" dir="ltr" placeholder="مثلاً: 2" class="w-full card-inset rounded-lg px-2 py-1 text-[11px] font-mono font-medium text-cyan-700 dark:text-cyan-300 outline-none focus:border-cyan-500 transition placeholder:text-[11px]" />
+                <input type="text" id="settingTopicTopups" data-topic-label="Topups" dir="ltr" placeholder="مثلاً: 2" class="w-full card-inset rounded-lg px-2 py-1 text-[11px] font-sans num-bidi font-medium text-cyan-700 dark:text-cyan-300 outline-none focus:border-cyan-500 transition placeholder:text-[11px]" />
               </div>
               <div>
                 <label class="text-[10.5px] t-muted block mb-0.5 font-medium truncate">🛒 تاپیک سفارشات و خرید</label>
-                <input type="text" id="settingTopicOrders" data-topic-label="Orders" dir="ltr" placeholder="مثلاً: 3" class="w-full card-inset rounded-lg px-2 py-1 text-[11px] font-mono font-medium t-success outline-none focus:border-emerald-500 transition placeholder:text-[11px]" />
+                <input type="text" id="settingTopicOrders" data-topic-label="Orders" dir="ltr" placeholder="مثلاً: 3" class="w-full card-inset rounded-lg px-2 py-1 text-[11px] font-sans num-bidi font-medium t-success outline-none focus:border-emerald-500 transition placeholder:text-[11px]" />
               </div>
               <div>
                 <label class="text-[10.5px] t-muted block mb-0.5 font-medium truncate">💬 تاپیک پشتیبانی و تیکت</label>
-                <input type="text" id="settingTopicSupport" data-topic-label="Support" dir="ltr" placeholder="مثلاً: 4" class="w-full card-inset rounded-lg px-2 py-1 text-[11px] font-mono font-medium text-blue-700 dark:text-blue-300 outline-none focus:border-blue-500 transition placeholder:text-[11px]" />
+                <input type="text" id="settingTopicSupport" data-topic-label="Support" dir="ltr" placeholder="مثلاً: 4" class="w-full card-inset rounded-lg px-2 py-1 text-[11px] font-sans num-bidi font-medium text-blue-700 dark:text-blue-300 outline-none focus:border-blue-500 transition placeholder:text-[11px]" />
               </div>
               <div>
                 <label class="text-[10.5px] t-muted block mb-0.5 font-medium truncate">⚡ تاپیک هشدارهای سیستم</label>
-                <input type="text" id="settingTopicAlerts" data-topic-label="Alerts" dir="ltr" placeholder="مثلاً: 5" class="w-full card-inset rounded-lg px-2 py-1 text-[11px] font-mono font-medium text-amber-700 dark:text-amber-300 outline-none focus:border-amber-500 transition placeholder:text-[11px]" />
+                <input type="text" id="settingTopicAlerts" data-topic-label="Alerts" dir="ltr" placeholder="مثلاً: 5" class="w-full card-inset rounded-lg px-2 py-1 text-[11px] font-sans num-bidi font-medium text-amber-700 dark:text-amber-300 outline-none focus:border-amber-500 transition placeholder:text-[11px]" />
               </div>
               <div>
                 <label class="text-[10.5px] t-muted block mb-0.5 font-medium truncate">💾 تاپیک بکاپ دیتابیس</label>
-                <input type="text" id="settingTopicBackups" data-topic-label="Backups" dir="ltr" placeholder="مثلاً: 12" class="w-full card-inset rounded-lg px-2 py-1 text-[11px] font-mono font-medium t-success outline-none focus:border-emerald-500 transition placeholder:text-[11px]" />
+                <input type="text" id="settingTopicBackups" data-topic-label="Backups" dir="ltr" placeholder="مثلاً: 12" class="w-full card-inset rounded-lg px-2 py-1 text-[11px] font-sans num-bidi font-medium t-success outline-none focus:border-emerald-500 transition placeholder:text-[11px]" />
               </div>
               <div>
                 <label class="text-[10.5px] t-muted block mb-0.5 font-medium truncate">🖥️ تاپیک وضعیت سرورها</label>
-                <input type="text" id="settingTopicNodes" data-topic-label="Nodes" dir="ltr" placeholder="مثلاً: 6" class="w-full card-inset rounded-lg px-2 py-1 text-[11px] font-mono font-medium t-success outline-none focus:border-emerald-500 transition placeholder:text-[11px]" />
+                <input type="text" id="settingTopicNodes" data-topic-label="Nodes" dir="ltr" placeholder="مثلاً: 6" class="w-full card-inset rounded-lg px-2 py-1 text-[11px] font-sans num-bidi font-medium t-success outline-none focus:border-emerald-500 transition placeholder:text-[11px]" />
               </div>
               <div>
                 <label class="text-[10.5px] t-muted block mb-0.5 font-medium truncate">📊 تاپیک گزارش‌های مدیریتی</label>
-                <input type="text" id="settingTopicReports" data-topic-label="Reports" dir="ltr" placeholder="مثلاً: 7" class="w-full card-inset rounded-lg px-2 py-1 text-[11px] font-mono font-medium text-cyan-700 dark:text-cyan-300 outline-none focus:border-cyan-500 transition placeholder:text-[11px]" />
+                <input type="text" id="settingTopicReports" data-topic-label="Reports" dir="ltr" placeholder="مثلاً: 7" class="w-full card-inset rounded-lg px-2 py-1 text-[11px] font-sans num-bidi font-medium text-cyan-700 dark:text-cyan-300 outline-none focus:border-cyan-500 transition placeholder:text-[11px]" />
               </div>
               <div>
                 <label class="text-[10.5px] t-muted block mb-0.5 font-medium truncate">🪙 تاپیک پرداخت کریپتو</label>
-                <input type="text" id="settingTopicCrypto" data-topic-label="Crypto" dir="ltr" placeholder="مثلاً: 8" class="w-full card-inset rounded-lg px-2 py-1 text-[11px] font-mono font-medium text-purple-700 dark:text-purple-300 outline-none focus:border-purple-500 transition placeholder:text-[11px]" />
+                <input type="text" id="settingTopicCrypto" data-topic-label="Crypto" dir="ltr" placeholder="مثلاً: 8" class="w-full card-inset rounded-lg px-2 py-1 text-[11px] font-sans num-bidi font-medium text-purple-700 dark:text-purple-300 outline-none focus:border-purple-500 transition placeholder:text-[11px]" />
               </div>
               <div>
                 <label class="text-[10.5px] t-muted block mb-0.5 font-medium truncate">⚠️ تاپیک لاگ و خطای سیستم</label>
-                <input type="text" id="settingTopicErrors" data-topic-label="Errors" dir="ltr" placeholder="مثلاً: 9" class="w-full card-inset rounded-lg px-2 py-1 text-[11px] font-mono font-medium t-danger outline-none focus:border-rose-500 transition placeholder:text-[11px]" />
+                <input type="text" id="settingTopicErrors" data-topic-label="Errors" dir="ltr" placeholder="مثلاً: 9" class="w-full card-inset rounded-lg px-2 py-1 text-[11px] font-sans num-bidi font-medium t-danger outline-none focus:border-rose-500 transition placeholder:text-[11px]" />
               </div>
               <div>
                 <label class="text-[10.5px] t-muted block mb-0.5 font-medium truncate">📥 تاپیک ثبت دستی پیامک بانک</label>
-                <input type="text" id="settingTopicSmsManual" data-topic-label="SmsManual" dir="ltr" placeholder="مثلاً: 15" class="w-full card-inset rounded-lg px-2 py-1 text-[11px] font-mono font-medium t-warn outline-none focus:border-amber-500 transition placeholder:text-[11px]" />
+                <input type="text" id="settingTopicSmsManual" data-topic-label="SmsManual" dir="ltr" placeholder="مثلاً: 15" class="w-full card-inset rounded-lg px-2 py-1 text-[11px] font-sans num-bidi font-medium t-warn outline-none focus:border-amber-500 transition placeholder:text-[11px]" />
               </div>
             </div>
             <!-- Auto Clean Previous Reports Switch -->
@@ -1499,16 +1499,16 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   <div>
                     <label class="text-[11px] text-slate-400 block mb-1">نسخه نرم‌افزار (Version):</label>
-                    <input type="text" id="appVersion_ios_shadowrocket" dir="ltr" placeholder="پیش‌فرض: 2.2.62" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-amber-300 outline-none focus:border-cyan-500 transition" />
+                    <input type="text" id="appVersion_ios_shadowrocket" dir="ltr" placeholder="پیش‌فرض: 2.2.62" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-amber-300 outline-none focus:border-cyan-500 transition" />
                   </div>
                   <div>
                     <label class="text-[11px] text-slate-400 block mb-1">لینک آموزش (اختیاری):</label>
-                    <input type="text" id="appTutorial_ios_shadowrocket" dir="ltr" placeholder="مثلاً: https://t.me/..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-emerald-300 outline-none focus:border-emerald-500 transition" />
+                    <input type="text" id="appTutorial_ios_shadowrocket" dir="ltr" placeholder="مثلاً: https://t.me/..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-emerald-300 outline-none focus:border-emerald-500 transition" />
                   </div>
                 </div>
                 <div>
                   <label class="text-[11px] text-slate-400 block mb-1">لینک دانلود نرم‌افزار (اپ‌استور):</label>
-                  <input type="text" id="appDownload_ios_shadowrocket" dir="ltr" placeholder="پیش‌فرض خالی (عدم نمایش)" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-cyan-300 outline-none focus:border-cyan-500 transition" />
+                  <input type="text" id="appDownload_ios_shadowrocket" dir="ltr" placeholder="پیش‌فرض خالی (عدم نمایش)" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-cyan-300 outline-none focus:border-cyan-500 transition" />
                 </div>
               </div>
 
@@ -1524,16 +1524,16 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   <div>
                     <label class="text-[11px] text-slate-400 block mb-1">نسخه نرم‌افزار (Version):</label>
-                    <input type="text" id="appVersion_ios_streisand" dir="ltr" placeholder="پیش‌فرض: 1.9.2" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-amber-300 outline-none focus:border-cyan-500 transition" />
+                    <input type="text" id="appVersion_ios_streisand" dir="ltr" placeholder="پیش‌فرض: 1.9.2" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-amber-300 outline-none focus:border-cyan-500 transition" />
                   </div>
                   <div>
                     <label class="text-[11px] text-slate-400 block mb-1">لینک آموزش (اختیاری):</label>
-                    <input type="text" id="appTutorial_ios_streisand" dir="ltr" placeholder="مثلاً: https://t.me/..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-emerald-300 outline-none focus:border-emerald-500 transition" />
+                    <input type="text" id="appTutorial_ios_streisand" dir="ltr" placeholder="مثلاً: https://t.me/..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-emerald-300 outline-none focus:border-emerald-500 transition" />
                   </div>
                 </div>
                 <div>
                   <label class="text-[11px] text-slate-400 block mb-1">لینک دانلود نرم‌افزار (اپ‌استور):</label>
-                  <input type="text" id="appDownload_ios_streisand" dir="ltr" placeholder="پیش‌فرض خالی (عدم نمایش)" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-cyan-300 outline-none focus:border-cyan-500 transition" />
+                  <input type="text" id="appDownload_ios_streisand" dir="ltr" placeholder="پیش‌فرض خالی (عدم نمایش)" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-cyan-300 outline-none focus:border-cyan-500 transition" />
                 </div>
               </div>
 
@@ -1548,15 +1548,15 @@
                 </div>
                 <div>
                   <label class="text-[11px] text-slate-400 block mb-1">لینک دانلود نرم‌افزار (اپ‌استور):</label>
-                  <input type="text" id="appDownload_ios_v2box" dir="ltr" placeholder="پیش‌فرض خالی (عدم نمایش)" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-cyan-300 outline-none focus:border-cyan-500 transition" />
+                  <input type="text" id="appDownload_ios_v2box" dir="ltr" placeholder="پیش‌فرض خالی (عدم نمایش)" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-cyan-300 outline-none focus:border-cyan-500 transition" />
                 </div>
                 <div>
                   <label class="text-[11px] text-slate-400 block mb-1">لینک آموزش (اختیاری):</label>
-                  <input type="text" id="appTutorial_ios_v2box" dir="ltr" placeholder="مثلاً: https://t.me/..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-emerald-300 outline-none focus:border-emerald-500 transition" />
+                  <input type="text" id="appTutorial_ios_v2box" dir="ltr" placeholder="مثلاً: https://t.me/..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-emerald-300 outline-none focus:border-emerald-500 transition" />
                 </div>
                 <div>
                   <label class="text-[11px] text-slate-400 block mb-1">نسخه نرم‌افزار (Version):</label>
-                  <input type="text" id="appVersion_ios_v2box" dir="ltr" placeholder="پیش‌فرض: 2.4.1" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-amber-300 outline-none focus:border-cyan-500 transition" />
+                  <input type="text" id="appVersion_ios_v2box" dir="ltr" placeholder="پیش‌فرض: 2.4.1" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-amber-300 outline-none focus:border-cyan-500 transition" />
                 </div>
               </div>
 
@@ -1571,15 +1571,15 @@
                 </div>
                 <div>
                   <label class="text-[11px] text-slate-400 block mb-1">لینک دانلود نرم‌افزار (اپ‌استور):</label>
-                  <input type="text" id="appDownload_ios_incy" dir="ltr" placeholder="پیش‌فرض خالی (عدم نمایش)" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-cyan-300 outline-none focus:border-cyan-500 transition" />
+                  <input type="text" id="appDownload_ios_incy" dir="ltr" placeholder="پیش‌فرض خالی (عدم نمایش)" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-cyan-300 outline-none focus:border-cyan-500 transition" />
                 </div>
                 <div>
                   <label class="text-[11px] text-slate-400 block mb-1">لینک آموزش (اختیاری):</label>
-                  <input type="text" id="appTutorial_ios_incy" dir="ltr" placeholder="مثلاً: https://t.me/..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-emerald-300 outline-none focus:border-emerald-500 transition" />
+                  <input type="text" id="appTutorial_ios_incy" dir="ltr" placeholder="مثلاً: https://t.me/..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-emerald-300 outline-none focus:border-emerald-500 transition" />
                 </div>
                 <div>
                   <label class="text-[11px] text-slate-400 block mb-1">نسخه نرم‌افزار (Version):</label>
-                  <input type="text" id="appVersion_ios_incy" dir="ltr" placeholder="پیش‌فرض: 1.0.8" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-amber-300 outline-none focus:border-cyan-500 transition" />
+                  <input type="text" id="appVersion_ios_incy" dir="ltr" placeholder="پیش‌فرض: 1.0.8" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-amber-300 outline-none focus:border-cyan-500 transition" />
                 </div>
               </div>
 
@@ -1594,15 +1594,15 @@
                 </div>
                 <div>
                   <label class="text-[11px] text-slate-400 block mb-1">لینک دانلود نرم‌افزار (اپ‌استور):</label>
-                  <input type="text" id="appDownload_ios_happ" dir="ltr" placeholder="پیش‌فرض خالی (عدم نمایش)" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-cyan-300 outline-none focus:border-cyan-500 transition" />
+                  <input type="text" id="appDownload_ios_happ" dir="ltr" placeholder="پیش‌فرض خالی (عدم نمایش)" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-cyan-300 outline-none focus:border-cyan-500 transition" />
                 </div>
                 <div>
                   <label class="text-[11px] text-slate-400 block mb-1">لینک آموزش (اختیاری):</label>
-                  <input type="text" id="appTutorial_ios_happ" dir="ltr" placeholder="مثلاً: https://t.me/..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-emerald-300 outline-none focus:border-emerald-500 transition" />
+                  <input type="text" id="appTutorial_ios_happ" dir="ltr" placeholder="مثلاً: https://t.me/..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-emerald-300 outline-none focus:border-emerald-500 transition" />
                 </div>
                 <div>
                   <label class="text-[11px] text-slate-400 block mb-1">نسخه نرم‌افزار (Version):</label>
-                  <input type="text" id="appVersion_ios_happ" dir="ltr" placeholder="پیش‌فرض: 3.1.2" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-amber-300 outline-none focus:border-cyan-500 transition" />
+                  <input type="text" id="appVersion_ios_happ" dir="ltr" placeholder="پیش‌فرض: 3.1.2" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-amber-300 outline-none focus:border-cyan-500 transition" />
                 </div>
               </div>
 
@@ -1617,15 +1617,15 @@
                 </div>
                 <div>
                   <label class="text-[11px] text-slate-400 block mb-1">لینک دانلود نرم‌افزار (اپ‌استور):</label>
-                  <input type="text" id="appDownload_ios_onexray" dir="ltr" placeholder="https://apps.apple.com/us/app/onexray/id6745748773" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-cyan-300 outline-none focus:border-cyan-500 transition" />
+                  <input type="text" id="appDownload_ios_onexray" dir="ltr" placeholder="https://apps.apple.com/us/app/onexray/id6745748773" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-cyan-300 outline-none focus:border-cyan-500 transition" />
                 </div>
                 <div>
                   <label class="text-[11px] text-slate-400 block mb-1">لینک آموزش (اختیاری):</label>
-                  <input type="text" id="appTutorial_ios_onexray" dir="ltr" placeholder="مثلاً: https://t.me/..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-emerald-300 outline-none focus:border-emerald-500 transition" />
+                  <input type="text" id="appTutorial_ios_onexray" dir="ltr" placeholder="مثلاً: https://t.me/..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-emerald-300 outline-none focus:border-emerald-500 transition" />
                 </div>
                 <div>
                   <label class="text-[11px] text-slate-400 block mb-1">نسخه نرم‌افزار (Version):</label>
-                  <input type="text" id="appVersion_ios_onexray" dir="ltr" placeholder="پیش‌فرض: 1.4.2" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-amber-300 outline-none focus:border-cyan-500 transition" />
+                  <input type="text" id="appVersion_ios_onexray" dir="ltr" placeholder="پیش‌فرض: 1.4.2" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-amber-300 outline-none focus:border-cyan-500 transition" />
                 </div>
               </div>
             </div>
@@ -1653,15 +1653,15 @@
                 </div>
                 <div>
                   <label class="text-[11px] text-slate-400 block mb-1">لینک دانلود نرم‌افزار (گوگل‌پلی):</label>
-                  <input type="text" id="appDownload_android_v2rayng" dir="ltr" placeholder="پیش‌فرض خالی (عدم نمایش)" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-cyan-300 outline-none focus:border-cyan-500 transition" />
+                  <input type="text" id="appDownload_android_v2rayng" dir="ltr" placeholder="پیش‌فرض خالی (عدم نمایش)" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-cyan-300 outline-none focus:border-cyan-500 transition" />
                 </div>
                 <div>
                   <label class="text-[11px] text-slate-400 block mb-1">لینک دانلود گیت‌هاب / مستقیم (اختیاری):</label>
-                  <input type="text" id="appDownloadExtra_android_v2rayng" dir="ltr" placeholder="مثلاً لینک گیت‌هاب یا فایل apk" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-purple-300 outline-none focus:border-purple-500 transition" />
+                  <input type="text" id="appDownloadExtra_android_v2rayng" dir="ltr" placeholder="مثلاً لینک گیت‌هاب یا فایل apk" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-purple-300 outline-none focus:border-purple-500 transition" />
                 </div>
                 <div>
                   <label class="text-[11px] text-slate-400 block mb-1">لینک پست آموزش v2rayNG (اختیاری):</label>
-                  <input type="text" id="appTutorial_android_v2rayng" dir="ltr" placeholder="مثلاً: https://t.me/..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-emerald-300 outline-none focus:border-emerald-500 transition" />
+                  <input type="text" id="appTutorial_android_v2rayng" dir="ltr" placeholder="مثلاً: https://t.me/..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-emerald-300 outline-none focus:border-emerald-500 transition" />
                 </div>
                 <div>
                   <div class="flex items-center justify-between mb-1">
@@ -1670,7 +1670,7 @@
                       <span>🐙</span><span>گیت‌هاب</span>
                     </button>
                   </div>
-                  <input type="text" id="appVersion_android_v2rayng" dir="ltr" placeholder="پیش‌فرض: 1.9.15" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-amber-300 outline-none focus:border-cyan-500 transition" />
+                  <input type="text" id="appVersion_android_v2rayng" dir="ltr" placeholder="پیش‌فرض: 1.9.15" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-amber-300 outline-none focus:border-cyan-500 transition" />
                 </div>
               </div>
 
@@ -1682,15 +1682,15 @@
                 </div>
                 <div>
                   <label class="text-[11px] text-slate-400 block mb-1">لینک دانلود نرم‌افزار (گوگل‌پلی):</label>
-                  <input type="text" id="appDownload_android_happ" dir="ltr" placeholder="پیش‌فرض خالی (عدم نمایش)" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-cyan-300 outline-none focus:border-cyan-500 transition" />
+                  <input type="text" id="appDownload_android_happ" dir="ltr" placeholder="پیش‌فرض خالی (عدم نمایش)" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-cyan-300 outline-none focus:border-cyan-500 transition" />
                 </div>
                 <div>
                   <label class="text-[11px] text-slate-400 block mb-1">لینک دانلود گیت‌هاب / مستقیم (اختیاری):</label>
-                  <input type="text" id="appDownloadExtra_android_happ" dir="ltr" placeholder="مثلاً لینک گیت‌هاب یا فایل apk" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-purple-300 outline-none focus:border-purple-500 transition" />
+                  <input type="text" id="appDownloadExtra_android_happ" dir="ltr" placeholder="مثلاً لینک گیت‌هاب یا فایل apk" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-purple-300 outline-none focus:border-purple-500 transition" />
                 </div>
                 <div>
                   <label class="text-[11px] text-slate-400 block mb-1">لینک پست آموزش Happ (اختیاری):</label>
-                  <input type="text" id="appTutorial_android_happ" dir="ltr" placeholder="مثلاً: https://t.me/..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-emerald-300 outline-none focus:border-emerald-500 transition" />
+                  <input type="text" id="appTutorial_android_happ" dir="ltr" placeholder="مثلاً: https://t.me/..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-emerald-300 outline-none focus:border-emerald-500 transition" />
                 </div>
                 <div>
                   <div class="flex items-center justify-between mb-1">
@@ -1699,7 +1699,7 @@
                       <span>🐙</span><span>گیت‌هاب</span>
                     </button>
                   </div>
-                  <input type="text" id="appVersion_android_happ" dir="ltr" placeholder="پیش‌فرض: 3.1.2" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-amber-300 outline-none focus:border-cyan-500 transition" />
+                  <input type="text" id="appVersion_android_happ" dir="ltr" placeholder="پیش‌فرض: 3.1.2" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-amber-300 outline-none focus:border-cyan-500 transition" />
                 </div>
               </div>
 
@@ -1711,15 +1711,15 @@
                 </div>
                 <div>
                   <label class="text-[11px] text-slate-400 block mb-1">لینک دانلود نرم‌افزار (گوگل‌پلی):</label>
-                  <input type="text" id="appDownload_android_hiddify" dir="ltr" placeholder="پیش‌فرض خالی (عدم نمایش)" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-cyan-300 outline-none focus:border-cyan-500 transition" />
+                  <input type="text" id="appDownload_android_hiddify" dir="ltr" placeholder="پیش‌فرض خالی (عدم نمایش)" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-cyan-300 outline-none focus:border-cyan-500 transition" />
                 </div>
                 <div>
                   <label class="text-[11px] text-slate-400 block mb-1">لینک دانلود گیت‌هاب / مستقیم (اختیاری):</label>
-                  <input type="text" id="appDownloadExtra_android_hiddify" dir="ltr" placeholder="مثلاً لینک گیت‌هاب یا فایل apk" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-purple-300 outline-none focus:border-purple-500 transition" />
+                  <input type="text" id="appDownloadExtra_android_hiddify" dir="ltr" placeholder="مثلاً لینک گیت‌هاب یا فایل apk" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-purple-300 outline-none focus:border-purple-500 transition" />
                 </div>
                 <div>
                   <label class="text-[11px] text-slate-400 block mb-1">لینک پست آموزش Hiddify (اختیاری):</label>
-                  <input type="text" id="appTutorial_android_hiddify" dir="ltr" placeholder="مثلاً: https://t.me/..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-emerald-300 outline-none focus:border-emerald-500 transition" />
+                  <input type="text" id="appTutorial_android_hiddify" dir="ltr" placeholder="مثلاً: https://t.me/..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-emerald-300 outline-none focus:border-emerald-500 transition" />
                 </div>
                 <div>
                   <div class="flex items-center justify-between mb-1">
@@ -1728,7 +1728,7 @@
                       <span>🐙</span><span>گیت‌هاب</span>
                     </button>
                   </div>
-                  <input type="text" id="appVersion_android_hiddify" dir="ltr" placeholder="پیش‌فرض: 2.5.7" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-amber-300 outline-none focus:border-cyan-500 transition" />
+                  <input type="text" id="appVersion_android_hiddify" dir="ltr" placeholder="پیش‌فرض: 2.5.7" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-amber-300 outline-none focus:border-cyan-500 transition" />
                 </div>
               </div>
 
@@ -1740,19 +1740,19 @@
                 </div>
                 <div>
                   <label class="text-[11px] text-slate-400 block mb-1">لینک دانلود نرم‌افزار (گوگل‌پلی):</label>
-                  <input type="text" id="appDownload_android_incy" dir="ltr" placeholder="پیش‌فرض خالی (عدم نمایش)" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-cyan-300 outline-none focus:border-cyan-500 transition" />
+                  <input type="text" id="appDownload_android_incy" dir="ltr" placeholder="پیش‌فرض خالی (عدم نمایش)" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-cyan-300 outline-none focus:border-cyan-500 transition" />
                 </div>
                 <div>
                   <label class="text-[11px] text-slate-400 block mb-1">لینک دانلود گیت‌هاب / مستقیم (اختیاری):</label>
-                  <input type="text" id="appDownloadExtra_android_incy" dir="ltr" placeholder="مثلاً لینک گیت‌هاب یا فایل apk" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-purple-300 outline-none focus:border-purple-500 transition" />
+                  <input type="text" id="appDownloadExtra_android_incy" dir="ltr" placeholder="مثلاً لینک گیت‌هاب یا فایل apk" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-purple-300 outline-none focus:border-purple-500 transition" />
                 </div>
                 <div>
                   <label class="text-[11px] text-slate-400 block mb-1">لینک پست آموزش Incy (اختیاری):</label>
-                  <input type="text" id="appTutorial_android_incy" dir="ltr" placeholder="مثلاً: https://t.me/..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-emerald-300 outline-none focus:border-emerald-500 transition" />
+                  <input type="text" id="appTutorial_android_incy" dir="ltr" placeholder="مثلاً: https://t.me/..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-emerald-300 outline-none focus:border-emerald-500 transition" />
                 </div>
                 <div>
                   <label class="text-[11px] text-slate-400 block mb-1">نسخه نرم‌افزار (Version):</label>
-                  <input type="text" id="appVersion_android_incy" dir="ltr" placeholder="پیش‌فرض: 1.0.8" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-amber-300 outline-none focus:border-cyan-500 transition" />
+                  <input type="text" id="appVersion_android_incy" dir="ltr" placeholder="پیش‌فرض: 1.0.8" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-amber-300 outline-none focus:border-cyan-500 transition" />
                 </div>
               </div>
             </div>
@@ -1780,15 +1780,15 @@
                 </div>
                 <div>
                   <label class="text-[11px] text-slate-400 block mb-1">لینک دانلود نسخه اصلی / نصبی (Setup):</label>
-                  <input type="text" id="appDownload_windows_v2rayn" dir="ltr" placeholder="پیش‌فرض خالی (عدم نمایش)" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-cyan-300 outline-none focus:border-cyan-500 transition" />
+                  <input type="text" id="appDownload_windows_v2rayn" dir="ltr" placeholder="پیش‌فرض خالی (عدم نمایش)" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-cyan-300 outline-none focus:border-cyan-500 transition" />
                 </div>
                 <div>
                   <label class="text-[11px] text-amber-300 block mb-1">💼 لینک دانلود نسخه پرتابل (Portable - بدون نیاز به نصب):</label>
-                  <input type="text" id="appDownloadPortable_windows_v2rayn" dir="ltr" placeholder="مثلاً: https://github.com/.../v2rayN-portable.zip" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-amber-300 outline-none focus:border-amber-500 transition" />
+                  <input type="text" id="appDownloadPortable_windows_v2rayn" dir="ltr" placeholder="مثلاً: https://github.com/.../v2rayN-portable.zip" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-amber-300 outline-none focus:border-amber-500 transition" />
                 </div>
                 <div>
                   <label class="text-[11px] text-slate-400 block mb-1">لینک پست آموزش v2rayN (اختیاری):</label>
-                  <input type="text" id="appTutorial_windows_v2rayn" dir="ltr" placeholder="مثلاً: https://t.me/..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-emerald-300 outline-none focus:border-emerald-500 transition" />
+                  <input type="text" id="appTutorial_windows_v2rayn" dir="ltr" placeholder="مثلاً: https://t.me/..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-emerald-300 outline-none focus:border-emerald-500 transition" />
                 </div>
                 <div>
                   <div class="flex items-center justify-between mb-1">
@@ -1797,7 +1797,7 @@
                       <span>🐙</span><span>گیت‌هاب</span>
                     </button>
                   </div>
-                  <input type="text" id="appVersion_windows_v2rayn" dir="ltr" placeholder="پیش‌فرض: 7.1.4" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-amber-300 outline-none focus:border-cyan-500 transition" />
+                  <input type="text" id="appVersion_windows_v2rayn" dir="ltr" placeholder="پیش‌فرض: 7.1.4" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-amber-300 outline-none focus:border-cyan-500 transition" />
                 </div>
               </div>
 
@@ -1809,15 +1809,15 @@
                 </div>
                 <div>
                   <label class="text-[11px] text-slate-400 block mb-1">لینک دانلود نسخه اصلی / نصبی (Setup):</label>
-                  <input type="text" id="appDownload_windows_hiddify" dir="ltr" placeholder="پیش‌فرض خالی (عدم نمایش)" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-cyan-300 outline-none focus:border-cyan-500 transition" />
+                  <input type="text" id="appDownload_windows_hiddify" dir="ltr" placeholder="پیش‌فرض خالی (عدم نمایش)" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-cyan-300 outline-none focus:border-cyan-500 transition" />
                 </div>
                 <div>
                   <label class="text-[11px] text-amber-300 block mb-1">💼 لینک دانلود نسخه پرتابل (Portable - بدون نیاز به نصب):</label>
-                  <input type="text" id="appDownloadPortable_windows_hiddify" dir="ltr" placeholder="لینک نسخه بدون نصب" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-amber-300 outline-none focus:border-amber-500 transition" />
+                  <input type="text" id="appDownloadPortable_windows_hiddify" dir="ltr" placeholder="لینک نسخه بدون نصب" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-amber-300 outline-none focus:border-amber-500 transition" />
                 </div>
                 <div>
                   <label class="text-[11px] text-slate-400 block mb-1">لینک پست آموزش Hiddify (اختیاری):</label>
-                  <input type="text" id="appTutorial_windows_hiddify" dir="ltr" placeholder="مثلاً: https://t.me/..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-emerald-300 outline-none focus:border-emerald-500 transition" />
+                  <input type="text" id="appTutorial_windows_hiddify" dir="ltr" placeholder="مثلاً: https://t.me/..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-emerald-300 outline-none focus:border-emerald-500 transition" />
                 </div>
                 <div>
                   <div class="flex items-center justify-between mb-1">
@@ -1826,7 +1826,7 @@
                       <span>🐙</span><span>گیت‌هاب</span>
                     </button>
                   </div>
-                  <input type="text" id="appVersion_windows_hiddify" dir="ltr" placeholder="پیش‌فرض: 2.5.7" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-amber-300 outline-none focus:border-cyan-500 transition" />
+                  <input type="text" id="appVersion_windows_hiddify" dir="ltr" placeholder="پیش‌فرض: 2.5.7" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-amber-300 outline-none focus:border-cyan-500 transition" />
                 </div>
               </div>
 
@@ -1838,15 +1838,15 @@
                 </div>
                 <div>
                   <label class="text-[11px] text-slate-400 block mb-1">لینک دانلود نسخه اصلی / نصبی (Setup):</label>
-                  <input type="text" id="appDownload_windows_happ" dir="ltr" placeholder="پیش‌فرض خالی (عدم نمایش)" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-cyan-300 outline-none focus:border-cyan-500 transition" />
+                  <input type="text" id="appDownload_windows_happ" dir="ltr" placeholder="پیش‌فرض خالی (عدم نمایش)" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-cyan-300 outline-none focus:border-cyan-500 transition" />
                 </div>
                 <div>
                   <label class="text-[11px] text-amber-300 block mb-1">💼 لینک دانلود نسخه پرتابل (Portable - بدون نیاز به نصب):</label>
-                  <input type="text" id="appDownloadPortable_windows_happ" dir="ltr" placeholder="لینک نسخه بدون نصب" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-amber-300 outline-none focus:border-amber-500 transition" />
+                  <input type="text" id="appDownloadPortable_windows_happ" dir="ltr" placeholder="لینک نسخه بدون نصب" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-amber-300 outline-none focus:border-amber-500 transition" />
                 </div>
                 <div>
                   <label class="text-[11px] text-slate-400 block mb-1">لینک پست آموزش Happ (اختیاری):</label>
-                  <input type="text" id="appTutorial_windows_happ" dir="ltr" placeholder="مثلاً: https://t.me/..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-emerald-300 outline-none focus:border-emerald-500 transition" />
+                  <input type="text" id="appTutorial_windows_happ" dir="ltr" placeholder="مثلاً: https://t.me/..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-emerald-300 outline-none focus:border-emerald-500 transition" />
                 </div>
                 <div>
                   <div class="flex items-center justify-between mb-1">
@@ -1855,7 +1855,7 @@
                       <span>🐙</span><span>گیت‌هاب</span>
                     </button>
                   </div>
-                  <input type="text" id="appVersion_windows_happ" dir="ltr" placeholder="پیش‌فرض: 3.1.2" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-amber-300 outline-none focus:border-cyan-500 transition" />
+                  <input type="text" id="appVersion_windows_happ" dir="ltr" placeholder="پیش‌فرض: 3.1.2" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-amber-300 outline-none focus:border-cyan-500 transition" />
                 </div>
               </div>
 
@@ -1867,19 +1867,19 @@
                 </div>
                 <div>
                   <label class="text-[11px] text-slate-400 block mb-1">لینک دانلود نسخه اصلی / نصبی (Setup):</label>
-                  <input type="text" id="appDownload_windows_incy" dir="ltr" placeholder="پیش‌فرض خالی (عدم نمایش)" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-cyan-300 outline-none focus:border-cyan-500 transition" />
+                  <input type="text" id="appDownload_windows_incy" dir="ltr" placeholder="پیش‌فرض خالی (عدم نمایش)" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-cyan-300 outline-none focus:border-cyan-500 transition" />
                 </div>
                 <div>
                   <label class="text-[11px] text-amber-300 block mb-1">💼 لینک دانلود نسخه پرتابل (Portable - بدون نیاز به نصب):</label>
-                  <input type="text" id="appDownloadPortable_windows_incy" dir="ltr" placeholder="لینک نسخه بدون نصب" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-amber-300 outline-none focus:border-amber-500 transition" />
+                  <input type="text" id="appDownloadPortable_windows_incy" dir="ltr" placeholder="لینک نسخه بدون نصب" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-amber-300 outline-none focus:border-amber-500 transition" />
                 </div>
                 <div>
                   <label class="text-[11px] text-slate-400 block mb-1">لینک پست آموزش Incy (اختیاری):</label>
-                  <input type="text" id="appTutorial_windows_incy" dir="ltr" placeholder="مثلاً: https://t.me/..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-emerald-300 outline-none focus:border-emerald-500 transition" />
+                  <input type="text" id="appTutorial_windows_incy" dir="ltr" placeholder="مثلاً: https://t.me/..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-emerald-300 outline-none focus:border-emerald-500 transition" />
                 </div>
                 <div>
                   <label class="text-[11px] text-slate-400 block mb-1">نسخه نرم‌افزار (Version):</label>
-                  <input type="text" id="appVersion_windows_incy" dir="ltr" placeholder="پیش‌فرض: 1.0.8" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-amber-300 outline-none focus:border-cyan-500 transition" />
+                  <input type="text" id="appVersion_windows_incy" dir="ltr" placeholder="پیش‌فرض: 1.0.8" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-amber-300 outline-none focus:border-cyan-500 transition" />
                 </div>
               </div>
             </div>
@@ -1910,15 +1910,15 @@
                 </div>
                 <div>
                   <label class="text-[11px] text-slate-400 block mb-1">لینک دانلود نرم‌افزار (مک):</label>
-                  <input type="text" id="appDownload_macos_hiddify" dir="ltr" placeholder="پیش‌فرض خالی (عدم نمایش)" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-cyan-300 outline-none focus:border-cyan-500 transition" />
+                  <input type="text" id="appDownload_macos_hiddify" dir="ltr" placeholder="پیش‌فرض خالی (عدم نمایش)" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-cyan-300 outline-none focus:border-cyan-500 transition" />
                 </div>
                 <div>
                   <label class="text-[11px] text-slate-400 block mb-1">لینک آموزش (اختیاری):</label>
-                  <input type="text" id="appTutorial_macos_hiddify" dir="ltr" placeholder="مثلاً: https://t.me/..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-emerald-300 outline-none focus:border-emerald-500 transition" />
+                  <input type="text" id="appTutorial_macos_hiddify" dir="ltr" placeholder="مثلاً: https://t.me/..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-emerald-300 outline-none focus:border-emerald-500 transition" />
                 </div>
                 <div>
                   <label class="text-[11px] text-slate-400 block mb-1">نسخه نرم‌افزار (Version):</label>
-                  <input type="text" id="appVersion_macos_hiddify" dir="ltr" placeholder="پیش‌فرض: 2.5.7" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-amber-300 outline-none focus:border-cyan-500 transition" />
+                  <input type="text" id="appVersion_macos_hiddify" dir="ltr" placeholder="پیش‌فرض: 2.5.7" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-amber-300 outline-none focus:border-cyan-500 transition" />
                 </div>
               </div>
 
@@ -1933,15 +1933,15 @@
                 </div>
                 <div>
                   <label class="text-[11px] text-slate-400 block mb-1">لینک دانلود نرم‌افزار (اپ‌استور مک):</label>
-                  <input type="text" id="appDownload_macos_happ" dir="ltr" placeholder="پیش‌فرض خالی (عدم نمایش)" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-cyan-300 outline-none focus:border-cyan-500 transition" />
+                  <input type="text" id="appDownload_macos_happ" dir="ltr" placeholder="پیش‌فرض خالی (عدم نمایش)" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-cyan-300 outline-none focus:border-cyan-500 transition" />
                 </div>
                 <div>
                   <label class="text-[11px] text-slate-400 block mb-1">لینک آموزش (اختیاری):</label>
-                  <input type="text" id="appTutorial_macos_happ" dir="ltr" placeholder="مثلاً: https://t.me/..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-emerald-300 outline-none focus:border-emerald-500 transition" />
+                  <input type="text" id="appTutorial_macos_happ" dir="ltr" placeholder="مثلاً: https://t.me/..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-emerald-300 outline-none focus:border-emerald-500 transition" />
                 </div>
                 <div>
                   <label class="text-[11px] text-slate-400 block mb-1">نسخه نرم‌افزار (Version):</label>
-                  <input type="text" id="appVersion_macos_happ" dir="ltr" placeholder="پیش‌فرض: 3.1.2" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-amber-300 outline-none focus:border-cyan-500 transition" />
+                  <input type="text" id="appVersion_macos_happ" dir="ltr" placeholder="پیش‌فرض: 3.1.2" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-amber-300 outline-none focus:border-cyan-500 transition" />
                 </div>
               </div>
 
@@ -1956,15 +1956,15 @@
                 </div>
                 <div>
                   <label class="text-[11px] text-slate-400 block mb-1">لینک دانلود نرم‌افزار (اپ‌استور مک):</label>
-                  <input type="text" id="appDownload_macos_incy" dir="ltr" placeholder="پیش‌فرض خالی (عدم نمایش)" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-cyan-300 outline-none focus:border-cyan-500 transition" />
+                  <input type="text" id="appDownload_macos_incy" dir="ltr" placeholder="پیش‌فرض خالی (عدم نمایش)" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-cyan-300 outline-none focus:border-cyan-500 transition" />
                 </div>
                 <div>
                   <label class="text-[11px] text-slate-400 block mb-1">لینک آموزش (اختیاری):</label>
-                  <input type="text" id="appTutorial_macos_incy" dir="ltr" placeholder="مثلاً: https://t.me/..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-emerald-300 outline-none focus:border-emerald-500 transition" />
+                  <input type="text" id="appTutorial_macos_incy" dir="ltr" placeholder="مثلاً: https://t.me/..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-emerald-300 outline-none focus:border-emerald-500 transition" />
                 </div>
                 <div>
                   <label class="text-[11px] text-slate-400 block mb-1">نسخه نرم‌افزار (Version):</label>
-                  <input type="text" id="appVersion_macos_incy" dir="ltr" placeholder="پیش‌فرض: 1.0.8" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-amber-300 outline-none focus:border-cyan-500 transition" />
+                  <input type="text" id="appVersion_macos_incy" dir="ltr" placeholder="پیش‌فرض: 1.0.8" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-amber-300 outline-none focus:border-cyan-500 transition" />
                 </div>
               </div>
 
@@ -1979,15 +1979,15 @@
                 </div>
                 <div>
                   <label class="text-[11px] text-slate-400 block mb-1">لینک دانلود نرم‌افزار (اپ‌استور مک):</label>
-                  <input type="text" id="appDownload_macos_v2box" dir="ltr" placeholder="پیش‌فرض خالی (عدم نمایش)" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-cyan-300 outline-none focus:border-cyan-500 transition" />
+                  <input type="text" id="appDownload_macos_v2box" dir="ltr" placeholder="پیش‌فرض خالی (عدم نمایش)" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-cyan-300 outline-none focus:border-cyan-500 transition" />
                 </div>
                 <div>
                   <label class="text-[11px] text-slate-400 block mb-1">لینک آموزش (اختیاری):</label>
-                  <input type="text" id="appTutorial_macos_v2box" dir="ltr" placeholder="مثلاً: https://t.me/..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-emerald-300 outline-none focus:border-emerald-500 transition" />
+                  <input type="text" id="appTutorial_macos_v2box" dir="ltr" placeholder="مثلاً: https://t.me/..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-emerald-300 outline-none focus:border-emerald-500 transition" />
                 </div>
                 <div>
                   <label class="text-[11px] text-slate-400 block mb-1">نسخه نرم‌افزار (Version):</label>
-                  <input type="text" id="appVersion_macos_v2box" dir="ltr" placeholder="پیش‌فرض: 2.4.1" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-amber-300 outline-none focus:border-cyan-500 transition" />
+                  <input type="text" id="appVersion_macos_v2box" dir="ltr" placeholder="پیش‌فرض: 2.4.1" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-amber-300 outline-none focus:border-cyan-500 transition" />
                 </div>
               </div>
             </div>
@@ -2015,11 +2015,11 @@
                 </div>
                 <div>
                   <label class="text-[11px] text-slate-400 block mb-1">لینک دانلود نرم‌افزار (AppImage / DEB):</label>
-                  <input type="text" id="appDownload_linux_hiddify" dir="ltr" placeholder="پیش‌فرض خالی (عدم نمایش)" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-cyan-300 outline-none focus:border-cyan-500 transition" />
+                  <input type="text" id="appDownload_linux_hiddify" dir="ltr" placeholder="پیش‌فرض خالی (عدم نمایش)" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-cyan-300 outline-none focus:border-cyan-500 transition" />
                 </div>
                 <div>
                   <label class="text-[11px] text-slate-400 block mb-1">لینک پست آموزش Hiddify (اختیاری):</label>
-                  <input type="text" id="appTutorial_linux_hiddify" dir="ltr" placeholder="مثلاً: https://t.me/..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-emerald-300 outline-none focus:border-emerald-500 transition" />
+                  <input type="text" id="appTutorial_linux_hiddify" dir="ltr" placeholder="مثلاً: https://t.me/..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-emerald-300 outline-none focus:border-emerald-500 transition" />
                 </div>
                 <div>
                   <div class="flex items-center justify-between mb-1">
@@ -2028,7 +2028,7 @@
                       <span>🐙</span><span>گیت‌هاب</span>
                     </button>
                   </div>
-                  <input type="text" id="appVersion_linux_hiddify" dir="ltr" placeholder="پیش‌فرض: 2.5.7" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-amber-300 outline-none focus:border-cyan-500 transition" />
+                  <input type="text" id="appVersion_linux_hiddify" dir="ltr" placeholder="پیش‌فرض: 2.5.7" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-amber-300 outline-none focus:border-cyan-500 transition" />
                 </div>
               </div>
 
@@ -2040,11 +2040,11 @@
                 </div>
                 <div>
                   <label class="text-[11px] text-slate-400 block mb-1">لینک دانلود نرم‌افزار (گیت‌هاب):</label>
-                  <input type="text" id="appDownload_linux_nekoray" dir="ltr" placeholder="پیش‌فرض خالی (عدم نمایش)" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-cyan-300 outline-none focus:border-cyan-500 transition" />
+                  <input type="text" id="appDownload_linux_nekoray" dir="ltr" placeholder="پیش‌فرض خالی (عدم نمایش)" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-cyan-300 outline-none focus:border-cyan-500 transition" />
                 </div>
                 <div>
                   <label class="text-[11px] text-slate-400 block mb-1">لینک پست آموزش NekoRay (اختیاری):</label>
-                  <input type="text" id="appTutorial_linux_nekoray" dir="ltr" placeholder="مثلاً: https://t.me/..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-emerald-300 outline-none focus:border-emerald-500 transition" />
+                  <input type="text" id="appTutorial_linux_nekoray" dir="ltr" placeholder="مثلاً: https://t.me/..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-emerald-300 outline-none focus:border-emerald-500 transition" />
                 </div>
                 <div>
                   <div class="flex items-center justify-between mb-1">
@@ -2053,7 +2053,7 @@
                       <span>🐙</span><span>گیت‌هاب</span>
                     </button>
                   </div>
-                  <input type="text" id="appVersion_linux_nekoray" dir="ltr" placeholder="پیش‌فرض: 4.0.1" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-amber-300 outline-none focus:border-cyan-500 transition" />
+                  <input type="text" id="appVersion_linux_nekoray" dir="ltr" placeholder="پیش‌فرض: 4.0.1" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-amber-300 outline-none focus:border-cyan-500 transition" />
                 </div>
               </div>
 
@@ -2065,11 +2065,11 @@
                 </div>
                 <div>
                   <label class="text-[11px] text-slate-400 block mb-1">لینک دانلود / مخزن بسته نرم‌افزار:</label>
-                  <input type="text" id="appDownload_linux_v2raya" dir="ltr" placeholder="پیش‌فرض خالی (عدم نمایش)" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-cyan-300 outline-none focus:border-cyan-500 transition" />
+                  <input type="text" id="appDownload_linux_v2raya" dir="ltr" placeholder="پیش‌فرض خالی (عدم نمایش)" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-cyan-300 outline-none focus:border-cyan-500 transition" />
                 </div>
                 <div>
                   <label class="text-[11px] text-slate-400 block mb-1">لینک پست آموزش v2rayA (اختیاری):</label>
-                  <input type="text" id="appTutorial_linux_v2raya" dir="ltr" placeholder="مثلاً: https://t.me/..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-emerald-300 outline-none focus:border-emerald-500 transition" />
+                  <input type="text" id="appTutorial_linux_v2raya" dir="ltr" placeholder="مثلاً: https://t.me/..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-emerald-300 outline-none focus:border-emerald-500 transition" />
                 </div>
                 <div>
                   <div class="flex items-center justify-between mb-1">
@@ -2078,7 +2078,7 @@
                       <span>🐙</span><span>گیت‌هاب</span>
                     </button>
                   </div>
-                  <input type="text" id="appVersion_linux_v2raya" dir="ltr" placeholder="پیش‌فرض: 2.2.5" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-amber-300 outline-none focus:border-cyan-500 transition" />
+                  <input type="text" id="appVersion_linux_v2raya" dir="ltr" placeholder="پیش‌فرض: 2.2.5" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-amber-300 outline-none focus:border-cyan-500 transition" />
                 </div>
               </div>
 
@@ -2090,15 +2090,15 @@
                 </div>
                 <div>
                   <label class="text-[11px] text-slate-400 block mb-1">لینک دانلود نرم‌افزار:</label>
-                  <input type="text" id="appDownload_linux_incy" dir="ltr" placeholder="پیش‌فرض خالی (عدم نمایش)" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-cyan-300 outline-none focus:border-cyan-500 transition" />
+                  <input type="text" id="appDownload_linux_incy" dir="ltr" placeholder="پیش‌فرض خالی (عدم نمایش)" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-cyan-300 outline-none focus:border-cyan-500 transition" />
                 </div>
                 <div>
                   <label class="text-[11px] text-slate-400 block mb-1">لینک پست آموزش Incy (اختیاری):</label>
-                  <input type="text" id="appTutorial_linux_incy" dir="ltr" placeholder="مثلاً: https://t.me/..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-emerald-300 outline-none focus:border-emerald-500 transition" />
+                  <input type="text" id="appTutorial_linux_incy" dir="ltr" placeholder="مثلاً: https://t.me/..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-emerald-300 outline-none focus:border-emerald-500 transition" />
                 </div>
                 <div>
                   <label class="text-[11px] text-slate-400 block mb-1">نسخه نرم‌افزار (Version):</label>
-                  <input type="text" id="appVersion_linux_incy" dir="ltr" placeholder="پیش‌فرض: 1.0.8" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-amber-300 outline-none focus:border-cyan-500 transition" />
+                  <input type="text" id="appVersion_linux_incy" dir="ltr" placeholder="پیش‌فرض: 1.0.8" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-amber-300 outline-none focus:border-cyan-500 transition" />
                 </div>
               </div>
             </div>
@@ -2135,11 +2135,11 @@
             <div class="grid grid-cols-2 gap-2.5 pt-1 border-t border-slate-700/50">
               <div>
                 <label class="text-[11px] text-slate-400 block mb-1">حجم ترافیک هدیه (GB)</label>
-                <input type="number" id="settingBirthdayRewardTraffic" dir="ltr" placeholder="2" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-pink-300 outline-none focus:border-pink-500 transition" />
+                <input type="number" id="settingBirthdayRewardTraffic" dir="ltr" placeholder="2" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-sans num-bidi text-pink-300 outline-none focus:border-pink-500 transition" />
               </div>
               <div>
-                <label class="text-[11px] text-slate-400 block mb-1">درصد کد تخفیف هدیه (<span dir="ltr" class="font-mono font-bold">%</span>)</label>
-                <input type="number" id="settingBirthdayRewardDiscount" dir="ltr" placeholder="20" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-purple-300 outline-none focus:border-purple-500 transition" />
+                <label class="text-[11px] text-slate-400 block mb-1">درصد کد تخفیف هدیه (<span dir="ltr" class="font-sans num-bidi font-bold">%</span>)</label>
+                <input type="number" id="settingBirthdayRewardDiscount" dir="ltr" placeholder="20" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-sans num-bidi text-purple-300 outline-none focus:border-purple-500 transition" />
               </div>
             </div>
             <div class="pt-2 border-t border-slate-700/50 space-y-1.5">
@@ -2150,11 +2150,11 @@
               <textarea id="settingBirthdayMessage" rows="6" dir="rtl" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-xs text-slate-200 outline-none focus:border-pink-500 transition font-sans leading-relaxed resize-y" placeholder="متن پیام تبریک زادروز..."></textarea>
               <div class="flex flex-wrap items-center gap-1.5 pt-1 text-[11px]">
                 <span class="text-slate-400">تگ‌های متغیر:</span>
-                <button type="button" onclick="window.adminActions.insertBirthdayTag('{first_name}')" class="px-2 py-0.5 rounded-md card-inset border border-slate-700 t-pink hover:border-pink-500/50 font-mono transition" title="نام کاربر">{first_name}</button>
-                <button type="button" onclick="window.adminActions.insertBirthdayTag('{traffic_msg}')" class="px-2 py-0.5 rounded-md card-inset border border-slate-700 t-pink hover:border-pink-500/50 font-mono transition" title="متن حجم هدیه">{traffic_msg}</button>
-                <button type="button" onclick="window.adminActions.insertBirthdayTag('{discount_pct}')" class="px-2 py-0.5 rounded-md card-inset border border-slate-700 t-pink hover:border-pink-500/50 font-mono transition" title="درصد تخفیف">{discount_pct}</button>
-                <button type="button" onclick="window.adminActions.insertBirthdayTag('{coupon_code}')" class="px-2 py-0.5 rounded-md card-inset border border-slate-700 t-pink hover:border-pink-500/50 font-mono transition" title="کد کوپن">{coupon_code}</button>
-                <button type="button" onclick="window.adminActions.insertBirthdayTag('{traffic_gb}')" class="px-2 py-0.5 rounded-md card-inset border border-slate-700 t-pink hover:border-pink-500/50 font-mono transition" title="مقدار گیگابایت">{traffic_gb}</button>
+                <button type="button" onclick="window.adminActions.insertBirthdayTag('{first_name}')" class="px-2 py-0.5 rounded-md card-inset border border-slate-700 t-pink hover:border-pink-500/50 font-sans num-bidi transition" title="نام کاربر">{first_name}</button>
+                <button type="button" onclick="window.adminActions.insertBirthdayTag('{traffic_msg}')" class="px-2 py-0.5 rounded-md card-inset border border-slate-700 t-pink hover:border-pink-500/50 font-sans num-bidi transition" title="متن حجم هدیه">{traffic_msg}</button>
+                <button type="button" onclick="window.adminActions.insertBirthdayTag('{discount_pct}')" class="px-2 py-0.5 rounded-md card-inset border border-slate-700 t-pink hover:border-pink-500/50 font-sans num-bidi transition" title="درصد تخفیف">{discount_pct}</button>
+                <button type="button" onclick="window.adminActions.insertBirthdayTag('{coupon_code}')" class="px-2 py-0.5 rounded-md card-inset border border-slate-700 t-pink hover:border-pink-500/50 font-sans num-bidi transition" title="کد کوپن">{coupon_code}</button>
+                <button type="button" onclick="window.adminActions.insertBirthdayTag('{traffic_gb}')" class="px-2 py-0.5 rounded-md card-inset border border-slate-700 t-pink hover:border-pink-500/50 font-sans num-bidi transition" title="مقدار گیگابایت">{traffic_gb}</button>
               </div>
             </div>
           </div>
@@ -2193,15 +2193,15 @@
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-2 border-t border-slate-700/50">
               <div>
                 <label class="text-[11px] text-slate-400 block mb-1">قیمت هر گیگابایت (تومان)</label>
-                <input type="number" id="settingCustomPlanPricePerGb" dir="ltr" placeholder="2500" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-cyan-300 outline-none focus:border-cyan-500 transition" />
+                <input type="number" id="settingCustomPlanPricePerGb" dir="ltr" placeholder="2500" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-sans num-bidi text-cyan-300 outline-none focus:border-cyan-500 transition" />
               </div>
               <div>
                 <label class="text-[11px] text-slate-400 block mb-1">قیمت هر روز اعتبار (تومان)</label>
-                <input type="number" id="settingCustomPlanPricePerDay" dir="ltr" placeholder="500" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-indigo-300 outline-none focus:border-indigo-500 transition" />
+                <input type="number" id="settingCustomPlanPricePerDay" dir="ltr" placeholder="500" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-sans num-bidi text-indigo-300 outline-none focus:border-indigo-500 transition" />
               </div>
               <div>
                 <label class="text-[11px] text-slate-400 block mb-1">هزینه پایه ثابت (تومان)</label>
-                <input type="number" id="settingCustomPlanBasePrice" dir="ltr" placeholder="10000" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-emerald-300 outline-none focus:border-emerald-500 transition" />
+                <input type="number" id="settingCustomPlanBasePrice" dir="ltr" placeholder="10000" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-sans num-bidi text-emerald-300 outline-none focus:border-emerald-500 transition" />
               </div>
             </div>
 
@@ -2209,11 +2209,11 @@
             <div class="grid grid-cols-2 gap-2.5 pt-2 border-t border-slate-700/50">
               <div>
                 <label class="text-[11px] text-slate-400 block mb-1">حداقل حجم (GB)</label>
-                <input type="number" id="settingCustomPlanMinGb" dir="ltr" placeholder="5" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-slate-200 outline-none focus:border-cyan-500 transition" />
+                <input type="number" id="settingCustomPlanMinGb" dir="ltr" placeholder="5" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-sans num-bidi text-slate-200 outline-none focus:border-cyan-500 transition" />
               </div>
               <div>
                 <label class="text-[11px] text-slate-400 block mb-1">حداکثر حجم (GB)</label>
-                <input type="number" id="settingCustomPlanMaxGb" dir="ltr" placeholder="300" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-slate-200 outline-none focus:border-cyan-500 transition" />
+                <input type="number" id="settingCustomPlanMaxGb" dir="ltr" placeholder="300" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-sans num-bidi text-slate-200 outline-none focus:border-cyan-500 transition" />
               </div>
             </div>
 
@@ -2221,11 +2221,11 @@
             <div class="grid grid-cols-2 gap-2.5 pt-2 border-t border-slate-700/50">
               <div>
                 <label class="text-[11px] text-slate-400 block mb-1">حداقل مدت (روز)</label>
-                <input type="number" id="settingCustomPlanMinDays" dir="ltr" placeholder="10" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-slate-200 outline-none focus:border-indigo-500 transition" />
+                <input type="number" id="settingCustomPlanMinDays" dir="ltr" placeholder="10" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-sans num-bidi text-slate-200 outline-none focus:border-indigo-500 transition" />
               </div>
               <div>
                 <label class="text-[11px] text-slate-400 block mb-1">حداکثر مدت (روز)</label>
-                <input type="number" id="settingCustomPlanMaxDays" dir="ltr" placeholder="180" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-slate-200 outline-none focus:border-indigo-500 transition" />
+                <input type="number" id="settingCustomPlanMaxDays" dir="ltr" placeholder="180" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-sans num-bidi text-slate-200 outline-none focus:border-indigo-500 transition" />
               </div>
             </div>
 
@@ -2236,7 +2236,7 @@
                   <b class="text-xs text-slate-200 block">تخفیف‌های پلکانی حجم مصرفی</b>
                   <span class="text-[10.5px] text-slate-400">اعمال تخفیف خودکار بر اساس حجم انتخابی کاربر</span>
                 </div>
-                <span class="badge badge-info text-[11px] font-mono font-bold">3 Tiers</span>
+                <span class="badge badge-info text-[11px] font-sans num-bidi font-bold">3 Tiers</span>
               </div>
 
               <div class="space-y-2 pt-1">
@@ -2244,11 +2244,11 @@
                 <div class="card-inset p-2.5 rounded-xl grid grid-cols-2 gap-2 border border-slate-750">
                   <div>
                     <label class="text-[11px] text-slate-400 block mb-1">پله اول: از چند گیگابایت</label>
-                    <input type="number" id="settingCustomPlanTier1MinGb" dir="ltr" placeholder="51" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-xs font-mono text-cyan-300 outline-none" />
+                    <input type="number" id="settingCustomPlanTier1MinGb" dir="ltr" placeholder="51" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-xs font-sans num-bidi text-cyan-300 outline-none" />
                   </div>
                   <div>
                     <label class="text-[11px] text-slate-400 block mb-1">درصد تخفیف پله اول (%)</label>
-                    <input type="number" id="settingCustomPlanTier1Discount" dir="ltr" placeholder="10" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-xs font-mono t-success outline-none" />
+                    <input type="number" id="settingCustomPlanTier1Discount" dir="ltr" placeholder="10" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-xs font-sans num-bidi t-success outline-none" />
                   </div>
                 </div>
 
@@ -2256,11 +2256,11 @@
                 <div class="card-inset p-2.5 rounded-xl grid grid-cols-2 gap-2 border border-slate-750">
                   <div>
                     <label class="text-[11px] text-slate-400 block mb-1">پله دوم: از چند گیگابایت</label>
-                    <input type="number" id="settingCustomPlanTier2MinGb" dir="ltr" placeholder="101" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-xs font-mono text-cyan-300 outline-none" />
+                    <input type="number" id="settingCustomPlanTier2MinGb" dir="ltr" placeholder="101" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-xs font-sans num-bidi text-cyan-300 outline-none" />
                   </div>
                   <div>
                     <label class="text-[11px] text-slate-400 block mb-1">درصد تخفیف پله دوم (%)</label>
-                    <input type="number" id="settingCustomPlanTier2Discount" dir="ltr" placeholder="20" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-xs font-mono t-success outline-none" />
+                    <input type="number" id="settingCustomPlanTier2Discount" dir="ltr" placeholder="20" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-xs font-sans num-bidi t-success outline-none" />
                   </div>
                 </div>
 
@@ -2268,11 +2268,11 @@
                 <div class="card-inset p-2.5 rounded-xl grid grid-cols-2 gap-2 border border-slate-750">
                   <div>
                     <label class="text-[11px] text-slate-400 block mb-1">پله سوم: از چند گیگابایت</label>
-                    <input type="number" id="settingCustomPlanTier3MinGb" dir="ltr" placeholder="201" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-xs font-mono text-cyan-300 outline-none" />
+                    <input type="number" id="settingCustomPlanTier3MinGb" dir="ltr" placeholder="201" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-xs font-sans num-bidi text-cyan-300 outline-none" />
                   </div>
                   <div>
                     <label class="text-[11px] text-slate-400 block mb-1">درصد تخفیف پله سوم (%)</label>
-                    <input type="number" id="settingCustomPlanTier3Discount" dir="ltr" placeholder="30" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-xs font-mono t-success outline-none" />
+                    <input type="number" id="settingCustomPlanTier3Discount" dir="ltr" placeholder="30" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-xs font-sans num-bidi t-success outline-none" />
                   </div>
                 </div>
               </div>
@@ -2333,10 +2333,10 @@
                   <b class="text-xs text-slate-200">نقره‌ای</b>
                 </div>
                 <div class="flex items-center gap-2 shrink-0">
-                  <input type="number" id="loyalty_silver_spent" dir="ltr" placeholder="1000000" class="w-24 bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-xs font-mono text-cyan-300 outline-none text-center" title="حداقل خرید (تومان)" />
+                  <input type="number" id="loyalty_silver_spent" dir="ltr" placeholder="1000000" class="w-24 bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-xs font-sans num-bidi text-cyan-300 outline-none text-center" title="حداقل خرید (تومان)" />
                   <span class="text-[11px] text-slate-400">تومان</span>
-                  <input type="number" id="loyalty_silver_pct" dir="ltr" placeholder="3" class="w-14 bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-xs font-mono font-en num-bidi t-success outline-none text-center" title="درصد تخفیف" autocomplete="off" />
-                  <span class="text-[11px] text-slate-400 font-mono font-bold" dir="ltr">%</span>
+                  <input type="number" id="loyalty_silver_pct" dir="ltr" placeholder="3" class="w-14 bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-xs font-sans num-bidi font-en num-bidi t-success outline-none text-center" title="درصد تخفیف" autocomplete="off" />
+                  <span class="text-[11px] text-slate-400 font-sans num-bidi font-bold" dir="ltr">%</span>
                 </div>
               </div>
 
@@ -2347,10 +2347,10 @@
                   <b class="text-xs t-warn">طلایی</b>
                 </div>
                 <div class="flex items-center gap-2 shrink-0">
-                  <input type="number" id="loyalty_gold_spent" dir="ltr" placeholder="2500000" class="w-24 bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-xs font-mono text-cyan-300 outline-none text-center" title="حداقل خرید (تومان)" />
+                  <input type="number" id="loyalty_gold_spent" dir="ltr" placeholder="2500000" class="w-24 bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-xs font-sans num-bidi text-cyan-300 outline-none text-center" title="حداقل خرید (تومان)" />
                   <span class="text-[11px] text-slate-400">تومان</span>
-                  <input type="number" id="loyalty_gold_pct" dir="ltr" placeholder="5" class="w-14 bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-xs font-mono font-en num-bidi t-success outline-none text-center" title="درصد تخفیف" autocomplete="off" />
-                  <span class="text-[11px] text-slate-400 font-mono font-bold" dir="ltr">%</span>
+                  <input type="number" id="loyalty_gold_pct" dir="ltr" placeholder="5" class="w-14 bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-xs font-sans num-bidi font-en num-bidi t-success outline-none text-center" title="درصد تخفیف" autocomplete="off" />
+                  <span class="text-[11px] text-slate-400 font-sans num-bidi font-bold" dir="ltr">%</span>
                 </div>
               </div>
 
@@ -2361,10 +2361,10 @@
                   <b class="text-xs text-cyan-300">پلاتین</b>
                 </div>
                 <div class="flex items-center gap-2 shrink-0">
-                  <input type="number" id="loyalty_platinum_spent" dir="ltr" placeholder="5000000" class="w-24 bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-xs font-mono text-cyan-300 outline-none text-center" title="حداقل خرید (تومان)" />
+                  <input type="number" id="loyalty_platinum_spent" dir="ltr" placeholder="5000000" class="w-24 bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-xs font-sans num-bidi text-cyan-300 outline-none text-center" title="حداقل خرید (تومان)" />
                   <span class="text-[11px] text-slate-400">تومان</span>
-                  <input type="number" id="loyalty_platinum_pct" dir="ltr" placeholder="8" class="w-14 bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-xs font-mono font-en num-bidi t-success outline-none text-center" title="درصد تخفیف" autocomplete="off" />
-                  <span class="text-[11px] text-slate-400 font-mono font-bold" dir="ltr">%</span>
+                  <input type="number" id="loyalty_platinum_pct" dir="ltr" placeholder="8" class="w-14 bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-xs font-sans num-bidi font-en num-bidi t-success outline-none text-center" title="درصد تخفیف" autocomplete="off" />
+                  <span class="text-[11px] text-slate-400 font-sans num-bidi font-bold" dir="ltr">%</span>
                 </div>
               </div>
 
@@ -2375,10 +2375,10 @@
                   <b class="text-xs t-purple">یاقوت</b>
                 </div>
                 <div class="flex items-center gap-2 shrink-0">
-                  <input type="number" id="loyalty_ruby_spent" dir="ltr" placeholder="8000000" class="w-24 bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-xs font-mono text-cyan-300 outline-none text-center" title="حداقل خرید (تومان)" />
+                  <input type="number" id="loyalty_ruby_spent" dir="ltr" placeholder="8000000" class="w-24 bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-xs font-sans num-bidi text-cyan-300 outline-none text-center" title="حداقل خرید (تومان)" />
                   <span class="text-[11px] text-slate-400">تومان</span>
-                  <input type="number" id="loyalty_ruby_pct" dir="ltr" placeholder="10" class="w-14 bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-xs font-mono font-en num-bidi t-success outline-none text-center" title="درصد تخفیف" autocomplete="off" />
-                  <span class="text-[11px] text-slate-400 font-mono font-bold" dir="ltr">%</span>
+                  <input type="number" id="loyalty_ruby_pct" dir="ltr" placeholder="10" class="w-14 bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-xs font-sans num-bidi font-en num-bidi t-success outline-none text-center" title="درصد تخفیف" autocomplete="off" />
+                  <span class="text-[11px] text-slate-400 font-sans num-bidi font-bold" dir="ltr">%</span>
                 </div>
               </div>
 
@@ -2389,10 +2389,10 @@
                   <b class="text-xs t-success">زمرد</b>
                 </div>
                 <div class="flex items-center gap-2 shrink-0">
-                  <input type="number" id="loyalty_emerald_spent" dir="ltr" placeholder="12000000" class="w-24 bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-xs font-mono text-cyan-300 outline-none text-center" title="حداقل خرید (تومان)" />
+                  <input type="number" id="loyalty_emerald_spent" dir="ltr" placeholder="12000000" class="w-24 bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-xs font-sans num-bidi text-cyan-300 outline-none text-center" title="حداقل خرید (تومان)" />
                   <span class="text-[11px] text-slate-400">تومان</span>
-                  <input type="number" id="loyalty_emerald_pct" dir="ltr" placeholder="12" class="w-14 bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-xs font-mono font-en num-bidi t-success outline-none text-center" title="درصد تخفیف" autocomplete="off" />
-                  <span class="text-[11px] text-slate-400 font-mono font-bold" dir="ltr">%</span>
+                  <input type="number" id="loyalty_emerald_pct" dir="ltr" placeholder="12" class="w-14 bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-xs font-sans num-bidi font-en num-bidi t-success outline-none text-center" title="درصد تخفیف" autocomplete="off" />
+                  <span class="text-[11px] text-slate-400 font-sans num-bidi font-bold" dir="ltr">%</span>
                 </div>
               </div>
 
@@ -2403,10 +2403,10 @@
                   <b class="text-xs text-amber-300">الماس</b>
                 </div>
                 <div class="flex items-center gap-2 shrink-0">
-                  <input type="number" id="loyalty_diamond_spent" dir="ltr" placeholder="20000000" class="w-24 bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-xs font-mono text-cyan-300 outline-none text-center" title="حداقل خرید (تومان)" />
+                  <input type="number" id="loyalty_diamond_spent" dir="ltr" placeholder="20000000" class="w-24 bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-xs font-sans num-bidi text-cyan-300 outline-none text-center" title="حداقل خرید (تومان)" />
                   <span class="text-[11px] text-slate-400">تومان</span>
-                  <input type="number" id="loyalty_diamond_pct" dir="ltr" placeholder="15" class="w-14 bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-xs font-mono font-en num-bidi t-success outline-none text-center" title="درصد تخفیف" autocomplete="off" />
-                  <span class="text-[11px] text-slate-400 font-mono font-bold" dir="ltr">%</span>
+                  <input type="number" id="loyalty_diamond_pct" dir="ltr" placeholder="15" class="w-14 bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-xs font-sans num-bidi font-en num-bidi t-success outline-none text-center" title="درصد تخفیف" autocomplete="off" />
+                  <span class="text-[11px] text-slate-400 font-sans num-bidi font-bold" dir="ltr">%</span>
                 </div>
               </div>
             </div>
@@ -2451,7 +2451,7 @@
             <!-- Direct URL Input -->
             <div class="space-y-1">
               <label class="text-[11px] text-slate-400 block">آدرس مستقیم تصویر لوگو (URL):</label>
-              <input type="text" id="settingStoreLogoUrl" dir="ltr" placeholder="https://example.com/logo.png یا /static/img/store_logo.png" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-cyan-300 outline-none focus:border-cyan-500 transition" oninput="window.adminActions.updateLogoPreview(this.value)" />
+              <input type="text" id="settingStoreLogoUrl" dir="ltr" placeholder="https://example.com/logo.png یا /static/img/store_logo.png" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-sans num-bidi text-cyan-300 outline-none focus:border-cyan-500 transition" oninput="window.adminActions.updateLogoPreview(this.value)" />
             </div>
 
             <!-- Invoice Company Name -->

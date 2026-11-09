@@ -4349,8 +4349,8 @@ function switchGiftModalTab(tab) {
   $('giftNewView')?.classList.toggle('hidden', tab !== 'new');
   $('giftHistoryView')?.classList.toggle('hidden', tab !== 'history');
 
-  const activeClass = 'flex-1 py-2 px-3 rounded-xl font-bold transition flex items-center justify-center gap-1.5 text-xs bg-pink-600 text-white shadow-sm border border-pink-500/40';
-  const inactiveClass = 'flex-1 py-2 px-3 rounded-xl font-medium transition flex items-center justify-center gap-1.5 text-xs t-muted hover:t-main bg-transparent border border-transparent';
+  const activeClass = 'flex-1 py-2 px-3 rounded-xl font-bold transition flex items-center justify-center gap-1.5 text-xs bg-pink-600 text-white shadow-sm border-0';
+  const inactiveClass = 'flex-1 py-2 px-3 rounded-xl font-medium transition flex items-center justify-center gap-1.5 text-xs t-muted hover:t-main bg-transparent border-0';
 
   const btnNew = $('giftTabBtn-new');
   const btnHistory = $('giftTabBtn-history');
@@ -4404,11 +4404,11 @@ function renderGiftServiceSelectModalList() {
         <div class="space-y-1 min-w-0">
           <b class="text-xs t-main block truncate">${formatPlanTitle(p.name)}</b>
           <div class="flex items-center gap-2 text-[11px] t-muted">
-            <span>📊 <b dir="ltr" class="font-mono t-main">${trafStr}</b></span>
+            <span>📊 <b dir="ltr" class="font-sans num-bidi t-main">${trafStr}</b></span>
             <span>📅 <b class="t-main">${durStr}</b></span>
           </div>
         </div>
-        <div class="text-left font-mono shrink-0 pl-1">
+        <div class="text-left font-sans num-bidi shrink-0 pl-1">
           <span class="text-xs font-black text-pink-600 dark:t-pink block">${priceStr}</span>
           <span class="text-[11px] t-muted font-sans block">تومان</span>
         </div>
@@ -4686,14 +4686,14 @@ async function loadGiftsHistory() {
             ${statusBadge}
           </div>
           <div class="flex justify-between items-center text-[11px] t-muted">
-            <span>گیرنده: <code class="font-mono">${rec}</code></span>
-            <span dir="ltr" class="font-mono">${toEnglishDigits(dateStr)}</span>
+            <span>گیرنده: <code class="font-sans num-bidi">${rec}</code></span>
+            <span dir="ltr" class="font-sans num-bidi">${toEnglishDigits(dateStr)}</span>
           </div>
           <div class="flex items-center justify-between text-[11px] border-t border-card-border pt-1">
             ${!isClaimed ? `<button type="button" onclick="copyToClipboard('${shareUrl}'); showToast('📋 لینک کپی شد!');" class="text-[11px] t-pink hover:text-pink-300 font-bold flex items-center gap-1 active:scale-95 transition" title="کپی لینک"><span>🔗</span> کپی لینک</button>` : '<span></span>'}
             <div class="flex items-center gap-1.5" dir="ltr">
               <button type="button" onclick="copyToClipboard('${g.code}'); showToast('📋 کد کپی شد!');" class="p-1 rounded-md t-accent hover:text-cyan-300 hover:bg-cyan-500/10 active:scale-95 transition" title="کپی کد">📋</button>
-              <span class="font-mono t-muted text-[11px] select-all">${g.code}</span>
+              <span class="font-sans num-bidi t-muted text-[11px] select-all">${g.code}</span>
             </div>
           </div>
         </div>
@@ -4736,7 +4736,7 @@ function renderInvoiceModalFields(inv, orderId) {
   if ($('invBuyerName')) $('invBuyerName').innerText = bName;
   if ($('invBuyerId')) {
     $('invBuyerId').innerText = bId ? String(bId) : '';
-    $('invBuyerId').className = bId ? 'text-[11px] text-slate-400 font-mono block select-all text-left' : 'hidden';
+    $('invBuyerId').className = bId ? 'text-[11px] text-slate-400 font-sans num-bidi block select-all text-left' : 'hidden';
   }
 
   const rawItemTitle = (inv.item?.title || 'بسته اشتراک').trim();
@@ -4762,7 +4762,7 @@ function renderInvoiceModalFields(inv, orderId) {
   $('invItemAmount').innerText = Number(inv.payment?.amount_toman || 0).toLocaleString('en-US');
 
   $('invFinalAmountToman').innerText = Number(inv.payment?.amount_toman || 0).toLocaleString('en-US');
-  $('invFinalAmountRial').innerText = `(${Number((inv.payment?.amount_toman || 0) * 10).toLocaleString('en-US')} ریال)`;
+  $('invFinalAmountRial').innerHTML = `(<span class="num-bidi font-sans">${Number((inv.payment?.amount_toman || 0) * 10).toLocaleString('en-US')}</span> ریال)`;
   $('invTrackingCode').innerText = inv.payment?.tracking_code || `TRX-${orderId}`;
 
   const statusEl = $('invPaymentStatus');
@@ -5021,7 +5021,7 @@ function openLoyaltyModal() {
       if (!isMaxTier && nextTier && nextTier.name) {
         const needed = Number(nextTier.remaining_amount || loyalty.amount_to_next || 0).toLocaleString('en-US');
         const nextDisc = toEnglishDigits(nextTier.discount_percent ?? loyalty.next_tier_discount ?? 0);
-        $('loyaltyModalProgressText').innerHTML = `با ${needed} تومان خرید دیگر، به سطح ${nextTier.name} ارتقا می‌یابید و از <span class="num-bidi font-mono font-bold" dir="ltr">${nextDisc}%</span> تخفیف بهره‌مند می‌شوید.`;
+        $('loyaltyModalProgressText').innerHTML = `با ${needed} تومان خرید دیگر، به سطح ${nextTier.name} ارتقا می‌یابید و از <span class="num-bidi font-sans font-bold" dir="ltr">${nextDisc}%</span> تخفیف بهره‌مند می‌شوید.`;
       } else if (isMaxTier) {
         $('loyaltyModalProgressText').innerText = 'تبریک! شما به بالاترین سطح باشگاه مشتریان (الماس) دست یافته‌اید.';
       } else {
