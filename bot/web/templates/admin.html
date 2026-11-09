@@ -269,7 +269,13 @@
                 <svg class="w-4 h-4 t-warn" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                 <span>ساعات اوج مصرف</span>
               </span>
-              <span id="peakHourBadge" class="text-[11px] text-amber-800 dark:text-amber-300 font-mono font-bold" dir="ltr">---</span>
+              <div class="flex items-center gap-2">
+                <div class="flex items-center gap-1 bg-slate-900/60 p-0.5 rounded-lg border border-slate-700/60 text-[10px]">
+                  <button type="button" id="hourlyChartTodayBtn" onclick="window.switchHourlyChartDay('today')" class="px-2 py-0.5 rounded font-bold bg-amber-500/20 text-amber-400 transition">امروز</button>
+                  <button type="button" id="hourlyChartYesterdayBtn" onclick="window.switchHourlyChartDay('yesterday')" class="px-2 py-0.5 rounded text-slate-400 hover:text-slate-200 transition">دیروز</button>
+                </div>
+                <span id="peakHourBadge" class="text-[11px] text-amber-800 dark:text-amber-300 font-sans font-bold" dir="ltr">---</span>
+              </div>
             </div>
             <div class="h-40 w-full relative">
               <canvas id="adminHourlyChart" dir="ltr"></canvas>
@@ -1079,7 +1085,7 @@
             </div>
             <div class="flex items-center justify-between py-2 border-t border-slate-700/50">
               <div>
-                <span class="text-slate-200 font-medium block">محدودیت احراز فقط برای شماره ایران (<span class="num-bidi font-mono" dir="ltr">+98</span>)</span>
+                <span class="text-slate-200 font-medium block">محدودیت احراز فقط برای شماره ایران (<span class="num-bidi font-sans" dir="ltr">+98</span>)</span>
                 <span class="text-[11px] text-slate-400">تنها شماره‌های معتبر ایران مجاز به تأیید هویت و شارژ کارت به کارت باشند</span>
               </div>
               <label class="relative inline-flex items-center cursor-pointer">
@@ -1227,7 +1233,7 @@
             <div class="flex items-center justify-between py-2 border-b border-slate-700/50">
               <div>
                 <span class="text-slate-200 font-semibold block text-xs">درگاه پلیگان (POL - شبکه Polygon PoS)</span>
-                <span class="text-[11px] text-slate-400">پرداخت مستقیم با آدرس متمرکز، اتصال متامسک و استعلام آن‌چین TxHash</span>
+                <span class="text-[11px] text-slate-400">پرداخت مستقیم با آدرس متمرکز و استعلام آن‌چین TxHash</span>
               </div>
               <label class="relative inline-flex items-center cursor-pointer">
                 <input type="checkbox" class="sr-only switch-checkbox" id="settingPolSwitch">
@@ -2219,19 +2225,19 @@
             <!-- Pricing Rates: 2x2 Grid (Per GB, Per Day, Base Price, Extra User Percent) -->
             <div class="grid grid-cols-2 gap-2 pt-2 border-t border-slate-700/50">
               <div>
-                <label class="text-[11px] text-slate-400 block mb-1">قیمت هر گیگابایت (تومان)</label>
+                <label class="text-[11px] text-slate-400 block mb-1 truncate">قیمت هر گیگابایت (تومان)</label>
                 <input type="number" id="settingCustomPlanPricePerGb" dir="ltr" placeholder="2500" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-sans num-bidi text-cyan-300 outline-none focus:border-cyan-500 transition" />
               </div>
               <div>
-                <label class="text-[11px] text-slate-400 block mb-1">قیمت هر روز اعتبار (تومان)</label>
+                <label class="text-[11px] text-slate-400 block mb-1 truncate">قیمت هر روز اعتبار (تومان)</label>
                 <input type="number" id="settingCustomPlanPricePerDay" dir="ltr" placeholder="500" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-sans num-bidi text-indigo-300 outline-none focus:border-indigo-500 transition" />
               </div>
               <div>
-                <label class="text-[11px] text-slate-400 block mb-1">هزینه پایه ثابت (تومان)</label>
+                <label class="text-[11px] text-slate-400 block mb-1 truncate">هزینه پایه ثابت (تومان)</label>
                 <input type="number" id="settingCustomPlanBasePrice" dir="ltr" placeholder="10000" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-sans num-bidi text-emerald-300 outline-none focus:border-emerald-500 transition" />
               </div>
               <div>
-                <label class="text-[11px] text-slate-400 block mb-1">درصد افزایش قیمت به ازای هر کاربر اضافه (%)</label>
+                <label class="text-[11px] text-slate-400 block mb-1 truncate" title="افزایش هر کاربر اضافه (%)">افزایش هر کاربر اضافه (%)</label>
                 <input type="number" id="settingCustomPlanExtraDevicePercent" dir="ltr" placeholder="15" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-sans num-bidi text-sky-300 outline-none focus:border-sky-500 transition" />
               </div>
             </div>
@@ -4086,7 +4092,7 @@
           </div>
           <button type="button" onclick="window.adminActions.closeCardTemplateModal()" class="modal-close-btn" aria-label="بستن">✕</button>
         </div>
-        <div id="cardTemplateList" class="space-y-2 flex-1 overflow-y-auto custom-scroll text-xs pr-0.5">
+        <div id="cardTemplateList" class="space-y-2 flex-1 overflow-y-auto custom-scroll text-xs px-2.5 py-1.5">
           <div id="cardTplOpt_blubank" onclick="window.adminActions.selectCardTemplate('blubank', 'بلوبانک', '💳')" class="p-3 rounded-2xl border transition cursor-pointer flex items-center justify-between gap-3 bg-blue-600/15 border-blue-500 shadow-sm">
             <div class="flex items-center gap-2.5">
               <span class="text-base">💳</span>
@@ -4097,11 +4103,11 @@
             </div>
             <span class="text-xs text-blue-400 font-bold" id="cardTplCheck_blubank">✓</span>
           </div>
-          <div id="cardTplOpt_minimal" onclick="window.adminActions.selectCardTemplate('minimal', 'ساده و مینیمال', '📄')" class="p-3 rounded-2xl border transition cursor-pointer flex items-center justify-between gap-3 card-inset border-card-border hover:border-slate-500">
+          <div id="cardTplOpt_minimal" onclick="window.adminActions.selectCardTemplate('minimal', 'ساده', '📄')" class="p-3 rounded-2xl border transition cursor-pointer flex items-center justify-between gap-3 card-inset border-card-border hover:border-slate-500">
             <div class="flex items-center gap-2.5">
               <span class="text-base">📄</span>
               <div>
-                <span class="text-xs font-bold t-main block">ساده و مینیمال</span>
+                <span class="text-xs font-bold t-main block">ساده</span>
                 <span class="text-[11px] t-muted block">کادر فلت متنی ساده فقط با نمایش شماره کارت و کپی</span>
               </div>
             </div>
@@ -4121,7 +4127,7 @@
           </div>
           <button type="button" onclick="window.adminActions.closeCardColorModal()" class="modal-close-btn" aria-label="بستن">✕</button>
         </div>
-        <div id="cardColorList" class="space-y-2 flex-1 overflow-y-auto custom-scroll text-xs pr-0.5">
+        <div id="cardColorList" class="space-y-2 flex-1 overflow-y-auto custom-scroll text-xs px-2.5 py-1.5">
           <!-- Dynamically populated colors -->
         </div>
       </div>

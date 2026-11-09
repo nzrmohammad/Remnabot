@@ -30,15 +30,16 @@ class Settings(BaseSettings):
     ADMIN_TOPIC_BACKUPS: int | None = None  # Topic ID for database backup archives
     ADMIN_TOPIC_SMS_MANUAL: int | None = None  # Topic ID for manual bank SMS pasting
 
-    # --- Crypto (TON & TRX on-chain top-up & xRocket) ---
+    # --- Crypto (TON, TRX & POL on-chain top-up) ---
     TON_WALLET_ADDRESS: str = ""
     TON_RATE_TOMAN: int = 0
     CRYPTO_ENABLED: bool = False
     TRX_WALLET_ADDRESS: str = ""
     TRX_RATE_TOMAN: int = 0
     TRX_ENABLED: bool = False
-    XROCKET_API_KEY: str = ""
-    XROCKET_ENABLED: bool = False
+    POL_WALLET_ADDRESS: str = ""
+    POL_RATE_TOMAN: int = 0
+    POL_ENABLED: bool = False
     USDT_RATE_TOMAN: int = 0
     EUR_RATE_TOMAN: int = 0
     IRAN_PROXY: str = ""

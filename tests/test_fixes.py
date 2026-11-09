@@ -2956,7 +2956,6 @@ async def test_user_topup_info_returns_limits():
     store.card_require_phone_verification = False
     store.crypto_enabled = False
     store.trx_enabled = False
-    store.xrocket_enabled = False
     store.stars_enabled = False
 
     mock_session = AsyncMock()

@@ -64,9 +64,7 @@ from bot.web.user_topup import (
     post_user_topup_trx_verify,
     post_user_topup_pol,
     post_user_topup_pol_verify,
-    post_user_topup_xrocket,
     post_webhook_sms,
-    post_webhook_xrocket,
 )
 
 __all__ = [
@@ -98,8 +96,6 @@ __all__ = [
     "post_user_topup_pol",
     "post_user_topup_pol_verify",
     "get_user_topup_trx_redirect",
-    "post_user_topup_xrocket",
-    "post_webhook_xrocket",
     "get_user_support_messages",
     "post_user_support_message",
     "get_user_subscription_configs",

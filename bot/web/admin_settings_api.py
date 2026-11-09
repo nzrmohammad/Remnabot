@@ -51,8 +51,6 @@ async def get_admin_settings(request: web.Request) -> web.Response:
             "pol_enabled": store_settings.pol_enabled,
             "pol_wallet_address": store_settings.pol_wallet_address,
             "pol_rate_toman": store_settings.pol_rate_toman,
-            "xrocket_enabled": store_settings.xrocket_enabled,
-            "xrocket_api_key": store_settings.xrocket_api_key,
             "trial_enabled": store_settings.trial_enabled,
             "trial_traffic_gb": store_settings.trial_traffic_gb,
             "trial_duration_days": store_settings.trial_duration_days,
@@ -141,7 +139,7 @@ async def post_admin_settings(request: web.Request) -> web.Response:
         bool_keys = (
             "card_enabled", "card_auto_enabled", "crypto_enabled", "trial_enabled",
             "referral_enabled", "support_direct_enabled", "maintenance",
-            "stars_enabled", "trx_enabled", "pol_enabled", "xrocket_enabled",
+            "stars_enabled", "trx_enabled", "pol_enabled",
             "card_require_phone_verification", "card_phone_iran_only", "birthday_reward_enabled",
             "card_graphical_view_enabled",
             "join_gate_enabled", "auto_clean_reports", "custom_plan_enabled", "loyalty_enabled",
@@ -155,7 +153,7 @@ async def post_admin_settings(request: web.Request) -> web.Response:
         raw_keys = (
             "card_number", "card_holder", "sms_webhook_secret", "topup_min_amount", "topup_max_amount",
             "usdt_rate_toman", "eur_rate_toman", "ton_rate_toman", "ton_wallet_address",
-            "trx_rate_toman", "trx_wallet_address", "pol_rate_toman", "pol_wallet_address", "xrocket_api_key",
+            "trx_rate_toman", "trx_wallet_address", "pol_rate_toman", "pol_wallet_address",
             "stars_rate_toman",
             "trial_traffic_gb", "trial_duration_days",
             "referral_reward_gb", "support_contact",
@@ -207,7 +205,7 @@ async def post_admin_settings(request: web.Request) -> web.Response:
             await cache.delete("store_settings")
             await cache.delete("tma:admin:overview")
 
-        sensitive_keys = {"sms_webhook_secret", "ton_wallet_address", "trx_wallet_address", "xrocket_api_key"}
+        sensitive_keys = {"sms_webhook_secret", "ton_wallet_address", "trx_wallet_address", "pol_wallet_address"}
         safe_keys = [k for k in body.keys() if k not in sensitive_keys]
         has_secret_change = any(k in body for k in sensitive_keys)
         logger.info(

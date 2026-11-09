@@ -127,39 +127,74 @@ function getTxPerPage() {
   return Number(window.storeSettings?.history_page_size) || 15;
 }
 
+function getTxPurchaseInfo(tx) {
+  if (!tx) return { typeRowText: 'خرید بسته', planHtml: '' };
+  const rawPlan = (tx.service_name || tx.title?.replace(/^خرید\s+/, '') || '').trim();
+  const isCustom = rawPlan.includes('دلخواه') || tx.title?.includes('دلخواه') || tx.badge === 'custom' || (!tx.service_id && tx.traffic_gb && tx.duration_days);
+
+  let typeRowText = 'خرید بسته';
+  let planHtml = '';
+
+  if (isCustom) {
+    typeRowText = 'خرید بسته دلخواه';
+    const traf = Number(tx.traffic_gb || 0);
+    const days = Number(tx.duration_days || 0);
+    const trafStr = traf > 0 ? (typeof fmtTraffic === 'function' ? fmtTraffic(traf, { html: false }) : `${traf} گیگابایت`) : '';
+    const specsStr = (traf > 0 && days > 0) ? `${trafStr} - ${days} روز` : (traf > 0 ? trafStr : (days > 0 ? `${days} روز` : 'بسته اختصاصی'));
+    planHtml = `<span class="inline-flex items-center gap-1.5"><bdi class="font-bold select-all font-sans">${escapeHtml(specsStr)}</bdi><span class="shrink-0 text-base leading-none">💎</span></span>`;
+  } else {
+    const traf = Number(tx.traffic_gb || 0);
+    const days = Number(tx.duration_days || 0);
+    if (traf > 0 && days > 0) {
+      typeRowText = 'خرید بسته کامل';
+    } else if (traf > 0 && days === 0) {
+      typeRowText = 'خرید بسته حجم';
+    } else if (traf === 0 && days > 0) {
+      typeRowText = 'خرید بسته زمان';
+    } else {
+      if (rawPlan.includes('حجم')) typeRowText = 'خرید بسته حجم';
+      else if (rawPlan.includes('زمان') || rawPlan.includes('روز')) typeRowText = 'خرید بسته زمان';
+      else typeRowText = 'خرید بسته کامل';
+    }
+
+    const emojiRegex = /[\p{Extended_Pictographic}\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu;
+    const emojis = rawPlan.match(emojiRegex);
+    let cleanOnly = rawPlan.replace(emojiRegex, '').trim();
+
+    // Strip duplicate 'بسته' prefix since row 1 already shows 'خرید بسته ...'
+    cleanOnly = cleanOnly.replace(/^بسته\s+/, '').trim();
+    if (!cleanOnly || cleanOnly === 'بسته') {
+      cleanOnly = 'سرویس اشتراکی';
+    }
+
+    let emojiStr = (emojis && emojis.length > 0) ? emojis.join('') : '';
+    if (!emojiStr) {
+      const lowerName = cleanOnly.toLowerCase();
+      if (lowerName.includes('طلایی') || lowerName.includes('gold')) emojiStr = '🥇';
+      else if (lowerName.includes('نقره') || lowerName.includes('silver')) emojiStr = '🥈';
+      else if (lowerName.includes('برنز') || lowerName.includes('bronze')) emojiStr = '🥉';
+      else if (lowerName.includes('الماس') || lowerName.includes('diamond')) emojiStr = '💎';
+      else if (lowerName.includes('ویژه') || lowerName.includes('vip')) emojiStr = '👑';
+      else if (lowerName.includes('گیم') || lowerName.includes('game')) emojiStr = '🎮';
+      else if (lowerName.includes('خانواده') || lowerName.includes('family')) emojiStr = '👥';
+    }
+
+    const iconHtml = emojiStr ? `<span class="shrink-0 text-base leading-none">${emojiStr}</span>` : '';
+    planHtml = `<span class="inline-flex items-center gap-1.5"><bdi class="font-bold select-all">${escapeHtml(cleanOnly)}</bdi>${iconHtml}</span>`;
+  }
+
+  return { typeRowText, planHtml };
+}
+
 function formatTxPlan(tx) {
-  if (!tx) return '';
-  let rawPlan = (tx.service_name || tx.title.replace(/^خرید\s+/, '')).trim();
-  const emojiRegex = /[\p{Extended_Pictographic}\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu;
-  const emojis = rawPlan.match(emojiRegex);
-  let cleanOnly = rawPlan.replace(emojiRegex, '').trim();
-
-  // Strip duplicate 'بسته' prefix since row 1 already shows 'خرید بسته'
-  cleanOnly = cleanOnly.replace(/^بسته\s+/, '').trim();
-  if (!cleanOnly || cleanOnly === 'بسته') {
-    cleanOnly = 'دلخواه';
-  }
-
-  let emojiStr = (emojis && emojis.length > 0) ? emojis.join('') : '';
-  if (!emojiStr) {
-    const lowerName = cleanOnly.toLowerCase();
-    if (lowerName.includes('طلایی') || lowerName.includes('gold')) emojiStr = '🥇';
-    else if (lowerName.includes('نقره') || lowerName.includes('silver')) emojiStr = '🥈';
-    else if (lowerName.includes('برنز') || lowerName.includes('bronze')) emojiStr = '🥉';
-    else if (lowerName.includes('الماس') || lowerName.includes('diamond')) emojiStr = '💎';
-    else if (lowerName.includes('ویژه') || lowerName.includes('vip')) emojiStr = '👑';
-  }
-
-  // Icon placed strictly on visual left in RTL flow (name on right, icon on left)
-  const iconHtml = emojiStr ? `<span class="shrink-0 text-base leading-none">${emojiStr}</span>` : '';
-  return `<span class="inline-flex items-center gap-1.5"><bdi class="font-bold select-all">${escapeHtml(cleanOnly)}</bdi>${iconHtml}</span>`;
+  return getTxPurchaseInfo(tx).planHtml;
 }
 
 function formatTxTitle(tx) {
   if (!tx) return 'تراکنش';
   if (tx.type === 'order' || (tx.title && tx.title.startsWith('خرید '))) {
-    const plan = formatTxPlan(tx);
-    return `خرید بسته - ${plan}`;
+    const { typeRowText } = getTxPurchaseInfo(tx);
+    return typeRowText;
   }
   return escapeHtml(tx.title || 'تراکنش');
 }
@@ -207,9 +242,9 @@ function renderWalletTransactions(transactions) {
 
     let titleBlock = '';
     if (isPurchase) {
-      const planHtml = formatTxPlan(tx);
+      const { typeRowText, planHtml } = getTxPurchaseInfo(tx);
       titleBlock = `
-        <span class="text-[11px] t-muted font-medium block leading-tight">خرید بسته</span>
+        <span class="text-[11px] t-muted font-medium block leading-tight">${typeRowText}</span>
         <div class="font-bold t-main text-xs sm:text-sm leading-snug break-words">${planHtml}</div>
       `;
     } else {

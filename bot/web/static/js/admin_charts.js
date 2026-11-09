@@ -609,24 +609,55 @@
   }
 
   let hourlyChartInstance = null;
+  let currentHourlyDay = 'today';
+  let lastHourlyDist = null;
+
+  function updateHourlyBadge() {
+    const peakBadge = $('peakHourBadge');
+    if (!peakBadge || !lastHourlyDist) return;
+    const isToday = currentHourlyDay === 'today';
+    const peakStr = isToday ? lastHourlyDist.peak_hour : lastHourlyDist.yesterday_peak_hour;
+    if (peakStr) {
+      peakBadge.innerText = `Peak: ${peakStr}`;
+    } else if (lastHourlyDist.is_real_telemetry) {
+      peakBadge.innerText = isToday ? 'تله‌متری زنده' : 'ترافیک نامشخص';
+    } else {
+      peakBadge.innerText = 'در حال ثبت اسنپ‌شات';
+    }
+  }
+
+  function switchHourlyChartDay(day = 'today') {
+    currentHourlyDay = day;
+    const todayBtn = $('hourlyChartTodayBtn');
+    const yestBtn = $('hourlyChartYesterdayBtn');
+    if (todayBtn && yestBtn) {
+      if (day === 'today') {
+        todayBtn.className = 'px-2 py-0.5 rounded font-bold bg-amber-500/20 text-amber-400 transition';
+        yestBtn.className = 'px-2 py-0.5 rounded text-slate-400 hover:text-slate-200 transition font-normal';
+      } else {
+        yestBtn.className = 'px-2 py-0.5 rounded font-bold bg-amber-500/20 text-amber-400 transition';
+        todayBtn.className = 'px-2 py-0.5 rounded text-slate-400 hover:text-slate-200 transition font-normal';
+      }
+    }
+    updateHourlyBadge();
+    if (!hourlyChartInstance || !lastHourlyDist) return;
+    const vals = day === 'today' ? (lastHourlyDist.data || []) : (lastHourlyDist.yesterday_data || []);
+    hourlyChartInstance.data.datasets[0].data = vals;
+    hourlyChartInstance.update();
+    if (window.hapticFeedback) window.hapticFeedback('selection');
+  }
+  window.switchHourlyChartDay = switchHourlyChartDay;
+
   function renderAdminHourlyChart(hourlyDist) {
     const canvas = $('adminHourlyChart');
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
+    lastHourlyDist = hourlyDist;
     const labels = hourlyDist?.labels || [];
-    const values = hourlyDist?.data || [];
-    const peakBadge = $('peakHourBadge');
-    if (peakBadge) {
-      if (hourlyDist?.is_real_telemetry && hourlyDist?.peak_hour) {
-        peakBadge.innerText = `Peak: ${hourlyDist.peak_hour}`;
-      } else if (hourlyDist?.is_real_telemetry) {
-        peakBadge.innerText = `تله‌متری زنده`;
-      } else {
-        peakBadge.innerText = `در حال ثبت اسنپ‌شات`;
-      }
-    }
+    const values = currentHourlyDay === 'today' ? (hourlyDist?.data || []) : (hourlyDist?.yesterday_data || []);
+    updateHourlyBadge();
 
     if (hourlyChartInstance) {
       hourlyChartInstance.data.labels = labels;
@@ -652,10 +683,34 @@
           backgroundColor: gradient,
           fill: true,
           tension: 0.38,
-          pointRadius: 1.5,
+          pointRadius: (ctx) => {
+            if (currentHourlyDay === 'today') {
+              const curH = lastHourlyDist?.current_hour ?? 24;
+              return ctx.dataIndex > curH ? 0 : 2;
+            }
+            return 2;
+          },
           pointHoverRadius: 4.5,
           pointBackgroundColor: tc.warn,
           pointBorderColor: tc.pointBorder,
+          segment: {
+            borderDash: (ctx) => {
+              if (currentHourlyDay === 'today') {
+                const curH = lastHourlyDist?.current_hour ?? 24;
+                return ctx.p0DataIndex >= curH ? [5, 5] : undefined;
+              }
+              return undefined;
+            },
+            borderColor: (ctx) => {
+              if (currentHourlyDay === 'today') {
+                const curH = lastHourlyDist?.current_hour ?? 24;
+                if (ctx.p0DataIndex >= curH) {
+                  return isDark ? 'rgba(245, 158, 11, 0.35)' : 'rgba(217, 119, 6, 0.35)';
+                }
+              }
+              return undefined;
+            }
+          }
         }]
       },
       options: {

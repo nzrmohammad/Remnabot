@@ -139,7 +139,6 @@ async def api_rate_limit_middleware(request: web.Request, handler):
             "/api/user/topup/trx/verify",
             "/api/user/topup/pol",
             "/api/user/topup/pol/verify",
-            "/api/user/topup/xrocket",
             "/api/user/topup/stars",
         }
         is_sensitive = request.path in sensitive_paths and request.method == "POST"
@@ -616,8 +615,6 @@ def create_web_app(
     app.router.add_post("/api/user/topup/pol", routes_user.post_user_topup_pol)
     app.router.add_post("/api/user/topup/pol/verify", routes_user.post_user_topup_pol_verify)
     app.router.add_get("/api/user/topup/trx/redirect", routes_user.get_user_topup_trx_redirect)
-    app.router.add_post("/api/user/topup/xrocket", routes_user.post_user_topup_xrocket)
-    app.router.add_post("/api/webhooks/xrocket", routes_user.post_webhook_xrocket)
     app.router.add_post("/api/user/topup/stars", routes_user.post_user_topup_stars)
     app.router.add_post("/api/user/validate_coupon", routes_user.post_user_validate_coupon)
     app.router.add_post("/api/user/wallet/redeem", routes_user.post_user_redeem_voucher)

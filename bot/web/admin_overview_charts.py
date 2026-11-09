@@ -235,7 +235,7 @@ def _calc_location_share(nodes_overview: list[dict]) -> dict[str, Any]:
 
 
 async def _calc_hourly_distribution(session, now_utc: datetime) -> dict[str, Any]:
-    """Calculate 24h peak hourly traffic curve from snapshots in rolling chronological order (Option 3)."""
+    """Calculate 24-hour hourly traffic curves (today with dotted future hours and yesterday full comparison)."""
     from datetime import timezone
     from zoneinfo import ZoneInfo
 
@@ -250,57 +250,72 @@ async def _calc_hourly_distribution(session, now_utc: datetime) -> dict[str, Any
 
     local_now = now_utc.astimezone(tz) if now_utc.tzinfo else now_utc.replace(tzinfo=timezone.utc).astimezone(tz)
     curr_h = local_now.hour
+    today_date = local_now.date()
+    yesterday_date = today_date - timedelta(days=1)
 
-    # 24 hours in rolling chronological order from 23 hours ago to current hour (now)
-    ordered_hours = [(curr_h - 23 + i) % 24 for i in range(24)]
-    labels = [f"{h:02d}:00" for h in ordered_hours]
-
-    # Explicit rolling slot keys (year, month, day, hour) to prevent collisions between yesterday & today
-    slot_keys = [
-        (local_now - timedelta(hours=23 - i)).strftime("%Y-%m-%d-%H")
-        for i in range(24)
-    ]
+    # 24 fixed clock hours 00:00 to 23:00
+    labels = [f"{h:02d}:00" for h in range(24)]
 
     snapshot_repo = TrafficSnapshotRepository(session)
-    snapshots_24h = await snapshot_repo.get_last_24_hours(now_utc)
+    snapshots = await snapshot_repo.get_last_hours(54, now_utc)
 
-    snapshots_by_slot = {}
-    for s in snapshots_24h:
+    today_bytes = [0] * 24
+    yesterday_bytes = [0] * 24
+
+    for s in snapshots:
         s_ts = s.timestamp
         s_local = s_ts.replace(tzinfo=timezone.utc).astimezone(tz) if s_ts.tzinfo is None else s_ts.astimezone(tz)
-        slot_key = s_local.strftime("%Y-%m-%d-%H")
-        snapshots_by_slot[slot_key] = max(snapshots_by_slot.get(slot_key, 0), s.delta_bytes)
+        s_d = s_local.date()
+        s_h = s_local.hour
+        if 0 <= s_h < 24:
+            if s_d == today_date:
+                today_bytes[s_h] = max(today_bytes[s_h], s.delta_bytes)
+            elif s_d == yesterday_date:
+                yesterday_bytes[s_h] = max(yesterday_bytes[s_h], s.delta_bytes)
 
-    if snapshots_by_slot:
-        raw_vals = [snapshots_by_slot.get(k, 0) for k in slot_keys]
-        # If an hour has 0 traffic between active non-zero slots (e.g. brief reboot / skipped tick),
-        # smooth it using surrounding values so it doesn't artificially plunge to 0.
-        for idx in range(1, 23):
-            if raw_vals[idx] == 0 and raw_vals[idx - 1] > 0 and raw_vals[idx + 1] > 0:
-                raw_vals[idx] = (raw_vals[idx - 1] + raw_vals[idx + 1]) // 2
+    # Smooth short transient blips between active hours for today
+    for idx in range(1, curr_h):
+        if today_bytes[idx] == 0 and today_bytes[idx - 1] > 0 and today_bytes[idx + 1] > 0:
+            today_bytes[idx] = (today_bytes[idx - 1] + today_bytes[idx + 1]) // 2
 
-        # If current hour (last slot) has no snapshot yet or is 0, estimate from previous slot
-        if raw_vals[23] == 0 and raw_vals[22] > 0:
-            raw_vals[23] = raw_vals[22]
+    # Smooth yesterday's hours
+    for idx in range(1, 23):
+        if yesterday_bytes[idx] == 0 and yesterday_bytes[idx - 1] > 0 and yesterday_bytes[idx + 1] > 0:
+            yesterday_bytes[idx] = (yesterday_bytes[idx - 1] + yesterday_bytes[idx + 1]) // 2
 
-        hourly_data = [round(v / (1024 ** 3), 2) for v in raw_vals]
-        peak_pos = max(range(24), key=lambda i: hourly_data[i])
-        peak_h = ordered_hours[peak_pos]
-        peak_hour_str = f"{peak_h:02d}:00"
-        is_real_telemetry = True
+    # For today: hours up to curr_h have real/measured values, future hours (h > curr_h) remain 0.0
+    today_data = [round(v / (1024 ** 3), 2) if i <= curr_h else 0.0 for i, v in enumerate(today_bytes)]
+    yesterday_data = [round(v / (1024 ** 3), 2) for v in yesterday_bytes]
+
+    # Peak hour for today (calculated only from elapsed hours up to curr_h)
+    has_today_traffic = any(v > 0 for v in today_data[:curr_h + 1])
+    if has_today_traffic:
+        peak_idx = max(range(curr_h + 1), key=lambda i: today_data[i])
+        peak_hour_str = f"{peak_idx:02d}:00"
     else:
-        hourly_data = [0.0] * 24
         peak_hour_str = None
-        is_real_telemetry = False
+
+    # Peak hour for yesterday
+    has_yesterday_traffic = any(v > 0 for v in yesterday_data)
+    if has_yesterday_traffic:
+        y_peak_idx = max(range(24), key=lambda i: yesterday_data[i])
+        y_peak_hour_str = f"{y_peak_idx:02d}:00"
+    else:
+        y_peak_hour_str = None
+
+    has_real = has_today_traffic or has_yesterday_traffic
 
     return {
         "labels": labels,
-        "data": hourly_data,
+        "data": today_data,
+        "yesterday_data": yesterday_data,
+        "current_hour": curr_h,
         "peak_hour": peak_hour_str,
+        "yesterday_peak_hour": y_peak_hour_str,
         "unit": "GB",
-        "is_real_telemetry": is_real_telemetry,
-        "has_real_telemetry": is_real_telemetry,
-        "telemetry_count": len(snapshots_by_slot),
+        "is_real_telemetry": has_real,
+        "has_real_telemetry": has_real,
+        "telemetry_count": sum(1 for v in today_bytes if v > 0) + sum(1 for v in yesterday_bytes if v > 0),
     }
 
 

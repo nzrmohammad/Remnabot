@@ -265,10 +265,6 @@ const api = {
     return this.post('/api/user/topup/crypto/tonconnect_submit', { invoice_id, tx_hash });
   },
 
-  async createXRocketInvoice(amount, currency = 'USDT') {
-    return this.post('/api/user/topup/xrocket', { amount, currency });
-  },
-
   async getActiveCryptoInvoice() {
     return this.get('/api/user/topup/crypto/active');
   },

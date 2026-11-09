@@ -194,8 +194,6 @@ async def test_get_user_topup_info_includes_pol():
     mock_store.stars_enabled = False
     mock_store.stars_rate_toman = 0
     mock_store.usdt_rate_toman = 100000
-    mock_store.xrocket_enabled = False
-    mock_store.xrocket_api_key = ""
     mock_store.topup_min_amount = 10000
     mock_store.topup_max_amount = 50000000
     mock_store.history_page_size = 15

@@ -47,24 +47,28 @@ async def get_crypto_rates_summary(force_refresh: bool = False) -> dict:
         best_usdt_price, best_usdt_source = data.get("best_usdt", (None, ""))
         best_eur_price, best_eur_source = data.get("best_eur", (None, ""))
         best_trx_price, best_trx_source = data.get("best_trx", (None, ""))
+        best_pol_price, best_pol_source = data.get("best_pol", (None, ""))
         summary = {
             "ok": True,
             "ton_prices": data.get("ton", {}),
             "usdt_prices": data.get("usdt", {}),
             "eur_prices": data.get("eur", {}),
             "trx_prices": data.get("trx", {}),
+            "pol_prices": data.get("pol", {}),
             "closed_status": data.get("closed_status", {}),
             "binance_usd": data.get("binance_usd"),
             "global_ton_usd": data.get("global_ton_usd"),
             "global_ton_source": data.get("global_ton_source", ""),
             "binance_eur_usd": data.get("binance_eur_usd"),
             "binance_trx_usd": data.get("binance_trx_usd"),
+            "binance_pol_usd": data.get("binance_pol_usd"),
             "best_ton": {"price": best_ton_price, "source": best_ton_source},
             "best_usdt": {"price": best_usdt_price, "source": best_usdt_source},
             "best_eur": {"price": best_eur_price, "source": best_eur_source},
             "best_trx": {"price": best_trx_price, "source": best_trx_source},
+            "best_pol": {"price": best_pol_price, "source": best_pol_source},
         }
-        if best_ton_price or best_usdt_price or best_eur_price or best_trx_price:
+        if best_ton_price or best_usdt_price or best_eur_price or best_trx_price or best_pol_price:
             _rates_cache = summary
             _rates_cache_time = now
         return summary

@@ -125,12 +125,7 @@ async def get_user_topup_info(request: web.Request) -> web.Response:
             and pol_wallet_str
         )
 
-        xrocket_key = getattr(store, "xrocket_api_key", "")
-        xrocket_key_str = xrocket_key.strip() if isinstance(xrocket_key, str) else ""
-        xrocket_enabled = bool(
-            getattr(store, "xrocket_enabled", False) is True
-            and xrocket_key_str
-        )
+
 
         crypto_enabled = getattr(store, "crypto_enabled", False) is True
         ton_wallet = getattr(store, "ton_wallet_address", "")
@@ -204,7 +199,6 @@ async def get_user_topup_info(request: web.Request) -> web.Response:
             "pol_enabled": pol_enabled,
             "pol_wallet_address": pol_wallet_str,
             "pol_rate_toman": pol_rate,
-            "xrocket_enabled": xrocket_enabled,
             "usdt_rate_toman": usdt_rate,
             "stars_enabled": stars_enabled,
             "stars_rate_toman": stars_resolved,
@@ -1370,180 +1364,6 @@ async def post_user_topup_tonconnect_submit(request: web.Request) -> web.Respons
             "paid": False,
             "message": "تراکنش ثبت شد و در حال پردازش در شبکه تون است. تا لحظاتی دیگر حساب شما شارژ می‌شود.",
         })
-
-
-async def post_user_topup_xrocket(request: web.Request) -> web.Response:
-    """Create an xRocket invoice link for Telegram payments."""
-    user_auth, err = require_user(request)
-    if err:
-        return err
-
-    try:
-        body = await request.json()
-    except Exception:
-        body = {}
-
-    try:
-        amount = int(body.get("amount") or 0)
-    except (ValueError, TypeError):
-        return web.json_response({"ok": False, "message": "مبلغ نامعتبر است."}, status=400)
-
-    telegram_id = int(user_auth["id"])
-    currency = "USDT"  # Strictly enforce USDT for xRocket payment gateway
-
-    async with db_session(request) as session:
-        store = await get_store_settings(session)
-        if not (getattr(store, "xrocket_enabled", False) and getattr(store, "xrocket_api_key", "") and store.xrocket_api_key.strip()):
-            return web.json_response({"ok": False, "message": "درگاه xRocket در حال حاضر فعال نیست."}, status=400)
-
-        if store.topup_min_amount and amount < store.topup_min_amount:
-            return web.json_response(
-                {"ok": False, "message": f"حداقل مبلغ شارژ {store.topup_min_amount:,} تومان است."},
-                status=400,
-            )
-        max_amount = _resolve_topup_max(store)
-        if amount > max_amount:
-            return web.json_response(
-                {"ok": False, "message": f"حداکثر مبلغ شارژ {int(max_amount):,} تومان است."},
-                status=400,
-            )
-
-        usdt_rate = getattr(store, "usdt_rate_toman", 0) or 100_000
-        amount_usd = max(0.1, math.ceil((amount / usdt_rate) * 100) / 100)
-        if amount_usd < 0.1:
-            amount_usd = 0.1
-
-        from bot.services.crypto.xrocket import XRocketClient
-        client = XRocketClient(store.xrocket_api_key)
-
-        host_url = str(request.url.origin())
-        callback_url = f"{host_url}/api/webhooks/xrocket"
-        payload_str = f"topup:{telegram_id}:{amount}"
-
-        inv_data = await client.create_invoice(
-            amount_usd=amount_usd,
-            currency=currency,
-            description=f"شارژ کیف پول ({amount:,} تومان)",
-            payload=payload_str,
-            callback_url=callback_url,
-        )
-
-        if not inv_data or not inv_data.get("link"):
-            return web.json_response({"ok": False, "message": "خطا در ایجاد فاکتور درگاه xRocket."}, status=502)
-
-        return web.json_response({
-            "ok": True,
-            "pay_url": inv_data.get("link"),
-            "xrocket_id": inv_data.get("id"),
-            "amount_toman": amount,
-            "amount_usd": amount_usd,
-            "currency": currency,
-        })
-
-
-async def post_webhook_xrocket(request: web.Request) -> web.Response:
-    """Handle incoming payment webhooks from xRocket (pay.xrocket.tg) with server-side API verification."""
-    peer_ip = request.headers.get("CF-Connecting-IP") or request.headers.get("X-Forwarded-For") or request.remote or "unknown"
-    try:
-        body = await request.json()
-    except Exception as exc:
-        logger.warning("xRocket webhook invalid JSON from %s: %s", peer_ip, exc)
-        return web.json_response({"ok": False, "message": "invalid json"}, status=400)
-
-    data = body.get("data") or {}
-    payment_id = str(data.get("id") or body.get("id") or "").strip()
-    if not payment_id:
-        logger.warning("xRocket webhook missing payment id from %s", peer_ip)
-        return web.json_response({"ok": False, "message": "missing payment id"}, status=400)
-
-    async with db_session(request) as session:
-        store = await get_store_settings(session)
-        if not (getattr(store, "xrocket_enabled", False) and getattr(store, "xrocket_api_key", "") and store.xrocket_api_key.strip()):
-            logger.warning("xRocket webhook received but gateway is disabled or api key missing (ip=%s)", peer_ip)
-            return web.json_response({"ok": False, "message": "gateway disabled"}, status=400)
-
-        from bot.services.crypto.xrocket import XRocketClient
-        client = XRocketClient(store.xrocket_api_key)
-
-        # STRICT VERIFICATION: Fetch verified invoice details directly from xRocket API
-        remote_inv = await client.get_invoice(payment_id)
-        if not remote_inv:
-            logger.warning("xRocket webhook invoice %s could not be verified with xRocket API (from %s)", payment_id, peer_ip)
-            return web.json_response({"ok": False, "message": "unverified invoice"}, status=400)
-
-        remote_status = str(remote_inv.get("status") or "").upper()
-        if remote_status not in ("PAID", "COMPLETED"):
-            logger.info("xRocket webhook invoice %s status is %s (not paid)", payment_id, remote_status)
-            return web.json_response({"ok": True, "status": remote_status})
-
-        remote_payload = str(remote_inv.get("payload") or "")
-        if not remote_payload.startswith("topup:"):
-            logger.warning("xRocket webhook invalid remote payload %r for invoice %s", remote_payload, payment_id)
-            return web.json_response({"ok": False, "message": "invalid remote payload"}, status=400)
-
-        parts = remote_payload.split(":")
-        if len(parts) < 3:
-            logger.warning("xRocket webhook malformed remote payload %r for invoice %s", remote_payload, payment_id)
-            return web.json_response({"ok": False, "message": "malformed remote payload"}, status=400)
-
-        try:
-            tg_id = int(parts[1])
-            toman_amount = int(parts[2])
-        except (ValueError, TypeError):
-            logger.warning("xRocket webhook non-integer values in payload %r", remote_payload)
-            return web.json_response({"ok": False, "message": "invalid payload numbers"}, status=400)
-
-        # Verify amount in USD matches expected exchange rate
-        usdt_rate = getattr(store, "usdt_rate_toman", 0) or 100_000
-        expected_usd = round(toman_amount / usdt_rate, 2)
-        paid_amount = float(remote_inv.get("amount") or 0)
-        if paid_amount < (expected_usd * 0.98):
-            logger.warning(
-                "xRocket webhook amount discrepancy for invoice %s: expected ~%s USD, got %s USD",
-                payment_id, expected_usd, paid_amount,
-            )
-            return web.json_response({"ok": False, "message": "paid amount below expected"}, status=400)
-
-        tx_key = f"xrocket_{payment_id}"
-        wallet_repo = WalletRepository(session)
-        if await wallet_repo.receipt_exists(tx_key):
-            logger.info("xRocket webhook already_processed: payment_id=%s tg_id=%s", payment_id, tg_id)
-            return web.json_response({"ok": True, "status": "already_processed"})
-
-        try:
-            # Create topup record first with flush to let the DB unique constraint catch races atomically
-            await wallet_repo.create_topup(tg_id, toman_amount, tx_key)
-            await session.flush()
-        except IntegrityError:
-            await session.rollback()
-            logger.info("xRocket webhook race caught by unique constraint: payment_id=%s", payment_id)
-            return web.json_response({"ok": True, "status": "already_processed"})
-
-        new_bal = await wallet_repo.add_balance_atomic(tg_id, toman_amount)
-        await session.commit()
-        logger.info(
-            "xRocket payment verified & credited successfully: payment_id=%s tg_id=%s amount=%s new_balance=%s",
-            payment_id, tg_id, toman_amount, new_bal,
-        )
-
-        cache: FastCache = request.app.get("cache")
-        if cache:
-            await cache.delete(f"tma:user:{tg_id}:profile")
-
-        bot = request.app.get("bot")
-        if bot:
-            try:
-                user_msg = (
-                    f"🎉 <b>شارژ موفق کیف پول با xRocket</b>\n\n"
-                    f"💰 مبلغ: <b>{toman_amount:,} تومان</b>\n"
-                    f"💳 موجودی جدید: <b>{new_bal:,} تومان</b>\n"
-                    f"🧾 شناسه تراکنش: <code>{payment_id}</code>"
-                )
-                await bot.send_message(chat_id=tg_id, text=user_msg)
-            except Exception as e:
-                logger.warning("Failed to send topup notification to tg_id=%s: %s", tg_id, e)
-
-        return web.json_response({"ok": True, "new_balance": new_bal})
 
 
 async def post_user_topup_card_auto_create(request: web.Request) -> web.Response:

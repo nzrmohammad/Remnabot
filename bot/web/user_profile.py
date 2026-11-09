@@ -107,6 +107,8 @@ async def _fetch_transaction_history(session: Any, telegram_id: int, tz_name: st
                 "type": "order",
                 "title": f"خرید {o.service_name}",
                 "service_name": o.service_name,
+                "traffic_gb": o.traffic_gb or 0,
+                "duration_days": o.duration_days or 0,
                 "amount": o.amount,
                 "amount_formatted": f"{o.amount:,} تومان",
                 "is_positive": is_pos,

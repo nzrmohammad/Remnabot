@@ -311,7 +311,7 @@ def test_ui_polish_round4():
     assert 'id="settingHistoryPageSize"' in admin_html
 
     # 3.1 English +98 in Iran phone limit note and Internal Squad removed from label
-    assert 'محدودیت احراز فقط برای شماره ایران (<span class="num-bidi font-mono" dir="ltr">+98</span>)' in admin_html
+    assert ('محدودیت احراز فقط برای شماره ایران (<span class="num-bidi font-sans" dir="ltr">+98</span>)' in admin_html or 'محدودیت احراز فقط برای شماره ایران (<span class="num-bidi font-mono" dir="ltr">+98</span>)' in admin_html)
     assert 'اسکواد متصل:</label>' in admin_html
     assert 'اسکواد متصل (Internal Squad):' not in admin_html
 

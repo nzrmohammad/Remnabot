@@ -39,8 +39,6 @@ class StoreSettings:
     pol_wallet_address: str = ""
     pol_rate_toman: int = 0
     pol_enabled: bool = False
-    xrocket_api_key: str = ""
-    xrocket_enabled: bool = False
     usdt_rate_toman: int = field(default_factory=lambda: getattr(get_settings(), "USDT_RATE_TOMAN", 0))
     eur_rate_toman: int = 0
     card_enabled: bool = True
@@ -141,8 +139,6 @@ async def get_store_settings(session: AsyncSession) -> StoreSettings:
         pol_wallet_address=values.get("pol_wallet_address", getattr(env, "POL_WALLET_ADDRESS", "")),
         pol_rate_toman=_int(values.get("pol_rate_toman"), getattr(env, "POL_RATE_TOMAN", 0)),
         pol_enabled=_bool(values.get("pol_enabled"), getattr(env, "POL_ENABLED", False)),
-        xrocket_api_key=values.get("xrocket_api_key", getattr(env, "XROCKET_API_KEY", "")),
-        xrocket_enabled=_bool(values.get("xrocket_enabled"), getattr(env, "XROCKET_ENABLED", False)),
         usdt_rate_toman=_int(values.get("usdt_rate_toman"), env.USDT_RATE_TOMAN),
         eur_rate_toman=_int(values.get("eur_rate_toman"), getattr(env, "EUR_RATE_TOMAN", 0) or 0),
         card_enabled=_bool(values.get("card_enabled"), True),

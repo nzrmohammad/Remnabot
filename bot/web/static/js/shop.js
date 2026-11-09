@@ -315,7 +315,7 @@ async function updateCustomPlanCalculation() {
     const localDisc = Math.floor((localBase * loyaltyPct) / 100);
     const localFinal = Math.max(0, localBase - localDisc);
 
-    if (baseEl) baseEl.innerText = `${Number(rawSubtotal).toLocaleString('en-US')} تومان`;
+    if (baseEl) baseEl.innerHTML = `<span dir="ltr" class="font-sans num-bidi">${Number(rawSubtotal).toLocaleString('en-US')}</span> تومان`;
 
     const hwidRow = document.getElementById('customPlanHwidCostRow');
     const hwidCostDisplay = document.getElementById('customPlanHwidCostDisplay');
@@ -380,7 +380,7 @@ async function updateCustomPlanCalculation() {
       const res = await window.api.calculateCustomPlan(gb, days, hwid);
       if (res && res.ok && res.data) {
         const d = res.data;
-        if (baseEl) baseEl.innerText = `${Number(d.base_subtotal != null ? (d.base_subtotal + (d.volume_discount_amount || 0)) : (d.raw_base_price || d.base_price)).toLocaleString('en-US')} تومان`;
+        if (baseEl) baseEl.innerHTML = `<span dir="ltr" class="font-sans num-bidi">${Number(d.base_subtotal != null ? (d.base_subtotal + (d.volume_discount_amount || 0)) : (d.raw_base_price || d.base_price)).toLocaleString('en-US')}</span> تومان`;
 
         const hwidRow = document.getElementById('customPlanHwidCostRow');
         const hwidCostDisplay = document.getElementById('customPlanHwidCostDisplay');

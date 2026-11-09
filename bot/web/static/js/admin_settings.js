@@ -1181,7 +1181,7 @@ openUserChat(telegram_id, name, tag, topup_id) {
       if (cardTemplate) {
         cardTemplate.value = s.card_template || 'blubank';
         const isMin = s.card_template === 'minimal';
-        if ($('settingCardTemplateLabel')) $('settingCardTemplateLabel').innerText = isMin ? 'ساده و مینیمال' : 'بلوبانک';
+        if ($('settingCardTemplateLabel')) $('settingCardTemplateLabel').innerText = isMin ? 'ساده' : 'بلوبانک';
         if ($('settingCardTemplateIcon')) $('settingCardTemplateIcon').innerText = isMin ? '📄' : '💳';
       }
 
@@ -1592,13 +1592,11 @@ openUserChat(telegram_id, name, tag, topup_id) {
       ton_rate_toman: parseInt($('settingTonRate')?.value || '0', 10),
       ton_wallet_address: $('settingTonWallet')?.value?.trim() || '',
       trx_enabled: $('settingTrxSwitch')?.checked ?? true,
-      xrocket_enabled: false,
       trx_rate_toman: parseInt($('settingTrxRate')?.value || '0', 10),
       trx_wallet_address: $('settingTrxWallet')?.value?.trim() || '',
       pol_enabled: $('settingPolSwitch')?.checked ?? true,
       pol_rate_toman: parseInt($('settingPolRate')?.value || '0', 10),
       pol_wallet_address: $('settingPolWallet')?.value?.trim() || '',
-      xrocket_api_key: '',
       trial_traffic_gb: parseInt($('settingTrialTraffic')?.value || '1', 10),
       trial_duration_days: parseInt($('settingTrialDays')?.value || '1', 10),
       referral_reward_gb: parseInt($('settingRefReward')?.value || '5', 10),
