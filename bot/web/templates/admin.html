@@ -270,9 +270,9 @@
                 <span>ساعات اوج مصرف</span>
               </span>
               <div class="flex items-center gap-2">
-                <div class="flex items-center gap-1 card-inset p-0.5 rounded-lg border border-card-border text-[10px]">
-                  <button type="button" id="hourlyChartTodayBtn" onclick="window.switchHourlyChartDay('today')" class="px-2 py-0.5 rounded font-bold bg-amber-500/20 text-amber-800 dark:text-amber-300 border border-amber-500/30 transition">امروز</button>
-                  <button type="button" id="hourlyChartYesterdayBtn" onclick="window.switchHourlyChartDay('yesterday')" class="px-2 py-0.5 rounded text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 border border-transparent transition font-normal">دیروز</button>
+                <div class="flex items-center gap-1 bg-slate-900/60 p-1 rounded-xl text-xs border border-slate-700/40">
+                  <button type="button" id="hourlyChartTodayBtn" onclick="window.switchHourlyChartDay('today')" class="px-2.5 py-1 rounded-lg font-bold text-xs bg-amber-500 text-slate-950 shadow-sm transition">امروز</button>
+                  <button type="button" id="hourlyChartYesterdayBtn" onclick="window.switchHourlyChartDay('yesterday')" class="px-2.5 py-1 rounded-lg font-medium text-xs text-slate-400 hover:text-slate-200 bg-transparent transition">دیروز</button>
                 </div>
                 <span id="peakHourBadge" class="text-[11px] text-amber-800 dark:text-amber-300 font-sans font-bold" dir="ltr">---</span>
               </div>
@@ -3071,10 +3071,10 @@
 
     <!-- MODAL: Create Discount Coupon -->
     <div id="couponModal" class="absolute inset-0 modal-backdrop z-50 flex items-center justify-center p-4 hidden">
-      <div class="modal-card border border-slate-700 rounded-3xl p-5 w-full max-w-[340px] space-y-3 shadow-2xl relative">
-        <div class="flex justify-between items-center border-b border-slate-700/60 pb-2">
+      <div class="modal-card border border-card-border rounded-3xl p-5 w-full max-w-[340px] space-y-3 shadow-2xl relative">
+        <div class="flex justify-between items-center border-b border-card-border pb-2">
           <h4 class="text-xs font-bold t-main flex items-center gap-1.5">
-            <svg class="w-4 h-4 t-pink" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z"/></svg>
+            <svg class="w-4 h-4 t-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z"/></svg>
             <span>ساخت کد تخفیف جدید</span>
           </h4>
           <button onclick="window.adminActions.closeCouponModal()" class="modal-close-btn" aria-label="بستن">✕</button>
@@ -3082,31 +3082,31 @@
         <div class="space-y-2 text-xs">
           <div>
             <label class="text-[11px] text-slate-300 block mb-1">کد تخفیف (لاتین):</label>
-            <input type="text" id="couponModalCode" placeholder="OFF20 یا NOROOZ" dir="ltr" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono font-bold t-pink uppercase outline-none focus:border-pink-500" />
+            <input type="text" id="couponModalCode" placeholder="OFF20 یا NOROOZ" dir="ltr" class="input-base w-full p-2.5 rounded-xl text-xs font-mono font-bold t-main uppercase outline-none" />
           </div>
           <div class="grid grid-cols-2 gap-2">
             <div>
               <label class="text-[11px] text-slate-300 block mb-1">درصد تخفیف (%):</label>
-              <input type="number" id="couponModalPercent" placeholder="20" min="0" max="100" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-cyan-300 outline-none" />
+              <input type="number" id="couponModalPercent" placeholder="20" min="0" max="100" class="input-base w-full p-2 rounded-xl text-xs font-mono t-main outline-none" />
             </div>
             <div>
               <label class="text-[11px] text-slate-300 block mb-1">یا مبلغ ثابت (تومان):</label>
-              <input type="number" id="couponModalAmount" placeholder="0" min="0" step="1000" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-emerald-300 outline-none" />
+              <input type="number" id="couponModalAmount" placeholder="0" min="0" step="1000" class="input-base w-full p-2 rounded-xl text-xs font-mono t-main outline-none" />
             </div>
           </div>
           <div class="grid grid-cols-2 gap-2">
             <div>
               <label class="text-[11px] text-slate-300 block mb-1">سقف استفاده (تعداد):</label>
-              <input type="number" id="couponModalMaxUses" placeholder="0 = نامحدود" min="0" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-amber-300 outline-none" />
+              <input type="number" id="couponModalMaxUses" placeholder="0 = نامحدود" min="0" class="input-base w-full p-2 rounded-xl text-xs font-mono t-main outline-none" />
             </div>
             <div>
               <label class="text-[11px] text-slate-300 block mb-1">اعتبار (تعداد روز):</label>
-              <input type="number" id="couponModalDays" placeholder="0 = دائمی" min="0" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-purple-300 outline-none" />
+              <input type="number" id="couponModalDays" placeholder="0 = دائمی" min="0" class="input-base w-full p-2 rounded-xl text-xs font-mono t-main outline-none" />
             </div>
           </div>
         </div>
         <div class="flex gap-2 pt-2">
-          <button id="couponModalSaveBtn" onclick="window.adminActions.saveCoupon()" class="flex-1 bg-transparent hover:bg-pink-500/15 border border-pink-500/50 t-pink hover:text-pink-300 font-bold text-xs py-2 rounded-xl transition active:scale-95">
+          <button id="couponModalSaveBtn" onclick="window.adminActions.saveCoupon()" class="btn btn-primary flex-1 font-bold text-xs py-2 rounded-xl transition active:scale-95">
             ایجاد کد تخفیف
           </button>
           <button type="button" onclick="window.adminActions.closeCouponModal()" class="flex-1 btn btn-secondary text-xs py-2 rounded-xl transition">انصراف</button>

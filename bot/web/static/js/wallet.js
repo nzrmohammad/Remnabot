@@ -1362,7 +1362,7 @@ async function openTopupModal(defaultAmt, forceCrypto = false) {
   const inputEl = document.getElementById('topupAmountInput');
   if (inputEl) {
     inputEl.value = amt !== null ? amt : '';
-    inputEl.placeholder = 'مبلغ دلخواه را وارد کنید (تومان)...';
+    inputEl.placeholder = 'مبلغ دلخواه را وارد کنید (تومان)';
   }
   updateTopupDisplays(amt || 0);
 

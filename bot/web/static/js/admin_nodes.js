@@ -237,13 +237,13 @@
       let dueBadgeHtml = '<span class="text-slate-500 font-medium">ثبت‌نشده</span>';
       if (n.days_until_due !== null && n.days_until_due !== undefined) {
         if (n.days_until_due < 0) {
-          dueBadgeHtml = `<span class="bg-transparent t-danger border border-rose-500/30 px-2 py-0.5 rounded-lg font-bold">⚠️ منقضی (${Math.abs(n.days_until_due)} روز پیش - ${shamsiDate})</span>`;
+          dueBadgeHtml = `<span class="bg-transparent t-danger border border-rose-500/30 px-2 py-0.5 rounded-lg font-bold">⚠️ منقضی (${Math.abs(n.days_until_due)} روز پیش)</span>`;
         } else if (n.days_until_due === 0) {
-          dueBadgeHtml = `<span class="bg-transparent t-danger border border-rose-500/40 px-2 py-0.5 rounded-lg font-bold animate-pulse">⚠️ سررسید امروز! (${shamsiDate})</span>`;
+          dueBadgeHtml = `<span class="bg-transparent t-danger border border-rose-500/40 px-2 py-0.5 rounded-lg font-bold animate-pulse">⚠️ سررسید امروز!</span>`;
         } else if (n.days_until_due <= 3) {
-          dueBadgeHtml = `<span class="bg-transparent t-warn border border-amber-500/30 px-2 py-0.5 rounded-lg font-bold">⏳ ${n.days_until_due} روز تا تمدید (${shamsiDate})</span>`;
+          dueBadgeHtml = `<span class="bg-transparent t-warn border border-amber-500/30 px-2 py-0.5 rounded-lg font-bold">⏳ ${n.days_until_due} روز تا تمدید</span>`;
         } else {
-          dueBadgeHtml = `<span class="bg-transparent text-slate-300 border border-slate-700/80 px-2 py-0.5 rounded-lg font-mono">🗓️ ${escapeHtml(shamsiDate)} (${n.days_until_due} روز)</span>`;
+          dueBadgeHtml = `<span class="bg-transparent text-slate-300 border border-slate-700/80 px-2 py-0.5 rounded-lg font-sans">🗓️ ${n.days_until_due} روز مانده</span>`;
         }
       }
 
