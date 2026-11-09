@@ -66,13 +66,14 @@ class StoreSettings:
     auto_clean_reports: bool = True
     topup_max_amount: int = 50000000
     custom_plan_enabled: bool = True
-    custom_plan_price_per_gb: int = 2500
-    custom_plan_price_per_day: int = 500
-    custom_plan_base_price: int = 10000
+    custom_plan_price_per_gb: int = 4500
+    custom_plan_price_per_day: int = 1000
+    custom_plan_base_price: int = 100000
     custom_plan_min_gb: int = 5
     custom_plan_max_gb: int = 300
     custom_plan_min_days: int = 10
     custom_plan_max_days: int = 180
+    custom_plan_extra_device_percent: int = 15
     loyalty_enabled: bool = True
     loyalty_tiers_json: str = ""
     custom_plan_volume_tiers_json: str = ""
@@ -171,6 +172,7 @@ async def get_store_settings(session: AsyncSession) -> StoreSettings:
         custom_plan_max_gb=_int(values.get("custom_plan_max_gb"), 300),
         custom_plan_min_days=_int(values.get("custom_plan_min_days"), 10),
         custom_plan_max_days=_int(values.get("custom_plan_max_days"), 180),
+        custom_plan_extra_device_percent=_int(values.get("custom_plan_extra_device_percent"), 15),
         loyalty_enabled=_bool(values.get("loyalty_enabled"), True),
         loyalty_tiers_json=str(values.get("loyalty_tiers_json") or "").strip(),
         custom_plan_volume_tiers_json=str(values.get("custom_plan_volume_tiers_json") or "").strip(),

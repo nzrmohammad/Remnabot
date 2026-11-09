@@ -1131,19 +1131,19 @@ openHighRiskUsersModal() {
           const devCount = u.device_count || 3;
           const pUserId = u.user_id ? String(u.user_id) : '';
           return `
-            <div class="p-3 card-inset border border-slate-700/50 rounded-2xl flex items-center justify-between gap-2.5 transition">
+            <div class="p-3 card-inset border border-slate-700/60 rounded-2xl flex items-center justify-between gap-2.5 transition mx-0.5 hover:border-slate-500/50">
               <div class="flex items-center gap-2.5 min-w-0 flex-1">
-                <span class="w-6 text-center font-mono font-bold text-xs text-rose-600 dark:text-rose-400 shrink-0">
+                <span class="w-6 text-center font-sans num-bidi font-bold text-xs text-rose-600 dark:text-rose-400 shrink-0">
                   ${idx + 1}.
                 </span>
                 <div class="min-w-0 flex-1">
                   <div class="flex items-center gap-2">
-                    <span class="font-bold t-main text-xs truncate font-mono" dir="ltr">${accountName}</span>
-                    <span class="text-[10px] font-mono text-rose-600 dark:text-rose-400 font-bold shrink-0">
+                    <span class="font-bold t-main text-xs truncate font-sans num-bidi" dir="ltr">${accountName}</span>
+                    <span class="text-[10px] font-sans num-bidi text-rose-600 dark:text-rose-400 font-bold shrink-0">
                       🔥 ${devCount} دستگاه
                     </span>
                   </div>
-                  ${tgInfo ? `<span class="text-[10px] t-muted block truncate mt-0.5" dir="rtl">${escapeHtml(tgInfo)}</span>` : ''}
+                  ${tgInfo ? `<span class="text-[10px] t-muted block truncate mt-0.5 font-sans num-bidi" dir="rtl">${escapeHtml(tgInfo)}</span>` : ''}
                 </div>
               </div>
               <div class="flex items-center gap-1.5 shrink-0">

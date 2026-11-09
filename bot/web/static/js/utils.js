@@ -423,7 +423,7 @@ function formatPlanTitle(name, options = {}) {
   if (!cleanText) {
     return `<span class="inline-block text-base">${emojiStr}</span>`;
   }
-  return `<span class="inline-flex items-center gap-1.5" dir="ltr"><span class="shrink-0 text-base">${emojiStr}</span><bdi class="font-bold select-all">${escapeHtml(cleanText)}</bdi></span>`;
+  return `<span class="inline-flex items-center gap-1.5"><span class="shrink-0 text-base">${emojiStr}</span><bdi class="font-bold select-all">${escapeHtml(cleanText)}</bdi></span>`;
 }
 
 function buildRefLink(botUsername, userId) {

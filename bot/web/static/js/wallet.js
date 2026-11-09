@@ -127,22 +127,27 @@ function getTxPerPage() {
   return Number(window.storeSettings?.history_page_size) || 15;
 }
 
+function formatTxPlan(tx) {
+  if (!tx) return '';
+  let rawPlan = (tx.service_name || tx.title.replace(/^خرید\s+/, '')).trim();
+  if (rawPlan.includes('بسته دلخواه')) {
+    return 'بسته دلخواه';
+  }
+  const emojiRegex = /[\p{Extended_Pictographic}\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu;
+  const cleanOnly = rawPlan.replace(emojiRegex, '').trim();
+  if (cleanOnly && !cleanOnly.startsWith('بسته') && !cleanOnly.startsWith('سرویس') && !cleanOnly.startsWith('ارتقا')) {
+    const emojis = rawPlan.match(emojiRegex);
+    const emojiPrefix = (emojis && emojis.length) ? emojis.join('') + ' ' : '';
+    rawPlan = `${emojiPrefix}بسته ${cleanOnly}`;
+  }
+  return typeof formatPlanTitle === 'function' ? formatPlanTitle(rawPlan) : escapeHtml(rawPlan);
+}
+
 function formatTxTitle(tx) {
   if (!tx) return 'تراکنش';
   if (tx.type === 'order' || (tx.title && tx.title.startsWith('خرید '))) {
-    let rawPlan = (tx.service_name || tx.title.replace(/^خرید\s+/, '')).trim();
-    if (rawPlan.includes('بسته دلخواه')) {
-      rawPlan = 'بسته دلخواه';
-    }
-    const emojiRegex = /[\p{Extended_Pictographic}\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu;
-    const cleanOnly = rawPlan.replace(emojiRegex, '').trim();
-    if (cleanOnly && !cleanOnly.startsWith('بسته') && !cleanOnly.startsWith('سرویس') && !cleanOnly.startsWith('ارتقا')) {
-      const emojis = rawPlan.match(emojiRegex);
-      const emojiPrefix = (emojis && emojis.length) ? emojis.join('') + ' ' : '';
-      rawPlan = `${emojiPrefix}بسته ${cleanOnly}`;
-    }
-    const formattedPlan = typeof formatPlanTitle === 'function' ? formatPlanTitle(rawPlan) : escapeHtml(rawPlan);
-    return `<span class="inline-flex items-center gap-1.5"><span class="font-bold t-main">خرید</span> ${formattedPlan}</span>`;
+    const plan = formatTxPlan(tx);
+    return `خرید بسته - ${plan}`;
   }
   return escapeHtml(tx.title || 'تراکنش');
 }
@@ -186,6 +191,19 @@ function renderWalletTransactions(transactions) {
           : (tx.status_color === 'slate' ? 't-muted' : 't-success')));
 
     const isOrder = tx.type === 'order' && tx.id;
+    const isPurchase = tx.type === 'order' || (tx.title && tx.title.startsWith('خرید '));
+
+    let titleBlock = '';
+    if (isPurchase) {
+      const planHtml = formatTxPlan(tx);
+      titleBlock = `
+        <span class="text-[11px] t-muted font-medium block leading-tight">خرید بسته</span>
+        <div class="font-bold t-main text-xs sm:text-sm leading-snug break-words">${planHtml}</div>
+      `;
+    } else {
+      titleBlock = `<div class="font-bold t-main text-xs sm:text-sm leading-snug break-words">${escapeHtml(tx.title || 'تراکنش')}</div>`;
+    }
+
     const invoiceBtn = isOrder ? `
       <button type="button" onclick="event.stopPropagation(); window.openInvoiceModal && window.openInvoiceModal(${tx.id});" class="text-[10px] text-cyan-600 dark:text-cyan-400 hover:underline flex items-center gap-0.5 font-bold" title="مشاهده و دانلود فاکتور رسمی">
         <span>🧾</span> <span>فاکتور</span>
@@ -196,9 +214,9 @@ function renderWalletTransactions(transactions) {
     <div class="card-inset rounded-2xl p-4 sm:p-4.5 flex items-center justify-between text-xs sm:text-[13px] gap-3 min-h-[72px] ${isOrder ? 'cursor-pointer hover:border-cyan-500/40 transition active:scale-[0.99]' : ''}" ${isOrder ? `onclick="window.openInvoiceModal && window.openInvoiceModal(${tx.id});"` : ''}>
       <div class="flex items-center gap-2.5 min-w-0 flex-1">
         <span class="text-xl shrink-0">${tx.type === 'topup' ? '💳' : (tx.type === 'admin_adjust' ? '⚡️' : '🛒')}</span>
-        <div class="min-w-0 flex-1 space-y-0.5">
-          <div class="font-bold t-main text-xs sm:text-sm leading-snug break-words">${formatTxTitle(tx)}</div>
-          <span class="text-[10px] t-muted font-sans num-bidi mt-0.5 block" dir="ltr">${toEnglishDigits(tx.date_jalali || '')}</span>
+        <div class="min-w-0 flex-1 space-y-1">
+          ${titleBlock}
+          <span class="text-[10px] t-muted font-sans num-bidi block" dir="ltr">${toEnglishDigits(tx.date_jalali || '')}</span>
         </div>
       </div>
       <div class="text-left shrink-0 space-y-0.5">

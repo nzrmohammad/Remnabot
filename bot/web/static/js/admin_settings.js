@@ -1209,6 +1209,9 @@ openUserChat(telegram_id, name, tag, topup_id) {
       const cpBase = $('settingCustomPlanBasePrice');
       if (cpBase) cpBase.value = s.custom_plan_base_price ?? 10000;
 
+      const cpExtraDev = $('settingCustomPlanExtraDevicePercent');
+      if (cpExtraDev) cpExtraDev.value = s.custom_plan_extra_device_percent ?? 15;
+
       const cpMinGb = $('settingCustomPlanMinGb');
       if (cpMinGb) cpMinGb.value = s.custom_plan_min_gb ?? 5;
 
@@ -1509,6 +1512,7 @@ openUserChat(telegram_id, name, tag, topup_id) {
       custom_plan_price_per_gb: parseInt($('settingCustomPlanPricePerGb')?.value || '2500', 10),
       custom_plan_price_per_day: parseInt($('settingCustomPlanPricePerDay')?.value || '500', 10),
       custom_plan_base_price: parseInt($('settingCustomPlanBasePrice')?.value || '10000', 10),
+      custom_plan_extra_device_percent: parseInt($('settingCustomPlanExtraDevicePercent')?.value || '15', 10),
       custom_plan_min_gb: parseInt($('settingCustomPlanMinGb')?.value || '5', 10),
       custom_plan_max_gb: parseInt($('settingCustomPlanMaxGb')?.value || '300', 10),
       custom_plan_min_days: parseInt($('settingCustomPlanMinDays')?.value || '10', 10),

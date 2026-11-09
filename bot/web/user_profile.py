@@ -817,6 +817,7 @@ async def get_user_me(request: web.Request) -> web.Response:
                 "max_gb": store_settings.custom_plan_max_gb,
                 "min_days": store_settings.custom_plan_min_days,
                 "max_days": store_settings.custom_plan_max_days,
+                "extra_device_percent": store_settings.custom_plan_extra_device_percent,
                 "volume_tiers_json": store_settings.custom_plan_volume_tiers_json,
             },
         }

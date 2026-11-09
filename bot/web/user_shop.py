@@ -617,9 +617,13 @@ def compute_custom_plan_price(
             volume_pct = 30
 
     discounted_traffic_price = int(raw_traffic_price * (100 - volume_pct) / 100)
-    extra_user_pct = max(0, hwid_limit - 1) * 15
-    raw_base = int((raw_traffic_price + time_price + base_fee) * (100 + extra_user_pct) / 100)
-    discounted_base = int((discounted_traffic_price + time_price + base_fee) * (100 + extra_user_pct) / 100)
+    extra_device_rate = getattr(store_settings, "custom_plan_extra_device_percent", 15) or 15
+    extra_user_pct = max(0, hwid_limit - 1) * extra_device_rate
+    raw_subtotal = raw_traffic_price + time_price + base_fee
+    discounted_subtotal = discounted_traffic_price + time_price + base_fee
+    hwid_cost = int(discounted_subtotal * extra_user_pct / 100)
+    raw_base = raw_subtotal + int(raw_subtotal * extra_user_pct / 100)
+    discounted_base = discounted_subtotal + hwid_cost
     return (raw_base, volume_pct, discounted_base)
 
 
@@ -647,7 +651,15 @@ async def post_user_custom_plan_calculate(request: web.Request) -> web.Response:
             and store_settings.custom_plan_base_price <= 0
         )
         raw_base, volume_pct, base_price = compute_custom_plan_price(traffic_gb, duration_days, store_settings, hwid_limit=hwid_limit)
-        volume_discount_amount = max(0, raw_base - base_price)
+        extra_device_rate = getattr(store_settings, "custom_plan_extra_device_percent", 15) or 15
+        extra_user_pct = max(0, hwid_limit - 1) * extra_device_rate
+        raw_traffic_price = traffic_gb * store_settings.custom_plan_price_per_gb
+        time_price = duration_days * store_settings.custom_plan_price_per_day
+        base_fee = store_settings.custom_plan_base_price
+        discounted_traffic_price = int(raw_traffic_price * (100 - volume_pct) / 100)
+        discounted_subtotal = discounted_traffic_price + time_price + base_fee
+        hwid_cost = int(discounted_subtotal * extra_user_pct / 100)
+        volume_discount_amount = max(0, raw_traffic_price - discounted_traffic_price)
 
         loyalty = await get_user_loyalty(session, telegram_id, cache=cache)
         loyalty_pct = loyalty.get("discount_percent", 0)
@@ -657,14 +669,17 @@ async def post_user_custom_plan_calculate(request: web.Request) -> web.Response:
             "ok": True,
             "traffic_gb": traffic_gb,
             "duration_days": duration_days,
+            "hwid_limit": hwid_limit,
+            "extra_device_percent": extra_device_rate,
+            "hwid_cost": hwid_cost,
             "raw_base_price": raw_base,
+            "base_subtotal": discounted_subtotal,
             "base_price": base_price,
             "volume_discount_percent": volume_pct,
             "volume_discount_amount": volume_discount_amount,
             "loyalty_discount_percent": loyalty_pct,
             "loyalty_discount_amount": disc_amt,
             "final_price": final_price,
-            "hwid_limit": hwid_limit,
             "is_configured": is_configured,
             "enabled": store_settings.custom_plan_enabled,
         })

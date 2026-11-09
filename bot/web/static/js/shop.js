@@ -303,16 +303,30 @@ async function updateCustomPlanCalculation() {
       else if (gb > 200) volPct = 30;
     }
 
-    const extraUserPct = Math.max(0, hwid - 1) * 15;
+    const extraDevicePercent = Number(settings.extra_device_percent || 15);
+    const extraUserPct = Math.max(0, hwid - 1) * extraDevicePercent;
     const rawTraffic = gb * pricePerGb;
+    const rawSubtotal = rawTraffic + (days * pricePerDay) + baseFixed;
     const discountedTraffic = Math.floor(rawTraffic * (100 - volPct) / 100);
-    const localRawBase = Math.floor((rawTraffic + (days * pricePerDay) + baseFixed) * (100 + extraUserPct) / 100);
-    const localBase = Math.floor((discountedTraffic + (days * pricePerDay) + baseFixed) * (100 + extraUserPct) / 100);
-    const localVolDiscAmt = Math.max(0, localRawBase - localBase);
+    const discountedSubtotal = discountedTraffic + (days * pricePerDay) + baseFixed;
+    const localVolDiscAmt = Math.max(0, rawTraffic - discountedTraffic);
+    const localHwidCost = Math.floor(discountedSubtotal * extraUserPct / 100);
+    const localBase = discountedSubtotal + localHwidCost;
     const localDisc = Math.floor((localBase * loyaltyPct) / 100);
     const localFinal = Math.max(0, localBase - localDisc);
 
-    if (baseEl) baseEl.innerText = `${Number(localRawBase).toLocaleString('en-US')} تومان`;
+    if (baseEl) baseEl.innerText = `${Number(rawSubtotal).toLocaleString('en-US')} تومان`;
+
+    const hwidRow = document.getElementById('customPlanHwidCostRow');
+    const hwidCostDisplay = document.getElementById('customPlanHwidCostDisplay');
+    const hwidCountDisplay = document.getElementById('customPlanHwidCountDisplay');
+    if (hwid > 1 && localHwidCost > 0) {
+      if (hwidRow) hwidRow.classList.remove('hidden');
+      if (hwidCountDisplay) hwidCountDisplay.innerText = hwid;
+      if (hwidCostDisplay) hwidCostDisplay.innerHTML = `<span dir="ltr" class="font-sans num-bidi">+${Number(localHwidCost).toLocaleString('en-US')}</span> تومان`;
+    } else {
+      if (hwidRow) hwidRow.classList.add('hidden');
+    }
 
     const volRow = document.getElementById('customPlanVolumeDiscountRow');
     const volEl = document.getElementById('customPlanVolumeDiscountDisplay');
@@ -366,7 +380,19 @@ async function updateCustomPlanCalculation() {
       const res = await window.api.calculateCustomPlan(gb, days, hwid);
       if (res && res.ok && res.data) {
         const d = res.data;
-        if (baseEl) baseEl.innerText = `${Number(d.raw_base_price || d.base_price).toLocaleString('en-US')} تومان`;
+        if (baseEl) baseEl.innerText = `${Number(d.base_subtotal != null ? (d.base_subtotal + (d.volume_discount_amount || 0)) : (d.raw_base_price || d.base_price)).toLocaleString('en-US')} تومان`;
+
+        const hwidRow = document.getElementById('customPlanHwidCostRow');
+        const hwidCostDisplay = document.getElementById('customPlanHwidCostDisplay');
+        const hwidCountDisplay = document.getElementById('customPlanHwidCountDisplay');
+        const hwidCost = Number(d.hwid_cost || 0);
+        if (d.hwid_limit > 1 && hwidCost > 0) {
+          if (hwidRow) hwidRow.classList.remove('hidden');
+          if (hwidCountDisplay) hwidCountDisplay.innerText = d.hwid_limit;
+          if (hwidCostDisplay) hwidCostDisplay.innerHTML = `<span dir="ltr" class="font-sans num-bidi">+${Number(hwidCost).toLocaleString('en-US')}</span> تومان`;
+        } else {
+          if (hwidRow) hwidRow.classList.add('hidden');
+        }
 
         const volRow = document.getElementById('customPlanVolumeDiscountRow');
         const volEl = document.getElementById('customPlanVolumeDiscountDisplay');

@@ -100,3 +100,62 @@ async def test_admin_check_host_guarantees_iran_node():
         results = data.get("results", [])
         assert len(results) > 0
         assert any(r.get("flag") == "🇮🇷" or "ایران" in r.get("node_name", "") for r in results)
+
+
+def test_custom_plan_extra_device_settings_and_layout():
+    """Verify custom plan extra device percent setting, 2x2 rate grid, and bank card side-by-side layout."""
+    from bot.services.app_settings import StoreSettings
+    from bot.web.user_shop import compute_custom_plan_price
+    from pathlib import Path
+
+    settings = StoreSettings(
+        card_number="",
+        card_holder="",
+        topup_min_amount=10000,
+        default_squad_uuid="",
+        expiry_grace_days=3,
+        expiry_remind_days="3",
+        topic_topups=None,
+        topic_orders=None,
+        topic_support=None,
+        topic_alerts=None,
+        support_contact="",
+        custom_plan_price_per_gb=2000,
+        custom_plan_price_per_day=500,
+        custom_plan_base_price=10000,
+        custom_plan_extra_device_percent=20,
+    )
+    assert settings.custom_plan_extra_device_percent == 20
+
+    # 1 user: no extra user cost
+    raw1, vol1, base1 = compute_custom_plan_price(10, 30, settings, hwid_limit=1)
+    # 2 users: +20%
+    raw2, vol2, base2 = compute_custom_plan_price(10, 30, settings, hwid_limit=2)
+    assert base2 > base1
+    assert base2 == int(base1 * 1.20)
+
+    admin_html = Path("bot/web/templates/admin.html").read_text(encoding="utf-8")
+    app_html = Path("bot/web/templates/app.html").read_text(encoding="utf-8")
+
+    # 2x2 grid in admin
+    assert 'id="settingCustomPlanExtraDevicePercent"' in admin_html
+    assert '3 Tiers' not in admin_html
+    assert 'id="settingCustomPlanPricePerGb"' in admin_html
+    assert 'id="settingCustomPlanPricePerDay"' in admin_html
+    assert 'id="settingCustomPlanBasePrice"' in admin_html
+
+    # Bank card template and color in grid
+    assert 'قالب کارت بانکی:' in admin_html
+    assert 'رنگ کارت بلوبانک:' in admin_html
+
+    # app.html custom plan slider & breakdown
+    assert 'تعداد کاربر:' in app_html
+    assert 'id="customPlanHwidCostRow"' in app_html
+    assert 'id="customPlanHwidCostDisplay"' in app_html
+
+    # No hardcoded ?v=64.0
+    assert '?v=64.0' not in admin_html
+    assert '?v=64.0' not in app_html
+
+    # High-Risk users modal padding
+    assert 'id="highRiskUsersModalList" class="space-y-2.5 flex-1 overflow-y-auto custom-scroll max-h-[55vh] text-xs p-1.5"' in admin_html
