@@ -1094,6 +1094,9 @@ openUserChat(telegram_id, name, tag, topup_id) {
       const trxSwitch = $('settingTrxSwitch');
       if (trxSwitch) trxSwitch.checked = s.trx_enabled !== false;
 
+      const polSwitch = $('settingPolSwitch');
+      if (polSwitch) polSwitch.checked = s.pol_enabled !== false;
+
       const trialSwitch = $('settingTrialSwitch');
       if (trialSwitch) trialSwitch.checked = !!s.trial_enabled;
 
@@ -1316,6 +1319,12 @@ openUserChat(telegram_id, name, tag, topup_id) {
 
       const trxWallet = $('settingTrxWallet');
       if (trxWallet) trxWallet.value = s.trx_wallet_address || '';
+
+      const polRate = $('settingPolRate');
+      if (polRate) polRate.value = s.pol_rate_toman ?? 0;
+
+      const polWallet = $('settingPolWallet');
+      if (polWallet) polWallet.value = s.pol_wallet_address || '';
 
       // Trial & Referral
       const trialTraffic = $('settingTrialTraffic');
@@ -1586,6 +1595,9 @@ openUserChat(telegram_id, name, tag, topup_id) {
       xrocket_enabled: false,
       trx_rate_toman: parseInt($('settingTrxRate')?.value || '0', 10),
       trx_wallet_address: $('settingTrxWallet')?.value?.trim() || '',
+      pol_enabled: $('settingPolSwitch')?.checked ?? true,
+      pol_rate_toman: parseInt($('settingPolRate')?.value || '0', 10),
+      pol_wallet_address: $('settingPolWallet')?.value?.trim() || '',
       xrocket_api_key: '',
       trial_traffic_gb: parseInt($('settingTrialTraffic')?.value || '1', 10),
       trial_duration_days: parseInt($('settingTrialDays')?.value || '1', 10),

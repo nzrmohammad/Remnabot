@@ -130,17 +130,29 @@ function getTxPerPage() {
 function formatTxPlan(tx) {
   if (!tx) return '';
   let rawPlan = (tx.service_name || tx.title.replace(/^خرید\s+/, '')).trim();
-  if (rawPlan.includes('بسته دلخواه')) {
-    return 'بسته دلخواه';
-  }
   const emojiRegex = /[\p{Extended_Pictographic}\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu;
-  const cleanOnly = rawPlan.replace(emojiRegex, '').trim();
-  if (cleanOnly && !cleanOnly.startsWith('بسته') && !cleanOnly.startsWith('سرویس') && !cleanOnly.startsWith('ارتقا')) {
-    const emojis = rawPlan.match(emojiRegex);
-    const emojiPrefix = (emojis && emojis.length) ? emojis.join('') + ' ' : '';
-    rawPlan = `${emojiPrefix}بسته ${cleanOnly}`;
+  const emojis = rawPlan.match(emojiRegex);
+  let cleanOnly = rawPlan.replace(emojiRegex, '').trim();
+
+  // Strip duplicate 'بسته' prefix since row 1 already shows 'خرید بسته'
+  cleanOnly = cleanOnly.replace(/^بسته\s+/, '').trim();
+  if (!cleanOnly || cleanOnly === 'بسته') {
+    cleanOnly = 'دلخواه';
   }
-  return typeof formatPlanTitle === 'function' ? formatPlanTitle(rawPlan) : escapeHtml(rawPlan);
+
+  let emojiStr = (emojis && emojis.length > 0) ? emojis.join('') : '';
+  if (!emojiStr) {
+    const lowerName = cleanOnly.toLowerCase();
+    if (lowerName.includes('طلایی') || lowerName.includes('gold')) emojiStr = '🥇';
+    else if (lowerName.includes('نقره') || lowerName.includes('silver')) emojiStr = '🥈';
+    else if (lowerName.includes('برنز') || lowerName.includes('bronze')) emojiStr = '🥉';
+    else if (lowerName.includes('الماس') || lowerName.includes('diamond')) emojiStr = '💎';
+    else if (lowerName.includes('ویژه') || lowerName.includes('vip')) emojiStr = '👑';
+  }
+
+  // Icon placed strictly on visual left in RTL flow (name on right, icon on left)
+  const iconHtml = emojiStr ? `<span class="shrink-0 text-base leading-none">${emojiStr}</span>` : '';
+  return `<span class="inline-flex items-center gap-1.5"><bdi class="font-bold select-all">${escapeHtml(cleanOnly)}</bdi>${iconHtml}</span>`;
 }
 
 function formatTxTitle(tx) {
@@ -221,8 +233,7 @@ function renderWalletTransactions(transactions) {
       </div>
       <div class="text-left shrink-0 space-y-0.5">
         <div class="inline-flex items-center gap-1 font-bold ${tx.is_positive ? 't-success' : 't-main'}" dir="rtl">
-          <span class="font-sans num-bidi text-xs sm:text-sm" dir="ltr">${Number(tx.amount != null ? tx.amount : 0).toLocaleString('en-US')}</span>
-          <span class="font-sans num-bidi text-sm leading-none font-bold">${tx.is_positive ? '+' : '-'}</span>
+          <span class="font-sans num-bidi text-xs sm:text-sm" dir="ltr">${tx.is_positive ? "+" : "-"}${Number(tx.amount != null ? tx.amount : 0).toLocaleString("en-US")}</span>
           <span class="font-sans text-[10px] t-muted font-normal">تومان</span>
         </div>
         <div class="flex items-center justify-end gap-1.5">
@@ -317,6 +328,11 @@ function updateTopupDisplays(amt) {
     const trxDisplay = document.getElementById('trxAmountDisplay');
     if (trxDisplay) trxDisplay.innerText = `${trxAmt} TRX`;
   }
+  if (window.storeSettings?.pol_rate_toman && window.storeSettings.pol_rate_toman > 0) {
+    const polAmt = ((amt || 0) / window.storeSettings.pol_rate_toman).toFixed(4);
+    const polDisplay = document.getElementById('polAmountDisplay');
+    if (polDisplay) polDisplay.innerText = `${polAmt} POL`;
+  }
   const starsRate = window.storeSettings?.stars_rate_toman || 1500;
   const starsCount = Math.max(1, Math.ceil((amt || 0) / starsRate));
   const starsReqEl = document.getElementById('starsRequiredCount');
@@ -361,7 +377,8 @@ async function loadTopupInfo() {
       const hasStars = res.stars_enabled === true;
       const hasCrypto = res.crypto_enabled === true;
       const hasTrx = res.trx_enabled === true;
-      const anyMethodEnabled = hasCard || hasStars || hasCrypto || hasTrx;
+      const hasPol = res.pol_enabled === true;
+      const anyMethodEnabled = hasCard || hasStars || hasCrypto || hasTrx || hasPol;
 
       const tabsContainer = document.getElementById('topupMethodTabs');
       const amountSection = document.getElementById('topupAmountSection');
@@ -370,6 +387,7 @@ async function loadTopupInfo() {
       const viewStars = document.getElementById('topupStarsView');
       const viewCrypto = document.getElementById('topupCryptoView');
       const viewTrx = document.getElementById('topupTrxView');
+      const viewPol = document.getElementById('topupPolView');
 
       if (!anyMethodEnabled) {
         tabsContainer?.classList.add('hidden');
@@ -378,6 +396,7 @@ async function loadTopupInfo() {
         viewStars?.classList.add('hidden');
         viewCrypto?.classList.add('hidden');
         viewTrx?.classList.add('hidden');
+        viewPol?.classList.add('hidden');
         disabledState?.classList.remove('hidden');
       } else {
         disabledState?.classList.add('hidden');
@@ -387,6 +406,7 @@ async function loadTopupInfo() {
         document.getElementById('topupMethodCardBtn')?.classList.toggle('hidden', !hasCard);
         document.getElementById('topupMethodCryptoBtn')?.classList.toggle('hidden', !hasCrypto);
         document.getElementById('topupMethodTrxBtn')?.classList.toggle('hidden', !hasTrx);
+        document.getElementById('topupMethodPolBtn')?.classList.toggle('hidden', !hasPol);
         document.getElementById('topupMethodStarsBtn')?.classList.toggle('hidden', !hasStars);
 
         const activeMethod = window.currentTopupTab || 'card';
@@ -394,10 +414,11 @@ async function loadTopupInfo() {
           card: hasCard,
           crypto: hasCrypto,
           trx: hasTrx,
+          pol: hasPol,
           stars: hasStars,
         };
         if (!methodEnabledMap[activeMethod]) {
-          const fallback = ['card', 'crypto', 'trx', 'stars'].find(k => methodEnabledMap[k]);
+          const fallback = ['card', 'crypto', 'trx', 'pol', 'stars'].find(k => methodEnabledMap[k]);
           if (fallback) switchTopupTab(fallback);
         }
       }
@@ -456,6 +477,7 @@ function getActiveInvoiceType() {
   if (activeCardAutoUuid) return 'CARD';
   if (currentTopupInvoice && currentTopupInvoice.id) return 'TON';
   if (currentTrxInvoice && currentTrxInvoice.id) return 'TRX';
+  if (currentPolInvoice && currentPolInvoice.id) return 'POL';
   return null;
 }
 
@@ -466,10 +488,12 @@ function updateTopupMutexUI() {
   const btnStars = document.getElementById('topupMethodStarsBtn');
   const btnCrypto = document.getElementById('topupMethodCryptoBtn');
   const btnTrx = document.getElementById('topupMethodTrxBtn');
+  const btnPol = document.getElementById('topupMethodPolBtn');
   const tabs = [
     { el: btnCard, type: 'CARD' },
     { el: btnCrypto, type: 'TON' },
     { el: btnTrx, type: 'TRX' },
+    { el: btnPol, type: 'POL' },
     { el: btnStars, type: null }
   ];
 
@@ -494,10 +518,10 @@ function updateTopupMutexUI() {
 function switchTopupTab(tab) {
   const activeType = getActiveInvoiceType();
   if (activeType) {
-    const requiredTab = activeType === 'CARD' ? 'card' : (activeType === 'TRX' ? 'trx' : 'crypto');
+    const requiredTab = activeType === 'CARD' ? 'card' : (activeType === 'TRX' ? 'trx' : (activeType === 'POL' ? 'pol' : 'crypto'));
     if (tab !== requiredTab) {
       if (window.showToast) {
-        const typeName = activeType === 'CARD' ? 'کارت‌به‌کارت' : (activeType === 'TRX' ? 'ترون (TRX)' : 'تون (TON)');
+        const typeName = activeType === 'CARD' ? 'کارت‌به‌کارت' : (activeType === 'TRX' ? 'ترون (TRX)' : (activeType === 'POL' ? 'پلیگان (POL)' : 'تون (TON)'));
         window.showToast(`شما یک فاکتور فعال در جریان (${typeName}) دارید. لطفاً ابتدا آن را پرداخت یا لغو نمایید.`, 'warning');
       }
       return;
@@ -508,19 +532,21 @@ function switchTopupTab(tab) {
   const btnStars = document.getElementById('topupMethodStarsBtn');
   const btnCrypto = document.getElementById('topupMethodCryptoBtn');
   const btnTrx = document.getElementById('topupMethodTrxBtn');
+  const btnPol = document.getElementById('topupMethodPolBtn');
 
   const viewCard = document.getElementById('topupCardView');
   const viewStars = document.getElementById('topupStarsView');
   const viewCrypto = document.getElementById('topupCryptoView');
   const viewTrx = document.getElementById('topupTrxView');
+  const viewPol = document.getElementById('topupPolView');
 
-  [btnCard, btnStars, btnCrypto, btnTrx].forEach(b => {
+  [btnCard, btnStars, btnCrypto, btnTrx, btnPol].forEach(b => {
     if (b) {
       b.classList.remove('bg-blue-600', 'text-white');
       b.classList.add('text-slate-400');
     }
   });
-  [viewCard, viewStars, viewCrypto, viewTrx].forEach(v => {
+  [viewCard, viewStars, viewCrypto, viewTrx, viewPol].forEach(v => {
     if (v) v.classList.add('hidden');
   });
 
@@ -540,6 +566,10 @@ function switchTopupTab(tab) {
     btnTrx?.classList.add('bg-blue-600', 'text-white');
     btnTrx?.classList.remove('text-slate-400');
     viewTrx?.classList.remove('hidden');
+  } else if (tab === 'pol') {
+    btnPol?.classList.add('bg-blue-600', 'text-white');
+    btnPol?.classList.remove('text-slate-400');
+    viewPol?.classList.remove('hidden');
   }
 }
 
@@ -1157,6 +1187,116 @@ function restoreActiveTrxInvoice() {
   }
 }
 
+let currentPolInvoice = null;
+let polCountdownTimerInterval = null;
+
+function startPolCountdownTimer(seconds = 3600) {
+  if (polCountdownTimerInterval) {
+    clearInterval(polCountdownTimerInterval);
+    polCountdownTimerInterval = null;
+  }
+  let targetEnd = Date.now() + (seconds * 1000);
+  try {
+    const raw = localStorage.getItem(getActivePolStorageKey());
+    if (raw) {
+      const data = JSON.parse(raw);
+      if (data && data.expires_at) targetEnd = data.expires_at;
+    }
+  } catch (e) {}
+
+  const updateDisplay = () => {
+    const now = Date.now();
+    const remaining = Math.max(0, Math.floor((targetEnd - now) / 1000));
+    const timer = document.getElementById('polCountdownTimer');
+    const pendingTimer = document.getElementById('activeCryptoPendingTimer');
+
+    if (remaining <= 0) {
+      if (timer) timer.innerText = '00:00 (منقضی شد)';
+      if (pendingTimer && window.activePendingInvoiceType === 'POL') pendingTimer.innerText = '00:00 (منقضی شد)';
+      if (polCountdownTimerInterval) {
+        clearInterval(polCountdownTimerInterval);
+        polCountdownTimerInterval = null;
+      }
+      return;
+    }
+    const mins = Math.floor(remaining / 60);
+    const secs = remaining % 60;
+    const timeStr = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+    if (timer) timer.innerText = timeStr;
+    if (pendingTimer && window.activePendingInvoiceType === 'POL') pendingTimer.innerText = timeStr;
+  };
+
+  updateDisplay();
+  polCountdownTimerInterval = setInterval(updateDisplay, 1000);
+}
+
+function stopPolCountdownTimer() {
+  if (polCountdownTimerInterval) {
+    clearInterval(polCountdownTimerInterval);
+    polCountdownTimerInterval = null;
+  }
+}
+
+function getActivePolStorageKey() {
+  const tgId = window.lastUserData?.user?.telegram_id || window.Telegram?.WebApp?.initDataUnsafe?.user?.id || 'default';
+  return `remna_active_pol_invoice_${tgId}`;
+}
+
+function saveActivePolInvoice(inv, durationSec = 3600) {
+  try {
+    const expiresAt = Date.now() + (durationSec * 1000);
+    localStorage.setItem(getActivePolStorageKey(), JSON.stringify({
+      invoice: inv,
+      expires_at: expiresAt
+    }));
+  } catch (e) {}
+}
+
+function clearActivePolInvoice() {
+  try {
+    localStorage.removeItem(getActivePolStorageKey());
+  } catch (e) {}
+  stopPolCountdownTimer();
+  currentPolInvoice = null;
+  const detailsEl = document.getElementById('polInvoiceDetails');
+  const initialEl = document.getElementById('polInvoiceInitial');
+  if (detailsEl) detailsEl.classList.add('hidden');
+  if (initialEl) initialEl.classList.remove('hidden');
+  const input = document.getElementById('polTxIdInput');
+  if (input) input.value = '';
+  if (window.activePendingInvoiceType === 'POL') {
+    updatePendingCardUI(null);
+  }
+  updateTopupMutexUI();
+}
+
+function restoreActivePolInvoice() {
+  try {
+    const raw = localStorage.getItem(getActivePolStorageKey());
+    if (!raw) return false;
+    const data = JSON.parse(raw);
+    const now = Date.now();
+    const remainingSec = Math.floor((data.expires_at - now) / 1000);
+    if (remainingSec <= 0 || !data.invoice) {
+      clearActivePolInvoice();
+      return false;
+    }
+    currentPolInvoice = data.invoice;
+    document.getElementById('polInvoiceInitial')?.classList.add('hidden');
+    document.getElementById('polInvoiceDetails')?.classList.remove('hidden');
+    const amtEl = document.getElementById('polAmountDisplay');
+    if (amtEl) amtEl.innerText = `${data.invoice.amount_pol} POL`;
+    const addrEl = document.getElementById('polPayAddress');
+    if (addrEl) addrEl.innerText = data.invoice.pay_address;
+    startPolCountdownTimer(remainingSec);
+    updatePendingCardUI(data.invoice, remainingSec, 'POL');
+    updateTopupMutexUI();
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
 async function openTopupModal(defaultAmt, forceCrypto = false) {
   const { minAmt } = getTopupLimits();
   const amt = defaultAmt ? Math.max(Number(defaultAmt), minAmt) : null;
@@ -1175,8 +1315,9 @@ async function openTopupModal(defaultAmt, forceCrypto = false) {
       if (!s) return;
       const hasActiveCrypto = restoreActiveCryptoInvoice();
       const hasActiveTrx = restoreActiveTrxInvoice();
+      const hasActivePol = restoreActivePolInvoice();
       const activeType = getActiveInvoiceType();
-      const anyEnabled = s.card_enabled !== false || s.stars_enabled !== false || s.crypto_enabled !== false || s.trx_enabled !== false;
+      const anyEnabled = s.card_enabled !== false || s.stars_enabled !== false || s.crypto_enabled !== false || s.trx_enabled !== false || s.pol_enabled !== false;
       if (!anyEnabled) {
         document.getElementById('topupMethodTabs')?.classList.add('hidden');
         document.getElementById('topupAmountSection')?.classList.add('hidden');
@@ -1191,10 +1332,14 @@ async function openTopupModal(defaultAmt, forceCrypto = false) {
         switchToCryptoTab();
       } else if (activeType === 'TRX') {
         switchTopupTab('trx');
+      } else if (activeType === 'POL') {
+        switchTopupTab('pol');
       } else if ((hasActiveCrypto || forceCrypto) && s.crypto_enabled !== false) {
         switchToCryptoTab();
       } else if (hasActiveTrx && s.trx_enabled !== false) {
         switchTopupTab('trx');
+      } else if (hasActivePol && s.pol_enabled !== false) {
+        switchTopupTab('pol');
       } else if (!isInitial && window.currentTopupTab) {
         if (window.currentTopupTab === 'stars' && s.stars_enabled !== false) {
           switchTopupTab('stars');
@@ -1277,6 +1422,12 @@ function setupWalletListeners() {
     restoreActiveTrxInvoice();
   });
 
+  const methodPolBtn = document.getElementById('topupMethodPolBtn');
+  methodPolBtn?.addEventListener('click', () => {
+    switchTopupTab('pol');
+    restoreActivePolInvoice();
+  });
+
   document.getElementById('closeTopupModalBtn')?.addEventListener('click', () => {
     closeModal('topupModal');
   });
@@ -1290,6 +1441,9 @@ function setupWalletListeners() {
     if (pType === 'TRX') {
       openTopupModal(50000);
       switchTopupTab('trx');
+    } else if (pType === 'POL') {
+      openTopupModal(50000);
+      switchTopupTab('pol');
     } else if (pType === 'CARD') {
       openTopupModal(50000);
       switchTopupTab('card');
@@ -1725,8 +1879,184 @@ function setupWalletListeners() {
     }
   });
 
+  // POL Gateway Listeners
+  document.getElementById('generatePolInvoiceBtn')?.addEventListener('click', async () => {
+    const amt = parseInt(topupAmountInput?.value || '0', 10);
+    if (!validateTopupAmount(amt)) return;
+    const btn = document.getElementById('generatePolInvoiceBtn');
+    btn.disabled = true;
+    btn.innerText = 'در حال ایجاد فاکتور پلیگان...';
+    try {
+      const res = await window.api.createPolInvoice(amt);
+      if (res.ok && res.invoice) {
+        currentPolInvoice = res.invoice;
+        saveActivePolInvoice(res.invoice);
+        document.getElementById('polInvoiceInitial')?.classList.add('hidden');
+        document.getElementById('polInvoiceDetails')?.classList.remove('hidden');
+        const amtEl = document.getElementById('polAmountDisplay');
+        if (amtEl) amtEl.innerText = `${res.invoice.amount_pol} POL`;
+        const addrEl = document.getElementById('polPayAddress');
+        if (addrEl) addrEl.innerText = res.invoice.pay_address;
+        const polDurationSec = res.invoice.remaining_seconds || (res.invoice.expires_minutes ? res.invoice.expires_minutes * 60 : 3600);
+        startPolCountdownTimer(polDurationSec);
+        updatePendingCardUI(res.invoice, polDurationSec, 'POL');
+        updateTopupMutexUI();
+      } else {
+        showToast(`❌ ${res.message || 'خطا در ایجاد فاکتور پلیگان'}`);
+      }
+    } catch (e) {
+      showToast('❌ خطا در برقراری ارتباط با سرور.');
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = '<span>🟣</span> ایجاد فاکتور پلیگان (POL)';
+    }
+  });
+
+  const handleCopyPolAddress = () => {
+    const addr = document.getElementById('polPayAddress')?.innerText?.trim();
+    if (addr && addr !== '--') {
+      copyToClipboard(addr, '📋 آدرس ولت پلیگان کپی شد.');
+      hapticFeedback('success');
+    }
+  };
+  document.getElementById('copyPolAddressBtn')?.addEventListener('click', handleCopyPolAddress);
+  document.getElementById('polPayAddress')?.addEventListener('click', handleCopyPolAddress);
+
+  document.getElementById('copyPolAmountBtn')?.addEventListener('click', () => {
+    const amt = currentPolInvoice?.amount_pol;
+    if (amt) {
+      copyToClipboard(String(amt), '📋 مقدار POL کپی شد.');
+      hapticFeedback('success');
+    }
+  });
+
+  document.getElementById('cancelPolInvoiceBtn')?.addEventListener('click', async () => {
+    if (currentPolInvoice?.id && window.api?.cancelCryptoInvoice) {
+      try { await window.api.cancelCryptoInvoice(currentPolInvoice.id); } catch (e) {}
+    }
+    clearActivePolInvoice();
+    updateTopupMutexUI();
+    showToast('فاکتور پلیگان لغو شد.');
+  });
+
+  document.getElementById('openMetaMaskBtn')?.addEventListener('click', async () => {
+    if (!currentPolInvoice || !currentPolInvoice.pay_address) {
+      showToast('⚠️ ابتدا فاکتور پلیگان را ایجاد فرمایید.');
+      return;
+    }
+
+    const toAddress = currentPolInvoice.pay_address;
+    const weiValStr = currentPolInvoice.wei || '0';
+    let weiHex = '0x0';
+    try {
+      weiHex = '0x' + BigInt(weiValStr).toString(16);
+    } catch (_) {
+      weiHex = '0x0';
+    }
+
+    if (typeof copyToClipboard === 'function') {
+      copyToClipboard(toAddress, `📋 آدرس ولت کپی شد (${currentPolInvoice.amount_pol} POL)`);
+    }
+
+    // Direct Web3 MetaMask
+    if (window.ethereum) {
+      try {
+        const chainIdHex = '0x89'; // Polygon Mainnet (137)
+        try {
+          await window.ethereum.request({
+            method: 'wallet_switchEthereumChain',
+            params: [{ chainId: chainIdHex }],
+          });
+        } catch (switchError) {
+          if (switchError.code === 4902) {
+            await window.ethereum.request({
+              method: 'wallet_addEthereumChain',
+              params: [{
+                chainId: chainIdHex,
+                chainName: 'Polygon Mainnet',
+                nativeCurrency: { name: 'POL', symbol: 'POL', decimals: 18 },
+                rpcUrls: ['https://polygon-rpc.com/'],
+                blockExplorerUrls: ['https://polygonscan.com/'],
+              }],
+            });
+          }
+        }
+
+        const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+        if (accounts && accounts.length > 0) {
+          const txParams = {
+            from: accounts[0],
+            to: toAddress,
+            value: weiHex,
+            chainId: chainIdHex,
+          };
+          const txHash = await window.ethereum.request({
+            method: 'eth_sendTransaction',
+            params: [txParams],
+          });
+          if (txHash) {
+            const input = document.getElementById('polTxIdInput');
+            if (input) input.value = txHash;
+            showToast('✅ تراکنش در متامسک ثبت شد! در حال تأیید خودکار...');
+            setTimeout(() => {
+              document.getElementById('submitPolTxIdBtn')?.click();
+            }, 1200);
+            return;
+          }
+        }
+      } catch (ethErr) {
+        console.warn('MetaMask error:', ethErr);
+        if (ethErr.code === 4001) {
+          showToast('تراکنش در متامسک لغو شد.');
+          return;
+        }
+      }
+    }
+
+    // Deep link fallback for mobile / TMA
+    const deepLink = `https://metamask.app.link/send/${toAddress}?value=${weiHex}&chainId=137`;
+    if (window.Telegram?.WebApp?.openLink) {
+      window.Telegram.WebApp.openLink(deepLink);
+    } else {
+      window.open(deepLink, '_blank');
+    }
+  });
+
+  document.getElementById('submitPolTxIdBtn')?.addEventListener('click', async () => {
+    if (!currentPolInvoice?.id) {
+      showToast('⚠️ ابتدا فاکتور پلیگان را ایجاد فرمایید.');
+      return;
+    }
+    const txId = document.getElementById('polTxIdInput')?.value?.trim();
+    if (!txId) {
+      showToast('⚠️ لطفاً هش تراکنش (TxHash) را وارد فرمایید.');
+      return;
+    }
+    const btn = document.getElementById('submitPolTxIdBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<span>⏳</span> در حال استعلام از شبکه پلیگان...';
+    try {
+      const res = await window.api.verifyPolInvoice(currentPolInvoice.id, txId);
+      if (res.ok) {
+        showToast('🎉 واریز POL در شبکه پلیگان تأیید شد و کیف پول شارژ گردید!');
+        clearActivePolInvoice();
+        closeModal('topupModal');
+        hapticFeedback('success');
+        if (typeof syncUserDataWithApi === 'function') syncUserDataWithApi(window.currentAccountId);
+      } else {
+        showToast(`❌ ${res.message || 'تراکنش در شبکه پلیگان تأیید نشد'}`);
+      }
+    } catch (e) {
+      showToast('❌ خطا در بررسی تراکنش.');
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = '<span>🔍</span> بررسی و تأیید واریز POL';
+    }
+  });
+
   restoreActiveCryptoInvoice();
   restoreActiveTrxInvoice();
+  restoreActivePolInvoice();
   // Pre-fetch topup settings in background for instant modal responsiveness
   loadTopupInfo().catch(() => {});
 }

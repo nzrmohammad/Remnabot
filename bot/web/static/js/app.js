@@ -3461,24 +3461,16 @@ function hydrateUserInterface(data) {
           </div>
         `;
       } else {
-        const showBar = bDown.length > 1;
         countryList.innerHTML = bDown.map(item => {
-          const pct = item.percent || 0;
-          const barHtml = (showBar && pct > 0)
-            ? `<div class="w-full card-inset h-1.5 rounded-full overflow-hidden" dir="ltr">
-                <div class="bg-gradient-to-r from-blue-500 to-cyan-400 h-full rounded-full transition-all duration-500" style="width: ${pct}%;"></div>
-              </div>`
-            : '';
           return `
-          <div class="p-2.5 card-inset space-y-1.5">
+          <div class="p-2.5 card-inset">
             <div class="flex justify-between items-center text-xs">
-              <span class="t-accent font-black text-xs font-mono num-bidi" dir="ltr">${fmtTraffic(item.total_formatted, { html: false })}</span>
+              <span class="t-accent font-black text-xs font-sans num-bidi" dir="ltr">${fmtTraffic(item.total_formatted, { html: false })}</span>
               <span class="flex items-center gap-2 font-bold t-main">
                 <span>${escapeHtml(item.name || '')}</span>
                 <span class="text-base">${typeof renderFlagHtml === 'function' ? renderFlagHtml(item.flag || '🌐', 'w-4 h-3 inline-block rounded-xs shadow-xs object-cover align-middle') : escapeHtml(item.flag || '🌐')}</span>
               </span>
             </div>
-            ${barHtml}
           </div>
           `;
         }).join('');

@@ -1029,7 +1029,7 @@
               </label>
             </div>
             <!-- Card Template & Color Selectors (Side-by-Side in 1 Row) -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+            <div class="grid grid-cols-2 gap-2">
               <!-- Card Template Custom Selector (Right) -->
               <div>
                 <label class="text-[11px] text-slate-400 block mb-1">قالب کارت بانکی:</label>
@@ -1164,10 +1164,14 @@
                 <input type="number" id="settingTrxRate" dir="ltr" placeholder="0 (خودکار از نوبیتکس)" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-2 text-xs font-sans num-bidi text-rose-300 outline-none focus:border-rose-500 transition" />
               </div>
               <div>
+                <label class="text-[11px] text-slate-400 block mb-1">نرخ پلیگان POL (تومان)</label>
+                <input type="number" id="settingPolRate" dir="ltr" placeholder="0 (خودکار از نوبیتکس)" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-2 text-xs font-sans num-bidi text-purple-300 outline-none focus:border-purple-500 transition" />
+              </div>
+              <div>
                 <label class="text-[11px] text-slate-400 block mb-1">نرخ هر استارز (تومان)</label>
                 <input type="number" id="settingStarsRate" dir="ltr" placeholder="1500" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-2 text-xs font-sans num-bidi text-amber-300 outline-none focus:border-amber-500 transition" />
               </div>
-              <div class="col-span-2">
+              <div>
                 <label class="text-[11px] text-slate-400 block mb-1">نرخ یورو (تومان)</label>
                 <input type="number" id="settingEurRate" dir="ltr" placeholder="105000" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-2 text-xs font-sans num-bidi text-indigo-300 outline-none focus:border-indigo-500 transition" />
               </div>
@@ -1183,6 +1187,12 @@
             <div>
               <label class="text-[11px] text-slate-400 block mb-1">آدرس کیف پول ترون (TRX - شبکه Tron)</label>
               <input type="text" id="settingTrxWallet" dir="ltr" placeholder="T..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-sans num-bidi text-slate-300 outline-none focus:border-rose-500 transition text-[11px]" />
+            </div>
+
+            <!-- POL Wallet Address -->
+            <div>
+              <label class="text-[11px] text-slate-400 block mb-1">آدرس کیف پول پلیگان (POL - شبکه Polygon PoS)</label>
+              <input type="text" id="settingPolWallet" dir="ltr" placeholder="0x..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-sans num-bidi text-slate-300 outline-none focus:border-purple-500 transition text-[11px]" />
             </div>
 
             <!-- Crypto Payment Switch -->
@@ -1207,6 +1217,20 @@
               </div>
               <label class="relative inline-flex items-center cursor-pointer">
                 <input type="checkbox" class="sr-only switch-checkbox" id="settingTrxSwitch">
+                <div class="switch-label w-11 h-6 bg-slate-700 rounded-full transition-colors duration-200 flex items-center px-0.5">
+                  <div class="switch-ball w-5 h-5 bg-white rounded-full shadow-md transition-transform duration-200"></div>
+                </div>
+              </label>
+            </div>
+
+            <!-- POL Payment Switch -->
+            <div class="flex items-center justify-between py-2 border-b border-slate-700/50">
+              <div>
+                <span class="text-slate-200 font-semibold block text-xs">درگاه پلیگان (POL - شبکه Polygon PoS)</span>
+                <span class="text-[11px] text-slate-400">پرداخت مستقیم با آدرس متمرکز، اتصال متامسک و استعلام آن‌چین TxHash</span>
+              </div>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" class="sr-only switch-checkbox" id="settingPolSwitch">
                 <div class="switch-label w-11 h-6 bg-slate-700 rounded-full transition-colors duration-200 flex items-center px-0.5">
                   <div class="switch-ball w-5 h-5 bg-white rounded-full shadow-md transition-transform duration-200"></div>
                 </div>
@@ -2193,7 +2217,7 @@
             </div>
 
             <!-- Pricing Rates: 2x2 Grid (Per GB, Per Day, Base Price, Extra User Percent) -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-2 border-t border-slate-700/50">
+            <div class="grid grid-cols-2 gap-2 pt-2 border-t border-slate-700/50">
               <div>
                 <label class="text-[11px] text-slate-400 block mb-1">قیمت هر گیگابایت (تومان)</label>
                 <input type="number" id="settingCustomPlanPricePerGb" dir="ltr" placeholder="2500" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-sans num-bidi text-cyan-300 outline-none focus:border-cyan-500 transition" />

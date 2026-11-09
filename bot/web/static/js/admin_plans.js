@@ -184,7 +184,7 @@
           let specsHtml = '';
           if (isExtraTraffic) {
             specsHtml = `
-              <div class="grid grid-cols-1 text-center text-[11px] card-inset p-2 rounded-xl font-sans num-bidi">
+              <div class="grid grid-cols-1 text-center text-[11px] card-inset p-2 rounded-xl font-sans">
                 <div>
                   <span class="t-muted block text-[11px] font-sans">حجم اضافه</span>
                   ${trafficHtml}
@@ -193,7 +193,7 @@
             `;
           } else if (isExtraTime) {
             specsHtml = `
-              <div class="grid grid-cols-1 text-center text-[11px] card-inset p-2 rounded-xl font-sans num-bidi">
+              <div class="grid grid-cols-1 text-center text-[11px] card-inset p-2 rounded-xl font-sans">
                 <div>
                   <span class="t-muted block text-[11px] font-sans">مدت زمان اضافه</span>
                   <b class="t-main font-bold">${durationText}</b>
@@ -202,7 +202,7 @@
             `;
           } else {
             specsHtml = `
-              <div class="grid grid-cols-3 gap-1.5 text-center text-[11px] card-inset p-2 rounded-xl font-sans num-bidi">
+              <div class="grid grid-cols-3 gap-1.5 text-center text-[11px] card-inset p-2 rounded-xl font-sans">
                 <div>
                   <span class="t-muted block text-[11px] font-sans">حجم ترافیک</span>
                   ${trafficHtml}

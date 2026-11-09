@@ -253,6 +253,14 @@ const api = {
     return this.post('/api/user/topup/trx/verify', { invoice_id, tx_hash });
   },
 
+  async createPolInvoice(amount) {
+    return this.post('/api/user/topup/pol', { amount });
+  },
+
+  async verifyPolInvoice(invoice_id, tx_hash) {
+    return this.post('/api/user/topup/pol/verify', { invoice_id, tx_hash });
+  },
+
   async submitTonConnectInvoice(invoice_id, tx_hash) {
     return this.post('/api/user/topup/crypto/tonconnect_submit', { invoice_id, tx_hash });
   },

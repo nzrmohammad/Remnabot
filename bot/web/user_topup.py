@@ -108,6 +108,23 @@ async def get_user_topup_info(request: web.Request) -> web.Response:
             and trx_wallet_str
         )
 
+        pol_rate_raw = getattr(store, "pol_rate_toman", 0)
+        try:
+            pol_rate = int(pol_rate_raw) if pol_rate_raw is not None else 0
+        except (ValueError, TypeError):
+            pol_rate = 0
+
+        if pol_rate <= 0:
+            from bot.services.crypto.pol import fetch_pol_rate
+            pol_rate = await fetch_pol_rate(0)
+
+        pol_wallet = getattr(store, "pol_wallet_address", "")
+        pol_wallet_str = pol_wallet.strip() if isinstance(pol_wallet, str) else ""
+        pol_enabled = bool(
+            getattr(store, "pol_enabled", False) is True
+            and pol_wallet_str
+        )
+
         xrocket_key = getattr(store, "xrocket_api_key", "")
         xrocket_key_str = xrocket_key.strip() if isinstance(xrocket_key, str) else ""
         xrocket_enabled = bool(
@@ -184,6 +201,9 @@ async def get_user_topup_info(request: web.Request) -> web.Response:
             "trx_enabled": trx_enabled,
             "trx_wallet_address": trx_wallet_str,
             "trx_rate_toman": trx_rate,
+            "pol_enabled": pol_enabled,
+            "pol_wallet_address": pol_wallet_str,
+            "pol_rate_toman": pol_rate,
             "xrocket_enabled": xrocket_enabled,
             "usdt_rate_toman": usdt_rate,
             "stars_enabled": stars_enabled,
@@ -989,6 +1009,171 @@ async def post_user_topup_trx_verify(request: web.Request) -> web.Response:
             "paid": False,
             "message": msg,
         })
+
+
+async def post_user_topup_pol(request: web.Request) -> web.Response:
+    """Create a POL (Polygon PoS) invoice for authenticated user."""
+    user_auth, err = require_user(request)
+    if err:
+        return err
+
+    try:
+        body = await request.json()
+    except Exception:
+        body = {}
+
+    try:
+        amount = int(body.get("amount") or 0)
+    except (ValueError, TypeError):
+        return web.json_response({"ok": False, "message": "مبلغ نامعتبر است."}, status=400)
+
+    telegram_id = int(user_auth["id"])
+    async with db_session(request) as session:
+        store = await get_store_settings(session)
+        if not (getattr(store, "pol_enabled", False) and getattr(store, "pol_wallet_address", "") and store.pol_wallet_address.strip()):
+            return web.json_response({"ok": False, "message": "پرداخت با پلیگان (POL) در حال حاضر غیرفعال است."}, status=400)
+
+        if amount < store.topup_min_amount:
+            return web.json_response(
+                {"ok": False, "message": f"حداقل مبلغ شارژ {store.topup_min_amount:,} تومان است."},
+                status=400,
+            )
+
+        max_amount = _resolve_topup_max(store)
+        if amount > max_amount:
+            return web.json_response(
+                {"ok": False, "message": f"حداکثر مبلغ شارژ {int(max_amount):,} تومان است."},
+                status=400,
+            )
+
+        # Mutex: check active card-to-card or other crypto invoice
+        from bot.db.repositories.card_auto_repo import CardAutoRepository
+        card_auto_repo = CardAutoRepository(session)
+        active_card = await card_auto_repo.get_active_invoice_by_user(telegram_id)
+        if active_card and active_card.status == "pending" and _as_utc(active_card.expires_at) > datetime.now(timezone.utc):
+            return web.json_response(
+                {"ok": False, "message": "شما یک فاکتور کارت‌به‌کارت فعال در جریان دارید. لطفاً ابتدا آن را پرداخت کرده یا لغو نمایید."},
+                status=400,
+            )
+
+        crypto_repo = CryptoRepository(session)
+        active_crypto = await crypto_repo.get_pending_by_user(telegram_id)
+        if active_crypto and _as_utc(active_crypto.expires_at) > datetime.now(timezone.utc):
+            curr_name = "پلیگان (POL)" if getattr(active_crypto, "currency", "TON") == "POL" else (
+                "ترون (TRX)" if getattr(active_crypto, "currency", "TON") == "TRX" else "تون (TON)"
+            )
+            return web.json_response(
+                {"ok": False, "message": f"شما یک فاکتور در جریان {curr_name} دارید. لطفاً ابتدا آن را پرداخت کرده یا لغو نمایید."},
+                status=400,
+            )
+
+        from bot.services.crypto.pol import fetch_pol_rate
+        pol_rate = getattr(store, "pol_rate_toman", 0)
+        if pol_rate <= 0:
+            pol_rate = await fetch_pol_rate(0)
+
+        if pol_rate <= 0:
+            return web.json_response(
+                {"ok": False, "message": "نرخ پلیگان در حال حاضر در دسترس نیست. لطفاً دقایقی دیگر تلاش کنید یا از روش‌های دیگر پرداخت استفاده نمایید."},
+                status=503,
+            )
+
+        # 4 decimal places for POL, e.g. 1.2345 POL
+        pol_amount = max(0.01, math.ceil((amount / pol_rate) * 10000) / 10000)
+        wei = int(round(pol_amount * 10**18))
+
+        crypto_repo = CryptoRepository(session)
+        invoice = await crypto_repo.create_invoice(
+            telegram_id=telegram_id,
+            amount_toman=amount,
+            amount_ton=f"{pol_amount:.4f}",
+            nanotons=wei,
+            pay_address=store.pol_wallet_address.strip(),
+            expires_minutes=60,
+            currency="POL",
+        )
+        await session.commit()
+        logger.info(
+            "Created POL invoice: id=%s tg_id=%s amount_toman=%s pol_amount=%s pol_rate=%s",
+            invoice.id, telegram_id, amount, pol_amount, pol_rate,
+        )
+
+        return web.json_response({
+            "ok": True,
+            "invoice": {
+                "id": invoice.id,
+                "amount_toman": invoice.amount_toman,
+                "amount_pol": f"{pol_amount:.4f}",
+                "wei": str(wei),
+                "pol_rate_toman": pol_rate,
+                "pay_address": invoice.pay_address,
+                "comment": invoice.comment,
+                "currency": "POL",
+                "expires_minutes": 60,
+            }
+        })
+
+
+async def post_user_topup_pol_verify(request: web.Request) -> web.Response:
+    """Verify on-chain TxID/TxHash for a POL invoice submitted by user."""
+    user_auth, err = require_user(request)
+    if err:
+        return err
+
+    try:
+        body = await request.json()
+    except Exception:
+        body = {}
+
+    invoice_id = body.get("invoice_id")
+    tx_hash = (body.get("tx_hash") or "").strip()
+    if not invoice_id:
+        return web.json_response({"ok": False, "message": "شناسه فاکتور الزامی است."}, status=400)
+    if not tx_hash:
+        return web.json_response({"ok": False, "message": "لطفاً شناسه تراکنش یا هش (TxHash) را وارد نمایید."}, status=400)
+
+    try:
+        inv_id_int = int(invoice_id)
+    except (ValueError, TypeError):
+        return web.json_response({"ok": False, "message": "شناسه فاکتور نامعتبر است."}, status=400)
+
+    telegram_id = int(user_auth["id"])
+    cache = request.app.get("cache")
+
+    async with db_session(request) as session:
+        crypto_repo = CryptoRepository(session)
+        inv = await crypto_repo.get_by_id(inv_id_int)
+        if not inv or inv.telegram_id != telegram_id:
+            return web.json_response({"ok": False, "message": "فاکتور یافت نشد."}, status=404)
+
+        if inv.status == "paid":
+            wallet_repo = WalletRepository(session)
+            w = await wallet_repo.get_wallet(telegram_id)
+            return web.json_response({"ok": True, "paid": True, "new_balance": (w.balance if w else 0), "message": "این فاکتور قبلاً تسویه شده است."})
+
+        from bot.services.crypto.pol import verify_and_credit_pol_invoice
+        ok, new_bal, msg = await verify_and_credit_pol_invoice(
+            session=session,
+            invoice=inv,
+            tx_hash=tx_hash,
+            bot=request.app.get("bot"),
+        )
+        if ok:
+            await session.commit()
+            await _invalidate_user_caches(cache, telegram_id)
+            return web.json_response({
+                "ok": True,
+                "paid": True,
+                "new_balance": new_bal,
+                "message": msg,
+            })
+
+        return web.json_response({
+            "ok": True,
+            "paid": False,
+            "message": msg,
+        })
+
 
 
 async def get_user_topup_trx_redirect(request: web.Request) -> web.Response:

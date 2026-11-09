@@ -106,7 +106,7 @@ async def admin_panel(
     if web_app_url and not web_app_url.startswith(("http://", "https://")):
         web_app_url = f"https://{web_app_url}"
 
-    tma_btn_text = "👑 پنل مدیریت سایت" if lang == "fa" else "👑 Site Admin Panel"
+    tma_btn_text = "👑 پنل مدیریت" if lang == "fa" else "👑 Admin Panel"
 
     if web_app_url:
         admin_tma_url = f"{web_app_url.rstrip('/')}/admin"
@@ -151,9 +151,9 @@ async def admin_tma_nourl(
         admin_tma_url = f"{web_app_url.rstrip('/')}/admin"
         from aiogram.utils.keyboard import InlineKeyboardBuilder
         kb = InlineKeyboardBuilder()
-        kb.button(text="🚀 ورود به پنل مدیریت سایت", web_app=WebAppInfo(url=admin_tma_url))
+        kb.button(text="🚀 ورود به پنل مدیریت", web_app=WebAppInfo(url=admin_tma_url))
         await call.message.answer(
-            "🔐 <b>لینک ورود به پنل مدیریت سایت:</b>\n\n"
+            "🔐 <b>لینک ورود به پنل مدیریت:</b>\n\n"
             f"🔗 آدرس: <code>{admin_tma_url}</code>\n\n"
             "جهت ورود، روی دکمه زیر کلیک فرمایید:",
             reply_markup=kb.as_markup(),
