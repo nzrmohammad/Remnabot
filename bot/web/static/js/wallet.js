@@ -177,6 +177,9 @@ function getTxPurchaseInfo(tx) {
       else if (lowerName.includes('ویژه') || lowerName.includes('vip')) emojiStr = '👑';
       else if (lowerName.includes('گیم') || lowerName.includes('game')) emojiStr = '🎮';
       else if (lowerName.includes('خانواده') || lowerName.includes('family')) emojiStr = '👥';
+      else if (typeRowText === 'خرید بسته حجم') emojiStr = '⚡️';
+      else if (typeRowText === 'خرید بسته زمان') emojiStr = '⏳';
+      else emojiStr = '📦';
     }
 
     const iconHtml = `<span class="shrink-0 text-base leading-none">${emojiStr || '📦'}</span>`;

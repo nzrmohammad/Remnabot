@@ -1372,6 +1372,8 @@ async applyUserModification() {
           else if (bKey.includes('eco')) badgeClass = 'border-emerald-500/40 text-emerald-500 dark:text-emerald-400 bg-emerald-500/10';
           const badgeHtml = badgeText ? `<span class="px-1.5 py-0.5 text-[11px] rounded border font-bold ${badgeClass}">${badgeText}</span>` : '';
           const priceLabel = p.price ? (typeof fmtMoney === 'function' ? fmtMoney(p.price) : `${p.price} تومان`) : '';
+          const pEmojiMatches = (p.name || '').match(/([\uD800-\uDBFF][\uDC00-\uDFFF]|[\u2600-\u27BF]|\p{Extended_Pictographic}|\p{Emoji_Presentation})/gu);
+          const pIcon = (pEmojiMatches && pEmojiMatches[0]) ? pEmojiMatches[0] : (Number(p.traffic_gb) > 0 && Number(p.duration_days) === 0 ? '⚡️' : (Number(p.traffic_gb) === 0 && Number(p.duration_days) > 0 ? '⏳' : '📦'));
 
           return `
             <div onclick="window.adminActions.selectCreateUserPlan('${p.id}')" class="p-3 rounded-2xl border transition cursor-pointer flex items-center justify-between gap-3 ${isSelected ? 'bg-blue-600/15 border-blue-500 shadow-sm' : 'card-inset hover:border-slate-500/50'}">
@@ -1389,7 +1391,7 @@ async applyUserModification() {
                   </div>
                 </div>
                 <div class="w-8 h-8 rounded-xl bg-blue-500/15 text-blue-400 border border-blue-500/30 flex items-center justify-center font-bold text-sm shrink-0">
-                  📦
+                  ${pIcon}
                 </div>
               </div>
               <div class="shrink-0 text-blue-400 text-sm font-bold">${isSelected ? '✓' : ''}</div>
@@ -1499,7 +1501,9 @@ async applyUserModification() {
       if (!plan) return;
 
       const trafficLabel = fmtTraffic(plan.traffic_gb, { html: false });
-      if (iconEl) iconEl.innerText = '📦';
+      const pEmojiMatches = (plan.name || '').match(/([\uD800-\uDBFF][\uDC00-\uDFFF]|[\u2600-\u27BF]|\p{Extended_Pictographic}|\p{Emoji_Presentation})/gu);
+      let pIcon = (pEmojiMatches && pEmojiMatches[0]) ? pEmojiMatches[0] : (Number(plan.traffic_gb) > 0 && Number(plan.duration_days) === 0 ? '⚡️' : (Number(plan.traffic_gb) === 0 && Number(plan.duration_days) > 0 ? '⏳' : '📦'));
+      if (iconEl) iconEl.innerText = pIcon;
       if (labelEl) labelEl.innerText = `${plan.name} (${trafficLabel} - ${plan.duration_days} روز)`;
       if (trafficInput) trafficInput.value = plan.traffic_gb || 0;
       if (durationInput) durationInput.value = plan.duration_days || 30;

@@ -1107,7 +1107,12 @@ function showPurchaseModal(res, fallbackPlanName, fallbackPlanPrice) {
     if (sIconEl) sIconEl.innerText = emoji;
   } else {
     if (sNameEl) sNameEl.innerText = rawName;
-    if (sIconEl) sIconEl.innerText = '📦';
+    const isResExtraTraffic = (Number(res.duration_days) === 0 && Number(res.traffic_gb) > 0);
+    const isResExtraTime = (Number(res.traffic_gb) === 0 && Number(res.duration_days) > 0);
+    let fallbackIcon = '📦';
+    if (isResExtraTraffic || rawName.includes('حجم')) fallbackIcon = '⚡️';
+    else if (isResExtraTime || rawName.includes('زمان') || rawName.includes('روز')) fallbackIcon = '⏳';
+    if (sIconEl) sIconEl.innerText = fallbackIcon;
   }
 
   const isResExtraTraffic = (Number(res.duration_days) === 0 && Number(res.traffic_gb) > 0);

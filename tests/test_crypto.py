@@ -670,7 +670,7 @@ async def test_fetch_all_exchange_prices_mock():
 
 
 def test_format_full_crypto_market_alert():
-    """Verify comprehensive market alert formatting covers TON, USDT, Stars, EUR, and action buttons."""
+    """Verify comprehensive market alert formatting covers TON, USDT, TRX, POL, Stars, and EUR without action buttons."""
     from bot.services.crypto.crypto_rates import format_full_crypto_market_alert
 
     mock_store = MagicMock(
@@ -678,13 +678,21 @@ def test_format_full_crypto_market_alert():
         usdt_rate_toman=95000,
         stars_rate_toman=1500,
         eur_rate_toman=105000,
+        trx_rate_toman=12000,
+        pol_rate_toman=35000,
     )
     market_data = {
         "ton": {"نوبیتکس": 390000, "بیت‌پین": 389000},
         "usdt": {"نوبیتکس": 96000, "والکس": 96200},
+        "trx": {"نوبیتکس": 12500, "والکس": 12400},
+        "pol": {"نوبیتکس": 36000},
         "binance_usd": 2.45,
+        "binance_trx_usd": 0.13,
+        "binance_pol_usd": 0.38,
         "best_ton": (390000, "نوبیتکس"),
         "best_usdt": (96200, "والکس"),
+        "best_trx": (12500, "نوبیتکس"),
+        "best_pol": (36000, "نوبیتکس"),
     }
 
     text, kb = format_full_crypto_market_alert(market_data=market_data, store=mock_store, hour_str="14:00")
@@ -692,18 +700,15 @@ def test_format_full_crypto_market_alert():
     assert "نوبیتکس" in text
     assert "390,000" in text
     assert "96,200" in text
+    assert "12,500" in text  # TRX
+    assert "36,000" in text  # POL
     assert "$2.45" in text
+    assert "$0.1300" in text
+    assert "$0.3800" in text
     assert "105,000" in text  # EUR
     assert "استارز" in text
-
-    # Buttons check
-    callbacks = [btn.callback_data for row in kb.inline_keyboard for btn in row]
-    assert "adm:rate:apply:ton:390000" in callbacks
-    assert "adm:rate:apply:usdt:96200" in callbacks
-    assert any("adm:rate:apply:stars:" in cb for cb in callbacks)
-    assert "adm:set:ton_rate_toman" in callbacks
-    assert "adm:set:usdt_rate_toman" in callbacks
-    assert "adm:settings:crypto" in callbacks
+    assert "جهت به‌روزرسانی سریع نرخ در فروشگاه" not in text
+    assert kb is None
 
 
 @pytest.mark.anyio

@@ -251,6 +251,19 @@ html.theme-light .textarea-base:focus {
 .badge-info    { background-color: var(--c-info-soft); color: var(--c-info); border-color: var(--c-info-border); }
 .badge-purple  { background-color: var(--c-purple-soft); color: var(--c-purple); border-color: var(--c-purple-border); }
 .badge-pink    { background-color: var(--c-pink-soft); color: var(--c-pink); border-color: var(--c-pink-border); }
+.badge-plan-type {
+  border: 1.5px solid #64748b;
+  background-color: var(--inset-bg);
+  color: var(--text-main);
+  font-weight: 800;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+}
+html.theme-light .badge-plan-type {
+  border: 1.5px solid #64748b;
+  background-color: #f1f5f9;
+  color: #0f172a;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
 
 /* --- 5. Semantic Typography Utilities --- */
 .t-main       { color: var(--text-main); }

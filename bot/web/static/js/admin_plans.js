@@ -147,11 +147,11 @@
           const bKey = (p.badge || '').toLowerCase();
           const isExtraTraffic = (bKey === 'traffic' || (Number(p.duration_days) === 0 && Number(p.traffic_gb) > 0)) && bKey !== 'time';
           const isExtraTime = !isExtraTraffic && (bKey === 'time' || (Number(p.traffic_gb) === 0 && Number(p.duration_days) > 0 && bKey !== 'traffic'));
-          let typeBadge = '<span class="badge card-inset t-main border-2 border-slate-400/90 dark:border-slate-500 font-extrabold shadow-xs">💎 دوره کامل</span>';
+          let typeBadge = '<span class="badge badge-plan-type">💎 دوره کامل</span>';
           if (isExtraTraffic) {
-            typeBadge = '<span class="badge card-inset t-main border-2 border-slate-400/90 dark:border-slate-500 font-extrabold shadow-xs">⚡️ بسته حجمی</span>';
+            typeBadge = '<span class="badge badge-plan-type">⚡️ بسته حجمی</span>';
           } else if (isExtraTime) {
-            typeBadge = '<span class="badge card-inset t-main border-2 border-slate-400/90 dark:border-slate-500 font-extrabold shadow-xs">⏳ بسته زمانی</span>';
+            typeBadge = '<span class="badge badge-plan-type">⏳ بسته زمانی</span>';
           }
 
           let tagBadge = '';

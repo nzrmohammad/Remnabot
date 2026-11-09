@@ -4752,6 +4752,8 @@ function renderInvoiceModalFields(inv, orderId) {
     else if (lowerTitle.includes('برنز') || lowerTitle.includes('bronze')) itemIcon = '🥉';
     else if (lowerTitle.includes('الماس') || lowerTitle.includes('diamond')) itemIcon = '💎';
     else if (lowerTitle.includes('ویژه') || lowerTitle.includes('vip')) itemIcon = '👑';
+    else if (lowerTitle.includes('حجم') || inv.item?.badge === 'traffic') itemIcon = '⚡️';
+    else if (lowerTitle.includes('زمان') || lowerTitle.includes('روز') || inv.item?.badge === 'time') itemIcon = '⏳';
   }
 
   $('invItemTitle').innerText = cleanItemTitle;

@@ -25,6 +25,16 @@ from sqlalchemy.orm import Mapped, mapped_column
 
 from bot.db.base import Base
 
+# Compatibility fix for SQLAlchemy 2.0 type hint evaluation under Python 3.14 (PEP 649)
+try:
+    import sqlalchemy.sql.base
+    import sqlalchemy.event.registry
+    from sqlalchemy.event import dispatcher
+    sqlalchemy.sql.base.dispatcher = dispatcher
+    sqlalchemy.event.registry.dispatcher = dispatcher
+except Exception:
+    pass
+
 
 class TopupStatus(enum.StrEnum):
     PENDING = "pending"

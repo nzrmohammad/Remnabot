@@ -281,7 +281,7 @@ def test_custom_plan_disabled_card_stripe_and_reports_polish():
     assert "نمودار مصرف ساعتی دیشب (24 ساعت):" in app_html
     assert "data-amt=\"50000\"" not in app_html
     assert "data-amt=\"100000\"" in app_html
-    assert "placeholder=\"مبلغ دلخواه را وارد کنید (تومان)...\"" in app_html
+    assert "placeholder=\"مبلغ دلخواه را وارد کنید (تومان)\"" in app_html
     assert "--/--/-- - 23:59" in app_html
 
     shop_js = Path("bot/web/static/js/shop.js").read_text(encoding="utf-8")

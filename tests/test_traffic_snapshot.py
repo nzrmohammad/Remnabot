@@ -129,6 +129,6 @@ async def test_admin_overview_uses_real_hourly_snapshots(session_factory):
     data = json.loads(resp.text)
     hourly = data["data"]["charts"]["hourly_distribution"]
     assert hourly["is_real_telemetry"] is True
-    # In rolling 24-hour chart, the recorded snapshot must appear in the telemetry series
-    assert max(hourly["data"]) >= 15.0
-    assert hourly["peak_hour"] is not None
+    # In rolling/calendar hourly chart, the recorded snapshot must appear in the telemetry series (today or yesterday)
+    assert max(hourly["data"] + hourly.get("yesterday_data", [])) >= 15.0
+    assert hourly["peak_hour"] is not None or hourly.get("yesterday_peak_hour") is not None

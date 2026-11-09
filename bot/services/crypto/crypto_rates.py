@@ -348,17 +348,23 @@ def format_full_crypto_market_alert(
     market_data: dict,
     store,
     hour_str: str = "",
-) -> tuple[str, InlineKeyboardMarkup]:
-    """Format comprehensive market notification with TON, USDT, Stars, EUR and quick action buttons."""
+) -> tuple[str, InlineKeyboardMarkup | None]:
+    """Format comprehensive market notification covering TON, USDT, TRX, POL, Stars, and EUR."""
     ton_prices = market_data.get("ton", {})
     usdt_prices = market_data.get("usdt", {})
+    trx_prices = market_data.get("trx", {})
+    pol_prices = market_data.get("pol", {})
     global_usd = market_data.get("global_ton_usd") or market_data.get("binance_usd")
-    global_source = market_data.get("global_ton_source") or "بایننس" 
+    global_source = market_data.get("global_ton_source") or "بایننس"
+    binance_trx_usd = market_data.get("binance_trx_usd")
+    binance_pol_usd = market_data.get("binance_pol_usd")
 
-    current_ton_rate = store.ton_rate_toman
-    current_usdt_rate = store.usdt_rate_toman
-    current_stars_rate = store.stars_rate_toman
-    current_eur_rate = store.eur_rate_toman
+    current_ton_rate = store.ton_rate_toman if isinstance(getattr(store, "ton_rate_toman", None), (int, float)) else 0
+    current_usdt_rate = store.usdt_rate_toman if isinstance(getattr(store, "usdt_rate_toman", None), (int, float)) else 0
+    current_stars_rate = store.stars_rate_toman if isinstance(getattr(store, "stars_rate_toman", None), (int, float)) else 0
+    current_eur_rate = store.eur_rate_toman if isinstance(getattr(store, "eur_rate_toman", None), (int, float)) else 0
+    current_trx_rate = store.trx_rate_toman if isinstance(getattr(store, "trx_rate_toman", None), (int, float)) else 0
+    current_pol_rate = store.pol_rate_toman if isinstance(getattr(store, "pol_rate_toman", None), (int, float)) else 0
 
     best_ton_p, best_ton_src = market_data.get("best_ton", (None, ""))
     if best_ton_p is not None and current_ton_rate > 0:
@@ -389,6 +395,36 @@ def format_full_crypto_market_alert(
         diff_usdt_str = "تنظیم‌نشده"
     else:
         diff_usdt_str = "دریافت نشد"
+
+    best_trx_p, best_trx_src = market_data.get("best_trx", (None, ""))
+    if best_trx_p is not None and current_trx_rate > 0:
+        diff_trx = best_trx_p - current_trx_rate
+        pct_trx = (diff_trx / current_trx_rate * 100.0)
+        if diff_trx > 0:
+            diff_trx_str = f"{diff_trx:,}+ ت (%{pct_trx:.1f}+)"
+        elif diff_trx < 0:
+            diff_trx_str = f"{abs(diff_trx):,}- ت (%{abs(pct_trx):.1f}-)"
+        else:
+            diff_trx_str = "بدون تغییر"
+    elif current_trx_rate <= 0:
+        diff_trx_str = "تنظیم‌نشده"
+    else:
+        diff_trx_str = "دریافت نشد"
+
+    best_pol_p, best_pol_src = market_data.get("best_pol", (None, ""))
+    if best_pol_p is not None and current_pol_rate > 0:
+        diff_pol = best_pol_p - current_pol_rate
+        pct_pol = (diff_pol / current_pol_rate * 100.0)
+        if diff_pol > 0:
+            diff_pol_str = f"{diff_pol:,}+ ت (%{pct_pol:.1f}+)"
+        elif diff_pol < 0:
+            diff_pol_str = f"{abs(diff_pol):,}- ت (%{abs(pct_pol):.1f}-)"
+        else:
+            diff_pol_str = "بدون تغییر"
+    elif current_pol_rate <= 0:
+        diff_pol_str = "تنظیم‌نشده"
+    else:
+        diff_pol_str = "دریافت نشد"
 
     ref_usdt = best_usdt_p or current_usdt_rate
     lossless_stars = max(100, round(ref_usdt * 0.013)) if ref_usdt else 0
@@ -431,6 +467,38 @@ def format_full_crypto_market_alert(
     lines.append(f"   ⚙️ فعلی در بات: <b>{curr_usdt_str}</b> ({diff_usdt_str})")
 
     lines.append("")
+    lines.append("🔴 <b>قیمت ترون (TRX):</b>")
+    for name in ("نوبیتکس", "بیت‌پین", "والکس"):
+        p = trx_prices.get(name)
+        if p:
+            val = f"<b>{p:,}</b> تومان"
+        elif closed.get(f"{name}_trx"):
+            val = f"<i>⚠️ {closed[f'{name}_trx']}</i>"
+        else:
+            val = "<i>عدم دسترسی</i>"
+        lines.append(f"   ▫️ {name}: {val}")
+    if binance_trx_usd:
+        lines.append(f"   🌐 بایننس جهانی: <b>${binance_trx_usd:.4f}</b>")
+    curr_trx_str = f"{current_trx_rate:,} ت" if current_trx_rate > 0 else "— (تنظیم‌نشده)"
+    lines.append(f"   ⚙️ فعلی در بات: <b>{curr_trx_str}</b> ({diff_trx_str})")
+
+    lines.append("")
+    lines.append("🟣 <b>قیمت پلیگان (POL):</b>")
+    for name in ("نوبیتکس", "بیت‌پین", "والکس"):
+        p = pol_prices.get(name)
+        if p:
+            val = f"<b>{p:,}</b> تومان"
+        elif closed.get(f"{name}_pol"):
+            val = f"<i>⚠️ {closed[f'{name}_pol']}</i>"
+        else:
+            val = "<i>عدم دسترسی</i>"
+        lines.append(f"   ▫️ {name}: {val}")
+    if binance_pol_usd:
+        lines.append(f"   🌐 بایننس جهانی: <b>${binance_pol_usd:.4f}</b>")
+    curr_pol_str = f"{current_pol_rate:,} ت" if current_pol_rate > 0 else "— (تنظیم‌نشده)"
+    lines.append(f"   ⚙️ فعلی در بات: <b>{curr_pol_str}</b> ({diff_pol_str})")
+
+    lines.append("")
     lines.append("⭐️ <b>نرخ پیشنهادی استارز تلگرام:</b>")
     if lossless_stars > 0:
         lines.append(f"   ▫️ بدون ضرر (۰.۰۱۳$): <b>{lossless_stars:,} تومان</b>")
@@ -444,42 +512,6 @@ def format_full_crypto_market_alert(
     curr_eur_str = f"{current_eur_rate:,} تومان" if current_eur_rate > 0 else "— (تنظیم‌نشده)"
     lines.append(f"💶 <b>نرخ مبنای یورو در بات:</b> <b>{curr_eur_str}</b>")
 
-    lines.append("")
-    lines.append("💡 جهت به‌روزرسانی سریع نرخ در فروشگاه، دکمه مورد نظر را لمس کنید:")
-
     text = "\n".join(lines)
-    kb = InlineKeyboardBuilder()
-
-    btn_count = 0
-    if best_ton_p:
-        src_label = f" ({best_ton_src})" if best_ton_src else ""
-        kb.button(
-            text=f"🔄 اعمال تون{src_label}: {best_ton_p:,} ت",
-            callback_data=f"adm:rate:apply:ton:{best_ton_p}",
-        )
-        btn_count += 1
-
-    if best_usdt_p:
-        src_label = f" ({best_usdt_src})" if best_usdt_src else ""
-        kb.button(
-            text=f"💵 اعمال تتر{src_label}: {best_usdt_p:,} ت",
-            callback_data=f"adm:rate:apply:usdt:{best_usdt_p}",
-        )
-        btn_count += 1
-
-    if ref_usdt:
-        kb.button(
-            text=f"⭐️ اعمال استارز بدون ضرر: {lossless_stars:,} ت",
-            callback_data=f"adm:rate:apply:stars:{lossless_stars}",
-        )
-        btn_count += 1
-
-    kb.button(text="✏️ نرخ دلخواه تون", callback_data="adm:set:ton_rate_toman")
-    kb.button(text="✏️ نرخ دلخواه تتر", callback_data="adm:set:usdt_rate_toman")
-    kb.button(text="⚙️ تنظیمات پرداخت کریپتو", callback_data="adm:settings:crypto")
-
-    adjust_spec = [1] * btn_count + [2, 1]
-    kb.adjust(*adjust_spec)
-
-    return text, kb.as_markup()
+    return text, None
 
