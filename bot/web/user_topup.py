@@ -40,6 +40,14 @@ def _resolve_topup_max(store: object) -> int:
         return int(raw)
     return DEFAULT_MAX_TOPUP_TOMAN
 
+def _format_crypto_curr_name(currency: str | None) -> str:
+    curr = (currency or "TON").strip().upper()
+    if curr == "POL":
+        return "پلیگان (POL)"
+    if curr == "TRX":
+        return "ترون (TRX)"
+    return "تون (TON)"
+
 def _as_utc(dt: datetime | None) -> datetime:
     """Ensure datetime is offset-aware in UTC to prevent naive vs aware comparison bugs."""
     if dt is None:
@@ -495,7 +503,7 @@ async def post_user_topup_crypto(request: web.Request) -> web.Response:
         crypto_repo = CryptoRepository(session)
         active_crypto = await crypto_repo.get_pending_by_user(telegram_id)
         if active_crypto and _as_utc(active_crypto.expires_at) > datetime.now(timezone.utc):
-            curr_name = "ترون (TRX)" if getattr(active_crypto, "currency", "TON") == "TRX" else "تون (TON)"
+            curr_name = _format_crypto_curr_name(getattr(active_crypto, "currency", "TON"))
             return web.json_response(
                 {"ok": False, "message": f"شما یک فاکتور در جریان {curr_name} دارید. لطفاً ابتدا آن را پرداخت کرده یا لغو نمایید."},
                 status=400,
@@ -571,9 +579,11 @@ async def get_user_topup_crypto_active(request: web.Request) -> web.Response:
                 "amount_toman": invoice.amount_toman,
                 "amount_ton": invoice.amount_ton,
                 "amount_trx": invoice.amount_ton,
+                "amount_pol": invoice.amount_ton,
                 "currency": currency,
-                "nanotons": invoice.nanotons,
-                "suns": invoice.nanotons,
+                "nanotons": int(invoice.nanotons or 0),
+                "suns": int(invoice.nanotons or 0),
+                "wei": str(invoice.nanotons or 0),
                 "pay_address": invoice.pay_address,
                 "comment": invoice.comment,
                 "deep_link": deep_link,
@@ -890,7 +900,7 @@ async def post_user_topup_trx(request: web.Request) -> web.Response:
         crypto_repo = CryptoRepository(session)
         active_crypto = await crypto_repo.get_pending_by_user(telegram_id)
         if active_crypto and _as_utc(active_crypto.expires_at) > datetime.now(timezone.utc):
-            curr_name = "ترون (TRX)" if getattr(active_crypto, "currency", "TON") == "TRX" else "تون (TON)"
+            curr_name = _format_crypto_curr_name(getattr(active_crypto, "currency", "TON"))
             return web.json_response(
                 {"ok": False, "message": f"شما یک فاکتور در جریان {curr_name} دارید. لطفاً ابتدا آن را پرداخت کرده یا لغو نمایید."},
                 status=400,
@@ -1053,9 +1063,7 @@ async def post_user_topup_pol(request: web.Request) -> web.Response:
         crypto_repo = CryptoRepository(session)
         active_crypto = await crypto_repo.get_pending_by_user(telegram_id)
         if active_crypto and _as_utc(active_crypto.expires_at) > datetime.now(timezone.utc):
-            curr_name = "پلیگان (POL)" if getattr(active_crypto, "currency", "TON") == "POL" else (
-                "ترون (TRX)" if getattr(active_crypto, "currency", "TON") == "TRX" else "تون (TON)"
-            )
+            curr_name = _format_crypto_curr_name(getattr(active_crypto, "currency", "TON"))
             return web.json_response(
                 {"ok": False, "message": f"شما یک فاکتور در جریان {curr_name} دارید. لطفاً ابتدا آن را پرداخت کرده یا لغو نمایید."},
                 status=400,
@@ -1466,7 +1474,7 @@ async def post_user_topup_card_auto_create(request: web.Request) -> web.Response
         crypto_repo = CryptoRepository(session)
         active_crypto = await crypto_repo.get_pending_by_user(telegram_id)
         if active_crypto and _as_utc(active_crypto.expires_at) > datetime.now(timezone.utc):
-            curr_name = "ترون (TRX)" if getattr(active_crypto, "currency", "TON") == "TRX" else "تون (TON)"
+            curr_name = _format_crypto_curr_name(getattr(active_crypto, "currency", "TON"))
             return web.json_response(
                 {"ok": False, "message": f"شما یک فاکتور فعال در جریان {curr_name} دارید. لطفاً ابتدا آن را پرداخت کرده یا لغو نمایید."},
                 status=400,

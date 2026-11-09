@@ -2139,6 +2139,17 @@
                 </div>
                 <p class="text-[11px] t-warn opacity-95 leading-tight font-medium">⚠️ حتماً این شناسه (Memo) را در پیام انتقال ولت وارد کنید تا شارژ به‌صورت آنی ثبت شود.</p>
               </div>
+              <div class="card-inset rounded-xl p-2.5 space-y-1.5 border border-sky-500/20 text-[11px] leading-relaxed">
+                <div class="flex items-center gap-1.5 font-bold text-sky-400">
+                  <span>💡</span>
+                  <span>راهنمای واریز امن TON و خطاهای رایج:</span>
+                </div>
+                <ul class="space-y-1 t-muted pr-3 list-disc marker:text-sky-400">
+                  <li><b>شبکه انتقال:</b> فقط <b>شبکه اصلی TON</b> (انتقال روی BEP-20 یا BSC غیرقابل قبول است).</li>
+                  <li><b>کد کامنت (Memo):</b> درج شناسه انتقال بالا در بخش Comment/Memo ولت ضروری است تا واریزی به حساب شما ثبت شود.</li>
+                  <li><b>کیف‌پول پیشنهادی:</b> تون‌کیپر (Tonkeeper) یا کیف پول تلگرام.</li>
+                </ul>
+              </div>
             </div>
 
             <div class="space-y-2 pt-1">
@@ -2195,6 +2206,17 @@
                 <label class="text-[11px] text-slate-300 font-bold block">شناسه تراکنش (TxID):</label>
                 <input type="text" id="trxTxIdInput" placeholder="کد رهگیری یا TxID تراکنش پس از ارسال..." class="input-base w-full p-2 rounded-xl font-mono text-xs outline-none" dir="ltr" />
               </div>
+              <div class="card-inset rounded-xl p-2.5 space-y-1.5 border border-rose-500/20 text-[11px] leading-relaxed">
+                <div class="flex items-center gap-1.5 font-bold t-danger">
+                  <span>💡</span>
+                  <span>راهنمای واریز امن ترون و خطاهای رایج:</span>
+                </div>
+                <ul class="space-y-1 t-muted pr-3 list-disc marker:text-rose-400">
+                  <li><b>شبکه و ارز انتقال:</b> فقط و فقط ارز <b>TRX</b> روی شبکه <b>TRC-20</b> (از ارسال USDT یا سایر توکن‌ها خودداری کنید).</li>
+                  <li><b>کارمزد صرافی:</b> در صورت ارسال از صرافی‌ها، مطمئن شوید مقدار دریافتی در مقصد معادل دقیق فاکتور باشد.</li>
+                  <li><b>ثبت شناسه:</b> پس از ارسال، کد TxID را در کادر زیر وارد کرده و دکمه بررسی را بزنید.</li>
+                </ul>
+              </div>
             </div>
 
             <div class="space-y-2 pt-1">
@@ -2214,7 +2236,7 @@
         <!-- 4. POL (Polygon PoS) Section -->
         <div id="topupPolView" class="space-y-3 hidden">
           <div id="polInvoiceInitial" class="text-center py-2 space-y-2">
-            <p class="text-[11px] text-slate-300">پرداخت مستقیم ارز پلیگان (POL) روی شبکه Polygon PoS با تایید آن‌چین</p>
+            <p class="text-[11px] text-slate-300">پرداخت مستقیم ارز پلیگان (POL) روی شبکه Polygon بدون کارمزد واسطه</p>
             <button id="generatePolInvoiceBtn" type="button" class="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold py-2.5 rounded-xl transition shadow active:scale-[0.98] flex items-center justify-center gap-1.5">
               <span>🟣</span> ایجاد فاکتور پلیگان (POL)
             </button>
@@ -2235,9 +2257,9 @@
               </div>
               <div class="space-y-1">
                 <span class="text-slate-400 text-[11px] block">آدرس کیف پول پلیگان (Polygon PoS):</span>
-                <button id="copyPolAddressBtn" type="button" class="w-full text-left card-inset p-2.5 rounded-xl font-sans num-bidi text-[11px] break-all select-all transition text-purple-300 flex items-center justify-between gap-2 cursor-pointer active:scale-[0.99]" dir="ltr">
-                  <span id="polPayAddress" class="break-all leading-relaxed">--</span>
-                  <span class="text-xs shrink-0">📋</span>
+                <button id="copyPolAddressBtn" type="button" class="w-full text-left card-inset p-2.5 rounded-xl font-mono text-[11px] break-all select-all transition text-purple-300 flex items-center justify-between gap-2 cursor-pointer active:scale-[0.99] min-w-0" dir="ltr">
+                  <span id="polPayAddress" class="break-all leading-relaxed flex-1 min-w-0">--</span>
+                  <span class="text-xs shrink-0 text-purple-400">📋</span>
                 </button>
                 <p class="text-[11px] text-slate-400 leading-tight">💡 ارز POL را فقط از طریق شبکه Polygon PoS انتقال دهید.</p>
               </div>
@@ -2245,10 +2267,21 @@
                 <label class="text-[11px] text-slate-300 font-bold block">شناسه تراکنش یا هش (TxHash):</label>
                 <input type="text" id="polTxIdInput" placeholder="هش تراکنش (0x...) پس از ارسال..." class="input-base w-full p-2 rounded-xl font-sans num-bidi text-xs outline-none" dir="ltr" />
               </div>
+              <div class="card-inset rounded-xl p-2.5 space-y-1.5 border border-purple-500/20 text-[11px] leading-relaxed">
+                <div class="flex items-center gap-1.5 font-bold text-purple-400">
+                  <span>💡</span>
+                  <span>راهنمای واریز امن پالیگان و خطاهای رایج:</span>
+                </div>
+                <ul class="space-y-1 t-muted pr-3 list-disc marker:text-purple-400">
+                  <li><b>شبکه مجاز (Polygon PoS):</b> انتقال باید منحصراً روی شبکه <b>Polygon PoS (شناسه زنجیره 137)</b> انجام شود. ارسال روی اتریوم (ERC-20)، آربیتروم یا شبکه Polygon zkEVM منجر به سوختن دارایی می‌شود!</li>
+                  <li><b>ارز مجاز:</b> ارز بومی شبکه <b>POL</b> (همان MATIC سابق).</li>
+                  <li><b>روش پرداخت:</b> می‌توانید با کلیک روی دکمه متامسک پرداخت را در چند ثانیه انجام دهید، یا از ولت شخصی واریز کرده و هش تراکنش (TxHash) را در کادر زیر وارد نمایید.</li>
+                </ul>
+              </div>
             </div>
 
             <div class="space-y-2 pt-1">
-              <button id="openMetaMaskBtn" type="button" class="w-full bg-gradient-to-r from-amber-600 via-orange-600 to-purple-600 hover:opacity-95 text-white font-bold py-2.5 rounded-xl transition shadow active:scale-[0.98] flex items-center justify-center gap-1.5 text-xs text-center">
+              <button id="openMetaMaskBtn" type="button" class="w-full bg-gradient-to-r from-amber-600 via-orange-600 to-purple-700 hover:from-amber-500 hover:via-orange-500 hover:to-purple-600 text-white font-extrabold py-2.5 rounded-xl transition shadow-md active:scale-[0.98] flex items-center justify-center gap-1.5 text-xs text-center border-2 border-amber-500/80 dark:border-amber-400/50 drop-shadow-sm">
                 <span>🦊</span> پرداخت مستقیم با متامسک (MetaMask)
               </button>
               <button id="submitPolTxIdBtn" type="button" class="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold py-2.5 rounded-xl transition shadow active:scale-[0.98] flex items-center justify-center gap-1.5">

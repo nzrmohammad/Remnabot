@@ -332,7 +332,13 @@ window.getTopupLimits = getTopupLimits;
 
 function validateTopupAmount(amt) {
   const { minAmt, maxAmt } = getTopupLimits();
-  if (!amt || isNaN(amt) || amt < minAmt) {
+  if (!amt || isNaN(amt) || amt <= 0) {
+    if (window.showToast) {
+      window.showToast('لطفاً ابتدا مبلغ شارژ مورد نظر خود را وارد یا انتخاب نمایید.', 'warning');
+    }
+    return false;
+  }
+  if (amt < minAmt) {
     if (window.showToast) {
       window.showToast(`حداقل مبلغ شارژ ${minAmt.toLocaleString('en-US')} تومان است.`, 'warning');
     }
@@ -867,6 +873,8 @@ function updatePendingCardUI(invoice, remainingSec, type = 'TON') {
   if (titleEl) {
     if (type === 'TRX') {
       titleEl.innerText = 'فاکتور ترون (TRX) در جریان';
+    } else if (type === 'POL') {
+      titleEl.innerText = 'فاکتور پلیگان (POL) در جریان';
     } else if (type === 'CARD') {
       titleEl.innerText = 'فاکتور کارت‌به‌کارت در جریان';
     } else {
@@ -877,7 +885,9 @@ function updatePendingCardUI(invoice, remainingSec, type = 'TON') {
   const amtEl = document.getElementById('activeCryptoPendingAmount');
   if (amtEl) {
     if (type === 'TRX') {
-      amtEl.innerText = `${invoice.amount_trx} TRX`;
+      amtEl.innerText = `${invoice.amount_trx || invoice.amount_ton} TRX`;
+    } else if (type === 'POL') {
+      amtEl.innerText = `${invoice.amount_pol || invoice.amount_ton} POL`;
     } else if (type === 'CARD') {
       const rial = invoice.exact_rial || (Number(invoice.exact_amount || 0) * 10);
       amtEl.innerText = `${Number(rial).toLocaleString('en-US')} ریال`;
@@ -1033,9 +1043,18 @@ async function syncActiveInvoicesWithServer() {
       const currency = inv.currency || 'TON';
       const remSec = inv.remaining_seconds || 3600;
       if (currency === 'TRX') {
+        clearActiveCryptoInvoice();
+        clearActivePolInvoice();
         saveActiveTrxInvoice(inv, remSec);
         restoreActiveTrxInvoice();
+      } else if (currency === 'POL') {
+        clearActiveCryptoInvoice();
+        clearActiveTrxInvoice();
+        saveActivePolInvoice(inv, remSec);
+        restoreActivePolInvoice();
       } else {
+        clearActiveTrxInvoice();
+        clearActivePolInvoice();
         saveActiveCryptoInvoice(inv, remSec);
         restoreActiveCryptoInvoice();
       }
@@ -1044,6 +1063,8 @@ async function syncActiveInvoicesWithServer() {
         clearActiveCryptoInvoice();
       } else if (window.activePendingInvoiceType === 'TRX') {
         clearActiveTrxInvoice();
+      } else if (window.activePendingInvoiceType === 'POL') {
+        clearActivePolInvoice();
       }
     }
   } catch (e) {}
@@ -1308,7 +1329,10 @@ function clearActivePolInvoice() {
 function restoreActivePolInvoice() {
   try {
     const raw = localStorage.getItem(getActivePolStorageKey());
-    if (!raw) return false;
+    if (!raw) {
+      if (window.activePendingInvoiceType === 'POL') updatePendingCardUI(null);
+      return false;
+    }
     const data = JSON.parse(raw);
     const now = Date.now();
     const remainingSec = Math.floor((data.expires_at - now) / 1000);

@@ -114,6 +114,12 @@ async def init_db(engine) -> None:
                 pass
             try:
                 await conn.execute(text(
+                    "ALTER TABLE crypto_invoices ALTER COLUMN nanotons TYPE NUMERIC(38, 0);"
+                ))
+            except Exception:
+                pass
+            try:
+                await conn.execute(text(
                     "ALTER TABLE orders ALTER COLUMN service_id DROP NOT NULL;"
                 ))
             except Exception as e:

@@ -287,6 +287,11 @@ html.theme-light .textarea-base:focus {
   white-space: nowrap;
 }
 
+input.num-bidi::placeholder {
+  direction: rtl;
+  text-align: right;
+}
+
 input.font-en,
 input.font-mono,
 .font-en {

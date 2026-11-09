@@ -10,8 +10,10 @@ from sqlalchemy import (
     ForeignKey,
     Index,
     Integer,
+    Numeric,
     String,
     Text,
+    TypeDecorator,
     UniqueConstraint,
     func,
     text,
@@ -441,8 +443,18 @@ class RetentionState(Base):
     )
 
 
+class BigIntDecimal(TypeDecorator):
+    """Large integer stored as Numeric(38, 0) in DB to support EVM 18-decimal wei."""
+
+    impl = Numeric(38, 0)
+    cache_ok = True
+
+    def process_result_value(self, value, dialect):
+        return int(value) if value is not None else None
+
+
 class CryptoInvoice(Base):
-    """Invoice for on-chain cryptocurrency (TON) wallet top-up."""
+    """Invoice for on-chain cryptocurrency (TON, TRX, POL) wallet top-up."""
 
     __tablename__ = "crypto_invoices"
 
@@ -450,7 +462,7 @@ class CryptoInvoice(Base):
     telegram_id: Mapped[int] = mapped_column(BigInteger, index=True)
     amount_toman: Mapped[int] = mapped_column(BigInteger)
     amount_ton: Mapped[str] = mapped_column(String(32))
-    nanotons: Mapped[int] = mapped_column(BigInteger)
+    nanotons: Mapped[int] = mapped_column(BigIntDecimal, default=0)
     currency: Mapped[str] = mapped_column(String(16), default="TON", server_default="TON", index=True)
     comment: Mapped[str] = mapped_column(String(64), unique=True, index=True)
     pay_address: Mapped[str] = mapped_column(String(128))

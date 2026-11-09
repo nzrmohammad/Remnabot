@@ -104,7 +104,7 @@ async def test_verify_and_credit_pol_invoice_replay_prevention():
 
 
 class SimpleInvoice:
-    def __init__(self, id, telegram_id, currency="POL", status="pending", pay_address="0x123", nanotons=100, created_at=None, amount_toman=50000):
+    def __init__(self, id, telegram_id, currency="POL", status="pending", pay_address="0x123", nanotons=100, created_at=None, amount_toman=50000, amount_ton="1.0", comment="12345", **kwargs):
         self.id = id
         self.telegram_id = telegram_id
         self.currency = currency
@@ -113,6 +113,10 @@ class SimpleInvoice:
         self.nanotons = nanotons
         self.created_at = created_at or datetime.now(timezone.utc)
         self.amount_toman = amount_toman
+        self.amount_ton = amount_ton
+        self.comment = comment
+        for k, v in kwargs.items():
+            setattr(self, k, v)
 
 
 @pytest.mark.anyio
@@ -247,3 +251,90 @@ async def test_post_user_topup_pol_verify_success():
         assert data["ok"] is True
         assert data["paid"] is True
         assert data["new_balance"] == 250000
+import json
+from decimal import Decimal
+from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
+from sqlalchemy import select
+from bot.db.base import Base
+from bot.db.models import CryptoInvoice
+from bot.web.user_topup import get_user_topup_crypto_active, _format_crypto_curr_name
+
+
+@pytest.mark.anyio
+async def test_crypto_invoice_supports_large_wei_values():
+    """Verify CryptoInvoice can store and fetch 18-decimal wei > int64 max without overflow."""
+    engine = create_async_engine("sqlite+aiosqlite:///:memory:")
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+
+    session_factory = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
+    async with session_factory() as session:
+        # 21.2576 POL = 21,257,600,000,000,000,000 wei (> 2^63 - 1 = 9,223,372,036,854,775,807)
+        large_wei = 21257600000000000000
+        inv = CryptoInvoice(
+            id=1,
+            telegram_id=265455450,
+            amount_toman=500000,
+            amount_ton="21.2576",
+            nanotons=large_wei,
+            currency="POL",
+            comment="62103",
+            pay_address="0x343B7C64c6a62eE6815e6E7589fB4F06b0cA8F42",
+            status="pending",
+            expires_at=datetime.now(timezone.utc),
+        )
+        session.add(inv)
+        await session.commit()
+
+        res = await session.execute(select(CryptoInvoice).where(CryptoInvoice.id == 1))
+        fetched = res.scalar_one()
+        assert fetched.nanotons == large_wei
+        assert isinstance(fetched.nanotons, int)
+
+
+@pytest.mark.anyio
+async def test_get_user_topup_crypto_active_returns_pol_details():
+    """Verify get_user_topup_crypto_active includes amount_pol and wei for POL invoices."""
+    request = MagicMock()
+    now = datetime.now(timezone.utc)
+    future = now.replace(year=now.year + 1)
+    inv = SimpleInvoice(
+        id=77,
+        telegram_id=999,
+        amount_toman=500000,
+        amount_ton="21.2576",
+        nanotons=21257600000000000000,
+        currency="POL",
+        comment="98765",
+        pay_address="0xABC123",
+        status="pending",
+        expires_at=future,
+    )
+
+    with patch("bot.web.user_topup.require_user", return_value=({"id": 999}, None)), \
+         patch("bot.web.user_topup.db_session") as mock_session_ctx, \
+         patch("bot.web.user_topup.CryptoRepository") as mock_crypto_cls:
+
+        mock_session = AsyncMock()
+        mock_session_ctx.return_value.__aenter__.return_value = mock_session
+
+        mock_crypto_repo = MagicMock()
+        mock_crypto_repo.get_pending_by_user = AsyncMock(return_value=inv)
+        mock_crypto_cls.return_value = mock_crypto_repo
+
+        resp = await get_user_topup_crypto_active(request)
+        assert resp.status == 200
+        data = json.loads(resp.text)
+        assert data["ok"] is True
+        assert data["has_active"] is True
+        assert data["invoice"]["currency"] == "POL"
+        assert data["invoice"]["amount_pol"] == "21.2576"
+        assert data["invoice"]["wei"] == "21257600000000000000"
+
+
+def test_format_crypto_curr_name():
+    assert _format_crypto_curr_name("POL") == "پلیگان (POL)"
+    assert _format_crypto_curr_name("pol") == "پلیگان (POL)"
+    assert _format_crypto_curr_name("TRX") == "ترون (TRX)"
+    assert _format_crypto_curr_name("TON") == "تون (TON)"
+    assert _format_crypto_curr_name(None) == "تون (TON)"

@@ -18,7 +18,7 @@ if (typeof window !== 'undefined') {
 
 // Toast notification utility
 let _appToastTimer = null;
-function showToast(msg, duration = 3200) {
+function showToast(msg, typeOrDuration = 3200, duration = 3200) {
   let toast = document.getElementById('appToast');
   if (!toast) {
     toast = document.createElement('div');
@@ -33,6 +33,12 @@ function showToast(msg, duration = 3200) {
     clearTimeout(_appToastTimer);
     _appToastTimer = null;
   }
+  let delay = 3200;
+  if (typeof typeOrDuration === 'number' && !isNaN(typeOrDuration) && typeOrDuration > 0) {
+    delay = typeOrDuration;
+  } else if (typeof duration === 'number' && !isNaN(duration) && duration > 0) {
+    delay = duration;
+  }
   toast.textContent = String(msg || '');
   toast.classList.remove('opacity-0', '-translate-y-2');
   toast.classList.add('opacity-100', 'translate-y-0');
@@ -40,7 +46,7 @@ function showToast(msg, duration = 3200) {
     toast.classList.remove('opacity-100', 'translate-y-0');
     toast.classList.add('opacity-0', '-translate-y-2');
     _appToastTimer = null;
-  }, duration);
+  }, delay);
 }
 
 // Global Banner Notification Utility (for session expiry, timeouts, system notices)
