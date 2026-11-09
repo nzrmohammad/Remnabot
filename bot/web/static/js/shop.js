@@ -217,6 +217,7 @@ let _calcDebounce = null;
 function initCustomPlanBuilder() {
   const gbSlider = document.getElementById('customPlanGbSlider');
   const daysSlider = document.getElementById('customPlanDaysSlider');
+  const hwidSlider = document.getElementById('customPlanHwidSlider');
   if (!gbSlider || !daysSlider) return;
 
   const settings = cachedPlansData?.custom_plan_settings || window.storeSettings?.custom_plan_settings || {};
@@ -238,6 +239,7 @@ function initCustomPlanBuilder() {
     ['input', 'change'].forEach(evt => {
       gbSlider.addEventListener(evt, () => updateCustomPlanCalculation());
       daysSlider.addEventListener(evt, () => updateCustomPlanCalculation());
+      if (hwidSlider) hwidSlider.addEventListener(evt, () => updateCustomPlanCalculation());
     });
   }
 
@@ -247,15 +249,19 @@ function initCustomPlanBuilder() {
 async function updateCustomPlanCalculation() {
   const gbSlider = document.getElementById('customPlanGbSlider');
   const daysSlider = document.getElementById('customPlanDaysSlider');
+  const hwidSlider = document.getElementById('customPlanHwidSlider');
   if (!gbSlider || !daysSlider) return;
 
   const gb = Number(gbSlider.value || 30);
   const days = Number(daysSlider.value || 30);
+  const hwid = Number(hwidSlider?.value || 2);
 
   const valGbEl = document.getElementById('customPlanGbVal');
   const valDaysEl = document.getElementById('customPlanDaysVal');
+  const valHwidEl = document.getElementById('customPlanHwidVal');
   if (valGbEl) valGbEl.innerText = gb;
   if (valDaysEl) valDaysEl.innerText = days;
+  if (valHwidEl) valHwidEl.innerText = hwid;
 
   // Instantaneous 60fps client-side calculation
   const settings = cachedPlansData?.custom_plan_settings || window.storeSettings?.custom_plan_settings || {};
@@ -316,7 +322,7 @@ async function updateCustomPlanCalculation() {
     if (volPct > 0) {
       if (volRow) volRow.classList.remove('hidden');
       if (volTierPct) volTierPct.innerText = volPct;
-      if (volEl) volEl.innerHTML = `<span dir="ltr" class="font-mono">-${Number(localVolDiscAmt).toLocaleString('en-US')}</span> تومان`;
+      if (volEl) volEl.innerHTML = `<span dir="ltr" class="font-sans num-bidi">-${Number(localVolDiscAmt).toLocaleString('en-US')}</span> تومان`;
       if (volBadge) volBadge.classList.remove('hidden');
       if (volPctVal) volPctVal.innerText = volPct;
     } else {
@@ -328,7 +334,7 @@ async function updateCustomPlanCalculation() {
       if (discRow) discRow.classList.remove('hidden');
       const discPctEl = document.getElementById('customPlanDiscountPct');
       if (discPctEl) discPctEl.innerText = loyaltyPct;
-      if (discEl) discEl.innerHTML = `<span dir="ltr" class="font-mono">-${Number(localDisc).toLocaleString('en-US')}</span> تومان`;
+      if (discEl) discEl.innerHTML = `<span dir="ltr" class="font-sans num-bidi">-${Number(localDisc).toLocaleString('en-US')}</span> تومان`;
     } else {
       if (discRow) discRow.classList.add('hidden');
     }
@@ -356,7 +362,7 @@ async function updateCustomPlanCalculation() {
   if (_calcDebounce) clearTimeout(_calcDebounce);
   _calcDebounce = setTimeout(async () => {
     try {
-      const res = await window.api.calculateCustomPlan(gb, days);
+      const res = await window.api.calculateCustomPlan(gb, days, hwid);
       if (res && res.ok && res.data) {
         const d = res.data;
         if (baseEl) baseEl.innerText = `${Number(d.raw_base_price || d.base_price).toLocaleString('en-US')} تومان`;
@@ -370,7 +376,7 @@ async function updateCustomPlanCalculation() {
         if (d.volume_discount_percent > 0) {
           if (volRow) volRow.classList.remove('hidden');
           if (volTierPct) volTierPct.innerText = d.volume_discount_percent;
-          if (volEl) volEl.innerHTML = `<span dir="ltr" class="font-mono">-${Number(d.volume_discount_amount).toLocaleString('en-US')}</span> تومان`;
+          if (volEl) volEl.innerHTML = `<span dir="ltr" class="font-sans num-bidi">-${Number(d.volume_discount_amount).toLocaleString('en-US')}</span> تومان`;
           if (volBadge) volBadge.classList.remove('hidden');
           if (volPctVal) volPctVal.innerText = d.volume_discount_percent;
         } else {
@@ -380,7 +386,7 @@ async function updateCustomPlanCalculation() {
 
         if (d.loyalty_discount_amount > 0) {
           if (discRow) discRow.classList.remove('hidden');
-          if (discEl) discEl.innerHTML = `<span dir="ltr" class="font-mono">-${Number(d.loyalty_discount_amount).toLocaleString('en-US')}</span> تومان <span dir="ltr" class="font-mono font-bold">(${d.loyalty_discount_percent}%)</span>`;
+          if (discEl) discEl.innerHTML = `<span dir="ltr" class="font-sans num-bidi">-${Number(d.loyalty_discount_amount).toLocaleString('en-US')}</span> تومان <span dir="ltr" class="font-sans font-bold num-bidi">(${d.loyalty_discount_percent}%)</span>`;
         } else {
           if (discRow) discRow.classList.add('hidden');
         }
@@ -413,6 +419,7 @@ async function updateCustomPlanCalculation() {
 function purchaseCustomPlan() {
   const gb = Number(document.getElementById('customPlanGbSlider')?.value || 30);
   const days = Number(document.getElementById('customPlanDaysSlider')?.value || 30);
+  const hwid = Number(document.getElementById('customPlanHwidSlider')?.value || 2);
   const finalPriceEl = document.getElementById('customPlanFinalPrice');
   const finalPriceText = finalPriceEl ? finalPriceEl.innerText.replace(/[^0-9]/g, '') : '';
   const finalPrice = Number(finalPriceText) || 0;
@@ -424,6 +431,7 @@ function purchaseCustomPlan() {
     price: finalPrice,
     traffic: gb,
     days: days,
+    hwid_limit: hwid,
     badge: 'custom',
     gb: gb,
   };
@@ -761,6 +769,17 @@ function openCheckoutConfirmModal(plan) {
   if (priceEl) priceEl.innerText = `${Number(planPrice).toLocaleString('en-US')} تومان`;
   if (balEl) balEl.innerText = `${Number(userBalance).toLocaleString('en-US')} تومان`;
 
+  const hwidEl = document.getElementById('checkoutPlanHwid');
+  const hwidRow = document.getElementById('checkoutPlanHwidRow');
+  if (hwidEl && hwidRow) {
+    if (plan.hwid_limit || plan.isCustom) {
+      hwidRow.classList.remove('hidden');
+      hwidEl.innerText = `${plan.hwid_limit || 2} کاربر`;
+    } else {
+      hwidRow.classList.add('hidden');
+    }
+  }
+
   const switchBox = document.getElementById('checkoutSwitchWarningBox');
   const activeSub = window.lastUserData?.active_sub || window.lastUserData?.active_subscription;
   const activeSquad = (activeSub?.squad_uuid || '').trim().toLowerCase();
@@ -859,7 +878,7 @@ async function executePurchase() {
   try {
     let res;
     if (isCustom) {
-      res = await window.api.purchaseCustomPlan(gb, days, window.currentAccountId || null);
+      res = await window.api.purchaseCustomPlan(gb, days, window.currentAccountId || null, currentPendingPlan.hwid_limit || 2);
     } else {
       res = await window.api.purchase(
         planId,

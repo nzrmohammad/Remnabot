@@ -205,12 +205,12 @@ const api = {
     return this.post(`/api/user/invoice/${orderId}/send-telegram`, {});
   },
 
-  async calculateCustomPlan(traffic_gb, duration_days) {
-    return this.post('/api/user/custom-plan/calculate', { traffic_gb, duration_days });
+  async calculateCustomPlan(traffic_gb, duration_days, hwid_limit = 2) {
+    return this.post('/api/user/custom-plan/calculate', { traffic_gb, duration_days, hwid_limit });
   },
 
-  async purchaseCustomPlan(traffic_gb, duration_days, account_id = null) {
-    return this.post('/api/user/custom-plan/purchase', { traffic_gb, duration_days, account_id });
+  async purchaseCustomPlan(traffic_gb, duration_days, account_id = null, hwid_limit = 2) {
+    return this.post('/api/user/custom-plan/purchase', { traffic_gb, duration_days, account_id, hwid_limit });
   },
 
   async getTopupInfo() {

@@ -134,6 +134,13 @@ function formatTxTitle(tx) {
     if (rawPlan.includes('بسته دلخواه')) {
       rawPlan = 'بسته دلخواه';
     }
+    const emojiRegex = /[\p{Extended_Pictographic}\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu;
+    const cleanOnly = rawPlan.replace(emojiRegex, '').trim();
+    if (cleanOnly && !cleanOnly.startsWith('بسته') && !cleanOnly.startsWith('سرویس') && !cleanOnly.startsWith('ارتقا')) {
+      const emojis = rawPlan.match(emojiRegex);
+      const emojiPrefix = (emojis && emojis.length) ? emojis.join('') + ' ' : '';
+      rawPlan = `${emojiPrefix}بسته ${cleanOnly}`;
+    }
     const formattedPlan = typeof formatPlanTitle === 'function' ? formatPlanTitle(rawPlan) : escapeHtml(rawPlan);
     return `<span class="inline-flex items-center gap-1"><span class="text-slate-400 font-normal">خرید</span> ${formattedPlan}</span>`;
   }
@@ -186,17 +193,17 @@ function renderWalletTransactions(transactions) {
     ` : '';
 
     return `
-    <div class="card-inset rounded-xl p-3 flex items-center justify-between text-xs gap-3 ${isOrder ? 'cursor-pointer hover:border-cyan-500/40 transition active:scale-[0.99]' : ''}" ${isOrder ? `onclick="window.openInvoiceModal && window.openInvoiceModal(${tx.id});"` : ''}>
+    <div class="card-inset rounded-2xl p-3.5 sm:p-4 flex items-center justify-between text-xs gap-3 ${isOrder ? 'cursor-pointer hover:border-cyan-500/40 transition active:scale-[0.99]' : ''}" ${isOrder ? `onclick="window.openInvoiceModal && window.openInvoiceModal(${tx.id});"` : ''}>
       <div class="flex items-center gap-2.5 min-w-0 flex-1">
         <span class="text-xl shrink-0">${tx.type === 'topup' ? '💳' : (tx.type === 'admin_adjust' ? '⚡️' : '🛒')}</span>
-        <div class="min-w-0 flex-1">
-          <span class="font-bold t-main block truncate">${formatTxTitle(tx)}</span>
+        <div class="min-w-0 flex-1 space-y-0.5">
+          <div class="font-bold t-main text-xs sm:text-sm leading-snug break-words">${formatTxTitle(tx)}</div>
           <span class="text-[10px] t-muted font-sans num-bidi mt-0.5 block" dir="ltr">${toEnglishDigits(tx.date_jalali || '')}</span>
         </div>
       </div>
       <div class="text-left shrink-0 space-y-0.5">
         <div class="inline-flex items-center gap-1 font-bold ${tx.is_positive ? 't-success' : 't-main'}" dir="rtl">
-          <span class="font-sans num-bidi text-xs" dir="ltr">${Number(tx.amount != null ? tx.amount : 0).toLocaleString('en-US')}</span>
+          <span class="font-sans num-bidi text-xs sm:text-sm" dir="ltr">${Number(tx.amount != null ? tx.amount : 0).toLocaleString('en-US')}</span>
           <span class="font-sans num-bidi text-sm leading-none font-bold">${tx.is_positive ? '+' : '-'}</span>
           <span class="font-sans text-[10px] t-muted font-normal">تومان</span>
         </div>
@@ -228,7 +235,7 @@ function renderWalletTransactions(transactions) {
       <button type="button" id="walletPrevPageBtn" class="p-1.5 rounded-lg border border-[var(--card-border)] bg-transparent t-muted hover:t-main transition active:scale-95 flex items-center justify-center ${currentWalletPage === 1 ? 'opacity-30 cursor-not-allowed pointer-events-none' : ''}" title="صفحه قبل">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
       </button>
-      <span class="text-[11px] text-slate-400 font-mono">
+      <span class="text-[11px] text-slate-400 font-sans num-bidi">
         صفحه <b class="t-main">${currentWalletPage}</b> از <b class="t-main">${totalPages}</b>
       </span>
       <button type="button" id="walletNextPageBtn" class="p-1.5 rounded-lg border border-[var(--card-border)] bg-transparent t-muted hover:t-main transition active:scale-95 flex items-center justify-center ${currentWalletPage === totalPages ? 'opacity-30 cursor-not-allowed pointer-events-none' : ''}" title="صفحه بعد">

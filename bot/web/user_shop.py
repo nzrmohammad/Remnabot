@@ -633,6 +633,7 @@ async def post_user_custom_plan_calculate(request: web.Request) -> web.Response:
         data = {}
     traffic_gb = max(1, int(data.get("traffic_gb", 10) or 10))
     duration_days = max(1, int(data.get("duration_days", 30) or 30))
+    hwid_limit = max(1, min(10, int(data.get("hwid_limit", 2) or 2)))
     cache = request.app.get("cache")
 
     async with db_session(request) as session:
@@ -660,6 +661,7 @@ async def post_user_custom_plan_calculate(request: web.Request) -> web.Response:
             "loyalty_discount_percent": loyalty_pct,
             "loyalty_discount_amount": disc_amt,
             "final_price": final_price,
+            "hwid_limit": hwid_limit,
             "is_configured": is_configured,
             "enabled": store_settings.custom_plan_enabled,
         })
@@ -679,6 +681,7 @@ async def post_user_custom_plan_purchase(request: web.Request) -> web.Response:
     try:
         traffic_gb = int(data.get("traffic_gb", 0) or 0)
         duration_days = int(data.get("duration_days", 0) or 0)
+        hwid_limit = max(1, min(10, int(data.get("hwid_limit", 2) or 2)))
     except (ValueError, TypeError):
         return web.json_response({"ok": False, "message": "مقادیر حجم و روز نامعتبر است."}, status=400)
     account_id = data.get("account_id")
@@ -786,7 +789,7 @@ async def post_user_custom_plan_purchase(request: web.Request) -> web.Response:
             price=base_price,
             duration_days=duration_days,
             traffic_gb=traffic_gb,
-            hwid_limit=2,
+            hwid_limit=hwid_limit,
             squad_uuid=target_squad,
             badge="custom",
             traffic_strategy="NO_RESET",
