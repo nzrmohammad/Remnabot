@@ -64,6 +64,7 @@ class StoreSettings:
     join_gate_channel: str = ""
     topic_backups: int | None = None
     topic_sms_manual: int | None = None
+    topic_sms_logs: int | None = None
     auto_clean_reports: bool = True
     topup_max_amount: int = 50000000
     custom_plan_enabled: bool = True
@@ -164,6 +165,7 @@ async def get_store_settings(session: AsyncSession) -> StoreSettings:
         join_gate_channel=str(values.get("join_gate_channel") or "").strip(),
         topic_backups=_opt_int(values.get("topic_backups"), getattr(env, "ADMIN_TOPIC_BACKUPS", None)),
         topic_sms_manual=_opt_int(values.get("topic_sms_manual"), getattr(env, "ADMIN_TOPIC_SMS_MANUAL", None)),
+        topic_sms_logs=_opt_int(values.get("topic_sms_logs"), getattr(env, "ADMIN_TOPIC_SMS_LOGS", None)),
         auto_clean_reports=_bool(values.get("auto_clean_reports"), True),
         topup_max_amount=_int(values.get("topup_max_amount"), getattr(env, "TOPUP_MAX_AMOUNT", 50000000)),
         custom_plan_enabled=_bool(values.get("custom_plan_enabled"), True),

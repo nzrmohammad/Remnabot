@@ -35,15 +35,11 @@ async def _send_admin_nightly_summary(
     target_user_id: int | None = None,
     is_daily: bool = False,
 ) -> None:
-    # 0. Define interval: Daily = today (00:00 to 23:59), Nightly = previous day (00:00 to 23:59)
-    if is_daily:
-        report_date = now.date()
-        day_label_fa = "امروز"
-        report_dt = now
-    else:
-        report_date = (now - timedelta(days=1)).date()
-        day_label_fa = "روز قبل"
-        report_dt = now - timedelta(days=1)
+    # 0. Define interval: Nightly report triggers at 23:59 at the end of the day,
+    # so both daily trigger and nightly sweep report on today (امروز) from 00:00 to 23:59.
+    report_date = now.date()
+    day_label_fa = "امروز"
+    report_dt = now
 
     period_start = report_dt.replace(hour=0, minute=0, second=0, microsecond=0)
     period_end = report_dt.replace(hour=23, minute=59, second=59, microsecond=999999)
@@ -80,7 +76,7 @@ async def _send_admin_nightly_summary(
         if cc:
             country_totals.setdefault(cc, 0)
         from bot.common.helpers import get_node_daily_bytes
-        val = get_node_daily_bytes(n) if is_daily else 0
+        val = get_node_daily_bytes(n)
         if cc and val > 0:
             country_totals[cc] += val
 
@@ -194,7 +190,7 @@ async def _send_admin_nightly_summary(
     report_title = (
         f"👑 <b>گزارش جامع روزانه (امروز) — {date_str} — 00:00 تا 23:59</b>"
         if is_daily
-        else f"👑 <b>گزارش جامع شبانه (روز قبل) — {date_str} — 00:00 تا 23:59</b>"
+        else f"👑 <b>گزارش جامع شبانه — {date_str} — 00:00 تا 23:59</b>"
     )
     lines = [
         report_title,

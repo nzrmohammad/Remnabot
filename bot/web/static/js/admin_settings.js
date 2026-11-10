@@ -1041,7 +1041,8 @@ openUserChat(telegram_id, name, tag, topup_id) {
     'settingTopicReports',
     'settingTopicCrypto',
     'settingTopicErrors',
-    'settingTopicSmsManual'
+    'settingTopicSmsManual',
+    'settingTopicSmsLogs'
   ];
 
   function updateSmsWebhookUrlDisplay(secret) {
@@ -1396,6 +1397,7 @@ openUserChat(telegram_id, name, tag, topup_id) {
         settingTopicCrypto: s.topic_crypto,
         settingTopicErrors: s.topic_errors,
         settingTopicSmsManual: s.topic_sms_manual,
+        settingTopicSmsLogs: s.topic_sms_logs,
       };
       topicInputIds.forEach(id => {
         const inp = $(id);
@@ -1611,6 +1613,7 @@ openUserChat(telegram_id, name, tag, topup_id) {
       topic_crypto: parseTopicVal($('settingTopicCrypto')?.value),
       topic_errors: parseTopicVal($('settingTopicErrors')?.value),
       topic_sms_manual: parseTopicVal($('settingTopicSmsManual')?.value),
+      topic_sms_logs: parseTopicVal($('settingTopicSmsLogs')?.value),
       client_apps_json: (() => {
         const OS_APPS_MAP = {
           ios: ['shadowrocket', 'streisand', 'v2box', 'incy', 'happ', 'onexray', 'hiddify'],

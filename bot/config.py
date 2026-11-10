@@ -29,6 +29,7 @@ class Settings(BaseSettings):
     ADMIN_TOPIC_ERRORS: int | None = None   # Topic ID for system error logs and exceptions
     ADMIN_TOPIC_BACKUPS: int | None = None  # Topic ID for database backup archives
     ADMIN_TOPIC_SMS_MANUAL: int | None = None  # Topic ID for manual bank SMS pasting
+    ADMIN_TOPIC_SMS_LOGS: int | None = None  # Topic ID for incoming bank SMS webhook and processing decisions
 
     # --- Crypto (TON, TRX & POL on-chain top-up) ---
     TON_WALLET_ADDRESS: str = ""

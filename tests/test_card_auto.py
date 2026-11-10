@@ -245,3 +245,59 @@ async def test_card_auto_destination_mismatch(async_session: AsyncSession):
     assert res["ok"] is True
     assert res["action"] == "card_mismatch"
 
+
+@pytest.mark.anyio
+async def test_topic_sms_logs_notifications(async_session: AsyncSession):
+    """Verify topic_sms_logs receives notifications with bot decisions for all SMS actions."""
+    store = StoreSettings(
+        card_number="6037991234567890",
+        card_holder="مدیریت",
+        topup_min_amount=10000,
+        default_squad_uuid="",
+        expiry_grace_days=3,
+        expiry_remind_days="3,1,0",
+        topic_topups=101,
+        topic_orders=None,
+        topic_support=None,
+        topic_alerts=None,
+        topic_sms_logs=999,
+        support_contact="",
+        card_auto_enabled=True,
+    )
+
+    mock_bot = AsyncMock()
+    mock_settings = MagicMock(ADMIN_CHAT_ID=-100123456789)
+
+    # 1. Ignored non-deposit SMS
+    sms_non_deposit = "برداشت از کارت ۶۰۳۷... مبلغ ۵۰,۰۰۰ ریال"
+    res1 = await process_incoming_sms(
+        session=async_session,
+        bot=mock_bot,
+        settings=mock_settings,
+        store=store,
+        sender="BankMelli",
+        raw_message=sms_non_deposit,
+    )
+    assert res1["action"] == "ignored_non_deposit"
+    assert mock_bot.send_message.called
+    call_args1 = mock_bot.send_message.call_args
+    assert call_args1.kwargs.get("message_thread_id") == 999
+    assert "پیامک غیرواریزی" in call_args1.kwargs.get("text", "")
+
+    # 2. Card mismatch SMS
+    mock_bot.reset_mock()
+    sms_mismatch = "بانک مسکن واریز: ۵۰,۰۰۰ ریال به کارت ۶۲۸۰...۱۱۱۱"
+    res2 = await process_incoming_sms(
+        session=async_session,
+        bot=mock_bot,
+        settings=mock_settings,
+        store=store,
+        sender="Masken",
+        raw_message=sms_mismatch,
+    )
+    assert res2["action"] == "card_mismatch"
+    assert mock_bot.send_message.called
+    call_args2 = mock_bot.send_message.call_args
+    assert call_args2.kwargs.get("message_thread_id") == 999
+    assert "عدم تطابق شماره کارت مقصد" in call_args2.kwargs.get("text", "")
+

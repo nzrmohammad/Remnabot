@@ -111,6 +111,94 @@ async def generate_card_auto_invoice(
     return invoice
 
 
+async def notify_admin_sms_webhook_log(
+    bot: Bot | None,
+    settings: Any,
+    store: StoreSettings,
+    sender: str,
+    raw_message: str,
+    action: str,
+    parsed: Any,
+    invoice: CardAutoInvoice | None = None,
+    new_balance: int | None = None,
+    reason: str = "",
+) -> None:
+    """Send real-time incoming SMS notification and bot decision to admin SMS topic."""
+    if not bot or not settings or not getattr(settings, "ADMIN_CHAT_ID", None):
+        return
+
+    topic_id = (
+        getattr(store, "topic_sms_logs", None)
+        or getattr(settings, "ADMIN_TOPIC_SMS_LOGS", None)
+        or getattr(store, "topic_sms_manual", None)
+        or getattr(settings, "ADMIN_TOPIC_SMS_MANUAL", None)
+    )
+    if not topic_id:
+        return
+
+    thread_kwargs = admin_thread_kwargs(topic_id=topic_id)
+    bank_label = escape(parsed.bank_name or "نامشخص")
+    sender_label = escape(sender)
+    clean_preview = escape(raw_message.strip()[:400])
+
+    amount_str = f"<b>{parsed.amount_toman:,} تومان</b> ({parsed.amount_rial:,} ریال)" if getattr(parsed, "amount_toman", 0) else "<i>تشخیص داده نشد</i>"
+
+    if action == "credited" and invoice:
+        status_header = "🟢 <b>تأیید و شارژ خودکار کیف پول</b>"
+        decision_details = (
+            f"▫️ شناسه فاکتور: <code>#{invoice.invoice_uuid}</code>\n"
+            f"▫️ شناسه کاربر: <code>{invoice.telegram_id}</code>\n"
+            f"▫️ مبلغ شارژ: <b>{invoice.exact_amount:,} تومان</b>\n"
+            f"▫️ موجودی جدید: <b>{new_balance:,} تومان</b>"
+        )
+    elif action == "unmatched_deposit":
+        status_header = "🟡 <b>واریزی بدون فاکتور منطبق</b>"
+        decision_details = (
+            "▫️ وضعیت: واریز به حساب تشخیص داده شد اما هیچ فاکتور بازی با این مبلغ یافت نشد.\n"
+            "▫️ اقدام: در انتظار بررسی دستی یا ثبت فاکتور توسط کاربر."
+        )
+    elif action == "card_mismatch":
+        status_header = "🔴 <b>عدم تطابق شماره کارت مقصد</b>"
+        store_card = getattr(store, "card_number", None) or "—"
+        decision_details = (
+            f"▫️ کارت پیامک: <code>{escape(parsed.card_last4 or '—')}</code>\n"
+            f"▫️ کارت فروشگاه: <code>{escape(str(store_card))}</code>\n"
+            "▫️ اقدام: نادیده گرفته شد (واریزی به کارت شخصی ادمین یا حساب دیگر)."
+        )
+    elif action == "ignored_non_deposit":
+        status_header = "⚪️ <b>نادیده گرفته شد (پیامک غیرواریزی)</b>"
+        decision_details = (
+            "▫️ وضعیت: پیامک تراکنش واریز به حساب تشخیص داده نشد.\n"
+            f"▫️ علت: {escape(reason or 'تراکنش برداشت، انتقال ناموفق، پیامک خدمات یا اطلاع‌رسانی')}"
+        )
+    else:
+        status_header = f"ℹ️ <b>نتیجه پردازش: {escape(action)}</b>"
+        decision_details = f"▫️ توضیحات: {escape(reason or '—')}"
+
+    text = (
+        f"📥 <b>پیامک دریافتی از وب‌هوک</b>\n"
+        "──────────────────\n"
+        f"📱 فرستنده: <code>{sender_label}</code>\n"
+        f"🏦 بانک: <b>{bank_label}</b>\n"
+        f"💰 مبلغ استخراج‌شده: {amount_str}\n\n"
+        "📝 <b>متن پیامک:</b>\n"
+        f"<code>{clean_preview}</code>\n\n"
+        f"🤖 <b>تصمیم ربات:</b>\n"
+        f"{status_header}\n"
+        f"{decision_details}"
+    )
+
+    try:
+        await bot.send_message(
+            chat_id=settings.ADMIN_CHAT_ID,
+            text=text,
+            parse_mode="HTML",
+            **thread_kwargs,
+        )
+    except Exception as exc:
+        logger.warning("Failed to deliver SMS webhook log to admin topic %s: %s", topic_id, exc)
+
+
 async def process_incoming_sms(
     session: AsyncSession,
     bot: Bot | None,
@@ -141,10 +229,15 @@ async def process_incoming_sms(
 
     if not parsed.is_deposit or not parsed.amount_toman:
         logger.info("Ignored non-deposit or unparsed SMS from %s: %s", sender, raw_message[:60])
+        reason = "Not recognized as deposit"
+        await notify_admin_sms_webhook_log(
+            bot=bot, settings=settings, store=store, sender=sender,
+            raw_message=raw_message, action="ignored_non_deposit", parsed=parsed, reason=reason
+        )
         return {
             "ok": True,
             "action": "ignored_non_deposit",
-            "reason": "Not recognized as deposit",
+            "reason": reason,
         }
 
     # Card destination check: If store has a designated card number and SMS specifies card_last4,
@@ -158,10 +251,15 @@ async def process_incoming_sms(
                     "Bank deposit card mismatch: SMS card_last4=%s does not match store card_last4=%s (sender=%s)",
                     parsed.card_last4, store_card_last4, sender,
                 )
+                reason = f"Card {parsed.card_last4} does not match store card {store_card_last4}"
+                await notify_admin_sms_webhook_log(
+                    bot=bot, settings=settings, store=store, sender=sender,
+                    raw_message=raw_message, action="card_mismatch", parsed=parsed, reason=reason
+                )
                 return {
                     "ok": True,
                     "action": "card_mismatch",
-                    "reason": f"Card {parsed.card_last4} does not match store card {store_card_last4}",
+                    "reason": reason,
                 }
 
     amount_toman = parsed.amount_toman
@@ -172,8 +270,21 @@ async def process_incoming_sms(
             "Unmatched bank deposit SMS: %s Toman (%s) from %s",
             amount_toman, parsed.bank_name, sender
         )
-        # Notify admin of unmatched deposit
-        if bot and settings and getattr(settings, "ADMIN_CHAT_ID", None):
+        # 1. Notify SMS logs topic
+        await notify_admin_sms_webhook_log(
+            bot=bot, settings=settings, store=store, sender=sender,
+            raw_message=raw_message, action="unmatched_deposit", parsed=parsed
+        )
+
+        # 2. Notify topups topic if distinct from SMS logs topic or if SMS logs topic not set
+        sms_topic = (
+            getattr(store, "topic_sms_logs", None)
+            or getattr(settings, "ADMIN_TOPIC_SMS_LOGS", None)
+            or getattr(store, "topic_sms_manual", None)
+            or getattr(settings, "ADMIN_TOPIC_SMS_MANUAL", None)
+        )
+        topups_topic = getattr(store, "topic_topups", None) or getattr(settings, "ADMIN_TOPIC_TOPUPS", None)
+        if bot and settings and getattr(settings, "ADMIN_CHAT_ID", None) and (not sms_topic or sms_topic != topups_topic):
             try:
                 thread_kwargs = admin_thread_kwargs(store, settings, kind="topups")
                 admin_text = (
@@ -243,8 +354,22 @@ async def process_incoming_sms(
         except Exception as exc:
             logger.warning("Failed to send user confirmation msg for invoice %s: %s", invoice.invoice_uuid, exc)
 
-    # 2. Notify admin chat
-    if bot and settings and getattr(settings, "ADMIN_CHAT_ID", None):
+    # 2. Notify SMS logs topic
+    await notify_admin_sms_webhook_log(
+        bot=bot, settings=settings, store=store, sender=sender,
+        raw_message=raw_message, action="credited", parsed=parsed,
+        invoice=invoice, new_balance=new_bal
+    )
+
+    # 3. Notify admin topups topic if distinct from SMS logs topic or if SMS logs topic not set
+    sms_topic = (
+        getattr(store, "topic_sms_logs", None)
+        or getattr(settings, "ADMIN_TOPIC_SMS_LOGS", None)
+        or getattr(store, "topic_sms_manual", None)
+        or getattr(settings, "ADMIN_TOPIC_SMS_MANUAL", None)
+    )
+    topups_topic = getattr(store, "topic_topups", None) or getattr(settings, "ADMIN_TOPIC_TOPUPS", None)
+    if bot and settings and getattr(settings, "ADMIN_CHAT_ID", None) and (not sms_topic or sms_topic != topups_topic):
         try:
             thread_kwargs = admin_thread_kwargs(store, settings, kind="topups")
             admin_msg = (

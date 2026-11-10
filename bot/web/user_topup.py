@@ -1704,6 +1704,27 @@ async def post_webhook_sms(request: web.Request) -> web.Response:
 
         if not provided_token or not secrets.compare_digest(provided_token, secret):
             logger.warning("SMS webhook unauthorized attempt from %s (wrong or missing token)", peer_ip)
+            bot = request.app.get("bot")
+            settings = request.app.get("settings")
+            target_topic = getattr(store, "topic_sms_logs", None) or getattr(settings, "ADMIN_TOPIC_SMS_LOGS", None)
+            if bot and settings and getattr(settings, "ADMIN_CHAT_ID", None) and target_topic:
+                try:
+                    from bot.common import admin_thread_kwargs
+                    await bot.send_message(
+                        chat_id=settings.ADMIN_CHAT_ID,
+                        text=(
+                            "⛔️ <b>درخواست نامعتبر به وب‌هوک پیامک</b>\n"
+                            "──────────────────\n"
+                            f"🌐 <b>آی‌پی مبدأ:</b> <code>{escape(peer_ip)}</code>\n"
+                            f"📱 <b>فرستنده:</b> <code>{escape(sender or 'نامشخص')}</code>\n"
+                            "🔑 <b>علت:</b> توکن احراز هویت (Secret) اشتباه است یا ارسال نشده است.\n\n"
+                            "💡 <i>راهنما: در تنظیمات SMS Forwarder هدر <code>X-SMS-Token</code> یا پارامتر <code>token</code> را برابر با سکرت وب‌هوک فروشگاه قرار دهید.</i>"
+                        ),
+                        parse_mode="HTML",
+                        **admin_thread_kwargs(topic_id=target_topic),
+                    )
+                except Exception as notify_err:
+                    logger.debug("Failed sending unauthorized SMS alert: %s", notify_err)
             return web.json_response({"ok": False, "message": "Unauthorized"}, status=401)
 
         if not raw_message or not raw_message.strip():
