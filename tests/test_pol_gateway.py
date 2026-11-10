@@ -338,3 +338,74 @@ def test_format_crypto_curr_name():
     assert _format_crypto_curr_name("TRX") == "ترون (TRX)"
     assert _format_crypto_curr_name("TON") == "تون (TON)"
     assert _format_crypto_curr_name(None) == "تون (TON)"
+
+
+@pytest.mark.anyio
+async def test_verify_polygon_transaction_timestamp_guard():
+    """Verify verify_polygon_transaction rejects pre-invoice transactions and accepts newer ones."""
+    expected_addr = "0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
+    tx_hash = "0x" + "d" * 64
+    val_wei = 10**18
+    val_hex = hex(val_wei)
+
+    inv_created_ms = 1_750_000_000_000
+    old_block_sec = (inv_created_ms // 1000) - 600   # 10 minutes before invoice
+    new_block_sec = (inv_created_ms // 1000) + 120   # 2 minutes after invoice
+
+    def make_mock_session(block_ts_sec: int):
+        mock_tx = MagicMock(status=200)
+        mock_tx.json = AsyncMock(return_value={"result": {"to": expected_addr.lower(), "value": val_hex}})
+
+        mock_receipt = MagicMock(status=200)
+        mock_receipt.json = AsyncMock(return_value={"result": {"status": "0x1", "blockNumber": "0x12345"}})
+
+        mock_block = MagicMock(status=200)
+        mock_block.json = AsyncMock(return_value={"result": {"timestamp": hex(block_ts_sec)}})
+
+        class _Session:
+            def __init__(self, *args, **kwargs):
+                pass
+
+            async def __aenter__(self):
+                return self
+
+            async def __aexit__(self, *args):
+                pass
+
+            def post(self, url, json=None, headers=None):
+                method = (json or {}).get("method")
+                cm = MagicMock()
+                if method == "eth_getTransactionByHash":
+                    cm.__aenter__ = AsyncMock(return_value=mock_tx)
+                elif method == "eth_getTransactionReceipt":
+                    cm.__aenter__ = AsyncMock(return_value=mock_receipt)
+                else:
+                    cm.__aenter__ = AsyncMock(return_value=mock_block)
+                cm.__aexit__ = AsyncMock(return_value=None)
+                return cm
+
+        return _Session
+
+    # 1. Old transaction before min_timestamp_ms must be rejected
+    with patch("aiohttp.ClientSession", make_mock_session(old_block_sec)):
+        ok, reason, _ = await verify_polygon_transaction(
+            tx_hash=tx_hash,
+            expected_address=expected_addr,
+            min_wei=val_wei,
+            min_timestamp_ms=inv_created_ms,
+        )
+        assert ok is False
+        assert "قبل از زمان ایجاد فاکتور" in reason
+
+    # 2. Fresh transaction after min_timestamp_ms must succeed
+    with patch("aiohttp.ClientSession", make_mock_session(new_block_sec)):
+        ok, reason, confirmed_wei = await verify_polygon_transaction(
+            tx_hash=tx_hash,
+            expected_address=expected_addr,
+            min_wei=val_wei,
+            min_timestamp_ms=inv_created_ms,
+        )
+        assert ok is True
+        assert reason == "SUCCESS"
+        assert confirmed_wei == val_wei
+

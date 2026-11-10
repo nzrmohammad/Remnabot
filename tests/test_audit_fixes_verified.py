@@ -136,3 +136,115 @@ async def test_stars_mismatch_creates_rejected_topup_record(session_factory):
         assert rec.status == "rejected"
         assert rec.telegram_id == 99999
         assert rec.amount == 50000
+
+
+@pytest.mark.anyio
+async def test_admin_users_actions_safe_bool_and_target_id_validation():
+    """Verify ban string 'false' unbans instead of banning, and invalid telegram_ids return 400 (not 500)."""
+    import json
+    from unittest.mock import patch
+
+    from bot.web.admin_users_actions import (
+        post_admin_kill_sessions,
+        post_admin_modify_user,
+        post_admin_reset_trial,
+        post_admin_toggle_ban,
+        post_admin_user_revoke_sub,
+        post_admin_user_wallet,
+    )
+
+    mock_session = AsyncMock()
+    mock_session.__aenter__ = AsyncMock(return_value=mock_session)
+    mock_session.__aexit__ = AsyncMock(return_value=None)
+    mock_user = MagicMock(is_banned=True)
+    mock_user_repo = MagicMock()
+    mock_user_repo.get_by_telegram_id = AsyncMock(return_value=mock_user)
+
+    app = {
+        "session_factory": MagicMock(return_value=mock_session),
+        "remnawave": MagicMock(get_users_by_telegram_id=AsyncMock(return_value=[])),
+        "cache": MagicMock(delete=AsyncMock()),
+    }
+
+    with patch("bot.web.admin_users_actions._check_admin", return_value={"id": 1}), \
+         patch("bot.web.admin_users_actions.UserRepository", return_value=mock_user_repo):
+
+        # 1. String 'false' must unban cleanly (not evaluate bool('false') == True)
+        req_unban = MagicMock(app=app)
+        req_unban.json = AsyncMock(return_value={"telegram_id": "12345", "ban": "false"})
+        resp_unban = await post_admin_toggle_ban(req_unban)
+        assert resp_unban.status == 200
+        data_unban = json.loads(resp_unban.text)
+        assert data_unban["banned"] is False
+        assert mock_user.is_banned is False
+
+        # 2. Invalid/non-numeric telegram_id must return HTTP 400 instead of raising ValueError (500)
+        endpoints_and_payloads = [
+            (post_admin_modify_user, {"telegram_id": "abc", "traffic_gb": 5}),
+            (post_admin_kill_sessions, {"telegram_id": "abc"}),
+            (post_admin_reset_trial, {"telegram_id": "abc"}),
+            (post_admin_user_wallet, {"telegram_id": "abc", "amount": 10000}),
+            (post_admin_user_revoke_sub, {"telegram_id": "abc"}),
+        ]
+        for handler, payload in endpoints_and_payloads:
+            req = MagicMock(app=app)
+            req.json = AsyncMock(return_value=payload)
+            resp = await handler(req)
+            assert resp.status == 400, f"{handler.__name__} did not return 400 on invalid telegram_id"
+
+
+@pytest.mark.anyio
+async def test_trx_tronscan_fallback_supports_hex_expected_address():
+    """Verify TronScan fallback matches even when admin stores wallet address in 41-prefixed hex format."""
+    from unittest.mock import patch
+
+    from bot.services.crypto.trx import hex_to_tron_address, verify_tron_transaction
+
+    hex_addr = "41" + "12" * 20
+    b58_addr = hex_to_tron_address(hex_addr)
+    assert b58_addr.startswith("T")
+
+    tx_hash = "e" * 64
+    mock_grid_err = MagicMock(status=503)
+    mock_scan_ok = MagicMock(status=200)
+    mock_scan_ok.json = AsyncMock(return_value={
+        "contractRet": "SUCCESS",
+        "contractType": 1,
+        "timestamp": 1_750_000_000_000,
+        "toAddress": b58_addr,
+        "amount": 5_000_000,
+    })
+
+    class MockTrxSession:
+        def __init__(self, *args, **kwargs):
+            pass
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, *args):
+            pass
+
+        def post(self, url, **kwargs):
+            cm = MagicMock()
+            cm.__aenter__ = AsyncMock(return_value=mock_grid_err)
+            cm.__aexit__ = AsyncMock(return_value=None)
+            return cm
+
+        def get(self, url, **kwargs):
+            cm = MagicMock()
+            cm.__aenter__ = AsyncMock(return_value=mock_scan_ok)
+            cm.__aexit__ = AsyncMock(return_value=None)
+            return cm
+
+    with patch("aiohttp.ClientSession", MockTrxSession):
+        ok, reason, confirmed_sun = await verify_tron_transaction(
+            tx_hash=tx_hash,
+            expected_address=hex_addr,
+            min_sun=5_000_000,
+            min_timestamp_ms=1_749_999_000_000,
+        )
+        assert ok is True
+        assert reason == "SUCCESS"
+        assert confirmed_sun == 5_000_000
+

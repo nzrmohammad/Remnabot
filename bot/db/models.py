@@ -27,8 +27,8 @@ from bot.db.base import Base
 
 # Compatibility fix for SQLAlchemy 2.0 type hint evaluation under Python 3.14 (PEP 649)
 try:
-    import sqlalchemy.sql.base
     import sqlalchemy.event.registry
+    import sqlalchemy.sql.base
     from sqlalchemy.event import dispatcher
     sqlalchemy.sql.base.dispatcher = dispatcher
     sqlalchemy.event.registry.dispatcher = dispatcher

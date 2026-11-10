@@ -15,7 +15,6 @@ from bot.common import SEPARATOR, fmt, parse_int
 from bot.db.repositories.user_repo import UserRepository
 from bot.db.repositories.wallet_repo import WalletRepository
 from bot.services.app_settings import get_store_settings
-from bot.services.formatting import ltr_frag
 from bot.services.loyalty import apply_loyalty_discount, get_user_loyalty
 from bot.services.menu import render_menu
 from bot.services.purchases import execute_purchase, resolve_squad_name

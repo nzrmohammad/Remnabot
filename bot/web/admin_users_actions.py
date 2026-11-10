@@ -15,6 +15,30 @@ from bot.web.cache import FastCache
 logger = logging.getLogger(__name__)
 
 
+def _parse_telegram_id(raw_id: object) -> tuple[int | None, web.Response | None]:
+    """Validate and coerce an incoming telegram_id payload field to positive int."""
+    if raw_id is None or raw_id == "":
+        return None, web.json_response({"ok": False, "error": "شناسه کاربر الزامی است."}, status=400)
+    if isinstance(raw_id, bool):
+        return None, web.json_response({"ok": False, "error": "شناسه کاربر نامعتبر است."}, status=400)
+    try:
+        tid = int(raw_id)
+    except (ValueError, TypeError):
+        return None, web.json_response({"ok": False, "error": "شناسه کاربر نامعتبر است."}, status=400)
+    if tid <= 0:
+        return None, web.json_response({"ok": False, "error": "شناسه کاربر نامعتبر است."}, status=400)
+    return tid, None
+
+
+def _parse_bool_flag(raw: object) -> bool:
+    """Safely parse boolean flags that may arrive as strings like 'false' or '0'."""
+    if isinstance(raw, bool):
+        return raw
+    if isinstance(raw, (int, float)):
+        return bool(raw)
+    return str(raw).strip().lower() in {"1", "true", "yes", "on"}
+
+
 async def post_admin_modify_user(request: web.Request) -> web.Response:
     """Add traffic (GB) and/or extend days for a user in a unified action."""
     admin = _check_admin(request)
@@ -26,7 +50,10 @@ async def post_admin_modify_user(request: web.Request) -> web.Response:
     except Exception:
         return web.json_response({"ok": False, "error": "Invalid JSON"}, status=400)
 
-    target_id = body.get("telegram_id")
+    target_id, err_resp = _parse_telegram_id(body.get("telegram_id"))
+    if err_resp:
+        return err_resp
+    assert target_id is not None
     action = body.get("action")
     traffic_gb = 0.0
     days = 0
@@ -51,11 +78,11 @@ async def post_admin_modify_user(request: web.Request) -> web.Response:
         except (ValueError, TypeError):
             days = 0
 
-    if not target_id or (traffic_gb <= 0 and days <= 0):
+    if traffic_gb <= 0 and days <= 0:
         return web.json_response({"ok": False, "error": "حداقل یکی از مقادیر حجم یا روز را وارد کنید."}, status=400)
 
     remnawave = request.app["remnawave"]
-    panel_users = await remnawave.get_users_by_telegram_id(int(target_id))
+    panel_users = await remnawave.get_users_by_telegram_id(target_id)
     if not panel_users:
         return web.json_response({"ok": False, "error": "اکانتی در پنل برای این کاربر یافت نشد."}, status=404)
 
@@ -120,12 +147,13 @@ async def post_admin_kill_sessions(request: web.Request) -> web.Response:
     except Exception:
         body = {}
 
-    target_id = body.get("telegram_id")
-    if not target_id:
-        return web.json_response({"ok": False, "error": "شناسه کاربر الزامی است."}, status=400)
+    target_id, err_resp = _parse_telegram_id(body.get("telegram_id"))
+    if err_resp:
+        return err_resp
+    assert target_id is not None
 
     remnawave = request.app["remnawave"]
-    panel_users = await remnawave.get_users_by_telegram_id(int(target_id))
+    panel_users = await remnawave.get_users_by_telegram_id(target_id)
     if not panel_users:
         return web.json_response({"ok": False, "error": "اکانتی در پنل یافت نشد."}, status=404)
 
@@ -151,16 +179,12 @@ async def post_admin_toggle_ban(request: web.Request) -> web.Response:
     except Exception:
         body = {}
 
-    target_id = body.get("telegram_id")
-    if target_id is None:
-        return web.json_response({"ok": False, "error": "شناسه کاربر الزامی است."}, status=400)
+    tid, err_resp = _parse_telegram_id(body.get("telegram_id"))
+    if err_resp:
+        return err_resp
+    assert tid is not None
 
-    try:
-        tid = int(target_id)
-    except (ValueError, TypeError):
-        return web.json_response({"ok": False, "error": "شناسه کاربر نامعتبر است."}, status=400)
-
-    ban_state = bool(body.get("ban", True))
+    ban_state = _parse_bool_flag(body.get("ban", True))
     remnawave = request.app["remnawave"]
 
     async with db_session(request) as session:
@@ -201,13 +225,14 @@ async def post_admin_reset_trial(request: web.Request) -> web.Response:
     except Exception:
         body = {}
 
-    target_id = body.get("telegram_id")
-    if not target_id:
-        return web.json_response({"ok": False, "error": "شناسه کاربر الزامی است."}, status=400)
+    target_id, err_resp = _parse_telegram_id(body.get("telegram_id"))
+    if err_resp:
+        return err_resp
+    assert target_id is not None
 
     async with db_session(request) as session:
         user_repo = UserRepository(session)
-        await user_repo.set_claimed_trial(int(target_id), claimed=False)
+        await user_repo.set_claimed_trial(target_id, claimed=False)
         session.add(AdminLog(admin_id=admin["id"], action="reset_trial", detail=f"فعال‌سازی مجدد تست برای کاربر {target_id}"))
         await session.commit()
 
@@ -229,25 +254,28 @@ async def post_admin_user_wallet(request: web.Request) -> web.Response:
     except Exception:
         return web.json_response({"ok": False, "error": "Invalid JSON"}, status=400)
 
-    target_id = body.get("telegram_id")
+    target_id, err_resp = _parse_telegram_id(body.get("telegram_id"))
+    if err_resp:
+        return err_resp
+    assert target_id is not None
     try:
         amount = int(body.get("amount", 0))
     except (ValueError, TypeError):
         amount = 0
 
     reason = str(body.get("reason") or "شارژ دستی توسط مدیریت").strip()
-    if not target_id or amount == 0:
+    if amount == 0:
         return web.json_response({"ok": False, "error": "مقدار مبلغ و کاربر نامعتبر است."}, status=400)
 
     async with db_session(request) as session:
         wallet_repo = WalletRepository(session)
-        wallet = await wallet_repo.get_wallet(int(target_id))
+        wallet = await wallet_repo.get_wallet(target_id)
         old_balance = int(wallet.balance if wallet else 0)
-        new_balance = await wallet_repo.adjust_balance_atomic(int(target_id), amount)
+        new_balance = await wallet_repo.adjust_balance_atomic(target_id, amount)
 
         action_name = "wallet_charge" if amount > 0 else "wallet_deduct"
         detail_msg = f"{'افزایش' if amount > 0 else 'کسر'} {abs(amount):,} تومان موجودی کاربر {target_id} ({reason})"
-        session.add(AdminLog(admin_id=admin["id"], action=action_name, detail=detail_msg, target_user_id=int(target_id)))
+        session.add(AdminLog(admin_id=admin["id"], action=action_name, detail=detail_msg, target_user_id=target_id))
         await session.commit()
 
     cache: FastCache = request.app["cache"]
@@ -266,7 +294,7 @@ async def post_admin_user_wallet(request: web.Request) -> web.Response:
             f"توضیحات: {reason}"
         )
         try:
-            await bot.send_message(chat_id=int(target_id), text=notif, parse_mode="HTML")
+            await bot.send_message(chat_id=target_id, text=notif, parse_mode="HTML")
         except Exception:
             pass
 
@@ -290,12 +318,13 @@ async def post_admin_user_revoke_sub(request: web.Request) -> web.Response:
     except Exception:
         body = {}
 
-    target_id = body.get("telegram_id")
-    if not target_id:
-        return web.json_response({"ok": False, "error": "شناسه کاربر الزامی است."}, status=400)
+    target_id, err_resp = _parse_telegram_id(body.get("telegram_id"))
+    if err_resp:
+        return err_resp
+    assert target_id is not None
 
     remnawave = request.app["remnawave"]
-    panel_users = await remnawave.get_users_by_telegram_id(int(target_id))
+    panel_users = await remnawave.get_users_by_telegram_id(target_id)
     if not panel_users:
         return web.json_response({"ok": False, "error": "اکانتی در پنل برای این کاربر یافت نشد."}, status=404)
 
@@ -337,16 +366,10 @@ async def post_admin_create_user(request: web.Request) -> web.Response:
     except Exception:
         return web.json_response({"ok": False, "error": "فرمت داده نامعتبر است."}, status=400)
 
-    telegram_id_raw = body.get("telegram_id")
-    if not telegram_id_raw:
-        return web.json_response({"ok": False, "error": "شناسه عددی تلگرام الزامی است."}, status=400)
-
-    try:
-        telegram_id = int(telegram_id_raw)
-        if telegram_id <= 0:
-            raise ValueError
-    except (ValueError, TypeError):
-        return web.json_response({"ok": False, "error": "شناسه عددی تلگرام نامعتبر است."}, status=400)
+    telegram_id, err_resp = _parse_telegram_id(body.get("telegram_id"))
+    if err_resp:
+        return err_resp
+    assert telegram_id is not None
 
     username = (body.get("username") or "").strip()
     if not username:

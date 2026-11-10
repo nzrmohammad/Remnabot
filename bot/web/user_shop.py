@@ -11,7 +11,6 @@ from aiohttp import web
 from bot.db.models import Service
 from bot.db.repositories.coupon_repo import CouponRepository
 from bot.services.app_settings import StoreSettings, get_store_settings
-from bot.services.formatting import ltr_frag
 from bot.services.gift_service import claim_gift, create_gift, get_user_gifts
 from bot.services.invoice_service import get_order_invoice_data, send_invoice_to_telegram
 from bot.services.loyalty import apply_loyalty_discount, get_user_loyalty

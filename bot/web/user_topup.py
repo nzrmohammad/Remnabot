@@ -1228,7 +1228,6 @@ async def get_user_topup_trx_redirect(request: web.Request) -> web.Response:
     safe_tron_uri = html.escape(tron_uri)
     safe_addr = html.escape(address)
     safe_amt = html.escape(amount)
-    safe_tron_uri_js = json.dumps(tron_uri)
     safe_tronlink_url_js = json.dumps(tronlink_url)
 
     page_html = f"""<!DOCTYPE html>

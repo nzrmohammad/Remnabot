@@ -58,12 +58,12 @@ from bot.web.user_topup import (
     post_user_topup_crypto,
     post_user_topup_crypto_cancel,
     post_user_topup_crypto_check,
+    post_user_topup_pol,
+    post_user_topup_pol_verify,
     post_user_topup_stars,
     post_user_topup_tonconnect_submit,
     post_user_topup_trx,
     post_user_topup_trx_verify,
-    post_user_topup_pol,
-    post_user_topup_pol_verify,
     post_webhook_sms,
 )
 

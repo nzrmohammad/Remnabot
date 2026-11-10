@@ -94,6 +94,7 @@ async def verify_tron_transaction(
         return False, "شناسه تراکنش نامعتبر است (باید ۶۴ کاراکتر هگزادسیمال باشد).", 0
 
     expected_clean = expected_address.strip()
+    expected_b58 = hex_to_tron_address(expected_clean)
     timeout = aiohttp.ClientTimeout(total=8)
 
     # 1. Query TronGrid JSON-RPC
@@ -119,7 +120,11 @@ async def verify_tron_transaction(
                                 raw_to = str(val_dict.get("to_address") or "")
                                 to_b58 = hex_to_tron_address(raw_to)
 
-                                if to_b58.lower() == expected_clean.lower() or raw_to.lower() == expected_clean.lower():
+                                if (
+                                    to_b58.lower() == expected_b58.lower()
+                                    or to_b58.lower() == expected_clean.lower()
+                                    or raw_to.lower() == expected_clean.lower()
+                                ):
                                     tx_ts = int(tx_data.get("raw_data", {}).get("timestamp") or 0)
                                     if min_timestamp_ms and tx_ts and tx_ts < min_timestamp_ms:
                                         return False, "این تراکنش قبل از زمان ایجاد فاکتور ثبت شده و نامعتبر است.", 0
@@ -147,9 +152,10 @@ async def verify_tron_transaction(
                         tx_ts = int(scan_data.get("timestamp") or 0)
                         if min_timestamp_ms and tx_ts and tx_ts < min_timestamp_ms:
                             return False, "این تراکنش قبل از زمان ایجاد فاکتور ثبت شده و نامعتبر است.", 0
-                        to_addr = scan_data.get("toAddress", "")
+                        to_addr = str(scan_data.get("toAddress") or "")
+                        to_addr_b58 = hex_to_tron_address(to_addr)
                         raw_amount = int(scan_data.get("amount") or 0)
-                        if to_addr.lower() == expected_clean.lower():
+                        if to_addr.lower() == expected_clean.lower() or to_addr_b58.lower() == expected_b58.lower():
                             if raw_amount >= (min_sun - 100_000):
                                 return True, "SUCCESS", raw_amount
                             else:

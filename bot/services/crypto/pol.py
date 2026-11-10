@@ -133,12 +133,39 @@ async def verify_polygon_transaction(
 
                 # Tolerance: allow up to 0.01 POL dust variance
                 dust_tolerance_wei = 10_000_000_000_000_000  # 0.01 POL
-                if raw_wei >= (min_wei - dust_tolerance_wei):
-                    return True, "SUCCESS", raw_wei
-                else:
+                if raw_wei < (min_wei - dust_tolerance_wei):
                     paid_pol = raw_wei / 1e18
                     expected_pol = min_wei / 1e18
                     return False, f"مبلغ واریزی ({paid_pol:.4f} POL) کمتر از فاکتور ({expected_pol:.4f} POL) است.", 0
+
+                # Prevent reusing old pre-invoice transactions by checking mined block timestamp
+                if min_timestamp_ms > 0:
+                    block_num = receipt.get("blockNumber")
+                    if not block_num:
+                        continue
+                    payload_block = {
+                        "jsonrpc": "2.0",
+                        "method": "eth_getBlockByNumber",
+                        "params": [block_num, False],
+                        "id": 3,
+                    }
+                    async with session.post(rpc_url, json=payload_block, headers=headers) as b_resp:
+                        if b_resp.status != 200:
+                            continue
+                        b_data = await b_resp.json()
+                        block_info = b_data.get("result")
+                        if not block_info or block_info.get("timestamp") is None:
+                            continue
+                        ts_raw = block_info["timestamp"]
+                        block_ts_sec = (
+                            int(ts_raw, 16)
+                            if isinstance(ts_raw, str) and ts_raw.startswith("0x")
+                            else int(ts_raw)
+                        )
+                        if block_ts_sec * 1000 < min_timestamp_ms:
+                            return False, "این تراکنش قبل از زمان ایجاد فاکتور ثبت شده و نامعتبر است.", 0
+
+                return True, "SUCCESS", raw_wei
 
         except Exception as exc:
             logger.debug("Polygon RPC error on %s for tx %s: %s", rpc_url, clean_tx, exc)
@@ -210,8 +237,8 @@ async def verify_and_credit_pol_invoice(
 
     if bot:
         try:
-            from bot.config import get_settings
             from bot.common import admin_thread_kwargs
+            from bot.config import get_settings
             from bot.services.app_settings import get_store_settings
             settings = get_settings()
             store = await get_store_settings(session)
