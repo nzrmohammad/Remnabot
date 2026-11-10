@@ -570,17 +570,6 @@ function getDonutPalette(isLight = false) {
   if (typeof window !== 'undefined' && typeof document !== 'undefined') {
     try {
       const s = getComputedStyle(document.documentElement);
-      const c1 = s.getPropertyValue('--chart-1')?.trim();
-      if (c1) {
-        return [1, 2, 3, 4, 5, 6].map(i => s.getPropertyValue(`--chart-${i}`).trim());
-      }
-    } catch (e) {}
-  }
-  return isLight
-function getDonutPalette(isLight = false) {
-  if (typeof window !== 'undefined' && typeof document !== 'undefined') {
-    try {
-      const s = getComputedStyle(document.documentElement);
       const vars = [1, 2, 3, 4, 5, 6].map(i => s.getPropertyValue(`--chart-${i}`)?.trim());
       if (vars.every(Boolean)) return vars;
     } catch (e) {}

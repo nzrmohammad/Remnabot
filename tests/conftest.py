@@ -39,8 +39,10 @@ async def _get_shared_engine():
     global _shared_engine
     if _shared_engine is None:
         from sqlalchemy.pool import StaticPool
+
+        worker = os.environ.get("PYTEST_XDIST_WORKER") or f"p{os.getpid()}"
         _shared_engine = create_async_engine(
-            "sqlite+aiosqlite:///file:test_shared_mem?mode=memory&cache=shared&uri=true",
+            f"sqlite+aiosqlite:///file:test_shared_mem_{worker}?mode=memory&cache=shared&uri=true",
             poolclass=StaticPool,
             connect_args={"check_same_thread": False},
         )

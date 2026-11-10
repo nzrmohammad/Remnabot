@@ -310,6 +310,9 @@ async def test_user_topup_info_endpoint():
         crypto_enabled=True,
         ton_wallet_address="EQB...",
         ton_rate_toman=600000,
+        trx_rate_toman=15000,
+        pol_rate_toman=45000,
+        usdt_rate_toman=100000,
     )
 
     class MockSession:
@@ -319,7 +322,7 @@ async def test_user_topup_info_endpoint():
     def session_factory():
         return MockSession()
 
-    with patch("bot.services.app_settings.get_store_settings", AsyncMock(return_value=mock_store)):
+    with patch("bot.web.user_topup.get_store_settings", AsyncMock(return_value=mock_store)):
         app = {
             "is_dev": True,
             "session_factory": session_factory,

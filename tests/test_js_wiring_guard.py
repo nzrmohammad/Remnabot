@@ -120,3 +120,50 @@ def test_support_modal_has_fallback_in_app_js():
 
     assert "window.openSupportModal" in content, "app.js must define window.openSupportModal for support fallback"
     assert "openSupportBtn" in content, "openSupportModal must hook into openSupportBtn"
+
+
+def test_all_js_files_valid_syntax():
+    """Verify every non-vendor frontend JS file parses cleanly with Node.js (when available)."""
+    import shutil
+    import subprocess
+
+    node_bin = shutil.which("node") or (
+        r"C:\Program Files\nodejs\node.exe"
+        if Path(r"C:\Program Files\nodejs\node.exe").exists()
+        else None
+    )
+    if not node_bin:
+        return
+
+    js_files = sorted(p for p in JS_DIR.glob("*.js") if not p.name.endswith(".min.js"))
+    assert js_files, "Expected frontend JS files under bot/web/static/js"
+
+    script = (
+        "const fs = require('fs'), vm = require('vm');"
+        "for (const f of process.argv.slice(1)) {"
+        "  new vm.Script(fs.readFileSync(f, 'utf8'), { filename: f });"
+        "}"
+    )
+    res = subprocess.run(
+        [node_bin, "-e", script, *(str(p) for p in js_files)],
+        capture_output=True,
+        text=True,
+    )
+    assert res.returncode == 0, f"Frontend JS SyntaxError:\n{res.stderr or res.stdout}"
+
+
+def test_persian_count_badges_use_rtl_not_num_bidi():
+    """Persian numeral+word labels (e.g. '۰ کد', '0 دستگاه', '-- روز') must keep RTL order."""
+    app_html = APP_HTML.read_text(encoding="utf-8")
+    for elem_id in (
+        "achieveWonCoupons",
+        "achieveStreakCount",
+        "achieveSpinTickets",
+        "reportsSessionsBadge",
+        "repBurnProjectedDays",
+    ):
+        match = re.search(rf"<[^>]*id=[\"']{elem_id}[\"'][^>]*>", app_html)
+        assert match, f"Missing expected element #{elem_id} in app.html"
+        tag = match.group(0)
+        assert "num-bidi" not in tag, f"#{elem_id} must not use LTR num-bidi on Persian unit text: {tag}"
+        assert 'dir="ltr"' not in tag, f"#{elem_id} must not force dir='ltr' on Persian unit text: {tag}"

@@ -1197,6 +1197,9 @@ async def test_card_topup_phone_verification_gating(session_factory):
         crypto_enabled=False,
         ton_wallet_address="",
         ton_rate_toman=0,
+        trx_rate_toman=15000,
+        pol_rate_toman=45000,
+        usdt_rate_toman=100000,
     )
 
     fake_img = b"\xff\xd8\xff\xe0\x00\x10JFIF" + b"\x00" * 50

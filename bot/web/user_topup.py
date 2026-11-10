@@ -81,7 +81,6 @@ async def get_user_topup_info(request: web.Request) -> web.Response:
             return web.json_response(cached_data)
 
     from bot.db.repositories.user_repo import UserRepository
-    from bot.services.app_settings import get_store_settings
 
     async with db_session(request) as session:
         inv_err = await enforce_invite_only(session, int(user_id), user_auth, remnawave=request.app.get("remnawave"))

@@ -1,12 +1,11 @@
 """Tests for Polygon (POL) cryptocurrency payment gateway and transaction layout."""
-import math
 from datetime import datetime, timezone
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from aiohttp import web
 
-from bot.db.models import CryptoInvoice, User, Wallet
+from bot.db.models import CryptoInvoice
 from bot.services.crypto.pol import (
     fetch_pol_rate,
     verify_and_credit_pol_invoice,
@@ -196,7 +195,7 @@ async def test_get_user_topup_info_includes_pol():
     mock_store.ton_rate_toman = 0
     mock_store.trx_enabled = False
     mock_store.trx_wallet_address = ""
-    mock_store.trx_rate_toman = 0
+    mock_store.trx_rate_toman = 15000
     mock_store.stars_enabled = False
     mock_store.stars_rate_toman = 0
     mock_store.usdt_rate_toman = 100000
@@ -206,7 +205,7 @@ async def test_get_user_topup_info_includes_pol():
 
     with patch("bot.web.user_topup.require_user", return_value=({"id": 123}, None)), \
          patch("bot.web.user_topup.db_session") as mock_session_ctx, \
-         patch("bot.services.app_settings.get_store_settings", AsyncMock(return_value=mock_store)):
+         patch("bot.web.user_topup.get_store_settings", AsyncMock(return_value=mock_store)):
 
         mock_session = AsyncMock()
         mock_session_ctx.return_value.__aenter__.return_value = mock_session
@@ -253,23 +252,18 @@ async def test_post_user_topup_pol_verify_success():
         assert data["ok"] is True
         assert data["paid"] is True
         assert data["new_balance"] == 250000
-import json
-from decimal import Decimal
-from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
-from sqlalchemy import select
-from bot.db.base import Base
-from bot.db.models import CryptoInvoice
-from bot.web.user_topup import get_user_topup_crypto_active, _format_crypto_curr_name
+
+
+import json  # noqa: E402
+
+from sqlalchemy import select  # noqa: E402
+
+from bot.web.user_topup import _format_crypto_curr_name, get_user_topup_crypto_active  # noqa: E402
 
 
 @pytest.mark.anyio
-async def test_crypto_invoice_supports_large_wei_values():
+async def test_crypto_invoice_supports_large_wei_values(session_factory):
     """Verify CryptoInvoice can store and fetch 18-decimal wei > int64 max without overflow."""
-    engine = create_async_engine("sqlite+aiosqlite:///:memory:")
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-
-    session_factory = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
     async with session_factory() as session:
         # 21.2576 POL = 21,257,600,000,000,000,000 wei (> 2^63 - 1 = 9,223,372,036,854,775,807)
         large_wei = 21257600000000000000

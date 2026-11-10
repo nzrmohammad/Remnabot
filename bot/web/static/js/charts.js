@@ -570,10 +570,11 @@ function renderBurnRate(burnRate, sub) {
   if (projectedDaysEl) {
     if (projDays != null && projDays > 0) {
       projectedDaysEl.innerText = `حدود ${toEnglishDigits(projDays)} روز`;
+      projectedDaysEl.dir = 'rtl';
       if (burnRate.status === 'fast') {
-        projectedDaysEl.className = 'font-mono text-amber-600 dark:text-amber-400 font-bold text-xs num-bidi';
+        projectedDaysEl.className = 'font-sans text-amber-600 dark:text-amber-400 font-bold text-xs';
       } else {
-        projectedDaysEl.className = 'font-mono text-emerald-600 dark:text-emerald-400 font-bold text-xs num-bidi';
+        projectedDaysEl.className = 'font-sans text-emerald-600 dark:text-emerald-400 font-bold text-xs';
       }
     } else if (burnRate.status === 'unlimited') {
       projectedDaysEl.innerText = 'نامحدود ♾️';

@@ -76,6 +76,8 @@ def test_custom_plan_volume_discount_tiered_calculation():
 
 @pytest.mark.anyio
 async def test_admin_check_host_guarantees_iran_node():
+    import asyncio
+    import json
     from unittest.mock import AsyncMock, MagicMock
     from bot.web.admin_infra_api import get_admin_tools_check_host
 
@@ -83,9 +85,52 @@ async def test_admin_check_host_guarantees_iran_node():
     app["admin_id"] = 12345
     app["settings"] = None
 
+    class _FakeResp:
+        def __init__(self, payload):
+            self.status = 200
+            self._payload = payload
+
+        async def json(self):
+            return self._payload
+
+    class _FakeCM:
+        def __init__(self, payload):
+            self._resp = _FakeResp(payload)
+
+        async def __aenter__(self):
+            return self._resp
+
+        async def __aexit__(self, *args):
+            return None
+
+    class _FakeClientSession:
+        def __init__(self, *args, **kwargs):
+            pass
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, *args):
+            return None
+
+        def get(self, url, **kwargs):
+            if "check-result" in url:
+                return _FakeCM({"de1.node.check-host.net": [[["OK", 0.012]]]})
+            return _FakeCM({
+                "request_id": "req-123",
+                "nodes": {"de1.node.check-host.net": ["DE", "Germany", "Frankfurt"]},
+            })
+
+    fake_writer = MagicMock()
+    fake_writer.close = MagicMock()
+    fake_writer.wait_closed = AsyncMock()
+
     with pytest.MonkeyPatch.context() as mp:
         mp.setattr("bot.web.routes_admin._check_admin", lambda r: {"id": 12345, "is_admin": True})
         mp.setattr("bot.web.admin_common._check_admin", lambda r: {"id": 12345, "is_admin": True})
+        mp.setattr("aiohttp.ClientSession", _FakeClientSession)
+        mp.setattr(asyncio, "sleep", AsyncMock())
+        mp.setattr(asyncio, "open_connection", AsyncMock(return_value=(AsyncMock(), fake_writer)))
 
         req = MagicMock()
         req.method = "POST"
@@ -94,12 +139,12 @@ async def test_admin_check_host_guarantees_iran_node():
         req.query = {}
 
         resp = await get_admin_tools_check_host(req)
-        import json
         data = json.loads(resp.text)
         assert data["ok"] is True
         results = data.get("results", [])
-        assert len(results) > 0
+        assert len(results) >= 2
         assert any(r.get("flag") == "🇮🇷" or "ایران" in r.get("node_name", "") for r in results)
+        assert results[0].get("flag") == "🇮🇷"
 
 
 def test_custom_plan_extra_device_settings_and_layout():

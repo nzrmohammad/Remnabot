@@ -3,9 +3,8 @@ from datetime import datetime, timedelta, timezone
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-from aiohttp import web
 
-from bot.db.models import CryptoInvoice, Order, Service, Topup, User, Wallet
+from bot.db.models import CryptoInvoice
 
 
 @pytest.mark.anyio
@@ -84,11 +83,18 @@ async def test_trx_verification_rejects_smart_contract_and_requires_transfer_con
         },
     }
 
-    with patch("aiohttp.ClientSession.post") as mock_post:
+    mock_scan_resp = {"contractRet": "SUCCESS", "contractType": 31}
+
+    with patch("aiohttp.ClientSession.post") as mock_post, patch("aiohttp.ClientSession.get") as mock_get:
         mock_ctx = AsyncMock()
         mock_ctx.__aenter__.return_value.status = 200
         mock_ctx.__aenter__.return_value.json = AsyncMock(return_value=mock_resp)
         mock_post.return_value = mock_ctx
+
+        mock_scan_ctx = AsyncMock()
+        mock_scan_ctx.__aenter__.return_value.status = 200
+        mock_scan_ctx.__aenter__.return_value.json = AsyncMock(return_value=mock_scan_resp)
+        mock_get.return_value = mock_scan_ctx
 
         ok, reason, sun = await verify_tron_transaction("a" * 64, "4185ac60505b38f8cf5db2c5547dd59e97c6ff1d29", 10_000_000)
         assert ok is False

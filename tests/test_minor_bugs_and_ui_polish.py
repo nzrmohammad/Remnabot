@@ -1,14 +1,11 @@
 """Tests for minor backend fixes, report period restructuring, and TMA UI polish."""
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from aiohttp import web
-from sqlalchemy import select, text
-from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
-from bot.db.base import Base
-from bot.db.models import Topup, User, Wallet
+from bot.db.models import Topup
 from bot.db.repositories.user_repo import UserRepository
 from bot.db.repositories.wallet_repo import WalletRepository
 from bot.services.formatting import parse_iso
@@ -16,13 +13,9 @@ from bot.web.user_nodes import _is_safe_public_ip
 
 
 @pytest.fixture
-async def memory_db():
-    engine = create_async_engine("sqlite+aiosqlite:///:memory:", echo=False)
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-    session_factory = async_sessionmaker(engine, expire_on_commit=False, class_=AsyncSession)
-    yield session_factory
-    await engine.dispose()
+async def memory_db(session_factory):
+    """Reuse session_factory instead of building a per-test SQLite engine."""
+    return session_factory
 
 
 @pytest.mark.anyio

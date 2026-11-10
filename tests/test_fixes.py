@@ -3021,6 +3021,7 @@ async def test_init_db_auto_migrates_missing_columns():
             assert "is_verified" in cols
 
         await conn.run_sync(check_columns)
+    await engine.dispose()
 
 @pytest.mark.anyio
 async def test_fastcache_invalidate_user():
