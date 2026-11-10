@@ -105,9 +105,12 @@ def test_all_semantic_tokens_satisfy_wcag_aa_contrast():
     hex_vars = dict(re.findall(r"(--[a-zA-Z0-9_-]+):\s*(#[0-9a-fA-F]{6})", light_block))
 
     card_bg = hex_vars.get("--card-bg", "#ffffff")
+    page_bg = hex_vars.get("--page-bg", "#f1f5f9")
+    inset_bg = hex_vars.get("--inset-bg", page_bg)
     required_aa_tokens = [
         "--text-main",
         "--text-muted",
+        "--text-subtle",
         "--c-accent",
         "--c-accent-solid",
         "--c-success",
@@ -122,11 +125,59 @@ def test_all_semantic_tokens_satisfy_wcag_aa_contrast():
     for token in required_aa_tokens:
         assert token in hex_vars, f"Missing token {token} in html.theme-light tokens.css!"
         hex_val = hex_vars[token]
-        ratio = _contrast_ratio(hex_val, card_bg)
-        if ratio < 4.5:
-            failed_tokens.append(f"{token} ({hex_val}): {ratio:.2f}:1 (requires >= 4.5:1)")
+        for bg_name, bg_hex in (("card-bg", card_bg), ("page-bg", page_bg), ("inset-bg", inset_bg)):
+            ratio = _contrast_ratio(hex_val, bg_hex)
+            if ratio < 4.5:
+                failed_tokens.append(f"{token} ({hex_val}) on {bg_name} ({bg_hex}): {ratio:.2f}:1 (requires >= 4.5:1)")
 
-    assert not failed_tokens, "The following light mode tokens fail WCAG AA contrast against white:\n" + "\n".join(failed_tokens)
+    assert not failed_tokens, "The following light mode tokens fail WCAG AA contrast:\n" + "\n".join(failed_tokens)
+
+
+def test_dark_mode_tokens_wcag_and_halation_protection():
+    """Verify Dark Mode semantic tokens meet WCAG AA, include chart tokens, and avoid OLED halation."""
+    tokens_content = TOKENS_CSS_PATH.read_text(encoding="utf-8")
+    m = re.search(r":root\s*\{([^}]+)\}", tokens_content)
+    assert m, "Could not find :root block in tokens.css!"
+    dark_block = m.group(1)
+    hex_vars = dict(re.findall(r"(--[a-zA-Z0-9_-]+):\s*(#[0-9a-fA-F]{6})", dark_block))
+
+    page_bg = hex_vars["--page-bg"]
+    modal_bg = hex_vars["--modal-bg"]
+    text_main = hex_vars["--text-main"]
+
+    halation_ratio = _contrast_ratio(text_main, page_bg)
+    assert 7.0 <= halation_ratio <= 16.5, (
+        f"Dark mode --text-main ({text_main}) on --page-bg ({page_bg}) has contrast {halation_ratio:.2f}:1; "
+        "expected calibrated comfort range [7.0, 16.5] to avoid OLED halation."
+    )
+
+    for token in ("--text-muted", "--text-subtle", "--c-accent", "--c-success", "--c-warn", "--c-danger", "--c-info", "--c-purple", "--c-pink"):
+        assert token in hex_vars, f"Missing {token} in :root tokens.css!"
+        for bg_name, bg_hex in (("page-bg", page_bg), ("modal-bg", modal_bg)):
+            ratio = _contrast_ratio(hex_vars[token], bg_hex)
+            assert ratio >= 4.5, f"Dark {token} ({hex_vars[token]}) on {bg_name} ({bg_hex}): {ratio:.2f}:1 (< 4.5:1)"
+
+    for chart_var in ("--chart-grid", "--chart-tick", "--chart-tooltip-bg", "--chart-tooltip-border", "--chart-tooltip-text"):
+        assert tokens_content.count(chart_var) >= 2, f"{chart_var} must be defined for both dark and light themes"
+
+
+def test_no_dead_dark_prefix_on_custom_tokens_and_calm_cta():
+    """Prevent dead dark:t-* utilities in templates/JS and ensure calm accessible CTA contrast."""
+    for file_path in [APP_HTML_PATH, ADMIN_HTML_PATH, *Path("bot/web/static/js").glob("*.js")]:
+        if file_path.name == "chart.umd.min.js":
+            continue
+        content = file_path.read_text(encoding="utf-8")
+        dead_matches = re.findall(r"dark:t-[\w-]+", content)
+        assert not dead_matches, f"Found dead Tailwind dark variant on custom CSS token in {file_path}: {dead_matches}"
+
+    app_css = APP_CSS_PATH.read_text(encoding="utf-8")
+    assert "#f59e0b" not in app_css[app_css.find(".btn-plan-bestseller"):app_css.find(".btn-plan-bestseller") + 300], (
+        ".btn-plan-bestseller should use high-contrast amber-700/orange-700 gradient instead of low-contrast #f59e0b"
+    )
+    components_css = COMPONENTS_CSS_PATH.read_text(encoding="utf-8")
+    assert "background-color: var(--c-accent-solid);" in components_css, (
+        "Primary CTA / active subtabs must use --c-accent-solid instead of glaring neon --c-accent"
+    )
 
 
 def test_surface_dark_rescoping_contract():

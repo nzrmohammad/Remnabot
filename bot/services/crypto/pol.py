@@ -1,6 +1,6 @@
 """POL (Polygon Ecosystem Token) on-chain payment processor and verification service."""
 import logging
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Any
 
 import aiohttp
@@ -67,7 +67,12 @@ async def fetch_pol_rate(store_rate: int = 0) -> int:
 
 
 async def verify_polygon_transaction(
-    tx_hash: str, expected_address: str, min_wei: int, min_timestamp_ms: int = 0
+    tx_hash: str,
+    expected_address: str,
+    min_wei: int,
+    min_timestamp_ms: int = 0,
+    max_wei: int | None = None,
+    max_timestamp_ms: int = 0,
 ) -> tuple[bool, str, int]:
     """Verify on-chain Polygon transaction via EVM JSON-RPC.
 
@@ -127,19 +132,22 @@ async def verify_polygon_transaction(
                 if to_addr != expected_clean:
                     return False, f"مقصد واریزی ({to_addr}) با آدرس ولت تعیین‌شده سامانه مطابقت ندارد.", 0
 
-                # Validate value in Wei
+                # Validate value in Wei: never allow 0 POL or dust >= 0.1% / >= half of 0.0001 suffix step
                 val_hex = tx_info.get("value") or "0x0"
                 raw_wei = int(val_hex, 16) if isinstance(val_hex, str) else int(val_hex)
 
-                # Tolerance: allow up to 0.01 POL dust variance
-                dust_tolerance_wei = 10_000_000_000_000_000  # 0.01 POL
-                if raw_wei < (min_wei - dust_tolerance_wei):
+                dust_tolerance_wei = min(40_000_000_000_000, max(0, min_wei // 1000))
+                if raw_wei <= 0 or raw_wei < (min_wei - dust_tolerance_wei):
                     paid_pol = raw_wei / 1e18
                     expected_pol = min_wei / 1e18
                     return False, f"مبلغ واریزی ({paid_pol:.4f} POL) کمتر از فاکتور ({expected_pol:.4f} POL) است.", 0
+                if max_wei is not None and raw_wei > max_wei:
+                    paid_pol = raw_wei / 1e18
+                    expected_pol = min_wei / 1e18
+                    return False, f"مبلغ تراکنش ({paid_pol:.4f} POL) با مبلغ دقیق این فاکتور ({expected_pol:.4f} POL) مطابقت ندارد.", 0
 
-                # Prevent reusing old pre-invoice transactions by checking mined block timestamp
-                if min_timestamp_ms > 0:
+                # Prevent reusing old pre-invoice or post-expiry transactions by checking mined block timestamp
+                if min_timestamp_ms > 0 or max_timestamp_ms > 0:
                     block_num = receipt.get("blockNumber")
                     if not block_num:
                         continue
@@ -162,8 +170,10 @@ async def verify_polygon_transaction(
                             if isinstance(ts_raw, str) and ts_raw.startswith("0x")
                             else int(ts_raw)
                         )
-                        if block_ts_sec * 1000 < min_timestamp_ms:
+                        if min_timestamp_ms > 0 and block_ts_sec * 1000 < min_timestamp_ms:
                             return False, "این تراکنش قبل از زمان ایجاد فاکتور ثبت شده و نامعتبر است.", 0
+                        if max_timestamp_ms > 0 and block_ts_sec * 1000 > max_timestamp_ms:
+                            return False, "این تراکنش پس از پایان مهلت فاکتور ثبت شده و نامعتبر است.", 0
 
                 return True, "SUCCESS", raw_wei
 
@@ -197,6 +207,9 @@ async def verify_and_credit_pol_invoice(
         w = await WalletRepository(session).get_wallet(invoice.telegram_id)
         return True, (w.balance if w else 0), "این فاکتور قبلاً پرداخت و تسویه شده است."
 
+    if invoice.status == "cancelled":
+        return False, 0, "این فاکتور لغو شده و دیگر قابل پرداخت نیست."
+
     crypto_repo = CryptoRepository(session)
     wallet_repo = WalletRepository(session)
 
@@ -215,7 +228,24 @@ async def verify_and_credit_pol_invoice(
     inv_created = invoice.created_at if (invoice.created_at and invoice.created_at.tzinfo) else (invoice.created_at.replace(tzinfo=timezone.utc) if invoice.created_at else now)
     min_timestamp_ms = int(inv_created.timestamp() * 1000) - 60_000
 
-    ok, reason, confirmed_wei = await verify_polygon_transaction(clean_tx, invoice.pay_address, min_wei, min_timestamp_ms=min_timestamp_ms)
+    inv_exp = getattr(invoice, "expires_at", None)
+    max_timestamp_ms = 0
+    if inv_exp is not None:
+        exp_utc = inv_exp if inv_exp.tzinfo else inv_exp.replace(tzinfo=timezone.utc)
+        if invoice.status == "expired" or exp_utc < now:
+            if (now - exp_utc) > timedelta(hours=2):
+                return False, 0, "مهلت این فاکتور به پایان رسیده است. لطفاً فاکتور جدید ایجاد نمایید."
+        max_timestamp_ms = int(exp_utc.timestamp() * 1000) + 60_000
+
+    max_wei = min_wei + 40_000_000_000_000
+    ok, reason, confirmed_wei = await verify_polygon_transaction(
+        clean_tx,
+        invoice.pay_address,
+        min_wei,
+        min_timestamp_ms=min_timestamp_ms,
+        max_wei=max_wei,
+        max_timestamp_ms=max_timestamp_ms,
+    )
     if not ok:
         logger.warning(
             "POL verification failed: invoice_id=%s tg_id=%s tx_hash=%s reason=%s expected_wei=%s confirmed_wei=%s",
@@ -223,8 +253,8 @@ async def verify_and_credit_pol_invoice(
         )
         return False, 0, reason
 
-    # Mark paid and credit atomically
-    paid_inv = await crypto_repo.mark_paid(invoice.id, clean_tx, allow_expired=True)
+    # Mark paid and credit atomically (expired invoices allowed only within 2h confirmation grace when tx was pre-expiry)
+    paid_inv = await crypto_repo.mark_paid(invoice.id, clean_tx, allow_expired=True, max_expired_grace_minutes=120)
     if not paid_inv:
         logger.warning("POL mark_paid failed: invoice_id=%s tg_id=%s tx_hash=%s", invoice.id, invoice.telegram_id, clean_tx)
         return False, 0, "امکان تغییر وضعیت فاکتور به پرداخت‌شده وجود ندارد."

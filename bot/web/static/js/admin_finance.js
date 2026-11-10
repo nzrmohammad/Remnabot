@@ -676,44 +676,44 @@ openCryptoRatesModal() {
         const usernameTag = t.username ? `@${t.username}` : '';
 
         return `
-          <div class="topup-card bg-slate-800/90 rounded-2xl p-3.5 border border-slate-700/80 space-y-3 shadow-md relative overflow-hidden transition hover:border-slate-600">
+          <div class="topup-card card rounded-2xl p-3.5 space-y-3 shadow-md relative overflow-hidden transition hover:border-cyan-500/40">
             <!-- Top Status Row: Receipt & Status on right (بدون علامت #), Date on left -->
-            <div class="flex items-center justify-between border-b border-slate-700/60 pb-2">
+            <div class="flex items-center justify-between border-b border-card-border pb-2">
               <div class="flex items-center gap-1.5">
                 <span class="font-sans text-xs font-bold t-warn">فیش ${t.id}</span>
-                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[11px] font-bold bg-amber-500/15 t-warn border border-amber-500/30">
-                  <span class="w-1.5 h-1.5 rounded-full bg-amber-500 dark:bg-amber-400 animate-pulse"></span>
+                <span class="badge badge-warn rounded-lg text-[11px]">
+                  <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
                   در انتظار بررسی
                 </span>
               </div>
-              <span class="font-sans text-[11px] text-slate-500" dir="ltr">${dateStr}</span>
+              <span class="font-sans text-[11px] t-subtle" dir="ltr">${dateStr}</span>
             </div>
 
             <!-- Middle Row: Photo + Name & Price on right, Username + ID on left (بدون فاصله، کاملاً چسبیده به چپ) -->
             <div class="flex items-center justify-between gap-2.5">
               <div class="flex items-center gap-2.5 min-w-0">
-                <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center font-bold text-white text-xs shadow flex-shrink-0 overflow-hidden relative">
+                <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center font-bold text-white text-xs shadow flex-shrink-0 overflow-hidden relative">
                   <img src="${avatarSrc}" alt="Avatar" class="w-full h-full object-cover" onerror="this.classList.add('hidden'); if(this.nextElementSibling) this.nextElementSibling.classList.remove('hidden');" />
                   <span class="font-bold">${escapeHtml(initial)}</span>
                 </div>
                 <div class="min-w-0 space-y-0.5">
-                  <b class="t-main text-xs font-bold block truncate max-w-[140px] cursor-pointer hover:text-cyan-500 dark:hover:text-cyan-300" data-copy="${escapeHtml(uLabel)}" onclick="window.adminActions.quickCopy(this.dataset.copy, 'نام')" title="${escapeHtml(uLabel)}">${escapeHtml(uLabel)}</b>
+                  <b class="t-main text-xs font-bold block truncate max-w-[140px] cursor-pointer hover:t-accent" data-copy="${escapeHtml(uLabel)}" onclick="window.adminActions.quickCopy(this.dataset.copy, 'نام')" title="${escapeHtml(uLabel)}">${escapeHtml(uLabel)}</b>
                   <div class="flex items-baseline gap-1 t-success font-bold" dir="rtl">
                     <span class="text-sm font-black font-sans leading-none">${formatNumber(t.amount || 0)}</span>
-                    <span class="text-[11px] text-emerald-500/90 font-sans">تومان</span>
+                    <span class="text-[11px] t-success font-sans">تومان</span>
                   </div>
                 </div>
               </div>
 
               <!-- Left column: Username on line 1, Numeric ID on line 2 (بدون ID: و کاملاً چسبیده به چپ بدون فاصله) -->
-              <div class="flex flex-col items-start justify-center gap-0.5 font-sans text-[11px] text-slate-400 flex-shrink-0 text-left" dir="ltr">
-                ${t.username ? `<span onclick="window.adminActions.quickCopy('@${escapeHtml(t.username)}', 'نام کاربری')" class="cursor-pointer hover:text-cyan-300 text-slate-300 font-sans truncate max-w-[130px] block leading-tight" title="@${escapeHtml(t.username)}">@${escapeHtml(t.username)}</span>` : ''}
-                <span class="cursor-pointer hover:text-cyan-300 text-slate-400 font-sans block leading-tight" onclick="window.adminActions.quickCopy('${t.telegram_id}', 'شناسه عددی')" title="شناسه عددی">${t.telegram_id}</span>
+              <div class="flex flex-col items-start justify-center gap-0.5 font-sans text-[11px] t-muted flex-shrink-0 text-left" dir="ltr">
+                ${t.username ? `<span onclick="window.adminActions.quickCopy('@${escapeHtml(t.username)}', 'نام کاربری')" class="cursor-pointer hover:t-accent t-muted font-sans truncate max-w-[130px] block leading-tight" title="@${escapeHtml(t.username)}">@${escapeHtml(t.username)}</span>` : ''}
+                <span class="cursor-pointer hover:t-accent t-subtle font-sans block leading-tight" onclick="window.adminActions.quickCopy('${t.telegram_id}', 'شناسه عددی')" title="شناسه عددی">${t.telegram_id}</span>
               </div>
             </div>
 
             <!-- Action Buttons: Chat on right, Photo icon & Action buttons on left (همه بدون پس‌زمینه) -->
-            <div class="flex items-center justify-between gap-2 pt-1 border-t border-slate-700/50">
+            <div class="flex items-center justify-between gap-2 pt-1 border-t border-card-border">
               <button data-action="chat" data-tgid="${t.telegram_id}" data-name="${escapeHtml(uLabel)}" data-tag="${escapeHtml(usernameTag || ('#' + t.telegram_id))}" data-topupid="${t.id}" onclick="window.adminActions.openUserChat(this.dataset.tgid, this.dataset.name, this.dataset.tag, this.dataset.topupid)" class="btn btn-secondary px-3 py-1.5 rounded-xl text-xs font-medium transition flex items-center gap-1.5 active:scale-95" title="گفتگوی مستقیم با کاربر">
                 <svg class="w-3.5 h-3.5 t-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
                 <span>چت با کاربر</span>

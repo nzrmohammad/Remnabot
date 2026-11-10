@@ -152,25 +152,29 @@ html.theme-light #speedStatusBadge {
   border-color: var(--card-border);
   color: var(--text-main);
 }
-html.theme-light #speedStatusBadge.bg-emerald-950\/70 {
+html.theme-light #speedStatusBadge:is(.bg-emerald-950\/70, .bg-emerald-950\/60) {
   background-color: var(--c-success-soft);
   border-color: var(--c-success-border);
   color: var(--c-success);
 }
-html.theme-light #speedStatusBadge.bg-cyan-950\/70 {
+html.theme-light #speedStatusBadge:is(.bg-cyan-950\/70, .bg-cyan-950\/60) {
   background-color: var(--c-accent-soft);
   border-color: var(--c-accent-border);
   color: var(--c-accent);
 }
-html.theme-light #speedStatusBadge.bg-amber-950\/70 {
+html.theme-light #speedStatusBadge:is(.bg-amber-950\/70, .bg-amber-950\/60) {
   background-color: var(--c-warn-soft);
   border-color: var(--c-warn-border);
   color: var(--c-warn);
 }
-html.theme-light #speedStatusBadge.bg-rose-950\/70 {
+html.theme-light #speedStatusBadge:is(.bg-rose-950\/70, .bg-rose-950\/60) {
   background-color: var(--c-danger-soft);
   border-color: var(--c-danger-border);
   color: var(--c-danger);
+}
+html.theme-light #speedTestModal .bg-slate-900\/80 {
+  background-color: var(--card-inner-bg);
+  border-color: var(--card-border);
 }
 
 html.theme-light #closeSpeedTestModalBtn {
@@ -256,11 +260,9 @@ html.theme-light .badge-ticket.has-tickets {
   border: 1px solid #d8b4fe;
 }
 
-html.theme-light .text-orange-300 {
-  color: #c2410c;
-}
+html.theme-light .text-orange-300,
 html.theme-light .text-orange-400 {
-  color: #ea580c;
+  color: #c2410c;
 }
 html.theme-light .bg-orange-500\/15 {
   background-color: #fff7ed;
@@ -407,12 +409,12 @@ button, a, .tab-btn, .nav-item, [role="button"] {
 }
 
 .btn-plan-bestseller {
-  background: linear-gradient(135deg, #f59e0b 0%, #ea580c 100%);
+  background: linear-gradient(135deg, #b45309 0%, #c2410c 100%);
   color: #ffffff;
-  box-shadow: 0 4px 14px rgba(245, 158, 11, 0.4);
+  box-shadow: 0 4px 14px rgba(180, 83, 9, 0.35);
 }
 .btn-plan-bestseller:hover {
-  background: linear-gradient(135deg, #fbbf24 0%, #f97316 100%);
+  background: linear-gradient(135deg, #92400e 0%, #9a3412 100%);
 }
 
 .btn-plan-traffic {

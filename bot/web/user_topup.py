@@ -1,6 +1,6 @@
 from sqlalchemy.exc import IntegrityError
 
-from bot.web.user_common import db_session, require_user
+from bot.web.user_common import db_session, enforce_invite_only, require_user
 
 """TMA User Wallet and Top-up API endpoints."""
 import asyncio
@@ -84,6 +84,10 @@ async def get_user_topup_info(request: web.Request) -> web.Response:
     from bot.services.app_settings import get_store_settings
 
     async with db_session(request) as session:
+        inv_err = await enforce_invite_only(session, int(user_id), user_auth, remnawave=request.app.get("remnawave"))
+        if inv_err:
+            return inv_err
+
         store = await get_store_settings(session)
         is_phone_verified = False
         if hasattr(session, "execute"):
@@ -276,6 +280,10 @@ async def post_user_topup_card(request: web.Request) -> web.Response:
     settings = request.app["settings"]
 
     async with db_session(request) as session:
+        inv_err = await enforce_invite_only(session, telegram_id, user_auth, remnawave=request.app.get("remnawave"))
+        if inv_err:
+            return inv_err
+
         store = await get_store_settings(session)
         require_phone = getattr(store, "card_require_phone_verification", False) is True
         if require_phone:
@@ -330,18 +338,29 @@ async def post_user_topup_card(request: web.Request) -> web.Response:
                 status=400,
             )
 
-        # Cancel any active card-auto invoice to avoid double-crediting if bank SMS arrives later
+        # Guard against double-crediting with card-auto:
+        # 1) Block exact-amount duplicate if user was already auto-credited in last 6h
+        # 2) Warn admin if user had a recent paid auto-invoice with the same base amount
+        # 3) Cancel any active pending card-auto invoice so late SMS won't double-credit
+        auto_paid_warn = ""
         if hasattr(session, "execute"):
             try:
                 from bot.db.repositories.card_auto_repo import CardAutoRepository
                 card_auto_repo = CardAutoRepository(session)
-                active_auto_inv = await card_auto_repo.get_active_invoice_by_user(telegram_id)
-                if active_auto_inv:
-                    if active_auto_inv.status == "paid":
+                recent_paid_auto = await card_auto_repo.get_recent_paid_invoice_by_user(telegram_id, since_hours=6)
+                if recent_paid_auto:
+                    if recent_paid_auto.exact_amount == amount:
                         return web.json_response(
-                            {"ok": False, "message": "فاکتور شما پیش‌تر به‌صورت خودکار توسط سیستم پیامک بانکی تأیید و حسابتان شارژ شده است."},
+                            {"ok": False, "message": "این واریزی پیش‌تر به‌صورت خودکار توسط سیستم پیامک بانکی تأیید و حسابتان شارژ شده است."},
                             status=400,
                         )
+                    if recent_paid_auto.base_amount == amount:
+                        auto_paid_warn = (
+                            f"\n\n⚠️ <b>هشدار همپوشانی:</b> این کاربر در ۶ ساعت گذشته یک فاکتور خودکار "
+                            f"به مبلغ <b>{recent_paid_auto.exact_amount:,} تومان</b> را با موفقیت شارژ کرده است. لطفاً زمان/پیگیری فیش را با دقت بررسی کنید."
+                        )
+                active_auto_inv = await card_auto_repo.get_active_invoice_by_user(telegram_id)
+                if active_auto_inv:
                     active_auto_inv.status = "cancelled"
                     logger.info("Cancelled pending card-auto invoice %s on manual receipt upload by user %s", active_auto_inv.invoice_uuid, telegram_id)
             except Exception:
@@ -416,6 +435,7 @@ async def post_user_topup_card(request: web.Request) -> web.Response:
                 f"🏷 نام کاربری : {escape(tg_username[:50])}\n"
                 f"💰 مبلغ شارژ : <b>{amount:,}</b> تومان\n"
                 f"📝 اطلاعات رسید / پیگیری :\n<code>{safe_info}</code>"
+                f"{auto_paid_warn}"
             )
 
             try:
@@ -473,6 +493,10 @@ async def post_user_topup_crypto(request: web.Request) -> web.Response:
         return web.json_response({"ok": False, "message": "مبلغ نامعتبر است."}, status=400)
     telegram_id = int(user_auth["id"])
     async with db_session(request) as session:
+        inv_err = await enforce_invite_only(session, telegram_id, user_auth, remnawave=request.app.get("remnawave"))
+        if inv_err:
+            return inv_err
+
         store = await get_store_settings(session)
         if not (store.crypto_enabled and store.ton_wallet_address and store.ton_rate_toman > 0):
             return web.json_response({"ok": False, "message": "پرداخت ارز دیجیتال در حال حاضر غیرفعال است."}, status=400)
@@ -631,8 +655,9 @@ async def post_user_topup_crypto_check(request: web.Request) -> web.Response:
             return web.json_response({"ok": True, "paid": True, "balance": w.balance})
 
         now = datetime.now(timezone.utc)
-        inv_created = inv.created_at if (inv.created_at and inv.created_at.tzinfo) else (inv.created_at.replace(tzinfo=timezone.utc) if inv.created_at else now)
-        is_recently_expired = (inv.status == "expired" and (now - inv_created) < timedelta(hours=24))
+        inv_exp = getattr(inv, "expires_at", None)
+        exp_utc = (inv_exp if inv_exp.tzinfo else inv_exp.replace(tzinfo=timezone.utc)) if inv_exp else now
+        is_recently_expired = (inv.status == "expired" and (now - exp_utc) <= timedelta(hours=2))
 
         if inv.status in ("expired", "cancelled") and not is_recently_expired:
             return web.json_response({"ok": False, "message": "فاکتور منقضی یا لغو شده است."}, status=400)
@@ -679,6 +704,10 @@ async def post_user_topup_stars(request: web.Request) -> web.Response:
     telegram_id = int(user_auth.get("id"))
 
     async with db_session(request) as session:
+        inv_err = await enforce_invite_only(session, telegram_id, user_auth, remnawave=request.app.get("remnawave"))
+        if inv_err:
+            return inv_err
+
         store = await get_store_settings(session)
         if not getattr(store, "stars_enabled", False):
             return web.json_response({"ok": False, "message": "پرداخت با استارز در حال حاضر غیرفعال است."}, status=400)
@@ -702,11 +731,15 @@ async def post_user_topup_stars(request: web.Request) -> web.Response:
             )
 
         import math
+        import time
+
         stars_count = max(1, math.ceil(amount / rate))
 
         bot = request.app["bot"]
         from aiogram.types import LabeledPrice
-        payload = f"stars_topup:{telegram_id}:{amount}:{stars_count}"
+
+        exp_ts = int(time.time()) + 3600
+        payload = f"stars_topup:{telegram_id}:{amount}:{stars_count}:{exp_ts}"
         try:
             link = await bot.create_invoice_link(
                 title="شارژ کیف پول",
@@ -742,85 +775,41 @@ async def post_user_redeem_voucher(request: web.Request) -> web.Response:
         return web.json_response({"ok": False, "message": "لطفاً کد شارژ را وارد نمایید."}, status=400)
 
     telegram_id = int(user_auth["id"])
-    from bot.db.repositories.coupon_repo import CouponRepository
     from bot.db.repositories.wallet_repo import WalletRepository
+    from bot.services.gift_service import redeem_code_to_wallet
 
     async with db_session(request) as session:
-        clean_code = code.strip().upper()
-        # Support claiming friend gift cards (GIFT-XXXX) directly via the voucher box
-        if clean_code.startswith("GIFT-"):
-            from bot.services.gift_service import claim_gift
-            remnawave = request.app.get("remnawave")
-            bot = request.app.get("bot")
-            session_factory = request.app.get("session_factory")
-            res_gift = await claim_gift(
-                session=session,
-                code=clean_code,
-                claimer_telegram_id=telegram_id,
-                claimer_username=user_auth.get("username"),
-                remnawave=remnawave,
-                bot=bot,
-                session_factory=session_factory,
-            )
-            if not res_gift.get("ok"):
-                return web.json_response(res_gift, status=400)
+        inv_err = await enforce_invite_only(session, telegram_id, user_auth, remnawave=request.app.get("remnawave"))
+        if inv_err:
+            return inv_err
 
-            wallet_repo = WalletRepository(session)
-            wallet = await wallet_repo.get_wallet(telegram_id)
-            new_balance = wallet.balance if wallet else 0
-            cache: FastCache = request.app.get("cache")
-            await _invalidate_user_caches(cache, telegram_id)
+        res = await redeem_code_to_wallet(
+            session=session,
+            code=code,
+            telegram_id=telegram_id,
+            username=user_auth.get("username"),
+            remnawave=request.app.get("remnawave"),
+            bot=request.app.get("bot"),
+            session_factory=request.app.get("session_factory"),
+        )
+        if not res.get("ok"):
+            return web.json_response({"ok": False, "message": res.get("message", "کد نامعتبر است.")}, status=400)
 
-            return web.json_response({
-                "ok": True,
-                "amount": res_gift.get("amount", 0),
-                "new_balance": new_balance,
-                "message": res_gift.get("message", "کارت هدیه با موفقیت فعال شد!"),
-            })
-
-        coupon_repo = CouponRepository(session)
         wallet_repo = WalletRepository(session)
-        ok, amount, msg = await coupon_repo.redeem_credit_voucher(clean_code, telegram_id)
-        if not ok:
-            # Fallback to gift card if code did not have GIFT- prefix
-            from bot.services.gift_service import claim_gift
-            remnawave = request.app.get("remnawave")
-            bot = request.app.get("bot")
-            session_factory = request.app.get("session_factory")
-            res_gift = await claim_gift(
-                session=session,
-                code=clean_code,
-                claimer_telegram_id=telegram_id,
-                claimer_username=user_auth.get("username"),
-                remnawave=remnawave,
-                bot=bot,
-                session_factory=session_factory,
-            )
-            if res_gift.get("ok"):
-                wallet = await wallet_repo.get_wallet(telegram_id)
-                new_balance = wallet.balance if wallet else 0
-                cache = request.app.get("cache")
-                await _invalidate_user_caches(cache, telegram_id)
-                return web.json_response({
-                    "ok": True,
-                    "amount": res_gift.get("amount", 0),
-                    "new_balance": new_balance,
-                    "message": res_gift.get("message", "کارت هدیه با موفقیت فعال شد!"),
-                })
-            return web.json_response({"ok": False, "message": msg}, status=400)
-
-        await session.commit()
         wallet = await wallet_repo.get_wallet(telegram_id)
         new_balance = wallet.balance if wallet else 0
         cache: FastCache = request.app.get("cache")
         await _invalidate_user_caches(cache, telegram_id)
 
-        return web.json_response({
+        resp_payload = {
             "ok": True,
-            "amount": amount,
+            "amount": res.get("amount", 0),
             "new_balance": new_balance,
-            "message": msg,
-        })
+            "message": res.get("message", "عملیات با موفقیت انجام شد."),
+        }
+        if res.get("subscription_url"):
+            resp_payload["subscription_url"] = res["subscription_url"]
+        return web.json_response(resp_payload)
 
 
 async def post_user_auto_renew(request: web.Request) -> web.Response:
@@ -870,6 +859,10 @@ async def post_user_topup_trx(request: web.Request) -> web.Response:
 
     telegram_id = int(user_auth["id"])
     async with db_session(request) as session:
+        inv_err = await enforce_invite_only(session, telegram_id, user_auth, remnawave=request.app.get("remnawave"))
+        if inv_err:
+            return inv_err
+
         store = await get_store_settings(session)
         if not (getattr(store, "trx_enabled", False) and getattr(store, "trx_wallet_address", "") and store.trx_wallet_address.strip()):
             return web.json_response({"ok": False, "message": "پرداخت با ترون (TRX) در حال حاضر غیرفعال است."}, status=400)
@@ -917,16 +910,15 @@ async def post_user_topup_trx(request: web.Request) -> web.Response:
                 status=503,
             )
 
-        trx_amount = max(1.0, math.ceil((amount / trx_rate) * 100) / 100)
-        if trx_amount <= 0:
-            trx_amount = 1.0
-        suns = int(round(trx_amount * 1_000_000))
+        # Allocate unique 4-decimal suffix (+0.0001..+0.0099 TRX) to prevent TX-hijacking across pending invoices
+        base_suns = max(1_000_000, math.ceil((amount / trx_rate) * 100) * 10_000)
+        suns = await crypto_repo.allocate_unique_crypto_units(base_suns, 100, "TRX", max_steps=99)
+        trx_amount_str = f"{suns / 1_000_000:.4f}"
 
-        crypto_repo = CryptoRepository(session)
         invoice = await crypto_repo.create_invoice(
             telegram_id=telegram_id,
             amount_toman=amount,
-            amount_ton=f"{trx_amount:.2f}",
+            amount_ton=trx_amount_str,
             nanotons=suns,
             pay_address=store.trx_wallet_address.strip(),
             expires_minutes=60,
@@ -935,7 +927,7 @@ async def post_user_topup_trx(request: web.Request) -> web.Response:
         await session.commit()
         logger.info(
             "Created TRX invoice: id=%s tg_id=%s amount_toman=%s trx_amount=%s trx_rate=%s",
-            invoice.id, telegram_id, amount, trx_amount, trx_rate,
+            invoice.id, telegram_id, amount, trx_amount_str, trx_rate,
         )
 
         return web.json_response({
@@ -943,7 +935,7 @@ async def post_user_topup_trx(request: web.Request) -> web.Response:
             "invoice": {
                 "id": invoice.id,
                 "amount_toman": invoice.amount_toman,
-                "amount_trx": f"{trx_amount:.2f}",
+                "amount_trx": trx_amount_str,
                 "suns": suns,
                 "trx_rate_toman": trx_rate,
                 "pay_address": invoice.pay_address,
@@ -1033,6 +1025,10 @@ async def post_user_topup_pol(request: web.Request) -> web.Response:
 
     telegram_id = int(user_auth["id"])
     async with db_session(request) as session:
+        inv_err = await enforce_invite_only(session, telegram_id, user_auth, remnawave=request.app.get("remnawave"))
+        if inv_err:
+            return inv_err
+
         store = await get_store_settings(session)
         if not (getattr(store, "pol_enabled", False) and getattr(store, "pol_wallet_address", "") and store.pol_wallet_address.strip()):
             return web.json_response({"ok": False, "message": "پرداخت با پلیگان (POL) در حال حاضر غیرفعال است."}, status=400)
@@ -1080,15 +1076,15 @@ async def post_user_topup_pol(request: web.Request) -> web.Response:
                 status=503,
             )
 
-        # 4 decimal places for POL, e.g. 1.2345 POL
-        pol_amount = max(0.01, math.ceil((amount / pol_rate) * 10000) / 10000)
-        wei = int(round(pol_amount * 10**18))
+        # 4 decimal places for POL with unique suffix (+0.0001..+0.0099 POL) to prevent TX hijacking
+        base_wei = max(10_000_000_000_000_000, math.ceil((amount / pol_rate) * 1000) * 1_000_000_000_000_000)
+        wei = await crypto_repo.allocate_unique_crypto_units(base_wei, 100_000_000_000_000, "POL", max_steps=99)
+        pol_amount_str = f"{wei / 1e18:.4f}"
 
-        crypto_repo = CryptoRepository(session)
         invoice = await crypto_repo.create_invoice(
             telegram_id=telegram_id,
             amount_toman=amount,
-            amount_ton=f"{pol_amount:.4f}",
+            amount_ton=pol_amount_str,
             nanotons=wei,
             pay_address=store.pol_wallet_address.strip(),
             expires_minutes=60,
@@ -1097,7 +1093,7 @@ async def post_user_topup_pol(request: web.Request) -> web.Response:
         await session.commit()
         logger.info(
             "Created POL invoice: id=%s tg_id=%s amount_toman=%s pol_amount=%s pol_rate=%s",
-            invoice.id, telegram_id, amount, pol_amount, pol_rate,
+            invoice.id, telegram_id, amount, pol_amount_str, pol_rate,
         )
 
         return web.json_response({
@@ -1105,7 +1101,7 @@ async def post_user_topup_pol(request: web.Request) -> web.Response:
             "invoice": {
                 "id": invoice.id,
                 "amount_toman": invoice.amount_toman,
-                "amount_pol": f"{pol_amount:.4f}",
+                "amount_pol": pol_amount_str,
                 "wei": str(wei),
                 "pol_rate_toman": pol_rate,
                 "pay_address": invoice.pay_address,
@@ -1347,10 +1343,20 @@ async def post_user_topup_tonconnect_submit(request: web.Request) -> web.Respons
         if not inv or inv.telegram_id != telegram_id:
             return web.json_response({"ok": False, "message": "فاکتور یافت نشد."}, status=404)
 
+        if getattr(inv, "currency", "TON") != "TON":
+            return web.json_response({"ok": False, "message": "این فاکتور مربوط به شبکه تون (TON) نمی‌باشد."}, status=400)
+
         if inv.status == "paid":
             wallet_repo = WalletRepository(session)
             w = await wallet_repo.get_wallet(telegram_id)
             return web.json_response({"ok": True, "paid": True, "new_balance": (w.balance if w else 0), "message": "پرداخت قبلاً انجام شده است."})
+
+        now = datetime.now(timezone.utc)
+        inv_exp = getattr(inv, "expires_at", None)
+        exp_utc = (inv_exp if inv_exp.tzinfo else inv_exp.replace(tzinfo=timezone.utc)) if inv_exp else now
+        is_recently_expired = (inv.status == "expired" and (now - exp_utc) <= timedelta(hours=2))
+        if inv.status in ("expired", "cancelled") and not is_recently_expired:
+            return web.json_response({"ok": False, "message": "فاکتور منقضی یا لغو شده است."}, status=400)
 
         store = await get_store_settings(session)
         txs = await fetch_ton_transactions(store.ton_wallet_address)
@@ -1395,6 +1401,10 @@ async def post_user_topup_card_auto_create(request: web.Request) -> web.Response
     telegram_id = int(user_auth["id"])
 
     async with db_session(request) as session:
+        inv_err = await enforce_invite_only(session, telegram_id, user_auth, remnawave=request.app.get("remnawave"))
+        if inv_err:
+            return inv_err
+
         store = await get_store_settings(session)
 
         # Phone verification check

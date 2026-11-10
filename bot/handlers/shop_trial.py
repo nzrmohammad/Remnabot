@@ -14,7 +14,6 @@ from bot.common import SEPARATOR, admin_thread_kwargs, parse_int
 from bot.config import get_settings
 from bot.db.repositories.support_repo import SupportMessageRepository
 from bot.db.repositories.user_repo import UserRepository
-from bot.handlers.shop_purchase import _maybe_reward_referrer
 from bot.locales.texts import t
 from bot.services.app_settings import get_store_settings
 from bot.services.formatting import format_datetime, ltr_frag, now_tz
@@ -226,9 +225,6 @@ async def service_trial_username(
 
     await user_repo.set_verified(user)
     await state.clear()
-
-    # Reward referrer if applicable
-    await _maybe_reward_referrer(bot, session, remnawave, user)
 
     sub_url = created.get("subscriptionUrl")
     panel_user_id = created.get("id")

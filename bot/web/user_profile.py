@@ -324,8 +324,54 @@ async def get_user_me(request: web.Request) -> web.Response:
 
     async with db_session(request) as session:
         import bot.web.routes_user as _user_routes
+        from bot.web.user_common import is_user_invited
+
         user_repo_cls = getattr(_user_routes, "UserRepository", UserRepository)
         user_repo = user_repo_cls(session)
+        store_settings = await get_store_settings(session)
+        is_adm = bool(user_auth.get("is_admin", False))
+
+        if (
+            getattr(store_settings, "access_mode", "open") == "invite_only"
+            and not is_adm
+            and hasattr(user_repo, "get_by_telegram_id")
+        ):
+            existing_user = await user_repo.get_by_telegram_id(telegram_id)
+            if not is_user_invited(existing_user):
+                panel_preview = []
+                try:
+                    panel_preview = (await asyncio.wait_for(panel_users_task, timeout=8.0)) or []
+                except Exception:
+                    panel_preview = []
+                if not is_user_invited(existing_user, panel_preview):
+                    raw_support = (getattr(store_settings, "support_contact", "") or "").strip()
+                    support_link = ""
+                    if raw_support and raw_support not in ("—", "-"):
+                        if raw_support.startswith(("http://", "https://")):
+                            support_link = raw_support
+                        elif raw_support.startswith("t.me/"):
+                            support_link = f"https://{raw_support}"
+                        elif raw_support.startswith("@"):
+                            support_link = f"https://t.me/{raw_support[1:]}"
+                        else:
+                            support_link = f"https://t.me/{raw_support}"
+                    return web.json_response({
+                        "ok": True,
+                        "cached": False,
+                        "data": {
+                            "is_invite_only": True,
+                            "is_maintenance": await is_maintenance(session),
+                            "support_contact": raw_support,
+                            "support_link": support_link,
+                            "user": {
+                                "id": telegram_id,
+                                "first_name": user_auth.get("first_name", "کاربر"),
+                                "username": user_auth.get("username"),
+                                "is_admin": False,
+                            },
+                        },
+                    })
+
         first_name = user_auth.get("first_name", "")
         last_name = user_auth.get("last_name", "")
         auth_full_name = f"{first_name} {last_name}".strip() or None
@@ -341,7 +387,6 @@ async def get_user_me(request: web.Request) -> web.Response:
         wallet = wallet_res.scalar_one_or_none()
         wallet_balance = wallet.balance if wallet else 0
 
-        store_settings = await get_store_settings(session)
         maint_on = await is_maintenance(session)
         ref_count_res = await session.execute(select(func.count(User.id)).where(User.referred_by_id == telegram_id))
         referrals_count = int(ref_count_res.scalar_one() or 0)
@@ -577,7 +622,7 @@ async def get_user_me(request: web.Request) -> web.Response:
             try:
                 store_sett = await get_store_settings(session)
                 if getattr(store_sett, "access_mode", "open") == "invite_only":
-                    is_invited = bool(getattr(db_user, "referred_by_id", None) or has_active_sub)
+                    is_invited = bool(is_user_invited(db_user, panel_users) or has_active_sub)
                     if not is_invited:
                         is_invite_only = True
             except Exception as e:
@@ -864,10 +909,22 @@ async def post_user_set_birthday(request: web.Request) -> web.Response:
     telegram_id = int(user_auth["id"])
 
     async with db_session(request) as session:
+        from bot.web.user_common import enforce_invite_only
+
+        inv_err = await enforce_invite_only(session, telegram_id, user_auth, remnawave=request.app.get("remnawave"))
+        if inv_err:
+            return inv_err
+
         user_repo = UserRepository(session)
         user = await user_repo.get_by_telegram_id(telegram_id)
         if not user:
             return web.json_response({"ok": False, "error": "کاربر یافت نشد."}, status=404)
+
+        if getattr(user, "birth_date", None):
+            return web.json_response(
+                {"ok": False, "error": "تاریخ تولد شما قبلاً ثبت شده و برای جلوگیری از سوءاستفاده قابل تغییر مجدد نیست."},
+                status=400,
+            )
 
         user.birth_date = formatted_date
         if hasattr(session, "commit"):

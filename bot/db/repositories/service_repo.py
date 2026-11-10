@@ -50,6 +50,10 @@ class ServiceRepository:
         )
         return result.scalar_one_or_none()
 
+    async def get_by_id(self, service_id: int) -> Service | None:
+        """Alias for get(), used by gift handlers."""
+        return await self.get(service_id)
+
     async def create(
         self,
         name: str,

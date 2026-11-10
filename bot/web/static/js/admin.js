@@ -294,16 +294,16 @@
       contentEl.innerHTML = items.map(item => {
         if (item.highlight) {
           return `
-            <div class="bg-emerald-950/40 p-3 rounded-2xl border border-emerald-600/30 flex items-center justify-between text-xs">
-              <span class="text-slate-300 font-medium">${item.label}:</span>
-              <b class="text-emerald-400 font-mono font-bold text-sm" dir="ltr">${item.value}</b>
+            <div class="s-success-soft p-3 rounded-2xl border flex items-center justify-between text-xs">
+              <span class="t-muted font-medium">${item.label}:</span>
+              <b class="t-success font-mono font-bold text-sm" dir="ltr">${item.value}</b>
             </div>
           `;
         }
         return `
-          <div class="bg-slate-900/60 p-2.5 rounded-xl border border-slate-800 flex items-center justify-between text-xs">
-            <span class="text-slate-400 text-[11px]">${item.label}:</span>
-            <span class="${item.color || 'text-white'} font-semibold text-xs truncate max-w-[200px]" dir="${item.dir || 'auto'}">${item.value}</span>
+          <div class="card-inset p-2.5 rounded-xl border border-card-border flex items-center justify-between text-xs">
+            <span class="t-muted text-[11px]">${item.label}:</span>
+            <span class="${item.color || 't-main'} font-semibold text-xs truncate max-w-[200px]" dir="${item.dir || 'auto'}">${item.value}</span>
           </div>
         `;
       }).join('');

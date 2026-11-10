@@ -103,13 +103,23 @@ async def test_item14_coupon_naive_datetime_validation(session_factory):
         naive_future = datetime.now(timezone.utc).replace(tzinfo=None) + timedelta(days=2)
         coupon = Coupon(
             code="NAIVEEXP",
+            kind="discount",
             discount_amount=10000,
             max_uses=10,
             used_count=0,
             is_active=True,
             expires_at=naive_future,  # naive datetime as SQLite returns
         )
-        session.add(coupon)
+        voucher = Coupon(
+            code="NAIVEVCH",
+            kind="voucher",
+            discount_amount=10000,
+            max_uses=10,
+            used_count=0,
+            is_active=True,
+            expires_at=naive_future,
+        )
+        session.add_all([coupon, voucher])
         await session.commit()
 
         repo = CouponRepository(session)
@@ -117,8 +127,8 @@ async def test_item14_coupon_naive_datetime_validation(session_factory):
         assert is_valid is True
         assert disc == 10000
 
-        # Test redeem_credit_voucher with naive datetime
-        ok, cred, msg = await repo.redeem_credit_voucher("NAIVEEXP", telegram_id=2001)
+        # Test redeem_credit_voucher with naive datetime (strictly voucher kind)
+        ok, cred, msg = await repo.redeem_credit_voucher("NAIVEVCH", telegram_id=2001)
         assert ok is True
         assert cred == 10000
 

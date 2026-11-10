@@ -59,6 +59,7 @@ async def apply_coupon_prompt(
 async def remove_coupon(
     call: CallbackQuery, bot: Bot, user_repo: UserRepository,
     session: AsyncSession, remnawave: RemnawaveClient, state: FSMContext,
+    cache=None,
 ):
     parts = call.data.split(":")
     service_id = int(parts[2])
@@ -68,17 +69,18 @@ async def remove_coupon(
     await state.update_data(coupon_code=None, discount_amount=0)
 
     if flow_type == "a":
-        await buy_for_account(call, bot, user_repo, session, remnawave, state, service_id=service_id, panel_user_id=target_id)
+        await buy_for_account(call, bot, user_repo, session, remnawave, state, service_id=service_id, panel_user_id=target_id, cache=cache)
     elif flow_type == "n":
-        await buy_new_account(call, bot, user_repo, session, remnawave, state, service_id=service_id)
+        await buy_new_account(call, bot, user_repo, session, remnawave, state, service_id=service_id, cache=cache)
     else:
-        await service_buy(call, bot, user_repo, session, remnawave, state, service_id=service_id)
+        await service_buy(call, bot, user_repo, session, remnawave, state, service_id=service_id, cache=cache)
 
 
 @router.message(ServiceRequestStates.waiting_coupon)
 async def process_coupon_code(
     message: Message, bot: Bot, user_repo: UserRepository,
     session: AsyncSession, remnawave: RemnawaveClient, state: FSMContext,
+    cache=None,
 ):
 
     user = await user_repo.get_or_create(message.from_user.id, message.from_user.username)
@@ -149,4 +151,5 @@ async def process_coupon_code(
         target_id=target_id,
         coupon_code=code,
         discount_amount=discount_amount,
+        cache=cache,
     )

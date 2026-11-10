@@ -1,14 +1,13 @@
-from html import escape
-
-from sqlalchemy.exc import IntegrityError
-
 """Telegram Stars (XTR) native payment handling."""
 import logging
+import time
 from datetime import datetime, timezone
+from html import escape
 
 from aiogram import Bot, F, Router
 from aiogram.types import Message, PreCheckoutQuery
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from bot.common import admin_thread_kwargs
@@ -41,9 +40,16 @@ async def stars_pre_checkout_handler(pre_checkout_query: PreCheckoutQuery, bot: 
     try:
         user_tid = int(parts[1])
         stars_count = int(parts[3])
+        exp_ts = int(parts[4]) if len(parts) >= 5 else None
     except (ValueError, TypeError):
         await bot.answer_pre_checkout_query(
             pre_checkout_query.id, ok=False, error_message="مقادیر فاکتور نامعتبر است."
+        )
+        return
+
+    if exp_ts is not None and int(time.time()) > exp_ts:
+        await bot.answer_pre_checkout_query(
+            pre_checkout_query.id, ok=False, error_message="مهلت پرداخت این فاکتور استارز به پایان رسیده است."
         )
         return
 
@@ -78,7 +84,7 @@ async def stars_pre_checkout_handler(pre_checkout_query: PreCheckoutQuery, bot: 
 
 @router.message(F.successful_payment)
 async def stars_successful_payment_handler(
-    message: Message, bot: Bot, session: AsyncSession,
+    message: Message, bot: Bot, session: AsyncSession, cache=None,
 ):
     """Credit wallet upon successful Stars payment."""
     sp = message.successful_payment
@@ -188,6 +194,11 @@ async def stars_successful_payment_handler(
         )
         session.add(topup)
         await session.commit()
+        if cache and hasattr(cache, "delete"):
+            if hasattr(cache, "invalidate_user"):
+                await cache.invalidate_user(user_tid)
+            else:
+                await cache.delete(f"tma:user:{user_tid}")
     except IntegrityError:
         await session.rollback()
         logger.warning("Duplicate Stars payment race condition caught for %s, rolled back credit.", receipt_hash)

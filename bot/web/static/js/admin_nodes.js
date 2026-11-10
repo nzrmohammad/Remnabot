@@ -42,41 +42,41 @@
       const specs = [cpuText, ramText, speedText].filter(Boolean).join(' | ');
 
       return `
-        <div class="bg-slate-900/70 rounded-2xl border border-slate-700/60 overflow-hidden transition shadow-sm">
+        <div class="card rounded-2xl border border-card-border overflow-hidden transition shadow-sm">
           <!-- Accordion Header -->
           <div class="p-3 flex justify-between items-center cursor-pointer hover:bg-slate-500/10 transition select-none" onclick="window.toggleNodeAccordion(${idx})">
             <div class="flex items-center gap-2.5">
               <span class="text-xl flex-shrink-0">${typeof renderFlagHtml === 'function' ? renderFlagHtml(flag, 'w-5 h-3.5 inline-block rounded-xs shadow-xs object-cover align-middle') : flag}</span>
               <div>
-                <span class="font-bold text-white block text-xs">${escapeHtml(n.name || 'Node')}</span>
-                ${specs ? `<span class="text-[11px] text-slate-400 font-mono">${specs}</span>` : ''}
+                <span class="font-bold t-main block text-xs">${escapeHtml(n.name || 'Node')}</span>
+                ${specs ? `<span class="text-[11px] t-muted font-mono">${specs}</span>` : ''}
               </div>
             </div>
             <div class="flex items-center gap-2">
               <span class="${statusColor} font-bold text-[11px] font-mono">${formatNumber(n.connected_users || 0)} آنلاین</span>
-              <span id="nodeChevron_${idx}" class="text-xs text-slate-400 transition-transform duration-200">▼</span>
+              <span id="nodeChevron_${idx}" class="text-xs t-muted transition-transform duration-200">▼</span>
             </div>
           </div>
 
           <!-- Accordion Details Body -->
-          <div id="nodeBody_${idx}" class="hidden p-3 bg-slate-950/60 border-t border-slate-800/60 text-xs space-y-2">
+          <div id="nodeBody_${idx}" class="hidden p-3 card-inset border-t border-card-border text-xs space-y-2 rounded-none">
             <div class="grid grid-cols-2 gap-2 text-[11px]">
-              <div class="bg-slate-900/80 p-2 rounded-xl">
-                <span class="text-slate-400 text-[11px] block mb-0.5">آدرس سرور:</span>
-                <span class="font-mono text-cyan-300 text-xs block truncate" dir="ltr">${escapeHtml(n.address || '—')}</span>
+              <div class="card p-2 rounded-xl">
+                <span class="t-muted text-[11px] block mb-0.5">آدرس سرور:</span>
+                <span class="font-mono t-accent text-xs block truncate" dir="ltr">${escapeHtml(n.address || '—')}</span>
               </div>
-              <div class="bg-slate-900/80 p-2 rounded-xl">
-                <span class="text-slate-400 text-[11px] block mb-0.5">وضعیت اتصال:</span>
+              <div class="card p-2 rounded-xl">
+                <span class="t-muted text-[11px] block mb-0.5">وضعیت اتصال:</span>
                 <span>${statusBadge}</span>
               </div>
             </div>
             <div class="grid grid-cols-2 gap-2 text-[11px]">
-              <div class="bg-slate-900/80 p-2 rounded-xl">
-                <span class="text-slate-400 text-[11px] block mb-0.5">کاربران متصل زنده:</span>
+              <div class="card p-2 rounded-xl">
+                <span class="t-muted text-[11px] block mb-0.5">کاربران متصل زنده:</span>
                 <b class="t-success font-mono text-xs">${formatNumber(n.connected_users || 0)} نفر</b>
               </div>
-              <div class="bg-slate-900/80 p-2 rounded-xl">
-                <span class="text-slate-400 text-[11px] block mb-0.5">ترافیک مصرفی نود:</span>
+              <div class="card p-2 rounded-xl">
+                <span class="t-muted text-[11px] block mb-0.5">ترافیک مصرفی نود:</span>
                 <b class="t-accent font-mono text-xs num-bidi" dir="ltr">${n.traffic_used_gb ? fmtTraffic(n.traffic_used_gb, { html: false }) : '—'}</b>
               </div>
             </div>
@@ -349,29 +349,29 @@
 
             <!-- Bottom Metrics: Connected users & Traffic -->
             <div class="grid grid-cols-2 gap-2 text-center text-[11px]">
-              <div class="bg-transparent p-2 rounded-xl border border-slate-700/60">
-                <span class="text-slate-400 block mb-0.5">کاربران متصل</span>
+              <div class="bg-transparent p-2 rounded-xl border border-card-border">
+                <span class="t-muted block mb-0.5">کاربران متصل</span>
                 <b class="t-success font-mono text-xs">${formatNumber(n.connected_users || 0)} نفر</b>
               </div>
-              <div class="bg-transparent p-2 rounded-xl border border-slate-700/60">
-                <span class="text-slate-400 block mb-0.5">ترافیک مصرفی نود</span>
-                <b class="text-blue-600 dark:t-accent font-mono text-xs num-bidi" dir="ltr">${fmtTraffic(n.traffic_used_gb || 0, { html: false })}</b>
+              <div class="bg-transparent p-2 rounded-xl border border-card-border">
+                <span class="t-muted block mb-0.5">ترافیک مصرفی نود</span>
+                <b class="t-accent font-mono text-xs num-bidi" dir="ltr">${fmtTraffic(n.traffic_used_gb || 0, { html: false })}</b>
               </div>
             </div>
 
             <!-- Infra-Billing & Server Cost Details Strip -->
-            <div class="bg-transparent p-2.5 rounded-xl border border-slate-700/60 space-y-2 text-[11px]">
+            <div class="bg-transparent p-2.5 rounded-xl border border-card-border space-y-2 text-[11px]">
               <div class="flex items-center justify-between">
-                <span class="text-slate-400 flex items-center gap-1">
+                <span class="t-muted flex items-center gap-1">
                   <svg class="w-3.5 h-3.5 t-success" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                   <span>هزینه ماهانه سرور:</span>
                 </span>
                 <div class="flex items-center gap-1 font-bold">
                   ${n.monthly_cost_toman ? `
                     <span class="font-mono t-success">${formatNumber(n.monthly_cost_toman)}</span>
-                    <span class="text-[11px] text-slate-400 font-sans">تومان</span>
-                    ${n.monthly_cost_eur ? `<span class="text-indigo-300 font-mono text-[11px] mr-1">(${n.currency === 'USD' ? '$' : '€'}${n.monthly_cost_eur})</span>` : ''}
-                  ` : '<span class="text-slate-500 font-medium">ثبت‌نشده</span>'}
+                    <span class="text-[11px] t-muted font-sans">تومان</span>
+                    ${n.monthly_cost_eur ? `<span class="t-info font-mono text-[11px] mr-1">(${n.currency === 'USD' ? '$' : '€'}${n.monthly_cost_eur})</span>` : ''}
+                  ` : '<span class="t-subtle font-medium">ثبت‌نشده</span>'}
                 </div>
               </div>
 

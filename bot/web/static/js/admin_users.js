@@ -247,25 +247,25 @@
       `;
 
       return `
-        <div class="bg-slate-800/80 rounded-2xl p-3.5 border ${isSelected ? 'border-teal-500/80 shadow-[0_0_12px_rgba(20,184,166,0.2)]' : 'border-slate-700/80'} space-y-2.5 shadow transition relative">
+        <div class="card rounded-2xl p-3.5 border ${isSelected ? 'border-teal-500/80 shadow-[0_0_12px_rgba(20,184,166,0.2)]' : 'border-card-border'} space-y-2.5 shadow transition relative">
           <div class="flex items-center justify-between gap-3">
             <!-- Right: Checkbox + Avatar + Profile Name + Status Badge -->
             <div class="flex items-center gap-2.5 min-w-0 cursor-pointer group select-none" onclick="window.adminUserSelectMode ? window.adminActions.toggleUserSelect('${u.telegram_id}') : window.adminActions.openUserProfileModal(${u.telegram_id})" title="مشاهده شناسنامه و پروفایل کاربر">
               ${checkboxHtml}
               <!-- User Profile Avatar with Online/Offline indicator badge at bottom-left -->
               <div class="relative flex-shrink-0">
-                <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center font-bold text-white text-xs shadow overflow-hidden group-hover:ring-2 group-hover:ring-cyan-400/50 transition">
+                <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center font-bold text-white text-xs shadow overflow-hidden transition">
                   <img src="${avatarSrc}" alt="Avatar" class="w-full h-full object-cover" onerror="this.classList.add('hidden'); if(this.nextElementSibling) this.nextElementSibling.classList.remove('hidden');" />
                   <span class="${u.avatar_url ? 'hidden' : ''} font-bold">${escapeHtml(initial)}</span>
                 </div>
                 <!-- Online / Offline Badge at Bottom-Left of the Avatar -->
-                <span class="absolute bottom-0 left-0 w-3 h-3 rounded-full border-2 border-slate-900 ${u.is_online ? 'bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.9)] animate-pulse' : 'bg-slate-500'}" title="${u.is_online ? 'آنلاین (متصل به سرور)' : 'آفلاین'}"></span>
+                <span class="absolute bottom-0 left-0 w-3 h-3 rounded-full border-2 border-slate-900 ${u.is_online ? 'bg-emerald-500 animate-pulse' : 'bg-slate-500'}" title="${u.is_online ? 'آنلاین (متصل به سرور)' : 'آفلاین'}"></span>
               </div>
 
               <!-- Name and Status Badge side-by-side on the same line -->
               <div class="min-w-0 flex-1">
                 <div class="flex items-center gap-1.5 min-w-0 flex-wrap">
-                  <span class="text-xs font-bold text-white truncate max-w-[120px] sm:max-w-[160px] group-hover:text-cyan-300 transition">
+                  <span class="text-xs font-bold t-main truncate max-w-[120px] sm:max-w-[160px] group-hover:t-accent transition">
                     ${(displayName || '').startsWith('@') ? `<span class="truncate inline-block font-mono" dir="ltr" style="unicode-bidi: isolate;">${escapeHtml(displayName)}</span>` : `<span class="truncate">${escapeHtml(displayName)}</span>`}
                   </span>
                   <div class="flex-shrink-0">${statusBadge}</div>
@@ -1068,10 +1068,10 @@ async applyUserModification() {
 
       if (!isOnline || conns.length === 0) {
         list.innerHTML = `
-          <div class="p-8 text-center text-xs text-slate-400 flex flex-col items-center gap-2">
-            <span class="w-10 h-10 rounded-2xl bg-slate-800/80 flex items-center justify-center text-slate-500 text-lg">💤</span>
-            <b class="text-white text-xs">هیچ نشست یا اتصال فعالی یافت نشد</b>
-            <span class="text-[11px] text-slate-400">کاربر در حال حاضر به هیچ سروری متصل نیست.</span>
+          <div class="p-8 text-center text-xs t-muted flex flex-col items-center gap-2">
+            <span class="w-10 h-10 rounded-2xl card-inset flex items-center justify-center t-subtle text-lg">💤</span>
+            <b class="t-main text-xs">هیچ نشست یا اتصال فعالی یافت نشد</b>
+            <span class="text-[11px] t-muted">کاربر در حال حاضر به هیچ سروری متصل نیست.</span>
           </div>
         `;
         return;
@@ -1082,9 +1082,9 @@ async applyUserModification() {
         const nodeName = nc.nodeName || 'سرور';
         const ips = nc.ips || [];
         const ipsHtml = ips.map(ip => `
-          <div class="flex items-center justify-between bg-transparent px-2.5 py-1.5 rounded-xl border border-slate-700/60 text-xs">
-            <span class="text-slate-400 text-[11px]">آی‌پی کلاینت:</span>
-            <button type="button" dir="ltr" class="btn-copy-ip-direct font-mono text-cyan-700 dark:text-cyan-400 font-bold select-all hover:underline cursor-pointer flex items-center gap-1" data-ip="${escapeHtml(ip)}" title="کلیک جهت کپی آی‌پی">
+          <div class="flex items-center justify-between bg-transparent px-2.5 py-1.5 rounded-xl border border-card-border text-xs">
+            <span class="t-muted text-[11px]">آی‌پی کلاینت:</span>
+            <button type="button" dir="ltr" class="btn-copy-ip-direct font-mono t-accent font-bold select-all hover:underline cursor-pointer flex items-center gap-1" data-ip="${escapeHtml(ip)}" title="کلیک جهت کپی آی‌پی">
               <span>${escapeHtml(ip)}</span>
               <span class="text-[11px] opacity-70">📋</span>
             </button>
@@ -1092,18 +1092,18 @@ async applyUserModification() {
         `).join('');
 
         return `
-          <div class="bg-transparent rounded-2xl p-3 border border-slate-700/60 space-y-2">
+          <div class="bg-transparent rounded-2xl p-3 border border-card-border space-y-2">
             <div class="flex items-center justify-between">
-              <span class="text-white font-bold text-xs flex items-center gap-1.5">
+              <span class="t-main font-bold text-xs flex items-center gap-1.5">
                 <span class="text-sm">${typeof renderFlagHtml === 'function' ? renderFlagHtml(flag, 'w-4 h-3 inline-block rounded-xs shadow-xs object-cover align-middle') : flag}</span>
                 <span>${escapeHtml(nodeName)}</span>
               </span>
-              <span class="text-[11px] card-inset text-cyan-700 dark:text-cyan-300 border border-cyan-500/40 px-2 py-0.5 rounded-lg font-mono font-bold">
+              <span class="badge badge-accent text-[11px] font-mono font-bold">
                 ${formatNumber(ips.length)} اتصال
               </span>
             </div>
             <div class="space-y-1 pt-1">
-              ${ipsHtml || '<div class="text-slate-500 text-[11px] text-center">آی‌پی ثبت‌نشده</div>'}
+              ${ipsHtml || '<div class="t-subtle text-[11px] text-center">آی‌پی ثبت‌نشده</div>'}
             </div>
           </div>
         `;

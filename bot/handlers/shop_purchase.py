@@ -20,6 +20,7 @@ from bot.handlers.shop_purchase_views import (
 )
 from bot.handlers.shop_purchase_views import (
     finalize_purchase,
+    prepare_bot_discounts,
 )
 from bot.handlers.shop_purchase_views import (
     maybe_reward_referrer as _maybe_reward_referrer,
@@ -54,6 +55,7 @@ async def buy_new_account(
     call: CallbackQuery, bot: Bot, user_repo: UserRepository,
     session: AsyncSession, remnawave: RemnawaveClient, state: FSMContext,
     service_id: int | None = None,
+    cache=None,
 ):
     if service_id is None:
         service_id = _safe_int(call.data.rsplit(":", 1)[1])
@@ -89,6 +91,7 @@ async def buy_new_account(
         target_id="0",
         coupon_code=coupon_code,
         discount_amount=discount_amount,
+        cache=cache,
     )
     await call.answer()
 
@@ -97,6 +100,7 @@ async def buy_new_account(
 async def confirm_new_account(
     call: CallbackQuery, bot: Bot, user_repo: UserRepository,
     session: AsyncSession, remnawave: RemnawaveClient, state: FSMContext,
+    cache=None,
 ):
     service_id = _safe_int(call.data.rsplit(":", 1)[1])
     if service_id is None:
@@ -120,10 +124,13 @@ async def confirm_new_account(
             return
 
         coupon_code, discount_amount = await _extract_coupon_from_state(state, service.id)
+        loyalty_disc_amt, total_discount = await prepare_bot_discounts(
+            session, user.telegram_id, service.price, discount_amount, cache=cache
+        )
 
         result = await execute_purchase(
             remnawave, session, service, user.telegram_id,
-            create_new=True, discount_amount=discount_amount,
+            create_new=True, discount_amount=total_discount,
             coupon_code=coupon_code,
             bot=bot,
         )
@@ -138,8 +145,10 @@ async def confirm_new_account(
             state=state,
             coupon_code=coupon_code,
             discount_amount=discount_amount,
+            loyalty_discount_amount=loyalty_disc_amt,
             full_name=call.from_user.full_name,
             lang=lang,
+            cache=cache,
         )
         await call.answer()
     finally:
@@ -182,6 +191,7 @@ async def service_buy(
     call: CallbackQuery, bot: Bot, user_repo: UserRepository,
     session: AsyncSession, remnawave: RemnawaveClient, state: FSMContext,
     service_id: int | None = None,
+    cache=None,
 ):
     if service_id is None:
         service_id = _safe_int(call.data.rsplit(":", 1)[1])
@@ -257,6 +267,7 @@ async def service_buy(
         target_id="0",
         coupon_code=coupon_code,
         discount_amount=discount_amount,
+        cache=cache,
     )
     await call.answer()
 
@@ -265,6 +276,7 @@ async def service_buy(
 async def service_confirm(
     call: CallbackQuery, bot: Bot, user_repo: UserRepository,
     session: AsyncSession, remnawave: RemnawaveClient, state: FSMContext,
+    cache=None,
 ):
     service_id = _safe_int(call.data.rsplit(":", 1)[1])
     if service_id is None:
@@ -288,9 +300,12 @@ async def service_confirm(
             return
 
         coupon_code, discount_amount = await _extract_coupon_from_state(state, service.id)
+        loyalty_disc_amt, total_discount = await prepare_bot_discounts(
+            session, user.telegram_id, service.price, discount_amount, cache=cache
+        )
 
         result = await execute_purchase(
-            remnawave, session, service, user.telegram_id, discount_amount=discount_amount,
+            remnawave, session, service, user.telegram_id, discount_amount=total_discount,
             coupon_code=coupon_code,
             bot=bot,
         )
@@ -323,8 +338,10 @@ async def service_confirm(
             state=state,
             coupon_code=coupon_code,
             discount_amount=discount_amount,
+            loyalty_discount_amount=loyalty_disc_amt,
             full_name=call.from_user.full_name,
             lang=lang,
+            cache=cache,
         )
         await call.answer()
     finally:

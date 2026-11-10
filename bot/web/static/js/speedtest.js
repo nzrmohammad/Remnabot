@@ -160,7 +160,7 @@
     if (phaseLabel) phaseLabel.innerText = 'سنجش پینگ و تاخیر...';
     if (statusText) {
       statusText.innerText = '📶 در حال اندازه‌گیری دقیق تاخیر زمانی (Ping)...';
-      statusText.className = 'py-1.5 px-3 rounded-xl bg-cyan-950/60 border border-cyan-500/40 text-[11px] text-cyan-300 font-medium transition text-center min-h-[38px] flex items-center justify-center';
+      statusText.className = 'py-1.5 px-3 rounded-xl s-accent-soft border text-[11px] font-medium transition text-center min-h-[38px] flex items-center justify-center';
     }
 
     const pings = [];
@@ -259,7 +259,7 @@
     if (phaseLabel) phaseLabel.innerText = 'سرعت دانلود (Download)';
     if (statusText) {
       statusText.innerText = '📥 در حال دریافت داده و سنجش واقعی پهنای‌باند دانلود...';
-      statusText.className = 'py-1.5 px-3 rounded-xl bg-emerald-950/60 border border-emerald-500/40 text-[11px] text-emerald-300 font-medium transition text-center min-h-[38px] flex items-center justify-center';
+      statusText.className = 'py-1.5 px-3 rounded-xl s-success-soft border text-[11px] font-medium transition text-center min-h-[38px] flex items-center justify-center';
     }
 
     const testStartTime = performance.now();
@@ -366,7 +366,7 @@
     if (phaseLabel) phaseLabel.innerText = 'سرعت آپلود (Upload)';
     if (statusText) {
       statusText.innerText = '📤 در حال ارسال داده و سنجش واقعی پهنای‌باند آپلود...';
-      statusText.className = 'py-1.5 px-3 rounded-xl bg-blue-950/60 border border-blue-500/40 text-[11px] text-blue-300 font-medium transition text-center min-h-[38px] flex items-center justify-center';
+      statusText.className = 'py-1.5 px-3 rounded-xl s-info-soft border text-[11px] font-medium transition text-center min-h-[38px] flex items-center justify-center';
     }
 
     targetSpeedMbps = 0;
@@ -501,34 +501,34 @@
     if (totalBytes === 0) {
       return {
         text: '⚠️ سرور پاسخ نداد؛ وضعیت اتصال فیلترشکن را بررسی فرمایید.',
-        cls: 'bg-amber-950/70 border-amber-500/50 text-amber-300',
+        cls: 's-warn-soft border',
         rating: '❌ قطع ارتباط',
       };
     }
     if (dlSpeed >= 25 && ping <= 90) {
       return {
         text: '🚀 کیفیت فوق‌العاده؛ عالی برای استریم 4K، بازی آنلاین و وب‌گردی پرسرعت',
-        cls: 'bg-emerald-950/70 border-emerald-500/50 text-emerald-300',
+        cls: 's-success-soft border',
         rating: '🚀 فوق‌العاده',
       };
     }
     if (dlSpeed >= 12) {
       return {
         text: '⚡️ کیفیت بسیار خوب؛ عالی برای اینستاگرام، تلگرام، یوتیوب HD و تماس ویدیویی',
-        cls: 'bg-cyan-950/70 border-cyan-500/50 text-cyan-300',
+        cls: 's-accent-soft border',
         rating: '⚡️ بسیار خوب',
       };
     }
     if (dlSpeed >= 4) {
       return {
         text: '🟡 کیفیت معمولی؛ مناسب برای چت، وب‌گردی و دانلود با سرعت استاندارد',
-        cls: 'bg-amber-950/70 border-amber-500/50 text-amber-300',
+        cls: 's-warn-soft border',
         rating: '📶 معمولی',
       };
     }
     return {
       text: '⚠️ سرعت محدود؛ مناسب برای ارسال پیام متنی یا نیازمند تغییر سرور/پروکسی',
-      cls: 'bg-rose-950/70 border-rose-500/50 text-rose-300',
+      cls: 's-danger-soft border',
       rating: '⚠️ ضعیف',
     };
   }
@@ -638,7 +638,7 @@
         console.warn('SpeedTest caught error:', err);
         if (statusText) {
           statusText.innerText = '⚠️ اختلال در دریافت اطلاعات؛ لطفاً دکمه شروع را مجدداً لمس فرمایید.';
-          statusText.className = 'py-2 px-3 rounded-xl bg-amber-950/60 border border-amber-500/40 text-[11px] text-amber-300 font-medium text-center min-h-[38px] flex items-center justify-center';
+          statusText.className = 'py-2 px-3 rounded-xl s-warn-soft border text-[11px] font-medium text-center min-h-[38px] flex items-center justify-center';
         }
       }
     } finally {
@@ -675,7 +675,7 @@
     if (phaseLabel) phaseLabel.innerText = 'آماده شروع';
     if (statusText && statusText.innerText.includes('در حال')) {
       statusText.innerText = 'تست متوقف شد. آماده برای تست مجدد.';
-      statusText.className = 'py-2 px-3 rounded-xl bg-slate-900/80 border border-slate-700/60 text-[11px] text-slate-300 font-medium text-center transition min-h-[38px] flex items-center justify-center';
+      statusText.className = 'py-2 px-3 rounded-xl s-neutral-soft border text-[11px] font-medium text-center transition min-h-[38px] flex items-center justify-center';
     }
   }
 
@@ -694,8 +694,7 @@
   function openSpeedTestModal() {
     const modal = getEl('speedTestModal');
     if (modal) {
-      const isLight = document.documentElement.classList.contains('theme-light');
-      modal.style.backgroundColor = isLight ? 'rgba(15, 23, 42, 0.45)' : 'rgba(0, 0, 0, 0.8)';
+      modal.style.backgroundColor = '';
     }
 
     if (window.openModal) {

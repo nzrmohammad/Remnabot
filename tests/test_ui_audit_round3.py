@@ -95,9 +95,9 @@ def test_bestseller_badge_and_button_gradient():
     app_css = Path("bot/web/static/css/app.css").read_text(encoding="utf-8")
     shop_js = Path("bot/web/static/js/shop.js").read_text(encoding="utf-8")
 
-    # app.css has amber-orange gradient
+    # app.css has high-contrast warm amber-orange gradient (>= 5.0:1 with white text)
     assert ".btn-plan-bestseller {" in app_css
-    assert "linear-gradient(135deg, #f59e0b 0%, #ea580c 100%)" in app_css
+    assert "linear-gradient(135deg, #b45309 0%, #c2410c 100%)" in app_css
 
     # shop.js handles bestseller with Persian word
     assert "planBadgeKey.includes('پرفروش')" in shop_js
@@ -348,8 +348,8 @@ def test_vazirmatn_typography_guard():
     assert 'id="countdownDays" class="text-xl font-black font-sans num-bidi t-warn block leading-tight"' in app_html
     assert 'id="bdayCountdownDays" class="text-xl font-black font-sans num-bidi t-pink block leading-tight"' in app_html
 
-    # 3. Admin user page info uses font-sans num-bidi
-    assert 'id="adminUsersPageInfo" class="font-sans num-bidi text-[11px] text-slate-300"' in admin_html
+    # 3. Admin user page info uses font-sans num-bidi and semantic t-muted
+    assert 'id="adminUsersPageInfo" class="font-sans num-bidi text-[11px] t-muted"' in admin_html
 
 
 def test_topup_empty_default_and_manual_graphic_card():

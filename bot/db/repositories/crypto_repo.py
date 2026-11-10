@@ -49,6 +49,40 @@ class CryptoRepository:
         result = await self.session.execute(stmt)
         return list(result.scalars().all())
 
+    async def get_pending_nanotons(self, currency: str) -> set[int]:
+        """Return active non-expired exact smallest-unit amounts (SUN/Wei/nanoton) for a currency."""
+        now = datetime.now(timezone.utc)
+        stmt = select(CryptoInvoice.nanotons).where(
+            and_(
+                CryptoInvoice.currency == currency,
+                CryptoInvoice.status == "pending",
+                CryptoInvoice.expires_at > now,
+            )
+        )
+        res = await self.session.execute(stmt)
+        return {int(val) for val in res.scalars().all() if val is not None}
+
+    async def allocate_unique_crypto_units(
+        self,
+        base_units: int,
+        step_units: int,
+        currency: str,
+        max_steps: int = 99,
+    ) -> int:
+        """Allocate a unique fractional-suffixed amount in smallest units to prevent TX hijacking."""
+        used = await self.get_pending_nanotons(currency)
+        candidates = list(range(1, max_steps + 1))
+        secrets.SystemRandom().shuffle(candidates)
+        for k in candidates:
+            cand = base_units + k * step_units
+            if cand not in used:
+                return cand
+        for k in range(max_steps + 1, max_steps + 300):
+            cand = base_units + k * step_units
+            if cand not in used:
+                return cand
+        return base_units + (1 + secrets.randbelow(max_steps)) * step_units
+
     async def get_by_tx_hash(self, tx_hash: str) -> CryptoInvoice | None:
         if not tx_hash:
             return None
@@ -114,20 +148,34 @@ class CryptoRepository:
         return invoice
 
     async def mark_paid(
-        self, invoice_id: int, tx_hash: str, allow_expired: bool = False
+        self,
+        invoice_id: int,
+        tx_hash: str,
+        allow_expired: bool = False,
+        max_expired_grace_minutes: int = 120,
     ) -> CryptoInvoice | None:
-        """Atomically transition invoice from pending (or recently expired) -> paid.
+        """Atomically transition invoice from pending (or recently expired within grace) -> paid.
         Prevents race-condition double-crediting if concurrent checks occur.
         """
         now = datetime.now(timezone.utc)
-        status_clause = "status IN ('pending', 'expired')" if allow_expired else "status = 'pending'"
-        row = await self.session.execute(
-            text(
-                f"UPDATE crypto_invoices SET status = 'paid', tx_hash = :tx, paid_at = :now "
-                f"WHERE id = :i AND {status_clause} RETURNING id"
-            ),
-            {"tx": tx_hash, "now": now, "i": invoice_id},
-        )
+        cutoff = now - timedelta(minutes=max(0, int(max_expired_grace_minutes)))
+        if allow_expired:
+            row = await self.session.execute(
+                text(
+                    "UPDATE crypto_invoices SET status = 'paid', tx_hash = :tx, paid_at = :now "
+                    "WHERE id = :i AND (status = 'pending' OR (status = 'expired' AND expires_at >= :cutoff)) "
+                    "RETURNING id"
+                ),
+                {"tx": tx_hash, "now": now, "cutoff": cutoff, "i": invoice_id},
+            )
+        else:
+            row = await self.session.execute(
+                text(
+                    "UPDATE crypto_invoices SET status = 'paid', tx_hash = :tx, paid_at = :now "
+                    "WHERE id = :i AND status = 'pending' RETURNING id"
+                ),
+                {"tx": tx_hash, "now": now, "i": invoice_id},
+            )
         claimed = row.scalar_one_or_none()
         await self.session.flush()
         if claimed is None:

@@ -54,8 +54,15 @@ async def _revert_panel_subscription(remnawave: RemnawaveClient, order) -> None:
     except (ValueError, TypeError):
         current_limit = 0
     new_limit = current_limit
+    should_disable = not getattr(order, "is_renewal", False)
     if (order.traffic_gb or 0) > 0 and current_limit > 0:
-        new_limit = max(0, current_limit - int(order.traffic_gb) * GB)
+        subtracted = current_limit - int(order.traffic_gb) * GB
+        if subtracted <= 0:
+            # Never turn 0 bytes into an ACTIVE unlimited-traffic account on refund
+            should_disable = True
+            new_limit = 1
+        else:
+            new_limit = subtracted
     expire_iso = acc.get("expireAt")
     new_expire_iso = expire_iso
     if (order.duration_days or 0) > 0 and expire_iso:
@@ -68,7 +75,10 @@ async def _revert_panel_subscription(remnawave: RemnawaveClient, order) -> None:
         except (ValueError, TypeError):
             new_expire_iso = expire_iso
     await remnawave.update_user_subscription(
-        int(order.panel_user_id), str(new_expire_iso), int(new_limit)
+        int(order.panel_user_id),
+        str(new_expire_iso),
+        int(new_limit),
+        status="DISABLED" if should_disable else None,
     )
 
 
@@ -131,6 +141,7 @@ async def order_view_or_refund(
     session: AsyncSession,
     state: FSMContext,
     remnawave: RemnawaveClient | None = None,
+    cache=None,
 ):
     """Dispatches: adm:ord:{id} | adm:ord:ref:{id} | adm:ord:refyes:{id}."""
     if not _is_admin(call.from_user.id):
@@ -183,6 +194,12 @@ async def order_view_or_refund(
             "refund",
             detail=f"#{order.id} user={order.telegram_id} amount={order.amount}",
         )
+        if cache and hasattr(cache, "delete"):
+            if hasattr(cache, "invalidate_user"):
+                await cache.invalidate_user(order.telegram_id)
+            else:
+                await cache.delete(f"tma:user:{order.telegram_id}")
+            await cache.delete(f"loyalty:user:v2:{order.telegram_id}")
         target = await UserRepository(session).get_by_telegram_id(order.telegram_id)
         user_lang = (target.language if target else None) or "fa"
         try:

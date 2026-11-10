@@ -10,7 +10,7 @@ import jdatetime
 from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import async_sessionmaker
 
-from bot.db.models import Coupon, User
+from bot.db.models import Coupon, Order, User
 from bot.services.app_settings import get_store_settings
 from bot.services.remnawave import RemnawaveClient
 from bot.web.cache import FastCache
@@ -38,6 +38,7 @@ async def birthday_sweep_loop(
 
                 query = select(User).where(
                     User.birth_date.is_not(None),
+                    User.is_banned.is_(False),
                     or_(
                         User.birth_date.like(f"%/{m_str}/{d_str}"),
                         User.birth_date.like(f"%-{m_str}-{d_str}"),
@@ -57,12 +58,27 @@ async def birthday_sweep_loop(
                         if already_given:
                             continue
 
-                    # Persistent DB check: ensure birthday gift is awarded at most once per 300 days
+                    # Require at least one real paid order (prevents alt-account / free-trial farming)
+                    paid_order = (
+                        await session.execute(
+                            select(Order.id)
+                            .where(
+                                Order.telegram_id == user.telegram_id,
+                                Order.status == "paid",
+                                Order.amount > 0,
+                            )
+                            .limit(1)
+                        )
+                    ).first()
+                    if not paid_order:
+                        continue
+
+                    # Persistent DB check: ensure birthday gift is awarded at most once per 360 days
                     existing_bday = (
                         await session.execute(
                             select(Coupon.id).where(
                                 Coupon.code.like(f"BDAY_{user.telegram_id}_%"),
-                                Coupon.created_at >= datetime.now(timezone.utc) - timedelta(days=300),
+                                Coupon.created_at >= datetime.now(timezone.utc) - timedelta(days=360),
                             )
                         )
                     ).first()
@@ -94,10 +110,12 @@ async def birthday_sweep_loop(
                         except Exception as e:
                             logger.warning("Failed adding birthday traffic for %s: %s", user.telegram_id, e)
 
-                    coupon_code = f"BDAY_{user.telegram_id}_{secrets.token_hex(2).upper()}"
+                    coupon_code = f"BDAY_{user.telegram_id}_{secrets.token_hex(3).upper()}"
                     expires_at = datetime.now(timezone.utc) + timedelta(days=7)
                     coupon = Coupon(
                         code=coupon_code,
+                        kind="discount",
+                        bound_telegram_id=user.telegram_id,
                         discount_percent=discount_pct,
                         discount_amount=0,
                         max_uses=1,

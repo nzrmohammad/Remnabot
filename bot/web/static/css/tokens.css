@@ -6,30 +6,30 @@
 :root {
   color-scheme: dark;
 
-  /* --- 1. Surfaces & Frames (Dark Theme Default) --- */
-  --page-bg: #080d1a;
-  --frame-bg: #0f172a;
+  /* --- 1. Surfaces & Frames (Dark Theme Default — Calibrated Against OLED Halation) --- */
+  --page-bg: #0c1220;
+  --frame-bg: #111a2e;
   --frame-border: rgba(51, 65, 85, 0.8);
-  --card-bg: rgba(30, 41, 59, 0.85);
-  --card-inner-bg: rgba(15, 23, 42, 0.6);
+  --card-bg: rgba(26, 36, 56, 0.9);
+  --card-inner-bg: rgba(19, 28, 46, 0.78);
   --card-border: rgba(51, 65, 85, 0.8);
-  --modal-bg: #1e293b;
+  --modal-bg: #1c273c;
   --modal-border: rgba(51, 65, 85, 0.9);
-  --inset-bg: rgba(15, 23, 42, 0.7);
-  --surface-overlay: rgba(0, 0, 0, 0.75);
+  --inset-bg: rgba(20, 30, 48, 0.8);
+  --surface-overlay: rgba(0, 0, 0, 0.72);
   --gauge-track: rgba(148, 163, 184, 0.35);
 
   /* --- 2. Typography & Content --- */
-  --text-main: #f8fafc;
+  --text-main: #e2e8f0;
   --text-muted: #94a3b8;
-  --text-subtle: #64748b;
+  --text-subtle: #8b9bb4;
   --text-inverse: #0f172a;
 
-  /* --- 3. Interactive Accent (Cyan/Sky Brand Signature) --- */
-  --c-accent: #22d3ee;                 /* cyan-400 */
-  --c-accent-hover: #67e8f9;           /* cyan-300 */
-  --c-accent-soft: rgba(34, 211, 238, 0.12);
-  --c-accent-border: rgba(34, 211, 238, 0.30);
+  /* --- 3. Interactive Accent (Sky Brand Signature — Non-Glaring Dark Calibration) --- */
+  --c-accent: #38bdf8;                 /* sky-400 */
+  --c-accent-hover: #7dd3fc;           /* sky-300 */
+  --c-accent-soft: rgba(56, 189, 248, 0.12);
+  --c-accent-border: rgba(56, 189, 248, 0.28);
   --c-accent-solid: #0369a1;
 
   /* --- 4. Semantic Status Tokens (Dark Mode) --- */
@@ -57,21 +57,29 @@
   --c-pink-soft: rgba(244, 114, 182, 0.12);
   --c-pink-border: rgba(244, 114, 182, 0.30);
 
+  --c-neutral-soft: rgba(148, 163, 184, 0.12);
+  --c-neutral-border: rgba(148, 163, 184, 0.28);
+
   /* --- 5. Data Visualization (Charts) --- */
-  --chart-1: #22d3ee;
+  --chart-1: #38bdf8;
   --chart-2: #a78bfa;
   --chart-3: #fb7185;
   --chart-4: #fbbf24;
   --chart-5: #34d399;
   --chart-6: #818cf8;
+  --chart-grid: rgba(148, 163, 184, 0.14);
+  --chart-tick: #94a3b8;
+  --chart-tooltip-bg: #111a2e;
+  --chart-tooltip-border: #334155;
+  --chart-tooltip-text: #e2e8f0;
 
   /* --- 6. Semantic Surfaces & High-Contrast CTA Plan Gradients --- */
-  --on-accent: #0f172a;
+  --on-accent: #ffffff;
   --on-surface-dark: #f8fafc;
-  --plan-featured-bg: linear-gradient(135deg, #0891b2, #0369a1);
+  --plan-featured-bg: linear-gradient(135deg, #0369a1, #075985);
   --plan-premium-bg: linear-gradient(135deg, #0f172a, #1e293b);
   --plan-featured-fg: #ffffff;
-  --shadow-accent: 0 4px 14px rgba(34, 211, 238, 0.28);
+  --shadow-accent: 0 4px 12px rgba(3, 105, 161, 0.22);
 
   /* --- 7. Standardized Physical Scales (Apple HIG & TMA) --- */
   --touch-target-min: 44px;
@@ -110,7 +118,7 @@ html.theme-light {
   /* Typography & Content */
   --text-main: #0f172a;
   --text-muted: #475569;
-  --text-subtle: #64748b;              /* slate-500 (4.76:1 on #ffffff - WCAG AA compliant) */
+  --text-subtle: #4f5e73;              /* >= 6.0:1 across page, frame, card & inset */
   --text-inverse: #f8fafc;
 
   /* Interactive Accent */
@@ -145,11 +153,14 @@ html.theme-light {
   --c-pink-soft: rgba(190, 24, 93, 0.08);
   --c-pink-border: rgba(190, 24, 93, 0.25);
 
+  --c-neutral-soft: rgba(71, 85, 105, 0.09);
+  --c-neutral-border: rgba(71, 85, 105, 0.24);
+
   /* Semantic Surfaces & High-Contrast CTA Plan Gradients */
   --on-accent: #ffffff;
   --plan-featured-bg: linear-gradient(135deg, #0369a1, #075985);
   --plan-premium-bg: linear-gradient(135deg, #0f172a, #334155);
-  --shadow-accent: 0 4px 14px rgba(3, 105, 161, 0.25);
+  --shadow-accent: 0 4px 12px rgba(3, 105, 161, 0.2);
 
   /* Charts */
   --chart-1: #0284c7;
@@ -158,4 +169,9 @@ html.theme-light {
   --chart-4: #b45309;
   --chart-5: #047857;
   --chart-6: #4338ca;
+  --chart-grid: rgba(148, 163, 184, 0.28);
+  --chart-tick: #475569;
+  --chart-tooltip-bg: #ffffff;
+  --chart-tooltip-border: #cbd5e1;
+  --chart-tooltip-text: #0f172a;
 }

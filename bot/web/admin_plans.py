@@ -278,6 +278,9 @@ async def post_admin_coupon_save(request: web.Request) -> web.Response:
     except (ValueError, TypeError):
         return web.json_response({"ok": False, "error": "مقادیر عددی نامعتبر هستند."}, status=400)
 
+    if percent < 0 or percent > 100 or amount < 0 or max_uses < 0 or expires_days < 0:
+        return web.json_response({"ok": False, "error": "مقادیر درصد (0 تا 100)، مبلغ یا سقف استفاده نامعتبر است."}, status=400)
+
     if percent <= 0 and amount <= 0:
         return web.json_response({"ok": False, "error": "درصد تخفیف یا مبلغ تخفیف باید مشخص باشد."}, status=400)
 
@@ -291,6 +294,7 @@ async def post_admin_coupon_save(request: web.Request) -> web.Response:
 
         coupon = Coupon(
             code=code,
+            kind="discount",
             discount_percent=percent,
             discount_amount=amount,
             max_uses=max_uses,

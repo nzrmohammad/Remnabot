@@ -116,6 +116,24 @@ def get_authenticated_user(request: web.Request) -> dict[str, Any] | None:
     return user
 
 
+def resolve_cached_auth(
+    request: web.Request,
+    fetcher=None,
+) -> dict[str, Any] | None:
+    """Resolve authenticated user once per request lifecycle without repeating HMAC checks."""
+    cached_user = request.get("user") if hasattr(request, "get") else None
+    if isinstance(cached_user, dict):
+        return cached_user
+    fn = fetcher or get_authenticated_user
+    user = fn(request)
+    if user and isinstance(user, dict):
+        try:
+            request["user"] = user
+        except Exception:
+            pass
+    return user
+
+
 def require_auth(handler):
     """Decorator to enforce Telegram authentication on endpoint."""
     async def wrapper(request: web.Request):

@@ -25,7 +25,7 @@ function showToast(msg, typeOrDuration = 3200, duration = 3200) {
     toast.id = 'appToast';
     toast.setAttribute('role', 'status');
     toast.setAttribute('aria-live', 'assertive');
-    toast.className = 'fixed top-12 left-1/2 transform -translate-x-1/2 z-50 bg-slate-900/95 text-white border border-slate-700/80 px-4 py-2.5 rounded-2xl shadow-2xl text-xs font-semibold text-center transition-all duration-300 opacity-0 pointer-events-none max-w-[90%] whitespace-pre-line leading-relaxed';
+    toast.className = 'fixed top-12 left-1/2 transform -translate-x-1/2 z-50 modal-card t-main px-4 py-2.5 rounded-2xl shadow-2xl text-xs font-semibold text-center transition-all duration-300 opacity-0 pointer-events-none max-w-[90%] whitespace-pre-line leading-relaxed';
     toast.dir = 'rtl';
     document.body.appendChild(toast);
   }
@@ -56,10 +56,10 @@ function showBanner(msg, type = 'warning', options = {}) {
   const container = document.getElementById('contentArea') || document.body;
 
   const bgBorderMap = {
-    error: 'bg-rose-950/80 border-rose-500/50 text-rose-200',
-    warning: 'bg-amber-950/80 border-amber-500/50 text-amber-200',
-    info: 'bg-blue-950/80 border-blue-500/50 text-blue-200',
-    success: 'bg-emerald-950/80 border-emerald-500/50 text-emerald-200',
+    error: 's-danger-soft',
+    warning: 's-warn-soft',
+    info: 's-info-soft',
+    success: 's-success-soft',
   };
   const iconMap = {
     error: '🚫',
@@ -85,12 +85,12 @@ function showBanner(msg, type = 'warning', options = {}) {
 
   let actionBtnHtml = '';
   if (options.actionText) {
-    actionBtnHtml = `<button type="button" class="banner-action-btn flex-shrink-0 px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 active:scale-95 text-white font-bold text-[11px] border border-white/20 transition cursor-pointer">${escapeHtml(options.actionText)}</button>`;
+    actionBtnHtml = `<button type="button" class="banner-action-btn btn-secondary flex-shrink-0 px-3 py-1.5 rounded-xl active:scale-95 font-bold text-[11px] transition cursor-pointer">${escapeHtml(options.actionText)}</button>`;
   }
 
   let closeBtnHtml = '';
   if (options.dismissible !== false && !options.actionText) {
-    closeBtnHtml = `<button type="button" class="banner-close-btn flex-shrink-0 text-slate-400 hover:text-white p-1 text-sm bg-transparent border-0 cursor-pointer" title="بستن">✕</button>`;
+    closeBtnHtml = `<button type="button" class="banner-close-btn flex-shrink-0 t-muted hover:t-main p-1 text-sm bg-transparent border-0 cursor-pointer" title="بستن">✕</button>`;
   }
 
   banner.innerHTML = `
@@ -577,52 +577,74 @@ function getDonutPalette(isLight = false) {
     } catch (e) {}
   }
   return isLight
+function getDonutPalette(isLight = false) {
+  if (typeof window !== 'undefined' && typeof document !== 'undefined') {
+    try {
+      const s = getComputedStyle(document.documentElement);
+      const vars = [1, 2, 3, 4, 5, 6].map(i => s.getPropertyValue(`--chart-${i}`)?.trim());
+      if (vars.every(Boolean)) return vars;
+    } catch (e) {}
+  }
+  return isLight
     ? ['#0284c7', '#7c3aed', '#be123c', '#b45309', '#047857', '#4338ca']
-    : ['#22d3ee', '#a78bfa', '#fb7185', '#fbbf24', '#34d399', '#818cf8'];
+    : ['#38bdf8', '#a78bfa', '#fb7185', '#fbbf24', '#34d399', '#818cf8'];
 }
 
 function getChartThemeTokens(isLight = false) {
-  const tooltip = {
-    bg: isLight ? '#ffffff' : '#0f172a',
-    title: isLight ? '#0f172a' : '#ffffff',
-    body: isLight ? '#0369a1' : '#22d3ee',
-    border: isLight ? '#e2e8f0' : '#334155',
+  const defaultTooltip = {
+    bg: isLight ? '#ffffff' : '#111a2e',
+    title: isLight ? '#0f172a' : '#e2e8f0',
+    body: isLight ? '#0369a1' : '#38bdf8',
+    border: isLight ? '#cbd5e1' : '#334155',
   };
-  const tooltipBg = tooltip.bg;
-  const tooltipTitle = tooltip.title;
-  const tooltipBody = tooltip.body;
 
   if (typeof window !== 'undefined' && typeof document !== 'undefined') {
     try {
       const s = getComputedStyle(document.documentElement);
-      const success = s.getPropertyValue('--c-success')?.trim();
-      const accent = s.getPropertyValue('--c-accent')?.trim();
-      const warn = s.getPropertyValue('--c-warn')?.trim();
-      const textMain = s.getPropertyValue('--text-main')?.trim();
-      const textMuted = s.getPropertyValue('--text-muted')?.trim();
+      const getVar = name => s.getPropertyValue(name)?.trim() || '';
+      const success = getVar('--c-success');
+      const accent = getVar('--c-accent');
+      const warn = getVar('--c-warn');
+      const textMain = getVar('--text-main');
+      const textMuted = getVar('--text-muted');
+      const chartGrid = getVar('--chart-grid');
+      const chartTick = getVar('--chart-tick');
+      const frameBg = getVar('--frame-bg');
+      const tooltip = {
+        bg: getVar('--chart-tooltip-bg') || defaultTooltip.bg,
+        title: getVar('--chart-tooltip-text') || textMain || defaultTooltip.title,
+        body: accent || defaultTooltip.body,
+        border: getVar('--chart-tooltip-border') || defaultTooltip.border,
+      };
       if (success && accent && warn) {
         return {
           success,
           accent,
           warn,
-          grid: isLight ? 'rgba(203, 213, 225, 0.7)' : 'rgba(51, 65, 85, 0.3)',
-          tick: isLight ? (textMuted || '#475569') : (textMuted || '#cbd5e1'),
-          legend: isLight ? (textMain || '#0f172a') : (textMain || '#f8fafc'),
-          pointBorder: isLight ? '#ffffff' : '#0f172a',
+          grid: chartGrid || (isLight ? 'rgba(148, 163, 184, 0.28)' : 'rgba(148, 163, 184, 0.14)'),
+          tick: chartTick || textMuted || (isLight ? '#475569' : '#94a3b8'),
+          legend: textMain || (isLight ? '#0f172a' : '#e2e8f0'),
+          pointBorder: isLight ? '#ffffff' : (frameBg || '#111a2e'),
           tooltip,
-          tooltipBg,
-          tooltipTitle,
-          tooltipBody,
+          tooltipBg: tooltip.bg,
+          tooltipTitle: tooltip.title,
+          tooltipBody: tooltip.body,
+          tooltipBorder: tooltip.border,
         };
       }
     } catch (e) {}
   }
+  const tooltip = defaultTooltip;
+  const tooltipBg = tooltip.bg;
+  const tooltipTitle = tooltip.title;
+  const tooltipBody = tooltip.body;
+  const tooltipBorder = tooltip.border;
   return isLight
     ? {
         success: '#047857',
-        accent: '#0891b2',
+        accent: '#0369a1',
         warn: '#b45309',
-        grid: 'rgba(203, 213, 225, 0.7)',
+        grid: 'rgba(148, 163, 184, 0.28)',
         tick: '#475569',
         legend: '#0f172a',
         pointBorder: '#ffffff',
@@ -630,19 +652,21 @@ function getChartThemeTokens(isLight = false) {
         tooltipBg,
         tooltipTitle,
         tooltipBody,
+        tooltipBorder,
       }
     : {
         success: '#34d399',
-        accent: '#22d3ee',
+        accent: '#38bdf8',
         warn: '#fbbf24',
-        grid: 'rgba(51, 65, 85, 0.3)',
-        tick: '#cbd5e1',
-        legend: '#f8fafc',
-        pointBorder: '#0f172a',
+        grid: 'rgba(148, 163, 184, 0.14)',
+        tick: '#94a3b8',
+        legend: '#e2e8f0',
+        pointBorder: '#111a2e',
         tooltip,
         tooltipBg,
         tooltipTitle,
         tooltipBody,
+        tooltipBorder,
       };
 }
 

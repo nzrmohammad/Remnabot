@@ -37,12 +37,12 @@
     }
     return {
       success: isDark ? '#34d399' : '#047857',
-      accent: isDark ? '#22d3ee' : '#0891b2',
+      accent: isDark ? '#38bdf8' : '#0369a1',
       warn: isDark ? '#fbbf24' : '#b45309',
-      grid: isDark ? 'rgba(51, 65, 85, 0.3)' : 'rgba(203, 213, 225, 0.7)',
-      tick: isDark ? '#cbd5e1' : '#475569',
-      legendText: isDark ? '#f8fafc' : '#0f172a',
-      pointBorder: isDark ? '#0f172a' : '#ffffff',
+      grid: isDark ? 'rgba(148, 163, 184, 0.14)' : 'rgba(148, 163, 184, 0.28)',
+      tick: isDark ? '#94a3b8' : '#475569',
+      legendText: isDark ? '#e2e8f0' : '#0f172a',
+      pointBorder: isDark ? '#111a2e' : '#ffffff',
     };
   };
 

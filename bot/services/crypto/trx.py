@@ -1,7 +1,7 @@
 """TRX (Tron) on-chain payment processor and verification service."""
 import hashlib
 import logging
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Any
 
 import aiohttp
@@ -80,7 +80,12 @@ async def fetch_trx_rate(store_rate: int = 0) -> int:
 
 
 async def verify_tron_transaction(
-    tx_hash: str, expected_address: str, min_sun: int, min_timestamp_ms: int = 0
+    tx_hash: str,
+    expected_address: str,
+    min_sun: int,
+    min_timestamp_ms: int = 0,
+    max_sun: int | None = None,
+    max_timestamp_ms: int = 0,
 ) -> tuple[bool, str, int]:
     """Verify on-chain Tron transaction via TronGrid RPC.
 
@@ -96,6 +101,8 @@ async def verify_tron_transaction(
     expected_clean = expected_address.strip()
     expected_b58 = hex_to_tron_address(expected_clean)
     timeout = aiohttp.ClientTimeout(total=8)
+    # Never allow dust >= min_sun or >= half of a 100 SUN (0.0001 TRX) unique suffix step
+    dust_sun = min(40, max(0, min_sun // 1000)) if max_sun is not None else min(10_000, max(0, min_sun // 1000))
 
     # 1. Query TronGrid JSON-RPC
     try:
@@ -128,12 +135,17 @@ async def verify_tron_transaction(
                                     tx_ts = int(tx_data.get("raw_data", {}).get("timestamp") or 0)
                                     if min_timestamp_ms and tx_ts and tx_ts < min_timestamp_ms:
                                         return False, "این تراکنش قبل از زمان ایجاد فاکتور ثبت شده و نامعتبر است.", 0
-                                    if raw_amount >= (min_sun - 100_000):  # strict amount check with minimal 0.1 TRX dust tolerance
-                                        return True, "SUCCESS", raw_amount
-                                    else:
+                                    if max_timestamp_ms and tx_ts and tx_ts > max_timestamp_ms:
+                                        return False, "این تراکنش پس از پایان مهلت فاکتور ثبت شده و نامعتبر است.", 0
+                                    if raw_amount <= 0 or raw_amount < (min_sun - dust_sun):
                                         trx_paid = raw_amount / 1_000_000
                                         trx_expected = min_sun / 1_000_000
-                                        return False, f"مبلغ واریزی ({trx_paid:.2f} TRX) کمتر از مقدار فاکتور ({trx_expected:.2f} TRX) است.", 0
+                                        return False, f"مبلغ واریزی ({trx_paid:.4f} TRX) کمتر از مقدار فاکتور ({trx_expected:.4f} TRX) است.", 0
+                                    if max_sun is not None and raw_amount > max_sun:
+                                        trx_paid = raw_amount / 1_000_000
+                                        trx_expected = min_sun / 1_000_000
+                                        return False, f"مبلغ تراکنش ({trx_paid:.4f} TRX) با مبلغ دقیق این فاکتور ({trx_expected:.4f} TRX) مطابقت ندارد.", 0
+                                    return True, "SUCCESS", raw_amount
     except Exception as exc:
         logger.warning("TronGrid verification failed for tx %s: %s", clean_tx, exc)
 
@@ -152,14 +164,17 @@ async def verify_tron_transaction(
                         tx_ts = int(scan_data.get("timestamp") or 0)
                         if min_timestamp_ms and tx_ts and tx_ts < min_timestamp_ms:
                             return False, "این تراکنش قبل از زمان ایجاد فاکتور ثبت شده و نامعتبر است.", 0
+                        if max_timestamp_ms and tx_ts and tx_ts > max_timestamp_ms:
+                            return False, "این تراکنش پس از پایان مهلت فاکتور ثبت شده و نامعتبر است.", 0
                         to_addr = str(scan_data.get("toAddress") or "")
                         to_addr_b58 = hex_to_tron_address(to_addr)
                         raw_amount = int(scan_data.get("amount") or 0)
                         if to_addr.lower() == expected_clean.lower() or to_addr_b58.lower() == expected_b58.lower():
-                            if raw_amount >= (min_sun - 100_000):
-                                return True, "SUCCESS", raw_amount
-                            else:
+                            if raw_amount <= 0 or raw_amount < (min_sun - dust_sun):
                                 return False, "مبلغ واریز شده کمتر از فاکتور است.", 0
+                            if max_sun is not None and raw_amount > max_sun:
+                                return False, "مبلغ تراکنش با مبلغ دقیق این فاکتور مطابقت ندارد.", 0
+                            return True, "SUCCESS", raw_amount
     except Exception as exc:
         logger.warning("TronScan verification fallback failed for tx %s: %s", clean_tx, exc)
 
@@ -189,6 +204,9 @@ async def verify_and_credit_trx_invoice(
         w = await WalletRepository(session).get_wallet(invoice.telegram_id)
         return True, (w.balance if w else 0), "این فاکتور قبلاً پرداخت و تسویه شده است."
 
+    if invoice.status == "cancelled":
+        return False, 0, "این فاکتور لغو شده و دیگر قابل پرداخت نیست."
+
     crypto_repo = CryptoRepository(session)
     wallet_repo = WalletRepository(session)
 
@@ -208,7 +226,24 @@ async def verify_and_credit_trx_invoice(
     inv_created = invoice.created_at if (invoice.created_at and invoice.created_at.tzinfo) else (invoice.created_at.replace(tzinfo=timezone.utc) if invoice.created_at else now)
     min_timestamp_ms = int(inv_created.timestamp() * 1000) - 60_000
 
-    ok, reason, confirmed_sun = await verify_tron_transaction(clean_tx, invoice.pay_address, min_sun, min_timestamp_ms=min_timestamp_ms)
+    inv_exp = getattr(invoice, "expires_at", None)
+    max_timestamp_ms = 0
+    if inv_exp is not None:
+        exp_utc = inv_exp if inv_exp.tzinfo else inv_exp.replace(tzinfo=timezone.utc)
+        if invoice.status == "expired" or exp_utc < now:
+            if (now - exp_utc) > timedelta(hours=2):
+                return False, 0, "مهلت این فاکتور به پایان رسیده است. لطفاً فاکتور جدید ایجاد نمایید."
+        max_timestamp_ms = int(exp_utc.timestamp() * 1000) + 60_000
+
+    max_sun = min_sun + 40
+    ok, reason, confirmed_sun = await verify_tron_transaction(
+        clean_tx,
+        invoice.pay_address,
+        min_sun,
+        min_timestamp_ms=min_timestamp_ms,
+        max_sun=max_sun,
+        max_timestamp_ms=max_timestamp_ms,
+    )
     if not ok:
         logger.warning(
             "TRX verification failed: invoice_id=%s tg_id=%s tx_hash=%s reason=%s expected_sun=%s confirmed_sun=%s",
@@ -216,8 +251,8 @@ async def verify_and_credit_trx_invoice(
         )
         return False, 0, reason
 
-    # Mark paid and credit atomically
-    paid_inv = await crypto_repo.mark_paid(invoice.id, clean_tx, allow_expired=True)
+    # Mark paid and credit atomically (expired invoices allowed only within 2h confirmation grace when tx was pre-expiry)
+    paid_inv = await crypto_repo.mark_paid(invoice.id, clean_tx, allow_expired=True, max_expired_grace_minutes=120)
     if not paid_inv:
         logger.warning("TRX mark_paid failed: invoice_id=%s tg_id=%s tx_hash=%s", invoice.id, invoice.telegram_id, clean_tx)
         return False, 0, "امکان تغییر وضعیت فاکتور به پرداخت‌شده وجود ندارد."

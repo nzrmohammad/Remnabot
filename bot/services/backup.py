@@ -15,11 +15,14 @@ from bot.db.models import (
     AlertSettings,
     AlertState,
     AppSetting,
+    BankSmsLog,
     Campaign,
+    CardAutoInvoice,
     Coupon,
     CouponUsage,
     CryptoInvoice,
     ExpiryState,
+    GiftCard,
     HourlyTrafficSnapshot,
     KnownDevice,
     NodeCost,
@@ -140,6 +143,8 @@ async def create_database_backup(session: AsyncSession, out_dir: str | Path | No
         {
             "id": c.id,
             "code": c.code,
+            "kind": getattr(c, "kind", "discount"),
+            "bound_telegram_id": getattr(c, "bound_telegram_id", None),
             "discount_percent": c.discount_percent,
             "discount_amount": c.discount_amount,
             "max_uses": c.max_uses,
@@ -377,6 +382,67 @@ async def create_database_backup(session: AsyncSession, out_dir: str | Path | No
         for cmp in campaigns_res.scalars().all()
     ]
 
+    # 22. GiftCards
+    gifts_res = await session.execute(select(GiftCard))
+    gift_cards = [
+        {
+            "id": gc.id,
+            "code": gc.code,
+            "sender_telegram_id": gc.sender_telegram_id,
+            "sender_name": gc.sender_name,
+            "receiver_telegram_id": gc.receiver_telegram_id,
+            "receiver_username": gc.receiver_username,
+            "delivery_type": gc.delivery_type,
+            "gift_type": gc.gift_type,
+            "amount": gc.amount,
+            "service_id": gc.service_id,
+            "service_name": gc.service_name,
+            "message": gc.message,
+            "is_claimed": gc.is_claimed,
+            "claimed_at": _serialize_val(gc.claimed_at),
+            "created_at": _serialize_val(gc.created_at),
+        }
+        for gc in gifts_res.scalars().all()
+    ]
+
+    # 23. CardAutoInvoice
+    card_auto_res = await session.execute(select(CardAutoInvoice))
+    card_auto_invoices = [
+        {
+            "id": cai.id,
+            "invoice_uuid": cai.invoice_uuid,
+            "telegram_id": cai.telegram_id,
+            "base_amount": cai.base_amount,
+            "exact_amount": cai.exact_amount,
+            "exact_rial": cai.exact_rial,
+            "card_number": cai.card_number,
+            "card_holder": cai.card_holder,
+            "status": cai.status,
+            "sms_log_id": cai.sms_log_id,
+            "expires_at": _serialize_val(cai.expires_at),
+            "created_at": _serialize_val(cai.created_at),
+            "paid_at": _serialize_val(cai.paid_at),
+        }
+        for cai in card_auto_res.scalars().all()
+    ]
+
+    # 24. BankSmsLog
+    bank_sms_res = await session.execute(select(BankSmsLog))
+    bank_sms_logs = [
+        {
+            "id": bsl.id,
+            "sender": bsl.sender,
+            "raw_message": bsl.raw_message,
+            "sms_hash": getattr(bsl, "sms_hash", None),
+            "amount_toman": bsl.amount_toman,
+            "bank_detected": bsl.bank_detected,
+            "matched_invoice_id": bsl.matched_invoice_id,
+            "processed": bsl.processed,
+            "created_at": _serialize_val(bsl.created_at),
+        }
+        for bsl in bank_sms_res.scalars().all()
+    ]
+
     data = {
         "export_date": now.isoformat(),
         "users": users,
@@ -400,6 +466,9 @@ async def create_database_backup(session: AsyncSession, out_dir: str | Path | No
         "node_costs": node_costs,
         "traffic_snapshots": traffic_snapshots,
         "campaigns": campaigns,
+        "gift_cards": gift_cards,
+        "card_auto_invoices": card_auto_invoices,
+        "bank_sms_logs": bank_sms_logs,
     }
 
     target_dir = Path(out_dir) if out_dir else Path.cwd() / "backups"
@@ -461,6 +530,9 @@ async def restore_database_backup(session: AsyncSession, file_path: str | Path) 
         "node_costs": 0,
         "traffic_snapshots": 0,
         "campaigns": 0,
+        "gift_cards": 0,
+        "card_auto_invoices": 0,
+        "bank_sms_logs": 0,
     }
 
     def _parse_dt(val):
@@ -594,6 +666,8 @@ async def restore_database_backup(session: AsyncSession, file_path: str | Path) 
         res = await session.execute(select(Coupon).where(Coupon.code == code))
         existing_c = res.scalar_one_or_none()
         if existing_c:
+            existing_c.kind = c_data.get("kind", getattr(existing_c, "kind", "discount"))
+            existing_c.bound_telegram_id = c_data.get("bound_telegram_id", getattr(existing_c, "bound_telegram_id", None))
             existing_c.discount_percent = c_data.get("discount_percent", existing_c.discount_percent)
             existing_c.discount_amount = c_data.get("discount_amount", existing_c.discount_amount)
             existing_c.max_uses = c_data.get("max_uses", existing_c.max_uses)
@@ -603,10 +677,13 @@ async def restore_database_backup(session: AsyncSession, file_path: str | Path) 
             session.add(
                 Coupon(
                     code=code,
-                    discount_percent=c_data.get("discount_percent"),
-                    discount_amount=c_data.get("discount_amount"),
-                    max_uses=c_data.get("max_uses"),
+                    kind=c_data.get("kind", "discount"),
+                    bound_telegram_id=c_data.get("bound_telegram_id"),
+                    discount_percent=c_data.get("discount_percent", 0),
+                    discount_amount=c_data.get("discount_amount", 0),
+                    max_uses=c_data.get("max_uses", 0),
                     used_count=c_data.get("used_count", 0),
+                    expires_at=_parse_dt(c_data.get("expires_at")),
                     is_active=c_data.get("is_active", True),
                 )
             )
@@ -900,6 +977,80 @@ async def restore_database_backup(session: AsyncSession, file_path: str | Path) 
                 )
             )
             stats["campaigns"] += 1
+
+    # 22. GiftCards
+    for gc_data in data.get("gift_cards", []):
+        gc_code = gc_data.get("code")
+        if not gc_code:
+            continue
+        existing_gc = (await session.execute(select(GiftCard).where(GiftCard.code == gc_code))).scalar_one_or_none()
+        if not existing_gc:
+            session.add(
+                GiftCard(
+                    code=gc_code,
+                    sender_telegram_id=gc_data.get("sender_telegram_id"),
+                    sender_name=gc_data.get("sender_name"),
+                    receiver_telegram_id=gc_data.get("receiver_telegram_id"),
+                    receiver_username=gc_data.get("receiver_username"),
+                    delivery_type=gc_data.get("delivery_type", "LINK"),
+                    gift_type=gc_data.get("gift_type", "BALANCE"),
+                    amount=gc_data.get("amount", 0),
+                    service_id=gc_data.get("service_id"),
+                    service_name=gc_data.get("service_name"),
+                    message=gc_data.get("message"),
+                    is_claimed=gc_data.get("is_claimed", False),
+                    claimed_at=_parse_dt(gc_data.get("claimed_at")),
+                    created_at=_parse_dt(gc_data.get("created_at")),
+                )
+            )
+            stats["gift_cards"] += 1
+
+    # 23. CardAutoInvoice
+    for cai_data in data.get("card_auto_invoices", []):
+        inv_uuid = cai_data.get("invoice_uuid")
+        if not inv_uuid:
+            continue
+        existing_cai = (
+            await session.execute(select(CardAutoInvoice).where(CardAutoInvoice.invoice_uuid == inv_uuid))
+        ).scalar_one_or_none()
+        if not existing_cai:
+            session.add(
+                CardAutoInvoice(
+                    invoice_uuid=inv_uuid,
+                    telegram_id=cai_data.get("telegram_id"),
+                    base_amount=cai_data.get("base_amount", 0),
+                    exact_amount=cai_data.get("exact_amount", 0),
+                    exact_rial=cai_data.get("exact_rial", 0),
+                    card_number=cai_data.get("card_number", ""),
+                    card_holder=cai_data.get("card_holder", ""),
+                    status=cai_data.get("status", "expired"),
+                    sms_log_id=cai_data.get("sms_log_id"),
+                    expires_at=_parse_dt(cai_data.get("expires_at")),
+                    created_at=_parse_dt(cai_data.get("created_at")),
+                    paid_at=_parse_dt(cai_data.get("paid_at")),
+                )
+            )
+            stats["card_auto_invoices"] += 1
+
+    # 24. BankSmsLog
+    for bsl_data in data.get("bank_sms_logs", []):
+        bsl_id = bsl_data.get("id")
+        existing_bsl = await session.get(BankSmsLog, bsl_id) if bsl_id else None
+        if not existing_bsl:
+            session.add(
+                BankSmsLog(
+                    id=bsl_id,
+                    sender=bsl_data.get("sender", ""),
+                    raw_message=bsl_data.get("raw_message", ""),
+                    sms_hash=bsl_data.get("sms_hash"),
+                    amount_toman=bsl_data.get("amount_toman"),
+                    bank_detected=bsl_data.get("bank_detected"),
+                    matched_invoice_id=bsl_data.get("matched_invoice_id"),
+                    processed=bsl_data.get("processed", False),
+                    created_at=_parse_dt(bsl_data.get("created_at")),
+                )
+            )
+            stats["bank_sms_logs"] += 1
 
     await session.commit()
     logger.info("Database backup restored from %s: %s", path, stats)

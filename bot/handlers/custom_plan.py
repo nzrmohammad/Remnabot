@@ -14,10 +14,16 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from bot.common import SEPARATOR, fmt, parse_int
 from bot.db.repositories.user_repo import UserRepository
 from bot.db.repositories.wallet_repo import WalletRepository
+from bot.handlers.shop_purchase import _PURCHASE_LOCKS
 from bot.services.app_settings import get_store_settings
 from bot.services.loyalty import apply_loyalty_discount, get_user_loyalty
 from bot.services.menu import render_menu
-from bot.services.purchases import execute_purchase, resolve_squad_name
+from bot.services.purchases import (
+    execute_purchase,
+    maybe_reward_referrer,
+    notify_admin,
+    resolve_squad_name,
+)
 from bot.services.remnawave import RemnawaveClient
 from bot.states.custom_plan import CustomPlanStates
 from bot.web.cache import FastCache
@@ -240,15 +246,21 @@ async def custom_plan_days_selected(
 ):
     """Handle duration selection and show full live preview and breakdown."""
     parts = call.data.split(":")
-    gb = parse_int(parts[2]) or 10
-    val = parts[3]
+    gb = parse_int(parts[2])
+    val = parts[3] if len(parts) > 3 else ""
 
     user = await user_repo.get_or_create(call.from_user.id, call.from_user.username)
     lang = user.language or "fa"
     store_settings = await get_store_settings(session)
 
+    min_gb = max(1, int(store_settings.custom_plan_min_gb or 1))
+    max_gb = max(min_gb, int(store_settings.custom_plan_max_gb or min_gb))
+    if gb is None or gb < min_gb or gb > max_gb:
+        await call.answer(f"حجم باید بین {min_gb} تا {max_gb} گیگابایت باشد.", show_alert=True)
+        return
+
     if val == "custom":
-        await state.set_state(CustomPlanStates.waiting_for_custom_days)
+        await state.set_state(CustomPlanStates.waiting_for_custom_gb if False else CustomPlanStates.waiting_for_custom_days)
         await state.update_data(traffic_gb=gb)
         lines = [
             "✏️ <b>ورود مدت زمان دلخواه</b>",
@@ -263,7 +275,12 @@ async def custom_plan_days_selected(
         await call.answer()
         return
 
-    days = parse_int(val) or 30
+    days = parse_int(val)
+    min_days = max(1, int(store_settings.custom_plan_min_days or 1))
+    max_days = max(min_days, int(store_settings.custom_plan_max_days or min_days))
+    if days is None or days < min_days or days > max_days:
+        await call.answer(f"مدت زمان باید بین {min_days} تا {max_days} روز باشد.", show_alert=True)
+        return
     st_data = await state.get_data() if state else {}
     squad_uuid = st_data.get("squad_uuid")
     squad_name = None
@@ -387,110 +404,188 @@ async def custom_plan_execute_purchase(
 ):
     """Execute custom plan purchase atomically and deliver subscription."""
     parts = call.data.split(":")
-    gb = parse_int(parts[2]) or 10
-    days = parse_int(parts[3]) or 30
+    gb = parse_int(parts[2]) if len(parts) > 2 else None
+    days = parse_int(parts[3]) if len(parts) > 3 else None
+    target_acc_spec = parts[4] if len(parts) > 4 else None
 
-    user = await user_repo.get_or_create(call.from_user.id, call.from_user.username)
-    store_settings = await get_store_settings(session)
-
-    if not store_settings.custom_plan_enabled:
-        await call.answer("طراحی بسته دلخواه غیرفعال است.", show_alert=True)
+    if call.from_user.id in _PURCHASE_LOCKS:
+        await call.answer()
         return
-
-    raw_base, volume_pct, base_price = compute_custom_plan_price(gb, days, store_settings)
-    loyalty = await get_user_loyalty(session, user.telegram_id, cache=cache)
-    loyalty_pct = loyalty.get("discount_percent", 0)
-    _, final_price = apply_loyalty_discount(base_price, loyalty_pct)
-
-    wallet = await WalletRepository(session).get_wallet(user.telegram_id)
-    if wallet.balance < final_price:
-        await call.answer("موجودی کیف پول شما کافی نیست.", show_alert=True)
-        return
-
-    # Derive target squad from state or fallback
-    target_squad = None
-    if state:
-        st_data = await state.get_data()
-        target_squad = st_data.get("squad_uuid")
-    if not target_squad:
-        target_squad = store_settings.default_squad_uuid or None
-
-    custom_svc = SimpleNamespace(
-        id=None,
-        name="بسته دلخواه",
-        price=final_price,
-        duration_days=days,
-        traffic_gb=gb,
-        hwid_limit=2,
-        squad_uuid=target_squad,
-        badge="custom",
-        traffic_strategy="NO_RESET",
-        max_purchases=None,
-        purchases_count=0,
-    )
-
-    chosen_acc = None
+    _PURCHASE_LOCKS.add(call.from_user.id)
     try:
+        user = await user_repo.get_or_create(call.from_user.id, call.from_user.username)
+        store_settings = await get_store_settings(session)
+
+        if not store_settings.custom_plan_enabled:
+            await call.answer("طراحی بسته دلخواه غیرفعال است.", show_alert=True)
+            return
+
+        min_gb = max(1, int(store_settings.custom_plan_min_gb or 1))
+        max_gb = max(min_gb, int(store_settings.custom_plan_max_gb or min_gb))
+        min_days = max(1, int(store_settings.custom_plan_min_days or 1))
+        max_days = max(min_days, int(store_settings.custom_plan_max_days or min_days))
+
+        if gb is None or gb < min_gb or gb > max_gb:
+            await call.answer(f"حجم باید بین {min_gb} تا {max_gb} گیگابایت باشد.", show_alert=True)
+            return
+        if days is None or days < min_days or days > max_days:
+            await call.answer(f"مدت زمان باید بین {min_days} تا {max_days} روز باشد.", show_alert=True)
+            return
+
+        if (
+            store_settings.custom_plan_price_per_gb <= 0
+            and store_settings.custom_plan_price_per_day <= 0
+            and store_settings.custom_plan_base_price <= 0
+        ):
+            await call.answer("تعرفه بسته دلخواه هنوز توسط مدیریت تنظیم نشده است.", show_alert=True)
+            return
+
+        raw_base, volume_pct, base_price = compute_custom_plan_price(gb, days, store_settings)
+        if base_price <= 0:
+            await call.answer("تعرفه محاسبه شده نامعتبر است.", show_alert=True)
+            return
+
+        loyalty = await get_user_loyalty(session, user.telegram_id, cache=cache)
+        loyalty_pct = loyalty.get("discount_percent", 0)
+        loyalty_disc_amt, final_price = apply_loyalty_discount(base_price, loyalty_pct)
+
+        wallet = await WalletRepository(session).get_wallet(user.telegram_id)
+        if wallet.balance < final_price:
+            await call.answer("موجودی کیف پول شما کافی نیست.", show_alert=True)
+            return
+
+        # Derive target squad from state or fallback
+        target_squad = None
+        if state:
+            st_data = await state.get_data()
+            target_squad = st_data.get("squad_uuid")
+        if not target_squad:
+            target_squad = store_settings.default_squad_uuid or None
+
+        custom_svc = SimpleNamespace(
+            id=None,
+            name="بسته دلخواه",
+            price=base_price,
+            duration_days=days,
+            traffic_gb=gb,
+            hwid_limit=2,
+            squad_uuid=target_squad,
+            badge="custom",
+            traffic_strategy="NO_RESET",
+            max_purchases=None,
+            purchases_count=0,
+        )
+
+        chosen_acc = None
+        create_new = False
         user_accounts = await remnawave.get_users_by_telegram_id(user.telegram_id) or []
         valid_accs = [a for a in user_accounts if str(a.get("status", "")).upper() not in ("DELETED",)]
-        if len(valid_accs) == 1:
+        if target_acc_spec == "new":
+            create_new = True
+        elif target_acc_spec:
+            chosen_acc = next((a for a in valid_accs if str(a.get("id")) == str(target_acc_spec)), None)
+            if chosen_acc is None:
+                await call.answer("اکانت انتخابی یافت نشد.", show_alert=True)
+                return
+        elif len(valid_accs) == 1:
             chosen_acc = valid_accs[0]
-    except Exception as acc_err:
-        logger.debug("Failed checking existing account for custom plan: %s", acc_err)
+        elif len(valid_accs) > 1:
+            kb_pick = InlineKeyboardBuilder()
+            for acc in valid_accs:
+                uname = escape(str(acc.get("username", "—")))
+                kb_pick.button(
+                    text=f"👤 {uname}",
+                    callback_data=f"cplan:buy:{gb}:{days}:{acc.get('id')}",
+                )
+            kb_pick.button(
+                text="➕ ساخت اکانت جدید",
+                callback_data=f"cplan:buy:{gb}:{days}:new",
+            )
+            kb_pick.button(text="🔙 بازگشت", callback_data="menu:custom_plan")
+            kb_pick.adjust(1)
+            await render_menu(
+                bot,
+                user,
+                user_repo,
+                "👤 <b>انتخاب اکانت برای بسته دلخواه</b>\n\nشما چند اشتراک دارید؛ لطفاً مشخص کنید بسته روی کدام اکانت اعمال شود:",
+                kb_pick.as_markup(),
+            )
+            await call.answer()
+            return
+        else:
+            create_new = True
 
-    result = await execute_purchase(
-        remnawave=remnawave,
-        session=session,
-        service=custom_svc,
-        telegram_id=user.telegram_id,
-        chosen_account=chosen_acc,
-        create_new=(chosen_acc is None),
-        bot=bot,
-        cache=cache,
-    )
+        result = await execute_purchase(
+            remnawave=remnawave,
+            session=session,
+            service=custom_svc,
+            telegram_id=user.telegram_id,
+            chosen_account=chosen_acc,
+            create_new=create_new,
+            discount_amount=loyalty_disc_amt,
+            bot=bot,
+            cache=cache,
+        )
 
-    if not result.ok:
-        err_msg = result.kind or "خطا در ثبت سفارش بسته دلخواه."
-        await call.answer(err_msg, show_alert=True)
-        return
+        if not result.ok:
+            err_msg = result.message or result.kind or "خطا در ثبت سفارش بسته دلخواه."
+            await call.answer(err_msg, show_alert=True)
+            return
 
-    # Invalidate caches
-    if cache and hasattr(cache, "delete"):
-        await cache.delete(f"tma:user:{user.telegram_id}")
-        await cache.delete(f"tma:user:{user.telegram_id}:dashboard:default")
-        await cache.delete(f"tma:user:{user.telegram_id}:dashboard")
+        await session.commit()
+        try:
+            await maybe_reward_referrer(bot, session, remnawave, user)
+            await notify_admin(
+                bot,
+                user,
+                custom_svc,
+                result,
+                session,
+                loyalty_discount_amount=loyalty_disc_amt,
+                full_name=call.from_user.full_name,
+            )
+        except Exception as post_err:
+            logger.warning("Bot custom plan post-actions failed: %s", post_err)
 
-    acc_id = result.panel_user_id
-    order_id = result.order_id
-    sub_url = result.subscription_url or ""
+        # Invalidate caches
+        if cache and hasattr(cache, "delete"):
+            await cache.delete(f"tma:user:{user.telegram_id}")
+            await cache.delete(f"tma:user:{user.telegram_id}:dashboard:default")
+            await cache.delete(f"tma:user:{user.telegram_id}:dashboard")
 
-    lines = [
-        "🎉 <b>بسته دلخواه شما با موفقیت فعال گردید!</b>",
-        SEPARATOR,
-        f"🧾 شماره سفارش : <code>#{order_id}</code>",
-        f"📦 بسته : <b>{gb} گیگابایت — {days} روز</b>",
-        f"💳 مبلغ پرداخت شده : <b>{fmt(final_price)} تومان</b>",
-    ]
-    if getattr(result, "squad_changed", False):
-        lines.extend([
+        acc_id = result.panel_user_id
+        order_id = result.order_id
+        sub_url = result.subscription_url or ""
+
+        lines = [
+            "🎉 <b>بسته دلخواه شما با موفقیت فعال گردید!</b>",
             SEPARATOR,
-            "⚡️ <b>نکته مهم به‌روزرسانی اتصال:</b>",
-            "سرورهای اشتراک شما با موفقیت به دسته جدید تغییر یافت.",
-            "لطفاً در نرم‌افزار فیلترشکن خود گزینه <b>Update Subscription (به‌روزرسانی اشتراک)</b> را بزنید تا سرورهای جدید بارگذاری شوند.",
-        ])
-    if sub_url:
-        lines.extend([
-            SEPARATOR,
-            "🔗 <b>لینک اتصال سابسکریپشن شما:</b>",
-            f"<code>{sub_url}</code>",
-        ])
+            f"🧾 شماره سفارش : <code>#{order_id}</code>",
+            f"📦 بسته : <b>{gb} گیگابایت — {days} روز</b>",
+            f"💳 مبلغ پرداخت شده : <b>{fmt(final_price)} تومان</b>",
+        ]
+        if getattr(result, "squad_changed", False):
+            lines.extend([
+                SEPARATOR,
+                "⚡️ <b>نکته مهم به‌روزرسانی اتصال:</b>",
+                "سرورهای اشتراک شما با موفقیت به دسته جدید تغییر یافت.",
+                "لطفاً در نرم‌افزار فیلترشکن خود گزینه <b>Update Subscription (به‌روزرسانی اشتراک)</b> را بزنید تا سرورهای جدید بارگذاری شوند.",
+            ])
+        if sub_url:
+            lines.extend([
+                SEPARATOR,
+                "🔗 <b>لینک اتصال سابسکریپشن شما:</b>",
+                f"<code>{sub_url}</code>",
+            ])
 
-    kb = InlineKeyboardBuilder()
-    if acc_id:
-        kb.button(text="📱 دریافت کانفیگ‌ها", callback_data=f"cfg:acc:{acc_id}")
-        kb.button(text="👤 مدیریت این اکانت", callback_data=f"acc:view:{acc_id}")
-    kb.button(text="🏠 منوی اصلی", callback_data="nav:main_menu")
-    kb.adjust(1)
+        kb = InlineKeyboardBuilder()
+        if acc_id:
+            kb.button(text="📱 دریافت کانفیگ‌ها", callback_data=f"cfg:acc:{acc_id}")
+            kb.button(text="👤 مدیریت این اکانت", callback_data=f"acc:view:{acc_id}")
+        kb.button(text="🏠 منوی اصلی", callback_data="nav:main_menu")
+        kb.adjust(1)
 
-    await render_menu(bot, user, user_repo, "\n".join(lines), kb.as_markup())
-    await call.answer("سفارش شما با موفقیت ثبت شد!", show_alert=False)
+        await render_menu(bot, user, user_repo, "\n".join(lines), kb.as_markup())
+        await call.answer("سفارش شما با موفقیت ثبت شد!", show_alert=False)
+    finally:
+        _PURCHASE_LOCKS.discard(call.from_user.id)

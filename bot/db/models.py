@@ -382,12 +382,14 @@ class KnownDevice(Base):
 
 
 class Coupon(Base):
-    """Discount / promo code."""
+    """Discount / promo code or credit voucher."""
 
     __tablename__ = "coupons"
 
     id: Mapped[int] = mapped_column(primary_key=True)
     code: Mapped[str] = mapped_column(String(32), unique=True, index=True)
+    kind: Mapped[str] = mapped_column(String(16), default="discount")  # "discount" or "voucher"
+    bound_telegram_id: Mapped[int | None] = mapped_column(BigInteger, nullable=True, index=True)
     discount_percent: Mapped[int] = mapped_column(Integer, default=0)
     discount_amount: Mapped[int] = mapped_column(BigInteger, default=0)
     max_uses: Mapped[int] = mapped_column(Integer, default=0)  # 0 = unlimited
@@ -530,6 +532,7 @@ class BankSmsLog(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     sender: Mapped[str] = mapped_column(String(64), index=True)
     raw_message: Mapped[str] = mapped_column(Text)
+    sms_hash: Mapped[str | None] = mapped_column(String(64), nullable=True, unique=True, index=True)
     amount_toman: Mapped[int | None] = mapped_column(BigInteger, nullable=True, index=True)
     bank_detected: Mapped[str | None] = mapped_column(String(32), nullable=True)
     matched_invoice_id: Mapped[int | None] = mapped_column(BigInteger, nullable=True, index=True)

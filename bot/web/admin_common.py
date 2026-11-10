@@ -4,7 +4,7 @@ from typing import Any
 
 from aiohttp import web
 
-from bot.web.auth import get_authenticated_user
+from bot.web.auth import get_authenticated_user, resolve_cached_auth
 from bot.web.db import db_session as db_session
 
 EMOJI_PATTERN = re.compile(
@@ -14,7 +14,7 @@ EMOJI_PATTERN = re.compile(
 
 def _check_admin(request: web.Request) -> dict[str, Any] | None:
     """Validate admin authorization for TMA requests."""
-    user = get_authenticated_user(request)
+    user = resolve_cached_auth(request, get_authenticated_user)
     if not user or not user.get("is_admin") or user.get("is_preview"):
         return None
     return user

@@ -176,7 +176,7 @@ def parse_bank_sms(text: str, sender: str = "") -> ParsedBankSms:
                 raw_text=text,
             )
 
-    if re.search(r"(?:خرید|برداشت|کارت|حساب|سپرده|مبلغ)?\s*[\d,]{4,15}\s*\-", norm_lower):
+    if re.search(r"(?:خرید|برداشت|مبلغ)\s*[:：]?\s*[\d,]{4,15}\s*\-(?!\d)|(?:^|[\s:])[\d,]{4,15}\s*\-(?!\d)", norm_lower):
         return ParsedBankSms(
             is_deposit=False,
             amount_toman=None,
@@ -255,6 +255,11 @@ def parse_bank_sms(text: str, sender: str = "") -> ParsedBankSms:
 
     for pat in patterns:
         for match in re.finditer(pat, norm_text, re.IGNORECASE):
+            # Ignore balance numbers ("مانده: ..." / "موجودی: ...")
+            prefix_ctx = norm_text[max(0, match.start() - 18) : match.start()]
+            if re.search(r"(?:مانده|موجودی)\s*[:：]?\s*$", prefix_ctx):
+                continue
+
             raw_num = match.group(1) if match.lastindex >= 1 else ""
             unit = match.group(2) if match.lastindex >= 2 and match.group(2) else ""
 
@@ -263,7 +268,7 @@ def parse_bank_sms(text: str, sender: str = "") -> ParsedBankSms:
                 continue
 
             val = int(clean_digits)
-            # Filter out dates (e.g. 14030807) or card prefixes (603799)
+            # Filter out short IDs/year fragments < 1000
             if val < 1000:
                 continue
 
@@ -285,9 +290,8 @@ def parse_bank_sms(text: str, sender: str = "") -> ParsedBankSms:
                 has_explicit_unit = True
                 break
             else:
-                # Disallow guessing currency units for critical financial matching
-                has_explicit_unit = False
-                break
+                # Disallow guessing currency units; continue scanning later matches in the SMS
+                continue
         if amount_toman is not None:
             break
 

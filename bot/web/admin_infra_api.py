@@ -569,17 +569,18 @@ async def get_admin_tools_check_host(request: web.Request) -> web.Response:
                 })
         else:
             # Measure local TCP / socket connection
+            fallback_port = port if port is not None else (80 if check_type == "http" and not is_https else 443)
             t0 = time.monotonic()
             try:
                 reader, writer = await asyncio.wait_for(
-                    asyncio.open_connection(clean_host, port),
+                    asyncio.open_connection(clean_host, fallback_port),
                     timeout=3.0,
                 )
                 dt = (time.monotonic() - t0) * 1000.0
                 writer.close()
                 await writer.wait_closed()
                 results.append({
-                    "node_name": f"سرور اصلی (پورت {port})",
+                    "node_name": f"سرور اصلی (پورت {fallback_port})",
                     "flag": "🇮🇷",
                     "ok": True,
                     "ping_ms": round(dt, 1),
@@ -587,7 +588,7 @@ async def get_admin_tools_check_host(request: web.Request) -> web.Response:
                 })
             except Exception:
                 results.append({
-                    "node_name": f"سرور اصلی (پورت {port})",
+                    "node_name": f"سرور اصلی (پورت {fallback_port})",
                     "flag": "❌",
                     "ok": False,
                     "ping_ms": None,
@@ -603,13 +604,14 @@ async def get_admin_tools_check_host(request: web.Request) -> web.Response:
             for r in results
         )
         if not has_iran:
+            fallback_port = port if port is not None else (80 if check_type == "http" and not is_https else 443)
             t0 = time.monotonic()
             iran_ok = False
             iran_ping = None
             iran_status = "عدم پاسخ (Timeout)"
             try:
                 _, writer = await asyncio.wait_for(
-                    asyncio.open_connection(clean_host, port),
+                    asyncio.open_connection(clean_host, fallback_port),
                     timeout=2.5,
                 )
                 dt = (time.monotonic() - t0) * 1000.0

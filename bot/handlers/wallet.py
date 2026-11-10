@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import logging
+import math
 from datetime import datetime, timezone
 from html import escape
 from typing import Any
@@ -214,6 +215,7 @@ async def voucher_prompt(
 async def voucher_redeem_message(
     message: Message, bot: Bot, user_repo: UserRepository,
     session: AsyncSession, state: FSMContext,
+    remnawave: Any = None, cache: Any = None,
 ):
     await delete_message_silently(bot, message.chat.id, message.message_id)
     user = await user_repo.get_or_create(message.from_user.id, message.from_user.username)
@@ -222,19 +224,27 @@ async def voucher_redeem_message(
     if not code:
         return
 
-    from bot.db.repositories.coupon_repo import CouponRepository
-    coupon_repo = CouponRepository(session)
-    ok, amount, msg = await coupon_repo.redeem_credit_voucher(code, user.telegram_id)
-    if not ok:
+    from bot.services.gift_service import redeem_code_to_wallet
+    res = await redeem_code_to_wallet(
+        session=session,
+        code=code,
+        telegram_id=user.telegram_id,
+        username=user.username,
+        remnawave=remnawave,
+        bot=bot,
+        session_factory=getattr(bot, "session_factory", None),
+    )
+    if not res.get("ok"):
         kb = InlineKeyboardBuilder()
         kb.button(text=t(lang, "btn_cancel"), callback_data="menu:wallet")
         kb.adjust(1)
-        err_text = f"⚠️ <b>خطا در فعال‌سازی:</b>\n{msg}\n\nلطفاً مجدداً کد صحیح را ارسال فرمایید:"
+        err_text = f"⚠️ <b>خطا در فعال‌سازی:</b>\n{escape(str(res.get('message', 'کد نامعتبر است.')))}\n\nلطفاً مجدداً کد صحیح را ارسال فرمایید:"
         await render_menu(bot, user, user_repo, err_text, kb.as_markup())
         return
 
-    await session.commit()
     await state.clear()
+    if cache and hasattr(cache, "invalidate_user"):
+        await cache.invalidate_user(user.telegram_id)
     wallet_repo = WalletRepository(session)
     await _render_wallet(bot, user, user_repo, wallet_repo, lang)
 
@@ -326,7 +336,7 @@ async def _create_and_render_ton_invoice(
     from bot.db.repositories.crypto_repo import CryptoRepository
 
     crypto_repo = CryptoRepository(session)
-    ton_amount = round(amount / store.ton_rate_toman, 4)
+    ton_amount = max(0.01, math.ceil((amount / store.ton_rate_toman) * 10_000) / 10_000)
     nanotons = int(round(ton_amount * 1_000_000_000))
     invoice = await crypto_repo.create_invoice(
         telegram_id=user.telegram_id,

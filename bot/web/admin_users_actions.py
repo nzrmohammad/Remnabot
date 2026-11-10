@@ -206,6 +206,7 @@ async def post_admin_toggle_ban(request: web.Request) -> web.Response:
         logger.warning("Error syncing ban status to Remnawave for user %s: %s", tid, panel_err)
 
     cache: FastCache = request.app["cache"]
+    await cache.delete(f"tma:ban:{tid}")
     await cache.delete(f"user:ban:{tid}")
     await cache.delete(f"tma:user:{tid}:dashboard")
     await cache.delete(f"tma:user:{tid}:dashboard:default")

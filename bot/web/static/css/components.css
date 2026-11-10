@@ -91,12 +91,16 @@ html.theme-light .on-dark .text-slate-400 {
 }
 
 .btn-primary {
-  background-color: var(--c-accent);
-  color: var(--text-inverse);
-  box-shadow: 0 4px 12px var(--c-accent-soft);
+  background-color: var(--c-accent-solid);
+  color: var(--on-accent);
+  box-shadow: var(--shadow-accent);
 }
 
 .btn-primary:hover {
+  background-color: #0284c7;
+}
+
+html.theme-light .btn-primary:hover {
   background-color: var(--c-accent-hover);
 }
 
@@ -251,6 +255,7 @@ html.theme-light .textarea-base:focus {
 .badge-info    { background-color: var(--c-info-soft); color: var(--c-info); border-color: var(--c-info-border); }
 .badge-purple  { background-color: var(--c-purple-soft); color: var(--c-purple); border-color: var(--c-purple-border); }
 .badge-pink    { background-color: var(--c-pink-soft); color: var(--c-pink); border-color: var(--c-pink-border); }
+.badge-neutral { background-color: var(--c-neutral-soft); color: var(--text-muted); border-color: var(--c-neutral-border); }
 .badge-plan-type {
   border: 1.5px solid #64748b;
   background-color: var(--inset-bg);
@@ -283,6 +288,9 @@ html.theme-light .badge-plan-type {
 .hover\:t-success:hover { color: var(--c-success); }
 .hover\:t-warn:hover    { color: var(--c-warn); }
 .hover\:t-danger:hover  { color: var(--c-danger); }
+.hover\:t-purple:hover  { color: var(--c-purple); }
+.hover\:t-info:hover    { color: var(--c-info); }
+.hover\:t-pink:hover    { color: var(--c-pink); }
 
 .s-accent-soft  { background-color: var(--c-accent-soft); color: var(--c-accent); border-color: var(--c-accent-border); }
 .s-success-soft { background-color: var(--c-success-soft); color: var(--c-success); border-color: var(--c-success-border); }
@@ -291,6 +299,7 @@ html.theme-light .badge-plan-type {
 .s-info-soft    { background-color: var(--c-info-soft); color: var(--c-info); border-color: var(--c-info-border); }
 .s-purple-soft  { background-color: var(--c-purple-soft); color: var(--c-purple); border-color: var(--c-purple-border); }
 .s-pink-soft    { background-color: var(--c-pink-soft); color: var(--c-pink); border-color: var(--c-pink-border); }
+.s-neutral-soft { background-color: var(--c-neutral-soft); color: var(--text-muted); border-color: var(--c-neutral-border); }
 
 /* --- 6. BiDi Number & Unit Isolation --- */
 .num-bidi {
@@ -558,8 +567,8 @@ label:active .switch-label .switch-ball {
 
 .admin-subtab-btn.is-active,
 .admin-subtab-btn[aria-selected="true"] {
-  background-color: var(--c-accent);
-  color: var(--text-inverse);
+  background-color: var(--c-accent-solid);
+  color: var(--on-accent);
   box-shadow: 0 2px 8px var(--c-accent-soft);
 }
 
@@ -567,7 +576,7 @@ label:active .switch-label .switch-ball {
 .admin-subtab-btn[aria-selected="true"] svg,
 html.theme-dark .admin-subtab-btn.is-active svg,
 html.theme-dark .admin-subtab-btn[aria-selected="true"] svg {
-  color: var(--text-inverse);
+  color: var(--on-accent);
 }
 
 /* Admin Top Consumers Week Selector */
@@ -759,7 +768,7 @@ html.theme-light .wallet-hero-card #walletTabBalance {
   background: none;
   -webkit-background-clip: unset;
   background-clip: unset;
-  color: var(--c-accent);
+  color: var(--c-success);
 }
 
 /* Gift Modal Button Border Contrast in Dark Theme */

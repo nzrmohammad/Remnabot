@@ -46,6 +46,7 @@ def _migrate_db_schema(sync_conn) -> None:
             continue
 
         existing_columns = {col["name"] for col in inspector.get_columns(table_name)}
+        added_columns: set[str] = set()
         for col in table.columns:
             if col.name in existing_columns:
                 continue
@@ -57,7 +58,10 @@ def _migrate_db_schema(sync_conn) -> None:
                 if hasattr(arg, "name") and arg.name == "now":
                     default_str = " DEFAULT CURRENT_TIMESTAMP"
                 elif isinstance(arg, str):
-                    default_str = f" DEFAULT {arg}"
+                    if arg.isdigit() or arg.lower() in ("true", "false", "null", "current_timestamp") or (arg.startswith("'") and arg.endswith("'")):
+                        default_str = f" DEFAULT {arg}"
+                    else:
+                        default_str = f" DEFAULT '{arg}'"
                 elif isinstance(arg, text):
                     default_str = f" DEFAULT {arg.text}"
             elif col.default is not None and getattr(col.default, "is_scalar", False):
@@ -79,9 +83,21 @@ def _migrate_db_schema(sync_conn) -> None:
 
             try:
                 sync_conn.execute(text(stmt))
+                added_columns.add(col.name)
                 logger.info("Migrated schema: added column %s.%s (%s)", table_name, col.name, col_type)
             except Exception as exc:
                 logger.warning("Could not add column %s.%s: %s", table_name, col.name, exc)
+
+        if table_name == "coupons" and "kind" in added_columns:
+            try:
+                sync_conn.execute(
+                    text(
+                        "UPDATE coupons SET kind = 'voucher' "
+                        "WHERE discount_percent = 0 AND discount_amount > 0 AND code LIKE 'GIFT-%'"
+                    )
+                )
+            except Exception as exc:
+                logger.warning("Could not backfill legacy coupon kinds: %s", exc)
 
         # Inspect and create missing table indexes (e.g. partial unique indexes on upgraded DBs)
         try:

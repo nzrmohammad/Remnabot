@@ -745,6 +745,8 @@ EN_TEXTS: dict[str, str] = {
         "coupon_expired": "❌ This discount code has expired.",
         "coupon_limit_reached": "❌ This discount code usage limit has been reached.",
         "coupon_already_used": "❌ You have already used this discount code.",
+        "coupon_is_voucher": "❌ This code is a wallet credit voucher, not a purchase discount coupon.",
+        "coupon_not_yours": "❌ This discount code was issued exclusively for another user.",
         "btn_coupons_admin": "🏷 Coupons",
         "coupons_admin_title": "🏷 <b>Coupons Management</b>",
         "btn_create_coupon": "➕ Create New Coupon",

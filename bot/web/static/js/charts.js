@@ -125,11 +125,10 @@ async function renderBarChart(containerId, totals, labels, isMonthly = false) {
 
   const isLight = document.documentElement.classList.contains('theme-light');
   const tokens = typeof getChartThemeTokens === 'function' ? getChartThemeTokens(isLight) : null;
-  const textColor = tokens ? tokens.tick : (isLight ? '#1e293b' : '#94a3b8');
-  const gridColor = tokens ? tokens.grid : (isLight ? 'rgba(0, 0, 0, 0.06)' : 'rgba(255, 255, 255, 0.06)');
-  // Color palette - consistent brand cyan/sky family for all traffic consumption
-  const borderColor = tokens ? tokens.accent : (isLight ? '#0369a1' : '#22d3ee');
-  const mainColor = isLight ? 'rgba(2, 132, 199, 0.8)' : 'rgba(34, 211, 238, 0.85)';
+  const textColor = tokens ? tokens.tick : (isLight ? '#475569' : '#94a3b8');
+  const gridColor = tokens ? tokens.grid : (isLight ? 'rgba(148, 163, 184, 0.28)' : 'rgba(148, 163, 184, 0.14)');
+  const borderColor = tokens ? tokens.accent : (isLight ? '#0369a1' : '#38bdf8');
+  const mainColor = isLight ? 'rgba(3, 105, 161, 0.8)' : 'rgba(56, 189, 248, 0.82)';
 
   // Clean English data & labels
   const cleanData = (totals || []).map(v => {
@@ -175,11 +174,11 @@ async function renderBarChart(containerId, totals, labels, isMonthly = false) {
           rtl: true,
           textDirection: 'rtl',
           displayColors: false,
-          backgroundColor: tokens?.tooltipBg || (isLight ? '#ffffff' : '#0f172a'),
-          titleColor: tokens?.tooltipTitle || (isLight ? '#0f172a' : '#ffffff'),
-          borderColor: isLight ? '#e2e8f0' : '#334155',
+          backgroundColor: tokens?.tooltipBg || (isLight ? '#ffffff' : '#111a2e'),
+          titleColor: tokens?.tooltipTitle || (isLight ? '#0f172a' : '#e2e8f0'),
+          borderColor: tokens?.tooltipBorder || (isLight ? '#cbd5e1' : '#334155'),
           borderWidth: 1,
-          bodyColor: tokens?.tooltipBody || (isLight ? '#0369a1' : '#22d3ee'),
+          bodyColor: tokens?.tooltipBody || (isLight ? '#0369a1' : '#38bdf8'),
           titleFont: { family: 'Vazirmatn', size: 11, weight: 'bold' },
           bodyFont: { family: 'monospace', size: 12, weight: 'bold' },
           padding: 8,
@@ -387,11 +386,11 @@ async function renderDonutChart(containerId, labels, data, isDevice = false) {
           rtl: true,
           textDirection: 'rtl',
           displayColors: true,
-          backgroundColor: tokens?.tooltipBg || (isLight ? '#ffffff' : '#0f172a'),
-          titleColor: tokens?.tooltipTitle || (isLight ? '#0f172a' : '#ffffff'),
-          borderColor: isLight ? '#e2e8f0' : '#334155',
+          backgroundColor: tokens?.tooltipBg || (isLight ? '#ffffff' : '#111a2e'),
+          titleColor: tokens?.tooltipTitle || (isLight ? '#0f172a' : '#e2e8f0'),
+          borderColor: tokens?.tooltipBorder || (isLight ? '#cbd5e1' : '#334155'),
           borderWidth: 1,
-          bodyColor: tokens?.tooltipBody || (isLight ? '#0369a1' : '#22d3ee'),
+          bodyColor: tokens?.tooltipBody || (isLight ? '#0369a1' : '#38bdf8'),
           titleFont: { family: 'Vazirmatn', size: 10, weight: 'bold' },
           bodyFont: { family: 'monospace', size: 11, weight: 'bold' },
           padding: 8,

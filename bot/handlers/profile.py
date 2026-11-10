@@ -133,10 +133,19 @@ async def start_set_birthday(
     user = await user_repo.get_or_create(call.from_user.id, call.from_user.username)
     lang = user.language or "fa"
 
+    cur_bdate = getattr(user, "birth_date", None)
+    if cur_bdate:
+        await call.answer(
+            "تاریخ تولد شما قبلاً ثبت شده و برای جلوگیری از سوءاستفاده قابل تغییر نیست."
+            if lang == "fa"
+            else "Your birth date is already registered and cannot be changed.",
+            show_alert=True,
+        )
+        return
+
     await state.set_state(ProfileStates.waiting_for_birthday)
 
-    cur_bdate = getattr(user, "birth_date", None)
-    cur_info = f"\n\n📌 تاریخ فعلی ثبت شده: <code>{cur_bdate}</code>" if cur_bdate else ""
+    cur_info = ""
 
     text = (
         "🎂 <b>ثبت تاریخ تولد و دریافت هدیه زادروز</b>\n"
@@ -211,6 +220,15 @@ async def process_birthday_input(
         return
 
     await state.clear()
+
+    if getattr(user, "birth_date", None):
+        kb = InlineKeyboardBuilder()
+        kb.button(text="👤 بازگشت به حساب کاربری", callback_data="menu:profile")
+        await message.reply(
+            "⚠️ تاریخ تولد شما قبلاً ثبت شده و امکان تغییر مجدد آن وجود ندارد.",
+            reply_markup=kb.as_markup(),
+        )
+        return
 
     user.birth_date = formatted_date
     await session.commit()

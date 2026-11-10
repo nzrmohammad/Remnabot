@@ -298,6 +298,20 @@ async def execute_lucky_wheel_spin(
                                 await cache.set(f"wheel:total_won_traffic:{telegram_id}", cur_traffic + float(chosen["value"]), ttl_seconds=86400 * 365)
                             except Exception:
                                 pass
+                else:
+                    # Unlimited traffic account: convert volume prize into +1 day bonus so the spin isn't wasted
+                    from bot.services.formatting import parse_iso
+                    cur_dt = parse_iso(current_expire)
+                    base = cur_dt if cur_dt and cur_dt > now_utc else now_utc
+                    new_expire_dt = base + timedelta(days=1)
+                    up_res = await remnawave.update_user_subscription(
+                        primary_id,
+                        new_expire_dt.isoformat(),
+                        current_limit,
+                    )
+                    if up_res is not None:
+                        applied = True
+                        chosen["name"] = f"{chosen['name']} ← معادل ۱ روز تمدید (حجم نامحدود)"
             elif chosen["type"] == "days":
                 from bot.services.formatting import parse_iso
                 cur_dt = parse_iso(current_expire)
@@ -317,13 +331,15 @@ async def execute_lucky_wheel_spin(
         if session is not None:
             try:
                 coupon_repo = CouponRepository(session)
-                unique_code = f"WHEEL10_{secrets.token_hex(2).upper()}"
+                unique_code = f"WHEEL10_{secrets.token_hex(4).upper()}"
                 expire_time = now_utc + timedelta(days=7)
                 await coupon_repo.create(
                     code=unique_code,
                     discount_percent=10,
                     max_uses=1,
                     expires_at=expire_time,
+                    kind="discount",
+                    bound_telegram_id=telegram_id,
                 )
                 chosen["code"] = unique_code
                 chosen["name"] = f"کد تخفیف 10% (مهلت ۷ روز): {unique_code}"

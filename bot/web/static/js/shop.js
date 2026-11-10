@@ -497,14 +497,14 @@ function renderShopPlans(data) {
       else noticeEl.classList.add('hidden');
       if (!window._shopCategoryManuallyChanged) currentShopCategory = 'full';
     } else if (daysLeft > 3 && pctRemaining <= 25) {
-      noticeEl.className = 'p-2.5 rounded-2xl text-[11px] leading-relaxed mb-1 transition flex items-center gap-2 bg-cyan-950/40 border border-cyan-500/40 text-cyan-200';
+      noticeEl.className = 'p-2.5 rounded-2xl text-[11px] leading-relaxed mb-1 transition flex items-center gap-2 s-accent-soft border';
       noticeEl.innerHTML = `<span>⚡️</span><span>شما هنوز <b>${daysLeft} روز</b> اشتراک فعال دارید؛ خرید <b>بسته افزایش حجم</b> مانع از سوختن روزهای باقیمانده شما می‌شود.</span>`;
       noticeEl.dataset.shouldShow = 'true';
       if (currentShopCategory === 'traffic') noticeEl.classList.remove('hidden');
       else noticeEl.classList.add('hidden');
       if (!window._shopCategoryManuallyChanged) currentShopCategory = 'traffic';
     } else if (daysLeft <= 3) {
-      noticeEl.className = 'p-2.5 rounded-2xl text-[11px] leading-relaxed mb-1 transition flex items-center gap-2 bg-amber-950/40 border border-amber-500/40 text-amber-200';
+      noticeEl.className = 'p-2.5 rounded-2xl text-[11px] leading-relaxed mb-1 transition flex items-center gap-2 s-warn-soft border';
       noticeEl.innerHTML = `<span>⏳</span><span>تنها <b>${daysLeft} روز</b> از اشتراک شما باقیمانده است؛ جهت جلوگیری از قطعی، <b>خرید یا تمدید دوره کامل</b> پیشنهاد می‌شود.</span>`;
       noticeEl.dataset.shouldShow = 'true';
       if (currentShopCategory === 'full') noticeEl.classList.remove('hidden');
@@ -868,7 +868,7 @@ function openShopGuidanceModal({ title, badgeText, badgeClass, message, actionTe
   if (tEl) tEl.innerText = title || 'راهنمای انتخاب بسته';
   if (bEl) {
     bEl.innerText = badgeText || '⚡️ پیشنهاد هوشمند';
-    bEl.className = badgeClass || 'px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/40';
+    bEl.className = badgeClass || 'px-2.5 py-0.5 rounded-full text-[11px] font-bold s-accent-soft border';
   }
   if (txtEl) txtEl.innerHTML = message || '';
 
@@ -989,7 +989,7 @@ function setupBuyButtons() {
         openShopGuidanceModal({
           title: 'اشتراک فعالی یافت نشد',
           badgeText: '❌ نیازمند سرویس فعال',
-          badgeClass: 'px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-rose-500/20 text-rose-300 border border-rose-500/40',
+          badgeClass: 'px-2.5 py-0.5 rounded-full text-[11px] font-bold s-danger-soft border',
           message: 'بسته‌های افزایش حجم و افزایش زمان صرفاً به سرویس‌های فعال اضافه می‌شوند. لطفاً ابتدا از تب «سرویس‌های کامل» یک اشتراک جدید تهیه فرمایید.',
           actionText: '💎 مشاهده سرویس‌های کامل',
           onAction: () => switchShopCategory('full'),

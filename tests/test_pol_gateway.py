@@ -153,6 +153,7 @@ async def test_post_user_topup_pol_flow():
 
         mock_crypto_repo = MagicMock()
         mock_crypto_repo.get_pending_by_user = AsyncMock(return_value=None)
+        mock_crypto_repo.allocate_unique_crypto_units = AsyncMock(return_value=10**18 + 42 * 10**14)
         mock_crypto_repo.create_invoice = AsyncMock(return_value=created_inv)
         mock_crypto_cls.return_value = mock_crypto_repo
 
@@ -163,7 +164,8 @@ async def test_post_user_topup_pol_flow():
         assert data["ok"] is True
         assert data["invoice"]["id"] == 101
         assert data["invoice"]["currency"] == "POL"
-        assert data["invoice"]["amount_pol"] == "1.0000"
+        assert data["invoice"]["amount_pol"] == "1.0042"
+        assert data["invoice"]["wei"] == str(10**18 + 42 * 10**14)
         assert data["invoice"]["pay_address"] == mock_store.pol_wallet_address
 
 

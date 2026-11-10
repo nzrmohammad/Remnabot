@@ -736,7 +736,7 @@ openUserChat(telegram_id, name, tag, topup_id) {
         if (sub) sub.textContent = 'کاربران جدید نیازمند لینک دعوت/رفرال هستند';
         if (icon) {
           icon.textContent = '🎟️';
-          icon.className = 'w-8 h-8 rounded-xl bg-cyan-500/15 border border-cyan-500/30 text-cyan-700 dark:t-accent flex items-center justify-center text-sm flex-shrink-0';
+          icon.className = 'w-8 h-8 rounded-xl s-accent-soft border flex items-center justify-center text-sm flex-shrink-0';
         }
       } else if (mode === 'closed') {
         if (badge) {
@@ -746,7 +746,7 @@ openUserChat(telegram_id, name, tag, topup_id) {
         if (sub) sub.textContent = 'ثبت‌نام متوقف شده است؛ سرویس‌های فعلی فعالند';
         if (icon) {
           icon.textContent = '🔒';
-          icon.className = 'w-8 h-8 rounded-xl bg-rose-500/15 border border-rose-500/30 text-rose-700 dark:t-danger flex items-center justify-center text-sm flex-shrink-0';
+          icon.className = 'w-8 h-8 rounded-xl s-danger-soft border flex items-center justify-center text-sm flex-shrink-0';
         }
       } else {
         if (badge) {
@@ -756,7 +756,7 @@ openUserChat(telegram_id, name, tag, topup_id) {
         if (sub) sub.textContent = 'ورود و ثبت‌نام برای تمامی کاربران آزاد است';
         if (icon) {
           icon.textContent = '🌐';
-          icon.className = 'w-8 h-8 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-700 dark:t-success flex items-center justify-center text-sm flex-shrink-0';
+          icon.className = 'w-8 h-8 rounded-xl s-success-soft border flex items-center justify-center text-sm flex-shrink-0';
         }
       }
     },
@@ -894,20 +894,20 @@ openUserChat(telegram_id, name, tag, topup_id) {
       const badgeEl = $('activeChatStatusBadge');
       if (badgeEl) {
         if (user.pending_topup_id) {
-          badgeEl.className = 'text-[10px] bg-transparent text-amber-500 border border-amber-500/30 px-2 py-0.5 rounded-lg font-bold flex items-center gap-1';
-          badgeEl.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>فیش ${user.pending_topup_id}`;
+          badgeEl.className = 'text-[10px] s-warn-soft border px-2 py-0.5 rounded-lg font-bold flex items-center gap-1';
+          badgeEl.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>فیش ${user.pending_topup_id}`;
         } else {
-          badgeEl.className = 'text-[10px] bg-transparent t-success border border-emerald-500/30 px-2 py-0.5 rounded-lg font-bold';
+          badgeEl.className = 'text-[10px] s-success-soft border px-2 py-0.5 rounded-lg font-bold';
           badgeEl.innerText = `${formatNumber(user.wallet_balance || 0)} ت`;
         }
       }
 
       if (messages.length === 0) {
         streamEl.innerHTML = `
-          <div class="p-6 text-center text-slate-400 text-[11px] space-y-1.5">
+          <div class="p-6 text-center t-muted text-[11px] space-y-1.5">
             <div class="text-xl">💬</div>
             <p>پیامی برای این کاربر ثبت نشده است.</p>
-            <p class="text-[10px] text-slate-500">می‌توانید اولین پیام یا راهنمایی را ارسال کنید.</p>
+            <p class="text-[10px] t-subtle">می‌توانید اولین پیام یا راهنمایی را ارسال کنید.</p>
           </div>
         `;
         return;
@@ -917,7 +917,7 @@ openUserChat(telegram_id, name, tag, topup_id) {
         if (m.sender === 'system') {
           return `
             <div class="flex justify-center my-1.5">
-              <span class="bg-amber-950/40 text-amber-300 border border-amber-500/30 text-[10px] px-3 py-1 rounded-xl text-center leading-relaxed">
+              <span class="s-warn-soft border text-[10px] px-3 py-1 rounded-xl text-center leading-relaxed">
                 🔔 ${escapeHtml(m.text)}
               </span>
             </div>

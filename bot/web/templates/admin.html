@@ -84,75 +84,75 @@
         <!-- 6 Unified Key Metrics Cards (عملیات، شبکه و تحلیل مالی سرورها) -->
         <div class="grid grid-cols-2 gap-2.5">
           <!-- Card 1: Users -->
-          <div class="bg-slate-800/80 p-3.5 rounded-2xl border border-slate-700/80 shadow relative overflow-hidden">
+          <div class="card p-3.5 rounded-2xl shadow relative overflow-hidden">
             <div class="flex items-center gap-1.5">
-              <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
-              <span class="text-slate-400 text-[11px] font-medium">کل کاربران ربات</span>
+              <svg class="w-4 h-4 t-info" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+              <span class="t-muted text-[11px] font-medium">کل کاربران ربات</span>
             </div>
             <div class="mt-2 flex items-baseline gap-1.5">
-              <span id="adminTotalUsers" class="text-2xl font-black text-white font-mono">--</span>
+              <span id="adminTotalUsers" class="text-2xl font-black t-main font-mono">--</span>
             </div>
-            <div id="adminActiveUsers" class="text-[11px] text-slate-400 mt-1">-- اکانت فعال پنل</div>
+            <div id="adminActiveUsers" class="text-[11px] t-muted mt-1">-- اکانت فعال پنل</div>
           </div>
 
           <!-- Card 2: Active Online HWID -->
-          <div class="bg-slate-800/80 p-3.5 rounded-2xl border border-slate-700/80 shadow relative overflow-hidden">
+          <div class="card p-3.5 rounded-2xl shadow relative overflow-hidden">
             <div class="flex items-center gap-1.5">
-              <svg class="w-4 h-4 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
-              <span class="text-slate-400 text-[11px] font-medium">دستگاه‌های متصل</span>
+              <svg class="w-4 h-4 t-info" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+              <span class="t-muted text-[11px] font-medium">دستگاه‌های متصل</span>
             </div>
             <div class="mt-2 flex items-baseline gap-1.5">
-              <span id="adminOnlineDevices" class="text-2xl font-black text-indigo-600 dark:text-indigo-300 font-mono">--</span>
+              <span id="adminOnlineDevices" class="text-2xl font-black t-info font-mono">--</span>
               <span class="text-[11px] t-success font-bold">آنلاین</span>
             </div>
-            <div class="text-[11px] text-slate-400 mt-1">روی تمام نودهای فعال</div>
+            <div class="text-[11px] t-muted mt-1">روی تمام نودهای فعال</div>
           </div>
 
           <!-- Card 3: Bandwidth -->
-          <div class="bg-slate-800/80 p-3.5 rounded-2xl border border-slate-700/80 shadow relative overflow-hidden">
+          <div class="card p-3.5 rounded-2xl shadow relative overflow-hidden">
             <div class="flex items-center gap-1.5">
               <svg class="w-4 h-4 t-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-              <span class="text-slate-400 text-[11px] font-medium">مصرف کل ترافیک</span>
+              <span class="t-muted text-[11px] font-medium">مصرف کل ترافیک</span>
             </div>
             <div class="mt-2 flex items-baseline gap-1 whitespace-nowrap overflow-hidden">
               <span id="adminMonthTraffic" class="text-xl font-black t-accent font-mono num-bidi" dir="ltr">-- GB</span>
             </div>
-            <div class="text-[11px] text-slate-400 mt-1">مجموع مصرف روی سرورها</div>
+            <div class="text-[11px] t-muted mt-1">مجموع مصرف روی سرورها</div>
           </div>
 
           <!-- Card 4: Today Revenue & 30-day -->
-          <div class="bg-slate-800/80 p-3.5 rounded-2xl border border-slate-700/80 shadow relative overflow-hidden">
+          <div class="card p-3.5 rounded-2xl shadow relative overflow-hidden">
             <div class="flex items-center gap-1.5">
               <svg class="w-4 h-4 t-success" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-              <span class="text-slate-400 text-[11px] font-medium">فروش امروز</span>
+              <span class="t-muted text-[11px] font-medium">فروش امروز</span>
             </div>
             <div class="mt-2 flex items-baseline gap-1">
               <span id="adminTodayRevenue" class="text-xl font-black t-success font-mono">--</span>
-              <span class="text-[11px] text-slate-400 font-sans">تومان</span>
+              <span class="text-[11px] t-muted font-sans">تومان</span>
             </div>
-            <div class="mt-1 pt-0.5 text-[11px] text-slate-400">
-              <span class="text-[11px] text-slate-400 block leading-tight">فروش ۳۰ روز اخیر</span>
+            <div class="mt-1 pt-0.5 text-[11px] t-muted">
+              <span class="text-[11px] t-muted block leading-tight">فروش ۳۰ روز اخیر</span>
               <div class="flex items-baseline gap-1 mt-0.5 leading-tight">
                 <b id="adminMonthlyRevenue" class="font-mono t-main font-bold text-[11px]">--</b>
-                <span class="text-[11px] text-slate-400 font-sans">تومان</span>
+                <span class="text-[11px] t-muted font-sans">تومان</span>
               </div>
             </div>
           </div>
 
           <!-- Card 5: Net Profit & Margin (سود خالص ماهانه) -->
-          <div class="bg-slate-800/80 p-3.5 rounded-2xl border border-slate-700/80 shadow relative overflow-hidden">
+          <div class="card p-3.5 rounded-2xl shadow relative overflow-hidden">
             <div class="flex items-center justify-between">
               <div class="flex items-center gap-1.5">
-                <svg class="w-4 h-4 text-teal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
-                <span class="text-slate-400 text-[11px] font-medium">سود خالص ماهانه</span>
+                <svg class="w-4 h-4 t-success" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                <span class="t-muted text-[11px] font-medium">سود خالص ماهانه</span>
               </div>
             </div>
             <div class="mt-2 flex items-baseline gap-1">
               <span id="adminNetProfit" dir="ltr" class="text-lg font-black font-mono">--</span>
-              <span class="text-[11px] text-slate-400 font-sans">تومان</span>
+              <span class="text-[11px] t-muted font-sans">تومان</span>
             </div>
-            <div class="mt-1 pt-0.5 text-[11px] text-slate-400">
-              <span class="text-[11px] text-slate-400 block leading-tight">پس از کسر سرورها</span>
+            <div class="mt-1 pt-0.5 text-[11px] t-muted">
+              <span class="text-[11px] t-muted block leading-tight">پس از کسر سرورها</span>
               <div class="flex items-center gap-1 mt-0.5 leading-tight">
                 <span id="adminProfitMarginBadge" class="text-[11px] font-mono font-bold px-1.5 py-0.5 rounded-md bg-transparent t-success border border-emerald-500/30 whitespace-nowrap">مارجین: —</span>
               </div>
@@ -332,13 +332,13 @@
           </div>
 
           <!-- Chart 6: Payment Methods Breakdown (Doughnut) -->
-          <div class="bg-slate-800/80 rounded-2xl p-4 border border-slate-700/80 shadow space-y-3">
-            <div class="flex justify-between items-center border-b border-slate-700/60 pb-2">
-              <span class="text-xs font-bold text-slate-200 flex items-center gap-1.5">
+          <div class="card rounded-2xl p-4 shadow space-y-3">
+            <div class="flex justify-between items-center border-b border-card-border pb-2">
+              <span class="text-xs font-bold t-main flex items-center gap-1.5">
                 <svg class="w-4 h-4 t-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
                 <span>روش‌های پرداخت</span>
               </span>
-              <span class="text-[11px] text-slate-700 dark:text-slate-300 font-bold">کارت / کریپتو</span>
+              <span class="text-[11px] t-muted font-bold">کارت / کریپتو</span>
             </div>
             <div class="h-40 w-full relative flex items-center justify-center">
               <canvas id="adminPaymentChart" dir="ltr"></canvas>
@@ -346,13 +346,13 @@
           </div>
 
           <!-- Chart 7: Retention & Churn Rate (Doughnut / Stack) -->
-          <div class="bg-slate-800/80 rounded-2xl p-4 border border-slate-700/80 shadow space-y-3">
-            <div class="flex justify-between items-center border-b border-slate-700/60 pb-2">
-              <span class="text-xs font-bold text-slate-200 flex items-center gap-1.5">
-                <svg class="w-4 h-4 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+          <div class="card rounded-2xl p-4 shadow space-y-3">
+            <div class="flex justify-between items-center border-b border-card-border pb-2">
+              <span class="text-xs font-bold t-main flex items-center gap-1.5">
+                <svg class="w-4 h-4 t-info" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
                 <span>نرخ تمدید و ریزش اشتراک</span>
               </span>
-              <span id="churnRateBadge" class="text-[11px] text-indigo-800 dark:text-indigo-300 font-bold font-mono">تمدید: --%</span>
+              <span id="churnRateBadge" class="text-[11px] t-info font-bold font-mono">تمدید: --%</span>
             </div>
             <div class="h-40 w-full relative flex items-center justify-center">
               <canvas id="adminChurnChart" dir="ltr"></canvas>
@@ -360,13 +360,13 @@
           </div>
 
           <!-- Chart 8: HWID Inspector & Sharing Risk (Bar) -->
-          <div class="bg-slate-800/80 rounded-2xl p-4 border border-slate-700/80 shadow space-y-3">
-            <div class="flex justify-between items-center border-b border-slate-700/60 pb-2">
-              <span class="text-xs font-bold text-slate-200 flex items-center gap-1.5">
+          <div class="card rounded-2xl p-4 shadow space-y-3">
+            <div class="flex justify-between items-center border-b border-card-border pb-2">
+              <span class="text-xs font-bold t-main flex items-center gap-1.5">
                 <svg class="w-4 h-4 t-warn" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
                 <span>کاوشگر نشست‌ها و ریسک اشتراک</span>
               </span>
-              <span id="hwidRiskBadge" class="text-[11px] text-slate-700 dark:text-slate-300 font-bold font-mono">توزیع HWID</span>
+              <span id="hwidRiskBadge" class="text-[11px] t-muted font-bold font-mono">توزیع HWID</span>
             </div>
             <div class="h-40 w-full relative">
               <canvas id="adminHwidChart" dir="ltr"></canvas>
@@ -498,34 +498,34 @@
 
           <div class="flex gap-1.5 overflow-x-auto custom-scroll text-[11px] whitespace-nowrap pb-1">
             <button class="user-filter-btn px-2.5 py-1 rounded-xl bg-blue-600 text-white font-bold transition flex items-center gap-1 border border-blue-500 shadow-sm" data-filter="all">همه کاربران</button>
-            <button class="user-filter-btn px-2.5 py-1 rounded-xl card-inset text-slate-700 dark:text-slate-200 hover:text-white font-bold transition flex items-center gap-1 border border-slate-700/50" data-filter="online">
-              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block"></span>
+            <button class="user-filter-btn px-2.5 py-1 rounded-xl card-inset t-main hover:t-accent font-bold transition flex items-center gap-1" data-filter="online">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block"></span>
               <span>متصل</span>
             </button>
-            <button class="user-filter-btn px-2.5 py-1 rounded-xl card-inset text-slate-700 dark:text-slate-200 hover:text-white font-bold transition flex items-center gap-1 border border-slate-700/50" data-filter="expiring">
-              <svg class="w-2.5 h-2.5 text-amber-500 dark:text-amber-300" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z"/></svg>
+            <button class="user-filter-btn px-2.5 py-1 rounded-xl card-inset t-main hover:t-accent font-bold transition flex items-center gap-1" data-filter="expiring">
+              <svg class="w-2.5 h-2.5 t-warn" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z"/></svg>
               <span>رو به اتمام</span>
             </button>
-            <button class="user-filter-btn px-2.5 py-1 rounded-xl card-inset text-slate-700 dark:text-slate-200 hover:text-white font-bold transition flex items-center gap-1 border border-slate-700/50" data-filter="expired">
-              <span class="w-1.5 h-1.5 rounded-full bg-rose-400 inline-block"></span>
+            <button class="user-filter-btn px-2.5 py-1 rounded-xl card-inset t-main hover:t-accent font-bold transition flex items-center gap-1" data-filter="expired">
+              <span class="w-1.5 h-1.5 rounded-full bg-rose-500 inline-block"></span>
               <span>منقضی شده</span>
             </button>
-            <button class="user-filter-btn px-2.5 py-1 rounded-xl card-inset text-slate-700 dark:text-slate-200 hover:text-white font-bold transition flex items-center gap-1 border border-slate-700/50" data-filter="banned">مسدود شده</button>
+            <button class="user-filter-btn px-2.5 py-1 rounded-xl card-inset t-main hover:t-accent font-bold transition flex items-center gap-1" data-filter="banned">مسدود شده</button>
           </div>
         </div>
 
         <!-- Dynamic User List Container -->
         <div id="adminUsersList" class="space-y-2.5 min-h-[200px]">
-          <div class="p-8 text-center text-xs text-slate-400">در حال بارگذاری اطلاعات کاربران...</div>
+          <div class="p-8 text-center text-xs t-muted">در حال بارگذاری اطلاعات کاربران...</div>
         </div>
 
         <!-- Pagination Controls (Icon-only, hidden if total pages <= 1) -->
-        <div id="adminUsersPagination" class="hidden flex justify-between items-center text-xs text-slate-400 pt-2 px-1">
-          <button id="adminUsersPrevBtn" class="w-9 h-9 min-w-[36px] min-h-[36px] rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 disabled:opacity-30 disabled:pointer-events-none transition flex items-center justify-center text-xs shadow-sm active:scale-95" title="صفحه قبلی" aria-label="صفحه قبلی کاربران">
+        <div id="adminUsersPagination" class="hidden flex justify-between items-center text-xs t-muted pt-2 px-1">
+          <button id="adminUsersPrevBtn" class="btn-secondary w-9 h-9 min-w-[36px] min-h-[36px] rounded-xl disabled:opacity-30 disabled:pointer-events-none transition flex items-center justify-center text-xs shadow-sm active:scale-95" title="صفحه قبلی" aria-label="صفحه قبلی کاربران">
             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
           </button>
-          <span id="adminUsersPageInfo" class="font-sans num-bidi text-[11px] text-slate-300">صفحه 1</span>
-          <button id="adminUsersNextBtn" class="w-9 h-9 min-w-[36px] min-h-[36px] rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 disabled:opacity-30 disabled:pointer-events-none transition flex items-center justify-center text-xs shadow-sm active:scale-95" title="صفحه بعدی" aria-label="صفحه بعدی کاربران">
+          <span id="adminUsersPageInfo" class="font-sans num-bidi text-[11px] t-muted">صفحه 1</span>
+          <button id="adminUsersNextBtn" class="btn-secondary w-9 h-9 min-w-[36px] min-h-[36px] rounded-xl disabled:opacity-30 disabled:pointer-events-none transition flex items-center justify-center text-xs shadow-sm active:scale-95" title="صفحه بعدی" aria-label="صفحه بعدی کاربران">
             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
           </button>
         </div>
@@ -550,8 +550,8 @@
         <!-- Subtab 1: Plans & Services -->
         <div id="subtabContentPlans" class="space-y-3">
           <div class="flex justify-between items-center">
-            <h3 class="text-sm font-bold text-slate-200 flex items-center gap-1.5">
-              <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+            <h3 class="text-sm font-bold t-main flex items-center gap-1.5">
+              <svg class="w-4 h-4 t-info" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
               <span>تعرفه‌های فروش</span>
             </h3>
             <button id="openCreatePlanBtn" class="bg-blue-600 hover:bg-blue-500 text-white font-extrabold text-xs px-3.5 py-1.5 rounded-xl transition active:scale-95 flex items-center gap-1 shadow-sm">
@@ -563,15 +563,15 @@
             <button type="button" onclick="window.adminActions.filterPlans('full')" data-plan-filter="full" class="admin-plan-filter-btn flex-1 py-1 px-2.5 rounded-lg font-bold bg-blue-600 text-white shadow transition whitespace-nowrap text-center">
               💎 دوره کامل
             </button>
-            <button type="button" onclick="window.adminActions.filterPlans('time')" data-plan-filter="time" class="admin-plan-filter-btn flex-1 py-1 px-2.5 rounded-lg font-bold text-slate-700 dark:text-slate-200 hover:text-white transition whitespace-nowrap text-center">
+            <button type="button" onclick="window.adminActions.filterPlans('time')" data-plan-filter="time" class="admin-plan-filter-btn flex-1 py-1 px-2.5 rounded-lg font-bold t-muted hover:t-main transition whitespace-nowrap text-center">
               ⏳ افزایش زمان
             </button>
-            <button type="button" onclick="window.adminActions.filterPlans('traffic')" data-plan-filter="traffic" class="admin-plan-filter-btn flex-1 py-1 px-2.5 rounded-lg font-bold text-slate-700 dark:text-slate-200 hover:text-white transition whitespace-nowrap text-center">
+            <button type="button" onclick="window.adminActions.filterPlans('traffic')" data-plan-filter="traffic" class="admin-plan-filter-btn flex-1 py-1 px-2.5 rounded-lg font-bold t-muted hover:t-main transition whitespace-nowrap text-center">
               ⚡️ افزایش حجم
             </button>
           </div>
           <div id="adminPlansList" class="space-y-2.5">
-            <div class="p-8 text-center text-xs text-slate-400">در حال دریافت سرویس‌ها...</div>
+            <div class="p-8 text-center text-xs t-muted">در حال دریافت سرویس‌ها...</div>
           </div>
         </div>
 

@@ -90,6 +90,17 @@ def _parse_expire(value: str | None) -> datetime | None:
         return None
 
 
+def _account_has_active_time(account: dict | None, now: datetime) -> bool:
+    """Return True only if an existing panel account is non-deleted/active and not expired."""
+    if account is None:
+        return False
+    status = str(account.get("status") or "").upper()
+    if status in ("EXPIRED", "DELETED", "DISABLED"):
+        return False
+    exp = _parse_expire(account.get("expireAt"))
+    return bool(exp is not None and exp > now)
+
+
 async def _pick_username(remnawave: RemnawaveClient, telegram_id: int) -> str:
     """Generate a unique username for a new panel user (3-36 [a-zA-Z0-9_-])."""
     for _ in range(3):
@@ -268,13 +279,14 @@ async def _execute_purchase_impl(
         if p_count_int >= max_p:
             return PurchaseResult(ok=False, kind="failed")
 
+    now = datetime.now(timezone.utc)
     is_extra_traffic = (service.duration_days == 0 and service.traffic_gb > 0) or (getattr(service, "badge", None) == "traffic")
     is_extra_time = (service.traffic_gb == 0 and service.duration_days > 0) or (getattr(service, "badge", None) == "time")
 
-    if account is None and (is_extra_traffic or is_extra_time):
-        return PurchaseResult(ok=False, kind="needs_active_sub")
+    if is_extra_traffic or is_extra_time:
+        if not _account_has_active_time(account, now):
+            return PurchaseResult(ok=False, kind="needs_active_sub")
 
-    now = datetime.now(timezone.utc)
     strategy = service.traffic_strategy or "NO_RESET"
     order_repo = OrderRepository(session)
 
@@ -336,8 +348,11 @@ async def _execute_purchase_impl(
         store = await get_store_settings(session)
         squad_uuid = service.squad_uuid or store.default_squad_uuid or None
         user = None
-        for _ in range(4):
-            username = await _pick_username(remnawave, telegram_id)
+        for attempt in range(4):
+            if attempt > 0:
+                username = await _pick_username(remnawave, telegram_id)
+                pending.panel_username = username
+                await session.commit()
             user = await remnawave.create_user(
                 username=username,
                 expire_at_iso=_iso(_expire_from(service.duration_days, now)),
@@ -401,16 +416,28 @@ async def _execute_purchase_impl(
         )
 
         squads_changed = False
+        orig_hwid_limit = account.get("hwidDeviceLimit")
+        hwid_changed = False
         if is_squad_switch:
             try:
                 await remnawave.set_user_squads(int(account["id"]), [service.squad_uuid])
                 squads_changed = True
             except Exception as sq_err:
                 logger.warning("Failed to update user squad on squad switch: %s", sq_err)
+                if claimed_usage and coupon_obj:
+                    try:
+                        await coupon_repo.release_usage(coupon_obj.id, telegram_id, claimed_usage.id)
+                    except Exception as c_err:
+                        logger.warning("Failed to release coupon usage after squad error: %s", c_err)
+                await order_repo.mark_failed(pending)
+                await session.commit()
+                await _report_purchase_err("squad_switch_failed", f"set_user_squads failed for acc={account.get('id')}: {sq_err}")
+                return PurchaseResult(ok=False, kind="failed")
 
             if getattr(service, "hwid_limit", None) is not None:
                 try:
                     await remnawave.update_user_fields(int(account["id"]), hwidDeviceLimit=service.hwid_limit)
+                    hwid_changed = True
                 except Exception as hw_err:
                     logger.warning("Failed to update hwid limit on squad switch: %s", hw_err)
 
@@ -418,7 +445,16 @@ async def _execute_purchase_impl(
         current_expire_str = account.get("expireAt")
         current_expire = _parse_expire(current_expire_str)
 
-        if is_extra_traffic and current_expire is not None and current_expire > now:
+        if is_extra_traffic:
+            if current_expire is None or current_expire <= now:
+                if claimed_usage and coupon_obj:
+                    try:
+                        await coupon_repo.release_usage(coupon_obj.id, telegram_id, claimed_usage.id)
+                    except Exception:
+                        pass
+                await order_repo.mark_failed(pending)
+                await session.commit()
+                return PurchaseResult(ok=False, kind="needs_active_sub")
             # Extra Traffic Package (+GB): preserve expiration date, stack traffic limit
             expire_iso = current_expire_str
             traffic = _traffic_bytes(
@@ -524,6 +560,11 @@ async def _execute_purchase_impl(
                     await remnawave.set_user_squads(int(account["id"]), orig_squad_uuids)
                 except Exception as sq_exc:
                     logger.exception("Failed to revert squads for user %s during compensation: %s", panel_user_id, sq_exc)
+            if hwid_changed and orig_hwid_limit is not None:
+                try:
+                    await remnawave.update_user_fields(int(account["id"]), hwidDeviceLimit=orig_hwid_limit)
+                except Exception as hw_exc:
+                    logger.exception("Failed to revert hwid limit for user %s during compensation: %s", panel_user_id, hw_exc)
         await order_repo.mark_failed(pending)
         await session.commit()
         await _report_purchase_err("balance_race", "race: balance went below price during purchase")
@@ -611,6 +652,7 @@ def receipt_price_lines(
     coupon_code: str | None = None,
     currency_label: str = "تومان",
     is_confirm_card: bool = False,
+    loyalty_discount_amount: int = 0,
 ) -> list[str]:
     """Generate standardized, RTL-safe price, discount, and total receipt lines."""
     from html import escape
@@ -619,14 +661,33 @@ def receipt_price_lines(
     from bot.locales.texts import t
 
     lines: list[str] = []
-    if coupon_code and discount_amount > 0:
+    has_coupon = bool(coupon_code and discount_amount > 0)
+    has_loyalty = int(loyalty_discount_amount or 0) > 0
+    if has_coupon or has_loyalty:
+        loyalty_label = "تخفیف وفاداری" if lang == "fa" else "VIP Loyalty"
         if is_confirm_card:
             lines.append(f"💰 {t(lang, 'svc_field_price')} : <b>{fmt(original_price)}</b> {currency_label}")
-            lines.append(f"🏷 {t(lang, 'retention_code_label')} (<code>{escape(coupon_code)}</code>) : <b>\u200e-{fmt(discount_amount)}</b> {currency_label}")
+            if has_coupon:
+                lines.append(
+                    f"🏷 {t(lang, 'retention_code_label')} (<code>{escape(coupon_code)}</code>) : "
+                    f"<b>\u200e-{fmt(discount_amount)}</b> {currency_label}"
+                )
+            if has_loyalty:
+                lines.append(
+                    f"💎 {loyalty_label} : <b>\u200e-{fmt(loyalty_discount_amount)}</b> {currency_label}"
+                )
             lines.append(f"💵 {t(lang, 'receipt_amount')} : <b>{fmt(effective_price)}</b> {currency_label}")
         else:
             lines.append(f"💰 {t(lang, 'svc_field_price')} : <b>{fmt(original_price)} {currency_label}</b>")
-            lines.append(f"🏷 {t(lang, 'retention_code_label')} (<code>{escape(coupon_code)}</code>) : <b>\u200e-{fmt(discount_amount)} {currency_label}</b>")
+            if has_coupon:
+                lines.append(
+                    f"🏷 {t(lang, 'retention_code_label')} (<code>{escape(coupon_code)}</code>) : "
+                    f"<b>\u200e-{fmt(discount_amount)} {currency_label}</b>"
+                )
+            if has_loyalty:
+                lines.append(
+                    f"💎 {loyalty_label} : <b>\u200e-{fmt(loyalty_discount_amount)} {currency_label}</b>"
+                )
             lines.append(f"💵 {t(lang, 'receipt_amount')} : <b>{fmt(effective_price)} {currency_label}</b>")
     else:
         label = t(lang, "svc_field_price" if is_confirm_card else "receipt_amount")
@@ -679,18 +740,25 @@ async def maybe_reward_referrer(
     reward = await referral_repo.record_reward(user.referred_by_id, user.telegram_id, reward_gb)
 
     inviter_accs = await remnawave.get_users_by_telegram_id(user.referred_by_id)
+    traffic_rewarded = False
     if inviter_accs:
-        inv_acc = inviter_accs[0]
-        cur_limit = int(inv_acc.get("trafficLimitBytes") or 0)
-        if cur_limit > 0:
+        metered_acc = next(
+            (a for a in inviter_accs if int(a.get("trafficLimitBytes") or 0) > 0),
+            None,
+        )
+        if metered_acc:
+            cur_limit = int(metered_acc.get("trafficLimitBytes") or 0)
             new_limit = cur_limit + reward_gb * (1024 ** 3)
             try:
                 await remnawave.update_user_subscription(
-                    int(inv_acc["id"]), inv_acc.get("expireAt"), new_limit
+                    int(metered_acc["id"]), metered_acc.get("expireAt"), new_limit
                 )
+                traffic_rewarded = True
             except Exception:
-                logger.exception("Failed to add referral traffic to panel user %s", inv_acc.get("id"))
+                logger.exception("Failed to add referral traffic to panel user %s", metered_acc.get("id"))
                 reward.applied = False
+        else:
+            reward.applied = False
 
     from bot.db.repositories.user_repo import UserRepository
     inviter_user = await UserRepository(session).get_by_telegram_id(user.referred_by_id)
@@ -700,15 +768,21 @@ async def maybe_reward_referrer(
     inv_lang = (inviter_user.language if inviter_user else None) or "fa"
     try:
         from bot.locales.texts import t
-        ticket_note = (
-            "\n\n🎫 <b>+۱ شانس چرخش گردونه (تیکت اسپین)</b> نیز به حساب شما اضافه شد!"
-            if inv_lang == "fa"
-            else "\n\n🎫 <b>+1 Lucky Wheel spin ticket</b> has also been credited to your account!"
-        )
-        await bot.send_message(
-            user.referred_by_id,
-            t(inv_lang, "referral_reward_notify", reward_gb=reward_gb) + ticket_note,
-        )
+        if traffic_rewarded or inviter_accs is None:
+            ticket_note = (
+                "\n\n🎫 <b>+۱ شانس چرخش گردونه (تیکت اسپین)</b> نیز به حساب شما اضافه شد!"
+                if inv_lang == "fa"
+                else "\n\n🎫 <b>+1 Lucky Wheel spin ticket</b> has also been credited to your account!"
+            )
+            msg = t(inv_lang, "referral_reward_notify", reward_gb=reward_gb) + ticket_note
+        else:
+            msg = (
+                "🎉 یکی از دوستان شما با لینک دعوتتان خرید خود را تکمیل کرد!\n\n"
+                "🎫 <b>+۱ شانس چرخش گردونه (تیکت اسپین)</b> به حساب شما اضافه شد!"
+                if inv_lang == "fa"
+                else "🎉 A friend you invited completed their purchase!\n\n🎫 <b>+1 Lucky Wheel spin ticket</b> has been credited to your account!"
+            )
+        await bot.send_message(user.referred_by_id, msg)
     except Exception:
         logger.exception("Failed to notify inviter %s of referral reward", user.referred_by_id)
 

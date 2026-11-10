@@ -75,6 +75,36 @@ async def _extract_coupon_from_state(state: FSMContext, current_service_id: int 
     return code, amt
 
 
+async def compute_bot_loyalty_discount(
+    session: AsyncSession,
+    telegram_id: int,
+    base_price: int,
+    cache: Any = None,
+) -> int:
+    """Resolve user's VIP loyalty discount amount in Toman (SSOT for bot checkout/renew)."""
+    if not isinstance(session, AsyncSession):
+        return 0
+    from bot.services.loyalty import apply_loyalty_discount, get_user_loyalty
+
+    loyalty = await get_user_loyalty(session, telegram_id, cache=cache)
+    pct = int(loyalty.get("discount_percent", 0) or 0)
+    disc_amt, _ = apply_loyalty_discount(base_price, pct)
+    return disc_amt
+
+
+async def prepare_bot_discounts(
+    session: AsyncSession,
+    telegram_id: int,
+    base_price: int,
+    coupon_discount: int = 0,
+    cache: Any = None,
+) -> tuple[int, int]:
+    """Return (loyalty_discount_amount, capped_total_discount) for purchase execution."""
+    loyalty_disc = await compute_bot_loyalty_discount(session, telegram_id, base_price, cache=cache)
+    total_disc = min(int(base_price), int(coupon_discount or 0) + loyalty_disc)
+    return loyalty_disc, total_disc
+
+
 async def _render_buy_confirm(
     bot: Bot, user, user_repo: UserRepository, session: AsyncSession,
     service, balance: int, confirm_callback: str, lang: str,
@@ -86,6 +116,8 @@ async def _render_buy_confirm(
     discount_amount: int = 0,
     account: dict | None = None,
     remnawave: RemnawaveClient | None = None,
+    cache: Any = None,
+    loyalty_discount_amount: int | None = None,
 ) -> None:
     is_extra_traffic = (service.duration_days == 0 and service.traffic_gb > 0) or (getattr(service, "badge", None) == "traffic")
     is_extra_time = (service.traffic_gb == 0 and service.duration_days > 0) or (getattr(service, "badge", None) == "time")
@@ -114,7 +146,13 @@ async def _render_buy_confirm(
         and (not acc_squad_uuids or str(service.squad_uuid).strip().lower() not in acc_squad_uuids)
     )
 
-    effective_price, discount_amount = calc_price(service.price, discount_amount)
+    if loyalty_discount_amount is None:
+        loyalty_discount_amount = await compute_bot_loyalty_discount(
+            session, user.telegram_id, service.price, cache=cache
+        )
+    coupon_discount = max(0, min(int(service.price), int(discount_amount or 0)))
+    total_discount = min(int(service.price), coupon_discount + int(loyalty_discount_amount or 0))
+    effective_price, _ = calc_price(service.price, total_discount)
     kb = InlineKeyboardBuilder()
 
     if balance >= effective_price:
@@ -160,7 +198,14 @@ async def _render_buy_confirm(
             )
 
     price_lines = receipt_price_lines(
-        lang, service.price, effective_price, discount_amount, coupon_code, t(lang, "svc_currency"), is_confirm_card=True
+        lang,
+        service.price,
+        effective_price,
+        coupon_discount,
+        coupon_code,
+        t(lang, "svc_currency"),
+        is_confirm_card=True,
+        loyalty_discount_amount=loyalty_discount_amount,
     )
 
     if balance < effective_price:
@@ -195,6 +240,7 @@ async def _render_purchase_result(
     result, service, lang: str,
     coupon_code: str | None = None,
     discount_amount: int = 0,
+    loyalty_discount_amount: int = 0,
 ) -> None:
     if result.kind == "success":
         await user_repo.set_verified(user)
@@ -267,10 +313,17 @@ async def _render_purchase_result(
             f"🌐 {t(lang, 'receipt_traffic')} : <b>{traf_text}</b>",
         ])
 
-        effective_price, discount_amount = calc_price(service.price, discount_amount)
+        total_discount = min(int(service.price), int(discount_amount or 0) + int(loyalty_discount_amount or 0))
+        effective_price, _ = calc_price(service.price, total_discount)
         receipt_lines.extend(
             receipt_price_lines(
-                lang, service.price, effective_price, discount_amount, coupon_code, t(lang, "svc_currency")
+                lang,
+                service.price,
+                effective_price,
+                discount_amount,
+                coupon_code,
+                t(lang, "svc_currency"),
+                loyalty_discount_amount=loyalty_discount_amount,
             )
         )
         receipt_lines.append(
@@ -391,8 +444,10 @@ async def finalize_purchase(
     state: FSMContext,
     coupon_code: str | None = None,
     discount_amount: int = 0,
+    loyalty_discount_amount: int = 0,
     full_name: str | None = None,
     lang: str = "fa",
+    cache: Any = None,
 ) -> None:
     """Unified pipeline executed after successful purchase/renewal (SSOT)."""
     if result.kind == "success":
@@ -400,6 +455,12 @@ async def finalize_purchase(
             session, coupon_code, user.telegram_id, result.order_id, discount_amount
         )
         await session.commit()
+        if cache and hasattr(cache, "delete"):
+            if hasattr(cache, "invalidate_user"):
+                await cache.invalidate_user(user.telegram_id)
+            else:
+                await cache.delete(f"tma:user:{user.telegram_id}")
+            await cache.delete(f"loyalty:user:v2:{user.telegram_id}")
         await _maybe_reward_referrer(bot, session, remnawave, user)
         await state.clear()
         await _notify_admin(
@@ -410,6 +471,7 @@ async def finalize_purchase(
             session,
             coupon_code=coupon_code,
             discount_amount=discount_amount,
+            loyalty_discount_amount=loyalty_discount_amount,
             full_name=full_name,
         )
     await _render_purchase_result(
@@ -422,4 +484,5 @@ async def finalize_purchase(
         lang,
         coupon_code=coupon_code,
         discount_amount=discount_amount,
+        loyalty_discount_amount=loyalty_discount_amount,
     )

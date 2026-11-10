@@ -68,13 +68,17 @@ async def process_auto_renewals(
 
                 # Each renewal attempt runs in its own session to guarantee safe transaction boundary
                 async with session_factory() as session:
-                    # Find plan specifically for this panel account (fallback to user's last base plan)
+                    from bot.db.models import Service
+                    # Find full base plan (skip traffic-only or time-only add-ons) for this panel account
                     stmt = (
                         select(Order)
+                        .join(Service, Order.service_id == Service.id)
                         .where(
                             Order.telegram_id == tid,
                             Order.status == "paid",
                             Order.duration_days > 0,
+                            Order.traffic_gb > 0,
+                            (Service.badge.is_(None)) | (Service.badge != "time"),
                         )
                     )
                     acc_id_int = int(acc_id) if (acc_id and str(acc_id).isdigit()) else None
@@ -85,10 +89,13 @@ async def process_auto_renewals(
                         # Fallback to user's general last paid base order
                         gen_stmt = (
                             select(Order)
+                            .join(Service, Order.service_id == Service.id)
                             .where(
                                 Order.telegram_id == tid,
                                 Order.status == "paid",
                                 Order.duration_days > 0,
+                                Order.traffic_gb > 0,
+                                (Service.badge.is_(None)) | (Service.badge != "time"),
                             )
                             .order_by(Order.id.desc())
                             .limit(1)
@@ -116,18 +123,23 @@ async def process_auto_renewals(
                                     pass
                         continue
 
+                    from bot.services.loyalty import apply_loyalty_discount, get_user_loyalty
+                    loyalty = await get_user_loyalty(session, tid, cache=cache)
+                    loyalty_pct = loyalty.get("discount_percent", 0)
+                    loyalty_disc_amt, final_price = apply_loyalty_discount(service.price, loyalty_pct)
+
                     wallet_repo = WalletRepository(session)
                     wallet = await wallet_repo.get_wallet(tid)
                     balance = wallet.balance if wallet else 0
 
-                    if balance >= service.price:
+                    if balance >= final_price:
                         pur_res = await execute_purchase(
                             remnawave=remnawave,
                             session=session,
                             service=service,
                             telegram_id=tid,
                             chosen_account=acc,
-                            discount_amount=0,
+                            discount_amount=loyalty_disc_amt,
                             bot=bot,
                             session_factory=session_factory,
                             cache=cache,
@@ -143,12 +155,35 @@ async def process_auto_renewals(
                                         tid,
                                         f"🔄 <b>تمدید خودکار اشتراک شما با موفقیت انجام شد!</b>\n\n"
                                         f"📦 پلن: <b>{service.name}</b>\n"
-                                        f"💳 مبلغ پرداختی: <b>{service.price:,} تومان</b>\n"
+                                        f"💳 مبلغ پرداختی: <b>{final_price:,} تومان</b>\n"
                                         f"👛 موجودی باقیمانده: <b>{pur_res.new_balance:,} تومان</b>\n\n"
                                         f"از همراهی و اعتماد شما سپاسگزاریم.",
                                     )
                                 except Exception:
                                     pass
+                                if bot:
+                                    try:
+                                        from types import SimpleNamespace
+
+                                        from bot.services.purchases import notify_admin
+
+                                        db_user = (
+                                            await session.execute(select(User).where(User.telegram_id == tid))
+                                        ).scalar_one_or_none()
+                                        user_obj = db_user or SimpleNamespace(
+                                            telegram_id=tid, username=None, full_name=None
+                                        )
+                                        await notify_admin(
+                                            bot,
+                                            user_obj,
+                                            service,
+                                            pur_res,
+                                            session,
+                                            loyalty_discount_amount=loyalty_disc_amt,
+                                            full_name=getattr(user_obj, "full_name", None),
+                                        )
+                                    except Exception:
+                                        pass
                         else:
                             await session.rollback()
                     else:
@@ -157,7 +192,7 @@ async def process_auto_renewals(
                             await cache.set(dedup_key, "1", ttl_seconds=43200)
                         if bot:
                             try:
-                                shortage = service.price - balance
+                                shortage = final_price - balance
                                 await bot.send_message(
                                     tid,
                                     f"⚠️ <b>هشدار تمدید خودکار اشتراک</b>\n\n"

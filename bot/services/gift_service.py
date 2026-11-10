@@ -4,13 +4,13 @@ from __future__ import annotations
 import logging
 import secrets
 from datetime import datetime, timezone
+from html import escape
 from typing import Any
 
-from sqlalchemy import func, select, text
+from sqlalchemy import func, select, text, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from bot.db.models import GiftCard, Service, User, Wallet
-from bot.services.loyalty import apply_loyalty_discount, get_user_loyalty
 
 logger = logging.getLogger(__name__)
 
@@ -60,13 +60,11 @@ async def create_gift(
         service_obj = srv_res.scalar_one_or_none()
         if not service_obj:
             return {"ok": False, "message": "سرویس مورد نظر یافت نشد یا غیرفعال است."}
+        if service_obj.max_purchases and (service_obj.purchases_count or 0) >= service_obj.max_purchases:
+            return {"ok": False, "message": "سقف فروش این سرویس تکمیل شده است."}
         service_name = service_obj.name
-        
-        # Apply sender's loyalty discount
-        loyalty = await get_user_loyalty(session, sender_telegram_id, cache=cache)
-        discount_pct = loyalty.get("discount_percent", 0)
-        _, final_cost = apply_loyalty_discount(service_obj.price, discount_pct)
-        cost_to_charge = final_cost
+        # Charge full retail price on gifts to prevent VIP loyalty discount arbitrage across accounts.
+        cost_to_charge = int(service_obj.price)
 
     # 1. Atomic Balance Check & Deduction
     row = await session.execute(
@@ -138,14 +136,19 @@ async def create_gift(
             kb = InlineKeyboardBuilder()
             kb.button(text="🎁 دریافت و باز کردن هدیه", url=share_url)
             
-            gift_title = f"{amount:,} تومان اعتبار" if gift_type == "BALANCE" else f"اشتراک «{service_name}»"
+            gift_title = (
+                f"{amount:,} تومان اعتبار"
+                if gift_type == "BALANCE"
+                else f"اشتراک «{escape(str(service_name or ''))}»"
+            )
+            safe_sender = escape(str(sender_name or "دوست شما"))
             msg_text = (
                 f"🎁 <b>یک هدیه ویژه برای شما ارسال شد!</b>\n\n"
-                f"👤 از طرف: <b>{sender_name or 'دوست شما'}</b>\n"
+                f"👤 از طرف: <b>{safe_sender}</b>\n"
                 f"📦 هدیه: <b>{gift_title}</b>\n"
             )
             if message:
-                msg_text += f"💌 پیام همراه: <i>«{message}»</i>\n"
+                msg_text += f"💌 پیام همراه: <i>«{escape(str(message))}»</i>\n"
             msg_text += "\nبرای دریافت و فعال‌سازی روی دکمه زیر بزنید:"
 
             await bot.send_message(
@@ -205,36 +208,49 @@ async def claim_gift(
     if sender_id == claimer_telegram_id:
         return {"ok": False, "message": "شما نمی‌توانید هدیه‌ای که خودتان ساخته‌اید را تحویل بگیرید."}
 
+    orig_receiver_id = gift.receiver_telegram_id
+    now_utc = datetime.now(timezone.utc)
+
+    # Atomically claim the gift record BEFORE external panel calls / cross-session execution
+    claim_res = await session.execute(
+        update(GiftCard)
+        .where(GiftCard.id == gift.id, GiftCard.is_claimed.is_(False))
+        .values(
+            is_claimed=True,
+            claimed_at=now_utc,
+            receiver_telegram_id=claimer_telegram_id,
+        )
+    )
+    if (claim_res.rowcount or 0) != 1:
+        return {"ok": False, "message": "این کارت هدیه قبلاً استفاده شده است."}
+
+    sub_url = None
+
     # 1. Apply Reward
     if gift.gift_type == "BALANCE":
-        # Charge claimer wallet
-        wallet_res = await session.execute(
-            select(Wallet).where(Wallet.telegram_id == claimer_telegram_id).with_for_update()
-        )
-        wallet = wallet_res.scalar_one_or_none()
-        if not wallet:
-            wallet = Wallet(telegram_id=claimer_telegram_id, balance=0)
-            session.add(wallet)
-        wallet.balance += gift.amount
+        from bot.db.repositories.wallet_repo import WalletRepository
+        await WalletRepository(session).add_balance_atomic(claimer_telegram_id, gift.amount)
+        await session.commit()
 
     elif gift.gift_type == "SERVICE":
-        # Provision service for claimer
         service = None
         if gift.service_id:
             s_res = await session.execute(select(Service).where(Service.id == gift.service_id))
             service = s_res.scalar_one_or_none()
-        
-        if not service:
-            # Fallback to credit wallet with the amount if service was deleted
-            wallet_res = await session.execute(
-                select(Wallet).where(Wallet.telegram_id == claimer_telegram_id).with_for_update()
-            )
-            wallet = wallet_res.scalar_one_or_none()
-            if not wallet:
-                wallet = Wallet(telegram_id=claimer_telegram_id, balance=0)
-                session.add(wallet)
-            wallet.balance += gift.amount
+
+        service_unavailable = (
+            not service
+            or not service.is_active
+            or bool(service.max_purchases and (service.purchases_count or 0) >= service.max_purchases)
+        )
+        if service_unavailable:
+            # Permanent unavailability -> convert gift to equivalent wallet credit once
+            from bot.db.repositories.wallet_repo import WalletRepository
+            await WalletRepository(session).add_balance_atomic(claimer_telegram_id, gift.amount)
+            await session.commit()
         else:
+            # Persist claim lock immediately so another session/worker cannot claim concurrently
+            await session.commit()
             from bot.services.purchases import execute_purchase
             purchase_res = None
             try:
@@ -247,7 +263,7 @@ async def claim_gift(
                             service=p_service or service,
                             telegram_id=claimer_telegram_id,
                             create_new=True,
-                            discount_amount=service.price,
+                            discount_amount=(p_service.price if p_service else service.price),
                             bot=bot,
                             session_factory=session_factory,
                         )
@@ -267,39 +283,42 @@ async def claim_gift(
                 purchase_res = None
 
             if not purchase_res or not purchase_res.ok:
-                # If panel call fails, credit balance instead so user doesn't lose the gift
-                wallet_res = await session.execute(
-                    select(Wallet).where(Wallet.telegram_id == claimer_telegram_id).with_for_update()
+                # Revert claim cleanly on transient/panel failure instead of converting downtime into cash
+                await session.execute(
+                    update(GiftCard)
+                    .where(GiftCard.id == gift.id)
+                    .values(
+                        is_claimed=False,
+                        claimed_at=None,
+                        receiver_telegram_id=orig_receiver_id,
+                    )
                 )
-                wallet = wallet_res.scalar_one_or_none()
-                if not wallet:
-                    wallet = Wallet(telegram_id=claimer_telegram_id, balance=0)
-                    session.add(wallet)
-                wallet.balance += gift.amount
-
-    # 2. Mark claimed and finalize transaction atomically AFTER reward is guaranteed
-    gift.is_claimed = True
-    gift.claimed_at = datetime.now(timezone.utc)
-    gift.receiver_telegram_id = claimer_telegram_id
-    await session.commit()
+                await session.commit()
+                return {
+                    "ok": False,
+                    "message": "در حال حاضر امکان فعال‌سازی اشتراک هدیه وجود ندارد. کارت هدیه شما محفوظ است؛ لطفاً دقایقی دیگر مجدداً تلاش کنید.",
+                }
+            sub_url = getattr(purchase_res, "subscription_url", None)
+            await session.commit()
 
     # 3. Notify Sender
     if bot and sender_id:
         try:
-            claimer_name = f"@{claimer_username}" if claimer_username else f"شناسه {claimer_telegram_id}"
+            claimer_label = f"@{claimer_username}" if claimer_username else f"شناسه {claimer_telegram_id}"
             notify_text = (
                 f"🎉 <b>هدیه ارسالی شما تحویل گرفته شد!</b>\n\n"
-                f"دوست شما <b>{claimer_name}</b> کارت هدیه شما را دریافت و فعال کرد.\n"
+                f"دوست شما <b>{escape(claimer_label)}</b> کارت هدیه شما را دریافت و فعال کرد.\n"
                 f"از همراهی و مهر شما در خانواده ما سپاسگزاریم. ❤️"
             )
             await bot.send_message(chat_id=sender_id, text=notify_text, parse_mode="HTML")
         except Exception as notify_err:
             logger.debug("Failed notifying gift sender %s: %s", sender_id, notify_err)
 
-    gift_title = f"{gift.amount:,} تومان اعتبار کیف‌پول" if gift.gift_type == "BALANCE" else f"اشتراک «{gift.service_name}»"
-    sub_url = None
-    if gift.gift_type == "SERVICE" and "purchase_res" in locals() and purchase_res and getattr(purchase_res, "ok", False):
-        sub_url = getattr(purchase_res, "subscription_url", None)
+    gift_title = (
+        f"{gift.amount:,} تومان اعتبار کیف‌پول"
+        if gift.gift_type == "BALANCE"
+        else f"اشتراک «{escape(str(gift.service_name or ''))}»"
+    )
 
     return {
         "ok": True,
@@ -338,11 +357,17 @@ async def get_user_gifts(
             except Exception:
                 created_at_jalali = g.created_at.strftime("%Y/%m/%d")
 
+        gift_desc = (
+            f"{g.amount:,} تومان اعتبار"
+            if g.gift_type == "BALANCE"
+            else f"اشتراک {g.service_name or ''}".strip()
+        )
         return {
             "id": g.id,
             "code": g.code,
             "share_url": share_url,
             "gift_type": g.gift_type,
+            "gift_desc": gift_desc,
             "amount": g.amount,
             "service_name": g.service_name,
             "sender_name": g.sender_name,
@@ -360,3 +385,49 @@ async def get_user_gifts(
         "sent": [_fmt(g) for g in sent_items],
         "received": [_fmt(g) for g in received_items],
     }
+
+
+async def redeem_code_to_wallet(
+    session: AsyncSession,
+    code: str,
+    telegram_id: int,
+    username: str | None = None,
+    remnawave: Any = None,
+    bot: Any = None,
+    session_factory: Any = None,
+) -> dict[str, Any]:
+    """Unified SSOT helper to redeem either a credit voucher coupon or a friend GiftCard."""
+    from bot.db.repositories.coupon_repo import CouponRepository
+
+    clean_code = code.strip().upper()
+    if clean_code.startswith("GIFT-"):
+        return await claim_gift(
+            session=session,
+            code=clean_code,
+            claimer_telegram_id=telegram_id,
+            claimer_username=username,
+            remnawave=remnawave,
+            bot=bot,
+            session_factory=session_factory,
+        )
+
+    coupon_repo = CouponRepository(session)
+    ok, amount, msg = await coupon_repo.redeem_credit_voucher(clean_code, telegram_id)
+    if ok:
+        await session.commit()
+        return {"ok": True, "amount": amount, "message": msg}
+
+    # Check if the code belongs to a GiftCard without standard GIFT- prefix
+    gift_exists = await session.execute(select(GiftCard.id).where(GiftCard.code == clean_code))
+    if gift_exists.scalar_one_or_none() is not None:
+        return await claim_gift(
+            session=session,
+            code=clean_code,
+            claimer_telegram_id=telegram_id,
+            claimer_username=username,
+            remnawave=remnawave,
+            bot=bot,
+            session_factory=session_factory,
+        )
+
+    return {"ok": False, "amount": 0, "message": msg}

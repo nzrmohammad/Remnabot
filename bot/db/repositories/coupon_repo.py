@@ -22,12 +22,16 @@ class CouponRepository:
         discount_amount: int = 0,
         max_uses: int = 0,
         expires_at: datetime | None = None,
+        kind: str = "discount",
+        bound_telegram_id: int | None = None,
     ) -> Coupon:
         coupon = Coupon(
             code=code.strip().upper(),
-            discount_percent=discount_percent,
-            discount_amount=discount_amount,
-            max_uses=max_uses,
+            kind=kind,
+            bound_telegram_id=bound_telegram_id,
+            discount_percent=discount_percent or 0,
+            discount_amount=discount_amount or 0,
+            max_uses=max_uses or 0,
             expires_at=expires_at,
             is_active=True,
         )
@@ -107,6 +111,16 @@ class CouponRepository:
             coupon_obj = await self.get_by_id(coupon)
 
         code_str = getattr(coupon_obj, "code", None) or (coupon if isinstance(coupon, (str, int)) else "unknown")
+        if coupon_obj:
+            if getattr(coupon_obj, "kind", "discount") == "voucher":
+                return None
+            bound_tid = getattr(coupon_obj, "bound_telegram_id", None)
+            if bound_tid is not None and int(bound_tid) != int(telegram_id):
+                logger.warning(
+                    "Coupon %s ownership mismatch: bound=%s caller=%s",
+                    code_str, bound_tid, telegram_id,
+                )
+                return None
         try:
             async with self.session.begin_nested():
                 if coupon_obj:
@@ -187,6 +201,11 @@ class CouponRepository:
         coupon = await self.get_by_code(code)
         if coupon is None:
             return False, "coupon_not_found", 0
+        if getattr(coupon, "kind", "discount") == "voucher":
+            return False, "coupon_is_voucher", 0
+        bound_tid = getattr(coupon, "bound_telegram_id", None)
+        if bound_tid is not None and int(bound_tid) != int(telegram_id):
+            return False, "coupon_not_yours", 0
         if not coupon.is_active:
             return False, "coupon_inactive", 0
         if coupon.expires_at:
@@ -199,10 +218,12 @@ class CouponRepository:
             return False, "coupon_already_used", 0
 
         # Calculate discount amount
-        if coupon.discount_percent and coupon.discount_percent > 0:
-            discount = int(price * coupon.discount_percent / 100) if price > 0 else 0
+        pct = max(0, min(100, int(coupon.discount_percent or 0)))
+        amt = max(0, int(coupon.discount_amount or 0))
+        if pct > 0:
+            discount = int(price * pct / 100) if price > 0 else 0
         else:
-            discount = coupon.discount_amount or 0
+            discount = amt
         if price > 0:
             discount = min(discount, price)
 
@@ -211,7 +232,7 @@ class CouponRepository:
     async def redeem_credit_voucher(
         self, code: str, telegram_id: int
     ) -> tuple[bool, int, str]:
-        """Redeem a credit/gift coupon to the user's wallet atomically."""
+        """Redeem a credit/gift voucher to the user's wallet atomically."""
         clean_code = code.strip().upper()
         stmt = select(Coupon).where(Coupon.code == clean_code)
         bind = self.session.get_bind()
@@ -221,6 +242,11 @@ class CouponRepository:
         coupon = res.scalar_one_or_none()
         if not coupon:
             return False, 0, "کد شارژ وارد شده نامعتبر است."
+        if getattr(coupon, "kind", "discount") != "voucher":
+            return False, 0, "این کد مربوط به تخفیف خرید از فروشگاه است و قابلیت شارژ مستقیم کیف‌پول ندارد."
+        bound_tid = getattr(coupon, "bound_telegram_id", None)
+        if bound_tid is not None and int(bound_tid) != int(telegram_id):
+            return False, 0, "این کد شارژ اختصاصاً برای کاربر دیگری صادر شده است."
         if not coupon.is_active:
             return False, 0, "این کد شارژ غیرفعال شده است."
         now_utc = datetime.now(timezone.utc)
@@ -234,7 +260,7 @@ class CouponRepository:
             return False, 0, "شما قبلاً از این کد شارژ استفاده کرده‌اید."
 
         credit_amount = coupon.discount_amount
-        if credit_amount <= 0:
+        if credit_amount <= 0 or (coupon.discount_percent or 0) > 0:
             return False, 0, "این کد تخفیف خرید است و اعتباری نمی‌باشد."
 
         coupon.used_count += 1
@@ -264,17 +290,20 @@ class CouponRepository:
         max_uses: int = 1,
         expires_at: datetime | None = None,
     ) -> list[str]:
-        """Generate a series of unique credit/gift coupons."""
+        """Generate a series of unique credit/gift vouchers."""
         import secrets
+        if amount <= 0:
+            return []
         generated_codes = []
         clean_prefix = (prefix.strip().upper() or "GIFT-")
         for _ in range(max(1, min(count, 500))):
             code = f"{clean_prefix}{secrets.token_hex(4).upper()}"
             coupon = Coupon(
                 code=code,
+                kind="voucher",
                 discount_percent=0,
                 discount_amount=amount,
-                max_uses=max_uses,
+                max_uses=max(1, max_uses),
                 expires_at=expires_at,
                 is_active=True,
             )

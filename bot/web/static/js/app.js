@@ -490,7 +490,7 @@ function setupConfigsModal() {
             <span class="text-base block">⚠️</span>
             <div class="leading-relaxed font-medium">${escapeHtml(msg)}</div>
             <div class="pt-2 flex items-center justify-center gap-2">
-              <button type="button" id="retryConfigsBtn" class="px-3 py-1.5 rounded-xl border border-cyan-500/40 text-cyan-300 text-[11px] font-bold transition active:scale-95">
+              <button type="button" id="retryConfigsBtn" class="px-3 py-1.5 rounded-xl s-accent-soft border text-[11px] font-bold transition active:scale-95">
                 🔄 تلاش مجدد
               </button>
             </div>
@@ -504,7 +504,7 @@ function setupConfigsModal() {
           <span class="text-base block">❌</span>
           <div class="leading-relaxed">خطا در دریافت کانفیگ‌ها: ${escapeHtml(e?.message || 'ارتباط با سرور برقرار نشد')}</div>
           <div class="pt-2 flex items-center justify-center gap-2">
-            <button type="button" id="retryConfigsBtnErr" class="px-3 py-1.5 rounded-xl border border-cyan-500/40 text-cyan-300 text-[11px] font-bold transition active:scale-95">
+            <button type="button" id="retryConfigsBtnErr" class="px-3 py-1.5 rounded-xl s-accent-soft border text-[11px] font-bold transition active:scale-95">
               🔄 تلاش مجدد
             </button>
           </div>
@@ -987,7 +987,7 @@ function renderTutorialApps(osKey) {
     }
 
     const tutorialBtnHtml = app.tutorialUrl ? `
-      <button type="button" class="btn-tutorial-app bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/40 text-[11px] font-bold py-1 px-2 rounded-xl transition flex items-center justify-center gap-1 active:scale-95 shadow-sm" data-url="${escapeHtml(app.tutorialUrl)}">
+      <button type="button" class="btn-tutorial-app s-info-soft border text-[11px] font-bold py-1 px-2 rounded-xl transition flex items-center justify-center gap-1 active:scale-95 shadow-sm" data-url="${escapeHtml(app.tutorialUrl)}">
         <span>📖</span> آموزش
       </button>
     ` : '';
@@ -1406,12 +1406,12 @@ function openAlertPickerModal(type) {
       { val: 95, label: '95% — هشدار اضطراری', desc: 'آخرین فرصت پیش از قطع دسترسی اینترنت' },
     ];
     listEl.innerHTML = options.map(opt => `
-      <div onclick="window.selectAlertSetting('traffic', ${opt.val})" class="alert-picker-option cursor-pointer p-2.5 rounded-2xl border transition flex items-center justify-between ${opt.val === currentVal ? 'active-alert-opt bg-cyan-500/15 border-cyan-500/50 text-cyan-300' : 'bg-slate-900/60 border-slate-700/60 hover:border-slate-500 text-slate-300'}">
+      <div onclick="window.selectAlertSetting('traffic', ${opt.val})" class="alert-picker-option cursor-pointer p-2.5 rounded-2xl border transition flex items-center justify-between ${opt.val === currentVal ? 'active-alert-opt s-accent-soft' : 'card-inset t-main hover:border-slate-500'}">
         <div>
           <b class="text-xs block">${opt.label}</b>
-          <span class="text-[11px] text-slate-400 block mt-0.5">${opt.desc}</span>
+          <span class="text-[11px] t-muted block mt-0.5">${opt.desc}</span>
         </div>
-        <div class="w-5 h-5 rounded-full border ${opt.val === currentVal ? 'border-cyan-400 bg-cyan-500 flex items-center justify-center text-slate-950 font-bold text-xs' : 'border-slate-600'}">
+        <div class="w-5 h-5 rounded-full border ${opt.val === currentVal ? 's-accent-soft flex items-center justify-center font-bold text-xs' : 'border-card-border'}">
           ${opt.val === currentVal ? '✓' : ''}
         </div>
       </div>
@@ -1420,7 +1420,7 @@ function openAlertPickerModal(type) {
     if (titleEl) titleEl.innerText = 'تنظیم زمان هشدار پایان اعتبار سرویس';
     if (subEl) subEl.innerText = 'چند روز مانده به پایان مدت اشتراک پیام یادآوری تمدید ارسال شود؟';
     if (iconBox) {
-      iconBox.className = 'w-10 h-10 rounded-2xl bg-amber-500/20 t-warn border border-amber-500/30 flex items-center justify-center text-lg flex-shrink-0';
+      iconBox.className = 'w-10 h-10 rounded-2xl s-warn-soft border flex items-center justify-center text-lg flex-shrink-0';
       iconBox.innerHTML = '⏰';
     }
     const currentVal = parseInt($('settingExpireDaysSelect')?.value || '3', 10);
@@ -1432,12 +1432,12 @@ function openAlertPickerModal(type) {
       { val: 7, label: '7 روز قبل از پایان', desc: 'اطلاع‌رسانی یک هفته قبل از اتمام زمان سرویس' },
     ];
     listEl.innerHTML = options.map(opt => `
-      <div onclick="window.selectAlertSetting('expire', ${opt.val})" class="alert-picker-option cursor-pointer p-2.5 rounded-2xl border transition flex items-center justify-between ${opt.val === currentVal ? 'active-alert-opt bg-amber-500/15 border-amber-500/50 text-amber-300' : 'bg-slate-900/60 border-slate-700/60 hover:border-slate-500 text-slate-300'}">
+      <div onclick="window.selectAlertSetting('expire', ${opt.val})" class="alert-picker-option cursor-pointer p-2.5 rounded-2xl border transition flex items-center justify-between ${opt.val === currentVal ? 'active-alert-opt s-warn-soft' : 'card-inset t-main hover:border-slate-500'}">
         <div>
           <b class="text-xs block">${opt.label}</b>
-          <span class="text-[11px] text-slate-400 block mt-0.5">${opt.desc}</span>
+          <span class="text-[11px] t-muted block mt-0.5">${opt.desc}</span>
         </div>
-        <div class="w-5 h-5 rounded-full border ${opt.val === currentVal ? 'border-amber-400 bg-amber-500 flex items-center justify-center text-slate-950 font-bold text-xs' : 'border-slate-600'}">
+        <div class="w-5 h-5 rounded-full border ${opt.val === currentVal ? 's-warn-soft flex items-center justify-center font-bold text-xs' : 'border-card-border'}">
           ${opt.val === currentVal ? '✓' : ''}
         </div>
       </div>
@@ -1945,26 +1945,26 @@ function setupThemeToggle() {
       document.documentElement.classList.remove('theme-light');
       document.documentElement.classList.add('dark');
       if (themeIcon) themeIcon.innerText = '🌙';
-      try { if (window.Telegram?.WebApp?.setHeaderColor) window.Telegram.WebApp.setHeaderColor('#131d31'); } catch(e) {}
-      try { if (window.Telegram?.WebApp?.setBackgroundColor) window.Telegram.WebApp.setBackgroundColor('#080d1a'); } catch(e) {}
+      try { if (window.Telegram?.WebApp?.setHeaderColor) window.Telegram.WebApp.setHeaderColor('#111a2e'); } catch(e) {}
+      try { if (window.Telegram?.WebApp?.setBackgroundColor) window.Telegram.WebApp.setBackgroundColor('#0c1220'); } catch(e) {}
     } else {
       document.documentElement.classList.remove('dark');
       document.documentElement.classList.add('theme-light');
       if (themeIcon) themeIcon.innerText = '☀️';
       try { if (window.Telegram?.WebApp?.setHeaderColor) window.Telegram.WebApp.setHeaderColor('#ffffff'); } catch(e) {}
-      try { if (window.Telegram?.WebApp?.setBackgroundColor) window.Telegram.WebApp.setBackgroundColor('#f8fafc'); } catch(e) {}
+      try { if (window.Telegram?.WebApp?.setBackgroundColor) window.Telegram.WebApp.setBackgroundColor('#f1f5f9'); } catch(e) {}
     }
 
     const speedModal = $('speedTestModal');
     if (speedModal) {
-      speedModal.style.backgroundColor = isDark ? 'rgba(0, 0, 0, 0.8)' : 'rgba(15, 23, 42, 0.45)';
+      speedModal.style.backgroundColor = '';
     }
 
     const curIsLight = !isDark;
     const chartTokens = typeof getChartThemeTokens === 'function' ? getChartThemeTokens(curIsLight) : null;
-    const curTextColor = chartTokens ? chartTokens.legend : (curIsLight ? '#0f172a' : '#f8fafc');
-    const curTickColor = chartTokens ? chartTokens.tick : (curIsLight ? '#0f172a' : '#cbd5e1');
-    const curGridColor = chartTokens ? chartTokens.grid : (curIsLight ? 'rgba(148, 163, 184, 0.45)' : 'rgba(51, 65, 85, 0.3)');
+    const curTextColor = chartTokens ? chartTokens.legend : (curIsLight ? '#0f172a' : '#e2e8f0');
+    const curTickColor = chartTokens ? chartTokens.tick : (curIsLight ? '#475569' : '#94a3b8');
+    const curGridColor = chartTokens ? chartTokens.grid : (curIsLight ? 'rgba(148, 163, 184, 0.28)' : 'rgba(148, 163, 184, 0.14)');
 
     if (typeof Chart !== 'undefined') {
       Chart.defaults.color = curTickColor;
@@ -3313,45 +3313,45 @@ function hydrateUserInterface(data) {
         const updatedRaw = d.updatedAt || d.updated_at || d.lastSeen || d.lastActivity;
         const updatedDate = formatDeviceDate(updatedRaw);
         const updatedHtml = updatedDate ? `
-          <div class="flex items-center justify-between text-slate-400">
+          <div class="flex items-center justify-between t-muted">
             <span class="flex items-center gap-1"><span>🔄</span> آخرین فعالیت:</span>
-            <span class="font-sans font-medium text-slate-200 num-bidi" dir="ltr">${updatedDate}</span>
+            <span class="font-sans font-medium t-main num-bidi" dir="ltr">${updatedDate}</span>
           </div>
         ` : '';
 
         const addedRaw = d.createdAt || d.created_at || d.addedAt;
         const addedDate = formatDeviceDate(addedRaw);
         const addedHtml = addedDate ? `
-          <div class="flex items-center justify-between text-slate-400">
+          <div class="flex items-center justify-between t-muted">
             <span class="flex items-center gap-1"><span>📅</span> زمان ثبت:</span>
-            <span class="font-sans font-medium text-slate-300 num-bidi" dir="ltr">${addedDate}</span>
+            <span class="font-sans font-medium t-muted num-bidi" dir="ltr">${addedDate}</span>
           </div>
         ` : '';
 
         return `
-          <div class="card-inset rounded-2xl p-3 border border-slate-700/60 space-y-2 text-xs">
+          <div class="card-inset rounded-2xl p-3 border border-card-border space-y-2 text-xs">
             <div class="flex items-center justify-between gap-2">
               <div class="flex items-center gap-2.5 min-w-0 flex-1">
                 <span class="text-2xl shrink-0">${icon}</span>
                 <div class="min-w-0 flex-1">
                   <div class="flex items-center gap-1.5 flex-wrap">
-                    <span class="text-xs font-bold text-slate-200 truncate">${escapeHtml(model)}</span>
-                    <span class="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-500 bg-emerald-500/10 px-1.5 py-0.5 rounded-full border border-emerald-500/20">
-                      <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                    <span class="text-xs font-bold t-main truncate">${escapeHtml(model)}</span>
+                    <span class="badge badge-success rounded-full text-[10px] px-1.5 py-0.5">
+                      <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
                       <span>فعال</span>
                     </span>
                   </div>
                   ${uaHtml}
                 </div>
               </div>
-              <button class="kill-device-btn t-danger hover:text-rose-300 w-8 h-8 rounded-xl bg-transparent hover:bg-rose-950/30 border border-rose-800/40 text-xs transition active:scale-95 flex items-center justify-center shrink-0 cursor-pointer" title="قطع این دستگاه" data-hwid="${escapeHtml(hwid)}" data-model="${escapeHtml(model)}" data-ip="${escapeHtml(ip)}">
-                <svg class="w-4 h-4 t-danger hover:text-rose-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+              <button class="kill-device-btn s-danger-soft hover:opacity-85 w-8 h-8 rounded-xl border text-xs transition active:scale-95 flex items-center justify-center shrink-0 cursor-pointer" title="قطع این دستگاه" data-hwid="${escapeHtml(hwid)}" data-model="${escapeHtml(model)}" data-ip="${escapeHtml(ip)}">
+                <svg class="w-4 h-4 t-danger" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
               </button>
             </div>
 
             <!-- Device Meta: IP, Updated, Added -->
-            <div class="pt-1.5 border-t border-slate-700/40 text-[11px] font-sans space-y-1">
-              <div class="flex items-center justify-between text-slate-400">
+            <div class="pt-1.5 border-t border-card-border text-[11px] font-sans space-y-1">
+              <div class="flex items-center justify-between t-muted">
                 <span class="flex items-center gap-1"><span>🌐</span> آی‌پی:</span>
                 <span class="font-sans font-bold t-accent num-bidi" dir="ltr">${escapeHtml(ip)}</span>
               </div>
@@ -4395,7 +4395,8 @@ function renderGiftServiceSelectModalList() {
 
   container.innerHTML = plans.map(p => {
     const isSelected = _giftSelectedService && _giftSelectedService.id === p.id;
-    const priceStr = Number(p.price || 0).toLocaleString('en-US');
+    const baseGiftPrice = Number(p.original_price ?? p.price ?? 0);
+    const priceStr = baseGiftPrice.toLocaleString('en-US');
     const durStr = p.duration_days > 0 ? `${p.duration_days} روز` : 'نامحدود';
     const trafStr = p.traffic_gb > 0 ? fmtTraffic(p.traffic_gb, { html: false }) : 'نامحدود';
 
@@ -4409,7 +4410,7 @@ function renderGiftServiceSelectModalList() {
           </div>
         </div>
         <div class="text-left font-sans num-bidi shrink-0 pl-1">
-          <span class="text-xs font-black text-pink-600 dark:t-pink block">${priceStr}</span>
+          <span class="text-xs font-black t-pink block">${priceStr}</span>
           <span class="text-[11px] t-muted font-sans block">تومان</span>
         </div>
       </div>
@@ -4431,7 +4432,8 @@ function selectGiftService(serviceId) {
   if (specsEl) {
     const durStr = chosen.duration_days > 0 ? `${chosen.duration_days} روز` : 'نامحدود';
     const trafStr = chosen.traffic_gb > 0 ? fmtTraffic(chosen.traffic_gb, { html: false }) : 'نامحدود';
-    specsEl.innerText = `${trafStr} | ${durStr} (${Number(chosen.price).toLocaleString('en-US')} تومان)`;
+    const giftPrice = Number(chosen.original_price ?? chosen.price ?? 0);
+    specsEl.innerText = `${trafStr} | ${durStr} (${giftPrice.toLocaleString('en-US')} تومان)`;
   }
   if (hiddenInp) hiddenInp.value = chosen.id;
 
@@ -4503,7 +4505,7 @@ function updateGiftCostDisplay() {
   if (currentGiftType === 'BALANCE') {
     cost = Math.max(0, Number($('giftBalanceAmount')?.value || 0));
   } else {
-    cost = Math.max(0, Number(_giftSelectedService?.price || 0));
+    cost = Math.max(0, Number(_giftSelectedService?.original_price ?? _giftSelectedService?.price ?? 0));
   }
   const costEl = $('giftCostDisplay');
   if (costEl) costEl.innerText = Number(cost).toLocaleString('en-US');

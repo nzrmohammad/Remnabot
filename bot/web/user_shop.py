@@ -1,4 +1,4 @@
-from bot.web.user_common import db_session, require_user
+from bot.web.user_common import db_session, enforce_invite_only, require_user
 
 """TMA User Shop, Purchase, Subscriptions, Devices, and Lucky Wheel endpoints."""
 import json
@@ -58,13 +58,18 @@ async def post_user_spin(request: web.Request) -> web.Response:
             )
 
     try:
-        return await _do_user_spin(request, telegram_id, cache)
+        return await _do_user_spin(request, telegram_id, cache, user_auth=user_auth)
     finally:
         if hasattr(cache, "delete"):
             await cache.delete(spin_lock_key)
 
 
-async def _do_user_spin(request: web.Request, telegram_id: int, cache: FastCache) -> web.Response:
+async def _do_user_spin(
+    request: web.Request,
+    telegram_id: int,
+    cache: FastCache,
+    user_auth: dict | None = None,
+) -> web.Response:
     from bot.services.wheel_service import execute_lucky_wheel_spin
 
     body = {}
@@ -80,6 +85,10 @@ async def _do_user_spin(request: web.Request, telegram_id: int, cache: FastCache
     bot = request.app.get("bot")
 
     async with db_session(request) as session:
+        inv_err = await enforce_invite_only(session, telegram_id, user_auth or {}, remnawave=remnawave)
+        if inv_err:
+            return inv_err
+
         result = await execute_lucky_wheel_spin(
             session=session,
             remnawave=remnawave,
@@ -279,6 +288,8 @@ async def post_user_validate_coupon(request: web.Request) -> web.Response:
                 "coupon_expired": "مهلت استفاده از این کد تخفیف به پایان رسیده است.",
                 "coupon_limit_reached": "ظرفیت استفاده از این کد تخفیف تکمیل شده است.",
                 "coupon_already_used": "شما قبلاً از این کد تخفیف استفاده کرده‌اید.",
+                "coupon_is_voucher": "این کد یک کارت شارژ است و باید در بخش شارژ کیف‌پول استفاده شود.",
+                "coupon_not_yours": "این کد تخفیف اختصاصاً برای کاربر دیگری صادر شده است.",
             }
             msg = err_map.get(err_key, "کد تخفیف نامعتبر است.")
             return web.json_response({"ok": False, "message": msg}, status=400)
@@ -319,6 +330,10 @@ async def post_user_purchase(request: web.Request) -> web.Response:
     cache: FastCache = request.app["cache"]
 
     async with db_session(request) as session:
+        inv_err = await enforce_invite_only(session, telegram_id, user_auth, remnawave=remnawave)
+        if inv_err:
+            return inv_err
+
         service = await session.get(Service, int(service_id))
         if not service or not service.is_active or (service.max_purchases and (service.purchases_count or 0) >= service.max_purchases):
             return web.json_response({"ok": False, "message": "بسته مورد نظر یافت نشد، منقضی شده یا سقف فروش آن تکمیل شده است."}, status=404)
@@ -513,6 +528,10 @@ async def post_user_create_gift(request: web.Request) -> web.Response:
     cache = request.app.get("cache")
 
     async with db_session(request) as session:
+        inv_err = await enforce_invite_only(session, telegram_id, user_auth, remnawave=request.app.get("remnawave"))
+        if inv_err:
+            return inv_err
+
         sender_full_name = user_auth.get("first_name", "")
         if user_auth.get("last_name"):
             sender_full_name += f" {user_auth.get('last_name')}"
@@ -725,20 +744,29 @@ async def post_user_custom_plan_purchase(request: web.Request) -> web.Response:
     cache = request.app.get("cache")
 
     async with db_session(request) as session:
+        inv_err = await enforce_invite_only(session, telegram_id, user_auth, remnawave=remnawave)
+        if inv_err:
+            return inv_err
+
         store_settings = await get_store_settings(session)
         if not store_settings.custom_plan_enabled:
             return web.json_response({"ok": False, "message": "طراحی بسته اختصاصی در حال حاضر غیرفعال است."}, status=400)
 
-        if traffic_gb < store_settings.custom_plan_min_gb or traffic_gb > store_settings.custom_plan_max_gb:
+        min_gb = max(1, int(store_settings.custom_plan_min_gb or 1))
+        max_gb = max(min_gb, int(store_settings.custom_plan_max_gb or min_gb))
+        min_days = max(1, int(store_settings.custom_plan_min_days or 1))
+        max_days = max(min_days, int(store_settings.custom_plan_max_days or min_days))
+
+        if traffic_gb < min_gb or traffic_gb > max_gb:
             return web.json_response({
                 "ok": False,
-                "message": f"حجم انتخابی باید بین {store_settings.custom_plan_min_gb} تا {store_settings.custom_plan_max_gb} گیگابایت باشد."
+                "message": f"حجم انتخابی باید بین {min_gb} تا {max_gb} گیگابایت باشد."
             }, status=400)
 
-        if duration_days < store_settings.custom_plan_min_days or duration_days > store_settings.custom_plan_max_days:
+        if duration_days < min_days or duration_days > max_days:
             return web.json_response({
                 "ok": False,
-                "message": f"مدت زمان انتخابی باید بین {store_settings.custom_plan_min_days} تا {store_settings.custom_plan_max_days} روز باشد."
+                "message": f"مدت زمان انتخابی باید بین {min_days} تا {max_days} روز باشد."
             }, status=400)
 
         if (
@@ -933,7 +961,7 @@ async def post_user_custom_plan_purchase(request: web.Request) -> web.Response:
                         user_full_name += f" {user_auth.get('last_name')}"
                     await _notify_admin(
                         bot, db_user, custom_svc, result, session,
-                        discount_amount=disc_amt,
+                        discount_amount=0,
                         loyalty_discount_amount=disc_amt,
                         full_name=user_full_name or None,
                     )

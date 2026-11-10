@@ -3,13 +3,13 @@ from typing import Any
 
 from aiohttp import web
 
-from bot.web.auth import get_authenticated_user, get_client_ip, require_auth
+from bot.web.auth import get_authenticated_user, get_client_ip, require_auth, resolve_cached_auth
 from bot.web.db import db_session
 
 
 def _check_user(request: web.Request) -> dict[str, Any] | None:
-    """Validate user authorization for TMA requests."""
-    return request.get("user") or get_authenticated_user(request)
+    """Validate user authorization for TMA requests (reusing cached middleware auth)."""
+    return resolve_cached_auth(request, get_authenticated_user)
 
 
 def require_user(request: web.Request) -> tuple[dict[str, Any] | None, web.Response | None]:
@@ -38,4 +38,70 @@ def require_user(request: web.Request) -> tuple[dict[str, Any] | None, web.Respo
     return user, None
 
 
-__all__ = ["_check_user", "require_user", "require_auth", "get_client_ip", "db_session"]
+def is_user_invited(db_user: Any, panel_users: list | None = None) -> bool:
+    """Return True if an existing user is admitted under invite-only mode."""
+    if db_user is not None and (
+        getattr(db_user, "referred_by_id", None)
+        or getattr(db_user, "campaign_code", None)
+        or getattr(db_user, "is_verified", False)
+    ):
+        return True
+    if panel_users:
+        return any(str(u.get("status") or "").upper() != "DELETED" for u in panel_users)
+    return False
+
+
+async def enforce_invite_only(
+    session: Any,
+    telegram_id: int,
+    user_auth: dict[str, Any],
+    remnawave: Any = None,
+    store: Any = None,
+) -> web.Response | None:
+    """Block uninvited users on mutating TMA actions when access_mode == 'invite_only'."""
+    from sqlalchemy.ext.asyncio import AsyncSession
+
+    if user_auth.get("is_admin", False):
+        return None
+    if not isinstance(session, AsyncSession):
+        return None
+
+    from bot.db.repositories.user_repo import UserRepository
+    from bot.services.app_settings import get_store_settings
+
+    if store is None:
+        store = await get_store_settings(session)
+    if getattr(store, "access_mode", "open") != "invite_only":
+        return None
+
+    db_user = await UserRepository(session).get_by_telegram_id(telegram_id)
+    if is_user_invited(db_user):
+        return None
+
+    if remnawave is not None:
+        try:
+            panel_users = await remnawave.get_users_by_telegram_id(telegram_id)
+            if is_user_invited(db_user, panel_users):
+                return None
+        except Exception:
+            pass
+
+    return web.json_response(
+        {
+            "ok": False,
+            "error": "invite_only",
+            "message": "عضویت در این سرویس فقط با لینک دعوت معتبر امکان‌پذیر است.",
+        },
+        status=403,
+    )
+
+
+__all__ = [
+    "_check_user",
+    "require_user",
+    "require_auth",
+    "get_client_ip",
+    "db_session",
+    "is_user_invited",
+    "enforce_invite_only",
+]

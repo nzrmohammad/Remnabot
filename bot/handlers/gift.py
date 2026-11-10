@@ -18,7 +18,6 @@ from bot.db.repositories.wallet_repo import WalletRepository
 from bot.locales.texts import t
 from bot.services.formatting import format_datetime
 from bot.services.gift_service import create_gift, get_user_gifts
-from bot.services.loyalty import apply_loyalty_discount, get_user_loyalty
 from bot.services.menu import render_menu
 from bot.states.gift import GiftStates
 from bot.web.cache import FastCache
@@ -447,17 +446,12 @@ async def _build_checkout_payload(user, session, data, cache, lang):
         cost = int(data.get("amount", 0) or 0)
         gift_desc = f"<b>{fmt(cost)} تومان</b> اعتبار کیف پول"
     else:
-        svc_price = int(data.get("service_price", 0) or 0)
-        # Apply sender loyalty discount
-        loyalty = await get_user_loyalty(session, user.telegram_id, cache=cache)
-        discount_pct = loyalty.get("discount_percent", 0)
-        _, cost = apply_loyalty_discount(svc_price, discount_pct)
+        cost = int(data.get("service_price", 0) or 0)
         svc_name = escape(str(data.get("service_name", "")))
-        loyalty_info = f" (با {discount_pct}٪ تخفیف وفاداری)" if discount_pct > 0 else ""
-        gift_desc = f"اشتراک <b>{svc_name}</b>{loyalty_info}"
+        gift_desc = f"اشتراک <b>{svc_name}</b>"
 
     delivery_desc = (
-        f"ارسال مستقیم به \u200e{target}\u200e" if (delivery_type == "DIRECT" and target) else "لینک و کد عمومی هدیه"
+        f"ارسال مستقیم به \u200e{escape(str(target))}\u200e" if (delivery_type == "DIRECT" and target) else "لینک و کد عمومی هدیه"
     )
 
     lines = [

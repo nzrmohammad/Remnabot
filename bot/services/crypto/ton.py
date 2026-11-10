@@ -108,9 +108,20 @@ async def verify_and_credit_ton_invoice(
         w = await WalletRepository(session).get_wallet(inv.telegram_id)
         return True, (w.balance if w else 0), getattr(inv, "tx_hash", "") or ""
 
+    if inv.status == "cancelled":
+        return False, 0, ""
+
     now = datetime.now(timezone.utc)
     inv_created = inv.created_at if (inv.created_at and inv.created_at.tzinfo) else (inv.created_at.replace(tzinfo=timezone.utc) if inv.created_at else now)
     inv_created_ts = int(inv_created.timestamp()) if inv_created else 0
+
+    inv_exp = getattr(inv, "expires_at", None)
+    inv_exp_ts = 0
+    if inv_exp is not None:
+        exp_utc = inv_exp if inv_exp.tzinfo else inv_exp.replace(tzinfo=timezone.utc)
+        inv_exp_ts = int(exp_utc.timestamp())
+        if (inv.status == "expired" or exp_utc < now) and (now - exp_utc) > timedelta(hours=2):
+            return False, 0, ""
 
     crypto_repo = CryptoRepository(session)
     wallet_repo = WalletRepository(session)
@@ -123,8 +134,11 @@ async def verify_and_credit_ton_invoice(
             )
         if tx.get("comment") != inv.comment or tx.get("nanotons", 0) < inv.nanotons:
             continue
-        # Timing check: transaction utime must not be before invoice creation (allow 60s clock skew)
-        if inv_created_ts and tx.get("utime", 0) and tx["utime"] < (inv_created_ts - 60):
+        # Timing checks: tx must be after invoice creation AND before invoice expiry (+60s clock skew)
+        tx_utime = tx.get("utime", 0)
+        if inv_created_ts and tx_utime and tx_utime < (inv_created_ts - 60):
+            continue
+        if inv_exp_ts and tx_utime and tx_utime > (inv_exp_ts + 60):
             continue
         tx_hash = tx.get("tx_hash", "")
         # Prevent replay: verify tx_hash not claimed by another invoice
@@ -137,7 +151,7 @@ async def verify_and_credit_ton_invoice(
                 )
                 continue
 
-        paid_inv = await crypto_repo.mark_paid(inv.id, tx_hash, allow_expired=allow_expired)
+        paid_inv = await crypto_repo.mark_paid(inv.id, tx_hash, allow_expired=allow_expired, max_expired_grace_minutes=120)
         if not paid_inv:
             continue
 
@@ -186,8 +200,7 @@ async def verify_and_process_payments(bot: Any, session_factory: Any) -> int:
                 exp = exp.replace(tzinfo=timezone.utc)
             if exp and exp < now:
                 await crypto_repo.mark_expired(inv.id)
-                inv_created = inv.created_at if (inv.created_at and inv.created_at.tzinfo) else (inv.created_at.replace(tzinfo=timezone.utc) if inv.created_at else now)
-                if (now - inv_created) < timedelta(hours=24):
+                if (now - exp) <= timedelta(hours=2):
                     active_invoices.append(inv)
             else:
                 active_invoices.append(inv)
@@ -227,6 +240,8 @@ async def verify_and_process_payments(bot: Any, session_factory: Any) -> int:
                 bot=bot,
             )
             if matched:
+                # Commit DB state BEFORE dispatching Telegram notifications so notifications never outrun persistence
+                await session.commit()
                 processed_count += 1
 
                 if hasattr(bot, "cache") and bot.cache:
@@ -297,8 +312,6 @@ async def verify_and_process_payments(bot: Any, session_factory: Any) -> int:
                     await bot.send_message(settings.ADMIN_CHAT_ID, admin_msg, **thread_kwargs)
                 except Exception as exc:
                     logger.warning("Failed to notify admin chat of TON topup: %s", exc)
-
-        await session.commit()
 
     return processed_count
 

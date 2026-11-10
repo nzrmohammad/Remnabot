@@ -36,8 +36,9 @@ async def api_ban_check_middleware(request: web.Request, handler):
     if not request.path.startswith("/api/user/"):
         return await handler(request)
 
-    from bot.web.auth import get_authenticated_user
-    auth_user = request.get("user") or get_authenticated_user(request)
+    from bot.web.auth import resolve_cached_auth
+
+    auth_user = resolve_cached_auth(request)
     if not auth_user or not auth_user.get("id"):
         return await handler(request)
 
@@ -104,9 +105,10 @@ async def api_rate_limit_middleware(request: web.Request, handler):
     if not (is_admin_path or is_user_path):
         return await handler(request)
 
-    from bot.web.auth import get_authenticated_user, get_client_ip
+    from bot.web.auth import get_client_ip, resolve_cached_auth
+
     client_ip = get_client_ip(request)
-    auth_user = get_authenticated_user(request)
+    auth_user = resolve_cached_auth(request)
     subject_id = f"user:{auth_user['id']}" if auth_user and auth_user.get("id") else f"ip:{client_ip}"
 
     if is_admin_path:

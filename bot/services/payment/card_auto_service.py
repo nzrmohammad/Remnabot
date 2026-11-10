@@ -35,10 +35,15 @@ async def generate_card_auto_invoice(
     """Generate a card-to-card invoice with an exact amount suffix avoiding collisions."""
     repo = CardAutoRepository(session)
 
-    # 1. If user already has an active pending invoice for the same or recent request, reuse it
+    card_number = getattr(store, "card_number", "") or ""
+    card_holder = getattr(store, "card_holder", "") or ""
+
+    # 1. If user already has an active pending invoice for the exact same base_amount AND current card, reuse it
     active_inv = await repo.get_active_invoice_by_user(telegram_id)
     if active_inv and active_inv.base_amount == base_amount:
-        return active_inv
+        if active_inv.card_number == card_number:
+            return active_inv
+        await repo.cancel_invoice(active_inv.invoice_uuid, telegram_id)
 
     # 2. Build candidate suffixes between 10 and 990 Tomans (step of 10)
     # Using random offsets ending in 0 for bank and user clarity
@@ -49,10 +54,7 @@ async def generate_card_auto_invoice(
     max_val = base_amount + 9990
     used_amounts = await repo.get_pending_amounts_in_range(min_val, max_val)
 
-    card_number = getattr(store, "card_number", "") or ""
-    card_holder = getattr(store, "card_holder", "") or ""
-
-    for attempt in range(5):
+    for attempt in range(8):
         selected_delta = None
         for delta in candidates:
             candidate_amount = base_amount + delta
@@ -61,7 +63,7 @@ async def generate_card_auto_invoice(
                 break
 
         if selected_delta is None:
-            # Fallback: scan available offsets not currently active
+            # Fallback: scan available offsets 1000..9990 (step 10)
             fallback_candidates = [d for d in range(1000, 9991, 10)]
             random.shuffle(fallback_candidates)
             for fallback_delta in fallback_candidates:
@@ -69,7 +71,7 @@ async def generate_card_auto_invoice(
                     selected_delta = fallback_delta
                     break
             if selected_delta is None:
-                selected_delta = random.randint(1000, 9990)
+                raise RuntimeError("تمامی پسوندهای مجاز برای این مبلغ در حال حاضر پر هستند.")
 
         exact_amount = base_amount + selected_delta
 
@@ -90,25 +92,14 @@ async def generate_card_auto_invoice(
             return invoice
         except IntegrityError:
             logger.warning(
-                "Collision on exact_amount=%s, retrying with new suffix (attempt %s/5)",
+                "Collision on exact_amount=%s, retrying with new suffix (attempt %s/8)",
                 exact_amount, attempt + 1,
             )
             used_amounts.add(exact_amount)
-            # Re-fetch latest pending amounts
             fresh = await repo.get_pending_amounts_in_range(min_val, max_val)
             used_amounts.update(fresh)
 
-    # Final attempt fallback
-    exact_amount = base_amount + random.randint(1000, 9990)
-    invoice = await repo.create_invoice(
-        telegram_id=telegram_id,
-        base_amount=base_amount,
-        exact_amount=exact_amount,
-        card_number=card_number,
-        card_holder=card_holder,
-        ttl_minutes=ttl_minutes,
-    )
-    return invoice
+    raise RuntimeError("امکان تخصیص مبلغ یکتا در شلوغی لحظه‌ای وجود نداشت. لطفاً چند لحظه بعد تلاش کنید.")
 
 
 async def notify_admin_sms_webhook_log(
@@ -145,11 +136,16 @@ async def notify_admin_sms_webhook_log(
 
     if action == "credited" and invoice:
         status_header = "🟢 <b>تأیید و شارژ خودکار کیف پول</b>"
+        missing_card_warn = (
+            "\n⚠️ <i>توجه: شماره کارت مقصد در متن پیامک درج نشده بود؛ مطابقت بر اساس مبلغ یکتا انجام شد.</i>"
+            if not getattr(parsed, "card_last4", None)
+            else ""
+        )
         decision_details = (
             f"▫️ شناسه فاکتور: <code>#{invoice.invoice_uuid}</code>\n"
             f"▫️ شناسه کاربر: <code>{invoice.telegram_id}</code>\n"
             f"▫️ مبلغ شارژ: <b>{invoice.exact_amount:,} تومان</b>\n"
-            f"▫️ موجودی جدید: <b>{new_balance:,} تومان</b>"
+            f"▫️ موجودی جدید: <b>{new_balance:,} تومان</b>{missing_card_warn}"
         )
     elif action == "unmatched_deposit":
         status_header = "🟡 <b>واریزی بدون فاکتور منطبق</b>"
@@ -218,14 +214,23 @@ async def process_incoming_sms(
         sender, parsed.is_deposit, parsed.amount_rial, parsed.amount_toman, parsed.bank_name, raw_message[:80],
     )
 
-    # Log incoming SMS
+    # Log incoming SMS atomically with replay deduplication
+    sms_hash = repo.compute_sms_hash(sender, raw_message)
     log_entry = await repo.log_bank_sms(
         sender=sender,
         raw_message=raw_message,
         amount_toman=parsed.amount_toman,
         bank_detected=parsed.bank_name,
         processed=False,
+        sms_hash=sms_hash,
     )
+    if log_entry is None:
+        logger.warning("Duplicate SMS replay ignored from sender=%s hash=%s", sender, sms_hash[:12])
+        return {
+            "ok": True,
+            "action": "duplicate_ignored",
+            "reason": "Duplicate SMS replay blocked",
+        }
 
     if not parsed.is_deposit or not parsed.amount_toman:
         logger.info("Ignored non-deposit or unparsed SMS from %s: %s", sender, raw_message[:60])

@@ -1,13 +1,16 @@
 """ /start command + language selection + welcome screen navigation."""
 import contextlib
+from html import escape
 
 from aiogram import Bot, F, Router
 from aiogram.filters import CommandStart
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message, ReplyKeyboardRemove
+from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 
 from bot.config import get_settings
+from bot.db.models import Campaign, GiftCard
 from bot.db.repositories.user_repo import UserRepository
 from bot.keyboards.inline import (
     language_keyboard,
@@ -44,8 +47,30 @@ async def cmd_start(
             has_invite = False
             if len(parts_check) > 1:
                 param = parts_check[1]
-                if param.startswith("ref_") or param.startswith("ad_") or param.startswith("inv_"):
-                    has_invite = True
+                if param.startswith("ref_"):
+                    ref_raw = param.removeprefix("ref_")
+                    if ref_raw.isdigit() and int(ref_raw) != message.from_user.id:
+                        inviter = await user_repo.get_by_telegram_id(int(ref_raw))
+                        if inviter is not None and not getattr(inviter, "is_banned", False):
+                            has_invite = True
+                elif param.startswith("ad_"):
+                    ad_code = param.removeprefix("ad_").strip().lower()
+                    if ad_code:
+                        camp_row = (
+                            await session.execute(select(Campaign.id).where(Campaign.code == ad_code))
+                        ).scalar_one_or_none()
+                        if camp_row is not None:
+                            has_invite = True
+                elif param.startswith("gift_"):
+                    gift_code = param.removeprefix("gift_").strip().upper()
+                    if gift_code:
+                        gift_row = (
+                            await session.execute(
+                                select(GiftCard.id).where(GiftCard.code == gift_code, GiftCard.is_claimed.is_(False))
+                            )
+                        ).scalar_one_or_none()
+                        if gift_row is not None:
+                            has_invite = True
             if not has_invite:
                 from aiogram.utils.keyboard import InlineKeyboardBuilder
                 kb = InlineKeyboardBuilder()
@@ -81,11 +106,17 @@ async def cmd_start(
             if ref_raw.isdigit():
                 inviter_id = int(ref_raw)
                 if inviter_id != message.from_user.id and getattr(user, "referred_by_id", None) is None:
-                    await user_repo.set_referrer(user, inviter_id)
+                    inviter_obj = await user_repo.get_by_telegram_id(inviter_id)
+                    if inviter_obj is not None and not getattr(inviter_obj, "is_banned", False):
+                        await user_repo.set_referrer(user, inviter_id)
         elif param.startswith("ad_"):
             ad_code = param.removeprefix("ad_").strip().lower()
             if ad_code and getattr(user, "campaign_code", None) is None:
-                await user_repo.set_campaign(user, ad_code)
+                camp_exists = (
+                    await session.execute(select(Campaign.id).where(Campaign.code == ad_code))
+                ).scalar_one_or_none()
+                if camp_exists is not None:
+                    await user_repo.set_campaign(user, ad_code)
         elif param.startswith("gift_"):
             gift_code = param.removeprefix("gift_").strip().upper()
             from bot.services.gift_service import claim_gift
@@ -109,7 +140,7 @@ async def cmd_start(
                     kb = builder.as_markup()
                 await message.answer(
                     f"🎁 <b>هدیه با موفقیت فعال شد!</b>\n\n"
-                    f"👤 از طرف: <b>{res.get('sender_name')}</b>\n"
+                    f"👤 از طرف: <b>{escape(str(res.get('sender_name') or 'دوست شما'))}</b>\n"
                     f"✨ {res.get('message')}\n\n"
                     "از همراهی شما بسیار خوشحالیم! ❤️",
                     reply_markup=kb,
@@ -117,7 +148,7 @@ async def cmd_start(
                 )
             else:
                 await message.answer(
-                    f"⚠️ <b>خطا در دریافت هدیه:</b>\n{res.get('message', 'کارت هدیه نامعتبر است.')}",
+                    f"⚠️ <b>خطا در دریافت هدیه:</b>\n{escape(str(res.get('message', 'کارت هدیه نامعتبر است.')))}",
                     parse_mode="HTML"
                 )
         elif param == "verify_phone":
