@@ -25,7 +25,7 @@
       if (!text) return;
       const safeText = String(text).trim();
       const safeLabel = String(label).trim();
-      const toastMsg = `📋 ${safeLabel} کپی شد: ${safeText}`;
+      const toastMsg = `📋 ${safeLabel} کپی شد:\n${safeText}`;
       if (typeof copyToClipboard === 'function') {
         await copyToClipboard(safeText, toastMsg);
       } else if (window.copyToClipboard) {

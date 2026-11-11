@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/assets/banner.png" alt="Remnabot — Enterprise Remnawave Telegram Bot & Mini App Ecosystem" width="720">
+  <img src="docs/assets/banner.png" alt="Remnabot — Enterprise Remnawave Telegram Bot & Mini App Ecosystem" width="100%">
 </p>
 
 # 🚀 Remnabot — Enterprise Remnawave Telegram Bot
@@ -72,6 +72,9 @@ Remnabot provides a production-grade Telegram client portal and administrative o
 
 ## 📱 UI & Mini App Showcase
 
+<details>
+<summary><b>📸 Click to expand UI &amp; Mini App Screenshots (12 Views)</b></summary>
+
 <div align="center">
   <table>
     <tr>
@@ -124,6 +127,8 @@ Remnabot provides a production-grade Telegram client portal and administrative o
     </tr>
   </table>
 </div>
+
+</details>
 
 ---
 
@@ -280,19 +285,21 @@ To keep financial transactions, error traces, automated backups, and user suppor
    - ✅ Send Messages
 
 #### 2. Recommended Topics Architecture:
-Create the following 9 topics inside your supergroup. Use the recommended names and icons for instant operational clarity:
+Create the following 11 topics inside your supergroup. Use the suggested short topic names and icons below for instant operational clarity:
 
-| # | Topic Name | Icon | Environment Variable | In-Bot Setting | Automated Responsibility |
-| :-: | :--- | :-: | :--- | :--- | :--- |
-| **1** | **💳 Top-ups & Banking Receipts** (`Top-ups`) | 💳 | `ADMIN_TOPIC_TOPUPS` | `adm:set:topic_topups` | Card deposit slips, SHA-256 duplicate guards, 1-tap Approve/Reject buttons, and TON on-chain logs. |
-| **2** | **🛒 Orders & Renewals** (`Orders`) | 🛒 | `ADMIN_TOPIC_ORDERS` | `adm:set:topic_orders` | Real-time purchase alerts, renewals, plan upgrades, and free trial issuances. |
-| **3** | **🎧 Support & User Inquiries** (`Support`) | 🎧 | `ADMIN_TOPIC_SUPPORT` | `adm:set:topic_support` | Live 2-way support desk. Admins reply directly inside this topic to forward answers to users. |
-| **4** | **🖥️ Server Nodes & Health** (`Nodes`) | 🖥️ | `ADMIN_TOPIC_NODES` | `adm:set:topic_nodes` | Remnawave node status, offline/online triggers, CPU/RAM telemetry, and core versions. |
-| **5** | **📊 Fiscal & Bandwidth Reports** (`Reports`) | 📊 | `ADMIN_TOPIC_REPORTS` | `adm:set:topic_reports` | Daily (23:59), weekly, and monthly fiscal summaries, node traffic breakdown by country flags, and top users. |
-| **6** | **🚨 System & Expiry Alerts** (`Alerts`) | 🚨 | `ADMIN_TOPIC_ALERTS` | `adm:set:topic_alerts` | Bandwidth consumption warnings (80%, 90%, 100%), pre-expiry countdowns, and grace-period enforcements. |
-| **7** | **💾 Automated Database Backups** (`Backups`) | 💾 | `ADMIN_TOPIC_BACKUPS` | `adm:set:topic_backups` | Encrypted daily PostgreSQL snapshot dispatch (03:00 AM) with auto-pruning of older dumps. |
-| **8** | **💎 Crypto & Live Market Rates** (`Crypto`) | 💎 | `ADMIN_TOPIC_CRYPTO` | `adm:set:topic_crypto` | 4x daily market rate updates (TON/USDT) with interactive 1-click price sync buttons. |
-| **9** | **⚠️ System Error Logs** (`Error Logs`) | ⚠️ | `ADMIN_TOPIC_ERRORS` | `adm:set:topic_errors` | Real-time traceback dumps and runtime alerts for rapid diagnostics. |
+| # | Purpose | Suggested Name | Icon | Environment Variable | In-Bot / Web Setting | Automated Responsibility |
+| :-: | :--- | :--- | :-: | :--- | :--- | :--- |
+| **1** | **Top-ups & Banking Receipts** | `Topups` | 💳 | `ADMIN_TOPIC_TOPUPS` | `adm:set:topic_topups` | Card deposit slips, SHA-256 duplicate guards, 1-tap Approve/Reject buttons, and TON/TRX/POL logs. |
+| **2** | **Orders & Renewals** | `Orders` | 🛒 | `ADMIN_TOPIC_ORDERS` | `adm:set:topic_orders` | Real-time purchase alerts, renewals, plan upgrades, and free trial issuances. |
+| **3** | **Support & User Inquiries** | `Support` | 🎧 | `ADMIN_TOPIC_SUPPORT` | `adm:set:topic_support` | Live 2-way support desk. Admins reply directly inside this topic to forward answers to users. |
+| **4** | **Server Nodes & Health** | `Nodes` | 🖥️ | `ADMIN_TOPIC_NODES` | `adm:set:topic_nodes` | Remnawave node status, offline/online triggers, CPU/RAM telemetry, and core versions. |
+| **5** | **Fiscal & Bandwidth Reports** | `Reports` | 📊 | `ADMIN_TOPIC_REPORTS` | `adm:set:topic_reports` | Daily (23:59), weekly, and monthly fiscal summaries, node traffic breakdown by country flags, and top users. |
+| **6** | **System & Expiry Alerts** | `Alerts` | 🚨 | `ADMIN_TOPIC_ALERTS` | `adm:set:topic_alerts` | Bandwidth consumption warnings (80%, 90%, 100%), pre-expiry countdowns, and grace-period enforcements. |
+| **7** | **Automated Database Backups** | `Backups` | 💾 | `ADMIN_TOPIC_BACKUPS` | `adm:set:topic_backups` | Encrypted daily PostgreSQL snapshot dispatch with auto-pruning of older dumps. |
+| **8** | **Crypto & Live Market Rates** | `Crypto` | 💎 | `ADMIN_TOPIC_CRYPTO` | `adm:set:topic_crypto` | 4x daily market rate updates (TON/USDT/TRX/POL) with interactive 1-click price sync buttons. |
+| **9** | **System Error Logs** | `Errors` | ⚠️ | `ADMIN_TOPIC_ERRORS` | `adm:set:topic_errors` | Real-time traceback dumps and runtime alerts for rapid diagnostics. |
+| **10** | **Manual Bank SMS Parsing** | `SmsManual` | 📥 | `ADMIN_TOPIC_SMS_MANUAL` | `topic_sms_manual` | Paste bank SMS texts manually inside this topic for instant parsing and matching against pending invoices. |
+| **11** | **SMS Webhook Logs & Decisions** | `SmsLogs` | 📡 | `ADMIN_TOPIC_SMS_LOGS` | `topic_sms_logs` | Real-time audit feed of incoming SMS forwarder webhooks, extracted amounts, and automated approval decisions. |
 
 #### 3. Extracting `ADMIN_CHAT_ID` and Topic IDs:
 - **`ADMIN_CHAT_ID`**: Add `@RawDataBot` or `@userinfobot` to the group, or copy the link of any message in the group (`https://t.me/c/2456789012/123`). Prefix the ID with `-100` (e.g., `-1002456789012`).
@@ -319,7 +326,7 @@ Create the following 9 topics inside your supergroup. Use the recommended names 
 1. Log in to your Remnawave v3 Panel as an Administrator.
 2. Go to **Admin ➔ API Tokens** and generate a new token with full management rights.
 3. Determine your connection URL:
-   - **Same Server (Recommended)**: `http://host.docker.internal:3000` (zero latency and zero round-trips over the internet).
+   - **Same Server (Recommended)**: `http://host.docker.internal:3000`
    - **Remote Server**: Your public HTTPS panel domain (e.g. `https://panel.yourdomain.com`).
 
 ---
@@ -441,23 +448,22 @@ server {
 > 
 > *If you instead use `host.docker.internal:8080`, ensure `WEB_BIND_IP=0.0.0.0` is set in `remnawave-bot/.env`.*
 
-#### 3. SSL Certificate Setup for Co-Located Remnawave Deployments (Docker Volume Mounting):
+#### 3. SSL Certificate Mounts in `/opt/remnawave/nginx/docker-compose.yml`:
 
-When the Mini App reverse proxy or Nginx runs on the **same server as the Remnawave panel** inside a Docker container, the SSL certificate files for your bot's dedicated subdomain (e.g. `app.yourdomain.com`) must be mounted as read-only (`:ro`) in the `volumes` section of the Nginx container:
+When the Mini App reverse proxy or Nginx runs on the **same server as the Remnawave panel** inside `/opt/remnawave/nginx`, open `/opt/remnawave/nginx/docker-compose.yml` and mount your SSL certificate files as read-only (`:ro`) under the `volumes:` section (replace `app.yourdomain.com` with your Mini App domain):
 
 ```yaml
 services:
-  # Primary panel Nginx service or shared reverse proxy
   remnawave-nginx:
     volumes:
       - /etc/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       - /etc/nginx/conf.d:/etc/nginx/conf.d:ro
-      # Mount the bot Mini App SSL certificate files into the container:
+      # Mount your Mini App SSL certificate files into the Nginx container:
       - ./app.yourdomain.com_fullchain.pem:/etc/nginx/ssl/app.yourdomain.com_fullchain.pem:ro
       - ./app.yourdomain.com_privkey.key:/etc/nginx/ssl/app.yourdomain.com_privkey.key:ro
 ```
 
-Then in your Nginx site configuration file (`/etc/nginx/conf.d/remnabot.conf`), reference the paths inside the container:
+Then verify those exact container paths are referenced in your Nginx site configuration (`/etc/nginx/conf.d/remnabot.conf`):
 
 ```nginx
 server {
@@ -513,7 +519,7 @@ You should receive `HTTP/1.1 200 OK` with JSON payload:
 
 Once deployed, make the Mini App directly accessible to every user with one tap:
 
-1. **Inline Dashboard Buttons**: Send `/start` to your bot in Telegram. The **`📱 Client Portal (Mini App)`** button appears automatically for users, and **`👑 Cluster Web Panel`** appears for admins.
+1. **Inline Dashboard Buttons**: Send `/start` to your bot in Telegram. The **`🚀 Mini App`** button appears automatically for users, and **`🔐 Admin Panel`** (with the **`👑 Admin Panel`** Web App button inside it) appears for admins.
 2. **Permanent Bot Menu Button**:
    - Message [@BotFather](https://t.me/BotFather).
    - Send `/setmenubutton` and select your bot.
@@ -676,8 +682,10 @@ All primary credentials are configuration-driven via `.env`. In-bot operational 
 | `ADMIN_TOPIC_BACKUPS` | No | *(empty)* | Optional dedicated topic ID for automated database backup files. |
 | `ADMIN_TOPIC_REPORTS` | No | *(empty)* | Optional topic ID for daily/weekly executive fiscal and bandwidth reports. |
 | `ADMIN_TOPIC_NODES` | No | *(empty)* | Optional topic ID for server node status, health, and offline alerts. |
-| `ADMIN_TOPIC_CRYPTO` | No | *(empty)* | Optional topic ID for automated crypto pricing alerts and TON payment logs. |
+| `ADMIN_TOPIC_CRYPTO` | No | *(empty)* | Optional topic ID for automated crypto pricing alerts and TON/TRX/POL payment logs. |
 | `ADMIN_TOPIC_ERRORS` | No | *(empty)* | Optional topic ID for system traceback logs and error reports. |
+| `ADMIN_TOPIC_SMS_MANUAL` | No | *(empty)* | Optional topic ID for manual bank SMS pasting and matching. |
+| `ADMIN_TOPIC_SMS_LOGS` | No | *(empty)* | Optional topic ID for incoming SMS forwarder webhook logs and automated match decisions. |
 | `CRYPTO_ENABLED` | No | `false` | Enable or disable direct crypto (TON) top-up option for users (`true` / `false`). |
 | `TON_WALLET_ADDRESS` | No | *(empty)* | Public TON wallet address (UQ... or EQ...) for receiving on-chain payments. |
 | `TON_RATE_TOMAN` | No | `0` | Manual fallback TON exchange rate in Toman (editable in-bot anytime). |

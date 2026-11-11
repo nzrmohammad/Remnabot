@@ -818,8 +818,8 @@
               <span id="repPeakHourBadge" class="text-[11px] font-sans font-bold t-accent bg-transparent p-0" dir="ltr">---</span>
             </div>
             <div class="grid grid-cols-3 gap-1 card-inset p-1 rounded-xl border border-card-border" role="tablist" aria-label="حالت نمایش ساعات اوج مصرف">
-              <button type="button" id="repPeakModeYesterdayBtn" onclick="window.switchUserPeakHoursMode('yesterday')" class="py-1 px-2 rounded-lg font-medium text-[11px] t-muted hover:t-main bg-transparent transition">دیروز</button>
               <button type="button" id="repPeakModeTodayBtn" onclick="window.switchUserPeakHoursMode('today')" class="py-1 px-2 rounded-lg font-bold text-[11px] bg-amber-500 text-slate-950 shadow-sm transition">امروز</button>
+              <button type="button" id="repPeakModeYesterdayBtn" onclick="window.switchUserPeakHoursMode('yesterday')" class="py-1 px-2 rounded-lg font-medium text-[11px] t-muted hover:t-main bg-transparent transition">دیروز</button>
               <button type="button" id="repPeakModeCompareBtn" onclick="window.switchUserPeakHoursMode('compare')" class="py-1 px-2 rounded-lg font-medium text-[11px] t-muted hover:t-main bg-transparent transition">دیروز تا امروز</button>
             </div>
             <div class="h-36 w-full p-1 bg-transparent rounded-xl relative flex items-center justify-center">
@@ -1372,6 +1372,10 @@
             <button id="shareReferralLinkBtn" type="button" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs py-2 rounded-xl transition flex items-center justify-center gap-1.5 shadow active:scale-[0.98]">
               <span>✈️</span> ارسال به دوستان در تلگرام
             </button>
+
+            <p class="text-[11px] t-muted card-inset rounded-xl p-2.5 border border-card-border leading-relaxed">
+              💡 <b>نکته مهم:</b> هدیه ترافیک دعوت زمانی به حساب شما اضافه می‌شود که دوست دعوت‌شده با لینک شما <b>اولین خرید</b> خود را انجام دهد.
+            </p>
           </div>
         </div>
 
@@ -2077,7 +2081,7 @@
                     <img id="receiptImagePreview" class="h-10 w-10 object-cover rounded-lg border border-slate-700 shrink-0" src="" alt="رسید" loading="lazy">
                     <span class="text-[11px] text-slate-200 truncate max-w-[170px]" id="receiptImageName">تصویر فیش انتخاب شد</span>
                   </div>
-                  <button id="removeReceiptImageBtn" type="button" class="t-danger hover:text-rose-300 text-xs px-2.5 py-1.5 min-h-[36px] bg-rose-950/40 rounded-lg border border-rose-800/40 transition active:scale-95 flex items-center justify-center" title="حذف تصویر" aria-label="حذف تصویر رسید">✕ حذف</button>
+                  <button id="removeReceiptImageBtn" type="button" class="t-danger hover:text-rose-400 text-xs px-2.5 py-1.5 min-h-[36px] bg-transparent rounded-lg border border-rose-500/30 hover:bg-rose-500/10 transition active:scale-95 flex items-center justify-center" title="حذف تصویر" aria-label="حذف تصویر رسید">✕ حذف</button>
                 </div>
               </div>
 
@@ -2242,7 +2246,7 @@
           </div>
         </div>
 
-        <!-- 4. POL (Polygon PoS) Section -->
+        <!-- 4. POL (Polygon) Section -->
         <div id="topupPolView" class="space-y-3 hidden">
           <div id="polInvoiceInitial" class="text-center py-2 space-y-2">
             <p class="text-[11px] text-slate-300">پرداخت مستقیم پلیگان (POL) روی شبکه Polygon بدون کارمزد واسطه</p>
@@ -2650,7 +2654,7 @@
         <!-- Gamification Banner (پاداش دعوت در ازای استوری) -->
         <div id="storyGamificationBanner" class="bg-amber-500/10 border border-amber-500/30 rounded-2xl p-2.5 w-full text-right text-[11px] text-amber-200/95 leading-relaxed shadow-sm">
           <span class="font-black block text-amber-300 mb-0.5">🎯 پاداش استوری و اشتراک‌گذاری:</span>
-          با انتشار این تصویر در استوری تلگرام، دوستانتان <b id="storyRewardBannerGb" class="text-amber-300 font-sans">5</b> گیگابایت هدیه می‌گیرند و برای شما نیز پاداش معرف واریز می‌شود!
+          با انتشار این تصویر در استوری تلگرام، دوستانتان عضو شده و پس از اولین خریدشان، <b id="storyRewardBannerGb" class="text-amber-300 font-sans">5</b> گیگابایت پاداش معرف برای شما واریز می‌شود!
         </div>
 
         <!-- Action Buttons -->
@@ -3587,11 +3591,11 @@
             <span class="font-bold t-muted block border-b border-card-border pb-1">🏢 ارائه‌دهنده:</span>
             <span id="invSellerName" class="font-bold t-main block truncate">سرویس ابری رمنا</span>
           </div>
-          <div class="card-inset p-2.5 rounded-xl space-y-1 text-left" dir="ltr">
-            <span class="font-bold t-muted block border-b border-card-border pb-1 text-left"><bdi dir="rtl">👤 خریدار:</bdi></span>
-            <div class="text-left font-sans num-bidi" dir="ltr">
-              <span id="invBuyerName" class="font-bold t-main block truncate text-xs select-all text-left">کاربر گرامی</span>
-              <span id="invBuyerId" class="text-[11px] text-slate-400 font-sans num-bidi block select-all text-left">--</span>
+          <div class="card-inset p-2.5 rounded-xl space-y-1">
+            <span class="font-bold t-muted block border-b border-card-border pb-1">👤 خریدار:</span>
+            <div class="text-right font-sans num-bidi" dir="ltr">
+              <span id="invBuyerName" class="font-bold t-main block truncate text-xs select-all text-right">کاربر گرامی</span>
+              <span id="invBuyerId" class="text-[11px] text-slate-400 font-sans num-bidi block select-all text-right">--</span>
             </div>
           </div>
         </div>
@@ -3631,7 +3635,7 @@
           <div class="flex items-center justify-between">
             <span class="t-muted">وضعیت تراکنش:</span>
             <span id="invPaymentStatus" class="font-bold text-emerald-500 flex items-center gap-1">
-              <span>✅</span> <span>پرداخت شده</span>
+              <span>پرداخت شده</span> <span>✅</span>
             </span>
           </div>
           <div class="flex items-center justify-between border-t border-card-border pt-1.5">

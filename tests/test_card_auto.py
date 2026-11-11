@@ -428,3 +428,64 @@ async def test_card_auto_messages_history_and_duplicate_guards(async_session: As
         assert 300710 in payload["recent_paid_auto_amounts"]
         assert isinstance(payload["recent_receipt_hashes"], list)
 
+
+@pytest.mark.anyio
+async def test_manual_receipt_placeholder_and_rejected_reupload(async_session: AsyncSession, tmp_path, monkeypatch):
+    """Ensure placeholder receipt_text does not poison duplicate checks and rejected receipts release their hash."""
+    import base64
+    from contextlib import asynccontextmanager
+    from types import SimpleNamespace
+    from unittest.mock import AsyncMock, patch
+    from aiohttp.test_utils import make_mocked_request
+    from bot.db.repositories.wallet_repo import WalletRepository
+    from bot.web.user_topup import _collect_user_topup_guards, post_user_topup_card
+
+    monkeypatch.chdir(tmp_path)
+    tg_id = 987654321
+    store = SimpleNamespace(
+        card_require_phone_verification=False,
+        card_number="6219861912345678",
+        card_enabled=True,
+        topup_min_amount=10000,
+        topup_max_amount=50000000,
+    )
+
+    @asynccontextmanager
+    async def _fake_db_session(_req):
+        yield async_session
+
+    def _make_req(img_payload: bytes, text_val: str = ""):
+        b64 = "data:image/jpeg;base64," + base64.b64encode(img_payload).decode()
+        body = {"amount": 50000, "receipt_text": text_val, "receipt_image": b64}
+        req = make_mocked_request("POST", "/api/user/topup/card")
+        fake_app = {
+            "cache": None,
+            "bot": None,
+            "settings": SimpleNamespace(ADMIN_CHAT_ID=0),
+        }
+        return SimpleNamespace(app=fake_app, headers=req.headers, query={}, json=AsyncMock(return_value=body))
+
+    with patch("bot.web.user_topup.require_user", return_value=({"id": tg_id, "is_preview": False, "first_name": "T"}, None)), \
+         patch("bot.web.user_topup.db_session", side_effect=_fake_db_session), \
+         patch("bot.web.user_topup.get_store_settings", AsyncMock(return_value=store)):
+        # First receipt submitted with legacy fallback string 'تصویر فیش پیوست شد'
+        r1 = await post_user_topup_card(_make_req(b"receipt-bytes-1" * 10, "تصویر فیش پیوست شد"))
+        assert r1.status == 200
+        # Second distinct receipt with empty tracking code MUST NOT collide on placeholder text_hash
+        r2 = await post_user_topup_card(_make_req(b"receipt-bytes-2" * 10, ""))
+        assert r2.status == 200
+
+    # Rejecting the first top-up releases its image hash so it can be re-submitted cleanly
+    repo = WalletRepository(async_session)
+    from sqlalchemy import select
+    from bot.db.models import Topup
+    first_tp = (await async_session.execute(select(Topup).order_by(Topup.id.asc()).limit(1))).scalar_one()
+    raw_img_hash = first_tp.receipt_hash
+    assert await repo.receipt_exists(raw_img_hash) is True
+    await repo.claim_topup(first_tp.id, approved=False)
+    await async_session.commit()
+    assert await repo.receipt_exists(raw_img_hash) is False
+
+    _, guard_hashes = await _collect_user_topup_guards(async_session, tg_id)
+    assert raw_img_hash not in guard_hashes
+

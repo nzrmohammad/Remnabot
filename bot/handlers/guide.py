@@ -58,8 +58,11 @@ def _get_platform_apps_from_json(client_apps_json: str, platform: str) -> list[t
         rec_app = str((data.get("recommended") or {}).get(platform, "")).lower()
         if not rec_app and platform == "windows":
             rec_app = str((data.get("recommended") or {}).get("desktop", "")).lower()
+        alt_app = str((data.get("alternative") or {}).get(platform, "")).lower()
+        if not alt_app and platform == "windows":
+            alt_app = str((data.get("alternative") or {}).get("desktop", "")).lower()
 
-        apps: list[tuple[str, str, bool]] = []
+        apps: list[tuple[str, str, int]] = []
         for app_id, cfg in platform_data.items():
             if not isinstance(cfg, dict):
                 continue
@@ -76,10 +79,11 @@ def _get_platform_apps_from_json(client_apps_json: str, platform: str) -> list[t
             name = APP_DISPLAY_NAMES.get(app_id.lower(), app_id.capitalize())
             version = str(cfg.get("version") or "").strip()
             label = f"{name} ({version})" if version else name
-            is_rec = bool(rec_app and rec_app == app_id.lower())
-            apps.append((label, url, is_rec))
+            app_key = app_id.lower()
+            rank = 0 if (rec_app and rec_app == app_key) else (1 if (alt_app and alt_app == app_key) else 2)
+            apps.append((label, url, rank))
 
-        apps.sort(key=lambda x: 0 if x[2] else 1)
+        apps.sort(key=lambda x: x[2])
         return [(label, url) for label, url, _ in apps]
     except Exception:
         logger.exception("Failed to parse client_apps_json for guide")

@@ -499,13 +499,15 @@ def test_latest_ui_and_font_polish_batch():
     assert "knownDuplicateHashes" in wallet_js
     assert "recentPaidAutoAmounts" in wallet_js
 
-    # 2. Services/plans LTR titles, no special stream/family styling, uniform borders
+    # 2. Admin plans LTR titles, restored shop styles/borders, and uniform neutral admin tag badges
     assert '<bdi dir="ltr"' in utils_js
     assert '<b dir="ltr" class="t-main text-xs font-bold truncate">' in admin_plans
-    assert "badge-stream" not in shop_js
-    assert "badge-family" not in shop_js
-    assert "badgeBorderClass = 'border-card-border'" in shop_js
-    assert "border: 1px solid var(--card-border);" in comp_css
+    assert "TAG_LABELS" in admin_plans
+    assert "badge badge-plan-type" in admin_plans
+    assert "border-slate-700/80" in admin_plans
+    assert "badge-stream" in shop_js
+    assert "badge-family" in shop_js
+    assert "border: 1.5px solid #64748b;" in comp_css
 
     # 3. Discount codes tab polish: no copy svg icon, compact buttons without .btn, 'نامحدود' without '(دائمی)'
     assert "نامحدود (دائمی)" not in admin_plans
@@ -557,10 +559,14 @@ def test_latest_requested_ui_features_and_english_digits():
     )
     assert not digit_re.search(utils_without_norm)
 
-    # 3. Peak hours exact hour (no range) and 3-button toggle (yesterday, today, compare)
-    for btn_id in ("repPeakModeYesterdayBtn", "repPeakModeTodayBtn", "repPeakModeCompareBtn"):
-        assert f'id="{btn_id}"' in app_html
+    # 3. Peak hours exact hour (no range), Today-Yesterday-Compare order, and rolling 24h curve
+    t_pos = app_html.find('id="repPeakModeTodayBtn"')
+    y_pos = app_html.find('id="repPeakModeYesterdayBtn"')
+    c_pos = app_html.find('id="repPeakModeCompareBtn"')
+    assert 0 < t_pos < y_pos < c_pos
     assert "window.switchUserPeakHoursMode" in app_js
+    assert "splitTodayIndex" in app_js
+    assert "splitTodayIndex" in charts_js
     curves = calc_usage_curves(
         primary={"usedTrafficBytes": 5 * 1024**3},
         devices=[],
@@ -585,26 +591,50 @@ def test_latest_requested_ui_features_and_english_digits():
     custom_block_end = wallet_js.find("} else {", custom_block_start)
     assert "💎" not in wallet_js[custom_block_start:custom_block_end]
 
-    # 5. Official invoice Buyer box only is LTR
+    # 5. Official invoice Buyer label stays RTL while inner values are LTR; status icon is left of label
     buyer_idx = app_html.find("👤 خریدار:")
     seller_idx = app_html.find("🏢 ارائه‌دهنده:")
     assert buyer_idx != -1 and seller_idx != -1
-    buyer_box = app_html[buyer_idx - 120:buyer_idx + 40]
-    seller_box = app_html[seller_idx - 120:seller_idx + 40]
-    assert 'dir="ltr"' in buyer_box
+    buyer_outer = app_html[buyer_idx - 70:buyer_idx + 20]
+    buyer_inner = app_html[buyer_idx:buyer_idx + 120]
+    seller_box = app_html[seller_idx - 70:seller_idx + 20]
+    assert 'dir="ltr"' not in buyer_outer
+    assert 'dir="ltr"' in buyer_inner
     assert 'dir="ltr"' not in seller_box
+    assert "<span>پرداخت شده</span> <span>✅</span>" in app_html
+    assert "<span>${statusText}</span> <span>${icon}</span>" in app_js
 
-    # 6. Karing, PattN, PattNG, Zedsecure added across app configs & guide
+    # 6. Karing, PattN, PattNG, Zedsecure added across app configs, logos & guide + alternative app + Portable label
     for app_id in ("karing", "pattn", "pattng", "zedsecure"):
         assert app_id in APP_DISPLAY_NAMES
         assert app_id in GITHUB_REPOS
         assert f"id: '{app_id}'" in app_js
         assert f"{app_id}:" in admin_settings_js
+        assert Path(f"bot/web/static/img/apps/{app_id}.png").is_file()
+        assert Path(f"bot/web/static/img/apps/{app_id}.webp").is_file()
     assert any("Karing" in n for n, _ in PLATFORMS["ios"][1])
     assert any("PattNG" in n for n, _ in PLATFORMS["android"][1])
     assert any("PattN" in n for n, _ in PLATFORMS["windows"][1])
     assert any("Zedsecure" in n for n, _ in PLATFORMS["linux"][1])
+    assert "لینک دانلود نسخه Portable:" in admin_html
+    assert "پرتابل (Portable" not in admin_html
+    for os_k in ("ios", "android", "windows", "macos", "linux"):
+        assert f'id="appAlternative_{os_k}"' in admin_html
+    assert "isAlternative" in app_js
 
     # 7. New magenta BluBank card theme color present
     assert "magenta:" in wallet_js
     assert "id: 'magenta'" in admin_settings_js
+
+    # 8. Follow-up UX & copy fixes: toast newline, receipt btn bg, card_auto icon, referral note, OS field, Polygon label, topic size, modal scroll
+    admin_js = Path("bot/web/static/js/admin.js").read_text(encoding="utf-8")
+    assert "کپی شد:\\n${safeText}" in admin_js
+    assert "bg-rose-950/40" not in app_html[app_html.find('id="removeReceiptImageBtn"'):app_html.find('id="removeReceiptImageBtn"') + 250]
+    assert "card_auto: '💳'" in wallet_js
+    assert "اولین خرید" in app_html
+    assert "اولین خرید" in fa_py
+    assert "سیستم‌عامل:" in app_js
+    assert "Polygon PoS" not in admin_html
+    assert "Polygon PoS" not in app_html
+    assert 'id="settingTopicTopups"' in admin_html and 'text-[10px]' in admin_html
+    assert "space-y-2.5 flex-1 min-h-0 max-h-[60vh] overflow-y-auto" in admin_html

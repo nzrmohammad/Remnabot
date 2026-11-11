@@ -344,4 +344,26 @@ async def test_get_admin_github_releases():
         assert data["versions"]["v2rayng"] == "1.9.15"
 
 
+def test_extract_github_downloads_per_platform():
+    from bot.web.admin_infra_api import _extract_github_downloads
+
+    dl_hiddify = _extract_github_downloads(
+        "hiddify",
+        [
+            {"name": "Hiddify-Android-armeabi-v7a.apk", "browser_download_url": "https://ex/armv7.apk"},
+            {"name": "Hiddify-Android-arm64.apk", "browser_download_url": "https://ex/arm64.apk"},
+            {"name": "Hiddify-Windows-Setup-x64.exe", "browser_download_url": "https://ex/setup.exe"},
+            {"name": "Hiddify-Windows-Portable-x64.zip", "browser_download_url": "https://ex/portable.zip"},
+            {"name": "Hiddify-MacOS.dmg", "browser_download_url": "https://ex/mac.dmg"},
+            {"name": "Hiddify-Linux-x64-AppImage.AppImage", "browser_download_url": "https://ex/linux.AppImage"},
+            {"name": "Hiddify-Linux-x64-AppImage.AppImage.sig", "browser_download_url": "https://ex/linux.AppImage.sig"},
+        ],
+    )
+    assert dl_hiddify["android"]["direct_url"] == "https://ex/arm64.apk"
+    assert dl_hiddify["windows"]["url"] == "https://ex/setup.exe"
+    assert dl_hiddify["windows"]["portable_url"] == "https://ex/portable.zip"
+    assert dl_hiddify["macos"]["url"] == "https://ex/mac.dmg"
+    assert dl_hiddify["linux"]["url"] == "https://ex/linux.AppImage"
+
+
 

@@ -1033,6 +1033,7 @@ function renderTutorialApps(osKey) {
   }
 
   const recommendedAppId = overrides?.recommended?.[currentTutorialOS] || (currentTutorialOS === 'windows' ? overrides?.recommended?.desktop : '') || '';
+  const alternativeAppId = overrides?.alternative?.[currentTutorialOS] || (currentTutorialOS === 'windows' ? overrides?.alternative?.desktop : '') || '';
 
   // Filter apps: only show if enabled and has a download URL set by admin
   const activeApps = allApps.map(app => {
@@ -1047,11 +1048,15 @@ function renderTutorialApps(osKey) {
     const tutorialUrl = (appCfg && appCfg.tutorial_url) ? appCfg.tutorial_url.trim() : '';
     const version = (appCfg && appCfg.version) ? appCfg.version.trim() : app.version;
     const isRecommended = Boolean(recommendedAppId && recommendedAppId.toLowerCase() === app.id.toLowerCase());
-    return { ...app, isEnabled, downloadUrl, downloadPortableUrl, downloadExtraUrl, tutorialUrl, version, isRecommended };
+    const isAlternative = Boolean(!isRecommended && alternativeAppId && alternativeAppId.toLowerCase() === app.id.toLowerCase());
+    return { ...app, isEnabled, downloadUrl, downloadPortableUrl, downloadExtraUrl, tutorialUrl, version, isRecommended, isAlternative };
   }).filter(app => app.isEnabled && (app.downloadUrl || app.downloadPortableUrl || app.downloadExtraUrl));
 
-  // Recommended app comes first in the list
-  activeApps.sort((a, b) => (b.isRecommended ? 1 : 0) - (a.isRecommended ? 1 : 0));
+  // Recommended app comes 1st, Alternative app comes 2nd
+  activeApps.sort((a, b) => {
+    const rank = (x) => (x.isRecommended ? 2 : (x.isAlternative ? 1 : 0));
+    return rank(b) - rank(a);
+  });
 
   if (activeApps.length === 0) {
     listContainer.innerHTML = `
@@ -1078,7 +1083,7 @@ function renderTutorialApps(osKey) {
       addedUrls.add(app.downloadUrl);
     }
     if (app.downloadPortableUrl && !addedUrls.has(app.downloadPortableUrl)) {
-      dlButtons.push({ url: app.downloadPortableUrl, label: 'نسخه پرتابل (Portable)', icon: '💼' });
+      dlButtons.push({ url: app.downloadPortableUrl, label: 'نسخه Portable', icon: '💼' });
       addedUrls.add(app.downloadPortableUrl);
     }
     if (app.downloadExtraUrl && !addedUrls.has(app.downloadExtraUrl)) {
@@ -1130,7 +1135,9 @@ function renderTutorialApps(osKey) {
       `;
     }
 
-    const cardBorder = app.isRecommended ? 'border-amber-500/60 dark:border-amber-500/50 card-inset shadow-md ring-1 ring-amber-500/30' : 'card-inset';
+    const cardBorder = app.isRecommended
+      ? 'border-amber-500/60 dark:border-amber-500/50 card-inset shadow-md ring-1 ring-amber-500/30'
+      : (app.isAlternative ? 'border-sky-500/50 dark:border-sky-500/40 card-inset shadow-sm ring-1 ring-sky-500/20' : 'card-inset');
 
     return `
       <div class="tutorial-app-card rounded-2xl p-2.5 ${cardBorder} space-y-1.5 transition">
@@ -1138,7 +1145,7 @@ function renderTutorialApps(osKey) {
           <!-- Right side: App Icon + Name -->
           <div class="flex items-center gap-2.5 min-w-0">
             <div class="w-10 h-10 rounded-xl card-inset p-1 flex items-center justify-center flex-shrink-0 shadow-inner overflow-hidden relative">
-              <img src="/static/img/apps/${app.id}.png" alt="${escapeHtml(app.name)}" class="w-full h-full object-contain rounded-lg" onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='flex';" />
+              <img src="/static/img/apps/${app.id}.png" alt="${escapeHtml(app.name)}" class="w-full h-full object-contain rounded-lg" onerror="if(!this.dataset.triedWebp){this.dataset.triedWebp='1';this.src='/static/img/apps/${app.id}.webp';}else{this.style.display='none';if(this.nextElementSibling)this.nextElementSibling.style.display='flex';}" />
               <span class="text-xl items-center justify-center hidden" style="display:none;">${app.icon || '📱'}</span>
             </div>
             <div class="min-w-0 flex-1">
@@ -1148,9 +1155,10 @@ function renderTutorialApps(osKey) {
               </div>
             </div>
           </div>
-          <!-- Left side: Recommended badge + Tutorial button -->
+          <!-- Left side: Recommended/Alternative badge + Tutorial button -->
           <div class="flex items-center gap-1.5 flex-shrink-0">
             ${app.isRecommended ? '<span class="w-6 h-6 rounded-full flex items-center justify-center text-xs bg-amber-500/25 text-amber-600 dark:text-amber-300 border border-amber-500/60 font-black shadow-sm flex-shrink-0" title="پیشنهادی">⭐️</span>' : ''}
+            ${app.isAlternative ? '<span class="w-6 h-6 rounded-full flex items-center justify-center text-xs bg-sky-500/20 text-sky-600 dark:text-sky-300 border border-sky-500/50 font-black shadow-sm flex-shrink-0" title="جایگزین">🔄</span>' : ''}
             ${tutorialBtnHtml}
           </div>
         </div>
@@ -2682,6 +2690,7 @@ function updateUserPeakHoursView(sub) {
   let plotLabels = labels24;
   let plotData = today24;
   let barData = today12;
+  let barLabels = labels12;
   let peakHour = null;
   let extraOpts = {};
 
@@ -2691,25 +2700,51 @@ function updateUserPeakHoursView(sub) {
     barData = yest12;
     peakHour = formatSinglePeakHour(sub.yesterday_hourly_usage?.peak_hour, plotLabels, plotData, 23);
   } else if (currentUserPeakHoursMode === 'compare') {
-    const todaySliceCount = Math.min(24, Math.max(1, currHour + 1));
+    // Continuous rolling 24h timeline: yesterday (currHour+1..23) -> today (0..currHour).
+    // As each new hour arrives, today's hour replaces that hour from yesterday cleanly.
+    const todayCount = Math.min(24, Math.max(1, currHour + 1));
     const yLabels = sub.yesterday_hourly_usage?.hourly_labels_24 || labels24;
-    const tLabels = labels24.slice(0, todaySliceCount);
-    const ySlice = yest24.slice(0, 24);
-    const tSlice = today24.slice(0, todaySliceCount);
+    const rollingLabels = [];
+    const rollingData = [];
+    const rollingTooltipTitles = [];
+    const rawHours = [];
+    for (let h = currHour + 1; h < 24; h++) {
+      const lbl = yLabels[h] || `${String(h).padStart(2, '0')}:00`;
+      rollingLabels.push(h === currHour + 1 ? `دیروز ${lbl}` : lbl);
+      rollingData.push(Number(yest24[h]) || 0);
+      rollingTooltipTitles.push(`دیروز - ساعت ${toEnglishDigits(lbl)}`);
+      rawHours.push({ hour: h, val: Number(yest24[h]) || 0 });
+    }
+    const splitTodayIndex = rollingLabels.length;
+    for (let h = 0; h < todayCount; h++) {
+      const lbl = labels24[h] || `${String(h).padStart(2, '0')}:00`;
+      rollingLabels.push(h === 0 ? `امروز ${lbl}` : lbl);
+      rollingData.push(Number(today24[h]) || 0);
+      rollingTooltipTitles.push(`امروز - ساعت ${toEnglishDigits(lbl)}`);
+      rawHours.push({ hour: h, val: Number(today24[h]) || 0 });
+    }
 
-    plotLabels = [
-      ...yLabels.map((lbl, idx) => (idx === 0 ? 'دیروز 00:00' : lbl)),
-      ...tLabels.map((lbl, idx) => (idx === 0 ? 'امروز 00:00' : lbl)),
-    ];
-    plotData = [...ySlice, ...tSlice];
+    plotLabels = rollingLabels;
+    plotData = rollingData;
     extraOpts = {
-      tooltipTitles: [
-        ...yLabels.map(lbl => `دیروز - ساعت ${toEnglishDigits(lbl)}`),
-        ...tLabels.map(lbl => `امروز - ساعت ${toEnglishDigits(lbl)}`),
-      ],
+      tooltipTitles: rollingTooltipTitles,
+      splitTodayIndex,
     };
-    peakHour = formatSinglePeakHour(null, [...yLabels, ...tLabels], plotData, plotData.length - 1);
-    barData = today12;
+    peakHour = formatSinglePeakHour(
+      null,
+      rawHours.map(item => `${String(item.hour).padStart(2, '0')}:00`),
+      plotData,
+      plotData.length - 1,
+    );
+    barLabels = [];
+    barData = [];
+    for (let i = 0; i < rawHours.length; i += 2) {
+      const a = rawHours[i];
+      const b = rawHours[i + 1];
+      const endH = ((b ? b.hour : a.hour) + 1) % 24;
+      barLabels.push(`${String(a.hour).padStart(2, '0')}-${String(endH).padStart(2, '0')}`);
+      barData.push(Number(((a.val || 0) + (b?.val || 0)).toFixed(3)));
+    }
   } else {
     plotLabels = labels24;
     plotData = today24;
@@ -2738,7 +2773,7 @@ function updateUserPeakHoursView(sub) {
 
   if (typeof renderBarChart === 'function') {
     if (hasModeTraffic) {
-      renderBarChart('repPeakHoursBarCanvas', barData, labels12, false);
+      renderBarChart('repPeakHoursBarCanvas', barData, barLabels, false);
     }
     renderBarChart('repDailyChartCanvas', today12, labels12, false);
     const hasY = Boolean((sub.yesterday_used_gb && Number(sub.yesterday_used_gb) > 0) || yest12.some(v => Number(v) > 0));
@@ -2753,7 +2788,7 @@ function updateUserPeakHoursView(sub) {
 
   try {
     let dawnSum = 0, morningSum = 0, afternoonSum = 0, nightSum = 0;
-    labels12.forEach((lbl, idx) => {
+    barLabels.forEach((lbl, idx) => {
       const val = parseFloat(barData[idx]) || 0;
       const startHour = parseInt(String(lbl).split('-')[0] || String(idx * 2), 10);
       if (startHour >= 0 && startHour < 6) dawnSum += val;
@@ -3481,6 +3516,17 @@ function hydrateUserInterface(data) {
         const hwid = d.hwid || '';
 
         const ua = String(d.userAgent || d.user_agent || '').trim();
+        const rawPlatform = String(d.platform || d.os || '').trim();
+        const rawOsVer = String(d.osVersion || d.platformVersion || '').trim();
+        let resolvedOs = [rawPlatform, rawOsVer].filter(Boolean).join(' ').trim();
+        if (!resolvedOs && ua) {
+          const uaLow = ua.toLowerCase();
+          if (uaLow.includes('android')) resolvedOs = 'Android';
+          else if (uaLow.includes('iphone') || uaLow.includes('ipad') || uaLow.includes('ios')) resolvedOs = 'iOS';
+          else if (uaLow.includes('windows')) resolvedOs = 'Windows';
+          else if (uaLow.includes('mac os') || uaLow.includes('macos') || uaLow.includes('darwin')) resolvedOs = 'macOS';
+          else if (uaLow.includes('linux')) resolvedOs = 'Linux';
+        }
         let cleanUa = ua;
         if (ua) {
           const clients = [
@@ -3536,10 +3582,6 @@ function hydrateUserInterface(data) {
                 <div class="min-w-0 flex-1">
                   <div class="flex items-center gap-1.5 flex-wrap">
                     <span class="text-xs font-bold t-main truncate">${escapeHtml(model)}</span>
-                    <span class="badge badge-success rounded-full text-[10px] px-1.5 py-0.5">
-                      <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                      <span>فعال</span>
-                    </span>
                   </div>
                   ${uaHtml}
                 </div>
@@ -3549,8 +3591,14 @@ function hydrateUserInterface(data) {
               </button>
             </div>
 
-            <!-- Device Meta: IP, Updated, Added -->
+            <!-- Device Meta: OS, IP, Added, Updated -->
             <div class="pt-1.5 border-t border-card-border text-[11px] font-sans space-y-1">
+              ${resolvedOs ? `
+                <div class="flex items-center justify-between t-muted">
+                  <span class="flex items-center gap-1"><span>💻</span> سیستم‌عامل:</span>
+                  <span class="font-sans font-bold t-main num-bidi" dir="ltr">${escapeHtml(resolvedOs)}</span>
+                </div>
+              ` : ''}
               <div class="flex items-center justify-between t-muted">
                 <span class="flex items-center gap-1"><span>🌐</span> آی‌پی:</span>
                 <span class="font-sans font-bold t-accent num-bidi" dir="ltr">${escapeHtml(ip)}</span>
@@ -4219,11 +4267,12 @@ function copyActiveCoupon() {
   }
   const code = coupons[0]?.code;
   if (code) {
+    const copyMsg = `کد تخفیف کپی شد:\n${code}`;
     if (typeof copyToClipboard === 'function') {
-      copyToClipboard(code, `کد تخفیف ${code} کپی شد!`);
+      copyToClipboard(code, copyMsg);
     } else if (navigator.clipboard) {
       navigator.clipboard.writeText(code);
-      if (typeof showToast === 'function') showToast(`کد تخفیف ${code} کپی شد!`, 'success');
+      if (typeof showToast === 'function') showToast(copyMsg, 'success');
     }
     const couponInput = $('couponInput');
     if (couponInput) couponInput.value = code;
@@ -4941,7 +4990,7 @@ function renderInvoiceModalFields(inv, orderId) {
   if ($('invBuyerName')) $('invBuyerName').innerText = bName;
   if ($('invBuyerId')) {
     $('invBuyerId').innerText = bId ? String(bId) : '';
-    $('invBuyerId').className = bId ? 'text-[11px] text-slate-400 font-sans num-bidi block select-all text-left' : 'hidden';
+    $('invBuyerId').className = bId ? 'text-[11px] text-slate-400 font-sans num-bidi block select-all text-right' : 'hidden';
   }
 
   const rawItemTitle = (inv.item?.title || 'بسته اشتراک').trim();
@@ -4989,7 +5038,7 @@ function renderInvoiceModalFields(inv, orderId) {
       colorClass = 't-purple';
     }
     statusEl.className = `flex items-center gap-1 font-bold ${colorClass}`;
-    statusEl.innerHTML = `<span>${icon}</span> <span>${statusText}</span>`;
+    statusEl.innerHTML = `<span>${statusText}</span> <span>${icon}</span>`;
   }
 
   const dedStatusEl = $('invWalletDeductionStatus');

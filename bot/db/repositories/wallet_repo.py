@@ -86,7 +86,12 @@ class WalletRepository:
         await self.session.flush()
         if claimed is None:
             return None
-        return await self.get_topup(topup_id)
+        topup = await self.get_topup(topup_id)
+        if topup and not approved and topup.receipt_hash and not topup.receipt_hash.startswith("rej:"):
+            # Release the unique raw fingerprint on rejection so rejected screenshots can be retried.
+            topup.receipt_hash = f"rej:{topup.id}:{topup.receipt_hash}"[:128]
+            await self.session.flush()
+        return topup
 
     # ------------------------------------------------------------------ #
     # Top-ups
@@ -109,17 +114,18 @@ class WalletRepository:
         return topup
 
     async def receipt_exists(self, receipt_hash: str) -> bool:
-        """True if this receipt fingerprint was already submitted (any status)."""
+        """True if this receipt fingerprint belongs to an active/approved top-up."""
         if not receipt_hash:
             return False
         from sqlalchemy import or_
         result = await self.session.execute(
             select(Topup).where(
+                Topup.status != "rejected",
                 or_(
                     Topup.receipt_hash == receipt_hash,
                     Topup.receipt_hash.like(f"{receipt_hash}|%"),
                     Topup.receipt_hash.like(f"%|{receipt_hash}"),
-                )
+                ),
             ).limit(1)
         )
         return result.scalar_one_or_none() is not None

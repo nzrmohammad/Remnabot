@@ -49,10 +49,10 @@
     hiddify: { name: 'Hiddify' },
     nekoray: { name: 'NekoRay' },
     v2raya: { name: 'v2rayA' },
-    karing: { name: 'Karing', icon: '🚗', version: '1.0.38', hasGithub: true },
+    karing: { name: 'Karing', icon: '🚗', version: '1.2.26', hasGithub: true, hasPortable: true },
     pattn: { name: 'PattN', icon: '⚡️', version: '7.25.6', hasGithub: true, hasPortable: true },
-    pattng: { name: 'PattNG', icon: '⚡️', version: '2.3.15', hasGithub: true, hasExtra: true },
-    zedsecure: { name: 'Zedsecure', icon: '🛡️', version: '1.0.0', hasGithub: true, hasExtra: true },
+    pattng: { name: 'PattNG', icon: '⚡️', version: '2.3.15', hasGithub: true },
+    zedsecure: { name: 'Zedsecure', icon: '🛡️', version: '3.1.8', hasGithub: true, hasPortable: true },
   };
 
   function renderAdminExtraAppCards() {
@@ -70,7 +70,7 @@
         const meta = CLIENT_APP_META[appId] || { name: appId, icon: '📱', version: '1.0.0' };
         const portableRow = (os === 'windows' && meta.hasPortable) ? `
           <div>
-            <label class="text-[11px] text-amber-300 block mb-1">💼 لینک دانلود نسخه پرتابل (Portable):</label>
+            <label class="text-[11px] text-amber-300 block mb-1">💼 لینک دانلود نسخه Portable:</label>
             <input type="text" id="appDownloadPortable_${os}_${appId}" dir="ltr" placeholder="لینک نسخه پرتابل (اختیاری)" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-amber-300 outline-none focus:border-amber-500 transition" />
           </div>` : '';
         const extraRow = (os === 'android' && meta.hasExtra) ? `
@@ -79,13 +79,14 @@
             <input type="text" id="appDownloadExtra_${os}_${appId}" dir="ltr" placeholder="مثلاً لینک گیت‌هاب یا فایل apk" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-purple-300 outline-none focus:border-purple-500 transition" />
           </div>` : '';
         const ghBtn = meta.hasGithub ? `
-          <button type="button" onclick="window.fetchGithubAppVersion('${appId}', '${os}')" class="text-[11px] t-accent hover:text-cyan-300 flex items-center gap-1 active:scale-95" title="استعلام آخرین نسخه از گیت‌هاب">
+          <button type="button" onclick="window.fetchGithubAppVersion('${appId}', '${os}')" class="text-[11px] t-accent hover:text-cyan-300 flex items-center gap-1 active:scale-95" title="استعلام آخرین نسخه و لینک از گیت‌هاب">
             <span>🐙</span><span>گیت‌هاب</span>
           </button>` : '';
         return `
           <div class="p-3 rounded-2xl border border-slate-700/50 space-y-2 bg-transparent">
             <div class="flex items-center gap-2">
-              <span class="text-sm leading-none">${meta.icon || '📱'}</span>
+              <img src="/static/img/apps/${appId}.webp" onerror="if(!this.dataset.triedPng){this.dataset.triedPng='1';this.src='/static/img/apps/${appId}.png';}else{this.style.display='none';if(this.nextElementSibling)this.nextElementSibling.style.display='inline';}" class="w-5 h-5 rounded-md object-contain" alt="${meta.name}" loading="lazy" />
+              <span class="text-sm leading-none hidden" style="display:none;">${meta.icon || '📱'}</span>
               <b class="text-white text-xs">${meta.name}</b>
             </div>
             <div>
@@ -893,22 +894,27 @@ openUserChat(telegram_id, name, tag, topup_id) {
       }
     },
 
-    openRecommendedAppModal(os) {
+    openRecommendedAppModal(os, role = 'recommended') {
       const modal = $('recommendedAppPickerModal');
       const list = $('recommendedAppPickerList');
       const title = $('recommendedAppPickerTitle');
       if (!modal || !list) return;
 
+      const pickerRole = role === 'alternative' ? 'alternative' : 'recommended';
       const osNames = { ios: 'iOS', android: 'اندروید', windows: 'ویندوز', macos: 'مک', linux: 'لینوکس' };
-      if (title) title.innerHTML = `<span>⭐️</span><span>انتخاب برنامه پیشنهادی (${osNames[os] || os})</span>`;
+      const emptyLabel = pickerRole === 'alternative' ? 'بدون برنامه جایگزین' : 'بدون برنامه پیشنهادی';
+      const roleIcon = pickerRole === 'alternative' ? '🔄' : '⭐️';
+      const roleTitle = pickerRole === 'alternative' ? 'انتخاب برنامه جایگزین' : 'انتخاب برنامه پیشنهادی';
+      if (title) title.innerHTML = `<span>${roleIcon}</span><span>${roleTitle} (${osNames[os] || os})</span>`;
 
-      const currentVal = $(`appRecommended_${os}`)?.value || '';
+      const inputId = pickerRole === 'alternative' ? `appAlternative_${os}` : `appRecommended_${os}`;
+      const currentVal = $(inputId)?.value || '';
       const appIds = OS_APPS_MAP[os] || [];
       let html = `
-        <button type="button" onclick="window.adminActions.selectRecommendedApp('${os}', '', 'بدون برنامه پیشنهادی')" class="w-full text-right p-3 rounded-2xl border transition flex items-center justify-between ${!currentVal ? 'bg-cyan-500/15 border-cyan-500/40 text-cyan-700 dark:text-cyan-300 font-bold' : 'card-inset border-slate-700/50 t-muted hover:t-main'} active:scale-95">
+        <button type="button" onclick="window.adminActions.selectRecommendedApp('${os}', '', '${emptyLabel}', '${pickerRole}')" class="w-full text-right p-3 rounded-2xl border transition flex items-center justify-between ${!currentVal ? 'bg-cyan-500/15 border-cyan-500/40 text-cyan-700 dark:text-cyan-300 font-bold' : 'card-inset border-slate-700/50 t-muted hover:t-main'} active:scale-95">
           <div class="flex items-center gap-2">
             <span class="text-base">🚫</span>
-            <span>بدون برنامه پیشنهادی</span>
+            <span>${emptyLabel}</span>
           </div>
           ${!currentVal ? '<span class="t-accent font-bold">✓</span>' : ''}
         </button>
@@ -918,9 +924,10 @@ openUserChat(telegram_id, name, tag, topup_id) {
         const appName = CLIENT_APP_META[appId]?.name || appId;
         const isSelected = currentVal === appId;
         html += `
-          <button type="button" onclick="window.adminActions.selectRecommendedApp('${os}', '${appId}', '${escapeHtml(appName)}')" class="w-full text-right p-3 rounded-2xl border transition flex items-center justify-between ${isSelected ? 'bg-cyan-500/15 border-cyan-500/40 text-cyan-700 dark:text-cyan-300 font-bold' : 'card-inset border-slate-700/50 t-muted hover:t-main'} active:scale-95">
+          <button type="button" onclick="window.adminActions.selectRecommendedApp('${os}', '${appId}', '${escapeHtml(appName)}', '${pickerRole}')" class="w-full text-right p-3 rounded-2xl border transition flex items-center justify-between ${isSelected ? 'bg-cyan-500/15 border-cyan-500/40 text-cyan-700 dark:text-cyan-300 font-bold' : 'card-inset border-slate-700/50 t-muted hover:t-main'} active:scale-95">
             <div class="flex items-center gap-2">
-              <span class="text-base">📱</span>
+              <img src="/static/img/apps/${appId}.webp" onerror="if(!this.dataset.triedPng){this.dataset.triedPng='1';this.src='/static/img/apps/${appId}.png';}else{this.style.display='none';if(this.nextElementSibling)this.nextElementSibling.style.display='inline';}" class="w-5 h-5 rounded-md object-contain shrink-0" alt="${escapeHtml(appName)}" loading="lazy" />
+              <span class="text-base hidden" style="display:none;">📱</span>
               <span class="font-medium">${escapeHtml(appName)}</span>
             </div>
             ${isSelected ? '<span class="t-accent font-bold">✓</span>' : ''}
@@ -929,14 +936,16 @@ openUserChat(telegram_id, name, tag, topup_id) {
       });
 
       list.innerHTML = html;
+      list.scrollTop = 0;
       modal.classList.remove('hidden');
       if (window.hapticFeedback) window.hapticFeedback('selection');
     },
 
-    selectRecommendedApp(os, appId, appName) {
-      const inp = $(`appRecommended_${os}`);
+    selectRecommendedApp(os, appId, appName, role = 'recommended') {
+      const pickerRole = role === 'alternative' ? 'alternative' : 'recommended';
+      const inp = $(pickerRole === 'alternative' ? `appAlternative_${os}` : `appRecommended_${os}`);
       if (inp) inp.value = appId;
-      this.updateRecommendedAppButton(os, appId);
+      this.updateRecommendedAppButton(os, appId, pickerRole);
       this.closeRecommendedAppModal();
       if (window.hapticFeedback) window.hapticFeedback('selection');
     },
@@ -945,10 +954,12 @@ openUserChat(telegram_id, name, tag, topup_id) {
       $('recommendedAppPickerModal')?.classList.add('hidden');
     },
 
-    updateRecommendedAppButton(os, appId) {
-      const lbl = $(`appRecommendedLabel_${os}`);
+    updateRecommendedAppButton(os, appId, role = 'recommended') {
+      const pickerRole = role === 'alternative' ? 'alternative' : 'recommended';
+      const lbl = $(pickerRole === 'alternative' ? `appAlternativeLabel_${os}` : `appRecommendedLabel_${os}`);
       if (lbl) {
-        lbl.innerText = appId ? (CLIENT_APP_META[appId]?.name || appId) : 'بدون برنامه پیشنهادی';
+        const emptyLabel = pickerRole === 'alternative' ? 'بدون برنامه جایگزین' : 'بدون برنامه پیشنهادی';
+        lbl.innerText = appId ? (CLIENT_APP_META[appId]?.name || appId) : emptyLabel;
       }
     }
   });
@@ -1447,7 +1458,13 @@ openUserChat(telegram_id, name, tag, topup_id) {
               if (recSelect) {
                 const recVal = appOverrides.recommended?.[os] || (os === 'windows' ? appOverrides.recommended?.desktop : '') || '';
                 recSelect.value = recVal;
-                window.adminActions.updateRecommendedAppButton(os, recVal);
+                window.adminActions.updateRecommendedAppButton(os, recVal, 'recommended');
+              }
+              const altSelect = $(`appAlternative_${os}`);
+              if (altSelect) {
+                const altVal = appOverrides.alternative?.[os] || (os === 'windows' ? appOverrides.alternative?.desktop : '') || '';
+                altSelect.value = altVal;
+                window.adminActions.updateRecommendedAppButton(os, altVal, 'alternative');
               }
               const osSource = appOverrides[os] || (os === 'windows' ? appOverrides.desktop : null);
               for (const appId of appIds) {
@@ -1706,6 +1723,14 @@ openUserChat(telegram_id, name, tag, topup_id) {
             desktop: $('appRecommended_windows')?.value || '',
             macos: $('appRecommended_macos')?.value || '',
             linux: $('appRecommended_linux')?.value || ''
+          },
+          alternative: {
+            ios: $('appAlternative_ios')?.value || '',
+            android: $('appAlternative_android')?.value || '',
+            windows: $('appAlternative_windows')?.value || '',
+            desktop: $('appAlternative_windows')?.value || '',
+            macos: $('appAlternative_macos')?.value || '',
+            linux: $('appAlternative_linux')?.value || ''
           }
         };
         for (const [os, appIds] of Object.entries(OS_APPS_MAP)) {
@@ -1900,19 +1925,62 @@ openUserChat(telegram_id, name, tag, topup_id) {
   });
 
 
+  function _applyGithubDownloadsForOs(appId, os, dlByOs) {
+    const dl = dlByOs?.[os];
+    if (!dl || typeof dl !== 'object') return 0;
+    let updated = 0;
+    if (os === 'android' && dl.direct_url) {
+      const extraEl = $(`appDownloadExtra_android_${appId}`);
+      const mainEl = $(`appDownload_android_${appId}`);
+      if (extraEl) {
+        extraEl.value = dl.direct_url;
+        updated++;
+      } else if (mainEl) {
+        mainEl.value = dl.direct_url;
+        updated++;
+      }
+      if (!extraEl && !mainEl) return updated;
+      // For pure GitHub APKs with no Google Play store URL, also fill main download if empty
+      if (extraEl && mainEl && ['pattng', 'karing', 'zedsecure'].includes(appId) && !mainEl.value.trim()) {
+        mainEl.value = dl.direct_url;
+      }
+      return updated;
+    }
+    if (dl.url) {
+      const mainEl = $(`appDownload_${os}_${appId}`);
+      if (mainEl) {
+        mainEl.value = dl.url;
+        updated++;
+      }
+    }
+    if (dl.portable_url) {
+      const portEl = $(`appDownloadPortable_${os}_${appId}`);
+      if (portEl) {
+        portEl.value = dl.portable_url;
+        updated++;
+      }
+    }
+    return updated;
+  }
+
   async function fetchGithubAppVersion(appId, os) {
     if (!appId) return;
     try {
       if (window.hapticFeedback) window.hapticFeedback('selection');
       const res = await window.api.getGithubReleases(appId);
-      if (res && res.ok && res.versions && res.versions[appId]) {
-        const ver = res.versions[appId];
-        const versionEl = $(`appVersion_${os}_${appId}`);
-        if (versionEl) {
-          versionEl.value = ver;
-          versionEl.focus();
+      const ver = res?.versions?.[appId];
+      const dlByOs = res?.downloads?.[appId];
+      const dlUpdated = _applyGithubDownloadsForOs(appId, os, dlByOs);
+      if (res && res.ok && (ver || dlUpdated > 0)) {
+        if (ver) {
+          const versionEl = $(`appVersion_${os}_${appId}`);
+          if (versionEl) {
+            versionEl.value = ver;
+            versionEl.focus();
+          }
         }
-        if (window.showToast) window.showToast(`✅ نسخه ${ver} از GitHub دریافت شد.`);
+        const dlNote = dlUpdated > 0 ? ' و لینک دانلود' : '';
+        if (window.showToast) window.showToast(`✅ نسخه ${ver || ''}${dlNote} از GitHub دریافت شد.`);
         if (window.hapticFeedback) window.hapticFeedback('success');
       } else {
         if (window.showToast) window.showToast('⚠️ نسخه‌ای در گیت‌هاب برای این برنامه یافت نشد.');
@@ -1934,6 +2002,7 @@ openUserChat(telegram_id, name, tag, topup_id) {
       const res = await window.api.getGithubReleases();
       if (res && res.ok && res.versions) {
         let count = 0;
+        let dlCount = 0;
         for (const [os, appIds] of Object.entries(OS_APPS_MAP)) {
           for (const appId of appIds) {
             if (res.versions[appId]) {
@@ -1943,9 +2012,11 @@ openUserChat(telegram_id, name, tag, topup_id) {
                 count++;
               }
             }
+            dlCount += _applyGithubDownloadsForOs(appId, os, res.downloads?.[appId]);
           }
         }
-        if (window.showToast) window.showToast(`✅ تعداد ${count} نسخه از GitHub بروزرسانی شدند. برای اعمال «ذخیره تغییرات» را بزنید.`);
+        const dlSuffix = dlCount > 0 ? ` و ${dlCount} لینک دانلود` : '';
+        if (window.showToast) window.showToast(`✅ تعداد ${count} نسخه${dlSuffix} از GitHub بروزرسانی شدند. برای اعمال «ذخیره تغییرات» را بزنید.`);
         if (window.hapticFeedback) window.hapticFeedback('success');
       } else {
         if (window.showToast) window.showToast('⚠️ خطا در دریافت نسخه‌ها از گیت‌هاب.');

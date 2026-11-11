@@ -154,31 +154,22 @@
             typeBadge = '<span class="badge badge-plan-type">⏳ بسته زمانی</span>';
           }
 
-          let tagBadge = '';
-          if (bKey === 'bestseller') {
-            tagBadge = '<span class="badge badge-warn font-bold">🔥 پرفروش‌ترین</span>';
-          } else if (bKey === 'popular') {
-            tagBadge = '<span class="badge badge-purple font-bold">⭐️ پرطرفدار</span>';
-          } else if (bKey === 'economic') {
-            tagBadge = '<span class="badge badge-success font-bold">💰 اقتصادی</span>';
-          } else if (bKey === 'vip') {
-            tagBadge = '<span class="badge badge-danger font-bold">👑 پیشنهاد ویژه</span>';
-          } else if (bKey === 'gaming') {
-            tagBadge = '<span class="badge badge-purple font-bold">🎮 گیمینگ</span>';
-          } else if (bKey === 'antifilter') {
-            tagBadge = '<span class="badge badge-accent font-bold">🛡 ضد فیلتر</span>';
-          } else if (bKey === 'speed') {
-            tagBadge = '<span class="badge badge-warn font-bold">⚡️ فوق سریع</span>';
-          } else if (bKey === 'stream') {
-            tagBadge = '<span class="badge badge-plan-type">🎬 استریم</span>';
-          } else if (bKey === 'family') {
-            tagBadge = '<span class="badge badge-plan-type">👥 چند کاربره</span>';
-          } else if (bKey === 'tunnel') {
-            tagBadge = '<span class="badge badge-info font-bold">🚇 تانل اختصاصی</span>';
-          }
+          const TAG_LABELS = {
+            bestseller: '🔥 پرفروش‌ترین',
+            popular: '⭐️ پرطرفدار',
+            economic: '💰 اقتصادی',
+            vip: '👑 پیشنهاد ویژه',
+            gaming: '🎮 گیمینگ',
+            antifilter: '🛡 ضد فیلتر',
+            speed: '⚡️ فوق سریع',
+            stream: '🎬 استریم',
+            family: '👥 چند کاربره',
+            tunnel: '🚇 تانل اختصاصی',
+          };
+          let tagBadge = TAG_LABELS[bKey] ? `<span class="badge badge-plan-type">${TAG_LABELS[bKey]}</span>` : '';
           if (p.max_purchases) {
             const pCount = p.purchases_count || 0;
-            tagBadge += ` <span class="badge card-inset t-muted border border-card-border font-bold font-sans num-bidi">سقف: ${pCount}/${p.max_purchases}</span>`;
+            tagBadge += ` <span class="badge badge-neutral font-bold font-sans num-bidi">سقف: ${pCount}/${p.max_purchases}</span>`;
           }
 
           let specsHtml = '';
@@ -221,7 +212,7 @@
 
           const squadObj = adminRemnawaveSquads.find(s => s.uuid === p.squad_uuid);
           const squadName = squadObj ? squadObj.name : (p.squad_uuid ? `اسکواد ${p.squad_uuid.slice(0, 8)}…` : '');
-          const squadBadge = squadName ? `<span class="px-2 py-0.5 rounded-full text-[11px] font-bold card-inset t-muted border border-card-border truncate max-w-[130px]" title="اسکواد: ${escapeHtml(squadName)}">🧩 ${escapeHtml(squadName)}</span>` : '';
+          const squadBadge = squadName ? `<span class="px-2 py-0.5 rounded-full text-[11px] font-bold card-inset t-muted border border-slate-700/60 truncate max-w-[130px]" title="اسکواد: ${escapeHtml(squadName)}">🧩 ${escapeHtml(squadName)}</span>` : '';
 
           const descHtml = (!isExtraTraffic && !isExtraTime && p.description)
             ? `<p class="text-[11px] text-slate-400 line-clamp-1 pr-9">${escapeHtml(p.description)}</p>`
@@ -229,12 +220,12 @@
 
           const planCategory = isExtraTraffic ? 'traffic' : (isExtraTime ? 'time' : 'full');
           return `
-            <div data-plan-type="${planCategory}" class="plan-card admin-plan-card bg-slate-800/80 rounded-2xl p-4 border border-card-border space-y-3 shadow transition">
+            <div data-plan-type="${planCategory}" class="plan-card admin-plan-card bg-slate-800/80 rounded-2xl p-4 border border-slate-700/80 space-y-3 shadow transition">
               <div class="space-y-1.5">
                 <!-- Top Row: Name + statusBadge on Right, Price and تومان on Left (همراستا و چسبیده) -->
                 <div class="flex items-center justify-between gap-2">
                   <div class="flex items-center gap-1.5 min-w-0">
-                    <span class="w-7 h-7 rounded-xl card-inset text-slate-300 border border-card-border flex items-center justify-center flex-shrink-0" title="بسته">
+                    <span class="w-7 h-7 rounded-xl card-inset text-slate-300 border border-slate-700/80 flex items-center justify-center flex-shrink-0" title="بسته">
                       <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
                     </span>
                     <b dir="ltr" class="t-main text-xs font-bold truncate">${escapeHtml(cleanName)}</b>
@@ -260,16 +251,16 @@
 
               <!-- 3 Action Buttons with Icons & Labels: Calm, Cohesive Design System Tokens -->
               <div class="flex gap-2 pt-1">
-                <button onclick="window.adminActions.openPlanModal(${p.id})" class="flex-1 card-inset hover:border-slate-500 t-main border border-card-border py-2 rounded-xl transition flex items-center justify-center gap-1.5 active:scale-95" title="ویرایش بسته" aria-label="ویرایش بسته">
+                <button onclick="window.adminActions.openPlanModal(${p.id})" class="flex-1 card-inset hover:border-slate-500 t-main border border-slate-700/60 py-2 rounded-xl transition flex items-center justify-center gap-1.5 active:scale-95" title="ویرایش بسته" aria-label="ویرایش بسته">
                   <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                   <span class="text-[11px] font-bold">ویرایش</span>
                 </button>
-                <button onclick="window.adminActions.togglePlan(${p.id}, ${p.is_active})" class="flex-1 card-inset hover:border-slate-500 ${p.is_active ? 't-main hover:text-amber-400' : 't-success hover:border-emerald-500/50'} border border-card-border py-2 rounded-xl transition flex items-center justify-center gap-1.5 active:scale-95" title="${p.is_active ? 'غیرفعال‌سازی بسته' : 'فعال‌سازی بسته'}" aria-label="${p.is_active ? 'غیرفعال‌سازی بسته' : 'فعال‌سازی بسته'}">
+                <button onclick="window.adminActions.togglePlan(${p.id}, ${p.is_active})" class="flex-1 card-inset hover:border-slate-500 ${p.is_active ? 't-main hover:text-amber-400' : 't-success hover:border-emerald-500/50'} border border-slate-700/60 py-2 rounded-xl transition flex items-center justify-center gap-1.5 active:scale-95" title="${p.is_active ? 'غیرفعال‌سازی بسته' : 'فعال‌سازی بسته'}" aria-label="${p.is_active ? 'غیرفعال‌سازی بسته' : 'فعال‌سازی بسته'}">
                   ${p.is_active
                     ? '<svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg><span class="text-[11px] font-bold">غیرفعال</span>'
                     : '<svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg><span class="text-[11px] font-bold">فعال‌سازی</span>'}
                 </button>
-                <button type="button" data-id="${p.id}" data-name="${escapeHtml(p.name)}" class="btn-delete-plan flex-1 card-inset hover:border-rose-500/50 hover:bg-rose-500/10 t-main hover:text-rose-400 border border-card-border py-2 rounded-xl transition flex items-center justify-center gap-1.5 active:scale-95" title="حذف بسته" aria-label="حذف بسته">
+                <button type="button" data-id="${p.id}" data-name="${escapeHtml(p.name)}" class="btn-delete-plan flex-1 card-inset hover:border-rose-500/50 hover:bg-rose-500/10 t-main hover:text-rose-400 border border-slate-700/60 py-2 rounded-xl transition flex items-center justify-center gap-1.5 active:scale-95" title="حذف بسته" aria-label="حذف بسته">
                   <svg class="w-4 h-4 text-slate-400 group-hover:text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                   <span class="text-[11px] font-bold">حذف</span>
                 </button>

@@ -260,7 +260,7 @@ function renderWalletTransactions(transactions) {
       </button>
     ` : '';
 
-    const txIcon = ({ topup: '💳', card_auto: '⚡️', crypto: '💎', admin_adjust: '⚡️' })[tx.type] || '🛒';
+    const txIcon = ({ topup: '💳', card_auto: '💳', crypto: '💎', admin_adjust: '⚡️' })[tx.type] || '🛒';
     return `
     <div class="card-inset rounded-2xl p-4 sm:p-4.5 flex items-center justify-between text-xs sm:text-[13px] gap-3 min-h-[72px] ${isOrder ? 'cursor-pointer hover:border-cyan-500/40 transition active:scale-[0.99]' : ''}" ${isOrder ? `onclick="window.openInvoiceModal && window.openInvoiceModal(${tx.id});"` : ''}>
       <div class="flex items-center gap-2.5 min-w-0 flex-1">
@@ -414,6 +414,7 @@ async function _computeSha256Hex(bytes) {
 async function computeReceiptImageFingerprint(dataUrl) {
   if (!dataUrl || typeof dataUrl !== 'string') return '';
   const b64 = dataUrl.includes('base64,') ? dataUrl.split('base64,')[1] : dataUrl;
+  if (!b64 || b64.length < 32) return '';
   try {
     const raw = atob(b64);
     const bytes = new Uint8Array(raw.length);
@@ -508,9 +509,7 @@ async function loadTopupInfo() {
         _cardTopupGuardState.recentPaidAutoAmounts = new Set(res.recent_paid_auto_amounts.map(Number));
       }
       if (Array.isArray(res.recent_receipt_hashes)) {
-        res.recent_receipt_hashes.forEach(h => {
-          if (h) _cardTopupGuardState.knownDuplicateHashes.add(h);
-        });
+        _cardTopupGuardState.knownDuplicateHashes = new Set(res.recent_receipt_hashes.filter(Boolean));
       }
       const isGraphic = res.card_graphical_view_enabled !== false;
       const graphicBox = document.getElementById('cardAutoGraphicBox');
@@ -1706,8 +1705,13 @@ function setupWalletListeners() {
           canvas.width = width;
           canvas.height = height;
           const ctx = canvas.getContext('2d');
+          if (!ctx || !width || !height) {
+            resolve(rawData);
+            return;
+          }
           ctx.drawImage(img, 0, 0, width, height);
-          resolve(canvas.toDataURL('image/jpeg', quality));
+          const compressed = canvas.toDataURL('image/jpeg', quality);
+          resolve(compressed && compressed.length > 100 ? compressed : rawData);
         };
         img.onerror = () => resolve(rawData);
         img.src = rawData;
@@ -1779,7 +1783,7 @@ function setupWalletListeners() {
     try {
       const res = await window.api.submitCardTopup(
         amt,
-        receipt || 'تصویر فیش پیوست شد',
+        receipt || '',
         _cardTopupGuardState.selectedImageBase64,
       );
       if (res.ok) {
@@ -1788,15 +1792,19 @@ function setupWalletListeners() {
         if (submittedTextHash) _cardTopupGuardState.knownDuplicateHashes.add(submittedTextHash);
         _cardTopupGuardState.serverRejectedKey = null;
         _cardTopupGuardState.serverRejectedMsg = '';
+        if (receiptTextInput) {
+          receiptTextInput.value = '';
+          _cardTopupGuardState.selectedTextHash = null;
+        }
         showToast('✅ رسید با موفقیت ثبت شد و پس از بررسی ادمین حساب شارژ می‌گردد.');
         resetSelectedReceiptImage();
         closeModal('topupModal');
         if (typeof syncUserDataWithApi === 'function') syncUserDataWithApi(window.currentAccountId);
       } else {
         const msg = String(res.message || 'خطا در ثبت رسید');
-        if (msg.includes('تکراری') || msg.includes('قبلاً ثبت') || res.error === 'duplicate_receipt') {
-          if (msg.includes('پیگیری') && submittedTextHash) {
-            _cardTopupGuardState.knownDuplicateHashes.add(submittedTextHash);
+        if (res.error === 'duplicate_receipt' || (msg.includes('تکراری') && !msg.includes('خودکار')) || msg.includes('قبلاً ثبت')) {
+          if (msg.includes('پیگیری')) {
+            if (submittedTextHash) _cardTopupGuardState.knownDuplicateHashes.add(submittedTextHash);
           } else {
             if (submittedImgHash) _cardTopupGuardState.knownDuplicateHashes.add(submittedImgHash);
             if (submittedFileKey) _cardTopupGuardState.knownDuplicateHashes.add(submittedFileKey);

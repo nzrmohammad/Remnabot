@@ -63,10 +63,11 @@ function showWheelResultModal({ icon = '🎉', title = 'تبریک!', message = 
       const copyBtn = document.getElementById('copyWheelCouponBtn');
       if (copyBtn) {
         copyBtn.onclick = () => {
+          const copyMsg = `کد تخفیف کپی شد:\n${couponCode}`;
           if (typeof copyToClipboard === 'function') {
-            copyToClipboard(couponCode, 'کد تخفیف کپی شد');
+            copyToClipboard(couponCode, copyMsg);
           } else if (window.copyToClipboard) {
-            window.copyToClipboard(couponCode, 'کد تخفیف کپی شد');
+            window.copyToClipboard(couponCode, copyMsg);
           }
         };
       }

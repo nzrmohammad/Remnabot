@@ -732,7 +732,7 @@ EN_TEXTS: dict[str, str] = {
         # --- referral ---
         "btn_referral": "🤝 Invite Friends",
         "referral_title": "🤝 <b>Invite Friends & Earn Free Traffic</b>",
-        "referral_body": "Share your referral link with friends. For every successful invite, earn <b>{reward_gb} GB free traffic</b>!\n\n🔗 <b>Your Invite Link (tap to copy):</b>\n<code>{link}</code>",
+        "referral_body": "Share your referral link with friends. Once a referred friend completes their first purchase, earn <b>{reward_gb} GB free traffic</b>!\n\n🔗 <b>Your Invite Link (tap to copy):</b>\n<code>{link}</code>",
         "referral_stats": "👥 Successful invites: <b>{count}</b>\n🎁 Earned reward: <b>{total_gb}</b> GB",
         "btn_share_link": "📤 Share with Friends",
         "referral_reward_notify": "🎉 <b>Referral Reward!</b>\n\nA user joined using your invite link and <b>{reward_gb} GB</b> of free traffic was added to your account! 🎁",

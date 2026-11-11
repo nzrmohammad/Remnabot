@@ -331,7 +331,7 @@ GITHUB_REPOS: dict[str, str] = {
     "v2rayng": "2dust/v2rayNG",
     "v2rayn": "2dust/v2rayN",
     "hiddify": "hiddify/hiddify-app",
-    "happ": "happ-proxy/happ",
+    "happ": "Happ-proxy/happ-desktop",
     "nekoray": "MatsuriDayo/nekoray",
     "v2raya": "v2rayA/v2rayA",
     "singbox": "SagerNet/sing-box",
@@ -341,9 +341,140 @@ GITHUB_REPOS: dict[str, str] = {
     "zedsecure": "CluvexStudio/ZedSecure",
 }
 
+_ASSET_IGNORE_TOKENS = (
+    ".sig",
+    ".asc",
+    ".sha256",
+    ".txt",
+    ".json",
+    ".aab",
+    "fdroid",
+    "webapi",
+    "web.tar",
+    "web.zip",
+    "-core",
+)
+
+
+def _pick_first(assets: list[tuple[str, str]], *predicates) -> str:
+    """Return the download URL of the first asset matching all predicates."""
+    for pred in predicates:
+        for low, url in assets:
+            if pred(low):
+                return url
+    return ""
+
+
+def _extract_github_downloads(app_id: str, assets_raw: Any) -> dict[str, dict[str, str]]:
+    """Extract direct per-platform 64-bit download URLs from GitHub release assets."""
+    if not isinstance(assets_raw, list):
+        return {}
+    assets: list[tuple[str, str]] = []
+    for item in assets_raw:
+        if not isinstance(item, dict):
+            continue
+        name = str(item.get("name") or "").strip()
+        url = str(item.get("browser_download_url") or "").strip()
+        low = name.lower()
+        if not name or not url or any(tok in low for tok in _ASSET_IGNORE_TOKENS):
+            continue
+        assets.append((low, url))
+    if not assets:
+        return {}
+
+    is_x64 = lambda n: any(a in n for a in ("x64", "amd64", "x86_64", "win64", "windows-64", "windows64", "linux-64", "linux64"))
+    not_alt_arch = lambda n: not any(a in n for a in ("arm64", "aarch64", "armv7", "windows-86", "windows-32", "ia32", "loong", "riscv"))
+
+    downloads: dict[str, dict[str, str]] = {}
+
+    apk_arm64 = _pick_first(
+        assets,
+        lambda n: n.endswith(".apk") and ("arm64-v8a" in n or "arm64_v8a" in n),
+        lambda n: n.endswith(".apk") and "arm64" in n and "x86" not in n,
+        lambda n: n.endswith(".apk") and "universal" in n,
+    )
+    if apk_arm64:
+        downloads["android"] = {"direct_url": apk_arm64}
+
+    win_setup = _pick_first(
+        assets,
+        lambda n: n.endswith((".exe", ".msi")) and is_x64(n) and not_alt_arch(n),
+        lambda n: n.endswith(".zip") and ("windows-64-desktop" in n or "setup" in n) and is_x64(n) and not_alt_arch(n),
+    )
+    win_portable = _pick_first(
+        assets,
+        lambda n: n.endswith(".zip") and is_x64(n) and not_alt_arch(n) and "windows-64-desktop" not in n and (
+            "portable" in n or "windows" in n or "win" in n
+        ),
+    )
+    if win_setup or win_portable:
+        win_cfg: dict[str, str] = {}
+        if win_setup:
+            win_cfg["url"] = win_setup
+            if win_portable and win_portable != win_setup:
+                win_cfg["portable_url"] = win_portable
+        elif win_portable:
+            win_cfg["url"] = win_portable
+        downloads["windows"] = win_cfg
+
+    mac_dmg = _pick_first(
+        assets,
+        lambda n: n.endswith(".dmg") and "universal" in n,
+        lambda n: n.endswith(".dmg") and "arm64" in n,
+        lambda n: n.endswith(".dmg") and ("x64" in n or "x86_64" in n or "64" in n or "macos" in n),
+        lambda n: n.endswith(".pkg") and "macos" in n,
+    )
+    if mac_dmg:
+        downloads["macos"] = {"url": mac_dmg}
+
+    linux_pkg = _pick_first(
+        assets,
+        lambda n: n.endswith(".appimage") and is_x64(n) and not_alt_arch(n),
+        lambda n: n.endswith(".deb") and is_x64(n) and not_alt_arch(n),
+        lambda n: n.endswith(".tar.gz") and is_x64(n) and "appimage" in n and not_alt_arch(n),
+    )
+    if linux_pkg:
+        downloads["linux"] = {"url": linux_pkg}
+
+    return downloads
+
+
+async def _fetch_single_github_release(session: Any, app_id: str, repo: str) -> tuple[str, str, dict[str, dict[str, str]]]:
+    """Fetch version tag and platform download URLs for one GitHub repo."""
+    import asyncio
+    url = f"https://api.github.com/repos/{repo}/releases/latest"
+    candidates = [url, f"https://api.github.com/repos/{repo}/releases?per_page=10"]
+    for idx, endpoint in enumerate(candidates):
+        try:
+            async with session.get(endpoint, timeout=8) as resp:
+                if resp.status != 200:
+                    continue
+                payload = await resp.json()
+                release = None
+                if isinstance(payload, dict):
+                    release = payload
+                elif isinstance(payload, list):
+                    release = next((r for r in payload if isinstance(r, dict) and not r.get("draft")), None) or (
+                        payload[0] if payload and isinstance(payload[0], dict) else None
+                    )
+                if not release:
+                    continue
+                tag = str(release.get("tag_name") or "").strip()
+                clean_ver = tag.lstrip("vV")
+                if clean_ver.lower() == "draft" and idx == 0:
+                    continue
+                dl_map = _extract_github_downloads(app_id, release.get("assets"))
+                if clean_ver:
+                    return app_id, clean_ver, dl_map
+        except Exception as exc:
+            if idx == len(candidates) - 1:
+                logger.warning("Failed to fetch GitHub release for %s (%s): %s", app_id, repo, exc)
+        await asyncio.sleep(0)
+    return app_id, "", {}
+
 
 async def get_admin_github_releases(request: web.Request) -> web.Response:
-    """Fetch latest release versions from GitHub for supported open-source clients."""
+    """Fetch latest release versions and direct 64-bit/Arm64v8 asset links from GitHub."""
     admin = _check_admin(request)
     if not admin:
         return web.json_response({"ok": False, "error": "Forbidden"}, status=403)
@@ -352,33 +483,21 @@ async def get_admin_github_releases(request: web.Request) -> web.Response:
     items_to_check = {target_app: GITHUB_REPOS[target_app]} if target_app in GITHUB_REPOS else GITHUB_REPOS
 
     versions: dict[str, str] = {}
+    downloads: dict[str, dict[str, dict[str, str]]] = {}
+    import asyncio
     import aiohttp
     async with aiohttp.ClientSession(headers={"User-Agent": "Remnabot-App-Monitor/1.0"}) as session:
-        for app_id, repo in items_to_check.items():
-            url = f"https://api.github.com/repos/{repo}/releases/latest"
-            try:
-                async with session.get(url, timeout=aiohttp.ClientTimeout(total=5)) as resp:
-                    if resp.status == 200:
-                        data = await resp.json()
-                        tag = str(data.get("tag_name") or "").strip()
-                        clean_ver = tag.lstrip("vV")
-                        if clean_ver:
-                            versions[app_id] = clean_ver
-                            continue
-                # Fallback for repos publishing custom/pre-release tags without /releases/latest
-                list_url = f"https://api.github.com/repos/{repo}/releases?per_page=1"
-                async with session.get(list_url, timeout=aiohttp.ClientTimeout(total=5)) as list_resp:
-                    if list_resp.status == 200:
-                        items = await list_resp.json()
-                        if isinstance(items, list) and items:
-                            tag = str(items[0].get("tag_name") or "").strip()
-                            clean_ver = tag.lstrip("vV")
-                            if clean_ver:
-                                versions[app_id] = clean_ver
-            except Exception as exc:
-                logger.warning("Failed to fetch GitHub release for %s (%s): %s", app_id, repo, exc)
+        results = await asyncio.gather(
+            *(_fetch_single_github_release(session, app_id, repo) for app_id, repo in items_to_check.items()),
+            return_exceptions=False,
+        )
+        for app_id, ver, dl_map in results:
+            if ver:
+                versions[app_id] = ver
+            if dl_map:
+                downloads[app_id] = dl_map
 
-    return web.json_response({"ok": True, "versions": versions})
+    return web.json_response({"ok": True, "versions": versions, "downloads": downloads})
 
 
 

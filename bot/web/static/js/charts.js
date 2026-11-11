@@ -451,6 +451,7 @@ async function renderLineCurveChart(containerId, labels, data, peakHour = null, 
   });
   const cleanLabels = (labels || []).map(l => toEnglishDigits(l));
   const cutoffIndex = Number.isInteger(extraOpts?.cutoffIndex) ? extraOpts.cutoffIndex : null;
+  const splitTodayIndex = Number.isInteger(extraOpts?.splitTodayIndex) ? extraOpts.splitTodayIndex : null;
   const tooltipTitles = Array.isArray(extraOpts?.tooltipTitles) ? extraOpts.tooltipTitles : null;
 
   const chartKey = canvas.id || containerId;
@@ -467,6 +468,8 @@ async function renderLineCurveChart(containerId, labels, data, peakHour = null, 
   gradient.addColorStop(1, 'rgba(245, 158, 11, 0.0)');
 
   const warnColor = tokens ? tokens.warn : (isLight ? '#d97706' : '#f59e0b');
+  const yestColor = isLight ? 'rgba(14, 116, 144, 0.72)' : 'rgba(56, 189, 248, 0.75)';
+  const todayPointBg = tokens ? tokens.warn : (isLight ? '#d97706' : '#fbbf24');
   const datasetCfg = {
     label: 'مصرف ساعتی',
     data: cleanData,
@@ -477,13 +480,20 @@ async function renderLineCurveChart(containerId, labels, data, peakHour = null, 
     tension: 0.38,
     pointRadius: cutoffIndex !== null ? (c => (c.dataIndex > cutoffIndex ? 0 : 2)) : 2,
     pointHoverRadius: 5,
-    pointBackgroundColor: tokens ? tokens.warn : (isLight ? '#d97706' : '#fbbf24'),
+    pointBackgroundColor: splitTodayIndex !== null && splitTodayIndex > 0
+      ? (c => (c.dataIndex < splitTodayIndex ? yestColor : todayPointBg))
+      : todayPointBg,
     pointBorderColor: tokens ? tokens.pointBorder : (isLight ? '#ffffff' : '#0f172a'),
   };
   if (cutoffIndex !== null) {
     datasetCfg.segment = {
       borderDash: (c) => (c.p0DataIndex >= cutoffIndex ? [5, 5] : undefined),
       borderColor: (c) => (c.p0DataIndex >= cutoffIndex ? 'rgba(148, 163, 184, 0.35)' : warnColor),
+    };
+  } else if (splitTodayIndex !== null && splitTodayIndex > 0) {
+    datasetCfg.segment = {
+      borderDash: (c) => (c.p0DataIndex < splitTodayIndex ? [4, 4] : undefined),
+      borderColor: (c) => (c.p0DataIndex < splitTodayIndex ? yestColor : warnColor),
     };
   }
 

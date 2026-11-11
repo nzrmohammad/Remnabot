@@ -68,8 +68,14 @@ async def _invalidate_user_caches(cache: FastCache | None, telegram_id: int | st
     await cache.delete(f"tma:user:{telegram_id}:topup_info")
 
 
+_PLACEHOLDER_RECEIPT_TEXT_HASHES = frozenset(
+    "text:" + hashlib.sha256(p.encode("utf-8")).hexdigest()[:48]
+    for p in ("تصویر فیش پیوست شد", "بدون توضیحات", "رسید ثبت‌شده در وب‌اپ")
+)
+
+
 async def _collect_user_topup_guards(session: Any, user_id: int) -> tuple[list[int], list[str]]:
-    """Collect recent 6h paid auto-invoice exact amounts and submitted receipt hashes for duplicate UI prevention."""
+    """Collect recent 6h paid auto-invoice exact amounts and active/approved receipt hashes for duplicate UI prevention."""
     recent_paid_auto_amounts: list[int] = []
     recent_receipt_hashes: list[str] = []
     if not hasattr(session, "execute") or type(session).__name__ in ("MagicMock", "AsyncMock"):
@@ -99,7 +105,11 @@ async def _collect_user_topup_guards(session: Any, user_id: int) -> tuple[list[i
 
         topup_res = await session.execute(
             select(Topup.receipt_hash)
-            .where(Topup.telegram_id == int(user_id), Topup.receipt_hash.is_not(None))
+            .where(
+                Topup.telegram_id == int(user_id),
+                Topup.status.in_(["pending", "approved"]),
+                Topup.receipt_hash.is_not(None),
+            )
             .order_by(Topup.id.desc())
             .limit(30)
         )
@@ -107,11 +117,11 @@ async def _collect_user_topup_guards(session: Any, user_id: int) -> tuple[list[i
         if isinstance(hash_rows, (list, tuple)):
             seen_hash: set[str] = set()
             for raw_hash in hash_rows:
-                if not isinstance(raw_hash, str):
+                if not isinstance(raw_hash, str) or raw_hash.startswith("rej:"):
                     continue
                 for part in raw_hash.split("|"):
                     token = part.strip()
-                    if token and token not in seen_hash:
+                    if token and token not in _PLACEHOLDER_RECEIPT_TEXT_HASHES and token not in seen_hash:
                         seen_hash.add(token)
                         recent_receipt_hashes.append(token)
     except Exception as exc:
@@ -431,9 +441,9 @@ async def post_user_topup_card(request: web.Request) -> web.Response:
             )
 
         text_hash = None
-        if receipt_info and receipt_info.strip():
-            normalized = " ".join(receipt_info.split())
-            text_hash = "text:" + hashlib.sha256(normalized.encode("utf-8")).hexdigest()[:48]
+        cleaned_receipt_info = " ".join(receipt_info.split()) if receipt_info else ""
+        if cleaned_receipt_info and cleaned_receipt_info not in ("تصویر فیش پیوست شد", "بدون توضیحات", "رسید ثبت‌شده در وب‌اپ"):
+            text_hash = "text:" + hashlib.sha256(cleaned_receipt_info.encode("utf-8")).hexdigest()[:48]
             if await wallet_repo.receipt_exists(text_hash):
                 return web.json_response(
                     {"ok": False, "message": "این فیش یا شماره پیگیری قبلاً ثبت شده است و امکان ارسال مجدد آن وجود ندارد."},
@@ -1067,7 +1077,7 @@ async def post_user_topup_trx_verify(request: web.Request) -> web.Response:
 
 
 async def post_user_topup_pol(request: web.Request) -> web.Response:
-    """Create a POL (Polygon PoS) invoice for authenticated user."""
+    """Create a POL (Polygon) invoice for authenticated user."""
     user_auth, err = require_user(request)
     if err:
         return err
