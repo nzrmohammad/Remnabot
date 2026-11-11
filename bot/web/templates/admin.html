@@ -584,7 +584,7 @@
             </h3>
             <div class="flex items-center gap-2">
               <button id="openBatchVoucherBtn" onclick="window.adminActions.openBatchVoucherModal()" class="bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-black px-3.5 py-1.5 rounded-xl transition active:scale-95 flex items-center gap-1 shadow-sm">
-                <span>⚡️</span> تولید کارت شارژ
+                <span>+</span> کارت شارژ
               </button>
               <button id="openCreateCouponBtn" class="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-black px-3.5 py-1.5 rounded-xl transition active:scale-95 flex items-center gap-1 shadow-sm">
                 <span>+</span> کد تخفیف
@@ -2696,13 +2696,10 @@
             💡 برای حذف تاریخ تولد کاربر، مقدار این فیلد را خالی بگذارید. کاربر امکان ویرایش تاریخ تولد ثبت‌شده را ندارد.
           </p>
 
-          <div class="flex gap-2 pt-1">
-            <button id="userProfEditSaveBtn" type="button" onclick="window.adminActions.saveUserProfileEdit()" class="flex-1 btn btn-primary text-xs py-2.5 rounded-xl flex items-center justify-center gap-1.5">
+          <div class="pt-1">
+            <button id="userProfEditSaveBtn" type="button" onclick="window.adminActions.saveUserProfileEdit()" class="w-full btn btn-primary text-xs py-2.5 rounded-xl flex items-center justify-center gap-1.5">
               <span>✅</span>
               <span>ذخیره تغییرات</span>
-            </button>
-            <button type="button" onclick="window.adminActions.toggleUserProfileEdit(false)" class="btn btn-secondary px-4 text-xs py-2.5 rounded-xl">
-              بازگشت
             </button>
           </div>
         </div>
@@ -3006,7 +3003,7 @@
           <button onclick="window.adminActions.closePlanModal()" class="modal-close-btn" aria-label="بستن">✕</button>
         </div>
         <input type="hidden" id="planModalId" value="" />
-        <div class="space-y-2.5 text-xs overflow-y-auto custom-scroll flex-1 py-2 px-0.5">
+        <div class="space-y-2.5 text-xs overflow-y-auto custom-scroll flex-1 py-2 px-2.5">
           <div>
             <label class="text-[11px] t-main block mb-1 font-semibold">نوع بسته:</label>
             <div class="grid grid-cols-3 gap-1.5 p-1 card-inset rounded-xl text-[11px]">

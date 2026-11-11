@@ -300,6 +300,24 @@ def test_ui_fixes_markup_and_js_contracts():
     assert "px-2.5 text-xs" in admin_html[admin_html.find('id="hwidModal"'):admin_html.find('id="bulkUsersModal"')]
     assert "'موفق'" not in admin_users_js[admin_users_js.find("async loadUserSrh"):admin_users_js.find("async loadHwidDevices")]
 
+    # 11. v2RayTun real PNG/WebP icon, node cost rows (Toman + Dollar + Euro, no due border/icon, inline provider/cost),
+    #     user profile no Back button, plans header swap, planModal scroll padding, coupon Toman below price & "+ کارت شارژ"
+    assert Path("bot/web/static/img/apps/v2raytun.png").is_file()
+    assert Path("bot/web/static/img/apps/v2raytun.webp").is_file()
+    assert "هزینه یورویی سرور:" in admin_nodes_js
+    assert "🗓️" not in admin_nodes_js
+    assert 'روز مانده</span>' in admin_nodes_js
+    prof_start = admin_html.find('id="userProfModalEditBody"')
+    prof_end = admin_html.find('id="modifyUserModal"', prof_start)
+    assert "بازگشت" not in admin_html[prof_start:prof_end]
+    plan_modal_start = admin_html.find('id="planModal"')
+    plan_modal_end = admin_html.find('id="couponModal"', plan_modal_start)
+    assert "py-2 px-2.5" in admin_html[plan_modal_start:plan_modal_end]
+    assert "تولید کارت شارژ" not in admin_html[admin_html.find('id="subtabContentCoupons"'):admin_html.find('id="tab-admin-nodes"')]
+    assert "<span>+</span> کارت شارژ" in admin_html
+    assert "Top Row: Price and تومان on Right, Name + icon + statusBadge on Left" in admin_plans_js
+    assert "flex-col items-center justify-center flex-shrink-0 text-center leading-tight min-w-[45px]" in admin_plans_js
+
 
 @pytest.mark.anyio
 async def test_srh_incy_no_duplicate_os_and_v2raytun_detection():

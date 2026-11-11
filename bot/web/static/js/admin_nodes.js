@@ -234,18 +234,38 @@
       const ramDisplay = isOnline ? (ram > 0 ? (ram % 1 === 0 ? ram : ram.toFixed(1)) + '%' : '< 1%') : 'آفلاین';
 
       const shamsiDate = n.due_date_jalali || n.due_date;
-      let dueBadgeHtml = '<span class="text-slate-500 font-medium">ثبت‌نشده</span>';
+      let dueBadgeHtml = '<span class="t-subtle font-medium">ثبت‌نشده</span>';
       if (n.days_until_due !== null && n.days_until_due !== undefined) {
         if (n.days_until_due < 0) {
-          dueBadgeHtml = `<span class="bg-transparent t-danger border border-rose-500/30 px-2 py-0.5 rounded-lg font-bold">⚠️ منقضی (${Math.abs(n.days_until_due)} روز پیش)</span>`;
+          dueBadgeHtml = `<span class="t-danger font-bold font-sans">منقضی (${Math.abs(n.days_until_due)} روز پیش)</span>`;
         } else if (n.days_until_due === 0) {
-          dueBadgeHtml = `<span class="bg-transparent t-danger border border-rose-500/40 px-2 py-0.5 rounded-lg font-bold animate-pulse">⚠️ سررسید امروز!</span>`;
+          dueBadgeHtml = `<span class="t-danger font-bold animate-pulse font-sans">سررسید امروز!</span>`;
         } else if (n.days_until_due <= 3) {
-          dueBadgeHtml = `<span class="bg-transparent t-warn border border-amber-500/30 px-2 py-0.5 rounded-lg font-bold">⏳ ${n.days_until_due} روز تا تمدید</span>`;
+          dueBadgeHtml = `<span class="t-warn font-bold font-sans">${toEnglishDigits(n.days_until_due)} روز تا تمدید</span>`;
         } else {
-          dueBadgeHtml = `<span class="bg-transparent text-slate-300 border border-slate-700/80 px-2 py-0.5 rounded-lg font-sans">🗓️ ${n.days_until_due} روز مانده</span>`;
+          dueBadgeHtml = `<span class="t-main font-bold font-sans">${toEnglishDigits(n.days_until_due)} روز مانده</span>`;
         }
       }
+
+      const usdRate = Number(window.currentUsdRate) > 0 ? Number(window.currentUsdRate) : 95000;
+      const eurRate = Number(window.currentEurRate) > 0 ? Number(window.currentEurRate) : 105000;
+      const rawForeign = Number(n.monthly_cost_eur || 0);
+      const costToman = Number(n.monthly_cost_toman || 0);
+      const nodeCurr = String(n.currency || 'EUR').toUpperCase();
+      let usdCost = 0;
+      let eurCost = 0;
+      if (nodeCurr === 'USD') {
+        usdCost = rawForeign;
+        eurCost = rawForeign > 0
+          ? ((costToman > 0 ? costToman : rawForeign * usdRate) / eurRate)
+          : (costToman > 0 ? (costToman / eurRate) : 0);
+      } else {
+        eurCost = rawForeign;
+        usdCost = rawForeign > 0
+          ? ((costToman > 0 ? costToman : rawForeign * eurRate) / usdRate)
+          : (costToman > 0 ? (costToman / usdRate) : 0);
+      }
+      const fmtFx = (v) => toEnglishDigits(Number(Number(v).toFixed(2)));
 
       const boxId = `nodeBox_${n.id || idx}`;
 
@@ -364,22 +384,37 @@
               <div class="space-y-1.5">
                 <div class="flex items-center justify-between">
                   <span class="t-muted flex items-center gap-1">
-                    <svg class="w-3.5 h-3.5 t-success" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    <svg class="w-3.5 h-3.5 t-success shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
                     <span>هزینه ماهانه سرور:</span>
                   </span>
                   <div class="flex items-center gap-1 font-bold">
-                    ${n.monthly_cost_toman ? `
-                      <span class="font-sans t-success num-bidi" dir="ltr">${formatNumber(n.monthly_cost_toman)}</span>
-                      <span class="text-[11px] t-muted font-sans">تومان</span>
+                    ${costToman ? `
+                      <span class="font-sans t-success num-bidi" dir="ltr">${formatNumber(costToman)}</span>
+                      <span class="text-[11px] t-muted font-sans font-medium">تومان</span>
                     ` : '<span class="t-subtle font-medium">ثبت‌نشده</span>'}
                   </div>
                 </div>
-                ${n.monthly_cost_eur ? `
+                ${usdCost > 0 ? `
                   <div class="flex items-center justify-between text-[11px]">
-                    <span class="t-muted">هزینه ارزی سرویس:</span>
+                    <span class="t-muted flex items-center gap-1">
+                      <svg class="w-3.5 h-3.5 t-info shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                      <span>هزینه ارزی سرویس:</span>
+                    </span>
                     <span class="inline-flex items-center gap-1 font-sans font-bold t-info">
-                      <span class="num-bidi" dir="ltr">${n.currency === 'USD' ? '$' : '€'}${toEnglishDigits(n.monthly_cost_eur)}</span>
-                      <span class="text-[10.5px] t-muted font-medium">${n.currency === 'USD' ? 'دلار' : 'یورو'}</span>
+                      <span class="num-bidi" dir="ltr">${fmtFx(usdCost)}</span>
+                      <span class="text-[10.5px] t-muted font-medium">دلار</span>
+                    </span>
+                  </div>
+                ` : ''}
+                ${eurCost > 0 ? `
+                  <div class="flex items-center justify-between text-[11px]">
+                    <span class="t-muted flex items-center gap-1">
+                      <svg class="w-3.5 h-3.5 t-accent shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.121 15.536c-1.171 1.952-3.07 1.952-4.242 0-1.172-1.953-1.172-5.119 0-7.072 1.171-1.952 3.07-1.952 4.242 0M8 10.5h4m-4 3h4m9-1.5a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                      <span>هزینه یورویی سرور:</span>
+                    </span>
+                    <span class="inline-flex items-center gap-1 font-sans font-bold t-accent">
+                      <span class="num-bidi" dir="ltr">${fmtFx(eurCost)}</span>
+                      <span class="text-[10.5px] t-muted font-medium">یورو</span>
                     </span>
                   </div>
                 ` : ''}
@@ -393,17 +428,17 @@
                 <div>${dueBadgeHtml}</div>
               </div>
 
-              <div class="grid grid-cols-2 gap-2 pt-1.5 border-t border-card-border text-[11px]">
-                <div>
-                  <span class="t-muted block mb-0.5">ارائه‌دهنده:</span>
-                  <b class="t-main font-semibold truncate block">${n.provider || 'ثبت‌نشده'}</b>
+              <div class="space-y-1.5 pt-1.5 border-t border-card-border text-[11px]">
+                <div class="flex items-center justify-between gap-2 min-w-0">
+                  <span class="t-muted shrink-0">ارائه‌دهنده:</span>
+                  <b class="t-main font-semibold truncate text-left">${n.provider || 'ثبت‌نشده'}</b>
                 </div>
-                <div>
-                  <span class="t-muted block mb-0.5">قیمت تمام‌شده:</span>
-                  <b class="t-main font-bold block">
+                <div class="flex items-center justify-between gap-2 min-w-0">
+                  <span class="t-muted shrink-0">قیمت تمام‌شده:</span>
+                  <b class="t-main font-bold shrink-0">
                     ${n.cost_per_gb ? `
                       <span class="font-sans num-bidi" dir="ltr">${formatNumber(n.cost_per_gb)}</span>
-                      <span class="text-[11px] t-muted font-sans">تومان</span>
+                      <span class="text-[11px] t-muted font-sans font-medium">تومان</span>
                     ` : '—'}
                   </b>
                 </div>
