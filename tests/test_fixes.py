@@ -2444,8 +2444,9 @@ def test_latest_ui_refinements():
     assert "wheel-streak-note" in wheel_text
     assert "html.theme-light .wheel-streak-note" in css_text
 
-    # 4. App guide modal: star icon badge without 'پیشنهادی' word and removed border-t
-    assert '<span class="w-6 h-6 rounded-full' in app_js
+    # 4. App guide modal: star/alternative icon badges without background and without 'پیشنهادی' word
+    assert 'title="پیشنهادی">⭐️</span>' in app_js
+    assert 'title="جایگزین">🔄</span>' in app_js
     assert "⭐️</span>" in app_js
 
     # 5. Admin crypto refresh button border and force refresh

@@ -669,6 +669,101 @@ function fmtCompact(val) {
   return String(num);
 }
 
+function formatDeviceDate(isoStr) {
+  if (!isoStr) return '';
+  try {
+    const dateObj = new Date(isoStr);
+    if (!isNaN(dateObj.getTime())) {
+      const dateFa = dateObj.toLocaleDateString('fa-IR');
+      const timeFa = dateObj.toLocaleTimeString('fa-IR', { hour: '2-digit', minute: '2-digit' });
+      return `${toEnglishDigits(timeFa)} - ${toEnglishDigits(dateFa)}`;
+    }
+  } catch (e) {}
+  return String(isoStr);
+}
+
+function parseDeviceMeta(d = {}) {
+  const rawPlatform = String(d.platform || d.os || '')
+    .replace(/\b(windows\s+1[01])\s+10\.0(?:\.\d+)*\b/gi, '$1')
+    .trim();
+  let rawOsVer = String(d.osVersion || d.platformVersion || '').trim();
+  const ua = String(d.userAgent || d.user_agent || '').trim();
+
+  if (rawPlatform && rawOsVer) {
+    const pLow = rawPlatform.toLowerCase();
+    const hasVerInPlatform = /\d/.test(rawPlatform);
+    const majorVer = rawOsVer.split('.')[0];
+    const majorAlreadyInPlatform = Boolean(
+      majorVer && new RegExp(`(?:^|\\D)${majorVer.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?:$|\\D)`).test(rawPlatform)
+    );
+    if (hasVerInPlatform && ((pLow.includes('windows') && /^10(?:\.0+)?(?:\.\d+)?$/i.test(rawOsVer)) || majorAlreadyInPlatform)) {
+      rawOsVer = '';
+    } else if (pLow.includes('windows') && /^10\.0(?:\.0+)?$/i.test(rawOsVer)) {
+      rawOsVer = '10';
+    }
+  }
+
+  let resolvedOs = [rawPlatform, rawOsVer].filter(Boolean).join(' ').trim();
+  if (!resolvedOs && ua) {
+    const uaLow = ua.toLowerCase();
+    if (uaLow.includes('android')) resolvedOs = 'Android';
+    else if (uaLow.includes('iphone') || uaLow.includes('ipad') || uaLow.includes('ios')) resolvedOs = 'iOS';
+    else if (uaLow.includes('windows')) resolvedOs = 'Windows';
+    else if (uaLow.includes('mac os') || uaLow.includes('macos') || uaLow.includes('darwin')) resolvedOs = 'macOS';
+    else if (uaLow.includes('linux')) resolvedOs = 'Linux';
+  }
+
+  const pCheck = (rawPlatform || resolvedOs || ua).toLowerCase();
+  let icon = '📱';
+  if (pCheck.includes('android')) icon = '🤖';
+  else if (pCheck.includes('ios') || pCheck.includes('iphone') || pCheck.includes('ipad') || pCheck.includes('apple')) icon = '🍏';
+  else if (pCheck.includes('windows')) icon = '💻';
+  else if (pCheck.includes('mac') || pCheck.includes('darwin')) icon = '🍏';
+  else if (pCheck.includes('linux')) icon = '🐧';
+
+  const model = d.deviceModel || d.model || d.brand || rawPlatform || 'دستگاه متصل';
+  const ip = d.requestIp || d.ip || d.lastIp || d.clientIp || '—';
+  const hwid = d.hwid || d.id || '';
+
+  let cleanUa = ua;
+  if (ua) {
+    const clients = [
+      'v2rayNG', 'PattNG', 'PattN', 'Zedsecure', 'ZedSecure', 'Happ', 'Hiddify', 'Streisand',
+      'V2Box', 'Incy', 'NekoBox', 'ClashMeta', 'Clash', 'Sing-box', 'sing-box',
+      'Shadowrocket', 'Quantumult', 'Surge', 'Loon', 'Foxray', 'Karing', 'Wings',
+      'WireGuard', 'Outline'
+    ];
+    let matched = false;
+    for (const c of clients) {
+      const regex = new RegExp(`(${c})[/\\s]?([0-9]+(?:\\.[0-9]+)*)?`, 'i');
+      const m = ua.match(regex);
+      if (m) {
+        cleanUa = m[2] ? `${m[1]} ${m[2]}` : m[1];
+        matched = true;
+        break;
+      }
+    }
+    if (!matched) {
+      cleanUa = ua.replace(/\s*\([^)]*\)/g, '').trim().split(/[\s;]/)[0] || ua;
+      cleanUa = cleanUa.replace('/', ' ').trim();
+    }
+  }
+
+  const addedRaw = d.createdAt || d.created_at || d.addedAt;
+  const updatedRaw = d.updatedAt || d.updated_at || d.lastSeen || d.lastActivity;
+  return {
+    icon,
+    model,
+    ip,
+    hwid,
+    ua,
+    cleanUa,
+    resolvedOs,
+    addedDate: formatDeviceDate(addedRaw),
+    updatedDate: formatDeviceDate(updatedRaw),
+  };
+}
+
 if (typeof window !== 'undefined') {
   window.renderFlagHtml = renderFlagHtml;
   window.getCountryCodeFromEmoji = getCountryCodeFromEmoji;
@@ -688,6 +783,8 @@ if (typeof window !== 'undefined') {
   window.fmtTraffic = fmtTraffic;
   window.fmtMoney = fmtMoney;
   window.fmtCompact = fmtCompact;
+  window.formatDeviceDate = formatDeviceDate;
+  window.parseDeviceMeta = parseDeviceMeta;
   window.getDonutPalette = getDonutPalette;
   window.getChartThemeTokens = getChartThemeTokens;
 }
@@ -710,6 +807,8 @@ if (typeof module !== 'undefined' && module.exports) {
     fmtTraffic,
     fmtMoney,
     fmtCompact,
+    formatDeviceDate,
+    parseDeviceMeta,
     getDonutPalette,
     getChartThemeTokens,
   };

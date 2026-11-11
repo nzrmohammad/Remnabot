@@ -285,22 +285,36 @@ async def get_admin_sessions_explorer(request: web.Request) -> web.Response:
         return web.json_response({"ok": False, "error": str(exc)}, status=500)
 
 
+def _clean_query_ident(val: str | None) -> str | None:
+    if not val:
+        return None
+    s = str(val).strip()
+    if not s or s.lower() in ("none", "null", "undefined"):
+        return None
+    return s
+
+
 async def get_admin_user_srh(request: web.Request) -> web.Response:
     """Fetch Subscription Request History (SRH) for a specific user."""
     admin = _check_admin(request)
     if not admin:
         return web.json_response({"ok": False, "error": "Forbidden"}, status=403)
 
-    target_id = request.query.get("telegram_id") or request.query.get("id") or request.query.get("target_id") or request.query.get("user_id")
-    panel_user_id = request.query.get("user_id") or request.query.get("panel_user_id")
-    panel_user_uuid = request.query.get("uuid")
+    target_id = _clean_query_ident(
+        request.query.get("telegram_id")
+        or request.query.get("id")
+        or request.query.get("target_id")
+        or request.query.get("user_id")
+    )
+    panel_user_id = _clean_query_ident(request.query.get("user_id") or request.query.get("panel_user_id"))
+    panel_user_uuid = _clean_query_ident(request.query.get("uuid"))
     remnawave = request.app["remnawave"]
 
     if target_id and (not panel_user_id or not panel_user_uuid):
         try:
             resolved_id, resolved_uuid = await _resolve_panel_user(remnawave, target_id)
-            if resolved_id:
-                panel_user_id = panel_user_id or resolved_id
+            if resolved_id or resolved_uuid:
+                panel_user_id = panel_user_id or (str(resolved_id) if resolved_id is not None else None)
                 panel_user_uuid = panel_user_uuid or resolved_uuid
         except Exception as resolve_exc:
             logger.warning("Failed to resolve user for SRH: %s", resolve_exc)
@@ -324,7 +338,18 @@ async def get_admin_user_srh(request: web.Request) -> web.Response:
             client_info["name"] = rule_name
 
         created_at_raw = None
-        for k in ("requestDate", "requestedAt", "request_date", "requested_at", "createdAt", "created_at", "timestamp", "lastActivity"):
+        for k in (
+            "requestAt",
+            "request_at",
+            "requestDate",
+            "requestedAt",
+            "request_date",
+            "requested_at",
+            "createdAt",
+            "created_at",
+            "timestamp",
+            "lastActivity",
+        ):
             if r.get(k):
                 created_at_raw = r[k]
                 break
@@ -338,6 +363,7 @@ async def get_admin_user_srh(request: web.Request) -> web.Response:
             "client_tag": client_info["tag"],
             "status_code": status_code,
             "is_success": str(status_code) in ("200", "201", "304", "OK"),
+            "request_at": created_at_raw,
             "relative_time": rel_time,
             "date_str": date_str,
             "time_str": time_str,

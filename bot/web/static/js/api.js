@@ -350,6 +350,10 @@ const api = {
     return this.post('/api/admin/user/toggle_ban', { telegram_id, ban });
   },
 
+  async updateAdminUserProfile(payload) {
+    return this.post('/api/admin/user/profile', payload);
+  },
+
   async getAdminTopups() {
     return this.get('/api/admin/topups');
   },

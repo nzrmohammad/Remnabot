@@ -118,6 +118,57 @@ class RemnawaveHwidMixin:
                 return None
         return None
 
+    @staticmethod
+    def _clean_srh_ident(val: Any) -> str | None:
+        if val is None:
+            return None
+        s = str(val).strip()
+        if not s or s.lower() in ("none", "null", "undefined"):
+            return None
+        return s
+
+    @staticmethod
+    def _extract_srh_records(data: Any) -> tuple[list[dict[str, Any]] | None, bool]:
+        """Extract record list and whether response explicitly represents an SRH container."""
+        if isinstance(data, list):
+            return [r for r in data if isinstance(r, dict)], True
+        if isinstance(data, dict):
+            for key in ("records", "requests", "history", "items", "data"):
+                val = data.get(key)
+                if isinstance(val, list):
+                    return [r for r in val if isinstance(r, dict)], True
+        return None, False
+
+    @staticmethod
+    def _filter_srh_records(
+        records: list[dict[str, Any]],
+        target_uids: set[str],
+        allow_untagged: bool,
+    ) -> tuple[list[dict[str, Any]], bool]:
+        """Filter SRH records to target_uids whenever user identifiers exist on records."""
+        def _record_uids(r: dict[str, Any]) -> set[str]:
+            u_obj = r.get("user") if isinstance(r.get("user"), dict) else {}
+            candidates = (
+                r.get("userId"),
+                r.get("user_id"),
+                r.get("userUuid"),
+                r.get("user_uuid"),
+                u_obj.get("id"),
+                u_obj.get("uuid"),
+            )
+            return {
+                str(c).strip().lower()
+                for c in candidates
+                if c is not None and str(c).strip().lower() not in ("", "none", "null", "undefined")
+            }
+
+        has_user_fields = any(bool(_record_uids(r)) for r in records)
+        if has_user_fields:
+            return [r for r in records if _record_uids(r) & target_uids], True
+        if allow_untagged:
+            return list(records), False
+        return [], False
+
     async def get_user_srh(
         self,
         user_id: int | str,
@@ -125,82 +176,88 @@ class RemnawaveHwidMixin:
         size: int = 50,
     ) -> list[dict[str, Any]] | None:
         """Fetch Subscription Request History for a specific panel user."""
-        candidates = []
-        if user_id:
-            candidates.append((f"/api/users/{user_id}/subscription-request-history", {"size": size}))
-            candidates.append((f"/api/users/{user_id}/srh", {"size": size}))
-            candidates.append((f"/api/subscription-request-history/user/{user_id}", {"size": size}))
-            candidates.append((f"/api/subscription-request-history/{user_id}", {"size": size}))
-        if user_uuid and str(user_uuid) != str(user_id):
-            candidates.append((f"/api/users/{user_uuid}/subscription-request-history", {"size": size}))
-            candidates.append((f"/api/users/{user_uuid}/srh", {"size": size}))
-            candidates.append((f"/api/subscription-request-history/user/{user_uuid}", {"size": size}))
+        clean_id = self._clean_srh_ident(user_id)
+        clean_uuid = self._clean_srh_ident(user_uuid)
+        target_uids = {s.lower() for s in (clean_id, clean_uuid) if s}
+        if not target_uids:
+            return []
+
+        ordered_uids: list[str] = []
+        if clean_uuid:
+            ordered_uids.append(clean_uuid)
+        if clean_id and clean_id not in ordered_uids:
+            ordered_uids.append(clean_id)
+
+        candidates: list[tuple[str, dict[str, Any]]] = []
+        for uid in ordered_uids:
+            candidates.append((f"/api/users/{uid}/subscription-request-history", {"size": size}))
+            candidates.append((f"/api/users/{uid}/srh", {"size": size}))
+            candidates.append((f"/api/subscription-request-history/user/{uid}", {"size": size}))
+            candidates.append((f"/api/subscription-request-history/{uid}", {"size": size}))
 
         # Try user-specific endpoints first
         for path, params in candidates:
             try:
                 resp = await self._client.get(path, params=params)
-                if resp.status_code == 200:
-                    data = resp.json().get("response") or resp.json()
-                    if isinstance(data, list):
-                        return data
-                    if isinstance(data, dict):
-                        records = (
-                            data.get("records")
-                            or data.get("requests")
-                            or data.get("history")
-                            or data.get("items")
-                            or data.get("data")
-                            or []
-                        )
-                        if isinstance(records, list) and records:
-                            return records
+                if resp.status_code != 200:
+                    continue
+                raw_json = resp.json()
+                data = raw_json.get("response") if isinstance(raw_json, dict) and "response" in raw_json else raw_json
+                records, is_srh_shape = self._extract_srh_records(data)
+                if not is_srh_shape or records is None:
+                    continue
+                if not records:
+                    return []
+                filtered, had_uids = self._filter_srh_records(records, target_uids, allow_untagged=True)
+                if filtered:
+                    return filtered[:size]
+                if had_uids:
+                    # Endpoint returned records belonging to other users (e.g. ignored path param)
+                    continue
             except Exception as exc:
-                logger.warning("Failed to fetch user SRH from %s: %s", path, exc)
-                return None
+                logger.debug("Failed to fetch user SRH from %s: %s", path, exc)
+                continue
 
-        # Try global subscription-request-history endpoint with filter or client-side filtering
-        for path, params in (
-            ("/api/subscription-request-history", {"userId": str(user_id), "size": size}),
-            ("/api/subscription-request-history", {"userUuid": str(user_uuid or user_id), "size": size}),
-            ("/api/subscription-request-history", {"size": 1000}),
-            ("/api/srh", {"userId": str(user_id), "size": size}),
-        ):
+        # Fallback: global subscription-request-history endpoint, ALWAYS filtered locally if user fields exist
+        global_size = max(size, 1000)
+        global_candidates: list[tuple[str, dict[str, Any], bool]] = []
+        if clean_uuid:
+            global_candidates.append(("/api/subscription-request-history", {"userUuid": clean_uuid, "size": global_size}, True))
+        if clean_id:
+            global_candidates.append(("/api/subscription-request-history", {"userId": clean_id, "size": global_size}, True))
+        global_candidates.append(("/api/subscription-request-history", {"size": global_size}, False))
+        if clean_id:
+            global_candidates.append(("/api/srh", {"userId": clean_id, "size": global_size}, True))
+
+        saw_valid_global_empty = False
+        for path, params, has_filter_param in global_candidates:
             try:
                 resp = await self._client.get(path, params=params)
-                if resp.status_code == 200:
-                    data = resp.json().get("response") or resp.json()
-                    records = []
-                    if isinstance(data, list):
-                        records = data
-                    elif isinstance(data, dict):
-                        records = (
-                            data.get("records")
-                            or data.get("requests")
-                            or data.get("history")
-                            or data.get("items")
-                            or data.get("data")
-                            or []
-                        )
-                    if isinstance(records, list) and records:
-                        if "userId" not in params and "userUuid" not in params:
-                            target_uids = {str(user_id)}
-                            if user_uuid:
-                                target_uids.add(str(user_uuid).lower())
-                            filtered = [
-                                r for r in records
-                                if str(r.get("userId") or (r.get("user") or {}).get("id") or "").lower() in target_uids
-                                or str(r.get("userUuid") or (r.get("user") or {}).get("uuid") or "").lower() in target_uids
-                            ]
-                            if filtered:
-                                return filtered
-                        else:
-                            return records
+                if resp.status_code != 200:
+                    continue
+                raw_json = resp.json()
+                data = raw_json.get("response") if isinstance(raw_json, dict) and "response" in raw_json else raw_json
+                records, is_srh_shape = self._extract_srh_records(data)
+                if not is_srh_shape or records is None:
+                    continue
+                if not records:
+                    saw_valid_global_empty = True
+                    continue
+                filtered, had_uids = self._filter_srh_records(
+                    records,
+                    target_uids,
+                    allow_untagged=has_filter_param,
+                )
+                if filtered:
+                    return filtered[:size]
+                if had_uids:
+                    # Global list contained other users' records and none for this user
+                    return []
             except Exception as exc:
-                logger.warning("Failed to fetch global SRH from %s: %s", path, exc)
-                return None
+                logger.debug("Failed to fetch global SRH from %s: %s", path, exc)
+                continue
 
-        return None
+        return [] if saw_valid_global_empty else None
 
     async def get_multi_ip_sessions(self) -> dict[str, Any]:
         """Audit active HWID devices to detect users connected via multiple concurrent/distinct IPs."""

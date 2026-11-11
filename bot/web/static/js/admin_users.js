@@ -24,6 +24,7 @@
   window.adminUserSelectMode = false;
   let currentSubTarget = null;
   let currentTrialTarget = null;
+  let currentProfileTarget = null;
 
   // --- 5. Users Management ---
   async function fetchAdminUsers(page = 1) {
@@ -94,7 +95,7 @@
       if (u.is_banned) {
         statusBadge = '<span class="px-1.5 py-0.5 rounded-lg text-[11px] bg-transparent t-danger font-bold border border-rose-500/30">مسدود</span>';
       } else if (u.is_limited || (p && p.exists && ((p.status || '').toUpperCase() === 'LIMITED' || (p.remaining_traffic_gb === 0 && p.limit_traffic_gb > 0)))) {
-        statusBadge = '<span class="px-1.5 py-0.5 rounded-lg text-[11px] bg-transparent text-amber-500 dark:text-amber-400 font-bold border border-amber-500/30">اتمام حجم</span>';
+        statusBadge = '<span class="px-1.5 py-0.5 rounded-lg text-[11px] bg-transparent text-amber-700 dark:text-amber-400 font-bold border border-amber-600/40 dark:border-amber-500/30">اتمام حجم</span>';
       } else if (u.is_expired || (p && p.exists && (p.status || '').toUpperCase() === 'EXPIRED')) {
         statusBadge = '<span class="px-1.5 py-0.5 rounded-lg text-[11px] bg-transparent t-danger font-bold border border-rose-500/30">منقضی</span>';
       } else if (p && p.exists) {
@@ -106,7 +107,7 @@
 
       const isExpiring = u.is_expiring || (p && p.exists && !u.is_expired && ((p.days_left !== null && p.days_left > 0 && p.days_left <= 3) || (p.remaining_traffic_gb >= 0 && p.remaining_traffic_gb <= 2.0 && p.limit_traffic_gb > 0)));
       const expiringBadgeHtml = isExpiring
-        ? '<span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-lg bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[11px] font-bold animate-pulse flex-shrink-0 whitespace-nowrap" title="هشدار: حجم یا زمان رو به اتمام است"><svg class="w-2.5 h-2.5 text-amber-300" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z"/></svg> رو به اتمام</span>'
+        ? '<span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-lg bg-amber-500/20 text-amber-800 dark:text-amber-300 border border-amber-600/50 dark:border-amber-500/40 text-[11px] font-extrabold animate-pulse flex-shrink-0 whitespace-nowrap" title="هشدار: حجم یا زمان رو به اتمام است"><svg class="w-2.5 h-2.5 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z"/></svg> رو به اتمام</span>'
         : '';
 
       let serviceLineHtml = `
@@ -570,6 +571,7 @@ async applyUserModification() {
         if (window.showToast) window.showToast('اطلاعات کاربر یافت نشد.');
         return;
       }
+      currentProfileTarget = user;
 
       const rawName = user.full_name || '';
       const displayName = (rawName && !rawName.startsWith('@')) ? rawName : (user.username ? ('@' + user.username) : `کاربر ${user.telegram_id}`);
@@ -681,7 +683,7 @@ async applyUserModification() {
 
       // Birthday
       const bdayElem = $('userProfModalBirthday');
-      if (bdayElem) bdayElem.innerText = user.birth_date ? user.birth_date : 'ثبت نشده';
+      if (bdayElem) bdayElem.innerText = user.birth_date ? toEnglishDigits(user.birth_date) : 'ثبت نشده';
 
       // Wallet
       const walletElem = $('userProfModalWallet');
@@ -701,13 +703,90 @@ async applyUserModification() {
         }
       }
 
+      // Always open in view mode
+      this.toggleUserProfileEdit(false);
+
       // Open Modal
       const modal = $('userProfileModal');
       if (modal) modal.classList.remove('hidden');
       if (window.hapticFeedback) window.hapticFeedback('light');
     },
 
+    toggleUserProfileEdit(forceEdit) {
+      const viewBody = $('userProfModalViewBody');
+      const editBody = $('userProfModalEditBody');
+      const toggleBtn = $('userProfModalEditToggleBtn');
+      if (!viewBody || !editBody) return;
+
+      const isCurrentlyEditing = !editBody.classList.contains('hidden');
+      const shouldEdit = typeof forceEdit === 'boolean' ? forceEdit : !isCurrentlyEditing;
+
+      if (shouldEdit && currentProfileTarget) {
+        const nameInput = $('userProfEditFullName');
+        const phoneInput = $('userProfEditPhone');
+        const bdayInput = $('userProfEditBirthday');
+        const fallbackName = `کاربر ${currentProfileTarget.telegram_id}`;
+        const curName = currentProfileTarget.full_name || '';
+        if (nameInput) nameInput.value = (curName && curName !== fallbackName) ? curName : '';
+        if (phoneInput) phoneInput.value = currentProfileTarget.phone_number || '';
+        if (bdayInput) bdayInput.value = currentProfileTarget.birth_date ? toEnglishDigits(currentProfileTarget.birth_date) : '';
+      }
+
+      viewBody.classList.toggle('hidden', shouldEdit);
+      editBody.classList.toggle('hidden', !shouldEdit);
+      if (toggleBtn) {
+        toggleBtn.innerHTML = shouldEdit ? '<span>👁️</span><span>مشاهده</span>' : '<span>✏️</span><span>ویرایش</span>';
+      }
+      if (window.hapticFeedback) window.hapticFeedback('selection');
+    },
+
+    async saveUserProfileEdit() {
+      if (!currentProfileTarget) return;
+      const saveBtn = $('userProfEditSaveBtn');
+      const full_name = ($('userProfEditFullName')?.value || '').trim();
+      const phone_number = ($('userProfEditPhone')?.value || '').trim();
+      const birth_date = ($('userProfEditBirthday')?.value || '').trim();
+
+      if (saveBtn) {
+        saveBtn.disabled = true;
+        saveBtn.classList.add('opacity-60');
+      }
+
+      try {
+        const res = await window.api.updateAdminUserProfile({
+          telegram_id: currentProfileTarget.telegram_id,
+          full_name,
+          phone_number,
+          birth_date,
+        });
+        if (res && res.ok) {
+          const updated = res.user || {};
+          currentProfileTarget.full_name = updated.full_name || `کاربر ${currentProfileTarget.telegram_id}`;
+          currentProfileTarget.phone_number = updated.phone_number || '';
+          currentProfileTarget.birth_date = updated.birth_date || '';
+          if (Array.isArray(window.currentAdminUsersList)) {
+            renderUsersList(window.currentAdminUsersList);
+          }
+          this.openUserProfileModal(currentProfileTarget.telegram_id);
+          if (window.showToast) window.showToast(res.message || '✅ مشخصات کاربر ذخیره شد.');
+          if (window.hapticFeedback) window.hapticFeedback('success');
+        } else {
+          if (window.showToast) window.showToast(`⚠️ ${res?.error || 'خطا در ویرایش مشخصات کاربر'}`);
+          if (window.hapticFeedback) window.hapticFeedback('error');
+        }
+      } catch (err) {
+        if (window.showToast) window.showToast('خطا در برقراری ارتباط با سرور');
+      } finally {
+        if (saveBtn) {
+          saveBtn.disabled = false;
+          saveBtn.classList.remove('opacity-60');
+        }
+      }
+    },
+
     closeUserProfileModal() {
+      this.toggleUserProfileEdit(false);
+      currentProfileTarget = null;
       const modal = $('userProfileModal');
       if (modal) modal.classList.add('hidden');
       if (window.hapticFeedback) window.hapticFeedback('selection');
@@ -869,48 +948,54 @@ async applyUserModification() {
 
     async loadUserSrh(telegram_id) {
       const list = $('userSrhList');
-      if (list) list.innerHTML = '<div class="p-6 text-center text-slate-400">در حال دریافت تاریخچه سابسکریپشن...</div>';
+      if (list) list.innerHTML = '<div class="p-6 text-center t-muted">در حال دریافت تاریخچه سابسکریپشن...</div>';
 
       try {
         const pUserId = currentHwidTarget?.panel_user_id || null;
-        const res = await window.api.getUserSrh({ telegram_id, user_id: pUserId });
+        const srhParams = { telegram_id };
+        if (pUserId) srhParams.user_id = pUserId;
+        const res = await window.api.getUserSrh(srhParams);
         if (!res || !res.ok) {
-          if (list) list.innerHTML = `<div class="p-4 text-center text-rose-400">${escapeHtml(res?.error || 'خطا در دریافت تاریخچه')}</div>`;
+          if (list) list.innerHTML = `<div class="p-4 text-center t-danger">${escapeHtml(res?.error || 'خطا در دریافت تاریخچه')}</div>`;
           return;
         }
         const records = res.data || [];
         if (records.length === 0) {
-          if (list) list.innerHTML = '<div class="p-6 text-center text-slate-400">هنوز درخواستی برای دریافت لینک کانفیگ ثبت نشده است (کاربر نرم‌افزار خود را آپدیت نکرده است).</div>';
+          if (list) {
+            list.innerHTML = `
+              <div class="card-inset rounded-2xl p-4 border border-card-border text-center text-xs t-muted">
+                <span>📜 هنوز درخواستی برای دریافت لینک اشتراک این کاربر ثبت نشده است.</span>
+              </div>
+            `;
+          }
           return;
         }
 
         if (list) {
           list.innerHTML = records.map(r => `
-            <div class="srh-card card-inset p-2.5 rounded-2xl border border-slate-700/50 space-y-1.5">
+            <div class="srh-card card-inset p-3 rounded-2xl border border-card-border space-y-2 text-xs">
               <!-- Line 1: Client name & tag on right, status badge on left -->
               <div class="flex items-center justify-between gap-2">
-                <div class="flex items-center gap-1.5 min-w-0 flex-1">
-                  <span class="text-base flex-shrink-0">${r.client_icon || '📱'}</span>
+                <div class="flex items-center gap-2 min-w-0 flex-1">
+                  <span class="text-lg flex-shrink-0">${r.client_icon || '📱'}</span>
                   <b class="t-main text-xs truncate" title="${escapeHtml(r.user_agent || r.client_name || '')}">${escapeHtml(r.client_name || 'کلاینت')}</b>
-                  <span class="text-[11px] px-1.5 py-0.5 rounded-md card-inset border border-slate-700/60 t-muted font-sans flex-shrink-0">${escapeHtml(r.client_tag || 'App')}</span>
+                  <span class="text-[11px] px-1.5 py-0.5 rounded-md card-inset border border-card-border t-muted font-sans flex-shrink-0">${escapeHtml(r.client_tag || 'App')}</span>
                 </div>
-                <span class="inline-flex items-center gap-1 text-[11px] font-bold ${r.is_success ? 'text-emerald-600 dark:text-emerald-400 border-emerald-500/30' : 'text-rose-600 dark:text-rose-400 border-rose-500/30'} bg-transparent px-2 py-0.5 rounded-lg border flex-shrink-0">
+                <span class="inline-flex items-center gap-1 text-[11px] font-bold ${r.is_success ? 's-success-soft' : 's-danger-soft'} px-2 py-0.5 rounded-lg border flex-shrink-0">
                   ${r.is_success ? 'موفق' : (r.status_code ? 'خطا ' + r.status_code : 'خطا')}
                 </span>
               </div>
 
-              <!-- Line 2: IP with tap-to-copy, and update time -->
-              <div class="flex items-center justify-between text-[11px] pt-1 border-t border-slate-800/60 t-muted gap-2">
-                <div class="flex items-center gap-1.5 min-w-0">
-                  <button type="button" dir="ltr" class="font-sans text-cyan-700 dark:text-cyan-400 font-bold select-all hover:underline cursor-pointer flex items-center gap-1 btn-copy-ip-r" data-ip="${escapeHtml(r.ip || '')}" title="کلیک جهت کپی آی‌پی">
-                    <span>🌐 ${escapeHtml(r.ip || '')}</span>
-                    <span class="text-[11px] opacity-70">📋</span>
-                  </button>
-                </div>
-                <div class="flex items-center gap-1.5 text-[11px] t-muted font-sans flex-shrink-0" dir="ltr">
+              <!-- Line 2: IP with tap-to-copy, and requestAt time -->
+              <div class="flex items-center justify-between text-[11px] pt-1.5 border-t border-card-border t-muted gap-2">
+                <button type="button" dir="ltr" class="font-sans t-accent font-bold select-all hover:underline cursor-pointer flex items-center gap-1 btn-copy-ip-r" data-ip="${escapeHtml(r.ip || '')}" title="کلیک جهت کپی آی‌پی">
+                  <span>🌐 ${escapeHtml(r.ip || '—')}</span>
+                  <span class="text-[11px] opacity-70">📋</span>
+                </button>
+                <div class="flex items-center gap-1 text-[11px] t-muted font-sans flex-shrink-0">
                   <span>⏱</span>
-                  <span class="font-bold t-main" title="${escapeHtml(r.relative_time || '')}">${toEnglishDigits(r.date_str && r.date_str !== '—' ? r.date_str : (r.relative_time || 'ثبت‌شده'))}</span>
-                  ${r.relative_time && r.relative_time !== '—' && r.relative_time !== r.date_str ? `<span class="text-[11px] t-dim font-sans">(${r.relative_time})</span>` : ''}
+                  <span class="font-bold t-main num-bidi" dir="ltr" title="${escapeHtml(r.request_at || r.relative_time || '')}">${toEnglishDigits(r.date_str && r.date_str !== '—' ? r.date_str : (r.relative_time || 'ثبت‌شده'))}</span>
+                  ${r.relative_time && r.relative_time !== '—' && r.relative_time !== r.date_str ? `<span class="text-[11px] t-subtle font-sans" dir="rtl">(${escapeHtml(r.relative_time)})</span>` : ''}
                 </div>
               </div>
             </div>
@@ -919,98 +1004,108 @@ async applyUserModification() {
           list.querySelectorAll('.btn-copy-ip-r').forEach(btn => {
             btn.onclick = () => {
               const ip = btn.getAttribute('data-ip');
-              if (ip) window.copyToClipboard(ip, 'آدرس IP کپی شد');
+              if (ip && ip !== '—') window.copyToClipboard(ip, 'آدرس IP کپی شد');
             };
           });
         }
       } catch (e) {
-        if (list) list.innerHTML = '<div class="p-4 text-center text-rose-400">خطای ارتباط با سرور</div>';
+        if (list) list.innerHTML = '<div class="p-4 text-center t-danger">خطای ارتباط با سرور</div>';
       }
     },
 
     async loadHwidDevices(telegram_id) {
       const list = $('hwidDevicesList');
-      if (list) list.innerHTML = '<div class="p-6 text-center text-slate-400">در حال دریافت دستگاه‌ها...</div>';
+      if (list) list.innerHTML = '<div class="p-6 text-center t-muted">در حال دریافت دستگاه‌ها...</div>';
 
       try {
         const pUserId = currentHwidTarget?.panel_user_id || null;
         const res = await window.api.getUserHwidDevices(telegram_id, pUserId);
         if (!res || !res.ok) {
-          if (list) list.innerHTML = `<div class="p-4 text-center text-rose-400">${escapeHtml(res?.error || 'خطا در دریافت لیست')}</div>`;
+          if (list) list.innerHTML = `<div class="p-4 text-center t-danger">${escapeHtml(res?.error || 'خطا در دریافت لیست')}</div>`;
           return;
         }
         const devices = res.devices || [];
         if (devices.length === 0) {
-          if (list) list.innerHTML = '<div class="p-6 text-center text-slate-400">هیچ دستگاه فعالی متصل نیست 🟢</div>';
+          if (list) {
+            list.innerHTML = `
+              <div class="card-inset rounded-2xl p-4 border border-card-border text-center text-xs t-muted">
+                <span>📱 در حال حاضر هیچ دستگاه فعالی روی اشتراک این کاربر ثبت نشده است.</span>
+              </div>
+            `;
+          }
           return;
         }
 
         if (list) {
           list.innerHTML = devices.map(d => {
-            const hwid = d.hwid || d.id || '';
-            let rawOs = String(d.os || d.platform || d.clientApp || d.userAgent || '').trim();
-            const osLower = rawOs.toLowerCase();
-            let osDisplay = rawOs || 'دستگاه متصل';
-            let osIcon = '📱';
+            const meta = window.parseDeviceMeta ? window.parseDeviceMeta(d) : {
+              icon: '📱',
+              model: d.deviceModel || d.model || d.platform || 'دستگاه متصل',
+              ip: d.requestIp || d.ip || d.lastIp || d.clientIp || '—',
+              hwid: d.hwid || d.id || '',
+              ua: String(d.userAgent || d.user_agent || '').trim(),
+              cleanUa: String(d.userAgent || d.user_agent || '').trim(),
+              resolvedOs: String(d.platform || d.os || '').trim(),
+              addedDate: '',
+              updatedDate: '',
+            };
+            const { icon, model, ip, hwid, ua, cleanUa, resolvedOs, addedDate, updatedDate } = meta;
 
-            if (osLower.includes('windows') || osLower.includes('win32') || osLower.includes('win64')) {
-              osDisplay = 'ویندوز';
-              osIcon = '💻';
-            } else if (osLower.includes('android')) {
-              osDisplay = 'اندروید';
-              osIcon = '🤖';
-            } else if (osLower.includes('ios') || osLower.includes('iphone') || osLower.includes('ipad')) {
-              osDisplay = 'iOS (آیفون)';
-              osIcon = '🍏';
-            } else if (osLower.includes('mac') || osLower.includes('darwin') || osLower.includes('osx')) {
-              osDisplay = 'macOS (مک)';
-              osIcon = '🍎';
-            } else if (osLower.includes('linux')) {
-              osDisplay = 'لینوکس';
-              osIcon = '🐧';
-            } else if (!rawOs || osLower === 'client') {
-              osDisplay = 'دستگاه متصل';
-            }
+            const uaHtml = cleanUa ? `
+              <div class="text-[10.5px] t-accent truncate mt-0.5 font-sans" title="${escapeHtml(ua)}">
+                <span class="t-muted">کلاینت:</span> ${escapeHtml(cleanUa)}
+              </div>
+            ` : '';
 
-            const brand = d.brand || d.model || '';
-            const ip = d.requestIp || d.ip || d.lastIp || d.clientIp || '—';
+            const addedHtml = addedDate ? `
+              <div class="flex items-center justify-between t-muted">
+                <span class="flex items-center gap-1"><span>📅</span> زمان ثبت:</span>
+                <span class="font-sans font-medium t-muted num-bidi" dir="ltr">${addedDate}</span>
+              </div>
+            ` : '';
 
-            const createdRaw = d.createdAt || d.created_at || d.updatedAt || d.lastSeen || d.lastActivity || d.timestamp;
-            let timeHtml = '';
-            if (createdRaw) {
-              try {
-                const dateObj = new Date(createdRaw);
-                if (!isNaN(dateObj.getTime())) {
-                  const dateStr = dateObj.toLocaleDateString('fa-IR');
-                  const timeStr = dateObj.toLocaleTimeString('fa-IR', { hour: '2-digit', minute: '2-digit' });
-                  timeHtml = `<div class="flex items-center gap-1.5 mt-1 text-[11px] t-muted font-sans justify-start" dir="rtl"><span class="text-xs">⏱</span><span dir="ltr">${toEnglishDigits(timeStr)} - ${toEnglishDigits(dateStr)}</span></div>`;
-                }
-              } catch(e) {}
-            }
+            const updatedHtml = updatedDate ? `
+              <div class="flex items-center justify-between t-muted">
+                <span class="flex items-center gap-1"><span>🔄</span> آخرین فعالیت:</span>
+                <span class="font-sans font-medium t-main num-bidi" dir="ltr">${updatedDate}</span>
+              </div>
+            ` : '';
 
             return `
-              <div class="bg-transparent p-3 rounded-2xl border border-slate-700/60 dark:border-slate-700/60 flex items-center justify-between gap-2.5">
-                <div class="min-w-0 flex-1">
-                  <div class="flex items-center gap-1.5">
-                    <span class="text-sm flex-shrink-0">${osIcon}</span>
-                    <b class="text-white text-xs block truncate">${escapeHtml(osDisplay)} ${brand ? '(' + escapeHtml(brand) + ')' : ''}</b>
+              <div class="card-inset rounded-2xl p-3 border border-card-border space-y-2 text-xs">
+                <div class="flex items-center justify-between gap-2">
+                  <div class="flex items-center gap-2.5 min-w-0 flex-1">
+                    <span class="text-2xl shrink-0">${icon}</span>
+                    <div class="min-w-0 flex-1">
+                      <div class="flex items-center gap-1.5 flex-wrap">
+                        <span class="text-xs font-bold t-main truncate">${escapeHtml(model)}</span>
+                      </div>
+                      ${uaHtml}
+                    </div>
                   </div>
-                  <div class="flex items-center gap-1.5 mt-0.5 text-[11px] text-slate-400">
-                    <span>آی‌پی:</span>
-                    <button type="button" dir="ltr" class="font-sans text-cyan-700 dark:text-cyan-400 font-bold select-all hover:underline cursor-pointer flex items-center gap-1 btn-copy-hwid-ip" data-ip="${escapeHtml(ip)}" title="کپی آی‌پی">
+                  <button type="button" class="btn-del-hwid s-danger-soft hover:opacity-85 w-8 h-8 rounded-xl border text-xs transition active:scale-95 flex items-center justify-center shrink-0 cursor-pointer" data-tid="${telegram_id}" data-hwid="${escapeHtml(hwid)}" title="قطع اتصال این دستگاه">
+                    <svg class="w-4 h-4 t-danger" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                  </button>
+                </div>
+
+                <!-- Device Meta: OS, IP, Added, Updated -->
+                <div class="pt-1.5 border-t border-card-border text-[11px] font-sans space-y-1">
+                  ${resolvedOs ? `
+                    <div class="flex items-center justify-between t-muted">
+                      <span class="flex items-center gap-1"><span>💻</span> سیستم‌عامل:</span>
+                      <span class="font-sans font-bold t-main num-bidi" dir="ltr">${escapeHtml(resolvedOs)}</span>
+                    </div>
+                  ` : ''}
+                  <div class="flex items-center justify-between t-muted">
+                    <span class="flex items-center gap-1"><span>🌐</span> آی‌پی:</span>
+                    <button type="button" dir="ltr" class="font-sans font-bold t-accent num-bidi hover:underline cursor-pointer flex items-center gap-1 btn-copy-hwid-ip" data-ip="${escapeHtml(ip)}" title="کپی آی‌پی">
                       <span>${escapeHtml(ip)}</span>
-                      <span class="text-[11px] opacity-70">📋</span>
+                      ${ip && ip !== '—' ? '<span class="text-[11px] opacity-70">📋</span>' : ''}
                     </button>
                   </div>
-                  <div class="flex items-center gap-1.5 mt-1">
-                    <span class="text-[11px] text-slate-400">HWID:</span>
-                    <span dir="ltr" class="font-sans text-[11px] text-slate-300 bg-transparent px-2 py-0.5 rounded-lg border border-slate-700/60 truncate max-w-[170px]" title="${escapeHtml(hwid)}">${escapeHtml(hwid)}</span>
-                  </div>
-                  ${timeHtml}
+                  ${addedHtml}
+                  ${updatedHtml}
                 </div>
-                <button type="button" class="btn-del-hwid bg-transparent hover:bg-rose-500/10 text-rose-400 border border-rose-500/30 hover:border-rose-400 p-2.5 rounded-xl transition active:scale-95 flex items-center justify-center flex-shrink-0" data-tid="${telegram_id}" data-hwid="${escapeHtml(hwid)}" title="قطع اتصال این دستگاه">
-                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                </button>
               </div>
             `;
           }).join('');
@@ -1025,12 +1120,12 @@ async applyUserModification() {
           list.querySelectorAll('.btn-copy-hwid-ip').forEach(btn => {
             btn.onclick = () => {
               const ip = btn.getAttribute('data-ip');
-              if (ip) window.copyToClipboard(ip, 'آدرس IP کپی شد');
+              if (ip && ip !== '—') window.copyToClipboard(ip, 'آدرس IP کپی شد');
             };
           });
         }
       } catch (e) {
-        if (list) list.innerHTML = '<div class="p-4 text-center text-rose-400">خطای شبکه در دریافت اطلاعات دستگاه‌ها</div>';
+        if (list) list.innerHTML = '<div class="p-4 text-center t-danger">خطای شبکه در دریافت اطلاعات دستگاه‌ها</div>';
       }
     },
 
@@ -1038,7 +1133,7 @@ async applyUserModification() {
       const list = $('userSessionsList');
       if (list) {
         list.innerHTML = `
-          <div class="p-8 text-center text-xs text-slate-400 flex flex-col items-center gap-2">
+          <div class="p-8 text-center text-xs t-muted flex flex-col items-center gap-2">
             <span class="w-6 h-6 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin"></span>
             <span>در حال بررسی نودها و دریافت اتصالات...</span>
           </div>
@@ -1048,14 +1143,14 @@ async applyUserModification() {
       try {
         const res = await window.api.getUserLiveSessions(telegram_id);
         if (!res || !res.ok) {
-          if (list) list.innerHTML = `<div class="p-4 text-center text-rose-400 text-xs">${escapeHtml(res?.error || 'خطا در دریافت اطلاعات اتصالات')}</div>`;
+          if (list) list.innerHTML = `<div class="p-4 text-center t-danger text-xs">${escapeHtml(res?.error || 'خطا در دریافت اطلاعات اتصالات')}</div>`;
           return;
         }
 
         const data = res.data || {};
         this.renderUserSessionsList(data);
       } catch (e) {
-        if (list) list.innerHTML = '<div class="p-4 text-center text-rose-400 text-xs">خطای شبکه در دریافت اتصالات</div>';
+        if (list) list.innerHTML = '<div class="p-4 text-center t-danger text-xs">خطای شبکه در دریافت اتصالات</div>';
       }
     },
 
@@ -1082,9 +1177,9 @@ async applyUserModification() {
         const nodeName = nc.nodeName || 'سرور';
         const ips = nc.ips || [];
         const ipsHtml = ips.map(ip => `
-          <div class="flex items-center justify-between bg-transparent px-2.5 py-1.5 rounded-xl border border-card-border text-xs">
-            <span class="t-muted text-[11px]">آی‌پی کلاینت:</span>
-            <button type="button" dir="ltr" class="btn-copy-ip-direct font-sans t-accent font-bold select-all hover:underline cursor-pointer flex items-center gap-1" data-ip="${escapeHtml(ip)}" title="کلیک جهت کپی آی‌پی">
+          <div class="flex items-center justify-between pt-1.5 border-t border-card-border text-[11px]">
+            <span class="t-muted flex items-center gap-1"><span>🌐</span> آی‌پی کلاینت:</span>
+            <button type="button" dir="ltr" class="btn-copy-ip-direct font-sans t-accent font-bold num-bidi select-all hover:underline cursor-pointer flex items-center gap-1" data-ip="${escapeHtml(ip)}" title="کلیک جهت کپی آی‌پی">
               <span>${escapeHtml(ip)}</span>
               <span class="text-[11px] opacity-70">📋</span>
             </button>
@@ -1092,7 +1187,7 @@ async applyUserModification() {
         `).join('');
 
         return `
-          <div class="bg-transparent rounded-2xl p-3 border border-card-border space-y-2">
+          <div class="card-inset rounded-2xl p-3 border border-card-border space-y-2 text-xs">
             <div class="flex items-center justify-between">
               <span class="t-main font-bold text-xs flex items-center gap-1.5">
                 <span class="text-sm">${typeof renderFlagHtml === 'function' ? renderFlagHtml(flag, 'w-4 h-3 inline-block rounded-xs shadow-xs object-cover align-middle') : flag}</span>
@@ -1102,12 +1197,19 @@ async applyUserModification() {
                 ${formatNumber(ips.length)} اتصال
               </span>
             </div>
-            <div class="space-y-1 pt-1">
+            <div class="space-y-1.5">
               ${ipsHtml || '<div class="t-subtle text-[11px] text-center">آی‌پی ثبت‌نشده</div>'}
             </div>
           </div>
         `;
       }).join('');
+
+      list.querySelectorAll('.btn-copy-ip-direct').forEach(btn => {
+        btn.onclick = () => {
+          const ip = btn.getAttribute('data-ip');
+          if (ip) window.copyToClipboard(ip, 'آدرس IP کپی شد');
+        };
+      });
     },
 
     closeHwidModal() {

@@ -3320,15 +3320,17 @@
     <!-- ======================================================== -->
     <div id="killAllSessionsModal" onclick="if(event.target === this) window.closeKillAllSessionsModal()" class="fixed inset-0 modal-backdrop z-[85] flex items-center justify-center p-3 sm:p-4 hidden animate-fadeIn overflow-y-auto">
       <div class="modal-card border border-rose-500/40 rounded-3xl p-4 sm:p-5 w-full text-right space-y-3.5 shadow-2xl relative max-w-[360px] my-auto">
-        <button type="button" onclick="window.closeKillAllSessionsModal()" class="modal-close-btn absolute top-3 left-3" title="بستن" aria-label="بستن پنجره">✕</button>
-        <div class="flex items-center gap-2.5 pb-2 border-b border-card-border">
-          <div class="w-10 h-10 rounded-2xl bg-rose-500/15 text-rose-500 border border-rose-500/30 flex items-center justify-center text-xl shrink-0 shadow-sm">
-            ⛔️
+        <div class="flex items-center justify-between gap-2 pb-2.5 border-b border-card-border">
+          <div class="flex items-center gap-2.5 min-w-0">
+            <div class="w-10 h-10 rounded-2xl bg-rose-500/15 text-rose-500 border border-rose-500/30 flex items-center justify-center text-xl shrink-0 shadow-sm">
+              ⛔️
+            </div>
+            <div class="min-w-0">
+              <h3 class="text-xs font-bold t-main">قطع تمام نشست‌های فعال</h3>
+              <span class="text-[11px] t-muted block mt-0.5">ابطال نشست‌ها و صدور شناسه اتصال امن جدید</span>
+            </div>
           </div>
-          <div>
-            <h3 class="text-xs font-bold t-main">قطع تمام نشست‌های فعال</h3>
-            <span class="text-[11px] t-muted block mt-0.5">ابطال نشست‌ها و صدور شناسه اتصال امن جدید</span>
-          </div>
+          <button type="button" onclick="window.closeKillAllSessionsModal()" class="modal-close-btn shrink-0" title="بستن" aria-label="بستن پنجره">✕</button>
         </div>
         <div class="space-y-2 text-xs leading-relaxed card-inset p-3 rounded-2xl border border-card-border">
           <p class="t-main font-medium">
@@ -3338,12 +3340,9 @@
             ⚠️ پس از تایید، کلیه نشست‌های فعال فوراً متوقف شده، شناسه اتصال قبلی منقضی می‌گردد و لینک اشتراک جدیدی برای شما صادر خواهد شد.
           </p>
         </div>
-        <div class="flex items-center gap-2 pt-1">
-          <button id="confirmKillAllSessionsBtn" type="button" onclick="window.confirmKillAllSessions()" class="btn btn-danger flex-1 py-2.5 rounded-xl text-xs font-bold shadow flex items-center justify-center gap-1.5">
+        <div class="pt-1">
+          <button id="confirmKillAllSessionsBtn" type="button" onclick="window.confirmKillAllSessions()" class="btn btn-danger w-full py-2.5 rounded-xl text-xs font-bold shadow flex items-center justify-center gap-1.5">
             <span>⛔️</span> بله، همه را قطع کن
-          </button>
-          <button type="button" onclick="window.closeKillAllSessionsModal()" class="btn btn-secondary py-2.5 px-4 rounded-xl text-xs font-medium">
-            انصراف
           </button>
         </div>
       </div>
@@ -3354,15 +3353,17 @@
     <!-- ======================================================== -->
     <div id="killSingleDeviceModal" onclick="if(event.target === this) window.closeKillSingleDeviceModal()" class="fixed inset-0 modal-backdrop z-[86] flex items-center justify-center p-3 sm:p-4 hidden animate-fadeIn overflow-y-auto">
       <div class="modal-card border border-rose-500/40 rounded-3xl p-4 sm:p-5 w-full text-right space-y-3.5 shadow-2xl relative max-w-[360px] my-auto">
-        <button type="button" onclick="window.closeKillSingleDeviceModal()" class="modal-close-btn absolute top-3 left-3" title="بستن" aria-label="بستن پنجره">✕</button>
-        <div class="flex items-center gap-2.5 pb-2 border-b border-card-border">
-          <div class="w-10 h-10 rounded-2xl bg-rose-500/15 text-rose-500 border border-rose-500/30 flex items-center justify-center text-xl shrink-0 shadow-sm">
-            📱
+        <div class="flex items-center justify-between gap-2 pb-2.5 border-b border-card-border">
+          <div class="flex items-center gap-2.5 min-w-0">
+            <div class="w-10 h-10 rounded-2xl bg-rose-500/15 text-rose-500 border border-rose-500/30 flex items-center justify-center text-xl shrink-0 shadow-sm">
+              📱
+            </div>
+            <div class="min-w-0">
+              <h3 class="text-xs font-bold t-main">قطع اتصال دستگاه</h3>
+              <span class="text-[11px] t-muted block mt-0.5">ابطال دسترسی این دستگاه به اشتراک</span>
+            </div>
           </div>
-          <div>
-            <h3 class="text-xs font-bold t-main">قطع اتصال دستگاه</h3>
-            <span class="text-[11px] t-muted block mt-0.5">ابطال دسترسی این دستگاه به اشتراک</span>
-          </div>
+          <button type="button" onclick="window.closeKillSingleDeviceModal()" class="modal-close-btn shrink-0" title="بستن" aria-label="بستن پنجره">✕</button>
         </div>
         <div class="space-y-2 text-xs leading-relaxed card-inset p-3 rounded-2xl border border-card-border">
           <div class="flex items-center justify-between pb-1.5 border-b border-card-border">
@@ -3377,12 +3378,9 @@
             ⚠️ با قطع این دستگاه، اتصال آن فوراً متوقف شده و برای اتصال مجدد باید لینک اشتراک در نرم‌افزار بروزرسانی شود.
           </p>
         </div>
-        <div class="flex items-center gap-2 pt-1">
-          <button id="confirmKillSingleDeviceBtn" type="button" onclick="window.confirmKillSingleDevice()" class="btn btn-danger flex-1 py-2.5 rounded-xl text-xs font-bold shadow flex items-center justify-center gap-1.5">
+        <div class="pt-1">
+          <button id="confirmKillSingleDeviceBtn" type="button" onclick="window.confirmKillSingleDevice()" class="btn btn-danger w-full py-2.5 rounded-xl text-xs font-bold shadow flex items-center justify-center gap-1.5">
             <span>⛔️</span> بله، قطع کن
-          </button>
-          <button type="button" onclick="window.closeKillSingleDeviceModal()" class="btn btn-secondary py-2.5 px-4 rounded-xl text-xs font-medium">
-            انصراف
           </button>
         </div>
       </div>

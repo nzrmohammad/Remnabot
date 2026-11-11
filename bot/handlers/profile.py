@@ -103,15 +103,13 @@ async def _render_profile(
     kb.button(text=t(lang, "btn_my_orders"), callback_data="profile:orders")
     kb.button(text=t(lang, "btn_referral"), callback_data="menu:referral")
 
-    # Row 2: Birthday registration / edit
-    bday_btn_text = (
-        ("🎂 ویرایش تاریخ تولد" if lang == "fa" else "🎂 Edit Birthday")
-        if (bdate and str(bdate).strip())
-        else ("🎂 ثبت تاریخ تولد" if lang == "fa" else "🎂 Set Birthday")
-    )
-    kb.button(text=bday_btn_text, callback_data="prof:birthday")
+    sizes = [2]
+    # Row 2: One-time birthday registration (hidden once registered; only admin can edit)
+    if not (bdate and str(bdate).strip()):
+        bday_btn_text = "🎂 ثبت تاریخ تولد" if lang == "fa" else "🎂 Set Birthday"
+        kb.button(text=bday_btn_text, callback_data="prof:birthday")
+        sizes.append(1)
 
-    sizes = [2, 1]
     if not user.is_verified:
         kb.button(text=t(lang, "btn_login"), callback_data="auth:login")
         sizes.append(1)

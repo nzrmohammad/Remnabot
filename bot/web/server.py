@@ -662,6 +662,7 @@ def create_web_app(
     app.router.add_post("/api/admin/user/delete_hwid", routes_admin.post_admin_user_delete_hwid)
     app.router.add_post("/api/admin/user/kill_sessions", routes_admin.post_admin_kill_sessions)
     app.router.add_post("/api/admin/user/toggle_ban", routes_admin.post_admin_toggle_ban)
+    app.router.add_post("/api/admin/user/profile", routes_admin.post_admin_update_user_profile)
     app.router.add_post("/api/admin/ticket/reply", routes_admin.post_admin_reply_ticket)
     app.router.add_get("/api/admin/tickets/threads", routes_admin.get_admin_ticket_threads)
     app.router.add_get("/api/admin/tickets/messages", routes_admin.get_admin_ticket_messages)

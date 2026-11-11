@@ -1157,8 +1157,8 @@ function renderTutorialApps(osKey) {
           </div>
           <!-- Left side: Recommended/Alternative badge + Tutorial button -->
           <div class="flex items-center gap-1.5 flex-shrink-0">
-            ${app.isRecommended ? '<span class="w-6 h-6 rounded-full flex items-center justify-center text-xs bg-amber-500/25 text-amber-600 dark:text-amber-300 border border-amber-500/60 font-black shadow-sm flex-shrink-0" title="پیشنهادی">⭐️</span>' : ''}
-            ${app.isAlternative ? '<span class="w-6 h-6 rounded-full flex items-center justify-center text-xs bg-sky-500/20 text-sky-600 dark:text-sky-300 border border-sky-500/50 font-black shadow-sm flex-shrink-0" title="جایگزین">🔄</span>' : ''}
+            ${app.isRecommended ? '<span class="inline-flex items-center justify-center text-base leading-none bg-transparent border-0 shadow-none flex-shrink-0" title="پیشنهادی">⭐️</span>' : ''}
+            ${app.isAlternative ? '<span class="inline-flex items-center justify-center text-base leading-none bg-transparent border-0 shadow-none flex-shrink-0" title="جایگزین">🔄</span>' : ''}
             ${tutorialBtnHtml}
           </div>
         </div>
@@ -3478,24 +3478,11 @@ function hydrateUserInterface(data) {
     const mCountText = $('modalSessionsCount');
     if (mCountText) mCountText.innerText = `${toEnglishDigits(activeDevCount)} دستگاه`;
 
-    function formatDeviceDate(isoStr) {
-      if (!isoStr) return '';
-      try {
-        const dateObj = new Date(isoStr);
-        if (!isNaN(dateObj.getTime())) {
-          const dateFa = dateObj.toLocaleDateString('fa-IR');
-          const timeFa = dateObj.toLocaleTimeString('fa-IR', { hour: '2-digit', minute: '2-digit' });
-          return `${toEnglishDigits(timeFa)} - ${toEnglishDigits(dateFa)}`;
-        }
-      } catch(e) {}
-      return String(isoStr);
-    }
-
     function renderDeviceList(container) {
       if (!container) return;
       if (devices.length === 0) {
         container.innerHTML = `
-          <div class="p-4 rounded-xl bg-transparent border border-slate-700/50 text-center text-xs text-slate-400">
+          <div class="p-4 rounded-xl bg-transparent border border-slate-700/50 text-center text-xs t-muted">
             <span>📱 در حال حاضر هیچ دستگاه فعالی روی اشتراک شما ثبت نشده است.</span>
           </div>
         `;
@@ -3503,61 +3490,25 @@ function hydrateUserInterface(data) {
       }
 
       container.innerHTML = devices.map(d => {
-        const platform = (d.platform || '').toLowerCase();
-        let icon = '📱';
-        if (platform.includes('android')) icon = '🤖';
-        else if (platform.includes('ios') || platform.includes('iphone') || platform.includes('apple')) icon = '🍏';
-        else if (platform.includes('windows')) icon = '💻';
-        else if (platform.includes('mac')) icon = '🍏';
-        else if (platform.includes('linux')) icon = '🐧';
+        const meta = window.parseDeviceMeta ? window.parseDeviceMeta(d) : {
+          icon: '📱',
+          model: d.deviceModel || d.model || d.platform || 'دستگاه متصل',
+          ip: d.requestIp || d.ip || d.clientIp || '—',
+          hwid: d.hwid || '',
+          ua: String(d.userAgent || d.user_agent || '').trim(),
+          cleanUa: String(d.userAgent || d.user_agent || '').trim(),
+          resolvedOs: String(d.platform || d.os || '').trim(),
+          addedDate: '',
+          updatedDate: '',
+        };
+        const { icon, model, ip, hwid, ua, cleanUa, resolvedOs, addedDate, updatedDate } = meta;
 
-        const model = d.deviceModel || d.model || d.platform || 'دستگاه متصل';
-        const ip = d.requestIp || d.ip || d.clientIp || '—';
-        const hwid = d.hwid || '';
-
-        const ua = String(d.userAgent || d.user_agent || '').trim();
-        const rawPlatform = String(d.platform || d.os || '').trim();
-        const rawOsVer = String(d.osVersion || d.platformVersion || '').trim();
-        let resolvedOs = [rawPlatform, rawOsVer].filter(Boolean).join(' ').trim();
-        if (!resolvedOs && ua) {
-          const uaLow = ua.toLowerCase();
-          if (uaLow.includes('android')) resolvedOs = 'Android';
-          else if (uaLow.includes('iphone') || uaLow.includes('ipad') || uaLow.includes('ios')) resolvedOs = 'iOS';
-          else if (uaLow.includes('windows')) resolvedOs = 'Windows';
-          else if (uaLow.includes('mac os') || uaLow.includes('macos') || uaLow.includes('darwin')) resolvedOs = 'macOS';
-          else if (uaLow.includes('linux')) resolvedOs = 'Linux';
-        }
-        let cleanUa = ua;
-        if (ua) {
-          const clients = [
-            'v2rayNG', 'PattNG', 'PattN', 'Zedsecure', 'ZedSecure', 'Happ', 'Hiddify', 'Streisand',
-            'V2Box', 'Incy', 'NekoBox', 'ClashMeta', 'Clash', 'Sing-box', 'sing-box',
-            'Shadowrocket', 'Quantumult', 'Surge', 'Loon', 'Foxray', 'Karing', 'Wings',
-            'WireGuard', 'Outline'
-          ];
-          let matched = false;
-          for (const c of clients) {
-            const regex = new RegExp(`(${c})[/\\s]?([0-9]+(?:\\.[0-9]+)*)?`, 'i');
-            const m = ua.match(regex);
-            if (m) {
-              cleanUa = m[2] ? `${m[1]} ${m[2]}` : m[1];
-              matched = true;
-              break;
-            }
-          }
-          if (!matched) {
-            cleanUa = ua.replace(/\s*\([^)]*\)/g, '').trim().split(/[\s;]/)[0] || ua;
-            cleanUa = cleanUa.replace('/', ' ').trim();
-          }
-        }
         const uaHtml = cleanUa ? `
-          <div class="text-[10.5px] text-cyan-400/90 truncate mt-0.5 font-sans" title="${escapeHtml(ua)}">
-            <span class="text-slate-400">کلاینت:</span> ${escapeHtml(cleanUa)}
+          <div class="text-[10.5px] t-accent truncate mt-0.5 font-sans" title="${escapeHtml(ua)}">
+            <span class="t-muted">کلاینت:</span> ${escapeHtml(cleanUa)}
           </div>
         ` : '';
 
-        const updatedRaw = d.updatedAt || d.updated_at || d.lastSeen || d.lastActivity;
-        const updatedDate = formatDeviceDate(updatedRaw);
         const updatedHtml = updatedDate ? `
           <div class="flex items-center justify-between t-muted">
             <span class="flex items-center gap-1"><span>🔄</span> آخرین فعالیت:</span>
@@ -3565,8 +3516,6 @@ function hydrateUserInterface(data) {
           </div>
         ` : '';
 
-        const addedRaw = d.createdAt || d.created_at || d.addedAt;
-        const addedDate = formatDeviceDate(addedRaw);
         const addedHtml = addedDate ? `
           <div class="flex items-center justify-between t-muted">
             <span class="flex items-center gap-1"><span>📅</span> زمان ثبت:</span>

@@ -3,7 +3,7 @@
  * Run with: node tests/js/fmt.test.js
  */
 const assert = require('assert');
-const { fmtTraffic, fmtTrafficValue, formatPlanTitle, fmtMoney, fmtCompact } = require('../../bot/web/static/js/utils.js');
+const { fmtTraffic, fmtTrafficValue, formatPlanTitle, fmtMoney, fmtCompact, parseDeviceMeta } = require('../../bot/web/static/js/utils.js');
 
 let passCount = 0;
 function test(name, fn) {
@@ -99,6 +99,17 @@ test('fmtCompact formats large numbers concisely', () => {
 test('fmtTrafficValue strips server-side BiDi isolation from preformatted strings', () => {
   assert.deepStrictEqual(fmtTrafficValue('\u2066500.00 MB\u2069'), { num: 500, unit: 'MB' });
   assert.deepStrictEqual(fmtTrafficValue('\u20661.50 TB\u2069'), { num: 1.5, unit: 'TB' });
+});
+
+test('parseDeviceMeta removes redundant 10.0 from Windows 10 / 11 OS labels', () => {
+  assert.strictEqual(parseDeviceMeta({ platform: 'Windows 10', osVersion: '10.0' }).resolvedOs, 'Windows 10');
+  assert.strictEqual(parseDeviceMeta({ platform: 'windows 10', osVersion: '10.0' }).resolvedOs, 'windows 10');
+  assert.strictEqual(parseDeviceMeta({ platform: 'Windows 10', osVersion: '10.0.19045' }).resolvedOs, 'Windows 10');
+  assert.strictEqual(parseDeviceMeta({ platform: 'Windows 11', osVersion: '10.0' }).resolvedOs, 'Windows 11');
+  assert.strictEqual(parseDeviceMeta({ platform: 'Windows 10 10.0' }).resolvedOs, 'Windows 10');
+  assert.strictEqual(parseDeviceMeta({ platform: 'Windows', osVersion: '10.0' }).resolvedOs, 'Windows 10');
+  assert.strictEqual(parseDeviceMeta({ platform: 'Android', osVersion: '14' }).resolvedOs, 'Android 14');
+  assert.strictEqual(parseDeviceMeta({ platform: 'iOS', osVersion: '17.5' }).resolvedOs, 'iOS 17.5');
 });
 
 console.log(`\nAll ${passCount} tests passed successfully!`);

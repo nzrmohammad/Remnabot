@@ -14,6 +14,7 @@ from bot.web.admin_users_actions import (
     post_admin_modify_user,
     post_admin_reset_trial,
     post_admin_toggle_ban,
+    post_admin_update_user_profile,
     post_admin_user_revoke_sub,
     post_admin_user_wallet,
 )
@@ -42,6 +43,7 @@ __all__ = [
     "post_admin_modify_user",
     "post_admin_reset_trial",
     "post_admin_toggle_ban",
+    "post_admin_update_user_profile",
     "post_admin_user_delete_hwid",
     "post_admin_user_revoke_sub",
     "post_admin_user_wallet",

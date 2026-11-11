@@ -1,16 +1,21 @@
-"""Admin User Modification, Ban, Wallet, and Subscription Actions."""
+"""Admin User Modification, Ban, Wallet, Profile, and Subscription Actions."""
 import logging
+import re
 from datetime import datetime, timedelta, timezone
 
+import jdatetime
 from aiohttp import web
+from sqlalchemy import select
 
 from bot.common.helpers import get_limit_bytes
-from bot.db.models import AdminLog
+from bot.db.models import AdminLog, User
 from bot.db.repositories.user_repo import UserRepository
 from bot.db.repositories.wallet_repo import WalletRepository
 from bot.services.formatting import ltr_frag
 from bot.web.admin_common import _check_admin, db_session
 from bot.web.cache import FastCache
+
+_DIGIT_TRANS = str.maketrans("۰۱۲۳۴۵۶۷۸۹٠١٢٣٤٥٦٧٨٩", "01234567890123456789")
 
 logger = logging.getLogger(__name__)
 
@@ -503,4 +508,124 @@ async def get_admin_internal_squads(request: web.Request) -> web.Response:
     except Exception as exc:
         logger.error("Error fetching internal squads: %s", exc)
         return web.json_response({"ok": True, "squads": []})
+
+
+async def post_admin_update_user_profile(request: web.Request) -> web.Response:
+    """Update user's editable profile fields (full_name, phone_number, birth_date) from admin inspector."""
+    admin = _check_admin(request)
+    if not admin:
+        return web.json_response({"ok": False, "error": "Forbidden"}, status=403)
+
+    try:
+        body = await request.json()
+    except Exception:
+        return web.json_response({"ok": False, "error": "Invalid JSON"}, status=400)
+
+    target_id, err_resp = _parse_telegram_id(body.get("telegram_id"))
+    if err_resp:
+        return err_resp
+    assert target_id is not None
+
+    new_full_name: str | None = None
+    has_full_name = "full_name" in body
+    if has_full_name:
+        raw_name = str(body.get("full_name") or "").strip()
+        new_full_name = raw_name[:128] if raw_name else None
+
+    new_phone: str | None = None
+    has_phone = "phone_number" in body
+    if has_phone:
+        raw_phone = str(body.get("phone_number") or "").translate(_DIGIT_TRANS).strip()
+        clean_phone = re.sub(r"[\s\-()]+", "", raw_phone)
+        if clean_phone:
+            if len(clean_phone) > 32 or not re.match(r"^\+?[0-9]{6,20}$", clean_phone):
+                return web.json_response(
+                    {"ok": False, "error": "فرمت شماره تماس نامعتبر است (مثال: 09123456789 یا +989123456789)."},
+                    status=400,
+                )
+            new_phone = clean_phone
+
+    new_birth_date: str | None = None
+    has_birth_date = "birth_date" in body
+    if has_birth_date:
+        raw_bdate = str(body.get("birth_date") or "").translate(_DIGIT_TRANS).strip()
+        if raw_bdate:
+            clean_bdate = raw_bdate.replace("-", "/").replace(".", "/")
+            parts = [p.strip() for p in clean_bdate.split("/")]
+            if len(parts) != 3 or not all(p.isdigit() for p in parts):
+                return web.json_response(
+                    {"ok": False, "error": "فرمت تاریخ تولد نامعتبر است (مثال: 1375/07/22)."},
+                    status=400,
+                )
+            year, month, day = int(parts[0]), int(parts[1]), int(parts[2])
+            if year < 1300 or year > 1410 or month < 1 or month > 12 or day < 1 or day > 31:
+                return web.json_response(
+                    {"ok": False, "error": "تاریخ تولد وارد شده خارج از بازه مجاز است."},
+                    status=400,
+                )
+            try:
+                jdatetime.date(year, month, day)
+            except (ValueError, TypeError):
+                return web.json_response(
+                    {"ok": False, "error": "روز وارد شده برای این ماه در تقویم خورشیدی وجود ندارد."},
+                    status=400,
+                )
+            new_birth_date = f"{year:04d}/{month:02d}/{day:02d}"
+
+    async with db_session(request) as session:
+        user_repo = UserRepository(session)
+        user = await user_repo.get_by_telegram_id(target_id)
+        if not user:
+            return web.json_response({"ok": False, "error": "کاربر یافت نشد."}, status=404)
+
+        if has_phone and new_phone:
+            dup = (
+                await session.execute(
+                    select(User.telegram_id).where(
+                        User.phone_number == new_phone,
+                        User.telegram_id != target_id,
+                    )
+                )
+            ).scalar_one_or_none()
+            if dup is not None:
+                return web.json_response(
+                    {"ok": False, "error": "این شماره تماس قبلاً برای کاربر دیگری ثبت شده است."},
+                    status=409,
+                )
+
+        if has_full_name:
+            user.full_name = new_full_name
+        if has_phone:
+            user.phone_number = new_phone
+        if has_birth_date:
+            user.birth_date = new_birth_date
+
+        session.add(
+            AdminLog(
+                admin_id=admin["id"],
+                action="edit_user_profile",
+                target_user_id=target_id,
+                detail=f"ویرایش مشخصات کاربر {target_id}",
+            )
+        )
+        await session.commit()
+
+        result_user = {
+            "telegram_id": target_id,
+            "full_name": user.full_name or f"کاربر {target_id}",
+            "raw_full_name": user.full_name or "",
+            "phone_number": user.phone_number or "",
+            "birth_date": user.birth_date or "",
+        }
+
+    cache: FastCache | None = request.app.get("cache")
+    if cache:
+        await cache.delete(f"tma:user:{target_id}")
+
+    return web.json_response({
+        "ok": True,
+        "message": "مشخصات کاربر با موفقیت ذخیره شد.",
+        "user": result_user,
+    })
+
 
