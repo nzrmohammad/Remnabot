@@ -1308,11 +1308,11 @@ async applyUserModification() {
         usernameStatus.className = 'text-[11px] font-medium hidden';
         usernameStatus.innerText = '';
       }
-      if (selectedIdEl) selectedIdEl.value = 'custom';
-      if (iconEl) iconEl.innerText = '⚙️';
-      if (labelEl) labelEl.innerText = 'تنظیمات سفارشی (دستی)';
-      if (trafficInput) trafficInput.value = '50';
-      if (durationInput) durationInput.value = '30';
+      if (selectedIdEl) selectedIdEl.value = '';
+      if (iconEl) iconEl.innerText = '📦';
+      if (labelEl) labelEl.innerText = 'انتخاب کنید';
+      if (trafficInput) trafficInput.value = '';
+      if (durationInput) durationInput.value = '';
       if (hwidInput) hwidInput.value = '';
 
       // Pre-fetch plans so they are readily available in picker
@@ -1419,7 +1419,7 @@ async applyUserModification() {
 
       // Filter ONLY complete packages (traffic_gb > 0 && duration_days > 0)
       const completePlans = plans.filter(p => p.is_active !== false && p.traffic_gb > 0 && p.duration_days > 0);
-      const selectedId = $('createUserSelectedPlanId')?.value || 'custom';
+      const selectedId = $('createUserSelectedPlanId')?.value || '';
 
       const BADGE_MAP = {
         'bestseller': '🔥 پرفروش‌ترین',
@@ -1751,6 +1751,7 @@ async applyUserModification() {
       if (targetLabel) targetLabel.innerText = `${count} کاربر انتخاب‌شده`;
 
       this.setBulkActionType('add_traffic');
+      this.selectBulkStatus($('bulkStatusSelect')?.value || 'EXPIRED', true);
       if (preferredTarget === 'selected' || (count > 0 && !preferredTarget)) {
         this.onBulkTargetChange('selected');
       } else {
@@ -1765,6 +1766,80 @@ async applyUserModification() {
     closeBulkUsersModal() {
       const modal = $('bulkUsersModal');
       if (modal) modal.classList.add('hidden');
+      this.closeBulkStatusPickerModal();
+    },
+
+    openBulkStatusPickerModal() {
+      const modal = $('bulkStatusPickerModal');
+      const list = $('bulkStatusPickerList');
+      if (!modal || !list) return;
+
+      const currentStatus = $('bulkStatusSelect')?.value || 'EXPIRED';
+      const options = [
+        {
+          value: 'EXPIRED',
+          icon: '❌',
+          label: 'منقضی‌شده (EXPIRED)',
+          desc: 'کاربرانی که مهلت زمانی سرویس آن‌ها به پایان رسیده است',
+          activeCls: 'bg-rose-500/15 border-rose-500 shadow-sm',
+        },
+        {
+          value: 'LIMITED',
+          icon: '⚠️',
+          label: 'پایان ترافیک / محدودشده (LIMITED)',
+          desc: 'کاربرانی که حجم اشتراک آن‌ها تمام شده یا محدود شده‌اند',
+          activeCls: 'bg-amber-500/15 border-amber-500 shadow-sm',
+        },
+        {
+          value: 'DISABLED',
+          icon: '⛔',
+          label: 'غیرفعال‌شده (DISABLED)',
+          desc: 'کاربران غیرفعال‌شده به صورت دستی توسط مدیریت',
+          activeCls: 'bg-slate-500/20 border-indigo-500 shadow-sm',
+        },
+      ];
+
+      list.innerHTML = options.map(opt => {
+        const isSelected = currentStatus === opt.value;
+        return `
+          <div onclick="window.adminActions.selectBulkStatus('${opt.value}')" class="p-3 rounded-2xl border transition cursor-pointer flex items-center justify-between gap-3 ${isSelected ? opt.activeCls : 'card-inset hover:border-slate-500/50'} active:scale-[0.98]">
+            <div class="flex items-center gap-2.5 min-w-0">
+              <span class="text-lg shrink-0">${opt.icon}</span>
+              <div class="min-w-0">
+                <b class="text-xs t-main block truncate">${opt.label}</b>
+                <span class="text-[11px] t-muted block mt-0.5 leading-snug">${opt.desc}</span>
+              </div>
+            </div>
+            <span class="text-xs font-bold t-accent shrink-0">${isSelected ? '✓' : ''}</span>
+          </div>
+        `;
+      }).join('');
+
+      modal.classList.remove('hidden');
+      if (window.hapticFeedback) window.hapticFeedback('selection');
+    },
+
+    closeBulkStatusPickerModal() {
+      $('bulkStatusPickerModal')?.classList.add('hidden');
+    },
+
+    selectBulkStatus(status = 'EXPIRED', silent = false) {
+      const META = {
+        EXPIRED: { icon: '❌', label: 'منقضی‌شده (EXPIRED)' },
+        LIMITED: { icon: '⚠️', label: 'پایان ترافیک / محدودشده (LIMITED)' },
+        DISABLED: { icon: '⛔', label: 'غیرفعال‌شده (DISABLED)' },
+      };
+      const chosen = META[status] ? status : 'EXPIRED';
+      const input = $('bulkStatusSelect');
+      const iconEl = $('bulkStatusPickerIcon');
+      const labelEl = $('bulkStatusPickerLabel');
+      if (input) input.value = chosen;
+      if (iconEl) iconEl.innerText = META[chosen].icon;
+      if (labelEl) labelEl.innerText = META[chosen].label;
+      if (!silent) {
+        this.closeBulkStatusPickerModal();
+        if (window.hapticFeedback) window.hapticFeedback('selection');
+      }
     },
 
     onBulkTargetChange(target = 'all_active') {

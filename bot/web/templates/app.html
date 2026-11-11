@@ -187,7 +187,7 @@
       <!-- ======================================================== -->
       <!-- 0.3 SYSTEM BANNED OVERLAY                                -->
       <!-- ======================================================== -->
-      <div id="systemBannedScreen" class="hidden select-none py-6 sm:py-10 flex flex-col items-center justify-center relative my-auto">
+      <div id="systemBannedScreen" class="hidden select-none w-full py-2 flex flex-col items-center justify-center relative">
         <div class="absolute w-64 h-64 bg-rose-500/10 rounded-full blur-3xl pointer-events-none -top-4"></div>
         <div class="absolute w-56 h-56 bg-red-600/10 rounded-full blur-2xl pointer-events-none -bottom-4"></div>
 
@@ -207,7 +207,7 @@
           </span>
 
           <div id="bannedSupportBox" class="mt-6 w-full hidden">
-            <button type="button" onclick="window.openSupportContact()" class="w-full py-2.5 px-4 rounded-xl btn-danger font-bold text-xs shadow-md transition active:scale-95 flex items-center justify-center gap-2">
+            <button type="button" onclick="window.openSupportContact()" class="w-full py-2.5 px-4 rounded-xl btn-danger font-bold text-xs shadow-lg transition active:scale-95 flex items-center justify-center gap-2">
               <span>🎧 تماس با پشتیبانی</span>
             </button>
           </div>
@@ -3632,9 +3632,9 @@
           </div>
           <div class="card-inset p-2.5 rounded-xl space-y-1">
             <span class="font-bold t-muted block border-b border-card-border pb-1">👤 خریدار:</span>
-            <div class="text-right font-sans num-bidi" dir="ltr">
-              <span id="invBuyerName" class="font-bold t-main block truncate text-xs select-all text-right">کاربر گرامی</span>
-              <span id="invBuyerId" class="text-[11px] text-slate-400 font-sans num-bidi block select-all text-right">--</span>
+            <div class="text-left font-sans num-bidi" dir="ltr">
+              <span id="invBuyerName" class="font-bold t-main block truncate text-xs select-all text-left">کاربر گرامی</span>
+              <span id="invBuyerId" class="text-[11px] text-slate-400 font-sans num-bidi block select-all text-left">--</span>
             </div>
           </div>
         </div>

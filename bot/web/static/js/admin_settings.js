@@ -869,7 +869,7 @@ openUserChat(telegram_id, name, tag, topup_id) {
       if (mode === 'invite_only') {
         if (badge) {
           badge.textContent = 'فقط با دعوت';
-          badge.className = 'badge badge-info rounded-full text-[10px] font-bold px-2 py-0.5';
+          badge.className = 't-accent font-bold text-[11px] whitespace-nowrap';
         }
         if (sub) sub.textContent = 'کاربران جدید نیازمند لینک دعوت/رفرال هستند';
         if (icon) {
@@ -879,7 +879,7 @@ openUserChat(telegram_id, name, tag, topup_id) {
       } else if (mode === 'closed') {
         if (badge) {
           badge.textContent = 'بسته (تعمیرات)';
-          badge.className = 'badge badge-danger rounded-full text-[10px] font-bold px-2 py-0.5';
+          badge.className = 't-danger font-bold text-[11px] whitespace-nowrap';
         }
         if (sub) sub.textContent = 'ثبت‌نام متوقف شده است؛ سرویس‌های فعلی فعالند';
         if (icon) {
@@ -889,7 +889,7 @@ openUserChat(telegram_id, name, tag, topup_id) {
       } else {
         if (badge) {
           badge.textContent = 'عمومی (آزاد)';
-          badge.className = 'badge badge-success rounded-full text-[10px] font-bold px-2 py-0.5';
+          badge.className = 't-success font-bold text-[11px] whitespace-nowrap';
         }
         if (sub) sub.textContent = 'ورود و ثبت‌نام برای تمامی کاربران آزاد است';
         if (icon) {

@@ -936,25 +936,22 @@
 
             <!-- Access Mode (حالت دسترسی ربات) -->
             <div class="py-1">
-              <div class="flex items-center justify-between cursor-pointer p-2.5 rounded-xl card-inset hover:border-emerald-500/50 transition active:scale-[0.99]" onclick="window.adminActions.openAccessModeModal()">
-                <div class="flex items-center gap-2.5">
+              <div class="flex items-center justify-between gap-2 p-2.5 rounded-xl card-inset">
+                <div class="flex items-center gap-2.5 min-w-0">
                   <div id="accessModeIconBox" class="w-8 h-8 rounded-xl bg-emerald-500/15 border border-emerald-500/30 t-success flex items-center justify-center text-sm flex-shrink-0">
                     🌐
                   </div>
-                  <div>
-                    <div class="flex items-center gap-1.5">
-                      <span class="t-main font-semibold text-xs block">حالت دسترسی ربات</span>
-                      <span id="accessModeBadge" class="badge badge-success rounded-full text-[11px] font-bold px-2 py-0.5">عمومی (آزاد)</span>
-                    </div>
+                  <div class="min-w-0">
+                    <span class="t-main font-semibold text-xs block">حالت دسترسی ربات</span>
                     <span id="accessModeSubtext" class="text-[11px] t-muted block mt-0.5">ورود و ثبت‌نام برای تمامی کاربران آزاد است</span>
                   </div>
                 </div>
-                <div class="flex items-center t-muted hover:text-slate-200 text-xs gap-1">
-
-                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
-                </div>
+                <input type="hidden" id="settingAccessMode" value="open" />
+                <button type="button" id="openAccessModeModalBtn" onclick="window.adminActions.openAccessModeModal()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-[var(--card-border)] bg-[var(--card-inner-bg)] hover:border-[var(--c-accent)] transition text-xs font-sans font-bold t-main active:scale-95 shadow-xs flex-shrink-0">
+                  <span id="accessModeBadge" class="t-success font-bold text-[11px] whitespace-nowrap">عمومی (آزاد)</span>
+                  <span class="text-[11px] t-muted">▾</span>
+                </button>
               </div>
-              <input type="hidden" id="settingAccessMode" value="open" />
             </div>
 
             <!-- Timezone Selector (منطقه زمانی سامانه) -->
@@ -2728,9 +2725,9 @@
           <div class="space-y-1.5">
             <div class="flex justify-between items-center">
               <label class="text-[11px] text-slate-300 font-medium">افزایش حجم ترافیک (GB):</label>
-              <span class="text-[11px] text-slate-400 font-sans">اختیاری (0 = بدون تغییر)</span>
+              <span class="text-[11px] text-slate-400 font-sans">اختیاری</span>
             </div>
-            <input type="number" inputmode="numeric" pattern="[0-9]*" id="modifyModalTraffic" placeholder="0" min="0" step="1" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-sans text-cyan-300 outline-none focus:border-cyan-500" />
+            <input type="number" inputmode="numeric" pattern="[0-9]*" id="modifyModalTraffic" placeholder="0 = بدون تغییر" min="0" step="1" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-sans text-cyan-300 outline-none focus:border-cyan-500" />
             <div class="flex gap-1.5 pt-0.5" dir="ltr">
               <button type="button" onclick="window.adminActions.setModifyTraffic(5)" class="flex-1 py-1.5 rounded-xl card-inset border border-cyan-500/40 hover:border-cyan-500/70 text-cyan-700 dark:text-cyan-300 text-[11px] font-sans font-bold transition active:scale-95 text-center">+5 GB</button>
               <button type="button" onclick="window.adminActions.setModifyTraffic(10)" class="flex-1 py-1.5 rounded-xl card-inset border border-cyan-500/40 hover:border-cyan-500/70 text-cyan-700 dark:text-cyan-300 text-[11px] font-sans font-bold transition active:scale-95 text-center">+10 GB</button>
@@ -2743,9 +2740,9 @@
           <div class="space-y-1.5">
             <div class="flex justify-between items-center">
               <label class="text-[11px] text-slate-300 font-medium">تمدید مدت زمان (روز):</label>
-              <span class="text-[11px] text-slate-400 font-sans">اختیاری (0 = بدون تغییر)</span>
+              <span class="text-[11px] text-slate-400 font-sans">اختیاری</span>
             </div>
-            <input type="number" inputmode="numeric" pattern="[0-9]*" id="modifyModalDays" placeholder="0" min="0" step="1" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-sans text-amber-300 outline-none focus:border-amber-500" />
+            <input type="number" inputmode="numeric" pattern="[0-9]*" id="modifyModalDays" placeholder="0 = بدون تغییر" min="0" step="1" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-sans text-amber-300 outline-none focus:border-amber-500" />
             <div class="flex gap-1.5 pt-0.5" dir="rtl">
               <button type="button" onclick="window.adminActions.setModifyDays(7)" class="flex-1 py-1.5 rounded-xl card-inset border border-amber-500/40 hover:border-amber-500/70 text-amber-700 dark:text-amber-300 text-[11px] font-sans font-bold transition active:scale-95 text-center"><span dir="ltr">+7</span> روز</button>
               <button type="button" onclick="window.adminActions.setModifyDays(15)" class="flex-1 py-1.5 rounded-xl card-inset border border-amber-500/40 hover:border-amber-500/70 text-amber-700 dark:text-amber-300 text-[11px] font-sans font-bold transition active:scale-95 text-center"><span dir="ltr">+15</span> روز</button>
@@ -2932,12 +2929,15 @@
 
             <!-- Status selector when by_status is chosen -->
             <div id="bulkStatusDropdownContainer" class="hidden mt-2 pt-2 border-t border-slate-700/50">
-              <label class="t-main text-[11px] font-medium block mb-1">وضعیت مورد نظر جهت عملیات:</label>
-              <select id="bulkStatusSelect" class="w-full card-inset rounded-xl p-2 t-main text-xs outline-none focus:border-indigo-500">
-                <option value="EXPIRED">❌ منقضی‌شده (EXPIRED)</option>
-                <option value="LIMITED">⚠️ پایان ترافیک / محدودشده (LIMITED)</option>
-                <option value="DISABLED">⛔ غیرفعال‌شده (DISABLED)</option>
-              </select>
+              <label class="t-main text-[11px] font-medium block mb-1.5">وضعیت مورد نظر جهت عملیات:</label>
+              <input type="hidden" id="bulkStatusSelect" value="EXPIRED" />
+              <div onclick="window.adminActions.openBulkStatusPickerModal()" class="w-full card-inset rounded-xl px-3 py-2.5 flex items-center justify-between cursor-pointer transition hover:border-indigo-500/60 active:scale-[0.99] group">
+                <div class="flex items-center gap-2 min-w-0">
+                  <span id="bulkStatusPickerIcon" class="text-sm">❌</span>
+                  <span id="bulkStatusPickerLabel" class="text-xs t-main font-bold truncate">منقضی‌شده (EXPIRED)</span>
+                </div>
+                <span class="t-muted text-xs group-hover:t-main transition">▾</span>
+              </div>
             </div>
           </div>
 
@@ -2952,6 +2952,22 @@
             <span id="bulkSubmitText">اعمال عملیات گروهی</span>
             <div id="bulkSubmitSpinner" class="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin hidden"></div>
           </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL: Bulk Status Picker (انتخاب وضعیت کاربران جهت عملیات گروهی) -->
+    <div id="bulkStatusPickerModal" class="absolute inset-0 modal-backdrop z-[60] flex items-center justify-center p-3 sm:p-4 hidden">
+      <div class="modal-card border border-slate-700/80 rounded-3xl p-4 sm:p-5 w-full max-w-[350px] max-h-[80vh] flex flex-col space-y-3 shadow-2xl relative">
+        <div class="flex justify-between items-center border-b border-slate-700/60 pb-2.5 shrink-0">
+          <div class="flex items-center gap-2">
+            <span class="text-base">📊</span>
+            <h4 class="text-xs font-bold t-main">وضعیت مورد نظر جهت عملیات</h4>
+          </div>
+          <button type="button" onclick="window.adminActions.closeBulkStatusPickerModal()" class="modal-close-btn" aria-label="بستن">✕</button>
+        </div>
+        <div id="bulkStatusPickerList" class="space-y-2 flex-1 overflow-y-auto custom-scroll text-xs p-0.5">
+          <!-- Dynamically populated status options -->
         </div>
       </div>
     </div>
@@ -3400,21 +3416,21 @@
         </div>
         
         <div class="space-y-3">
-          <div class="bg-slate-900/70 p-3 rounded-2xl border border-slate-800 space-y-2 text-xs">
+          <div class="card-inset p-3 rounded-2xl border space-y-2 text-xs">
             <div class="flex justify-between items-center">
-              <span class="text-slate-400 text-[11px]">گروه هدف:</span>
-              <b id="reportTargetLabel" class="text-cyan-300 font-bold text-[11px]">همه کاربران</b>
+              <span class="t-muted text-[11px]">گروه هدف:</span>
+              <b id="reportTargetLabel" class="text-cyan-700 dark:text-cyan-300 font-extrabold text-[11px]">همه کاربران</b>
             </div>
             <div class="flex justify-between items-center">
-              <span class="text-slate-400 text-[11px]">کل مخاطبان:</span>
-              <b id="reportTotalCount" class="text-white font-sans font-bold text-xs">0 نفر</b>
+              <span class="t-muted text-[11px]">کل مخاطبان:</span>
+              <b id="reportTotalCount" class="t-main font-sans font-bold text-xs">0 نفر</b>
             </div>
             <div class="flex justify-between items-center">
-              <span class="text-slate-400 text-[11px]">ارسال موفق:</span>
+              <span class="t-muted text-[11px]">ارسال موفق:</span>
               <b id="reportSentCount" class="t-success font-sans font-bold text-xs">0 پیام</b>
             </div>
             <div class="flex justify-between items-center">
-              <span class="text-slate-400 text-[11px]">ناموفق / بلاک:</span>
+              <span class="t-muted text-[11px]">ناموفق / بلاک:</span>
               <b id="reportFailedCount" class="t-danger font-sans font-bold text-xs">0</b>
             </div>
           </div>
@@ -3992,7 +4008,7 @@
           <div class="space-y-1">
             <div class="flex justify-between items-center">
               <label class="text-[11px] text-slate-300 font-medium">شناسه عددی تلگرام:</label>
-              <span class="s-danger-soft border text-[10.5px] font-bold px-2 py-0.5 rounded-lg">* الزامی</span>
+              <span class="s-danger-soft border text-[10.5px] font-bold px-2 py-0.5 rounded-lg">الزامی</span>
             </div>
             <input type="number" inputmode="numeric" id="createUserTelegramId" placeholder="مثلاً 123456789" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-sans text-cyan-300 outline-none focus:border-cyan-500" />
           </div>
@@ -4001,9 +4017,9 @@
           <div class="space-y-1">
             <div class="flex justify-between items-center">
               <label class="text-[11px] text-slate-300 font-medium">نام کاربری در پنل:</label>
-              <span class="text-[11px] text-slate-400 font-sans">اختیاری (پیش‌فرض: خودکار)</span>
+              <span class="text-[11px] text-slate-400 font-sans">اختیاری</span>
             </div>
-            <input type="text" id="createUserUsername" oninput="window.adminActions.onUsernameInput(this.value)" placeholder="مثلاً my_vpn_user" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-sans text-white outline-none focus:border-cyan-500" dir="ltr" />
+            <input type="text" id="createUserUsername" oninput="window.adminActions.onUsernameInput(this.value)" placeholder="پیش‌فرض: خودکار" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-sans text-white outline-none focus:border-cyan-500 placeholder:text-right" dir="ltr" />
             <div id="createUserUsernameStatus" class="text-[11px] font-medium hidden"></div>
           </div>
 
@@ -4012,25 +4028,23 @@
             <label class="text-[11px] text-slate-300 font-medium">بسته اشتراک انتخابی:</label>
             <div onclick="window.adminActions.openPlanPickerModal()" class="w-full bg-slate-900 border border-slate-700 hover:border-blue-500/60 rounded-xl px-3 py-2.5 flex items-center justify-between cursor-pointer transition active:scale-[0.99] group">
               <div class="flex items-center gap-2 min-w-0">
-                <span id="createUserPlanIcon" class="text-sm">⚙️</span>
-                <span id="createUserPlanLabel" class="text-xs text-white font-medium truncate">تنظیمات سفارشی (دستی)</span>
+                <span id="createUserPlanIcon" class="text-sm">📦</span>
+                <span id="createUserPlanLabel" class="text-xs text-white font-medium truncate">انتخاب کنید</span>
               </div>
               <span class="text-slate-400 text-xs group-hover:text-white transition">▼</span>
             </div>
-            <input type="hidden" id="createUserSelectedPlanId" value="custom" />
+            <input type="hidden" id="createUserSelectedPlanId" value="" />
           </div>
 
           <!-- Traffic (GB) & Duration (Days) in grid -->
           <div class="grid grid-cols-2 gap-2">
             <div class="space-y-1">
               <label class="text-[11px] text-slate-300 font-medium">حجم (GB):</label>
-              <input type="number" inputmode="numeric" id="createUserTraffic" placeholder="50" min="0" value="50" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-sans text-cyan-300 outline-none focus:border-cyan-500" />
-              <span class="text-[11px] text-slate-400 block">0 = نامحدود</span>
+              <input type="number" inputmode="numeric" id="createUserTraffic" placeholder="0 = نامحدود" min="0" value="" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-sans text-cyan-300 outline-none focus:border-cyan-500" />
             </div>
             <div class="space-y-1">
               <label class="text-[11px] text-slate-300 font-medium">مدت زمان (روز):</label>
-              <input type="number" inputmode="numeric" id="createUserDuration" placeholder="30" min="1" value="30" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-sans text-amber-300 outline-none focus:border-amber-500" />
-              <span class="text-[11px] text-slate-400 block">مثلاً 30 روز</span>
+              <input type="number" inputmode="numeric" id="createUserDuration" placeholder="مثلاً 30" min="1" value="" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-sans text-amber-300 outline-none focus:border-amber-500" />
             </div>
           </div>
 
@@ -4044,7 +4058,7 @@
           <div class="space-y-1">
             <div class="flex justify-between items-center">
               <label class="text-[11px] t-muted font-medium">اسکواد داخلی (Internal Squad):</label>
-              <span class="s-danger-soft border text-[10.5px] font-bold px-2 py-0.5 rounded-lg">* الزامی</span>
+              <span class="s-danger-soft border text-[10.5px] font-bold px-2 py-0.5 rounded-lg">الزامی</span>
             </div>
             <input type="hidden" id="createUserSquadSelect" value="" />
             <div onclick="window.adminActions.openSquadPickerModal()" class="w-full card-inset rounded-xl px-3 py-2.5 flex items-center justify-between cursor-pointer transition active:scale-[0.99] group">

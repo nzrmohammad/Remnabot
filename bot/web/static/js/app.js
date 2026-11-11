@@ -2969,6 +2969,19 @@ function applySystemBlockScreen(mode, data = {}) {
   const isBlocked = Boolean(mode);
   window.isSystemBlocked = isBlocked;
 
+  const contentArea = $('contentArea');
+  if (contentArea) {
+    contentArea.classList.toggle('system-blocked-active', isBlocked);
+    contentArea.classList.toggle('overflow-y-auto', !isBlocked);
+    contentArea.classList.toggle('overflow-hidden', isBlocked);
+    contentArea.classList.toggle('flex', isBlocked);
+    contentArea.classList.toggle('flex-col', isBlocked);
+    contentArea.classList.toggle('justify-center', isBlocked);
+    contentArea.classList.toggle('pb-4', isBlocked);
+    contentArea.classList.toggle('pb-[calc(6.5rem+env(safe-area-inset-bottom,0px))]', !isBlocked);
+    if (isBlocked) contentArea.scrollTop = 0;
+  }
+
   if (!isBlocked) return false;
 
   const splash = $('splashScreen');

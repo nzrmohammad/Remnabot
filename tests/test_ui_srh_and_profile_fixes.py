@@ -389,7 +389,7 @@ async def test_payment_methods_chart_includes_all_gateways(session_factory):
     iran_badge_css = components_css[components_css.find(".shop-plan-badge.badge-iran"):components_css.find(".btn-plan-iran") + 260]
     assert "border-bottom: 2px solid #ffffff" not in iran_badge_css
     assert "rgba(255, 255, 255, 0.65)" not in iran_badge_css
-    assert "${planBadge ? 'mt-4' : ''}" in shop_js
+    assert "flex items-center justify-between gap-2" in shop_js
     assert 'text-2xl leading-none bg-transparent border-0 shadow-none flex-shrink-0" title="پیشنهادی">🥇' in app_js
     for color_hex in ("#22c55e", "#3ddc84", "#f25022", "#38bdf8", "#f59e0b"):
         assert color_hex in app_html
@@ -613,3 +613,65 @@ async def test_node_billing_inline_rows_due_date_ui_plan_align_and_due_alert(ses
     async with session_factory() as session:
         item_after = await NodeCostRepository(session).get_by_uuid("nl-node-1")
         assert item_after is not None and item_after.alert_notified is True
+
+
+def test_shop_card_header_invoice_buyer_modals_and_banned_scroll_fixes():
+    """Verify shop card alignment, invoice buyer alignment, light-mode report label, access mode dropdown, create/modify placeholders, bulk status picker modal, and banned scroll/CTA."""
+    app_html = Path("bot/web/templates/app.html").read_text(encoding="utf-8")
+    admin_html = Path("bot/web/templates/admin.html").read_text(encoding="utf-8")
+    shop_js = Path("bot/web/static/js/shop.js").read_text(encoding="utf-8")
+    app_js = Path("bot/web/static/js/app.js").read_text(encoding="utf-8")
+    admin_users_js = Path("bot/web/static/js/admin_users.js").read_text(encoding="utf-8")
+    admin_settings_js = Path("bot/web/static/js/admin_settings.js").read_text(encoding="utf-8")
+    components_css = Path("bot/web/static/css/components.css").read_text(encoding="utf-8")
+
+    # 1. Shop card: inline pill badge + Price/Name opposite row without mt-4 void
+    assert "rounded-br-xl" not in shop_js[shop_js.find("if (isExtraTraffic)"):shop_js.find("const hasBadges")]
+    assert 'h4 dir="ltr" class="font-bold text-sm t-main truncate text-left min-w-0 flex-1"' in shop_js
+    assert 'flex items-center justify-start gap-1.5 mt-2 flex-wrap' in shop_js
+    assert "border-bottom: 1.5px solid" not in components_css[components_css.find("/* --- 16. Shop Plan Badges --- */"):]
+
+    # 2. Invoice modal Buyer content left-aligned while header stays unchanged
+    buyer_idx = app_html.find("👤 خریدار:")
+    buyer_block = app_html[buyer_idx:buyer_idx + 350]
+    assert 'class="text-left font-sans num-bidi" dir="ltr"' in buyer_block
+    assert 'id="invBuyerName" class="font-bold t-main block truncate text-xs select-all text-left"' in buyer_block
+    assert 'id="invBuyerId" class="text-[11px] text-slate-400 font-sans num-bidi block select-all text-left"' in buyer_block
+
+    # 3. Broadcast report modal light-mode contrast
+    report_block = admin_html[admin_html.find('id="broadcastReportModal"'):admin_html.find('id="dismissReportModalBtn"')]
+    assert 'id="reportTargetLabel" class="text-cyan-700 dark:text-cyan-300 font-extrabold text-[11px]"' in report_block
+
+    # 4. Access mode button matches Timezone selector styling
+    assert 'id="openAccessModeModalBtn"' in admin_html
+    access_btn_block = admin_html[admin_html.find('id="openAccessModeModalBtn"'):admin_html.find('id="openTimezoneModalBtn"')]
+    assert 'id="accessModeBadge"' in access_btn_block
+    assert "▾" in access_btn_block
+    assert "t-success font-bold text-[11px] whitespace-nowrap" in admin_settings_js
+
+    # 5. Create user modal cleanup (no asterisk before الزامی, select placeholder, input placeholders)
+    create_block = admin_html[admin_html.find('id="createUserModal"'):admin_html.find('id="planPickerModal"')]
+    assert "* الزامی" not in create_block
+    assert '>الزامی</span>' in create_block
+    assert 'placeholder="پیش\u200cفرض: خودکار"' in create_block
+    assert 'id="createUserPlanLabel" class="text-xs text-white font-medium truncate">انتخاب کنید<' in create_block
+    assert 'placeholder="0 = نامحدود"' in create_block
+    assert 'placeholder="مثلاً 30"' in create_block
+    assert "if (labelEl) labelEl.innerText = 'انتخاب کنید';" in admin_users_js
+
+    # 6. Bulk users modal uses dedicated custom status picker modal instead of raw select
+    bulk_block = admin_html[admin_html.find('id="bulkUsersModal"'):admin_html.find('id="bulkStatusPickerModal"')]
+    assert '<select id="bulkStatusSelect"' not in bulk_block
+    assert 'type="hidden" id="bulkStatusSelect"' in bulk_block
+    assert "openBulkStatusPickerModal" in admin_html and "openBulkStatusPickerModal" in admin_users_js
+    assert 'id="bulkStatusPickerModal"' in admin_html
+
+    # 7. Modify user modal placeholders & labels
+    mod_block = admin_html[admin_html.find('id="modifyUserModal"'):admin_html.find('id="walletModal"')]
+    assert "اختیاری (0 = بدون تغییر)" not in mod_block
+    assert mod_block.count('placeholder="0 = بدون تغییر"') == 2
+
+    # 8. Banned screen dark-mode CTA polish & scroll lock
+    assert "linear-gradient(135deg, #e11d48 0%, #be123c 100%)" in components_css
+    assert "contentArea.classList.toggle('system-blocked-active', isBlocked)" in app_js
+    assert "contentArea.classList.toggle('overflow-hidden', isBlocked)" in app_js
