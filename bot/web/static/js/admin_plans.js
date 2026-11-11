@@ -231,9 +231,6 @@
                     <span class="text-[11px] font-sans font-medium text-slate-400 -mt-0.5">تومان</span>
                   </div>
                   <div class="flex items-center justify-start gap-1.5 min-w-0 flex-1" dir="ltr">
-                    <span class="w-7 h-7 rounded-xl card-inset text-slate-300 border border-slate-700/80 flex items-center justify-center flex-shrink-0" title="بسته">
-                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
-                    </span>
                     ${pkgIcon ? `<span class="text-sm select-none leading-none flex-shrink-0" title="آیکون بسته">${pkgIcon}</span>` : ''}
                     <b dir="ltr" class="t-main text-xs font-bold truncate">${escapeHtml(cleanName)}</b>
                     <div class="flex-shrink-0">${statusBadge}</div>
@@ -447,20 +444,18 @@
 
       const currentVal = $('planModalSquadUuid')?.value || '';
 
-      let itemsHtml = `
-        <div onclick="window.adminActions.selectPlanSquad('', 'انتخاب کنید')" class="p-3 rounded-2xl border transition cursor-pointer flex items-center justify-between gap-3 ${!currentVal ? 'bg-blue-600/15 border-blue-500 shadow-sm' : 'card-inset hover:border-slate-500/50'}">
-          <span class="text-xs font-bold ${!currentVal ? 't-info' : 't-main'}">انتخاب کنید</span>
-          <span class="text-xs font-bold t-info">${!currentVal ? '✓' : ''}</span>
-        </div>
-      `;
+      let itemsHtml = '';
 
       if (adminRemnawaveSquads && adminRemnawaveSquads.length > 0) {
         itemsHtml += adminRemnawaveSquads.map(s => {
           const isSelected = currentVal === s.uuid;
           return `
-            <div onclick="window.adminActions.selectPlanSquad('${escapeHtml(s.uuid)}', '${escapeHtml(s.name)}')" class="p-3 rounded-2xl border transition cursor-pointer flex items-center justify-between gap-3 ${isSelected ? 'bg-blue-600/15 border-blue-500 shadow-sm' : 'card-inset hover:border-slate-500/50'}">
-              <span class="text-xs font-bold ${isSelected ? 't-info' : 't-main'}">🧩 ${escapeHtml(s.name)}</span>
-              <span class="text-xs font-bold t-info">${isSelected ? '✓' : ''}</span>
+            <div onclick="window.adminActions.selectPlanSquad('${escapeHtml(s.uuid)}', '${escapeHtml(s.name)}')" dir="ltr" class="p-3 rounded-2xl border transition cursor-pointer flex items-center justify-between gap-3 ${isSelected ? 'bg-blue-600/15 border-blue-500 shadow-sm' : 'card-inset hover:border-slate-500/50'}">
+              <span class="text-xs font-bold truncate text-left min-w-0 flex-1 ${isSelected ? 't-info' : 't-main'}">${escapeHtml(s.name)}</span>
+              <div class="flex items-center gap-2 shrink-0">
+                ${isSelected ? '<span class="text-xs font-bold t-info">✓</span>' : ''}
+                <span class="text-base leading-none">🧩</span>
+              </div>
             </div>
           `;
         }).join('');

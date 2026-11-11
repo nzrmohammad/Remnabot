@@ -1438,17 +1438,17 @@ async applyUserModification() {
       };
 
       let html = `
-        <div onclick="window.adminActions.selectCreateUserPlan('custom')" class="p-3 rounded-2xl border transition cursor-pointer flex items-center justify-between gap-3 ${selectedId === 'custom' ? 'bg-blue-600/15 border-blue-500 shadow-sm' : 'card-inset hover:border-slate-500/50'}">
-          <div class="flex items-center justify-between min-w-0 flex-1 gap-3">
-            <div class="min-w-0 flex-1">
-              <span class="font-bold t-main text-xs block">تنظیمات سفارشی (دستی)</span>
-              <span class="text-[11px] t-muted block mt-0.5">تعیین دستی حجم، روز و محدودیت دلخواه</span>
-            </div>
+        <div onclick="window.adminActions.selectCreateUserPlan('custom')" dir="ltr" class="p-3 rounded-2xl border transition cursor-pointer flex items-center justify-between gap-3 ${selectedId === 'custom' ? 'bg-blue-600/15 border-blue-500 shadow-sm' : 'card-inset hover:border-slate-500/50'}">
+          <div class="min-w-0 flex-1 text-left">
+            <span dir="rtl" class="font-bold t-main text-xs block text-left">تنظیمات سفارشی (دستی)</span>
+            <span dir="rtl" class="text-[11px] t-muted block mt-0.5 text-left">تعیین دستی حجم، روز و محدودیت دلخواه</span>
+          </div>
+          <div class="flex items-center gap-2 shrink-0">
+            ${selectedId === 'custom' ? '<span class="text-blue-400 text-sm font-bold">✓</span>' : ''}
             <div class="w-8 h-8 rounded-xl bg-blue-500/15 text-blue-400 border border-blue-500/30 flex items-center justify-center font-bold text-sm shrink-0">
               ⚙️
             </div>
           </div>
-          <div class="shrink-0 text-blue-400 text-sm font-bold">${selectedId === 'custom' ? '✓' : ''}</div>
         </div>
       `;
 
@@ -1468,31 +1468,31 @@ async applyUserModification() {
           else if (bKey.includes('seller')) badgeClass = 'border-amber-500/40 text-amber-500 dark:text-amber-400 bg-amber-500/10';
           else if (bKey.includes('popular')) badgeClass = 'border-purple-500/40 text-purple-500 dark:text-purple-400 bg-purple-500/10';
           else if (bKey.includes('eco') || bKey.includes('iran')) badgeClass = 'border-emerald-500/40 text-emerald-500 dark:text-emerald-400 bg-emerald-500/10';
-          const badgeHtml = badgeText ? `<span class="px-1.5 py-0.5 text-[11px] rounded border font-bold ${badgeClass}">${badgeText}</span>` : '';
+          const badgeHtml = badgeText ? `<span dir="rtl" class="px-1.5 py-0.5 text-[11px] rounded border font-bold ${badgeClass}">${badgeText}</span>` : '';
           const priceLabel = p.price ? (typeof fmtMoney === 'function' ? fmtMoney(p.price) : `${p.price} تومان`) : '';
           const pEmojiMatches = (p.name || '').match(/([\uD800-\uDBFF][\uDC00-\uDFFF]|[\u2600-\u27BF]|\p{Extended_Pictographic}|\p{Emoji_Presentation})/gu);
           const pIcon = (pEmojiMatches && pEmojiMatches[0]) ? pEmojiMatches[0] : (Number(p.traffic_gb) > 0 && Number(p.duration_days) === 0 ? '⚡️' : (Number(p.traffic_gb) === 0 && Number(p.duration_days) > 0 ? '⏳' : '📦'));
 
           return `
-            <div onclick="window.adminActions.selectCreateUserPlan('${p.id}')" class="p-3 rounded-2xl border transition cursor-pointer flex items-center justify-between gap-3 ${isSelected ? 'bg-blue-600/15 border-blue-500 shadow-sm' : 'card-inset hover:border-slate-500/50'}">
-              <div class="flex items-center justify-between min-w-0 flex-1 gap-3">
-                <div class="min-w-0 flex-1">
-                  <div class="flex items-center gap-1.5 flex-wrap">
-                    <span class="font-bold t-main text-xs truncate">${escapeHtml(p.name)}</span>
-                    ${badgeHtml}
-                  </div>
-                  <div class="flex items-center gap-2 text-[11px] t-muted mt-0.5 font-sans">
-                    <span class="text-cyan-600 dark:text-cyan-300 font-bold inline-flex items-center gap-0.5" dir="rtl"><span>GB</span><span class="font-sans font-bold">${toEnglishDigits(p.traffic_gb)}</span></span>
-                    <span>•</span>
-                    <span class="text-amber-600 dark:text-amber-300 font-bold">${p.duration_days} روز</span>
-                    ${priceLabel ? `<span>•</span> <span class="t-muted font-sans">${escapeHtml(priceLabel)}</span>` : ''}
-                  </div>
+            <div onclick="window.adminActions.selectCreateUserPlan('${p.id}')" dir="ltr" class="p-3 rounded-2xl border transition cursor-pointer flex items-center justify-between gap-3 ${isSelected ? 'bg-blue-600/15 border-blue-500 shadow-sm' : 'card-inset hover:border-slate-500/50'}">
+              <div class="min-w-0 flex-1 text-left">
+                <div class="flex items-center justify-start gap-1.5 flex-wrap">
+                  <span class="font-bold t-main text-xs truncate">${escapeHtml(p.name)}</span>
+                  ${badgeHtml}
                 </div>
+                <div class="flex items-center justify-start gap-2 text-[11px] t-muted mt-0.5 font-sans flex-wrap">
+                  <span class="text-cyan-600 dark:text-cyan-300 font-bold inline-flex items-center gap-0.5" dir="ltr"><span class="font-sans font-bold">${toEnglishDigits(p.traffic_gb)}</span><span>GB</span></span>
+                  <span>•</span>
+                  <span class="text-amber-600 dark:text-amber-300 font-bold" dir="rtl">${p.duration_days} روز</span>
+                  ${priceLabel ? `<span>•</span> <span class="t-muted font-sans" dir="rtl">${escapeHtml(priceLabel)}</span>` : ''}
+                </div>
+              </div>
+              <div class="flex items-center gap-2 shrink-0">
+                ${isSelected ? '<span class="text-blue-400 text-sm font-bold">✓</span>' : ''}
                 <div class="w-8 h-8 rounded-xl bg-blue-500/15 text-blue-400 border border-blue-500/30 flex items-center justify-center font-bold text-sm shrink-0">
                   ${pIcon}
                 </div>
               </div>
-              <div class="shrink-0 text-blue-400 text-sm font-bold">${isSelected ? '✓' : ''}</div>
             </div>
           `;
         }).join('');
@@ -1541,12 +1541,12 @@ async applyUserModification() {
         const sqName = sq.name || sq.uuid || 'Squad';
         const isSelected = String(currentVal) === String(sqId);
         html += `
-          <div onclick="window.adminActions.selectCreateUserSquad('${escapeHtml(sqId)}', '${escapeHtml(sqName)}', '🧩')" class="p-3 rounded-2xl border transition cursor-pointer flex items-center justify-between gap-3 ${isSelected ? 'bg-blue-600/15 border-blue-500 shadow-sm' : 'card-inset hover:border-slate-500/50'}">
-            <div class="flex items-center gap-2.5 min-w-0">
-              <span class="text-base">🧩</span>
-              <span class="text-xs font-bold ${isSelected ? 't-info' : 't-main'}">${escapeHtml(sqName)}</span>
+          <div onclick="window.adminActions.selectCreateUserSquad('${escapeHtml(sqId)}', '${escapeHtml(sqName)}', '🧩')" dir="ltr" class="p-3 rounded-2xl border transition cursor-pointer flex items-center justify-between gap-3 ${isSelected ? 'bg-blue-600/15 border-blue-500 shadow-sm' : 'card-inset hover:border-slate-500/50'}">
+            <span class="text-xs font-bold truncate text-left min-w-0 flex-1 ${isSelected ? 't-info' : 't-main'}">${escapeHtml(sqName)}</span>
+            <div class="flex items-center gap-2 shrink-0">
+              ${isSelected ? '<span class="text-xs font-bold t-info">✓</span>' : ''}
+              <span class="text-base leading-none">🧩</span>
             </div>
-            <span class="text-xs font-bold t-info">${isSelected ? '✓' : ''}</span>
           </div>
         `;
       });

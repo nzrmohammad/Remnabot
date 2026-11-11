@@ -625,10 +625,11 @@ def test_shop_card_header_invoice_buyer_modals_and_banned_scroll_fixes():
     admin_settings_js = Path("bot/web/static/js/admin_settings.js").read_text(encoding="utf-8")
     components_css = Path("bot/web/static/css/components.css").read_text(encoding="utf-8")
 
-    # 1. Shop card: corner badge top-left, Price top-right, Title & discount/coupon badges left-aligned below corner badge
+    # 1. Shop card: corner badge top-left, Price top-right, Title left-aligned, Description opposite discount/coupon badges
     assert "rounded-br-xl" in shop_js
     assert 'min-w-0 flex-1 ${planBadge ? \'mt-4\' : \'\'}" dir="ltr"' in shop_js
-    assert 'flex items-center justify-start gap-1.5 mt-1.5 flex-wrap' in shop_js
+    assert 'flex items-center justify-between gap-2 mt-1.5' in shop_js
+    assert 'flex items-baseline gap-1" dir="rtl"' in shop_js
     assert "border-bottom: 1.5px solid" in components_css[components_css.find("/* --- 16. Shop Plan Badges --- */"):]
 
     # 2. Invoice modal Buyer content full-width left-aligned in both HTML and JS (no inline-block .num-bidi override)
@@ -682,3 +683,41 @@ def test_shop_card_header_invoice_buyer_modals_and_banned_scroll_fixes():
     assert "linear-gradient(135deg, #e11d48 0%, #be123c 100%)" in components_css
     assert "contentArea.classList.toggle('system-blocked-active', isBlocked)" in app_js
     assert "contentArea.classList.toggle('overflow-hidden', isBlocked)" in app_js
+
+
+def test_admin_plan_card_and_picker_ltr_and_shop_compact_price():
+    """Verify cube icon removal, compact discounted price + inline description in shop, and LTR picker modals."""
+    admin_html = Path("bot/web/templates/admin.html").read_text(encoding="utf-8")
+    admin_plans_js = Path("bot/web/static/js/admin_plans.js").read_text(encoding="utf-8")
+    admin_users_js = Path("bot/web/static/js/admin_users.js").read_text(encoding="utf-8")
+    shop_js = Path("bot/web/static/js/shop.js").read_text(encoding="utf-8")
+
+    # 1. Admin plan card cube SVG icon removed
+    assert 'title="بسته"' not in admin_plans_js
+
+    # 2. Shop plan card: conditional تومان next to discounted price vs stacked below non-discounted price
+    assert '<div class="flex items-baseline gap-1" dir="rtl">' in shop_js
+    assert '<span class="text-[11px] t-muted font-sans leading-none mt-0.5">تومان</span>' in shop_js
+    compact_row_idx = shop_js.find('<div class="flex items-center justify-between gap-2 mt-1.5">')
+    assert compact_row_idx != -1
+    compact_row = shop_js[compact_row_idx:compact_row_idx + 550]
+    assert "${safeDesc}" in compact_row and "${hasDiscountBadges ?" in compact_row
+
+    # 3. Create user Plan Picker & Squad Picker use LTR layout with flush-left content and right-aligned icons
+    plan_picker_section = admin_users_js[admin_users_js.find("openPlanPickerModal"):admin_users_js.find("closePlanPickerModal")]
+    assert "selectCreateUserPlan('custom')\" dir=\"ltr\"" in plan_picker_section
+    assert "selectCreateUserPlan('${p.id}')\" dir=\"ltr\"" in plan_picker_section
+    assert 'dir="rtl" class="font-bold t-main text-xs block text-left"' in plan_picker_section
+
+    squad_picker_section = admin_users_js[admin_users_js.find("openSquadPickerModal"):admin_users_js.find("closeSquadPickerModal")]
+    assert 'dir="ltr" class="p-3 rounded-2xl' in squad_picker_section
+    assert "text-left min-w-0 flex-1" in squad_picker_section
+
+    # 4. Plan Squad Picker uses LTR layout and excludes 'انتخاب کنید' as a selectable option while preserving initial label on #planModal
+    plan_squad_picker_section = admin_plans_js[admin_plans_js.find("openPlanSquadPickerModal"):admin_plans_js.find("closePlanSquadPickerModal")]
+    assert "selectPlanSquad(''," not in plan_squad_picker_section
+    assert "انتخاب کنید" not in plan_squad_picker_section
+    assert 'dir="ltr" class="p-3 rounded-2xl' in plan_squad_picker_section
+    assert 'id="planModalSquadLabel" class="text-xs t-main font-medium truncate">انتخاب کنید<' in admin_html
+    assert 'id="planSquadPickerList" class="space-y-2 flex-1 overflow-y-auto custom-scroll text-xs px-2.5 py-1.5"' in admin_html
+    assert 'id="squadPickerList" class="space-y-2 flex-1 overflow-y-auto custom-scroll text-xs px-2.5 py-1.5"' in admin_html
